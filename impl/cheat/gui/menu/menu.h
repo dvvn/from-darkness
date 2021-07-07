@@ -6,7 +6,7 @@
 
 namespace cheat::gui
 {
-	class menu_obj final: public service_shared<menu_obj ,service_mode::async>
+	class menu_obj final: public service_shared<menu_obj, service_mode::async>
 	{
 	public:
 		menu_obj( );
@@ -27,7 +27,8 @@ namespace cheat::gui
 		void Load( ) override;
 
 	private:
-		menu::pages_renderer renderer__;
+		imgui::string_wrapper menu_title__;
+		menu::pages_renderer  renderer__;
 
 		bool     visible__ = false;
 		animator fade__;

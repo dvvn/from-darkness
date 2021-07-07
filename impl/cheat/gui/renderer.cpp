@@ -29,16 +29,16 @@ renderer::~renderer( )
 	ImGui_ImplDX9_Shutdown( );
 }
 
-auto renderer::Load( ) -> void
+void renderer::Load( )
 {
 	IDirect3DDevice9* d3d = csgo_interfaces::get( ).d3d_device;
 	ImGui_ImplDX9_Init(d3d);
 	//ImGui_ImplDX9_CreateDeviceObjects( ); d3d9 multithread error
 }
 
-auto renderer::present(IDirect3DDevice9* d3d_device) -> void
+void renderer::present(IDirect3DDevice9* d3d_device)
 {
-	auto update_imgui_impl = []
+	const auto update_imgui_impl = []
 	{
 		ImGui_ImplDX9_NewFrame( );   //todo: remove. it only calls CreateDeviceObjects, what can be done after reset and init
 		ImGui_ImplWin32_NewFrame( ); //todo: call it from input (it only update mouse and keys). if do it move timers outside
@@ -82,7 +82,7 @@ auto renderer::present(IDirect3DDevice9* d3d_device) -> void
 	BOOST_ASSERT(SUCCEEDED(end));
 }
 
-auto renderer::reset([[maybe_unused]] IDirect3DDevice9* d3d_device) -> void
+void renderer::reset([[maybe_unused]] IDirect3DDevice9* d3d_device)
 {
 	(void)this;
 	ImGui_ImplDX9_InvalidateDeviceObjects( );

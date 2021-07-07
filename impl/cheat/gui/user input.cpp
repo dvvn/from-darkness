@@ -22,12 +22,12 @@ user_input::~user_input( )
 		ImGui::DestroyContext(ctx__);
 }
 
-auto user_input::hwnd( ) const -> HWND
+HWND user_input::hwnd( ) const
 {
 	return hwnd__;
 }
 
-auto user_input::Load( ) -> void
+void user_input::Load( )
 {
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*) { return operator new(size); },
@@ -67,9 +67,9 @@ auto user_input::Load( ) -> void
 }
 
 // ReSharper disable once CppInconsistentNaming
-extern auto ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) -> LRESULT;
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-auto user_input::process(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) -> process_result
+user_input::process_result user_input::process(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	(void)this;
 

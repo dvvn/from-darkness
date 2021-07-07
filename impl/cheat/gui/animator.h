@@ -5,23 +5,23 @@ namespace cheat::gui
 	class animator
 	{
 	public:
-		auto dir( ) const -> int;
+		int dir( ) const;
 
-		auto updating( ) const -> bool;
-		auto set(int direction) -> void;
-		auto update( ) -> bool;
-		auto finish( ) -> void;
+		bool updating( ) const;
+		void set(int direction);
+		bool update( );
+		void finish( );
 
-		auto done( ) const -> bool;
-		auto done(int direction) const -> bool;
-		auto value( ) const -> float;
+		bool  done( ) const;
+		bool  done(int direction) const;
+		float value( ) const;
 
 		//auto setup_limits(float value_min=0, float value_max=1, float time_max=0.3f) -> void;
 
 		animator(float value_min = 0, float value_max = 1, float time_max = 0.3f);
 
 	private:
-		auto Limit_(float dir ) const -> float;
+		float Limit_(float dir) const;
 
 		float time_max__ = 0;
 		int   dir__ = 0;

@@ -5,11 +5,66 @@
 #include "cheat/gui/imgui/push style var.h"
 
 using namespace cheat::gui;
+using namespace cheat::utl;
 using namespace menu;
 
 menu_obj::menu_obj( )
 {
 	this->Wait_for<settings>( );
+
+	constexpr uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
+	constexpr uint32_t compile_month = []
+	{
+		switch (__DATE__[0])
+		{
+			case 'J': // Jan, Jun or Jul
+				return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
+			case 'F': // Feb
+				return 2;
+			case 'M': // Mar or May
+				return (__DATE__[2] == 'r' ? 3 : 5);
+			case 'A': // Apr or Aug
+				return (__DATE__[2] == 'p' ? 4 : 8);
+			case 'S': // Sep
+				return 9;
+			case 'O': // Oct
+				return 10;
+			case 'N': // Nov
+				return 11;
+			case 'D': // Dec
+				return 12;
+		}
+	}( );
+
+	// ReSharper disable once CppUnreachableCode
+	constexpr uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
+
+	constexpr string::value_type iso_date[] =
+	{
+		compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
+		'.',
+		compile_month / 10 + '0', compile_month % 10 + '0',
+		'.',
+		compile_day / 10 + '0', compile_day % 10 + '0',
+		'\0'
+	};
+
+	string name = CHEAT_NAME;
+	name += " | ";
+	name += iso_date;
+#ifdef _DEBUG
+	name += _CONCAT(" | ", __TIME__);
+#endif
+
+#ifdef CHEAT_GUI_TEST
+	name += " (gui test)";
+#endif
+
+#ifdef _DEBUG
+	name += " DEBUG MODE";
+#endif
+
+	menu_title__ = move(name);
 }
 
 void menu_obj::render(float bg_alpha)
@@ -18,11 +73,32 @@ void menu_obj::render(float bg_alpha)
 	ImGui::ShowDemoWindow( );
 #endif
 
-	auto pop = imgui::push_style_var(ImGuiStyleVar_Alpha, bg_alpha);
-	(void)pop;
+	auto& style = ImGui::GetStyle( );
 
-	if (ImGui::Begin("test", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	mem::memory_backup<float> alpha_backup;
+	(void)alpha_backup;
+
+	if (bg_alpha != style.Alpha)
+		alpha_backup = mem::memory_backup(style.Alpha, bg_alpha);
+
+	constexpr auto dummy_text = string_view("W");
+	const auto     sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
+	const auto     min_size = ImGui::GetFontSize( ) + //small button size
+							  style.ItemInnerSpacing.x +
+							  sample_size.x * menu_title__.raw( ).size( ) + //string size
+							  style.FramePadding.x * 2.f +                  //space between and after
+							  style.WindowBorderSize;
+	//ImGui::SetNextWindowContentSize({min_size, 0});
+
+	mem::memory_backup<float> min_size_backup;
+	(void)min_size_backup;
+
+	if (min_size > style.WindowMinSize.x)
+		min_size_backup = mem::memory_backup(style.WindowMinSize.x, min_size);
+
+	if (ImGui::Begin(menu_title__, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
+		min_size_backup.reset( );
 		renderer__.render( );
 	}
 	ImGui::End( );

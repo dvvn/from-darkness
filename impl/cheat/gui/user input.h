@@ -11,10 +11,10 @@ namespace cheat::gui
 		~user_input( ) override;
 		user_input( );
 
-		auto hwnd( ) const -> HWND;
+		HWND hwnd( ) const;
 
 	protected:
-		auto Load( ) -> void override;
+		void Load( ) override;
 
 	public:
 		enum class process_result
@@ -23,7 +23,7 @@ namespace cheat::gui
 			blocked,
 			skipped
 		};
-		auto process(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) -> process_result;
+		process_result process(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 	private:
 		ImGuiContext* ctx__ = nullptr;

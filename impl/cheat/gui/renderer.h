@@ -10,11 +10,11 @@ namespace cheat::gui
 		renderer( );
 
 	protected:
-		auto Load( ) -> void override;
+		void Load( ) override;
 
 	public:
-		auto present(IDirect3DDevice9* d3d_device) -> void;
-		auto reset(IDirect3DDevice9* d3d_device) -> void;
+		void present(IDirect3DDevice9* d3d_device);
+		void reset(IDirect3DDevice9* d3d_device);
 
 	private:
 		bool skip_first_tick__ = true;

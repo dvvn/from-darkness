@@ -12,7 +12,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>_OutputDir=_STRINGIZE_R($(OutputDir));_SolutionDir=_STRINGIZE_R($(SolutionDir));%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VS_OutputDir=$(OutputDir);VS_SolutionDir=$(SolutionDir);VS_SolutionName=$(SolutionName);VS_ProjectName=$(ProjectName);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <LanguageStandard>stdcpplatest</LanguageStandard>

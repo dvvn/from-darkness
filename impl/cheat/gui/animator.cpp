@@ -5,21 +5,21 @@ using namespace gui;
 using namespace hooks;
 using namespace utl;
 
-auto animator::dir( ) const -> int
+int animator::dir( ) const
 {
 	return dir__;
 }
 
-auto animator::updating( ) const -> bool
+bool animator::updating( ) const
 {
 	const auto val = value__.current;
 	return val > value__.min && val < value__.max;
 }
 
-auto animator::set(int direction) -> void
+void animator::set(int direction)
 {
 	BOOST_ASSERT(direction == 1 || direction == -1);
-	if (!updating( )) 
+	if (!updating( ))
 	{
 		time__ = time_max__;
 		value__.current = Limit_(-direction);
@@ -27,12 +27,12 @@ auto animator::set(int direction) -> void
 	dir__ = direction;
 }
 
-auto animator::update( ) -> bool
+bool animator::update( )
 {
 	if (time__ > 0)
 	{
-		const auto& delta = ImGui::GetIO( ).DeltaTime;
-		const auto  step = (value__.max - value__.min) * delta / time_max__;
+		const auto delta = ImGui::GetIO( ).DeltaTime;
+		const auto step = (value__.max - value__.min) * delta / time_max__;
 		time__ -= delta;
 		value__.current += step * dir__;
 		if (time__ > 0 && updating( ))
@@ -42,18 +42,18 @@ auto animator::update( ) -> bool
 	return false;
 }
 
-auto animator::finish( ) -> void
+void animator::finish( )
 {
 	time__ = 0;
 	value__.current = Limit_(dir__);
 }
 
-auto animator::done( ) const -> bool
+bool animator::done( ) const
 {
 	return value__.current == Limit_(dir__);
 }
 
-auto animator::done(int direction) const -> bool
+bool animator::done(int direction) const
 {
 	if (dir__ == direction)
 		return done( );
@@ -64,7 +64,7 @@ auto animator::done(int direction) const -> bool
 	return ret;
 }
 
-auto animator::value( ) const -> float
+float animator::value( ) const
 {
 	return value__.current;
 }
@@ -91,7 +91,7 @@ animator::animator(float value_min, float value_max, float time_max)
 //	time_max__ = time_max;
 //}
 
-auto animator::Limit_(float dir) const -> float
+float animator::Limit_(float dir) const
 {
 	return (/*dir__*/dir == 1 ? value__.max : value__.min);
 }

@@ -6,6 +6,6 @@ namespace cheat::gui
 	{
 	public:
 		virtual      ~renderable_object( ) = default;
-		virtual auto render( ) -> void =0;
+		virtual void render( ) =0;
 	};
 }

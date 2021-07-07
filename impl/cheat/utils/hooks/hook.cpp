@@ -149,6 +149,7 @@ STATUS hook_entry::set_state(bool enable)
 	if (enable)
 	{
 		auto again = false;
+		(void)again;
 	_TRY_AGAIN:
 		__try
 		{
