@@ -47,7 +47,7 @@ menu_obj::menu_obj( )
 		'.',
 		compile_day / 10 + '0', compile_day % 10 + '0',
 		'\0'
-	};
+	}; 
 
 	string name = CHEAT_NAME;
 	name += " | ";
