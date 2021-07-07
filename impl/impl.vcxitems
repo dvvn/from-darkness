@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{916e8d22-2269-4ed6-91fd-d0b929079422}</ItemsProjectGuid>
+    <ItemsProjectName>_cheat_impl</ItemsProjectName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\console.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\netvars.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\root service.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\settings.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\settings detail.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\animator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\animated selectable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style color.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style var.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\string wrapper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderable object.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\user input.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimatingOverlay.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatCharacter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseFlex.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BasePlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_CSPlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_WeaponCSBase.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde32.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde64.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\include.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\trampoline.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\vtable_counter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\QAngle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ClientClass.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Color.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CUserCmd.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\datamap.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Enums.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\GlobalVars.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\glow_outline_effect.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IAppSystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientEntity.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientEntityList.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientMode.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientNetworkable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientRenderable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientThinkable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientUnknown.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ICollideable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IConVar.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ICvar.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineSound.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IGameEventmanager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IHandleEntity.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IInputSystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IMaterialSystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IMDLCache.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IMoveHelper.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IPanel.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IPhysics.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IPrediction.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IRefCounted.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IRenderView.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ISurface.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVDebugOverlay.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVEngineClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IViewRender.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVModelInfoClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVModelRender.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Recv.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Studio.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlBuffer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlMemory.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\bitflag.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\dynamic_value.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\address.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\memory block.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\memory_backup.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\data_cache.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\exports_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\sections_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\vtables_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\signature.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\one_instance.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\str_crypt.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\timer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\value_setter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\handle.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\xor_shift.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector2D.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector4D.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\VMatrix.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\netvars.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\root service.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\settings.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\settings detail.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\animator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\animated selectable.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style color.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style var.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\string wrapper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\user input.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimatingOverlay.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatCharacter.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseFlex.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BasePlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_CSPlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_WeaponCSBase.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde32.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde64.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\trampoline.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\QAngle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Color.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\address.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\memory block.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\data_cache.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\exports_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\sections_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\vtables_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\timer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector2D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector4D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\VMatrix.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)global.cpp" />
+  </ItemGroup>
+</Project>

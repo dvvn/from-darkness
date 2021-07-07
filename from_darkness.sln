@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31321.278
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui", "..\Shared\imgui\imgui.vcxitems", "{47F5B994-EBB1-4993-BDFE-FCEB578DAC64}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ragnes_shared", "..\Shared\ranges_lib\include\ragnes_shared.vcxitems", "{734E9240-B25F-4398-B2E6-A242D62DF398}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "boost_shared", "..\Shared\boost_lib\boost_shared.vcxitems", "{FFAF92C1-2DD7-47F9-90D0-520801AED78F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tessil_lib", "..\Shared\Tessil_lib\Tessil_lib.vcxitems", "{F7D70A90-8ACF-46F0-8D9A-7059B63CB584}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_cheat_impl", "impl\impl.vcxitems", "{916E8D22-2269-4ED6-91FD-D0B929079422}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "__cheat_dll", "dll.vcxproj", "{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "__cheat_test_exe", "exe.vcxproj", "{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fmt", "..\Shared\fmt\shared\fmt.vcxitems", "{BD314138-58A4-4756-8483-05070737232E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinReg shared", "..\Shared\WinReg-4.1.0\WinReg shared.vcxitems", "{7BF4369C-8DE9-4109-9299-36EEF4319B0E}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\Shared\imgui\imgui.vcxitems*{47f5b994-ebb1-4993-bdfe-fceb578dac64}*SharedItemsImports = 9
+		..\Shared\ranges_lib\include\ragnes_shared.vcxitems*{734e9240-b25f-4398-b2e6-a242d62df398}*SharedItemsImports = 9
+		..\Shared\WinReg-4.1.0\WinReg shared.vcxitems*{7bf4369c-8de9-4109-9299-36eef4319b0e}*SharedItemsImports = 9
+		impl\impl.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
+		..\Shared\boost_lib\boost_shared.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
+		..\Shared\fmt\shared\fmt.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
+		..\Shared\imgui\imgui.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
+		..\Shared\ranges_lib\include\ragnes_shared.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
+		..\Shared\Tessil_lib\Tessil_lib.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
+		..\Shared\WinReg-4.1.0\WinReg shared.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
+		impl\impl.vcxitems*{916e8d22-2269-4ed6-91fd-d0b929079422}*SharedItemsImports = 9
+		..\Shared\fmt\shared\fmt.vcxitems*{bd314138-58a4-4756-8483-05070737232e}*SharedItemsImports = 9
+		impl\impl.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
+		..\Shared\boost_lib\boost_shared.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
+		..\Shared\fmt\shared\fmt.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
+		..\Shared\imgui\imgui.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
+		..\Shared\ranges_lib\include\ragnes_shared.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
+		..\Shared\Tessil_lib\Tessil_lib.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
+		..\Shared\WinReg-4.1.0\WinReg shared.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
+		..\Shared\Tessil_lib\Tessil_lib.vcxitems*{f7d70a90-8acf-46f0-8d9a-7059b63cb584}*SharedItemsImports = 9
+		..\Shared\boost_lib\boost_shared.vcxitems*{ffaf92c1-2dd7-47f9-90d0-520801aed78f}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Debug|x86.ActiveCfg = Debug|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Debug|x86.Build.0 = Debug|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.ActiveCfg = Release|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.Build.0 = Release|Win32
+		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Debug|x86.ActiveCfg = Debug|Win32
+		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Debug|x86.Build.0 = Debug|Win32
+		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Release|x86.ActiveCfg = Release|Win32
+		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		Qt5Version = $(DefaultQtVersion)
+		SolutionGuid = {4C2BD1D5-32A3-4BEF-BEB3-A5E5EE8A1521}
+	EndGlobalSection
+EndGlobal
