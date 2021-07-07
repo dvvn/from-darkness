@@ -8,67 +8,7 @@
 
 using namespace cheat;
 using namespace csgo;
-using namespace detail::netvars;
 using namespace utl;
-
-netvar_source::netvar_source(RecvProp* ptr): obj__(*ptr)
-{
-}
-
-netvar_source::netvar_source(typedescription_t* ptr): obj__(*ptr)
-{
-}
-
-void* netvar_source::get( ) const
-{
-	return (visit(overload([](const reference_wrapper<typedescription_t>& ptr)-> void*
-						   {
-							   return addressof(ptr.get( ));
-						   }, [](const reference_wrapper<RecvProp>& ptr)-> void*
-						   {
-							   return addressof(ptr.get( ));
-						   }), obj__));
-}
-
-const char* netvar_source::name( ) const
-{
-	return visit(overload([](const reference_wrapper<typedescription_t>& ptr)-> const char*
-						  {
-							  return ptr.get( ).fieldName;
-						  }, [](const reference_wrapper<RecvProp>& ptr)-> const char*
-						  {
-							  return ptr.get( ).m_pVarName;
-						  }), obj__);
-}
-
-const netvar_prop* dumped_class::find(const string_view& name) const
-{
-#if 0
-	static_assert(ranges::random_access_range<decltype(props__)>);
-
-	for(auto& p : props__)
-	{
-		if(p.name == name)
-			return addressof(p);
-	}
-
-	return nullptr;
-
-#endif
-	const auto found = props__.find((name));
-	return found == props__.end( ) ? nullptr : addressof(found->second);
-}
-
-pair<netvar_prop&, bool> dumped_class::try_emplace(const string_view& name, netvar_prop&& prop)
-{
-	auto&& [name_itr, placed] = props__.emplace(name, prop);
-	return pair<netvar_prop&, bool>(name_itr.value( ), placed);
-}
-
-const netvar_prop& dumped_class::at(const string_view& name) const
-{
-	return props__.at(name);
-}
 
 netvars::~netvars( )
 {
@@ -79,26 +19,15 @@ netvars::netvars( )
 	this->Wait_for<csgo_interfaces>( );
 }
 
-static void _Save_netvar(dumped_class& storage, const string_view& name, netvar_prop&& prop)
+static void _Save_netvar(property_tree::ptree& storage, string&& name, int offset)
 {
-	auto&& [prop_stored, placed] = storage.try_emplace(name, move(prop));
-
-#ifdef _DEBUG
-	if (placed)
-		return;
-	if (prop_stored.offset == prop.offset)
-		return;
-	if (prop_stored.source.name( ) == prop.source.name( )) //if name pointers same this is same netvar on different offset
-		return;
-
-	BOOST_ASSERT("Duplicated netvar detected!");
-#endif
+	if (!storage.get_child_optional(name))
+		storage.put(move(name), offset);
 }
 
-static void _Store_recv_props(dumped_class& storage, RecvTable* recv_table, netvar_prop::offset_type offset, int depth)
+static void _Store_recv_props(property_tree::ptree& storage, RecvTable* recv_table, int offset)
 {
 	static constexpr auto baseclass = string_view("baseclass");
-	static_assert(std::is_same_v<decltype(RecvProp::m_Offset), netvar_prop::offset_type>);
 
 	// ReSharper disable once CppUseStructuredBinding
 	for (auto& prop: span(recv_table->m_pProps, recv_table->m_nProps))
@@ -113,10 +42,14 @@ static void _Store_recv_props(dumped_class& storage, RecvTable* recv_table, netv
 
 		if (prop.m_RecvType != DPT_DataTable)
 		{
-			_Save_netvar(storage, prop_name, {real_prop_offset, depth, (&prop)});
+			_Save_netvar(storage, string(prop_name), real_prop_offset);
 		}
 		else
 		{
+			//rewrite this
+			//class -> class ; not class -> offset + offset + (class)offset
+#if 0
+			
 			const auto child_table = prop.m_pDataTable;
 
 			if (!child_table)
@@ -129,13 +62,14 @@ static void _Store_recv_props(dumped_class& storage, RecvTable* recv_table, netv
 
 			if (net_table_name[0] == 'D' && net_table_name[1] == 'T')
 			{
-				_Store_recv_props(storage, child_table, real_prop_offset, depth + 1);
+				_Store_recv_props(storage, child_table, real_prop_offset);
 			}
 			else
 			{
 				//todo: mark it as array
 				_Save_netvar(storage, prop_name, {real_prop_offset, depth, (&prop)});
 			}
+#endif
 		}
 	}
 }
@@ -158,23 +92,22 @@ static string _Fix_class_name(string_view name)
 	return class_name;
 }
 
-static void _Iterate_client_class(classes_storage& storage, ClientClass* root_class)
+static void _Iterate_client_class(property_tree::ptree& storage, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
 		if (client_class->pRecvTable == nullptr)
 			continue;
 
-		auto   class_name = _Fix_class_name(client_class->pNetworkName);
-		auto&& [props_itr, placed] = storage.try_emplace(move(class_name));
+		auto class_name = _Fix_class_name(client_class->pNetworkName);
+		BOOST_ASSERT(!storage.get_child_optional(class_name));
 
-		BOOST_ASSERT(placed == true);
-
-		_Store_recv_props(props_itr.value( ), client_class->pRecvTable, 0, 0);
+		auto& child = storage.add_child(move(class_name), { });
+		_Store_recv_props(child, client_class->pRecvTable, 0);
 	}
 }
 
-static void _Store_datamap_props(dumped_class& storage, datamap_t* map)
+static void _Store_datamap_props(property_tree::ptree& storage, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
 	for (auto& desc: span(map->dataDesc, map->dataNumFields))
@@ -184,7 +117,7 @@ static void _Store_datamap_props(dumped_class& storage, datamap_t* map)
 		if (desc.fieldType != FIELD_EMBEDDED)
 		{
 			const auto offset = desc.fieldOffset[TD_OFFSET_NORMAL];
-			_Save_netvar(storage, desc.fieldName, {offset, 0, &desc});
+			_Save_netvar(storage, desc.fieldName, offset);
 		}
 		else
 		{
@@ -196,16 +129,16 @@ static void _Store_datamap_props(dumped_class& storage, datamap_t* map)
 	}
 }
 
-static void _Iterate_datamap(classes_storage& storage, datamap_t* root_map)
+static void _Iterate_datamap(property_tree::ptree& storage, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
-		auto class_name = string_view(map->dataClassName);
+		auto class_name = string(map->dataClassName);
 
-		if (auto dumps = storage.find(class_name); dumps != storage.end( ))
-			_Store_datamap_props(dumps.value( ), map);
+		if (auto dumps = storage.get_child_optional(class_name); dumps.has_value( ))
+			_Store_datamap_props(*dumps, map);
 		else
-			_Store_datamap_props(storage[string(class_name)], map);
+			_Store_datamap_props(storage.add_child(move(class_name), { }), map);
 	}
 }
 
@@ -221,7 +154,7 @@ void netvars::Load( )
 	auto&      vtables = client_dll->vtables( );
 
 	filesystem::path dumps_path;
-#ifdef CHEAT_DUMPS_FOLDER
+#ifdef _DEBUG //dump first time in release mode, debug mode ultra slow!
 	dumps_path = filesystem::path(CHEAT_DUMPS_FOLDER) / client_dll->name_wide( ) / to_wstring(client_dll->check_sum( )) / L"vtables.json";
 #else
 	(void)dumps_path;
@@ -252,23 +185,7 @@ void netvars::Post_load( )
 	//todo: run dumper here
 }
 
-const netvar_prop& netvars::at(const string_view& class_name, const string_view& prop_name) const
+int netvars::at(const utl::string_view& path) const
 {
-#if 0
-	for(auto& d : data__)
-	{
-		if(d.name( ) != class_name)
-			continue;
-
-		const auto found_prop = d.find(prop_name);
-		BOOST_ASSERT(found_prop != nullptr);
-		return *found_prop;
-	}
-
-	BOOST_ASSERT("Class not found");
-	return *static_cast<netvar_prop*>(nullptr);
-
-#endif
-
-	return data__.at(class_name).at(prop_name);
+	return data__.get<int>(string(path));
 }
