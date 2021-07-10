@@ -84,8 +84,9 @@ struct typedescription_t
    //-----------------------------------------------------------------------------
 struct datamap_t
 {
-	typedescription_t    * dataDesc;
-	int                    dataNumFields;
+	//typedescription_t    * dataDesc;
+	//int                    dataNumFields;
+	utl::span<typedescription_t>data;
 	const char*            dataClassName;
 	datamap_t            * baseMap;
 

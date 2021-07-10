@@ -19,105 +19,191 @@ netvars::netvars( )
 	this->Wait_for<csgo_interfaces>( );
 }
 
-static void _Save_netvar(property_tree::ptree& storage, string&& name, int offset)
+template <typename Nstr, typename Tstr>
+static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, Tstr&& type, size_t repeat)
 {
-	if (!storage.get_child_optional(name))
-		storage.put(move(name), offset);
+	const auto path = property_tree::ptree::path_type(string(forward<Nstr>(name)));
+	if (storage.get_child_optional(path))
+		return false;
+	auto& entry = storage.add_child(path, { });
+	entry.put(_STRINGIZE(offset), offset);
+#ifdef _DEBUG
+	entry.put(_STRINGIZE(type), string(forward<Tstr>(type)));
+	BOOST_ASSERT(repeat > 0);
+	entry.put(_STRINGIZE(repeat), repeat);
+#endif
+	return true;
 }
 
-static void _Store_recv_props(property_tree::ptree& storage, RecvTable* recv_table, int offset)
+template <typename Nstr>
+static pair<property_tree::ptree*, bool> _Add_child_class(property_tree::ptree& storage, Nstr&& name)
 {
-	static constexpr auto baseclass = string_view("baseclass");
-
-	// ReSharper disable once CppUseStructuredBinding
-	for (auto& prop: span(recv_table->m_pProps, recv_table->m_nProps))
+	string class_name;
+	if (name[0] == 'C' && name[1] != '_')
 	{
-		BOOST_ASSERT_MSG(!isdigit(prop.m_pVarName[0]), "Netvar dumper inside array datable!");
+		const auto name1 = string_view(name);
+		//internal csgo classes looks like C_***
+		//same classes in shared code look like C***
+		class_name.reserve(name1.size( ) + 1);
+		class_name += "C_";
+		class_name.append(name1.begin( ) + 1, name1.end( ));
+	}
+	else
+	{
+		class_name = string(forward<Nstr>(name));
+		BOOST_ASSERT(!class_name.starts_with("DT"));
+	}
 
-		const auto prop_name = string_view(prop.m_pVarName);
-		if (prop_name == baseclass)
+	property_tree::ptree* tree;
+
+	const auto child = storage.get_child_optional(class_name);
+	if (!child)
+		tree = addressof(storage.add_child(move(class_name), { }));
+	else
+		tree = child.get_ptr( );
+
+	return {tree, !child};
+}
+
+static string _Str_to_lower(const string_view& str)
+{
+	string ret;
+	ret.reserve(str.size( ));
+	for (auto& c: str)
+		ret += std::tolower(c);
+	return ret;
+}
+
+static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::ptree& tree, RecvTable* recv_table, int offset)
+{
+	const auto& props = recv_table->props;
+
+	for (auto i = props[0].m_pVarName == string_view("baseclass") ? 1 : 0; i < props.size( ); ++i)
+	{
+		// ReSharper disable once CppUseStructuredBinding
+		const auto& prop = props[i];
+		auto        prop_name = string_view(prop.m_pVarName);
+
+		if (static const auto path_default_separator = property_tree::ptree::path_type( ).separator( );
+			prop_name.find(path_default_separator) != prop_name.npos)
+		{
 			continue;
+		}
+		else if (path_default_separator != '.' && prop_name.rfind('.') != prop_name.npos)
+		{
+			continue;
+		}
+		if (prop_name.rfind(']') != prop_name.npos)
+		{
+			continue;
+		}
+
+		size_t array_repeat;
+		if (!isdigit(prop_name[0]))
+		{
+			array_repeat = 1;
+		}
+		else
+		{
+			BOOST_ASSERT(prop_name[0] == '0');
+
+			const auto part = props.subspan(i + 1);
+			const auto array_end_itr = ranges::find_if_not(part, isdigit, [](const RecvProp& rp) { return rp.m_pVarName[0]; });
+			const auto array_end_num = std::distance(part.begin( ), array_end_itr);
+
+			array_repeat = array_end_num - i + 1;
+			i += array_end_num;
+
+			static const string props_array = "m_PropsArray";
+			prop_name = props_array;
+		}
+
+		/*if (prop.m_ArrayLengthProxy != nullptr)
+		{
+			continue;
+		}*/
 
 		const auto real_prop_offset = offset + prop.m_Offset;
 
 		if (prop.m_RecvType != DPT_DataTable)
 		{
-			_Save_netvar(storage, string(prop_name), real_prop_offset);
+			_Save_netvar(tree, prop_name, real_prop_offset, "simple type", array_repeat);
 		}
 		else
 		{
-			//rewrite this
-			//class -> class ; not class -> offset + offset + (class)offset
-#if 0
-			
 			const auto child_table = prop.m_pDataTable;
-
-			if (!child_table)
-				continue;
-			if (child_table->m_nProps == 0)
+			if (!child_table || child_table->props.empty( ))
 				continue;
 
-			//("DT" - "DataTable")
-			const auto net_table_name = child_table->m_pNetTableName;
-
-			if (net_table_name[0] == 'D' && net_table_name[1] == 'T')
+			const auto child_table_name = string_view(child_table->m_pNetTableName);
+			const auto child_table_is_proxy = [&]
 			{
-				_Store_recv_props(storage, child_table, real_prop_offset);
+				return _Str_to_lower(child_table_name).find("proxy") != string::npos;
+			};
+			const auto child_table_is_data_table = [&]
+			{
+				return child_table_name.starts_with("DT");
+			};
+
+			if (child_table_is_data_table( ) || child_table_is_proxy( ))
+			{
+				_Store_recv_props(root_tree, tree, child_table, real_prop_offset);
 			}
 			else
 			{
-				//todo: mark it as array
-				_Save_netvar(storage, prop_name, {real_prop_offset, depth, (&prop)});
+				string child_table_unique_name;
+				if (prop_name != child_table_name)
+				{
+					child_table_unique_name = child_table_name;
+				}
+				else
+				{
+					constexpr auto unique_str = string_view("_t");
+					child_table_unique_name.reserve(child_table_name.size( ) + unique_str.size( ));
+					child_table_unique_name.append(child_table_name);
+					child_table_unique_name.append(unique_str);
+				}
+
+				if (auto [new_tree, added] = _Add_child_class(root_tree, child_table_unique_name);
+					added == true)
+				{
+					_Save_netvar(tree, prop_name, real_prop_offset, child_table_unique_name, array_repeat);
+					_Store_recv_props(root_tree, *new_tree, child_table, real_prop_offset);
+				}
 			}
-#endif
+
+			(void)child_table_is_data_table;
 		}
 	}
 }
 
-static string _Fix_class_name(string_view name)
-{
-	string class_name;
-	if (name[0] == 'C' && name[1] != '_')
-	{
-		//internal csgo classes looks like C_***
-		//same classes in shared code look like C***
-		class_name.reserve(name.size( ) + 1);
-		class_name += "C_";
-		class_name.append(std::next(name.begin( )), name.end( ));
-	}
-	else
-	{
-		class_name = name;
-	}
-	return class_name;
-}
-
-static void _Iterate_client_class(property_tree::ptree& storage, ClientClass* root_class)
+[[maybe_unused]]
+static void _Iterate_client_class(property_tree::ptree& root_tree, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
-		if (client_class->pRecvTable == nullptr)
+		const auto recv_table = client_class->pRecvTable;
+		if (!recv_table || recv_table->props.empty( ))
 			continue;
 
-		auto class_name = _Fix_class_name(client_class->pNetworkName);
-		BOOST_ASSERT(!storage.get_child_optional(class_name));
+		auto [new_tree, added] = _Add_child_class(root_tree, client_class->pNetworkName);
+		BOOST_ASSERT(added==true);
 
-		auto& child = storage.add_child(move(class_name), { });
-		_Store_recv_props(child, client_class->pRecvTable, 0);
+		_Store_recv_props(root_tree, *new_tree, recv_table, 0);
 	}
 }
 
-static void _Store_datamap_props(property_tree::ptree& storage, datamap_t* map)
+static void _Store_datamap_props(property_tree::ptree& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
-	for (auto& desc: span(map->dataDesc, map->dataNumFields))
+	for (auto& desc: map->data)
 	{
 		BOOST_ASSERT(desc.fieldName != nullptr);
 
 		if (desc.fieldType != FIELD_EMBEDDED)
 		{
 			const auto offset = desc.fieldOffset[TD_OFFSET_NORMAL];
-			_Save_netvar(storage, desc.fieldName, offset);
+			_Save_netvar(tree, desc.fieldName, offset, "simple type datamap", 1);
 		}
 		else
 		{
@@ -129,16 +215,16 @@ static void _Store_datamap_props(property_tree::ptree& storage, datamap_t* map)
 	}
 }
 
-static void _Iterate_datamap(property_tree::ptree& storage, datamap_t* root_map)
+[[maybe_unused]]
+static void _Iterate_datamap(property_tree::ptree& root_tree, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
-		auto class_name = string(map->dataClassName);
+		if (map->data.empty( ))
+			continue;
 
-		if (auto dumps = storage.get_child_optional(class_name); dumps.has_value( ))
-			_Store_datamap_props(*dumps, map);
-		else
-			_Store_datamap_props(storage.add_child(move(class_name), { }), map);
+		auto [tree, added] = _Add_child_class(root_tree, map->dataClassName);
+		_Store_datamap_props(*tree, map);
 	}
 }
 
@@ -154,7 +240,7 @@ void netvars::Load( )
 	auto&      vtables = client_dll->vtables( );
 
 	filesystem::path dumps_path;
-#ifdef _DEBUG //dump first time in release mode, debug mode ultra slow!
+#if defined(_DEBUG) /*|| 1*/ //dump first time in release mode, debug mode ultra slow!
 	dumps_path = filesystem::path(CHEAT_DUMPS_FOLDER) / client_dll->name_wide( ) / to_wstring(client_dll->check_sum( )) / L"vtables.json";
 #else
 	(void)dumps_path;
@@ -163,7 +249,7 @@ void netvars::Load( )
 	(void)load_result;
 	BOOST_ASSERT(load_result == mem::data_cache_result::success);
 
-	const auto baseent = vtables.get_cache( ).at("C_BaseEntity").addr.raw<C_BaseEntity>( );
+	const auto baseent = vtables.get_cache( ).at(_STRINGIZE(C_BaseEntity)).addr.raw<C_BaseEntity>( );
 
 	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));
@@ -185,7 +271,7 @@ void netvars::Post_load( )
 	//todo: run dumper here
 }
 
-int netvars::at(const utl::string_view& path) const
+int netvars::at(const string_view& path) const
 {
 	return data__.get<int>(string(path));
 }

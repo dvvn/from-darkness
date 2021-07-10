@@ -107,8 +107,9 @@ namespace cheat::csgo
 	class RecvTable
 	{
 	public:
-		RecvProp* m_pProps;
-		int       m_nProps;
+		//RecvProp* m_pProps;
+		//int       m_nProps;
+		utl::span<RecvProp>props;
 		void*     m_pDecoder;
 		char*     m_pNetTableName;
 		bool      m_bInitialized;

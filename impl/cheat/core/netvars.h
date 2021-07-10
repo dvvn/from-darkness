@@ -7,8 +7,6 @@
 
 namespace cheat
 {
-	
-
 	class netvars final: public service_shared<netvars, service_mode::async>
 	{
 	public:

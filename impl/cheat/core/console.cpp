@@ -6,14 +6,6 @@ using namespace utl;
 
 string _Get_time_str( )
 {
-	const auto now = chrono::system_clock::now( );
-	const auto time = chrono::system_clock::to_time_t(now);
-
-	tm   timeinfo;
-	auto result = localtime_s(&timeinfo, &time);
-	(void)result;
-	BOOST_ASSERT(result == 0);
-
 	static auto num_to_char = [](int num) -> char
 	{
 #define CONVERT(x)\
@@ -38,7 +30,6 @@ string _Get_time_str( )
 
 #undef CONVERT
 	};
-
 	static auto add_zero = [](int i)-> string
 	{
 		string str;
@@ -60,9 +51,40 @@ string _Get_time_str( )
 		return '0' + to_string(i);*/
 	};
 
-	return timeinfo.tm_sec == 0
-			   ? fmt::format("[{}:{}] ", timeinfo.tm_hour, add_zero(timeinfo.tm_min))
-			   : fmt::format("[{}:{}:{}] ", timeinfo.tm_hour, add_zero(timeinfo.tm_min), add_zero(timeinfo.tm_sec));
+	const auto now = chrono::system_clock::now( );
+#if 1
+	const auto time = chrono::system_clock::to_time_t(now);
+
+	tm   timeinfo;
+	auto result = localtime_s(&timeinfo, &time);
+	(void)result;
+	BOOST_ASSERT(result == 0);
+
+	return fmt::format("[{}:{}:{}] ", timeinfo.tm_hour, add_zero(timeinfo.tm_min), add_zero(timeinfo.tm_sec));
+
+#else
+
+
+	auto duration = now.time_since_epoch( );
+	using Days = chrono::duration<int, boost::ratio_multiply<chrono::hours::period, boost::ratio<8>
+						  >>; /* UTC: +8:00 */
+
+	const auto days_val = duration_cast<Days>(duration);
+	duration -= days_val;
+	const auto hours_val = duration_cast<chrono::hours>(duration);
+	duration -= hours_val;
+	const auto minutes_val = duration_cast<chrono::minutes>(duration);
+	duration -= minutes_val;
+	const auto seconds_val = duration_cast<chrono::seconds>(duration);
+	duration -= seconds_val;
+	const auto milliseconds_val = duration_cast<chrono::milliseconds>(duration);
+	//duration -= milliseconds_val;
+	//const auto microseconds_val = duration_cast<chrono::microseconds>(duration);
+	//duration -= microseconds_val;
+	//const auto nanoseconds_val = duration_cast<chrono::nanoseconds>(duration);
+
+	return fmt::format("[{}:{}:{}:{}] ", hours_val.count( ), add_zero(minutes_val.count( )), add_zero(seconds_val.count( )), add_zero(milliseconds_val.count( )));
+#endif
 }
 
 console::~console( )
@@ -129,8 +151,6 @@ void console::Load( )
 		BOOST_ASSERT_MSG(console_window__ != nullptr, "Unable to get console window");
 	}
 }
-
-
 
 void console::Wait_for_write_( ) const
 {

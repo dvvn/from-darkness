@@ -11,10 +11,10 @@ namespace cheat
 #ifdef CHEAT_GUI_TEST
 		void init( );
 #else
-		auto init(HMODULE handle) -> void;
+		void init(HMODULE handle);
 		//unhook current hook, exit current cutom thread, reset if wanted
-		auto unload(BOOL ret = TRUE) -> void;
-		auto my_handle( ) const -> HMODULE;
+		void    unload(BOOL ret = TRUE);
+		HMODULE my_handle( ) const;
 #endif
 
 	protected:
