@@ -1,5 +1,5 @@
-int32_t& m_flAnimTime( );
-int32_t& m_flSimulationTime( );
+float& m_flAnimTime( );
+float& m_flSimulationTime( );
 int32_t& m_cellbits( );
 int32_t& m_cellX( );
 int32_t& m_cellY( );

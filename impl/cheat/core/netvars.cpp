@@ -182,6 +182,8 @@ static string _Netvar_int_type(string_view name)
 				return _STRINGIZE(uint32_t);
 			if (name.starts_with("ch"))
 				return _STRINGIZE(uint8_t);
+			if (name.starts_with("fl") && _Str_to_lower(name).find("time") != string::npos) //m_flSimulationTime int ???
+				return _STRINGIZE(float);
 		}
 		if (is_upper(3))
 		{
