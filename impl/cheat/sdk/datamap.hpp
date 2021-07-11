@@ -43,7 +43,6 @@ struct inputdata_t;
 
 							FIELD_VECTOR2D,			// 2 floats
 
-							FIELD_TYPECOUNT,		// MUST BE LAST
 } ;
 
 class ISaveRestoreOps;

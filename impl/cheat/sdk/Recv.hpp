@@ -11,8 +11,7 @@ namespace cheat::csgo
 		DPT_String,
 		DPT_Array,
 		DPT_DataTable,
-		DPT_Int64,
-		DPT_NUMSendPropTypes
+		DPT_Int64
 	};
 
 	class DVariant
