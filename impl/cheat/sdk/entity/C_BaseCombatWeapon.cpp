@@ -1,4 +1,1 @@
-#include "C_BaseCombatWeapon.h"
-
-using namespace cheat;
-using namespace csgo;
+#include "../generated/C_BaseCombatWeapon_cpp"

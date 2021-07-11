@@ -1,0 +1,97 @@
+#include "C_MapVetoPickController.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_MapVetoPickController::m_nDraftType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nDraftType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_MapVetoPickController::m_nTeamWinningCoinToss( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nTeamWinningCoinToss");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nTeamWithFirstChoice( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nTeamWithFirstChoice");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 7>& C_MapVetoPickController::m_nVoteMapIdsList( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nVoteMapIdsList");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 7>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nAccountIDs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nAccountIDs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nMapId0( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nMapId0");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nMapId1( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nMapId1");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nMapId2( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nMapId2");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nMapId3( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nMapId3");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nMapId4( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nMapId4");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nMapId5( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nMapId5");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+utl::array<int32_t, 64>& C_MapVetoPickController::m_nStartingSide0( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nStartingSide0");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+int32_t& C_MapVetoPickController::m_nCurrentPhase( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nCurrentPhase");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_MapVetoPickController::m_nPhaseStartTick( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nPhaseStartTick");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_MapVetoPickController::m_nPhaseDurationTicks( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController.m_nPhaseDurationTicks");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

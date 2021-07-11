@@ -1,0 +1,6 @@
+utl::array<int32_t, 100>& m_fireXDelta( );
+utl::array<int32_t, 100>& m_fireYDelta( );
+utl::array<int32_t, 100>& m_fireZDelta( );
+utl::array<int32_t, 100>& m_bFireIsBurning( );
+int32_t& m_nFireEffectTickBegin( );
+int32_t& m_fireCount( );

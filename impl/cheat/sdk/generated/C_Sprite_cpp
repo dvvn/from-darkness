@@ -1,0 +1,73 @@
+#include "C_Sprite.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_Sprite::m_hAttachedToEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_hAttachedToEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Sprite::m_nAttachment( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_nAttachment");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_Sprite::m_flScaleTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_flScaleTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Sprite::m_flSpriteScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_flSpriteScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Sprite::m_flSpriteFramerate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_flSpriteFramerate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Sprite::m_flGlowProxySize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_flGlowProxySize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Sprite::m_flHDRColorScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_flHDRColorScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Sprite::m_flFrame( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_flFrame");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Sprite::m_flBrightnessTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_flBrightnessTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_Sprite::m_nBrightness( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_nBrightness");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_Sprite::m_bWorldSpaceScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Sprite.m_bWorldSpaceScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

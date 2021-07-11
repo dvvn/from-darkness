@@ -1,0 +1,7 @@
+utl::Vector& m_shadowDirection( );
+utl::Vector& m_envLightShadowDirection( );
+bool& m_bEnabled( );
+bool& m_bUseLightEnvAngles( );
+int32_t& m_LightColor( );
+int32_t& m_LightColorScale( );
+float& m_flMaxShadowDist( );

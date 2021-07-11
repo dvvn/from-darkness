@@ -1,0 +1,12 @@
+int32_t& m_iMinWind( );
+int32_t& m_iMaxWind( );
+int32_t& m_iMinGust( );
+int32_t& m_iMaxGust( );
+float& m_flMinGustDelay( );
+float& m_flMaxGustDelay( );
+int32_t& m_iGustDirChange( );
+int32_t& m_iWindSeed( );
+int32_t& m_iInitialWindDir( );
+float& m_flInitialWindSpeed( );
+float& m_flStartTime( );
+float& m_flGustDuration( );

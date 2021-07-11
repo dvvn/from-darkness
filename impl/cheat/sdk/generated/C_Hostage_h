@@ -1,0 +1,12 @@
+int32_t& m_isRescued( );
+int32_t& m_jumpedThisFrame( );
+int32_t& m_iHealth( );
+int32_t& m_iMaxHealth( );
+int32_t& m_lifeState( );
+int32_t& m_fFlags( );
+int32_t& m_nHostageState( );
+float& m_flRescueStartTime( );
+float& m_flGrabSuccessTime( );
+float& m_flDropStartTime( );
+utl::Vector& m_vel( );
+int32_t& m_leader( );

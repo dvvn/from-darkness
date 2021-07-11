@@ -1,0 +1,8 @@
+bool& m_bEnabled( );
+char* m_szDisplayText( );
+char* m_szSlideshowDirectory( );
+utl::array<int32_t, 16>& m_chCurrentSlideLists( );
+float& m_fMinSlideTime( );
+float& m_fMaxSlideTime( );
+int32_t& m_iCycleType( );
+bool& m_bNoListRepeats( );

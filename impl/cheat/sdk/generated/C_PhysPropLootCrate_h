@@ -1,0 +1,4 @@
+bool& m_bRenderInPSPM( );
+bool& m_bRenderInTablet( );
+int32_t& m_iHealth( );
+int32_t& m_iMaxHealth( );

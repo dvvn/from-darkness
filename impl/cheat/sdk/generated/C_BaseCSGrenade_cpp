@@ -1,0 +1,43 @@
+#include "C_BaseCSGrenade.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_BaseCSGrenade::m_bRedraw( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade.m_bRedraw");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BaseCSGrenade::m_bIsHeldByPlayer( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade.m_bIsHeldByPlayer");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BaseCSGrenade::m_bPinPulled( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade.m_bPinPulled");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BaseCSGrenade::m_fThrowTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade.m_fThrowTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_BaseCSGrenade::m_bLoopingSoundPlaying( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade.m_bLoopingSoundPlaying");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BaseCSGrenade::m_flThrowStrength( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade.m_flThrowStrength");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

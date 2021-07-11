@@ -1,0 +1,79 @@
+#include "C_ColorCorrection.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_ColorCorrection::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_ColorCorrection::m_minFalloff( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_minFalloff");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_ColorCorrection::m_maxFalloff( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_maxFalloff");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_ColorCorrection::m_flCurWeight( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_flCurWeight");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_ColorCorrection::m_flMaxWeight( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_flMaxWeight");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_ColorCorrection::m_flFadeInDuration( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_flFadeInDuration");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_ColorCorrection::m_flFadeOutDuration( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_flFadeOutDuration");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+char* C_ColorCorrection::m_netLookupFilename( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_netLookupFilename");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+bool& C_ColorCorrection::m_bEnabled( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_bEnabled");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_ColorCorrection::m_bMaster( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_bMaster");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_ColorCorrection::m_bClientSide( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_bClientSide");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_ColorCorrection::m_bExclusive( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_bExclusive");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

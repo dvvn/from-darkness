@@ -1,0 +1,2 @@
+utl::QAngle& m_qPreferredPlayerCarryAngles( );
+bool& m_bClientPhysics( );

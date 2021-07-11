@@ -1,0 +1,11 @@
+int32_t& m_hAttachedToEntity( );
+int32_t& m_nAttachment( );
+float& m_flScaleTime( );
+float& m_flSpriteScale( );
+float& m_flSpriteFramerate( );
+float& m_flGlowProxySize( );
+float& m_flHDRColorScale( );
+float& m_flFrame( );
+float& m_flBrightnessTime( );
+int32_t& m_nBrightness( );
+bool& m_bWorldSpaceScale( );

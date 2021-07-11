@@ -1,0 +1,15 @@
+utl::Vector& m_vecOrigin( );
+int32_t& m_fEffects( );
+int32_t& m_hOwnerEntity( );
+int32_t& moveparent( );
+int32_t& m_iParentAttachment( );
+utl::QAngle& m_angRotation( );
+int32_t& m_iEffectIndex( );
+bool& m_bActive( );
+int32_t& m_nStopType( );
+float& m_flStartTime( );
+char* m_szSnapshotFileName( );
+utl::array<utl::Vector, 4>& m_vServerControlPoints( );
+utl::array<int32_t, 4>& m_iServerControlPointAssignments( );
+utl::array<int32_t, 63>& m_hControlPointEnts( );
+utl::array<int32_t, 63>& m_iControlPointParents( );

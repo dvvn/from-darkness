@@ -1,0 +1,19 @@
+#include "C_TEBeamPoints.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEBeamPoints::m_vecStartPoint( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamPoints.m_vecStartPoint");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_TEBeamPoints::m_vecEndPoint( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamPoints.m_vecEndPoint");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

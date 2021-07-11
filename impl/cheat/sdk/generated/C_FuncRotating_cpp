@@ -1,0 +1,25 @@
+#include "C_FuncRotating.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_FuncRotating::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FuncRotating.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_FuncRotating::m_angRotation( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FuncRotating.m_angRotation");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+int32_t& C_FuncRotating::m_flSimulationTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FuncRotating.m_flSimulationTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

@@ -1,4 +1,1 @@
-#include "C_BasePlayer.h"
-
-using namespace cheat;
-using namespace csgo;
+#include "../generated/C_BasePlayer_cpp"

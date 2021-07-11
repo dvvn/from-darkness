@@ -92,10 +92,16 @@ void root_service::init(HMODULE handle)
 				{
 					loader_holder.reset( ); //destroy thread pool and wait for until all threads stop
 					if (!task2.has_exception( ))
-						return;
-
-					BOOST_ASSERT("Error while loading!");
-					this->unload(FALSE);
+					{
+#ifdef CHEAT_DEBUG_MODE
+						console::get_ptr( )->write_line("Cheat fully loaded", true);
+#endif
+					}
+					else
+					{
+						BOOST_ASSERT("Error while loading!");
+						this->unload(FALSE);
+					}
 				});
 	});
 }

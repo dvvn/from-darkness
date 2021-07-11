@@ -1,0 +1,2 @@
+bool& m_bActive( );
+int32_t& m_nOccluderIndex( );

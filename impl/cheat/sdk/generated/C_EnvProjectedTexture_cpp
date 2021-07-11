@@ -1,0 +1,133 @@
+#include "C_EnvProjectedTexture.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_EnvProjectedTexture::m_hTargetEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_hTargetEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_EnvProjectedTexture::m_bState( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_bState");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_EnvProjectedTexture::m_bAlwaysUpdate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_bAlwaysUpdate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_EnvProjectedTexture::m_flLightFOV( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flLightFOV");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_EnvProjectedTexture::m_bEnableShadows( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_bEnableShadows");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_EnvProjectedTexture::m_bSimpleProjection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_bSimpleProjection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_EnvProjectedTexture::m_bLightOnlyTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_bLightOnlyTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_EnvProjectedTexture::m_bLightWorld( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_bLightWorld");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_EnvProjectedTexture::m_bCameraSpace( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_bCameraSpace");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_EnvProjectedTexture::m_flBrightnessScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flBrightnessScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_EnvProjectedTexture::m_LightColor( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_LightColor");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_EnvProjectedTexture::m_flColorTransitionTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flColorTransitionTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvProjectedTexture::m_flAmbient( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flAmbient");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+char* C_EnvProjectedTexture::m_SpotlightTextureName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_SpotlightTextureName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+int32_t& C_EnvProjectedTexture::m_nSpotlightTextureFrame( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_nSpotlightTextureFrame");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_EnvProjectedTexture::m_flNearZ( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flNearZ");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvProjectedTexture::m_flFarZ( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flFarZ");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_EnvProjectedTexture::m_nShadowQuality( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_nShadowQuality");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_EnvProjectedTexture::m_flProjectionSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flProjectionSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvProjectedTexture::m_flRotation( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_flRotation");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_EnvProjectedTexture::m_iStyle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_iStyle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

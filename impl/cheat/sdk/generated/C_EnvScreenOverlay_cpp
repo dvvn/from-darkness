@@ -1,0 +1,37 @@
+#include "C_EnvScreenOverlay.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::array<char*, 10>& C_EnvScreenOverlay::m_iszOverlayNames( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay.m_iszOverlayNames");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<char*, 10>>( );
+}
+utl::array<float, 10>& C_EnvScreenOverlay::m_flOverlayTimes( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay.m_flOverlayTimes");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<float, 10>>( );
+}
+float& C_EnvScreenOverlay::m_flStartTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay.m_flStartTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_EnvScreenOverlay::m_iDesiredOverlay( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay.m_iDesiredOverlay");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_EnvScreenOverlay::m_bIsActive( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay.m_bIsActive");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

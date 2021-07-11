@@ -1,0 +1,8 @@
+bool& m_bBombTicking( );
+int32_t& m_nBombSite( );
+float& m_flC4Blow( );
+float& m_flTimerLength( );
+float& m_flDefuseLength( );
+float& m_flDefuseCountDown( );
+bool& m_bBombDefused( );
+int32_t& m_hBombDefuser( );

@@ -1,4 +1,1 @@
-#include "C_BaseFlex.h"
-
-using namespace cheat;
-using namespace csgo;
+#include "../generated/C_BaseFlex_cpp"

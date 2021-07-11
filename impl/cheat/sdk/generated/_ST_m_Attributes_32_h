@@ -1,0 +1,6 @@
+int32_t& m_iAttributeDefinitionIndex( );
+int32_t& m_iRawValue32( );
+float& m_flValue( );
+int32_t& m_iRawInitialValue32( );
+int32_t& m_nRefundableCurrency( );
+bool& m_bSetBonus( );

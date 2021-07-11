@@ -1,0 +1,37 @@
+#include "C_C4.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_C4::m_bStartedArming( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_C4.m_bStartedArming");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_C4::m_bBombPlacedAnimation( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_C4.m_bBombPlacedAnimation");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_C4::m_fArmedTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_C4.m_fArmedTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_C4::m_bShowC4LED( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_C4.m_bShowC4LED");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_C4::m_bIsPlantingViaUse( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_C4.m_bIsPlantingViaUse");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

@@ -1,0 +1,5 @@
+utl::Vector& m_vecOrigin( );
+utl::Vector& m_vecStart( );
+int32_t& m_nEntity( );
+int32_t& m_nHitbox( );
+int32_t& m_nIndex( );

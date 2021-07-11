@@ -1,0 +1,25 @@
+#include "C_Prop_Hallucination.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_Prop_Hallucination::m_bEnabled( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Prop_Hallucination.m_bEnabled");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_Prop_Hallucination::m_fVisibleTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Prop_Hallucination.m_fVisibleTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Prop_Hallucination::m_fRechargeTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Prop_Hallucination.m_fRechargeTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

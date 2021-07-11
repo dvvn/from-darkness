@@ -1,0 +1,11 @@
+bool& m_bEnabled( );
+bool& m_bLooping( );
+char* m_szMovieFilename( );
+char* m_szGroupName( );
+bool& m_bStretchToFill( );
+bool& m_bForcedSlave( );
+bool& m_bUseCustomUVs( );
+float& m_flUMin( );
+float& m_flUMax( );
+float& m_flVMin( );
+float& m_flVMax( );

@@ -3,8 +3,9 @@
 
 namespace cheat::csgo
 {
-	class C_BasePlayer: public  C_BaseCombatCharacter
+	class C_BasePlayer: public C_BaseCombatCharacter
 	{
 	public:
+#include "../generated/C_BasePlayer_h"
 	};
 }

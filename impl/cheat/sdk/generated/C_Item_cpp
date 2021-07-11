@@ -1,0 +1,13 @@
+#include "C_Item.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_Item::m_bShouldGlow( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Item.m_bShouldGlow");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

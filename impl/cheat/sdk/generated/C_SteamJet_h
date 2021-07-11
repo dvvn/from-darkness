@@ -1,0 +1,11 @@
+float& m_SpreadSpeed( );
+float& m_Speed( );
+float& m_StartSize( );
+float& m_EndSize( );
+float& m_Rate( );
+float& m_JetLength( );
+bool& m_bEmit( );
+bool& m_bFaceLeft( );
+int32_t& m_nType( );
+int32_t& m_spawnflags( );
+float& m_flRollSpeed( );

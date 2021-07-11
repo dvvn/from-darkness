@@ -1,0 +1,15 @@
+int32_t& m_nUniqueID( );
+uint32_t& m_unAccountID( );
+uint32_t& m_unTraceID( );
+int32_t& m_rtGcTime( );
+utl::Vector& m_vecEndPos( );
+utl::Vector& m_vecStart( );
+utl::Vector& m_vecRight( );
+utl::Vector& m_vecNormal( );
+int32_t& m_nEntity( );
+int32_t& m_nPlayer( );
+int32_t& m_nHitbox( );
+int32_t& m_nTintID( );
+float& m_flCreationTime( );
+int32_t& m_nVersion( );
+utl::array<int32_t, 128>& m_ubSignature( );

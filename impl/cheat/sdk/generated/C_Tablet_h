@@ -1,0 +1,13 @@
+utl::array<float, 4>& m_flUpgradeExpirationTime( );
+utl::array<int32_t, 42>& m_vecLocalHexFlags( );
+int32_t& m_nContractKillGridIndex( );
+int32_t& m_nContractKillGridHighResIndex( );
+bool& m_bTabletReceptionIsBlocked( );
+float& m_flScanProgress( );
+float& m_flBootTime( );
+float& m_flShowMapTime( );
+utl::array<int32_t, 8>& m_vecNotificationIds( );
+utl::array<float, 8>& m_vecNotificationTimestamps( );
+utl::array<utl::Vector, 24>& m_vecPlayerPositionHistory( );
+int32_t& m_nLastPurchaseIndex( );
+utl::Vector& m_vecNearestMetalCratePos( );

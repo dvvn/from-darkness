@@ -1,0 +1,19 @@
+#include "C_ParticleFire.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_ParticleFire::m_vOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire.m_vOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_ParticleFire::m_vDirection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire.m_vDirection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

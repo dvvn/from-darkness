@@ -1,0 +1,19 @@
+#include "C_WeaponCSBaseGun.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_WeaponCSBaseGun::m_zoomLevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun.m_zoomLevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_WeaponCSBaseGun::m_iBurstShotsRemaining( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun.m_iBurstShotsRemaining");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

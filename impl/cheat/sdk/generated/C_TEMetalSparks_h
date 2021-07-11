@@ -1,0 +1,2 @@
+utl::Vector& m_vecPos( );
+utl::Vector& m_vecDir( );

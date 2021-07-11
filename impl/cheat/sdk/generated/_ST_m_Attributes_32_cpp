@@ -1,0 +1,43 @@
+#include "_ST_m_Attributes_32.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& _ST_m_Attributes_32::m_iAttributeDefinitionIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32.m_iAttributeDefinitionIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& _ST_m_Attributes_32::m_iRawValue32( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32.m_iRawValue32");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& _ST_m_Attributes_32::m_flValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32.m_flValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& _ST_m_Attributes_32::m_iRawInitialValue32( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32.m_iRawInitialValue32");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& _ST_m_Attributes_32::m_nRefundableCurrency( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32.m_nRefundableCurrency");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& _ST_m_Attributes_32::m_bSetBonus( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32.m_bSetBonus");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

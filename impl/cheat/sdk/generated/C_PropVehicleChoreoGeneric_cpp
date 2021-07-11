@@ -1,0 +1,37 @@
+#include "C_PropVehicleChoreoGeneric.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_PropVehicleChoreoGeneric::m_hPlayer( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_hPlayer");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_PropVehicleChoreoGeneric::m_bEnterAnimOn( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_bEnterAnimOn");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_PropVehicleChoreoGeneric::m_bExitAnimOn( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_bExitAnimOn");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_PropVehicleChoreoGeneric::m_bForceEyesToAttachment( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_bForceEyesToAttachment");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::Vector& C_PropVehicleChoreoGeneric::m_vecEyeExitEndpoint( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_vecEyeExitEndpoint");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

@@ -1,0 +1,85 @@
+#include "C_TeamplayRoundBasedRulesProxy.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_TeamplayRoundBasedRulesProxy::m_iRoundState( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_iRoundState");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_TeamplayRoundBasedRulesProxy::m_bInWaitingForPlayers( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_bInWaitingForPlayers");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_TeamplayRoundBasedRulesProxy::m_iWinningTeam( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_iWinningTeam");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_TeamplayRoundBasedRulesProxy::m_bInOvertime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_bInOvertime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_TeamplayRoundBasedRulesProxy::m_bInSetup( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_bInSetup");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_TeamplayRoundBasedRulesProxy::m_bSwitchedTeamsThisRound( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_bSwitchedTeamsThisRound");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_TeamplayRoundBasedRulesProxy::m_bAwaitingReadyRestart( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_bAwaitingReadyRestart");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_TeamplayRoundBasedRulesProxy::m_flRestartRoundTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_flRestartRoundTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_TeamplayRoundBasedRulesProxy::m_flMapResetTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_flMapResetTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::array<float, 32>& C_TeamplayRoundBasedRulesProxy::m_flNextRespawnWave( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_flNextRespawnWave");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<float, 32>>( );
+}
+utl::array<float, 32>& C_TeamplayRoundBasedRulesProxy::m_TeamRespawnWaveTimes( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_TeamRespawnWaveTimes");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<float, 32>>( );
+}
+utl::array<int32_t, 32>& C_TeamplayRoundBasedRulesProxy::m_bTeamReady( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_bTeamReady");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 32>>( );
+}
+bool& C_TeamplayRoundBasedRulesProxy::m_bStopWatch( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy.m_bStopWatch");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

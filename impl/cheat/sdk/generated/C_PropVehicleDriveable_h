@@ -1,0 +1,14 @@
+int32_t& m_hPlayer( );
+int32_t& m_nSpeed( );
+int32_t& m_nRPM( );
+float& m_flThrottle( );
+int32_t& m_nBoostTimeLeft( );
+int32_t& m_nHasBoost( );
+int32_t& m_nScannerDisabledWeapons( );
+int32_t& m_nScannerDisabledVehicle( );
+bool& m_bEnterAnimOn( );
+bool& m_bExitAnimOn( );
+bool& m_bUnableToFire( );
+utl::Vector& m_vecEyeExitEndpoint( );
+bool& m_bHasGun( );
+utl::Vector& m_vecGunCrosshair( );

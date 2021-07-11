@@ -1,0 +1,3 @@
+int32_t& m_hPlayer( );
+int32_t& m_iEvent( );
+int32_t& m_nData( );

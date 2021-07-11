@@ -1,0 +1,13 @@
+#include "C_TEShowLine.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEShowLine::m_vecEnd( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShowLine.m_vecEnd");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

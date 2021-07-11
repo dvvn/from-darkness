@@ -25,7 +25,6 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <CompileAs>CompileAsCpp</CompileAs>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
-      <EnableModules>false</EnableModules>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

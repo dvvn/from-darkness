@@ -1,0 +1,7 @@
+int32_t& m_hMoveToThisEntity( );
+int32_t& m_hDeliveryCargo( );
+bool& m_bPilotTakeoverAllowed( );
+int32_t& m_hPotentialCargo( );
+int32_t& m_hCurrentPilot( );
+utl::array<utl::Vector, 24>& m_vecTagPositions( );
+utl::array<int32_t, 24>& m_vecTagIncrements( );

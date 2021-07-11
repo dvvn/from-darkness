@@ -1,0 +1,61 @@
+#include "C_TEBloodSprite.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEBloodSprite::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_TEBloodSprite::m_vecDirection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.m_vecDirection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_TEBloodSprite::r( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.r");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBloodSprite::g( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.g");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBloodSprite::b( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.b");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBloodSprite::a( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.a");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBloodSprite::m_nSprayModel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.m_nSprayModel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBloodSprite::m_nDropModel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.m_nDropModel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBloodSprite::m_nSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite.m_nSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

@@ -1,0 +1,67 @@
+#include "C_TEShatterSurface.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEShatterSurface::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_TEShatterSurface::m_vecAngles( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecAngles");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+utl::Vector& C_TEShatterSurface::m_vecForce( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecForce");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_TEShatterSurface::m_vecForcePos( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecForcePos");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_TEShatterSurface::m_flWidth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_flWidth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_TEShatterSurface::m_flHeight( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_flHeight");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_TEShatterSurface::m_flShardSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_flShardSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_TEShatterSurface::m_nSurfaceType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_nSurfaceType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Color& C_TEShatterSurface::m_uchFrontColor( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_uchFrontColor");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Color>( );
+}
+utl::Color& C_TEShatterSurface::m_uchBackColor( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_uchBackColor");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Color>( );
+}

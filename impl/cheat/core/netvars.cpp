@@ -4,6 +4,7 @@
 #include "csgo interfaces.h"
 
 #include "cheat/sdk/IBaseClientDll.hpp"
+#include "cheat/sdk/IVEngineClient.hpp"
 #include "cheat/sdk/entity/C_BaseEntity.h"
 
 #ifdef _DEBUG
@@ -13,6 +14,9 @@
 using namespace cheat;
 using namespace csgo;
 using namespace utl;
+
+// ReSharper disable once CppInconsistentNaming
+static const auto PATH_DEFAULT_SEPARATOR = property_tree::ptree::path_type( ).separator( );
 
 netvars::~netvars( )
 {
@@ -32,31 +36,73 @@ static string _Str_to_lower(const string_view& str)
 	return ret;
 }
 
+struct variable_info
+{
+	template <typename T>
+	struct info: string_view
+	{
+		using type = T;
+
+		// ReSharper disable once CppRedundantInlineSpecifier
+		_CONSTEXPR20_CONTAINER operator string( ) const
+		{
+			return string(this->_Unchecked_begin( ), this->_Unchecked_end( ));
+		}
+
+		operator property_tree::ptree::path_type( ) const
+		{
+			return {static_cast<string>(*this)};
+		}
+
+		T ptree_get(const property_tree::ptree& tree) const
+		{
+			return tree.get<T>(*this);
+		}
+
+		property_tree::ptree& ptree_put(property_tree::ptree& tree, const T& value) const
+		{
+			return tree.put(*this, value);
+		}
+
+		property_tree::ptree& ptree_put(property_tree::ptree& tree, T&& value) const
+		{
+			return tree.put(*this, move(value));
+		}
+	};
+};
+
+struct netvar_info: variable_info
+{
+	static constexpr auto offset = info<size_t>("offset");
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+	static constexpr auto type = info<string>("type");
+#endif
+#ifdef _DEBUG
+	static constexpr auto in_use = info<bool>("in_use");
+#endif
+};
+
 template <typename Nstr, typename Tstr>
 static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, Tstr&& type)
 {
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	static const property_tree::ptree::path_type type_path = _STRINGIZE(type);
-#endif
-
 	const auto path = property_tree::ptree::path_type(string(forward<Nstr>(name)));
 	if (const auto exists = storage.get_child_optional(path);
 		exists.has_value( ))
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		if (type != _STRINGIZE(void*) && exists->get<string>(type_path) != (type))
-			exists->put(type_path, string(forward<Tstr>(type)));
+		if (type != _STRINGIZE(void*) && netvar_info::type.ptree_get(*exists) != type)
+			netvar_info::type.ptree_put(*exists, string(forward<Tstr>(type)));
 #endif
 		return false;
 	}
 
 	auto& entry = storage.add_child(path, { });
-	entry.put(_STRINGIZE(offset), offset);
+	netvar_info::offset.ptree_put(entry, offset);
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	entry.put(type_path, string(forward<Tstr>(type)));
+	netvar_info::type.ptree_put(entry, string(forward<Tstr>(type)));
 #endif
 #ifdef _DEBUG
-	entry.put("in_use", false);
+	netvar_info::in_use.ptree_put(entry, false);
 #endif
 	return true;
 }
@@ -110,7 +156,7 @@ static string _Netvar_vec_type(const string_view& name)
 	if (std::isdigit(name[0]) || !is_qangle( ))
 		return _STRINGIZE(utl::Vector);
 	else
-		return _STRINGIZE(utl::Qangle);
+		return _STRINGIZE(utl::QAngle);
 }
 
 static string _Netvar_int_type(string_view name)
@@ -263,7 +309,7 @@ static string _Datamap_field_type(const typedescription_t& field)
 
 static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::ptree& tree, RecvTable* recv_table, int offset)
 {
-	const static auto prop_is_length_proxy = [](const RecvProp& prop)
+	static const auto prop_is_length_proxy = [](const RecvProp& prop)
 	{
 		if (prop.m_ArrayLengthProxy)
 			return true;
@@ -271,17 +317,17 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		return lstr.find("length") != lstr.npos && lstr.find("proxy") != lstr.npos;
 	};
 
-	const static auto prop_is_base_class = [](const RecvProp& prop)
+	static const auto prop_is_base_class = [](const RecvProp& prop)
 	{
 		return prop.m_pVarName == string_view("baseclass");
 	};
 
-	const static auto table_is_array = [](const RecvTable& table)
+	static const auto table_is_array = [](const RecvTable& table)
 	{
 		return !table.props.empty( ) && std::isdigit(table.props.back( ).m_pVarName[0]);
 	};
 
-	const static auto table_is_data_table = [](const RecvTable& table)
+	static const auto table_is_data_table = [](const RecvTable& table)
 	{
 		//DT_XXXXXX
 		auto n = table.m_pNetTableName;
@@ -309,12 +355,11 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		const auto& prop = *itr;
 		const auto  prop_name = string_view(prop.m_pVarName);
 
-		if (static const auto path_default_separator = property_tree::ptree::path_type( ).separator( );
-			prop_name.find(path_default_separator) != prop_name.npos)
+		if (prop_name.find(PATH_DEFAULT_SEPARATOR) != prop_name.npos)
 		{
 			continue;
 		}
-		else if (path_default_separator != '.' && prop_name.rfind('.') != prop_name.npos)
+		if (PATH_DEFAULT_SEPARATOR != '.' && prop_name.rfind('.') != prop_name.npos)
 		{
 			continue;
 		}
@@ -355,7 +400,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 						auto prefix = real_prop_name.substr(2, 3);
 						if (prop.m_RecvType == DPT_Float)
 						{
-							if ((prefix == "ang" || prefix == "vec"))
+							if (prefix == "ang" || prefix == "vec")
 								netvar_type = _Netvar_vec_type(real_prop_name);
 						}
 						else if (prop.m_RecvType == DPT_Int)
@@ -371,7 +416,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 						netvar_type = _Array_type_string(type, *array_size);
 					}
 #else
-					auto netvar_type = nullptr;
+					const auto netvar_type = nullptr;
 #endif
 					_Save_netvar(tree, real_prop_name, real_prop_offset, move(netvar_type));
 
@@ -560,7 +605,7 @@ static void _Iterate_datamap(property_tree::ptree& root_tree, datamap_t* root_ma
 
 void netvars::Load( )
 {
-#ifdef CHEAT_GUI_TEST
+#if defined(CHEAT_GUI_TEST) || (defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET) && !defined(_DEBUG))
 
 #else
 
@@ -575,7 +620,7 @@ void netvars::Load( )
 
 	[[maybe_unused]] filesystem::path dumps_path;
 #if defined(_DEBUG) /*|| 1*/ //dump first time in release mode, debug mode extremely slow!
-	dumps_path = filesystem::path(CHEAT_DUMPS_FOLDER) / client_dll->name_wide( ) / to_wstring(client_dll->check_sum( )) / L"vtables.json";
+	dumps_path = filesystem::path(CHEAT_DUMPS_DIR) / client_dll->name_wide( ) / to_wstring(client_dll->check_sum( )) / L"vtables.json";
 #endif
 
 	[[maybe_unused]] const auto load_result = vtables.load(dumps_path);
@@ -591,8 +636,8 @@ void netvars::Load( )
 
 string netvars::Get_loaded_message( ) const
 {
-#ifdef CHEAT_GUI_TEST
-	return { };
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET)
+	return "Netvars dumper disabled";
 #else
 	return service_base::Get_loaded_message( );
 #endif
@@ -600,7 +645,93 @@ string netvars::Get_loaded_message( ) const
 
 void netvars::Post_load( )
 {
-	//todo: run dumper here
+#if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !(defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET) && !defined(_DEBUG))
+
+	const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
+	const auto first_time = create_directories(dir);
+
+	///-------------------
+
+	const auto checksum_file = dir / "_checksum.txt";
+	size_t     last_checksum = 0, current_checksum = 0;
+	using itr_t = std::istreambuf_iterator<char>;
+	if (auto ifs = std::ifstream(checksum_file.native( )); !first_time && exists(checksum_file) && !ifs.fail( ))
+		last_checksum = std::stoi(string(itr_t(ifs), itr_t( )));
+
+	std::stringstream ss;
+	write_json(ss, data__, false);
+	current_checksum = (invoke(std::hash<decltype(ss)::_Mystr>( ), ss.str( )));
+
+	if (last_checksum == current_checksum)
+		return;
+
+	if (last_checksum != 0)
+	{
+		remove_all(dir);
+		create_directories(dir);
+	}
+
+	std::ofstream file(checksum_file.native( ));
+	file << current_checksum;
+
+	///-------------------
+
+	lazy_writer__.reserve(data__.size( ) * 2);
+
+	for (auto& [class_name, netvars]: data__)
+	{
+		// ReSharper disable CppInconsistentNaming
+		// ReSharper disable CppTooWideScope
+		constexpr auto __New_line = '\n';
+		constexpr auto __Tab = '	';
+		// ReSharper restore CppTooWideScope
+		// ReSharper restore CppInconsistentNaming
+
+		auto header = lazy_file_writer(dir / (class_name + "_h"));
+		auto source = lazy_file_writer(dir / (class_name + "_cpp"));
+
+		source << fmt::format("#include \"{}.h\"", class_name) << __New_line;
+		source << __New_line;
+		source << "#include \"cheat/core/netvars.h\"" << __New_line;
+		source << __New_line;
+		source << "using namespace cheat;" << __New_line;
+		source << "using namespace csgo;" << __New_line;
+		source << __New_line;
+
+		for (const auto& [netvar_name, netvar_data]: netvars)
+		{
+#ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
+			const auto netvar_offset = netvar_info::offset.ptree_get(netvar_data);
+#endif
+			auto       netvar_type = netvar_info::type.ptree_get(netvar_data);
+			const auto netvar_type_pointer = netvar_type.ends_with('*');
+			if (netvar_type_pointer)
+				netvar_type.pop_back( );
+
+			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
+
+			header << fmt::format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
+			source << fmt::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, (class_name), (netvar_name)) << __New_line;
+			source << '{' << __New_line;
+#ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
+			source  << __Tab<< fmt::format("auto addr = utl::mem::address(this).add({});", netvar_offset) << __New_line;
+#else
+			source << __Tab << fmt::format("static const auto offset = netvars::get_ptr( )->at(\"{}\");",
+										   fmt::format("{}{}{}", class_name, PATH_DEFAULT_SEPARATOR, netvar_name)) << __New_line;
+			source << __Tab << "auto addr = utl::mem::address(this).add(offset);" << __New_line;
+#endif
+			source << __Tab << fmt::format("return addr.{}<{}>( );", netvar_type_pointer ? "raw" : "ref", netvar_type) << __New_line;
+			source << '}' << __New_line;
+		}
+
+		lazy_writer__.push_back(move(header));
+		lazy_writer__.push_back(move(source));
+	}
+
+#ifdef CHEAT_DEBUG_MODE
+	console::get_ptr( )->write_line("Netvars dump done", true);
+#endif
+#endif
 }
 
 int netvars::at(const string_view& path) const
@@ -609,9 +740,33 @@ int netvars::at(const string_view& path) const
 
 #ifdef _DEBUG
 	auto& child1 = const_cast<property_tree::ptree&>(child);
-	BOOST_ASSERT_MSG(child1.get<bool>("in_use") == false, "Netvar already used!");
-	child1.put("in_use", true);
+	BOOST_ASSERT_MSG(netvar_info::in_use.ptree_get(child1) == false, "Netvar already used!");
+	netvar_info::in_use.ptree_put(child1, true);
 #endif
 
-	return child.get<int>("offset");
+	return netvar_info::offset.ptree_get(child);
+}
+
+netvars::lazy_file_writer::~lazy_file_writer( )
+{
+	if (file__.empty( ))
+		return;
+	if (this->fail( ) || this->rdbuf( )->in_avail( ) == 0)
+		return;
+
+	std::ofstream ofs(file__.native( ));
+	if (!ofs)
+		return;
+
+	ofs << this->rdbuf( );
+}
+
+netvars::lazy_file_writer::lazy_file_writer(filesystem::path&& file): file__(utl::move(file))
+{
+}
+
+netvars::lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
+{
+	file__ = utl::move(other.file__);
+	*static_cast<std::stringstream*>(this) = static_cast<std::stringstream&&>(other);
 }

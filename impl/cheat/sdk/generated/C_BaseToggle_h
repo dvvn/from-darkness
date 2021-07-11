@@ -1,0 +1,3 @@
+utl::Vector& m_vecFinalDest( );
+int32_t& m_movementType( );
+float& m_flMoveTargetTime( );

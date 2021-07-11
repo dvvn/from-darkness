@@ -1,0 +1,475 @@
+#include "C_BasePlayer.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::array<int32_t, 32>& C_BasePlayer::m_chAreaBits( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_chAreaBits");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 32>>( );
+}
+utl::array<int32_t, 24>& C_BasePlayer::m_chAreaPortalBits( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_chAreaPortalBits");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 24>>( );
+}
+int32_t& C_BasePlayer::m_iHideHUD( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iHideHUD");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BasePlayer::m_flFOVRate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flFOVRate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_BasePlayer::m_bDucked( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bDucked");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BasePlayer::m_bDucking( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bDucking");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BasePlayer::m_flLastDuckTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flLastDuckTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_BasePlayer::m_bInDuckJump( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bInDuckJump");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_BasePlayer::m_nDuckTimeMsecs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nDuckTimeMsecs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_nDuckJumpTimeMsecs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nDuckJumpTimeMsecs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_nJumpTimeMsecs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nJumpTimeMsecs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BasePlayer::m_flFallVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flFallVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::Vector& C_BasePlayer::m_viewPunchAngle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_viewPunchAngle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BasePlayer::m_aimPunchAngle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_aimPunchAngle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BasePlayer::m_aimPunchAngleVel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_aimPunchAngleVel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+bool& C_BasePlayer::m_bDrawViewmodel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bDrawViewmodel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BasePlayer::m_bWearingSuit( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bWearingSuit");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BasePlayer::m_bPoisoned( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bPoisoned");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BasePlayer::m_flStepSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flStepSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_BasePlayer::m_bAllowAutoMovement( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bAllowAutoMovement");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::Vector& C_BasePlayer::m_vecViewOffset( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vecViewOffset");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_BasePlayer::m_flFriction( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flFriction");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BasePlayer::m_fOnTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_fOnTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_nTickBase( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nTickBase");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_nNextThinkTick( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nNextThinkTick");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hLastWeapon( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hLastWeapon");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_BasePlayer::m_vecVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vecVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BasePlayer::m_vecBaseVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vecBaseVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_BasePlayer::m_hConstraintEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hConstraintEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_BasePlayer::m_vecConstraintCenter( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vecConstraintCenter");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_BasePlayer::m_flConstraintRadius( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flConstraintRadius");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BasePlayer::m_flConstraintWidth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flConstraintWidth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BasePlayer::m_flConstraintSpeedFactor( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flConstraintSpeedFactor");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_BasePlayer::m_bConstraintPastRadius( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bConstraintPastRadius");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BasePlayer::m_flDeathTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flDeathTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BasePlayer::m_flNextDecalTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flNextDecalTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BasePlayer::m_fForceTeam( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_fForceTeam");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BasePlayer::m_flLaggedMovementValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flLaggedMovementValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BasePlayer::m_hTonemapController( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hTonemapController");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::deadflag( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.deadflag");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_iFOV( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iFOV");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_iFOVStart( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iFOVStart");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BasePlayer::m_flFOVTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flFOVTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BasePlayer::m_iDefaultFOV( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iDefaultFOV");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hZoomOwner( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hZoomOwner");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_afPhysicsFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_afPhysicsFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hVehicle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hVehicle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hUseEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hUseEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hGroundEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hGroundEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_iHealth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iHealth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_lifeState( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_lifeState");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::array<int32_t, 32>& C_BasePlayer::m_iAmmo( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iAmmo");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 32>>( );
+}
+int32_t& C_BasePlayer::m_iBonusProgress( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iBonusProgress");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_iBonusChallenge( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iBonusChallenge");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BasePlayer::m_flMaxspeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flMaxspeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BasePlayer::m_fFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_fFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_iObserverMode( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iObserverMode");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_BasePlayer::m_bActiveCameraMan( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bActiveCameraMan");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BasePlayer::m_bCameraManXRay( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bCameraManXRay");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BasePlayer::m_bCameraManOverview( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bCameraManOverview");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BasePlayer::m_bCameraManScoreBoard( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bCameraManScoreBoard");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_BasePlayer::m_uCameraManGraphs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_uCameraManGraphs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_iDeathPostEffect( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iDeathPostEffect");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hObserverTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hObserverTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::array<int32_t, 3>& C_BasePlayer::m_hViewModel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hViewModel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 3>>( );
+}
+int32_t& C_BasePlayer::m_iCoachingTeam( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_iCoachingTeam");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+char* C_BasePlayer::m_szLastPlaceName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_szLastPlaceName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+utl::Vector& C_BasePlayer::m_vecLadderNormal( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vecLadderNormal");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_BasePlayer::m_ladderSurfaceProps( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_ladderSurfaceProps");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_ubEFNoInterpParity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_ubEFNoInterpParity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hPostProcessCtrl( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hPostProcessCtrl");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hColorCorrectionCtrl( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hColorCorrectionCtrl");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_vphysicsCollisionState( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vphysicsCollisionState");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BasePlayer::m_hViewEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_hViewEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_BasePlayer::m_bShouldDrawPlayerWhileUsingViewEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bShouldDrawPlayerWhileUsingViewEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BasePlayer::m_flDuckAmount( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flDuckAmount");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BasePlayer::m_flDuckSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flDuckSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BasePlayer::m_nWaterLevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nWaterLevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

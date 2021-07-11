@@ -1,0 +1,19 @@
+#include "C_BRC4Target.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_BRC4Target::m_bBrokenOpen( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BRC4Target.m_bBrokenOpen");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BRC4Target::m_flRadius( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BRC4Target.m_flRadius");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

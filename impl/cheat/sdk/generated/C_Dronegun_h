@@ -1,0 +1,4 @@
+utl::Vector& m_vecAttentionTarget( );
+utl::Vector& m_vecTargetOffset( );
+int32_t& m_iHealth( );
+bool& m_bHasTarget( );

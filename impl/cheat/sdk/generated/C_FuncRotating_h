@@ -1,0 +1,3 @@
+utl::Vector& m_vecOrigin( );
+utl::QAngle& m_angRotation( );
+int32_t& m_flSimulationTime( );

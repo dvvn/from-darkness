@@ -1,0 +1,37 @@
+#include "C_StatueProp.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_StatueProp::m_hInitBaseAnimating( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_StatueProp.m_hInitBaseAnimating");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_StatueProp::m_bShatter( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_StatueProp.m_bShatter");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_StatueProp::m_nShatterFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_StatueProp.m_nShatterFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_StatueProp::m_vShatterPosition( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_StatueProp.m_vShatterPosition");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_StatueProp::m_vShatterForce( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_StatueProp.m_vShatterForce");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

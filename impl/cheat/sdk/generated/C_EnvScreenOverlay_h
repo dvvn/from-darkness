@@ -1,0 +1,5 @@
+utl::array<char*, 10>& m_iszOverlayNames( );
+utl::array<float, 10>& m_flOverlayTimes( );
+float& m_flStartTime( );
+int32_t& m_iDesiredOverlay( );
+bool& m_bIsActive( );

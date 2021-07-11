@@ -1,0 +1,79 @@
+#include "C_SmokeStack.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_SmokeStack::m_SpreadSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_SpreadSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SmokeStack::m_Speed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_Speed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SmokeStack::m_StartSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_StartSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SmokeStack::m_EndSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_EndSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SmokeStack::m_Rate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_Rate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SmokeStack::m_JetLength( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_JetLength");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_SmokeStack::m_bEmit( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_bEmit");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_SmokeStack::m_flBaseSpread( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_flBaseSpread");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SmokeStack::m_flTwist( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_flTwist");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SmokeStack::m_flRollSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_flRollSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_SmokeStack::m_iMaterialModel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_iMaterialModel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_SmokeStack::m_vWind( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack.m_vWind");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

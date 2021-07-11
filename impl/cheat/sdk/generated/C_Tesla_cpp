@@ -1,0 +1,19 @@
+#include "C_Tesla.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+char* C_Tesla::m_SoundName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Tesla.m_SoundName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+char* C_Tesla::m_iszSpriteName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Tesla.m_iszSpriteName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}

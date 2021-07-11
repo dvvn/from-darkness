@@ -1,0 +1,49 @@
+#include "C_EnvDOFController.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_EnvDOFController::m_bDOFEnabled( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController.m_bDOFEnabled");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_EnvDOFController::m_flNearBlurDepth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController.m_flNearBlurDepth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvDOFController::m_flNearFocusDepth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController.m_flNearFocusDepth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvDOFController::m_flFarFocusDepth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController.m_flFarFocusDepth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvDOFController::m_flFarBlurDepth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController.m_flFarBlurDepth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvDOFController::m_flNearBlurRadius( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController.m_flNearBlurRadius");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvDOFController::m_flFarBlurRadius( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController.m_flFarBlurRadius");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

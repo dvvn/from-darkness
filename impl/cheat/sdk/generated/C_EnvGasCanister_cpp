@@ -1,0 +1,139 @@
+#include "C_EnvGasCanister.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_EnvGasCanister::m_flFlightSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flFlightSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvGasCanister::m_flLaunchTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flLaunchTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::Vector& C_EnvGasCanister::m_vecParabolaDirection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecParabolaDirection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_EnvGasCanister::m_flFlightTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flFlightTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvGasCanister::m_flWorldEnterTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flWorldEnterTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvGasCanister::m_flInitialZSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flInitialZSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvGasCanister::m_flZAcceleration( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flZAcceleration");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvGasCanister::m_flHorizSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flHorizSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_EnvGasCanister::m_bLaunchedFromWithinWorld( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_bLaunchedFromWithinWorld");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::Vector& C_EnvGasCanister::m_vecImpactPosition( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecImpactPosition");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_EnvGasCanister::m_vecStartPosition( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecStartPosition");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_EnvGasCanister::m_vecEnterWorldPosition( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecEnterWorldPosition");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_EnvGasCanister::m_vecDirection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecDirection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_EnvGasCanister::m_vecStartAngles( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecStartAngles");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+utl::Vector& C_EnvGasCanister::m_vecSkyboxOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecSkyboxOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_EnvGasCanister::m_flSkyboxScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_flSkyboxScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_EnvGasCanister::m_bInSkybox( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_bInSkybox");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_EnvGasCanister::m_bDoImpactEffects( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_bDoImpactEffects");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_EnvGasCanister::m_bLanded( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_bLanded");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_EnvGasCanister::m_hSkyboxCopy( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_hSkyboxCopy");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_EnvGasCanister::m_nMyZoneIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_nMyZoneIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector2D& C_EnvGasCanister::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvGasCanister.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector2D>( );
+}

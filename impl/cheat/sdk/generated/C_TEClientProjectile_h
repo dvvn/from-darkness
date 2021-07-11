@@ -1,0 +1,5 @@
+utl::Vector& m_vecOrigin( );
+utl::Vector& m_vecVelocity( );
+int32_t& m_nModelIndex( );
+int32_t& m_nLifeTime( );
+int32_t& m_hOwner( );

@@ -1,0 +1,781 @@
+#include "C_CSPlayer.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector2D& C_CSPlayer::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector2D>( );
+}
+float& C_CSPlayer::m_flStamina( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flStamina");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_CSPlayer::m_iDirection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iDirection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iShotsFired( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iShotsFired");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_nNumFastDucks( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nNumFastDucks");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bDuckOverride( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bDuckOverride");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_CSPlayer::m_flVelocityModifier( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flVelocityModifier");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::array<int32_t, 65>& C_CSPlayer::m_bPlayerDominated( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bPlayerDominated");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_CSPlayer::m_bPlayerDominatingMe( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bPlayerDominatingMe");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 256>& C_CSPlayer::m_iWeaponPurchasesThisRound( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iWeaponPurchasesThisRound");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 256>>( );
+}
+uint32_t& C_CSPlayer::m_unActiveQuestId( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_unActiveQuestId");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+int32_t& C_CSPlayer::m_nQuestProgressReason( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nQuestProgressReason");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iRetakesOffering( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iRetakesOffering");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iRetakesOfferingCard( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iRetakesOfferingCard");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bRetakesHasDefuseKit( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bRetakesHasDefuseKit");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bRetakesMVPLastRound( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bRetakesMVPLastRound");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_iRetakesMVPBoostItem( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iRetakesMVPBoostItem");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_RetakesMVPBoostExtraUtility( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_RetakesMVPBoostExtraUtility");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+uint32_t& C_CSPlayer::m_unPlayerTvControlFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_unPlayerTvControlFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+utl::array<int32_t, 499>& C_CSPlayer::m_iWeaponPurchasesThisMatch( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iWeaponPurchasesThisMatch");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 499>>( );
+}
+utl::array<int32_t, 57>& C_CSPlayer::m_EquippedLoadoutItemDefIndices( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_EquippedLoadoutItemDefIndices");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 57>>( );
+}
+int32_t& C_CSPlayer::m_iAddonBits( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iAddonBits");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iPrimaryAddon( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iPrimaryAddon");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iSecondaryAddon( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iSecondaryAddon");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iThrowGrenadeCounter( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iThrowGrenadeCounter");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bWaitForNoAttack( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bWaitForNoAttack");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bIsRespawningForDMBonus( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsRespawningForDMBonus");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_iPlayerState( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iPlayerState");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iAccount( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iAccount");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iStartAccount( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iStartAccount");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_totalHitsOnServer( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_totalHitsOnServer");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bInBombZone( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bInBombZone");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bInBuyZone( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bInBuyZone");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bInNoDefuseArea( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bInNoDefuseArea");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bKilledByTaser( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bKilledByTaser");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_iMoveState( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMoveState");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iClass( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iClass");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_ArmorValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_ArmorValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::QAngle& C_CSPlayer::m_angEyeAngles( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_angEyeAngles");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+bool& C_CSPlayer::m_bHasDefuser( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHasDefuser");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bNightVisionOn( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bNightVisionOn");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bHasNightVision( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHasNightVision");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bInHostageRescueZone( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bInHostageRescueZone");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bIsDefusing( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsDefusing");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bIsGrabbingHostage( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsGrabbingHostage");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_iBlockingUseActionInProgress( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iBlockingUseActionInProgress");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bIsScoped( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsScoped");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bIsWalking( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsWalking");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_nIsAutoMounting( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nIsAutoMounting");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bResumeZoom( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bResumeZoom");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_CSPlayer::m_fImmuneToGunGameDamageTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_fImmuneToGunGameDamageTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_CSPlayer::m_bGunGameImmunity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bGunGameImmunity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bHasMovedSinceSpawn( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHasMovedSinceSpawn");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bMadeFinalGunGameProgressiveKill( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bMadeFinalGunGameProgressiveKill");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_iGunGameProgressiveWeaponIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iGunGameProgressiveWeaponIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iNumGunGameTRKillPoints( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iNumGunGameTRKillPoints");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iNumGunGameKillsWithCurrentWeapon( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iNumGunGameKillsWithCurrentWeapon");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_iNumRoundKills( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iNumRoundKills");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_CSPlayer::m_fMolotovUseTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_fMolotovUseTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_CSPlayer::m_fMolotovDamageTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_fMolotovDamageTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+char* C_CSPlayer::m_szArmsModel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_szArmsModel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+int32_t& C_CSPlayer::m_hCarriedHostage( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_hCarriedHostage");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_hCarriedHostageProp( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_hCarriedHostageProp");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bIsRescuing( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsRescuing");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_CSPlayer::m_flGroundAccelLinearFracLastTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flGroundAccelLinearFracLastTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_CSPlayer::m_bCanMoveDuringFreezePeriod( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bCanMoveDuringFreezePeriod");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_isCurrentGunGameLeader( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_isCurrentGunGameLeader");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_isCurrentGunGameTeamLeader( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_isCurrentGunGameTeamLeader");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_CSPlayer::m_flGuardianTooFarDistFrac( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flGuardianTooFarDistFrac");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_CSPlayer::m_flDetectedByEnemySensorTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flDetectedByEnemySensorTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_CSPlayer::m_bIsPlayerGhost( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsPlayerGhost");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Kills( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_Kills");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Damage( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_Damage");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_EquipmentValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_EquipmentValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_MoneySaved( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_MoneySaved");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_KillReward( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_KillReward");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_LiveTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_LiveTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Deaths( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_Deaths");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Assists( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_Assists");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_HeadShotKills( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_HeadShotKills");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Objective( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_Objective");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_CashEarned( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_CashEarned");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_UtilityDamage( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_UtilityDamage");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_EnemiesFlashed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iMatchStats_EnemiesFlashed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 30>>( );
+}
+utl::array<int32_t, 6>& C_CSPlayer::m_rank( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_rank");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 6>>( );
+}
+utl::array<int32_t, 4>& C_CSPlayer::m_passiveItems( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_passiveItems");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 4>>( );
+}
+bool& C_CSPlayer::m_bHasParachute( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHasParachute");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+uint32_t& C_CSPlayer::m_unMusicID( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_unMusicID");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+bool& C_CSPlayer::m_bHasHelmet( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHasHelmet");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bHasHeavyArmor( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHasHeavyArmor");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_nHeavyAssaultSuitCooldownRemaining( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nHeavyAssaultSuitCooldownRemaining");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_CSPlayer::m_flFlashDuration( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flFlashDuration");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_CSPlayer::m_flFlashMaxAlpha( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flFlashMaxAlpha");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_CSPlayer::m_iProgressBarDuration( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iProgressBarDuration");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_CSPlayer::m_flProgressBarStartTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flProgressBarStartTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_CSPlayer::m_hRagdoll( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_hRagdoll");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_hPlayerPing( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_hPlayerPing");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_cycleLatch( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_cycleLatch");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+uint32_t& C_CSPlayer::m_unCurrentEquipmentValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_unCurrentEquipmentValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+uint32_t& C_CSPlayer::m_unRoundStartEquipmentValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_unRoundStartEquipmentValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+uint32_t& C_CSPlayer::m_unFreezetimeEndEquipmentValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_unFreezetimeEndEquipmentValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+bool& C_CSPlayer::m_bIsControllingBot( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsControllingBot");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bHasControlledBotThisRound( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHasControlledBotThisRound");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bCanControlObservedBot( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bCanControlObservedBot");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_iControlledBotEntIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iControlledBotEntIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_CSPlayer::m_vecAutomoveTargetEnd( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_vecAutomoveTargetEnd");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_CSPlayer::m_flAutoMoveStartTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flAutoMoveStartTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_CSPlayer::m_flAutoMoveTargetTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flAutoMoveTargetTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_CSPlayer::m_bIsAssassinationTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsAssassinationTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bHud_MiniScoreHidden( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHud_MiniScoreHidden");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bHud_RadarHidden( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHud_RadarHidden");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_nLastKillerIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nLastKillerIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_nLastConcurrentKilled( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nLastConcurrentKilled");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_nDeathCamMusic( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nDeathCamMusic");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_CSPlayer::m_bIsHoldingLookAtWeapon( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsHoldingLookAtWeapon");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bIsLookingAtWeapon( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsLookingAtWeapon");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_CSPlayer::m_iNumRoundKillsHeadshots( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_iNumRoundKillsHeadshots");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+uint32_t& C_CSPlayer::m_unTotalRoundDamageDealt( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_unTotalRoundDamageDealt");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+float& C_CSPlayer::m_flLowerBodyYawTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flLowerBodyYawTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_CSPlayer::m_bStrafing( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bStrafing");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_CSPlayer::m_flThirdpersonRecoil( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flThirdpersonRecoil");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_CSPlayer::m_bHideTargetID( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bHideTargetID");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_CSPlayer::m_bIsSpawnRappelling( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_bIsSpawnRappelling");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::Vector& C_CSPlayer::m_vecSpawnRappellingRopeOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_vecSpawnRappellingRopeOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_CSPlayer::m_nSurvivalTeam( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_nSurvivalTeam");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_CSPlayer::m_hSurvivalAssassinationTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_hSurvivalAssassinationTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_CSPlayer::m_flHealthShotBoostExpirationTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flHealthShotBoostExpirationTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_CSPlayer::m_flLastExoJumpTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_flLastExoJumpTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::array<int32_t, 5>& C_CSPlayer::m_vecPlayerPatchEconIndices( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer.m_vecPlayerPatchEconIndices");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 5>>( );
+}

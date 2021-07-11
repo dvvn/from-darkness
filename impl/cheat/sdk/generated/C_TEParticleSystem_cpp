@@ -1,0 +1,13 @@
+#include "C_TEParticleSystem.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEParticleSystem::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEParticleSystem.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

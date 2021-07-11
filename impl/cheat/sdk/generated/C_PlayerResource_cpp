@@ -1,0 +1,67 @@
+#include "C_PlayerResource.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::array<int32_t, 65>& C_PlayerResource::m_iPing( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iPing");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_iKills( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iKills");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_iAssists( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iAssists");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_iDeaths( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iDeaths");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_bConnected( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_bConnected");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_iTeam( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iTeam");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_iPendingTeam( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iPendingTeam");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_bAlive( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_bAlive");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_iHealth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iHealth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 65>& C_PlayerResource::m_iCoachingTeam( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iCoachingTeam");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}

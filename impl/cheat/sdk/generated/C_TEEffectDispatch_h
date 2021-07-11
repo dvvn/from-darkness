@@ -1,0 +1,16 @@
+utl::QAngle& m_vAngles( );
+utl::Vector& m_vNormal( );
+int32_t& m_fFlags( );
+float& m_flMagnitude( );
+float& m_flScale( );
+int32_t& m_nAttachmentIndex( );
+int32_t& m_nSurfaceProp( );
+int32_t& m_iEffectName( );
+int32_t& m_nMaterial( );
+int32_t& m_nDamageType( );
+int32_t& m_nHitBox( );
+int32_t& entindex( );
+int32_t& m_nOtherEntIndex( );
+int32_t& m_nColor( );
+float& m_flRadius( );
+bool& m_bPositionsAreRelativeToEntity( );

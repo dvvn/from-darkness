@@ -1,0 +1,37 @@
+#include "C_EntityParticleTrail.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_EntityParticleTrail::m_iMaterialName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail.m_iMaterialName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_EntityParticleTrail::m_flLifetime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail.m_flLifetime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EntityParticleTrail::m_flStartSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail.m_flStartSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EntityParticleTrail::m_flEndSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail.m_flEndSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_EntityParticleTrail::m_hConstraintEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail.m_hConstraintEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

@@ -1,0 +1,25 @@
+#include "C_TEDust.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_TEDust::m_flSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEDust.m_flSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_TEDust::m_flSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEDust.m_flSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::Vector& C_TEDust::m_vecDirection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEDust.m_vecDirection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

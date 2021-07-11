@@ -1,0 +1,13 @@
+char* m_szMaterialName( );
+char* m_szMaterialVar( );
+char* m_szMaterialVarValue( );
+int32_t& m_iFrameStart( );
+int32_t& m_iFrameEnd( );
+bool& m_bWrap( );
+float& m_flFramerate( );
+bool& m_bNewAnimCommandsSemaphore( );
+float& m_flFloatLerpStartValue( );
+float& m_flFloatLerpEndValue( );
+float& m_flFloatLerpTransitionTime( );
+bool& m_bFloatLerpWrap( );
+int32_t& m_nModifyMode( );

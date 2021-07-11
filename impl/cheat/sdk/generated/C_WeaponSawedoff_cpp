@@ -1,0 +1,13 @@
+#include "C_WeaponSawedoff.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_WeaponSawedoff::m_reloadState( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponSawedoff.m_reloadState");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

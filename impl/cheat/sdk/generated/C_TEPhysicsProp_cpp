@@ -1,0 +1,55 @@
+#include "C_TEPhysicsProp.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEPhysicsProp::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_TEPhysicsProp::m_angRotation( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_angRotation");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+utl::Vector& C_TEPhysicsProp::m_vecVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_vecVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_TEPhysicsProp::m_nModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEPhysicsProp::m_nFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEPhysicsProp::m_nSkin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nSkin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEPhysicsProp::m_nEffects( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nEffects");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Color& C_TEPhysicsProp::m_clrRender( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_clrRender");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Color>( );
+}

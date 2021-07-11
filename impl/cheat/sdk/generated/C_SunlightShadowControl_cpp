@@ -1,0 +1,67 @@
+#include "C_SunlightShadowControl.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_SunlightShadowControl::m_shadowDirection( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_shadowDirection");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+bool& C_SunlightShadowControl::m_bEnabled( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_bEnabled");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+char* C_SunlightShadowControl::m_TextureName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_TextureName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+int32_t& C_SunlightShadowControl::m_LightColor( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_LightColor");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_SunlightShadowControl::m_flColorTransitionTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_flColorTransitionTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SunlightShadowControl::m_flSunDistance( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_flSunDistance");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SunlightShadowControl::m_flFOV( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_flFOV");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SunlightShadowControl::m_flNearZ( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_flNearZ");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SunlightShadowControl::m_flNorthOffset( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_flNorthOffset");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_SunlightShadowControl::m_bEnableShadows( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl.m_bEnableShadows");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

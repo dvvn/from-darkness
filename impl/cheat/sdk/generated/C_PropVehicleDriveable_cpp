@@ -1,0 +1,91 @@
+#include "C_PropVehicleDriveable.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_PropVehicleDriveable::m_hPlayer( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_hPlayer");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_PropVehicleDriveable::m_nSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_nSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_PropVehicleDriveable::m_nRPM( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_nRPM");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_PropVehicleDriveable::m_flThrottle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_flThrottle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_PropVehicleDriveable::m_nBoostTimeLeft( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_nBoostTimeLeft");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_PropVehicleDriveable::m_nHasBoost( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_nHasBoost");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_PropVehicleDriveable::m_nScannerDisabledWeapons( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_nScannerDisabledWeapons");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_PropVehicleDriveable::m_nScannerDisabledVehicle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_nScannerDisabledVehicle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_PropVehicleDriveable::m_bEnterAnimOn( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_bEnterAnimOn");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_PropVehicleDriveable::m_bExitAnimOn( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_bExitAnimOn");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_PropVehicleDriveable::m_bUnableToFire( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_bUnableToFire");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::Vector& C_PropVehicleDriveable::m_vecEyeExitEndpoint( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_vecEyeExitEndpoint");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+bool& C_PropVehicleDriveable::m_bHasGun( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_bHasGun");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::Vector& C_PropVehicleDriveable::m_vecGunCrosshair( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable.m_vecGunCrosshair");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

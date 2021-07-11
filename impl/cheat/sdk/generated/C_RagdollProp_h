@@ -1,0 +1,5 @@
+utl::array<utl::QAngle, 24>& m_ragAngles( );
+utl::array<utl::Vector, 24>& m_ragPos( );
+int32_t& m_hUnragdoll( );
+float& m_flBlendWeight( );
+int32_t& m_nOverlaySequence( );

@@ -1,0 +1,31 @@
+#include "C_EnvQuadraticBeam.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_EnvQuadraticBeam::m_targetPosition( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvQuadraticBeam.m_targetPosition");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_EnvQuadraticBeam::m_controlPosition( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvQuadraticBeam.m_controlPosition");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_EnvQuadraticBeam::m_scrollRate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvQuadraticBeam.m_scrollRate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvQuadraticBeam::m_flWidth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvQuadraticBeam.m_flWidth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

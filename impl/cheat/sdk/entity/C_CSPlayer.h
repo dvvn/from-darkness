@@ -10,9 +10,8 @@ namespace cheat::csgo
 	class ICSPlayerAnimStateHelpers
 	{
 	public:
-		
-		virtual auto CSAnim_GetActiveWeapon( ) -> C_WeaponCSBase* = 0;
-		virtual auto CSAnim_CanMove( ) -> bool = 0;
+		virtual C_WeaponCSBase* CSAnim_GetActiveWeapon( ) = 0;
+		virtual bool            CSAnim_CanMove( ) = 0;
 	};
 
 	//econ
@@ -22,13 +21,13 @@ namespace cheat::csgo
 	class IHasAttributes
 	{
 	public:
-		virtual auto GetAttributeManager( ) -> CAttributeManager* = 0;
-		virtual auto GetAttributeContainer( ) -> CAttributeContainer* = 0;
-		virtual auto GetAttributeOwner( ) -> C_BaseEntity* = 0;
-		virtual auto GetAttributeList( ) -> CAttributeList* = 0;
+		virtual CAttributeManager*   GetAttributeManager( ) = 0;
+		virtual CAttributeContainer* GetAttributeContainer( ) = 0;
+		virtual C_BaseEntity*        GetAttributeOwner( ) = 0;
+		virtual CAttributeList*      GetAttributeList( ) = 0;
 
 		// Reapply yourself to whoever you should be providing attributes to.
-		virtual auto ReapplyProvision( ) -> void = 0;
+		virtual void ReapplyProvision( ) = 0;
 	};
 
 	class C_CSPlayer: public C_BasePlayer,
@@ -39,5 +38,6 @@ namespace cheat::csgo
 #endif
 	{
 	public:
+#include "../generated/C_CSPlayer_h"
 	};
 }

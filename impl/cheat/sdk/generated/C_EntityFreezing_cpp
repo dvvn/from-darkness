@@ -1,0 +1,31 @@
+#include "C_EntityFreezing.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_EntityFreezing::m_vFreezingOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_vFreezingOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::array<float, 50>& C_EntityFreezing::m_flFrozenPerHitbox( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_flFrozenPerHitbox");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<float, 50>>( );
+}
+float& C_EntityFreezing::m_flFrozen( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_flFrozen");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_EntityFreezing::m_bFinishFreezing( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_bFinishFreezing");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

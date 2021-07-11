@@ -1,0 +1,25 @@
+#include "C_TESparks.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_TESparks::m_nMagnitude( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TESparks.m_nMagnitude");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TESparks::m_nTrailLength( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TESparks.m_nTrailLength");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_TESparks::m_vecDir( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TESparks.m_vecDir");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

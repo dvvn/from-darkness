@@ -1,0 +1,9 @@
+int32_t& m_nNumWide( );
+int32_t& m_nNumHigh( );
+float& m_flPanelWidth( );
+float& m_flPanelHeight( );
+utl::Vector& m_vNormal( );
+utl::Vector& m_vCorner( );
+bool& m_bIsBroken( );
+int32_t& m_nSurfaceType( );
+utl::array<int32_t, 256>& m_RawPanelBitVec( );

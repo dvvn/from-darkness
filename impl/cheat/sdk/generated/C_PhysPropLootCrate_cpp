@@ -1,0 +1,31 @@
+#include "C_PhysPropLootCrate.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_PhysPropLootCrate::m_bRenderInPSPM( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate.m_bRenderInPSPM");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_PhysPropLootCrate::m_bRenderInTablet( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate.m_bRenderInTablet");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_PhysPropLootCrate::m_iHealth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate.m_iHealth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_PhysPropLootCrate::m_iMaxHealth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate.m_iMaxHealth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

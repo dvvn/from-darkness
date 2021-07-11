@@ -518,4 +518,5 @@ namespace cheat::hooks
 
 #define CHEAT_OUTPUT_DIR _STRINGIZE_R(VS_OutputDir)
 #define CHEAT_NAME _STRINGIZE(VS_SolutionName)
-#define CHEAT_DUMPS_FOLDER _STRINGIZE_R(_CONCAT(VS_OutputDir,\dumps\))
+#define CHEAT_DUMPS_DIR _STRINGIZE_R(_CONCAT(VS_OutputDir,\dumps\))
+#define CHEAT_IMPL_DIR _STRINGIZE_R(_CONCAT(VS_SolutionDir,\impl\cheat\))

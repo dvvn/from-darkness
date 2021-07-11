@@ -1,0 +1,6 @@
+utl::Vector& m_vecOrigin( );
+utl::Vector& m_vecStart( );
+utl::Vector& m_vecRight( );
+int32_t& m_nEntity( );
+int32_t& m_nPlayer( );
+int32_t& m_nHitbox( );

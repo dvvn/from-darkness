@@ -1,0 +1,31 @@
+#include "C_TEImpact.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEImpact::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEImpact.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_TEImpact::m_vecNormal( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEImpact.m_vecNormal");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_TEImpact::m_iType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEImpact.m_iType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEImpact::m_ucFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEImpact.m_ucFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

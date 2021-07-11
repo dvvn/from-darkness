@@ -1,0 +1,5 @@
+utl::Vector& m_shadowDirection( );
+int32_t& m_shadowColor( );
+float& m_flShadowMaxDist( );
+bool& m_bDisableShadows( );
+bool& m_bEnableLocalLightShadows( );

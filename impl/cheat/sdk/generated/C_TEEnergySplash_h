@@ -1,0 +1,3 @@
+utl::Vector& m_vecPos( );
+utl::Vector& m_vecDir( );
+bool& m_bExplosive( );

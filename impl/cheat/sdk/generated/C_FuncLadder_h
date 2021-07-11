@@ -1,0 +1,4 @@
+utl::Vector& m_vecPlayerMountPositionTop( );
+utl::Vector& m_vecPlayerMountPositionBottom( );
+utl::Vector& m_vecLadderDir( );
+bool& m_bFakeLadder( );

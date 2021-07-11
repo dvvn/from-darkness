@@ -1,0 +1,9 @@
+utl::Vector& m_vecOrigin( );
+utl::QAngle& m_angRotation( );
+utl::Vector& m_vecSize( );
+utl::Vector& m_vecVelocity( );
+int32_t& m_nModelIndex( );
+int32_t& m_nRandomization( );
+int32_t& m_nCount( );
+float& m_fTime( );
+int32_t& m_nFlags( );

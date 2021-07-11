@@ -1,0 +1,61 @@
+#include "C_TEBreakModel.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEBreakModel::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_TEBreakModel::m_angRotation( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_angRotation");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+utl::Vector& C_TEBreakModel::m_vecSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_vecSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_TEBreakModel::m_vecVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_vecVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_TEBreakModel::m_nModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_nModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBreakModel::m_nRandomization( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_nRandomization");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_TEBreakModel::m_nCount( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_nCount");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_TEBreakModel::m_fTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_fTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_TEBreakModel::m_nFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel.m_nFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

@@ -1,0 +1,49 @@
+#include "_ST_m_AnimOverlay_15.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& _ST_m_AnimOverlay_15::m_nSequence( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15.m_nSequence");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& _ST_m_AnimOverlay_15::m_flCycle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15.m_flCycle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& _ST_m_AnimOverlay_15::m_flPlaybackRate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15.m_flPlaybackRate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& _ST_m_AnimOverlay_15::m_flPrevCycle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15.m_flPrevCycle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& _ST_m_AnimOverlay_15::m_flWeight( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15.m_flWeight");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& _ST_m_AnimOverlay_15::m_flWeightDeltaRate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15.m_flWeightDeltaRate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& _ST_m_AnimOverlay_15::m_nOrder( )
+{
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15.m_nOrder");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

@@ -1,0 +1,97 @@
+#include "C_FEPlayerDecal.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_FEPlayerDecal::m_nUniqueID( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_nUniqueID");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+uint32_t& C_FEPlayerDecal::m_unAccountID( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_unAccountID");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+uint32_t& C_FEPlayerDecal::m_unTraceID( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_unTraceID");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<uint32_t>( );
+}
+int32_t& C_FEPlayerDecal::m_rtGcTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_rtGcTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_FEPlayerDecal::m_vecEndPos( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_vecEndPos");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_FEPlayerDecal::m_vecStart( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_vecStart");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_FEPlayerDecal::m_vecRight( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_vecRight");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_FEPlayerDecal::m_vecNormal( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_vecNormal");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_FEPlayerDecal::m_nEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_nEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_FEPlayerDecal::m_nPlayer( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_nPlayer");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_FEPlayerDecal::m_nHitbox( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_nHitbox");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_FEPlayerDecal::m_nTintID( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_nTintID");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_FEPlayerDecal::m_flCreationTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_flCreationTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_FEPlayerDecal::m_nVersion( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_nVersion");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::array<int32_t, 128>& C_FEPlayerDecal::m_ubSignature( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal.m_ubSignature");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 128>>( );
+}

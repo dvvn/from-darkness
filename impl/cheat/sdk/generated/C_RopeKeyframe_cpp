@@ -1,0 +1,151 @@
+#include "C_RopeKeyframe.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_RopeKeyframe::m_nChangeCount( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nChangeCount");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_iRopeMaterialModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iRopeMaterialModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_hStartPoint( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_hStartPoint");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_hEndPoint( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_hEndPoint");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_iStartAttachment( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iStartAttachment");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_iEndAttachment( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iEndAttachment");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_fLockedPoints( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_fLockedPoints");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_Slack( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_Slack");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_RopeLength( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_RopeLength");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_RopeFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_RopeFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_RopeKeyframe::m_TextureScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_TextureScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_RopeKeyframe::m_nSegments( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nSegments");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_RopeKeyframe::m_bConstrainBetweenEndpoints( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_bConstrainBetweenEndpoints");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_RopeKeyframe::m_Subdiv( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_Subdiv");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_RopeKeyframe::m_Width( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_Width");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_RopeKeyframe::m_flScrollSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_flScrollSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::Vector& C_RopeKeyframe::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_RopeKeyframe::moveparent( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.moveparent");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_iParentAttachment( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iParentAttachment");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_iDefaultRopeMaterialModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iDefaultRopeMaterialModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_nMinCPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMinCPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_nMaxCPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMaxCPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_nMinGPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMinGPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_RopeKeyframe::m_nMaxGPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMaxGPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

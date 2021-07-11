@@ -1,0 +1,55 @@
+#include "C_SpriteTrail.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_SpriteTrail::m_flLifeTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_flLifeTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SpriteTrail::m_flStartWidth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_flStartWidth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SpriteTrail::m_flEndWidth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_flEndWidth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SpriteTrail::m_flStartWidthVariance( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_flStartWidthVariance");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SpriteTrail::m_flTextureRes( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_flTextureRes");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SpriteTrail::m_flMinFadeLength( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_flMinFadeLength");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::Vector& C_SpriteTrail::m_vecSkyboxOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_vecSkyboxOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_SpriteTrail::m_flSkyboxScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail.m_flSkyboxScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

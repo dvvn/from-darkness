@@ -1,0 +1,49 @@
+#include "C_Plasma.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_Plasma::m_flStartScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma.m_flStartScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Plasma::m_flScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma.m_flScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Plasma::m_flScaleTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma.m_flScaleTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_Plasma::m_nFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma.m_nFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Plasma::m_nPlasmaModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma.m_nPlasmaModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Plasma::m_nPlasmaModelIndex2( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma.m_nPlasmaModelIndex2");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Plasma::m_nGlowModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma.m_nGlowModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

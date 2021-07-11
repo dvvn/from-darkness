@@ -1,0 +1,5 @@
+int32_t& m_hPlayer( );
+bool& m_bEnterAnimOn( );
+bool& m_bExitAnimOn( );
+bool& m_bForceEyesToAttachment( );
+utl::Vector& m_vecEyeExitEndpoint( );

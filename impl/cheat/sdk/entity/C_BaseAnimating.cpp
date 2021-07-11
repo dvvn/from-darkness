@@ -1,4 +1,1 @@
-#include "C_BaseAnimating.h"
-
-using namespace cheat;
-using namespace csgo;
+#include "../generated/C_BaseAnimating_cpp"

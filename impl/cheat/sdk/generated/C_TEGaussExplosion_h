@@ -1,0 +1,2 @@
+int32_t& m_nType( );
+utl::Vector& m_vecDirection( );

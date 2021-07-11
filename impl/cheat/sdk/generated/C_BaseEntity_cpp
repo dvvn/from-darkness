@@ -1,0 +1,463 @@
+#include "C_BaseEntity.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_BaseEntity::m_flAnimTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flAnimTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_flSimulationTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flSimulationTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_cellbits( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_cellbits");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_cellX( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_cellX");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_cellY( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_cellY");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_cellZ( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_cellZ");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_BaseEntity::m_vecOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_BaseEntity::m_angRotation( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_angRotation");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+int16_t& C_BaseEntity::m_nModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int16_t>( );
+}
+int32_t& C_BaseEntity::m_fEffects( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_fEffects");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int8_t& C_BaseEntity::m_nRenderMode( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nRenderMode");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int8_t>( );
+}
+int8_t& C_BaseEntity::m_nRenderFX( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nRenderFX");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int8_t>( );
+}
+utl::Color& C_BaseEntity::m_clrRender( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_clrRender");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Color>( );
+}
+int32_t& C_BaseEntity::m_iTeamNum( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iTeamNum");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_iPendingTeamNum( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iPendingTeamNum");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_CollisionGroup( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_CollisionGroup");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BaseEntity::m_flElasticity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flElasticity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BaseEntity::m_flShadowCastDistance( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flShadowCastDistance");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BaseEntity::m_hOwnerEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hOwnerEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_hEffectEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hEffectEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::moveparent( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.moveparent");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_iParentAttachment( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iParentAttachment");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+char* C_BaseEntity::m_iName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+int32_t& C_BaseEntity::movetype( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.movetype");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::movecollide( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.movecollide");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_BaseEntity::m_vecMins( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecMins");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BaseEntity::m_vecMaxs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecMaxs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_BaseEntity::m_nSolidType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nSolidType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_usSolidFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_usSolidFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_nSurroundType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nSurroundType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_triggerBloat( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_triggerBloat");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_BaseEntity::m_vecSpecifiedSurroundingMins( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecSpecifiedSurroundingMins");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BaseEntity::m_vecSpecifiedSurroundingMaxs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecSpecifiedSurroundingMaxs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_BaseEntity::m_iTextureFrameIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iTextureFrameIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_BaseEntity::m_bSimulatedEveryTick( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bSimulatedEveryTick");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BaseEntity::m_bAnimatedEveryTick( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bAnimatedEveryTick");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BaseEntity::m_bAlternateSorting( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bAlternateSorting");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_BaseEntity::m_bSpotted( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bSpotted");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::array<int32_t, 65>& C_BaseEntity::m_bSpottedBy( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bSpottedBy");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 65>>( );
+}
+utl::array<int32_t, 2>& C_BaseEntity::m_bSpottedByMask( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bSpottedByMask");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 2>>( );
+}
+bool& C_BaseEntity::m_bIsAutoaimTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bIsAutoaimTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_BaseEntity::m_fadeMinDist( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_fadeMinDist");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BaseEntity::m_fadeMaxDist( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_fadeMaxDist");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BaseEntity::m_flFadeScale( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flFadeScale");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BaseEntity::m_nMinCPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nMinCPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_nMaxCPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nMaxCPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_nMinGPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nMinGPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseEntity::m_nMaxGPULevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nMaxGPULevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BaseEntity::m_flUseLookAtAngle( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flUseLookAtAngle");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BaseEntity::m_flLastMadeNoiseTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flLastMadeNoiseTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BaseEntity::m_flMaxFallVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flMaxFallVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_BaseEntity::m_bEligibleForScreenHighlight( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bEligibleForScreenHighlight");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+char* C_BaseEntity::m_ModelName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_ModelName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+utl::Vector& C_BaseEntity::m_vecAbsOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecAbsOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_BaseEntity::m_angAbsRotation( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_angAbsRotation");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+float& C_BaseEntity::m_rgflCoordinateFrame( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_rgflCoordinateFrame");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BaseEntity::m_fFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_fFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int8_t& C_BaseEntity::m_MoveType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_MoveType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int8_t>( );
+}
+int8_t& C_BaseEntity::m_MoveCollide( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_MoveCollide");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int8_t>( );
+}
+utl::Vector& C_BaseEntity::m_vecAbsVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecAbsVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BaseEntity::m_vecVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BaseEntity::m_vecViewOffset( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecViewOffset");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_BaseEntity::m_flFriction( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flFriction");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BaseEntity::m_iHealth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iHealth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+void* C_BaseEntity::m_hNetworkMoveParent( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hNetworkMoveParent");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<void>( );
+}
+utl::Vector& C_BaseEntity::m_vecNetworkOrigin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecNetworkOrigin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::QAngle& C_BaseEntity::m_angNetworkAngles( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_angNetworkAngles");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::QAngle>( );
+}
+void* C_BaseEntity::m_hGroundEntity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hGroundEntity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<void>( );
+}
+int8_t& C_BaseEntity::m_nWaterLevel( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nWaterLevel");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int8_t>( );
+}
+int8_t& C_BaseEntity::m_nWaterType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_nWaterType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int8_t>( );
+}
+utl::Vector& C_BaseEntity::m_vecAngVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecAngVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_BaseEntity::m_vecBaseVelocity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_vecBaseVelocity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_BaseEntity::m_iEFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iEFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BaseEntity::m_flGravity( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flGravity");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_BaseEntity::m_flProxyRandomValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_flProxyRandomValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_BaseEntity::m_bEverHadPredictionErrorsForThisCommand( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_bEverHadPredictionErrorsForThisCommand");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

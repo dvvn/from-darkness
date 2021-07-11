@@ -1,0 +1,49 @@
+#include "C_BaseCombatCharacter.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_BaseCombatCharacter::m_flNextAttack( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_flNextAttack");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+utl::array<int32_t, 64>& C_BaseCombatCharacter::m_hMyWeapons( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_hMyWeapons");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 64>>( );
+}
+int32_t& C_BaseCombatCharacter::m_LastHitGroup( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_LastHitGroup");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_BaseCombatCharacter::m_hActiveWeapon( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_hActiveWeapon");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_BaseCombatCharacter::m_flTimeOfLastInjury( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_flTimeOfLastInjury");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_BaseCombatCharacter::m_nRelativeDirectionOfLastInjury( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_nRelativeDirectionOfLastInjury");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::array<int32_t, 1>& C_BaseCombatCharacter::m_hMyWearables( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_hMyWearables");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<int32_t, 1>>( );
+}

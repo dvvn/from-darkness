@@ -1,0 +1,25 @@
+#include "C_TEBeamRingPoint.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_TEBeamRingPoint::m_vecCenter( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint.m_vecCenter");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+float& C_TEBeamRingPoint::m_flStartRadius( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint.m_flStartRadius");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_TEBeamRingPoint::m_flEndRadius( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint.m_flEndRadius");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

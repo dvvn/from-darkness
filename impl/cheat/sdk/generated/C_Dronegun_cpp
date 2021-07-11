@@ -1,0 +1,31 @@
+#include "C_Dronegun.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::Vector& C_Dronegun::m_vecAttentionTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Dronegun.m_vecAttentionTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_Dronegun::m_vecTargetOffset( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Dronegun.m_vecTargetOffset");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_Dronegun::m_iHealth( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Dronegun.m_iHealth");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_Dronegun::m_bHasTarget( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Dronegun.m_bHasTarget");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}

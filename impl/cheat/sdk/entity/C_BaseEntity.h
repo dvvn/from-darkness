@@ -31,9 +31,11 @@ namespace cheat::csgo
 	class C_BaseEntity: public IClientEntity, public IClientModelRenderable
 	{
 	public:
-		~C_BaseEntity( ) override =0 ;
+		~C_BaseEntity( ) override =0;
 
-		auto GetDataDescMap( ) -> datamap_t*;
-		auto GetPredictionDescMap( ) -> datamap_t*;
+		datamap_t* GetDataDescMap( );
+		datamap_t* GetPredictionDescMap( );
+
+#include "../generated/C_BaseEntity_h"
 	};
 }

@@ -1,0 +1,5 @@
+int32_t& m_nModelIndex( );
+int32_t& m_nBody( );
+int32_t& m_fEffects( );
+int32_t& moveparent( );
+int32_t& m_hCombatWeaponParent( );

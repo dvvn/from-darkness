@@ -1,0 +1,11 @@
+utl::array<int32_t, 4>& m_hProps( );
+utl::array<int32_t, 4>& m_chPoseIndex( );
+bool& m_bPoseValueParity( );
+float& m_fPoseValue( );
+float& m_fInterpolationTime( );
+bool& m_bInterpolationWrap( );
+float& m_fCycleFrequency( );
+int32_t& m_nFModType( );
+float& m_fFModTimeOffset( );
+float& m_fFModRate( );
+float& m_fFModAmplitude( );

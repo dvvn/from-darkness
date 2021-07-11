@@ -1,0 +1,127 @@
+#include "C_Func_Dust.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_Func_Dust::m_Color( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_Color");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_SpawnRate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_SpawnRate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_Func_Dust::m_flSizeMin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_flSizeMin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_Func_Dust::m_flSizeMax( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_flSizeMax");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_Func_Dust::m_LifetimeMin( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_LifetimeMin");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_LifetimeMax( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_LifetimeMax");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_DustFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_DustFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_SpeedMax( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_SpeedMax");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_DistMax( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_DistMax");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_nModelIndex( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_nModelIndex");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_Func_Dust::m_FallSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_FallSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_Func_Dust::m_bAffectedByWind( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_bAffectedByWind");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+utl::Vector& C_Func_Dust::m_vecMins( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_vecMins");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_Func_Dust::m_vecMaxs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_vecMaxs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+int32_t& C_Func_Dust::m_nSolidType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_nSolidType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_usSolidFlags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_usSolidFlags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_nSurroundType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_nSurroundType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_Func_Dust::m_triggerBloat( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_triggerBloat");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+utl::Vector& C_Func_Dust::m_vecSpecifiedSurroundingMins( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_vecSpecifiedSurroundingMins");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}
+utl::Vector& C_Func_Dust::m_vecSpecifiedSurroundingMaxs( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust.m_vecSpecifiedSurroundingMaxs");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+}

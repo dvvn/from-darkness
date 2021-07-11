@@ -1,0 +1,13 @@
+#include "C_PhysBox.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_PhysBox::m_mass( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PhysBox.m_mass");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

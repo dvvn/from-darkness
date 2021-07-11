@@ -1,0 +1,85 @@
+#include "C_MaterialModifyControl.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+char* C_MaterialModifyControl::m_szMaterialName( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_szMaterialName");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+char* C_MaterialModifyControl::m_szMaterialVar( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_szMaterialVar");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+char* C_MaterialModifyControl::m_szMaterialVarValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_szMaterialVarValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+int32_t& C_MaterialModifyControl::m_iFrameStart( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_iFrameStart");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_MaterialModifyControl::m_iFrameEnd( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_iFrameEnd");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+bool& C_MaterialModifyControl::m_bWrap( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_bWrap");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_MaterialModifyControl::m_flFramerate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_flFramerate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_MaterialModifyControl::m_bNewAnimCommandsSemaphore( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_bNewAnimCommandsSemaphore");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+float& C_MaterialModifyControl::m_flFloatLerpStartValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_flFloatLerpStartValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_MaterialModifyControl::m_flFloatLerpEndValue( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_flFloatLerpEndValue");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_MaterialModifyControl::m_flFloatLerpTransitionTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_flFloatLerpTransitionTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_MaterialModifyControl::m_bFloatLerpWrap( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_bFloatLerpWrap");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_MaterialModifyControl::m_nModifyMode( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_nModifyMode");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

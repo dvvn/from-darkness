@@ -1,0 +1,4 @@
+utl::Vector& m_vecOrigin( );
+utl::QAngle& m_angRotation( );
+float& m_flDistance( );
+int32_t& m_nIndex( );

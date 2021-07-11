@@ -1,0 +1,73 @@
+#include "C_SteamJet.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_SteamJet::m_SpreadSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_SpreadSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SteamJet::m_Speed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_Speed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SteamJet::m_StartSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_StartSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SteamJet::m_EndSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_EndSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SteamJet::m_Rate( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_Rate");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_SteamJet::m_JetLength( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_JetLength");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+bool& C_SteamJet::m_bEmit( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_bEmit");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+bool& C_SteamJet::m_bFaceLeft( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_bFaceLeft");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<bool>( );
+}
+int32_t& C_SteamJet::m_nType( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_nType");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_SteamJet::m_spawnflags( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_spawnflags");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_SteamJet::m_flRollSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet.m_flRollSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

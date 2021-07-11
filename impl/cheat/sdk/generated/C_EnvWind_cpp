@@ -1,0 +1,79 @@
+#include "C_EnvWind.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_EnvWind::m_iMinWind( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_iMinWind");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_EnvWind::m_iMaxWind( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_iMaxWind");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_EnvWind::m_iMinGust( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_iMinGust");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_EnvWind::m_iMaxGust( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_iMaxGust");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_EnvWind::m_flMinGustDelay( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_flMinGustDelay");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvWind::m_flMaxGustDelay( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_flMaxGustDelay");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_EnvWind::m_iGustDirChange( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_iGustDirChange");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_EnvWind::m_iWindSeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_iWindSeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+int32_t& C_EnvWind::m_iInitialWindDir( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_iInitialWindDir");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_EnvWind::m_flInitialWindSpeed( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_flInitialWindSpeed");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvWind::m_flStartTime( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_flStartTime");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+float& C_EnvWind::m_flGustDuration( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_EnvWind.m_flGustDuration");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}

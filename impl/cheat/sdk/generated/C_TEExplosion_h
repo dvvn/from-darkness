@@ -1,0 +1,8 @@
+int32_t& m_nModelIndex( );
+float& m_fScale( );
+int32_t& m_nFrameRate( );
+int32_t& m_nFlags( );
+utl::Vector& m_vecNormal( );
+uint8_t& m_chMaterialType( );
+int32_t& m_nRadius( );
+int32_t& m_nMagnitude( );

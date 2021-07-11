@@ -1,0 +1,25 @@
+#include "C_PointWorldText.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+char* C_PointWorldText::m_szText( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PointWorldText.m_szText");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.raw<char>( );
+}
+float& C_PointWorldText::m_flTextSize( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PointWorldText.m_flTextSize");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_PointWorldText::m_textColor( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_PointWorldText.m_textColor");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}

@@ -1,0 +1,37 @@
+#include "C_RagdollProp.h"
+
+#include "cheat/core/netvars.h"
+
+using namespace cheat;
+using namespace csgo;
+
+utl::array<utl::QAngle, 24>& C_RagdollProp::m_ragAngles( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_ragAngles");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<utl::QAngle, 24>>( );
+}
+utl::array<utl::Vector, 24>& C_RagdollProp::m_ragPos( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_ragPos");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<utl::array<utl::Vector, 24>>( );
+}
+int32_t& C_RagdollProp::m_hUnragdoll( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_hUnragdoll");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
+float& C_RagdollProp::m_flBlendWeight( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_flBlendWeight");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<float>( );
+}
+int32_t& C_RagdollProp::m_nOverlaySequence( )
+{
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_nOverlaySequence");
+	auto addr = utl::mem::address(this).add(offset);
+	return addr.ref<int32_t>( );
+}
