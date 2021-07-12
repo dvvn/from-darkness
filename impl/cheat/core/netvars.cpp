@@ -82,16 +82,16 @@ struct netvar_info: variable_info
 #endif
 };
 
-template <typename Nstr, typename Tstr>
-static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, Tstr&& type)
+template <typename Nstr>
+static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, string&& type)
 {
 	const auto path = property_tree::ptree::path_type(string(forward<Nstr>(name)));
 	if (const auto exists = storage.get_child_optional(path);
 		exists.has_value( ))
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		if (type != _STRINGIZE(void*) && netvar_info::type.ptree_get(*exists) != type)
-			netvar_info::type.ptree_put(*exists, string(forward<Tstr>(type)));
+		if ((type) != "void*" && netvar_info::type.ptree_get(*exists) != type)
+			netvar_info::type.ptree_put(*exists, move(type));
 #endif
 		return false;
 	}
@@ -99,7 +99,7 @@ static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset,
 	auto& entry = storage.add_child(path, { });
 	netvar_info::offset.ptree_put(entry, offset);
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	netvar_info::type.ptree_put(entry, string(forward<Tstr>(type)));
+	netvar_info::type.ptree_put(entry, move(type));
 #endif
 #ifdef _DEBUG
 	netvar_info::in_use.ptree_put(entry, false);
@@ -153,10 +153,7 @@ static string _Netvar_vec_type(const string_view& name)
 		return lstr.find("angles") != lstr.npos;
 	};
 
-	if (std::isdigit(name[0]) || !is_qangle( ))
-		return _STRINGIZE(utl::Vector);
-	else
-		return _STRINGIZE(utl::QAngle);
+	return string("utl::") + (std::isdigit(name[0]) || !is_qangle( ) ? "Vector" : "QAngle");
 }
 
 static string _Netvar_int_type(string_view name)
@@ -172,26 +169,26 @@ static string _Netvar_int_type(string_view name)
 		if (is_upper(1))
 		{
 			if (name.starts_with('b'))
-				return _STRINGIZE(bool);
+				return "bool";
 			if (name.starts_with('c'))
-				return _STRINGIZE(uint8_t);
+				return "uint8_t";
 		}
 		else if (is_upper(2))
 		{
 			if (name.starts_with("un"))
-				return _STRINGIZE(uint32_t);
+				return "uint32_t";
 			if (name.starts_with("ch"))
-				return _STRINGIZE(uint8_t);
+				return "uint8_t";
 			if (name.starts_with("fl") && _Str_to_lower(name).find("time") != string::npos) //m_flSimulationTime int ???
-				return _STRINGIZE(float);
+				return "float";
 		}
 		if (is_upper(3))
 		{
 			if (name.starts_with("clr"))
-				return _STRINGIZE(utl::Color); //not sure
+				return "utl::Color"; //not sure
 		}
 	}
-	return _STRINGIZE(int32_t);
+	return "int32_t";
 }
 
 static string _Recv_prop_type(const RecvProp& prop)
@@ -201,13 +198,13 @@ static string _Recv_prop_type(const RecvProp& prop)
 		case DPT_Int:
 			return _Netvar_int_type(prop.m_pVarName);
 		case DPT_Float:
-			return _STRINGIZE(float);
+			return "float";
 		case DPT_Vector:
 			return _Netvar_vec_type(prop.m_pVarName);
 		case DPT_VectorXY:
-			return _STRINGIZE(utl::Vector2D); //3d vector. z unused
+			return "utl::Vector2D"; //3d vector. z unused
 		case DPT_String:
-			return _STRINGIZE(char*);
+			return "char*";
 		case DPT_Array:
 		{
 			const auto& prev_prop = *std::prev(addressof(prop));
@@ -218,14 +215,14 @@ static string _Recv_prop_type(const RecvProp& prop)
 		case DPT_DataTable:
 		{
 			BOOST_ASSERT("Data table type must be manually resolved!");
-			return _STRINGIZE(void*);
+			return "void*";
 		}
 		case DPT_Int64:
-			return _STRINGIZE(int64_t);
+			return "int64_t";
 		default:
 		{
 			BOOST_ASSERT("Unknown recv prop type");
-			return _STRINGIZE(void*);
+			return "void*";
 		}
 	}
 }
@@ -235,76 +232,92 @@ static string _Datamap_field_type(const typedescription_t& field)
 	switch (field.fieldType)
 	{
 		case FIELD_VOID:
-			return _STRINGIZE(void*);
+			return "void*";
 		case FIELD_FLOAT:
-			return _STRINGIZE(float);
+			return "float";
 		case FIELD_STRING:
-			return _STRINGIZE(char*); //string_t at real
+			return "char*"; //string_t at real
 		case FIELD_VECTOR:
 			return _Netvar_vec_type(field.fieldName);
 		case FIELD_QUATERNION:
-			return _STRINGIZE(utl::Quaterion);
+		{
+			//return "utl::Quaterion";
+			BOOST_ASSERT("Quaterion field detected");
+			return "void*";
+		}
 		case FIELD_INTEGER:
 			return _Netvar_int_type(field.fieldName);
 		case FIELD_BOOLEAN:
-			return _STRINGIZE(bool);
+			return "bool";
 		case FIELD_SHORT:
-			return _STRINGIZE(int16_t);
+			return "int16_t";
 		case FIELD_CHARACTER:
-			return _STRINGIZE(int8_t);
+			return "int8_t";
 		case FIELD_COLOR32:
-			return _STRINGIZE(utl::Color);
+			return "utl::Color";
 		case FIELD_EMBEDDED:
 		{
 			BOOST_ASSERT("Embedded field detected");
-			return _STRINGIZE(void*);
+			return "void*";
 		}
 		case FIELD_CUSTOM:
 		{
 			BOOST_ASSERT("Custom field detected");
-			return _STRINGIZE(void*);
+			return "void*";
 		}
 		case FIELD_CLASSPTR:
-			return _STRINGIZE(C_BaseEntity*);
+			return "C_BaseEntity*";
 		case FIELD_EHANDLE:
 		{
 			BOOST_ASSERT("Ent handle detected");
-			return _STRINGIZE(void*); //todo
+			return "void*"; //todo
 		}
 		case FIELD_EDICT:
-			return _STRINGIZE(edict_t*);
+		{
+			//return "edict_t*";
+			BOOST_ASSERT("Edict field detected");
+			return "void*";
+		}
 		case FIELD_POSITION_VECTOR:
-			return _STRINGIZE(utl::Vector);
+			return "utl::Vector";
 		case FIELD_TIME:
-			return _STRINGIZE(float);
+			return "float";
 		case FIELD_TICK:
-			return _STRINGIZE(int32_t);
+			return "int32_t";
 		case FIELD_MODELNAME:
 		case FIELD_SOUNDNAME:
-			return _STRINGIZE(char*); //string_t at real
+			return "char*"; //string_t at real
 		case FIELD_INPUT:
-			return _STRINGIZE(CMultiInputVar);
+		{
+			//return "CMultiInputVar";
+			BOOST_ASSERT("Inputvar field detected");
+			return "void*";
+		}
 		case FIELD_FUNCTION:
 		{
 			BOOST_ASSERT("Function detected");
-			return _STRINGIZE(void*);
+			return "void*";
 		}
 		case FIELD_VMATRIX:
 		case FIELD_VMATRIX_WORLDSPACE:
-			return _STRINGIZE(utl::VMatrix);
+			return "VMatrix";
 		case FIELD_MATRIX3X4_WORLDSPACE:
-			return _STRINGIZE(utl::matrix3x4_t);
+			return "matrix3x4_t";
 		case FIELD_INTERVAL:
-			return _STRINGIZE(interval_t);
+		{
+			//return "interval_t";
+			BOOST_ASSERT("Interval field detected");
+			return "void*";
+		}
 		case FIELD_MODELINDEX:
 		case FIELD_MATERIALINDEX:
-			return _STRINGIZE(int32_t);
+			return "int32_t";
 		case FIELD_VECTOR2D:
-			return _STRINGIZE(utl::Vector2D);
+			return "utl::Vector2D";
 		default:
 		{
 			BOOST_ASSERT("Unknown datamap field type");
-			return _STRINGIZE(void*);
+			return "void*";
 		}
 	}
 }
@@ -402,13 +415,15 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 						auto prefix = real_prop_name.substr(2, 3);
 						if (prop.m_RecvType == DPT_Float)
 						{
-							if (prefix == "ang" || prefix == "vec")
-								netvar_type = _Netvar_vec_type(real_prop_name);
+							if (prefix == "ang")
+								netvar_type = "utl::QAngle";
+							if (prefix == "vec")
+								netvar_type = "utl::Vector";
 						}
 						else if (prop.m_RecvType == DPT_Int)
 						{
 							if (prefix == "uch")
-								netvar_type = _STRINGIZE(utl::Color); //todo: move to func
+								netvar_type = "utl::Color";
 						}
 					}
 
@@ -421,7 +436,6 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 					const auto netvar_type = nullptr;
 #endif
 					_Save_netvar(tree, real_prop_name, real_prop_offset, move(netvar_type));
-
 					itr += *array_size - 1;
 				}
 			}
@@ -628,7 +642,7 @@ void netvars::Load( )
 	[[maybe_unused]] const auto load_result = vtables.load(dumps_path);
 	BOOST_ASSERT(load_result == mem::data_cache_result::success);
 
-	const auto baseent = vtables.get_cache( ).at(_STRINGIZE(C_BaseEntity)).addr.raw<C_BaseEntity>( );
+	const auto baseent = vtables.get_cache( ).at("C_BaseEntity").addr.raw<C_BaseEntity>( );
 
 	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));

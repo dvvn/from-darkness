@@ -405,6 +405,7 @@ namespace cheat::utl
 	using boost::make_lock_guard;
 	using std::binary_semaphore;
 	using std::counting_semaphore;
+	using boost::core::demangle;
 
 	namespace filesystem = boost::filesystem;
 	namespace chrono = boost::chrono;
