@@ -14,26 +14,26 @@ namespace cheat::csgo
 	class IGameEvent
 	{
 	public:
-		virtual      ~IGameEvent( ) = 0;
-		virtual auto GetName( ) const -> const char* = 0;
+		virtual             ~IGameEvent( ) = 0;
+		virtual const char* GetName( ) const = 0;
 
-		virtual auto IsReliable( ) const -> bool = 0;
-		virtual auto IsLocal( ) const -> bool = 0;
-		virtual auto IsEmpty(const char* key_name = nullptr) -> bool = 0;
+		virtual bool IsReliable( ) const = 0;
+		virtual bool IsLocal( ) const = 0;
+		virtual bool IsEmpty(const char* key_name = nullptr) = 0;
 
-		virtual auto GetBool(const char* key_name = nullptr, bool default_value = false) -> bool = 0;
-		virtual auto GetInt(const char* key_name = nullptr, int default_value = 0) -> int = 0;
-		virtual auto GetUint64(const char* key_name = nullptr, unsigned long default_value = 0) -> uint64_t = 0;
-		virtual auto GetFloat(const char* key_name = nullptr, float default_value = 0.0f) -> float = 0;
-		virtual auto GetString(const char* key_name = nullptr, const char* default_value = "") -> const char* = 0;
-		virtual auto GetWString(const char* key_name, const wchar_t* default_value = L"") -> const wchar_t* = 0;
+		virtual bool           GetBool(const char* key_name = nullptr, bool default_value = false) = 0;
+		virtual int            GetInt(const char* key_name = nullptr, int default_value = 0) = 0;
+		virtual uint64_t       GetUint64(const char* key_name = nullptr, unsigned long default_value = 0) = 0;
+		virtual float          GetFloat(const char* key_name = nullptr, float default_value = 0.0f) = 0;
+		virtual const char*    GetString(const char* key_name = nullptr, const char* default_value = "") = 0;
+		virtual const wchar_t* GetWString(const char* key_name, const wchar_t* default_value = L"") = 0;
 
-		virtual auto SetBool(const char* key_name, bool value) -> void = 0;
-		virtual auto SetInt(const char* key_name, int value) -> void = 0;
-		virtual auto SetUint64(const char* key_name, unsigned long value) -> void = 0;
-		virtual auto SetFloat(const char* key_name, float value) -> void = 0;
-		virtual auto SetString(const char* key_name, const char* value) -> void = 0;
-		virtual auto SetWString(const char* key_name, const wchar_t* value) -> void = 0;
+		virtual void SetBool(const char* key_name, bool value) = 0;
+		virtual void SetInt(const char* key_name, int value) = 0;
+		virtual void SetUint64(const char* key_name, unsigned long value) = 0;
+		virtual void SetFloat(const char* key_name, float value) = 0;
+		virtual void SetString(const char* key_name, const char* value) = 0;
+		virtual void SetWString(const char* key_name, const wchar_t* value) = 0;
 	};
 
 	class IGameEventListener2
@@ -41,8 +41,8 @@ namespace cheat::csgo
 	public:
 		virtual ~IGameEventListener2( ) =0;
 
-		virtual auto FireGameEvent(IGameEvent* event) -> void = 0;
-		virtual auto GetEventDebugID( ) -> int = 0;
+		virtual void FireGameEvent(IGameEvent* event) = 0;
+		virtual int  GetEventDebugID( ) = 0;
 
 		int debug_id;
 		bool registered_for_events;
@@ -51,19 +51,19 @@ namespace cheat::csgo
 	class IGameEventManager2
 	{
 	public:
-		virtual      ~IGameEventManager2( ) = 0;
-		virtual auto LoadEventsFromFile(const char* filename) -> int = 0;
-		virtual auto Reset( ) -> void = 0;
-		virtual auto AddListener(IGameEventListener2* listener, const char* name, bool bServerSide) -> bool = 0;
-		virtual auto FindListener(IGameEventListener2* listener, const char* name) -> bool = 0;
-		virtual auto RemoveListener(IGameEventListener2* listener) -> int = 0;
-		virtual auto CreateEvent(const char* name, bool bForce, unsigned int dwUnknown) -> IGameEvent* = 0;
-		virtual auto FireEvent(IGameEvent* event, bool bDontBroadcast = false) -> bool = 0;
-		virtual auto FireEventClientSide(IGameEvent* event) -> bool = 0;
-		virtual auto DuplicateEvent(IGameEvent* event) -> IGameEvent* = 0;
-		virtual auto FreeEvent(IGameEvent* event) -> void = 0;
-		virtual auto SerializeEvent(IGameEvent* event, bf_write* buf) -> bool = 0;
-		virtual auto UnserializeEvent(bf_read* buf) -> IGameEvent* = 0;
+		virtual             ~IGameEventManager2( ) = 0;
+		virtual int         LoadEventsFromFile(const char* filename) = 0;
+		virtual void        Reset( ) = 0;
+		virtual bool        AddListener(IGameEventListener2* listener, const char* name, bool bServerSide) = 0;
+		virtual bool        FindListener(IGameEventListener2* listener, const char* name) = 0;
+		virtual int         RemoveListener(IGameEventListener2* listener) = 0;
+		virtual IGameEvent* CreateEvent(const char* name, bool bForce, unsigned int dwUnknown) = 0;
+		virtual bool        FireEvent(IGameEvent* event, bool bDontBroadcast = false) = 0;
+		virtual bool        FireEventClientSide(IGameEvent* event) = 0;
+		virtual IGameEvent* DuplicateEvent(IGameEvent* event) = 0;
+		virtual void        FreeEvent(IGameEvent* event) = 0;
+		virtual bool        SerializeEvent(IGameEvent* event, bf_write* buf) = 0;
+		virtual IGameEvent* UnserializeEvent(bf_read* buf) = 0;
 	};
 
 	

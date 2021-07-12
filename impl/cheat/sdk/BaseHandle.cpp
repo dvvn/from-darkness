@@ -22,73 +22,73 @@ CBaseHandle::CBaseHandle(int iEntry, int iSerialNumber)
 	Init(iEntry, iSerialNumber);
 }
 
-auto CBaseHandle::Init(int iEntry, int iSerialNumber) -> void
+void CBaseHandle::Init(int iEntry, int iSerialNumber)
 {
 	m_Index = iEntry | (iSerialNumber << NUM_ENT_ENTRY_BITS);
 }
 
-auto CBaseHandle::Term( ) -> void
+void CBaseHandle::Term( )
 {
 	m_Index = INVALID_EHANDLE_INDEX;
 }
 
-auto CBaseHandle::IsValid( ) const -> bool
+bool CBaseHandle::IsValid( ) const
 {
 	return m_Index != INVALID_EHANDLE_INDEX;
 }
 
-auto CBaseHandle::GetEntryIndex( ) const -> int
+int CBaseHandle::GetEntryIndex( ) const
 {
 	return m_Index & ENT_ENTRY_MASK;
 }
 
-auto CBaseHandle::GetSerialNumber( ) const -> int
+int CBaseHandle::GetSerialNumber( ) const
 {
 	return m_Index >> NUM_ENT_ENTRY_BITS;
 }
 
-auto CBaseHandle::ToInt( ) const -> int
+int CBaseHandle::ToInt( ) const
 {
 	return (int)m_Index;
 }
 
-auto CBaseHandle::operator !=(const CBaseHandle& other) const -> bool
+bool CBaseHandle::operator !=(const CBaseHandle& other) const
 {
 	return m_Index != other.m_Index;
 }
 
-auto CBaseHandle::operator ==(const CBaseHandle& other) const -> bool
+bool CBaseHandle::operator ==(const CBaseHandle& other) const
 {
 	return m_Index == other.m_Index;
 }
 
-auto CBaseHandle::operator ==(const IHandleEntity* pEnt) const -> bool
+bool CBaseHandle::operator ==(const IHandleEntity* pEnt) const
 {
 	return Get( ) == pEnt;
 }
 
-auto CBaseHandle::operator !=(const IHandleEntity* pEnt) const -> bool
+bool CBaseHandle::operator !=(const IHandleEntity* pEnt) const
 {
 	return Get( ) != pEnt;
 }
 
-auto CBaseHandle::operator <(const CBaseHandle& other) const -> bool
+bool CBaseHandle::operator <(const CBaseHandle& other) const
 {
 	return m_Index<other.m_Index;
 }
 
-auto CBaseHandle::operator <(const IHandleEntity* pEntity) const -> bool
+bool CBaseHandle::operator <(const IHandleEntity* pEntity) const
 {
 	unsigned long otherIndex = (pEntity) ? pEntity->GetRefEHandle( ).m_Index : INVALID_EHANDLE_INDEX;
 	return m_Index < otherIndex;
 }
 
-auto CBaseHandle::operator=(const IHandleEntity* pEntity) -> const CBaseHandle&
+const CBaseHandle& CBaseHandle::operator=(const IHandleEntity* pEntity)
 {
 	return Set(pEntity);
 }
 
-auto CBaseHandle::Set(const IHandleEntity* pEntity) -> const CBaseHandle&
+const CBaseHandle& CBaseHandle::Set(const IHandleEntity* pEntity)
 {
 	if (pEntity)
 	{
@@ -102,7 +102,7 @@ auto CBaseHandle::Set(const IHandleEntity* pEntity) -> const CBaseHandle&
 	return *this;
 }
 
-auto CBaseHandle::Get( ) const -> IHandleEntity*
+IHandleEntity* CBaseHandle::Get( ) const
 {
 	(void)this;
 	//return g_EntityList->GetClientEntityFromHandle(*this);

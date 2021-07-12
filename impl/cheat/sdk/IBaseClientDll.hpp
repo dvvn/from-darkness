@@ -29,17 +29,17 @@ namespace cheat::csgo
 	class IBaseClientDLL
 	{
 	public:
-		virtual auto Connect(CreateInterfaceFn appSystemFactory, CGlobalVarsBase* pGlobals) -> int = 0;
-		virtual auto Disconnect( ) -> int = 0;
-		virtual auto Init(CreateInterfaceFn appSystemFactory, CGlobalVarsBase* pGlobals) -> int = 0;
-		virtual auto PostInit( ) -> void = 0;
-		virtual auto Shutdown( ) -> void = 0;
-		virtual auto LevelInitPreEntity(const char* pMapName) -> void = 0;
-		virtual auto LevelInitPostEntity( ) -> void = 0;
-		virtual auto LevelShutdown( ) -> void = 0;
-		virtual auto GetAllClasses( ) -> ClientClass* = 0;
+		virtual int          Connect(CreateInterfaceFn appSystemFactory, CGlobalVarsBase* pGlobals) = 0;
+		virtual int          Disconnect( ) = 0;
+		virtual int          Init(CreateInterfaceFn appSystemFactory, CGlobalVarsBase* pGlobals) = 0;
+		virtual void         PostInit( ) = 0;
+		virtual void         Shutdown( ) = 0;
+		virtual void         LevelInitPreEntity(const char* pMapName) = 0;
+		virtual void         LevelInitPostEntity( ) = 0;
+		virtual void         LevelShutdown( ) = 0;
+		virtual ClientClass* GetAllClasses( ) = 0;
 
-		auto DispatchUserMessage(int messageType, int arg, int arg1, void* data) -> bool
+		bool DispatchUserMessage(int messageType, int arg, int arg1, void* data)
 		{
 			//using DispatchUserMessage_t = bool* (__thiscall*)(void*, int, int, int, void*);
 			//return CallVFunction<DispatchUserMessage_t>(this, 38)(this, messageType, arg, arg1, data);

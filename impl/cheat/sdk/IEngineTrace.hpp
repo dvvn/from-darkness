@@ -130,8 +130,8 @@ namespace cheat::csgo
 	class ITraceFilter
 	{
 	public:
-		virtual auto ShouldHitEntity(IHandleEntity* pEntity, int contentsMask) -> bool = 0;
-		virtual auto GetTraceType() const->TraceType = 0;
+		virtual bool      ShouldHitEntity(IHandleEntity* pEntity, int contentsMask) = 0;
+		virtual TraceType GetTraceType( ) const = 0;
 	};
 
 #if 0
@@ -250,26 +250,26 @@ namespace cheat::csgo
 			static_assert(T != TraceType::TRACE_WORLD_ONLY);
 		}
 
-		auto ShouldHitEntity(IHandleEntity* ent, int /*contentsMask*/) -> bool override
+		bool ShouldHitEntity(IHandleEntity* ent, int /*contentsMask*/) override
 		{
 			auto found = Find_(ent, std::make_index_sequence<sizeof...(E)>());
 			return Ignore ? found == true : found == false;
 		}
 
-		auto GetTraceType() const -> TraceType final
+		TraceType GetTraceType( ) const final
 		{
 			return T;
 		}
 
 	protected:
-		auto CTraceFilterPtr() -> CTraceFilter*
+		CTraceFilter* CTraceFilterPtr( )
 		{
 			return this;
 		}
 
 	private:
 		template <size_t ...I>
-		auto Find_(IHandleEntity* ent, std::index_sequence<I>) const -> bool
+		bool Find_(IHandleEntity* ent, std::index_sequence<I>) const
 		{
 			return ((skip__[I] == ent) || ...);
 		}
@@ -285,7 +285,7 @@ namespace cheat::csgo
 		{
 		}
 
-		auto ShouldHitEntity(IHandleEntity* ent, int contents_mask) -> bool override
+		bool ShouldHitEntity(IHandleEntity* ent, int contents_mask) override
 		{
 			auto client_ent = static_cast<IClientEntity*>(ent);
 			if (client_ent->GetClientClass()->ClassID != ClassId::CCSPlayer)
@@ -298,12 +298,12 @@ namespace cheat::csgo
 	class CTraceFilterWorldOnly : public ITraceFilter
 	{
 	public:
-		auto ShouldHitEntity(IHandleEntity* /*pServerEntity*/, int /*contentsMask*/) -> bool
+		bool ShouldHitEntity(IHandleEntity* /*pServerEntity*/, int /*contentsMask*/)
 		{
 			return false;
 		}
 
-		virtual auto GetTraceType() const -> TraceType
+		virtual TraceType GetTraceType( ) const
 		{
 			return TraceType::TRACE_WORLD_ONLY;
 		}
@@ -312,12 +312,12 @@ namespace cheat::csgo
 	class CTraceFilterWorldAndPropsOnly : public ITraceFilter
 	{
 	public:
-		auto ShouldHitEntity(IHandleEntity* /*pServerEntity*/, int /*contentsMask*/) -> bool
+		bool ShouldHitEntity(IHandleEntity* /*pServerEntity*/, int /*contentsMask*/)
 		{
 			return false;
 		}
 
-		virtual auto GetTraceType() const -> TraceType
+		virtual TraceType GetTraceType( ) const
 		{
 			return TraceType::TRACE_EVERYTHING;
 		}
@@ -326,12 +326,12 @@ namespace cheat::csgo
 	class CTraceFilterHitAll final : public ITraceFilter
 	{
 	public:
-		virtual auto ShouldHitEntity(IHandleEntity* /*pServerEntity*/, int /*contentsMask*/) -> bool
+		virtual bool ShouldHitEntity(IHandleEntity* /*pServerEntity*/, int /*contentsMask*/)
 		{
 			return true;
 		}
 
-		auto GetTraceType() const -> TraceType override
+		TraceType GetTraceType( ) const override
 		{
 			return TraceType::TRACE_EVERYTHING;
 		}
@@ -350,7 +350,7 @@ namespace cheat::csgo
 	{
 	public:
 		// This gets called with each handle
-		virtual auto EnumEntity(IHandleEntity* pHandleEntity) -> bool = 0;
+		virtual bool EnumEntity(IHandleEntity* pHandleEntity) = 0;
 	};
 
 	struct BrushSideInfo_t
@@ -413,9 +413,9 @@ namespace cheat::csgo
 
 		Ray_t() = default;
 
-		auto Init(const utl::Vector& start, const utl::Vector& end) -> void;
-		auto Init(const utl::Vector& start, const utl::Vector& end, const utl::Vector& mins, const utl::Vector& maxs) -> void;
-		auto InvDelta() const->utl::Vector;
+		void        Init(const utl::Vector& start, const utl::Vector& end);
+		void        Init(const utl::Vector& start, const utl::Vector& end, const utl::Vector& mins, const utl::Vector& maxs);
+		utl::Vector InvDelta( ) const;
 	};
 
 	class CBaseTrace
@@ -423,11 +423,11 @@ namespace cheat::csgo
 	public:
 		CBaseTrace() = default;
 
-		auto IsDispSurface() -> bool { return ((dispFlags & DISPSURF_FLAG_SURFACE) != 0); }
-		auto IsDispSurfaceWalkable() -> bool { return ((dispFlags & DISPSURF_FLAG_WALKABLE) != 0); }
-		auto IsDispSurfaceBuildable() -> bool { return ((dispFlags & DISPSURF_FLAG_BUILDABLE) != 0); }
-		auto IsDispSurfaceProp1() -> bool { return ((dispFlags & DISPSURF_FLAG_SURFPROP1) != 0); }
-		auto IsDispSurfaceProp2() -> bool { return ((dispFlags & DISPSURF_FLAG_SURFPROP2) != 0); }
+		bool IsDispSurface( ) { return ((dispFlags & DISPSURF_FLAG_SURFACE) != 0); }
+		bool IsDispSurfaceWalkable( ) { return ((dispFlags & DISPSURF_FLAG_WALKABLE) != 0); }
+		bool IsDispSurfaceBuildable( ) { return ((dispFlags & DISPSURF_FLAG_BUILDABLE) != 0); }
+		bool IsDispSurfaceProp1( ) { return ((dispFlags & DISPSURF_FLAG_SURFPROP1) != 0); }
+		bool IsDispSurfaceProp2( ) { return ((dispFlags & DISPSURF_FLAG_SURFPROP2) != 0); }
 
 		// these members are aligned!!
 		utl::Vector startpos; // start position
@@ -451,8 +451,8 @@ namespace cheat::csgo
 		//auto DidHitWorld( ) const -> bool;
 		//auto DidHitNonWorldEntity( ) const -> bool;
 		//auto GetEntityIndex( ) const -> int;
-		auto DidHit() const -> bool;
-		auto IsVisible() const -> bool;
+		bool DidHit( ) const;
+		bool IsVisible( ) const;
 
 		float          fractionleftsolid; // time we left a solid, only valid if we started in solid
 		csurface_t     surface;           // surface hit (impact surface)
@@ -466,11 +466,11 @@ namespace cheat::csgo
 	class IEngineTrace
 	{
 	public:
-		virtual auto GetPointContents(const utl::Vector& vecAbsPosition, int contentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) -> int = 0;
-		virtual auto GetPointContents_WorldOnly(const utl::Vector& vecAbsPosition, int contentsMask = MASK_ALL) -> int = 0;
-		virtual auto GetPointContents_Collideable(ICollideable* pCollide, const utl::Vector& vecAbsPosition) -> int = 0;
-		virtual auto ClipRayToEntity(const Ray_t& ray, unsigned int fMask, IHandleEntity* pEnt, CGameTrace* pTrace) -> void = 0;
-		virtual auto ClipRayToCollideable(const Ray_t& ray, unsigned int fMask, ICollideable* pCollide, CGameTrace* pTrace) -> void = 0;
-		virtual auto TraceRay(const Ray_t& ray, unsigned int fMask, ITraceFilter* pTraceFilter, CGameTrace* pTrace) -> void = 0;
+		virtual int  GetPointContents(const utl::Vector& vecAbsPosition, int contentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) = 0;
+		virtual int  GetPointContents_WorldOnly(const utl::Vector& vecAbsPosition, int contentsMask = MASK_ALL) = 0;
+		virtual int  GetPointContents_Collideable(ICollideable* pCollide, const utl::Vector& vecAbsPosition) = 0;
+		virtual void ClipRayToEntity(const Ray_t& ray, unsigned int fMask, IHandleEntity* pEnt, CGameTrace* pTrace) = 0;
+		virtual void ClipRayToCollideable(const Ray_t& ray, unsigned int fMask, ICollideable* pCollide, CGameTrace* pTrace) = 0;
+		virtual void TraceRay(const Ray_t& ray, unsigned int fMask, ITraceFilter* pTraceFilter, CGameTrace* pTrace) = 0;
 	};
 }

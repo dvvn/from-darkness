@@ -733,22 +733,22 @@ namespace cheat::csgo
 	class CUtlMemory
 	{
 	public:
-		auto operator[](N i) -> T&
+		T& operator[](N i)
 		{
 			return pMemory[i];
 		}
 
-		auto operator[](N i) const -> const T&
+		const T& operator[](N i) const
 		{
 			return pMemory[i];
 		}
 
-		auto data( ) -> T*
+		T* data( )
 		{
 			return pMemory;
 		}
 
-		auto NumAllocated( ) const -> int
+		int NumAllocated( ) const
 		{
 			return iAllocationCount;
 		}
@@ -795,7 +795,7 @@ namespace cheat::csgo
 		}
 #endif
 
-		auto IsExternallyAllocated( ) const -> bool
+		bool IsExternallyAllocated( ) const
 		{
 			return iGrowSize < 0;
 		}

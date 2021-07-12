@@ -12,11 +12,11 @@ namespace cheat::csgo
 	class IClientEntity: public IClientUnknown, public IClientRenderable, public IClientNetworkable, public IClientThinkable
 	{
 	public:
-		virtual auto GetAbsOrigin( ) const -> const utl::Vector& = 0;
-		virtual auto GetAbsAngles( ) const -> const utl::QAngle& = 0;
-		virtual auto GetMouth( ) -> void* = 0;
-		virtual auto GetSoundSpatialization(struct SpatializationInfo_t& info) -> bool = 0;
-		virtual auto IsBlurred( ) -> bool = 0;
+		virtual const utl::Vector& GetAbsOrigin( ) const = 0;
+		virtual const utl::QAngle& GetAbsAngles( ) const = 0;
+		virtual void*              GetMouth( ) = 0;
+		virtual bool               GetSoundSpatialization(struct SpatializationInfo_t& info) = 0;
+		virtual bool               IsBlurred( ) = 0;
 	};
 
 #pragma pack(push, 1)
@@ -59,9 +59,9 @@ namespace cheat::csgo
 
 	class IWeaponSystem
 	{
-		virtual auto unused0( ) -> void = 0;
-		virtual auto unused1( ) -> void = 0;
+		virtual void unused0( ) = 0;
+		virtual void unused1( ) = 0;
 	public:
-		virtual auto GetWpnData(unsigned ItemDefinitionIndex) -> CCSWeaponInfo* = 0;
+		virtual CCSWeaponInfo* GetWpnData(unsigned ItemDefinitionIndex) = 0;
 	};
 }

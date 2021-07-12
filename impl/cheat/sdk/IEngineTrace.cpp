@@ -3,7 +3,7 @@
 using namespace cheat::csgo;
 using namespace cheat::utl;
 
-auto Ray_t::Init(const Vector& start, const Vector& end) -> void
+void Ray_t::Init(const Vector& start, const Vector& end)
 {
 	m_Delta = end - start;
 
@@ -19,7 +19,7 @@ auto Ray_t::Init(const Vector& start, const Vector& end) -> void
 	m_Start = start;
 }
 
-auto Ray_t::Init(const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs) -> void
+void Ray_t::Init(const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs)
 {
 	m_Delta = end - start;
 
@@ -37,7 +37,7 @@ auto Ray_t::Init(const Vector& start, const Vector& end, const Vector& mins, con
 	m_StartOffset *= -1.0f;
 }
 
-auto Ray_t::InvDelta( ) const -> Vector
+Vector Ray_t::InvDelta( ) const
 {
 	Vector vecInvDelta;
 	for (int iAxis = 0; iAxis < 3; ++iAxis)
@@ -54,12 +54,12 @@ auto Ray_t::InvDelta( ) const -> Vector
 	return vecInvDelta;
 }
 
-auto CGameTrace::DidHit( ) const -> bool
+bool CGameTrace::DidHit( ) const
 {
 	return fraction < 1 || allsolid || startsolid;
 }
 
-auto CGameTrace::IsVisible( ) const -> bool
+bool CGameTrace::IsVisible( ) const
 {
 	return fraction > 0.97f;
 }

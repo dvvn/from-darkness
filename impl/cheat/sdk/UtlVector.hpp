@@ -774,23 +774,23 @@ public:
 			return pMemory.Base( ) + iSize;
 		}
 
-        auto operator[](int i) -> T&
-		{
+        T& operator[](int i)
+        {
 			return pMemory[i];
 		}
 
-        auto operator[](int i) const -> const T&
-		{
+        const T& operator[](int i) const
+        {
 			return pMemory[i];
 		}
 
-        auto data( ) -> T*
-		{
+        T* data( )
+        {
 			return pMemory.data( );
 		}
 
-        auto size( ) const -> int
-		{
+        int size( ) const
+        {
 			return iSize;
 		}
 

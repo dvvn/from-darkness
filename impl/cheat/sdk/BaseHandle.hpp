@@ -21,31 +21,31 @@ namespace cheat::csgo
 		CBaseHandle(unsigned long value);
 		CBaseHandle(int iEntry, int iSerialNumber);
 
-		auto Init(int iEntry, int iSerialNumber) -> void;
-		auto Term( ) -> void;
+		void Init(int iEntry, int iSerialNumber);
+		void Term( );
 
 		// Even if this returns true, Get() still can return return a non-null value.
 		// This just tells if the handle has been initted with any values.
-		auto IsValid( ) const -> bool;
+		bool IsValid( ) const;
 
-		auto GetEntryIndex( ) const -> int;
-		auto GetSerialNumber( ) const -> int;
+		int GetEntryIndex( ) const;
+		int GetSerialNumber( ) const;
 
-		auto ToInt( ) const -> int;
-		auto operator !=(const CBaseHandle& other) const -> bool;
-		auto operator ==(const CBaseHandle& other) const -> bool;
-		auto operator ==(const IHandleEntity* pEnt) const -> bool;
-		auto operator !=(const IHandleEntity* pEnt) const -> bool;
-		auto operator <(const CBaseHandle& other) const -> bool;
-		auto operator <(const IHandleEntity* pEnt) const -> bool;
+		int  ToInt( ) const;
+		bool operator !=(const CBaseHandle& other) const;
+		bool operator ==(const CBaseHandle& other) const;
+		bool operator ==(const IHandleEntity* pEnt) const;
+		bool operator !=(const IHandleEntity* pEnt) const;
+		bool operator <(const CBaseHandle& other) const;
+		bool operator <(const IHandleEntity* pEnt) const;
 
 		// Assign a value to the handle.
-		auto operator=(const IHandleEntity* pEntity) -> const CBaseHandle&;
-		auto Set(const IHandleEntity* pEntity) -> const CBaseHandle&;
+		const CBaseHandle& operator=(const IHandleEntity* pEntity);
+		const CBaseHandle& Set(const IHandleEntity* pEntity);
 
 		// Use this to dereference the handle.
 		// Note: this is implemented in game code (ehandle.h)
-		auto Get( ) const -> IHandleEntity*;
+		IHandleEntity* Get( ) const;
 
 	protected:
 		// The low NUM_SERIAL_BITS hold the index. If this value is less than MAX_EDICTS, then the entity is networkable.

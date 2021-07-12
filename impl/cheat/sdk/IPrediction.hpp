@@ -41,18 +41,18 @@ namespace cheat::csgo
 	public:
 		virtual ~IGameMovement( ) = 0;
 
-		virtual auto ProcessMovement(C_BasePlayer* pPlayer, CMoveData* pMove) -> void = 0;
-		virtual auto Reset( ) -> void = 0;
-		virtual auto StartTrackPredictionErrors(C_BasePlayer* pPlayer) -> void = 0;
-		virtual auto FinishTrackPredictionErrors(C_BasePlayer* pPlayer) -> void = 0;
-		virtual auto DiffPrint(const char* fmt, ...) -> void = 0;
-		virtual auto GetPlayerMins(bool ducked) const -> const utl::Vector& = 0;
-		virtual auto GetPlayerMaxs(bool ducked) const -> const utl::Vector& = 0;
-		virtual auto GetPlayerViewOffset(bool ducked) const -> const utl::Vector& = 0;
-		virtual auto IsMovingPlayerStuck( ) const -> bool = 0;
-		virtual auto GetMovingPlayer( ) const -> C_BasePlayer* = 0;
-		virtual auto UnblockPusher(C_BasePlayer* pPlayer, C_BasePlayer* pPusher) -> void = 0;
-		virtual auto SetupMovementBounds(CMoveData* pMove) -> void = 0;
+		virtual void               ProcessMovement(C_BasePlayer* pPlayer, CMoveData* pMove) = 0;
+		virtual void               Reset( ) = 0;
+		virtual void               StartTrackPredictionErrors(C_BasePlayer* pPlayer) = 0;
+		virtual void               FinishTrackPredictionErrors(C_BasePlayer* pPlayer) = 0;
+		virtual void               DiffPrint(const char* fmt, ...) = 0;
+		virtual const utl::Vector& GetPlayerMins(bool ducked) const = 0;
+		virtual const utl::Vector& GetPlayerMaxs(bool ducked) const = 0;
+		virtual const utl::Vector& GetPlayerViewOffset(bool ducked) const = 0;
+		virtual bool               IsMovingPlayerStuck( ) const = 0;
+		virtual C_BasePlayer*      GetMovingPlayer( ) const = 0;
+		virtual void               UnblockPusher(C_BasePlayer* pPlayer, C_BasePlayer* pPusher) = 0;
+		virtual void               SetupMovementBounds(CMoveData* pMove) = 0;
 	};
 
 	class CGameMovement: public IGameMovement
@@ -117,32 +117,31 @@ namespace cheat::csgo
 		}
 #endif
 
-		virtual auto Init(void) -> void = 0;//1
-		virtual auto Shutdown(void) -> void = 0;//2
+		virtual void Init(void) = 0;     //1
+		virtual void Shutdown(void) = 0; //2
 
 		// Run prediction
-		virtual auto Update(
+		virtual void Update(
 				int  startframe,            // World update ( un-modded ) most recently received
 				bool validframe,            // Is frame data valid
 				int  incoming_acknowledged, // Last command acknowledged to have been run by server (un-modded)
 				int  outgoing_command       // Last command (most recent) sent to server (un-modded)
-				)
-		-> void = 0;//3
+				) = 0;                      //3
 
 		// We are about to get a network update from the server.  We know the update #, so we can pull any
 		//  data purely predicted on the client side and transfer it to the new from data state.
-		virtual auto PreEntityPacketReceived(int commands_acknowledged, int current_world_update_packet, int server_ticks_elapsed) -> void = 0;//4
-		virtual auto PostEntityPacketReceived(void) -> void = 0;//5
-		virtual auto PostNetworkDataReceived(int commands_acknowledged) -> void = 0;//6
+		virtual void PreEntityPacketReceived(int commands_acknowledged, int current_world_update_packet, int server_ticks_elapsed) = 0; //4
+		virtual void PostEntityPacketReceived(void) = 0;                                                                                //5
+		virtual void PostNetworkDataReceived(int commands_acknowledged) = 0;                                                            //6
 
-		virtual auto OnReceivedUncompressedPacket(void) -> void = 0;//7
+		virtual void OnReceivedUncompressedPacket(void) = 0; //7
 
 		// The engine needs to be able to access a few predicted values
-		virtual auto GetViewOrigin(utl::Vector& org) -> void = 0;//8
-		virtual auto SetViewOrigin(utl::Vector& org) -> void = 0;//9
-		virtual auto GetViewAngles(utl::QAngle& ang) -> void = 0;//10
-		virtual auto SetViewAngles(utl::QAngle& ang) -> void = 0;//11
-		virtual auto GetLocalViewAngles(utl::QAngle& ang) -> void = 0;//12
-		virtual auto SetLocalViewAngles(utl::QAngle& ang) -> void = 0;//13
+		virtual void GetViewOrigin(utl::Vector& org) = 0;      //8
+		virtual void SetViewOrigin(utl::Vector& org) = 0;      //9
+		virtual void GetViewAngles(utl::QAngle& ang) = 0;      //10
+		virtual void SetViewAngles(utl::QAngle& ang) = 0;      //11
+		virtual void GetLocalViewAngles(utl::QAngle& ang) = 0; //12
+		virtual void SetLocalViewAngles(utl::QAngle& ang) = 0; //13
 	};
 }

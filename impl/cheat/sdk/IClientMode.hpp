@@ -113,107 +113,107 @@ public:
 		virtual ~IClientMode( ) =0;
 
 		// Called before the HUD is initialized.
-		virtual auto InitViewport( ) -> void =0;
+		virtual void InitViewport( ) =0;
 
 		// One time init when .dll is first loaded.
-		virtual auto Init( ) -> void =0;
+		virtual void Init( ) =0;
 
 		// Called when vgui is shutting down.
-		virtual auto VGui_Shutdown( ) -> void = 0;
+		virtual void VGui_Shutdown( ) = 0;
 
 		// One time call when dll is shutting down
-		virtual auto Shutdown( ) -> void =0;
+		virtual void Shutdown( ) =0;
 
 		// Called when switching from one IClientMode to another.
 		// This can re-layout the view and such.
 		// Note that Enable and Disable are called when the DLL initializes and shuts down.
-		virtual auto Enable( ) -> void =0;
-		virtual auto EnableWithRootPanel(vgui::VPANEL pRoot) -> void =0;
+		virtual void Enable( ) =0;
+		virtual void EnableWithRootPanel(vgui::VPANEL pRoot) =0;
 
 		// Called when it's about to go into another client mode.
-		virtual auto Disable( ) -> void =0;
+		virtual void Disable( ) =0;
 
 		// Called when initializing or when the view changes.
 		// This should move the viewport into the correct position.
-		virtual auto Layout(bool bForce = false) -> void =0;
+		virtual void Layout(bool bForce = false) =0;
 
 		// Gets at the viewport, if there is one...
-		virtual auto GetViewport( ) -> vgui::Panel* = 0;
+		virtual vgui::Panel* GetViewport( ) = 0;
 
 		// Gets a panel hierarchically below the viewport by name like so "ASWHudInventoryMode/SuitAbilityPanel/ItemPanel1"...
-		virtual auto GetPanelFromViewport(const char* pchNamePath) -> vgui::Panel* = 0;
+		virtual vgui::Panel* GetPanelFromViewport(const char* pchNamePath) = 0;
 
 		// Gets at the viewports vgui panel animation controller, if there is one...
-		virtual auto GetViewportAnimationController( ) -> vgui::AnimationController* = 0;
+		virtual vgui::AnimationController* GetViewportAnimationController( ) = 0;
 
 		// called every time shared client dll/engine data gets changed,
 		// and gives the cdll a chance to modify the data.
-		virtual auto ProcessInput(bool bActive) -> void = 0;
+		virtual void ProcessInput(bool bActive) = 0;
 
 		// The mode can choose to draw/not draw entities.
-		virtual auto ShouldDrawDetailObjects( ) -> bool = 0;
-		virtual auto ShouldDrawEntity(C_BaseEntity* pEnt) -> bool = 0;
-		virtual auto ShouldDrawLocalPlayer(C_BasePlayer* pPlayer) -> bool = 0;
-		virtual auto ShouldDrawParticles( ) -> bool = 0;
+		virtual bool ShouldDrawDetailObjects( ) = 0;
+		virtual bool ShouldDrawEntity(C_BaseEntity* pEnt) = 0;
+		virtual bool ShouldDrawLocalPlayer(C_BasePlayer* pPlayer) = 0;
+		virtual bool ShouldDrawParticles( ) = 0;
 
 		// The mode can choose to not draw fog
-		virtual auto ShouldDrawFog( ) -> bool = 0;
+		virtual bool ShouldDrawFog( ) = 0;
 
-		virtual auto OverrideView(CViewSetup* pSetup) -> void = 0;
-		virtual auto OverrideAudioState(AudioState_t* pAudioState) -> void = 0;
-		virtual auto KeyInput(int down, ButtonCode_t keynum, const char* pszCurrentBinding) -> int = 0;
-		virtual auto StartMessageMode(int iMessageModeType) -> void = 0;
-		virtual auto GetMessagePanel( ) -> vgui::Panel* = 0;
-		virtual auto OverrideMouseInput(float* x, float* y) -> void = 0;
-		virtual auto CreateMove(float flInputSampleTime, CUserCmd* cmd) -> bool = 0;
+		virtual void         OverrideView(CViewSetup* pSetup) = 0;
+		virtual void         OverrideAudioState(AudioState_t* pAudioState) = 0;
+		virtual int          KeyInput(int down, ButtonCode_t keynum, const char* pszCurrentBinding) = 0;
+		virtual void         StartMessageMode(int iMessageModeType) = 0;
+		virtual vgui::Panel* GetMessagePanel( ) = 0;
+		virtual void         OverrideMouseInput(float* x, float* y) = 0;
+		virtual bool         CreateMove(float flInputSampleTime, CUserCmd* cmd) = 0;
 
-		virtual auto LevelInit(const char* newmap) -> void = 0;
-		virtual auto LevelShutdown( ) -> void = 0;
+		virtual void LevelInit(const char* newmap) = 0;
+		virtual void LevelShutdown( ) = 0;
 
 		// Certain modes hide the view model
-		virtual auto ShouldDrawViewModel( ) -> bool = 0;
-		virtual auto ShouldDrawCrosshair( ) -> bool = 0;
+		virtual bool ShouldDrawViewModel( ) = 0;
+		virtual bool ShouldDrawCrosshair( ) = 0;
 
 		// Let mode override viewport for engine
-		virtual auto AdjustEngineViewport(int& x, int& y, int& width, int& height) -> void = 0;
+		virtual void AdjustEngineViewport(int& x, int& y, int& width, int& height) = 0;
 
 		// Called before rendering a view.
-		virtual auto PreRender(CViewSetup* pSetup) -> void = 0;
+		virtual void PreRender(CViewSetup* pSetup) = 0;
 
 		// Called after everything is rendered.
-		virtual auto PostRender( ) -> void = 0;
+		virtual void PostRender( ) = 0;
 
-		virtual auto PostRenderVGui( ) -> void = 0;
+		virtual void PostRenderVGui( ) = 0;
 
-		virtual auto ActivateInGameVGuiContext(vgui::Panel* pPanel) -> void = 0;
-		virtual auto DeactivateInGameVGuiContext( ) -> void = 0;
-		virtual auto GetViewModelFOV( ) -> float = 0;
+		virtual void  ActivateInGameVGuiContext(vgui::Panel* pPanel) = 0;
+		virtual void  DeactivateInGameVGuiContext( ) = 0;
+		virtual float GetViewModelFOV( ) = 0;
 
-		virtual auto CanRecordDemo(char* errorMsg, int length) const -> bool = 0;
+		virtual bool CanRecordDemo(char* errorMsg, int length) const = 0;
 
-		virtual auto GetServerName( ) -> wchar_t* = 0;
-		virtual auto SetServerName(wchar_t* name) -> void = 0;
-		virtual auto GetMapName( ) -> wchar_t* = 0;
-		virtual auto SetMapName(wchar_t* name) -> void = 0;
+		virtual wchar_t* GetServerName( ) = 0;
+		virtual void     SetServerName(wchar_t* name) = 0;
+		virtual wchar_t* GetMapName( ) = 0;
+		virtual void     SetMapName(wchar_t* name) = 0;
 
-		virtual auto OnColorCorrectionWeightsReset( ) -> void = 0;
-		virtual auto GetColorCorrectionScale( ) const -> float = 0;
+		virtual void  OnColorCorrectionWeightsReset( ) = 0;
+		virtual float GetColorCorrectionScale( ) const = 0;
 
-		virtual auto HudElementKeyInput(int down, ButtonCode_t keynum, const char* pszCurrentBinding) -> int = 0;
+		virtual int HudElementKeyInput(int down, ButtonCode_t keynum, const char* pszCurrentBinding) = 0;
 
-		virtual auto DoPostScreenSpaceEffects(const CViewSetup* pSetup) -> void = 0;
+		virtual void DoPostScreenSpaceEffects(const CViewSetup* pSetup) = 0;
 
-		virtual auto UpdateCameraManUIState(int iType, int nOptionalParam, uint64_t xuid) -> void = 0;
-		virtual auto ScoreboardOff( ) -> void = 0;
-		virtual auto GraphPageChanged( ) -> void = 0;
+		virtual void UpdateCameraManUIState(int iType, int nOptionalParam, uint64_t xuid) = 0;
+		virtual void ScoreboardOff( ) = 0;
+		virtual void GraphPageChanged( ) = 0;
 
 		// Updates.
 	public:
 		// Called every frame.
-		virtual auto Update( ) -> void =0;
+		virtual void Update( ) =0;
 
-		virtual auto SetBlurFade(float scale) -> void = 0;
-		virtual auto GetBlurFade( ) -> float = 0;
+		virtual void  SetBlurFade(float scale) = 0;
+		virtual float GetBlurFade( ) = 0;
 	};
 
 	class CBaseHudWeaponSelection;
