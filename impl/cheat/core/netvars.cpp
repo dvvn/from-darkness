@@ -10,6 +10,12 @@
 #ifdef _DEBUG
 #define CHEAT_NETVARS_RESOLVE_TYPE
 #endif
+#if 0
+#define CHEAT_NETVARS_DUMP_STATIC_OFFSET
+#endif
+#if defined(CHEAT_GUI_TEST) || (defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET) && !defined(_DEBUG))
+#define CHEAT_NETVARS_DUMPER_DISABLED
+#endif
 
 using namespace cheat;
 using namespace csgo;
@@ -90,7 +96,7 @@ static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset,
 		exists.has_value( ))
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		if ((type) != "void*" && netvar_info::type.ptree_get(*exists) != type)
+		if (type != "void*" && netvar_info::type.ptree_get(*exists) != type)
 			netvar_info::type.ptree_put(*exists, move(type));
 #endif
 		return false;
@@ -472,7 +478,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 			auto netvar_type = _Recv_prop_type(prop);
 #else
-			const auto netvar_type = nullptr;
+			string netvar_type;
 #endif
 			_Save_netvar(tree, prop_name, real_prop_offset, move(netvar_type));
 		}
@@ -543,7 +549,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 				auto netvar_type_array = _Array_type_string(netvar_type, array_size);
 #else
-				auto netvar_type_array = nullptr;
+				string netvar_type_array;
 #endif
 				_Save_netvar(tree, prop_name, real_prop_offset, move(netvar_type_array));
 			}
@@ -588,7 +594,7 @@ static void _Store_datamap_props(property_tree::ptree& tree, datamap_t* map)
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 			auto field_type = _Datamap_field_type(desc);
 #else
-			const auto field_type=nullptr;
+			string field_type;
 #endif
 			_Save_netvar(tree, desc.fieldName, offset, move(field_type));
 		}
@@ -621,9 +627,7 @@ static void _Iterate_datamap(property_tree::ptree& root_tree, datamap_t* root_ma
 
 void netvars::Load( )
 {
-#if defined(CHEAT_GUI_TEST) || (defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET) && !defined(_DEBUG))
-
-#else
+#if !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
 #ifdef _DEBUG
 	data__.clear( );
@@ -652,7 +656,7 @@ void netvars::Load( )
 
 string netvars::Get_loaded_message( ) const
 {
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET)
+#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
 	return "Netvars dumper disabled";
 #else
 	return service_base::Get_loaded_message( );
@@ -661,7 +665,7 @@ string netvars::Get_loaded_message( ) const
 
 void netvars::Post_load( )
 {
-#if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !(defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET) && !defined(_DEBUG))
+#if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
 	const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
 	const auto first_time = create_directories(dir);
@@ -676,7 +680,7 @@ void netvars::Post_load( )
 
 	std::stringstream ss;
 	write_json(ss, data__, false);
-	current_checksum = (invoke(std::hash<decltype(ss)::_Mystr>( ), ss.str( )));
+	current_checksum = invoke(std::hash<decltype(ss)::_Mystr>( ), ss.str( ));
 
 	if (last_checksum == current_checksum)
 		return;
@@ -727,7 +731,7 @@ void netvars::Post_load( )
 			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
 
 			header << fmt::format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
-			source << fmt::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, (class_name), (netvar_name)) << __New_line;
+			source << fmt::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
 			source << '{' << __New_line;
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			source  << __Tab<< fmt::format("auto addr = utl::mem::address(this).add({});", netvar_offset) << __New_line;
