@@ -60,7 +60,7 @@ string _Get_time_str( )
 	(void)result;
 	BOOST_ASSERT(result == 0);
 
-	return fmt::format("[{}:{}:{}] ", timeinfo.tm_hour, add_zero(timeinfo.tm_min), add_zero(timeinfo.tm_sec));
+	return format("[{}:{}:{}] ", timeinfo.tm_hour, add_zero(timeinfo.tm_min), add_zero(timeinfo.tm_sec));
 
 #else
 
@@ -83,7 +83,7 @@ string _Get_time_str( )
 	//duration -= microseconds_val;
 	//const auto nanoseconds_val = duration_cast<chrono::nanoseconds>(duration);
 
-	return fmt::format("[{}:{}:{}:{}] ", hours_val.count( ), add_zero(minutes_val.count( )), add_zero(seconds_val.count( )), add_zero(milliseconds_val.count( )));
+	return format("[{}:{}:{}:{}] ", hours_val.count( ), add_zero(minutes_val.count( )), add_zero(seconds_val.count( )), add_zero(milliseconds_val.count( )));
 #endif
 }
 

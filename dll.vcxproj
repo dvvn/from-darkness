@@ -49,11 +49,9 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
-    <Import Project="..\Shared\fmt\shared\fmt.vcxitems" Label="Shared" />
     <Import Project="..\Shared\imgui\imgui.vcxitems" Label="Shared" />
     <Import Project="..\Shared\boost_lib\boost_shared.vcxitems" Label="Shared" />
     <Import Project="..\Shared\Tessil_lib\Tessil_lib.vcxitems" Label="Shared" />
-    <Import Project="..\Shared\ranges_lib\include\ragnes_shared.vcxitems" Label="Shared" />
     <Import Project="impl\impl.vcxitems" Label="Shared" />
     <Import Project="..\Shared\WinReg-4.1.0\WinReg shared.vcxitems" Label="Shared" />
   </ImportGroup>

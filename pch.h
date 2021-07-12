@@ -85,6 +85,7 @@
 
 #include <any>
 #include <concepts>
+#include <format>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -234,8 +235,10 @@ namespace std::chrono
 #include <range/v3/all.hpp>
 #endif
 
+#if !defined(_FORMAT_)
 #define FMT_ASSERT BOOST_ASSERT_MSG
 #include <fmt/format.h>
+#endif
 
 #if defined (NDEBUG) && !defined(CHEAT_GUI_TEST)
 #define IMGUI_DISABLE_DEMO_WINDOWS
@@ -396,8 +399,17 @@ namespace cheat::utl
 	using std::forward;
 	using std::move;
 	using boost::make_default;
+#ifdef FMT_VERSION
 	using fmt::to_string;
 	using fmt::to_wstring;
+	using fmt::format;
+	using fmt::vformat;
+#else
+	using std::to_string;
+	using std::to_wstring;
+	using std::format;
+	using std::vformat;
+#endif
 	using std::swap;
 	using std::get;
 	using boost::mutex;
@@ -405,7 +417,7 @@ namespace cheat::utl
 	using boost::make_lock_guard;
 	using std::binary_semaphore;
 	using std::counting_semaphore;
-	using boost::core::demangle;
+	using namespace boost::core;
 
 	namespace filesystem = boost::filesystem;
 	namespace chrono = boost::chrono;

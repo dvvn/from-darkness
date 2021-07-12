@@ -4,7 +4,7 @@
 
 #include "cheat/core/console.h"
 
-auto _Console_log(const std::string_view& str) -> void
+void _Console_log(const std::string_view& str)
 {
 	const auto ptr = cheat::console::get_shared( );
 	if (ptr != nullptr && ptr->initialized( ))
@@ -37,7 +37,7 @@ namespace boost
 			ignore_error = 0;
 			return;
 		}
-		auto str = fmt::format("Assertion falied!\nExpression: {}\n\nFile: {}\nLine: {}\nFunction: {}", expr, file, line, function);
+		auto str = cheat::utl::format("Assertion falied!\nExpression: {}\n\nFile: {}\nLine: {}\nFunction: {}", expr, file, line, function);
 		_Console_log(str);
 		throw std::runtime_error(str);
 	}
@@ -50,7 +50,7 @@ namespace boost
 			ignore_error = 0;
 			return;
 		}
-		auto str = fmt::format("Assertion falied!\nExpression: {}\nMessage:{}\n\nFile: {}\nLine: {}\nFunction: {}", expr, msg, file, line, function);
+		auto str = cheat::utl::format("Assertion falied!\nExpression: {}\nMessage:{}\n\nFile: {}\nLine: {}\nFunction: {}", expr, msg, file, line, function);
 		_Console_log(str);
 		throw std::runtime_error(str);
 	}

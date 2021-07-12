@@ -145,7 +145,7 @@ static pair<property_tree::ptree*, bool> _Add_child_class(property_tree::ptree& 
 
 static string _Array_type_string(const string_view& type, size_t size)
 {
-	return fmt::format("utl::array<{}, {}>", type, size);
+	return format("utl::array<{}, {}>", type, size);
 }
 
 static string _Netvar_vec_type(const string_view& name)
@@ -668,9 +668,11 @@ void netvars::Post_load( )
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
 	const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
+#if 1
+	remove_all(dir);
+	create_directories(dir);
+#else
 	const auto first_time = create_directories(dir);
-
-	///-------------------
 
 	const auto checksum_file = dir / "_checksum.txt";
 	size_t     last_checksum = 0, current_checksum = 0;
@@ -694,7 +696,7 @@ void netvars::Post_load( )
 	std::ofstream file(checksum_file.native( ));
 	file << current_checksum;
 
-	///-------------------
+#endif
 
 	lazy_writer__.reserve(data__.size( ) * 2);
 
@@ -710,7 +712,7 @@ void netvars::Post_load( )
 		auto header = lazy_file_writer(dir / (class_name + "_h"));
 		auto source = lazy_file_writer(dir / (class_name + "_cpp"));
 
-		source << fmt::format("#include \"{}.h\"", class_name) << __New_line;
+		source << format("#include \"{}.h\"", class_name) << __New_line;
 		source << __New_line;
 		source << "#include \"cheat/core/netvars.h\"" << __New_line;
 		source << __New_line;
@@ -730,17 +732,17 @@ void netvars::Post_load( )
 
 			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
 
-			header << fmt::format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
-			source << fmt::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
+			header << format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
+			source << format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
 			source << '{' << __New_line;
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
-			source  << __Tab<< fmt::format("auto addr = utl::mem::address(this).add({});", netvar_offset) << __New_line;
+			source  << __Tab<< format("auto addr = utl::mem::address(this).add({});", netvar_offset) << __New_line;
 #else
-			source << __Tab << fmt::format("static const auto offset = netvars::get_ptr( )->at(\"{}\");",
-										   fmt::format("{}{}{}", class_name, PATH_DEFAULT_SEPARATOR, netvar_name)) << __New_line;
+			source << __Tab << format("static const auto offset = netvars::get_ptr( )->at(\"{}\");",
+									  format("{}{}{}", class_name, PATH_DEFAULT_SEPARATOR, netvar_name)) << __New_line;
 			source << __Tab << "auto addr = utl::mem::address(this).add(offset);" << __New_line;
 #endif
-			source << __Tab << fmt::format("return addr.{}<{}>( );", netvar_type_pointer ? "raw" : "ref", netvar_type) << __New_line;
+			source << __Tab << format("return addr.{}<{}>( );", netvar_type_pointer ? "raw" : "ref", netvar_type) << __New_line;
 			source << '}' << __New_line;
 		}
 

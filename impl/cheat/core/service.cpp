@@ -80,7 +80,17 @@ service_base::load_task_type service_base::init(loader_type& loader)
 
 string service_base::Get_loaded_message( ) const
 {
-	return fmt::format("Loaded new service: {}", this->debug_name( ));
+	constexpr auto msg = string_view("Loaded new service: ");
+	const auto     name = this->debug_name( );
+
+	string ret;
+	ret.reserve(msg.size( ) + name.size( ));
+	ret.append(msg);
+	ret.append(name);
+
+	return ret;
+
+	//return format("Loaded new service: {}", this->debug_name( ));
 }
 
 void service_base::Post_load( )
