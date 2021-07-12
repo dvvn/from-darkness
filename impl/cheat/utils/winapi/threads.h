@@ -86,6 +86,8 @@ namespace cheat::utl::winapi
 
 		void fill( );
 
+		using frozen_threads_storage_container::clear;
+
 	protected:
 		void operator()(thread_entry&& t) override;
 

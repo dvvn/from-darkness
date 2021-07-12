@@ -6,12 +6,12 @@ aimbot::aimbot( ) : settings_data("aimbot") // settings_data("rage.aimbot")//ide
 {
 }
 
-auto aimbot::render( ) -> void
+void aimbot::render( )
 {
 	ImGui::Checkbox("test", &test__);
 }
 
-auto aimbot::update( ) -> void
+void aimbot::update( )
 {
 	Load_or_create("test", test__);
 }

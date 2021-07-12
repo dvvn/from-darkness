@@ -2,35 +2,37 @@
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/netvars.h"
+#include "cheat/features/players/players list.h"
 #include "cheat/gui/renderer.h"
+#include "cheat/hooks/client/frame stage notify.h"
 
 #include "cheat/sdk/IPrediction.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
 
 using namespace cheat;
+using namespace csgo;
 using namespace hooks;
 using namespace client_mode;
 using namespace utl;
 
 create_move::create_move( )
 {
-	this->Wait_for<gui::renderer>( );
-	this->Wait_for<netvars>( );
+	this->Wait_for<client::frame_stage_notify>( );
 
 	this->call_original_first_ = true;
 }
 
-auto create_move::Load( ) -> void
+void create_move::Load( )
 {
 #ifndef CHEAT_GUI_TEST
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get( ).client_mode.get( ), 24);
+	this->target_func_ = method_info::make_member_virtual<ClientModeShared*>(csgo_interfaces::get( ).client_mode, 24);
 
 	this->hook( );
 	this->enable( );
 #endif
 }
 
-auto create_move::Callback(float input_sample_time, csgo::CUserCmd* cmd) -> void
+void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 {
 	// is called from CInput::ExtraMouseSample
 	if (cmd->command_number == 0)

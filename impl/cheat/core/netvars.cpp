@@ -91,6 +91,9 @@ struct netvar_info: variable_info
 template <typename Nstr>
 static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, string&& type)
 {
+	if (name == "m_rgflCoordinateFrame")
+		DebugBreak( );
+
 	const auto path = property_tree::ptree::path_type(string(forward<Nstr>(name)));
 	if (const auto exists = storage.get_child_optional(path);
 		exists.has_value( ))
@@ -668,26 +671,28 @@ void netvars::Post_load( )
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
 	const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
-#if 1
+#if 0
 	remove_all(dir);
 	create_directories(dir);
 #else
 	const auto first_time = create_directories(dir);
 
 	const auto checksum_file = dir / "_checksum.txt";
-	size_t     last_checksum = 0, current_checksum = 0;
+	string     last_checksum, current_checksum;
 	using itr_t = std::istreambuf_iterator<char>;
 	if (auto ifs = std::ifstream(checksum_file.native( )); !first_time && exists(checksum_file) && !ifs.fail( ))
-		last_checksum = std::stoi(string(itr_t(ifs), itr_t( )));
+	{
+		last_checksum = {itr_t(ifs), itr_t( )};
+	}
 
 	std::stringstream ss;
 	write_json(ss, data__, false);
-	current_checksum = invoke(std::hash<decltype(ss)::_Mystr>( ), ss.str( ));
+	current_checksum = to_string(invoke(std::hash<decltype(ss)::_Mystr>( ), ss.str( )));
 
 	if (last_checksum == current_checksum)
 		return;
 
-	if (last_checksum != 0)
+	if (last_checksum.empty())
 	{
 		remove_all(dir);
 		create_directories(dir);
@@ -695,7 +700,6 @@ void netvars::Post_load( )
 
 	std::ofstream file(checksum_file.native( ));
 	file << current_checksum;
-
 #endif
 
 	lazy_writer__.reserve(data__.size( ) * 2);
@@ -751,7 +755,7 @@ void netvars::Post_load( )
 	}
 
 #ifdef CHEAT_DEBUG_MODE
-	console::get_ptr( )->write_line("Netvars dump done", true);
+	console::get_ptr( )->write_line("Netvars dump done");
 #endif
 #endif
 }

@@ -8,8 +8,8 @@ namespace cheat::features
 	public:
 		aimbot( );
 
-		auto render( ) -> void override;
-		auto update( ) -> void override;
+		void render( ) override;
+		void update( ) override;
 
 	private:
 		bool test__ = true;

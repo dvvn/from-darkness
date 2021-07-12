@@ -22,6 +22,8 @@ namespace cheat::csgo
 	class C_BaseAnimating: public C_BaseEntity, public CCustomMaterialOwner
 	{
 	public:
-		#include "../generated/C_BaseAnimating_h"
+#include "../generated/C_BaseAnimating_h"
+
+		void UpdateClientSideAnimation( );
 	};
 }

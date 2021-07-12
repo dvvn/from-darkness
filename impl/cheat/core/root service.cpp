@@ -94,7 +94,7 @@ void root_service::init(HMODULE handle)
 					if (!task2.has_exception( ))
 					{
 #ifdef CHEAT_DEBUG_MODE
-						console::get_ptr( )->write_line("Cheat fully loaded", true);
+						console::get_ptr( )->write_line("Cheat fully loaded");
 #endif
 					}
 					else
@@ -119,10 +119,12 @@ struct unload_helper_data
 DWORD WINAPI _Unload_helper(LPVOID data_packed)
 {
 	const auto data_ptr = static_cast<unload_helper_data*>(data_packed);
-	const auto data = *data_ptr;
+	const auto [sleep, handle, retval, instance, storage] = *data_ptr;
 	delete data_ptr;
 
-	for (auto& item: *data.storage)
+	auto frozen = frozen_threads_storage(true);
+
+	for (auto& item: *storage)
 	{
 		if (const auto hook = dynamic_cast<hook_holder_base*>(item.get( )); hook != nullptr)
 			hook->disable_safe( );
@@ -130,9 +132,9 @@ DWORD WINAPI _Unload_helper(LPVOID data_packed)
 
 	//we must be close all threads before unload!
 	//console::get( ).finish( );
-
-	Sleep(data.sleep);
-	FreeLibraryAndExitThread(data.handle, data.retval);
+	frozen.clear();
+	Sleep(sleep);
+	FreeLibraryAndExitThread(handle, retval);
 }
 
 void root_service::unload(BOOL ret)

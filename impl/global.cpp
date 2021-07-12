@@ -15,7 +15,7 @@ void _Console_log(const std::string_view& str)
 		str2 += filler;
 		str2 += str;
 		str2 += filler;
-		ptr->write_line(str2, true);
+		ptr->write_line(str2);
 	}
 }
 #else

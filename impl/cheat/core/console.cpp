@@ -246,9 +246,9 @@ private:
 };
 #endif
 
-void console::write_line(const string_view& str, bool sync) const
+void console::write_line(const string_view& str) const
 {
-	if (!sync)
+	if constexpr (/*!sync*/false)
 	{
 		write_time( );
 		write(str);
@@ -256,10 +256,12 @@ void console::write_line(const string_view& str, bool sync) const
 	}
 	else
 	{
+		auto   time = _Get_time_str( );
 		string str1;
-		str1 += _Get_time_str( );
-		str1 += str;
-		str1 += '\n';
+		str1.reserve(time.size( ) + str.size( ) + 1);
+		str1 += (move(time));
+		str1 += (str);
+		str1 += ('\n');
 		write(str1);
 	}
 }

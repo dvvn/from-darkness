@@ -13,7 +13,7 @@ namespace cheat::hooks::client_mode
 		create_move( );
 
 	protected:
-		auto Load( ) -> void override;
-		auto Callback(float input_sample_time, csgo::CUserCmd* cmd) -> void override;
+		void Load( ) override;
+		void Callback(float input_sample_time, csgo::CUserCmd* cmd) override;
 	};
 }

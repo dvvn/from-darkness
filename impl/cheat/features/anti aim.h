@@ -8,8 +8,8 @@ namespace cheat::features
 	public:
 		anti_aim( );
 
-		auto render( ) -> void override;
-		auto update( ) -> void override;
+		void render( ) override;
+		void update( ) override;
 
 	private:
 		bool test__ = true;

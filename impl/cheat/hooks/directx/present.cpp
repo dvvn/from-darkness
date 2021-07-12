@@ -13,7 +13,7 @@ present::present( )
 	this->Wait_for<gui::renderer>( );
 }
 
-auto present::Load( ) -> void
+void present::Load( )
 {
 	target_func_ = method_info::make_member_virtual(csgo_interfaces::get( ).d3d_device.get( ), 17);
 
@@ -21,7 +21,7 @@ auto present::Load( ) -> void
 	this->enable( );
 }
 
-auto present::Callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*) -> void
+void present::Callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
 	gui::renderer::get( ).present(this->Target_instance( ));
 }

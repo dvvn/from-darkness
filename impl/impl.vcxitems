@@ -36,9 +36,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\user input.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players list.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -199,9 +201,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\user input.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players list.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -262,6 +266,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde32.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde64.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook.cpp" />

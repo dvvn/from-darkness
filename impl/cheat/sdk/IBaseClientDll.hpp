@@ -39,12 +39,10 @@ namespace cheat::csgo
 		virtual void         LevelShutdown( ) = 0;
 		virtual ClientClass* GetAllClasses( ) = 0;
 
-		bool DispatchUserMessage(int messageType, int arg, int arg1, void* data)
-		{
-			//using DispatchUserMessage_t = bool* (__thiscall*)(void*, int, int, int, void*);
-			//return CallVFunction<DispatchUserMessage_t>(this, 38)(this, messageType, arg, arg1, data);
-			BOOST_ASSERT(0);
-			return 0;
-		}
+		// Notification that we're moving into another stage during the frame.
+		void FrameStageNotify(ClientFrameStage_t stage);
+
+		// The engine has received the specified user message, this code is used to dispatch the message handler
+		bool DispatchUserMessage(int msg_type, int32_t flags, int size, const void* msg);
 	};
 }

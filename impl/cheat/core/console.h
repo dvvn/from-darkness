@@ -12,7 +12,7 @@ namespace cheat
 
 		void write(const utl::string_view& str) const;
 		void write_time( ) const;
-		void write_line(const utl::string_view& str, bool sync = false) const;
+		void write_line(const utl::string_view& str) const;
 		void write_char(char c) const;
 
 	protected:

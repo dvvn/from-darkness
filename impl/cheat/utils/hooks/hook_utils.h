@@ -102,17 +102,19 @@ namespace cheat::utl::hooks
     Ret call_virtual_class_method(Ret (__##call_cvs C::*fn )(Args ...), C* instance, size_t index, Args ...args)\
     {\
 		  auto vtable = _Pointer_to_virtual_class_table(instance);\
-		  auto real_fn = vtable[index];\
-		  auto real_fn_fixed=*reinterpret_cast<decltype(fn)*>(&real_fn);\
-		  return invoke(real_fn_fixed, instance, static_cast<Args>(args)...);\
+		  /*auto real_fn = vtable[index];*/\
+		  (void*&)fn = vtable[index];\
+		  return invoke(fn, instance,  static_cast<Args>(args)...);\
+		  /*return invoke(static_cast<Ret(__##call_cvs *)(	  C*, Args...)>(real_fn), instance, static_cast<Args>(args)...);*/\
     }\
     template <typename Ret, typename C, typename ...Args>\
     Ret call_virtual_class_method(Ret (__##call_cvs C::*fn )(Args ...) const, const C* instance, size_t index, Args ...args)\
     {\
 		  auto vtable = _Pointer_to_virtual_class_table(instance);\
-		  auto real_fn = vtable[index];\
-		  auto real_fn_fixed=*reinterpret_cast<decltype(fn)*>(&real_fn);\
-		  return invoke(real_fn_fixed, instance, static_cast<Args>(args)...);\
+		  /*auto real_fn = vtable[index];*/\
+		  (void*&)fn = vtable[index];\
+		  return invoke(fn, instance,  static_cast<Args>(args)...);\
+		  /*return invoke(static_cast<Ret(__##call_cvs *)(const C*, Args...)>(real_fn), instance, static_cast<Args>(args)...);*/\
     }
 
 	CALL_CVS_STUFF_IMPL(thiscall)
@@ -158,7 +160,7 @@ namespace cheat::utl::hooks
 		template <typename T>
 		static constexpr size_t Count_pointers_( )
 		{
-			return std::is_pointer_v<T> ? (Count_pointers_<std::remove_pointer_t<T>>( ) + 1) : 0;
+			return std::is_pointer_v<T> ? Count_pointers_<std::remove_pointer_t<T>>( ) + 1 : 0;
 		}
 
 	public:
@@ -252,6 +254,64 @@ namespace cheat::utl::hooks
 
 	namespace detail
 	{
+		template <class Ret>
+		class lazy_return_value
+		{
+			optional<Ret> value_;
+
+		public:
+			template <typename T>
+			void store_value(T&& val)
+				requires(std::is_constructible_v<Ret, decltype(val)>)
+			{
+				value_.emplace(Ret(forward<T>(val)));
+			}
+
+			void reset( )
+			{
+				value_.reset( );
+			}
+
+			bool empty( ) const
+			{
+				return !value_.has_value( );
+			}
+
+			Ret get( )
+			{
+				if constexpr (std::is_copy_constructible_v<Ret>)
+					return *value_;
+				else
+				{
+					Ret ret = static_cast<Ret&&>(*value_);
+					reset( );
+					return static_cast<Ret&&>(ret);
+				}
+			}
+		};
+
+		template < >
+		class lazy_return_value<void>
+		{
+			bool skip_original__ = false;
+
+		public:
+			void set_original_called(bool called)
+			{
+				skip_original__ = called;
+			}
+
+			void reset( )
+			{
+				skip_original__ = false;
+			}
+
+			bool empty( ) const
+			{
+				return skip_original__ == false;
+			}
+		};
+
 		template <typename Ret, call_conversion Call_cvs, typename C, bool Is_const, typename ...Args>
 		class hook_holder_impl: public hook_holder_base,
 								protected hook_callback<Ret, Call_cvs, C, Is_const, Args...>
@@ -305,89 +365,12 @@ namespace cheat::utl::hooks
 				return target_instance__;
 			}
 
-			template <bool HaveRetVal>
-			class lazy_return_value;
-
-			template < >
-			class lazy_return_value<true>
-			{
-				optional<Ret> value_;
-
-			public:
-				template <typename T>
-				void store_value(T&& val)
-					requires(std::is_constructible_v<Ret, decltype(val)>)
-				{
-					value_.emplace(Ret(forward<T>(val)));
-				}
-
-				void reset( )
-				{
-					value_.reset( );
-				}
-
-				bool empty( ) const
-				{
-					return !value_.has_value( );
-				}
-
-				Ret get( )
-				{
-					if constexpr (std::is_copy_constructible_v<Ret>)
-						return *value_;
-					else
-					{
-						Ret ret = static_cast<Ret&&>(*value_);
-						reset( );
-						return ret;
-					}
-				}
-
-				// ReSharper disable once CppInconsistentNaming
-				void store_original_return(hook_holder_impl& inst, Args ...args)
-				{
-					store_value(inst.call_original(static_cast<Args>(args)...));
-				}
-			};
-
-			template < >
-			class lazy_return_value<false>
-			{
-				bool skip_original__ = false;
-
-			public:
-				void set_original_called(bool called)
-				{
-					skip_original__ = called;
-				}
-
-				void reset( )
-				{
-					skip_original__ = false;
-				}
-
-				bool empty( ) const
-				{
-					return skip_original__ == false;
-				}
-
-				void get( )
-				{
-					(void)this;
-				}
-
-				void store_original_return(hook_holder_impl& inst, Args ...args)
-				{
-					inst.call_original(static_cast<Args>(args)...);
-					set_original_called(true);
-				}
-			};
-
-			using return_value_holder = lazy_return_value<have_return_value>;
+			using return_value_holder = lazy_return_value<Ret>;
 
 			bool                call_original_first_ = false;
 			return_value_holder return_value_;
 
+			// ReSharper disable once CppNotAllPathsReturnValue
 			Ret callback_proxy_impl(Args ...args)
 			{
 				Unset_instance_assert_( );
@@ -399,12 +382,12 @@ namespace cheat::utl::hooks
 
 				return_value_holder& result = inst.return_value_;
 				if (inst.call_original_first_)
-					result.store_original_return(inst, static_cast<Args>(args)...);
+					inst.call_original_ex(static_cast<Args>(args)...);
 				else
 					result.reset( );
 				inst.Callback(forward<Args>(args)...);
 				if (result.empty( ))
-					result.store_original_return(inst, static_cast<Args>(args)...);
+					inst.call_original_ex(static_cast<Args>(args)...);
 
 				info.last_func = this_instance__;
 				info.current_func = nullptr;
@@ -414,16 +397,25 @@ namespace cheat::utl::hooks
 				else if (inst.safe__.disable)
 					inst.disable( );
 
-				return result.get( );
+				if constexpr (have_return_value)
+					return result.get( );
 			}
 
 			//call original and store result to use later
 			auto call_original_ex(Args ...args)
 			{
 				Unmanaged_call_assert( );
-				return_value_.store_original_return(*this, static_cast<Args>(args)...);
-				if constexpr (std::is_copy_constructible_v<Ret> && std::is_trivially_destructible_v<Ret>)
-					return return_value_.get( );
+				if constexpr (have_return_value)
+				{
+					return_value_.store_value(call_original(static_cast<Args>(args)...));
+					if constexpr (std::is_copy_constructible_v<Ret> && std::is_trivially_destructible_v<Ret>)
+						return return_value_.get( );
+				}
+				else
+				{
+					call_original(static_cast<Args>(args)...);
+					return_value_.set_original_called(true);
+				}
 			}
 
 			method_info target_func_;
@@ -639,9 +631,9 @@ namespace cheat::utl::hooks
 			hook_result Get_hook_from_storage( ) const
 			{
 				Unmanaged_call_assert( );
-				return (target_func_.updated( ))
-						   ? hooks_context_->find_hook(target_func_.get( ))
-						   : STATUS::ERROR_NOT_CREATED;
+				return target_func_.updated( )
+					   ? hooks_context_->find_hook(target_func_.get( ))
+					   : STATUS::ERROR_NOT_CREATED;
 			}
 
 		public:
