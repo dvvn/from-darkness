@@ -13,7 +13,7 @@ reset::reset( )
 	this->Wait_for<gui::renderer>( );
 }
 
-auto reset::Load( ) -> void
+void reset::Load( )
 {
 	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get( ).d3d_device.get( ), 16);
 
@@ -21,7 +21,7 @@ auto reset::Load( ) -> void
 	this->enable( );
 }
 
-auto reset::Callback(D3DPRESENT_PARAMETERS*) -> void
+void reset::Callback(D3DPRESENT_PARAMETERS*)
 {
 	gui::renderer::get( ).reset(this->Target_instance( ));
 }

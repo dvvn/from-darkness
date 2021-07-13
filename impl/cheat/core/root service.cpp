@@ -1,15 +1,13 @@
 #include "root service.h"
-
 #include "console.h"
 
 #include "cheat/hooks/client mode/create move.h"
-#include "cheat/hooks/client/frame stage notify.h"
 #include "cheat/hooks/directx/present.h"
-#include "cheat/hooks/directx/reset.h"
 
 #include "cheat/utils/winapi/threads.h"
 
 using namespace cheat;
+using namespace detail;
 using namespace hooks;
 using namespace utl;
 using namespace winapi;
@@ -19,9 +17,7 @@ root_service::root_service( )
 #ifdef CHEAT_DEBUG_MODE
 	this->Wait_for<console>( );
 #endif
-	this->Wait_for<directx::reset>( );
 	this->Wait_for<directx::present>( );
-	this->Wait_for<client::frame_stage_notify>( );
 	this->Wait_for<client_mode::create_move>( );
 }
 
@@ -60,7 +56,7 @@ static future<bool> _Wait_for_game( )
 				}
 			}
 
-			this_thread::sleep_for(chrono::milliseconds(100));
+			this_thread::sleep_for(chrono::milliseconds(all.size( ) < 50 ? 1000 : 100));
 			if (this_thread::interruption_requested( ))
 				throw thread_interrupted( );
 
@@ -85,8 +81,9 @@ void root_service::init(HMODULE handle)
 		}
 
 		//game loaded, freeze all threads from there
-		auto frozen = frozen_threads_storage(!task1.future_.get( ));
-		auto loader = make_unique<loader_type>( );
+		const auto game_fully_loaded = *task1.future_->result;
+		auto       frozen = frozen_threads_storage(game_fully_loaded);
+		auto       loader = make_unique<loader_type>( );
 
 		static_cast<service_base*>(this)->
 				init(*loader).
@@ -113,40 +110,59 @@ struct unload_helper_data
 	DWORD         sleep;
 	HMODULE       handle;
 	BOOL          retval;
-	root_service* instance;
+	service_base* instance;
 
-	cheat::detail::service_base::wait_for_storage_type* storage;
+	function<service_base::wait_for_storage_type*(service_base*)> storage_getter;
 };
 
-DWORD WINAPI _Unload_helper(LPVOID data_packed)
+static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 {
 	const auto data_ptr = static_cast<unload_helper_data*>(data_packed);
-	const auto [sleep, handle, retval, instance, storage] = *data_ptr;
+	const auto [sleep, handle, retval, instance, storage_getter] = *data_ptr;
 	delete data_ptr;
 
-	auto frozen = frozen_threads_storage(true);
+	auto hooks = unordered_set<hook_holder_base*>( );
 
-	for (auto& item: *storage)
+	const function<void(service_base*)> get_all_hooks = [&](service_base* from)
 	{
-		if (const auto hook = dynamic_cast<hook_holder_base*>(item.get( )); hook != nullptr)
-			hook->disable_safe( );
+		auto storage = storage_getter(from);
+		if (!storage)
+			return;
+		for (auto& item: *storage)
+		{
+			const auto ptr = item.get( );
+			if (const auto hook = dynamic_cast<hook_holder_base*>(ptr); hook != nullptr)
+				hooks.emplace(hook);
+
+			get_all_hooks(ptr);
+		}
+	};
+
+	get_all_hooks(instance);
+
+	auto frozen = frozen_threads_storage(true);
+	for (auto& h: hooks)
+	{
+		h->disable_safe( );
 	}
+	frozen.clear( );
 
 	//we must be close all threads before unload!
-	//console::get( ).finish( );
-	frozen.clear( );
 	Sleep(sleep);
 	FreeLibraryAndExitThread(handle, retval);
 }
 
 void root_service::unload(BOOL ret)
 {
-	const auto data = new unload_helper_data; 
-	data->sleep = 1500;
+	const auto data = new unload_helper_data;
+	data->sleep = 1000;
 	data->handle = my_handle__;
 	data->retval = ret;
-	data->storage = addressof(this->Storage( ));
 	data->instance = this;
+	data->storage_getter = [](service_base* s)-> wait_for_storage_type*
+	{
+		return s->wait_for__.empty( ) ? nullptr : addressof(s->wait_for__);
+	};
 
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }

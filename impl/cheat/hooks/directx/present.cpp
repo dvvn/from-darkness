@@ -1,4 +1,5 @@
 #include "present.h"
+#include "reset.h"
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/renderer.h"
@@ -10,12 +11,12 @@ using namespace utl;
 
 present::present( )
 {
-	this->Wait_for<gui::renderer>( );
+	this->Wait_for<directx::reset>( );
 }
 
 void present::Load( )
 {
-	target_func_ = method_info::make_member_virtual(csgo_interfaces::get( ).d3d_device.get( ), 17);
+	target_func_ = method_info::make_member_virtual<IDirect3DDevice9*>(csgo_interfaces::get( ).d3d_device, 17);
 
 	this->hook( );
 	this->enable( );

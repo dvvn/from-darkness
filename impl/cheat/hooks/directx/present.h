@@ -5,17 +5,16 @@
 namespace cheat::hooks::directx
 {
 	class present final: public service_shared<present, service_mode::async>,
-						 public decltype(detect_hook_holder(&IDirect3DDevice9::Present)),
-						 public service_top_level_only_tag
+						 public decltype(detect_hook_holder(&IDirect3DDevice9::Present))
 	{
 	public :
 		present( );
 
 	protected:
-		auto Load( ) -> void override;
-		auto Callback(THIS_ CONST RECT* source_rect,
+		void Load( ) override;
+		void Callback(THIS_ CONST RECT* source_rect,
 					  CONST RECT*       dest_rect,
 					  HWND              dest_window_override,
-					  CONST RGNDATA*    dirty_region_parameters) -> void override;
+					  CONST RGNDATA*    dirty_region_parameters) override;
 	};
 }

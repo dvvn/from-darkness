@@ -98,10 +98,10 @@ void service_base::Post_load( )
 	(void)this;
 }
 
-service_base::wait_for_storage_type& service_base::Storage( )
-{
-	return wait_for__;
-}
+//service_base::wait_for_storage_type& service_base::Storage( )
+//{
+//	return wait_for__;
+//}
 
 void service_base::Print_loaded_message_( ) const
 {
@@ -113,7 +113,7 @@ void service_base::Print_loaded_message_( ) const
 #endif
 }
 
-void service_base::Wait_for_add_impl(service_shared&& service)
+void service_base::Wait_for_add_impl_(service_shared&& service)
 {
 	BOOST_ASSERT_MSG(creator__ == this_thread::get_id( ), "Unable to modify service from other thread!");
 	BOOST_ASSERT_MSG(service->load_task__.get_state( ) == uninitialized, "Unable to add service while load task is set!");

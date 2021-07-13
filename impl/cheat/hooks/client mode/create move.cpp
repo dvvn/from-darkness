@@ -16,7 +16,7 @@ using namespace utl;
 
 create_move::create_move( )
 {
-	this->Wait_for<players_list>( );
+	this->Wait_for<client::frame_stage_notify>( );
 
 	this->call_original_first_ = true;
 }

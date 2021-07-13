@@ -80,7 +80,7 @@ namespace cheat::utl::winapi
 		frozen_threads_storage(frozen_threads_storage&&) noexcept = default;
 		frozen_threads_storage& operator =(frozen_threads_storage&&) noexcept = default;
 
-		frozen_threads_storage(bool fill = 0);
+		frozen_threads_storage(bool fill);
 
 		void fill( );
 

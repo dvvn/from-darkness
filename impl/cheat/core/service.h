@@ -2,19 +2,14 @@
 
 namespace cheat
 {
-	//use for frequently called services
-	struct service_top_level_only_tag
-	{
-	};
+	class root_service;
 
 	namespace detail
 	{
 		class service_base;
+		class async_service;
+		class sync_service;
 
-		template <typename T>
-		concept awaitable_service_strong = std::derived_from<T, service_base> &&
-										   !std::derived_from<T, service_top_level_only_tag> &&
-										   requires( ) { { T::get_shared( ) }->std::convertible_to<utl::shared_ptr<service_base>>; };
 		template <typename T>
 		concept awaitable_service = std::derived_from<T, service_base> &&
 									requires( ) { { T::get_shared( ) }->std::convertible_to<utl::shared_ptr<service_base>>; };
@@ -24,6 +19,7 @@ namespace cheat
 		public:
 			friend class async_service;
 			friend class sync_service;
+			friend class root_service;
 
 			using loader_type = utl::thread_pool;
 			//using loader_type_shared = boost::shared_ptr<loader_type>;
@@ -47,11 +43,15 @@ namespace cheat
 			virtual utl::string    Get_loaded_message( ) const;
 			virtual void           Post_load( );
 
-			wait_for_storage_type& Storage( );
+			template <awaitable_service S>
+			void Wait_for( )
+			{
+				Wait_for_add_impl_(S::get_shared( ));
+			}
 
-			void Wait_for_add_impl(service_shared&& service);
 		private:
 			void Print_loaded_message_( ) const;
+			void Wait_for_add_impl_(service_shared&& service);
 			bool Find_recursuve_(const service_shared& service) const;
 
 			load_task_type        load_task__;
@@ -119,8 +119,6 @@ namespace cheat
 	class service_shared: public detail::service_type_selector<Mode>, public utl::one_instance_shared<T, static_cast<size_t>(Mode)>
 	{
 	public:
-		static_assert(!std::derived_from<T, service_top_level_only_tag>);
-
 		utl::string_view debug_name( ) const final
 		{
 #ifdef CHEAT_DEBUG_MODE
@@ -128,13 +126,6 @@ namespace cheat
 #else
 			throw;
 #endif
-		}
-
-	protected:
-		template <detail::awaitable_service_strong S>
-		void Wait_for( )
-		{
-			this->Wait_for_add_impl(S::get_shared( ));
 		}
 	};
 
@@ -149,13 +140,6 @@ namespace cheat
 #else
 			throw;
 #endif
-		}
-
-	protected:
-		template <detail::awaitable_service S>
-		void Wait_for( )
-		{
-			this->Wait_for_add_impl(S::get_shared( ));
 		}
 	};
 }

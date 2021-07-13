@@ -21,6 +21,7 @@ namespace cheat
 		void Load( ) override;
 
 	private:
+	
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle__ = nullptr;
 #endif

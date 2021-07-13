@@ -142,11 +142,9 @@ void frozen_threads_storage::fill( )
 void frozen_threads_storage::operator()(thread_entry&& t)
 {
 	using access = thread_access;
-	constexpr auto flags = make_bitflag(access::suspend_resume, access::query_information, access::get_context, access::set_context).get( );
 
-	if (!t.open(flags))
-		return;
-	if (t.is_paused( ))
+	if (constexpr auto flags = make_bitflag(access::suspend_resume, access::query_information, access::get_context, access::set_context).get( );
+		!t.open(flags) || t.is_paused( ))
 		return;
 
 	this->push_back(t.transfer_handle( ));

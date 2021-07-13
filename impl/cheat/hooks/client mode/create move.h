@@ -7,8 +7,7 @@
 namespace cheat::hooks::client_mode
 {
 	class create_move final: public service_shared<create_move, service_mode::async>,
-							 public decltype(detect_hook_holder(&csgo::ClientModeShared::CreateMove)),
-							 public service_top_level_only_tag
+							 public decltype(detect_hook_holder(&csgo::ClientModeShared::CreateMove))
 	{
 	public :
 		create_move( );
