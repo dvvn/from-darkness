@@ -1,31 +1,47 @@
 #include "C_TEMuzzleFlash.h"
 
-#include "cheat/core/netvars.h"
+#include "cheat/netvars/netvars.h"
 
 using namespace cheat;
 using namespace csgo;
 
 utl::Vector& C_TEMuzzleFlash::m_vecOrigin( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEMuzzleFlash.m_vecOrigin");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::Vector>( );
+#endif
 }
 utl::QAngle& C_TEMuzzleFlash::m_vecAngles( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::QAngle*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEMuzzleFlash.m_vecAngles");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::QAngle>( );
+#endif
 }
 float& C_TEMuzzleFlash::m_flScale( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEMuzzleFlash.m_flScale");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 int32_t& C_TEMuzzleFlash::m_nType( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEMuzzleFlash.m_nType");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }

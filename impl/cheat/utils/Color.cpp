@@ -10,59 +10,47 @@ using namespace cheat::utl;
 
 Color::Color( )
 {
-	*((int*)this) = 0;
+	*data_raw( ) = 0;
 }
 
-Color::Color(int r, int g, int b)
+//Color::Color(float* rgb): Color(rgb[0], rgb[1], rgb[2], 1.0f)
+//{
+//}
+//
+//Color::Color(unsigned long argb): Color((argb & 0x000000FF) >> (0 * 8),
+//										(argb & 0x0000FF00) >> (1 * 8),
+//										(argb & 0x00FF0000) >> (2 * 8),
+//										(argb & 0xFF000000) >> (3 * 8))
+//{
+//}
+
+const uint32_t* Color::data_raw( ) const
 {
-	SetColor(r, g, b, 255);
+	return reinterpret_cast<const uint32_t*>(this);
 }
 
-Color::Color(int r, int g, int b, int a)
+uint32_t* Color::data_raw( )
 {
-	SetColor(r, g, b, a);
+	return reinterpret_cast<uint32_t*>(this);
 }
 
-Color::Color(float r, float g, float b): Color(r, g, b, 1.0f)
+bool Color::operator==(const Color& other) const
 {
+	return data_raw( ) == other.data_raw( );
 }
 
-Color::Color(float r, float g, float b, float a): Color(static_cast<int>(r * 255.0f),
-														static_cast<int>(g * 255.0f),
-														static_cast<int>(b * 255.0f),
-														static_cast<int>(a * 255.0f))
+bool Color::operator!=(const Color& other) const
 {
+	return !(*this == other);
 }
 
-Color::Color(float* rgb): Color(rgb[0], rgb[1], rgb[2], 1.0f)
-{
-}
+int Color::r( ) const { return data( )[0]; }
 
-Color::Color(unsigned long argb)
-{
-	color_stored[2] = static_cast<uint8_t>((argb & 0x000000FF) >> (0 * 8));
-	color_stored[1] = static_cast<uint8_t>((argb & 0x0000FF00) >> (1 * 8));
-	color_stored[0] = static_cast<uint8_t>((argb & 0x00FF0000) >> (2 * 8));
-	color_stored[3] = static_cast<uint8_t>((argb & 0xFF000000) >> (3 * 8));
-}
+int Color::g( ) const { return data( )[1]; }
 
-int Color::r( ) const { return color_stored[0]; }
+int Color::b( ) const { return data( )[2]; }
 
-int Color::g( ) const { return color_stored[1]; }
-
-int Color::b( ) const { return color_stored[2]; }
-
-int Color::a( ) const { return color_stored[3]; }
-
-uint8_t& Color::operator[](int index)
-{
-	return color_stored[index];
-}
-
-const uint8_t& Color::operator[](int index) const
-{
-	return color_stored[index];
-}
+int Color::a( ) const { return data( )[3]; }
 
 Color Color::FromHSB(float hue, float saturation, float brightness)
 {
@@ -73,86 +61,19 @@ Color Color::FromHSB(float hue, float saturation, float brightness)
 	const auto t = brightness * (1.0f - (saturation * (1.0f - f)));
 
 	if (h < 1)
-	{
-		return Color(static_cast<uint8_t>(brightness * 255),
-					 static_cast<uint8_t>(t * 255),
-					 static_cast<uint8_t>(p * 255));
-	}
+		return Color(brightness, t, p);
+
 	if (h < 2)
-	{
-		return Color(static_cast<uint8_t>(q * 255),
-					 static_cast<uint8_t>(brightness * 255),
-					 static_cast<uint8_t>(p * 255));
-	}
+		return Color(q, brightness, p);
+
 	if (h < 3)
-	{
-		return Color(static_cast<uint8_t>(p * 255),
-					 static_cast<uint8_t>(brightness * 255),
-					 static_cast<uint8_t>(t * 255));
-	}
+		return Color(p, brightness, t);
+
 	if (h < 4)
-	{
-		return Color(static_cast<uint8_t>(p * 255),
-					 static_cast<uint8_t>(q * 255),
-					 static_cast<uint8_t>(brightness * 255));
-	}
+		return Color(q, p, brightness);
+
 	if (h < 5)
-	{
-		return Color(static_cast<uint8_t>(t * 255),
-					 static_cast<uint8_t>(p * 255),
-					 static_cast<uint8_t>(brightness * 255));
-	}
-	return Color(static_cast<uint8_t>(brightness * 255),
-				 static_cast<uint8_t>(p * 255),
-				 static_cast<uint8_t>(q * 255));
-}
+		return Color(t, p, brightness);
 
-void Color::SetRawColor(int color32)
-{
-	*((int*)this) = color32;
-}
-
-int Color::GetRawColor( ) const
-{
-	return *((int*)this);
-}
-
-void Color::SetColor(int r, int g, int b, int a)
-{
-	color_stored[0] = static_cast<uint8_t>(r);
-	color_stored[1] = static_cast<uint8_t>(g);
-	color_stored[2] = static_cast<uint8_t>(b);
-	color_stored[3] = static_cast<uint8_t>(a);
-}
-
-void Color::SetColor(float r, float g, float b, float a)
-{
-	color_stored[0] = static_cast<uint8_t>(r * 255.0f);
-	color_stored[1] = static_cast<uint8_t>(g * 255.0f);
-	color_stored[2] = static_cast<uint8_t>(b * 255.0f);
-	color_stored[3] = static_cast<uint8_t>(a * 255.0f);
-}
-
-void Color::GetColor(int& r, int& g, int& b, int& a) const
-{
-	r = color_stored[0];
-	g = color_stored[1];
-	b = color_stored[2];
-	a = color_stored[3];
-}
-
-bool Color::operator==(const Color& rhs) const
-{
-	return (*((int*)this) == *((int*)&rhs));
-}
-
-bool Color::operator!=(const Color& rhs) const
-{
-	return !(operator==(rhs));
-}
-
-Color& Color::operator=(const Color& rhs)
-{
-	SetRawColor(rhs.GetRawColor( ));
-	return *this;
+	return Color(brightness, p, q);
 }

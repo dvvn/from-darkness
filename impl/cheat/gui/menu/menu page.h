@@ -1,7 +1,7 @@
 #pragma once
 #include "cheat/gui/renderable object.h"
-#include "cheat/gui/imgui/animated selectable.h"
-#include "cheat/gui/imgui/string wrapper.h"
+#include "cheat/gui/_imgui extension/animated selectable.h"
+#include "cheat/gui/_imgui extension/string wrapper.h"
 
 namespace cheat::gui::menu
 {

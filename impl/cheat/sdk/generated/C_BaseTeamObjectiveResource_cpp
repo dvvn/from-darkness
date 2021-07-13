@@ -1,169 +1,277 @@
 #include "C_BaseTeamObjectiveResource.h"
 
-#include "cheat/core/netvars.h"
+#include "cheat/netvars/netvars.h"
 
 using namespace cheat;
 using namespace csgo;
 
 int32_t& C_BaseTeamObjectiveResource::m_iTimerToShowInHUD( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iTimerToShowInHUD");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_BaseTeamObjectiveResource::m_iStopWatchTimer( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iStopWatchTimer");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_BaseTeamObjectiveResource::m_iNumControlPoints( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iNumControlPoints");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_BaseTeamObjectiveResource::m_bPlayingMiniRounds( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_bPlayingMiniRounds");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_BaseTeamObjectiveResource::m_bControlPointsReset( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_bControlPointsReset");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 int32_t& C_BaseTeamObjectiveResource::m_iUpdateCapHudParity( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iUpdateCapHudParity");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 utl::array<utl::Vector, 8>& C_BaseTeamObjectiveResource::m_vCPPositions( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<utl::Vector, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_vCPPositions");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<utl::Vector, 8>>( );
+#endif
 }
 utl::array<int32_t, 8>& C_BaseTeamObjectiveResource::m_bCPIsVisible( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_bCPIsVisible");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 utl::array<float, 8>& C_BaseTeamObjectiveResource::m_flLazyCapPerc( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<float, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_flLazyCapPerc");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<float, 8>>( );
+#endif
 }
 utl::array<int32_t, 64>& C_BaseTeamObjectiveResource::m_iTeamIcons( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 64>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iTeamIcons");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 64>>( );
+#endif
 }
 utl::array<int32_t, 64>& C_BaseTeamObjectiveResource::m_iTeamOverlays( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 64>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iTeamOverlays");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 64>>( );
+#endif
 }
 utl::array<int32_t, 64>& C_BaseTeamObjectiveResource::m_iTeamReqCappers( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 64>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iTeamReqCappers");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 64>>( );
+#endif
 }
 utl::array<float, 64>& C_BaseTeamObjectiveResource::m_flTeamCapTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<float, 64>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_flTeamCapTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<float, 64>>( );
+#endif
 }
 utl::array<int32_t, 192>& C_BaseTeamObjectiveResource::m_iPreviousPoints( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 192>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iPreviousPoints");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 192>>( );
+#endif
 }
 utl::array<int32_t, 64>& C_BaseTeamObjectiveResource::m_bTeamCanCap( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 64>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_bTeamCanCap");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 64>>( );
+#endif
 }
 utl::array<int32_t, 32>& C_BaseTeamObjectiveResource::m_iTeamBaseIcons( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 32>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iTeamBaseIcons");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 32>>( );
+#endif
 }
 utl::array<int32_t, 32>& C_BaseTeamObjectiveResource::m_iBaseControlPoints( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 32>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iBaseControlPoints");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 32>>( );
+#endif
 }
 utl::array<int32_t, 8>& C_BaseTeamObjectiveResource::m_bInMiniRound( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_bInMiniRound");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 utl::array<int32_t, 8>& C_BaseTeamObjectiveResource::m_iWarnOnCap( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iWarnOnCap");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 utl::array<char*, 8>& C_BaseTeamObjectiveResource::m_iszWarnSound( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<char*, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iszWarnSound");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<char*, 8>>( );
+#endif
 }
 utl::array<float, 8>& C_BaseTeamObjectiveResource::m_flPathDistance( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<float, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_flPathDistance");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<float, 8>>( );
+#endif
 }
 utl::array<int32_t, 64>& C_BaseTeamObjectiveResource::m_iNumTeamMembers( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 64>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iNumTeamMembers");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 64>>( );
+#endif
 }
 utl::array<int32_t, 8>& C_BaseTeamObjectiveResource::m_iCappingTeam( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iCappingTeam");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 utl::array<int32_t, 8>& C_BaseTeamObjectiveResource::m_iTeamInZone( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iTeamInZone");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 utl::array<int32_t, 8>& C_BaseTeamObjectiveResource::m_bBlocked( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_bBlocked");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 utl::array<int32_t, 8>& C_BaseTeamObjectiveResource::m_iOwner( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_iOwner");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 char* C_BaseTeamObjectiveResource::m_pszCapLayoutInHUD( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_pszCapLayoutInHUD");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.raw<char>( );
+#endif
 }

@@ -1,79 +1,127 @@
 #include "C_LightGlow.h"
 
-#include "cheat/core/netvars.h"
+#include "cheat/netvars/netvars.h"
 
 using namespace cheat;
 using namespace csgo;
 
 utl::Color& C_LightGlow::m_clrRender( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Color*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_clrRender");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::Color>( );
+#endif
 }
 int32_t& C_LightGlow::m_nHorizontalSize( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_nHorizontalSize");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_LightGlow::m_nVerticalSize( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_nVerticalSize");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_LightGlow::m_nMinDist( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_nMinDist");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_LightGlow::m_nMaxDist( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_nMaxDist");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_LightGlow::m_nOuterMaxDist( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_nOuterMaxDist");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_LightGlow::m_spawnflags( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_spawnflags");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 utl::Vector& C_LightGlow::m_vecOrigin( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_vecOrigin");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::Vector>( );
+#endif
 }
 utl::QAngle& C_LightGlow::m_angRotation( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::QAngle*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_angRotation");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::QAngle>( );
+#endif
 }
 int32_t& C_LightGlow::moveparent( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.moveparent");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 float& C_LightGlow::m_flGlowProxySize( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.m_flGlowProxySize");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_LightGlow::HDRColorScale( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow.HDRColorScale");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }

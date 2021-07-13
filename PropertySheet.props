@@ -2,13 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <OutputDir>$(SolutionDir).out\$(ProjectName)\$(Configuration)</OutputDir>
+    <OutputDir>$(SolutionDir).out\$(ProjectName)\$(Configuration)\</OutputDir>
     <OutPutDir__>$(SolutionDir).out\$(ProjectName)\$(Platform)\$(Configuration)</OutPutDir__>
   </PropertyGroup>
   <PropertyGroup>
-    <IntDir>$(OutputDir)\temp\</IntDir>
+    <IntDir>$(OutputDir)temp\</IntDir>
     <GenerateManifest>false</GenerateManifest>
-    <OutDir>$(OutputDir)\build\</OutDir>
+    <OutDir>$(OutputDir)build\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

@@ -2,7 +2,7 @@
 
 #include "cheat/features/aimbot.h"
 #include "cheat/features/anti aim.h"
-#include "cheat/gui/imgui/push style var.h"
+#include "cheat/gui/_imgui extension/push style var.h"
 
 using namespace cheat::gui;
 using namespace cheat::utl;
@@ -75,11 +75,11 @@ void menu_obj::render(float bg_alpha)
 
 	auto& style = ImGui::GetStyle( );
 
-	mem::memory_backup<float> alpha_backup;
+	memory_backup<float> alpha_backup;
 	(void)alpha_backup;
 
 	if (bg_alpha != style.Alpha)
-		alpha_backup = mem::memory_backup(style.Alpha, bg_alpha);
+		alpha_backup = memory_backup(style.Alpha, bg_alpha);
 
 	constexpr auto dummy_text = string_view("W");
 	const auto     sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
@@ -90,11 +90,11 @@ void menu_obj::render(float bg_alpha)
 							  style.WindowBorderSize;
 	//ImGui::SetNextWindowContentSize({min_size, 0});
 
-	mem::memory_backup<float> min_size_backup;
+	memory_backup<float> min_size_backup;
 	(void)min_size_backup;
 
 	if (min_size > style.WindowMinSize.x)
-		min_size_backup = mem::memory_backup(style.WindowMinSize.x, min_size);
+		min_size_backup = memory_backup(style.WindowMinSize.x, min_size);
 
 	if (ImGui::Begin(menu_title__, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{

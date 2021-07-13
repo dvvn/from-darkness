@@ -1,85 +1,137 @@
 #include "DustTrail.h"
 
-#include "cheat/core/netvars.h"
+#include "cheat/netvars/netvars.h"
 
 using namespace cheat;
 using namespace csgo;
 
 float& DustTrail::m_SpawnRate( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_SpawnRate");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 utl::Vector& DustTrail::m_Color( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_Color");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::Vector>( );
+#endif
 }
 float& DustTrail::m_ParticleLifetime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_ParticleLifetime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_StopEmitTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_StopEmitTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_MinSpeed( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_MinSpeed");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_MaxSpeed( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_MaxSpeed");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_MinDirectedSpeed( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_MinDirectedSpeed");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_MaxDirectedSpeed( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_MaxDirectedSpeed");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_StartSize( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_StartSize");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_EndSize( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_EndSize");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& DustTrail::m_SpawnRadius( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_SpawnRadius");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 bool& DustTrail::m_bEmit( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_bEmit");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 float& DustTrail::m_Opacity( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail.m_Opacity");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }

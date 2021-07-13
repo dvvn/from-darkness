@@ -18,10 +18,7 @@ renderer::renderer( )
 
 renderer::~renderer( )
 {
-	using namespace utl::hooks;
-	using namespace mem;
-
-	auto test = method_info::make_member_virtual<IDirect3DDevice9*>(csgo_interfaces::get( ).d3d_device, 1);
+	auto test = hooks::method_info::make_member_virtual<IDirect3DDevice9*>(csgo_interfaces::get( ).d3d_device, 1);
 	if (!test.update( ))
 		return;
 	if (!memory_block(test.get( )).executable( )) //if not - game closed

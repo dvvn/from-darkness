@@ -1,85 +1,137 @@
 #include "C_Tablet.h"
 
-#include "cheat/core/netvars.h"
+#include "cheat/netvars/netvars.h"
 
 using namespace cheat;
 using namespace csgo;
 
 utl::array<float, 4>& C_Tablet::m_flUpgradeExpirationTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<float, 4>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_flUpgradeExpirationTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<float, 4>>( );
+#endif
 }
 utl::array<int32_t, 42>& C_Tablet::m_vecLocalHexFlags( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 42>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_vecLocalHexFlags");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 42>>( );
+#endif
 }
 int32_t& C_Tablet::m_nContractKillGridIndex( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_nContractKillGridIndex");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_Tablet::m_nContractKillGridHighResIndex( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_nContractKillGridHighResIndex");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_Tablet::m_bTabletReceptionIsBlocked( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_bTabletReceptionIsBlocked");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 float& C_Tablet::m_flScanProgress( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_flScanProgress");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_Tablet::m_flBootTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_flBootTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_Tablet::m_flShowMapTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_flShowMapTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 utl::array<int32_t, 8>& C_Tablet::m_vecNotificationIds( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_vecNotificationIds");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 8>>( );
+#endif
 }
 utl::array<float, 8>& C_Tablet::m_vecNotificationTimestamps( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<float, 8>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_vecNotificationTimestamps");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<float, 8>>( );
+#endif
 }
 utl::array<utl::Vector, 24>& C_Tablet::m_vecPlayerPositionHistory( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<utl::Vector, 24>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_vecPlayerPositionHistory");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<utl::Vector, 24>>( );
+#endif
 }
 int32_t& C_Tablet::m_nLastPurchaseIndex( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_nLastPurchaseIndex");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 utl::Vector& C_Tablet::m_vecNearestMetalCratePos( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet.m_vecNearestMetalCratePos");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::Vector>( );
+#endif
 }

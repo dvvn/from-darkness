@@ -2,8 +2,23 @@
 
 namespace cheat
 {
-	namespace detail::service
+	//use for frequently called services
+	struct service_top_level_only_tag
 	{
+	};
+
+	namespace detail
+	{
+		class service_base;
+
+		template <typename T>
+		concept awaitable_service_strong = std::derived_from<T, service_base> &&
+										   !std::derived_from<T, service_top_level_only_tag> &&
+										   requires( ) { { T::get_shared( ) }->std::convertible_to<utl::shared_ptr<service_base>>; };
+		template <typename T>
+		concept awaitable_service = std::derived_from<T, service_base> &&
+									requires( ) { { T::get_shared( ) }->std::convertible_to<utl::shared_ptr<service_base>>; };
+
 		class service_base: utl::noncopyable
 		{
 		public:
@@ -27,12 +42,6 @@ namespace cheat
 			virtual utl::string_view debug_name( ) const =0;
 
 		protected:
-			template <std::derived_from<service_base> T>
-			void Wait_for( )
-			{
-				Wait_for_add_impl_(T::get_shared( ));
-			}
-
 			virtual load_task_type Initialize(loader_type& loader) =0;
 			virtual void           Load( ) =0;
 			virtual utl::string    Get_loaded_message( ) const;
@@ -40,10 +49,9 @@ namespace cheat
 
 			wait_for_storage_type& Storage( );
 
+			void Wait_for_add_impl(service_shared&& service);
 		private:
 			void Print_loaded_message_( ) const;
-
-			void Wait_for_add_impl_(service_shared&& service);
 			bool Find_recursuve_(const service_shared& service) const;
 
 			load_task_type        load_task__;
@@ -74,11 +82,8 @@ namespace cheat
 
 	namespace detail
 	{
-		namespace service
-		{
-			template <service_mode Mode>
-			using service_type_selector = std::conditional_t<Mode == service_mode::sync, sync_service, async_service>;
-		}
+		template <service_mode Mode>
+		using service_type_selector = std::conditional_t<Mode == service_mode::sync, sync_service, async_service>;
 
 		template <typename T>
 		struct type_name
@@ -111,9 +116,11 @@ namespace cheat
 	}
 
 	template <typename T, service_mode Mode>
-	class service_shared: public detail::service::service_type_selector<Mode>, public utl::one_instance_shared<T, static_cast<size_t>(Mode)>
+	class service_shared: public detail::service_type_selector<Mode>, public utl::one_instance_shared<T, static_cast<size_t>(Mode)>
 	{
 	public:
+		static_assert(!std::derived_from<T, service_top_level_only_tag>);
+
 		utl::string_view debug_name( ) const final
 		{
 #ifdef CHEAT_DEBUG_MODE
@@ -122,10 +129,17 @@ namespace cheat
 			throw;
 #endif
 		}
+
+	protected:
+		template <detail::awaitable_service_strong S>
+		void Wait_for( )
+		{
+			this->Wait_for_add_impl(S::get_shared( ));
+		}
 	};
 
 	template <typename T, service_mode Mode>
-	class service_static: public detail::service::service_type_selector<Mode>, public utl::one_instance<T, static_cast<size_t>(Mode)>
+	class service_static: public detail::service_type_selector<Mode>, public utl::one_instance<T, static_cast<size_t>(Mode)>
 	{
 	public:
 		utl::string_view debug_name( ) const final
@@ -135,6 +149,13 @@ namespace cheat
 #else
 			throw;
 #endif
+		}
+
+	protected:
+		template <detail::awaitable_service S>
+		void Wait_for( )
+		{
+			this->Wait_for_add_impl(S::get_shared( ));
 		}
 	};
 }

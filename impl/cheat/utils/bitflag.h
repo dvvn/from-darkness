@@ -50,7 +50,7 @@ namespace cheat::utl
 		}
 
 		template <typename T>
-		constexpr bool is_bitflag_constructible( )
+		constexpr bool _Is_bitflag_constructible( )
 		{
 			if constexpr (std::is_enum_v<T>)
 				return true;
@@ -61,7 +61,7 @@ namespace cheat::utl
 		}
 
 		template <typename T>
-		concept bitflag_constructible = detail::is_bitflag_constructible<T>( );
+		concept bitflag_constructible = _Is_bitflag_constructible<T>( );
 	}
 
 	template <detail::bitflag_constructible T>
@@ -213,7 +213,7 @@ namespace cheat::utl
 			return *this;
 		}
 
-		constexpr bool operator ==(const bitflag& other) const= default;
+		constexpr bool operator ==(const bitflag& other) const = default;
 	};
 
 	namespace detail
@@ -278,15 +278,15 @@ namespace cheat::utl
 
 		if constexpr (sizeof...(T) == 1)
 		{
-			return bitflag<typename std::tuple<T...>::_This_type>(args...);
+			return utl::bitflag<typename tuple<T...>::_This_type>(args...);
 		}
 		else if constexpr (_Is_all_same<T...>( ))
 		{
 			//select enum type or raw type
 
-			using type = typename std::tuple<T...>::_This_type;
-			if constexpr (is_bitflag_constructible<type>( ))
-				return bitflag<type>(args...);
+			using type = typename tuple<T...>::_This_type;
+			if constexpr (_Is_bitflag_constructible<type>( ))
+				return utl::bitflag<type>(args...);
 			else
 				static_assert(std::_Always_false<type>, "Unsupported bitflag type");
 		}
@@ -301,15 +301,15 @@ namespace cheat::utl
 			using enum_t = typename decltype(_Get_first_enum<T...>( ))::type;
 			if constexpr (!std::is_void_v<enum_t>)
 			{
-				return bitflag<enum_t>(args...);
+				return utl::bitflag<enum_t>(args...);
 			}
 			else //enum not found
 			{
 				using biggest_type = typename decltype(_Biggest_type_selector<T...>( ))::type;
 				if constexpr ((!_Is_unsigned<T>( ) && ...))
-					return bitflag<typename signed_selector<biggest_type>::type>(args...);
+					return utl::bitflag<typename signed_selector<biggest_type>::type>(args...);
 				else
-					return bitflag<typename unsigned_selector<biggest_type>::type>(args...);
+					return utl::bitflag<typename unsigned_selector<biggest_type>::type>(args...);
 			}
 		}
 	}

@@ -4,8 +4,9 @@
 
 namespace cheat::hooks::directx
 {
-	class reset final: public service_shared<reset ,service_mode::async>,
-					   public decltype(detect_hook_holder(&IDirect3DDevice9::Reset))
+	class reset final: public service_shared<reset, service_mode::async>,
+					   public decltype(detect_hook_holder(&IDirect3DDevice9::Reset)),
+					   public service_top_level_only_tag
 	{
 	public :
 		reset( );

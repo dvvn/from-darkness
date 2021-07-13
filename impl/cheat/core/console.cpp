@@ -1,10 +1,9 @@
 #include "console.h"
 
 using namespace cheat;
-using namespace detail;
 using namespace utl;
 
-string _Get_time_str( )
+static string _Get_time_str( )
 {
 	static auto num_to_char = [](int num) -> char
 	{
@@ -140,7 +139,7 @@ void console::Load( )
 			write_redirected__ = true;
 		}
 
-		auto full_path = /*basic_string*/mem::all_modules::get( ).current( ).full_path( );
+		auto full_path = /*basic_string*/all_modules::get( ).current( ).full_path( );
 		//ranges::replace(full_path, '\\', '/');
 		(void)full_path;
 

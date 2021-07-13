@@ -15,32 +15,23 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\console.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\netvars.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\animated selectable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style color.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style var.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\string wrapper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\include.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\vtable_counter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\root service.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\settings.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\settings detail.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\animator.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\animated selectable.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style color.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style var.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\string wrapper.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderable object.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\user input.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players list.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -60,12 +51,6 @@
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -101,14 +86,33 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde32.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde64.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\include.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook_utils.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\trampoline.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\vtable_counter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\animator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderable object.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\user input.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players list.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\address.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory backup.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\QAngle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
@@ -158,20 +162,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\bitflag.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\dynamic_value.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\address.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\memory block.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\memory_backup.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\data_cache.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\exports_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\sections_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\vtables_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\mem\signature.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\one_instance.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\signature.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\str_crypt.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\timer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\value_setter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\handle.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\xor_shift.h" />
@@ -179,33 +173,26 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector2D.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector4D.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\VMatrix.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\data_cache.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\exports_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\netvars.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\animated selectable.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style color.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style var.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\string wrapper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\root service.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\settings.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\settings detail.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\animator.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\animated selectable.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style color.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\push style var.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui\string wrapper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\user input.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players list.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -225,12 +212,6 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -266,31 +247,48 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\animator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\user input.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players list.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde32.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hde\hde64.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\hook_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\hooks\trampoline.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\address.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\QAngle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\address.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\memory block.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\data_cache.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\exports_storage.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\sections_storage.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\mem\modules\vtables_storage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector2D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector4D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\VMatrix.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\data_cache.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\exports_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)global.cpp" />
   </ItemGroup>
 </Project>

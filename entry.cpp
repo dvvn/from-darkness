@@ -13,12 +13,12 @@ BOOST_STATIC_ASSERT(BOOST_VERSION == 107600);
 namespace boost
 {
 	// ReSharper disable once CppInconsistentNaming
-	auto tss_cleanup_implemented( ) -> void
+	void tss_cleanup_implemented( )
 	{
 	}
 }
 
-static auto _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD dwReason, LPVOID /*lpReserved*/) -> BOOL
+static BOOL _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD dwReason, LPVOID /*lpReserved*/)
 {
 	switch (dwReason)
 	{
@@ -56,7 +56,7 @@ BOOL  _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD /*dwReason*/, LPVOID /*lpRe
 #endif
 
 // ReSharper disable once CppInconsistentNaming
-extern "C" auto APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved) -> BOOL
+extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
 	using namespace cheat;
 

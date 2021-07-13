@@ -2,5 +2,5 @@
 
 void C_BaseAnimating::UpdateClientSideAnimation( )
 {
-	utl::hooks::call_virtual_class_method(&C_BaseAnimating::UpdateClientSideAnimation, this, 223);
+	hooks::call_virtual_class_method(&C_BaseAnimating::UpdateClientSideAnimation, this, 223);
 }

@@ -297,23 +297,40 @@ namespace tsl::detail
 
 namespace cheat::utl
 {
+#ifdef TSL_ROBIN_MAP_H
 	template <typename K, typename T>
 	using unordered_map = tsl::robin_map<K, T, tsl::detail::tsl_hash<K>, tsl::detail::tsl_equal_to<K>>;
+#else
+	using std::unordered_map;
+#endif
 
+#ifdef TSL_ROBIN_SET_H
 	template <typename T>
 	using unordered_set = tsl::robin_set<T, tsl::detail::tsl_hash<T>, tsl::detail::tsl_equal_to<T>>;
+#else
+	using std::unordered_set;
+#endif
 
+#ifdef TSL_ORDERED_MAP_H
 	template <typename K, typename T>
 	using ordered_map = tsl::ordered_map<K, T, tsl::detail::tsl_hash<K>, tsl::detail::tsl_equal_to<K>>;
 
 	template <typename K, typename T, typename A = std::allocator<std::pair<K, T>>>
 	using ordered_map_fast = tsl::ordered_map<K, T, tsl::detail::tsl_hash<K>, tsl::detail::tsl_equal_to<K>, A, std::vector<typename A::value_type, A>>;
+#else
+	//todo
+#endif
 
+#ifdef TSL_ORDERED_SET_H
 	template <typename T>
 	using ordered_set = tsl::ordered_set<T, tsl::detail::tsl_hash<T>, tsl::detail::tsl_equal_to<T>>;
 
 	template <typename T, typename A = std::allocator<T>>
 	using ordered_set_fast = tsl::ordered_set<T, tsl::detail::tsl_hash<T>, tsl::detail::tsl_equal_to<T>, A, std::vector<T, A>>;
+
+#else
+	//todo
+#endif
 
 	/*using Concurrency::concurrent_vector;
 	using Concurrency::concurrent_unordered_map;
@@ -421,24 +438,6 @@ namespace cheat::utl
 
 	namespace filesystem = boost::filesystem;
 	namespace chrono = boost::chrono;
-
-	//fuck this shit
-	/*template <typename ...Ts>
-	struct multi_type: Ts...
-	{
-		template <typename T>
-		auto get( ) -> T&
-		{
-			return *static_cast<T*>(this);
-		}
-
-		template <size_t I>
-		auto get( ) -> decltype(auto)
-		{
-			using T = tuple_element_t<I, tuple<Ts...>>;
-			return get<T>( );
-		}
-	};*/
 }
 
 namespace ranges
@@ -502,10 +501,10 @@ namespace std
 #endif
 }
 
+#include "cheat/hooks/_impl/hook_utils.h"
 #include "cheat/utils/bitflag.h"
-#include "cheat/utils/hooks/hook_utils.h"
-#include "cheat/utils/mem/memory_backup.h"
-#include "cheat/utils/mem/modules.h"
+#include "cheat/utils/memory backup.h"
+#include "cheat/utils/module info/module info.h"
 #include "cheat/utils/winapi/threads.h"
 
 #include "cheat/utils/Color.hpp"
@@ -515,21 +514,15 @@ namespace std
 #include "cheat/utils/Vector4D.hpp"
 #include "cheat/utils/VMatrix.hpp"
 
-namespace cheat::hooks
-{
-	using context_shared = utl::hooks::context_shared;
-	using utl::hooks::detect_hook_holder;
-	using utl::hooks::hook_holder;
-	using utl::hooks::hook_holder_base;
-	using utl::hooks::detail::call_conversion;
-	using utl::hooks::method_info;
-}
-
 #if defined(_DEBUG) || defined(CHEAT_GUI_TEST)
 #define CHEAT_DEBUG_MODE
 #endif
 
-#define CHEAT_OUTPUT_DIR _STRINGIZE_R(VS_OutputDir)
+#define CHEAT_OUTPUT_DIR _STRINGIZE_R(VS_OutputDir)"\\"
+#define CHEAT_SOLUTION_DIR _STRINGIZE_R(VS_SolutionDir)"\\"
 #define CHEAT_NAME _STRINGIZE(VS_SolutionName)
-#define CHEAT_DUMPS_DIR _STRINGIZE_R(_CONCAT(VS_OutputDir,\dumps\))
-#define CHEAT_IMPL_DIR _STRINGIZE_R(_CONCAT(VS_SolutionDir,\impl\cheat\))
+#define CHEAT_DUMPS_DIR CHEAT_OUTPUT_DIR _STRINGIZE_R(dumps\)
+#define CHEAT_IMPL_DIR CHEAT_SOLUTION_DIR _STRINGIZE_R(impl\cheat\)
+
+#define CHEAT_CURRENT_FILE_PATH\
+	string_view(##__FILE__).substr(string_view(CHEAT_SOLUTION_DIR).size( ) + /*impl\\*/5)

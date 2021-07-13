@@ -3,7 +3,7 @@
 #include "console.h"
 
 using namespace cheat;
-using namespace detail::service;
+using namespace detail;
 using namespace utl;
 using namespace future_state;
 
@@ -113,7 +113,7 @@ void service_base::Print_loaded_message_( ) const
 #endif
 }
 
-void service_base::Wait_for_add_impl_(service_shared&& service)
+void service_base::Wait_for_add_impl(service_shared&& service)
 {
 	BOOST_ASSERT_MSG(creator__ == this_thread::get_id( ), "Unable to modify service from other thread!");
 	BOOST_ASSERT_MSG(service->load_task__.get_state( ) == uninitialized, "Unable to add service while load task is set!");

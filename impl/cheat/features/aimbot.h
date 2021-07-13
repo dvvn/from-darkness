@@ -1,5 +1,5 @@
 #pragma once
-#include "cheat/core/settings.h"
+#include "cheat/settings/settings.h"
 
 namespace cheat::features
 {

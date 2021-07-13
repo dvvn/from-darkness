@@ -5,7 +5,8 @@
 namespace cheat::hooks::directx
 {
 	class present final: public service_shared<present, service_mode::async>,
-						 public decltype(detect_hook_holder(&IDirect3DDevice9::Present))
+						 public decltype(detect_hook_holder(&IDirect3DDevice9::Present)),
+						 public service_top_level_only_tag
 	{
 	public :
 		present( );

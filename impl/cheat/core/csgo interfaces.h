@@ -61,9 +61,9 @@ namespace cheat::detail
 		{
 		public:
 			using sv = utl::string_view;
-			using mb = utl::mem::memory_block;
+			using mb = utl::memory_block;
 
-			utl::mem::address addr( ) const;
+			utl::address addr( ) const;
 
 			void from_interface(const sv& dll_name, const sv& interface_name);
 			void from_sig(const mb& from, const sv& sig, size_t add, size_t deref);
@@ -75,7 +75,7 @@ namespace cheat::detail
 			void Set_result_assert_( ) const;
 
 		protected:
-			utl::mem::address result_;
+			utl::address result_;
 		};
 
 		template <class To, size_t Ptrs>

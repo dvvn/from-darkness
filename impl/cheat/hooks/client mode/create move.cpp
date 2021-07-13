@@ -1,10 +1,9 @@
 #include "create move.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/core/netvars.h"
-#include "cheat/features/players/players list.h"
 #include "cheat/gui/renderer.h"
 #include "cheat/hooks/client/frame stage notify.h"
+#include "cheat/players/players list.h"
 
 #include "cheat/sdk/IPrediction.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
@@ -17,7 +16,7 @@ using namespace utl;
 
 create_move::create_move( )
 {
-	this->Wait_for<client::frame_stage_notify>( );
+	this->Wait_for<players_list>( );
 
 	this->call_original_first_ = true;
 }
@@ -51,7 +50,7 @@ void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 	if (interfaces.client_state == nullptr || interfaces.engine->IsPlayingDemo( ))
 		return;
 
-	auto& send_packet = mem::address(_AddressOfReturnAddress( ))
+	auto& send_packet = address(_AddressOfReturnAddress( ))
 					   .remove(4).deref(1)
 					   .remove(0x1C).ref<bool>( );
 }

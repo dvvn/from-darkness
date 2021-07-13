@@ -1,5 +1,10 @@
 ﻿#pragma once
 
+
+#if 0
+
+//DEPRECATED
+
 #include <chrono>
 #include "hash/fnv.h"
 
@@ -344,3 +349,5 @@ namespace cheat::utl
         }
     }
 }
+
+#endif

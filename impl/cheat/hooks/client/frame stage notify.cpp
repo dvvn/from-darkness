@@ -1,7 +1,7 @@
 #include "frame stage notify.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/features/players/players list.h"
+#include "cheat/players/players list.h"
 
 using namespace cheat;
 using namespace csgo;

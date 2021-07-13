@@ -1,649 +1,1077 @@
 #include "C_CSGameRulesProxy.h"
 
-#include "cheat/core/netvars.h"
+#include "cheat/netvars/netvars.h"
 
 using namespace cheat;
 using namespace csgo;
 
 bool& C_CSGameRulesProxy::m_bFreezePeriod( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bFreezePeriod");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bMatchWaitingForResume( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bMatchWaitingForResume");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bWarmupPeriod( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bWarmupPeriod");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_fWarmupPeriodEnd( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_fWarmupPeriodEnd");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_fWarmupPeriodStart( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_fWarmupPeriodStart");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bTerroristTimeOutActive( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bTerroristTimeOutActive");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bCTTimeOutActive( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bCTTimeOutActive");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flTerroristTimeOutRemaining( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flTerroristTimeOutRemaining");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flCTTimeOutRemaining( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flCTTimeOutRemaining");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nTerroristTimeOuts( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nTerroristTimeOuts");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nCTTimeOuts( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nCTTimeOuts");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bTechnicalTimeOut( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bTechnicalTimeOut");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iRoundTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iRoundTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_gamePhase( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_gamePhase");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_totalRoundsPlayed( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_totalRoundsPlayed");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nOvertimePlaying( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nOvertimePlaying");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_timeUntilNextPhaseStarts( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_timeUntilNextPhaseStarts");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flCMMItemDropRevealStartTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flCMMItemDropRevealStartTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flCMMItemDropRevealEndTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flCMMItemDropRevealEndTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_fRoundStartTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_fRoundStartTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bGameRestart( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bGameRestart");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flRestartRoundTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flRestartRoundTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flGameStartTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flGameStartTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iHostagesRemaining( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iHostagesRemaining");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bAnyHostageReached( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bAnyHostageReached");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bMapHasBombTarget( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bMapHasBombTarget");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bMapHasRescueZone( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bMapHasRescueZone");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bMapHasBuyZone( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bMapHasBuyZone");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bIsQueuedMatchmaking( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bIsQueuedMatchmaking");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nQueuedMatchmakingMode( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nQueuedMatchmakingMode");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bIsValveDS( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bIsValveDS");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bIsQuestEligible( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bIsQuestEligible");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bLogoMap( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bLogoMap");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bPlayAllStepSoundsOnServer( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bPlayAllStepSoundsOnServer");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iNumGunGameProgressiveWeaponsCT( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iNumGunGameProgressiveWeaponsCT");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iNumGunGameProgressiveWeaponsT( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iNumGunGameProgressiveWeaponsT");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iSpectatorSlotCount( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iSpectatorSlotCount");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bBombDropped( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bBombDropped");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bBombPlanted( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bBombPlanted");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iRoundWinStatus( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iRoundWinStatus");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_eRoundWinReason( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_eRoundWinReason");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flDMBonusStartTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flDMBonusStartTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flDMBonusTimeLength( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flDMBonusTimeLength");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 uint32_t& C_CSGameRulesProxy::m_unDMBonusWeaponLoadoutSlot( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(uint32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_unDMBonusWeaponLoadoutSlot");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<uint32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bDMBonusActive( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bDMBonusActive");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bTCantBuy( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bTCantBuy");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bCTCantBuy( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bCTCantBuy");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flGuardianBuyUntilTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flGuardianBuyUntilTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 utl::array<int32_t, 30>& C_CSGameRulesProxy::m_iMatchStats_RoundResults( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 30>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iMatchStats_RoundResults");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 30>>( );
+#endif
 }
 utl::array<int32_t, 30>& C_CSGameRulesProxy::m_iMatchStats_PlayersAlive_T( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 30>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iMatchStats_PlayersAlive_T");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 30>>( );
+#endif
 }
 utl::array<int32_t, 30>& C_CSGameRulesProxy::m_iMatchStats_PlayersAlive_CT( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 30>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iMatchStats_PlayersAlive_CT");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 30>>( );
+#endif
 }
 utl::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponOrderCT( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 60>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_GGProgressiveWeaponOrderCT");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 60>>( );
+#endif
 }
 utl::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponOrderT( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 60>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_GGProgressiveWeaponOrderT");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 60>>( );
+#endif
 }
 utl::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponKillUpgradeOrderCT( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 60>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_GGProgressiveWeaponKillUpgradeOrderCT");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 60>>( );
+#endif
 }
 utl::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponKillUpgradeOrderT( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 60>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_GGProgressiveWeaponKillUpgradeOrderT");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 60>>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_MatchDevice( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_MatchDevice");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bHasMatchStarted( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bHasMatchStarted");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 utl::array<float, 32>& C_CSGameRulesProxy::m_TeamRespawnWaveTimes( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<float, 32>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_TeamRespawnWaveTimes");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<float, 32>>( );
+#endif
 }
 utl::array<float, 32>& C_CSGameRulesProxy::m_flNextRespawnWave( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<float, 32>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flNextRespawnWave");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<float, 32>>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nNextMapInMapgroup( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nNextMapInMapgroup");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 utl::array<int32_t, 10>& C_CSGameRulesProxy::m_nEndMatchMapGroupVoteTypes( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 10>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nEndMatchMapGroupVoteTypes");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 10>>( );
+#endif
 }
 utl::array<int32_t, 10>& C_CSGameRulesProxy::m_nEndMatchMapGroupVoteOptions( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 10>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nEndMatchMapGroupVoteOptions");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 10>>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nEndMatchMapVoteWinner( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nEndMatchMapVoteWinner");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bIsDroppingItems( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bIsDroppingItems");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iActiveAssassinationTargetMissionID( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iActiveAssassinationTargetMissionID");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_fMatchStartTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_fMatchStartTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 char* C_CSGameRulesProxy::m_szTournamentEventName( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szTournamentEventName");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.raw<char>( );
+#endif
 }
 char* C_CSGameRulesProxy::m_szTournamentEventStage( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szTournamentEventStage");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.raw<char>( );
+#endif
 }
 char* C_CSGameRulesProxy::m_szTournamentPredictionsTxt( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szTournamentPredictionsTxt");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.raw<char>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nTournamentPredictionsPct( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nTournamentPredictionsPct");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 char* C_CSGameRulesProxy::m_szMatchStatTxt( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szMatchStatTxt");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.raw<char>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nGuardianModeWaveNumber( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nGuardianModeWaveNumber");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nGuardianModeSpecialKillsRemaining( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nGuardianModeSpecialKillsRemaining");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nGuardianModeSpecialWeaponNeeded( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nGuardianModeSpecialWeaponNeeded");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nHalloweenMaskListSeed( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nHalloweenMaskListSeed");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_numGlobalGiftsGiven( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_numGlobalGiftsGiven");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_numGlobalGifters( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_numGlobalGifters");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_numGlobalGiftsPeriodSeconds( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_numGlobalGiftsPeriodSeconds");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 utl::array<int32_t, 4>& C_CSGameRulesProxy::m_arrFeaturedGiftersAccounts( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 4>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_arrFeaturedGiftersAccounts");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 4>>( );
+#endif
 }
 utl::array<int32_t, 4>& C_CSGameRulesProxy::m_arrFeaturedGiftersGifts( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 4>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_arrFeaturedGiftersGifts");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 4>>( );
+#endif
 }
 utl::array<int32_t, 100>& C_CSGameRulesProxy::m_arrProhibitedItemIndices( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 100>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_arrProhibitedItemIndices");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 100>>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_numBestOfMaps( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_numBestOfMaps");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 utl::array<int32_t, 4>& C_CSGameRulesProxy::m_arrTournamentActiveCasterAccounts( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 4>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_arrTournamentActiveCasterAccounts");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 4>>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iNumConsecutiveCTLoses( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iNumConsecutiveCTLoses");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iNumConsecutiveTerroristLoses( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iNumConsecutiveTerroristLoses");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 utl::Vector& C_CSGameRulesProxy::m_vecPlayAreaMins( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_vecPlayAreaMins");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::Vector>( );
+#endif
 }
 utl::Vector& C_CSGameRulesProxy::m_vecPlayAreaMaxs( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_vecPlayAreaMaxs");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::Vector>( );
+#endif
 }
 utl::array<int32_t, 64>& C_CSGameRulesProxy::m_iPlayerSpawnHexIndices( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 64>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iPlayerSpawnHexIndices");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 64>>( );
+#endif
 }
 utl::array<int32_t, 224>& C_CSGameRulesProxy::m_SpawnTileState( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 224>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_SpawnTileState");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 224>>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flSpawnSelectionTimeStart( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flSpawnSelectionTimeStart");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flSpawnSelectionTimeEnd( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flSpawnSelectionTimeEnd");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flSpawnSelectionTimeLoadout( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flSpawnSelectionTimeLoadout");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_spawnStage( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_spawnStage");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flTabletHexOriginX( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flTabletHexOriginX");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flTabletHexOriginY( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flTabletHexOriginY");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flTabletHexSize( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flTabletHexSize");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 utl::array<int64_t, 65>& C_CSGameRulesProxy::m_roundData_playerXuids( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int64_t, 65>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_roundData_playerXuids");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int64_t, 65>>( );
+#endif
 }
 utl::array<int32_t, 65>& C_CSGameRulesProxy::m_roundData_playerPositions( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 65>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_roundData_playerPositions");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 65>>( );
+#endif
 }
 utl::array<int32_t, 65>& C_CSGameRulesProxy::m_roundData_playerTeams( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 65>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_roundData_playerTeams");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 65>>( );
+#endif
 }
 utl::array<int32_t, 16>& C_CSGameRulesProxy::m_SurvivalGameRuleDecisionTypes( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 16>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_SurvivalGameRuleDecisionTypes");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 16>>( );
+#endif
 }
 utl::array<int32_t, 16>& C_CSGameRulesProxy::m_SurvivalGameRuleDecisionValues( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::array<int32_t, 16>*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_SurvivalGameRuleDecisionValues");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<utl::array<int32_t, 16>>( );
+#endif
 }
 float& C_CSGameRulesProxy::m_flSurvivalStartTime( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_flSurvivalStartTime");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_nMatchSeed( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_nMatchSeed");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bBlockersPresent( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bBlockersPresent");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 bool& C_CSGameRulesProxy::m_bRoundInProgress( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_bRoundInProgress");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iFirstSecondHalfRound( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iFirstSecondHalfRound");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }
 int32_t& C_CSGameRulesProxy::m_iBombSite( )
 {
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_iBombSite");
-	auto addr = utl::mem::address(this).add(offset);
+	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
 }

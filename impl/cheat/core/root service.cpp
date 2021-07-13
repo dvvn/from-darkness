@@ -3,6 +3,7 @@
 #include "console.h"
 
 #include "cheat/hooks/client mode/create move.h"
+#include "cheat/hooks/client/frame stage notify.h"
 #include "cheat/hooks/directx/present.h"
 #include "cheat/hooks/directx/reset.h"
 
@@ -18,9 +19,10 @@ root_service::root_service( )
 #ifdef CHEAT_DEBUG_MODE
 	this->Wait_for<console>( );
 #endif
-	this->Wait_for<client_mode::create_move>( );
 	this->Wait_for<directx::reset>( );
 	this->Wait_for<directx::present>( );
+	this->Wait_for<client::frame_stage_notify>( );
+	this->Wait_for<client_mode::create_move>( );
 }
 
 #ifdef CHEAT_GUI_TEST
@@ -34,11 +36,11 @@ void root_service::init( )
 
 #else
 
-future<bool> _Wait_for_game( )
+static future<bool> _Wait_for_game( )
 {
 	return async(launch::async, []
 	{
-		auto& modules = mem::all_modules::get( );
+		auto& modules = all_modules::get( );
 		auto& all = modules.update(false).all( );
 
 		auto  work_dir = filesystem::path(modules.owner( ).work_dir( ));
@@ -51,7 +53,7 @@ future<bool> _Wait_for_game( )
 		{
 			if (all.size( ) >= 160)
 			{
-				for (const auto& path: all | ranges::views::transform(&mem::module_info::full_path) | ranges::views::reverse)
+				for (const auto& path: all | ranges::views::transform(&module_info::full_path) | ranges::views::reverse)
 				{
 					if (path == work_dir_native)
 						return first_time;
@@ -113,7 +115,7 @@ struct unload_helper_data
 	BOOL          retval;
 	root_service* instance;
 
-	cheat::detail::service::service_base::wait_for_storage_type* storage;
+	cheat::detail::service_base::wait_for_storage_type* storage;
 };
 
 DWORD WINAPI _Unload_helper(LPVOID data_packed)
@@ -132,15 +134,15 @@ DWORD WINAPI _Unload_helper(LPVOID data_packed)
 
 	//we must be close all threads before unload!
 	//console::get( ).finish( );
-	frozen.clear();
+	frozen.clear( );
 	Sleep(sleep);
 	FreeLibraryAndExitThread(handle, retval);
 }
 
 void root_service::unload(BOOL ret)
 {
-	const auto data = new unload_helper_data;
-	data->sleep = 500;
+	const auto data = new unload_helper_data; 
+	data->sleep = 1500;
 	data->handle = my_handle__;
 	data->retval = ret;
 	data->storage = addressof(this->Storage( ));

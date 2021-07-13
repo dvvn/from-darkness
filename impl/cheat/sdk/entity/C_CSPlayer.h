@@ -15,7 +15,5 @@ namespace cheat::csgo
 	{
 	public:
 #include "../generated/C_CSPlayer_h"
-
-	
 	};
 }

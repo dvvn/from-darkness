@@ -2,13 +2,12 @@
 
 #include "cheat/sdk/IAppSystem.hpp"
 
-#include "cheat/utils/mem/signature.h"
+#include "cheat/utils/signature.h"
 
 using namespace cheat;
 using namespace detail::csgo_interfaces;
 using namespace csgo;
 using namespace utl;
-using namespace mem;
 
 class CInterfaceRegister
 {
@@ -54,7 +53,7 @@ class interfaces_cache: public one_instance_shared<interfaces_cache>
 
 		auto load_result = exports.load( );
 		(void)load_result;
-		BOOST_ASSERT_MSG(load_result != data_cache_result::error, "Unable to load exports");
+		BOOST_ASSERT_MSG(load_result != error, "Unable to load exports");
 
 		const auto& create_fn = exports.get_cache( ).at("CreateInterface");
 		const auto  reg = create_fn.rel32(0x5).add(0x6).deref(2).raw<CInterfaceRegister>( );
