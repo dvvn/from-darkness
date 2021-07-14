@@ -12,41 +12,28 @@ namespace cheat
 
 	class players_list;
 
-	class player
+	struct player: utl::noncopyable
 	{
-	public:
-		class tick_record
+		struct tick_record
 		{
-		public:
 			tick_record(player& holder);
 
-		private:
-			utl::Vector      origin__,   abs_origin__;
-			utl::QAngle      rotation__, abs_rotation__;
-			utl::Vector      mins__,     maxs__;
-			float            sim_time__;
-			utl::matrix3x4_t coordinate_frame__;
+			utl::Vector      origin,   abs_origin;
+			utl::QAngle      rotation, abs_rotation;
+			utl::Vector      mins,     maxs;
+			float            sim_time;
+			utl::matrix3x4_t coordinate_frame;
 		};
 
-		friend class detail::player_shared;
-
 		using shared_type = utl::shared_ptr<player>;
-		using weak_type = shared_type::weak_type;
 
 		player(csgo::C_CSPlayer* ent);
 
-		bool update_simtime( );
-		void update_animations( );
+		float sim_time;
+		bool  dormant;
+		bool  in_use;
 
-		csgo::C_CSPlayer* owner( ) const;
-		int               index( ) const;
-		csgo::C_CSPlayer* operator->( ) const;
-
-	private:
-		csgo::C_CSPlayer* ent__;
-		float             sim_time__;
-		int               index__;
-		bool              in_use__;
+		csgo::C_CSPlayer* ent;
 	};
 
 	enum players_filter_flags :uint8_t
@@ -93,6 +80,11 @@ namespace cheat
 			using player::shared_type::operator->;
 
 			void reset( ) = delete;
+
+			bool update_simtime( );
+			void update_animations( );
+			void store_tick( );
+			void remove_old_ticks( );
 		};
 
 		using players_list_container = utl::vector<player_shared>;

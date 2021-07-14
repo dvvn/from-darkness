@@ -13,7 +13,7 @@ static players_filter_bitflags _Get_flags_for_player(const player::shared_type& 
 
 	auto bflags = players_filter_bitflags( );
 
-	const auto p = pl->owner( );
+	const auto p = pl->ent;
 	bflags.add(p->m_iHealth( ) == 0 ? dead : alive);
 	if (p->IsDormant( ))
 		bflags.add(dormant);

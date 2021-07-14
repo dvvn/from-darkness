@@ -16,14 +16,15 @@ using namespace utl;
 player::tick_record::tick_record([[maybe_unused]] player& holder)
 {
 #ifndef CHEAT_NETVARS_UPDATING
-	this->origin__ = invoke(&C_BaseEntity::m_vecOrigin, holder.owner( ));
-	this->abs_origin__ = holder->m_vecAbsOrigin( );
-	this->rotation__ = holder->m_angRotation( );
-	this->abs_rotation__ = holder->m_angAbsRotation( );
-	this->mins__ = holder->m_vecMins( );
-	this->maxs__ = holder->m_vecMaxs( );
-	this->sim_time__ = holder.sim_time__;
-	this->coordinate_frame__ = reinterpret_cast<matrix3x4_t&>(holder->m_rgflCoordinateFrame( ));
+	auto ent = holder.ent;
+	this->origin = invoke(&C_BaseEntity::m_vecOrigin, ent);
+	this->abs_origin = ent->m_vecAbsOrigin( );
+	this->rotation = ent->m_angRotation( );
+	this->abs_rotation = ent->m_angAbsRotation( );
+	this->mins = ent->m_vecMins( );
+	this->maxs = ent->m_vecMaxs( );
+	this->sim_time = holder.sim_time;
+	this->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
 #endif
 }
 
@@ -67,33 +68,63 @@ void players_list::update( )
 			}
 			continue;
 		}
-		if (obj == nullptr)
+
+		//-------------
+
+		if (obj == nullptr || obj->ent != ent /*|| obj->index( ) != i*/)
 		{
 			storage_updated = true;
-			obj.init(ent);
+			player_shared new_obj;
+			new_obj.init(ent);
+			obj = move(new_obj);
 		}
-		else if (obj->owner( ) != ent || obj->index( ) != i)
+
+		bool update_animations;
+		bool store_tick;
+
+		if (ent->m_iHealth( ) > 0)
 		{
-			storage_updated = true;
-			obj = { };
-			obj.init(ent);
+			update_animations = true;
+			store_tick = true;
 		}
 		else
 		{
-			if (ent->m_iHealth( ) <= 0)
+			const auto is_ragdoll_active = [&]
 			{
-				if (const auto ragdoll = static_cast<C_BaseAnimating*>(interfaces.entity_list->GetClientEntityFromHandle(ent->m_hRagdoll( )));
-					ragdoll == nullptr || ragdoll->m_nSequence( ) == -1)
-					continue;
-			}
+				const auto ragdoll = static_cast<C_BaseAnimating*>(interfaces.entity_list->GetClientEntityFromHandle(ent->m_hRagdoll( )));
+				return ragdoll != nullptr && ragdoll->m_nSequence( ) != -1 && !ragdoll->IsDormant( );
+			};
 
-			if (ent->IsDormant( )) //todo: animations after player exit dormancy
-				continue;
-
-			if (!obj->update_simtime( ))
-				continue;
+			update_animations = is_ragdoll_active( );
+			store_tick = false;
 		}
-		obj->update_animations( );
+		if (ent->IsDormant( ))
+		{
+			update_animations = false;
+			store_tick = false;
+			obj->dormant = true;
+		}
+		else
+		{
+			if (obj->dormant)
+				store_tick = false;
+			obj->dormant = false;
+		}
+		if (!obj.update_simtime( ))
+		{
+			update_animations = false;
+			store_tick = false;
+		}
+
+		//-------------
+
+		if (update_animations)
+			obj.update_animations( );
+
+		if (store_tick)
+			obj.store_tick( );
+
+		obj.remove_old_ticks( );
 	}
 
 	if (storage_updated)
