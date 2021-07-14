@@ -1,122 +1,30 @@
 #include "players list.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/netvars/netvars.h"
 #include "cheat/gui/renderer.h"
+#include "cheat/netvars/netvars.h"
+
 #include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
 
 using namespace cheat;
+using namespace detail;
 using namespace csgo;
 using namespace utl;
 
-player::player([[maybe_unused]] C_CSPlayer* owner)
+player::tick_record::tick_record([[maybe_unused]] player& holder)
 {
 #ifndef CHEAT_NETVARS_UPDATING
-	this->in_use__ = true;
-	this->index__ = owner->EntIndex( );
-	this->owner__ = owner;
-
-	this->origin__ = invoke(&C_BaseEntity::m_vecOrigin, owner);
-	this->abs_origin__ = owner->m_vecAbsOrigin( );
-	this->rotation__ = owner->m_angRotation( );
-	this->abs_rotation__ = owner->m_angAbsRotation( );
-	this->mins__ = owner->m_vecMins( );
-	this->maxs__ = owner->m_vecMaxs( );
-	this->sim_time__ = owner->m_flSimulationTime( );
-	this->coordinate_frame__ = reinterpret_cast<matrix3x4_t&>(owner->m_rgflCoordinateFrame( ));
+	this->origin__ = invoke(&C_BaseEntity::m_vecOrigin, holder.owner( ));
+	this->abs_origin__ = holder->m_vecAbsOrigin( );
+	this->rotation__ = holder->m_angRotation( );
+	this->abs_rotation__ = holder->m_angAbsRotation( );
+	this->mins__ = holder->m_vecMins( );
+	this->maxs__ = holder->m_vecMaxs( );
+	this->sim_time__ = holder.sim_time__;
+	this->coordinate_frame__ = reinterpret_cast<matrix3x4_t&>(holder->m_rgflCoordinateFrame( ));
 #endif
-}
-
-bool player::update_simtime( )
-{
-	//todo: tickbase shift workaround
-
-#ifdef CHEAT_NETVARS_UPDATING
-	(void)this;
-	return false;
-#else
-	const auto new_sim_time = owner__->m_flSimulationTime( );
-
-	if (sim_time__ >= new_sim_time)
-		return false;
-	sim_time__ = new_sim_time;
-	return true;
-#endif
-}
-
-void player::update_animations( )
-{
-	(void)this;
-#ifndef CHEAT_NETVARS_UPDATING
-	BOOST_ASSERT(owner__->m_flSimulationTime( )==sim_time__);
-	//todo: proper animfix
-	//or hook update_clientside_animation
-	owner__->m_bClientSideAnimation( ) = true;
-	owner__->UpdateClientSideAnimation( );
-	owner__->m_bClientSideAnimation( ) = false;
-#endif
-}
-
-C_CSPlayer* player::owner( ) const
-{
-	return owner__;
-}
-
-void player_shared_obj::init(C_CSPlayer* owner)
-{
-	BOOST_ASSERT(!pl__);
-	pl__ = utl::make_shared<player>(owner);
-}
-
-player_shared_obj::~player_shared_obj( )
-{
-#ifndef CHEAT_NETVARS_UPDATING
-	if (!pl__)
-		return;
-	BOOST_ASSERT(pl__->in_use__);
-	pl__->in_use__ = false;
-
-	const auto reset_clientside_anim = [&]
-	{
-		__try
-		{
-			pl__->owner__->m_bClientSideAnimation( ) = true;
-
-		}
-		__except (EXCEPTION_EXECUTE_HANDLER)
-		{
-		}
-
-	};
-	reset_clientside_anim( );
-#endif
-}
-
-player_shared_obj::player_shared_obj(player_shared_obj&& other) noexcept
-{
-	*this = (move(other));
-}
-
-void player_shared_obj::operator=(player_shared_obj&& other) noexcept
-{
-	pl__ = move(other.pl__);
-}
-
-player_shared player_shared_obj::share( ) const
-{
-	return pl__;
-}
-
-player* player_shared_obj::operator->( ) const
-{
-	return pl__.get( );
-}
-
-bool player_shared_obj::operator!( ) const
-{
-	return !pl__;
 }
 
 players_list::players_list( )
@@ -130,40 +38,73 @@ void players_list::update( )
 #ifdef CHEAT_NETVARS_UPDATING
 	(void)this;
 #else
-	const auto& ifc = csgo_interfaces::get( );
+	const auto& interfaces = csgo_interfaces::get( );
 
-	for (auto i = 1; i <= ifc.global_vars->max_clients; ++i)
+	auto storage_updated = false;
+
+	const auto max_clients = interfaces.global_vars->max_clients;
+	if (const auto wished_storage_size = max_clients + 1;
+		storage__.size( ) != wished_storage_size)
 	{
-		const auto ent = ifc.local_player->EntIndex( ) == i
+		storage_updated = true;
+		storage__.clear( );
+		storage__.resize(wished_storage_size);
+	}
+
+	for (auto i = 1; i <= max_clients; ++i)
+	{
+		const auto ent = interfaces.local_player->EntIndex( ) == i
 						 ? nullptr
-						 : static_cast<C_CSPlayer*>(ifc.entity_list->GetClientEntity(i));
-		const auto ent_is_null = ent == nullptr;
-		auto&      obj = storage__[i];
+						 : static_cast<C_CSPlayer*>(interfaces.entity_list->GetClientEntity(i));
+		auto& obj = storage__[i];
 
-		const auto created = !obj || obj->owner( ) != ent;
-		if (created)
+		if (ent == nullptr)
 		{
-			player_shared_obj new_obj;
-			if (!ent_is_null)
-				new_obj.init(ent);
-			obj = move(new_obj);
+			if (obj != nullptr)
+			{
+				storage_updated = true;
+				obj = { };
+			}
+			continue;
 		}
+		if (obj == nullptr)
+		{
+			storage_updated = true;
+			obj.init(ent);
+		}
+		else if (obj->owner( ) != ent || obj->index( ) != i)
+		{
+			storage_updated = true;
+			obj = { };
+			obj.init(ent);
+		}
+		else
+		{
+			if (ent->m_iHealth( ) <= 0)
+			{
+				if (const auto ragdoll = static_cast<C_BaseAnimating*>(interfaces.entity_list->GetClientEntityFromHandle(ent->m_hRagdoll( )));
+					ragdoll == nullptr || ragdoll->m_nSequence( ) == -1)
+					continue;
+			}
 
-		//-----
+			if (ent->IsDormant( )) //todo: animations after player exit dormancy
+				continue;
 
-		if (ent_is_null)
-			continue;
-		if (ent->m_iHealth( ) <= 0)
-			continue;
-		if (ent->IsDormant( )) //todo: animations
-			continue;
-
-		if (!created && !obj->update_simtime( ))
-			continue;
-
+			if (!obj->update_simtime( ))
+				continue;
+		}
 		obj->update_animations( );
 	}
+
+	if (storage_updated)
+		filter_cache__.clear( );
 #endif
+}
+
+const players_filter& players_list::filter(players_filter_bitflags flags)
+{
+	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
+	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
 }
 
 void players_list::Load( )

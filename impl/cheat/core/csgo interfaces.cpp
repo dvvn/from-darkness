@@ -5,7 +5,7 @@
 #include "cheat/utils/signature.h"
 
 using namespace cheat;
-using namespace detail::csgo_interfaces;
+using namespace detail;
 using namespace csgo;
 using namespace utl;
 

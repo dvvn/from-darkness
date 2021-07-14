@@ -55,78 +55,75 @@ namespace cheat::detail
 			return _Count_pointers<std::remove_pointer_t<T>>( ) + 1;
 	}
 
-	namespace csgo_interfaces
+	class csgo_interface_base
 	{
-		class csgo_interface_base
+	public:
+		using sv = utl::string_view;
+		using mb = utl::memory_block;
+
+		utl::address addr( ) const;
+
+		void from_interface(const sv& dll_name, const sv& interface_name);
+		void from_sig(const mb& from, const sv& sig, size_t add, size_t deref);
+		void from_sig(const sv& dll_name, const sv& sig, size_t add, size_t deref);
+		void from_vfunc(void* instance, size_t index, size_t add, size_t deref);
+		void from_ptr(void* ptr);
+
+	private:
+		void Set_result_assert_( ) const;
+
+	protected:
+		utl::address result_;
+	};
+
+	template <class To, size_t Ptrs>
+	class csgo_interface: public csgo_interface_base
+	{
+	public:
+		using raw_pointer = decltype(detail::_Generate_pointer<To, Ptrs>( ));
+		using pointer = To*;
+		using reference = To&;
+
+	private:
+		pointer Pointer_( ) const
 		{
-		public:
-			using sv = utl::string_view;
-			using mb = utl::memory_block;
+			if constexpr (constexpr size_t deref = detail::_Count_pointers<raw_pointer>( ) - 1; deref > 0)
+				return result_.deref(deref).cast<pointer>( );
+			else
+				return result_.cast<pointer>( );
+		}
 
-			utl::address addr( ) const;
-
-			void from_interface(const sv& dll_name, const sv& interface_name);
-			void from_sig(const mb& from, const sv& sig, size_t add, size_t deref);
-			void from_sig(const sv& dll_name, const sv& sig, size_t add, size_t deref);
-			void from_vfunc(void* instance, size_t index, size_t add, size_t deref);
-			void from_ptr(void* ptr);
-
-		private:
-			void Set_result_assert_( ) const;
-
-		protected:
-			utl::address result_;
-		};
-
-		template <class To, size_t Ptrs>
-		class csgo_interface: public csgo_interface_base
+		reference Reference_( )
 		{
-		public:
-			using raw_pointer = decltype(detail::_Generate_pointer<To, Ptrs>( ));
-			using pointer = To*;
-			using reference = To&;
+			return *Pointer_( );
+		}
 
-		private:
-			pointer Pointer_( ) const
-			{
-				if constexpr (constexpr size_t deref = detail::_Count_pointers<raw_pointer>( ) - 1; deref > 0)
-					return result_.deref(deref).cast<pointer>( );
-				else
-					return result_.cast<pointer>( );
-			}
+	public:
+		operator To*( ) const
+		{
+			return Pointer_( );
+		}
 
-			reference Reference_( )
-			{
-				return *Pointer_( );
-			}
+		To* operator->( ) const
+		{
+			return Pointer_( );
+		}
 
-		public:
-			operator To*( ) const
-			{
-				return Pointer_( );
-			}
+		To& operator*( )
+		{
+			return Reference_( );
+		}
 
-			To* operator->( ) const
-			{
-				return Pointer_( );
-			}
+		To* get( ) const
+		{
+			return Pointer_( );
+		}
 
-			To& operator*( )
-			{
-				return Reference_( );
-			}
-
-			To* get( ) const
-			{
-				return Pointer_( );
-			}
-
-			bool empty( ) const
-			{
-				return result_ == 0u;
-			}
-		};
-	}
+		bool empty( ) const
+		{
+			return result_ == 0u;
+		}
+	};
 }
 
 namespace cheat
@@ -134,7 +131,7 @@ namespace cheat
 	class csgo_interfaces final: public service_shared<csgo_interfaces, service_mode::async>
 	{
 		template <typename T, size_t Ptrs = 1>
-		using ifc = detail::csgo_interfaces::csgo_interface<T, Ptrs>;
+		using ifc = detail::csgo_interface<T, Ptrs>;
 
 	public:
 		~csgo_interfaces( ) override;

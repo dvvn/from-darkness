@@ -28,6 +28,33 @@ namespace cheat::csgo
 		float                     m_lastInterpolationTime = 0;
 	};
 
+	enum m_iTeamNum_t
+	{
+		TEAM_Unknown = 0,
+		TEAM_Spectator = 1,
+		TEAM_Terrorist = 2,
+		TEAM_CT = 3,
+	};
+
+	enum m_MoveType_t
+	{
+		MOVETYPE_NONE = 0,
+		MOVETYPE_ISOMETRIC,
+		MOVETYPE_WALK,
+		MOVETYPE_STEP,
+		MOVETYPE_FLY,
+		MOVETYPE_FLYGRAVITY,
+		MOVETYPE_VPHYSICS,
+		MOVETYPE_PUSH,
+		MOVETYPE_NOCLIP,
+		MOVETYPE_LADDER,
+		MOVETYPE_OBSERVER,
+		MOVETYPE_CUSTOM,
+		MOVETYPE_LAST = MOVETYPE_CUSTOM,
+		//MOVETYPE_MAX_BITS = 4,
+		//MAX_MOVETYPE
+	};
+
 	class C_BaseEntity: public IClientEntity, public IClientModelRenderable
 	{
 	public:

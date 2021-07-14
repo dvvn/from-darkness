@@ -193,6 +193,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\root service.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player shared.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
