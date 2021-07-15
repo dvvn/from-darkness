@@ -56,7 +56,7 @@ bool player_shared::update_simtime( )
 	return false;
 #else
 
-	auto&      p = *this->get( );
+	auto& p = *this->get( );
 	const auto new_sim_time = p.ent->m_flSimulationTime( );
 
 	if (p.sim_time >= new_sim_time)
@@ -66,19 +66,30 @@ bool player_shared::update_simtime( )
 #endif
 }
 
-void player_shared::update_animations( )
+void player_shared::update_animations(bool simple)
 {
 	(void)this;
 #ifndef CHEAT_NETVARS_UPDATING
-	auto& p = *this->get( );
-	(void)p;
-	BOOST_ASSERT(p.ent->m_flSimulationTime( )==p.sim_time);
-	//todo: proper animfix
-	//
-	//or hook update_clientside_animation
-	p.ent->m_bClientSideAnimation( ) = true;
-	p.ent->UpdateClientSideAnimation( );
-	p.ent->m_bClientSideAnimation( ) = false;
+	const auto p = this->get( )->ent;
+
+	auto do_update = [&]
+	{
+		//or hook update_clientside_animation
+		p->m_bClientSideAnimation( ) = true;
+		p->UpdateClientSideAnimation( );
+		p->m_bClientSideAnimation( ) = false;
+	};
+
+	if (simple)
+	{
+		do_update( );
+	}
+	else
+	{
+		//todo: proper animfix
+		do_update( );
+	}
+
 #endif
 }
 

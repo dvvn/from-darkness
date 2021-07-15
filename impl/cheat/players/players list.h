@@ -18,10 +18,10 @@ namespace cheat
 		{
 			tick_record(player& holder);
 
-			utl::Vector      origin,   abs_origin;
-			utl::QAngle      rotation, abs_rotation;
-			utl::Vector      mins,     maxs;
-			float            sim_time;
+			utl::Vector origin, abs_origin;
+			utl::QAngle rotation, abs_rotation;
+			utl::Vector mins, maxs;
+			float sim_time;
 			utl::matrix3x4_t coordinate_frame;
 		};
 
@@ -30,31 +30,39 @@ namespace cheat
 		player(csgo::C_CSPlayer* ent);
 
 		float sim_time;
-		bool  dormant;
-		bool  in_use;
-
+		bool in_use;
 		csgo::C_CSPlayer* ent;
+
+		bool dormant;
+		//csgo::m_iTeamNum_t team;
+		bool alive;
 	};
 
-	enum players_filter_flags :uint8_t
+	struct alignas(uint64_t) players_filter_flags
 	{
-		null = 1 << 0,
-		dormant = 1 << 1,
-		dead = 1 << 2,
-		alive = 1 << 3,
-		ally = 1 << 4,
-		enemy = 1 << 5,
-		spectator = 1 << 6,
-		all = []
+		enum team_filter:uint8_t
 		{
-			std::underlying_type_t<players_filter_flags> val = 0;
-			for (auto i = 0; i <= 6; ++i)
-				val |= (1 << i);
-			return val;
-		}( )
-	};
+			ALLY=1 << 0,
+			ENEMY=1 << 1,
+		};
+		enum team_filter_ex:uint8_t
+		{
+			T=1 << 0,
+			CT=1 << 1,
+			SPEC=1 << 2
+		};
 
-	using players_filter_bitflags = utl::bitflag<players_filter_flags>;
+		bool alive;
+		bool dormant;
+		bool immune;
+		utl::variant<team_filter, team_filter_ex> team;
+
+		const uint64_t& data( ) const;
+
+		bool operator==(const players_filter_flags& other) const;
+
+		bool operator!=(const players_filter_flags& other) const;
+	};
 
 	namespace detail
 	{
@@ -82,7 +90,7 @@ namespace cheat
 			void reset( ) = delete;
 
 			bool update_simtime( );
-			void update_animations( );
+			void update_animations(bool simple );
 			void store_tick( );
 			void remove_old_ticks( );
 		};
@@ -93,17 +101,17 @@ namespace cheat
 		class players_filter
 		{
 		public:
-			players_filter(const players_list_container_interface& cont, players_filter_bitflags f = all);
-			players_filter(players_list_container_interface&& cont, players_filter_bitflags f = all);
+			players_filter(const players_list_container_interface& cont, const players_filter_flags& f);
+			players_filter(players_list_container_interface&& cont, const players_filter_flags& f);
 
-			players_filter& add_flags(players_filter_bitflags f);
-			players_filter  add_flags(players_filter_bitflags f) const;
+			players_filter& set_flags(const players_filter_flags& f);
+			players_filter set_flags(const players_filter_flags& f) const;
 
-			players_filter_bitflags flags( ) const;
+			const players_filter_flags& flags( ) const;
 
 		private:
 			players_list_container_interface items__;
-			players_filter_bitflags          flags__;
+			players_filter_flags flags__;
 		};
 	}
 }
@@ -130,14 +138,14 @@ namespace cheat
 
 		void update( );
 
-		const detail::players_filter& filter(players_filter_bitflags flags);
+		const detail::players_filter& filter(const players_filter_flags& flags);
 
 	protected:
-		void        Load( ) override;
+		void Load( ) override;
 		utl::string Get_loaded_message( ) const override;
 
 	private:
-		detail::players_list_container             storage__;
+		detail::players_list_container storage__;
 		utl::unordered_set<detail::players_filter> filter_cache__;
 	};
 }

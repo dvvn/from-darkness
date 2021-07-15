@@ -6,103 +6,110 @@ using namespace detail;
 using namespace csgo;
 using namespace utl;
 
-static players_filter_bitflags _Get_flags_for_player(const player::shared_type& pl)
+static bool _Player_pass_flags(const player::shared_type& p, const players_filter_flags& f)
 {
-	if (!pl)
-		return null;
+	if (!p)
+		return false;
 
-	auto bflags = players_filter_bitflags( );
+	const auto ent = p->ent;
 
-	const auto p = pl->ent;
-	bflags.add(p->m_iHealth( ) == 0 ? dead : alive);
-	if (p->IsDormant( ))
-		bflags.add(dormant);
+	if (f.alive != ent->m_iHealth( ) > 0)
+		return false;
+	if (f.dormant != ent->IsDormant( ))
+		return false;
+	if (f.immune != ent->m_bGunGameImmunity( ))
+		return false;
 
-	const auto local_team = []
-	{
-		return static_cast<m_iTeamNum_t>(csgo_interfaces::get( ).local_player->m_iTeamNum( ));
-	};
+	const auto ent_team = static_cast<m_iTeamNum_t>(ent->m_iTeamNum( ));
+	if (ent_team == TEAM_Unknown)
+		return false;
+	// ReSharper disable once CppTooWideScopeInitStatement
+	const auto team_checker =
+			overload([&](const players_filter_flags::team_filter& tf)
+					 {
+						 if (ent_team == TEAM_Spectator)
+							 return false;
+						 const auto local_team = static_cast<m_iTeamNum_t>(csgo_interfaces::get( ).local_player->m_iTeamNum( ));
+						 return ent_team == local_team;
+					 },
+					 [&](const players_filter_flags::team_filter_ex& tf)
+					 {
+						 auto& select = bitflag_view(tf);
+						 return select.has(ent_team);
+					 });
 
-	switch (static_cast<m_iTeamNum_t>(p->m_iTeamNum( )))
-	{
-		case TEAM_Spectator:
-			bflags.add(spectator, enemy);
-			break;
-		case TEAM_Terrorist:
-			bflags.add(local_team( ) == TEAM_Terrorist ? ally : enemy);
-			break;
-		case TEAM_CT:
-			bflags.add(local_team( ) == TEAM_CT ? ally : enemy);
-			break;
-	}
+	if (!visit(team_checker, f.team))
+		return false;
 
-	return bflags;
+	return true;
 }
 
-static bool _Player_pass_flags(const player::shared_type& p, players_filter_bitflags f)
+players_filter::players_filter(const players_list_container_interface& cont, const players_filter_flags& f): flags__(f)
 {
-	return _Get_flags_for_player(p).has(f);
-}
-
-players_filter::players_filter(const players_list_container_interface& cont, players_filter_bitflags f): flags__(f)
-{
-	if (f == all)
-		items__ = cont;
-	else
+	for (auto& p: cont)
 	{
-		for (auto& p: cont)
-		{
-			if (_Player_pass_flags(p, f))
-				items__.push_back(p);
-		}
+		if (_Player_pass_flags(p, f))
+			items__.push_back(p);
 	}
 }
 
-players_filter::players_filter(players_list_container_interface&& cont, players_filter_bitflags f): flags__(f)
+players_filter::players_filter(players_list_container_interface&& cont, const players_filter_flags& f): flags__(f)
 {
-	if (f == all)
-		items__ = move(cont);
-	else
+	for (auto& p: cont)
 	{
-		for (auto& p: cont)
-		{
-			if (_Player_pass_flags(p, f))
-				items__.push_back(move(p));
-		}
+		if (_Player_pass_flags(p, f))
+			items__.push_back(move(p));
 	}
 }
 
-players_filter& players_filter::add_flags(players_filter_bitflags f)
+players_filter& players_filter::set_flags(const players_filter_flags& f)
 {
-	if (flags__ != flags__.add(f))
+	if (flags__ != f)
 	{
-		auto to_remove = ranges::remove_if(items__, [f](players_list_container_interface::const_reference p)
+		auto to_remove = ranges::remove_if(items__, [f](decltype(items__)::const_reference p)
 		{
 			return !_Player_pass_flags(p, f);
 		});
 
 		items__.erase(to_remove.begin( ), to_remove.end( ));
+		flags__ = f;
 	}
 
 	return *this;
 }
 
-players_filter players_filter::add_flags(players_filter_bitflags f) const
+players_filter players_filter::set_flags(const players_filter_flags& f) const
 {
 	return players_filter(items__, f);
 }
 
-players_filter_bitflags players_filter::flags( ) const
+const players_filter_flags& players_filter::flags( ) const
 {
 	return flags__;
 }
 
 size_t std::hash<players_filter>::operator()(const players_filter& val) const noexcept
 {
-	return hash<std::underlying_type_t<players_filter_flags>>( )(val.flags( ).convert( ));
+	return hash<uint64_t>( )(val.flags( ).data( ));
 }
 
 bool std::equal_to<players_filter>::operator()(const players_filter& a, const players_filter& b) const noexcept
 {
-	return equal_to<std::underlying_type_t<players_filter_flags>>( )(a.flags( ).convert( ), b.flags( ).convert( ));
+	return equal_to<players_filter_flags>( )(a.flags( ), b.flags( ));
+}
+
+const uint64_t& players_filter_flags::data( ) const
+{
+	static_assert(sizeof(players_filter_flags) == sizeof(uint64_t));
+	return *reinterpret_cast<const uint64_t*>(this);
+}
+
+bool players_filter_flags::operator==(const players_filter_flags& other) const
+{
+	return data( ) == other.data( );
+}
+
+bool players_filter_flags::operator!=(const players_filter_flags& other) const
+{
+	return !(*this == other);
 }

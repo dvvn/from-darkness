@@ -313,4 +313,18 @@ namespace cheat::utl
 			}
 		}
 	}
+
+	template <typename T>
+	decltype(auto) bitflag_view(T&& val)
+	{
+		using value_type = std::remove_cvref_t<T>;
+		using bflag_type = bitflag<value_type>;
+		using raw_type=decltype(val);
+		if constexpr (std::is_rvalue_reference_v<raw_type>)
+			return bflag_type(val);
+		else if constexpr (std::is_const_v<std::remove_reference_t<raw_type>>)
+			return static_cast<const bflag_type&>(val);
+		else
+			return static_cast<bflag_type&>(val);
+	}
 }

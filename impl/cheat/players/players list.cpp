@@ -52,9 +52,14 @@ void players_list::update( )
 		storage__.resize(wished_storage_size);
 	}
 
+	C_CSPlayer* const local_player = interfaces.local_player;
+	const auto local_player_index = local_player->EntIndex( );
+	const auto local_player_team = static_cast<m_iTeamNum_t>(local_player->m_iTeamNum( ));
+	const auto local_player_alive = local_player->m_iHealth( ) > 0;
+
 	for (auto i = 1; i <= max_clients; ++i)
 	{
-		const auto ent = interfaces.local_player->EntIndex( ) == i
+		const auto ent = i == local_player_index
 						 ? nullptr
 						 : static_cast<C_CSPlayer*>(interfaces.entity_list->GetClientEntity(i));
 		auto& obj = storage__[i];
@@ -69,8 +74,6 @@ void players_list::update( )
 			continue;
 		}
 
-		//-------------
-
 		if (obj == nullptr || obj->ent != ent /*|| obj->index( ) != i*/)
 		{
 			storage_updated = true;
@@ -79,50 +82,78 @@ void players_list::update( )
 			obj = move(new_obj);
 		}
 
+		const auto ent_team = static_cast<m_iTeamNum_t>(ent->m_iTeamNum( ));
+		/*if (obj->team != ent_team)
+		{
+			storage_updated = true;
+			obj->team = ent_team;
+		}*/
+
 		bool update_animations;
 		bool store_tick;
 
 		if (ent->m_iHealth( ) > 0)
 		{
+			if (!obj->alive)
+			{
+				obj->alive = true;
+				storage_updated = true;
+			}
+
 			update_animations = true;
 			store_tick = true;
 		}
 		else
 		{
+			if (obj->alive)
+			{
+				obj->alive = false;
+				storage_updated = true;
+			}
+
 			const auto is_ragdoll_active = [&]
 			{
-				const auto ragdoll = static_cast<C_BaseAnimating*>(interfaces.entity_list->GetClientEntityFromHandle(ent->m_hRagdoll( )));
+				const auto ragdoll = ent->GetRagdoll( );
 				return ragdoll != nullptr && ragdoll->m_nSequence( ) != -1 && !ragdoll->IsDormant( );
 			};
 
 			update_animations = is_ragdoll_active( );
 			store_tick = false;
 		}
+		
 		if (ent->IsDormant( ))
 		{
+			if (obj->dormant == false)
+			{
+				obj->dormant = true;
+				storage_updated = true;
+			}
 			update_animations = false;
 			store_tick = false;
-			obj->dormant = true;
 		}
 		else
 		{
-			if (obj->dormant)
+			if (obj->dormant == true)
+			{
+				obj->dormant = false;
 				store_tick = false;
-			obj->dormant = false;
+				storage_updated = true;
+			}
 		}
+
 		if (!obj.update_simtime( ))
 		{
 			update_animations = false;
 			store_tick = false;
 		}
 
-		//-------------
-
-		if (update_animations)
-			obj.update_animations( );
+		if (!local_player_alive || local_player_team == ent_team || local_player_team == TEAM_Spectator)
+			store_tick = false;
 
 		if (store_tick)
 			obj.store_tick( );
+		if (update_animations)
+			obj.update_animations(store_tick == false);
 
 		obj.remove_old_ticks( );
 	}
@@ -132,7 +163,7 @@ void players_list::update( )
 #endif
 }
 
-const players_filter& players_list::filter(players_filter_bitflags flags)
+const players_filter& players_list::filter(const players_filter_flags& flags)
 {
 	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
 	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
