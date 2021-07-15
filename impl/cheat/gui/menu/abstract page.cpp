@@ -32,3 +32,27 @@ const string_wrapper& abstract_page::name( ) const
 {
 	return name__.get( );
 }
+
+void abstract_pages_renderer::add_page(abstract_page&& page)
+{
+#ifdef _DEBUG
+	auto& name = page.name( );
+	for (abstract_page& page_stored: objects_)
+	{
+		if (page_stored.name( ) == name)
+			BOOST_ASSERT("Duplicate detected!");
+	}
+#endif
+	objects_.push_back(move(page));
+}
+
+void abstract_pages_renderer::init( )
+{
+	object_selected_ = addressof(objects_[0]);
+	for (auto& p: objects_)
+	{
+		if (const auto obj = dynamic_cast<abstract_pages_renderer*>(p.page( )))
+			obj->init( );
+	}
+	object_selected_->select( );
+}

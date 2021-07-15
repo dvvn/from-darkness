@@ -86,29 +86,9 @@ namespace cheat::gui::menu
 	class abstract_pages_renderer: public renderable_object
 	{
 	public:
-		void add_page(abstract_page&& page)
-		{
-#ifdef _DEBUG
-			auto& name = page.name( );
-			for (abstract_page& page_stored: objects_)
-			{
-				if (page_stored.name( ) == (name))
-					BOOST_ASSERT("Duplicate detected!");
-			}
-#endif
-			objects_.push_back((utl::move(page)));
-		}
+		void add_page(abstract_page&& page);
 
-		virtual void init( )
-		{
-			object_selected_ = utl::addressof(objects_[0]);
-			for (auto& p: objects_)
-			{
-				if (const auto obj = dynamic_cast<abstract_pages_renderer*>(p.page( )))
-					obj->init( );
-			}
-			object_selected_->select( );
-		}
+		virtual void init( );
 
 		using container_type = utl::vector<pages_storage_data>;
 

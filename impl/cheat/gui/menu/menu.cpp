@@ -204,7 +204,7 @@ void menu_obj::Load( )
 	renderer__.add_page([]
 	{
 		auto debug_abstract = abstract_page( );
-		auto& debug = *debug_abstract.init<vertical_pages_renderer>("debug");
+		auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
 
 		//debug.add_page(unused_page::get_ptr( ));
 		//debug.add_page(unused_page::get_ptr( ));
