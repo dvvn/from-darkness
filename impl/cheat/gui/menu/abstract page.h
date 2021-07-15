@@ -19,9 +19,16 @@ namespace cheat::gui::menu
 			}
 			else
 			{
-				auto uptr = utl::make_unique<T>( );
-				obj = static_cast<T*>(uptr.get( ));
-				page__.emplace<0>(utl::move(uptr));
+				if constexpr (!std::is_default_constructible_v<T>)
+				{
+					BOOST_ASSERT("Unable to construct object!");
+				}
+				else
+				{
+					auto uptr = utl::make_unique<T>( );
+					obj = static_cast<T*>(uptr.get( ));
+					page__.emplace<0>(utl::move(uptr));
+				}
 			}
 
 			return obj;
@@ -58,7 +65,7 @@ namespace cheat::gui::menu
 		}
 
 		const imgui::string_wrapper& name( ) const;
-		renderable_object*           page( ) const;
+		renderable_object* page( ) const;
 
 		void render( );
 
@@ -95,20 +102,18 @@ namespace cheat::gui::menu
 		virtual void init( )
 		{
 			object_selected_ = utl::addressof(objects_[0]);
+			for (auto& p: objects_)
+			{
+				if (const auto obj = dynamic_cast<abstract_pages_renderer*>(p.page( )))
+					obj->init( );
+			}
+			object_selected_->select( );
 		}
 
+		using container_type = utl::vector<pages_storage_data>;
+
 	protected:
-		utl::vector<pages_storage_data> objects_;
-		pages_storage_data*             object_selected_ = nullptr;
-	};
-
-	class page_with_tabs final: public abstract_pages_renderer
-	{
-	public:
-		void render( ) override;
-		void init( ) override;
-
-	private:
-		size_t chars_count__ = 0;
+		container_type objects_;
+		pages_storage_data* object_selected_ = nullptr;
 	};
 }

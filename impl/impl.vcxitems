@@ -22,6 +22,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style color.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style var.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\string wrapper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.h" />
@@ -90,7 +91,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\animator.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\abstract page.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderable object.h" />
@@ -186,6 +187,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\push style var.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\_imgui extension\string wrapper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.cpp" />
@@ -255,7 +257,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\animator.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu page.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\abstract page.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\menu.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu\pages renderer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.cpp" />

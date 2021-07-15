@@ -1,5 +1,5 @@
 #pragma once
-#include "cheat/gui/menu/menu page.h"
+#include "cheat/gui/menu/abstract page.h"
 
 namespace cheat
 {

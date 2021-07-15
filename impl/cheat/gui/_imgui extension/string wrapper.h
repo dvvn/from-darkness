@@ -37,15 +37,15 @@ namespace cheat::gui::imgui
 		operator value_type( ) const;
 
 		utl::wstring_view raw( ) const;
-		utl::string_view  multibyte( ) const;
-		value_type        imgui( ) const;
+		utl::string_view multibyte( ) const;
+		value_type imgui( ) const;
 
 	private:
 		void Set_imgui_str_( );
 
-		raw_type       raw__;
+		raw_type raw__;
 		multibyte_type multibyte__;
-		value_type     imgui__;
+		value_type imgui__;
 	};
 
 	class string_wrapper_base: public string_wrapper
@@ -94,25 +94,24 @@ _STD_BEGIN
 	// ReSharper disable once CppInconsistentNaming
 	using _Imgui_string = cheat::gui::imgui::string_wrapper;
 
-	template < >
-	struct hash<_Imgui_string>: hash<wstring_view>
+	template <std::derived_from<_Imgui_string> T >
+	struct hash<T>
 	{
-		_NODISCARD size_t operator()(const _Imgui_string& str) const noexcept
+		_NODISCARD size_t operator()(const T& str) const noexcept
 		{
-			return invoke(*static_cast<const hash<wstring_view>*>(this), (str.raw( )));
+			return invoke(hash<wstring_view>( ), (str));
 		}
 	};
 
-#if 0
-template < >
-struct equal_to<_Imgui_string> : equal_to<string>
-{
-	// ReSharper disable once CppRedundantInlineSpecifier
-	_NODISCARD _CONSTEXPR20_CONTAINER auto operator()(const _Imgui_string& left, const _Imgui_string& right) const -> bool
+#if 1
+	template <std::derived_from<_Imgui_string> T >
+	struct equal_to<T>
 	{
-		return invoke(*static_cast<const equal_to<string>*>(this), left.multibyte, right.multibyte);
-	}
-};
+		_NODISCARD bool operator()(const T& left, const T& right) const
+		{
+			return invoke(equal_to<wstring_view>( ), left, right);
+		}
+	};
 #endif
 
 _STD_END

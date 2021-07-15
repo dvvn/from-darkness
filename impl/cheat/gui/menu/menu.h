@@ -28,10 +28,10 @@ namespace cheat::gui
 
 	private:
 		imgui::string_wrapper menu_title__;
-		menu::pages_renderer  renderer__;
+		menu::vertical_pages_renderer renderer__;
 
-		bool     visible__ = false;
+		bool visible__ = false;
 		animator fade__;
-		WPARAM   hotkey__ = VK_HOME;
+		WPARAM hotkey__ = VK_HOME;
 	};
 }

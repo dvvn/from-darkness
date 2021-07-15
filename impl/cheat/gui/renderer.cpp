@@ -5,20 +5,21 @@
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu/menu.h"
 #include "cheat/hooks/input/wndproc.h"
+#include "cheat/hooks/vgui surface/lock cursor.h"
 
 using namespace cheat;
+using namespace hooks;
 using namespace gui;
 using namespace utl;
 
 renderer::renderer( )
 {
-	this->Wait_for<menu_obj>( );
-	this->Wait_for<hooks::input::wndproc>( );
+	this->Wait_for<vgui_surface::lock_cursor>( );
 }
 
 renderer::~renderer( )
 {
-	auto test = hooks::method_info::make_member_virtual<IDirect3DDevice9*>(csgo_interfaces::get( ).d3d_device, 1);
+	auto test = method_info::make_member_virtual(csgo_interfaces::get( ).d3d_device.get(), 1);
 	if (!test.update( ))
 		return;
 	if (!memory_block(test.get( )).executable( )) //if not - game closed

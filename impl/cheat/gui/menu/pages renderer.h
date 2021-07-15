@@ -1,9 +1,9 @@
 #pragma once
-#include "menu page.h"
+#include "abstract page.h"
 
 namespace cheat::gui::menu
 {
-	class pages_renderer final: public abstract_pages_renderer
+	class vertical_pages_renderer final: public abstract_pages_renderer
 	{
 	public:
 		void render( ) override;
@@ -11,5 +11,15 @@ namespace cheat::gui::menu
 
 	private:
 		size_t longest_string__ = 0;
+	};
+
+	class horizontal_pages_renderer final: public abstract_pages_renderer
+	{
+	public:
+		void render( ) override;
+		void init( ) override;
+
+	private:
+		size_t chars_count__ = 0;
 	};
 }

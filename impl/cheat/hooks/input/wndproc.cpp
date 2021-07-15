@@ -2,6 +2,7 @@
 
 #include "cheat/core/root service.h"
 #include "cheat/gui/user input.h"
+#include "cheat/gui/_imgui extension/push style var.h"
 
 using namespace cheat;
 using namespace hooks;
@@ -54,5 +55,30 @@ void wndproc::Callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			this->return_value_.store_value(default_wndproc__(hwnd, msg, wparam, lparam));
 			break;
 		}
+		default:
+		{
+			if (override_return__)
+				this->return_value_.store_value(override_return_to__);
+			break;
+		}
+	}
+}
+
+void wndproc::render( )
+{
+	ImGui::Checkbox("override return", &override_return__);
+	if (override_return__)
+	{
+		const auto pop = memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
+		(void)pop;
+
+		ImGui::SameLine( );
+		ImGui::Text(" to ");
+		ImGui::SameLine( );
+		if (ImGui::RadioButton("0 ", override_return_to__ == 0))
+			override_return_to__ = 0;
+		ImGui::SameLine( );
+		if (ImGui::RadioButton("1", override_return_to__ == 1))
+			override_return_to__ = 1;
 	}
 }
