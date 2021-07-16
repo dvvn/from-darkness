@@ -1,7 +1,7 @@
 #pragma once
 #include "abstract page.h"
 
-namespace cheat::gui::menu
+namespace cheat::gui::objects
 {
 	class vertical_pages_renderer final: public abstract_pages_renderer
 	{

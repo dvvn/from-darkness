@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cheat::gui
+namespace cheat::gui::objects
 {
 	class renderable_object
 	{

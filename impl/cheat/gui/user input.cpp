@@ -3,7 +3,7 @@
 #include "cheat/core/csgo interfaces.h"
 //#include "cheat/hooks/input/wndproc.h"
 
-#include "menu/menu.h"
+#include "menu.h"
 
 using namespace cheat;
 using namespace gui;
@@ -13,6 +13,7 @@ using namespace utl;
 user_input::user_input( )
 {
 	this->Wait_for<csgo_interfaces>( );
+	//this->Wait_for<menu_obj>( );
 }
 
 user_input::~user_input( )
@@ -73,7 +74,7 @@ user_input::process_result user_input::process(HWND hwnd, UINT msg, WPARAM wpara
 {
 	(void)this;
 
-	auto& menu = menu_obj::get( );
+	auto& menu = menu::get( );
 
 	const auto skip_input = [&]
 	{

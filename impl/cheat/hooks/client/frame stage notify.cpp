@@ -24,6 +24,15 @@ void frame_stage_notify::Load( )
 #endif
 }
 
+utl::string frame_stage_notify::Get_loaded_message( ) const
+{
+#ifndef CHEAT_GUI_TEST
+		return service_base::Get_loaded_message( );
+#else
+	return Get_loaded_message_disabled( );
+#endif
+}
+
 void frame_stage_notify::Callback(ClientFrameStage_t stage)
 {
 	switch (stage)

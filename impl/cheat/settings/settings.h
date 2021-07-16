@@ -2,11 +2,10 @@
 
 #include "settings detail.h"
 #include "cheat/core/service.h"
-#include "cheat/gui/menu/abstract page.h"
 
 namespace cheat
 {
-	class settings_data: protected gui::imgui::string_wrapper_base
+	class settings_data: protected gui::tools::string_wrapper_base
 	{
 	public:
 		friend class settings;
@@ -19,10 +18,10 @@ namespace cheat
 		settings_data(utl::wstring&& name);
 
 		virtual bool save(const utl::wstring_view& name) const;
-		bool         save(const utl::wstring_view& name);
+		bool save(const utl::wstring_view& name);
 		virtual bool load(const utl::wstring_view& name);
-		bool         remove(const utl::wstring_view& name) const;
-		bool         remove_all( ) const;
+		bool remove(const utl::wstring_view& name) const;
+		bool remove_all( ) const;
 
 		virtual void update( ) =0;
 
@@ -46,11 +45,11 @@ namespace cheat
 
 		utl::wstring Generate_path(const utl::wstring_view& name) const;
 
-		tree_type             tree_;
+		tree_type tree_;
 		utl::filesystem::path path_;
 	};
 
-	class settings final: public gui::menu::empty_page, public settings_data,
+	class settings final: public gui::objects::empty_page, public settings_data,
 						  public service_shared<settings, service_mode::async>
 	{
 	public:

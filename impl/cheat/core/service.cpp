@@ -78,19 +78,48 @@ service_base::load_task_type service_base::init(loader_type& loader)
 	}
 }
 
+template <typename ...T>
+static string _Concat_str(T&& ...str)
+{
+	std::ostringstream stream;
+	((stream << forward<T>(str)), ...);
+	return stream.str( );
+}
+
+static constexpr string_view loaded_msg = "Service loaded";
+static constexpr string_view skipped_msg = "Service skipped";
+
+template <typename T, typename ...Ts>
+static string _Get_loaded_message(const service_base* owner, T&& msg, Ts&& ...msg_other)
+{
+	auto msg_str = string(forward<T>(msg));
+	auto msg_size = msg_str.size( );
+
+	//msg_str += ' ';
+
+	const auto arr = array{msg_size, string_view(msg_other).size( )...};
+	auto max = ranges::max(arr);
+	if (msg_size != max)
+	{
+		auto min = ranges::min(arr);
+		auto diff = max - min;
+		msg_str.append(diff, ' ');
+	}
+
+	msg_str += ": ";
+	msg_str += owner->debug_name( );
+
+	return move(msg_str);
+}
+
 string service_base::Get_loaded_message( ) const
 {
-	constexpr auto msg = string_view("Loaded new service: ");
-	const auto     name = this->debug_name( );
+	return _Get_loaded_message(this, loaded_msg, skipped_msg);
+}
 
-	string ret;
-	ret.reserve(msg.size( ) + name.size( ));
-	ret.append(msg);
-	ret.append(name);
-
-	return ret;
-
-	//return format("Loaded new service: {}", this->debug_name( ));
+string service_base::Get_loaded_message_disabled( ) const
+{
+	return _Get_loaded_message(this, skipped_msg, loaded_msg);
 }
 
 void service_base::Post_load( )

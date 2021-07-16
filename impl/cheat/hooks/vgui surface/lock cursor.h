@@ -14,6 +14,8 @@ namespace cheat::hooks::vgui_surface
 
 	protected:
 		void Load( ) override;
+		utl::string Get_loaded_message( ) const override;
 		void Callback() override;
+
 	};
 }

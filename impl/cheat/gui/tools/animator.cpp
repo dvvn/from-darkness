@@ -1,8 +1,7 @@
 #include "animator.h"
 
 using namespace cheat;
-using namespace gui;
-using namespace hooks;
+using namespace gui::tools;
 using namespace utl;
 
 int animator::dir( ) const
@@ -71,13 +70,45 @@ float animator::value( ) const
 
 animator::animator(float value_min, float value_max, float time_max)
 {
-	BOOST_ASSERT(value_min < value_max);
-	BOOST_ASSERT(value_min >= 0);
 	BOOST_ASSERT(value_max <= 1);
 	BOOST_ASSERT(time_max > 0);
-	value__.min = value_min;
-	value__.max = value_max;
+
+	set_min_max(value_min, value_max);
+
 	time_max__ = time_max;
+}
+
+void animator::set_min(float val)
+{
+	BOOST_ASSERT(val < value__.max);
+	BOOST_ASSERT(val >= 0);
+	value__.min = val;
+}
+
+void animator::set_max(float val)
+{
+	BOOST_ASSERT(val <= 1);
+	BOOST_ASSERT(val > value__.min);
+	value__.max = val;
+}
+
+void animator::set_min_max(float min, float max)
+{
+	BOOST_ASSERT(min < max);
+	BOOST_ASSERT(min >= 0);
+	BOOST_ASSERT(max <= 1);
+	value__.min = min;
+	value__.max = max;
+}
+
+float animator::min( ) const
+{
+	return value__.min;
+}
+
+float animator::max( ) const
+{
+	return value__.max;
 }
 
 //auto animator::setup_limits(float value_min, float value_max, float time_max) -> void

@@ -31,6 +31,15 @@ void create_move::Load( )
 #endif
 }
 
+string create_move::Get_loaded_message( ) const
+{
+#ifndef CHEAT_GUI_TEST
+		return service_base::Get_loaded_message( );
+#else
+	return Get_loaded_message_disabled( );
+#endif
+}
+
 void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 {
 	// is called from CInput::ExtraMouseSample
@@ -38,7 +47,7 @@ void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 		return;
 
 	const auto& interfaces = csgo_interfaces::get( );
-	const auto  original_return = return_value_.get( );
+	const auto original_return = return_value_.get( );
 	return_value_.store_value(false);
 
 	if (original_return == true)

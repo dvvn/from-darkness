@@ -7,7 +7,7 @@ namespace cheat::utl
 	{
 	public:
 		memory_backup(const memory_backup&) = delete;
-		memory_backup& operator=(const memory_backup&)= delete;
+		memory_backup& operator=(const memory_backup&) = delete;
 
 		memory_backup(memory_backup&& other) noexcept
 		{
@@ -16,10 +16,9 @@ namespace cheat::utl
 
 		memory_backup& operator=(memory_backup&& other) noexcept
 		{
-			//owner__.swap(other.owner__);
-			//value__.swap(other.value__);
-			owner__ = move(other.owner__);
-			value__ = move(other.value__);
+			owner__.swap(other.owner__);
+			value__.swap(other.value__);
+			
 			return *this;
 		}
 
@@ -39,9 +38,14 @@ namespace cheat::utl
 
 		~memory_backup( )
 		{
+			restore( );
+		}
+
+		void restore( )
+		{
 			if (value__.has_value( ))
 			{
-				*owner__ = move(*value__);
+				*owner__ = release( );
 			}
 		}
 
@@ -54,7 +58,7 @@ namespace cheat::utl
 		{
 			T ret = move(*value__);
 			this->reset( );
-			return ret;
+			return static_cast<T&&>(ret);
 		}
 
 		/**
@@ -69,12 +73,17 @@ namespace cheat::utl
 
 		bool operator!( ) const
 		{
-			return !value__.has_value();
+			return !value__.has_value( );
+		}
+
+		operator bool( ) const
+		{
+			return value__.has_value( );
 		}
 
 	private:
 		optional<T&> owner__;
-		optional<T>  value__;
+		optional<T> value__;
 	};
 
 	//#define MEM_BACKUP(memory,...)\

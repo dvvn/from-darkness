@@ -1,5 +1,5 @@
 #include "cheat/core/root service.h"
-#include "cheat/gui/menu/menu.h"
+#include "cheat/gui/menu.h"
 
 #ifndef CHEAT_GUI_TEST
 
@@ -117,7 +117,7 @@ auto main(int, char**) -> int
 	::UpdateWindow(hwnd);
 
 	cheat::root_service::get( ).init( );
-	cheat::gui::menu_obj::get( ).toggle( );
+	cheat::gui::menu::get( ).show( );
 
 	// Setup Dear ImGui context
 	//IMGUI_CHECKVERSION( );

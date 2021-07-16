@@ -3,7 +3,7 @@
 
 namespace cheat::features
 {
-	class aimbot final: public gui::menu::empty_page, public settings_data, public utl::one_instance<aimbot>
+	class aimbot final: public gui::objects::empty_page, public settings_data, public utl::one_instance<aimbot>
 	{
 	public:
 		aimbot( );

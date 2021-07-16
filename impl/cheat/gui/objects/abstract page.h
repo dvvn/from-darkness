@@ -1,9 +1,9 @@
 #pragma once
-#include "cheat/gui/renderable object.h"
-#include "cheat/gui/_imgui extension/animated selectable.h"
-#include "cheat/gui/_imgui extension/string wrapper.h"
+#include "renderable object.h"
+#include "cheat/gui/tools/string wrapper.h"
+#include "cheat/gui/widgets/selectable.h"
 
-namespace cheat::gui::menu
+namespace cheat::gui::objects
 {
 	using empty_page = renderable_object;
 
@@ -44,7 +44,7 @@ namespace cheat::gui::menu
 		}
 
 		template <class T>
-		abstract_page(imgui::string_wrapper&& name, T* obj = nullptr)
+		abstract_page(tools::string_wrapper&& name, T* obj = nullptr)
 		{
 			this->init(utl::move(name), obj);
 		}
@@ -58,29 +58,30 @@ namespace cheat::gui::menu
 		}
 
 		template <class T>
-		T* init(imgui::string_wrapper&& name, T* obj = nullptr)
+		T* init(tools::string_wrapper&& name, T* obj = nullptr)
 		{
 			name__.init(utl::move(name));
 			return Init_this(obj);
 		}
 
-		const imgui::string_wrapper& name( ) const;
+		const tools::string_wrapper& name( ) const;
 		renderable_object* page( ) const;
 
 		void render( );
 
 	private:
-		imgui::string_wrapper_abstract name__;
-		utl::variant<utl::unique_ptr<renderable_object>,
-					 utl::reference_wrapper<renderable_object>> page__;
+		tools::string_wrapper_abstract name__;
+		utl::variant<
+			utl::unique_ptr<renderable_object>,
+			utl::reference_wrapper<renderable_object>> page__;
 	};
 
-	struct pages_storage_data final: abstract_page, imgui::animated_selectable_base
+	struct pages_storage_data final: abstract_page, widgets::selectable_base
 	{
 		pages_storage_data(abstract_page&& page);
 
 	protected:
-		imgui::string_wrapper::value_type Name( ) const override;
+		tools::string_wrapper::value_type Name( ) const override;
 	};
 
 	class abstract_pages_renderer: public renderable_object

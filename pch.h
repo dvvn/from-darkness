@@ -166,21 +166,25 @@ namespace boost
 
 namespace std
 {
+#if 0
 	template <typename T>
 	boost::optional<T> move(boost::optional<T>& opt)
 	{
-		boost::optional<T> dummy = static_cast<boost::optional<T>&&>(opt);
+		using rvalue = boost::optional<T>&&;
+		boost::optional<T> dummy = static_cast<rvalue>(opt);
 		opt.reset( );
-		return dummy;
+		return static_cast<rvalue>(dummy);
 	}
 
 	template <typename T>
 	boost::optional<T> move(boost::optional<T>&& opt)
 	{
-		boost::optional<T> dummy = static_cast<boost::optional<T>&&>(opt);
-		opt.reset( );
-		return dummy;
+		return move(opt);
 	}
+#endif
+
+	template <typename T>
+	boost::optional<T> move(const boost::optional<T>& opt) = delete; //use swap
 
 	using boost::optional;
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "cheat/gui/menu/abstract page.h"
+#include "cheat/gui/objects/abstract page.h"
 
 namespace cheat
 {
@@ -8,10 +8,11 @@ namespace cheat
 
 namespace cheat::detail::settings
 {
+	using namespace utl;
 	using namespace gui;
-
-	using imgui::string_wrapper;
-	using imgui::string_wrapper_abstract;
+	using namespace tools;
+	using namespace widgets;
+	using namespace objects;
 
 	class known_configs
 	{
@@ -23,20 +24,20 @@ namespace cheat::detail::settings
 		bool contains(const string_wrapper& str) const;
 
 	protected:
-		using storage_type = utl::vector<string_wrapper>;
+		using storage_type = vector<string_wrapper>;
 
-		ranges::borrowed_subrange_t<storage_type&> Remove(const utl::span<utl::wstring>& sample);
-		void                                       Update_longest_string( );
+		ranges::borrowed_subrange_t<storage_type&> Remove(const span<wstring>& sample);
+		void Update_longest_string( );
 
 	public:
-		void sync(const utl::span<utl::wstring>& vec);
+		void sync(const span<wstring>& vec);
 
 		const string_wrapper& longest_string( ) const;
-		const storage_type&   get( ) const;
+		const storage_type& get( ) const;
 
 	private:
 		string_wrapper_abstract longest_string__;
-		storage_type            data__;
+		storage_type data__;
 	};
 
 	class known_configs_selectable final: public known_configs
@@ -47,7 +48,7 @@ namespace cheat::detail::settings
 		void deselect( );
 
 		string_wrapper* selected( ) const;
-		bool            selected(const string_wrapper& str) const;
+		bool selected(const string_wrapper& str) const;
 
 	private:
 		//must be manually controlled!
@@ -55,7 +56,7 @@ namespace cheat::detail::settings
 	};
 
 	//folder with configs
-	struct folder_with_configs final: imgui::animated_selectable_base
+	struct folder_with_configs final: selectable_base
 	{
 		folder_with_configs(settings_data* shared_data);
 
@@ -75,16 +76,16 @@ namespace cheat::detail::settings
 		bool updated__ = false;
 	};
 
-	class folders_storage final: public menu::empty_page
+	class folders_storage final: public empty_page
 	{
 	public:
 		using value_type = folder_with_configs;
-		using storage_type = utl::vector<value_type>;
+		using storage_type = vector<value_type>;
 		using iterator = storage_type::iterator;
 
 		void add_folder(value_type&& folder);
 
-		value_type* get(const utl::wstring_view& str);
+		value_type* get(const wstring_view& str);
 
 		void render( ) override;
 
@@ -99,16 +100,16 @@ namespace cheat::detail::settings
 
 	private:
 		storage_type data__;
-		size_t       longest_title__ = 0;
+		size_t longest_title__ = 0;
 	};
 
-	class config_renderer final: public imgui::animated_selectable_base
+	class config_renderer final: public selectable_base
 	{
 	public:
 		config_renderer(string_wrapper&& str) = delete;
 		config_renderer(const string_wrapper& str);
 
-		bool                  dead(const known_configs& source) const;
+		bool dead(const known_configs& source) const;
 		const string_wrapper& owner( ) const;
 
 	protected:
@@ -118,10 +119,10 @@ namespace cheat::detail::settings
 		string_wrapper owner__;
 	};
 
-	class configs_unique_renderer final: public menu::empty_page
+	class configs_unique_renderer final: public empty_page
 	{
 	public:
-		using value_type = utl::shared_ptr<config_renderer>;
+		using value_type = shared_ptr<config_renderer>;
 
 		void sync(const known_configs& source);
 		void after_sync( );
@@ -139,14 +140,14 @@ namespace cheat::detail::settings
 		//auto selected_item_auto_resolved( ) const -> bool;
 
 	private:
-		utl::vector<value_type> data__;
-		size_t                  longest_title__ = 0;
+		vector<value_type> data__;
+		size_t longest_title__ = 0;
 
 		struct
 		{
 			value_type::weak_type ptr;
-			utl::wstring          name;
-			utl::optional<size_t> index;
+			wstring name;
+			optional<size_t> index;
 			//-
 		} item_selected__;
 		//bool item_selected_resolve__ = 1;
@@ -155,11 +156,11 @@ namespace cheat::detail::settings
 		void Select_new_item_(const value_type& item, bool set_selected);
 	};
 
-	class folder_with_configs_mgr final: public menu::empty_page
+	class folder_with_configs_mgr final: public empty_page
 	{
 	public:
-		void set_work_dir(const utl::filesystem::path& dir);
-		void set_work_dir(utl::filesystem::path&& dir);
+		void set_work_dir(const filesystem::path& dir);
+		void set_work_dir(filesystem::path&& dir);
 
 		void rescan( );
 
@@ -167,14 +168,14 @@ namespace cheat::detail::settings
 		void add_folder(folder_with_configs&& folder);
 
 	private:
-		utl::vector<utl::wstring> Process_folder_(const utl::filesystem::directory_entry& dir);
-		void                      Process_path_(const utl::filesystem::path& path);
+		vector<wstring> Process_folder_(const filesystem::directory_entry& dir);
+		void Process_path_(const filesystem::path& path);
 
-		folders_storage         folders__;
-		known_configs           files__;
+		folders_storage folders__;
+		known_configs files__;
 		configs_unique_renderer files_list__;
 
-		utl::filesystem::path working_dir__;
+		filesystem::path working_dir__;
 
 		enum io_result:size_t
 		{
@@ -184,7 +185,7 @@ namespace cheat::detail::settings
 			error=1 << 2
 		};
 
-		using io_flags = utl::bitflag<io_result>;
+		using io_flags = bitflag<io_result>;
 
 		_NODISCARD io_flags Do_save_(const string_wrapper& name);
 		_NODISCARD io_flags Do_load_(const string_wrapper& name);
@@ -197,7 +198,7 @@ namespace cheat::detail::settings
 		//it also consider all external changes
 		void Save_to_( );
 
-		utl::string new_config_name__;
+		string new_config_name__;
 
 		void Remove_( );
 	};

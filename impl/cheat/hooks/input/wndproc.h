@@ -1,11 +1,11 @@
 #pragma once
 #include "cheat/core/service.h"
-#include "cheat/gui/menu/abstract page.h"
+#include "cheat/gui/objects/abstract page.h"
 
 namespace cheat::hooks::input
 {
 	class wndproc final: public service_shared<wndproc, service_mode::async>,
-						 public gui::menu::empty_page,
+						 public gui::objects::empty_page,
 						 public decltype(detect_hook_holder(DefWindowProc))
 	{
 	public:

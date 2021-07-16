@@ -23,7 +23,7 @@ namespace cheat
 		void        Post_load( ) override;
 
 	private:
-		class lazy_file_writer final: public std::stringstream, utl::noncopyable
+		class lazy_file_writer final: public std::ostringstream, utl::noncopyable
 		{
 		public:
 			~lazy_file_writer( ) override;

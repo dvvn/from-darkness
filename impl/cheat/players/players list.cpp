@@ -34,6 +34,21 @@ players_list::players_list( )
 	this->Wait_for<netvars>( );
 }
 
+void players_list::Load( )
+{
+	(void)this;
+}
+
+string players_list::Get_loaded_message( ) const
+{
+#ifndef CHEAT_GUI_TEST
+	return service_base::Get_loaded_message( );
+		//return "Players list ready to use";
+#else
+	return Get_loaded_message_disabled( );
+#endif
+}
+
 void players_list::update( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -120,7 +135,7 @@ void players_list::update( )
 			update_animations = is_ragdoll_active( );
 			store_tick = false;
 		}
-		
+
 		if (ent->IsDormant( ))
 		{
 			if (obj->dormant == false)
@@ -167,14 +182,4 @@ const players_filter& players_list::filter(const players_filter_flags& flags)
 {
 	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
 	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
-}
-
-void players_list::Load( )
-{
-	(void)this;
-}
-
-string players_list::Get_loaded_message( ) const
-{
-	return "Players list ready to use";
 }

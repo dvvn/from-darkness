@@ -1,14 +1,15 @@
-#include "animated selectable.h"
+#include "selectable.h"
 
-#include "push style color.h"
+#include "cheat/gui/tools/push style color.h"
 
 using namespace cheat;
-using namespace gui::imgui;
+using namespace gui::widgets;
+using namespace gui::tools;
 using namespace utl;
 
 //ImGui::PushStyleColor(color_idx, !anim_updated ? header_color : ImVec4(header_color.x, header_color.y, header_color.z, header_color.w * anim__.value( )));
 
-animated_selectable::animated_selectable(bool selected)
+selectable::selectable(bool selected)
 {
 	if (selected)
 		anim__.set(1);
@@ -19,7 +20,7 @@ animated_selectable::animated_selectable(bool selected)
 	}
 }
 
-bool animated_selectable::operator()(string_wrapper::value_type label, /*optional<animated_selectable*&> selected_before,*/ ImGuiSelectableFlags flags, const ImVec2& size)
+bool selectable::operator()(string_wrapper::value_type label, ImGuiSelectableFlags flags, const ImVec2& size)
 {
 #if 0
 	const auto selectable = [&](bool selected)
@@ -65,36 +66,41 @@ bool animated_selectable::operator()(string_wrapper::value_type label, /*optiona
 		   /*&& !selected( )*/ && !anim__.updating( );
 }
 
-void animated_selectable::select( )
+bool selectable::operator()(const string_wrapper& label, /*optional<selectable*&> selected_before,*/ ImGuiSelectableFlags flags, const ImVec2& size)
+{
+	return invoke(*this, label.imgui( ), flags, size);
+}
+
+void selectable::select( )
 {
 	anim__.set(1);
 }
 
-void animated_selectable::deselect( )
+void selectable::deselect( )
 {
 	anim__.set(-1);
 }
 
-void animated_selectable::toggle( )
+void selectable::toggle( )
 {
 	anim__.set(selected( ) ? -1 : 1);
 }
 
-bool animated_selectable::selected( ) const
+bool selectable::selected( ) const
 {
 	return anim__.dir( ) == 1;
 }
 
-bool animated_selectable::animating( ) const
+bool selectable::animating( ) const
 {
 	return anim__.updating( );
 }
 
-animated_selectable_base::animated_selectable_base(bool selected): animated_selectable(selected)
+selectable_base::selectable_base(bool selected): selectable(selected)
 {
 }
 
-bool animated_selectable_base::operator()(ImGuiSelectableFlags flags, const ImVec2& size)
+bool selectable_base::operator()(ImGuiSelectableFlags flags, const ImVec2& size)
 {
-	return animated_selectable::operator()(Name( ), flags, size);
+	return invoke(*static_cast<selectable*>(this), Name( ), flags, size);
 }

@@ -1,7 +1,7 @@
 #include "push style var.h"
 
 using namespace cheat;
-using namespace gui::imgui;
+using namespace gui::tools;
 using namespace utl;
 
 push_style_var::push_style_var( ) = default;
@@ -11,10 +11,10 @@ extern const ImGuiStyleVarInfo* GetStyleVarInfo(ImGuiStyleVar idx);
 
 struct ImGuiStyleVarInfoExtern
 {
-	ImGuiDataType Type; 
-	ImU32         Count;
-	ImU32         Offset;
-	void*         GetVarPtr(ImGuiStyle* style) const { return reinterpret_cast<unsigned char*>(style) + Offset; }
+	ImGuiDataType Type;
+	ImU32 Count;
+	ImU32 Offset;
+	void* GetVarPtr(ImGuiStyle* style) const { return reinterpret_cast<unsigned char*>(style) + Offset; }
 };
 
 push_style_var::push_style_var(ImGuiCol idx, float val)

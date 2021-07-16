@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cheat::gui
+namespace cheat::gui::tools
 {
 	class animator
 	{
@@ -12,19 +12,26 @@ namespace cheat::gui
 		bool update( );
 		void finish( );
 
-		bool  done( ) const;
-		bool  done(int direction) const;
+		bool done( ) const;
+		bool done(int direction) const;
 		float value( ) const;
 
 		//auto setup_limits(float value_min=0, float value_max=1, float time_max=0.3f) -> void;
 
 		animator(float value_min = 0, float value_max = 1, float time_max = 0.3f);
 
+		void set_min(float val);
+		void set_max(float val);
+		void set_min_max(float min, float max);
+
+		float min()const;
+		float max()const;
+
 	private:
 		float Limit_(float dir) const;
 
 		float time_max__ = 0;
-		int   dir__ = 0;
+		int dir__ = 0;
 		float time__ = 0;
 		struct
 		{

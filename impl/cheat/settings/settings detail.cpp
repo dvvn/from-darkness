@@ -2,13 +2,10 @@
 
 #include "settings.h"
 
-#include "cheat/gui/_imgui extension/push style var.h"
+#include "cheat/gui/tools/push style var.h"
 
 using namespace cheat;
-using namespace detail::settings;
-using namespace gui;
-using namespace imgui;
-using namespace utl;
+using namespace cheat::detail::settings;
 using namespace filesystem;
 
 bool known_configs::contains(const string_wrapper& str) const

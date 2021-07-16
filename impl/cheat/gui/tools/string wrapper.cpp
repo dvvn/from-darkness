@@ -2,14 +2,14 @@
 
 using namespace cheat;
 using namespace gui;
-using namespace imgui;
+using namespace tools;
 using namespace utl;
 
 // Convert a wide Unicode string to an UTF8 string
 static string _UTF8_encode(const wstring_view& wstr)
 {
 	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.data( ), wstr.size( ), nullptr, 0, nullptr, nullptr);
-	auto       str_to = string(size_needed, '\0');
+	auto str_to = string(size_needed, '\0');
 	WideCharToMultiByte(CP_UTF8, 0, wstr.data( ), wstr.size( ), str_to.data( ), size_needed, nullptr, nullptr);
 	return str_to;
 }
@@ -18,7 +18,7 @@ static string _UTF8_encode(const wstring_view& wstr)
 static wstring _UTF8_decode(const string_view& str)
 {
 	const auto size_needed = MultiByteToWideChar(CP_UTF8, 0, str.data( ), str.size( ), nullptr, 0);
-	auto       wstr_to = wstring(size_needed, '\0');
+	auto wstr_to = wstring(size_needed, '\0');
 	MultiByteToWideChar(CP_UTF8, 0, str.data( ), str.size( ), wstr_to.data( ), size_needed);
 	return wstr_to;
 }

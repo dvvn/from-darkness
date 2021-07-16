@@ -1,8 +1,8 @@
 #include "lock cursor.h"
 
 #include "cheat/core/csgo interfaces.h"
+#include "cheat/gui/menu.h"
 #include "cheat/gui/user input.h"
-#include "cheat/gui/menu/menu.h"
 #include "cheat/hooks/input/wndproc.h"
 #include "cheat/players/players list.h"
 
@@ -15,7 +15,7 @@ using namespace utl;
 lock_cursor::lock_cursor( )
 {
 	this->Wait_for<input::wndproc>( );
-	this->Wait_for<gui::menu_obj>( );
+	this->Wait_for<gui::menu>( );
 }
 
 void lock_cursor::Load( )
@@ -28,9 +28,18 @@ void lock_cursor::Load( )
 #endif
 }
 
+utl::string lock_cursor::Get_loaded_message( ) const
+{
+#ifndef CHEAT_GUI_TEST
+		return service_base::Get_loaded_message( );
+#else
+	return Get_loaded_message_disabled( );
+#endif
+}
+
 void lock_cursor::Callback( )
 {
-	if (gui::menu_obj::get( ).visible( ) && !Target_instance( )->IsCursorVisible( ))
+	if (gui::menu::get( ).visible( ) && !Target_instance( )->IsCursorVisible( ))
 	{
 		this->return_value_.set_original_called(true);
 		Target_instance( )->UnlockCursor( );

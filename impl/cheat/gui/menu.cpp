@@ -1,16 +1,20 @@
 ﻿#include "menu.h"
 
-#include "cheat/features/aimbot.h"
-#include "cheat/features/anti aim.h"
-#include "cheat/gui/_imgui extension/push style var.h"
+#include "cheat/gui/tools/push style var.h"
+
 #include "cheat/hooks/input/wndproc.h"
 
-using namespace cheat;
-using namespace gui;
-using namespace utl;
-using namespace menu;
+#include "cheat/features/aimbot.h"
+#include "cheat/features/anti aim.h"
 
-menu_obj::menu_obj( )
+using namespace cheat;
+using namespace utl;
+using namespace gui;
+using namespace objects;
+using namespace tools;
+using namespace widgets;
+
+menu::menu( )
 {
 	this->Wait_for<settings>( );
 #ifdef _DEBUG
@@ -39,6 +43,7 @@ menu_obj::menu_obj( )
 			case 'D': // Dec
 				return 12;
 		}
+		throw;
 	}( );
 
 	// ReSharper disable once CppUnreachableCode
@@ -72,12 +77,13 @@ menu_obj::menu_obj( )
 	menu_title__ = move(name);
 }
 
-void menu_obj::render(float bg_alpha)
+void menu::render( )
 {
 #if defined(_DEBUG) ||  defined(CHEAT_TEST_EXE)
 	ImGui::ShowDemoWindow( );
 #endif
 
+#if 0
 	auto& style = ImGui::GetStyle( );
 
 	memory_backup<float> alpha_backup;
@@ -107,24 +113,17 @@ void menu_obj::render(float bg_alpha)
 		renderer__.render( );
 	}
 	ImGui::End( );
+
+#endif
+
+	if (this->begin(menu_title__, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		renderer__.render( );
+	}
+	this->end( );
 }
 
-bool menu_obj::visible( ) const
-{
-	return visible__ || animating( );
-}
-
-bool menu_obj::animating( ) const
-{
-	return fade__.updating( );
-}
-
-bool menu_obj::active( ) const
-{
-	return visible__ && fade__.done(1);
-}
-
-bool menu_obj::toggle(UINT msg, WPARAM wparam)
+bool menu::toggle(UINT msg, WPARAM wparam)
 {
 	if (wparam != hotkey__)
 		return false;
@@ -136,34 +135,19 @@ bool menu_obj::toggle(UINT msg, WPARAM wparam)
 	}
 	if (msg == WM_KEYUP)
 	{
-		visible__ = !visible__;
-		fade__.set(visible__ ? 1 : -1);
+		window::toggle( );
 		return true;
 	}
 
 	return false;
 }
 
-void menu_obj::toggle( )
-{
-	toggle(WM_KEYUP, hotkey__);
-}
-
-bool menu_obj::animate( )
-{
-	return fade__.update( );
-}
-
-float menu_obj::get_fade( ) const
-{
-	return fade__.value( );
-}
-
-class unused_page final: public empty_page, public imgui::string_wrapper_base
+class unused_page final: public empty_page, public string_wrapper_base
 {
 	unused_page(string_wrapper&& other) : string_wrapper_base(move(other))
 	{
 	}
+
 public:
 	void render( ) override
 	{
@@ -171,10 +155,11 @@ public:
 		ImGui::TextUnformatted(mb._Unchecked_begin( ), mb._Unchecked_end( ));
 	}
 
-
-	static unused_page* get_ptr(size_t size = 1)
+	static unused_page* get_ptr( )
 	{
 		static size_t counter = 0;
+#if 0
+	
 		static auto storage = ordered_set<unused_page>( );
 
 		const auto added = size;
@@ -182,10 +167,16 @@ public:
 			storage.emplace(unused_page("unused page " + to_string(counter++)));
 
 		return const_cast<unused_page*>(std::prev(storage.end( ), added).operator->( ));
+#else
+		static auto storage = unordered_set<unused_page>( );
+		auto&& [page, _] = storage.emplace(unused_page("unused page " + to_string(counter++)));
+		return const_cast<unused_page*>(addressof(*page));
+
+#endif
 	}
 };
 
-void menu_obj::Load( )
+void menu::Load( )
 {
 	renderer__.add_page([]
 	{

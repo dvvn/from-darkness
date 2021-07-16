@@ -14,6 +14,7 @@ namespace cheat::hooks::client
 
 	protected:
 		void Load( ) override;
+		utl::string Get_loaded_message( ) const override;
 		void Callback(csgo::ClientFrameStage_t stage) override;
 	};
 }

@@ -1,11 +1,11 @@
 #include "pages renderer.h"
 
-#include "cheat/gui/_imgui extension/push style var.h"
+#include "cheat/gui/tools/push style var.h"
 
 using namespace cheat;
 using namespace gui;
-using namespace imgui;
-using namespace menu;
+using namespace tools;
+using namespace objects;
 using namespace utl;
 
 static auto _Sizes(const abstract_pages_renderer::container_type& container)

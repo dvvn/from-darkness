@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cheat::gui::imgui
+namespace cheat::gui::tools
 {
 	//PushStyleColor(ImGuiCol idx, const ImVec4& col)
 	class push_style_color: public utl::memory_backup<ImVec4>

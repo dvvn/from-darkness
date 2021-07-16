@@ -2,8 +2,8 @@
 
 using namespace cheat;
 using namespace gui;
-using namespace imgui;
-using namespace menu;
+using namespace tools;
+using namespace objects;
 using namespace utl;
 
 renderable_object* abstract_page::page( ) const
@@ -19,7 +19,7 @@ void abstract_page::render( )
 	ImGui::PopID( );
 }
 
-pages_storage_data::pages_storage_data(abstract_page&& page): abstract_page(move(page))
+pages_storage_data::pages_storage_data(abstract_page&& page) : abstract_page(move(page))
 {
 }
 
@@ -48,6 +48,10 @@ void abstract_pages_renderer::add_page(abstract_page&& page)
 
 void abstract_pages_renderer::init( )
 {
+#if defined(_DEBUG) && _CONTAINER_DEBUG_LEVEL <= 0
+	BOOST_ASSERT(!objects_.empty( ));
+#endif
+
 	object_selected_ = addressof(objects_[0]);
 	for (auto& p: objects_)
 	{

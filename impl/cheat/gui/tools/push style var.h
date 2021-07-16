@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cheat::gui::imgui
+namespace cheat::gui::tools
 {
 	//PushStyleVar(ImGuiCol idx, const ImVec4& col)
 	class push_style_var: utl::variant<utl::memory_backup<float>, utl::memory_backup<ImVec2>>

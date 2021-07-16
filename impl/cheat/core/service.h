@@ -31,17 +31,18 @@ namespace cheat
 			service_base( );
 
 			load_task_type init(loader_type& loader);
-			void           reset( );
+			void reset( );
 
 			bool initialized( ) const;
 
-			virtual utl::string_view debug_name( ) const =0;
+			virtual utl::string_view debug_name( ) const = 0;
 
 		protected:
-			virtual load_task_type Initialize(loader_type& loader) =0;
-			virtual void           Load( ) =0;
-			virtual utl::string    Get_loaded_message( ) const;
-			virtual void           Post_load( );
+			virtual load_task_type Initialize(loader_type& loader) = 0;
+			virtual void Load( ) = 0;
+			virtual utl::string Get_loaded_message( ) const;
+			utl::string Get_loaded_message_disabled( ) const;
+			virtual void Post_load( );
 
 			template <awaitable_service S>
 			void Wait_for( )
@@ -54,8 +55,8 @@ namespace cheat
 			void Wait_for_add_impl_(service_shared&& service);
 			bool Find_recursuve_(const service_shared& service) const;
 
-			load_task_type        load_task__;
-			utl::thread::id       creator__;
+			load_task_type load_task__;
+			utl::thread::id creator__;
 			wait_for_storage_type wait_for__;
 
 			void Waiting_task_assert_( ) const;
@@ -76,7 +77,7 @@ namespace cheat
 
 	enum class service_mode
 	{
-		sync=0,
+		sync = 0,
 		async
 	};
 
@@ -88,11 +89,12 @@ namespace cheat
 		template <typename T>
 		struct type_name
 		{
-			static constexpr utl::string_view get( ) noexcept
+		private:
+			static constexpr utl::string_view Get_( ) noexcept
 			{
 				const auto full_name = utl::string_view(__FUNCSIG__);
 				const auto left_marker = utl::string_view("type_name<");
-				const auto right_marker = utl::string_view(">::get");
+				const auto right_marker = utl::string_view(">::Get_");
 
 				const auto left_marker_index = full_name.find(left_marker);
 				//static_assert(left_marker_index != std::string_view::npos);
@@ -111,7 +113,8 @@ namespace cheat
 				return space_index == utl::string_view::npos ? obj_name : obj_name.substr(space_index + 1);
 			}
 
-			static constexpr utl::string_view name = get( );
+		public:
+			static constexpr utl::string_view name = Get_( );
 		};
 	}
 
@@ -122,7 +125,7 @@ namespace cheat
 		utl::string_view debug_name( ) const final
 		{
 #ifdef CHEAT_DEBUG_MODE
-			return detail::type_name<T>::get( );
+			return detail::type_name<T>::name;
 #else
 			throw;
 #endif

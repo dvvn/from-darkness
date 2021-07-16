@@ -14,6 +14,8 @@ namespace cheat::hooks::client_mode
 
 	protected:
 		void Load( ) override;
+		utl::string Get_loaded_message( ) const override;
 		void Callback(float input_sample_time, csgo::CUserCmd* cmd) override;
+		
 	};
 }

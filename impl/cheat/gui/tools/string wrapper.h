@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cheat::gui::imgui
+namespace cheat::gui::tools
 {
 	class string_wrapper
 	{
@@ -92,14 +92,14 @@ namespace cheat::gui::imgui
 
 _STD_BEGIN
 	// ReSharper disable once CppInconsistentNaming
-	using _Imgui_string = cheat::gui::imgui::string_wrapper;
+	using _Imgui_string = cheat::gui::tools::string_wrapper;
 
 	template <std::derived_from<_Imgui_string> T >
 	struct hash<T>
 	{
 		_NODISCARD size_t operator()(const T& str) const noexcept
 		{
-			return invoke(hash<wstring_view>( ), (str));
+			return invoke(hash<string_view>( ), (str));
 		}
 	};
 
@@ -109,7 +109,7 @@ _STD_BEGIN
 	{
 		_NODISCARD bool operator()(const T& left, const T& right) const
 		{
-			return invoke(equal_to<wstring_view>( ), left, right);
+			return invoke(equal_to<string_view>( ), left, right);
 		}
 	};
 #endif

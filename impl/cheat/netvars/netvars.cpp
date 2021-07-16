@@ -374,7 +374,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 	for (auto itr = props.begin( ); itr != props.end( ); ++itr)
 	{
 		const auto& prop = *itr;
-		const auto  prop_name = string_view(prop.m_pVarName);
+		const auto prop_name = string_view(prop.m_pVarName);
 
 		if (prop_name.find(PATH_DEFAULT_SEPARATOR) != prop_name.npos)
 		{
@@ -484,7 +484,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		}
 		else
 		{
-			const auto  child_table = prop.m_pDataTable;
+			const auto child_table = prop.m_pDataTable;
 			const auto& child_props = child_table->props;
 			if (!child_table || child_props.empty( ))
 				continue;
@@ -514,7 +514,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 				const auto array_size = std::distance(array_begin, child_props.end( ));
-				string     netvar_type;
+				string netvar_type;
 #endif
 				if (array_begin->m_RecvType != DPT_DataTable)
 				{
@@ -525,7 +525,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 				else
 				{
 					const auto child_table_name = string_view(child_table->m_pNetTableName);
-					string     child_table_unique_name;
+					string child_table_unique_name;
 					if (prop_name != child_table_name)
 					{
 						child_table_unique_name = child_table_name;
@@ -656,10 +656,10 @@ void netvars::Load( )
 
 string netvars::Get_loaded_message( ) const
 {
-#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
-	return "Netvars dumper disabled";
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
+		return service_base::Get_loaded_message( );
 #else
-	return service_base::Get_loaded_message( );
+	return Get_loaded_message_disabled( );
 #endif
 }
 
@@ -802,5 +802,5 @@ netvars::lazy_file_writer::lazy_file_writer(filesystem::path&& file): file__(utl
 netvars::lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
 {
 	file__ = utl::move(other.file__);
-	*static_cast<std::stringstream*>(this) = static_cast<std::stringstream&&>(other);
+	*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
 }
