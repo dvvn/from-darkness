@@ -1,5 +1,7 @@
 #pragma once
 #include "cheat/gui/objects/abstract page.h"
+#include "cheat/gui/objects/pages renderer.h"
+#include "cheat/gui/widgets/window.h"
 
 namespace cheat
 {
@@ -76,7 +78,7 @@ namespace cheat::detail::settings
 		bool updated__ = false;
 	};
 
-	class folders_storage final: public empty_page
+	class folders_storage final: public empty_page , child_frame_window
 	{
 	public:
 		using value_type = folder_with_configs;
@@ -92,8 +94,7 @@ namespace cheat::detail::settings
 		void select_all( );
 		void deselect_all( );
 
-		iterator begin( );
-		iterator end( );
+		span<value_type> iterate();
 
 		[[deprecated]]
 		void erase(iterator first, iterator last);
@@ -177,12 +178,12 @@ namespace cheat::detail::settings
 
 		filesystem::path working_dir__;
 
-		enum io_result:size_t
+		enum io_result :size_t
 		{
-			unset=0,
-			processed=1 << 0,
-			rescan_wanted=1 << 1,
-			error=1 << 2
+			unset = 0,
+			processed = 1 << 0,
+			rescan_wanted = 1 << 1,
+			error = 1 << 2
 		};
 
 		using io_flags = bitflag<io_result>;

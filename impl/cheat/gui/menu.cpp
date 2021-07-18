@@ -158,21 +158,7 @@ public:
 	static unused_page* get_ptr( )
 	{
 		static size_t counter = 0;
-#if 0
-	
-		static auto storage = ordered_set<unused_page>( );
-
-		const auto added = size;
-		while (size-- > 0)
-			storage.emplace(unused_page("unused page " + to_string(counter++)));
-
-		return const_cast<unused_page*>(std::prev(storage.end( ), added).operator->( ));
-#else
-		static auto storage = unordered_set<unused_page>( );
-		auto&& [page, _] = storage.emplace(unused_page("unused page " + to_string(counter++)));
-		return const_cast<unused_page*>(addressof(*page));
-
-#endif
+		return new unused_page("unused page " + to_string(counter++));
 	}
 };
 
@@ -186,7 +172,7 @@ void menu::Load( )
 		using namespace features;
 		rage.add_page(aimbot::get_ptr( ));
 		rage.add_page(anti_aim::get_ptr( ));
-		 
+
 		return rage_abstract;
 	}( ));
 	renderer__.add_page({"settings", settings::get_ptr( )});
@@ -197,8 +183,8 @@ void menu::Load( )
 		auto debug_abstract = abstract_page( );
 		auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
 
-		//debug.add_page(unused_page::get_ptr( ));
-		//debug.add_page(unused_page::get_ptr( ));
+		debug.add_page(unused_page::get_ptr( ));
+		debug.add_page(unused_page::get_ptr( ));
 
 		debug.add_page([]
 		{
@@ -207,8 +193,8 @@ void menu::Load( )
 
 			using namespace hooks;
 			debug_hooks.add_page({"window proc", input::wndproc::get_ptr( )});
-			//debug_hooks.add_page(unused_page::get_ptr( ));
-			//debug_hooks.add_page(unused_page::get_ptr( ));
+			debug_hooks.add_page(unused_page::get_ptr( ));
+			debug_hooks.add_page(unused_page::get_ptr( ));
 
 			return debug_hooks_abstract;
 		}( ));

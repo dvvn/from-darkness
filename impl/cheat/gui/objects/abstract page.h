@@ -85,11 +85,14 @@ namespace cheat::gui::objects
 		tools::string_wrapper::value_type Label( ) const override;
 	};
 
-	class abstract_pages_renderer: public renderable_object, protected utl::vector<pages_storage_data>
+	class abstract_pages_renderer: public renderable_object
 	{
 	public:
 		void add_page(abstract_page&& page);
 
 		virtual void init( );
+
+	protected:
+		utl::vector<pages_storage_data> pages_;
 	};
 }

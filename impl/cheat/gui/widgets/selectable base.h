@@ -4,6 +4,7 @@
 
 namespace cheat::gui::widgets
 {
+	//not a selectable. base to selectable, checkbox, ant all same widgets
 	class selectable_base
 	{
 	protected:

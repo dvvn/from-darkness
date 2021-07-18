@@ -37,13 +37,13 @@ void abstract_pages_renderer::add_page(abstract_page&& page)
 {
 #ifdef _DEBUG
 	auto& name = page.name( );
-	for (abstract_page& page_stored: *this)
+	for (abstract_page& page_stored: pages_)
 	{
 		if (page_stored.name( ) == name)
 			BOOST_ASSERT("Duplicate detected!");
 	}
 #endif
-	this->push_back(move(page));
+	pages_.push_back(move(page));
 }
 
 void abstract_pages_renderer::init( )
@@ -52,13 +52,13 @@ void abstract_pages_renderer::init( )
 	BOOST_ASSERT(!this->empty( ));
 #endif
 
-	for (auto& p: *this)
+	for (auto& p: pages_)
 	{
 		if (const auto obj = dynamic_cast<abstract_pages_renderer*>(p.page( )))
 			obj->init( );
 	}
 
-	this->front( ).select( );
+	pages_.front().select( );
 }
 
 

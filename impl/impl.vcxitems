@@ -24,10 +24,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\renderable object.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\string wrapper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\user input.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\group.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.h" />
@@ -190,10 +192,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\string wrapper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\user input.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\group.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.cpp" />

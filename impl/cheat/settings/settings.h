@@ -27,6 +27,8 @@ namespace cheat
 
 		using string_wrapper_base::name;
 
+		utl::wstring_view path()const;
+
 	protected:
 		template <typename T>
 		void Load_or_create(const utl::string_view& name, T& value)
@@ -55,11 +57,6 @@ namespace cheat
 	public:
 		settings( );
 
-#if 0
-		auto save(const utl::wstring_view& name) const -> void override;
-		auto load(const utl::wstring_view& name) -> void override;
-#endif
-
 		void update( ) override;
 		void render( ) override;
 
@@ -70,51 +67,7 @@ namespace cheat
 #if 0
 		bool merge__ = false;
 #endif
-#if 0
-		bool override__ = 0;
-		bool override_reset__ = 0;
-
-		bool select_all__ = 0;
-#endif
-
-		/*auto Settings_list_id_( ) const -> ImGuiID;
-		auto Configs_list_id_( ) const -> ImGuiID;
-		auto Popup_id_( ) const -> ImGuiID;*/
-
-		//string_wrapper popup_message__;
-		//auto           Open_popup_(string_wrapper&& message) -> void;
 
 		detail::settings::folder_with_configs_mgr mgr__;
-
-#if 0
-		//settings_data*                        selected__ = nullptr;
-		utl::vector<folder_with_configs> settings__;
-		size_t                           longest_setting_string__ = 0;
-
-		/*struct saved_configs_data_internal
-		{
-			gui::imgui::string_wrapper_abstract name;
-			gui::imgui::animated_selectable     selectable;
-		};*/
-
-		//string_wrapper_abstract
-
-		struct global_config_file: string_wrapper, gui::imgui::animated_selectable_base
-		{
-			global_config_file(string_wrapper&& cfg);
-			global_config_file(const string_wrapper& cfg);
-
-		protected:
-			auto Name( ) const -> string_wrapper::value_type override;
-		};
-
-
-		
-		utl::vector<config_file_selector> configs__;
-		config_file_selector*             config_selected__;
-		bool                              configs_list_updated__ = false;
-		size_t                            longest_config_string__ = 0;
-
-#endif
 	};
 }

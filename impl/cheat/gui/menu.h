@@ -9,8 +9,8 @@ namespace cheat::gui
 {
 	class menu final: public service_shared<menu, service_mode::async>, public widgets::window
 	{
-		using widgets::window::begin;
-		using widgets::window::end;
+		using window::begin;
+		using window::end;
 
 	public:
 		menu( );

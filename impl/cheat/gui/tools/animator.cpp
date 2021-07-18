@@ -71,11 +71,9 @@ float animator::value( ) const
 animator::animator(float value_min, float value_max, float time_max)
 {
 	BOOST_ASSERT(value_max <= 1);
-	BOOST_ASSERT(time_max > 0);
 
 	set_min_max(value_min, value_max);
-
-	time_max__ = time_max;
+	set_time(time_max);
 }
 
 void animator::set_min(float val)
@@ -101,6 +99,12 @@ void animator::set_min_max(float min, float max)
 	value__.max = max;
 }
 
+void animator::set_time(float val)
+{
+	BOOST_ASSERT(val>0);
+	time_max__ = val;
+}
+
 float animator::min( ) const
 {
 	return value__.min;
@@ -109,6 +113,11 @@ float animator::min( ) const
 float animator::max( ) const
 {
 	return value__.max;
+}
+
+float animator::time( ) const
+{
+	return time_max__;
 }
 
 //auto animator::setup_limits(float value_min, float value_max, float time_max) -> void
@@ -125,4 +134,23 @@ float animator::max( ) const
 float animator::Limit_(float dir) const
 {
 	return (/*dir__*/dir == 1 ? value__.max : value__.min);
+}
+
+bool widget_animator::Animate( )
+{
+	const auto animate = fade_.update( );
+
+	auto& style = ImGui::GetStyle( );
+	//BOOST_ASSERT(style.Alpha == fade__.max( ));
+	BOOST_ASSERT(!fade_alpha_backup_);
+	if (!animate)
+		return false;
+
+	fade_alpha_backup_ = memory_backup(style.Alpha, fade_.value( ));
+	return true;
+}
+
+bool widget_animator::animating( ) const
+{
+	return fade_.updating( );
 }

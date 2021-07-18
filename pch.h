@@ -336,6 +336,10 @@ namespace cheat::utl
 	//todo
 #endif
 
+	using std::set;
+	using std::map;
+	using std::list;
+
 	/*using Concurrency::concurrent_vector;
 	using Concurrency::concurrent_unordered_map;
 	using Concurrency::concurrent_unordered_set;*/

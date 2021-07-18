@@ -2,12 +2,14 @@
 
 #include "settings.h"
 
+#include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style var.h"
 
 using namespace cheat;
 using namespace cheat::detail::settings;
 using namespace filesystem;
 
+#if 1
 bool known_configs::contains(const string_wrapper& str) const
 {
 	for (auto& c: data__)
@@ -146,25 +148,30 @@ folders_storage::value_type* folders_storage::get(const wstring_view& str)
 
 void folders_storage::render( )
 {
+#if 0
 	auto& style = ImGui::GetStyle( );
 
 	constexpr auto dummy_text = string_view("W");
-	const auto     sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
+	const auto sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
 
 	const auto frame_padding = style.FramePadding * 2.f;
 
 	//---
 
+#endif
+
 	//todo: screen size & menu size based
-	const auto num_rows = std::min(data__.size( ), static_cast<size_t>(2));
+	const auto num_rows = std::min<size_t>(data__.size( ), (2));
 	const auto num_columns = data__.size( ) / num_rows;
 
 	BOOST_ASSERT(longest_title__ > 0);
 	BOOST_ASSERT(!data__.empty( ));
 
+#if 0
+	
 	ImVec2 size;
 	size.x = frame_padding.x +                            //space before and after
-			 /*indent_headers +*/                         //to indent first selectable
+			 /*indent_headers +*/ //to indent first selectable
 			 longest_title__ * num_rows * sample_size.x + //reserve width for all strings
 			 style.ItemSpacing.x * (num_rows - 1);        //space between all headers
 
@@ -174,7 +181,7 @@ void folders_storage::render( )
 
 	if (!ImGui::BeginChildFrame(reinterpret_cast<ImGuiID>(this), size))
 		return ImGui::EndChildFrame( );
-
+		
 	const auto max_size = size.x / num_rows;
 	for (size_t i = 0; i < data__.size( ); ++i)
 	{
@@ -203,6 +210,38 @@ void folders_storage::render( )
 	}
 
 	ImGui::EndChildFrame( );
+
+#endif
+
+	if (!this->begin({num_rows, static_cast<float>(longest_title__), size_info::WORD}, {num_columns, static_cast<float>(longest_title__), size_info::WORD}, true))
+		return this->end( );
+	{
+		auto&& sample_size = tools::_Get_char_size( );
+
+		for (size_t i = 0; i < data__.size( ); ++i)
+		{
+			auto& ref = data__[i];
+
+			memory_backup<ImVec4> header_color_saved;
+			(void)header_color_saved;
+
+			if (ref.configs.selected( ))
+			{
+				auto& header_color = ImGui::GetStyle( ).Colors[ImGuiCol_Header];
+				header_color_saved = memory_backup(header_color, ImVec4(header_color.x, 255.f, header_color.z, header_color.w));
+			}
+
+			if (ref(ImGuiSelectableFlags_None, {longest_title__ * sample_size.x, sample_size.y}))
+			{
+				ref.toggle( );
+				//selecteded_before_override = selectable.selected( );
+			}
+
+			if ((i + 1) % num_rows)
+				ImGui::SameLine( );
+		}
+	}
+	this->end( );
 }
 
 void folders_storage::select_all( )
@@ -223,14 +262,9 @@ void folders_storage::deselect_all( )
 	}
 }
 
-folders_storage::iterator folders_storage::begin( )
+span<folders_storage::value_type> folders_storage::iterate( )
 {
-	return data__.begin( );
-}
-
-folders_storage::iterator folders_storage::end( )
-{
-	return data__.end( );
+	return {data__.begin(),data__.end()};
 }
 
 void folders_storage::erase(iterator first, iterator last)
@@ -348,10 +382,10 @@ void configs_unique_renderer::sync(const known_configs& source)
 
 void configs_unique_renderer::render( )
 {
-	auto& style = ImGui::GetStyle( );
+	const auto& style = ImGui::GetStyle( );
 
 	constexpr auto dummy_text = string_view("W");
-	const auto     sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
+	const auto sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
 
 	const auto frame_padding = style.FramePadding * 2.f;
 
@@ -427,15 +461,15 @@ void configs_unique_renderer::mark_folders_selected(folders_storage& folders) co
 {
 	if (item_selected__.ptr.expired( ))
 	{
-		for (auto& f: folders)
+		for (auto& f: folders.iterate( ))
 			f.configs.deselect( );
 	}
 	else
 	{
-		const auto  ptr = item_selected__.ptr.lock( );
+		const auto ptr = item_selected__.ptr.lock( );
 		const auto& name = ptr->owner( );
 
-		for (auto& f: folders)
+		for (auto& f: folders.iterate( ))
 		{
 			if (const auto selected = f.configs.selected( ); !selected || name != *selected)
 				f.configs.select(name);
@@ -476,7 +510,7 @@ void configs_unique_renderer::select(const string_wrapper& str)
 
 void configs_unique_renderer::Select_new_item_(size_t index, bool set_selected)
 {
-	auto& item = data__[index];
+	const auto& item = data__[index];
 	if (set_selected)
 	{
 		if (!item_selected__.ptr.expired( ))
@@ -527,7 +561,7 @@ void folder_with_configs_mgr::render( )
 	const auto pop = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
 	(void)pop;
 
-	ImGui::PushOverrideID(reinterpret_cast<ImGuiID>(this));
+	ImGui::PushID(reinterpret_cast<ImGuiID>(this));
 
 	//
 	//
@@ -585,7 +619,7 @@ vector<wstring> folder_with_configs_mgr::Process_folder_(const directory_entry& 
 			continue;
 
 		const auto& file_name_native = file_name_raw.native( );
-		auto        file_name = wstring(file_name_native.begin( ), file_name_native.end( ) - extension.size( ));
+		auto file_name = wstring(file_name_native.begin( ), file_name_native.end( ) - extension.size( ));
 
 		files_detected.push_back(move(file_name));
 	}
@@ -598,7 +632,7 @@ vector<wstring> folder_with_configs_mgr::Process_folder_(const directory_entry& 
 
 void folder_with_configs_mgr::Process_path_(const path& path)
 {
-	ranges::for_each(folders__, &folder_with_configs::start_update);
+	ranges::for_each(folders__.iterate( ), &folder_with_configs::start_update);
 
 	auto configs_found = utl::vector<wstring>( );
 	if (exists(path) && !is_empty(path))
@@ -617,7 +651,7 @@ void folder_with_configs_mgr::Process_path_(const path& path)
 		}
 	}
 
-	for (auto& f: folders__)
+	for (auto& f: folders__.iterate( ))
 	{
 		if (!f.updated( ))
 			f.configs = { };
@@ -632,7 +666,7 @@ folder_with_configs_mgr::io_flags folder_with_configs_mgr::Do_save_(const string
 {
 	io_flags flags;
 
-	for (auto& f: folders__)
+	for (auto& f: folders__.iterate( ))
 	{
 		if (f.selected( ))
 		{
@@ -656,7 +690,7 @@ folder_with_configs_mgr::io_flags folder_with_configs_mgr::Do_load_(const string
 {
 	io_flags flags;
 
-	for (auto& f: folders__)
+	for (auto& f: folders__.iterate( ))
 	{
 		if (f.selected( ) && f.configs.selected(name))
 		{
@@ -674,7 +708,7 @@ folder_with_configs_mgr::io_flags folder_with_configs_mgr::Do_remove_(const stri
 {
 	io_flags flags;
 
-	for (auto& f: folders__)
+	for (auto& f: folders__.iterate( ))
 	{
 		if (f.selected( ) && f.configs.selected(name))
 		{
@@ -790,3 +824,40 @@ void folder_with_configs_mgr::add_folder(folder_with_configs&& folder)
 {
 	folders__.add_folder(move(folder));
 }
+
+#endif
+
+//-----------------
+
+#if 0
+
+using namespace cheat::gui::widgets;
+using namespace cheat::gui::widgets::detail;
+
+void settings_data_on_disc::update( )
+{
+	auto&& dir = data__->path( );
+
+	vector<wstring> files_detected;
+	for (auto& file: directory_iterator(dir))
+	{
+		if (!is_regular_file(file))
+			continue;
+		const auto file_name_raw = file.path( ).filename( );
+		if (!file_name_raw.has_extension( ))
+			continue;
+
+		const auto extension = file_name_raw.extension( ).native( );
+		if (extension != L".json")
+			continue;
+
+		const auto& file_name_native = file_name_raw.native( );
+		auto file_name = wstring(file_name_native.begin( ), file_name_native.end( ) - extension.size( ));
+
+		files_detected.push_back(move(file_name));
+	}
+
+	files__ = move(files_detected);
+}
+
+#endif

@@ -1,6 +1,9 @@
 #include "pages renderer.h"
 
+#include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style var.h"
+
+#include "cheat/gui/widgets/window.h"
 
 using namespace cheat;
 using namespace gui;
@@ -18,14 +21,14 @@ static auto _Sizes(span<pages_storage_data>&& container)
 	return container | ranges::views::transform(_Get_num_chars);
 }
 
-static ImVec2 _Char_size( )
+struct selected_info
 {
-	constexpr auto dummy_text = string_view("W");
-	return ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
-}
+	pages_storage_data* ptr;
+	bool activated;
+};
 
 template <bool Sameline, class Fns>
-static pages_storage_data* _Render_and_select(span<pages_storage_data>&& data, Fns&& size_getter)
+static selected_info _Render_and_select(span<pages_storage_data>&& data, Fns&& size_getter)
 {
 	optional<pages_storage_data&> page_active;
 
@@ -95,94 +98,88 @@ static pages_storage_data* _Render_and_select(span<pages_storage_data>&& data, F
 				}
 			}
 			page_active->deselect( );
-			page_active = obj;
 			obj.select( );
-
-			break;
+			return {addressof(obj), true};
 		}
 	}
-
-	return page_active.get_ptr( );
+	return {page_active.get_ptr( ), false};
 }
 
 void vertical_pages_renderer::render( )
 {
-	const auto& style = ImGui::GetStyle( );
-	const auto sample_size = _Char_size( );
+	selected_info selected;
 
-	const auto frame_padding = style.FramePadding * 2.f;
-	ImVec2 size;
-	size.x = frame_padding.x +                 //space before and after
-			 longest_string__ * sample_size.x; //reserve width for longest string
-
-	size.y = frame_padding.y +                          //space before and after
-			 this->size( ) * sample_size.y +            //all strings height						                            
-			 style.ItemSpacing.y * (this->size( ) - 1); //space between all string
-
-	pages_storage_data* selected;
-
-	if (!ImGui::BeginChildFrame(reinterpret_cast<ImGuiID>(this), size))
-		return ImGui::EndChildFrame( );
+	if (!this->begin({ }, {pages_.size( ), static_cast<float>(longest_string__), size_info::WORD}, true))
+		return this->end( );
 	{
 		const auto pop = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
 		(void)pop;
 
-		selected = _Render_and_select<false>(*static_cast<vector*>(this), [](const abstract_page&) { return ImVec2(0, 0); });
+		selected = _Render_and_select<false>(pages_, [](const abstract_page&) { return ImVec2(0, 0); });
 	}
-	ImGui::EndChildFrame( );
+	this->end( );
 
 	ImGui::SameLine( );
 
-	ImGui::BeginGroup( );
+	if (selected.activated)
+		selected_group__.show( );
+	selected_group__.begin( );
 	{
-		selected->render( );
+		selected.ptr->render( );
 	}
-	ImGui::EndGroup( );
+	selected_group__.end( );
 }
 
 void vertical_pages_renderer::init( )
 {
 	abstract_pages_renderer::init( );
 
-	auto sizes = _Sizes(*static_cast<vector*>(this));
+	auto sizes = _Sizes(pages_);
 	longest_string__ = *ranges::max_element(sizes, std::less<size_t>( ));
 }
 
 void horizontal_pages_renderer::render( )
 {
-	const auto& style = ImGui::GetStyle( );
-	const auto sample_size = _Char_size( );
+	selected_info selected;
 
-	//const auto indent_headers = style.ItemInnerSpacing.x;
-	//const auto indent_page = style./*ItemInnerSpacing*/ItemSpacing.x; //ImGui use ItemSpacing by default
+	const auto char_size = _Get_char_size( ).x;
 
-	const auto frame_padding = style.FramePadding * 2.f;
-	ImVec2 size;
-	size.x = frame_padding.x +                          //space before and after
-			 /*indent_headers +*/                       //to indent first selectable
-			 chars_count__ * sample_size.x +            //reserve width for all strings
-			 style.ItemSpacing.x * (this->size( ) - 1); //space between all headers
-	size.y = frame_padding.y + sample_size.y;
+	size_info size;
+#ifdef CHEAT_GUI_HORIZONTAL_PAGES_RENDERER_USE_LONGEST_STRING
+	size = {pages_.size( ), static_cast<float>(longest_string__), size_info::WORD};
+#else
+	const auto extra_size = char_size / (ImGui::GetStyle( ).ItemInnerSpacing.x * pages_.size( ));
+	size = {1, chars_count__ + extra_size, size_info::WORD};
+#endif
 
-	pages_storage_data* selected;
-
-	if (!ImGui::BeginChildFrame(reinterpret_cast<ImGuiID>(this), size))
-		return ImGui::EndChildFrame( );
+	if (!this->begin(size, { }, true))
+		return this->end( );
 	{
+		const auto pop = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
+		(void)pop;
+
 		//ImGui::SameLine(0, indent_headers); //for first selectable
-		selected = _Render_and_select<true>(*static_cast<vector*>(this), [&](const pages_storage_data& p)
+		selected = _Render_and_select<true>(pages_, [&](const pages_storage_data& p)
 		{
-			return ImVec2(_Get_num_chars(p) * sample_size.x, 0);
+			return ImVec2(
+#ifdef CHEAT_GUI_HORIZONTAL_PAGES_RENDERER_USE_LONGEST_STRING
+						  longest_string__
+#else
+						  _Get_num_chars(p)
+#endif
+						  * char_size, 0);
 		});
 	}
-	ImGui::EndChildFrame( );
+	this->end( );
 
 	//ImGui::Indent(indent_page);
-	//ImGui::BeginGroup();
+	if (selected.activated)
+		selected_group__.show( );
+	selected_group__.begin( );
 	{
-		selected->render( );
+		selected.ptr->render( );
 	}
-	//ImGui::EndGroup();
+	selected_group__.end( );
 	//ImGui::Unindent(indent_page);
 }
 
@@ -190,6 +187,12 @@ void horizontal_pages_renderer::init( )
 {
 	abstract_pages_renderer::init( );
 
-	for (auto s: _Sizes(*static_cast<vector*>(this)))
+	auto sizes = _Sizes(pages_);
+
+#ifdef CHEAT_GUI_HORIZONTAL_PAGES_RENDERER_USE_LONGEST_STRING
+	longest_string__ = *ranges::max_element(sizes, std::less<size_t>( ));
+#else
+	for (auto s: sizes)
 		chars_count__ += s;
+#endif
 }
