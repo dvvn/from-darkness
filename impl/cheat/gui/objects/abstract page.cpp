@@ -23,7 +23,7 @@ pages_storage_data::pages_storage_data(abstract_page&& page) : abstract_page(mov
 {
 }
 
-string_wrapper::value_type pages_storage_data::Name( ) const
+string_wrapper::value_type pages_storage_data::Label( ) const
 {
 	return this->name( );
 }
@@ -37,26 +37,28 @@ void abstract_pages_renderer::add_page(abstract_page&& page)
 {
 #ifdef _DEBUG
 	auto& name = page.name( );
-	for (abstract_page& page_stored: objects_)
+	for (abstract_page& page_stored: *this)
 	{
 		if (page_stored.name( ) == name)
 			BOOST_ASSERT("Duplicate detected!");
 	}
 #endif
-	objects_.push_back(move(page));
+	this->push_back(move(page));
 }
 
 void abstract_pages_renderer::init( )
 {
 #if defined(_DEBUG) && _CONTAINER_DEBUG_LEVEL <= 0
-	BOOST_ASSERT(!objects_.empty( ));
+	BOOST_ASSERT(!this->empty( ));
 #endif
 
-	object_selected_ = addressof(objects_[0]);
-	for (auto& p: objects_)
+	for (auto& p: *this)
 	{
 		if (const auto obj = dynamic_cast<abstract_pages_renderer*>(p.page( )))
 			obj->init( );
 	}
-	object_selected_->select( );
+
+	this->front( ).select( );
 }
+
+

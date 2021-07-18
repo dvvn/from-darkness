@@ -28,6 +28,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\string wrapper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\user input.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
@@ -193,6 +194,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\string wrapper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\user input.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />

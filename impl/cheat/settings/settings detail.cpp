@@ -115,7 +115,7 @@ bool folder_with_configs::updated( ) const
 	return updated__;
 }
 
-string_wrapper::value_type folder_with_configs::Name( ) const
+string_wrapper::value_type folder_with_configs::Label( ) const
 {
 	return shared->name( );
 }
@@ -178,7 +178,7 @@ void folders_storage::render( )
 	const auto max_size = size.x / num_rows;
 	for (size_t i = 0; i < data__.size( ); ++i)
 	{
-		auto& ref = data__[i];
+		folder_with_configs& ref = data__[i];
 
 		const auto ideal_size = ref.shared->name( ).raw( ).size( ) * sample_size.x;
 		const auto extra_add = (max_size - ideal_size) / num_rows;
@@ -258,7 +258,7 @@ const string_wrapper& config_renderer::owner( ) const
 	return owner__;
 }
 
-string_wrapper::value_type config_renderer::Name( ) const
+string_wrapper::value_type config_renderer::Label( ) const
 {
 	return owner__;
 }

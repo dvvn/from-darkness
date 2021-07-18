@@ -8,18 +8,101 @@ using namespace tools;
 using namespace objects;
 using namespace utl;
 
-static auto _Sizes(const abstract_pages_renderer::container_type& container)
+static size_t _Get_num_chars(const pages_storage_data& page)
 {
-	return container
-		   | ranges::views::transform(&abstract_page::name)
-		   | ranges::views::transform(&string_wrapper::raw)
-		   | ranges::views::transform(&wstring_view::size);
+	return page.name( ).raw( ).size( );
+}
+
+static auto _Sizes(span<pages_storage_data>&& container)
+{
+	return container | ranges::views::transform(_Get_num_chars);
 }
 
 static ImVec2 _Char_size( )
 {
 	constexpr auto dummy_text = string_view("W");
 	return ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
+}
+
+template <bool Sameline, class Fns>
+static pages_storage_data* _Render_and_select(span<pages_storage_data>&& data, Fns&& size_getter)
+{
+	optional<pages_storage_data&> page_active;
+
+	const auto data_begin = data.begin( );
+	const auto data_end = data.end( );
+	const auto pre_end = [&]( )-> std::_Span_iterator<pages_storage_data>
+	{
+		if constexpr (!Sameline)
+			return { };
+		else
+			return std::prev(data_end);
+	}( );
+
+	const auto obj_invoke = [&](pages_storage_data& obj)
+	{
+		const ImVec2 size = invoke(size_getter, obj);
+		return invoke(obj, ImGuiSelectableFlags_None, size);
+	};
+
+	for (auto itr = data_begin; itr != data_end; ++itr)
+	{
+		auto& obj = *itr;
+
+		const auto obj_selected = obj.selected( );
+		const auto obj_pressed = [&]
+		{
+			const auto ret = obj_invoke(obj);
+			if constexpr (Sameline)
+			{
+				if (itr != pre_end)
+					ImGui::SameLine( );
+			}
+			return ret;
+		}( );
+
+		if (obj_selected)
+		{
+			if (!page_active)
+				page_active = obj;
+			continue;
+		}
+		if (obj_pressed)
+		{
+			const auto itr_next = std::next(itr);
+
+			if (!page_active.has_value( ))
+			{
+				auto selected_later = ranges::find_if(itr_next, data_end, &widgets::selectable_base::selected);
+				BOOST_ASSERT(selected_later != data_end);
+				page_active = *selected_later;
+			}
+			if (itr_next != data_end)
+			{
+				if constexpr (!Sameline)
+				{
+					ranges::for_each(itr_next, data_end, obj_invoke);
+				}
+				else
+				{
+					for (auto& p: span(itr_next, pre_end))
+					{
+						obj_invoke(p);
+						ImGui::SameLine( );
+					}
+
+					obj_invoke(*pre_end);
+				}
+			}
+			page_active->deselect( );
+			page_active = obj;
+			obj.select( );
+
+			break;
+		}
+	}
+
+	return page_active.get_ptr( );
 }
 
 void vertical_pages_renderer::render( )
@@ -32,36 +115,27 @@ void vertical_pages_renderer::render( )
 	size.x = frame_padding.x +                 //space before and after
 			 longest_string__ * sample_size.x; //reserve width for longest string
 
-	size.y = frame_padding.y +                             //space before and after
-			 objects_.size( ) * (sample_size.y) +          //all strings height						                            
-			 style.ItemSpacing.y * (objects_.size( ) - 1); //space between all string
+	size.y = frame_padding.y +                          //space before and after
+			 this->size( ) * sample_size.y +            //all strings height						                            
+			 style.ItemSpacing.y * (this->size( ) - 1); //space between all string
 
-	//if (!ImGui::BeginListBox(title, size))
-	//	return;
+	pages_storage_data* selected;
+
 	if (!ImGui::BeginChildFrame(reinterpret_cast<ImGuiID>(this), size))
 		return ImGui::EndChildFrame( );
 	{
 		const auto pop = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
 		(void)pop;
 
-		for (auto& obj: objects_)
-		{
-			if (obj( ))
-			{
-				object_selected_->deselect( );
-				object_selected_ = addressof(obj);
-				obj.select( );
-			}
-		}
+		selected = _Render_and_select<false>(*static_cast<vector*>(this), [](const abstract_page&) { return ImVec2(0, 0); });
 	}
 	ImGui::EndChildFrame( );
-	//ImGui::EndListBox( );
 
 	ImGui::SameLine( );
 
 	ImGui::BeginGroup( );
 	{
-		object_selected_->render( );
+		selected->render( );
 	}
 	ImGui::EndGroup( );
 }
@@ -70,51 +144,12 @@ void vertical_pages_renderer::init( )
 {
 	abstract_pages_renderer::init( );
 
-	auto sizes = _Sizes(objects_);
+	auto sizes = _Sizes(*static_cast<vector*>(this));
 	longest_string__ = *ranges::max_element(sizes, std::less<size_t>( ));
 }
 
 void horizontal_pages_renderer::render( )
 {
-#if 0
-	const string_wrapper tab_bar = "##" + to_string(reinterpret_cast<size_t>(this));
-	if (!ImGui::BeginTabBar(tab_bar, ImGuiTabBarFlags_FittingPolicyResizeDown | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
-		return;
-
-	const auto color_active_idx = ImGuiCol_TabActive;
-	const auto color_inactive_idx = ImGuiCol_Tab;
-
-	auto& color_active = ImGui::GetStyle( ).Colors[color_active_idx];
-	auto& color_inactive = ImGui::GetStyle( ).Colors[color_inactive_idx];
-
-	for (auto& [page]: objects_)
-	{
-		/*const auto anim_updated = p.animation.update( );
-
-		if (anim_updated)
-		{
-			const auto dir = p.animation.dir( );
-			const auto val = p.animation.value( );
-
-			auto color = ImLerp(color_inactive, color_active, val);
-			ImGui::PushStyleColor(dir == -1 ? color_inactive_idx : color_active_idx, color);
-		}*/
-
-		if (ImGui::BeginTabItem((page.name( )), nullptr, ImGuiTabItemFlags_NoTooltip | ImGuiTabItemFlags_NoReorder | ImGuiTabItemFlags_NoPushId))
-		{
-			//select_page(p, true);
-
-			page->render( );
-
-			ImGui::EndTabItem( );
-		}
-
-		//if (anim_updated)
-		//	ImGui::PopStyleColor( );
-	}
-	ImGui::EndTabBar( );
-#endif
-
 	const auto& style = ImGui::GetStyle( );
 	const auto sample_size = _Char_size( );
 
@@ -123,38 +158,29 @@ void horizontal_pages_renderer::render( )
 
 	const auto frame_padding = style.FramePadding * 2.f;
 	ImVec2 size;
-	size.x = frame_padding.x +                             //space before and after
-			 /*indent_headers +*/                          //to indent first selectable
-			 chars_count__ * sample_size.x +               //reserve width for all strings
-			 style.ItemSpacing.x * (objects_.size( ) - 1); //space between all headers
+	size.x = frame_padding.x +                          //space before and after
+			 /*indent_headers +*/                       //to indent first selectable
+			 chars_count__ * sample_size.x +            //reserve width for all strings
+			 style.ItemSpacing.x * (this->size( ) - 1); //space between all headers
 	size.y = frame_padding.y + sample_size.y;
+
+	pages_storage_data* selected;
 
 	if (!ImGui::BeginChildFrame(reinterpret_cast<ImGuiID>(this), size))
 		return ImGui::EndChildFrame( );
 	{
-		const auto last_obj = addressof(objects_.back( ));
 		//ImGui::SameLine(0, indent_headers); //for first selectable
-		for (auto& obj: objects_)
+		selected = _Render_and_select<true>(*static_cast<vector*>(this), [&](const pages_storage_data& p)
 		{
-			const auto obj_ptr = addressof(obj);
-			if (obj(ImGuiSelectableFlags_None, {wstring_view(obj.name( )).size( ) * sample_size.x, sample_size.y}))
-			{
-				object_selected_->deselect( );
-				object_selected_ = obj_ptr;
-				obj.select( );
-			}
-
-			if (obj_ptr != last_obj)
-				ImGui::SameLine( );
-		}
+			return ImVec2(_Get_num_chars(p) * sample_size.x, 0);
+		});
 	}
 	ImGui::EndChildFrame( );
 
 	//ImGui::Indent(indent_page);
 	//ImGui::BeginGroup();
 	{
-		object_selected_->render( );
-	
+		selected->render( );
 	}
 	//ImGui::EndGroup();
 	//ImGui::Unindent(indent_page);
@@ -164,6 +190,6 @@ void horizontal_pages_renderer::init( )
 {
 	abstract_pages_renderer::init( );
 
-	for (auto s: _Sizes(objects_))
+	for (auto s: _Sizes(*static_cast<vector*>(this)))
 		chars_count__ += s;
 }

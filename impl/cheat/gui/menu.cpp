@@ -186,7 +186,7 @@ void menu::Load( )
 		using namespace features;
 		rage.add_page(aimbot::get_ptr( ));
 		rage.add_page(anti_aim::get_ptr( ));
-
+		 
 		return rage_abstract;
 	}( ));
 	renderer__.add_page({"settings", settings::get_ptr( )});

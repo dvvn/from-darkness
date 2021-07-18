@@ -56,7 +56,7 @@ namespace cheat::detail::settings
 	};
 
 	//folder with configs
-	struct folder_with_configs final: selectable_base
+	struct folder_with_configs final: selectable_internal
 	{
 		folder_with_configs(settings_data* shared_data);
 
@@ -70,7 +70,7 @@ namespace cheat::detail::settings
 		bool updated( ) const;
 
 	protected:
-		string_wrapper::value_type Name( ) const override;
+		string_wrapper::value_type Label( ) const override;
 
 	private:
 		bool updated__ = false;
@@ -103,7 +103,7 @@ namespace cheat::detail::settings
 		size_t longest_title__ = 0;
 	};
 
-	class config_renderer final: public selectable_base
+	class config_renderer final: public selectable_internal
 	{
 	public:
 		config_renderer(string_wrapper&& str) = delete;
@@ -113,7 +113,7 @@ namespace cheat::detail::settings
 		const string_wrapper& owner( ) const;
 
 	protected:
-		string_wrapper::value_type Name( ) const override;
+		string_wrapper::value_type Label( ) const override;
 
 	private:
 		string_wrapper owner__;

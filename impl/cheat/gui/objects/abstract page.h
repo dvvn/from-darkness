@@ -76,25 +76,20 @@ namespace cheat::gui::objects
 			utl::reference_wrapper<renderable_object>> page__;
 	};
 
-	struct pages_storage_data final: abstract_page, widgets::selectable_base
+	class pages_storage_data final: public abstract_page, public widgets::selectable_internal
 	{
+	public:
 		pages_storage_data(abstract_page&& page);
 
 	protected:
-		tools::string_wrapper::value_type Name( ) const override;
+		tools::string_wrapper::value_type Label( ) const override;
 	};
 
-	class abstract_pages_renderer: public renderable_object
+	class abstract_pages_renderer: public renderable_object, protected utl::vector<pages_storage_data>
 	{
 	public:
 		void add_page(abstract_page&& page);
 
 		virtual void init( );
-
-		using container_type = utl::vector<pages_storage_data>;
-
-	protected:
-		container_type objects_;
-		pages_storage_data* object_selected_ = nullptr;
 	};
 }
