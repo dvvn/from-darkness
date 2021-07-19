@@ -1,6 +1,5 @@
 #pragma once
 
-#define CHEAT_GUI_WIDGETS_FADE_CONTENT
 
 namespace cheat::gui::tools
 {
@@ -22,8 +21,6 @@ namespace cheat::gui::tools
 		bool done(int direction) const;
 		float value( ) const;
 
-		
-
 		animator(float value_min = default_min, float value_max = default_max, float time_max = default_time);
 
 		void set_min(float val);
@@ -40,29 +37,14 @@ namespace cheat::gui::tools
 
 		int dir__ = 0;
 		float time__ = 0;
-		struct 
+		struct
 		{
 			float min;
 			float max;
-			float current=0;
+			float current = 0;
 		} value__;
 		float time_max__;
 	};
 
-	class widget_animator
-	{
-	protected:
-		widget_animator(animator&& a = { }): fade_(utl::move(a))
-		{
-		}
 
-	public:
-		bool animating( ) const;
-
-	protected:
-		bool Animate( );
-
-		animator fade_;
-		utl::memory_backup<float> fade_alpha_backup_;
-	};
 }

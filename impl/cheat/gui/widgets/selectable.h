@@ -11,9 +11,7 @@ namespace cheat::gui::widgets
 	public:
 		selectable(bool selected = false);
 
-		bool operator()(tools::string_wrapper::value_type label,
-						ImGuiSelectableFlags_ flags = ImGuiSelectableFlags_None, const ImVec2& size = ImVec2(0, 0));
-		bool operator()(const tools::string_wrapper& label,
+		bool operator()(tools::prefect_string&& label,
 						ImGuiSelectableFlags_ flags = ImGuiSelectableFlags_None, const ImVec2& size = ImVec2(0, 0));
 	};
 
@@ -22,7 +20,6 @@ namespace cheat::gui::widgets
 		using selectable::operator();
 
 	protected:
-		virtual ~selectable_internal( ) = default;
 		selectable_internal(bool selected = false);
 
 		virtual tools::string_wrapper::value_type Label( ) const = 0;

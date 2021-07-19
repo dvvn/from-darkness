@@ -1,15 +1,13 @@
 #pragma once
-
-#include "cheat/gui/tools/animator.h"
+#include "widget animator.h"
 
 namespace cheat::gui::widgets
 {
-	class group: public tools::widget_animator
+	class group: public content_background_fader
 	{
 	public:
+		group( );
 
-		group();
-		
 		void show( );
 
 		void begin( );

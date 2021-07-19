@@ -1,11 +1,17 @@
 #pragma once
 
+#if !defined(IMGUI_HAS_IMSTR) || !IMGUI_HAS_IMSTR
+#define CHEAT_GUI_HAS_IMGUI_STRV 0
+#else
+#define CHEAT_GUI_HAS_IMGUI_STRV 1
+#endif
+
 namespace cheat::gui::tools
 {
 	class string_wrapper
 	{
 	public:
-#if !defined(IMGUI_HAS_IMSTR) || !IMGUI_HAS_IMSTR
+#if !CHEAT_GUI_HAS_IMGUI_STRV
 		using value_type = /*const*/ char*;
 #else
 		using value_type = ImStrv;
@@ -48,6 +54,8 @@ namespace cheat::gui::tools
 		value_type imgui__;
 	};
 
+	string_wrapper::value_type _Get_imgui_str(const utl::string_view& str);
+
 	class string_wrapper_base: public string_wrapper
 	{
 	public:
@@ -88,13 +96,51 @@ namespace cheat::gui::tools
 		utl::variant<string_wrapper,
 					 utl::reference_wrapper<const string_wrapper>> name__;
 	};
+
+	class prefect_string
+	{
+	public:
+		using ref_or_direct_type = std::conditional_t<std::is_class_v<string_wrapper::value_type>, const string_wrapper::value_type&, string_wrapper::value_type>;
+
+		prefect_string(ref_or_direct_type str);
+		prefect_string(const utl::string_view& str);
+		prefect_string(const utl::wstring_view& str);
+		prefect_string(utl::wstring&& str);
+		prefect_string(const string_wrapper& str);
+
+		operator string_wrapper::value_type( ) const;
+
+		size_t size( ) const;
+
+	private:
+		using string_wrapper_value_holder =
+#if !defined(IMGUI_HAS_IMSTR) || !IMGUI_HAS_IMSTR
+		string_wrapper::value_type
+#else
+			 utl::reference_wrapper<const string_wrapper::value_type>
+#endif
+		;
+
+		using string_wrapper_ref = utl::reference_wrapper<const string_wrapper>;
+		using holder_type = utl::variant
+		<
+			string_wrapper_ref,
+			string_wrapper,
+			string_wrapper_value_holder
+		>;
+
+		holder_type holder__;
+#if !defined(IMGUI_HAS_IMSTR) || !IMGUI_HAS_IMSTR
+		mutable utl::optional<size_t> size__;
+#endif
+	};
 }
 
 _STD_BEGIN
 	// ReSharper disable once CppInconsistentNaming
 	using _Imgui_string = cheat::gui::tools::string_wrapper;
 
-	template <std::derived_from<_Imgui_string> T >
+	template <std::derived_from<_Imgui_string> T>
 	struct hash<T>
 	{
 		_NODISCARD size_t operator()(const T& str) const noexcept
@@ -104,7 +150,7 @@ _STD_BEGIN
 	};
 
 #if 1
-	template <std::derived_from<_Imgui_string> T >
+	template <std::derived_from<_Imgui_string> T>
 	struct equal_to<T>
 	{
 		_NODISCARD bool operator()(const T& left, const T& right) const

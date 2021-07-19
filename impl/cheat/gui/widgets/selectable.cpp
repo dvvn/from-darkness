@@ -13,17 +13,24 @@ selectable::selectable(bool selected): selectable_base(selected)
 {
 }
 
-bool selectable::operator()(string_wrapper::value_type label, ImGuiSelectableFlags_ flags, const ImVec2& size)
+bool selectable::operator()(prefect_string&& label, ImGuiSelectableFlags_ flags, const ImVec2& size)
 {
-	return ImGui::Selectable(label,
-							 this->Update( ) ? push_style_color(ImGuiCol_Header, this->Anim_value( )).val(true) : selected( ),
-							 flags, size)
-		   /*&& !selected( )*/ && !this->animating( );
-}
+	const auto selectable = [&](bool selected)
+	{
+		return ImGui::Selectable((label), selected, flags, size);
+	};
 
-bool selectable::operator()(const string_wrapper& label, ImGuiSelectableFlags_ flags, const ImVec2& size)
-{
-	return invoke(*this, label.imgui( ), flags, size);
+	if (!this->Animate( ))
+	{
+		return selectable(this->selected( ));
+	}
+	else
+	{
+		const auto pop = push_style_color(ImGuiCol_Header, this->Anim_value( ));
+		(void)pop;
+		(void)selectable(true);
+		return false;
+	}
 }
 
 selectable_internal::selectable_internal(bool selected): selectable(selected)

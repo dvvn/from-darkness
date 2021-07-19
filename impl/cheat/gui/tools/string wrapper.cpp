@@ -123,10 +123,16 @@ string_wrapper& string_wrapper::operator=(string_wrapper&& other) noexcept
 
 void string_wrapper::Set_imgui_str_( )
 {
-#if defined(IMGUI_HAS_IMSTR) && IMGUI_HAS_IMSTR
-	imgui__={multibyte__._Unchecked_begin(),multibyte__._Unchecked_end()};
+	imgui__ = _Get_imgui_str(multibyte__);
+}
+
+string_wrapper::value_type tools::_Get_imgui_str(const utl::string_view& str)
+{
+#if !CHEAT_GUI_HAS_IMGUI_STRV
+	BOOST_ASSERT(*str._Unchecked_end( ) == '\0');
+	return const_cast<char*>(str._Unchecked_begin( ));
 #else
-	imgui__ = multibyte__._Unchecked_begin( );
+		return value_type(str._Unchecked_begin( ), str._Unchecked_end());
 #endif
 }
 
@@ -171,3 +177,80 @@ void string_wrapper_abstract::init(const string_wrapper& name)
 //{
 //	return str <=> other;
 //}
+
+[[maybe_unused]]
+static auto _Ref_or_direct(const string_wrapper::value_type& val)
+{
+	return ref(val);
+}
+
+[[maybe_unused]]
+static auto _Ref_or_direct(string_wrapper::value_type&& val)
+{
+	return (val);
+}
+
+// ReSharper disable once CppFunctionalStyleCast
+prefect_string::prefect_string(ref_or_direct_type str): holder__(_Ref_or_direct(forward<decltype(str)>(str)))
+{
+}
+
+prefect_string::prefect_string(const string_view& str): holder__(_Get_imgui_str(str))
+{
+}
+
+prefect_string::prefect_string(const wstring_view& str): prefect_string(wstring(str))
+{
+#if !CHEAT_GUI_HAS_IMGUI_STRV
+	size__ = str.size( );
+#endif
+}
+
+prefect_string::prefect_string(wstring&& str): holder__(string_wrapper(move(str)))
+{
+#if !CHEAT_GUI_HAS_IMGUI_STRV
+	size__ = str.size( );
+#endif
+}
+
+prefect_string::prefect_string(const string_wrapper& str): holder__(ref(str))
+{
+#if !CHEAT_GUI_HAS_IMGUI_STRV
+	size__ = str.raw( ).size( );
+#endif
+}
+
+prefect_string::operator string_wrapper::value_type( ) const
+{
+	return visit(overload([](const string_wrapper_ref& val)
+						  {
+							  return val.get( ).imgui( );
+						  }, [](const string_wrapper& val)
+						  {
+							  return val.imgui( );
+						  },
+#if !CHEAT_GUI_HAS_IMGUI_STRV
+						  [](string_wrapper::value_type val)
+						  {
+							  return val;
+						  }
+#else
+						  [](const reference_wrapper<const string_wrapper::value_type>& val)
+						  {
+							  return val.get( );
+						  }
+#endif
+						 ), holder__);
+}
+
+size_t prefect_string::size( ) const
+{
+#if !CHEAT_GUI_HAS_IMGUI_STRV
+	if (!size__.has_value( ))
+		size__.emplace(string_wrapper(string(*this)).raw( ).size( ));
+	return *size__;
+#else
+	const string_wrapper::value_type val= *this;
+	return val.length();
+#endif
+}

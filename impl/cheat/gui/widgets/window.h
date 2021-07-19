@@ -1,15 +1,17 @@
 #pragma once
-#include "cheat/gui/tools/animator.h"
+
+#include "widget animator.h"
+
 #include "cheat/gui/tools/string wrapper.h"
 
 namespace cheat::gui::widgets
 {
-	class window:public tools::widget_animator
+	class window: public content_background_fader
 	{
 	public:
 		window(tools::animator&& fade = { });
 
-		bool begin(const tools::string_wrapper& title, ImGuiWindowFlags_ flags);
+		bool begin(tools::prefect_string&& title, ImGuiWindowFlags_ flags);
 		void end( );
 
 		void show( );
@@ -24,10 +26,9 @@ namespace cheat::gui::widgets
 		bool visible__ = false;
 	};
 
-	class child_window:public tools::widget_animator
+	class child_window: public content_background_fader
 	{
 	public:
-		virtual ~child_window( ) = default;
 		child_window(tools::animator&& fade = { });
 
 		struct size_info
@@ -43,7 +44,6 @@ namespace cheat::gui::widgets
 			} type = UNSET;
 		};
 		bool begin(const size_info& size_info_x, const size_info& size_info_y, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
-		//bool begin(size_t size, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
 		void end( );
 
 		void show( );

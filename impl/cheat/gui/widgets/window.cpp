@@ -1,8 +1,8 @@
 #include "window.h"
 
 #include "cheat/gui/tools/info.h"
-#include "cheat/gui/tools/push style var.h"
 #include "cheat/gui/tools/push style color.h"
+#include "cheat/gui/tools/push style var.h"
 
 using namespace cheat;
 using namespace gui;
@@ -10,11 +10,11 @@ using namespace widgets;
 using namespace tools;
 using namespace utl;
 
-window::window(animator&& fade) : widget_animator(move(fade))
+window::window(animator&& fade) : content_background_fader(move(fade))
 {
 }
 
-bool window::begin(const string_wrapper& title, ImGuiWindowFlags_ flags)
+bool window::begin(prefect_string&& title, ImGuiWindowFlags_ flags)
 {
 	BOOST_ASSERT(ignore_end__ == false);
 	auto& style = ImGui::GetStyle( );
@@ -33,8 +33,8 @@ bool window::begin(const string_wrapper& title, ImGuiWindowFlags_ flags)
 
 	const auto min_size = ImGui::GetFontSize( ) + //small button size
 						  style.ItemInnerSpacing.x +
-						  _Get_char_size( ).x * title.raw( ).size( ) + //string size
-						  style.FramePadding.x * 2.f +                 //space between and after
+						  _Get_char_size( ).x * title.size( ) + //string size
+						  style.FramePadding.x * 2.f +          //space between and after
 						  style.WindowBorderSize;
 
 	memory_backup<float> min_size_backup;
@@ -93,7 +93,7 @@ bool window::active( ) const
 	return visible__ && fade_.done(1);
 }
 
-child_window::child_window(tools::animator&& fade): widget_animator(move(fade))
+child_window::child_window(animator&& fade): content_background_fader(move(fade))
 {
 }
 
@@ -212,7 +212,7 @@ void child_window::show( )
 	return fade_.set(1);
 }
 
-child_frame_window::child_frame_window(tools::animator&& fade): child_window(move(fade))
+child_frame_window::child_frame_window(animator&& fade): child_window(move(fade))
 {
 }
 

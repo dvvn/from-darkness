@@ -1,28 +1,20 @@
 #pragma once
 
-#include "cheat/gui/tools/animator.h"
+#include "widget animator.h"
 
 namespace cheat::gui::widgets
 {
 	//not a selectable. base to selectable, checkbox, ant all same widgets
-	class selectable_base
+	class selectable_base: public widget_animator
 	{
 	protected:
 		selectable_base(bool selected = false);
-	
+
 	public:
 		void select( );
 		void deselect( );
 		void toggle( );
 
 		bool selected( ) const;
-		bool animating( ) const;
-
-	protected:
-		bool Update( );
-		float Anim_value()const;
-
-	private:
-		tools::animator anim__;
 	};
 }

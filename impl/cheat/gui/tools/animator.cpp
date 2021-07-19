@@ -135,22 +135,3 @@ float animator::Limit_(float dir) const
 {
 	return (/*dir__*/dir == 1 ? value__.max : value__.min);
 }
-
-bool widget_animator::Animate( )
-{
-	const auto animate = fade_.update( );
-
-	auto& style = ImGui::GetStyle( );
-	//BOOST_ASSERT(style.Alpha == fade__.max( ));
-	BOOST_ASSERT(!fade_alpha_backup_);
-	if (!animate)
-		return false;
-
-	fade_alpha_backup_ = memory_backup(style.Alpha, fade_.value( ));
-	return true;
-}
-
-bool widget_animator::animating( ) const
-{
-	return fade_.updating( );
-}
