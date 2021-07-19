@@ -74,12 +74,17 @@ string_wrapper& string_wrapper::operator=(const string_wrapper& other) noexcept
 
 bool string_wrapper::operator==(const string_wrapper& other) const
 {
-	return raw( ) == other.raw( );
+	return multibyte__ == other.multibyte__;
 }
 
 bool string_wrapper::operator!=(const string_wrapper& other) const
 {
-	return raw( ) != other.raw( );
+	return multibyte__ != other.multibyte__;
+}
+
+std::weak_ordering string_wrapper::operator<=>(const string_wrapper& other) const
+{
+	return multibyte__<=>other.multibyte__;
 }
 
 string_wrapper::operator wstring_view( ) const
@@ -132,7 +137,7 @@ string_wrapper::value_type tools::_Get_imgui_str(const utl::string_view& str)
 	BOOST_ASSERT(*str._Unchecked_end( ) == '\0');
 	return const_cast<char*>(str._Unchecked_begin( ));
 #else
-		return value_type(str._Unchecked_begin( ), str._Unchecked_end());
+	return string_wrapper::value_type(str._Unchecked_begin( ), str._Unchecked_end( ));
 #endif
 }
 
@@ -229,17 +234,11 @@ prefect_string::operator string_wrapper::value_type( ) const
 						  {
 							  return val.imgui( );
 						  },
-#if !CHEAT_GUI_HAS_IMGUI_STRV
-						  [](string_wrapper::value_type val)
+						  [](const string_wrapper::value_type& val)
 						  {
 							  return val;
 						  }
-#else
-						  [](const reference_wrapper<const string_wrapper::value_type>& val)
-						  {
-							  return val.get( );
-						  }
-#endif
+
 						 ), holder__);
 }
 
@@ -250,7 +249,7 @@ size_t prefect_string::size( ) const
 		size__.emplace(string_wrapper(string(*this)).raw( ).size( ));
 	return *size__;
 #else
-	const string_wrapper::value_type val= *this;
-	return val.length();
+	const string_wrapper::value_type val = *this;
+	return val.length( );
 #endif
 }

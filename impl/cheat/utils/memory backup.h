@@ -3,12 +3,9 @@
 namespace cheat::utl
 {
 	template <std::copyable T>
-	class memory_backup
+	class memory_backup: noncopyable
 	{
 	public:
-		memory_backup(const memory_backup&) = delete;
-		memory_backup& operator=(const memory_backup&) = delete;
-
 		memory_backup(memory_backup&& other) noexcept
 		{
 			*this = move(other);
@@ -18,7 +15,7 @@ namespace cheat::utl
 		{
 			owner__.swap(other.owner__);
 			value__.swap(other.value__);
-			
+
 			return *this;
 		}
 

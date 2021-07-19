@@ -67,10 +67,10 @@
 #ifdef _DEBUG
 #define TSL_DEBUG
 #endif
-#include <tsl/ordered_map.h>
-#include <tsl/ordered_set.h>
-#include <tsl/robin_map.h>
-#include <tsl/robin_set.h>
+#include <ordered map/include/tsl/ordered_map.h>
+#include <ordered map/include/tsl/ordered_set.h>
+#include <robin map/include/tsl/robin_map.h>
+#include <robin map/include/tsl/robin_set.h>
 
 ////#include <map>
 ////
@@ -257,12 +257,12 @@ namespace std::chrono
 #define IM_ASSERT BOOST_ASSERT
 #define IM_ASSERT_USER_ERROR BOOST_ASSERT_MSG
 #define ImDrawIdx size_t
-#include <imgui_impl_dx9.h>
-#include <imgui_impl_win32.h>
+#include <backends/imgui_impl_dx9.h>
+#include <backends/imgui_impl_win32.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-#include <WinReg/WinReg.hpp>
+//#include <WinReg/WinReg.hpp>
 
 namespace tsl::detail
 {

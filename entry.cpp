@@ -52,7 +52,7 @@ static BOOL _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD dwReason, LPVOID /*lp
 	return TRUE;
 }
 #else
-BOOL  _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD /*dwReason*/, LPVOID /*lpReserved*/) {}
+static BOOL  _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD /*dwReason*/, LPVOID /*lpReserved*/) {}
 #endif
 
 // ReSharper disable once CppInconsistentNaming
@@ -90,13 +90,13 @@ LPDIRECT3DDEVICE9            g_pd3dDevice = nullptr;
 static D3DPRESENT_PARAMETERS g_d3dpp = { };
 
 // Forward declarations of helper functions
-auto        CreateDeviceD3D(HWND hWnd) -> bool;
-auto        CleanupDeviceD3D( ) -> void;
-auto        ResetDevice( ) -> void;
-auto WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) -> LRESULT;
+static bool CreateDeviceD3D(HWND hWnd);
+static void CleanupDeviceD3D( );
+static void ResetDevice( );
+static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Main code
-auto main(int, char**) -> int
+int main(int, char**)
 {
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
@@ -202,7 +202,7 @@ auto main(int, char**) -> int
 
 // Helper functions
 
-auto CreateDeviceD3D(HWND hWnd) -> bool
+bool CreateDeviceD3D(HWND hWnd)
 {
 	if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == nullptr)
 		return false;
@@ -219,7 +219,7 @@ auto CreateDeviceD3D(HWND hWnd) -> bool
 	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice));
 }
 
-auto CleanupDeviceD3D( ) -> void
+void CleanupDeviceD3D( )
 {
 	if (g_pd3dDevice)
 	{
@@ -233,7 +233,7 @@ auto CleanupDeviceD3D( ) -> void
 	}
 }
 
-auto ResetDevice( ) -> void
+void ResetDevice( )
 {
 	//ImGui_ImplDX9_InvalidateDeviceObjects( );
 	HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
@@ -243,7 +243,7 @@ auto ResetDevice( ) -> void
 }
 
 // Win32 message handler
-auto WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) -> LRESULT
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{

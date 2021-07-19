@@ -5,6 +5,12 @@
 #include "objects/pages renderer.h"
 #include "widgets/window.h"
 
+#if defined(_DEBUG) ||  defined(CHEAT_TEST_EXE)
+#define CHEAT_GUI_HAS_DEMO_WINDOW 1
+#else
+#define CHEAT_GUI_HAS_DEMO_WINDOW 0
+#endif
+
 namespace cheat::gui
 {
 	class menu final: public service_shared<menu, service_mode::async>, public widgets::window

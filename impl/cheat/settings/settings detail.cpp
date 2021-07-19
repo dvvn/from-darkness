@@ -264,7 +264,7 @@ void folders_storage::deselect_all( )
 
 span<folders_storage::value_type> folders_storage::iterate( )
 {
-	return {data__.begin(),data__.end()};
+	return {data__.begin( ), data__.end( )};
 }
 
 void folders_storage::erase(iterator first, iterator last)
@@ -762,8 +762,6 @@ void folder_with_configs_mgr::Load_( )
 
 void folder_with_configs_mgr::Save_to_( )
 {
-	static string_wrapper input_text_id = _CONCAT("##", _STRINGIZE(__LINE__));
-
 	auto config_name_cleaned = false;
 
 	if (ImGui::Button("Save to"))
@@ -796,11 +794,11 @@ void folder_with_configs_mgr::Save_to_( )
 	if (config_name_cleaned)
 	{
 		static auto unused = string_wrapper("");
-		static auto unused_imgui = unused.imgui( );
+		static char unused_buffer[] = {' ', '\0'};
 
-		ImGui::InputText(input_text_id, unused_imgui, 1);
+		ImGui::InputText(unused, unused_buffer, 1);
 	}
-	else if (ImGui::InputText(input_text_id, addressof(new_config_name__)))
+	else if (ImGui::InputText(_CONCAT("##", _STRINGIZE(__LINE__)), addressof(new_config_name__)))
 	{
 		///todo: close popup by id
 		//ImGui::CloseCurrentPopup(Popup_id_( ));

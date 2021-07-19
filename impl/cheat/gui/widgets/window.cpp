@@ -59,8 +59,7 @@ void window::end( )
 	{
 		ImGui::End( );
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
-		if (fade_alpha_backup_)
-			fade_alpha_backup_ = { };
+		fade_alpha_backup_.restore( );
 #endif
 	}
 }

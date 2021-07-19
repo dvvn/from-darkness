@@ -37,6 +37,7 @@ namespace cheat::gui::tools
 
 		bool operator==(const string_wrapper& other) const;
 		bool operator!=(const string_wrapper& other) const;
+		std::weak_ordering operator<=>(const string_wrapper& other) const;
 
 		operator utl::wstring_view( ) const;
 		operator utl::string_view( ) const;
@@ -113,20 +114,12 @@ namespace cheat::gui::tools
 		size_t size( ) const;
 
 	private:
-		using string_wrapper_value_holder =
-#if !defined(IMGUI_HAS_IMSTR) || !IMGUI_HAS_IMSTR
-		string_wrapper::value_type
-#else
-			 utl::reference_wrapper<const string_wrapper::value_type>
-#endif
-		;
-
 		using string_wrapper_ref = utl::reference_wrapper<const string_wrapper>;
 		using holder_type = utl::variant
 		<
 			string_wrapper_ref,
 			string_wrapper,
-			string_wrapper_value_holder
+			string_wrapper::value_type
 		>;
 
 		holder_type holder__;
@@ -148,16 +141,5 @@ _STD_BEGIN
 			return invoke(hash<string_view>( ), (str));
 		}
 	};
-
-#if 1
-	template <std::derived_from<_Imgui_string> T>
-	struct equal_to<T>
-	{
-		_NODISCARD bool operator()(const T& left, const T& right) const
-		{
-			return invoke(equal_to<string_view>( ), left, right);
-		}
-	};
-#endif
 
 _STD_END

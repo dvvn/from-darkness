@@ -32,7 +32,7 @@ void user_input::Load( )
 {
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*) { return operator new(size); },
-								 [](void*  ptr, void* ) { return operator delete(ptr); });
+								 [](void* ptr, void*) { return operator delete(ptr); });
 	ctx__ = ImGui::CreateContext( );
 	auto& io = ctx__->IO;
 	io.IniFilename = nullptr;
@@ -100,11 +100,14 @@ user_input::process_result user_input::process(HWND hwnd, UINT msg, WPARAM wpara
 	{
 		return skip_input( );
 	}
-	if (menu.active( ))
+	// ReSharper disable once CppIfCanBeReplacedByConstexprIf
+	// ReSharper disable CppUnreachableCode
+	if (CHEAT_GUI_HAS_DEMO_WINDOW || menu.active( ))
 	{
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 			return process_result::blocked;
 		return skip_input( );
 	}
 	return process_result::none;
+	// ReSharper restore CppUnreachableCode
 }

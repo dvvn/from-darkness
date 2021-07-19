@@ -7,16 +7,15 @@
 void _Console_log(const std::string_view& str)
 {
 	const auto ptr = cheat::console::get_shared( );
-	if (ptr != nullptr && ptr->initialized( ))
-	{
-		constexpr auto filler = std::string_view("\n--------------------------------------------------\n");
-		std::string    str2;
-		str2.reserve(filler.size( ) * 2 + str.size( ));
-		str2 += filler;
-		str2 += str;
-		str2 += filler;
-		ptr->write_line(str2);
-	}
+	if (ptr == nullptr || !ptr->initialized( ))
+		return;
+	constexpr auto filler = std::string_view("\n--------------------------------------------------\n");
+	std::string    str2;
+	str2.reserve(filler.size( ) * 2 + str.size( ));
+	str2 += filler;
+	str2 += str;
+	str2 += filler;
+	ptr->write_line(str2);
 }
 #else
 

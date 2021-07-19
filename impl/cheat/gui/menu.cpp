@@ -79,43 +79,6 @@ menu::menu( )
 
 void menu::render( )
 {
-#if defined(_DEBUG) ||  defined(CHEAT_TEST_EXE)
-	ImGui::ShowDemoWindow( );
-#endif
-
-#if 0
-	auto& style = ImGui::GetStyle( );
-
-	memory_backup<float> alpha_backup;
-	(void)alpha_backup;
-
-	if (bg_alpha != style.Alpha)
-		alpha_backup = memory_backup(style.Alpha, bg_alpha);
-
-	constexpr auto dummy_text = string_view("W");
-	const auto sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
-	const auto min_size = ImGui::GetFontSize( ) + //small button size
-						  style.ItemInnerSpacing.x +
-						  sample_size.x * menu_title__.raw( ).size( ) + //string size
-						  style.FramePadding.x * 2.f +                  //space between and after
-						  style.WindowBorderSize;
-	//ImGui::SetNextWindowContentSize({min_size, 0});
-
-	memory_backup<float> min_size_backup;
-	(void)min_size_backup;
-
-	if (min_size > style.WindowMinSize.x)
-		min_size_backup = memory_backup(style.WindowMinSize.x, min_size);
-
-	if (ImGui::Begin(menu_title__, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		min_size_backup.reset( );
-		renderer__.render( );
-	}
-	ImGui::End( );
-
-#endif
-
 	if (this->begin(menu_title__, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		renderer__.render( );
@@ -151,8 +114,12 @@ class unused_page final: public empty_page, public string_wrapper_base
 public:
 	void render( ) override
 	{
+#if CHEAT_GUI_HAS_IMGUI_STRV
+		ImGui::TextUnformatted(*this);
+#else
 		auto&& mb = this->multibyte( );
 		ImGui::TextUnformatted(mb._Unchecked_begin( ), mb._Unchecked_end( ));
+#endif
 	}
 
 	static unused_page* get_ptr( )
