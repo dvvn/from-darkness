@@ -2,8 +2,12 @@
 
 namespace cheat::csgo
 {
-	typedef float Quaternion[4];
-	typedef float RadianEuler[3];
+	class Quaternion
+	{
+	public:
+		float x, y, z, w;
+	};
+	using RadianEuler = float[3];
 
 	enum bone_flags{
 	
@@ -94,7 +98,7 @@ enum hitgroups{
 		HITBOX_MAX
 	};
 
-	typedef unsigned short MDLHandle_t;
+	using MDLHandle_t = unsigned short;
 
 	struct mstudiobone_t
 	{

@@ -78,7 +78,7 @@ public:
 	}
 };
 
-void winapi::enumerate_threads(threads_adder* push_fn, DWORD process_id)
+void winapi::_Enumerate_threads(threads_adder* push_fn, DWORD process_id)
 {
 	if (process_id == 0)
 		process_id = GetCurrentProcessId( );
@@ -93,9 +93,9 @@ void winapi::enumerate_threads(threads_adder* push_fn, DWORD process_id)
 	auto updater = THREADENTRY32_UPDATER( );
 	//auto threads = threads_storage( );
 
-	constexpr auto min_size = FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(DWORD);
-	const auto&    my_pid = process_id;
-	const auto     my_thread = GetCurrentThreadId( );
+	constexpr auto min_size = FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(decltype(THREADENTRY32::th32OwnerProcessID));
+	const auto& my_pid = process_id;
+	const auto my_thread = GetCurrentThreadId( );
 
 	for (auto active = updater.first(snapshot); active != false; active = updater.next(snapshot))
 	{
@@ -113,6 +113,17 @@ void winapi::enumerate_threads(threads_adder* push_fn, DWORD process_id)
 
 	//threads.shrink_to_fit( );
 	//return threads;
+}
+
+frozen_threads_storage::frozen_threads_storage(frozen_threads_storage&& other) noexcept
+{
+	*this = move(other);
+}
+
+frozen_threads_storage& frozen_threads_storage::operator=(frozen_threads_storage&& other) noexcept
+{
+	*static_cast<frozen_threads_storage_container*>(this) = static_cast<frozen_threads_storage_container&&>(other);
+	return *this;
 }
 
 void unfreeze_thread::operator()(HANDLE h) const
@@ -136,7 +147,7 @@ void frozen_threads_storage::fill( )
 {
 	if (!this->empty( ))
 		return;
-	enumerate_threads(this);
+	_Enumerate_threads(this);
 }
 
 void frozen_threads_storage::operator()(thread_entry&& t)

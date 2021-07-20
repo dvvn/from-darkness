@@ -88,7 +88,7 @@ namespace cheat::utl
 		return rhs / lhs;
 	}
 
-	class __declspec(align(16)) VectorAligned: public Vector
+	class alignas(uint16_t) VectorAligned: public Vector
 	{
 	public:
 		VectorAligned( ) = default;;

@@ -72,22 +72,14 @@ void player_shared::update_animations(bool simple)
 #ifndef CHEAT_NETVARS_UPDATING
 	const auto p = this->get( )->ent;
 
-	auto do_update = [&]
-	{
-		//or hook update_clientside_animation
-		p->m_bClientSideAnimation( ) = true;
-		p->UpdateClientSideAnimation( );
-		p->m_bClientSideAnimation( ) = false;
-	};
-
 	if (simple)
 	{
-		do_update( );
+		p->UpdateClientSideAnimation( );
 	}
 	else
 	{
 		//todo: proper animfix
-		do_update( );
+		p->UpdateClientSideAnimation( );
 	}
 
 #endif

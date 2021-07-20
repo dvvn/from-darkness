@@ -98,7 +98,52 @@ namespace cheat::detail
 			return *Pointer_( );
 		}
 
+		bool Is_null_( ) const
+		{
+			constexpr auto extra_deref = detail::_Count_pointers<raw_pointer>( ) - 1;
+			if constexpr (extra_deref == 0)
+			{
+				return this->empty( );
+			}
+			else
+			{
+				if (this->empty( ))
+					return true;
+
+				auto addr = result_.value( );
+				for (size_t deref = 0; deref < extra_deref; ++deref)
+				{
+					addr = *reinterpret_cast<uintptr_t*>(addr);
+					if (addr == 0u)
+						return true;
+				}
+				return false;
+			}
+		}
+
 	public:
+		bool operator==(nullptr_t) const
+		{
+			return Is_null_( );
+		}
+
+		bool operator!=(nullptr_t) const
+		{
+			return !((*this) == nullptr);
+		}
+
+		template <std::derived_from<To> T=To>
+		bool operator==(const T* other) const
+		{
+			return Pointer_( ) != other;
+		}
+
+		template <std::derived_from<To> T=To>
+		bool operator!=(const T* other) const
+		{
+			return !((*this) == other);
+		}
+
 		operator To*( ) const
 		{
 			return Pointer_( );
@@ -143,34 +188,34 @@ namespace cheat
 	public:
 		//utl::filesystem::path csgo_path;
 
-		ifc<csgo::IBaseClientDLL>       client;
-		ifc<csgo::IClientEntityList>    entity_list;
-		ifc<csgo::IPrediction>          prediction;
-		ifc<csgo::CGameMovement>        game_movement;
-		ifc<csgo::IMDLCache>            mdl_cache;
-		ifc<csgo::IVEngineClient>       engine;
-		ifc<csgo::IVModelInfoClient>    mdl_info;
-		ifc<csgo::IVModelRender>        mdl_render;
-		ifc<csgo::IVRenderView>         render_view;
-		ifc<csgo::IEngineTrace>         engine_trace;
-		ifc<csgo::IVDebugOverlay>       debug_overlay;
-		ifc<csgo::IGameEventManager2>   game_events;
-		ifc<csgo::IEngineSound>         engine_sound;
-		ifc<csgo::IMaterialSystem>      material_system;
-		ifc<csgo::ICvar>                cvars;
-		ifc<csgo::IPanel>               vgui_panel;
-		ifc<csgo::ISurface>             vgui_surface;
+		ifc<csgo::IBaseClientDLL> client;
+		ifc<csgo::IClientEntityList> entity_list;
+		ifc<csgo::IPrediction> prediction;
+		ifc<csgo::CGameMovement> game_movement;
+		ifc<csgo::IMDLCache> mdl_cache;
+		ifc<csgo::IVEngineClient> engine;
+		ifc<csgo::IVModelInfoClient> mdl_info;
+		ifc<csgo::IVModelRender> mdl_render;
+		ifc<csgo::IVRenderView> render_view;
+		ifc<csgo::IEngineTrace> engine_trace;
+		ifc<csgo::IVDebugOverlay> debug_overlay;
+		ifc<csgo::IGameEventManager2> game_events;
+		ifc<csgo::IEngineSound> engine_sound;
+		ifc<csgo::IMaterialSystem> material_system;
+		ifc<csgo::ICvar> cvars;
+		ifc<csgo::IPanel> vgui_panel;
+		ifc<csgo::ISurface> vgui_surface;
 		ifc<csgo::IPhysicsSurfaceProps> phys_props;
-		ifc<csgo::IInputSystem>         input_sys;
-		ifc<csgo::ClientModeShared>     client_mode;
-		ifc<csgo::CGlobalVarsBase>      global_vars;
-		ifc<csgo::CInput>               input;
-		ifc<csgo::IMoveHelper>          move_helper;
-		ifc<csgo::CGlowObjectManager>   glow_mgr;
-		ifc<csgo::IViewRender>          view_render;
-		ifc<csgo::CClientState>         client_state;
-		ifc<csgo::IWeaponSystem>        weapon_sys;
-		ifc<csgo::C_CSPlayer, 2>        local_player;
-		ifc<IDirect3DDevice9>           d3d_device;
+		ifc<csgo::IInputSystem> input_sys;
+		ifc<csgo::ClientModeShared> client_mode;
+		ifc<csgo::CGlobalVarsBase> global_vars;
+		ifc<csgo::CInput> input;
+		ifc<csgo::IMoveHelper> move_helper;
+		ifc<csgo::CGlowObjectManager> glow_mgr;
+		ifc<csgo::IViewRender> view_render;
+		ifc<csgo::CClientState> client_state;
+		ifc<csgo::IWeaponSystem> weapon_sys;
+		ifc<csgo::C_CSPlayer, 2> local_player;
+		ifc<IDirect3DDevice9> d3d_device;
 	};
 }

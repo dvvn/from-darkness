@@ -44,7 +44,10 @@ void renderer::present(IDirect3DDevice9* d3d_device)
 	ImGui::NewFrame( );
 	{
 #if CHEAT_GUI_HAS_DEMO_WINDOW
-		ImGui::ShowDemoWindow( );
+#ifndef CHEAT_TEST_EXE
+		if (menu::get( ).active( ))
+#endif
+			ImGui::ShowDemoWindow( );
 #endif
 		menu::get( ).render( );
 	}
@@ -55,9 +58,9 @@ void renderer::present(IDirect3DDevice9* d3d_device)
 	{
 		ImGui::Render( );
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData( ));
-		[[maybe_unused]] const auto end = d3d_device->EndScene( );
-		BOOST_ASSERT(SUCCEEDED(end));
 	}
+	[[maybe_unused]] const auto end = d3d_device->EndScene( );
+	BOOST_ASSERT(SUCCEEDED(end));
 }
 
 void renderer::reset([[maybe_unused]] IDirect3DDevice9* d3d_device)

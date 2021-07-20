@@ -24,6 +24,9 @@ namespace cheat::gui::objects
 	class horizontal_pages_renderer final: public abstract_pages_renderer, widgets::child_frame_window
 	{
 	public:
+
+		horizontal_pages_renderer(/*size_t per_line_limit=-1*/)=default;
+
 		void render( ) override;
 		void init( ) override;
 
@@ -37,5 +40,6 @@ namespace cheat::gui::objects
 #endif
 				= 0;
 		widgets::group selected_group__;
+		//size_t per_line_limit__; todo
 	};
 }

@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Vector.hpp"
 #include "QAngle.hpp"
+#include "Vector.hpp"
 
 namespace cheat::utl
 {
-	
-
 	class matrix3x4_t
 	{
 	public:
@@ -39,13 +37,18 @@ namespace cheat::utl
 
 		Vector at(int i) const;
 
-		float*       operator[](int i);
+		float* operator[](int i);
 		const float* operator[](int i) const;
-		float*       Base( );
+		float* Base( );
 		const float* Base( ) const;
 
 		float m_flMatVal[3][4];
 	};
+
+	class alignas(16) matrix3x4a_t: public matrix3x4_t
+	{
+	};
+
 	class VMatrix
 	{
 	public:
@@ -90,15 +93,15 @@ namespace cheat::utl
 
 		// Get/Set the translation.
 		Vector& GetTranslation(Vector& vTrans) const;
-		void    SetTranslation(const Vector& vTrans);
+		void SetTranslation(const Vector& vTrans);
 
 		void PreTranslate(const Vector& vTrans);
 		void PostTranslate(const Vector& vTrans);
 
-		matrix3x4_t&       As3x4( );
+		matrix3x4_t& As3x4( );
 		const matrix3x4_t& As3x4( ) const;
-		void               CopyFrom3x4(const matrix3x4_t& m3x4);
-		void               Set3x4(matrix3x4_t& matrix3x4) const;
+		void CopyFrom3x4(const matrix3x4_t& m3x4);
+		void Set3x4(matrix3x4_t& matrix3x4) const;
 
 		bool operator==(const VMatrix& src) const;
 		bool operator!=(const VMatrix& src) const;

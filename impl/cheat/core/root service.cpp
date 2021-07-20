@@ -2,6 +2,9 @@
 #include "console.h"
 
 #include "cheat/hooks/client mode/create move.h"
+#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
+#include "cheat/hooks/c_base_entity/estimate abs velocity.h"
+#include "cheat/hooks/c_csplayer/do extra bone processing.h"
 #include "cheat/hooks/directx/present.h"
 
 #include "cheat/utils/winapi/threads.h"
@@ -19,6 +22,9 @@ root_service::root_service( )
 #endif
 	this->Wait_for<directx::present>( );
 	this->Wait_for<client_mode::create_move>( );
+	this->Wait_for<c_csplayer::do_extra_bone_processing>( );
+	this->Wait_for<c_baseanimating::should_skip_animation_frame>( );
+	this->Wait_for<c_base_entity::estimate_abs_velocity>( );
 }
 
 #ifdef CHEAT_GUI_TEST
@@ -39,10 +45,10 @@ static future<bool> _Wait_for_game( )
 		auto& modules = all_modules::get( );
 		auto& all = modules.update(false).all( );
 
-		auto  work_dir = filesystem::path(modules.owner( ).work_dir( ));
+		auto work_dir = filesystem::path(modules.owner( ).work_dir( ));
 		auto& work_dir_native = const_cast<filesystem::path::string_type&>(work_dir.native( ));
 		ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
-		work_dir.append(_T("bin")).append(_T("serverbrowser.dll"));
+		work_dir.append((L"bin")).append((L"serverbrowser.dll"));
 
 		auto first_time = true;
 		do
@@ -82,8 +88,8 @@ void root_service::init(HMODULE handle)
 
 		//game loaded, freeze all threads from there
 		const auto game_fully_loaded = *task1.future_->result;
-		auto       frozen = frozen_threads_storage(game_fully_loaded);
-		auto       loader = make_unique<loader_type>( );
+		auto frozen = frozen_threads_storage(game_fully_loaded);
+		auto loader = make_unique<loader_type>( );
 
 		static_cast<service_base*>(this)->
 				init(*loader).
@@ -107,9 +113,9 @@ void root_service::init(HMODULE handle)
 
 struct unload_helper_data
 {
-	DWORD         sleep;
-	HMODULE       handle;
-	BOOL          retval;
+	DWORD sleep;
+	HMODULE handle;
+	BOOL retval;
 	service_base* instance;
 
 	function<service_base::wait_for_storage_type*(service_base*)> storage_getter;

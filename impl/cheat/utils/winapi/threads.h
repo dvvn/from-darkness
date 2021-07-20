@@ -32,7 +32,7 @@ namespace cheat::utl::winapi
 		bool close( );
 
 		[[nodiscard]] HANDLE transfer_handle( );
-		HANDLE               handle( ) const;
+		HANDLE handle( ) const;
 
 		bool is_opened( ) const;
 		bool is_paused( ) const;
@@ -46,11 +46,11 @@ namespace cheat::utl::winapi
 	class threads_adder
 	{
 	public:
-		virtual      ~threads_adder( ) = default;
+		virtual ~threads_adder( ) = default;
 		virtual void operator()(thread_entry&& entry) =0;
 	};
 
-	void enumerate_threads(threads_adder* push_fn, DWORD process_id = 0);
+	void _Enumerate_threads(threads_adder* push_fn, DWORD process_id = 0);
 
 	//--
 
@@ -73,12 +73,11 @@ namespace cheat::utl::winapi
 	}
 
 	using frozen_threads_storage_container = vector<detail::frozen_thread>;
-	class frozen_threads_storage: protected frozen_threads_storage_container, public threads_adder
+	class frozen_threads_storage: protected frozen_threads_storage_container, public threads_adder, noncopyable
 	{
-		BOOST_MOVABLE_BUT_NOT_COPYABLE(frozen_threads_storage)
 	public:
-		frozen_threads_storage(frozen_threads_storage&&) noexcept = default;
-		frozen_threads_storage& operator =(frozen_threads_storage&&) noexcept = default;
+		frozen_threads_storage(frozen_threads_storage&&other) noexcept;
+		frozen_threads_storage& operator =(frozen_threads_storage&&other) noexcept;
 
 		frozen_threads_storage(bool fill);
 

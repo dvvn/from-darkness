@@ -43,7 +43,7 @@ string players_list::Get_loaded_message( ) const
 {
 #ifndef CHEAT_GUI_TEST
 	return service_base::Get_loaded_message( );
-		//return "Players list ready to use";
+	//return "Players list ready to use";
 #else
 	return Get_loaded_message_disabled( );
 #endif
@@ -168,7 +168,12 @@ void players_list::update( )
 		if (store_tick)
 			obj.store_tick( );
 		if (update_animations)
+		{
+			ent->m_bClientSideAnimation( ) = true;
 			obj.update_animations(store_tick == false);
+			ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, interfaces.global_vars->curtime);
+			ent->m_bClientSideAnimation( ) = false;
+		}
 
 		obj.remove_old_ticks( );
 	}

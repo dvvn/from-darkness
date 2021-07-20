@@ -51,7 +51,7 @@ void user_input::Load( )
 	//font_cfg.EllipsisChar = (ImWchar)0x0085;
 	font_cfg.GlyphOffset.y = 1.0f;
 	font_cfg.GlyphRanges = /*io.Fonts->GetGlyphRangesCyrillic( )*/ranges;
-#if defined(NDEBUG) && 0
+#if !defined(_DEBUG) && 0
 	io.FontDefault = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arialuni.ttf", 15.0f, addressof(font_cfg), nullptr);
 #else
 
@@ -60,7 +60,7 @@ void user_input::Load( )
 #endif
 	auto creation_parameters = D3DDEVICE_CREATION_PARAMETERS( );
 
-	const auto result = csgo_interfaces::get( ).d3d_device->GetCreationParameters(&creation_parameters);
+	[[maybe_unused]] const auto result = csgo_interfaces::get( ).d3d_device->GetCreationParameters(&creation_parameters);
 	BOOST_ASSERT(SUCCEEDED(result));
 
 	hwnd__ = creation_parameters.hFocusWindow;
@@ -100,14 +100,15 @@ user_input::process_result user_input::process(HWND hwnd, UINT msg, WPARAM wpara
 	{
 		return skip_input( );
 	}
-	// ReSharper disable once CppIfCanBeReplacedByConstexprIf
-	// ReSharper disable CppUnreachableCode
-	if (CHEAT_GUI_HAS_DEMO_WINDOW || menu.active( ))
+
+#if !defined(CHEAT_GUI_HAS_DEMO_WINDOW) || !defined(CHEAT_TEST_EXE)
+	if (menu.active( ))
+#endif
 	{
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 			return process_result::blocked;
 		return skip_input( );
 	}
+	// ReSharper disable once CppUnreachableCode
 	return process_result::none;
-	// ReSharper restore CppUnreachableCode
 }

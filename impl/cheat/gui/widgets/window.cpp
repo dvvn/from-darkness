@@ -76,6 +76,11 @@ void window::hide( )
 	fade_.set(-1);
 }
 
+//деревня дубровки
+//запчати от погрузчиков
+//2640
+//6/1
+
 void window::toggle( )
 {
 	visible__ = !visible__;

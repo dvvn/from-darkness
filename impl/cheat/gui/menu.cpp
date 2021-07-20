@@ -6,6 +6,7 @@
 
 #include "cheat/features/aimbot.h"
 #include "cheat/features/anti aim.h"
+#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
 
 using namespace cheat;
 using namespace utl;
@@ -19,6 +20,7 @@ menu::menu( )
 	this->Wait_for<settings>( );
 #ifdef _DEBUG
 	this->Wait_for<hooks::input::wndproc>( );
+	this->Wait_for<hooks::c_baseanimating::should_skip_animation_frame>( );
 #endif
 
 	constexpr uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
@@ -150,9 +152,6 @@ void menu::Load( )
 		auto debug_abstract = abstract_page( );
 		auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
 
-		debug.add_page(unused_page::get_ptr( ));
-		debug.add_page(unused_page::get_ptr( ));
-
 		debug.add_page([]
 		{
 			auto debug_hooks_abstract = abstract_page( );
@@ -160,11 +159,12 @@ void menu::Load( )
 
 			using namespace hooks;
 			debug_hooks.add_page({"window proc", input::wndproc::get_ptr( )});
-			debug_hooks.add_page(unused_page::get_ptr( ));
-			debug_hooks.add_page(unused_page::get_ptr( ));
+			debug_hooks.add_page({"should skip animation frame", c_baseanimating::should_skip_animation_frame::get_ptr( )});
 
 			return debug_hooks_abstract;
 		}( ));
+		debug.add_page(unused_page::get_ptr( ));
+		debug.add_page(unused_page::get_ptr( ));
 
 		return debug_abstract;
 	}( ));

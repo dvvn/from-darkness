@@ -138,21 +138,26 @@ void vertical_pages_renderer::init( )
 	longest_string__ = *ranges::max_element(sizes, std::less<size_t>( ));
 }
 
+
+
 void horizontal_pages_renderer::render( )
 {
 	selected_info selected;
 
 	const auto char_size = _Get_char_size( ).x;
 
-	size_info size;
+	size_info size_x, size_y;
+	auto pages_per_line = /*std::min(per_line_limit__, pages_.size( ))*/pages_.size( );
 #ifdef CHEAT_GUI_HORIZONTAL_PAGES_RENDERER_USE_LONGEST_STRING
-	size = {pages_.size( ), static_cast<float>(longest_string__), size_info::WORD};
+	size_x = {pages_per_line, static_cast<float>(longest_string__), size_info::WORD};
+	//size_y = {pages_.size( ) / pages_per_line, static_cast<float>(longest_string__) * pages_per_line, size_info::WORD};
 #else
 	const auto extra_size = char_size / (ImGui::GetStyle( ).ItemInnerSpacing.x * pages_.size( ));
-	size = {1, chars_count__ + extra_size, size_info::WORD};
+	size_x = {1, chars_count__ + extra_size, size_info::WORD};
+	//BOOST_ASSERT(per_line_limit__!=-1);
 #endif
 
-	if (!this->begin(size, { }, true))
+	if (!this->begin(size_x, size_y, true))
 		return this->end( );
 	{
 		const auto pop = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));

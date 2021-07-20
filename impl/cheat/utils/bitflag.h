@@ -314,7 +314,7 @@ namespace cheat::utl
 		}
 	}
 
-	template <typename T>
+	/*template <typename T>
 	decltype(auto) bitflag_view(T&& val)
 	{
 		using value_type = std::remove_cvref_t<T>;
@@ -326,5 +326,5 @@ namespace cheat::utl
 			return static_cast<const bflag_type&>(val);
 		else
 			return static_cast<bflag_type&>(val);
-	}
+	}*/
 }

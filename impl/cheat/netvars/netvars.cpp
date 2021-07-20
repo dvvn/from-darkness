@@ -6,6 +6,7 @@
 #include "cheat/sdk/IBaseClientDll.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
 #include "cheat/sdk/entity/C_BaseEntity.h"
+#include "cheat/sdk/entity/C_CSPlayer.h"
 
 #ifdef _DEBUG
 #define CHEAT_NETVARS_RESOLVE_TYPE
@@ -330,7 +331,7 @@ static string _Datamap_field_type(const typedescription_t& field)
 
 static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::ptree& tree, RecvTable* recv_table, int offset)
 {
-	static const auto prop_is_length_proxy = [](const RecvProp& prop)
+	static constexpr auto prop_is_length_proxy = [](const RecvProp& prop)
 	{
 		if (prop.m_ArrayLengthProxy)
 			return true;
@@ -338,17 +339,17 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		return lstr.find("length") != lstr.npos && lstr.find("proxy") != lstr.npos;
 	};
 
-	static const auto prop_is_base_class = [](const RecvProp& prop)
+	static constexpr auto prop_is_base_class = [](const RecvProp& prop)
 	{
 		return prop.m_pVarName == string_view("baseclass");
 	};
 
-	static const auto table_is_array = [](const RecvTable& table)
+	static constexpr auto table_is_array = [](const RecvTable& table)
 	{
 		return !table.props.empty( ) && std::isdigit(table.props.back( ).m_pVarName[0]);
 	};
 
-	static const auto table_is_data_table = [](const RecvTable& table)
+	static constexpr auto table_is_data_table = [](const RecvTable& table)
 	{
 		//DT_XXXXXX
 		auto n = table.m_pNetTableName;
@@ -374,6 +375,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 	for (auto itr = props.begin( ); itr != props.end( ); ++itr)
 	{
 		const auto& prop = *itr;
+		BOOST_ASSERT(prop.m_pVarName != nullptr);
 		const auto prop_name = string_view(prop.m_pVarName);
 
 		if (prop_name.find(PATH_DEFAULT_SEPARATOR) != prop_name.npos)
@@ -391,7 +393,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		{
 			if (prop_name.ends_with("[0]"))
 			{
-				const auto real_prop_name = string_view(prop_name.begin( ), prop_name.end( ) - 3);
+				const auto real_prop_name = string_view(prop_name.begin( ), std::prev(prop_name.end( ), 3));
 				BOOST_ASSERT(!real_prop_name.ends_with(']'));
 				auto array_size = optional<size_t>(1);
 
@@ -423,7 +425,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 						{
 							if (prefix == "ang")
 								netvar_type = "utl::QAngle";
-							if (prefix == "vec")
+							else if (prefix == "vec")
 								netvar_type = "utl::Vector";
 						}
 						else if (prop.m_RecvType == DPT_Int)
@@ -585,9 +587,14 @@ static void _Store_datamap_props(property_tree::ptree& tree, datamap_t* map)
 	// ReSharper disable once CppUseStructuredBinding
 	for (auto& desc: map->data)
 	{
-		BOOST_ASSERT(desc.fieldName != nullptr);
-
-		if (desc.fieldType != FIELD_EMBEDDED)
+		if (desc.fieldType == FIELD_EMBEDDED)
+		{
+			if (desc.TypeDescription != nullptr)
+			{
+				BOOST_ASSERT("Embedded datamap detected");
+			}
+		}
+		else if (desc.fieldName != nullptr)
 		{
 			const auto offset = desc.fieldOffset[TD_OFFSET_NORMAL];
 
@@ -597,13 +604,6 @@ static void _Store_datamap_props(property_tree::ptree& tree, datamap_t* map)
 			string field_type;
 #endif
 			_Save_netvar(tree, desc.fieldName, offset, move(field_type));
-		}
-		else
-		{
-			if (desc.TypeDescription != nullptr)
-			{
-				BOOST_ASSERT("Embedded datamap detected");
-			}
 		}
 	}
 }
@@ -616,7 +616,7 @@ static void _Iterate_datamap(property_tree::ptree& root_tree, datamap_t* root_ma
 		if (map->data.empty( ))
 			continue;
 
-		auto [tree, added] = _Add_child_class(root_tree, map->dataClassName);
+		auto&& [tree, added] = _Add_child_class(root_tree, map->dataClassName);
 
 		_Store_datamap_props(*tree, map);
 
@@ -633,20 +633,32 @@ void netvars::Load( )
 	data__.clear( );
 #endif
 
-	_Iterate_client_class(data__, csgo_interfaces::get( ).client->GetAllClasses( ));
+	const auto& interfaces = csgo_interfaces::get( );
 
-	const auto client_dll = all_modules::get( ).find("client.dll");
-	auto&      vtables = client_dll->vtables( );
+	_Iterate_client_class(data__, interfaces.client->GetAllClasses( ));
 
-	[[maybe_unused]] filesystem::path dumps_path;
-#if defined(_DEBUG) /*|| 1*/ //dump first time in release mode, debug mode extremely slow!
-	dumps_path = filesystem::path(CHEAT_DUMPS_DIR) / client_dll->name_wide( ) / to_wstring(client_dll->check_sum( )) / L"vtables.json";
+	const auto baseent = [&]
+	{
+#ifndef CHEAT_NETVARS_UPDATING
+		if (interfaces.local_player != nullptr)
+		{
+			if (C_BaseEntity* localp = interfaces.local_player; localp != nullptr)
+				return localp;
+		}
+#endif
+		const auto client_dll = all_modules::get( ).find("client.dll");
+		auto& vtables = client_dll->vtables( );
+
+		[[maybe_unused]] filesystem::path dumps_path;
+#if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
+		dumps_path = filesystem::path(CHEAT_DUMPS_DIR) / client_dll->name_wide( ) / to_wstring(client_dll->check_sum( )) / L"vtables.json";
 #endif
 
-	[[maybe_unused]] const auto load_result = vtables.load(dumps_path);
-	BOOST_ASSERT(load_result == success);
+		[[maybe_unused]] const auto load_result = vtables.load(dumps_path);
+		BOOST_ASSERT(load_result == success);
 
-	const auto baseent = vtables.get_cache( ).at("C_BaseEntity").addr.raw<C_BaseEntity>( );
+		return vtables.get_cache( ).at("C_BaseEntity").addr.raw<C_BaseEntity>( );
+	}( );
 
 	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));
@@ -657,7 +669,7 @@ void netvars::Load( )
 string netvars::Get_loaded_message( ) const
 {
 #ifndef CHEAT_NETVARS_DUMPER_DISABLED
-		return service_base::Get_loaded_message( );
+	return service_base::Get_loaded_message( );
 #else
 	return Get_loaded_message_disabled( );
 #endif
@@ -675,7 +687,7 @@ void netvars::Post_load( )
 	const auto first_time = create_directories(dir);
 
 	const auto checksum_file = dir / "_checksum.txt";
-	string     last_checksum, current_checksum;
+	string last_checksum, current_checksum;
 	using itr_t = std::istreambuf_iterator<char>;
 	if (auto ifs = std::ifstream(checksum_file.native( )); !first_time && exists(checksum_file) && !ifs.fail( ))
 	{
@@ -718,7 +730,7 @@ void netvars::Post_load( )
 		static const auto netvars_header_path = []
 		{
 			const auto cpp_path = (CHEAT_CURRENT_FILE_PATH);
-			auto       str = string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
+			auto str = string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
 			ranges::replace(str, '\\', '/');
 			return str += ".h";
 		}( );
@@ -733,7 +745,7 @@ void netvars::Post_load( )
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.ptree_get(netvar_data);
 #endif
-			auto       netvar_type = netvar_info::type.ptree_get(netvar_data);
+			auto netvar_type = netvar_info::type.ptree_get(netvar_data);
 			const auto netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
 				netvar_type.pop_back( );

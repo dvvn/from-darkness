@@ -45,7 +45,7 @@ namespace cheat
 			virtual void Post_load( );
 
 			template <awaitable_service S>
-			void Wait_for( )
+			void Wait_for()
 			{
 				Wait_for_add_impl_(S::get_shared( ));
 			}

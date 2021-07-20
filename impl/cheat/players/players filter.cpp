@@ -34,7 +34,7 @@ static bool _Player_pass_flags(const player::shared_type& p, const players_filte
 					 },
 					 [&](const players_filter_flags::team_filter_ex& tf)
 					 {
-						 auto& select = bitflag_view(tf);
+						 auto& select = static_cast<const bitflag<players_filter_flags::team_filter>&>(tf);
 						 return select.has(ent_team);
 					 });
 
