@@ -30,6 +30,15 @@ void estimate_abs_velocity::Load( )
 		const auto& vtables = client_dll->vtables( );
 		return vtables.get_cache( ).at("C_BaseEntity").addr.raw<C_BaseEntity>( );
 	};
+	auto get_player2 = []( )-> C_BasePlayer*
+	{
+		if (csgo_interfaces::get( ).local_player != nullptr)
+			return csgo_interfaces::get( ).local_player;
+		//netvars load it before
+		const auto client_dll = all_modules::get( ).find("client.dll");
+		const auto& vtables = client_dll->vtables( );
+		return vtables.get_cache( ).at("C_BasePlayer").addr.raw<C_BasePlayer>( );
+	};
 
 	constexpr auto offset = []
 	{
@@ -38,32 +47,31 @@ void estimate_abs_velocity::Load( )
 		return ifc.addr( ).value( ) / 4;
 	};
 
-	this->target_func_ = method_info::make_member_virtual(move(get_player), offset( ));
+	auto vtable1 = get_player( );
+	auto vtable2 = get_player( );
+
+	this->target_func_ = method_info::make_member_virtual(vtable1, offset( ));
 
 	this->hook( );
 	this->enable( );
 #endif
 }
 
-void estimate_abs_velocity::Callback(utl::Vector& vel)
+void estimate_abs_velocity::Callback(Vector& vel)
 {
 	const auto ent = this->Target_instance( );
-
-	/*const auto client_class = ent->GetClientClass( );
-	if (client_class->ClassID != ClassId::CCSPlayer)
-		return;*/
-	auto& eflags = (reinterpret_cast<bitflag<m_iEFlags_t>&>(ent->m_iEFlags( )));
-	if (eflags.has(EFL_DIRTY_ABSANGVELOCITY))
+	if (const auto& eflags = reinterpret_cast<bitflag<m_iEFlags_t>&>(ent->m_iEFlags( )); eflags.has(EFL_DIRTY_ABSVELOCITY))
 	{
 		static auto CalcAbsoluteVelocity_fn = []
 		{
 			cheat::detail::csgo_interface_base ifc;
 			ifc.from_sig("client.dll", "55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7", 0, 0);
-			return (ifc.addr( ).value( ));
+			void (C_BaseEntity::*fn)( );
+			reinterpret_cast<void*&>(fn) = ifc.addr( ).raw<void>( );
+			return fn;
 		}( );
 
-		reinterpret_cast<void(__thiscall *)(C_BaseEntity*)>(CalcAbsoluteVelocity_fn)(ent);
-
+		_Call_function(CalcAbsoluteVelocity_fn, ent);
 	}
 
 	vel = ent->m_vecAbsVelocity( );

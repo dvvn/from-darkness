@@ -8,12 +8,12 @@ using namespace utl;
 
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {
-	return hooks::call_virtual_class_method(&C_BaseEntity::GetDataDescMap, this, 15);
+	return hooks::_Call_function(&C_BaseEntity::GetDataDescMap, this, 15);
 }
 
 datamap_t* C_BaseEntity::GetPredictionDescMap( )
 {
-	return hooks::call_virtual_class_method(&C_BaseEntity::GetPredictionDescMap, this, 17);
+	return hooks::_Call_function(&C_BaseEntity::GetPredictionDescMap, this, 17);
 }
 
 void C_BaseEntity::EstimateAbsVelocity([[maybe_unused]] Vector& vel)
