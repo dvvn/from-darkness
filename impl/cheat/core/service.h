@@ -124,11 +124,9 @@ namespace cheat
 	public:
 		utl::string_view debug_name( ) const final
 		{
-#ifdef CHEAT_DEBUG_MODE
+
 			return detail::type_name<T>::name;
-#else
-			throw;
-#endif
+
 		}
 	};
 
@@ -138,11 +136,9 @@ namespace cheat
 	public:
 		utl::string_view debug_name( ) const final
 		{
-#ifdef CHEAT_DEBUG_MODE
+
 			return detail::type_name<T>::name;
-#else
-			throw;
-#endif
+
 		}
 	};
 }

@@ -36,6 +36,15 @@ const string_wrapper& abstract_page::name( ) const
 void abstract_pages_renderer::add_page(abstract_page&& page)
 {
 #ifdef _DEBUG
+	if (const auto renderer = dynamic_cast<abstract_pages_renderer*>((page.page( ))); renderer != nullptr)
+	{
+		if (renderer->pages_count( ) == 0)
+		{
+			_CrtDbgBreak( );
+			return;
+		}
+	}
+
 	auto& name = page.name( );
 	for (abstract_page& page_stored: pages_)
 	{
@@ -58,7 +67,10 @@ void abstract_pages_renderer::init( )
 			obj->init( );
 	}
 
-	pages_.front().select( );
+	pages_.front( ).select( );
 }
 
-
+size_t abstract_pages_renderer::pages_count( ) const
+{
+	return pages_.size( );
+}

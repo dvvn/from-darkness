@@ -8,7 +8,7 @@
 
 using namespace cheat;
 using namespace hooks;
-using namespace c_baseanimating;
+using namespace c_base_animating;
 using namespace utl;
 using namespace csgo;
 
@@ -39,19 +39,15 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 	else
 	{
 		const auto pl = this->Target_instance( );
+		const auto client_class = pl->GetClientClass( );
+		if (client_class->ClassID != ClassId::CCSPlayer)
+			return;
 
-		bool skip_this_frame;
-
-		if (const auto client_class = pl->GetClientClass( ); client_class->ClassID != ClassId::CCSPlayer)
-		{
-			skip_this_frame = false;
-		}
-		else
-		{
-			const auto animate_this_frame = pl->m_bClientSideAnimation( );
-			skip_this_frame = animate_this_frame == false;
-		}
+		const auto animate_this_frame = pl->m_bClientSideAnimation( );
+		const auto skip_this_frame = animate_this_frame == false;
 		this->return_value_.store_value(skip_this_frame);
+
+		(void)client_class;
 	}
 }
 

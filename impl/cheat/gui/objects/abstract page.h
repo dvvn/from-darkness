@@ -92,6 +92,8 @@ namespace cheat::gui::objects
 
 		virtual void init( );
 
+		size_t pages_count()const;
+
 	protected:
 		utl::vector<pages_storage_data> pages_;
 	};

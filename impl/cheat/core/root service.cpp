@@ -17,13 +17,11 @@ using namespace winapi;
 
 root_service::root_service( )
 {
-#ifdef CHEAT_DEBUG_MODE
 	this->Wait_for<console>( );
-#endif
 	this->Wait_for<directx::present>( );
 	this->Wait_for<client_mode::create_move>( );
 	this->Wait_for<c_csplayer::do_extra_bone_processing>( );
-	this->Wait_for<c_baseanimating::should_skip_animation_frame>( );
+	this->Wait_for<c_base_animating::should_skip_animation_frame>( );
 	this->Wait_for<c_base_entity::estimate_abs_velocity>( );
 }
 
@@ -98,7 +96,7 @@ void root_service::init(HMODULE handle)
 					loader_holder.reset( ); //destroy thread pool and wait for until all threads stop
 					if (!task2.has_exception( ))
 					{
-#ifdef CHEAT_DEBUG_MODE
+#ifdef CHEAT_HAVE_CONSOLE
 						console::get_ptr( )->write_line("Cheat fully loaded");
 #endif
 					}

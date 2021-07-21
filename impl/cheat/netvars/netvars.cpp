@@ -84,9 +84,9 @@ struct netvar_info: variable_info
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 	static constexpr auto type = info<string>("type");
 #endif
-#ifdef _DEBUG
-	static constexpr auto in_use = info<bool>("in_use");
-#endif
+	//#ifdef _DEBUG
+	//	static constexpr auto in_use = info<bool>("in_use");
+	//#endif
 };
 
 template <typename Nstr>
@@ -108,9 +108,9 @@ static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset,
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 	netvar_info::type.ptree_put(entry, move(type));
 #endif
-#ifdef _DEBUG
-	netvar_info::in_use.ptree_put(entry, false);
-#endif
+	//#ifdef _DEBUG
+	//	netvar_info::in_use.ptree_put(entry, false);
+	//#endif
 	return true;
 }
 
@@ -679,6 +679,74 @@ void netvars::Post_load( )
 {
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
+	Dump_netvars_( );
+	Generate_classes_( );
+
+#endif
+}
+
+static string _Get_checksum(const filesystem::path& p, bool first_time)
+{
+	auto checksum = string( );
+	using itr_t = std::istreambuf_iterator<char>;
+	if (auto ifs = std::ifstream(p); !first_time && exists(p) && !ifs.fail( ))
+		checksum = {itr_t(ifs), itr_t( )};
+
+	return checksum;
+}
+
+static string _Get_checksum(const string_view& s)
+{
+	return to_string(invoke(std::hash<string_view>( ), s));
+}
+
+static string _Get_checksum(const std::ostringstream& ss)
+{
+	return _Get_checksum(ss.str( ));
+}
+
+void netvars::Dump_netvars_( )
+{
+	const auto netvars_dump_dir = filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
+	const auto first_time = create_directories(netvars_dump_dir);
+
+	constexpr auto get_file_name = []
+	{
+		string version = csgo_interfaces::get( ).engine->GetProductVersionString( );
+		ranges::replace(version, '.', '_');
+		version.append(".json");
+		return version;
+	};
+
+	if (const auto netvars_dump_file = netvars_dump_dir / get_file_name( );
+		!exists(netvars_dump_file))
+	{
+		std::ofstream file(netvars_dump_file);
+		write_json(file, data__);
+	}
+	else
+	{
+		const auto test_to_write = [&]
+		{
+			std::ostringstream ss;
+			write_json(ss, data__);
+			return ss.str( );
+		}( );
+
+		if (_Get_checksum(test_to_write) == _Get_checksum(netvars_dump_file, first_time))
+			return;
+
+		std::ofstream file(netvars_dump_file);
+		file << (test_to_write);
+	}
+
+#ifdef CHEAT_HAVE_CONSOLE
+	console::get_ptr( )->write_line("Netvars dump done");
+#endif
+}
+
+void netvars::Generate_classes_( )
+{
 	const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
 #if 0
 	remove_all(dir);
@@ -686,17 +754,15 @@ void netvars::Post_load( )
 #else
 	const auto first_time = create_directories(dir);
 
-	const auto checksum_file = dir / "_checksum.txt";
-	string last_checksum, current_checksum;
-	using itr_t = std::istreambuf_iterator<char>;
-	if (auto ifs = std::ifstream(checksum_file.native( )); !first_time && exists(checksum_file) && !ifs.fail( ))
-	{
-		last_checksum = {itr_t(ifs), itr_t( )};
-	}
+	const auto checksum_file = dir / L"__checksum.txt";
+	const auto last_checksum = _Get_checksum(checksum_file, first_time);
 
-	std::stringstream ss;
-	write_json(ss, data__, false);
-	current_checksum = to_string(invoke(std::hash<decltype(ss)::_Mystr>( ), ss.str( )));
+	const auto current_checksum = [&]
+	{
+		std::ostringstream ss;
+		write_json(ss, data__, false);
+		return _Get_checksum(ss);
+	}( );
 
 	if (last_checksum == current_checksum)
 		return;
@@ -707,7 +773,7 @@ void netvars::Post_load( )
 		create_directories(dir);
 	}
 
-	std::ofstream file(checksum_file.native( ));
+	std::ofstream file(checksum_file);
 	file << current_checksum;
 #endif
 
@@ -729,7 +795,7 @@ void netvars::Post_load( )
 		source << __New_line;
 		static const auto netvars_header_path = []
 		{
-			const auto cpp_path = (CHEAT_CURRENT_FILE_PATH);
+			const auto cpp_path = CHEAT_CURRENT_FILE_PATH;
 			auto str = string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
 			ranges::replace(str, '\\', '/');
 			return str += ".h";
@@ -756,7 +822,7 @@ void netvars::Post_load( )
 			source << format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
 			source << '{' << __New_line;
 			source << "#ifdef CHEAT_NETVARS_UPDATING" << __New_line;
-			source << __Tab << (format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type)) << __New_line;
+			source << __Tab << format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
 			source << "#else" << __New_line;
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			source  << __Tab<< format("auto addr = utl::address(this).add({});", netvar_offset) << __New_line;
@@ -774,9 +840,14 @@ void netvars::Post_load( )
 		lazy_writer__.push_back(move(source));
 	}
 
-#ifdef CHEAT_DEBUG_MODE
-	console::get_ptr( )->write_line("Netvars dump done");
-#endif
+	if (last_checksum.empty( ))
+	{
+		//write all without waiting
+		lazy_writer__.clear();
+	}
+
+#ifdef CHEAT_HAVE_CONSOLE
+	console::get_ptr( )->write_line("Netvars classes generation done");
 #endif
 }
 
@@ -784,11 +855,11 @@ int netvars::at(const string_view& path) const
 {
 	auto& child = data__.get_child(string(path));
 
-#ifdef _DEBUG
-	auto& child1 = const_cast<property_tree::ptree&>(child);
-	BOOST_ASSERT_MSG(netvar_info::in_use.ptree_get(child1) == false, "Netvar already used!");
-	netvar_info::in_use.ptree_put(child1, true);
-#endif
+	//#ifdef _DEBUG
+	//	auto& child1 = const_cast<property_tree::ptree&>(child);
+	//	BOOST_ASSERT_MSG(netvar_info::in_use.ptree_get(child1) == false, "Netvar already used!");
+	//	netvar_info::in_use.ptree_put(child1, true);
+	//#endif
 
 	return netvar_info::offset.ptree_get(child);
 }
@@ -797,14 +868,16 @@ netvars::lazy_file_writer::~lazy_file_writer( )
 {
 	if (file__.empty( ))
 		return;
-	if (this->fail( ) || this->rdbuf( )->in_avail( ) == 0)
+
+	const auto str = this->str( );
+	if (str.empty( ))
 		return;
 
-	std::ofstream ofs(file__.native( ));
+	std::ofstream ofs(file__);
 	if (!ofs)
 		return;
 
-	ofs << this->rdbuf( );
+	ofs << str;
 }
 
 netvars::lazy_file_writer::lazy_file_writer(filesystem::path&& file): file__(utl::move(file))

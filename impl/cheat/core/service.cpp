@@ -134,7 +134,7 @@ void service_base::Post_load( )
 
 void service_base::Print_loaded_message_( ) const
 {
-#ifdef CHEAT_DEBUG_MODE
+#ifdef CHEAT_HAVE_CONSOLE
 	if(const auto msg = Get_loaded_message( ); !msg.empty( ))
 		console::get( ).write_line(msg);
 #else

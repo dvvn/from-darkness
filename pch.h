@@ -162,6 +162,7 @@ namespace boost
 	}
 }
 
+#include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
 namespace std
@@ -187,9 +188,24 @@ namespace std
 	boost::optional<T> move(const boost::optional<T>& opt) = delete; //use swap
 
 	using boost::optional;
-}
 
-#include <boost/filesystem.hpp>
+	namespace filesystem
+	{
+		class path: public boost::filesystem::path
+		{
+		public:
+			path( ) = default;
+
+			path(boost::filesystem::path&& p): boost::filesystem::path(move(p))
+			{
+			}
+
+			path(const boost::filesystem::path& p): boost::filesystem::path((p))
+			{
+			}
+		};
+	}
+}
 
 namespace boost::filesystem::path_traits
 {
@@ -523,7 +539,7 @@ namespace std
 #include "cheat/utils/VMatrix.hpp"
 
 #if defined(_DEBUG) || defined(CHEAT_GUI_TEST)
-#define CHEAT_DEBUG_MODE
+#define CHEAT_HAVE_CONSOLE
 #endif
 
 #define CHEAT_OUTPUT_DIR _STRINGIZE_R(VS_OutputDir)"\\"

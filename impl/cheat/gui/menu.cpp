@@ -20,50 +20,58 @@ menu::menu( )
 	this->Wait_for<settings>( );
 #ifdef _DEBUG
 	this->Wait_for<hooks::input::wndproc>( );
-	this->Wait_for<hooks::c_baseanimating::should_skip_animation_frame>( );
+	this->Wait_for<hooks::c_base_animating::should_skip_animation_frame>( );
 #endif
 
-	constexpr uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
-	constexpr uint32_t compile_month = []
+	constexpr auto iso_date = []( )-> string_view
 	{
-		switch (__DATE__[0])
+		// ReSharper disable once CppVariableCanBeMadeConstexpr
+		const uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
+		// ReSharper disable once CppVariableCanBeMadeConstexpr
+		const uint32_t compile_month = []
 		{
-			case 'J': // Jan, Jun or Jul
-				return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
-			case 'F': // Feb
-				return 2;
-			case 'M': // Mar or May
-				return (__DATE__[2] == 'r' ? 3 : 5);
-			case 'A': // Apr or Aug
-				return (__DATE__[2] == 'p' ? 4 : 8);
-			case 'S': // Sep
-				return 9;
-			case 'O': // Oct
-				return 10;
-			case 'N': // Nov
-				return 11;
-			case 'D': // Dec
-				return 12;
-		}
-		throw;
-	}( );
+			switch (__DATE__[0])
+			{
+				case 'J': // Jan, Jun or Jul
+					return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
+				case 'F': // Feb
+					return 2;
+				case 'M': // Mar or May
+					return (__DATE__[2] == 'r' ? 3 : 5);
+				case 'A': // Apr or Aug
+					return (__DATE__[2] == 'p' ? 4 : 8);
+				case 'S': // Sep
+					return 9;
+				case 'O': // Oct
+					return 10;
+				case 'N': // Nov
+					return 11;
+				case 'D': // Dec
+					return 12;
+			}
+			throw;
+		}( );
 
-	// ReSharper disable once CppUnreachableCode
-	constexpr uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
+		// ReSharper disable once CppVariableCanBeMadeConstexpr
+		// ReSharper disable once CppUnreachableCode
+		const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
 
-	constexpr string::value_type iso_date[] =
-	{
-		compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
-		'.',
-		compile_month / 10 + '0', compile_month % 10 + '0',
-		'.',
-		compile_day / 10 + '0', compile_day % 10 + '0',
-		'\0'
+		// ReSharper disable once CppVariableCanBeMadeConstexpr
+		const char ret[] = {
+
+			compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
+			'.',
+			compile_month / 10 + '0', compile_month % 10 + '0',
+			'.',
+			compile_day / 10 + '0', compile_day % 10 + '0',
+			'\0'
+		};
+		return string_view(ret, std::size(ret) - 1);
 	};
 
 	string name = CHEAT_NAME;
 	name += " | ";
-	name += iso_date;
+	name += iso_date( );
 #ifdef _DEBUG
 	name += _CONCAT(" | ", __TIME__);
 #endif
@@ -157,9 +165,15 @@ void menu::Load( )
 			auto debug_hooks_abstract = abstract_page( );
 			auto& debug_hooks = *debug_hooks_abstract.init<horizontal_pages_renderer>("hooks");
 
+			const auto add_if_hookded = [&]<typename Tstr,typename Tptr>(Tstr&& name, Tptr* ptr)
+			{
+				if (!ptr->hooked( ))
+					return;
+				debug_hooks.add_page({name, ptr});
+			};
 			using namespace hooks;
-			debug_hooks.add_page({"window proc", input::wndproc::get_ptr( )});
-			debug_hooks.add_page({"should skip animation frame", c_baseanimating::should_skip_animation_frame::get_ptr( )});
+			add_if_hookded("window proc", input::wndproc::get_ptr( ));
+			add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr( ));
 
 			return debug_hooks_abstract;
 		}( ));

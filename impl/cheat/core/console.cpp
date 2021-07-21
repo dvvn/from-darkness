@@ -54,7 +54,7 @@ static string _Get_time_str( )
 #if 1
 	const auto time = chrono::system_clock::to_time_t(now);
 
-	tm   timeinfo;
+	tm timeinfo;
 	auto result = localtime_s(&timeinfo, &time);
 	(void)result;
 	BOOST_ASSERT(result == 0);
@@ -106,6 +106,7 @@ console::console( ) //: sem__(1)
 
 void console::Load( )
 {
+#ifdef CHEAT_HAVE_CONSOLE
 	console_window__ = GetConsoleWindow( );
 	if (console_window__ != nullptr)
 	{
@@ -149,6 +150,16 @@ void console::Load( )
 		console_window__ = GetConsoleWindow( );
 		BOOST_ASSERT_MSG(console_window__ != nullptr, "Unable to get console window");
 	}
+#endif
+}
+
+string console::Get_loaded_message( ) const
+{
+#ifdef CHEAT_HAVE_CONSOLE
+	return service_shared::Get_loaded_message( );
+#else
+	return this->Get_loaded_message_disabled()
+#endif
 }
 
 void console::Wait_for_write_( ) const
@@ -255,7 +266,7 @@ void console::write_line(const string_view& str) const
 	}
 	else
 	{
-		auto   time = _Get_time_str( );
+		auto time = _Get_time_str( );
 		string str1;
 		str1.reserve(time.size( ) + str.size( ) + 1);
 		str1 += (move(time));

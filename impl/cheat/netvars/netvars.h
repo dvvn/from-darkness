@@ -23,6 +23,10 @@ namespace cheat
 		void        Post_load( ) override;
 
 	private:
+
+		void Dump_netvars_();
+		void Generate_classes_();
+
 		class lazy_file_writer final: public std::ostringstream, utl::noncopyable
 		{
 		public:

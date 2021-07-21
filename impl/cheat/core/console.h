@@ -17,6 +17,7 @@ namespace cheat
 
 	protected:
 		void Load( ) override;
+	utl::string Get_loaded_message( ) const override;
 
 	private:
 		bool  write_redirected__ = false;
@@ -26,5 +27,7 @@ namespace cheat
 		HWND console_window__ = nullptr;
 
 		void Wait_for_write_( ) const;
+	
+	
 	};
 }

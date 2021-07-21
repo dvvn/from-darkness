@@ -26,10 +26,10 @@ namespace cheat::utl
 			return addressof(get( ));
 		}
 
-		reference       operator*( ) { return get( ); }
+		reference operator*( ) { return get( ); }
 		const_reference operator*( ) const { return get( ); }
-		pointer         operator->( ) { return get_ptr( ); }
-		const_pointer   operator->( ) const { return get_ptr( ); }
+		pointer operator->( ) { return get_ptr( ); }
+		const_pointer operator->( ) const { return get_ptr( ); }
 
 		//constexpr auto operator()( ) -> reference { return get( ); }
 		//constexpr auto operator()( ) const -> const_reference { return get( ); }
@@ -47,32 +47,27 @@ namespace cheat::utl
 		using const_reference = const T&;
 		using pointer = T*;
 		using const_pointer = const T*;
-		using stored_type = weak_ptr<T>;
+		using weak_type = weak_ptr<T>;
 		using shared_type = shared_ptr<T>;
 
 		static shared_type get_shared( )
 		{
-#if 0
-			if (shared_instance__.has_value( ) == false)
-			{
-				
-				shared_type ptr = make_shared<T>( );
-				shared_instance__.emplace(ptr);
-				return ptr;
-			}
-			return (*shared_instance__).lock( );
-#endif
-
 			static_assert(std::is_default_constructible_v<T>, __FUNCTION__": T must be default constructible!");
 
-			static shared_ptr<T> shared = make_shared<T>( );
+			static shared_type shared = make_shared<T>( );
 
-			shared_ptr<T> weak_shared;
+			shared_type weak_shared;
 			if (shared)
 				weak_shared = move(shared);
 
-			static weak_ptr<T> weak = weak_shared;
+			static weak_type weak = weak_shared;
 			return weak.lock( );
+		}
+
+		static weak_type get_weak( )
+		{
+			static weak_type weak = get_shared( );
+			return weak;
 		}
 
 		static reference get( )

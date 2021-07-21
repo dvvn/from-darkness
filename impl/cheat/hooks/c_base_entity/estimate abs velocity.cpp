@@ -30,15 +30,6 @@ void estimate_abs_velocity::Load( )
 		const auto& vtables = client_dll->vtables( );
 		return vtables.get_cache( ).at("C_BaseEntity").addr.raw<C_BaseEntity>( );
 	};
-	auto get_player2 = []( )-> C_BasePlayer*
-	{
-		if (csgo_interfaces::get( ).local_player != nullptr)
-			return csgo_interfaces::get( ).local_player;
-		//netvars load it before
-		const auto client_dll = all_modules::get( ).find("client.dll");
-		const auto& vtables = client_dll->vtables( );
-		return vtables.get_cache( ).at("C_BasePlayer").addr.raw<C_BasePlayer>( );
-	};
 
 	constexpr auto offset = []
 	{
@@ -47,10 +38,7 @@ void estimate_abs_velocity::Load( )
 		return ifc.addr( ).value( ) / 4;
 	};
 
-	auto vtable1 = get_player( );
-	auto vtable2 = get_player( );
-
-	this->target_func_ = method_info::make_member_virtual(vtable1, offset( ));
+	this->target_func_ = method_info::make_member_virtual(move(get_player), offset( ));
 
 	this->hook( );
 	this->enable( );
