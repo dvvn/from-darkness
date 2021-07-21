@@ -1,5 +1,7 @@
 #include "../generated/C_BaseAnimating_cpp"
 
+#include "cheat/core/csgo interfaces.h"
+
 void C_BaseAnimating::UpdateClientSideAnimation( )
 {
 	hooks::_Call_function(&C_BaseAnimating::UpdateClientSideAnimation, this, 223);
@@ -20,4 +22,22 @@ bool C_BaseAnimating::ShouldSkipAnimationFrame(/*float current_time*/)
 	return true;
 }
 
+void C_BaseAnimating::StandardBlendingRules(CStudioHdr* hdr, utl::Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
+{
+	BOOST_ASSERT("Dont use. Added only for example");
+	(void)this;
+}
+
 // ReSharper restore CppParameterNeverUsed
+
+CUtlVector<CAnimationLayer>& C_BaseAnimating::GetAnimOverlays( )
+{
+	static const auto offset = []
+	{
+		detail::csgo_interface_base ifc;
+		ifc.from_sig("client.dll", "8B 87 ? ? ? ? 83 79 04 00 8B", 2, 1);
+		return ifc.addr( );
+	}( );
+	(void)this;
+	return utl::address(this).add(offset).ref<CUtlVector<CAnimationLayer>>( );
+}

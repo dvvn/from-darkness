@@ -764,33 +764,48 @@ public:
 	public:
 		using CAllocator = A;
 
-		auto begin( ) const noexcept
+		T* begin( ) noexcept
 		{
-			return pMemory.Base( );
-		}
-
-		auto end( ) const noexcept
-		{
-			return pMemory.Base( ) + iSize;
-		}
-
-        T& operator[](int i)
-        {
-			return pMemory[i];
-		}
-
-        const T& operator[](int i) const
-        {
-			return pMemory[i];
-		}
-
-        T* data( )
-        {
 			return pMemory.data( );
 		}
 
-        int size( ) const
-        {
+		T* end( ) noexcept
+		{
+			return pMemory.data( ) + iSize;
+		}
+
+		const T* begin( ) const noexcept
+		{
+			return pMemory.data( );
+		}
+
+		const T* end( ) const noexcept
+		{
+			return pMemory.data( ) + iSize;
+		}
+
+		T& operator[](int i)
+		{
+			return pMemory[i];
+		}
+
+		const T& operator[](int i) const
+		{
+			return pMemory[i];
+		}
+
+		T* data( )
+		{
+			return pMemory.data( );
+		}
+
+		const T* data( ) const
+		{
+			return pMemory.data( );
+		}
+
+		int size( ) const
+		{
 			return iSize;
 		}
 

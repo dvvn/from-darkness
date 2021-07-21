@@ -16,7 +16,7 @@ player_shared::~player_shared( )
 #ifndef CHEAT_NETVARS_UPDATING
 	if (*this == nullptr)
 		return;
-	BOOST_ASSERT(get()->in_use);
+	BOOST_ASSERT(get( )->in_use);
 	get( )->in_use = false;
 
 	const auto reset_clientside_anim = [&]
@@ -71,6 +71,15 @@ void player_shared::update_animations(bool simple)
 	(void)this;
 #ifndef CHEAT_NETVARS_UPDATING
 	const auto p = this->get( )->ent;
+
+	const auto backup_layers = [p]
+	{
+		auto& layers = p->GetAnimOverlays( );
+		BOOST_ASSERT(layers.size( ) == 13);
+		auto& bytes_array = *reinterpret_cast<array<uint8_t, sizeof(CAnimationLayer) * 13>*>(layers.begin( ));
+		return memory_backup(bytes_array);
+	}( );
+	(void)backup_layers;
 
 	if (simple)
 	{

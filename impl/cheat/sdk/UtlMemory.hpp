@@ -748,6 +748,11 @@ namespace cheat::csgo
 			return pMemory;
 		}
 
+		const T* data( )const
+		{
+			return pMemory;
+		}
+
 		int NumAllocated( ) const
 		{
 			return iAllocationCount;

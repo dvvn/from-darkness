@@ -843,7 +843,7 @@ void netvars::Generate_classes_( )
 	if (last_checksum.empty( ))
 	{
 		//write all without waiting
-		lazy_writer__.clear();
+		lazy_writer__.clear( );
 	}
 
 #ifdef CHEAT_HAVE_CONSOLE

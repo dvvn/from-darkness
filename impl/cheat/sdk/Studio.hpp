@@ -7,6 +7,12 @@ namespace cheat::csgo
 	public:
 		float x, y, z, w;
 	};
+
+	class alignas(16) QuaternionAligned:public Quaternion{
+	};
+
+	constexpr auto qeqe=sizeof(QuaternionAligned);
+
 	using RadianEuler = float[3];
 
 	enum bone_flags{

@@ -1,10 +1,10 @@
 #pragma once
 #include "C_BaseCombatWeapon.h"
-#include "C_BaseFlex.h"
+#include "C_BaseAnimating.h"
 
 namespace cheat::csgo
 {
-	class C_BaseCombatCharacter: public C_BaseFlex
+	class C_BaseCombatCharacter: public C_BaseAnimating
 	{
 	public:
 #include "../generated/C_BaseCombatCharacter_h"
