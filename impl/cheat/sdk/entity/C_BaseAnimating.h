@@ -39,6 +39,6 @@ namespace cheat::csgo
 		bool ShouldSkipAnimationFrame(/*float current_time*/);
 		void StandardBlendingRules(CStudioHdr* hdr, utl::Vector pos[], QuaternionAligned q[], float current_time, int bone_mask);
 
-		csgo::CUtlVector<CAnimationLayer>& GetAnimOverlays();
+		CUtlVector<CAnimationLayer>& GetAnimOverlays( );
 	};
 }

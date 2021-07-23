@@ -158,7 +158,7 @@ string console::Get_loaded_message( ) const
 #ifdef CHEAT_HAVE_CONSOLE
 	return service_shared::Get_loaded_message( );
 #else
-	return this->Get_loaded_message_disabled()
+	return this->Get_loaded_message_disabled( );
 #endif
 }
 

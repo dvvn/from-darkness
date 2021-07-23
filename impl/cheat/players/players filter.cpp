@@ -6,7 +6,7 @@ using namespace detail;
 using namespace csgo;
 using namespace utl;
 
-static bool _Player_pass_flags(const player::shared_type& p, const players_filter_flags& f)
+static bool _Player_pass_flags(const player_shared& p, const players_filter_flags& f)
 {
 	if (!p)
 		return false;

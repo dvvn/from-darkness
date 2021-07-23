@@ -90,7 +90,7 @@ struct netvar_info: variable_info
 };
 
 template <typename Nstr>
-static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, string&& type)
+static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, [[maybe_unused]] string&& type)
 {
 	const auto path = property_tree::ptree::path_type(string(forward<Nstr>(name)));
 	if (const auto exists = storage.get_child_optional(path);
@@ -234,6 +234,7 @@ static string _Recv_prop_type(const RecvProp& prop)
 	}
 }
 
+[[maybe_unused]]
 static string _Datamap_field_type(const typedescription_t& field)
 {
 	switch (field.fieldType)
@@ -329,7 +330,7 @@ static string _Datamap_field_type(const typedescription_t& field)
 	}
 }
 
-static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::ptree& tree, RecvTable* recv_table, int offset)
+static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::ptree& tree, const RecvTable* recv_table, int offset)
 {
 	static constexpr auto prop_is_length_proxy = [](const RecvProp& prop)
 	{
@@ -374,6 +375,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 
 	for (auto itr = props.begin( ); itr != props.end( ); ++itr)
 	{
+		// ReSharper disable once CppUseStructuredBinding
 		const auto& prop = *itr;
 		BOOST_ASSERT(prop.m_pVarName != nullptr);
 		const auto prop_name = string_view(prop.m_pVarName);
@@ -441,7 +443,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 						netvar_type = _Array_type_string(type, *array_size);
 					}
 #else
-					const auto netvar_type = nullptr;
+					string netvar_type;
 #endif
 					_Save_netvar(tree, real_prop_name, real_prop_offset, move(netvar_type));
 					itr += *array_size - 1;
@@ -685,6 +687,7 @@ void netvars::Post_load( )
 #endif
 }
 
+[[maybe_unused]]
 static string _Get_checksum(const filesystem::path& p, bool first_time)
 {
 	auto checksum = string( );
@@ -695,11 +698,13 @@ static string _Get_checksum(const filesystem::path& p, bool first_time)
 	return checksum;
 }
 
+[[maybe_unused]]
 static string _Get_checksum(const string_view& s)
 {
 	return to_string(invoke(std::hash<string_view>( ), s));
 }
 
+[[maybe_unused]]
 static string _Get_checksum(const std::ostringstream& ss)
 {
 	return _Get_checksum(ss.str( ));
@@ -707,7 +712,7 @@ static string _Get_checksum(const std::ostringstream& ss)
 
 void netvars::Dump_netvars_( )
 {
-	const auto netvars_dump_dir = filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
+	static const auto netvars_dump_dir = filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
 	const auto first_time = create_directories(netvars_dump_dir);
 
 	constexpr auto get_file_name = []
@@ -747,7 +752,11 @@ void netvars::Dump_netvars_( )
 
 void netvars::Generate_classes_( )
 {
-	const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
+#ifndef CHEAT_NETVARS_RESOLVE_TYPE
+	(void)this;
+#else
+
+	static const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
 #if 0
 	remove_all(dir);
 	create_directories(dir);
@@ -848,6 +857,8 @@ void netvars::Generate_classes_( )
 
 #ifdef CHEAT_HAVE_CONSOLE
 	console::get_ptr( )->write_line("Netvars classes generation done");
+#endif
+
 #endif
 }
 

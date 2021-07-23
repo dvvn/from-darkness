@@ -17,17 +17,15 @@ namespace cheat
 
 	protected:
 		void Load( ) override;
-	utl::string Get_loaded_message( ) const override;
+		utl::string Get_loaded_message( ) const override;
 
 	private:
-		bool  write_redirected__ = false;
+		bool write_redirected__ = false;
 		FILE* write__ = nullptr;
 
 		bool console_allocated__ = false;
 		HWND console_window__ = nullptr;
 
 		void Wait_for_write_( ) const;
-	
-	
 	};
 }

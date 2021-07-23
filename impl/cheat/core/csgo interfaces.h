@@ -100,16 +100,12 @@ namespace cheat::detail
 
 		bool Is_null_( ) const
 		{
-			constexpr auto extra_deref = detail::_Count_pointers<raw_pointer>( ) - 1;
-			if constexpr (extra_deref == 0)
-			{
-				return this->empty( );
-			}
-			else
-			{
-				if (this->empty( ))
-					return true;
+			if (this->empty( ))
+				return true;
 
+			constexpr auto extra_deref = detail::_Count_pointers<raw_pointer>( ) - 1;
+			if constexpr (extra_deref > 0)
+			{
 				auto addr = result_.value( );
 				for (size_t deref = 0; deref < extra_deref; ++deref)
 				{
@@ -117,8 +113,9 @@ namespace cheat::detail
 					if (addr == 0u)
 						return true;
 				}
-				return false;
 			}
+
+			return false;
 		}
 
 	public:

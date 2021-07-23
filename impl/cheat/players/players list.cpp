@@ -1,4 +1,5 @@
 #include "players list.h"
+#include "player.h"
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/renderer.h"
@@ -12,21 +13,6 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 using namespace utl;
-
-player::tick_record::tick_record([[maybe_unused]] player& holder)
-{
-#ifndef CHEAT_NETVARS_UPDATING
-	auto ent = holder.ent;
-	this->origin = invoke(&C_BaseEntity::m_vecOrigin, ent);
-	this->abs_origin = ent->m_vecAbsOrigin( );
-	this->rotation = ent->m_angRotation( );
-	this->abs_rotation = ent->m_angAbsRotation( );
-	this->mins = ent->m_vecMins( );
-	this->maxs = ent->m_vecMaxs( );
-	this->sim_time = holder.sim_time;
-	this->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
-#endif
-}
 
 players_list::players_list( )
 {
@@ -68,16 +54,28 @@ void players_list::update( )
 	}
 
 	C_CSPlayer* const local_player = interfaces.local_player;
-	const auto local_player_index = local_player->EntIndex( );
 	const auto local_player_team = static_cast<m_iTeamNum_t>(local_player->m_iTeamNum( ));
-	const auto local_player_alive = local_player->m_iHealth( ) > 0;
+	const auto local_player_alive = local_player->IsAlive( ) ;
+
+	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)
+	{
+		C_CSPlayer* ret;
+
+		if (idx == local_player_index)
+			ret = nullptr;
+		else
+			ret = static_cast<C_CSPlayer*>(interfaces.entity_list->GetClientEntity(idx));
+
+		return ret;
+	};
+
+	const auto fixed_curtime = interfaces.global_vars->curtime; //todo
 
 	for (auto i = 1; i <= max_clients; ++i)
 	{
-		const auto ent = i == local_player_index
-						 ? nullptr
-						 : static_cast<C_CSPlayer*>(interfaces.entity_list->GetClientEntity(i));
+		const auto ent = ent_by_index(i);
 		auto& obj = storage__[i];
+		auto& obj_shared = obj.share( );
 
 		if (ent == nullptr)
 		{
@@ -89,10 +87,10 @@ void players_list::update( )
 			continue;
 		}
 
-		if (obj == nullptr || obj->ent != ent /*|| obj->index( ) != i*/)
+		if (obj == nullptr || obj_shared->ent != ent /*|| obj->index( ) != i*/)
 		{
 			storage_updated = true;
-			player_shared new_obj;
+			players_list_container::value_type new_obj;
 			new_obj.init(ent);
 			obj = move(new_obj);
 		}
@@ -107,11 +105,11 @@ void players_list::update( )
 		bool update_animations;
 		bool store_tick;
 
-		if (ent->m_iHealth( ) > 0)
+		if (ent->IsAlive( ))
 		{
-			if (!obj->alive)
+			if (!obj_shared->alive)
 			{
-				obj->alive = true;
+				obj_shared->alive = true;
 				storage_updated = true;
 			}
 
@@ -120,9 +118,9 @@ void players_list::update( )
 		}
 		else
 		{
-			if (obj->alive)
+			if (obj_shared->alive)
 			{
-				obj->alive = false;
+				obj_shared->alive = false;
 				storage_updated = true;
 			}
 
@@ -138,9 +136,9 @@ void players_list::update( )
 
 		if (ent->IsDormant( ))
 		{
-			if (obj->dormant == false)
+			if (obj_shared->dormant == false)
 			{
-				obj->dormant = true;
+				obj_shared->dormant = true;
 				storage_updated = true;
 			}
 			update_animations = false;
@@ -148,9 +146,9 @@ void players_list::update( )
 		}
 		else
 		{
-			if (obj->dormant == true)
+			if (obj_shared->dormant == true)
 			{
-				obj->dormant = false;
+				obj_shared->dormant = false;
 				store_tick = false;
 				storage_updated = true;
 			}
@@ -170,12 +168,14 @@ void players_list::update( )
 		if (update_animations)
 		{
 			ent->m_bClientSideAnimation( ) = true;
+
 			obj.update_animations(store_tick == false);
-			ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, interfaces.global_vars->curtime);
+			ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, fixed_curtime);
+
 			ent->m_bClientSideAnimation( ) = false;
 		}
 
-		obj.remove_old_ticks( );
+		obj.remove_old_ticks(fixed_curtime);
 	}
 
 	if (storage_updated)

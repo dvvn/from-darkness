@@ -98,6 +98,8 @@
 #include <variant>
 #include <vector>
 
+#include <include/veque.hpp>
+
 //#define FT2_BUILD_LIBRARY
 
 //#define BOOST_CONTAINER_CONTAINER_VECTOR_HPP
@@ -273,10 +275,12 @@ namespace std::chrono
 #define IM_ASSERT BOOST_ASSERT
 #define IM_ASSERT_USER_ERROR BOOST_ASSERT_MSG
 #define ImDrawIdx size_t
+// ReSharper disable CppWrongIncludesOrder
 #include <backends/imgui_impl_dx9.h>
 #include <backends/imgui_impl_win32.h>
-#include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
+#include <imgui_internal.h>
+// ReSharper restore CppWrongIncludesOrder
 
 //#include <WinReg/WinReg.hpp>
 
@@ -351,6 +355,8 @@ namespace cheat::utl
 #else
 	//todo
 #endif
+
+	using veque::veque;
 
 	using std::set;
 	using std::map;
@@ -538,14 +544,16 @@ namespace std
 #include "cheat/utils/Vector4D.hpp"
 #include "cheat/utils/VMatrix.hpp"
 
-#if defined(_DEBUG) || defined(CHEAT_GUI_TEST)
+//#define CHEAT_NETVARS_UPDATING
+
+#if defined(_DEBUG) || defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_HAVE_CONSOLE
 #endif
 
 #define CHEAT_OUTPUT_DIR _STRINGIZE_R(VS_OutputDir)"\\"
 #define CHEAT_SOLUTION_DIR _STRINGIZE_R(VS_SolutionDir)"\\"
 #define CHEAT_NAME _STRINGIZE(VS_SolutionName)
-#define CHEAT_DUMPS_DIR CHEAT_OUTPUT_DIR _STRINGIZE_R(dumps\)
+#define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR _STRINGIZE_R(.out\dumps\)
 #define CHEAT_IMPL_DIR CHEAT_SOLUTION_DIR _STRINGIZE_R(impl\cheat\)
 
 #define CHEAT_CURRENT_FILE_PATH\

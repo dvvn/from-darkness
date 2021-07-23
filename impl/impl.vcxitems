@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\console.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\helpers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu.h" />
@@ -49,6 +50,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\vtable_counter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\root service.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\shared holder.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\tick record.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -172,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\helpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu.cpp" />
@@ -204,6 +209,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player shared.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick record.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -240,6 +246,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IConVar.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\ICvar.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />

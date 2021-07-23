@@ -1,5 +1,5 @@
 #pragma once
-#include "cheat/utl::Color.hpp"
+#include "UtlVector.hpp"
 
 namespace cheat::csgo
 {
@@ -54,6 +54,7 @@ namespace cheat::csgo
 	// NOTE: For FCVAR_NEVER_AS_STRING ConVars, pOldValue == 0
 	//-----------------------------------------------------------------------------
 	typedef void (*FnChangeCallback_t)(IConVar* var, const char* pOldValue, float flOldValue);
+		typedef void(*FnChangeCallbackV1_t)(void);
 
 	//-----------------------------------------------------------------------------
 	// Abstract interface for ConVars
@@ -70,4 +71,69 @@ namespace cheat::csgo
 		virtual bool IsFlagSet(int nFlag) const = 0;
 		virtual int GetSplitScreenPlayerSlot( ) const = 0;
 	};
+
+
+	struct CVValue_t
+{
+	char* m_pszString;
+	int m_StringLength;
+
+	// Values
+	float m_fValue;
+	int m_nValue;
+};
+
+
+
+		class ConVar
+{
+public:
+	const char* GetString();
+	float GetFloat();
+	int GetInt();
+
+	void SetValue(const char *value);
+	void SetValue(float value);
+	void SetValue(int value);
+
+	/*void SetValue(color_t value)
+	{
+	typedef void(__thiscall* SetValue_t)(void*, color_t);
+	return getvfunc<SetValue_t>(this, 17)(this, value);
+	}
+	*/
+
+
+	char* GetName();
+private:
+	void* virtualtable;
+public:
+	ConVar* m_pNext;
+	int m_bRegistered;
+	char* m_pszName;
+	char* m_pszHelpString;
+	ConVarFlags m_nFlags;
+	FnChangeCallbackV1_t m_fnChangeCallbacksV1;
+	ConVar* m_pParent;
+	char* m_pszDefaultValue;
+	CVValue_t m_Value;
+	int m_bHasMin;
+	float m_fMinVal;
+	int m_bHasMax;
+	float m_fMaxVal;
+	CUtlVector<FnChangeCallback_t> m_fnChangeCallbacks; // note: this is also accessible as FnChangeCallback_t* instead of CUtlVector
+
+	/*float GetValue();
+	int GetValueN();*/
+	bool GetBool();
+
+private:
+			template<typename T>
+			void SetValue_([[maybe_unused]] T val)
+			{
+				BOOST_ASSERT("Added only for example");
+				(void)this;
+			}
+
+};//Size=0x0048*
 }
