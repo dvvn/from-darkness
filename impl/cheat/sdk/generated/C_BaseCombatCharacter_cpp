@@ -75,3 +75,13 @@ utl::array<int32_t, 1>& C_BaseCombatCharacter::m_hMyWearables( )
 	return addr.ref<utl::array<int32_t, 1>>( );
 #endif
 }
+int32_t& C_BaseCombatCharacter::m_iAmmo( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter.m_iAmmo");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}

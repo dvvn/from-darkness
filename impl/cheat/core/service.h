@@ -51,6 +51,15 @@ namespace cheat
 				Wait_for_add_impl_(S::get_shared( ));
 			}
 
+			template <awaitable_service S>
+			void Wait_for_weak( )
+			{
+				auto s = S::get_shared( );
+				if (Find_recursuve_(s))
+					return;
+				Wait_for_add_impl_(utl::move(s));
+			}
+
 		private:
 			void Print_loaded_message_( ) const;
 			void Wait_for_add_impl_(service_shared&& service);

@@ -55,6 +55,7 @@ vtables_storage::vtables_storage(address addr, size_t bytes_count, IMAGE_NT_HEAD
 																													  bytes_count__(bytes_count),
 																													  sections__(sections)
 {
+	load_mutex__ = make_shared<mutex>( );
 }
 
 void vtables_storage::set_sections(sections_storage* sections)
@@ -65,6 +66,9 @@ void vtables_storage::set_sections(sections_storage* sections)
 //currently only for x86
 module_info_rw_result vtables_storage::Load_from_memory_impl( )
 {
+	const auto lock = utl::make_lock_guard(*load_mutex__);
+	(void)lock;
+
 #ifdef UTILS_X64
     throw std::runtime_error("todo: x64");
     ///look:

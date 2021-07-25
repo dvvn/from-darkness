@@ -169,7 +169,7 @@ void* cheat::detail::_Vtable_pointer_get(const string_view& from, const string_v
 		BOOST_ASSERT(module_checksum != 0u);
 		auto dumps_path = filesystem::path(CHEAT_DUMPS_DIR _STRINGIZE_R(modules\)) / module_from.name_wide( ) / to_wstring(module_checksum) / L"vtables.json";
 #if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
-		(void)dumps_path;
+		dumps_path.append(""); //const gap
 #else
 		if (!exists(dumps_path))
 			dumps_path.clear( );//prefer to load from memory in release mode
@@ -180,87 +180,17 @@ void* cheat::detail::_Vtable_pointer_get(const string_view& from, const string_v
 		return load_result == success;
 	};
 
-	const auto table_name_hash = invoke(make_default<decltype(std::declval<vtables_storage>( ).get_cache( ).hash_function( ))>( ), table_name);
+	BOOST_ASSERT(!from.empty( ));
 
-	const auto check_specific_module = [&]( )-> void*
+	auto& info = *all_modules::get( ).find(from);
+	const auto& vtables = info.vtables( );
+	const auto& vtables_cache = vtables.get_cache( );
+
+	if (vtables_cache.empty( ))
 	{
-		auto& info = *all_modules::get( ).find(from);
-		const auto& vtables = info.vtables( );
-		const auto& vtables_cache = vtables.get_cache( );
+		[[maybe_unused]] const auto loaded = load_vtables(info);
+		BOOST_ASSERT(loaded==true);
+	}
 
-		if (vtables_cache.empty( ))
-		{
-			[[maybe_unused]] const auto loaded = load_vtables(info);
-			BOOST_ASSERT(loaded==true);
-		}
-
-		return vtables_cache.at(table_name, table_name_hash).addr.raw<void>( );
-	};
-	const auto check_all_modules = [&]( )-> void*
-	{
-		static constexpr auto to_str_lower = [](const wstring_view& str)
-		{
-			auto tmp = basic_string(str);
-			ranges::transform(tmp, tmp.begin( ), towlower);
-			return tmp;
-		};
-
-		static const auto csgo_dir = to_str_lower(all_modules::get( ).owner( ).work_dir( ));
-
-		for (auto&& info: all_modules::get( ).all( ) | ranges::views::transform([](module_info& i) { return addressof(i); }))
-		{
-			auto& vtables_cache = info->vtables( ).get_cache( );
-
-			// ReSharper disable once CppTooWideScopeInitStatement
-			const auto class_contains_vtables = [&]( )-> bool
-			{
-				if (!vtables_cache.empty( ))
-					return true;
-
-				static unordered_set<module_info*> uselles_infos;
-				if (uselles_infos.contains(info))
-					return false;
-
-				const auto dir_sv = info->work_dir( );
-
-				const auto wrong_dir = [&]
-				{
-					if (dir_sv.size( ) <= csgo_dir.size( ))
-						return true;
-					if (to_str_lower(dir_sv).starts_with(csgo_dir) == false)
-						return true;
-
-					return false;
-				};
-
-				// ReSharper disable once CppTooWideScopeInitStatement
-				const auto no_vtables = [&]
-				{
-					return load_vtables(*info) == false;
-				};
-
-				if (wrong_dir( ) || no_vtables( ))
-				{
-					uselles_infos.insert(info);
-					return false;
-				}
-
-				return true;
-			};
-
-			if (!class_contains_vtables( ))
-				continue;
-			const auto found = vtables_cache.find(table_name, table_name_hash);
-			if (found == vtables_cache.end( ))
-				continue;
-
-			return found.value( ).addr.raw<void>( );
-		}
-
-		return nullptr;
-	};
-
-	return from.empty( )
-		   ? check_all_modules( )
-		   : check_specific_module( );
+	return vtables_cache.at(table_name).addr.raw<void>( );
 }

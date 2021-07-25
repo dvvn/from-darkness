@@ -639,7 +639,7 @@ void netvars::Load( )
 
 	_Iterate_client_class(data__, interfaces.client->GetAllClasses( ));
 
-	const auto baseent = _Vtable_pointer<C_BaseEntity>(
+	const auto baseent = _Vtable_pointer<C_BaseEntity>("client.dll",
 #ifndef CHEAT_NETVARS_UPDATING
 													   &csgo_interfaces::local_player
 #endif
@@ -674,9 +674,14 @@ void netvars::Post_load( )
 static string _Get_checksum(const filesystem::path& p, bool first_time)
 {
 	auto checksum = string( );
-	using itr_t = std::istreambuf_iterator<char>;
-	if (auto ifs = std::ifstream(p); !first_time && exists(p) && !ifs.fail( ))
-		checksum = {itr_t(ifs), itr_t( )};
+
+	if (!first_time && exists(p))
+	{
+		auto ifs = std::ifstream(p);
+		using itr_t = std::istreambuf_iterator<char>;
+		if (!ifs.fail( ))
+			checksum = {itr_t(ifs), itr_t( )};
+	}
 
 	return checksum;
 }

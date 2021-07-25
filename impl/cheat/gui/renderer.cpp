@@ -19,12 +19,16 @@ renderer::renderer( )
 
 renderer::~renderer( )
 {
-	auto test = method_info::make_member_virtual(csgo_interfaces::get( ).d3d_device.get( ), 1);
-	if (!test.update( ))
-		return;
-	if (!memory_block(test.get( )).executable( )) //if not - game closed
-		return;
-	ImGui_ImplDX9_Shutdown( );
+	invoke([]
+	{
+		__try
+		{
+			ImGui_ImplDX9_Shutdown( );
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+		}
+	});
 }
 
 void renderer::Load( )

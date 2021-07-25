@@ -127,3 +127,4 @@ int32_t& m_hSurvivalAssassinationTarget( );
 float& m_flHealthShotBoostExpirationTime( );
 float& m_flLastExoJumpTime( );
 utl::array<int32_t, 5>& m_vecPlayerPatchEconIndices( );
+float& m_flCycle( );

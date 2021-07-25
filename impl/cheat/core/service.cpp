@@ -146,7 +146,7 @@ void service_base::Wait_for_add_impl_(service_shared&& service)
 {
 	BOOST_ASSERT_MSG(creator__ == this_thread::get_id( ), "Unable to modify service from other thread!");
 	BOOST_ASSERT_MSG(service->load_task__.get_state( ) == uninitialized, "Unable to add service while load task is set!");
-#if 0
+#if 1
 	BOOST_ASSERT_MSG(!Find_recursuve_(service), "Some internal service already wait for addable service");
 #endif
 	BOOST_ASSERT_MSG(!wait_for__.contains(service), "Service already added!");

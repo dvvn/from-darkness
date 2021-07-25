@@ -22,7 +22,7 @@ void standard_blending_rules::Load( )
 #if !defined(CHEAT_GUI_TEST)
 
 	const auto offset = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).value( ) / 4;
-	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseAnimating>, &csgo_interfaces::local_player), offset);
+	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseAnimating>,"client.dll", &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );

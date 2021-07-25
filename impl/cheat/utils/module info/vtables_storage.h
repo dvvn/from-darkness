@@ -34,6 +34,7 @@ namespace cheat::utl::detail
 	private:
 		size_t bytes_count__;
 		sections_storage* sections__;
+		utl::shared_ptr<mutex> load_mutex__;
 	};
 
 	//since cache added this is uselles

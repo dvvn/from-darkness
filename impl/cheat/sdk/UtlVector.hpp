@@ -764,6 +764,8 @@ public:
 	public:
 		using CAllocator = A;
 
+		CUtlVector( ) = delete;
+
 		T* begin( ) noexcept
 		{
 			return pMemory.data( );

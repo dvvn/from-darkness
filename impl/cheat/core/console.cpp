@@ -55,7 +55,7 @@ static string _Get_time_str( )
 	const auto time = chrono::system_clock::to_time_t(now);
 
 	tm timeinfo;
-	auto result = localtime_s(&timeinfo, &time);
+	const auto result = localtime_s(&timeinfo, &time);
 	(void)result;
 	BOOST_ASSERT(result == 0);
 
@@ -140,7 +140,7 @@ void console::Load( )
 			write_redirected__ = true;
 		}
 
-		auto full_path = /*basic_string*/all_modules::get( ).current( ).full_path( );
+		const auto full_path = /*basic_string*/all_modules::get( ).current( ).full_path( );
 		//ranges::replace(full_path, '\\', '/');
 		(void)full_path;
 
@@ -221,8 +221,7 @@ void console::write(const string_view& str) const
 	{
 		BOOST_ASSERT(str.size( ) > 1);
 		Wait_for_write_( );
-		auto written = std::fwrite(str.data( ), sizeof(string_view::value_type), str.size( ), write__);
-		(void)written;
+		[[maybe_unused]] const auto written = std::fwrite(str.data( ), sizeof(string_view::value_type), str.size( ), write__);
 		BOOST_ASSERT(written == str.size( ));
 	}
 }
@@ -279,7 +278,7 @@ void console::write_line(const string_view& str) const
 void console::write_char(char c) const
 {
 	Wait_for_write_( );
-	auto written = std::fputc(c, write__);
+	const auto written = std::fputc(c, write__);
 	(void)written;
 	BOOST_ASSERT(written == c);
 }

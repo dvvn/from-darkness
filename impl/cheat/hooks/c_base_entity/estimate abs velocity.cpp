@@ -23,7 +23,7 @@ void estimate_abs_velocity::Load( )
 #if !defined(CHEAT_GUI_TEST)
 
 	const auto offset = _Find_signature("client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).value( ) / 4;
-	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseEntity>, &csgo_interfaces::local_player), offset);
+	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseEntity>,"client.dll", &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );

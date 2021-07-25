@@ -225,14 +225,14 @@ float& C_BasePlayer::m_flFriction( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_BasePlayer::m_fOnTarget( )
+bool& C_BasePlayer::m_fOnTarget( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_fOnTarget");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<bool>( );
 #endif
 }
 int32_t& C_BasePlayer::m_nTickBase( )
@@ -505,14 +505,14 @@ int32_t& C_BasePlayer::m_iHealth( )
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_BasePlayer::m_lifeState( )
+int8_t& C_BasePlayer::m_lifeState( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int8_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_lifeState");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int8_t>( );
 #endif
 }
 utl::array<int32_t, 32>& C_BasePlayer::m_iAmmo( )
@@ -775,13 +775,193 @@ float& C_BasePlayer::m_flDuckSpeed( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_BasePlayer::m_nWaterLevel( )
+int8_t& C_BasePlayer::m_nWaterLevel( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int8_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nWaterLevel");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<int8_t>( );
+#endif
+}
+utl::Vector& C_BasePlayer::m_oldOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_oldOrigin");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+#endif
+}
+bool& C_BasePlayer::m_bTouchedPhysObject( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bTouchedPhysObject");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_BasePlayer::m_bPhysicsWasFrozen( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bPhysicsWasFrozen");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+utl::Vector& C_BasePlayer::m_vNewVPhysicsPosition( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vNewVPhysicsPosition");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+#endif
+}
+utl::Vector& C_BasePlayer::m_vNewVPhysicsVelocity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vNewVPhysicsVelocity");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
+#endif
+}
+int32_t& C_BasePlayer::m_nButtons( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nWaterLevel");
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nButtons");
 	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+float& C_BasePlayer::m_flWaterJumpTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flWaterJumpTime");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int32_t& C_BasePlayer::m_nImpulse( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_nImpulse");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+float& C_BasePlayer::m_flStepSoundTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flStepSoundTime");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_BasePlayer::m_flSwimSoundTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flSwimSoundTime");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_BasePlayer::m_ignoreLadderJumpTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_ignoreLadderJumpTime");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+bool& C_BasePlayer::m_bHasWalkMovedSinceLastJump( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_bHasWalkMovedSinceLastJump");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+int32_t& C_BasePlayer::m_flPhysics( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_flPhysics");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BasePlayer::m_afButtonLast( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_afButtonLast");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BasePlayer::m_afButtonPressed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_afButtonPressed");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BasePlayer::m_afButtonReleased( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_afButtonReleased");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+float& C_BasePlayer::m_surfaceFriction( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_surfaceFriction");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+utl::Vector& C_BasePlayer::m_vecPreviouslyPredictedOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(utl::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_vecPreviouslyPredictedOrigin");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<utl::Vector>( );
 #endif
 }

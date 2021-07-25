@@ -3423,6 +3423,10 @@
         "m_vecPlayerPatchEconIndices": {
             "offset": "47476",
             "type": "utl::array<int32_t, 5>"
+        },
+        "m_flCycle": {
+            "offset": "2580",
+            "type": "float"
         }
     },
     "C_PlayerPing": {
@@ -6116,7 +6120,7 @@
         },
         "m_fOnTarget": {
             "offset": "13092",
-            "type": "int32_t"
+            "type": "bool"
         },
         "m_nTickBase": {
             "offset": "13360",
@@ -6228,7 +6232,7 @@
         },
         "m_lifeState": {
             "offset": "607",
-            "type": "int32_t"
+            "type": "int8_t"
         },
         "m_iAmmo": {
             "offset": "11640",
@@ -6336,7 +6340,79 @@
         },
         "m_nWaterLevel": {
             "offset": "606",
+            "type": "int8_t"
+        },
+        "m_oldOrigin": {
+            "offset": "12896",
+            "type": "utl::Vector"
+        },
+        "m_bTouchedPhysObject": {
+            "offset": "12908",
+            "type": "bool"
+        },
+        "m_bPhysicsWasFrozen": {
+            "offset": "12909",
+            "type": "bool"
+        },
+        "m_vNewVPhysicsPosition": {
+            "offset": "12912",
+            "type": "utl::Vector"
+        },
+        "m_vNewVPhysicsVelocity": {
+            "offset": "12924",
+            "type": "utl::Vector"
+        },
+        "m_nButtons": {
+            "offset": "12792",
             "type": "int32_t"
+        },
+        "m_flWaterJumpTime": {
+            "offset": "12812",
+            "type": "float"
+        },
+        "m_nImpulse": {
+            "offset": "12796",
+            "type": "int32_t"
+        },
+        "m_flStepSoundTime": {
+            "offset": "12828",
+            "type": "float"
+        },
+        "m_flSwimSoundTime": {
+            "offset": "12816",
+            "type": "float"
+        },
+        "m_ignoreLadderJumpTime": {
+            "offset": "12820",
+            "type": "float"
+        },
+        "m_bHasWalkMovedSinceLastJump": {
+            "offset": "12824",
+            "type": "bool"
+        },
+        "m_flPhysics": {
+            "offset": "12804",
+            "type": "int32_t"
+        },
+        "m_afButtonLast": {
+            "offset": "12780",
+            "type": "int32_t"
+        },
+        "m_afButtonPressed": {
+            "offset": "12784",
+            "type": "int32_t"
+        },
+        "m_afButtonReleased": {
+            "offset": "12788",
+            "type": "int32_t"
+        },
+        "m_surfaceFriction": {
+            "offset": "12844",
+            "type": "float"
+        },
+        "m_vecPreviouslyPredictedOrigin": {
+            "offset": "13736",
+            "type": "utl::Vector"
         }
     },
     "C_BaseFlex": {
@@ -6693,6 +6769,10 @@
         "m_hMyWearables": {
             "offset": "12036",
             "type": "utl::array<int32_t, 1>"
+        },
+        "m_iAmmo": {
+            "offset": "11640",
+            "type": "int32_t"
         }
     },
     "C_BaseAnimatingOverlay": {
@@ -6780,7 +6860,7 @@
         },
         "m_flEncodedController": {
             "offset": "2644",
-            "type": "utl::array<float, 4>"
+            "type": "float"
         },
         "m_bClientSideAnimation": {
             "offset": "10396",
@@ -6804,7 +6884,7 @@
         },
         "m_nMuzzleFlashParity": {
             "offset": "2660",
-            "type": "int32_t"
+            "type": "int8_t"
         },
         "m_hLightingOrigin": {
             "offset": "10564",

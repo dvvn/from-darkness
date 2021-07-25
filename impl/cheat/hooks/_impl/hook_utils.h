@@ -173,7 +173,7 @@ namespace cheat::hooks
 		{
 			Fn_as callable;
 			reinterpret_cast<void*&>(callable) = reinterpret_cast<void*&>(func_ptr);
-			return callable(utl::forward<Args>(args)...);
+			return utl::invoke(callable, utl::forward<Args>(args)...);
 		}
 	}
 
@@ -299,14 +299,14 @@ namespace cheat::hooks
 	Ret _Call_function(Ret (__stdcall *fn )(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::stdcall__);
-		return fn(args...);
+		return utl::invoke(fn, args...);
 	}
 
 	template <typename Ret, typename ...Args>
 	Ret _Call_function(Ret (__cdecl *fn )(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::cdecl__);
-		return fn(args...);
+		return utl::invoke(fn, args...);
 	}
 #pragma endregion
 
@@ -495,13 +495,13 @@ namespace cheat::hooks
 		virtual bool hooked( ) const = 0;
 		virtual bool enabled( ) const = 0;
 
-		struct info: utl::one_instance<info>
+		/*struct info: utl::one_instance<info>
 		{
 			using holder = utl::atomic<hook_holder_base*>;
 
 			holder last_func = nullptr;
 			holder current_func = nullptr;
-		};
+		};*/
 	};
 
 	namespace detail
@@ -576,7 +576,7 @@ namespace cheat::hooks
 		protected:
 			//using hook_callback_type = hook_callback<Ret, Call_cvs, C, Is_const, Args...>;
 
-			hook_callback<Ret, Call_cvs, C, /*Is_const,*/ Args...>* cast_hook_callback( )
+			hook_callback<Ret, Call_cvs, C, /*Is_const,*/ Args...>* cast_hook_callback( ) 
 			{
 				return this;
 			}
@@ -626,46 +626,50 @@ namespace cheat::hooks
 			Ret callback_proxy_impl(std::type_identity_t<Args> ...args)
 			{
 				Unset_instance_assert_( );
-				hook_holder_impl& inst = *this_instance__;
-				inst.target_instance__ = is_static ? nullptr : reinterpret_cast<C*>(cast_hook_callback( )); //cast this to current vtable first!
 
-				auto& info = info::get( );
-				info.current_func = this_instance__;
-
-				return_value_holder& result = inst.return_value_;
-				if (inst.call_original_first_)
-					inst.call_original_ex(static_cast<Args>(args)...);
-				else
-					result.reset( );
-				inst.Callback(utl::forward<Args>(args)...);
-				if (result.empty( ))
-					inst.call_original_ex(static_cast<Args>(args)...);
-
-				info.last_func = this_instance__;
-				info.current_func = nullptr;
-
-				if (inst.safe__.unhook)
-					inst.unhook( );
-				else if (inst.safe__.disable)
-					inst.disable( );
-
-				if constexpr (have_return_value)
-					return result.get( );
+				this_instance__->target_instance__ = is_static ? nullptr : reinterpret_cast<C*>(this->cast_hook_callback( ));
+				return this_instance__->callback_proxy_impl_body(utl::forward<Args>(args)...);
 			}
 
+		private:
+			// ReSharper disable once CppNotAllPathsReturnValue
+			Ret callback_proxy_impl_body(std::type_identity_t<Args> ...args)
+			{
+				Unmanaged_call_assert( );
+
+				if (call_original_first_)
+					this->call_original_ex(static_cast<Args>(args)...);
+				else
+					return_value_.reset( );
+
+				this->Callback(utl::forward<Args>(args)...);
+
+				if (return_value_.empty( ))
+					this->call_original_ex(static_cast<Args>(args)...);
+
+				if (safe__.unhook)
+					this->unhook( );
+				else if (safe__.disable)
+					this->disable( );
+
+				if constexpr (have_return_value)
+					return return_value_.get( );
+			}
+
+		protected:
 			//call original and store result to use later
 			auto call_original_ex(std::type_identity_t<Args> ...args)
 			{
 				Unmanaged_call_assert( );
 				if constexpr (have_return_value)
 				{
-					return_value_.store_value(call_original(static_cast<Args>(args)...));
+					return_value_.store_value(this->call_original(static_cast<Args>(args)...));
 					if constexpr (std::is_copy_constructible_v<Ret> && std::is_trivially_destructible_v<Ret>)
 						return return_value_.get( );
 				}
 				else
 				{
-					call_original(static_cast<Args>(args)...);
+					this->call_original(static_cast<Args>(args)...);
 					return_value_.set_original_called(true);
 				}
 			}
@@ -740,7 +744,7 @@ namespace cheat::hooks
 			{
 				//Unset_instance_assert_( );
 				Unmanaged_call_assert( );
-				auto&& original = Recreate_original_type_(original_func__);
+				auto original = Recreate_original_type_(original_func__);
 				if constexpr (is_static)
 					return _Call_function(original, (args)...);
 				else

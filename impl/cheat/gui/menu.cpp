@@ -18,10 +18,6 @@ using namespace widgets;
 menu::menu( )
 {
 	this->Wait_for<settings>( );
-#ifdef _DEBUG
-	this->Wait_for<hooks::input::wndproc>( );
-	this->Wait_for<hooks::c_base_animating::should_skip_animation_frame>( );
-#endif
 
 	constexpr auto iso_date = []( )-> string_view
 	{
@@ -154,7 +150,7 @@ void menu::Load( )
 	}( ));
 	renderer__.add_page({"settings", settings::get_ptr( )});
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && false
 	renderer__.add_page([]
 	{
 		auto debug_abstract = abstract_page( );
