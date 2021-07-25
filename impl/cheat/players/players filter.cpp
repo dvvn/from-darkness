@@ -13,16 +13,17 @@ static bool _Player_pass_flags(const player_shared& p, const players_filter_flag
 
 	const auto ent = p->ent;
 
-	if (f.alive != ent->m_iHealth( ) > 0)
+	const auto ent_team = static_cast<m_iTeamNum_t>(ent->m_iTeamNum( ));
+	if (ent_team == TEAM_Unknown)
+		return false;
+
+	if (f.alive != ent->IsAlive( ))
 		return false;
 	if (f.dormant != ent->IsDormant( ))
 		return false;
 	if (f.immune != ent->m_bGunGameImmunity( ))
 		return false;
 
-	const auto ent_team = static_cast<m_iTeamNum_t>(ent->m_iTeamNum( ));
-	if (ent_team == TEAM_Unknown)
-		return false;
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto team_checker =
 			overload([&](const players_filter_flags::team_filter& tf)
@@ -80,7 +81,10 @@ players_filter& players_filter::set_flags(const players_filter_flags& f)
 
 players_filter players_filter::set_flags(const players_filter_flags& f) const
 {
-	return players_filter(items__, f);
+	if (flags__ != f)
+		return players_filter(items__, f);
+
+	return *this;
 }
 
 const players_filter_flags& players_filter::flags( ) const

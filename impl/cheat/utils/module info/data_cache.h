@@ -28,18 +28,18 @@ namespace cheat::utl
 
 			module_info_rw_result load( );
 			module_info_rw_result load_from_memory( );
-			bool                  change_base_address(address new_addr);
+			bool change_base_address(address new_addr);
 
 		protected:
 			virtual bool Cache_empty_impl( ) const = 0;
 			virtual void Cache_reserve_impl(size_t capacity) = 0;
 
 			virtual module_info_rw_result Load_from_memory_impl( ) = 0;
-			virtual void                  Change_base_address_impl(address new_addr) = 0;
+			virtual void Change_base_address_impl(address new_addr) = 0;
 
 			void Empty_cache_assert( ) const;
 
-			address           base_address = nullptr;
+			address base_address = nullptr;
 			IMAGE_NT_HEADERS* nt = nullptr;
 		};
 
@@ -55,7 +55,7 @@ namespace cheat::utl
 
 			const cache_type& get_cache( ) const
 			{
-				Empty_cache_assert( );
+				//Empty_cache_assert( );
 				return data_cache;
 			}
 

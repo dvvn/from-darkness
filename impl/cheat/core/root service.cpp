@@ -49,18 +49,15 @@ static future<bool> _Wait_for_game( )
 		auto work_dir = filesystem::path(modules.owner( ).work_dir( ));
 		auto& work_dir_native = const_cast<filesystem::path::string_type&>(work_dir.native( ));
 		ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
-		work_dir.append((L"bin")).append((L"serverbrowser.dll"));
+		work_dir.append(L"bin").append(L"serverbrowser.dll");
 
 		auto first_time = true;
 		do
 		{
-			if (all.size( ) >= 160)
+			for (const auto& path: all | ranges::views::transform(&module_info::full_path) | ranges::views::reverse)
 			{
-				for (const auto& path: all | ranges::views::transform(&module_info::full_path) | ranges::views::reverse)
-				{
-					if (path == work_dir_native)
-						return first_time;
-				}
+				if (path == work_dir_native)
+					return first_time;
 			}
 
 			this_thread::sleep_for(chrono::milliseconds(all.size( ) < 50 ? 1000 : 100));
@@ -89,14 +86,20 @@ void root_service::init(HMODULE handle)
 
 		//game loaded, freeze all threads from there
 		const auto game_fully_loaded = *task1.future_->result;
+
 		auto frozen = frozen_threads_storage(game_fully_loaded);
-		auto loader = make_unique<loader_type>( );
+		auto loader = make_unique<loader_type>(
+#if defined(NDEBUG) && 0
+											   thread::hardware_concurrency( ) * 3 + 1
+#endif
+											  );
 
 		static_cast<service_base*>(this)->
 				init(*loader).
 				then(launch::async, [frozen_holder = move(frozen), loader_holder = move(loader), this](const load_task_type& task2) mutable
 				{
-					loader_holder.reset( ); //destroy thread pool and wait for until all threads stop
+					DebugBreak();
+					loader_holder.reset( ); //destroy thread pool and wait until all threads stop
 					if (!task2.has_exception( ))
 					{
 #ifdef CHEAT_HAVE_CONSOLE

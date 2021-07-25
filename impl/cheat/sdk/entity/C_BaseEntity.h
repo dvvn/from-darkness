@@ -163,6 +163,7 @@ enum m_fEffects_t
 		datamap_t* GetPredictionDescMap( );
 
 		void EstimateAbsVelocity(utl::Vector& vel);
-	
+
+		csgo::CUtlVector<utl::matrix3x4_t>& BonesCache();
 	};
 }

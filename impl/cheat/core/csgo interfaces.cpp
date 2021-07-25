@@ -1,5 +1,7 @@
 #include "csgo interfaces.h"
 
+#include "helpers.h"
+
 #include "cheat/sdk/IAppSystem.hpp"
 
 #include "cheat/utils/signature.h"
@@ -13,175 +15,142 @@ class CInterfaceRegister
 {
 public:
 	InstantiateInterfaceFn create_fn;
-	const char*            name;
-	CInterfaceRegister*    next;
+	const char* name;
+	CInterfaceRegister* next;
 };
 
-class interfaces_cache: public one_instance_shared<interfaces_cache>
+class interfaces_cache
 {
+public:
 	using entry_type = unordered_map<string_view, InstantiateInterfaceFn>;
-	unordered_map<module_info*, entry_type> cache__;
+	using cache_type = ordered_map<module_info*, entry_type>;
 
-	struct
-	{
-		string_view module_name;
-		entry_type* entry = nullptr;
-		//-
-	} last_used__;
+private:
+	cache_type cache__;
 
-	entry_type& Get_entry_(const string_view& dll_name)
+	const entry_type& Get_entry_(const string_view& dll_name)
 	{
-		if (last_used__.module_name != dll_name)
+		constexpr auto fill_entry = [](entry_type& entry, module_info* info)
 		{
-			const auto info = all_modules::get( ).find(dll_name);
+			BOOST_ASSERT_MSG(entry.empty(), "Entry already filled!");
 
-			auto& entry = cache__[info];
-			if (entry.empty( ))
-				Fill_entry_(entry, info);
+			auto& exports = info->exports( );
 
-			last_used__.module_name = dll_name;
-			last_used__.entry = addressof(entry);
+			[[maybe_unused]] const auto load_result = exports.load( );
+			BOOST_ASSERT_MSG(load_result != error, "Unable to load exports");
+
+			const auto& create_fn = exports.get_cache( ).at("CreateInterface");
+			const auto reg = create_fn.rel32(0x5).add(0x6).deref(2).raw<CInterfaceRegister>( );
+
+			auto temp_entry = vector<entry_type::value_type>( );
+			for (auto r = reg; r != nullptr; r = r->next)
+				temp_entry.emplace_back(make_pair(string_view(r->name), r->create_fn));
+
+			const auto contains_duplicate = [&](const string_view& new_string, size_t original_size)
+			{
+				auto detected = false;
+				for (auto& raw_string: temp_entry | ranges::views::keys)
+				{
+					if (raw_string.size( ) != original_size)
+						continue;
+					if (!raw_string.starts_with(new_string))
+						continue;
+					if (detected)
+						return true;
+					detected = true;
+				}
+				return false;
+			};
+			const auto drop_underline = [&](const string_view& str, size_t original_size) -> optional<string_view>
+			{
+				if (str.ends_with('_'))
+				{
+					if (const auto str2 = string_view(str.begin( ), str.end( ) - 1); !contains_duplicate(str2, original_size))
+						return str2;
+				}
+				return { };
+			};
+			const auto get_pretty_string = [&](const string_view& str) -> optional<string_view>
+			{
+				size_t remove = 0;
+				for (const auto c: str | ranges::views::reverse)
+				{
+					if (!std::isdigit(c))
+						break;
+
+					++remove;
+				}
+
+				const auto original_size = str.size( );
+
+				if (remove == 0)
+					return drop_underline(str, original_size);
+
+				auto str2 = str;
+				str2.remove_suffix(remove);
+				if (contains_duplicate(str2, original_size))
+					return drop_underline(str, original_size);
+				return drop_underline(str2, original_size).value_or(str2);
+			};
+
+			for (const auto& [name, fn]: temp_entry)
+			{
+				const auto name_pretty = get_pretty_string(name);
+				entry.emplace(name_pretty.value_or(name), fn);
+			}
+		};
+
+		for (const auto& [module, entry]: cache__)
+		{
+			if (module->name( ) == dll_name)
+				return entry;
 		}
-		return *last_used__.entry;
-	}
 
-	static void Fill_entry_(entry_type& entry, module_info* info)
-	{
-		BOOST_ASSERT_MSG(entry.empty(), "Entry already filled!");
+		const auto info = all_modules::get( ).find(dll_name);
 
-		auto& exports = info->exports( );
+		auto& entry = cache__[info];
+		BOOST_ASSERT(entry.empty( ));
+		fill_entry(entry, info);
 
-		auto load_result = exports.load( );
-		(void)load_result;
-		BOOST_ASSERT_MSG(load_result != error, "Unable to load exports");
-
-		const auto& create_fn = exports.get_cache( ).at("CreateInterface");
-		const auto  reg = create_fn.rel32(0x5).add(0x6).deref(2).raw<CInterfaceRegister>( );
-
-		auto temp_entry = vector<decltype(cache__)::mapped_type::value_type>( );
-		for (auto r = reg; r != nullptr; r = r->next)
-			temp_entry.emplace_back(make_pair(string_view(r->name), r->create_fn));
-
-		const auto contains_duplicate = [&](const string_view& new_string, size_t original_size)
-		{
-			auto detected = false;
-			for (auto& raw_string: temp_entry | ranges::views::keys)
-			{
-				if (raw_string.size( ) != original_size)
-					continue;
-				if (!raw_string.starts_with(new_string))
-					continue;
-				if (detected)
-					return true;
-				detected = true;
-			}
-			return false;
-		};
-		const auto drop_underline = [&](const string_view& str, size_t original_size) -> optional<string_view>
-		{
-			if (str.ends_with('_'))
-			{
-				if (const auto str2 = string_view(str.begin( ), str.end( ) - 1); !contains_duplicate(str2, original_size))
-					return str2;
-			}
-			return { };
-		};
-		const auto get_pretty_string = [&](const string_view& str) -> optional<string_view>
-		{
-			size_t remove = 0;
-			for (auto c: str | ranges::views::reverse)
-			{
-				if (!std::isdigit(c))
-					break;
-
-				++remove;
-			}
-
-			const auto original_size = str.size( );
-
-			if (remove == 0)
-				return drop_underline(str, original_size);
-
-			auto str2 = str;
-			str2.remove_suffix(remove);
-			if (contains_duplicate(str2, original_size))
-				return drop_underline(str, original_size);
-			return drop_underline(str2, original_size).value_or(str2);
-		};
-
-		for (const auto& [name, fn]: temp_entry)
-		{
-			const auto name_pretty = get_pretty_string(name);
-			entry.emplace(name_pretty.value_or(name), fn);
-		}
+		return entry;
 	}
 
 public:
-	void* load(const string_view& dll_name, const string_view& interface_name)
+	address operator()(const string_view& dll_name, const string_view& interface_name)
 	{
 		auto& entry = Get_entry_(dll_name);
-		auto& fn = entry.at(interface_name);
+		const auto& fn = entry.at(interface_name);
+
 		return fn( );
 	}
 };
+
+static address _Get_vfunc(void* instance, size_t index)
+{
+	address result;
+
+	auto info = hooks::method_info::make_member_virtual(instance, index);
+	if (info.update( ))
+		result = info.get( );
+
+	return result;
+}
 
 address csgo_interface_base::addr( ) const
 {
 	return result_;
 }
 
-void csgo_interface_base::from_interface(const string_view& dll_name, const string_view& interface_name)
+void csgo_interface_base::operator=(const address& addr)
 {
 	Set_result_assert_( );
-	result_ = interfaces_cache::get( ).load(dll_name, interface_name);
-}
-
-void csgo_interface_base::from_sig(const memory_block& from, const string_view& sig, size_t add, size_t deref)
-{
-	Set_result_assert_( );
-	address found;
-	if (sig.find('?') != sig.npos)
-		found = from.find_block(signature<TEXT>(sig)).addr( );
-	else
-		found = from.find_block(signature<TEXT_AS_BYTES>(sig)).addr( );
-	result_ = found.add(add).deref_safe(deref);
-}
-
-void csgo_interface_base::from_sig(const string_view& dll_name, const string_view& sig, size_t add, size_t deref)
-{
-	const auto info = all_modules::get( ).find(dll_name);
-	return from_sig(info->mem_block( ), sig, add, deref);
-}
-
-void csgo_interface_base::from_vfunc(void* instance, size_t index, size_t add, size_t deref)
-{
-	Set_result_assert_( );
-	auto info = hooks::method_info::make_member_virtual(instance, index);
-	if (info.update( ))
-	{
-		const address fn = info.get( );
-		result_ = fn.add(add).deref_safe(deref);
-	}
-}
-
-void csgo_interface_base::from_ptr(void* ptr)
-{
-	Set_result_assert_( );
-	result_ = ptr;
+	result_ = addr;
 }
 
 void csgo_interface_base::Set_result_assert_( ) const
 {
 	(void)this;
 	BOOST_ASSERT_MSG(result_ == 0u, "Result already set!");
-}
-
-csgo_interfaces::~csgo_interfaces( )
-{
-}
-
-csgo_interfaces::csgo_interfaces( )
-{
 }
 
 #ifdef CHEAT_GUI_TEST
@@ -251,45 +220,45 @@ void csgo_interfaces::Load( )
 
 #ifndef CHEAT_GUI_TEST
 
-	auto cache_lock = interfaces_cache::get_shared( );
-	(void)cache_lock;
+	// ReSharper disable once CppInconsistentNaming
+	auto _Get_game_interface = interfaces_cache( );
 
-	client.from_interface("client.dll", "VClient");
-	entity_list.from_interface("client.dll", "VClientEntityList");
-	prediction.from_interface("client.dll", "VClientPrediction");
-	game_movement.from_interface("client.dll", "GameMovement");
+	client = _Get_game_interface("client.dll", "VClient");
+	entity_list = _Get_game_interface("client.dll", "VClientEntityList");
+	prediction = _Get_game_interface("client.dll", "VClientPrediction");
+	game_movement = _Get_game_interface("client.dll", "GameMovement");
 
-	engine.from_interface("engine.dll", "VEngineClient");
-	mdl_info.from_interface("engine.dll", "VModelInfoClient");
-	mdl_render.from_interface("engine.dll", "VEngineModel");
-	render_view.from_interface("engine.dll", "VEngineRenderView");
-	engine_trace.from_interface("engine.dll", "EngineTraceClient");
-	debug_overlay.from_interface("engine.dll", "VDebugOverlay");
-	game_events.from_interface("engine.dll", "GAMEEVENTSMANAGER002");
-	engine_sound.from_interface("engine.dll", "IEngineSoundClient");
+	engine = _Get_game_interface("engine.dll", "VEngineClient");
+	mdl_info = _Get_game_interface("engine.dll", "VModelInfoClient");
+	mdl_render = _Get_game_interface("engine.dll", "VEngineModel");
+	render_view = _Get_game_interface("engine.dll", "VEngineRenderView");
+	engine_trace = _Get_game_interface("engine.dll", "EngineTraceClient");
+	debug_overlay = _Get_game_interface("engine.dll", "VDebugOverlay");
+	game_events = _Get_game_interface("engine.dll", "GAMEEVENTSMANAGER002");
+	engine_sound = _Get_game_interface("engine.dll", "IEngineSoundClient");
 
-	mdl_cache.from_interface("datacache.dll", "MDLCache");
-	material_system.from_interface("materialsystem.dll", "VMaterialSystem");
-	cvars.from_interface("vstdlib.dll", "VEngineCvar");
-	vgui_panel.from_interface("vgui2.dll", "VGUI_Panel");
-	vgui_surface.from_interface("vguimatsurface.dll", "VGUI_Surface");
-	phys_props.from_interface("vphysics.dll", "VPhysicsSurfaceProps");
-	input_sys.from_interface("inputsystem.dll", "InputSystemVersion");
+	mdl_cache = _Get_game_interface("datacache.dll", "MDLCache");
+	material_system = _Get_game_interface("materialsystem.dll", "VMaterialSystem");
+	cvars = _Get_game_interface("vstdlib.dll", "VEngineCvar");
+	vgui_panel = _Get_game_interface("vgui2.dll", "VGUI_Panel");
+	vgui_surface = _Get_game_interface("vguimatsurface.dll", "VGUI_Surface");
+	phys_props = _Get_game_interface("vphysics.dll", "VPhysicsSurfaceProps");
+	input_sys = _Get_game_interface("inputsystem.dll", "InputSystemVersion");
 
-	client_mode.from_vfunc(client, 10, 0x5, 2);
+	client_mode = _Get_vfunc(client, 10).add(5).deref(2);
 
-	global_vars.from_sig("client.dll", "A1 ? ? ? ? 5E 8B 40 10", 1, 2);
-	input.from_sig("client.dll", "B9 ? ? ? ? F3 0F 11 04 24 FF 50 10", 1, 1);
-	move_helper.from_sig("client.dll", "8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01", 2, 2);
-	glow_mgr.from_sig("client.dll", "0F 11 05 ? ? ? ? 83 C8 01", 3, 1);
-	view_render.from_sig("client.dll", "A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10", 1, 1);
-	weapon_sys.from_sig("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0", 2, 1);
-	local_player.from_sig("client.dll", "8B 0D ? ? ? ? 83 FF FF 74 07", 2, 1);
+	global_vars = _Find_signature("client.dll", "A1 ? ? ? ? 5E 8B 40 10").add(1).deref(2);
+	input = _Find_signature("client.dll", "B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").add(1).deref(1);
+	move_helper = _Find_signature("client.dll", "8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01").add(2).deref(2);
+	glow_mgr = _Find_signature("client.dll", "0F 11 05 ? ? ? ? 83 C8 01").add(3).deref(1);
+	view_render = _Find_signature("client.dll", "A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").add(1).deref(1);
+	weapon_sys = _Find_signature("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0").add(2).deref(1);
+	local_player = _Find_signature("client.dll", "8B 0D ? ? ? ? 83 FF FF 74 07").add(2).deref(1);
 
-	client_state.from_sig("engine.dll", "A1 ? ? ? ? 8B 80 ? ? ? ? C3", 1, 2);
+	client_state = _Find_signature("engine.dll", "A1 ? ? ? ? 8B 80 ? ? ? ? C3").add(1).deref(2);
 
-	d3d_device.from_sig("shaderapidx9.dll", "A1 ? ? ? ? 50 8B 08 FF 51 0C", 1, 2);
+	d3d_device = _Find_signature("shaderapidx9.dll", "A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
 #else
-	d3d_device.from_ptr(g_pd3dDevice);
+	d3d_device=(g_pd3dDevice);
 #endif
 }

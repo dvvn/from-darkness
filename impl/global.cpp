@@ -1,12 +1,9 @@
-﻿#if defined(BOOST_ENABLE_ASSERT_HANDLER) || (defined(BOOST_ENABLE_ASSERT_DEBUG_HANDLER) && !defined(NDEBUG) )
+﻿#ifdef BOOST_ENABLE_ASSERT_HANDLER //|| (defined(BOOST_ENABLE_ASSERT_DEBUG_HANDLER) && !defined(NDEBUG) )
 
-#ifdef CHEAT_HAVE_CONSOLE
 #include "cheat/core/console.h"
-#endif
 
-static void _Console_log(const std::string_view& str)
+[[maybe_unused]] static void _Console_log(const std::string_view& str)
 {
-#ifdef CHEAT_HAVE_CONSOLE
 	const auto wptr = cheat::console::get_weak( );
 	if (wptr.expired( ))
 		return;
@@ -21,14 +18,13 @@ static void _Console_log(const std::string_view& str)
 	str2 += str;
 	str2 += filler;
 	ptr->write_line(str2);
-#endif
 }
 
 namespace boost
 {
 	using namespace cheat::utl;
 
-	static auto ignore_error = false;
+	static volatile auto ignore_error = false;
 
 	// ReSharper disable CppEnforceCVQualifiersPlacement
 
@@ -41,7 +37,9 @@ namespace boost
 			return;
 		}
 		const auto str = format("Assertion falied!\nExpression: {}\n\nFile: {}\nLine: {}\nFunction: {}", expr, file, line, function);
+#ifdef CHEAT_HAVE_CONSOLE
 		_Console_log(str);
+#endif
 		throw std::runtime_error(str);
 	}
 
@@ -54,7 +52,9 @@ namespace boost
 			return;
 		}
 		const auto str = format("Assertion falied!\nExpression: {}\nMessage:{}\n\nFile: {}\nLine: {}\nFunction: {}", expr, msg, file, line, function);
+#ifdef CHEAT_HAVE_CONSOLE
 		_Console_log(str);
+#endif
 		throw std::runtime_error(str);
 	}
 

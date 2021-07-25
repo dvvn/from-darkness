@@ -55,7 +55,7 @@ void players_list::update( )
 
 	C_CSPlayer* const local_player = interfaces.local_player;
 	const auto local_player_team = static_cast<m_iTeamNum_t>(local_player->m_iTeamNum( ));
-	const auto local_player_alive = local_player->IsAlive( ) ;
+	const auto local_player_alive = local_player->IsAlive( );
 
 	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)
 	{
@@ -124,7 +124,7 @@ void players_list::update( )
 				storage_updated = true;
 			}
 
-			const auto is_ragdoll_active = [&]
+			const auto is_ragdoll_active = [ent]
 			{
 				const auto ragdoll = ent->GetRagdoll( );
 				return ragdoll != nullptr && ragdoll->m_nSequence( ) != -1 && !ragdoll->IsDormant( );
@@ -171,6 +171,10 @@ void players_list::update( )
 
 			obj.update_animations(store_tick == false);
 			ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, fixed_curtime);
+			if (store_tick)
+			{
+				//store bones, animations, and do all useful shit
+			}
 
 			ent->m_bClientSideAnimation( ) = false;
 		}

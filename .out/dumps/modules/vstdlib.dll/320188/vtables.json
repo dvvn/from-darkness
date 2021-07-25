@@ -1,0 +1,110 @@
+{
+    "IAsyncScheduledFunctions": {
+        "offset": "37052"
+    },
+    "IThreadPool": {
+        "offset": "36316"
+    },
+    "CFunctorJob": {
+        "offset": "36520"
+    },
+    "type_info": {
+        "offset": "76374"
+    },
+    "CDummyJob@?1??GetDummyJob@CThreadPool": {
+        "offset": "44434"
+    },
+    "ConCommand": {
+        "offset": "20701"
+    },
+    "ICommandCompletionCallback": {
+        "offset": "20785"
+    },
+    "CAsyncScheduledFunctionManager": {
+        "offset": "47689"
+    },
+    "ICommandCallback": {
+        "offset": "20776"
+    },
+    "ConVar": {
+        "offset": "11808"
+    },
+    "CEventSystem": {
+        "offset": "32503"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "5197"
+    },
+    "CEmptyConVar": {
+        "offset": "4755"
+    },
+    "CProcess": {
+        "offset": "58329"
+    },
+    "CCVarIteratorInternal@CCvar": {
+        "offset": "12557"
+    },
+    "CUtlCStringConversion": {
+        "offset": "4890"
+    },
+    "exception@std": {
+        "offset": "154819"
+    },
+    "CCountJob@ThreadPoolTest": {
+        "offset": "44728"
+    },
+    "CProcessPipeRead": {
+        "offset": "58485"
+    },
+    "CCvar": {
+        "offset": "13193"
+    },
+    "CExecuteTestExecuteJob@ThreadPoolTest": {
+        "offset": "46608"
+    },
+    "CKeyValuesSystem": {
+        "offset": "50219"
+    },
+    "bad_typeid@std": {
+        "offset": "154797"
+    },
+    "CExecuteTestJob@ThreadPoolTest": {
+        "offset": "46444"
+    },
+    "CProcessUtils": {
+        "offset": "56461"
+    },
+    "bad_cast@std": {
+        "offset": "154770"
+    },
+    "CUniformRandomStream": {
+        "offset": "5237"
+    },
+    "IConVar": {
+        "offset": "11801"
+    },
+    "CJob": {
+        "offset": "36450"
+    },
+    "CThreadPool": {
+        "offset": "38768"
+    },
+    "ConCommandBase": {
+        "offset": "12653"
+    },
+    "__non_rtti_object@std": {
+        "offset": "154743"
+    },
+    "CSplitScreenAddedConVar": {
+        "offset": "11875"
+    },
+    "CJobThread": {
+        "offset": "43170"
+    },
+    "CMemoryStack": {
+        "offset": "50919"
+    },
+    "CGlobalThreadPool": {
+        "offset": "4325"
+    }
+}

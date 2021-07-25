@@ -1,0 +1,497 @@
+{
+    "CMsgMulti": {
+        "offset": "562382"
+    },
+    "AggregateOptionFinder@OptionInterpreter@DescriptorBuilder@protobuf@google": {
+        "offset": "802023"
+    },
+    "type_info": {
+        "offset": "594947"
+    },
+    "MethodOptions@protobuf@google": {
+        "offset": "871365"
+    },
+    "IVideoEncoderH264": {
+        "offset": "103788"
+    },
+    "CWorkThread": {
+        "offset": "359232"
+    },
+    "ConVar": {
+        "offset": "173337"
+    },
+    "SourceCodeInfo@protobuf@google": {
+        "offset": "871877"
+    },
+    "CHTTPRequestParam": {
+        "offset": "349998"
+    },
+    "ZeroCopyInputStream@io@protobuf@google": {
+        "offset": "1054914"
+    },
+    "CTCPConnection": {
+        "offset": "437309"
+    },
+    "IMsgNetPacket": {
+        "offset": "519989"
+    },
+    "StringOutputStream@io@protobuf@google": {
+        "offset": "987949"
+    },
+    "CVideoDecoder": {
+        "offset": "94496"
+    },
+    "DefaultImpl@?A0xd2e2783a": {
+        "offset": "294888"
+    },
+    "COpenSSLContext": {
+        "offset": "495066"
+    },
+    "AggregateErrorCollector@?A0x247e964a@protobuf@google": {
+        "offset": "801995"
+    },
+    "ParserErrorCollector@ParserImpl@Parser@TextFormat@protobuf@google": {
+        "offset": "1010736"
+    },
+    "out_of_range@std": {
+        "offset": "592432"
+    },
+    "ZeroCopyOutputStream@io@protobuf@google": {
+        "offset": "1054930"
+    },
+    "CNetConnectionImmediateDisconnectWorkItem": {
+        "offset": "424446"
+    },
+    "UnknownFieldSetFieldSkipper@internal@protobuf@google": {
+        "offset": "1050320"
+    },
+    "pcharNode": {
+        "offset": "677742"
+    },
+    "IUDPSocketCallback": {
+        "offset": "532154"
+    },
+    "CMsgAuthTicket": {
+        "offset": "562796"
+    },
+    "CVideoEncoderH264": {
+        "offset": "103558"
+    },
+    "UninterpretedOption_NamePart@protobuf@google": {
+        "offset": "865196"
+    },
+    "ISSLConnectionCallback": {
+        "offset": "354210"
+    },
+    "exception@std": {
+        "offset": "623950"
+    },
+    "CThread": {
+        "offset": "250114"
+    },
+    "GeneratedExtensionFinder@internal@protobuf@google": {
+        "offset": "1050349"
+    },
+    "CHTTPResponse": {
+        "offset": "347704"
+    },
+    "CKeyValuesSystem": {
+        "offset": "221898"
+    },
+    "MessageLite@protobuf@google": {
+        "offset": "720082"
+    },
+    "_System_error_category@std": {
+        "offset": "85206"
+    },
+    "bad_cast@std": {
+        "offset": "623841"
+    },
+    "COpenSSLConnection": {
+        "offset": "493666"
+    },
+    "CProtoBufNetPacket": {
+        "offset": "520028"
+    },
+    "IVideoDecoder": {
+        "offset": "94554"
+    },
+    "CVideoWebMCuesParser": {
+        "offset": "161746"
+    },
+    "CFileWriterThread": {
+        "offset": "177007"
+    },
+    "CHTTPClientWorkThread": {
+        "offset": "355834"
+    },
+    "ConCommandBase": {
+        "offset": "173489"
+    },
+    "__non_rtti_object@std": {
+        "offset": "623787"
+    },
+    "CWorkItemRunSSLConnection": {
+        "offset": "496097"
+    },
+    "CBaseScheduledFunction": {
+        "offset": "433400"
+    },
+    "COpenSSLCertificate": {
+        "offset": "495835"
+    },
+    "CUDPConnection": {
+        "offset": "532172"
+    },
+    "IVideoYUVFrame": {
+        "offset": "94652"
+    },
+    "CHTTPCacheInitializeThread": {
+        "offset": "356776"
+    },
+    "MessageOptions@protobuf@google": {
+        "offset": "871125"
+    },
+    "Message@protobuf@google": {
+        "offset": "824802"
+    },
+    "charNode": {
+        "offset": "678726"
+    },
+    "CHTTPRequestCache": {
+        "offset": "356198"
+    },
+    "DynamicMessageFactory@protobuf@google": {
+        "offset": "1001431"
+    },
+    "CWorkThreadPool": {
+        "offset": "459356"
+    },
+    "CVideoFileStream": {
+        "offset": "106789"
+    },
+    "error_category@std": {
+        "offset": "285061"
+    },
+    "EnumDescriptorProto@protobuf@google": {
+        "offset": "861871"
+    },
+    "CUtlCharConversion": {
+        "offset": "199574"
+    },
+    "CNetConnection": {
+        "offset": "523905"
+    },
+    "CAudioFileDecoder": {
+        "offset": "89052"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "83918"
+    },
+    "FileOptions@protobuf@google": {
+        "offset": "870981"
+    },
+    "CWorkItemNetEncryptionHandshakeEncrypt": {
+        "offset": "584973"
+    },
+    "FatalException@protobuf@google": {
+        "offset": "722965"
+    },
+    "CHeapMemAlloc": {
+        "offset": "272840"
+    },
+    "bad_alloc@std": {
+        "offset": "592351"
+    },
+    "CQueuedOutput@CVideoDecoder": {
+        "offset": "94913"
+    },
+    "CVideoMPDParser": {
+        "offset": "124508"
+    },
+    "CClientStructNetPacket": {
+        "offset": "519963"
+    },
+    "CHTTPDefaultRedirectEnableHandler": {
+        "offset": "361164"
+    },
+    "MessageFactory@protobuf@google": {
+        "offset": "824818"
+    },
+    "EnumValueDescriptorProto@protobuf@google": {
+        "offset": "862252"
+    },
+    "_Generic_error_category@std": {
+        "offset": "85013"
+    },
+    "IHTTPStreamingResponseHandler": {
+        "offset": "107255"
+    },
+    "FileDescriptorProto@protobuf@google": {
+        "offset": "870565"
+    },
+    "CMsgProtoBufHeader": {
+        "offset": "562488"
+    },
+    "DescriptorProto_ExtensionRange@protobuf@google": {
+        "offset": "861512"
+    },
+    "CNetConnectionDestroyWorkItem": {
+        "offset": "422862"
+    },
+    "logic_error@std": {
+        "offset": "592405"
+    },
+    "CHTTPRequest": {
+        "offset": "347478"
+    },
+    "CWorkItemNetFilterDecrypt": {
+        "offset": "585531"
+    },
+    "ServiceOptions@protobuf@google": {
+        "offset": "871733"
+    },
+    "length_error@std": {
+        "offset": "592378"
+    },
+    "CWorkItemThreadedGetCachedResponse": {
+        "offset": "357668"
+    },
+    "ICpuTopology": {
+        "offset": "292933"
+    },
+    "CVideoPlayer": {
+        "offset": "129856"
+    },
+    "CMsgProtobufWrapped": {
+        "offset": "562558"
+    },
+    "CNetFilterEncryption": {
+        "offset": "584850"
+    },
+    "_Iostream_error_category@std": {
+        "offset": "85110"
+    },
+    "CWorkItemHTTPClientCheckAutoConfig": {
+        "offset": "384503"
+    },
+    "Closure@protobuf@google": {
+        "offset": "723202"
+    },
+    "IStreamParserMessageCallback": {
+        "offset": "523896"
+    },
+    "CHTTPClientConnection": {
+        "offset": "354219"
+    },
+    "CWorkItemThreadedWriteResponseToDisk": {
+        "offset": "360184"
+    },
+    "COpenSSLCachedSession": {
+        "offset": "493402"
+    },
+    "GeneratedMessageFactory@?A0xaa88a5bd@protobuf@google": {
+        "offset": "824891"
+    },
+    "CMsgAppRights": {
+        "offset": "562296"
+    },
+    "OneofDescriptorProto@protobuf@google": {
+        "offset": "863631"
+    },
+    "FieldValuePrinter@TextFormat@protobuf@google": {
+        "offset": "1011016"
+    },
+    "CStructNetPacket": {
+        "offset": "520123"
+    },
+    "pairNode": {
+        "offset": "679123"
+    },
+    "GlpiImpl@?A0xd2e2783a": {
+        "offset": "293745"
+    },
+    "ErrorCollector@io@protobuf@google": {
+        "offset": "1035426"
+    },
+    "CWorkItemHTTPClientRequest": {
+        "offset": "361339"
+    },
+    "ArrayInputStream@io@protobuf@google": {
+        "offset": "987833"
+    },
+    "CStaticFrameFunction": {
+        "offset": "431644"
+    },
+    "IAudioResampler": {
+        "offset": "160059"
+    },
+    "CFileWriter": {
+        "offset": "176936"
+    },
+    "CVideoThread@CVideoPlayerManager": {
+        "offset": "154239"
+    },
+    "ArrayOutputStream@io@protobuf@google": {
+        "offset": "987897"
+    },
+    "bad_typeid@std": {
+        "offset": "623896"
+    },
+    "CDebugStatsSystem": {
+        "offset": "1060713"
+    },
+    "IAudioFileDecoder": {
+        "offset": "89477"
+    },
+    "ExtensionFinder@internal@protobuf@google": {
+        "offset": "831378"
+    },
+    "CBaseFrameFunction": {
+        "offset": "431404"
+    },
+    "CNetFilter": {
+        "offset": "585274"
+    },
+    "CHTTPClientMgr": {
+        "offset": "157032"
+    },
+    "Finder@TextFormat@protobuf@google": {
+        "offset": "1011298"
+    },
+    "CVideoManifest": {
+        "offset": "115660"
+    },
+    "MethodDescriptorProto@protobuf@google": {
+        "offset": "863276"
+    },
+    "CStdMemAlloc": {
+        "offset": "227838"
+    },
+    "FunctionClosure0@internal@protobuf@google": {
+        "offset": "562407"
+    },
+    "CHTTPClientResponse": {
+        "offset": "356990"
+    },
+    "FileDescriptorSet@protobuf@google": {
+        "offset": "870853"
+    },
+    "pDNameNode": {
+        "offset": "677697"
+    },
+    "EnumValueOptions@protobuf@google": {
+        "offset": "870181"
+    },
+    "CVideoDecoderLibav": {
+        "offset": "96031"
+    },
+    "FieldOptions@protobuf@google": {
+        "offset": "870421"
+    },
+    "CCDDBAppDetailCommon": {
+        "offset": "562664"
+    },
+    "ServiceDescriptorProto@protobuf@google": {
+        "offset": "864047"
+    },
+    "CpuidImpl@?A0xd2e2783a": {
+        "offset": "292953"
+    },
+    "DNameStatusNode": {
+        "offset": "699070"
+    },
+    "EnumOptions@protobuf@google": {
+        "offset": "869941"
+    },
+    "FieldDescriptorProto@protobuf@google": {
+        "offset": "862604"
+    },
+    "bad_exception@std": {
+        "offset": "658663"
+    },
+    "CNetConnectionAsyncDisconnectWorkItem": {
+        "offset": "524678"
+    },
+    "CHTTPDefaultRedirectEnableHandlerInternal": {
+        "offset": "382376"
+    },
+    "CAlignedYUV420Buffer": {
+        "offset": "159979"
+    },
+    "CHTTPClientRequest": {
+        "offset": "354691"
+    },
+    "CWorkItemThreadedDeleteCacheFile": {
+        "offset": "361384"
+    },
+    "CWorkItemNetFilterEncrypt": {
+        "offset": "585098"
+    },
+    "Reflection@protobuf@google": {
+        "offset": "824834"
+    },
+    "CUtlCStringConversion": {
+        "offset": "83978"
+    },
+    "DescriptorDatabase@protobuf@google": {
+        "offset": "994146"
+    },
+    "DynamicMessage@protobuf@google": {
+        "offset": "1000836"
+    },
+    "CWorkItemNetFilterOnDisconnect": {
+        "offset": "585233"
+    },
+    "FieldSkipper@internal@protobuf@google": {
+        "offset": "831932"
+    },
+    "GeneratedMessageReflection@internal@protobuf@google": {
+        "offset": "952047"
+    },
+    "CWorkItem": {
+        "offset": "357377"
+    },
+    "DescriptorProto@protobuf@google": {
+        "offset": "869429"
+    },
+    "CUDPSendToWorkItem@CWSASendToHelper": {
+        "offset": "548000"
+    },
+    "CNetConnectionOnDisconnectWorkItem": {
+        "offset": "527836"
+    },
+    "ISSLConnection": {
+        "offset": "493660"
+    },
+    "DescriptorPoolExtensionFinder@internal@protobuf@google": {
+        "offset": "1048882"
+    },
+    "UninterpretedOption@protobuf@google": {
+        "offset": "864815"
+    },
+    "CPathString": {
+        "offset": "178048"
+    },
+    "SourceCodeInfo_Location@protobuf@google": {
+        "offset": "864431"
+    },
+    "CAudioResampler": {
+        "offset": "160032"
+    },
+    "EncodedDescriptorDatabase@protobuf@google": {
+        "offset": "993906"
+    },
+    "CHTTPRequestHandle": {
+        "offset": "356874"
+    },
+    "CHTTPClient": {
+        "offset": "352993"
+    },
+    "COpenSSLTicketKeyMgr": {
+        "offset": "495933"
+    },
+    "IVideoPlayer": {
+        "offset": "131207"
+    }
+}

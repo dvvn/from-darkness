@@ -1,0 +1,1940 @@
+{
+    "AggregateOptionFinder@OptionInterpreter@DescriptorBuilder@protobuf@google": {
+        "offset": "3975333"
+    },
+    "type_info": {
+        "offset": "4061087"
+    },
+    "CColorCorrectionUIPanel": {
+        "offset": "1033197"
+    },
+    "StringStore@CryptoPP": {
+        "offset": "2439204"
+    },
+    "CDemoActionChangePlaybackRate": {
+        "offset": "796522"
+    },
+    "CFocusOverlayPanel": {
+        "offset": "2737527"
+    },
+    "CHttpCallback@CHLTVBroadcast": {
+        "offset": "2129680"
+    },
+    "DERGeneralEncoder@CryptoPP": {
+        "offset": "3535345"
+    },
+    "CCLCMsg_VoiceData": {
+        "offset": "1555704"
+    },
+    "ICommandCallback": {
+        "offset": "2760728"
+    },
+    "SourceCodeInfo@protobuf@google": {
+        "offset": "3806901"
+    },
+    "CSVCMsg_CmdKeyValues": {
+        "offset": "629194"
+    },
+    "NotImplemented@CryptoPP": {
+        "offset": "2436715"
+    },
+    "CBaseServer": {
+        "offset": "1799962"
+    },
+    "ZeroCopyInputStream@io@protobuf@google": {
+        "offset": "4057842"
+    },
+    "CSVCMsg_SetPause": {
+        "offset": "641466"
+    },
+    "CSVCMsg_ServerInfo": {
+        "offset": "643786"
+    },
+    "X509PublicKey@CryptoPP": {
+        "offset": "2447673"
+    },
+    "CColorHistogramPanel": {
+        "offset": "990182"
+    },
+    "ZeroCopyOutputStream@io@protobuf@google": {
+        "offset": "4057858"
+    },
+    "SplitterHandle@vgui": {
+        "offset": "3506417"
+    },
+    "UnknownFieldSetFieldSkipper@internal@protobuf@google": {
+        "offset": "4038224"
+    },
+    "IMemAlloc": {
+        "offset": "2319004"
+    },
+    "UninterpretedOption_NamePart@protobuf@google": {
+        "offset": "3800748"
+    },
+    "InvalidKeyLength@PK_SignatureScheme@CryptoPP": {
+        "offset": "3542128"
+    },
+    "CPanoramaEngineHandler": {
+        "offset": "2515129"
+    },
+    "CSosOperatorPlayOnTrack": {
+        "offset": "503403"
+    },
+    "GeneratedExtensionFinder@internal@protobuf@google": {
+        "offset": "4038253"
+    },
+    "CAudioOutputStream": {
+        "offset": "147497"
+    },
+    "CDemoActionPausePlayback": {
+        "offset": "796970"
+    },
+    "CAsyncOperation_ReserveServer@CBaseClientState": {
+        "offset": "675420"
+    },
+    "INetMessage": {
+        "offset": "154204"
+    },
+    "CStaticProp": {
+        "offset": "2594920"
+    },
+    "MessageLite@protobuf@google": {
+        "offset": "3758258"
+    },
+    "IBaseInterface": {
+        "offset": "1080636"
+    },
+    "CCLCMsg_FileCRCCheck_t": {
+        "offset": "970931"
+    },
+    "CSVCMsg_BSPDecal": {
+        "offset": "636296"
+    },
+    "CSosOperatorMapName": {
+        "offset": "451563"
+    },
+    "CSPSharedMemory": {
+        "offset": "2568996"
+    },
+    "TreeNodeImage@vgui": {
+        "offset": "3423252"
+    },
+    "__non_rtti_object@std": {
+        "offset": "4077098"
+    },
+    "ConCommandBase": {
+        "offset": "1888732"
+    },
+    "CCLCMsg_HltvFixupOperatorTick": {
+        "offset": "1629832"
+    },
+    "CBudgetHistoryPanel": {
+        "offset": "2743773"
+    },
+    "CSosOperatorQueueToTrack": {
+        "offset": "501418"
+    },
+    "CBrushSurface": {
+        "offset": "1230533"
+    },
+    "CXboxSystem": {
+        "offset": "2684027"
+    },
+    "PK_DefaultDecryptionFilter@CryptoPP": {
+        "offset": "3548758"
+    },
+    "CAudioMixerWaveADPCM": {
+        "offset": "402675"
+    },
+    "CBoundedCvar_Rate": {
+        "offset": "89470"
+    },
+    "CColorLookupUIPanel": {
+        "offset": "1012282"
+    },
+    "CSosOperatorRandom": {
+        "offset": "466974"
+    },
+    "CServerDatatableStack": {
+        "offset": "2064856"
+    },
+    "CModAppSystemGroup": {
+        "offset": "2627017"
+    },
+    "MultiplicativeGroupT@?$AbstractRing@VInteger@CryptoPP": {
+        "offset": "3561021"
+    },
+    "INetMessageBinder": {
+        "offset": "663295"
+    },
+    "RadioImage": {
+        "offset": "3375608"
+    },
+    "HashInputTooLong@CryptoPP": {
+        "offset": "3675667"
+    },
+    "AggregateErrorCollector@?A0xde32e2f0@protobuf@google": {
+        "offset": "3975305"
+    },
+    "CCurveEditorPanel": {
+        "offset": "984808"
+    },
+    "CWorkerJob@CParallelSendTask": {
+        "offset": "1746254"
+    },
+    "Walker@ByteQueue@CryptoPP": {
+        "offset": "3672491"
+    },
+    "CEntityReadInfo": {
+        "offset": "859969"
+    },
+    "CPluginHudMessage": {
+        "offset": "898505"
+    },
+    "CSVCMsg_EncryptedData": {
+        "offset": "628522"
+    },
+    "CUncorrectedImagePanel": {
+        "offset": "1001895"
+    },
+    "CQueuedPacketSender": {
+        "offset": "2469540"
+    },
+    "CSosOperatorFloatAccumulate12": {
+        "offset": "460158"
+    },
+    "CBaseActionEditDialog": {
+        "offset": "798260"
+    },
+    "RichTextInterior@vgui": {
+        "offset": "3343509"
+    },
+    "DirectoryTreeView@vgui": {
+        "offset": "3390657"
+    },
+    "CDemoActionPlaySoundStart": {
+        "offset": "795786"
+    },
+    "CCLCMsg_RespondCvarValue": {
+        "offset": "644394"
+    },
+    "CSelectedHSVUIPanel": {
+        "offset": "1005101"
+    },
+    "CBaseActionCDTrackStartDialog": {
+        "offset": "805643"
+    },
+    "CGameEvent": {
+        "offset": "2107483"
+    },
+    "CRenderTexturesListViewPanel": {
+        "offset": "932723"
+    },
+    "AlgorithmParametersBase@CryptoPP": {
+        "offset": "2438862"
+    },
+    "DivideByZero@Integer@CryptoPP": {
+        "offset": "3561664"
+    },
+    "logic_error@std": {
+        "offset": "4058389"
+    },
+    "Label@vgui": {
+        "offset": "3302469"
+    },
+    "IGameEvent": {
+        "offset": "2107292"
+    },
+    "CModelLoader": {
+        "offset": "1307004"
+    },
+    "CAudioMixerWave8Stereo": {
+        "offset": "399553"
+    },
+    "CNetChannelPacketProcessingCallbackFinishProcessing@?1??ProcessPacket@CNetChan": {
+        "offset": "2372877"
+    },
+    "CDemoActionStopPlayback": {
+        "offset": "792346"
+    },
+    "CSosOperatorIterateAndMergeSpeakers": {
+        "offset": "450174"
+    },
+    "Closure@protobuf@google": {
+        "offset": "3788658"
+    },
+    "CProfileHierarchyPanel": {
+        "offset": "2766469"
+    },
+    "INetworkStringTableContainer": {
+        "offset": "2158561"
+    },
+    "BitBucket@CryptoPP": {
+        "offset": "3551801"
+    },
+    "CVProfGraphPanel": {
+        "offset": "2761101"
+    },
+    "CBasePanel": {
+        "offset": "852491"
+    },
+    "CSaveRestoreFileSystem": {
+        "offset": "4418941"
+    },
+    "SplitterChildPanel@vgui": {
+        "offset": "3507467"
+    },
+    "CShadowMgr": {
+        "offset": "1444422"
+    },
+    "ErrorCollector@io@protobuf@google": {
+        "offset": "4030082"
+    },
+    "TextEntry@vgui": {
+        "offset": "3220793"
+    },
+    "ITraceListData": {
+        "offset": "2075900"
+    },
+    "CSosOperatorMixLayer": {
+        "offset": "470014"
+    },
+    "CDataManagerBase": {
+        "offset": "1996801"
+    },
+    "ComboBoxButton@vgui": {
+        "offset": "3247785"
+    },
+    "CPendingRequest@CDemoStreamHttp": {
+        "offset": "1101919"
+    },
+    "CGameClient": {
+        "offset": "1664208"
+    },
+    "CBugUIPanel": {
+        "offset": "1842800"
+    },
+    "CSVCMsg_Prefetch": {
+        "offset": "157786"
+    },
+    "CNetChan": {
+        "offset": "2351404"
+    },
+    "CEngineVoiceSteam": {
+        "offset": "371486"
+    },
+    "CSVCMsg_HltvReplay": {
+        "offset": "627882"
+    },
+    "FrameSystemButton@vgui": {
+        "offset": "3196923"
+    },
+    "TreeNodeText@vgui": {
+        "offset": "3419017"
+    },
+    "CSosOperatorStopTrack": {
+        "offset": "504587"
+    },
+    "CKeyValuesDumpForStatusReport": {
+        "offset": "2611716"
+    },
+    "Exception@CryptoPP": {
+        "offset": "2435225"
+    },
+    "GeneratedMessageFactory@?A0xf5797ec8@protobuf@google": {
+        "offset": "3761131"
+    },
+    "CCLCMsg_ClientInfo": {
+        "offset": "974938"
+    },
+    "CPerfUIChildPanel": {
+        "offset": "2714821"
+    },
+    "CRenderTextureEditor": {
+        "offset": "922650"
+    },
+    "CFragmentRequest@CDemoStreamHttp": {
+        "offset": "1097178"
+    },
+    "CFrameSnapshotManager": {
+        "offset": "1694889"
+    },
+    "CaptionGripPanel@?A0xa6046b62": {
+        "offset": "3194371"
+    },
+    "CProceduralTexturePanel": {
+        "offset": "2992925"
+    },
+    "CVProfPanel": {
+        "offset": "2768720"
+    },
+    "CVEfx": {
+        "offset": "1442076"
+    },
+    "FunctionClosure0@internal@protobuf@google": {
+        "offset": "1507726"
+    },
+    "ClassNullRNG@CryptoPP": {
+        "offset": "3554290"
+    },
+    "CSVCMsg_UserMessage": {
+        "offset": "675050"
+    },
+    "CBaseActionPauseDialog": {
+        "offset": "808811"
+    },
+    "CTriggerMoved_ClientSide": {
+        "offset": "2683218"
+    },
+    "EnumValueOptions@protobuf@google": {
+        "offset": "3805109"
+    },
+    "ConVar_ServerBounded": {
+        "offset": "1888601"
+    },
+    "MenuBar@vgui": {
+        "offset": "3397310"
+    },
+    "CSosOperatorBlockEntry": {
+        "offset": "440110"
+    },
+    "CStartRequest@CDemoStreamHttp": {
+        "offset": "1097931"
+    },
+    "EnumOptions@protobuf@google": {
+        "offset": "3804837"
+    },
+    "CTraceFilterWorldAndPropsOnly": {
+        "offset": "472592"
+    },
+    "CVideoMode_MaterialSystem": {
+        "offset": "2649022"
+    },
+    "CServerMsg": {
+        "offset": "566063"
+    },
+    "TreeNode@vgui": {
+        "offset": "3422890"
+    },
+    "CBlackBox": {
+        "offset": "1838310"
+    },
+    "TextTooltip@vgui": {
+        "offset": "3458865"
+    },
+    "CTraceListData": {
+        "offset": "2075962"
+    },
+    "DescriptorDatabase@protobuf@google": {
+        "offset": "4046690"
+    },
+    "BuildGroup@vgui": {
+        "offset": "3445192"
+    },
+    "HashFilter@CryptoPP": {
+        "offset": "3659220"
+    },
+    "RSAFunction@CryptoPP": {
+        "offset": "2447694"
+    },
+    "ComboBox@vgui": {
+        "offset": "3247526"
+    },
+    "CColorLevelsUIPanel": {
+        "offset": "994282"
+    },
+    "IVoiceRecord": {
+        "offset": "541500"
+    },
+    "IGameEventListener2": {
+        "offset": "1638736"
+    },
+    "CSmoothingTypeButton": {
+        "offset": "817425"
+    },
+    "CBaseActionTextMessageStartDialog": {
+        "offset": "802731"
+    },
+    "CAppSystemGroup": {
+        "offset": "2776923"
+    },
+    "CSVCMsg_GetCvarValue": {
+        "offset": "635034"
+    },
+    "ImagePanel@vgui": {
+        "offset": "3356841"
+    },
+    "CDemoUIPanel": {
+        "offset": "844413"
+    },
+    "CCLCMsg_BaselineAck": {
+        "offset": "860666"
+    },
+    "CEntityInfo": {
+        "offset": "860860"
+    },
+    "CSVCMsg_GameEvent": {
+        "offset": "633690"
+    },
+    "IRecipientFilter": {
+        "offset": "150188"
+    },
+    "CSaveMemory": {
+        "offset": "2247640"
+    },
+    "CClientDatatableStack": {
+        "offset": "2056174"
+    },
+    "CEntityWriteInfo": {
+        "offset": "1686261"
+    },
+    "CEngineTraceServer": {
+        "offset": "94303"
+    },
+    "InvalidDataFormat@CryptoPP": {
+        "offset": "2437766"
+    },
+    "PK_DefaultEncryptionFilter@CryptoPP": {
+        "offset": "3548934"
+    },
+    "CSVCMsg_TempEntities": {
+        "offset": "632138"
+    },
+    "CSosOperatorFalloffTail": {
+        "offset": "448510"
+    },
+    "MessageQueue@CryptoPP": {
+        "offset": "3708497"
+    },
+    "CVGuiTree": {
+        "offset": "2748960"
+    },
+    "Image@vgui": {
+        "offset": "3375556"
+    },
+    "CAudioMixer": {
+        "offset": "370530"
+    },
+    "CNETMsg_SetConVar": {
+        "offset": "674568"
+    },
+    "TextImage@vgui": {
+        "offset": "3252960"
+    },
+    "StringOutputStream@io@protobuf@google": {
+        "offset": "4020913"
+    },
+    "CSosOperatorFloat": {
+        "offset": "455518"
+    },
+    "CNETMsg_PlayerAvatarData": {
+        "offset": "677087"
+    },
+    "CEngineRecipientFilter": {
+        "offset": "156412"
+    },
+    "CDebugInputThread": {
+        "offset": "2187470"
+    },
+    "exception@std": {
+        "offset": "2406463"
+    },
+    "CSVCMsg_Menu": {
+        "offset": "634698"
+    },
+    "CAudioXAudio2": {
+        "offset": "3011889"
+    },
+    "CSVCMsg_CreateStringTable": {
+        "offset": "640442"
+    },
+    "IGame": {
+        "offset": "2649100"
+    },
+    "CDemoPlayer": {
+        "offset": "768429"
+    },
+    "CEngineTool": {
+        "offset": "2701353"
+    },
+    "CBoundedCvar_UpdateRate": {
+        "offset": "89593"
+    },
+    "MenuItem@vgui": {
+        "offset": "3410750"
+    },
+    "CBaseBudgetPanel": {
+        "offset": "2721349"
+    },
+    "IConVar": {
+        "offset": "3028378"
+    },
+    "CBuildWorldListsJob": {
+        "offset": "1223780"
+    },
+    "COcclusionUIPanel": {
+        "offset": "2717912"
+    },
+    "ExpandButton@vgui": {
+        "offset": "3405418"
+    },
+    "MenuSeparator@vgui": {
+        "offset": "3286021"
+    },
+    "MessageOptions@protobuf@google": {
+        "offset": "3806197"
+    },
+    "MessageBox@vgui": {
+        "offset": "3442201"
+    },
+    "InvalidMaterial@CryptoMaterial@CryptoPP": {
+        "offset": "2437490"
+    },
+    "CAudioMixerWave8Mono": {
+        "offset": "399345"
+    },
+    "CBaseClientState": {
+        "offset": "568470"
+    },
+    "CDemoActionSkipAhead": {
+        "offset": "792154"
+    },
+    "InvertibleRSAFunction@CryptoPP": {
+        "offset": "2448752"
+    },
+    "CBaseActionPlayCommandsDialog": {
+        "offset": "805227"
+    },
+    "CHLTVClientState": {
+        "offset": "2137064"
+    },
+    "CEnginePanel": {
+        "offset": "2727541"
+    },
+    "MenuItemCheckImage": {
+        "offset": "3411985"
+    },
+    "ContinuousProgressBar@vgui": {
+        "offset": "3387566"
+    },
+    "CNETMsg_PlayerAvatarData_t": {
+        "offset": "594317"
+    },
+    "CreateDirectoryDialog": {
+        "offset": "3389398"
+    },
+    "IMDLCacheNotify": {
+        "offset": "1326172"
+    },
+    "AnimationController@vgui": {
+        "offset": "3175894"
+    },
+    "CTransitionEffectPanel": {
+        "offset": "2727937"
+    },
+    "BERDecodeErr@CryptoPP": {
+        "offset": "3534963"
+    },
+    "CColorBalanceOperation": {
+        "offset": "1013372"
+    },
+    "CCLCMsg_SplitPlayerConnect": {
+        "offset": "574720"
+    },
+    "FileOptions@protobuf@google": {
+        "offset": "3806021"
+    },
+    "CSosOperatorFunc1": {
+        "offset": "454206"
+    },
+    "ClickPanel@vgui": {
+        "offset": "3342614"
+    },
+    "CEmptyConVar": {
+        "offset": "135377"
+    },
+    "Slider@vgui": {
+        "offset": "3336003"
+    },
+    "CSVCMsg_Sounds": {
+        "offset": "630730"
+    },
+    "CSosOperatorSpeakers": {
+        "offset": "458110"
+    },
+    "CTreeViewListControl@vgui": {
+        "offset": "3407299"
+    },
+    "CDemoStreamHttp": {
+        "offset": "1097208"
+    },
+    "CConPanel": {
+        "offset": "1045431"
+    },
+    "FileDescriptorProto@protobuf@google": {
+        "offset": "3805573"
+    },
+    "FileOpenStateMachine@vgui": {
+        "offset": "3380327"
+    },
+    "CWaveDataMemoryAsync": {
+        "offset": "369022"
+    },
+    "CSosOperatorOutput": {
+        "offset": "483086"
+    },
+    "IDemoRecorder": {
+        "offset": "752541"
+    },
+    "Integer@CryptoPP": {
+        "offset": "3561060"
+    },
+    "CPropOffsetStack": {
+        "offset": "2068040"
+    },
+    "CAudioSourceWave": {
+        "offset": "405624"
+    },
+    "CDemoFile": {
+        "offset": "752480"
+    },
+    "CSosOperatorLogicSwitch": {
+        "offset": "468110"
+    },
+    "CSosOperatorOcclusion": {
+        "offset": "471118"
+    },
+    "Dragger": {
+        "offset": "3312795"
+    },
+    "length_error@std": {
+        "offset": "4058329"
+    },
+    "CAudioSourceMP3Cache": {
+        "offset": "368315"
+    },
+    "CBudgetPanelEngine": {
+        "offset": "2731396"
+    },
+    "ParameterNotUsed@AlgorithmParametersBase@CryptoPP": {
+        "offset": "2438822"
+    },
+    "CServerMsg_Ping": {
+        "offset": "623028"
+    },
+    "ITextureRegenerator": {
+        "offset": "2992919"
+    },
+    "CDispUtilsHelper": {
+        "offset": "1142067"
+    },
+    "CTraceFilterWorldAndProps": {
+        "offset": "2299139"
+    },
+    "IWaveStreamSource": {
+        "offset": "369226"
+    },
+    "InvalidCiphertext@CryptoPP": {
+        "offset": "3547907"
+    },
+    "CNetworkStringTable": {
+        "offset": "2480830"
+    },
+    "CLevelsColorOperation": {
+        "offset": "987243"
+    },
+    "CPointContentsEnum": {
+        "offset": "2077380"
+    },
+    "CNETMsg_Tick_t": {
+        "offset": "789942"
+    },
+    "CSosOperatorStartEntry": {
+        "offset": "493566"
+    },
+    "CVoxelTree": {
+        "offset": "2577743"
+    },
+    "CTextureBudgetPanel": {
+        "offset": "2757281"
+    },
+    "CHLTVServer": {
+        "offset": "2157460"
+    },
+    "CSVCMsg_PaintmapData": {
+        "offset": "634058"
+    },
+    "KDF2_RNG@CryptoPP": {
+        "offset": "3562887"
+    },
+    "CBroadcastPlayer": {
+        "offset": "742043"
+    },
+    "pairNode": {
+        "offset": "4087638"
+    },
+    "CGame": {
+        "offset": "2653945"
+    },
+    "IClientModelRenderable": {
+        "offset": "2609658"
+    },
+    "CEntityListAlongRay": {
+        "offset": "2096668"
+    },
+    "bad_typeid@std": {
+        "offset": "4077125"
+    },
+    "CBaseActionChangePlaybackRateDialog": {
+        "offset": "808331"
+    },
+    "RandomNumberNotFound@Integer@CryptoPP": {
+        "offset": "3564032"
+    },
+    "CSosOperatorCurve4": {
+        "offset": "465150"
+    },
+    "ExtensionFinder@internal@protobuf@google": {
+        "offset": "3998130"
+    },
+    "CheckImage": {
+        "offset": "3252149"
+    },
+    "COverlayMgr": {
+        "offset": "1374457"
+    },
+    "CSVCMsg_ClassInfo_class_t": {
+        "offset": "1529656"
+    },
+    "CNETMsg_File": {
+        "offset": "1528658"
+    },
+    "IDispInfo": {
+        "offset": "1142676"
+    },
+    "CCoreDispInfo": {
+        "offset": "1144635"
+    },
+    "CPropMapStack": {
+        "offset": "2048567"
+    },
+    "CBudgetPanelShared": {
+        "offset": "2745644"
+    },
+    "CHostSubscribeForProfileEvents": {
+        "offset": "2630717"
+    },
+    "ConCommand": {
+        "offset": "3027886"
+    },
+    "MontgomeryRepresentation@CryptoPP": {
+        "offset": "3563444"
+    },
+    "CNETMsg_StringCmd_t": {
+        "offset": "593587"
+    },
+    "CValveIpcServer": {
+        "offset": "2283149"
+    },
+    "DNameStatusNode": {
+        "offset": "4107754"
+    },
+    "COcclusionSystem": {
+        "offset": "1364491"
+    },
+    "ICommandCompletionCallback": {
+        "offset": "2760737"
+    },
+    "CAsyncOcclusionQuery": {
+        "offset": "2093871"
+    },
+    "FrameButton@vgui": {
+        "offset": "3195603"
+    },
+    "CColorCurvesEditPanel": {
+        "offset": "984675"
+    },
+    "CSaveRestore": {
+        "offset": "2246686"
+    },
+    "CSVCMsg_VoiceInit": {
+        "offset": "639418"
+    },
+    "CSVCMsg_CrosshairAngle": {
+        "offset": "636920"
+    },
+    "CColorSlider": {
+        "offset": "992117"
+    },
+    "Reflection@protobuf@google": {
+        "offset": "3761570"
+    },
+    "CPerforceFileListFrame": {
+        "offset": "3497831"
+    },
+    "CDemoEditorPanel": {
+        "offset": "814061"
+    },
+    "CRConServer": {
+        "offset": "1756256"
+    },
+    "CNETMsg_SignonState": {
+        "offset": "1540232"
+    },
+    "CColorOperationListPanel": {
+        "offset": "1027057"
+    },
+    "CSVCMsg_PacketEntities": {
+        "offset": "631482"
+    },
+    "CColorCorrectionUIChildPanel": {
+        "offset": "981318"
+    },
+    "CheckButton@vgui": {
+        "offset": "2755454"
+    },
+    "CNETMsg_Disconnect": {
+        "offset": "1528585"
+    },
+    "CBrushConvexInfo": {
+        "offset": "2083579"
+    },
+    "CPaintmapDataManager": {
+        "offset": "4418550"
+    },
+    "X917RNG@CryptoPP": {
+        "offset": "3703305"
+    },
+    "CTraceFilterWorldOnly": {
+        "offset": "207292"
+    },
+    "INetworkStringTable": {
+        "offset": "2475852"
+    },
+    "CNETMsg_StringCmd": {
+        "offset": "677498"
+    },
+    "CNetworkStringTableDictionaryManager": {
+        "offset": "2477161"
+    },
+    "CEnumerationFilter": {
+        "offset": "2097256"
+    },
+    "CBrushBSPIterator": {
+        "offset": "1335168"
+    },
+    "CFunctorJob": {
+        "offset": "2201433"
+    },
+    "CSosOperatorSysTime": {
+        "offset": "498618"
+    },
+    "ValueTypeMismatch@NameValuePairs@CryptoPP": {
+        "offset": "2436174"
+    },
+    "BERSequenceDecoder@CryptoPP": {
+        "offset": "3536194"
+    },
+    "CSosOperatorSetConvar": {
+        "offset": "441806"
+    },
+    "CMsg_CVars": {
+        "offset": "1543976"
+    },
+    "CPrecisionSlider": {
+        "offset": "978951"
+    },
+    "CEngineVGui": {
+        "offset": "2728336"
+    },
+    "IVModelInfo": {
+        "offset": "2336652"
+    },
+    "CAllowFromDiskList@CPureServerWhitelist": {
+        "offset": "2522340"
+    },
+    "CColorLookupOperation": {
+        "offset": "1008943"
+    },
+    "Panel@vgui": {
+        "offset": "3126837"
+    },
+    "ByteQueue@CryptoPP": {
+        "offset": "3671322"
+    },
+    "CFixEdgeButton": {
+        "offset": "818017"
+    },
+    "CSosOperatorDistantDSP": {
+        "offset": "444398"
+    },
+    "out_of_range@std": {
+        "offset": "4058416"
+    },
+    "CVideoMode_Common": {
+        "offset": "2637426"
+    },
+    "CCLCMsg_CmdKeyValues": {
+        "offset": "973770"
+    },
+    "CEngineSoundClient": {
+        "offset": "150588"
+    },
+    "CPluginGameUIDialog": {
+        "offset": "896182"
+    },
+    "CSfxTable": {
+        "offset": "261665"
+    },
+    "CSosOperatorMixGroup": {
+        "offset": "468826"
+    },
+    "INetworkStringDict": {
+        "offset": "2476076"
+    },
+    "bad_cast@std": {
+        "offset": "3564518"
+    },
+    "CSosOperatorFalloff": {
+        "offset": "447790"
+    },
+    "CCLCMsg_ListenEvents": {
+        "offset": "645167"
+    },
+    "CTraceFilterDAS": {
+        "offset": "215093"
+    },
+    "CJob": {
+        "offset": "405359"
+    },
+    "CSosOperatorGetOpvarFloat": {
+        "offset": "481626"
+    },
+    "CSVCMsg_GameEventList_key_t": {
+        "offset": "1531099"
+    },
+    "CAudioSourceVoice": {
+        "offset": "542955"
+    },
+    "CDemoActionCDTrackStart": {
+        "offset": "795210"
+    },
+    "IVProfData": {
+        "offset": "902339"
+    },
+    "CClientState": {
+        "offset": "957446"
+    },
+    "CBugReportUploadProgressDialog": {
+        "offset": "1840902"
+    },
+    "CSosOperatorGetTrackSyncPoint": {
+        "offset": "499006"
+    },
+    "CKeyValuesDumpForBugreport": {
+        "offset": "1855738"
+    },
+    "CLookupViewPanel": {
+        "offset": "1020101"
+    },
+    "Splitter@vgui": {
+        "offset": "3507814"
+    },
+    "CSVCMsg_GameEvent_key_t": {
+        "offset": "1603816"
+    },
+    "GraphPanel@vgui": {
+        "offset": "3395038"
+    },
+    "charNode": {
+        "offset": "4087222"
+    },
+    "CFogUIPanel": {
+        "offset": "861613"
+    },
+    "BuildModeDialog@vgui": {
+        "offset": "3473858"
+    },
+    "CSentenceMixer": {
+        "offset": "370048"
+    },
+    "KeyTooShort@PK_SignatureScheme@CryptoPP": {
+        "offset": "3542179"
+    },
+    "CMessage": {
+        "offset": "897852"
+    },
+    "CDemoActionCDTrackStop": {
+        "offset": "795354"
+    },
+    "CEngineSingleUserFilter": {
+        "offset": "152777"
+    },
+    "CStaticPropMgr": {
+        "offset": "2600601"
+    },
+    "PKCS1v15_SignatureMessageEncodingMethod@CryptoPP": {
+        "offset": "2454053"
+    },
+    "CPluginMenu": {
+        "offset": "895015"
+    },
+    "CSosOperatorDashboard": {
+        "offset": "443227"
+    },
+    "EnumDescriptorProto@protobuf@google": {
+        "offset": "3798735"
+    },
+    "CServerMsg_CheckReservation": {
+        "offset": "566352"
+    },
+    "CVmtTextEntry": {
+        "offset": "921465"
+    },
+    "CP4File": {
+        "offset": "3119480"
+    },
+    "IHLTVServer": {
+        "offset": "2157437"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "135965"
+    },
+    "CSVCMsg_FixAngle": {
+        "offset": "637560"
+    },
+    "CCLCMsg_FileCRCCheck": {
+        "offset": "970881"
+    },
+    "CBaseActionPlaySoundStartDialog": {
+        "offset": "806554"
+    },
+    "FatalException@protobuf@google": {
+        "offset": "3788396"
+    },
+    "CDispCollTree": {
+        "offset": "1994645"
+    },
+    "ProgressBar@vgui": {
+        "offset": "3385908"
+    },
+    "CSVCMsg_Sounds_sounddata_t": {
+        "offset": "1531389"
+    },
+    "SelfTestFailure@CryptoPP": {
+        "offset": "3549136"
+    },
+    "MessageFactory@protobuf@google": {
+        "offset": "3761490"
+    },
+    "RichText@vgui": {
+        "offset": "3343771"
+    },
+    "CNewOperationDialog": {
+        "offset": "1022936"
+    },
+    "IVoiceServer": {
+        "offset": "2662268"
+    },
+    "CEngineSoundServer": {
+        "offset": "154620"
+    },
+    "CSosOperatorViewInfo": {
+        "offset": "485567"
+    },
+    "CAddTransitionResourcesCB": {
+        "offset": "2216811"
+    },
+    "CSpatialPartition": {
+        "offset": "2585969"
+    },
+    "RSAPrimeSelector@CryptoPP": {
+        "offset": "3644070"
+    },
+    "CNewActionButton": {
+        "offset": "813637"
+    },
+    "CBitmapImagePanel@vgui": {
+        "offset": "3439428"
+    },
+    "CP4File_Dummy": {
+        "offset": "3120116"
+    },
+    "ColumnButton": {
+        "offset": "3316627"
+    },
+    "CSVCMsg_GameEventList": {
+        "offset": "632890"
+    },
+    "InputDialog@vgui": {
+        "offset": "3470084"
+    },
+    "CTraceFilterHitAll": {
+        "offset": "2088364"
+    },
+    "CSosOperatorFloatFilter": {
+        "offset": "449550"
+    },
+    "CAudioMixerWave16Stereo": {
+        "offset": "399809"
+    },
+    "CAudioSourceStreamMP3": {
+        "offset": "369232"
+    },
+    "CNetworkStringDict": {
+        "offset": "2479483"
+    },
+    "CTriggerMoved": {
+        "offset": "2683074"
+    },
+    "Button@vgui": {
+        "offset": "813958"
+    },
+    "CBaseActionStopPlaybackDialog": {
+        "offset": "800655"
+    },
+    "CSVCMsg_UpdateStringTable": {
+        "offset": "639754"
+    },
+    "CTouchLinks_ClientSide": {
+        "offset": "2681506"
+    },
+    "CSVCMsg_Broadcast_Command": {
+        "offset": "1531772"
+    },
+    "CWaveDataHRTF": {
+        "offset": "389972"
+    },
+    "SHA256@CryptoPP": {
+        "offset": "3653783"
+    },
+    "GripPanel@?A0xa6046b62": {
+        "offset": "3194279"
+    },
+    "CSosOperatorSetOpvarFloat": {
+        "offset": "480942"
+    },
+    "CGameEventManager": {
+        "offset": "2108670"
+    },
+    "AnimatingImagePanel@vgui": {
+        "offset": "3403534"
+    },
+    "CHLTVDemoRecorder": {
+        "offset": "2148392"
+    },
+    "ListPanel@vgui": {
+        "offset": "3314118"
+    },
+    "CSosOperatorEntityInfo": {
+        "offset": "444959"
+    },
+    "CVProfLabel": {
+        "offset": "2772920"
+    },
+    "CBuildModeNavCombo": {
+        "offset": "3474967"
+    },
+    "VoiceRecord_DSound": {
+        "offset": "541544"
+    },
+    "CSosOperatorPosVec8": {
+        "offset": "487311"
+    },
+    "CBaseActionSkipAheadDialog": {
+        "offset": "799773"
+    },
+    "ScalableImagePanel@vgui": {
+        "offset": "3414898"
+    },
+    "ArraySink@CryptoPP": {
+        "offset": "3545653"
+    },
+    "CEntityReportPanel": {
+        "offset": "852519"
+    },
+    "IPooledVBAllocator": {
+        "offset": "1244476"
+    },
+    "CDemoRecorder": {
+        "offset": "752459"
+    },
+    "FileOpenDialog@vgui": {
+        "offset": "3258009"
+    },
+    "CBlockingUDPSocket": {
+        "offset": "1839189"
+    },
+    "IAudioDevice2": {
+        "offset": "3010172"
+    },
+    "CSosOperatorConvar": {
+        "offset": "442619"
+    },
+    "CSosOperatorPlatform": {
+        "offset": "485067"
+    },
+    "ModularArithmetic@CryptoPP": {
+        "offset": "3563029"
+    },
+    "EditablePanel@vgui": {
+        "offset": "3276758"
+    },
+    "IEngine": {
+        "offset": "2635052"
+    },
+    "DERSequenceEncoder@CryptoPP": {
+        "offset": "3538891"
+    },
+    "CBaseActionWithStopTimeDialog": {
+        "offset": "807933"
+    },
+    "MethodDescriptorProto@protobuf@google": {
+        "offset": "3806341"
+    },
+    "CFullScreenSelectionPanel": {
+        "offset": "1000807"
+    },
+    "Frame@vgui": {
+        "offset": "3198342"
+    },
+    "CBoundedCvar_CmdRate": {
+        "offset": "89523"
+    },
+    "CAudioMixerWaveMP3": {
+        "offset": "404305"
+    },
+    "CServerRemoteAccess": {
+        "offset": "1762617"
+    },
+    "CAskConnectPanel": {
+        "offset": "2660028"
+    },
+    "CSVCMsg_HltvFixupOperatorStatus": {
+        "offset": "627082"
+    },
+    "FieldOptions@protobuf@google": {
+        "offset": "3805413"
+    },
+    "ServiceDescriptorProto@protobuf@google": {
+        "offset": "3799967"
+    },
+    "CSelectedHSVOperation": {
+        "offset": "996896"
+    },
+    "CPropFadeUIPanel": {
+        "offset": "2715512"
+    },
+    "CBugReportFinishedDialog": {
+        "offset": "1841302"
+    },
+    "CWaveDataStreamAsync": {
+        "offset": "384392"
+    },
+    "BlankImage": {
+        "offset": "3378613"
+    },
+    "CServerPlugin": {
+        "offset": "4390726"
+    },
+    "IWaveData": {
+        "offset": "384944"
+    },
+    "OS_RNG_Err@CryptoPP": {
+        "offset": "3705152"
+    },
+    "CSVCMsg_ClassInfo": {
+        "offset": "643034"
+    },
+    "CNETMsg_Tick": {
+        "offset": "673114"
+    },
+    "CDemoActionManager": {
+        "offset": "810969"
+    },
+    "StringSource@CryptoPP": {
+        "offset": "2439556"
+    },
+    "CNETMsg_SignonState_t": {
+        "offset": "976640"
+    },
+    "CHLTVFrame": {
+        "offset": "2156122"
+    },
+    "CSosOperatorSourceInfo": {
+        "offset": "489151"
+    },
+    "INetChannelHandler": {
+        "offset": "571111"
+    },
+    "DynamicMessage@protobuf@google": {
+        "offset": "4053315"
+    },
+    "CUtlCStringConversion": {
+        "offset": "135658"
+    },
+    "CWaveDataVoice@CAudioSourceVoice": {
+        "offset": "543201"
+    },
+    "CEngine": {
+        "offset": "2635417"
+    },
+    "CSosOperatorSpatializeSpeakers": {
+        "offset": "491727"
+    },
+    "CAreaPortalsUIPanel": {
+        "offset": "2716952"
+    },
+    "GeneratedMessageReflection@internal@protobuf@google": {
+        "offset": "3887663"
+    },
+    "DescriptorProto@protobuf@google": {
+        "offset": "3804325"
+    },
+    "ICollideable": {
+        "offset": "2609651"
+    },
+    "CAudioSourceCache": {
+        "offset": "414946"
+    },
+    "CSosOperatorVec3": {
+        "offset": "456878"
+    },
+    "CCLCMsg_LoadingProgress": {
+        "offset": "974186"
+    },
+    "TreeNodeDropPanel@vgui": {
+        "offset": "3422085"
+    },
+    "PKCS8PrivateKey@CryptoPP": {
+        "offset": "2448715"
+    },
+    "CircularProgressBar@vgui": {
+        "offset": "3400750"
+    },
+    "CSVCMsg_SplitScreen": {
+        "offset": "635674"
+    },
+    "SourceCodeInfo_Location@protobuf@google": {
+        "offset": "3807029"
+    },
+    "EncodedDescriptorDatabase@protobuf@google": {
+        "offset": "4046469"
+    },
+    "IDemoActionManager": {
+        "offset": "810924"
+    },
+    "InvalidArgument@CryptoPP": {
+        "offset": "2435437"
+    },
+    "URLLabel@vgui": {
+        "offset": "3417443"
+    },
+    "CSosOperatorSourceDistance": {
+        "offset": "462350"
+    },
+    "CNETMsg_SplitScreenUser": {
+        "offset": "1528744"
+    },
+    "CNetworkStringTableContainer": {
+        "offset": "776428"
+    },
+    "Divider@vgui": {
+        "offset": "3406597"
+    },
+    "FileNameComboBox@vgui": {
+        "offset": "3258876"
+    },
+    "CMsgVector2D": {
+        "offset": "1527951"
+    },
+    "MethodOptions@protobuf@google": {
+        "offset": "3806469"
+    },
+    "IClient": {
+        "offset": "1638138"
+    },
+    "CAudioMixerWave": {
+        "offset": "399419"
+    },
+    "CLookupViewWindow": {
+        "offset": "1022073"
+    },
+    "CAudioSourceStreamWave": {
+        "offset": "410923"
+    },
+    "CSmallTextEntry": {
+        "offset": "3473274"
+    },
+    "ScrollBarSlider@vgui": {
+        "offset": "3491636"
+    },
+    "CStaticPanel": {
+        "offset": "2727783"
+    },
+    "BERGeneralDecoder@CryptoPP": {
+        "offset": "3535216"
+    },
+    "ConVar": {
+        "offset": "80031"
+    },
+    "SendProp": {
+        "offset": "2022115"
+    },
+    "CTouchLinks": {
+        "offset": "2681010"
+    },
+    "ParserErrorCollector@ParserImpl@Parser@TextFormat@protobuf@google": {
+        "offset": "3768608"
+    },
+    "IFileOpenStateMachineClient@vgui": {
+        "offset": "1027051"
+    },
+    "CSyncRequest@CDemoStreamHttp": {
+        "offset": "1098427"
+    },
+    "CRebuildAudioCachedInfoJob@?A0x66b642d2": {
+        "offset": "414842"
+    },
+    "CAsyncWavDataCache": {
+        "offset": "378955"
+    },
+    "CRConClient": {
+        "offset": "903451"
+    },
+    "CMsgVector": {
+        "offset": "790279"
+    },
+    "CEncodeInfo": {
+        "offset": "2063986"
+    },
+    "pcharNode": {
+        "offset": "4086198"
+    },
+    "ScrollBarButton@?A0x46089d89": {
+        "offset": "3362011"
+    },
+    "IVideoMode": {
+        "offset": "2637212"
+    },
+    "IHandleEntity": {
+        "offset": "2594284"
+    },
+    "CMixerControls": {
+        "offset": "538283"
+    },
+    "CNETMsg_NOP": {
+        "offset": "787914"
+    },
+    "CAudioSourceMP3": {
+        "offset": "367550"
+    },
+    "CCurvesColorOperation": {
+        "offset": "981793"
+    },
+    "CSosOperatorFacing": {
+        "offset": "463294"
+    },
+    "CDrawTreeFrame": {
+        "offset": "2748749"
+    },
+    "CDemoActionPlayCommands": {
+        "offset": "792634"
+    },
+    "CSosOperatorEntryTime": {
+        "offset": "446682"
+    },
+    "IImage@vgui": {
+        "offset": "3253001"
+    },
+    "CBudgetBarGraphPanel": {
+        "offset": "2741069"
+    },
+    "ListViewItem@vgui": {
+        "offset": "3366969"
+    },
+    "CSosOperatorPrintFloat": {
+        "offset": "505150"
+    },
+    "CMsg_CVars_CVar": {
+        "offset": "893066"
+    },
+    "CMemoryStack": {
+        "offset": "1307509"
+    },
+    "InvalidKeyLength@CryptoPP": {
+        "offset": "3548067"
+    },
+    "CDragDropHelperPanel": {
+        "offset": "3166540"
+    },
+    "CVTFTexture": {
+        "offset": "3513794"
+    },
+    "Message@protobuf@google": {
+        "offset": "3761474"
+    },
+    "CConVarCheckButton": {
+        "offset": "937882"
+    },
+    "DynamicMessageFactory@protobuf@google": {
+        "offset": "4053863"
+    },
+    "IConnectionlessPacketHandler": {
+        "offset": "568458"
+    },
+    "CSerializedEntities": {
+        "offset": "4381734"
+    },
+    "CClientFrame": {
+        "offset": "977148"
+    },
+    "CColorCurvesUIPanel": {
+        "offset": "985802"
+    },
+    "IClientRenderable": {
+        "offset": "2609639"
+    },
+    "CCLCMsg_HltvReplay": {
+        "offset": "1627416"
+    },
+    "TreeView@vgui": {
+        "offset": "3431128"
+    },
+    "CWorldRenderList": {
+        "offset": "1193263"
+    },
+    "CBaseClient": {
+        "offset": "1638150"
+    },
+    "CPluginUIManager": {
+        "offset": "900179"
+    },
+    "COcclusionQueryJob": {
+        "offset": "2091592"
+    },
+    "CAudioSource": {
+        "offset": "367491"
+    },
+    "IAudioStreamEvent": {
+        "offset": "404299"
+    },
+    "MenuButton@vgui": {
+        "offset": "813934"
+    },
+    "CSVCMsg_GameEventList_descriptor_t": {
+        "offset": "1609448"
+    },
+    "ArrayXorSink@CryptoPP": {
+        "offset": "3545612"
+    },
+    "CMsgQAngle": {
+        "offset": "1514887"
+    },
+    "IDemoStream": {
+        "offset": "741964"
+    },
+    "IRegistry": {
+        "offset": "2537388"
+    },
+    "IMixerControls": {
+        "offset": "538336"
+    },
+    "CSVCMsg_EntityMsg": {
+        "offset": "629962"
+    },
+    "ScrollBar@vgui": {
+        "offset": "3361448"
+    },
+    "bad_alloc@std": {
+        "offset": "3662102"
+    },
+    "FocusNavGroup@vgui": {
+        "offset": "3276860"
+    },
+    "CEngineGotvSyncPacket": {
+        "offset": "1098170"
+    },
+    "CGameServer": {
+        "offset": "1723139"
+    },
+    "P1363_MGF1@CryptoPP": {
+        "offset": "2444772"
+    },
+    "CTextureListPanel": {
+        "offset": "937056"
+    },
+    "EnumValueDescriptorProto@protobuf@google": {
+        "offset": "3799036"
+    },
+    "CSendTablePrecalc": {
+        "offset": "2013268"
+    },
+    "CSVCMsg_SendTable": {
+        "offset": "642394"
+    },
+    "Menu@vgui": {
+        "offset": "3286454"
+    },
+    "IAudioOutputStream": {
+        "offset": "147452"
+    },
+    "CSosOperatorStopEntry": {
+        "offset": "494910"
+    },
+    "CHLTVBroadcast": {
+        "offset": "2119162"
+    },
+    "CAudioMixerWave16Mono": {
+        "offset": "399681"
+    },
+    "DescriptorProto_ExtensionRange@protobuf@google": {
+        "offset": "3798444"
+    },
+    "CNETMsg_SetConVar_t": {
+        "offset": "887402"
+    },
+    "CRConVProfExport": {
+        "offset": "902345"
+    },
+    "IVTFTexture": {
+        "offset": "3512940"
+    },
+    "ServiceOptions@protobuf@google": {
+        "offset": "3806757"
+    },
+    "CFunctor": {
+        "offset": "393938"
+    },
+    "CPerfUIPanel": {
+        "offset": "2719728"
+    },
+    "CClientFrameManager": {
+        "offset": "958620"
+    },
+    "CDemoActionZoom": {
+        "offset": "797010"
+    },
+    "BaseInputDialog@vgui": {
+        "offset": "3468966"
+    },
+    "IDataCacheClient": {
+        "offset": "1244028"
+    },
+    "SHA1@CryptoPP": {
+        "offset": "2444539"
+    },
+    "CDemoActionScreenFadeStart": {
+        "offset": "793642"
+    },
+    "CSosOperatorRemapValue": {
+        "offset": "463822"
+    },
+    "CSteamSocketMgr": {
+        "offset": "2390144"
+    },
+    "AlgorithmParameters@CryptoPP": {
+        "offset": "3636511"
+    },
+    "CDiskDemoBuffer": {
+        "offset": "1080725"
+    },
+    "CColorBalanceUIPanel": {
+        "offset": "1017834"
+    },
+    "CEngineTraceClient": {
+        "offset": "94383"
+    },
+    "TileViewPanelEx@vgui": {
+        "offset": "914825"
+    },
+    "CSVCMsg_SetView": {
+        "offset": "640794"
+    },
+    "COperationFileListFrame": {
+        "offset": "3495710"
+    },
+    "CSosOperator": {
+        "offset": "437020"
+    },
+    "CCLCMsg_Move": {
+        "offset": "882030"
+    },
+    "ArrayInputStream@io@protobuf@google": {
+        "offset": "4020797"
+    },
+    "CAudioSourceCachedInfo": {
+        "offset": "413252"
+    },
+    "ListViewPanel@vgui": {
+        "offset": "3368343"
+    },
+    "DirectorySelectDialog@vgui": {
+        "offset": "3390438"
+    },
+    "ArrayOutputStream@io@protobuf@google": {
+        "offset": "4020861"
+    },
+    "COperationListPanel": {
+        "offset": "1024329"
+    },
+    "IDemoPlayer": {
+        "offset": "742721"
+    },
+    "CAudioDeviceNull2": {
+        "offset": "273108"
+    },
+    "CKeyValuesDumpContextAsDevMsg": {
+        "offset": "1893783"
+    },
+    "CSaveDocumentQuery": {
+        "offset": "3499770"
+    },
+    "CSosOperatorIncrementOpvarFloat": {
+        "offset": "482062"
+    },
+    "CLog": {
+        "offset": "1713419"
+    },
+    "CPropCullStack": {
+        "offset": "2063602"
+    },
+    "CIpcConsoleImpl": {
+        "offset": "2286153"
+    },
+    "CMsgRGBA": {
+        "offset": "1535432"
+    },
+    "CannotFlush@CryptoPP": {
+        "offset": "3547856"
+    },
+    "CForceMatchList@CPureServerWhitelist": {
+        "offset": "2522352"
+    },
+    "CSVCMsg_VoiceData": {
+        "offset": "638778"
+    },
+    "CNetConsoleMgr": {
+        "offset": "2471825"
+    },
+    "Finder@TextFormat@protobuf@google": {
+        "offset": "3769042"
+    },
+    "CProfileTree": {
+        "offset": "2765783"
+    },
+    "ToggleButton@vgui": {
+        "offset": "3334986"
+    },
+    "CDemoSmootherPanel": {
+        "offset": "818282"
+    },
+    "FileDescriptorSet@protobuf@google": {
+        "offset": "3805893"
+    },
+    "CDemoActionTextMessageStart": {
+        "offset": "794938"
+    },
+    "RadioButton@vgui": {
+        "offset": "3376170"
+    },
+    "pDNameNode": {
+        "offset": "4086153"
+    },
+    "CBaseDemoAction": {
+        "offset": "790507"
+    },
+    "CEngineClient": {
+        "offset": "4355430"
+    },
+    "INetChannel": {
+        "offset": "2346780"
+    },
+    "CStudioConvexInfo": {
+        "offset": "2083397"
+    },
+    "FieldDescriptorProto@protobuf@google": {
+        "offset": "3805253"
+    },
+    "PanelListPanel@vgui": {
+        "offset": "3501818"
+    },
+    "TreeViewSubPanel@vgui": {
+        "offset": "3431524"
+    },
+    "CPooledVBAllocator_ColorMesh": {
+        "offset": "1249209"
+    },
+    "bad_exception@std": {
+        "offset": "4070945"
+    },
+    "CModelRender": {
+        "offset": "1249082"
+    },
+    "IEngineVGui": {
+        "offset": "2728538"
+    },
+    "BaseTooltip@vgui": {
+        "offset": "3458799"
+    },
+    "CTestScriptMgr": {
+        "offset": "2656068"
+    },
+    "CHLTVClient": {
+        "offset": "2131106"
+    },
+    "CSVCMsg_Print": {
+        "offset": "641770"
+    },
+    "CFileLoggingListener": {
+        "offset": "3121735"
+    },
+    "TxViewPanel": {
+        "offset": "956653"
+    },
+    "CDispInfo": {
+        "offset": "1142073"
+    },
+    "NonblockingRng@CryptoPP": {
+        "offset": "3705634"
+    },
+    "CBaseActionZoomDialog": {
+        "offset": "809227"
+    },
+    "CNetSupportImpl": {
+        "offset": "4414550"
+    },
+    "FieldSkipper@internal@protobuf@google": {
+        "offset": "3998716"
+    },
+    "_Ref_count_base@std": {
+        "offset": "4263697"
+    },
+    "CBaseActionScreenFadeStartDialog": {
+        "offset": "800715"
+    },
+    "CAudioSourceMemWave": {
+        "offset": "408680"
+    },
+    "CRender": {
+        "offset": "1181083"
+    },
+    "CSVCMsg_SendTable_sendprop_t": {
+        "offset": "1577592"
+    },
+    "DescriptorPoolExtensionFinder@internal@protobuf@google": {
+        "offset": "4036770"
+    },
+    "UninterpretedOption@protobuf@google": {
+        "offset": "3807189"
+    },
+    "CMMNotificationClient": {
+        "offset": "564273"
+    },
+    "CAudioDirectSound2": {
+        "offset": "3014306"
+    },
+    "CSosOperatorDelta": {
+        "offset": "443790"
+    }
+}

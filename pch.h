@@ -29,6 +29,10 @@
 #define NDEBUG
 #define BOOST_DISABLE_ASSERTS
 #endif
+//#define BOOST_ENABLE_ASSERT_HANDLER
+//#ifndef _DEBUG
+//#define NDEBUG
+//#endif
 #include <boost/assert.hpp>
 
 #include <yvals.h>
@@ -544,9 +548,11 @@ namespace std
 #include "cheat/utils/Vector4D.hpp"
 #include "cheat/utils/VMatrix.hpp"
 
+//#ifdef NDEBUG//currently release mode used only for netvars/vtables dumping
 //#define CHEAT_NETVARS_UPDATING
+//#endif
 
-#if defined(_DEBUG) || defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+#if 1//defined(_DEBUG) || defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_HAVE_CONSOLE
 #endif
 

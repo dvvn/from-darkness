@@ -32,12 +32,8 @@ void C_BaseAnimating::StandardBlendingRules(CStudioHdr* hdr, utl::Vector pos[], 
 
 CUtlVector<CAnimationLayer>& C_BaseAnimating::GetAnimOverlays( )
 {
-	static const auto offset = []
-	{
-		detail::csgo_interface_base ifc;
-		ifc.from_sig("client.dll", "8B 87 ? ? ? ? 83 79 04 00 8B", 2, 1);
-		return ifc.addr( );
-	}( );
+	static const auto offset = _Find_signature("client.dll", "8B 87 ? ? ? ? 83 79 04 00 8B").add(2).deref(1);
+
 	(void)this;
 	return utl::address(this).add(offset).ref<CUtlVector<CAnimationLayer>>( );
 }

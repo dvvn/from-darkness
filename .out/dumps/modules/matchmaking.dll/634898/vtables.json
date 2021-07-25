@@ -1,0 +1,161 @@
+{
+    "CMatchSessionOnlineClient": {
+        "offset": "115353"
+    },
+    "CMatchTitle": {
+        "offset": "10876"
+    },
+    "CConnectionlessLanMgr": {
+        "offset": "70008"
+    },
+    "CMatchFramework": {
+        "offset": "383446"
+    },
+    "CLeaderboardRequestQueue": {
+        "offset": "100601"
+    },
+    "type_info": {
+        "offset": "254917"
+    },
+    "CDatacenter": {
+        "offset": "137625"
+    },
+    "CSysSessionConTeamHost": {
+        "offset": "178753"
+    },
+    "IConnectionlessPacketHandler": {
+        "offset": "69676"
+    },
+    "CMatchVoice": {
+        "offset": "187361"
+    },
+    "PlayerFriend": {
+        "offset": "72774"
+    },
+    "CMatchSessionOnlineSearch": {
+        "offset": "125173"
+    },
+    "ConVar": {
+        "offset": "220615"
+    },
+    "CSearchManager": {
+        "offset": "184501"
+    },
+    "CMatchExtensions": {
+        "offset": "383414"
+    },
+    "CMatchNetworkMsgControllerBase": {
+        "offset": "384086"
+    },
+    "CSysSessionBase": {
+        "offset": "153205"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "10637"
+    },
+    "CMatchSystem": {
+        "offset": "384070"
+    },
+    "CMatchSessionOnlineHost": {
+        "offset": "140698"
+    },
+    "CEmptyConVar": {
+        "offset": "10041"
+    },
+    "CMatchSearcher_OnlineTeamSearch": {
+        "offset": "195866"
+    },
+    "CUtlCStringConversion": {
+        "offset": "10330"
+    },
+    "exception@std": {
+        "offset": "370140"
+    },
+    "GameTypes": {
+        "offset": "33004"
+    },
+    "CServer": {
+        "offset": "102901"
+    },
+    "IGameTypes": {
+        "offset": "31196"
+    },
+    "CMatchSearcher_SearchMgr": {
+        "offset": "186765"
+    },
+    "CDlcManager": {
+        "offset": "139068"
+    },
+    "CMatchEventsSubscription": {
+        "offset": "88217"
+    },
+    "IGameEventListener2": {
+        "offset": "10748"
+    },
+    "CDatacenterCmdBatchImpl": {
+        "offset": "138061"
+    },
+    "CKeyValuesDumpContextAsDevMsg": {
+        "offset": "12272"
+    },
+    "bad_typeid@std": {
+        "offset": "370118"
+    },
+    "CMatchSearcher_OnlineSearch": {
+        "offset": "129988"
+    },
+    "CServerListListener@CMatchSessionOnlineSearch": {
+        "offset": "128879"
+    },
+    "IMatchEventsSink": {
+        "offset": "184495"
+    },
+    "CDsSearcher": {
+        "offset": "202272"
+    },
+    "CMatchSearchResultItem": {
+        "offset": "185150"
+    },
+    "CMatchSessionOnlineTeamSearch": {
+        "offset": "195364"
+    },
+    "bad_cast@std": {
+        "offset": "370091"
+    },
+    "CServerListListener@CDsSearcher": {
+        "offset": "205743"
+    },
+    "CMatchSearcher": {
+        "offset": "189398"
+    },
+    "CSysSessionClient": {
+        "offset": "127079"
+    },
+    "CMatchSessionOfflineCustom": {
+        "offset": "110312"
+    },
+    "CServerManager": {
+        "offset": "103305"
+    },
+    "ConCommandBase": {
+        "offset": "219724"
+    },
+    "__non_rtti_object@std": {
+        "offset": "370064"
+    },
+    "CServerPinging": {
+        "offset": "102948"
+    },
+    "CMatchTitleGameSettingsMgr": {
+        "offset": "15453"
+    },
+    "PlayerLocal": {
+        "offset": "75731"
+    },
+    "CSysSessionHost": {
+        "offset": "163280"
+    },
+    "PlayerManager": {
+        "offset": "56155"
+    }
+}

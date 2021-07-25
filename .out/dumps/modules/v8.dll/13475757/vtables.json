@@ -1,0 +1,74 @@
+{
+    "length_error@std": {
+        "offset": "8866222"
+    },
+    "exception@std": {
+        "offset": "8865963"
+    },
+    "bad_alloc@std": {
+        "offset": "8865851"
+    },
+    "DNameNode": {
+        "offset": "9049034"
+    },
+    "charNode": {
+        "offset": "9049236"
+    },
+    "type_info": {
+        "offset": "9009603"
+    },
+    "pDNameNode": {
+        "offset": "9049257"
+    },
+    "overflow_error@std": {
+        "offset": "8866444"
+    },
+    "runtime_error@std": {
+        "offset": "294429"
+    },
+    "bad_array_new_length@std": {
+        "offset": "9013563"
+    },
+    "bad_function_call@std": {
+        "offset": "8865914"
+    },
+    "_Locimp@locale@std": {
+        "offset": "8869092"
+    },
+    "DNameStatusNode": {
+        "offset": "9049057"
+    },
+    "bad_cast@std": {
+        "offset": "8876519"
+    },
+    "bad_exception@std": {
+        "offset": "9022219"
+    },
+    "facet@locale@std": {
+        "offset": "8869293"
+    },
+    "out_of_range@std": {
+        "offset": "8866370"
+    },
+    "codecvt_base@std": {
+        "offset": "8876583"
+    },
+    "logic_error@std": {
+        "offset": "8866296"
+    },
+    "pcharNode": {
+        "offset": "9049350"
+    },
+    "regex_error@std": {
+        "offset": "8866520"
+    },
+    "pairNode": {
+        "offset": "9049322"
+    },
+    "_Facet_base@std": {
+        "offset": "294916"
+    },
+    "invalid_argument@std": {
+        "offset": "8866148"
+    }
+}

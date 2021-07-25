@@ -1,0 +1,59 @@
+{
+    "CIMEManager": {
+        "offset": "53340"
+    },
+    "CUtlCStringConversion": {
+        "offset": "4394"
+    },
+    "type_info": {
+        "offset": "63909"
+    },
+    "ConCommand": {
+        "offset": "15126"
+    },
+    "CTSF": {
+        "offset": "34205"
+    },
+    "CIMENamesManagerVista": {
+        "offset": "22713"
+    },
+    "ICommandCompletionCallback": {
+        "offset": "15202"
+    },
+    "GFxIMEVista": {
+        "offset": "37604"
+    },
+    "IMEManagerBase": {
+        "offset": "53683"
+    },
+    "ICommandCallback": {
+        "offset": "15195"
+    },
+    "CIMENamesManager": {
+        "offset": "7100"
+    },
+    "ConVar": {
+        "offset": "57921"
+    },
+    "CIMENamesManagerXP": {
+        "offset": "19338"
+    },
+    "GFxIMEWin32Impl": {
+        "offset": "43344"
+    },
+    "GFxIMEManagerWin32": {
+        "offset": "18874"
+    },
+    "ConCommandBase": {
+        "offset": "7837"
+    },
+    "GFxIMEXP": {
+        "offset": "45980"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "4701"
+    },
+    "CEmptyConVar": {
+        "offset": "4259"
+    }
+}

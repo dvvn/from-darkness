@@ -1,4 +1,5 @@
 #pragma once
+#include "helpers.h"
 
 namespace cheat
 {
@@ -45,7 +46,7 @@ namespace cheat
 			virtual void Post_load( );
 
 			template <awaitable_service S>
-			void Wait_for()
+			void Wait_for( )
 			{
 				Wait_for_add_impl_(S::get_shared( ));
 			}
@@ -85,37 +86,6 @@ namespace cheat
 	{
 		template <service_mode Mode>
 		using service_type_selector = std::conditional_t<Mode == service_mode::sync, sync_service, async_service>;
-
-		template <typename T>
-		struct type_name
-		{
-		private:
-			static constexpr utl::string_view Get_( ) noexcept
-			{
-				const auto full_name = utl::string_view(__FUNCSIG__);
-				const auto left_marker = utl::string_view("type_name<");
-				const auto right_marker = utl::string_view(">::Get_");
-
-				const auto left_marker_index = full_name.find(left_marker);
-				//static_assert(left_marker_index != std::string_view::npos);
-				const auto start_index = left_marker_index + left_marker.size( );
-				const auto end_index = full_name.find(right_marker, left_marker_index);
-				//static_assert(end_index != std::string_view::npos);
-				const auto length = end_index - start_index;
-
-				//class cheat::A::B:: name
-				const auto obj_name = full_name.substr(start_index, length);
-				const auto left_marker2 = utl::string_view("cheat::");
-				if (const auto left_marker_index2 = obj_name.find(left_marker2); left_marker_index2 != utl::string_view::npos)
-					return obj_name.substr(left_marker_index2 + left_marker2.size( ));
-
-				const auto space_index = obj_name.find(' ');
-				return space_index == utl::string_view::npos ? obj_name : obj_name.substr(space_index + 1);
-			}
-
-		public:
-			static constexpr utl::string_view name = Get_( );
-		};
 	}
 
 	template <typename T, service_mode Mode>
@@ -124,9 +94,7 @@ namespace cheat
 	public:
 		utl::string_view debug_name( ) const final
 		{
-
-			return detail::type_name<T>::name;
-
+			return _Type_name<T>(false);
 		}
 	};
 
@@ -136,9 +104,7 @@ namespace cheat
 	public:
 		utl::string_view debug_name( ) const final
 		{
-
-			return detail::type_name<T>::name;
-
+			return _Type_name<T>(false);
 		}
 	};
 }

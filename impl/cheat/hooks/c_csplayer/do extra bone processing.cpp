@@ -19,24 +19,8 @@ void do_extra_bone_processing::Load( )
 {
 #ifndef CHEAT_GUI_TEST
 
-	auto get_player = []
-	{
-		if (csgo_interfaces::get( ).local_player != nullptr)
-			return csgo_interfaces::get( ).local_player.get( );
-		//netvars load it before
-		const auto client_dll = all_modules::get( ).find("client.dll");
-		const auto& vtables = client_dll->vtables( );
-		return vtables.get_cache( ).at("C_CSPlayer").addr.raw<C_CSPlayer>( );
-	};
-
-	constexpr auto offset = []
-	{
-		cheat::detail::csgo_interface_base ifc;
-		ifc.from_sig("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC", 11, 1);
-		return ifc.addr( ).value( ) / 4;
-	};
-
-	this->target_func_ = method_info::make_member_virtual(move(get_player), offset( ));
+	const auto offset = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC").add(2).deref(1).value( ) / 4;
+	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_CSPlayer>, &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );

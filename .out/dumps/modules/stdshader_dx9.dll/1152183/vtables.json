@@ -1,0 +1,560 @@
+{
+    "CShader@BufferClearObeyStencil_DX9": {
+        "offset": "9920"
+    },
+    "type_info": {
+        "offset": "621253"
+    },
+    "CShader@CustomWeapon_dx9": {
+        "offset": "23312"
+    },
+    "CShader@DepthOfField": {
+        "offset": "210663"
+    },
+    "CShader@BufferClearObeyStencil": {
+        "offset": "137799"
+    },
+    "CShader@MorphWeight_DX9": {
+        "offset": "50112"
+    },
+    "CShader@UnlitGeneric": {
+        "offset": "79760"
+    },
+    "CShader@Multiblend_DX90": {
+        "offset": "51200"
+    },
+    "CShader@Cloak_DX90": {
+        "offset": "15056"
+    },
+    "CShader@EyeRefract": {
+        "offset": "234503"
+    },
+    "CShader@MorphAccumulate": {
+        "offset": "347623"
+    },
+    "ConVar": {
+        "offset": "617307"
+    },
+    "CShader@LightmappedGeneric": {
+        "offset": "46000"
+    },
+    "CShader@ColorCorrection": {
+        "offset": "15824"
+    },
+    "CShader@MonitorScreen_DX9": {
+        "offset": "49696"
+    },
+    "CShaderDLL": {
+        "offset": "613946"
+    },
+    "CShader@WorldVertexTransition": {
+        "offset": "597287"
+    },
+    "CShader@sfm_shape_shader": {
+        "offset": "67760"
+    },
+    "CShader@panorama": {
+        "offset": "367207"
+    },
+    "CShader@WriteZ": {
+        "offset": "599623"
+    },
+    "CShader@IceSurface": {
+        "offset": "274263"
+    },
+    "CShader@HSV": {
+        "offset": "37024"
+    },
+    "CShader@WindowImposter": {
+        "offset": "584471"
+    },
+    "CShader@Downsample": {
+        "offset": "26016"
+    },
+    "CShader@BlurFilterY": {
+        "offset": "9600"
+    },
+    "CShader@GAMECONTROLS": {
+        "offset": "36128"
+    },
+    "CShader@panoramafancy": {
+        "offset": "370711"
+    },
+    "CShader@LightmappedReflective": {
+        "offset": "330823"
+    },
+    "CShader@Blob_dx9": {
+        "offset": "8448"
+    },
+    "CShader@Blob": {
+        "offset": "121303"
+    },
+    "CShader@LightmappedReflective_DX90": {
+        "offset": "47440"
+    },
+    "CShader@WorldTwoTextureBlend": {
+        "offset": "96352"
+    },
+    "CShader@IntroScreenSpaceEffect": {
+        "offset": "39072"
+    },
+    "CShader@ParticleLitGeneric_DX9": {
+        "offset": "54448"
+    },
+    "CShader@Teeth_DX9": {
+        "offset": "76608"
+    },
+    "CShader@Character": {
+        "offset": "13696"
+    },
+    "CShader@WriteStencil_DX9": {
+        "offset": "100128"
+    },
+    "CSolidEnergy_DX9_Context": {
+        "offset": "463992"
+    },
+    "CShader@VertexLitGeneric": {
+        "offset": "87712"
+    },
+    "CShader@hsl_filmgrain_pass1": {
+        "offset": "36688"
+    },
+    "CShader@Spritecard": {
+        "offset": "76000"
+    },
+    "CShader@Occlusion_DX9": {
+        "offset": "51840"
+    },
+    "IConVar": {
+        "offset": "617452"
+    },
+    "CShader@CharacterSSAO": {
+        "offset": "13840"
+    },
+    "CShader@Multiblend": {
+        "offset": "352343"
+    },
+    "CShader@worldimposter": {
+        "offset": "95472"
+    },
+    "ConCommandBase": {
+        "offset": "617020"
+    },
+    "CShader@CustomClothing": {
+        "offset": "21696"
+    },
+    "CShader@Aftershock": {
+        "offset": "105447"
+    },
+    "CShader@ShatteredGlass": {
+        "offset": "69504"
+    },
+    "CShader@SolidEnergy_dx9": {
+        "offset": "72384"
+    },
+    "CShader@sfm_downsample_shader": {
+        "offset": "67328"
+    },
+    "CShader@paintblob_dx9": {
+        "offset": "53360"
+    },
+    "CShader@DepthWrite": {
+        "offset": "25936"
+    },
+    "CShader@EyeRefract_dx9": {
+        "offset": "32000"
+    },
+    "CShader@Embroider": {
+        "offset": "27136"
+    },
+    "CShader@ShadowBuild": {
+        "offset": "444279"
+    },
+    "CPerInstanceContextData": {
+        "offset": "609243"
+    },
+    "CShader@DebugMorphAccumulator": {
+        "offset": "23456"
+    },
+    "CShader@sfm_ao_blur_shader": {
+        "offset": "66672"
+    },
+    "CLightmapped_4WayBlend_DX9_Context": {
+        "offset": "285067"
+    },
+    "CShader@DecalModulate_dx9": {
+        "offset": "24064"
+    },
+    "CShader@sfm_blurfilterx_shader": {
+        "offset": "66896"
+    },
+    "CShader@ObjectMotionBlur": {
+        "offset": "51472"
+    },
+    "CShader@LightShafts": {
+        "offset": "334583"
+    },
+    "CShader@floattoscreen": {
+        "offset": "35712"
+    },
+    "CShader@FilmGrain": {
+        "offset": "33648"
+    },
+    "CShader@ShadowModel_DX9": {
+        "offset": "68816"
+    },
+    "CShader@BlurFilterX": {
+        "offset": "9072"
+    },
+    "CShader@Wireframe": {
+        "offset": "585975"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "100989"
+    },
+    "CShader@showz": {
+        "offset": "69680"
+    },
+    "CShader@VortWarp_DX9": {
+        "offset": "90224"
+    },
+    "CEmptyConVar": {
+        "offset": "100553"
+    },
+    "CShader@IceSurface_dx9": {
+        "offset": "38784"
+    },
+    "CShader@PanoramaSSAAResolve": {
+        "offset": "53744"
+    },
+    "CShader@Water": {
+        "offset": "559719"
+    },
+    "CShader@paintblob": {
+        "offset": "359159"
+    },
+    "CShader@sfm_ambientocclusion_shader": {
+        "offset": "66448"
+    },
+    "CShader@Sky_HDR_DX9": {
+        "offset": "70192"
+    },
+    "CLightmappedGeneric_DX9_Context": {
+        "offset": "305467"
+    },
+    "CShader@EyeGlint_dx9": {
+        "offset": "32336"
+    },
+    "CShader@MonitorScreen": {
+        "offset": "344535"
+    },
+    "CShader@ProtoIce_dx9": {
+        "offset": "57568"
+    },
+    "CShader@Grass": {
+        "offset": "16496"
+    },
+    "CShader@Cable": {
+        "offset": "139367"
+    },
+    "CWeaponDecal_DX9_Context": {
+        "offset": "577906"
+    },
+    "CShader@MotionBlur": {
+        "offset": "350615"
+    },
+    "CShader@Sky": {
+        "offset": "454487"
+    },
+    "CShader@Water_DX9_HDR@Water_DX90": {
+        "offset": "92848"
+    },
+    "CShader@screenspace_zone_dx9": {
+        "offset": "65888"
+    },
+    "CShader@DecalModulate": {
+        "offset": "207495"
+    },
+    "CShader@Shadow": {
+        "offset": "68096"
+    },
+    "CShader@floatcombine": {
+        "offset": "34592"
+    },
+    "CShader@Portal_DX90": {
+        "offset": "56048"
+    },
+    "CShader@Modulate_DX9": {
+        "offset": "49216"
+    },
+    "CShader@sfm_blurfiltery_shader": {
+        "offset": "67120"
+    },
+    "CShader@VortWarp": {
+        "offset": "552311"
+    },
+    "CShader@Downsample_nohdr": {
+        "offset": "26672"
+    },
+    "CShader@accumbuff4sample": {
+        "offset": "4496"
+    },
+    "CShader@ShadowBuild_DX9": {
+        "offset": "68464"
+    },
+    "CShader@screenspace_general": {
+        "offset": "424647"
+    },
+    "CBasePerInstanceContextData": {
+        "offset": "609180"
+    },
+    "CShader@sfm_integercombine_shader": {
+        "offset": "67616"
+    },
+    "CShader@WorldVertexTransition_DX9": {
+        "offset": "99808"
+    },
+    "CShader@DebugTextureView_dx9": {
+        "offset": "23712"
+    },
+    "CShader@Bik": {
+        "offset": "6000"
+    },
+    "CShader@Sample4x4": {
+        "offset": "59504"
+    },
+    "CShader@HDRSelectRange": {
+        "offset": "36336"
+    },
+    "CShader@WindowImposter_DX90": {
+        "offset": "95104"
+    },
+    "CShader@UnlitTwoTexture_DX9": {
+        "offset": "81008"
+    },
+    "CShader@Eyes_dx9": {
+        "offset": "33168"
+    },
+    "CShader@HDRCombineTo16Bit": {
+        "offset": "36240"
+    },
+    "CShader@MorphAccumulate_DX9": {
+        "offset": "50000"
+    },
+    "CShader@ProtoIce": {
+        "offset": "409959"
+    },
+    "CShader@Refract_DX90": {
+        "offset": "59312"
+    },
+    "CShader@LightShafts_dx9": {
+        "offset": "48528"
+    },
+    "CShader@DebugMRTTexture": {
+        "offset": "23568"
+    },
+    "CShader@Cloak": {
+        "offset": "154679"
+    },
+    "CShader@Sprite_DX9": {
+        "offset": "73296"
+    },
+    "CShader@ShadowModel": {
+        "offset": "446759"
+    },
+    "CShader@PortalRefract_dx9": {
+        "offset": "56656"
+    },
+    "CShader@DebugTextureView": {
+        "offset": "205191"
+    },
+    "CShader@WeaponDecal_dx9": {
+        "offset": "94896"
+    },
+    "CShader@SolidEnergy": {
+        "offset": "457287"
+    },
+    "CShader@WeaponDecal": {
+        "offset": "571223"
+    },
+    "CShader@Portal": {
+        "offset": "396999"
+    },
+    "CShader@screenspace_zone": {
+        "offset": "428647"
+    },
+    "CShader@Lightmapped_4WayBlend": {
+        "offset": "42288"
+    },
+    "CShader@FilmDust": {
+        "offset": "33408"
+    },
+    "CShader@Aftershock_dx9": {
+        "offset": "5552"
+    },
+    "CShader@Black": {
+        "offset": "6160"
+    },
+    "CShader@PortalStaticOverlay": {
+        "offset": "57168"
+    },
+    "IShaderDLL": {
+        "offset": "613940"
+    },
+    "CShader@ParticleSphere": {
+        "offset": "375463"
+    },
+    "CShader@Bloom": {
+        "offset": "8768"
+    },
+    "CPhong_DX9_Context": {
+        "offset": "386109"
+    },
+    "CShader@Cable_DX9": {
+        "offset": "10192"
+    },
+    "CShader@SplineRope": {
+        "offset": "72880"
+    },
+    "CShader@DepthOfField_dx9": {
+        "offset": "24784"
+    },
+    "CShader@floattoscreen_vanilla": {
+        "offset": "36048"
+    },
+    "CShader@MorphWeight": {
+        "offset": "349607"
+    },
+    "CShader@panorama_dx9": {
+        "offset": "53600"
+    },
+    "CShader@Water_DX90": {
+        "offset": "92816"
+    },
+    "CShader@CustomWeapon": {
+        "offset": "192503"
+    },
+    "CShader@hsl_filmgrain_pass2": {
+        "offset": "36864"
+    },
+    "CVertexLitGeneric_DX9_Context": {
+        "offset": "529845"
+    },
+    "CShader@PortalRefract": {
+        "offset": "400503"
+    },
+    "CShader@floatcombine_autoexpose": {
+        "offset": "35328"
+    },
+    "CShader@WriteStencil": {
+        "offset": "599079"
+    },
+    "CCustomWeapon_DX9_Context": {
+        "offset": "197581"
+    },
+    "CShader@Engine_Post": {
+        "offset": "225223"
+    },
+    "CShader@UnLitWorld_ScreenSample": {
+        "offset": "81120"
+    },
+    "CFlashlightShadowDecal_DX9_Context": {
+        "offset": "257928"
+    },
+    "CShader@EyeGlint": {
+        "offset": "245591"
+    },
+    "CShader@Prototype_dx9": {
+        "offset": "57776"
+    },
+    "CShader@screenspace_general_dx9": {
+        "offset": "62864"
+    },
+    "CShader@VolumeClouds_dx9": {
+        "offset": "88480"
+    },
+    "CShader@UnlitTwoTexture": {
+        "offset": "497351"
+    },
+    "CShader@panoramafancy_dx9": {
+        "offset": "53952"
+    },
+    "CUtlCStringConversion": {
+        "offset": "100682"
+    },
+    "CShader@Teeth": {
+        "offset": "485991"
+    },
+    "CShader@Refract": {
+        "offset": "415719"
+    },
+    "CBaseVSShader": {
+        "offset": "103118"
+    },
+    "CShader@accumbuff5sample": {
+        "offset": "4944"
+    },
+    "CBaseShader": {
+        "offset": "103066"
+    },
+    "CShader@CustomCharacter": {
+        "offset": "19552"
+    },
+    "CShader@Modulate": {
+        "offset": "340871"
+    },
+    "CShader@MotionBlur_dx9": {
+        "offset": "50400"
+    },
+    "CShader@WriteZ_DX9": {
+        "offset": "100448"
+    },
+    "CShader@Sprite": {
+        "offset": "470775"
+    },
+    "CShader@VolumeClouds": {
+        "offset": "549031"
+    },
+    "CShader@ParticleSphere_DX9": {
+        "offset": "55024"
+    },
+    "CShader@Wireframe_DX9": {
+        "offset": "95280"
+    },
+    "CShader@Sample4x4_Blend": {
+        "offset": "59648"
+    },
+    "CShader@flashlight_shadow_decal": {
+        "offset": "33792"
+    },
+    "CShader@Prototype": {
+        "offset": "413063"
+    },
+    "CShader@ParallaxTest": {
+        "offset": "54256"
+    },
+    "CShader@ColorOut": {
+        "offset": "15936"
+    },
+    "CShader@Occlusion": {
+        "offset": "358311"
+    },
+    "CShader@Projected_DX90": {
+        "offset": "57264"
+    },
+    "CShader@TreeLeaf": {
+        "offset": "76720"
+    },
+    "CShader@Engine_Post_dx9": {
+        "offset": "30480"
+    },
+    "CShader@eyes": {
+        "offset": "253303"
+    },
+    "CBasePerMaterialContextData": {
+        "offset": "193756"
+    },
+    "CShader@Projected": {
+        "offset": "407495"
+    }
+}

@@ -1,0 +1,116 @@
+{
+    "CBufferStream": {
+        "offset": "145522"
+    },
+    "type_info": {
+        "offset": "206904"
+    },
+    "CFileAsyncJob": {
+        "offset": "75695"
+    },
+    "CStdFilesystemFile": {
+        "offset": "86844"
+    },
+    "CAsyncGroupRequest": {
+        "offset": "93695"
+    },
+    "CQueuedLoader": {
+        "offset": "127053"
+    },
+    "ConVar": {
+        "offset": "162216"
+    },
+    "CFileAsyncAppendFileJob": {
+        "offset": "77227"
+    },
+    "CFileStream": {
+        "offset": "145581"
+    },
+    "CStdioFile": {
+        "offset": "89700"
+    },
+    "CFileAsyncReadJob": {
+        "offset": "75739"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "7341"
+    },
+    "CFileHandle": {
+        "offset": "21259"
+    },
+    "CFileAsyncDirectoryScanJob": {
+        "offset": "78038"
+    },
+    "CEmptyConVar": {
+        "offset": "6889"
+    },
+    "CBaseFileSystem": {
+        "offset": "13670"
+    },
+    "CAsyncFileRequest": {
+        "offset": "94423"
+    },
+    "CAsyncFileSystem": {
+        "offset": "97276"
+    },
+    "CUtlCStringConversion": {
+        "offset": "7034"
+    },
+    "exception@std": {
+        "offset": "325939"
+    },
+    "CIODelayAlarmThread": {
+        "offset": "62673"
+    },
+    "CFileAsyncFileSizeJob": {
+        "offset": "78794"
+    },
+    "CFileSystem_Stdio": {
+        "offset": "5824"
+    },
+    "CWin32ReadOnlyFile": {
+        "offset": "91024"
+    },
+    "CZip": {
+        "offset": "145020"
+    },
+    "CAsyncSearchRequest": {
+        "offset": "95224"
+    },
+    "CFileAsyncWriteJob": {
+        "offset": "76511"
+    },
+    "bad_typeid@std": {
+        "offset": "325917"
+    },
+    "CPackFile": {
+        "offset": "9822"
+    },
+    "bad_cast@std": {
+        "offset": "325890"
+    },
+    "CFileAsyncWriteFileJob": {
+        "offset": "79217"
+    },
+    "CZipPackFile": {
+        "offset": "24014"
+    },
+    "CJob": {
+        "offset": "75631"
+    },
+    "IIoStats": {
+        "offset": "8172"
+    },
+    "ConCommandBase": {
+        "offset": "161484"
+    },
+    "__non_rtti_object@std": {
+        "offset": "325863"
+    },
+    "CFileTracker2": {
+        "offset": "106262"
+    },
+    "CFunctor": {
+        "offset": "126876"
+    }
+}

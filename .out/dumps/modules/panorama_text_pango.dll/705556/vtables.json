@@ -1,0 +1,230 @@
+{
+    "length_error@std": {
+        "offset": "391983"
+    },
+    "AggregateOptionFinder@OptionInterpreter@DescriptorBuilder@protobuf@google": {
+        "offset": "214197"
+    },
+    "type_info": {
+        "offset": "393645"
+    },
+    "MethodOptions@protobuf@google": {
+        "offset": "292917"
+    },
+    "Closure@protobuf@google": {
+        "offset": "100194"
+    },
+    "IUITextLayoutDrawCache@panorama": {
+        "offset": "32588"
+    },
+    "ConVar": {
+        "offset": "78945"
+    },
+    "SourceCodeInfo@protobuf@google": {
+        "offset": "293349"
+    },
+    "ZeroCopyInputStream@io@protobuf@google": {
+        "offset": "391506"
+    },
+    "StringOutputStream@io@protobuf@google": {
+        "offset": "243889"
+    },
+    "ParserErrorCollector@ParserImpl@Parser@TextFormat@protobuf@google": {
+        "offset": "362736"
+    },
+    "out_of_range@std": {
+        "offset": "392070"
+    },
+    "ZeroCopyOutputStream@io@protobuf@google": {
+        "offset": "391522"
+    },
+    "UnknownFieldSetFieldSkipper@internal@protobuf@google": {
+        "offset": "247440"
+    },
+    "UninterpretedOption_NamePart@protobuf@google": {
+        "offset": "287292"
+    },
+    "ErrorCollector@io@protobuf@google": {
+        "offset": "383602"
+    },
+    "CUITextServicesPango@panorama": {
+        "offset": "69161"
+    },
+    "ArrayInputStream@io@protobuf@google": {
+        "offset": "243773"
+    },
+    "exception@std": {
+        "offset": "99941"
+    },
+    "GeneratedExtensionFinder@internal@protobuf@google": {
+        "offset": "245842"
+    },
+    "ArrayOutputStream@io@protobuf@google": {
+        "offset": "243837"
+    },
+    "bad_typeid@std": {
+        "offset": "406856"
+    },
+    "MessageLite@protobuf@google": {
+        "offset": "148898"
+    },
+    "ExtensionFinder@internal@protobuf@google": {
+        "offset": "253554"
+    },
+    "bad_cast@std": {
+        "offset": "236008"
+    },
+    "CUIFontFilePackagePB": {
+        "offset": "22339"
+    },
+    "CUITextLayoutPango@panorama": {
+        "offset": "57469"
+    },
+    "CJob": {
+        "offset": "67768"
+    },
+    "GeneratedMessageFactory@?A0xf5797ec8@protobuf@google": {
+        "offset": "88603"
+    },
+    "Finder@TextFormat@protobuf@google": {
+        "offset": "363170"
+    },
+    "__non_rtti_object@std": {
+        "offset": "406829"
+    },
+    "ConCommandBase": {
+        "offset": "78604"
+    },
+    "MethodDescriptorProto@protobuf@google": {
+        "offset": "292789"
+    },
+    "IUITextTextureCache@panorama": {
+        "offset": "43708"
+    },
+    "MessageOptions@protobuf@google": {
+        "offset": "292645"
+    },
+    "FunctionClosure0@internal@protobuf@google": {
+        "offset": "20894"
+    },
+    "Message@protobuf@google": {
+        "offset": "88898"
+    },
+    "FileDescriptorSet@protobuf@google": {
+        "offset": "292341"
+    },
+    "EnumValueOptions@protobuf@google": {
+        "offset": "291557"
+    },
+    "DynamicMessageFactory@protobuf@google": {
+        "offset": "356807"
+    },
+    "FieldOptions@protobuf@google": {
+        "offset": "291861"
+    },
+    "ServiceDescriptorProto@protobuf@google": {
+        "offset": "286511"
+    },
+    "EnumOptions@protobuf@google": {
+        "offset": "291285"
+    },
+    "CUIFontFilePackagePB_CUIEncryptedFontFilePB": {
+        "offset": "22440"
+    },
+    "IUITextServices@panorama": {
+        "offset": "31116"
+    },
+    "FieldDescriptorProto@protobuf@google": {
+        "offset": "291701"
+    },
+    "AggregateErrorCollector@?A0xde32e2f0@protobuf@google": {
+        "offset": "214169"
+    },
+    "EnumDescriptorProto@protobuf@google": {
+        "offset": "285279"
+    },
+    "bad_exception@std": {
+        "offset": "400383"
+    },
+    "IUITextLayout@panorama": {
+        "offset": "56252"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "18909"
+    },
+    "FileOptions@protobuf@google": {
+        "offset": "292469"
+    },
+    "FatalException@protobuf@google": {
+        "offset": "99964"
+    },
+    "CEmptyConVar": {
+        "offset": "18947"
+    },
+    "Reflection@protobuf@google": {
+        "offset": "88994"
+    },
+    "DescriptorDatabase@protobuf@google": {
+        "offset": "278002"
+    },
+    "DynamicMessage@protobuf@google": {
+        "offset": "356259"
+    },
+    "bad_alloc@std": {
+        "offset": "391877"
+    },
+    "CUtlCStringConversion": {
+        "offset": "18602"
+    },
+    "CUIFontFilePB": {
+        "offset": "22259"
+    },
+    "FieldSkipper@internal@protobuf@google": {
+        "offset": "245858"
+    },
+    "CTextLayoutDrawCache@panorama": {
+        "offset": "32634"
+    },
+    "GeneratedMessageReflection@internal@protobuf@google": {
+        "offset": "123455"
+    },
+    "DescriptorProto@protobuf@google": {
+        "offset": "290773"
+    },
+    "MessageFactory@protobuf@google": {
+        "offset": "88914"
+    },
+    "EnumValueDescriptorProto@protobuf@google": {
+        "offset": "285580"
+    },
+    "FileDescriptorProto@protobuf@google": {
+        "offset": "292021"
+    },
+    "CTextLayoutPangoJob@panorama": {
+        "offset": "67870"
+    },
+    "DescriptorPoolExtensionFinder@internal@protobuf@google": {
+        "offset": "245826"
+    },
+    "UninterpretedOption@protobuf@google": {
+        "offset": "293637"
+    },
+    "CTextTextureCache@panorama": {
+        "offset": "43762"
+    },
+    "DescriptorProto_ExtensionRange@protobuf@google": {
+        "offset": "284988"
+    },
+    "SourceCodeInfo_Location@protobuf@google": {
+        "offset": "293477"
+    },
+    "logic_error@std": {
+        "offset": "392043"
+    },
+    "EncodedDescriptorDatabase@protobuf@google": {
+        "offset": "277941"
+    },
+    "ServiceOptions@protobuf@google": {
+        "offset": "293205"
+    }
+}

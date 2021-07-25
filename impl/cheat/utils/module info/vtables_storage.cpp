@@ -90,7 +90,7 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
 	const auto frozen = winapi::frozen_threads_storage(true);
 	(void)frozen;
 
-	thread_pool pool;
+	auto pool = thread_pool( );
 	(void)pool;
 
 	auto bytes = this->Mem_block( );
@@ -168,7 +168,12 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
 		callback(this);
 	}
 
-	return load_data_storage.empty( ) ? error : success;
+	if (load_data_storage.empty( ))
+		return nothing;
+	if (!this->data_cache.empty( ))
+		return success;
+
+	return /*error*/nothing;
 }
 
 module_info_rw_result vtables_storage::Write_to_file_impl(ptree& cache) const

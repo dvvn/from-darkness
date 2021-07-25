@@ -57,17 +57,16 @@ namespace cheat::detail
 
 	class csgo_interface_base
 	{
+	protected:
+		virtual ~csgo_interface_base( ) = default;
+
 	public:
 		using sv = utl::string_view;
 		using mb = utl::memory_block;
 
 		utl::address addr( ) const;
 
-		void from_interface(const sv& dll_name, const sv& interface_name);
-		void from_sig(const mb& from, const sv& sig, size_t add, size_t deref);
-		void from_sig(const sv& dll_name, const sv& sig, size_t add, size_t deref);
-		void from_vfunc(void* instance, size_t index, size_t add, size_t deref);
-		void from_ptr(void* ptr);
+		void operator=(const utl::address& addr);
 
 	private:
 		void Set_result_assert_( ) const;
@@ -77,12 +76,18 @@ namespace cheat::detail
 	};
 
 	template <class To, size_t Ptrs>
-	class csgo_interface: public csgo_interface_base
+	class csgo_interface final: public csgo_interface_base
 	{
 	public:
 		using raw_pointer = decltype(detail::_Generate_pointer<To, Ptrs>( ));
 		using pointer = To*;
 		using reference = To&;
+		using value_type = To;
+
+		void operator=(const utl::address& addr)
+		{
+			*static_cast<csgo_interface_base*>(this) = addr;
+		}
 
 	private:
 		pointer Pointer_( ) const
@@ -174,10 +179,6 @@ namespace cheat
 	{
 		template <typename T, size_t Ptrs = 1>
 		using ifc = detail::csgo_interface<T, Ptrs>;
-
-	public:
-		~csgo_interfaces( ) override;
-		csgo_interfaces( );
 
 	protected:
 		void Load( ) override;

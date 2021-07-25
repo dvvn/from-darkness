@@ -37,6 +37,7 @@ bool data_cache_base::change_base_address(address new_addr)
 void data_cache_base::Empty_cache_assert( ) const
 {
 	BOOST_ASSERT_MSG(!Cache_empty_impl(), "Data cache is empty!");
+	(void)this;
 }
 
 module_info_rw_result data_cache_from_file::Load_from_file(data_cache_base& vtable1, const path_type& full_path)
@@ -64,7 +65,10 @@ module_info_rw_result data_cache_from_file::Write_to_file(const data_cache_base&
 	if (const auto write_result = Write_to_file_impl(tree); write_result != success)
 		return write_result;
 
-	if (const auto folder = full_path.parent_path( ); !exists(folder) && !create_directories(folder))
+	if (full_path.empty( ))
+		return nothing;
+
+	if (const auto folder = full_path.parent_path( ); folder.empty( ) || !exists(folder) && !create_directories(folder))
 		return error;
 
 	auto stream = std::basic_ofstream<ptree_type::key_type::value_type>(full_path.native( ));
@@ -86,7 +90,7 @@ module_info_rw_result data_cache_from_file::Load(data_cache_base& vtable1, const
 			{
 				case success:
 				{
-					auto write_result = Write_to_file(vtable1, full_path);
+					const auto write_result = Write_to_file(vtable1, full_path);
 					(void)write_result;
 				}
 				case nothing:

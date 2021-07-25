@@ -639,28 +639,11 @@ void netvars::Load( )
 
 	_Iterate_client_class(data__, interfaces.client->GetAllClasses( ));
 
-	const auto baseent = [&]
-	{
+	const auto baseent = _Vtable_pointer<C_BaseEntity>(
 #ifndef CHEAT_NETVARS_UPDATING
-		if (interfaces.local_player != nullptr)
-		{
-			if (C_BaseEntity* localp = interfaces.local_player; localp != nullptr)
-				return localp;
-		}
+													   &csgo_interfaces::local_player
 #endif
-		const auto client_dll = all_modules::get( ).find("client.dll");
-		auto& vtables = client_dll->vtables( );
-
-		[[maybe_unused]] filesystem::path dumps_path;
-#if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
-		dumps_path = filesystem::path(CHEAT_DUMPS_DIR) / client_dll->name_wide( ) / to_wstring(client_dll->check_sum( )) / L"vtables.json";
-#endif
-
-		[[maybe_unused]] const auto load_result = vtables.load(dumps_path);
-		BOOST_ASSERT(load_result == success);
-
-		return vtables.get_cache( ).at("C_BaseEntity").addr.raw<C_BaseEntity>( );
-	}( );
+													  );
 
 	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));

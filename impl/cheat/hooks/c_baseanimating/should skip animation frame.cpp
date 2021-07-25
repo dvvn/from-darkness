@@ -22,9 +22,7 @@ void should_skip_animation_frame::Load( )
 #ifndef CHEAT_GUI_TEST
 	this->target_func_ = method_info::make_custom(false, []
 	{
-		cheat::detail::csgo_interface_base ifc;
-		ifc.from_sig("client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02", 0, 0);
-		return ifc.addr( ).cast<LPVOID>( );
+		return _Find_signature("client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02").raw<void>( );
 	});
 
 	this->hook( );

@@ -1,0 +1,44 @@
+{
+    "ConVar": {
+        "offset": "359025"
+    },
+    "length_error@std": {
+        "offset": "366980"
+    },
+    "exception@std": {
+        "offset": "366876"
+    },
+    "bad_exception@std": {
+        "offset": "369166"
+    },
+    "bad_alloc@std": {
+        "offset": "366830"
+    },
+    "CUtlCStringConversion": {
+        "offset": "4378"
+    },
+    "type_info": {
+        "offset": "363479"
+    },
+    "CSquirrelVM": {
+        "offset": "156920"
+    },
+    "ConCommandBase": {
+        "offset": "358652"
+    },
+    "CLuaVM": {
+        "offset": "146388"
+    },
+    "out_of_range@std": {
+        "offset": "367067"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "4685"
+    },
+    "logic_error@std": {
+        "offset": "367040"
+    },
+    "CEmptyConVar": {
+        "offset": "4243"
+    }
+}

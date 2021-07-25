@@ -894,8 +894,6 @@ namespace cheat::hooks
 	template <typename Ret, call_conversion Call_cvs, typename C,/* bool Is_const,*/ typename ...Args>
 	struct hook_holder;
 
-	//todo: fix args for non-class functions
-
 #pragma region call_cvs_2
 
 	namespace detail
@@ -913,7 +911,6 @@ namespace cheat::hooks
 		}
 	}
 
-#
 #define CALL_CVS_STUFF_IMPL2(call_cvs)\
     /*template <typename Ret, typename C, typename ...Args>\
     struct hook_holder<Ret, call_conversion::call_cvs##__, C, false, Args...>:\

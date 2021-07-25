@@ -1,0 +1,29 @@
+{
+    "ConVar": {
+        "offset": "358839"
+    },
+    "CStudioRenderContext": {
+        "offset": "327056"
+    },
+    "CUtlCStringConversion": {
+        "offset": "5386"
+    },
+    "type_info": {
+        "offset": "364517"
+    },
+    "ConCommand": {
+        "offset": "358237"
+    },
+    "ConCommandBase": {
+        "offset": "357900"
+    },
+    "CUtlNoEscConversion": {
+        "offset": "5693"
+    },
+    "CFunctor": {
+        "offset": "326524"
+    },
+    "CEmptyConVar": {
+        "offset": "5241"
+    }
+}
