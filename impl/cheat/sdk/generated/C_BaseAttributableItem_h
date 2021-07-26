@@ -1,4 +1,4 @@
-int32_t& m_hOuter( );
+CBaseHandle& m_hOuter( );
 int32_t& m_ProviderType( );
 int32_t& m_iReapplyProvisionParity( );
 int32_t& m_iItemDefinitionIndex( );

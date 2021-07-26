@@ -95,14 +95,14 @@ float& C_BaseAnimating::m_flPlaybackRate( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_BaseAnimating::m_flEncodedController( )
+utl::array<float, 4>& C_BaseAnimating::m_flEncodedController( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(utl::array<float, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_flEncodedController");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<utl::array<float, 4>>( );
 #endif
 }
 bool& C_BaseAnimating::m_bClientSideAnimation( )
@@ -155,24 +155,24 @@ int32_t& C_BaseAnimating::m_nResetEventsParity( )
 	return addr.ref<int32_t>( );
 #endif
 }
-int8_t& C_BaseAnimating::m_nMuzzleFlashParity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int8_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nMuzzleFlashParity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int8_t>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_hLightingOrigin( )
+int32_t& C_BaseAnimating::m_nMuzzleFlashParity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_hLightingOrigin");
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nMuzzleFlashParity");
 	auto addr = utl::address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+CBaseHandle& C_BaseAnimating::m_hLightingOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_hLightingOrigin");
+	auto addr = utl::address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 float& C_BaseAnimating::m_flCycle( )

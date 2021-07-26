@@ -3,7 +3,7 @@ float& m_fAccuracyPenalty( );
 float& m_fLastShotTime( );
 int32_t& m_iRecoilIndex( );
 float& m_flRecoilIndex( );
-int32_t& m_hPrevOwner( );
+CBaseHandle& m_hPrevOwner( );
 bool& m_bBurstMode( );
 float& m_flPostponeFireReadyTime( );
 bool& m_bReloadVisuallyComplete( );

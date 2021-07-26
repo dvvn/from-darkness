@@ -1,2 +1,2 @@
-int32_t& m_hEntAttached( );
+CBaseHandle& m_hEntAttached( );
 bool& m_bCheapEffect( );

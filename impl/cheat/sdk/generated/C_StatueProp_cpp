@@ -5,14 +5,14 @@
 using namespace cheat;
 using namespace csgo;
 
-int32_t& C_StatueProp::m_hInitBaseAnimating( )
+CBaseHandle& C_StatueProp::m_hInitBaseAnimating( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_StatueProp.m_hInitBaseAnimating");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 bool& C_StatueProp::m_bShatter( )

@@ -52,10 +52,10 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 		else
 		{
 			const auto& owner_handle = inst->m_hOwnerEntity( );
-			if (owner_handle == INVALID_EHANDLE_INDEX)
+			if (!owner_handle.IsValid())
 				return;
 
-			const auto owner = static_cast<C_CSPlayer*>(reinterpret_cast<const CBaseHandle&>(owner_handle).Get( ));
+			const auto owner = static_cast<C_CSPlayer*>(owner_handle.Get( ));
 
 			if (!owner)
 				return;

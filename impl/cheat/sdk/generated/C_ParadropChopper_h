@@ -1,2 +1,2 @@
 utl::Vector2D& m_vecOrigin( );
-int32_t& m_hCallingPlayer( );
+CBaseHandle& m_hCallingPlayer( );

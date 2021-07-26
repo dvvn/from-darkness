@@ -600,7 +600,7 @@
         },
         "m_hOwner": {
             "offset": "48",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     },
     "C_TEBubbleTrail": {
@@ -1278,7 +1278,7 @@
     "C_PropVehicleDriveable": {
         "m_hPlayer": {
             "offset": "10628",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_nSpeed": {
             "offset": "10632",
@@ -1474,7 +1474,7 @@
     "C_BaseAttributableItem": {
         "m_hOuter": {
             "offset": "11676",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_ProviderType": {
             "offset": "11684",
@@ -1574,7 +1574,7 @@
     "C_EconEntity": {
         "m_hOuter": {
             "offset": "11676",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_ProviderType": {
             "offset": "11684",
@@ -1770,7 +1770,7 @@
         },
         "m_hPrevOwner": {
             "offset": "13188",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bBurstMode": {
             "offset": "13128",
@@ -2010,7 +2010,7 @@
         },
         "m_hSkyboxCopy": {
             "offset": "10664",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_nMyZoneIndex": {
             "offset": "10800",
@@ -2046,7 +2046,7 @@
         },
         "m_hCallingPlayer": {
             "offset": "10640",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     },
     "C_SurvivalSpawnChopper": {
@@ -2114,11 +2114,11 @@
     "C_Drone": {
         "m_hMoveToThisEntity": {
             "offset": "10712",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hDeliveryCargo": {
             "offset": "10716",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bPilotTakeoverAllowed": {
             "offset": "10720",
@@ -2126,11 +2126,11 @@
         },
         "m_hPotentialCargo": {
             "offset": "10724",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hCurrentPilot": {
             "offset": "10728",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_vecTagPositions": {
             "offset": "0",
@@ -2682,7 +2682,7 @@
         },
         "m_hBombDefuser": {
             "offset": "10676",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     },
     "C_CSPlayerResource": {
@@ -3154,11 +3154,11 @@
         },
         "m_hCarriedHostage": {
             "offset": "41976",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hCarriedHostageProp": {
             "offset": "41980",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bIsRescuing": {
             "offset": "14648",
@@ -3290,11 +3290,11 @@
         },
         "m_hRagdoll": {
             "offset": "41964",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hPlayerPing": {
             "offset": "41968",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_cycleLatch": {
             "offset": "46224",
@@ -3410,7 +3410,7 @@
         },
         "m_hSurvivalAssassinationTarget": {
             "offset": "41924",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_flHealthShotBoostExpirationTime": {
             "offset": "41928",
@@ -3423,20 +3423,16 @@
         "m_vecPlayerPatchEconIndices": {
             "offset": "47476",
             "type": "utl::array<int32_t, 5>"
-        },
-        "m_flCycle": {
-            "offset": "2580",
-            "type": "float"
         }
     },
     "C_PlayerPing": {
         "m_hPlayer": {
             "offset": "2532",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hPingedEntity": {
             "offset": "2536",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_iType": {
             "offset": "2540",
@@ -3462,7 +3458,7 @@
         },
         "m_hPlayer": {
             "offset": "10736",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_nModelIndex": {
             "offset": "600",
@@ -3508,7 +3504,7 @@
     "C_TEPlayerAnimEvent": {
         "m_hPlayer": {
             "offset": "16",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_iEvent": {
             "offset": "20",
@@ -3692,7 +3688,7 @@
     "C_Sprite": {
         "m_hAttachedToEntity": {
             "offset": "2536",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_nAttachment": {
             "offset": "2540",
@@ -3764,7 +3760,7 @@
         },
         "m_hUnragdoll": {
             "offset": "11388",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_flBlendWeight": {
             "offset": "11392",
@@ -3932,7 +3928,7 @@
         },
         "m_hTheFinalZone": {
             "offset": "2744",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     },
     "C_WorldVguiText": {
@@ -4128,7 +4124,7 @@
         },
         "m_hPlayerOwner": {
             "offset": "2664",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     },
     "C_PropJeep": {
@@ -4140,7 +4136,7 @@
     "C_PropVehicleChoreoGeneric": {
         "m_hPlayer": {
             "offset": "10740",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bEnterAnimOn": {
             "offset": "10748",
@@ -4586,11 +4582,11 @@
         },
         "m_hStartPoint": {
             "offset": "3244",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hEndPoint": {
             "offset": "3248",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_iStartAttachment": {
             "offset": "3252",
@@ -4798,7 +4794,7 @@
         },
         "m_hViewPosition": {
             "offset": "11420",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     },
     "C_PointCamera": {
@@ -4924,7 +4920,7 @@
     "C_StatueProp": {
         "m_hInitBaseAnimating": {
             "offset": "10688",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bShatter": {
             "offset": "10692",
@@ -4960,7 +4956,7 @@
         },
         "m_hOwnerEntity": {
             "offset": "332",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "moveparent": {
             "offset": "328",
@@ -5616,7 +5612,7 @@
     "C_EnvProjectedTexture": {
         "m_hTargetEntity": {
             "offset": "2524",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bState": {
             "offset": "2528",
@@ -5790,7 +5786,7 @@
         },
         "m_hConstraintEntity": {
             "offset": "2776",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     },
     "C_EntityFreezing": {
@@ -5814,7 +5810,7 @@
     "C_EntityFlame": {
         "m_hEntAttached": {
             "offset": "2520",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bCheapEffect": {
             "offset": "2540",
@@ -6120,7 +6116,7 @@
         },
         "m_fOnTarget": {
             "offset": "13092",
-            "type": "bool"
+            "type": "int32_t"
         },
         "m_nTickBase": {
             "offset": "13360",
@@ -6132,7 +6128,7 @@
         },
         "m_hLastWeapon": {
             "offset": "13044",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_vecVelocity": {
             "offset": "276",
@@ -6144,7 +6140,7 @@
         },
         "m_hConstraintEntity": {
             "offset": "13124",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_vecConstraintCenter": {
             "offset": "13128",
@@ -6184,7 +6180,7 @@
         },
         "m_hTonemapController": {
             "offset": "12748",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "deadflag": {
             "offset": "12756",
@@ -6208,7 +6204,7 @@
         },
         "m_hZoomOwner": {
             "offset": "12876",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_afPhysicsFlags": {
             "offset": "13036",
@@ -6216,15 +6212,15 @@
         },
         "m_hVehicle": {
             "offset": "13040",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hUseEntity": {
             "offset": "13096",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hGroundEntity": {
             "offset": "336",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_iHealth": {
             "offset": "256",
@@ -6232,7 +6228,7 @@
         },
         "m_lifeState": {
             "offset": "607",
-            "type": "int8_t"
+            "type": "int32_t"
         },
         "m_iAmmo": {
             "offset": "11640",
@@ -6284,11 +6280,11 @@
         },
         "m_hObserverTarget": {
             "offset": "13196",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hViewModel": {
             "offset": "0",
-            "type": "utl::array<int32_t, 3>"
+            "type": "utl::array<CBaseHandle, 3>"
         },
         "m_iCoachingTeam": {
             "offset": "12112",
@@ -6312,11 +6308,11 @@
         },
         "m_hPostProcessCtrl": {
             "offset": "14248",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hColorCorrectionCtrl": {
             "offset": "14252",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_vphysicsCollisionState": {
             "offset": "12892",
@@ -6324,7 +6320,7 @@
         },
         "m_hViewEntity": {
             "offset": "13116",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_bShouldDrawPlayerWhileUsingViewEntity": {
             "offset": "13120",
@@ -6340,79 +6336,7 @@
         },
         "m_nWaterLevel": {
             "offset": "606",
-            "type": "int8_t"
-        },
-        "m_oldOrigin": {
-            "offset": "12896",
-            "type": "utl::Vector"
-        },
-        "m_bTouchedPhysObject": {
-            "offset": "12908",
-            "type": "bool"
-        },
-        "m_bPhysicsWasFrozen": {
-            "offset": "12909",
-            "type": "bool"
-        },
-        "m_vNewVPhysicsPosition": {
-            "offset": "12912",
-            "type": "utl::Vector"
-        },
-        "m_vNewVPhysicsVelocity": {
-            "offset": "12924",
-            "type": "utl::Vector"
-        },
-        "m_nButtons": {
-            "offset": "12792",
             "type": "int32_t"
-        },
-        "m_flWaterJumpTime": {
-            "offset": "12812",
-            "type": "float"
-        },
-        "m_nImpulse": {
-            "offset": "12796",
-            "type": "int32_t"
-        },
-        "m_flStepSoundTime": {
-            "offset": "12828",
-            "type": "float"
-        },
-        "m_flSwimSoundTime": {
-            "offset": "12816",
-            "type": "float"
-        },
-        "m_ignoreLadderJumpTime": {
-            "offset": "12820",
-            "type": "float"
-        },
-        "m_bHasWalkMovedSinceLastJump": {
-            "offset": "12824",
-            "type": "bool"
-        },
-        "m_flPhysics": {
-            "offset": "12804",
-            "type": "int32_t"
-        },
-        "m_afButtonLast": {
-            "offset": "12780",
-            "type": "int32_t"
-        },
-        "m_afButtonPressed": {
-            "offset": "12784",
-            "type": "int32_t"
-        },
-        "m_afButtonReleased": {
-            "offset": "12788",
-            "type": "int32_t"
-        },
-        "m_surfaceFriction": {
-            "offset": "12844",
-            "type": "float"
-        },
-        "m_vecPreviouslyPredictedOrigin": {
-            "offset": "13736",
-            "type": "utl::Vector"
         }
     },
     "C_BaseFlex": {
@@ -6504,11 +6428,11 @@
         },
         "m_hOwnerEntity": {
             "offset": "332",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_hEffectEntity": {
             "offset": "2456",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "moveparent": {
             "offset": "328",
@@ -6756,7 +6680,7 @@
         },
         "m_hActiveWeapon": {
             "offset": "12024",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_flTimeOfLastInjury": {
             "offset": "12028",
@@ -6769,10 +6693,6 @@
         "m_hMyWearables": {
             "offset": "12036",
             "type": "utl::array<int32_t, 1>"
-        },
-        "m_iAmmo": {
-            "offset": "11640",
-            "type": "int32_t"
         }
     },
     "C_BaseAnimatingOverlay": {
@@ -6860,7 +6780,7 @@
         },
         "m_flEncodedController": {
             "offset": "2644",
-            "type": "float"
+            "type": "utl::array<float, 4>"
         },
         "m_bClientSideAnimation": {
             "offset": "10396",
@@ -6884,11 +6804,11 @@
         },
         "m_nMuzzleFlashParity": {
             "offset": "2660",
-            "type": "int8_t"
+            "type": "int32_t"
         },
         "m_hLightingOrigin": {
             "offset": "10564",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_flCycle": {
             "offset": "2580",
@@ -7070,7 +6990,7 @@
         },
         "m_hWeapon": {
             "offset": "10696",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_nSkin": {
             "offset": "2588",
@@ -7102,7 +7022,7 @@
         },
         "m_hOwner": {
             "offset": "10700",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_nNewSequenceParity": {
             "offset": "2628",
@@ -7136,7 +7056,7 @@
         },
         "m_hThrower": {
             "offset": "10656",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_vecVelocity": {
             "offset": "276",
@@ -7206,7 +7126,7 @@
         },
         "m_hOwner": {
             "offset": "12848",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_iClip1": {
             "offset": "12900",
@@ -7226,7 +7146,7 @@
         },
         "m_hWeaponWorldModel": {
             "offset": "12884",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         },
         "m_iNumEmptyAttacks": {
             "offset": "12880",
@@ -7252,7 +7172,7 @@
         },
         "m_hCombatWeaponParent": {
             "offset": "10736",
-            "type": "int32_t"
+            "type": "CBaseHandle"
         }
     }
 }

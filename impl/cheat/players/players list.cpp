@@ -45,7 +45,7 @@ void players_list::update( )
 	auto storage_updated = false;
 
 	const auto max_clients = interfaces->global_vars->max_clients;
-	if (const auto wished_storage_size = max_clients + 1;
+	if (const size_t wished_storage_size = max_clients + 1;
 		storage__.size( ) != wished_storage_size)
 	{
 		storage_updated = true;

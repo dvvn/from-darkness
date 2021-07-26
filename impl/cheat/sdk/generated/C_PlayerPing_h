@@ -1,5 +1,5 @@
-int32_t& m_hPlayer( );
-int32_t& m_hPingedEntity( );
+CBaseHandle& m_hPlayer( );
+CBaseHandle& m_hPingedEntity( );
 int32_t& m_iType( );
 bool& m_bUrgent( );
 char* m_szPlaceName( );

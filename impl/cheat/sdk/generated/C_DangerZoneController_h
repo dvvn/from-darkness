@@ -6,4 +6,4 @@ utl::Vector& m_vecEndGameCircleStart( );
 utl::Vector& m_vecEndGameCircleEnd( );
 utl::array<int32_t, 42>& m_DangerZones( );
 utl::array<float, 5>& m_flWaveEndTimes( );
-int32_t& m_hTheFinalZone( );
+CBaseHandle& m_hTheFinalZone( );

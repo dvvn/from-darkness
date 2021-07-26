@@ -15,13 +15,13 @@ utl::Vector2D& C_ParadropChopper::m_vecOrigin( )
 	return addr.ref<utl::Vector2D>( );
 #endif
 }
-int32_t& C_ParadropChopper::m_hCallingPlayer( )
+CBaseHandle& C_ParadropChopper::m_hCallingPlayer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ParadropChopper.m_hCallingPlayer");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }

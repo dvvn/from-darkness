@@ -5,4 +5,4 @@ char* m_iszCommentaryFileNoHDR( );
 char* m_iszSpeakers( );
 int32_t& m_iNodeNumber( );
 int32_t& m_iNodeNumberMax( );
-int32_t& m_hViewPosition( );
+CBaseHandle& m_hViewPosition( );

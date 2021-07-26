@@ -185,24 +185,24 @@ float& C_BaseEntity::m_flShadowCastDistance( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_BaseEntity::m_hOwnerEntity( )
+CBaseHandle& C_BaseEntity::m_hOwnerEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hOwnerEntity");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
-int32_t& C_BaseEntity::m_hEffectEntity( )
+CBaseHandle& C_BaseEntity::m_hEffectEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hEffectEntity");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 int32_t& C_BaseEntity::moveparent( )

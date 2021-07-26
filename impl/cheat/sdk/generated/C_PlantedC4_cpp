@@ -75,13 +75,13 @@ bool& C_PlantedC4::m_bBombDefused( )
 	return addr.ref<bool>( );
 #endif
 }
-int32_t& C_PlantedC4::m_hBombDefuser( )
+CBaseHandle& C_PlantedC4::m_hBombDefuser( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_hBombDefuser");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }

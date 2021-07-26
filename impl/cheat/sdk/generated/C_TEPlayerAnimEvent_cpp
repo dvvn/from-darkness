@@ -5,14 +5,14 @@
 using namespace cheat;
 using namespace csgo;
 
-int32_t& C_TEPlayerAnimEvent::m_hPlayer( )
+CBaseHandle& C_TEPlayerAnimEvent::m_hPlayer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent.m_hPlayer");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 int32_t& C_TEPlayerAnimEvent::m_iEvent( )

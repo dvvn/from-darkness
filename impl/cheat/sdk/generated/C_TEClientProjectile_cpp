@@ -45,13 +45,13 @@ int32_t& C_TEClientProjectile::m_nLifeTime( )
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_TEClientProjectile::m_hOwner( )
+CBaseHandle& C_TEClientProjectile::m_hOwner( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile.m_hOwner");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }

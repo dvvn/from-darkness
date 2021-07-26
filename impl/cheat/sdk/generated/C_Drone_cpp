@@ -5,24 +5,24 @@
 using namespace cheat;
 using namespace csgo;
 
-int32_t& C_Drone::m_hMoveToThisEntity( )
+CBaseHandle& C_Drone::m_hMoveToThisEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hMoveToThisEntity");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
-int32_t& C_Drone::m_hDeliveryCargo( )
+CBaseHandle& C_Drone::m_hDeliveryCargo( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hDeliveryCargo");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 bool& C_Drone::m_bPilotTakeoverAllowed( )
@@ -35,24 +35,24 @@ bool& C_Drone::m_bPilotTakeoverAllowed( )
 	return addr.ref<bool>( );
 #endif
 }
-int32_t& C_Drone::m_hPotentialCargo( )
+CBaseHandle& C_Drone::m_hPotentialCargo( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hPotentialCargo");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
-int32_t& C_Drone::m_hCurrentPilot( )
+CBaseHandle& C_Drone::m_hCurrentPilot( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hCurrentPilot");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 utl::array<utl::Vector, 24>& C_Drone::m_vecTagPositions( )

@@ -55,14 +55,14 @@ float& C_WeaponCSBase::m_flRecoilIndex( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_WeaponCSBase::m_hPrevOwner( )
+CBaseHandle& C_WeaponCSBase::m_hPrevOwner( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase.m_hPrevOwner");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 bool& C_WeaponCSBase::m_bBurstMode( )

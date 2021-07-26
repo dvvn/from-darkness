@@ -1,4 +1,4 @@
-int32_t& m_hPlayer( );
+CBaseHandle& m_hPlayer( );
 int32_t& m_nSpeed( );
 int32_t& m_nRPM( );
 float& m_flThrottle( );

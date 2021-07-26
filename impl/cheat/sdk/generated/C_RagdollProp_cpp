@@ -25,14 +25,14 @@ utl::array<utl::Vector, 24>& C_RagdollProp::m_ragPos( )
 	return addr.ref<utl::array<utl::Vector, 24>>( );
 #endif
 }
-int32_t& C_RagdollProp::m_hUnragdoll( )
+CBaseHandle& C_RagdollProp::m_hUnragdoll( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_hUnragdoll");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 float& C_RagdollProp::m_flBlendWeight( )

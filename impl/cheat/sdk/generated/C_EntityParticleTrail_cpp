@@ -45,13 +45,13 @@ float& C_EntityParticleTrail::m_flEndSize( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_EntityParticleTrail::m_hConstraintEntity( )
+CBaseHandle& C_EntityParticleTrail::m_hConstraintEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail.m_hConstraintEntity");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }

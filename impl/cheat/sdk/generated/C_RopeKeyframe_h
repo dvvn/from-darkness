@@ -1,7 +1,7 @@
 int32_t& m_nChangeCount( );
 int32_t& m_iRopeMaterialModelIndex( );
-int32_t& m_hStartPoint( );
-int32_t& m_hEndPoint( );
+CBaseHandle& m_hStartPoint( );
+CBaseHandle& m_hEndPoint( );
 int32_t& m_iStartAttachment( );
 int32_t& m_iEndAttachment( );
 int32_t& m_fLockedPoints( );

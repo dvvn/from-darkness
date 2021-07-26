@@ -15,14 +15,14 @@ int32_t& C_BaseViewModel::m_nModelIndex( )
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_BaseViewModel::m_hWeapon( )
+CBaseHandle& C_BaseViewModel::m_hWeapon( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel.m_hWeapon");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 int32_t& C_BaseViewModel::m_nSkin( )
@@ -95,14 +95,14 @@ int32_t& C_BaseViewModel::m_nAnimationParity( )
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_BaseViewModel::m_hOwner( )
+CBaseHandle& C_BaseViewModel::m_hOwner( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel.m_hOwner");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 int32_t& C_BaseViewModel::m_nNewSequenceParity( )

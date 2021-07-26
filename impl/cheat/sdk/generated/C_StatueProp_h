@@ -1,4 +1,4 @@
-int32_t& m_hInitBaseAnimating( );
+CBaseHandle& m_hInitBaseAnimating( );
 bool& m_bShatter( );
 int32_t& m_nShatterFlags( );
 utl::Vector& m_vShatterPosition( );

@@ -1,5 +1,5 @@
 int32_t& m_nModelIndex( );
-int32_t& m_hWeapon( );
+CBaseHandle& m_hWeapon( );
 int32_t& m_nSkin( );
 int32_t& m_nBody( );
 int32_t& m_nSequence( );
@@ -7,7 +7,7 @@ int32_t& m_nViewModelIndex( );
 float& m_flPlaybackRate( );
 int32_t& m_fEffects( );
 int32_t& m_nAnimationParity( );
-int32_t& m_hOwner( );
+CBaseHandle& m_hOwner( );
 int32_t& m_nNewSequenceParity( );
 int32_t& m_nResetEventsParity( );
 int32_t& m_nMuzzleFlashParity( );

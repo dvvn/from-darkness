@@ -1,4 +1,4 @@
-int32_t& m_hAttachedToEntity( );
+CBaseHandle& m_hAttachedToEntity( );
 int32_t& m_nAttachment( );
 float& m_flScaleTime( );
 float& m_flSpriteScale( );

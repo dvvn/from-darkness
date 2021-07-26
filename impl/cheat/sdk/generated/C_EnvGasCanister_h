@@ -17,6 +17,6 @@ float& m_flSkyboxScale( );
 bool& m_bInSkybox( );
 bool& m_bDoImpactEffects( );
 bool& m_bLanded( );
-int32_t& m_hSkyboxCopy( );
+CBaseHandle& m_hSkyboxCopy( );
 int32_t& m_nMyZoneIndex( );
 utl::Vector2D& m_vecOrigin( );

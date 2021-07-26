@@ -85,13 +85,13 @@ utl::array<float, 5>& C_DangerZoneController::m_flWaveEndTimes( )
 	return addr.ref<utl::array<float, 5>>( );
 #endif
 }
-int32_t& C_DangerZoneController::m_hTheFinalZone( )
+CBaseHandle& C_DangerZoneController::m_hTheFinalZone( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController.m_hTheFinalZone");
 	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<CBaseHandle>( );
 #endif
 }

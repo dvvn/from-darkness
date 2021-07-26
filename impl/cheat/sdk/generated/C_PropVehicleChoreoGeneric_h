@@ -1,4 +1,4 @@
-int32_t& m_hPlayer( );
+CBaseHandle& m_hPlayer( );
 bool& m_bEnterAnimOn( );
 bool& m_bExitAnimOn( );
 bool& m_bForceEyesToAttachment( );

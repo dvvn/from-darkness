@@ -5,4 +5,4 @@ float& m_flTimerLength( );
 float& m_flDefuseLength( );
 float& m_flDefuseCountDown( );
 bool& m_bBombDefused( );
-int32_t& m_hBombDefuser( );
+CBaseHandle& m_hBombDefuser( );

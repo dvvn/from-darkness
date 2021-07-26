@@ -28,7 +28,7 @@ void lock_cursor::Load( )
 #endif
 }
 
-utl::string lock_cursor::Get_loaded_message( ) const
+string lock_cursor::Get_loaded_message( ) const
 {
 #ifndef CHEAT_GUI_TEST
 		return service_base::Get_loaded_message( );

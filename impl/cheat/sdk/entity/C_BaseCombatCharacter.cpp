@@ -6,6 +6,5 @@
 
 C_BaseCombatWeapon* C_BaseCombatCharacter::GetActiveWeapon( )
 {
-	const auto &wpn_handle = reinterpret_cast<CBaseHandle&>(this->m_hActiveWeapon( ));
-	return static_cast<C_BaseCombatWeapon*>(wpn_handle.Get());
+	return static_cast<C_BaseCombatWeapon*>(m_hActiveWeapon( ).Get( ));
 }

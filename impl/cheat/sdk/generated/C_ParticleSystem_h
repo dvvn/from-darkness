@@ -1,6 +1,6 @@
 utl::Vector& m_vecOrigin( );
 int32_t& m_fEffects( );
-int32_t& m_hOwnerEntity( );
+CBaseHandle& m_hOwnerEntity( );
 int32_t& moveparent( );
 int32_t& m_iParentAttachment( );
 utl::QAngle& m_angRotation( );
