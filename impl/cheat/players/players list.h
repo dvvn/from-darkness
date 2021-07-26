@@ -7,24 +7,32 @@
 
 namespace cheat
 {
-	
-
 	class players_list;
 
 	struct alignas(uint64_t) players_filter_flags
 	{
-		enum team_filter:uint8_t
+		struct team_filter
 		{
-			ALLY=1 << 0,
-			ENEMY=1 << 1,
-		};
-		enum team_filter_ex:uint8_t
-		{
-			T=1 << 0,
-			CT=1 << 1,
-			SPEC=1 << 2
+			enum value_type :uint8_t
+			{
+				ALLY = 1 << 0,
+				ENEMY = 1 << 1,
+			};
+
+			CHEAT_ENUM_STRUCT_FILL_BITFLAG(team_filter)
 		};
 
+		struct team_filter_ex
+		{
+			enum value_type :uint8_t
+			{
+				T = 1 << 0,
+				CT = 1 << 1,
+				SPEC = 1 << 2
+			};
+
+			CHEAT_ENUM_STRUCT_FILL_BITFLAG(team_filter_ex)
+		};
 		bool alive;
 		bool dormant;
 		bool immune;

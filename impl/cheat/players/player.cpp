@@ -26,7 +26,7 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 	//this->index = ent->EntIndex( );
 	pl->ent = owner;
 	pl->alive = owner->IsAlive( );
-
+	pl->team = owner->m_iTeamNum( );
 	pl->ticks.reserve(player::max_ticks_count( ));
 	owner->m_bClientSideAnimation( ) = false;
 	this->destroy_fn_ = [](const player& p)

@@ -1,6 +1,8 @@
 #pragma once
 #include "tick record.h"
 
+#include "cheat/sdk/entity/C_BaseEntity.h"
+
 namespace cheat
 {
 	namespace csgo
@@ -15,7 +17,7 @@ namespace cheat
 
 		float sim_time;
 		bool dormant;
-		//csgo::m_iTeamNum_t team;
+		csgo::m_iTeamNum_t team;
 		bool alive;
 
 		using ticks_storage = utl::veque<detail::tick_record_shared_impl>;
@@ -39,8 +41,6 @@ namespace cheat
 			void update_animations(bool simple);
 			void store_tick( );
 			void remove_old_ticks(float curtime);
-
-		
 		};
 	}
 }

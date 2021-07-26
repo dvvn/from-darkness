@@ -2,7 +2,7 @@
 
 using namespace cheat;
 using namespace utl;
-using namespace detail;
+using namespace utl::detail;
 using namespace property_tree;
 
 sections_storage::sections_storage(address addr, IMAGE_NT_HEADERS* nt): data_cache_from_memory(move(addr), nt)

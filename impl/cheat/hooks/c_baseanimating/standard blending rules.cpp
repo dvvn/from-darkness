@@ -36,14 +36,14 @@ void standard_blending_rules::Callback(CStudioHdr* hdr, Vector pos[], Quaternion
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;
 
-	auto& flags = reinterpret_cast<bitflag<m_fEffects_t>&>(pl->m_fEffects( ));
+	auto& flags = reinterpret_cast<m_fEffects_t&>(pl->m_fEffects( ));
 
-	if (flags.has(EF_NOINTERP))
+	if (flags.has(m_fEffects_t::EF_NOINTERP))
 		return;
 
-	flags.add(EF_NOINTERP);
+	flags.add(m_fEffects_t::EF_NOINTERP);
 	this->call_original_ex(hdr, pos, q, current_time, bone_mask);
-	flags.remove(EF_NOINTERP);
+	flags.remove(m_fEffects_t::EF_NOINTERP);
 
 	/*if (override_return__)
 		this->return_value_.store_value(override_return_to__);

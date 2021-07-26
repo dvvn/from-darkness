@@ -1,7 +1,5 @@
 #include "threads.h"
 
-#include "cheat/utils/bitflag.h"
-
 using namespace cheat;
 using namespace utl;
 using namespace winapi;
@@ -20,7 +18,7 @@ thread_entry::thread_entry(THREADENTRY32&& entry): THREADENTRY32(move(entry))
 bool thread_entry::open(thread_access access)
 {
 	close( );
-	open_handle__ = decltype(open_handle__)(OpenThread(static_cast<std::underlying_type_t<thread_access>>(access), FALSE, this->th32ThreadID));
+	open_handle__ = decltype(open_handle__)(OpenThread(access.value_raw( ), FALSE, this->th32ThreadID));
 	return is_opened( );
 }
 
@@ -152,11 +150,13 @@ void frozen_threads_storage::fill( )
 
 void frozen_threads_storage::operator()(thread_entry&& t)
 {
-	using access = thread_access;
+	using f = thread_access;
 
-	if (constexpr auto flags = make_bitflag(access::suspend_resume, access::query_information, access::get_context, access::set_context).get( );
+	if (constexpr auto flags = thread_access(f::suspend_resume, f::query_information, f::get_context, f::set_context);
 		!t.open(flags) || t.is_paused( ))
+	{
 		return;
+	}
 
 	this->push_back(t.transfer_handle( ));
 }

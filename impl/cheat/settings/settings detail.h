@@ -78,7 +78,7 @@ namespace cheat::detail::settings
 		bool updated__ = false;
 	};
 
-	class folders_storage final: public empty_page , child_frame_window
+	class folders_storage final: public empty_page, child_frame_window
 	{
 	public:
 		using value_type = folder_with_configs;
@@ -94,7 +94,7 @@ namespace cheat::detail::settings
 		void select_all( );
 		void deselect_all( );
 
-		span<value_type> iterate();
+		span<value_type> iterate( );
 
 		[[deprecated]]
 		void erase(iterator first, iterator last);
@@ -178,19 +178,22 @@ namespace cheat::detail::settings
 
 		filesystem::path working_dir__;
 
-		enum io_result :size_t
+		struct io_result
 		{
-			unset = 0,
-			processed = 1 << 0,
-			rescan_wanted = 1 << 1,
-			error = 1 << 2
+			enum value_type :uint32_t
+			{
+				unset = 0,
+				processed = 1 << 0,
+				rescan_wanted = 1 << 1,
+				error = 1 << 2
+			};
+
+			CHEAT_ENUM_STRUCT_FILL_BITFLAG(io_result, unset);
 		};
 
-		using io_flags = bitflag<io_result>;
-
-		_NODISCARD io_flags Do_save_(const string_wrapper& name);
-		_NODISCARD io_flags Do_load_(const string_wrapper& name);
-		_NODISCARD io_flags Do_remove_(const string_wrapper& name);
+		_NODISCARD io_result Do_save_(const string_wrapper& name);
+		_NODISCARD io_result Do_load_(const string_wrapper& name);
+		_NODISCARD io_result Do_remove_(const string_wrapper& name);
 
 		//only works with selected file
 		//any external changes to other files ignored

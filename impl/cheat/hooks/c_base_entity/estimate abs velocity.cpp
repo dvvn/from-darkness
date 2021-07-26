@@ -23,7 +23,7 @@ void estimate_abs_velocity::Load( )
 #if !defined(CHEAT_GUI_TEST)
 
 	const auto offset = _Find_signature("client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).value( ) / 4;
-	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseEntity>,"client.dll", &csgo_interfaces::local_player), offset);
+	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll", &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );
@@ -33,7 +33,7 @@ void estimate_abs_velocity::Load( )
 void estimate_abs_velocity::Callback(Vector& vel)
 {
 	const auto ent = this->Target_instance( );
-	if (const auto& eflags = reinterpret_cast<bitflag<m_iEFlags_t>&>(ent->m_iEFlags( )); eflags.has(EFL_DIRTY_ABSVELOCITY))
+	if (m_iEFlags_t(ent->m_iEFlags( )).has(m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
 	{
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []

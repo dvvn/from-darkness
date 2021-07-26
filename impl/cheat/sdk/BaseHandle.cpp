@@ -1,5 +1,9 @@
 #include "BaseHandle.hpp"
 
+#include "IClientEntityList.hpp"
+
+#include "cheat/core/csgo interfaces.h"
+
 using namespace cheat::csgo;
 
 CBaseHandle::CBaseHandle( )
@@ -12,24 +16,23 @@ CBaseHandle::CBaseHandle(const CBaseHandle& other)
 	m_Index = other.m_Index;
 }
 
-CBaseHandle::CBaseHandle(unsigned long value)
+CBaseHandle::CBaseHandle(IHandleEntity* pHandleObj)
 {
-	m_Index = value;
+	if (!pHandleObj)
+	{
+		m_Index = INVALID_EHANDLE_INDEX;
+	}
+	else
+	{
+		*this = pHandleObj->GetRefEHandle( );
+	}
 }
 
 CBaseHandle::CBaseHandle(int iEntry, int iSerialNumber)
 {
-	Init(iEntry, iSerialNumber);
-}
-
-void CBaseHandle::Init(int iEntry, int iSerialNumber)
-{
-	m_Index = iEntry | (iSerialNumber << NUM_ENT_ENTRY_BITS);
-}
-
-void CBaseHandle::Term( )
-{
-	m_Index = INVALID_EHANDLE_INDEX;
+	BOOST_ASSERT(iEntry >= 0 && (iEntry & ENT_ENTRY_MASK) == iEntry);
+	BOOST_ASSERT(iSerialNumber >= 0 && iSerialNumber < (1 << NUM_SERIAL_NUM_BITS));
+	m_Index = iEntry | (iSerialNumber << /*NUM_ENT_ENTRY_BITS*/NUM_SERIAL_NUM_SHIFT_BITS);
 }
 
 bool CBaseHandle::IsValid( ) const
@@ -39,12 +42,14 @@ bool CBaseHandle::IsValid( ) const
 
 int CBaseHandle::GetEntryIndex( ) const
 {
+	if (!IsValid( ))
+		return NUM_ENT_ENTRIES - 1;
 	return m_Index & ENT_ENTRY_MASK;
 }
 
 int CBaseHandle::GetSerialNumber( ) const
 {
-	return m_Index >> NUM_ENT_ENTRY_BITS;
+	return m_Index >> /*NUM_ENT_ENTRY_BITS*/NUM_SERIAL_NUM_SHIFT_BITS;
 }
 
 int CBaseHandle::ToInt( ) const
@@ -52,61 +57,9 @@ int CBaseHandle::ToInt( ) const
 	return (int)m_Index;
 }
 
-bool CBaseHandle::operator !=(const CBaseHandle& other) const
-{
-	return m_Index != other.m_Index;
-}
-
-bool CBaseHandle::operator ==(const CBaseHandle& other) const
-{
-	return m_Index == other.m_Index;
-}
-
-bool CBaseHandle::operator ==(const IHandleEntity* pEnt) const
-{
-	return Get( ) == pEnt;
-}
-
-bool CBaseHandle::operator !=(const IHandleEntity* pEnt) const
-{
-	return Get( ) != pEnt;
-}
-
-bool CBaseHandle::operator <(const CBaseHandle& other) const
-{
-	return m_Index<other.m_Index;
-}
-
-bool CBaseHandle::operator <(const IHandleEntity* pEntity) const
-{
-	unsigned long otherIndex = (pEntity) ? pEntity->GetRefEHandle( ).m_Index : INVALID_EHANDLE_INDEX;
-	return m_Index < otherIndex;
-}
-
-const CBaseHandle& CBaseHandle::operator=(const IHandleEntity* pEntity)
-{
-	return Set(pEntity);
-}
-
-const CBaseHandle& CBaseHandle::Set(const IHandleEntity* pEntity)
-{
-	if (pEntity)
-	{
-		*this = pEntity->GetRefEHandle( );
-	}
-	else
-	{
-		m_Index = INVALID_EHANDLE_INDEX;
-	}
-
-	return *this;
-}
-
 IHandleEntity* CBaseHandle::Get( ) const
 {
-	(void)this;
-	//return g_EntityList->GetClientEntityFromHandle(*this);
-	BOOST_ASSERT(0);
-	return 0;
-	
+	/*if (!IsValid( ))
+		return 0;*/
+	return csgo_interfaces::get_shared( )->entity_list->GetClientEntityFromHandle(*this);
 }

@@ -6,7 +6,7 @@
 
 using namespace cheat;
 using namespace utl;
-using namespace detail;
+using namespace utl::detail;
 using namespace property_tree;
 
 //todo: add x64 support
@@ -66,7 +66,7 @@ void vtables_storage::set_sections(sections_storage* sections)
 //currently only for x86
 module_info_rw_result vtables_storage::Load_from_memory_impl( )
 {
-	const auto lock = utl::make_lock_guard(*load_mutex__);
+	const auto lock = make_lock_guard(*load_mutex__);
 	(void)lock;
 
 #ifdef UTILS_X64

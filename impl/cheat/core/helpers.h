@@ -109,7 +109,7 @@ namespace cheat
 		struct _Vtable_pointer_impl
 		{
 			template <typename Pr=std::false_type>
-			T* operator()(const utl::string_view& from /*= { }*/,Pr preferred_interface = { },  bool drop_namespaces = true) const
+			T* operator()(const utl::string_view& from /*= { }*/, Pr preferred_interface = { }, bool drop_namespaces = true) const
 			{
 				auto table_name = _Type_name<T>(drop_namespaces);
 
@@ -133,6 +133,6 @@ namespace cheat
 		};
 	}
 
-	template<typename T>
+	template <typename T>
 	inline constexpr auto _Vtable_pointer = detail::_Vtable_pointer_impl<T>( );
 }

@@ -2,7 +2,7 @@
 
 using namespace cheat;
 using namespace hooks;
-using namespace detail;
+using namespace hooks::detail;
 using namespace utl;
 using namespace winapi;
 

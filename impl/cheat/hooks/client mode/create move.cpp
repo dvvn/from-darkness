@@ -24,7 +24,7 @@ create_move::create_move( )
 void create_move::Load( )
 {
 #ifndef CHEAT_GUI_TEST
-	this->target_func_ = method_info::make_member_virtual<ClientModeShared*>(csgo_interfaces::get( ).client_mode, 24);
+	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->client_mode.get(), 24);
 
 	this->hook( );
 	this->enable( );
@@ -46,17 +46,17 @@ void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 	if (cmd->command_number == 0)
 		return;
 
-	const auto& interfaces = csgo_interfaces::get( );
+	const auto interfaces = csgo_interfaces::get_shared( );
 	const auto original_return = return_value_.get( );
 	return_value_.store_value(false);
 
 	if (original_return == true)
 	{
-		interfaces.prediction->SetLocalViewAngles(cmd->view_angles);
-		interfaces.engine->SetViewAngles(cmd->view_angles);
+		interfaces->prediction->SetLocalViewAngles(cmd->view_angles);
+		interfaces->engine->SetViewAngles(cmd->view_angles);
 	}
 
-	if (interfaces.client_state == nullptr || interfaces.engine->IsPlayingDemo( ))
+	if (interfaces->client_state == nullptr || interfaces->engine->IsPlayingDemo( ))
 		return;
 
 	auto& send_packet = address(_AddressOfReturnAddress( ))

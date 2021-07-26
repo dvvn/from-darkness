@@ -535,19 +535,6 @@ namespace std
 #endif
 }
 
-#include "cheat/hooks/_impl/hook_utils.h"
-#include "cheat/utils/bitflag.h"
-#include "cheat/utils/memory backup.h"
-#include "cheat/utils/module info/module info.h"
-#include "cheat/utils/winapi/threads.h"
-
-#include "cheat/utils/Color.hpp"
-#include "cheat/utils/QAngle.hpp"
-#include "cheat/utils/Vector.hpp"
-#include "cheat/utils/Vector2D.hpp"
-#include "cheat/utils/Vector4D.hpp"
-#include "cheat/utils/VMatrix.hpp"
-
 //#ifdef NDEBUG//currently release mode used only for netvars/vtables dumping
 //#define CHEAT_NETVARS_UPDATING
 //#endif
@@ -564,3 +551,104 @@ namespace std
 
 #define CHEAT_CURRENT_FILE_PATH\
 	string_view(##__FILE__).substr(string_view(CHEAT_SOLUTION_DIR).size( ) + /*impl\\*/5)
+
+namespace cheat::detail
+{
+	template <typename T, typename ...Ts>
+	constexpr T _Bitflag_combine(Ts ...args)
+	{
+		if constexpr (sizeof...(Ts) == 0)
+			return static_cast<T>(0);
+		else
+		{
+			if constexpr (!std::is_enum_v<T>)
+				return (static_cast<T>(args) | ...);
+			else
+			{
+				auto tmp = _Bitflag_combine<std::underlying_type_t<T>>(args...);
+				return static_cast<T>(tmp);
+			}
+		}
+	}
+
+	template <typename T, typename T1>
+	constexpr bool _Bitflag_has(T enum_val, T1 val)
+	{
+		if constexpr (!std::is_enum_v<T>)
+			return enum_val & static_cast<T>(val);
+		else
+			return _Bitflag_has(static_cast<std::underlying_type_t<T>>(enum_val), val);
+	}
+
+	template <typename T, typename T1>
+	constexpr T _Bitflag_remove(T enum_val, T1 val)
+	{
+		if constexpr (!std::is_enum_v<T>)
+			return enum_val & ~static_cast<T>(val);
+		else
+		{
+			auto tmp = _Bitflag_remove(static_cast<std::underlying_type_t<T>>(enum_val), val);
+			return static_cast<T>(tmp);
+		}
+	}
+
+	template <typename T>
+	constexpr auto _Bitflag_raw_type( )
+	{
+		if constexpr (std::is_enum_v<T>)
+			return std::underlying_type_t<T>( );
+		else
+			return T( );
+	}
+}
+
+#define CHEAT_ENUM_STRUCT_FILL(_NAME_, ...)\
+	using value_type_raw = decltype(cheat::detail::_Bitflag_raw_type<value_type>());\
+	\
+	constexpr _NAME_( )=default;\
+	constexpr _NAME_(value_type_raw val): value__(cheat::detail::_Bitflag_combine<value_type>(val)){ }\
+	constexpr auto operator<=>(const _NAME_&) const = default;\
+	\
+	constexpr value_type value() const {return value__;}\
+	constexpr value_type_raw value_raw() const {return static_cast<value_type_raw>(value__);}\
+private:\
+	value_type value__ = cheat::detail::_Bitflag_combine<value_type>(__VA_ARGS__);
+
+#define CHEAT_ENUM_STRUCT_FILL_BITFLAG(_NAME_, ...)\
+	using value_type_raw = decltype(cheat::detail::_Bitflag_raw_type<value_type>());\
+	\
+	constexpr auto operator<=>(const _NAME_&) const = default;\
+	\
+	template <typename ...T>\
+		requires(std::convertible_to<T, value_type_raw> && ...)\
+	constexpr _NAME_(T ... vals): value__(cheat::detail::_Bitflag_combine<value_type>(vals...)) { }\
+	template <typename ...T>\
+		requires(std::convertible_to<T, value_type_raw> && ...)\
+	constexpr bool has(T ... vals) const { return (cheat::detail::_Bitflag_has(value__, vals) || ...); }\
+	constexpr bool has(_NAME_ other) const{ return this->has(other.value__); }\
+	template <typename ...T>\
+		requires(std::convertible_to<T, value_type_raw> && ...)\
+	constexpr bool has_all(T ... vals) const { return cheat::detail::_Bitflag_has(value__, cheat::detail::_Bitflag_combine<value_type>(vals...));}\
+	template <typename ...T>\
+		requires(std::convertible_to<T, value_type_raw> && ...)\
+	constexpr _NAME_& add(T ... vals) { value__ = cheat::detail::_Bitflag_combine<value_type>(value__, vals...); return *this; }\
+	template <typename ...T>\
+		requires(std::convertible_to<T, value_type_raw> && ...)\
+	constexpr _NAME_& remove(T ... vals) { value__ = cheat::detail::_Bitflag_remove<value_type>(value__, vals...); return *this; }\
+	\
+	constexpr value_type value() const {return value__;}\
+	constexpr value_type_raw value_raw() const {return static_cast<value_type_raw>(value__);}\
+private:\
+	value_type value__ = cheat::detail::_Bitflag_combine<value_type>(__VA_ARGS__);
+
+#include "cheat/hooks/_impl/hook_utils.h"
+#include "cheat/utils/memory backup.h"
+#include "cheat/utils/module info/module info.h"
+#include "cheat/utils/winapi/threads.h"
+
+#include "cheat/utils/Color.hpp"
+#include "cheat/utils/QAngle.hpp"
+#include "cheat/utils/Vector.hpp"
+#include "cheat/utils/Vector2D.hpp"
+#include "cheat/utils/Vector4D.hpp"
+#include "cheat/utils/VMatrix.hpp"

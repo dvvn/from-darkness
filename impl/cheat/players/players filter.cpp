@@ -13,8 +13,8 @@ static bool _Player_pass_flags(const player_shared& p, const players_filter_flag
 
 	const auto ent = p->ent;
 
-	const auto ent_team = static_cast<m_iTeamNum_t>(ent->m_iTeamNum( ));
-	if (ent_team == TEAM_Unknown)
+	const m_iTeamNum_t ent_team = ent->m_iTeamNum( );
+	if (!ent_team)
 		return false;
 
 	if (f.alive != ent->IsAlive( ))
@@ -28,15 +28,28 @@ static bool _Player_pass_flags(const player_shared& p, const players_filter_flag
 	const auto team_checker =
 			overload([&](const players_filter_flags::team_filter& tf)
 					 {
-						 if (ent_team == TEAM_Spectator)
+						 if (ent_team.spectator( ))
 							 return false;
-						 const auto local_team = static_cast<m_iTeamNum_t>(csgo_interfaces::get( ).local_player->m_iTeamNum( ));
-						 return ent_team == local_team;
+						 using flags = players_filter_flags::team_filter;
+
+						 const auto local_team = csgo_interfaces::get_shared( )->local_player->m_iTeamNum( );
+						 const auto enemy = ent_team != local_team;
+
+						 return tf.has(enemy ? flags::ENEMY : flags::ALLY);
 					 },
 					 [&](const players_filter_flags::team_filter_ex& tf)
 					 {
-						 auto& select = static_cast<const bitflag<players_filter_flags::team_filter>&>(tf);
-						 return select.has(ent_team);
+						 using flags = players_filter_flags::team_filter_ex;
+
+						 switch (ent_team.value( ))
+						 {
+							 case m_iTeamNum_t::SPEC: return tf.has(flags::SPEC);
+							 case m_iTeamNum_t::T: return tf.has(flags::T);
+							 case m_iTeamNum_t::CT: return tf.has(flags::CT);
+							 default:
+								 BOOST_ASSERT("unknown flag");
+								 return false;
+						 }
 					 });
 
 	if (!visit(team_checker, f.team))

@@ -6,7 +6,6 @@
 
 C_BaseCombatWeapon* C_BaseCombatCharacter::GetActiveWeapon( )
 {
-	const auto wpn_handle = this->m_hActiveWeapon( );
-	const auto wpn_ent = csgo_interfaces::get( ).entity_list->GetClientEntityFromHandle(wpn_handle);
-	return static_cast<C_BaseCombatWeapon*>(wpn_ent);
+	const auto &wpn_handle = reinterpret_cast<CBaseHandle&>(this->m_hActiveWeapon( ));
+	return static_cast<C_BaseCombatWeapon*>(wpn_handle.Get());
 }

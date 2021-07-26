@@ -216,7 +216,7 @@ void folders_storage::render( )
 	if (!this->begin({num_rows, static_cast<float>(longest_title__), size_info::WORD}, {num_columns, static_cast<float>(longest_title__), size_info::WORD}, true))
 		return this->end( );
 	{
-		auto&& sample_size = tools::_Get_char_size( );
+		auto&& sample_size = _Get_char_size( );
 
 		for (size_t i = 0; i < data__.size( ); ++i)
 		{
@@ -359,7 +359,7 @@ void configs_unique_renderer::sync(const known_configs& source)
 			//not a goot way, but im too lazy to doing this manually
 			vector<wstring_view> temp;
 			temp.reserve(data__.size( ) + 1);
-			for (auto& d: data__)
+			for (const auto& d: data__)
 				temp.push_back(d->owner( ));
 			temp.push_back(item_selected__.name);
 
@@ -450,7 +450,7 @@ void configs_unique_renderer::render( )
 void configs_unique_renderer::after_sync( )
 {
 	longest_title__ = 0;
-	for (auto& d: data__)
+	for (const auto& d: data__)
 	{
 		if (const auto size = wstring_view(d->owner( )).size( ); longest_title__ < size)
 			longest_title__ = size;
@@ -662,21 +662,21 @@ void folder_with_configs_mgr::Process_path_(const path& path)
 	files_list__.after_sync( );
 }
 
-folder_with_configs_mgr::io_flags folder_with_configs_mgr::Do_save_(const string_wrapper& name)
+folder_with_configs_mgr::io_result folder_with_configs_mgr::Do_save_(const string_wrapper& name)
 {
-	io_flags flags;
+	io_result flags;
 
 	for (auto& f: folders__.iterate( ))
 	{
 		if (f.selected( ))
 		{
-			if (!flags.has(rescan_wanted) && !f.configs.contains(name))
-				flags.add(rescan_wanted);
+			if (!flags.has(io_result::rescan_wanted) && !f.configs.contains(name))
+				flags.add(io_result::rescan_wanted);
 
 			if (!f.shared->save(name))
-				flags.add(rescan_wanted, error);
+				flags.add(io_result::rescan_wanted, error);
 			else
-				flags.add(processed);
+				flags.add(io_result::processed);
 		}
 	}
 
@@ -686,36 +686,36 @@ folder_with_configs_mgr::io_flags folder_with_configs_mgr::Do_save_(const string
 	return flags;
 }
 
-folder_with_configs_mgr::io_flags folder_with_configs_mgr::Do_load_(const string_wrapper& name)
+folder_with_configs_mgr::io_result folder_with_configs_mgr::Do_load_(const string_wrapper& name)
 {
-	io_flags flags;
+	io_result flags;
 
 	for (auto& f: folders__.iterate( ))
 	{
 		if (f.selected( ) && f.configs.selected(name))
 		{
 			if (!f.shared->load(name))
-				flags.add(rescan_wanted, error);
+				flags.add(io_result::rescan_wanted, error);
 			else
-				flags.add(processed);
+				flags.add(io_result::processed);
 		}
 	}
 
 	return flags;
 }
 
-folder_with_configs_mgr::io_flags folder_with_configs_mgr::Do_remove_(const string_wrapper& name)
+folder_with_configs_mgr::io_result folder_with_configs_mgr::Do_remove_(const string_wrapper& name)
 {
-	io_flags flags;
+	io_result flags;
 
 	for (auto& f: folders__.iterate( ))
 	{
 		if (f.selected( ) && f.configs.selected(name))
 		{
 			if (!f.shared->remove(name))
-				flags.add(rescan_wanted, error);
+				flags.add(io_result::rescan_wanted, error);
 			else
-				flags.add(rescan_wanted, processed);
+				flags.add(io_result::rescan_wanted, io_result::processed);
 		}
 	}
 
@@ -741,7 +741,7 @@ void folder_with_configs_mgr::Save_( )
 	if (selected.expired( ))
 		return;
 
-	if (const auto saved = Do_save_(selected.lock( )->owner( )); saved.has(rescan_wanted))
+	if (const auto saved = Do_save_(selected.lock( )->owner( )); saved.has(io_result::rescan_wanted))
 	{
 		//BOOST_ASSERT_MSG(files_list__.selected_item_auto_resolved( ), "Unable to resolve selected file!");
 		this->rescan( );
@@ -755,7 +755,7 @@ void folder_with_configs_mgr::Load_( )
 
 	if (const auto selected = files_list__.selected( ); !selected.expired( ))
 	{
-		if (const auto loaded = Do_load_(selected.lock( )->owner( )); loaded.has(rescan_wanted))
+		if (const auto loaded = Do_load_(selected.lock( )->owner( )); loaded.has(io_result::rescan_wanted))
 			this->rescan( );
 	}
 }
@@ -773,11 +773,11 @@ void folder_with_configs_mgr::Save_to_( )
 			//const auto resolve_selected_before = files_list__.selected_item_auto_resolved( );
 			//files_list__.auto_resolve_selected_item(false);
 
-			if (const auto saved = Do_save_(config_name); saved != unset)
+			if (const auto saved = Do_save_(config_name); saved != io_result::unset)
 			{
-				if (saved.has(rescan_wanted))
+				if (saved.has(io_result::rescan_wanted))
 					this->rescan( );
-				if (saved.has(processed) && !saved.has(error))
+				if (saved.has(io_result::processed) && !saved.has(error))
 				{
 					files_list__.select(config_name);
 					new_config_name__.clear( );
@@ -813,7 +813,7 @@ void folder_with_configs_mgr::Remove_( )
 
 	if (const auto selected = files_list__.selected( ); !selected.expired( ))
 	{
-		if (const auto removed = Do_remove_(selected.lock( )->owner( )); removed.has(rescan_wanted))
+		if (const auto removed = Do_remove_(selected.lock( )->owner( )); removed.has(io_result::rescan_wanted))
 			this->rescan( );
 	}
 }

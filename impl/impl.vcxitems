@@ -157,7 +157,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlMemory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\bitflag.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\one_instance.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\signature.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\str_crypt.h" />
@@ -208,7 +207,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\root service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player shared.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick record.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

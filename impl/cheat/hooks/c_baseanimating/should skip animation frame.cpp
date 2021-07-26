@@ -4,6 +4,7 @@
 #include "cheat/netvars/netvars.h"
 #include "cheat/players/players list.h"
 #include "cheat/sdk/ClientClass.hpp"
+#include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/utils/signature.h"
 
 using namespace cheat;
@@ -36,16 +37,40 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 		this->return_value_.store_value(override_return_to__);
 	else
 	{
-		const auto pl = this->Target_instance( );
-		const auto client_class = pl->GetClientClass( );
-		if (client_class->ClassID != ClassId::CCSPlayer)
-			return;
+		constexpr auto is_player = [](IClientNetworkable* ent)
+		{
+			const auto client_class = ent->GetClientClass( );
+			return client_class->ClassID == ClassId::CCSPlayer;
+		};
 
-		const auto animate_this_frame = pl->m_bClientSideAnimation( );
+		C_BaseAnimating* ent;
+
+		if (const auto inst = this->Target_instance( ); is_player(inst))
+		{
+			ent = inst;
+		}
+		else
+		{
+			const auto& owner_handle = inst->m_hOwnerEntity( );
+			if (owner_handle == INVALID_EHANDLE_INDEX)
+				return;
+
+			const auto owner = static_cast<C_CSPlayer*>(reinterpret_cast<const CBaseHandle&>(owner_handle).Get( ));
+
+			if (!owner)
+				return;
+
+			if (!is_player(owner))
+				return;
+			if (csgo_interfaces::get_shared( )->local_player.get( ) == owner)
+				return;
+
+			ent = owner;
+		}
+
+		const auto animate_this_frame = ent->m_bClientSideAnimation( );
 		const auto skip_this_frame = animate_this_frame == false;
 		this->return_value_.store_value(skip_this_frame);
-
-		(void)client_class;
 	}
 }
 

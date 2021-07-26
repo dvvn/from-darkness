@@ -2,7 +2,7 @@
 
 using namespace cheat;
 using namespace utl;
-using namespace detail;
+using namespace utl::detail;
 using namespace property_tree;
 
 data_cache_base::~data_cache_base( ) = default;

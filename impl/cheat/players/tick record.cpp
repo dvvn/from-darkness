@@ -13,9 +13,22 @@ using namespace detail;
 using namespace csgo;
 using namespace utl;
 
+stored_player_bones::stored_player_bones([[maybe_unused]] C_BaseEntity* ent)
+{
+	const auto& bones = ent->BonesCache( );
+	const size_t num_bones = bones.size( );
+
+	cache__ = make_unique<matrix3x4_t[]>(num_bones);
+	std::memcpy(cache__.get( ), bones.data( ), num_bones * sizeof(matrix3x4_t));
+
+	*static_cast<span*>(this) = {cache__.get( ), num_bones};
+}
+
 bool tick_record::is_valid(float curtime) const
 {
-	const auto get_latency = [engine = csgo_interfaces::get( ).engine.get( )](int flow)
+	const auto interfaces = csgo_interfaces::get_shared( );
+	const auto engine = interfaces->engine.get( );
+	const auto get_latency = [&](int flow)
 	{
 		return engine->GetNetChannelInfo( )->GetLatency(flow);
 	};
@@ -32,12 +45,10 @@ void tick_record_shared_impl::init(const player& holder)
 	shared_holder::init( );
 
 #ifndef CHEAT_NETVARS_UPDATING
-	auto ent = holder.ent;
-	auto tick = this->get( );
+	C_BaseEntity* ent = holder.ent;
+	const auto tick = this->get( );
 
-	(void)tick;
-
-	tick->origin = invoke(&C_BaseEntity::m_vecOrigin, ent);
+	tick->origin = ent->m_vecOrigin( );
 	tick->abs_origin = ent->m_vecAbsOrigin( );
 	tick->rotation = ent->m_angRotation( );
 	tick->abs_rotation = ent->m_angAbsRotation( );
@@ -46,4 +57,13 @@ void tick_record_shared_impl::init(const player& holder)
 	tick->sim_time = holder.sim_time;
 	tick->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
 #endif
+}
+
+void tick_record_shared_impl::store_bones(C_BaseEntity* ent)
+{
+	auto& bones = this->get( )->bones;
+	BOOST_ASSERT(bones.empty( ));
+	bones = {ent};
+
+	(void)this;
 }

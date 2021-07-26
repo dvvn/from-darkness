@@ -21,7 +21,7 @@ lock_cursor::lock_cursor( )
 void lock_cursor::Load( )
 {
 #ifndef CHEAT_GUI_TEST
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get( ).vgui_surface.get( ), 67);
+	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->vgui_surface.get( ), 67);
 
 	this->hook( );
 	this->enable( );

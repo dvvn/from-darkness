@@ -172,13 +172,15 @@ static string _Netvar_int_type(string_view name)
 		{
 			return name.size( ) > i && std::isupper(name[i]);
 		};
-
+		(void)is_upper;
 		if (is_upper(1))
 		{
 			if (name.starts_with('b'))
 				return "bool";
 			if (name.starts_with('c'))
 				return "uint8_t";
+			if (name.starts_with('h'))
+				return "CBaseHandle";
 		}
 		else if (is_upper(2))
 		{
@@ -189,7 +191,7 @@ static string _Netvar_int_type(string_view name)
 			if (name.starts_with("fl") && _Str_to_lower(name).find("time") != string::npos) //m_flSimulationTime int ???
 				return "float";
 		}
-		if (is_upper(3))
+		else if (is_upper(3))
 		{
 			if (name.starts_with("clr"))
 				return "utl::Color"; //not sure
@@ -635,9 +637,9 @@ void netvars::Load( )
 	data__.clear( );
 #endif
 
-	const auto& interfaces = csgo_interfaces::get( );
+	const auto interfaces = csgo_interfaces::get_shared( );
 
-	_Iterate_client_class(data__, interfaces.client->GetAllClasses( ));
+	_Iterate_client_class(data__, interfaces->client->GetAllClasses( ));
 
 	const auto baseent = _Vtable_pointer<C_BaseEntity>("client.dll",
 #ifndef CHEAT_NETVARS_UPDATING
@@ -705,7 +707,7 @@ void netvars::Dump_netvars_( )
 
 	constexpr auto get_file_name = []
 	{
-		string version = csgo_interfaces::get( ).engine->GetProductVersionString( );
+		string version = csgo_interfaces::get_shared( )->engine->GetProductVersionString( );
 		ranges::replace(version, '.', '_');
 		version.append(".json");
 		return version;

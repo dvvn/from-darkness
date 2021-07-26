@@ -40,11 +40,11 @@ void players_list::update( )
 #ifdef CHEAT_NETVARS_UPDATING
 	(void)this;
 #else
-	const auto& interfaces = csgo_interfaces::get( );
+	const auto interfaces = csgo_interfaces::get_shared( );
 
 	auto storage_updated = false;
 
-	const auto max_clients = interfaces.global_vars->max_clients;
+	const auto max_clients = interfaces->global_vars->max_clients;
 	if (const auto wished_storage_size = max_clients + 1;
 		storage__.size( ) != wished_storage_size)
 	{
@@ -53,8 +53,8 @@ void players_list::update( )
 		storage__.resize(wished_storage_size);
 	}
 
-	C_CSPlayer* const local_player = interfaces.local_player;
-	const auto local_player_team = static_cast<m_iTeamNum_t>(local_player->m_iTeamNum( ));
+	C_CSPlayer* const local_player = interfaces->local_player;
+	const m_iTeamNum_t local_player_team = local_player->m_iTeamNum( );
 	const auto local_player_alive = local_player->IsAlive( );
 
 	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)
@@ -64,12 +64,12 @@ void players_list::update( )
 		if (idx == local_player_index)
 			ret = nullptr;
 		else
-			ret = static_cast<C_CSPlayer*>(interfaces.entity_list->GetClientEntity(idx));
+			ret = static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(idx));
 
 		return ret;
 	};
 
-	const auto fixed_curtime = interfaces.global_vars->curtime; //todo
+	const auto fixed_curtime = interfaces->global_vars->curtime; //todo
 
 	for (auto i = 1; i <= max_clients; ++i)
 	{
@@ -95,12 +95,12 @@ void players_list::update( )
 			obj = move(new_obj);
 		}
 
-		const auto ent_team = static_cast<m_iTeamNum_t>(ent->m_iTeamNum( ));
-		/*if (obj->team != ent_team)
+		const m_iTeamNum_t ent_team = ent->m_iTeamNum( );
+		if (obj_shared->team != ent_team)
 		{
 			storage_updated = true;
-			obj->team = ent_team;
-		}*/
+			obj_shared->team = ent_team;
+		}
 
 		bool update_animations;
 		bool store_tick;
@@ -160,23 +160,25 @@ void players_list::update( )
 			store_tick = false;
 		}
 
-		if (!local_player_alive || local_player_team == ent_team || local_player_team == TEAM_Spectator)
+		if (!local_player_alive || local_player_team == ent_team || local_player_team.spectator( ))
 			store_tick = false;
 
 		if (store_tick)
+		{
 			obj.store_tick( );
+		}
 		if (update_animations)
 		{
-			ent->m_bClientSideAnimation( ) = true;
+			const auto backup = memory_backup(ent->m_bClientSideAnimation( ), true);
+			(void)backup;
 
 			obj.update_animations(store_tick == false);
 			ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, fixed_curtime);
 			if (store_tick)
 			{
+				obj_shared->ticks.front( ).store_bones(ent);
 				//store bones, animations, and do all useful shit
 			}
-
-			ent->m_bClientSideAnimation( ) = false;
 		}
 
 		obj.remove_old_ticks(fixed_curtime);

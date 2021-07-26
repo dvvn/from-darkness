@@ -17,7 +17,7 @@ frame_stage_notify::frame_stage_notify( )
 void frame_stage_notify::Load( )
 {
 #ifndef CHEAT_GUI_TEST
-	this->target_func_ = method_info::make_member_virtual<IBaseClientDLL*>(csgo_interfaces::get( ).client, 37);
+	this->target_func_ = method_info::make_member_virtual<IBaseClientDLL*>(csgo_interfaces::get_shared( )->client, 37);
 
 	this->hook( );
 	this->enable( );

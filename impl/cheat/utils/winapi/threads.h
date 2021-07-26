@@ -1,24 +1,28 @@
 #pragma once
-
 #include "handle.h"
 
 namespace cheat::utl::winapi
 {
-	enum class thread_access : DWORD
+	struct thread_access
 	{
-		terminate = THREAD_TERMINATE,
-		suspend_resume = THREAD_SUSPEND_RESUME,
-		get_context = THREAD_GET_CONTEXT,
-		set_context = THREAD_SET_CONTEXT,
-		query_information = THREAD_QUERY_INFORMATION,
-		set_information = THREAD_SET_INFORMATION,
-		set_thread_token = THREAD_SET_THREAD_TOKEN,
-		impersonate = THREAD_IMPERSONATE,
-		direct_impersonation = THREAD_DIRECT_IMPERSONATION,
-		set_limited_information = THREAD_SET_LIMITED_INFORMATION,
-		query_limited_information = THREAD_QUERY_LIMITED_INFORMATION,
-		resume = THREAD_RESUME,
-		all_access = THREAD_ALL_ACCESS,
+		enum value_type : DWORD
+		{
+			terminate = THREAD_TERMINATE,
+			suspend_resume = THREAD_SUSPEND_RESUME,
+			get_context = THREAD_GET_CONTEXT,
+			set_context = THREAD_SET_CONTEXT,
+			query_information = THREAD_QUERY_INFORMATION,
+			set_information = THREAD_SET_INFORMATION,
+			set_thread_token = THREAD_SET_THREAD_TOKEN,
+			impersonate = THREAD_IMPERSONATE,
+			direct_impersonation = THREAD_DIRECT_IMPERSONATION,
+			set_limited_information = THREAD_SET_LIMITED_INFORMATION,
+			query_limited_information = THREAD_QUERY_LIMITED_INFORMATION,
+			resume = THREAD_RESUME,
+			all_access = THREAD_ALL_ACCESS,
+		};
+
+		CHEAT_ENUM_STRUCT_FILL_BITFLAG(thread_access)
 	};
 
 	class thread_entry: public THREADENTRY32
@@ -76,8 +80,8 @@ namespace cheat::utl::winapi
 	class frozen_threads_storage: protected frozen_threads_storage_container, public threads_adder, noncopyable
 	{
 	public:
-		frozen_threads_storage(frozen_threads_storage&&other) noexcept;
-		frozen_threads_storage& operator =(frozen_threads_storage&&other) noexcept;
+		frozen_threads_storage(frozen_threads_storage&& other) noexcept;
+		frozen_threads_storage& operator =(frozen_threads_storage&& other) noexcept;
 
 		frozen_threads_storage(bool fill);
 

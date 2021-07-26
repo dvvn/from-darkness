@@ -6,7 +6,6 @@
 
 C_BaseAnimating* C_CSPlayer::GetRagdoll( )
 {
-	const auto ragdoll_handle = this->m_hRagdoll( );
-	const auto ragdoll_ent = (csgo_interfaces::get( ).entity_list->GetClientEntityFromHandle(ragdoll_handle));
-	return static_cast<C_BaseAnimating*>(ragdoll_ent);
+	const auto &ragdoll_handle = reinterpret_cast<CBaseHandle&>(this->m_hRagdoll( ));
+	return static_cast<C_BaseAnimating*>(ragdoll_handle.Get());
 }

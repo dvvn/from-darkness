@@ -3,7 +3,7 @@
 
 using namespace cheat;
 using namespace utl;
-using namespace detail;
+using namespace utl::detail;
 using namespace property_tree;
 
 exports_storage::exports_storage(address addr, IMAGE_NT_HEADERS* nt): data_cache_from_anywhere(move(addr), nt)

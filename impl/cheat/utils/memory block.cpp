@@ -1,7 +1,5 @@
 #include "memory block.h"
 
-#include "cheat/utils/bitflag.h"
-
 using namespace cheat;
 using namespace utl;
 
@@ -53,7 +51,11 @@ memory_block memory_block::shift_to_end(const memory_block& block) const
 
 #pragma region flags_check
 
-using mem_flags_t = bitflag<decltype(MEMORY_BASIC_INFORMATION::Protect)>;
+struct mem_flags_t
+{
+	using value_type = decltype(MEMORY_BASIC_INFORMATION::Protect);
+	CHEAT_ENUM_STRUCT_FILL_BITFLAG(mem_flags_t)
+};
 
 // ReSharper disable once CppInconsistentNaming
 class MEMORY_BASIC_INFORMATION_UPDATER: protected MEMORY_BASIC_INFORMATION
@@ -95,14 +97,14 @@ template <typename Fn>
 class flags_checker: public MEMORY_BASIC_INFORMATION_UPDATER
 {
 public:
-	flags_checker(mem_flags_t::raw_type flags) : MEMORY_BASIC_INFORMATION_UPDATER( ),
-												 flags_checked__(flags)
+	flags_checker(mem_flags_t::value_type_raw flags) : MEMORY_BASIC_INFORMATION_UPDATER( ),
+													   flags_checked__(flags)
 	{
 	}
 
 private:
 	static constexpr Fn check_fn;
-	mem_flags_t         flags_checked__;
+	mem_flags_t flags_checked__;
 
 public:
 	optional<bool> check_flags(SIZE_T block_size) const
@@ -120,7 +122,7 @@ public:
 			return true;
 
 		//check next block
-		return {};
+		return { };
 	}
 };
 
@@ -140,12 +142,12 @@ struct dont_have_flags_fn
 	}
 };
 
-static constexpr auto PAGE_READ_FLAGS = mem_flags_t(PAGE_READONLY, PAGE_READWRITE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE).get( );
-static constexpr auto PAGE_WRITE_FLAGS = mem_flags_t(PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_WRITECOMBINE).get( );
-static constexpr auto PAGE_EXECUTE_FLAGS = mem_flags_t(PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY).get( );
+static constexpr auto PAGE_READ_FLAGS = mem_flags_t(PAGE_READONLY, PAGE_READWRITE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE).value_raw( );
+static constexpr auto PAGE_WRITE_FLAGS = mem_flags_t(PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_WRITECOMBINE).value_raw( );
+static constexpr auto PAGE_EXECUTE_FLAGS = mem_flags_t(PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY).value_raw( );
 
 template <typename Fn>
-bool _Memory_block_flags_checker(mem_flags_t::raw_type flags, memory_block block)
+static bool _Memory_block_flags_checker(mem_flags_t::value_type_raw flags, memory_block block)
 {
 	flags_checker<Fn> checker(flags);
 	while (true)
