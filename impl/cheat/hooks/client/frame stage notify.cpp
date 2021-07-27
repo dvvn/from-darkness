@@ -11,27 +11,25 @@ using namespace utl;
 
 frame_stage_notify::frame_stage_notify( )
 {
-	this->Wait_for<players_list>( );
 }
 
-void frame_stage_notify::Load( )
+bool frame_stage_notify::Do_load( )
 {
-#ifndef CHEAT_GUI_TEST
+#ifdef CHEAT_GUI_TEST
+
+	return 0;
+#else
+
 	this->target_func_ = method_info::make_member_virtual<IBaseClientDLL*>(csgo_interfaces::get_shared( )->client, 37);
 
 	this->hook( );
 	this->enable( );
+
+	return 1;
 #endif
 }
 
-string frame_stage_notify::Get_loaded_message( ) const
-{
-#ifndef CHEAT_GUI_TEST
-	return service_base::Get_loaded_message( );
-#else
-	return Get_loaded_message_disabled( );
-#endif
-}
+
 
 void frame_stage_notify::Callback(ClientFrameStage_t stage)
 {
@@ -42,7 +40,7 @@ void frame_stage_notify::Callback(ClientFrameStage_t stage)
 		case FRAME_NET_UPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-			players_list::get( ).update( );
+			players_list::get_shared( )->update( );
 			break;
 		case FRAME_NET_UPDATE_END: break;
 		case FRAME_RENDER_START: break;

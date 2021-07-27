@@ -7,7 +7,7 @@
 
 namespace cheat
 {
-	class netvars final: public service_shared<netvars, service_mode::async>
+	class netvars final: public service<netvars>
 	{
 	public:
 		~netvars( ) override;
@@ -16,9 +16,8 @@ namespace cheat
 		int at(const utl::string_view& path) const;
 
 	protected:
-		void Load( ) override;
-		utl::string Get_loaded_message( ) const override;
-		void Post_load( ) override;
+		bool Do_load( ) override;
+		void On_load( ) override;
 
 	private:
 		void Dump_netvars_( );

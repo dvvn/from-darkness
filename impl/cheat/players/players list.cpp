@@ -16,24 +16,21 @@ using namespace utl;
 
 players_list::players_list( )
 {
-	this->Wait_for<gui::renderer>( );
-	this->Wait_for<netvars>( );
 }
 
-void players_list::Load( )
+bool players_list::Do_load( )
 {
-	(void)this;
-}
-
-string players_list::Get_loaded_message( ) const
-{
-#ifndef CHEAT_GUI_TEST
-	return service_base::Get_loaded_message( );
-	//return "Players list ready to use";
+#ifdef CHEAT_GUI_TEST
+	return 0;
 #else
-	return Get_loaded_message_disabled( );
+
+	return 1;
 #endif
+
+
 }
+
+
 
 void players_list::update( )
 {

@@ -6,16 +6,14 @@
 
 namespace cheat::hooks::client_mode
 {
-	class create_move final: public service_shared<create_move, service_mode::async>,
+	class create_move final: public service<create_move>,
 							 public decltype(detect_hook_holder(&csgo::ClientModeShared::CreateMove))
 	{
 	public :
 		create_move( );
 
 	protected:
-		void Load( ) override;
-		utl::string Get_loaded_message( ) const override;
+		bool Do_load( ) override;
 		void Callback(float input_sample_time, csgo::CUserCmd* cmd) override;
-		
 	};
 }

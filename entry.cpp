@@ -1,4 +1,4 @@
-#include "cheat/core/root service.h"
+#include "cheat/core/services loader.h"
 #include "cheat/gui/menu.h"
 
 #ifndef CHEAT_GUI_TEST
@@ -64,10 +64,10 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 	{
 		case DLL_PROCESS_ATTACH:
 			_Dll_main_boost(hModule, dwReason, lpReserved);
-			root_service::get( ).init(hModule);
+			services_loader::get( ).load(hModule);
 			break;
 		case DLL_PROCESS_DETACH:
-			root_service::get( ).reset( );
+			services_loader::get( ).reset( );
 		default:
 			_Dll_main_boost(hModule, dwReason, lpReserved);
 			break;
@@ -85,8 +85,8 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 #pragma comment (lib, "d3d9.lib")
 
 // Data
-static LPDIRECT3D9           g_pD3D = nullptr;
-LPDIRECT3DDEVICE9            g_pd3dDevice = nullptr;
+static LPDIRECT3D9 g_pD3D = nullptr;
+LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
 static D3DPRESENT_PARAMETERS g_d3dpp = { };
 
 // Forward declarations of helper functions
@@ -116,7 +116,10 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	cheat::root_service::get( ).init( );
+	cheat::services_loader::get( ).load( );
+
+	if (!cheat::services_loader::get( ).state( ).done( ))
+		goto _RESET;
 	cheat::gui::menu::get( ).show( );
 
 	// Setup Dear ImGui context
@@ -150,9 +153,8 @@ int main(int, char**)
 	//bool   show_demo_window = true;
 	//bool   show_another_window = false;
 
-	// Main loop
-	bool done = false;
-	while (!done)
+	// Main loop	
+	while (1)
 	{
 		// Poll and handle messages (inputs, window resize, etc.)
 		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -160,6 +162,7 @@ int main(int, char**)
 		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
 		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		MSG msg;
+		bool done = false;
 		while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
@@ -174,7 +177,7 @@ int main(int, char**)
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 
-		static ImVec4   clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+		static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 		static D3DCOLOR clear_col_dx = D3DCOLOR_RGBA((int)(clear_color.x*clear_color.w*255.0f),
 													 (int)(clear_color.y*clear_color.w*255.0f),
 													 (int)(clear_color.z*clear_color.w*255.0f),
@@ -187,7 +190,9 @@ int main(int, char**)
 			ResetDevice( );
 	}
 
-	cheat::root_service::get( ).reset( );
+_RESET:
+
+	cheat::services_loader::get( ).reset( );
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

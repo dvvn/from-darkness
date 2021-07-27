@@ -134,7 +134,7 @@ size_t cheat::_Time_to_ticks(float time)
 
 float cheat::_Ticks_to_time(size_t ticks)
 {
-	return (_Interval_per_ticks( ) * ticks);
+	return (_Interval_per_ticks( ) * static_cast<float>(ticks));
 }
 
 address _Find_signature_impl::operator()(const mb& from, const sv& sig) const

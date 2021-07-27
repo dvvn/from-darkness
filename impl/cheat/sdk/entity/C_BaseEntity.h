@@ -73,7 +73,7 @@ namespace cheat::csgo
 
 	struct m_iEFlags_t
 	{
-		enum value_type :uint32_t
+		enum value_type :int32_t
 		{
 			EFL_KILLME = 1 << 0,
 			// This entity is marked for death -- This allows the game to actually delete ents at a safe time

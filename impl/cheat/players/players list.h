@@ -82,7 +82,7 @@ _STD_END
 
 namespace cheat
 {
-	class players_list final: public service_shared<players_list, service_mode::async>
+	class players_list final: public service<players_list>
 	{
 	public:
 		players_list( );
@@ -92,8 +92,7 @@ namespace cheat
 		const detail::players_filter& filter(const players_filter_flags& flags);
 
 	protected:
-		void Load( ) override;
-		utl::string Get_loaded_message( ) const override;
+		bool Do_load( ) override;
 
 	private:
 		detail::players_list_container storage__;

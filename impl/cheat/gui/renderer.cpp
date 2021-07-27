@@ -14,7 +14,6 @@ using namespace utl;
 
 renderer::renderer( )
 {
-	this->Wait_for<vgui_surface::lock_cursor>( );
 }
 
 renderer::~renderer( )
@@ -31,11 +30,13 @@ renderer::~renderer( )
 	});
 }
 
-void renderer::Load( )
+bool renderer::Do_load( )
 {
-	IDirect3DDevice9* d3d = csgo_interfaces::get( ).d3d_device;
+	IDirect3DDevice9* d3d = csgo_interfaces::get_shared( )->d3d_device;
 	ImGui_ImplDX9_Init(d3d);
 	//ImGui_ImplDX9_CreateDeviceObjects( ); d3d9 multithread error
+
+	return true;
 }
 
 void renderer::present(IDirect3DDevice9* d3d_device)
@@ -49,11 +50,11 @@ void renderer::present(IDirect3DDevice9* d3d_device)
 	{
 #if CHEAT_GUI_HAS_DEMO_WINDOW
 #ifndef CHEAT_TEST_EXE
-		if (menu::get( ).active( ))
+		if (menu::get_shared( )->active( ))
 #endif
 			ImGui::ShowDemoWindow( );
 #endif
-		menu::get( ).render( );
+		menu::get_shared( )->render( );
 	}
 	ImGui::EndFrame( );
 

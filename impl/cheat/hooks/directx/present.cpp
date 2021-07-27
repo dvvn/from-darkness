@@ -11,18 +11,19 @@ using namespace utl;
 
 present::present( )
 {
-	this->Wait_for<directx::reset>( );
 }
 
-void present::Load( )
+bool present::Do_load( )
 {
-	target_func_ = method_info::make_member_virtual(csgo_interfaces::get( ).d3d_device.get( ), 17);
+	target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->d3d_device.get( ), 17);
 
 	this->hook( );
 	this->enable( );
+
+	return 1;
 }
 
 void present::Callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
-	gui::renderer::get( ).present(this->Target_instance( ));
+	gui::renderer::get_shared( )->present(this->Target_instance( ));
 }

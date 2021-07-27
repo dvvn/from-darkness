@@ -27,7 +27,7 @@ namespace cheat
 
 		using string_wrapper_base::name;
 
-		utl::wstring_view path()const;
+		utl::wstring_view path( ) const;
 
 	protected:
 		template <typename T>
@@ -52,7 +52,7 @@ namespace cheat
 	};
 
 	class settings final: public gui::objects::empty_page, public settings_data,
-						  public service_shared<settings, service_mode::async>
+						  public service<settings>
 	{
 	public:
 		settings( );
@@ -61,7 +61,7 @@ namespace cheat
 		void render( ) override;
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 
 	private:
 #if 0

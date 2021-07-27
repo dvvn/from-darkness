@@ -4,7 +4,7 @@
 
 namespace cheat
 {
-	class console final: public service_shared<console, service_mode::sync>
+	class console final: public service<console>
 	{
 	public:
 		~console( ) override;
@@ -16,8 +16,7 @@ namespace cheat
 		void write_char(char c) const;
 
 	protected:
-		void Load( ) override;
-		utl::string Get_loaded_message( ) const override;
+		bool Do_load( ) override;
 
 	private:
 		bool write_redirected__ = false;

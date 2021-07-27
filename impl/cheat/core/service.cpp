@@ -7,17 +7,7 @@ using namespace detail;
 using namespace utl;
 using namespace future_state;
 
-service_base::~service_base( )
-{
-	Waiting_task_assert_( );
-}
-
-service_base::service_base( )
-{
-	creator__ = this_thread::get_id( );
-}
-
-static future<void> _Get_ready_task( )
+[[maybe_unused]] static future<void> _Get_ready_task( )
 {
 	promise<void> pr;
 	pr.set_value( );
@@ -25,221 +15,88 @@ static future<void> _Get_ready_task( )
 }
 
 template <std::derived_from<std::exception> Ex>
-static future<void> _Get_error_task(Ex&& ex)
+[[maybe_unused]] static future<void> _Get_error_task(Ex&& ex)
 {
 	promise<void> pr;
 	pr.set_exception(move(ex));
 	return pr.get_future( );
 }
 
-void service_base::reset( )
+bool service_state2::operator!( ) const
 {
-	Waiting_task_assert_( );
-	if (!load_task__.is_ready( ))
-		load_task__ = _Get_ready_task( );
-	wait_for__.clear( );
+	return value__ == unset;
 }
 
-bool service_base::initialized( ) const
+bool service_state2::done( ) const
 {
-	return load_task__.is_ready( );
+	return value__ == loaded;
 }
 
-service_base::load_task_type service_base::init(loader_type& loader)
+void service_base2::Loading_access_assert( ) const
 {
-	switch (load_task__.get_state( ))
-	{
-		case uninitialized:
-			if (loader.closed( ))
-				load_task__ = _Get_error_task(std::runtime_error("Loader is closed!"));
-			else
-				load_task__ = this->Initialize(loader);
-#if 0
-		if(!load_synchronously_)
-			load_task__ = async(loader, Init_internal_(loader));
-		else
-		{
-			init_this( );
-			load_task__ = _Get_ready_task( );
-		}
-#endif
-		case waiting:
-		case ready:
-			return load_task__;
-		case moved:
-			BOOST_ASSERT("Task is moved");
-			return _Get_ready_task( );
-		case deferred:
-			BOOST_ASSERT("Task is deferred");
-			return _Get_error_task(std::runtime_error("Task is deferred"));
-		default:
-			BOOST_ASSERT("Task state unknown");
-			std::terminate( );
-	}
-}
-
-template <typename ...T>
-static string _Concat_str(T&& ...str)
-{
-	std::ostringstream stream;
-	((stream << forward<T>(str)), ...);
-	return stream.str( );
-}
-
-static constexpr string_view loaded_msg = "Service loaded";
-static constexpr string_view skipped_msg = "Service skipped";
-
-template <typename T, typename ...Ts>
-static string _Get_loaded_message(const service_base* owner, T&& msg, Ts&& ...msg_other)
-{
-	auto msg_str = string(forward<T>(msg));
-	auto msg_size = msg_str.size( );
-
-	//msg_str += ' ';
-
-	const auto arr = array{msg_size, string_view(msg_other).size( )...};
-	auto max = ranges::max(arr);
-	if (msg_size != max)
-	{
-		auto min = ranges::min(arr);
-		auto diff = max - min;
-		msg_str.append(diff, ' ');
-	}
-
-	msg_str += ": ";
-	msg_str += owner->debug_name( );
-
-	return move(msg_str);
-}
-
-string service_base::Get_loaded_message( ) const
-{
-	return _Get_loaded_message(this, loaded_msg, skipped_msg);
-}
-
-string service_base::Get_loaded_message_disabled( ) const
-{
-	return _Get_loaded_message(this, skipped_msg, loaded_msg);
-}
-
-void service_base::Post_load( )
-{
+	BOOST_ASSERT_MSG(state__ != service_state2::loading, "Unable to modify service while loading!");
 	(void)this;
 }
 
-//service_base::wait_for_storage_type& service_base::Storage( )
-//{
-//	return wait_for__;
-//}
-
-void service_base::Print_loaded_message_( ) const
+service_base2::~service_base2( )
 {
-#ifdef CHEAT_HAVE_CONSOLE
-	if (const auto msg = Get_loaded_message( ); !msg.empty( ))
-		console::get( ).write_line(msg);
-#else
-	(void)this;
-#endif
+	Loading_access_assert( );
 }
 
-void service_base::Wait_for_add_impl_(service_shared&& service)
+service_base2::service_base2(service_base2&& other) noexcept
 {
-	BOOST_ASSERT_MSG(creator__ == this_thread::get_id( ), "Unable to modify service from other thread!");
-	BOOST_ASSERT_MSG(service->load_task__.get_state( ) == uninitialized, "Unable to add service while load task is set!");
-#if 1
-	BOOST_ASSERT_MSG(!Find_recursuve_(service), "Some internal service already wait for addable service");
-#endif
-	BOOST_ASSERT_MSG(!wait_for__.contains(service), "Service already added!");
-
-	wait_for__.emplace(move(service));
+	other.Loading_access_assert( );
+	state__ = other.state__;
 }
 
-bool service_base::Find_recursuve_(const service_shared& service) const
+void service_base2::operator=(service_base2&& other) noexcept
 {
-	for (auto& t: wait_for__)
-	{
-		if (t->wait_for__.contains(service))
-			return true;
-		if (t->Find_recursuve_(service))
-			return true;
-	}
-
-	return false;
+	this->Loading_access_assert( );
+	other.Loading_access_assert( );
+	state__ = other.state__;
 }
 
-void service_base::Waiting_task_assert_( ) const
+service_state2 service_base2::state( ) const
 {
-	BOOST_ASSERT(load_task__.get_state( ) != waiting);
-	(void)this;
+	return state__;
 }
 
-//---------------
-
-service_base::load_task_type async_service::Initialize(loader_type& loader)
+void service_base2::load( )
 {
-	vector<load_task_type> tasks_wait_for;
-	for (auto& s: wait_for__)
-	{
-		if (s->load_task__.is_ready( ))
-			continue;
-		tasks_wait_for.emplace_back(s->init(loader));
-	}
+	BOOST_ASSERT_MSG(!state__, "Service loaded before");
 
-	auto load = [this, load_before = move(tasks_wait_for)]( )mutable
-	{
-		for (auto& t: load_before)
-		{
-			if (auto ex = t.get_exception_ptr( ))
-				rethrow_exception(move(ex));
-		}
-		this->Load( );
-		this->Print_loaded_message_( );
-	};
-
-	load_task_type loader_task = async(loader, move(load));
-
-	auto post_load = [this, loader_task]( )mutable
-	{
-		if (auto ex = loader_task.get_exception_ptr( ))
-			rethrow_exception(move(ex));
-		this->Post_load( );
-	};
-
-	//only loader wait for this task
-	loader.submit(move(post_load));
-
-	return loader_task;
-}
-
-service_base::load_task_type sync_service::Initialize(loader_type& loader)
-{
 	try
 	{
-		for (auto& s: wait_for__)
+		const auto loaded = this->Do_load( );
+		state__ = service_state2::loaded;
+#ifdef CHEAT_HAVE_CONSOLE
+		if (const auto console = console::get_shared( );
+			console->state( ).done( ))
 		{
-			switch (auto& task = s->load_task__; task.get_state( ))
-			{
-				case uninitialized:
-					BOOST_ASSERT("Unable to init service before internal services!");
-				case ready:
-					break;
-				default:
-					auto ex = task.get_exception_ptr( );
-					if (ex)
-						rethrow_exception(move(ex));
-					break;
-			}
-			//BOOST_ASSERT_MSG(s->load_task__.get_state() != ready, "Unable to init service before internal services!");
+			const auto msg = format("Service {}: {}", loaded ? "loaded " : "skipped", this->name( ));
+			console->write_line(msg);
 		}
-
-		this->Load( );
-		this->Print_loaded_message_( );
-		this->Post_load( );
+#endif
+		this->On_load( );
 	}
-	catch (std::exception&& ex)
+#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
+	catch (const thread_interrupted&)
 	{
-		loader.close( );
-		return _Get_error_task(move(ex));
+		state__ = service_state2::stopped;
+		this->On_stop( );
 	}
-	return _Get_ready_task( );
+#endif
+	catch ([[maybe_unused]] const std::exception& ex)
+	{
+		state__ = service_state2::error;
+#ifdef CHEAT_HAVE_CONSOLE
+		const auto console = console::get_shared( );
+		if (console.get( ) != this)
+		{
+			const auto msg = format("Unable to load service {}. {}", this->name( ), ex.what( ));
+			console->write_line(msg);
+		}
+#endif
+		this->On_error( );
+	}
 }

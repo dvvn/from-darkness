@@ -6,14 +6,14 @@
 
 namespace cheat::hooks::c_base_animating
 {
-	class standard_blending_rules final: public service_shared<standard_blending_rules, service_mode::async>,
+	class standard_blending_rules final: public service<standard_blending_rules>,
 										 public decltype(detect_hook_holder(&csgo::C_BaseAnimating::StandardBlendingRules))
 	{
 	public :
 		standard_blending_rules( );
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 		void Callback(csgo::CStudioHdr* hdr, utl::Vector pos[], csgo::QuaternionAligned q[], float current_time, int bone_mask) override;
 	};
 }

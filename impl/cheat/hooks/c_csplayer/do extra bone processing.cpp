@@ -12,18 +12,24 @@ using namespace csgo;
 
 do_extra_bone_processing::do_extra_bone_processing( )
 {
-	this->Wait_for<netvars>( );
+
 }
 
-void do_extra_bone_processing::Load( )
+bool do_extra_bone_processing::Do_load( )
 {
-#ifndef CHEAT_GUI_TEST
+#ifdef CHEAT_GUI_TEST
+
+	return 0;
+#else
+
 
 	const auto offset = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC").add(11).deref(1).value( ) / 4;
 	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_CSPlayer>,"client.dll", &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );
+
+	return 1;
 #endif
 }
 

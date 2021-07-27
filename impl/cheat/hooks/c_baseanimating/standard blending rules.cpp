@@ -14,18 +14,22 @@ using namespace csgo;
 
 standard_blending_rules::standard_blending_rules( )
 {
-	this->Wait_for<netvars>( );
+
 }
 
-void standard_blending_rules::Load( )
+bool standard_blending_rules::Do_load( )
 {
-#if !defined(CHEAT_GUI_TEST)
+#if defined(CHEAT_GUI_TEST)
+
+	return 0;
+#else
 
 	const auto offset = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).value( ) / 4;
 	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseAnimating>,"client.dll", &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );
+	return 1;
 #endif
 }
 

@@ -13,7 +13,7 @@
 
 namespace cheat::gui
 {
-	class menu final: public service_shared<menu, service_mode::async>, public widgets::window
+	class menu final: public service<menu>, public widgets::window
 	{
 		using window::begin;
 		using window::end;
@@ -25,7 +25,7 @@ namespace cheat::gui
 		bool toggle(UINT msg, WPARAM wparam);
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 
 	private:
 		tools::string_wrapper menu_title__;

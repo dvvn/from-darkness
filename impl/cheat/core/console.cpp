@@ -104,9 +104,11 @@ console::console( ) //: sem__(1)
 	//load_synchronously_ = true;
 }
 
-void console::Load( )
+bool console::Do_load( )
 {
-#ifdef CHEAT_HAVE_CONSOLE
+#ifndef CHEAT_HAVE_CONSOLE
+	return false;
+#else
 	console_window__ = GetConsoleWindow( );
 	if (console_window__ != nullptr)
 	{
@@ -150,15 +152,8 @@ void console::Load( )
 		console_window__ = GetConsoleWindow( );
 		BOOST_ASSERT_MSG(console_window__ != nullptr, "Unable to get console window");
 	}
-#endif
-}
 
-string console::Get_loaded_message( ) const
-{
-#ifdef CHEAT_HAVE_CONSOLE
-	return service_shared::Get_loaded_message( );
-#else
-	return this->Get_loaded_message_disabled( );
+	return true;
 #endif
 }
 

@@ -4,7 +4,7 @@
 
 namespace cheat::hooks::input
 {
-	class wndproc final: public service_shared<wndproc, service_mode::async>,
+	class wndproc final: public service<wndproc>,
 						 public gui::objects::empty_page,
 						 public decltype(detect_hook_holder(DefWindowProc))
 	{
@@ -14,11 +14,11 @@ namespace cheat::hooks::input
 		void render( ) override;
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 		void Callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
 	private:
-		decltype(&DefWindowProc) default_wndproc__;
+		decltype(&DefWindowProc) default_wndproc__ = nullptr;
 
 		bool override_return__ = false;
 		LRESULT override_return_to__ = 1;

@@ -157,7 +157,7 @@ void csgo_interface_base::Set_result_assert_( ) const
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-void csgo_interfaces::Load( )
+bool csgo_interfaces::Do_load( )
 {
 	//unused
 #if 0
@@ -261,4 +261,6 @@ void csgo_interfaces::Load( )
 #else
 	d3d_device=(g_pd3dDevice);
 #endif
+
+	return true;
 }

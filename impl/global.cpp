@@ -9,7 +9,7 @@
 		return;
 	const auto sptr = wptr.lock( );
 	const auto ptr = sptr.get( );
-	if (!ptr->initialized( ))
+	if (!ptr->state( ).done())
 		return;
 	constexpr auto filler = std::string_view("\n--------------------------------------------------\n");
 	std::string str2;

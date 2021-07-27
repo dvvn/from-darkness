@@ -12,8 +12,6 @@ using namespace utl;
 
 user_input::user_input( )
 {
-	this->Wait_for<csgo_interfaces>( );
-	//this->Wait_for<menu_obj>( );
 }
 
 user_input::~user_input( )
@@ -28,7 +26,7 @@ HWND user_input::hwnd( ) const
 	return hwnd__;
 }
 
-void user_input::Load( )
+bool user_input::Do_load( )
 {
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*) { return operator new(size); },
@@ -60,11 +58,13 @@ void user_input::Load( )
 #endif
 	auto creation_parameters = D3DDEVICE_CREATION_PARAMETERS( );
 
-	[[maybe_unused]] const auto result = csgo_interfaces::get( ).d3d_device->GetCreationParameters(&creation_parameters);
+	[[maybe_unused]] const auto result = csgo_interfaces::get_shared( )->d3d_device->GetCreationParameters(&creation_parameters);
 	BOOST_ASSERT(SUCCEEDED(result));
 
 	hwnd__ = creation_parameters.hFocusWindow;
 	ImGui_ImplWin32_Init(hwnd__);
+
+	return 1;
 }
 
 // ReSharper disable once CppInconsistentNaming

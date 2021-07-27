@@ -87,7 +87,7 @@ void settings::render( )
 	mgr__.render( );
 }
 
-void settings::Load( )
+bool settings::Do_load( )
 {
 	mgr__.add_folder(features::aimbot::get_ptr( ));
 	mgr__.add_folder(features::anti_aim::get_ptr( ));
@@ -97,4 +97,6 @@ void settings::Load( )
 
 	//todo: store all features here
 	//load default/last settings or something
+
+	return 1;
 }

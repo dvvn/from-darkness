@@ -17,8 +17,6 @@ using namespace widgets;
 
 menu::menu( )
 {
-	this->Wait_for<settings>( );
-
 	constexpr auto iso_date = []( )-> string_view
 	{
 		// ReSharper disable once CppVariableCanBeMadeConstexpr
@@ -135,7 +133,7 @@ public:
 	}
 };
 
-void menu::Load( )
+bool menu::Do_load( )
 {
 	renderer__.add_page([]
 	{
@@ -180,4 +178,6 @@ void menu::Load( )
 	}( ));
 #endif
 	renderer__.init( );
+
+	return 1;
 }

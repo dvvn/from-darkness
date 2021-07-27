@@ -4,14 +4,14 @@
 
 namespace cheat::hooks::directx
 {
-	class reset final: public service_shared<reset, service_mode::async>,
+	class reset final: public service<reset>,
 					   public decltype(detect_hook_holder(&IDirect3DDevice9::Reset))
 	{
 	public :
 		reset( );
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 		void Callback(D3DPRESENT_PARAMETERS*) override;
 	};
 }

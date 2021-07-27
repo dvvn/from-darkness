@@ -10,19 +10,19 @@ using namespace utl;
 
 reset::reset( )
 {
-	this->Wait_for<gui::renderer>( );
 }
 
-void reset::Load( )
+bool reset::Do_load( )
 {
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get( ).d3d_device.get( ), 16);
+	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->d3d_device.get( ), 16);
 
 	this->hook( );
 	this->enable( );
+
+	return 1;
 }
 
 void reset::Callback(D3DPRESENT_PARAMETERS*)
 {
-	gui::renderer::get( ).reset(this->Target_instance( ));
+	gui::renderer::get_shared( )->reset(this->Target_instance( ));
 }
-

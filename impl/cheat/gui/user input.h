@@ -5,7 +5,7 @@ struct ImGuiContext;
 
 namespace cheat::gui
 {
-	class user_input final: public service_shared< user_input,service_mode::async>
+	class user_input final: public service< user_input>
 	{
 	public:
 		~user_input( ) override;
@@ -14,7 +14,7 @@ namespace cheat::gui
 		HWND hwnd( ) const;
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 
 	public:
 		enum class process_result

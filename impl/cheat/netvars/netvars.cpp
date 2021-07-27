@@ -31,14 +31,13 @@ netvars::~netvars( )
 
 netvars::netvars( )
 {
-	this->Wait_for<csgo_interfaces>( );
 }
 
 static string _Str_to_lower(const string_view& str)
 {
 	string ret;
 	ret.reserve(str.size( ));
-	for (auto& c: str)
+	for (const int c: str)
 		ret += std::tolower(c);
 	return ret;
 }
@@ -629,9 +628,11 @@ static void _Iterate_datamap(property_tree::ptree& root_tree, datamap_t* root_ma
 	}
 }
 
-void netvars::Load( )
+bool netvars::Do_load( )
 {
-#if !defined(CHEAT_NETVARS_DUMPER_DISABLED)
+#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
+	return false;
+#else
 
 #ifdef _DEBUG
 	data__.clear( );
@@ -650,19 +651,12 @@ void netvars::Load( )
 	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));
 
+	return true;
+
 #endif
 }
 
-string netvars::Get_loaded_message( ) const
-{
-#ifndef CHEAT_NETVARS_DUMPER_DISABLED
-	return service_base::Get_loaded_message( );
-#else
-	return Get_loaded_message_disabled( );
-#endif
-}
-
-void netvars::Post_load( )
+void netvars::On_load( )
 {
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
@@ -670,6 +664,12 @@ void netvars::Post_load( )
 	Generate_classes_( );
 
 #endif
+}
+
+[[maybe_unused]]
+static string _Get_checksum(const string_view& s)
+{
+	return to_string(invoke(std::hash<string_view>( ), s));
 }
 
 [[maybe_unused]]
@@ -682,16 +682,13 @@ static string _Get_checksum(const filesystem::path& p, bool first_time)
 		auto ifs = std::ifstream(p);
 		using itr_t = std::istreambuf_iterator<char>;
 		if (!ifs.fail( ))
-			checksum = {itr_t(ifs), itr_t( )};
+		{
+			const auto tmp = string(itr_t(ifs), itr_t( ));
+			checksum = _Get_checksum(tmp);
+		}
 	}
 
 	return checksum;
-}
-
-[[maybe_unused]]
-static string _Get_checksum(const string_view& s)
-{
-	return to_string(invoke(std::hash<string_view>( ), s));
 }
 
 [[maybe_unused]]

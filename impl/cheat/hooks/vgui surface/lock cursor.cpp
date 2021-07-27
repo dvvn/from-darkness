@@ -14,32 +14,24 @@ using namespace utl;
 
 lock_cursor::lock_cursor( )
 {
-	this->Wait_for<input::wndproc>( );
-	this->Wait_for<gui::menu>( );
 }
 
-void lock_cursor::Load( )
+bool lock_cursor::Do_load( )
 {
-#ifndef CHEAT_GUI_TEST
+#ifdef CHEAT_GUI_TEST
+	return false;
+#else
 	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->vgui_surface.get( ), 67);
 
 	this->hook( );
 	this->enable( );
-#endif
-}
-
-string lock_cursor::Get_loaded_message( ) const
-{
-#ifndef CHEAT_GUI_TEST
-		return service_base::Get_loaded_message( );
-#else
-	return Get_loaded_message_disabled( );
+	return true;
 #endif
 }
 
 void lock_cursor::Callback( )
 {
-	if (gui::menu::get( ).visible( ) && !Target_instance( )->IsCursorVisible( ))
+	if (!Target_instance( )->IsCursorVisible( ) && gui::menu::get_shared( )->visible( ))
 	{
 		this->return_value_.set_original_called(true);
 		Target_instance( )->UnlockCursor( );

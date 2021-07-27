@@ -3,19 +3,17 @@
 
 namespace cheat::gui
 {
-	class renderer final: public service_shared<renderer, service_mode::async>
+	class renderer final: public service<renderer>
 	{
 	public:
 		~renderer( ) override;
 		renderer( );
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 
 	public:
 		void present(IDirect3DDevice9* d3d_device);
 		void reset(IDirect3DDevice9* d3d_device);
-
-	
 	};
 }

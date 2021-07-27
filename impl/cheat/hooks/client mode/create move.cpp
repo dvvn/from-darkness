@@ -16,29 +16,22 @@ using namespace utl;
 
 create_move::create_move( )
 {
-	this->Wait_for<client::frame_stage_notify>( );
-
 	this->call_original_first_ = true;
 }
 
-void create_move::Load( )
+bool create_move::Do_load()
 {
-#ifndef CHEAT_GUI_TEST
+#ifdef CHEAT_GUI_TEST
+	return 0;
+#else
 	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->client_mode.get(), 24);
 
 	this->hook( );
 	this->enable( );
+	return 1;
 #endif
 }
 
-string create_move::Get_loaded_message( ) const
-{
-#ifndef CHEAT_GUI_TEST
-		return service_base::Get_loaded_message( );
-#else
-	return Get_loaded_message_disabled( );
-#endif
-}
 
 void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 {

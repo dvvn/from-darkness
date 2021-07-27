@@ -15,18 +15,22 @@ using namespace csgo;
 
 estimate_abs_velocity::estimate_abs_velocity( )
 {
-	this->Wait_for<netvars>( );
+
 }
 
-void estimate_abs_velocity::Load( )
+bool estimate_abs_velocity::Do_load( )
 {
-#if !defined(CHEAT_GUI_TEST)
+#if defined(CHEAT_GUI_TEST)
+
+	return 0;
+#else
 
 	const auto offset = _Find_signature("client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).value( ) / 4;
 	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll", &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );
+	return 1;
 #endif
 }
 

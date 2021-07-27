@@ -49,7 +49,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\vtable_counter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\root service.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\services loader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\shared holder.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\tick record.h" />
@@ -178,6 +178,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\helpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\services loader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\abstract page.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.cpp" />
@@ -204,7 +205,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook_utils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\root service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick record.cpp" />

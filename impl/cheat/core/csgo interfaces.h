@@ -175,13 +175,13 @@ namespace cheat::detail
 
 namespace cheat
 {
-	class csgo_interfaces final: public service_shared<csgo_interfaces, service_mode::async>
+	class csgo_interfaces final: public service<csgo_interfaces>
 	{
 		template <typename T, size_t Ptrs = 1>
 		using ifc = detail::csgo_interface<T, Ptrs>;
 
 	protected:
-		void Load( ) override;
+		bool Do_load( ) override;
 
 	public:
 		//utl::filesystem::path csgo_path;

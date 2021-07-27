@@ -15,12 +15,14 @@ using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame( )
 {
-	this->Wait_for<netvars>( );
 }
 
-void should_skip_animation_frame::Load( )
+bool should_skip_animation_frame::Do_load( )
 {
-#ifndef CHEAT_GUI_TEST
+#ifdef CHEAT_GUI_TEST
+
+	return 0;
+#else
 	this->target_func_ = method_info::make_custom(false, []
 	{
 		return _Find_signature("client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02").raw<void>( );
@@ -28,6 +30,8 @@ void should_skip_animation_frame::Load( )
 
 	this->hook( );
 	this->enable( );
+
+	return 1;
 #endif
 }
 
@@ -43,6 +47,13 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 			return client_class->ClassID == ClassId::CCSPlayer;
 		};
 
+		/*constexpr auto is_weapon = [](IClientNetworkable* ent)
+		{
+			const auto client_class = ent->GetClientClass( );
+			const string_view name = client_class->pNetworkName;
+			return name.find("Weapon") != name.npos;
+		};*/
+
 		C_BaseAnimating* ent;
 
 		if (const auto inst = this->Target_instance( ); is_player(inst))
@@ -51,8 +62,22 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 		}
 		else
 		{
-			const auto& owner_handle = inst->m_hOwnerEntity( );
-			if (!owner_handle.IsValid())
+#if 0
+			//unreachable
+
+			CBaseHandle owner_handle;
+
+			if (is_weapon(inst))
+			{
+				auto wpn = (C_BaseCombatWeapon*)inst;
+				owner_handle = wpn->m_hOwner( );
+			}
+			else
+			{
+				owner_handle = inst->m_hOwnerEntity( );
+			}
+
+			if (!owner_handle.IsValid( ))
 				return;
 
 			const auto owner = static_cast<C_CSPlayer*>(owner_handle.Get( ));
@@ -66,6 +91,9 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 				return;
 
 			ent = owner;
+#endif
+
+			return;
 		}
 
 		const auto animate_this_frame = ent->m_bClientSideAnimation( );
