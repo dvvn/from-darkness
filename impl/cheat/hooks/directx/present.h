@@ -5,7 +5,7 @@
 namespace cheat::hooks::directx
 {
 	class present final: public service<present>,
-						 public decltype(detect_hook_holder(&IDirect3DDevice9::Present))
+						 public decltype(_Detect_hook_holder(&IDirect3DDevice9::Present))
 	{
 	public :
 		present( );

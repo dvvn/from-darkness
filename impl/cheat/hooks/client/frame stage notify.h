@@ -7,7 +7,7 @@
 namespace cheat::hooks::client
 {
 	class frame_stage_notify final: public service<frame_stage_notify>,
-									public decltype(detect_hook_holder(&csgo::IBaseClientDLL::FrameStageNotify))
+									public decltype(_Detect_hook_holder(&csgo::IBaseClientDLL::FrameStageNotify))
 	{
 	public :
 		frame_stage_notify( );

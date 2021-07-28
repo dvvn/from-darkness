@@ -12,7 +12,6 @@ using namespace csgo;
 
 do_extra_bone_processing::do_extra_bone_processing( )
 {
-
 }
 
 bool do_extra_bone_processing::Do_load( )
@@ -22,9 +21,8 @@ bool do_extra_bone_processing::Do_load( )
 	return 0;
 #else
 
-
 	const auto offset = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC").add(11).deref(1).value( ) / 4;
-	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_CSPlayer>,"client.dll", &csgo_interfaces::local_player), offset);
+	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_CSPlayer>, "client.dll", &csgo_interfaces::local_player), offset);
 
 	this->hook( );
 	this->enable( );
@@ -33,12 +31,11 @@ bool do_extra_bone_processing::Do_load( )
 #endif
 }
 
-// ReSharper disable CppParameterNeverUsed
-void do_extra_bone_processing::Callback(CStudioHdr* studio_hdr, Vector pos[], Quaternion q[], matrix3x4a_t bone_to_world[], CBoneBitList& bone_computed, CIKContext* ik_context)
+void do_extra_bone_processing::Callback([[maybe_unused]] CStudioHdr* studio_hdr, [[maybe_unused]] Vector pos[],
+										[[maybe_unused]] Quaternion q[], [[maybe_unused]] matrix3x4a_t bone_to_world[],
+										[[maybe_unused]] CBoneBitList& bone_computed, [[maybe_unused]] CIKContext* ik_context)
 {
 	this->return_value_.set_original_called(true);
 
 	//DoProceduralFootPlant also skipped here
 }
-
-// ReSharper restore CppParameterNeverUsed

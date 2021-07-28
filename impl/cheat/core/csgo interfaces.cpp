@@ -1,5 +1,6 @@
 #include "csgo interfaces.h"
 
+#include "console.h"
 #include "helpers.h"
 
 #include "cheat/sdk/IAppSystem.hpp"
@@ -118,10 +119,33 @@ private:
 public:
 	address operator()(const string_view& dll_name, const string_view& interface_name)
 	{
-		auto& entry = Get_entry_(dll_name);
-		const auto& fn = entry.at(interface_name);
+		const auto& entry = Get_entry_(dll_name);
+		//const auto& fn = entry.at(interface_name);
 
-		return fn( );
+		const auto found = entry.find(interface_name);
+		BOOST_ASSERT(found!=entry.end());
+
+#ifdef CHEAT_HAVE_CONSOLE
+		const auto& original_interface_name = found.key( );
+		const auto original_interface_name_end = original_interface_name._Unchecked_end( );
+
+		string msg = "Found interface ";
+		msg += interface_name;
+		if (*original_interface_name_end != '\0')
+		{
+			msg += " (";
+			msg += original_interface_name;
+			msg += original_interface_name_end;
+			msg += ')';
+		}
+
+		msg += " in module ";
+		msg += dll_name;
+		_Log_to_console(msg);
+
+#endif
+
+		return invoke(found.value( ));
 	}
 };
 
@@ -244,6 +268,7 @@ bool csgo_interfaces::Do_load( )
 	vgui_surface = _Get_game_interface("vguimatsurface.dll", "VGUI_Surface");
 	phys_props = _Get_game_interface("vphysics.dll", "VPhysicsSurfaceProps");
 	input_sys = _Get_game_interface("inputsystem.dll", "InputSystemVersion");
+	studio_renderer = _Get_game_interface("studiorender.dll", "VStudioRender");
 
 	client_mode = _Get_vfunc(client, 10).add(5).deref(2);
 

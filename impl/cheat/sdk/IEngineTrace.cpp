@@ -9,13 +9,13 @@ void Ray_t::Init(const Vector& start, const Vector& end)
 
 	m_IsSwept = (m_Delta.LengthSqr( ) != 0);
 
-	m_Extents.Init( );
+	m_Extents={};
 
 	m_pWorldAxisTransform = nullptr;
 	m_IsRay = true;
 
 	// Offset m_Start to be in the center of the box...
-	m_StartOffset.Init( );
+	m_StartOffset={};
 	m_Start = start;
 }
 

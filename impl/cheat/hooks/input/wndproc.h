@@ -6,7 +6,7 @@ namespace cheat::hooks::input
 {
 	class wndproc final: public service<wndproc>,
 						 public gui::objects::empty_page,
-						 public decltype(detect_hook_holder(DefWindowProc))
+						 public decltype(_Detect_hook_holder(DefWindowProc))
 	{
 	public:
 		wndproc( );

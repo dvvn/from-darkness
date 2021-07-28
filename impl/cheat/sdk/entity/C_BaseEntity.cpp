@@ -16,7 +16,7 @@ datamap_t* C_BaseEntity::GetPredictionDescMap( )
 	return hooks::_Call_function(&C_BaseEntity::GetPredictionDescMap, this, 17);
 }
 
-void C_BaseEntity::EstimateAbsVelocity([[maybe_unused]] Vector& vel)
+void C_BaseEntity::EstimateAbsVelocity(Vector&)
 {
 	BOOST_ASSERT("Dont use. Added only for example");
 	(void)this;

@@ -8,7 +8,7 @@
 #include "cheat/sdk/entity/C_BaseEntity.h"
 #include "cheat/sdk/entity/C_CSPlayer.h"
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_NETVARS_RESOLVE_TYPE
 #endif
 #if 0
@@ -642,9 +642,9 @@ bool netvars::Do_load( )
 
 	_Iterate_client_class(data__, interfaces->client->GetAllClasses( ));
 
-	const auto baseent = _Vtable_pointer<C_BaseEntity>("client.dll",
+	const auto baseent = _Vtable_pointer<C_BaseEntity>("client.dll"
 #ifndef CHEAT_NETVARS_UPDATING
-													   &csgo_interfaces::local_player
+													   ,&csgo_interfaces::local_player
 #endif
 													  );
 

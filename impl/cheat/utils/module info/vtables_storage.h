@@ -21,6 +21,8 @@ namespace cheat::utl::detail
 		vtables_storage(address addr = 0u, size_t bytes_count = 0, IMAGE_NT_HEADERS* nt = nullptr, sections_storage* sections = 0);
 
 		void set_sections(sections_storage* sections);
+		void lock( );
+		void unlock( );
 
 	protected:
 		module_info_rw_result Load_from_memory_impl( ) override;
@@ -34,7 +36,7 @@ namespace cheat::utl::detail
 	private:
 		size_t bytes_count__;
 		sections_storage* sections__;
-		utl::shared_ptr<mutex> load_mutex__;
+		utl::shared_ptr<mutex> lock__;
 	};
 
 	//since cache added this is uselles

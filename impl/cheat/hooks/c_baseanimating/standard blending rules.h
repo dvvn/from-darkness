@@ -7,7 +7,7 @@
 namespace cheat::hooks::c_base_animating
 {
 	class standard_blending_rules final: public service<standard_blending_rules>,
-										 public decltype(detect_hook_holder(&csgo::C_BaseAnimating::StandardBlendingRules))
+										 public decltype(_Detect_hook_holder(&csgo::C_BaseAnimating::StandardBlendingRules))
 	{
 	public :
 		standard_blending_rules( );

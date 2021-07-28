@@ -155,7 +155,7 @@ namespace boost
 	using std::swap;
 
 	template <typename ...Args>
-	_NODISCARD constexpr auto bind(Args&&...args)
+	_NODISCARD constexpr decltype(auto) bind(Args&&...args)
 	{
 #define BOOST_BIND_HPP_INCLUDED
 		return std::bind_front(std::forward<Args>(args)...);
@@ -166,6 +166,11 @@ namespace boost
 #define BOOST_CSBL_VECTOR_HPP
 		using std::vector;
 	}
+#ifdef VEQUE_HEADER_GUARD
+#define BOOST_CONTAINER_DEVECTOR_HPP
+	template <typename T, typename Allocator = std::allocator<T>>
+	using devector = veque::veque<T, veque::fast_resize_traits, Allocator>;
+#endif
 }
 
 #include <boost/filesystem.hpp>
@@ -360,7 +365,7 @@ namespace cheat::utl
 	//todo
 #endif
 
-	using veque::veque;
+	using boost::devector;
 
 	using std::set;
 	using std::map;
@@ -371,6 +376,7 @@ namespace cheat::utl
 	using Concurrency::concurrent_unordered_set;*/
 
 	using boost::concurrent::sync_queue;
+	using boost::concurrent::queue_op_status;
 
 	using boost::noncopyable;
 	namespace property_tree = boost::property_tree;
@@ -535,9 +541,9 @@ namespace std
 #endif
 }
 
-//#ifdef NDEBUG//currently release mode used only for netvars/vtables dumping
-//#define CHEAT_NETVARS_UPDATING
-//#endif
+#if defined(NDEBUG) && !defined(CHEAT_HAVE_CONSOLE)//currently release mode used only for netvars/vtables dumping
+#define CHEAT_NETVARS_UPDATING
+#endif
 
 #if 1//defined(_DEBUG) || defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_HAVE_CONSOLE

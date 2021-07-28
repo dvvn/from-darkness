@@ -3,11 +3,11 @@
 
 namespace cheat
 {
-	struct service_state2
+	struct service_state2 final
 	{
-		enum value_type:uint8_t
+		enum value_type :uint8_t
 		{
-			unset=0,
+			unset = 0,
 			loading,
 			loaded,
 			stopped,
@@ -16,6 +16,7 @@ namespace cheat
 
 		bool operator!( ) const;
 		bool done( ) const;
+		bool disabled( ) const;
 
 		CHEAT_ENUM_STRUCT_FILL(service_state2, unset)
 	};
@@ -36,11 +37,11 @@ namespace cheat
 
 	protected:
 		/**
-		 * \brief 
+		 * \brief
 		 * \return true: loaded, false: skipped.
 		 * throw exception if something wrong!
 		 */
-		virtual bool Do_load( ) =0;
+		virtual bool Do_load( ) = 0;
 
 		virtual void On_load( ) { (void)this; }
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS

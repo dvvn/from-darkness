@@ -28,7 +28,7 @@ namespace cheat::csgo
 		float m_lastInterpolationTime = 0;
 	};
 
-	struct m_iTeamNum_t
+	struct m_iTeamNum_t final
 	{
 		enum value_type :int32_t
 		{
@@ -47,7 +47,7 @@ namespace cheat::csgo
 		CHEAT_ENUM_STRUCT_FILL(m_iTeamNum_t, UNKNOWN)
 	};
 
-	struct m_MoveType_t
+	struct m_MoveType_t final
 	{
 		enum value_type :int32_t
 		{
@@ -71,7 +71,7 @@ namespace cheat::csgo
 		CHEAT_ENUM_STRUCT_FILL(m_MoveType_t, MOVETYPE_NONE)
 	};
 
-	struct m_iEFlags_t
+	struct m_iEFlags_t final
 	{
 		enum value_type :int32_t
 		{
@@ -148,7 +148,7 @@ namespace cheat::csgo
 		CHEAT_ENUM_STRUCT_FILL_BITFLAG(m_iEFlags_t)
 	};
 
-	struct m_fEffects_t
+	struct m_fEffects_t final
 	{
 		enum value_type :uint32_t
 		{

@@ -45,7 +45,7 @@ namespace cheat::csgo
 
 	
 constexpr auto MAX_NUM_LODS =8;
-constexpr auto  MAXSTUDIOBONES	=	128	;	// total bones actually used
+constexpr auto  MAXSTUDIOBONES	=	/*128*/256	;	// total bones actually used
 
 enum bone_types{
 		

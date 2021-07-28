@@ -66,7 +66,7 @@ static string _Get_time_str( )
 
 	auto duration = now.time_since_epoch( );
 	using Days = chrono::duration<int, boost::ratio_multiply<chrono::hours::period, boost::ratio<8>
-						  >>; /* UTC: +8:00 */
+		>>; /* UTC: +8:00 */
 
 	const auto days_val = duration_cast<Days>(duration);
 	duration -= days_val;
@@ -97,11 +97,6 @@ console::~console( )
 		FreeConsole( );
 		PostMessage(console_window__, WM_CLOSE, 0U, 0L);
 	}
-}
-
-console::console( ) //: sem__(1)
-{
-	//load_synchronously_ = true;
 }
 
 bool console::Do_load( )
@@ -157,15 +152,6 @@ bool console::Do_load( )
 #endif
 }
 
-void console::Wait_for_write_( ) const
-{
-	//sometimes it still nullptr after init, idk why
-	while (!write__)
-	{
-		this_thread::sleep_for(chrono::milliseconds(10));
-	}
-}
-
 #if 0
 class write_helper
 {
@@ -176,30 +162,30 @@ public:
 	using caller_type = variant<
 		binder<decltype(_Write_char), char>, binder<decltype(_Write_string), string>>;
 
-	write_helper(string&& data): caller__(data.size( ) == 1
-											  ? caller_type(std::in_place_index<0>, bind_front(_Write_char, data[0]))
-											  : caller_type(std::in_place_index<1>, bind_front(_Write_string, move(data))))
+	write_helper(string&& data) : caller__(data.size( ) == 1
+		? caller_type(std::in_place_index<0>, bind_front(_Write_char, data[0]))
+		: caller_type(std::in_place_index<1>, bind_front(_Write_string, move(data))))
 	{
 	}
 
-	write_helper(const string_view& data): caller__(data.size( ) == 1
-														? caller_type(std::in_place_index<0>, bind_front(_Write_char, data[0]))
-														: caller_type(std::in_place_index<1>, std::bind_front(_Write_string, string(data))))
+	write_helper(const string_view& data) : caller__(data.size( ) == 1
+		? caller_type(std::in_place_index<0>, bind_front(_Write_char, data[0]))
+		: caller_type(std::in_place_index<1>, std::bind_front(_Write_string, string(data))))
 	{
 	}
 
 	auto operator()(FILE*& file) const -> void
 	{
-		switch (caller__.index( ))
+		switch(caller__.index( ))
 		{
-			case 0:
-				invoke(get<0>(caller__), file);
-				break;
-			case 1:
-				invoke(get<1>(caller__), file);
-				break;
-			default:
-				BOOST_ASSERT("Unknown index");
+		case 0:
+			invoke(get<0>(caller__), file);
+			break;
+		case 1:
+			invoke(get<1>(caller__), file);
+			break;
+		default:
+			BOOST_ASSERT("Unknown index");
 		}
 	}
 
@@ -215,7 +201,6 @@ void console::write(const string_view& str) const
 	else
 	{
 		BOOST_ASSERT(str.size( ) > 1);
-		Wait_for_write_( );
 		[[maybe_unused]] const auto written = std::fwrite(str.data( ), sizeof(string_view::value_type), str.size( ), write__);
 		BOOST_ASSERT(written == str.size( ));
 	}
@@ -227,7 +212,7 @@ void console::write_time( ) const
 }
 
 #if 0
-class write_line_helper: write_helper
+class write_line_helper : write_helper
 {
 public:
 	write_line_helper(string&& data) : write_helper(data)
@@ -250,6 +235,17 @@ private:
 };
 #endif
 
+static string _Get_text_line(const string_view& str)
+{
+	auto time = _Get_time_str( );
+	string str1;
+	str1.reserve(time.size( ) + str.size( ) + 1);
+	str1 += move(time);
+	str1 += str;
+	str1 += '\n';
+	return str1;
+}
+
 void console::write_line(const string_view& str) const
 {
 	if constexpr (/*!sync*/false)
@@ -260,20 +256,40 @@ void console::write_line(const string_view& str) const
 	}
 	else
 	{
-		auto time = _Get_time_str( );
-		string str1;
-		str1.reserve(time.size( ) + str.size( ) + 1);
-		str1 += (move(time));
-		str1 += (str);
-		str1 += ('\n');
-		write(str1);
+		write(_Get_text_line(str));
 	}
 }
 
 void console::write_char(char c) const
 {
-	Wait_for_write_( );
 	const auto written = std::fputc(c, write__);
 	(void)written;
 	BOOST_ASSERT(written == c);
+}
+
+bool cheat::_Log_to_console(const string_view& str)
+{
+	const auto where = console::get_shared( );
+	if (!where)
+		return false;
+
+	const auto state = where->state( );
+	if (state.disabled( ))
+		return false;
+
+	static auto delayed_messages = sync_queue<string>( );
+
+	if (!state.done( ))
+	{
+		delayed_messages.push(_Get_text_line(str));
+	}
+	else
+	{
+		string str1;
+		while (delayed_messages.try_pull(str1) == queue_op_status::success)
+			where->write(str1);
+		where->write_line(str);
+	}
+
+	return true;
 }

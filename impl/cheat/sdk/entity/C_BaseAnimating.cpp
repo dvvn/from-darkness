@@ -7,9 +7,7 @@ void C_BaseAnimating::UpdateClientSideAnimation( )
 	hooks::_Call_function(&C_BaseAnimating::UpdateClientSideAnimation, this, 223);
 }
 
-// ReSharper disable CppParameterNeverUsed
-
-void C_BaseAnimating::DoExtraBoneProcessing(CStudioHdr* studio_hdr, utl::Vector* pos, Quaternion q[], utl::matrix3x4a_t bone_to_world[], CBoneBitList& bone_computed, CIKContext* ik_context)
+void C_BaseAnimating::DoExtraBoneProcessing(CStudioHdr*, utl::Vector*, Quaternion [], utl::matrix3x4a_t [], CBoneBitList&, CIKContext*)
 {
 	BOOST_ASSERT("Dont use. Added only for example");
 	(void)this;
@@ -22,13 +20,11 @@ bool C_BaseAnimating::ShouldSkipAnimationFrame(/*float current_time*/)
 	return true;
 }
 
-void C_BaseAnimating::StandardBlendingRules(CStudioHdr* hdr, utl::Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
+void C_BaseAnimating::StandardBlendingRules(CStudioHdr*, utl::Vector [], QuaternionAligned [], float, int)
 {
 	BOOST_ASSERT("Dont use. Added only for example");
 	(void)this;
 }
-
-// ReSharper restore CppParameterNeverUsed
 
 CUtlVector<CAnimationLayer>& C_BaseAnimating::GetAnimOverlays( )
 {

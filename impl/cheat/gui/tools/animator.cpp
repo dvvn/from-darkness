@@ -21,7 +21,7 @@ void animator::set(int direction)
 	if (!updating( ))
 	{
 		time__ = time_max__;
-		value__.current = Limit_(-direction);
+		value__.current = Limit_(static_cast<float>(-direction));
 	}
 	dir__ = direction;
 }
@@ -44,12 +44,12 @@ bool animator::update( )
 void animator::finish( )
 {
 	time__ = 0;
-	value__.current = Limit_(dir__);
+	value__.current = Limit_(static_cast<float>(dir__));
 }
 
 bool animator::done( ) const
 {
-	return value__.current == Limit_(dir__);
+	return value__.current == Limit_(static_cast<float>(dir__));
 }
 
 bool animator::done(int direction) const

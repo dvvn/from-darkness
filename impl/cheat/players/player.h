@@ -20,7 +20,7 @@ namespace cheat
 		csgo::m_iTeamNum_t team;
 		bool alive;
 
-		using ticks_storage = utl::veque<detail::tick_record_shared_impl>;
+		using ticks_storage = utl::devector<detail::tick_record_shared_impl>;
 
 		ticks_storage ticks;
 		utl::span<ticks_storage::value_type> ticks_window;

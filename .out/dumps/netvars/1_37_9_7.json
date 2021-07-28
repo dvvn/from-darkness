@@ -1,0 +1,7178 @@
+{
+    "C_TestTraceline": {
+        "m_clrRender": {
+            "offset": "112",
+            "type": "utl::Color"
+        },
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "m_angRotation": {
+            "offset": "300",
+            "type": "utl::QAngle"
+        },
+        "moveparent": {
+            "offset": "328",
+            "type": "int32_t"
+        }
+    },
+    "C_TEWorldDecal": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_nIndex": {
+            "offset": "28",
+            "type": "int32_t"
+        }
+    },
+    "C_TESpriteSpray": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecDirection": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "m_fNoise": {
+            "offset": "48",
+            "type": "float"
+        },
+        "m_nCount": {
+            "offset": "52",
+            "type": "int32_t"
+        },
+        "m_nSpeed": {
+            "offset": "44",
+            "type": "int32_t"
+        }
+    },
+    "C_TESprite": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_fScale": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_nBrightness": {
+            "offset": "36",
+            "type": "int32_t"
+        }
+    },
+    "C_TESparks": {
+        "m_nMagnitude": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_nTrailLength": {
+            "offset": "32",
+            "type": "int32_t"
+        },
+        "m_vecDir": {
+            "offset": "36",
+            "type": "utl::Vector"
+        }
+    },
+    "C_TESmoke": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_fScale": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_nFrameRate": {
+            "offset": "36",
+            "type": "int32_t"
+        }
+    },
+    "C_TEShowLine": {
+        "m_vecEnd": {
+            "offset": "28",
+            "type": "utl::Vector"
+        }
+    },
+    "C_TEProjectedDecal": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_angRotation": {
+            "offset": "28",
+            "type": "utl::QAngle"
+        },
+        "m_flDistance": {
+            "offset": "40",
+            "type": "float"
+        },
+        "m_nIndex": {
+            "offset": "44",
+            "type": "int32_t"
+        }
+    },
+    "C_FEPlayerDecal": {
+        "m_nUniqueID": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_unAccountID": {
+            "offset": "2524",
+            "type": "uint32_t"
+        },
+        "m_unTraceID": {
+            "offset": "2528",
+            "type": "uint32_t"
+        },
+        "m_rtGcTime": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_vecEndPos": {
+            "offset": "2536",
+            "type": "utl::Vector"
+        },
+        "m_vecStart": {
+            "offset": "2548",
+            "type": "utl::Vector"
+        },
+        "m_vecRight": {
+            "offset": "2560",
+            "type": "utl::Vector"
+        },
+        "m_vecNormal": {
+            "offset": "2572",
+            "type": "utl::Vector"
+        },
+        "m_nEntity": {
+            "offset": "2588",
+            "type": "int32_t"
+        },
+        "m_nPlayer": {
+            "offset": "2584",
+            "type": "int32_t"
+        },
+        "m_nHitbox": {
+            "offset": "2592",
+            "type": "int32_t"
+        },
+        "m_nTintID": {
+            "offset": "2596",
+            "type": "int32_t"
+        },
+        "m_flCreationTime": {
+            "offset": "2600",
+            "type": "float"
+        },
+        "m_nVersion": {
+            "offset": "2604",
+            "type": "int32_t"
+        },
+        "m_ubSignature": {
+            "offset": "2605",
+            "type": "utl::array<int32_t, 128>"
+        }
+    },
+    "C_TEPlayerDecal": {
+        "m_vecOrigin": {
+            "offset": "20",
+            "type": "utl::Vector"
+        },
+        "m_vecStart": {
+            "offset": "32",
+            "type": "utl::Vector"
+        },
+        "m_vecRight": {
+            "offset": "44",
+            "type": "utl::Vector"
+        },
+        "m_nEntity": {
+            "offset": "56",
+            "type": "int32_t"
+        },
+        "m_nPlayer": {
+            "offset": "16",
+            "type": "int32_t"
+        },
+        "m_nHitbox": {
+            "offset": "60",
+            "type": "int32_t"
+        }
+    },
+    "C_TEPhysicsProp": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_angRotation": {
+            "offset": "28",
+            "type": "utl::QAngle"
+        },
+        "m_vecVelocity": {
+            "offset": "40",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "52",
+            "type": "int32_t"
+        },
+        "m_nFlags": {
+            "offset": "60",
+            "type": "int32_t"
+        },
+        "m_nSkin": {
+            "offset": "56",
+            "type": "int32_t"
+        },
+        "m_nEffects": {
+            "offset": "64",
+            "type": "int32_t"
+        },
+        "m_clrRender": {
+            "offset": "68",
+            "type": "utl::Color"
+        }
+    },
+    "C_TEParticleSystem": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        }
+    },
+    "C_TEMuzzleFlash": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecAngles": {
+            "offset": "28",
+            "type": "utl::QAngle"
+        },
+        "m_flScale": {
+            "offset": "40",
+            "type": "float"
+        },
+        "m_nType": {
+            "offset": "44",
+            "type": "int32_t"
+        }
+    },
+    "C_TELargeFunnel": {
+        "m_nModelIndex": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_nReversed": {
+            "offset": "32",
+            "type": "int32_t"
+        }
+    },
+    "C_TEKillPlayerAttachments": {
+        "m_nPlayer": {
+            "offset": "16",
+            "type": "int32_t"
+        }
+    },
+    "C_TEImpact": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecNormal": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_iType": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "m_ucFlags": {
+            "offset": "44",
+            "type": "int32_t"
+        }
+    },
+    "C_TEGlowSprite": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_fScale": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_fLife": {
+            "offset": "36",
+            "type": "float"
+        },
+        "m_nBrightness": {
+            "offset": "40",
+            "type": "int32_t"
+        }
+    },
+    "C_TEShatterSurface": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecAngles": {
+            "offset": "28",
+            "type": "utl::QAngle"
+        },
+        "m_vecForce": {
+            "offset": "40",
+            "type": "utl::Vector"
+        },
+        "m_vecForcePos": {
+            "offset": "52",
+            "type": "utl::Vector"
+        },
+        "m_flWidth": {
+            "offset": "64",
+            "type": "float"
+        },
+        "m_flHeight": {
+            "offset": "68",
+            "type": "float"
+        },
+        "m_flShardSize": {
+            "offset": "72",
+            "type": "float"
+        },
+        "m_nSurfaceType": {
+            "offset": "80",
+            "type": "int32_t"
+        },
+        "m_uchFrontColor": {
+            "offset": "84",
+            "type": "utl::Color"
+        },
+        "m_uchBackColor": {
+            "offset": "87",
+            "type": "utl::Color"
+        }
+    },
+    "C_TEFootprintDecal": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecDirection": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_nEntity": {
+            "offset": "52",
+            "type": "int32_t"
+        },
+        "m_nIndex": {
+            "offset": "56",
+            "type": "int32_t"
+        },
+        "m_chMaterialType": {
+            "offset": "60",
+            "type": "uint8_t"
+        }
+    },
+    "C_TEFizz": {
+        "m_nEntity": {
+            "offset": "16",
+            "type": "int32_t"
+        },
+        "m_nModelIndex": {
+            "offset": "20",
+            "type": "int32_t"
+        },
+        "m_nDensity": {
+            "offset": "24",
+            "type": "int32_t"
+        },
+        "m_nCurrent": {
+            "offset": "28",
+            "type": "int32_t"
+        }
+    },
+    "C_TEExplosion": {
+        "m_nModelIndex": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_fScale": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_nFrameRate": {
+            "offset": "36",
+            "type": "int32_t"
+        },
+        "m_nFlags": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "m_vecNormal": {
+            "offset": "44",
+            "type": "utl::Vector"
+        },
+        "m_chMaterialType": {
+            "offset": "56",
+            "type": "uint8_t"
+        },
+        "m_nRadius": {
+            "offset": "60",
+            "type": "int32_t"
+        },
+        "m_nMagnitude": {
+            "offset": "64",
+            "type": "int32_t"
+        }
+    },
+    "C_TEEnergySplash": {
+        "m_vecPos": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecDir": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_bExplosive": {
+            "offset": "40",
+            "type": "bool"
+        }
+    },
+    "C_TEEffectDispatch": {
+        "m_vAngles": {
+            "offset": "52",
+            "type": "utl::QAngle"
+        },
+        "m_vNormal": {
+            "offset": "40",
+            "type": "utl::Vector"
+        },
+        "m_fFlags": {
+            "offset": "64",
+            "type": "int32_t"
+        },
+        "m_flMagnitude": {
+            "offset": "80",
+            "type": "float"
+        },
+        "m_flScale": {
+            "offset": "76",
+            "type": "float"
+        },
+        "m_nAttachmentIndex": {
+            "offset": "88",
+            "type": "int32_t"
+        },
+        "m_nSurfaceProp": {
+            "offset": "92",
+            "type": "int32_t"
+        },
+        "m_iEffectName": {
+            "offset": "116",
+            "type": "int32_t"
+        },
+        "m_nMaterial": {
+            "offset": "96",
+            "type": "int32_t"
+        },
+        "m_nDamageType": {
+            "offset": "100",
+            "type": "int32_t"
+        },
+        "m_nHitBox": {
+            "offset": "104",
+            "type": "int32_t"
+        },
+        "entindex": {
+            "offset": "16",
+            "type": "int32_t"
+        },
+        "m_nOtherEntIndex": {
+            "offset": "108",
+            "type": "int32_t"
+        },
+        "m_nColor": {
+            "offset": "112",
+            "type": "int32_t"
+        },
+        "m_flRadius": {
+            "offset": "84",
+            "type": "float"
+        },
+        "m_bPositionsAreRelativeToEntity": {
+            "offset": "113",
+            "type": "bool"
+        }
+    },
+    "C_TEDynamicLight": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "r": {
+            "offset": "32",
+            "type": "int32_t"
+        },
+        "g": {
+            "offset": "36",
+            "type": "int32_t"
+        },
+        "b": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "exponent": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "m_fRadius": {
+            "offset": "28",
+            "type": "float"
+        },
+        "m_fTime": {
+            "offset": "48",
+            "type": "float"
+        },
+        "m_fDecay": {
+            "offset": "52",
+            "type": "float"
+        }
+    },
+    "C_TEDecal": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecStart": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_nEntity": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "m_nHitbox": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "m_nIndex": {
+            "offset": "48",
+            "type": "int32_t"
+        }
+    },
+    "C_TEClientProjectile": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecVelocity": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "m_nLifeTime": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "m_hOwner": {
+            "offset": "48",
+            "type": "CBaseHandle"
+        }
+    },
+    "C_TEBubbleTrail": {
+        "m_vecMins": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecMaxs": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "m_flWaterZ": {
+            "offset": "40",
+            "type": "float"
+        },
+        "m_nCount": {
+            "offset": "48",
+            "type": "int32_t"
+        },
+        "m_fSpeed": {
+            "offset": "52",
+            "type": "float"
+        }
+    },
+    "C_TEBubbles": {
+        "m_vecMins": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecMaxs": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "m_fHeight": {
+            "offset": "40",
+            "type": "float"
+        },
+        "m_nCount": {
+            "offset": "48",
+            "type": "int32_t"
+        },
+        "m_fSpeed": {
+            "offset": "52",
+            "type": "float"
+        }
+    },
+    "C_TEBSPDecal": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_nEntity": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_nIndex": {
+            "offset": "32",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBreakModel": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_angRotation": {
+            "offset": "28",
+            "type": "utl::QAngle"
+        },
+        "m_vecSize": {
+            "offset": "40",
+            "type": "utl::Vector"
+        },
+        "m_vecVelocity": {
+            "offset": "52",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "68",
+            "type": "int32_t"
+        },
+        "m_nRandomization": {
+            "offset": "64",
+            "type": "int32_t"
+        },
+        "m_nCount": {
+            "offset": "72",
+            "type": "int32_t"
+        },
+        "m_fTime": {
+            "offset": "76",
+            "type": "float"
+        },
+        "m_nFlags": {
+            "offset": "80",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBloodStream": {
+        "m_vecDirection": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "r": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "g": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "b": {
+            "offset": "48",
+            "type": "int32_t"
+        },
+        "a": {
+            "offset": "52",
+            "type": "int32_t"
+        },
+        "m_nAmount": {
+            "offset": "56",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBloodSprite": {
+        "m_vecOrigin": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecDirection": {
+            "offset": "28",
+            "type": "utl::Vector"
+        },
+        "r": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "g": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "b": {
+            "offset": "48",
+            "type": "int32_t"
+        },
+        "a": {
+            "offset": "52",
+            "type": "int32_t"
+        },
+        "m_nSprayModel": {
+            "offset": "60",
+            "type": "int32_t"
+        },
+        "m_nDropModel": {
+            "offset": "56",
+            "type": "int32_t"
+        },
+        "m_nSize": {
+            "offset": "64",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBeamSpline": {
+        "m_nPoints": {
+            "offset": "208",
+            "type": "int32_t"
+        },
+        "m_vecPoints": {
+            "offset": "0",
+            "type": "utl::array<utl::Vector, 16>"
+        }
+    },
+    "C_TEBeamRingPoint": {
+        "m_vecCenter": {
+            "offset": "76",
+            "type": "utl::Vector"
+        },
+        "m_flStartRadius": {
+            "offset": "88",
+            "type": "float"
+        },
+        "m_flEndRadius": {
+            "offset": "92",
+            "type": "float"
+        }
+    },
+    "C_TEBeamRing": {
+        "m_nStartEntity": {
+            "offset": "76",
+            "type": "int32_t"
+        },
+        "m_nEndEntity": {
+            "offset": "80",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBeamPoints": {
+        "m_vecStartPoint": {
+            "offset": "76",
+            "type": "utl::Vector"
+        },
+        "m_vecEndPoint": {
+            "offset": "88",
+            "type": "utl::Vector"
+        }
+    },
+    "C_TEBeamLaser": {
+        "m_nStartEntity": {
+            "offset": "76",
+            "type": "int32_t"
+        },
+        "m_nEndEntity": {
+            "offset": "80",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBeamFollow": {
+        "m_iEntIndex": {
+            "offset": "76",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBeamEnts": {
+        "m_nStartEntity": {
+            "offset": "76",
+            "type": "int32_t"
+        },
+        "m_nEndEntity": {
+            "offset": "80",
+            "type": "int32_t"
+        }
+    },
+    "C_TEBeamEntPoint": {
+        "m_nStartEntity": {
+            "offset": "76",
+            "type": "int32_t"
+        },
+        "m_nEndEntity": {
+            "offset": "80",
+            "type": "int32_t"
+        },
+        "m_vecStartPoint": {
+            "offset": "84",
+            "type": "utl::Vector"
+        },
+        "m_vecEndPoint": {
+            "offset": "96",
+            "type": "utl::Vector"
+        }
+    },
+    "C_TEBaseBeam": {
+        "m_nModelIndex": {
+            "offset": "16",
+            "type": "int32_t"
+        },
+        "m_nHaloIndex": {
+            "offset": "20",
+            "type": "int32_t"
+        },
+        "m_nStartFrame": {
+            "offset": "24",
+            "type": "int32_t"
+        },
+        "m_nFrameRate": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_fLife": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_fWidth": {
+            "offset": "36",
+            "type": "float"
+        },
+        "m_fEndWidth": {
+            "offset": "40",
+            "type": "float"
+        },
+        "m_nFadeLength": {
+            "offset": "44",
+            "type": "int32_t"
+        },
+        "m_fAmplitude": {
+            "offset": "48",
+            "type": "float"
+        },
+        "m_nSpeed": {
+            "offset": "68",
+            "type": "int32_t"
+        },
+        "r": {
+            "offset": "52",
+            "type": "int32_t"
+        },
+        "g": {
+            "offset": "56",
+            "type": "int32_t"
+        },
+        "b": {
+            "offset": "60",
+            "type": "int32_t"
+        },
+        "a": {
+            "offset": "64",
+            "type": "int32_t"
+        },
+        "m_nFlags": {
+            "offset": "72",
+            "type": "int32_t"
+        }
+    },
+    "C_TEMetalSparks": {
+        "m_vecPos": {
+            "offset": "16",
+            "type": "utl::Vector"
+        },
+        "m_vecDir": {
+            "offset": "28",
+            "type": "utl::Vector"
+        }
+    },
+    "C_SteamJet": {
+        "m_SpreadSpeed": {
+            "offset": "2756",
+            "type": "float"
+        },
+        "m_Speed": {
+            "offset": "2760",
+            "type": "float"
+        },
+        "m_StartSize": {
+            "offset": "2764",
+            "type": "float"
+        },
+        "m_EndSize": {
+            "offset": "2768",
+            "type": "float"
+        },
+        "m_Rate": {
+            "offset": "2772",
+            "type": "float"
+        },
+        "m_JetLength": {
+            "offset": "2776",
+            "type": "float"
+        },
+        "m_bEmit": {
+            "offset": "2780",
+            "type": "bool"
+        },
+        "m_bFaceLeft": {
+            "offset": "2788",
+            "type": "bool"
+        },
+        "m_nType": {
+            "offset": "2784",
+            "type": "int32_t"
+        },
+        "m_spawnflags": {
+            "offset": "2792",
+            "type": "int32_t"
+        },
+        "m_flRollSpeed": {
+            "offset": "2796",
+            "type": "float"
+        }
+    },
+    "C_SmokeStack": {
+        "m_SpreadSpeed": {
+            "offset": "2836",
+            "type": "float"
+        },
+        "m_Speed": {
+            "offset": "2840",
+            "type": "float"
+        },
+        "m_StartSize": {
+            "offset": "2844",
+            "type": "float"
+        },
+        "m_EndSize": {
+            "offset": "2848",
+            "type": "float"
+        },
+        "m_Rate": {
+            "offset": "2852",
+            "type": "float"
+        },
+        "m_JetLength": {
+            "offset": "2856",
+            "type": "float"
+        },
+        "m_bEmit": {
+            "offset": "2860",
+            "type": "bool"
+        },
+        "m_flBaseSpread": {
+            "offset": "2864",
+            "type": "float"
+        },
+        "m_flTwist": {
+            "offset": "2948",
+            "type": "float"
+        },
+        "m_flRollSpeed": {
+            "offset": "3008",
+            "type": "float"
+        },
+        "m_iMaterialModel": {
+            "offset": "2952",
+            "type": "int32_t"
+        },
+        "m_vWind": {
+            "offset": "2936",
+            "type": "utl::Vector"
+        }
+    },
+    "DustTrail": {
+        "m_SpawnRate": {
+            "offset": "2756",
+            "type": "float"
+        },
+        "m_Color": {
+            "offset": "2760",
+            "type": "utl::Vector"
+        },
+        "m_ParticleLifetime": {
+            "offset": "2776",
+            "type": "float"
+        },
+        "m_StopEmitTime": {
+            "offset": "2784",
+            "type": "float"
+        },
+        "m_MinSpeed": {
+            "offset": "2788",
+            "type": "float"
+        },
+        "m_MaxSpeed": {
+            "offset": "2792",
+            "type": "float"
+        },
+        "m_MinDirectedSpeed": {
+            "offset": "2796",
+            "type": "float"
+        },
+        "m_MaxDirectedSpeed": {
+            "offset": "2800",
+            "type": "float"
+        },
+        "m_StartSize": {
+            "offset": "2804",
+            "type": "float"
+        },
+        "m_EndSize": {
+            "offset": "2808",
+            "type": "float"
+        },
+        "m_SpawnRadius": {
+            "offset": "2812",
+            "type": "float"
+        },
+        "m_bEmit": {
+            "offset": "2828",
+            "type": "bool"
+        },
+        "m_Opacity": {
+            "offset": "2772",
+            "type": "float"
+        }
+    },
+    "C_FireTrail": {
+        "m_nAttachment": {
+            "offset": "2756",
+            "type": "int32_t"
+        },
+        "m_flLifetime": {
+            "offset": "2760",
+            "type": "float"
+        }
+    },
+    "SporeTrail": {
+        "m_flSpawnRate": {
+            "offset": "2764",
+            "type": "float"
+        },
+        "m_vecEndColor": {
+            "offset": "2752",
+            "type": "utl::Vector"
+        },
+        "m_flParticleLifetime": {
+            "offset": "2768",
+            "type": "float"
+        },
+        "m_flStartSize": {
+            "offset": "2772",
+            "type": "float"
+        },
+        "m_flEndSize": {
+            "offset": "2776",
+            "type": "float"
+        },
+        "m_flSpawnRadius": {
+            "offset": "2780",
+            "type": "float"
+        },
+        "m_bEmit": {
+            "offset": "2796",
+            "type": "bool"
+        }
+    },
+    "SporeExplosion": {
+        "m_flSpawnRate": {
+            "offset": "2756",
+            "type": "float"
+        },
+        "m_flParticleLifetime": {
+            "offset": "2760",
+            "type": "float"
+        },
+        "m_flStartSize": {
+            "offset": "2764",
+            "type": "float"
+        },
+        "m_flEndSize": {
+            "offset": "2768",
+            "type": "float"
+        },
+        "m_flSpawnRadius": {
+            "offset": "2772",
+            "type": "float"
+        },
+        "m_bEmit": {
+            "offset": "2780",
+            "type": "bool"
+        },
+        "m_bDontRemove": {
+            "offset": "2781",
+            "type": "bool"
+        }
+    },
+    "RocketTrail": {
+        "m_SpawnRate": {
+            "offset": "2756",
+            "type": "float"
+        },
+        "m_StartColor": {
+            "offset": "2760",
+            "type": "utl::Vector"
+        },
+        "m_EndColor": {
+            "offset": "2772",
+            "type": "utl::Vector"
+        },
+        "m_ParticleLifetime": {
+            "offset": "2788",
+            "type": "float"
+        },
+        "m_StopEmitTime": {
+            "offset": "2792",
+            "type": "float"
+        },
+        "m_MinSpeed": {
+            "offset": "2796",
+            "type": "float"
+        },
+        "m_MaxSpeed": {
+            "offset": "2800",
+            "type": "float"
+        },
+        "m_StartSize": {
+            "offset": "2804",
+            "type": "float"
+        },
+        "m_EndSize": {
+            "offset": "2808",
+            "type": "float"
+        },
+        "m_SpawnRadius": {
+            "offset": "2812",
+            "type": "float"
+        },
+        "m_bEmit": {
+            "offset": "2828",
+            "type": "bool"
+        },
+        "m_nAttachment": {
+            "offset": "2832",
+            "type": "int32_t"
+        },
+        "m_Opacity": {
+            "offset": "2784",
+            "type": "float"
+        },
+        "m_bDamaged": {
+            "offset": "2829",
+            "type": "bool"
+        },
+        "m_flFlareScale": {
+            "offset": "2848",
+            "type": "float"
+        }
+    },
+    "SmokeTrail": {
+        "m_SpawnRate": {
+            "offset": "2756",
+            "type": "float"
+        },
+        "m_StartColor": {
+            "offset": "2760",
+            "type": "utl::Vector"
+        },
+        "m_EndColor": {
+            "offset": "2772",
+            "type": "utl::Vector"
+        },
+        "m_ParticleLifetime": {
+            "offset": "2788",
+            "type": "float"
+        },
+        "m_StopEmitTime": {
+            "offset": "2792",
+            "type": "float"
+        },
+        "m_MinSpeed": {
+            "offset": "2796",
+            "type": "float"
+        },
+        "m_MaxSpeed": {
+            "offset": "2800",
+            "type": "float"
+        },
+        "m_MinDirectedSpeed": {
+            "offset": "2804",
+            "type": "float"
+        },
+        "m_MaxDirectedSpeed": {
+            "offset": "2808",
+            "type": "float"
+        },
+        "m_StartSize": {
+            "offset": "2812",
+            "type": "float"
+        },
+        "m_EndSize": {
+            "offset": "2816",
+            "type": "float"
+        },
+        "m_SpawnRadius": {
+            "offset": "2820",
+            "type": "float"
+        },
+        "m_bEmit": {
+            "offset": "2836",
+            "type": "bool"
+        },
+        "m_nAttachment": {
+            "offset": "2840",
+            "type": "int32_t"
+        },
+        "m_Opacity": {
+            "offset": "2784",
+            "type": "float"
+        }
+    },
+    "C_PropVehicleDriveable": {
+        "m_hPlayer": {
+            "offset": "10628",
+            "type": "CBaseHandle"
+        },
+        "m_nSpeed": {
+            "offset": "10632",
+            "type": "int32_t"
+        },
+        "m_nRPM": {
+            "offset": "10636",
+            "type": "int32_t"
+        },
+        "m_flThrottle": {
+            "offset": "10640",
+            "type": "float"
+        },
+        "m_nBoostTimeLeft": {
+            "offset": "10644",
+            "type": "int32_t"
+        },
+        "m_nHasBoost": {
+            "offset": "10648",
+            "type": "int32_t"
+        },
+        "m_nScannerDisabledWeapons": {
+            "offset": "10652",
+            "type": "int32_t"
+        },
+        "m_nScannerDisabledVehicle": {
+            "offset": "10656",
+            "type": "int32_t"
+        },
+        "m_bEnterAnimOn": {
+            "offset": "10688",
+            "type": "bool"
+        },
+        "m_bExitAnimOn": {
+            "offset": "10689",
+            "type": "bool"
+        },
+        "m_bUnableToFire": {
+            "offset": "10765",
+            "type": "bool"
+        },
+        "m_vecEyeExitEndpoint": {
+            "offset": "10752",
+            "type": "utl::Vector"
+        },
+        "m_bHasGun": {
+            "offset": "10764",
+            "type": "bool"
+        },
+        "m_vecGunCrosshair": {
+            "offset": "10696",
+            "type": "utl::Vector"
+        }
+    },
+    "ParticleSmokeGrenade": {
+        "m_flSpawnTime": {
+            "offset": "2772",
+            "type": "float"
+        },
+        "m_FadeStartTime": {
+            "offset": "2776",
+            "type": "float"
+        },
+        "m_FadeEndTime": {
+            "offset": "2780",
+            "type": "float"
+        },
+        "m_MinColor": {
+            "offset": "2788",
+            "type": "utl::Vector"
+        },
+        "m_MaxColor": {
+            "offset": "2800",
+            "type": "utl::Vector"
+        },
+        "m_CurrentStage": {
+            "offset": "2756",
+            "type": "int32_t"
+        }
+    },
+    "C_ParticleFire": {
+        "m_vOrigin": {
+            "offset": "2764",
+            "type": "utl::Vector"
+        },
+        "m_vDirection": {
+            "offset": "2776",
+            "type": "utl::Vector"
+        }
+    },
+    "C_TEGaussExplosion": {
+        "m_nType": {
+            "offset": "28",
+            "type": "int32_t"
+        },
+        "m_vecDirection": {
+            "offset": "32",
+            "type": "utl::Vector"
+        }
+    },
+    "C_EnvQuadraticBeam": {
+        "m_targetPosition": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_controlPosition": {
+            "offset": "2532",
+            "type": "utl::Vector"
+        },
+        "m_scrollRate": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_flWidth": {
+            "offset": "2548",
+            "type": "float"
+        }
+    },
+    "C_Embers": {
+        "m_nDensity": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_nLifetime": {
+            "offset": "2524",
+            "type": "int32_t"
+        },
+        "m_nSpeed": {
+            "offset": "2528",
+            "type": "int32_t"
+        },
+        "m_bEmit": {
+            "offset": "2532",
+            "type": "bool"
+        }
+    },
+    "C_EnvWind": {
+        "m_iMinWind": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_iMaxWind": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_iMinGust": {
+            "offset": "2544",
+            "type": "int32_t"
+        },
+        "m_iMaxGust": {
+            "offset": "2548",
+            "type": "int32_t"
+        },
+        "m_flMinGustDelay": {
+            "offset": "2552",
+            "type": "float"
+        },
+        "m_flMaxGustDelay": {
+            "offset": "2556",
+            "type": "float"
+        },
+        "m_iGustDirChange": {
+            "offset": "2564",
+            "type": "int32_t"
+        },
+        "m_iWindSeed": {
+            "offset": "2528",
+            "type": "int32_t"
+        },
+        "m_iInitialWindDir": {
+            "offset": "2628",
+            "type": "int32_t"
+        },
+        "m_flInitialWindSpeed": {
+            "offset": "2632",
+            "type": "float"
+        },
+        "m_flStartTime": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_flGustDuration": {
+            "offset": "2560",
+            "type": "float"
+        }
+    },
+    "C_Precipitation": {
+        "m_nPrecipType": {
+            "offset": "2560",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseAttributableItem": {
+        "m_hOuter": {
+            "offset": "11676",
+            "type": "CBaseHandle"
+        },
+        "m_ProviderType": {
+            "offset": "11684",
+            "type": "int32_t"
+        },
+        "m_iReapplyProvisionParity": {
+            "offset": "11672",
+            "type": "int32_t"
+        },
+        "m_iItemDefinitionIndex": {
+            "offset": "12202",
+            "type": "int32_t"
+        },
+        "m_iEntityLevel": {
+            "offset": "12208",
+            "type": "int32_t"
+        },
+        "m_iItemIDHigh": {
+            "offset": "12224",
+            "type": "int32_t"
+        },
+        "m_iItemIDLow": {
+            "offset": "12228",
+            "type": "int32_t"
+        },
+        "m_iAccountID": {
+            "offset": "12232",
+            "type": "int32_t"
+        },
+        "m_iEntityQuality": {
+            "offset": "12204",
+            "type": "int32_t"
+        },
+        "m_bInitialized": {
+            "offset": "12244",
+            "type": "bool"
+        },
+        "m_szCustomName": {
+            "offset": "12348",
+            "type": "char*"
+        },
+        "m_Attributes": {
+            "offset": "12320",
+            "type": "utl::array<_ST_m_Attributes_32, 32>"
+        },
+        "m_OriginalOwnerXuidLow": {
+            "offset": "12736",
+            "type": "int32_t"
+        },
+        "m_OriginalOwnerXuidHigh": {
+            "offset": "12740",
+            "type": "int32_t"
+        },
+        "m_nFallbackPaintKit": {
+            "offset": "12744",
+            "type": "int32_t"
+        },
+        "m_nFallbackSeed": {
+            "offset": "12748",
+            "type": "int32_t"
+        },
+        "m_flFallbackWear": {
+            "offset": "12752",
+            "type": "float"
+        },
+        "m_nFallbackStatTrak": {
+            "offset": "12756",
+            "type": "int32_t"
+        }
+    },
+    "_ST_m_Attributes_32": {
+        "m_iAttributeDefinitionIndex": {
+            "offset": "4",
+            "type": "int32_t"
+        },
+        "m_iRawValue32": {
+            "offset": "8",
+            "type": "int32_t"
+        },
+        "m_flValue": {
+            "offset": "8",
+            "type": "float"
+        },
+        "m_iRawInitialValue32": {
+            "offset": "12",
+            "type": "int32_t"
+        },
+        "m_nRefundableCurrency": {
+            "offset": "16",
+            "type": "int32_t"
+        },
+        "m_bSetBonus": {
+            "offset": "20",
+            "type": "bool"
+        }
+    },
+    "C_EconEntity": {
+        "m_hOuter": {
+            "offset": "11676",
+            "type": "CBaseHandle"
+        },
+        "m_ProviderType": {
+            "offset": "11684",
+            "type": "int32_t"
+        },
+        "m_iReapplyProvisionParity": {
+            "offset": "11672",
+            "type": "int32_t"
+        },
+        "m_iItemDefinitionIndex": {
+            "offset": "12202",
+            "type": "int32_t"
+        },
+        "m_iEntityLevel": {
+            "offset": "12208",
+            "type": "int32_t"
+        },
+        "m_iItemIDHigh": {
+            "offset": "12224",
+            "type": "int32_t"
+        },
+        "m_iItemIDLow": {
+            "offset": "12228",
+            "type": "int32_t"
+        },
+        "m_iAccountID": {
+            "offset": "12232",
+            "type": "int32_t"
+        },
+        "m_iEntityQuality": {
+            "offset": "12204",
+            "type": "int32_t"
+        },
+        "m_bInitialized": {
+            "offset": "12244",
+            "type": "bool"
+        },
+        "m_szCustomName": {
+            "offset": "12348",
+            "type": "char*"
+        },
+        "m_OriginalOwnerXuidLow": {
+            "offset": "12736",
+            "type": "int32_t"
+        },
+        "m_OriginalOwnerXuidHigh": {
+            "offset": "12740",
+            "type": "int32_t"
+        },
+        "m_nFallbackPaintKit": {
+            "offset": "12744",
+            "type": "int32_t"
+        },
+        "m_nFallbackSeed": {
+            "offset": "12748",
+            "type": "int32_t"
+        },
+        "m_flFallbackWear": {
+            "offset": "12752",
+            "type": "float"
+        },
+        "m_nFallbackStatTrak": {
+            "offset": "12756",
+            "type": "int32_t"
+        }
+    },
+    "C_WeaponXM1014": {
+        "m_reloadState": {
+            "offset": "13268",
+            "type": "int32_t"
+        }
+    },
+    "C_WeaponTaser": {
+        "m_fFireTime": {
+            "offset": "13296",
+            "type": "float"
+        }
+    },
+    "C_Tablet": {
+        "m_flUpgradeExpirationTime": {
+            "offset": "0",
+            "type": "utl::array<float, 4>"
+        },
+        "m_vecLocalHexFlags": {
+            "offset": "0",
+            "type": "utl::array<int32_t, 42>"
+        },
+        "m_nContractKillGridIndex": {
+            "offset": "13456",
+            "type": "int32_t"
+        },
+        "m_nContractKillGridHighResIndex": {
+            "offset": "13460",
+            "type": "int32_t"
+        },
+        "m_bTabletReceptionIsBlocked": {
+            "offset": "13464",
+            "type": "bool"
+        },
+        "m_flScanProgress": {
+            "offset": "13468",
+            "type": "float"
+        },
+        "m_flBootTime": {
+            "offset": "13472",
+            "type": "float"
+        },
+        "m_flShowMapTime": {
+            "offset": "13476",
+            "type": "float"
+        },
+        "m_vecNotificationIds": {
+            "offset": "0",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_vecNotificationTimestamps": {
+            "offset": "0",
+            "type": "utl::array<float, 8>"
+        },
+        "m_vecPlayerPositionHistory": {
+            "offset": "0",
+            "type": "utl::array<utl::Vector, 24>"
+        },
+        "m_nLastPurchaseIndex": {
+            "offset": "13556",
+            "type": "int32_t"
+        },
+        "m_vecNearestMetalCratePos": {
+            "offset": "13480",
+            "type": "utl::Vector"
+        }
+    },
+    "C_WeaponSawedoff": {
+        "m_reloadState": {
+            "offset": "13268",
+            "type": "int32_t"
+        }
+    },
+    "C_WeaponNOVA": {
+        "m_reloadState": {
+            "offset": "13268",
+            "type": "int32_t"
+        }
+    },
+    "C_Melee": {
+        "m_flThrowAt": {
+            "offset": "13264",
+            "type": "float"
+        }
+    },
+    "C_WeaponM3": {
+        "m_reloadState": {
+            "offset": "13268",
+            "type": "int32_t"
+        }
+    },
+    "C_Fists": {
+        "m_bPlayingUninterruptableAct": {
+            "offset": "13264",
+            "type": "bool"
+        }
+    },
+    "C_WeaponCSBaseGun": {
+        "m_zoomLevel": {
+            "offset": "13264",
+            "type": "int32_t"
+        },
+        "m_iBurstShotsRemaining": {
+            "offset": "13268",
+            "type": "int32_t"
+        }
+    },
+    "C_WeaponCSBase": {
+        "m_weaponMode": {
+            "offset": "13080",
+            "type": "int32_t"
+        },
+        "m_fAccuracyPenalty": {
+            "offset": "13104",
+            "type": "float"
+        },
+        "m_fLastShotTime": {
+            "offset": "13224",
+            "type": "float"
+        },
+        "m_iRecoilIndex": {
+            "offset": "13120",
+            "type": "int32_t"
+        },
+        "m_flRecoilIndex": {
+            "offset": "13124",
+            "type": "float"
+        },
+        "m_hPrevOwner": {
+            "offset": "13188",
+            "type": "CBaseHandle"
+        },
+        "m_bBurstMode": {
+            "offset": "13128",
+            "type": "bool"
+        },
+        "m_flPostponeFireReadyTime": {
+            "offset": "13132",
+            "type": "float"
+        },
+        "m_bReloadVisuallyComplete": {
+            "offset": "13136",
+            "type": "bool"
+        },
+        "m_bSilencerOn": {
+            "offset": "13137",
+            "type": "bool"
+        },
+        "m_flDoneSwitchingSilencer": {
+            "offset": "13140",
+            "type": "float"
+        },
+        "m_iOriginalTeamNumber": {
+            "offset": "13148",
+            "type": "int32_t"
+        },
+        "m_iIronSightMode": {
+            "offset": "13252",
+            "type": "int32_t"
+        }
+    },
+    "C_C4": {
+        "m_bStartedArming": {
+            "offset": "13296",
+            "type": "bool"
+        },
+        "m_bBombPlacedAnimation": {
+            "offset": "13304",
+            "type": "bool"
+        },
+        "m_fArmedTime": {
+            "offset": "13300",
+            "type": "float"
+        },
+        "m_bShowC4LED": {
+            "offset": "13305",
+            "type": "bool"
+        },
+        "m_bIsPlantingViaUse": {
+            "offset": "13306",
+            "type": "bool"
+        }
+    },
+    "C_BumpMineProjectile": {
+        "m_nParentBoneIndex": {
+            "offset": "10708",
+            "type": "int32_t"
+        },
+        "m_vecParentBonePos": {
+            "offset": "10712",
+            "type": "utl::Vector"
+        },
+        "m_bArmed": {
+            "offset": "10724",
+            "type": "bool"
+        }
+    },
+    "C_BreachChargeProjectile": {
+        "m_bShouldExplode": {
+            "offset": "10704",
+            "type": "bool"
+        },
+        "m_weaponThatThrewMe": {
+            "offset": "10708",
+            "type": "int32_t"
+        },
+        "m_nParentBoneIndex": {
+            "offset": "10712",
+            "type": "int32_t"
+        },
+        "m_vecParentBonePos": {
+            "offset": "10716",
+            "type": "utl::Vector"
+        }
+    },
+    "C_WeaponBaseItem": {
+        "m_bRedraw": {
+            "offset": "13276",
+            "type": "bool"
+        }
+    },
+    "C_BaseCSGrenade": {
+        "m_bRedraw": {
+            "offset": "13264",
+            "type": "bool"
+        },
+        "m_bIsHeldByPlayer": {
+            "offset": "13265",
+            "type": "bool"
+        },
+        "m_bPinPulled": {
+            "offset": "13266",
+            "type": "bool"
+        },
+        "m_fThrowTime": {
+            "offset": "13268",
+            "type": "float"
+        },
+        "m_bLoopingSoundPlaying": {
+            "offset": "13272",
+            "type": "bool"
+        },
+        "m_flThrowStrength": {
+            "offset": "13276",
+            "type": "float"
+        }
+    },
+    "C_SmokeGrenadeProjectile": {
+        "m_bDidSmokeEffect": {
+            "offset": "10772",
+            "type": "bool"
+        },
+        "m_nSmokeEffectTickBegin": {
+            "offset": "10768",
+            "type": "int32_t"
+        }
+    },
+    "C_MolotovProjectile": {
+        "m_bIsIncGrenade": {
+            "offset": "10768",
+            "type": "bool"
+        }
+    },
+    "C_ItemDogtags": {
+        "m_OwningPlayer": {
+            "offset": "13376",
+            "type": "int32_t"
+        },
+        "m_KillingPlayer": {
+            "offset": "13380",
+            "type": "int32_t"
+        }
+    },
+    "C_PhysPropLootCrate": {
+        "m_bRenderInPSPM": {
+            "offset": "10740",
+            "type": "bool"
+        },
+        "m_bRenderInTablet": {
+            "offset": "10741",
+            "type": "bool"
+        },
+        "m_iHealth": {
+            "offset": "256",
+            "type": "int32_t"
+        },
+        "m_iMaxHealth": {
+            "offset": "10744",
+            "type": "int32_t"
+        }
+    },
+    "C_EnvGasCanister": {
+        "m_flFlightSpeed": {
+            "offset": "10740",
+            "type": "float"
+        },
+        "m_flLaunchTime": {
+            "offset": "10744",
+            "type": "float"
+        },
+        "m_vecParabolaDirection": {
+            "offset": "10764",
+            "type": "utl::Vector"
+        },
+        "m_flFlightTime": {
+            "offset": "10736",
+            "type": "float"
+        },
+        "m_flWorldEnterTime": {
+            "offset": "10776",
+            "type": "float"
+        },
+        "m_flInitialZSpeed": {
+            "offset": "10748",
+            "type": "float"
+        },
+        "m_flZAcceleration": {
+            "offset": "10752",
+            "type": "float"
+        },
+        "m_flHorizSpeed": {
+            "offset": "10756",
+            "type": "float"
+        },
+        "m_bLaunchedFromWithinWorld": {
+            "offset": "10760",
+            "type": "bool"
+        },
+        "m_vecImpactPosition": {
+            "offset": "10676",
+            "type": "utl::Vector"
+        },
+        "m_vecStartPosition": {
+            "offset": "10688",
+            "type": "utl::Vector"
+        },
+        "m_vecEnterWorldPosition": {
+            "offset": "10700",
+            "type": "utl::Vector"
+        },
+        "m_vecDirection": {
+            "offset": "10712",
+            "type": "utl::Vector"
+        },
+        "m_vecStartAngles": {
+            "offset": "10724",
+            "type": "utl::QAngle"
+        },
+        "m_vecSkyboxOrigin": {
+            "offset": "10780",
+            "type": "utl::Vector"
+        },
+        "m_flSkyboxScale": {
+            "offset": "10792",
+            "type": "float"
+        },
+        "m_bInSkybox": {
+            "offset": "10796",
+            "type": "bool"
+        },
+        "m_bDoImpactEffects": {
+            "offset": "10797",
+            "type": "bool"
+        },
+        "m_bLanded": {
+            "offset": "10624",
+            "type": "bool"
+        },
+        "m_hSkyboxCopy": {
+            "offset": "10664",
+            "type": "CBaseHandle"
+        },
+        "m_nMyZoneIndex": {
+            "offset": "10800",
+            "type": "int32_t"
+        },
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector2D"
+        }
+    },
+    "C_Dronegun": {
+        "m_vecAttentionTarget": {
+            "offset": "10624",
+            "type": "utl::Vector"
+        },
+        "m_vecTargetOffset": {
+            "offset": "10636",
+            "type": "utl::Vector"
+        },
+        "m_iHealth": {
+            "offset": "256",
+            "type": "int32_t"
+        },
+        "m_bHasTarget": {
+            "offset": "10648",
+            "type": "bool"
+        }
+    },
+    "C_ParadropChopper": {
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector2D"
+        },
+        "m_hCallingPlayer": {
+            "offset": "10640",
+            "type": "CBaseHandle"
+        }
+    },
+    "C_SurvivalSpawnChopper": {
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector2D"
+        }
+    },
+    "C_BRC4Target": {
+        "m_bBrokenOpen": {
+            "offset": "10628",
+            "type": "bool"
+        },
+        "m_flRadius": {
+            "offset": "10632",
+            "type": "float"
+        }
+    },
+    "C_InfoMapRegion": {
+        "m_flRadius": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_szLocToken": {
+            "offset": "2524",
+            "type": "char*"
+        }
+    },
+    "C_Inferno": {
+        "m_fireXDelta": {
+            "offset": "2532",
+            "type": "utl::array<int32_t, 100>"
+        },
+        "m_fireYDelta": {
+            "offset": "2932",
+            "type": "utl::array<int32_t, 100>"
+        },
+        "m_fireZDelta": {
+            "offset": "3332",
+            "type": "utl::array<int32_t, 100>"
+        },
+        "m_bFireIsBurning": {
+            "offset": "3732",
+            "type": "utl::array<int32_t, 100>"
+        },
+        "m_nFireEffectTickBegin": {
+            "offset": "5044",
+            "type": "int32_t"
+        },
+        "m_fireCount": {
+            "offset": "5032",
+            "type": "int32_t"
+        }
+    },
+    "C_Chicken": {
+        "m_jumpedThisFrame": {
+            "offset": "10728",
+            "type": "int32_t"
+        },
+        "m_leader": {
+            "offset": "10732",
+            "type": "int32_t"
+        }
+    },
+    "C_Drone": {
+        "m_hMoveToThisEntity": {
+            "offset": "10712",
+            "type": "CBaseHandle"
+        },
+        "m_hDeliveryCargo": {
+            "offset": "10716",
+            "type": "CBaseHandle"
+        },
+        "m_bPilotTakeoverAllowed": {
+            "offset": "10720",
+            "type": "bool"
+        },
+        "m_hPotentialCargo": {
+            "offset": "10724",
+            "type": "CBaseHandle"
+        },
+        "m_hCurrentPilot": {
+            "offset": "10728",
+            "type": "CBaseHandle"
+        },
+        "m_vecTagPositions": {
+            "offset": "0",
+            "type": "utl::array<utl::Vector, 24>"
+        },
+        "m_vecTagIncrements": {
+            "offset": "0",
+            "type": "utl::array<int32_t, 24>"
+        }
+    },
+    "C_FootstepControl": {
+        "m_source": {
+            "offset": "2576",
+            "type": "char*"
+        },
+        "m_destination": {
+            "offset": "2592",
+            "type": "char*"
+        }
+    },
+    "C_CSGameRulesProxy": {
+        "m_bFreezePeriod": {
+            "offset": "32",
+            "type": "bool"
+        },
+        "m_bMatchWaitingForResume": {
+            "offset": "65",
+            "type": "bool"
+        },
+        "m_bWarmupPeriod": {
+            "offset": "33",
+            "type": "bool"
+        },
+        "m_fWarmupPeriodEnd": {
+            "offset": "36",
+            "type": "float"
+        },
+        "m_fWarmupPeriodStart": {
+            "offset": "40",
+            "type": "float"
+        },
+        "m_bTerroristTimeOutActive": {
+            "offset": "44",
+            "type": "bool"
+        },
+        "m_bCTTimeOutActive": {
+            "offset": "45",
+            "type": "bool"
+        },
+        "m_flTerroristTimeOutRemaining": {
+            "offset": "48",
+            "type": "float"
+        },
+        "m_flCTTimeOutRemaining": {
+            "offset": "52",
+            "type": "float"
+        },
+        "m_nTerroristTimeOuts": {
+            "offset": "56",
+            "type": "int32_t"
+        },
+        "m_nCTTimeOuts": {
+            "offset": "60",
+            "type": "int32_t"
+        },
+        "m_bTechnicalTimeOut": {
+            "offset": "64",
+            "type": "bool"
+        },
+        "m_iRoundTime": {
+            "offset": "68",
+            "type": "int32_t"
+        },
+        "m_gamePhase": {
+            "offset": "96",
+            "type": "int32_t"
+        },
+        "m_totalRoundsPlayed": {
+            "offset": "100",
+            "type": "int32_t"
+        },
+        "m_nOvertimePlaying": {
+            "offset": "104",
+            "type": "int32_t"
+        },
+        "m_timeUntilNextPhaseStarts": {
+            "offset": "92",
+            "type": "float"
+        },
+        "m_flCMMItemDropRevealStartTime": {
+            "offset": "2168",
+            "type": "float"
+        },
+        "m_flCMMItemDropRevealEndTime": {
+            "offset": "2172",
+            "type": "float"
+        },
+        "m_fRoundStartTime": {
+            "offset": "76",
+            "type": "float"
+        },
+        "m_bGameRestart": {
+            "offset": "84",
+            "type": "bool"
+        },
+        "m_flRestartRoundTime": {
+            "offset": "80",
+            "type": "float"
+        },
+        "m_flGameStartTime": {
+            "offset": "88",
+            "type": "float"
+        },
+        "m_iHostagesRemaining": {
+            "offset": "108",
+            "type": "int32_t"
+        },
+        "m_bAnyHostageReached": {
+            "offset": "112",
+            "type": "bool"
+        },
+        "m_bMapHasBombTarget": {
+            "offset": "113",
+            "type": "bool"
+        },
+        "m_bMapHasRescueZone": {
+            "offset": "114",
+            "type": "bool"
+        },
+        "m_bMapHasBuyZone": {
+            "offset": "115",
+            "type": "bool"
+        },
+        "m_bIsQueuedMatchmaking": {
+            "offset": "116",
+            "type": "bool"
+        },
+        "m_nQueuedMatchmakingMode": {
+            "offset": "120",
+            "type": "int32_t"
+        },
+        "m_bIsValveDS": {
+            "offset": "124",
+            "type": "bool"
+        },
+        "m_bIsQuestEligible": {
+            "offset": "2177",
+            "type": "bool"
+        },
+        "m_bLogoMap": {
+            "offset": "125",
+            "type": "bool"
+        },
+        "m_bPlayAllStepSoundsOnServer": {
+            "offset": "126",
+            "type": "bool"
+        },
+        "m_iNumGunGameProgressiveWeaponsCT": {
+            "offset": "128",
+            "type": "int32_t"
+        },
+        "m_iNumGunGameProgressiveWeaponsT": {
+            "offset": "132",
+            "type": "int32_t"
+        },
+        "m_iSpectatorSlotCount": {
+            "offset": "136",
+            "type": "int32_t"
+        },
+        "m_bBombDropped": {
+            "offset": "2468",
+            "type": "bool"
+        },
+        "m_bBombPlanted": {
+            "offset": "2469",
+            "type": "bool"
+        },
+        "m_iRoundWinStatus": {
+            "offset": "2472",
+            "type": "int32_t"
+        },
+        "m_eRoundWinReason": {
+            "offset": "2476",
+            "type": "int32_t"
+        },
+        "m_flDMBonusStartTime": {
+            "offset": "1108",
+            "type": "float"
+        },
+        "m_flDMBonusTimeLength": {
+            "offset": "1112",
+            "type": "float"
+        },
+        "m_unDMBonusWeaponLoadoutSlot": {
+            "offset": "1116",
+            "type": "uint32_t"
+        },
+        "m_bDMBonusActive": {
+            "offset": "1118",
+            "type": "bool"
+        },
+        "m_bTCantBuy": {
+            "offset": "2480",
+            "type": "bool"
+        },
+        "m_bCTCantBuy": {
+            "offset": "2481",
+            "type": "bool"
+        },
+        "m_flGuardianBuyUntilTime": {
+            "offset": "2484",
+            "type": "float"
+        },
+        "m_iMatchStats_RoundResults": {
+            "offset": "2488",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_PlayersAlive_T": {
+            "offset": "2728",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_PlayersAlive_CT": {
+            "offset": "2608",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_GGProgressiveWeaponOrderCT": {
+            "offset": "140",
+            "type": "utl::array<int32_t, 60>"
+        },
+        "m_GGProgressiveWeaponOrderT": {
+            "offset": "380",
+            "type": "utl::array<int32_t, 60>"
+        },
+        "m_GGProgressiveWeaponKillUpgradeOrderCT": {
+            "offset": "620",
+            "type": "utl::array<int32_t, 60>"
+        },
+        "m_GGProgressiveWeaponKillUpgradeOrderT": {
+            "offset": "860",
+            "type": "utl::array<int32_t, 60>"
+        },
+        "m_MatchDevice": {
+            "offset": "1100",
+            "type": "int32_t"
+        },
+        "m_bHasMatchStarted": {
+            "offset": "1104",
+            "type": "bool"
+        },
+        "m_TeamRespawnWaveTimes": {
+            "offset": "2848",
+            "type": "utl::array<float, 32>"
+        },
+        "m_flNextRespawnWave": {
+            "offset": "2976",
+            "type": "utl::array<float, 32>"
+        },
+        "m_nNextMapInMapgroup": {
+            "offset": "1120",
+            "type": "int32_t"
+        },
+        "m_nEndMatchMapGroupVoteTypes": {
+            "offset": "3112",
+            "type": "utl::array<int32_t, 10>"
+        },
+        "m_nEndMatchMapGroupVoteOptions": {
+            "offset": "3152",
+            "type": "utl::array<int32_t, 10>"
+        },
+        "m_nEndMatchMapVoteWinner": {
+            "offset": "3192",
+            "type": "int32_t"
+        },
+        "m_bIsDroppingItems": {
+            "offset": "2176",
+            "type": "bool"
+        },
+        "m_iActiveAssassinationTargetMissionID": {
+            "offset": "3104",
+            "type": "int32_t"
+        },
+        "m_fMatchStartTime": {
+            "offset": "72",
+            "type": "float"
+        },
+        "m_szTournamentEventName": {
+            "offset": "1124",
+            "type": "char*"
+        },
+        "m_szTournamentEventStage": {
+            "offset": "1384",
+            "type": "char*"
+        },
+        "m_szTournamentPredictionsTxt": {
+            "offset": "1904",
+            "type": "char*"
+        },
+        "m_nTournamentPredictionsPct": {
+            "offset": "2164",
+            "type": "int32_t"
+        },
+        "m_szMatchStatTxt": {
+            "offset": "1644",
+            "type": "char*"
+        },
+        "m_nGuardianModeWaveNumber": {
+            "offset": "2180",
+            "type": "int32_t"
+        },
+        "m_nGuardianModeSpecialKillsRemaining": {
+            "offset": "2184",
+            "type": "int32_t"
+        },
+        "m_nGuardianModeSpecialWeaponNeeded": {
+            "offset": "2188",
+            "type": "int32_t"
+        },
+        "m_nHalloweenMaskListSeed": {
+            "offset": "2464",
+            "type": "int32_t"
+        },
+        "m_numGlobalGiftsGiven": {
+            "offset": "2200",
+            "type": "int32_t"
+        },
+        "m_numGlobalGifters": {
+            "offset": "2204",
+            "type": "int32_t"
+        },
+        "m_numGlobalGiftsPeriodSeconds": {
+            "offset": "2208",
+            "type": "int32_t"
+        },
+        "m_arrFeaturedGiftersAccounts": {
+            "offset": "2212",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_arrFeaturedGiftersGifts": {
+            "offset": "2228",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_arrProhibitedItemIndices": {
+            "offset": "2244",
+            "type": "utl::array<int32_t, 100>"
+        },
+        "m_numBestOfMaps": {
+            "offset": "2460",
+            "type": "int32_t"
+        },
+        "m_arrTournamentActiveCasterAccounts": {
+            "offset": "2444",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_iNumConsecutiveCTLoses": {
+            "offset": "3196",
+            "type": "int32_t"
+        },
+        "m_iNumConsecutiveTerroristLoses": {
+            "offset": "3200",
+            "type": "int32_t"
+        },
+        "m_vecPlayAreaMins": {
+            "offset": "3328",
+            "type": "utl::Vector"
+        },
+        "m_vecPlayAreaMaxs": {
+            "offset": "3340",
+            "type": "utl::Vector"
+        },
+        "m_iPlayerSpawnHexIndices": {
+            "offset": "3352",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_SpawnTileState": {
+            "offset": "3608",
+            "type": "utl::array<int32_t, 224>"
+        },
+        "m_flSpawnSelectionTimeStart": {
+            "offset": "3832",
+            "type": "float"
+        },
+        "m_flSpawnSelectionTimeEnd": {
+            "offset": "3836",
+            "type": "float"
+        },
+        "m_flSpawnSelectionTimeLoadout": {
+            "offset": "3840",
+            "type": "float"
+        },
+        "m_spawnStage": {
+            "offset": "3844",
+            "type": "int32_t"
+        },
+        "m_flTabletHexOriginX": {
+            "offset": "3848",
+            "type": "float"
+        },
+        "m_flTabletHexOriginY": {
+            "offset": "3852",
+            "type": "float"
+        },
+        "m_flTabletHexSize": {
+            "offset": "3856",
+            "type": "float"
+        },
+        "m_roundData_playerXuids": {
+            "offset": "3864",
+            "type": "utl::array<int64_t, 65>"
+        },
+        "m_roundData_playerPositions": {
+            "offset": "4384",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_roundData_playerTeams": {
+            "offset": "4644",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_SurvivalGameRuleDecisionTypes": {
+            "offset": "4904",
+            "type": "utl::array<int32_t, 16>"
+        },
+        "m_SurvivalGameRuleDecisionValues": {
+            "offset": "4968",
+            "type": "utl::array<int32_t, 16>"
+        },
+        "m_flSurvivalStartTime": {
+            "offset": "5032",
+            "type": "float"
+        },
+        "m_nMatchSeed": {
+            "offset": "5304",
+            "type": "int32_t"
+        },
+        "m_bBlockersPresent": {
+            "offset": "5308",
+            "type": "bool"
+        },
+        "m_bRoundInProgress": {
+            "offset": "5309",
+            "type": "bool"
+        },
+        "m_iFirstSecondHalfRound": {
+            "offset": "5312",
+            "type": "int32_t"
+        },
+        "m_iBombSite": {
+            "offset": "5316",
+            "type": "int32_t"
+        }
+    },
+    "C_TEPlantBomb": {
+        "m_vecOrigin": {
+            "offset": "20",
+            "type": "utl::Vector"
+        },
+        "m_iPlayer": {
+            "offset": "16",
+            "type": "int32_t"
+        },
+        "m_option": {
+            "offset": "32",
+            "type": "int32_t"
+        }
+    },
+    "C_TEFireBullets": {
+        "m_vecOrigin": {
+            "offset": "24",
+            "type": "utl::Vector"
+        },
+        "m_vecAngles": {
+            "offset": "36",
+            "type": "utl::array<float, 2>"
+        },
+        "m_iWeaponID": {
+            "offset": "52",
+            "type": "int32_t"
+        },
+        "m_weapon": {
+            "offset": "48",
+            "type": "int32_t"
+        },
+        "m_iMode": {
+            "offset": "56",
+            "type": "int32_t"
+        },
+        "m_iSeed": {
+            "offset": "60",
+            "type": "int32_t"
+        },
+        "m_iPlayer": {
+            "offset": "16",
+            "type": "int32_t"
+        },
+        "m_fInaccuracy": {
+            "offset": "64",
+            "type": "float"
+        },
+        "m_fSpread": {
+            "offset": "72",
+            "type": "float"
+        },
+        "m_nItemDefIndex": {
+            "offset": "20",
+            "type": "int32_t"
+        },
+        "m_iSoundType": {
+            "offset": "76",
+            "type": "int32_t"
+        },
+        "m_flRecoilIndex": {
+            "offset": "68",
+            "type": "float"
+        }
+    },
+    "C_TERadioIcon": {
+        "m_iAttachToClient": {
+            "offset": "16",
+            "type": "int32_t"
+        }
+    },
+    "C_PlantedC4": {
+        "m_bBombTicking": {
+            "offset": "10624",
+            "type": "bool"
+        },
+        "m_nBombSite": {
+            "offset": "10628",
+            "type": "int32_t"
+        },
+        "m_flC4Blow": {
+            "offset": "10640",
+            "type": "float"
+        },
+        "m_flTimerLength": {
+            "offset": "10644",
+            "type": "float"
+        },
+        "m_flDefuseLength": {
+            "offset": "10664",
+            "type": "float"
+        },
+        "m_flDefuseCountDown": {
+            "offset": "10668",
+            "type": "float"
+        },
+        "m_bBombDefused": {
+            "offset": "10672",
+            "type": "bool"
+        },
+        "m_hBombDefuser": {
+            "offset": "10676",
+            "type": "CBaseHandle"
+        }
+    },
+    "C_CSPlayerResource": {
+        "m_iPlayerC4": {
+            "offset": "5724",
+            "type": "int32_t"
+        },
+        "m_iPlayerVIP": {
+            "offset": "5728",
+            "type": "int32_t"
+        },
+        "m_bHostageAlive": {
+            "offset": "5756",
+            "type": "utl::array<int32_t, 12>"
+        },
+        "m_isHostageFollowingSomeone": {
+            "offset": "5768",
+            "type": "utl::array<int32_t, 12>"
+        },
+        "m_iHostageEntityIDs": {
+            "offset": "5780",
+            "type": "utl::array<int32_t, 12>"
+        },
+        "m_bombsiteCenterA": {
+            "offset": "5732",
+            "type": "utl::Vector"
+        },
+        "m_bombsiteCenterB": {
+            "offset": "5744",
+            "type": "utl::Vector"
+        },
+        "m_hostageRescueX": {
+            "offset": "5828",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_hostageRescueY": {
+            "offset": "5844",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_hostageRescueZ": {
+            "offset": "5860",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_iMVPs": {
+            "offset": "5876",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iArmor": {
+            "offset": "6268",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bHasHelmet": {
+            "offset": "6201",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bHasDefuser": {
+            "offset": "6136",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iScore": {
+            "offset": "6528",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iCompetitiveRanking": {
+            "offset": "6788",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iCompetitiveWins": {
+            "offset": "7048",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iCompetitiveRankType": {
+            "offset": "7308",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iCompTeammateColor": {
+            "offset": "7376",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iLifetimeStart": {
+            "offset": "7636",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iLifetimeEnd": {
+            "offset": "7896",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bControllingBot": {
+            "offset": "8156",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iControlledPlayer": {
+            "offset": "8224",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iControlledByPlayer": {
+            "offset": "8484",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iBotDifficulty": {
+            "offset": "17064",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_szClan": {
+            "offset": "17324",
+            "type": "utl::array<char*, 65>"
+        },
+        "m_nCharacterDefIndex": {
+            "offset": "18364",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iTotalCashSpent": {
+            "offset": "18624",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iGunGameLevel": {
+            "offset": "18884",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iCashSpentThisRound": {
+            "offset": "19144",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_nEndMatchNextMapVotes": {
+            "offset": "27272",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bEndMatchNextMapAllVoted": {
+            "offset": "27532",
+            "type": "bool"
+        },
+        "m_nActiveCoinRank": {
+            "offset": "19404",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_nMusicID": {
+            "offset": "19664",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_nPersonaDataPublicLevel": {
+            "offset": "19924",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_nPersonaDataPublicCommendsLeader": {
+            "offset": "20184",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_nPersonaDataPublicCommendsTeacher": {
+            "offset": "20444",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_nPersonaDataPublicCommendsFriendly": {
+            "offset": "20704",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bHasCommunicationAbuseMute": {
+            "offset": "20964",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_szCrosshairCodes": {
+            "offset": "21029",
+            "type": "utl::array<char*, 65>"
+        },
+        "m_iMatchStats_Kills_Total": {
+            "offset": "23304",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_5k_Total": {
+            "offset": "24604",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_4k_Total": {
+            "offset": "24344",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_3k_Total": {
+            "offset": "24084",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_Damage_Total": {
+            "offset": "24864",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_EquipmentValue_Total": {
+            "offset": "25124",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_KillReward_Total": {
+            "offset": "25384",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_LiveTime_Total": {
+            "offset": "25644",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_Deaths_Total": {
+            "offset": "23824",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_Assists_Total": {
+            "offset": "23564",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_HeadShotKills_Total": {
+            "offset": "25904",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_Objective_Total": {
+            "offset": "26164",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_CashEarned_Total": {
+            "offset": "26424",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_UtilityDamage_Total": {
+            "offset": "26684",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iMatchStats_EnemiesFlashed_Total": {
+            "offset": "26944",
+            "type": "utl::array<int32_t, 65>"
+        }
+    },
+    "C_CSPlayer": {
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector2D"
+        },
+        "m_flStamina": {
+            "offset": "41864",
+            "type": "float"
+        },
+        "m_iDirection": {
+            "offset": "41868",
+            "type": "int32_t"
+        },
+        "m_iShotsFired": {
+            "offset": "41872",
+            "type": "int32_t"
+        },
+        "m_nNumFastDucks": {
+            "offset": "41876",
+            "type": "int32_t"
+        },
+        "m_bDuckOverride": {
+            "offset": "41880",
+            "type": "bool"
+        },
+        "m_flVelocityModifier": {
+            "offset": "41884",
+            "type": "float"
+        },
+        "m_bPlayerDominated": {
+            "offset": "46232",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bPlayerDominatingMe": {
+            "offset": "46297",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iWeaponPurchasesThisRound": {
+            "offset": "46364",
+            "type": "utl::array<int32_t, 256>"
+        },
+        "m_unActiveQuestId": {
+            "offset": "45864",
+            "type": "uint32_t"
+        },
+        "m_nQuestProgressReason": {
+            "offset": "45868",
+            "type": "int32_t"
+        },
+        "m_iRetakesOffering": {
+            "offset": "48292",
+            "type": "int32_t"
+        },
+        "m_iRetakesOfferingCard": {
+            "offset": "48296",
+            "type": "int32_t"
+        },
+        "m_bRetakesHasDefuseKit": {
+            "offset": "48300",
+            "type": "bool"
+        },
+        "m_bRetakesMVPLastRound": {
+            "offset": "48301",
+            "type": "bool"
+        },
+        "m_iRetakesMVPBoostItem": {
+            "offset": "48304",
+            "type": "int32_t"
+        },
+        "m_RetakesMVPBoostExtraUtility": {
+            "offset": "48308",
+            "type": "int32_t"
+        },
+        "m_unPlayerTvControlFlags": {
+            "offset": "45872",
+            "type": "uint32_t"
+        },
+        "m_iWeaponPurchasesThisMatch": {
+            "offset": "43644",
+            "type": "utl::array<int32_t, 499>"
+        },
+        "m_EquippedLoadoutItemDefIndices": {
+            "offset": "45652",
+            "type": "utl::array<int32_t, 57>"
+        },
+        "m_iAddonBits": {
+            "offset": "41844",
+            "type": "int32_t"
+        },
+        "m_iPrimaryAddon": {
+            "offset": "41848",
+            "type": "int32_t"
+        },
+        "m_iSecondaryAddon": {
+            "offset": "41852",
+            "type": "int32_t"
+        },
+        "m_iThrowGrenadeCounter": {
+            "offset": "14700",
+            "type": "int32_t"
+        },
+        "m_bWaitForNoAttack": {
+            "offset": "14704",
+            "type": "bool"
+        },
+        "m_bIsRespawningForDMBonus": {
+            "offset": "14705",
+            "type": "bool"
+        },
+        "m_iPlayerState": {
+            "offset": "14636",
+            "type": "int32_t"
+        },
+        "m_iAccount": {
+            "offset": "45928",
+            "type": "int32_t"
+        },
+        "m_iStartAccount": {
+            "offset": "41892",
+            "type": "int32_t"
+        },
+        "m_totalHitsOnServer": {
+            "offset": "41896",
+            "type": "int32_t"
+        },
+        "m_bInBombZone": {
+            "offset": "14696",
+            "type": "bool"
+        },
+        "m_bInBuyZone": {
+            "offset": "14697",
+            "type": "bool"
+        },
+        "m_bInNoDefuseArea": {
+            "offset": "14698",
+            "type": "bool"
+        },
+        "m_bKilledByTaser": {
+            "offset": "14721",
+            "type": "bool"
+        },
+        "m_iMoveState": {
+            "offset": "14724",
+            "type": "int32_t"
+        },
+        "m_iClass": {
+            "offset": "45944",
+            "type": "int32_t"
+        },
+        "m_ArmorValue": {
+            "offset": "45948",
+            "type": "int32_t"
+        },
+        "m_angEyeAngles": {
+            "offset": "45952",
+            "type": "utl::QAngle"
+        },
+        "m_bHasDefuser": {
+            "offset": "45964",
+            "type": "bool"
+        },
+        "m_bNightVisionOn": {
+            "offset": "41881",
+            "type": "bool"
+        },
+        "m_bHasNightVision": {
+            "offset": "41882",
+            "type": "bool"
+        },
+        "m_bInHostageRescueZone": {
+            "offset": "45965",
+            "type": "bool"
+        },
+        "m_bIsDefusing": {
+            "offset": "14640",
+            "type": "bool"
+        },
+        "m_bIsGrabbingHostage": {
+            "offset": "14641",
+            "type": "bool"
+        },
+        "m_iBlockingUseActionInProgress": {
+            "offset": "14644",
+            "type": "int32_t"
+        },
+        "m_bIsScoped": {
+            "offset": "14632",
+            "type": "bool"
+        },
+        "m_bIsWalking": {
+            "offset": "14633",
+            "type": "bool"
+        },
+        "m_nIsAutoMounting": {
+            "offset": "15000",
+            "type": "int32_t"
+        },
+        "m_bResumeZoom": {
+            "offset": "14634",
+            "type": "bool"
+        },
+        "m_fImmuneToGunGameDamageTime": {
+            "offset": "14652",
+            "type": "float"
+        },
+        "m_bGunGameImmunity": {
+            "offset": "14660",
+            "type": "bool"
+        },
+        "m_bHasMovedSinceSpawn": {
+            "offset": "14661",
+            "type": "bool"
+        },
+        "m_bMadeFinalGunGameProgressiveKill": {
+            "offset": "14662",
+            "type": "bool"
+        },
+        "m_iGunGameProgressiveWeaponIndex": {
+            "offset": "14664",
+            "type": "int32_t"
+        },
+        "m_iNumGunGameTRKillPoints": {
+            "offset": "14668",
+            "type": "int32_t"
+        },
+        "m_iNumGunGameKillsWithCurrentWeapon": {
+            "offset": "14672",
+            "type": "int32_t"
+        },
+        "m_iNumRoundKills": {
+            "offset": "14676",
+            "type": "int32_t"
+        },
+        "m_fMolotovUseTime": {
+            "offset": "14688",
+            "type": "float"
+        },
+        "m_fMolotovDamageTime": {
+            "offset": "14692",
+            "type": "float"
+        },
+        "m_szArmsModel": {
+            "offset": "14731",
+            "type": "char*"
+        },
+        "m_hCarriedHostage": {
+            "offset": "41976",
+            "type": "CBaseHandle"
+        },
+        "m_hCarriedHostageProp": {
+            "offset": "41980",
+            "type": "CBaseHandle"
+        },
+        "m_bIsRescuing": {
+            "offset": "14648",
+            "type": "bool"
+        },
+        "m_flGroundAccelLinearFracLastTime": {
+            "offset": "41888",
+            "type": "float"
+        },
+        "m_bCanMoveDuringFreezePeriod": {
+            "offset": "14728",
+            "type": "bool"
+        },
+        "m_isCurrentGunGameLeader": {
+            "offset": "14729",
+            "type": "int32_t"
+        },
+        "m_isCurrentGunGameTeamLeader": {
+            "offset": "14730",
+            "type": "int32_t"
+        },
+        "m_flGuardianTooFarDistFrac": {
+            "offset": "14708",
+            "type": "float"
+        },
+        "m_flDetectedByEnemySensorTime": {
+            "offset": "14712",
+            "type": "float"
+        },
+        "m_bIsPlayerGhost": {
+            "offset": "14997",
+            "type": "bool"
+        },
+        "m_iMatchStats_Kills": {
+            "offset": "42084",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_Damage": {
+            "offset": "42204",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_EquipmentValue": {
+            "offset": "42324",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_MoneySaved": {
+            "offset": "42444",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_KillReward": {
+            "offset": "42564",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_LiveTime": {
+            "offset": "42684",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_Deaths": {
+            "offset": "42804",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_Assists": {
+            "offset": "42924",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_HeadShotKills": {
+            "offset": "43044",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_Objective": {
+            "offset": "43164",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_CashEarned": {
+            "offset": "43284",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_UtilityDamage": {
+            "offset": "43404",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_iMatchStats_EnemiesFlashed": {
+            "offset": "43524",
+            "type": "utl::array<int32_t, 30>"
+        },
+        "m_rank": {
+            "offset": "45884",
+            "type": "utl::array<int32_t, 6>"
+        },
+        "m_passiveItems": {
+            "offset": "45908",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_bHasParachute": {
+            "offset": "45908",
+            "type": "bool"
+        },
+        "m_unMusicID": {
+            "offset": "45912",
+            "type": "uint32_t"
+        },
+        "m_bHasHelmet": {
+            "offset": "45936",
+            "type": "bool"
+        },
+        "m_bHasHeavyArmor": {
+            "offset": "45937",
+            "type": "bool"
+        },
+        "m_nHeavyAssaultSuitCooldownRemaining": {
+            "offset": "45940",
+            "type": "int32_t"
+        },
+        "m_flFlashDuration": {
+            "offset": "42016",
+            "type": "float"
+        },
+        "m_flFlashMaxAlpha": {
+            "offset": "42012",
+            "type": "float"
+        },
+        "m_iProgressBarDuration": {
+            "offset": "41856",
+            "type": "int32_t"
+        },
+        "m_flProgressBarStartTime": {
+            "offset": "41860",
+            "type": "float"
+        },
+        "m_hRagdoll": {
+            "offset": "41964",
+            "type": "CBaseHandle"
+        },
+        "m_hPlayerPing": {
+            "offset": "41968",
+            "type": "CBaseHandle"
+        },
+        "m_cycleLatch": {
+            "offset": "46224",
+            "type": "int32_t"
+        },
+        "m_unCurrentEquipmentValue": {
+            "offset": "45876",
+            "type": "uint32_t"
+        },
+        "m_unRoundStartEquipmentValue": {
+            "offset": "45878",
+            "type": "uint32_t"
+        },
+        "m_unFreezetimeEndEquipmentValue": {
+            "offset": "45880",
+            "type": "uint32_t"
+        },
+        "m_bIsControllingBot": {
+            "offset": "47613",
+            "type": "bool"
+        },
+        "m_bHasControlledBotThisRound": {
+            "offset": "47628",
+            "type": "bool"
+        },
+        "m_bCanControlObservedBot": {
+            "offset": "47614",
+            "type": "bool"
+        },
+        "m_iControlledBotEntIndex": {
+            "offset": "47616",
+            "type": "int32_t"
+        },
+        "m_vecAutomoveTargetEnd": {
+            "offset": "15016",
+            "type": "utl::Vector"
+        },
+        "m_flAutoMoveStartTime": {
+            "offset": "15032",
+            "type": "float"
+        },
+        "m_flAutoMoveTargetTime": {
+            "offset": "15036",
+            "type": "float"
+        },
+        "m_bIsAssassinationTarget": {
+            "offset": "47612",
+            "type": "bool"
+        },
+        "m_bHud_MiniScoreHidden": {
+            "offset": "45998",
+            "type": "bool"
+        },
+        "m_bHud_RadarHidden": {
+            "offset": "45999",
+            "type": "bool"
+        },
+        "m_nLastKillerIndex": {
+            "offset": "46000",
+            "type": "int32_t"
+        },
+        "m_nLastConcurrentKilled": {
+            "offset": "46004",
+            "type": "int32_t"
+        },
+        "m_nDeathCamMusic": {
+            "offset": "46008",
+            "type": "int32_t"
+        },
+        "m_bIsHoldingLookAtWeapon": {
+            "offset": "47397",
+            "type": "bool"
+        },
+        "m_bIsLookingAtWeapon": {
+            "offset": "47396",
+            "type": "bool"
+        },
+        "m_iNumRoundKillsHeadshots": {
+            "offset": "14680",
+            "type": "int32_t"
+        },
+        "m_unTotalRoundDamageDealt": {
+            "offset": "14684",
+            "type": "uint32_t"
+        },
+        "m_flLowerBodyYawTarget": {
+            "offset": "14992",
+            "type": "float"
+        },
+        "m_bStrafing": {
+            "offset": "14996",
+            "type": "bool"
+        },
+        "m_flThirdpersonRecoil": {
+            "offset": "47516",
+            "type": "float"
+        },
+        "m_bHideTargetID": {
+            "offset": "47520",
+            "type": "bool"
+        },
+        "m_bIsSpawnRappelling": {
+            "offset": "41901",
+            "type": "bool"
+        },
+        "m_vecSpawnRappellingRopeOrigin": {
+            "offset": "41904",
+            "type": "utl::Vector"
+        },
+        "m_nSurvivalTeam": {
+            "offset": "41920",
+            "type": "int32_t"
+        },
+        "m_hSurvivalAssassinationTarget": {
+            "offset": "41924",
+            "type": "CBaseHandle"
+        },
+        "m_flHealthShotBoostExpirationTime": {
+            "offset": "41928",
+            "type": "float"
+        },
+        "m_flLastExoJumpTime": {
+            "offset": "15040",
+            "type": "float"
+        },
+        "m_vecPlayerPatchEconIndices": {
+            "offset": "47476",
+            "type": "utl::array<int32_t, 5>"
+        }
+    },
+    "C_PlayerPing": {
+        "m_hPlayer": {
+            "offset": "2532",
+            "type": "CBaseHandle"
+        },
+        "m_hPingedEntity": {
+            "offset": "2536",
+            "type": "CBaseHandle"
+        },
+        "m_iType": {
+            "offset": "2540",
+            "type": "int32_t"
+        },
+        "m_bUrgent": {
+            "offset": "2548",
+            "type": "bool"
+        },
+        "m_szPlaceName": {
+            "offset": "2549",
+            "type": "char*"
+        }
+    },
+    "C_CSRagdoll": {
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "m_vecRagdollOrigin": {
+            "offset": "10764",
+            "type": "utl::Vector"
+        },
+        "m_hPlayer": {
+            "offset": "10736",
+            "type": "CBaseHandle"
+        },
+        "m_nModelIndex": {
+            "offset": "600",
+            "type": "int32_t"
+        },
+        "m_nForceBone": {
+            "offset": "9868",
+            "type": "int32_t"
+        },
+        "m_vecForce": {
+            "offset": "9856",
+            "type": "utl::Vector"
+        },
+        "m_vecRagdollVelocity": {
+            "offset": "10752",
+            "type": "utl::Vector"
+        },
+        "m_iDeathPose": {
+            "offset": "10776",
+            "type": "int32_t"
+        },
+        "m_iDeathFrame": {
+            "offset": "10780",
+            "type": "int32_t"
+        },
+        "m_iTeamNum": {
+            "offset": "244",
+            "type": "int32_t"
+        },
+        "m_bClientSideAnimation": {
+            "offset": "10396",
+            "type": "bool"
+        },
+        "m_flDeathYaw": {
+            "offset": "10784",
+            "type": "float"
+        },
+        "m_flAbsYaw": {
+            "offset": "10788",
+            "type": "float"
+        }
+    },
+    "C_TEPlayerAnimEvent": {
+        "m_hPlayer": {
+            "offset": "16",
+            "type": "CBaseHandle"
+        },
+        "m_iEvent": {
+            "offset": "20",
+            "type": "int32_t"
+        },
+        "m_nData": {
+            "offset": "24",
+            "type": "int32_t"
+        }
+    },
+    "C_Hostage": {
+        "m_isRescued": {
+            "offset": "12080",
+            "type": "int32_t"
+        },
+        "m_jumpedThisFrame": {
+            "offset": "12081",
+            "type": "int32_t"
+        },
+        "m_iHealth": {
+            "offset": "256",
+            "type": "int32_t"
+        },
+        "m_iMaxHealth": {
+            "offset": "12056",
+            "type": "int32_t"
+        },
+        "m_lifeState": {
+            "offset": "607",
+            "type": "int32_t"
+        },
+        "m_fFlags": {
+            "offset": "260",
+            "type": "int32_t"
+        },
+        "m_nHostageState": {
+            "offset": "12084",
+            "type": "int32_t"
+        },
+        "m_flRescueStartTime": {
+            "offset": "12088",
+            "type": "float"
+        },
+        "m_flGrabSuccessTime": {
+            "offset": "12092",
+            "type": "float"
+        },
+        "m_flDropStartTime": {
+            "offset": "12096",
+            "type": "float"
+        },
+        "m_vel": {
+            "offset": "12068",
+            "type": "utl::Vector"
+        },
+        "m_leader": {
+            "offset": "12064",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseCSGrenadeProjectile": {
+        "m_vInitialVelocity": {
+            "offset": "10704",
+            "type": "utl::Vector"
+        },
+        "m_nBounces": {
+            "offset": "10716",
+            "type": "int32_t"
+        },
+        "m_nExplodeEffectIndex": {
+            "offset": "10720",
+            "type": "int32_t"
+        },
+        "m_nExplodeEffectTickBegin": {
+            "offset": "10724",
+            "type": "int32_t"
+        },
+        "m_vecExplodeEffectOrigin": {
+            "offset": "10728",
+            "type": "utl::Vector"
+        }
+    },
+    "C_HandleTest": {
+        "m_Handle": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_bSendHandle": {
+            "offset": "2524",
+            "type": "bool"
+        }
+    },
+    "C_TeamplayRoundBasedRulesProxy": {
+        "m_iRoundState": {
+            "offset": "40",
+            "type": "int32_t"
+        },
+        "m_bInWaitingForPlayers": {
+            "offset": "56",
+            "type": "bool"
+        },
+        "m_iWinningTeam": {
+            "offset": "48",
+            "type": "int32_t"
+        },
+        "m_bInOvertime": {
+            "offset": "44",
+            "type": "bool"
+        },
+        "m_bInSetup": {
+            "offset": "45",
+            "type": "bool"
+        },
+        "m_bSwitchedTeamsThisRound": {
+            "offset": "46",
+            "type": "bool"
+        },
+        "m_bAwaitingReadyRestart": {
+            "offset": "57",
+            "type": "bool"
+        },
+        "m_flRestartRoundTime": {
+            "offset": "60",
+            "type": "float"
+        },
+        "m_flMapResetTime": {
+            "offset": "64",
+            "type": "float"
+        },
+        "m_flNextRespawnWave": {
+            "offset": "68",
+            "type": "utl::array<float, 32>"
+        },
+        "m_TeamRespawnWaveTimes": {
+            "offset": "232",
+            "type": "utl::array<float, 32>"
+        },
+        "m_bTeamReady": {
+            "offset": "196",
+            "type": "utl::array<int32_t, 32>"
+        },
+        "m_bStopWatch": {
+            "offset": "228",
+            "type": "bool"
+        }
+    },
+    "C_SpriteTrail": {
+        "m_flLifeTime": {
+            "offset": "4212",
+            "type": "float"
+        },
+        "m_flStartWidth": {
+            "offset": "4216",
+            "type": "float"
+        },
+        "m_flEndWidth": {
+            "offset": "4220",
+            "type": "float"
+        },
+        "m_flStartWidthVariance": {
+            "offset": "4224",
+            "type": "float"
+        },
+        "m_flTextureRes": {
+            "offset": "4228",
+            "type": "float"
+        },
+        "m_flMinFadeLength": {
+            "offset": "4232",
+            "type": "float"
+        },
+        "m_vecSkyboxOrigin": {
+            "offset": "4236",
+            "type": "utl::Vector"
+        },
+        "m_flSkyboxScale": {
+            "offset": "4248",
+            "type": "float"
+        }
+    },
+    "C_Sprite": {
+        "m_hAttachedToEntity": {
+            "offset": "2536",
+            "type": "CBaseHandle"
+        },
+        "m_nAttachment": {
+            "offset": "2540",
+            "type": "int32_t"
+        },
+        "m_flScaleTime": {
+            "offset": "2568",
+            "type": "float"
+        },
+        "m_flSpriteScale": {
+            "offset": "2564",
+            "type": "float"
+        },
+        "m_flSpriteFramerate": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_flGlowProxySize": {
+            "offset": "2576",
+            "type": "float"
+        },
+        "m_flHDRColorScale": {
+            "offset": "2580",
+            "type": "float"
+        },
+        "m_flFrame": {
+            "offset": "2548",
+            "type": "float"
+        },
+        "m_flBrightnessTime": {
+            "offset": "2560",
+            "type": "float"
+        },
+        "m_nBrightness": {
+            "offset": "2556",
+            "type": "int32_t"
+        },
+        "m_bWorldSpaceScale": {
+            "offset": "2572",
+            "type": "bool"
+        }
+    },
+    "C_RagdollPropAttached": {
+        "m_boneIndexAttached": {
+            "offset": "11448",
+            "type": "int32_t"
+        },
+        "m_ragdollAttachedObjectIndex": {
+            "offset": "11444",
+            "type": "int32_t"
+        },
+        "m_attachmentPointBoneSpace": {
+            "offset": "11408",
+            "type": "utl::Vector"
+        },
+        "m_attachmentPointRagdollSpace": {
+            "offset": "11432",
+            "type": "utl::Vector"
+        }
+    },
+    "C_RagdollProp": {
+        "m_ragAngles": {
+            "offset": "0",
+            "type": "utl::array<utl::QAngle, 24>"
+        },
+        "m_ragPos": {
+            "offset": "0",
+            "type": "utl::array<utl::Vector, 24>"
+        },
+        "m_hUnragdoll": {
+            "offset": "11388",
+            "type": "CBaseHandle"
+        },
+        "m_flBlendWeight": {
+            "offset": "11392",
+            "type": "float"
+        },
+        "m_nOverlaySequence": {
+            "offset": "11400",
+            "type": "int32_t"
+        }
+    },
+    "C_PropCounter": {
+        "m_flDisplayValue": {
+            "offset": "10624",
+            "type": "float"
+        }
+    },
+    "C_PoseController": {
+        "m_hProps": {
+            "offset": "2520",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_chPoseIndex": {
+            "offset": "2536",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_bPoseValueParity": {
+            "offset": "2540",
+            "type": "bool"
+        },
+        "m_fPoseValue": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_fInterpolationTime": {
+            "offset": "2548",
+            "type": "float"
+        },
+        "m_bInterpolationWrap": {
+            "offset": "2552",
+            "type": "bool"
+        },
+        "m_fCycleFrequency": {
+            "offset": "2556",
+            "type": "float"
+        },
+        "m_nFModType": {
+            "offset": "2560",
+            "type": "int32_t"
+        },
+        "m_fFModTimeOffset": {
+            "offset": "2564",
+            "type": "float"
+        },
+        "m_fFModRate": {
+            "offset": "2568",
+            "type": "float"
+        },
+        "m_fFModAmplitude": {
+            "offset": "2572",
+            "type": "float"
+        }
+    },
+    "C_GrassBurn": {
+        "m_flGrassBurnClearTime": {
+            "offset": "2520",
+            "type": "float"
+        }
+    },
+    "C_FuncLadder": {
+        "m_vecPlayerMountPositionTop": {
+            "offset": "2552",
+            "type": "utl::Vector"
+        },
+        "m_vecPlayerMountPositionBottom": {
+            "offset": "2564",
+            "type": "utl::Vector"
+        },
+        "m_vecLadderDir": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_bFakeLadder": {
+            "offset": "2577",
+            "type": "bool"
+        }
+    },
+    "C_TEFoundryHelpers": {
+        "m_iEntity": {
+            "offset": "16",
+            "type": "int32_t"
+        }
+    },
+    "C_EnvDetailController": {
+        "m_flFadeStartDist": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_flFadeEndDist": {
+            "offset": "2524",
+            "type": "float"
+        }
+    },
+    "C_DangerZone": {
+        "m_vecDangerZoneOriginStartedAt": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_flBombLaunchTime": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_flExtraRadius": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flExtraRadiusStartTime": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_flExtraRadiusTotalLerpTime": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_nDropOrder": {
+            "offset": "2548",
+            "type": "int32_t"
+        },
+        "m_iWave": {
+            "offset": "2552",
+            "type": "int32_t"
+        }
+    },
+    "C_DangerZoneController": {
+        "m_bDangerZoneControllerEnabled": {
+            "offset": "2520",
+            "type": "bool"
+        },
+        "m_bMissionControlledExplosions": {
+            "offset": "2521",
+            "type": "bool"
+        },
+        "m_flStartTime": {
+            "offset": "2548",
+            "type": "float"
+        },
+        "m_flFinalExpansionTime": {
+            "offset": "2552",
+            "type": "float"
+        },
+        "m_vecEndGameCircleStart": {
+            "offset": "2524",
+            "type": "utl::Vector"
+        },
+        "m_vecEndGameCircleEnd": {
+            "offset": "2536",
+            "type": "utl::Vector"
+        },
+        "m_DangerZones": {
+            "offset": "2556",
+            "type": "utl::array<int32_t, 42>"
+        },
+        "m_flWaveEndTimes": {
+            "offset": "2724",
+            "type": "utl::array<float, 5>"
+        },
+        "m_hTheFinalZone": {
+            "offset": "2744",
+            "type": "CBaseHandle"
+        }
+    },
+    "C_WorldVguiText": {
+        "m_bEnabled": {
+            "offset": "2520",
+            "type": "bool"
+        },
+        "m_szDisplayText": {
+            "offset": "2521",
+            "type": "char*"
+        },
+        "m_szDisplayTextOption": {
+            "offset": "3033",
+            "type": "char*"
+        },
+        "m_szFont": {
+            "offset": "3289",
+            "type": "char*"
+        },
+        "m_iTextPanelWidth": {
+            "offset": "3360",
+            "type": "int32_t"
+        },
+        "m_clrText": {
+            "offset": "3353",
+            "type": "utl::Color"
+        }
+    },
+    "C_World": {
+        "m_flWaveHeight": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_WorldMins": {
+            "offset": "2524",
+            "type": "utl::Vector"
+        },
+        "m_WorldMaxs": {
+            "offset": "2536",
+            "type": "utl::Vector"
+        },
+        "m_bStartDark": {
+            "offset": "2548",
+            "type": "bool"
+        },
+        "m_flMaxOccludeeArea": {
+            "offset": "2552",
+            "type": "float"
+        },
+        "m_flMinOccluderArea": {
+            "offset": "2556",
+            "type": "float"
+        },
+        "m_flMaxPropScreenSpaceWidth": {
+            "offset": "2564",
+            "type": "float"
+        },
+        "m_flMinPropScreenSpaceWidth": {
+            "offset": "2560",
+            "type": "float"
+        },
+        "m_iszDetailSpriteMaterial": {
+            "offset": "2576",
+            "type": "char*"
+        },
+        "m_bColdWorld": {
+            "offset": "2568",
+            "type": "bool"
+        },
+        "m_iTimeOfDay": {
+            "offset": "2572",
+            "type": "int32_t"
+        }
+    },
+    "C_WaterLODControl": {
+        "m_flCheapWaterStartDistance": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_flCheapWaterEndDistance": {
+            "offset": "2524",
+            "type": "float"
+        }
+    },
+    "C_MapVetoPickController": {
+        "m_nDraftType": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_nTeamWinningCoinToss": {
+            "offset": "2540",
+            "type": "int32_t"
+        },
+        "m_nTeamWithFirstChoice": {
+            "offset": "2544",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nVoteMapIdsList": {
+            "offset": "2800",
+            "type": "utl::array<int32_t, 7>"
+        },
+        "m_nAccountIDs": {
+            "offset": "2828",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nMapId0": {
+            "offset": "3084",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nMapId1": {
+            "offset": "3340",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nMapId2": {
+            "offset": "3596",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nMapId3": {
+            "offset": "3852",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nMapId4": {
+            "offset": "4108",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nMapId5": {
+            "offset": "4364",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nStartingSide0": {
+            "offset": "4620",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_nCurrentPhase": {
+            "offset": "4876",
+            "type": "int32_t"
+        },
+        "m_nPhaseStartTick": {
+            "offset": "4880",
+            "type": "int32_t"
+        },
+        "m_nPhaseDurationTicks": {
+            "offset": "4884",
+            "type": "int32_t"
+        }
+    },
+    "C_VoteController": {
+        "m_iActiveIssueIndex": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_iOnlyTeamToVote": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_nVoteOptionCount": {
+            "offset": "2540",
+            "type": "utl::array<int32_t, 5>"
+        },
+        "m_nPotentialVotes": {
+            "offset": "2564",
+            "type": "int32_t"
+        },
+        "m_bIsYesNoVote": {
+            "offset": "2570",
+            "type": "bool"
+        }
+    },
+    "C_VGuiScreen": {
+        "m_flWidth": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_flHeight": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_fScreenFlags": {
+            "offset": "2572",
+            "type": "int32_t"
+        },
+        "m_nPanelName": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_nAttachmentIndex": {
+            "offset": "2564",
+            "type": "int32_t"
+        },
+        "m_nOverlayMaterial": {
+            "offset": "2568",
+            "type": "int32_t"
+        },
+        "m_hPlayerOwner": {
+            "offset": "2664",
+            "type": "CBaseHandle"
+        }
+    },
+    "C_PropJeep": {
+        "m_bHeadlightIsOn": {
+            "offset": "10956",
+            "type": "bool"
+        }
+    },
+    "C_PropVehicleChoreoGeneric": {
+        "m_hPlayer": {
+            "offset": "10740",
+            "type": "CBaseHandle"
+        },
+        "m_bEnterAnimOn": {
+            "offset": "10748",
+            "type": "bool"
+        },
+        "m_bExitAnimOn": {
+            "offset": "10749",
+            "type": "bool"
+        },
+        "m_bForceEyesToAttachment": {
+            "offset": "10764",
+            "type": "bool"
+        },
+        "m_vecEyeExitEndpoint": {
+            "offset": "10752",
+            "type": "utl::Vector"
+        }
+    },
+    "C_TriggerSoundOperator": {
+        "m_nSoundOperator": {
+            "offset": "2576",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseTrigger": {
+        "m_bClientSidePredicted": {
+            "offset": "2568",
+            "type": "bool"
+        },
+        "m_spawnflags": {
+            "offset": "712",
+            "type": "int32_t"
+        }
+    },
+    "C_Test_ProxyToggle_Networkable": {
+        "m_WithProxy": {
+            "offset": "2520",
+            "type": "int32_t"
+        }
+    },
+    "C_Tesla": {
+        "m_SoundName": {
+            "offset": "2560",
+            "type": "char*"
+        },
+        "m_iszSpriteName": {
+            "offset": "2624",
+            "type": "char*"
+        }
+    },
+    "C_BaseTeamObjectiveResource": {
+        "m_iTimerToShowInHUD": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_iStopWatchTimer": {
+            "offset": "2524",
+            "type": "int32_t"
+        },
+        "m_iNumControlPoints": {
+            "offset": "2528",
+            "type": "int32_t"
+        },
+        "m_bPlayingMiniRounds": {
+            "offset": "2536",
+            "type": "bool"
+        },
+        "m_bControlPointsReset": {
+            "offset": "2537",
+            "type": "bool"
+        },
+        "m_iUpdateCapHudParity": {
+            "offset": "2540",
+            "type": "int32_t"
+        },
+        "m_vCPPositions": {
+            "offset": "0",
+            "type": "utl::array<utl::Vector, 8>"
+        },
+        "m_bCPIsVisible": {
+            "offset": "2644",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_flLazyCapPerc": {
+            "offset": "2652",
+            "type": "utl::array<float, 8>"
+        },
+        "m_iTeamIcons": {
+            "offset": "2716",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_iTeamOverlays": {
+            "offset": "2972",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_iTeamReqCappers": {
+            "offset": "3228",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_flTeamCapTime": {
+            "offset": "3484",
+            "type": "utl::array<float, 64>"
+        },
+        "m_iPreviousPoints": {
+            "offset": "3740",
+            "type": "utl::array<int32_t, 192>"
+        },
+        "m_bTeamCanCap": {
+            "offset": "4508",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_iTeamBaseIcons": {
+            "offset": "4572",
+            "type": "utl::array<int32_t, 32>"
+        },
+        "m_iBaseControlPoints": {
+            "offset": "4700",
+            "type": "utl::array<int32_t, 32>"
+        },
+        "m_bInMiniRound": {
+            "offset": "4828",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_iWarnOnCap": {
+            "offset": "4836",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_iszWarnSound": {
+            "offset": "0",
+            "type": "utl::array<char*, 8>"
+        },
+        "m_flPathDistance": {
+            "offset": "6908",
+            "type": "utl::array<float, 8>"
+        },
+        "m_iNumTeamMembers": {
+            "offset": "6940",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_iCappingTeam": {
+            "offset": "7196",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_iTeamInZone": {
+            "offset": "7228",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_bBlocked": {
+            "offset": "7260",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_iOwner": {
+            "offset": "7268",
+            "type": "utl::array<int32_t, 8>"
+        },
+        "m_pszCapLayoutInHUD": {
+            "offset": "7404",
+            "type": "char*"
+        }
+    },
+    "C_Team": {
+        "m_iTeamNum": {
+            "offset": "2920",
+            "type": "int32_t"
+        },
+        "m_bSurrendered": {
+            "offset": "2924",
+            "type": "bool"
+        },
+        "m_scoreTotal": {
+            "offset": "2880",
+            "type": "int32_t"
+        },
+        "m_scoreFirstHalf": {
+            "offset": "2884",
+            "type": "int32_t"
+        },
+        "m_scoreSecondHalf": {
+            "offset": "2888",
+            "type": "int32_t"
+        },
+        "m_scoreOvertime": {
+            "offset": "2892",
+            "type": "int32_t"
+        },
+        "m_iClanID": {
+            "offset": "2904",
+            "type": "int32_t"
+        },
+        "m_szTeamname": {
+            "offset": "2540",
+            "type": "char*"
+        },
+        "m_szClanTeamname": {
+            "offset": "2572",
+            "type": "char*"
+        },
+        "m_szTeamFlagImage": {
+            "offset": "2604",
+            "type": "char*"
+        },
+        "m_szTeamLogoImage": {
+            "offset": "2612",
+            "type": "char*"
+        },
+        "m_szTeamMatchStat": {
+            "offset": "2620",
+            "type": "char*"
+        },
+        "m_nGGLeaderEntIndex_CT": {
+            "offset": "2896",
+            "type": "int32_t"
+        },
+        "m_nGGLeaderEntIndex_T": {
+            "offset": "2900",
+            "type": "int32_t"
+        },
+        "m_numMapVictories": {
+            "offset": "2928",
+            "type": "int32_t"
+        },
+        "player_array_element": {
+            "offset": "0",
+            "type": "int32_t"
+        }
+    },
+    "C_SunlightShadowControl": {
+        "m_shadowDirection": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_bEnabled": {
+            "offset": "2532",
+            "type": "bool"
+        },
+        "m_TextureName": {
+            "offset": "2533",
+            "type": "char*"
+        },
+        "m_LightColor": {
+            "offset": "2800",
+            "type": "int32_t"
+        },
+        "m_flColorTransitionTime": {
+            "offset": "2820",
+            "type": "float"
+        },
+        "m_flSunDistance": {
+            "offset": "2824",
+            "type": "float"
+        },
+        "m_flFOV": {
+            "offset": "2828",
+            "type": "float"
+        },
+        "m_flNearZ": {
+            "offset": "2832",
+            "type": "float"
+        },
+        "m_flNorthOffset": {
+            "offset": "2836",
+            "type": "float"
+        },
+        "m_bEnableShadows": {
+            "offset": "2840",
+            "type": "bool"
+        }
+    },
+    "C_Sun": {
+        "m_clrRender": {
+            "offset": "112",
+            "type": "utl::Color"
+        },
+        "m_clrOverlay": {
+            "offset": "2872",
+            "type": "utl::Color"
+        },
+        "m_vDirection": {
+            "offset": "2884",
+            "type": "utl::Vector"
+        },
+        "m_bOn": {
+            "offset": "2896",
+            "type": "bool"
+        },
+        "m_nSize": {
+            "offset": "2876",
+            "type": "int32_t"
+        },
+        "m_nOverlaySize": {
+            "offset": "2880",
+            "type": "int32_t"
+        },
+        "m_nMaterial": {
+            "offset": "2900",
+            "type": "int32_t"
+        },
+        "m_nOverlayMaterial": {
+            "offset": "2904",
+            "type": "int32_t"
+        },
+        "HDRColorScale": {
+            "offset": "0",
+            "type": "float"
+        },
+        "glowDistanceScale": {
+            "offset": "0",
+            "type": "float"
+        }
+    },
+    "C_ParticlePerformanceMonitor": {
+        "m_bMeasurePerf": {
+            "offset": "2521",
+            "type": "bool"
+        },
+        "m_bDisplayPerf": {
+            "offset": "2520",
+            "type": "bool"
+        }
+    },
+    "C_SpotlightEnd": {
+        "m_flLightScale": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_Radius": {
+            "offset": "2524",
+            "type": "float"
+        }
+    },
+    "C_SpatialEntity": {
+        "m_vecOrigin": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_minFalloff": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_maxFalloff": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flCurWeight": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_bEnabled": {
+            "offset": "2804",
+            "type": "bool"
+        }
+    },
+    "C_SlideshowDisplay": {
+        "m_bEnabled": {
+            "offset": "2520",
+            "type": "bool"
+        },
+        "m_szDisplayText": {
+            "offset": "2521",
+            "type": "char*"
+        },
+        "m_szSlideshowDirectory": {
+            "offset": "2649",
+            "type": "char*"
+        },
+        "m_chCurrentSlideLists": {
+            "offset": "2800",
+            "type": "utl::array<int32_t, 16>"
+        },
+        "m_fMinSlideTime": {
+            "offset": "2824",
+            "type": "float"
+        },
+        "m_fMaxSlideTime": {
+            "offset": "2828",
+            "type": "float"
+        },
+        "m_iCycleType": {
+            "offset": "2836",
+            "type": "int32_t"
+        },
+        "m_bNoListRepeats": {
+            "offset": "2840",
+            "type": "bool"
+        }
+    },
+    "C_ShadowControl": {
+        "m_shadowDirection": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_shadowColor": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_flShadowMaxDist": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_bDisableShadows": {
+            "offset": "2540",
+            "type": "bool"
+        },
+        "m_bEnableLocalLightShadows": {
+            "offset": "2541",
+            "type": "bool"
+        }
+    },
+    "C_SceneEntity": {
+        "m_nSceneStringIndex": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_bIsPlayingBack": {
+            "offset": "2524",
+            "type": "bool"
+        },
+        "m_bPaused": {
+            "offset": "2525",
+            "type": "bool"
+        },
+        "m_bMultiplayer": {
+            "offset": "2526",
+            "type": "bool"
+        },
+        "m_flForceClientTime": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_hActorList": {
+            "offset": "0",
+            "type": "utl::array<int32_t, 16>"
+        }
+    },
+    "C_RopeKeyframe": {
+        "m_nChangeCount": {
+            "offset": "3276",
+            "type": "int32_t"
+        },
+        "m_iRopeMaterialModelIndex": {
+            "offset": "2580",
+            "type": "int32_t"
+        },
+        "m_hStartPoint": {
+            "offset": "3244",
+            "type": "CBaseHandle"
+        },
+        "m_hEndPoint": {
+            "offset": "3248",
+            "type": "CBaseHandle"
+        },
+        "m_iStartAttachment": {
+            "offset": "3252",
+            "type": "int32_t"
+        },
+        "m_iEndAttachment": {
+            "offset": "3254",
+            "type": "int32_t"
+        },
+        "m_fLockedPoints": {
+            "offset": "3272",
+            "type": "int32_t"
+        },
+        "m_Slack": {
+            "offset": "3264",
+            "type": "int32_t"
+        },
+        "m_RopeLength": {
+            "offset": "3260",
+            "type": "int32_t"
+        },
+        "m_RopeFlags": {
+            "offset": "2576",
+            "type": "int32_t"
+        },
+        "m_TextureScale": {
+            "offset": "3268",
+            "type": "float"
+        },
+        "m_nSegments": {
+            "offset": "3240",
+            "type": "int32_t"
+        },
+        "m_bConstrainBetweenEndpoints": {
+            "offset": "3408",
+            "type": "bool"
+        },
+        "m_Subdiv": {
+            "offset": "3256",
+            "type": "int32_t"
+        },
+        "m_Width": {
+            "offset": "3280",
+            "type": "float"
+        },
+        "m_flScrollSpeed": {
+            "offset": "2572",
+            "type": "float"
+        },
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "moveparent": {
+            "offset": "328",
+            "type": "int32_t"
+        },
+        "m_iParentAttachment": {
+            "offset": "748",
+            "type": "int32_t"
+        },
+        "m_iDefaultRopeMaterialModelIndex": {
+            "offset": "2584",
+            "type": "int32_t"
+        },
+        "m_nMinCPULevel": {
+            "offset": "2440",
+            "type": "int32_t"
+        },
+        "m_nMaxCPULevel": {
+            "offset": "2441",
+            "type": "int32_t"
+        },
+        "m_nMinGPULevel": {
+            "offset": "2442",
+            "type": "int32_t"
+        },
+        "m_nMaxGPULevel": {
+            "offset": "2443",
+            "type": "int32_t"
+        }
+    },
+    "C_RagdollManager": {
+        "m_iCurrentMaxRagdollCount": {
+            "offset": "2520",
+            "type": "int32_t"
+        }
+    },
+    "C_PhysicsPropMultiplayer": {
+        "m_iPhysicsMode": {
+            "offset": "10692",
+            "type": "int32_t"
+        },
+        "m_fMass": {
+            "offset": "10696",
+            "type": "float"
+        },
+        "m_collisionMins": {
+            "offset": "10700",
+            "type": "utl::Vector"
+        },
+        "m_collisionMaxs": {
+            "offset": "10712",
+            "type": "utl::Vector"
+        }
+    },
+    "C_PhysBoxMultiplayer": {
+        "m_iPhysicsMode": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_fMass": {
+            "offset": "2536",
+            "type": "float"
+        }
+    },
+    "C_DynamicProp": {
+        "m_bUseHitboxesForRenderBox": {
+            "offset": "10660",
+            "type": "bool"
+        },
+        "m_flGlowMaxDist": {
+            "offset": "10692",
+            "type": "float"
+        },
+        "m_bShouldGlow": {
+            "offset": "10696",
+            "type": "bool"
+        },
+        "m_clrGlow": {
+            "offset": "10697",
+            "type": "utl::Color"
+        },
+        "m_nGlowStyle": {
+            "offset": "10704",
+            "type": "int32_t"
+        }
+    },
+    "C_Prop_Hallucination": {
+        "m_bEnabled": {
+            "offset": "10649",
+            "type": "bool"
+        },
+        "m_fVisibleTime": {
+            "offset": "10652",
+            "type": "float"
+        },
+        "m_fRechargeTime": {
+            "offset": "10656",
+            "type": "float"
+        }
+    },
+    "C_PostProcessController": {
+        "m_flPostProcessParameters": {
+            "offset": "2520",
+            "type": "utl::array<float, 11>"
+        },
+        "m_bMaster": {
+            "offset": "2564",
+            "type": "bool"
+        }
+    },
+    "C_PointWorldText": {
+        "m_szText": {
+            "offset": "2568",
+            "type": "char*"
+        },
+        "m_flTextSize": {
+            "offset": "2828",
+            "type": "float"
+        },
+        "m_textColor": {
+            "offset": "2832",
+            "type": "int32_t"
+        }
+    },
+    "C_PointCommentaryNode": {
+        "m_bActive": {
+            "offset": "10624",
+            "type": "bool"
+        },
+        "m_flStartTime": {
+            "offset": "10628",
+            "type": "float"
+        },
+        "m_iszCommentaryFile": {
+            "offset": "10632",
+            "type": "char*"
+        },
+        "m_iszCommentaryFileNoHDR": {
+            "offset": "10892",
+            "type": "char*"
+        },
+        "m_iszSpeakers": {
+            "offset": "11152",
+            "type": "char*"
+        },
+        "m_iNodeNumber": {
+            "offset": "11408",
+            "type": "int32_t"
+        },
+        "m_iNodeNumberMax": {
+            "offset": "11412",
+            "type": "int32_t"
+        },
+        "m_hViewPosition": {
+            "offset": "11420",
+            "type": "CBaseHandle"
+        }
+    },
+    "C_PointCamera": {
+        "m_FOV": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_Resolution": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_bFogEnable": {
+            "offset": "2528",
+            "type": "bool"
+        },
+        "m_FogColor": {
+            "offset": "2529",
+            "type": "int32_t"
+        },
+        "m_flFogStart": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flFogEnd": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_flFogMaxDensity": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_bActive": {
+            "offset": "2548",
+            "type": "bool"
+        },
+        "m_bUseScreenAspectRatio": {
+            "offset": "2549",
+            "type": "bool"
+        }
+    },
+    "C_PlayerResource": {
+        "m_iPing": {
+            "offset": "2856",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iKills": {
+            "offset": "3116",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iAssists": {
+            "offset": "3376",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iDeaths": {
+            "offset": "3636",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bConnected": {
+            "offset": "2788",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iTeam": {
+            "offset": "3896",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iPendingTeam": {
+            "offset": "4156",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bAlive": {
+            "offset": "4416",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iHealth": {
+            "offset": "4484",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_iCoachingTeam": {
+            "offset": "4744",
+            "type": "utl::array<int32_t, 65>"
+        }
+    },
+    "C_Plasma": {
+        "m_flStartScale": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_flScale": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_flScaleTime": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_nFlags": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_nPlasmaModelIndex": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_nPlasmaModelIndex2": {
+            "offset": "2540",
+            "type": "int32_t"
+        },
+        "m_nGlowModelIndex": {
+            "offset": "2544",
+            "type": "int32_t"
+        }
+    },
+    "C_PhysicsProp": {
+        "m_bAwake": {
+            "offset": "10656",
+            "type": "bool"
+        },
+        "m_spawnflags": {
+            "offset": "712",
+            "type": "int32_t"
+        }
+    },
+    "C_StatueProp": {
+        "m_hInitBaseAnimating": {
+            "offset": "10688",
+            "type": "CBaseHandle"
+        },
+        "m_bShatter": {
+            "offset": "10692",
+            "type": "bool"
+        },
+        "m_nShatterFlags": {
+            "offset": "10696",
+            "type": "int32_t"
+        },
+        "m_vShatterPosition": {
+            "offset": "10700",
+            "type": "utl::Vector"
+        },
+        "m_vShatterForce": {
+            "offset": "10712",
+            "type": "utl::Vector"
+        }
+    },
+    "C_PhysBox": {
+        "m_mass": {
+            "offset": "2520",
+            "type": "float"
+        }
+    },
+    "C_ParticleSystem": {
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "m_fEffects": {
+            "offset": "240",
+            "type": "int32_t"
+        },
+        "m_hOwnerEntity": {
+            "offset": "332",
+            "type": "CBaseHandle"
+        },
+        "moveparent": {
+            "offset": "328",
+            "type": "int32_t"
+        },
+        "m_iParentAttachment": {
+            "offset": "748",
+            "type": "int32_t"
+        },
+        "m_angRotation": {
+            "offset": "300",
+            "type": "utl::QAngle"
+        },
+        "m_iEffectIndex": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_bActive": {
+            "offset": "2528",
+            "type": "bool"
+        },
+        "m_nStopType": {
+            "offset": "2524",
+            "type": "int32_t"
+        },
+        "m_flStartTime": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_szSnapshotFileName": {
+            "offset": "2536",
+            "type": "char*"
+        },
+        "m_vServerControlPoints": {
+            "offset": "2796",
+            "type": "utl::array<utl::Vector, 4>"
+        },
+        "m_iServerControlPointAssignments": {
+            "offset": "2844",
+            "type": "utl::array<int32_t, 4>"
+        },
+        "m_hControlPointEnts": {
+            "offset": "2864",
+            "type": "utl::array<int32_t, 63>"
+        },
+        "m_iControlPointParents": {
+            "offset": "3116",
+            "type": "utl::array<int32_t, 63>"
+        }
+    },
+    "C_MovieDisplay": {
+        "m_bEnabled": {
+            "offset": "2520",
+            "type": "bool"
+        },
+        "m_bLooping": {
+            "offset": "2521",
+            "type": "bool"
+        },
+        "m_szMovieFilename": {
+            "offset": "2522",
+            "type": "char*"
+        },
+        "m_szGroupName": {
+            "offset": "2650",
+            "type": "char*"
+        },
+        "m_bStretchToFill": {
+            "offset": "2778",
+            "type": "bool"
+        },
+        "m_bForcedSlave": {
+            "offset": "2779",
+            "type": "bool"
+        },
+        "m_bUseCustomUVs": {
+            "offset": "2780",
+            "type": "bool"
+        },
+        "m_flUMin": {
+            "offset": "2784",
+            "type": "float"
+        },
+        "m_flUMax": {
+            "offset": "2788",
+            "type": "float"
+        },
+        "m_flVMin": {
+            "offset": "2792",
+            "type": "float"
+        },
+        "m_flVMax": {
+            "offset": "2796",
+            "type": "float"
+        }
+    },
+    "C_MaterialModifyControl": {
+        "m_szMaterialName": {
+            "offset": "2520",
+            "type": "char*"
+        },
+        "m_szMaterialVar": {
+            "offset": "2775",
+            "type": "char*"
+        },
+        "m_szMaterialVarValue": {
+            "offset": "3030",
+            "type": "char*"
+        },
+        "m_iFrameStart": {
+            "offset": "3296",
+            "type": "int32_t"
+        },
+        "m_iFrameEnd": {
+            "offset": "3300",
+            "type": "int32_t"
+        },
+        "m_bWrap": {
+            "offset": "3304",
+            "type": "bool"
+        },
+        "m_flFramerate": {
+            "offset": "3308",
+            "type": "float"
+        },
+        "m_bNewAnimCommandsSemaphore": {
+            "offset": "3312",
+            "type": "bool"
+        },
+        "m_flFloatLerpStartValue": {
+            "offset": "3316",
+            "type": "float"
+        },
+        "m_flFloatLerpEndValue": {
+            "offset": "3320",
+            "type": "float"
+        },
+        "m_flFloatLerpTransitionTime": {
+            "offset": "3324",
+            "type": "float"
+        },
+        "m_bFloatLerpWrap": {
+            "offset": "3328",
+            "type": "bool"
+        },
+        "m_nModifyMode": {
+            "offset": "3336",
+            "type": "int32_t"
+        }
+    },
+    "C_LightGlow": {
+        "m_clrRender": {
+            "offset": "112",
+            "type": "utl::Color"
+        },
+        "m_nHorizontalSize": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_nVerticalSize": {
+            "offset": "2524",
+            "type": "int32_t"
+        },
+        "m_nMinDist": {
+            "offset": "2528",
+            "type": "int32_t"
+        },
+        "m_nMaxDist": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_nOuterMaxDist": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_spawnflags": {
+            "offset": "2540",
+            "type": "int32_t"
+        },
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "m_angRotation": {
+            "offset": "300",
+            "type": "utl::QAngle"
+        },
+        "moveparent": {
+            "offset": "328",
+            "type": "int32_t"
+        },
+        "m_flGlowProxySize": {
+            "offset": "2756",
+            "type": "float"
+        },
+        "HDRColorScale": {
+            "offset": "0",
+            "type": "float"
+        }
+    },
+    "C_ItemAssaultSuitUseable": {
+        "m_nArmorValue": {
+            "offset": "13376",
+            "type": "int32_t"
+        },
+        "m_bIsHeavyAssaultSuit": {
+            "offset": "13380",
+            "type": "bool"
+        }
+    },
+    "C_Item": {
+        "m_bShouldGlow": {
+            "offset": "12848",
+            "type": "bool"
+        }
+    },
+    "C_InfoOverlayAccessor": {
+        "m_iTextureFrameIndex": {
+            "offset": "2444",
+            "type": "int32_t"
+        },
+        "m_iOverlayID": {
+            "offset": "2520",
+            "type": "int32_t"
+        }
+    },
+    "C_FuncSmokeVolume": {
+        "m_Color1": {
+            "offset": "2756",
+            "type": "int32_t"
+        },
+        "m_Color2": {
+            "offset": "2760",
+            "type": "int32_t"
+        },
+        "m_MaterialName": {
+            "offset": "2764",
+            "type": "char*"
+        },
+        "m_ParticleDrawWidth": {
+            "offset": "3020",
+            "type": "float"
+        },
+        "m_ParticleSpacingDistance": {
+            "offset": "3024",
+            "type": "float"
+        },
+        "m_DensityRampSpeed": {
+            "offset": "3028",
+            "type": "float"
+        },
+        "m_RotationSpeed": {
+            "offset": "3032",
+            "type": "float"
+        },
+        "m_MovementSpeed": {
+            "offset": "3036",
+            "type": "float"
+        },
+        "m_Density": {
+            "offset": "3040",
+            "type": "float"
+        },
+        "m_maxDrawDistance": {
+            "offset": "3044",
+            "type": "float"
+        },
+        "m_spawnflags": {
+            "offset": "3048",
+            "type": "int32_t"
+        },
+        "m_vecMins": {
+            "offset": "808",
+            "type": "utl::Vector"
+        },
+        "m_vecMaxs": {
+            "offset": "820",
+            "type": "utl::Vector"
+        },
+        "m_nSolidType": {
+            "offset": "834",
+            "type": "int32_t"
+        },
+        "m_usSolidFlags": {
+            "offset": "832",
+            "type": "int32_t"
+        },
+        "m_nSurroundType": {
+            "offset": "842",
+            "type": "int32_t"
+        },
+        "m_triggerBloat": {
+            "offset": "835",
+            "type": "int32_t"
+        },
+        "m_vecSpecifiedSurroundingMins": {
+            "offset": "844",
+            "type": "utl::Vector"
+        },
+        "m_vecSpecifiedSurroundingMaxs": {
+            "offset": "856",
+            "type": "utl::Vector"
+        }
+    },
+    "C_FuncRotating": {
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "m_angRotation": {
+            "offset": "300",
+            "type": "utl::QAngle"
+        },
+        "m_flSimulationTime": {
+            "offset": "616",
+            "type": "float"
+        }
+    },
+    "C_FuncOccluder": {
+        "m_bActive": {
+            "offset": "2524",
+            "type": "bool"
+        },
+        "m_nOccluderIndex": {
+            "offset": "2520",
+            "type": "int32_t"
+        }
+    },
+    "C_FuncMoveLinear": {
+        "m_vecVelocity": {
+            "offset": "276",
+            "type": "utl::Vector"
+        },
+        "m_fFlags": {
+            "offset": "260",
+            "type": "int32_t"
+        }
+    },
+    "C_Func_LOD": {
+        "m_nDisappearMinDist": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_nDisappearMaxDist": {
+            "offset": "2524",
+            "type": "int32_t"
+        }
+    },
+    "C_TEDust": {
+        "m_flSize": {
+            "offset": "28",
+            "type": "float"
+        },
+        "m_flSpeed": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_vecDirection": {
+            "offset": "36",
+            "type": "utl::Vector"
+        }
+    },
+    "C_Func_Dust": {
+        "m_Color": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_SpawnRate": {
+            "offset": "2524",
+            "type": "int32_t"
+        },
+        "m_flSizeMin": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_flSizeMax": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_LifetimeMin": {
+            "offset": "2540",
+            "type": "int32_t"
+        },
+        "m_LifetimeMax": {
+            "offset": "2544",
+            "type": "int32_t"
+        },
+        "m_DustFlags": {
+            "offset": "2560",
+            "type": "int32_t"
+        },
+        "m_SpeedMax": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_DistMax": {
+            "offset": "2548",
+            "type": "int32_t"
+        },
+        "m_nModelIndex": {
+            "offset": "600",
+            "type": "int32_t"
+        },
+        "m_FallSpeed": {
+            "offset": "2552",
+            "type": "float"
+        },
+        "m_bAffectedByWind": {
+            "offset": "2556",
+            "type": "bool"
+        },
+        "m_vecMins": {
+            "offset": "808",
+            "type": "utl::Vector"
+        },
+        "m_vecMaxs": {
+            "offset": "820",
+            "type": "utl::Vector"
+        },
+        "m_nSolidType": {
+            "offset": "834",
+            "type": "int32_t"
+        },
+        "m_usSolidFlags": {
+            "offset": "832",
+            "type": "int32_t"
+        },
+        "m_nSurroundType": {
+            "offset": "842",
+            "type": "int32_t"
+        },
+        "m_triggerBloat": {
+            "offset": "835",
+            "type": "int32_t"
+        },
+        "m_vecSpecifiedSurroundingMins": {
+            "offset": "844",
+            "type": "utl::Vector"
+        },
+        "m_vecSpecifiedSurroundingMaxs": {
+            "offset": "856",
+            "type": "utl::Vector"
+        }
+    },
+    "C_FuncConveyor": {
+        "m_flConveyorSpeed": {
+            "offset": "2520",
+            "type": "float"
+        }
+    },
+    "C_BreakableSurface": {
+        "m_nNumWide": {
+            "offset": "2524",
+            "type": "int32_t"
+        },
+        "m_nNumHigh": {
+            "offset": "2528",
+            "type": "int32_t"
+        },
+        "m_flPanelWidth": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_flPanelHeight": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_vNormal": {
+            "offset": "2540",
+            "type": "utl::Vector"
+        },
+        "m_vCorner": {
+            "offset": "2552",
+            "type": "utl::Vector"
+        },
+        "m_bIsBroken": {
+            "offset": "2564",
+            "type": "bool"
+        },
+        "m_nSurfaceType": {
+            "offset": "2568",
+            "type": "int32_t"
+        },
+        "m_RawPanelBitVec": {
+            "offset": "2604",
+            "type": "utl::array<int32_t, 256>"
+        }
+    },
+    "C_FuncAreaPortalWindow": {
+        "m_flFadeStartDist": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_flFadeDist": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_flTranslucencyLimit": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_iBackgroundModelIndex": {
+            "offset": "2532",
+            "type": "int32_t"
+        }
+    },
+    "C_Fish": {
+        "m_poolOrigin": {
+            "offset": "10720",
+            "type": "utl::Vector"
+        },
+        "m_x": {
+            "offset": "10696",
+            "type": "float"
+        },
+        "m_y": {
+            "offset": "10700",
+            "type": "float"
+        },
+        "m_z": {
+            "offset": "10704",
+            "type": "float"
+        },
+        "m_angle": {
+            "offset": "10712",
+            "type": "float"
+        },
+        "m_nModelIndex": {
+            "offset": "600",
+            "type": "int32_t"
+        },
+        "m_lifeState": {
+            "offset": "607",
+            "type": "int32_t"
+        },
+        "m_waterLevel": {
+            "offset": "10732",
+            "type": "float"
+        }
+    },
+    "C_FireSmoke": {
+        "m_flStartScale": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_flScale": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_flScaleTime": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_nFlags": {
+            "offset": "2532",
+            "type": "int32_t"
+        },
+        "m_nFlameModelIndex": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_nFlameFromAboveModelIndex": {
+            "offset": "2540",
+            "type": "int32_t"
+        }
+    },
+    "C_EnvTonemapController": {
+        "m_bUseCustomAutoExposureMin": {
+            "offset": "2520",
+            "type": "bool"
+        },
+        "m_bUseCustomAutoExposureMax": {
+            "offset": "2521",
+            "type": "bool"
+        },
+        "m_bUseCustomBloomScale": {
+            "offset": "2522",
+            "type": "bool"
+        },
+        "m_flCustomAutoExposureMin": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_flCustomAutoExposureMax": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_flCustomBloomScale": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_flCustomBloomScaleMinimum": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flBloomExponent": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_flBloomSaturation": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_flTonemapPercentTarget": {
+            "offset": "2548",
+            "type": "float"
+        },
+        "m_flTonemapPercentBrightPixels": {
+            "offset": "2552",
+            "type": "float"
+        },
+        "m_flTonemapMinAvgLum": {
+            "offset": "2556",
+            "type": "float"
+        },
+        "m_flTonemapRate": {
+            "offset": "2560",
+            "type": "float"
+        }
+    },
+    "C_EnvScreenEffect": {
+        "m_flDuration": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_nType": {
+            "offset": "2524",
+            "type": "int32_t"
+        }
+    },
+    "C_EnvScreenOverlay": {
+        "m_iszOverlayNames": {
+            "offset": "0",
+            "type": "utl::array<char*, 10>"
+        },
+        "m_flOverlayTimes": {
+            "offset": "0",
+            "type": "utl::array<float, 10>"
+        },
+        "m_flStartTime": {
+            "offset": "5112",
+            "type": "float"
+        },
+        "m_iDesiredOverlay": {
+            "offset": "5116",
+            "type": "int32_t"
+        },
+        "m_bIsActive": {
+            "offset": "5120",
+            "type": "bool"
+        }
+    },
+    "C_EnvProjectedTexture": {
+        "m_hTargetEntity": {
+            "offset": "2524",
+            "type": "CBaseHandle"
+        },
+        "m_bState": {
+            "offset": "2528",
+            "type": "bool"
+        },
+        "m_bAlwaysUpdate": {
+            "offset": "2529",
+            "type": "bool"
+        },
+        "m_flLightFOV": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_bEnableShadows": {
+            "offset": "2536",
+            "type": "bool"
+        },
+        "m_bSimpleProjection": {
+            "offset": "2537",
+            "type": "bool"
+        },
+        "m_bLightOnlyTarget": {
+            "offset": "2538",
+            "type": "bool"
+        },
+        "m_bLightWorld": {
+            "offset": "2539",
+            "type": "bool"
+        },
+        "m_bCameraSpace": {
+            "offset": "2540",
+            "type": "bool"
+        },
+        "m_flBrightnessScale": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_LightColor": {
+            "offset": "2548",
+            "type": "int32_t"
+        },
+        "m_flColorTransitionTime": {
+            "offset": "2568",
+            "type": "float"
+        },
+        "m_flAmbient": {
+            "offset": "2572",
+            "type": "float"
+        },
+        "m_SpotlightTextureName": {
+            "offset": "2584",
+            "type": "char*"
+        },
+        "m_nSpotlightTextureFrame": {
+            "offset": "2852",
+            "type": "int32_t"
+        },
+        "m_flNearZ": {
+            "offset": "2576",
+            "type": "float"
+        },
+        "m_flFarZ": {
+            "offset": "2580",
+            "type": "float"
+        },
+        "m_nShadowQuality": {
+            "offset": "2856",
+            "type": "int32_t"
+        },
+        "m_flProjectionSize": {
+            "offset": "2872",
+            "type": "float"
+        },
+        "m_flRotation": {
+            "offset": "2876",
+            "type": "float"
+        },
+        "m_iStyle": {
+            "offset": "2860",
+            "type": "int32_t"
+        }
+    },
+    "C_EnvParticleScript": {
+        "m_flSequenceScale": {
+            "offset": "10852",
+            "type": "float"
+        }
+    },
+    "C_EnvDOFController": {
+        "m_bDOFEnabled": {
+            "offset": "2520",
+            "type": "bool"
+        },
+        "m_flNearBlurDepth": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_flNearFocusDepth": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_flFarFocusDepth": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_flFarBlurDepth": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flNearBlurRadius": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_flFarBlurRadius": {
+            "offset": "2544",
+            "type": "float"
+        }
+    },
+    "C_CascadeLight": {
+        "m_shadowDirection": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_envLightShadowDirection": {
+            "offset": "2532",
+            "type": "utl::Vector"
+        },
+        "m_bEnabled": {
+            "offset": "2544",
+            "type": "bool"
+        },
+        "m_bUseLightEnvAngles": {
+            "offset": "2545",
+            "type": "bool"
+        },
+        "m_LightColor": {
+            "offset": "2546",
+            "type": "int32_t"
+        },
+        "m_LightColorScale": {
+            "offset": "2552",
+            "type": "int32_t"
+        },
+        "m_flMaxShadowDist": {
+            "offset": "2556",
+            "type": "float"
+        }
+    },
+    "C_EnvAmbientLight": {
+        "m_vecColor": {
+            "offset": "2816",
+            "type": "utl::Vector"
+        }
+    },
+    "C_EntityParticleTrail": {
+        "m_iMaterialName": {
+            "offset": "2752",
+            "type": "int32_t"
+        },
+        "m_flLifetime": {
+            "offset": "2764",
+            "type": "float"
+        },
+        "m_flStartSize": {
+            "offset": "2768",
+            "type": "float"
+        },
+        "m_flEndSize": {
+            "offset": "2772",
+            "type": "float"
+        },
+        "m_hConstraintEntity": {
+            "offset": "2776",
+            "type": "CBaseHandle"
+        }
+    },
+    "C_EntityFreezing": {
+        "m_vFreezingOrigin": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_flFrozenPerHitbox": {
+            "offset": "2532",
+            "type": "utl::array<float, 50>"
+        },
+        "m_flFrozen": {
+            "offset": "2732",
+            "type": "float"
+        },
+        "m_bFinishFreezing": {
+            "offset": "2736",
+            "type": "bool"
+        }
+    },
+    "C_EntityFlame": {
+        "m_hEntAttached": {
+            "offset": "2520",
+            "type": "CBaseHandle"
+        },
+        "m_bCheapEffect": {
+            "offset": "2540",
+            "type": "bool"
+        }
+    },
+    "C_EntityDissolve": {
+        "m_flStartTime": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_flFadeOutStart": {
+            "offset": "2528",
+            "type": "float"
+        },
+        "m_flFadeOutLength": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_flFadeOutModelStart": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flFadeOutModelLength": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_flFadeInStart": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_flFadeInLength": {
+            "offset": "2548",
+            "type": "float"
+        },
+        "m_nDissolveType": {
+            "offset": "2552",
+            "type": "int32_t"
+        },
+        "m_vDissolverOrigin": {
+            "offset": "2560",
+            "type": "utl::Vector"
+        },
+        "m_nMagnitude": {
+            "offset": "2572",
+            "type": "int32_t"
+        }
+    },
+    "C_DynamicLight": {
+        "m_Flags": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_LightStyle": {
+            "offset": "2521",
+            "type": "int32_t"
+        },
+        "m_Radius": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_Exponent": {
+            "offset": "2528",
+            "type": "int32_t"
+        },
+        "m_InnerAngle": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_OuterAngle": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_SpotRadius": {
+            "offset": "2540",
+            "type": "float"
+        }
+    },
+    "C_ColorCorrectionVolume": {
+        "m_bEnabled": {
+            "offset": "2592",
+            "type": "bool"
+        },
+        "m_MaxWeight": {
+            "offset": "2596",
+            "type": "float"
+        },
+        "m_FadeDuration": {
+            "offset": "2600",
+            "type": "float"
+        },
+        "m_Weight": {
+            "offset": "2604",
+            "type": "float"
+        },
+        "m_lookupFilename": {
+            "offset": "2608",
+            "type": "char*"
+        }
+    },
+    "C_ColorCorrection": {
+        "m_vecOrigin": {
+            "offset": "2520",
+            "type": "utl::Vector"
+        },
+        "m_minFalloff": {
+            "offset": "2532",
+            "type": "float"
+        },
+        "m_maxFalloff": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flCurWeight": {
+            "offset": "2552",
+            "type": "float"
+        },
+        "m_flMaxWeight": {
+            "offset": "2548",
+            "type": "float"
+        },
+        "m_flFadeInDuration": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_flFadeOutDuration": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_netLookupFilename": {
+            "offset": "2556",
+            "type": "char*"
+        },
+        "m_bEnabled": {
+            "offset": "2816",
+            "type": "bool"
+        },
+        "m_bMaster": {
+            "offset": "2817",
+            "type": "bool"
+        },
+        "m_bClientSide": {
+            "offset": "2818",
+            "type": "bool"
+        },
+        "m_bExclusive": {
+            "offset": "2819",
+            "type": "bool"
+        }
+    },
+    "C_BreakableProp": {
+        "m_qPreferredPlayerCarryAngles": {
+            "offset": "10628",
+            "type": "utl::QAngle"
+        },
+        "m_bClientPhysics": {
+            "offset": "10640",
+            "type": "bool"
+        }
+    },
+    "C_BeamSpotlight": {
+        "m_nHaloIndex": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_bSpotlightOn": {
+            "offset": "2532",
+            "type": "bool"
+        },
+        "m_bHasDynamicLight": {
+            "offset": "2533",
+            "type": "bool"
+        },
+        "m_flSpotlightMaxLength": {
+            "offset": "2536",
+            "type": "float"
+        },
+        "m_flSpotlightGoalWidth": {
+            "offset": "2540",
+            "type": "float"
+        },
+        "m_flHDRColorScale": {
+            "offset": "2544",
+            "type": "float"
+        },
+        "m_nRotationAxis": {
+            "offset": "2524",
+            "type": "int32_t"
+        },
+        "m_flRotationSpeed": {
+            "offset": "2528",
+            "type": "float"
+        }
+    },
+    "C_BaseButton": {
+        "m_usable": {
+            "offset": "2568",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseToggle": {
+        "m_vecFinalDest": {
+            "offset": "2540",
+            "type": "utl::Vector"
+        },
+        "m_movementType": {
+            "offset": "2552",
+            "type": "int32_t"
+        },
+        "m_flMoveTargetTime": {
+            "offset": "2556",
+            "type": "float"
+        }
+    },
+    "C_BasePlayer": {
+        "m_chAreaBits": {
+            "offset": "12224",
+            "type": "utl::array<int32_t, 32>"
+        },
+        "m_chAreaPortalBits": {
+            "offset": "12256",
+            "type": "utl::array<int32_t, 24>"
+        },
+        "m_iHideHUD": {
+            "offset": "12292",
+            "type": "int32_t"
+        },
+        "m_flFOVRate": {
+            "offset": "12288",
+            "type": "float"
+        },
+        "m_bDucked": {
+            "offset": "12356",
+            "type": "bool"
+        },
+        "m_bDucking": {
+            "offset": "12357",
+            "type": "bool"
+        },
+        "m_flLastDuckTime": {
+            "offset": "12360",
+            "type": "float"
+        },
+        "m_bInDuckJump": {
+            "offset": "12364",
+            "type": "bool"
+        },
+        "m_nDuckTimeMsecs": {
+            "offset": "12296",
+            "type": "int32_t"
+        },
+        "m_nDuckJumpTimeMsecs": {
+            "offset": "12300",
+            "type": "int32_t"
+        },
+        "m_nJumpTimeMsecs": {
+            "offset": "12304",
+            "type": "int32_t"
+        },
+        "m_flFallVelocity": {
+            "offset": "12308",
+            "type": "float"
+        },
+        "m_viewPunchAngle": {
+            "offset": "12320",
+            "type": "utl::Vector"
+        },
+        "m_aimPunchAngle": {
+            "offset": "12332",
+            "type": "utl::Vector"
+        },
+        "m_aimPunchAngleVel": {
+            "offset": "12344",
+            "type": "utl::Vector"
+        },
+        "m_bDrawViewmodel": {
+            "offset": "12365",
+            "type": "bool"
+        },
+        "m_bWearingSuit": {
+            "offset": "12366",
+            "type": "bool"
+        },
+        "m_bPoisoned": {
+            "offset": "12367",
+            "type": "bool"
+        },
+        "m_flStepSize": {
+            "offset": "12316",
+            "type": "float"
+        },
+        "m_bAllowAutoMovement": {
+            "offset": "12368",
+            "type": "bool"
+        },
+        "m_vecViewOffset": {
+            "offset": "264",
+            "type": "utl::Vector"
+        },
+        "m_flFriction": {
+            "offset": "324",
+            "type": "float"
+        },
+        "m_fOnTarget": {
+            "offset": "13092",
+            "type": "int32_t"
+        },
+        "m_nTickBase": {
+            "offset": "13360",
+            "type": "int32_t"
+        },
+        "m_nNextThinkTick": {
+            "offset": "252",
+            "type": "int32_t"
+        },
+        "m_hLastWeapon": {
+            "offset": "13044",
+            "type": "CBaseHandle"
+        },
+        "m_vecVelocity": {
+            "offset": "276",
+            "type": "utl::Vector"
+        },
+        "m_vecBaseVelocity": {
+            "offset": "288",
+            "type": "utl::Vector"
+        },
+        "m_hConstraintEntity": {
+            "offset": "13124",
+            "type": "CBaseHandle"
+        },
+        "m_vecConstraintCenter": {
+            "offset": "13128",
+            "type": "utl::Vector"
+        },
+        "m_flConstraintRadius": {
+            "offset": "13140",
+            "type": "float"
+        },
+        "m_flConstraintWidth": {
+            "offset": "13144",
+            "type": "float"
+        },
+        "m_flConstraintSpeedFactor": {
+            "offset": "13148",
+            "type": "float"
+        },
+        "m_bConstraintPastRadius": {
+            "offset": "13152",
+            "type": "bool"
+        },
+        "m_flDeathTime": {
+            "offset": "13252",
+            "type": "float"
+        },
+        "m_flNextDecalTime": {
+            "offset": "13256",
+            "type": "float"
+        },
+        "m_fForceTeam": {
+            "offset": "13260",
+            "type": "float"
+        },
+        "m_flLaggedMovementValue": {
+            "offset": "13716",
+            "type": "float"
+        },
+        "m_hTonemapController": {
+            "offset": "12748",
+            "type": "CBaseHandle"
+        },
+        "deadflag": {
+            "offset": "12756",
+            "type": "int32_t"
+        },
+        "m_iFOV": {
+            "offset": "12772",
+            "type": "int32_t"
+        },
+        "m_iFOVStart": {
+            "offset": "12776",
+            "type": "int32_t"
+        },
+        "m_flFOVTime": {
+            "offset": "12808",
+            "type": "float"
+        },
+        "m_iDefaultFOV": {
+            "offset": "13100",
+            "type": "int32_t"
+        },
+        "m_hZoomOwner": {
+            "offset": "12876",
+            "type": "CBaseHandle"
+        },
+        "m_afPhysicsFlags": {
+            "offset": "13036",
+            "type": "int32_t"
+        },
+        "m_hVehicle": {
+            "offset": "13040",
+            "type": "CBaseHandle"
+        },
+        "m_hUseEntity": {
+            "offset": "13096",
+            "type": "CBaseHandle"
+        },
+        "m_hGroundEntity": {
+            "offset": "336",
+            "type": "CBaseHandle"
+        },
+        "m_iHealth": {
+            "offset": "256",
+            "type": "int32_t"
+        },
+        "m_lifeState": {
+            "offset": "607",
+            "type": "int32_t"
+        },
+        "m_iAmmo": {
+            "offset": "11640",
+            "type": "utl::array<int32_t, 32>"
+        },
+        "m_iBonusProgress": {
+            "offset": "12864",
+            "type": "int32_t"
+        },
+        "m_iBonusChallenge": {
+            "offset": "12868",
+            "type": "int32_t"
+        },
+        "m_flMaxspeed": {
+            "offset": "12872",
+            "type": "float"
+        },
+        "m_fFlags": {
+            "offset": "260",
+            "type": "int32_t"
+        },
+        "m_iObserverMode": {
+            "offset": "13176",
+            "type": "int32_t"
+        },
+        "m_bActiveCameraMan": {
+            "offset": "13180",
+            "type": "bool"
+        },
+        "m_bCameraManXRay": {
+            "offset": "13181",
+            "type": "bool"
+        },
+        "m_bCameraManOverview": {
+            "offset": "13182",
+            "type": "bool"
+        },
+        "m_bCameraManScoreBoard": {
+            "offset": "13183",
+            "type": "bool"
+        },
+        "m_uCameraManGraphs": {
+            "offset": "13184",
+            "type": "int32_t"
+        },
+        "m_iDeathPostEffect": {
+            "offset": "13172",
+            "type": "int32_t"
+        },
+        "m_hObserverTarget": {
+            "offset": "13196",
+            "type": "CBaseHandle"
+        },
+        "m_hViewModel": {
+            "offset": "0",
+            "type": "utl::array<CBaseHandle, 3>"
+        },
+        "m_iCoachingTeam": {
+            "offset": "12112",
+            "type": "int32_t"
+        },
+        "m_szLastPlaceName": {
+            "offset": "13748",
+            "type": "char*"
+        },
+        "m_vecLadderNormal": {
+            "offset": "12848",
+            "type": "utl::Vector"
+        },
+        "m_ladderSurfaceProps": {
+            "offset": "12800",
+            "type": "int32_t"
+        },
+        "m_ubEFNoInterpParity": {
+            "offset": "13784",
+            "type": "int32_t"
+        },
+        "m_hPostProcessCtrl": {
+            "offset": "14248",
+            "type": "CBaseHandle"
+        },
+        "m_hColorCorrectionCtrl": {
+            "offset": "14252",
+            "type": "CBaseHandle"
+        },
+        "m_vphysicsCollisionState": {
+            "offset": "12892",
+            "type": "int32_t"
+        },
+        "m_hViewEntity": {
+            "offset": "13116",
+            "type": "CBaseHandle"
+        },
+        "m_bShouldDrawPlayerWhileUsingViewEntity": {
+            "offset": "13120",
+            "type": "bool"
+        },
+        "m_flDuckAmount": {
+            "offset": "12204",
+            "type": "float"
+        },
+        "m_flDuckSpeed": {
+            "offset": "12208",
+            "type": "float"
+        },
+        "m_nWaterLevel": {
+            "offset": "606",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseFlex": {
+        "m_flexWeight": {
+            "offset": "10792",
+            "type": "utl::array<float, 96>"
+        },
+        "m_blinktoggle": {
+            "offset": "11220",
+            "type": "int32_t"
+        },
+        "m_viewtarget": {
+            "offset": "10736",
+            "type": "utl::Vector"
+        }
+    },
+    "C_BaseEntity": {
+        "m_flAnimTime": {
+            "offset": "608",
+            "type": "float"
+        },
+        "m_flSimulationTime": {
+            "offset": "616",
+            "type": "float"
+        },
+        "m_cellbits": {
+            "offset": "116",
+            "type": "int32_t"
+        },
+        "m_cellX": {
+            "offset": "124",
+            "type": "int32_t"
+        },
+        "m_cellY": {
+            "offset": "128",
+            "type": "int32_t"
+        },
+        "m_cellZ": {
+            "offset": "132",
+            "type": "int32_t"
+        },
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "m_angRotation": {
+            "offset": "300",
+            "type": "utl::QAngle"
+        },
+        "m_nModelIndex": {
+            "offset": "600",
+            "type": "int16_t"
+        },
+        "m_fEffects": {
+            "offset": "240",
+            "type": "int32_t"
+        },
+        "m_nRenderMode": {
+            "offset": "603",
+            "type": "int8_t"
+        },
+        "m_nRenderFX": {
+            "offset": "602",
+            "type": "int8_t"
+        },
+        "m_clrRender": {
+            "offset": "112",
+            "type": "utl::Color"
+        },
+        "m_iTeamNum": {
+            "offset": "244",
+            "type": "int32_t"
+        },
+        "m_iPendingTeamNum": {
+            "offset": "248",
+            "type": "int32_t"
+        },
+        "m_CollisionGroup": {
+            "offset": "1140",
+            "type": "int32_t"
+        },
+        "m_flElasticity": {
+            "offset": "768",
+            "type": "float"
+        },
+        "m_flShadowCastDistance": {
+            "offset": "928",
+            "type": "float"
+        },
+        "m_hOwnerEntity": {
+            "offset": "332",
+            "type": "CBaseHandle"
+        },
+        "m_hEffectEntity": {
+            "offset": "2456",
+            "type": "CBaseHandle"
+        },
+        "moveparent": {
+            "offset": "328",
+            "type": "int32_t"
+        },
+        "m_iParentAttachment": {
+            "offset": "748",
+            "type": "int32_t"
+        },
+        "m_iName": {
+            "offset": "340",
+            "type": "char*"
+        },
+        "movetype": {
+            "offset": "0",
+            "type": "int32_t"
+        },
+        "movecollide": {
+            "offset": "0",
+            "type": "int32_t"
+        },
+        "m_vecMins": {
+            "offset": "808",
+            "type": "utl::Vector"
+        },
+        "m_vecMaxs": {
+            "offset": "820",
+            "type": "utl::Vector"
+        },
+        "m_nSolidType": {
+            "offset": "834",
+            "type": "int32_t"
+        },
+        "m_usSolidFlags": {
+            "offset": "832",
+            "type": "int32_t"
+        },
+        "m_nSurroundType": {
+            "offset": "842",
+            "type": "int32_t"
+        },
+        "m_triggerBloat": {
+            "offset": "835",
+            "type": "int32_t"
+        },
+        "m_vecSpecifiedSurroundingMins": {
+            "offset": "844",
+            "type": "utl::Vector"
+        },
+        "m_vecSpecifiedSurroundingMaxs": {
+            "offset": "856",
+            "type": "utl::Vector"
+        },
+        "m_iTextureFrameIndex": {
+            "offset": "2444",
+            "type": "int32_t"
+        },
+        "m_bSimulatedEveryTick": {
+            "offset": "2362",
+            "type": "bool"
+        },
+        "m_bAnimatedEveryTick": {
+            "offset": "2363",
+            "type": "bool"
+        },
+        "m_bAlternateSorting": {
+            "offset": "2364",
+            "type": "bool"
+        },
+        "m_bSpotted": {
+            "offset": "2365",
+            "type": "bool"
+        },
+        "m_bSpottedBy": {
+            "offset": "2366",
+            "type": "utl::array<int32_t, 65>"
+        },
+        "m_bSpottedByMask": {
+            "offset": "2432",
+            "type": "utl::array<int32_t, 2>"
+        },
+        "m_bIsAutoaimTarget": {
+            "offset": "96",
+            "type": "bool"
+        },
+        "m_fadeMinDist": {
+            "offset": "756",
+            "type": "float"
+        },
+        "m_fadeMaxDist": {
+            "offset": "760",
+            "type": "float"
+        },
+        "m_flFadeScale": {
+            "offset": "764",
+            "type": "float"
+        },
+        "m_nMinCPULevel": {
+            "offset": "2440",
+            "type": "int32_t"
+        },
+        "m_nMaxCPULevel": {
+            "offset": "2441",
+            "type": "int32_t"
+        },
+        "m_nMinGPULevel": {
+            "offset": "2442",
+            "type": "int32_t"
+        },
+        "m_nMaxGPULevel": {
+            "offset": "2443",
+            "type": "int32_t"
+        },
+        "m_flUseLookAtAngle": {
+            "offset": "716",
+            "type": "float"
+        },
+        "m_flLastMadeNoiseTime": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_flMaxFallVelocity": {
+            "offset": "220",
+            "type": "float"
+        },
+        "m_bEligibleForScreenHighlight": {
+            "offset": "2489",
+            "type": "bool"
+        },
+        "m_ModelName": {
+            "offset": "796",
+            "type": "char*"
+        },
+        "m_vecAbsOrigin": {
+            "offset": "160",
+            "type": "utl::Vector"
+        },
+        "m_angAbsRotation": {
+            "offset": "196",
+            "type": "utl::QAngle"
+        },
+        "m_rgflCoordinateFrame": {
+            "offset": "1092",
+            "type": "float"
+        },
+        "m_fFlags": {
+            "offset": "260",
+            "type": "int32_t"
+        },
+        "m_MoveType": {
+            "offset": "604",
+            "type": "int8_t"
+        },
+        "m_MoveCollide": {
+            "offset": "605",
+            "type": "int8_t"
+        },
+        "m_vecAbsVelocity": {
+            "offset": "148",
+            "type": "utl::Vector"
+        },
+        "m_vecVelocity": {
+            "offset": "276",
+            "type": "utl::Vector"
+        },
+        "m_vecViewOffset": {
+            "offset": "264",
+            "type": "utl::Vector"
+        },
+        "m_flFriction": {
+            "offset": "324",
+            "type": "float"
+        },
+        "m_iHealth": {
+            "offset": "256",
+            "type": "int32_t"
+        },
+        "m_hNetworkMoveParent": {
+            "offset": "328",
+            "type": "void*"
+        },
+        "m_vecNetworkOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "m_angNetworkAngles": {
+            "offset": "300",
+            "type": "utl::QAngle"
+        },
+        "m_hGroundEntity": {
+            "offset": "336",
+            "type": "void*"
+        },
+        "m_nWaterLevel": {
+            "offset": "606",
+            "type": "int8_t"
+        },
+        "m_nWaterType": {
+            "offset": "236",
+            "type": "int8_t"
+        },
+        "m_vecAngVelocity": {
+            "offset": "184",
+            "type": "utl::Vector"
+        },
+        "m_vecBaseVelocity": {
+            "offset": "288",
+            "type": "utl::Vector"
+        },
+        "m_iEFlags": {
+            "offset": "232",
+            "type": "int32_t"
+        },
+        "m_flGravity": {
+            "offset": "224",
+            "type": "float"
+        },
+        "m_flProxyRandomValue": {
+            "offset": "228",
+            "type": "float"
+        },
+        "m_bEverHadPredictionErrorsForThisCommand": {
+            "offset": "2360",
+            "type": "bool"
+        }
+    },
+    "C_BaseDoor": {
+        "m_flWaveHeight": {
+            "offset": "2568",
+            "type": "float"
+        }
+    },
+    "C_BaseCombatCharacter": {
+        "m_flNextAttack": {
+            "offset": "11632",
+            "type": "float"
+        },
+        "m_hMyWeapons": {
+            "offset": "11768",
+            "type": "utl::array<int32_t, 64>"
+        },
+        "m_LastHitGroup": {
+            "offset": "11636",
+            "type": "int32_t"
+        },
+        "m_hActiveWeapon": {
+            "offset": "12024",
+            "type": "CBaseHandle"
+        },
+        "m_flTimeOfLastInjury": {
+            "offset": "12028",
+            "type": "float"
+        },
+        "m_nRelativeDirectionOfLastInjury": {
+            "offset": "12032",
+            "type": "int32_t"
+        },
+        "m_hMyWearables": {
+            "offset": "12036",
+            "type": "utl::array<int32_t, 1>"
+        }
+    },
+    "C_BaseAnimatingOverlay": {
+        "m_AnimOverlay": {
+            "offset": "0",
+            "type": "utl::array<_ST_m_AnimOverlay_15, 15>"
+        }
+    },
+    "_ST_m_AnimOverlay_15": {
+        "m_nSequence": {
+            "offset": "24",
+            "type": "int32_t"
+        },
+        "m_flCycle": {
+            "offset": "44",
+            "type": "float"
+        },
+        "m_flPlaybackRate": {
+            "offset": "40",
+            "type": "float"
+        },
+        "m_flPrevCycle": {
+            "offset": "28",
+            "type": "float"
+        },
+        "m_flWeight": {
+            "offset": "32",
+            "type": "float"
+        },
+        "m_flWeightDeltaRate": {
+            "offset": "36",
+            "type": "float"
+        },
+        "m_nOrder": {
+            "offset": "20",
+            "type": "int32_t"
+        }
+    },
+    "C_BoneFollower": {
+        "m_modelIndex": {
+            "offset": "2520",
+            "type": "int32_t"
+        },
+        "m_solidIndex": {
+            "offset": "2524",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseAnimating": {
+        "m_nSequence": {
+            "offset": "10428",
+            "type": "int32_t"
+        },
+        "m_nForceBone": {
+            "offset": "9868",
+            "type": "int32_t"
+        },
+        "m_vecForce": {
+            "offset": "9856",
+            "type": "utl::Vector"
+        },
+        "m_nSkin": {
+            "offset": "2588",
+            "type": "int32_t"
+        },
+        "m_nBody": {
+            "offset": "2592",
+            "type": "int32_t"
+        },
+        "m_nHitboxSet": {
+            "offset": "2556",
+            "type": "int32_t"
+        },
+        "m_flModelScale": {
+            "offset": "10056",
+            "type": "float"
+        },
+        "m_flPoseParameter": {
+            "offset": "10100",
+            "type": "utl::array<float, 24>"
+        },
+        "m_flPlaybackRate": {
+            "offset": "2584",
+            "type": "float"
+        },
+        "m_flEncodedController": {
+            "offset": "2644",
+            "type": "utl::array<float, 4>"
+        },
+        "m_bClientSideAnimation": {
+            "offset": "10396",
+            "type": "bool"
+        },
+        "m_bClientSideFrameReset": {
+            "offset": "9920",
+            "type": "bool"
+        },
+        "m_bClientSideRagdoll": {
+            "offset": "633",
+            "type": "bool"
+        },
+        "m_nNewSequenceParity": {
+            "offset": "2628",
+            "type": "int32_t"
+        },
+        "m_nResetEventsParity": {
+            "offset": "2632",
+            "type": "int32_t"
+        },
+        "m_nMuzzleFlashParity": {
+            "offset": "2660",
+            "type": "int32_t"
+        },
+        "m_hLightingOrigin": {
+            "offset": "10564",
+            "type": "CBaseHandle"
+        },
+        "m_flCycle": {
+            "offset": "2580",
+            "type": "float"
+        },
+        "m_flFrozen": {
+            "offset": "9976",
+            "type": "float"
+        },
+        "m_ScaleType": {
+            "offset": "10060",
+            "type": "int32_t"
+        },
+        "m_bSuppressAnimSounds": {
+            "offset": "10570",
+            "type": "bool"
+        },
+        "m_nHighlightColorR": {
+            "offset": "2616",
+            "type": "int32_t"
+        },
+        "m_nHighlightColorG": {
+            "offset": "2620",
+            "type": "int32_t"
+        },
+        "m_nHighlightColorB": {
+            "offset": "2624",
+            "type": "int32_t"
+        }
+    },
+    "C_AI_BaseNPC": {
+        "m_lifeState": {
+            "offset": "607",
+            "type": "int32_t"
+        },
+        "m_bPerformAvoidance": {
+            "offset": "12068",
+            "type": "bool"
+        },
+        "m_bIsMoving": {
+            "offset": "12069",
+            "type": "bool"
+        },
+        "m_bFadeCorpse": {
+            "offset": "12070",
+            "type": "bool"
+        },
+        "m_iDeathPose": {
+            "offset": "12052",
+            "type": "int32_t"
+        },
+        "m_iDeathFrame": {
+            "offset": "12056",
+            "type": "int32_t"
+        },
+        "m_iSpeedModRadius": {
+            "offset": "12060",
+            "type": "int32_t"
+        },
+        "m_iSpeedModSpeed": {
+            "offset": "12064",
+            "type": "int32_t"
+        },
+        "m_bSpeedModActive": {
+            "offset": "12071",
+            "type": "bool"
+        },
+        "m_bImportanRagdoll": {
+            "offset": "12072",
+            "type": "bool"
+        },
+        "m_flTimePingEffect": {
+            "offset": "12048",
+            "type": "float"
+        }
+    },
+    "C_Beam": {
+        "m_nBeamType": {
+            "offset": "2548",
+            "type": "int32_t"
+        },
+        "m_nBeamFlags": {
+            "offset": "2552",
+            "type": "int32_t"
+        },
+        "m_nNumBeamEnts": {
+            "offset": "2536",
+            "type": "int32_t"
+        },
+        "m_hAttachEntity": {
+            "offset": "2556",
+            "type": "utl::array<int32_t, 10>"
+        },
+        "m_nAttachIndex": {
+            "offset": "2596",
+            "type": "utl::array<int32_t, 10>"
+        },
+        "m_nHaloIndex": {
+            "offset": "2544",
+            "type": "int32_t"
+        },
+        "m_fHaloScale": {
+            "offset": "2648",
+            "type": "float"
+        },
+        "m_fWidth": {
+            "offset": "2636",
+            "type": "float"
+        },
+        "m_fEndWidth": {
+            "offset": "2640",
+            "type": "float"
+        },
+        "m_fFadeLength": {
+            "offset": "2644",
+            "type": "float"
+        },
+        "m_fAmplitude": {
+            "offset": "2652",
+            "type": "float"
+        },
+        "m_fStartFrame": {
+            "offset": "2656",
+            "type": "float"
+        },
+        "m_fSpeed": {
+            "offset": "2660",
+            "type": "float"
+        },
+        "m_flFrameRate": {
+            "offset": "2520",
+            "type": "float"
+        },
+        "m_flHDRColorScale": {
+            "offset": "2524",
+            "type": "float"
+        },
+        "m_clrRender": {
+            "offset": "112",
+            "type": "utl::Color"
+        },
+        "m_nRenderFX": {
+            "offset": "602",
+            "type": "int32_t"
+        },
+        "m_nRenderMode": {
+            "offset": "603",
+            "type": "int32_t"
+        },
+        "m_flFrame": {
+            "offset": "2664",
+            "type": "float"
+        },
+        "m_nClipStyle": {
+            "offset": "2668",
+            "type": "int32_t"
+        },
+        "m_vecEndPos": {
+            "offset": "2672",
+            "type": "utl::Vector"
+        },
+        "m_nModelIndex": {
+            "offset": "600",
+            "type": "int32_t"
+        },
+        "m_vecOrigin": {
+            "offset": "312",
+            "type": "utl::Vector"
+        },
+        "moveparent": {
+            "offset": "328",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseViewModel": {
+        "m_nModelIndex": {
+            "offset": "600",
+            "type": "int32_t"
+        },
+        "m_hWeapon": {
+            "offset": "10696",
+            "type": "CBaseHandle"
+        },
+        "m_nSkin": {
+            "offset": "2588",
+            "type": "int32_t"
+        },
+        "m_nBody": {
+            "offset": "2592",
+            "type": "int32_t"
+        },
+        "m_nSequence": {
+            "offset": "10428",
+            "type": "int32_t"
+        },
+        "m_nViewModelIndex": {
+            "offset": "10688",
+            "type": "int32_t"
+        },
+        "m_flPlaybackRate": {
+            "offset": "2584",
+            "type": "float"
+        },
+        "m_fEffects": {
+            "offset": "240",
+            "type": "int32_t"
+        },
+        "m_nAnimationParity": {
+            "offset": "10692",
+            "type": "int32_t"
+        },
+        "m_hOwner": {
+            "offset": "10700",
+            "type": "CBaseHandle"
+        },
+        "m_nNewSequenceParity": {
+            "offset": "2628",
+            "type": "int32_t"
+        },
+        "m_nResetEventsParity": {
+            "offset": "2632",
+            "type": "int32_t"
+        },
+        "m_nMuzzleFlashParity": {
+            "offset": "2660",
+            "type": "int32_t"
+        },
+        "m_bShouldIgnoreOffsetAndAccuracy": {
+            "offset": "10640",
+            "type": "bool"
+        }
+    },
+    "C_BaseGrenade": {
+        "m_flDamage": {
+            "offset": "10648",
+            "type": "float"
+        },
+        "m_DmgRadius": {
+            "offset": "10628",
+            "type": "float"
+        },
+        "m_bIsLive": {
+            "offset": "10625",
+            "type": "bool"
+        },
+        "m_hThrower": {
+            "offset": "10656",
+            "type": "CBaseHandle"
+        },
+        "m_vecVelocity": {
+            "offset": "276",
+            "type": "utl::Vector"
+        },
+        "m_fFlags": {
+            "offset": "260",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseCombatWeapon": {
+        "m_iPrimaryAmmoType": {
+            "offset": "12892",
+            "type": "int32_t"
+        },
+        "m_iSecondaryAmmoType": {
+            "offset": "12896",
+            "type": "int32_t"
+        },
+        "m_nViewModelIndex": {
+            "offset": "12852",
+            "type": "int32_t"
+        },
+        "m_bFlipViewModel": {
+            "offset": "12996",
+            "type": "bool"
+        },
+        "m_iWeaponOrigin": {
+            "offset": "13000",
+            "type": "int32_t"
+        },
+        "m_iWeaponModule": {
+            "offset": "12876",
+            "type": "int32_t"
+        },
+        "m_flNextPrimaryAttack": {
+            "offset": "12856",
+            "type": "float"
+        },
+        "m_flNextSecondaryAttack": {
+            "offset": "12860",
+            "type": "float"
+        },
+        "m_nNextThinkTick": {
+            "offset": "252",
+            "type": "int32_t"
+        },
+        "m_flTimeWeaponIdle": {
+            "offset": "12916",
+            "type": "float"
+        },
+        "m_iViewModelIndex": {
+            "offset": "12864",
+            "type": "int32_t"
+        },
+        "m_iWorldModelIndex": {
+            "offset": "12868",
+            "type": "int32_t"
+        },
+        "m_iWorldDroppedModelIndex": {
+            "offset": "12872",
+            "type": "int32_t"
+        },
+        "m_iState": {
+            "offset": "12888",
+            "type": "int32_t"
+        },
+        "m_hOwner": {
+            "offset": "12848",
+            "type": "CBaseHandle"
+        },
+        "m_iClip1": {
+            "offset": "12900",
+            "type": "int32_t"
+        },
+        "m_iClip2": {
+            "offset": "12904",
+            "type": "int32_t"
+        },
+        "m_iPrimaryReserveAmmoCount": {
+            "offset": "12908",
+            "type": "int32_t"
+        },
+        "m_iSecondaryReserveAmmoCount": {
+            "offset": "12912",
+            "type": "int32_t"
+        },
+        "m_hWeaponWorldModel": {
+            "offset": "12884",
+            "type": "CBaseHandle"
+        },
+        "m_iNumEmptyAttacks": {
+            "offset": "12880",
+            "type": "int32_t"
+        }
+    },
+    "C_BaseWeaponWorldModel": {
+        "m_nModelIndex": {
+            "offset": "600",
+            "type": "int32_t"
+        },
+        "m_nBody": {
+            "offset": "2592",
+            "type": "int32_t"
+        },
+        "m_fEffects": {
+            "offset": "240",
+            "type": "int32_t"
+        },
+        "moveparent": {
+            "offset": "328",
+            "type": "int32_t"
+        },
+        "m_hCombatWeaponParent": {
+            "offset": "10736",
+            "type": "CBaseHandle"
+        }
+    }
+}

@@ -32,6 +32,19 @@ bool service_state2::done( ) const
 	return value__ == loaded;
 }
 
+bool service_state2::disabled( ) const
+{
+	switch (value__)
+	{
+		case unset:
+		case stopped:
+		case error:
+			return true;
+		default:
+			return false;
+	}
+}
+
 void service_base2::Loading_access_assert( ) const
 {
 	BOOST_ASSERT_MSG(state__ != service_state2::loading, "Unable to modify service while loading!");
@@ -63,19 +76,20 @@ service_state2 service_base2::state( ) const
 
 void service_base2::load( )
 {
-	BOOST_ASSERT_MSG(!state__, "Service loaded before");
-
 	try
 	{
+		if (state__ != service_state2::unset)
+		{
+			BOOST_ASSERT("Service loaded before");
+			return;
+		}
+
+		state__ = service_state2::loading;
 		const auto loaded = this->Do_load( );
 		state__ = service_state2::loaded;
+
 #ifdef CHEAT_HAVE_CONSOLE
-		if (const auto console = console::get_shared( );
-			console->state( ).done( ))
-		{
-			const auto msg = format("Service {}: {}", loaded ? "loaded " : "skipped", this->name( ));
-			console->write_line(msg);
-		}
+		_Log_to_console(format("Service {}: {}", loaded ? "loaded " : "skipped", this->name( )));
 #endif
 		this->On_load( );
 	}
@@ -90,12 +104,7 @@ void service_base2::load( )
 	{
 		state__ = service_state2::error;
 #ifdef CHEAT_HAVE_CONSOLE
-		const auto console = console::get_shared( );
-		if (console.get( ) != this)
-		{
-			const auto msg = format("Unable to load service {}. {}", this->name( ), ex.what( ));
-			console->write_line(msg);
-		}
+		_Log_to_console(format("Unable to load service {}. {}", this->name( ), ex.what( )));
 #endif
 		this->On_error( );
 	}

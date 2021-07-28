@@ -157,8 +157,8 @@ namespace cheat::hooks
 		inline void _Call_fn_trap([[maybe_unused]] call_conversion original, [[maybe_unused]] call_conversion called)
 		{
 #ifdef _DEBUG
-			const auto a = _ReturnAddress( );
-			const auto b = _AddressOfReturnAddress( );
+			[[maybe_unused]] const auto a = _ReturnAddress( );
+			[[maybe_unused]] const auto b = _AddressOfReturnAddress( );
 			constexpr auto _ = 0;
 #endif // _DEBUG
 		}
@@ -576,7 +576,7 @@ namespace cheat::hooks
 		protected:
 			//using hook_callback_type = hook_callback<Ret, Call_cvs, C, Is_const, Args...>;
 
-			hook_callback<Ret, Call_cvs, C, /*Is_const,*/ Args...>* cast_hook_callback( ) 
+			hook_callback<Ret, Call_cvs, C, /*Is_const,*/ Args...>* cast_hook_callback( )
 			{
 				return this;
 			}
@@ -947,13 +947,13 @@ namespace cheat::hooks
         }\
     };\
     template <typename Ret, typename C, typename ...Args>\
-    auto detect_hook_holder(Ret (__##call_cvs C::*fn)(Args ...))		-> hook_holder<Ret, call_conversion::call_cvs##__, C, /*false,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##call_cvs C::*fn)(Args ...))		-> hook_holder<Ret, call_conversion::call_cvs##__, C, /*false,*/ Args...>\
         { return {}; }\
     template <typename Ret, typename C, typename ...Args>\
-    auto detect_hook_holder(Ret (__##call_cvs C::*fn)(Args ...) const)	-> hook_holder<Ret, call_conversion::call_cvs##__, C, /*true,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##call_cvs C::*fn)(Args ...) const)	-> hook_holder<Ret, call_conversion::call_cvs##__, C, /*true,*/ Args...>\
         { return {}; }\
     template <typename Ret, typename ...Args>\
-    auto detect_hook_holder(Ret (__##call_cvs    *fn)(Args ...))		-> hook_holder<Ret, call_conversion::call_cvs##__, void,/* false,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##call_cvs    *fn)(Args ...))		-> hook_holder<Ret, call_conversion::call_cvs##__, void,/* false,*/ Args...>\
         { return {}; }
 
 	CALL_CVS_STUFF_IMPL2(thiscall)
@@ -962,6 +962,9 @@ namespace cheat::hooks
 	CALL_CVS_STUFF_IMPL2(vectorcall)
 	CALL_CVS_STUFF_IMPL2(cdecl)
 #undef CALL_CVS_STUFF_IMPL2
+
+	template <typename T>
+	using _Detect_hook_holder_t = decltype(_Detect_hook_holder(std::declval<T>( )));
 
 #pragma endregion
 }

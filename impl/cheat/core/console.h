@@ -8,7 +8,6 @@ namespace cheat
 	{
 	public:
 		~console( ) override;
-		console( );
 
 		void write(const utl::string_view& str) const;
 		void write_time( ) const;
@@ -24,7 +23,7 @@ namespace cheat
 
 		bool console_allocated__ = false;
 		HWND console_window__ = nullptr;
-
-		void Wait_for_write_( ) const;
 	};
+
+	bool _Log_to_console(const utl::string_view& str);
 }

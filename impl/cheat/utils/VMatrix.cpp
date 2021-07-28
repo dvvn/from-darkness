@@ -164,7 +164,7 @@ const float* VMatrix::Base( ) const
 
 bool VMatrix::operator==(const VMatrix& src) const
 {
-	return memcmp(this,&src,sizeof(VMatrix));
+	return memcmp(this, &src, sizeof(VMatrix));
 }
 
 bool VMatrix::operator!=(const VMatrix& src) const { return !(*this == src); }
@@ -175,7 +175,7 @@ bool VMatrix::operator!=(const VMatrix& src) const { return !(*this == src); }
 // NJS: src2 is passed in as a full vector rather than a reference to prevent the need
 // for 2 branches and a potential copy in the body.  (ie, handling the case when the src2
 // reference is the same as the dst reference ).
-void _Vector_3d_multiply_position(const VMatrix& src1, const Vector& src2, Vector& dst)
+static void _Vector_3d_multiply_position(const VMatrix& src1, const Vector& src2, Vector& dst)
 {
 	dst[0] = src1[0][0] * src2.x + src1[0][1] * src2.y + src1[0][2] * src2.z + src1[0][3];
 	dst[1] = src1[1][0] * src2.x + src1[1][1] * src2.y + src1[1][2] * src2.z + src1[1][3];
@@ -224,9 +224,9 @@ void VMatrix::SetUp(const Vector& vUp)
 
 void VMatrix::GetBasisVectors(Vector& vForward, Vector& vLeft, Vector& vUp) const
 {
-	vForward.Init(m[0][0], m[1][0], m[2][0]);
-	vLeft.Init(m[0][1], m[1][1], m[2][1]);
-	vUp.Init(m[0][2], m[1][2], m[2][2]);
+	vForward = {m[0][0], m[1][0], m[2][0]};
+	vLeft = {m[0][1], m[1][1], m[2][1]};
+	vUp = {m[0][2], m[1][2], m[2][2]};
 }
 
 void VMatrix::SetBasisVectors(const Vector& vForward, const Vector& vLeft, const Vector& vUp)
@@ -304,8 +304,6 @@ void VMatrix::Set3x4(matrix3x4_t& matrix3x4) const
 	memcpy(matrix3x4.Base( ), m, sizeof(matrix3x4_t));
 }
 
-
-
 //-----------------------------------------------------------------------------
 // Matrix Math operations
 //-----------------------------------------------------------------------------
@@ -352,7 +350,7 @@ VMatrix VMatrix::operator-( ) const
 	VMatrix ret;
 	for (int i = 0; i < 16; i++)
 	{
-		((float*)ret.m)[i] = -((float*)m)[i];
+		reinterpret_cast<float*>(ret.m)[i] = -((float*)m)[i];
 	}
 	return ret;
 }

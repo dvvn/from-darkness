@@ -8,7 +8,7 @@ namespace cheat::hooks::c_base_animating
 {
 	class should_skip_animation_frame final: public service<should_skip_animation_frame>,
 											 public gui::objects::empty_page,
-											 public decltype(detect_hook_holder(&csgo::C_BaseAnimating::ShouldSkipAnimationFrame))
+											 public decltype(_Detect_hook_holder(&csgo::C_BaseAnimating::ShouldSkipAnimationFrame))
 	{
 	public :
 		should_skip_animation_frame( );

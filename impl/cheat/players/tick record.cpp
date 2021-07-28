@@ -43,10 +43,10 @@ bool tick_record::is_valid(float curtime) const
 void tick_record_shared_impl::init(const player& holder)
 {
 	shared_holder::init( );
-
+	 
 #ifndef CHEAT_NETVARS_UPDATING
 	C_BaseEntity* ent = holder.ent;
-	const auto tick = this->get( );
+	const auto tick = this->get( ); 
 
 	tick->origin = ent->m_vecOrigin( );
 	tick->abs_origin = ent->m_vecAbsOrigin( );

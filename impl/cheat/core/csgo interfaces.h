@@ -33,6 +33,7 @@ namespace cheat::csgo
 	class IPrediction;
 	class IClientEntityList;
 	class IBaseClientDLL;
+	class IStudioRender;
 }
 
 namespace cheat::detail
@@ -213,6 +214,7 @@ namespace cheat
 		ifc<csgo::IViewRender> view_render;
 		ifc<csgo::CClientState> client_state;
 		ifc<csgo::IWeaponSystem> weapon_sys;
+		ifc<csgo::IStudioRender> studio_renderer;
 		ifc<csgo::C_CSPlayer, 2> local_player;
 		ifc<IDirect3DDevice9> d3d_device;
 	};

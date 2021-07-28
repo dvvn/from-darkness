@@ -4,9 +4,10 @@
   <PropertyGroup Label="UserMacros">
     <OutputDir>$(SolutionDir).out\$(ProjectName)\$(Configuration)\</OutputDir>
     <OutPutDir__>$(SolutionDir).out\$(ProjectName)\$(Platform)\$(Configuration)</OutPutDir__>
+    <OutputDirRam>G:\programming\$(SolutionName)\.out\$(ProjectName)\$(Configuration)\</OutputDirRam>
   </PropertyGroup>
   <PropertyGroup>
-    <IntDir>$(OutputDir)temp\</IntDir>
+    <IntDir>$(OutputDirRam)temp\</IntDir>
     <GenerateManifest>false</GenerateManifest>
     <OutDir>$(OutputDir)build\</OutDir>
   </PropertyGroup>
@@ -39,6 +40,10 @@
     </BuildMacro>
     <BuildMacro Include="OutPutDir__">
       <Value>$(OutPutDir__)</Value>
+    </BuildMacro>
+    <BuildMacro Include="OutputDirRam">
+      <Value>$(OutputDirRam)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>
 </Project>

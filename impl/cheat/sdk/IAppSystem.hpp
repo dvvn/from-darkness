@@ -4,6 +4,7 @@ namespace cheat::csgo
 	typedef void* (*CreateInterfaceFn)(const char* pName, int* pReturnCode);
 	typedef void* (*InstantiateInterfaceFn)( );
 
+	//vtables size=8
 	class IAppSystem
 	{
 	public:

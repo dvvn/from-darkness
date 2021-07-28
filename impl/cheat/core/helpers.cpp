@@ -1,5 +1,6 @@
 #include "helpers.h"
 
+#include "console.h"
 #include "csgo interfaces.h"
 
 #include "cheat/sdk/GlobalVars.hpp"
@@ -161,36 +162,82 @@ void* cheat::detail::_Vtable_pointer_get(const string_view& from, const string_v
 			return ptr;
 	}
 
-	constexpr auto load_vtables = [](module_info& module_from)-> bool
-	{
-		//precache in release mode with CHEAT_NETVARS_UPDATING define, or fuck cpu
-
-		const auto module_checksum = module_from.check_sum( );
-		BOOST_ASSERT(module_checksum != 0u);
-		auto dumps_path = filesystem::path(CHEAT_DUMPS_DIR _STRINGIZE_R(modules\)) / module_from.name_wide( ) / to_wstring(module_checksum) / L"vtables.json";
-#if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
-		dumps_path.append(""); //const gap
-#else
-		if (!exists(dumps_path))
-			dumps_path.clear( );//prefer to load from memory in release mode
-#endif
-
-		const auto load_result = module_from.vtables( ).load(dumps_path);
-		BOOST_ASSERT(load_result != error);
-		return load_result == success;
-	};
-
 	BOOST_ASSERT(!from.empty( ));
 
-	auto& info = *all_modules::get( ).find(from);
-	const auto& vtables = info.vtables( );
+	auto& module_from = *all_modules::get( ).find(from);
+	auto& vtables = module_from.vtables( );
+
 	const auto& vtables_cache = vtables.get_cache( );
 
 	if (vtables_cache.empty( ))
 	{
-		[[maybe_unused]] const auto loaded = load_vtables(info);
-		BOOST_ASSERT(loaded==true);
+		//precache in release mode with CHEAT_NETVARS_UPDATING define, or fuck cpu
+
+		const auto lock = make_lock_guard(vtables);
+		(void)lock;
+
+		//maybe another thread do all the work
+		if (!vtables_cache.empty( ))
+			goto _LOAD;
+
+		const auto module_checksum = module_from.check_sum( );
+		BOOST_ASSERT(module_checksum != 0u);
+		const auto dumps_path = filesystem::path(CHEAT_DUMPS_DIR _STRINGIZE_R(modules\)) / module_from.name_wide( ) / to_wstring(module_checksum) / L"vtables.json";
+
+		[[maybe_unused]] const auto log_helper = [&]<typename T>(T&& msg)
+		{
+			_Log_to_console(format("{} vtables: {}", module_from.name( ), msg));
+		};
+
+		switch (vtables.load_from_file(dumps_path))
+		{
+			case success:
+			case nothing:
+			{
+#ifdef CHEAT_HAVE_CONSOLE
+				log_helper("loaded from cache");
+#endif
+				goto _LOAD;
+			}
+		}
+
+#ifdef CHEAT_HAVE_CONSOLE
+		log_helper("loading started in "
+#ifdef _DEBUG
+				   "slow"
+#else
+				   "fast"
+#endif
+				   " mode)"
+				  );
+#endif
+		switch (vtables.load_from_memory( ))
+		{
+			case success:
+			case nothing:
+			{
+#ifdef CHEAT_HAVE_CONSOLE
+				log_helper("loading finished correctly");
+#endif
+#if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
+				if (vtables.write_to_file(dumps_path) == success)
+				{
+#ifdef CHEAT_HAVE_CONSOLE
+					log_helper("cache created");
+#endif
+				}
+#endif
+				goto _LOAD;
+			}
+		}
+
+#ifdef CHEAT_HAVE_CONSOLE
+		log_helper("loading finished with errors");
+#endif
+		return nullptr;
 	}
+
+_LOAD:
 
 	return vtables_cache.at(table_name).addr.raw<void>( );
 }

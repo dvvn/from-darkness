@@ -7,7 +7,7 @@
 namespace cheat::hooks::vgui_surface
 {
 	class lock_cursor final: public service<lock_cursor>,
-							 public decltype(detect_hook_holder(&csgo::ISurface::LockCursor))
+							 public decltype(_Detect_hook_holder(&csgo::ISurface::LockCursor))
 	{
 	public :
 		lock_cursor( );

@@ -16,6 +16,7 @@
 #include "cheat/hooks/directx/present.h"
 #include "cheat/hooks/directx/reset.h"
 #include "cheat/hooks/input/wndproc.h"
+#include "cheat/hooks/studio render/draw model.h"
 #include "cheat/hooks/vgui surface/lock cursor.h"
 #include "cheat/netvars/netvars.h"
 #include "cheat/players/players list.h"
@@ -323,5 +324,5 @@ services_loader::services_loader( )
 			  .load<directx::present, directx::reset>(true)
 			  .load<client::frame_stage_notify>( )
 			  .then( )
-			  .load<client_mode::create_move>(true);
+			  .load<client_mode::create_move, studio_render::draw_model>(true);
 }
