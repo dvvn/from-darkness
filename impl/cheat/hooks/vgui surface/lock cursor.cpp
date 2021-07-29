@@ -2,8 +2,6 @@
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
-#include "cheat/gui/user input.h"
-#include "cheat/hooks/input/wndproc.h"
 #include "cheat/players/players list.h"
 
 using namespace cheat;
@@ -21,7 +19,7 @@ bool lock_cursor::Do_load( )
 #ifdef CHEAT_GUI_TEST
 	return false;
 #else
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->vgui_surface.get( ), 67);
+	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->vgui_surface.get( ), 67);
 
 	this->hook( );
 	this->enable( );
@@ -31,7 +29,7 @@ bool lock_cursor::Do_load( )
 
 void lock_cursor::Callback( )
 {
-	if (!Target_instance( )->IsCursorVisible( ) && gui::menu::get_shared( )->visible( ))
+	if (!Target_instance( )->IsCursorVisible( ) && gui::menu::get_ptr( )->visible( ))
 	{
 		this->return_value_.set_original_called(true);
 		Target_instance( )->UnlockCursor( );

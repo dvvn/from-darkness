@@ -107,7 +107,7 @@ private:
 				return entry;
 		}
 
-		const auto info = all_modules::get( ).find(dll_name);
+		const auto info = all_modules::get_ptr()->find(dll_name);
 
 		auto& entry = cache__[info];
 		BOOST_ASSERT(entry.empty( ));
@@ -186,7 +186,7 @@ bool csgo_interfaces::Do_load( )
 	//unused
 #if 0
 #ifndef CHEAT_GUI_TEST
-	csgo_path = all_modules::get( ).owner( ).work_dir( );
+	csgo_path = all_modules::get_ptr()->owner( ).work_dir( );
 #else
 	using string_type = filesystem::path::string_type;
 	const auto steam_path = filesystem::path(winreg::RegKey(HKEY_CURRENT_USER, L"Software\\Valve\\Steam").GetStringValue(L"SteamPath")).make_preferred( );
@@ -235,7 +235,7 @@ bool csgo_interfaces::Do_load( )
 	load_lib(bin, L"vphysics");
 	load_lib(bin, L"inputsystem");
 
-	all_modules::get( ).update(true);
+	all_modules::get_ptr()->update(true);
 
 #endif
 

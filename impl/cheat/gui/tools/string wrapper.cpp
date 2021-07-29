@@ -84,7 +84,7 @@ bool string_wrapper::operator!=(const string_wrapper& other) const
 
 std::weak_ordering string_wrapper::operator<=>(const string_wrapper& other) const
 {
-	return multibyte__<=>other.multibyte__;
+	return multibyte__ <=> other.multibyte__;
 }
 
 string_wrapper::operator wstring_view( ) const
@@ -160,12 +160,12 @@ const string_wrapper& string_wrapper_abstract::get( ) const
 
 void string_wrapper_abstract::init(string_wrapper&& name)
 {
-	name__.emplace<0>(move(name));
+	name__ = {move(name)};
 }
 
 void string_wrapper_abstract::init(const string_wrapper& name)
 {
-	name__.emplace<1>(name);
+	name__ = {ref(name)};
 }
 
 //auto imgui::operator<=>(const string_wrapper_abstract& str, const string_wrapper_abstract& other) noexcept -> std::strong_ordering

@@ -32,7 +32,7 @@ static bool _Player_pass_flags(const player_shared& p, const players_filter_flag
 							 return false;
 						 using flags = players_filter_flags::team_filter;
 
-						 const auto local_team = csgo_interfaces::get_shared( )->local_player->m_iTeamNum( );
+						 const auto local_team = csgo_interfaces::get_ptr( )->local_player->m_iTeamNum( );
 						 const auto enemy = ent_team != local_team;
 
 						 return tf.has(enemy ? flags::ENEMY : flags::ALLY);

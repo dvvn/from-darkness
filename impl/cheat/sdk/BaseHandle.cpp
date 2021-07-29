@@ -61,5 +61,5 @@ IHandleEntity* CBaseHandle::Get( ) const
 {
 	/*if (!IsValid( ))
 		return 0;*/
-	return csgo_interfaces::get_shared( )->entity_list->GetClientEntityFromHandle(*this);
+	return csgo_interfaces::get_ptr( )->entity_list->GetClientEntityFromHandle(*this);
 }

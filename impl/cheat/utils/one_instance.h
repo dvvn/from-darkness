@@ -1,3 +1,4 @@
+// ReSharper disable CppRedundantElseKeywordInsideCompoundStatement
 #pragma once
 
 namespace cheat::utl
@@ -14,35 +15,26 @@ namespace cheat::utl
 		using pointer = T*;
 		using const_pointer = const T*;
 
-		static reference get( )
+		/*static reference get( )
 		{
 			static_assert(std::is_default_constructible_v<T>, "T must be default constructible!");
 			static T cache = T( );
 			return cache;
-		}
+		}*/
 
 		static pointer get_ptr( )
 		{
-			return addressof(get( ));
+			static_assert(std::is_default_constructible_v<T>, "T must be default constructible!");
+			static T cache = T( );
+			return addressof(cache);
 		}
-
-		reference operator*( ) { return get( ); }
-		const_reference operator*( ) const { return get( ); }
-		pointer operator->( ) { return get_ptr( ); }
-		const_pointer operator->( ) const { return get_ptr( ); }
-
-		//constexpr auto operator()( ) -> reference { return get( ); }
-		//constexpr auto operator()( ) const -> const_reference { return get( ); }
-
-		explicit operator reference( ) { return get( ); }
-		explicit operator const_reference( ) const { return get( ); }
 	};
 
 	template <typename T, size_t Count = 0>
 	class one_instance_shared
 	{
 	public:
-		using element_type = T;
+		using value_type = T;
 		using reference = T&;
 		using const_reference = const T&;
 		using pointer = T*;
@@ -50,37 +42,28 @@ namespace cheat::utl
 		using weak_type = weak_ptr<T>;
 		using shared_type = shared_ptr<T>;
 
-		static shared_type get_shared( )
+		static shared_type get_ptr( )
 		{
 			static_assert(std::is_default_constructible_v<T>, __FUNCTION__": T must be default constructible!");
 
 			static shared_type shared = make_shared<T>( );
+			static weak_type weak;
 
-			shared_type weak_shared;
-			if (shared)
-				weak_shared = move(shared);
-
-			static weak_type weak = weak_shared;
-			return weak.lock( );
+			if (!shared)
+			{
+				return weak.lock( );
+			}
+			else
+			{
+				weak = shared;
+				return move(shared);
+			}
 		}
 
-		static weak_type get_weak( )
+		static weak_type get_ptr_weak( )
 		{
-			static weak_type weak = get_shared( );
+			static weak_type weak = get_ptr( );
 			return weak;
 		}
-
-		static reference get( )
-		{
-			return *get_shared( );
-		}
-
-		static pointer get_ptr( )
-		{
-			return get_shared( ).get( );
-		}
-
-		//private:
-		//inline static optional<weak_ptr<T>> shared_instance__;
 	};
 }

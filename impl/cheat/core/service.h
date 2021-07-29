@@ -8,6 +8,7 @@ namespace cheat
 		enum value_type :uint8_t
 		{
 			unset = 0,
+			moved,
 			loading,
 			loaded,
 			stopped,

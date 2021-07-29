@@ -2,7 +2,7 @@
 #include "cheat/core/service.h"
 #include "cheat/gui/objects/abstract page.h"
 
-namespace cheat::hooks::input
+namespace cheat::hooks::winapi
 {
 	class wndproc final: public service<wndproc>,
 						 public gui::objects::empty_page,
@@ -15,8 +15,11 @@ namespace cheat::hooks::input
 
 	protected:
 		bool Do_load( ) override;
-		void Callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
+	
+
+
+		void Callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 	private:
 		decltype(&DefWindowProc) default_wndproc__ = nullptr;
 

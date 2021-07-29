@@ -4,9 +4,8 @@
 
 #include "csgo interfaces.h"
 
+#include "cheat/gui/imgui context.h"
 #include "cheat/gui/menu.h"
-#include "cheat/gui/renderer.h"
-#include "cheat/gui/user input.h"
 #include "cheat/hooks/client mode/create move.h"
 #include "cheat/hooks/client/frame stage notify.h"
 #include "cheat/hooks/c_baseanimating/should skip animation frame.h"
@@ -15,18 +14,16 @@
 #include "cheat/hooks/c_csplayer/do extra bone processing.h"
 #include "cheat/hooks/directx/present.h"
 #include "cheat/hooks/directx/reset.h"
-#include "cheat/hooks/input/wndproc.h"
 #include "cheat/hooks/studio render/draw model.h"
 #include "cheat/hooks/vgui surface/lock cursor.h"
+#include "cheat/hooks/winapi/wndproc.h"
 #include "cheat/netvars/netvars.h"
 #include "cheat/players/players list.h"
 #include "cheat/settings/settings.h"
 
 using namespace cheat;
 using namespace detail;
-using namespace hooks;
 using namespace utl;
-using namespace winapi;
 
 static future<bool> _Wait_for_game( )
 {
@@ -38,10 +35,10 @@ static future<bool> _Wait_for_game( )
 
 #else
 
-		auto& modules = all_modules::get( );
-		auto& all = modules.update(false).all( );
+		const auto modules = all_modules::get_ptr( );
+		auto& all = modules->update(false).all( );
 
-		auto work_dir = filesystem::path(modules.owner( ).work_dir( ));
+		auto work_dir = filesystem::path(modules->owner( ).work_dir( ));
 		auto& work_dir_native = const_cast<filesystem::path::string_type&>(work_dir.native( ));
 		ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
 		work_dir.append(L"bin").append(L"serverbrowser.dll");
@@ -66,7 +63,7 @@ static future<bool> _Wait_for_game( )
 			if (this_thread::interruption_requested( ))
 				throw thread_interrupted( );
 
-			modules.update(true);
+			modules->update(true);
 
 			if (is_game_loaded( ))
 				return false;
@@ -93,7 +90,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	delete data_ptr;
 
 	const auto hooks = instance->get_all_hooks( );
-	auto frozen = frozen_threads_storage(true);
+	auto frozen = winapi::frozen_threads_storage(true);
 	for (auto& h: hooks)
 	{
 		h->disable_safe( );
@@ -133,7 +130,7 @@ future<bool> services_holder::load( )
 #ifdef NDEBUG
 		this_thread::sleep_for(chrono::seconds(game_alredy_loaded ? 1 : 5));
 #endif
-		auto frozen = frozen_threads_storage(game_alredy_loaded);
+		auto frozen = winapi::frozen_threads_storage(game_alredy_loaded);
 		auto loader = thread_pool( );
 
 		const auto sumbit = [&](const services_storage_type& services)
@@ -207,6 +204,8 @@ future<bool> services_holder::load( )
 		return true;
 	});
 }
+
+using namespace hooks;
 
 unordered_set<hook_holder_base*> services_holder::get_all_hooks( )
 {
@@ -283,7 +282,7 @@ bool services_loader::Do_load( )
 		else
 		{
 #ifdef CHEAT_HAVE_CONSOLE
-			console::get_shared( )->write_line("Cheat fully loaded");
+			_Log_to_console("Cheat fully loaded");
 #endif
 #ifdef CHEAT_GUI_TEST
 			return true;
@@ -300,21 +299,15 @@ bool services_loader::Do_load( )
 
 services_loader::services_loader( )
 {
-	//Do_load
-
-	//todo: one array, 3 enums: load,load_wait,wait (maybe bitflag)
-
 	services__.load<console>( )
 			  .then( )
 			  .load<csgo_interfaces, settings, gui::menu>( )
 			  .then( )
-			  .load<gui::user_input>( )
+			  .load<gui::imgui_context>( )
 			  .load<vgui_surface::lock_cursor>(true)
 			  .load<netvars, players_list>(true)
 			  .then( )
-			  .load<input::wndproc>( )
-			  .then( )
-			  .load<gui::renderer>( )
+			  .load<hooks::winapi::wndproc>(true)
 			  .then( )
 			  .wait<netvars, players_list>( )
 			  .load<c_base_entity::estimate_abs_velocity,

@@ -26,7 +26,7 @@ stored_player_bones::stored_player_bones([[maybe_unused]] C_BaseEntity* ent)
 
 bool tick_record::is_valid(float curtime) const
 {
-	const auto interfaces = csgo_interfaces::get_shared( );
+	const auto interfaces = csgo_interfaces::get_ptr( );
 	const auto engine = interfaces->engine.get( );
 	const auto get_latency = [&](int flow)
 	{

@@ -20,7 +20,7 @@ bool frame_stage_notify::Do_load( )
 	return 0;
 #else
 
-	this->target_func_ = method_info::make_member_virtual<IBaseClientDLL*>(csgo_interfaces::get_shared( )->client, 37);
+	this->target_func_ = method_info::make_member_virtual<IBaseClientDLL*>(csgo_interfaces::get_ptr( )->client, 37);
 
 	this->hook( );
 	this->enable( );
@@ -40,7 +40,7 @@ void frame_stage_notify::Callback(ClientFrameStage_t stage)
 		case FRAME_NET_UPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-			players_list::get_shared( )->update( );
+			players_list::get_ptr( )->update( );
 			break;
 		case FRAME_NET_UPDATE_END: break;
 		case FRAME_RENDER_START: break;

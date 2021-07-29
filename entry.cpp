@@ -64,10 +64,10 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 	{
 		case DLL_PROCESS_ATTACH:
 			_Dll_main_boost(hModule, dwReason, lpReserved);
-			services_loader::get( ).load(hModule);
+			services_loader::get_ptr()->load(hModule);
 			break;
 		case DLL_PROCESS_DETACH:
-			services_loader::get( ).reset( );
+			services_loader::get_ptr()->reset( );
 		default:
 			_Dll_main_boost(hModule, dwReason, lpReserved);
 			break;
@@ -116,11 +116,11 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	cheat::services_loader::get( ).load( );
+	cheat::services_loader::get_ptr()->load( );
 
-	if (!cheat::services_loader::get( ).state( ).done( ))
+	if (!cheat::services_loader::get_ptr()->state( ).done( ))
 		goto _RESET;
-	cheat::gui::menu::get( ).show( );
+	cheat::gui::menu::get_ptr()->show( );
 
 	// Setup Dear ImGui context
 	//IMGUI_CHECKVERSION( );
@@ -192,7 +192,7 @@ int main(int, char**)
 
 _RESET:
 
-	cheat::services_loader::get( ).reset( );
+	cheat::services_loader::get_ptr()->reset( );
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

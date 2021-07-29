@@ -19,17 +19,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\helpers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\abstract page.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\renderable object.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\string wrapper.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\user input.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\group.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.h" />
@@ -41,6 +40,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do extra bone processing.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.h" />
@@ -98,7 +98,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players list.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -181,16 +180,15 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\services loader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\abstract page.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\renderer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\string wrapper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\user input.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\group.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
@@ -202,6 +200,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do extra bone processing.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.cpp" />
@@ -257,7 +256,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\input\wndproc.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players list.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -36,12 +36,11 @@ bool service_state2::disabled( ) const
 {
 	switch (value__)
 	{
-		case unset:
-		case stopped:
-		case error:
-			return true;
-		default:
+		case loading:
+		case loaded:
 			return false;
+		default:
+			return true;
 	}
 }
 
@@ -59,14 +58,16 @@ service_base2::~service_base2( )
 service_base2::service_base2(service_base2&& other) noexcept
 {
 	other.Loading_access_assert( );
-	state__ = other.state__;
+	state__ = move(other.state__);
+	other.state__ = service_state2::moved;
 }
 
 void service_base2::operator=(service_base2&& other) noexcept
 {
 	this->Loading_access_assert( );
 	other.Loading_access_assert( );
-	state__ = other.state__;
+	state__ = move(other.state__);
+	other.state__ = service_state2::moved;
 }
 
 service_state2 service_base2::state( ) const

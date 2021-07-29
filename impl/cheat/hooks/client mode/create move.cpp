@@ -1,7 +1,6 @@
 #include "create move.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/gui/renderer.h"
 #include "cheat/hooks/client/frame stage notify.h"
 #include "cheat/players/players list.h"
 
@@ -19,12 +18,12 @@ create_move::create_move( )
 	this->call_original_first_ = true;
 }
 
-bool create_move::Do_load()
+bool create_move::Do_load( )
 {
 #ifdef CHEAT_GUI_TEST
 	return 0;
 #else
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->client_mode.get(), 24);
+	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->client_mode.get( ), 24);
 
 	this->hook( );
 	this->enable( );
@@ -32,14 +31,13 @@ bool create_move::Do_load()
 #endif
 }
 
-
 void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 {
 	// is called from CInput::ExtraMouseSample
 	if (cmd->command_number == 0)
 		return;
 
-	const auto interfaces = csgo_interfaces::get_shared( );
+	const auto interfaces = csgo_interfaces::get_ptr( );
 	const auto original_return = return_value_.get( );
 	return_value_.store_value(false);
 

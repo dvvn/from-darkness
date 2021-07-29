@@ -2,8 +2,6 @@
 
 #include "cheat/gui/tools/push style var.h"
 
-#include "cheat/hooks/input/wndproc.h"
-
 #include "cheat/features/aimbot.h"
 #include "cheat/features/anti aim.h"
 #include "cheat/hooks/c_baseanimating/should skip animation frame.h"
@@ -179,5 +177,5 @@ bool menu::Do_load( )
 #endif
 	renderer__.init( );
 
-	return 1;
+	return true;
 }

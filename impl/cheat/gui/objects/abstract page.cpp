@@ -8,8 +8,9 @@ using namespace utl;
 
 renderable_object* abstract_page::page( ) const
 {
-	return addressof(visit(overload(bind_front(&unique_ptr<renderable_object>::operator*),
-									bind_front(&reference_wrapper<renderable_object>::get)), page__));
+	return addressof(visit(overload(bind_front(&unique_page::operator*),
+									bind_front(&shared_page::operator*<renderable_object>),
+									bind_front(&ref_page::get)), page__));
 }
 
 void abstract_page::render( )
@@ -40,7 +41,7 @@ void abstract_pages_renderer::add_page(abstract_page&& page)
 	{
 		if (renderer->pages_count( ) == 0)
 		{
-			_CrtDbgBreak( );
+			DebugBreak( );
 			return;
 		}
 	}
@@ -57,7 +58,7 @@ void abstract_pages_renderer::add_page(abstract_page&& page)
 
 void abstract_pages_renderer::init( )
 {
-#if defined(_DEBUG) && _CONTAINER_DEBUG_LEVEL <= 0
+#if defined(_DEBUG) && _CONTAINER_DEBUG_LEVEL == 0
 	BOOST_ASSERT(!this->empty( ));
 #endif
 

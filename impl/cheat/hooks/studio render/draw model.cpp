@@ -2,8 +2,6 @@
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
-#include "cheat/gui/user input.h"
-#include "cheat/hooks/input/wndproc.h"
 #include "cheat/players/players list.h"
 
 using namespace cheat;
@@ -17,7 +15,7 @@ bool draw_model::Do_load( )
 #ifdef CHEAT_GUI_TEST
 	return false;
 #else
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_shared( )->studio_renderer.get( ), 29);
+	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->studio_renderer.get( ), 29);
 
 	this->hook( );
 	this->enable( );

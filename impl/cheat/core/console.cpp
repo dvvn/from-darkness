@@ -137,7 +137,7 @@ bool console::Do_load( )
 			write_redirected__ = true;
 		}
 
-		const auto full_path = /*basic_string*/all_modules::get( ).current( ).full_path( );
+		const auto full_path = /*basic_string*/all_modules::get_ptr()->current( ).full_path( );
 		//ranges::replace(full_path, '\\', '/');
 		(void)full_path;
 
@@ -269,7 +269,7 @@ void console::write_char(char c) const
 
 bool cheat::_Log_to_console(const string_view& str)
 {
-	const auto where = console::get_shared( );
+	const auto where = console::get_ptr( );
 	if (!where)
 		return false;
 

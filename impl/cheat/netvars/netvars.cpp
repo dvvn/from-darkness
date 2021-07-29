@@ -638,7 +638,7 @@ bool netvars::Do_load( )
 	data__.clear( );
 #endif
 
-	const auto interfaces = csgo_interfaces::get_shared( );
+	const auto interfaces = csgo_interfaces::get_ptr( );
 
 	_Iterate_client_class(data__, interfaces->client->GetAllClasses( ));
 
@@ -704,7 +704,7 @@ void netvars::Dump_netvars_( )
 
 	constexpr auto get_file_name = []
 	{
-		string version = csgo_interfaces::get_shared( )->engine->GetProductVersionString( );
+		string version = csgo_interfaces::get_ptr( )->engine->GetProductVersionString( );
 		ranges::replace(version, '.', '_');
 		version.append(".json");
 		return version;
@@ -733,7 +733,7 @@ void netvars::Dump_netvars_( )
 	}
 
 #ifdef CHEAT_HAVE_CONSOLE
-	console::get_ptr( )->write_line("Netvars dump done");
+	_Log_to_console("Netvars dump done");
 #endif
 }
 
@@ -843,7 +843,7 @@ void netvars::Generate_classes_( )
 	}
 
 #ifdef CHEAT_HAVE_CONSOLE
-	console::get_ptr( )->write_line("Netvars classes generation done");
+	_Log_to_console("Netvars classes generation done");
 #endif
 
 #endif

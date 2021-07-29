@@ -32,8 +32,8 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
         return module_info_rw_result::error;
 #endif
 
-	auto& all_modules = all_modules::get( );
-	all_modules.update(false);
+	auto all_modules = all_modules::get_ptr( );
+	all_modules->update(false);
 
 	// iterate names array.
 	for (auto i = 0u; i < dir->NumberOfNames; ++i)
@@ -75,7 +75,7 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
 			// get real export ptr ( recursively ).
 			//const auto target = _RANGES find(all_modules, fwd_module_hash, &module_info::name);
 
-			auto target = all_modules.find(fwd_module_str);
+			auto target = all_modules->find(fwd_module_str);
 			if (!target)
 				continue;
 

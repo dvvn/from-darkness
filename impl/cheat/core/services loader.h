@@ -7,7 +7,7 @@ namespace cheat
 	{
 		template <typename T>
 		concept awaitable_service2 = std::derived_from<T, service_base2> &&
-									 requires( ) { { T::get_shared( ) }->std::convertible_to<utl::shared_ptr<service_base2>>; };
+									 requires( ) { { T::get_ptr( ) }->std::convertible_to<utl::shared_ptr<service_base2>>; };
 
 		class services_holder final
 		{
@@ -47,7 +47,7 @@ namespace cheat
 				if constexpr (constexpr auto add_count = sizeof...(T); add_count > 1)
 					where.reserve(where.size( ) + add_count);
 
-				(where.emplace_back(T::get_shared( )), ...);
+				(where.emplace_back(T::get_ptr( )), ...);
 			}
 
 			using services_storage_type = utl::vector<utl::shared_ptr<service_base2>>;

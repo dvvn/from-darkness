@@ -2,7 +2,7 @@
 #include "player.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/gui/renderer.h"
+
 #include "cheat/netvars/netvars.h"
 
 #include "cheat/sdk/GlobalVars.hpp"
@@ -26,18 +26,14 @@ bool players_list::Do_load( )
 
 	return 1;
 #endif
-
-
 }
-
-
 
 void players_list::update( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	(void)this;
 #else
-	const auto interfaces = csgo_interfaces::get_shared( );
+	const auto interfaces = csgo_interfaces::get_ptr( );
 
 	auto storage_updated = false;
 

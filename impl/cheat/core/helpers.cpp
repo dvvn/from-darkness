@@ -78,7 +78,7 @@ float cheat::_Lerp_time( )
 		return ret;
 	};
 
-	const auto ticks_count = csgo_interfaces::get_shared( )->global_vars->ticks_count;
+	const auto ticks_count = csgo_interfaces::get_ptr( )->global_vars->ticks_count;
 	static auto last_ticks_count = ticks_count - 1;
 
 	static float value_cached;
@@ -108,7 +108,7 @@ float cheat::_Unlag_range( )
 
 static ConVar* _Get_root_cvar( )
 {
-	const auto cvars = csgo_interfaces::get_shared( )->cvars.get( );
+	const auto cvars = csgo_interfaces::get_ptr( )->cvars.get( );
 	return address(cvars).add(0x30).deref(1).raw<ConVar>( );
 	//return *(ConVar**)((uintptr_t)cvars + 0x30);
 };
@@ -125,7 +125,7 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 
 static float _Interval_per_ticks( )
 {
-	return csgo_interfaces::get_shared( )->global_vars->interval_per_tick;
+	return csgo_interfaces::get_ptr( )->global_vars->interval_per_tick;
 }
 
 size_t cheat::_Time_to_ticks(float time)
@@ -147,7 +147,7 @@ address _Find_signature_impl::operator()(const mb& from, const sv& sig) const
 
 address _Find_signature_impl::operator()(const sv& dll_name, const sv& sig) const
 {
-	const auto module = all_modules::get( ).find(dll_name);
+	const auto module = all_modules::get_ptr()->find(dll_name);
 	auto block = module->mem_block( );
 
 	return invoke(*this, block, sig);
@@ -157,14 +157,14 @@ void* cheat::detail::_Vtable_pointer_get(const string_view& from, const string_v
 {
 	if (!preferred.empty( ))
 	{
-		const auto ifcs = csgo_interfaces::get_shared( );
+		const auto ifcs = csgo_interfaces::get_ptr( );
 		if (const auto ptr = preferred(ifcs.get( )); ptr != nullptr)
 			return ptr;
 	}
 
 	BOOST_ASSERT(!from.empty( ));
 
-	auto& module_from = *all_modules::get( ).find(from);
+	auto& module_from = *all_modules::get_ptr()->find(from);
 	auto& vtables = module_from.vtables( );
 
 	const auto& vtables_cache = vtables.get_cache( );

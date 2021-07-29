@@ -9,59 +9,71 @@ namespace cheat::gui::objects
 
 	class abstract_page //:public renderable_object
 	{
-	protected:
-		template <typename T>
-		T* Init_this(T* obj = nullptr)
+	public:
+		abstract_page( ) = default;
+
+		template <typename ...Ts>
+		abstract_page(Ts&& ...args)
 		{
-			if (obj)
-			{
-				page__.emplace<1>(*obj);
-			}
-			else
-			{
-				if constexpr (!std::is_default_constructible_v<T>)
-				{
-					BOOST_ASSERT("Unable to construct object!");
-				}
-				else
-				{
-					auto uptr = utl::make_unique<T>( );
-					obj = static_cast<T*>(uptr.get( ));
-					page__.emplace<0>(utl::move(uptr));
-				}
-			}
+			init(utl::forward<Ts>(args)...);
+		}
+
+		template <std::default_initializable T>
+		T* init( )
+		{
+			auto uptr = utl::make_unique<T>( );
+			auto obj = static_cast<T*>(uptr.get( ));
+			page__.emplace<unique_page>(utl::move(uptr));
+			name__.init(obj);
 
 			return obj;
 		}
 
-	public:
-		abstract_page( ) = default;
-
 		template <class T>
-		abstract_page(T* obj = nullptr)
+		T* init(T* obj)
 		{
-			this->init(obj);
+			page__.emplace<ref_page>(utl::ref(*obj));
+			name__.init(obj);
+
+			return obj;
 		}
 
 		template <class T>
-		abstract_page(tools::string_wrapper&& name, T* obj = nullptr)
+		T* init(const utl::shared_ptr<T>& obj)
 		{
-			this->init(utl::move(name), obj);
+			page__.emplace<shared_page>(obj);
+			name__.init(obj.get( ));
+
+			return obj.get( );
 		}
 
 		template <class T>
-		T* init(T* obj = nullptr)
+		T* init(tools::string_wrapper&& name)
 		{
-			auto obj2 = Init_this(obj);
-			name__.init(obj2);
-			return obj2;
-		}
-
-		template <class T>
-		T* init(tools::string_wrapper&& name, T* obj = nullptr)
-		{
+			auto uptr = utl::make_unique<T>( );
+			auto obj = static_cast<T*>(uptr.get( ));
+			page__.emplace<unique_page>(utl::move(uptr));
 			name__.init(utl::move(name));
-			return Init_this(obj);
+
+			return obj;
+		}
+
+		template <class T>
+		T* init(tools::string_wrapper&& name, T* obj)
+		{
+			page__.emplace<ref_page>(utl::ref(*obj));
+			name__.init(utl::move(name));
+
+			return obj;
+		}
+
+		template <class T>
+		T* init(tools::string_wrapper&& name, const utl::shared_ptr<T>& obj)
+		{
+			page__.emplace<shared_page>(obj);
+			name__.init(utl::move(name));
+
+			return obj.get( );
 		}
 
 		const tools::string_wrapper& name( ) const;
@@ -70,10 +82,12 @@ namespace cheat::gui::objects
 		void render( );
 
 	private:
+		using unique_page = utl::unique_ptr<renderable_object>;
+		using shared_page = utl::shared_ptr<renderable_object>;
+		using ref_page = utl::reference_wrapper<renderable_object>;
+
+		utl::variant<unique_page, shared_page, ref_page> page__;
 		tools::string_wrapper_abstract name__;
-		utl::variant<
-			utl::unique_ptr<renderable_object>,
-			utl::reference_wrapper<renderable_object>> page__;
 	};
 
 	class pages_storage_data final: public abstract_page, public widgets::selectable_internal
@@ -92,7 +106,7 @@ namespace cheat::gui::objects
 
 		virtual void init( );
 
-		size_t pages_count()const;
+		size_t pages_count( ) const;
 
 	protected:
 		utl::vector<pages_storage_data> pages_;

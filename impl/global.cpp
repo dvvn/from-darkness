@@ -4,7 +4,7 @@
 
 [[maybe_unused]] static void _Console_log(const std::string_view& str)
 {
-	const auto wptr = cheat::console::get_weak( );
+	const auto wptr = cheat::console::get_ptr_weak( );
 	if (wptr.expired( ))
 		return;
 	const auto sptr = wptr.lock( );
