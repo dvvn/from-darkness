@@ -1,17 +1,20 @@
 #include "hook_utils.h"
 
-using namespace cheat::hooks;
+using namespace cheat;
+using namespace utl;
+using namespace hooks;
 
 //using func_type=method_info::func_type;
 
-method_info::method_info(const type method_type, const bool refresh_result, func_type&& func): type__(method_type),
-																							   refresh_result__(refresh_result),
-																							   updater__(move(func))
+method_info::method_info(const type method_type, func_type&& func): type__(method_type),
+																	storage__(move(func))
 {
 }
 
-method_info::method_info(const type method_type, const bool refresh_result, const func_type& func): method_info(method_type, refresh_result, func_type(func))
+method_info::method_info(type method_type, LPVOID func_ptr): type__(method_type),
+															 storage__(func_ptr)
 {
+	BOOST_ASSERT(func_ptr!=nullptr);
 }
 
 method_info::type method_info::get_type( ) const
@@ -21,16 +24,23 @@ method_info::type method_info::get_type( ) const
 
 LPVOID method_info::get( ) const
 {
-	BOOST_ASSERT_MSG(result__ != nullptr, "Result isn't updated!");
-	return result__;
+	BOOST_ASSERT_MSG(updated(), "Result isn't updated!");
+	return ::get<LPVOID>(storage__);
 }
 
 bool method_info::update( )
 {
-	if (!result__ || refresh_result__)
+	if (!updated( ))
 	{
-		result__ = updater__( );
-		if (!result__)
+		auto& getter = (::get<func_type>(storage__));
+		// ReSharper disable once CppTooWideScope
+		auto result = invoke(getter);
+
+		if (result)
+		{
+			storage__ = result;
+		}
+		else
 		{
 			BOOST_ASSERT("Unable to update result!");
 			return false;
@@ -41,5 +51,11 @@ bool method_info::update( )
 
 bool method_info::updated( ) const
 {
-	return result__ != nullptr;
+	return visit(overload([](const func_type&)
+						  {
+							  return false;
+						  }, [](LPVOID ptr)
+						  {
+							  return true;
+						  }), storage__);
 }

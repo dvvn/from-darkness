@@ -112,7 +112,7 @@ char* C_BaseAttributableItem::m_szCustomName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem.m_szCustomName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 utl::array<_ST_m_Attributes_32, 32>& C_BaseAttributableItem::m_Attributes( )

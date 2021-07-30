@@ -10,6 +10,7 @@ CUserCmd* CInput::GetUserCmd(int sequence_number, int nSlot)
 
 CVerifiedUserCmd* CInput::GetVerifiedCmd(int sequence_number)
 {
-	const auto verified_commands = utl::address(this).add(0xF8).deref(1).raw<CVerifiedUserCmd>( );
+	(void)this;
+	const auto verified_commands = utl::address(this).add(0xF8).deref(1).ptr<CVerifiedUserCmd>( );
 	return &verified_commands[sequence_number % MULTIPLAYER_BACKUP];
 }

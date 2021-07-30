@@ -22,6 +22,6 @@ char* C_InfoMapRegion::m_szLocToken( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_InfoMapRegion.m_szLocToken");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }

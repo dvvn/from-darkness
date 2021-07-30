@@ -142,7 +142,7 @@ char* C_EnvProjectedTexture::m_SpotlightTextureName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture.m_SpotlightTextureName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_EnvProjectedTexture::m_nSpotlightTextureFrame( )

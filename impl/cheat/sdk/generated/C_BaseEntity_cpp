@@ -232,7 +232,7 @@ char* C_BaseEntity::m_iName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_iName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_BaseEntity::movetype( )
@@ -532,7 +532,7 @@ char* C_BaseEntity::m_ModelName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_ModelName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 utl::Vector& C_BaseEntity::m_vecAbsOrigin( )
@@ -652,7 +652,7 @@ void* C_BaseEntity::m_hNetworkMoveParent( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hNetworkMoveParent");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<void>( );
+	return addr.ptr<void>( );
 #endif
 }
 utl::Vector& C_BaseEntity::m_vecNetworkOrigin( )
@@ -682,7 +682,7 @@ void* C_BaseEntity::m_hGroundEntity( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity.m_hGroundEntity");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<void>( );
+	return addr.ptr<void>( );
 #endif
 }
 int8_t& C_BaseEntity::m_nWaterLevel( )

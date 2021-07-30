@@ -40,9 +40,30 @@ address& address::operator+=(const address& offset)
 	return *this;
 }
 
+address& address::operator-=(const address& offset)
+{
+	value__ -= offset.value__;
+	Error_handler_( );
+	return *this;
+}
+
+address& address::operator*=(const address& offset)
+{
+	value__ *= offset.value__;
+	Error_handler_( );
+	return *this;
+}
+
+address& address::operator/=(const address& offset)
+{
+	value__ /= offset.value__;
+	Error_handler_( );
+	return *this;
+}
+
 address address::operator+(const address& offset) const
 {
-#ifndef NDEBUG
+#ifdef  _DEBUG
 	if (offset == 0u)
 		return *this;
 	auto temp = *this;
@@ -55,7 +76,7 @@ address address::operator+(const address& offset) const
 
 address address::operator-(const address& offset) const
 {
-#ifndef NDEBUG
+#ifdef  _DEBUG
 	if (offset == 0u)
 		return *this;
 	auto temp = *this;
@@ -66,11 +87,30 @@ address address::operator-(const address& offset) const
 #endif
 }
 
-address& address::operator-=(const address& offset)
+address address::operator*(const address& offset) const
 {
-	value__ -= offset.value__;
-	Error_handler_( );
-	return *this;
+#ifdef  _DEBUG
+	if (offset == 0u)
+		return *this;
+	auto temp = *this;
+	temp *= offset;
+	return temp;
+#else
+            return value__ * offset.value__;
+#endif
+}
+
+address address::operator/(const address& offset) const
+{
+#ifdef  _DEBUG
+	if (offset == 0u)
+		return *this;
+	auto temp = *this;
+	temp /= offset;
+	return temp;
+#else
+            return value__ / offset.value__;
+#endif
 }
 
 address address::add(const address& offset) const
@@ -81,6 +121,16 @@ address address::add(const address& offset) const
 address address::remove(const address& offset) const
 {
 	return *this - offset;
+}
+
+address address::multiply(const address& value) const
+{
+	return *this * value;
+}
+
+address address::divide(const address& value) const
+{
+	return *this / value;
 }
 
 address address::rel8(size_t offset) const

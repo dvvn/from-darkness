@@ -3,11 +3,11 @@
 using namespace cheat;
 using namespace utl;
 
-memory_block::memory_block(const address& begin, size_t mem_size) : memory_block_container(begin.raw<uint8_t>( ), mem_size)
+memory_block::memory_block(const address& begin, size_t mem_size) : memory_block_container(begin.ptr<uint8_t>( ), mem_size)
 {
 }
 
-memory_block::memory_block(const address& begin, const address& end) : memory_block_container(begin.raw<uint8_t>( ), end.raw<uint8_t>( ))
+memory_block::memory_block(const address& begin, const address& end) : memory_block_container(begin.ptr<uint8_t>( ), end.ptr<uint8_t>( ))
 {
 }
 

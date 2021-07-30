@@ -20,7 +20,7 @@ bool frame_stage_notify::Do_load( )
 	return 0;
 #else
 
-	this->target_func_ = method_info::make_member_virtual<IBaseClientDLL*>(csgo_interfaces::get_ptr( )->client, 37);
+	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->client.get(), 37);
 
 	this->hook( );
 	this->enable( );

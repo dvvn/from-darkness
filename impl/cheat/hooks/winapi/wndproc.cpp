@@ -18,14 +18,13 @@ wndproc::wndproc( )
 bool wndproc::Do_load( )
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
-
 	BOOST_ASSERT(hwnd != nullptr);
-
 	const bool unicode = IsWindowUnicode(hwnd);
-	const auto game_wndproc = reinterpret_cast<WNDPROC>(invoke(unicode ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC));
+
+	using namespace address_pipe;
 
 	default_wndproc__ = unicode ? DefWindowProcW : DefWindowProcA;
-	target_func_ = method_info::make_static(game_wndproc);
+	target_func_ = method_info::make_static(bind_front(unicode ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC) | cast<WNDPROC>);
 
 	this->hook( );
 	this->enable( );

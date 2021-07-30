@@ -32,7 +32,7 @@ char* C_PointCommentaryNode::m_iszCommentaryFile( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iszCommentaryFile");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_PointCommentaryNode::m_iszCommentaryFileNoHDR( )
@@ -42,7 +42,7 @@ char* C_PointCommentaryNode::m_iszCommentaryFileNoHDR( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iszCommentaryFileNoHDR");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_PointCommentaryNode::m_iszSpeakers( )
@@ -52,7 +52,7 @@ char* C_PointCommentaryNode::m_iszSpeakers( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iszSpeakers");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_PointCommentaryNode::m_iNodeNumber( )

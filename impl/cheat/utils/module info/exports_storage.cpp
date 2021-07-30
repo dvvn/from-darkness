@@ -18,27 +18,29 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
 		return error;
 
 	// get export dir.
-	const auto dir = base_address.add(data_dir->VirtualAddress).raw<IMAGE_EXPORT_DIRECTORY>( );
+	const auto dir = base_address.add(data_dir->VirtualAddress).ptr<IMAGE_EXPORT_DIRECTORY>( );
 #ifdef NDEBUG
     if (!dir)
         return module_info_rw_result::error;
 #endif
 	// names / funcs / ordinals ( all of these are RVAs ).
-	const auto names = base_address.add(dir->AddressOfNames).raw<uint32_t>( );
-	const auto funcs = base_address.add(dir->AddressOfFunctions).raw<uint32_t>( );
-	const auto ords = base_address.add(dir->AddressOfNameOrdinals).raw<uint16_t>( );
+	const auto names = base_address.add(dir->AddressOfNames).ptr<uint32_t>( );
+	const auto funcs = base_address.add(dir->AddressOfFunctions).ptr<uint32_t>( );
+	const auto ords = base_address.add(dir->AddressOfNameOrdinals).ptr<uint16_t>( );
 #ifdef NDEBUG
     if (!names || !funcs || !ords)
         return module_info_rw_result::error;
 #endif
 
-	auto all_modules = all_modules::get_ptr( );
+	const auto all_modules = all_modules::get_ptr( );
 	all_modules->update(false);
+
+	cache_type temp_cache;
 
 	// iterate names array.
 	for (auto i = 0u; i < dir->NumberOfNames; ++i)
 	{
-		const string_view export_name = base_address.add(names[i]).raw<const char>( );
+		const string_view export_name = base_address.add(names[i]).ptr<const char>( );
 		if (export_name.empty( ) /*|| export_name.starts_with('?') || export_name.starts_with('@')*/)
 			continue;
 
@@ -50,12 +52,12 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
 		//if (export_ptr < dir || export_ptr >= memory_block(dir, data_dir->Size).addr( ))
 		if (const auto export_ptr = base_address + funcs[ords[i]]; export_ptr < dir || export_ptr >= address(dir) + data_dir->Size)
 		{
-			data_cache.emplace(export_name, export_ptr);
+			temp_cache.emplace(export_name, export_ptr);
 		}
 		else // it's a forwarded export, we must resolve it.
 		{
 			// get forwarder string.
-			const string_view fwd_str = export_ptr.raw<const char>( );
+			const string_view fwd_str = export_ptr.ptr<const char>( );
 
 			// forwarders have a period as the delimiter.
 			const auto delim = fwd_str.find_last_of('.');
@@ -84,14 +86,15 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
 			auto& exports = target->exports( );
 			exports.load_from_memory( );
 			const auto& exports_cache = exports.get_cache( );
-			const auto  fwd_export_ptr = exports_cache.find((fwd_export));
+			const auto fwd_export_ptr = exports_cache.find((fwd_export));
 			if (fwd_export_ptr == exports_cache.end( ))
 				continue;
 
-			data_cache.emplace(export_name, fwd_export_ptr->second);
+			temp_cache.emplace(export_name, fwd_export_ptr->second);
 		}
 	}
 
+	data_cache = move(temp_cache);
 	//data_cache_.shrink_to_fit( );
 	return success;
 }
@@ -111,7 +114,7 @@ module_info_rw_result exports_storage::Load_from_file_impl(const ptree_type& cac
 	for (auto& [name, offset_packed]: cache)
 	{
 		const auto offset = offset_packed.get_value<uintptr_t>( );
-		auto       addr = base_address + offset;
+		auto addr = base_address + offset;
 
 		data_cache.emplace(const_cast<string&&>(name), move(addr));
 	}

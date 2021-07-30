@@ -200,8 +200,11 @@ namespace cheat::csgo
 
 		datamap_t* GetDataDescMap( );
 		datamap_t* GetPredictionDescMap( );
+VarMapping_t*GetInterpVarMap();
+
 
 		void EstimateAbsVelocity(utl::Vector& vel);
+		bool ShouldInterpolate( );
 
 		CUtlVector<utl::matrix3x4_t>& BonesCache( );
 	};

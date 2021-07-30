@@ -37,6 +37,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate abs velocity.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\should interpolate.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do extra bone processing.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate abs velocity.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\should interpolate.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do extra bone processing.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />

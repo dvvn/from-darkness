@@ -206,6 +206,8 @@ module_info_rw_result vtables_storage::Write_to_file_impl(ptree& cache) const
 
 module_info_rw_result vtables_storage::Load_from_file_impl(const ptree& cache)
 {
+	cache_type tmp;
+
 	for (auto& [name, child]: cache)
 	{
 		const auto offset = child.get<uintptr_t>("offset");
@@ -213,9 +215,10 @@ module_info_rw_result vtables_storage::Load_from_file_impl(const ptree& cache)
 
 		vtable_info info;
 		info.addr = base_address + offset;
-		data_cache.emplace(const_cast<string&&>(name), move(info));
+		tmp.emplace(const_cast<string&&>(name), move(info));
 	}
 
+	data_cache = move(tmp);
 	return success;
 }
 

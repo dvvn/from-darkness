@@ -827,7 +827,7 @@ void netvars::Generate_classes_( )
 									  format("{}{}{}", class_name, PATH_DEFAULT_SEPARATOR, netvar_name)) << __New_line;
 			source << __Tab << "auto addr = utl::address(this).add(offset);" << __New_line;
 #endif
-			source << __Tab << format("return addr.{}<{}>( );", netvar_type_pointer ? "raw" : "ref", netvar_type) << __New_line;
+			source << __Tab << format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
 			source << "#endif" << __New_line;
 			source << '}' << __New_line;
 		}

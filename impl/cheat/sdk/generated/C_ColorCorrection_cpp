@@ -82,7 +82,7 @@ char* C_ColorCorrection::m_netLookupFilename( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection.m_netLookupFilename");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 bool& C_ColorCorrection::m_bEnabled( )

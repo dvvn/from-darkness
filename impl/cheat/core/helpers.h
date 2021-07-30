@@ -103,22 +103,25 @@ namespace cheat
 
 	namespace detail
 	{
-		void* _Vtable_pointer_get(const utl::string_view& from, const utl::string_view& table_name, const utl::function<void*(csgo_interfaces*)>& preferred);
+		void* _Vtable_pointer_get(const utl::string_view& from, const utl::string_view& table_name/*, const utl::function<void*(csgo_interfaces*)>& preferred*/);
 
 		template <typename T>
 		struct _Vtable_pointer_impl
 		{
-			template <typename Pr=std::false_type>
-			T* operator()(const utl::string_view& from /*= { }*/, Pr preferred_interface = { }, bool drop_namespaces = true) const
+			//template <typename Pr=std::false_type>
+			T* operator()(const utl::string_view& from /*= { }*//*, Pr preferred_interface = { }*/, bool drop_namespaces = true) const
 			{
 				auto table_name = _Type_name<T>(drop_namespaces);
 
 				void* ptr;
 
-				if constexpr (!std::invocable<decltype(preferred_interface), csgo_interfaces*>)
-				{
-					ptr = _Vtable_pointer_get(from, table_name, { });
-				}
+				// ReSharper disable once CppLocalVariableMightNotBeInitialized
+				(void)ptr;
+
+				/*if constexpr (!std::invocable<decltype(preferred_interface), csgo_interfaces*>)
+				{*/
+					ptr = _Vtable_pointer_get(from, table_name/*, { }*/);
+				/*}
 				else
 				{
 					ptr = _Vtable_pointer_get(from, table_name, [=](csgo_interfaces* ifcs)-> void*
@@ -126,7 +129,7 @@ namespace cheat
 						auto obj = utl::invoke(preferred_interface, ifcs);
 						return obj == nullptr ? nullptr : obj.get( );
 					});
-				}
+				}*/
 
 				return static_cast<T*>(ptr);
 			}

@@ -52,6 +52,6 @@ char* C_ColorCorrectionVolume::m_lookupFilename( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume.m_lookupFilename");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }

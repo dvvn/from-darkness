@@ -41,7 +41,7 @@ private:
 			BOOST_ASSERT_MSG(load_result != error, "Unable to load exports");
 
 			const auto& create_fn = exports.get_cache( ).at("CreateInterface");
-			const auto reg = create_fn.rel32(0x5).add(0x6).deref(2).raw<CInterfaceRegister>( );
+			const auto reg = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
 
 			auto temp_entry = vector<entry_type::value_type>( );
 			for (auto r = reg; r != nullptr; r = r->next)

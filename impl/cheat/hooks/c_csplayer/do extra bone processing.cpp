@@ -21,8 +21,13 @@ bool do_extra_bone_processing::Do_load( )
 	return 0;
 #else
 
-	const auto offset = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC").add(11).deref(1).value( ) / 4;
-	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_CSPlayer>, "client.dll", &csgo_interfaces::local_player), offset);
+	using namespace address_pipe;
+
+	this->target_func_ = method_info::make_member_virtual
+			(
+			 bind_front(_Vtable_pointer<C_CSPlayer>, "client.dll"),
+			 bind_front(_Find_signature, "client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC") | add(11) | deref(1) | divide(4) | value
+			);
 
 	this->hook( );
 	this->enable( );

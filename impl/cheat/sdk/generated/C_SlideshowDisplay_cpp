@@ -22,7 +22,7 @@ char* C_SlideshowDisplay::m_szDisplayText( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay.m_szDisplayText");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_SlideshowDisplay::m_szSlideshowDirectory( )
@@ -32,7 +32,7 @@ char* C_SlideshowDisplay::m_szSlideshowDirectory( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay.m_szSlideshowDirectory");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 utl::array<int32_t, 16>& C_SlideshowDisplay::m_chCurrentSlideLists( )

@@ -109,7 +109,7 @@ float cheat::_Unlag_range( )
 static ConVar* _Get_root_cvar( )
 {
 	const auto cvars = csgo_interfaces::get_ptr( )->cvars.get( );
-	return address(cvars).add(0x30).deref(1).raw<ConVar>( );
+	return address(cvars).add(0x30).deref(1).ptr<ConVar>( );
 	//return *(ConVar**)((uintptr_t)cvars + 0x30);
 };
 
@@ -153,14 +153,14 @@ address _Find_signature_impl::operator()(const sv& dll_name, const sv& sig) cons
 	return invoke(*this, block, sig);
 }
 
-void* cheat::detail::_Vtable_pointer_get(const string_view& from, const string_view& table_name, const function<void*(csgo_interfaces*)>& preferred)
+void* cheat::detail::_Vtable_pointer_get(const string_view& from, const string_view& table_name/*, const function<void*(csgo_interfaces*)>& preferred*/)
 {
-	if (!preferred.empty( ))
+	/*if (!preferred.empty( ))
 	{
 		const auto ifcs = csgo_interfaces::get_ptr( );
 		if (const auto ptr = preferred(ifcs.get( )); ptr != nullptr)
 			return ptr;
-	}
+	}*/
 
 	BOOST_ASSERT(!from.empty( ));
 
@@ -239,5 +239,5 @@ void* cheat::detail::_Vtable_pointer_get(const string_view& from, const string_v
 
 _LOAD:
 
-	return vtables_cache.at(table_name).addr.raw<void>( );
+	return vtables_cache.at(table_name).addr.ptr<void>( );
 }

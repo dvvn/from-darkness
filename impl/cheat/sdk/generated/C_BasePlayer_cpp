@@ -672,7 +672,7 @@ char* C_BasePlayer::m_szLastPlaceName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BasePlayer.m_szLastPlaceName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 utl::Vector& C_BasePlayer::m_vecLadderNormal( )

@@ -179,11 +179,11 @@ const string& module_info::name( )
 {
 	if (members__.name.empty( ))
 	{
-		const auto raw = this->raw_name( );
+		const auto ptr = this->raw_name( );
 		string     out;
-		out.reserve(raw.size( ));
+		out.reserve(ptr.size( ));
 
-		for (const auto wchr: raw)
+		for (const auto wchr: ptr)
 		{
 			if constexpr (sizeof(raw_name_value_type) == sizeof(string::value_type))
 			{
@@ -219,10 +219,10 @@ const wstring& module_info::name_wide( )
 	if (members__.name_wide.empty( ))
 	{
 		static_assert(sizeof(raw_name_value_type) <= sizeof(wstring::value_type));
-		const auto raw = this->raw_name( );
+		const auto ptr = this->raw_name( );
 		wstring    out;
-		out.reserve(raw.size( ));
-		for (const auto wchr: raw)
+		out.reserve(ptr.size( ));
+		for (const auto wchr: ptr)
 			out += towlower(wchr);
 
 		members__.name_wide = move(out);
@@ -286,14 +286,14 @@ struct headers_info
 
 optional<headers_info> _Get_file_headers(const address& base)
 {
-	const auto dos = base.raw<IMAGE_DOS_HEADER>( );
+	const auto dos = base.ptr<IMAGE_DOS_HEADER>( );
 
 	// check for invalid DOS / DOS signature.
 	if (!dos || dos->e_magic != IMAGE_DOS_SIGNATURE /* 'MZ' */)
 		return { };
 
 	// get NT headers.
-	const auto nt = address(dos).add(dos->e_lfanew).raw<IMAGE_NT_HEADERS>( );
+	const auto nt = address(dos).add(dos->e_lfanew).ptr<IMAGE_NT_HEADERS>( );
 
 	// check for invalid NT / NT signature.
 	if (!nt || nt->Signature != IMAGE_NT_SIGNATURE /* 'PE\0\0' */)
@@ -320,9 +320,9 @@ modules_storage_container _Get_all_modules( )
 #endif
 
 #ifdef UTILS_X64
-    auto ldr = mem->ProcessEnvironmentBlock->Ldr;
+    const auto ldr = mem->ProcessEnvironmentBlock->Ldr;
 #else
-	auto ldr = mem->Ldr;
+	const auto ldr = mem->Ldr;
 #endif
 
 	auto container = modules_storage_container( );

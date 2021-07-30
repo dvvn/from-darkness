@@ -12,7 +12,7 @@ char* C_MaterialModifyControl::m_szMaterialName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_szMaterialName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_MaterialModifyControl::m_szMaterialVar( )
@@ -22,7 +22,7 @@ char* C_MaterialModifyControl::m_szMaterialVar( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_szMaterialVar");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_MaterialModifyControl::m_szMaterialVarValue( )
@@ -32,7 +32,7 @@ char* C_MaterialModifyControl::m_szMaterialVarValue( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_MaterialModifyControl.m_szMaterialVarValue");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_MaterialModifyControl::m_iFrameStart( )

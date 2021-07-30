@@ -32,7 +32,7 @@ char* C_MovieDisplay::m_szMovieFilename( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay.m_szMovieFilename");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_MovieDisplay::m_szGroupName( )
@@ -42,7 +42,7 @@ char* C_MovieDisplay::m_szGroupName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay.m_szGroupName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 bool& C_MovieDisplay::m_bStretchToFill( )

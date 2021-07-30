@@ -272,6 +272,6 @@ char* C_BaseTeamObjectiveResource::m_pszCapLayoutInHUD( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource.m_pszCapLayoutInHUD");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }

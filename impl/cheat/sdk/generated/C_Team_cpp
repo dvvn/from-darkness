@@ -82,7 +82,7 @@ char* C_Team::m_szTeamname( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamname");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_Team::m_szClanTeamname( )
@@ -92,7 +92,7 @@ char* C_Team::m_szClanTeamname( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szClanTeamname");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_Team::m_szTeamFlagImage( )
@@ -102,7 +102,7 @@ char* C_Team::m_szTeamFlagImage( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamFlagImage");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_Team::m_szTeamLogoImage( )
@@ -112,7 +112,7 @@ char* C_Team::m_szTeamLogoImage( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamLogoImage");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_Team::m_szTeamMatchStat( )
@@ -122,7 +122,7 @@ char* C_Team::m_szTeamMatchStat( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamMatchStat");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_Team::m_nGGLeaderEntIndex_CT( )

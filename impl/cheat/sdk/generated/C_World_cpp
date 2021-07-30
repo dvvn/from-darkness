@@ -92,7 +92,7 @@ char* C_World::m_iszDetailSpriteMaterial( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_World.m_iszDetailSpriteMaterial");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 bool& C_World::m_bColdWorld( )

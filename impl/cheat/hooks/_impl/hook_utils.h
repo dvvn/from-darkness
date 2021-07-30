@@ -46,7 +46,7 @@ namespace cheat::hooks
 
 		hiddent_type( ) = default;
 
-		hiddent_type(void* ptr): value(reinterpret_cast<uintptr_t>(ptr))
+		hiddent_type(void* ptr) : value(reinterpret_cast<uintptr_t>(ptr))
 		{
 		}
 
@@ -80,49 +80,49 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__thiscall C::*fn )(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__thiscall C::* fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__thiscall C::*fn )(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__thiscall C::* fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__fastcall C::*fn )(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__fastcall C::* fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__fastcall C::*fn )(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__fastcall C::* fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__stdcall C::*fn )(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__stdcall C::* fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__stdcall C::*fn )(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__stdcall C::* fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__cdecl C::*fn )(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__cdecl C::* fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__cdecl C::*fn )(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__cdecl C::* fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
@@ -178,7 +178,7 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::*fn )(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::thiscall__, call_conversion::fastcall__);
 		using fn_t = Ret(__fastcall*)(C*, void*, Args ...);
@@ -186,13 +186,13 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::*fn )(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__thiscall C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::*fn )(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::fastcall__);
 		using fn_t = Ret(__fastcall*)(C*, void*, Args ...);
@@ -200,13 +200,13 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::*fn )(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__fastcall C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::*fn )(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::stdcall__);
 		using fn_t = Ret(__stdcall*)(void*, Args ...);
@@ -214,13 +214,13 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::*fn )(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__stdcall C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::*fn )(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::cdecl__);
 		using fn_t = Ret(__cdecl*)(void*, Args ...);
@@ -228,7 +228,7 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::*fn )(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__cdecl C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
@@ -245,75 +245,83 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::*fn )(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::*fn )(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__thiscall C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::*fn )(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::*fn )(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__fastcall C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::*fn )(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::*fn )(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__stdcall C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::*fn )(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::*fn )(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__cdecl C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename ...Args>
-	Ret _Call_function(Ret (__fastcall *fn )(Args ...), std::type_identity_t<Args> ...args) = delete;
+	Ret _Call_function(Ret (__fastcall* fn)(Args ...), std::type_identity_t<Args> ...args) = delete;
 
 	template <typename Ret, typename ...Args>
-	Ret _Call_function(Ret (__stdcall *fn )(Args ...), std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall* fn)(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::stdcall__);
 		return utl::invoke(fn, args...);
 	}
 
 	template <typename Ret, typename ...Args>
-	Ret _Call_function(Ret (__cdecl *fn )(Args ...), std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl* fn)(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::cdecl__);
 		return utl::invoke(fn, args...);
 	}
 #pragma endregion
 
+	namespace detail
+	{
+		template <typename T>
+		concept _Invocable = std::invocable<T>;
+		template <typename T>
+		concept _Not_invocable = !std::invocable<T>;
+	}
+
 	class method_info
 	{
 	public:
-		enum class type
+		enum class type:uint8_t
 		{
 			fn_unknown,
 			fn_static,
@@ -324,8 +332,8 @@ namespace cheat::hooks
 		using func_type = utl::function<LPVOID( )>;
 
 	protected:
-		method_info(type method_type, bool refresh_result, func_type&& func);
-		method_info(type method_type, bool refresh_result, const func_type& func);
+		method_info(type method_type, func_type&& func);
+		method_info(type method_type, LPVOID func_ptr);
 
 	public:
 		method_info( ) = default;
@@ -337,9 +345,7 @@ namespace cheat::hooks
 
 	private:
 		type type__ = type::fn_unknown;
-		bool refresh_result__ = false;
-		func_type updater__;
-		LPVOID result__ = nullptr;
+		utl::variant<func_type, LPVOID> storage__;
 
 		template <typename T>
 		static constexpr size_t Count_pointers_( )
@@ -347,98 +353,63 @@ namespace cheat::hooks
 			return std::is_pointer_v<T> ? Count_pointers_<std::remove_pointer_t<T>>( ) + 1 : 0;
 		}
 
-	public:
-		static method_info make_static(LPVOID func)
+		template <detail::_Not_invocable T>
+		static auto Pack_pointer_(T&& ptr)
 		{
-			return method_info(type::fn_static, false, [=] { return func; });
-		}
+			using raw_t = std::remove_cvref_t<decltype(ptr)>;
 
-		template <typename Fn>
-		static method_info make_member(Fn&& func)
-		{
-			if constexpr (std::invocable<Fn>)
-			{
-				return method_info(type::fn_member, false, [fn_callable = utl::forward<Fn>(func)]
-				{
-					auto&& fn = utl::invoke(fn_callable);
-					return _Pointer_to_class_method(fn);
-				});
-			}
-			else
-			{
-				return method_info(type::fn_member, false, [fn = _Pointer_to_class_method(func)]
-				{
-					return fn;
-				});
-			}
-		}
+			constexpr bool rvalue = std::is_rvalue_reference_v<decltype(ptr)>;
 
-		template <typename C>
-			requires(!std::invocable<C>)
-		static method_info make_member_virtual(C&& instance, size_t index, bool refrest_result = false)
-		{
-			using raw_t = std::remove_cvref_t<decltype(instance)>;
-
-			constexpr bool rvalue = std::is_rvalue_reference_v<decltype(instance)>;
-
+			// ReSharper disable once CppTooWideScopeInitStatement
 			constexpr size_t num_pointers = Count_pointers_<raw_t>( );
-
-			func_type instance_getter_fn_temp;
-			func_type method_getter_fn;
 
 			if constexpr (num_pointers == 0)
 			{
 				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference!");
-				instance_getter_fn_temp = [ptr = utl::addressof(instance)] { return ptr; };
+				//return [ptr = utl::addressof(ptr)] { return ptr; };
+				return utl::addressof(ptr);
 			}
 			else if constexpr (num_pointers == 2)
 			{
 				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference to pointer!");
-				instance_getter_fn_temp = [=] { return *instance; };
+				return [=] { return *ptr; };
 			}
 			else if constexpr (num_pointers == 1)
 			{
 				if constexpr (rvalue)
 				{
-					BOOST_ASSERT_MSG(instance != nullptr, "Rvalue pointer must be set!");
-					instance_getter_fn_temp = [=] { return instance; };
+					BOOST_ASSERT_MSG(ptr != nullptr, "Rvalue pointer must be set!");
+					//return [=] { return ptr; };
+					return ptr;
 				}
 				else
 				{
 					//instance can be null or dynamic, so store pointer to it
-					instance_getter_fn_temp = [ptr2 = utl::addressof(instance)] { return *ptr2; };
+					return [ptr2 = utl::addressof(ptr)] { return *ptr2; };
 				}
 			}
 			else
 			{
 				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCTION__);
+				return nullptr;
 			}
-
-			method_getter_fn = [instance_getter_fn = utl::move(instance_getter_fn_temp), idx = index]
-			{
-				return _Pointer_to_virtual_class_table(instance_getter_fn( ))[idx];
-			};
-
-			return method_info(type::fn_member_virtual, refrest_result, utl::move(method_getter_fn));
 		}
 
-		template <std::invocable Fn>
-		static method_info make_member_virtual(Fn&& instance_fn, size_t index, bool refrest_result = false)
+		template <detail::_Invocable T>
+		static auto Pack_pointer_(T&& fn)
 		{
-			using inst_type = std::invoke_result_t<Fn>;
+			using inst_type = std::invoke_result_t<T>;
 			using raw_t = std::remove_cvref_t<inst_type>;
 
 			constexpr bool rvalue = std::is_rvalue_reference_v<inst_type>;
 
+			// ReSharper disable once CppTooWideScopeInitStatement
 			constexpr size_t num_pointers = Count_pointers_<raw_t>( );
-
-			func_type instance_getter_fn_temp;
-			func_type method_getter_fn;
 
 			if constexpr (num_pointers == 0)
 			{
 				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference!");
-				instance_getter_fn_temp = [ptr_fn = utl::forward<Fn>(instance_fn)]
+				return [ptr_fn = utl::forward<T>(fn)]
 				{
 					auto& ptr = utl::invoke(ptr_fn);
 					return utl::addressof(ptr);
@@ -447,7 +418,7 @@ namespace cheat::hooks
 			else if constexpr (num_pointers == 2)
 			{
 				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference to pointer!");
-				instance_getter_fn_temp = [ptr_fn = utl::forward<Fn>(instance_fn)]
+				return [ptr_fn = utl::forward<T>(fn)]
 				{
 					auto instance = utl::invoke(ptr_fn);
 					return *instance;
@@ -455,7 +426,8 @@ namespace cheat::hooks
 			}
 			else if constexpr (num_pointers == 1)
 			{
-				instance_getter_fn_temp = [ptr_fn = utl::forward<Fn>(instance_fn)]
+				//return lambda for better debugging
+				return [ptr_fn = utl::forward<T>(fn)]
 				{
 					return utl::invoke(ptr_fn);
 				};
@@ -463,21 +435,82 @@ namespace cheat::hooks
 			else
 			{
 				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCTION__);
+				return func_type( );
 			}
-
-			method_getter_fn = [instance_getter_fn = utl::move(instance_getter_fn_temp), idx = index]
-			{
-				return _Pointer_to_virtual_class_table(instance_getter_fn( ))[idx];
-			};
-
-			return method_info(type::fn_member_virtual, refrest_result, utl::move(method_getter_fn));
 		}
 
-		template <std::invocable Fn>
+		template <typename T>
+		static auto Pack_value_(T&& val)
+		{
+			if constexpr (detail::_Invocable<T>)
+			{
+				return [fn_stored = utl::forward<T>(val)]
+				{
+					return utl::invoke(fn_stored);
+				};
+			}
+			else
+			{
+				using raw_t = std::remove_cvref_t<T>;
+
+				if constexpr (std::is_rvalue_reference_v<decltype(val)> || std::is_trivially_copyable_v<raw_t>)
+				{
+					return val;
+				}
+				else
+				{
+					return [value_stored = utl::ref(val)]( )-> const raw_t&
+					{
+						return value_stored.get( );
+					};
+				}
+			}
+		}
+
+		template <typename T>
+		static auto Try_invoke_(T&& val)
+		{
+			if constexpr (detail::_Invocable<T>)
+				return utl::invoke(val);
+			else
+				return utl::forward<T>(val);
+		}
+
+	public:
+		template <typename T>
+		static method_info make_static(T&& func)
+		{
+			return method_info(type::fn_static, Pack_pointer_(utl::forward<T>(func)));
+		}
+
+		template <typename T>
+		static method_info make_member(T&& func)
+		{
+			return method_info(type::fn_member,
+							   [packed = Pack_pointer_(utl::forward<T>(func))]
+							   {
+								   decltype(auto) fn = Try_invoke_(packed);
+								   return _Pointer_to_class_method(fn);
+							   });
+		}
+
+		template <typename T, typename I>
+		static method_info make_member_virtual(T&& instance, I&& index)
+		{
+			return method_info(type::fn_member_virtual,
+							   [instance_packed = Pack_pointer_(utl::forward<T>(instance)), idx_packed = Pack_value_(utl::forward<I>(index))]
+							   {
+								   decltype(auto) obj_instance = Try_invoke_(instance_packed);
+								   decltype(auto) fn_index = Try_invoke_(idx_packed);
+								   return _Pointer_to_virtual_class_table(obj_instance)[fn_index];
+							   });
+		}
+
+		/*template <std::invocable Fn>
 		static method_info make_custom(bool refresh_result, Fn&& func)
 		{
 			return method_info(type::fn_unknown, refresh_result, utl::forward<Fn>(func));
-		}
+		}*/
 	};
 
 	class hook_holder_base
@@ -702,7 +735,7 @@ namespace cheat::hooks
 			{
 				if (this->hooked( ))
 				{
-					BOOST_ASSERT_MSG(!other.hooked(), "Unable to move active hook");
+					BOOST_ASSERT_MSG(!other.hooked( ), "Unable to move active hook");
 					Unhook_lazy_( );
 				}
 

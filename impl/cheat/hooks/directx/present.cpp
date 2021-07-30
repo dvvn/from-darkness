@@ -20,7 +20,7 @@ bool present::Do_load( )
 	this->hook( );
 	this->enable( );
 
-	return 1;
+	return true;
 }
 
 void present::Callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)

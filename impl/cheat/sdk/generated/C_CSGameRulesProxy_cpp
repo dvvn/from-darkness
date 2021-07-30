@@ -672,7 +672,7 @@ char* C_CSGameRulesProxy::m_szTournamentEventName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szTournamentEventName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_CSGameRulesProxy::m_szTournamentEventStage( )
@@ -682,7 +682,7 @@ char* C_CSGameRulesProxy::m_szTournamentEventStage( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szTournamentEventStage");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 char* C_CSGameRulesProxy::m_szTournamentPredictionsTxt( )
@@ -692,7 +692,7 @@ char* C_CSGameRulesProxy::m_szTournamentPredictionsTxt( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szTournamentPredictionsTxt");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_CSGameRulesProxy::m_nTournamentPredictionsPct( )
@@ -712,7 +712,7 @@ char* C_CSGameRulesProxy::m_szMatchStatTxt( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy.m_szMatchStatTxt");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_CSGameRulesProxy::m_nGuardianModeWaveNumber( )

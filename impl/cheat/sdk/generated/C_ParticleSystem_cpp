@@ -112,7 +112,7 @@ char* C_ParticleSystem::m_szSnapshotFileName( )
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_szSnapshotFileName");
 	auto addr = utl::address(this).add(offset);
-	return addr.raw<char>( );
+	return addr.ptr<char>( );
 #endif
 }
 utl::array<utl::Vector, 4>& C_ParticleSystem::m_vServerControlPoints( )

@@ -11,6 +11,7 @@
 #include "cheat/hooks/c_baseanimating/should skip animation frame.h"
 #include "cheat/hooks/c_baseanimating/standard blending rules.h"
 #include "cheat/hooks/c_base_entity/estimate abs velocity.h"
+#include "cheat/hooks/c_base_entity/should interpolate.h"
 #include "cheat/hooks/c_csplayer/do extra bone processing.h"
 #include "cheat/hooks/directx/present.h"
 #include "cheat/hooks/directx/reset.h"
@@ -311,6 +312,7 @@ services_loader::services_loader( )
 			  .then( )
 			  .wait<netvars, players_list>( )
 			  .load<c_base_entity::estimate_abs_velocity,
+					//c_base_entity::should_interpolate,
 					c_base_animating::should_skip_animation_frame,
 					c_base_animating::standard_blending_rules,
 					c_csplayer::do_extra_bone_processing>(true)

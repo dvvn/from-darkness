@@ -11,8 +11,10 @@ sections_storage::sections_storage(address addr, IMAGE_NT_HEADERS* nt): data_cac
 
 module_info_rw_result sections_storage::Load_from_memory_impl( )
 {
+	cache_type tmp;
+
 	const auto number_of_sections = nt->FileHeader.NumberOfSections;
-	data_cache.reserve(number_of_sections);
+	tmp.reserve(number_of_sections);
 
 	const auto section_header = IMAGE_FIRST_SECTION(nt);
 	const auto last_section_header = section_header + number_of_sections;
@@ -26,9 +28,10 @@ module_info_rw_result sections_storage::Load_from_memory_impl( )
 		info.block = {base_address + header->VirtualAddress, header->SizeOfRawData};
 		info.data = header;
 
-		data_cache.emplace(move(info_name), move(info));
+		tmp.emplace(move(info_name), move(info));
 	}
 
+	data_cache = move(tmp);
 	return success;
 }
 
@@ -42,7 +45,7 @@ void sections_storage::Change_base_address_impl(address new_addr)
 		address header_addr = info.data;
 		header_addr -= (base_address);
 		header_addr += new_addr;
-		const auto header = header_addr.raw<IMAGE_SECTION_HEADER>( );
+		const auto header = header_addr.ptr<IMAGE_SECTION_HEADER>( );
 
 		info.block = {new_addr + header->VirtualAddress, header->SizeOfRawData};
 		info.data = header;

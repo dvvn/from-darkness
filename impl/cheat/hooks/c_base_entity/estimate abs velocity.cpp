@@ -15,7 +15,6 @@ using namespace csgo;
 
 estimate_abs_velocity::estimate_abs_velocity( )
 {
-
 }
 
 bool estimate_abs_velocity::Do_load( )
@@ -25,8 +24,13 @@ bool estimate_abs_velocity::Do_load( )
 	return 0;
 #else
 
-	const auto offset = _Find_signature("client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).value( ) / 4;
-	this->target_func_ = method_info::make_member_virtual(bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll", &csgo_interfaces::local_player), offset);
+	using namespace address_pipe;
+
+	this->target_func_ = method_info::make_member_virtual
+			(
+			 bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll"),
+			 bind_front(_Find_signature, "client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18") | add(2) | deref(1) | divide(4) | value
+			);
 
 	this->hook( );
 	this->enable( );
@@ -44,7 +48,7 @@ void estimate_abs_velocity::Callback(Vector& vel)
 		{
 			const auto addr = _Find_signature("client.dll", "55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7");
 			void (C_BaseEntity::*fn)( );
-			reinterpret_cast<void*&>(fn) = addr.raw<void>( );
+			reinterpret_cast<void*&>(fn) = addr.ptr<void>( );
 			return fn;
 		}( );
 
