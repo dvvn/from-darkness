@@ -16,7 +16,7 @@ settings_data::settings_data(const string_view& name) : settings_data(wstring(na
 
 settings_data::settings_data(wstring&& name) : string_wrapper_base(raw_type(move(name)))
 {
-	path_ = all_modules::get_ptr()->current( ).work_dir( );
+	path_ = all_modules::get_ptr( )->current( ).work_dir( );
 	path_ /= L"settings";
 	path_ /= this->raw( );
 }
@@ -61,8 +61,10 @@ bool settings_data::remove_all( ) const
 	return filesystem::remove(path_);
 }
 
-utl::wstring_view settings_data::path( ) const
-{return path_.native();}
+wstring_view settings_data::path( ) const
+{
+	return path_.native( );
+}
 
 wstring settings_data::Generate_path(const wstring_view& name) const
 {

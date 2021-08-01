@@ -365,20 +365,20 @@ namespace cheat::hooks
 
 			if constexpr (num_pointers == 0)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference!");
+				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
 				//return [ptr = utl::addressof(ptr)] { return ptr; };
 				return utl::addressof(ptr);
 			}
 			else if constexpr (num_pointers == 2)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference to pointer!");
+				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
 				return [=] { return *ptr; };
 			}
 			else if constexpr (num_pointers == 1)
 			{
 				if constexpr (rvalue)
 				{
-					BOOST_ASSERT_MSG(ptr != nullptr, "Rvalue pointer must be set!");
+					BOOST_ASSERT_MSG(ptr != nullptr, __FUNCSIG__": Rvalue pointer must be set!");
 					//return [=] { return ptr; };
 					return ptr;
 				}
@@ -390,7 +390,7 @@ namespace cheat::hooks
 			}
 			else
 			{
-				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCTION__);
+				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCSIG__);
 				return nullptr;
 			}
 		}
@@ -408,7 +408,7 @@ namespace cheat::hooks
 
 			if constexpr (num_pointers == 0)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference!");
+				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
 				return [ptr_fn = utl::forward<T>(fn)]
 				{
 					auto& ptr = utl::invoke(ptr_fn);
@@ -417,7 +417,7 @@ namespace cheat::hooks
 			}
 			else if constexpr (num_pointers == 2)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, "Unable to store rvalue reference to pointer!");
+				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
 				return [ptr_fn = utl::forward<T>(fn)]
 				{
 					auto instance = utl::invoke(ptr_fn);
@@ -434,7 +434,7 @@ namespace cheat::hooks
 			}
 			else
 			{
-				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCTION__);
+				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCSIG__);
 				return func_type( );
 			}
 		}
@@ -581,7 +581,7 @@ namespace cheat::hooks
 			bool skip_original__ = false;
 
 		public:
-			void set_original_called(bool called)
+			void set_original_called(bool called=true)
 			{
 				skip_original__ = called;
 			}

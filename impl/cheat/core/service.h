@@ -44,15 +44,15 @@ namespace cheat
 		 */
 		virtual bool Do_load( ) = 0;
 
-		virtual void On_load( ) { (void)this; }
+		virtual void On_load( ) { constexpr auto _ = 0; }
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
-		virtual void On_stop( ) { (void)this; }
+		virtual void On_stop( ) { constexpr auto _ = 0; }
 #endif
-		virtual void On_error( ) { (void)this; }
+		virtual void On_error( ) { constexpr auto _ = 0; }
 
 		void Loading_access_assert( ) const;
 	private:
-		service_state2 state__;
+		utl::atomic<service_state2> state__;
 	};
 
 	template <typename T>

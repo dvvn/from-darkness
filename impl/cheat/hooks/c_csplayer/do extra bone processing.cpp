@@ -40,7 +40,7 @@ void do_extra_bone_processing::Callback([[maybe_unused]] CStudioHdr* studio_hdr,
 										[[maybe_unused]] Quaternion q[], [[maybe_unused]] matrix3x4a_t bone_to_world[],
 										[[maybe_unused]] CBoneBitList& bone_computed, [[maybe_unused]] CIKContext* ik_context)
 {
-	this->return_value_.set_original_called(true);
+	this->return_value_.set_original_called();
 
 	//DoProceduralFootPlant also skipped here
 }

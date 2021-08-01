@@ -19,6 +19,11 @@ int ConVar::GetInt( )
 	return _Call_function(&ConVar::GetInt, this, 13);
 }
 
+bool ConVar::GetBool( )
+{
+	return !!GetInt( );
+}
+
 void ConVar::SetValue(const char* value)
 {
 	_Call_function(&ConVar::SetValue_<decltype(value)>, this, 14, value);
@@ -34,9 +39,24 @@ void ConVar::SetValue(int value)
 	_Call_function(&ConVar::SetValue_<decltype(value)>, this, 16, value);
 }
 
-char* ConVar::GetName( )
+ConVar::operator const char*( )
 {
-	return _Call_function(&ConVar::GetName, this, 5);
+	return GetString( );
+}
+
+ConVar::operator float( )
+{
+	return GetFloat( );
+}
+
+ConVar::operator int( )
+{
+	return GetInt( );
+}
+
+ConVar::operator bool( )
+{
+	return GetBool( );
 }
 
 //float cheat::csgo::ConVar::GetValue( )
@@ -49,8 +69,3 @@ char* ConVar::GetName( )
 //{
 //	return (int)(m_pParent->m_Value.m_nValue ^ (DWORD)this);
 //}
-
-bool ConVar::GetBool( )
-{
-	return !!GetInt( );
-}

@@ -129,7 +129,7 @@ public:
 		const auto& original_interface_name = found.key( );
 		const auto original_interface_name_end = original_interface_name._Unchecked_end( );
 
-		string msg = "Found interface ";
+		string msg = "Found interface: ";
 		msg += interface_name;
 		if (*original_interface_name_end != '\0')
 		{

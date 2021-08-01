@@ -547,12 +547,6 @@ namespace std
 	BOOST_ASSERT("This function added only as example");\
 	(void)this;
 
-#ifndef CHEAT_NETVARS_UPDATING
-#if defined(NDEBUG) && !defined(CHEAT_HAVE_CONSOLE)//currently release mode used only for netvars/vtables dumping
-#define CHEAT_NETVARS_UPDATING
-#endif
-#endif
-
 #if 1//defined(_DEBUG) || defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_HAVE_CONSOLE
 #endif

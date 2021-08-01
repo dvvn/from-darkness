@@ -58,7 +58,7 @@ service_base2::~service_base2( )
 service_base2::service_base2(service_base2&& other) noexcept
 {
 	other.Loading_access_assert( );
-	state__ = move(other.state__);
+	state__ = static_cast<service_state2>(other.state__);
 	other.state__ = service_state2::moved;
 }
 
@@ -66,7 +66,7 @@ void service_base2::operator=(service_base2&& other) noexcept
 {
 	this->Loading_access_assert( );
 	other.Loading_access_assert( );
-	state__ = move(other.state__);
+	state__ = static_cast<service_state2>(other.state__);
 	other.state__ = service_state2::moved;
 }
 
@@ -79,7 +79,7 @@ void service_base2::load( )
 {
 	try
 	{
-		if (state__ != service_state2::unset)
+		if (static_cast<service_state2>(state__) != service_state2::unset)
 		{
 			BOOST_ASSERT("Service loaded before");
 			return;

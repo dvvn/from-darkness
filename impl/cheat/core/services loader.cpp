@@ -169,7 +169,7 @@ future<bool> services_holder::load( )
 			}
 			while (true);
 
-			return (!loader.closed( ));
+			return !loader.closed( );
 		};
 
 		for (auto child = this; child != nullptr; child = child->next__.get( ))

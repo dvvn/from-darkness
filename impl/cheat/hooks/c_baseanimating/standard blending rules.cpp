@@ -51,7 +51,7 @@ void standard_blending_rules::Callback(CStudioHdr* hdr, Vector pos[], Quaternion
 		return;*/
 
 	flags.add(m_fEffects_t::EF_NOINTERP);
-	this->call_original_ex(hdr, pos, q, current_time, bone_mask|BONE_USED_BY_HITBOX);
+	this->call_original_ex(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
 	flags.remove(m_fEffects_t::EF_NOINTERP);
 
 	/*if (override_return__)
