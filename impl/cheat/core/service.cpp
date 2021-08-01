@@ -46,7 +46,7 @@ bool service_state2::disabled( ) const
 
 void service_base2::Loading_access_assert( ) const
 {
-	BOOST_ASSERT_MSG(state__ != service_state2::loading, "Unable to modify service while loading!");
+	BOOST_ASSERT_MSG(static_cast<service_state2>(state__) != service_state2::loading, "Unable to modify service while loading!");
 	(void)this;
 }
 
@@ -58,6 +58,7 @@ service_base2::~service_base2( )
 service_base2::service_base2(service_base2&& other) noexcept
 {
 	other.Loading_access_assert( );
+	// ReSharper disable once CppRedundantCastExpression
 	state__ = static_cast<service_state2>(other.state__);
 	other.state__ = service_state2::moved;
 }
@@ -66,12 +67,14 @@ void service_base2::operator=(service_base2&& other) noexcept
 {
 	this->Loading_access_assert( );
 	other.Loading_access_assert( );
+	// ReSharper disable once CppRedundantCastExpression
 	state__ = static_cast<service_state2>(other.state__);
 	other.state__ = service_state2::moved;
 }
 
 service_state2 service_base2::state( ) const
 {
+	_ReadBarrier( );
 	return state__;
 }
 
@@ -79,6 +82,7 @@ void service_base2::load( )
 {
 	try
 	{
+		// ReSharper disable once CppRedundantCastExpression
 		if (static_cast<service_state2>(state__) != service_state2::unset)
 		{
 			BOOST_ASSERT("Service loaded before");

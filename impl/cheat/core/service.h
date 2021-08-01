@@ -52,7 +52,8 @@ namespace cheat
 
 		void Loading_access_assert( ) const;
 	private:
-		utl::atomic<service_state2> state__;
+		/*utl::atomic<service_state2>*/
+		service_state2 state__;
 	};
 
 	template <typename T>

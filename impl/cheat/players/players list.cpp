@@ -50,16 +50,11 @@ void players_list::update( )
 	const m_iTeamNum_t local_player_team = local_player->m_iTeamNum( );
 	const auto local_player_alive = local_player->IsAlive( );
 
-	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)
+	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)-> C_CSPlayer*
 	{
-		C_CSPlayer* ret;
-
-		if (idx == local_player_index)
-			ret = nullptr;
-		else
-			ret = static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(idx));
-
-		return ret;
+		return idx == local_player_index
+			   ? nullptr
+			   : static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(idx));
 	};
 
 	const auto fixed_curtime = interfaces->global_vars->curtime; //todo

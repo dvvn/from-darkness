@@ -209,7 +209,7 @@ namespace cheat::hooks
 	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::stdcall__);
-		using fn_t = Ret(__stdcall*)(void*, Args ...);
+		using fn_t = Ret(__stdcall*)(C*, Args ...);
 		return detail::_Call_fn_as<fn_t>(fn, instance, args...);
 	}
 
@@ -223,7 +223,7 @@ namespace cheat::hooks
 	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::cdecl__);
-		using fn_t = Ret(__cdecl*)(void*, Args ...);
+		using fn_t = Ret(__cdecl*)(C*, Args ...);
 		return detail::_Call_fn_as<fn_t>(fn, instance, args...);
 	}
 
@@ -581,7 +581,7 @@ namespace cheat::hooks
 			bool skip_original__ = false;
 
 		public:
-			void set_original_called(bool called=true)
+			void set_original_called(bool called = true)
 			{
 				skip_original__ = called;
 			}
@@ -779,7 +779,7 @@ namespace cheat::hooks
 				Unmanaged_call_assert( );
 				auto original = Recreate_original_type_(original_func__);
 				if constexpr (is_static)
-					return _Call_function(original, (args)...);
+					return _Call_function(original, utl::forward<Args>(args)...);
 				else
 					return _Call_function(original, target_instance__, (args)...);
 			}
@@ -938,7 +938,11 @@ namespace cheat::hooks
 		template <typename T, size_t ...I>
 		auto _Shift_left_impl(T& tpl, std::index_sequence<I...>)
 		{
-			return utl::forward_as_tuple(reinterpret_cast<decltype(get<I + 1>(tpl))>(get<I>(tpl)).unhide( )...);
+			return utl::forward_as_tuple
+					(
+					 reinterpret_cast<utl::tuple_element_t<I + 1, T>&>(utl::get<I>(tpl))
+					.unhide( )...
+					);
 		}
 
 		template <typename ...T>
