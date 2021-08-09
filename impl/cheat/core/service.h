@@ -3,7 +3,7 @@
 
 namespace cheat
 {
-	struct service_state2 final
+	struct service_state final
 	{
 		enum value_type :uint8_t
 		{
@@ -19,22 +19,22 @@ namespace cheat
 		bool done( ) const;
 		bool disabled( ) const;
 
-		CHEAT_ENUM_STRUCT_FILL(service_state2, unset)
+		CHEAT_ENUM_STRUCT_FILL(service_state, unset)
 	};
 
-	class service_base2: public utl::noncopyable
+	class service_base: public utl::noncopyable
 	{
 	public:
-		virtual ~service_base2( );
+		virtual                  ~service_base( );
 		virtual utl::string_view name( ) const = 0;
 
-		service_base2( ) = default;
+		service_base( ) = default;
 
-		service_base2(service_base2&& other) noexcept;
-		void operator=(service_base2&& other) noexcept;
+		service_base(service_base&& other) noexcept;
+		void operator=(service_base&& other) noexcept;
 
-		service_state2 state( ) const;
-		void load( );
+		service_state state( ) const;
+		void          load( );
 
 	protected:
 		/**
@@ -53,11 +53,11 @@ namespace cheat
 		void Loading_access_assert( ) const;
 	private:
 		/*utl::atomic<service_state2>*/
-		service_state2 state__;
+		service_state state__;
 	};
 
 	template <typename T>
-	class service: public service_base2, public utl::one_instance_shared<T>
+	class service: public service_base, public utl::one_instance_shared<T>
 	{
 	public:
 		utl::string_view name( ) const final

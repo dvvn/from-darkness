@@ -844,7 +844,7 @@ namespace cheat::hooks
 			}
 
 		protected:
-			context_shared::shared_type hooks_context_ = context_shared::get_ptr( );
+			context_shared::shared_type hooks_context_ = context_shared::get_ptr_shared( );
 
 		public:
 			bool unhook( ) final

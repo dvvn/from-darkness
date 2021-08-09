@@ -37,9 +37,9 @@ static future<bool> _Wait_for_game( )
 #else
 
 		const auto modules = all_modules::get_ptr( );
-		auto& all = modules->update(false).all( );
+		auto&      all     = modules->update(false).all( );
 
-		auto work_dir = filesystem::path(modules->owner( ).work_dir( ));
+		auto  work_dir        = filesystem::path(modules->owner( ).work_dir( ));
 		auto& work_dir_native = const_cast<filesystem::path::string_type&>(work_dir.native( ));
 		ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
 		work_dir.append(L"bin").append(L"serverbrowser.dll");
@@ -77,21 +77,21 @@ static future<bool> _Wait_for_game( )
 
 struct unload_helper_data
 {
-	DWORD sleep;
-	HMODULE handle;
-	BOOL retval;
+	DWORD            sleep;
+	HMODULE          handle;
+	BOOL             retval;
 	services_holder* instance;
 };
 
 [[maybe_unused]]
 static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 {
-	const auto data_ptr = static_cast<unload_helper_data*>(data_packed);
+	const auto data_ptr                          = static_cast<unload_helper_data*>(data_packed);
 	const auto [sleep, handle, retval, instance] = *data_ptr;
 	delete data_ptr;
 
-	const auto hooks = instance->get_all_hooks( );
-	auto frozen = winapi::frozen_threads_storage(true);
+	const auto hooks  = instance->get_all_hooks( );
+	auto       frozen = winapi::frozen_threads_storage(true);
 	for (auto& h: hooks)
 	{
 		h->disable_safe( );
@@ -105,19 +105,6 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 
 future<bool> services_holder::load( )
 {
-	if (!locked__)
-	{
-		locked__ = true;
-	}
-	else
-	{
-		auto pr = promise<bool>( );
-		pr.set_value(false);
-		auto fut = pr.get_future( );
-		fut.set_async( );
-		return fut;
-	}
-
 	return _Wait_for_game( ).then([this](const future<bool>& task1)-> bool
 	{
 		if (task1.future_->exception)
@@ -138,7 +125,7 @@ future<bool> services_holder::load( )
 		{
 			for (const auto& s: services)
 			{
-				loader.submit(bind_front(&service_base2::load, s.get( )));
+				loader.submit(bind_front(&service_base::load, s.get( )));
 			}
 		};
 		const auto wait = [&](const services_storage_type& services)
@@ -146,19 +133,19 @@ future<bool> services_holder::load( )
 			do
 			{
 				size_t done = 0;
-
+				using state = service_state::value_type;
 				for (const auto& s: services)
 				{
 					switch (s->state( ).value( ))
 					{
-						case service_state2::unset:
-						case service_state2::loading:
+						case state::unset:
+						case state::loading:
 							this_thread::yield( );
 							break;
-						case service_state2::stopped:
-						case service_state2::error:
+						case state::stopped:
+						case state::error:
 							loader.close( );
-						case service_state2::loaded:
+						case state::loaded:
 							++done;
 							break;
 					}
@@ -208,6 +195,14 @@ future<bool> services_holder::load( )
 
 using namespace hooks;
 
+services_holder& services_holder::then( )
+{
+	if (!next__)
+		next__ = utl::make_unique<services_holder>( );
+
+	return *next__;
+}
+
 unordered_set<hook_holder_base*> services_holder::get_all_hooks( )
 {
 	auto hooks = unordered_set<hook_holder_base*>( );
@@ -251,10 +246,10 @@ void services_loader::load(HMODULE handle)
 void services_loader::unload( )
 {
 	const auto data = new unload_helper_data;
-	data->sleep = 1000;
-	data->handle = my_handle__;
-	data->retval = TRUE;
-	data->instance = addressof(this->services__);
+	data->sleep     = 1000;
+	data->handle    = my_handle__;
+	data->retval    = TRUE;
+	data->instance  = addressof(this->services__);
 
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }

@@ -62,6 +62,9 @@ void abstract_pages_renderer::init( )
 	BOOST_ASSERT(!this->empty( ));
 #endif
 
+	if(pages_.empty())
+		return;
+
 	for (auto& p: pages_)
 	{
 		if (const auto obj = dynamic_cast<abstract_pages_renderer*>(p.page( )))

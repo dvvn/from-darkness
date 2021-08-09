@@ -22,17 +22,17 @@ template <std::derived_from<std::exception> Ex>
 	return pr.get_future( );
 }
 
-bool service_state2::operator!( ) const
+bool service_state::operator!( ) const
 {
 	return value__ == unset;
 }
 
-bool service_state2::done( ) const
+bool service_state::done( ) const
 {
 	return value__ == loaded;
 }
 
-bool service_state2::disabled( ) const
+bool service_state::disabled( ) const
 {
 	switch (value__)
 	{
@@ -44,54 +44,54 @@ bool service_state2::disabled( ) const
 	}
 }
 
-void service_base2::Loading_access_assert( ) const
+void service_base::Loading_access_assert( ) const
 {
-	BOOST_ASSERT_MSG(static_cast<service_state2>(state__) != service_state2::loading, "Unable to modify service while loading!");
+	BOOST_ASSERT_MSG(static_cast<service_state>(state__) != service_state::loading, "Unable to modify service while loading!");
 	(void)this;
 }
 
-service_base2::~service_base2( )
+service_base::~service_base( )
 {
 	Loading_access_assert( );
 }
 
-service_base2::service_base2(service_base2&& other) noexcept
+service_base::service_base(service_base&& other) noexcept
 {
 	other.Loading_access_assert( );
 	// ReSharper disable once CppRedundantCastExpression
-	state__ = static_cast<service_state2>(other.state__);
-	other.state__ = service_state2::moved;
+	state__ = static_cast<service_state>(other.state__);
+	other.state__ = service_state::moved;
 }
 
-void service_base2::operator=(service_base2&& other) noexcept
+void service_base::operator=(service_base&& other) noexcept
 {
 	this->Loading_access_assert( );
 	other.Loading_access_assert( );
 	// ReSharper disable once CppRedundantCastExpression
-	state__ = static_cast<service_state2>(other.state__);
-	other.state__ = service_state2::moved;
+	state__ = static_cast<service_state>(other.state__);
+	other.state__ = service_state::moved;
 }
 
-service_state2 service_base2::state( ) const
+service_state service_base::state( ) const
 {
 	_ReadBarrier( );
 	return state__;
 }
 
-void service_base2::load( )
+void service_base::load( )
 {
 	try
 	{
 		// ReSharper disable once CppRedundantCastExpression
-		if (static_cast<service_state2>(state__) != service_state2::unset)
+		if (static_cast<service_state>(state__) != service_state::unset)
 		{
 			BOOST_ASSERT("Service loaded before");
 			return;
 		}
 
-		state__ = service_state2::loading;
+		state__ = service_state::loading;
 		const auto loaded = this->Do_load( );
-		state__ = service_state2::loaded;
+		state__ = service_state::loaded;
 
 #ifdef CHEAT_HAVE_CONSOLE
 		_Log_to_console(format("Service {}: {}", loaded ? "loaded " : "skipped", this->name( )));
@@ -101,13 +101,13 @@ void service_base2::load( )
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
 	catch (const thread_interrupted&)
 	{
-		state__ = service_state2::stopped;
+		state__ = service_state::stopped;
 		this->On_stop( );
 	}
 #endif
 	catch ([[maybe_unused]] const std::exception& ex)
 	{
-		state__ = service_state2::error;
+		state__ = service_state::error;
 #ifdef CHEAT_HAVE_CONSOLE
 		_Log_to_console(format("Unable to load service {}. {}", this->name( ), ex.what( )));
 #endif

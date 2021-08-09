@@ -22,7 +22,7 @@ namespace cheat::gui::objects
 		T* init( )
 		{
 			auto uptr = utl::make_unique<T>( );
-			auto obj = static_cast<T*>(uptr.get( ));
+			auto obj  = static_cast<T*>(uptr.get( ));
 			page__.emplace<unique_page>(utl::move(uptr));
 			name__.init(obj);
 
@@ -47,11 +47,17 @@ namespace cheat::gui::objects
 			return obj.get( );
 		}
 
+		template <std::invocable T>
+		auto init(T&& fn)
+		{
+			return init(utl::invoke(fn));
+		}
+
 		template <class T>
 		T* init(tools::string_wrapper&& name)
 		{
 			auto uptr = utl::make_unique<T>( );
-			auto obj = static_cast<T*>(uptr.get( ));
+			auto obj  = static_cast<T*>(uptr.get( ));
 			page__.emplace<unique_page>(utl::move(uptr));
 			name__.init(utl::move(name));
 
@@ -76,8 +82,14 @@ namespace cheat::gui::objects
 			return obj.get( );
 		}
 
+		template <std::invocable T>
+		auto init(tools::string_wrapper&& name, T&& fn)
+		{
+			return init(utl::move(name), utl::invoke(fn));
+		}
+
 		const tools::string_wrapper& name( ) const;
-		renderable_object* page( ) const;
+		renderable_object*           page( ) const;
 
 		void render( );
 
@@ -87,7 +99,7 @@ namespace cheat::gui::objects
 		using ref_page = utl::reference_wrapper<renderable_object>;
 
 		utl::variant<unique_page, shared_page, ref_page> page__;
-		tools::string_wrapper_abstract name__;
+		tools::string_wrapper_abstract                   name__;
 	};
 
 	class pages_storage_data final: public abstract_page, public widgets::selectable_internal

@@ -269,7 +269,7 @@ void console::write_char(char c) const
 
 bool cheat::_Log_to_console(const string_view& str)
 {
-	const auto where = console::get_ptr( );
+	const auto where = console::get_ptr_shared( );
 	if (!where)
 		return false;
 

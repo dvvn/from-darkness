@@ -42,27 +42,43 @@ namespace cheat::utl
 		using weak_type = weak_ptr<T>;
 		using shared_type = shared_ptr<T>;
 
-		static shared_type get_ptr( )
+		static shared_type get_ptr_shared(bool steal=false)
 		{
 			static_assert(std::is_default_constructible_v<T>, __FUNCTION__": T must be default constructible!");
 
 			static shared_type shared = make_shared<T>( );
-			static weak_type weak;
+			static weak_type   weak;
 
 			if (!shared)
 			{
+				BOOST_ASSERT(steal==false);
 				return weak.lock( );
 			}
 			else
 			{
-				weak = shared;
-				return move(shared);
+				if (!steal)
+					return shared;
+				else
+				{
+					weak = shared;
+					return move(shared);
+				}
 			}
+		}
+
+		static T* get_ptr( )
+		{
+			static T* holder = []
+			{
+				return get_ptr_shared(false).get( );
+			}( );
+
+			return holder;
 		}
 
 		static weak_type get_ptr_weak( )
 		{
-			static weak_type weak = get_ptr( );
+			static weak_type weak = get_ptr_shared(false);
 			return weak;
 		}
 	};

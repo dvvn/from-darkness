@@ -5,6 +5,7 @@
 #include "cheat/features/aimbot.h"
 #include "cheat/features/anti aim.h"
 #include "cheat/hooks/c_baseanimating/should skip animation frame.h"
+#include "cheat/hooks/winapi/wndproc.h"
 
 using namespace cheat;
 using namespace utl;
@@ -135,8 +136,8 @@ bool menu::Do_load( )
 {
 	renderer__.add_page([]
 	{
-		auto rage_abstract = abstract_page( );
-		auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
+		auto  rage_abstract = abstract_page( );
+		auto& rage          = *rage_abstract.init<horizontal_pages_renderer>("rage");
 
 		using namespace features;
 		rage.add_page(aimbot::get_ptr( ));
@@ -144,33 +145,32 @@ bool menu::Do_load( )
 
 		return rage_abstract;
 	}( ));
-	renderer__.add_page({"settings", settings::get_ptr( )});
+	renderer__.add_page({"settings", settings::get_ptr_shared( )});
 
-#if defined(_DEBUG) && false
+#if defined(_DEBUG)
 	renderer__.add_page([]
 	{
-		auto debug_abstract = abstract_page( );
-		auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
+		auto  debug_abstract = abstract_page( );
+		auto& debug          = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
 
 		debug.add_page([]
 		{
-			auto debug_hooks_abstract = abstract_page( );
-			auto& debug_hooks = *debug_hooks_abstract.init<horizontal_pages_renderer>("hooks");
+			auto  debug_hooks_abstract = abstract_page( );
+			auto& debug_hooks          = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
 
-			const auto add_if_hookded = [&]<typename Tstr,typename Tptr>(Tstr&& name, Tptr* ptr)
+			const auto add_if_hookded = [&]<typename Tstr,typename Tptr>(Tstr&& name, Tptr&& ptr)
 			{
-				if (!ptr->hooked( ))
-					return;
-				debug_hooks.add_page({name, ptr});
+				if (ptr->hooked( ))
+					debug_hooks.add_page({forward<Tstr>(name), forward<Tptr>(ptr)});
 			};
 			using namespace hooks;
-			add_if_hookded("window proc", input::wndproc::get_ptr( ));
-			add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr( ));
+			add_if_hookded("window proc", winapi::wndproc::get_ptr_shared( ));
+			add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared( ));
 
 			return debug_hooks_abstract;
 		}( ));
-		debug.add_page(unused_page::get_ptr( ));
-		debug.add_page(unused_page::get_ptr( ));
+		//debug.add_page(unused_page::get_ptr( ));
+		//debug.add_page(unused_page::get_ptr( ));
 
 		return debug_abstract;
 	}( ));
