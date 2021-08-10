@@ -14,6 +14,13 @@ using namespace c_base_entity;
 using namespace utl;
 using namespace csgo;
 
+should_interpolate::should_interpolate( )
+{
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
+}
+
 bool should_interpolate::Do_load( )
 {
 #if defined(CHEAT_GUI_TEST)
@@ -38,7 +45,7 @@ bool should_interpolate::Do_load( )
 
 void should_interpolate::Callback( )
 {
-	auto ent = this->Target_instance( );
+	auto ent          = this->Target_instance( );
 	auto client_class = ent->GetClientClass( );
 
 	if (client_class->ClassID != ClassId::CCSPlayer)

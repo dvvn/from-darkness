@@ -10,7 +10,7 @@ using namespace utl::detail;
 using namespace property_tree;
 
 //todo: add x64 support
-static optional<vtable_info> _Load_vtable_info(const section_info& dot_rdata, const section_info& dot_text, address type_descriptor)
+static optional<vtable_info> load_vtable_info(const section_info& dot_rdata, const section_info& dot_text, address type_descriptor)
 {
 	for (const auto& block: dot_rdata.block.find_all_blocks(type_descriptor.value( )))
 	{
@@ -51,16 +51,9 @@ static optional<vtable_info> _Load_vtable_info(const section_info& dot_rdata, co
 	return { };
 }
 
-vtables_storage::vtables_storage(address addr, size_t bytes_count, IMAGE_NT_HEADERS* nt, sections_storage* sections): data_cache_from_anywhere(move(addr), nt),
-																													  bytes_count__(bytes_count),
-																													  sections__(sections)
+vtables_storage::vtables_storage( )
 {
 	lock__ = utl::make_shared<mutex>( );
-}
-
-void vtables_storage::set_sections(sections_storage* sections)
-{
-	sections__ = sections;
 }
 
 void vtables_storage::lock( )
@@ -76,7 +69,7 @@ void vtables_storage::unlock( )
 }
 
 //currently only for x86
-module_info_rw_result vtables_storage::Load_from_memory_impl( )
+bool vtables_storage::load_from_memory(cache_type& cache)
 {
 #ifdef UTILS_X64
     throw std::runtime_error("todo: x64");
@@ -84,18 +77,20 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
     ///https://github.com/samsonpianofingers/RTTIDumper/blob/master/
     ///https://www.google.com/search?q=rtti+typedescriptor+x64
 #endif
-	auto& sections = *sections__;
-	sections.load_from_memory( );
-	const auto& sections_cache = sections.get_cache( );
-	const auto& dot_rdata = sections_cache.at(".rdata");
-	const auto& dot_text = sections_cache.at(".text");
+	auto& sections = this->derived_sections( );
+	if (!sections.load( ))
+		return false;
 
-	using data_callback_fn = function<void(vtables_storage*)>;
+	const auto& sections_cache = sections.get_cache( );
+	const auto& dot_rdata      = sections_cache.at(".rdata");
+	const auto& dot_text       = sections_cache.at(".text");
+
+	using data_callback_fn = function<void( )>;
 	using future_type = shared_future<data_callback_fn>;
 	auto load_data_storage = vector<future_type>( );
 
 	static constexpr auto part_before = signature<BYTES>(".?AV");
-	static constexpr auto part_after = signature<BYTES>("@@");
+	static constexpr auto part_after  = signature<BYTES>("@@");
 
 	// type descriptor names look like this: .?AVXXXXXXXXXXXXXXXXX@@ (so: ".?AV" + szTableName + "@@")
 
@@ -106,7 +101,7 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
 	auto pool = thread_pool( );
 	(void)pool;
 
-	auto bytes = this->Mem_block( );
+	auto bytes = this->derived_mem_block( );
 	while (true)
 	{
 		const auto block_start = bytes.find_block(part_before);
@@ -138,8 +133,8 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
 		//--------------
 
 		const auto block_start_ptr = block_start._Unchecked_begin( );
-		const auto block_end_ptr = block_end._Unchecked_end( );
-		const auto block_size_raw = std::distance(block_start_ptr, block_end_ptr);
+		const auto block_end_ptr   = block_end._Unchecked_end( );
+		const auto block_size_raw  = std::distance(block_start_ptr, block_end_ptr);
 
 		const auto class_descriptor = string_view(reinterpret_cast<const char*>(block_start_ptr), block_size_raw);
 
@@ -154,9 +149,9 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
 		// we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the string
 		type_descriptor -= 0x8;
 
-		auto loader_fn = [&dot_rdata,&dot_text, class_descriptor, type_descriptor]( )-> data_callback_fn
+		auto loader_fn = [&dot_rdata,&dot_text, class_descriptor, type_descriptor, &cache]( )-> data_callback_fn
 		{
-			auto result = _Load_vtable_info(dot_rdata, dot_text, type_descriptor);
+			auto result = load_vtable_info(dot_rdata, dot_text, type_descriptor);
 			if (!result.has_value( ))
 				return { };
 
@@ -164,9 +159,9 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
 			class_name.remove_prefix(part_before.size( ));
 			class_name.remove_suffix(part_after.size( ));
 
-			return [class_name, info = move(*result)](vtables_storage* this_ptr) mutable
+			return [class_name, info = move(*result), &cache]( ) mutable
 			{
-				this_ptr->data_cache.emplace(string(class_name), move(info));
+				cache.emplace(string(class_name), move(info));
 			};
 		};
 		load_data_storage.emplace_back(async(pool, move(loader_fn)));
@@ -178,37 +173,18 @@ module_info_rw_result vtables_storage::Load_from_memory_impl( )
 		if (callback.empty( ))
 			continue;
 
-		callback(this);
+		callback( );
 	}
 
-	if (load_data_storage.empty( ))
-		return nothing;
-	if (!this->data_cache.empty( ))
-		return success;
-
-	return /*error*/nothing;
+	return true;
 }
 
-module_info_rw_result vtables_storage::Write_to_file_impl(ptree& cache) const
-{
-	for (const auto& [name, info]: data_cache)
-	{
-		ptree child;
-		child.put("offset", info.addr.remove(base_address).value( ));
-		//child.put("offset", info.addr - base_address_);
-		//child.put("size", info.size( ));
-
-		cache.add_child(name, child);
-	}
-
-	return success;
-}
-
-module_info_rw_result vtables_storage::Load_from_file_impl(const ptree& cache)
+bool vtables_storage::load_from_file(cache_type& cache, const ptree_type& storage)
 {
 	cache_type tmp;
+	const auto base_address = this->base_addr( );
 
-	for (auto& [name, child]: cache)
+	for (auto& [name, child]: storage)
 	{
 		const auto offset = child.get<uintptr_t>("offset");
 		//const auto size   = child.get<size_t>("size");
@@ -218,21 +194,43 @@ module_info_rw_result vtables_storage::Load_from_file_impl(const ptree& cache)
 		tmp.emplace(const_cast<string&&>(name), move(info));
 	}
 
-	data_cache = move(tmp);
-	return success;
+	cache = move(tmp);
+	return true;
 }
 
-void vtables_storage::Change_base_address_impl(address new_addr)
+bool vtables_storage::read_to_storage(const cache_type& cache, ptree_type& storage) const
 {
-	for (auto itr = data_cache.begin( ); itr != data_cache.end( ); ++itr)
+	const auto base_address = this->base_addr( );
+
+	for (const auto& [name, info]: cache)
 	{
-		auto& val = itr.value( ).addr;
-		val -= (base_address);
-		val += new_addr;
+		ptree child;
+		child.put("offset", info.addr.remove(base_address).value( ));
+		//child.put("offset", info.addr - base_address_);
+		//child.put("size", info.size( ));
+
+		storage.add_child(name, move(child));
 	}
+
+	return true;
 }
 
-memory_block vtables_storage::Mem_block( ) const
+sections_storage& vtables_storage::derived_sections( ) const
 {
-	return {base_address, bytes_count__};
+	return root_class()->sections( );
 }
+
+memory_block vtables_storage::derived_mem_block( ) const
+{
+	return root_class()->mem_block( );
+}
+
+//void vtables_storage::Change_base_address_impl(address new_addr)
+//{
+//	for (auto itr = data_cache.begin( ); itr != data_cache.end( ); ++itr)
+//	{
+//		auto& val = itr.value( ).addr;
+//		val -= (base_address);
+//		val += new_addr;
+//	}
+//}

@@ -80,49 +80,49 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__thiscall C::* fn)(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__thiscall C::*fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__thiscall C::* fn)(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__thiscall C::*fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__fastcall C::* fn)(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__fastcall C::*fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__fastcall C::* fn)(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__fastcall C::*fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__stdcall C::* fn)(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__stdcall C::*fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__stdcall C::* fn)(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__stdcall C::*fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__cdecl C::* fn)(Args ...))
+	LPVOID _Pointer_to_class_method(Ret (__cdecl C::*fn)(Args ...))
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	LPVOID _Pointer_to_class_method(Ret (__cdecl C::* fn)(Args ...) const)
+	LPVOID _Pointer_to_class_method(Ret (__cdecl C::*fn)(Args ...) const)
 	{
 		return detail::_Ptr_to_fn(fn);
 	}
@@ -130,25 +130,25 @@ namespace cheat::hooks
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::thiscall__, C, Args...>
 	{
-		virtual ~hook_callback( ) = default;
+		virtual                ~hook_callback( ) = default;
 		virtual Ret __thiscall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::fastcall__, C, Args...>
 	{
-		virtual ~hook_callback( ) = default;
+		virtual                ~hook_callback( ) = default;
 		virtual Ret __fastcall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::stdcall__, C, Args...>
 	{
-		virtual ~hook_callback( ) = default;
+		virtual               ~hook_callback( ) = default;
 		virtual Ret __stdcall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::cdecl__, C, Args...>
 	{
-		virtual ~hook_callback( ) = default;
+		virtual             ~hook_callback( ) = default;
 		virtual Ret __cdecl callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 
@@ -159,7 +159,7 @@ namespace cheat::hooks
 #ifdef _DEBUG
 			[[maybe_unused]] const auto a = _ReturnAddress( );
 			[[maybe_unused]] const auto b = _AddressOfReturnAddress( );
-			constexpr auto _ = 0;
+			constexpr auto              _ = 0;
 #endif // _DEBUG
 		}
 
@@ -178,7 +178,7 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::*fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::thiscall__, call_conversion::fastcall__);
 		using fn_t = Ret(__fastcall*)(C*, void*, Args ...);
@@ -186,13 +186,13 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::*fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__thiscall C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::*fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::fastcall__);
 		using fn_t = Ret(__fastcall*)(C*, void*, Args ...);
@@ -200,13 +200,13 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::*fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__fastcall C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::*fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::stdcall__);
 		using fn_t = Ret(__stdcall*)(C*, Args ...);
@@ -214,13 +214,13 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::*fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__stdcall C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::*fn)(Args ...), C* instance, std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::cdecl__);
 		using fn_t = Ret(__cdecl*)(C*, Args ...);
@@ -228,7 +228,7 @@ namespace cheat::hooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::*fn)(Args ...) const, const C* instance, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__cdecl C::*)(Args ...)>(fn), const_cast<C*>(instance), args...);
 	}
@@ -238,72 +238,72 @@ namespace cheat::hooks
 		template <typename Fn, typename C, typename ...Args>
 		decltype(auto) _Call_virtual_fn(Fn fn, C* instance, size_t index, Args&& ...args)
 		{
-			auto vtable = _Pointer_to_virtual_class_table(instance);
+			auto vtable                  = _Pointer_to_virtual_class_table(instance);
 			reinterpret_cast<void*&>(fn) = vtable[index];
 			return _Call_function(fn, instance, utl::forward<Args>(args)...);
 		}
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__thiscall C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__fastcall C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__stdcall C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::* fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
 		return _Call_function(const_cast<Ret(__cdecl C::*)(Args ...)>(fn), const_cast<C*>(instance), index, args...);
 	}
 
 	template <typename Ret, typename ...Args>
-	Ret _Call_function(Ret (__fastcall* fn)(Args ...), std::type_identity_t<Args> ...args) = delete;
+	Ret _Call_function(Ret (__fastcall*fn)(Args ...), std::type_identity_t<Args> ...args) = delete;
 
 	template <typename Ret, typename ...Args>
-	Ret _Call_function(Ret (__stdcall* fn)(Args ...), std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall*fn)(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::stdcall__);
 		return utl::invoke(fn, args...);
 	}
 
 	template <typename Ret, typename ...Args>
-	Ret _Call_function(Ret (__cdecl* fn)(Args ...), std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl*fn)(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::cdecl__);
 		return utl::invoke(fn, args...);
@@ -338,13 +338,13 @@ namespace cheat::hooks
 	public:
 		method_info( ) = default;
 
-		type get_type( ) const;
+		type   get_type( ) const;
 		LPVOID get( ) const;
-		bool update( );
-		bool updated( ) const;
+		bool   update( );
+		bool   updated( ) const;
 
 	private:
-		type type__ = type::fn_unknown;
+		type                            type__ = type::fn_unknown;
 		utl::variant<func_type, LPVOID> storage__;
 
 		template <typename T>
@@ -501,7 +501,7 @@ namespace cheat::hooks
 							   [instance_packed = Pack_pointer_(utl::forward<T>(instance)), idx_packed = Pack_value_(utl::forward<I>(index))]
 							   {
 								   decltype(auto) obj_instance = Try_invoke_(instance_packed);
-								   decltype(auto) fn_index = Try_invoke_(idx_packed);
+								   decltype(auto) fn_index     = Try_invoke_(idx_packed);
 								   return _Pointer_to_virtual_class_table(obj_instance)[fn_index];
 							   });
 		}
@@ -527,14 +527,8 @@ namespace cheat::hooks
 		virtual void disable_safe( ) = 0;
 		virtual bool hooked( ) const = 0;
 		virtual bool enabled( ) const = 0;
-
-		/*struct info: utl::one_instance<info>
-		{
-			using holder = utl::atomic<hook_holder_base*>;
-
-			holder last_func = nullptr;
-			holder current_func = nullptr;
-		};*/
+		virtual bool unused( ) const =0;
+		virtual void mark_unused( ) =0;
 	};
 
 	namespace detail
@@ -604,7 +598,7 @@ namespace cheat::hooks
 		{
 		public:
 			static constexpr bool have_return_value = !std::is_void_v<Ret>;
-			static constexpr bool is_static = !std::is_class_v<C>;
+			static constexpr bool is_static         = !std::is_class_v<C>;
 
 		protected:
 			//using hook_callback_type = hook_callback<Ret, Call_cvs, C, Is_const, Args...>;
@@ -630,6 +624,12 @@ namespace cheat::hooks
 				BOOST_ASSERT_MSG(!this_instance__ || this_instance__ == this, "Unable to get 'this' pointer!");
 			}
 
+			void Unused_modify_assert( ) const
+			{
+				BOOST_ASSERT_MSG(unused_==false, "Unable to modify unused hook!");
+			}
+
+			bool   unused_         = false;
 			LPVOID original_func__ = nullptr;
 
 			inline static hook_holder_impl* this_instance__ = nullptr;
@@ -638,9 +638,9 @@ namespace cheat::hooks
 
 			struct
 			{
-				bool unhook = false;
+				bool unhook  = false;
 				bool disable = false;
-			} safe__;
+			}        safe__;
 
 		protected:
 			virtual void Callback(Args ...) = 0;
@@ -652,7 +652,7 @@ namespace cheat::hooks
 
 			using return_value_holder = lazy_return_value<Ret>;
 
-			bool call_original_first_ = false;
+			bool                call_original_first_ = false;
 			return_value_holder return_value_;
 
 			// ReSharper disable once CppNotAllPathsReturnValue
@@ -728,8 +728,8 @@ namespace cheat::hooks
 			hook_holder_impl( ) = default;
 
 			hook_holder_impl& operator=(const hook_holder_impl&) = delete;
-			hook_holder_impl(const hook_holder_impl& other) = delete;
-			hook_holder_impl& operator=(hook_holder_impl&&) = delete;
+			hook_holder_impl(const hook_holder_impl& other)      = delete;
+			hook_holder_impl& operator=(hook_holder_impl&&)      = delete;
 
 			hook_holder_impl(hook_holder_impl&& other) noexcept
 			{
@@ -739,7 +739,7 @@ namespace cheat::hooks
 					Unhook_lazy_( );
 				}
 
-				this->hook_data_ = utl::move(other.hook_data_);
+				this->hook_data_   = utl::move(other.hook_data_);
 				this->hook_params_ = utl::move(other.hook_params_);
 			}
 
@@ -789,8 +789,8 @@ namespace cheat::hooks
 				BOOST_ASSERT_MSG(original_func__ == nullptr, "Method already hooked!");
 				Set_instance_assert_( );
 
-				auto& target_func_info = target_func_;
-				auto replace_func_info = method_info::make_member_virtual(cast_hook_callback( ), 1); //index of callback_proxy from hook_callback class
+				auto& target_func_info  = target_func_;
+				auto  replace_func_info = method_info::make_member_virtual(cast_hook_callback( ), 1); //index of callback_proxy from hook_callback class
 
 				if (!target_func_info.update( ) || !replace_func_info.update( ))
 					return false;
@@ -831,11 +831,11 @@ namespace cheat::hooks
 
 				if (ok)
 				{
-					original_func__ = nullptr;
-					this_instance__ = nullptr;
+					original_func__   = nullptr;
+					this_instance__   = nullptr;
 					target_instance__ = nullptr;
-					safe__ = { };
-					return_value_ = { };
+					safe__            = { };
+					return_value_     = { };
 
 					return true;
 				}
@@ -865,6 +865,7 @@ namespace cheat::hooks
 			bool enable( ) final
 			{
 				Unmanaged_call_assert( );
+				Unused_modify_assert( );
 				if (hooks_context_->enable_hook(target_func_.get( )) == STATUS::OK)
 					return true;
 
@@ -896,8 +897,8 @@ namespace cheat::hooks
 			{
 				Unmanaged_call_assert( );
 				return target_func_.updated( )
-					   ? hooks_context_->find_hook(target_func_.get( ))
-					   : STATUS::ERROR_NOT_CREATED;
+						   ? hooks_context_->find_hook(target_func_.get( ))
+						   : STATUS::ERROR_NOT_CREATED;
 			}
 
 		public:
@@ -924,6 +925,21 @@ namespace cheat::hooks
 				}
 				Unset_instance_assert_( );
 				return hook.entry->enabled;
+			}
+
+			bool unused( ) const override
+			{
+				/*if (this->hooked( ))
+					return false;*/
+				return this->unused_;
+			}
+
+			void mark_unused( ) override
+			{
+				Unused_modify_assert( );
+				if (this->hooked( ))
+					this->Unhook_lazy_( );
+				this->unused_ = true;
 			}
 		};
 	}

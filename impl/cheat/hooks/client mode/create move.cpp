@@ -16,6 +16,10 @@ using namespace utl;
 create_move::create_move( )
 {
 	this->call_original_first_ = true;
+
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
 }
 
 bool create_move::Do_load( )
@@ -37,7 +41,7 @@ void create_move::Callback(float input_sample_time, CUserCmd* cmd)
 	if (cmd->command_number == 0)
 		return;
 
-	const auto interfaces = csgo_interfaces::get_ptr( );
+	const auto interfaces      = csgo_interfaces::get_ptr( );
 	const auto original_return = return_value_.get( );
 	return_value_.store_value(false);
 

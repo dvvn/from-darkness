@@ -15,28 +15,34 @@ namespace cheat::utl::detail
 		address addr;
 	};
 
-	class vtables_storage final: public data_cache_from_anywhere<vtable_info>
+	class vtables_storage: public module_data_mgr<vtable_info>
 	{
 	public:
-		vtables_storage(address addr = 0u, size_t bytes_count = 0, IMAGE_NT_HEADERS* nt = nullptr, sections_storage* sections = 0);
+		vtables_storage( );
 
-		void set_sections(sections_storage* sections);
 		void lock( );
 		void unlock( );
 
 	protected:
-		module_info_rw_result Load_from_memory_impl( ) override;
-
-		module_info_rw_result Write_to_file_impl(property_tree::ptree& cache) const override;
-		module_info_rw_result Load_from_file_impl(const property_tree::ptree& cache) override;
-		void Change_base_address_impl(address new_addr) override;
-
-		memory_block Mem_block( ) const;
+		bool load_from_memory(cache_type& cache) override;
+		bool load_from_file(cache_type& cache, const ptree_type& storage) override;
+		bool read_to_storage(const cache_type& cache, ptree_type& storage) const override;
 
 	private:
-		size_t bytes_count__;
-		sections_storage* sections__;
-		utl::shared_ptr<mutex> lock__;
+		sections_storage& derived_sections( ) const;
+		memory_block      derived_mem_block( ) const;
+
+		shared_ptr<mutex> lock__;
+	};
+
+	template <size_t Offset>
+	class vtables_storage_ex: public vtables_storage
+	{
+	protected:
+		module_info* root_class( ) const final
+		{
+			return address(this).remove(Offset).ptr<module_info>( );
+		}
 	};
 
 	//since cache added this is uselles

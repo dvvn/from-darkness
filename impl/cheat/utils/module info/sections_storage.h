@@ -5,18 +5,27 @@
 
 namespace cheat::utl::detail
 {
-    struct section_info
-    {
-        memory_block block;
-        IMAGE_SECTION_HEADER* data = nullptr;
-    };
-    class sections_storage final: public data_cache_from_memory<section_info>
-    {
-    public:
-        sections_storage(address addr = 0u, IMAGE_NT_HEADERS* nt = nullptr);
+	struct section_info
+	{
+		memory_block          block;
+		IMAGE_SECTION_HEADER* data = nullptr;
+	};
 
-    protected:
-        module_info_rw_result Load_from_memory_impl( ) override;
-        void              Change_base_address_impl(address new_addr) override;
-    };
+	class sections_storage: public module_data_mgr<section_info>
+	{
+	protected:
+		bool load_from_memory(cache_type& cache) override;
+		bool load_from_file(cache_type& cache, const ptree_type& storage) override;
+		bool read_to_storage(const cache_type& cache, ptree_type& storage) const override;
+	};
+
+	template <size_t Offset>
+	class sections_storage_ex: public sections_storage
+	{
+	protected:
+		module_info* root_class( ) const final
+		{
+			return address(this).remove(Offset).ptr<module_info>( );
+		}
+	};
 }

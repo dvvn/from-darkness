@@ -2,11 +2,6 @@
 
 using namespace cheat::utl;
 
-chrono::steady_clock::time_point timer::Now_( )
-{
-	return chrono::steady_clock::now( );
-}
-
 timer::timer(bool start)
 {
 	if (start)
@@ -25,17 +20,17 @@ bool timer::updated( ) const
 
 void timer::set_start( )
 {
-	start__.emplace(Now_( ));
+	start__.emplace(clock_type::now( ));
 	end__.reset( );
 }
 
 void timer::set_end( )
 {
 	BOOST_ASSERT_MSG(started(), "Timer not started");
-	end__.emplace(Now_( ));
+	end__.emplace(clock_type::now( ));
 }
 
-auto timer::elapsed( ) const
+timer::time_point::duration timer::elapsed( ) const
 {
 	BOOST_ASSERT_MSG(updated(), "Timer not updated");
 	return *end__ - *start__;

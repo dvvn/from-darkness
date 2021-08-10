@@ -160,7 +160,7 @@ bool menu::Do_load( )
 
 			const auto add_if_hookded = [&]<typename Tstr,typename Tptr>(Tstr&& name, Tptr&& ptr)
 			{
-				if (ptr->hooked( ))
+				if (!ptr->unused( ))
 					debug_hooks.add_page({forward<Tstr>(name), forward<Tptr>(ptr)});
 			};
 			using namespace hooks;

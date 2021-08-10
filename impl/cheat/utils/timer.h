@@ -4,9 +4,10 @@ namespace cheat::utl
 {
 	class timer
 	{
-		static chrono::steady_clock::time_point Now_( );
-
 	public:
+		using clock_type = chrono::steady_clock;
+		using time_point = clock_type::time_point;
+
 		timer(bool start = false);
 
 		bool started( ) const;
@@ -15,10 +16,10 @@ namespace cheat::utl
 		void set_start( );
 		void set_end( );
 
-		auto elapsed( ) const;
+		time_point::duration elapsed( ) const;
 
 	private:
-		optional<decltype(Now_())> start__, end__;
+		optional<time_point> start__, end__;
 	};
 
 	class benchmark_timer final: protected timer

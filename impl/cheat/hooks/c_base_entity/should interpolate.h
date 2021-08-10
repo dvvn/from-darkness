@@ -8,6 +8,9 @@ namespace cheat::hooks::c_base_entity
 	class should_interpolate final: public service<should_interpolate>,
 									public decltype(_Detect_hook_holder(&csgo::C_BaseEntity::ShouldInterpolate))
 	{
+	public:
+		should_interpolate( );
+
 	protected:
 		bool Do_load( ) override;
 		void Callback( ) override;

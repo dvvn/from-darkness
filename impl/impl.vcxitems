@@ -108,6 +108,7 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\address.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\checksum.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory backup.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.h" />

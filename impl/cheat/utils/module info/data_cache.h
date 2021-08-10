@@ -4,115 +4,90 @@
 
 namespace cheat::utl
 {
-	enum module_info_rw_result:uint8_t
-	{
-		unknown=0,
-		success,
-		error,
-		nothing
-	};
+	class module_info;
 
 	namespace detail
 	{
-		using path_type = filesystem::path;
-		using ptree_type = property_tree::basic_ptree<string, string>;
-
-		class data_cache_base
+		class module_data_mgr_base
 		{
+		protected:
+			virtual ~module_data_mgr_base( ) = default;
+
 		public:
-			friend class data_cache_from_file;
+			using path_type = filesystem::path;
+			using ptree_type = property_tree::basic_ptree<string, string>;
 
-			virtual ~data_cache_base( );
+			virtual bool load(const path_type& file) =0;
+			virtual bool save_to_file(const path_type& file) const =0;
 
-			data_cache_base(address addr, IMAGE_NT_HEADERS* nt);
-
-			module_info_rw_result load( );
-			module_info_rw_result load_from_memory( );
-			bool change_base_address(address new_addr);
+			//virtual path_type get_file_name( ) const =0;
 
 		protected:
-			virtual bool Cache_empty_impl( ) const = 0;
-			virtual void Cache_reserve_impl(size_t capacity) = 0;
+			address           base_addr( ) const;
+			IMAGE_NT_HEADERS* nt_header( ) const;
 
-			virtual module_info_rw_result Load_from_memory_impl( ) = 0;
-			virtual void Change_base_address_impl(address new_addr) = 0;
+			virtual module_info* root_class() const=0;
 
-			void Empty_cache_assert( ) const;
-
-			address base_address = nullptr;
-			IMAGE_NT_HEADERS* nt = nullptr;
+			
+			bool write_from_storage(const path_type& file, const ptree_type& storage) const;
+			bool read_to_storage(const path_type& file, ptree_type& storage) const;
 		};
 
 		template <typename T>
-		class data_cache_from_memory: public data_cache_base
+		class module_data_mgr: public module_data_mgr_base
 		{
 		public:
 			using cache_type = unordered_map<string, T>;
 
-			data_cache_from_memory(address addr, IMAGE_NT_HEADERS* nt) : data_cache_base(move(addr), nt)
+			cache_type& get_cache( )
 			{
+				return cache_;
 			}
 
-			const cache_type& get_cache( ) const
+			bool load(const path_type& file = { }) final
 			{
-				//Empty_cache_assert( );
-				return data_cache;
+				if (cache_.empty( ))
+				{
+					auto storage = ptree_type( );
+
+					if (module_data_mgr_base::read_to_storage(file, storage))
+					{
+						cache_.reserve(storage.size( ));
+						if (this->load_from_file(cache_, storage))
+							return true;
+					}
+
+					if (!this->load_from_memory(cache_))
+						return false;
+				}
+
+				if (file.empty( ))
+					return true;
+
+				return this->save_to_file(file);
 			}
 
+			bool save_to_file(const path_type& file) const final
+			{
+				if (file.empty( ))
+					return false;
+				if (cache_.empty( ))
+					return false;
+
+				auto storage = ptree_type( );
+				if (!this->read_to_storage(cache_, storage))
+					return false;
+
+				return module_data_mgr_base::write_from_storage(file, storage);
+			}
+
+			virtual bool load_from_memory(cache_type& cache) =0;
+			virtual bool load_from_file(cache_type& cache, const ptree_type& storage) =0;
 		protected:
-			bool Cache_empty_impl( ) const final
-			{
-				return data_cache.empty( );
-			}
+			virtual bool read_to_storage(const cache_type& cache, ptree_type& storage) const =0;
 
-			void Cache_reserve_impl(size_t capacity) final
-			{
-				return data_cache.reserve(capacity);
-			}
-
-			cache_type data_cache;
-		};
-
-		class data_cache_from_file
-		{
-		protected:
-			virtual ~data_cache_from_file( ) = default;
-
-			module_info_rw_result Load_from_file(data_cache_base& vtable1, const path_type& full_path);
-			module_info_rw_result Write_to_file(const data_cache_base& vtable1, const filesystem::path& full_path) const;
-
-			virtual module_info_rw_result Write_to_file_impl(ptree_type& cache) const = 0;
-			virtual module_info_rw_result Load_from_file_impl(const ptree_type& cache) = 0;
-
-			module_info_rw_result Load(data_cache_base& vtable1, const path_type& full_path);
-		};
-
-		template <typename T>
-		class data_cache_from_anywhere: public data_cache_from_memory<T>, protected data_cache_from_file
-		{
-		public:
-			using from_memory = data_cache_from_memory<T>;
-
-			data_cache_from_anywhere(address addr, IMAGE_NT_HEADERS* nt) : from_memory(move(addr), nt)
-			{
-			}
-
-			module_info_rw_result load_from_file(const path_type& full_path)
-			{
-				return data_cache_from_file::Load_from_file(*this, full_path);
-			}
-
-			module_info_rw_result write_to_file(const path_type& full_path) const
-			{
-				return data_cache_from_file::Write_to_file(*this, full_path);
-			}
-
-			module_info_rw_result load(const path_type& full_path)
-			{
-				return data_cache_from_file::Load(*this, full_path);
-			}
-
-			using from_memory::load;
+		private:
+			cache_type cache_;
 		};
 	}
 }

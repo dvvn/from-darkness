@@ -15,6 +15,9 @@ using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame( )
 {
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
 }
 
 bool should_skip_animation_frame::Do_load( )
@@ -98,7 +101,7 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 		}
 
 		const auto animate_this_frame = ent->m_bClientSideAnimation( );
-		const auto skip_this_frame = animate_this_frame == false;
+		const auto skip_this_frame    = animate_this_frame == false;
 		this->return_value_.store_value(skip_this_frame);
 	}
 }

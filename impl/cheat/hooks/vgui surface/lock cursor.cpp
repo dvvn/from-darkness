@@ -12,6 +12,9 @@ using namespace utl;
 
 lock_cursor::lock_cursor( )
 {
+	#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
 }
 
 bool lock_cursor::Do_load( )

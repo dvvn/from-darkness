@@ -3,12 +3,6 @@
 using namespace cheat::utl;
 using namespace detail;
 
-void module_info::Fix_vtables_cache_sections_( )
-{
-	//members__.vtables.sections__ = addressof(members__.sections);
-	members__.vtables.set_sections(addressof(members__.sections));
-}
-
 module_info::module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos, IMAGE_NT_HEADERS* nt)
 {
 	BOOST_ASSERT(ldr_entry != nullptr);
@@ -17,43 +11,27 @@ module_info::module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos,
 
 	//manual_handle_ = winapi::module_handle(handle);
 
-	info__.ldr_entry = ldr_entry;
-	info__.dos = dos;
-	info__.nt = nt;
+	this->ldr_entry = ldr_entry;
+	this->dos       = dos;
+	this->nt        = nt;
 
-	const auto base = this->base( );
-
-	members__.sections = {base, nt};
-	members__.exports = {base, nt};
-	members__.vtables = {base, image_size( ), nt, addressof(members__.sections)};
+	//const auto base = this->base( );
+	//this->sections = {base, nt};
+	//this->exports = {base, nt};
+	//this->vtables = {base, image_size( ), nt, addressof(this->sections)};
 
 #ifdef _DEBUG
 	//preload for better debugging
 
 	sections( ).load( );
-	if (name_contains_unicode( ))
-		members__.name.clear( );
+	if (this->name_contains_unicode( ))
+		this->name_.clear( );
 	else
 	{
-		name( );
-		members__.name_wide.clear( );
+		this->name( );
+		this->name_wide_.clear( );
 	}
 #endif
-}
-
-module_info::module_info(module_info&& other) noexcept
-{
-	*this = move(other);
-}
-
-module_info& module_info::operator=(module_info&& other) noexcept
-{
-	info__ = move(other.info__);
-	members__ = move(other.members__);
-
-	Fix_vtables_cache_sections_( );
-
-	return *this;
 }
 
 #if 0
@@ -120,7 +98,7 @@ auto module_info::File_on_disc_impl_(const wstring_view& module_name, IMAGE_NT_H
 
 address module_info::base( ) const
 {
-	return info__.ldr_entry->DllBase;
+	return this->ldr_entry->DllBase;
 }
 
 memory_block module_info::mem_block( ) const
@@ -132,12 +110,12 @@ memory_block module_info::mem_block( ) const
 
 IMAGE_DOS_HEADER* module_info::DOS( ) const
 {
-	return info__.dos;
+	return this->dos;
 }
 
 IMAGE_NT_HEADERS* module_info::NT( ) const
 {
-	return info__.nt;
+	return this->nt;
 }
 
 DWORD module_info::check_sum( ) const
@@ -166,7 +144,7 @@ module_info::raw_name_type module_info::work_dir( ) const
 
 module_info::raw_name_type module_info::full_path( ) const
 {
-	return {info__.ldr_entry->FullDllName.Buffer, info__.ldr_entry->FullDllName.Length / sizeof(raw_name_value_type)};
+	return {this->ldr_entry->FullDllName.Buffer, this->ldr_entry->FullDllName.Length / sizeof(raw_name_value_type)};
 }
 
 module_info::raw_name_type module_info::raw_name( ) const
@@ -177,7 +155,7 @@ module_info::raw_name_type module_info::raw_name( ) const
 
 const string& module_info::name( )
 {
-	if (members__.name.empty( ))
+	if (this->name_.empty( ))
 	{
 		const auto ptr = this->raw_name( );
 		string     out;
@@ -203,20 +181,20 @@ const string& module_info::name( )
 			}
 		}
 
-		members__.name = move(out);
+		this->name_ = move(out);
 	}
 
-	return members__.name;
+	return this->name_;
 };
 
 const string& module_info::name( ) const
 {
-	return members__.name;
+	return this->name_;
 }
 
 const wstring& module_info::name_wide( )
 {
-	if (members__.name_wide.empty( ))
+	if (this->name_wide_.empty( ))
 	{
 		static_assert(sizeof(raw_name_value_type) <= sizeof(wstring::value_type));
 		const auto ptr = this->raw_name( );
@@ -225,14 +203,14 @@ const wstring& module_info::name_wide( )
 		for (const auto wchr: ptr)
 			out += towlower(wchr);
 
-		members__.name_wide = move(out);
+		this->name_wide_ = move(out);
 	}
-	return members__.name_wide;
+	return this->name_wide_;
 }
 
 const wstring& module_info::name_wide( ) const
 {
-	return members__.name_wide;
+	return this->name_wide_;
 }
 
 bool module_info::name_contains_unicode( )
@@ -250,32 +228,32 @@ bool module_info::name_contains_unicode( ) const
 
 sections_storage& module_info::sections( )
 {
-	return members__.sections;
+	return *this;
 }
 
 const sections_storage& module_info::sections( ) const
 {
-	return members__.sections;
+	return *this;
 }
 
 exports_storage& module_info::exports( )
 {
-	return members__.exports;
+	return *this;
 }
 
 const exports_storage& module_info::exports( ) const
 {
-	return members__.exports;
+	return *this;
 }
 
 vtables_storage& module_info::vtables( )
 {
-	return members__.vtables;
+	return *this;
 }
 
 const vtables_storage& module_info::vtables( ) const
 {
-	return members__.vtables;
+	return *this;
 }
 
 struct headers_info
@@ -284,7 +262,7 @@ struct headers_info
 	PIMAGE_NT_HEADERS nt;
 };
 
-optional<headers_info> _Get_file_headers(const address& base)
+static optional<headers_info> _Get_file_headers(const address& base)
 {
 	const auto dos = base.ptr<IMAGE_DOS_HEADER>( );
 
@@ -303,7 +281,7 @@ optional<headers_info> _Get_file_headers(const address& base)
 
 	// set out dos and nt.
 	result.dos = dos;
-	result.nt = nt;
+	result.nt  = nt;
 
 	return result;
 }
@@ -373,7 +351,7 @@ modules_storage& modules_storage::update(bool force)
 	if (force || storage__.empty( ))
 	{
 		current_cached__ = nullptr;
-		storage__ = _Get_all_modules( );
+		storage__        = _Get_all_modules( );
 	}
 	return *this;
 }

@@ -8,41 +8,22 @@
 
 namespace cheat::utl
 {
-	class module_info
+	class module_info final: detail::sections_storage_ex<0>,
+							 detail::exports_storage_ex<sizeof(detail::sections_storage)>,
+							 detail::vtables_storage_ex<sizeof(detail::sections_storage) + sizeof(detail::exports_storage)>
 	{
-		struct
-		{
-			LDR_DATA_TABLE_ENTRY* ldr_entry;
-			IMAGE_DOS_HEADER*     dos;
-			IMAGE_NT_HEADERS*     nt;
-			//-
-		} info__;
+		LDR_DATA_TABLE_ENTRY* ldr_entry;
+		IMAGE_DOS_HEADER*     dos;
+		IMAGE_NT_HEADERS*     nt;
 
-		struct
-		{
-			string  name;
-			wstring name_wide;
-
-			detail::sections_storage sections;
-			detail::exports_storage  exports;
-			detail::vtables_storage  vtables;
-		}                                         members__;
-
-		void Fix_vtables_cache_sections_( );
+		string  name_;
+		wstring name_wide_;
 
 	public:
+		~module_info( ) override = default;
+
 		module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos, IMAGE_NT_HEADERS* nt);
 
-		module_info(const module_info&) = delete;
-		module_info& operator =(const module_info&) = delete;
-
-		module_info(module_info&& other) noexcept;
-		module_info& operator=(module_info&& other) noexcept;
-
-	protected:
-		module_info( ) = default;
-
-	public:
 		//module handle
 		address      base( ) const;
 		memory_block mem_block( ) const;
@@ -58,7 +39,7 @@ namespace cheat::utl
 		DWORD code_size( ) const;
 		DWORD image_size( ) const;
 
-		using raw_name_value_type = std::remove_pointer_t<decltype(info__.ldr_entry->FullDllName.Buffer)>;
+		using raw_name_value_type = std::remove_pointer_t<decltype(ldr_entry->FullDllName.Buffer)>;
 		using raw_name_type = basic_string_view<raw_name_value_type>;
 
 		raw_name_type work_dir( ) const;
@@ -88,7 +69,7 @@ namespace cheat::utl
 	class modules_storage: public noncopyable
 	{
 	public:
-		modules_storage(modules_storage&&) = default;
+		modules_storage(modules_storage&&)            = default;
 		modules_storage& operator=(modules_storage&&) = default;
 
 		modules_storage( );

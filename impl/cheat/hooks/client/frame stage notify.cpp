@@ -9,6 +9,13 @@ using namespace hooks;
 using namespace client;
 using namespace utl;
 
+frame_stage_notify::frame_stage_notify( )
+{
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
+}
+
 bool frame_stage_notify::Do_load( )
 {
 #ifdef CHEAT_GUI_TEST

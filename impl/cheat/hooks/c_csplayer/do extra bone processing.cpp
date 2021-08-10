@@ -12,6 +12,9 @@ using namespace csgo;
 
 do_extra_bone_processing::do_extra_bone_processing( )
 {
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
 }
 
 bool do_extra_bone_processing::Do_load( )
@@ -36,11 +39,11 @@ bool do_extra_bone_processing::Do_load( )
 #endif
 }
 
-void do_extra_bone_processing::Callback([[maybe_unused]] CStudioHdr* studio_hdr, [[maybe_unused]] Vector pos[],
-										[[maybe_unused]] Quaternion q[], [[maybe_unused]] matrix3x4a_t bone_to_world[],
+void do_extra_bone_processing::Callback([[maybe_unused]] CStudioHdr*   studio_hdr, [[maybe_unused]] Vector         pos[],
+										[[maybe_unused]] Quaternion    q[], [[maybe_unused]] matrix3x4a_t          bone_to_world[],
 										[[maybe_unused]] CBoneBitList& bone_computed, [[maybe_unused]] CIKContext* ik_context)
 {
-	this->return_value_.set_original_called();
+	this->return_value_.set_original_called( );
 
 	//DoProceduralFootPlant also skipped here
 }

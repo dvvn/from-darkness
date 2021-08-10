@@ -674,7 +674,7 @@ folder_with_configs_mgr::io_result folder_with_configs_mgr::Do_save_(const strin
 				flags.add(io_result::rescan_wanted);
 
 			if (!f.shared->save(name))
-				flags.add(io_result::rescan_wanted, error);
+				flags.add(io_result::rescan_wanted, io_result::error);
 			else
 				flags.add(io_result::processed);
 		}
@@ -695,7 +695,7 @@ folder_with_configs_mgr::io_result folder_with_configs_mgr::Do_load_(const strin
 		if (f.selected( ) && f.configs.selected(name))
 		{
 			if (!f.shared->load(name))
-				flags.add(io_result::rescan_wanted, error);
+				flags.add(io_result::rescan_wanted, io_result::error);
 			else
 				flags.add(io_result::processed);
 		}
@@ -713,7 +713,7 @@ folder_with_configs_mgr::io_result folder_with_configs_mgr::Do_remove_(const str
 		if (f.selected( ) && f.configs.selected(name))
 		{
 			if (!f.shared->remove(name))
-				flags.add(io_result::rescan_wanted, error);
+				flags.add(io_result::rescan_wanted, io_result::error);
 			else
 				flags.add(io_result::rescan_wanted, io_result::processed);
 		}
@@ -777,7 +777,7 @@ void folder_with_configs_mgr::Save_to_( )
 			{
 				if (saved.has(io_result::rescan_wanted))
 					this->rescan( );
-				if (saved.has(io_result::processed) && !saved.has(error))
+				if (saved.has(io_result::processed) && !saved.has(io_result::error))
 				{
 					files_list__.select(config_name);
 					new_config_name__.clear( );

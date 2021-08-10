@@ -8,6 +8,8 @@
 #include "cheat/sdk/entity/C_BaseEntity.h"
 #include "cheat/sdk/entity/C_CSPlayer.h"
 
+#include "cheat/utils/checksum.h"
+
 #if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_NETVARS_RESOLVE_TYPE
 #endif
@@ -364,7 +366,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		const auto& raw_props = recv_table->props;
 
 		auto front = raw_props.begin( );
-		auto back = std::prev(raw_props.end( ));
+		auto back  = std::prev(raw_props.end( ));
 
 		if (prop_is_base_class(*front))
 			++front;
@@ -440,7 +442,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 
 					if (netvar_type.empty( ))
 					{
-						auto type = _Recv_prop_type(prop);
+						auto type   = _Recv_prop_type(prop);
 						netvar_type = _Array_type_string(type, *array_size);
 					}
 #else
@@ -489,7 +491,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		}
 		else
 		{
-			const auto child_table = prop.m_pDataTable;
+			const auto  child_table = prop.m_pDataTable;
 			const auto& child_props = child_table->props;
 			if (!child_table || child_props.empty( ))
 				continue;
@@ -519,7 +521,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 				const auto array_size = std::distance(array_begin, child_props.end( ));
-				string netvar_type;
+				string     netvar_type;
 #endif
 				if (array_begin->m_RecvType != DPT_DataTable)
 				{
@@ -530,7 +532,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 				else
 				{
 					const auto child_table_name = string_view(child_table->m_pNetTableName);
-					string child_table_unique_name;
+					string     child_table_unique_name;
 					if (prop_name != child_table_name)
 					{
 						child_table_unique_name = child_table_name;
@@ -666,41 +668,10 @@ void netvars::On_load( )
 #endif
 }
 
-[[maybe_unused]]
-static string _Get_checksum(const string_view& s)
-{
-	return to_string(invoke(std::hash<string_view>( ), s));
-}
-
-[[maybe_unused]]
-static string _Get_checksum(const filesystem::path& p, bool first_time)
-{
-	auto checksum = string( );
-
-	if (!first_time && exists(p))
-	{
-		auto ifs = std::ifstream(p);
-		using itr_t = std::istreambuf_iterator<char>;
-		if (!ifs.fail( ))
-		{
-			const auto tmp = string(itr_t(ifs), itr_t( ));
-			checksum = _Get_checksum(tmp);
-		}
-	}
-
-	return checksum;
-}
-
-[[maybe_unused]]
-static string _Get_checksum(const std::ostringstream& ss)
-{
-	return _Get_checksum(ss.str( ));
-}
-
 void netvars::Dump_netvars_( )
 {
 	static const auto netvars_dump_dir = filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
-	const auto first_time = create_directories(netvars_dump_dir);
+	const auto        first_time       = create_directories(netvars_dump_dir);
 
 	constexpr auto get_file_name = []
 	{
@@ -725,7 +696,7 @@ void netvars::Dump_netvars_( )
 			return ss.str( );
 		}( );
 
-		if (_Get_checksum(test_to_write) == _Get_checksum(netvars_dump_file, first_time))
+		if (!first_time && (utl::checksum(test_to_write) == utl::checksum(netvars_dump_file)))
 			return;
 
 		std::ofstream file(netvars_dump_file);
@@ -751,13 +722,13 @@ void netvars::Generate_classes_( )
 	const auto first_time = create_directories(dir);
 
 	const auto checksum_file = dir / L"__checksum.txt";
-	const auto last_checksum = _Get_checksum(checksum_file, first_time);
+	const auto last_checksum = first_time ? string{ } : utl::checksum(checksum_file);
 
 	const auto current_checksum = [&]
 	{
 		std::ostringstream ss;
 		write_json(ss, data__, false);
-		return _Get_checksum(ss);
+		return utl::checksum(ss);
 	}( );
 
 	if (last_checksum == current_checksum)
@@ -780,7 +751,7 @@ void netvars::Generate_classes_( )
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppTooWideScope
 		constexpr auto __New_line = '\n';
-		constexpr auto __Tab = '	';
+		constexpr auto __Tab      = '	';
 		// ReSharper restore CppTooWideScope
 		// ReSharper restore CppInconsistentNaming
 
@@ -792,7 +763,7 @@ void netvars::Generate_classes_( )
 		static const auto netvars_header_path = []
 		{
 			const auto cpp_path = CHEAT_CURRENT_FILE_PATH;
-			auto str = string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
+			auto       str      = string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
 			ranges::replace(str, '\\', '/');
 			return str += ".h";
 		}( );
@@ -807,7 +778,7 @@ void netvars::Generate_classes_( )
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.ptree_get(netvar_data);
 #endif
-			auto netvar_type = netvar_info::type.ptree_get(netvar_data);
+			auto       netvar_type         = netvar_info::type.ptree_get(netvar_data);
 			const auto netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
 				netvar_type.pop_back( );
@@ -884,6 +855,6 @@ netvars::lazy_file_writer::lazy_file_writer(filesystem::path&& file): file__(utl
 
 netvars::lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
 {
-	file__ = utl::move(other.file__);
+	file__                                  = utl::move(other.file__);
 	*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
 }

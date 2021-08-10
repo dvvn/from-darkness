@@ -5,7 +5,9 @@
 
 #include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/ICvar.hpp"
+
 #include "cheat/utils/signature.h"
+#include "cheat/utils/timer.h"
 
 using namespace cheat;
 using namespace detail;
@@ -44,14 +46,14 @@ float cheat::_Lerp_time( )
 
 #endif
 
-	const auto cl_interp = _Find_cvar("cl_interp");
-	const auto cl_updaterate = _Find_cvar("cl_updaterate");
-	const auto cl_interp_ratio = _Find_cvar("cl_interp_ratio");
+	const auto cl_interp        = _Find_cvar("cl_interp");
+	const auto cl_updaterate    = _Find_cvar("cl_updaterate");
+	const auto cl_interp_ratio  = _Find_cvar("cl_interp_ratio");
 	const auto sv_minupdaterate = _Find_cvar("sv_minupdaterate");
 	const auto sv_maxupdaterate = _Find_cvar("sv_maxupdaterate");
 
 	const auto update_rate = std::clamp<float>(*cl_updaterate, *sv_minupdaterate, *sv_maxupdaterate);
-	float lerp_ratio = *cl_interp_ratio;
+	float      lerp_ratio  = *cl_interp_ratio;
 
 	if (lerp_ratio == 0.0f)
 		lerp_ratio = 1.0f;
@@ -94,7 +96,7 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 		cached_cvar(ConVar* c)
 		{
 			BOOST_ASSERT(c!=nullptr);
-			obj = c;
+			obj  = c;
 			addr = c;
 		}
 
@@ -103,8 +105,8 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 			if (addr != obj)
 				return false;
 
-			const auto name_size = name.size( );
-			const auto& obj_name = obj->m_pszName;
+			const auto  name_size = name.size( );
+			const auto& obj_name  = obj->m_pszName;
 
 			if (obj_name[name_size] != '\0')
 				return false;
@@ -120,7 +122,7 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 	};
 
 	static auto cache = unordered_map<string, cached_cvar>( );
-	static auto mtx = mutex( );
+	static auto mtx   = mutex( );
 
 	const auto cvar_hash = invoke(cache.hash_function( ), cvar);
 
@@ -144,7 +146,7 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 	if (const auto cache_end = cache.end( ); found == cache_end)
 	{
 		const auto size_before = cache.size( );
-		const auto lock = make_lock_guard(mtx);
+		const auto lock        = make_lock_guard(mtx);
 
 		return [&]( )-> cached_cvar&
 		{
@@ -159,13 +161,13 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 		}( ).obj;
 	}
 
-	auto& name = found.key( );
+	auto& name       = found.key( );
 	auto& obj_cached = found.value( );
 
 	if (!obj_cached.valid(name))
 	{
 		const auto lock = make_lock_guard(mtx);
-		obj_cached = get_cvar_from_game( );
+		obj_cached      = get_cvar_from_game( );
 #ifdef CHEAT_HAVE_CONSOLE
 		_Log_to_console(format("Cvar {} updated", cvar));
 #endif
@@ -192,14 +194,14 @@ float cheat::_Ticks_to_time(size_t ticks)
 address _Find_signature_impl::operator()(const memory_block& from, const string_view& sig) const
 {
 	return invoke(&memory_block::addr, sig.find('?') != sig.npos
-									   ? from.find_block(signature<TEXT>(sig))
-									   : from.find_block(signature<TEXT_AS_BYTES>(sig)));
+										   ? from.find_block(signature<TEXT>(sig))
+										   : from.find_block(signature<TEXT_AS_BYTES>(sig)));
 }
 
 address _Find_signature_impl::operator()(const string_view& dll_name, const string_view& sig) const
 {
 	const auto module = all_modules::get_ptr( )->find(dll_name);
-	auto block = module->mem_block( );
+	auto       block  = module->mem_block( );
 
 	return invoke(*this, block, sig);
 }
@@ -209,7 +211,7 @@ void* cheat::detail::_Vtable_pointer_impl(const string_view& from, const string_
 	BOOST_ASSERT(!from.empty( ));
 
 	auto& module_from = *all_modules::get_ptr( )->find(from);
-	auto& vtables = module_from.vtables( );
+	auto& vtables     = module_from.vtables( );
 
 	const auto& vtables_cache = vtables.get_cache( );
 
@@ -228,56 +230,49 @@ void* cheat::detail::_Vtable_pointer_impl(const string_view& from, const string_
 		BOOST_ASSERT(module_checksum != 0u);
 		const auto dumps_path = filesystem::path(CHEAT_DUMPS_DIR _STRINGIZE_R(modules\)) / module_from.name_wide( ) / to_wstring(module_checksum) / L"vtables.json";
 
-		[[maybe_unused]] const auto log_helper = [&]<typename T>(T&& msg)
+#ifdef CHEAT_HAVE_CONSOLE
+		const auto log_helper = [&]<typename T>(T&& msg)
 		{
 			_Log_to_console(format("{} vtables: {}", module_from.name( ), msg));
 		};
 
-		switch (vtables.load_from_file(dumps_path))
-		{
-			case success:
-			case nothing:
-			{
-#ifdef CHEAT_HAVE_CONSOLE
-				log_helper("loaded from cache");
-#endif
-				goto _LOAD;
-			}
-		}
-
-#ifdef CHEAT_HAVE_CONSOLE
-		log_helper("loading started in "
+		string msg = "Trying to load from ";
+		msg += exists(dumps_path) ? "cache" : "memory";
+		msg += " in ";
 #ifdef _DEBUG
-				   "slow"
+		msg += "SLOW";
 #else
-				   "fast"
+		msg += "FAST";
 #endif
-				   " mode)"
-				  );
+		msg += " mode";
+		log_helper(msg);
 #endif
-		switch (vtables.load_from_memory( ))
+
+		try
 		{
-			case success:
-			case nothing:
+			//#ifdef CHEAT_HAVE_CONSOLE
+			//			auto timer = utl::timer( );
+			//			timer.set_start( );
+			//#endif
+
+			if (vtables.load(dumps_path))
 			{
 #ifdef CHEAT_HAVE_CONSOLE
-				log_helper("loading finished correctly");
-#endif
-#if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
-				if (vtables.write_to_file(dumps_path) == success)
-				{
-#ifdef CHEAT_HAVE_CONSOLE
-					log_helper("cache created");
-#endif
-				}
+				log_helper("Loaded");
 #endif
 				goto _LOAD;
 			}
+#ifdef CHEAT_HAVE_CONSOLE
+			log_helper("Not loaded");
+#endif
+		}
+		catch (const std::exception& ex)
+		{
+#ifdef CHEAT_HAVE_CONSOLE
+			log_helper(format("Not loaded: ", ex.what( )));
+#endif
 		}
 
-#ifdef CHEAT_HAVE_CONSOLE
-		log_helper("loading finished with errors");
-#endif
 		return nullptr;
 	}
 

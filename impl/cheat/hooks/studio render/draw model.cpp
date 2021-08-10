@@ -10,6 +10,13 @@ using namespace hooks;
 using namespace studio_render;
 using namespace utl;
 
+draw_model::draw_model( )
+{
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
+}
+
 bool draw_model::Do_load( )
 {
 #ifdef CHEAT_GUI_TEST
@@ -19,12 +26,14 @@ bool draw_model::Do_load( )
 
 	this->hook( );
 	this->enable( );
+
 	return true;
 #endif
 }
 
 void draw_model::Callback(DrawModelResults_t* results, const DrawModelInfo_t& info,
-						  matrix3x4_t* bone_to_world, float* flex_weights, float* flex_delayed_weights, const Vector& model_origin,
-						  DrawModelFlags_t flags)
+						  matrix3x4_t*        bone_to_world,
+						  float*              flex_weights, float*           flex_delayed_weights,
+						  const Vector&       model_origin, DrawModelFlags_t flags)
 {
 }

@@ -15,6 +15,9 @@ using namespace csgo;
 
 standard_blending_rules::standard_blending_rules( )
 {
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
 }
 
 bool standard_blending_rules::Do_load( )
@@ -40,7 +43,7 @@ bool standard_blending_rules::Do_load( )
 
 void standard_blending_rules::Callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
-	const auto pl = this->Target_instance( );
+	const auto pl           = this->Target_instance( );
 	const auto client_class = pl->GetClientClass( );
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;

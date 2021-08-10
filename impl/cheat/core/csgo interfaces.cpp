@@ -38,7 +38,7 @@ private:
 			auto& exports = info->exports( );
 
 			[[maybe_unused]] const auto load_result = exports.load( );
-			BOOST_ASSERT_MSG(load_result != error, "Unable to load exports");
+			BOOST_ASSERT_MSG(load_result ==true, "Unable to load exports");
 
 			const auto& create_fn = exports.get_cache( ).at("CreateInterface");
 			const auto reg = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );

@@ -6,30 +6,30 @@ using namespace utl;
 using namespace utl::detail;
 using namespace property_tree;
 
-exports_storage::exports_storage(address addr, IMAGE_NT_HEADERS* nt): data_cache_from_anywhere(move(addr), nt)
+bool exports_storage::load_from_memory(cache_type& cache)
 {
-}
+	const auto nt = this->nt_header( );
 
-module_info_rw_result exports_storage::Load_from_memory_impl( )
-{
 	// get export data directory.
 	const auto data_dir = &nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 	if (!data_dir->VirtualAddress)
-		return error;
+		return 0;
+
+	const auto base_address = this->base_addr( );
 
 	// get export dir.
 	const auto dir = base_address.add(data_dir->VirtualAddress).ptr<IMAGE_EXPORT_DIRECTORY>( );
 #ifdef NDEBUG
     if (!dir)
-        return module_info_rw_result::error;
+        return 0;
 #endif
 	// names / funcs / ordinals ( all of these are RVAs ).
 	const auto names = base_address.add(dir->AddressOfNames).ptr<uint32_t>( );
 	const auto funcs = base_address.add(dir->AddressOfFunctions).ptr<uint32_t>( );
-	const auto ords = base_address.add(dir->AddressOfNameOrdinals).ptr<uint16_t>( );
+	const auto ords  = base_address.add(dir->AddressOfNameOrdinals).ptr<uint16_t>( );
 #ifdef NDEBUG
     if (!names || !funcs || !ords)
-        return module_info_rw_result::error;
+        return 0;
 #endif
 
 	const auto all_modules = all_modules::get_ptr( );
@@ -65,7 +65,7 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
 				continue;
 
 			// get forwarder mod name.
-			const auto fwd_module = fwd_str.substr(0, delim);
+			const auto fwd_module       = fwd_str.substr(0, delim);
 			const auto fwd_module_lower = ranges::views::transform(fwd_module, tolower);
 			//const auto fwd_module_hash  = hashed_string_tag::_Compute_hash(fwd_module_lower, (".dll"));
 			const auto fwd_module_str = string(fwd_module_lower.begin( ), fwd_module_lower.end( )).append(".dll");
@@ -84,9 +84,9 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
 			static_assert(!std::is_const_v<decltype(target)>, "unable to preload cache!");
 
 			auto& exports = target->exports( );
-			exports.load_from_memory( );
-			const auto& exports_cache = exports.get_cache( );
-			const auto fwd_export_ptr = exports_cache.find((fwd_export));
+			exports.load( );
+			const auto& exports_cache  = exports.get_cache( );
+			const auto  fwd_export_ptr = exports_cache.find((fwd_export));
 			if (fwd_export_ptr == exports_cache.end( ))
 				continue;
 
@@ -94,40 +94,44 @@ module_info_rw_result exports_storage::Load_from_memory_impl( )
 		}
 	}
 
-	data_cache = move(temp_cache);
+	cache = move(temp_cache);
 	//data_cache_.shrink_to_fit( );
-	return success;
+	return 1;
 }
 
-module_info_rw_result exports_storage::Write_to_file_impl(ptree_type& cache) const
+bool exports_storage::load_from_file(cache_type& cache, const ptree_type& storage)
 {
-	for (const auto& [name, addr]: data_cache)
-	{
-		cache.put(name, addr.remove(base_address).value( ));
-	}
+	const auto base_address = this->base_addr( );
 
-	return success;
-}
-
-module_info_rw_result exports_storage::Load_from_file_impl(const ptree_type& cache)
-{
-	for (auto& [name, offset_packed]: cache)
+	for (auto& [name, offset_packed]: storage)
 	{
 		const auto offset = offset_packed.get_value<uintptr_t>( );
-		auto addr = base_address + offset;
+		auto       addr   = base_address + offset;
 
-		data_cache.emplace(const_cast<string&&>(name), move(addr));
+		cache.emplace(const_cast<string&&>(name), move(addr));
 	}
 
-	return success;
+	return 1;
 }
 
-void exports_storage::Change_base_address_impl(address new_addr)
+bool exports_storage::read_to_storage(const cache_type& cache, ptree_type& storage) const
 {
-	for (auto itr = data_cache.begin( ); itr != data_cache.end( ); ++itr)
+	const auto base_address = this->base_addr( );
+
+	for (const auto& [name, addr]: cache)
 	{
-		auto& val = itr.value( );
-		val -= (base_address);
-		val += new_addr;
+		storage.put(name, addr.remove(base_address).value( ));
 	}
+
+	return 1;
 }
+
+//void exports_storage::Change_base_address_impl(address new_addr)
+//{
+//	for (auto itr = data_cache.begin( ); itr != data_cache.end( ); ++itr)
+//	{
+//		auto& val = itr.value( );
+//		val -= (base_address);
+//		val += new_addr;
+//	}
+//}

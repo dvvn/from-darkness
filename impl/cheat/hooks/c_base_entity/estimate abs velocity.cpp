@@ -15,12 +15,14 @@ using namespace csgo;
 
 estimate_abs_velocity::estimate_abs_velocity( )
 {
+#ifdef CHEAT_GUI_TEST
+	this->mark_unused();
+#endif
 }
 
 bool estimate_abs_velocity::Do_load( )
 {
 #if defined(CHEAT_GUI_TEST)
-
 	return 0;
 #else
 
@@ -34,7 +36,7 @@ bool estimate_abs_velocity::Do_load( )
 
 	this->hook( );
 	this->enable( );
-	return 1;
+	return true;
 #endif
 }
 
@@ -46,7 +48,7 @@ void estimate_abs_velocity::Callback(Vector& vel)
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []
 		{
-			const auto addr = _Find_signature("client.dll", "55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7");
+			const auto           addr = _Find_signature("client.dll", "55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7");
 			void (C_BaseEntity::*fn)( );
 			reinterpret_cast<void*&>(fn) = addr.ptr<void>( );
 			return fn;

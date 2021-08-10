@@ -8,6 +8,10 @@ namespace cheat::hooks::studio_render
 	class draw_model final: public service<draw_model>,
 							public decltype(_Detect_hook_holder(&csgo::IStudioRender::DrawModel))
 	{
+	public:
+draw_model();
+
+
 	protected:
 		bool Do_load( ) override;
 		void Callback(csgo::DrawModelResults_t* results, const csgo::DrawModelInfo_t& info,
