@@ -89,7 +89,7 @@ namespace cheat::csgo
 		studiohdr_t* m_pStudioHdr;
 		studiohwdata_t* m_pStudioHWData;
 		IClientRenderable* m_pRenderable;
-		const utl::matrix3x4_t* m_pModelToWorld;
+		const matrix3x4_t* m_pModelToWorld;
 		StudioDecalHandle_t m_decals;
 		int m_drawFlags;
 		int m_lod;
@@ -97,24 +97,24 @@ namespace cheat::csgo
 
 	struct StaticPropRenderInfo_t
 	{
-		const utl::matrix3x4_t* pModelToWorld;
+		const matrix3x4_t* pModelToWorld;
 		const model_t* pModel;
 		IClientRenderable* pRenderable;
-		utl::Vector* pLightingOrigin;
+		Vector* pLightingOrigin;
 		int16_t skin;
 		ModelInstanceHandle_t instance;
 	};
 
 	struct ModelRenderInfo_t
 	{
-		utl::Vector origin;
-		utl::QAngle angles;
+		Vector origin;
+		QAngle angles;
 		char pad[4];
 		IClientRenderable* pRenderable;
 		const model_t* pModel;
-		const utl::matrix3x4_t* pModelToWorld;
-		const utl::matrix3x4_t* pLightingOffset;
-		const utl::Vector* pLightingOrigin;
+		const matrix3x4_t* pModelToWorld;
+		const matrix3x4_t* pLightingOffset;
+		const Vector* pLightingOrigin;
 		int flags;
 		int entity_index;
 		int skin;
@@ -130,7 +130,7 @@ namespace cheat::csgo
 
 	struct LightingQuery_t
 	{
-		utl::Vector m_LightingOrigin;
+		Vector m_LightingOrigin;
 		ModelInstanceHandle_t m_InstanceHandle;
 		bool m_bAmbientBoost;
 	};
@@ -176,7 +176,7 @@ namespace cheat::csgo
 		virtual void ColorModulate(float r, float g, float b) = 0;
 		virtual void SetMaterialVarFlag(MaterialVarFlags_t flag, bool on) = 0;
 		virtual bool GetMaterialVarFlag(MaterialVarFlags_t flag) const = 0;
-		virtual void GetReflectivity(utl::Vector& reflect) = 0;
+		virtual void GetReflectivity(Vector& reflect) = 0;
 		virtual bool GetPropertyFlag(MaterialPropertyTypes_t type) = 0;
 		virtual bool IsTwoSided( ) = 0;
 		virtual void SetShader(const char* pShaderName) = 0;
@@ -207,36 +207,36 @@ namespace cheat::csgo
 	class IVModelRender
 	{
 	public:
-		virtual int DrawModel(int flags, IClientRenderable* pRenderable, ModelInstanceHandle_t instance, int entity_index, const model_t* model, const utl::Vector& origin,
-							  const utl::QAngle& angles,
-							  int skin, int body, int hitboxset, const utl::matrix3x4_t* modelToWorld = 0, const utl::matrix3x4_t* pLightingOffset = 0) = 0;
+		virtual int DrawModel(int flags, IClientRenderable* pRenderable, ModelInstanceHandle_t instance, int entity_index, const model_t* model, const Vector& origin,
+							  const QAngle& angles,
+							  int skin, int body, int hitboxset, const matrix3x4_t* modelToWorld = 0, const matrix3x4_t* pLightingOffset = 0) = 0;
 		virtual void ForcedMaterialOverride(IMaterial* newMaterial, OverrideType_t nOverrideType = 0, int nOverrides = 0) = 0;
 		virtual bool IsForcedMaterialOverride( ) = 0;
-		virtual void SetViewTarget(const CStudioHdr* pStudioHdr, int nBodyIndex, const utl::Vector& target) = 0;
+		virtual void SetViewTarget(const CStudioHdr* pStudioHdr, int nBodyIndex, const Vector& target) = 0;
 		virtual ModelInstanceHandle_t CreateInstance(IClientRenderable* pRenderable, LightCacheHandle_t* pCache = 0) = 0;
 		virtual void DestroyInstance(ModelInstanceHandle_t handle) = 0;
 		virtual void SetStaticLighting(ModelInstanceHandle_t handle, LightCacheHandle_t* pHandle) = 0;
 		virtual LightCacheHandle_t GetStaticLighting(ModelInstanceHandle_t handle) = 0;
 		virtual bool ChangeInstance(ModelInstanceHandle_t handle, IClientRenderable* pRenderable) = 0;
-		virtual void AddDecal(ModelInstanceHandle_t handle, const Ray_t& ray, const utl::Vector& decalUp, int decalIndex, int body, bool noPokeThru, int maxLODToDecal) = 0;
+		virtual void AddDecal(ModelInstanceHandle_t handle, const Ray_t& ray, const Vector& decalUp, int decalIndex, int body, bool noPokeThru, int maxLODToDecal) = 0;
 		virtual void RemoveAllDecals(ModelInstanceHandle_t handle) = 0;
 		virtual bool ModelHasDecals(ModelInstanceHandle_t handle) = 0;
 		virtual void RemoveAllDecalsFromAllModels( ) = 0;
-		virtual utl::matrix3x4_t* DrawModelShadowSetup(IClientRenderable* pRenderable, int body, int skin, DrawModelInfo_t* pInfo, utl::matrix3x4_t* pCustomBoneToWorld = 0) = 0;
-		virtual void DrawModelShadow(IClientRenderable* pRenderable, const DrawModelInfo_t& info, utl::matrix3x4_t* pCustomBoneToWorld = 0) = 0;
+		virtual matrix3x4_t* DrawModelShadowSetup(IClientRenderable* pRenderable, int body, int skin, DrawModelInfo_t* pInfo, matrix3x4_t* pCustomBoneToWorld = 0) = 0;
+		virtual void DrawModelShadow(IClientRenderable* pRenderable, const DrawModelInfo_t& info, matrix3x4_t* pCustomBoneToWorld = 0) = 0;
 		virtual bool RecomputeStaticLighting(ModelInstanceHandle_t handle) = 0;
 		virtual void ReleaseAllStaticPropColorData( ) = 0;
 		virtual void RestoreAllStaticPropColorData( ) = 0;
 		virtual int DrawModelEx(ModelRenderInfo_t& pInfo) = 0;
 		virtual int DrawModelExStaticProp(ModelRenderInfo_t& pInfo) = 0;
-		virtual bool DrawModelSetup(ModelRenderInfo_t& pInfo, DrawModelState_t* pState, utl::matrix3x4_t** ppBoneToWorldOut) = 0;
-		virtual void DrawModelExecute(IMatRenderContext* ctx, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, utl::matrix3x4_t* pCustomBoneToWorld = 0) = 0;
-		virtual void SetupLighting(const utl::Vector& vecCenter) = 0;
+		virtual bool DrawModelSetup(ModelRenderInfo_t& pInfo, DrawModelState_t* pState, matrix3x4_t** ppBoneToWorldOut) = 0;
+		virtual void DrawModelExecute(IMatRenderContext* ctx, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, matrix3x4_t* pCustomBoneToWorld = 0) = 0;
+		virtual void SetupLighting(const Vector& vecCenter) = 0;
 		virtual int DrawStaticPropArrayFast(StaticPropRenderInfo_t* pProps, int count, bool bShadowDepth) = 0;
 		virtual void SuppressEngineLighting(bool bSuppress) = 0;
 		virtual void SetupColorMeshes(int nTotalVerts) = 0;
-		virtual void SetupLightingEx(const utl::Vector& vecCenter, ModelInstanceHandle_t handle) = 0;
-		virtual bool GetBrightestShadowingLightSource(const utl::Vector& vecCenter, utl::Vector& lightPos, utl::Vector& lightBrightness, bool bAllowNonTaggedLights) = 0;
+		virtual void SetupLightingEx(const Vector& vecCenter, ModelInstanceHandle_t handle) = 0;
+		virtual bool GetBrightestShadowingLightSource(const Vector& vecCenter, Vector& lightPos, Vector& lightBrightness, bool bAllowNonTaggedLights) = 0;
 		virtual void ComputeLightingState(int nCount, const LightingQuery_t* pQuery, MaterialLightingState_t* pState, ITexture** ppEnvCubemapTexture) = 0;
 		virtual void GetModelDecalHandles(StudioDecalHandle_t* pDecals, int nDecalStride, int nCount, const ModelInstanceHandle_t* pHandles) = 0;
 		virtual void ComputeStaticLightingState(int nCount, const StaticLightingQuery_t* pQuery, MaterialLightingState_t* pState, MaterialLightingState_t* pDecalState,

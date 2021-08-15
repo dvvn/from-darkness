@@ -12,7 +12,7 @@ namespace cheat
 	float _Unlag_limit( );
 	float _Unlag_range( );
 
-	csgo::ConVar* _Find_cvar(const utl::string_view& cvar);
+	csgo::ConVar* _Find_cvar(const std::string_view& cvar);
 
 	size_t _Time_to_ticks(float time);
 	float _Ticks_to_time(size_t ticks);
@@ -21,19 +21,19 @@ namespace cheat
 	{
 		struct _Find_signature_impl
 		{
-			utl::address operator()(const utl::memory_block& from, const utl::string_view& sig) const;
-			utl::address operator()(const utl::string_view& dll_name, const utl::string_view& sig) const;
+			utl::address operator()(const utl::memory_block& from, const std::string_view& sig) const;
+			utl::address operator()(const std::string_view& dll_name, const std::string_view& sig) const;
 		};
 	}
 
 	inline constexpr auto _Find_signature = detail::_Find_signature_impl( );
 
 	template <typename T>
-	constexpr utl::string_view _Type_name(bool drop_namespace = false)
+	constexpr std::string_view _Type_name(bool drop_namespace = false)
 	{
-		constexpr auto full_name = utl::string_view(__FUNCSIG__);
-		constexpr auto left_marker = utl::string_view("_Type_name<");
-		constexpr auto right_marker = utl::string_view(">(");
+		constexpr auto full_name = std::string_view(__FUNCSIG__);
+		constexpr auto left_marker = std::string_view("_Type_name<");
+		constexpr auto right_marker = std::string_view(">(");
 
 		constexpr auto left_marker_index = full_name.find(left_marker);
 		//static_assert(left_marker_index != std::string_view::npos);
@@ -44,18 +44,18 @@ namespace cheat
 
 		//class cheat::A::B:: name
 		constexpr auto obj_name = full_name.substr(start_index, length);
-		constexpr auto left_marker2 = utl::string_view("cheat::");
+		constexpr auto left_marker2 = std::string_view("cheat::");
 
 		constexpr auto ret_val = [&]
 		{
-			if constexpr (constexpr auto left_marker_index2 = obj_name.find(left_marker2); left_marker_index2 != utl::string_view::npos)
+			if constexpr (constexpr auto left_marker_index2 = obj_name.find(left_marker2); left_marker_index2 != std::string_view::npos)
 			{
 				return obj_name.substr(left_marker_index2 + left_marker2.size( ));
 			}
 			else
 			{
 				constexpr auto space_index = obj_name.find(' ');
-				return space_index == utl::string_view::npos ? obj_name : obj_name.substr(space_index + 1);
+				return space_index == std::string_view::npos ? obj_name : obj_name.substr(space_index + 1);
 			}
 		}( );
 		constexpr auto ret_val_namespaces_dropped = [&]
@@ -82,12 +82,12 @@ namespace cheat
 
 	namespace detail
 	{
-		void* _Vtable_pointer_impl(const utl::string_view& from, const utl::string_view& table_name);
+		void* _Vtable_pointer_impl(const std::string_view& from, const std::string_view& table_name);
 
 		template <typename T>
 		struct _Vtable_pointer_fn
 		{
-			T* operator()(const utl::string_view& from, bool drop_namespaces = true) const
+			auto operator()(const std::string_view& from, bool drop_namespaces = true) const
 			{
 				const auto table_name = _Type_name<T>(drop_namespaces);
 				void* ptr = _Vtable_pointer_impl(from, table_name);

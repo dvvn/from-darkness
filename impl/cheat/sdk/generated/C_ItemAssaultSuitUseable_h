@@ -1,2 +1,2 @@
-int32_t& m_nArmorValue( );
 bool& m_bIsHeavyAssaultSuit( );
+int32_t& m_nArmorValue( );

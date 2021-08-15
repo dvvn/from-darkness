@@ -3,7 +3,7 @@
 namespace cheat::gui::tools
 {
 	//PushStyleVar(ImGuiCol idx, const ImVec4& col)
-	class push_style_var: utl::variant<utl::memory_backup<float>, utl::memory_backup<ImVec2>>
+	class push_style_var: std::variant<utl::memory_backup<float>, utl::memory_backup<ImVec2>>
 	{
 	public:
 		push_style_var( );

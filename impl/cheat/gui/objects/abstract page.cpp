@@ -8,9 +8,9 @@ using namespace utl;
 
 renderable_object* abstract_page::page( ) const
 {
-	return addressof(visit(overload(bind_front(&unique_page::operator*),
-									bind_front(&shared_page::operator*<renderable_object>),
-									bind_front(&ref_page::get)), page__));
+	return std::addressof(std::visit(nstd::overload(std::bind_front(&unique_page::operator*),
+													std::bind_front(&shared_page::operator*<renderable_object>),
+													std::bind_front(&ref_page::get)), page__));
 }
 
 void abstract_page::render( )
@@ -20,7 +20,7 @@ void abstract_page::render( )
 	ImGui::PopID( );
 }
 
-pages_storage_data::pages_storage_data(abstract_page&& page) : abstract_page(move(page))
+pages_storage_data::pages_storage_data(abstract_page&& page) : abstract_page(std::move(page))
 {
 }
 
@@ -50,16 +50,16 @@ void abstract_pages_renderer::add_page(abstract_page&& page)
 	for (abstract_page& page_stored: pages_)
 	{
 		if (page_stored.name( ) == name)
-			BOOST_ASSERT("Duplicate detected!");
+			runtime_assert("Duplicate detected!");
 	}
 #endif
-	pages_.push_back(move(page));
+	pages_.push_back(std::move(page));
 }
 
 void abstract_pages_renderer::init( )
 {
 #if defined(_DEBUG) && _CONTAINER_DEBUG_LEVEL == 0
-	BOOST_ASSERT(!this->empty( ));
+	runtime_assert(!this->empty( ));
 #endif
 
 	//if(pages_.empty())

@@ -15,20 +15,20 @@ namespace cheat
 	{
 		csgo::C_CSPlayer* ent;
 
-		float sim_time;
-		bool dormant;
+		float              sim_time;
+		bool               dormant;
 		csgo::m_iTeamNum_t team;
-		bool alive;
+		bool               alive;
 
-		using ticks_storage = utl::devector<detail::tick_record_shared_impl>;
+		using ticks_storage = nstd::deque<detail::tick_record_shared_impl>;
 
-		ticks_storage ticks;
-		utl::span<ticks_storage::value_type> ticks_window;
+		ticks_storage                        ticks;
+		std::span<ticks_storage::value_type> ticks_window;
 
 		static size_t max_ticks_count( );
 	};
 
-	using player_shared = utl::shared_ptr<player>;
+	using player_shared = std::shared_ptr<player>;
 
 	namespace detail
 	{

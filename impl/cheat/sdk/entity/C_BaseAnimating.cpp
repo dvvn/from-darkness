@@ -7,22 +7,22 @@ void C_BaseAnimating::UpdateClientSideAnimation( )
 	hooks::_Call_function(&C_BaseAnimating::UpdateClientSideAnimation, this, 223);
 }
 
-void C_BaseAnimating::DoExtraBoneProcessing(CStudioHdr*, utl::Vector*, Quaternion [], utl::matrix3x4a_t [], CBoneBitList&, CIKContext*)
+void C_BaseAnimating::DoExtraBoneProcessing(CStudioHdr*, Vector*, Quaternion [], matrix3x4a_t [], CBoneBitList&, CIKContext*)
 {
-	BOOST_ASSERT("Dont use. Added only for example");
+	runtime_assert("Dont use. Added only for example");
 	(void)this;
 }
 
 bool C_BaseAnimating::ShouldSkipAnimationFrame(/*float current_time*/)
 {
-	BOOST_ASSERT("Dont use. Added only for example");
+	runtime_assert("Dont use. Added only for example");
 	(void)this;
 	return true;
 }
 
-void C_BaseAnimating::StandardBlendingRules(CStudioHdr*, utl::Vector [], QuaternionAligned [], float, int)
+void C_BaseAnimating::StandardBlendingRules(CStudioHdr*, Vector [], QuaternionAligned [], float, int)
 {
-	BOOST_ASSERT("Dont use. Added only for example");
+	runtime_assert("Dont use. Added only for example");
 	(void)this;
 }
 

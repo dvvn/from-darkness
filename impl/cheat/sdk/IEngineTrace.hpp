@@ -274,7 +274,7 @@ namespace cheat::csgo
 			return ((skip__[I] == ent) || ...);
 		}
 
-		utl::array<IHandleEntity*, sizeof...(E)> skip__;
+		std::array<IHandleEntity*, sizeof...(E)> skip__;
 	};
 
 	template <bool Ignore, class ...E>
@@ -355,7 +355,7 @@ namespace cheat::csgo
 
 	struct BrushSideInfo_t
 	{
-		utl::Vector4D  plane; // The plane of the brush side
+		Vector4D  plane; // The plane of the brush side
 		unsigned short bevel; // Bevel plane?
 		unsigned short thin;  // Thin?
 	};
@@ -375,8 +375,8 @@ namespace cheat::csgo
 
 	struct cmodel_t
 	{
-		utl::Vector mins, maxs;
-		utl::Vector origin; // for sounds or lights
+		Vector mins, maxs;
+		Vector origin; // for sounds or lights
 		int         headnode;
 		vcollide_t  vcollisionData;
 	};
@@ -390,7 +390,7 @@ namespace cheat::csgo
 
 	struct cplane_t
 	{
-		utl::Vector normal;
+		Vector normal;
 		float       dist;
 		uint8_t     type;     // for fast side tests
 		uint8_t     signbits; // signx + (signy<<1) + (signz<<1)
@@ -403,19 +403,19 @@ namespace cheat::csgo
 	class Ray_t
 	{
 	public:
-		utl::VectorAligned      m_Start;       // starting point, centered within the extents
-		utl::VectorAligned      m_Delta;       // direction + length of the ray
-		utl::VectorAligned      m_StartOffset; // Add this to m_Start to Get the actual ray start
-		utl::VectorAligned      m_Extents;     // Describes an axis aligned box extruded along a ray
-		const utl::matrix3x4_t* m_pWorldAxisTransform = nullptr;
+		VectorAligned      m_Start;       // starting point, centered within the extents
+		VectorAligned      m_Delta;       // direction + length of the ray
+		VectorAligned      m_StartOffset; // Add this to m_Start to Get the actual ray start
+		VectorAligned      m_Extents;     // Describes an axis aligned box extruded along a ray
+		const matrix3x4_t* m_pWorldAxisTransform = nullptr;
 		bool                    m_IsRay;   // are the extents zero?
 		bool                    m_IsSwept; // is delta != 0?
 
 		Ray_t() = default;
 
-		void        Init(const utl::Vector& start, const utl::Vector& end);
-		void        Init(const utl::Vector& start, const utl::Vector& end, const utl::Vector& mins, const utl::Vector& maxs);
-		utl::Vector InvDelta( ) const;
+		void        Init(const Vector& start, const Vector& end);
+		void        Init(const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs);
+		Vector InvDelta( ) const;
 	};
 
 	class CBaseTrace
@@ -430,8 +430,8 @@ namespace cheat::csgo
 		bool IsDispSurfaceProp2( ) { return ((dispFlags & DISPSURF_FLAG_SURFPROP2) != 0); }
 
 		// these members are aligned!!
-		utl::Vector startpos; // start position
-		utl::Vector endpos;   // final position
+		Vector startpos; // start position
+		Vector endpos;   // final position
 		cplane_t    plane;    // surface normal at impact
 
 		float fraction; // time completed, 1.0 = didn't hit anything
@@ -466,9 +466,9 @@ namespace cheat::csgo
 	class IEngineTrace
 	{
 	public:
-		virtual int  GetPointContents(const utl::Vector& vecAbsPosition, int contentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) = 0;
-		virtual int  GetPointContents_WorldOnly(const utl::Vector& vecAbsPosition, int contentsMask = MASK_ALL) = 0;
-		virtual int  GetPointContents_Collideable(ICollideable* pCollide, const utl::Vector& vecAbsPosition) = 0;
+		virtual int  GetPointContents(const Vector& vecAbsPosition, int contentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) = 0;
+		virtual int  GetPointContents_WorldOnly(const Vector& vecAbsPosition, int contentsMask = MASK_ALL) = 0;
+		virtual int  GetPointContents_Collideable(ICollideable* pCollide, const Vector& vecAbsPosition) = 0;
 		virtual void ClipRayToEntity(const Ray_t& ray, unsigned int fMask, IHandleEntity* pEnt, CGameTrace* pTrace) = 0;
 		virtual void ClipRayToCollideable(const Ray_t& ray, unsigned int fMask, ICollideable* pCollide, CGameTrace* pTrace) = 0;
 		virtual void TraceRay(const Ray_t& ray, unsigned int fMask, ITraceFilter* pTraceFilter, CGameTrace* pTrace) = 0;

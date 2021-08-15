@@ -45,8 +45,8 @@ public:
     char      pad_0x0020[0x90];   //0x0020
     float     fov;                //0x00B0 
     float     viewmodel_fov;      //0x00B4 
-    utl::Vector    origin;             //0x00B8 
-    utl::Vector    angles;             //0x00C4 
+    Vector    origin;             //0x00B8 
+    Vector    angles;             //0x00C4 
     char      pad_0x00D0[0x7C];   //0x00D0
 
 };//Size=0x014C
@@ -72,8 +72,8 @@ public:
 		std::byte   pad0[0x7C];
 		float       FOV;
 		float       ViewModelFOV;
-		utl::Vector vecOrigin;
-		utl::QAngle angView;
+		Vector vecOrigin;
+		QAngle angView;
 		float       NearZ;
 		float       FarZ;
 		float       NearViewmodelZ;
@@ -88,10 +88,10 @@ public:
 		float       DoFQuality;
 		int         nMotionBlurMode;
 		float       ShutterTime;
-		utl::Vector vecShutterOpenPosition;
-		utl::QAngle vecShutterOpenAngles;
-		utl::Vector vecShutterClosePosition;
-		utl::QAngle vecShutterCloseAngles;
+		Vector vecShutterOpenPosition;
+		QAngle vecShutterOpenAngles;
+		Vector vecShutterClosePosition;
+		QAngle vecShutterCloseAngles;
 		float       OffCenterTop;
 		float       OffCenterBottom;
 		float       OffCenterLeft;

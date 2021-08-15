@@ -112,14 +112,14 @@ enum hitgroups{
 		char* const pszName() const { return ((char*)this) + sznameindex; }
 		int         parent;
 		int         bonecontroller[6]; // bone controller index, -1 == none
-		utl::Vector      pos;
+		Vector      pos;
 		Quaternion  quat;
 		RadianEuler rot;
 		// compression scale
-		utl::Vector posscale;
-		utl::Vector rotscale;
+		Vector posscale;
+		Vector rotscale;
 
-		utl::matrix3x4_t poseToBone;
+		matrix3x4_t poseToBone;
 		Quaternion  qAlignment;
 		int         flags;
 		int         proctype;
@@ -152,8 +152,8 @@ enum hitgroups{
 	{
 		int     bone;
 		int     group;
-		utl::Vector  bbmin;
-		utl::Vector  bbmax;
+		Vector  bbmin;
+		Vector  bbmax;
 		int     szhitboxnameindex;
 		int32_t m_iPad01[3];
 		float   m_flRadius;
@@ -193,8 +193,8 @@ enum hitgroups{
 		__int32 nServerCount; //0x010C 
 		__int32 type;         //0x0110 
 		__int32 flags;        //0x0114 
-		utl::Vector  vecMins;      //0x0118 
-		utl::Vector  vecMaxs;      //0x0124 
+		Vector  vecMins;      //0x0118 
+		Vector  vecMaxs;      //0x0124 
 		float   radius;       //0x0130 
 		char    pad[0x1C];    //0x0134
 	};                        //Size=0x0150
@@ -207,12 +207,12 @@ enum hitgroups{
 		long    checksum;            //0x0008 
 		char    szName[64];          //0x000C 
 		__int32 length;              //0x004C 
-		utl::Vector  vecEyePos;           //0x0050 
-		utl::Vector  vecIllumPos;         //0x005C 
-		utl::Vector  vecHullMin;          //0x0068 
-		utl::Vector  vecHullMax;          //0x0074 
-		utl::Vector  vecBBMin;            //0x0080 
-		utl::Vector  vecBBMax;            //0x008C 
+		Vector  vecEyePos;           //0x0050 
+		Vector  vecIllumPos;         //0x005C 
+		Vector  vecHullMin;          //0x0068 
+		Vector  vecHullMax;          //0x0074 
+		Vector  vecBBMin;            //0x0080 
+		Vector  vecBBMax;            //0x008C 
 		__int32 flags;               //0x0098 
 		__int32 numbones;            //0x009C 
 		__int32 boneindex;           //0x00A0 

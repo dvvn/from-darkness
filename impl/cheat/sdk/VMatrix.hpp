@@ -3,7 +3,7 @@
 #include "QAngle.hpp"
 #include "Vector.hpp"
 
-namespace cheat::utl
+namespace cheat::csgo
 {
 	class matrix3x4_t
 	{

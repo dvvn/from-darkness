@@ -1,4 +1,4 @@
-utl::Vector& m_targetPosition( );
-utl::Vector& m_controlPosition( );
-float& m_scrollRate( );
+Vector& m_controlPosition( );
 float& m_flWidth( );
+float& m_scrollRate( );
+Vector& m_targetPosition( );

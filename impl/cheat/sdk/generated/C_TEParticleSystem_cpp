@@ -3,15 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEParticleSystem::m_vecOrigin( )
+Vector& C_TEParticleSystem::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEParticleSystem.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEParticleSystem", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

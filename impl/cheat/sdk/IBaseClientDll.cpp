@@ -4,7 +4,7 @@ using namespace cheat::csgo;
 
 void IBaseClientDLL::FrameStageNotify([[maybe_unused]] ClientFrameStage_t stage)
 {
-	BOOST_ASSERT("Dont use. Added only for example.");
+	runtime_assert("Dont use. Added only for example.");
 	(void)this;
 }
 

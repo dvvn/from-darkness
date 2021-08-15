@@ -1,2 +1,2 @@
-utl::Vector& m_vOrigin( );
-utl::Vector& m_vDirection( );
+Vector& m_vDirection( );
+Vector& m_vOrigin( );

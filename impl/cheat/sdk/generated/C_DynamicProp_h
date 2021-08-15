@@ -1,5 +1,5 @@
-bool& m_bUseHitboxesForRenderBox( );
-float& m_flGlowMaxDist( );
 bool& m_bShouldGlow( );
-utl::Color& m_clrGlow( );
+bool& m_bUseHitboxesForRenderBox( );
+Color& m_clrGlow( );
+float& m_flGlowMaxDist( );
 int32_t& m_nGlowStyle( );

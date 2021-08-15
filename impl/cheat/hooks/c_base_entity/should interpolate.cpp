@@ -32,8 +32,8 @@ bool should_interpolate::Do_load( )
 
 	this->target_func_ = method_info::make_member_virtual
 			(
-			 bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll"/*, &csgo_interfaces::local_player*/),
-			 bind_front(_Find_signature, "client.dll", "8B 06 8B CE 8B 80 ? ? 00 00 FF D0 84 C0 74 5C") | add(6) | deref(1) | divide(4) | value
+			 std::bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll"/*, &csgo_interfaces::local_player*/),
+			 std::bind_front(_Find_signature, "client.dll", "8B 06 8B CE 8B 80 ? ? 00 00 FF D0 84 C0 74 5C") | add(6) | deref(1) | divide(4) | value
 			);
 
 	this->hook( );

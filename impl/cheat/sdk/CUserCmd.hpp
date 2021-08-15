@@ -84,8 +84,8 @@ namespace cheat::csgo
 
 		int command_number;        // 0x04 For matching server and client commands for debugging
 		int tick_count;            // 0x08 the tick the client created this command
-		utl::QAngle view_angles;   // 0x0C Player instantaneous view angles.
-		utl::Vector aim_direction; // 0x18
+		QAngle view_angles;   // 0x0C Player instantaneous view angles.
+		Vector aim_direction; // 0x18
 		float forward_move;        // 0x24
 		float side_move;           // 0x28
 		float up_move;             // 0x2C

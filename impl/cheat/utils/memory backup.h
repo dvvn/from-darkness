@@ -3,13 +3,16 @@
 namespace cheat::utl
 {
 	template <std::copyable T>
-	class memory_backup: noncopyable
+	class memory_backup
 	{
 	public:
 		memory_backup(memory_backup&& other) noexcept
 		{
-			*this = move(other);
+			*this = std::move(other);
 		}
+
+		memory_backup(const memory_backup& other)            = delete;
+		memory_backup& operator=(const memory_backup& other) = delete;
 
 		memory_backup& operator=(memory_backup&& other) noexcept
 		{
@@ -21,7 +24,7 @@ namespace cheat::utl
 
 		memory_backup( ) = default;
 
-		memory_backup(T& from) : owner__(from)
+		memory_backup(T& from) : owner__(std::ref(from))
 		{
 			value__.emplace(from);
 		}
@@ -30,7 +33,7 @@ namespace cheat::utl
 		memory_backup(T& from, T2&& owerride)
 			requires(std::is_constructible_v<T, decltype(owerride)>) : memory_backup(from)
 		{
-			from = T(forward<T2>(owerride));
+			from = T(std::forward<T2>(owerride));
 		}
 
 		~memory_backup( )
@@ -42,7 +45,7 @@ namespace cheat::utl
 		{
 			if (value__.has_value( ))
 			{
-				*owner__ = release( );
+				owner__->get() = release( );
 			}
 		}
 
@@ -53,7 +56,7 @@ namespace cheat::utl
 
 		_NODISCARD T release( )
 		{
-			T ret = move(*value__);
+			T ret = std::move(*value__);
 			this->reset( );
 			return static_cast<T&&>(ret);
 		}
@@ -79,8 +82,8 @@ namespace cheat::utl
 		}
 
 	private:
-		optional<T&> owner__;
-		optional<T> value__;
+		std::optional<std::reference_wrapper<T>> owner__;
+		std::optional<T>  value__;
 	};
 
 	//#define MEM_BACKUP(memory,...)\

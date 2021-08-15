@@ -3,16 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_BaseToggle::m_vecFinalDest( )
+float& C_BaseToggle::m_flMoveTargetTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle.m_vecFinalDest");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle", "m_flMoveTargetTime");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 int32_t& C_BaseToggle::m_movementType( )
@@ -20,18 +21,18 @@ int32_t& C_BaseToggle::m_movementType( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle.m_movementType");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle", "m_movementType");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-float& C_BaseToggle::m_flMoveTargetTime( )
+Vector& C_BaseToggle::m_vecFinalDest( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle.m_flMoveTargetTime");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle", "m_vecFinalDest");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

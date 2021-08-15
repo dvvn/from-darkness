@@ -1,10 +1,10 @@
-utl::Vector& m_shadowDirection( );
-bool& m_bEnabled( );
-char* m_TextureName( );
 int32_t& m_LightColor( );
+char* m_TextureName( );
+bool& m_bEnableShadows( );
+bool& m_bEnabled( );
 float& m_flColorTransitionTime( );
-float& m_flSunDistance( );
 float& m_flFOV( );
 float& m_flNearZ( );
 float& m_flNorthOffset( );
-bool& m_bEnableShadows( );
+float& m_flSunDistance( );
+Vector& m_shadowDirection( );

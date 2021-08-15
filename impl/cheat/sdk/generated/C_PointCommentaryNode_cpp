@@ -3,6 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
 bool& C_PointCommentaryNode::m_bActive( )
@@ -10,8 +11,8 @@ bool& C_PointCommentaryNode::m_bActive( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_bActive");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_bActive");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -20,39 +21,19 @@ float& C_PointCommentaryNode::m_flStartTime( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_flStartTime");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_flStartTime");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-char* C_PointCommentaryNode::m_iszCommentaryFile( )
+CBaseHandle& C_PointCommentaryNode::m_hViewPosition( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iszCommentaryFile");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-char* C_PointCommentaryNode::m_iszCommentaryFileNoHDR( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iszCommentaryFileNoHDR");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-char* C_PointCommentaryNode::m_iszSpeakers( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iszSpeakers");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_hViewPosition");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 int32_t& C_PointCommentaryNode::m_iNodeNumber( )
@@ -60,8 +41,8 @@ int32_t& C_PointCommentaryNode::m_iNodeNumber( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iNodeNumber");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iNodeNumber");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -70,18 +51,38 @@ int32_t& C_PointCommentaryNode::m_iNodeNumberMax( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_iNodeNumberMax");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iNodeNumberMax");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-CBaseHandle& C_PointCommentaryNode::m_hViewPosition( )
+char* C_PointCommentaryNode::m_iszCommentaryFile( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return (char*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode.m_hViewPosition");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszCommentaryFile");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_PointCommentaryNode::m_iszCommentaryFileNoHDR( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszCommentaryFileNoHDR");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_PointCommentaryNode::m_iszSpeakers( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszSpeakers");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
 #endif
 }

@@ -7,7 +7,6 @@
 
 using namespace cheat;
 using namespace cheat::detail::settings;
-using namespace filesystem;
 
 #if 1
 bool known_configs::contains(const string_wrapper& str) const
@@ -20,13 +19,13 @@ bool known_configs::contains(const string_wrapper& str) const
 	return false;
 }
 
-ranges::borrowed_subrange_t<known_configs::storage_type&> known_configs::Remove(const span<wstring>& sample)
+ranges::borrowed_subrange_t<known_configs::storage_type&> known_configs::Remove(const std::span<std::wstring>& sample)
 {
 	return ranges::remove_if(data__, [&](const string_wrapper& name)-> bool
 	{
-		for (const wstring_view s: sample)
+		for (const std::wstring_view s: sample)
 		{
-			if (wstring_view(name) == s)
+			if (std::wstring_view(name) == s)
 				return false;
 		}
 		return true;
@@ -41,12 +40,12 @@ void known_configs::Update_longest_string( )
 		longest_string__.init(*ranges::max_element(data__));
 }
 
-void known_configs::sync(const span<wstring>& vec)
+void known_configs::sync(const std::span<std::wstring>& vec)
 {
-	for (wstring_view s: vec)
+	for (std::wstring_view s: vec)
 	{
 		if (data__.end( ) == ranges::find(data__, s, &string_wrapper::raw))
-			data__.push_back(string_wrapper::raw_type(move(s)));
+			data__.push_back(string_wrapper::raw_type(std::move(s)));
 	}
 
 	const auto to_remove = Remove(vec);
@@ -84,7 +83,7 @@ bool known_configs_selectable::select(const string_wrapper& str)
 void known_configs_selectable::select(size_t index)
 {
 	auto& target_config = data__[index];
-	config_selected__ = addressof(target_config);
+	config_selected__   = std::addressof(target_config);
 }
 
 void known_configs_selectable::deselect( )
@@ -129,19 +128,17 @@ folder_with_configs::folder_with_configs(settings_data* shared_data)
 
 void folders_storage::add_folder(value_type&& folder)
 {
-	const auto& item = data__.emplace_back(move(folder));
-	if (const auto name = wstring_view(item.shared->name( )); longest_title__ < name.size( ))
+	const auto& item = data__.emplace_back(std::move(folder));
+	if (const auto name = std::wstring_view(item.shared->name( )); longest_title__ < name.size( ))
 		longest_title__ = name.size( );
 }
 
-folders_storage::value_type* folders_storage::get(const wstring_view& str)
+folders_storage::value_type* folders_storage::get(const std::wstring_view& str)
 {
 	for (auto& d: data__)
 	{
 		if (d.shared->name( ) == str)
-		{
-			return addressof(d);
-		}
+			return std::addressof(d);
 	}
 	return nullptr;
 }
@@ -151,7 +148,7 @@ void folders_storage::render( )
 #if 0
 	auto& style = ImGui::GetStyle( );
 
-	constexpr auto dummy_text = string_view("W");
+	constexpr auto dummy_text = std::string_view("W");
 	const auto sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
 
 	const auto frame_padding = style.FramePadding * 2.f;
@@ -161,11 +158,11 @@ void folders_storage::render( )
 #endif
 
 	//todo: screen size & menu size based
-	const auto num_rows = std::min<size_t>(data__.size( ), (2));
+	const auto num_rows    = std::min<size_t>(data__.size( ), (2));
 	const auto num_columns = data__.size( ) / num_rows;
 
-	BOOST_ASSERT(longest_title__ > 0);
-	BOOST_ASSERT(!data__.empty( ));
+	runtime_assert(longest_title__ > 0);
+	runtime_assert(!data__.empty( ));
 
 #if 0
 	
@@ -262,7 +259,7 @@ void folders_storage::deselect_all( )
 	}
 }
 
-span<folders_storage::value_type> folders_storage::iterate( )
+std::span<folders_storage::value_type> folders_storage::iterate( )
 {
 	return {data__.begin( ), data__.end( )};
 }
@@ -313,7 +310,7 @@ void configs_unique_renderer::sync(const known_configs& source)
 
 		if (!exists)
 		{
-			data__.push_back(utl::make_shared<config_renderer>(kd));
+			data__.push_back(std::make_shared<config_renderer>(kd));
 		}
 	}
 
@@ -330,7 +327,7 @@ void configs_unique_renderer::sync(const known_configs& source)
 	auto sizes = data__
 				 | ranges::views::transform(&config_renderer::owner)
 				 | ranges::views::transform(&string_wrapper::raw)
-				 | ranges::views::transform(&wstring_view::size);
+				 | ranges::views::transform(&std::wstring_view::size);
 	longest_title__ = *ranges::max_element(sizes);
 
 	ranges::sort(data__, { }, [](const value_type& val) { return val->owner( ).raw( ); });
@@ -344,7 +341,7 @@ void configs_unique_renderer::sync(const known_configs& source)
 
 	if (!item_selected__.index)
 	{
-		BOOST_ASSERT(item_selected__.ptr.expired( ));
+		runtime_assert(item_selected__.ptr.expired( ));
 		Select_new_item_(0, true);
 	}
 	else
@@ -357,7 +354,7 @@ void configs_unique_renderer::sync(const known_configs& source)
 		else
 		{
 			//not a goot way, but im too lazy to doing this manually
-			vector<wstring_view> temp;
+			std::vector<std::wstring_view> temp;
 			temp.reserve(data__.size( ) + 1);
 			for (const auto& d: data__)
 				temp.push_back(d->owner( ));
@@ -365,7 +362,7 @@ void configs_unique_renderer::sync(const known_configs& source)
 
 			ranges::sort(temp);
 
-			if (const auto ideal_place = ranges::find(temp, item_selected__.name.data( ), &wstring_view::data); ideal_place == std::prev(temp.end( )))
+			if (const auto ideal_place = ranges::find(temp, item_selected__.name.data( ), &std::wstring_view::data); ideal_place == std::prev(temp.end( )))
 			{
 				//element isnt sorted, still in the end
 				Select_new_item_(data__.size( ) - 1, true);
@@ -384,8 +381,8 @@ void configs_unique_renderer::render( )
 {
 	const auto& style = ImGui::GetStyle( );
 
-	constexpr auto dummy_text = string_view("W");
-	const auto sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
+	constexpr auto dummy_text  = std::string_view("W");
+	const auto     sample_size = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
 
 	const auto frame_padding = style.FramePadding * 2.f;
 
@@ -398,9 +395,9 @@ void configs_unique_renderer::render( )
 
 	//const auto num_columns = data__.size( ) <= MIN_COLUMNS ? MIN_COLUMNS : data__.size( );
 	ImVec2 size;
-	size.x = frame_padding.x +                                                                          //space before and after
-			 sample_size.x * (data__.empty( ) ? wstring_view(empty_string).size( ) : longest_title__) + //reserve width for longest string
-			 (data__.size( ) <= MIN_COLUMNS ? 0.f : style.ScrollbarSize);                               //add extra space for scrollbar
+	size.x = frame_padding.x +                                                                               //space before and after
+			 sample_size.x * (data__.empty( ) ? std::wstring_view(empty_string).size( ) : longest_title__) + //reserve width for longest string
+			 (data__.size( ) <= MIN_COLUMNS ? 0.f : style.ScrollbarSize);                                    //add extra space for scrollbar
 
 	size.y = frame_padding.y +                        //space before and after
 			 MIN_COLUMNS * sample_size.y +            //all strings height						                            
@@ -418,23 +415,23 @@ void configs_unique_renderer::render( )
 		}
 		case 1:
 		{
-			BOOST_ASSERT(!item_selected__.ptr.expired( ));
+			runtime_assert(!item_selected__.ptr.expired( ));
 			const auto selected = item_selected__.ptr.lock( );
-			BOOST_ASSERT(selected->selected( ));
+			runtime_assert(selected->selected( ));
 
-			invoke(*selected);
+			std::invoke(*selected);
 
 			break;
 		}
 		default:
 		{
-			BOOST_ASSERT(!item_selected__.ptr.expired( ));
+			runtime_assert(!item_selected__.ptr.expired( ));
 			const auto selected = item_selected__.ptr.lock( );
-			BOOST_ASSERT(selected->selected( ));
+			runtime_assert(selected->selected( ));
 
 			for (auto& cfg: data__)
 			{
-				if (invoke(*cfg) && selected != cfg)
+				if (std::invoke(*cfg) && selected != cfg)
 				{
 					//reanimate_selected_settings(*item_selected__, cfg);
 					this->Select_new_item_(cfg, true);
@@ -452,7 +449,7 @@ void configs_unique_renderer::after_sync( )
 	longest_title__ = 0;
 	for (const auto& d: data__)
 	{
-		if (const auto size = wstring_view(d->owner( )).size( ); longest_title__ < size)
+		if (const auto size = std::wstring_view(d->owner( )).size( ); longest_title__ < size)
 			longest_title__ = size;
 	}
 }
@@ -466,7 +463,7 @@ void configs_unique_renderer::mark_folders_selected(folders_storage& folders) co
 	}
 	else
 	{
-		const auto ptr = item_selected__.ptr.lock( );
+		const auto  ptr  = item_selected__.ptr.lock( );
 		const auto& name = ptr->owner( );
 
 		for (auto& f: folders.iterate( ))
@@ -495,7 +492,7 @@ void configs_unique_renderer::select(const string_wrapper& str)
 			return Select_new_item_(i, true);
 	}
 
-	BOOST_ASSERT("Unable to select element with give name!");
+	runtime_assert("Unable to select element with give name!");
 }
 
 //auto configs_unique_renderer::auto_resolve_selected_item(bool enabled) -> void
@@ -522,8 +519,8 @@ void configs_unique_renderer::Select_new_item_(size_t index, bool set_selected)
 			item->select( );
 	}
 
-	item_selected__.ptr = item;
-	item_selected__.name = item->owner( );
+	item_selected__.ptr   = item;
+	item_selected__.name  = item->owner( );
 	item_selected__.index = index;
 }
 
@@ -535,20 +532,20 @@ void configs_unique_renderer::Select_new_item_(const value_type& item, bool set_
 			return Select_new_item_(i, set_selected);
 	}
 
-	BOOST_ASSERT("Unable to select given element!");
+	runtime_assert("Unable to select given element!");
 }
 
-void folder_with_configs_mgr::set_work_dir(const path& dir)
+void folder_with_configs_mgr::set_work_dir(const std::filesystem::path& dir)
 {
 	auto copy = dir;
-	set_work_dir(move(copy));
+	set_work_dir(std::move(copy));
 }
 
-void folder_with_configs_mgr::set_work_dir(path&& dir)
+void folder_with_configs_mgr::set_work_dir(std::filesystem::path&& dir)
 {
-	BOOST_ASSERT(dir.is_absolute( ));
+	runtime_assert(dir.is_absolute( ));
 
-	working_dir__ = move(dir);
+	working_dir__ = std::move(dir);
 }
 
 void folder_with_configs_mgr::rescan( )
@@ -598,15 +595,15 @@ void folder_with_configs_mgr::render( )
 	ImGui::PopID( );
 }
 
-vector<wstring> folder_with_configs_mgr::Process_folder_(const directory_entry& dir)
+std::vector<std::wstring> folder_with_configs_mgr::Process_folder_(const std::filesystem::directory_entry& dir)
 {
 	const auto folder_name = dir.path( ).filename( ).native( );
-	const auto folder = folders__.get(folder_name);
+	const auto folder      = folders__.get(folder_name);
 	if (!folder)
 		return { };
 
-	vector<wstring> files_detected;
-	for (auto& file: directory_iterator(dir))
+	std::vector<std::wstring> files_detected;
+	for (auto& file: std::filesystem::directory_iterator(dir))
 	{
 		if (!is_regular_file(file))
 			continue;
@@ -619,25 +616,25 @@ vector<wstring> folder_with_configs_mgr::Process_folder_(const directory_entry& 
 			continue;
 
 		const auto& file_name_native = file_name_raw.native( );
-		auto file_name = wstring(file_name_native.begin( ), file_name_native.end( ) - extension.size( ));
+		auto        file_name        = std::wstring(file_name_native.begin( ), file_name_native.end( ) - extension.size( ));
 
-		files_detected.push_back(move(file_name));
+		files_detected.push_back(std::move(file_name));
 	}
 
-	BOOST_ASSERT(!folder->updated());
+	runtime_assert(!folder->updated());
 	folder->end_update( );
 	folder->configs.sync(files_detected);
 	return files_detected;
 }
 
-void folder_with_configs_mgr::Process_path_(const path& path)
+void folder_with_configs_mgr::Process_path_(const std::filesystem::path& path)
 {
 	ranges::for_each(folders__.iterate( ), &folder_with_configs::start_update);
 
-	auto configs_found = utl::vector<wstring>( );
+	auto configs_found = std::vector<std::wstring>( );
 	if (exists(path) && !is_empty(path))
 	{
-		for (auto& dir: directory_iterator(path))
+		for (auto& dir: std::filesystem::directory_iterator(path))
 		{
 			auto configs = Process_folder_(dir);
 			if (configs.empty( ))
@@ -646,7 +643,7 @@ void folder_with_configs_mgr::Process_path_(const path& path)
 			for (auto& c: configs)
 			{
 				if (configs_found.end( ) == ranges::find(configs_found, (c)))
-					configs_found.push_back(move(c));
+					configs_found.push_back(std::move(c));
 			}
 		}
 	}
@@ -768,7 +765,7 @@ void folder_with_configs_mgr::Save_to_( )
 	{
 		if (!new_config_name__.empty( ))
 		{
-			const auto config_name = string_wrapper(string(new_config_name__.begin( ), new_config_name__.end( )));
+			const auto config_name = string_wrapper(std::string(new_config_name__.begin( ), new_config_name__.end( )));
 
 			//const auto resolve_selected_before = files_list__.selected_item_auto_resolved( );
 			//files_list__.auto_resolve_selected_item(false);
@@ -793,12 +790,12 @@ void folder_with_configs_mgr::Save_to_( )
 
 	if (config_name_cleaned)
 	{
-		static auto unused = string_wrapper("");
+		static auto unused          = string_wrapper("");
 		static char unused_buffer[] = {' ', '\0'};
 
 		ImGui::InputText(unused, unused_buffer, 1);
 	}
-	else if (ImGui::InputText(_CONCAT("##", _STRINGIZE(__LINE__)), addressof(new_config_name__)))
+	else if (ImGui::InputText(_CONCAT("##", _STRINGIZE(__LINE__)), std::addressof(new_config_name__)))
 	{
 		///todo: close popup by id
 		//ImGui::CloseCurrentPopup(Popup_id_( ));
@@ -820,7 +817,7 @@ void folder_with_configs_mgr::Remove_( )
 
 void folder_with_configs_mgr::add_folder(folder_with_configs&& folder)
 {
-	folders__.add_folder(move(folder));
+	folders__.add_folder(std::move(folder));
 }
 
 #endif
@@ -834,14 +831,14 @@ using namespace cheat::gui::widgets::detail;
 
 void settings_data_on_disc::update( )
 {
-	auto&& dir = data__->path( );
+	auto&& dir = data__->std::filesystem::path( );
 
-	vector<wstring> files_detected;
+	std::vector<std::wstring> files_detected;
 	for (auto& file: directory_iterator(dir))
 	{
 		if (!is_regular_file(file))
 			continue;
-		const auto file_name_raw = file.path( ).filename( );
+		const auto file_name_raw = file.std::filesystem::path( ).filename( );
 		if (!file_name_raw.has_extension( ))
 			continue;
 
@@ -850,12 +847,12 @@ void settings_data_on_disc::update( )
 			continue;
 
 		const auto& file_name_native = file_name_raw.native( );
-		auto file_name = wstring(file_name_native.begin( ), file_name_native.end( ) - extension.size( ));
+		auto file_name = std::wstring(file_name_native.begin( ), file_name_native.end( ) - extension.size( ));
 
-		files_detected.push_back(move(file_name));
+		files_detected.push_back(std::move(file_name));
 	}
 
-	files__ = move(files_detected);
+	files__ = std::move(files_detected);
 }
 
 #endif

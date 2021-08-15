@@ -21,7 +21,7 @@ namespace cheat::csgo
 
 		struct GlowObject_t
 		{
-			void Set(const utl::Color& glow_color, render_styles render_style = RENDER_STYLE_DEFAULT)
+			void Set(const Color& glow_color, render_styles render_style = RENDER_STYLE_DEFAULT)
 			// @note: styles not used cuz other styles doesnt have ignorez flag and needed to rebuild glow
 			{
 				this->color = {glow_color[0], glow_color[1], glow_color[2], glow_color[3]};
@@ -38,7 +38,7 @@ namespace cheat::csgo
 
 			int                  next_free_slot;                 // 0x00
 			C_BaseEntity*        entity;                         // 0x04
-			utl::array<float, 4> color;                          // 0x08
+			array<float, 4> color;                          // 0x08
 			bool                 alpha_capped_by_render_alpha;   // 0x18
 			std::byte            pad0[0x3];                      // 0x19 - pack 1 bool as 4 bytes
 			float                alpha_function_of_max_velocity; // 0x1C
@@ -56,13 +56,13 @@ namespace cheat::csgo
 
 		struct GlowBoxObject_t
 		{
-			utl::Vector position;
-			utl::QAngle orientation;
-			utl::Vector mins;
-			utl::Vector maxs;
+			Vector position;
+			QAngle orientation;
+			Vector mins;
+			Vector maxs;
 			float       birth_time_index;
 			float       termination_time_index;
-			utl::Color  color;
+			Color  color;
 		};
 
 		CUtlVector<GlowObject_t>    glow_object_definitions;

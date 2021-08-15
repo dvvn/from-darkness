@@ -1,4 +1,4 @@
-int32_t& m_iPhysicsMode( );
+Vector& m_collisionMaxs( );
+Vector& m_collisionMins( );
 float& m_fMass( );
-utl::Vector& m_collisionMins( );
-utl::Vector& m_collisionMaxs( );
+int32_t& m_iPhysicsMode( );

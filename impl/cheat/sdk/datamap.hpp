@@ -8,7 +8,7 @@ struct inputdata_t;
 	FIELD_VOID = 0,			// No type or value
 	FIELD_FLOAT,			// Any floating point value
 	FIELD_STRING,			// A string ID (return from ALLOC_STRING)
-	FIELD_VECTOR,			// Any vector, utl::QAngle, or AngularImpulse
+	FIELD_VECTOR,			// Any vector, QAngle, or AngularImpulse
 	FIELD_QUATERNION,		// A quaternion
 	FIELD_INTEGER,			// Any integer or enum
 	FIELD_BOOLEAN,			// boolean, implemented as an int, I may use this as a hint for compression
@@ -35,7 +35,7 @@ struct inputdata_t;
 
 							// NOTE: Use float arrays for local transformations that don't need to be fixed up.
 							FIELD_VMATRIX_WORLDSPACE,// A VMatrix that maps some local space to world space (translation is fixed up on level transitions)
-							FIELD_MATRIX3X4_WORLDSPACE,	// utl::matrix3x4_t that maps some local space to world space (translation is fixed up on level transitions)
+							FIELD_MATRIX3X4_WORLDSPACE,	// matrix3x4_t that maps some local space to world space (translation is fixed up on level transitions)
 
 							FIELD_INTERVAL,			// a start and range floating point interval ( e.g., 3.2->3.6 == 3.2 and 0.4 )
 							FIELD_MODELINDEX,		// a model index
@@ -85,7 +85,7 @@ struct datamap_t
 {
 	//typedescription_t    * dataDesc;
 	//int                    dataNumFields;
-	utl::span<typedescription_t>data;
+	std::span<typedescription_t>data;
 	const char*            dataClassName;
 	datamap_t            * baseMap;
 

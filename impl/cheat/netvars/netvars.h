@@ -5,6 +5,8 @@
 #include "cheat/sdk/datamap.hpp"
 #include "cheat/sdk/Recv.hpp"
 
+//#define CHEAT_NETVARS_UPDATING
+
 namespace cheat
 {
 	class netvars final: public service<netvars>
@@ -13,29 +15,39 @@ namespace cheat
 		~netvars( ) override;
 		netvars( );
 
-		int at(const utl::string_view& path) const;
+		int at(const std::string_view& table, const std::string_view& item) const;
 
 	protected:
 		bool Do_load( ) override;
 		void On_load( ) override;
 
 	private:
-		void Dump_netvars_( );
-		void Generate_classes_( );
 
-		class lazy_file_writer final: public std::ostringstream, utl::noncopyable
+		enum class dump_info
+		{
+			skipped,
+			created,
+			updated
+		};
+
+		_NODISCARD dump_info Dump_netvars_( );
+		void            Generate_classes_(dump_info info );
+
+		class lazy_file_writer final: public std::ostringstream
 		{
 		public:
 			~lazy_file_writer( ) override;
-			lazy_file_writer(utl::filesystem::path&& file);
+			lazy_file_writer(std::filesystem::path&& file);
 
 			lazy_file_writer(lazy_file_writer&& other) noexcept;
 
 		private:
-			utl::filesystem::path file__;
+			std::filesystem::path file__;
 		};
 
-		utl::vector<lazy_file_writer> lazy_writer__;
-		utl::property_tree::ptree data__;
+		using data_type = nlohmann::json;
+
+		std::vector<lazy_file_writer> lazy_writer__;
+		data_type                     data__;
 	};
 }

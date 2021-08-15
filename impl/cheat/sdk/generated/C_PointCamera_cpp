@@ -3,6 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
 float& C_PointCamera::m_FOV( )
@@ -10,29 +11,9 @@ float& C_PointCamera::m_FOV( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_FOV");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_FOV");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
-#endif
-}
-float& C_PointCamera::m_Resolution( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_Resolution");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-bool& C_PointCamera::m_bFogEnable( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_bFogEnable");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
 #endif
 }
 int32_t& C_PointCamera::m_FogColor( )
@@ -40,38 +21,18 @@ int32_t& C_PointCamera::m_FogColor( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_FogColor");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_FogColor");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-float& C_PointCamera::m_flFogStart( )
+float& C_PointCamera::m_Resolution( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_flFogStart");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_PointCamera::m_flFogEnd( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_flFogEnd");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_PointCamera::m_flFogMaxDensity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_flFogMaxDensity");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_Resolution");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -80,8 +41,18 @@ bool& C_PointCamera::m_bActive( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_bActive");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_bActive");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_PointCamera::m_bFogEnable( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_bFogEnable");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -90,8 +61,38 @@ bool& C_PointCamera::m_bUseScreenAspectRatio( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera.m_bUseScreenAspectRatio");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_bUseScreenAspectRatio");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
+}
+float& C_PointCamera::m_flFogEnd( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_flFogEnd");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_PointCamera::m_flFogMaxDensity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_flFogMaxDensity");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_PointCamera::m_flFogStart( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_flFogStart");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }

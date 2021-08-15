@@ -1,5 +1,5 @@
-utl::Vector& m_vecOrigin( );
-utl::Vector& m_vecDirection( );
+uint8_t& m_chMaterialType( );
 int32_t& m_nEntity( );
 int32_t& m_nIndex( );
-uint8_t& m_chMaterialType( );
+Vector& m_vecDirection( );
+Vector& m_vecOrigin( );

@@ -3,58 +3,6 @@
 
 #ifndef CHEAT_GUI_TEST
 
-//boost/thread/tss_dll.cpp fix
-#if defined(BOOST_THREAD_BUILD_DLL) && defined(BOOST_VERSION)
-
-#include <boost/thread/detail/tss_hooks.hpp>
-
-BOOST_STATIC_ASSERT(BOOST_VERSION == 107600);
-
-namespace boost
-{
-	// ReSharper disable once CppInconsistentNaming
-	void tss_cleanup_implemented( )
-	{
-	}
-}
-
-static BOOL _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD dwReason, LPVOID /*lpReserved*/)
-{
-	switch (dwReason)
-	{
-		case DLL_PROCESS_ATTACH:
-		{
-			boost::on_process_enter( );
-			boost::on_thread_enter( );
-			break;
-		}
-
-		case DLL_THREAD_ATTACH:
-		{
-			boost::on_thread_enter( );
-			break;
-		}
-
-		case DLL_THREAD_DETACH:
-		{
-			boost::on_thread_exit( );
-			break;
-		}
-
-		case DLL_PROCESS_DETACH:
-		{
-			boost::on_thread_exit( );
-			boost::on_process_exit( );
-			break;
-		}
-	}
-
-	return TRUE;
-}
-#else
-static BOOL  _Dll_main_boost(HINSTANCE /*hInstance*/, DWORD /*dwReason*/, LPVOID /*lpReserved*/) {}
-#endif
-
 // ReSharper disable once CppInconsistentNaming
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
@@ -63,13 +11,10 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 	switch (dwReason)
 	{
 		case DLL_PROCESS_ATTACH:
-			_Dll_main_boost(hModule, dwReason, lpReserved);
-			services_loader::get_ptr()->load(hModule);
+			services_loader::get_ptr( )->load(hModule);
 			break;
 		case DLL_PROCESS_DETACH:
-			services_loader::get_ptr()->reset( );
-		default:
-			_Dll_main_boost(hModule, dwReason, lpReserved);
+			services_loader::get_ptr( )->reset( );
 			break;
 	}
 

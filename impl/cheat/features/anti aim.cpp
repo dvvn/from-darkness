@@ -15,5 +15,5 @@ void anti_aim::render( )
 
 void anti_aim::update( )
 {
-	Load_or_create("test2", test__);
+	//Load_or_create("test2", test__);
 }

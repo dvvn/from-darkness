@@ -1,15 +1,15 @@
 #pragma once
 
-namespace cheat::utl
+namespace cheat::csgo
 {
-	class Color: array<uint8_t, 4>
+	class Color: std::array<uint8_t, 4>
 	{
 		template <typename T>
 		static uint8_t To_uint_(T num)
 		{
 			if constexpr (std::is_floating_point_v<T>)
 			{
-				BOOST_ASSERT(num >= 0 && num <= 1);
+				runtime_assert(num >= 0 && num <= 1);
 				return static_cast<uint8_t>(num * static_cast<T>(255));
 			}
 			else if constexpr (std::is_integral_v<T>)

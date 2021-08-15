@@ -3,16 +3,57 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_Fish::m_poolOrigin( )
+float& C_Fish::m_angle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_poolOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_angle");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int32_t& C_Fish::m_lifeState( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_lifeState");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_Fish::m_nModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_nModelIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+Vector& C_Fish::m_poolOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_poolOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+float& C_Fish::m_waterLevel( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_waterLevel");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 float& C_Fish::m_x( )
@@ -20,8 +61,8 @@ float& C_Fish::m_x( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_x");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_x");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -30,8 +71,8 @@ float& C_Fish::m_y( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_y");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_y");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -40,48 +81,8 @@ float& C_Fish::m_z( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_z");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_Fish::m_angle( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_angle");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-int32_t& C_Fish::m_nModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_nModelIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_Fish::m_lifeState( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_lifeState");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-float& C_Fish::m_waterLevel( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Fish.m_waterLevel");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_z");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }

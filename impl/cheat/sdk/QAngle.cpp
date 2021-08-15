@@ -1,6 +1,6 @@
 #include "QAngle.hpp"
 
-using namespace cheat::utl;
+using namespace cheat::csgo;
 
 QAngle::QAngle( )
 {

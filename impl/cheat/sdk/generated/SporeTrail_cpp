@@ -3,46 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-float& SporeTrail::m_flSpawnRate( )
+bool& SporeTrail::m_bEmit( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("SporeTrail.m_flSpawnRate");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-utl::Vector& SporeTrail::m_vecEndColor( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("SporeTrail.m_vecEndColor");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-float& SporeTrail::m_flParticleLifetime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("SporeTrail.m_flParticleLifetime");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& SporeTrail::m_flStartSize( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("SporeTrail.m_flStartSize");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("SporeTrail", "m_bEmit");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }
 float& SporeTrail::m_flEndSize( )
@@ -50,8 +21,18 @@ float& SporeTrail::m_flEndSize( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("SporeTrail.m_flEndSize");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("SporeTrail", "m_flEndSize");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& SporeTrail::m_flParticleLifetime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("SporeTrail", "m_flParticleLifetime");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -60,18 +41,38 @@ float& SporeTrail::m_flSpawnRadius( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("SporeTrail.m_flSpawnRadius");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("SporeTrail", "m_flSpawnRadius");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-bool& SporeTrail::m_bEmit( )
+float& SporeTrail::m_flSpawnRate( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("SporeTrail.m_bEmit");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("SporeTrail", "m_flSpawnRate");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& SporeTrail::m_flStartSize( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("SporeTrail", "m_flStartSize");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+Vector& SporeTrail::m_vecEndColor( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("SporeTrail", "m_vecEndColor");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

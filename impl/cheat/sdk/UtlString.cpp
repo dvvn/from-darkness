@@ -275,7 +275,7 @@ int CUtlString::Format(const char *pFormat, ...)
 {
     assert(!m_Storage.IsReadOnly());
 
-    char tmpBuf[4096];	//< Nice big 4k buffer, as much memory as my first computer had, a Radio Shack utl::Color Computer
+    char tmpBuf[4096];	//< Nice big 4k buffer, as much memory as my first computer had, a Radio Shack Color Computer
 
     va_list marker;
 

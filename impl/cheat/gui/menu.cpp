@@ -16,7 +16,7 @@ using namespace widgets;
 
 menu::menu( )
 {
-	constexpr auto iso_date = []( )-> string_view
+	constexpr auto iso_date = []( )-> std::string_view
 	{
 		// ReSharper disable once CppVariableCanBeMadeConstexpr
 		const uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
@@ -59,10 +59,10 @@ menu::menu( )
 			compile_day / 10 + '0', compile_day % 10 + '0',
 			'\0'
 		};
-		return string_view(ret, std::size(ret) - 1);
+		return std::string_view(ret, std::size(ret) - 1);
 	};
 
-	string name = CHEAT_NAME;
+	std::string name = CHEAT_NAME;
 	name += " | ";
 	name += iso_date( );
 #ifdef _DEBUG
@@ -77,7 +77,7 @@ menu::menu( )
 	name += " DEBUG MODE";
 #endif
 
-	menu_title__ = move(name);
+	menu_title__ = std::move(name);
 }
 
 void menu::render( )
@@ -110,7 +110,7 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 
 class unused_page final: public empty_page, public string_wrapper_base
 {
-	unused_page(string_wrapper&& other) : string_wrapper_base(move(other))
+	unused_page(string_wrapper&& other) : string_wrapper_base(std::move(other))
 	{
 	}
 
@@ -128,7 +128,7 @@ public:
 	static unused_page* get_ptr( )
 	{
 		static size_t counter = 0;
-		return new unused_page("unused page " + to_string(counter++));
+		return new unused_page("unused page " + std::to_string(counter++));
 	}
 };
 
@@ -161,7 +161,7 @@ bool menu::Do_load( )
 			const auto add_if_hookded = [&]<typename Tstr,typename Tptr>(Tstr&& name, Tptr&& ptr)
 			{
 				if (!ptr->unused( ))
-					debug_hooks.add_page({forward<Tstr>(name), forward<Tptr>(ptr)});
+					debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
 			};
 			using namespace hooks;
 			add_if_hookded("window proc", winapi::wndproc::get_ptr_shared( ));
@@ -169,8 +169,8 @@ bool menu::Do_load( )
 
 			return debug_hooks_abstract;
 		}( ));
-		//debug.add_page(unused_page::get_ptr( ));
-		//debug.add_page(unused_page::get_ptr( ));
+		debug.add_page(unused_page::get_ptr( ));
+		debug.add_page(unused_page::get_ptr( ));
 
 		return debug_abstract;
 	}( ));

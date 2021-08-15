@@ -3,6 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
 float& C_TEDust::m_flSize( )
@@ -10,8 +11,8 @@ float& C_TEDust::m_flSize( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDust.m_flSize");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEDust", "m_flSize");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -20,18 +21,18 @@ float& C_TEDust::m_flSpeed( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDust.m_flSpeed");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEDust", "m_flSpeed");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-utl::Vector& C_TEDust::m_vecDirection( )
+Vector& C_TEDust::m_vecDirection( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDust.m_vecDirection");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEDust", "m_vecDirection");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

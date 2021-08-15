@@ -3,85 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-int32_t& C_RopeKeyframe::m_nChangeCount( )
+int32_t& C_RopeKeyframe::m_RopeFlags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nChangeCount");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_iRopeMaterialModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iRopeMaterialModelIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-CBaseHandle& C_RopeKeyframe::m_hStartPoint( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_hStartPoint");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
-#endif
-}
-CBaseHandle& C_RopeKeyframe::m_hEndPoint( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_hEndPoint");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_iStartAttachment( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iStartAttachment");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_iEndAttachment( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iEndAttachment");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_fLockedPoints( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_fLockedPoints");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_Slack( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_Slack");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_RopeFlags");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -90,18 +21,28 @@ int32_t& C_RopeKeyframe::m_RopeLength( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_RopeLength");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_RopeLength");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_RopeKeyframe::m_RopeFlags( )
+int32_t& C_RopeKeyframe::m_Slack( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_RopeFlags");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Slack");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_Subdiv( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Subdiv");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -110,39 +51,9 @@ float& C_RopeKeyframe::m_TextureScale( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_TextureScale");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_TextureScale");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_nSegments( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nSegments");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-bool& C_RopeKeyframe::m_bConstrainBetweenEndpoints( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_bConstrainBetweenEndpoints");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_Subdiv( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_Subdiv");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
 #endif
 }
 float& C_RopeKeyframe::m_Width( )
@@ -150,9 +61,29 @@ float& C_RopeKeyframe::m_Width( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_Width");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Width");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
+#endif
+}
+bool& C_RopeKeyframe::m_bConstrainBetweenEndpoints( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_bConstrainBetweenEndpoints");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_fLockedPoints( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_fLockedPoints");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }
 float& C_RopeKeyframe::m_flScrollSpeed( )
@@ -160,28 +91,48 @@ float& C_RopeKeyframe::m_flScrollSpeed( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_flScrollSpeed");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_flScrollSpeed");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-utl::Vector& C_RopeKeyframe::m_vecOrigin( )
+CBaseHandle& C_RopeKeyframe::m_hEndPoint( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_hEndPoint");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
 #endif
 }
-int32_t& C_RopeKeyframe::moveparent( )
+CBaseHandle& C_RopeKeyframe::m_hStartPoint( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_hStartPoint");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_iDefaultRopeMaterialModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.moveparent");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iDefaultRopeMaterialModelIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_iEndAttachment( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iEndAttachment");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -190,28 +141,38 @@ int32_t& C_RopeKeyframe::m_iParentAttachment( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iParentAttachment");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iParentAttachment");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_RopeKeyframe::m_iDefaultRopeMaterialModelIndex( )
+int32_t& C_RopeKeyframe::m_iRopeMaterialModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_iDefaultRopeMaterialModelIndex");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iRopeMaterialModelIndex");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_RopeKeyframe::m_nMinCPULevel( )
+int32_t& C_RopeKeyframe::m_iStartAttachment( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMinCPULevel");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iStartAttachment");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_nChangeCount( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nChangeCount");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -220,18 +181,8 @@ int32_t& C_RopeKeyframe::m_nMaxCPULevel( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMaxCPULevel");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_RopeKeyframe::m_nMinGPULevel( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMinGPULevel");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMaxCPULevel");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -240,8 +191,58 @@ int32_t& C_RopeKeyframe::m_nMaxGPULevel( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe.m_nMaxGPULevel");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMaxGPULevel");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_nMinCPULevel( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMinCPULevel");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_nMinGPULevel( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMinGPULevel");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_RopeKeyframe::m_nSegments( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nSegments");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+Vector& C_RopeKeyframe::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+int32_t& C_RopeKeyframe::moveparent( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "moveparent");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

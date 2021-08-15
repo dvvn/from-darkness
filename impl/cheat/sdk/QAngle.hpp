@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cheat::utl
+namespace cheat::csgo
 {
 	class QAngle
 	{

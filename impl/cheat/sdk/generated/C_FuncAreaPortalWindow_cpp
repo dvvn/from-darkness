@@ -3,25 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-float& C_FuncAreaPortalWindow::m_flFadeStartDist( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow.m_flFadeStartDist");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_FuncAreaPortalWindow::m_flFadeDist( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow.m_flFadeDist");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_flFadeDist");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_FuncAreaPortalWindow::m_flFadeStartDist( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_flFadeStartDist");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -30,8 +31,8 @@ float& C_FuncAreaPortalWindow::m_flTranslucencyLimit( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow.m_flTranslucencyLimit");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_flTranslucencyLimit");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -40,8 +41,8 @@ int32_t& C_FuncAreaPortalWindow::m_iBackgroundModelIndex( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow.m_iBackgroundModelIndex");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_iBackgroundModelIndex");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

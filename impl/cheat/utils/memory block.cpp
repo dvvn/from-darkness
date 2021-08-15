@@ -65,7 +65,7 @@ class MEMORY_BASIC_INFORMATION_UPDATER: protected MEMORY_BASIC_INFORMATION
 	template <typename Fn, typename ...Args>
 	bool Virtual_query_(Fn&& native_function, Args&&...args)
 	{
-		return class_size == invoke((native_function), forward<Args>(args)..., static_cast<PMEMORY_BASIC_INFORMATION>(this), class_size);
+		return class_size == std::invoke((native_function), std::forward<Args>(args)..., static_cast<PMEMORY_BASIC_INFORMATION>(this), class_size);
 	}
 
 	//protected:
@@ -107,14 +107,14 @@ private:
 	mem_flags_t flags_checked__;
 
 public:
-	optional<bool> check_flags(SIZE_T block_size) const
+	std::optional<bool> check_flags(SIZE_T block_size) const
 	{
 		//memory isnt commit!
 		if (this->State != MEM_COMMIT)
 			return false;
 
 		//flags check isnt passed!
-		if (invoke(check_fn, this->get_flags( ), flags_checked__) == false)
+		if (std::invoke(check_fn, this->get_flags( ), flags_checked__) == false)
 			return false;
 
 		//found good result

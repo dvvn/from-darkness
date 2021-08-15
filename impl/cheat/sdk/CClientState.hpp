@@ -107,7 +107,7 @@ namespace cheat::csgo
 		int            nCommandAck;
 		int            nSoundSequence;
 		char           pad_4CCD[76];
-		utl::QAngle    viewangles;
+		QAngle    viewangles;
 		int            pads[54];
 		CEventInfo*    pEvents;
 	};

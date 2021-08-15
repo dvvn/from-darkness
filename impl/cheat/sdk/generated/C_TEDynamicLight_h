@@ -1,8 +1,8 @@
-utl::Vector& m_vecOrigin( );
-int32_t& r( );
-int32_t& g( );
 int32_t& b( );
 int32_t& exponent( );
+int32_t& g( );
+float& m_fDecay( );
 float& m_fRadius( );
 float& m_fTime( );
-float& m_fDecay( );
+Vector& m_vecOrigin( );
+int32_t& r( );

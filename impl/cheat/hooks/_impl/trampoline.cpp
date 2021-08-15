@@ -34,7 +34,7 @@ bool cheat::hooks::detail::_Is_address_executable(LPVOID addr, size_t mem_size)
 
 trampoline::trampoline( )
 {
-	trampoline__ = make_unique<char[]>(this->buffer_size( ));
+	trampoline__ = std::make_unique<char[]>(this->buffer_size( ));
 }
 
 trampoline::~trampoline( )
@@ -42,7 +42,7 @@ trampoline::~trampoline( )
 	if (trampoline__ != nullptr && old_protection__.has_value( ))
 	{
 		DWORD unused;
-		VirtualProtect(this->buffer( ), this->buffer_size( ), old_protection__.get( ), &unused);
+		VirtualProtect(this->buffer( ), this->buffer_size( ), *old_protection__, &unused);
 	}
 }
 
@@ -66,7 +66,7 @@ bool trampoline::fix_page_protection( )
 	if (!_Is_address_executable(buff, buff_size))
 	{
 		old_protection__.emplace( );
-		if (!VirtualProtect(buff, buff_size, PAGE_EXECUTE_READWRITE, old_protection__.get_ptr( )))
+		if (!VirtualProtect(buff, buff_size, PAGE_EXECUTE_READWRITE, old_protection__.operator->(  )))
 			return false;
 	}
 

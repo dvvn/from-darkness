@@ -4,8 +4,8 @@ using namespace cheat::utl;
 
 void address::Error_handler_( ) const
 {
-	BOOST_ASSERT_MSG(value__ != 0, "Address is null!");
-	BOOST_ASSERT_MSG(value__ != static_cast<uintptr_t>(-1), "Address is incorrect!");
+	runtime_assert(value__ != 0, "Address is null!");
+	runtime_assert(value__ != static_cast<uintptr_t>(-1), "Address is incorrect!");
 }
 
 uintptr_t address::value( ) const
@@ -20,7 +20,7 @@ address address::operator*( ) const
 
 address address::deref(size_t count) const
 {
-	BOOST_ASSERT_MSG(count != 0, "Count must be not zero!");
+	runtime_assert(count != 0, "Count must be not zero!");
 
 	auto result = *this;;
 	while (count-- > 0)
@@ -139,12 +139,12 @@ address address::rel8(size_t offset) const
 
 	// get relative offset.
 	const auto r = out.ref<uint8_t>( );
-	BOOST_ASSERT_MSG(r != 0, "can't get rel8 offset");
+	runtime_assert(r != 0, "can't get rel8 offset");
 	/*if (!r)
 		return t{ };*/
 
 	// relative to address of next instruction.
-	// short jumps can go forward and backward depending on the size of the second byte.
+	// short jumps can go std::forward and backward depending on the size of the second byte.
 	// if the second byte is below 128, the jmp goes forwards.
 	// if the second byte is above 128, the jmp goes backwards ( subtract two's complement of the relative offset from the address of the next instruction ).
 	if (r < 128)
@@ -159,7 +159,7 @@ address address::rel32(size_t offset) const
 
 	// get rel32 offset.
 	const auto r = out.ref<uint32_t>( );
-	BOOST_ASSERT_MSG(r != 0, "can't get rel32 offset");
+	runtime_assert(r != 0, "can't get rel32 offset");
 
 	// relative to address of next instruction.
 	return (out + 4) + r;

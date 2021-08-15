@@ -33,10 +33,10 @@ namespace cheat
 
 			CHEAT_ENUM_STRUCT_FILL_BITFLAG(team_filter_ex)
 		};
-		bool alive;
-		bool dormant;
-		bool immune;
-		utl::variant<team_filter, team_filter_ex> team;
+		bool                                      alive;
+		bool                                      dormant;
+		bool                                      immune;
+		std::variant<team_filter, team_filter_ex> team;
 
 		const uint64_t& data( ) const;
 
@@ -46,8 +46,8 @@ namespace cheat
 
 	namespace detail
 	{
-		using players_list_container = utl::vector<player_shared_impl>;
-		using players_list_container_interface = utl::vector<player_shared>;
+		using players_list_container = std::vector<player_shared_impl>;
+		using players_list_container_interface = std::vector<player_shared>;
 
 		class players_filter
 		{
@@ -56,13 +56,13 @@ namespace cheat
 			players_filter(players_list_container_interface&& cont, const players_filter_flags& f);
 
 			players_filter& set_flags(const players_filter_flags& f);
-			players_filter set_flags(const players_filter_flags& f) const;
+			players_filter  set_flags(const players_filter_flags& f) const;
 
 			const players_filter_flags& flags( ) const;
 
 		private:
 			players_list_container_interface items__;
-			players_filter_flags flags__;
+			players_filter_flags             flags__;
 		};
 	}
 }
@@ -95,7 +95,7 @@ namespace cheat
 		bool Do_load( ) override;
 
 	private:
-		detail::players_list_container storage__;
-		utl::unordered_set<detail::players_filter> filter_cache__;
+		detail::players_list_container              storage__;
+		nstd::unordered_set<detail::players_filter> filter_cache__;
 	};
 }

@@ -23,15 +23,15 @@ namespace cheat::csgo
 		bool fCameraInterceptingMouse;
 		bool fCameraInThirdPerson;
 		bool fCameraMovingWithMouse;
-		utl::Vector vecCameraOffset;
+		Vector vecCameraOffset;
 		bool fCameraDistanceMove;
 		int nCameraOldX;
 		int nCameraOldY;
 		int nCameraX;
 		int nCameraY;
 		bool CameraIsOrthographic;
-		utl::Vector angPreviousViewAngles;
-		utl::Vector angPreviousViewAnglesTilt;
+		Vector angPreviousViewAngles;
+		Vector angPreviousViewAnglesTilt;
 		float flLastForwardMove;
 		int nClearInputState;
 		char pad_0xE4[0x8];

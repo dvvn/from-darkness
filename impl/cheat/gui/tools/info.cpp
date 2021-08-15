@@ -18,7 +18,7 @@ const ImVec2& tools::_Get_char_size( )
 		}
 	};
 
-	static unordered_map<uint64_t, ImVec2> cache;
+	static nstd::unordered_map<uint64_t, ImVec2> cache;
 
 	const hash_data data = {ImGui::GetFont( ), ImGui::GetFontSize( )};
 
@@ -26,7 +26,7 @@ const ImVec2& tools::_Get_char_size( )
 	if (static auto def = ImVec2( );
 		val.x == def.x && val.y == def.y)
 	{
-		constexpr auto dummy_text = string_view("W");
+		constexpr auto dummy_text = std::string_view("W");
 		val = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
 	}
 

@@ -3,15 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
+bool& C_VoteController::m_bIsYesNoVote( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_bIsYesNoVote");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
 int32_t& C_VoteController::m_iActiveIssueIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController.m_iActiveIssueIndex");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_iActiveIssueIndex");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -20,19 +31,9 @@ int32_t& C_VoteController::m_iOnlyTeamToVote( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController.m_iOnlyTeamToVote");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_iOnlyTeamToVote");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
-#endif
-}
-utl::array<int32_t, 5>& C_VoteController::m_nVoteOptionCount( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 5>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController.m_nVoteOptionCount");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 5>>( );
 #endif
 }
 int32_t& C_VoteController::m_nPotentialVotes( )
@@ -40,18 +41,18 @@ int32_t& C_VoteController::m_nPotentialVotes( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController.m_nPotentialVotes");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_nPotentialVotes");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-bool& C_VoteController::m_bIsYesNoVote( )
+std::array<int32_t, 5>& C_VoteController::m_nVoteOptionCount( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(std::array<int32_t, 5>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController.m_bIsYesNoVote");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_nVoteOptionCount");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 5>>( );
 #endif
 }

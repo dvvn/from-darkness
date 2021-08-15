@@ -36,7 +36,7 @@ namespace cheat::utl::winapi
 		bool close( );
 
 		[[nodiscard]] HANDLE transfer_handle( );
-		HANDLE handle( ) const;
+		HANDLE               handle( ) const;
 
 		bool is_opened( ) const;
 		bool is_paused( ) const;
@@ -50,7 +50,7 @@ namespace cheat::utl::winapi
 	class threads_adder
 	{
 	public:
-		virtual ~threads_adder( ) = default;
+		virtual      ~threads_adder( ) = default;
 		virtual void operator()(thread_entry&& entry) =0;
 	};
 
@@ -68,7 +68,7 @@ namespace cheat::utl::winapi
 			void operator()(HANDLE h) const;
 		};
 
-		using frozen_thread_restorer = unique_ptr<HANDLE, unfreeze_thread>;
+		using frozen_thread_restorer = std::unique_ptr<HANDLE, unfreeze_thread>;
 		class frozen_thread: public frozen_thread_restorer
 		{
 		public:
@@ -76,12 +76,15 @@ namespace cheat::utl::winapi
 		};
 	}
 
-	using frozen_threads_storage_container = vector<detail::frozen_thread>;
-	class frozen_threads_storage: protected frozen_threads_storage_container, public threads_adder, noncopyable
+	using frozen_threads_storage_container = std::vector<detail::frozen_thread>;
+	class frozen_threads_storage: protected frozen_threads_storage_container, public threads_adder
 	{
 	public:
 		frozen_threads_storage(frozen_threads_storage&& other) noexcept;
 		frozen_threads_storage& operator =(frozen_threads_storage&& other) noexcept;
+
+		frozen_threads_storage(const frozen_threads_storage& other)             = delete;
+		frozen_threads_storage& operator =(const frozen_threads_storage& other) = delete;
 
 		frozen_threads_storage(bool fill);
 

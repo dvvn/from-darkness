@@ -3,16 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-bool& C_ColorCorrectionVolume::m_bEnabled( )
+float& C_ColorCorrectionVolume::m_FadeDuration( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume.m_bEnabled");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_FadeDuration");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 float& C_ColorCorrectionVolume::m_MaxWeight( )
@@ -20,18 +21,8 @@ float& C_ColorCorrectionVolume::m_MaxWeight( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume.m_MaxWeight");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_ColorCorrectionVolume::m_FadeDuration( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume.m_FadeDuration");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_MaxWeight");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -40,9 +31,19 @@ float& C_ColorCorrectionVolume::m_Weight( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume.m_Weight");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_Weight");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
+#endif
+}
+bool& C_ColorCorrectionVolume::m_bEnabled( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_bEnabled");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }
 char* C_ColorCorrectionVolume::m_lookupFilename( )
@@ -50,8 +51,8 @@ char* C_ColorCorrectionVolume::m_lookupFilename( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return (char*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume.m_lookupFilename");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_lookupFilename");
+	auto addr = address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }

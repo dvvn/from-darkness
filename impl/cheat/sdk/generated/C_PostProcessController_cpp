@@ -3,25 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::array<float, 11>& C_PostProcessController::m_flPostProcessParameters( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<float, 11>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController.m_flPostProcessParameters");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<float, 11>>( );
-#endif
-}
 bool& C_PostProcessController::m_bMaster( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController.m_bMaster");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_bMaster");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
+}
+std::array<float, 11>& C_PostProcessController::m_flPostProcessParameters( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 11>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_flPostProcessParameters");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<float, 11>>( );
 #endif
 }

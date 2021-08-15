@@ -681,7 +681,7 @@ inline CUtlBuffer &operator<<(CUtlBuffer &b, const char *pv)
     return b;
 }
 
-inline CUtlBuffer &operator<<(CUtlBuffer &b, const utl::Vector &v)
+inline CUtlBuffer &operator<<(CUtlBuffer &b, const Vector &v)
 {
     b << v.x << " " << v.y << " " << v.z;
     return b;

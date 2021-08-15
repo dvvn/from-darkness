@@ -1,2 +1,2 @@
 int32_t& m_nPoints( );
-utl::array<utl::Vector, 16>& m_vecPoints( );
+std::array<Vector, 16>& m_vecPoints( );

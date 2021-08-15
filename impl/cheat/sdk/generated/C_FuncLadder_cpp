@@ -3,45 +3,46 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_FuncLadder::m_vecPlayerMountPositionTop( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder.m_vecPlayerMountPositionTop");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::Vector& C_FuncLadder::m_vecPlayerMountPositionBottom( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder.m_vecPlayerMountPositionBottom");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::Vector& C_FuncLadder::m_vecLadderDir( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder.m_vecLadderDir");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
 bool& C_FuncLadder::m_bFakeLadder( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder.m_bFakeLadder");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_bFakeLadder");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
+}
+Vector& C_FuncLadder::m_vecLadderDir( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_vecLadderDir");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_FuncLadder::m_vecPlayerMountPositionBottom( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_vecPlayerMountPositionBottom");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_FuncLadder::m_vecPlayerMountPositionTop( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_vecPlayerMountPositionTop");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

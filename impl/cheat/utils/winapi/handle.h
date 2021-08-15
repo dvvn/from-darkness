@@ -16,7 +16,7 @@ namespace cheat::utl::winapi
         }
     };
 
-    using handle = unique_ptr<HANDLE, handle_deleter>;
+    using handle = std::unique_ptr<HANDLE, handle_deleter>;
 
     /*class handle: public unique_ptr_ex<HANDLE>
     {

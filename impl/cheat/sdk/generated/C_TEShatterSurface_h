@@ -1,10 +1,10 @@
-utl::Vector& m_vecOrigin( );
-utl::QAngle& m_vecAngles( );
-utl::Vector& m_vecForce( );
-utl::Vector& m_vecForcePos( );
-float& m_flWidth( );
 float& m_flHeight( );
 float& m_flShardSize( );
+float& m_flWidth( );
 int32_t& m_nSurfaceType( );
-utl::Color& m_uchFrontColor( );
-utl::Color& m_uchBackColor( );
+Color& m_uchBackColor( );
+Color& m_uchFrontColor( );
+QAngle& m_vecAngles( );
+Vector& m_vecForce( );
+Vector& m_vecForcePos( );
+Vector& m_vecOrigin( );

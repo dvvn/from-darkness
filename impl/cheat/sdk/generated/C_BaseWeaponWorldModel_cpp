@@ -3,45 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-int32_t& C_BaseWeaponWorldModel::m_nModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel.m_nModelIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_BaseWeaponWorldModel::m_nBody( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel.m_nBody");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
 int32_t& C_BaseWeaponWorldModel::m_fEffects( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel.m_fEffects");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_BaseWeaponWorldModel::moveparent( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel.moveparent");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_fEffects");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -50,8 +21,38 @@ CBaseHandle& C_BaseWeaponWorldModel::m_hCombatWeaponParent( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel.m_hCombatWeaponParent");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_hCombatWeaponParent");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
+#endif
+}
+int32_t& C_BaseWeaponWorldModel::m_nBody( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_nBody");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseWeaponWorldModel::m_nModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_nModelIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseWeaponWorldModel::moveparent( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "moveparent");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }

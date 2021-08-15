@@ -1,6 +1,6 @@
-int32_t& m_nSceneStringIndex( );
 bool& m_bIsPlayingBack( );
-bool& m_bPaused( );
 bool& m_bMultiplayer( );
+bool& m_bPaused( );
 float& m_flForceClientTime( );
-utl::array<int32_t, 16>& m_hActorList( );
+std::array<int32_t, 16>& m_hActorList( );
+int32_t& m_nSceneStringIndex( );

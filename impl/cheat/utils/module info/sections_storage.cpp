@@ -3,7 +3,6 @@
 using namespace cheat;
 using namespace utl;
 using namespace utl::detail;
-using namespace property_tree;
 
 bool sections_storage::load_from_memory(cache_type& cache)
 {
@@ -21,27 +20,27 @@ bool sections_storage::load_from_memory(cache_type& cache)
 	for (auto header = section_header; header != last_section_header; ++header)
 	{
 		auto& raw_name  = header->Name;
-		auto  info_name = string(raw_name, ranges::find(raw_name, '\0'));
+		auto  info_name = std::string(raw_name, ranges::find(raw_name, '\0'));
 
 		section_info info;
 		info.block = {base_address + header->VirtualAddress, header->SizeOfRawData};
 		info.data  = header;
 
-		tmp.emplace(move(info_name), move(info));
+		tmp.emplace(std::move(info_name), std::move(info));
 	}
 
-	cache = move(tmp);
-	return 1;
+	cache = std::move(tmp);
+	return true;
 }
 
-bool sections_storage::load_from_file(cache_type& cache, const ptree_type& storage)
+bool sections_storage::load_from_file(cache_type& cache, ptree_type&& storage)
 {
-	return 0;
+	return false;
 }
 
 bool sections_storage::read_to_storage(const cache_type& cache, ptree_type& storage) const
 {
-	return 0;
+	return false;
 }
 
 #if 0

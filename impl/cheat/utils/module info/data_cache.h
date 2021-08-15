@@ -8,14 +8,22 @@ namespace cheat::utl
 
 	namespace detail
 	{
-		class module_data_mgr_base
+		struct module_data_mgr_root_getter
+		{
+		protected:
+			~module_data_mgr_root_getter( ) = default;
+			virtual module_info*       root_class( ) =0;
+			virtual const module_info* root_class( ) const =0;
+		};
+
+		class module_data_mgr_base: public virtual module_data_mgr_root_getter
 		{
 		protected:
 			virtual ~module_data_mgr_base( ) = default;
 
 		public:
-			using path_type = filesystem::path;
-			using ptree_type = property_tree::basic_ptree<string, string>;
+			using path_type = std::filesystem::path;
+			using ptree_type = nlohmann::json;
 
 			virtual bool load(const path_type& file) =0;
 			virtual bool save_to_file(const path_type& file) const =0;
@@ -26,9 +34,6 @@ namespace cheat::utl
 			address           base_addr( ) const;
 			IMAGE_NT_HEADERS* nt_header( ) const;
 
-			virtual module_info* root_class() const=0;
-
-			
 			bool write_from_storage(const path_type& file, const ptree_type& storage) const;
 			bool read_to_storage(const path_type& file, ptree_type& storage) const;
 		};
@@ -37,7 +42,7 @@ namespace cheat::utl
 		class module_data_mgr: public module_data_mgr_base
 		{
 		public:
-			using cache_type = unordered_map<string, T>;
+			using cache_type = nstd::unordered_map<std::string, T>;
 
 			cache_type& get_cache( )
 			{
@@ -53,7 +58,7 @@ namespace cheat::utl
 					if (module_data_mgr_base::read_to_storage(file, storage))
 					{
 						cache_.reserve(storage.size( ));
-						if (this->load_from_file(cache_, storage))
+						if (this->load_from_file(cache_, std::move(storage)))
 							return true;
 					}
 
@@ -82,7 +87,7 @@ namespace cheat::utl
 			}
 
 			virtual bool load_from_memory(cache_type& cache) =0;
-			virtual bool load_from_file(cache_type& cache, const ptree_type& storage) =0;
+			virtual bool load_from_file(cache_type& cache, ptree_type&& storage) =0;
 		protected:
 			virtual bool read_to_storage(const cache_type& cache, ptree_type& storage) const =0;
 

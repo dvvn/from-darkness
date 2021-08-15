@@ -85,7 +85,7 @@ namespace cheat::csgo
 
 	struct VPlane
 	{
-		utl::Vector m_Normal;
+		Vector m_Normal;
 		vec_t  m_Dist;
 	};
 constexpr auto FRUSTUM_NUMPLANES   = 6;
@@ -95,10 +95,10 @@ constexpr auto FRUSTUM_NUMPLANES   = 6;
 	//-----------------------------------------------------------------------------
 	struct BrushVertex_t
 	{
-		utl::Vector   m_Pos;
-		utl::Vector   m_Normal;
-		utl::Vector   m_TangentS;
-		utl::Vector   m_TangentT;
+		Vector   m_Pos;
+		Vector   m_Normal;
+		Vector   m_TangentS;
+		Vector   m_TangentT;
 		Vector2D m_TexCoord;
 		Vector2D m_LightmapCoord;
 
@@ -111,7 +111,7 @@ constexpr auto FRUSTUM_NUMPLANES   = 6;
 	//-----------------------------------------------------------------------------
 	struct VisOverrideData_t
 	{
-		utl::Vector m_vecVisOrigin;               // The point to to use as the viewpoint for area portal backface cull checks.
+		Vector m_vecVisOrigin;               // The point to to use as the viewpoint for area portal backface cull checks.
 		float  m_fDistToAreaPortalTolerance; // The distance from an area portal before using the full screen as the viewable portion.
 	};
 
@@ -123,8 +123,8 @@ constexpr auto FRUSTUM_NUMPLANES   = 6;
 	{
 	public:
 		// Computes texture coordinates + lightmap coordinates given a world position
-		virtual void ComputeTextureCoordinate(const utl::Vector& worldPos, Vector2D& texCoord) = 0;
-		virtual void ComputeLightmapCoordinate(const utl::Vector& worldPos, Vector2D& lightmapCoord) = 0;
+		virtual void ComputeTextureCoordinate(const Vector& worldPos, Vector2D& texCoord) = 0;
+		virtual void ComputeLightmapCoordinate(const Vector& worldPos, Vector2D& lightmapCoord) = 0;
 
 		// Gets the vertex data for this surface
 		virtual int  GetVertexCount( ) const = 0;
@@ -156,7 +156,7 @@ constexpr auto FRUSTUM_NUMPLANES   = 6;
 			VIEW_SETUP_VIS_EX_RETURN_FLAGS_USES_RADIAL_VIS = 0x00000001
 		};
 	public:
-		virtual void  DrawBrushModel(IClientEntity* baseentity, model_t* model, const utl::Vector& origin, const utl::QAngle& angles, bool sort) = 0;
+		virtual void  DrawBrushModel(IClientEntity* baseentity, model_t* model, const Vector& origin, const QAngle& angles, bool sort) = 0;
 		virtual void  DrawIdentityBrushModel(IWorldRenderList* pList, model_t* model) = 0;
 		virtual void  TouchLight(struct dlight_t* light) = 0;
 		virtual void  Draw3DDebugOverlays() = 0;
@@ -173,7 +173,7 @@ constexpr auto FRUSTUM_NUMPLANES   = 6;
 		virtual void              GetColorModulation(float* blend) = 0;
 		virtual void              SceneBegin() = 0;
 		virtual void              SceneEnd() = 0;
-		virtual void              GetVisibleFogVolume(const utl::Vector& eyePoint, VisibleFogVolumeInfo_t* pInfo) = 0;
+		virtual void              GetVisibleFogVolume(const Vector& eyePoint, VisibleFogVolumeInfo_t* pInfo) = 0;
 		virtual IWorldRenderList* CreateWorldList( ) = 0;
 		virtual void              BuildWorldLists(IWorldRenderList* pList, WorldListInfo_t* pInfo, int iForceFViewLeaf, const VisOverrideData_t* pVisData = 0, bool bShadowDepth = false,
 				float*                                              pReflectionWaterHeight = 0) = 0;
@@ -186,12 +186,12 @@ constexpr auto FRUSTUM_NUMPLANES   = 6;
 		virtual void            DrawTranslucentSurfaces(IWorldRenderList* pList, int* pSortList, int sortCount, unsigned long flags) = 0;
 		virtual void            DrawLineFile() = 0;
 		virtual void            DrawLightmaps(IWorldRenderList* pList, int pageId) = 0;
-		virtual void            ViewSetupVis(bool novis, int numorigins, const utl::Vector origin[]) = 0;
+		virtual void            ViewSetupVis(bool novis, int numorigins, const Vector origin[]) = 0;
 		virtual bool            AreAnyLeavesVisible(int* leafList, int nLeaves) = 0;
 		virtual void            VguiPaint() = 0;
 		virtual void            ViewDrawFade(uint8_t* color, IMaterial* pMaterial) = 0;
 		virtual void            OLD_SetProjectionMatrix(float fov, float zNear, float zFar) = 0;
-		virtual unsigned long   GetLightAtPoint(utl::Vector& pos) = 0;
+		virtual unsigned long   GetLightAtPoint(Vector& pos) = 0;
 		virtual int             GetViewEntity() = 0;
 		virtual bool            IsViewEntity(int entindex) = 0;
 		virtual float           GetFieldOfView() = 0;
@@ -200,16 +200,16 @@ constexpr auto FRUSTUM_NUMPLANES   = 6;
 		virtual void            InstallBrushSurfaceRenderer(IBrushRenderer* pBrushRenderer) = 0;
 		virtual void            DrawBrushModelShadow(IClientRenderable* pRenderable) = 0;
 		virtual bool            LeafContainsTranslucentSurfaces(IWorldRenderList* pList, int sortIndex, unsigned long flags) = 0;
-		virtual bool            DoesBoxIntersectWaterVolume(const utl::Vector& mins, const utl::Vector& maxs, int leafWaterDataID) = 0;
+		virtual bool            DoesBoxIntersectWaterVolume(const Vector& mins, const Vector& maxs, int leafWaterDataID) = 0;
 		virtual void            SetAreaState(unsigned char chAreaBits[MAX_AREA_STATE_BYTES], unsigned char chAreaPortalBits[MAX_AREA_PORTAL_STATE_BYTES]) = 0;
 		virtual void            VGui_Paint(int mode) = 0;
 		virtual void            Push3DView(const CViewSetup& view, int nFlags, ITexture* pRenderTarget, Frustum frustumPlanes) = 0;
 		virtual void            Push2DView(const CViewSetup& view, int nFlags, ITexture* pRenderTarget, Frustum frustumPlanes) = 0;
 		virtual void            PopView(Frustum frustumPlanes) = 0;
-		virtual void            SetMainView(const utl::Vector& vecOrigin, const utl::QAngle& angles) = 0;
-		virtual void            ViewSetupVisEx(bool novis, int numorigins, const utl::Vector origin[], unsigned int& returnFlags) = 0;
+		virtual void            SetMainView(const Vector& vecOrigin, const QAngle& angles) = 0;
+		virtual void            ViewSetupVisEx(bool novis, int numorigins, const Vector origin[], unsigned int& returnFlags) = 0;
 		virtual void            OverrideViewFrustum(Frustum custom) = 0;
-		virtual void            DrawBrushModelShadowDepth(IClientEntity* baseentity, model_t* model, const utl::Vector& origin, const utl::QAngle& angles, bool bSort) = 0;
+		virtual void            DrawBrushModelShadowDepth(IClientEntity* baseentity, model_t* model, const Vector& origin, const QAngle& angles, bool bSort) = 0;
 		virtual void            UpdateBrushModelLightmap(model_t* model, IClientRenderable* pRenderable) = 0;
 		virtual void            BeginUpdateLightmaps() = 0;
 		virtual void            EndUpdateLightmaps() = 0;

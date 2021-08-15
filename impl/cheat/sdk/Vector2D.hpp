@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cheat::utl
+namespace cheat::csgo
 {
 	typedef float vec_t;
 	// 2D Vector

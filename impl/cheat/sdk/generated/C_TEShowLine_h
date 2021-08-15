@@ -1,1 +1,1 @@
-utl::Vector& m_vecEnd( );
+Vector& m_vecEnd( );

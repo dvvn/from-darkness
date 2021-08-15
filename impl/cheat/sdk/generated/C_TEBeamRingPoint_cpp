@@ -3,16 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEBeamRingPoint::m_vecCenter( )
+float& C_TEBeamRingPoint::m_flEndRadius( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint.m_vecCenter");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint", "m_flEndRadius");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 float& C_TEBeamRingPoint::m_flStartRadius( )
@@ -20,18 +21,18 @@ float& C_TEBeamRingPoint::m_flStartRadius( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint.m_flStartRadius");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint", "m_flStartRadius");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-float& C_TEBeamRingPoint::m_flEndRadius( )
+Vector& C_TEBeamRingPoint::m_vecCenter( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint.m_flEndRadius");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEBeamRingPoint", "m_vecCenter");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

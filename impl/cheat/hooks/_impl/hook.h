@@ -144,7 +144,7 @@ namespace cheat::hooks
 	class context final: public context_base
 	{
 	public:
-		using storage_type = utl::vector<hook_entry>;
+		using storage_type = std::vector<hook_entry>;
 		using element_type = storage_type::value_type;
 
 		hook_result create_hook(LPVOID target, LPVOID detour) override;
@@ -170,12 +170,12 @@ namespace cheat::hooks
 	};
 
 	/// @brief Translates the STATUS to its name as a string.
-	static utl::string_view status_to_string(STATUS status);
+	static std::string_view status_to_string(STATUS status);
 
 	class context_safe final: public context_base
 	{
 	public:
-		using lock_type = utl::mutex;
+		using lock_type = std::mutex;
 
 		hook_result create_hook(LPVOID target, LPVOID detour) override;
 		STATUS      remove_hook(LPVOID target, bool force) override;

@@ -66,10 +66,10 @@ namespace cheat::utl
 		address& operator-=(const address& offset);
 		address& operator*=(const address& offset);
 		address& operator/=(const address& offset);
-		address operator+(const address& offset) const;
-		address operator-(const address& offset) const;
-		address operator*(const address& offset) const;
-		address operator/(const address& offset) const;
+		address  operator+(const address& offset) const;
+		address  operator-(const address& offset) const;
+		address  operator*(const address& offset) const;
+		address  operator/(const address& offset) const;
 
 		address add(const address& offset) const;
 		address remove(const address& offset) const;
@@ -105,17 +105,17 @@ namespace cheat::utl
 
 			if constexpr (std::is_void_v<fn_ret>)
 			{
-				utl::invoke(fn, obj);
+				std::invoke(fn, obj);
 				if constexpr (args_count > 0)
-					return do_invoke(forward<Q>(obj), forward<A>(args)...);
+					return do_invoke(std::forward<Q>(obj), std::forward<A>(args)...);
 				else
 					return obj;
 			}
 			else
 			{
-				auto new_obj = utl::invoke(fn, obj);
+				auto new_obj = std::invoke(fn, obj);
 				if constexpr (args_count > 0)
-					return do_invoke(move(new_obj), forward<A>(args)...);
+					return do_invoke(std::move(new_obj), std::forward<A>(args)...);
 				else
 					return new_obj;
 			}
@@ -124,18 +124,18 @@ namespace cheat::utl
 		template <typename T, typename ...Ts>
 		struct address_pipe_impl: address_pipe_tag
 		{
-			address_pipe_impl(T&& addr, tuple<Ts...>&& tpl) : addr(move(addr)),
-															  line(move(tpl))
+			address_pipe_impl(T&& addr, std::tuple<Ts...>&& tpl) : addr(std::move(addr)),
+																   line(std::move(tpl))
 			{
 			}
 
-			address_pipe_impl(const T& addr, tuple<Ts...>&& tpl) : addr((addr)),
-																   line(move(tpl))
+			address_pipe_impl(const T& addr, std::tuple<Ts...>&& tpl) : addr((addr)),
+																		line(std::move(tpl))
 			{
 			}
 
-			T addr;
-			tuple<Ts...> line;
+			T                 addr;
+			std::tuple<Ts...> line;
 
 #ifdef _DEBUG
 			mutable bool done = false;
@@ -145,19 +145,19 @@ namespace cheat::utl
 				if constexpr (!std::invocable<T>)
 					return addr;
 				else
-					return utl::invoke(addr);
+					return std::invoke(addr);
 			}
 
 			template <size_t ...I>
 			auto unpack(std::index_sequence<I...>) const
 			{
-				return do_invoke(get_addr( ), utl::get<I>(line)...);
+				return do_invoke(get_addr( ), std::get<I>(line)...);
 			}
 
 			auto operator()( ) const
 			{
 #ifdef _DEBUG
-				BOOST_ASSERT(done==false);
+				runtime_assert(done==false);
 				done = true;
 #endif
 				return unpack(std::index_sequence_for<Ts...>( ));
@@ -220,14 +220,14 @@ namespace cheat::utl
 		};
 
 		template <typename T>
-		inline constexpr auto ref = overload([](const address& addr) -> const T&
-											 {
-												 return addr.ref<T>( );
-											 },
-											 [](address& addr) -> T&
-											 {
-												 return addr.ref<T>( );
-											 });
+		inline constexpr auto ref = nstd::overload([](const address& addr) -> const T&
+												   {
+													   return addr.ref<T>( );
+												   },
+												   [](address& addr) -> T&
+												   {
+													   return addr.ref<T>( );
+												   });
 
 		template <typename T>
 		inline constexpr auto ptr = [](const address& addr) -> T*
@@ -238,15 +238,16 @@ namespace cheat::utl
 		template <typename T>
 		auto operator|(const address& addr, const T& obj)
 		{
-			return address_pipe_impl
-					<address, T>
-					(addr, make_tuple(obj));
+			return address_pipe_impl<address, T>
+					(
+					 addr, std::make_tuple(obj)
+					);
 		}
 
 		template <typename Tpl, typename T, size_t ...Idx>
 		auto tuple_cat_custom(Tpl&& tpl, T&& val, std::index_sequence<Idx...>)
 		{
-			return make_tuple(move(get<Idx>(tpl))..., forward<T>(val));
+			return std::make_tuple(std::move(std::get<Idx>(tpl))..., std::forward<T>(val));
 		}
 
 		template <typename T, typename ...Ts>
@@ -254,7 +255,7 @@ namespace cheat::utl
 		{
 			return address_pipe_impl<Ts..., T>
 					(
-					 move(pipe.addr), tuple_cat_custom(pipe.line, forward<T>(obj), std::make_index_sequence<sizeof...(Ts) - 1>( ))
+					 std::move(pipe.addr), tuple_cat_custom(pipe.line, std::forward<T>(obj), std::make_index_sequence<sizeof...(Ts) - 1>( ))
 					);
 		}
 
@@ -264,7 +265,7 @@ namespace cheat::utl
 		{
 			return address_pipe_impl<std::remove_cvref_t<Fn>, T>
 					(
-					 forward<Fn>(addr), make_tuple(forward<T>(obj))
+					 std::forward<Fn>(addr), std::make_tuple(std::forward<T>(obj))
 					);
 		}
 	}

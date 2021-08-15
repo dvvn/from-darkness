@@ -19,7 +19,7 @@ namespace cheat::utl
 		}
 
 		template <typename T>
-		//allow stuff like vector<int> but not vector<class> or map<>
+		//allow stuff like std::vector<int> but not std::vector<class> or map<>
 		concept memory_sequence = memory_sequence_impl<T>();
 		template <typename T>
 		concept memory_divided = !memory_sequence_impl<T>();
@@ -98,7 +98,7 @@ namespace cheat::utl
 		auto find_raw_memory_block_start(const Seq& block)
 		{
 			if constexpr (!ranges::/*random_access_*/range<Seq>)
-				return boost::addressof(block);
+				return boost::std::addressof(block);
 			else
 			{
 				using block_ptr_t = const ranges::range_value_t<Seq>*;
@@ -118,7 +118,7 @@ namespace cheat::utl
 		};
 	}
 
-	using memory_block_container = span<uint8_t>;
+	using memory_block_container = std::span<uint8_t>;
 	class memory_block final: memory_block_container
 	{
 	public:
@@ -156,9 +156,9 @@ namespace cheat::utl
 					array_elements_count = 1;
 
 				block_size_bytes = element_size_bytes * array_elements_count;
-				BOOST_ASSERT_MSG(real_end - start >= block_size_bytes, "Wrong block size");
+				runtime_assert(real_end - start >= block_size_bytes, "Wrong block size");
 				end = real_end - block_size_bytes;
-				BOOST_ASSERT_MSG(start <= end, "Incorrect limit or step!");
+				runtime_assert(start <= end, "Incorrect limit or step!");
 
 #ifdef _DEBUG
 				element_size_bytes_dbg = element_size_bytes;
@@ -261,7 +261,7 @@ namespace cheat::utl
 		}
 
 		template <bool CheckReadable, detail::memory_sequence Seq>
-		auto Check_block_wrapped_(const span<std::optional<Seq>>& block, size_t step = 1) const -> memory_block
+		auto Check_block_wrapped_(const std::span<std::optional<Seq>>& block, size_t step = 1) const -> memory_block
 		{
 			const auto comparer = Compare_helper(*this, block);
 			static_assert(comparer.element_size_bytes == sizeof(Seq), "Comparer fucked up");
@@ -312,7 +312,7 @@ namespace cheat::utl
 		}
 
 		template <typename T>
-		memory_block Check_block_raw_impl_(const span<T>& rng_checked) const
+		memory_block Check_block_raw_impl_(const std::span<T>& rng_checked) const
 		{
 			const auto this_size_bytes = this->size_bytes( );
 			const auto rng_size_bytes = rng_checked.size_bytes( );
@@ -321,8 +321,8 @@ namespace cheat::utl
 			const auto real_end = start + this_size_bytes;
 			const auto end = real_end - rng_size_bytes /*- sizeof(T)*/;
 
-			BOOST_ASSERT_MSG(real_end - start >= rng_size_bytes, "Wrong block size");
-			BOOST_ASSERT_MSG(start <= end, "Incorrect limit or step!");
+			runtime_assert(real_end - start >= rng_size_bytes, "Wrong block size");
+			runtime_assert(start <= end, "Incorrect limit or step!");
 
 			for (auto addr = start; addr <= end; ++addr)
 			{
@@ -349,17 +349,17 @@ namespace cheat::utl
 				(void)0;
 			}
 
-			BOOST_ASSERT("Raw memory block not found!");
+			//runtime_assert("Raw memory block not found!");
 			return empty_block;
 		}
 
 		template <typename To, typename T>
-		static span<To> Rewrap_range_(T* rng_unchecked_begin, size_t rng_size_bytes)
+		static std::span<To> Rewrap_range_(T* rng_unchecked_begin, size_t rng_size_bytes)
 		{
-			BOOST_ASSERT_MSG(rng_size_bytes % sizeof(To) == 0, "Unable to rewrap range! Wrong data type");
+			runtime_assert(rng_size_bytes % sizeof(To) == 0, "Unable to rewrap range! Wrong data type");
 			auto begin = reinterpret_cast<To*>(rng_unchecked_begin);
 			auto end = begin + rng_size_bytes / sizeof(To);
-			return span<To>(begin, end);
+			return std::span<To>(begin, end);
 		}
 
 		template <bool InUse>
@@ -372,7 +372,7 @@ namespace cheat::utl
 				if (this->readable( ))
 					return true;
 
-				BOOST_ASSERT("This memory block isn't readable!");
+				runtime_assert("This memory block isn't readable!");
 				return false;
 			}
 		}
@@ -381,7 +381,7 @@ namespace cheat::utl
 		memory_block Check_block_raw_(const Rng& rng_checked) const
 		{
 			using rng_val = ranges::range_value_t<Rng>;
-			BOOST_STATIC_ASSERT_MSG(std::is_integral_v<rng_val>, "only integral values supported");
+			static_assert(std::is_integral_v<rng_val>, "only integral values supported");
 
 			if (!Not_readable_assert_<CheckReadable>( ))
 				return empty_block;
@@ -400,14 +400,14 @@ namespace cheat::utl
 			if (Converting_possible_<rng_val_bytes, uint8_t>(rng_size_bytes))
 				return Check_block_raw_impl_(Rewrap_range_<uint8_t>(rng_begin, rng_size_bytes));
 
-			BOOST_ASSERT("Unable to check raw memory block!");
+			runtime_assert("Unable to check raw memory block!");
 			return empty_block;
 		}
 
 		template <typename Rng>
 		void Assert_bad_wrapped_mode_(const Rng& rng) const
 		{
-#ifndef BOOST_ASSERT_IS_VOID
+#ifndef runtime_assert_IS_VOID
 			size_t known = 0;
 			size_t unknown = 0;
 			for (auto& opt: rng)
@@ -418,8 +418,8 @@ namespace cheat::utl
 					++unknown;
 			}
 
-			BOOST_ASSERT_MSG(known!=rng.size(), "Check_block_wrapped_: all bytes are known!");
-			BOOST_ASSERT_MSG(unknown!=rng.size(), "Check_block_wrapped_: all bytes are unknown!");
+			runtime_assert(known!=rng.size(), "Check_block_wrapped_: all bytes are known!");
+			runtime_assert(unknown!=rng.size(), "Check_block_wrapped_: all bytes are unknown!");
 #endif
 		}
 
@@ -427,10 +427,10 @@ namespace cheat::utl
 		memory_block Check_block_wrapped_(const Rng& rng_checked) const
 		{
 			using rng_val = ranges::range_value_t<Rng>;
-			BOOST_STATIC_ASSERT_MSG(std::is_class_v<rng_val>, "only classes supported!");
-			BOOST_STATIC_ASSERT_MSG(detail::have_has_value<rng_val>, "only optional-like classes supported!");
+			static_assert(std::is_class_v<rng_val>, "only classes supported!");
+			static_assert(detail::have_has_value<rng_val>, "only std::optional-like classes supported!");
 			using opt_val = typename rng_val::value_type;
-			BOOST_STATIC_ASSERT_MSG(std::is_integral_v<opt_val>, "unsupported value_type!");
+			static_assert(std::is_integral_v<opt_val>, "unsupported value_type!");
 
 			Assert_bad_wrapped_mode_(rng_checked);
 			if (!Not_readable_assert_<CheckReadable>( ))
@@ -444,8 +444,8 @@ namespace cheat::utl
 			const auto real_end = start + this_size_bytes;
 			const auto end = real_end - rng_size_bytes /*- sizeof(opt_val)*/;
 
-			BOOST_ASSERT_MSG(real_end - start >= rng_size_bytes, "Wrong block size (2)");
-			BOOST_ASSERT_MSG(start <= end, "Incorrect limit or step (2)!");
+			runtime_assert(real_end - start >= rng_size_bytes, "Wrong block size (2)");
+			runtime_assert(start <= end, "Incorrect limit or step (2)!");
 
 			for (auto addr = start; addr <= end; ++addr)
 			{
@@ -476,7 +476,7 @@ namespace cheat::utl
 				(void)0;
 			}
 
-			BOOST_ASSERT("Wrapped memory block not found!");
+			runtime_assert("Wrapped memory block not found!");
 			return empty_block;
 		}
 
@@ -486,13 +486,13 @@ namespace cheat::utl
 		{
 			if constexpr (!ranges::range<T>)
 			{
-				BOOST_STATIC_ASSERT_MSG(!std::is_pointer_v<T> && std::is_trivially_destructible_v<T>, "Unsupported block data type!");
+				static_assert(!std::is_pointer_v<T> && std::is_trivially_destructible_v<T>, "Unsupported block data type!");
 				auto& fake_array = reinterpret_cast<const std::array<uint8_t, sizeof(T)>&>(block);
 				return Check_block_raw_<CheckReadable>(fake_array);
 			}
 			else
 			{
-				BOOST_STATIC_ASSERT_MSG(ranges::random_access_range<T>, "Unsupported range type!");
+				static_assert(ranges::random_access_range<T>, "Unsupported range type!");
 
 				using rng_val = ranges::range_value_t<T>;
 				if constexpr (detail::have_has_value<rng_val>)
@@ -503,11 +503,11 @@ namespace cheat::utl
 		}
 
 		template <bool CheckReadable = /*_DEBUG*/false, typename T>
-		vector<memory_block> find_all_blocks(const T& block) const
+		std::vector<memory_block> find_all_blocks(const T& block) const
 		{
 			//todo: do it with ranges
 
-			auto data = vector<memory_block>( );
+			auto data = std::vector<memory_block>( );
 
 			auto from = *this;
 			while (true)

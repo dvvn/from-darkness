@@ -3,36 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEClientProjectile::m_vecOrigin( )
+CBaseHandle& C_TEClientProjectile::m_hOwner( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::Vector& C_TEClientProjectile::m_vecVelocity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile.m_vecVelocity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-int32_t& C_TEClientProjectile::m_nModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile.m_nModelIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_hOwner");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 int32_t& C_TEClientProjectile::m_nLifeTime( )
@@ -40,18 +21,38 @@ int32_t& C_TEClientProjectile::m_nLifeTime( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile.m_nLifeTime");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_nLifeTime");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-CBaseHandle& C_TEClientProjectile::m_hOwner( )
+int32_t& C_TEClientProjectile::m_nModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile.m_hOwner");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_nModelIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+Vector& C_TEClientProjectile::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_TEClientProjectile::m_vecVelocity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_vecVelocity");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

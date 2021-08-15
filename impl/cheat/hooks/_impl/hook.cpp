@@ -55,7 +55,7 @@ static DWORD_PTR FindNewIP(HOOK_ENTRY& pHook, DWORD_PTR ip)
 static void ProcessThreadIPs(HANDLE hThread, const hooks_storage::iterator& pos, bool enable)
 {
     // If the thread suspended in the overwritten area,
-    // move IP to the proper address.
+    // std::move IP to the proper address.
 
     CONTEXT c;
 #if defined(_M_X64) || defined(__x86_64__)
@@ -101,7 +101,7 @@ status_ex::status_ex(status s) : status_ex_impl{s}
     str += start;
     str += end;
 
-    throw std::runtime_error(move(str));
+    throw std::runtime_error(std::move(str));
 }
 #endif
 
@@ -109,19 +109,19 @@ status_ex::status_ex(status s) : status_ex_impl{s}
 
 hook_entry::~hook_entry( )
 {
-	BOOST_ASSERT_MSG(!this->enabled, "Unable to destroy enabled hook entry!");
+	runtime_assert(!this->enabled, "Unable to destroy enabled hook entry!");
 }
 
 hook_entry::hook_entry(hook_entry&& other) noexcept
 {
-	*this = move(other);
+	*this = std::move(other);
 }
 
 hook_entry& hook_entry::operator=(hook_entry&& other) noexcept
 {
 	*static_cast<trampoline*>(this) = static_cast<trampoline&&>(other);
 
-	backup = move(other.backup);
+	backup  = std::move(other.backup);
 	enabled = other.enabled;
 
 	other.enabled = false;
@@ -135,7 +135,7 @@ STATUS hook_entry::set_state(bool enable)
 		return enable ? STATUS::ERROR_ENABLED : STATUS::ERROR_DISABLED;
 
 	auto   patch_target = static_cast<LPBYTE>(this->target);
-	SIZE_T patch_size = sizeof(JMP_REL);
+	SIZE_T patch_size   = sizeof(JMP_REL);
 
 	if (this->patch_above)
 	{
@@ -155,13 +155,13 @@ STATUS hook_entry::set_state(bool enable)
 		__try
 		{
 			const auto jmp_rel = reinterpret_cast<JMP_REL*>(patch_target);
-			jmp_rel->opcode = 0xE9;
-			jmp_rel->operand = static_cast<UINT32>(static_cast<LPBYTE>(this->detour) - (patch_target + sizeof(JMP_REL)));
+			jmp_rel->opcode    = 0xE9;
+			jmp_rel->operand   = static_cast<UINT32>(static_cast<LPBYTE>(this->detour) - (patch_target + sizeof(JMP_REL)));
 			if (this->patch_above)
 			{
 				const auto short_jmp = static_cast<JMP_REL_SHORT*>(this->target);
-				short_jmp->opcode = 0xEB;
-				short_jmp->operand = static_cast<UINT8>(0 - (sizeof(JMP_REL_SHORT) + sizeof(JMP_REL)));
+				short_jmp->opcode    = 0xEB;
+				short_jmp->operand   = static_cast<UINT8>(0 - (sizeof(JMP_REL_SHORT) + sizeof(JMP_REL)));
 			}
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER)
@@ -244,7 +244,7 @@ hook_result context::create_hook(LPVOID target, LPVOID detour)
 
 	auto& new_hook = storage__.emplace_back( );
 
-	static_cast<trampoline&>(new_hook) = move(ct);
+	static_cast<trampoline&>(new_hook) = std::move(ct);
 
 	new_hook.enabled = false;
 
@@ -343,7 +343,7 @@ hook_entry* context::Find_hook_internal_(LPVOID target)
 		for (auto& h: storage__)
 		{
 			if (h.target == target)
-				return addressof(h);
+				return std::addressof(h);
 		}
 	}
 
@@ -359,7 +359,7 @@ STATUS context::Set_state_all_(bool enable, bool ignore_errors)
 		return h.target != nullptr;
 	});
 	const auto begin = storage_active.begin( );
-	const auto end = storage_active.end( );
+	const auto end   = storage_active.end( );
 
 	for (auto itr_main = begin; itr_main != end; ++itr_main)
 	{
@@ -380,8 +380,8 @@ STATUS context::Set_state_all_(bool enable, bool ignore_errors)
 		try
 		{
 			main_status = value.set_state(enable);
-			if (main_status != STATUS::OK)
-				BOOST_ASSERT("Error in code");
+			if (main_status == STATUS::OK)
+				runtime_assert("Error in code");
 			continue;
 		}
 		catch ([[maybe_unused]] const std::runtime_error& e)
@@ -406,7 +406,7 @@ STATUS context::Set_state_all_(bool enable, bool ignore_errors)
 				continue;
 			if (const auto temp_status = value_child.set_state(enable); temp_status != STATUS::OK)
 			{
-				BOOST_ASSERT("Unable to revert hook state!");
+				runtime_assert("Unable to revert hook state!");
 				return temp_status;
 			}
 		}
@@ -423,10 +423,12 @@ STATUS context::Reset_all_( )
 	return result;
 }
 
-auto _Generate_status_to_string_data( )
+static auto _Generate_status_to_string_data( )
 {
+	using namespace std;
+
 	using status_enum = STATUS;
-	using raw_status_type = std::underlying_type_t<status_enum>;
+	using raw_status_type = underlying_type_t<status_enum>;
 #define STATUS_STR(x) data[(raw_status_type)status_enum::x].first = /*CRYPT_STR*/(#x);
 
 	using namespace cheat;
@@ -457,17 +459,17 @@ auto _Generate_status_to_string_data( )
 #undef STATUS_STR
 
 #ifdef _DEBUG
-	for (const auto& key: data | ranges::views::keys)
+	for (const auto& key: data | ::ranges::views::keys)
 	{
 		if (key == std::remove_cvref_t<decltype(key)>( ))
-			BOOST_ASSERT("Element isn't set!");
+			runtime_assert("Element isn't set!");
 	}
 #endif
 
 	return data;
 }
 
-string_view hooks::status_to_string(STATUS status)
+std::string_view hooks::status_to_string(STATUS status)
 {
 	static const/*expr*/ auto cache = _Generate_status_to_string_data( );
 
@@ -487,48 +489,48 @@ string_view hooks::status_to_string(STATUS status)
 
 hook_result context_safe::create_hook(LPVOID target, LPVOID detour)
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	return ctx__.create_hook(target, detour);
 }
 
 STATUS context_safe::remove_hook(LPVOID target, bool force)
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	return ctx__.remove_hook(target, force);
 }
 
 STATUS context_safe::enable_hook(LPVOID target)
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	return ctx__.enable_hook(target);
 }
 
 STATUS context_safe::disable_hook(LPVOID target)
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	return ctx__.disable_hook(target);
 }
 
 hook_result context_safe::find_hook(LPVOID target)
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	return ctx__.find_hook(target);
 }
 
 void context_safe::remove_all_hooks( )
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	ctx__.remove_all_hooks( );
 }
 
 STATUS context_safe::enable_all_hooks( )
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	return ctx__.enable_all_hooks( );
 }
 
 STATUS context_safe::disable_all_hooks( )
 {
-	auto lock = make_lock_guard(mtx__);
+	const auto lock = std::scoped_lock(mtx__);
 	return ctx__.disable_all_hooks( );
 }

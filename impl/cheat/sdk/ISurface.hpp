@@ -58,20 +58,20 @@ namespace cheat::csgo
 		{
 		}
 
-		Vertex_t(const utl::Vector2D& pos, const utl::Vector2D& coord = utl::Vector2D(0, 0))
+		Vertex_t(const Vector2D& pos, const Vector2D& coord = Vector2D(0, 0))
 		{
 			m_Position = pos;
 			m_TexCoord = coord;
 		}
 
-		void Init(const utl::Vector2D& pos, const utl::Vector2D& coord = utl::Vector2D(0, 0))
+		void Init(const Vector2D& pos, const Vector2D& coord = Vector2D(0, 0))
 		{
 			m_Position = pos;
 			m_TexCoord = coord;
 		}
 
-		utl::Vector2D m_Position;
-		utl::Vector2D m_TexCoord;
+		Vector2D m_Position;
+		Vector2D m_TexCoord;
 	};
 
 	//-----------------------------------------------------------------------------
@@ -86,7 +86,7 @@ namespace cheat::csgo
 		virtual void PushMakeCurrent(vgui::VPANEL panel, bool useInsets) = 0;
 		virtual void PopMakeCurrent(vgui::VPANEL panel) = 0;
 		virtual void DrawSetColor(int r, int g, int b, int a) = 0;
-		virtual void DrawSetColor(utl::Color col) = 0;
+		virtual void DrawSetColor(Color col) = 0;
 		virtual void DrawFilledRect(int x0, int y0, int x1, int y1) = 0;
 		virtual void DrawFilledRectArray(IntRect* pRects, int numRects) = 0;
 		virtual void DrawOutlinedRect(int x0, int y0, int x1, int y1) = 0;
@@ -96,7 +96,7 @@ namespace cheat::csgo
 		virtual void DrawClearApparentDepth( ) = 0;
 		virtual void DrawSetTextFont(vgui::HFont font) = 0;
 		virtual void DrawSetTextColor(int r, int g, int b, int a) = 0;
-		virtual void DrawSetTextColor(utl::Color col) = 0;
+		virtual void DrawSetTextColor(Color col) = 0;
 		virtual void DrawSetTextPos(int x, int y) = 0;
 		virtual void DrawGetTextPos(int& x, int& y) = 0;
 		virtual void DrawPrintText(const wchar_t* text, int textLen, FontDrawType drawType = FONT_DRAW_DEFAULT) = 0;

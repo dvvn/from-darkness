@@ -3,55 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_CascadeLight::m_shadowDirection( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight.m_shadowDirection");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::Vector& C_CascadeLight::m_envLightShadowDirection( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight.m_envLightShadowDirection");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-bool& C_CascadeLight::m_bEnabled( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight.m_bEnabled");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-bool& C_CascadeLight::m_bUseLightEnvAngles( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight.m_bUseLightEnvAngles");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 int32_t& C_CascadeLight::m_LightColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight.m_LightColor");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_LightColor");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -60,9 +21,39 @@ int32_t& C_CascadeLight::m_LightColorScale( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight.m_LightColorScale");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_LightColorScale");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+bool& C_CascadeLight::m_bEnabled( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_bEnabled");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_CascadeLight::m_bUseLightEnvAngles( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_bUseLightEnvAngles");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+Vector& C_CascadeLight::m_envLightShadowDirection( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_envLightShadowDirection");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }
 float& C_CascadeLight::m_flMaxShadowDist( )
@@ -70,8 +61,18 @@ float& C_CascadeLight::m_flMaxShadowDist( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight.m_flMaxShadowDist");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_flMaxShadowDist");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
+#endif
+}
+Vector& C_CascadeLight::m_shadowDirection( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_shadowDirection");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

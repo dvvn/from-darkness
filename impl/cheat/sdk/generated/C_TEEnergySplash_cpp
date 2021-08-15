@@ -3,35 +3,36 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEEnergySplash::m_vecPos( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash.m_vecPos");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::Vector& C_TEEnergySplash::m_vecDir( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash.m_vecDir");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
 bool& C_TEEnergySplash::m_bExplosive( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash.m_bExplosive");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash", "m_bExplosive");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
+}
+Vector& C_TEEnergySplash::m_vecDir( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash", "m_vecDir");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_TEEnergySplash::m_vecPos( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash", "m_vecPos");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

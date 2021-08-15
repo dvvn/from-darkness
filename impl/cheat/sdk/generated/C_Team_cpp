@@ -3,66 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-int32_t& C_Team::m_iTeamNum( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_iTeamNum");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
 bool& C_Team::m_bSurrendered( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_bSurrendered");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_bSurrendered");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
-}
-int32_t& C_Team::m_scoreTotal( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_scoreTotal");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_Team::m_scoreFirstHalf( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_scoreFirstHalf");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_Team::m_scoreSecondHalf( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_scoreSecondHalf");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_Team::m_scoreOvertime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_scoreOvertime");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
 #endif
 }
 int32_t& C_Team::m_iClanID( )
@@ -70,59 +21,19 @@ int32_t& C_Team::m_iClanID( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_iClanID");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_iClanID");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-char* C_Team::m_szTeamname( )
+int32_t& C_Team::m_iTeamNum( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
+	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamname");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-char* C_Team::m_szClanTeamname( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szClanTeamname");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-char* C_Team::m_szTeamFlagImage( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamFlagImage");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-char* C_Team::m_szTeamLogoImage( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamLogoImage");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-char* C_Team::m_szTeamMatchStat( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_szTeamMatchStat");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_iTeamNum");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }
 int32_t& C_Team::m_nGGLeaderEntIndex_CT( )
@@ -130,8 +41,8 @@ int32_t& C_Team::m_nGGLeaderEntIndex_CT( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_nGGLeaderEntIndex_CT");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_nGGLeaderEntIndex_CT");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -140,8 +51,8 @@ int32_t& C_Team::m_nGGLeaderEntIndex_T( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_nGGLeaderEntIndex_T");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_nGGLeaderEntIndex_T");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -150,9 +61,99 @@ int32_t& C_Team::m_numMapVictories( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.m_numMapVictories");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_numMapVictories");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_Team::m_scoreFirstHalf( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_scoreFirstHalf");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_Team::m_scoreOvertime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_scoreOvertime");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_Team::m_scoreSecondHalf( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_scoreSecondHalf");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_Team::m_scoreTotal( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_scoreTotal");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+char* C_Team::m_szClanTeamname( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_szClanTeamname");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_Team::m_szTeamFlagImage( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_szTeamFlagImage");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_Team::m_szTeamLogoImage( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_szTeamLogoImage");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_Team::m_szTeamMatchStat( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_szTeamMatchStat");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_Team::m_szTeamname( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "m_szTeamname");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
 #endif
 }
 int32_t& C_Team::player_array_element( )
@@ -160,8 +161,8 @@ int32_t& C_Team::player_array_element( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Team.player_array_element");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Team", "player_array_element");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

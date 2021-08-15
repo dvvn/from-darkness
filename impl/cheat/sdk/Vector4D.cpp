@@ -1,6 +1,6 @@
 #include "Vector4D.hpp"
 
-using namespace cheat::utl;
+using namespace cheat::csgo;
 
 void VectorCopy(const Vector4D& src, Vector4D& dst)
 {

@@ -1,63 +1,65 @@
-﻿#ifdef BOOST_ENABLE_ASSERT_HANDLER //|| (defined(BOOST_ENABLE_ASSERT_DEBUG_HANDLER) && !defined(NDEBUG) )
+﻿#include "cheat/core/console.h"
 
-#include "cheat/core/console.h"
-
-[[maybe_unused]] static void _Console_log(const std::string_view& str)
+namespace nstd::detail
 {
-	const auto wptr = cheat::console::get_ptr_weak( );
-	if (wptr.expired( ))
-		return;
-	const auto sptr = wptr.lock( );
-	const auto ptr = sptr.get( );
-	if (!ptr->state( ).done())
-		return;
-	constexpr auto filler = std::string_view("\n--------------------------------------------------\n");
-	std::string str2;
-	str2.reserve(filler.size( ) * 2 + str.size( ));
-	str2 += filler;
-	str2 += str;
-	str2 += filler;
-	ptr->write_line(str2);
-}
-
-namespace boost
-{
-	using namespace cheat::utl;
-
-	static volatile auto ignore_error = false;
-
-	// ReSharper disable CppEnforceCVQualifiersPlacement
-
-	void assertion_failed(char const* expr, char const* function, char const* file, long line)
+	void rt_assert_helper(const char* expr, const char* msg, const char* file, const char* func, unsigned int line)
 	{
-		DebugBreak( );
-		if (ignore_error)
-		{
-			ignore_error = false;
-			return;
-		}
-		const auto str = format("Assertion falied!\nExpression: {}\n\nFile: {}\nLine: {}\nFunction: {}", expr, file, line, function);
-#ifdef CHEAT_HAVE_CONSOLE
-		_Console_log(str);
-#endif
-		throw std::runtime_error(str);
-	}
+		static auto lock = std::mutex( );
+		const auto  _    = std::scoped_lock(lock);
 
-	void assertion_failed_msg(char const* expr, char const* msg, char const* function, char const* file, long line)
-	{
-		DebugBreak( );
-		if (ignore_error)
-		{
-			ignore_error = false;
-			return;
-		}
-		const auto str = format("Assertion falied!\nExpression: {}\nMessage:{}\n\nFile: {}\nLine: {}\nFunction: {}", expr, msg, file, line, function);
-#ifdef CHEAT_HAVE_CONSOLE
-		_Console_log(str);
-#endif
-		throw std::runtime_error(str);
-	}
+#ifdef _DEBUG
+		[[maybe_unused]] const auto from  = _ReturnAddress( );
+		[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
 
-	// ReSharper restore CppEnforceCVQualifiersPlacement
+#endif
+
+		auto message = std::ostringstream( );
+
+		const auto append = [&]<typename Name,typename Value>(Name&& name, Value&& value, bool last = false)
+		{
+			message << name << ": " << value;
+			if (!last)
+				message << '\n';
+		};
+
+		message << "Assertion falied!\n\n";
+
+		const auto expr_str  = std::string_view(expr);
+		const auto skip_expr = [&]
+		{
+			constexpr auto ignore = std::array{("true"sv), "false"sv, "nullptr"sv};
+
+			if (ranges::find(ignore, expr_str) != ignore.end( ))
+				return true;
+			if (ranges::all_of(expr_str, static_cast<int(*)(int)>(std::isdigit)))
+				return true;
+
+			return false;
+		};
+
+		if (!skip_expr( ))
+		{
+			if (msg != nullptr)
+				append("Expression", expr_str);
+			else
+			{
+				message << expr_str << '\n';
+			}
+		}
+		append("File", file);
+		append("Line", (line));
+		append("Function", func, true);
+
+		if (msg != nullptr)
+		{
+			message << "\n\n" << msg;
+		}
+
+		CHEAT_CONSOLE_LOG(message);
+#ifdef _DEBUG
+		DebugBreak( );
+#endif
+
+		[[maybe_unused]] static volatile auto skip_helper = '\1';
+	}
 }
-#endif

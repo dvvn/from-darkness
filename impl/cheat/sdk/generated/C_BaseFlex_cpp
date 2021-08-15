@@ -3,35 +3,36 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::array<float, 96>& C_BaseFlex::m_flexWeight( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<float, 96>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex.m_flexWeight");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<float, 96>>( );
-#endif
-}
 int32_t& C_BaseFlex::m_blinktoggle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex.m_blinktoggle");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_blinktoggle");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-utl::Vector& C_BaseFlex::m_viewtarget( )
+std::array<float, 96>& C_BaseFlex::m_flexWeight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(std::array<float, 96>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex.m_viewtarget");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_flexWeight");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<float, 96>>( );
+#endif
+}
+Vector& C_BaseFlex::m_viewtarget( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_viewtarget");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

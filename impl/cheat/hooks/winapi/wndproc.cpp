@@ -18,13 +18,13 @@ wndproc::wndproc( )
 bool wndproc::Do_load( )
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
-	BOOST_ASSERT(hwnd != nullptr);
+	runtime_assert(hwnd != nullptr);
 	const bool unicode = IsWindowUnicode(hwnd);
 
 	using namespace address_pipe;
 
 	default_wndproc__ = unicode ? DefWindowProcW : DefWindowProcA;
-	target_func_ = method_info::make_static(bind_front(unicode ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC) | cast<WNDPROC>);
+	target_func_ = method_info::make_static(std::bind_front(unicode ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC) | cast<WNDPROC>);
 
 	this->hook( );
 	this->enable( );

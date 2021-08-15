@@ -1,6 +1,6 @@
 #include "Vector.hpp"
 
-using namespace cheat::utl;
+using namespace cheat::csgo;
 
 Vector::Vector(float val)
 {

@@ -142,7 +142,7 @@ namespace cheat::utl
         {
         public:
             constexpr str_cryptor(const Ch (&str)[Str_length], str_crypt_fn<Ch> crypt, str_crypt_fn<Ch> decrypt) :
-                crypt_(std::move(crypt)), decrypt_(std::move(decrypt))
+                crypt_(std::std::move(crypt)), decrypt_(std::std::move(decrypt))
             {
                 this->setup(str);
             }
@@ -259,7 +259,7 @@ namespace cheat::utl
 
             bool crypted_ = false;
 
-            std::optional<bool> precompile_;
+            std::std::optional<bool> precompile_;
 
             str_crypt_fn<Ch> crypt_;
             str_crypt_fn<Ch> decrypt_;

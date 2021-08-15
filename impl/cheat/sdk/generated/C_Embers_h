@@ -1,4 +1,4 @@
+bool& m_bEmit( );
 int32_t& m_nDensity( );
 int32_t& m_nLifetime( );
 int32_t& m_nSpeed( );
-bool& m_bEmit( );

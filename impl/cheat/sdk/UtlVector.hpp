@@ -31,7 +31,7 @@ public:
     T& Tail();
     const T& Tail() const;
 
-    // Gets the base address (can change when adding elements!)
+    // Gets the base utl::address (can change when adding elements!)
     T* Base() { return m_Memory.Base(); }
     const T* Base() const { return m_Memory.Base(); }
     // Returns the number of elements in the vector

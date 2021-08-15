@@ -1,5 +1,5 @@
-int32_t& m_iMaterialName( );
+float& m_flEndSize( );
 float& m_flLifetime( );
 float& m_flStartSize( );
-float& m_flEndSize( );
 CBaseHandle& m_hConstraintEntity( );
+int32_t& m_iMaterialName( );

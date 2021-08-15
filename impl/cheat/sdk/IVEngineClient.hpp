@@ -57,7 +57,7 @@ public:
 	};
 
 	virtual const char  *GetName() const = 0;	// get channel name
-	virtual const char  *GetAddress() const = 0; // get channel IP address as string
+	virtual const char  *GetAddress() const = 0; // get channel IP utl::address as string
 	virtual float		GetTime() const = 0;	// current net time
 	virtual float		GetTimeConnected() const = 0;	// get connection time in seconds
 	virtual int			GetBufferSize() const = 0;	// netchannel packet history size
@@ -132,9 +132,9 @@ public:
 	virtual void SetTime(float time) = 0; // set game time
 	virtual void SetAngle(float angle) = 0; // set map orientation
 	virtual void SetFollowAngle(bool state) = 0; // if true, map rotates with spectators view
-	virtual void SetCenter(utl::Vector2D &mappos) = 0; // set map pos in center of panel
-	virtual void SetPlayerPositions(int index, const utl::Vector &position, const utl::QAngle &angle) = 0; // update player position
-	virtual utl::Vector2D WorldToMap(utl::Vector &worldpos) = 0; // convert 3d world to 2d map pos
+	virtual void SetCenter(Vector2D &mappos) = 0; // set map pos in center of panel
+	virtual void SetPlayerPositions(int index, const Vector &position, const QAngle &angle) = 0; // update player position
+	virtual Vector2D WorldToMap(Vector &worldpos) = 0; // convert 3d world to 2d map pos
 
 	virtual bool  IsVisible() = 0;	// true if MapOverview is visible
 	virtual void  GetBounds(int& x, int& y, int& wide, int& tall) = 0; // get current pos & size
@@ -156,9 +156,9 @@ public:
 class IVEngineClient
 {
 public:
-	virtual int                   GetIntersectingSurfaces(const model_t * model, const utl::Vector & vCenter, const float radius, const bool bOnlyVisibleSurfaces, SurfInfo * pInfos, const int nMaxInfos) = 0;
-	virtual utl::Vector           GetLightForPoint(const utl::Vector & pos, bool bClamp) = 0;
-	virtual IMaterial*            TraceLineMaterialAndLighting(const utl::Vector & start, const utl::Vector & end, utl::Vector & diffuseLightColor, utl::Vector& baseColor) = 0;
+	virtual int                   GetIntersectingSurfaces(const model_t * model, const Vector & vCenter, const float radius, const bool bOnlyVisibleSurfaces, SurfInfo * pInfos, const int nMaxInfos) = 0;
+	virtual Vector           GetLightForPoint(const Vector & pos, bool bClamp) = 0;
+	virtual IMaterial*            TraceLineMaterialAndLighting(const Vector & start, const Vector & end, Vector & diffuseLightColor, Vector& baseColor) = 0;
 	virtual const char*           ParseFile(const char * data, char * token, int maxlen) = 0;
 	virtual bool                  CopyFile(const char * source, const char * destination) = 0;
 	virtual void                  GetScreenSize(int& width, int& height) = 0;
@@ -174,8 +174,8 @@ public:
 	virtual CSentence*            GetSentence(CAudioSource * pAudioSource) = 0; // 15
 	virtual float                 GetSentenceLength(CAudioSource * pAudioSource) = 0;
 	virtual bool                  IsStreaming(CAudioSource * pAudioSource) const = 0;
-	virtual void                  GetViewAngles(utl::QAngle& va) = 0;
-	virtual void                  SetViewAngles(utl::QAngle& va) = 0;
+	virtual void                  GetViewAngles(QAngle& va) = 0;
+	virtual void                  SetViewAngles(QAngle& va) = 0;
 	virtual int                   GetMaxClients() = 0; // 20
 	virtual const char*           Key_LookupBinding(const char * pBinding) = 0;
 	virtual const char*           Key_BindingForKey(int & code) = 0;
@@ -188,13 +188,13 @@ public:
 	virtual void                  HideLoadingPlaque() = 0;
 	virtual void                  Con_NPrintf(int pos, const char * fmt, ...) = 0; // 30
 	virtual void                  Con_NXPrintf(const struct con_nprint_s * info, const char * fmt, ...) = 0;
-	virtual int                   IsBoxVisible(const utl::Vector& mins, const utl::Vector& maxs) = 0;
-	virtual int                   IsBoxInViewCluster(const utl::Vector& mins, const utl::Vector& maxs) = 0;
-	virtual bool                  CullBox(const utl::Vector& mins, const utl::Vector& maxs) = 0;
+	virtual int                   IsBoxVisible(const Vector& mins, const Vector& maxs) = 0;
+	virtual int                   IsBoxInViewCluster(const Vector& mins, const Vector& maxs) = 0;
+	virtual bool                  CullBox(const Vector& mins, const Vector& maxs) = 0;
 	virtual void                  Sound_ExtraUpdate() = 0;
 	virtual const char*           GetGameDirectory() = 0;
-	virtual const utl::VMatrix&   WorldToScreenMatrix() = 0;
-	virtual const utl::VMatrix&   WorldToViewMatrix() = 0;
+	virtual const VMatrix&   WorldToScreenMatrix() = 0;
+	virtual const VMatrix&   WorldToViewMatrix() = 0;
 	virtual int                   GameLumpVersion(int lumpId) const = 0;
 	virtual int                   GameLumpSize(int lumpId) const = 0; // 40
 	virtual bool                  LoadGameLump(int lumpId, void* pBuffer, int size) = 0;
@@ -202,8 +202,8 @@ public:
 	virtual ISpatialQuery*        GetBSPTreeQuery() = 0;
 	virtual void                  LinearToGamma(float* linear, float* gamma) = 0;
 	virtual float                 LightStyleValue(int style) = 0; // 45
-	virtual void                  ComputeDynamicLighting(const utl::Vector& pt, const utl::Vector* pNormal, utl::Vector& color) = 0;
-	virtual void                  GetAmbientLightColor(utl::Vector& color) = 0;
+	virtual void                  ComputeDynamicLighting(const Vector& pt, const Vector* pNormal, Vector& color) = 0;
+	virtual void                  GetAmbientLightColor(Vector& color) = 0;
 	virtual int                   GetDXSupportLevel() = 0;
 	virtual bool                  SupportsHDR() = 0;
 	virtual void                  Mat_Stub(IMaterialSystem * pMatSys) = 0; // 50
@@ -217,7 +217,7 @@ public:
 	virtual void                  EngineStats_EndFrame() = 0;
 	virtual void                  FireEvents() = 0;
 	virtual int                   GetLeavesArea(unsigned short * pLeaves, int nLeaves) = 0;
-	virtual bool                  DoesBoxTouchAreaFrustum(const utl::Vector & mins, const utl::Vector & maxs, int iArea) = 0; // 60
+	virtual bool                  DoesBoxTouchAreaFrustum(const Vector & mins, const Vector & maxs, int iArea) = 0; // 60
 	virtual int                   GetFrustumList(Frustum_t ** pList, int listMax) = 0;
 	virtual bool                  ShouldUseAreaFrustum(int i) = 0;
 	virtual void                  SetAudioState(const AudioState_t& state) = 0;
@@ -228,14 +228,14 @@ public:
 	virtual int                   SentenceGroupIndexFromName(const char * pGroupName) = 0;
 	virtual const char*           SentenceGroupNameFromIndex(int groupIndex) = 0;
 	virtual float                 SentenceLength(int sentenceIndex) = 0;
-	virtual void                  ComputeLighting(const utl::Vector& pt, const utl::Vector* pNormal, bool bClamp, utl::Vector& color, utl::Vector * pBoxColors = 0) = 0;
+	virtual void                  ComputeLighting(const Vector& pt, const Vector* pNormal, bool bClamp, Vector& color, Vector * pBoxColors = 0) = 0;
 	virtual void                  ActivateOccluder(int nOccluderIndex, bool bActive) = 0;
-	virtual bool                  IsOccluded(const utl::Vector & vecAbsMins, const utl::Vector & vecAbsMaxs) = 0; // 74
+	virtual bool                  IsOccluded(const Vector & vecAbsMins, const Vector & vecAbsMaxs) = 0; // 74
 	virtual int                   GetOcclusionViewId() = 0;
 	virtual void*                 SaveAllocMemory(size_t num, size_t size) = 0;
 	virtual void                  SaveFreeMemory(void * pSaveMem) = 0;
 	virtual INetChannelInfo*      GetNetChannelInfo() = 0;
-	virtual void                  DebugDrawPhysCollide(const CPhysCollide * pCollide, IMaterial * pMaterial, const utl::matrix3x4_t& transform, const uint8_t* color) = 0; //79
+	virtual void                  DebugDrawPhysCollide(const CPhysCollide * pCollide, IMaterial * pMaterial, const matrix3x4_t& transform, const uint8_t* color) = 0; //79
 	virtual void                  CheckPoint(const char * pName) = 0;                                                                                                      // 80
 	virtual void                  DrawPortals() = 0;
 	virtual bool                  IsPlayingDemo() = 0;
@@ -254,7 +254,7 @@ public:
 	virtual void                  GetMainMenuBackgroundName(char * dest, int destlen) = 0;
 	virtual void                  SetOcclusionParameters(const int /*OcclusionParams_t*/ & params) = 0; // 96
 	virtual void                  GetUILanguage(char * dest, int destlen) = 0;
-	virtual int                   IsSkyboxVisibleFromPoint(const utl::Vector & vecPoint) = 0;
+	virtual int                   IsSkyboxVisibleFromPoint(const Vector & vecPoint) = 0;
 	virtual const char*           GetMapEntitiesString() = 0;
 	virtual bool                  IsInEditMode() = 0; // 100
 	virtual float                 GetScreenAspectRatio(int viewportWidth, int viewportHeight) = 0;
@@ -268,7 +268,7 @@ public:
 	virtual bool                  MapHasHDRLighting() = 0;
 	virtual bool                  MapHasLightMapAlphaData() = 0;
 	virtual int                   GetAppID() = 0;
-	virtual utl::Vector           GetLightForPointFast(const utl::Vector & pos, bool bClamp) = 0;
+	virtual Vector           GetLightForPointFast(const Vector & pos, bool bClamp) = 0;
 	virtual void                  ClientCmd_Unrestricted(const char*, int, bool) = 0;
 	virtual void                  ClientCmd_Unrestricted(const char * szCmdString) = 0; // 114
 	virtual void                  SetRestrictServerCommands(bool bRestrict) = 0;
@@ -301,7 +301,7 @@ public:
 	virtual int                   FirstValidSplitScreenSlot() = 0;                 // -1 == invalid
 	virtual int                   NextValidSplitScreenSlot(int nPreviousSlot) = 0; // -1 == invalid
 	virtual ISPSharedMemory*      GetSinglePlayerSharedMemorySpace(const char * szName, int ent_num = (1 << 11)) = 0;
-	virtual void                  ComputeLightingCube(const utl::Vector& pt, bool bClamp, utl::Vector * pBoxColors) = 0;
+	virtual void                  ComputeLightingCube(const Vector& pt, bool bClamp, Vector * pBoxColors) = 0;
 	virtual void                  RegisterDemoCustomDataCallback(const char* szCallbackSaveID, pfnDemoCustomDataCallback pCallback) = 0;
 	virtual void                  RecordDemoCustomData(pfnDemoCustomDataCallback pCallback, const void * pData, size_t iDataLength) = 0;
 	virtual void                  SetPitchScale(float flPitchScale) = 0;
@@ -333,9 +333,9 @@ public:
 	virtual void                  ClearBugSubmissionCount() = 0;
 	virtual bool                  DoesLevelContainWater() const = 0;
 	virtual float                 GetServerSimulationFrameTime() const = 0;
-	virtual void                  SolidMoved(class IClientEntity * pSolidEnt, class ICollideable * pSolidCollide, const utl::Vector* pPrevAbsOrigin, bool accurateBboxTriggerChecks) = 0;
+	virtual void                  SolidMoved(class IClientEntity * pSolidEnt, class ICollideable * pSolidCollide, const Vector* pPrevAbsOrigin, bool accurateBboxTriggerChecks) = 0;
 	virtual void                  TriggerMoved(class IClientEntity * pTriggerEnt, bool accurateBboxTriggerChecks) = 0;
-	virtual void                  ComputeLeavesConnected(const utl::Vector & vecOrigin, int nCount, const int * pLeafIndices, bool * pIsConnected) = 0;
+	virtual void                  ComputeLeavesConnected(const Vector & vecOrigin, int nCount, const int * pLeafIndices, bool * pIsConnected) = 0;
 	virtual bool                  IsInCommentaryMode() = 0;
 	virtual void                  SetBlurFade(float amount) = 0;
 	virtual bool                  IsTransitioningToLoad() = 0;
@@ -345,11 +345,11 @@ public:
 	virtual CSteamAPIContext*     GetSteamAPIContext() = 0;
 	virtual void                  SubmitStatRecord(const char* szMapName, unsigned int uiBlobVersion, unsigned int uiBlobSize, const void * pvBlob) = 0;
 	virtual void                  ServerCmdKeyValues(KeyValues * pKeyValues) = 0; // 203
-	virtual void                  SpherePaintSurface(const model_t* model, const utl::Vector& location, unsigned char chr, float fl1, float fl2) = 0;
+	virtual void                  SpherePaintSurface(const model_t* model, const Vector& location, unsigned char chr, float fl1, float fl2) = 0;
 	virtual bool                  HasPaintmap() = 0;
 	virtual void                  EnablePaintmapRender() = 0;
-	//virtual void                TracePaintSurface( const model_t *model, const utl::Vector& position, float radius, CUtlVector<utl::Color>& surfColors ) = 0;
-	virtual void                  SphereTracePaintSurface(const model_t* model, const utl::Vector& position, const utl::Vector &vec2, float radius, /*CUtlVector<unsigned char, CUtlMemory<unsigned char, int>>*/ int& utilVecShit) = 0;
+	//virtual void                TracePaintSurface( const model_t *model, const Vector& position, float radius, CUtlVector<Color>& surfColors ) = 0;
+	virtual void                  SphereTracePaintSurface(const model_t* model, const Vector& position, const Vector &vec2, float radius, /*CUtlVector<unsigned char, CUtlMemory<unsigned char, int>>*/ int& utilVecShit) = 0;
 	virtual void                  RemoveAllPaint() = 0;
 	virtual void                  PaintAllSurfaces(unsigned char uchr) = 0;
 	virtual void                  RemovePaint(const model_t* model) = 0;

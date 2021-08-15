@@ -1,2 +1,2 @@
-int32_t& m_nAttachment( );
 float& m_flLifetime( );
+int32_t& m_nAttachment( );

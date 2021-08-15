@@ -3,26 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEGlowSprite::m_vecOrigin( )
+float& C_TEGlowSprite::m_fLife( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-int32_t& C_TEGlowSprite::m_nModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite.m_nModelIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite", "m_fLife");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 float& C_TEGlowSprite::m_fScale( )
@@ -30,18 +21,8 @@ float& C_TEGlowSprite::m_fScale( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite.m_fScale");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_TEGlowSprite::m_fLife( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite.m_fLife");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite", "m_fScale");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -50,8 +31,28 @@ int32_t& C_TEGlowSprite::m_nBrightness( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite.m_nBrightness");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite", "m_nBrightness");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEGlowSprite::m_nModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite", "m_nModelIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+Vector& C_TEGlowSprite::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEGlowSprite", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

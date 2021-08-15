@@ -1,7 +1,7 @@
-utl::Vector& m_vecDangerZoneOriginStartedAt( );
 float& m_flBombLaunchTime( );
 float& m_flExtraRadius( );
 float& m_flExtraRadiusStartTime( );
 float& m_flExtraRadiusTotalLerpTime( );
-int32_t& m_nDropOrder( );
 int32_t& m_iWave( );
+int32_t& m_nDropOrder( );
+Vector& m_vecDangerZoneOriginStartedAt( );

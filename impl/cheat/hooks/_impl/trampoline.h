@@ -78,7 +78,6 @@ namespace cheat::hooks::detail
 
 	class trampoline: public trampoline_target
 	{
-		BOOST_MOVABLE_BUT_NOT_COPYABLE(trampoline);
 	public:
 		trampoline( );
 		virtual ~trampoline( );
@@ -86,7 +85,7 @@ namespace cheat::hooks::detail
 		trampoline(trampoline&&) = default;
 		trampoline& operator=(trampoline&&) = default;
 
-		using ips_type = utl::array<UINT8, 8>;
+		using ips_type = std::array<UINT8, 8>;
 
 		LPVOID detour = nullptr; // [In] Address of the detour function.
 
@@ -106,9 +105,9 @@ namespace cheat::hooks::detail
 		bool create( );
 
 	private:
-		utl::optional<DWORD> old_protection__;
+		std::optional<DWORD> old_protection__;
 		//boost::container::small_vector<uintptr_t, 8> trampoline_; // [In] Buffer address for the trampoline and relay function.
-		utl::unique_ptr<char[]> trampoline__;
+		std::unique_ptr<char[]> trampoline__;
 	};
 
 	bool _Is_code_padding(LPBYTE pInst, UINT size);

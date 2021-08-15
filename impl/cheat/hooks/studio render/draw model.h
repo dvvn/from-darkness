@@ -9,13 +9,12 @@ namespace cheat::hooks::studio_render
 							public decltype(_Detect_hook_holder(&csgo::IStudioRender::DrawModel))
 	{
 	public:
-draw_model();
-
+		draw_model( );
 
 	protected:
 		bool Do_load( ) override;
 		void Callback(csgo::DrawModelResults_t* results, const csgo::DrawModelInfo_t& info,
-					  utl::matrix3x4_t* bone_to_world, float* flex_weights, float* flex_delayed_weights, const utl::Vector& model_origin,
-					  csgo::DrawModelFlags_t flags) override;
+					  csgo::matrix3x4_t*        bone_to_world, float*                 flex_weights, float* flex_delayed_weights, const csgo::Vector& model_origin,
+					  csgo::DrawModelFlags_t    flags) override;
 	};
 }

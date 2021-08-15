@@ -1,4 +1,4 @@
-utl::Vector& m_vFreezingOrigin( );
-utl::array<float, 50>& m_flFrozenPerHitbox( );
-float& m_flFrozen( );
 bool& m_bFinishFreezing( );
+float& m_flFrozen( );
+std::array<float, 50>& m_flFrozenPerHitbox( );
+Vector& m_vFreezingOrigin( );

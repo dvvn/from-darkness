@@ -1,4 +1,4 @@
 bool& m_bShouldExplode( );
-int32_t& m_weaponThatThrewMe( );
 int32_t& m_nParentBoneIndex( );
-utl::Vector& m_vecParentBonePos( );
+Vector& m_vecParentBonePos( );
+int32_t& m_weaponThatThrewMe( );

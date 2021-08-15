@@ -3,45 +3,36 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEPhysicsProp::m_vecOrigin( )
+QAngle& C_TEPhysicsProp::m_angRotation( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(QAngle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_angRotation");
+	auto addr = address(this).add(offset);
+	return addr.ref<QAngle>( );
 #endif
 }
-utl::QAngle& C_TEPhysicsProp::m_angRotation( )
+Color& C_TEPhysicsProp::m_clrRender( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::QAngle*)nullptr;
+	return *(Color*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_angRotation");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::QAngle>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_clrRender");
+	auto addr = address(this).add(offset);
+	return addr.ref<Color>( );
 #endif
 }
-utl::Vector& C_TEPhysicsProp::m_vecVelocity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_vecVelocity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-int32_t& C_TEPhysicsProp::m_nModelIndex( )
+int32_t& C_TEPhysicsProp::m_nEffects( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nModelIndex");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nEffects");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -50,8 +41,18 @@ int32_t& C_TEPhysicsProp::m_nFlags( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nFlags");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nFlags");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEPhysicsProp::m_nModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nModelIndex");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -60,28 +61,28 @@ int32_t& C_TEPhysicsProp::m_nSkin( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nSkin");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nSkin");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_TEPhysicsProp::m_nEffects( )
+Vector& C_TEPhysicsProp::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_nEffects");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }
-utl::Color& C_TEPhysicsProp::m_clrRender( )
+Vector& C_TEPhysicsProp::m_vecVelocity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Color*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp.m_clrRender");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Color>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_vecVelocity");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

@@ -3,6 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
 bool& C_BRC4Target::m_bBrokenOpen( )
@@ -10,8 +11,8 @@ bool& C_BRC4Target::m_bBrokenOpen( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BRC4Target.m_bBrokenOpen");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BRC4Target", "m_bBrokenOpen");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -20,8 +21,8 @@ float& C_BRC4Target::m_flRadius( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BRC4Target.m_flRadius");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BRC4Target", "m_flRadius");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }

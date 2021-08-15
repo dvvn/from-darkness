@@ -17,15 +17,15 @@ namespace cheat::csgo
 		unsigned short type;
 		unsigned short m_bNeedsToInterpolate; // Set to false when this var doesn't
 		// need Interpolate() called on it anymore.
-		void* data;
+		void*             data;
 		IInterpolatedVar* watcher;
 	};
 
 	struct VarMapping_t
 	{
 		CUtlVector<VarMapEntry_t> m_Entries;
-		int m_nInterpolatedEntries = 0;
-		float m_lastInterpolationTime = 0;
+		int                       m_nInterpolatedEntries  = 0;
+		float                     m_lastInterpolationTime = 0;
 	};
 
 	struct m_iTeamNum_t final
@@ -198,14 +198,13 @@ namespace cheat::csgo
 
 #include "../generated/C_BaseEntity_h"
 
-		datamap_t* GetDataDescMap( );
-		datamap_t* GetPredictionDescMap( );
-VarMapping_t*GetInterpVarMap();
+		datamap_t*    GetDataDescMap( );
+		datamap_t*    GetPredictionDescMap( );
+		VarMapping_t* GetInterpVarMap( );
 
-
-		void EstimateAbsVelocity(utl::Vector& vel);
+		void EstimateAbsVelocity(Vector& vel);
 		bool ShouldInterpolate( );
 
-		CUtlVector<utl::matrix3x4_t>& BonesCache( );
+		CUtlVector<matrix3x4_t>& BonesCache( );
 	};
 }

@@ -1,8 +1,8 @@
-utl::Vector& m_poolOrigin( );
+float& m_angle( );
+int32_t& m_lifeState( );
+int32_t& m_nModelIndex( );
+Vector& m_poolOrigin( );
+float& m_waterLevel( );
 float& m_x( );
 float& m_y( );
 float& m_z( );
-float& m_angle( );
-int32_t& m_nModelIndex( );
-int32_t& m_lifeState( );
-float& m_waterLevel( );

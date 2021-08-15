@@ -10,15 +10,15 @@ using namespace widgets;
 using namespace tools;
 using namespace utl;
 
-window::window(animator&& fade) : content_background_fader(move(fade))
+window::window(animator&& fade) : content_background_fader(std::move(fade))
 {
 }
 
 bool window::begin(prefect_string&& title, ImGuiWindowFlags_ flags)
 {
-	BOOST_ASSERT(ignore_end__ == false);
+	runtime_assert(ignore_end__ == false);
 	auto& style = ImGui::GetStyle( );
-	BOOST_ASSERT(style.Alpha == fade_.max( ));
+	runtime_assert(style.Alpha == fade_.max( ));
 
 	if (!this->Animate( ) && !visible__)
 	{
@@ -52,7 +52,7 @@ void window::end( )
 	{
 		ignore_end__ = false;
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
-		BOOST_ASSERT(!fade_alpha_backup_);
+		runtime_assert(!fade_alpha_backup_);
 #endif
 	}
 	else
@@ -97,7 +97,7 @@ bool window::active( ) const
 	return visible__ && fade_.done(1);
 }
 
-child_window::child_window(animator&& fade): content_background_fader(move(fade))
+child_window::child_window(animator&& fade): content_background_fader(std::move(fade))
 {
 }
 
@@ -216,7 +216,7 @@ void child_window::show( )
 	return fade_.set(1);
 }
 
-child_frame_window::child_frame_window(animator&& fade): child_window(move(fade))
+child_frame_window::child_frame_window(animator&& fade): child_window(std::move(fade))
 {
 }
 
@@ -224,10 +224,10 @@ bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool bor
 {
 	const auto& style = ImGui::GetStyle( );
 
-	auto backups = make_tuple(push_style_color(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]),
-							  push_style_var(ImGuiStyleVar_ChildRounding, style.FrameRounding),
-							  push_style_var(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize),
-							  push_style_var(ImGuiStyleVar_WindowPadding, style.FramePadding));;
+	const auto backups = std::make_tuple(push_style_color(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]),
+										 push_style_var(ImGuiStyleVar_ChildRounding, style.FrameRounding),
+										 push_style_var(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize),
+										 push_style_var(ImGuiStyleVar_WindowPadding, style.FramePadding));
 	(void)backups;
 	return child_window::Begin_impl(id, size_arg, border, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysUseWindowPadding | extra_flags);
 }

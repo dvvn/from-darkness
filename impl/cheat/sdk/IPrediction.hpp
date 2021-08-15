@@ -11,8 +11,8 @@ namespace cheat::csgo
 		bool m_bGameCodeMovedPlayer : 1;
 		int         m_nPlayerHandle;    // edict index on server, client entity handle on client=
 		int         m_nImpulseCommand;  // Impulse command issued.
-		utl::Vector m_vecViewAngles;    // Command view angles (local space)
-		utl::Vector m_vecAbsViewAngles; // Command view angles (world space)
+		Vector m_vecViewAngles;    // Command view angles (local space)
+		Vector m_vecAbsViewAngles; // Command view angles (world space)
 		int         m_nButtons;         // Attack buttons.
 		int         m_nOldButtons;      // From host_client->oldbuttons;
 		float       m_flForwardMove;
@@ -20,18 +20,18 @@ namespace cheat::csgo
 		float       m_flUpMove;
 		float       m_flMaxSpeed;
 		float       m_flClientMaxSpeed;
-		utl::Vector m_vecVelocity; // edict::velocity        // Current movement direction.
-		utl::Vector m_vecAngles;   // edict::angles
-		utl::Vector m_vecOldAngles;
+		Vector m_vecVelocity; // edict::velocity        // Current movement direction.
+		Vector m_vecAngles;   // edict::angles
+		Vector m_vecOldAngles;
 		float       m_outStepHeight; // how much you climbed this move
-		utl::Vector m_outWishVel;    // This is where you tried 
-		utl::Vector m_outJumpVel;    // This is your jump velocity
-		utl::Vector m_vecConstraintCenter;
+		Vector m_outWishVel;    // This is where you tried 
+		Vector m_outJumpVel;    // This is your jump velocity
+		Vector m_vecConstraintCenter;
 		float       m_flConstraintRadius;
 		float       m_flConstraintWidth;
 		float       m_flConstraintSpeedFactor;
 		float       m_flUnknown[5];
-		utl::Vector m_vecAbsOrigin;
+		Vector m_vecAbsOrigin;
 	};
 
 	class C_BasePlayer;
@@ -46,9 +46,9 @@ namespace cheat::csgo
 		virtual void               StartTrackPredictionErrors(C_BasePlayer* pPlayer) = 0;
 		virtual void               FinishTrackPredictionErrors(C_BasePlayer* pPlayer) = 0;
 		virtual void               DiffPrint(const char* fmt, ...) = 0;
-		virtual const utl::Vector& GetPlayerMins(bool ducked) const = 0;
-		virtual const utl::Vector& GetPlayerMaxs(bool ducked) const = 0;
-		virtual const utl::Vector& GetPlayerViewOffset(bool ducked) const = 0;
+		virtual const Vector& GetPlayerMins(bool ducked) const = 0;
+		virtual const Vector& GetPlayerMaxs(bool ducked) const = 0;
+		virtual const Vector& GetPlayerViewOffset(bool ducked) const = 0;
 		virtual bool               IsMovingPlayerStuck( ) const = 0;
 		virtual C_BasePlayer*      GetMovingPlayer( ) const = 0;
 		virtual void               UnblockPusher(C_BasePlayer* pPlayer, C_BasePlayer* pPusher) = 0;
@@ -137,11 +137,11 @@ namespace cheat::csgo
 		virtual void OnReceivedUncompressedPacket(void) = 0; //7
 
 		// The engine needs to be able to access a few predicted values
-		virtual void GetViewOrigin(utl::Vector& org) = 0;      //8
-		virtual void SetViewOrigin(utl::Vector& org) = 0;      //9
-		virtual void GetViewAngles(utl::QAngle& ang) = 0;      //10
-		virtual void SetViewAngles(utl::QAngle& ang) = 0;      //11
-		virtual void GetLocalViewAngles(utl::QAngle& ang) = 0; //12
-		virtual void SetLocalViewAngles(utl::QAngle& ang) = 0; //13
+		virtual void GetViewOrigin(Vector& org) = 0;      //8
+		virtual void SetViewOrigin(Vector& org) = 0;      //9
+		virtual void GetViewAngles(QAngle& ang) = 0;      //10
+		virtual void SetViewAngles(QAngle& ang) = 0;      //11
+		virtual void GetLocalViewAngles(QAngle& ang) = 0; //12
+		virtual void SetLocalViewAngles(QAngle& ang) = 0; //13
 	};
 }

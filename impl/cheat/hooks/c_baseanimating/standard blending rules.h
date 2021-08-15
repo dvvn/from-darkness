@@ -14,6 +14,6 @@ namespace cheat::hooks::c_base_animating
 
 	protected:
 		bool Do_load( ) override;
-		void Callback(csgo::CStudioHdr* hdr, utl::Vector pos[], csgo::QuaternionAligned q[], float current_time, int bone_mask) override;
+		void Callback(csgo::CStudioHdr* hdr, csgo::Vector pos[], csgo::QuaternionAligned q[], float current_time, int bone_mask) override;
 	};
 }

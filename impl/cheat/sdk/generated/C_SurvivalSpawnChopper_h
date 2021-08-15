@@ -1,1 +1,1 @@
-utl::Vector2D& m_vecOrigin( );
+Vector2D& m_vecOrigin( );

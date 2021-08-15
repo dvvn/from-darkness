@@ -3,45 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEDynamicLight::m_vecOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-int32_t& C_TEDynamicLight::r( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.r");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_TEDynamicLight::g( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.g");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
 int32_t& C_TEDynamicLight::b( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.b");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "b");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -50,9 +21,29 @@ int32_t& C_TEDynamicLight::exponent( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.exponent");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "exponent");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEDynamicLight::g( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "g");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+float& C_TEDynamicLight::m_fDecay( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "m_fDecay");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 float& C_TEDynamicLight::m_fRadius( )
@@ -60,8 +51,8 @@ float& C_TEDynamicLight::m_fRadius( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.m_fRadius");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "m_fRadius");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -70,18 +61,28 @@ float& C_TEDynamicLight::m_fTime( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.m_fTime");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "m_fTime");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-float& C_TEDynamicLight::m_fDecay( )
+Vector& C_TEDynamicLight::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight.m_fDecay");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+int32_t& C_TEDynamicLight::r( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEDynamicLight", "r");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }

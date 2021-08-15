@@ -38,39 +38,38 @@ void players_list::update( )
 	auto storage_updated = false;
 
 	const auto max_clients = interfaces->global_vars->max_clients;
-	if (const size_t wished_storage_size = max_clients + 1;
-		storage__.size( ) != wished_storage_size)
+	if (const size_t wished_storage_size = max_clients + 1; storage__.size( ) != wished_storage_size)
 	{
 		storage_updated = true;
 		storage__.clear( );
 		storage__.resize(wished_storage_size);
 	}
 
-	C_CSPlayer* const local_player = interfaces->local_player;
-	const m_iTeamNum_t local_player_team = local_player->m_iTeamNum( );
-	const auto local_player_alive = local_player->IsAlive( );
+	C_CSPlayer* const  local_player       = interfaces->local_player;
+	const m_iTeamNum_t local_player_team  = local_player->m_iTeamNum( );
+	const auto         local_player_alive = local_player->IsAlive( );
 
 	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)-> C_CSPlayer*
 	{
 		return idx == local_player_index
-			   ? nullptr
-			   : static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(idx));
+				   ? nullptr
+				   : static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(idx));
 	};
 
 	const auto fixed_curtime = interfaces->global_vars->curtime; //todo
 
 	for (auto i = 1; i <= max_clients; ++i)
 	{
-		const auto ent = ent_by_index(i);
-		auto& obj = storage__[i];
-		auto& obj_shared = obj.share( );
+		const auto ent        = ent_by_index(i);
+		auto&      obj        = storage__[i];
+		auto&      obj_shared = obj.share( );
 
 		if (ent == nullptr)
 		{
 			if (obj != nullptr)
 			{
 				storage_updated = true;
-				obj = { };
+				obj             = { };
 			}
 			continue;
 		}
@@ -86,7 +85,7 @@ void players_list::update( )
 		const m_iTeamNum_t ent_team = ent->m_iTeamNum( );
 		if (obj_shared->team != ent_team)
 		{
-			storage_updated = true;
+			storage_updated  = true;
 			obj_shared->team = ent_team;
 		}
 
@@ -98,18 +97,18 @@ void players_list::update( )
 			if (!obj_shared->alive)
 			{
 				obj_shared->alive = true;
-				storage_updated = true;
+				storage_updated   = true;
 			}
 
 			update_animations = true;
-			store_tick = true;
+			store_tick        = true;
 		}
 		else
 		{
 			if (obj_shared->alive)
 			{
 				obj_shared->alive = false;
-				storage_updated = true;
+				storage_updated   = true;
 			}
 
 			const auto is_ragdoll_active = [ent]
@@ -119,7 +118,7 @@ void players_list::update( )
 			};
 
 			update_animations = is_ragdoll_active( );
-			store_tick = false;
+			store_tick        = false;
 		}
 
 		if (ent->IsDormant( ))
@@ -127,25 +126,25 @@ void players_list::update( )
 			if (obj_shared->dormant == false)
 			{
 				obj_shared->dormant = true;
-				storage_updated = true;
+				storage_updated     = true;
 			}
 			update_animations = false;
-			store_tick = false;
+			store_tick        = false;
 		}
 		else
 		{
 			if (obj_shared->dormant == true)
 			{
 				obj_shared->dormant = false;
-				store_tick = false;
-				storage_updated = true;
+				store_tick          = false;
+				storage_updated     = true;
 			}
 		}
 
 		if (!obj.update_simtime( ))
 		{
 			update_animations = false;
-			store_tick = false;
+			store_tick        = false;
 		}
 
 		if (!local_player_alive || local_player_team == ent_team || local_player_team.spectator( ))

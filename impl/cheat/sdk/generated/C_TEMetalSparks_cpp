@@ -3,25 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEMetalSparks::m_vecPos( )
+Vector& C_TEMetalSparks::m_vecDir( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEMetalSparks.m_vecPos");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEMetalSparks", "m_vecDir");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }
-utl::Vector& C_TEMetalSparks::m_vecDir( )
+Vector& C_TEMetalSparks::m_vecPos( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEMetalSparks.m_vecDir");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEMetalSparks", "m_vecPos");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

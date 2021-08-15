@@ -13,31 +13,31 @@ namespace cheat
 
 	namespace detail
 	{
-		class stored_player_bones: public utl::span<utl::matrix3x4_t>
+		class stored_player_bones: public std::span<csgo::matrix3x4_t>
 		{
 		public:
 			stored_player_bones(csgo::C_BaseEntity*ent);
 			stored_player_bones( ) = default;
 
 		private:
-			utl::unique_ptr<utl::matrix3x4_t[]> cache__;
+			std::unique_ptr<csgo::matrix3x4_t[]> cache__;
 		};
 	}
 
 	struct tick_record: detail::shared_holder_info
 	{
-		utl::Vector origin, abs_origin;
-		utl::QAngle rotation, abs_rotation;
-		utl::Vector mins, maxs;
+		csgo::Vector origin, abs_origin;
+		csgo::QAngle rotation, abs_rotation;
+		csgo::Vector mins, maxs;
 		float sim_time;
-		utl::matrix3x4_t coordinate_frame;
+		csgo::matrix3x4_t coordinate_frame;
 
 		detail::stored_player_bones bones;
 
 		bool is_valid(float curtime) const;
 	};
 
-	using tick_record_shared = utl::shared_ptr<tick_record>;
+	using tick_record_shared = std::shared_ptr<tick_record>;
 
 	namespace detail
 	{

@@ -1,7 +1,7 @@
-CBaseHandle& m_hMoveToThisEntity( );
-CBaseHandle& m_hDeliveryCargo( );
 bool& m_bPilotTakeoverAllowed( );
-CBaseHandle& m_hPotentialCargo( );
 CBaseHandle& m_hCurrentPilot( );
-utl::array<utl::Vector, 24>& m_vecTagPositions( );
-utl::array<int32_t, 24>& m_vecTagIncrements( );
+CBaseHandle& m_hDeliveryCargo( );
+CBaseHandle& m_hMoveToThisEntity( );
+CBaseHandle& m_hPotentialCargo( );
+std::array<int32_t, 24>& m_vecTagIncrements( );
+std::array<Vector, 24>& m_vecTagPositions( );

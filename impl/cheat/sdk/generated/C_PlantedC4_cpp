@@ -3,26 +3,27 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
+bool& C_PlantedC4::m_bBombDefused( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_bBombDefused");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
 bool& C_PlantedC4::m_bBombTicking( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_bBombTicking");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_bBombTicking");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
-}
-int32_t& C_PlantedC4::m_nBombSite( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_nBombSite");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
 #endif
 }
 float& C_PlantedC4::m_flC4Blow( )
@@ -30,28 +31,8 @@ float& C_PlantedC4::m_flC4Blow( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_flC4Blow");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_PlantedC4::m_flTimerLength( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_flTimerLength");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_PlantedC4::m_flDefuseLength( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_flDefuseLength");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_flC4Blow");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -60,19 +41,29 @@ float& C_PlantedC4::m_flDefuseCountDown( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_flDefuseCountDown");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_flDefuseCountDown");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-bool& C_PlantedC4::m_bBombDefused( )
+float& C_PlantedC4::m_flDefuseLength( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_bBombDefused");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_flDefuseLength");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_PlantedC4::m_flTimerLength( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_flTimerLength");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 CBaseHandle& C_PlantedC4::m_hBombDefuser( )
@@ -80,8 +71,18 @@ CBaseHandle& C_PlantedC4::m_hBombDefuser( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4.m_hBombDefuser");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_hBombDefuser");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
+#endif
+}
+int32_t& C_PlantedC4::m_nBombSite( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_nBombSite");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }

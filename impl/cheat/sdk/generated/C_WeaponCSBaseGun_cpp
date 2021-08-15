@@ -3,25 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-int32_t& C_WeaponCSBaseGun::m_zoomLevel( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun.m_zoomLevel");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
 int32_t& C_WeaponCSBaseGun::m_iBurstShotsRemaining( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun.m_iBurstShotsRemaining");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun", "m_iBurstShotsRemaining");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_WeaponCSBaseGun::m_zoomLevel( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun", "m_zoomLevel");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

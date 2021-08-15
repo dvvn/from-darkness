@@ -8,16 +8,20 @@
 
 namespace cheat::utl
 {
-	class module_info final: detail::sections_storage_ex<0>,
-							 detail::exports_storage_ex<sizeof(detail::sections_storage)>,
-							 detail::vtables_storage_ex<sizeof(detail::sections_storage) + sizeof(detail::exports_storage)>
+	class module_info final: detail::sections_storage,
+							 detail::exports_storage,
+							 detail::vtables_storage
 	{
 		LDR_DATA_TABLE_ENTRY* ldr_entry;
 		IMAGE_DOS_HEADER*     dos;
 		IMAGE_NT_HEADERS*     nt;
 
-		string  name_;
-		wstring name_wide_;
+		std::string  name_;
+		std::wstring name_wide_;
+
+			protected:
+		module_info* root_class( )  override;
+			const module_info* root_class( ) const override;
 
 	public:
 		~module_info( ) override = default;
@@ -40,33 +44,35 @@ namespace cheat::utl
 		DWORD image_size( ) const;
 
 		using raw_name_value_type = std::remove_pointer_t<decltype(ldr_entry->FullDllName.Buffer)>;
-		using raw_name_type = basic_string_view<raw_name_value_type>;
+		using raw_name_type = std::basic_string_view<raw_name_value_type>;
 
 		raw_name_type work_dir( ) const;
 		raw_name_type full_path( ) const;
 		raw_name_type raw_name( ) const;
 
-		const string& name( );
-		const string& name( ) const;
+		const std::string& name( );
+		const std::string& name( ) const;
 
-		const wstring& name_wide( );
-		const wstring& name_wide( ) const;
+		const std::wstring& name_wide( );
+		const std::wstring& name_wide( ) const;
 
 		bool name_contains_unicode( );
 		bool name_contains_unicode( ) const;
 
-		detail::sections_storage&       sections( );
-		const detail::sections_storage& sections( ) const;
+		sections_storage&       sections( );
+		const sections_storage& sections( ) const;
 
-		detail::exports_storage&       exports( );
-		const detail::exports_storage& exports( ) const;
+		exports_storage&       exports( );
+		const exports_storage& exports( ) const;
 
-		detail::vtables_storage&       vtables( );
-		const detail::vtables_storage& vtables( ) const;
+		vtables_storage&       vtables( );
+		const vtables_storage& vtables( ) const;
+	
+	
 	};
 
-	using modules_storage_container = /*stable_*/vector<module_info>;
-	class modules_storage: public noncopyable
+	using modules_storage_container = std::vector<module_info>;
+	class modules_storage
 	{
 	public:
 		modules_storage(modules_storage&&)            = default;
@@ -87,8 +93,8 @@ namespace cheat::utl
 		modules_storage_container&       all(bool update = false);
 		const modules_storage_container& all( ) const;
 
-		module_info* find(const string_view& name);
-		module_info* find(const wstring_view& name);
+		module_info* find(const std::string_view& name);
+		module_info* find(const std::wstring_view& name);
 
 	protected:
 		void Empty_assert( ) const;

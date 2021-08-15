@@ -39,5 +39,5 @@ selectable_internal::selectable_internal(bool selected): selectable(selected)
 
 bool selectable_internal::operator()(ImGuiSelectableFlags_ flags, const ImVec2& size)
 {
-	return invoke(*static_cast<selectable*>(this), Label( ), flags, size);
+	return std::invoke(*static_cast<selectable*>(this), Label( ), flags, size);
 }

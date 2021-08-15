@@ -3,85 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEFireBullets::m_vecOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::array<float, 2>& C_TEFireBullets::m_vecAngles( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<float, 2>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_vecAngles");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<float, 2>>( );
-#endif
-}
-int32_t& C_TEFireBullets::m_iWeaponID( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_iWeaponID");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_TEFireBullets::m_weapon( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_weapon");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_TEFireBullets::m_iMode( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_iMode");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_TEFireBullets::m_iSeed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_iSeed");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_TEFireBullets::m_iPlayer( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_iPlayer");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
 float& C_TEFireBullets::m_fInaccuracy( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_fInaccuracy");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_fInaccuracy");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -90,18 +21,48 @@ float& C_TEFireBullets::m_fSpread( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_fSpread");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_fSpread");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_TEFireBullets::m_nItemDefIndex( )
+float& C_TEFireBullets::m_flRecoilIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_flRecoilIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iMode( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_nItemDefIndex");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iMode");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iPlayer( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iPlayer");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iSeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iSeed");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -110,18 +71,58 @@ int32_t& C_TEFireBullets::m_iSoundType( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_iSoundType");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iSoundType");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-float& C_TEFireBullets::m_flRecoilIndex( )
+int32_t& C_TEFireBullets::m_iWeaponID( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets.m_flRecoilIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iWeaponID");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_nItemDefIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_nItemDefIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+std::array<float, 2>& C_TEFireBullets::m_vecAngles( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 2>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_vecAngles");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<float, 2>>( );
+#endif
+}
+Vector& C_TEFireBullets::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_weapon( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_weapon");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }

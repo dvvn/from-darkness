@@ -1,5 +1,5 @@
-utl::Vector& m_vInitialVelocity( );
 int32_t& m_nBounces( );
 int32_t& m_nExplodeEffectIndex( );
 int32_t& m_nExplodeEffectTickBegin( );
-utl::Vector& m_vecExplodeEffectOrigin( );
+Vector& m_vInitialVelocity( );
+Vector& m_vecExplodeEffectOrigin( );

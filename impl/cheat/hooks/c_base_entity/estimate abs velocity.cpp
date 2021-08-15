@@ -30,8 +30,8 @@ bool estimate_abs_velocity::Do_load( )
 
 	this->target_func_ = method_info::make_member_virtual
 			(
-			 bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll"),
-			 bind_front(_Find_signature, "client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18") | add(2) | deref(1) | divide(4) | value
+			 std::bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll"),
+			 std::bind_front(_Find_signature, "client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18") | add(2) | deref(1) | divide(4) | value
 			);
 
 	this->hook( );

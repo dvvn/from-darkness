@@ -3,26 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_EntityFreezing::m_vFreezingOrigin( )
+bool& C_EntityFreezing::m_bFinishFreezing( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_vFreezingOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::array<float, 50>& C_EntityFreezing::m_flFrozenPerHitbox( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<float, 50>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_flFrozenPerHitbox");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<float, 50>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_bFinishFreezing");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }
 float& C_EntityFreezing::m_flFrozen( )
@@ -30,18 +21,28 @@ float& C_EntityFreezing::m_flFrozen( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_flFrozen");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_flFrozen");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-bool& C_EntityFreezing::m_bFinishFreezing( )
+std::array<float, 50>& C_EntityFreezing::m_flFrozenPerHitbox( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(std::array<float, 50>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing.m_bFinishFreezing");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_flFrozenPerHitbox");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<float, 50>>( );
+#endif
+}
+Vector& C_EntityFreezing::m_vFreezingOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_vFreezingOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

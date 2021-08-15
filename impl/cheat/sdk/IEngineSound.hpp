@@ -73,15 +73,15 @@ public:
 	// player (client-side only)
 	virtual int EmitSound(IRecipientFilter& filter, int iEntIndex, int iChannel, const char *pSoundEntry, unsigned int nSoundEntryHash, const char *pSample,
 		float flVolume, float flAttenuation, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
-		const utl::Vector *pOrigin = 0, const utl::Vector *pDirection = 0, CUtlVector< utl::Vector >* pUtlVecOrigins = 0, bool bUpdatePositions = true, float soundtime = 0.0f, int speakerentity = -1) = 0;
+		const Vector *pOrigin = 0, const Vector *pDirection = 0, CUtlVector< Vector >* pUtlVecOrigins = 0, bool bUpdatePositions = true, float soundtime = 0.0f, int speakerentity = -1) = 0;
 
 	virtual int EmitSound(IRecipientFilter& filter, int iEntIndex, int iChannel, const char *pSoundEntry, unsigned int nSoundEntryHash, const char *pSample,
 		float flVolume, soundlevel_t iSoundlevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
-		const utl::Vector *pOrigin = 0, const utl::Vector *pDirection = 0, CUtlVector< utl::Vector >* pUtlVecOrigins = 0, bool bUpdatePositions = true, float soundtime = 0.0f, int speakerentity = -1) = 0;
+		const Vector *pOrigin = 0, const Vector *pDirection = 0, CUtlVector< Vector >* pUtlVecOrigins = 0, bool bUpdatePositions = true, float soundtime = 0.0f, int speakerentity = -1) = 0;
 
 	virtual void EmitSentenceByIndex(IRecipientFilter& filter, int iEntIndex, int iChannel, int iSentenceIndex,
 		float flVolume, soundlevel_t iSoundlevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
-		const utl::Vector *pOrigin = 0, const utl::Vector *pDirection = 0, CUtlVector< utl::Vector >* pUtlVecOrigins = 0, bool bUpdatePositions = true, float soundtime = 0.0f, int speakerentity = -1) = 0;
+		const Vector *pOrigin = 0, const Vector *pDirection = 0, CUtlVector< Vector >* pUtlVecOrigins = 0, bool bUpdatePositions = true, float soundtime = 0.0f, int speakerentity = -1) = 0;
 
 	virtual void    StopSound(int iEntIndex, int iChannel, const char *pSample, unsigned int nSoundEntryHash) = 0;
 	virtual void    StopAllSounds(bool bClearBuffers) = 0;

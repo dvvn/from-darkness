@@ -3,25 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-float& C_BaseGrenade::m_flDamage( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade.m_flDamage");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_BaseGrenade::m_DmgRadius( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade.m_DmgRadius");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade", "m_DmgRadius");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -30,29 +21,9 @@ bool& C_BaseGrenade::m_bIsLive( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade.m_bIsLive");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade", "m_bIsLive");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
-}
-CBaseHandle& C_BaseGrenade::m_hThrower( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade.m_hThrower");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
-#endif
-}
-utl::Vector& C_BaseGrenade::m_vecVelocity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade.m_vecVelocity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
 #endif
 }
 int32_t& C_BaseGrenade::m_fFlags( )
@@ -60,8 +31,38 @@ int32_t& C_BaseGrenade::m_fFlags( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade.m_fFlags");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade", "m_fFlags");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+float& C_BaseGrenade::m_flDamage( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade", "m_flDamage");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+CBaseHandle& C_BaseGrenade::m_hThrower( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade", "m_hThrower");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+Vector& C_BaseGrenade::m_vecVelocity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseGrenade", "m_vecVelocity");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

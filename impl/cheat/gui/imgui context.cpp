@@ -16,7 +16,7 @@ HWND imgui_context::hwnd( ) const
 
 imgui_context::~imgui_context( )
 {
-	invoke([]
+	std::invoke([]
 	{
 		__try
 		{
@@ -34,7 +34,7 @@ imgui_context::~imgui_context( )
 		}
 	});
 
-	ImGui::Shutdown(addressof(ctx__));
+	ImGui::Shutdown(std::addressof(ctx__));
 }
 
 imgui_context::imgui_context( ): ctx__(&fonts__)
@@ -56,8 +56,8 @@ bool imgui_context::Do_load( )
 									 return operator delete(ptr);
 								 });
 
-	ImGui::SetCurrentContext(addressof(ctx__));
-	ImGui::Initialize(addressof(ctx__));
+	ImGui::SetCurrentContext(std::addressof(ctx__));
+	ImGui::Initialize(std::addressof(ctx__));
 
 	auto& io = ctx__.IO;
 	io.IniFilename = nullptr;
@@ -78,13 +78,13 @@ bool imgui_context::Do_load( )
 	io.FontDefault = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arialuni.ttf", 15.0f, addressof(font_cfg), nullptr);
 #else
 
-	io.Fonts->AddFontDefault(addressof(font_cfg));
+	io.Fonts->AddFontDefault(std::addressof(font_cfg));
 
 #endif
 	auto creation_parameters = D3DDEVICE_CREATION_PARAMETERS( );
 
 	[[maybe_unused]] const auto result = d3d->GetCreationParameters(&creation_parameters);
-	BOOST_ASSERT(SUCCEEDED(result));
+	runtime_assert(SUCCEEDED(result));
 
 	hwnd__ = creation_parameters.hFocusWindow;
 	ImGui_ImplWin32_Init(hwnd__);

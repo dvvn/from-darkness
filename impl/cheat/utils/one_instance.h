@@ -26,7 +26,7 @@ namespace cheat::utl
 		{
 			static_assert(std::is_default_constructible_v<T>, "T must be default constructible!");
 			static T cache = T( );
-			return addressof(cache);
+			return std::addressof(cache);
 		}
 	};
 
@@ -39,19 +39,19 @@ namespace cheat::utl
 		using const_reference = const T&;
 		using pointer = T*;
 		using const_pointer = const T*;
-		using weak_type = weak_ptr<T>;
-		using shared_type = shared_ptr<T>;
+		using weak_type = std::weak_ptr<T>;
+		using shared_type = std::shared_ptr<T>;
 
 		static shared_type get_ptr_shared(bool steal=false)
 		{
 			static_assert(std::is_default_constructible_v<T>, __FUNCTION__": T must be default constructible!");
 
-			static shared_type shared = make_shared<T>( );
+			static shared_type shared = std::make_shared<T>( );
 			static weak_type   weak;
 
 			if (!shared)
 			{
-				BOOST_ASSERT(steal==false);
+				runtime_assert(steal==false);
 				return weak.lock( );
 			}
 			else
@@ -61,7 +61,7 @@ namespace cheat::utl
 				else
 				{
 					weak = shared;
-					return move(shared);
+					return std::move(shared);
 				}
 			}
 		}

@@ -3,105 +3,106 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::array<int32_t, 65>& C_PlayerResource::m_iPing( )
+std::array<int32_t, 65>& C_PlayerResource::m_bAlive( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iPing");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_bAlive");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_iKills( )
+std::array<int32_t, 65>& C_PlayerResource::m_bConnected( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iKills");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_bConnected");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_iAssists( )
+std::array<int32_t, 65>& C_PlayerResource::m_iAssists( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iAssists");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iAssists");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_iDeaths( )
+std::array<int32_t, 65>& C_PlayerResource::m_iCoachingTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iDeaths");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iCoachingTeam");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_bConnected( )
+std::array<int32_t, 65>& C_PlayerResource::m_iDeaths( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_bConnected");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iDeaths");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_iTeam( )
+std::array<int32_t, 65>& C_PlayerResource::m_iHealth( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iTeam");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iHealth");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_iPendingTeam( )
+std::array<int32_t, 65>& C_PlayerResource::m_iKills( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iPendingTeam");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iKills");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_bAlive( )
+std::array<int32_t, 65>& C_PlayerResource::m_iPendingTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_bAlive");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iPendingTeam");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_iHealth( )
+std::array<int32_t, 65>& C_PlayerResource::m_iPing( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iHealth");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iPing");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
-utl::array<int32_t, 65>& C_PlayerResource::m_iCoachingTeam( )
+std::array<int32_t, 65>& C_PlayerResource::m_iTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 65>*)nullptr;
+	return *(std::array<int32_t, 65>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource.m_iCoachingTeam");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 65>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iTeam");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }

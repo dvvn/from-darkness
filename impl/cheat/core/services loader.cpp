@@ -26,53 +26,52 @@ using namespace cheat;
 using namespace detail;
 using namespace utl;
 
-static future<bool> _Wait_for_game( )
+static bool _Wait_for_game( )
 {
-	return async(launch::async, []
-	{
 #ifdef CHEAT_GUI_TEST
 
-		return false;
+	return false;
 
 #else
 
-		const auto modules = all_modules::get_ptr( );
-		auto&      all     = modules->update(false).all( );
+	const auto modules = all_modules::get_ptr( );
+	auto&      all     = modules->update(false).all( );
 
-		auto  work_dir        = filesystem::path(modules->owner( ).work_dir( ));
-		auto& work_dir_native = const_cast<filesystem::path::string_type&>(work_dir.native( ));
-		ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
-		work_dir.append(L"bin").append(L"serverbrowser.dll");
+	auto  work_dir        = std::filesystem::path(modules->owner( ).work_dir( ));
+	auto& work_dir_native = const_cast<std::filesystem::path::string_type&>(work_dir.native( ));
+	ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
+	work_dir.append(L"bin").append(L"serverbrowser.dll");
 
-		const auto is_game_loaded = [&]
+	const auto is_game_loaded = [&]
+	{
+		for (const auto& path: all | ranges::views::transform(&module_info::full_path) | ranges::views::reverse)
 		{
-			for (const auto& path: all | ranges::views::transform(&module_info::full_path) | ranges::views::reverse)
-			{
-				if (path == work_dir_native)
-					return true;
-			}
+			if (path == work_dir_native)
+				return true;
+		}
 
+		return false;
+	};
+
+	if (is_game_loaded( ))
+		return true;
+
+	do
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(all.size( ) < 120 ? 1000 : 100));
+		/*if (interruption_requested( ))
+			throw thread_interrupted( );*/
+		if (services_loader::get_ptr( )->unloaded( ))
 			return false;
-		};
+
+		modules->update(true);
 
 		if (is_game_loaded( ))
-			return true;
-
-		do
-		{
-			this_thread::sleep_for(chrono::milliseconds(all.size( ) < 120 ? 1000 : 100));
-			if (this_thread::interruption_requested( ))
-				throw thread_interrupted( );
-
-			modules->update(true);
-
-			if (is_game_loaded( ))
-				return false;
-		}
-		while (true);
+			return false;
+	}
+	while (true);
 
 #endif
-	});
 }
 
 struct unload_helper_data
@@ -103,20 +102,23 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	FreeLibraryAndExitThread(handle, retval);
 }
 
-future<bool> services_holder::load( )
+std::future<bool> services_holder::load( )
 {
-	return _Wait_for_game( ).then([this](const future<bool>& task1)-> bool
+	return std::async(std::launch::async, [this]
 	{
-		if (task1.future_->exception)
+		bool game_alredy_loaded;
+		try
 		{
-			BOOST_ASSERT("Error in modules loader!");
+			game_alredy_loaded = _Wait_for_game( );
+		}
+		catch (const std::exception& ex)
+		{
+			runtime_assert(ex.what());
 			return false;
 		}
 
-		//game loaded, freeze all threads from there
-		const auto game_alredy_loaded = *task1.future_->result;
 #ifdef NDEBUG
-		this_thread::sleep_for(chrono::seconds(game_alredy_loaded ? 1 : 5));
+		std::this_thread::sleep_for(std::chrono::seconds(game_alredy_loaded ? 1 : 5));
 #endif
 		auto frozen = winapi::frozen_threads_storage(game_alredy_loaded);
 		auto loader = thread_pool( );
@@ -125,7 +127,7 @@ future<bool> services_holder::load( )
 		{
 			for (const auto& s: services)
 			{
-				loader.submit(bind_front(&service_base::load, s.get( )));
+				loader.submit(std::bind_front(&service_base::load, s.get( )));
 			}
 		};
 		const auto wait = [&](const services_storage_type& services)
@@ -140,11 +142,11 @@ future<bool> services_holder::load( )
 					{
 						case state::unset:
 						case state::loading:
-							this_thread::yield( );
+							std::this_thread::yield( );
 							break;
 						case state::stopped:
 						case state::error:
-							loader.close( );
+							loader.paused = true;
 						case state::loaded:
 							++done;
 							break;
@@ -156,7 +158,7 @@ future<bool> services_holder::load( )
 			}
 			while (true);
 
-			return !loader.closed( );
+			return loader.paused == false;
 		};
 
 		for (auto child = this; child != nullptr; child = child->next__.get( ))
@@ -176,8 +178,8 @@ future<bool> services_holder::load( )
 				return false;
 		}
 
-		loader.close( );
-		loader.join( );
+		//wait for all services
+		loader.wait_for_tasks();
 
 		for (auto child = this; child != nullptr; child = child->next__.get( ))
 		{
@@ -198,14 +200,14 @@ using namespace hooks;
 services_holder& services_holder::then( )
 {
 	if (!next__)
-		next__ = utl::make_unique<services_holder>( );
+		next__ = std::make_unique<services_holder>( );
 
 	return *next__;
 }
 
-unordered_set<hook_holder_base*> services_holder::get_all_hooks( )
+nstd::unordered_set<hook_holder_base*> services_holder::get_all_hooks( )
 {
-	auto hooks = unordered_set<hook_holder_base*>( );
+	auto hooks = nstd::unordered_set<hook_holder_base*>( );
 
 	const auto extract_hooks = [&](const services_storage_type& where)
 	{
@@ -225,7 +227,7 @@ unordered_set<hook_holder_base*> services_holder::get_all_hooks( )
 	return hooks;
 }
 
-string_view services_loader::name( ) const
+std::string_view services_loader::name( ) const
 {
 	return _Type_name<services_loader>(false);
 }
@@ -240,18 +242,25 @@ HMODULE services_loader::my_handle( ) const
 void services_loader::load(HMODULE handle)
 {
 	my_handle__ = handle;
-	this->load( );
+	std::thread([this] { this->load( ); }).detach( );
 }
 
 void services_loader::unload( )
 {
+	runtime_assert(this->unloaded_==false);
+
 	const auto data = new unload_helper_data;
 	data->sleep     = 1000;
 	data->handle    = my_handle__;
 	data->retval    = TRUE;
-	data->instance  = addressof(this->services__);
-
+	data->instance  = std::addressof(this->services__);
+	this->unloaded_ = true;
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
+}
+
+bool services_loader::unloaded( ) const
+{
+	return unloaded_;
 }
 
 #endif
@@ -259,38 +268,34 @@ void services_loader::unload( )
 void services_loader::reset( )
 {
 	auto dummy = services_holder( );
-	swap(services__, dummy);
+	std::swap(services__, dummy);
 }
 
 bool services_loader::Do_load( )
 {
-	[[maybe_unused]] auto task = services__.load( ).then([this](const future<bool>& task1)
+	bool result;
+	try
 	{
-		if (task1.future_->exception || *task1.future_->result == false)
-		{
-#ifdef CHEAT_GUI_TEST
-			return false;
-#else
-			this->unload( );
-#endif
-		}
-			// ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
-		else
-		{
-#ifdef CHEAT_HAVE_CONSOLE
-			_Log_to_console("Cheat fully loaded");
-#endif
-#ifdef CHEAT_GUI_TEST
-			return true;
-#endif
-		}
-	});
-#ifdef CHEAT_GUI_TEST
-	if (!task.get( ))
-		throw std::exception( );
-#endif
+		result = services__.load( ).get( );
+	}
+	catch (const std::exception& ex)
+	{
+		CHEAT_CONSOLE_LOG("Error while task loading: {}", ex.what());
+		result = false;
+	}
 
-	return true;
+	if (!result)
+	{
+#ifndef CHEAT_GUI_TEST
+		this->unload( );
+#endif
+	}
+	else
+	{
+		CHEAT_CONSOLE_LOG("Cheat fully loaded");
+	}
+
+	return result;
 }
 
 services_loader::services_loader( )

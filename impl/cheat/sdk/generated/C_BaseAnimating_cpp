@@ -3,106 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-int32_t& C_BaseAnimating::m_nSequence( )
+int32_t& C_BaseAnimating::m_ScaleType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nSequence");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_ScaleType");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_nForceBone( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nForceBone");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-utl::Vector& C_BaseAnimating::m_vecForce( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_vecForce");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_nSkin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nSkin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_nBody( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nBody");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_nHitboxSet( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nHitboxSet");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-float& C_BaseAnimating::m_flModelScale( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_flModelScale");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-utl::array<float, 24>& C_BaseAnimating::m_flPoseParameter( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<float, 24>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_flPoseParameter");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<float, 24>>( );
-#endif
-}
-float& C_BaseAnimating::m_flPlaybackRate( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_flPlaybackRate");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-utl::array<float, 4>& C_BaseAnimating::m_flEncodedController( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<float, 4>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_flEncodedController");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<float, 4>>( );
 #endif
 }
 bool& C_BaseAnimating::m_bClientSideAnimation( )
@@ -110,8 +21,8 @@ bool& C_BaseAnimating::m_bClientSideAnimation( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_bClientSideAnimation");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_bClientSideAnimation");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -120,8 +31,8 @@ bool& C_BaseAnimating::m_bClientSideFrameReset( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_bClientSideFrameReset");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_bClientSideFrameReset");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -130,79 +41,9 @@ bool& C_BaseAnimating::m_bClientSideRagdoll( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_bClientSideRagdoll");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_bClientSideRagdoll");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_nNewSequenceParity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nNewSequenceParity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_nResetEventsParity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nResetEventsParity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_nMuzzleFlashParity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nMuzzleFlashParity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-CBaseHandle& C_BaseAnimating::m_hLightingOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_hLightingOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
-#endif
-}
-float& C_BaseAnimating::m_flCycle( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_flCycle");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_BaseAnimating::m_flFrozen( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_flFrozen");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-int32_t& C_BaseAnimating::m_ScaleType( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_ScaleType");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
 #endif
 }
 bool& C_BaseAnimating::m_bSuppressAnimSounds( )
@@ -210,28 +51,98 @@ bool& C_BaseAnimating::m_bSuppressAnimSounds( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_bSuppressAnimSounds");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_bSuppressAnimSounds");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
-int32_t& C_BaseAnimating::m_nHighlightColorR( )
+float& C_BaseAnimating::m_flCycle( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_flCycle");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+std::array<float, 4>& C_BaseAnimating::m_flEncodedController( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 4>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_flEncodedController");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<float, 4>>( );
+#endif
+}
+float& C_BaseAnimating::m_flFrozen( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_flFrozen");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_BaseAnimating::m_flModelScale( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_flModelScale");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_BaseAnimating::m_flPlaybackRate( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_flPlaybackRate");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+std::array<float, 24>& C_BaseAnimating::m_flPoseParameter( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 24>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_flPoseParameter");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<float, 24>>( );
+#endif
+}
+CBaseHandle& C_BaseAnimating::m_hLightingOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_hLightingOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nBody( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nHighlightColorR");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nBody");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-int32_t& C_BaseAnimating::m_nHighlightColorG( )
+int32_t& C_BaseAnimating::m_nForceBone( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nHighlightColorG");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nForceBone");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -240,8 +151,98 @@ int32_t& C_BaseAnimating::m_nHighlightColorB( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating.m_nHighlightColorB");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nHighlightColorB");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nHighlightColorG( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nHighlightColorG");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nHighlightColorR( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nHighlightColorR");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nHitboxSet( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nHitboxSet");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nMuzzleFlashParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nMuzzleFlashParity");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nNewSequenceParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nNewSequenceParity");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nResetEventsParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nResetEventsParity");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nSequence( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nSequence");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseAnimating::m_nSkin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_nSkin");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+Vector& C_BaseAnimating::m_vecForce( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_vecForce");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

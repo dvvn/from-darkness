@@ -31,8 +31,8 @@ bool standard_blending_rules::Do_load( )
 
 	this->target_func_ = method_info::make_member_virtual
 			(
-			 bind_front(_Vtable_pointer<C_BaseAnimating>, "client.dll"),
-			 bind_front(_Find_signature, "client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC") | add(11) | deref(1) | divide(4) | value
+			 std::bind_front(_Vtable_pointer<C_BaseAnimating>, "client.dll"),
+			 std::bind_front(_Find_signature, "client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC") | add(11) | deref(1) | divide(4) | value
 			);
 
 	this->hook( );

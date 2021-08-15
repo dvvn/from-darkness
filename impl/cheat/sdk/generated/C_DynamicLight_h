@@ -1,7 +1,7 @@
-int32_t& m_Flags( );
-int32_t& m_LightStyle( );
-float& m_Radius( );
 int32_t& m_Exponent( );
+int32_t& m_Flags( );
 float& m_InnerAngle( );
+int32_t& m_LightStyle( );
 float& m_OuterAngle( );
+float& m_Radius( );
 float& m_SpotRadius( );

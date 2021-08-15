@@ -1,5 +1,5 @@
-CBaseHandle& m_hPlayer( );
 bool& m_bEnterAnimOn( );
 bool& m_bExitAnimOn( );
 bool& m_bForceEyesToAttachment( );
-utl::Vector& m_vecEyeExitEndpoint( );
+CBaseHandle& m_hPlayer( );
+Vector& m_vecEyeExitEndpoint( );

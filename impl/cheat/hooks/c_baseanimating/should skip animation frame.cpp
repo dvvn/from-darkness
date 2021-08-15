@@ -30,7 +30,7 @@ bool should_skip_animation_frame::Do_load( )
 	using namespace address_pipe;
 
 	this->target_func_ = method_info::make_static
-			(bind_front(_Find_signature, "client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02") | ptr<void>);
+			(std::bind_front(_Find_signature, "client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02") | ptr<void>);
 
 	this->hook( );
 	this->enable( );

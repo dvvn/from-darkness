@@ -7,68 +7,67 @@ using namespace cheat;
 using namespace gui;
 using namespace objects;
 using namespace utl;
-using namespace filesystem;
-using namespace property_tree;
 
-settings_data::settings_data(const string_view& name) : settings_data(wstring(name.begin( ), name.end( )))
+settings_data::settings_data(const std::string_view& name) : settings_data(std::wstring(name.begin( ), name.end( )))
 {
 }
 
-settings_data::settings_data(wstring&& name) : string_wrapper_base(raw_type(move(name)))
+settings_data::settings_data(std::wstring&& name) : string_wrapper_base(raw_type(move(name)))
 {
 	path_ = all_modules::get_ptr( )->current( ).work_dir( );
 	path_ /= L"settings";
 	path_ /= this->raw( );
 }
 
-bool settings_data::save(const wstring_view& name) const
+bool settings_data::save(const std::wstring_view& name) const
 {
-	const auto full_path = filesystem::path(Generate_path(name));
+	const auto full_path = std::filesystem::path(Generate_path(name));
 	if (const auto dir = full_path.parent_path( ); !exists(dir) && !create_directories(dir))
 		return false;
-	auto stream = std::basic_ofstream<wchar_t>(full_path.native( ));
+	auto stream = std::ofstream(full_path);
 	if (!stream)
 		return false;
-	write_json(stream, tree_);
+
+	stream << tree_;
 	return true;
 }
 
-bool settings_data::save(const wstring_view& name)
+bool settings_data::save(const std::wstring_view& name)
 {
 	this->update( );
 	return static_cast<const settings_data*>(this)->save(name);
 }
 
-bool settings_data::load(const wstring_view& name)
+bool settings_data::load(const std::wstring_view& name)
 {
-	auto stream = std::basic_ifstream<wchar_t>(Generate_path(name));
+	auto stream = std::ifstream(Generate_path(name));
 	if (!stream)
 		return false;
 	tree_.clear( );
-	read_json(stream, tree_);
+	(stream >> tree_);
 	this->update( );
 	return true;
 }
 
-bool settings_data::remove(const wstring_view& name) const
+bool settings_data::remove(const std::wstring_view& name) const
 {
 	auto path = Generate_path(name);
-	return filesystem::remove(path);
+	return std::filesystem::remove(path);
 }
 
 bool settings_data::remove_all( ) const
 {
-	return filesystem::remove(path_);
+	return std::filesystem::remove(path_);
 }
 
-wstring_view settings_data::path( ) const
+std::wstring_view settings_data::path( ) const
 {
 	return path_.native( );
 }
 
-wstring settings_data::Generate_path(const wstring_view& name) const
+std::wstring settings_data::Generate_path(const std::wstring_view& name) const
 {
-	auto path = const_cast<wstring&&>((path_ / name).native( ));
+	auto path = const_cast<std::wstring&&>((path_ / name).native( ));
 	path += L".json";
 	return path;
 }

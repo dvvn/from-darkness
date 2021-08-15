@@ -15,10 +15,10 @@ using namespace utl;
 
 stored_player_bones::stored_player_bones([[maybe_unused]] C_BaseEntity* ent)
 {
-	const auto& bones = ent->BonesCache( );
+	const auto&  bones     = ent->BonesCache( );
 	const size_t num_bones = bones.size( );
 
-	cache__ = make_unique<matrix3x4_t[]>(num_bones);
+	cache__ = std::make_unique<matrix3x4_t[]>(num_bones);
 	std::memcpy(cache__.get( ), bones.data( ), num_bones * sizeof(matrix3x4_t));
 
 	*static_cast<span*>(this) = {cache__.get( ), num_bones};
@@ -26,8 +26,8 @@ stored_player_bones::stored_player_bones([[maybe_unused]] C_BaseEntity* ent)
 
 bool tick_record::is_valid(float curtime) const
 {
-	const auto interfaces = csgo_interfaces::get_ptr( );
-	const auto engine = interfaces->engine.get( );
+	const auto interfaces  = csgo_interfaces::get_ptr( );
+	const auto engine      = interfaces->engine.get( );
 	const auto get_latency = [&](int flow)
 	{
 		return engine->GetNetChannelInfo( )->GetLatency(flow);
@@ -43,18 +43,18 @@ bool tick_record::is_valid(float curtime) const
 void tick_record_shared_impl::init(const player& holder)
 {
 	shared_holder::init( );
-	 
-#ifndef CHEAT_NETVARS_UPDATING
-	C_BaseEntity* ent = holder.ent;
-	const auto tick = this->get( ); 
 
-	tick->origin = ent->m_vecOrigin( );
-	tick->abs_origin = ent->m_vecAbsOrigin( );
-	tick->rotation = ent->m_angRotation( );
-	tick->abs_rotation = ent->m_angAbsRotation( );
-	tick->mins = ent->m_vecMins( );
-	tick->maxs = ent->m_vecMaxs( );
-	tick->sim_time = holder.sim_time;
+#ifndef CHEAT_NETVARS_UPDATING
+	C_BaseEntity* ent  = holder.ent;
+	const auto    tick = this->get( );
+
+	tick->origin           = ent->m_vecOrigin( );
+	tick->abs_origin       = ent->m_vecAbsOrigin( );
+	tick->rotation         = ent->m_angRotation( );
+	tick->abs_rotation     = ent->m_angAbsRotation( );
+	tick->mins             = ent->m_vecMins( );
+	tick->maxs             = ent->m_vecMaxs( );
+	tick->sim_time         = holder.sim_time;
 	tick->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
 #endif
 }
@@ -62,7 +62,7 @@ void tick_record_shared_impl::init(const player& holder)
 void tick_record_shared_impl::store_bones(C_BaseEntity* ent)
 {
 	auto& bones = this->get( )->bones;
-	BOOST_ASSERT(bones.empty( ));
+	runtime_assert(bones.empty( ));
 	bones = {ent};
 
 	(void)this;

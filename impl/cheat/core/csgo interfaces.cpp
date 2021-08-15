@@ -16,38 +16,38 @@ class CInterfaceRegister
 {
 public:
 	InstantiateInterfaceFn create_fn;
-	const char* name;
-	CInterfaceRegister* next;
+	const char*            name;
+	CInterfaceRegister*    next;
 };
 
 class interfaces_cache
 {
 public:
-	using entry_type = unordered_map<string_view, InstantiateInterfaceFn>;
-	using cache_type = ordered_map<module_info*, entry_type>;
+	using entry_type = nstd::unordered_map<std::string_view, InstantiateInterfaceFn>;
+	using cache_type = nstd::ordered_map<module_info*, entry_type>;
 
 private:
 	cache_type cache__;
 
-	const entry_type& Get_entry_(const string_view& dll_name)
+	const entry_type& Get_entry_(const std::string_view& dll_name)
 	{
 		constexpr auto fill_entry = [](entry_type& entry, module_info* info)
 		{
-			BOOST_ASSERT_MSG(entry.empty(), "Entry already filled!");
+			runtime_assert(entry.empty(), "Entry already filled!");
 
 			auto& exports = info->exports( );
 
 			[[maybe_unused]] const auto load_result = exports.load( );
-			BOOST_ASSERT_MSG(load_result ==true, "Unable to load exports");
+			runtime_assert(load_result ==true, "Unable to load exports");
 
 			const auto& create_fn = exports.get_cache( ).at("CreateInterface");
-			const auto reg = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
+			const auto  reg       = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
 
-			auto temp_entry = vector<entry_type::value_type>( );
+			auto temp_entry = std::vector<entry_type::value_type>( );
 			for (auto r = reg; r != nullptr; r = r->next)
-				temp_entry.emplace_back(make_pair(string_view(r->name), r->create_fn));
+				temp_entry.emplace_back(make_pair(std::string_view(r->name), r->create_fn));
 
-			const auto contains_duplicate = [&](const string_view& new_string, size_t original_size)
+			const auto contains_duplicate = [&](const std::string_view& new_string, size_t original_size)
 			{
 				auto detected = false;
 				for (auto& raw_string: temp_entry | ranges::views::keys)
@@ -62,16 +62,16 @@ private:
 				}
 				return false;
 			};
-			const auto drop_underline = [&](const string_view& str, size_t original_size) -> optional<string_view>
+			const auto drop_underline = [&](const std::string_view& str, size_t original_size) -> std::optional<std::string_view>
 			{
 				if (str.ends_with('_'))
 				{
-					if (const auto str2 = string_view(str.begin( ), str.end( ) - 1); !contains_duplicate(str2, original_size))
+					if (const auto str2 = std::string_view(str.begin( ), str.end( ) - 1); !contains_duplicate(str2, original_size))
 						return str2;
 				}
 				return { };
 			};
-			const auto get_pretty_string = [&](const string_view& str) -> optional<string_view>
+			const auto get_pretty_string = [&](const std::string_view& str) -> std::optional<std::string_view>
 			{
 				size_t remove = 0;
 				for (const auto c: str | ranges::views::reverse)
@@ -107,29 +107,29 @@ private:
 				return entry;
 		}
 
-		const auto info = all_modules::get_ptr()->find(dll_name);
+		const auto info = all_modules::get_ptr( )->find(dll_name);
 
 		auto& entry = cache__[info];
-		BOOST_ASSERT(entry.empty( ));
+		runtime_assert(entry.empty( ));
 		fill_entry(entry, info);
 
 		return entry;
 	}
 
 public:
-	address operator()(const string_view& dll_name, const string_view& interface_name)
+	address operator()(const std::string_view& dll_name, const std::string_view& interface_name)
 	{
 		const auto& entry = Get_entry_(dll_name);
 		//const auto& fn = entry.at(interface_name);
 
 		const auto found = entry.find(interface_name);
-		BOOST_ASSERT(found!=entry.end());
+		runtime_assert(found!=entry.end());
 
 #ifdef CHEAT_HAVE_CONSOLE
-		const auto& original_interface_name = found.key( );
-		const auto original_interface_name_end = original_interface_name._Unchecked_end( );
+		const auto& original_interface_name     = found.key( );
+		const auto  original_interface_name_end = original_interface_name._Unchecked_end( );
 
-		string msg = "Found interface: ";
+		std::string msg = "Found interface: ";
 		msg += interface_name;
 		if (*original_interface_name_end != '\0')
 		{
@@ -141,15 +141,15 @@ public:
 
 		msg += " in module ";
 		msg += dll_name;
-		_Log_to_console(msg);
+		CHEAT_CONSOLE_LOG(msg);
 
 #endif
 
-		return invoke(found.value( ));
+		return std::invoke(found.value( ));
 	}
 };
 
-static address _Get_vfunc(void* instance, size_t index)
+[[maybe_unused]] static address _Get_vfunc(void* instance, size_t index)
 {
 	address result;
 
@@ -165,16 +165,17 @@ address csgo_interface_base::addr( ) const
 	return result_;
 }
 
-void csgo_interface_base::operator=(const address& addr)
+csgo_interface_base& csgo_interface_base::operator=(const address& addr)
 {
 	Set_result_assert_( );
 	result_ = addr;
+	return *this;
 }
 
 void csgo_interface_base::Set_result_assert_( ) const
 {
 	(void)this;
-	BOOST_ASSERT_MSG(result_ == 0u, "Result already set!");
+	runtime_assert(result_ == 0u, "Result already set!");
 }
 
 #ifdef CHEAT_GUI_TEST
@@ -200,7 +201,7 @@ bool csgo_interfaces::Do_load( )
 		std::ifstream ifs(file.native( ));
 		using it = std::istreambuf_iterator<decltype(ifs)::char_type>;
 
-		const auto str = string(it(ifs), it( ));
+		const auto str = std::string(it(ifs), it( ));
 
 		if (str.starts_with("730") && (str.size( ) == 3 || !std::isdigit(str[3])))
 		{
@@ -208,7 +209,7 @@ bool csgo_interfaces::Do_load( )
 			break;
 		}
 	}
-	BOOST_ASSERT_MSG(!csgo_path.empty(), "Csgo path not found!");
+	runtime_assert(!csgo_path.empty(), "Csgo path not found!");
 
 #if 0
 	const auto csgo_bin = csgo_path / L"csgo" / L"bin";
@@ -222,7 +223,7 @@ bool csgo_interfaces::Do_load( )
 		const auto handle = LoadLibraryExW(full_path.c_str( ), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH | DONT_RESOLVE_DLL_REFERENCES);
 		(void)handle;
 		//no memory leak here. it unloads on app close
-		BOOST_ASSERT_MSG(handle!=0, "Unable to load library!");
+		runtime_assert(handle!=0, "Unable to load library!");
 	};
 
 	load_lib(csgo_bin, L"client");
@@ -284,7 +285,7 @@ bool csgo_interfaces::Do_load( )
 
 	d3d_device = _Find_signature("shaderapidx9.dll", "A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
 #else
-	d3d_device=(g_pd3dDevice);
+	d3d_device = (g_pd3dDevice);
 #endif
 
 	return true;

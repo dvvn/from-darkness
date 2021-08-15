@@ -62,9 +62,9 @@ namespace cheat::csgo
 	struct LightDesc_t
 	{
 		LightType_t m_Type;      //< xxx
-		utl::Vector m_Color;     //< color+intensity 
-		utl::Vector m_Position;  //< light source center position
-		utl::Vector m_Direction; //< for SPOT, direction it is pointing
+		Vector m_Color;     //< color+intensity 
+		Vector m_Position;  //< light source center position
+		Vector m_Direction; //< for SPOT, direction it is pointing
 		float m_Range;           //< distance range for light.0=infinite
 		float m_Falloff;         //< angular falloff exponent for spot lights
 		float m_Attenuation0;    //< constant distance falloff term
@@ -157,8 +157,8 @@ namespace cheat::csgo
 
 	struct MaterialLightingState_t
 	{
-		utl::Vector vecAmbientCube[6];
-		utl::Vector vecLightingOrigin;
+		Vector vecAmbientCube[6];
+		Vector vecLightingOrigin;
 		int nLocalLightCount;
 		LightDesc_t localLightDesc[4];
 	};
@@ -248,7 +248,7 @@ namespace cheat::csgo
 			m_flProjectionRotation = 0.0f;
 		}
 
-		utl::Vector m_vecLightOrigin;
+		Vector m_vecLightOrigin;
 		Quaternion m_quatOrientation;
 		float m_NearZ;
 		float m_FarZ;
@@ -317,7 +317,7 @@ namespace cheat::csgo
 	{
 		IMaterial* m_pDebugMaterial;
 		FlashlightState_t m_FlashlightState;
-		utl::VMatrix m_WorldToTexture;
+		VMatrix m_WorldToTexture;
 		ITexture* m_pFlashlightDepthTexture;
 	};
 
@@ -367,11 +367,11 @@ namespace cheat::csgo
 
 	struct GetTriangles_Vertex_t
 	{
-		utl::Vector m_Position;
-		utl::Vector m_Normal;
-		utl::Vector4D m_TangentS;
-		utl::Vector2D m_TexCoord;
-		utl::Vector4D m_BoneWeight;
+		Vector m_Position;
+		Vector m_Normal;
+		Vector4D m_TangentS;
+		Vector2D m_TexCoord;
+		Vector4D m_BoneWeight;
 		int m_BoneIndex[4];
 		int m_NumBones;
 	};
@@ -386,7 +386,7 @@ namespace cheat::csgo
 	struct GetTriangles_Output_t
 	{
 		CUtlVector<GetTriangles_MaterialBatch_t> m_MaterialBatches;
-		utl::matrix3x4_t m_PoseToWorld[MAXSTUDIOBONES];
+		matrix3x4_t m_PoseToWorld[MAXSTUDIOBONES];
 	};
 
 	struct StudioShadowArrayInstanceData_t
@@ -394,7 +394,7 @@ namespace cheat::csgo
 		int m_nLOD;
 		int m_nBody;
 		int m_nSkin;
-		utl::matrix3x4a_t* m_pPoseToWorld;
+		matrix3x4a_t* m_pPoseToWorld;
 		float* m_pFlexWeights;
 		float* m_pDelayedFlexWeights;
 	};
@@ -409,7 +409,7 @@ namespace cheat::csgo
 		ShaderStencilState_t* m_pStencilState;
 		ColorMeshInfo_t* m_pColorMeshInfo;
 		bool m_bColorMeshHasIndirectLightingOnly;
-		utl::Vector4D m_DiffuseModulation;
+		Vector4D m_DiffuseModulation;
 	};
 
 	struct StudioArrayData_t
@@ -456,20 +456,20 @@ namespace cheat::csgo
 		virtual void RefreshStudioHdr(studiohdr_t* pStudioHdr, studiohwdata_t* pHardwareData) = 0;
 
 		// This is needed to do eyeglint and calculate the correct texcoords for the eyes.
-		virtual void SetEyeViewTarget(const studiohdr_t* pStudioHdr, int nBodyIndex, const utl::Vector& worldPosition) = 0;
+		virtual void SetEyeViewTarget(const studiohdr_t* pStudioHdr, int nBodyIndex, const Vector& worldPosition) = 0;
 
 		// Methods related to lighting state
 		// NOTE: SetAmbientLightColors assumes that the arraysize is the same as 
 		// returned from GetNumAmbientLightSamples
 		virtual int GetNumAmbientLightSamples( ) = 0;
-		virtual const utl::Vector* GetAmbientLightDirections( ) = 0;
-		virtual void SetAmbientLightColors(const utl::Vector4D* pAmbientOnlyColors) = 0;
-		virtual void SetAmbientLightColors(const utl::Vector* pAmbientOnlyColors) = 0;
+		virtual const Vector* GetAmbientLightDirections( ) = 0;
+		virtual void SetAmbientLightColors(const Vector4D* pAmbientOnlyColors) = 0;
+		virtual void SetAmbientLightColors(const Vector* pAmbientOnlyColors) = 0;
 		virtual void SetLocalLights(int numLights, const LightDesc_t* pLights) = 0;
 
 		// Sets information about the camera location + orientation
-		virtual void SetViewState(const utl::Vector& viewOrigin, const utl::Vector& viewRight,
-								  const utl::Vector& viewUp, const utl::Vector& viewPlaneNormal) = 0;
+		virtual void SetViewState(const Vector& viewOrigin, const Vector& viewRight,
+								  const Vector& viewUp, const Vector& viewPlaneNormal) = 0;
 
 		// LOD stuff
 		virtual int GetNumLODs(const studiohwdata_t& hardwareData) const = 0;
@@ -482,13 +482,13 @@ namespace cheat::csgo
 
 		// Draws the model
 		virtual void DrawModel(DrawModelResults_t* pResults, const DrawModelInfo_t& info,
-							   utl::matrix3x4_t* pBoneToWorld, float* pFlexWeights, float* pFlexDelayedWeights, const utl::Vector& modelOrigin,
+							   matrix3x4_t* pBoneToWorld, float* pFlexWeights, float* pFlexDelayedWeights, const Vector& modelOrigin,
 							   DrawModelFlags_t flags = DrawModelFlags_t::DRAW_ENTIRE_MODEL) = 0;
 
 		// Methods related to static prop rendering
-		virtual void DrawModelStaticProp(const DrawModelInfo_t& drawInfo, const utl::matrix3x4_t& modelToWorld, DrawModelFlags_t flags = DrawModelFlags_t::DRAW_ENTIRE_MODEL) = 0;
-		virtual void DrawStaticPropDecals(const DrawModelInfo_t& drawInfo, const utl::matrix3x4_t& modelToWorld) = 0;
-		virtual void DrawStaticPropShadows(const DrawModelInfo_t& drawInfo, const utl::matrix3x4_t& modelToWorld, int flags) = 0;
+		virtual void DrawModelStaticProp(const DrawModelInfo_t& drawInfo, const matrix3x4_t& modelToWorld, DrawModelFlags_t flags = DrawModelFlags_t::DRAW_ENTIRE_MODEL) = 0;
+		virtual void DrawStaticPropDecals(const DrawModelInfo_t& drawInfo, const matrix3x4_t& modelToWorld) = 0;
+		virtual void DrawStaticPropShadows(const DrawModelInfo_t& drawInfo, const matrix3x4_t& modelToWorld, int flags) = 0;
 
 		// Causes a material to be used instead of the materials the model was compiled with
 		virtual void ForcedMaterialOverride(IMaterial* newMaterial, OverrideType_t nOverrideType = OverrideType_t::NORMAL, int nMaterialIndex = -1) = 0;
@@ -500,21 +500,21 @@ namespace cheat::csgo
 
 		// Add decals to a decal list by doing a planar projection along the ray
 		// The BoneToWorld matrices must be set before this is called
-		virtual void AddDecal(StudioDecalHandle_t handle, studiohdr_t* pStudioHdr, utl::matrix3x4_t* pBoneToWorld,
-							  const Ray_t& ray, const utl::Vector& decalUp, IMaterial* pDecalMaterial, float radius, int body, bool noPokethru = false,
+		virtual void AddDecal(StudioDecalHandle_t handle, studiohdr_t* pStudioHdr, matrix3x4_t* pBoneToWorld,
+							  const Ray_t& ray, const Vector& decalUp, IMaterial* pDecalMaterial, float radius, int body, bool noPokethru = false,
 							  int maxLODToDecal = /*ADDDECAL_TO_ALL_LODS*/-1, void* pvProxyUserData = nullptr, int nAdditionalDecalFlags = 0) = 0;
 
 		// Compute the lighting at a point and normal
-		virtual void ComputeLighting(const utl::Vector* pAmbient, int lightCount,
-									 LightDesc_t* pLights, const utl::Vector& pt, const utl::Vector& normal, utl::Vector& lighting) = 0;
+		virtual void ComputeLighting(const Vector* pAmbient, int lightCount,
+									 LightDesc_t* pLights, const Vector& pt, const Vector& normal, Vector& lighting) = 0;
 
 		// Compute the lighting at a point, constant directional component is passed
 		// as flDirectionalAmount
-		virtual void ComputeLightingConstDirectional(const utl::Vector* pAmbient, int lightCount,
-													 LightDesc_t* pLights, const utl::Vector& pt, const utl::Vector& normal, utl::Vector& lighting, float flDirectionalAmount) = 0;
+		virtual void ComputeLightingConstDirectional(const Vector* pAmbient, int lightCount,
+													 LightDesc_t* pLights, const Vector& pt, const Vector& normal, Vector& lighting, float flDirectionalAmount) = 0;
 
 		// Shadow state (affects the models as they are rendered)
-		virtual void AddShadow(IMaterial* pMaterial, void* pProxyData, FlashlightState_t* m_pFlashlightState = nullptr, utl::VMatrix* pWorldToTexture = nullptr,
+		virtual void AddShadow(IMaterial* pMaterial, void* pProxyData, FlashlightState_t* m_pFlashlightState = nullptr, VMatrix* pWorldToTexture = nullptr,
 							   ITexture* pFlashlightDepthTexture = nullptr) = 0;
 		virtual void ClearAllShadows( ) = 0;
 
@@ -528,7 +528,7 @@ namespace cheat::csgo
 		// 2) texture memory usage
 		// Get Triangles returns the LOD used
 		virtual void GetPerfStats(DrawModelResults_t* pResults, const DrawModelInfo_t& info, CUtlBuffer* pSpewBuf = nullptr) const = 0;
-		virtual void GetTriangles(const DrawModelInfo_t& info, utl::matrix3x4_t* pBoneToWorld, GetTriangles_Output_t& out) = 0;
+		virtual void GetTriangles(const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, GetTriangles_Output_t& out) = 0;
 
 		// Returns materials used by a particular model
 		virtual int GetMaterialList(studiohdr_t* pStudioHdr, int count, IMaterial** ppMaterials) = 0;

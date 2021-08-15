@@ -1,4 +1,4 @@
-utl::Vector& m_vecOrigin( );
-int32_t& m_nModelIndex( );
 float& m_fScale( );
 int32_t& m_nFrameRate( );
+int32_t& m_nModelIndex( );
+Vector& m_vecOrigin( );

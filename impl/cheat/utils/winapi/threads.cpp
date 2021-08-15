@@ -7,10 +7,10 @@ using namespace winapi::detail;
 
 void thread_entry::Open_assert_( ) const
 {
-	BOOST_ASSERT_MSG(is_opened( ), "Thread isnt open!");
+	runtime_assert(is_opened( ), "Thread isnt open!");
 }
 
-thread_entry::thread_entry(THREADENTRY32&& entry): THREADENTRY32(move(entry))
+thread_entry::thread_entry(THREADENTRY32&& entry): THREADENTRY32(std::move(entry))
 {
 	//-
 }
@@ -61,7 +61,7 @@ class THREADENTRY32_UPDATER: public THREADENTRY32
 	decltype(auto) Update_(const handle& snapshot, Fn&& fn)
 	{
 		this->dwSize = sizeof(THREADENTRY32);
-		return invoke(fn, snapshot.get( ), this);
+		return std::invoke(fn, snapshot.get( ), this);
 	}
 
 public:
@@ -84,7 +84,7 @@ void winapi::_Enumerate_threads(threads_adder* push_fn, DWORD process_id)
 	const auto snapshot = handle(CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, process_id));
 	if (snapshot == nullptr)
 	{
-		BOOST_ASSERT("Unable to create snapshot!");
+		runtime_assert("Unable to create snapshot!");
 		return;
 	}
 
@@ -105,7 +105,7 @@ void winapi::_Enumerate_threads(threads_adder* push_fn, DWORD process_id)
 			continue;
 
 		auto copy = updater; //this is for future, we not move anything at real
-		invoke(*push_fn, move(copy));
+		std::invoke(*push_fn, std::move(copy));
 		//threads.push_back(boost::move(updater));
 	}
 

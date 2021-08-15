@@ -3,26 +3,37 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_CSRagdoll::m_vecOrigin( )
+bool& C_CSRagdoll::m_bClientSideAnimation( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_bClientSideAnimation");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }
-utl::Vector& C_CSRagdoll::m_vecRagdollOrigin( )
+float& C_CSRagdoll::m_flAbsYaw( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_vecRagdollOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_flAbsYaw");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_CSRagdoll::m_flDeathYaw( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_flDeathYaw");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 CBaseHandle& C_CSRagdoll::m_hPlayer( )
@@ -30,59 +41,9 @@ CBaseHandle& C_CSRagdoll::m_hPlayer( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_hPlayer");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_hPlayer");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
-#endif
-}
-int32_t& C_CSRagdoll::m_nModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_nModelIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_CSRagdoll::m_nForceBone( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_nForceBone");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-utl::Vector& C_CSRagdoll::m_vecForce( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_vecForce");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::Vector& C_CSRagdoll::m_vecRagdollVelocity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_vecRagdollVelocity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-int32_t& C_CSRagdoll::m_iDeathPose( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_iDeathPose");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
 #endif
 }
 int32_t& C_CSRagdoll::m_iDeathFrame( )
@@ -90,8 +51,18 @@ int32_t& C_CSRagdoll::m_iDeathFrame( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_iDeathFrame");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_iDeathFrame");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_CSRagdoll::m_iDeathPose( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_iDeathPose");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -100,38 +71,68 @@ int32_t& C_CSRagdoll::m_iTeamNum( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_iTeamNum");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_iTeamNum");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-bool& C_CSRagdoll::m_bClientSideAnimation( )
+int32_t& C_CSRagdoll::m_nForceBone( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_bClientSideAnimation");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_nForceBone");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }
-float& C_CSRagdoll::m_flDeathYaw( )
+int32_t& C_CSRagdoll::m_nModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_flDeathYaw");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_nModelIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }
-float& C_CSRagdoll::m_flAbsYaw( )
+Vector& C_CSRagdoll::m_vecForce( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll.m_flAbsYaw");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecForce");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_CSRagdoll::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_CSRagdoll::m_vecRagdollOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecRagdollOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_CSRagdoll::m_vecRagdollVelocity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecRagdollVelocity");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

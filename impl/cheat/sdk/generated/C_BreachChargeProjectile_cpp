@@ -3,6 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
 bool& C_BreachChargeProjectile::m_bShouldExplode( )
@@ -10,19 +11,9 @@ bool& C_BreachChargeProjectile::m_bShouldExplode( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile.m_bShouldExplode");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_bShouldExplode");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
-}
-int32_t& C_BreachChargeProjectile::m_weaponThatThrewMe( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile.m_weaponThatThrewMe");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
 #endif
 }
 int32_t& C_BreachChargeProjectile::m_nParentBoneIndex( )
@@ -30,18 +21,28 @@ int32_t& C_BreachChargeProjectile::m_nParentBoneIndex( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile.m_nParentBoneIndex");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_nParentBoneIndex");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-utl::Vector& C_BreachChargeProjectile::m_vecParentBonePos( )
+Vector& C_BreachChargeProjectile::m_vecParentBonePos( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile.m_vecParentBonePos");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_vecParentBonePos");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+int32_t& C_BreachChargeProjectile::m_weaponThatThrewMe( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_weaponThatThrewMe");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }

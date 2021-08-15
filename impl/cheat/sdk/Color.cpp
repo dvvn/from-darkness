@@ -1,6 +1,6 @@
 #include "Color.hpp"
 
-using namespace cheat::utl;
+using namespace cheat::csgo;
 
 //Color Color::Black(0, 0, 0, 255);
 //Color Color::White(255, 255, 255, 255);

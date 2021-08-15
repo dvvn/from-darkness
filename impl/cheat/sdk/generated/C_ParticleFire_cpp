@@ -3,25 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_ParticleFire::m_vOrigin( )
+Vector& C_ParticleFire::m_vDirection( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire.m_vOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire", "m_vDirection");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }
-utl::Vector& C_ParticleFire::m_vDirection( )
+Vector& C_ParticleFire::m_vOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire.m_vDirection");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire", "m_vOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

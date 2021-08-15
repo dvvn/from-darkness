@@ -1,8 +1,8 @@
-float& m_flLifeTime( );
-float& m_flStartWidth( );
 float& m_flEndWidth( );
+float& m_flLifeTime( );
+float& m_flMinFadeLength( );
+float& m_flSkyboxScale( );
+float& m_flStartWidth( );
 float& m_flStartWidthVariance( );
 float& m_flTextureRes( );
-float& m_flMinFadeLength( );
-utl::Vector& m_vecSkyboxOrigin( );
-float& m_flSkyboxScale( );
+Vector& m_vecSkyboxOrigin( );

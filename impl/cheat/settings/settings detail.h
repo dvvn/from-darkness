@@ -26,13 +26,13 @@ namespace cheat::detail::settings
 		bool contains(const string_wrapper& str) const;
 
 	protected:
-		using storage_type = vector<string_wrapper>;
+		using storage_type = std::vector<string_wrapper>;
 
-		ranges::borrowed_subrange_t<storage_type&> Remove(const span<wstring>& sample);
+		ranges::borrowed_subrange_t<storage_type&> Remove(const std::span<std::wstring>& sample);
 		void Update_longest_string( );
 
 	public:
-		void sync(const span<wstring>& vec);
+		void sync(const std::span<std::wstring>& vec);
 
 		const string_wrapper& longest_string( ) const;
 		const storage_type& get( ) const;
@@ -82,19 +82,19 @@ namespace cheat::detail::settings
 	{
 	public:
 		using value_type = folder_with_configs;
-		using storage_type = vector<value_type>;
+		using storage_type = std::vector<value_type>;
 		using iterator = storage_type::iterator;
 
 		void add_folder(value_type&& folder);
 
-		value_type* get(const wstring_view& str);
+		value_type* get(const std::wstring_view& str);
 
 		void render( ) override;
 
 		void select_all( );
 		void deselect_all( );
 
-		span<value_type> iterate( );
+		std::span<value_type> iterate( );
 
 		[[deprecated]]
 		void erase(iterator first, iterator last);
@@ -123,7 +123,7 @@ namespace cheat::detail::settings
 	class configs_unique_renderer final: public empty_page
 	{
 	public:
-		using value_type = shared_ptr<config_renderer>;
+		using value_type = std::shared_ptr<config_renderer>;
 
 		void sync(const known_configs& source);
 		void after_sync( );
@@ -141,14 +141,14 @@ namespace cheat::detail::settings
 		//auto selected_item_auto_resolved( ) const -> bool;
 
 	private:
-		vector<value_type> data__;
+		std::vector<value_type> data__;
 		size_t longest_title__ = 0;
 
 		struct
 		{
 			value_type::weak_type ptr;
-			wstring name;
-			optional<size_t> index;
+			std::wstring name;
+			std::optional<size_t> index;
 			//-
 		} item_selected__;
 		//bool item_selected_resolve__ = 1;
@@ -160,8 +160,8 @@ namespace cheat::detail::settings
 	class folder_with_configs_mgr final: public empty_page
 	{
 	public:
-		void set_work_dir(const filesystem::path& dir);
-		void set_work_dir(filesystem::path&& dir);
+		void set_work_dir(const std::filesystem::path& dir);
+		void set_work_dir(std::filesystem::path&& dir);
 
 		void rescan( );
 
@@ -169,14 +169,14 @@ namespace cheat::detail::settings
 		void add_folder(folder_with_configs&& folder);
 
 	private:
-		vector<wstring> Process_folder_(const filesystem::directory_entry& dir);
-		void Process_path_(const filesystem::path& path);
+		std::vector<std::wstring> Process_folder_(const std::filesystem::directory_entry& dir);
+		void Process_path_(const std::filesystem::path& path);
 
 		folders_storage folders__;
 		known_configs files__;
 		configs_unique_renderer files_list__;
 
-		filesystem::path working_dir__;
+		std::filesystem::path working_dir__;
 
 		struct io_result
 		{
@@ -202,7 +202,7 @@ namespace cheat::detail::settings
 		//it also consider all external changes
 		void Save_to_( );
 
-		string new_config_name__;
+		std::string new_config_name__;
 
 		void Remove_( );
 	};

@@ -25,32 +25,33 @@ static bool _Player_pass_flags(const player_shared& p, const players_filter_flag
 		return false;
 
 	// ReSharper disable once CppTooWideScopeInitStatement
-	const auto team_checker =
-			overload([&](const players_filter_flags::team_filter& tf)
-					 {
-						 if (ent_team.spectator( ))
-							 return false;
-						 using flags = players_filter_flags::team_filter;
+	const auto team_checker
+			=
+			nstd::overload([&](const players_filter_flags::team_filter& tf)
+						   {
+							   if (ent_team.spectator( ))
+								   return false;
+							   using flags = players_filter_flags::team_filter;
 
-						 const auto local_team = csgo_interfaces::get_ptr( )->local_player->m_iTeamNum( );
-						 const auto enemy = ent_team != local_team;
+							   const auto local_team = csgo_interfaces::get_ptr( )->local_player->m_iTeamNum( );
+							   const auto enemy      = ent_team != local_team;
 
-						 return tf.has(enemy ? flags::ENEMY : flags::ALLY);
-					 },
-					 [&](const players_filter_flags::team_filter_ex& tf)
-					 {
-						 using flags = players_filter_flags::team_filter_ex;
+							   return tf.has(enemy ? flags::ENEMY : flags::ALLY);
+						   },
+						   [&](const players_filter_flags::team_filter_ex& tf)
+						   {
+							   using flags = players_filter_flags::team_filter_ex;
 
-						 switch (ent_team.value( ))
-						 {
-							 case m_iTeamNum_t::SPEC: return tf.has(flags::SPEC);
-							 case m_iTeamNum_t::T: return tf.has(flags::T);
-							 case m_iTeamNum_t::CT: return tf.has(flags::CT);
-							 default:
-								 BOOST_ASSERT("unknown flag");
-								 return false;
-						 }
-					 });
+							   switch (ent_team.value( ))
+							   {
+								   case m_iTeamNum_t::SPEC: return tf.has(flags::SPEC);
+								   case m_iTeamNum_t::T: return tf.has(flags::T);
+								   case m_iTeamNum_t::CT: return tf.has(flags::CT);
+								   default:
+									   runtime_assert("unknown flag");
+									   return false;
+							   }
+						   });
 
 	if (!visit(team_checker, f.team))
 		return false;
@@ -72,7 +73,7 @@ players_filter::players_filter(players_list_container_interface&& cont, const pl
 	for (auto& p: cont)
 	{
 		if (_Player_pass_flags(p, f))
-			items__.push_back(move(p));
+			items__.push_back(std::move(p));
 	}
 }
 

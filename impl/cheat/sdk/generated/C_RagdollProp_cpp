@@ -3,26 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::array<utl::QAngle, 24>& C_RagdollProp::m_ragAngles( )
+float& C_RagdollProp::m_flBlendWeight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<utl::QAngle, 24>*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_ragAngles");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<utl::QAngle, 24>>( );
-#endif
-}
-utl::array<utl::Vector, 24>& C_RagdollProp::m_ragPos( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<utl::Vector, 24>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_ragPos");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<utl::Vector, 24>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_flBlendWeight");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 CBaseHandle& C_RagdollProp::m_hUnragdoll( )
@@ -30,19 +21,9 @@ CBaseHandle& C_RagdollProp::m_hUnragdoll( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_hUnragdoll");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_hUnragdoll");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
-#endif
-}
-float& C_RagdollProp::m_flBlendWeight( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_flBlendWeight");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
 #endif
 }
 int32_t& C_RagdollProp::m_nOverlaySequence( )
@@ -50,8 +31,28 @@ int32_t& C_RagdollProp::m_nOverlaySequence( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp.m_nOverlaySequence");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_nOverlaySequence");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+std::array<QAngle, 24>& C_RagdollProp::m_ragAngles( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<QAngle, 24>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragAngles");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<QAngle, 24>>( );
+#endif
+}
+std::array<Vector, 24>& C_RagdollProp::m_ragPos( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<Vector, 24>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragPos");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<Vector, 24>>( );
 #endif
 }

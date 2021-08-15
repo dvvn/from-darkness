@@ -3,6 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
 int32_t& C_Test_ProxyToggle_Networkable::m_WithProxy( )
@@ -10,8 +11,8 @@ int32_t& C_Test_ProxyToggle_Networkable::m_WithProxy( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Test_ProxyToggle_Networkable.m_WithProxy");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Test_ProxyToggle_Networkable", "m_WithProxy");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

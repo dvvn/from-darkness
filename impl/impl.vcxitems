@@ -55,6 +55,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\shared holder.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\tick record.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Color.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -92,6 +93,11 @@
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IStudioRender.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\QAngle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector2D.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector4D.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\VMatrix.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.h" />
@@ -108,16 +114,13 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\address.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\checksum.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory backup.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\QAngle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ClientClass.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Color.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CUserCmd.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\datamap.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Enums.hpp" />
@@ -167,14 +170,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\handle.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\xor_shift.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector2D.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\Vector4D.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\VMatrix.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\data_cache.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\exports_storage.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
@@ -213,6 +213,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick record.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -251,6 +252,11 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IConVar.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\ICvar.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\QAngle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector2D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector4D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\VMatrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />
@@ -269,23 +275,22 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\address.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\QAngle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector2D.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\Vector4D.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\VMatrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\data_cache.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\exports_storage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)entry.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)global.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
 </Project>

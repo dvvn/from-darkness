@@ -1,2 +1,2 @@
-bool& m_bMeasurePerf( );
 bool& m_bDisplayPerf( );
+bool& m_bMeasurePerf( );

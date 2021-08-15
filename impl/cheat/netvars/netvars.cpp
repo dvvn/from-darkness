@@ -8,8 +8,6 @@
 #include "cheat/sdk/entity/C_BaseEntity.h"
 #include "cheat/sdk/entity/C_CSPlayer.h"
 
-#include "cheat/utils/checksum.h"
-
 #if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_NETVARS_RESOLVE_TYPE
 #endif
@@ -24,9 +22,6 @@ using namespace cheat;
 using namespace csgo;
 using namespace utl;
 
-// ReSharper disable once CppInconsistentNaming
-static const auto PATH_DEFAULT_SEPARATOR = property_tree::ptree::path_type( ).separator( );
-
 netvars::~netvars( )
 {
 }
@@ -35,93 +30,68 @@ netvars::netvars( )
 {
 }
 
-static string _Str_to_lower(const string_view& str)
+static std::string _Str_to_lower(const std::string_view& str)
 {
-	string ret;
+	std::string ret;
 	ret.reserve(str.size( ));
 	for (const int c: str)
 		ret += std::tolower(c);
 	return ret;
 }
 
-struct variable_info
+static bool _Save_netvar_allowed(const char* name)
 {
-	template <typename T>
-	struct info: string_view
+	for (auto c = name[0]; c != '\0'; c = *(++name))
 	{
-		using type = T;
-
-		// ReSharper disable once CppRedundantInlineSpecifier
-		_CONSTEXPR20_CONTAINER operator string( ) const
-		{
-			return string(this->_Unchecked_begin( ), this->_Unchecked_end( ));
-		}
-
-		operator property_tree::ptree::path_type( ) const
-		{
-			return {static_cast<string>(*this)};
-		}
-
-		T ptree_get(const property_tree::ptree& tree) const
-		{
-			return tree.get<T>(*this);
-		}
-
-		property_tree::ptree& ptree_put(property_tree::ptree& tree, const T& value) const
-		{
-			return tree.put(*this, value);
-		}
-
-		property_tree::ptree& ptree_put(property_tree::ptree& tree, T&& value) const
-		{
-			return tree.put(*this, move(value));
-		}
-	};
-};
-
-struct netvar_info: variable_info
-{
-	static constexpr auto offset = info<size_t>("offset");
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	static constexpr auto type = info<string>("type");
-#endif
-	//#ifdef _DEBUG
-	//	static constexpr auto in_use = info<bool>("in_use");
-	//#endif
-};
-
-template <typename Nstr>
-static bool _Save_netvar(property_tree::ptree& storage, Nstr&& name, int offset, [[maybe_unused]] string&& type)
-{
-	const auto path = property_tree::ptree::path_type(string(forward<Nstr>(name)));
-	if (const auto exists = storage.get_child_optional(path);
-		exists.has_value( ))
-	{
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		if (type != "void*" && netvar_info::type.ptree_get(*exists) != type)
-			netvar_info::type.ptree_put(*exists, move(type));
-#endif
-		return false;
+		if (c == '.')
+			return false;
 	}
-
-	auto& entry = storage.add_child(path, { });
-	netvar_info::offset.ptree_put(entry, offset);
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	netvar_info::type.ptree_put(entry, move(type));
-#endif
-	//#ifdef _DEBUG
-	//	netvar_info::in_use.ptree_put(entry, false);
-	//#endif
 	return true;
 }
 
-template <typename Nstr>
-static pair<property_tree::ptree*, bool> _Add_child_class(property_tree::ptree& storage, Nstr&& name)
+static bool _Save_netvar_allowed(const std::string_view& name)
 {
-	string class_name;
+	return ranges::find(name, '.') == name.end( );
+}
+
+template <typename Nstr>
+static bool _Save_netvar(nlohmann::json& storage, Nstr&& name, int offset, [[maybe_unused]] std::string&& type)
+{
+	auto path = (std::string(std::forward<Nstr>(name)));
+
+	auto&& [entry, added] = storage.emplace((std::move(path)), nlohmann::json{ });
+	if (added == false)
+	{
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+		if (type != "void*")
+		{
+			auto& type_obj = entry->at("type").get_ref<std::string&>( );
+			if (type_obj != type)
+				type_obj = std::move(type);
+		}
+#endif
+	}
+	else
+	{
+		*entry =
+		{
+			{"offset", offset},
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+			{"type", std::move(type)}
+#endif
+		};
+	}
+
+	return added;
+}
+
+template <typename Nstr>
+static std::pair<nlohmann::json::iterator, bool> _Add_child_class(nlohmann::json& storage, Nstr&& name)
+{
+	std::string class_name;
 	if (name[0] == 'C' && name[1] != '_')
 	{
-		const auto name1 = string_view(name);
+		const auto name1 = std::string_view(name);
 		//internal csgo classes looks like C_***
 		//same classes in shared code look like C***
 		class_name.reserve(name1.size( ) + 1);
@@ -130,27 +100,19 @@ static pair<property_tree::ptree*, bool> _Add_child_class(property_tree::ptree& 
 	}
 	else
 	{
-		class_name = string(forward<Nstr>(name));
-		BOOST_ASSERT(!class_name.starts_with("DT_"));
+		class_name = std::string(std::forward<Nstr>(name));
+		runtime_assert(!class_name.starts_with("DT_"));
 	}
 
-	property_tree::ptree* tree;
-
-	const auto child = storage.get_child_optional(class_name);
-	if (!child)
-		tree = addressof(storage.add_child(move(class_name), { }));
-	else
-		tree = child.get_ptr( );
-
-	return {tree, !child};
+	return storage.emplace(std::move(class_name), nlohmann::json{ });
 }
 
-static string _Array_type_string(const string_view& type, size_t size)
+static std::string _Array_type(const std::string_view& type, size_t size)
 {
-	return format("utl::array<{}, {}>", type, size);
+	return format("std::array<{}, {}>", type, size);
 }
 
-static string _Netvar_vec_type(const string_view& name)
+static std::string _Netvar_vec_type(const std::string_view& name)
 {
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto is_qangle = [&]
@@ -161,10 +123,10 @@ static string _Netvar_vec_type(const string_view& name)
 		return lstr.find("angles") != lstr.npos;
 	};
 
-	return string("utl::") + (std::isdigit(name[0]) || !is_qangle( ) ? "Vector" : "QAngle");
+	return (std::isdigit(name[0]) || !is_qangle( ) ? "Vector" : "QAngle");
 }
 
-static string _Netvar_int_type(string_view name)
+static std::string _Netvar_int_type(std::string_view name)
 {
 	if (!std::isdigit(name[0]) && name.starts_with("m_"))
 	{
@@ -189,19 +151,19 @@ static string _Netvar_int_type(string_view name)
 				return "uint32_t";
 			if (name.starts_with("ch"))
 				return "uint8_t";
-			if (name.starts_with("fl") && _Str_to_lower(name).find("time") != string::npos) //m_flSimulationTime int ???
+			if (name.starts_with("fl") && _Str_to_lower(name).find("time") != std::string::npos) //m_flSimulationTime int ???
 				return "float";
 		}
 		else if (is_upper(3))
 		{
 			if (name.starts_with("clr"))
-				return "utl::Color"; //not sure
+				return "Color"; //not sure
 		}
 	}
 	return "int32_t";
 }
 
-static string _Recv_prop_type(const RecvProp& prop)
+static std::string _Recv_prop_type(const RecvProp& prop)
 {
 	switch (prop.m_RecvType)
 	{
@@ -212,33 +174,33 @@ static string _Recv_prop_type(const RecvProp& prop)
 		case DPT_Vector:
 			return _Netvar_vec_type(prop.m_pVarName);
 		case DPT_VectorXY:
-			return "utl::Vector2D"; //3d vector. z unused
+			return "Vector2D"; //3d vector. z unused
 		case DPT_String:
 			return "char*";
 		case DPT_Array:
 		{
-			const auto& prev_prop = *std::prev(addressof(prop));
-			BOOST_ASSERT(string_view(prev_prop.m_pVarName).ends_with("[0]"));
+			const auto& prev_prop = *std::prev(std::addressof(prop));
+			runtime_assert(std::string_view(prev_prop.m_pVarName).ends_with("[0]"));
 			const auto type = _Recv_prop_type(prev_prop);
-			return _Array_type_string(type, prop.m_nElements);
+			return _Array_type(type, prop.m_nElements);
 		}
 		case DPT_DataTable:
 		{
-			BOOST_ASSERT("Data table type must be manually resolved!");
+			runtime_assert("Data table type must be manually resolved!");
 			return "void*";
 		}
 		case DPT_Int64:
 			return "int64_t";
 		default:
 		{
-			BOOST_ASSERT("Unknown recv prop type");
+			runtime_assert("Unknown recv prop type");
 			return "void*";
 		}
 	}
 }
 
 [[maybe_unused]]
-static string _Datamap_field_type(const typedescription_t& field)
+static std::string _Datamap_field_type(const typedescription_t& field)
 {
 	switch (field.fieldType)
 	{
@@ -247,13 +209,13 @@ static string _Datamap_field_type(const typedescription_t& field)
 		case FIELD_FLOAT:
 			return "float";
 		case FIELD_STRING:
-			return "char*"; //string_t at real
+			return "char*"; //std::string_t at real
 		case FIELD_VECTOR:
 			return _Netvar_vec_type(field.fieldName);
 		case FIELD_QUATERNION:
 		{
-			//return "utl::Quaterion";
-			BOOST_ASSERT("Quaterion field detected");
+			//return "Quaterion";
+			runtime_assert("Quaterion field detected");
 			return "void*";
 		}
 		case FIELD_INTEGER:
@@ -265,32 +227,29 @@ static string _Datamap_field_type(const typedescription_t& field)
 		case FIELD_CHARACTER:
 			return "int8_t";
 		case FIELD_COLOR32:
-			return "utl::Color";
+			return "Color";
 		case FIELD_EMBEDDED:
 		{
-			BOOST_ASSERT("Embedded field detected");
+			runtime_assert("Embedded field detected");
 			return "void*";
 		}
 		case FIELD_CUSTOM:
 		{
-			BOOST_ASSERT("Custom field detected");
+			runtime_assert("Custom field detected");
 			return "void*";
 		}
 		case FIELD_CLASSPTR:
 			return "C_BaseEntity*";
 		case FIELD_EHANDLE:
-		{
-			BOOST_ASSERT("Ent handle detected");
-			return "void*"; //todo
-		}
+			return "CBaseHandle";
 		case FIELD_EDICT:
 		{
 			//return "edict_t*";
-			BOOST_ASSERT("Edict field detected");
+			runtime_assert("Edict field detected");
 			return "void*";
 		}
 		case FIELD_POSITION_VECTOR:
-			return "utl::Vector";
+			return "Vector";
 		case FIELD_TIME:
 			return "float";
 		case FIELD_TICK:
@@ -301,12 +260,12 @@ static string _Datamap_field_type(const typedescription_t& field)
 		case FIELD_INPUT:
 		{
 			//return "CMultiInputVar";
-			BOOST_ASSERT("Inputvar field detected");
+			runtime_assert("Inputvar field detected");
 			return "void*";
 		}
 		case FIELD_FUNCTION:
 		{
-			BOOST_ASSERT("Function detected");
+			runtime_assert("Function detected");
 			return "void*";
 		}
 		case FIELD_VMATRIX:
@@ -317,23 +276,23 @@ static string _Datamap_field_type(const typedescription_t& field)
 		case FIELD_INTERVAL:
 		{
 			//return "interval_t";
-			BOOST_ASSERT("Interval field detected");
+			runtime_assert("Interval field detected");
 			return "void*";
 		}
 		case FIELD_MODELINDEX:
 		case FIELD_MATERIALINDEX:
 			return "int32_t";
 		case FIELD_VECTOR2D:
-			return "utl::Vector2D";
+			return "Vector2D";
 		default:
 		{
-			BOOST_ASSERT("Unknown datamap field type");
+			runtime_assert("Unknown datamap field type");
 			return "void*";
 		}
 	}
 }
 
-static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::ptree& tree, const RecvTable* recv_table, int offset)
+static void _Store_recv_props(nlohmann::json& root_tree, nlohmann::json& tree, const RecvTable* recv_table, int offset)
 {
 	static constexpr auto prop_is_length_proxy = [](const RecvProp& prop)
 	{
@@ -345,7 +304,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 
 	static constexpr auto prop_is_base_class = [](const RecvProp& prop)
 	{
-		return prop.m_pVarName == string_view("baseclass");
+		return prop.m_pVarName == std::string_view("baseclass");
 	};
 
 	static constexpr auto table_is_array = [](const RecvTable& table)
@@ -373,24 +332,18 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		if (prop_is_length_proxy(*back))
 			--back;
 
-		return span(front, std::next(back));
+		return std::span(front, std::next(back));
 	}( );
 
 	for (auto itr = props.begin( ); itr != props.end( ); ++itr)
 	{
 		// ReSharper disable once CppUseStructuredBinding
 		const auto& prop = *itr;
-		BOOST_ASSERT(prop.m_pVarName != nullptr);
-		const auto prop_name = string_view(prop.m_pVarName);
+		runtime_assert(prop.m_pVarName != nullptr);
+		const auto prop_name = std::string_view(prop.m_pVarName);
 
-		if (prop_name.find(PATH_DEFAULT_SEPARATOR) != prop_name.npos)
-		{
+		if (!_Save_netvar_allowed(prop_name))
 			continue;
-		}
-		if (PATH_DEFAULT_SEPARATOR != '.' && prop_name.rfind('.') != prop_name.npos)
-		{
-			continue;
-		}
 
 		const auto real_prop_offset = offset + prop.m_Offset;
 
@@ -398,14 +351,14 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		{
 			if (prop_name.ends_with("[0]"))
 			{
-				const auto real_prop_name = string_view(prop_name.begin( ), std::prev(prop_name.end( ), 3));
-				BOOST_ASSERT(!real_prop_name.ends_with(']'));
-				auto array_size = optional<size_t>(1);
+				const auto real_prop_name = std::string_view(prop_name.begin( ), std::prev(prop_name.end( ), 3));
+				runtime_assert(!real_prop_name.ends_with(']'));
+				auto array_size = std::optional<size_t>(1);
 
 				// ReSharper disable once CppUseStructuredBinding
-				for (const auto& p: span(std::next(itr), props.end( )))
+				for (const auto& p: std::span(std::next(itr), props.end( )))
 				{
-					if (const auto name = string_view(p.m_pVarName); name.starts_with(real_prop_name))
+					if (const auto name = std::string_view(p.m_pVarName); name.starts_with(real_prop_name))
 					{
 						if (p.m_RecvType == prop.m_RecvType && name.size( ) != real_prop_name.size( ))
 						{
@@ -422,33 +375,33 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 				if (array_size.has_value( ))
 				{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-					string netvar_type;
+					std::string netvar_type;
 					if (*array_size == 3 && (std::isupper(real_prop_name[5]) && real_prop_name.starts_with("m_")))
 					{
 						auto prefix = real_prop_name.substr(2, 3);
 						if (prop.m_RecvType == DPT_Float)
 						{
 							if (prefix == "ang")
-								netvar_type = "utl::QAngle";
+								netvar_type = "QAngle";
 							else if (prefix == "vec")
-								netvar_type = "utl::Vector";
+								netvar_type = "Vector";
 						}
 						else if (prop.m_RecvType == DPT_Int)
 						{
 							if (prefix == "uch")
-								netvar_type = "utl::Color";
+								netvar_type = "Color";
 						}
 					}
 
 					if (netvar_type.empty( ))
 					{
 						auto type   = _Recv_prop_type(prop);
-						netvar_type = _Array_type_string(type, *array_size);
+						netvar_type = _Array_type(type, *array_size);
 					}
 #else
-					string netvar_type;
+					std::string netvar_type;
 #endif
-					_Save_netvar(tree, real_prop_name, real_prop_offset, move(netvar_type));
+					_Save_netvar(tree, real_prop_name, real_prop_offset, std::move(netvar_type));
 					itr += *array_size - 1;
 				}
 			}
@@ -458,7 +411,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 		optional<size_t> array_size;
 		if (std::isdigit(prop_name[0]))
 		{
-			BOOST_ASSERT(prop_name[0] == '0');
+			runtime_assert(prop_name[0] == '0');
 
 			const auto part = props.subspan(i + 1);
 			const auto array_end_itr = ranges::find_if_not(part, [](const RecvProp& rp) { return std::isdigit(rp.m_pVarName[0]); });
@@ -467,7 +420,7 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 			array_size = array_end_num - i + 1;
 			i += array_end_num;
 
-			static const string props_array = "m_PropsArray";
+			static const std::string props_array = "m_PropsArray";
 			prop_name = props_array;
 		}
 
@@ -476,8 +429,8 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 			continue;
 		}
 #else
-		BOOST_ASSERT(!prop_is_length_proxy(prop));
-		BOOST_ASSERT(!std::isdigit(prop_name[0]));
+		runtime_assert(!prop_is_length_proxy(prop));
+		runtime_assert(!std::isdigit(prop_name[0]));
 #endif
 
 		if (prop.m_RecvType != DPT_DataTable)
@@ -485,9 +438,9 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 			auto netvar_type = _Recv_prop_type(prop);
 #else
-			string netvar_type;
+			std::string netvar_type;
 #endif
-			_Save_netvar(tree, prop_name, real_prop_offset, move(netvar_type));
+			_Save_netvar(tree, prop_name, real_prop_offset, std::move(netvar_type));
 		}
 		else
 		{
@@ -506,22 +459,22 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 				if (prop_is_length_proxy(*array_begin))
 				{
 					++array_begin;
-					BOOST_ASSERT(array_begin->m_pVarName[0] == '0');
+					runtime_assert(array_begin->m_pVarName[0] == '0');
 				}
-				BOOST_ASSERT(array_begin != child_props.end());
+				runtime_assert(array_begin != child_props.end( ));
 
 #ifdef _DEBUG
 				// ReSharper disable once CppUseStructuredBinding
-				for (const auto& rp: span(array_begin + 1, child_props.end( )))
+				for (const auto& rp: std::span(array_begin + 1, child_props.end( )))
 				{
-					BOOST_ASSERT(std::isdigit(rp.m_pVarName[0]));
-					BOOST_ASSERT(rp.m_RecvType == array_begin->m_RecvType);
+					runtime_assert(std::isdigit(rp.m_pVarName[0]));
+					runtime_assert(rp.m_RecvType == array_begin->m_RecvType);
 				}
 #endif
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				const auto array_size = std::distance(array_begin, child_props.end( ));
-				string     netvar_type;
+				const auto  array_size = std::distance(array_begin, child_props.end( ));
+				std::string netvar_type;
 #endif
 				if (array_begin->m_RecvType != DPT_DataTable)
 				{
@@ -531,15 +484,15 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 				}
 				else
 				{
-					const auto child_table_name = string_view(child_table->m_pNetTableName);
-					string     child_table_unique_name;
+					const auto  child_table_name = std::string_view(child_table->m_pNetTableName);
+					std::string child_table_unique_name;
 					if (prop_name != child_table_name)
 					{
 						child_table_unique_name = child_table_name;
 					}
 					else
 					{
-						constexpr auto unique_str = string_view("_t");
+						constexpr auto unique_str = std::string_view("_t");
 						child_table_unique_name.reserve(child_table_name.size( ) + unique_str.size( ));
 						child_table_unique_name.append(child_table_name);
 						child_table_unique_name.append(unique_str);
@@ -548,28 +501,28 @@ static void _Store_recv_props(property_tree::ptree& root_tree, property_tree::pt
 					if (!added)
 						continue;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-					netvar_type = move(child_table_unique_name);
+					netvar_type = std::move(child_table_unique_name);
 #endif
 					_Store_recv_props(root_tree, *new_tree, array_begin->m_pDataTable, /*real_prop_offset*/0);
 				}
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				auto netvar_type_array = _Array_type_string(netvar_type, array_size);
+				auto netvar_type_array = _Array_type(netvar_type, array_size);
 #else
-				string netvar_type_array;
+				std::string netvar_type_array;
 #endif
-				_Save_netvar(tree, prop_name, real_prop_offset, move(netvar_type_array));
+				_Save_netvar(tree, prop_name, real_prop_offset, std::move(netvar_type_array));
 			}
 			else
 			{
-				BOOST_ASSERT("Unknown netvar type");
+				runtime_assert("Unknown netvar type");
 			}
 		}
 	}
 }
 
 [[maybe_unused]]
-static void _Iterate_client_class(property_tree::ptree& root_tree, ClientClass* root_class)
+static void _Iterate_client_class(nlohmann::json& root_tree, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
@@ -578,16 +531,16 @@ static void _Iterate_client_class(property_tree::ptree& root_tree, ClientClass* 
 			continue;
 
 		auto [new_tree, added] = _Add_child_class(root_tree, client_class->pNetworkName);
-		BOOST_ASSERT(added == true);
+		runtime_assert(added == true);
 
 		_Store_recv_props(root_tree, *new_tree, recv_table, 0);
 
 		if (new_tree->empty( ))
-			root_tree.pop_back( );
+			root_tree.erase(new_tree);
 	}
 }
 
-static void _Store_datamap_props(property_tree::ptree& tree, datamap_t* map)
+static void _Store_datamap_props(nlohmann::json& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
 	for (auto& desc: map->data)
@@ -596,25 +549,30 @@ static void _Store_datamap_props(property_tree::ptree& tree, datamap_t* map)
 		{
 			if (desc.TypeDescription != nullptr)
 			{
-				BOOST_ASSERT("Embedded datamap detected");
+				runtime_assert("Embedded datamap detected");
 			}
 		}
 		else if (desc.fieldName != nullptr)
 		{
+			const auto field_name = std::string_view(desc.fieldName);
+
+			if (!_Save_netvar_allowed(field_name))
+				continue;
+
 			const auto offset = desc.fieldOffset[TD_OFFSET_NORMAL];
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 			auto field_type = _Datamap_field_type(desc);
 #else
-			string field_type;
+			std::string field_type;
 #endif
-			_Save_netvar(tree, desc.fieldName, offset, move(field_type));
+			_Save_netvar(tree, field_name, offset, std::move(field_type));
 		}
 	}
 }
 
 [[maybe_unused]]
-static void _Iterate_datamap(property_tree::ptree& root_tree, datamap_t* root_map)
+static void _Iterate_datamap(nlohmann::json& root_tree, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
@@ -626,7 +584,7 @@ static void _Iterate_datamap(property_tree::ptree& root_tree, datamap_t* root_ma
 		_Store_datamap_props(*tree, map);
 
 		if (added && tree->empty( ))
-			root_tree.pop_back( );
+			root_tree.erase(tree);
 	}
 }
 
@@ -644,11 +602,7 @@ bool netvars::Do_load( )
 
 	_Iterate_client_class(data__, interfaces->client->GetAllClasses( ));
 
-	const auto baseent = _Vtable_pointer<C_BaseEntity>("client.dll"
-#ifndef CHEAT_NETVARS_UPDATING
-													   ,&csgo_interfaces::local_player
-#endif
-													  );
+	const auto baseent = _Vtable_pointer<C_BaseEntity>("client.dll");
 
 	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));
@@ -662,91 +616,76 @@ void netvars::On_load( )
 {
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
-	Dump_netvars_( );
-	Generate_classes_( );
+	const auto info = this->Dump_netvars_( );
+	this->Generate_classes_(info);
 
 #endif
 }
 
-void netvars::Dump_netvars_( )
+static constexpr int  _Json_indent = 4;
+static constexpr char _Json_filler = ' ';
+
+netvars::dump_info netvars::Dump_netvars_( )
 {
-	static const auto netvars_dump_dir = filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
-	const auto        first_time       = create_directories(netvars_dump_dir);
+	static const auto netvars_dump_dir = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
+	const auto        dirs_created     = create_directories(netvars_dump_dir);
 
 	constexpr auto get_file_name = []
 	{
-		string version = csgo_interfaces::get_ptr( )->engine->GetProductVersionString( );
+		std::string version = csgo_interfaces::get_ptr( )->engine->GetProductVersionString( );
 		ranges::replace(version, '.', '_');
 		version.append(".json");
 		return version;
 	};
 
-	if (const auto netvars_dump_file = netvars_dump_dir / get_file_name( );
-		!exists(netvars_dump_file))
+	const auto netvars_dump_file = netvars_dump_dir / get_file_name( );
+	const auto file_exists       = !dirs_created && exists(netvars_dump_file);
+
+	dump_info info;
+
+	if (!file_exists)
 	{
-		std::ofstream file(netvars_dump_file);
-		write_json(file, data__);
+		std::ofstream(netvars_dump_file) << std::setw(_Json_indent) << std::setfill(_Json_filler) << data__;
+		info = dump_info::created;
+		CHEAT_CONSOLE_LOG("Netvars dump done");
 	}
 	else
 	{
-		const auto test_to_write = [&]
+		std::ostringstream test_to_write;
+		test_to_write << std::setw(_Json_indent) << std::setfill(_Json_filler) << data__;
+
+		if ((nstd::checksum(test_to_write) == nstd::checksum(netvars_dump_file)))
 		{
-			std::ostringstream ss;
-			write_json(ss, data__);
-			return ss.str( );
-		}( );
-
-		if (!first_time && (utl::checksum(test_to_write) == utl::checksum(netvars_dump_file)))
-			return;
-
-		std::ofstream file(netvars_dump_file);
-		file << (test_to_write);
+			info = dump_info::skipped;
+			CHEAT_CONSOLE_LOG("Netvars dump skipped");
+		}
+		else
+		{
+			std::ofstream(netvars_dump_file) << nstd::as_string(test_to_write);
+			info = dump_info::updated;
+			CHEAT_CONSOLE_LOG("Netvars dump updated");
+		}
 	}
 
-#ifdef CHEAT_HAVE_CONSOLE
-	_Log_to_console("Netvars dump done");
-#endif
+	return info;
 }
 
-void netvars::Generate_classes_( )
+void netvars::Generate_classes_(dump_info info)
 {
 #ifndef CHEAT_NETVARS_RESOLVE_TYPE
 	(void)this;
 #else
 
-	static const auto dir = filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
-#if 0
-	remove_all(dir);
-	create_directories(dir);
-#else
-	const auto first_time = create_directories(dir);
-
-	const auto checksum_file = dir / L"__checksum.txt";
-	const auto last_checksum = first_time ? string{ } : utl::checksum(checksum_file);
-
-	const auto current_checksum = [&]
-	{
-		std::ostringstream ss;
-		write_json(ss, data__, false);
-		return utl::checksum(ss);
-	}( );
-
-	if (last_checksum == current_checksum)
+	if (info == dump_info::skipped)
 		return;
 
-	if (last_checksum.empty( ))
-	{
-		remove_all(dir);
-		create_directories(dir);
-	}
+	static const auto dir = std::filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
 
-	std::ofstream file(checksum_file);
-	file << current_checksum;
-#endif
+	remove_all(dir);
+	create_directories(dir);
 
 	lazy_writer__.reserve(data__.size( ) * 2);
-
-	for (auto& [class_name, netvars]: data__)
+	for (auto& [class_name,netvars]: data__.items( ))
 	{
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppTooWideScope
@@ -758,30 +697,31 @@ void netvars::Generate_classes_( )
 		auto header = lazy_file_writer(dir / (class_name + "_h"));
 		auto source = lazy_file_writer(dir / (class_name + "_cpp"));
 
-		source << format("#include \"{}.h\"", class_name) << __New_line;
+		source << std::format("#include \"{}.h\"", class_name) << __New_line;
 		source << __New_line;
 		static const auto netvars_header_path = []
 		{
 			const auto cpp_path = CHEAT_CURRENT_FILE_PATH;
-			auto       str      = string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
+			auto       str      = std::string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
 			ranges::replace(str, '\\', '/');
 			return str += ".h";
 		}( );
 		source << format("#include \"{}\"", netvars_header_path) << __New_line;
 		source << __New_line;
 		source << "using namespace cheat;" << __New_line;
+		source << "using namespace utl;" << __New_line;
 		source << "using namespace csgo;" << __New_line;
 		source << __New_line;
 
-		for (const auto& [netvar_name, netvar_data]: netvars)
+		for (auto& [netvar_name,netvar_data]: netvars.items( ))
 		{
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
-			const auto netvar_offset = netvar_info::offset.ptree_get(netvar_data);
+			const auto netvar_offset = netvar_info::offset.get(netvar_data);
 #endif
-			auto       netvar_type         = netvar_info::type.ptree_get(netvar_data);
-			const auto netvar_type_pointer = netvar_type.ends_with('*');
+			std::string_view netvar_type         = netvar_data.at("type").get_ref<std::string&>( );
+			const auto       netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
-				netvar_type.pop_back( );
+				netvar_type.remove_suffix(1);
 
 			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
 
@@ -792,45 +732,53 @@ void netvars::Generate_classes_( )
 			source << __Tab << format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
 			source << "#else" << __New_line;
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
-			source  << __Tab<< format("auto addr = utl::address(this).add({});", netvar_offset) << __New_line;
+			source  << __Tab<< format("auto addr = address(this).add({});", netvar_offset) << __New_line;
 #else
-			source << __Tab << format("static const auto offset = netvars::get_ptr( )->at(\"{}\");",
-									  format("{}{}{}", class_name, PATH_DEFAULT_SEPARATOR, netvar_name)) << __New_line;
-			source << __Tab << "auto addr = utl::address(this).add(offset);" << __New_line;
+			source << __Tab << std::format(
+										   "static const auto offset = netvars::get_ptr( )->at(\"{}\", \"{}\");",
+										   class_name, netvar_name
+										  ) << __New_line;
+			source << __Tab << "auto addr = address(this).add(offset);" << __New_line;
 #endif
 			source << __Tab << format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
 			source << "#endif" << __New_line;
 			source << '}' << __New_line;
 		}
 
-		lazy_writer__.push_back(move(header));
-		lazy_writer__.push_back(move(source));
+		lazy_writer__.push_back(std::move(header));
+		lazy_writer__.push_back(std::move(source));
 	}
 
-	if (last_checksum.empty( ))
+	if (info == dump_info::created)
 	{
 		//write all without waiting
 		lazy_writer__.clear( );
 	}
 
-#ifdef CHEAT_HAVE_CONSOLE
-	_Log_to_console("Netvars classes generation done");
-#endif
-
+	CHEAT_CONSOLE_LOG("Netvars classes generation done");
 #endif
 }
 
-int netvars::at(const string_view& path) const
+int netvars::at(const std::string_view& table, const std::string_view& item) const
 {
-	auto& child = data__.get_child(string(path));
+	for (auto& [table_stored,keys]: data__.items( ))
+	{
+		if (table_stored != table)
+			continue;
 
-	//#ifdef _DEBUG
-	//	auto& child1 = const_cast<property_tree::ptree&>(child);
-	//	BOOST_ASSERT_MSG(netvar_info::in_use.ptree_get(child1) == false, "Netvar already used!");
-	//	netvar_info::in_use.ptree_put(child1, true);
-	//#endif
+		for (auto& [item_stored,data]: keys.items( ))
+		{
+			if (item_stored == item)
+				return data.get<int>( );
+		}
 
-	return netvar_info::offset.ptree_get(child);
+		runtime_assert(false, std::format(__FUNCTION__": item {} not found in table {}",item,table).c_str( ));
+		return 0;
+	}
+
+	runtime_assert(false, std::format(__FUNCTION__": table {} not found",table).c_str( ));
+
+	return 0;
 }
 
 netvars::lazy_file_writer::~lazy_file_writer( )
@@ -849,12 +797,12 @@ netvars::lazy_file_writer::~lazy_file_writer( )
 	ofs << str;
 }
 
-netvars::lazy_file_writer::lazy_file_writer(filesystem::path&& file): file__(utl::move(file))
+netvars::lazy_file_writer::lazy_file_writer(std::filesystem::path&& file): file__(std::move(file))
 {
 }
 
 netvars::lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
 {
-	file__                                  = utl::move(other.file__);
+	file__                                  = std::move(other.file__);
 	*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
 }

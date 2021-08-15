@@ -1,11 +1,11 @@
-float& m_flWaveHeight( );
-utl::Vector& m_WorldMins( );
-utl::Vector& m_WorldMaxs( );
+Vector& m_WorldMaxs( );
+Vector& m_WorldMins( );
+bool& m_bColdWorld( );
 bool& m_bStartDark( );
 float& m_flMaxOccludeeArea( );
-float& m_flMinOccluderArea( );
 float& m_flMaxPropScreenSpaceWidth( );
+float& m_flMinOccluderArea( );
 float& m_flMinPropScreenSpaceWidth( );
-char* m_iszDetailSpriteMaterial( );
-bool& m_bColdWorld( );
+float& m_flWaveHeight( );
 int32_t& m_iTimeOfDay( );
+char* m_iszDetailSpriteMaterial( );

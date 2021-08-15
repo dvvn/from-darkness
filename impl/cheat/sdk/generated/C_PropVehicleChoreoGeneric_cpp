@@ -3,25 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-CBaseHandle& C_PropVehicleChoreoGeneric::m_hPlayer( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_hPlayer");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
-#endif
-}
 bool& C_PropVehicleChoreoGeneric::m_bEnterAnimOn( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_bEnterAnimOn");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric", "m_bEnterAnimOn");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -30,8 +21,8 @@ bool& C_PropVehicleChoreoGeneric::m_bExitAnimOn( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_bExitAnimOn");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric", "m_bExitAnimOn");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -40,18 +31,28 @@ bool& C_PropVehicleChoreoGeneric::m_bForceEyesToAttachment( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_bForceEyesToAttachment");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric", "m_bForceEyesToAttachment");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
-utl::Vector& C_PropVehicleChoreoGeneric::m_vecEyeExitEndpoint( )
+CBaseHandle& C_PropVehicleChoreoGeneric::m_hPlayer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric.m_vecEyeExitEndpoint");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric", "m_hPlayer");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+Vector& C_PropVehicleChoreoGeneric::m_vecEyeExitEndpoint( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleChoreoGeneric", "m_vecEyeExitEndpoint");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

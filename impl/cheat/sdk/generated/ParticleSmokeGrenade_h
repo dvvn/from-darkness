@@ -1,6 +1,6 @@
-float& m_flSpawnTime( );
-float& m_FadeStartTime( );
-float& m_FadeEndTime( );
-utl::Vector& m_MinColor( );
-utl::Vector& m_MaxColor( );
 int32_t& m_CurrentStage( );
+float& m_FadeEndTime( );
+float& m_FadeStartTime( );
+Vector& m_MaxColor( );
+Vector& m_MinColor( );
+float& m_flSpawnTime( );

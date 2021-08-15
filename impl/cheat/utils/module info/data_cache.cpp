@@ -1,11 +1,8 @@
 #include "data_cache.h"
 
-#include "cheat/utils/checksum.h"
-
 using namespace cheat;
 using namespace utl;
 using namespace utl::detail;
-using namespace property_tree;
 
 address module_data_mgr_base::base_addr( ) const
 {
@@ -25,20 +22,13 @@ bool module_data_mgr_base::write_from_storage(const path_type& file, const ptree
 	if (!exists(file))
 	{
 		create_directories(file.parent_path( ));
-		write_json(file.string( ), storage);
+		std::ofstream(file) << storage;
 	}
 	else
 	{
-		auto mem_stream = std::ostringstream( );
-		write_json(mem_stream, storage);
-
-		string buff = mem_stream.str( );
-
-		if (checksum(buff) != checksum(file))
-		{
-			std::ofstream stream(file);
-			stream << (buff);
-		}
+		const auto buff = std::ostringstream( ) << storage;
+		if (nstd::checksum(buff) != nstd::checksum(file))
+			std::ofstream(file) << nstd::as_string(buff);
 	}
 
 	return true;
@@ -51,6 +41,6 @@ bool module_data_mgr_base::read_to_storage(const path_type& file, ptree_type& st
 	if (!exists(file))
 		return false;
 
-	read_json(file.string( ), storage);
+	std::ifstream(file) >> storage;
 	return true;
 }

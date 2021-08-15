@@ -3,76 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_ParticleSystem::m_vecOrigin( )
+QAngle& C_ParticleSystem::m_angRotation( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(QAngle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-int32_t& C_ParticleSystem::m_fEffects( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_fEffects");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-CBaseHandle& C_ParticleSystem::m_hOwnerEntity( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_hOwnerEntity");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
-#endif
-}
-int32_t& C_ParticleSystem::moveparent( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.moveparent");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-int32_t& C_ParticleSystem::m_iParentAttachment( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_iParentAttachment");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-utl::QAngle& C_ParticleSystem::m_angRotation( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::QAngle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_angRotation");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::QAngle>( );
-#endif
-}
-int32_t& C_ParticleSystem::m_iEffectIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_iEffectIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_angRotation");
+	auto addr = address(this).add(offset);
+	return addr.ref<QAngle>( );
 #endif
 }
 bool& C_ParticleSystem::m_bActive( )
@@ -80,18 +21,18 @@ bool& C_ParticleSystem::m_bActive( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_bActive");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_bActive");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
-int32_t& C_ParticleSystem::m_nStopType( )
+int32_t& C_ParticleSystem::m_fEffects( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_nStopType");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_fEffects");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -100,9 +41,79 @@ float& C_ParticleSystem::m_flStartTime( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_flStartTime");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_flStartTime");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
+#endif
+}
+std::array<int32_t, 63>& C_ParticleSystem::m_hControlPointEnts( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 63>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_hControlPointEnts");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 63>>( );
+#endif
+}
+CBaseHandle& C_ParticleSystem::m_hOwnerEntity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_hOwnerEntity");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+std::array<int32_t, 63>& C_ParticleSystem::m_iControlPointParents( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 63>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iControlPointParents");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 63>>( );
+#endif
+}
+int32_t& C_ParticleSystem::m_iEffectIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iEffectIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_ParticleSystem::m_iParentAttachment( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iParentAttachment");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+std::array<int32_t, 4>& C_ParticleSystem::m_iServerControlPointAssignments( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 4>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iServerControlPointAssignments");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 4>>( );
+#endif
+}
+int32_t& C_ParticleSystem::m_nStopType( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_nStopType");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }
 char* C_ParticleSystem::m_szSnapshotFileName( )
@@ -110,48 +121,38 @@ char* C_ParticleSystem::m_szSnapshotFileName( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return (char*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_szSnapshotFileName");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_szSnapshotFileName");
+	auto addr = address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
-utl::array<utl::Vector, 4>& C_ParticleSystem::m_vServerControlPoints( )
+std::array<Vector, 4>& C_ParticleSystem::m_vServerControlPoints( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<utl::Vector, 4>*)nullptr;
+	return *(std::array<Vector, 4>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_vServerControlPoints");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<utl::Vector, 4>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_vServerControlPoints");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<Vector, 4>>( );
 #endif
 }
-utl::array<int32_t, 4>& C_ParticleSystem::m_iServerControlPointAssignments( )
+Vector& C_ParticleSystem::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 4>*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_iServerControlPointAssignments");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 4>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }
-utl::array<int32_t, 63>& C_ParticleSystem::m_hControlPointEnts( )
+int32_t& C_ParticleSystem::moveparent( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 63>*)nullptr;
+	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_hControlPointEnts");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 63>>( );
-#endif
-}
-utl::array<int32_t, 63>& C_ParticleSystem::m_iControlPointParents( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 63>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem.m_iControlPointParents");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 63>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "moveparent");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }

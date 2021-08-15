@@ -2,16 +2,16 @@
 namespace cheat::detail
 {
 	template <std::default_initializable T>
-	class shared_holder: protected utl::shared_ptr<T>, public utl::noncopyable
+	class shared_holder: protected std::shared_ptr<T>
 	{
-		utl::shared_ptr<T>& Get_shared_( )
+		std::shared_ptr<T>& Get_shared_( )
 		{
-			return *static_cast<utl::shared_ptr<T>*>(this);
+			return *static_cast<std::shared_ptr<T>*>(this);
 		}
 
-		const utl::shared_ptr<T>& Get_shared_( ) const
+		const std::shared_ptr<T>& Get_shared_( ) const
 		{
-			return *static_cast<const utl::shared_ptr<T>*>(this);
+			return *static_cast<const std::shared_ptr<T>*>(this);
 		}
 
 	protected:
@@ -24,7 +24,7 @@ namespace cheat::detail
 				return;
 
 			auto& in_use = ptr->in_use;
-			BOOST_ASSERT(in_use==true);
+			runtime_assert(in_use==true);
 
 			in_use = false;
 
@@ -32,35 +32,38 @@ namespace cheat::detail
 				destroy_fn_(*ptr);
 		}
 
-		using destroy_fn_type = utl::function<void(T&)>;
+		using destroy_fn_type = std::function<void(T&)>;
 		destroy_fn_type destroy_fn_;
 
 		// ReSharper disable once CppInconsistentNaming
 		void reset( ) = delete;
 
 	public:
+		shared_holder(const shared_holder&)            = delete;
+		shared_holder& operator=(const shared_holder&) = delete;
+
 		virtual void init( )
 		{
 			auto& ptr = Get_shared_( );
-			BOOST_ASSERT(ptr==nullptr);
-			ptr = utl::make_shared<T>( );
+			runtime_assert(ptr==nullptr);
+			ptr         = std::make_shared<T>( );
 			ptr->in_use = 1;
 		}
 
-		const utl::shared_ptr<T>& share( ) const
+		const std::shared_ptr<T>& share( ) const
 		{
 			return Get_shared_( );
 		}
 
 		shared_holder(shared_holder&& other) noexcept
 		{
-			*this = utl::move(other);
+			*this = std::move(other);
 		}
 
 		void operator=(shared_holder&& other) noexcept
 		{
-			Get_shared_( ) = utl::move(other.Get_shared_( ));
-			destroy_fn_ = utl::move(other.destroy_fn_);
+			Get_shared_( ) = std::move(other.Get_shared_( ));
+			destroy_fn_    = std::move(other.destroy_fn_);
 		}
 
 		bool operator==(nullptr_t) const

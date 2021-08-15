@@ -13,6 +13,6 @@ namespace cheat::hooks::c_base_entity
 
 	protected:
 		bool Do_load( ) override;
-		void Callback(utl::Vector& vel) override;
+		void Callback(csgo::Vector& vel) override;
 	};
 }

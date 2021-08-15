@@ -3,11 +3,21 @@
 using namespace cheat::utl;
 using namespace detail;
 
+module_info* module_info::root_class( )
+{
+	return this;
+}
+
+const module_info* module_info::root_class( ) const
+{
+	return this;
+}
+
 module_info::module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos, IMAGE_NT_HEADERS* nt)
 {
-	BOOST_ASSERT(ldr_entry != nullptr);
-	BOOST_ASSERT(dos != nullptr);
-	BOOST_ASSERT(nt != nullptr);
+	runtime_assert(ldr_entry != nullptr);
+	runtime_assert(dos != nullptr);
+	runtime_assert(nt != nullptr);
 
 	//manual_handle_ = winapi::module_handle(handle);
 
@@ -23,7 +33,7 @@ module_info::module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos,
 #ifdef _DEBUG
 	//preload for better debugging
 
-	sections( ).load( );
+	this->sections( ).load( );
 	if (this->name_contains_unicode( ))
 		this->name_.clear( );
 	else
@@ -65,7 +75,7 @@ auto module_info::File_on_disc_impl_(const wstring_view& module_name, IMAGE_NT_H
 	const auto check_sum = nt_header->OptionalHeader.CheckSum;
 	if (check_sum == 0)
 	{
-		BOOST_ASSERT("Unable to create file path because checksum is null!");
+		runtime_assert("Unable to create file path because checksum is null!");
 		return { };
 	}
 
@@ -79,7 +89,7 @@ auto module_info::File_on_disc_impl_(const wstring_view& module_name, IMAGE_NT_H
 
 	//----------------------
 
-	wstring current_folder;
+	std::wstring current_folder;
 	if (file_name_postfix.empty( ))
 	{
 		current_folder = fmt::format(L"_{}", module_name);
@@ -153,17 +163,17 @@ module_info::raw_name_type module_info::raw_name( ) const
 	return path.substr(path.find_last_of('\\') + 1);
 }
 
-const string& module_info::name( )
+const std::string& module_info::name( )
 {
 	if (this->name_.empty( ))
 	{
-		const auto ptr = this->raw_name( );
-		string     out;
+		const auto  ptr = this->raw_name( );
+		std::string out;
 		out.reserve(ptr.size( ));
 
 		for (const auto wchr: ptr)
 		{
-			if constexpr (sizeof(raw_name_value_type) == sizeof(string::value_type))
+			if constexpr (sizeof(raw_name_value_type) == sizeof(std::string::value_type))
 			{
 				out += tolower(wchr);
 			}
@@ -173,7 +183,7 @@ const string& module_info::name( )
 					out += tolower(chr);
 				else
 				{
-					BOOST_ASSERT("Unable to convert wide character!");
+					runtime_assert("Unable to convert wide character!");
 					out.clear( );
 					out += '\0';
 					break;
@@ -187,18 +197,18 @@ const string& module_info::name( )
 	return this->name_;
 };
 
-const string& module_info::name( ) const
+const std::string& module_info::name( ) const
 {
 	return this->name_;
 }
 
-const wstring& module_info::name_wide( )
+const std::wstring& module_info::name_wide( )
 {
 	if (this->name_wide_.empty( ))
 	{
-		static_assert(sizeof(raw_name_value_type) <= sizeof(wstring::value_type));
-		const auto ptr = this->raw_name( );
-		wstring    out;
+		static_assert(sizeof(raw_name_value_type) <= sizeof(std::wstring::value_type));
+		const auto   ptr = this->raw_name( );
+		std::wstring out;
 		out.reserve(ptr.size( ));
 		for (const auto wchr: ptr)
 			out += towlower(wchr);
@@ -208,7 +218,7 @@ const wstring& module_info::name_wide( )
 	return this->name_wide_;
 }
 
-const wstring& module_info::name_wide( ) const
+const std::wstring& module_info::name_wide( ) const
 {
 	return this->name_wide_;
 }
@@ -216,14 +226,14 @@ const wstring& module_info::name_wide( ) const
 bool module_info::name_contains_unicode( )
 {
 	auto& wname = this->name_wide( );
-	return IsTextUnicode(wname.c_str( ), wname.size( ) * sizeof(wstring::value_type), nullptr);
+	return IsTextUnicode(wname.c_str( ), wname.size( ) * sizeof(std::wstring::value_type), nullptr);
 }
 
 bool module_info::name_contains_unicode( ) const
 {
 	auto& wname = this->name_wide( );
-	BOOST_ASSERT_MSG(!wname.empty(), "Wide name unset!");
-	return IsTextUnicode(wname.c_str( ), wname.size( ) * sizeof(wstring::value_type), nullptr);
+	runtime_assert(!wname.empty(), "Wide name unset!");
+	return IsTextUnicode(wname.c_str( ), wname.size( ) * sizeof(std::wstring::value_type), nullptr);
 }
 
 sections_storage& module_info::sections( )
@@ -262,7 +272,7 @@ struct headers_info
 	PIMAGE_NT_HEADERS nt;
 };
 
-static optional<headers_info> _Get_file_headers(const address& base)
+static std::optional<headers_info> _Get_file_headers(const address& base)
 {
 	const auto dos = base.ptr<IMAGE_DOS_HEADER>( );
 
@@ -286,15 +296,15 @@ static optional<headers_info> _Get_file_headers(const address& base)
 	return result;
 }
 
-modules_storage_container _Get_all_modules( )
+static modules_storage_container _Get_all_modules( )
 {
 	// TEB->ProcessEnvironmentBlock.
 #ifdef UTILS_X64
     const auto mem = NtCurrentTeb();
-    BOOST_ASSERT_MSG(mem != nullptr, "Teb not found");
+    runtime_assert(mem != nullptr, "Teb not found");
 #else
 	const auto mem = reinterpret_cast<PPEB>(__readfsdword(0x30));
-	BOOST_ASSERT_MSG(mem != nullptr, "Peb not found");
+	runtime_assert(mem != nullptr, "Peb not found");
 #endif
 
 #ifdef UTILS_X64
@@ -334,7 +344,7 @@ modules_storage_container _Get_all_modules( )
 //module_info_loaded::module_info_loaded(const boost::filesystem::path& p, DWORD flags):
 //    handle_(LoadLibraryExW(p.c_str( ), nullptr, flags))
 //{
-//    BOOST_ASSERT_MSG(handle_!=nullptr, "Unable to load module");
+//    runtime_assert(handle_!=nullptr, "Unable to load module");
 //
 //
 //    auto all_modules=get_all_modules()
@@ -361,7 +371,7 @@ static HMODULE _Get_current_module_handle( )
 	MEMORY_BASIC_INFORMATION info;
 	//todo: is this is dll, try to load this fuction from inside
 	const size_t len = VirtualQueryEx(GetCurrentProcess( ), _Get_current_module_handle, &info, sizeof(MEMORY_BASIC_INFORMATION));
-	BOOST_ASSERT_MSG(len == sizeof(info), "Wrong size");
+	runtime_assert(len == sizeof(info), "Wrong size");
 	return static_cast<HMODULE>(info.AllocationBase);
 }
 
@@ -376,12 +386,12 @@ module_info& modules_storage::current( )
 	{
 		if (info.base( ) == handle)
 		{
-			current_cached__ = addressof(info);
+			current_cached__ = std::addressof(info);
 			return current( );
 		}
 	}
 
-	BOOST_ASSERT("Unable to find current module");
+	runtime_assert("Unable to find current module");
 	return *static_cast<module_info*>(nullptr); //force error
 }
 
@@ -404,15 +414,15 @@ const module_info& modules_storage::owner( ) const
 module_info& modules_storage::load(const boost::filesystem::path& from, DWORD flags)
 {
     auto handle = LoadLibraryExW(from.c_str(), nullptr, flags);
-    BOOST_ASSERT_MSG(handle != nullptr, "Unable to load module");
+    runtime_assert(handle != nullptr, "Unable to load module");
 
     this->update(true);
 
     auto added = boost::range::find_if(storage_, [&](module_info& info) { return info.base() == handle; });
-    BOOST_ASSERT_MSG(added != storage_.end(), "Unable to find added module!");
+    runtime_assert(added != storage_.end(), "Unable to find added module!");
 
     auto& handle_closer = added->manual_handle_;
-    BOOST_ASSERT_MSG(handle_closer.get() != handle, "Handle already set!");
+    runtime_assert(handle_closer.get() != handle, "Handle already set!");
 
     added->manual_handle_ = winapi::module_handle(handle);
     return *added;
@@ -430,27 +440,27 @@ const modules_storage_container& modules_storage::all( ) const
 	return storage__;
 }
 
-module_info* modules_storage::find(const string_view& name)
+module_info* modules_storage::find(const std::string_view& name)
 {
 	for (auto& entry: storage__)
 	{
 		if (entry.name( ) == name)
-			return addressof(entry);
+			return std::addressof(entry);
 	}
 	return nullptr;
 }
 
-module_info* modules_storage::find(const wstring_view& name)
+module_info* modules_storage::find(const std::wstring_view& name)
 {
 	for (auto& entry: storage__)
 	{
 		if (entry.name_wide( ) == name)
-			return addressof(entry);
+			return std::addressof(entry);
 	}
 	return nullptr;
 }
 
 void modules_storage::Empty_assert( ) const
 {
-	BOOST_ASSERT_MSG(!storage__.empty(), "Storage is empty!");
+	runtime_assert(!storage__.empty(), "Storage is empty!");
 }

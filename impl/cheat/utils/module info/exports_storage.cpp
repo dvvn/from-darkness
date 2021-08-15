@@ -4,7 +4,6 @@
 using namespace cheat;
 using namespace utl;
 using namespace utl::detail;
-using namespace property_tree;
 
 bool exports_storage::load_from_memory(cache_type& cache)
 {
@@ -13,7 +12,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 	// get export data directory.
 	const auto data_dir = &nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 	if (!data_dir->VirtualAddress)
-		return 0;
+		return false;
 
 	const auto base_address = this->base_addr( );
 
@@ -40,7 +39,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 	// iterate names array.
 	for (auto i = 0u; i < dir->NumberOfNames; ++i)
 	{
-		const string_view export_name = base_address.add(names[i]).ptr<const char>( );
+		const std::string_view export_name = base_address.add(names[i]).ptr<const char>( );
 		if (export_name.empty( ) /*|| export_name.starts_with('?') || export_name.starts_with('@')*/)
 			continue;
 
@@ -57,7 +56,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 		else // it's a forwarded export, we must resolve it.
 		{
 			// get forwarder string.
-			const string_view fwd_str = export_ptr.ptr<const char>( );
+			const std::string_view fwd_str = export_ptr.ptr<const char>( );
 
 			// forwarders have a period as the delimiter.
 			const auto delim = fwd_str.find_last_of('.');
@@ -68,7 +67,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 			const auto fwd_module       = fwd_str.substr(0, delim);
 			const auto fwd_module_lower = ranges::views::transform(fwd_module, tolower);
 			//const auto fwd_module_hash  = hashed_string_tag::_Compute_hash(fwd_module_lower, (".dll"));
-			const auto fwd_module_str = string(fwd_module_lower.begin( ), fwd_module_lower.end( )).append(".dll");
+			const auto fwd_module_str = std::string(fwd_module_lower.begin( ), fwd_module_lower.end( )).append(".dll");
 			//const auto fwd_module_hash = module_info::create_hash(fwd_module_str);
 
 			// get forwarder export name.
@@ -96,22 +95,25 @@ bool exports_storage::load_from_memory(cache_type& cache)
 
 	cache = move(temp_cache);
 	//data_cache_.shrink_to_fit( );
-	return 1;
+	return true;
 }
 
-bool exports_storage::load_from_file(cache_type& cache, const ptree_type& storage)
+bool exports_storage::load_from_file(cache_type& cache, ptree_type&& storage)
 {
 	const auto base_address = this->base_addr( );
 
-	for (auto& [name, offset_packed]: storage)
+	for (auto itr = storage.begin( ); itr != storage.end( ); ++itr)
 	{
-		const auto offset = offset_packed.get_value<uintptr_t>( );
+		auto& name          = itr.key( );
+		auto& offset_packed = itr.value( );
+
+		const auto offset = offset_packed.get<uintptr_t>( );
 		auto       addr   = base_address + offset;
 
-		cache.emplace(const_cast<string&&>(name), move(addr));
+		cache.emplace(const_cast<std::string&&>(name), std::move(addr));
 	}
 
-	return 1;
+	return true;
 }
 
 bool exports_storage::read_to_storage(const cache_type& cache, ptree_type& storage) const
@@ -120,10 +122,10 @@ bool exports_storage::read_to_storage(const cache_type& cache, ptree_type& stora
 
 	for (const auto& [name, addr]: cache)
 	{
-		storage.put(name, addr.remove(base_address).value( ));
+		storage[name] = addr.remove(base_address).value( );
 	}
 
-	return 1;
+	return true;
 }
 
 //void exports_storage::Change_base_address_impl(address new_addr)

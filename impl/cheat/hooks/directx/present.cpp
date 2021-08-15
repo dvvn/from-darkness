@@ -44,11 +44,11 @@ void present::Callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	ImGui::EndFrame( );
 
 	[[maybe_unused]] const auto begin = d3d_device->BeginScene( );
-	BOOST_ASSERT(SUCCEEDED(begin));
+	runtime_assert(SUCCEEDED(begin));
 	{
 		ImGui::Render( );
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData( ));
 	}
 	[[maybe_unused]] const auto end = d3d_device->EndScene( );
-	BOOST_ASSERT(SUCCEEDED(end));
+	runtime_assert(SUCCEEDED(end));
 }

@@ -1,6 +1,6 @@
-float& m_flDamage( );
 float& m_DmgRadius( );
 bool& m_bIsLive( );
-CBaseHandle& m_hThrower( );
-utl::Vector& m_vecVelocity( );
 int32_t& m_fFlags( );
+float& m_flDamage( );
+CBaseHandle& m_hThrower( );
+Vector& m_vecVelocity( );

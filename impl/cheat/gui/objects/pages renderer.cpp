@@ -16,7 +16,7 @@ static size_t _Get_num_chars(const pages_storage_data& page)
 	return page.name( ).raw( ).size( );
 }
 
-static auto _Sizes(span<pages_storage_data>&& container)
+static auto _Sizes(std::span<pages_storage_data>&& container)
 {
 	return container | ranges::views::transform(_Get_num_chars);
 }
@@ -28,9 +28,9 @@ struct selected_info
 };
 
 template <bool Sameline, class Fns>
-static selected_info _Render_and_select(span<pages_storage_data>&& data, Fns&& size_getter)
+static selected_info _Render_and_select(std::span<pages_storage_data>&& data, Fns&& size_getter)
 {
-	optional<pages_storage_data&> page_active;
+	pages_storage_data* page_active=0;
 
 	const auto data_begin = data.begin( );
 	const auto data_end = data.end( );
@@ -44,18 +44,18 @@ static selected_info _Render_and_select(span<pages_storage_data>&& data, Fns&& s
 
 	const auto obj_invoke = [&](pages_storage_data& obj)
 	{
-		const ImVec2 size = invoke(size_getter, obj);
-		return invoke(obj, ImGuiSelectableFlags_None, size);
+		const ImVec2 size = std::invoke(size_getter, obj);
+		return std::invoke(obj, ImGuiSelectableFlags_None, size);
 	};
 
 	for (auto itr = data_begin; itr != data_end; ++itr)
 	{
-		auto& obj = *itr;
+		auto obj = itr._Unwrapped(  );
 
-		const auto obj_selected = obj.selected( );
+		const auto obj_selected = obj->selected( );
 		const auto obj_pressed = [&]
 		{
-			const auto ret = obj_invoke(obj);
+			const auto ret = obj_invoke(*obj);
 			if constexpr (Sameline)
 			{
 				if (itr != pre_end)
@@ -67,18 +67,18 @@ static selected_info _Render_and_select(span<pages_storage_data>&& data, Fns&& s
 		if (obj_selected)
 		{
 			if (!page_active)
-				page_active = obj;
+				page_active = (obj);
 			continue;
 		}
 		if (obj_pressed)
 		{
 			const auto itr_next = std::next(itr);
 
-			if (!page_active.has_value( ))
+			if (!page_active)
 			{
-				auto selected_later = ranges::find_if(itr_next, data_end, &widgets::selectable_base::selected);
-				BOOST_ASSERT(selected_later != data_end);
-				page_active = *selected_later;
+				const auto selected_later = ranges::find_if(itr_next, data_end, &widgets::selectable_base::selected);
+				runtime_assert(selected_later != data_end);
+				page_active = selected_later._Unwrapped(  );
 			}
 			if (itr_next != data_end)
 			{
@@ -88,7 +88,7 @@ static selected_info _Render_and_select(span<pages_storage_data>&& data, Fns&& s
 				}
 				else
 				{
-					for (auto& p: span(itr_next, pre_end))
+					for (auto& p: std::span(itr_next, pre_end))
 					{
 						obj_invoke(p);
 						ImGui::SameLine( );
@@ -98,11 +98,11 @@ static selected_info _Render_and_select(span<pages_storage_data>&& data, Fns&& s
 				}
 			}
 			page_active->deselect( );
-			obj.select( );
-			return {addressof(obj), true};
+			obj->select( );
+			return {(obj), true};
 		}
 	}
-	return {page_active.get_ptr( ), false};
+	return {(page_active), false};
 }
 
 void vertical_pages_renderer::render( )
@@ -154,7 +154,7 @@ void horizontal_pages_renderer::render( )
 #else
 	const auto extra_size = char_size / (ImGui::GetStyle( ).ItemInnerSpacing.x * pages_.size( ));
 	size_x = {1, chars_count__ + extra_size, size_info::WORD};
-	//BOOST_ASSERT(per_line_limit__!=-1);
+	//runtime_assert(per_line_limit__!=-1);
 #endif
 
 	if (!this->begin(size_x, size_y, true))

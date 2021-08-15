@@ -3,26 +3,17 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::array<int32_t, 4>& C_PoseController::m_hProps( )
+bool& C_PoseController::m_bInterpolationWrap( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 4>*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_hProps");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 4>>( );
-#endif
-}
-utl::array<int32_t, 4>& C_PoseController::m_chPoseIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 4>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_chPoseIndex");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 4>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_bInterpolationWrap");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }
 bool& C_PoseController::m_bPoseValueParity( )
@@ -30,39 +21,19 @@ bool& C_PoseController::m_bPoseValueParity( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_bPoseValueParity");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_bPoseValueParity");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
-float& C_PoseController::m_fPoseValue( )
+std::array<int32_t, 4>& C_PoseController::m_chPoseIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(std::array<int32_t, 4>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_fPoseValue");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_PoseController::m_fInterpolationTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_fInterpolationTime");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-bool& C_PoseController::m_bInterpolationWrap( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_bInterpolationWrap");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_chPoseIndex");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
 float& C_PoseController::m_fCycleFrequency( )
@@ -70,38 +41,8 @@ float& C_PoseController::m_fCycleFrequency( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_fCycleFrequency");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-int32_t& C_PoseController::m_nFModType( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_nFModType");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<int32_t>( );
-#endif
-}
-float& C_PoseController::m_fFModTimeOffset( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_fFModTimeOffset");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_PoseController::m_fFModRate( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_fFModRate");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fCycleFrequency");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -110,8 +51,68 @@ float& C_PoseController::m_fFModAmplitude( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PoseController.m_fFModAmplitude");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fFModAmplitude");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
+#endif
+}
+float& C_PoseController::m_fFModRate( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fFModRate");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_PoseController::m_fFModTimeOffset( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fFModTimeOffset");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_PoseController::m_fInterpolationTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fInterpolationTime");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_PoseController::m_fPoseValue( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fPoseValue");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+std::array<int32_t, 4>& C_PoseController::m_hProps( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 4>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_hProps");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 4>>( );
+#endif
+}
+int32_t& C_PoseController::m_nFModType( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_nFModType");
+	auto addr = address(this).add(offset);
+	return addr.ref<int32_t>( );
 #endif
 }

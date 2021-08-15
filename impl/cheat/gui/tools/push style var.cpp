@@ -9,9 +9,9 @@ push_style_var::push_style_var( ) = default;
 struct ImGuiStyleVarInfo
 {
 	ImGuiDataType type;
-	ImU32 count;
-	ImU32 offset;
-	void* GetVarPtr(ImGuiStyle* style) const { return reinterpret_cast<uint8_t*>(style) + offset; }
+	ImU32         count;
+	ImU32         offset;
+	void*         GetVarPtr(ImGuiStyle* style) const { return reinterpret_cast<uint8_t*>(style) + offset; }
 };
 
 static const ImGuiStyleVarInfo img_stylevar_info[] =
@@ -44,7 +44,7 @@ static const ImGuiStyleVarInfo img_stylevar_info[] =
 
 static const ImGuiStyleVarInfo* GetStyleVarInfo(ImGuiStyleVar idx)
 {
-	BOOST_ASSERT(idx >= 0 && idx < ImGuiStyleVar_COUNT);
+	runtime_assert(idx >= 0 && idx < ImGuiStyleVar_COUNT);
 	static_assert(std::size(img_stylevar_info) == ImGuiStyleVar_COUNT);
 	return &img_stylevar_info[idx];
 }
@@ -52,17 +52,17 @@ static const ImGuiStyleVarInfo* GetStyleVarInfo(ImGuiStyleVar idx)
 push_style_var::push_style_var(ImGuiCol idx, float val)
 {
 	const auto var_info = GetStyleVarInfo(idx);
-	BOOST_ASSERT_MSG(var_info->type == ImGuiDataType_Float && var_info->count == 1, "Called PushStyleVar() float variant but variable is not a float!");
+	runtime_assert(var_info->type == ImGuiDataType_Float && var_info->count == 1, "Called PushStyleVar() float variant but variable is not a float!");
 
-	auto& var = *static_cast<float*>(var_info->GetVarPtr(addressof(ImGui::GetStyle( ))));
+	auto& var = *static_cast<float*>(var_info->GetVarPtr(std::addressof(ImGui::GetStyle( ))));
 	this->emplace<0>(memory_backup(var, val));
 }
 
 push_style_var::push_style_var(ImGuiCol idx, const ImVec2& val)
 {
 	const auto var_info = GetStyleVarInfo(idx);
-	BOOST_ASSERT_MSG(var_info->type == ImGuiDataType_Float && var_info->count == 2, "Called PushStyleVar() ImVec2 variant but variable is not a ImVec2!");
+	runtime_assert(var_info->type == ImGuiDataType_Float && var_info->count == 2, "Called PushStyleVar() ImVec2 variant but variable is not a ImVec2!");
 
-	auto& var = *static_cast<ImVec2*>(var_info->GetVarPtr(addressof(ImGui::GetStyle( ))));
+	auto& var = *static_cast<ImVec2*>(var_info->GetVarPtr(std::addressof(ImGui::GetStyle( ))));
 	this->emplace<1>(memory_backup(var, val));
 }

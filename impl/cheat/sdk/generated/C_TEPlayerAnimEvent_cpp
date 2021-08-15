@@ -3,6 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
 CBaseHandle& C_TEPlayerAnimEvent::m_hPlayer( )
@@ -10,8 +11,8 @@ CBaseHandle& C_TEPlayerAnimEvent::m_hPlayer( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent.m_hPlayer");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_hPlayer");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -20,8 +21,8 @@ int32_t& C_TEPlayerAnimEvent::m_iEvent( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent.m_iEvent");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_iEvent");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -30,8 +31,8 @@ int32_t& C_TEPlayerAnimEvent::m_nData( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent.m_nData");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_nData");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

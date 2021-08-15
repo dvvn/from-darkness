@@ -173,7 +173,7 @@ namespace cheat::hooks
 		{
 			Fn_as callable;
 			reinterpret_cast<void*&>(callable) = reinterpret_cast<void*&>(func_ptr);
-			return utl::invoke(callable, utl::forward<Args>(args)...);
+			return std::invoke(callable, std::forward<Args>(args)...);
 		}
 	}
 
@@ -240,14 +240,14 @@ namespace cheat::hooks
 		{
 			auto vtable                  = _Pointer_to_virtual_class_table(instance);
 			reinterpret_cast<void*&>(fn) = vtable[index];
-			return _Call_function(fn, instance, utl::forward<Args>(args)...);
+			return _Call_function(fn, instance, std::forward<Args>(args)...);
 		}
 	}
 
 	template <typename Ret, typename C, typename ...Args>
 	Ret _Call_function(Ret (__thiscall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
@@ -259,7 +259,7 @@ namespace cheat::hooks
 	template <typename Ret, typename C, typename ...Args>
 	Ret _Call_function(Ret (__fastcall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
@@ -271,7 +271,7 @@ namespace cheat::hooks
 	template <typename Ret, typename C, typename ...Args>
 	Ret _Call_function(Ret (__stdcall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
@@ -283,7 +283,7 @@ namespace cheat::hooks
 	template <typename Ret, typename C, typename ...Args>
 	Ret _Call_function(Ret (__cdecl C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, utl::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
@@ -299,14 +299,14 @@ namespace cheat::hooks
 	Ret _Call_function(Ret (__stdcall*fn)(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::stdcall__);
-		return utl::invoke(fn, args...);
+		return std::invoke(fn, args...);
 	}
 
 	template <typename Ret, typename ...Args>
 	Ret _Call_function(Ret (__cdecl*fn)(Args ...), std::type_identity_t<Args> ...args)
 	{
 		detail::_Call_fn_trap(call_conversion::cdecl__);
-		return utl::invoke(fn, args...);
+		return std::invoke(fn, args...);
 	}
 #pragma endregion
 
@@ -329,7 +329,7 @@ namespace cheat::hooks
 			fn_member_virtual,
 		};
 
-		using func_type = utl::function<LPVOID( )>;
+		using func_type = std::function<LPVOID( )>;
 
 	protected:
 		method_info(type method_type, func_type&& func);
@@ -345,7 +345,7 @@ namespace cheat::hooks
 
 	private:
 		type                            type__ = type::fn_unknown;
-		utl::variant<func_type, LPVOID> storage__;
+		std::variant<func_type, LPVOID> storage__;
 
 		template <typename T>
 		static constexpr size_t Count_pointers_( )
@@ -365,32 +365,32 @@ namespace cheat::hooks
 
 			if constexpr (num_pointers == 0)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
-				//return [ptr = utl::addressof(ptr)] { return ptr; };
-				return utl::addressof(ptr);
+				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
+				//return [ptr = std::addressof(ptr)] { return ptr; };
+				return std::addressof(ptr);
 			}
 			else if constexpr (num_pointers == 2)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
+				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
 				return [=] { return *ptr; };
 			}
 			else if constexpr (num_pointers == 1)
 			{
 				if constexpr (rvalue)
 				{
-					BOOST_ASSERT_MSG(ptr != nullptr, __FUNCSIG__": Rvalue pointer must be set!");
+					runtime_assert(ptr != nullptr, __FUNCSIG__": Rvalue pointer must be set!");
 					//return [=] { return ptr; };
 					return ptr;
 				}
 				else
 				{
 					//instance can be null or dynamic, so store pointer to it
-					return [ptr2 = utl::addressof(ptr)] { return *ptr2; };
+					return [ptr2 = std::addressof(ptr)] { return *ptr2; };
 				}
 			}
 			else
 			{
-				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCSIG__);
+				static_assert(std::_Always_false<raw_t>, __FUNCSIG__);
 				return nullptr;
 			}
 		}
@@ -408,33 +408,33 @@ namespace cheat::hooks
 
 			if constexpr (num_pointers == 0)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
-				return [ptr_fn = utl::forward<T>(fn)]
+				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
+				return [ptr_fn = std::forward<T>(fn)]
 				{
-					auto& ptr = utl::invoke(ptr_fn);
-					return utl::addressof(ptr);
+					auto& ptr = std::invoke(ptr_fn);
+					return std::addressof(ptr);
 				};
 			}
 			else if constexpr (num_pointers == 2)
 			{
-				BOOST_STATIC_ASSERT_MSG(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
-				return [ptr_fn = utl::forward<T>(fn)]
+				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
+				return [ptr_fn = std::forward<T>(fn)]
 				{
-					auto instance = utl::invoke(ptr_fn);
+					auto instance = std::invoke(ptr_fn);
 					return *instance;
 				};
 			}
 			else if constexpr (num_pointers == 1)
 			{
 				//return lambda for better debugging
-				return [ptr_fn = utl::forward<T>(fn)]
+				return [ptr_fn = std::forward<T>(fn)]
 				{
-					return utl::invoke(ptr_fn);
+					return std::invoke(ptr_fn);
 				};
 			}
 			else
 			{
-				BOOST_STATIC_ASSERT_MSG(std::_Always_false<raw_t>, __FUNCSIG__);
+				static_assert(std::_Always_false<raw_t>, __FUNCSIG__);
 				return func_type( );
 			}
 		}
@@ -444,9 +444,9 @@ namespace cheat::hooks
 		{
 			if constexpr (detail::_Invocable<T>)
 			{
-				return [fn_stored = utl::forward<T>(val)]
+				return [fn_stored = std::forward<T>(val)]
 				{
-					return utl::invoke(fn_stored);
+					return std::invoke(fn_stored);
 				};
 			}
 			else
@@ -459,7 +459,7 @@ namespace cheat::hooks
 				}
 				else
 				{
-					return [value_stored = utl::ref(val)]( )-> const raw_t&
+					return [value_stored = std::ref(val)]( )-> const raw_t&
 					{
 						return value_stored.get( );
 					};
@@ -471,23 +471,23 @@ namespace cheat::hooks
 		static auto Try_invoke_(T&& val)
 		{
 			if constexpr (detail::_Invocable<T>)
-				return utl::invoke(val);
+				return std::invoke(val);
 			else
-				return utl::forward<T>(val);
+				return std::forward<T>(val);
 		}
 
 	public:
 		template <typename T>
 		static method_info make_static(T&& func)
 		{
-			return method_info(type::fn_static, Pack_pointer_(utl::forward<T>(func)));
+			return method_info(type::fn_static, Pack_pointer_(std::forward<T>(func)));
 		}
 
 		template <typename T>
 		static method_info make_member(T&& func)
 		{
 			return method_info(type::fn_member,
-							   [packed = Pack_pointer_(utl::forward<T>(func))]
+							   [packed = Pack_pointer_(std::forward<T>(func))]
 							   {
 								   decltype(auto) fn = Try_invoke_(packed);
 								   return _Pointer_to_class_method(fn);
@@ -498,7 +498,7 @@ namespace cheat::hooks
 		static method_info make_member_virtual(T&& instance, I&& index)
 		{
 			return method_info(type::fn_member_virtual,
-							   [instance_packed = Pack_pointer_(utl::forward<T>(instance)), idx_packed = Pack_value_(utl::forward<I>(index))]
+							   [instance_packed = Pack_pointer_(std::forward<T>(instance)), idx_packed = Pack_value_(std::forward<I>(index))]
 							   {
 								   decltype(auto) obj_instance = Try_invoke_(instance_packed);
 								   decltype(auto) fn_index     = Try_invoke_(idx_packed);
@@ -509,7 +509,7 @@ namespace cheat::hooks
 		/*template <std::invocable Fn>
 		static method_info make_custom(bool refresh_result, Fn&& func)
 		{
-			return method_info(type::fn_unknown, refresh_result, utl::forward<Fn>(func));
+			return method_info(type::fn_unknown, refresh_result, std::forward<Fn>(func));
 		}*/
 	};
 
@@ -536,14 +536,14 @@ namespace cheat::hooks
 		template <class Ret>
 		class lazy_return_value
 		{
-			utl::optional<Ret> value__;
+			std::optional<Ret> value__;
 
 		public:
 			template <typename T>
 			void store_value(T&& val)
 				requires(std::is_constructible_v<Ret, decltype(val)>)
 			{
-				value__.emplace(Ret(utl::forward<T>(val)));
+				value__.emplace(Ret(std::forward<T>(val)));
 			}
 
 			void reset( )
@@ -611,22 +611,22 @@ namespace cheat::hooks
 		private:
 			static void Set_instance_assert_( )
 			{
-				BOOST_ASSERT_MSG(this_instance__ == nullptr, "Instance already set!");
+				runtime_assert(this_instance__ == nullptr, "Instance already set!");
 			}
 
 			static void Unset_instance_assert_( )
 			{
-				BOOST_ASSERT_MSG(this_instance__ != nullptr, "Instance is unset!");
+				runtime_assert(this_instance__ != nullptr, "Instance is unset!");
 			}
 
 			void Unmanaged_call_assert( ) const
 			{
-				BOOST_ASSERT_MSG(!this_instance__ || this_instance__ == this, "Unable to get 'this' pointer!");
+				runtime_assert(!this_instance__ || this_instance__ == this, "Unable to get 'this' pointer!");
 			}
 
 			void Unused_modify_assert( ) const
 			{
-				BOOST_ASSERT_MSG(unused_==false, "Unable to modify unused hook!");
+				runtime_assert(unused_==false, "Unable to modify unused hook!");
 			}
 
 			bool   unused_         = false;
@@ -661,7 +661,7 @@ namespace cheat::hooks
 				Unset_instance_assert_( );
 
 				this_instance__->target_instance__ = is_static ? nullptr : reinterpret_cast<C*>(this->cast_hook_callback( ));
-				return this_instance__->callback_proxy_impl_body(utl::forward<Args>(args)...);
+				return this_instance__->callback_proxy_impl_body(std::forward<Args>(args)...);
 			}
 
 		private:
@@ -675,7 +675,7 @@ namespace cheat::hooks
 				else
 					return_value_.reset( );
 
-				this->Callback(utl::forward<Args>(args)...);
+				this->Callback(std::forward<Args>(args)...);
 
 				if (return_value_.empty( ))
 					this->call_original_ex(static_cast<Args>(args)...);
@@ -720,7 +720,7 @@ namespace cheat::hooks
 			void Unhook_lazy_( )
 			{
 				this->safe__.unhook = true;
-				utl::this_thread::sleep_for(utl::chrono::milliseconds(150));
+				std::this_thread::sleep_for(std::chrono::milliseconds(150));
 				this->unhook_unsafe( );
 			}
 
@@ -735,12 +735,12 @@ namespace cheat::hooks
 			{
 				if (this->hooked( ))
 				{
-					BOOST_ASSERT_MSG(!other.hooked( ), "Unable to move active hook");
+					runtime_assert(!other.hooked( ), "Unable to move active hook");
 					Unhook_lazy_( );
 				}
 
-				this->hook_data_   = utl::move(other.hook_data_);
-				this->hook_params_ = utl::move(other.hook_params_);
+				this->hook_data_   = std::move(other.hook_data_);
+				this->hook_params_ = std::move(other.hook_params_);
 			}
 
 		private:
@@ -779,14 +779,14 @@ namespace cheat::hooks
 				Unmanaged_call_assert( );
 				auto original = Recreate_original_type_(original_func__);
 				if constexpr (is_static)
-					return _Call_function(original, utl::forward<Args>(args)...);
+					return _Call_function(original, std::forward<Args>(args)...);
 				else
 					return _Call_function(original, target_instance__, (args)...);
 			}
 
 			bool hook( ) final
 			{
-				BOOST_ASSERT_MSG(original_func__ == nullptr, "Method already hooked!");
+				runtime_assert(original_func__ == nullptr, "Method already hooked!");
 				Set_instance_assert_( );
 
 				auto& target_func_info  = target_func_;
@@ -798,7 +798,7 @@ namespace cheat::hooks
 				const auto result = hooks_context_->create_hook(target_func_info.get( ), replace_func_info.get( ));
 				if (result != STATUS::OK)
 				{
-					BOOST_ASSERT("Unable to hook function");
+					runtime_assert("Unable to hook function");
 					return false;
 				}
 
@@ -807,8 +807,8 @@ namespace cheat::hooks
 				{
 					const auto t = result.entry->buffer( );
 
-					BOOST_ASSERT_MSG(t != original_func__, "Duplicate class detected");
-					BOOST_ASSERT_MSG(t == original_func__, "Deleted hook recreated");
+					runtime_assert(t != original_func__, "Duplicate class detected");
+					runtime_assert(t == original_func__, "Deleted hook recreated");
 				}
 #endif
 				this_instance__ = this;
@@ -825,7 +825,7 @@ namespace cheat::hooks
 				const auto ok = hooks_context_->remove_hook(target_func_.get( ), force) == STATUS::OK;
 				if (!ok && !force)
 				{
-					BOOST_ASSERT("Unable to unhook function");
+					runtime_assert("Unable to unhook function");
 					return false;
 				}
 
@@ -869,7 +869,7 @@ namespace cheat::hooks
 				if (hooks_context_->enable_hook(target_func_.get( )) == STATUS::OK)
 					return true;
 
-				BOOST_ASSERT("Unable to enable hook");
+				runtime_assert("Unable to enable hook");
 				return false;
 			}
 
@@ -883,7 +883,7 @@ namespace cheat::hooks
 					return true;
 				}
 
-				BOOST_ASSERT("Unable to disable hook");
+				runtime_assert("Unable to disable hook");
 				return false;
 			}
 
@@ -954,15 +954,15 @@ namespace cheat::hooks
 		template <typename T, size_t ...I>
 		auto _Shift_left_impl(T& tpl, std::index_sequence<I...>)
 		{
-			return utl::forward_as_tuple
+			return std::forward_as_tuple
 					(
-					 reinterpret_cast<utl::tuple_element_t<I + 1, T>&>(utl::get<I>(tpl))
+					 reinterpret_cast<std::tuple_element_t<I + 1, T>&>(std::get<I>(tpl))
 					.unhide( )...
 					);
 		}
 
 		template <typename ...T>
-		auto _Shift_left(utl::tuple<hiddent_type<T>...>&& tpl)
+		auto _Shift_left(std::tuple<hiddent_type<T>...>&& tpl)
 		{
 			return _Shift_left_impl(tpl, std::make_index_sequence<sizeof...(T) - 1>( ));
 		}
@@ -980,7 +980,7 @@ namespace cheat::hooks
 			else\
 			{\
 				return apply(&hook_holder::callback_proxy_impl,\
-							utl::tuple_cat(utl::tuple(this), detail::_Shift_left(utl::tuple(hiddent_type<void*>(this->cast_hook_callback( )), args...))));\
+							std::tuple_cat(std::tuple(this), detail::_Shift_left(std::tuple(hiddent_type<void*>(this->cast_hook_callback( )), args...))));\
 			}\
         }\
     };*/\
@@ -995,7 +995,7 @@ namespace cheat::hooks
 			else\
 			{\
 				return apply(&hook_holder::callback_proxy_impl,\
-							utl::tuple_cat(utl::tuple(this), detail::_Shift_left(utl::tuple(hiddent_type<void*>(this->cast_hook_callback( )), args...))));\
+							std::tuple_cat(std::tuple(this), detail::_Shift_left(std::tuple(hiddent_type<void*>(this->cast_hook_callback( )), args...))));\
 			}\
         }\
     };\

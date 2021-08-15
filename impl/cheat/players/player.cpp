@@ -71,8 +71,8 @@ void player_shared_impl::update_animations(bool simple)
 	const auto backup_layers = [p]
 	{
 		auto& layers = p->GetAnimOverlays( );
-		BOOST_ASSERT(layers.size( ) == 13);
-		auto& bytes_array = *reinterpret_cast<array<uint8_t, sizeof(CAnimationLayer) * 13>*>(layers.begin( ));
+		runtime_assert(layers.size( ) == 13);
+		auto& bytes_array = *reinterpret_cast<std::array<uint8_t, sizeof(CAnimationLayer) * 13>*>(layers.begin( ));
 		return memory_backup(bytes_array);
 	}( );
 	(void)backup_layers;
@@ -154,9 +154,9 @@ void player_shared_impl::remove_old_ticks(float curtime)
 		(void)last_valid;
 
 		if (last_valid == end)
-			ticks_window = span(first_valid, 1);
+			ticks_window = std::span(first_valid, 1);
 		else
-			ticks_window = span(first_valid, last_valid);
+			ticks_window = std::span(first_valid, last_valid);
 	};
 
 	(void)this;

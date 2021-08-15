@@ -1,8 +1,8 @@
-int32_t& m_nHaloIndex( );
-bool& m_bSpotlightOn( );
 bool& m_bHasDynamicLight( );
-float& m_flSpotlightMaxLength( );
-float& m_flSpotlightGoalWidth( );
+bool& m_bSpotlightOn( );
 float& m_flHDRColorScale( );
-int32_t& m_nRotationAxis( );
 float& m_flRotationSpeed( );
+float& m_flSpotlightGoalWidth( );
+float& m_flSpotlightMaxLength( );
+int32_t& m_nHaloIndex( );
+int32_t& m_nRotationAxis( );

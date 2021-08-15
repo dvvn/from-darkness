@@ -293,7 +293,7 @@ namespace cheat::csgo
 	}
 
 	//-----------------------------------------------------------------------------
-	// Gets the base address (can change when adding elements!)
+	// Gets the base utl::address (can change when adding elements!)
 	//-----------------------------------------------------------------------------
 	template <class T, class I>
 	auto CUtlMemory<T, I>::Base( ) -> T*
@@ -399,7 +399,7 @@ namespace cheat::csgo
 			{
 				if ((int)(I)nAllocationRequested != nAllocationRequested)
 				{
-					// we've been asked to grow memory to a size s.t. the index type can't address the requested amount of memory
+					// we've been asked to grow memory to a size s.t. the index type can't utl::address the requested amount of memory
 					assert(0);
 					return;
 				}

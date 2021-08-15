@@ -15,15 +15,15 @@ namespace cheat::gui::objects
 		template <typename ...Ts>
 		abstract_page(Ts&& ...args)
 		{
-			init(utl::forward<Ts>(args)...);
+			init(std::forward<Ts>(args)...);
 		}
 
 		template <std::default_initializable T>
 		T* init( )
 		{
-			auto uptr = utl::make_unique<T>( );
+			auto uptr = std::make_unique<T>( );
 			auto obj  = static_cast<T*>(uptr.get( ));
-			page__.emplace<unique_page>(utl::move(uptr));
+			page__.emplace<unique_page>(std::move(uptr));
 			name__.init(obj);
 
 			return obj;
@@ -32,14 +32,14 @@ namespace cheat::gui::objects
 		template <class T>
 		T* init(T* obj)
 		{
-			page__.emplace<ref_page>(utl::ref(*obj));
+			page__.emplace<ref_page>(std::ref(*obj));
 			name__.init(obj);
 
 			return obj;
 		}
 
 		template <class T>
-		T* init(const utl::shared_ptr<T>& obj)
+		T* init(const std::shared_ptr<T>& obj)
 		{
 			page__.emplace<shared_page>(obj);
 			name__.init(obj.get( ));
@@ -50,16 +50,16 @@ namespace cheat::gui::objects
 		template <std::invocable T>
 		auto init(T&& fn)
 		{
-			return init(utl::invoke(fn));
+			return init(std::invoke(fn));
 		}
 
 		template <class T>
 		T* init(tools::string_wrapper&& name)
 		{
-			auto uptr = utl::make_unique<T>( );
+			auto uptr = std::make_unique<T>( );
 			auto obj  = static_cast<T*>(uptr.get( ));
-			page__.emplace<unique_page>(utl::move(uptr));
-			name__.init(utl::move(name));
+			page__.emplace<unique_page>(std::move(uptr));
+			name__.init(std::move(name));
 
 			return obj;
 		}
@@ -67,17 +67,17 @@ namespace cheat::gui::objects
 		template <class T>
 		T* init(tools::string_wrapper&& name, T* obj)
 		{
-			page__.emplace<ref_page>(utl::ref(*obj));
-			name__.init(utl::move(name));
+			page__.emplace<ref_page>(std::ref(*obj));
+			name__.init(std::move(name));
 
 			return obj;
 		}
 
 		template <class T>
-		T* init(tools::string_wrapper&& name, const utl::shared_ptr<T>& obj)
+		T* init(tools::string_wrapper&& name, const std::shared_ptr<T>& obj)
 		{
 			page__.emplace<shared_page>(obj);
-			name__.init(utl::move(name));
+			name__.init(std::move(name));
 
 			return obj.get( );
 		}
@@ -85,7 +85,7 @@ namespace cheat::gui::objects
 		template <std::invocable T>
 		auto init(tools::string_wrapper&& name, T&& fn)
 		{
-			return init(utl::move(name), utl::invoke(fn));
+			return init(std::move(name), std::invoke(fn));
 		}
 
 		const tools::string_wrapper& name( ) const;
@@ -94,11 +94,11 @@ namespace cheat::gui::objects
 		void render( );
 
 	private:
-		using unique_page = utl::unique_ptr<renderable_object>;
-		using shared_page = utl::shared_ptr<renderable_object>;
-		using ref_page = utl::reference_wrapper<renderable_object>;
+		using unique_page = std::unique_ptr<renderable_object>;
+		using shared_page = std::shared_ptr<renderable_object>;
+		using ref_page = std::reference_wrapper<renderable_object>;
 
-		utl::variant<unique_page, shared_page, ref_page> page__;
+		std::variant<unique_page, shared_page, ref_page> page__;
 		tools::string_wrapper_abstract                   name__;
 	};
 
@@ -121,6 +121,6 @@ namespace cheat::gui::objects
 		size_t pages_count( ) const;
 
 	protected:
-		utl::vector<pages_storage_data> pages_;
+		std::vector<pages_storage_data> pages_;
 	};
 }

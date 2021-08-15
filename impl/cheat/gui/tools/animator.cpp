@@ -17,7 +17,7 @@ bool animator::updating( ) const
 
 void animator::set(int direction)
 {
-	BOOST_ASSERT(direction == 1 || direction == -1);
+	runtime_assert(direction == 1 || direction == -1);
 	if (!updating( ))
 	{
 		time__ = time_max__;
@@ -70,7 +70,7 @@ float animator::value( ) const
 
 animator::animator(float value_min, float value_max, float time_max)
 {
-	BOOST_ASSERT(value_max <= 1);
+	runtime_assert(value_max <= 1);
 
 	set_min_max(value_min, value_max);
 	set_time(time_max);
@@ -78,30 +78,30 @@ animator::animator(float value_min, float value_max, float time_max)
 
 void animator::set_min(float val)
 {
-	BOOST_ASSERT(val < value__.max);
-	BOOST_ASSERT(val >= 0);
+	runtime_assert(val < value__.max);
+	runtime_assert(val >= 0);
 	value__.min = val;
 }
 
 void animator::set_max(float val)
 {
-	BOOST_ASSERT(val <= 1);
-	BOOST_ASSERT(val > value__.min);
+	runtime_assert(val <= 1);
+	runtime_assert(val > value__.min);
 	value__.max = val;
 }
 
 void animator::set_min_max(float min, float max)
 {
-	BOOST_ASSERT(min < max);
-	BOOST_ASSERT(min >= 0);
-	BOOST_ASSERT(max <= 1);
+	runtime_assert(min < max);
+	runtime_assert(min >= 0);
+	runtime_assert(max <= 1);
 	value__.min = min;
 	value__.max = max;
 }
 
 void animator::set_time(float val)
 {
-	BOOST_ASSERT(val>0);
+	runtime_assert(val>0);
 	time_max__ = val;
 }
 
@@ -122,10 +122,10 @@ float animator::time( ) const
 
 //auto animator::setup_limits(float value_min, float value_max, float time_max) -> void
 //{
-//	BOOST_ASSERT(value_min < value_max);
-//	BOOST_ASSERT(value_min >= 0);
-//	BOOST_ASSERT(value_max <= 1);
-//	BOOST_ASSERT(time_max > 0);
+//	runtime_assert(value_min < value_max);
+//	runtime_assert(value_min >= 0);
+//	runtime_assert(value_max <= 1);
+//	runtime_assert(time_max > 0);
 //	value__.min = value_min;
 //	value__.max = value_max;
 //	time_max__ = time_max;

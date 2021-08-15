@@ -108,7 +108,7 @@ namespace cheat::csgo
 	public:
 		//RecvProp* m_pProps;
 		//int       m_nProps;
-		utl::span<RecvProp>props;
+		std::span<RecvProp>props;
 		void*     m_pDecoder;
 		char*     m_pNetTableName;
 		bool      m_bInitialized;

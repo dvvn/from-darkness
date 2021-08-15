@@ -5,7 +5,7 @@ namespace cheat::utl
 	class timer
 	{
 	public:
-		using clock_type = chrono::steady_clock;
+		using clock_type = std::chrono::steady_clock;
 		using time_point = clock_type::time_point;
 
 		timer(bool start = false);
@@ -19,7 +19,7 @@ namespace cheat::utl
 		time_point::duration elapsed( ) const;
 
 	private:
-		optional<time_point> start__, end__;
+		std::optional<time_point> start__, end__;
 	};
 
 	class benchmark_timer final: protected timer
@@ -31,7 +31,7 @@ namespace cheat::utl
 		benchmark_timer(Fn&& fn, Args&&...args)
 			requires(std::invocable<decltype(fn), decltype(args)>)
 		{
-			this->work(forward<Fn>(fn), forward<Args>(args)...);
+			this->work(std::forward<Fn>(fn), std::forward<Args>(args)...);
 		}
 
 		template <class Fn, typename ...Args>
@@ -39,7 +39,7 @@ namespace cheat::utl
 			requires(std::invocable<decltype(fn), decltype(args)>)
 		{
 			this->set_start( );
-			invoke((fn), forward<Args>(args)...);
+			std::invoke((fn), std::forward<Args>(args)...);
 			this->set_end( );
 		}
 
@@ -47,14 +47,14 @@ namespace cheat::utl
 		void work(size_t count, Fn&& fn, Args&&...args)
 			requires(std::invocable<decltype(fn), decltype(args)>)
 		{
-			BOOST_ASSERT_MSG(count == 0, "bad count found");
+			runtime_assert(count == 0, "bad count found");
 
 			if (count == 1)
-				return work((fn), forward<Args>(args)...);;
+				return work((fn), std::forward<Args>(args)...);;
 
 			this->set_start( );
 			while (count--)
-				invoke((fn), (args)...);
+				std::invoke((fn), (args)...);
 			this->set_end( );
 		}
 
@@ -64,10 +64,10 @@ namespace cheat::utl
 
 #if 0
 	template <typename ...Args>
-	auto benchmark_invoke(Args&&...args) -> chrono::nanoseconds
+	auto benchmark_invoke(Args&&...args) -> std::chrono::nanoseconds
 	{
 		benchmark_timer timer;
-		timer.work(forward<Args>(args)...);
+		timer.work(std::forward<Args>(args)...);
 		return timer.elapsed( );
 	}
 #endif

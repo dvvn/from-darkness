@@ -3,36 +3,37 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-float& C_World::m_flWaveHeight( )
+Vector& C_World::m_WorldMaxs( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_flWaveHeight");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_WorldMaxs");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }
-utl::Vector& C_World::m_WorldMins( )
+Vector& C_World::m_WorldMins( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_WorldMins");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_WorldMins");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }
-utl::Vector& C_World::m_WorldMaxs( )
+bool& C_World::m_bColdWorld( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_WorldMaxs");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_bColdWorld");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }
 bool& C_World::m_bStartDark( )
@@ -40,8 +41,8 @@ bool& C_World::m_bStartDark( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_bStartDark");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_bStartDark");
+	auto addr = address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -50,18 +51,8 @@ float& C_World::m_flMaxOccludeeArea( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_flMaxOccludeeArea");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_World::m_flMinOccluderArea( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_flMinOccluderArea");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flMaxOccludeeArea");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -70,8 +61,18 @@ float& C_World::m_flMaxPropScreenSpaceWidth( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_flMaxPropScreenSpaceWidth");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flMaxPropScreenSpaceWidth");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_World::m_flMinOccluderArea( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flMinOccluderArea");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -80,29 +81,19 @@ float& C_World::m_flMinPropScreenSpaceWidth( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_flMinPropScreenSpaceWidth");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flMinPropScreenSpaceWidth");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
-char* C_World::m_iszDetailSpriteMaterial( )
+float& C_World::m_flWaveHeight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_iszDetailSpriteMaterial");
-	auto addr = utl::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-bool& C_World::m_bColdWorld( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_bColdWorld");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flWaveHeight");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 int32_t& C_World::m_iTimeOfDay( )
@@ -110,8 +101,18 @@ int32_t& C_World::m_iTimeOfDay( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World.m_iTimeOfDay");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_iTimeOfDay");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
+#endif
+}
+char* C_World::m_iszDetailSpriteMaterial( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_iszDetailSpriteMaterial");
+	auto addr = address(this).add(offset);
+	return addr.ptr<char>( );
 #endif
 }

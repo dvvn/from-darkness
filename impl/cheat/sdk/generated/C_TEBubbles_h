@@ -1,6 +1,6 @@
-utl::Vector& m_vecMins( );
-utl::Vector& m_vecMaxs( );
-int32_t& m_nModelIndex( );
 float& m_fHeight( );
-int32_t& m_nCount( );
 float& m_fSpeed( );
+int32_t& m_nCount( );
+int32_t& m_nModelIndex( );
+Vector& m_vecMaxs( );
+Vector& m_vecMins( );

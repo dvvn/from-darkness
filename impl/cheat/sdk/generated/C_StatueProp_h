@@ -1,5 +1,5 @@
-CBaseHandle& m_hInitBaseAnimating( );
 bool& m_bShatter( );
+CBaseHandle& m_hInitBaseAnimating( );
 int32_t& m_nShatterFlags( );
-utl::Vector& m_vShatterPosition( );
-utl::Vector& m_vShatterForce( );
+Vector& m_vShatterForce( );
+Vector& m_vShatterPosition( );

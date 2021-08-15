@@ -3,15 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-CBaseHandle& C_Drone::m_hMoveToThisEntity( )
+bool& C_Drone::m_bPilotTakeoverAllowed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_bPilotTakeoverAllowed");
+	auto addr = address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+CBaseHandle& C_Drone::m_hCurrentPilot( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hMoveToThisEntity");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hCurrentPilot");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -20,19 +31,19 @@ CBaseHandle& C_Drone::m_hDeliveryCargo( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hDeliveryCargo");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hDeliveryCargo");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
-bool& C_Drone::m_bPilotTakeoverAllowed( )
+CBaseHandle& C_Drone::m_hMoveToThisEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_bPilotTakeoverAllowed");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<bool>( );
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hMoveToThisEntity");
+	auto addr = address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
 #endif
 }
 CBaseHandle& C_Drone::m_hPotentialCargo( )
@@ -40,38 +51,28 @@ CBaseHandle& C_Drone::m_hPotentialCargo( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hPotentialCargo");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hPotentialCargo");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
-CBaseHandle& C_Drone::m_hCurrentPilot( )
+std::array<int32_t, 24>& C_Drone::m_vecTagIncrements( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(std::array<int32_t, 24>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_hCurrentPilot");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_vecTagIncrements");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<int32_t, 24>>( );
 #endif
 }
-utl::array<utl::Vector, 24>& C_Drone::m_vecTagPositions( )
+std::array<Vector, 24>& C_Drone::m_vecTagPositions( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<utl::Vector, 24>*)nullptr;
+	return *(std::array<Vector, 24>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_vecTagPositions");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<utl::Vector, 24>>( );
-#endif
-}
-utl::array<int32_t, 24>& C_Drone::m_vecTagIncrements( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::array<int32_t, 24>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone.m_vecTagIncrements");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::array<int32_t, 24>>( );
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_vecTagPositions");
+	auto addr = address(this).add(offset);
+	return addr.ref<std::array<Vector, 24>>( );
 #endif
 }

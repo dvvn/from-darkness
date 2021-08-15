@@ -1,2 +1,2 @@
-utl::Vector& m_vecStartPoint( );
-utl::Vector& m_vecEndPoint( );
+Vector& m_vecEndPoint( );
+Vector& m_vecStartPoint( );

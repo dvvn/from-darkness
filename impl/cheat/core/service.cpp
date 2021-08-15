@@ -5,19 +5,18 @@
 using namespace cheat;
 using namespace detail;
 using namespace utl;
-using namespace future_state;
 
-[[maybe_unused]] static future<void> _Get_ready_task( )
+[[maybe_unused]] static std::future<void> _Get_ready_task( )
 {
-	promise<void> pr;
+	std::promise<void> pr;
 	pr.set_value( );
 	return pr.get_future( );
 }
 
 template <std::derived_from<std::exception> Ex>
-[[maybe_unused]] static future<void> _Get_error_task(Ex&& ex)
+[[maybe_unused]] static std::future<void> _Get_error_task(Ex&& ex)
 {
-	promise<void> pr;
+	std::promise<void> pr;
 	pr.set_exception(move(ex));
 	return pr.get_future( );
 }
@@ -46,7 +45,7 @@ bool service_state::disabled( ) const
 
 void service_base::Loading_access_assert( ) const
 {
-	BOOST_ASSERT_MSG(static_cast<service_state>(state__) != service_state::loading, "Unable to modify service while loading!");
+	runtime_assert(static_cast<service_state>(state__) != service_state::loading, "Unable to modify service while loading!");
 	(void)this;
 }
 
@@ -74,7 +73,6 @@ void service_base::operator=(service_base&& other) noexcept
 
 service_state service_base::state( ) const
 {
-	_ReadBarrier( );
 	return state__;
 }
 
@@ -85,7 +83,7 @@ void service_base::load( )
 		// ReSharper disable once CppRedundantCastExpression
 		if (static_cast<service_state>(state__) != service_state::unset)
 		{
-			BOOST_ASSERT("Service loaded before");
+			runtime_assert("Service loaded before");
 			return;
 		}
 
@@ -93,9 +91,7 @@ void service_base::load( )
 		const auto loaded = this->Do_load( );
 		state__ = service_state::loaded;
 
-#ifdef CHEAT_HAVE_CONSOLE
-		_Log_to_console(format("Service {}: {}", loaded ? "loaded " : "skipped", this->name( )));
-#endif
+		CHEAT_CONSOLE_LOG("Service {}: {}", loaded ? "loaded " : "skipped", this->name( ));
 		this->On_load( );
 	}
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
@@ -108,9 +104,7 @@ void service_base::load( )
 	catch ([[maybe_unused]] const std::exception& ex)
 	{
 		state__ = service_state::error;
-#ifdef CHEAT_HAVE_CONSOLE
-		_Log_to_console(format("Unable to load service {}. {}", this->name( ), ex.what( )));
-#endif
+		CHEAT_CONSOLE_LOG("Unable to load service {}. {}", this->name( ), ex.what( ));
 		this->On_error( );
 	}
 }

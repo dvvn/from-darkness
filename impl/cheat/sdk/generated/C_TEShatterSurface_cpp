@@ -3,65 +3,16 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector& C_TEShatterSurface::m_vecOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::QAngle& C_TEShatterSurface::m_vecAngles( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::QAngle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecAngles");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::QAngle>( );
-#endif
-}
-utl::Vector& C_TEShatterSurface::m_vecForce( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecForce");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-utl::Vector& C_TEShatterSurface::m_vecForcePos( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_vecForcePos");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector>( );
-#endif
-}
-float& C_TEShatterSurface::m_flWidth( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_flWidth");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_TEShatterSurface::m_flHeight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_flHeight");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flHeight");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -70,8 +21,18 @@ float& C_TEShatterSurface::m_flShardSize( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_flShardSize");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flShardSize");
+	auto addr = address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_TEShatterSurface::m_flWidth( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flWidth");
+	auto addr = address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -80,28 +41,68 @@ int32_t& C_TEShatterSurface::m_nSurfaceType( )
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int32_t*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_nSurfaceType");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_nSurfaceType");
+	auto addr = address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
-utl::Color& C_TEShatterSurface::m_uchFrontColor( )
+Color& C_TEShatterSurface::m_uchBackColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Color*)nullptr;
+	return *(Color*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_uchFrontColor");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Color>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_uchBackColor");
+	auto addr = address(this).add(offset);
+	return addr.ref<Color>( );
 #endif
 }
-utl::Color& C_TEShatterSurface::m_uchBackColor( )
+Color& C_TEShatterSurface::m_uchFrontColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Color*)nullptr;
+	return *(Color*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface.m_uchBackColor");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Color>( );
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_uchFrontColor");
+	auto addr = address(this).add(offset);
+	return addr.ref<Color>( );
+#endif
+}
+QAngle& C_TEShatterSurface::m_vecAngles( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(QAngle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_vecAngles");
+	auto addr = address(this).add(offset);
+	return addr.ref<QAngle>( );
+#endif
+}
+Vector& C_TEShatterSurface::m_vecForce( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_vecForce");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_TEShatterSurface::m_vecForcePos( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_vecForcePos");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_TEShatterSurface::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector>( );
 #endif
 }

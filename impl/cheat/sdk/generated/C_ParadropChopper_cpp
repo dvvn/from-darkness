@@ -3,25 +3,26 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
+using namespace utl;
 using namespace csgo;
 
-utl::Vector2D& C_ParadropChopper::m_vecOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(utl::Vector2D*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ParadropChopper.m_vecOrigin");
-	auto addr = utl::address(this).add(offset);
-	return addr.ref<utl::Vector2D>( );
-#endif
-}
 CBaseHandle& C_ParadropChopper::m_hCallingPlayer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_ParadropChopper.m_hCallingPlayer");
-	auto addr = utl::address(this).add(offset);
+	static const auto offset = netvars::get_ptr( )->at("C_ParadropChopper", "m_hCallingPlayer");
+	auto addr = address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
+#endif
+}
+Vector2D& C_ParadropChopper::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector2D*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ParadropChopper", "m_vecOrigin");
+	auto addr = address(this).add(offset);
+	return addr.ref<Vector2D>( );
 #endif
 }

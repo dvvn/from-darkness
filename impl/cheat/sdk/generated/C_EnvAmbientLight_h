@@ -1,1 +1,1 @@
-utl::Vector& m_vecColor( );
+Vector& m_vecColor( );

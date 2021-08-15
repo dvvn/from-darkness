@@ -89,18 +89,18 @@ float cheat::_Unlag_range( )
 	return range;
 }
 
-ConVar* cheat::_Find_cvar(const string_view& cvar)
+ConVar* cheat::_Find_cvar(const std::string_view& cvar)
 {
 	struct cached_cvar
 	{
 		cached_cvar(ConVar* c)
 		{
-			BOOST_ASSERT(c!=nullptr);
+			runtime_assert(c!=nullptr);
 			obj  = c;
 			addr = c;
 		}
 
-		bool valid(const string_view& name) const
+		bool valid(const std::string_view& name) const
 		{
 			if (addr != obj)
 				return false;
@@ -112,7 +112,7 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 				return false;
 			if (obj_name[name_size - 1] == '\0')
 				return false;
-			if (name != string_view(obj_name, name_size))
+			if (name != std::string_view(obj_name, name_size))
 				return false;
 			return true;
 		}
@@ -121,8 +121,8 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 		address addr;
 	};
 
-	static auto cache = unordered_map<string, cached_cvar>( );
-	static auto mtx   = mutex( );
+	static auto cache = nstd::unordered_map<std::string, cached_cvar>( );
+	static auto mtx   = std::mutex( );
 
 	const auto cvar_hash = invoke(cache.hash_function( ), cvar);
 
@@ -146,7 +146,7 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 	if (const auto cache_end = cache.end( ); found == cache_end)
 	{
 		const auto size_before = cache.size( );
-		const auto lock        = make_lock_guard(mtx);
+		const auto lock        = std::scoped_lock(mtx);
 
 		return [&]( )-> cached_cvar&
 		{
@@ -154,10 +154,8 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 				return cache.at(cvar, cvar_hash);
 
 			auto cv = get_cvar_from_game( );
-#ifdef CHEAT_HAVE_CONSOLE
-			_Log_to_console(format("Cvar {} found", cvar));
-#endif
-			return cache.emplace(cvar, move(cv)).first.value( );
+			CHEAT_CONSOLE_LOG("Cvar {} found", cvar);
+			return cache.emplace(cvar, std::move(cv)).first.value( );
 		}( ).obj;
 	}
 
@@ -166,11 +164,9 @@ ConVar* cheat::_Find_cvar(const string_view& cvar)
 
 	if (!obj_cached.valid(name))
 	{
-		const auto lock = make_lock_guard(mtx);
+		const auto lock = std::scoped_lock(mtx);
 		obj_cached      = get_cvar_from_game( );
-#ifdef CHEAT_HAVE_CONSOLE
-		_Log_to_console(format("Cvar {} updated", cvar));
-#endif
+		CHEAT_CONSOLE_LOG("Cvar {} is updated", cvar);
 	}
 
 	return obj_cached.obj;
@@ -191,14 +187,14 @@ float cheat::_Ticks_to_time(size_t ticks)
 	return _Interval_per_ticks( ) * static_cast<float>(ticks);
 }
 
-address _Find_signature_impl::operator()(const memory_block& from, const string_view& sig) const
+address _Find_signature_impl::operator()(const memory_block& from, const std::string_view& sig) const
 {
 	return invoke(&memory_block::addr, sig.find('?') != sig.npos
 										   ? from.find_block(signature<TEXT>(sig))
 										   : from.find_block(signature<TEXT_AS_BYTES>(sig)));
 }
 
-address _Find_signature_impl::operator()(const string_view& dll_name, const string_view& sig) const
+address _Find_signature_impl::operator()(const std::string_view& dll_name, const std::string_view& sig) const
 {
 	const auto module = all_modules::get_ptr( )->find(dll_name);
 	auto       block  = module->mem_block( );
@@ -206,9 +202,9 @@ address _Find_signature_impl::operator()(const string_view& dll_name, const stri
 	return invoke(*this, block, sig);
 }
 
-void* cheat::detail::_Vtable_pointer_impl(const string_view& from, const string_view& table_name)
+void* cheat::detail::_Vtable_pointer_impl(const std::string_view& from, const std::string_view& table_name)
 {
-	BOOST_ASSERT(!from.empty( ));
+	runtime_assert(!from.empty( ));
 
 	auto& module_from = *all_modules::get_ptr( )->find(from);
 	auto& vtables     = module_from.vtables( );
@@ -219,7 +215,7 @@ void* cheat::detail::_Vtable_pointer_impl(const string_view& from, const string_
 	{
 		//precache in release mode with CHEAT_NETVARS_UPDATING define, or fuck cpu
 
-		const auto lock = make_lock_guard(vtables);
+		const auto lock = std::lock_guard(vtables);
 		(void)lock;
 
 		//maybe another thread do all the work
@@ -227,26 +223,28 @@ void* cheat::detail::_Vtable_pointer_impl(const string_view& from, const string_
 			goto _LOAD;
 
 		const auto module_checksum = module_from.check_sum( );
-		BOOST_ASSERT(module_checksum != 0u);
-		const auto dumps_path = filesystem::path(CHEAT_DUMPS_DIR _STRINGIZE_R(modules\)) / module_from.name_wide( ) / to_wstring(module_checksum) / L"vtables.json";
+		runtime_assert(module_checksum != 0u);
+		const auto dumps_path = std::filesystem::path(CHEAT_DUMPS_DIR _STRINGIZE_R(modules\)) / module_from.name_wide( ) / std::to_wstring(module_checksum) / L"vtables.json";
 
 #ifdef CHEAT_HAVE_CONSOLE
-		const auto log_helper = [&]<typename T>(T&& msg)
-		{
-			_Log_to_console(format("{} vtables: {}", module_from.name( ), msg));
-		};
-
-		string msg = "Trying to load from ";
-		msg += exists(dumps_path) ? "cache" : "memory";
-		msg += " in ";
 #ifdef _DEBUG
-		msg += "SLOW";
+#define CHEAT_VTABLES_DUMP_SPEED "SLOW"
 #else
-		msg += "FAST";
+#define CHEAT_VTABLES_DUMP_SPEED "FAST"
 #endif
-		msg += " mode";
-		log_helper(msg);
+
+#define CHEAT_CONSOLE_LOG_HELPER(...)\
+	CHEAT_CONSOLE_LOG("{} vtables: {}", module_from.name( ), __VA_ARGS__)
+#else
+#define CHEAT_CONSOLE_LOG_HELPER(...) (void)0
 #endif
+
+		CHEAT_CONSOLE_LOG_HELPER(std::ostringstream( )
+								 << "Trying to load from "
+								 << (exists(dumps_path) ? "cache" : "memory")
+								 << " in "
+								 << CHEAT_VTABLES_DUMP_SPEED
+								 << " mode");
 
 		try
 		{
@@ -257,26 +255,19 @@ void* cheat::detail::_Vtable_pointer_impl(const string_view& from, const string_
 
 			if (vtables.load(dumps_path))
 			{
-#ifdef CHEAT_HAVE_CONSOLE
-				log_helper("Loaded");
-#endif
+				CHEAT_CONSOLE_LOG_HELPER("Loaded");
 				goto _LOAD;
 			}
-#ifdef CHEAT_HAVE_CONSOLE
-			log_helper("Not loaded");
-#endif
+			CHEAT_CONSOLE_LOG_HELPER("Not loaded");
 		}
 		catch (const std::exception& ex)
 		{
-#ifdef CHEAT_HAVE_CONSOLE
-			log_helper(format("Not loaded: ", ex.what( )));
-#endif
+			CHEAT_CONSOLE_LOG_HELPER(std::format("Not loaded: ", ex.what( )));
 		}
 
 		return nullptr;
 	}
 
 _LOAD:
-
 	return vtables_cache.at(table_name).addr.ptr<void>( );
 }

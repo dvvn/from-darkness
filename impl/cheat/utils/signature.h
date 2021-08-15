@@ -4,43 +4,7 @@ namespace cheat::utl
 {
 	namespace detail
 	{
-		template <typename T>
-		class simple_optional
-		{
-		public:
-			constexpr simple_optional(T val): val__(val),
-											  has_val__(true)
-			{
-			}
-
-			constexpr simple_optional( ): val__(make_default<T>( )),
-										  has_val__(false)
-			{
-			}
-
-			constexpr bool has_value( ) const
-			{
-				return has_val__;
-			}
-
-			constexpr T operator*( ) const
-			{
-				return val__;
-			}
-
-			optional<T> parent( ) const
-			{
-				if (has_val__)
-					return val__;
-				return { };
-			}
-
-		private:
-			T    val__;
-			bool has_val__;
-		};
-
-		class test_to_byte_fn
+			class test_to_byte_fn
 		{
 			struct char_and_number
 			{
@@ -48,7 +12,7 @@ namespace cheat::utl
 				uint8_t character;
 			};
 		
-			static constexpr simple_optional<uint8_t> Get_byte_(uint8_t chr)
+			static constexpr std::optional<uint8_t> Get_byte_(uint8_t chr)
 			{
 				// ReSharper disable once CppInconsistentNaming
 #define INFO__(num) char_and_number(0x##num,#num[0])
@@ -85,36 +49,36 @@ namespace cheat::utl
 
 		public:
 			template <typename Rng>
-			constexpr simple_optional<uint8_t> operator()(Rng&& rng) const
+			constexpr std::optional<uint8_t> operator()(Rng&& rng) const
 			{
-				auto str = basic_string_view(rng);
-				BOOST_ASSERT_MSG(str.size( ) == 1 || str.size( ) == 2, "Unable to convert text to byte");
+				auto str = std::basic_string_view(rng);
+				runtime_assert(str.size( ) == 1 || str.size( ) == 2, "Unable to convert text to byte");
 
 #ifdef _DEBUG
 				if constexpr (sizeof(typename decltype(str)::value_type) != sizeof(uint8_t))
 				{
-					for (size_t chr: str)
+					for (const size_t chr: str)
 					{
-						BOOST_ASSERT_MSG(chr < std::numeric_limits<uint8_t>::max( ), "Unable to convert unicode text to byte");
+						runtime_assert(chr < std::numeric_limits<uint8_t>::max( ), "Unable to convert unicode text to byte");
 					}
 				}
 #endif
 
 				if (str.find('?') != str.npos)
 				{
-					BOOST_ASSERT_MSG(str.find_first_not_of('?') == str.npos, "Wrong unknown text byte");
+					runtime_assert(str.find_first_not_of('?') == str.npos, "Wrong unknown text byte");
 					//return {uint8_t(-1)};
 					return { };
 				}
 
 				auto part = Get_byte_(str[0]);
-				BOOST_ASSERT_MSG(part.has_value(), "Wrong byte 1");
+				runtime_assert(part.has_value(), "Wrong byte 1");
 
 				if (str.size( ) == 1)
 					return {*part};
 
 				auto part2 = Get_byte_(str[1]);
-				BOOST_ASSERT_MSG(part2.has_value(), "Wrong byte 2");
+				runtime_assert(part2.has_value(), "Wrong byte 2");
 
 				return {static_cast<size_t>(*part) * 16 + *part2};
 			}
@@ -124,7 +88,7 @@ namespace cheat::utl
 		template <typename Rng, typename Fn>
 		void _Parse_text_as_bytes(Rng&& rng, Fn&& store_fn)
 		{
-			auto str_view = basic_string_view(rng);
+			auto str_view = std::basic_string_view(rng);
 
 			const auto clamp_spaces = [&]
 			{
@@ -134,26 +98,26 @@ namespace cheat::utl
 			};
 
 			clamp_spaces( );
-			BOOST_ASSERT_MSG(!str_view.empty(), "Signature range is empty!");
+			runtime_assert(!str_view.empty(), "Signature range is empty!");
 
 			while (!str_view.empty( ))
 			{
 				const auto end = str_view.find_first_of(' ');
-				BOOST_ASSERT_MSG(end != str_view.npos || str_view.size() <= 2, "End of text byte not found");
+				runtime_assert(end != str_view.npos || str_view.size() <= 2, "End of text byte not found");
 
 				const auto part = str_view.substr(0, end);
 				const auto byte = text_to_byte(part);
 
 				/*if constexpr (std::same_as<typename T::value_type, uint8_t>)
 				{
-					BOOST_ASSERT_MSG(byte.has_value(), "Unknown byte detected, all bytes must be known");
+					runtime_assert(byte.has_value(), "Unknown byte detected, all bytes must be known");
 					storage.push_back(*byte);
 				}
 				else
 				{
 					storage.push_back(byte);
 				}*/
-				invoke(store_fn, byte);
+				std::invoke(store_fn, byte);
 				if (end == str_view.npos)
 					break;
 
@@ -164,8 +128,8 @@ namespace cheat::utl
 			//storage.shrink_to_fit( );
 		}
 
-		using signature_bytes = vector<optional<uint8_t>>;
-		using signature_bytes_raw = vector<uint8_t>;
+		using signature_bytes = std::vector<std::optional<uint8_t>>;
+		using signature_bytes_raw = std::vector<uint8_t>;
 	}
 
 	enum signature_parse_mode
@@ -202,9 +166,9 @@ namespace cheat::utl
 			signature_bytes_raw operator()(Txt&& text) const
 			{
 				auto       vec = signature_bytes_raw( );
-				const auto store_fn = [&vec](const simple_optional<uint8_t>& b)
+				const auto store_fn = [&vec](const std::optional<uint8_t>& b)
 				{
-					BOOST_ASSERT_MSG(b.has_value(), "Unknown byte detected, all bytes must be known in TEXT_AS_BYTES mode!");
+					runtime_assert(b.has_value(), "Unknown byte detected, all bytes must be known in TEXT_AS_BYTES mode!");
 					vec.push_back(*b);
 				};
 				_Parse_text_as_bytes(text, store_fn);
@@ -227,19 +191,19 @@ namespace cheat::utl
 						using rng_val = ranges::range_value_t<T>;
 						static_assert(!std::is_pointer_v<rng_val>);
 						if constexpr (sizeof(rng_val) != sizeof(std::byte))
-							return as_bytes(span(ranges::data(val), ranges::size(val)));
+							return std::as_bytes(std::span(ranges::data(val), ranges::size(val)));
 						else
 						{
 							if constexpr (std::is_same_v<rng_val, char>)
-								return string_view(val);
+								return std::string_view(val);
 							else
-								return span(val);
+								return std::span(val);
 						}
 					}
 					else
 					{
 						static_assert(!ranges::range<T>);
-						return as_bytes(span(addressof(val), 1));
+						return std::as_bytes(std::span(std::addressof(val), 1));
 					}
 				}
 				else
@@ -267,7 +231,7 @@ namespace cheat::utl
                     static_assert(!std::is_pointer_v<T>);
                     if constexpr (!ranges::range<T>)
                     {
-                        return as_bytes(span(addressof(val), 1));
+                        return std::as_bytes(std::span(std::addressof(val), 1));
                     }
                     else
                     {
@@ -275,7 +239,7 @@ namespace cheat::utl
                         if constexpr (std::is_class_v<raw_t> && !std::is_trivially_destructible_v<raw_t>)
                             return static_cast<const T&>(val);
                         else
-                            return basic_string_view(val);
+                            return std::basic_string_view(val);
                     }
                 }
                 else
@@ -287,7 +251,7 @@ namespace cheat::utl
                     for (auto b: bytes)
                         vec.push_back(b);
 
-                    return move(vec);
+                    return std::move(vec);
                 }
 #endif
 			}
@@ -301,9 +265,9 @@ namespace cheat::utl
 			{
 				auto vec = signature_bytes( );
 
-				const auto store_fn = [&](const simple_optional<uint8_t>& b)
+				const auto store_fn = [&](const std::optional<uint8_t>& b)
 				{
-					vec.push_back(b.parent( ));
+					vec.push_back(b);
 				};
 				_Parse_text_as_bytes(text, store_fn);
 
@@ -325,6 +289,6 @@ namespace cheat::utl
 		/*if constexpr (M == AUTO)
 			return signature<string_viewable<T> ? TEXT : BYTES>(data);
 		else*/
-		return invoke(detail::signature_creator_impl<M>( ), (data));
+		return std::invoke(detail::signature_creator_impl<M>( ), (data));
 	}
 }

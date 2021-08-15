@@ -35,9 +35,9 @@ namespace cheat::csgo
 
 		void UpdateClientSideAnimation( );
 
-		void DoExtraBoneProcessing(CStudioHdr* studio_hdr, utl::Vector pos[], Quaternion q[], utl::matrix3x4a_t bone_to_world[], CBoneBitList& bone_computed, CIKContext* ik_context);
+		void DoExtraBoneProcessing(CStudioHdr* studio_hdr, Vector pos[], Quaternion q[], matrix3x4a_t bone_to_world[], CBoneBitList& bone_computed, CIKContext* ik_context);
 		bool ShouldSkipAnimationFrame(/*float current_time*/);
-		void StandardBlendingRules(CStudioHdr* hdr, utl::Vector pos[], QuaternionAligned q[], float current_time, int bone_mask);
+		void StandardBlendingRules(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask);
 
 		CUtlVector<CAnimationLayer>& GetAnimOverlays( );
 	};

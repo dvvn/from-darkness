@@ -22,13 +22,16 @@ namespace cheat
 		CHEAT_ENUM_STRUCT_FILL(service_state, unset)
 	};
 
-	class service_base: public utl::noncopyable
+	class service_base
 	{
 	public:
 		virtual                  ~service_base( );
-		virtual utl::string_view name( ) const = 0;
+		virtual std::string_view name( ) const = 0;
 
 		service_base( ) = default;
+
+		service_base(const service_base&)            = delete;
+		service_base& operator=(const service_base&) = delete;
 
 		service_base(service_base&& other) noexcept;
 		void operator=(service_base&& other) noexcept;
@@ -51,16 +54,16 @@ namespace cheat
 		virtual void On_error( ) { constexpr auto _ = 0; }
 
 		void Loading_access_assert( ) const;
+
 	private:
-		/*utl::atomic<service_state2>*/
-		service_state state__;
+		std::atomic<service_state> state__;
 	};
 
 	template <typename T>
 	class service: public service_base, public utl::one_instance_shared<T>
 	{
 	public:
-		utl::string_view name( ) const final
+		std::string_view name( ) const final
 		{
 			return _Type_name<T>(false);
 		}

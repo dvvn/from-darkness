@@ -1,4 +1,4 @@
-int32_t& m_nStartEntity( );
 int32_t& m_nEndEntity( );
-utl::Vector& m_vecStartPoint( );
-utl::Vector& m_vecEndPoint( );
+int32_t& m_nStartEntity( );
+Vector& m_vecEndPoint( );
+Vector& m_vecStartPoint( );
