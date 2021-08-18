@@ -11,25 +11,16 @@ using namespace utl;
 
 frame_stage_notify::frame_stage_notify( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused();
-#endif
 }
 
 bool frame_stage_notify::Do_load( )
 {
-#ifdef CHEAT_GUI_TEST
-
-	return 0;
-#else
-
 	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->client.get( ), 37);
 
 	this->hook( );
 	this->enable( );
 
 	return true;
-#endif
 }
 
 void frame_stage_notify::Callback(ClientFrameStage_t stage)

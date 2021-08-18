@@ -6,59 +6,61 @@ namespace cheat::utl
 	class memory_backup
 	{
 	public:
+		struct value_type
+		{
+			std::reference_wrapper<T> owner;
+			T                         value;
+		};
+
+		memory_backup(const memory_backup& other)            = delete;
+		memory_backup& operator=(const memory_backup& other) = delete;
+
 		memory_backup(memory_backup&& other) noexcept
 		{
 			*this = std::move(other);
 		}
 
-		memory_backup(const memory_backup& other)            = delete;
-		memory_backup& operator=(const memory_backup& other) = delete;
-
 		memory_backup& operator=(memory_backup&& other) noexcept
 		{
-			owner__.swap(other.owner__);
-			value__.swap(other.value__);
-
+			std::swap(this->data_, other.data_);
 			return *this;
 		}
 
 		memory_backup( ) = default;
 
-		memory_backup(T& from) : owner__(std::ref(from))
+		memory_backup(T& from)
 		{
-			value__.emplace(from);
+			data_.emplace(std::ref(from), from);
 		}
 
-		template <typename T2>
-		memory_backup(T& from, T2&& owerride)
-			requires(std::is_constructible_v<T, decltype(owerride)>) : memory_backup(from)
+		template <typename T1=T>
+		memory_backup(T& from, T1&& owerride) : memory_backup(from)
 		{
-			from = T(std::forward<T2>(owerride));
+			from = std::forward<T1>(owerride);
 		}
 
+	private:
+		template <bool FromDestructor>
+		void restore_impl( )
+		{
+			if (data_.has_value( ))
+			{
+				auto& d        = *data_;
+				d.owner.get( ) = std::move(d.value);
+				if constexpr (!FromDestructor)
+					data_.reset( );
+			}
+		}
+
+	public:
 		~memory_backup( )
 		{
-			restore( );
+			this->restore_impl<true>( );
 		}
 
 		void restore( )
 		{
-			if (value__.has_value( ))
-			{
-				owner__->get() = release( );
-			}
-		}
-
-		void reset( )
-		{
-			value__.reset( );
-		}
-
-		_NODISCARD T release( )
-		{
-			T ret = std::move(*value__);
-			this->reset( );
-			return static_cast<T&&>(ret);
+			this->restore_impl<false>( );
 		}
 
 		/**
@@ -71,21 +73,12 @@ namespace cheat::utl
 			return val;
 		}
 
-		bool operator!( ) const
+		bool has_value( ) const
 		{
-			return !value__.has_value( );
-		}
-
-		operator bool( ) const
-		{
-			return value__.has_value( );
+			return data_.has_value( );
 		}
 
 	private:
-		std::optional<std::reference_wrapper<T>> owner__;
-		std::optional<T>  value__;
+		std::optional<value_type> data_;
 	};
-
-	//#define MEM_BACKUP(memory,...)\
-	//   [[maybe_unused]] const _CONCAT(mem_backup_, __LINE__)  = utl::mem::memory_backup(memory,##__VA_ARGS__); (const void)_CONCAT(mem_backup_, __LINE__)
 }

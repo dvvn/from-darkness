@@ -6,7 +6,8 @@
 namespace cheat::hooks::studio_render
 {
 	class draw_model final: public service<draw_model>,
-							public decltype(_Detect_hook_holder(&csgo::IStudioRender::DrawModel))
+							public decltype(_Detect_hook_holder(&csgo::IStudioRender::DrawModel)),
+							service_skipped_on_gui_test
 	{
 	public:
 		draw_model( );

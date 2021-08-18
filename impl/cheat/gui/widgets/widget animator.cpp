@@ -32,7 +32,7 @@ content_background_fader::content_background_fader(animator&& a): widget_animato
 
 bool content_background_fader::Animate( )
 {
-	runtime_assert(!fade_alpha_backup_);
+	runtime_assert(!fade_alpha_backup_.has_value());
 	if (widget_animator::Animate( ))
 	{
 		fade_alpha_backup_ = memory_backup(ImGui::GetStyle( ).Alpha, fade_.value( ));

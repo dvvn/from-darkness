@@ -25,6 +25,8 @@ namespace cheat
 	class service_base
 	{
 	public:
+		friend class service_skipped_always;
+
 		virtual                  ~service_base( );
 		virtual std::string_view name( ) const = 0;
 
@@ -37,7 +39,7 @@ namespace cheat
 		void operator=(service_base&& other) noexcept;
 
 		service_state state( ) const;
-		void          load( );
+		virtual void  load( );
 
 	protected:
 		/**
@@ -60,12 +62,26 @@ namespace cheat
 	};
 
 	template <typename T>
-	class service: public service_base, public utl::one_instance_shared<T>
+	class service: public virtual service_base, public utl::one_instance_shared<T>
 	{
 	public:
 		std::string_view name( ) const final
 		{
 			return _Type_name<T>(false);
 		}
+	};
+	class service_skipped_always: public virtual service_base
+	{
+	public:
+		void load( ) override;
+	};
+
+	class service_skipped_on_gui_test: public
+#ifdef CHEAT_GUI_TEST
+			service_skipped_always
+#else
+	virtual service_base
+#endif
+	{
 	};
 }

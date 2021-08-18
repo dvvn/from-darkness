@@ -16,23 +16,15 @@ using namespace utl;
 create_move::create_move( )
 {
 	this->call_original_first_ = true;
-
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused();
-#endif
 }
 
 bool create_move::Do_load( )
 {
-#ifdef CHEAT_GUI_TEST
-	return 0;
-#else
 	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->client_mode.get( ), 24);
 
 	this->hook( );
 	this->enable( );
 	return 1;
-#endif
 }
 
 void create_move::Callback(float input_sample_time, CUserCmd* cmd)

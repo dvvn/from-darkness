@@ -51,11 +51,7 @@ memory_block memory_block::shift_to_end(const memory_block& block) const
 
 #pragma region flags_check
 
-struct mem_flags_t
-{
-	using value_type = decltype(MEMORY_BASIC_INFORMATION::Protect);
-	CHEAT_ENUM_STRUCT_FILL_BITFLAG(mem_flags_t)
-};
+using flags_type = memory_block::flags_type;
 
 // ReSharper disable once CppInconsistentNaming
 class MEMORY_BASIC_INFORMATION_UPDATER: protected MEMORY_BASIC_INFORMATION
@@ -63,17 +59,21 @@ class MEMORY_BASIC_INFORMATION_UPDATER: protected MEMORY_BASIC_INFORMATION
 	static constexpr SIZE_T class_size = sizeof(MEMORY_BASIC_INFORMATION);
 
 	template <typename Fn, typename ...Args>
-	bool Virtual_query_(Fn&& native_function, Args&&...args)
+	bool virtual_query(Fn&& native_function, Args&&...args)
 	{
 		return class_size == std::invoke((native_function), std::forward<Args>(args)..., static_cast<PMEMORY_BASIC_INFORMATION>(this), class_size);
 	}
 
 	//protected:
-	//auto& get_flags( ) { return reinterpret_cast<mem_flags_t&>(Protect); }
+	//auto& get_flags( ) { return reinterpret_cast<flags_type&>(Protect); }
 public:
+	MEMORY_BASIC_INFORMATION_UPDATER( ): MEMORY_BASIC_INFORMATION( )
+	{
+	}
+
 	auto& get_flags( ) const
 	{
-		return reinterpret_cast<const mem_flags_t&>(Protect);
+		return reinterpret_cast<const flags_type&>(Protect);
 	}
 
 	SIZE_T region_size( ) const
@@ -83,28 +83,38 @@ public:
 
 	bool update(LPCVOID address)
 	{
-		return Virtual_query_(VirtualQuery, address);
+		return virtual_query(VirtualQuery, address);
 	}
 
 	bool update(HANDLE process, LPCVOID address)
 	{
-		return Virtual_query_(VirtualQueryEx, process, address);
+		return virtual_query(VirtualQueryEx, process, address);
 	}
 };
 
-template <typename Fn>
-	requires(std::is_invocable_r_v<bool, Fn, mem_flags_t, mem_flags_t>)
+template <std::default_initializable Fn>
+	requires(std::is_invocable_r_v<bool, Fn, flags_type, flags_type>)
 class flags_checker: public MEMORY_BASIC_INFORMATION_UPDATER
 {
-public:
-	flags_checker(mem_flags_t::value_type_raw flags) : MEMORY_BASIC_INFORMATION_UPDATER( ),
-													   flags_checked__(flags)
+	flags_checker(flags_type flags): MEMORY_BASIC_INFORMATION_UPDATER( ),
+									 flags_checked_(flags)
 	{
 	}
 
+public:
+	flags_checker(Fn&& checker_fn, flags_type flags) : flags_checker(flags)
+	{
+		checker_fn_ = std::move(checker_fn);
+	}
+
+	flags_checker(const Fn& checker_fn, flags_type flags) : flags_checker(flags)
+	{
+		checker_fn_ = (checker_fn);
+	}
+
 private:
-	static constexpr Fn check_fn;
-	mem_flags_t flags_checked__;
+	Fn         checker_fn_;
+	flags_type flags_checked_;
 
 public:
 	std::optional<bool> check_flags(SIZE_T block_size) const
@@ -114,7 +124,7 @@ public:
 			return false;
 
 		//flags check isnt passed!
-		if (std::invoke(check_fn, this->get_flags( ), flags_checked__) == false)
+		if (std::invoke(checker_fn_, this->get_flags( ), flags_checked_) == false)
 			return false;
 
 		//found good result
@@ -126,30 +136,17 @@ public:
 	}
 };
 
-struct have_flags_fn
-{
-	bool operator()(const mem_flags_t& region_flags, const mem_flags_t& target_flags) const
-	{
-		return region_flags.has(target_flags) == true;
-	}
-};
+template <typename Fn>
+flags_checker(Fn&&) -> flags_checker<std::remove_cvref_t<Fn>>;
 
-struct dont_have_flags_fn
-{
-	bool operator()(const mem_flags_t& region_flags, const mem_flags_t& target_flags) const
-	{
-		return region_flags.has(target_flags) == false;
-	}
-};
-
-static constexpr auto PAGE_READ_FLAGS = mem_flags_t(PAGE_READONLY, PAGE_READWRITE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE).value_raw( );
-static constexpr auto PAGE_WRITE_FLAGS = mem_flags_t(PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_WRITECOMBINE).value_raw( );
-static constexpr auto PAGE_EXECUTE_FLAGS = mem_flags_t(PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY).value_raw( );
+static constexpr auto _Page_read_flags    = flags_type(PAGE_READONLY, PAGE_READWRITE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE);
+static constexpr auto _Page_write_flags   = flags_type(PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_WRITECOMBINE);
+static constexpr auto _Page_execute_flags = flags_type(PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY);
 
 template <typename Fn>
-static bool _Memory_block_flags_checker(mem_flags_t::value_type_raw flags, memory_block block)
+static bool _Memory_block_flags_checker(flags_type flags, memory_block block, Fn&& checker_fn = { })
 {
-	flags_checker<Fn> checker(flags);
+	flags_checker<Fn> checker(std::forward<Fn>(checker_fn), flags);
 	while (true)
 	{
 		if (!checker.update(block._Unchecked_begin( )))
@@ -163,14 +160,29 @@ static bool _Memory_block_flags_checker(mem_flags_t::value_type_raw flags, memor
 	}
 }
 
+struct have_flags_fn
+{
+	bool operator()(flags_type region_flags, flags_type target_flags) const
+	{
+		return region_flags.has(target_flags) == true;
+	}
+};
+struct dont_have_flags_fn
+{
+	bool operator()(flags_type region_flags, flags_type target_flags) const
+	{
+		return region_flags.has(target_flags) == false;
+	}
+};
+
 #pragma endregion
 
-bool memory_block::have_flags(DWORD flags) const
+bool memory_block::have_flags(flags_type flags) const
 {
 	return _Memory_block_flags_checker<have_flags_fn>(flags, *this);
 }
 
-bool memory_block::dont_have_flags(DWORD flags) const
+bool memory_block::dont_have_flags(flags_type flags) const
 {
 	return _Memory_block_flags_checker<dont_have_flags_fn>(flags, *this);
 }
@@ -182,15 +194,29 @@ bool memory_block::readable( ) const
 
 bool memory_block::readable_ex( ) const
 {
-	return this->have_flags(PAGE_READ_FLAGS);
+	return this->have_flags(_Page_read_flags);
 }
 
 bool memory_block::writable( ) const
 {
-	return this->have_flags(PAGE_WRITE_FLAGS);
+	return this->have_flags(_Page_write_flags);
 }
 
 bool memory_block::executable( ) const
 {
-	return this->have_flags(PAGE_EXECUTE_FLAGS);
+	return this->have_flags(_Page_execute_flags);
+}
+
+bool memory_block::code_padding( ) const
+{
+	const auto first = this->front( );
+	if (first != 0x00 && first != 0x90 && first != 0xCC)
+		return false;
+
+	for (const auto val: this->subblock(1))
+	{
+		if (val != first)
+			return false;
+	}
+	return true;
 }

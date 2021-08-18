@@ -96,7 +96,7 @@ namespace cheat::utl
 		}
 
 		template <typename Q, typename Curr, typename ...A>
-		static auto do_invoke(Q&& obj, Curr&& fn, A&&...args)
+		auto do_invoke(Q&& obj, Curr&& fn, A&&...args)
 		{
 			//using fn_ret = std::invoke_result_t<Curr, Q>;//something wrong inside of this
 			using fn_ret = decltype(ret_val(fn, obj));
@@ -129,7 +129,7 @@ namespace cheat::utl
 			{
 			}
 
-			address_pipe_impl(const T& addr, std::tuple<Ts...>&& tpl) : addr((addr)),
+			address_pipe_impl(const T& addr, std::tuple<Ts...>&& tpl) : addr(addr),
 																		line(std::move(tpl))
 			{
 			}
@@ -176,10 +176,10 @@ namespace cheat::utl
 		template <typename T>
 		auto remove(const T& value)
 		{
-			return ([=](address& addr)
+			return [=](address& addr)
 			{
 				addr -= value;
-			});
+			};
 		}
 
 		template <typename T>

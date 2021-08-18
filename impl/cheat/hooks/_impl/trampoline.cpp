@@ -8,42 +8,24 @@ using namespace cheat::hooks::detail;
 using namespace cheat::hooks;
 using namespace cheat::utl;
 
-bool cheat::hooks::detail::_Is_code_padding(LPBYTE pInst, UINT size)
-{
-	const auto first = pInst[0];
-	if (first != 0x00 && first != 0x90 && first != 0xCC)
-		return false;
-
-	for (UINT i = 1; i < size; ++i)
-	{
-		if (pInst[i] != first)
-			return false;
-	}
-	return true;
-}
-
-bool cheat::hooks::detail::_Is_address_readable(LPVOID addr, size_t mem_size)
-{
-	return memory_block(addr, mem_size).readable_ex( );
-}
-
-bool cheat::hooks::detail::_Is_address_executable(LPVOID addr, size_t mem_size)
-{
-	return memory_block(addr, mem_size).executable( );
-}
+//bool cheat::hooks::detail::_Is_code_padding(LPBYTE pInst, UINT size)
+//{
+//	
+//}
+//
+//bool cheat::hooks::detail::_Is_address_readable(LPVOID addr, size_t mem_size)
+//{
+//	return memory_block(addr, mem_size).readable_ex( );
+//}
+//
+//bool cheat::hooks::detail::_Is_address_executable(LPVOID addr, size_t mem_size)
+//{
+//	return memory_block(addr, mem_size).executable( );
+//}
 
 trampoline::trampoline( )
 {
 	trampoline__ = std::make_unique<char[]>(this->buffer_size( ));
-}
-
-trampoline::~trampoline( )
-{
-	if (trampoline__ != nullptr && old_protection__.has_value( ))
-	{
-		DWORD unused;
-		VirtualProtect(this->buffer( ), this->buffer_size( ), *old_protection__, &unused);
-	}
 }
 
 uint8_t* trampoline::buffer( )
@@ -61,13 +43,21 @@ size_t trampoline::buffer_size( ) const
 
 bool trampoline::fix_page_protection( )
 {
-	const auto buff = this->buffer( );
+	runtime_assert(!old_protection__.has_value());
+
+	const auto buff      = this->buffer( );
 	const auto buff_size = this->buffer_size( );
-	if (!_Is_address_executable(buff, buff_size))
+
+	if (!memory_block(buff, buff_size).executable( ))
 	{
-		old_protection__.emplace( );
-		if (!VirtualProtect(buff, buff_size, PAGE_EXECUTE_READWRITE, old_protection__.operator->(  )))
+		try
+		{
+			old_protection__ = {buff, buff_size, PAGE_EXECUTE_READWRITE};
+		}
+		catch (const std::exception&)
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -107,8 +97,8 @@ bool trampoline::create( )
 	};
 #endif
 
-	UINT8     old_pos = 0;
-	UINT8     new_pos = 0;
+	UINT8     old_pos  = 0;
+	UINT8     new_pos  = 0;
 	ULONG_PTR jmp_dest = 0;     // Destination address of an internal jump.
 	bool      finished = false; // Is the function completed?
 #ifdef UTILS_X64
@@ -116,7 +106,7 @@ bool trampoline::create( )
 #endif
 
 	ct.patch_above = false;
-	ct.ips_count = 0;
+	ct.ips_count   = 0;
 
 	do
 	{
@@ -139,7 +129,7 @@ bool trampoline::create( )
 #else
 			jmp.operand = static_cast<UINT32>(old_inst - (new_inst + sizeof(decltype(jmp))));
 #endif
-			copy_src = &jmp;
+			copy_src  = &jmp;
 			copy_size = sizeof(decltype(jmp));
 
 			finished = true;
@@ -175,7 +165,7 @@ bool trampoline::create( )
 #else
 			call.operand = static_cast<UINT32>(dest - (new_inst + sizeof(call)));
 #endif
-			copy_src = &call;
+			copy_src  = &call;
 			copy_size = sizeof(decltype(call));
 		}
 		else if ((hs.opcode & 0xFD) == 0xE9)
@@ -199,9 +189,9 @@ bool trampoline::create( )
 #ifdef UTILS_X64
                 jmp.address = dest;
 #else
-				jmp.operand = static_cast<UINT32>(dest - (new_inst + sizeof(jmp)));
+				jmp.operand = static_cast<UINT32>(dest - (new_inst + sizeof(decltype(jmp))));
 #endif
-				copy_src = &jmp;
+				copy_src  = &jmp;
 				copy_size = sizeof(decltype(jmp));
 
 				// Exit the function If it is not in the branch
@@ -213,8 +203,10 @@ bool trampoline::create( )
 			// Direct relative Jcc
 			auto dest = old_inst + hs.len;
 
-			if ((hs.opcode & 0xF0) == 0x70     // Jcc
-				|| (hs.opcode & 0xFC) == 0xE0) // LOOPNZ/LOOPZ/LOOP/JECXZ
+			if ( // Jcc
+				(hs.opcode & 0xF0) == 0x70 ||
+				// LOOPNZ/LOOPZ/LOOP/JECXZ
+				(hs.opcode & 0xFC) == 0xE0)
 				dest += static_cast<INT8>(hs.imm.imm8);
 			else
 				dest += static_cast<INT32>(hs.imm.imm32);
@@ -239,9 +231,9 @@ bool trampoline::create( )
                 jcc.address = dest;
 #else
 				jcc.opcode1 = 0x80 | cond;
-				jcc.operand = static_cast<UINT32>(dest - (new_inst + sizeof(jcc)));
+				jcc.operand = static_cast<UINT32>(dest - (new_inst + sizeof(decltype(jcc))));
 #endif
-				copy_src = &jcc;
+				copy_src  = &jcc;
 				copy_size = sizeof jcc;
 			}
 		}
@@ -269,7 +261,6 @@ bool trampoline::create( )
 		ct.new_ips[ct.ips_count] = new_pos;
 		ct.ips_count++;
 
-		// Avoid using memcpy to reduce the footprint.
 		std::memcpy((ct.buffer( )) + new_pos, copy_src, copy_size);
 
 		new_pos += copy_size;
@@ -278,16 +269,16 @@ bool trampoline::create( )
 	while (!finished);
 
 	// Is there enough place for a long jump?
-	if (old_pos < sizeof(JMP_REL) && !_Is_code_padding(static_cast<LPBYTE>(ct.target) + old_pos, sizeof(JMP_REL) - old_pos))
+	if (old_pos < sizeof(JMP_REL) && !memory_block(address(ct.target) + old_pos, sizeof(JMP_REL) - old_pos).code_padding( ))
 	{
 		// Is there enough place for a short jump?
-		if (old_pos < sizeof(JMP_REL_SHORT) && !_Is_code_padding(static_cast<LPBYTE>(ct.target) + old_pos, sizeof(JMP_REL_SHORT) - old_pos))
+		if (old_pos < sizeof(JMP_REL_SHORT) && !memory_block(address(ct.target) + old_pos, sizeof(JMP_REL_SHORT) - old_pos).code_padding( ))
 			return false;
 
 		// Can we place the long jump above the function?
-		if (!_Is_address_executable(static_cast<LPBYTE>(ct.target) - sizeof(JMP_REL)))
+		if (!memory_block(address(ct.target) - sizeof(JMP_REL)).executable( ))
 			return false;
-		if (!_Is_code_padding(static_cast<LPBYTE>(ct.target) - sizeof(JMP_REL), sizeof(JMP_REL)))
+		if (!memory_block(address(ct.target) - sizeof(JMP_REL), sizeof(JMP_REL)).code_padding( ))
 			return false;
 
 		ct.patch_above = true;

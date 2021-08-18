@@ -535,10 +535,14 @@ private:\
 private:\
 	value_type value__ = cheat::detail::_Bitflag_combine<value_type>(__VA_ARGS__);
 
-#include "cheat/hooks/_impl/hook_utils.h"
+#include "cheat/utils/memory block.h"
+//dont sort
 #include "cheat/utils/memory backup.h"
+#include "cheat/utils/memory protect.h"
 #include "cheat/utils/module info/module info.h"
 #include "cheat/utils/winapi/threads.h"
+
+#include "cheat/hooks/_impl/hook_utils.h"
 
 #include "cheat/sdk/Color.hpp"
 #include "cheat/sdk/QAngle.hpp"

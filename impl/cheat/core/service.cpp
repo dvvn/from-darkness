@@ -58,7 +58,7 @@ service_base::service_base(service_base&& other) noexcept
 {
 	other.Loading_access_assert( );
 	// ReSharper disable once CppRedundantCastExpression
-	state__ = static_cast<service_state>(other.state__);
+	state__       = static_cast<service_state>(other.state__);
 	other.state__ = service_state::moved;
 }
 
@@ -67,7 +67,7 @@ void service_base::operator=(service_base&& other) noexcept
 	this->Loading_access_assert( );
 	other.Loading_access_assert( );
 	// ReSharper disable once CppRedundantCastExpression
-	state__ = static_cast<service_state>(other.state__);
+	state__       = static_cast<service_state>(other.state__);
 	other.state__ = service_state::moved;
 }
 
@@ -76,22 +76,35 @@ service_state service_base::state( ) const
 	return state__;
 }
 
+template <typename T>
+FORCEINLINE static bool _Service_loaded_before(T&& state)
+{
+	if (static_cast<service_state>(state) != service_state::unset)
+	{
+		runtime_assert("Service loaded before");
+		return true;
+	}
+	return false;
+}
+
+template <typename T>
+FORCEINLINE static void _Service_loaded_msg([[maybe_unused]] const T* owner, [[maybe_unused]] bool loaded)
+{
+	CHEAT_CONSOLE_LOG("Service {}: {}", loaded ? "loaded " : "skipped", owner->name( ));
+}
+
 void service_base::load( )
 {
 	try
 	{
-		// ReSharper disable once CppRedundantCastExpression
-		if (static_cast<service_state>(state__) != service_state::unset)
-		{
-			runtime_assert("Service loaded before");
+		if (_Service_loaded_before(state__))
 			return;
-		}
 
-		state__ = service_state::loading;
+		state__           = service_state::loading;
 		const auto loaded = this->Do_load( );
-		state__ = service_state::loaded;
+		state__           = service_state::loaded;
 
-		CHEAT_CONSOLE_LOG("Service {}: {}", loaded ? "loaded " : "skipped", this->name( ));
+		_Service_loaded_msg(this, loaded);
 		this->On_load( );
 	}
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
@@ -107,4 +120,14 @@ void service_base::load( )
 		CHEAT_CONSOLE_LOG("Unable to load service {}. {}", this->name( ), ex.what( ));
 		this->On_error( );
 	}
+}
+
+
+
+void service_skipped_always::load( )
+{
+	if (_Service_loaded_before(state__))
+		return;
+	state__ = service_state::loaded;
+	_Service_loaded_msg(this, false);
 }

@@ -48,6 +48,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\include.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\status.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\target function.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\vtable_counter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
@@ -116,6 +118,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\address.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory backup.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory protect.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
@@ -208,6 +211,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\status.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
@@ -291,6 +295,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
 </Project>

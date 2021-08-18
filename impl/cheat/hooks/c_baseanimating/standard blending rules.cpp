@@ -15,18 +15,10 @@ using namespace csgo;
 
 standard_blending_rules::standard_blending_rules( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused();
-#endif
 }
 
 bool standard_blending_rules::Do_load( )
 {
-#if defined(CHEAT_GUI_TEST)
-
-	return 0;
-#else
-
 	using namespace address_pipe;
 
 	this->target_func_ = method_info::make_member_virtual
@@ -37,8 +29,7 @@ bool standard_blending_rules::Do_load( )
 
 	this->hook( );
 	this->enable( );
-	return 1;
-#endif
+	return true;
 }
 
 void standard_blending_rules::Callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)

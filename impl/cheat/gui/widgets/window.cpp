@@ -52,7 +52,7 @@ void window::end( )
 	{
 		ignore_end__ = false;
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
-		runtime_assert(!fade_alpha_backup_);
+		runtime_assert(!fade_alpha_backup_.has_value());
 #endif
 	}
 	else
@@ -75,11 +75,6 @@ void window::hide( )
 	visible__ = false;
 	fade_.set(-1);
 }
-
-//деревня дубровки
-//запчати от погрузчиков
-//2640
-//6/1
 
 void window::toggle( )
 {
@@ -206,8 +201,7 @@ void child_window::end( )
 {
 	ImGui::EndChild( );
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
-	if (fade_alpha_backup_)
-		fade_alpha_backup_ = { };
+	fade_alpha_backup_.restore( );
 #endif
 }
 

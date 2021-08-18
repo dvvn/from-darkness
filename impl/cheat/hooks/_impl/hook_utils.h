@@ -629,7 +629,7 @@ namespace cheat::hooks
 				runtime_assert(unused_==false, "Unable to modify unused hook!");
 			}
 
-			bool   unused_         = false;
+			bool   unused_         = true;
 			LPVOID original_func__ = nullptr;
 
 			inline static hook_holder_impl* this_instance__ = nullptr;
@@ -640,7 +640,8 @@ namespace cheat::hooks
 			{
 				bool unhook  = false;
 				bool disable = false;
-			}        safe__;
+				//--
+			} safe__;
 
 		protected:
 			virtual void Callback(Args ...) = 0;
@@ -796,7 +797,7 @@ namespace cheat::hooks
 					return false;
 
 				const auto result = hooks_context_->create_hook(target_func_info.get( ), replace_func_info.get( ));
-				if (result != STATUS::OK)
+				if (result.status != hook_status::OK)
 				{
 					runtime_assert("Unable to hook function");
 					return false;
@@ -813,6 +814,7 @@ namespace cheat::hooks
 #endif
 				this_instance__ = this;
 				original_func__ = result.entry->buffer( );
+				unused_         = false;
 				return true;
 			}
 
@@ -822,7 +824,7 @@ namespace cheat::hooks
 				Unset_instance_assert_( );
 				Unmanaged_call_assert( );
 
-				const auto ok = hooks_context_->remove_hook(target_func_.get( ), force) == STATUS::OK;
+				const auto ok = hooks_context_->remove_hook(target_func_.get( ), force) == hook_status::OK;
 				if (!ok && !force)
 				{
 					runtime_assert("Unable to unhook function");
@@ -866,7 +868,7 @@ namespace cheat::hooks
 			{
 				Unmanaged_call_assert( );
 				Unused_modify_assert( );
-				if (hooks_context_->enable_hook(target_func_.get( )) == STATUS::OK)
+				if (hooks_context_->enable_hook(target_func_.get( )) == hook_status::OK)
 					return true;
 
 				runtime_assert("Unable to enable hook");
@@ -877,7 +879,7 @@ namespace cheat::hooks
 			{
 				Unset_instance_assert_( );
 				Unmanaged_call_assert( );
-				if (hooks_context_->disable_hook(target_func_.get( )) == STATUS::OK)
+				if (hooks_context_->disable_hook(target_func_.get( )) == hook_status::OK)
 				{
 					safe__.disable = false;
 					return true;
@@ -898,14 +900,14 @@ namespace cheat::hooks
 				Unmanaged_call_assert( );
 				return target_func_.updated( )
 						   ? hooks_context_->find_hook(target_func_.get( ))
-						   : STATUS::ERROR_NOT_CREATED;
+						   : hook_status::ERROR_NOT_CREATED;
 			}
 
 		public:
 			bool hooked( ) const final
 			{
 				const auto hook = Get_hook_from_storage( );
-				if (hook != STATUS::OK)
+				if (hook.status != hook_status::OK)
 				{
 					//unhook_cleanup( );
 					return false;
@@ -918,7 +920,7 @@ namespace cheat::hooks
 			bool enabled( ) const final
 			{
 				const auto hook = Get_hook_from_storage( );
-				if (hook != STATUS::OK)
+				if (hook.status != hook_status::OK)
 				{
 					//unhook_cleanup( );
 					return false;

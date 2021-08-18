@@ -300,12 +300,12 @@ namespace cheat::utl
 
 #endif
 
-		template <size_t Min_size, typename T>
+		template <size_t MinSize, typename T>
 		static constexpr bool Converting_possible_(size_t range_size_bytes)
 		{
-			if constexpr (constexpr auto type_convert_to_size = sizeof(T); Min_size > type_convert_to_size)
+			if constexpr (constexpr auto type_convert_to_size = sizeof(T); MinSize > type_convert_to_size)
 				return false;
-			else if constexpr (Min_size == type_convert_to_size)
+			else if constexpr (MinSize == type_convert_to_size)
 				return true;
 			else
 				return (range_size_bytes % type_convert_to_size) == 0;
@@ -315,11 +315,11 @@ namespace cheat::utl
 		memory_block Check_block_raw_impl_(const std::span<T>& rng_checked) const
 		{
 			const auto this_size_bytes = this->size_bytes( );
-			const auto rng_size_bytes = rng_checked.size_bytes( );
+			const auto rng_size_bytes  = rng_checked.size_bytes( );
 
-			const auto start = this->addr( ).value( );
+			const auto start    = this->addr( ).value( );
 			const auto real_end = start + this_size_bytes;
-			const auto end = real_end - rng_size_bytes /*- sizeof(T)*/;
+			const auto end      = real_end - rng_size_bytes /*- sizeof(T)*/;
 
 			runtime_assert(real_end - start >= rng_size_bytes, "Wrong block size");
 			runtime_assert(start <= end, "Incorrect limit or step!");
@@ -329,7 +329,7 @@ namespace cheat::utl
 				auto addr_begin = reinterpret_cast<T*>(addr);
 
 				auto rng_begin = rng_checked.data( );
-				auto rng_end = rng_begin + rng_checked.size( );
+				auto rng_end   = rng_begin + rng_checked.size( );
 
 				do
 				{
@@ -357,8 +357,8 @@ namespace cheat::utl
 		static std::span<To> Rewrap_range_(T* rng_unchecked_begin, size_t rng_size_bytes)
 		{
 			runtime_assert(rng_size_bytes % sizeof(To) == 0, "Unable to rewrap range! Wrong data type");
-			auto begin = reinterpret_cast<To*>(rng_unchecked_begin);
-			auto end = begin + rng_size_bytes / sizeof(To);
+			To* begin = reinterpret_cast<To*>(rng_unchecked_begin);
+			To* end   = begin + rng_size_bytes / sizeof(To);
 			return std::span<To>(begin, end);
 		}
 
@@ -366,7 +366,9 @@ namespace cheat::utl
 		bool Not_readable_assert_( ) const
 		{
 			if constexpr (!InUse)
+			{
 				return true;
+			}
 			else
 			{
 				if (this->readable( ))
@@ -386,8 +388,8 @@ namespace cheat::utl
 			if (!Not_readable_assert_<CheckReadable>( ))
 				return empty_block;
 
-			constexpr auto rng_val_bytes = sizeof(rng_val);
-			const size_t rng_size_bytes = rng_checked.size( ) * rng_val_bytes;
+			constexpr auto rng_val_bytes  = sizeof(rng_val);
+			const size_t   rng_size_bytes = rng_checked.size( ) * rng_val_bytes;
 
 			rng_val* rng_begin = const_cast<rng_val*>(rng_checked.data( ));
 
@@ -407,8 +409,8 @@ namespace cheat::utl
 		template <typename Rng>
 		void Assert_bad_wrapped_mode_(const Rng& rng) const
 		{
-#ifndef runtime_assert_IS_VOID
-			size_t known = 0;
+#ifdef _DEBUG
+			size_t known   = 0;
 			size_t unknown = 0;
 			for (auto& opt: rng)
 			{
@@ -436,13 +438,13 @@ namespace cheat::utl
 			if (!Not_readable_assert_<CheckReadable>( ))
 				return empty_block;
 
-			constexpr auto opt_val_bytes = sizeof(opt_val);
-			const size_t rng_size_bytes = rng_checked.size( ) * opt_val_bytes;
-			const auto this_size_bytes = this->size_bytes( );
+			constexpr auto opt_val_bytes   = sizeof(opt_val);
+			const size_t   rng_size_bytes  = rng_checked.size( ) * opt_val_bytes;
+			const auto     this_size_bytes = this->size_bytes( );
 
-			const auto start = this->addr( ).value( );
+			const auto start    = this->addr( ).value( );
 			const auto real_end = start + this_size_bytes;
-			const auto end = real_end - rng_size_bytes /*- sizeof(opt_val)*/;
+			const auto end      = real_end - rng_size_bytes /*- sizeof(opt_val)*/;
 
 			runtime_assert(real_end - start >= rng_size_bytes, "Wrong block size (2)");
 			runtime_assert(start <= end, "Incorrect limit or step (2)!");
@@ -452,7 +454,7 @@ namespace cheat::utl
 				auto addr_begin = reinterpret_cast<opt_val*>(addr);
 
 				auto rng_begin = rng_checked.data( );
-				auto rng_end = rng_begin + rng_checked.size( );
+				auto rng_end   = rng_begin + rng_checked.size( );
 
 				do
 				{
@@ -547,12 +549,19 @@ namespace cheat::utl
 		memory_block shift_to_start(const memory_block& block) const;
 		memory_block shift_to_end(const memory_block& block) const;
 
-		bool have_flags(DWORD flags) const;
-		bool dont_have_flags(DWORD flags) const;
+		struct flags_type
+		{
+			using value_type = decltype(MEMORY_BASIC_INFORMATION::Protect);
+			CHEAT_ENUM_STRUCT_FILL_BITFLAG(flags_type)
+		};
+
+		bool have_flags(flags_type flags) const;
+		bool dont_have_flags(flags_type flags) const;
 
 		bool readable( ) const;
 		bool readable_ex( ) const;
 		bool writable( ) const;
 		bool executable( ) const;
+		bool code_padding( ) const;
 	};
 }

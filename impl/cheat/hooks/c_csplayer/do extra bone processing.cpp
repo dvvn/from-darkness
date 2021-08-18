@@ -12,18 +12,10 @@ using namespace csgo;
 
 do_extra_bone_processing::do_extra_bone_processing( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused( );
-#endif
 }
 
 bool do_extra_bone_processing::Do_load( )
 {
-#ifdef CHEAT_GUI_TEST
-
-	return 0;
-#else
-
 	using namespace address_pipe;
 
 	this->target_func_ = method_info::make_member_virtual
@@ -36,7 +28,6 @@ bool do_extra_bone_processing::Do_load( )
 	this->enable( );
 
 	return 1;
-#endif
 }
 
 void do_extra_bone_processing::Callback([[maybe_unused]] CStudioHdr*   studio_hdr, [[maybe_unused]] Vector         pos[],

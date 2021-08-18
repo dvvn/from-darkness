@@ -15,18 +15,10 @@ using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused();
-#endif
 }
 
 bool should_skip_animation_frame::Do_load( )
 {
-#ifdef CHEAT_GUI_TEST
-
-	return 0;
-#else
-
 	using namespace address_pipe;
 
 	this->target_func_ = method_info::make_static
@@ -35,8 +27,7 @@ bool should_skip_animation_frame::Do_load( )
 	this->hook( );
 	this->enable( );
 
-	return 1;
-#endif
+	return true;
 }
 
 void should_skip_animation_frame::Callback(/*float current_time*/)

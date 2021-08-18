@@ -6,7 +6,8 @@
 namespace cheat::hooks::c_base_entity
 {
 	class should_interpolate final: public service<should_interpolate>,
-									public decltype(_Detect_hook_holder(&csgo::C_BaseEntity::ShouldInterpolate))
+									public decltype(_Detect_hook_holder(&csgo::C_BaseEntity::ShouldInterpolate)),
+									service_skipped_always
 	{
 	public:
 		should_interpolate( );

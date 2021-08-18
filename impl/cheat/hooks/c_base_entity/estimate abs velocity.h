@@ -6,7 +6,8 @@
 namespace cheat::hooks::c_base_entity
 {
 	class estimate_abs_velocity final: public service<estimate_abs_velocity>,
-									   public decltype(_Detect_hook_holder(&csgo::C_BaseEntity::EstimateAbsVelocity))
+									   public decltype(_Detect_hook_holder(&csgo::C_BaseEntity::EstimateAbsVelocity)),
+									   service_skipped_on_gui_test
 	{
 	public :
 		estimate_abs_velocity( );

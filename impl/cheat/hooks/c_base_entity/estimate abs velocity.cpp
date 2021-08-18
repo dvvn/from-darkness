@@ -15,17 +15,10 @@ using namespace csgo;
 
 estimate_abs_velocity::estimate_abs_velocity( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused();
-#endif
 }
 
 bool estimate_abs_velocity::Do_load( )
 {
-#if defined(CHEAT_GUI_TEST)
-	return 0;
-#else
-
 	using namespace address_pipe;
 
 	this->target_func_ = method_info::make_member_virtual
@@ -36,8 +29,7 @@ bool estimate_abs_velocity::Do_load( )
 
 	this->hook( );
 	this->enable( );
-	return true;
-#endif
+	return 1;
 }
 
 void estimate_abs_velocity::Callback(Vector& vel)

@@ -16,18 +16,10 @@ using namespace csgo;
 
 should_interpolate::should_interpolate( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused();
-#endif
 }
 
 bool should_interpolate::Do_load( )
 {
-#if defined(CHEAT_GUI_TEST)
-
-	return 0;
-#else
-
 	using namespace address_pipe;
 
 	this->target_func_ = method_info::make_member_virtual
@@ -40,7 +32,6 @@ bool should_interpolate::Do_load( )
 	this->enable( );
 
 	return true;
-#endif
 }
 
 void should_interpolate::Callback( )

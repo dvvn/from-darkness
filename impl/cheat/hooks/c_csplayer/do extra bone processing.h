@@ -6,7 +6,8 @@
 namespace cheat::hooks::c_csplayer
 {
 	class do_extra_bone_processing final: public service<do_extra_bone_processing>,
-										  public _Detect_hook_holder_t<decltype(&csgo::C_BaseAnimating::DoExtraBoneProcessing)>
+										  public _Detect_hook_holder_t<decltype(&csgo::C_BaseAnimating::DoExtraBoneProcessing)>,
+										  service_skipped_on_gui_test
 	{
 	public :
 		do_extra_bone_processing( );

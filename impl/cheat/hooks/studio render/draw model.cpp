@@ -12,23 +12,16 @@ using namespace utl;
 
 draw_model::draw_model( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->mark_unused();
-#endif
 }
 
 bool draw_model::Do_load( )
 {
-#ifdef CHEAT_GUI_TEST
-	return false;
-#else
 	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->studio_renderer.get( ), 29);
 
 	this->hook( );
 	this->enable( );
 
 	return true;
-#endif
 }
 
 void draw_model::Callback(DrawModelResults_t* results, const DrawModelInfo_t& info,
