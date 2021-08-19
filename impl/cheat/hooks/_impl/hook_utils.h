@@ -2,9 +2,6 @@
 
 #include "hook.h"
 
-//#include <boost/timer/timer.hpp>
-//#include <boost/thread.hpp>
-
 namespace cheat::hooks
 {
 	template <typename C>
@@ -28,16 +25,6 @@ namespace cheat::hooks
 	struct hook_callback;
 
 #pragma region call_cvs_1
-
-	/*old version:
-	template <typename Ret, typename C, typename ...Args>
-	struct hook_callback<Ret, call_conversion::call_cvs##__, C, false, Args...>
-	{
-		virtual ~hook_callback() = default;
-		virtual Ret __##call_cvs callback(Args ...) = 0;
-		virtual Ret __##call_cvs callback_proxy(Args ...) = 0;
-	};
-	*/
 
 	template <typename T>
 	struct hiddent_type
@@ -310,229 +297,72 @@ namespace cheat::hooks
 	}
 #pragma endregion
 
-	namespace detail
-	{
-		template <typename T>
-		concept _Invocable = std::invocable<T>;
-		template <typename T>
-		concept _Not_invocable = !std::invocable<T>;
-	}
-
-	class method_info
-	{
-	public:
-		enum class type:uint8_t
-		{
-			fn_unknown,
-			fn_static,
-			fn_member,
-			fn_member_virtual,
-		};
-
-		using func_type = std::function<LPVOID( )>;
-
-	protected:
-		method_info(type method_type, func_type&& func);
-		method_info(type method_type, LPVOID func_ptr);
-
-	public:
-		method_info( ) = default;
-
-		type   get_type( ) const;
-		LPVOID get( ) const;
-		bool   update( );
-		bool   updated( ) const;
-
-	private:
-		type                            type__ = type::fn_unknown;
-		std::variant<func_type, LPVOID> storage__;
-
-		template <typename T>
-		static constexpr size_t Count_pointers_( )
-		{
-			return std::is_pointer_v<T> ? Count_pointers_<std::remove_pointer_t<T>>( ) + 1 : 0;
-		}
-
-		template <detail::_Not_invocable T>
-		static auto Pack_pointer_(T&& ptr)
-		{
-			using raw_t = std::remove_cvref_t<decltype(ptr)>;
-
-			constexpr bool rvalue = std::is_rvalue_reference_v<decltype(ptr)>;
-
-			// ReSharper disable once CppTooWideScopeInitStatement
-			constexpr size_t num_pointers = Count_pointers_<raw_t>( );
-
-			if constexpr (num_pointers == 0)
-			{
-				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
-				//return [ptr = std::addressof(ptr)] { return ptr; };
-				return std::addressof(ptr);
-			}
-			else if constexpr (num_pointers == 2)
-			{
-				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
-				return [=] { return *ptr; };
-			}
-			else if constexpr (num_pointers == 1)
-			{
-				if constexpr (rvalue)
-				{
-					runtime_assert(ptr != nullptr, __FUNCSIG__": Rvalue pointer must be set!");
-					//return [=] { return ptr; };
-					return ptr;
-				}
-				else
-				{
-					//instance can be null or dynamic, so store pointer to it
-					return [ptr2 = std::addressof(ptr)] { return *ptr2; };
-				}
-			}
-			else
-			{
-				static_assert(std::_Always_false<raw_t>, __FUNCSIG__);
-				return nullptr;
-			}
-		}
-
-		template <detail::_Invocable T>
-		static auto Pack_pointer_(T&& fn)
-		{
-			using inst_type = std::invoke_result_t<T>;
-			using raw_t = std::remove_cvref_t<inst_type>;
-
-			constexpr bool rvalue = std::is_rvalue_reference_v<inst_type>;
-
-			// ReSharper disable once CppTooWideScopeInitStatement
-			constexpr size_t num_pointers = Count_pointers_<raw_t>( );
-
-			if constexpr (num_pointers == 0)
-			{
-				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference!");
-				return [ptr_fn = std::forward<T>(fn)]
-				{
-					auto& ptr = std::invoke(ptr_fn);
-					return std::addressof(ptr);
-				};
-			}
-			else if constexpr (num_pointers == 2)
-			{
-				static_assert(rvalue == false, __FUNCSIG__": Unable to store rvalue reference to pointer!");
-				return [ptr_fn = std::forward<T>(fn)]
-				{
-					auto instance = std::invoke(ptr_fn);
-					return *instance;
-				};
-			}
-			else if constexpr (num_pointers == 1)
-			{
-				//return lambda for better debugging
-				return [ptr_fn = std::forward<T>(fn)]
-				{
-					return std::invoke(ptr_fn);
-				};
-			}
-			else
-			{
-				static_assert(std::_Always_false<raw_t>, __FUNCSIG__);
-				return func_type( );
-			}
-		}
-
-		template <typename T>
-		static auto Pack_value_(T&& val)
-		{
-			if constexpr (detail::_Invocable<T>)
-			{
-				return [fn_stored = std::forward<T>(val)]
-				{
-					return std::invoke(fn_stored);
-				};
-			}
-			else
-			{
-				using raw_t = std::remove_cvref_t<T>;
-
-				if constexpr (std::is_rvalue_reference_v<decltype(val)> || std::is_trivially_copyable_v<raw_t>)
-				{
-					return val;
-				}
-				else
-				{
-					return [value_stored = std::ref(val)]( )-> const raw_t&
-					{
-						return value_stored.get( );
-					};
-				}
-			}
-		}
-
-		template <typename T>
-		static auto Try_invoke_(T&& val)
-		{
-			if constexpr (detail::_Invocable<T>)
-				return std::invoke(val);
-			else
-				return std::forward<T>(val);
-		}
-
-	public:
-		template <typename T>
-		static method_info make_static(T&& func)
-		{
-			return method_info(type::fn_static, Pack_pointer_(std::forward<T>(func)));
-		}
-
-		template <typename T>
-		static method_info make_member(T&& func)
-		{
-			return method_info(type::fn_member,
-							   [packed = Pack_pointer_(std::forward<T>(func))]
-							   {
-								   decltype(auto) fn = Try_invoke_(packed);
-								   return _Pointer_to_class_method(fn);
-							   });
-		}
-
-		template <typename T, typename I>
-		static method_info make_member_virtual(T&& instance, I&& index)
-		{
-			return method_info(type::fn_member_virtual,
-							   [instance_packed = Pack_pointer_(std::forward<T>(instance)), idx_packed = Pack_value_(std::forward<I>(index))]
-							   {
-								   decltype(auto) obj_instance = Try_invoke_(instance_packed);
-								   decltype(auto) fn_index     = Try_invoke_(idx_packed);
-								   return _Pointer_to_virtual_class_table(obj_instance)[fn_index];
-							   });
-		}
-
-		/*template <std::invocable Fn>
-		static method_info make_custom(bool refresh_result, Fn&& func)
-		{
-			return method_info(type::fn_unknown, refresh_result, std::forward<Fn>(func));
-		}*/
-	};
-
 	class hook_holder_base
 	{
 	protected:
 		virtual ~hook_holder_base( ) = default;
+
 	public:
 		virtual bool hook( ) = 0;
 		virtual bool unhook( ) = 0;
-		virtual void unhook_safe( ) = 0;
-		virtual bool unhook_unsafe( ) = 0;
+		virtual void unhook_after_call( ) = 0;
+
 		virtual bool enable( ) = 0;
 		virtual bool disable( ) = 0;
-		virtual void disable_safe( ) = 0;
+		virtual void disable_after_call( ) = 0;
+
 		virtual bool hooked( ) const = 0;
 		virtual bool enabled( ) const = 0;
-		virtual bool unused( ) const =0;
-		virtual void mark_unused( ) =0;
 	};
 
 	namespace detail
 	{
+#define CHEAT_HOOKS_CALL_CVS_HELPER(_MACRO_)\
+		_MACRO_(thiscall)\
+		_MACRO_(cdecl)\
+		_MACRO_(stdcall)\
+		_MACRO_(vectorcall)\
+		_MACRO_(fastcall)
+
+		template <typename Ret, call_conversion Call_cvs, typename ...Args2>
+		struct hook_callback_proxy;
+
+		template <typename Ret, call_conversion Call_cvs, typename ...Args2>
+		struct original_function;
+
+#define CHEAT_HOOK_ORIGINAL_FN(_CALL_CVS_)\
+		template <typename Ret, typename C, typename ...Args>\
+		struct original_function<Ret, call_conversion::_CALL_CVS_##__, C, Args...>\
+		{\
+			Ret (__##_CALL_CVS_ C::*original_fn)(Args ...) = nullptr;\
+			C* object_instance;\
+		\
+			Ret call_original(Args ...args)\
+			{\
+				return _Call_function(original_fn, object_instance, args...);\
+			}\
+		};\
+		\
+		template <typename Ret, typename ...Args>\
+		struct original_function<Ret, call_conversion::_CALL_CVS_##__,void, Args...>\
+		{\
+			Ret (__##_CALL_CVS_ *original_fn)(Args ...) = nullptr;\
+		\
+			Ret call_original(Args ...args)\
+			{\
+				return _Call_function(original_fn, args...);\
+			}\
+		};
+
+		CHEAT_HOOKS_CALL_CVS_HELPER(CHEAT_HOOK_ORIGINAL_FN)
+
+		template <typename Ret, typename Arg1, typename ...Args>
+		struct hook_callback
+		{
+			virtual      ~hook_callback( ) = default;
+			virtual void callback(Args ...) = 0;
+		};
+
 		template <class Ret>
 		class lazy_return_value
 		{
@@ -589,367 +419,230 @@ namespace cheat::hooks
 			{
 				return skip_original__ == false;
 			}
+
+			void get( ) { (void)this; }
 		};
 
-		template <typename Ret, call_conversion Call_cvs, typename C, /*bool Is_const,*/ typename ...Args>
-		class hook_holder_impl: public hook_holder_base,
-								protected hook_callback<Ret, Call_cvs, C, /*Is_const,*/ Args...>
-
+		struct context_shared
 		{
-		public:
-			static constexpr bool have_return_value = !std::is_void_v<Ret>;
-			static constexpr bool is_static         = !std::is_class_v<C>;
+			std::unique_ptr<context_base> ctx;
+			std::mutex                    lock;
+		};
 
-		protected:
-			//using hook_callback_type = hook_callback<Ret, Call_cvs, C, Is_const, Args...>;
+		struct hook_holder_data
+		{
+			std::shared_ptr<context_shared> context;
 
-			hook_callback<Ret, Call_cvs, C, /*Is_const,*/ Args...>* cast_hook_callback( )
-			{
-				return this;
-			}
-
-		private:
-			static void Set_instance_assert_( )
-			{
-				runtime_assert(this_instance__ == nullptr, "Instance already set!");
-			}
-
-			static void Unset_instance_assert_( )
-			{
-				runtime_assert(this_instance__ != nullptr, "Instance is unset!");
-			}
-
-			void Unmanaged_call_assert( ) const
-			{
-				runtime_assert(!this_instance__ || this_instance__ == this, "Unable to get 'this' pointer!");
-			}
-
-			void Unused_modify_assert( ) const
-			{
-				runtime_assert(unused_==false, "Unable to modify unused hook!");
-			}
-
-			bool   unused_         = true;
-			LPVOID original_func__ = nullptr;
-
-			inline static hook_holder_impl* this_instance__ = nullptr;
-			/*std::conditional_t<Is_const, const C*, C*>*/
-			C* target_instance__ = nullptr;
+			void init( );
 
 			struct
 			{
 				bool unhook  = false;
 				bool disable = false;
-				//--
-			} safe__;
+				//-
+			} after_call;
+		};
 
+		class method_info
+		{
 		protected:
-			virtual void Callback(Args ...) = 0;
+			virtual ~method_info( ) = default;
 
-			auto Target_instance( ) const
-			{
-				return target_instance__;
-			}
-
-			using return_value_holder = lazy_return_value<Ret>;
-
-			bool                call_original_first_ = false;
-			return_value_holder return_value_;
-
-			// ReSharper disable once CppNotAllPathsReturnValue
-			Ret callback_proxy_impl(std::type_identity_t<Args> ...args)
-			{
-				Unset_instance_assert_( );
-
-				this_instance__->target_instance__ = is_static ? nullptr : reinterpret_cast<C*>(this->cast_hook_callback( ));
-				return this_instance__->callback_proxy_impl_body(std::forward<Args>(args)...);
-			}
+			virtual utl::address get_target_method_impl( ) const = 0;
 
 		private:
-			// ReSharper disable once CppNotAllPathsReturnValue
-			Ret callback_proxy_impl_body(std::type_identity_t<Args> ...args)
+			utl::address target_method_;
+
+		public:
+			utl::address get_target_method( )
 			{
-				Unmanaged_call_assert( );
+				if (target_method_ == nullptr)
+					target_method_ = this->get_target_method_impl( );
 
-				if (call_original_first_)
-					this->call_original_ex(static_cast<Args>(args)...);
-				else
-					return_value_.reset( );
-
-				this->Callback(std::forward<Args>(args)...);
-
-				if (return_value_.empty( ))
-					this->call_original_ex(static_cast<Args>(args)...);
-
-				if (safe__.unhook)
-					this->unhook( );
-				else if (safe__.disable)
-					this->disable( );
-
-				if constexpr (have_return_value)
-					return return_value_.get( );
+				return target_method_;
 			}
+
+			utl::address get_target_method( ) const
+			{
+				runtime_assert(target_method_ != nullptr);
+				return target_method_;
+			}
+
+			virtual utl::address get_replace_method( ) = 0;
+		};
+
+		template <typename Ret, call_conversion Call_cvs, typename Arg1, typename ...Args>
+		struct hook_holder_impl: hook_holder_base,
+								 method_info,
+								 original_function<Ret, Call_cvs, Arg1, Args...>,
+								 hook_callback<Ret, Arg1, Args...>
+
+		{
+		private:
+			hook_holder_data data_;
 
 		protected:
-			//call original and store result to use later
-			auto call_original_ex(std::type_identity_t<Args> ...args)
+			static hook_holder_impl*& instance( )
 			{
-				Unmanaged_call_assert( );
-				if constexpr (have_return_value)
-				{
-					return_value_.store_value(this->call_original(static_cast<Args>(args)...));
-					if constexpr (std::is_copy_constructible_v<Ret> && std::is_trivially_destructible_v<Ret>)
-						return return_value_.get( );
-				}
-				else
-				{
-					this->call_original(static_cast<Args>(args)...);
-					return_value_.set_original_called(true);
-				}
+				static hook_holder_impl* obj;
+				return obj;
 			}
 
-			method_info target_func_;
+			lazy_return_value<Ret> return_value_;
 
+		public:
 			~hook_holder_impl( ) override
 			{
-				if (this->hooked( ))
-				{
-					Unhook_lazy_( );
-				}
-			}
+				if (data_.context == nullptr)
+					return;
 
-			void Unhook_lazy_( )
-			{
-				this->safe__.unhook = true;
-				std::this_thread::sleep_for(std::chrono::milliseconds(150));
-				this->unhook_unsafe( );
-			}
-
-		public:
-			hook_holder_impl( ) = default;
-
-			hook_holder_impl& operator=(const hook_holder_impl&) = delete;
-			hook_holder_impl(const hook_holder_impl& other)      = delete;
-			hook_holder_impl& operator=(hook_holder_impl&&)      = delete;
-
-			hook_holder_impl(hook_holder_impl&& other) noexcept
-			{
-				if (this->hooked( ))
-				{
-					runtime_assert(!other.hooked( ), "Unable to move active hook");
-					Unhook_lazy_( );
-				}
-
-				this->hook_data_   = std::move(other.hook_data_);
-				this->hook_params_ = std::move(other.hook_params_);
-			}
-
-		private:
-			static auto Recreate_original_type_(LPVOID original_fn)
-			{
-#define HOOK_UTL_FIX_FN_TYPE(type)\
-		        constexpr (Call_cvs == call_conversion::type##__)\
-		        {\
-                    if constexpr (is_static)\
-                    {\
-						Ret(__##type *fn)(Args ...);\
-						(void*&)fn=original_fn;\
-		           		return fn;\
-					}\
-                    else\
-                    {\
-						Ret(__##type C::*fn)(Args ...);\
-						(void*&)fn=original_fn;\
-		           		return fn;\
-					}\
-                }
-
-				if HOOK_UTL_FIX_FN_TYPE(thiscall)
-				else if HOOK_UTL_FIX_FN_TYPE(cdecl)
-				else if HOOK_UTL_FIX_FN_TYPE(stdcall)
-				else if HOOK_UTL_FIX_FN_TYPE(vectorcall)
-				else if HOOK_UTL_FIX_FN_TYPE(fastcall)
-
-#undef HOOK_UTL_FIX_FN_TYPE
-			}
-
-		public:
-			Ret call_original(std::type_identity_t<Args> ...args)
-			{
-				//Unset_instance_assert_( );
-				Unmanaged_call_assert( );
-				auto original = Recreate_original_type_(original_func__);
-				if constexpr (is_static)
-					return _Call_function(original, std::forward<Args>(args)...);
-				else
-					return _Call_function(original, target_instance__, (args)...);
+				this->unhook( );
 			}
 
 			bool hook( ) final
 			{
-				runtime_assert(original_func__ == nullptr, "Method already hooked!");
-				Set_instance_assert_( );
+				if (data_.context == nullptr)
+					data_.init( );
 
-				auto& target_func_info  = target_func_;
-				auto  replace_func_info = method_info::make_member_virtual(cast_hook_callback( ), 1); //index of callback_proxy from hook_callback class
+				const auto lock = std::scoped_lock(data_.context->lock);
+				auto&      ctx  = *data_.context->ctx;
 
-				if (!target_func_info.update( ) || !replace_func_info.update( ))
-					return false;
+				// ReSharper disable once CppInconsistentNaming
+				auto& _Instance = this->instance( );
 
-				const auto result = hooks_context_->create_hook(target_func_info.get( ), replace_func_info.get( ));
+				runtime_assert(this->original_fn == nullptr, "Method already hooked!");
+				runtime_assert(_Instance == nullptr || _Instance == this, "Class duplicate detected!");
+
+				auto target_func  = this->get_target_method( ).ptr<void>( );
+				auto replace_func = this->get_replace_method( ).ptr<void>( );
+
+				const auto result = ctx.create_hook(target_func, replace_func);
 				if (result.status != hook_status::OK)
 				{
 					runtime_assert("Unable to hook function");
 					return false;
 				}
 
-#ifdef _DEBUG
-				if (original_func__ != nullptr)
-				{
-					const auto t = result.entry->buffer( );
-
-					runtime_assert(t != original_func__, "Duplicate class detected");
-					runtime_assert(t == original_func__, "Deleted hook recreated");
-				}
-#endif
-				this_instance__ = this;
-				original_func__ = result.entry->buffer( );
-				unused_         = false;
+				_Instance                                      = this;
+				reinterpret_cast<uint8_t*&>(this->original_fn) = result.entry->buffer( );
 				return true;
 			}
 
-		private:
-			bool Unhook_internal(bool force)
+			bool unhook( ) final
 			{
-				Unset_instance_assert_( );
-				Unmanaged_call_assert( );
+				const auto [context, _] = std::move(data_);
 
-				const auto ok = hooks_context_->remove_hook(target_func_.get( ), force) == hook_status::OK;
-				if (!ok && !force)
+				const auto lock = std::scoped_lock(context->lock);
+				auto&      ctx  = *context->ctx;
+
+				auto       target_func = this->get_target_method( ).ptr<void>( );
+				const auto ok          = ctx.remove_hook(target_func, true) == hook_status::OK;
+				/*if (!ok && !force)
 				{
 					runtime_assert("Unable to unhook function");
 					return false;
-				}
+				}*/
 
-				if (ok)
-				{
-					original_func__   = nullptr;
-					this_instance__   = nullptr;
-					target_instance__ = nullptr;
-					safe__            = { };
-					return_value_     = { };
-
-					return true;
-				}
-
-				return false;
+				return ok;
 			}
 
-		protected:
-			context_shared::shared_type hooks_context_ = context_shared::get_ptr_shared( );
-
-		public:
-			bool unhook( ) final
+			void unhook_after_call( ) final
 			{
-				return Unhook_internal(false);
-			}
-
-			void unhook_safe( ) final
-			{
-				safe__.unhook = true;
-			}
-
-			bool unhook_unsafe( ) final
-			{
-				return Unhook_internal(true);
+				data_.after_call.unhook = true;
 			}
 
 			bool enable( ) final
 			{
-				Unmanaged_call_assert( );
-				Unused_modify_assert( );
-				if (hooks_context_->enable_hook(target_func_.get( )) == hook_status::OK)
-					return true;
+				const auto lock = std::scoped_lock(data_.context->lock);
+				auto&      ctx  = *data_.context->ctx;
 
-				runtime_assert("Unable to enable hook");
-				return false;
+				auto target_func = this->get_target_method( ).ptr<void>( );
+
+				return (ctx.enable_hook(target_func) == hook_status::OK);
 			}
 
 			bool disable( ) final
 			{
-				Unset_instance_assert_( );
-				Unmanaged_call_assert( );
-				if (hooks_context_->disable_hook(target_func_.get( )) == hook_status::OK)
-				{
-					safe__.disable = false;
-					return true;
-				}
+				const auto lock = std::scoped_lock(data_.context->lock);
+				auto&      ctx  = *data_.context->ctx;
 
-				runtime_assert("Unable to disable hook");
-				return false;
+				auto target_func = this->get_target_method( ).ptr<void>( );
+
+				const auto ret = (ctx.disable_hook(target_func) == hook_status::OK);
+
+				data_.after_call.disable = false;
+				return ret;
 			}
 
-			void disable_safe( ) final
+			void disable_after_call( ) final
 			{
-				safe__.disable = true;
+				data_.after_call.disable = true;
 			}
 
-		private:
-			hook_result Get_hook_from_storage( ) const
-			{
-				Unmanaged_call_assert( );
-				return target_func_.updated( )
-						   ? hooks_context_->find_hook(target_func_.get( ))
-						   : hook_status::ERROR_NOT_CREATED;
-			}
-
-		public:
 			bool hooked( ) const final
 			{
-				const auto hook = Get_hook_from_storage( );
-				if (hook.status != hook_status::OK)
-				{
-					//unhook_cleanup( );
+				if (data_.context == nullptr)
 					return false;
-				}
-				(void)hook;
-				Unset_instance_assert_( );
-				return true;
+
+				const auto lock = std::scoped_lock(data_.context->lock);
+				auto&      ctx  = *data_.context->ctx;
+
+				auto target_func = this->get_target_method( ).ptr<void>( );
+				return ctx.find_hook(target_func).status == hook_status::OK;
 			}
 
 			bool enabled( ) const final
 			{
-				const auto hook = Get_hook_from_storage( );
-				if (hook.status != hook_status::OK)
-				{
-					//unhook_cleanup( );
+				if (data_.context == nullptr)
 					return false;
-				}
-				Unset_instance_assert_( );
+
+				const auto lock = std::scoped_lock(data_.context->lock);
+				auto&      ctx  = *data_.context->ctx;
+
+				auto target_func = this->get_target_method( ).ptr<void>( );
+				auto hook        = ctx.find_hook(target_func);
+				if (hook.status != hook_status::OK)
+					return false;
 				return hook.entry->enabled;
 			}
 
-			bool unused( ) const override
+			//----
+
+			Ret call_original_ex(Args ...args)
 			{
-				/*if (this->hooked( ))
-					return false;*/
-				return this->unused_;
+				if constexpr (!std::is_void_v<Ret>)
+				{
+					auto ret = this->call_original(args...);
+					return_value_.store_value(ret);
+					return ret;
+				}
+				else
+				{
+					this->call_original(args...);
+					return_value_.set_original_called( );
+				}
 			}
 
-			void mark_unused( ) override
+			Ret callback_impl(Args ...args)
 			{
-				Unused_modify_assert( );
-				if (this->hooked( ))
-					this->Unhook_lazy_( );
-				this->unused_ = true;
+				return_value_.reset( );
+				this->callback(args...);
+
+				if (return_value_.empty( ))
+					this->call_original_ex(args...);
+
+				if (data_.after_call.unhook)
+					this->unhook( );
+				else if (data_.after_call.disable)
+					this->disable( );
+
+				return return_value_.get( );
 			}
 		};
 	}
 
-	template <typename Ret, call_conversion Call_cvs, typename C,/* bool Is_const,*/ typename ...Args>
+	template <typename Ret, call_conversion Call_cvs, typename Arg1, typename ...Args>
 	struct hook_holder;
-
-#pragma region call_cvs_2
 
 	namespace detail
 	{
@@ -970,56 +663,59 @@ namespace cheat::hooks
 		}
 	}
 
-#define CALL_CVS_STUFF_IMPL2(call_cvs)\
-    /*template <typename Ret, typename C, typename ...Args>\
-    struct hook_holder<Ret, call_conversion::call_cvs##__, C, false, Args...>:\
-      detail::hook_holder_impl<Ret, call_conversion::call_cvs##__, C, false, Args...>\
-    {\
-        Ret __##call_cvs callback_proxy(hiddent_type<Args> ...args) final\
-        {\
-            if constexpr (std::is_class_v<C>)\
-				return this->callback_proxy_impl(args.unhide()...);\
+#define CHEAT_HOOK_HOLDER_IMPL(_CALL_CVS_)\
+	template <typename Ret, typename Arg1, typename ...Args>\
+	struct hook_holder<Ret,  call_conversion::_CALL_CVS_##__, Arg1, Args...>:\
+						detail::hook_holder_impl<Ret,  call_conversion::_CALL_CVS_##__, Arg1, Args...>\
+	{\
+	private:\
+		Ret __##_CALL_CVS_ callback_proxy(hiddent_type<Args> ...args)\
+		{\
+			auto _Instance = this->instance();\
+			if constexpr (std::is_class_v<Arg1>)\
+			{\
+				_Instance->object_instance = (Arg1*)this;\
+				return std::invoke(\
+								   &hook_holder::callback_impl,\
+								   _Instance, args.unhide( )...\
+								  );\
+			}\
 			else\
 			{\
-				return apply(&hook_holder::callback_proxy_impl,\
-							std::tuple_cat(std::tuple(this), detail::_Shift_left(std::tuple(hiddent_type<void*>(this->cast_hook_callback( )), args...))));\
+				return std::apply(\
+								  &hook_holder::callback_impl,\
+								  std::tuple_cat(std::tuple(_Instance), detail::_Shift_left(std::tuple((this->get_replace_method_holder( )), args...)))\
+								 );\
 			}\
-        }\
-    };*/\
-    template <typename Ret, typename C, typename ...Args>\
-    struct hook_holder<Ret, call_conversion::call_cvs##__, C,/* true,*/ Args...>:\
-      detail::hook_holder_impl<Ret, call_conversion::call_cvs##__, C, /*true,*/ Args...>\
-    {\
-        Ret __##call_cvs callback_proxy(hiddent_type<Args> ... args) /*const*/ final\
-        {\
-            if constexpr (std::is_class_v<C>)\
-				return this->callback_proxy_impl(args.unhide()...);\
-			else\
-			{\
-				return apply(&hook_holder::callback_proxy_impl,\
-							std::tuple_cat(std::tuple(this), detail::_Shift_left(std::tuple(hiddent_type<void*>(this->cast_hook_callback( )), args...))));\
-			}\
-        }\
-    };\
-    template <typename Ret, typename C, typename ...Args>\
-    auto _Detect_hook_holder(Ret (__##call_cvs C::*fn)(Args ...))		-> hook_holder<Ret, call_conversion::call_cvs##__, C, /*false,*/ Args...>\
+		}\
+	public:\
+		utl::address get_replace_method( ) final\
+		{\
+			return _Pointer_to_class_method(&hook_holder::callback_proxy);\
+		}\
+\
+	private:\
+		hiddent_type<LPVOID> get_replace_method_holder( )\
+		{\
+			return this;\
+		}\
+	};
+
+	CHEAT_HOOKS_CALL_CVS_HELPER(CHEAT_HOOK_HOLDER_IMPL)
+
+#define CHEAT_HOOK_HOLDER_DETECTOR(_CALL_CVS_)\
+	template <typename Ret, typename C, typename ...Args>\
+    auto _Detect_hook_holder(Ret (__##_CALL_CVS_ C::*fn)(Args ...))		-> hook_holder<Ret, call_conversion::_CALL_CVS_##__, C, /*false,*/ Args...>\
         { return {}; }\
     template <typename Ret, typename C, typename ...Args>\
-    auto _Detect_hook_holder(Ret (__##call_cvs C::*fn)(Args ...) const)	-> hook_holder<Ret, call_conversion::call_cvs##__, C, /*true,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##_CALL_CVS_ C::*fn)(Args ...) const)	-> hook_holder<Ret, call_conversion::_CALL_CVS_##__, C, /*true,*/ Args...>\
         { return {}; }\
     template <typename Ret, typename ...Args>\
-    auto _Detect_hook_holder(Ret (__##call_cvs    *fn)(Args ...))		-> hook_holder<Ret, call_conversion::call_cvs##__, void,/* false,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##_CALL_CVS_    *fn)(Args ...))		-> hook_holder<Ret, call_conversion::_CALL_CVS_##__, void,/* false,*/ Args...>\
         { return {}; }
 
-	CALL_CVS_STUFF_IMPL2(thiscall)
-	CALL_CVS_STUFF_IMPL2(fastcall)
-	CALL_CVS_STUFF_IMPL2(stdcall)
-	CALL_CVS_STUFF_IMPL2(vectorcall)
-	CALL_CVS_STUFF_IMPL2(cdecl)
-#undef CALL_CVS_STUFF_IMPL2
+	CHEAT_HOOKS_CALL_CVS_HELPER(CHEAT_HOOK_HOLDER_DETECTOR)
 
 	template <typename T>
 	using _Detect_hook_holder_t = decltype(_Detect_hook_holder(std::declval<T>( )));
-
-#pragma endregion
 }

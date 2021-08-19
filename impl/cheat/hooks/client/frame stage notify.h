@@ -8,13 +8,15 @@ namespace cheat::hooks::client
 {
 	class frame_stage_notify final: public service<frame_stage_notify>,
 									public decltype(_Detect_hook_holder(&csgo::IBaseClientDLL::FrameStageNotify)),
-	service_skipped_on_gui_test
+									service_skipped_on_gui_test
 	{
 	public:
 		frame_stage_notify( );
 
 	protected:
 		bool Do_load( ) override;
-		void Callback(csgo::ClientFrameStage_t stage) override;
+utl::address get_target_method_impl( ) const override;
+		void         callback(csgo::ClientFrameStage_t stage) override;
+		
 	};
 }

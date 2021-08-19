@@ -14,7 +14,8 @@ namespace cheat::hooks::vgui_surface
 		lock_cursor( );
 
 	protected:
-		bool Do_load( ) override;
-		void Callback( ) override;
+		bool         Do_load( ) override;
+		utl::address get_target_method_impl( ) const override;
+		void         callback( ) override;
 	};
 }

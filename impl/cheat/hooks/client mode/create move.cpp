@@ -15,26 +15,29 @@ using namespace utl;
 
 create_move::create_move( )
 {
-	this->call_original_first_ = true;
 }
 
 bool create_move::Do_load( )
 {
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->client_mode.get( ), 24);
-
 	this->hook( );
 	this->enable( );
 	return 1;
 }
 
-void create_move::Callback(float input_sample_time, CUserCmd* cmd)
+utl::address create_move::get_target_method_impl( ) const
 {
+	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client_mode.get( ))[24];
+}
+
+void create_move::callback(float input_sample_time, CUserCmd* cmd)
+{
+	const auto original_return = this->call_original_ex(input_sample_time, cmd);
+
 	// is called from CInput::ExtraMouseSample
 	if (cmd->command_number == 0)
 		return;
 
-	const auto interfaces      = csgo_interfaces::get_ptr( );
-	const auto original_return = return_value_.get( );
+	const auto interfaces = csgo_interfaces::get_ptr( );
 	return_value_.store_value(false);
 
 	if (original_return == true)

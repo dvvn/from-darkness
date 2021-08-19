@@ -15,9 +15,12 @@ namespace cheat::hooks::c_base_animating
 		should_skip_animation_frame( );
 
 		void render( ) override;
+
 	protected:
 		bool Do_load( ) override;
-		void Callback(/*float current_time*/) override;
+	utl::address get_target_method_impl( ) const override;
+		void         callback(/*float current_time*/) override;
+	
 
 	private:
 		bool override_return__    = false;

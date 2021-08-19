@@ -11,7 +11,9 @@ namespace cheat::hooks::directx
 		reset( );
 
 	protected:
-		bool Do_load( ) override;
-		void Callback(D3DPRESENT_PARAMETERS*) override;
+		bool         Do_load( ) override;
+	utl::address get_target_method_impl( ) const override;
+		void         callback(D3DPRESENT_PARAMETERS*) override;
+	
 	};
 }

@@ -93,7 +93,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	auto       frozen = winapi::frozen_threads_storage(true);
 	for (auto& h: hooks)
 	{
-		h->disable_safe( );
+		h->disable( );
 	}
 	frozen.clear( );
 
@@ -148,6 +148,7 @@ std::future<bool> services_holder::load( )
 						case state::error:
 							loader.paused = true;
 						case state::loaded:
+						case state::skipped:
 							++done;
 							break;
 					}

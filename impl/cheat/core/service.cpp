@@ -28,7 +28,14 @@ bool service_state::operator!( ) const
 
 bool service_state::done( ) const
 {
-	return value__ == loaded;
+	switch (value__)
+	{
+		case loaded:
+		case skipped:
+			return true;
+		default:
+			return false;
+	}
 }
 
 bool service_state::disabled( ) const
@@ -37,6 +44,7 @@ bool service_state::disabled( ) const
 	{
 		case loading:
 		case loaded:
+		case skipped:
 			return false;
 		default:
 			return true;
@@ -77,17 +85,6 @@ service_state service_base::state( ) const
 }
 
 template <typename T>
-FORCEINLINE static bool _Service_loaded_before(T&& state)
-{
-	if (static_cast<service_state>(state) != service_state::unset)
-	{
-		runtime_assert("Service loaded before");
-		return true;
-	}
-	return false;
-}
-
-template <typename T>
 FORCEINLINE static void _Service_loaded_msg([[maybe_unused]] const T* owner, [[maybe_unused]] bool loaded)
 {
 	CHEAT_CONSOLE_LOG("Service {}: {}", loaded ? "loaded " : "skipped", owner->name( ));
@@ -97,8 +94,11 @@ void service_base::load( )
 {
 	try
 	{
-		if (_Service_loaded_before(state__))
+		if (static_cast<service_state>(state__) != service_state::unset)
+		{
+			runtime_assert("Service loaded before");
 			return;
+		}
 
 		state__           = service_state::loading;
 		const auto loaded = this->Do_load( );
@@ -122,12 +122,18 @@ void service_base::load( )
 	}
 }
 
-
+service_skipped_always::service_skipped_always( )
+{
+	state__ = service_state::skipped;
+}
 
 void service_skipped_always::load( )
 {
-	if (_Service_loaded_before(state__))
+	if (static_cast<service_state>(state__) != service_state::skipped)
+	{
+		runtime_assert("Service must be skipped, but state is different");
 		return;
-	state__ = service_state::loaded;
+	}
+
 	_Service_loaded_msg(this, false);
 }

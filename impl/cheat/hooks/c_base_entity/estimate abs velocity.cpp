@@ -19,22 +19,22 @@ estimate_abs_velocity::estimate_abs_velocity( )
 
 bool estimate_abs_velocity::Do_load( )
 {
-	using namespace address_pipe;
-
-	this->target_func_ = method_info::make_member_virtual
-			(
-			 std::bind_front(_Vtable_pointer<C_BaseEntity>, "client.dll"),
-			 std::bind_front(_Find_signature, "client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18") | add(2) | deref(1) | divide(4) | value
-			);
-
 	this->hook( );
 	this->enable( );
 	return 1;
 }
 
-void estimate_abs_velocity::Callback(Vector& vel)
+utl::address estimate_abs_velocity::get_target_method_impl( ) const
 {
-	const auto ent = this->Target_instance( );
+	const auto vtable = _Vtable_pointer<C_BaseEntity>("client.dll");
+	const auto index  = _Find_signature("client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).divide(4).value( );
+
+	return _Pointer_to_virtual_class_table(vtable)[index];
+}
+
+void estimate_abs_velocity::callback(Vector& vel)
+{
+	const auto ent = this->object_instance;
 	if (m_iEFlags_t(ent->m_iEFlags( )).has(m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
 	{
 		// ReSharper disable once CppInconsistentNaming

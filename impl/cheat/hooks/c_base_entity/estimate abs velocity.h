@@ -14,6 +14,8 @@ namespace cheat::hooks::c_base_entity
 
 	protected:
 		bool Do_load( ) override;
-		void Callback(csgo::Vector& vel) override;
+	utl::address get_target_method_impl( ) const override;
+		void         callback(csgo::Vector& vel) override;
+	
 	};
 }

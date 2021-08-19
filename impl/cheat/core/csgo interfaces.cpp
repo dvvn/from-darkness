@@ -151,13 +151,7 @@ public:
 
 [[maybe_unused]] static address _Get_vfunc(void* instance, size_t index)
 {
-	address result;
-
-	auto info = hooks::method_info::make_member_virtual(instance, index);
-	if (info.update( ))
-		result = info.get( );
-
-	return result;
+	return cheat::hooks::_Pointer_to_virtual_class_table(instance)[index];
 }
 
 address csgo_interface_base::addr( ) const

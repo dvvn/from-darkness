@@ -19,22 +19,22 @@ standard_blending_rules::standard_blending_rules( )
 
 bool standard_blending_rules::Do_load( )
 {
-	using namespace address_pipe;
-
-	this->target_func_ = method_info::make_member_virtual
-			(
-			 std::bind_front(_Vtable_pointer<C_BaseAnimating>, "client.dll"),
-			 std::bind_front(_Find_signature, "client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC") | add(11) | deref(1) | divide(4) | value
-			);
-
 	this->hook( );
 	this->enable( );
 	return true;
 }
 
-void standard_blending_rules::Callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
+utl::address standard_blending_rules::get_target_method_impl( ) const
 {
-	const auto pl           = this->Target_instance( );
+	const auto vtable = _Vtable_pointer<C_BaseAnimating>("client.dll");
+	const auto index  = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).divide(4).value( );
+
+	return _Pointer_to_virtual_class_table(vtable)[index];
+}
+
+void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
+{
+	const auto pl           = this->object_instance;
 	const auto client_class = pl->GetClientClass( );
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;

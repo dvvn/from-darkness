@@ -19,12 +19,11 @@ bool wndproc::Do_load( )
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
 	runtime_assert(hwnd != nullptr);
-	const bool unicode = IsWindowUnicode(hwnd);
+	unicode_ = IsWindowUnicode(hwnd);
 
 	using namespace address_pipe;
 
-	default_wndproc__ = unicode ? DefWindowProcW : DefWindowProcA;
-	target_func_ = method_info::make_static(std::bind_front(unicode ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC) | cast<WNDPROC>);
+	default_wndproc__ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
 	this->hook( );
 	this->enable( );
@@ -32,10 +31,15 @@ bool wndproc::Do_load( )
 	return true;
 }
 
+utl::address wndproc::get_target_method_impl( ) const
+{
+	return std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get_ptr( )->hwnd( ), GWLP_WNDPROC);
+}
+
 // ReSharper disable once CppInconsistentNaming
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-void wndproc::Callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 #ifndef CHEAT_GUI_TEST
 	if (wparam == VK_DELETE && msg == WM_KEYUP)

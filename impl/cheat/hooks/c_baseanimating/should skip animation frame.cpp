@@ -19,18 +19,18 @@ should_skip_animation_frame::should_skip_animation_frame( )
 
 bool should_skip_animation_frame::Do_load( )
 {
-	using namespace address_pipe;
-
-	this->target_func_ = method_info::make_static
-			(std::bind_front(_Find_signature, "client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02") | ptr<void>);
-
 	this->hook( );
 	this->enable( );
 
 	return true;
 }
 
-void should_skip_animation_frame::Callback(/*float current_time*/)
+utl::address should_skip_animation_frame::get_target_method_impl( ) const
+{
+	return _Find_signature("client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02");
+}
+
+void should_skip_animation_frame::callback(/*float current_time*/)
 {
 	if (override_return__)
 		this->return_value_.store_value(override_return_to__);
@@ -51,7 +51,7 @@ void should_skip_animation_frame::Callback(/*float current_time*/)
 
 		C_BaseAnimating* ent;
 
-		if (const auto inst = this->Target_instance( ); is_player(inst))
+		if (const auto inst = this->object_instance; is_player(inst))
 		{
 			ent = inst;
 		}

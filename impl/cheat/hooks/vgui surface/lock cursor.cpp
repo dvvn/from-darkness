@@ -16,18 +16,22 @@ lock_cursor::lock_cursor( )
 
 bool lock_cursor::Do_load( )
 {
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->vgui_surface.get( ), 67);
-
 	this->hook( );
 	this->enable( );
+
 	return true;
 }
 
-void lock_cursor::Callback( )
+utl::address lock_cursor::get_target_method_impl( ) const
 {
-	if (!Target_instance( )->IsCursorVisible( ) && gui::menu::get_ptr( )->visible( ))
+	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->vgui_surface.get( ))[67];
+}
+
+void lock_cursor::callback( )
+{
+	if (!object_instance->IsCursorVisible( ) && gui::menu::get_ptr( )->visible( ))
 	{
 		this->return_value_.set_original_called(true);
-		Target_instance( )->UnlockCursor( );
+		object_instance->UnlockCursor( );
 	}
 }

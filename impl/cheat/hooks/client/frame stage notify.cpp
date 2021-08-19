@@ -15,15 +15,18 @@ frame_stage_notify::frame_stage_notify( )
 
 bool frame_stage_notify::Do_load( )
 {
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->client.get( ), 37);
-
 	this->hook( );
 	this->enable( );
 
 	return true;
 }
 
-void frame_stage_notify::Callback(ClientFrameStage_t stage)
+utl::address frame_stage_notify::get_target_method_impl( ) const
+{
+	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client.get( ))[37];
+}
+
+void frame_stage_notify::callback(ClientFrameStage_t stage)
 {
 	switch (stage)
 	{

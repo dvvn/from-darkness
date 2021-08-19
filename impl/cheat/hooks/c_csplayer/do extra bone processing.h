@@ -13,8 +13,9 @@ namespace cheat::hooks::c_csplayer
 		do_extra_bone_processing( );
 
 	protected:
-		bool Do_load( ) override;
-		void Callback(csgo::CStudioHdr* studio_hdr, csgo::Vector pos[], csgo::Quaternion q[], csgo::matrix3x4a_t bone_to_world[], csgo::CBoneBitList& bone_computed,
-					  csgo::CIKContext* ik_context) override;
+		bool         Do_load( ) override;
+		utl::address get_target_method_impl( ) const override;
+		void         callback(csgo::CStudioHdr* studio_hdr, csgo::Vector pos[], csgo::Quaternion q[], csgo::matrix3x4a_t bone_to_world[], csgo::CBoneBitList& bone_computed,
+							  csgo::CIKContext* ik_context) override;
 	};
 }

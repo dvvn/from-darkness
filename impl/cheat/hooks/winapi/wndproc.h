@@ -12,13 +12,16 @@ namespace cheat::hooks::winapi
 		wndproc( );
 
 		void render( ) override;
-
 	protected:
 		bool Do_load( ) override;
 
-		void Callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
+		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
+
+		utl::address get_target_method_impl( ) const override;
 	private:
 		decltype(&DefWindowProc) default_wndproc__ = nullptr;
+		bool unicode_=0;
+		HWND hwnd_=0;
 
 		bool    override_return__    = false;
 		LRESULT override_return_to__ = 1;

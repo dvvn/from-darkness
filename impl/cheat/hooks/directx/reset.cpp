@@ -13,15 +13,18 @@ reset::reset( )
 
 bool reset::Do_load( )
 {
-	this->target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->d3d_device.get( ), 16);
-
 	this->hook( );
 	this->enable( );
 
 	return true;
 }
 
-void reset::Callback(D3DPRESENT_PARAMETERS*)
+utl::address reset::get_target_method_impl( ) const
+{
+	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[16];
+}
+
+void reset::callback(D3DPRESENT_PARAMETERS*)
 {
 	ImGui_ImplDX9_InvalidateDeviceObjects( );
 }

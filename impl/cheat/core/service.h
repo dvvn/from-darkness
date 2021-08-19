@@ -9,6 +9,7 @@ namespace cheat
 		{
 			unset = 0,
 			moved,
+			skipped,
 			loading,
 			loaded,
 			stopped,
@@ -73,7 +74,8 @@ namespace cheat
 	class service_skipped_always: public virtual service_base
 	{
 	public:
-		void load( ) override;
+		service_skipped_always();
+		void load( ) final;
 	};
 
 	class service_skipped_on_gui_test: public

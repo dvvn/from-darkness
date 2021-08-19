@@ -11,10 +11,11 @@ namespace cheat::hooks::directx
 		present( );
 
 	protected:
-		bool Do_load( ) override;
-		void Callback(THIS_ CONST RECT* source_rect,
-					  CONST RECT*       dest_rect,
-					  HWND              dest_window_override,
-					  CONST RGNDATA*    dirty_region_parameters) override;
+		bool         Do_load( ) override;
+		utl::address get_target_method_impl( ) const override;
+		void         callback(THIS_ CONST RECT* source_rect,
+							  CONST RECT*       dest_rect,
+							  HWND              dest_window_override,
+							  CONST RGNDATA*    dirty_region_parameters) override;
 	};
 }

@@ -16,17 +16,20 @@ present::present( )
 
 bool present::Do_load( )
 {
-	target_func_ = method_info::make_member_virtual(csgo_interfaces::get_ptr( )->d3d_device.get( ), 17);
-
 	this->hook( );
 	this->enable( );
 
 	return true;
 }
 
-void present::Callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
+utl::address present::get_target_method_impl( ) const
 {
-	const auto d3d_device = this->Target_instance( );
+	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[17];
+}
+
+void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
+{
+	const auto d3d_device = this->object_instance;
 
 	ImGui_ImplDX9_NewFrame( );   //todo: remove. it only calls CreateDeviceObjects, what can be done after reset and init
 	ImGui_ImplWin32_NewFrame( ); //todo: call it from input (it only update mouse and keys). (if do it move timers outside)

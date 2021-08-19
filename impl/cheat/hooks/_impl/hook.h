@@ -50,10 +50,9 @@ namespace cheat::hooks
 
 	class context_base
 	{
-	protected:
-		virtual ~context_base( ) = default;
-
 	public:
+		virtual ~context_base( ) = default;
+	
 		virtual hook_result create_hook(LPVOID target, LPVOID detour) = 0;
 		virtual hook_status remove_hook(LPVOID target, bool force = false) = 0;
 		virtual hook_status enable_hook(LPVOID target) = 0;
@@ -92,8 +91,6 @@ namespace cheat::hooks
 		storage_type storage__;
 	};
 
-	
-
 	class context_safe final: public context_base
 	{
 	public:
@@ -112,8 +109,6 @@ namespace cheat::hooks
 		context   ctx__;
 		lock_type mtx__;
 	};
-
-	using context_shared = utl::one_instance_shared<context_safe>;
 
 #if 0
 	/// @brief Creates a Hook for the specified Windows API function, in disabled state.
