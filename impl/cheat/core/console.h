@@ -10,31 +10,62 @@ namespace cheat
 {
 	namespace detail
 	{
+		class movable_function_base
+		{
+		public:
+			virtual      ~movable_function_base( ) = default;
+			virtual void operator()( ) =0;
+		};
+
+		template <typename T>
+		class movable_function final: public movable_function_base
+		{
+		public:
+			movable_function(const movable_function&)            = delete;
+			movable_function& operator=(const movable_function&) = delete;
+
+			movable_function(T&& obj): obj_(std::move(obj))
+			{
+			}
+
+			void operator()( ) override
+			{
+				std::invoke(obj_);
+			}
+
+		private:
+			T obj_;
+		};
+
+		template <typename T>
+		movable_function(T&&) -> movable_function<std::remove_cvref_t<T>>;
+
 		struct console_data
 		{
-			bool               write_redirected__ = false;
-			FILE*              write__            = nullptr;
-			std::optional<int> original_mode;
+			bool console_allocated = false;
+			HWND console_window    = nullptr;
 
-			bool console_allocated__ = false;
-			HWND console_window__    = nullptr;
-
-			using cache_obj = std::function<void(FILE*)>;
-
-			std::mutex lock__;
-			std::queue<cache_obj,
-					   std::list<cache_obj>> cache__;
+			std::mutex lock;
 
 			void write_cache( );
+
+			template <typename T>
+			void add_to_cache(T&& fn)
+			{
+				auto ptr = std::make_unique<movable_function<T>>(std::forward<T>(fn));
+				cache_.push_back(std::move(ptr));
+			}
+
+		private:
+			using cache_obj = std::unique_ptr<movable_function_base>;
+			std::list<cache_obj> cache_;
 		};
 	}
 
 	class console final: public service<console>
-					   , detail::console_data
 #ifndef CHEAT_HAVE_CONSOLE
 	, service_skipped_always
 #endif
-
 	{
 	public:
 		~console( ) override;
@@ -47,9 +78,21 @@ namespace cheat
 		void write(std::wstring&& str);
 		void write(const std::wstring_view& str);
 		void write_line(const std::wstring_view& str);
+		void write(wchar_t c) = delete;
+
+		void write(std::ostringstream&& str);
+		void write(const std::ostringstream& str);
+		void write_line(const std::ostringstream& str);
+
+		void write(std::wostringstream&& str);
+		void write(const std::wostringstream& str);
+		void write_line(const std::wostringstream& str);
 
 	protected:
 		bool load_impl( ) override;
+
+	private:
+		detail::console_data data_;
 	};
 
 #ifdef CHEAT_HAVE_CONSOLE
@@ -62,7 +105,7 @@ namespace cheat
 			if constexpr (sizeof...(T) >= 1)
 				return std::format(std::forward<V>(val), std::forward<T>(values)...);
 			else
-				return nstd::as_string(std::forward<V>(val));
+				return (std::forward<V>(val));
 
 			/*else if constexpr (std::destructible<std::formatter<std::remove_cvref_t<V>>>)
 				return std::format("{}", std::forward<V>(val));*/

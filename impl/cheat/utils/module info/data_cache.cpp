@@ -28,7 +28,7 @@ bool module_data_mgr_base::write_from_storage(const path_type& file, const ptree
 	{
 		const auto buff = std::ostringstream( ) << storage;
 		if (nstd::checksum(buff) != nstd::checksum(file))
-			std::ofstream(file) << nstd::as_string(buff);
+			std::ofstream(file) << (buff);
 	}
 
 	return true;

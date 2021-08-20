@@ -148,19 +148,6 @@ namespace std
 
 #endif
 
-namespace std
-{
-	template <typename C>
-	struct formatter<basic_ostringstream<C>>: formatter<typename basic_ostringstream<C>::_Mystr_view>
-	{
-		template <typename FormatContext>
-		auto format(const basic_ostringstream<C>& v, FormatContext& ctx)
-		{
-			return formatter<typename basic_ostringstream<C>::_Mystr_view>::format(v.view( ), ctx);
-		}
-	};
-}
-
 #include <nlohmann/json.hpp>
 
 #ifdef _DEBUG
@@ -307,108 +294,26 @@ namespace nstd
 
 namespace nstd
 {
-	namespace detail
+	template <typename T>
+	concept _String_viewable = requires(const T& obj)
 	{
-		template <typename T>
-		struct as_string_or_view;
-
-		template <class E, class Tr>
-		struct as_string_or_view<std::basic_string_view<E, Tr>>
-		{
-			constexpr auto operator()(const std::basic_string_view<E, Tr>& val) const
-			{
-				using str = std::basic_string<E, Tr>;
-				return str(val._Unchecked_begin( ), val._Unchecked_end( ));
-			}
-
-			constexpr auto operator()(std::basic_string_view<E, Tr>& val) const
-			{
-				return val;
-			}
-
-			constexpr auto operator()(std::basic_string_view<E, Tr>&& val) const
-			{
-				return val;
-			}
-		};
-
-		template <class E, class Tr, class A>
-		struct as_string_or_view<std::basic_string<E, Tr, A>>
-		{
-			using string_type = std::basic_string<E, Tr, A>;
-
-			constexpr const string_type& operator()(const string_type& val) const
-			{
-				return val;
-			}
-
-			constexpr string_type& operator()(string_type& val) const
-			{
-				return val;
-			}
-
-			constexpr string_type operator()(string_type&& val) const
-			{
-				return std::move(val);
-			}
-		};
-
-		template <class C, size_t S>
-		struct as_string_or_view<C[S]>
-		{
-			constexpr auto operator()(const C (&val)[S]) const
-			{
-				using str = std::basic_string_view<C>;
-				return str(val, S - 1);
-			}
-		};
-
-		template <class E, class Tr, class A>
-		struct as_string_or_view<std::basic_ostringstream<E, Tr, A>>
-		{
-			using stream_type = std::basic_ostringstream<E, Tr, A>;
-			using string_type = typename stream_type::_Mystr;
-			using string_view_type = typename stream_type::_Mystr_view;
-
-			constexpr string_view_type operator()(const stream_type& val) const
-			{
-				return val.view( );
-			}
-
-			constexpr string_view_type operator()(string_type& val) const
-			{
-				return val.view( );
-			}
-
-			constexpr string_type operator()(string_type&& val) const
-			{
-				return std::move(val).str( );
-			}
-		};
-
-		struct as_string_impl
-		{
-			template <typename T, std::destructible Impl = as_string_or_view<std::remove_cvref_t<T>>>
-			constexpr decltype(auto) operator()(T&& val) const
-			{
-				return std::invoke(Impl( ), std::forward<T>(val));
-			}
-		};
-	}
-
-	inline constexpr auto as_string = detail::as_string_impl( );
+		obj.view( );
+	};
 
 	namespace detail
 	{
 		struct checksum_impl
 		{
-			template <typename T>
-				requires(std::invocable<as_string_impl, T>)
-			size_t operator ()(T&& val) const
+			template <typename E, typename Tr>
+			size_t operator ()(const std::basic_string_view<E, Tr>& str) const
 			{
-				auto&& str  = as_string(std::forward<T>(val));
-				auto&& hash = std::_Hash_array_representation(str._Unchecked_begin( ), str.size( ));
-				return (hash);
+				return std::_Hash_array_representation(str._Unchecked_begin( ), str.size( ));
+			}
+
+			template <_String_viewable T>
+			size_t operator ()(const T& obj) const
+			{
+				return std::invoke(*this, obj.view( ));
 			}
 
 			template <typename T>
@@ -437,6 +342,38 @@ namespace nstd
 	}
 
 	inline constexpr auto checksum = detail::checksum_impl( );
+}
+
+namespace std
+{
+	template <typename T, typename Formatter=formatter<decltype(std::declval<T>( ).view( ))>>
+	struct _Formatter_string_viewable: Formatter
+	{
+		template <class _FormatContext>
+		typename _FormatContext::iterator format(const T& val, _FormatContext& ctx)
+		{
+			return Formatter::format(val.view( ), ctx);
+		}
+	};
+	template <nstd::_String_viewable T>
+	struct formatter<T>: _Formatter_string_viewable<T>
+	{
+	};
+
+	template <typename E, typename Tr,nstd::_String_viewable T>
+		requires(std::same_as<E, typename decltype(std::declval<T>( ).view( ))::value_type>)
+	basic_ostream<E, Tr>& operator<<(basic_ostream<E, Tr>& s, const T& val)
+	{
+		return s << val.view( );
+	}
+
+	template <typename E, typename Tr,nstd::_String_viewable T>
+		requires(std::same_as<E, typename decltype(std::declval<T>( ).view( ))::value_type>)
+	basic_ostream<E, Tr>&& operator<<(basic_ostream<E, Tr>&& s, const T& val)
+	{
+		s << val.view( );
+		return move(s);
+	}
 }
 
 using namespace std::literals;

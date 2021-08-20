@@ -26,14 +26,10 @@ using namespace cheat;
 using namespace detail;
 using namespace utl;
 
+#ifndef CHEAT_GUI_TEST
+
 static bool _Wait_for_game( )
 {
-#ifdef CHEAT_GUI_TEST
-
-	return false;
-
-#else
-
 	const auto modules = all_modules::get_ptr( );
 	auto&      all     = modules->update(false).all( );
 
@@ -70,9 +66,9 @@ static bool _Wait_for_game( )
 			return false;
 	}
 	while (true);
+}
 
 #endif
-}
 
 struct unload_helper_data
 {
@@ -107,6 +103,9 @@ std::future<bool> services_holder::load( )
 	return std::async(std::launch::async, [this]
 	{
 		bool game_alredy_loaded;
+#ifdef CHEAT_GUI_TEST
+		game_alredy_loaded = true;
+#else
 		try
 		{
 			game_alredy_loaded = _Wait_for_game( );
@@ -116,6 +115,7 @@ std::future<bool> services_holder::load( )
 			runtime_assert(ex.what());
 			return false;
 		}
+#endif
 
 #ifdef NDEBUG
 		std::this_thread::sleep_for(std::chrono::seconds(game_alredy_loaded ? 1 : 5));

@@ -34,7 +34,7 @@ static std::string _Str_to_lower(const std::string_view& str)
 {
 	std::string ret;
 	ret.reserve(str.size( ));
-	for (const int c: str)
+	for (const auto c: str)
 		ret += std::tolower(c);
 	return ret;
 }
@@ -661,7 +661,7 @@ netvars::dump_info netvars::Dump_netvars_( )
 		}
 		else
 		{
-			std::ofstream(netvars_dump_file) << nstd::as_string(test_to_write);
+			std::ofstream(netvars_dump_file) << (test_to_write);
 			info = dump_info::updated;
 			CHEAT_CONSOLE_LOG("Netvars dump updated");
 		}
