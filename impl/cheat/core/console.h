@@ -42,8 +42,8 @@ namespace cheat
 
 		struct console_data
 		{
-			bool console_allocated = false;
-			HWND console_window    = nullptr;
+			bool allocated = false;
+			HWND handle    = nullptr;
 
 			std::mutex lock;
 
