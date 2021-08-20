@@ -26,7 +26,7 @@ namespace cheat
 	class service_base
 	{
 	public:
-		friend class service_skipped_always;
+		friend class service_always_skipped;
 
 		virtual                  ~service_base( );
 		virtual std::string_view name( ) const = 0;
@@ -48,18 +48,22 @@ namespace cheat
 		 * \return true: loaded, false: skipped.
 		 * throw exception if something wrong!
 		 */
-		virtual bool Do_load( ) = 0;
+		virtual bool load_impl( ) = 0;
 
-		virtual void On_load( ) { constexpr auto _ = 0; }
+		virtual void after_load( )
+		{
+		}
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
-		virtual void On_stop( ) { constexpr auto _ = 0; }
+		virtual void after_stop( )
+		{			
+		}
 #endif
-		virtual void On_error( ) { constexpr auto _ = 0; }
-
-		void Loading_access_assert( ) const;
+		virtual void after_error(const std::exception&)
+		{
+		}
 
 	private:
-		std::atomic<service_state> state__;
+		std::atomic<service_state> state_;
 	};
 
 	template <typename T>
@@ -68,22 +72,20 @@ namespace cheat
 	public:
 		std::string_view name( ) const final
 		{
-			return _Type_name<T>(false);
+			return type_name<T>(false);
 		}
 	};
-	class service_skipped_always: public virtual service_base
+
+	class service_hook_helper: public virtual service_base, public virtual hooks::hook_holder_base
 	{
-	public:
-		service_skipped_always();
-		void load( ) final;
+	protected:
+		bool load_impl( ) override;
 	};
 
-	class service_skipped_on_gui_test: public
-#ifdef CHEAT_GUI_TEST
-			service_skipped_always
-#else
-	virtual service_base
-#endif
+	class service_always_skipped: public virtual service_base
 	{
+	public:
+		service_always_skipped( );
+		void load( ) final;
 	};
 }

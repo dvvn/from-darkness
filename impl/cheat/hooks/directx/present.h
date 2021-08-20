@@ -4,14 +4,11 @@
 
 namespace cheat::hooks::directx
 {
-	class present final: public service<present>,
-						 public decltype(_Detect_hook_holder(&IDirect3DDevice9::Present))
+	class present final: public service<present>
+					   , public decltype(_Detect_hook_holder(&IDirect3DDevice9::Present))
+					   , service_hook_helper
 	{
-	public :
-		present( );
-
 	protected:
-		bool         Do_load( ) override;
 		utl::address get_target_method_impl( ) const override;
 		void         callback(THIS_ CONST RECT* source_rect,
 							  CONST RECT*       dest_rect,

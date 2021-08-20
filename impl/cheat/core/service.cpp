@@ -23,12 +23,12 @@ template <std::derived_from<std::exception> Ex>
 
 bool service_state::operator!( ) const
 {
-	return value__ == unset;
+	return value_ == unset;
 }
 
 bool service_state::done( ) const
 {
-	switch (value__)
+	switch (value_)
 	{
 		case loaded:
 		case skipped:
@@ -40,7 +40,7 @@ bool service_state::done( ) const
 
 bool service_state::disabled( ) const
 {
-	switch (value__)
+	switch (value_)
 	{
 		case loading:
 		case loaded:
@@ -51,87 +51,98 @@ bool service_state::disabled( ) const
 	}
 }
 
-void service_base::Loading_access_assert( ) const
+template <typename T>
+FORCEINLINE static void _Loading_access_assert(T&& state)
 {
-	runtime_assert(static_cast<service_state>(state__) != service_state::loading, "Unable to modify service while loading!");
-	(void)this;
+	runtime_assert(static_cast<service_state>(state) != service_state::loading, "Unable to modify service while loading!");
 }
 
 service_base::~service_base( )
 {
-	Loading_access_assert( );
+	_Loading_access_assert(state_);
 }
 
 service_base::service_base(service_base&& other) noexcept
 {
-	other.Loading_access_assert( );
+	_Loading_access_assert(other.state_);
 	// ReSharper disable once CppRedundantCastExpression
-	state__       = static_cast<service_state>(other.state__);
-	other.state__ = service_state::moved;
+	state_       = static_cast<service_state>(other.state_);
+	other.state_ = service_state::moved;
 }
 
 void service_base::operator=(service_base&& other) noexcept
 {
-	this->Loading_access_assert( );
-	other.Loading_access_assert( );
+	_Loading_access_assert(this->state_);
+	_Loading_access_assert(other.state_);
+
 	// ReSharper disable once CppRedundantCastExpression
-	state__       = static_cast<service_state>(other.state__);
-	other.state__ = service_state::moved;
+	state_       = static_cast<service_state>(other.state_);
+	other.state_ = service_state::moved;
 }
 
 service_state service_base::state( ) const
 {
-	return state__;
+	return state_;
 }
+
+#include "cheat/gui/tools/string wrapper.h"
 
 template <typename T>
 FORCEINLINE static void _Service_loaded_msg([[maybe_unused]] const T* owner, [[maybe_unused]] bool loaded)
 {
-	CHEAT_CONSOLE_LOG("Service {}: {}", loaded ? "loaded " : "skipped", owner->name( ));
+	CHEAT_CONSOLE_LOG("Service {}: {}", loaded ? "loaded" : "skipped", owner->name( ));
 }
 
 void service_base::load( )
 {
 	try
 	{
-		if (static_cast<service_state>(state__) != service_state::unset)
+		if (static_cast<service_state>(state_) != service_state::unset)
 		{
 			runtime_assert("Service loaded before");
 			return;
 		}
 
-		state__           = service_state::loading;
-		const auto loaded = this->Do_load( );
-		state__           = service_state::loaded;
+		state_            = service_state::loading;
+		const auto loaded = this->load_impl( );
+		state_            = service_state::loaded;
 
 		_Service_loaded_msg(this, loaded);
-		this->On_load( );
+		this->after_load( );
 	}
 #if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
 	catch (const thread_interrupted&)
 	{
-		state__ = service_state::stopped;
-		this->On_stop( );
+		state_ = service_state::stopped;
+		this->after_stop( );
 	}
 #endif
-	catch ([[maybe_unused]] const std::exception& ex)
+	catch (const std::exception& ex)
 	{
-		state__ = service_state::error;
+		state_ = service_state::error;
 		CHEAT_CONSOLE_LOG("Unable to load service {}. {}", this->name( ), ex.what( ));
-		this->On_error( );
+		this->after_error(ex);
 	}
 }
 
-service_skipped_always::service_skipped_always( )
+bool service_hook_helper::load_impl( )
 {
-	state__ = service_state::skipped;
+	this->hook( );
+	this->enable( );
+
+	return true;
 }
 
-void service_skipped_always::load( )
+service_always_skipped::service_always_skipped( )
 {
-	if (static_cast<service_state>(state__) != service_state::skipped)
+	state_ = service_state::skipped;
+}
+
+void service_always_skipped::load( )
+{
+	if (static_cast<service_state>(state_) != service_state::skipped)
 	{
-		runtime_assert("Service must be skipped, but state is different");
+		runtime_assert("Service must be skipped, but state is changed");
 		return;
 	}
 

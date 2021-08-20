@@ -13,17 +13,6 @@ using namespace hooks;
 using namespace client_mode;
 using namespace utl;
 
-create_move::create_move( )
-{
-}
-
-bool create_move::Do_load( )
-{
-	this->hook( );
-	this->enable( );
-	return 1;
-}
-
 utl::address create_move::get_target_method_impl( ) const
 {
 	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client_mode.get( ))[24];

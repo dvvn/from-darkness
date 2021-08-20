@@ -31,7 +31,7 @@ bool C_BaseEntity::ShouldInterpolate( )
 
 CUtlVector<matrix3x4_t>& C_BaseEntity::BonesCache( )
 {
-	static const auto offset = _Find_signature("client.dll", "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8").add(9).deref(1).remove(8);
+	static const auto offset = find_signature("client.dll", "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8").add(9).deref(1).remove(8);
 	(void)this;
 	return utl::address(this).add(offset).ref<CUtlVector<matrix3x4_t>>( );
 }

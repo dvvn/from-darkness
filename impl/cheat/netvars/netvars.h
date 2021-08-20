@@ -18,11 +18,10 @@ namespace cheat
 		int at(const std::string_view& table, const std::string_view& item) const;
 
 	protected:
-		bool Do_load( ) override;
-		void On_load( ) override;
+		bool load_impl( ) override;
+		void after_load( ) override;
 
 	private:
-
 		enum class dump_info
 		{
 			skipped,
@@ -31,7 +30,7 @@ namespace cheat
 		};
 
 		_NODISCARD dump_info Dump_netvars_( );
-		void            Generate_classes_(dump_info info );
+		void                 Generate_classes_(dump_info info);
 
 		class lazy_file_writer final: public std::ostringstream
 		{

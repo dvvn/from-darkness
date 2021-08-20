@@ -588,7 +588,7 @@ static void _Iterate_datamap(nlohmann::json& root_tree, datamap_t* root_map)
 	}
 }
 
-bool netvars::Do_load( )
+bool netvars::load_impl( )
 {
 #if defined(CHEAT_NETVARS_DUMPER_DISABLED)
 	return false;
@@ -602,7 +602,7 @@ bool netvars::Do_load( )
 
 	_Iterate_client_class(data__, interfaces->client->GetAllClasses( ));
 
-	const auto baseent = _Vtable_pointer<C_BaseEntity>("client.dll");
+	const auto baseent = vtable_pointer<C_BaseEntity>("client.dll");
 
 	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));
@@ -612,7 +612,7 @@ bool netvars::Do_load( )
 #endif
 }
 
-void netvars::On_load( )
+void netvars::after_load( )
 {
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 

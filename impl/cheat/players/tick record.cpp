@@ -33,11 +33,10 @@ bool tick_record::is_valid(float curtime) const
 		return engine->GetNetChannelInfo( )->GetLatency(flow);
 	};
 
-	const auto correct = std::clamp(get_latency(FLOW_INCOMING) +
-									get_latency(FLOW_OUTGOING)
-									+ _Lerp_time( ), 0.f, _Unlag_limit( ));
+	const auto correct = std::clamp(get_latency(FLOW_INCOMING) + get_latency(FLOW_OUTGOING) + lerp_time( ),
+									0.f, unlag_limit( ));
 
-	return std::abs(correct - (curtime - sim_time)) < _Unlag_range( ) /*&& correct < 1.f*/;
+	return std::abs(correct - (curtime - sim_time)) < unlag_range( ) /*&& correct < 1.f*/;
 }
 
 void tick_record_shared_impl::init(const player& holder)

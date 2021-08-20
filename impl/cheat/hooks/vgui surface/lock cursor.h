@@ -6,15 +6,14 @@
 
 namespace cheat::hooks::vgui_surface
 {
-	class lock_cursor final: public service<lock_cursor>,
-							 public decltype(_Detect_hook_holder(&csgo::ISurface::LockCursor)),
-							 service_skipped_on_gui_test
+	class lock_cursor final: public service<lock_cursor>
+						   , public decltype(_Detect_hook_holder(&csgo::ISurface::LockCursor))
+						   , service_hook_helper
+#ifdef CHEAT_GUI_TEST
+						   , service_always_skipped
+#endif
 	{
-	public :
-		lock_cursor( );
-
 	protected:
-		bool         Do_load( ) override;
 		utl::address get_target_method_impl( ) const override;
 		void         callback( ) override;
 	};

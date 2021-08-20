@@ -320,6 +320,16 @@ namespace nstd
 				using str = std::basic_string<E, Tr>;
 				return str(val._Unchecked_begin( ), val._Unchecked_end( ));
 			}
+
+			constexpr auto operator()(std::basic_string_view<E, Tr>& val) const
+			{
+				return val;
+			}
+
+			constexpr auto operator()(std::basic_string_view<E, Tr>&& val) const
+			{
+				return val;
+			}
 		};
 
 		template <class E, class Tr, class A>
@@ -339,7 +349,7 @@ namespace nstd
 
 			constexpr string_type operator()(string_type&& val) const
 			{
-				return val;
+				return std::move(val);
 			}
 		};
 
@@ -367,12 +377,12 @@ namespace nstd
 
 			constexpr string_view_type operator()(string_type& val) const
 			{
-				return val.str( );
+				return val.view( );
 			}
 
 			constexpr string_type operator()(string_type&& val) const
 			{
-				return val.str( );
+				return std::move(val).str( );
 			}
 		};
 
@@ -500,13 +510,13 @@ namespace cheat::detail
 	using value_type_raw = decltype(cheat::detail::_Bitflag_raw_type<value_type>());\
 	\
 	constexpr _NAME_( )=default;\
-	constexpr _NAME_(value_type_raw val): value__(cheat::detail::_Bitflag_combine<value_type>(val)){ }\
+	constexpr _NAME_(value_type_raw val): value_(cheat::detail::_Bitflag_combine<value_type>(val)){ }\
 	constexpr auto operator<=>(const _NAME_&) const = default;\
 	\
-	constexpr value_type value() const {return value__;}\
-	constexpr value_type_raw value_raw() const {return static_cast<value_type_raw>(value__);}\
+	constexpr value_type value() const {return value_;}\
+	constexpr value_type_raw value_raw() const {return static_cast<value_type_raw>(value_);}\
 private:\
-	value_type value__ = cheat::detail::_Bitflag_combine<value_type>(__VA_ARGS__);
+	value_type value_ = cheat::detail::_Bitflag_combine<value_type>(__VA_ARGS__);
 
 #define CHEAT_ENUM_STRUCT_FILL_BITFLAG(_NAME_, ...)\
 	using value_type_raw = decltype(cheat::detail::_Bitflag_raw_type<value_type>());\
@@ -515,25 +525,25 @@ private:\
 	\
 	template <typename ...T>\
 		requires(std::convertible_to<T, value_type_raw> && ...)\
-	constexpr _NAME_(T ... vals): value__(cheat::detail::_Bitflag_combine<value_type>(vals...)) { }\
+	constexpr _NAME_(T ... vals): value_(cheat::detail::_Bitflag_combine<value_type>(vals...)) { }\
 	template <typename ...T>\
 		requires(std::convertible_to<T, value_type_raw> && ...)\
-	constexpr bool has(T ... vals) const { return (cheat::detail::_Bitflag_has(value__, vals) || ...); }\
-	constexpr bool has(_NAME_ other) const{ return this->has(other.value__); }\
+	constexpr bool has(T ... vals) const { return (cheat::detail::_Bitflag_has(value_, vals) || ...); }\
+	constexpr bool has(_NAME_ other) const{ return this->has(other.value_); }\
 	template <typename ...T>\
 		requires(std::convertible_to<T, value_type_raw> && ...)\
-	constexpr bool has_all(T ... vals) const { return cheat::detail::_Bitflag_has(value__, cheat::detail::_Bitflag_combine<value_type>(vals...));}\
+	constexpr bool has_all(T ... vals) const { return cheat::detail::_Bitflag_has(value_, cheat::detail::_Bitflag_combine<value_type>(vals...));}\
 	template <typename ...T>\
 		requires(std::convertible_to<T, value_type_raw> && ...)\
-	constexpr _NAME_& add(T ... vals) { value__ = cheat::detail::_Bitflag_combine<value_type>(value__, vals...); return *this; }\
+	constexpr _NAME_& add(T ... vals) { value_ = cheat::detail::_Bitflag_combine<value_type>(value_, vals...); return *this; }\
 	template <typename ...T>\
 		requires(std::convertible_to<T, value_type_raw> && ...)\
-	constexpr _NAME_& remove(T ... vals) { value__ = cheat::detail::_Bitflag_remove<value_type>(value__, vals...); return *this; }\
+	constexpr _NAME_& remove(T ... vals) { value_ = cheat::detail::_Bitflag_remove<value_type>(value_, vals...); return *this; }\
 	\
-	constexpr value_type value() const {return value__;}\
-	constexpr value_type_raw value_raw() const {return static_cast<value_type_raw>(value__);}\
+	constexpr value_type value() const {return value_;}\
+	constexpr value_type_raw value_raw() const {return static_cast<value_type_raw>(value_);}\
 private:\
-	value_type value__ = cheat::detail::_Bitflag_combine<value_type>(__VA_ARGS__);
+	value_type value_ = cheat::detail::_Bitflag_combine<value_type>(__VA_ARGS__);
 
 #include "cheat/utils/memory block.h"
 //dont sort

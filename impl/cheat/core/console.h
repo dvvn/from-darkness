@@ -12,8 +12,9 @@ namespace cheat
 	{
 		struct console_data
 		{
-			bool  write_redirected__ = false;
-			FILE* write__            = nullptr;
+			bool               write_redirected__ = false;
+			FILE*              write__            = nullptr;
+			std::optional<int> original_mode;
 
 			bool console_allocated__ = false;
 			HWND console_window__    = nullptr;
@@ -27,7 +28,12 @@ namespace cheat
 		};
 	}
 
-	class console final: detail::console_data, public service<console>
+	class console final: public service<console>
+					   , detail::console_data
+#ifndef CHEAT_HAVE_CONSOLE
+	, service_skipped_always
+#endif
+
 	{
 	public:
 		~console( ) override;
@@ -37,8 +43,10 @@ namespace cheat
 		void write_line(const std::string_view& str);
 		void write(char c);
 
+		void write_line(const std::wstring_view& str);
+
 	protected:
-		bool Do_load( ) override;
+		bool load_impl( ) override;
 	};
 
 #ifdef CHEAT_HAVE_CONSOLE

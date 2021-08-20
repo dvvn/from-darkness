@@ -10,17 +10,7 @@ using namespace hooks;
 using namespace studio_render;
 using namespace utl;
 
-draw_model::draw_model( )
-{
-}
 
-bool draw_model::Do_load( )
-{
-	this->hook( );
-	this->enable( );
-
-	return true;
-}
 
 utl::address draw_model::get_target_method_impl( ) const
 {

@@ -82,17 +82,18 @@ _STD_END
 
 namespace cheat
 {
-	class players_list final: public service<players_list>
+	class players_list final: public service<players_list>,
+#ifdef CHEAT_GUI_TEST
+							  service_always_skipped
+#endif
 	{
 	public:
-		players_list( );
-
 		void update( );
 
 		const detail::players_filter& filter(const players_filter_flags& flags);
 
 	protected:
-		bool Do_load( ) override;
+		bool load_impl( ) override;
 
 	private:
 		detail::players_list_container              storage__;

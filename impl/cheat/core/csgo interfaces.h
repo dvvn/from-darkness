@@ -180,7 +180,7 @@ namespace cheat
 		using ifc = detail::csgo_interface<T, Ptrs>;
 
 	protected:
-		bool Do_load( ) override;
+		bool load_impl( ) override;
 
 	public:
 		//utl::filesystem::path csgo_path;

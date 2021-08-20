@@ -180,7 +180,7 @@ std::future<bool> services_holder::load( )
 		}
 
 		//wait for all services
-		loader.wait_for_tasks();
+		loader.wait_for_tasks( );
 
 		for (auto child = this; child != nullptr; child = child->next__.get( ))
 		{
@@ -230,7 +230,7 @@ nstd::unordered_set<hook_holder_base*> services_holder::get_all_hooks( )
 
 std::string_view services_loader::name( ) const
 {
-	return _Type_name<services_loader>(false);
+	return type_name<services_loader>(false);
 }
 
 #ifndef CHEAT_GUI_TEST
@@ -272,7 +272,7 @@ void services_loader::reset( )
 	std::swap(services__, dummy);
 }
 
-bool services_loader::Do_load( )
+bool services_loader::load_impl( )
 {
 	bool result;
 	try
@@ -284,19 +284,17 @@ bool services_loader::Do_load( )
 		CHEAT_CONSOLE_LOG("Error while task loading: {}", ex.what());
 		result = false;
 	}
-
-	if (!result)
-	{
 #ifndef CHEAT_GUI_TEST
-		this->unload( );
+	if (!result)
+			this->unload( );
 #endif
-	}
-	else
-	{
-		CHEAT_CONSOLE_LOG("Cheat fully loaded");
-	}
 
 	return result;
+}
+
+void services_loader::after_load( )
+{
+	CHEAT_CONSOLE_LOG("Cheat fully loaded");
 }
 
 services_loader::services_loader( )

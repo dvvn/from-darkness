@@ -21,7 +21,7 @@ namespace cheat::hooks
 	};
 	// ReSharper restore CppInconsistentNaming
 
-	template <typename Ret, call_conversion Call_cvs, typename C/*, bool Is_const*/, typename ...Args>
+	template <typename Ret, call_conversion CallCvs, typename C/*, bool Is_const*/, typename ...Args>
 	struct hook_callback;
 
 #pragma region call_cvs_1
@@ -324,10 +324,10 @@ namespace cheat::hooks
 		_MACRO_(vectorcall)\
 		_MACRO_(fastcall)
 
-		template <typename Ret, call_conversion Call_cvs, typename ...Args2>
+		template <typename Ret, call_conversion CallCvs, typename ...Args2>
 		struct hook_callback_proxy;
 
-		template <typename Ret, call_conversion Call_cvs, typename ...Args2>
+		template <typename Ret, call_conversion CallCvs, typename ...Args2>
 		struct original_function;
 
 #define CHEAT_HOOK_ORIGINAL_FN(_CALL_CVS_)\
@@ -366,33 +366,33 @@ namespace cheat::hooks
 		template <class Ret>
 		class lazy_return_value
 		{
-			std::optional<Ret> value__;
+			std::optional<Ret> value_;
 
 		public:
 			template <typename T>
 			void store_value(T&& val)
 				requires(std::is_constructible_v<Ret, decltype(val)>)
 			{
-				value__.emplace(Ret(std::forward<T>(val)));
+				value_.emplace(Ret(std::forward<T>(val)));
 			}
 
 			void reset( )
 			{
-				value__.reset( );
+				value_.reset( );
 			}
 
 			bool empty( ) const
 			{
-				return !value__.has_value( );
+				return !value_.has_value( );
 			}
 
 			Ret get( )
 			{
 				if constexpr (std::is_copy_constructible_v<Ret>)
-					return *value__;
+					return *value_;
 				else
 				{
-					Ret ret = static_cast<Ret&&>(*value__);
+					Ret ret = static_cast<Ret&&>(*value_);
 					reset( );
 					return static_cast<Ret&&>(ret);
 				}
@@ -471,10 +471,10 @@ namespace cheat::hooks
 			virtual utl::address get_replace_method( ) = 0;
 		};
 
-		template <typename Ret, call_conversion Call_cvs, typename Arg1, typename ...Args>
-		struct hook_holder_impl: hook_holder_base,
+		template <typename Ret, call_conversion CallCvs, typename Arg1, typename ...Args>
+		struct hook_holder_impl: virtual hook_holder_base,
 								 method_info,
-								 original_function<Ret, Call_cvs, Arg1, Args...>,
+								 original_function<Ret, CallCvs, Arg1, Args...>,
 								 hook_callback<Ret, Arg1, Args...>
 
 		{
@@ -606,7 +606,7 @@ namespace cheat::hooks
 				return hook.entry->enabled;
 			}
 
-			//----
+		protected:
 
 			Ret call_original_ex(Args ...args)
 			{
@@ -641,7 +641,7 @@ namespace cheat::hooks
 		};
 	}
 
-	template <typename Ret, call_conversion Call_cvs, typename Arg1, typename ...Args>
+	template <typename Ret, call_conversion CallCvs, typename Arg1, typename ...Args>
 	struct hook_holder;
 
 	namespace detail
@@ -705,13 +705,13 @@ namespace cheat::hooks
 
 #define CHEAT_HOOK_HOLDER_DETECTOR(_CALL_CVS_)\
 	template <typename Ret, typename C, typename ...Args>\
-    auto _Detect_hook_holder(Ret (__##_CALL_CVS_ C::*fn)(Args ...))		-> hook_holder<Ret, call_conversion::_CALL_CVS_##__, C, /*false,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##_CALL_CVS_ C::*fn)(Args ...))		  -> hook_holder<Ret, call_conversion::_CALL_CVS_##__, C, /*false,*/ Args...>\
         { return {}; }\
     template <typename Ret, typename C, typename ...Args>\
-    auto _Detect_hook_holder(Ret (__##_CALL_CVS_ C::*fn)(Args ...) const)	-> hook_holder<Ret, call_conversion::_CALL_CVS_##__, C, /*true,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##_CALL_CVS_ C::*fn)(Args ...) const) -> hook_holder<Ret, call_conversion::_CALL_CVS_##__, C, /*true,*/ Args...>\
         { return {}; }\
     template <typename Ret, typename ...Args>\
-    auto _Detect_hook_holder(Ret (__##_CALL_CVS_    *fn)(Args ...))		-> hook_holder<Ret, call_conversion::_CALL_CVS_##__, void,/* false,*/ Args...>\
+    auto _Detect_hook_holder(Ret (__##_CALL_CVS_    *fn)(Args ...))		  -> hook_holder<Ret, call_conversion::_CALL_CVS_##__, void,/* false,*/ Args...>\
         { return {}; }
 
 	CHEAT_HOOKS_CALL_CVS_HELPER(CHEAT_HOOK_HOLDER_DETECTOR)

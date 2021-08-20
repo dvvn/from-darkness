@@ -14,18 +14,9 @@ using namespace detail;
 using namespace csgo;
 using namespace utl;
 
-players_list::players_list( )
+bool players_list::load_impl( )
 {
-}
-
-bool players_list::Do_load( )
-{
-#ifdef CHEAT_GUI_TEST
-	return 0;
-#else
-
-	return 1;
-#endif
+	return true;
 }
 
 void players_list::update( )

@@ -38,11 +38,11 @@ namespace cheat::csgo
 			CT = 3,
 		};
 
-		constexpr bool operator!( ) const { return value__ == UNKNOWN; }
+		constexpr bool operator!( ) const { return value_ == UNKNOWN; }
 
-		constexpr bool spectator( ) const { return value__ == SPEC; }
-		constexpr bool terrorist( ) const { return value__ == T; }
-		constexpr bool counter_terrorist( ) const { return value__ == CT; }
+		constexpr bool spectator( ) const { return value_ == SPEC; }
+		constexpr bool terrorist( ) const { return value_ == T; }
+		constexpr bool counter_terrorist( ) const { return value_ == CT; }
 
 		CHEAT_ENUM_STRUCT_FILL(m_iTeamNum_t, UNKNOWN)
 	};

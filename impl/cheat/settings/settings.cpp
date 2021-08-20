@@ -88,7 +88,7 @@ void settings::render( )
 	mgr__.render( );
 }
 
-bool settings::Do_load( )
+bool settings::load_impl( )
 {
 	mgr__.add_folder(features::aimbot::get_ptr( ));
 	mgr__.add_folder(features::anti_aim::get_ptr( ));

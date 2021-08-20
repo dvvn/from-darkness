@@ -10,18 +10,6 @@ using namespace hooks;
 using namespace vgui_surface;
 using namespace utl;
 
-lock_cursor::lock_cursor( )
-{
-}
-
-bool lock_cursor::Do_load( )
-{
-	this->hook( );
-	this->enable( );
-
-	return true;
-}
-
 utl::address lock_cursor::get_target_method_impl( ) const
 {
 	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->vgui_surface.get( ))[67];

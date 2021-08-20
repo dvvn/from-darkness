@@ -5,17 +5,13 @@
 
 namespace cheat::hooks::c_base_entity
 {
-	class should_interpolate final: public service<should_interpolate>,
-									public decltype(_Detect_hook_holder(&csgo::C_BaseEntity::ShouldInterpolate)),
-									service_skipped_always
+	class should_interpolate final: public service<should_interpolate>
+								  , public decltype(_Detect_hook_holder(&csgo::C_BaseEntity::ShouldInterpolate))
+								  , service_hook_helper
+								  , service_always_skipped
 	{
-	public:
-		should_interpolate( );
-
 	protected:
-		bool Do_load( ) override;
-utl::address get_target_method_impl( ) const override;
+		utl::address get_target_method_impl( ) const override;
 		void         callback( ) override;
-		
 	};
 }

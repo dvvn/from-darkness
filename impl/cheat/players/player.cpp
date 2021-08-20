@@ -167,5 +167,5 @@ void player_shared_impl::remove_old_ticks(float curtime)
 
 size_t player::max_ticks_count( )
 {
-	return _Time_to_ticks(_Unlag_limit( ) + _Unlag_range( ));
+	return time_to_ticks(unlag_limit( ) + unlag_range( ));
 }

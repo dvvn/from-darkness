@@ -28,7 +28,7 @@ void C_BaseAnimating::StandardBlendingRules(CStudioHdr*, Vector [], QuaternionAl
 
 CUtlVector<CAnimationLayer>& C_BaseAnimating::GetAnimOverlays( )
 {
-	static const auto offset = _Find_signature("client.dll", "8B 87 ? ? ? ? 83 79 04 00 8B").add(2).deref(1);
+	static const auto offset = find_signature("client.dll", "8B 87 ? ? ? ? 83 79 04 00 8B").add(2).deref(1);
 
 	(void)this;
 	return utl::address(this).add(offset).ref<CUtlVector<CAnimationLayer>>( );

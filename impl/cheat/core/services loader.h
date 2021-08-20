@@ -74,7 +74,8 @@ namespace cheat
 		void reset( );
 
 	protected:
-		bool Do_load( ) override;
+		bool load_impl( ) override;
+		void after_load( ) override;
 
 	private:
 #ifndef CHEAT_GUI_TEST

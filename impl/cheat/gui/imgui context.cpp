@@ -41,7 +41,7 @@ imgui_context::imgui_context( ): ctx__(&fonts__)
 {
 }
 
-bool imgui_context::Do_load( )
+bool imgui_context::load_impl( )
 {
 	const auto interfaces = csgo_interfaces::get_ptr( );
 	const auto d3d = interfaces->d3d_device.get( );

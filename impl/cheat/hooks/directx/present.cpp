@@ -9,19 +9,6 @@ using namespace hooks;
 using namespace directx;
 using namespace utl;
 
-present::present( )
-{
-
-}
-
-bool present::Do_load( )
-{
-	this->hook( );
-	this->enable( );
-
-	return true;
-}
-
 utl::address present::get_target_method_impl( ) const
 {
 	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[17];
@@ -40,7 +27,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 #ifndef CHEAT_GUI_TEST
 		if (menu->active( ))
 #endif
-			ImGui::ShowDemoWindow( );
+		ImGui::ShowDemoWindow( );
 #endif
 		menu->render( );
 	}

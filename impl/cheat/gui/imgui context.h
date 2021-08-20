@@ -12,11 +12,11 @@ namespace cheat::gui
 		HWND hwnd( ) const;
 
 	protected:
-		bool Do_load( ) override;
+		bool load_impl( ) override;
 
 	private:
-		HWND hwnd__ = nullptr;
+		HWND         hwnd__ = nullptr;
 		ImGuiContext ctx__;
-		ImFontAtlas fonts__;
+		ImFontAtlas  fonts__;
 	};
 }

@@ -13,21 +13,10 @@ using namespace c_base_animating;
 using namespace utl;
 using namespace csgo;
 
-standard_blending_rules::standard_blending_rules( )
-{
-}
-
-bool standard_blending_rules::Do_load( )
-{
-	this->hook( );
-	this->enable( );
-	return true;
-}
-
 utl::address standard_blending_rules::get_target_method_impl( ) const
 {
-	const auto vtable = _Vtable_pointer<C_BaseAnimating>("client.dll");
-	const auto index  = _Find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).divide(4).value( );
+	const auto vtable = vtable_pointer<C_BaseAnimating>("client.dll");
+	const auto index  = find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).divide(4).value( );
 
 	return _Pointer_to_virtual_class_table(vtable)[index];
 }

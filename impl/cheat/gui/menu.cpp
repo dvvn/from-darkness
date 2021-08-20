@@ -132,7 +132,7 @@ public:
 	}
 };
 
-bool menu::Do_load( )
+bool menu::load_impl( )
 {
 	renderer__.add_page([]
 	{

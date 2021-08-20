@@ -4,26 +4,28 @@
 
 namespace cheat::hooks::winapi
 {
-	class wndproc final: public service<wndproc>,
-						 public gui::objects::empty_page,
-						 public decltype(_Detect_hook_holder(DefWindowProc))
+	class wndproc final: public service<wndproc>
+					   , public decltype(_Detect_hook_holder(DefWindowProc))
+					   , public gui::objects::empty_page
+					   , service_hook_helper
+
 	{
 	public:
-		wndproc( );
-
 		void render( ) override;
+
 	protected:
-		bool Do_load( ) override;
+		bool load_impl( ) override;
 
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
 		utl::address get_target_method_impl( ) const override;
 	private:
-		decltype(&DefWindowProc) default_wndproc__ = nullptr;
-		bool unicode_=0;
-		HWND hwnd_=0;
+		decltype(&DefWindowProc) default_wndproc_ = nullptr;
 
-		bool    override_return__    = false;
-		LRESULT override_return_to__ = 1;
+		bool unicode_ = false;
+		HWND hwnd_    = nullptr;
+
+		bool    override_return_    = false;
+		LRESULT override_return_to_ = TRUE;
 	};
 }

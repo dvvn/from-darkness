@@ -11,27 +11,18 @@ using namespace hooks;
 using namespace winapi;
 using namespace utl;
 
-wndproc::wndproc( )
-{
-}
-
-bool wndproc::Do_load( )
+bool wndproc::load_impl( )
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
 	runtime_assert(hwnd != nullptr);
-	unicode_ = IsWindowUnicode(hwnd);
 
-	using namespace address_pipe;
+	unicode_         = IsWindowUnicode(hwnd);
+	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	default_wndproc__ = unicode_ ? DefWindowProcW : DefWindowProcA;
-
-	this->hook( );
-	this->enable( );
-
-	return true;
+	return service_hook_helper::load_impl( );
 }
 
-utl::address wndproc::get_target_method_impl( ) const
+address wndproc::get_target_method_impl( ) const
 {
 	return std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get_ptr( )->hwnd( ), GWLP_WNDPROC);
 }
@@ -109,13 +100,13 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 		case result::skipped:
 		{
-			this->return_value_.store_value(default_wndproc__(hwnd, msg, wparam, lparam));
+			this->return_value_.store_value(default_wndproc_(hwnd, msg, wparam, lparam));
 			break;
 		}
 		default:
 		{
-			if (override_return__)
-				this->return_value_.store_value(override_return_to__);
+			if (override_return_)
+				this->return_value_.store_value(override_return_to_);
 			break;
 		}
 	}
@@ -123,8 +114,8 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 void wndproc::render( )
 {
-	ImGui::Checkbox("override return", &override_return__);
-	if (override_return__)
+	ImGui::Checkbox("override return", &override_return_);
+	if (override_return_)
 	{
 		const auto pop = memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
 		(void)pop;
@@ -132,10 +123,10 @@ void wndproc::render( )
 		ImGui::SameLine( );
 		ImGui::Text(" to ");
 		ImGui::SameLine( );
-		if (ImGui::RadioButton("0 ", override_return_to__ == 0))
-			override_return_to__ = 0;
+		if (ImGui::RadioButton("0 ", override_return_to_ == 0))
+			override_return_to_ = 0;
 		ImGui::SameLine( );
-		if (ImGui::RadioButton("1", override_return_to__ == 1))
-			override_return_to__ = 1;
+		if (ImGui::RadioButton("1", override_return_to_ == 1))
+			override_return_to_ = 1;
 	}
 }
