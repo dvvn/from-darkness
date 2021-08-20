@@ -24,7 +24,8 @@ namespace cheat
 			std::mutex lock__;
 			std::queue<cache_obj,
 					   std::list<cache_obj>> cache__;
-			void                             write_cache( );
+
+			void write_cache( );
 		};
 	}
 
@@ -43,6 +44,8 @@ namespace cheat
 		void write_line(const std::string_view& str);
 		void write(char c);
 
+		void write(std::wstring&& str);
+		void write(const std::wstring_view& str);
 		void write_line(const std::wstring_view& str);
 
 	protected:

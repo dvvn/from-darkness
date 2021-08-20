@@ -146,7 +146,7 @@ bool console::load_impl( )
 static auto _Write_line = []<typename T>(T&& text, FILE* file)
 {
 	// ReSharper disable CppInconsistentNaming
-	auto&& _Text = nstd::as_string(std::forward<T>(text));
+	decltype(auto) _Text = nstd::as_string(std::forward<T>(text));
 	using value_type = typename std::remove_cvref_t<decltype(_Text)>::value_type;
 
 	if constexpr (std::same_as<value_type, char>)
@@ -229,6 +229,16 @@ void console::write(char c)
 		this->write_cache( );
 		write_fn(c, write__);
 	}
+}
+
+void console::write(std::wstring&& str)
+{
+	_Write_line_helper(std::move(str), this, this);
+}
+
+void console::write(const std::wstring_view& str)
+{
+	_Write_line_helper((str), this, this);
 }
 
 void console::write_line(const std::wstring_view& str)
