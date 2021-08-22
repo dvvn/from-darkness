@@ -28,9 +28,9 @@ namespace cheat::gui
 		bool load_impl( ) override;
 
 	private:
-		tools::string_wrapper menu_title__;
-		objects::vertical_pages_renderer renderer__;
+		tools::string_wrapper menu_title_;
+		objects::vertical_pages_renderer renderer_;
 
-		WPARAM hotkey__ = VK_HOME;
+		WPARAM hotkey_ = VK_HOME;
 	};
 }

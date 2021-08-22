@@ -11,7 +11,7 @@ namespace cheat
 
 	struct alignas(uint64_t) players_filter_flags
 	{
-		struct team_filter
+		struct team_filter final
 		{
 			enum value_type :uint8_t
 			{
@@ -19,10 +19,10 @@ namespace cheat
 				ENEMY = 1 << 1,
 			};
 
-			CHEAT_ENUM_STRUCT_FILL_BITFLAG(team_filter)
+			NSTD_ENUM_STRUCT_BITFLAG(team_filter)
 		};
 
-		struct team_filter_ex
+		struct team_filter_ex final
 		{
 			enum value_type :uint8_t
 			{
@@ -31,12 +31,13 @@ namespace cheat
 				SPEC = 1 << 2
 			};
 
-			CHEAT_ENUM_STRUCT_FILL_BITFLAG(team_filter_ex)
+			NSTD_ENUM_STRUCT_BITFLAG(team_filter_ex)
 		};
-		bool                                      alive;
-		bool                                      dormant;
-		bool                                      immune;
-		std::variant<team_filter, team_filter_ex> team;
+		bool alive;
+		bool dormant;
+		bool immune;
+		std::variant<team_filter,
+					 team_filter_ex> team;
 
 		const uint64_t& data( ) const;
 

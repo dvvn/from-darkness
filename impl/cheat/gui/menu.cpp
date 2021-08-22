@@ -77,21 +77,21 @@ menu::menu( )
 	name += " DEBUG MODE";
 #endif
 
-	menu_title__ = std::move(name);
+	menu_title_ = std::move(name);
 }
 
 void menu::render( )
 {
-	if (this->begin(menu_title__, ImGuiWindowFlags_AlwaysAutoResize))
+	if (this->begin(menu_title_, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		renderer__.render( );
+		renderer_.render( );
 	}
 	this->end( );
 }
 
 bool menu::toggle(UINT msg, WPARAM wparam)
 {
-	if (wparam != hotkey__)
+	if (wparam != hotkey_)
 		return false;
 
 	if (msg == WM_KEYDOWN)
@@ -134,7 +134,7 @@ public:
 
 bool menu::load_impl( )
 {
-	renderer__.add_page([]
+	renderer_.add_page([]
 	{
 		auto  rage_abstract = abstract_page( );
 		auto& rage          = *rage_abstract.init<horizontal_pages_renderer>("rage");
@@ -145,10 +145,10 @@ bool menu::load_impl( )
 
 		return rage_abstract;
 	}( ));
-	renderer__.add_page({"settings", settings::get_ptr_shared( )});
+	renderer_.add_page({"settings", settings::get_ptr_shared( )});
 
 #if defined(_DEBUG)
-	renderer__.add_page([]
+	renderer_.add_page([]
 	{
 		auto  debug_abstract = abstract_page( );
 		auto& debug          = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
@@ -175,7 +175,7 @@ bool menu::load_impl( )
 		return debug_abstract;
 	}( ));
 #endif
-	renderer__.init( );
+	renderer_.init( );
 
 	return true;
 }

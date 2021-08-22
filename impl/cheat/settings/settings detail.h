@@ -178,7 +178,7 @@ namespace cheat::detail::settings
 
 		std::filesystem::path working_dir__;
 
-		struct io_result
+		struct io_result final
 		{
 			enum value_type :uint32_t
 			{
@@ -188,7 +188,7 @@ namespace cheat::detail::settings
 				error = 1 << 2
 			};
 
-			CHEAT_ENUM_STRUCT_FILL_BITFLAG(io_result, unset);
+			NSTD_ENUM_STRUCT_BITFLAG(io_result, unset);
 		};
 
 		_NODISCARD io_result Do_save_(const string_wrapper& name);

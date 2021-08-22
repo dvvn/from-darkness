@@ -150,7 +150,7 @@ void* cheat::detail::vtable_pointer_impl(const std::string_view& from, const std
 
 		const auto module_checksum = module_from.check_sum( );
 		runtime_assert(module_checksum != 0u);
-		const auto dumps_path = std::filesystem::path(CHEAT_DUMPS_DIR _STRINGIZE_R(modules\)) / module_from.name_wide( ) / std::to_wstring(module_checksum) / L"vtables.json";
+		const auto dumps_path = std::filesystem::path(CHEAT_DUMPS_DIR NSTD_RAW(modules\)) / module_from.name_wide( ) / std::to_wstring(module_checksum) / L"vtables.json";
 
 #ifdef CHEAT_HAVE_CONSOLE
 #ifdef _DEBUG

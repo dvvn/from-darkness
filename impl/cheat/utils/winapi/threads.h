@@ -3,7 +3,7 @@
 
 namespace cheat::utl::winapi
 {
-	struct thread_access
+	struct thread_access final
 	{
 		enum value_type : DWORD
 		{
@@ -22,7 +22,7 @@ namespace cheat::utl::winapi
 			all_access = THREAD_ALL_ACCESS,
 		};
 
-		CHEAT_ENUM_STRUCT_FILL_BITFLAG(thread_access)
+		NSTD_ENUM_STRUCT_BITFLAG(thread_access);
 	};
 
 	class thread_entry: public THREADENTRY32

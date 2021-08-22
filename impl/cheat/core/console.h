@@ -63,11 +63,13 @@ namespace cheat
 	}
 
 	class console final: public service<console>
+					   , nstd::rt_assert_handler
 #ifndef CHEAT_HAVE_CONSOLE
 	, service_skipped_always
 #endif
 	{
 	public:
+		console( );
 		~console( ) override;
 
 		void write(std::string&& str);
@@ -90,6 +92,7 @@ namespace cheat
 
 	protected:
 		bool load_impl( ) override;
+		void handle_impl(const nstd::chr_wchr& expression, const nstd::chr_wchr& message, const info_type& info) noexcept override;
 
 	private:
 		detail::console_data data_;

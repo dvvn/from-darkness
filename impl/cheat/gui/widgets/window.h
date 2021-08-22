@@ -6,12 +6,19 @@
 
 namespace cheat::gui::widgets
 {
+	struct window_flags final
+	{
+		using value_type = ImGuiWindowFlags_;
+
+		NSTD_ENUM_STRUCT_BITFLAG(window_flags, ImGuiWindowFlags_None);
+	};
+
 	class window: public content_background_fader
 	{
 	public:
 		window(tools::animator&& fade = { });
 
-		bool begin(tools::prefect_string&& title, ImGuiWindowFlags_ flags);
+		bool begin(tools::prefect_string&& title, window_flags flags = { });
 		void end( );
 
 		void show( );
@@ -23,7 +30,7 @@ namespace cheat::gui::widgets
 
 	private:
 		bool ignore_end__ = false;
-		bool visible__ = false;
+		bool visible__    = false;
 	};
 
 	class child_window: public content_background_fader
@@ -33,8 +40,8 @@ namespace cheat::gui::widgets
 
 		struct size_info
 		{
-			size_t count = static_cast<size_t>(-1);
-			float biggest_element = FLT_MAX;
+			size_t count           = static_cast<size_t>(-1);
+			float  biggest_element = FLT_MAX;
 
 			enum
 			{

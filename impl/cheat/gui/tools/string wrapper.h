@@ -138,7 +138,7 @@ _STD_BEGIN
 	{
 		_NODISCARD size_t operator()(const T& str) const noexcept
 		{
-			return invoke(hash<string_view>( ), (str));
+			return std::invoke(hash<string_view>( ), str);
 		}
 	};
 

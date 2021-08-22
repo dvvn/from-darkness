@@ -549,10 +549,10 @@ namespace cheat::utl
 		memory_block shift_to_start(const memory_block& block) const;
 		memory_block shift_to_end(const memory_block& block) const;
 
-		struct flags_type
+		struct flags_type final
 		{
 			using value_type = decltype(MEMORY_BASIC_INFORMATION::Protect);
-			CHEAT_ENUM_STRUCT_FILL_BITFLAG(flags_type)
+			NSTD_ENUM_STRUCT_BITFLAG(flags_type);
 		};
 
 		bool have_flags(flags_type flags) const;

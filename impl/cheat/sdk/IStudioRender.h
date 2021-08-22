@@ -36,7 +36,7 @@ namespace cheat::csgo
 			/*GENERATE_STATS*/SSAODEPTHTEXTURE = 0x8000,
 		};
 
-		CHEAT_ENUM_STRUCT_FILL_BITFLAG(DrawModelFlags_t, DRAW_ENTIRE_MODEL)
+		NSTD_ENUM_STRUCT_BITFLAG(DrawModelFlags_t, DRAW_ENTIRE_MODEL)
 	};
 
 	struct LightType_t final
@@ -48,7 +48,7 @@ namespace cheat::csgo
 			DIRECTIONAL,
 			SPOT,
 		};
-		CHEAT_ENUM_STRUCT_FILL(LightType_t);
+		NSTD_ENUM_STRUCT(LightType_t);
 	};
 
 	enum LightType_OptimizationFlags_t

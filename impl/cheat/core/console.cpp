@@ -43,9 +43,7 @@ static auto _Get_time_str( )
 void console_data::write_cache( )
 {
 	for (auto& c: cache_)
-	{
 		std::invoke(*c);
-	}
 
 	cache_.clear( );
 }
@@ -59,8 +57,15 @@ static auto _Set_mode(FILE* file, int mode)
 	return old_mode;
 }
 
+console::console( )
+{
+	nstd::rt_assert_object.add(this);
+}
+
 console::~console( )
 {
+	nstd::rt_assert_object.remove(this);
+
 	if (data_.allocated)
 	{
 		FreeConsole( );
@@ -100,8 +105,48 @@ bool console::load_impl( )
 		}
 	}
 
-	runtime_assert(IsWindowUnicode(data_.handle) == true);
+	runtime_assert(IsWindowUnicode(data_.handle) == TRUE);
 	return true;
+}
+
+void console::handle_impl(const nstd::chr_wchr& expression, const nstd::chr_wchr& message, const info_type& info) noexcept
+{
+	//static auto lock = std::mutex( );
+	//const auto  _    = std::scoped_lock(lock);
+
+#ifdef _DEBUG
+	[[maybe_unused]] const auto from  = _ReturnAddress( );
+	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
+	DebugBreak( );
+#endif
+
+	auto msg = std::wostringstream( );
+	msg << "Assertion falied!\n\n";
+
+	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool last = false)
+	{
+		msg << name << ": " << value;
+		if (!last)
+			msg << '\n';
+	};
+
+	if (!expression.empty( ))
+	{
+		append("Expression", expression);
+	}
+
+	append("File", info.file_name);
+	append("Line", info.line);
+	append("Function", info.function, message.empty( ));
+
+	if (!message.empty( ))
+	{
+		msg << '\n' << message;
+	}
+
+	this->write_line(std::move(msg));
+
+	[[maybe_unused]] static volatile auto skip_helper = '\1';
 }
 
 template <typename Stream, typename T>
@@ -166,7 +211,7 @@ static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, 
 	else
 	{
 		data.write_cache( );
-		std::invoke(fn/*, data.write*/);
+		std::invoke(fn);
 	}
 };
 

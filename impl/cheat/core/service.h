@@ -12,7 +12,9 @@ namespace cheat
 			skipped,
 			loading,
 			loaded,
-			stopped,
+#ifdef BOOST_THREAD_PROVIDES_INTERRUPTIONS
+						stopped,
+#endif
 			error
 		};
 
@@ -20,7 +22,7 @@ namespace cheat
 		bool done( ) const;
 		bool disabled( ) const;
 
-		CHEAT_ENUM_STRUCT_FILL(service_state, unset)
+		NSTD_ENUM_STRUCT(service_state, unset)
 	};
 
 	class service_base

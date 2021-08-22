@@ -2,7 +2,7 @@
 
 namespace cheat::hooks
 {
-	struct hook_status
+	struct hook_status final
 	{
 		enum value_type:int8_t
 		{
@@ -55,6 +55,6 @@ namespace cheat::hooks
 		/// @brief Translates the hook_status to its name as a string.
 		std::string_view to_string(hook_status status) const;
 
-		CHEAT_ENUM_STRUCT_FILL(hook_status);
+		NSTD_ENUM_STRUCT(hook_status);
 	};
 }

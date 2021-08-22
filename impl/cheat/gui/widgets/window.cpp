@@ -14,7 +14,7 @@ window::window(animator&& fade) : content_background_fader(std::move(fade))
 {
 }
 
-bool window::begin(prefect_string&& title, ImGuiWindowFlags_ flags)
+bool window::begin(prefect_string&& title, window_flags flags)
 {
 	runtime_assert(ignore_end__ == false);
 	auto& style = ImGui::GetStyle( );
@@ -43,7 +43,7 @@ bool window::begin(prefect_string&& title, ImGuiWindowFlags_ flags)
 	if (min_size > style.WindowMinSize.x)
 		min_size_backup = memory_backup(style.WindowMinSize.x, min_size);
 
-	return ImGui::Begin(title, nullptr, flags);
+	return ImGui::Begin(title, nullptr, flags.value());
 }
 
 void window::end( )

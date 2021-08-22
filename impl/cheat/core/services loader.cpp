@@ -144,7 +144,9 @@ std::future<bool> services_holder::load( )
 						case state::loading:
 							std::this_thread::yield( );
 							break;
-						case state::stopped:
+#ifdef BOOST_THREAD_PROVIDES_INTERRUPTIONS
+													case state::stopped:
+#endif
 						case state::error:
 							loader.paused = true;
 						case state::loaded:

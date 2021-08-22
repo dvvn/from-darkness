@@ -38,13 +38,13 @@ namespace cheat::csgo
 			CT = 3,
 		};
 
-		constexpr bool operator!( ) const { return value_ == UNKNOWN; }
+		bool operator!( ) const { return value_ == UNKNOWN; }
 
-		constexpr bool spectator( ) const { return value_ == SPEC; }
-		constexpr bool terrorist( ) const { return value_ == T; }
-		constexpr bool counter_terrorist( ) const { return value_ == CT; }
+		bool spectator( ) const { return value_ == SPEC; }
+		bool terrorist( ) const { return value_ == T; }
+		bool counter_terrorist( ) const { return value_ == CT; }
 
-		CHEAT_ENUM_STRUCT_FILL(m_iTeamNum_t, UNKNOWN)
+		NSTD_ENUM_STRUCT(m_iTeamNum_t, UNKNOWN)
 	};
 
 	struct m_MoveType_t final
@@ -68,7 +68,7 @@ namespace cheat::csgo
 			//MAX_MOVETYPE
 		};
 
-		CHEAT_ENUM_STRUCT_FILL(m_MoveType_t, MOVETYPE_NONE)
+		NSTD_ENUM_STRUCT(m_MoveType_t, MOVETYPE_NONE)
 	};
 
 	struct m_iEFlags_t final
@@ -145,7 +145,7 @@ namespace cheat::csgo
 			// Doesn't accept forces from physics damage
 		};
 
-		CHEAT_ENUM_STRUCT_FILL_BITFLAG(m_iEFlags_t)
+		NSTD_ENUM_STRUCT_BITFLAG(m_iEFlags_t)
 	};
 
 	struct m_fEffects_t final
@@ -188,7 +188,7 @@ namespace cheat::csgo
 			//EF_MAX_BITS = 15
 		};
 
-		CHEAT_ENUM_STRUCT_FILL_BITFLAG(m_fEffects_t)
+		NSTD_ENUM_STRUCT_BITFLAG(m_fEffects_t)
 	};
 
 	class C_BaseEntity: public IClientEntity, public IClientModelRenderable

@@ -6,7 +6,8 @@ using namespace cheat;
 using namespace detail;
 using namespace utl;
 
-[[maybe_unused]] static std::future<void> _Get_ready_task( )
+[[maybe_unused]]
+static std::future<void> _Get_ready_task( )
 {
 	std::promise<void> pr;
 	pr.set_value( );
@@ -14,7 +15,8 @@ using namespace utl;
 }
 
 template <std::derived_from<std::exception> Ex>
-[[maybe_unused]] static std::future<void> _Get_error_task(Ex&& ex)
+[[maybe_unused]]
+static std::future<void> _Get_error_task(Ex&& ex)
 {
 	std::promise<void> pr;
 	pr.set_exception(move(ex));
@@ -32,6 +34,9 @@ bool service_state::done( ) const
 	{
 		case loaded:
 		case skipped:
+#ifdef BOOST_THREAD_PROVIDES_INTERRUPTIONS
+		case stopped:
+#endif
 			return true;
 		default:
 			return false;
@@ -85,8 +90,6 @@ service_state service_base::state( ) const
 	return state_;
 }
 
-#include "cheat/gui/tools/string wrapper.h"
-
 template <typename T>
 FORCEINLINE static void _Service_loaded_msg([[maybe_unused]] const T* owner, [[maybe_unused]] bool loaded)
 {
@@ -110,11 +113,12 @@ void service_base::load( )
 		_Service_loaded_msg(this, loaded);
 		this->after_load( );
 	}
-#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
-	catch (const thread_interrupted&)
+#ifdef BOOST_THREAD_PROVIDES_INTERRUPTIONS
+	catch (const thread_interrupted&ex)
 	{
 		state_ = service_state::stopped;
-		this->after_stop( );
+		CHEAT_CONSOLE_LOG("Service {} forced to be stoped {}. {}", ex.what( ));
+		this->after_stop(ex);
 	}
 #endif
 	catch (const std::exception& ex)

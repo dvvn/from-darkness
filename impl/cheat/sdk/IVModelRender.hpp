@@ -81,7 +81,7 @@ namespace cheat::csgo
 			SSAO_DEPTH_WRITE
 		};
 
-		CHEAT_ENUM_STRUCT_FILL(OverrideType_t);
+		NSTD_ENUM_STRUCT(OverrideType_t);
 	};
 
 	struct DrawModelState_t
