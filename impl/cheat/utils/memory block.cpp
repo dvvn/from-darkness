@@ -19,9 +19,134 @@ memory_block::memory_block(const memory_block_container& span) : memory_block_co
 {
 }
 
+struct dummy_exception final: std::exception
+{
+};
+
+template <typename Where, typename What, typename Pr = ranges::equal_to>
+static auto _Rng_search(Where&& where, What&& what, Pr&& pred = { })
+{
+	//ranges extremely slow in debug mode
+
+	auto a = std::initializer_list(std::_Get_unwrapped(where.begin( )), std::_Get_unwrapped(where.end( )));
+	auto b = std::initializer_list(std::_Get_unwrapped(what.begin( )), std::_Get_unwrapped(what.end( )));
+
+#if _ITERATOR_DEBUG_LEVEL == 0
+
+	return ranges::search(a, b, pred);
+
+#else
+
+	auto first     = a.begin( );
+	auto real_last = a.end( );
+	auto last      = real_last - what.size( );
+
+	for (auto itr = first; itr != last; ++itr)
+	{
+		auto itr_temp = itr;
+		auto found    = true;
+
+		// ReSharper disable CppInconsistentNaming
+		for (auto&& _Left: what)
+		{
+			auto& _Right = *itr_temp++;
+
+			if (!pred(_Right, _Left))
+			{
+				found = false;
+				break;
+			}
+		}
+		// ReSharper restore CppInconsistentNaming
+
+		if (found)
+			return ranges::subrange{itr, itr + what.size( )};
+	}
+
+	return ranges::subrange{real_last, real_last};
+#endif
+}
+
+template <typename T>
+static std::optional<std::span<T>> _Rewrap_range(const memory_block::known_bytes_range& rng)
+{
+	static_assert(sizeof(memory_block::known_bytes_range::value_type) == sizeof(std::byte));
+
+	const auto size_bytes = rng.size( );
+	if (size_bytes < sizeof(T))
+		throw dummy_exception( );
+	if (size_bytes == sizeof(T))
+		return std::span<T>((T*)rng._Unchecked_begin( ), 1);
+
+	const auto tail = size_bytes % sizeof(T);
+	if (tail > 0)
+		return { };
+
+	auto start = (T*)rng._Unchecked_begin( );
+	auto size  = size_bytes / sizeof(T);
+
+	return std::span<T>(start, size);
+}
+
+template <typename T>
+static std::optional<memory_block> _Scan_memory(const memory_block& block, const std::span<T>& rng)
+{
+	auto unreachable = block.size( ) % rng.size_bytes( );
+
+	const auto block2     = memory_block(block._Unchecked_begin( ), block.size( ) - unreachable);
+	auto       fake_block = std::span<T>((T*)block2._Unchecked_begin( ), block2.size( ) / sizeof(T));
+
+	auto result = _Rng_search(fake_block, rng);
+	if (result.empty( ))
+		return { };
+
+	return memory_block(result.begin( ), rng.size_bytes( ));
+}
+
+static std::optional<memory_block> _Scan_memory(const memory_block& block, const memory_block::known_bytes_range& data)
+{
+	auto result = _Rng_search(block, data);
+	if (result.empty( ))
+		return { };
+
+	return memory_block({result.begin( ), data.size( )});
+}
+
+std::optional<memory_block> memory_block::find_block_impl(const known_bytes_range& rng) const
+{
+	try
+	{
+		if (const auto rng64 = _Rewrap_range<uint64_t>(rng); rng64.has_value( ))
+			return _Scan_memory(*this, *rng64);
+
+		if (const auto rng32 = _Rewrap_range<uint32_t>(rng); rng32.has_value( ))
+			return _Scan_memory(*this, *rng32);
+
+		if (const auto rng16 = _Rewrap_range<uint16_t>(rng); rng16.has_value( ))
+			return _Scan_memory(*this, *rng16);
+	}
+	catch (const dummy_exception&)
+	{
+	}
+
+	return _Scan_memory(*this, rng);
+}
+
+std::optional<memory_block> memory_block::find_block_impl(const unknown_bytes_range& rng) const
+{
+	auto result = _Rng_search(*this, rng, [](value_type byte, unknown_bytes_range::value_type opt_byte)
+	{
+		return !opt_byte.has_value( ) || *opt_byte == byte;
+	});
+	if (result.empty( ))
+		return { };
+
+	return memory_block({(result.begin( )), rng.size( )});
+}
+
 address memory_block::addr( ) const
 {
-	return data( );
+	return _Unchecked_begin( );
 }
 
 address memory_block::last_addr( ) const
@@ -31,12 +156,12 @@ address memory_block::last_addr( ) const
 
 memory_block memory_block::subblock(size_t offset, size_t count) const
 {
-	return this->subspan(offset, count);
+	return memory_block(this->subspan(offset, count));
 }
 
 memory_block memory_block::shift_to(pointer ptr) const
 {
-	return this->subspan(std::distance(data( ), ptr));
+	return memory_block(this->subspan(std::distance(_Unchecked_begin( ), ptr)));
 }
 
 memory_block memory_block::shift_to_start(const memory_block& block) const
@@ -61,13 +186,13 @@ class MEMORY_BASIC_INFORMATION_UPDATER: protected MEMORY_BASIC_INFORMATION
 	template <typename Fn, typename ...Args>
 	bool virtual_query(Fn&& native_function, Args&&...args)
 	{
-		return class_size == std::invoke((native_function), std::forward<Args>(args)..., static_cast<PMEMORY_BASIC_INFORMATION>(this), class_size);
+		return class_size == std::invoke(native_function, std::forward<Args>(args)..., static_cast<PMEMORY_BASIC_INFORMATION>(this), class_size);
 	}
 
 	//protected:
 	//auto& get_flags( ) { return reinterpret_cast<flags_type&>(Protect); }
 public:
-	MEMORY_BASIC_INFORMATION_UPDATER( ): MEMORY_BASIC_INFORMATION( )
+	MEMORY_BASIC_INFORMATION_UPDATER( ) : MEMORY_BASIC_INFORMATION( )
 	{
 	}
 
@@ -96,8 +221,8 @@ template <std::default_initializable Fn>
 	requires(std::is_invocable_r_v<bool, Fn, flags_type, flags_type>)
 class flags_checker: public MEMORY_BASIC_INFORMATION_UPDATER
 {
-	flags_checker(flags_type flags): MEMORY_BASIC_INFORMATION_UPDATER( ),
-									 flags_checked_(flags)
+	flags_checker(flags_type flags) : MEMORY_BASIC_INFORMATION_UPDATER( ),
+									  flags_checked_(flags)
 	{
 	}
 
@@ -109,7 +234,7 @@ public:
 
 	flags_checker(const Fn& checker_fn, flags_type flags) : flags_checker(flags)
 	{
-		checker_fn_ = (checker_fn);
+		checker_fn_ = checker_fn;
 	}
 
 private:

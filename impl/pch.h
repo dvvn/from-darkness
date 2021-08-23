@@ -9,7 +9,8 @@
 #define _HAS_DEPRECATED_ALLOCATOR_MEMBERS 0
 #define _FSTREAM_SUPPORTS_EXPERIMENTAL_FILESYSTEM 0
 
-#include "runtime assert.h"
+#include "nstd/core.h"
+#include "nstd/runtime assert.h"
 
 #define _ASSERT runtime_assert
 #define _ASSERTE runtime_assert
@@ -31,8 +32,8 @@
 #include <d3d9.h>
 #include <tchar.h>
 #include <TlHelp32.h>
-#include <winternl.h>
 #include <Windows.h>
+#include <winternl.h>
 
 #include <any>
 #include <filesystem>
@@ -40,6 +41,7 @@
 #include <fstream>
 #include <fstream>
 #include <functional>
+#include <future>
 #include <iostream>
 #include <iostream>
 #include <list>
@@ -47,6 +49,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <queue>
 #include <ranges>
 #include <semaphore>
 #include <set>
@@ -54,10 +57,8 @@
 #include <string>
 #include <string_view>
 #include <thread>
-#include <future>
 #include <variant>
 #include <vector>
-#include <queue>
 
 #if defined(__cpp_lib_concepts)
 #include <concepts>
@@ -88,16 +89,6 @@ namespace std
 
 #include <nlohmann/json.hpp>
 
-#ifdef _DEBUG
-#define TSL_DEBUG
-#endif
-#include <ordered map/include/tsl/ordered_map.h>
-#include <ordered map/include/tsl/ordered_set.h>
-#include <robin map/include/tsl/robin_map.h>
-#include <robin map/include/tsl/robin_set.h>
-
-#include <include/veque.hpp>
-
 //#define FT2_BUILD_LIBRARY
 
 #if !defined(_DEBUG) && !defined(CHEAT_GUI_TEST)
@@ -125,7 +116,12 @@ namespace std
 
 #include <thread_pool.hpp>
 
-#include "not std.h"
+// ReSharper disable CppWrongIncludesOrder
+#include "nstd/containers.h"
+#include "nstd/enum as struct.h"
+#include "nstd/std overloads.h"
+#include "nstd/checksum.h"
+// ReSharper restore CppWrongIncludesOrder
 
 //using namespace std::literals;
 

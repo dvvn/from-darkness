@@ -7,6 +7,9 @@ namespace std
 
 	template <class T, class Alloc>
 	class vector;
+
+	template <class El, class Tr>
+	class basic_ostream;
 }
 
 namespace nstd
@@ -151,12 +154,22 @@ namespace nstd
 	}
 }
 
-#ifndef _CONCAT
-#define NSTD_CONCATX(x, y) x##y
-#define NSTD_CONCAT(x, y)  NSTD_CONCATX(x, y)
-#else
-#define NSTD_CONCAT(x, y) _CONCAT(x, y)
-#endif
+namespace std
+{
+	template <typename E, typename Tr>
+	basic_ostream<E, Tr>& operator<<(basic_ostream<E, Tr>& s, const nstd::chr_wchr& val)
+	{
+		switch (val.index( ))
+		{
+			case 0:
+				return s << val.get<0>( );
+			case 1:
+				return s << val.get<1>( );
+			default:
+				throw;
+		}
+	}
+}
 
 #define NSTD_WIDE(x) NSTD_CONCAT(L, x)
 

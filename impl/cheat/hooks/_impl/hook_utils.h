@@ -532,6 +532,9 @@ namespace cheat::hooks
 			{
 				const auto [context, _] = std::move(data_);
 
+				if (context == nullptr)
+					return false;
+
 				const auto lock = std::scoped_lock(context->lock);
 				auto&      ctx  = *context->ctx;
 
@@ -553,6 +556,9 @@ namespace cheat::hooks
 
 			bool enable( ) final
 			{
+				if (data_.context == nullptr)
+					return false;
+
 				const auto lock = std::scoped_lock(data_.context->lock);
 				auto&      ctx  = *data_.context->ctx;
 
@@ -563,6 +569,9 @@ namespace cheat::hooks
 
 			bool disable( ) final
 			{
+				if (data_.context == nullptr)
+					return false;
+
 				const auto lock = std::scoped_lock(data_.context->lock);
 				auto&      ctx  = *data_.context->ctx;
 
@@ -607,7 +616,6 @@ namespace cheat::hooks
 			}
 
 		protected:
-
 			Ret call_original_ex(Args ...args)
 			{
 				if constexpr (!std::is_void_v<Ret>)

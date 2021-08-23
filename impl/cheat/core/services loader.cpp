@@ -75,7 +75,7 @@ struct unload_helper_data
 	DWORD            sleep;
 	HMODULE          handle;
 	BOOL             retval;
-	services_holder* instance;
+	services_holder* holder;
 };
 
 [[maybe_unused]]
@@ -256,7 +256,7 @@ void services_loader::unload( )
 	data->sleep     = 1000;
 	data->handle    = my_handle__;
 	data->retval    = TRUE;
-	data->instance  = std::addressof(this->services__);
+	data->holder    = std::addressof(this->services__);
 	this->unloaded_ = true;
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
@@ -288,7 +288,7 @@ bool services_loader::load_impl( )
 	}
 #ifndef CHEAT_GUI_TEST
 	if (!result)
-			this->unload( );
+		this->unload( );
 #endif
 
 	return result;
@@ -297,6 +297,10 @@ bool services_loader::load_impl( )
 void services_loader::after_load( )
 {
 	CHEAT_CONSOLE_LOG("Cheat fully loaded");
+}
+
+services_loader::~services_loader( )
+{
 }
 
 services_loader::services_loader( )

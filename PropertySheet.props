@@ -28,6 +28,8 @@
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <EnableUAC>false</EnableUAC>

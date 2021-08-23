@@ -27,7 +27,7 @@ static std::optional<vtable_info> _Load_vtable_info(const section_info& dot_rdat
 
 		// get the object locator
 		const auto object_locator = xr - 0xC;
-		const auto vtable_address = dot_rdata.block.find_block(object_locator).addr( ) + 0x4;
+		const auto vtable_address = dot_rdata.block.find_block(object_locator)->addr( ) + 0x4;
 
 		// check is valid offset
 		if (vtable_address <= 4U)
@@ -39,11 +39,11 @@ static std::optional<vtable_info> _Load_vtable_info(const section_info& dot_rdat
 		const auto temp_result = dot_text.block.find_block(/*signature*/vtable_address);
 
 		//address not found
-		if (temp_result.empty( ))
+		if (!temp_result.has_value( ))
 			continue;
 
 		vtable_info info;
-		info.addr = temp_result.addr( );
+		info.addr = temp_result->addr( );
 		return info;
 	}
 
@@ -104,11 +104,11 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 	while (true)
 	{
 		const auto block_start = bytes.find_block(part_before);
-		if (block_start.empty( ))
+		if (!block_start.has_value( ))
 			break;
 
-		bytes = bytes.shift_to_end(block_start);
-		switch (*block_start._Unchecked_end( ))
+		bytes = bytes.shift_to_end(*block_start);
+		switch (*block_start->_Unchecked_end( ))
 		{
 			case ' ':
 			case '\0':
@@ -124,15 +124,15 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 		//--------------
 
 		const auto block_end = bytes.find_block(part_after);
-		if (block_end.empty( ))
+		if (!block_end.has_value( ))
 			break;
 
-		bytes = bytes.shift_to_end(block_end);
+		bytes = bytes.shift_to_end(*block_end);
 
 		//--------------
 
-		const auto block_start_ptr = block_start._Unchecked_begin( );
-		const auto block_end_ptr   = block_end._Unchecked_end( );
+		const auto block_start_ptr = block_start->_Unchecked_begin( );
+		const auto block_end_ptr   = block_end->_Unchecked_end( );
 		const auto block_size_raw  = std::distance(block_start_ptr, block_end_ptr);
 
 		const auto class_descriptor = std::string_view(reinterpret_cast<const char*>(block_start_ptr), block_size_raw);

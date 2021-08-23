@@ -83,9 +83,9 @@ _STD_END
 
 namespace cheat
 {
-	class players_list final: public service<players_list>,
+	class players_list final: public service<players_list>
 #ifdef CHEAT_GUI_TEST
-							  service_always_skipped
+							 , service_always_skipped
 #endif
 	{
 	public:

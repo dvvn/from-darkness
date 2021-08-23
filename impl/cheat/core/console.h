@@ -96,6 +96,9 @@ namespace cheat
 
 	private:
 		detail::console_data data_;
+
+		using file_ptr = FILE*;
+		file_ptr in_=0, out_=0, err_=0;
 	};
 
 #ifdef CHEAT_HAVE_CONSOLE

@@ -177,9 +177,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\exports_storage.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)not std.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\checksum.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\containers.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\core.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum as struct.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\runtime assert.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\std overloads.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)runtime assert.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
@@ -293,12 +297,13 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)entry.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\checksum.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)runtime assert.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\runtime assert.cpp" />
   </ItemGroup>
 </Project>

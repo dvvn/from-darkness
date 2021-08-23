@@ -61,6 +61,7 @@ namespace cheat
 		using service_base::load;
 #endif
 	public:
+		~services_loader( ) override;
 		services_loader( );
 
 		std::string_view name( ) const override;
@@ -69,7 +70,8 @@ namespace cheat
 		HMODULE my_handle( ) const;
 		void    load(HMODULE handle);
 		void    unload( );
-		bool    unloaded( ) const;
+
+		bool unloaded( ) const;
 #endif
 		void reset( );
 
@@ -79,8 +81,8 @@ namespace cheat
 
 	private:
 #ifndef CHEAT_GUI_TEST
-		HMODULE           my_handle__ = nullptr;
-		std::atomic<bool> unloaded_   = false;
+		HMODULE               my_handle__ = nullptr;
+		std::atomic<bool>     unloaded_   = false;
 #endif
 		detail::services_holder services__;
 	};

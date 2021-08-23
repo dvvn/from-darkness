@@ -71,6 +71,13 @@ console::~console( )
 		FreeConsole( );
 		PostMessage(data_.handle, WM_CLOSE, 0U, 0L);
 	}
+
+	if (in_)
+		_fclose_nolock(in_);
+	if (out_)
+		_fclose_nolock(out_);
+	if (err_)
+		_fclose_nolock(err_);
 }
 
 bool console::load_impl( )
@@ -96,6 +103,20 @@ bool console::load_impl( )
 			runtime_assert("Unable to get console window");
 			return false;
 		}
+
+		// ReSharper disable CppInconsistentNaming
+		// ReSharper disable CppEnforceCVQualifiersPlacement
+		constexpr auto _Freopen = [](_Outptr_result_maybenull_ FILE** _Stream, _In_z_ char const* _FileName, _In_z_ char const* _Mode, _Inout_ FILE* _OldStream)
+				// ReSharper restore CppEnforceCVQualifiersPlacement
+				// ReSharper restore CppInconsistentNaming
+		{
+			[[maybe_unused]] const auto err = freopen_s(_Stream, _FileName, _Mode, _OldStream);
+			runtime_assert(err == NULL);
+		};
+
+		_Freopen(&in_, "CONIN$", "r", stdin);
+		_Freopen(&out_, "CONOUT$", "w", stdout);
+		_Freopen(&err_, "CONOUT$", "w", stderr);
 
 		const auto full_path = all_modules::get_ptr( )->current( ).full_path( );
 		if (!SetConsoleTitle(full_path.data( )))

@@ -240,44 +240,44 @@ bool csgo_interfaces::load_impl( )
 #ifndef CHEAT_GUI_TEST
 
 	// ReSharper disable once CppInconsistentNaming
-	auto _Get_game_interface = interfaces_cache( );
+	auto get_game_interface = interfaces_cache( );
 
-	client = _Get_game_interface("client.dll", "VClient");
-	entity_list = _Get_game_interface("client.dll", "VClientEntityList");
-	prediction = _Get_game_interface("client.dll", "VClientPrediction");
-	game_movement = _Get_game_interface("client.dll", "GameMovement");
+	client = get_game_interface("client.dll", "VClient");
+	entity_list = get_game_interface("client.dll", "VClientEntityList");
+	prediction = get_game_interface("client.dll", "VClientPrediction");
+	game_movement = get_game_interface("client.dll", "GameMovement");
 
-	engine = _Get_game_interface("engine.dll", "VEngineClient");
-	mdl_info = _Get_game_interface("engine.dll", "VModelInfoClient");
-	mdl_render = _Get_game_interface("engine.dll", "VEngineModel");
-	render_view = _Get_game_interface("engine.dll", "VEngineRenderView");
-	engine_trace = _Get_game_interface("engine.dll", "EngineTraceClient");
-	debug_overlay = _Get_game_interface("engine.dll", "VDebugOverlay");
-	game_events = _Get_game_interface("engine.dll", "GAMEEVENTSMANAGER002");
-	engine_sound = _Get_game_interface("engine.dll", "IEngineSoundClient");
+	engine = get_game_interface("engine.dll", "VEngineClient");
+	mdl_info = get_game_interface("engine.dll", "VModelInfoClient");
+	mdl_render = get_game_interface("engine.dll", "VEngineModel");
+	render_view = get_game_interface("engine.dll", "VEngineRenderView");
+	engine_trace = get_game_interface("engine.dll", "EngineTraceClient");
+	debug_overlay = get_game_interface("engine.dll", "VDebugOverlay");
+	game_events = get_game_interface("engine.dll", "GAMEEVENTSMANAGER002");
+	engine_sound = get_game_interface("engine.dll", "IEngineSoundClient");
 
-	mdl_cache = _Get_game_interface("datacache.dll", "MDLCache");
-	material_system = _Get_game_interface("materialsystem.dll", "VMaterialSystem");
-	cvars = _Get_game_interface("vstdlib.dll", "VEngineCvar");
-	vgui_panel = _Get_game_interface("vgui2.dll", "VGUI_Panel");
-	vgui_surface = _Get_game_interface("vguimatsurface.dll", "VGUI_Surface");
-	phys_props = _Get_game_interface("vphysics.dll", "VPhysicsSurfaceProps");
-	input_sys = _Get_game_interface("inputsystem.dll", "InputSystemVersion");
-	studio_renderer = _Get_game_interface("studiorender.dll", "VStudioRender");
+	mdl_cache = get_game_interface("datacache.dll", "MDLCache");
+	material_system = get_game_interface("materialsystem.dll", "VMaterialSystem");
+	cvars = get_game_interface("vstdlib.dll", "VEngineCvar");
+	vgui_panel = get_game_interface("vgui2.dll", "VGUI_Panel");
+	vgui_surface = get_game_interface("vguimatsurface.dll", "VGUI_Surface");
+	phys_props = get_game_interface("vphysics.dll", "VPhysicsSurfaceProps");
+	input_sys = get_game_interface("inputsystem.dll", "InputSystemVersion");
+	studio_renderer = get_game_interface("studiorender.dll", "VStudioRender");
 
 	client_mode = _Get_vfunc(client, 10).add(5).deref(2);
 
-	global_vars = _Find_signature("client.dll", "A1 ? ? ? ? 5E 8B 40 10").add(1).deref(2);
-	input = _Find_signature("client.dll", "B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").add(1).deref(1);
-	move_helper = _Find_signature("client.dll", "8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01").add(2).deref(2);
-	glow_mgr = _Find_signature("client.dll", "0F 11 05 ? ? ? ? 83 C8 01").add(3).deref(1);
-	view_render = _Find_signature("client.dll", "A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").add(1).deref(1);
-	weapon_sys = _Find_signature("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0").add(2).deref(1);
-	local_player = _Find_signature("client.dll", "8B 0D ? ? ? ? 83 FF FF 74 07").add(2).deref(1);
+	global_vars = find_signature("client.dll", "A1 ? ? ? ? 5E 8B 40 10").add(1).deref(2);
+	input = find_signature("client.dll", "B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").add(1).deref(1);
+	move_helper = find_signature("client.dll", "8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01").add(2).deref(2);
+	glow_mgr = find_signature("client.dll", "0F 11 05 ? ? ? ? 83 C8 01").add(3).deref(1);
+	view_render = find_signature("client.dll", "A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").add(1).deref(1);
+	weapon_sys = find_signature("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0").add(2).deref(1);
+	local_player = find_signature("client.dll", "8B 0D ? ? ? ? 83 FF FF 74 07").add(2).deref(1);
 
-	client_state = _Find_signature("engine.dll", "A1 ? ? ? ? 8B 80 ? ? ? ? C3").add(1).deref(2);
+	client_state = find_signature("engine.dll", "A1 ? ? ? ? 8B 80 ? ? ? ? C3").add(1).deref(2);
 
-	d3d_device = _Find_signature("shaderapidx9.dll", "A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
+	d3d_device = find_signature("shaderapidx9.dll", "A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
 #else
 	d3d_device = (g_pd3dDevice);
 #endif

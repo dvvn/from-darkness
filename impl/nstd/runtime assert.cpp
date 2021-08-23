@@ -8,7 +8,6 @@ void rt_assert_handler::handle(bool result, chr_wchr&& expression, chr_wchr&& me
 {
 	if (result == true)
 		return;
-
 	this->handle_impl(expression, message, {std::move(file_name), std::move(function), line});
 }
 
