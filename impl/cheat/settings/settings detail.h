@@ -8,9 +8,8 @@ namespace cheat
 	class settings_data;
 }
 
-namespace cheat::detail::settings
+namespace cheat::settings_detail
 {
-	using namespace utl;
 	using namespace gui;
 	using namespace tools;
 	using namespace widgets;

@@ -62,15 +62,15 @@ namespace cheat::detail
 		virtual ~csgo_interface_base( ) = default;
 
 	public:
-		utl::address addr( ) const;
+		nstd::address addr( ) const;
 
-		csgo_interface_base& operator=(const utl::address& addr);
+		csgo_interface_base& operator=(const nstd::address& addr);
 
 	private:
 		void Set_result_assert_( ) const;
 
 	protected:
-		utl::address result_;
+		nstd::address result_;
 	};
 
 	template <class To, size_t Ptrs>
@@ -82,7 +82,7 @@ namespace cheat::detail
 		using reference = To&;
 		using value_type = To;
 
-		csgo_interface& operator=(const utl::address& addr)
+		csgo_interface& operator=(const nstd::address& addr)
 		{
 			*static_cast<csgo_interface_base*>(this) = addr;
 			return *this;
@@ -183,7 +183,7 @@ namespace cheat
 		bool load_impl( ) override;
 
 	public:
-		//utl::filesystem::path csgo_path;
+		//nstd::filesystem::path csgo_path;
 
 		ifc<csgo::IBaseClientDLL>       client;
 		ifc<csgo::IClientEntityList>    entity_list;

@@ -2,7 +2,7 @@
 
 using namespace cheat;
 using namespace gui::tools;
-using namespace utl;
+
 
 int animator::dir( ) const
 {

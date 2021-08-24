@@ -4,7 +4,6 @@
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
-using namespace utl;
 
 static bool _Player_pass_flags(const player_shared& p, const players_filter_flags& f)
 {

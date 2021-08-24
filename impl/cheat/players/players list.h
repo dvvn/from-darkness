@@ -84,7 +84,7 @@ _STD_END
 namespace cheat
 {
 	class players_list final: public service<players_list>
-#ifdef CHEAT_GUI_TEST
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 							 , service_always_skipped
 #endif
 	{

@@ -5,14 +5,14 @@
 namespace cheat::hooks::directx
 {
 	class present final: public service<present>
-					   , public decltype(_Detect_hook_holder(&IDirect3DDevice9::Present))
+					   , public dhooks::_Detect_hook_holder_t<decltype(&IDirect3DDevice9::Present)>
 					   , service_hook_helper
 	{
 	protected:
-		utl::address get_target_method_impl( ) const override;
-		void         callback(THIS_ CONST RECT* source_rect,
-							  CONST RECT*       dest_rect,
-							  HWND              dest_window_override,
-							  CONST RGNDATA*    dirty_region_parameters) override;
+		nstd::address get_target_method_impl( ) const override;
+		void          callback(THIS_ CONST RECT* source_rect,
+							   CONST RECT*       dest_rect,
+							   HWND              dest_window_override,
+							   CONST RGNDATA*    dirty_region_parameters) override;
 	};
 }

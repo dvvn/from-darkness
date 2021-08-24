@@ -5,11 +5,10 @@
 using namespace cheat;
 using namespace hooks;
 using namespace directx;
-using namespace utl;
 
-utl::address reset::get_target_method_impl( ) const
+nstd::address reset::get_target_method_impl( ) const
 {
-	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[16];
+	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[16];
 }
 
 void reset::callback(D3DPRESENT_PARAMETERS*)

@@ -121,6 +121,13 @@ namespace std
 #include "nstd/enum as struct.h"
 #include "nstd/std overloads.h"
 #include "nstd/checksum.h"
+#include "nstd/memory backup.h"
+#include "nstd/memory block.h"
+#include "nstd/memory protect.h"
+#include "nstd/signature.h"
+#include "nstd/os/module info.h"
+#include "nstd/os/threads.h"
+#include "detour hook/hook_utils.h"
 // ReSharper restore CppWrongIncludesOrder
 
 //using namespace std::literals;
@@ -138,14 +145,7 @@ namespace std
 #define CHEAT_CURRENT_FILE_PATH\
 	std::string_view(##__FILE__).substr(std::string_view(CHEAT_SOLUTION_DIR).size( ) + /*impl\*/5)
 
-#include "cheat/utils/memory block.h"
 //dont sort
-#include "cheat/utils/memory backup.h"
-#include "cheat/utils/memory protect.h"
-#include "cheat/utils/module info/module info.h"
-#include "cheat/utils/winapi/threads.h"
-
-#include "cheat/hooks/_impl/hook_utils.h"
 
 #include "cheat/sdk/Color.hpp"
 #include "cheat/sdk/QAngle.hpp"
@@ -153,3 +153,7 @@ namespace std
 #include "cheat/sdk/Vector2D.hpp"
 #include "cheat/sdk/Vector4D.hpp"
 #include "cheat/sdk/VMatrix.hpp"
+
+#include "cheat/core/console.h"
+#include "cheat/core/csgo interfaces.h"
+#include "cheat/netvars/netvars.h"

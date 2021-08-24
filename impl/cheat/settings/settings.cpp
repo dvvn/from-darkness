@@ -6,7 +6,6 @@
 using namespace cheat;
 using namespace gui;
 using namespace objects;
-using namespace utl;
 
 settings_data::settings_data(const std::string_view& name) : settings_data(std::wstring(name.begin( ), name.end( )))
 {
@@ -14,7 +13,7 @@ settings_data::settings_data(const std::string_view& name) : settings_data(std::
 
 settings_data::settings_data(std::wstring&& name) : string_wrapper_base(raw_type(move(name)))
 {
-	path_ = all_modules::get_ptr( )->current( ).work_dir( );
+	path_ = nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
 	path_ /= L"settings";
 	path_ /= this->raw( );
 }

@@ -32,30 +32,32 @@ namespace cheat
 
 			services_holder& then( );
 
-			nstd::unordered_set<hooks::hook_holder_base*> get_all_hooks( );
+			using all_hooks_storage = nstd::unordered_set<dhooks::hook_holder_base*>;
+
+			all_hooks_storage get_all_hooks( );
 
 		private:
-			using services_storage_type = std::vector<std::shared_ptr<service_base>>;
+			using services_storage = std::vector<std::shared_ptr<service_base>>;
 
 			template <class ...T>
-			static void Add_to_storage_(services_storage_type& storage)
+			static void Add_to_storage_(services_storage& storage)
 			{
 				constexpr auto add_count = sizeof...(T);
 				if constexpr (add_count > 1)
 					storage.reserve(storage.size( ) + add_count);
 
-				(storage.emplace_back(T::get_ptr_shared( )), ...);
+				(storage.emplace_back(T::get_ptr_shared(true)), ...);
 			}
 
-			services_storage_type services__,
-								  services_dont_wait__,
-								  services_wait_for__;
+			services_storage services__,
+							 services_dont_wait__,
+							 services_wait_for__;
 
 			std::unique_ptr<services_holder> next__;
 		};
 	}
 
-	class services_loader final: public service_base, public utl::one_instance<services_loader>
+	class services_loader final: public service_base, public nstd::one_instance<services_loader>
 	{
 #ifndef CHEAT_GUI_TEST
 		using service_base::load;
@@ -81,8 +83,8 @@ namespace cheat
 
 	private:
 #ifndef CHEAT_GUI_TEST
-		HMODULE               my_handle__ = nullptr;
-		std::atomic<bool>     unloaded_   = false;
+		HMODULE           my_handle__ = nullptr;
+		std::atomic<bool> unloaded_   = false;
 #endif
 		detail::services_holder services__;
 	};

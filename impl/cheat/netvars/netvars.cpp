@@ -20,7 +20,6 @@
 
 using namespace cheat;
 using namespace csgo;
-using namespace utl;
 
 netvars::~netvars( )
 {
@@ -39,6 +38,7 @@ static std::string _Str_to_lower(const std::string_view& str)
 	return ret;
 }
 
+[[maybe_unused]]
 static bool _Save_netvar_allowed(const char* name)
 {
 	for (auto c = name[0]; c != '\0'; c = *(++name))
@@ -109,7 +109,7 @@ static std::pair<nlohmann::json::iterator, bool> _Add_child_class(nlohmann::json
 
 static std::string _Array_type(const std::string_view& type, size_t size)
 {
-	return format("std::array<{}, {}>", type, size);
+	return std::format("std::array<{}, {}>", type, size);
 }
 
 static std::string _Netvar_vec_type(const std::string_view& name)
@@ -706,10 +706,9 @@ void netvars::Generate_classes_(dump_info info)
 			ranges::replace(str, '\\', '/');
 			return str += ".h";
 		}( );
-		source << format("#include \"{}\"", netvars_header_path) << __New_line;
+		source << std::format("#include \"{}\"", netvars_header_path) << __New_line;
 		source << __New_line;
 		source << "using namespace cheat;" << __New_line;
-		source << "using namespace utl;" << __New_line;
 		source << "using namespace csgo;" << __New_line;
 		source << __New_line;
 
@@ -725,22 +724,24 @@ void netvars::Generate_classes_(dump_info info)
 
 			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
 
-			header << format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
-			source << format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
+			constexpr auto address_class = type_name<nstd::address>(false);
+
+			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
+			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
 			source << '{' << __New_line;
 			source << "#ifdef CHEAT_NETVARS_UPDATING" << __New_line;
-			source << __Tab << format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
+			source << __Tab << std::format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
 			source << "#else" << __New_line;
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
-			source  << __Tab<< format("auto addr = address(this).add({});", netvar_offset) << __New_line;
+			source  << __Tab<< format("auto addr = {}(this).add({});",address_class, netvar_offset) << __New_line;
 #else
-			source << __Tab << std::format(
-										   "static const auto offset = netvars::get_ptr( )->at(\"{}\", \"{}\");",
-										   class_name, netvar_name
-										  ) << __New_line;
-			source << __Tab << "auto addr = address(this).add(offset);" << __New_line;
+			source << __Tab
+					<< "static const auto offset = netvars::get_ptr( )->at"
+					<< std::format("(\"{}\", \"{}\");", class_name, netvar_name)
+					<< __New_line;
+			source << __Tab << "auto addr = " << address_class << "(this).add(offset);" << __New_line;
 #endif
-			source << __Tab << format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
+			source << __Tab << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
 			source << "#endif" << __New_line;
 			source << '}' << __New_line;
 		}

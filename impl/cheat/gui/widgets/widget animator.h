@@ -29,6 +29,6 @@ namespace cheat::gui::widgets
 		content_background_fader(tools::animator&& a = { });
 
 		bool Animate( ) final;
-		utl::memory_backup<float> fade_alpha_backup_;
+		nstd::memory_backup<float> fade_alpha_backup_;
 	};
 }

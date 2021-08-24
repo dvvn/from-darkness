@@ -3,15 +3,13 @@
 namespace cheat::gui::tools
 {
 	//PushStyleColor(ImGuiCol idx, const ImVec4& col)
-	class push_style_color: public utl::memory_backup<ImVec4>
+	class push_style_color: public nstd::memory_backup<ImVec4>
 	{
 	public:
-		push_style_color( );
+		push_style_color( )=default;
 		push_style_color(ImGuiCol idx, const ImVec4& col);
 		push_style_color(ImGuiCol idx, ImU32 col);
 		push_style_color(ImGuiCol idx, float alpha_scale);
-
-		
 	};
 
 	//#define IMGUI_PUSH_STYLE_COLOR(idx, data)\

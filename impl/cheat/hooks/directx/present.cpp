@@ -7,11 +7,10 @@
 using namespace cheat;
 using namespace hooks;
 using namespace directx;
-using namespace utl;
 
-utl::address present::get_target_method_impl( ) const
+nstd::address present::get_target_method_impl( ) const
 {
-	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[17];
+	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[17];
 }
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
@@ -27,7 +26,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 #ifndef CHEAT_GUI_TEST
 		if (menu->active( ))
 #endif
-		ImGui::ShowDemoWindow( );
+			ImGui::ShowDemoWindow( );
 #endif
 		menu->render( );
 	}

@@ -8,13 +8,10 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks;
 using namespace studio_render;
-using namespace utl;
 
-
-
-utl::address draw_model::get_target_method_impl( ) const
+nstd::address draw_model::get_target_method_impl( ) const
 {
-	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->studio_renderer.get( ))[29];
+	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->studio_renderer.get( ))[29];
 }
 
 void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& info,

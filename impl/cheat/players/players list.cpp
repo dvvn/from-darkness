@@ -12,7 +12,6 @@
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
-using namespace utl;
 
 bool players_list::load_impl( )
 {
@@ -21,9 +20,6 @@ bool players_list::load_impl( )
 
 void players_list::update( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	(void)this;
-#else
 	const auto interfaces = csgo_interfaces::get_ptr( );
 
 	auto storage_updated = false;
@@ -147,7 +143,7 @@ void players_list::update( )
 		}
 		if (update_animations)
 		{
-			const auto backup = memory_backup(ent->m_bClientSideAnimation( ), true);
+			const auto backup = nstd::memory_backup(ent->m_bClientSideAnimation( ), true);
 			(void)backup;
 
 			obj.update_animations(store_tick == false);
@@ -164,7 +160,6 @@ void players_list::update( )
 
 	if (storage_updated)
 		filter_cache__.clear( );
-#endif
 }
 
 const players_filter& players_list::filter(const players_filter_flags& flags)

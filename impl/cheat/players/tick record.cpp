@@ -11,7 +11,6 @@
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
-using namespace utl;
 
 stored_player_bones::stored_player_bones([[maybe_unused]] C_BaseEntity* ent)
 {

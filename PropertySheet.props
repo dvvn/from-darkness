@@ -30,6 +30,7 @@
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <EnableModules>
       </EnableModules>
+      <DisableSpecificWarnings>4250;5103</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableUAC>false</EnableUAC>

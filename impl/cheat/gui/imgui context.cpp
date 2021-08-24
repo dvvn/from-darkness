@@ -7,7 +7,6 @@
 using namespace cheat;
 using namespace hooks;
 using namespace gui;
-using namespace utl;
 
 HWND imgui_context::hwnd( ) const
 {

@@ -51,8 +51,8 @@ namespace cheat
 	{
 		struct find_signature_impl
 		{
-			utl::address operator()(const utl::memory_block& from, const std::string_view& sig) const;
-			utl::address operator()(const std::string_view& dll_name, const std::string_view& sig) const;
+			nstd::address operator()(const nstd::memory_block& from, const std::string_view& sig) const;
+			nstd::address operator()(const std::string_view& dll_name, const std::string_view& sig) const;
 		};
 	}
 
@@ -78,13 +78,14 @@ namespace cheat
 
 		constexpr auto ret_val = [&]
 		{
-			if constexpr (constexpr auto left_marker_index2 = obj_name.find(left_marker2); left_marker_index2 != std::string_view::npos)
+			auto left_marker_index2 = obj_name.find(left_marker2);
+			if (left_marker_index2 != std::string_view::npos)
 			{
 				return obj_name.substr(left_marker_index2 + left_marker2.size( ));
 			}
 			else
 			{
-				constexpr auto space_index = obj_name.find(' ');
+				auto space_index = obj_name.find(' ');
 				return space_index == std::string_view::npos ? obj_name : obj_name.substr(space_index + 1);
 			}
 		}( );

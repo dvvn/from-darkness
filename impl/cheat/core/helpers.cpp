@@ -6,14 +6,12 @@
 #include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/ICvar.hpp"
 
-#include "cheat/utils/signature.h"
-#include "cheat/utils/timer.h"
+#include "nstd/signature.h"
+#include "nstd/timer.h"
 
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
-using namespace utl;
-using namespace utl::detail;
 
 float cheat::lerp_time( )
 {
@@ -80,7 +78,7 @@ csgo::ConVar* cheat::detail::find_cvar_impl(const std::string_view& cvar)
 	constexpr auto get_root_cvar = []
 	{
 		const auto cvars = csgo_interfaces::get_ptr( )->cvars.get( );
-		return address(cvars).add(0x30).deref(1).ptr<ConVar>( );
+		return nstd::address(cvars).add(0x30).deref(1).ptr<ConVar>( );
 	};
 	const auto get_cvar_from_game = [&]( )-> ConVar*
 	{
@@ -113,16 +111,17 @@ float cheat::ticks_to_time(size_t ticks)
 	return _Interval_per_ticks( ) * static_cast<float>(ticks);
 }
 
-address find_signature_impl::operator()(const memory_block& from, const std::string_view& sig) const
+nstd::address find_signature_impl::operator()(const nstd::memory_block& from, const std::string_view& sig) const
 {
-	return std::invoke(&memory_block::addr, sig.find('?') != sig.npos
-										   ? from.find_block(signature<TEXT>(sig))
-										   : from.find_block(signature<TEXT_AS_BYTES>(sig)));
+	using namespace nstd;
+	return std::invoke(&nstd::memory_block::addr, sig.find('?') != sig.npos
+													  ? from.find_block(signature<TEXT>(sig))
+													  : from.find_block(signature<TEXT_AS_BYTES>(sig)));
 }
 
-address find_signature_impl::operator()(const std::string_view& dll_name, const std::string_view& sig) const
+nstd::address find_signature_impl::operator()(const std::string_view& dll_name, const std::string_view& sig) const
 {
-	const auto module = all_modules::get_ptr( )->find(dll_name);
+	const auto module = nstd::os::all_modules::get_ptr( )->find(dll_name);
 	auto       block  = module->mem_block( );
 
 	return std::invoke(*this, block, sig);
@@ -132,7 +131,7 @@ void* cheat::detail::vtable_pointer_impl(const std::string_view& from, const std
 {
 	runtime_assert(!from.empty( ));
 
-	auto& module_from = *all_modules::get_ptr( )->find(from);
+	auto& module_from = *nstd::os::all_modules::get_ptr( )->find(from);
 	auto& vtables     = module_from.vtables( );
 
 	const auto& vtables_cache = vtables.get_cache( );

@@ -5,12 +5,11 @@
 #include "cheat/players/players list.h"
 #include "cheat/sdk/ClientClass.hpp"
 #include "cheat/sdk/IClientEntityList.hpp"
-#include "cheat/utils/signature.h"
 
 using namespace cheat;
 using namespace hooks;
 using namespace c_base_animating;
-using namespace utl;
+
 using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame( )
@@ -25,7 +24,7 @@ bool should_skip_animation_frame::load_impl( )
 	return true;
 }
 
-utl::address should_skip_animation_frame::get_target_method_impl( ) const
+nstd::address should_skip_animation_frame::get_target_method_impl( ) const
 {
 	return find_signature("client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02");
 }
@@ -102,7 +101,7 @@ void should_skip_animation_frame::render( )
 	ImGui::Checkbox("override return", &override_return__);
 	if (override_return__)
 	{
-		const auto pop = memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
+		const auto pop = nstd::memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
 		(void)pop;
 
 		ImGui::SameLine( );

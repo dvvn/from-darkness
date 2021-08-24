@@ -42,16 +42,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\include.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook_utils.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\status.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\target function.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\vtable_counter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\services loader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h" />
@@ -115,11 +105,6 @@
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\address.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory backup.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory protect.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.hpp" />
@@ -166,23 +151,35 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlMemory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\one_instance.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\signature.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\str_crypt.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\timer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\handle.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\xor_shift.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\data_cache.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\exports_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde64.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\include.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hook.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hook_utils.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\status.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\target function.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\trampoline.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\address.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\checksum.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\containers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\core.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum as struct.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory backup.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory block.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory protect.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\one_instance.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\handle.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\data_cache.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\threads.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\runtime assert.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\signature.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\std overloads.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\timer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -213,12 +210,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde32.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hde\hde64.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\hook_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\status.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\_impl\trampoline.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp" />
@@ -283,21 +274,29 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\address.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\memory block.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\timer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\winapi\threads.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\data_cache.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\exports_storage.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\module info.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\sections_storage.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\module info\vtables_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde64.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hook.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hook_utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\status.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\trampoline.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)entry.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\address.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)nstd\checksum.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\memory block.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\memory protect.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\handle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\data_cache.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\threads.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\timer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

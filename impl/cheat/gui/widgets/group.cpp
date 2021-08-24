@@ -3,7 +3,6 @@
 using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
-using namespace utl;
 
 group::group( )
 {

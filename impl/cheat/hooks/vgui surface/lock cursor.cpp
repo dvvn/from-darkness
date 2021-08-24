@@ -8,11 +8,10 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks;
 using namespace vgui_surface;
-using namespace utl;
 
-utl::address lock_cursor::get_target_method_impl( ) const
+nstd::address lock_cursor::get_target_method_impl( ) const
 {
-	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->vgui_surface.get( ))[67];
+	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->vgui_surface.get( ))[67];
 }
 
 void lock_cursor::callback( )

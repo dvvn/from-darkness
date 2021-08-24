@@ -6,10 +6,8 @@
 #include "cheat/gui/tools/push style var.h"
 
 using namespace cheat;
+using namespace hooks::winapi;
 using namespace gui;
-using namespace hooks;
-using namespace winapi;
-using namespace utl;
 
 bool wndproc::load_impl( )
 {
@@ -22,7 +20,7 @@ bool wndproc::load_impl( )
 	return service_hook_helper::load_impl( );
 }
 
-address wndproc::get_target_method_impl( ) const
+nstd::address wndproc::get_target_method_impl( ) const
 {
 	return std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get_ptr( )->hwnd( ), GWLP_WNDPROC);
 }
@@ -117,7 +115,7 @@ void wndproc::render( )
 	ImGui::Checkbox("override return", &override_return_);
 	if (override_return_)
 	{
-		const auto pop = memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
+		const auto pop = nstd::memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
 		(void)pop;
 
 		ImGui::SameLine( );

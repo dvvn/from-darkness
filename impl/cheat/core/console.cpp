@@ -5,7 +5,7 @@
 
 using namespace cheat;
 using namespace detail;
-using namespace utl;
+
 
 template <typename T>
 static auto _Get_time_str( )
@@ -118,7 +118,7 @@ bool console::load_impl( )
 		_Freopen(&out_, "CONOUT$", "w", stdout);
 		_Freopen(&err_, "CONOUT$", "w", stderr);
 
-		const auto full_path = all_modules::get_ptr( )->current( ).full_path( );
+		const auto full_path = nstd::os::all_modules::get_ptr( )->current( ).full_path( );
 		if (!SetConsoleTitle(full_path.data( )))
 		{
 			runtime_assert("Unable set console title");
@@ -186,7 +186,7 @@ static auto _Get_file_buff(std::basic_ostream<Chr, Tr>& stream)
 	runtime_assert(real_buff != nullptr);
 	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
 	//_Myfile
-	return address(real_buff).add(offset).ref<FILE*>( );
+	return nstd::address(real_buff).add(offset).ref<FILE*>( );
 }
 
 static auto _Write_text = []<typename T>(T&& text)

@@ -12,7 +12,6 @@
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
-using namespace utl;
 
 void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 {
@@ -73,7 +72,7 @@ void player_shared_impl::update_animations(bool simple)
 		auto& layers = p->GetAnimOverlays( );
 		runtime_assert(layers.size( ) == 13);
 		auto& bytes_array = *reinterpret_cast<std::array<uint8_t, sizeof(CAnimationLayer) * 13>*>(layers.begin( ));
-		return memory_backup(bytes_array);
+		return nstd::memory_backup(bytes_array);
 	}( );
 	(void)backup_layers;
 

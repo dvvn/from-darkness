@@ -53,6 +53,6 @@ namespace cheat
 		bool merge__ = false;
 #endif
 
-		detail::settings::folder_with_configs_mgr mgr__;
+		settings_detail::folder_with_configs_mgr mgr__;
 	};
 }

@@ -3,7 +3,6 @@
 using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
-using namespace utl;
 
 //ImGui::PushStyleColor(color_idx, !anim_updated ? header_color : ImVec4(header_color.x, header_color.y, header_color.z, header_color.w * fade_.value( )));
 

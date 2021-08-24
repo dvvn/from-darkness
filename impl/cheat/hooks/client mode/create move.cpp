@@ -9,13 +9,11 @@
 
 using namespace cheat;
 using namespace csgo;
-using namespace hooks;
-using namespace client_mode;
-using namespace utl;
+using namespace hooks::client_mode;
 
-utl::address create_move::get_target_method_impl( ) const
+nstd::address create_move::get_target_method_impl( ) const
 {
-	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client_mode.get( ))[24];
+	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client_mode.get( ))[24];
 }
 
 void create_move::callback(float input_sample_time, CUserCmd* cmd)
@@ -38,7 +36,7 @@ void create_move::callback(float input_sample_time, CUserCmd* cmd)
 	if (interfaces->client_state == nullptr || interfaces->engine->IsPlayingDemo( ))
 		return;
 
-	auto& send_packet = address(_AddressOfReturnAddress( ))
+	auto& send_packet = nstd::address(_AddressOfReturnAddress( ))
 					   .remove(4).deref(1)
 					   .remove(0x1C).ref<bool>( );
 }

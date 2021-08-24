@@ -5,13 +5,11 @@
 
 using namespace cheat;
 using namespace csgo;
-using namespace hooks;
-using namespace client;
-using namespace utl;
+using namespace hooks::client;
 
-utl::address frame_stage_notify::get_target_method_impl( ) const
+nstd::address frame_stage_notify::get_target_method_impl( ) const
 {
-	return _Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client.get( ))[37];
+	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client.get( ))[37];
 }
 
 void frame_stage_notify::callback(ClientFrameStage_t stage)

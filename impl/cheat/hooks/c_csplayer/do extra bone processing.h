@@ -6,15 +6,15 @@
 namespace cheat::hooks::c_csplayer
 {
 	class do_extra_bone_processing final: public service<do_extra_bone_processing>
-										, public _Detect_hook_holder_t<decltype(&csgo::C_BaseAnimating::DoExtraBoneProcessing)>
+										, public dhooks::_Detect_hook_holder_t<decltype(&csgo::C_BaseAnimating::DoExtraBoneProcessing)>
 										, service_hook_helper
 #ifdef CHEAT_GUI_TEST
 										, service_always_skipped
 #endif
 	{
 	protected:
-		utl::address get_target_method_impl( ) const override;
-		void         callback(csgo::CStudioHdr* studio_hdr, csgo::Vector pos[], csgo::Quaternion q[], csgo::matrix3x4a_t bone_to_world[], csgo::CBoneBitList& bone_computed,
-							  csgo::CIKContext* ik_context) override;
+		nstd::address get_target_method_impl( ) const override;
+		void          callback(csgo::CStudioHdr* studio_hdr, csgo::Vector pos[], csgo::Quaternion q[], csgo::matrix3x4a_t bone_to_world[], csgo::CBoneBitList& bone_computed,
+							   csgo::CIKContext* ik_context) override;
 	};
 }

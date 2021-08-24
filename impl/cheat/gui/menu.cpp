@@ -8,7 +8,6 @@
 #include "cheat/hooks/winapi/wndproc.h"
 
 using namespace cheat;
-using namespace utl;
 using namespace gui;
 using namespace objects;
 using namespace tools;

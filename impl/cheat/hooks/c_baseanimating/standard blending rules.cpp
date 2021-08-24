@@ -1,24 +1,22 @@
 #include "standard blending rules.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/netvars/netvars.h"
 #include "cheat/players/players list.h"
 #include "cheat/sdk/ClientClass.hpp"
 #include "cheat/sdk/Studio.hpp"
-#include "cheat/utils/signature.h"
 
 using namespace cheat;
 using namespace hooks;
 using namespace c_base_animating;
-using namespace utl;
+
 using namespace csgo;
 
-utl::address standard_blending_rules::get_target_method_impl( ) const
+nstd::address standard_blending_rules::get_target_method_impl( ) const
 {
 	const auto vtable = vtable_pointer<C_BaseAnimating>("client.dll");
 	const auto index  = find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).divide(4).value( );
 
-	return _Pointer_to_virtual_class_table(vtable)[index];
+	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }
 
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)

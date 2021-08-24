@@ -3,7 +3,6 @@
 using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
-using namespace utl;
 
 widget_animator::~widget_animator( ) = default;
 
@@ -35,7 +34,7 @@ bool content_background_fader::Animate( )
 	runtime_assert(!fade_alpha_backup_.has_value());
 	if (widget_animator::Animate( ))
 	{
-		fade_alpha_backup_ = memory_backup(ImGui::GetStyle( ).Alpha, fade_.value( ));
+		fade_alpha_backup_ = nstd::memory_backup(ImGui::GetStyle( ).Alpha, fade_.value( ));
 		return true;
 	}
 	return false;

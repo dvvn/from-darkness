@@ -5,7 +5,7 @@
 namespace cheat::hooks::winapi
 {
 	class wndproc final: public service<wndproc>
-					   , public decltype(_Detect_hook_holder(DefWindowProc))
+					   , public dhooks::_Detect_hook_holder_t<decltype(DefWindowProc)>
 					   , public gui::objects::empty_page
 					   , service_hook_helper
 
@@ -18,7 +18,7 @@ namespace cheat::hooks::winapi
 
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
-		utl::address get_target_method_impl( ) const override;
+		nstd::address get_target_method_impl( ) const override;
 	private:
 		decltype(&DefWindowProc) default_wndproc_ = nullptr;
 

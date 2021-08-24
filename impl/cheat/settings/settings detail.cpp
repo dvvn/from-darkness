@@ -6,7 +6,7 @@
 #include "cheat/gui/tools/push style var.h"
 
 using namespace cheat;
-using namespace cheat::detail::settings;
+using namespace cheat::settings_detail;
 
 #if 1
 bool known_configs::contains(const string_wrapper& str) const
@@ -219,13 +219,13 @@ void folders_storage::render( )
 		{
 			auto& ref = data__[i];
 
-			memory_backup<ImVec4> header_color_saved;
+			nstd::memory_backup<ImVec4> header_color_saved;
 			(void)header_color_saved;
 
 			if (ref.configs.selected( ))
 			{
 				auto& header_color = ImGui::GetStyle( ).Colors[ImGuiCol_Header];
-				header_color_saved = memory_backup(header_color, ImVec4(header_color.x, 255.f, header_color.z, header_color.w));
+				header_color_saved = nstd::memory_backup(header_color, ImVec4(header_color.x, 255.f, header_color.z, header_color.w));
 			}
 
 			if (ref(ImGuiSelectableFlags_None, {longest_title__ * sample_size.x, sample_size.y}))

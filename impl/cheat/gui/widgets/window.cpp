@@ -8,7 +8,6 @@ using namespace cheat;
 using namespace gui;
 using namespace widgets;
 using namespace tools;
-using namespace utl;
 
 window::window(animator&& fade) : content_background_fader(std::move(fade))
 {
@@ -37,11 +36,11 @@ bool window::begin(prefect_string&& title, window_flags flags)
 						  style.FramePadding.x * 2.f +          //space between and after
 						  style.WindowBorderSize;
 
-	memory_backup<float> min_size_backup;
+	nstd::memory_backup<float> min_size_backup;
 	(void)min_size_backup;
 
 	if (min_size > style.WindowMinSize.x)
-		min_size_backup = memory_backup(style.WindowMinSize.x, min_size);
+		min_size_backup = {style.WindowMinSize.x, min_size};
 
 	return ImGui::Begin(title, nullptr, flags.value());
 }

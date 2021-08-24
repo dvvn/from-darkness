@@ -69,7 +69,7 @@ namespace cheat
 	};
 
 	template <typename T>
-	class service: public virtual service_base, public utl::one_instance_shared<T>
+	class service: public virtual service_base, public nstd::one_instance_shared<T>
 	{
 	public:
 		std::string_view name( ) const final
@@ -78,7 +78,7 @@ namespace cheat
 		}
 	};
 
-	class service_hook_helper: public virtual service_base, public virtual hooks::hook_holder_base
+	class service_hook_helper: public virtual service_base, public virtual dhooks::hook_holder_base
 	{
 	protected:
 		bool load_impl( ) override;

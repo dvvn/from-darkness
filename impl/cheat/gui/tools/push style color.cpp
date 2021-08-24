@@ -2,9 +2,6 @@
 
 using namespace cheat;
 using namespace gui::tools;
-using namespace utl;
-
-push_style_color::push_style_color( ) = default;
 
 push_style_color::push_style_color(ImGuiCol idx, const ImVec4& col): memory_backup<ImVec4>(ImGui::GetStyle( ).Colors[idx], col)
 {

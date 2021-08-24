@@ -9,7 +9,6 @@ using namespace cheat;
 using namespace gui;
 using namespace tools;
 using namespace objects;
-using namespace utl;
 
 static size_t _Get_num_chars(const pages_storage_data& page)
 {

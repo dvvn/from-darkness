@@ -3,7 +3,6 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_BaseEntity::m_CollisionGroup( )

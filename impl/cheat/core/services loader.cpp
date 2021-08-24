@@ -24,13 +24,12 @@
 
 using namespace cheat;
 using namespace detail;
-using namespace utl;
 
 #ifndef CHEAT_GUI_TEST
 
 static bool _Wait_for_game( )
 {
-	const auto modules = all_modules::get_ptr( );
+	const auto modules = nstd::os::all_modules::get_ptr( );
 	auto&      all     = modules->update(false).all( );
 
 	auto  work_dir        = std::filesystem::path(modules->owner( ).work_dir( ));
@@ -40,7 +39,7 @@ static bool _Wait_for_game( )
 
 	const auto is_game_loaded = [&]
 	{
-		for (const auto& path: all | ranges::views::transform(&module_info::full_path) | ranges::views::reverse)
+		for (const auto& path: all | ranges::views::transform(&nstd::os::module_info::full_path) | ranges::views::reverse)
 		{
 			if (path == work_dir_native)
 				return true;
@@ -86,7 +85,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	delete data_ptr;
 
 	const auto hooks  = instance->get_all_hooks( );
-	auto       frozen = winapi::frozen_threads_storage(true);
+	auto       frozen = nstd::os::frozen_threads_storage(true);
 	for (auto& h: hooks)
 	{
 		h->disable( );
@@ -120,17 +119,17 @@ std::future<bool> services_holder::load( )
 #ifdef NDEBUG
 		std::this_thread::sleep_for(std::chrono::seconds(game_alredy_loaded ? 1 : 5));
 #endif
-		auto frozen = winapi::frozen_threads_storage(game_alredy_loaded);
+		auto frozen = nstd::os::frozen_threads_storage(game_alredy_loaded);
 		auto loader = thread_pool( );
 
-		const auto sumbit = [&](const services_storage_type& services)
+		const auto sumbit = [&](const services_storage& services)
 		{
 			for (const auto& s: services)
 			{
 				loader.submit(std::bind_front(&service_base::load, s.get( )));
 			}
 		};
-		const auto wait = [&](const services_storage_type& services)
+		const auto wait = [&](const services_storage& services)
 		{
 			do
 			{
@@ -208,25 +207,25 @@ services_holder& services_holder::then( )
 	return *next__;
 }
 
-nstd::unordered_set<hook_holder_base*> services_holder::get_all_hooks( )
+services_holder::all_hooks_storage services_holder::get_all_hooks( )
 {
-	auto hooks = nstd::unordered_set<hook_holder_base*>( );
+	auto hooks = all_hooks_storage( );
 
-	const auto extract_hooks = [&](const services_storage_type& where)
+	const auto extract_hooks = [&](const services_storage& where)
 	{
 		for (auto& item: where)
 		{
 			const auto ptr = item.get( );
-			if (const auto hook = dynamic_cast<hook_holder_base*>(ptr); hook != nullptr)
+			if (const auto hook = dynamic_cast<dhooks::hook_holder_base*>(ptr); hook != nullptr)
 				hooks.emplace(hook);
 		}
 	};
-
 	for (auto child = this; child != nullptr; child = child->next__.get( ))
 	{
 		extract_hooks(child->services__);
 		extract_hooks(child->services_dont_wait__);
 	}
+
 	return hooks;
 }
 

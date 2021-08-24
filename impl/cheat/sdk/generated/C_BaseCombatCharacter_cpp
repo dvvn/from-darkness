@@ -3,7 +3,7 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
-using namespace utl;
+
 using namespace csgo;
 
 int32_t& C_BaseCombatCharacter::m_LastHitGroup( )

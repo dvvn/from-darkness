@@ -2,7 +2,6 @@
 
 using namespace cheat;
 using namespace gui::tools;
-using namespace utl;
 
 push_style_var::push_style_var( ) = default;
 
@@ -42,7 +41,7 @@ static const ImGuiStyleVarInfo img_stylevar_info[] =
 	{ImGuiDataType_Float, 2, (IM_OFFSETOF(ImGuiStyle, SelectableTextAlign))}, // ImGuiStyleVar_SelectableTextAlign
 };
 
-static const ImGuiStyleVarInfo* GetStyleVarInfo(ImGuiStyleVar idx)
+static const ImGuiStyleVarInfo* _Get_style_var_info(ImGuiStyleVar idx)
 {
 	runtime_assert(idx >= 0 && idx < ImGuiStyleVar_COUNT);
 	static_assert(std::size(img_stylevar_info) == ImGuiStyleVar_COUNT);
@@ -51,18 +50,18 @@ static const ImGuiStyleVarInfo* GetStyleVarInfo(ImGuiStyleVar idx)
 
 push_style_var::push_style_var(ImGuiCol idx, float val)
 {
-	const auto var_info = GetStyleVarInfo(idx);
+	const auto var_info = _Get_style_var_info(idx);
 	runtime_assert(var_info->type == ImGuiDataType_Float && var_info->count == 1, "Called PushStyleVar() float variant but variable is not a float!");
 
 	auto& var = *static_cast<float*>(var_info->GetVarPtr(std::addressof(ImGui::GetStyle( ))));
-	this->emplace<0>(memory_backup(var, val));
+	this->emplace<0>(nstd::memory_backup(var, val));
 }
 
 push_style_var::push_style_var(ImGuiCol idx, const ImVec2& val)
 {
-	const auto var_info = GetStyleVarInfo(idx);
+	const auto var_info = _Get_style_var_info(idx);
 	runtime_assert(var_info->type == ImGuiDataType_Float && var_info->count == 2, "Called PushStyleVar() ImVec2 variant but variable is not a ImVec2!");
 
 	auto& var = *static_cast<ImVec2*>(var_info->GetVarPtr(std::addressof(ImGui::GetStyle( ))));
-	this->emplace<1>(memory_backup(var, val));
+	this->emplace<1>(nstd::memory_backup(var, val));
 }

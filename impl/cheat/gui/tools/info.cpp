@@ -2,14 +2,13 @@
 
 using namespace cheat;
 using namespace gui;
-using namespace utl;
 
 const ImVec2& tools::_Get_char_size( )
 {
 	struct alignas(uint64_t) hash_data
 	{
 		ImFont* font;
-		float font_size;
+		float   font_size;
 
 		uint64_t hash( ) const
 		{
@@ -27,7 +26,7 @@ const ImVec2& tools::_Get_char_size( )
 		val.x == def.x && val.y == def.y)
 	{
 		constexpr auto dummy_text = std::string_view("W");
-		val = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
+		val                       = ImGui::CalcTextSize(dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ));
 	}
 
 	return val;

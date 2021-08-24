@@ -7,15 +7,15 @@
 using namespace cheat;
 using namespace hooks;
 using namespace c_csplayer;
-using namespace utl;
+
 using namespace csgo;
 
-utl::address do_extra_bone_processing::get_target_method_impl( ) const
+nstd::address do_extra_bone_processing::get_target_method_impl( ) const
 {
 	const auto vtable = vtable_pointer<C_CSPlayer>("client.dll");
 	const auto index  = find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC").add(11).deref(1).divide(4).value( );
 
-	return _Pointer_to_virtual_class_table(vtable)[index];
+	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }
 
 void do_extra_bone_processing::callback([[maybe_unused]] CStudioHdr*   studio_hdr, [[maybe_unused]] Vector         pos[],

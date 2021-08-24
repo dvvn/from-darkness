@@ -3,7 +3,6 @@
 using namespace cheat;
 using namespace gui;
 using namespace tools;
-using namespace utl;
 
 // Convert a wide Unicode std::string to an UTF8 std::string
 static std::string _UTF8_encode(const std::wstring_view& wstr)

@@ -10,15 +10,15 @@
 using namespace cheat;
 using namespace hooks;
 using namespace c_base_entity;
-using namespace utl;
+
 using namespace csgo;
 
-utl::address estimate_abs_velocity::get_target_method_impl( ) const
+nstd::address estimate_abs_velocity::get_target_method_impl( ) const
 {
 	const auto vtable = vtable_pointer<C_BaseEntity>("client.dll");
 	const auto index  = find_signature("client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).divide(4).value( );
 
-	return _Pointer_to_virtual_class_table(vtable)[index];
+	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }
 
 void estimate_abs_velocity::callback(Vector& vel)
@@ -35,7 +35,7 @@ void estimate_abs_velocity::callback(Vector& vel)
 			return fn;
 		}( );
 
-		_Call_function(CalcAbsoluteVelocity_fn, ent);
+		dhooks::_Call_function(CalcAbsoluteVelocity_fn, ent);
 	}
 
 	vel = ent->m_vecAbsVelocity( );

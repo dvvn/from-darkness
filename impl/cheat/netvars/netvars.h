@@ -5,7 +5,7 @@
 #include "cheat/sdk/datamap.hpp"
 #include "cheat/sdk/Recv.hpp"
 
-//#define CHEAT_NETVARS_UPDATING
+#define CHEAT_NETVARS_UPDATING
 
 namespace cheat
 {

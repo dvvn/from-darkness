@@ -3,7 +3,6 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_BaseCombatWeapon::m_bFlipViewModel( )

@@ -1,7 +1,6 @@
 #include "IEngineTrace.hpp"
 
 using namespace cheat::csgo;
-using namespace cheat::utl;
 
 void Ray_t::Init(const Vector& start, const Vector& end)
 {

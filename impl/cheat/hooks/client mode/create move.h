@@ -7,14 +7,14 @@
 namespace cheat::hooks::client_mode
 {
 	class create_move final: public service<create_move>
-						   , public decltype(_Detect_hook_holder(&csgo::ClientModeShared::CreateMove))
+						   , public dhooks::_Detect_hook_holder_t<decltype(&csgo::ClientModeShared::CreateMove)>
 						   , service_hook_helper
-#ifdef CHEAT_GUI_TEST
-						   , service_always_skipped
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+							 , service_always_skipped
 #endif
 	{
 	protected:
-		utl::address get_target_method_impl( ) const override;
-		void         callback(float input_sample_time, csgo::CUserCmd* cmd) override;
+		nstd::address get_target_method_impl( ) const override;
+		void          callback(float input_sample_time, csgo::CUserCmd* cmd) override;
 	};
 }
