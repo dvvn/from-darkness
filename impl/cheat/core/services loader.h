@@ -18,7 +18,7 @@ namespace cheat
 				requires(awaitable_service<T> && ...)
 			services_holder& load(bool dont_wait = false)
 			{
-				Add_to_storage_<T...>(dont_wait ? services_dont_wait__ : services__);
+				Add_to_storage_<T...>(dont_wait ? services_dont_wait__ : services__, true);
 				return *this;
 			}
 
@@ -26,7 +26,7 @@ namespace cheat
 				requires(awaitable_service<T> && ...)
 			services_holder& wait( )
 			{
-				Add_to_storage_<T...>(services_wait_for__);
+				Add_to_storage_<T...>(services_wait_for__, false);
 				return *this;
 			}
 
@@ -40,13 +40,13 @@ namespace cheat
 			using services_storage = std::vector<std::shared_ptr<service_base>>;
 
 			template <class ...T>
-			static void Add_to_storage_(services_storage& storage)
+			static void Add_to_storage_(services_storage& storage, bool steal)
 			{
 				constexpr auto add_count = sizeof...(T);
 				if constexpr (add_count > 1)
 					storage.reserve(storage.size( ) + add_count);
 
-				(storage.emplace_back(T::get_ptr_shared(true)), ...);
+				(storage.emplace_back(T::get_ptr_shared(steal)), ...);
 			}
 
 			services_storage services__,

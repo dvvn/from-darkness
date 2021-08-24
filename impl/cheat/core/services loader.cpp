@@ -197,8 +197,6 @@ std::future<bool> services_holder::load( )
 	});
 }
 
-using namespace hooks;
-
 services_holder& services_holder::then( )
 {
 	if (!next__)
@@ -304,15 +302,18 @@ services_loader::~services_loader( )
 
 services_loader::services_loader( )
 {
+	using namespace hooks;
+	using namespace gui;
+
 	services__.load<console>( )
 			  .then( )
-			  .load<csgo_interfaces, settings, gui::menu>( )
+			  .load<csgo_interfaces, settings, menu>( )
 			  .then( )
-			  .load<gui::imgui_context>( )
+			  .load<imgui_context>( )
 			  .load<vgui_surface::lock_cursor>(true)
 			  .load<netvars, players_list>(true)
 			  .then( )
-			  .load<hooks::winapi::wndproc>(true)
+			  .load<winapi::wndproc>(true)
 			  .then( )
 			  .wait<netvars, players_list>( )
 			  .load<c_base_entity::estimate_abs_velocity,
