@@ -1,9 +1,6 @@
 #include "C_TEMetalSparks.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 Vector& C_TEMetalSparks::m_vecDir( )
@@ -12,7 +9,7 @@ Vector& C_TEMetalSparks::m_vecDir( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEMetalSparks", "m_vecDir");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -22,7 +19,7 @@ Vector& C_TEMetalSparks::m_vecPos( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEMetalSparks", "m_vecPos");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

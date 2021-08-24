@@ -1,9 +1,6 @@
 #include "C_TEImpact.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_TEImpact::m_iType( )
@@ -12,7 +9,7 @@ int32_t& C_TEImpact::m_iType( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_iType");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -22,7 +19,7 @@ int32_t& C_TEImpact::m_ucFlags( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_ucFlags");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -32,7 +29,7 @@ Vector& C_TEImpact::m_vecNormal( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_vecNormal");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -42,7 +39,7 @@ Vector& C_TEImpact::m_vecOrigin( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_vecOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

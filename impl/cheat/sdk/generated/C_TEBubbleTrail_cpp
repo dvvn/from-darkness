@@ -1,9 +1,6 @@
 #include "C_TEBubbleTrail.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 float& C_TEBubbleTrail::m_fSpeed( )
@@ -12,7 +9,7 @@ float& C_TEBubbleTrail::m_fSpeed( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBubbleTrail", "m_fSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -22,7 +19,7 @@ float& C_TEBubbleTrail::m_flWaterZ( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBubbleTrail", "m_flWaterZ");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -32,7 +29,7 @@ int32_t& C_TEBubbleTrail::m_nCount( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBubbleTrail", "m_nCount");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -42,7 +39,7 @@ int32_t& C_TEBubbleTrail::m_nModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBubbleTrail", "m_nModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -52,7 +49,7 @@ Vector& C_TEBubbleTrail::m_vecMaxs( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBubbleTrail", "m_vecMaxs");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -62,7 +59,7 @@ Vector& C_TEBubbleTrail::m_vecMins( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBubbleTrail", "m_vecMins");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

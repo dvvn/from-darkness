@@ -1,9 +1,6 @@
 #include "C_InfoMapRegion.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 float& C_InfoMapRegion::m_flRadius( )
@@ -12,7 +9,7 @@ float& C_InfoMapRegion::m_flRadius( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_InfoMapRegion", "m_flRadius");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -22,7 +19,7 @@ char* C_InfoMapRegion::m_szLocToken( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_InfoMapRegion", "m_szLocToken");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }

@@ -30,7 +30,7 @@ static auto _Rng_search(Where&& where, What&& what, Pr&& pred = { })
 	auto a = std::initializer_list(std::_Get_unwrapped(where.begin( )), std::_Get_unwrapped(where.end( )));
 	auto b = std::initializer_list(std::_Get_unwrapped(what.begin( )), std::_Get_unwrapped(what.end( )));
 
-#if _ITERATOR_DEBUG_LEVEL == 0
+#if (defined(__cpp_lib_concepts) && _ITERATOR_DEBUG_LEVEL == 0) || !defined(_DEBUG)
 
 	return ranges::search(a, b, pred);
 
@@ -88,16 +88,14 @@ static std::optional<std::span<T>> _Rewrap_range(const known_bytes_range& rng)
 template <typename T>
 static std::optional<memory_block> _Scan_memory(const memory_block& block, const std::span<T>& rng)
 {
-	auto unreachable = block.size( ) % rng.size_bytes( );
-
-	const auto block2     = memory_block(block._Unchecked_begin( ), block.size( ) - unreachable);
-	auto       fake_block = std::span<T>((T*)block2._Unchecked_begin( ), block2.size( ) / sizeof(T));
+	const auto unreachable = block.size( ) % rng.size_bytes( );
+	const auto fake_block  = std::span<T>((T*)block._Unchecked_begin( ), (block.size( ) - unreachable) / sizeof(T));
 
 	auto result = _Rng_search(fake_block, rng);
 	if (result.empty( ))
 		return { };
 
-	return memory_block(result.begin( ), rng.size_bytes( ));
+	return memory_block({(known_byte*)result.begin( ), rng.size_bytes( )});
 }
 
 static std::optional<memory_block> _Scan_memory(const memory_block& block, const known_bytes_range& data)

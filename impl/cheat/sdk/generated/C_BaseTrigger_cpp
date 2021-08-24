@@ -1,9 +1,6 @@
 #include "C_BaseTrigger.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_BaseTrigger::m_bClientSidePredicted( )
@@ -12,7 +9,7 @@ bool& C_BaseTrigger::m_bClientSidePredicted( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTrigger", "m_bClientSidePredicted");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ int32_t& C_BaseTrigger::m_spawnflags( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTrigger", "m_spawnflags");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

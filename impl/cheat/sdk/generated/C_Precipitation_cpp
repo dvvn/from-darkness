@@ -1,9 +1,6 @@
 #include "C_Precipitation.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_Precipitation::m_nPrecipType( )
@@ -12,7 +9,7 @@ int32_t& C_Precipitation::m_nPrecipType( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Precipitation", "m_nPrecipType");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

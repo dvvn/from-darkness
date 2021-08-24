@@ -1,9 +1,6 @@
 #include "C_RopeKeyframe.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_RopeKeyframe::m_RopeFlags( )
@@ -12,7 +9,7 @@ int32_t& C_RopeKeyframe::m_RopeFlags( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_RopeFlags");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -22,7 +19,7 @@ int32_t& C_RopeKeyframe::m_RopeLength( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_RopeLength");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -32,7 +29,7 @@ int32_t& C_RopeKeyframe::m_Slack( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Slack");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -42,7 +39,7 @@ int32_t& C_RopeKeyframe::m_Subdiv( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Subdiv");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -52,7 +49,7 @@ float& C_RopeKeyframe::m_TextureScale( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_TextureScale");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -62,7 +59,7 @@ float& C_RopeKeyframe::m_Width( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Width");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -72,7 +69,7 @@ bool& C_RopeKeyframe::m_bConstrainBetweenEndpoints( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_bConstrainBetweenEndpoints");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -82,7 +79,7 @@ int32_t& C_RopeKeyframe::m_fLockedPoints( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_fLockedPoints");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -92,7 +89,7 @@ float& C_RopeKeyframe::m_flScrollSpeed( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_flScrollSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -102,7 +99,7 @@ CBaseHandle& C_RopeKeyframe::m_hEndPoint( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_hEndPoint");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -112,7 +109,7 @@ CBaseHandle& C_RopeKeyframe::m_hStartPoint( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_hStartPoint");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -122,7 +119,7 @@ int32_t& C_RopeKeyframe::m_iDefaultRopeMaterialModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iDefaultRopeMaterialModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -132,7 +129,7 @@ int32_t& C_RopeKeyframe::m_iEndAttachment( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iEndAttachment");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -142,7 +139,7 @@ int32_t& C_RopeKeyframe::m_iParentAttachment( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iParentAttachment");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -152,7 +149,7 @@ int32_t& C_RopeKeyframe::m_iRopeMaterialModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iRopeMaterialModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -162,7 +159,7 @@ int32_t& C_RopeKeyframe::m_iStartAttachment( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iStartAttachment");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -172,7 +169,7 @@ int32_t& C_RopeKeyframe::m_nChangeCount( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nChangeCount");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -182,7 +179,7 @@ int32_t& C_RopeKeyframe::m_nMaxCPULevel( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMaxCPULevel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -192,7 +189,7 @@ int32_t& C_RopeKeyframe::m_nMaxGPULevel( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMaxGPULevel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -202,7 +199,7 @@ int32_t& C_RopeKeyframe::m_nMinCPULevel( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMinCPULevel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -212,7 +209,7 @@ int32_t& C_RopeKeyframe::m_nMinGPULevel( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMinGPULevel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -222,7 +219,7 @@ int32_t& C_RopeKeyframe::m_nSegments( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nSegments");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -232,7 +229,7 @@ Vector& C_RopeKeyframe::m_vecOrigin( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_vecOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -242,7 +239,7 @@ int32_t& C_RopeKeyframe::moveparent( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "moveparent");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

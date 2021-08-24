@@ -1,9 +1,6 @@
 #include "C_Func_Dust.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_Func_Dust::m_Color( )
@@ -12,7 +9,7 @@ int32_t& C_Func_Dust::m_Color( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_Color");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -22,7 +19,7 @@ int32_t& C_Func_Dust::m_DistMax( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_DistMax");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -32,7 +29,7 @@ int32_t& C_Func_Dust::m_DustFlags( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_DustFlags");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -42,7 +39,7 @@ float& C_Func_Dust::m_FallSpeed( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_FallSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -52,7 +49,7 @@ int32_t& C_Func_Dust::m_LifetimeMax( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_LifetimeMax");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -62,7 +59,7 @@ int32_t& C_Func_Dust::m_LifetimeMin( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_LifetimeMin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -72,7 +69,7 @@ int32_t& C_Func_Dust::m_SpawnRate( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_SpawnRate");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -82,7 +79,7 @@ int32_t& C_Func_Dust::m_SpeedMax( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_SpeedMax");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -92,7 +89,7 @@ bool& C_Func_Dust::m_bAffectedByWind( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_bAffectedByWind");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -102,7 +99,7 @@ float& C_Func_Dust::m_flSizeMax( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_flSizeMax");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -112,7 +109,7 @@ float& C_Func_Dust::m_flSizeMin( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_flSizeMin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -122,7 +119,7 @@ int32_t& C_Func_Dust::m_nModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_nModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -132,7 +129,7 @@ int32_t& C_Func_Dust::m_nSolidType( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_nSolidType");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -142,7 +139,7 @@ int32_t& C_Func_Dust::m_nSurroundType( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_nSurroundType");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -152,7 +149,7 @@ int32_t& C_Func_Dust::m_triggerBloat( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_triggerBloat");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -162,7 +159,7 @@ int32_t& C_Func_Dust::m_usSolidFlags( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_usSolidFlags");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -172,7 +169,7 @@ Vector& C_Func_Dust::m_vecMaxs( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecMaxs");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -182,7 +179,7 @@ Vector& C_Func_Dust::m_vecMins( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecMins");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -192,7 +189,7 @@ Vector& C_Func_Dust::m_vecSpecifiedSurroundingMaxs( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecSpecifiedSurroundingMaxs");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -202,7 +199,7 @@ Vector& C_Func_Dust::m_vecSpecifiedSurroundingMins( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecSpecifiedSurroundingMins");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

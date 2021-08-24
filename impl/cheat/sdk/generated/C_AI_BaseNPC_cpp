@@ -1,9 +1,6 @@
 #include "C_AI_BaseNPC.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_AI_BaseNPC::m_bFadeCorpse( )
@@ -12,7 +9,7 @@ bool& C_AI_BaseNPC::m_bFadeCorpse( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bFadeCorpse");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ bool& C_AI_BaseNPC::m_bImportanRagdoll( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bImportanRagdoll");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -32,7 +29,7 @@ bool& C_AI_BaseNPC::m_bIsMoving( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bIsMoving");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -42,7 +39,7 @@ bool& C_AI_BaseNPC::m_bPerformAvoidance( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bPerformAvoidance");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -52,7 +49,7 @@ bool& C_AI_BaseNPC::m_bSpeedModActive( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bSpeedModActive");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -62,7 +59,7 @@ float& C_AI_BaseNPC::m_flTimePingEffect( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_flTimePingEffect");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -72,7 +69,7 @@ int32_t& C_AI_BaseNPC::m_iDeathFrame( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iDeathFrame");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -82,7 +79,7 @@ int32_t& C_AI_BaseNPC::m_iDeathPose( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iDeathPose");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -92,7 +89,7 @@ int32_t& C_AI_BaseNPC::m_iSpeedModRadius( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iSpeedModRadius");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -102,7 +99,7 @@ int32_t& C_AI_BaseNPC::m_iSpeedModSpeed( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iSpeedModSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -112,7 +109,7 @@ int32_t& C_AI_BaseNPC::m_lifeState( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_lifeState");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

@@ -3,7 +3,29 @@
 
 namespace nstd
 {
-	namespace detail
+	enum class signature_parse_mode
+	{
+		/**
+		 * \brief store string viewable data as TEXT all others as BYTES.
+		 * while data is string viewable, even if all bytes are known, TEXT_AS_BYTES is never selected
+		 */
+		AUTO,
+		/**
+		 * \brief text converted to bytes and stored inside special container.
+		 * unknown bytes allowed. when possible prefer to TEXT_AS_BYTES if all bytes known
+		 */
+		TEXT,
+		/**
+		 * \brief raw memory block. any type is stored like range of bytes
+		 */
+		BYTES,
+		/**
+		 * \brief text converted to bytes and stored like raw memory block. all bytes must be known
+		 */
+		TEXT_AS_BYTES
+	};
+
+	namespace signature_detail
 	{
 		constexpr unknown_byte get_byte(known_byte chr)
 		{
@@ -111,45 +133,20 @@ namespace nstd
 
 			//storage.shrink_to_fit( );
 		};
-	}
 
-	using signature_bytes_raw = std::vector<known_byte>;
-	using signature_bytes = std::vector<unknown_byte>;
+		using bytes_rng_known = std::vector<known_byte>;
+		using bytes_rng_unknown = std::vector<unknown_byte>;
 
-	enum signature_parse_mode
-	{
-		/**
-		 * \brief store string viewable data as TEXT all others as BYTES.
-		 * while data is string viewable, even if all bytes are known, TEXT_AS_BYTES is never selected
-		 */
-		AUTO,
-		/**
-		 * \brief text converted to bytes and stored inside special container.
-		 * unknown bytes allowed. when possible prefer to TEXT_AS_BYTES if all bytes known
-		 */
-		TEXT,
-		/**
-		 * \brief raw memory block. any type is stored like range of bytes
-		 */
-		BYTES,
-		/**
-		 * \brief text converted to bytes and stored like raw memory block. all bytes must be known
-		 */
-		TEXT_AS_BYTES
-	};
-
-	namespace detail
-	{
 		template <signature_parse_mode M>
-		struct signature_creator_impl;
+		struct parser;
 
 		template < >
-		struct signature_creator_impl<TEXT_AS_BYTES>
+		struct parser<signature_parse_mode::TEXT_AS_BYTES>
 		{
 			template <typename Txt>
-			signature_bytes_raw operator()(Txt&& text) const
+			bytes_rng_known operator()(Txt&& text) const
 			{
-				auto vec = signature_bytes_raw( );
+				auto vec = bytes_rng_known( );
 
 				const auto store_fn = [&vec](const unknown_byte& b)
 				{
@@ -158,13 +155,12 @@ namespace nstd
 				};
 				parse_text_as_bytes(text, store_fn);
 
-				vec.shrink_to_fit( );
 				return vec;
 			}
 		};
 
 		template < >
-		struct signature_creator_impl<BYTES>
+		struct parser<signature_parse_mode::BYTES>
 		{
 			template <typename T>
 			constexpr auto operator()(const T& val) const
@@ -175,7 +171,7 @@ namespace nstd
 					using rng_val = ranges::range_value_t<T>;
 					static_assert(std::is_trivially_destructible_v<rng_val>);
 
-					auto vec = signature_bytes_raw( );
+					auto vec = bytes_rng_known( );
 
 					for (auto& v: val)
 					{
@@ -204,8 +200,8 @@ namespace nstd
 							return std::as_bytes(std::span(ranges::data(val), ranges::size(val)));
 						else
 						{
-							if constexpr (std::is_same_v<rng_val, char>)
-								return std::string_view(val);
+							if constexpr (std::_Is_any_of_v<rng_val, char, char8_t>)
+								return std::basic_string_view<rng_val>(val);
 							else
 								return std::span(val);
 						}
@@ -215,12 +211,12 @@ namespace nstd
 		};
 
 		template < >
-		struct signature_creator_impl<TEXT>
+		struct parser<signature_parse_mode::TEXT>
 		{
 			template <typename Txt>
 			auto operator()(const Txt& text) const
 			{
-				auto vec = signature_bytes( );
+				auto vec = bytes_rng_unknown( );
 
 				const auto store_fn = [&](const unknown_byte& b)
 				{
@@ -233,19 +229,19 @@ namespace nstd
 		};
 
 		template < >
-		struct signature_creator_impl<AUTO>
+		struct parser<signature_parse_mode::AUTO>
 		{
-			signature_creator_impl( ) = delete;
+			parser( ) = delete;
 		};
 	}
 
 	template <signature_parse_mode M /*= AUTO*/>
 	constexpr auto signature = []<typename T>(const T& data)
 	{
-		static_assert(M != AUTO, "AUTO mode disabled");
+		static_assert(M != signature_parse_mode::AUTO, "AUTO mode disabled");
 		/*if constexpr (M == AUTO)
 			return signature<string_viewable<T> ? TEXT : BYTES>(data);
 		else*/
-		return std::invoke(detail::signature_creator_impl<M>( ), data);
+		return std::invoke(signature_detail::parser<M>( ), data);
 	};
 }

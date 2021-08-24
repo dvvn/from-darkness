@@ -1,9 +1,6 @@
 #include "C_CSRagdoll.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_CSRagdoll::m_bClientSideAnimation( )
@@ -12,7 +9,7 @@ bool& C_CSRagdoll::m_bClientSideAnimation( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_bClientSideAnimation");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ float& C_CSRagdoll::m_flAbsYaw( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_flAbsYaw");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -32,7 +29,7 @@ float& C_CSRagdoll::m_flDeathYaw( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_flDeathYaw");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -42,7 +39,7 @@ CBaseHandle& C_CSRagdoll::m_hPlayer( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_hPlayer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -52,7 +49,7 @@ int32_t& C_CSRagdoll::m_iDeathFrame( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_iDeathFrame");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -62,7 +59,7 @@ int32_t& C_CSRagdoll::m_iDeathPose( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_iDeathPose");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -72,7 +69,7 @@ int32_t& C_CSRagdoll::m_iTeamNum( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_iTeamNum");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -82,7 +79,7 @@ int32_t& C_CSRagdoll::m_nForceBone( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_nForceBone");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -92,7 +89,7 @@ int32_t& C_CSRagdoll::m_nModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_nModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -102,7 +99,7 @@ Vector& C_CSRagdoll::m_vecForce( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecForce");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -112,7 +109,7 @@ Vector& C_CSRagdoll::m_vecOrigin( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -122,7 +119,7 @@ Vector& C_CSRagdoll::m_vecRagdollOrigin( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecRagdollOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -132,7 +129,7 @@ Vector& C_CSRagdoll::m_vecRagdollVelocity( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_vecRagdollVelocity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

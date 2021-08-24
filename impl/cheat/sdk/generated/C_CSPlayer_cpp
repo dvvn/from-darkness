@@ -1,7 +1,5 @@
 #include "C_CSPlayer.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
 using namespace csgo;
 
@@ -11,7 +9,7 @@ int32_t& C_CSPlayer::m_ArmorValue( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_ArmorValue");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -21,7 +19,7 @@ std::array<int32_t, 57>& C_CSPlayer::m_EquippedLoadoutItemDefIndices( )
 	return *(std::array<int32_t, 57>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_EquippedLoadoutItemDefIndices");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 57>>( );
 #endif
 }
@@ -31,7 +29,7 @@ int32_t& C_CSPlayer::m_RetakesMVPBoostExtraUtility( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_RetakesMVPBoostExtraUtility");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -41,7 +39,7 @@ QAngle& C_CSPlayer::m_angEyeAngles( )
 	return *(QAngle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_angEyeAngles");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<QAngle>( );
 #endif
 }
@@ -51,7 +49,7 @@ bool& C_CSPlayer::m_bCanControlObservedBot( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bCanControlObservedBot");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -61,7 +59,7 @@ bool& C_CSPlayer::m_bCanMoveDuringFreezePeriod( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bCanMoveDuringFreezePeriod");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -71,7 +69,7 @@ bool& C_CSPlayer::m_bDuckOverride( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bDuckOverride");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -81,7 +79,7 @@ bool& C_CSPlayer::m_bGunGameImmunity( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bGunGameImmunity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -91,7 +89,7 @@ bool& C_CSPlayer::m_bHasControlledBotThisRound( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHasControlledBotThisRound");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -101,7 +99,7 @@ bool& C_CSPlayer::m_bHasDefuser( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHasDefuser");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -111,7 +109,7 @@ bool& C_CSPlayer::m_bHasHeavyArmor( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHasHeavyArmor");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -121,7 +119,7 @@ bool& C_CSPlayer::m_bHasHelmet( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHasHelmet");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -131,7 +129,7 @@ bool& C_CSPlayer::m_bHasMovedSinceSpawn( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHasMovedSinceSpawn");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -141,7 +139,7 @@ bool& C_CSPlayer::m_bHasNightVision( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHasNightVision");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -151,7 +149,7 @@ bool& C_CSPlayer::m_bHasParachute( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHasParachute");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -161,7 +159,7 @@ bool& C_CSPlayer::m_bHideTargetID( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHideTargetID");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -171,7 +169,7 @@ bool& C_CSPlayer::m_bHud_MiniScoreHidden( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHud_MiniScoreHidden");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -181,7 +179,7 @@ bool& C_CSPlayer::m_bHud_RadarHidden( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bHud_RadarHidden");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -191,7 +189,7 @@ bool& C_CSPlayer::m_bInBombZone( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bInBombZone");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -201,7 +199,7 @@ bool& C_CSPlayer::m_bInBuyZone( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bInBuyZone");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -211,7 +209,7 @@ bool& C_CSPlayer::m_bInHostageRescueZone( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bInHostageRescueZone");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -221,7 +219,7 @@ bool& C_CSPlayer::m_bInNoDefuseArea( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bInNoDefuseArea");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -231,7 +229,7 @@ bool& C_CSPlayer::m_bIsAssassinationTarget( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsAssassinationTarget");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -241,7 +239,7 @@ bool& C_CSPlayer::m_bIsControllingBot( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsControllingBot");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -251,7 +249,7 @@ bool& C_CSPlayer::m_bIsDefusing( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsDefusing");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -261,7 +259,7 @@ bool& C_CSPlayer::m_bIsGrabbingHostage( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsGrabbingHostage");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -271,7 +269,7 @@ bool& C_CSPlayer::m_bIsHoldingLookAtWeapon( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsHoldingLookAtWeapon");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -281,7 +279,7 @@ bool& C_CSPlayer::m_bIsLookingAtWeapon( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsLookingAtWeapon");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -291,7 +289,7 @@ bool& C_CSPlayer::m_bIsPlayerGhost( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsPlayerGhost");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -301,7 +299,7 @@ bool& C_CSPlayer::m_bIsRescuing( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsRescuing");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -311,7 +309,7 @@ bool& C_CSPlayer::m_bIsRespawningForDMBonus( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsRespawningForDMBonus");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -321,7 +319,7 @@ bool& C_CSPlayer::m_bIsScoped( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsScoped");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -331,7 +329,7 @@ bool& C_CSPlayer::m_bIsSpawnRappelling( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsSpawnRappelling");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -341,7 +339,7 @@ bool& C_CSPlayer::m_bIsWalking( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bIsWalking");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -351,7 +349,7 @@ bool& C_CSPlayer::m_bKilledByTaser( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bKilledByTaser");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -361,7 +359,7 @@ bool& C_CSPlayer::m_bMadeFinalGunGameProgressiveKill( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bMadeFinalGunGameProgressiveKill");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -371,7 +369,7 @@ bool& C_CSPlayer::m_bNightVisionOn( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bNightVisionOn");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -381,7 +379,7 @@ std::array<int32_t, 65>& C_CSPlayer::m_bPlayerDominated( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bPlayerDominated");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -391,7 +389,7 @@ std::array<int32_t, 65>& C_CSPlayer::m_bPlayerDominatingMe( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bPlayerDominatingMe");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -401,7 +399,7 @@ bool& C_CSPlayer::m_bResumeZoom( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bResumeZoom");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -411,7 +409,7 @@ bool& C_CSPlayer::m_bRetakesHasDefuseKit( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bRetakesHasDefuseKit");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -421,7 +419,7 @@ bool& C_CSPlayer::m_bRetakesMVPLastRound( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bRetakesMVPLastRound");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -431,7 +429,7 @@ bool& C_CSPlayer::m_bStrafing( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bStrafing");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -441,7 +439,7 @@ bool& C_CSPlayer::m_bWaitForNoAttack( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bWaitForNoAttack");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -451,7 +449,7 @@ int32_t& C_CSPlayer::m_cycleLatch( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_cycleLatch");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -461,7 +459,7 @@ float& C_CSPlayer::m_fImmuneToGunGameDamageTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_fImmuneToGunGameDamageTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -471,7 +469,7 @@ float& C_CSPlayer::m_fMolotovDamageTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_fMolotovDamageTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -481,7 +479,7 @@ float& C_CSPlayer::m_fMolotovUseTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_fMolotovUseTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -491,7 +489,7 @@ float& C_CSPlayer::m_flAutoMoveStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flAutoMoveStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -501,7 +499,7 @@ float& C_CSPlayer::m_flAutoMoveTargetTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flAutoMoveTargetTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -511,7 +509,7 @@ float& C_CSPlayer::m_flDetectedByEnemySensorTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flDetectedByEnemySensorTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -521,7 +519,7 @@ float& C_CSPlayer::m_flFlashDuration( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flFlashDuration");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -531,7 +529,7 @@ float& C_CSPlayer::m_flFlashMaxAlpha( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flFlashMaxAlpha");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -541,7 +539,7 @@ float& C_CSPlayer::m_flGroundAccelLinearFracLastTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flGroundAccelLinearFracLastTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -551,7 +549,7 @@ float& C_CSPlayer::m_flGuardianTooFarDistFrac( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flGuardianTooFarDistFrac");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -561,7 +559,7 @@ float& C_CSPlayer::m_flHealthShotBoostExpirationTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flHealthShotBoostExpirationTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -571,7 +569,7 @@ float& C_CSPlayer::m_flLastExoJumpTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flLastExoJumpTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -581,7 +579,7 @@ float& C_CSPlayer::m_flLowerBodyYawTarget( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flLowerBodyYawTarget");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -591,7 +589,7 @@ float& C_CSPlayer::m_flProgressBarStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flProgressBarStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -601,7 +599,7 @@ float& C_CSPlayer::m_flStamina( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flStamina");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -611,7 +609,7 @@ float& C_CSPlayer::m_flThirdpersonRecoil( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flThirdpersonRecoil");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -621,7 +619,7 @@ float& C_CSPlayer::m_flVelocityModifier( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_flVelocityModifier");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -631,7 +629,7 @@ CBaseHandle& C_CSPlayer::m_hCarriedHostage( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hCarriedHostage");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -641,7 +639,7 @@ CBaseHandle& C_CSPlayer::m_hCarriedHostageProp( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hCarriedHostageProp");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -651,7 +649,7 @@ CBaseHandle& C_CSPlayer::m_hPlayerPing( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hPlayerPing");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -661,7 +659,7 @@ CBaseHandle& C_CSPlayer::m_hRagdoll( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hRagdoll");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -671,7 +669,7 @@ CBaseHandle& C_CSPlayer::m_hSurvivalAssassinationTarget( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hSurvivalAssassinationTarget");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -681,7 +679,7 @@ int32_t& C_CSPlayer::m_iAccount( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iAccount");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -691,7 +689,7 @@ int32_t& C_CSPlayer::m_iAddonBits( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iAddonBits");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -701,7 +699,7 @@ int32_t& C_CSPlayer::m_iBlockingUseActionInProgress( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iBlockingUseActionInProgress");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -711,7 +709,7 @@ int32_t& C_CSPlayer::m_iClass( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iClass");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -721,7 +719,7 @@ int32_t& C_CSPlayer::m_iControlledBotEntIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iControlledBotEntIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -731,7 +729,7 @@ int32_t& C_CSPlayer::m_iDirection( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iDirection");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -741,7 +739,7 @@ int32_t& C_CSPlayer::m_iGunGameProgressiveWeaponIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iGunGameProgressiveWeaponIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -751,7 +749,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Assists( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Assists");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -761,7 +759,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_CashEarned( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_CashEarned");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -771,7 +769,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Damage( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Damage");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -781,7 +779,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Deaths( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Deaths");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -791,7 +789,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_EnemiesFlashed( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_EnemiesFlashed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -801,7 +799,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_EquipmentValue( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_EquipmentValue");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -811,7 +809,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_HeadShotKills( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_HeadShotKills");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -821,7 +819,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_KillReward( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_KillReward");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -831,7 +829,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Kills( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Kills");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -841,7 +839,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_LiveTime( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_LiveTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -851,7 +849,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_MoneySaved( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_MoneySaved");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -861,7 +859,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Objective( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Objective");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -871,7 +869,7 @@ std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_UtilityDamage( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_UtilityDamage");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -881,7 +879,7 @@ int32_t& C_CSPlayer::m_iMoveState( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMoveState");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -891,7 +889,7 @@ int32_t& C_CSPlayer::m_iNumGunGameKillsWithCurrentWeapon( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumGunGameKillsWithCurrentWeapon");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -901,7 +899,7 @@ int32_t& C_CSPlayer::m_iNumGunGameTRKillPoints( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumGunGameTRKillPoints");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -911,7 +909,7 @@ int32_t& C_CSPlayer::m_iNumRoundKills( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumRoundKills");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -921,7 +919,7 @@ int32_t& C_CSPlayer::m_iNumRoundKillsHeadshots( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumRoundKillsHeadshots");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -931,7 +929,7 @@ int32_t& C_CSPlayer::m_iPlayerState( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iPlayerState");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -941,7 +939,7 @@ int32_t& C_CSPlayer::m_iPrimaryAddon( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iPrimaryAddon");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -951,7 +949,7 @@ int32_t& C_CSPlayer::m_iProgressBarDuration( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iProgressBarDuration");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -961,7 +959,7 @@ int32_t& C_CSPlayer::m_iRetakesMVPBoostItem( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iRetakesMVPBoostItem");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -971,7 +969,7 @@ int32_t& C_CSPlayer::m_iRetakesOffering( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iRetakesOffering");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -981,7 +979,7 @@ int32_t& C_CSPlayer::m_iRetakesOfferingCard( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iRetakesOfferingCard");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -991,7 +989,7 @@ int32_t& C_CSPlayer::m_iSecondaryAddon( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iSecondaryAddon");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1001,7 +999,7 @@ int32_t& C_CSPlayer::m_iShotsFired( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iShotsFired");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1011,7 +1009,7 @@ int32_t& C_CSPlayer::m_iStartAccount( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iStartAccount");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1021,7 +1019,7 @@ int32_t& C_CSPlayer::m_iThrowGrenadeCounter( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iThrowGrenadeCounter");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1031,7 +1029,7 @@ std::array<int32_t, 499>& C_CSPlayer::m_iWeaponPurchasesThisMatch( )
 	return *(std::array<int32_t, 499>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iWeaponPurchasesThisMatch");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 499>>( );
 #endif
 }
@@ -1041,7 +1039,7 @@ std::array<int32_t, 256>& C_CSPlayer::m_iWeaponPurchasesThisRound( )
 	return *(std::array<int32_t, 256>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iWeaponPurchasesThisRound");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 256>>( );
 #endif
 }
@@ -1051,7 +1049,7 @@ int32_t& C_CSPlayer::m_isCurrentGunGameLeader( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_isCurrentGunGameLeader");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1061,7 +1059,7 @@ int32_t& C_CSPlayer::m_isCurrentGunGameTeamLeader( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_isCurrentGunGameTeamLeader");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1071,7 +1069,7 @@ int32_t& C_CSPlayer::m_nDeathCamMusic( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nDeathCamMusic");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1081,7 +1079,7 @@ int32_t& C_CSPlayer::m_nHeavyAssaultSuitCooldownRemaining( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nHeavyAssaultSuitCooldownRemaining");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1091,7 +1089,7 @@ int32_t& C_CSPlayer::m_nIsAutoMounting( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nIsAutoMounting");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1101,7 +1099,7 @@ int32_t& C_CSPlayer::m_nLastConcurrentKilled( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nLastConcurrentKilled");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1111,7 +1109,7 @@ int32_t& C_CSPlayer::m_nLastKillerIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nLastKillerIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1121,7 +1119,7 @@ int32_t& C_CSPlayer::m_nNumFastDucks( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nNumFastDucks");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1131,7 +1129,7 @@ int32_t& C_CSPlayer::m_nQuestProgressReason( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nQuestProgressReason");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1141,7 +1139,7 @@ int32_t& C_CSPlayer::m_nSurvivalTeam( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nSurvivalTeam");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1151,7 +1149,7 @@ std::array<int32_t, 4>& C_CSPlayer::m_passiveItems( )
 	return *(std::array<int32_t, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_passiveItems");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
@@ -1161,7 +1159,7 @@ std::array<int32_t, 6>& C_CSPlayer::m_rank( )
 	return *(std::array<int32_t, 6>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_rank");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 6>>( );
 #endif
 }
@@ -1171,7 +1169,7 @@ char* C_CSPlayer::m_szArmsModel( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_szArmsModel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -1181,7 +1179,7 @@ int32_t& C_CSPlayer::m_totalHitsOnServer( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_totalHitsOnServer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1191,7 +1189,7 @@ uint32_t& C_CSPlayer::m_unActiveQuestId( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unActiveQuestId");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1201,7 +1199,7 @@ uint32_t& C_CSPlayer::m_unCurrentEquipmentValue( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unCurrentEquipmentValue");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1211,7 +1209,7 @@ uint32_t& C_CSPlayer::m_unFreezetimeEndEquipmentValue( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unFreezetimeEndEquipmentValue");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1221,7 +1219,7 @@ uint32_t& C_CSPlayer::m_unMusicID( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unMusicID");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1231,7 +1229,7 @@ uint32_t& C_CSPlayer::m_unPlayerTvControlFlags( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unPlayerTvControlFlags");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1241,7 +1239,7 @@ uint32_t& C_CSPlayer::m_unRoundStartEquipmentValue( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unRoundStartEquipmentValue");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1251,7 +1249,7 @@ uint32_t& C_CSPlayer::m_unTotalRoundDamageDealt( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unTotalRoundDamageDealt");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1261,7 +1259,7 @@ Vector& C_CSPlayer::m_vecAutomoveTargetEnd( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecAutomoveTargetEnd");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -1271,7 +1269,7 @@ Vector2D& C_CSPlayer::m_vecOrigin( )
 	return *(Vector2D*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector2D>( );
 #endif
 }
@@ -1281,7 +1279,7 @@ std::array<int32_t, 5>& C_CSPlayer::m_vecPlayerPatchEconIndices( )
 	return *(std::array<int32_t, 5>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecPlayerPatchEconIndices");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 5>>( );
 #endif
 }
@@ -1291,7 +1289,7 @@ Vector& C_CSPlayer::m_vecSpawnRappellingRopeOrigin( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecSpawnRappellingRopeOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

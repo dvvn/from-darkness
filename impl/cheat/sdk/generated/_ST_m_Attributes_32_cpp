@@ -1,9 +1,6 @@
 #include "_ST_m_Attributes_32.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& _ST_m_Attributes_32::m_bSetBonus( )
@@ -12,7 +9,7 @@ bool& _ST_m_Attributes_32::m_bSetBonus( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_bSetBonus");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ float& _ST_m_Attributes_32::m_flValue( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_flValue");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -32,7 +29,7 @@ int32_t& _ST_m_Attributes_32::m_iAttributeDefinitionIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_iAttributeDefinitionIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -42,7 +39,7 @@ int32_t& _ST_m_Attributes_32::m_iRawInitialValue32( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_iRawInitialValue32");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -52,7 +49,7 @@ int32_t& _ST_m_Attributes_32::m_iRawValue32( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_iRawValue32");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -62,7 +59,7 @@ int32_t& _ST_m_Attributes_32::m_nRefundableCurrency( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_nRefundableCurrency");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

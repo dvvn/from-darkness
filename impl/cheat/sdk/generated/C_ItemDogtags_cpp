@@ -1,9 +1,6 @@
 #include "C_ItemDogtags.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_ItemDogtags::m_KillingPlayer( )
@@ -12,7 +9,7 @@ int32_t& C_ItemDogtags::m_KillingPlayer( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ItemDogtags", "m_KillingPlayer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -22,7 +19,7 @@ int32_t& C_ItemDogtags::m_OwningPlayer( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ItemDogtags", "m_OwningPlayer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

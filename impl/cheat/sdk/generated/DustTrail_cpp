@@ -1,9 +1,6 @@
 #include "DustTrail.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 Vector& DustTrail::m_Color( )
@@ -12,7 +9,7 @@ Vector& DustTrail::m_Color( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_Color");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -22,7 +19,7 @@ float& DustTrail::m_EndSize( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_EndSize");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -32,7 +29,7 @@ float& DustTrail::m_MaxDirectedSpeed( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_MaxDirectedSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -42,7 +39,7 @@ float& DustTrail::m_MaxSpeed( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_MaxSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -52,7 +49,7 @@ float& DustTrail::m_MinDirectedSpeed( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_MinDirectedSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -62,7 +59,7 @@ float& DustTrail::m_MinSpeed( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_MinSpeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -72,7 +69,7 @@ float& DustTrail::m_Opacity( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_Opacity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -82,7 +79,7 @@ float& DustTrail::m_ParticleLifetime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_ParticleLifetime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -92,7 +89,7 @@ float& DustTrail::m_SpawnRadius( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_SpawnRadius");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -102,7 +99,7 @@ float& DustTrail::m_SpawnRate( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_SpawnRate");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -112,7 +109,7 @@ float& DustTrail::m_StartSize( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_StartSize");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -122,7 +119,7 @@ float& DustTrail::m_StopEmitTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_StopEmitTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -132,7 +129,7 @@ bool& DustTrail::m_bEmit( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("DustTrail", "m_bEmit");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }

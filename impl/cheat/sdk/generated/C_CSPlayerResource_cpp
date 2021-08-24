@@ -1,9 +1,6 @@
 #include "C_CSPlayerResource.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 std::array<int32_t, 65>& C_CSPlayerResource::m_bControllingBot( )
@@ -12,7 +9,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_bControllingBot( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bControllingBot");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -22,7 +19,7 @@ bool& C_CSPlayerResource::m_bEndMatchNextMapAllVoted( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bEndMatchNextMapAllVoted");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -32,7 +29,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_bHasCommunicationAbuseMute( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bHasCommunicationAbuseMute");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -42,7 +39,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_bHasDefuser( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bHasDefuser");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -52,7 +49,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_bHasHelmet( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bHasHelmet");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -62,7 +59,7 @@ std::array<int32_t, 12>& C_CSPlayerResource::m_bHostageAlive( )
 	return *(std::array<int32_t, 12>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bHostageAlive");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 12>>( );
 #endif
 }
@@ -72,7 +69,7 @@ Vector& C_CSPlayerResource::m_bombsiteCenterA( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bombsiteCenterA");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -82,7 +79,7 @@ Vector& C_CSPlayerResource::m_bombsiteCenterB( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_bombsiteCenterB");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -92,7 +89,7 @@ std::array<int32_t, 4>& C_CSPlayerResource::m_hostageRescueX( )
 	return *(std::array<int32_t, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_hostageRescueX");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
@@ -102,7 +99,7 @@ std::array<int32_t, 4>& C_CSPlayerResource::m_hostageRescueY( )
 	return *(std::array<int32_t, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_hostageRescueY");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
@@ -112,7 +109,7 @@ std::array<int32_t, 4>& C_CSPlayerResource::m_hostageRescueZ( )
 	return *(std::array<int32_t, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_hostageRescueZ");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
@@ -122,7 +119,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iArmor( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iArmor");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -132,7 +129,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iBotDifficulty( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iBotDifficulty");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -142,7 +139,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iCashSpentThisRound( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iCashSpentThisRound");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -152,7 +149,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iCompTeammateColor( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iCompTeammateColor");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -162,7 +159,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iCompetitiveRankType( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iCompetitiveRankType");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -172,7 +169,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iCompetitiveRanking( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iCompetitiveRanking");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -182,7 +179,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iCompetitiveWins( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iCompetitiveWins");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -192,7 +189,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iControlledByPlayer( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iControlledByPlayer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -202,7 +199,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iControlledPlayer( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iControlledPlayer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -212,7 +209,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iGunGameLevel( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iGunGameLevel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -222,7 +219,7 @@ std::array<int32_t, 12>& C_CSPlayerResource::m_iHostageEntityIDs( )
 	return *(std::array<int32_t, 12>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iHostageEntityIDs");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 12>>( );
 #endif
 }
@@ -232,7 +229,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iLifetimeEnd( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iLifetimeEnd");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -242,7 +239,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iLifetimeStart( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iLifetimeStart");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -252,7 +249,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMVPs( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMVPs");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -262,7 +259,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_3k_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_3k_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -272,7 +269,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_4k_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_4k_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -282,7 +279,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_5k_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_5k_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -292,7 +289,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_Assists_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_Assists_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -302,7 +299,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_CashEarned_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_CashEarned_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -312,7 +309,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_Damage_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_Damage_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -322,7 +319,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_Deaths_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_Deaths_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -332,7 +329,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_EnemiesFlashed_Total(
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_EnemiesFlashed_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -342,7 +339,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_EquipmentValue_Total(
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_EquipmentValue_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -352,7 +349,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_HeadShotKills_Total( 
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_HeadShotKills_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -362,7 +359,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_KillReward_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_KillReward_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -372,7 +369,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_Kills_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_Kills_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -382,7 +379,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_LiveTime_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_LiveTime_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -392,7 +389,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_Objective_Total( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_Objective_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -402,7 +399,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iMatchStats_UtilityDamage_Total( 
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iMatchStats_UtilityDamage_Total");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -412,7 +409,7 @@ int32_t& C_CSPlayerResource::m_iPlayerC4( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iPlayerC4");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -422,7 +419,7 @@ int32_t& C_CSPlayerResource::m_iPlayerVIP( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iPlayerVIP");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -432,7 +429,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iScore( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iScore");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -442,7 +439,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_iTotalCashSpent( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_iTotalCashSpent");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -452,7 +449,7 @@ std::array<int32_t, 12>& C_CSPlayerResource::m_isHostageFollowingSomeone( )
 	return *(std::array<int32_t, 12>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_isHostageFollowingSomeone");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 12>>( );
 #endif
 }
@@ -462,7 +459,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nActiveCoinRank( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nActiveCoinRank");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -472,7 +469,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nCharacterDefIndex( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nCharacterDefIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -482,7 +479,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nEndMatchNextMapVotes( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nEndMatchNextMapVotes");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -492,7 +489,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nMusicID( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nMusicID");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -502,7 +499,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nPersonaDataPublicCommendsFriendl
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nPersonaDataPublicCommendsFriendly");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -512,7 +509,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nPersonaDataPublicCommendsLeader(
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nPersonaDataPublicCommendsLeader");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -522,7 +519,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nPersonaDataPublicCommendsTeacher
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nPersonaDataPublicCommendsTeacher");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -532,7 +529,7 @@ std::array<int32_t, 65>& C_CSPlayerResource::m_nPersonaDataPublicLevel( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_nPersonaDataPublicLevel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -542,7 +539,7 @@ std::array<char*, 65>& C_CSPlayerResource::m_szClan( )
 	return *(std::array<char*, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_szClan");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<char*, 65>>( );
 #endif
 }
@@ -552,7 +549,7 @@ std::array<char*, 65>& C_CSPlayerResource::m_szCrosshairCodes( )
 	return *(std::array<char*, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayerResource", "m_szCrosshairCodes");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<char*, 65>>( );
 #endif
 }

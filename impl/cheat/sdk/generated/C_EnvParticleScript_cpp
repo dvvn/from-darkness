@@ -1,9 +1,6 @@
 #include "C_EnvParticleScript.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 float& C_EnvParticleScript::m_flSequenceScale( )
@@ -12,7 +9,7 @@ float& C_EnvParticleScript::m_flSequenceScale( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvParticleScript", "m_flSequenceScale");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }

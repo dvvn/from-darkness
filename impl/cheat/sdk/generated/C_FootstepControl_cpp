@@ -1,9 +1,6 @@
 #include "C_FootstepControl.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 char* C_FootstepControl::m_destination( )
@@ -12,7 +9,7 @@ char* C_FootstepControl::m_destination( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FootstepControl", "m_destination");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -22,7 +19,7 @@ char* C_FootstepControl::m_source( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FootstepControl", "m_source");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }

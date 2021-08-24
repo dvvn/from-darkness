@@ -1,9 +1,6 @@
 #include "C_MolotovProjectile.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_MolotovProjectile::m_bIsIncGrenade( )
@@ -12,7 +9,7 @@ bool& C_MolotovProjectile::m_bIsIncGrenade( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_MolotovProjectile", "m_bIsIncGrenade");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }

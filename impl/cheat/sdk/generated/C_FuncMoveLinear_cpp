@@ -1,9 +1,6 @@
 #include "C_FuncMoveLinear.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_FuncMoveLinear::m_fFlags( )
@@ -12,7 +9,7 @@ int32_t& C_FuncMoveLinear::m_fFlags( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FuncMoveLinear", "m_fFlags");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -22,7 +19,7 @@ Vector& C_FuncMoveLinear::m_vecVelocity( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FuncMoveLinear", "m_vecVelocity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

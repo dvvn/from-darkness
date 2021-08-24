@@ -1,9 +1,6 @@
 #include "C_EnvScreenOverlay.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_EnvScreenOverlay::m_bIsActive( )
@@ -12,7 +9,7 @@ bool& C_EnvScreenOverlay::m_bIsActive( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_bIsActive");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ std::array<float, 10>& C_EnvScreenOverlay::m_flOverlayTimes( )
 	return *(std::array<float, 10>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_flOverlayTimes");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 10>>( );
 #endif
 }
@@ -32,7 +29,7 @@ float& C_EnvScreenOverlay::m_flStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_flStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -42,7 +39,7 @@ int32_t& C_EnvScreenOverlay::m_iDesiredOverlay( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_iDesiredOverlay");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -52,7 +49,7 @@ std::array<char*, 10>& C_EnvScreenOverlay::m_iszOverlayNames( )
 	return *(std::array<char*, 10>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_iszOverlayNames");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<char*, 10>>( );
 #endif
 }

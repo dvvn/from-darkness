@@ -84,8 +84,8 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 	using future_type = std::future<data_callback_fn>;
 	auto load_data_storage = std::vector<future_type>( );
 
-	static constexpr auto part_before = signature<BYTES>(".?AV");
-	static constexpr auto part_after  = signature<BYTES>("@@");
+	static constexpr auto part_before = signature<signature_parse_mode::BYTES>(".?AV");
+	static constexpr auto part_after  = signature<signature_parse_mode::BYTES>("@@");
 
 	// type descriptor names look like this: .?AVXXXXXXXXXXXXXXXXX@@ (so: ".?AV" + szTableName + "@@")
 

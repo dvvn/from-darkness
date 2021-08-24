@@ -1,9 +1,6 @@
 #include "C_Tesla.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 char* C_Tesla::m_SoundName( )
@@ -12,7 +9,7 @@ char* C_Tesla::m_SoundName( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Tesla", "m_SoundName");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -22,7 +19,7 @@ char* C_Tesla::m_iszSpriteName( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Tesla", "m_iszSpriteName");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }

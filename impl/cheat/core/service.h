@@ -1,5 +1,4 @@
 #pragma once
-#include "helpers.h"
 
 namespace cheat
 {
@@ -74,7 +73,7 @@ namespace cheat
 	public:
 		std::string_view name( ) const final
 		{
-			return type_name<T>(false);
+			return nstd::type_name<T,"cheat">();
 		}
 	};
 

@@ -3,59 +3,58 @@
 using namespace cheat;
 using namespace csgo;
 
-const char* ConVar::GetString( )
+template <typename T>
+static T _Get_helper(const ConVar* ptr, size_t index)
 {
-	return dhooks::_Call_function(&ConVar::GetString, this, 11);
+	return dhooks::_Call_function(&ConVar::get<T>, ptr, index);
 }
 
-float ConVar::GetFloat( )
+template < >
+const char* ConVar::get<const char*>( ) const
 {
-	return dhooks::_Call_function(&ConVar::GetFloat, this, 12);
+	return _Get_helper<const char*>(this, 11);
 }
 
-int ConVar::GetInt( )
+template < >
+float ConVar::get<float>( ) const
 {
-	return dhooks::_Call_function(&ConVar::GetInt, this, 13);
+	return _Get_helper<float>(this, 12);
 }
 
-bool ConVar::GetBool( )
+template < >
+int ConVar::get<int>( ) const
 {
-	return !!GetInt( );
+	return _Get_helper<int>(this, 13);
 }
 
-void ConVar::SetValue(const char* value)
+template < >
+bool ConVar::get<bool>( ) const
 {
-	dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 14, value);
+	return !!this->get<int>( );
 }
 
-void ConVar::SetValue(float value)
+template <typename T>
+static void _Set_helper(ConVar* ptr, size_t index, T value)
 {
-	dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 15, value);
+	return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
 }
 
-void ConVar::SetValue(int value)
+void ConVar::set(const char* value)
 {
-	dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 16, value);
+	_Set_helper(this, 14, value);
+	//dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 14, value);
 }
 
-ConVar::operator const char*( )
+void ConVar::set(float value)
 {
-	return GetString( );
+	_Set_helper(this, 15, value);
+	//dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 15, value);
 }
 
-ConVar::operator float( )
+void ConVar::set(int value)
 {
-	return GetFloat( );
-}
-
-ConVar::operator int( )
-{
-	return GetInt( );
-}
-
-ConVar::operator bool( )
-{
-	return GetBool( );
+	_Set_helper(this, 16, value);
+	//dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 16, value);
 }
 
 //float cheat::csgo::ConVar::GetValue( )

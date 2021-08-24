@@ -117,6 +117,8 @@ namespace std
 #include <thread_pool.hpp>
 
 // ReSharper disable CppWrongIncludesOrder
+#include "nstd/chars cache.h"
+#include "nstd/type name.h"
 #include "nstd/containers.h"
 #include "nstd/enum as struct.h"
 #include "nstd/std overloads.h"
@@ -154,6 +156,9 @@ namespace std
 #include "cheat/sdk/Vector4D.hpp"
 #include "cheat/sdk/VMatrix.hpp"
 
+// ReSharper disable CppWrongIncludesOrder
 #include "cheat/core/console.h"
+#include "cheat/utils/memory.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/netvars/netvars.h"
+// ReSharper restore CppWrongIncludesOrder

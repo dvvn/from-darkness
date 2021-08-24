@@ -1,9 +1,6 @@
 #include "C_TEBeamEntPoint.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_TEBeamEntPoint::m_nEndEntity( )
@@ -12,7 +9,7 @@ int32_t& C_TEBeamEntPoint::m_nEndEntity( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_nEndEntity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -22,7 +19,7 @@ int32_t& C_TEBeamEntPoint::m_nStartEntity( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_nStartEntity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -32,7 +29,7 @@ Vector& C_TEBeamEntPoint::m_vecEndPoint( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_vecEndPoint");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -42,7 +39,7 @@ Vector& C_TEBeamEntPoint::m_vecStartPoint( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_vecStartPoint");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

@@ -1,9 +1,6 @@
 #include "C_EnvProjectedTexture.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 int32_t& C_EnvProjectedTexture::m_LightColor( )
@@ -12,7 +9,7 @@ int32_t& C_EnvProjectedTexture::m_LightColor( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_LightColor");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -22,7 +19,7 @@ char* C_EnvProjectedTexture::m_SpotlightTextureName( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_SpotlightTextureName");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -32,7 +29,7 @@ bool& C_EnvProjectedTexture::m_bAlwaysUpdate( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_bAlwaysUpdate");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -42,7 +39,7 @@ bool& C_EnvProjectedTexture::m_bCameraSpace( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_bCameraSpace");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -52,7 +49,7 @@ bool& C_EnvProjectedTexture::m_bEnableShadows( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_bEnableShadows");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -62,7 +59,7 @@ bool& C_EnvProjectedTexture::m_bLightOnlyTarget( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_bLightOnlyTarget");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -72,7 +69,7 @@ bool& C_EnvProjectedTexture::m_bLightWorld( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_bLightWorld");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -82,7 +79,7 @@ bool& C_EnvProjectedTexture::m_bSimpleProjection( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_bSimpleProjection");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -92,7 +89,7 @@ bool& C_EnvProjectedTexture::m_bState( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_bState");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -102,7 +99,7 @@ float& C_EnvProjectedTexture::m_flAmbient( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flAmbient");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -112,7 +109,7 @@ float& C_EnvProjectedTexture::m_flBrightnessScale( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flBrightnessScale");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -122,7 +119,7 @@ float& C_EnvProjectedTexture::m_flColorTransitionTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flColorTransitionTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -132,7 +129,7 @@ float& C_EnvProjectedTexture::m_flFarZ( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flFarZ");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -142,7 +139,7 @@ float& C_EnvProjectedTexture::m_flLightFOV( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flLightFOV");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -152,7 +149,7 @@ float& C_EnvProjectedTexture::m_flNearZ( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flNearZ");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -162,7 +159,7 @@ float& C_EnvProjectedTexture::m_flProjectionSize( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flProjectionSize");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -172,7 +169,7 @@ float& C_EnvProjectedTexture::m_flRotation( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_flRotation");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -182,7 +179,7 @@ CBaseHandle& C_EnvProjectedTexture::m_hTargetEntity( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_hTargetEntity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -192,7 +189,7 @@ int32_t& C_EnvProjectedTexture::m_iStyle( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_iStyle");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -202,7 +199,7 @@ int32_t& C_EnvProjectedTexture::m_nShadowQuality( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_nShadowQuality");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -212,7 +209,7 @@ int32_t& C_EnvProjectedTexture::m_nSpotlightTextureFrame( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_nSpotlightTextureFrame");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

@@ -1,13 +1,8 @@
 #include "player.h"
 
-#include "cheat/core/csgo interfaces.h"
-#include "cheat/core/helpers.h"
-#include "cheat/sdk/GlobalVars.hpp"
-
 #include "cheat/sdk/IConVar.hpp"
-#include "cheat/sdk/IVEngineClient.hpp"
-
 #include "cheat/sdk/entity/C_CSPlayer.h"
+#include "cheat/utils/game.h"
 
 using namespace cheat;
 using namespace detail;
@@ -17,18 +12,17 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 {
 	shared_holder::init( );
 
-#ifndef CHEAT_NETVARS_UPDATING
 	const auto pl = this->get( );
 
 	pl->sim_time = /*ent->m_flSimulationTime( )*/-1;
-	pl->dormant = owner->IsDormant( );
+	pl->dormant  = owner->IsDormant( );
 	//this->index = ent->EntIndex( );
-	pl->ent = owner;
+	pl->ent   = owner;
 	pl->alive = owner->IsAlive( );
-	pl->team = owner->m_iTeamNum( );
+	pl->team  = owner->m_iTeamNum( );
 	pl->ticks.reserve(player::max_ticks_count( ));
 	owner->m_bClientSideAnimation( ) = false;
-	this->destroy_fn_ = [](const player& p)
+	this->destroy_fn_                = [](const player& p)
 	{
 		__try
 		{
@@ -38,17 +32,11 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 		{
 		}
 	};
-
-#endif
 }
 
 bool player_shared_impl::update_simtime( )
 {
 	//todo: tickbase shift workaround
-	(void)this;
-#ifdef CHEAT_NETVARS_UPDATING
-	return false;
-#else
 
 	auto& p = **this;
 
@@ -58,13 +46,10 @@ bool player_shared_impl::update_simtime( )
 		return true;
 	}
 	return false;
-#endif
 }
 
 void player_shared_impl::update_animations(bool simple)
 {
-	(void)this;
-#ifndef CHEAT_NETVARS_UPDATING
 	const auto p = this->get( )->ent;
 
 	const auto backup_layers = [p]
@@ -85,14 +70,12 @@ void player_shared_impl::update_animations(bool simple)
 		//todo: proper animfix
 		p->UpdateClientSideAnimation( );
 	}
-
-#endif
 }
 
 void player_shared_impl::store_tick( )
 {
 	auto& data = this->share( );
-	auto& t = data->ticks.emplace_front( );
+	auto& t    = data->ticks.emplace_front( );
 
 	t.init(*data);
 
@@ -101,8 +84,8 @@ void player_shared_impl::store_tick( )
 
 void player_shared_impl::remove_old_ticks(float curtime)
 {
-	auto& pl = *share( );
-	auto& ticks = pl.ticks;
+	auto& pl           = *share( );
+	auto& ticks        = pl.ticks;
 	auto& ticks_window = pl.ticks_window;
 
 	const auto erase_uselles = [&]
@@ -119,7 +102,7 @@ void player_shared_impl::remove_old_ticks(float curtime)
 	const auto update_window = [&]
 	{
 		const auto begin = ticks.begin( );
-		const auto end = ticks.end( );
+		const auto end   = ticks.end( );
 
 		const auto first_valid = [&]
 		{
@@ -166,5 +149,5 @@ void player_shared_impl::remove_old_ticks(float curtime)
 
 size_t player::max_ticks_count( )
 {
-	return time_to_ticks(unlag_limit( ) + unlag_range( ));
+	return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
 }

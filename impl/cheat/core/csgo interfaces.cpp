@@ -1,11 +1,6 @@
 #include "csgo interfaces.h"
 
-#include "console.h"
-#include "helpers.h"
-
 #include "cheat/sdk/IAppSystem.hpp"
-
-#include "nstd/signature.h"
 
 using namespace cheat;
 using namespace detail;
@@ -148,7 +143,7 @@ public:
 	}
 };
 
-[[maybe_unused]] static nstd::address _Get_vfunc(void* instance, size_t index)
+[[maybe_unused]] static nstd::address get_vfunc(void* instance, size_t index)
 {
 	return dhooks::_Pointer_to_virtual_class_table(instance)[index];
 }
@@ -264,7 +259,9 @@ bool csgo_interfaces::load_impl( )
 	input_sys       = get_game_interface("inputsystem.dll", "InputSystemVersion");
 	studio_renderer = get_game_interface("studiorender.dll", "VStudioRender");
 
-	client_mode = _Get_vfunc(client, 10).add(5).deref(2);
+	client_mode = get_vfunc(client, 10).add(5).deref(2);
+
+	using namespace utils;
 
 	global_vars  = find_signature("client.dll", "A1 ? ? ? ? 5E 8B 40 10").add(1).deref(2);
 	input        = find_signature("client.dll", "B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").add(1).deref(1);

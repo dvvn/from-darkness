@@ -1,7 +1,5 @@
 #include "C_BaseCombatWeapon.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
 using namespace csgo;
 
@@ -11,7 +9,7 @@ bool& C_BaseCombatWeapon::m_bFlipViewModel( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_bFlipViewModel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -21,7 +19,7 @@ float& C_BaseCombatWeapon::m_flNextPrimaryAttack( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_flNextPrimaryAttack");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -31,7 +29,7 @@ float& C_BaseCombatWeapon::m_flNextSecondaryAttack( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_flNextSecondaryAttack");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -41,7 +39,7 @@ float& C_BaseCombatWeapon::m_flTimeWeaponIdle( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_flTimeWeaponIdle");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -51,7 +49,7 @@ CBaseHandle& C_BaseCombatWeapon::m_hOwner( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_hOwner");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -61,7 +59,7 @@ CBaseHandle& C_BaseCombatWeapon::m_hWeaponWorldModel( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_hWeaponWorldModel");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -71,7 +69,7 @@ int32_t& C_BaseCombatWeapon::m_iClip1( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iClip1");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -81,7 +79,7 @@ int32_t& C_BaseCombatWeapon::m_iClip2( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iClip2");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -91,7 +89,7 @@ int32_t& C_BaseCombatWeapon::m_iNumEmptyAttacks( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iNumEmptyAttacks");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -101,7 +99,7 @@ int32_t& C_BaseCombatWeapon::m_iPrimaryAmmoType( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iPrimaryAmmoType");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -111,7 +109,7 @@ int32_t& C_BaseCombatWeapon::m_iPrimaryReserveAmmoCount( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iPrimaryReserveAmmoCount");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -121,7 +119,7 @@ int32_t& C_BaseCombatWeapon::m_iSecondaryAmmoType( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iSecondaryAmmoType");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -131,7 +129,7 @@ int32_t& C_BaseCombatWeapon::m_iSecondaryReserveAmmoCount( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iSecondaryReserveAmmoCount");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -141,7 +139,7 @@ int32_t& C_BaseCombatWeapon::m_iState( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iState");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -151,7 +149,7 @@ int32_t& C_BaseCombatWeapon::m_iViewModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iViewModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -161,7 +159,7 @@ int32_t& C_BaseCombatWeapon::m_iWeaponModule( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWeaponModule");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -171,7 +169,7 @@ int32_t& C_BaseCombatWeapon::m_iWeaponOrigin( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWeaponOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -181,7 +179,7 @@ int32_t& C_BaseCombatWeapon::m_iWorldDroppedModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWorldDroppedModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -191,7 +189,7 @@ int32_t& C_BaseCombatWeapon::m_iWorldModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWorldModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -201,7 +199,7 @@ int32_t& C_BaseCombatWeapon::m_nNextThinkTick( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_nNextThinkTick");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -211,7 +209,7 @@ int32_t& C_BaseCombatWeapon::m_nViewModelIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_nViewModelIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

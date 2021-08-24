@@ -1,9 +1,6 @@
 #include "C_EntityFreezing.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_EntityFreezing::m_bFinishFreezing( )
@@ -12,7 +9,7 @@ bool& C_EntityFreezing::m_bFinishFreezing( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_bFinishFreezing");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ float& C_EntityFreezing::m_flFrozen( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_flFrozen");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -32,7 +29,7 @@ std::array<float, 50>& C_EntityFreezing::m_flFrozenPerHitbox( )
 	return *(std::array<float, 50>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_flFrozenPerHitbox");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 50>>( );
 #endif
 }
@@ -42,7 +39,7 @@ Vector& C_EntityFreezing::m_vFreezingOrigin( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_vFreezingOrigin");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

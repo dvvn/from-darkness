@@ -2,11 +2,12 @@
 #include "player.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/core/helpers.h"
+#include "cheat/utils/game.h"
 
 #include "cheat/sdk/IConVar.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
 #include "cheat/sdk/entity/C_CSPlayer.h"
+
 
 using namespace cheat;
 using namespace detail;
@@ -32,10 +33,10 @@ bool tick_record::is_valid(float curtime) const
 		return engine->GetNetChannelInfo( )->GetLatency(flow);
 	};
 
-	const auto correct = std::clamp(get_latency(FLOW_INCOMING) + get_latency(FLOW_OUTGOING) + lerp_time( ),
-									0.f, unlag_limit( ));
+	const auto correct = std::clamp(get_latency(FLOW_INCOMING) + get_latency(FLOW_OUTGOING) + utils::lerp_time( ),
+									0.f, utils::unlag_limit( ));
 
-	return std::abs(correct - (curtime - sim_time)) < unlag_range( ) /*&& correct < 1.f*/;
+	return std::abs(correct - (curtime - sim_time)) < utils::unlag_range( ) /*&& correct < 1.f*/;
 }
 
 void tick_record_shared_impl::init(const player& holder)

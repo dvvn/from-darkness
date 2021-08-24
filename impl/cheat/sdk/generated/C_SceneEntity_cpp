@@ -1,9 +1,6 @@
 #include "C_SceneEntity.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_SceneEntity::m_bIsPlayingBack( )
@@ -12,7 +9,7 @@ bool& C_SceneEntity::m_bIsPlayingBack( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bIsPlayingBack");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ bool& C_SceneEntity::m_bMultiplayer( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bMultiplayer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -32,7 +29,7 @@ bool& C_SceneEntity::m_bPaused( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bPaused");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -42,7 +39,7 @@ float& C_SceneEntity::m_flForceClientTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_flForceClientTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -52,7 +49,7 @@ std::array<int32_t, 16>& C_SceneEntity::m_hActorList( )
 	return *(std::array<int32_t, 16>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_hActorList");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 16>>( );
 #endif
 }
@@ -62,7 +59,7 @@ int32_t& C_SceneEntity::m_nSceneStringIndex( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_nSceneStringIndex");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

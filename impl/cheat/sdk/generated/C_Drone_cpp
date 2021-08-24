@@ -1,9 +1,6 @@
 #include "C_Drone.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_Drone::m_bPilotTakeoverAllowed( )
@@ -12,7 +9,7 @@ bool& C_Drone::m_bPilotTakeoverAllowed( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_bPilotTakeoverAllowed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ CBaseHandle& C_Drone::m_hCurrentPilot( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hCurrentPilot");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -32,7 +29,7 @@ CBaseHandle& C_Drone::m_hDeliveryCargo( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hDeliveryCargo");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -42,7 +39,7 @@ CBaseHandle& C_Drone::m_hMoveToThisEntity( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hMoveToThisEntity");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -52,7 +49,7 @@ CBaseHandle& C_Drone::m_hPotentialCargo( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hPotentialCargo");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -62,7 +59,7 @@ std::array<int32_t, 24>& C_Drone::m_vecTagIncrements( )
 	return *(std::array<int32_t, 24>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_vecTagIncrements");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 24>>( );
 #endif
 }
@@ -72,7 +69,7 @@ std::array<Vector, 24>& C_Drone::m_vecTagPositions( )
 	return *(std::array<Vector, 24>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_vecTagPositions");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<Vector, 24>>( );
 #endif
 }

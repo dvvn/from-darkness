@@ -88,71 +88,63 @@ namespace cheat::csgo
 	class IConVar
 	{
 	public:
-		virtual void SetValue(const char* pValue) = 0;
-		virtual void SetValue(float flValue) = 0;
-		virtual void SetValue(int nValue) = 0;
-		virtual void SetValue(Color value) = 0;
+		virtual void        SetValue(const char* pValue) = 0;
+		virtual void        SetValue(float flValue) = 0;
+		virtual void        SetValue(int nValue) = 0;
+		virtual void        SetValue(Color value) = 0;
 		virtual const char* GetName( ) const = 0;
 		virtual const char* GetBaseName( ) const = 0;
-		virtual bool IsFlagSet(int nFlag) const = 0;
-		virtual int GetSplitScreenPlayerSlot( ) const = 0;
+		virtual bool        IsFlagSet(int nFlag) const = 0;
+		virtual int         GetSplitScreenPlayerSlot( ) const = 0;
 	};
 
 	struct CVValue_t
 	{
 		char* m_pszString;
-		int m_StringLength;
+		int   m_StringLength;
 
 		// Values
 		float m_fValue;
-		int m_nValue;
+		int   m_nValue;
 	};
 
 	class ConVar
 	{
-		const char* GetString( );
-		float GetFloat( );
-		int GetInt( );
-		bool GetBool( );
 	public:
-		void SetValue(const char* value);
-		void SetValue(float value);
-		void SetValue(int value);
+		void set(const char* value);
+		void set(float value);
+		void set(int value);
 
-		operator const char*( );
-		operator float( );
-		operator int( );
-		operator bool( );
+		template <typename T>
+		T get( ) const;
+
+		template < >
+		const char* get( ) const;
+		template < >
+		float get( ) const;
+		template < >
+		int get( ) const;
 
 	private:
 		void* virtualtable;
 	public:
-		ConVar* m_pNext;
-		int m_bRegistered;
-		char* m_pszName;
-		char* m_pszHelpString;
-		ConVarFlags m_nFlags;
+		ConVar*              m_pNext;
+		int                  m_bRegistered;
+		char*                m_pszName;
+		char*                m_pszHelpString;
+		ConVarFlags          m_nFlags;
 		FnChangeCallbackV1_t m_fnChangeCallbacksV1;
-		ConVar* m_pParent;
-		char* m_pszDefaultValue;
-		CVValue_t m_Value;
-		int m_bHasMin;
-		float m_fMinVal;
-		int m_bHasMax;
-		float m_fMaxVal;
+		ConVar*              m_pParent;
+		char*                m_pszDefaultValue;
+		CVValue_t            m_Value;
+		int                  m_bHasMin;
+		float                m_fMinVal;
+		int                  m_bHasMax;
+		float                m_fMaxVal;
+
 		CUtlVector<FnChangeCallback_t> m_fnChangeCallbacks; // note: this is also accessible as FnChangeCallback_t* instead of CUtlVector
 
 		/*float GetValue();
 		int GetValueN();*/
-
-	private:
-		template <typename T>
-		void SetValue_([[maybe_unused]] T val)
-		{
-			CHEAT_UNUSED_ASSERT;
-			(void)this;
-		}
-
-		
 	}; //Size=0x0048*
 }

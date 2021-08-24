@@ -1,9 +1,8 @@
-// ReSharper disable CppRedundantElseKeywordInsideCompoundStatement
 #pragma once
 
 namespace nstd
 {
-	template <typename T, size_t Count = 0>
+	template <typename T, size_t Index = 0>
 	class one_instance
 	{
 	public:
@@ -24,13 +23,13 @@ namespace nstd
 
 		static pointer get_ptr( )
 		{
-			static_assert(std::is_default_constructible_v<T>, "T must be default constructible!");
+			static_assert(std::is_default_constructible_v<T>, __FUNCSIG__": element must be default constructible!");
 			static T cache = T( );
 			return std::addressof(cache);
 		}
 	};
 
-	template <typename T, size_t Count = 0>
+	template <typename T, size_t Index = 0>
 	class one_instance_shared
 	{
 	public:
@@ -42,7 +41,7 @@ namespace nstd
 		using weak_type = std::weak_ptr<T>;
 		using shared_type = std::shared_ptr<T>;
 
-		static shared_type get_ptr_shared(bool steal=false)
+		static shared_type get_ptr_shared(bool steal = false)
 		{
 			static_assert(std::is_default_constructible_v<T>, __FUNCTION__": T must be default constructible!");
 
@@ -51,19 +50,13 @@ namespace nstd
 
 			if (!shared)
 			{
-				runtime_assert(steal==false);
+				runtime_assert(steal == false);
 				return weak.lock( );
 			}
-			else
-			{
-				if (!steal)
-					return shared;
-				else
-				{
-					weak = shared;
-					return std::move(shared);
-				}
-			}
+			if (!steal)
+				return shared;
+			weak = shared;
+			return std::move(shared);
 		}
 
 		static T* get_ptr( )

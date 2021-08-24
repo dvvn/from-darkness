@@ -1,9 +1,6 @@
 #include "C_TEPlayerAnimEvent.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 CBaseHandle& C_TEPlayerAnimEvent::m_hPlayer( )
@@ -12,7 +9,7 @@ CBaseHandle& C_TEPlayerAnimEvent::m_hPlayer( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_hPlayer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }
@@ -22,7 +19,7 @@ int32_t& C_TEPlayerAnimEvent::m_iEvent( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_iEvent");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -32,7 +29,7 @@ int32_t& C_TEPlayerAnimEvent::m_nData( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_nData");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

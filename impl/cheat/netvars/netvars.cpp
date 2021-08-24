@@ -19,6 +19,7 @@
 #endif
 
 using namespace cheat;
+using namespace detail;
 using namespace csgo;
 
 netvars::~netvars( )
@@ -595,29 +596,19 @@ bool netvars::load_impl( )
 #else
 
 #ifdef _DEBUG
-	data__.clear( );
+	data_.clear( );
 #endif
 
 	const auto interfaces = csgo_interfaces::get_ptr( );
 
-	_Iterate_client_class(data__, interfaces->client->GetAllClasses( ));
+	_Iterate_client_class(data_, interfaces->client->GetAllClasses( ));
 
-	const auto baseent = vtable_pointer<C_BaseEntity>("client.dll");
+	const auto baseent = utils::vtable_pointer<C_BaseEntity>("client.dll");
 
-	_Iterate_datamap(data__, baseent->GetDataDescMap( ));
-	_Iterate_datamap(data__, baseent->GetPredictionDescMap( ));
+	_Iterate_datamap(data_, baseent->GetDataDescMap( ));
+	_Iterate_datamap(data_, baseent->GetPredictionDescMap( ));
 
 	return true;
-
-#endif
-}
-
-void netvars::after_load( )
-{
-#if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
-
-	const auto info = this->Dump_netvars_( );
-	this->Generate_classes_(info);
 
 #endif
 }
@@ -625,7 +616,14 @@ void netvars::after_load( )
 static constexpr int  _Json_indent = 4;
 static constexpr char _Json_filler = ' ';
 
-netvars::dump_info netvars::Dump_netvars_( )
+enum class dump_info
+{
+	skipped,
+	created,
+	updated
+};
+
+static dump_info _Dump_netvars(const netvars::data_type& netvars_data)
 {
 	static const auto netvars_dump_dir = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
 	const auto        dirs_created     = create_directories(netvars_dump_dir);
@@ -645,14 +643,14 @@ netvars::dump_info netvars::Dump_netvars_( )
 
 	if (!file_exists)
 	{
-		std::ofstream(netvars_dump_file) << std::setw(_Json_indent) << std::setfill(_Json_filler) << data__;
+		std::ofstream(netvars_dump_file) << std::setw(_Json_indent) << std::setfill(_Json_filler) << netvars_data;
 		info = dump_info::created;
 		CHEAT_CONSOLE_LOG("Netvars dump done");
 	}
 	else
 	{
 		std::ostringstream test_to_write;
-		test_to_write << std::setw(_Json_indent) << std::setfill(_Json_filler) << data__;
+		test_to_write << std::setw(_Json_indent) << std::setfill(_Json_filler) << netvars_data;
 
 		if ((nstd::checksum(test_to_write) == nstd::checksum(netvars_dump_file)))
 		{
@@ -670,12 +668,8 @@ netvars::dump_info netvars::Dump_netvars_( )
 	return info;
 }
 
-void netvars::Generate_classes_(dump_info info)
+static void _Generate_classes(dump_info info, const netvars::data_type& netvars_data, netvars::writers_storage_type& lazy_writer)
 {
-#ifndef CHEAT_NETVARS_RESOLVE_TYPE
-	(void)this;
-#else
-
 	if (info == dump_info::skipped)
 		return;
 
@@ -684,8 +678,8 @@ void netvars::Generate_classes_(dump_info info)
 	remove_all(dir);
 	create_directories(dir);
 
-	lazy_writer__.reserve(data__.size( ) * 2);
-	for (auto& [class_name,netvars]: data__.items( ))
+	lazy_writer.reserve(netvars_data.size( ) * 2);
+	for (auto& [class_name,netvars]: netvars_data.items( ))
 	{
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppTooWideScope
@@ -694,12 +688,12 @@ void netvars::Generate_classes_(dump_info info)
 		// ReSharper restore CppTooWideScope
 		// ReSharper restore CppInconsistentNaming
 
-		auto header = lazy_file_writer(dir / (class_name + "_h"));
-		auto source = lazy_file_writer(dir / (class_name + "_cpp"));
+		auto header = detail::lazy_file_writer(dir / (class_name + "_h"));
+		auto source = detail::lazy_file_writer(dir / (class_name + "_cpp"));
 
 		source << std::format("#include \"{}.h\"", class_name) << __New_line;
 		source << __New_line;
-		static const auto netvars_header_path = []
+		/*static const auto netvars_header_path = []
 		{
 			const auto cpp_path = CHEAT_CURRENT_FILE_PATH;
 			auto       str      = std::string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
@@ -707,7 +701,7 @@ void netvars::Generate_classes_(dump_info info)
 			return str += ".h";
 		}( );
 		source << std::format("#include \"{}\"", netvars_header_path) << __New_line;
-		source << __New_line;
+		source << __New_line;*/ //<---------------moved to pch
 		source << "using namespace cheat;" << __New_line;
 		source << "using namespace csgo;" << __New_line;
 		source << __New_line;
@@ -717,14 +711,14 @@ void netvars::Generate_classes_(dump_info info)
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.get(netvar_data);
 #endif
-			std::string_view netvar_type         = netvar_data.at("type").get_ref<std::string&>( );
+			std::string_view netvar_type         = netvar_data.at("type").get_ref<const std::string&>( );
 			const auto       netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
 				netvar_type.remove_suffix(1);
 
 			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
 
-			constexpr auto address_class = type_name<nstd::address>(false);
+			constexpr auto address_class = nstd::type_name<nstd::address>( );
 
 			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
 			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
@@ -746,23 +740,32 @@ void netvars::Generate_classes_(dump_info info)
 			source << '}' << __New_line;
 		}
 
-		lazy_writer__.push_back(std::move(header));
-		lazy_writer__.push_back(std::move(source));
+		lazy_writer.push_back(std::move(header));
+		lazy_writer.push_back(std::move(source));
 	}
 
 	if (info == dump_info::created)
 	{
 		//write all without waiting
-		lazy_writer__.clear( );
+		lazy_writer.clear( );
 	}
 
 	CHEAT_CONSOLE_LOG("Netvars classes generation done");
+}
+
+void netvars::after_load( )
+{
+#if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
+
+	const auto info = _Dump_netvars(data_);
+	_Generate_classes(info, data_, lazy_writer_);
+
 #endif
 }
 
 int netvars::at(const std::string_view& table, const std::string_view& item) const
 {
-	for (auto& [table_stored,keys]: data__.items( ))
+	for (auto& [table_stored,keys]: data_.items( ))
 	{
 		if (table_stored != table)
 			continue;
@@ -782,28 +785,28 @@ int netvars::at(const std::string_view& table, const std::string_view& item) con
 	return 0;
 }
 
-netvars::lazy_file_writer::~lazy_file_writer( )
+lazy_file_writer::~lazy_file_writer( )
 {
-	if (file__.empty( ))
+	if (file_.empty( ))
 		return;
 
 	const auto str = this->str( );
 	if (str.empty( ))
 		return;
 
-	std::ofstream ofs(file__);
+	std::ofstream ofs(file_);
 	if (!ofs)
 		return;
 
 	ofs << str;
 }
 
-netvars::lazy_file_writer::lazy_file_writer(std::filesystem::path&& file): file__(std::move(file))
+lazy_file_writer::lazy_file_writer(std::filesystem::path&& file): file_(std::move(file))
 {
 }
 
-netvars::lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
+lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
 {
-	file__                                  = std::move(other.file__);
+	file_                                   = std::move(other.file_);
 	*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
 }

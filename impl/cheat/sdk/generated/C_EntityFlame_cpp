@@ -1,9 +1,6 @@
 #include "C_EntityFlame.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_EntityFlame::m_bCheapEffect( )
@@ -12,7 +9,7 @@ bool& C_EntityFlame::m_bCheapEffect( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityFlame", "m_bCheapEffect");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ CBaseHandle& C_EntityFlame::m_hEntAttached( )
 	return *(CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityFlame", "m_hEntAttached");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<CBaseHandle>( );
 #endif
 }

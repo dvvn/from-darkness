@@ -229,7 +229,7 @@ services_holder::all_hooks_storage services_holder::get_all_hooks( )
 
 std::string_view services_loader::name( ) const
 {
-	return type_name<services_loader>(false);
+	return nstd::type_name<services_loader, "cheat">( );
 }
 
 #ifndef CHEAT_GUI_TEST

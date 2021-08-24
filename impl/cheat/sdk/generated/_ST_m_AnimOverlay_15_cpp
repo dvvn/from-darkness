@@ -1,9 +1,6 @@
 #include "_ST_m_AnimOverlay_15.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 float& _ST_m_AnimOverlay_15::m_flCycle( )
@@ -12,7 +9,7 @@ float& _ST_m_AnimOverlay_15::m_flCycle( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flCycle");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -22,7 +19,7 @@ float& _ST_m_AnimOverlay_15::m_flPlaybackRate( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flPlaybackRate");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -32,7 +29,7 @@ float& _ST_m_AnimOverlay_15::m_flPrevCycle( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flPrevCycle");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -42,7 +39,7 @@ float& _ST_m_AnimOverlay_15::m_flWeight( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flWeight");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -52,7 +49,7 @@ float& _ST_m_AnimOverlay_15::m_flWeightDeltaRate( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flWeightDeltaRate");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -62,7 +59,7 @@ int32_t& _ST_m_AnimOverlay_15::m_nOrder( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_nOrder");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -72,7 +69,7 @@ int32_t& _ST_m_AnimOverlay_15::m_nSequence( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_nSequence");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }

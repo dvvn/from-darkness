@@ -1,9 +1,6 @@
 #include "C_CSGameRulesProxy.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 std::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponKillUpgradeOrderCT( )
@@ -12,7 +9,7 @@ std::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponKillUpgradeOrd
 	return *(std::array<int32_t, 60>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_GGProgressiveWeaponKillUpgradeOrderCT");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 60>>( );
 #endif
 }
@@ -22,7 +19,7 @@ std::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponKillUpgradeOrd
 	return *(std::array<int32_t, 60>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_GGProgressiveWeaponKillUpgradeOrderT");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 60>>( );
 #endif
 }
@@ -32,7 +29,7 @@ std::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponOrderCT( )
 	return *(std::array<int32_t, 60>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_GGProgressiveWeaponOrderCT");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 60>>( );
 #endif
 }
@@ -42,7 +39,7 @@ std::array<int32_t, 60>& C_CSGameRulesProxy::m_GGProgressiveWeaponOrderT( )
 	return *(std::array<int32_t, 60>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_GGProgressiveWeaponOrderT");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 60>>( );
 #endif
 }
@@ -52,7 +49,7 @@ int32_t& C_CSGameRulesProxy::m_MatchDevice( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_MatchDevice");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -62,7 +59,7 @@ std::array<int32_t, 224>& C_CSGameRulesProxy::m_SpawnTileState( )
 	return *(std::array<int32_t, 224>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_SpawnTileState");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 224>>( );
 #endif
 }
@@ -72,7 +69,7 @@ std::array<int32_t, 16>& C_CSGameRulesProxy::m_SurvivalGameRuleDecisionTypes( )
 	return *(std::array<int32_t, 16>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_SurvivalGameRuleDecisionTypes");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 16>>( );
 #endif
 }
@@ -82,7 +79,7 @@ std::array<int32_t, 16>& C_CSGameRulesProxy::m_SurvivalGameRuleDecisionValues( )
 	return *(std::array<int32_t, 16>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_SurvivalGameRuleDecisionValues");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 16>>( );
 #endif
 }
@@ -92,7 +89,7 @@ std::array<float, 32>& C_CSGameRulesProxy::m_TeamRespawnWaveTimes( )
 	return *(std::array<float, 32>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_TeamRespawnWaveTimes");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 32>>( );
 #endif
 }
@@ -102,7 +99,7 @@ std::array<int32_t, 4>& C_CSGameRulesProxy::m_arrFeaturedGiftersAccounts( )
 	return *(std::array<int32_t, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_arrFeaturedGiftersAccounts");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
@@ -112,7 +109,7 @@ std::array<int32_t, 4>& C_CSGameRulesProxy::m_arrFeaturedGiftersGifts( )
 	return *(std::array<int32_t, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_arrFeaturedGiftersGifts");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
@@ -122,7 +119,7 @@ std::array<int32_t, 100>& C_CSGameRulesProxy::m_arrProhibitedItemIndices( )
 	return *(std::array<int32_t, 100>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_arrProhibitedItemIndices");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 100>>( );
 #endif
 }
@@ -132,7 +129,7 @@ std::array<int32_t, 4>& C_CSGameRulesProxy::m_arrTournamentActiveCasterAccounts(
 	return *(std::array<int32_t, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_arrTournamentActiveCasterAccounts");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 4>>( );
 #endif
 }
@@ -142,7 +139,7 @@ bool& C_CSGameRulesProxy::m_bAnyHostageReached( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bAnyHostageReached");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -152,7 +149,7 @@ bool& C_CSGameRulesProxy::m_bBlockersPresent( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bBlockersPresent");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -162,7 +159,7 @@ bool& C_CSGameRulesProxy::m_bBombDropped( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bBombDropped");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -172,7 +169,7 @@ bool& C_CSGameRulesProxy::m_bBombPlanted( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bBombPlanted");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -182,7 +179,7 @@ bool& C_CSGameRulesProxy::m_bCTCantBuy( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bCTCantBuy");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -192,7 +189,7 @@ bool& C_CSGameRulesProxy::m_bCTTimeOutActive( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bCTTimeOutActive");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -202,7 +199,7 @@ bool& C_CSGameRulesProxy::m_bDMBonusActive( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bDMBonusActive");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -212,7 +209,7 @@ bool& C_CSGameRulesProxy::m_bFreezePeriod( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bFreezePeriod");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -222,7 +219,7 @@ bool& C_CSGameRulesProxy::m_bGameRestart( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bGameRestart");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -232,7 +229,7 @@ bool& C_CSGameRulesProxy::m_bHasMatchStarted( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bHasMatchStarted");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -242,7 +239,7 @@ bool& C_CSGameRulesProxy::m_bIsDroppingItems( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bIsDroppingItems");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -252,7 +249,7 @@ bool& C_CSGameRulesProxy::m_bIsQuestEligible( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bIsQuestEligible");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -262,7 +259,7 @@ bool& C_CSGameRulesProxy::m_bIsQueuedMatchmaking( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bIsQueuedMatchmaking");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -272,7 +269,7 @@ bool& C_CSGameRulesProxy::m_bIsValveDS( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bIsValveDS");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -282,7 +279,7 @@ bool& C_CSGameRulesProxy::m_bLogoMap( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bLogoMap");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -292,7 +289,7 @@ bool& C_CSGameRulesProxy::m_bMapHasBombTarget( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bMapHasBombTarget");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -302,7 +299,7 @@ bool& C_CSGameRulesProxy::m_bMapHasBuyZone( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bMapHasBuyZone");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -312,7 +309,7 @@ bool& C_CSGameRulesProxy::m_bMapHasRescueZone( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bMapHasRescueZone");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -322,7 +319,7 @@ bool& C_CSGameRulesProxy::m_bMatchWaitingForResume( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bMatchWaitingForResume");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -332,7 +329,7 @@ bool& C_CSGameRulesProxy::m_bPlayAllStepSoundsOnServer( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bPlayAllStepSoundsOnServer");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -342,7 +339,7 @@ bool& C_CSGameRulesProxy::m_bRoundInProgress( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bRoundInProgress");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -352,7 +349,7 @@ bool& C_CSGameRulesProxy::m_bTCantBuy( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bTCantBuy");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -362,7 +359,7 @@ bool& C_CSGameRulesProxy::m_bTechnicalTimeOut( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bTechnicalTimeOut");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -372,7 +369,7 @@ bool& C_CSGameRulesProxy::m_bTerroristTimeOutActive( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bTerroristTimeOutActive");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -382,7 +379,7 @@ bool& C_CSGameRulesProxy::m_bWarmupPeriod( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_bWarmupPeriod");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -392,7 +389,7 @@ int32_t& C_CSGameRulesProxy::m_eRoundWinReason( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_eRoundWinReason");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -402,7 +399,7 @@ float& C_CSGameRulesProxy::m_fMatchStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_fMatchStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -412,7 +409,7 @@ float& C_CSGameRulesProxy::m_fRoundStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_fRoundStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -422,7 +419,7 @@ float& C_CSGameRulesProxy::m_fWarmupPeriodEnd( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_fWarmupPeriodEnd");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -432,7 +429,7 @@ float& C_CSGameRulesProxy::m_fWarmupPeriodStart( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_fWarmupPeriodStart");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -442,7 +439,7 @@ float& C_CSGameRulesProxy::m_flCMMItemDropRevealEndTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flCMMItemDropRevealEndTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -452,7 +449,7 @@ float& C_CSGameRulesProxy::m_flCMMItemDropRevealStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flCMMItemDropRevealStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -462,7 +459,7 @@ float& C_CSGameRulesProxy::m_flCTTimeOutRemaining( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flCTTimeOutRemaining");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -472,7 +469,7 @@ float& C_CSGameRulesProxy::m_flDMBonusStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flDMBonusStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -482,7 +479,7 @@ float& C_CSGameRulesProxy::m_flDMBonusTimeLength( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flDMBonusTimeLength");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -492,7 +489,7 @@ float& C_CSGameRulesProxy::m_flGameStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flGameStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -502,7 +499,7 @@ float& C_CSGameRulesProxy::m_flGuardianBuyUntilTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flGuardianBuyUntilTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -512,7 +509,7 @@ std::array<float, 32>& C_CSGameRulesProxy::m_flNextRespawnWave( )
 	return *(std::array<float, 32>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flNextRespawnWave");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 32>>( );
 #endif
 }
@@ -522,7 +519,7 @@ float& C_CSGameRulesProxy::m_flRestartRoundTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flRestartRoundTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -532,7 +529,7 @@ float& C_CSGameRulesProxy::m_flSpawnSelectionTimeEnd( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flSpawnSelectionTimeEnd");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -542,7 +539,7 @@ float& C_CSGameRulesProxy::m_flSpawnSelectionTimeLoadout( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flSpawnSelectionTimeLoadout");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -552,7 +549,7 @@ float& C_CSGameRulesProxy::m_flSpawnSelectionTimeStart( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flSpawnSelectionTimeStart");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -562,7 +559,7 @@ float& C_CSGameRulesProxy::m_flSurvivalStartTime( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flSurvivalStartTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -572,7 +569,7 @@ float& C_CSGameRulesProxy::m_flTabletHexOriginX( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flTabletHexOriginX");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -582,7 +579,7 @@ float& C_CSGameRulesProxy::m_flTabletHexOriginY( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flTabletHexOriginY");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -592,7 +589,7 @@ float& C_CSGameRulesProxy::m_flTabletHexSize( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flTabletHexSize");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -602,7 +599,7 @@ float& C_CSGameRulesProxy::m_flTerroristTimeOutRemaining( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_flTerroristTimeOutRemaining");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -612,7 +609,7 @@ int32_t& C_CSGameRulesProxy::m_gamePhase( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_gamePhase");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -622,7 +619,7 @@ int32_t& C_CSGameRulesProxy::m_iActiveAssassinationTargetMissionID( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iActiveAssassinationTargetMissionID");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -632,7 +629,7 @@ int32_t& C_CSGameRulesProxy::m_iBombSite( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iBombSite");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -642,7 +639,7 @@ int32_t& C_CSGameRulesProxy::m_iFirstSecondHalfRound( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iFirstSecondHalfRound");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -652,7 +649,7 @@ int32_t& C_CSGameRulesProxy::m_iHostagesRemaining( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iHostagesRemaining");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -662,7 +659,7 @@ std::array<int32_t, 30>& C_CSGameRulesProxy::m_iMatchStats_PlayersAlive_CT( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iMatchStats_PlayersAlive_CT");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -672,7 +669,7 @@ std::array<int32_t, 30>& C_CSGameRulesProxy::m_iMatchStats_PlayersAlive_T( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iMatchStats_PlayersAlive_T");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -682,7 +679,7 @@ std::array<int32_t, 30>& C_CSGameRulesProxy::m_iMatchStats_RoundResults( )
 	return *(std::array<int32_t, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iMatchStats_RoundResults");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 30>>( );
 #endif
 }
@@ -692,7 +689,7 @@ int32_t& C_CSGameRulesProxy::m_iNumConsecutiveCTLoses( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iNumConsecutiveCTLoses");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -702,7 +699,7 @@ int32_t& C_CSGameRulesProxy::m_iNumConsecutiveTerroristLoses( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iNumConsecutiveTerroristLoses");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -712,7 +709,7 @@ int32_t& C_CSGameRulesProxy::m_iNumGunGameProgressiveWeaponsCT( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iNumGunGameProgressiveWeaponsCT");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -722,7 +719,7 @@ int32_t& C_CSGameRulesProxy::m_iNumGunGameProgressiveWeaponsT( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iNumGunGameProgressiveWeaponsT");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -732,7 +729,7 @@ std::array<int32_t, 64>& C_CSGameRulesProxy::m_iPlayerSpawnHexIndices( )
 	return *(std::array<int32_t, 64>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iPlayerSpawnHexIndices");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 64>>( );
 #endif
 }
@@ -742,7 +739,7 @@ int32_t& C_CSGameRulesProxy::m_iRoundTime( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iRoundTime");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -752,7 +749,7 @@ int32_t& C_CSGameRulesProxy::m_iRoundWinStatus( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iRoundWinStatus");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -762,7 +759,7 @@ int32_t& C_CSGameRulesProxy::m_iSpectatorSlotCount( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_iSpectatorSlotCount");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -772,7 +769,7 @@ int32_t& C_CSGameRulesProxy::m_nCTTimeOuts( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nCTTimeOuts");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -782,7 +779,7 @@ std::array<int32_t, 10>& C_CSGameRulesProxy::m_nEndMatchMapGroupVoteOptions( )
 	return *(std::array<int32_t, 10>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nEndMatchMapGroupVoteOptions");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 10>>( );
 #endif
 }
@@ -792,7 +789,7 @@ std::array<int32_t, 10>& C_CSGameRulesProxy::m_nEndMatchMapGroupVoteTypes( )
 	return *(std::array<int32_t, 10>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nEndMatchMapGroupVoteTypes");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 10>>( );
 #endif
 }
@@ -802,7 +799,7 @@ int32_t& C_CSGameRulesProxy::m_nEndMatchMapVoteWinner( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nEndMatchMapVoteWinner");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -812,7 +809,7 @@ int32_t& C_CSGameRulesProxy::m_nGuardianModeSpecialKillsRemaining( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nGuardianModeSpecialKillsRemaining");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -822,7 +819,7 @@ int32_t& C_CSGameRulesProxy::m_nGuardianModeSpecialWeaponNeeded( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nGuardianModeSpecialWeaponNeeded");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -832,7 +829,7 @@ int32_t& C_CSGameRulesProxy::m_nGuardianModeWaveNumber( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nGuardianModeWaveNumber");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -842,7 +839,7 @@ int32_t& C_CSGameRulesProxy::m_nHalloweenMaskListSeed( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nHalloweenMaskListSeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -852,7 +849,7 @@ int32_t& C_CSGameRulesProxy::m_nMatchSeed( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nMatchSeed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -862,7 +859,7 @@ int32_t& C_CSGameRulesProxy::m_nNextMapInMapgroup( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nNextMapInMapgroup");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -872,7 +869,7 @@ int32_t& C_CSGameRulesProxy::m_nOvertimePlaying( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nOvertimePlaying");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -882,7 +879,7 @@ int32_t& C_CSGameRulesProxy::m_nQueuedMatchmakingMode( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nQueuedMatchmakingMode");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -892,7 +889,7 @@ int32_t& C_CSGameRulesProxy::m_nTerroristTimeOuts( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nTerroristTimeOuts");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -902,7 +899,7 @@ int32_t& C_CSGameRulesProxy::m_nTournamentPredictionsPct( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_nTournamentPredictionsPct");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -912,7 +909,7 @@ int32_t& C_CSGameRulesProxy::m_numBestOfMaps( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_numBestOfMaps");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -922,7 +919,7 @@ int32_t& C_CSGameRulesProxy::m_numGlobalGifters( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_numGlobalGifters");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -932,7 +929,7 @@ int32_t& C_CSGameRulesProxy::m_numGlobalGiftsGiven( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_numGlobalGiftsGiven");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -942,7 +939,7 @@ int32_t& C_CSGameRulesProxy::m_numGlobalGiftsPeriodSeconds( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_numGlobalGiftsPeriodSeconds");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -952,7 +949,7 @@ std::array<int32_t, 65>& C_CSGameRulesProxy::m_roundData_playerPositions( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_roundData_playerPositions");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -962,7 +959,7 @@ std::array<int32_t, 65>& C_CSGameRulesProxy::m_roundData_playerTeams( )
 	return *(std::array<int32_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_roundData_playerTeams");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int32_t, 65>>( );
 #endif
 }
@@ -972,7 +969,7 @@ std::array<int64_t, 65>& C_CSGameRulesProxy::m_roundData_playerXuids( )
 	return *(std::array<int64_t, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_roundData_playerXuids");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int64_t, 65>>( );
 #endif
 }
@@ -982,7 +979,7 @@ int32_t& C_CSGameRulesProxy::m_spawnStage( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_spawnStage");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -992,7 +989,7 @@ char* C_CSGameRulesProxy::m_szMatchStatTxt( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_szMatchStatTxt");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -1002,7 +999,7 @@ char* C_CSGameRulesProxy::m_szTournamentEventName( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_szTournamentEventName");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -1012,7 +1009,7 @@ char* C_CSGameRulesProxy::m_szTournamentEventStage( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_szTournamentEventStage");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -1022,7 +1019,7 @@ char* C_CSGameRulesProxy::m_szTournamentPredictionsTxt( )
 	return (char*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_szTournamentPredictionsTxt");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 #endif
 }
@@ -1032,7 +1029,7 @@ float& C_CSGameRulesProxy::m_timeUntilNextPhaseStarts( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_timeUntilNextPhaseStarts");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
 }
@@ -1042,7 +1039,7 @@ int32_t& C_CSGameRulesProxy::m_totalRoundsPlayed( )
 	return *(int32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_totalRoundsPlayed");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int32_t>( );
 #endif
 }
@@ -1052,7 +1049,7 @@ uint32_t& C_CSGameRulesProxy::m_unDMBonusWeaponLoadoutSlot( )
 	return *(uint32_t*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_unDMBonusWeaponLoadoutSlot");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<uint32_t>( );
 #endif
 }
@@ -1062,7 +1059,7 @@ Vector& C_CSGameRulesProxy::m_vecPlayAreaMaxs( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_vecPlayAreaMaxs");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }
@@ -1072,7 +1069,7 @@ Vector& C_CSGameRulesProxy::m_vecPlayAreaMins( )
 	return *(Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSGameRulesProxy", "m_vecPlayAreaMins");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<Vector>( );
 #endif
 }

@@ -1,9 +1,6 @@
 #include "C_PostProcessController.h"
 
-#include "cheat/netvars/netvars.h"
-
 using namespace cheat;
-using namespace utl;
 using namespace csgo;
 
 bool& C_PostProcessController::m_bMaster( )
@@ -12,7 +9,7 @@ bool& C_PostProcessController::m_bMaster( )
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_bMaster");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
 }
@@ -22,7 +19,7 @@ std::array<float, 11>& C_PostProcessController::m_flPostProcessParameters( )
 	return *(std::array<float, 11>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_flPostProcessParameters");
-	auto addr = address(this).add(offset);
+	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 11>>( );
 #endif
 }
