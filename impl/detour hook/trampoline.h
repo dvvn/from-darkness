@@ -91,7 +91,7 @@ namespace dhooks::detail
 		ips_type new_ips; // [Out] Instruction boundaries of the trampoline function.
 
 		uint8_t* buffer( );
-		size_t   buffer_size( ) const;
+		uint8_t   buffer_size( ) const;
 
 		bool fix_page_protection( );
 		bool create( );

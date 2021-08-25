@@ -50,7 +50,7 @@ bool settings_data::load(const std::wstring_view& name)
 
 bool settings_data::remove(const std::wstring_view& name) const
 {
-	auto path = Generate_path(name);
+	const auto path = Generate_path(name);
 	return std::filesystem::remove(path);
 }
 

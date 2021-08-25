@@ -92,7 +92,7 @@ namespace cheat
 
 	protected:
 		bool load_impl( ) override;
-		void handle_impl(const nstd::chr_wchr& expression, const nstd::chr_wchr& message, const info_type& info) noexcept override;
+		void handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept override;
 
 	private:
 		detail::console_data data_;

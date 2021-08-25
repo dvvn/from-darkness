@@ -10,6 +10,12 @@ namespace nstd
 	template <typename T>
 	using string_viewable_t = decltype(std::declval<T>( ).view( ));
 
+	template <typename Stream, typename T>
+	concept stream_possible = requires(Stream stream, const T& obj)
+	{
+		stream << obj;
+	};
+
 	namespace detail
 	{
 		template <typename T, typename Formatter = std::formatter<string_viewable_t<T>>>

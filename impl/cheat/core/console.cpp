@@ -6,7 +6,6 @@
 using namespace cheat;
 using namespace detail;
 
-
 template <typename T>
 static auto _Get_time_str( )
 {
@@ -130,7 +129,7 @@ bool console::load_impl( )
 	return true;
 }
 
-void console::handle_impl(const nstd::chr_wchr& expression, const nstd::chr_wchr& message, const info_type& info) noexcept
+void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept
 {
 	//static auto lock = std::mutex( );
 	//const auto  _    = std::scoped_lock(lock);
@@ -170,14 +169,8 @@ void console::handle_impl(const nstd::chr_wchr& expression, const nstd::chr_wchr
 	[[maybe_unused]] static volatile auto skip_helper = '\1';
 }
 
-template <typename Stream, typename T>
-concept stream_possible = requires(Stream& stream, const T& obj)
-{
-	stream << obj;
-};
-
 template <typename Chr, typename Tr>
-static auto _Get_file_buff(std::basic_ostream<Chr, Tr>& stream)
+static auto _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 {
 	using fb = std::basic_filebuf<Chr, Tr>;
 
@@ -196,16 +189,16 @@ static auto _Write_text = []<typename T>(T&& text)
 	int   prev_mode;
 
 	using value_type = std::remove_cvref_t<T>;
-	if constexpr (stream_possible<std::ofstream, value_type>)
+	if constexpr (nstd::stream_possible<std::ofstream&, value_type>)
 	{
-		file_out  = /*_Get_file_buff(std::cout)*/stdin;
+		file_out  = _Get_file_buff(std::cin);
 		new_mode  = _O_TEXT;
 		prev_mode = _Set_mode(file_out, new_mode);
 		std::cout << text;
 	}
-	else if constexpr (stream_possible<std::wofstream, value_type>)
+	else if constexpr (nstd::stream_possible<std::wofstream&, value_type>)
 	{
-		file_out  = /*_Get_file_buff(std::wcout)*/stdin;
+		file_out  = _Get_file_buff(std::wcin);
 		new_mode  = _O_U16TEXT;
 		prev_mode = _Set_mode(file_out, new_mode);
 		std::wcout << text;

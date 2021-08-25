@@ -4,7 +4,7 @@ using namespace nstd;
 
 rt_assert_handler_ex nstd::rt_assert_object;
 
-void rt_assert_handler::handle(bool result, chr_wchr&& expression, chr_wchr&& message, chr_wchr&& file_name, chr_wchr&& function, unsigned __int64 line) noexcept
+void rt_assert_handler::handle(bool result, rt_assert_arg_t&& expression, rt_assert_arg_t&& message, rt_assert_arg_t&& file_name, rt_assert_arg_t&& function, unsigned __int64 line) noexcept
 {
 	if (result == true)
 		return;
@@ -52,7 +52,7 @@ void rt_assert_handler_ex::remove(rt_assert_handler* handler)
 	data.erase(pos.begin( ), pos.end( ));
 }
 
-void rt_assert_handler_ex::handle_impl(const chr_wchr& expression, const chr_wchr& message, const info_type& info) noexcept
+void rt_assert_handler_ex::handle_impl(const rt_assert_arg_t& expression, const rt_assert_arg_t& message, const info_type& info) noexcept
 {
 	for (auto&& entry: *static_cast<data_type*>(data_))
 		entry->handle_impl(expression, message, info);

@@ -31,7 +31,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 	const auto all_modules = all_modules::get_ptr( );
 	all_modules->update(false);
 
-	cache_type temp_cache;
+	auto temp_cache = cache_type( );
 
 	// iterate names array.
 	for (auto i = 0u; i < dir->NumberOfNames; ++i)
@@ -60,29 +60,40 @@ bool exports_storage::load_from_memory(cache_type& cache)
 			if (delim == fwd_str.npos)
 				continue;
 
-			// get forwarder mod name.
-			const auto fwd_module       = fwd_str.substr(0, delim);
-			const auto fwd_module_lower = ranges::views::transform(fwd_module, tolower);
-			//const auto fwd_module_hash  = hashed_string_tag::_Compute_hash(fwd_module_lower, (".dll"));
-			const auto fwd_module_str = std::wstring(fwd_module_lower.begin( ), fwd_module_lower.end( )).append(L".dll");
-			//const auto fwd_module_hash = module_info::create_hash(fwd_module_str);
+			const auto fwd_module_str = [&]
+			{
+				// get forwarder mod name.
+				const auto name       = fwd_str.substr(0, delim);
+				const auto name_lower = ranges::views::transform(name, [](const char c) { return static_cast<wchar_t>(std::tolower(c)); });
+
+				constexpr std::basic_string_view dot_dll = L".dll";
+
+				auto full_str = std::wstring( );
+				full_str.reserve(name_lower.size( ) + dot_dll.size( ));
+				auto full_str_start = full_str._Unchecked_begin( );
+				ranges::copy(name_lower, full_str_start);
+				ranges::copy(dot_dll, full_str_start + name_lower.size( ));
+				return full_str;
+				//return std::wstring(name_lower.begin( ), name_lower.end( )).append(L".dll");
+			}( );
 
 			// get forwarder export name.
-			const auto fwd_export = fwd_str.substr(delim + 1);
+			const auto fwd_export_str = fwd_str.substr(delim + 1);
 
 			// get real export ptr ( recursively ).
-			//const auto target = _RANGES find(all_modules, fwd_module_hash, &module_info::name);
-
-			auto target = all_modules->find(&module_info::name, fwd_module_str);
-			if (!target)
+			const auto target_module = all_modules->find(&module_info::name, fwd_module_str);
+			if (!target_module)
 				continue;
 
-			static_assert(!std::is_const_v<decltype(target)>, __FUNCSIG__": unable to preload cache!");
+			auto& exports = target_module->exports( );
+			if (!exports.load( ))
+			{
+				runtime_assert("Unable to load exports!");
+				continue;
+			}
 
-			auto& exports = target->exports( );
-			exports.load( );
 			const auto& exports_cache  = exports.get_cache( );
-			const auto  fwd_export_ptr = exports_cache.find((fwd_export));
+			const auto  fwd_export_ptr = exports_cache.find((fwd_export_str));
 			if (fwd_export_ptr == exports_cache.end( ))
 				continue;
 

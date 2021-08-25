@@ -42,7 +42,7 @@ static constexpr uint8_t hde32_table[] = {
 	0xe7, 0x08, 0x00, 0xf0, 0x02, 0x00
 };
 
-uint32_t dhooks::hde::hde32_disasm(const void* code, hde32s* hs)
+uint8_t dhooks::hde::hde32_disasm(const void* code, hde32s* hs)
 {
 	uint8_t x, c, *p = (uint8_t*)code, cflags, opcode, pref = 0;
 	auto    ht = hde32_table;

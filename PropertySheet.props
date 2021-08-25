@@ -24,13 +24,14 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WarningLevel>Level4</WarningLevel>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <CompileAs>CompileAsCpp</CompileAs>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <EnableModules>
       </EnableModules>
-      <DisableSpecificWarnings>4250;5103</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4250;5103;4100</DisableSpecificWarnings>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <ObjectFileName>$(IntDir)%(Directory)</ObjectFileName>
     </ClCompile>
     <Link>
       <EnableUAC>false</EnableUAC>

@@ -32,7 +32,7 @@ uint8_t* trampoline::buffer( )
 	return reinterpret_cast<uint8_t*>(trampoline__.get( ));
 }
 
-size_t trampoline::buffer_size( ) const
+uint8_t trampoline::buffer_size( ) const
 {
 	(void)this;
 	//return sizeof(uintptr_t) * trampoline_.capacity( );

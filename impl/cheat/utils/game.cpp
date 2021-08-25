@@ -99,7 +99,7 @@ static float _Interval_per_ticks( )
 
 size_t time_to_ticks_impl::operator()(float time) const
 {
-	return 0.5f + time / _Interval_per_ticks( );
+	return static_cast<size_t>(time / _Interval_per_ticks( ) + 0.5f);
 }
 
 float ticks_to_time_impl::operator()(size_t ticks) const

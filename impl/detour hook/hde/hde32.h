@@ -91,5 +91,5 @@ namespace dhooks::hde
 
 #pragma pack(pop)
 
-	uint32_t hde32_disasm(const void* code, hde32s* hs);
+	uint8_t hde32_disasm(const void* code, hde32s* hs);
 }

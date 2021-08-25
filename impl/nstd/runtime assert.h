@@ -14,28 +14,28 @@ namespace std
 
 namespace nstd
 {
-	class chr_wchr
+	class rt_assert_arg_t
 	{
 	public:
-		constexpr chr_wchr(decltype(nullptr))
+		constexpr rt_assert_arg_t(decltype(nullptr))
 		{
 			ptr_   = nullptr;
 			index_ = static_cast<unsigned char>(-1);
 		}
 
-		constexpr chr_wchr(const void*)
+		constexpr rt_assert_arg_t(const void*)
 		{
 			ptr_   = nullptr;
 			index_ = static_cast<unsigned char>(-1);
 		}
 
-		constexpr chr_wchr(const char* wchr)
+		constexpr rt_assert_arg_t(const char* wchr)
 		{
 			ptr_   = wchr;
 			index_ = 0;
 		}
 
-		constexpr chr_wchr(const wchar_t* chr)
+		constexpr rt_assert_arg_t(const wchar_t* chr)
 		{
 			ptr_   = chr;
 			index_ = 1;
@@ -72,19 +72,19 @@ namespace nstd
 
 		struct info_type
 		{
-			chr_wchr         file_name;
-			chr_wchr         function;
+			rt_assert_arg_t  file_name;
+			rt_assert_arg_t  function;
 			unsigned __int64 line;
 		};
 
 		virtual ~rt_assert_handler( ) = default;
 
-		void handle(bool       result,
-					chr_wchr&& expression, chr_wchr&& message,
-					chr_wchr&& file_name, chr_wchr&&  function, unsigned __int64 line) noexcept;
+		void handle(bool              result,
+					rt_assert_arg_t&& expression, rt_assert_arg_t&& message,
+					rt_assert_arg_t&& file_name, rt_assert_arg_t&&  function, unsigned __int64 line) noexcept;
 
 	protected:
-		virtual void handle_impl(const chr_wchr& expression, const chr_wchr& message, const info_type& info) noexcept = 0;
+		virtual void handle_impl(const rt_assert_arg_t& expression, const rt_assert_arg_t& message, const info_type& info) noexcept = 0;
 	};
 
 	class rt_assert_handler_ex final: public rt_assert_handler
@@ -105,7 +105,7 @@ namespace nstd
 		void remove(rt_assert_handler* handler);
 
 	protected:
-		void handle_impl(const chr_wchr& expression, const chr_wchr& message, const info_type& info) noexcept override;
+		void handle_impl(const rt_assert_arg_t& expression, const rt_assert_arg_t& message, const info_type& info) noexcept override;
 
 	private:
 		void* data_;
@@ -126,13 +126,18 @@ namespace nstd
 		inline constexpr bool detect_msg<const T(&)[S]> = true;
 
 		template <typename T1, typename T2 = void>
-		constexpr chr_wchr expr_or_msg(T1&& msg, const T2* msg2 = nullptr)
+		constexpr rt_assert_arg_t expr_or_msg(T1&& msg, const T2* msg2 = nullptr)
 		{
-			return msg2 == nullptr ? chr_wchr(msg) : chr_wchr(msg2);
+			return msg2 == nullptr ? rt_assert_arg_t(msg) : rt_assert_arg_t(msg2);
 		}
 	}
 
-	__forceinline constexpr void rt_assert_invoker(bool result, chr_wchr&& expression, chr_wchr&& message, chr_wchr&& file_name, chr_wchr&& function, unsigned __int64 line)
+	__forceinline constexpr void rt_assert_invoker(bool              result,
+												   rt_assert_arg_t&& expression,
+												   rt_assert_arg_t&& message,
+												   rt_assert_arg_t&& file_name,
+												   rt_assert_arg_t&& function,
+												   unsigned __int64  line)
 	{
 		// ReSharper disable once CppIfCanBeReplacedByConstexprIf
 		// ReSharper disable once CppRedundantBooleanExpressionArgument
@@ -145,10 +150,10 @@ namespace nstd
 		{
 			// ReSharper disable once CppUnreachableCode
 			rt_assert_object.handle(result,
-									static_cast<chr_wchr&&>(expression),
-									static_cast<chr_wchr&&>(message),
-									static_cast<chr_wchr&&>(file_name),
-									static_cast<chr_wchr&&>(function),
+									static_cast<rt_assert_arg_t&&>(expression),
+									static_cast<rt_assert_arg_t&&>(message),
+									static_cast<rt_assert_arg_t&&>(file_name),
+									static_cast<rt_assert_arg_t&&>(function),
 									line);
 		}
 	}
@@ -157,7 +162,7 @@ namespace nstd
 namespace std
 {
 	template <typename E, typename Tr>
-	basic_ostream<E, Tr>& operator<<(basic_ostream<E, Tr>& s, const nstd::chr_wchr& val)
+	basic_ostream<E, Tr>& operator<<(basic_ostream<E, Tr>& s, const nstd::rt_assert_arg_t& val)
 	{
 		switch (val.index( ))
 		{
