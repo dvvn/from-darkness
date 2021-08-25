@@ -6,143 +6,6 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-class CInterfaceRegister
-{
-public:
-	InstantiateInterfaceFn create_fn;
-	const char*            name;
-	CInterfaceRegister*    next;
-};
-
-class interfaces_cache
-{
-public:
-	using entry_type = nstd::unordered_map<std::string_view, InstantiateInterfaceFn>;
-	using cache_type = nstd::ordered_map<nstd::os::module_info*, entry_type>;
-
-private:
-	cache_type cache__;
-
-	const entry_type& Get_entry_(const std::string_view& dll_name)
-	{
-		constexpr auto fill_entry = [](entry_type& entry, nstd::os::module_info* info)
-		{
-			runtime_assert(entry.empty(), "Entry already filled!");
-
-			auto& exports = info->exports( );
-
-			[[maybe_unused]] const auto load_result = exports.load( );
-			runtime_assert(load_result ==true, "Unable to load exports");
-
-			const auto& create_fn = exports.get_cache( ).at("CreateInterface");
-			const auto  reg       = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
-
-			auto temp_entry = std::vector<entry_type::value_type>( );
-			for (auto r = reg; r != nullptr; r = r->next)
-				temp_entry.emplace_back(make_pair(std::string_view(r->name), r->create_fn));
-
-			const auto contains_duplicate = [&](const std::string_view& new_string, size_t original_size)
-			{
-				auto detected = false;
-				for (auto& raw_string: temp_entry | ranges::views::keys)
-				{
-					if (raw_string.size( ) != original_size)
-						continue;
-					if (!raw_string.starts_with(new_string))
-						continue;
-					if (detected)
-						return true;
-					detected = true;
-				}
-				return false;
-			};
-			const auto drop_underline = [&](const std::string_view& str, size_t original_size) -> std::optional<std::string_view>
-			{
-				if (str.ends_with('_'))
-				{
-					if (const auto str2 = std::string_view(str.begin( ), str.end( ) - 1); !contains_duplicate(str2, original_size))
-						return str2;
-				}
-				return { };
-			};
-			const auto get_pretty_string = [&](const std::string_view& str) -> std::optional<std::string_view>
-			{
-				size_t remove = 0;
-				for (const auto c: str | ranges::views::reverse)
-				{
-					if (!std::isdigit(c))
-						break;
-
-					++remove;
-				}
-
-				const auto original_size = str.size( );
-
-				if (remove == 0)
-					return drop_underline(str, original_size);
-
-				auto str2 = str;
-				str2.remove_suffix(remove);
-				if (contains_duplicate(str2, original_size))
-					return drop_underline(str, original_size);
-				return drop_underline(str2, original_size).value_or(str2);
-			};
-
-			for (const auto& [name, fn]: temp_entry)
-			{
-				const auto name_pretty = get_pretty_string(name);
-				entry.emplace(name_pretty.value_or(name), fn);
-			}
-		};
-
-		for (const auto& [module, entry]: cache__)
-		{
-			if (module->name( ) == dll_name)
-				return entry;
-		}
-
-		const auto info = nstd::os::all_modules::get_ptr( )->find(dll_name);
-
-		auto& entry = cache__[info];
-		runtime_assert(entry.empty( ));
-		fill_entry(entry, info);
-
-		return entry;
-	}
-
-public:
-	nstd::address operator()(const std::string_view& dll_name, const std::string_view& interface_name)
-	{
-		const auto& entry = Get_entry_(dll_name);
-		//const auto& fn = entry.at(interface_name);
-
-		const auto found = entry.find(interface_name);
-		runtime_assert(found!=entry.end());
-
-#ifdef CHEAT_HAVE_CONSOLE
-		const auto& original_interface_name     = found.key( );
-		const auto  original_interface_name_end = original_interface_name._Unchecked_end( );
-
-		std::string msg = "Found interface: ";
-		msg += interface_name;
-		if (*original_interface_name_end != '\0')
-		{
-			msg += " (";
-			msg += original_interface_name;
-			msg += original_interface_name_end;
-			msg += ')';
-		}
-
-		msg += " in module ";
-		msg += dll_name;
-		CHEAT_CONSOLE_LOG(msg);
-
-#endif
-
-		return std::invoke(found.value( ));
-	}
-};
-
 [[maybe_unused]] static nstd::address get_vfunc(void* instance, size_t index)
 {
 	return dhooks::_Pointer_to_virtual_class_table(instance)[index];
@@ -233,47 +96,44 @@ bool csgo_interfaces::load_impl( )
 
 #ifndef CHEAT_GUI_TEST
 
-	// ReSharper disable once CppInconsistentNaming
-	auto get_game_interface = interfaces_cache( );
+	client        = csgo_modules::client.find_interface<"VClient">( );
+	entity_list   = csgo_modules::client.find_interface<"VClientEntityList">( );
+	prediction    = csgo_modules::client.find_interface<"VClientPrediction">( );
+	game_movement = csgo_modules::client.find_interface<"GameMovement">( );
 
-	client        = get_game_interface("client.dll", "VClient");
-	entity_list   = get_game_interface("client.dll", "VClientEntityList");
-	prediction    = get_game_interface("client.dll", "VClientPrediction");
-	game_movement = get_game_interface("client.dll", "GameMovement");
+	engine        = csgo_modules::engine.find_interface<"VEngineClient">( );
+	mdl_info      = csgo_modules::engine.find_interface<"VModelInfoClient">( );
+	mdl_render    = csgo_modules::engine.find_interface<"VEngineModel">( );
+	render_view   = csgo_modules::engine.find_interface<"VEngineRenderView">( );
+	engine_trace  = csgo_modules::engine.find_interface<"EngineTraceClient">( );
+	debug_overlay = csgo_modules::engine.find_interface<"VDebugOverlay">( );
+	game_events   = csgo_modules::engine.find_interface<"GAMEEVENTSMANAGER002">( );
+	engine_sound  = csgo_modules::engine.find_interface<"IEngineSoundClient">( );
 
-	engine        = get_game_interface("engine.dll", "VEngineClient");
-	mdl_info      = get_game_interface("engine.dll", "VModelInfoClient");
-	mdl_render    = get_game_interface("engine.dll", "VEngineModel");
-	render_view   = get_game_interface("engine.dll", "VEngineRenderView");
-	engine_trace  = get_game_interface("engine.dll", "EngineTraceClient");
-	debug_overlay = get_game_interface("engine.dll", "VDebugOverlay");
-	game_events   = get_game_interface("engine.dll", "GAMEEVENTSMANAGER002");
-	engine_sound  = get_game_interface("engine.dll", "IEngineSoundClient");
-
-	mdl_cache       = get_game_interface("datacache.dll", "MDLCache");
-	material_system = get_game_interface("materialsystem.dll", "VMaterialSystem");
-	cvars           = get_game_interface("vstdlib.dll", "VEngineCvar");
-	vgui_panel      = get_game_interface("vgui2.dll", "VGUI_Panel");
-	vgui_surface    = get_game_interface("vguimatsurface.dll", "VGUI_Surface");
-	phys_props      = get_game_interface("vphysics.dll", "VPhysicsSurfaceProps");
-	input_sys       = get_game_interface("inputsystem.dll", "InputSystemVersion");
-	studio_renderer = get_game_interface("studiorender.dll", "VStudioRender");
+	mdl_cache       = csgo_modules::datacache.find_interface<"MDLCache">( );
+	material_system = csgo_modules::materialsystem.find_interface<"VMaterialSystem">( );
+	cvars           = csgo_modules::vstdlib.find_interface<"VEngineCvar">( );
+	vgui_panel      = csgo_modules::vgui2.find_interface<"VGUI_Panel">( );
+	vgui_surface    = csgo_modules::vguimatsurface.find_interface<"VGUI_Surface">( );
+	phys_props      = csgo_modules::vphysics.find_interface<"VPhysicsSurfaceProps">( );
+	input_sys       = csgo_modules::inputsystem.find_interface<"InputSystemVersion">( );
+	studio_renderer = csgo_modules::studiorender.find_interface<"VStudioRender">( );
 
 	client_mode = get_vfunc(client, 10).add(5).deref(2);
 
 	using namespace utils;
 
-	global_vars  = find_signature("client.dll", "A1 ? ? ? ? 5E 8B 40 10").add(1).deref(2);
-	input        = find_signature("client.dll", "B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").add(1).deref(1);
-	move_helper  = find_signature("client.dll", "8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01").add(2).deref(2);
-	glow_mgr     = find_signature("client.dll", "0F 11 05 ? ? ? ? 83 C8 01").add(3).deref(1);
-	view_render  = find_signature("client.dll", "A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").add(1).deref(1);
-	weapon_sys   = find_signature("client.dll", "8B 35 ? ? ? ? FF 10 0F B7 C0").add(2).deref(1);
-	local_player = find_signature("client.dll", "8B 0D ? ? ? ? 83 FF FF 74 07").add(2).deref(1);
+	global_vars  = csgo_modules::client.find_signature<"A1 ? ? ? ? 5E 8B 40 10">( ).add(1).deref(2);
+	input        = csgo_modules::client.find_signature<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">( ).add(1).deref(1);
+	move_helper  = csgo_modules::client.find_signature<"8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01">( ).add(2).deref(2);
+	glow_mgr     = csgo_modules::client.find_signature<"0F 11 05 ? ? ? ? 83 C8 01">( ).add(3).deref(1);
+	view_render  = csgo_modules::client.find_signature<"A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10">( ).add(1).deref(1);
+	weapon_sys   = csgo_modules::client.find_signature<"8B 35 ? ? ? ? FF 10 0F B7 C0">( ).add(2).deref(1);
+	local_player = csgo_modules::client.find_signature<"8B 0D ? ? ? ? 83 FF FF 74 07">( ).add(2).deref(1);
 
-	client_state = find_signature("engine.dll", "A1 ? ? ? ? 8B 80 ? ? ? ? C3").add(1).deref(2);
+	client_state = csgo_modules::engine.find_signature<"A1 ? ? ? ? 8B 80 ? ? ? ? C3">( ).add(1).deref(2);
 
-	d3d_device = find_signature("shaderapidx9.dll", "A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
+	d3d_device = csgo_modules::shaderapidx9.find_signature<"A1 ? ? ? ? 50 8B 08 FF 51 0C">( ).add(1).deref(2);
 #else
 	d3d_device = (g_pd3dDevice);
 #endif

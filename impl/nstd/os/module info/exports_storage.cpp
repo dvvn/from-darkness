@@ -64,7 +64,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 			const auto fwd_module       = fwd_str.substr(0, delim);
 			const auto fwd_module_lower = ranges::views::transform(fwd_module, tolower);
 			//const auto fwd_module_hash  = hashed_string_tag::_Compute_hash(fwd_module_lower, (".dll"));
-			const auto fwd_module_str = std::string(fwd_module_lower.begin( ), fwd_module_lower.end( )).append(".dll");
+			const auto fwd_module_str = std::wstring(fwd_module_lower.begin( ), fwd_module_lower.end( )).append(L".dll");
 			//const auto fwd_module_hash = module_info::create_hash(fwd_module_str);
 
 			// get forwarder export name.
@@ -73,7 +73,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 			// get real export ptr ( recursively ).
 			//const auto target = _RANGES find(all_modules, fwd_module_hash, &module_info::name);
 
-			auto target = all_modules->find(fwd_module_str);
+			auto target = all_modules->find(&module_info::name, fwd_module_str);
 			if (!target)
 				continue;
 

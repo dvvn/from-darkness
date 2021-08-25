@@ -27,7 +27,7 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 		case FRAME_RENDER_START: break;
 		case FRAME_RENDER_END: break;
 		default:
-			runtime_assert("Unknown frame stage detectetd!");
+			//runtime_assert("Unknown frame stage detectetd!");
 			break;
 	}
 }

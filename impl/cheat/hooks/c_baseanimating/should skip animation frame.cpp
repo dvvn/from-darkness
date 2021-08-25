@@ -26,7 +26,7 @@ bool should_skip_animation_frame::load_impl( )
 
 nstd::address should_skip_animation_frame::get_target_method_impl( ) const
 {
-	return utils::find_signature("client.dll", "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02");
+	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">();
 }
 
 void should_skip_animation_frame::callback(/*float current_time*/)

@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\console.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo modules.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.h" />

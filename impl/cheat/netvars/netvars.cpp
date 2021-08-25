@@ -410,7 +410,7 @@ static void _Store_recv_props(nlohmann::json& root_tree, nlohmann::json& tree, c
 		}
 #if 0
 		optional<size_t> array_size;
-		if (std::isdigit(prop_name[0]))
+		if(std::isdigit(prop_name[0]))
 		{
 			runtime_assert(prop_name[0] == '0');
 
@@ -425,7 +425,7 @@ static void _Store_recv_props(nlohmann::json& root_tree, nlohmann::json& tree, c
 			prop_name = props_array;
 		}
 
-		if (prop.m_ArrayLengthProxy != nullptr)
+		if(prop.m_ArrayLengthProxy != nullptr)
 		{
 			continue;
 		}
@@ -603,7 +603,7 @@ bool netvars::load_impl( )
 
 	_Iterate_client_class(data_, interfaces->client->GetAllClasses( ));
 
-	const auto baseent = utils::vtable_pointer<C_BaseEntity>("client.dll");
+	const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
 
 	_Iterate_datamap(data_, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data_, baseent->GetPredictionDescMap( ));
@@ -679,7 +679,7 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 	create_directories(dir);
 
 	lazy_writer.reserve(netvars_data.size( ) * 2);
-	for (auto& [class_name,netvars]: netvars_data.items( ))
+	for (auto& [class_name, netvars]: netvars_data.items( ))
 	{
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppTooWideScope
@@ -706,7 +706,7 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 		source << "using namespace csgo;" << __New_line;
 		source << __New_line;
 
-		for (auto& [netvar_name,netvar_data]: netvars.items( ))
+		for (auto& [netvar_name, netvar_data]: netvars.items( ))
 		{
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.get(netvar_data);
@@ -727,7 +727,7 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 			source << __Tab << std::format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
 			source << "#else" << __New_line;
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
-			source  << __Tab<< format("auto addr = {}(this).add({});",address_class, netvar_offset) << __New_line;
+			source << __Tab << format("auto addr = {}(this).add({});", address_class, netvar_offset) << __New_line;
 #else
 			source << __Tab
 					<< "static const auto offset = netvars::get_ptr( )->at"
@@ -765,22 +765,22 @@ void netvars::after_load( )
 
 int netvars::at(const std::string_view& table, const std::string_view& item) const
 {
-	for (auto& [table_stored,keys]: data_.items( ))
+	for (auto& [table_stored, keys]: data_.items( ))
 	{
 		if (table_stored != table)
 			continue;
 
-		for (auto& [item_stored,data]: keys.items( ))
+		for (const auto& [item_stored, data]: keys.items( ))
 		{
 			if (item_stored == item)
-				return data.get<int>( );
+				return data["offset"].get<int>( );
 		}
 
-		runtime_assert(false, std::format(__FUNCTION__": item {} not found in table {}",item,table).c_str( ));
+		runtime_assert(false, std::format(__FUNCTION__": item {} not found in table {}", item, table).c_str( ));
 		return 0;
 	}
 
-	runtime_assert(false, std::format(__FUNCTION__": table {} not found",table).c_str( ));
+	runtime_assert(false, std::format(__FUNCTION__": table {} not found", table).c_str( ));
 
 	return 0;
 }
@@ -801,7 +801,7 @@ lazy_file_writer::~lazy_file_writer( )
 	ofs << str;
 }
 
-lazy_file_writer::lazy_file_writer(std::filesystem::path&& file): file_(std::move(file))
+lazy_file_writer::lazy_file_writer(std::filesystem::path&& file) : file_(std::move(file))
 {
 }
 

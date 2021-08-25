@@ -8,8 +8,8 @@ using namespace csgo;
 
 nstd::address estimate_abs_velocity::get_target_method_impl( ) const
 {
-	const auto vtable = utils::vtable_pointer<C_BaseEntity>("client.dll");
-	const auto index  = utils::find_signature("client.dll", "FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).divide(4).value( );
+	const auto vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
+	const auto index  = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).add(2).deref(1).divide(4).value( );
 
 	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }
@@ -22,7 +22,7 @@ void estimate_abs_velocity::callback(Vector& vel)
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []
 		{
-			const auto           addr = utils::find_signature("client.dll", "55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7");
+			const auto           addr = csgo_modules::client.find_signature<"55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7">();
 			void (C_BaseEntity::*fn)( );
 			reinterpret_cast<void*&>(fn) = addr.ptr<void>( );
 			return fn;

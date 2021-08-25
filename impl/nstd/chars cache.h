@@ -4,7 +4,7 @@ namespace nstd
 {
 	//use it for as template parameter
 
-	template <std::size_t N, typename Chr=char>
+	template <std::size_t N,typename Chr>
 	struct chars_cache
 	{
 		std::array<Chr, N> cache;

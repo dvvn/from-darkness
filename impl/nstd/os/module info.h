@@ -14,8 +14,8 @@ namespace nstd::os
 		IMAGE_DOS_HEADER*     dos;
 		IMAGE_NT_HEADERS*     nt;
 
-		std::string  name_;
-		std::wstring name_wide_;
+		std::wstring name_;
+		bool         name_is_unicode_;
 
 	protected:
 		module_info*       root_class( ) override;
@@ -41,61 +41,91 @@ namespace nstd::os
 		DWORD code_size( ) const;
 		DWORD image_size( ) const;
 
-		using raw_name_value_type = std::remove_pointer_t<decltype(ldr_entry->FullDllName.Buffer)>;
-		using raw_name_type = std::basic_string_view<raw_name_value_type>;
+		std::wstring_view work_dir( ) const;
+		std::wstring_view full_path( ) const;
+		std::wstring_view raw_name( ) const;
 
-		raw_name_type work_dir( ) const;
-		raw_name_type full_path( ) const;
-		raw_name_type raw_name( ) const;
-
-		const std::string& name( );
-		const std::string& name( ) const;
-
-		const std::wstring& name_wide( );
-		const std::wstring& name_wide( ) const;
-
-		bool name_contains_unicode( );
-		bool name_contains_unicode( ) const;
+		const std::wstring& name( ) const;
+		bool                name_is_unicode( ) const;
 
 		sections_storage&       sections( );
-		const sections_storage& sections( ) const;
+		const sections_storage& sections_view( ) const;
 
 		exports_storage&       exports( );
-		const exports_storage& exports( ) const;
+		const exports_storage& exports_view( ) const;
 
 		vtables_storage&       vtables( );
-		const vtables_storage& vtables( ) const;
+		const vtables_storage& vtables_view( ) const;
 	};
 
-	using modules_storage_container = std::vector<module_info>;
 	class modules_storage
 	{
 	public:
 		modules_storage(modules_storage&&)            = default;
 		modules_storage& operator=(modules_storage&&) = default;
 
-		modules_storage( );
+		modules_storage(const modules_storage&)            = delete;
+		modules_storage& operator=(const modules_storage&) = delete;
 
+		using storage_type = std::list<module_info>;
+
+		modules_storage( ) = default;
 		modules_storage& update(bool force = false);
 
-		module_info&       current( );
-		const module_info& current( ) const;
+		module_info& current( ) const;
+		module_info& owner( );
 
-		module_info&       owner( );
-		const module_info& owner( ) const;
+		storage_type& all(bool update = false);
 
-		//module_info &load(const boost::filesystem::path&from,DWORD flags);
+		template <typename Pr, class Pj = std::identity>
+		module_info* find(Pr pred, Pj proj = { })
+		{
+			auto found = ranges::find_if(storage_, pred, proj);
+			if (found == storage_.end( ))
+				return nullptr;
 
-		modules_storage_container&       all(bool update = false);
-		const modules_storage_container& all( ) const;
-
-		module_info* find(const std::string_view& name);
-		module_info* find(const std::wstring_view& name);
+			return std::addressof(*found);
+		}
 
 	private:
-		module_info*              current_cached_;
-		modules_storage_container storage_;
+		template <typename Ret, typename T, typename Proj>
+		module_info* find_unwrap(T&& val, Proj&& proj)
+		{
+			auto found = ranges::find(storage_, val, proj);
+			if (found == storage_.end( ))
+				return nullptr;
+
+			return std::addressof(*found);
+		}
+
+	public:
+		template <typename Ret, std::equality_comparable_with<Ret> T>
+		module_info* find(Ret (module_info::*proj)( ), T&& val)
+		{
+			return this->find_unwrap<Ret>(std::forward<T>(val), proj);
+		}
+
+		template <typename Ret, std::equality_comparable_with<Ret> T>
+		module_info* find(Ret (module_info::*proj)( ) const, T&& val)
+		{
+			return this->find_unwrap<Ret>(std::forward<T>(val), proj);
+		}
+
+	private:
+		storage_type storage_;
+		module_info* current_cached_ = nullptr;
 	};
 
-	using all_modules = one_instance<modules_storage>;
+	namespace detail
+	{
+		struct all_modules_impl: modules_storage
+		{
+			all_modules_impl( )
+			{
+				this->update( );
+			}
+		};
+	}
+
+	using all_modules = one_instance<detail::all_modules_impl>;
 }

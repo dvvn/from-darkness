@@ -1,5 +1,6 @@
 #include "BaseHandle.hpp"
 
+#include "IClientEntity.hpp"
 #include "IClientEntityList.hpp"
 
 #include "cheat/core/csgo interfaces.h"

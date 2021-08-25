@@ -48,6 +48,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <optional>
 #include <queue>
 #include <ranges>
@@ -159,6 +160,7 @@ namespace std
 // ReSharper disable CppWrongIncludesOrder
 #include "cheat/core/console.h"
 #include "cheat/utils/memory.h"
+#include "cheat/core/csgo modules.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/netvars/netvars.h"
 // ReSharper restore CppWrongIncludesOrder

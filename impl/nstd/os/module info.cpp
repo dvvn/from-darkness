@@ -1,7 +1,7 @@
 #include "module info.h"
 
 using namespace nstd;
-using namespace nstd::os;
+using namespace os;
 using namespace os::detail;
 
 module_info* module_info::root_class( )
@@ -26,23 +26,10 @@ module_info::module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos,
 	this->dos       = dos;
 	this->nt        = nt;
 
-	//const auto base = this->base( );
-	//this->sections = {base, nt};
-	//this->exports = {base, nt};
-	//this->vtables = {base, image_size( ), nt, addressof(this->sections)};
-
-#ifdef _DEBUG
-	//preload for better debugging
-
-	this->sections( ).load( );
-	if (this->name_contains_unicode( ))
-		this->name_.clear( );
-	else
-	{
-		this->name( );
-		this->name_wide_.clear( );
-	}
-#endif
+	const auto raw_name    = this->raw_name( );
+	auto       wname       = ranges::views::transform(raw_name, towlower);
+	this->name_            = {wname.begin( ), wname.end( )};
+	this->name_is_unicode_ = IsTextUnicode(raw_name._Unchecked_begin( ), raw_name.size( ) * sizeof(wchar_t), nullptr);
 }
 
 #if 0
@@ -146,95 +133,32 @@ DWORD module_info::image_size( ) const
 	return NT( )->OptionalHeader.SizeOfImage;
 }
 
-module_info::raw_name_type module_info::work_dir( ) const
+std::wstring_view module_info::work_dir( ) const
 {
 	auto path_to = full_path( );
 	path_to.remove_suffix(raw_name( ).size( ));
 	return path_to;
 }
 
-module_info::raw_name_type module_info::full_path( ) const
+std::wstring_view module_info::full_path( ) const
 {
-	return {this->ldr_entry->FullDllName.Buffer, this->ldr_entry->FullDllName.Length / sizeof(raw_name_value_type)};
+	return {this->ldr_entry->FullDllName.Buffer, this->ldr_entry->FullDllName.Length / sizeof(wchar_t)};
 }
 
-module_info::raw_name_type module_info::raw_name( ) const
+std::wstring_view module_info::raw_name( ) const
 {
 	const auto path = full_path( );
 	return path.substr(path.find_last_of('\\') + 1);
 }
 
-const std::string& module_info::name( )
-{
-	if (this->name_.empty( ))
-	{
-		const auto  ptr = this->raw_name( );
-		std::string out;
-		out.reserve(ptr.size( ));
-
-		for (const auto wchr: ptr)
-		{
-			if constexpr (sizeof(raw_name_value_type) == sizeof(std::string::value_type))
-			{
-				out += tolower(wchr);
-			}
-			else
-			{
-				if (static_cast<char>(wchr) == wchr)
-					out += tolower(wchr);
-				else
-				{
-					runtime_assert("Unable to convert wide character!");
-					out.clear( );
-					out += '\0';
-					break;
-				}
-			}
-		}
-
-		this->name_ = move(out);
-	}
-
-	return this->name_;
-};
-
-const std::string& module_info::name( ) const
+const std::wstring& module_info::name( ) const
 {
 	return this->name_;
 }
 
-const std::wstring& module_info::name_wide( )
+bool module_info::name_is_unicode( ) const
 {
-	if (this->name_wide_.empty( ))
-	{
-		static_assert(sizeof(raw_name_value_type) <= sizeof(std::wstring::value_type));
-		const auto   ptr = this->raw_name( );
-		std::wstring out;
-		out.reserve(ptr.size( ));
-		for (const auto wchr: ptr)
-			out += towlower(wchr);
-
-		this->name_wide_ = move(out);
-	}
-	return this->name_wide_;
-}
-
-const std::wstring& module_info::name_wide( ) const
-{
-	return this->name_wide_;
-}
-
-bool module_info::name_contains_unicode( )
-{
-	auto& wname = this->name_wide( );
-	return IsTextUnicode(wname.c_str( ), wname.size( ) * sizeof(std::wstring::value_type), nullptr);
-}
-
-bool module_info::name_contains_unicode( ) const
-{
-	auto& wname = this->name_wide( );
-	runtime_assert(!wname.empty(), "Wide name unset!");
-	return IsTextUnicode(wname.c_str( ), wname.size( ) * sizeof(std::wstring::value_type), nullptr);
+	return this->name_is_unicode_;
 }
 
 sections_storage& module_info::sections( )
@@ -242,7 +166,7 @@ sections_storage& module_info::sections( )
 	return *this;
 }
 
-const sections_storage& module_info::sections( ) const
+const sections_storage& module_info::sections_view( ) const
 {
 	return *this;
 }
@@ -252,7 +176,7 @@ exports_storage& module_info::exports( )
 	return *this;
 }
 
-const exports_storage& module_info::exports( ) const
+const exports_storage& module_info::exports_view( ) const
 {
 	return *this;
 }
@@ -262,7 +186,7 @@ vtables_storage& module_info::vtables( )
 	return *this;
 }
 
-const vtables_storage& module_info::vtables( ) const
+const vtables_storage& module_info::vtables_view( ) const
 {
 	return *this;
 }
@@ -273,7 +197,7 @@ struct headers_info
 	PIMAGE_NT_HEADERS nt;
 };
 
-static std::optional<headers_info> _Get_file_headers(const address& base)
+static std::optional<headers_info> _Get_file_headers(address base)
 {
 	const auto dos = base.ptr<IMAGE_DOS_HEADER>( );
 
@@ -297,7 +221,7 @@ static std::optional<headers_info> _Get_file_headers(const address& base)
 	return result;
 }
 
-static modules_storage_container _Get_all_modules( )
+static auto _Get_all_modules( )
 {
 	// TEB->ProcessEnvironmentBlock.
 #if defined(_M_X64) || defined(__x86_64__)
@@ -308,13 +232,13 @@ static modules_storage_container _Get_all_modules( )
 	runtime_assert(mem != nullptr, "Peb not found");
 #endif
 
-#ifdef UTILS_X64
+#if defined(_M_X64) || defined(__x86_64__)
     const auto ldr = mem->ProcessEnvironmentBlock->Ldr;
 #else
 	const auto ldr = mem->Ldr;
 #endif
 
-	auto container = modules_storage_container( );
+	auto container = std::vector<module_info>( );
 
 	// get module linked list.
 	const auto list = &ldr->InMemoryOrderModuleList;
@@ -338,8 +262,8 @@ static modules_storage_container _Get_all_modules( )
 	//all internal functions tested only on x86
 	//UPDATE: all works, except vtables finder
 
-	container.shrink_to_fit( );
-	return (container);
+	runtime_assert(ranges::adjacent_find(container, { }, &module_info::name) == container.end( ));
+	return container;
 }
 
 //module_info_loaded::module_info_loaded(const boost::filesystem::path& p, DWORD flags):
@@ -352,53 +276,77 @@ static modules_storage_container _Get_all_modules( )
 //
 //}
 
-modules_storage::modules_storage( )
+static volatile HMODULE _Get_current_module_handle( )
 {
-	this->update( );
+	auto             info      = MEMORY_BASIC_INFORMATION( );
+	constexpr SIZE_T info_size = sizeof(MEMORY_BASIC_INFORMATION);
+
+	//todo: is this is dll, try to load this fuction from inside
+	const auto len = VirtualQueryEx(GetCurrentProcess( ), _Get_current_module_handle, &info, info_size);
+	runtime_assert(len == info_size, "Wrong size");
+	return static_cast<HMODULE>(info.AllocationBase);
+}
+
+module_info& modules_storage::current( ) const
+{
+	return *current_cached_;
 }
 
 modules_storage& modules_storage::update(bool force)
 {
-	if (force || storage_.empty( ))
+	static const address current_base = _Get_current_module_handle( );
+
+	if (storage_.empty( ))
 	{
-		current_cached_ = nullptr;
-		storage_        = _Get_all_modules( );
-	}
-	return *this;
-}
+		runtime_assert(current_cached_==nullptr, "Cache already set");
+		auto all = _Get_all_modules( );
 
-static HMODULE _Get_current_module_handle( )
-{
-	MEMORY_BASIC_INFORMATION info;
-	//todo: is this is dll, try to load this fuction from inside
-	const size_t len = VirtualQueryEx(GetCurrentProcess( ), _Get_current_module_handle, &info, sizeof(MEMORY_BASIC_INFORMATION));
-	runtime_assert(len == sizeof(info), "Wrong size");
-	return static_cast<HMODULE>(info.AllocationBase);
-}
-
-module_info& modules_storage::current( )
-{
-	if (current_cached_ != nullptr)
-		return *current_cached_;
-
-	const address handle = _Get_current_module_handle( );
-
-	for (auto& info: storage_)
-	{
-		if (info.base( ) == handle)
+		for (auto& m: all)
 		{
-			current_cached_ = std::addressof(info);
-			return current( );
+			auto& item = storage_.emplace_back(std::move(m));
+			if (current_cached_ == nullptr && item.base( ) == current_base)
+				current_cached_ = std::addressof(item);
+		}
+	}
+	else if (force)
+	{
+		auto all = [&]
+		{
+			auto temp = _Get_all_modules( );
+			auto map  = nstd::ordered_map<std::wstring, module_info>( );
+
+			map.reserve(temp.size( ));
+			for (auto& m: temp)
+				map.emplace(m.raw_name( ), std::move(m));
+			return map;
+		}( );
+
+		//remove all unused modules
+		storage_.remove_if([&](const module_info& m)
+		{
+			return !all.contains(m.raw_name( ));
+		});
+
+		auto find_current = current_cached_ != nullptr;
+
+		//add all new modules, save the order
+		auto itr = storage_.begin( );
+		for (auto& m: all | ranges::views::values)
+		{
+			if (itr == storage_.end( ) || itr->full_path( ) != m.full_path( ))
+				itr = storage_.insert(itr, std::move(m));
+
+			if (find_current && itr->base( ) == current_base)
+			{
+				current_cached_ = std::addressof(*itr);
+				find_current    = false;
+			}
+
+			++itr;
 		}
 	}
 
-	runtime_assert("Unable to find current module");
-	return *static_cast<module_info*>(nullptr); //force error
-}
-
-const module_info& modules_storage::current( ) const
-{
-	return *current_cached_;
+	return *this;
 }
 
 module_info& modules_storage::owner( )
@@ -406,57 +354,8 @@ module_info& modules_storage::owner( )
 	return storage_.front( );
 }
 
-const module_info& modules_storage::owner( ) const
-{
-	return storage_.front( );
-}
-
-#if 0
-module_info& modules_storage::load(const boost::filesystem::path& from, DWORD flags)
-{
-    auto handle = LoadLibraryExW(from.c_str(), nullptr, flags);
-    runtime_assert(handle != nullptr, "Unable to load module");
-
-    this->update(true);
-
-    auto added = boost::range::find_if(storage_, [&](module_info& info) { return info.base() == handle; });
-    runtime_assert(added != storage_.end(), "Unable to find added module!");
-
-    auto& handle_closer = added->manual_handle_;
-    runtime_assert(handle_closer.get() != handle, "Handle already set!");
-
-    added->manual_handle_ = winapi::module_handle(handle);
-    return *added;
-}
-#endif
-
-modules_storage_container& modules_storage::all(bool update)
+modules_storage::storage_type& modules_storage::all(bool update)
 {
 	this->update(update);
 	return storage_;
-}
-
-const modules_storage_container& modules_storage::all( ) const
-{
-	return storage_;
-}
-
-module_info* modules_storage::find(const std::string_view& name)
-{
-	for (auto& entry: storage_)
-	{
-		if (entry.name( ) == name)
-			return std::addressof(entry);
-	}
-	return nullptr;
-}
-
-module_info* modules_storage::find(const std::wstring_view& name)
-{
-	for (auto& entry: storage_)
-	{
-		if (entry.name_wide( ) == name)
-			return std::addressof(entry);
-	}
-	return nullptr;
 }

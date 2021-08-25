@@ -13,8 +13,8 @@ using namespace csgo;
 
 nstd::address standard_blending_rules::get_target_method_impl( ) const
 {
-	const auto vtable = utils::vtable_pointer<C_BaseAnimating>("client.dll");
-	const auto index  = utils::find_signature("client.dll", "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).divide(4).value( );
+	const auto vtable = csgo_modules::client.find_vtable<C_BaseAnimating>();
+	const auto index  = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">().add(11).deref(1).divide(4).value( );
 
 	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }

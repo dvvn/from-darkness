@@ -198,14 +198,14 @@ static auto _Write_text = []<typename T>(T&& text)
 	using value_type = std::remove_cvref_t<T>;
 	if constexpr (stream_possible<std::ofstream, value_type>)
 	{
-		file_out  = _Get_file_buff(std::cout);
+		file_out  = /*_Get_file_buff(std::cout)*/stdin;
 		new_mode  = _O_TEXT;
 		prev_mode = _Set_mode(file_out, new_mode);
 		std::cout << text;
 	}
 	else if constexpr (stream_possible<std::wofstream, value_type>)
 	{
-		file_out  = _Get_file_buff(std::wcout);
+		file_out  = /*_Get_file_buff(std::wcout)*/stdin;
 		new_mode  = _O_U16TEXT;
 		prev_mode = _Set_mode(file_out, new_mode);
 		std::wcout << text;
