@@ -2,13 +2,13 @@
 
 using namespace cheat::utils;
 
-nstd::address find_signature_impl::operator()(const nstd::memory_block& from, const std::string_view& sig) const
-{
-	using namespace nstd;
-	return std::invoke(&memory_block::addr, sig.find('?') != sig.npos
-												? from.find_block(signature<signature_parse_mode::TEXT>(sig))
-												: from.find_block(signature<signature_parse_mode::TEXT_AS_BYTES>(sig)));
-}
+//nstd::address find_signature_impl::operator()(const nstd::memory_block& from, const std::string_view& sig) const
+//{
+//	using namespace nstd;
+//	return std::invoke(&memory_block::addr, sig.find('?') != sig.npos
+//												? from.find_block(signature<signature_parse_mode::TEXT>(sig))
+//												: from.find_block(signature<signature_parse_mode::TEXT_AS_BYTES>(sig)));
+//}
 
 //nstd::address find_signature_impl::operator()(const std::string_view& dll_name, const std::string_view& sig) const
 //{
@@ -199,15 +199,15 @@ nstd::address csgo_interfaces_cache_impl::operator()(nstd::os::module_info* targ
 	if (*original_interface_name_end != '\0')
 	{
 		msg
-				<< " ("
-				<< std::wstring(original_interface_name.begin( ), original_interface_name.end( ))
-				<< original_interface_name_end
-				<< ')';
+			<< " ("
+			<< std::wstring(original_interface_name.begin( ), original_interface_name.end( ))
+			<< original_interface_name_end
+			<< ')';
 	}
 
 	msg
-			<< " in module "
-			<< target_module->name( );
+		<< " in module "
+		<< target_module->name( );
 	CHEAT_CONSOLE_LOG(msg);
 
 #endif

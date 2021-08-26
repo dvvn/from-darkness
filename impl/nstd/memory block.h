@@ -3,25 +3,92 @@
 #include "address.h"
 //#include "signature.h"
 
+#define NSTD_MEM_BLOCK_UNWRAP_UNKNOWN_BYTES
+
 namespace nstd
 {
 	template <typename>
-	constexpr bool is_optional_v = false;
+	constexpr bool is_std_optional_v = false;
 
 	template <typename T>
-	constexpr bool is_optional_v<std::optional<T>> = true;
+	constexpr bool is_std_optional_v<std::optional<T>> = true;
 	template <typename T>
-	constexpr bool is_optional_v<const std::optional<T>&> = true;
+	constexpr bool is_std_optional_v<const std::optional<T>&> = true;
 	template <typename T>
-	constexpr bool is_optional_v<std::optional<T>&> = true;
+	constexpr bool is_std_optional_v<std::optional<T>&> = true;
 	template <typename T>
-	constexpr bool is_optional_v<std::optional<T>&&> = true;
+	constexpr bool is_std_optional_v<std::optional<T>&&> = true;
 
 	using known_byte = uint8_t;
 	using unknown_byte = std::optional<uint8_t>;
 
 	using known_bytes_range = std::span<known_byte>;
+	using known_bytes_range_const = std::span<const known_byte>;
 	using unknown_bytes_range = std::span<unknown_byte>;
+	using unknown_bytes_range_const = std::span<const unknown_byte>;
+
+	using known_bytes_object = std::vector<known_byte>;
+	using unknown_bytes_object = std::vector<unknown_byte>;
+
+	template <ranges::random_access_range T>
+		requires(std::same_as<ranges::range_value_t<T>, unknown_byte>)
+	constexpr bool all_bytes_known(const T& rng)
+	{
+		return ranges::all_of(rng, [](const unknown_byte& b) { return b.has_value( ); });
+	}
+
+	template <ranges::random_access_range T>
+		requires(std::same_as<ranges::range_value_t<T>, unknown_byte>)
+	// ReSharper disable once CppRedundantInlineSpecifier
+	_CONSTEXPR20_CONTAINER known_bytes_object make_bytes_known(const T& rng)
+	{
+		//runtime_assert(all_bytes_known(rng)==true);
+		auto tmp = ranges::views::transform(rng, [](const unknown_byte& b) { return *b; });
+		return known_bytes_object(tmp.begin( ), tmp.end( ));
+	}
+
+	class any_bytes_range
+	{
+		// ReSharper disable CppRedundantInlineSpecifier
+
+	public:
+		using value_type = std::variant<known_bytes_object, unknown_bytes_object, known_bytes_range_const, unknown_bytes_range_const>;
+
+		_CONSTEXPR20_CONTAINER explicit any_bytes_range(known_bytes_object&& obj): data_(
+																						 std::in_place_type<known_bytes_object>, std::move(obj)
+																						)
+		{
+		}
+
+		_CONSTEXPR20_CONTAINER explicit any_bytes_range(unknown_bytes_object&& obj): data_(
+#ifdef NSTD_MEM_BLOCK_UNWRAP_UNKNOWN_BYTES
+																						   std::in_place_type<unknown_bytes_object>, std::move(obj)
+#else
+																						   all_bytes_known(obj)
+																							   ? value_type(std::in_place_type<known_bytes_object>, make_bytes_known(obj))
+																							   : value_type(std::in_place_type<unknown_bytes_object>, std::move(obj))
+#endif
+																						  )
+		{
+		}
+
+		_CONSTEXPR20 explicit any_bytes_range(const known_bytes_range_const& obj): data_(std::in_place_type<known_bytes_range_const>, (obj))
+		{
+		}
+
+		_CONSTEXPR20 explicit any_bytes_range(const unknown_bytes_range_const& obj): data_(std::in_place_type<unknown_bytes_range_const>, (obj))
+		{
+		}
+
+		bool known( ) const;
+
+		known_bytes_range_const   get_known( ) const;
+		unknown_bytes_range_const get_unknown( ) const;
+
+	private:
+		value_type data_;
+		// ReSharper restore CppRedundantInlineSpecifier
+	};
 
 	class memory_block final: known_bytes_range
 	{
@@ -35,36 +102,41 @@ namespace nstd
 		explicit memory_block(const known_bytes_range& span);
 
 	private:
-		std::optional<memory_block> find_block_impl(const known_bytes_range& rng) const;
-		std::optional<memory_block> find_block_impl(const unknown_bytes_range& rng) const;
+		std::optional<memory_block> find_block_impl(const known_bytes_range_const& rng) const;
+		std::optional<memory_block> find_block_impl(const unknown_bytes_range_const& rng) const;
+		std::optional<memory_block> find_block_impl(const any_bytes_range& rng) const;
 
 	public:
 		template <typename T>
-		std::optional<memory_block> find_block(const T& block) const
+		std::optional<memory_block> find_block(const T& obj) const
 		{
-			if constexpr (!ranges::range<T>)
+			if constexpr (std::same_as<T, any_bytes_range>)
+			{
+				return this->find_block_impl(obj);
+			}
+			else if constexpr (!ranges::range<T>)
 			{
 				static_assert(!std::is_pointer_v<T> && std::is_trivially_destructible_v<T>, __FUNCSIG__": Unsupported block data type!");
-				const auto rng = known_bytes_range((known_byte*)std::addressof(block), sizeof(T));
+				const auto rng = known_bytes_range_const(reinterpret_cast<const known_byte*>(std::addressof(obj)), sizeof(T));
 				return this->find_block_impl(rng);
 			}
 			else
 			{
 				static_assert(ranges::random_access_range<T>, __FUNCSIG__": Unsupported range type!");
 
-				auto first = std::_Get_unwrapped(block.begin( ));
+				auto first = std::_Get_unwrapped(obj.begin( ));
 				using raw_t = ranges::range_value_t<T>;
 
-				if constexpr (is_optional_v<raw_t>)
+				if constexpr (is_std_optional_v<raw_t>)
 				{
 					static_assert(sizeof(typename raw_t::value_type) == sizeof(std::byte), __FUNCSIG__": Unsupported range element type!");
-					const auto rng = unknown_bytes_range((unknown_byte*)first, block.size( ));
+					const auto rng = unknown_bytes_range_const(reinterpret_cast<const unknown_byte*>(first), obj.size( ));
 					return this->find_block_impl(rng);
 				}
 				else
 				{
-					static_assert(sizeof(raw_t) == sizeof(std::byte), __FUNCSIG__": Unsupported range element type!");
-					const auto rng = known_bytes_range((known_byte*)first, block.size( ));
+					static_assert(sizeof(raw_t) == sizeof(known_byte), __FUNCSIG__": Unsupported range element type!");
+					const auto rng = known_bytes_range_const(reinterpret_cast<const known_byte*>(first), obj.size( ));
 					return this->find_block_impl(rng);
 				}
 			}

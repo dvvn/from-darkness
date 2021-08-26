@@ -84,8 +84,10 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 	using future_type = std::future<data_callback_fn>;
 	auto load_data_storage = std::vector<future_type>( );
 
-	static constexpr auto part_before = signature<signature_parse_mode::BYTES>(".?AV");
-	static constexpr auto part_after  = signature<signature_parse_mode::BYTES>("@@");
+	/*constexpr*/ auto part_before_sig = signature(".?AV");
+	/*constexpr*/ auto part_after_sig  = signature("@@");
+	auto           part_before     = part_before_sig.get_known( );
+	auto           part_after      = part_after_sig.get_known( );
 
 	// type descriptor names look like this: .?AVXXXXXXXXXXXXXXXXX@@ (so: ".?AV" + szTableName + "@@")
 
@@ -144,7 +146,7 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 		// we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
 		type_descriptor -= 0x8;
 
-		load_data_storage.emplace_back(pool.submit([&dot_rdata, &dot_text, class_descriptor, type_descriptor]( ) -> data_callback_fn
+		load_data_storage.emplace_back(pool.submit([&part_before,&part_after,&dot_rdata, &dot_text, class_descriptor, type_descriptor]( ) -> data_callback_fn
 		{
 			auto result = _Load_vtable_info(dot_rdata, dot_text, type_descriptor);
 			if (!result.has_value( ))

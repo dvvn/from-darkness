@@ -35,7 +35,7 @@ static std::string _Str_to_lower(const std::string_view& str)
 	std::string ret;
 	ret.reserve(str.size( ));
 	for (const auto c: str)
-		ret += std::tolower(c);
+		ret += static_cast<char>(std::tolower(c));
 	return ret;
 }
 
@@ -56,11 +56,11 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 }
 
 template <typename Nstr>
-static bool _Save_netvar(nlohmann::json& storage, Nstr&& name, int offset, [[maybe_unused]] std::string&& type)
+static bool _Save_netvar(netvars::data_type& storage, Nstr&& name, int offset, [[maybe_unused]] std::string&& type)
 {
 	auto path = (std::string(std::forward<Nstr>(name)));
 
-	auto&& [entry, added] = storage.emplace((std::move(path)), nlohmann::json{ });
+	auto&& [entry, added] = storage.emplace((std::move(path)), netvars::data_type{ });
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -87,7 +87,7 @@ static bool _Save_netvar(nlohmann::json& storage, Nstr&& name, int offset, [[may
 }
 
 template <typename Nstr>
-static std::pair<nlohmann::json::iterator, bool> _Add_child_class(nlohmann::json& storage, Nstr&& name)
+static std::pair<netvars::data_type::iterator, bool> _Add_child_class(netvars::data_type& storage, Nstr&& name)
 {
 	std::string class_name;
 	if (name[0] == 'C' && name[1] != '_')
@@ -105,7 +105,7 @@ static std::pair<nlohmann::json::iterator, bool> _Add_child_class(nlohmann::json
 		runtime_assert(!class_name.starts_with("DT_"));
 	}
 
-	return storage.emplace(std::move(class_name), nlohmann::json{ });
+	return storage.emplace(std::move(class_name), netvars::data_type::value_type{ });
 }
 
 static std::string _Array_type(const std::string_view& type, size_t size)
@@ -293,7 +293,7 @@ static std::string _Datamap_field_type(const typedescription_t& field)
 	}
 }
 
-static void _Store_recv_props(nlohmann::json& root_tree, nlohmann::json& tree, const RecvTable* recv_table, int offset)
+static void _Store_recv_props(netvars::data_type& root_tree, netvars::data_type& tree, const RecvTable* recv_table, int offset)
 {
 	static constexpr auto prop_is_length_proxy = [](const RecvProp& prop)
 	{
@@ -523,7 +523,7 @@ static void _Store_recv_props(nlohmann::json& root_tree, nlohmann::json& tree, c
 }
 
 [[maybe_unused]]
-static void _Iterate_client_class(nlohmann::json& root_tree, ClientClass* root_class)
+static void _Iterate_client_class(netvars::data_type& root_tree, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
@@ -541,7 +541,7 @@ static void _Iterate_client_class(nlohmann::json& root_tree, ClientClass* root_c
 	}
 }
 
-static void _Store_datamap_props(nlohmann::json& tree, datamap_t* map)
+static void _Store_datamap_props(netvars::data_type& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
 	for (auto& desc: map->data)
@@ -573,7 +573,7 @@ static void _Store_datamap_props(nlohmann::json& tree, datamap_t* map)
 }
 
 [[maybe_unused]]
-static void _Iterate_datamap(nlohmann::json& root_tree, datamap_t* root_map)
+static void _Iterate_datamap(netvars::data_type& root_tree, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
@@ -623,6 +623,7 @@ enum class dump_info
 	updated
 };
 
+[[maybe_unused]]
 static dump_info _Dump_netvars(const netvars::data_type& netvars_data)
 {
 	static const auto netvars_dump_dir = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
@@ -668,6 +669,7 @@ static dump_info _Dump_netvars(const netvars::data_type& netvars_data)
 	return info;
 }
 
+[[maybe_unused]]
 static void _Generate_classes(dump_info info, const netvars::data_type& netvars_data, netvars::writers_storage_type& lazy_writer)
 {
 	if (info == dump_info::skipped)
@@ -688,8 +690,8 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 		// ReSharper restore CppTooWideScope
 		// ReSharper restore CppInconsistentNaming
 
-		auto header = detail::lazy_file_writer(dir / (class_name + "_h"));
-		auto source = detail::lazy_file_writer(dir / (class_name + "_cpp"));
+		auto header = lazy_file_writer(dir / (class_name + "_h"));
+		auto source = lazy_file_writer(dir / (class_name + "_cpp"));
 
 		source << std::format("#include \"{}.h\"", class_name) << __New_line;
 		source << __New_line;

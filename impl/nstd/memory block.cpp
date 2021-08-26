@@ -2,6 +2,61 @@
 
 using namespace nstd;
 
+bool any_bytes_range::known( ) const
+{
+	return std::visit(overload
+					  (
+					   [](const known_bytes_range_const&  ) { return true; },
+					   [](const unknown_bytes_range_const&) { return false; }
+					  ), data_);
+
+#if 0
+	if (known)
+	{
+		runtime_assert(try_rewrap_==false);
+	}
+	else if (try_rewrap_)
+	{
+		try_rewrap_    = false;
+		const auto rng = this->get_unknown( );
+		if (all_bytes_known(rng))
+		{
+			auto rng2 = make_bytes_known(rng);
+			this->data_.emplace<known_bytes_object>(std::move(rng2));
+			return true;
+		}
+	}
+
+	return known;
+#endif
+}
+
+known_bytes_range_const any_bytes_range::get_known( ) const
+{
+	return std::visit(overload([](const known_bytes_range_const& obj)
+							   {
+								   return obj;
+							   },
+							   [](const unknown_bytes_range_const&)
+							   {
+								   runtime_assert("incorrect call");
+								   return known_bytes_range_const( );
+							   }), data_);
+}
+
+unknown_bytes_range_const any_bytes_range::get_unknown( ) const
+{
+	return std::visit(overload([](const known_bytes_range_const&)
+							   {
+								   runtime_assert("incorrect call");
+								   return unknown_bytes_range_const( );
+							   },
+							   [](const unknown_bytes_range_const& obj)
+							   {
+								   return obj;
+							   }), data_);
+}
+
 memory_block::memory_block(const address& begin, size_t mem_size) : known_bytes_range(begin.ptr<uint8_t>( ), mem_size)
 {
 }
@@ -18,7 +73,7 @@ memory_block::memory_block(const known_bytes_range& span) : known_bytes_range(sp
 {
 }
 
-struct dummy_exception final: std::exception
+struct rewrap_range_exception final: std::exception
 {
 };
 
@@ -66,23 +121,23 @@ static auto _Rng_search(Where&& where, What&& what, Pr&& pred = { })
 #endif
 }
 
-template <typename T>
-static std::optional<std::span<T>> _Rewrap_range(const known_bytes_range& rng)
+template <typename T, typename Span=std::span<const T>, typename Ptr=const T*>
+static std::optional<Span> _Rewrap_range(const known_bytes_range_const& rng)
 {
 	const auto size_bytes = rng.size( );
 	if (size_bytes < sizeof(T))
-		throw dummy_exception( );
+		throw rewrap_range_exception( );
 	if (size_bytes == sizeof(T))
-		return std::span<T>((T*)rng._Unchecked_begin( ), 1);
+		return Span(reinterpret_cast<Ptr>(rng._Unchecked_begin( )), 1);
 
 	const auto tail = size_bytes % sizeof(T);
 	if (tail > 0)
 		return { };
 
-	auto start = (T*)rng._Unchecked_begin( );
+	auto start = reinterpret_cast<Ptr>(rng._Unchecked_begin( ));
 	auto size  = size_bytes / sizeof(T);
 
-	return std::span<T>(start, size);
+	return Span(start, size);
 }
 
 template <typename T>
@@ -98,7 +153,7 @@ static std::optional<memory_block> _Scan_memory(const memory_block& block, const
 	return memory_block({(known_byte*)result.begin( ), rng.size_bytes( )});
 }
 
-static std::optional<memory_block> _Scan_memory(const memory_block& block, const known_bytes_range& data)
+static std::optional<memory_block> _Scan_memory(const memory_block& block, const known_bytes_range_const& data)
 {
 	auto result = _Rng_search(block, data);
 	if (result.empty( ))
@@ -107,7 +162,7 @@ static std::optional<memory_block> _Scan_memory(const memory_block& block, const
 	return memory_block({result.begin( ), data.size( )});
 }
 
-std::optional<memory_block> memory_block::find_block_impl(const known_bytes_range& rng) const
+std::optional<memory_block> memory_block::find_block_impl(const known_bytes_range_const& rng) const
 {
 	try
 	{
@@ -120,23 +175,44 @@ std::optional<memory_block> memory_block::find_block_impl(const known_bytes_rang
 		if (const auto rng16 = _Rewrap_range<uint16_t>(rng); rng16.has_value( ))
 			return _Scan_memory(*this, *rng16);
 	}
-	catch (const dummy_exception&)
+	catch (const rewrap_range_exception&)
 	{
 	}
 
 	return _Scan_memory(*this, rng);
 }
 
-std::optional<memory_block> memory_block::find_block_impl(const unknown_bytes_range& rng) const
+std::optional<memory_block> memory_block::find_block_impl(const unknown_bytes_range_const& rng) const
 {
-	auto result = _Rng_search(*this, rng, [](value_type byte, const unknown_byte& opt_byte)
+#ifdef NSTD_MEM_BLOCK_UNWRAP_UNKNOWN_BYTES
+	if (all_bytes_known(rng))
 	{
-		return !opt_byte.has_value( ) || *opt_byte == byte;
+		return this->find_block_impl(make_bytes_known(rng));
+	}
+#else
+	runtime_assert(!all_bytes_known(rng),"Unknown bytes must be unwrapped before!");
+#endif
+
+	auto result = _Rng_search(*this, rng, [](const known_byte kbyte, const unknown_byte& unkbyte)
+	{
+		return !unkbyte.has_value( ) || *unkbyte == kbyte;
 	});
 	if (result.empty( ))
 		return { };
 
 	return memory_block({(result.begin( )), rng.size( )});
+}
+
+std::optional<memory_block> memory_block::find_block_impl(const any_bytes_range& rng) const
+{
+	std::optional<memory_block> ret;
+
+	if (rng.known( ))
+		ret = this->find_block_impl(rng.get_known( ));
+	else
+		ret = this->find_block_impl(rng.get_unknown( ));
+
+	return ret;
 }
 
 address memory_block::addr( ) const

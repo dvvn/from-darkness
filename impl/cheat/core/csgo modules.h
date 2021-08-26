@@ -7,19 +7,50 @@ namespace cheat::csgo_modules
 	template <nstd::chars_cache Name>
 	struct _Game_module
 	{
-		nstd::os::module_info* get( ) const
+		nstd::os::module_info* get( )const
 		{
 			using namespace nstd::os;
 
-			static auto full_name = std::wstring(Name.view( ).begin( ), Name.view( ).end( )) + L".dll";
-			static auto info      = all_modules::get_ptr( )->find(&module_info::name, full_name);
+			static auto info = all_modules::get_ptr( )->find([](std::wstring_view name)-> bool
+			{
+				constexpr auto dot_dll     = std::string_view(".dll");
+				constexpr auto target_name = Name.view( );
+				if (name.size( ) != target_name.size( ) + dot_dll.size( ))
+					return false;
+
+				for (size_t i = 0; i < target_name.size( ); ++i)
+				{
+					if (name[i] != static_cast<wchar_t>(target_name[i]))
+						return false;
+				}
+
+				for (size_t i = target_name.size( ); i < dot_dll.size( ); ++i)
+				{
+					if (name[i] != static_cast<wchar_t>(dot_dll[i]))
+						return false;
+				}
+
+				return true;
+			}, &module_info::name);
 			return info;
 		}
 
 		template <nstd::chars_cache Sig>
 		nstd::address find_signature( ) const
 		{
-			static auto addr = std::invoke(utils::find_signature_impl( ), this->get( )->mem_block( ), Sig.view( ));
+			//static auto addr = std::invoke(utils::find_signature_impl( ), this->get( )->mem_block( ), Sig.view( ));
+			static auto addr = [&]( )-> nstd::address
+			{
+				auto bytes = nstd::signature(Sig.view( ));
+				auto ret   = this->get( )->mem_block( ).find_block(bytes);
+				if (!ret.has_value( ))
+				{
+					CHEAT_CONSOLE_LOG("{}.dll -> signature {} not found", Name.view(), Sig.view())
+					return nullptr;
+				}
+
+				return ret->addr( );
+			}( );
 			return addr;
 		}
 

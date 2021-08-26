@@ -8,15 +8,6 @@ namespace cheat
 
 namespace cheat::utils
 {
-	struct find_signature_impl
-	{
-		nstd::address operator()(const nstd::memory_block& from, const std::string_view& sig) const;
-		//nstd::address operator()(const std::string_view& dll_name, const std::string_view& sig) const=delete;
-	};
-
-	[[deprecated]]
-	_INLINE_VAR constexpr auto find_signature = find_signature_impl( );
-
 	struct vtable_pointer_impl
 	{
 		void* operator()(const std::string_view& from, const std::string_view& table_name) const = delete;
