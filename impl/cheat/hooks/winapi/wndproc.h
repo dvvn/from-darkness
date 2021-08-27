@@ -11,10 +11,11 @@ namespace cheat::hooks::winapi
 
 	{
 	public:
+		wndproc( );
 		void render( ) override;
 
 	protected:
-		bool load_impl( ) override;
+		load_result load_impl( ) override;
 
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 

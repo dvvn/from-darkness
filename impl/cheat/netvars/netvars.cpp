@@ -8,16 +8,6 @@
 #include "cheat/sdk/entity/C_BaseEntity.h"
 #include "cheat/sdk/entity/C_CSPlayer.h"
 
-#if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
-#define CHEAT_NETVARS_RESOLVE_TYPE
-#endif
-#if 0
-#define CHEAT_NETVARS_DUMP_STATIC_OFFSET
-#endif
-#if defined(CHEAT_GUI_TEST) || (defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET) && !defined(_DEBUG))
-#define CHEAT_NETVARS_DUMPER_DISABLED
-#endif
-
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -28,6 +18,7 @@ netvars::~netvars( )
 
 netvars::netvars( )
 {
+	this->add_service<csgo_interfaces>();
 }
 
 static std::string _Str_to_lower(const std::string_view& str)
@@ -589,12 +580,8 @@ static void _Iterate_datamap(netvars::data_type& root_tree, datamap_t* root_map)
 	}
 }
 
-bool netvars::load_impl( )
+service_base::load_result netvars::load_impl( ) 
 {
-#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
-	return false;
-#else
-
 #ifdef _DEBUG
 	data_.clear( );
 #endif
@@ -608,9 +595,7 @@ bool netvars::load_impl( )
 	_Iterate_datamap(data_, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data_, baseent->GetPredictionDescMap( ));
 
-	return true;
-
-#endif
+	co_return service_state::loaded;
 }
 
 static constexpr int  _Json_indent = 4;
@@ -732,9 +717,9 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 			source << __Tab << format("auto addr = {}(this).add({});", address_class, netvar_offset) << __New_line;
 #else
 			source << __Tab
-					<< "static const auto offset = netvars::get_ptr( )->at"
-					<< std::format("(\"{}\", \"{}\");", class_name, netvar_name)
-					<< __New_line;
+				<< "static const auto offset = netvars::get_ptr( )->at"
+				<< std::format("(\"{}\", \"{}\");", class_name, netvar_name)
+				<< __New_line;
 			source << __Tab << "auto addr = " << address_class << "(this).add(offset);" << __New_line;
 #endif
 			source << __Tab << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
@@ -807,7 +792,7 @@ lazy_file_writer::lazy_file_writer(std::filesystem::path&& file) : file_(std::mo
 {
 }
 
-lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
+lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) 
 {
 	file_                                   = std::move(other.file_);
 	*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);

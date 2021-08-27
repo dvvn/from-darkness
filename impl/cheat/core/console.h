@@ -91,14 +91,14 @@ namespace cheat
 		void write_line(const std::wostringstream& str);
 
 	protected:
-		bool load_impl( ) override;
-		void handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept override;
+		load_result load_impl( )  override;
+		void        handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept override;
 
 	private:
 		detail::console_data data_;
 
 		using file_ptr = FILE*;
-		file_ptr in_=0, out_=0, err_=0;
+		file_ptr in_ = 0, out_ = 0, err_ = 0;
 	};
 
 #ifdef CHEAT_HAVE_CONSOLE

@@ -28,6 +28,11 @@
 #define _STL_VERIFY runtime_assert
 
 //-----
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"Synchronization.lib")
+#pragma comment(lib,"Mswsock.lib")
 
 #include <d3d9.h>
 #include <tchar.h>
@@ -59,6 +64,7 @@
 #include <thread>
 #include <variant>
 #include <vector>
+#include <coroutine>
 
 #if defined(__cpp_lib_concepts)
 #include <concepts>
@@ -87,6 +93,18 @@ namespace std
 
 #endif
 
+//#include <concurrencpp/concurrencpp.h>
+#include <cppcoro/async_generator.hpp>
+#include <cppcoro/generator.hpp>
+#include <cppcoro/single_consumer_event.hpp>
+#include <cppcoro/task.hpp>
+#include <cppcoro/shared_task.hpp>
+#include <cppcoro/static_thread_pool.hpp>
+#include <cppcoro/single_producer_sequencer.hpp>
+#include <cppcoro/when_all.hpp>
+#include <cppcoro/sync_wait.hpp>
+#include <cppcoro/schedule_on.hpp>
+
 #include <nlohmann/json.hpp>
 
 //#define FT2_BUILD_LIBRARY
@@ -114,7 +132,7 @@ namespace std
 
 //#include <WinReg/WinReg.hpp>
 
-#include <thread_pool.hpp>
+//#include <thread_pool.hpp>
 
 // ReSharper disable CppWrongIncludesOrder
 #include "nstd/chars cache.h"

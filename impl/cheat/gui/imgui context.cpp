@@ -38,9 +38,10 @@ imgui_context::~imgui_context( )
 
 imgui_context::imgui_context( ): ctx__(&fonts__)
 {
+	this->add_service<csgo_interfaces>();
 }
 
-bool imgui_context::load_impl( )
+service_base::load_result imgui_context::load_impl( )
 {
 	const auto interfaces = csgo_interfaces::get_ptr( );
 	const auto d3d = interfaces->d3d_device.get( );
@@ -90,5 +91,5 @@ bool imgui_context::load_impl( )
 	ImGui_ImplDX9_Init(d3d);
 	//ImGui_ImplDX9_CreateDeviceObjects( ); d3d9 multithread error
 
-	return true;
+	co_return service_state::loaded;
 }

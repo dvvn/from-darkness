@@ -9,7 +9,12 @@ using namespace cheat;
 using namespace hooks::winapi;
 using namespace gui;
 
-bool wndproc::load_impl( )
+wndproc::wndproc( )
+{
+	this->add_service<imgui_context>( );
+}
+
+service_base::load_result wndproc::load_impl( )
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
 	runtime_assert(hwnd != nullptr);

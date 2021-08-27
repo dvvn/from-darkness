@@ -27,45 +27,79 @@ using namespace detail;
 
 #ifndef CHEAT_GUI_TEST
 
-static bool _Wait_for_game( )
+struct csgo_awaiter final: service<csgo_awaiter>
 {
-	const auto modules = nstd::os::all_modules::get_ptr( );
-	auto&      all     = modules->update(false).all( );
-
-	auto  work_dir        = std::filesystem::path(modules->owner( ).work_dir( ));
-	auto& work_dir_native = const_cast<std::filesystem::path::string_type&>(work_dir.native( ));
-	ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
-	work_dir.append(L"bin").append(L"serverbrowser.dll");
-
-	const auto is_game_loaded = [&]
+protected:
+	load_result load_impl( ) override
 	{
-		for (const auto& path: all | ranges::views::transform(&nstd::os::module_info::full_path) | ranges::views::reverse)
+		const auto modules = nstd::os::all_modules::get_ptr( );
+		auto&      all     = modules->update(false).all( );
+
+		auto  work_dir        = std::filesystem::path(modules->owner( ).work_dir( ));
+		auto& work_dir_native = const_cast<std::filesystem::path::string_type&>(work_dir.native( ));
+		ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
+		work_dir.append(L"bin").append(L"serverbrowser.dll");
+
+		const auto is_game_loaded = [&]
 		{
-			if (path == work_dir_native)
-				return true;
-		}
+			for (const auto& path: all | ranges::views::transform(&nstd::os::module_info::full_path) | ranges::views::reverse)
+			{
+				if (path == work_dir_native)
+					return true;
+			}
 
-		return false;
-	};
-
-	if (is_game_loaded( ))
-		return true;
-
-	do
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(all.size( ) < 120 ? 1000 : 100));
-		/*if (interruption_requested( ))
-			throw thread_interrupted( );*/
-		if (services_loader::get_ptr( )->unloaded( ))
 			return false;
-
-		modules->update(true);
+		};
 
 		if (is_game_loaded( ))
-			return false;
+		{
+			game_loaded_before_ = true;
+			co_return service_state::loaded;
+		}
+
+		do
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(all.size( ) < 120 ? 1000 : 100));
+			//todo: cppcoro::cancellation_token
+			//todo: co_yield
+			if (services_loader::get_ptr( )->load_thread_stop_token( ).stop_requested( ))
+				co_return service_state::error;
+
+			modules->update(true);
+
+			if (is_game_loaded( ))
+				co_return service_state::loaded;
+		}
+		while (true);
 	}
-	while (true);
-}
+
+public:
+	bool game_loaded_before( ) const
+	{
+		return game_loaded_before_;
+	}
+
+protected:
+	//todo:fix
+	//now this stop threadpool and main thread
+	/*void after_load( ) override
+	{
+		if (!game_loaded_before_)
+			return;
+		frozen_threads_.fill( );
+	}
+
+	void after_reset( ) override
+	{
+		if (!game_loaded_before_)
+			return;
+		frozen_threads_.clear( );
+	}*/
+
+private:
+	bool                             game_loaded_before_ = false;
+	//nstd::os::frozen_threads_storage frozen_threads_{false};
+};
 
 #endif
 
@@ -74,162 +108,44 @@ struct unload_helper_data
 	DWORD            sleep;
 	HMODULE          handle;
 	BOOL             retval;
-	services_holder* holder;
+	services_loader* holder;
 };
 
 [[maybe_unused]]
 static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 {
-	const auto data_ptr                          = static_cast<unload_helper_data*>(data_packed);
-	const auto [sleep, handle, retval, instance] = *data_ptr;
+	const auto data_ptr                        = static_cast<unload_helper_data*>(data_packed);
+	const auto [sleep, handle, retval, holder] = *data_ptr;
 	delete data_ptr;
 
-	const auto hooks  = instance->get_all_hooks( );
-	auto       frozen = nstd::os::frozen_threads_storage(true);
-	for (auto& h: hooks)
+	using hooks_storage = nstd::unordered_set<std::shared_ptr<dhooks::hook_holder_base>>;
+	using get_all_hooks_fn = std::function<void(const service_base& base, hooks_storage& set)>;
+	const get_all_hooks_fn get_all_hooks = [&](const service_base& base, hooks_storage& set)
 	{
+		for (auto& s: base.services( ))
+		{
+			auto ptr = std::dynamic_pointer_cast<dhooks::hook_holder_base>(s);
+			if (ptr != nullptr)
+				set.emplace(std::move(ptr));
+
+			get_all_hooks(*s, set);
+		}
+	};
+
+	auto all_hooks = hooks_storage( );
+	get_all_hooks(*holder, all_hooks);
+
+	auto frozen = nstd::os::frozen_threads_storage(true);
+	for (auto& h: all_hooks)
 		h->disable( );
-	}
+
 	frozen.clear( );
+	all_hooks.clear( );
+	holder->reset( );
 
 	//we must be close all threads before unload!
 	Sleep(sleep);
 	FreeLibraryAndExitThread(handle, retval);
-}
-
-std::future<bool> services_holder::load( )
-{
-	return std::async(std::launch::async, [this]
-	{
-		bool game_alredy_loaded;
-#ifdef CHEAT_GUI_TEST
-		game_alredy_loaded = true;
-#else
-		try
-		{
-			game_alredy_loaded = _Wait_for_game( );
-		}
-		catch (const std::exception& ex)
-		{
-			runtime_assert(ex.what());
-			return false;
-		}
-#endif
-
-#ifdef NDEBUG
-		std::this_thread::sleep_for(std::chrono::seconds(game_alredy_loaded ? 1 : 5));
-#endif
-		auto frozen = nstd::os::frozen_threads_storage(game_alredy_loaded);
-		auto loader = thread_pool( );
-
-		const auto sumbit = [&](const services_storage& services)
-		{
-			for (const auto& s: services)
-			{
-				loader.submit(std::bind_front(&service_base::load, s.get( )));
-			}
-		};
-		const auto wait = [&](const services_storage& services)
-		{
-			do
-			{
-				size_t done = 0;
-				using state = service_state::value_type;
-				for (const auto& s: services)
-				{
-					switch (s->state( ).value( ))
-					{
-						case state::unset:
-						case state::loading:
-							std::this_thread::yield( );
-							break;
-#ifdef BOOST_THREAD_PROVIDES_INTERRUPTIONS
-													case state::stopped:
-#endif
-						case state::error:
-							loader.paused = true;
-						case state::loaded:
-						case state::skipped:
-							++done;
-							break;
-					}
-				}
-
-				if (done == services.size( ))
-					break;
-			}
-			while (true);
-
-			return loader.paused == false;
-		};
-
-		for (auto child = this; child != nullptr; child = child->next__.get( ))
-		{
-			sumbit(child->services_dont_wait__);
-			sumbit(child->services__);
-
-			if (!child->services_wait_for__.empty( ))
-			{
-				if (!wait(child->services_wait_for__))
-					return false;
-
-				child->services_wait_for__.clear( ); //it uselles now
-			}
-
-			if (!wait(child->services__))
-				return false;
-		}
-
-		//wait for all services
-		loader.wait_for_tasks( );
-
-		for (auto child = this; child != nullptr; child = child->next__.get( ))
-		{
-			//check detached if any service have error
-			for (const auto& s: child->services_dont_wait__)
-			{
-				if (!s->state( ).done( ))
-					return false;
-			}
-		}
-
-		return true;
-	});
-}
-
-services_holder& services_holder::then( )
-{
-	if (!next__)
-		next__ = std::make_unique<services_holder>( );
-
-	return *next__;
-}
-
-services_holder::all_hooks_storage services_holder::get_all_hooks( )
-{
-	auto hooks = all_hooks_storage( );
-
-	const auto extract_hooks = [&](const services_storage& where)
-	{
-		for (auto& item: where)
-		{
-			const auto ptr = item.get( );
-			if (const auto hook = dynamic_cast<dhooks::hook_holder_base*>(ptr); hook != nullptr)
-				hooks.emplace(hook);
-		}
-	};
-	for (auto child = this; child != nullptr; child = child->next__.get( ))
-	{
-		extract_hooks(child->services__);
-		extract_hooks(child->services_dont_wait__);
-	}
-
-	return hooks;
-}
-
-std::string_view services_loader::name( ) const
-{
-	return nstd::type_name<services_loader, "cheat">( );
 }
 
 #ifndef CHEAT_GUI_TEST
@@ -241,54 +157,44 @@ HMODULE services_loader::my_handle( ) const
 
 void services_loader::load(HMODULE handle)
 {
-	my_handle__ = handle;
-	std::thread([this] { this->load( ); }).detach( );
+	my_handle__  = handle;
+	load_thread_ = std::jthread([this]
+	{
+		auto ex = executor(std::max<size_t>(8, std::thread::hardware_concurrency( )));
+		if (sync_wait(this->load(ex)) != service_state::loaded)
+			this->unload( );
+		else
+			csgo_awaiter::get_ptr( )->reset( );
+	});
 }
 
 void services_loader::unload( )
 {
-	runtime_assert(this->unloaded_==false);
+	this->load_thread_.request_stop( );
 
 	const auto data = new unload_helper_data;
 	data->sleep     = 1000;
 	data->handle    = my_handle__;
 	data->retval    = TRUE;
-	data->holder    = std::addressof(this->services__);
-	this->unloaded_ = true;
+	data->holder    = this;
+
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
 
-bool services_loader::unloaded( ) const
+std::stop_token services_loader::load_thread_stop_token( ) const
 {
-	return unloaded_;
-}
-
-#endif
-
-void services_loader::reset( )
-{
-	auto dummy = services_holder( );
-	std::swap(services__, dummy);
-}
-
-bool services_loader::load_impl( )
-{
-	bool result;
-	try
-	{
-		result = services__.load( ).get( );
-	}
-	catch (const std::exception& ex)
-	{
-		CHEAT_CONSOLE_LOG("Error while task loading: {}", ex.what());
-		result = false;
-	}
 #ifndef CHEAT_GUI_TEST
-	if (!result)
-		this->unload( );
+	return load_thread_.get_stop_token( );
+#else
+	return {};
+#endif
+}
+
 #endif
 
-	return result;
+service_base::load_result services_loader::load_impl( )
+{
+	co_return service_state::loaded;
 }
 
 void services_loader::after_load( )
@@ -305,24 +211,32 @@ services_loader::services_loader( )
 	using namespace hooks;
 	using namespace gui;
 
-	services__.load<console>( )
-			  .then( )
-			  .load<csgo_interfaces, settings, menu>( )
-			  .then( )
-			  .load<imgui_context>( )
-			  .load<vgui_surface::lock_cursor>(true)
-			  .load<netvars, players_list>(true)
-			  .then( )
-			  .load<winapi::wndproc>(true)
-			  .then( )
-			  .wait<netvars, players_list>( )
-			  .load<c_base_entity::estimate_abs_velocity,
-					c_base_entity::should_interpolate,
-					c_base_animating::should_skip_animation_frame,
-					c_base_animating::standard_blending_rules,
-					c_csplayer::do_extra_bone_processing>(true)
-			  .load<directx::present, directx::reset>(true)
-			  .load<client::frame_stage_notify>( )
-			  .then( )
-			  .load<client_mode::create_move, studio_render::draw_model>(true);
+	//WARNING!
+	//true async is possible only with a very large number of threads!
+	//next example freeze program
+	//if we have X services waiting for another Y out-of-range other services, and this number lower than thread pool size, the programm will freeze! I didn't add a workaround for this
+
+#ifndef CHEAT_GUI_TEST
+	this->add_service<csgo_awaiter>( );
+	console::get_ptr( )->add_service<csgo_awaiter>( );
+#endif
+	this->add_service<console>( );                                       //await: csgo_awaiter
+	this->add_service<csgo_interfaces>( );                               //await: console
+	this->add_service<settings>( );                                      //
+	this->add_service<imgui_context>( );                                 //await: csgo_interfaces
+	this->add_service<menu>( );                                          //await: imgui_context
+	this->add_service<vgui_surface::lock_cursor>( );                     //await: menu
+	this->add_service<netvars>( );                                       //await: csgo_interfaces
+	this->add_service<players_list>( );                                  //await: netvars
+	this->add_service<winapi::wndproc>( );                               //await: imgui_context
+	this->add_service<directx::present>( );                              //await: menu
+	this->add_service<directx::reset>( );                                //await: imgui_context
+	this->add_service<c_base_entity::estimate_abs_velocity>( );          //await: netvars
+	this->add_service<c_base_entity::should_interpolate>( );             //await: netvars
+	this->add_service<c_base_animating::should_skip_animation_frame>( ); //await: netvars
+	this->add_service<c_base_animating::standard_blending_rules>( );     //await: netvars
+	this->add_service<c_csplayer::do_extra_bone_processing>( );          //await: csgo_interfaces
+	this->add_service<client::frame_stage_notify>( );                    //await: players_list
+	this->add_service<client_mode::create_move>( );                      //await: players_list
+	this->add_service<studio_render::draw_model>( );                     //await: players_list
 }

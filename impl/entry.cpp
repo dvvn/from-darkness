@@ -30,14 +30,14 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 #pragma comment (lib, "d3d9.lib")
 
 // Data
-static LPDIRECT3D9 g_pD3D = nullptr;
-LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
-static D3DPRESENT_PARAMETERS g_d3dpp = { };
+static LPDIRECT3D9           g_pD3D       = nullptr;
+LPDIRECT3DDEVICE9            g_pd3dDevice = nullptr;
+static D3DPRESENT_PARAMETERS g_d3dpp      = { };
 
 // Forward declarations of helper functions
-static bool CreateDeviceD3D(HWND hWnd);
-static void CleanupDeviceD3D( );
-static void ResetDevice( );
+static bool           CreateDeviceD3D(HWND hWnd);
+static void           CleanupDeviceD3D( );
+static void           ResetDevice( );
 static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Main code
@@ -61,11 +61,17 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	cheat::services_loader::get_ptr()->load( );
+	const auto try_load = []
+	{
+		using loader = cheat::services_loader;
+		auto       executor = loader::executor( );
+		const auto val      = cppcoro::sync_wait(loader::get_ptr( )->load(executor));
+		return val == cheat::service_state::loaded;
+	};
 
-	if (!cheat::services_loader::get_ptr()->state( ).done( ))
+	if (!try_load( ))
 		goto _RESET;
-	cheat::gui::menu::get_ptr()->show( );
+	cheat::gui::menu::get_ptr( )->show( );
 
 	// Setup Dear ImGui context
 	//IMGUI_CHECKVERSION( );
@@ -106,7 +112,7 @@ int main(int, char**)
 		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
 		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
 		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-		MSG msg;
+		MSG  msg;
 		bool done = false;
 		while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
 		{
@@ -122,7 +128,7 @@ int main(int, char**)
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 
-		static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+		static ImVec4   clear_color  = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 		static D3DCOLOR clear_col_dx = D3DCOLOR_RGBA((int)(clear_color.x*clear_color.w*255.0f),
 													 (int)(clear_color.y*clear_color.w*255.0f),
 													 (int)(clear_color.z*clear_color.w*255.0f),
@@ -137,7 +143,7 @@ int main(int, char**)
 
 _RESET:
 
-	cheat::services_loader::get_ptr()->reset( );
+	cheat::services_loader::get_ptr( )->reset( );
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );
@@ -159,12 +165,12 @@ bool CreateDeviceD3D(HWND hWnd)
 
 	// Create the D3DDevice
 	ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
-	g_d3dpp.Windowed = TRUE;
-	g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+	g_d3dpp.Windowed               = TRUE;
+	g_d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
+	g_d3dpp.BackBufferFormat       = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
 	g_d3dpp.EnableAutoDepthStencil = TRUE;
 	g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-	g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE; // Present with vsync
+	g_d3dpp.PresentationInterval   = D3DPRESENT_INTERVAL_ONE; // Present with vsync
 	//g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
 	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice));
 }
@@ -200,7 +206,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_SIZE:
 			if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
 			{
-				g_d3dpp.BackBufferWidth = LOWORD(lParam);
+				g_d3dpp.BackBufferWidth  = LOWORD(lParam);
 				g_d3dpp.BackBufferHeight = HIWORD(lParam);
 				ResetDevice( );
 			}

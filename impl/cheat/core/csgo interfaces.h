@@ -180,10 +180,12 @@ namespace cheat
 		using ifc = detail::csgo_interface<T, Ptrs>;
 
 	protected:
-		bool load_impl( ) override;
+		service_base::load_result load_impl( ) override ;
 
 	public:
 		//nstd::filesystem::path csgo_path;
+
+		csgo_interfaces();
 
 		ifc<csgo::IBaseClientDLL>       client;
 		ifc<csgo::IClientEntityList>    entity_list;

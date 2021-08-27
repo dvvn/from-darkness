@@ -87,7 +87,7 @@ void settings::render( )
 	mgr__.render( );
 }
 
-bool settings::load_impl( )
+service_base::load_result settings::load_impl( )
 {
 	mgr__.add_folder(features::aimbot::get_ptr( ));
 	mgr__.add_folder(features::anti_aim::get_ptr( ));
@@ -98,5 +98,5 @@ bool settings::load_impl( )
 	//todo: store all features here
 	//load default/last settings or something
 
-	return 1;
+	co_return service_state::loaded;
 }

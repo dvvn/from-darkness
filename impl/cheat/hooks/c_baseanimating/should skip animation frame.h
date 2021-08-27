@@ -13,7 +13,6 @@ namespace cheat::hooks::c_base_animating
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 										   , service_always_skipped
 #endif
-
 	{
 	public :
 		should_skip_animation_frame( );
@@ -21,7 +20,6 @@ namespace cheat::hooks::c_base_animating
 		void render( ) override;
 
 	protected:
-		bool          load_impl( ) override;
 		nstd::address get_target_method_impl( ) const override;
 		void          callback(/*float current_time*/) override;
 

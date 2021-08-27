@@ -33,7 +33,7 @@ void csgo_interface_base::Set_result_assert_( ) const
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-bool csgo_interfaces::load_impl( )
+service_base::load_result csgo_interfaces::load_impl( )
 {
 	//unused
 #if 0
@@ -138,5 +138,10 @@ bool csgo_interfaces::load_impl( )
 	d3d_device = (g_pd3dDevice);
 #endif
 
-	return true;
+	co_return service_state::loaded;
+}
+
+csgo_interfaces::csgo_interfaces( )
+{
+	this->add_service<console>( );
 }

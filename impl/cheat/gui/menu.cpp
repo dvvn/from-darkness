@@ -1,5 +1,7 @@
 ﻿#include "menu.h"
 
+#include "imgui context.h"
+
 #include "cheat/gui/tools/push style var.h"
 
 #include "cheat/features/aimbot.h"
@@ -15,6 +17,8 @@ using namespace widgets;
 
 menu::menu( )
 {
+	this->add_service<imgui_context>( );
+
 	constexpr auto iso_date = []( )-> std::string_view
 	{
 		// ReSharper disable once CppVariableCanBeMadeConstexpr
@@ -131,7 +135,7 @@ public:
 	}
 };
 
-bool menu::load_impl( )
+service_base::load_result menu::load_impl( )
 {
 	renderer_.add_page([]
 	{
@@ -159,8 +163,22 @@ bool menu::load_impl( )
 
 			const auto add_if_hookded = [&]<typename Tstr,typename Tptr>(Tstr&& name, Tptr&& ptr)
 			{
-				if (ptr->state( ) != service_state::skipped)
-					debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
+				service_base* ptr_raw = ptr.get( );
+
+				switch (ptr_raw->state( ).value( ))
+				{
+					case service_state::waiting:
+					case service_state::loading:
+					case service_state::loaded:
+						break;
+					default:
+						return;
+				}
+
+				if (dynamic_cast<service_always_skipped*>(ptr_raw) != nullptr)
+					return;
+
+				debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
 			};
 			using namespace hooks;
 			add_if_hookded("window proc", winapi::wndproc::get_ptr_shared( ));
@@ -176,5 +194,5 @@ bool menu::load_impl( )
 #endif
 	renderer_.init( );
 
-	return true;
+	co_return service_state::loaded;
 }

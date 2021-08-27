@@ -10,6 +10,9 @@ namespace cheat::hooks::c_base_entity
 								  , service_hook_helper
 								  , service_always_skipped
 	{
+	public:
+		should_interpolate( );
+
 	protected:
 		nstd::address get_target_method_impl( ) const override;
 		void          callback( ) override;

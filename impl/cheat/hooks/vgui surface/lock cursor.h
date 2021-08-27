@@ -13,6 +13,9 @@ namespace cheat::hooks::vgui_surface
 						   , service_always_skipped
 #endif
 	{
+	public:
+		lock_cursor( );
+
 	protected:
 		nstd::address get_target_method_impl( ) const override;
 		void          callback( ) override;

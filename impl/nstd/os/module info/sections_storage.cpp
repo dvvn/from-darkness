@@ -7,10 +7,8 @@ bool sections_storage::load_from_memory(cache_type& cache)
 	const auto nt           = this->nt_header( );
 	const auto base_address = this->base_addr( );
 
-	auto tmp = cache_type( );
-
 	const auto number_of_sections = nt->FileHeader.NumberOfSections;
-	tmp.reserve(number_of_sections);
+	cache.reserve(number_of_sections);
 
 	const auto section_header      = IMAGE_FIRST_SECTION(nt);
 	const auto last_section_header = section_header + number_of_sections;
@@ -24,10 +22,9 @@ bool sections_storage::load_from_memory(cache_type& cache)
 		info.block = {base_address + header->VirtualAddress, header->SizeOfRawData};
 		info.data  = header;
 
-		tmp.emplace(std::move(info_name), std::move(info));
+		cache.emplace(std::move(info_name), std::move(info));
 	}
 
-	cache = std::move(tmp);
 	return true;
 }
 

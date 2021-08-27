@@ -31,7 +31,6 @@ bool exports_storage::load_from_memory(cache_type& cache)
 	const auto all_modules = all_modules::get_ptr( );
 	all_modules->update(false);
 
-	auto temp_cache = cache_type( );
 
 	// iterate names array.
 	for (auto i = 0u; i < dir->NumberOfNames; ++i)
@@ -48,7 +47,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 		//if (export_ptr < dir || export_ptr >= memory_block(dir, data_dir->Size).addr( ))
 		if (const auto export_ptr = base_address + funcs[ords[i]]; export_ptr < dir || export_ptr >= address(dir) + data_dir->Size)
 		{
-			temp_cache.emplace(export_name, export_ptr);
+			cache.emplace(export_name, export_ptr);
 		}
 		else // it's a forwarded export, we must resolve it.
 		{
@@ -97,11 +96,10 @@ bool exports_storage::load_from_memory(cache_type& cache)
 			if (fwd_export_ptr == exports_cache.end( ))
 				continue;
 
-			temp_cache.emplace(export_name, fwd_export_ptr->second);
+			cache.emplace(export_name, fwd_export_ptr->second);
 		}
 	}
 
-	cache = move(temp_cache);
 	//data_cache_.shrink_to_fit( );
 	return true;
 }

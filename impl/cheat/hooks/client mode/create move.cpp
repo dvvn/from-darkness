@@ -11,6 +11,11 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client_mode;
 
+create_move::create_move( )
+{
+	this->add_service<players_list>( );
+}
+
 nstd::address create_move::get_target_method_impl( ) const
 {
 	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client_mode.get( ))[24];

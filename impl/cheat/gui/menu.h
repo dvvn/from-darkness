@@ -25,7 +25,7 @@ namespace cheat::gui
 		bool toggle(UINT msg, WPARAM wparam);
 
 	protected:
-		bool load_impl( ) override;
+		load_result load_impl( ) override;
 
 	private:
 		tools::string_wrapper            menu_title_;

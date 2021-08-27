@@ -1,5 +1,7 @@
 #include "vtables_storage.h"
 
+#include "thread_pool.hpp"
+
 using namespace nstd;
 using namespace nstd::os;
 using namespace nstd::os::detail;
@@ -80,33 +82,22 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 	const auto& dot_rdata      = sections_cache.at(".rdata");
 	const auto& dot_text       = sections_cache.at(".text");
 
-	using data_callback_fn = std::function<void(cache_type&)>;
-	using future_type = std::future<data_callback_fn>;
-	auto load_data_storage = std::vector<future_type>( );
-
-	/*constexpr*/ auto part_before_sig = signature(".?AV");
-	/*constexpr*/ auto part_after_sig  = signature("@@");
-	auto           part_before     = part_before_sig.get_known( );
-	auto           part_after      = part_after_sig.get_known( );
+	static const/*expr*/ auto part_before_sig = signature(".?AV");
+	static const/*expr*/ auto part_after_sig  = signature("@@");
+	static const/*expr*/ auto part_before     = part_before_sig.get_known( );
+	static const/*expr*/ auto part_after      = part_after_sig.get_known( );
 
 	// type descriptor names look like this: .?AVXXXXXXXXXXXXXXXXX@@ (so: ".?AV" + szTableName + "@@")
+
+	auto bytes = this->derived_mem_block( );
 
 	//pause all other threads. we want all the power here;
 	const auto frozen = frozen_threads_storage(true);
 	(void)frozen;
 
-	auto pool = thread_pool( );
-	(void)pool;
-
-	auto bytes = this->derived_mem_block( );
-	while (true)
+	constexpr auto bad_byte = [](char c)
 	{
-		const auto block_start = bytes.find_block(part_before);
-		if (!block_start.has_value( ))
-			break;
-
-		bytes = bytes.shift_to_end(*block_start);
-		switch (*block_start->_Unchecked_end( ))
+		switch (c)
 		{
 			case ' ':
 			case '\0':
@@ -114,26 +105,45 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 			case '?':
 			case '$':
 			case '<':
-				continue;
+				return true;
 			default:
-				break;
+				return false;
 		}
+	};
 
-		//--------------
+#if 0
+	//coroutine version of this slower, probably runs on single core, idk why
+	auto pool = cppcoro::static_thread_pool( );
+	(void)pool;
 
-		const auto block_end = bytes.find_block(part_after);
-		if (!block_end.has_value( ))
-			break;
+	using generator_result = std::pair<std::string, vtable_info>;;
+	auto generator = [&]( )-> cppcoro::async_generator<generator_result>
+	{
+		for (;;)
+		{
+			//co_await pool.schedule( );
+			const auto block_start = bytes.find_block(part_before);
+			if (!block_start.has_value( ))
+				break;
 
-		bytes = bytes.shift_to_end(*block_end);
+			bytes = bytes.shift_to_end(*block_start);
+			if (bad_byte(*block_start->_Unchecked_end( )))
+				continue;
 
-		//--------------
+			//co_await pool.schedule( );
+			const auto block_end = bytes.find_block(part_after);
+			if (!block_end.has_value( ))
+				break;
 
-		const auto block_start_ptr = block_start->_Unchecked_begin( );
-		const auto block_end_ptr   = block_end->_Unchecked_end( );
-		const auto block_size_raw  = std::distance(block_start_ptr, block_end_ptr);
+			bytes = bytes.shift_to_end(*block_end);
 
-		const auto class_descriptor = std::string_view(reinterpret_cast<const char*>(block_start_ptr), block_size_raw);
+			//--------------
+
+			const auto block_start_ptr = block_start->_Unchecked_begin( );
+			const auto block_end_ptr   = block_end->_Unchecked_end( );
+			const auto block_size_raw  = std::distance(block_start_ptr, block_end_ptr);
+
+			const auto class_descriptor = std::string_view(reinterpret_cast<const char*>(block_start_ptr), block_size_raw);
 
 #if 0
 		//skip namespaces
@@ -141,13 +151,79 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 			continue;
 #endif
 
-		// get rtti type descriptor
-		address type_descriptor = class_descriptor.data( );
-		// we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
-		type_descriptor -= 0x8;
+			// get rtti type descriptor
+			address type_descriptor = class_descriptor.data( );
+			// we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
+			type_descriptor -= 0x8;
 
-		load_data_storage.emplace_back(pool.submit([&part_before,&part_after,&dot_rdata, &dot_text, class_descriptor, type_descriptor]( ) -> data_callback_fn
+			co_await pool.schedule( );
+			auto result = _Load_vtable_info(dot_rdata, dot_text, type_descriptor);
+			if (!result.has_value( ))
+				continue;
+
+			auto class_name = class_descriptor;
+			class_name.remove_prefix(part_before.size( ));
+			class_name.remove_suffix(part_after.size( ));
+
+			co_yield generator_result(std::string(class_name), std::move(*result));
+		}
+	};
+
+	auto consumer = [&]( )-> cppcoro::task<>
+	{
+		/*for co_await (auto& [name, vtable]: generator( ))
+		{*/
+		auto gen = generator( );
+		for (auto itr = co_await gen.begin( ); itr != gen.end( ); co_await ++itr)
 		{
+			auto& [name, vtable] = *itr;
+			cache.emplace(std::move(name), std::move(vtable));
+		}
+	};
+
+	cppcoro::sync_wait(consumer( ));
+
+#else
+
+	auto pool = thread_pool( );
+	using task_result = std::optional<std::pair<std::string, vtable_info>>;
+	using task = std::future<task_result>;
+	auto tasks = std::vector<task>( );
+
+	for (;;)
+	{
+		const auto block_start = bytes.find_block(part_before);
+		if (!block_start.has_value( ))
+			break;
+		bytes = bytes.shift_to_end(*block_start);
+		if (bad_byte(*block_start->_Unchecked_end( )))
+			continue;
+
+		const auto block_end = bytes.find_block(part_after);
+		if (!block_end.has_value( ))
+			break;
+
+		bytes = bytes.shift_to_end(*block_end);
+
+		auto generator = [block_start, block_end, &dot_rdata, &dot_text]( )-> task_result
+		{
+			const auto block_start_ptr = block_start->_Unchecked_begin( );
+			const auto block_end_ptr   = block_end->_Unchecked_end( );
+			const auto block_size_raw  = std::distance(block_start_ptr, block_end_ptr);
+
+			const auto class_descriptor = std::string_view(reinterpret_cast<const char*>(block_start_ptr), block_size_raw);
+
+#if 0
+		//skip namespaces
+		if(class_name.rfind(static_cast<uint8_t>('@')) != class_name.npos)
+			continue;
+#endif
+
+			// get rtti type descriptor
+			address type_descriptor = class_descriptor.data( );
+			// we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
+			type_descriptor -= 0x8;
+
 			auto result = _Load_vtable_info(dot_rdata, dot_text, type_descriptor);
 			if (!result.has_value( ))
 				return { };
@@ -156,21 +232,22 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 			class_name.remove_prefix(part_before.size( ));
 			class_name.remove_suffix(part_after.size( ));
 
-			return [class_name, info = std::move(*result)](cache_type& cache_instance) mutable
-			{
-				cache_instance.emplace(std::string(class_name), std::move(info));
-			};
-		}));
+			return std::make_pair(std::string(class_name), std::move(*result));
+		};
+
+		tasks.push_back(pool.submit(generator));
 	}
 
-	for (auto& data: load_data_storage)
+	for (auto& t: tasks)
 	{
-		const auto callback = data.get( );
-		if (callback == nullptr)
+		auto val = t.get( );
+		if (!val.has_value( ))
 			continue;
-
-		callback(cache);
+		auto& [name,vtable] = *val;
+		cache.emplace(std::move(name), std::move(vtable));
 	}
+
+#endif
 
 	return true;
 }

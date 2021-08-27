@@ -85,16 +85,17 @@ namespace cheat
 {
 	class players_list final: public service<players_list>
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-							 , service_always_skipped
+							, service_always_skipped
 #endif
 	{
 	public:
+		players_list( );
 		void update( );
 
 		const detail::players_filter& filter(const players_filter_flags& flags);
 
 	protected:
-		bool load_impl( ) override;
+		load_result load_impl( ) override;
 
 	private:
 		detail::players_list_container              storage__;

@@ -6,6 +6,11 @@ using namespace c_base_entity;
 
 using namespace csgo;
 
+estimate_abs_velocity::estimate_abs_velocity( )
+{
+	this->add_service<netvars>( );
+}
+
 nstd::address estimate_abs_velocity::get_target_method_impl( ) const
 {
 	const auto vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
@@ -22,7 +27,7 @@ void estimate_abs_velocity::callback(Vector& vel)
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []
 		{
-			const auto           addr = csgo_modules::client.find_signature<"55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7">();
+			const auto           addr = csgo_modules::client.find_signature<"55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7">( );
 			void (C_BaseEntity::*fn)( );
 			reinterpret_cast<void*&>(fn) = addr.ptr<void>( );
 			return fn;

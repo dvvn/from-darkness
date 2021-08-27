@@ -7,6 +7,11 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client;
 
+frame_stage_notify::frame_stage_notify( )
+{
+	this->add_service<players_list>( );
+}
+
 nstd::address frame_stage_notify::get_target_method_impl( ) const
 {
 	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client.get( ))[37];

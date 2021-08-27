@@ -79,7 +79,7 @@ console::~console( )
 		_fclose_nolock(err_);
 }
 
-bool console::load_impl( )
+service_base::load_result console::load_impl( )
 {
 	data_.handle = GetConsoleWindow( );
 	if (data_.handle != nullptr)
@@ -92,7 +92,7 @@ bool console::load_impl( )
 		if (!AllocConsole( ))
 		{
 			runtime_assert("Unable to alloc console!");
-			return false;
+			co_return service_state::error;
 		}
 		data_.allocated = true;
 
@@ -100,14 +100,14 @@ bool console::load_impl( )
 		if (data_.handle == nullptr)
 		{
 			runtime_assert("Unable to get console window");
-			return false;
+			co_return service_state::error;
 		}
 
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppEnforceCVQualifiersPlacement
 		constexpr auto _Freopen = [](_Outptr_result_maybenull_ FILE** _Stream, _In_z_ char const* _FileName, _In_z_ char const* _Mode, _Inout_ FILE* _OldStream)
-				// ReSharper restore CppEnforceCVQualifiersPlacement
-				// ReSharper restore CppInconsistentNaming
+			// ReSharper restore CppEnforceCVQualifiersPlacement
+			// ReSharper restore CppInconsistentNaming
 		{
 			[[maybe_unused]] const auto err = freopen_s(_Stream, _FileName, _Mode, _OldStream);
 			runtime_assert(err == NULL);
@@ -121,12 +121,12 @@ bool console::load_impl( )
 		if (!SetConsoleTitle(full_path.data( )))
 		{
 			runtime_assert("Unable set console title");
-			return false;
+			co_return service_state::error;
 		}
 	}
 
 	runtime_assert(IsWindowUnicode(data_.handle) == TRUE);
-	return true;
+	co_return service_state::loaded;
 }
 
 void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept
@@ -218,7 +218,7 @@ static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, 
 	const auto lock = std::scoped_lock(data.lock);
 
 	auto fn = std::bind_front(_Write_text, std::forward<T>(text));
-	if (!instance->state( ).done( ))
+	if (instance->state( ) != service_state::loaded)
 	{
 		data.add_to_cache(std::move(fn));
 	}

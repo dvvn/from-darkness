@@ -50,7 +50,7 @@ namespace nstd
 
 			if (!shared)
 			{
-				runtime_assert(steal == false);
+				//runtime_assert(steal == false);
 				return weak.lock( );
 			}
 			if (!steal)

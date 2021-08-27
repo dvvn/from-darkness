@@ -22,7 +22,10 @@ rt_assert_handler_ex::~rt_assert_handler_ex( )
 		return;
 
 	for (auto&& entry: *static_cast<data_type*>(data_) | ranges::views::reverse)
-		delete entry;
+	{
+		if (entry.allocated)
+			delete entry.handle;
+	}
 
 	delete static_cast<data_type*>(data_);
 }
@@ -38,22 +41,29 @@ rt_assert_handler_ex& rt_assert_handler_ex::operator=(rt_assert_handler_ex&& oth
 	return *this;
 }
 
-void rt_assert_handler_ex::add(rt_assert_handler* handler)
+void rt_assert_handler_ex::add(rt_assert_handler* handler, bool allocated)
 {
 	(void)this;
-	static_cast<data_type*>(data_)->push_back(handler);
+	static_cast<data_type*>(data_)->push_back({handler, allocated});
 }
 
 void rt_assert_handler_ex::remove(rt_assert_handler* handler)
 {
 	(void)this;
 	auto& data = *static_cast<data_type*>(data_);
-	auto  pos  = ranges::remove(data, handler);
+	auto  pos  = ranges::remove(data, handler, &element_type::handle);
+
+	for (auto&& [handle, allocated]: pos)
+	{
+		if (allocated)
+			delete handle;
+	}
+
 	data.erase(pos.begin( ), pos.end( ));
 }
 
 void rt_assert_handler_ex::handle_impl(const rt_assert_arg_t& expression, const rt_assert_arg_t& message, const info_type& info) noexcept
 {
-	for (auto&& entry: *static_cast<data_type*>(data_))
-		entry->handle_impl(expression, message, info);
+	for (auto& [handle, _]: *static_cast<data_type*>(data_))
+		handle->handle_impl(expression, message, info);
 }

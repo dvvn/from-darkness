@@ -8,6 +8,9 @@ namespace cheat::hooks::directx
 					   , public dhooks::_Detect_hook_holder_t<decltype(&IDirect3DDevice9::Present)>
 					   , service_hook_helper
 	{
+	public:
+		present( );
+
 	protected:
 		nstd::address get_target_method_impl( ) const override;
 		void          callback(THIS_ CONST RECT* source_rect,

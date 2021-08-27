@@ -6,10 +6,15 @@ using namespace c_csplayer;
 
 using namespace csgo;
 
+do_extra_bone_processing::do_extra_bone_processing( )
+{
+	this->add_service<csgo_interfaces>( );
+}
+
 nstd::address do_extra_bone_processing::get_target_method_impl( ) const
 {
-	const auto vtable = csgo_modules::client.find_vtable<C_CSPlayer>();
-	const auto index  = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC">().add(11).deref(1).divide(4).value( );
+	const auto vtable = csgo_modules::client.find_vtable<C_CSPlayer>( );
+	const auto index  = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC">( ).add(11).deref(1).divide(4).value( );
 
 	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }

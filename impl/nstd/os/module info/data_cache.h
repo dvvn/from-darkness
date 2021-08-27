@@ -53,17 +53,23 @@ namespace nstd::os
 			{
 				if (cache_.empty( ))
 				{
-					auto storage = ptree_type( );
+					auto storage    = ptree_type( );
+					auto temp_cache = cache_type( );
 
 					if (module_data_mgr_base::read_to_storage(file, storage))
 					{
-						cache_.reserve(storage.size( ));
-						if (this->load_from_file(cache_, std::move(storage)))
+						temp_cache.reserve(storage.size( ));
+						if (this->load_from_file(temp_cache, std::move(storage)))
+						{
+							cache_ = std::move(temp_cache);
 							return true;
+						}
 					}
 
-					if (!this->load_from_memory(cache_))
+					if (!this->load_from_memory(temp_cache))
 						return false;
+
+					cache_ = std::move(temp_cache);
 				}
 
 				if (file.empty( ))

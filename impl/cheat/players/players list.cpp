@@ -13,9 +13,14 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-bool players_list::load_impl( )
+service_base::load_result players_list::load_impl( )
 {
-	return true;
+	co_return service_state::loaded;
+}
+
+players_list::players_list( )
+{
+	this->add_service<netvars>( );
 }
 
 void players_list::update( )

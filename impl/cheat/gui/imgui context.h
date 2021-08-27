@@ -12,7 +12,7 @@ namespace cheat::gui
 		HWND hwnd( ) const;
 
 	protected:
-		bool load_impl( ) override;
+		load_result load_impl( ) override;
 
 	private:
 		HWND         hwnd__ = nullptr;

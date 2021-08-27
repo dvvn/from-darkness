@@ -93,7 +93,13 @@ namespace nstd
 		rt_assert_handler_ex( );
 		~rt_assert_handler_ex( ) override;
 
-		using data_type = std::vector<rt_assert_handler*, std::allocator<rt_assert_handler*>>;
+		struct element_type
+		{
+			rt_assert_handler* handle;
+			bool allocated;
+		};
+
+		using data_type = std::vector<element_type, std::allocator<element_type>>;
 
 		rt_assert_handler_ex(const rt_assert_handler_ex&)            = delete;
 		rt_assert_handler_ex& operator=(const rt_assert_handler_ex&) = delete;
@@ -101,7 +107,7 @@ namespace nstd
 		rt_assert_handler_ex(rt_assert_handler_ex&& other) noexcept;
 		rt_assert_handler_ex& operator=(rt_assert_handler_ex&& other) noexcept;
 
-		void add(rt_assert_handler* handler);
+		void add(rt_assert_handler* handler, bool allocated = false);
 		void remove(rt_assert_handler* handler);
 
 	protected:

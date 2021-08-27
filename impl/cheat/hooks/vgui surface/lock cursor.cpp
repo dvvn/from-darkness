@@ -9,6 +9,11 @@ using namespace csgo;
 using namespace hooks;
 using namespace vgui_surface;
 
+lock_cursor::lock_cursor( )
+{
+	this->add_service<gui::menu>( );
+}
+
 nstd::address lock_cursor::get_target_method_impl( ) const
 {
 	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->vgui_surface.get( ))[67];

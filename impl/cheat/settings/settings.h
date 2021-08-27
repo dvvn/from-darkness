@@ -46,7 +46,7 @@ namespace cheat
 		void render( ) override;
 
 	protected:
-		bool load_impl( ) override;
+		load_result load_impl( ) override;
 
 	private:
 #if 0

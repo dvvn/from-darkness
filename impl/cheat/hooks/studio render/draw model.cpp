@@ -9,6 +9,11 @@ using namespace csgo;
 using namespace hooks;
 using namespace studio_render;
 
+draw_model::draw_model( )
+{
+	this->add_service<players_list>( );
+}
+
 nstd::address draw_model::get_target_method_impl( ) const
 {
 	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->studio_renderer.get( ))[29];

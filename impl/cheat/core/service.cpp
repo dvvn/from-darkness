@@ -5,60 +5,10 @@
 using namespace cheat;
 using namespace detail;
 
-[[maybe_unused]]
-static std::future<void> _Get_ready_task( )
-{
-	std::promise<void> pr;
-	pr.set_value( );
-	return pr.get_future( );
-}
-
-template <std::derived_from<std::exception> Ex>
-[[maybe_unused]]
-static std::future<void> _Get_error_task(Ex&& ex)
-{
-	std::promise<void> pr;
-	pr.set_exception(move(ex));
-	return pr.get_future( );
-}
-
-bool service_state::operator!( ) const
-{
-	return value_ == unset;
-}
-
-bool service_state::done( ) const
-{
-	switch (value_)
-	{
-		case loaded:
-		case skipped:
-#ifdef BOOST_THREAD_PROVIDES_INTERRUPTIONS
-		case stopped:
-#endif
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool service_state::disabled( ) const
-{
-	switch (value_)
-	{
-		case loading:
-		case loaded:
-		case skipped:
-			return false;
-		default:
-			return true;
-	}
-}
-
 template <typename T>
-FORCEINLINE static void _Loading_access_assert(T&& state)
+static void _Loading_access_assert([[maybe_unused]] T&& state)
 {
-	runtime_assert(static_cast<service_state>(state) != service_state::loading, "Unable to modify service while loading!");
+	runtime_assert(!(state == service_state::loading || state == service_state::waiting), "Unable to modify service while loading!");
 }
 
 service_base::~service_base( )
@@ -68,10 +18,7 @@ service_base::~service_base( )
 
 service_base::service_base(service_base&& other) noexcept
 {
-	_Loading_access_assert(other.state_);
-	// ReSharper disable once CppRedundantCastExpression
-	state_       = static_cast<service_state>(other.state_);
-	other.state_ = service_state::moved;
+	*this = std::move(other);
 }
 
 void service_base::operator=(service_base&& other) noexcept
@@ -79,9 +26,9 @@ void service_base::operator=(service_base&& other) noexcept
 	_Loading_access_assert(this->state_);
 	_Loading_access_assert(other.state_);
 
-	// ReSharper disable once CppRedundantCastExpression
-	state_       = static_cast<service_state>(other.state_);
+	state_       = std::move(other.state_);
 	other.state_ = service_state::moved;
+	std::swap(this->services_, other.services_);
 }
 
 service_state service_base::state( ) const
@@ -89,65 +36,129 @@ service_state service_base::state( ) const
 	return state_;
 }
 
-template <typename T>
-FORCEINLINE static void _Service_loaded_msg([[maybe_unused]] const T* owner, [[maybe_unused]] bool loaded)
+void service_base::reset( )
 {
-	CHEAT_CONSOLE_LOG("Service {}: {}", loaded ? "loaded" : "skipped", owner->name( ));
+	_Loading_access_assert(this->state_);
+	this->services_.clear( );
+	this->state_ = service_state::moved;
 }
 
-void service_base::load( )
+template <typename T, typename T1>
+static void _Service_msg([[maybe_unused]] const T* owner, [[maybe_unused]] T1&& msg)
 {
-	try
+	CHEAT_CONSOLE_LOG("{} service: {}", owner->name( ), msg);
+}
+
+bool service_base::validate_init_state( ) const
+{
+	if (state_ == init_state_)
+		return true;
+
+	runtime_assert("Unable to validate state!");
+	return false;
+}
+
+service_base::load_result service_base::load(executor& ex)
+{
+	if (!validate_init_state( ))
+		co_return state_;
+
+	state_ = service_state::waiting;
+	if (!co_await this->wait_for_others(ex))
 	{
-		if (static_cast<service_state>(state_) != service_state::unset)
+		_Service_msg(this, "Error while child waiting");
+		co_return state_ = service_state::error;
+	}
+	co_await ex.schedule( );
+	state_ = service_state::loading;
+	switch ((co_await this->load_impl( )).value( ))
+	{
+		case service_state::loaded:
 		{
-			runtime_assert("Service loaded before");
-			return;
+			this->after_load( );
+			co_return state_ = service_state::loaded;
+		}
+		case service_state::skipped:
+		{
+			this->after_skip( );
+			co_return state_ = service_state::skipped;
+		}
+		default:
+		{
+			this->after_error( );
+			co_return state_ = service_state::error;
+		}
+	}
+}
+
+service_base::child_wait_result service_base::wait_for_others(executor& ex)
+{
+	for (auto itr = services_.begin( ); itr != services_.end( );)
+	{
+		const auto se = *itr;
+		switch (se->state( ).value( ))
+		{
+			case service_state::unset:
+				co_await ex.schedule( );
+				co_await se->load(ex);
+				continue;
+			case service_state::loaded:
+			case service_state::skipped:
+				break;
+			case service_state::moved:
+			case service_state::error:
+				co_return false;
+			case service_state::waiting:
+			case service_state::loading:
+				runtime_assert("Service still loading!");
+				break;
+			default:
+				runtime_assert("Update function!");
+				break;
 		}
 
-		state_            = service_state::loading;
-		const auto loaded = this->load_impl( );
-		state_            = service_state::loaded;
+		++itr;
+	}
 
-		_Service_loaded_msg(this, loaded);
-		this->after_load( );
-	}
-#ifdef BOOST_THREAD_PROVIDES_INTERRUPTIONS
-	catch (const thread_interrupted&ex)
-	{
-		state_ = service_state::stopped;
-		CHEAT_CONSOLE_LOG("Service {} forced to be stoped {}. {}", ex.what( ));
-		this->after_stop(ex);
-	}
-#endif
-	catch (const std::exception& ex)
-	{
-		state_ = service_state::error;
-		CHEAT_CONSOLE_LOG("Unable to load service {}. {}", this->name( ), ex.what( ));
-		this->after_error(ex);
-	}
+	co_return true;
 }
 
-bool service_hook_helper::load_impl( )
+void service_base::after_load( )
 {
-	this->hook( );
-	this->enable( );
-
-	return true;
+	_Service_msg(this, "loaded");
 }
 
-service_always_skipped::service_always_skipped( )
+void service_base::after_skip( )
 {
-	state_ = service_state::skipped;
+	_Service_msg(this, "skipped");
 }
 
-void service_always_skipped::load( )
+void service_base::after_error( )
 {
-	if (static_cast<service_state>(state_) != service_state::skipped)
-	{
-		runtime_assert("Service must be skipped, but state is changed");
-		return;
-	}
+	_Service_msg(this, "error while loading");
+}
 
-	_Service_loaded_msg(this, false);
+void service_base::set_state(service_state&& state)
+{
+	_Loading_access_assert(state_);
+	state_ = std::move(state);
+}
+
+std::span<const service_base::shared_service> service_base::services( ) const
+{
+	return services_;
+}
+
+service_base::load_result service_hook_helper::load_impl( )
+{
+	co_return this->hook( ) && this->enable( ) ? service_state::loaded : service_state::error;
+}
+
+service_base::load_result service_always_skipped::load([[maybe_unused]] executor& ex)
+{
+	(void)this->validate_init_state( );
+	auto state = service_state::skipped;
+	this->set_state(state);
+	this->after_skip( );
+	co_return state;
 }
