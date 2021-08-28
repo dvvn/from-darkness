@@ -8,7 +8,7 @@ using namespace detail;
 template <typename T>
 static void _Loading_access_assert([[maybe_unused]] T&& state)
 {
-	runtime_assert(!(state == service_state::loading || state == service_state::waiting), "Unable to modify service while loading!");
+	runtime_assert(state != service_state::loading, "Unable to modify service while loading!");
 }
 
 service_base::~service_base( )

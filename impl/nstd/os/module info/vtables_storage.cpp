@@ -3,8 +3,8 @@
 #include "thread_pool.hpp"
 
 using namespace nstd;
-using namespace nstd::os;
-using namespace nstd::os::detail;
+using namespace os;
+using namespace os::detail;
 
 //todo: add x64 support
 static std::optional<vtable_info> _Load_vtable_info(const section_info& dot_rdata, const section_info& dot_text, address type_descriptor)
@@ -121,7 +121,7 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 	{
 		for (;;)
 		{
-			//co_await pool.schedule( );
+			co_await pool.schedule( );
 			const auto block_start = bytes.find_block(part_before);
 			if (!block_start.has_value( ))
 				break;
@@ -130,7 +130,6 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 			if (bad_byte(*block_start->_Unchecked_end( )))
 				continue;
 
-			//co_await pool.schedule( );
 			const auto block_end = bytes.find_block(part_after);
 			if (!block_end.has_value( ))
 				break;
@@ -169,11 +168,10 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 		}
 	};
 
-	auto consumer = [&]( )-> cppcoro::task<>
+	auto consumer = [&]( )-> cppcoro::task
 	{
-		/*for co_await (auto& [name, vtable]: generator( ))
-		{*/
 		auto gen = generator( );
+
 		for (auto itr = co_await gen.begin( ); itr != gen.end( ); co_await ++itr)
 		{
 			auto& [name, vtable] = *itr;
@@ -181,14 +179,14 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 		}
 	};
 
-	cppcoro::sync_wait(consumer( ));
+	sync_wait(consumer( ));
 
 #else
 
 	auto pool = thread_pool( );
 	using task_result = std::optional<std::pair<std::string, vtable_info>>;
-	using task = std::future<task_result>;
-	auto tasks = std::vector<task>( );
+	using task_type = std::future<task_result>;
+	auto tasks = std::vector<task_type>( );
 
 	for (;;)
 	{
@@ -254,20 +252,18 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 
 bool vtables_storage::load_from_file(cache_type& cache, ptree_type&& storage)
 {
-	cache_type tmp;
 	const auto base_address = this->base_addr( );
 
-	for (auto& [name,child]: storage.items( ))
+	for (auto& [name, child]: storage.items( ))
 	{
 		const auto offset = child.get<uintptr_t>( );
 		//const auto size   = child.get<size_t>("size");
 
 		vtable_info info;
 		info.addr = base_address + offset;
-		tmp.emplace(const_cast<std::string&&>(name), std::move(info));
+		cache.emplace(const_cast<std::string&&>(name), std::move(info));
 	}
 
-	cache = std::move(tmp);
 	return true;
 }
 

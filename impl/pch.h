@@ -104,6 +104,8 @@ namespace std
 #include <cppcoro/when_all.hpp>
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/schedule_on.hpp>
+#include <cppcoro/async_scope.hpp>
+#include <cppcoro/async_mutex.hpp>
 
 #include <nlohmann/json.hpp>
 
