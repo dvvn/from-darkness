@@ -154,9 +154,10 @@ namespace std
 
 //using namespace std::literals;
 
-#define CHEAT_UNUSED_ASSERT\
+#define CHEAT_UNUSED_FUNCTION\
 	runtime_assert("This function added only as example");\
-	(void)this;
+	(void)this;\
+	throw;
 
 #define CHEAT_OUTPUT_DIR NSTD_RAW(VS_OutputDir)"\\"
 #define CHEAT_SOLUTION_DIR NSTD_RAW(VS_SolutionDir)"\\"

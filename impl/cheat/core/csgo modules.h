@@ -7,26 +7,29 @@ namespace cheat::csgo_modules
 	template <nstd::chars_cache Name>
 	struct _Game_module
 	{
-		nstd::os::module_info* get( )const
+		nstd::os::module_info* get( ) const
 		{
 			using namespace nstd::os;
 
 			static auto info = all_modules::get_ptr( )->find([](std::wstring_view name)-> bool
 			{
-				constexpr auto dot_dll     = std::string_view(".dll");
-				constexpr auto target_name = Name.view( );
-				if (name.size( ) != target_name.size( ) + dot_dll.size( ))
+				constexpr auto dot_dll          = std::string_view(".dll");
+				constexpr auto dot_dll_size     = dot_dll.size( );
+				constexpr auto target_name      = Name.view( );
+				constexpr auto target_name_size = target_name.size( );
+
+				if (name.size( ) != target_name_size + dot_dll_size)
 					return false;
 
-				for (size_t i = 0; i < target_name.size( ); ++i)
+				for (size_t i = 0; i < target_name_size; ++i)
 				{
 					if (name[i] != static_cast<wchar_t>(target_name[i]))
 						return false;
 				}
 
-				for (size_t i = target_name.size( ); i < dot_dll.size( ); ++i)
+				for (size_t i = 0; i < dot_dll_size; ++i)
 				{
-					if (name[i] != static_cast<wchar_t>(dot_dll[i]))
+					if (name[i + target_name_size] != static_cast<wchar_t>(dot_dll[i]))
 						return false;
 				}
 
@@ -38,20 +41,20 @@ namespace cheat::csgo_modules
 		template <nstd::chars_cache Sig>
 		nstd::address find_signature( ) const
 		{
-			//static auto addr = std::invoke(utils::find_signature_impl( ), this->get( )->mem_block( ), Sig.view( ));
-			static auto addr = [&]( )-> nstd::address
+#ifdef _DEBUG
+			static auto found_before = false;
+			runtime_assert(!found_before);
+			found_before = true;
+#endif
+			auto bytes = nstd::signature(Sig.view( ));
+			auto ret   = this->get( )->mem_block( ).find_block(bytes);
+			if (!ret.has_value( ))
 			{
-				auto bytes = nstd::signature(Sig.view( ));
-				auto ret   = this->get( )->mem_block( ).find_block(bytes);
-				if (!ret.has_value( ))
-				{
-					CHEAT_CONSOLE_LOG("{}.dll -> signature {} not found", Name.view(), Sig.view())
-					return nullptr;
-				}
+				CHEAT_CONSOLE_LOG("{}.dll -> signature {} not found", Name.view( ), Sig.view( ))
+				return nullptr;
+			}
 
-				return ret->addr( );
-			}( );
-			return addr;
+			return ret->addr( );
 		}
 
 		template <typename Table/*, nstd::chars_cache ...IgnoreNamespaces*/>
