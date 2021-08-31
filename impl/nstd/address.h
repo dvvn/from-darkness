@@ -1,28 +1,36 @@
 #pragma once
 
+#include "overload.h"
+#include "runtime assert.h"
+
+#include <tuple>
+#include <type_traits>
+
 namespace nstd
 {
 	// class size is only 4 bytes on x86-32 and 8 bytes on x86-64.
 	class address
 	{
-		uintptr_t value__;
-
 		void Error_handler_( ) const;
 
 	public:
-		address( ) : value__(0)
+		constexpr address( )
+			: value__(0)
 		{
 		}
 
-		address(uintptr_t a) : value__(a)
+		constexpr address(uintptr_t a)
+			: value__(a)
 		{
 		}
 
-		explicit address(std::nullptr_t) : address( )
+		constexpr explicit address(std::nullptr_t)
+			: address( )
 		{
 		}
 
-		address(const void* a) : address(reinterpret_cast<uintptr_t>(a))
+		address(const void* a)
+			: address(reinterpret_cast<uintptr_t>(a))
 		{
 		}
 
@@ -81,6 +89,9 @@ namespace nstd
 		// follow relative8 and relative16/32 offsets.
 		address rel8(size_t offset) const;
 		address rel32(size_t offset) const;
+
+	private:
+		uintptr_t value__;
 	};
 
 	namespace address_pipe
@@ -100,9 +111,7 @@ namespace nstd
 		{
 			//using fn_ret = std::invoke_result_t<Curr, Q>;//something wrong inside of this
 			using fn_ret = decltype(ret_val(fn, obj));
-
 			constexpr auto args_count = sizeof...(A);
-
 			if constexpr (std::is_void_v<fn_ret>)
 			{
 				std::invoke(fn, obj);
@@ -124,13 +133,15 @@ namespace nstd
 		template <typename T, typename ...Ts>
 		struct address_pipe_impl: address_pipe_tag
 		{
-			address_pipe_impl(T&& addr, std::tuple<Ts...>&& tpl) : addr(std::move(addr)),
-																   line(std::move(tpl))
+			address_pipe_impl(T&& addr, std::tuple<Ts...>&& tpl)
+				: addr(std::move(addr)),
+				  line(std::move(tpl))
 			{
 			}
 
-			address_pipe_impl(const T& addr, std::tuple<Ts...>&& tpl) : addr(addr),
-																		line(std::move(tpl))
+			address_pipe_impl(const T& addr, std::tuple<Ts...>&& tpl)
+				: addr(addr),
+				  line(std::move(tpl))
 			{
 			}
 
@@ -157,7 +168,7 @@ namespace nstd
 			auto operator()( ) const
 			{
 #ifdef _DEBUG
-				runtime_assert(done==false);
+				runtime_assert(done == false);
 				done = true;
 #endif
 				return unpack(std::index_sequence_for<Ts...>( ));
@@ -239,9 +250,9 @@ namespace nstd
 		auto operator|(const address& addr, const T& obj)
 		{
 			return address_pipe_impl<address, T>
-					(
-					 addr, std::make_tuple(obj)
-					);
+				(
+				 addr, std::make_tuple(obj)
+				);
 		}
 
 		template <typename Tpl, typename T, size_t ...Idx>
@@ -254,9 +265,9 @@ namespace nstd
 		auto operator|(address_pipe_impl<Ts...>&& pipe, T&& obj)
 		{
 			return address_pipe_impl<Ts..., T>
-					(
-					 std::move(pipe.addr), tuple_cat_custom(pipe.line, std::forward<T>(obj), std::make_index_sequence<sizeof...(Ts) - 1>( ))
-					);
+				(
+				 std::move(pipe.addr), tuple_cat_custom(pipe.line, std::forward<T>(obj), std::make_index_sequence<sizeof...(Ts) - 1>( ))
+				);
 		}
 
 		template <std::invocable Fn, typename T>
@@ -264,9 +275,9 @@ namespace nstd
 		auto operator|(Fn&& addr, T&& obj)
 		{
 			return address_pipe_impl<std::remove_cvref_t<Fn>, T>
-					(
-					 std::forward<Fn>(addr), std::make_tuple(std::forward<T>(obj))
-					);
+				(
+				 std::forward<Fn>(addr), std::make_tuple(std::forward<T>(obj))
+				);
 		}
 	}
 }

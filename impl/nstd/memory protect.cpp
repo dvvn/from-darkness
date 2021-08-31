@@ -1,5 +1,11 @@
 #include "memory protect.h"
 
+#include "address.h"
+#include "memory block.h"
+
+#include <Windows.h>
+
+#include <stdexcept>
 using namespace nstd;
 
 memory_protect::memory_protect(memory_protect&& other) noexcept
@@ -17,16 +23,17 @@ memory_protect::memory_protect(const LPVOID addr, SIZE_T size, DWORD new_flags)
 {
 	DWORD old_flags;
 	if (!VirtualProtect(addr, size, new_flags, std::addressof(old_flags)))
-		throw std::runtime_error("Unable to protect memory!");
-
+		throw std::runtime_error("Unable to protect the memory!");
 	info_.emplace(addr, size, old_flags);
 }
 
-memory_protect::memory_protect(address addr, SIZE_T size, DWORD new_flags): memory_protect(addr.ptr<void>( ), size, new_flags)
+memory_protect::memory_protect(address addr, SIZE_T size, DWORD new_flags)
+	: memory_protect(addr.ptr<void>( ), size, new_flags)
 {
 }
 
-memory_protect::memory_protect(const memory_block& mem, DWORD new_flags): memory_protect(mem.addr( ), mem.size( ), new_flags)
+memory_protect::memory_protect(const memory_block& mem, DWORD new_flags)
+	: memory_protect(mem.addr( ), mem.bytes_range( ).size( ), new_flags)
 {
 }
 
@@ -35,8 +42,7 @@ static auto _Restore_impl(std::optional<memory_protect::value_type>& info)
 {
 	if (info.has_value( ))
 	{
-		auto& [addr,size,flags] = *info;
-
+		auto& [addr, size, flags] = *info;
 		if (DWORD unused; VirtualProtect(addr, size, flags, std::addressof(unused)))
 		{
 			if constexpr (!FromDestructor)

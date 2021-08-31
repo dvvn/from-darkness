@@ -1,7 +1,0 @@
-float& m_flCycle( );
-float& m_flPlaybackRate( );
-float& m_flPrevCycle( );
-float& m_flWeight( );
-float& m_flWeightDeltaRate( );
-int32_t& m_nOrder( );
-int32_t& m_nSequence( );

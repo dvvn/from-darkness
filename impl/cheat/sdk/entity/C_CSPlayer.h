@@ -2,8 +2,6 @@
 #include "C_BasePlayer.h"
 #include "C_WeaponCSBase.h"
 
-#include "cheat/sdk/IGameEventmanager.hpp"
-
 namespace cheat::csgo
 {
 	////econ
@@ -14,10 +12,10 @@ namespace cheat::csgo
 	class C_CSPlayer: public C_BasePlayer
 	{
 	public:
+#if __has_include("../generated/C_CSPlayer_h")
 #include "../generated/C_CSPlayer_h"
+#endif
 
-		C_BaseAnimating*GetRagdoll();
+		C_BaseAnimating* GetRagdoll( );
 	};
-
-	
 }

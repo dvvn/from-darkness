@@ -1,3 +1,0 @@
-bool& m_bArmed( );
-int32_t& m_nParentBoneIndex( );
-Vector& m_vecParentBonePos( );

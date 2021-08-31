@@ -2,6 +2,10 @@
 
 #include "cheat/sdk/IAppSystem.hpp"
 
+#include "detour hook/hook_utils.h"
+
+#include <d3d9.h>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -143,5 +147,4 @@ service_base::load_result csgo_interfaces::load_impl( )
 
 csgo_interfaces::csgo_interfaces( )
 {
-	this->add_service<console>( );
 }

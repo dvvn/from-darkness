@@ -1,9 +1,0 @@
-std::array<int32_t, 42>& m_DangerZones( );
-bool& m_bDangerZoneControllerEnabled( );
-bool& m_bMissionControlledExplosions( );
-float& m_flFinalExpansionTime( );
-float& m_flStartTime( );
-std::array<float, 5>& m_flWaveEndTimes( );
-CBaseHandle& m_hTheFinalZone( );
-Vector& m_vecEndGameCircleEnd( );
-Vector& m_vecEndGameCircleStart( );

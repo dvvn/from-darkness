@@ -26,13 +26,13 @@ namespace nstd
 
 	void timer::set_end( )
 	{
-		runtime_assert(started(), "Timer not started");
+		runtime_assert(started( ), "Timer not started");
 		end_.emplace(clock_type::now( ));
 	}
 
 	timer::time_point::duration timer::elapsed( ) const
 	{
-		runtime_assert(updated(), "Timer not updated");
+		runtime_assert(updated( ), "Timer not updated");
 		return *end_ - *start_;
 	}
 }

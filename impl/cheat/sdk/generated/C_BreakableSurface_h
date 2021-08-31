@@ -1,9 +1,0 @@
-std::array<int32_t, 256>& m_RawPanelBitVec( );
-bool& m_bIsBroken( );
-float& m_flPanelHeight( );
-float& m_flPanelWidth( );
-int32_t& m_nNumHigh( );
-int32_t& m_nNumWide( );
-int32_t& m_nSurfaceType( );
-Vector& m_vCorner( );
-Vector& m_vNormal( );

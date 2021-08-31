@@ -5,6 +5,14 @@
 
 #include "nstd/memory protect.h"
 
+#include <array>
+#include <memory>
+
+using UINT8 = unsigned char;
+using UINT32 = unsigned int;
+using UINT64 = unsigned __int64;
+using UINT = unsigned int;
+
 namespace dhooks::detail
 {
 #pragma pack(push, 1)
@@ -25,6 +33,7 @@ namespace dhooks::detail
 		UINT8  opcode;  // E9/E8 xxxxxxxx: JMP/CALL +5+xxxxxxxx
 		UINT32 operand; // Relative destination address
 	};
+
 	using CALL_REL = JMP_REL;
 	// 64-bit indirect absolute jump.
 
@@ -77,11 +86,11 @@ namespace dhooks::detail
 		trampoline(trampoline&&)            = default;
 		trampoline& operator=(trampoline&&) = default;
 
-		using ips_type = std::array<UINT8, 8>;
+		using ips_type = UINT8[8];
 
 		LPVOID detour = nullptr; // [In] Address of the detour function.
 
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
 		LPVOID pRelay=nullptr; // [Out] Address of the relay function.
 #endif
 		bool patch_above = false; // [Out] Should use the hot patch area?
@@ -90,14 +99,14 @@ namespace dhooks::detail
 		ips_type old_ips; // [Out] Instruction boundaries of the target function.
 		ips_type new_ips; // [Out] Instruction boundaries of the trampoline function.
 
-		uint8_t* buffer( );
-		uint8_t   buffer_size( ) const;
+		UINT8* buffer( );
+		UINT8  buffer_size( ) const;
 
 		bool fix_page_protection( );
 		bool create( );
 
 	private:
-		nstd::memory_protect     old_protection__;
-		std::unique_ptr<char[]> trampoline__;
+		nstd::memory_protect    old_protection__;
+		std::unique_ptr<UINT8[]> trampoline__;
 	};
 }

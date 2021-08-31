@@ -1,4 +1,6 @@
 #pragma once
+#include "cheat/sdk/Vector.hpp"
+#include "cheat/sdk/VMatrix.hpp"
 
 namespace cheat::csgo
 {
@@ -129,7 +131,7 @@ enum hitgroups{
 		void* pProcedure( ) const
 		{
 			if (procindex == 0) return 0;
-			else return (byte*)this + procindex;
+			else return (std::uint8_t*)this + procindex;
 		};
 		int         surfacepropidx;
 		char* const pszSurfaceProp() const { return ((char*)this) + surfacepropidx; }

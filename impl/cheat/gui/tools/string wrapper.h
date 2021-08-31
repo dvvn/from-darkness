@@ -5,6 +5,9 @@
 #else
 #define CHEAT_GUI_HAS_IMGUI_STRV 1
 #endif
+#include <optional>
+#include <string>
+#include <variant>
 
 namespace cheat::gui::tools
 {

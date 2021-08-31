@@ -1,6 +1,0 @@
-float& m_fHeight( );
-float& m_fSpeed( );
-int32_t& m_nCount( );
-int32_t& m_nModelIndex( );
-Vector& m_vecMaxs( );
-Vector& m_vecMins( );

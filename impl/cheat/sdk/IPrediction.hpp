@@ -1,8 +1,11 @@
 #pragma once
 #include "UtlVector.hpp"
 
+#include "cheat/sdk/Vector.hpp"
+
 namespace cheat::csgo
 {
+	class QAngle;
 	class CBaseHandle;
 	class CMoveData
 	{

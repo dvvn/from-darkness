@@ -1,5 +1,0 @@
-bool& m_bEnabled( );
-float& m_flCurWeight( );
-float& m_maxFalloff( );
-float& m_minFalloff( );
-Vector& m_vecOrigin( );

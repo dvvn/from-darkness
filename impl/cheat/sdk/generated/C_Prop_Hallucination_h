@@ -1,3 +1,0 @@
-bool& m_bEnabled( );
-float& m_fRechargeTime( );
-float& m_fVisibleTime( );

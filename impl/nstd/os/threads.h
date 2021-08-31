@@ -1,9 +1,18 @@
 #pragma once
 #include "handle.h"
+//#include "nstd/enum as struct.h"
+
+//ReSharper disable  CppInconsistentNaming
+struct tagTHREADENTRY32;
+using THREADENTRY32 = tagTHREADENTRY32;
+using DWORD = unsigned long;
+using LONG = long;
+//ReSharper restore CppInconsistentNaming
+//#include <TlHelp32.h>
 
 namespace nstd::os
 {
-	struct thread_access final
+	/*struct thread_access final
 	{
 		enum value_type : DWORD
 		{
@@ -23,14 +32,15 @@ namespace nstd::os
 		};
 
 		NSTD_ENUM_STRUCT_BITFLAG(thread_access);
-	};
+	};*/
 
 	class thread_entry
 	{
 	public:
 		thread_entry(const THREADENTRY32& entry);
 
-		bool open(thread_access access);
+		//THREAD_***
+		bool open(DWORD access);
 		bool close( );
 
 		[[nodiscard]]
@@ -40,9 +50,18 @@ namespace nstd::os
 		bool is_open( ) const;
 		bool is_paused( ) const;
 
+		/*
+		  DWORD   dwSize;
+		DWORD   cntUsage;
+		DWORD   th32ThreadID;       // this thread
+		DWORD   th32OwnerProcessID; // Process this thread is associated with
+		LONG    tpBasePri;
+		LONG    tpDeltaPri;
+		DWORD   dwFlags;
+		 */
 	private:
-		THREADENTRY32 entry_;
-		handle        handle_;
+		uint8_t entry_[sizeof(DWORD) * 5 + sizeof(LONG) * 2];
+		handle  handle_;
 	};
 
 	class threads_enumerator
@@ -62,14 +81,14 @@ namespace nstd::os
 	};
 
 	using frozen_thread_restorer = std::unique_ptr<HANDLE, unfreeze_thread>;
+
 	class frozen_thread: public frozen_thread_restorer
 	{
 	public:
 		frozen_thread(HANDLE handle);
 	};
 
-	using frozen_threads_storage_container = std::vector<frozen_thread>;
-	class frozen_threads_storage final: protected frozen_threads_storage_container, threads_enumerator
+	class frozen_threads_storage final: threads_enumerator
 	{
 	public:
 		frozen_threads_storage(frozen_threads_storage&& other) noexcept;
@@ -78,16 +97,18 @@ namespace nstd::os
 		frozen_threads_storage(const frozen_threads_storage& other)             = delete;
 		frozen_threads_storage& operator =(const frozen_threads_storage& other) = delete;
 
-		frozen_threads_storage(bool fill);
+		explicit frozen_threads_storage(bool fill);
+		~frozen_threads_storage( ) override;
 
 		void fill( );
+		void clear( );
 
-		using frozen_threads_storage_container::clear;
+		struct storage_type;
 
 	protected:
 		void on_valid_thread(const THREADENTRY32& entry) override;
 
-		//using frozen_threads_storage_container::empty;
-		//using frozen_threads_storage_container::size;
+	private:
+		std::unique_ptr<storage_type> storage_;
 	};
 }

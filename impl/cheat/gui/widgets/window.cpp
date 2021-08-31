@@ -4,6 +4,10 @@
 #include "cheat/gui/tools/push style color.h"
 #include "cheat/gui/tools/push style var.h"
 
+#include "nstd/runtime assert.h"
+
+#include <imgui_internal.h>
+
 using namespace cheat;
 using namespace gui;
 using namespace widgets;
@@ -126,8 +130,8 @@ bool child_window::begin(const size_info& size_info_x, const size_info& size_inf
 		{
 			switch (size_info_x.type)
 			{
-				case size_info::WORD: return (size_info_x.biggest_element * sample_size.x) * size_info_x.count;
-				case size_info::RAW: return (size_info_x.biggest_element) * size_info_x.count;
+				case size_info::WORD: return size_info_x.biggest_element * sample_size.x * size_info_x.count;
+				case size_info::RAW: return size_info_x.biggest_element * size_info_x.count;
 				default: throw;
 			}
 		};
@@ -145,7 +149,7 @@ bool child_window::begin(const size_info& size_info_x, const size_info& size_inf
 
 		size.x = frame_padding.x +                              //space before and after
 				 /*indent_headers +*/                           //to indent first selectable
-				 (reserve_x( )) +                               //reserve width for all strings / whole data
+				 reserve_x( ) +                                 //reserve width for all strings / whole data
 				 style.ItemSpacing.x * (size_info_x.count - 1); //space between all headers
 
 		size.y = frame_padding.y + //space before and after
@@ -162,8 +166,8 @@ bool child_window::begin(const size_info& size_info_x, const size_info& size_inf
 		{
 			switch (size_info_y.type)
 			{
-				case size_info::WORD: return (size_info_y.biggest_element * sample_size.x);
-				case size_info::RAW: return (size_info_y.biggest_element);
+				case size_info::WORD: return size_info_y.biggest_element * sample_size.x;
+				case size_info::RAW: return size_info_y.biggest_element;
 				default: throw;
 			}
 		};
@@ -171,7 +175,7 @@ bool child_window::begin(const size_info& size_info_x, const size_info& size_inf
 		{
 			switch (size_info_y.type) //ImGui::GetFrameHeight( );
 			{
-				case size_info::WORD: return (size_info_y.count * sample_size.y);
+				case size_info::WORD: return size_info_y.count * sample_size.y;
 				case size_info::RAW: return size_info_y.count * ImGui::GetFrameHeight( );
 				default: throw;
 			}

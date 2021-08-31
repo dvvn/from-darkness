@@ -1,6 +1,0 @@
-float& m_fSpeed( );
-float& m_flWaterZ( );
-int32_t& m_nCount( );
-int32_t& m_nModelIndex( );
-Vector& m_vecMaxs( );
-Vector& m_vecMins( );

@@ -1,2 +1,0 @@
-CBaseHandle& m_hCallingPlayer( );
-Vector2D& m_vecOrigin( );

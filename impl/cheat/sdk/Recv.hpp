@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 namespace cheat::csgo
 {
 	enum SendPropType

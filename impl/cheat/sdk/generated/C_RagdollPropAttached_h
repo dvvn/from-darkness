@@ -1,4 +1,0 @@
-Vector& m_attachmentPointBoneSpace( );
-Vector& m_attachmentPointRagdollSpace( );
-int32_t& m_boneIndexAttached( );
-int32_t& m_ragdollAttachedObjectIndex( );

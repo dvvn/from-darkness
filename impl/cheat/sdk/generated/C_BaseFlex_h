@@ -1,3 +1,0 @@
-int32_t& m_blinktoggle( );
-std::array<float, 96>& m_flexWeight( );
-Vector& m_viewtarget( );

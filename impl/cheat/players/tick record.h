@@ -2,6 +2,12 @@
 
 #include "shared holder.h"
 
+#include "cheat/sdk/QAngle.hpp"
+#include "cheat/sdk/Vector.hpp"
+#include "cheat/sdk/VMatrix.hpp"
+
+#include <span>
+
 namespace cheat
 {
 	namespace csgo

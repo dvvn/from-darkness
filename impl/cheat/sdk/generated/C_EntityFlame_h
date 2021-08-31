@@ -1,2 +1,0 @@
-bool& m_bCheapEffect( );
-CBaseHandle& m_hEntAttached( );

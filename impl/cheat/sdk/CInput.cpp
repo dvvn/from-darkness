@@ -1,6 +1,8 @@
 #include "CInput.hpp"
 #include "CUserCmd.hpp"
 
+#include "detour hook/hook_utils.h"
+
 using namespace cheat::csgo;
 
 CUserCmd* CInput::GetUserCmd(int sequence_number, int nSlot)

@@ -5,7 +5,7 @@
 
 namespace cheat::csgo
 {
-	
+	class Vector2D;
 
 	enum signon_states{
  SIGNONSTATE_NONE	=	0,	// no state yet, about to connect

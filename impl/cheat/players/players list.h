@@ -3,7 +3,7 @@
 
 #include "cheat/core/service.h"
 
-#include "cheat/sdk/entity/C_CSPlayer.h"
+#include <variant>
 
 namespace cheat
 {
@@ -33,6 +33,7 @@ namespace cheat
 
 			NSTD_ENUM_STRUCT_BITFLAG(team_filter_ex)
 		};
+
 		bool alive;
 		bool dormant;
 		bool immune;
@@ -45,7 +46,8 @@ namespace cheat
 		bool operator!=(const players_filter_flags& other) const;
 	};
 
-	namespace detail
+	//deprecated
+	/*namespace detail
 	{
 		using players_list_container = std::vector<player_shared_impl>;
 		using players_list_container_interface = std::vector<player_shared>;
@@ -65,40 +67,41 @@ namespace cheat
 			players_list_container_interface items__;
 			players_filter_flags             flags__;
 		};
-	}
+	}*/
 }
 
-_STD_BEGIN
-	template < >
-	struct hash<cheat::detail::players_filter>
-	{
-		_NODISCARD size_t operator()(const cheat::detail::players_filter& val) const noexcept;
-	};
-	template < >
-	struct equal_to<cheat::detail::players_filter>
-	{
-		_NODISCARD bool operator()(const cheat::detail::players_filter& a, const cheat::detail::players_filter& b) const noexcept;
-	};
-_STD_END
+//_STD_BEGIN
+//	template < >
+//	struct hash<cheat::detail::players_filter>
+//	{
+//		_NODISCARD size_t operator()(const cheat::detail::players_filter& val) const noexcept;
+//	};
+//	template < >
+//	struct equal_to<cheat::detail::players_filter>
+//	{
+//		_NODISCARD bool operator()(const cheat::detail::players_filter& a, const cheat::detail::players_filter& b) const noexcept;
+//	};
+//_STD_END
 
 namespace cheat
 {
 	class players_list final: public service<players_list>
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-							, service_always_skipped
-#endif
+							, service_sometimes_skipped
 	{
 	public:
 		players_list( );
+		~players_list( ) override;
+
 		void update( );
 
-		const detail::players_filter& filter(const players_filter_flags& flags);
+		//const detail::players_filter& filter(const players_filter_flags& flags);
 
 	protected:
 		load_result load_impl( ) override;
 
 	private:
-		detail::players_list_container              storage__;
-		nstd::unordered_set<detail::players_filter> filter_cache__;
+		struct storage_type;
+		std::unique_ptr<storage_type> storage_;
+		//nstd::unordered_set<detail::players_filter> filter_cache__;
 	};
 }

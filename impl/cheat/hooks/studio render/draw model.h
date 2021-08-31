@@ -1,24 +1,35 @@
 #pragma once
 
 #include "cheat/core/service.h"
-#include "cheat/sdk/IStudioRender.h"
+#include "cheat/hooks/base.h"
+
+namespace cheat::csgo
+{
+	struct DrawModelResults_t;
+	struct DrawModelInfo_t;
+	enum class DrawModelFlags_t;
+	class Vector;
+	class matrix3x4_t;
+	class IStudioRender;
+}
 
 namespace cheat::hooks::studio_render
 {
-	class draw_model final: public service<draw_model>
-						  , public dhooks::_Detect_hook_holder_t<decltype(&csgo::IStudioRender::DrawModel)>
-						  , service_hook_helper
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-						  , service_always_skipped
-#endif
+	class draw_model final: public base<draw_model, void(csgo::IStudioRender::*)
+										(csgo::DrawModelResults_t*, const csgo::DrawModelInfo_t&, csgo::matrix3x4_t*, float*, float*, const csgo::Vector&, csgo::DrawModelFlags_t)>
+						  , service_sometimes_skipped
 	{
 	public:
 		draw_model( );
 
 	protected:
 		nstd::address get_target_method_impl( ) const override;
-		void          callback(csgo::DrawModelResults_t* results, const csgo::DrawModelInfo_t& info,
-							   csgo::matrix3x4_t*        bone_to_world, float*                 flex_weights, float* flex_delayed_weights, const csgo::Vector& model_origin,
-							   csgo::DrawModelFlags_t    flags) override;
+		void          callback(csgo::DrawModelResults_t*    results,
+							   const csgo::DrawModelInfo_t& info,
+							   csgo::matrix3x4_t*           bone_to_world,
+							   float*                       flex_weights,
+							   float*                       flex_delayed_weights,
+							   const csgo::Vector&          model_origin,
+							   csgo::DrawModelFlags_t       flags) override;
 	};
 }

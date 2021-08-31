@@ -1,5 +1,7 @@
 #include "IConVar.hpp"
 
+#include "detour hook/hook_utils.h"
+
 using namespace cheat;
 using namespace csgo;
 

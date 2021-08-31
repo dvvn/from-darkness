@@ -5,6 +5,9 @@
 
 #include "cheat/core/csgo interfaces.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <compare>
+
 using namespace cheat::csgo;
 
 CBaseHandle::CBaseHandle( )
@@ -57,6 +60,8 @@ int CBaseHandle::ToInt( ) const
 {
 	return (int)m_Index;
 }
+
+auto CBaseHandle::operator<=>(const CBaseHandle&) const = default;
 
 IHandleEntity* CBaseHandle::Get( ) const
 {

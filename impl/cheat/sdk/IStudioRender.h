@@ -3,6 +3,11 @@
 #include "IMaterialSystem.hpp"
 #include "UtlVector.hpp"
 
+#include "cheat/sdk/Vector.hpp"
+#include "cheat/sdk/Vector2D.hpp"
+#include "cheat/sdk/Vector4D.hpp"
+#include "cheat/sdk/VMatrix.hpp"
+
 namespace cheat::csgo
 {
 	class CUtlBuffer;
@@ -12,9 +17,7 @@ namespace cheat::csgo
 	struct studiohwdata_t;
 	class studiohdr_t;
 
-	struct DrawModelFlags_t final
-	{
-		enum value_type : int32_t
+	enum class DrawModelFlags_t : int32_t
 		{
 			DRAW_ENTIRE_MODEL = 0,
 			DRAW_OPAQUE_ONLY = 0x01,
@@ -35,21 +38,13 @@ namespace cheat::csgo
 			NO_PRIMARY_DRAW = 0x4000,
 			/*GENERATE_STATS*/SSAODEPTHTEXTURE = 0x8000,
 		};
-
-		NSTD_ENUM_STRUCT_BITFLAG(DrawModelFlags_t, DRAW_ENTIRE_MODEL)
-	};
-
-	struct LightType_t final
-	{
-		enum value_type :int32_t
+enum class LightType_t :int32_t
 		{
 			DISABLE = 0,
 			POINT,
 			DIRECTIONAL,
 			SPOT,
 		};
-		NSTD_ENUM_STRUCT(LightType_t);
-	};
 
 	enum LightType_OptimizationFlags_t
 	{
@@ -215,7 +210,7 @@ namespace cheat::csgo
 	{
 		FlashlightState_t( )
 		{
-			std::memset(this, 0, sizeof(FlashlightState_t));
+			memset(this, 0, sizeof(FlashlightState_t));
 			m_bEnableShadows = false; // Provide reasonable defaults for shadow depth mapping parameters
 			m_bDrawShadowFrustum = false;
 			m_flShadowMapResolution = 1024.0f;

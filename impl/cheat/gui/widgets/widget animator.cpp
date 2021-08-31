@@ -1,12 +1,17 @@
 #include "widget animator.h"
 
+#include "nstd/runtime assert.h"
+
+#include "imgui.h"
+
 using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
 
 widget_animator::~widget_animator( ) = default;
 
-widget_animator::widget_animator(animator&& a): fade_(std::move(a))
+widget_animator::widget_animator(animator&& a)
+	: fade_(std::move(a))
 {
 }
 
@@ -25,7 +30,8 @@ float widget_animator::Anim_value( ) const
 	return fade_.value( );
 }
 
-content_background_fader::content_background_fader(animator&& a): widget_animator(std::move(a))
+content_background_fader::content_background_fader(animator&& a)
+	: widget_animator(std::move(a))
 {
 }
 

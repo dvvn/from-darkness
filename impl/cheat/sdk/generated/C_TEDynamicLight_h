@@ -1,8 +1,0 @@
-int32_t& b( );
-int32_t& exponent( );
-int32_t& g( );
-float& m_fDecay( );
-float& m_fRadius( );
-float& m_fTime( );
-Vector& m_vecOrigin( );
-int32_t& r( );

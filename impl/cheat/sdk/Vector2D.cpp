@@ -1,5 +1,7 @@
 #include "Vector2D.hpp"
 
+#include <cstdlib>
+
 using namespace cheat::csgo;
 
 Vector2D::Vector2D(vec_t X, vec_t Y)

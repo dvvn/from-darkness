@@ -4,6 +4,8 @@
 
 #include "nstd/memory block.h"
 
+#include <Windows.h>
+
 using namespace dhooks::detail;
 using namespace dhooks;
 //bool dhooks::detail::_Is_code_padding(LPBYTE pInst, UINT size)
@@ -23,20 +25,20 @@ using namespace dhooks;
 
 trampoline::trampoline( )
 {
-	trampoline__ = std::make_unique<char[]>(this->buffer_size( ));
+	trampoline__ = std::make_unique<decltype(trampoline__)::element_type[]>(this->buffer_size( ));
 }
 
-uint8_t* trampoline::buffer( )
+UINT8* trampoline::buffer( )
 {
 	(void)this;
-	return reinterpret_cast<uint8_t*>(trampoline__.get( ));
+	return trampoline__.get( );
 }
 
 uint8_t trampoline::buffer_size( ) const
 {
 	(void)this;
 	//return sizeof(uintptr_t) * trampoline_.capacity( );
-	return sizeof(uintptr_t) * 8;
+	return sizeof(UINT_PTR) * 8;
 }
 
 bool trampoline::fix_page_protection( )
@@ -65,7 +67,7 @@ bool trampoline::create( )
 {
 	auto& ct = *this;
 
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
     CALL_ABS call = {
         0xFF, 0x15, 0x00000002, // FF15 00000002: CALL [RIP+8]
         0xEB, 0x08,             // EB 08:         JMP +10
@@ -99,7 +101,7 @@ bool trampoline::create( )
 	UINT8     new_pos  = 0;
 	ULONG_PTR jmp_dest = 0;     // Destination address of an internal jump.
 	bool      finished = false; // Is the function completed?
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
     UINT8 instBuf[16];
 #endif
 
@@ -122,7 +124,7 @@ bool trampoline::create( )
 		{
 			// The trampoline function is long enough.
 			// Complete the function with the jump to the target function.
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
             jmp.address = old_inst;
 #else
 			jmp.operand = static_cast<UINT32>(old_inst - (new_inst + sizeof(decltype(jmp))));
@@ -132,7 +134,7 @@ bool trampoline::create( )
 
 			finished = true;
 		}
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
         else if ((hs.modrm & 0xC7) == 0x05)
         {
             // Instructions using RIP relative addressing. (ModR/M = 00???101B)
@@ -158,7 +160,7 @@ bool trampoline::create( )
 		{
 			// Direct relative CALL
 			const auto dest = old_inst + hs.len + static_cast<INT32>(hs.imm.imm32);
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
             call.address = dest;
 #else
 			call.operand = static_cast<UINT32>(dest - (new_inst + sizeof(call)));
@@ -184,7 +186,7 @@ bool trampoline::create( )
 			}
 			else
 			{
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
                 jmp.address = dest;
 #else
 				jmp.operand = static_cast<UINT32>(dest - (new_inst + sizeof(decltype(jmp))));
@@ -223,7 +225,7 @@ bool trampoline::create( )
 			else
 			{
 				const UINT8 cond = (hs.opcode != 0x0F ? hs.opcode : hs.opcode2) & 0x0F;
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
                 // Invert the condition in x64 mode to simplify the conditional jump logic.
                 jcc.opcode  = 0x71 ^ cond;
                 jcc.address = dest;
@@ -252,7 +254,7 @@ bool trampoline::create( )
 			return false;
 
 		// Trampoline function has too many instructions.
-		if (ct.ips_count >= ct.old_ips.size( ))
+		if (ct.ips_count >= /*ct.old_ips.size( )*/sizeof(ips_type))
 			return false;
 
 		ct.old_ips[ct.ips_count] = old_pos;
@@ -284,13 +286,13 @@ bool trampoline::create( )
 		ct.patch_above = true;
 	}
 
-#ifdef DHOOKS_X64
+#if defined(_M_X64) || defined(__x86_64__)
     // Create a relay function.
     jmp.address = reinterpret_cast<ULONG_PTR>(ct.pDetour);
 
     ct.pRelay = static_cast<LPBYTE>(ct.pTrampoline.get( )) + new_pos;
-    /*utl_*/
-    memcpy(ct.pRelay, &jmp, sizeof jmp);
+    
+    std::memcpy(ct.pRelay, &jmp, sizeof jmp);
 #endif
 
 	return true;

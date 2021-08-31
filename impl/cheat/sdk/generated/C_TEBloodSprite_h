@@ -1,9 +1,0 @@
-int32_t& a( );
-int32_t& b( );
-int32_t& g( );
-int32_t& m_nDropModel( );
-int32_t& m_nSize( );
-int32_t& m_nSprayModel( );
-Vector& m_vecDirection( );
-Vector& m_vecOrigin( );
-int32_t& r( );

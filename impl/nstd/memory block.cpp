@@ -1,5 +1,8 @@
 #include "memory block.h"
 
+#include <windows.h>
+static_assert(std::same_as<unsigned long, DWORD>);
+
 using namespace nstd;
 
 bool any_bytes_range::known( ) const
@@ -9,7 +12,6 @@ bool any_bytes_range::known( ) const
 					   [](const known_bytes_range_const&  ) { return true; },
 					   [](const unknown_bytes_range_const&) { return false; }
 					  ), data_);
-
 #if 0
 	if (known)
 	{
@@ -57,11 +59,11 @@ unknown_bytes_range_const any_bytes_range::get_unknown( ) const
 							   }), data_);
 }
 
-memory_block::memory_block(const address& begin, size_t mem_size) : known_bytes_range(begin.ptr<uint8_t>( ), mem_size)
+memory_block::memory_block(const address& begin, size_type mem_size) : bytes_(begin.ptr<known_byte>( ), mem_size)
 {
 }
 
-memory_block::memory_block(const address& begin, const address& end) : known_bytes_range(begin.ptr<uint8_t>( ), end.ptr<uint8_t>( ))
+memory_block::memory_block(const address& begin, const address& end) : bytes_(begin.ptr<known_byte>( ), end.ptr<known_byte>( ))
 {
 }
 
@@ -69,7 +71,7 @@ memory_block::memory_block(const address& addr) : memory_block(addr, sizeof(addr
 {
 }
 
-memory_block::memory_block(const known_bytes_range& span) : known_bytes_range(span)
+memory_block::memory_block(const known_bytes_range& span) : bytes_(span)
 {
 }
 
@@ -77,34 +79,28 @@ struct rewrap_range_exception final: std::exception
 {
 };
 
-template <typename Where, typename What, typename Pr = ranges::equal_to>
+template <typename Where, typename What, typename Pr = std::ranges::equal_to>
 static auto _Rng_search(Where&& where, What&& what, Pr&& pred = { })
 {
 	//ranges extremely slow in debug mode
-
 	auto a = std::initializer_list(std::_Get_unwrapped(where.begin( )), std::_Get_unwrapped(where.end( )));
 	auto b = std::initializer_list(std::_Get_unwrapped(what.begin( )), std::_Get_unwrapped(what.end( )));
+#if _ITERATOR_DEBUG_LEVEL == 0 && !defined(_DEBUG)
 
-#if (defined(__cpp_lib_concepts) && _ITERATOR_DEBUG_LEVEL == 0) || !defined(_DEBUG)
-
-	return ranges::search(a, b, pred);
+	return std::ranges::search(a, b, pred);
 
 #else
-
 	auto first     = a.begin( );
 	auto real_last = a.end( );
 	auto last      = real_last - what.size( );
-
 	for (auto itr = first; itr != last; ++itr)
 	{
 		auto itr_temp = itr;
 		auto found    = true;
-
 		// ReSharper disable CppInconsistentNaming
 		for (auto&& _Left: what)
 		{
 			auto& _Right = *itr_temp++;
-
 			if (!pred(_Right, _Left))
 			{
 				found = false;
@@ -112,12 +108,10 @@ static auto _Rng_search(Where&& where, What&& what, Pr&& pred = { })
 			}
 		}
 		// ReSharper restore CppInconsistentNaming
-
 		if (found)
-			return ranges::subrange{itr, itr + what.size( )};
+			return std::ranges::subrange{itr, itr + what.size( )};
 	}
-
-	return ranges::subrange{real_last, real_last};
+	return std::ranges::subrange{real_last, real_last};
 #endif
 }
 
@@ -129,60 +123,51 @@ static std::optional<Span> _Rewrap_range(const known_bytes_range_const& rng)
 		throw rewrap_range_exception( );
 	if (size_bytes == sizeof(T))
 		return Span(reinterpret_cast<Ptr>(rng._Unchecked_begin( )), 1);
-
 	const auto tail = size_bytes % sizeof(T);
 	if (tail > 0)
 		return { };
-
 	auto start = reinterpret_cast<Ptr>(rng._Unchecked_begin( ));
 	auto size  = size_bytes / sizeof(T);
-
 	return Span(start, size);
 }
 
 template <typename T>
-static std::optional<memory_block> _Scan_memory(const memory_block& block, const std::span<T>& rng)
+static memory_block_opt _Scan_memory(const known_bytes_range& block, const std::span<T>& rng)
 {
 	const auto unreachable = block.size( ) % rng.size_bytes( );
 	const auto fake_block  = std::span<T>((T*)block._Unchecked_begin( ), (block.size( ) - unreachable) / sizeof(T));
-
-	auto result = _Rng_search(fake_block, rng);
+	auto       result      = _Rng_search(fake_block, rng);
 	if (result.empty( ))
 		return { };
-
 	return memory_block({(known_byte*)result.begin( ), rng.size_bytes( )});
 }
 
-static std::optional<memory_block> _Scan_memory(const memory_block& block, const known_bytes_range_const& data)
+static memory_block_opt _Scan_memory(const known_bytes_range& block, const known_bytes_range_const& data)
 {
 	auto result = _Rng_search(block, data);
 	if (result.empty( ))
 		return { };
-
 	return memory_block({result.begin( ), data.size( )});
 }
 
-std::optional<memory_block> memory_block::find_block_impl(const known_bytes_range_const& rng) const
+memory_block_opt memory_block::find_block_impl(const known_bytes_range_const& rng) const
 {
 	try
 	{
 		if (const auto rng64 = _Rewrap_range<uint64_t>(rng); rng64.has_value( ))
-			return _Scan_memory(*this, *rng64);
-
+			return _Scan_memory(bytes_, *rng64);
 		if (const auto rng32 = _Rewrap_range<uint32_t>(rng); rng32.has_value( ))
-			return _Scan_memory(*this, *rng32);
-
+			return _Scan_memory(bytes_, *rng32);
 		if (const auto rng16 = _Rewrap_range<uint16_t>(rng); rng16.has_value( ))
-			return _Scan_memory(*this, *rng16);
+			return _Scan_memory(bytes_, *rng16);
 	}
 	catch (const rewrap_range_exception&)
 	{
 	}
-
-	return _Scan_memory(*this, rng);
+	return _Scan_memory(bytes_, rng);
 }
 
-std::optional<memory_block> memory_block::find_block_impl(const unknown_bytes_range_const& rng) const
+memory_block_opt memory_block::find_block_impl(const unknown_bytes_range_const& rng) const
 {
 #ifdef NSTD_MEM_BLOCK_UNWRAP_UNKNOWN_BYTES
 	if (all_bytes_known(rng))
@@ -192,57 +177,54 @@ std::optional<memory_block> memory_block::find_block_impl(const unknown_bytes_ra
 #else
 	runtime_assert(!all_bytes_known(rng),"Unknown bytes must be unwrapped before!");
 #endif
-
-	auto result = _Rng_search(*this, rng, [](const known_byte kbyte, const unknown_byte& unkbyte)
+	auto result = _Rng_search(bytes_, rng, [](const known_byte kbyte, const unknown_byte& unkbyte)
 	{
 		return !unkbyte.has_value( ) || *unkbyte == kbyte;
 	});
 	if (result.empty( ))
 		return { };
-
 	return memory_block({(result.begin( )), rng.size( )});
 }
 
-std::optional<memory_block> memory_block::find_block_impl(const any_bytes_range& rng) const
+memory_block_opt memory_block::find_block_impl(const any_bytes_range& rng) const
 {
-	std::optional<memory_block> ret;
-
+	memory_block_opt ret;
 	if (rng.known( ))
 		ret = this->find_block_impl(rng.get_known( ));
 	else
 		ret = this->find_block_impl(rng.get_unknown( ));
-
 	return ret;
 }
 
 address memory_block::addr( ) const
 {
-	return _Unchecked_begin( );
+	return bytes_._Unchecked_begin( );
 }
 
 address memory_block::last_addr( ) const
 {
-	return _Unchecked_end( );
+	return bytes_._Unchecked_end( );
 }
 
-memory_block memory_block::subblock(size_t offset, size_t count) const
+memory_block memory_block::subblock(size_t offset) const
 {
-	return memory_block(this->subspan(offset, count));
+	return memory_block(bytes_.subspan(offset));
 }
 
 memory_block memory_block::shift_to(pointer ptr) const
 {
-	return memory_block(this->subspan(std::distance(_Unchecked_begin( ), ptr)));
+	const auto offset = std::distance(bytes_._Unchecked_begin( ), ptr);
+	return this->subblock(offset);
 }
 
 memory_block memory_block::shift_to_start(const memory_block& block) const
 {
-	return this->shift_to(block._Unchecked_begin( ));
+	return this->shift_to(block.bytes_._Unchecked_begin( ));
 }
 
 memory_block memory_block::shift_to_end(const memory_block& block) const
 {
-	return this->shift_to(block._Unchecked_end( ));
+	return this->shift_to(block.bytes_._Unchecked_end( ));
 }
 
 #pragma region flags_check
@@ -318,15 +300,12 @@ public:
 		//memory isnt commit!
 		if (this->State != MEM_COMMIT)
 			return false;
-
 		//flags check isnt passed!
 		if (std::invoke(checker_fn_, this->get_flags( ), flags_checked_) == false)
 			return false;
-
 		//found good result
 		if (this->RegionSize >= block_size)
 			return true;
-
 		//check next block
 		return { };
 	}
@@ -345,13 +324,12 @@ static bool _Memory_block_flags_checker(flags_type flags, memory_block block, Fn
 	flags_checker<Fn> checker(std::forward<Fn>(checker_fn), flags);
 	while (true)
 	{
-		if (!checker.update(block._Unchecked_begin( )))
+		auto& bytes_rng = block.bytes_range( );
+		if (!checker.update(bytes_rng._Unchecked_begin( )))
 			return false;
-
-		auto result = checker.check_flags(block.size( ));
+		auto result = checker.check_flags(bytes_rng.size( ));
 		if (result.has_value( ))
 			return *result;
-
 		block = block.subblock(checker.region_size( ));
 	}
 }
@@ -363,6 +341,7 @@ struct have_flags_fn
 		return region_flags.has(target_flags) == true;
 	}
 };
+
 struct dont_have_flags_fn
 {
 	bool operator()(flags_type region_flags, flags_type target_flags) const
@@ -405,11 +384,10 @@ bool memory_block::executable( ) const
 
 bool memory_block::code_padding( ) const
 {
-	const auto first = this->front( );
+	const auto first = bytes_.front( );
 	if (first != 0x00 && first != 0x90 && first != 0xCC)
 		return false;
-
-	for (const auto val: this->subblock(1))
+	for (const auto val: this->subblock(1).bytes_)
 	{
 		if (val != first)
 			return false;

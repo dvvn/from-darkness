@@ -1,9 +1,18 @@
 #include "settings detail.h"
-
 #include "settings.h"
 
 #include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style var.h"
+
+#include <nstd/runtime assert.h>
+
+#include <misc/cpp/imgui_stdlib.h>
+#include <imgui_internal.h>
+
+#include <ranges>
+
+namespace ranges = std::ranges;
+namespace views = ranges::views;
 
 using namespace cheat;
 using namespace cheat::settings_detail;
@@ -325,9 +334,9 @@ void configs_unique_renderer::sync(const known_configs& source)
 	}
 
 	auto sizes = data__
-				 | ranges::views::transform(&config_renderer::owner)
-				 | ranges::views::transform(&string_wrapper::raw)
-				 | ranges::views::transform(&std::wstring_view::size);
+				 | views::transform(&config_renderer::owner)
+				 | views::transform(&string_wrapper::raw)
+				 | views::transform(&std::wstring_view::size);
 	longest_title__ = *ranges::max_element(sizes);
 
 	ranges::sort(data__, { }, [](const value_type& val) { return val->owner( ).raw( ); });
@@ -388,7 +397,7 @@ void configs_unique_renderer::render( )
 
 	//----
 
-	static auto empty_string = string_wrapper(_T("<Empty>"));
+	static auto empty_string = string_wrapper((L"<Empty>"));
 
 	// ReSharper disable once CppInconsistentNaming
 	static constexpr size_t MIN_COLUMNS = 5;

@@ -1,10 +1,13 @@
 #include "should skip animation frame.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/netvars/netvars.h"
-#include "cheat/players/players list.h"
+#include "cheat/core/csgo modules.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/netvars/config.h"
+
 #include "cheat/sdk/ClientClass.hpp"
-#include "cheat/sdk/IClientEntityList.hpp"
+#include "cheat/sdk/entity/C_BaseAnimating.h"
 
 using namespace cheat;
 using namespace hooks;
@@ -13,8 +16,14 @@ using namespace c_base_animating;
 using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame( )
+	: service_sometimes_skipped(
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+								true
+#else
+		false
+#endif
+							   )
 {
-	this->add_service<netvars>( );
 }
 
 nstd::address should_skip_animation_frame::get_target_method_impl( ) const
@@ -24,6 +33,7 @@ nstd::address should_skip_animation_frame::get_target_method_impl( ) const
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
+#if !defined(CHEAT_GUI_TEST) && !defined(CHEAT_NETVARS_UPDATING)
 	if (override_return__)
 		this->return_value_.store_value(override_return_to__);
 	else
@@ -86,7 +96,9 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 		const auto animate_this_frame = ent->m_bClientSideAnimation( );
 		const auto skip_this_frame    = animate_this_frame == false;
 		this->return_value_.store_value(skip_this_frame);
-	}
+
+}
+#endif
 }
 
 void should_skip_animation_frame::render( )

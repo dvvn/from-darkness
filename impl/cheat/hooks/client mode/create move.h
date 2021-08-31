@@ -1,17 +1,18 @@
 #pragma once
 
 #include "cheat/core/service.h"
+#include "cheat/hooks/base.h"
 
-#include "cheat/sdk/IClientMode.hpp"
+namespace cheat::csgo
+{
+	class IClientMode;
+	class CUserCmd;
+}
 
 namespace cheat::hooks::client_mode
 {
-	class create_move final: public service<create_move>
-						   , public dhooks::_Detect_hook_holder_t<decltype(&csgo::ClientModeShared::CreateMove)>
-						   , service_hook_helper
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-						   , service_always_skipped
-#endif
+	class create_move final: public base<create_move, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*)>
+						   , service_sometimes_skipped
 	{
 	public:
 		create_move( );

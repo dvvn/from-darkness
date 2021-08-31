@@ -2,17 +2,18 @@
 
 #include "cheat/core/service.h"
 #include "cheat/gui/objects/abstract page.h"
-#include "cheat/sdk/entity/C_BaseAnimating.h"
+#include "cheat/hooks/base.h"
+
+namespace cheat::csgo
+{
+	class C_BaseAnimating;
+}
 
 namespace cheat::hooks::c_base_animating
 {
-	class should_skip_animation_frame final: public service<should_skip_animation_frame>
-										   , public dhooks::_Detect_hook_holder_t<decltype(&csgo::C_BaseAnimating::ShouldSkipAnimationFrame)>
+	class should_skip_animation_frame final: public base<should_skip_animation_frame,bool(csgo::C_BaseAnimating::*)()>
 										   , public gui::objects::empty_page
-										   , service_hook_helper
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-										   , service_always_skipped
-#endif
+										   , service_sometimes_skipped
 	{
 	public :
 		should_skip_animation_frame( );

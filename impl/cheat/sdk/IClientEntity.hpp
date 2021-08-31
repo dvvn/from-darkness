@@ -5,8 +5,12 @@
 #include "IClientUnknown.hpp"
 #include "IClientThinkable.hpp"
 
+#include <cstdint>
+
 namespace cheat::csgo
 {
+	class Vector;
+	class QAngle;
 	struct SpatializationInfo_t;
 
 	class IClientEntity: public IClientUnknown, public IClientRenderable, public IClientNetworkable, public IClientThinkable
@@ -40,17 +44,17 @@ namespace cheat::csgo
 		uint8_t bFullAuto;
 		int8_t  pad6[3];
 		int32_t iDamage;
-		float_t flArmorRatio;
+		float flArmorRatio;
 		int32_t iBullets;
-		float_t flPenetration;
+		float flPenetration;
 		int8_t  pad7[8];
-		float_t flRange;
-		float_t flRangeModifier;
+		float flRange;
+		float flRangeModifier;
 		int8_t  pad8[16];
 		uint8_t bHasSilencer;
 		int8_t  pad9[15];
-		float_t flSpread;
-		float_t flSpreadAlt;
+		float flSpread;
+		float flSpreadAlt;
 		int8_t  pad10[76];
 		int32_t iRecoilSeed;
 		int8_t  pad11[32];

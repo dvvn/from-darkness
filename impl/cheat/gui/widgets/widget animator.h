@@ -2,6 +2,8 @@
 
 #include "cheat/gui/tools/animator.h"
 
+#include "nstd/memory backup.h"
+
 #define CHEAT_GUI_WIDGETS_FADE_CONTENT
 
 namespace cheat::gui::widgets
@@ -18,7 +20,7 @@ namespace cheat::gui::widgets
 
 	protected:
 		virtual bool Animate( );
-		float Anim_value( ) const;
+		float        Anim_value( ) const;
 
 		tools::animator fade_;
 	};
@@ -29,6 +31,7 @@ namespace cheat::gui::widgets
 		content_background_fader(tools::animator&& a = { });
 
 		bool Animate( ) final;
+
 		nstd::memory_backup<float> fade_alpha_backup_;
 	};
 }

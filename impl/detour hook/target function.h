@@ -1,15 +1,18 @@
 #pragma once
+// ReSharper disable once CppUnusedIncludeDirective
+#include <compare>
 
 namespace dhooks::detail
 {
 	struct target_fn
 	{
-		LPVOID target; // [In] Address of the target function.
+		void* target; // [In] Address of the target function.
 
-		target_fn(const LPVOID target = nullptr): target(target)
+		target_fn(void* target = nullptr)
+			: target(target)
 		{
 		}
 
-		auto operator<=>(const target_fn& other) const = default;
+		bool operator==(const target_fn& other) const = default;
 	};
 }

@@ -4,6 +4,8 @@
 
 #include "cheat/gui/tools/string wrapper.h"
 
+#include <imgui.h>
+
 namespace cheat::gui::widgets
 {
 	class selectable: public selectable_base
@@ -12,7 +14,7 @@ namespace cheat::gui::widgets
 		selectable(bool selected = false);
 
 		bool operator()(tools::prefect_string&& label,
-						ImGuiSelectableFlags_ flags = ImGuiSelectableFlags_None, const ImVec2& size = ImVec2(0, 0));
+						ImGuiSelectableFlags_   flags = ImGuiSelectableFlags_None, const ImVec2& size = ImVec2(0, 0));
 	};
 
 	class selectable_internal: public selectable

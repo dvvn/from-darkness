@@ -1,3 +1,0 @@
-float& m_flEndRadius( );
-float& m_flStartRadius( );
-Vector& m_vecCenter( );

@@ -4,6 +4,11 @@
 #include "cheat/sdk/entity/C_CSPlayer.h"
 #include "cheat/utils/game.h"
 
+#include "nstd/memory backup.h"
+#include "nstd/runtime assert.h"
+
+#include <excpt.h>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;

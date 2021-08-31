@@ -1,15 +1,17 @@
 #pragma once
 
 #include "widget animator.h"
-
 #include "cheat/gui/tools/string wrapper.h"
+
+#include "imgui.h"
+
+#include "nstd/enum as struct.h"
 
 namespace cheat::gui::widgets
 {
 	struct window_flags final
 	{
 		using value_type = ImGuiWindowFlags_;
-
 		NSTD_ENUM_STRUCT_BITFLAG(window_flags, ImGuiWindowFlags_None);
 	};
 
@@ -18,6 +20,7 @@ namespace cheat::gui::widgets
 	public:
 		window(tools::animator&& fade = { });
 
+		//ImGuiWindowFlags_
 		bool begin(tools::prefect_string&& title, window_flags flags = { });
 		void end( );
 
@@ -50,6 +53,7 @@ namespace cheat::gui::widgets
 				RAW
 			} type = UNSET;
 		};
+
 		bool begin(const size_info& size_info_x, const size_info& size_info_y, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
 		void end( );
 

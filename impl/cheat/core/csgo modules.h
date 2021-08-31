@@ -1,40 +1,37 @@
 #pragma once
 
-#include "cheat/utils/memory.h"
+#include "nstd/address.h"
+#include "nstd/chars cache.h"
+#include "nstd/type name.h"
+
+namespace nstd
+{
+	class address;
+
+	namespace os
+	{
+		class module_info;
+	}
+}
 
 namespace cheat::csgo_modules
 {
+	namespace detail
+	{
+		nstd::os::module_info* get_module_impl(const std::string_view& target_name);
+		nstd::address          find_signature_impl(nstd::os::module_info* md, const std::string_view& sig);
+		nstd::address          find_csgo_interface(nstd::os::module_info* from, const std::string_view& target_name);
+		void*                  find_vtable_pointer(nstd::os::module_info* from, const std::string_view& class_name);
+	}
+
 	template <nstd::chars_cache Name>
-	struct _Game_module
+	struct game_module_base
 	{
 		nstd::os::module_info* get( ) const
 		{
 			using namespace nstd::os;
 
-			static auto info = all_modules::get_ptr( )->find([](std::wstring_view name)-> bool
-			{
-				constexpr auto dot_dll          = std::string_view(".dll");
-				constexpr auto dot_dll_size     = dot_dll.size( );
-				constexpr auto target_name      = Name.view( );
-				constexpr auto target_name_size = target_name.size( );
-
-				if (name.size( ) != target_name_size + dot_dll_size)
-					return false;
-
-				for (size_t i = 0; i < target_name_size; ++i)
-				{
-					if (name[i] != static_cast<wchar_t>(target_name[i]))
-						return false;
-				}
-
-				for (size_t i = 0; i < dot_dll_size; ++i)
-				{
-					if (name[i + target_name_size] != static_cast<wchar_t>(dot_dll[i]))
-						return false;
-				}
-
-				return true;
-			}, &module_info::name);
+			static auto info = detail::get_module_impl(Name.view( ));
 			return info;
 		}
 
@@ -43,38 +40,31 @@ namespace cheat::csgo_modules
 		{
 #ifdef _DEBUG
 			static auto found_before = false;
-			runtime_assert(!found_before);
+			if (found_before)
+				throw;
 			found_before = true;
 #endif
-			auto bytes = nstd::signature(Sig.view( ));
-			auto ret   = this->get( )->mem_block( ).find_block(bytes);
-			if (!ret.has_value( ))
-			{
-				CHEAT_CONSOLE_LOG("{}.dll -> signature {} not found", Name.view( ), Sig.view( ))
-				return nullptr;
-			}
-
-			return ret->addr( );
+			return detail::find_signature_impl(get( ), Sig.view( ));
 		}
 
 		template <typename Table/*, nstd::chars_cache ...IgnoreNamespaces*/>
 		Table* find_vtable( ) const
 		{
 			constexpr auto table_name = nstd::type_name<Table, "cheat", "csgo"/*IgnoreNamespaces...*/>( );
-			static void*   ptr        = std::invoke(utils::vtable_pointer_impl( ), *this->get( ), table_name);
+			static void*   ptr        = detail::find_vtable_pointer(this->get( ), table_name);
 			return static_cast<Table*>(ptr);
 		}
 
 		template <nstd::chars_cache Ifc>
 		nstd::address find_interface( ) const
 		{
-			static auto addr = std::invoke(*nstd::one_instance<utils::csgo_interfaces_cache_impl>( ).get_ptr( ), this->get( ), Ifc.view( ));
+			static auto addr = detail::find_csgo_interface(this->get( ), Ifc.view( ));
 			return addr;
 		}
 	};
 
 #define CHEAT_GAME_MODULE(_NAME_)\
-	_INLINE_VAR constexpr auto _NAME_ = _Game_module<#_NAME_>( )
+	_INLINE_VAR constexpr auto _NAME_ = game_module_base<#_NAME_>( )
 
 	CHEAT_GAME_MODULE(client);
 	CHEAT_GAME_MODULE(engine);

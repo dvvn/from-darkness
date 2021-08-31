@@ -1,3 +1,0 @@
-float& m_flTextSize( );
-char* m_szText( );
-int32_t& m_textColor( );

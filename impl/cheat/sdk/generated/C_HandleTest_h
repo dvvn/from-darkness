@@ -1,2 +1,0 @@
-int32_t& m_Handle( );
-bool& m_bSendHandle( );

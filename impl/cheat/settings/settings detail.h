@@ -3,6 +3,13 @@
 #include "cheat/gui/objects/pages renderer.h"
 #include "cheat/gui/widgets/window.h"
 
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <span>
+#include <string>
+#include <vector>
+
 namespace cheat
 {
 	class settings_data;
@@ -27,18 +34,18 @@ namespace cheat::settings_detail
 	protected:
 		using storage_type = std::vector<string_wrapper>;
 
-		ranges::borrowed_subrange_t<storage_type&> Remove(const std::span<std::wstring>& sample);
-		void Update_longest_string( );
+		std::ranges::borrowed_subrange_t<storage_type&> Remove(const std::span<std::wstring>& sample);
+		void                                            Update_longest_string( );
 
 	public:
 		void sync(const std::span<std::wstring>& vec);
 
 		const string_wrapper& longest_string( ) const;
-		const storage_type& get( ) const;
+		const storage_type&   get( ) const;
 
 	private:
 		string_wrapper_abstract longest_string__;
-		storage_type data__;
+		storage_type            data__;
 	};
 
 	class known_configs_selectable final: public known_configs
@@ -49,7 +56,7 @@ namespace cheat::settings_detail
 		void deselect( );
 
 		string_wrapper* selected( ) const;
-		bool selected(const string_wrapper& str) const;
+		bool            selected(const string_wrapper& str) const;
 
 	private:
 		//must be manually controlled!
@@ -100,7 +107,7 @@ namespace cheat::settings_detail
 
 	private:
 		storage_type data__;
-		size_t longest_title__ = 0;
+		size_t       longest_title__ = 0;
 	};
 
 	class config_renderer final: public selectable_internal
@@ -109,7 +116,7 @@ namespace cheat::settings_detail
 		config_renderer(string_wrapper&& str) = delete;
 		config_renderer(const string_wrapper& str);
 
-		bool dead(const known_configs& source) const;
+		bool                  dead(const known_configs& source) const;
 		const string_wrapper& owner( ) const;
 
 	protected:
@@ -141,15 +148,16 @@ namespace cheat::settings_detail
 
 	private:
 		std::vector<value_type> data__;
-		size_t longest_title__ = 0;
+		size_t                  longest_title__ = 0;
 
 		struct
 		{
 			value_type::weak_type ptr;
-			std::wstring name;
+			std::wstring          name;
 			std::optional<size_t> index;
 			//-
 		} item_selected__;
+
 		//bool item_selected_resolve__ = 1;
 
 		void Select_new_item_(size_t index, bool set_selected);
@@ -169,10 +177,10 @@ namespace cheat::settings_detail
 
 	private:
 		std::vector<std::wstring> Process_folder_(const std::filesystem::directory_entry& dir);
-		void Process_path_(const std::filesystem::path& path);
+		void                      Process_path_(const std::filesystem::path& path);
 
-		folders_storage folders__;
-		known_configs files__;
+		folders_storage         folders__;
+		known_configs           files__;
 		configs_unique_renderer files_list__;
 
 		std::filesystem::path working_dir__;

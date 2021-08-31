@@ -1,7 +1,13 @@
 #pragma once
 
+#include <cstdint>
+
 namespace cheat::csgo
 {
+	class matrix3x4_t;
+	class QAngle;
+	class Vector;
+
 	using ClientShadowHandle_t = unsigned short;
 	using ClientRenderHandle_t = unsigned short;
 	using ModelInstanceHandle_t = unsigned short;

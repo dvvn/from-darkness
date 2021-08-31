@@ -2,6 +2,10 @@
 
 #include "hook.h"
 
+#include "nstd/address.h"
+
+#include <mutex>
+
 namespace dhooks
 {
 	template <typename C>
@@ -141,19 +145,9 @@ namespace dhooks
 
 	namespace detail
 	{
-		inline void _Call_fn_trap([[maybe_unused]] call_conversion original, [[maybe_unused]] call_conversion called)
-		{
-#ifdef _DEBUG
-			[[maybe_unused]] const auto a = _ReturnAddress( );
-			[[maybe_unused]] const auto b = _AddressOfReturnAddress( );
-			constexpr auto              _ = 0;
-#endif // _DEBUG
-		}
+		void _Call_fn_trap([[maybe_unused]] call_conversion original, [[maybe_unused]] call_conversion called);
 
-		FORCEINLINE void _Call_fn_trap([[maybe_unused]] call_conversion original)
-		{
-			_Call_fn_trap(original, original);
-		}
+		void _Call_fn_trap([[maybe_unused]] call_conversion original);
 
 		template <typename Fn_as, typename Fn_old, typename ...Args>
 		decltype(auto) _Call_fn_as(Fn_old func_ptr, Args&& ...args)

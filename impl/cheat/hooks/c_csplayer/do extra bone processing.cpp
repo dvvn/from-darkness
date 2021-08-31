@@ -1,5 +1,12 @@
 #include "do extra bone processing.h"
 
+#include "cheat/core/csgo modules.h"
+
+namespace cheat::csgo
+{
+	class C_CSPlayer;
+}
+
 using namespace cheat;
 using namespace hooks;
 using namespace c_csplayer;
@@ -7,8 +14,14 @@ using namespace c_csplayer;
 using namespace csgo;
 
 do_extra_bone_processing::do_extra_bone_processing( )
+	: service_sometimes_skipped(
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+								true
+#else
+		false
+#endif
+							   )
 {
-	this->add_service<csgo_interfaces>( );
 }
 
 nstd::address do_extra_bone_processing::get_target_method_impl( ) const

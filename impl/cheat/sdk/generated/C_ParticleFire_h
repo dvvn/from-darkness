@@ -1,2 +1,0 @@
-Vector& m_vDirection( );
-Vector& m_vOrigin( );

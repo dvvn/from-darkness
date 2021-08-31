@@ -8,11 +8,7 @@ namespace cheat
 
 namespace cheat::utils
 {
-	struct vtable_pointer_impl
-	{
-		void* operator()(const std::string_view& from, const std::string_view& table_name) const = delete;
-		void* operator()(nstd::os::module_info& info, const std::string_view& table_name) const;
-	};
+	
 
 	template <typename T>
 	struct vtable_pointer_fn

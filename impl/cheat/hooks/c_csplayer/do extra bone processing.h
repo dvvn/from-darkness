@@ -1,16 +1,26 @@
 #pragma once
 
 #include "cheat/core/service.h"
-#include "cheat/sdk/entity/C_BaseAnimating.h"
+#include "cheat/hooks/base.h"
+
+namespace cheat::csgo
+{
+	class CIKContext;
+	class CBoneBitList;
+	class matrix3x4a_t;
+	class Quaternion;
+	class Vector;
+	class CStudioHdr;
+	class C_BaseAnimating;
+}
 
 namespace cheat::hooks::c_csplayer
 {
-	class do_extra_bone_processing final: public service<do_extra_bone_processing>
-										, public dhooks::_Detect_hook_holder_t<decltype(&csgo::C_BaseAnimating::DoExtraBoneProcessing)>
-										, service_hook_helper
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-										, service_always_skipped
-#endif
+	class do_extra_bone_processing final: public base<do_extra_bone_processing,
+													  void(csgo::C_BaseAnimating::*)
+													  (csgo::CStudioHdr*, csgo::Vector*, csgo::Quaternion*, csgo::matrix3x4a_t*, csgo::CBoneBitList&, csgo::CIKContext*)>
+										, service_sometimes_skipped
+
 	{
 	public:
 		do_extra_bone_processing( );

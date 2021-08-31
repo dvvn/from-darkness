@@ -1,12 +1,14 @@
 #include "checksum.h"
 
-using namespace nstd::detail;
+#include <filesystem>
+#include <fstream>
+
 using path = std::filesystem::path;
+using namespace nstd::detail;
 
 size_t checksum_impl::operator()(const path& p) const
 {
 	using namespace std;
-
 	if (exists(p))
 	{
 		auto ifs = ifstream(p);
@@ -17,6 +19,5 @@ size_t checksum_impl::operator()(const path& p) const
 			return invoke(*this, span(tmp));
 		}
 	}
-
 	return 0;
 }

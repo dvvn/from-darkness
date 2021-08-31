@@ -1,5 +1,7 @@
 #include "QAngle.hpp"
 
+#include <cmath>
+
 using namespace cheat::csgo;
 
 QAngle::QAngle( )
@@ -143,7 +145,7 @@ QAngle QAngle::operator/(const QAngle& v) const
 
 float QAngle::Length( ) const
 {
-	return sqrt(pitch * pitch + yaw * yaw + roll * roll);
+	return std::sqrt(pitch * pitch + yaw * yaw + roll * roll);
 }
 
 float QAngle::LengthSqr( ) const

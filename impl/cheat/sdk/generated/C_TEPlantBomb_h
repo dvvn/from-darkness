@@ -1,3 +1,0 @@
-int32_t& m_iPlayer( );
-int32_t& m_option( );
-Vector& m_vecOrigin( );

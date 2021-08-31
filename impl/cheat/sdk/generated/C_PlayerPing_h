@@ -1,5 +1,0 @@
-bool& m_bUrgent( );
-CBaseHandle& m_hPingedEntity( );
-CBaseHandle& m_hPlayer( );
-int32_t& m_iType( );
-char* m_szPlaceName( );

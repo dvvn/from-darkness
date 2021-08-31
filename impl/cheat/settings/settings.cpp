@@ -1,17 +1,26 @@
 #include "settings.h"
+#include "settings detail.h"
 
 #include "cheat/features/aimbot.h"
 #include "cheat/features/anti aim.h"
+
+#include <nstd/os/module info.h>
+
+#include <fstream>
 
 using namespace cheat;
 using namespace gui;
 using namespace objects;
 
-settings_data::settings_data(const std::string_view& name) : settings_data(std::wstring(name.begin( ), name.end( )))
+settings_data::~settings_data( ) = default;
+
+settings_data::settings_data(const std::string_view& name)
+	: settings_data(std::wstring(name.begin( ), name.end( )))
 {
 }
 
-settings_data::settings_data(std::wstring&& name) : string_wrapper_base(raw_type(move(name)))
+settings_data::settings_data(std::wstring&& name)
+	: string_wrapper_base(raw_type(move(name)))
 {
 	path_ = nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
 	path_ /= L"settings";
@@ -71,9 +80,13 @@ std::wstring settings_data::Generate_path(const std::wstring_view& name) const
 	return path;
 }
 
-settings::settings( ) : settings_data("global")
+settings::settings( )
+	: settings_data("global")
 {
+	mgr__ = std::make_unique<settings_detail::folder_with_configs_mgr>( );
 }
+
+settings::~settings( ) = default;
 
 void settings::update( )
 {
@@ -84,16 +97,16 @@ void settings::update( )
 
 void settings::render( )
 {
-	mgr__.render( );
+	mgr__->render( );
 }
 
 service_base::load_result settings::load_impl( )
 {
-	mgr__.add_folder(features::aimbot::get_ptr( ));
-	mgr__.add_folder(features::anti_aim::get_ptr( ));
+	mgr__->add_folder(features::aimbot::get_ptr( ));
+	mgr__->add_folder(features::anti_aim::get_ptr( ));
 
-	mgr__.set_work_dir(this->path_.parent_path( ));
-	mgr__.rescan( );
+	mgr__->set_work_dir(this->path_.parent_path( ));
+	mgr__->rescan( );
 
 	//todo: store all features here
 	//load default/last settings or something

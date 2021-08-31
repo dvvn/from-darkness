@@ -1,8 +1,21 @@
 #include "module info.h"
 
+#include <robin_hood.h>
+#include <nlohmann/json.hpp>
+
+#include <Windows.h>
+#include <winternl.h>
+
+#include <filesystem>
+#include <mutex>
+
 using namespace nstd;
 using namespace os;
 using namespace os::detail;
+
+struct module_info::mutex_type: std::recursive_mutex
+{
+};
 
 module_info* module_info::root_class( )
 {
@@ -13,6 +26,20 @@ const module_info* module_info::root_class( ) const
 {
 	return this;
 }
+
+void module_info::lock( ) const
+{
+	mtx_->lock( );
+}
+
+void module_info::unlock( ) const
+{
+	mtx_->unlock( );
+}
+
+module_info::~module_info( )                                = default;
+module_info::module_info(module_info&&) noexcept            = default;
+module_info& module_info::operator=(module_info&&) noexcept = default;
 
 module_info::module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos, IMAGE_NT_HEADERS* nt)
 {
@@ -26,51 +53,53 @@ module_info::module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos,
 	this->dos       = dos;
 	this->nt        = nt;
 
-	const auto raw_name    = this->raw_name( );
-	auto       wname       = ranges::views::transform(raw_name, towlower);
-	this->name_            = {wname.begin( ), wname.end( )};
+	const auto raw_name = this->raw_name( );
+	const auto wname    = std::ranges::views::transform(raw_name, towlower);
+	this->name_.append(wname.begin( ), wname.end( ));
 	this->name_is_unicode_ = IsTextUnicode(raw_name._Unchecked_begin( ), raw_name.size( ) * sizeof(wchar_t), nullptr);
+
+	mtx_ = std::make_unique<mutex_type>( );
 }
 
 #if 0
 template <typename Chr, typename Traits, typename ...Next>
 std::basic_string<Chr, Traits> prefix_adder(const std::basic_string_view<Chr, Traits>& first, Next&&...other)
 {
-    using view_t = std::remove_cvref_t<decltype(first)>;
-    const auto cache = std::array/*<view_t, sizeof...(Next) + 1>*/{ first, view_t(other)... };
+	using view_t = std::remove_cvref_t<decltype(first)>;
+	const auto cache = std::array/*<view_t, sizeof...(Next) + 1>*/{first, view_t(other)...};
 
-    size_t ideal_size = 1;
-    for (const view_t& text : cache)
-        ideal_size += text.size();
+	size_t ideal_size = 1;
+	for(const view_t& text : cache)
+		ideal_size += text.size( );
 
-    std::basic_string<Chr, Traits> result;
-    result.reserve(ideal_size);
+	std::basic_string<Chr, Traits> result;
+	result.reserve(ideal_size);
 
-    for (const view_t& text : cache)
-        result += text;
+	for(const view_t& text : cache)
+		result += text;
 
-    return result;
+	return result;
 
-    //return cheat::utl::combine_strings(_Add_prefix_impl(FWD(args))...);File_on_disc_impl_
+	//return cheat::utl::combine_strings(_Add_prefix_impl(FWD(args))...);File_on_disc_impl_
 }
 #endif
 
 #if 0
 
-auto module_info::File_on_disc_impl_(const wstring_view& module_name, IMAGE_NT_HEADERS*      nt_header, const filesystem::path& folder,
-									 const wstring_view& file_extension, const wstring_view& file_name_postfix) -> filesystem::path
+auto module_info::File_on_disc_impl_(const wstring_view& module_name, IMAGE_NT_HEADERS* nt_header, const filesystem::path& folder,
+	const wstring_view& file_extension, const wstring_view& file_name_postfix) -> filesystem::path
 {
 	const auto check_sum = nt_header->OptionalHeader.CheckSum;
-	if (check_sum == 0)
+	if(check_sum == 0)
 	{
 		runtime_assert("Unable to create file path because checksum is null!");
 		return { };
 	}
 
 	auto file_name = (to_string(check_sum));
-	if (!file_extension.empty( ))
+	if(!file_extension.empty( ))
 	{
-		if (!file_extension.starts_with('.'))
+		if(!file_extension.starts_with('.'))
 			file_name += '.';
 		file_name.append(file_extension.begin( ), file_extension.end( ));
 	}
@@ -78,7 +107,7 @@ auto module_info::File_on_disc_impl_(const wstring_view& module_name, IMAGE_NT_H
 	//----------------------
 
 	std::wstring current_folder;
-	if (file_name_postfix.empty( ))
+	if(file_name_postfix.empty( ))
 	{
 		current_folder = fmt::format(L"_{}", module_name);
 	}
@@ -161,35 +190,44 @@ bool module_info::name_is_unicode( ) const
 	return this->name_is_unicode_;
 }
 
-sections_storage& module_info::sections( )
+const sections_mgr& module_info::sections( ) const
 {
 	return *this;
 }
 
-const sections_storage& module_info::sections_view( ) const
+const exports_mgr& module_info::exports( ) const
 {
 	return *this;
 }
 
-exports_storage& module_info::exports( )
+const vtables_mgr& module_info::vtables( ) const
 {
 	return *this;
 }
 
-const exports_storage& module_info::exports_view( ) const
+//-------------------
+
+struct modules_storage::storage_type: std::list<module_info>
 {
-	return *this;
+	storage_type(const storage_type&)            = delete;
+	storage_type& operator=(const storage_type&) = delete;
+
+	storage_type(storage_type&&)            = default;
+	storage_type& operator=(storage_type&&) = default;
+
+	storage_type( ) = default;
+};
+
+modules_storage::modules_storage(modules_storage&&) noexcept = default;
+
+modules_storage& modules_storage::operator=(modules_storage&&) noexcept = default;
+
+modules_storage::modules_storage( )
+{
+	storage_ = std::make_unique<storage_type>( );
 }
 
-vtables_storage& module_info::vtables( )
-{
-	return *this;
-}
-
-const vtables_storage& module_info::vtables_view( ) const
-{
-	return *this;
-}
+modules_storage::~modules_storage( ) = default;
 
 struct headers_info
 {
@@ -225,15 +263,15 @@ static auto _Get_all_modules( )
 {
 	// TEB->ProcessEnvironmentBlock.
 #if defined(_M_X64) || defined(__x86_64__)
-    const auto mem = NtCurrentTeb();
-    runtime_assert(mem != nullptr, "Teb not found");
+	const auto mem = NtCurrentTeb( );
+	runtime_assert(mem != nullptr, "Teb not found");
 #else
 	const auto mem = reinterpret_cast<PPEB>(__readfsdword(0x30));
 	runtime_assert(mem != nullptr, "Peb not found");
 #endif
 
 #if defined(_M_X64) || defined(__x86_64__)
-    const auto ldr = mem->ProcessEnvironmentBlock->Ldr;
+	const auto ldr = mem->ProcessEnvironmentBlock->Ldr;
 #else
 	const auto ldr = mem->Ldr;
 #endif
@@ -262,7 +300,7 @@ static auto _Get_all_modules( )
 	//all internal functions tested only on x86
 	//UPDATE: all works, except vtables finder
 
-	runtime_assert(ranges::adjacent_find(container, { }, &module_info::name) == container.end( ));
+	runtime_assert(std::ranges::adjacent_find(container, { }, &module_info::name) == container.end( ));
 	return container;
 }
 
@@ -296,45 +334,40 @@ modules_storage& modules_storage::update(bool force)
 {
 	static const address current_base = _Get_current_module_handle( );
 
-	if (storage_.empty( ))
+	if (storage_->empty( ))
 	{
-		runtime_assert(current_cached_==nullptr, "Cache already set");
-		auto all = _Get_all_modules( );
+		runtime_assert(current_cached_ == nullptr, "Cache already set");
 
-		for (auto& m: all)
+		for (auto& m: _Get_all_modules( ))
 		{
-			auto& item = storage_.emplace_back(std::move(m));
+			auto& item = storage_->emplace_back(std::move(m));
 			if (current_cached_ == nullptr && item.base( ) == current_base)
 				current_cached_ = std::addressof(item);
 		}
 	}
 	else if (force)
 	{
-		auto all = [&]
-		{
-			auto temp = _Get_all_modules( );
-			auto map  = nstd::ordered_map<std::wstring, module_info>( );
-
-			map.reserve(temp.size( ));
-			for (auto& m: temp)
-				map.emplace(m.raw_name( ), std::move(m));
-			return map;
-		}( );
+		auto all = _Get_all_modules( );
 
 		//remove all unused modules
-		storage_.remove_if([&](const module_info& m)
+		storage_->remove_if([&](const module_info& m)-> bool
 		{
-			return !all.contains(m.raw_name( ));
+			for (const auto& m_new: all)
+			{
+				if (m.raw_name( ) == m_new.raw_name( ))
+					return false;
+			}
+			return true;
 		});
 
 		auto find_current = current_cached_ != nullptr;
 
 		//add all new modules, save the order
-		auto itr = storage_.begin( );
-		for (auto& m: all | ranges::views::values)
+		auto itr = storage_->begin( );
+		for (auto& m: all)
 		{
-			if (itr == storage_.end( ) || itr->full_path( ) != m.full_path( ))
-				itr = storage_.insert(itr, std::move(m));
+			if (itr == storage_->end( ) || itr->full_path( ) != m.full_path( ))
+				itr = storage_->insert(itr, const_cast<module_info&&>(m));
 
 			if (find_current && itr->base( ) == current_base)
 			{
@@ -351,11 +384,26 @@ modules_storage& modules_storage::update(bool force)
 
 module_info& modules_storage::owner( )
 {
-	return storage_.front( );
+	(void)this;
+	return storage_->front( );
 }
 
-modules_storage::storage_type& modules_storage::all(bool update)
+module_info* modules_storage::find(const find_fn& fn)
 {
-	this->update(update);
-	return storage_;
+	for (auto& item: *storage_)
+	{
+		if (std::invoke(fn, item))
+			return std::addressof(item);
+	}
+	return nullptr;
+}
+
+module_info* modules_storage::rfind(const find_fn& fn)
+{
+	for (auto& item: *storage_ | std::views::reverse)
+	{
+		if (std::invoke(fn, item))
+			return std::addressof(item);
+	}
+	return nullptr;
 }

@@ -1,4 +1,7 @@
 #pragma once
+#include <functional>
+#include <memory>
+
 namespace cheat::detail
 {
 	template <std::default_initializable T>
@@ -62,8 +65,8 @@ namespace cheat::detail
 
 		void operator=(shared_holder&& other) noexcept
 		{
-			Get_shared_( ) = std::move(other.Get_shared_( ));
-			destroy_fn_    = std::move(other.destroy_fn_);
+			std::swap(Get_shared_( ) ,other.Get_shared_( ));
+			std::swap(destroy_fn_    ,other.destroy_fn_);
 		}
 
 		bool operator==(nullptr_t) const

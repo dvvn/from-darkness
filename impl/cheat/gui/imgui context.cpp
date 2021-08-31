@@ -1,16 +1,43 @@
 #include "imgui context.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/gui/menu.h"
-#include "cheat/hooks/vgui surface/lock cursor.h"
+
+#include <imgui_internal.h>
+#include <backends/imgui_impl_dx9.h>
+#include <backends/imgui_impl_win32.h>
+
+#include <d3d9.h>
+
+#include <excpt.h>
 
 using namespace cheat;
-using namespace hooks;
 using namespace gui;
+
+struct imgui_context::data_type
+{
+	data_type( )
+		: ctx(std::addressof(fonts))
+	{
+	}
+
+	~data_type( )
+	{
+		ImGui::Shutdown(std::addressof(ctx));
+	}
+
+	data_type(const data_type&)            = delete;
+	data_type& operator=(const data_type&) = delete;
+
+	data_type(data_type&& other)            = delete;
+	data_type& operator=(data_type&& other) = delete;
+
+	ImGuiContext ctx;
+	ImFontAtlas  fonts;
+};
 
 HWND imgui_context::hwnd( ) const
 {
-	return hwnd__;
+	return hwnd_;
 }
 
 imgui_context::~imgui_context( )
@@ -32,19 +59,16 @@ imgui_context::~imgui_context( )
 		{
 		}
 	});
-
-	ImGui::Shutdown(std::addressof(ctx__));
 }
 
-imgui_context::imgui_context( ): ctx__(&fonts__)
+imgui_context::imgui_context( )
 {
-	this->add_service<csgo_interfaces>();
 }
 
 service_base::load_result imgui_context::load_impl( )
 {
 	const auto interfaces = csgo_interfaces::get_ptr( );
-	const auto d3d = interfaces->d3d_device.get( );
+	const auto d3d        = interfaces->d3d_device.get( );
 
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*)
@@ -56,10 +80,10 @@ service_base::load_result imgui_context::load_impl( )
 									 return operator delete(ptr);
 								 });
 
-	ImGui::SetCurrentContext(std::addressof(ctx__));
-	ImGui::Initialize(std::addressof(ctx__));
+	ImGui::SetCurrentContext(std::addressof(data_->ctx));
+	ImGui::Initialize(std::addressof(data_->ctx));
 
-	auto& io = ctx__.IO;
+	auto& io       = data_->ctx.IO;
 	io.IniFilename = nullptr;
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
@@ -67,12 +91,12 @@ service_base::load_result imgui_context::load_impl( )
 	//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 	static ImWchar ranges[] =
 	{
-		0x0020, 0xFFFF, //almost language of utf8 range
+		0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
 		0,
 	};
 	font_cfg.OversampleH = 2;
 	font_cfg.OversampleV = 1;
-	font_cfg.PixelSnapH = true;
+	font_cfg.PixelSnapH  = true;
 	font_cfg.GlyphRanges = /*io.Fonts->GetGlyphRangesCyrillic( )*/ranges;
 #if !defined(_DEBUG) && 0
 	io.FontDefault = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arialuni.ttf", 15.0f, addressof(font_cfg), nullptr);
@@ -86,8 +110,8 @@ service_base::load_result imgui_context::load_impl( )
 	[[maybe_unused]] const auto result = d3d->GetCreationParameters(&creation_parameters);
 	runtime_assert(SUCCEEDED(result));
 
-	hwnd__ = creation_parameters.hFocusWindow;
-	ImGui_ImplWin32_Init(hwnd__);
+	hwnd_ = creation_parameters.hFocusWindow;
+	ImGui_ImplWin32_Init(hwnd_);
 	ImGui_ImplDX9_Init(d3d);
 	//ImGui_ImplDX9_CreateDeviceObjects( ); d3d9 multithread error
 

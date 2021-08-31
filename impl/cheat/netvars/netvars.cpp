@@ -1,24 +1,80 @@
 #include "netvars.h"
+#include "config.h"
 
 #include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo modules.h"
 
 #include "cheat/sdk/IBaseClientDll.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
 #include "cheat/sdk/entity/C_BaseEntity.h"
-#include "cheat/sdk/entity/C_CSPlayer.h"
+
+#include "nstd/checksum.h"
+
+#include <nlohmann/json.hpp>
+
+#include <filesystem>
+#include <fstream>
 
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-netvars::~netvars( )
+class lazy_file_writer final: public std::ostringstream
 {
-}
+public:
+	~lazy_file_writer( ) override
+	{
+		if (file_.empty( ))
+			return;
+
+		const auto str = this->str( );
+		if (str.empty( ))
+			return;
+
+		std::ofstream ofs(file_);
+		if (!ofs)
+			return;
+
+		ofs << str;
+	}
+
+	lazy_file_writer(std::filesystem::path&& file)
+		: file_(std::move(file))
+	{
+	}
+
+	lazy_file_writer(lazy_file_writer&& other) noexcept
+	{
+		file_                                   = std::move(other.file_);
+		*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
+	}
+
+private:
+	std::filesystem::path file_;
+};
+
+struct netvars::hidden
+{
+	using storage_type = nlohmann::json;
+	using lazy_writer_type = std::vector<lazy_file_writer>;
+
+	lazy_writer_type lazy_writer;
+	storage_type     storage;
+};
+
+netvars::~netvars( ) = default;
 
 netvars::netvars( )
+	: service_sometimes_skipped(
+#ifdef CHEAT_NETVARS_DUMPER_DISABLED
+								true
+#else
+		false
+#endif
+							   )
 {
-	this->add_service<csgo_interfaces>();
+	hidden_ = std::make_unique<hidden>( );
 }
 
 static std::string _Str_to_lower(const std::string_view& str)
@@ -33,7 +89,7 @@ static std::string _Str_to_lower(const std::string_view& str)
 [[maybe_unused]]
 static bool _Save_netvar_allowed(const char* name)
 {
-	for (auto c = name[0]; c != '\0'; c = *(++name))
+	for (auto c = name[0]; c != '\0'; c = *++name)
 	{
 		if (c == '.')
 			return false;
@@ -43,15 +99,15 @@ static bool _Save_netvar_allowed(const char* name)
 
 static bool _Save_netvar_allowed(const std::string_view& name)
 {
-	return ranges::find(name, '.') == name.end( );
+	return std::ranges::find(name, '.') == name.end( );
 }
 
 template <typename Nstr>
-static bool _Save_netvar(netvars::data_type& storage, Nstr&& name, int offset, [[maybe_unused]] std::string&& type)
+static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, int offset, [[maybe_unused]] std::string&& type)
 {
-	auto path = (std::string(std::forward<Nstr>(name)));
+	auto path = std::string(std::forward<Nstr>(name));
 
-	auto&& [entry, added] = storage.emplace((std::move(path)), netvars::data_type{ });
+	auto&& [entry, added] = storage.emplace(std::move(path), netvars::hidden::storage_type{ });
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -78,7 +134,7 @@ static bool _Save_netvar(netvars::data_type& storage, Nstr&& name, int offset, [
 }
 
 template <typename Nstr>
-static std::pair<netvars::data_type::iterator, bool> _Add_child_class(netvars::data_type& storage, Nstr&& name)
+static std::pair<netvars::hidden::storage_type::iterator, bool> _Add_child_class(netvars::hidden::storage_type& storage, Nstr&& name)
 {
 	std::string class_name;
 	if (name[0] == 'C' && name[1] != '_')
@@ -96,7 +152,7 @@ static std::pair<netvars::data_type::iterator, bool> _Add_child_class(netvars::d
 		runtime_assert(!class_name.starts_with("DT_"));
 	}
 
-	return storage.emplace(std::move(class_name), netvars::data_type::value_type{ });
+	return storage.emplace(std::move(class_name), netvars::hidden::storage_type::value_type{ });
 }
 
 static std::string _Array_type(const std::string_view& type, size_t size)
@@ -115,7 +171,7 @@ static std::string _Netvar_vec_type(const std::string_view& name)
 		return lstr.find("angles") != lstr.npos;
 	};
 
-	return (std::isdigit(name[0]) || !is_qangle( ) ? "Vector" : "QAngle");
+	return std::isdigit(name[0]) || !is_qangle( ) ? "Vector" : "QAngle";
 }
 
 static std::string _Netvar_int_type(std::string_view name)
@@ -284,7 +340,7 @@ static std::string _Datamap_field_type(const typedescription_t& field)
 	}
 }
 
-static void _Store_recv_props(netvars::data_type& root_tree, netvars::data_type& tree, const RecvTable* recv_table, int offset)
+static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars::hidden::storage_type& tree, const RecvTable* recv_table, int offset)
 {
 	static constexpr auto prop_is_length_proxy = [](const RecvProp& prop)
 	{
@@ -514,7 +570,7 @@ static void _Store_recv_props(netvars::data_type& root_tree, netvars::data_type&
 }
 
 [[maybe_unused]]
-static void _Iterate_client_class(netvars::data_type& root_tree, ClientClass* root_class)
+static void _Iterate_client_class(netvars::hidden::storage_type& root_tree, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
@@ -532,7 +588,7 @@ static void _Iterate_client_class(netvars::data_type& root_tree, ClientClass* ro
 	}
 }
 
-static void _Store_datamap_props(netvars::data_type& tree, datamap_t* map)
+static void _Store_datamap_props(netvars::hidden::storage_type& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
 	for (auto& desc: map->data)
@@ -564,7 +620,7 @@ static void _Store_datamap_props(netvars::data_type& tree, datamap_t* map)
 }
 
 [[maybe_unused]]
-static void _Iterate_datamap(netvars::data_type& root_tree, datamap_t* root_map)
+static void _Iterate_datamap(netvars::hidden::storage_type& root_tree, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
@@ -580,72 +636,80 @@ static void _Iterate_datamap(netvars::data_type& root_tree, datamap_t* root_map)
 	}
 }
 
-service_base::load_result netvars::load_impl( ) 
+service_base::load_result netvars::load_impl( )
 {
+	auto& data = hidden_->storage;
+
 #ifdef _DEBUG
-	data_.clear( );
+	data.clear( );
 #endif
 
 	const auto interfaces = csgo_interfaces::get_ptr( );
 
-	_Iterate_client_class(data_, interfaces->client->GetAllClasses( ));
+	_Iterate_client_class(data, interfaces->client->GetAllClasses( ));
 
 	const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
 
-	_Iterate_datamap(data_, baseent->GetDataDescMap( ));
-	_Iterate_datamap(data_, baseent->GetPredictionDescMap( ));
+	_Iterate_datamap(data, baseent->GetDataDescMap( ));
+	_Iterate_datamap(data, baseent->GetPredictionDescMap( ));
 
 	co_return service_state::loaded;
 }
 
-static constexpr int  _Json_indent = 4;
-static constexpr char _Json_filler = ' ';
+// ReSharper disable CppInconsistentNaming
+static constexpr int  CHEAT_NETVARS_JSON_INDENT = 4;
+static constexpr char CHEAT_NETVARS_JSON_FILLER = ' ';
+// ReSharper restore CppInconsistentNaming
 
-enum class dump_info
+enum class dump_info:uint8_t
 {
-	skipped,
+	skipped=0,
 	created,
 	updated
 };
 
+#define CHEAT_SOLUTION_DIR NSTD_RAW(VS_SolutionDir)"\\"
+#define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR NSTD_RAW(.out\dumps\)
+#define CHEAT_IMPL_DIR CHEAT_SOLUTION_DIR NSTD_RAW(impl\cheat\)
+
 [[maybe_unused]]
-static dump_info _Dump_netvars(const netvars::data_type& netvars_data)
+static dump_info _Dump_netvars(const netvars::hidden::storage_type& netvars_data)
 {
 	static const auto netvars_dump_dir = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
-	const auto        dirs_created     = create_directories(netvars_dump_dir);
+	const auto        dirs_created     = std::filesystem::create_directories(netvars_dump_dir);
 
 	constexpr auto get_file_name = []
 	{
 		std::string version = csgo_interfaces::get_ptr( )->engine->GetProductVersionString( );
-		ranges::replace(version, '.', '_');
+		std::ranges::replace(version, '.', '_');
 		version.append(".json");
 		return version;
 	};
 
 	const auto netvars_dump_file = netvars_dump_dir / get_file_name( );
-	const auto file_exists       = !dirs_created && exists(netvars_dump_file);
+	const auto file_exists       = !dirs_created && std::filesystem::exists(netvars_dump_file);
 
 	dump_info info;
 
 	if (!file_exists)
 	{
-		std::ofstream(netvars_dump_file) << std::setw(_Json_indent) << std::setfill(_Json_filler) << netvars_data;
+		std::ofstream(netvars_dump_file) << std::setw(CHEAT_NETVARS_JSON_INDENT) << std::setfill(CHEAT_NETVARS_JSON_FILLER) << netvars_data;
 		info = dump_info::created;
 		CHEAT_CONSOLE_LOG("Netvars dump done");
 	}
 	else
 	{
 		std::ostringstream test_to_write;
-		test_to_write << std::setw(_Json_indent) << std::setfill(_Json_filler) << netvars_data;
+		test_to_write << std::setw(CHEAT_NETVARS_JSON_INDENT) << std::setfill(CHEAT_NETVARS_JSON_FILLER) << netvars_data;
 
-		if ((nstd::checksum(test_to_write) == nstd::checksum(netvars_dump_file)))
+		if (nstd::checksum(test_to_write) == nstd::checksum(netvars_dump_file))
 		{
 			info = dump_info::skipped;
 			CHEAT_CONSOLE_LOG("Netvars dump skipped");
 		}
 		else
 		{
-			std::ofstream(netvars_dump_file) << (test_to_write);
+			std::ofstream(netvars_dump_file) << test_to_write.view( );
 			info = dump_info::updated;
 			CHEAT_CONSOLE_LOG("Netvars dump updated");
 		}
@@ -655,15 +719,15 @@ static dump_info _Dump_netvars(const netvars::data_type& netvars_data)
 }
 
 [[maybe_unused]]
-static void _Generate_classes(dump_info info, const netvars::data_type& netvars_data, netvars::writers_storage_type& lazy_writer)
+static void _Generate_classes(dump_info info, const netvars::hidden::storage_type& netvars_data, netvars::hidden::lazy_writer_type& lazy_writer)
 {
 	if (info == dump_info::skipped)
 		return;
 
 	static const auto dir = std::filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
 
-	remove_all(dir);
-	create_directories(dir);
+	std::filesystem::remove_all(dir);
+	std::filesystem::create_directories(dir);
 
 	lazy_writer.reserve(netvars_data.size( ) * 2);
 	for (auto& [class_name, netvars]: netvars_data.items( ))
@@ -678,19 +742,26 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 		auto header = lazy_file_writer(dir / (class_name + "_h"));
 		auto source = lazy_file_writer(dir / (class_name + "_cpp"));
 
-		source << std::format("#include \"{}.h\"", class_name) << __New_line;
-		source << __New_line;
-		/*static const auto netvars_header_path = []
+		const auto source_add_include = [&source](const std::string_view& file_name)
 		{
-			const auto cpp_path = CHEAT_CURRENT_FILE_PATH;
-			auto       str      = std::string(cpp_path._Unchecked_begin( ), cpp_path.rfind('.'));
-			ranges::replace(str, '\\', '/');
-			return str += ".h";
-		}( );
-		source << std::format("#include \"{}\"", netvars_header_path) << __New_line;
-		source << __New_line;*/ //<---------------moved to pch
-		source << "using namespace cheat;" << __New_line;
-		source << "using namespace csgo;" << __New_line;
+			source << std::format("#include \"{}\"", file_name) << __New_line;
+		};
+		const auto source_use_namespace = [&source](const std::string_view& name)
+		{
+			source << "using namespace " << name << ';' << __New_line;
+		};
+
+		source_add_include(class_name + ".h");
+		source_add_include("cheat/netvars/config.h");
+		source << "#ifndef CHEAT_NETVARS_UPDATING" << __New_line;
+		source_add_include("cheat/netvars/netvars.h");
+		source << "#endif" << __New_line;
+
+		source << __New_line;
+
+		source_use_namespace("cheat");
+		source_use_namespace("csgo");
+
 		source << __New_line;
 
 		for (auto& [netvar_name, netvar_data]: netvars.items( ))
@@ -705,7 +776,8 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 
 			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
 
-			constexpr auto address_class = nstd::type_name<nstd::address>( );
+			// ReSharper disable once CppInconsistentNaming
+			constexpr auto _Address_class = nstd::type_name<nstd::address>( );
 
 			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
 			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
@@ -714,13 +786,14 @@ static void _Generate_classes(dump_info info, const netvars::data_type& netvars_
 			source << __Tab << std::format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
 			source << "#else" << __New_line;
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
-			source << __Tab << format("auto addr = {}(this).add({});", address_class, netvar_offset) << __New_line;
+			source << __Tab << format("auto addr = {}(this).add({});", _Address_class, netvar_offset) << __New_line;
 #else
-			source << __Tab
+			source
+				<< __Tab
 				<< "static const auto offset = netvars::get_ptr( )->at"
 				<< std::format("(\"{}\", \"{}\");", class_name, netvar_name)
 				<< __New_line;
-			source << __Tab << "auto addr = " << address_class << "(this).add(offset);" << __New_line;
+			source << __Tab << "auto addr = " << _Address_class << "(this).add(offset);" << __New_line;
 #endif
 			source << __Tab << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
 			source << "#endif" << __New_line;
@@ -745,14 +818,14 @@ void netvars::after_load( )
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
 	const auto info = _Dump_netvars(data_);
-	_Generate_classes(info, data_, lazy_writer_);
+	_Generate_classes(info, data_, lazy_writer);
 
 #endif
 }
 
 int netvars::at(const std::string_view& table, const std::string_view& item) const
 {
-	for (auto& [table_stored, keys]: data_.items( ))
+	for (auto& [table_stored, keys]: hidden_->storage.items( ))
 	{
 		if (table_stored != table)
 			continue;
@@ -770,30 +843,4 @@ int netvars::at(const std::string_view& table, const std::string_view& item) con
 	runtime_assert(false, std::format(__FUNCTION__": table {} not found", table).c_str( ));
 
 	return 0;
-}
-
-lazy_file_writer::~lazy_file_writer( )
-{
-	if (file_.empty( ))
-		return;
-
-	const auto str = this->str( );
-	if (str.empty( ))
-		return;
-
-	std::ofstream ofs(file_);
-	if (!ofs)
-		return;
-
-	ofs << str;
-}
-
-lazy_file_writer::lazy_file_writer(std::filesystem::path&& file) : file_(std::move(file))
-{
-}
-
-lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) 
-{
-	file_                                   = std::move(other.file_);
-	*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
 }

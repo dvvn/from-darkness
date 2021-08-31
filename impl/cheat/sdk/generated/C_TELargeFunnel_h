@@ -1,2 +1,0 @@
-int32_t& m_nModelIndex( );
-int32_t& m_nReversed( );

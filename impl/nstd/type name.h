@@ -1,17 +1,17 @@
 #pragma once
+#include "chars cache.h"
 
 namespace nstd
 {
 	template <typename T, chars_cache ...Ignore>
 	constexpr std::string_view type_name( )
 	{
-		static_assert(sizeof...(Ignore) == 0 || std::_All_same<char, typename decltype(Ignore)::value_type...>::value);
-
 		if constexpr (sizeof...(Ignore) > 0)
 		{
+			static_assert((std::is_same_v<char, typename decltype(Ignore)::value_type> && ...));
 			constexpr auto obj_name_fixed = []
 			{
-				auto name = type_name<T>( );
+				auto name      = type_name<T>( );
 				auto to_ignore = std::array{Ignore.view( )...};
 				for (auto& str: to_ignore)
 				{
@@ -55,22 +55,18 @@ namespace nstd
 			}( );
 			return ret_val;
 #endif
-
-			
 		}
 		else
 		{
-			constexpr auto full_name    = std::string_view(__FUNCSIG__);
-			constexpr auto left_marker  = std::string_view("type_name<");
-			constexpr auto right_marker = std::string_view(">(");
-
+			constexpr auto full_name         = std::string_view(__FUNCSIG__);
+			constexpr auto left_marker       = std::string_view("type_name<");
+			constexpr auto right_marker      = std::string_view(">(");
 			constexpr auto left_marker_index = full_name.find(left_marker);
 			//static_assert(left_marker_index != std::string_view::npos);
 			constexpr auto start_index = left_marker_index + left_marker.size( );
 			constexpr auto end_index   = full_name.find(right_marker, left_marker_index);
 			//static_assert(end_index != std::string_view::npos);
-			constexpr auto length = end_index - start_index;
-
+			constexpr auto length   = end_index - start_index;
 			constexpr auto obj_name = [&]
 			{
 				auto name = full_name.substr(start_index, length);
@@ -90,14 +86,11 @@ namespace nstd
 						}
 					}
 				}
-
 				//type_name<..., >
 				while (name.ends_with(',') || name.ends_with(' '))
 					name.remove_suffix(1);
-
 				return name;
 			}( );
-
 			return obj_name;
 		}
 	}

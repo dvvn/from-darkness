@@ -39,11 +39,11 @@ bool tick_record::is_valid(float curtime) const
 	return std::abs(correct - (curtime - sim_time)) < utils::unlag_range( ) /*&& correct < 1.f*/;
 }
 
-void tick_record_shared_impl::init(const player& holder)
+void tick_record_shared_impl::init([[maybe_unused]] const player& holder)
 {
 	shared_holder::init( );
 
-#ifndef CHEAT_NETVARS_UPDATING
+#if !defined(CHEAT_GUI_TEST) && !defined(CHEAT_NETVARS_UPDATING)
 	C_BaseEntity* ent  = holder.ent;
 	const auto    tick = this->get( );
 

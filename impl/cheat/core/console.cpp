@@ -1,10 +1,286 @@
 #include "console.h"
 
+#include "nstd/os/module info.h"
+
+#include <Windows.h>
+
 #include <corecrt_io.h>
 #include <fcntl.h>
 
+#include <fstream>
+#include <intrin.h>
+#include <iostream>
+#include <mutex>
+
 using namespace cheat;
-using namespace detail;
+
+struct movable_function_base
+{
+	virtual      ~movable_function_base( ) = default;
+	virtual void operator()( ) =0;
+
+	movable_function_base( ) = default;
+
+	movable_function_base(const movable_function_base&)            = delete;
+	movable_function_base& operator=(const movable_function_base&) = delete;
+};
+
+template <typename T>
+class movable_function final: public movable_function_base
+{
+public:
+	movable_function(const movable_function&)            = delete;
+	movable_function& operator=(const movable_function&) = delete;
+
+	movable_function(T&& obj)
+		: obj_(std::move(obj))
+	{
+	}
+
+	void operator()( ) override
+	{
+		std::invoke(obj_);
+	}
+
+private:
+	T obj_;
+};
+
+template <typename T>
+movable_function(T&&) -> movable_function<std::remove_cvref_t<T>>;
+
+class console::cache_type
+{
+public:
+	using value_type = std::unique_ptr<movable_function_base>;
+
+	cache_type( ) = default;
+
+	void write_all( )
+	{
+		std::ranges::for_each(cache_, &value_type::element_type::operator(), &value_type::operator*);
+		cache_.clear( );
+	}
+
+	void store(value_type&& obj)
+	{
+		cache_.emplace_back(std::move(obj));
+	}
+
+	void lock( )
+	{
+		lock_.lock( );
+	}
+
+	void unlock( )
+	{
+		lock_.unlock( );
+	}
+
+private:
+	std::mutex              lock_;
+	std::vector<value_type> cache_;
+};
+
+console::console( )
+{
+	cache_ = std::make_unique<cache_type>( );
+	nstd::rt_assert_object.add(this);
+}
+
+console::~console( )
+{
+	nstd::rt_assert_object.remove(this);
+
+	if (this->allocated_)
+	{
+		FreeConsole( );
+		PostMessage(this->handle_, WM_CLOSE, 0U, 0L);
+	}
+
+	if (in_)
+		_fclose_nolock(in_);
+	if (out_)
+		_fclose_nolock(out_);
+	if (err_)
+		_fclose_nolock(err_);
+}
+
+service_base::load_result console::load_impl( )
+{
+	handle_ = GetConsoleWindow( );
+	if (handle_ != nullptr)
+	{
+		allocated_ = false;
+		//pad
+	}
+	else
+	{
+		//create new console window
+		if (!AllocConsole( ))
+		{
+			runtime_assert("Unable to alloc console!");
+			co_return service_state::error;
+		}
+		allocated_ = true;
+
+		handle_ = GetConsoleWindow( );
+		if (handle_ == nullptr)
+		{
+			runtime_assert("Unable to get console window");
+			co_return service_state::error;
+		}
+
+		// ReSharper disable CppInconsistentNaming
+		// ReSharper disable CppEnforceCVQualifiersPlacement
+		constexpr auto _Freopen = [](_Outptr_result_maybenull_ FILE** _Stream, _In_z_ char const* _FileName, _In_z_ char const* _Mode, _Inout_ FILE* _OldStream)
+			// ReSharper restore CppEnforceCVQualifiersPlacement
+			// ReSharper restore CppInconsistentNaming
+		{
+			[[maybe_unused]] const auto err = freopen_s(_Stream, _FileName, _Mode, _OldStream);
+			runtime_assert(err == NULL);
+		};
+
+		_Freopen(&in_, "CONIN$", "r", stdin);
+		_Freopen(&out_, "CONOUT$", "w", stdout);
+		_Freopen(&err_, "CONOUT$", "w", stderr);
+
+		const auto full_path = nstd::os::all_modules::get_ptr( )->current( ).full_path( );
+		if (!SetConsoleTitle(full_path.data( )))
+		{
+			runtime_assert("Unable set console title");
+			co_return service_state::error;
+		}
+	}
+
+	runtime_assert(IsWindowUnicode(handle_) == TRUE);
+	co_return service_state::loaded;
+}
+
+void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept
+{
+	//static auto lock = std::mutex( );
+	//const auto  _    = std::scoped_lock(lock);
+
+#ifdef _DEBUG
+	[[maybe_unused]] const auto from  = _ReturnAddress( );
+	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
+	DebugBreak( );
+#endif
+
+	auto msg = std::wostringstream( );
+	msg << "Assertion falied!\n\n";
+
+	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool last = false)
+	{
+		msg << name << ": " << value;
+		if (!last)
+			msg << '\n';
+	};
+
+	if (!expression.empty( ))
+		append("Expression", expression);
+
+	append("File", info.file_name);
+	append("Line", info.line);
+	append("Function", info.function, message.empty( ));
+
+	if (!message.empty( ))
+		msg << '\n' << message;
+
+	this->write_line(std::move(msg));
+
+	[[maybe_unused]] static volatile auto skip_helper = '\1';
+}
+
+template <typename Chr, typename Tr>
+static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
+{
+	using fb = std::basic_filebuf<Chr, Tr>;
+
+	auto buff      = stream.rdbuf( );
+	auto real_buff = dynamic_cast<fb*>(buff);
+	runtime_assert(real_buff != nullptr);
+	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
+	//_Myfile
+	return nstd::address(real_buff).add(offset).ref<FILE*>( );
+}
+
+template <bool Assert = true>
+static auto _Set_mode(FILE* file, int mode)
+{
+	const auto old_mode = _setmode(_fileno(file), mode);
+	if constexpr (Assert)
+		runtime_assert(old_mode != -1, "Unable to change mode");
+	return old_mode;
+}
+
+template <typename S, typename T>
+concept stream_possible = requires(S stream, T val)
+{
+	stream << val;
+};
+
+template <typename T>
+constexpr auto is_basic_ostringstream_v = false;
+
+template <typename E, typename Tr, typename A>
+constexpr auto is_basic_ostringstream_v<std::basic_ostringstream<E, Tr, A>> = true;
+
+using console_cache_type_uptr = std::unique_ptr<console::cache_type>;
+static auto _Write_text = []<typename T>(T&& text)
+{
+	FILE* file_out;
+	int   new_mode;
+	int   prev_mode;
+
+	auto&& text_fwd = [&]
+	{
+		if constexpr (is_basic_ostringstream_v<std::remove_cvref_t<decltype(text)>>)
+			return text.view( );
+		else
+			return std::forward<T>(text);
+	}( );
+	using value_type = std::remove_cvref_t<decltype(text_fwd)>;
+	if constexpr (stream_possible<std::ofstream&, value_type>)
+	{
+		file_out  = _Get_file_buff(std::cin);
+		new_mode  = _O_TEXT;
+		prev_mode = _Set_mode(file_out, new_mode);
+		std::cout << text_fwd;
+	}
+	else if constexpr (stream_possible<std::wofstream&, value_type>)
+	{
+		file_out  = _Get_file_buff(std::wcin);
+		new_mode  = _O_U16TEXT;
+		prev_mode = _Set_mode(file_out, new_mode);
+		std::wcout << text_fwd;
+	}
+	else
+	{
+		static_assert(std::_Always_false<value_type>, __FUNCSIG__);
+		return;
+	}
+
+	if (prev_mode != new_mode)
+		_Set_mode(/*stdout*/file_out, prev_mode);
+};
+static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, console_cache_type_uptr& cache)
+{
+	const auto lock = std::scoped_lock(*cache);
+
+	if (instance->state( ) != service_state::loaded)
+	{
+		/*auto fn  = std::bind_front(_Write_text, std::forward<T>(text));
+		auto vfn = (std::make_unique<movable_function>(std::move(fn)));
+		cache.store(std::move(vfn));*/
+	}
+	else
+	{
+		cache->write_all( );
+		_Write_text(std::forward<T>(text));
+	}
+};
 
 template <typename T>
 static auto _Get_time_str( )
@@ -39,266 +315,95 @@ static auto _Get_time_str( )
 		   << std::setw(3) << current_microseconds;
 }
 
-void console_data::write_cache( )
+template <class T>
+// ReSharper disable once CppInconsistentNaming
+concept _Has_member_char_type = requires
 {
-	for (auto& c: cache_)
-		std::invoke(*c);
-
-	cache_.clear( );
-}
-
-template <bool Assert = true>
-static auto _Set_mode(FILE* file, int mode)
-{
-	const auto old_mode = _setmode(_fileno(file), mode);
-	if constexpr (Assert)
-		runtime_assert(old_mode != -1, "Unable to change mode");
-	return old_mode;
-}
-
-console::console( )
-{
-	nstd::rt_assert_object.add(this);
-}
-
-console::~console( )
-{
-	nstd::rt_assert_object.remove(this);
-
-	if (data_.allocated)
-	{
-		FreeConsole( );
-		PostMessage(data_.handle, WM_CLOSE, 0U, 0L);
-	}
-
-	if (in_)
-		_fclose_nolock(in_);
-	if (out_)
-		_fclose_nolock(out_);
-	if (err_)
-		_fclose_nolock(err_);
-}
-
-service_base::load_result console::load_impl( )
-{
-	data_.handle = GetConsoleWindow( );
-	if (data_.handle != nullptr)
-	{
-		data_.allocated = false;
-	}
-	else
-	{
-		//create new console window
-		if (!AllocConsole( ))
-		{
-			runtime_assert("Unable to alloc console!");
-			co_return service_state::error;
-		}
-		data_.allocated = true;
-
-		data_.handle = GetConsoleWindow( );
-		if (data_.handle == nullptr)
-		{
-			runtime_assert("Unable to get console window");
-			co_return service_state::error;
-		}
-
-		// ReSharper disable CppInconsistentNaming
-		// ReSharper disable CppEnforceCVQualifiersPlacement
-		constexpr auto _Freopen = [](_Outptr_result_maybenull_ FILE** _Stream, _In_z_ char const* _FileName, _In_z_ char const* _Mode, _Inout_ FILE* _OldStream)
-			// ReSharper restore CppEnforceCVQualifiersPlacement
-			// ReSharper restore CppInconsistentNaming
-		{
-			[[maybe_unused]] const auto err = freopen_s(_Stream, _FileName, _Mode, _OldStream);
-			runtime_assert(err == NULL);
-		};
-
-		_Freopen(&in_, "CONIN$", "r", stdin);
-		_Freopen(&out_, "CONOUT$", "w", stdout);
-		_Freopen(&err_, "CONOUT$", "w", stderr);
-
-		const auto full_path = nstd::os::all_modules::get_ptr( )->current( ).full_path( );
-		if (!SetConsoleTitle(full_path.data( )))
-		{
-			runtime_assert("Unable set console title");
-			co_return service_state::error;
-		}
-	}
-
-	runtime_assert(IsWindowUnicode(data_.handle) == TRUE);
-	co_return service_state::loaded;
-}
-
-void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept
-{
-	//static auto lock = std::mutex( );
-	//const auto  _    = std::scoped_lock(lock);
-
-#ifdef _DEBUG
-	[[maybe_unused]] const auto from  = _ReturnAddress( );
-	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
-	DebugBreak( );
-#endif
-
-	auto msg = std::wostringstream( );
-	msg << "Assertion falied!\n\n";
-
-	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool last = false)
-	{
-		msg << name << ": " << value;
-		if (!last)
-			msg << '\n';
-	};
-
-	if (!expression.empty( ))
-	{
-		append("Expression", expression);
-	}
-
-	append("File", info.file_name);
-	append("Line", info.line);
-	append("Function", info.function, message.empty( ));
-
-	if (!message.empty( ))
-	{
-		msg << '\n' << message;
-	}
-
-	this->write_line(std::move(msg));
-
-	[[maybe_unused]] static volatile auto skip_helper = '\1';
-}
-
-template <typename Chr, typename Tr>
-static auto _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
-{
-	using fb = std::basic_filebuf<Chr, Tr>;
-
-	auto buff      = stream.rdbuf( );
-	auto real_buff = dynamic_cast<fb*>(buff);
-	runtime_assert(real_buff != nullptr);
-	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
-	//_Myfile
-	return nstd::address(real_buff).add(offset).ref<FILE*>( );
-}
-
-static auto _Write_text = []<typename T>(T&& text)
-{
-	FILE* file_out;
-	int   new_mode;
-	int   prev_mode;
-
-	using value_type = std::remove_cvref_t<T>;
-	if constexpr (nstd::stream_possible<std::ofstream&, value_type>)
-	{
-		file_out  = _Get_file_buff(std::cin);
-		new_mode  = _O_TEXT;
-		prev_mode = _Set_mode(file_out, new_mode);
-		std::cout << text;
-	}
-	else if constexpr (nstd::stream_possible<std::wofstream&, value_type>)
-	{
-		file_out  = _Get_file_buff(std::wcin);
-		new_mode  = _O_U16TEXT;
-		prev_mode = _Set_mode(file_out, new_mode);
-		std::wcout << text;
-	}
-	else
-	{
-		static_assert(std::_Always_false<value_type>, __FUNCSIG__);
-		return;
-	}
-
-	if (prev_mode != new_mode)
-		_Set_mode(/*stdout*/file_out, prev_mode);
+	typename T::char_type;
 };
 
-static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, console_data& data)
+template <typename T>
+static auto _Detect_char_type( )
 {
-	const auto lock = std::scoped_lock(data.lock);
-
-	auto fn = std::bind_front(_Write_text, std::forward<T>(text));
-	if (instance->state( ) != service_state::loaded)
-	{
-		data.add_to_cache(std::move(fn));
-	}
+	if constexpr (_Has_member_char_type<T>)
+		return T::char_type( );
+	else if constexpr (std::_Has_member_value_type<T>)
+		return T::value_type( );
 	else
-	{
-		data.write_cache( );
-		std::invoke(fn);
-	}
-};
+		return char( );
+}
 
-template <typename Chr>
-static auto _Write_or_cache_full = []<typename T>(T&& text, const console* instance, console_data& data)
+static auto _Write_or_cache_full = []<typename T>(T&& text, const console* instance, console_cache_type_uptr& cache)
 {
+	using Chr = decltype(_Detect_char_type<std::remove_cvref_t<T>>( ));
+
 	constexpr Chr pad[] = {' ', '-', ' ', '\0'};
 
 	auto stream = _Get_time_str<Chr>( ) << pad << std::forward<T>(text) << static_cast<Chr>('\n');
-	_Write_or_cache(std::move(stream), instance, data);
+	_Write_or_cache(std::move(stream), instance, cache);
 };
 
 void console::write(std::string&& str)
 {
-	_Write_or_cache(std::move(str), this, data_);
+	_Write_or_cache(std::move(str), this, cache_);
 }
 
 void console::write(const std::string_view& str)
 {
-	_Write_or_cache(str, this, data_);
+	_Write_or_cache(str, this, cache_);
 }
 
 void console::write_line(const std::string_view& str)
 {
-	_Write_or_cache_full<char>(str, this, data_);
+	_Write_or_cache_full(str, this, cache_);
 }
 
 void console::write(char c)
 {
-	_Write_or_cache(c, this, data_);
+	_Write_or_cache(c, this, cache_);
 }
 
 void console::write(std::wstring&& str)
 {
-	_Write_or_cache(std::move(str), this, data_);
+	_Write_or_cache(std::move(str), this, cache_);
 }
 
 void console::write(const std::wstring_view& str)
 {
-	_Write_or_cache(str, this, data_);
+	_Write_or_cache(str, this, cache_);
 }
 
 void console::write_line(const std::wstring_view& str)
 {
-	_Write_or_cache_full<wchar_t>(str, this, data_);
+	_Write_or_cache_full(str, this, cache_);
 }
 
 void console::write(std::ostringstream&& str)
 {
-	_Write_or_cache(std::move(str), this, data_);
+	_Write_or_cache(std::move(str), this, cache_);
 }
 
 void console::write(const std::ostringstream& str)
 {
-	_Write_or_cache(str.view( ), this, data_);
+	_Write_or_cache(str.view( ), this, cache_);
 }
 
 void console::write_line(const std::ostringstream& str)
 {
-	_Write_or_cache_full<char>(str.view( ), this, data_);
+	_Write_or_cache_full(str.view( ), this, cache_);
 }
 
 void console::write(std::wostringstream&& str)
 {
-	_Write_or_cache(std::move(str), this, data_);
+	_Write_or_cache(std::move(str), this, cache_);
 }
 
 void console::write(const std::wostringstream& str)
 {
-	_Write_or_cache(str.view( ), this, data_);
+	_Write_or_cache(str.view( ), this, cache_);
 }
 
 void console::write_line(const std::wostringstream& str)
 {
-	_Write_or_cache_full<wchar_t>(str.view( ), this, data_);
+	_Write_or_cache_full(str.view( ), this, cache_);
 }

@@ -1,8 +1,0 @@
-QAngle& m_angRotation( );
-Color& m_clrRender( );
-int32_t& m_nEffects( );
-int32_t& m_nFlags( );
-int32_t& m_nModelIndex( );
-int32_t& m_nSkin( );
-Vector& m_vecOrigin( );
-Vector& m_vecVelocity( );

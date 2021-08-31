@@ -26,8 +26,9 @@ namespace dhooks
 
 	struct hook_result
 	{
-		template <typename T>
-		FORCEINLINE hook_result(T status) : status(status)
+		template <std::convertible_to<hook_status> T>
+		hook_result(T status)
+			: status(status)
 		{
 			//runtime_assert(this->status == hook_status::OK);
 		}
@@ -54,8 +55,11 @@ namespace dhooks
 	class context final: public context_base
 	{
 	public:
-		using storage_type = std::vector<hook_entry>;
-		using element_type = storage_type::value_type;
+		using element_type = hook_entry;
+		struct storage_type;
+
+		context( );
+		~context() override;
 
 		hook_result create_hook(LPVOID target, LPVOID detour) override;
 		hook_status remove_hook(LPVOID target, bool force) override;
@@ -66,17 +70,16 @@ namespace dhooks
 		hook_status enable_all_hooks( ) override;
 		hook_status disable_all_hooks( ) override;
 
-		//deprecated, threads mut be paused manually
-		//bool pause_threads = true;
-
 	private:
-		storage_type storage_;
+		std::unique_ptr<storage_type> storage_;
 	};
 
 	class context_safe final: public context_base
 	{
 	public:
-		using lock_type = std::mutex;
+		struct lock_type;
+
+		context_safe( );
 
 		hook_result create_hook(LPVOID target, LPVOID detour) override;
 		hook_status remove_hook(LPVOID target, bool force) override;
@@ -88,8 +91,8 @@ namespace dhooks
 		hook_status disable_all_hooks( ) override;
 
 	private:
-		context   ctx_;
-		lock_type mtx_;
+		context                    ctx_;
+		std::unique_ptr<lock_type> mtx_;
 	};
 
 #if 0

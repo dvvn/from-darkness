@@ -1,3 +1,0 @@
-float& m_flSize( );
-float& m_flSpeed( );
-Vector& m_vecDirection( );

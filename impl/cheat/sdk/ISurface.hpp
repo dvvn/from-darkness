@@ -1,8 +1,12 @@
 #pragma once
 #include "IAppSystem.hpp"
 
+#include "cheat/sdk/Vector2D.hpp"
+
 namespace cheat::csgo
 {
+	class Color;
+
 	namespace vgui
 	{
 		typedef unsigned long HFont;

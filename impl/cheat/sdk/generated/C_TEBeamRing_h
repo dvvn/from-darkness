@@ -1,2 +1,0 @@
-int32_t& m_nEndEntity( );
-int32_t& m_nStartEntity( );

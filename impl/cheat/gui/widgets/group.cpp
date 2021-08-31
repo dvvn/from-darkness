@@ -1,5 +1,7 @@
 #include "group.h"
 
+#include <imgui.h>
+
 using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;

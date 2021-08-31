@@ -1,4 +1,0 @@
-bool& m_bShouldExplode( );
-int32_t& m_nParentBoneIndex( );
-Vector& m_vecParentBonePos( );
-int32_t& m_weaponThatThrewMe( );

@@ -22,6 +22,14 @@
 #include "cheat/players/players list.h"
 #include "cheat/settings/settings.h"
 
+#include "nstd/os/threads.h"
+
+#include <robin_hood.h>
+
+#include <Windows.h>
+
+#include <functional>
+
 using namespace cheat;
 using namespace detail;
 
@@ -118,7 +126,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	const auto [sleep, handle, retval, holder] = *data_ptr;
 	delete data_ptr;
 
-	using hooks_storage = nstd::unordered_set<std::shared_ptr<dhooks::hook_holder_base>>;
+	using hooks_storage = robin_hood::unordered_set<std::shared_ptr<dhooks::hook_holder_base>>;
 	using get_all_hooks_fn = std::function<void(const service_base& base, hooks_storage& set)>;
 	const get_all_hooks_fn get_all_hooks = [&](const service_base& base, hooks_storage& set)
 	{
@@ -206,6 +214,18 @@ services_loader::~services_loader( )
 {
 }
 
+template <typename Where, typename Obj>
+static void _Add_service( )
+{
+	Where::get_ptr( )->template add_service<Obj>( );
+}
+
+template <typename Where, typename Obj>
+static void _Add_service(Where* ptr)
+{
+	ptr->template add_service<Obj>( );
+}
+
 services_loader::services_loader( )
 {
 	using namespace hooks;
@@ -218,7 +238,6 @@ services_loader::services_loader( )
 
 #ifndef CHEAT_GUI_TEST
 	this->add_service<csgo_awaiter>( );
-	console::get_ptr( )->add_service<csgo_awaiter>( );
 #endif
 	this->add_service<console>( );                                       //await: csgo_awaiter
 	this->add_service<csgo_interfaces>( );                               //await: console
@@ -239,4 +258,30 @@ services_loader::services_loader( )
 	this->add_service<client::frame_stage_notify>( );                    //await: players_list
 	this->add_service<client_mode::create_move>( );                      //await: players_list
 	this->add_service<studio_render::draw_model>( );                     //await: players_list
+
+#ifndef CHEAT_GUI_TEST
+	_Add_service<console,csgo_awaiter>();
+#endif
+	_Add_service<csgo_interfaces, console>( );
+
+	_Add_service<imgui_context, csgo_interfaces>( );
+	_Add_service<netvars, csgo_interfaces>( );
+	_Add_service<c_csplayer::do_extra_bone_processing, csgo_interfaces>( );
+
+	_Add_service<menu, imgui_context>( );
+	_Add_service<winapi::wndproc, imgui_context>( );
+	_Add_service<directx::reset, imgui_context>( );
+
+	_Add_service<vgui_surface::lock_cursor, menu>( );
+	_Add_service<directx::present, menu>( );
+
+	_Add_service<players_list, netvars>( );
+	_Add_service<c_base_entity::estimate_abs_velocity, netvars>( );
+	_Add_service<c_base_entity::should_interpolate, netvars>( );
+	_Add_service<c_base_animating::should_skip_animation_frame, netvars>( );
+	_Add_service<c_base_animating::standard_blending_rules, netvars>( );
+
+	_Add_service<client::frame_stage_notify, players_list>( );
+	_Add_service<client_mode::create_move, players_list>( );
+	_Add_service<studio_render::draw_model, players_list>( );
 }

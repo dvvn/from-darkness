@@ -1,10 +1,9 @@
 #pragma once
-#include "ICollideable.hpp"
 #include "IHandleEntity.hpp"
 
 namespace cheat::csgo
 {
-	//class ICollideable;
+	class ICollideable;
 	class IClientNetworkable;
 	class IClientRenderable;
 	class IClientEntity;

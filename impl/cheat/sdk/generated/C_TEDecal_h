@@ -1,5 +1,0 @@
-int32_t& m_nEntity( );
-int32_t& m_nHitbox( );
-int32_t& m_nIndex( );
-Vector& m_vecOrigin( );
-Vector& m_vecStart( );

@@ -1,7 +1,0 @@
-int32_t& m_LastHitGroup( );
-float& m_flNextAttack( );
-float& m_flTimeOfLastInjury( );
-CBaseHandle& m_hActiveWeapon( );
-std::array<int32_t, 64>& m_hMyWeapons( );
-std::array<int32_t, 1>& m_hMyWearables( );
-int32_t& m_nRelativeDirectionOfLastInjury( );

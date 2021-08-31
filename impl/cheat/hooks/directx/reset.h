@@ -1,12 +1,18 @@
 #pragma once
 
 #include "cheat/core/service.h"
+#include "cheat/hooks/base.h"
+
+// ReSharper disable CppInconsistentNaming
+struct _D3DPRESENT_PARAMETERS_;
+using D3DPRESENT_PARAMETERS = _D3DPRESENT_PARAMETERS_;
+struct IDirect3DDevice9;
+using HRESULT = long;
+// ReSharper restore CppInconsistentNaming
 
 namespace cheat::hooks::directx
 {
-	class reset final: public service<reset>
-					 , public dhooks::_Detect_hook_holder_t<decltype(&IDirect3DDevice9::Reset)>
-					 , service_hook_helper
+	class reset final: public base<reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
 	{
 	public:
 		reset( );
