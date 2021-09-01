@@ -40,9 +40,9 @@ namespace cheat::csgo
 		virtual ClientClass* GetAllClasses( ) = 0;
 
 		// Notification that we're moving into another stage during the frame.
-		void FrameStageNotify(ClientFrameStage_t stage);
+		//void FrameStageNotify(ClientFrameStage_t stage);
 
 		// The engine has received the specified user message, this code is used to dispatch the message handler
-		bool DispatchUserMessage(int msg_type, int32_t flags, int size, const void* msg);
+		bool DispatchUserMessage(int msg_type, int flags, int size, const void* msg);
 	};
 }

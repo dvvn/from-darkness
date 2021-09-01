@@ -1,8 +1,6 @@
 #include "draw model.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/gui/menu.h"
-#include "cheat/players/players list.h"
 
 using namespace cheat;
 using namespace csgo;
@@ -10,8 +8,14 @@ using namespace hooks;
 using namespace studio_render;
 
 draw_model::draw_model( )
+: service_sometimes_skipped(
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+								true
+#else
+		false
+#endif
+							   )
 {
-	this->add_service<players_list>( );
 }
 
 nstd::address draw_model::get_target_method_impl( ) const

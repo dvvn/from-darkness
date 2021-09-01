@@ -1,6 +1,16 @@
 #pragma once
 #include "service.h"
 
+namespace std
+{
+	class stop_token;
+}
+
+// ReSharper disable CppInconsistentNaming
+struct HINSTANCE__;
+using HMODULE = HINSTANCE__*;
+// ReSharper restore CppInconsistentNaming
+
 namespace cheat
 {
 	class services_loader final: public service_core<services_loader>, public nstd::one_instance<services_loader>
@@ -17,7 +27,6 @@ namespace cheat
 		void    load(HMODULE handle);
 		void    unload( );
 #endif
-
 		std::stop_token load_thread_stop_token( ) const;
 
 	protected:
@@ -26,8 +35,9 @@ namespace cheat
 
 	private:
 #ifndef CHEAT_GUI_TEST
-		HMODULE      my_handle__ = nullptr;
-		std::jthread load_thread_;
+		HMODULE my_handle__ = nullptr;
+		struct load_thread;
+		std::unique_ptr<load_thread> load_thread_;
 #endif
 
 #if 0
@@ -35,7 +45,7 @@ namespace cheat
 		T* find_service( ) const
 		{
 
-			for(const shared_service& service : services_ | ranges::views::elements<0>)
+			for(const stored_service& service : storage_ | ranges::views::elements<0>)
 			{
 				if(service->type( ) == typeid(T))
 					return service.get( );
@@ -47,10 +57,10 @@ namespace cheat
 		template <initializable_service T>
 		services_loader& load_service(bool lock = false)
 		{
-			ranges::find_if(services_, [](const load_info& info) { return info.service })
+			ranges::find_if(storage_, [](const load_info& info) { return info.service })
 		}
 
-		std::vector<load_info> services_;
+		std::vector<load_info> storage_;
 #endif
 	};
 }

@@ -1,4 +1,11 @@
 #include "C_FireSmoke.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include <cstdint>
 
 using namespace cheat;
 using namespace csgo;

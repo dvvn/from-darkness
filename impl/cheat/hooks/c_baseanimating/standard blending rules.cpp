@@ -1,9 +1,12 @@
 #include "standard blending rules.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/players/players list.h"
-#include "cheat/sdk/ClientClass.hpp"
+#include "cheat/core/csgo modules.h"
 #include "cheat/sdk/Studio.hpp"
+
+#include "cheat/sdk/entity/C_BaseAnimating.h"
+
+#include <nstd/enum overloads.h>
 
 using namespace cheat;
 using namespace hooks;
@@ -12,8 +15,14 @@ using namespace c_base_animating;
 using namespace csgo;
 
 standard_blending_rules::standard_blending_rules( )
+	: service_sometimes_skipped(
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+								true
+#else
+								false
+#endif
+							   )
 {
-	this->add_service<netvars>( );
 }
 
 nstd::address standard_blending_rules::get_target_method_impl( ) const
@@ -26,6 +35,9 @@ nstd::address standard_blending_rules::get_target_method_impl( ) const
 
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
+#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#pragma message(__FUNCTION__ ": skipped")
+#else
 	const auto pl           = this->object_instance;
 	const auto client_class = pl->GetClientClass( );
 	//if (client_class->ClassID != ClassId::CCSPlayer)
@@ -36,9 +48,9 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 	/*if (flags.has(m_fEffects_t::EF_NOINTERP))
 		return;*/
 
-	flags.add(m_fEffects_t::EF_NOINTERP);
+	flags |= (m_fEffects_t::EF_NOINTERP);
 	this->call_original_ex(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
-	flags.remove(m_fEffects_t::EF_NOINTERP);
+	flags &= ~m_fEffects_t::EF_NOINTERP;
 
 	/*if (override_return__)
 		this->return_value_.store_value(override_return_to__);
@@ -55,4 +67,5 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 
 		(void)client_class;
 	}*/
+#endif
 }

@@ -2,7 +2,7 @@
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
-#include "cheat/players/players list.h"
+#include "cheat/sdk/ISurface.hpp"
 
 using namespace cheat;
 using namespace csgo;
@@ -10,8 +10,14 @@ using namespace hooks;
 using namespace vgui_surface;
 
 lock_cursor::lock_cursor( )
+	: service_sometimes_skipped(
+#ifdef CHEAT_GUI_TEST
+								true
+#else
+								false
+#endif
+							   )
 {
-	this->add_service<gui::menu>( );
 }
 
 nstd::address lock_cursor::get_target_method_impl( ) const

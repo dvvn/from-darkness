@@ -2,8 +2,13 @@
 
 #include "console.h"
 
+#include <cppcoro/static_thread_pool.hpp>
+
 using namespace cheat;
-using namespace detail;
+
+struct service_base_fields::storage_type: std::vector<service_base::stored_service>
+{
+};
 
 template <typename T>
 static void _Loading_access_assert([[maybe_unused]] T&& state)
@@ -11,91 +16,128 @@ static void _Loading_access_assert([[maybe_unused]] T&& state)
 	runtime_assert(state != service_state::loading, "Unable to modify service while loading!");
 }
 
-service_base::~service_base( )
+service_base_fields::service_base_fields( )
 {
-	_Loading_access_assert(state_);
+	deps = std::make_unique<storage_type>( );
 }
 
-service_base::service_base(service_base&& other) noexcept
+service_base_fields::~service_base_fields( )
 {
-	*this = std::move(other);
+	_Loading_access_assert(state);
 }
 
-void service_base::operator=(service_base&& other) noexcept
+service_base_fields::service_base_fields(service_base_fields&& other) noexcept
 {
-	_Loading_access_assert(this->state_);
-	_Loading_access_assert(other.state_);
+	_Loading_access_assert(other.state);
 
-	state_       = std::move(other.state_);
-	other.state_ = service_state::moved;
-	std::swap(this->services_, other.services_);
+	state = other.state;
+	deps  = std::move(other.deps);
+}
+
+service_base_fields& service_base_fields::operator=(service_base_fields&& other) noexcept
+{
+	_Loading_access_assert(this->state);
+	_Loading_access_assert(other.state);
+
+	std::swap(state, other.state);
+	std::swap(deps, other.deps);
+
+	return *this;
+}
+
+std::string_view service_base::object_name( ) const
+{
+	return "service";
+}
+
+service_base::stored_service service_base::find_service(const std::type_info& info) const
+{
+	for (const auto& service: *fields( ).deps)
+	{
+		if (service->type( ) == info)
+			return service;
+	}
+
+	return { };
+}
+
+void service_base::store_service(stored_service&& srv, const std::type_info& info)
+{
+	(void)this;
+	runtime_assert(find_service(info) == stored_service( ), "Service already stored!");
+	fields( ).deps->push_back(std::move(srv));
 }
 
 service_state service_base::state( ) const
 {
-	return state_;
+	return fields( ).state;
 }
 
 void service_base::reset( )
 {
-	_Loading_access_assert(this->state_);
-	this->services_.clear( );
-	this->state_ = service_state::moved;
-}
-
-template <typename T, typename T1>
-static void _Service_msg([[maybe_unused]] const T* owner, [[maybe_unused]] T1&& msg)
-{
-	CHEAT_CONSOLE_LOG("{} service: {}", owner->name( ), msg);
+	_Loading_access_assert(fields( ).state);
+	fields( ).deps->clear( );
+	fields( ).state = { };
 }
 
 bool service_base::validate_init_state( ) const
 {
-	if (state_ == init_state_)
+	if (fields( ).state == service_state::unset)
 		return true;
 
 	runtime_assert("Unable to validate state!");
 	return false;
 }
 
+static void _Service_msg([[maybe_unused]] const service_base* owner, [[maybe_unused]] const std::string_view& msg)
+{
+	CHEAT_CONSOLE_LOG(std::ostringstream( )
+					  << owner->name( ) << ' '
+					  << owner->object_name( ) << ": "
+					  << msg);
+}
+
 service_base::load_result service_base::load(executor& ex)
 {
-	if (!validate_init_state( ))
-		co_return state_;
+	auto& f = this->fields( );
 
-	state_ = service_state::waiting;
+	if (!this->validate_init_state( ))
+		co_return f.state;
+
+	f.state = service_state::waiting;
 	if (!co_await this->wait_for_others(ex))
 	{
-		_Service_msg(this, "Error while child waiting");
-		co_return state_ = service_state::error;
+		_Service_msg(this, "error while child waiting");
+		co_return f.state = service_state::error;
 	}
 	co_await ex.schedule( );
-	state_ = service_state::loading;
+	f.state = service_state::loading;
 	switch ((co_await this->load_impl( )).value( ))
 	{
 		case service_state::loaded:
 		{
 			this->after_load( );
-			co_return state_ = service_state::loaded;
+			co_return f.state = service_state::loaded;
 		}
 		case service_state::skipped:
 		{
 			this->after_skip( );
-			co_return state_ = service_state::skipped;
+			co_return f.state = service_state::skipped;
 		}
 		default:
 		{
 			this->after_error( );
-			co_return state_ = service_state::error;
+			co_return f.state = service_state::error;
 		}
 	}
 }
 
 service_base::child_wait_result service_base::wait_for_others(executor& ex)
 {
-	for (auto itr = services_.begin( ); itr != services_.end( );)
+	(void)this;
+	for (auto itr = fields( ).deps->begin( ); itr != fields( ).deps->end( );)
 	{
-		const auto se = *itr;
+		const auto& se = *itr;
 		switch (se->state( ).value( ))
 		{
 			case service_state::unset:
@@ -105,7 +147,6 @@ service_base::child_wait_result service_base::wait_for_others(executor& ex)
 			case service_state::loaded:
 			case service_state::skipped:
 				break;
-			case service_state::moved:
 			case service_state::error:
 				co_return false;
 			case service_state::waiting:
@@ -138,27 +179,31 @@ void service_base::after_error( )
 	_Service_msg(this, "error while loading");
 }
 
-void service_base::set_state(service_state&& state)
+std::span<const service_base::stored_service> service_base::services( ) const
 {
-	_Loading_access_assert(state_);
-	state_ = std::move(state);
+	return *fields( ).deps;
 }
 
-std::span<const service_base::shared_service> service_base::services( ) const
+service_sometimes_skipped::service_sometimes_skipped(bool skip)
+	: skipped_(skip)
 {
-	return services_;
 }
 
-service_base::load_result service_hook_helper::load_impl( )
+service_base::load_result service_sometimes_skipped::load(executor& ex)
 {
-	co_return this->hook( ) && this->enable( ) ? service_state::loaded : service_state::error;
+	if (!skipped_)
+		co_return co_await service_base::load(ex);
+
+	auto& f = this->fields( );
+	if (this->validate_init_state( ))
+	{
+		f.state = service_state::skipped;
+		this->after_skip( );
+	}
+	co_return f.state;
 }
 
-service_base::load_result service_always_skipped::load([[maybe_unused]] executor& ex)
+bool service_sometimes_skipped::always_skipped( ) const
 {
-	(void)this->validate_init_state( );
-	auto state = service_state::skipped;
-	this->set_state(state);
-	this->after_skip( );
-	co_return state;
+	return skipped_;
 }

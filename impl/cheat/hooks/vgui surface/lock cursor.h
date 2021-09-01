@@ -1,17 +1,18 @@
 #pragma once
 
 #include "cheat/core/service.h"
+#include "cheat/hooks/base.h"
 
-#include "cheat/sdk/ISurface.hpp"
+namespace cheat::csgo
+{
+	class ISurface;
+}
 
 namespace cheat::hooks::vgui_surface
 {
-	class lock_cursor final: public service<lock_cursor>
-						   , public dhooks::_Detect_hook_holder_t<decltype(&csgo::ISurface::LockCursor)>
-						   , service_hook_helper
-#ifdef CHEAT_GUI_TEST
-						   , service_always_skipped
-#endif
+	class lock_cursor final: public base<lock_cursor, void(csgo::ISurface::*)( )>
+						   , service_sometimes_skipped
+
 	{
 	public:
 		lock_cursor( );

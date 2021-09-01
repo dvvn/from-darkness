@@ -1,5 +1,11 @@
 #pragma once
+
 #include "cheat/core/service.h"
+
+// ReSharper disable CppInconsistentNaming
+struct HWND__;
+using HWND = HWND__*;
+// ReSharper restore CppInconsistentNaming
 
 namespace cheat::gui
 {
@@ -15,8 +21,11 @@ namespace cheat::gui
 		load_result load_impl( ) override;
 
 	private:
-		HWND         hwnd__ = nullptr;
-		ImGuiContext ctx__;
-		ImFontAtlas  fonts__;
+		HWND hwnd_ = nullptr;
+
+		struct data_type;
+		std::unique_ptr<data_type>data_;
+
+
 	};
 }

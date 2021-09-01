@@ -1,10 +1,15 @@
 #pragma once
 
+#include "nstd/enum as struct.h"
+
+#include <cstdint>
+#include <string_view>
+
 namespace dhooks
 {
 	struct hook_status final
 	{
-		enum value_type:int8_t
+		enum value_type:std::int8_t
 		{
 			/// @brief Unknown error. Should not be returned.
 			UNKNOWN = 0,

@@ -1,7 +1,12 @@
 #include "game.h"
 
+#include "cheat/core/console.h"
+#include "cheat/core/csgo interfaces.h"
 #include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/IConVar.hpp"
+
+#include <algorithm>
+#include <format>
 
 using namespace cheat;
 using namespace utils::detail;
@@ -88,7 +93,7 @@ ConVar* find_cvar_impl::operator()(const std::string_view& cvar) const
 	};
 
 	const auto cv = get_cvar_from_game( );
-	CHEAT_CONSOLE_LOG("Cvar {} {}", cvar, cv == nullptr ? "not found" : "found");
+	CHEAT_CONSOLE_LOG(std::format("Cvar {} {}", cvar, cv == nullptr ? "not found" : "found"));
 	return cv;
 }
 

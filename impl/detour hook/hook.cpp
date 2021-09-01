@@ -1,18 +1,17 @@
 #include "hook.h"
 
+#include "nstd/memory block.h"
+#include "nstd/runtime assert.h"
+
+#include <Windows.h>
+
+#include <mutex>
+#include <ranges>
+#include <stdexcept>
+#include <vector>
+
 using namespace dhooks;
 using namespace dhooks::detail;
-
-_STD_BEGIN
-	template < >
-	struct hash<hook_entry>
-	{
-		size_t operator()(const hook_entry& val) const noexcept
-		{
-			return reinterpret_cast<size_t>(val.target);
-		}
-	};
-_STD_END
 
 #if 0
 
@@ -102,16 +101,18 @@ status_ex::status_ex(status s) : status_ex_impl{s}
 }
 #endif
 
+struct context::storage_type: std::vector<element_type>
+{
+};
+
 static hook_entry* _Find_hook(context::storage_type& storage, LPVOID target)
 {
 	if (target)
-	{
 		for (auto& h: storage)
 		{
 			if (h.target == target)
 				return std::addressof(h);
 		}
-	}
 
 	return nullptr;
 }
@@ -132,7 +133,7 @@ static hook_status _Set_hook_state_all(context::storage_type& storage, bool enab
 {
 	//auto frozen = frozen_threads_storage(false);
 
-	auto storage_active = storage | ranges::views::filter([](const hook_entry& h)
+	auto storage_active = storage | std::views::filter([](const hook_entry& h)
 	{
 		return h.target != nullptr;
 	});
@@ -208,12 +209,9 @@ hook_entry::hook_entry(hook_entry&& other) noexcept
 
 hook_entry& hook_entry::operator=(hook_entry&& other) noexcept
 {
-	*static_cast<trampoline*>(this) = static_cast<trampoline&&>(other);
-
-	backup  = std::move(other.backup);
-	enabled = other.enabled;
-
-	other.enabled = false;
+	std::swap<trampoline>(*this, other);
+	std::swap(backup, other.backup);
+	std::swap(enabled, other.enabled);
 
 	return *this;
 }
@@ -268,9 +266,9 @@ hook_status hook_entry::set_state(bool enable)
 	else
 	{
 		if (this->patch_above)
-			memcpy(patch_target, this->backup.data( ), sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
+			memcpy(patch_target, this->backup, sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
 		else
-			memcpy(patch_target, this->backup.data( ), sizeof(JMP_REL));
+			memcpy(patch_target, this->backup, sizeof(JMP_REL));
 	}
 
 	VirtualProtect(patch_target, patch_size, old_protect, &old_protect);
@@ -283,15 +281,22 @@ hook_status hook_entry::set_state(bool enable)
 	return hook_status::OK;
 }
 
+context::context( )
+{
+	storage_ = std::make_unique<storage_type>( );
+}
+
+context::~context( ) = default;
+
 hook_result context::create_hook(LPVOID target, LPVOID detour)
 {
 	if (!nstd::memory_block(target).executable( ) || !nstd::memory_block(detour).executable( ))
 		return hook_status::ERROR_NOT_EXECUTABLE;
 
 #if 0
-	if(storage_.find(target) != nullptr)
+	if(storage_->find(target) != nullptr)
 		return hook_status::ERROR_ALREADY_CREATED;
-	if(storage_.find(pDetour) != nullptr)
+	if(storage_->find(pDetour) != nullptr)
 		return hook_status::ERROR_ALREADY_CREATED;
 #endif
 
@@ -302,7 +307,7 @@ hook_result context::create_hook(LPVOID target, LPVOID detour)
 	{
 		return checked == target || checked == detour;
 	};
-	for (const auto& value: storage_)
+	for (const auto& value: *storage_)
 	{
 		if (check_ptr_helper(value.target) || check_ptr_helper(value.detour))
 			return hook_status::ERROR_ALREADY_CREATED;
@@ -317,31 +322,31 @@ hook_result context::create_hook(LPVOID target, LPVOID detour)
 	if (!ct.create( ))
 		return hook_status::ERROR_UNSUPPORTED_FUNCTION;
 
-	auto& new_hook = storage_.emplace_back( );
+	auto& new_hook = storage_->emplace_back( );
 
 	static_cast<trampoline&>(new_hook) = std::move(ct);
 
 	new_hook.enabled = false;
 
-#ifdef UTILS_X64
+#if defined(_M_X64) || defined(__x86_64__)
 	new_hook.detour = ct.pRelay;
 #endif
 	// Back up the target function.
 
 	if (new_hook.patch_above)
-		memcpy(new_hook.backup.data( ), static_cast<LPBYTE>(target) - sizeof(JMP_REL), sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
+		memcpy(new_hook.backup, static_cast<LPBYTE>(target) - sizeof(JMP_REL), sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
 	else
-		memcpy(new_hook.backup.data( ), target, sizeof(JMP_REL));
+		memcpy(new_hook.backup, target, sizeof(JMP_REL));
 
 	hook_result ret(hook_status::OK);
-	ret.entry = &new_hook;
+	ret.entry = std::addressof(new_hook);
 
 	return ret;
 }
 
 hook_status context::remove_hook(LPVOID target, bool force)
 {
-	const auto entry = _Find_hook(storage_, target);
+	const auto entry = _Find_hook(*storage_, target);
 	if (!entry)
 		return hook_status::ERROR_NOT_CREATED;
 
@@ -356,7 +361,7 @@ hook_status context::remove_hook(LPVOID target, bool force)
 
 	//erase if map, null if vector
 
-	//storage_.erase(entry);
+	//storage_->erase(entry);
 	*entry = { };
 
 	return hook_status::OK;
@@ -364,17 +369,17 @@ hook_status context::remove_hook(LPVOID target, bool force)
 
 hook_status context::enable_hook(LPVOID target)
 {
-	return _Set_hook_state(storage_, target, true);
+	return _Set_hook_state(*storage_, target, true);
 }
 
 hook_status context::disable_hook(LPVOID target)
 {
-	return _Set_hook_state(storage_, target, false);
+	return _Set_hook_state(*storage_, target, false);
 }
 
 hook_result context::find_hook(LPVOID target)
 {
-	const auto entry = _Find_hook(storage_, target);
+	const auto entry = _Find_hook(*storage_, target);
 	if (!entry)
 		return hook_status::ERROR_NOT_CREATED;
 
@@ -398,19 +403,23 @@ auto minhook::create_hook_win_api(LPCWSTR pszModule, LPCSTR pszProcName, LPVOID 
 #endif
 void context::remove_all_hooks( )
 {
-	_Set_hook_state_all(storage_, false, true);
-	storage_.clear( );
+	_Set_hook_state_all(*storage_, false, true);
+	storage_->clear( );
 }
 
 hook_status context::enable_all_hooks( )
 {
-	return _Set_hook_state_all(storage_, true);
+	return _Set_hook_state_all(*storage_, true);
 }
 
 hook_status context::disable_all_hooks( )
 {
-	return _Set_hook_state_all(storage_, false);
+	return _Set_hook_state_all(*storage_, false);
 }
+
+struct context_safe::lock_type: std::mutex
+{
+};
 
 template <typename ...Args>
 static auto _Lock_and_work(context_safe::lock_type& mtx, Args&&...args)
@@ -420,7 +429,12 @@ static auto _Lock_and_work(context_safe::lock_type& mtx, Args&&...args)
 }
 
 #define LOCK_AND_WORK(fn,...)\
-	_Lock_and_work(mtx_, &context_base::##fn, ctx_,## __VA_ARGS__)
+	_Lock_and_work(*mtx_, &context_base::##fn, ctx_,## __VA_ARGS__)
+
+context_safe::context_safe( )
+{
+	mtx_ = std::make_unique<lock_type>( );
+}
 
 hook_result context_safe::create_hook(LPVOID target, LPVOID detour)
 {

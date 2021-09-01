@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Vector.hpp"
+
 namespace cheat::csgo
 {
 	constexpr auto MULTIPLAYER_BACKUP = 150;

@@ -1,21 +1,31 @@
 #pragma once
 
 #include "cheat/core/service.h"
+#include "cheat/hooks/base.h"
+
+// ReSharper disable CppInconsistentNaming
+struct IDirect3DDevice9;
+using HRESULT = long;
+struct tagRECT;
+struct HWND__;
+struct _RGNDATA;
+using RECT = tagRECT;
+using HWND = HWND__*;
+using RGNDATA = _RGNDATA;
+// ReSharper restore CppInconsistentNaming
 
 namespace cheat::hooks::directx
 {
-	class present final: public service<present>
-					   , public dhooks::_Detect_hook_holder_t<decltype(&IDirect3DDevice9::Present)>
-					   , service_hook_helper
+	class present final: public base<present, HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*)>
 	{
 	public:
 		present( );
 
 	protected:
 		nstd::address get_target_method_impl( ) const override;
-		void          callback(THIS_ CONST RECT* source_rect,
-							   CONST RECT*       dest_rect,
-							   HWND              dest_window_override,
-							   CONST RGNDATA*    dirty_region_parameters) override;
+		void          callback(const RECT*    source_rect,
+							   const RECT*    dest_rect,
+							   HWND           dest_window_override,
+							   const RGNDATA* dirty_region_parameters) override;
 	};
 }

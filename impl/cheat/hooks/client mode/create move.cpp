@@ -1,19 +1,26 @@
 #include "create move.h"
 
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/hooks/client/frame stage notify.h"
-#include "cheat/players/players list.h"
 
+#include "cheat/sdk/CUserCmd.hpp"
 #include "cheat/sdk/IPrediction.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
+
+#include <intrin.h>
 
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::client_mode;
 
 create_move::create_move( )
+	: service_sometimes_skipped(
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+								true
+#else
+		false
+#endif
+							   )
 {
-	this->add_service<players_list>( );
 }
 
 nstd::address create_move::get_target_method_impl( ) const

@@ -1,6 +1,33 @@
 #include "exports_storage.h"
+#include "nstd/os/module info.h"
 
-using namespace nstd::os;
+#include <Windows.h>
+
+#include <nlohmann/json.hpp>
+
+#include <filesystem>
+#include <ranges>
+
+using nstd::os::exports_storage;
+using namespace nstd::os::detail;
+
+template < >
+module_data_cache_fwd<nstd::address> nstd::os::detail::make_cache_fwd<nstd::address>( )
+{
+	return std::make_unique<module_data_cache<address>>( );
+}
+
+template < >
+bool nstd::os::detail::cache_empty<nstd::address>(const module_data_cache<address>& cache)
+{
+	return cache.empty( );
+}
+
+template < >
+void nstd::os::detail::cache_reserve<nstd::address>(module_data_cache<address>& cache, std::size_t count)
+{
+	cache.reserve(count);
+}
 
 bool exports_storage::load_from_memory(cache_type& cache)
 {
@@ -31,7 +58,6 @@ bool exports_storage::load_from_memory(cache_type& cache)
 	const auto all_modules = all_modules::get_ptr( );
 	all_modules->update(false);
 
-
 	// iterate names array.
 	for (auto i = 0u; i < dir->NumberOfNames; ++i)
 	{
@@ -61,19 +87,14 @@ bool exports_storage::load_from_memory(cache_type& cache)
 
 			const auto fwd_module_str = [&]
 			{
+				namespace rng = std::ranges;
+				namespace rngv = rng::views;
+
 				// get forwarder mod name.
 				const auto name       = fwd_str.substr(0, delim);
-				const auto name_lower = ranges::views::transform(name, [](const char c) { return static_cast<wchar_t>(std::tolower(c)); });
+				const auto name_lower = rngv::transform(name, [](const char c) { return static_cast<wchar_t>(std::tolower(c)); });
 
-				constexpr std::basic_string_view dot_dll = L".dll";
-
-				auto full_str = std::wstring( );
-				full_str.reserve(name_lower.size( ) + dot_dll.size( ));
-				auto full_str_start = full_str._Unchecked_begin( );
-				ranges::copy(name_lower, full_str_start);
-				ranges::copy(dot_dll, full_str_start + name_lower.size( ));
-				return full_str;
-				//return std::wstring(name_lower.begin( ), name_lower.end( )).append(L".dll");
+				return std::wstring(name_lower.begin( ), name_lower.end( )).append(L".dll");
 			}( );
 
 			// get forwarder export name.
@@ -85,7 +106,7 @@ bool exports_storage::load_from_memory(cache_type& cache)
 				continue;
 
 			auto& exports = target_module->exports( );
-			if (!exports.load( ))
+			if (!exports.load({ }))
 			{
 				runtime_assert("Unable to load exports!");
 				continue;

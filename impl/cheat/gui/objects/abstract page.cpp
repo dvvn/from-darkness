@@ -1,10 +1,16 @@
 #include "abstract page.h"
 
+#include "nstd/overload.h"
+#include "nstd/runtime assert.h"
+
+#include <Windows.h>
+
+#include <functional>
+
 using namespace cheat;
 using namespace gui;
 using namespace tools;
 using namespace objects;
-
 
 renderable_object* abstract_page::page( ) const
 {
@@ -20,7 +26,8 @@ void abstract_page::render( )
 	ImGui::PopID( );
 }
 
-pages_storage_data::pages_storage_data(abstract_page&& page) : abstract_page(std::move(page))
+pages_storage_data::pages_storage_data(abstract_page&& page)
+	: abstract_page(std::move(page))
 {
 }
 
@@ -37,11 +44,11 @@ const string_wrapper& abstract_page::name( ) const
 void abstract_pages_renderer::add_page(abstract_page&& page)
 {
 #ifdef _DEBUG
-	if (const auto renderer = dynamic_cast<abstract_pages_renderer*>((page.page( ))); renderer != nullptr)
+	if (const auto renderer = dynamic_cast<abstract_pages_renderer*>(page.page( )); renderer != nullptr)
 	{
 		if (renderer->pages_count( ) == 0)
 		{
-			DebugBreak( );
+			//DebugBreak( );
 			return;
 		}
 	}
@@ -58,8 +65,8 @@ void abstract_pages_renderer::add_page(abstract_page&& page)
 
 void abstract_pages_renderer::init( )
 {
-#if defined(_DEBUG) && _CONTAINER_DEBUG_LEVEL == 0
-	runtime_assert(!this->empty( ));
+#if _CONTAINER_DEBUG_LEVEL == 0
+	runtime_assert(!pages_.empty( ));
 #endif
 
 	//if(pages_.empty())

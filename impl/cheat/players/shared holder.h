@@ -1,4 +1,10 @@
 #pragma once
+
+#include "nstd/runtime assert.h"
+
+#include <functional>
+#include <memory>
+
 namespace cheat::detail
 {
 	template <std::default_initializable T>
@@ -24,7 +30,7 @@ namespace cheat::detail
 				return;
 
 			auto& in_use = ptr->in_use;
-			runtime_assert(in_use==true);
+			runtime_assert(in_use == true);
 
 			in_use = false;
 
@@ -42,10 +48,11 @@ namespace cheat::detail
 		shared_holder(const shared_holder&)            = delete;
 		shared_holder& operator=(const shared_holder&) = delete;
 
-		virtual void init( )
+		/*virtual*/
+		void init( )
 		{
 			auto& ptr = Get_shared_( );
-			runtime_assert(ptr==nullptr);
+			runtime_assert(ptr == nullptr);
 			ptr         = std::make_shared<T>( );
 			ptr->in_use = 1;
 		}
@@ -62,8 +69,8 @@ namespace cheat::detail
 
 		void operator=(shared_holder&& other) noexcept
 		{
-			Get_shared_( ) = std::move(other.Get_shared_( ));
-			destroy_fn_    = std::move(other.destroy_fn_);
+			std::swap(Get_shared_( ), other.Get_shared_( ));
+			std::swap(destroy_fn_, other.destroy_fn_);
 		}
 
 		bool operator==(nullptr_t) const

@@ -3,11 +3,15 @@
 
 #include "cheat/core/csgo interfaces.h"
 
-#include "cheat/netvars/netvars.h"
+#include "cheat/sdk/entity/C_CSPlayer.h"
 
 #include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
+
+#include "nstd/memory backup.h"
+
+#include <vector>
 
 using namespace cheat;
 using namespace detail;
@@ -18,28 +22,47 @@ service_base::load_result players_list::load_impl( )
 	co_return service_state::loaded;
 }
 
-players_list::players_list( )
+struct players_list::storage_type: std::vector<player_shared_impl>
 {
-	this->add_service<netvars>( );
+};
+
+players_list::players_list( )
+	: service_sometimes_skipped(
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+								true
+#else
+								false
+#endif
+							   )
+{
+	storage_ = std::make_unique<storage_type>( );
 }
+
+players_list::~players_list( ) = default;
 
 void players_list::update( )
 {
+#if !__has_include("cheat/sdk/generated/C_BasePlayer_h") || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+#pragma message(__FUNCTION__ ": skipped")
+	(void)this;
+#else
+
 	const auto interfaces = csgo_interfaces::get_ptr( );
 
-	auto storage_updated = false;
+	[[maybe_unused]]
+		auto storage_updated = false;
 
 	const auto max_clients = interfaces->global_vars->max_clients;
-	if (const size_t wished_storage_size = max_clients + 1; storage__.size( ) != wished_storage_size)
+	if (const size_t wished_storage_size = max_clients + 1; storage_->size( ) != wished_storage_size)
 	{
 		storage_updated = true;
-		storage__.clear( );
-		storage__.resize(wished_storage_size);
+		storage_->clear( );
+		storage_->resize(wished_storage_size);
 	}
 
-	C_CSPlayer* const  local_player       = interfaces->local_player;
-	const m_iTeamNum_t local_player_team  = local_player->m_iTeamNum( );
-	const auto         local_player_alive = local_player->IsAlive( );
+	C_CSPlayer* const local_player       = interfaces->local_player;
+	const auto        local_player_team  = (m_iTeamNum_t)(local_player->m_iTeamNum( ));
+	const auto        local_player_alive = local_player->IsAlive( );
 
 	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)-> C_CSPlayer*
 	{
@@ -53,7 +76,7 @@ void players_list::update( )
 	for (auto i = 1; i <= max_clients; ++i)
 	{
 		const auto ent        = ent_by_index(i);
-		auto&      obj        = storage__[i];
+		auto&      obj        = (*storage_)[i];
 		auto&      obj_shared = obj.share( );
 
 		if (ent == nullptr)
@@ -69,12 +92,12 @@ void players_list::update( )
 		if (obj == nullptr || obj_shared->ent != ent /*|| obj->index( ) != i*/)
 		{
 			storage_updated = true;
-			players_list_container::value_type new_obj;
+			storage_type::value_type new_obj;
 			new_obj.init(ent);
-			obj = move(new_obj);
+			obj = std::move(new_obj);
 		}
 
-		const m_iTeamNum_t ent_team = ent->m_iTeamNum( );
+		const auto ent_team = (m_iTeamNum_t)ent->m_iTeamNum( );
 		if (obj_shared->team != ent_team)
 		{
 			storage_updated  = true;
@@ -103,7 +126,7 @@ void players_list::update( )
 				storage_updated   = true;
 			}
 
-			const auto is_ragdoll_active = [ent]
+			const auto is_ragdoll_active = [ent]( )-> bool
 			{
 				const auto ragdoll = ent->GetRagdoll( );
 				return ragdoll != nullptr && ragdoll->m_nSequence( ) != -1 && !ragdoll->IsDormant( );
@@ -139,12 +162,13 @@ void players_list::update( )
 			store_tick        = false;
 		}
 
-		if (!local_player_alive || local_player_team == ent_team || local_player_team.spectator( ))
+		if (!local_player_alive || local_player_team == ent_team || local_player_team == m_iTeamNum_t::SPEC)
 			store_tick = false;
 
 		if (store_tick)
 		{
 			obj.store_tick( );
+			//---
 		}
 		if (update_animations)
 		{
@@ -163,12 +187,14 @@ void players_list::update( )
 		obj.remove_old_ticks(fixed_curtime);
 	}
 
-	if (storage_updated)
-		filter_cache__.clear( );
+	/*if (storage_updated)
+		filter_cache__.clear( );*/
+
+#endif
 }
 
-const players_filter& players_list::filter(const players_filter_flags& flags)
-{
-	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
-	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
-}
+//const players_filter& players_list::filter(const players_filter_flags& flags)
+//{
+//	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
+//	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
+//}

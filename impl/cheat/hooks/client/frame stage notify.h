@@ -1,17 +1,18 @@
 #pragma once
 
 #include "cheat/core/service.h"
+#include "cheat/hooks/base.h"
 
-#include "cheat/sdk/IBaseClientDll.hpp"
+namespace cheat::csgo
+{
+	class IBaseClientDLL;
+	enum ClientFrameStage_t;
+}
 
 namespace cheat::hooks::client
 {
-	class frame_stage_notify final: public service<frame_stage_notify>
-								  , public dhooks::_Detect_hook_holder_t<decltype(&csgo::IBaseClientDLL::FrameStageNotify)>
-								  , service_hook_helper
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-								  , service_always_skipped
-#endif
+	class frame_stage_notify final: public base<frame_stage_notify, void(csgo::IBaseClientDLL::*)(csgo::ClientFrameStage_t)>
+								  , service_sometimes_skipped
 	{
 	public:
 		frame_stage_notify( );

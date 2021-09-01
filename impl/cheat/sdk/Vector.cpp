@@ -1,5 +1,7 @@
 #include "Vector.hpp"
 
+#include <cmath>
+
 using namespace cheat::csgo;
 
 Vector::Vector(float val)

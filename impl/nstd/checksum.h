@@ -1,4 +1,11 @@
 #pragma once
+#include <span>
+#include <string_view>
+
+namespace std::filesystem
+{
+	class path;
+}
 
 namespace nstd
 {
@@ -12,8 +19,9 @@ namespace nstd
 				return std::_Hash_array_representation(str._Unchecked_begin( ), str.size( ));
 			}
 
-			template <string_viewable T>
+			template <class T>
 			size_t operator ()(const T& obj) const
+				requires(std::invocable<checksum_impl, decltype(obj.view( ))>)
 			{
 				return std::invoke(*this, obj.view( ));
 			}

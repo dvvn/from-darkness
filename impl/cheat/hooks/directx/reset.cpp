@@ -3,13 +3,14 @@
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/imgui context.h"
 
+#include <backends/imgui_impl_dx9.h>
+
 using namespace cheat;
 using namespace hooks;
 using namespace directx;
 
 reset::reset( )
 {
-	this->add_service<gui::imgui_context>( );
 }
 
 nstd::address reset::get_target_method_impl( ) const

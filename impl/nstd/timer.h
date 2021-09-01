@@ -1,4 +1,7 @@
 #pragma once
+#include "runtime assert.h"
+
+#include <chrono>
 
 namespace nstd
 {
@@ -48,10 +51,8 @@ namespace nstd
 			requires(std::invocable<decltype(fn), decltype(args)>)
 		{
 			runtime_assert(count == 0, "bad count found");
-
 			if (count == 1)
-				return work((fn), std::forward<Args>(args)...);;
-
+				return this->work((fn), std::forward<Args>(args)...);;
 			this->set_start( );
 			while (count--)
 				std::invoke((fn), (args)...);

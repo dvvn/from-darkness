@@ -3,6 +3,13 @@
 
 #include "cheat/sdk/entity/C_BaseEntity.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <string>
+#include <include/veque.hpp>
+
+#include <memory>
+#include <span>
+
 namespace cheat
 {
 	namespace csgo
@@ -20,10 +27,10 @@ namespace cheat
 		csgo::m_iTeamNum_t team;
 		bool               alive;
 
-		using ticks_storage = nstd::deque<detail::tick_record_shared_impl>;
+		using ticks_storage = veque::veque<detail::tick_record_shared_impl>;
 
-		ticks_storage                        ticks;
-		std::span<ticks_storage::value_type> ticks_window;
+		ticks_storage                              ticks;
+		std::span<const ticks_storage::value_type> ticks_window;
 
 		static size_t max_ticks_count( );
 	};

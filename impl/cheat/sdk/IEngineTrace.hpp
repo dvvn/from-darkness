@@ -2,6 +2,12 @@
 #include "ClientClass.hpp"
 #include "IClientEntity.hpp"
 
+#include "cheat/sdk/Vector.hpp"
+#include "cheat/sdk/Vector4D.hpp"
+
+#include <array>
+#include <cstdint>
+
 namespace cheat::csgo
 {
 	enum DispSurfFlags :uint16_t

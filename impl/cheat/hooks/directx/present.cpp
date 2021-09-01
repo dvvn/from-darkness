@@ -4,13 +4,17 @@
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
 
+#include <backends/imgui_impl_dx9.h>
+#include <backends/imgui_impl_win32.h>
+
+#include <d3d9.h>
+
 using namespace cheat;
 using namespace hooks;
 using namespace directx;
 
 present::present( )
 {
-	this->add_service<gui::menu>( );
 }
 
 nstd::address present::get_target_method_impl( ) const

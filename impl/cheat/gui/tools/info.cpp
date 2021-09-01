@@ -1,23 +1,28 @@
 #include "info.h"
 
+#include <robin_hood.h>
+
+#include <imgui.h>
+
+#include <string_view>
+
 using namespace cheat;
 using namespace gui;
 
 const ImVec2& tools::_Get_char_size( )
 {
-	struct alignas(uint64_t) hash_data
+	struct hash_data
 	{
 		ImFont* font;
 		float   font_size;
 
-		uint64_t hash( ) const
+		size_t hash( ) const
 		{
-			static_assert(sizeof(hash_data) == sizeof(uint64_t));
-			return *reinterpret_cast<const uint64_t*>(this);
+			return robin_hood::hash_bytes(this, sizeof(hash_data));
 		}
 	};
 
-	static nstd::unordered_map<uint64_t, ImVec2> cache;
+	static robin_hood::unordered_map<uint64_t, ImVec2> cache;
 
 	const hash_data data = {ImGui::GetFont( ), ImGui::GetFontSize( )};
 

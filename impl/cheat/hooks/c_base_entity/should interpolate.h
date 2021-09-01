@@ -1,14 +1,17 @@
 #pragma once
 
-#include "cheat/core/service.h"
-#include "cheat/sdk/entity/C_BaseEntity.h"
+#include "cheat/hooks/base.h"
+
+namespace cheat::csgo
+{
+	// ReSharper disable once CppInconsistentNaming
+	class C_BaseEntity;
+}
 
 namespace cheat::hooks::c_base_entity
 {
-	class should_interpolate final: public service<should_interpolate>
-								  , public dhooks::_Detect_hook_holder_t<decltype(&csgo::C_BaseEntity::ShouldInterpolate)>
-								  , service_hook_helper
-								  , service_always_skipped
+	class should_interpolate final: public base<should_interpolate, bool(csgo::C_BaseEntity::*)( )>
+								  , service_sometimes_skipped
 	{
 	public:
 		should_interpolate( );

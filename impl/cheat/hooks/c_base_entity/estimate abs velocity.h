@@ -1,16 +1,19 @@
 #pragma once
 
 #include "cheat/core/service.h"
-#include "cheat/sdk/entity/C_BaseEntity.h"
+#include "cheat/hooks/base.h"
+
+namespace cheat::csgo
+{
+	class C_BaseEntity;
+	class Vector;
+}
 
 namespace cheat::hooks::c_base_entity
 {
-	class estimate_abs_velocity final: public service<estimate_abs_velocity>
-									 , public dhooks::_Detect_hook_holder_t<decltype(&csgo::C_BaseEntity::EstimateAbsVelocity)>
-									 , service_hook_helper
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-									 , service_always_skipped
-#endif
+	class estimate_abs_velocity final: public base<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
+									 , service_sometimes_skipped
+
 	{
 	public:
 		estimate_abs_velocity( );

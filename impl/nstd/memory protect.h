@@ -1,7 +1,37 @@
 #pragma once
+#include <optional>
+
+//using UINT_PTR =
+//#ifdef _W64
+//_W64
+//#endif
+//unsigned
+//#if defined(_WIN64)
+//__int64
+//#else
+//int;
+//#endif
+
+using ULONG_PTR =
+#ifdef _W64
+_W64
+#endif
+unsigned
+#if defined(_WIN64)
+__int64
+#else
+long;
+#endif
+
+using SIZE_T = ULONG_PTR;
+using DWORD = unsigned long;
+using LPVOID = void*;
 
 namespace nstd
 {
+	class memory_block;
+	class address;
+
 	class memory_protect
 	{
 	public:
@@ -18,7 +48,7 @@ namespace nstd
 		memory_protect(memory_protect&& other) noexcept;
 		memory_protect& operator=(memory_protect&& other) noexcept;
 
-		memory_protect( )= default;
+		memory_protect( ) = default;
 
 		memory_protect(LPVOID addr, SIZE_T size, DWORD new_flags);
 		memory_protect(address addr, SIZE_T size, DWORD new_flags);

@@ -5,20 +5,20 @@
  *
  */
 
-#include "include.h"
+#if !defined(_M_X64) && !defined(__x86_64__)
 
-#ifdef DHOOKS_X86
+#include "include.h"
 
 #include <intrin.h>
 #include <Windows.h>
 
-static constexpr auto DELTA_OPCODES = 0x4a;
-static constexpr auto DELTA_FPU_REG = 0xf1;
-static constexpr auto DELTA_FPU_MODRM = 0xf8;
-static constexpr auto DELTA_PREFIXES = 0x130;
-static constexpr auto DELTA_OP_LOCK_OK = 0x1a1;
-static constexpr auto DELTA_OP2_LOCK_OK = 0x1b9;
-static constexpr auto DELTA_OP_ONLY_MEM = 0x1cb;
+static constexpr auto DELTA_OPCODES      = 0x4a;
+static constexpr auto DELTA_FPU_REG      = 0xf1;
+static constexpr auto DELTA_FPU_MODRM    = 0xf8;
+static constexpr auto DELTA_PREFIXES     = 0x130;
+static constexpr auto DELTA_OP_LOCK_OK   = 0x1a1;
+static constexpr auto DELTA_OP2_LOCK_OK  = 0x1b9;
+static constexpr auto DELTA_OP_ONLY_MEM  = 0x1cb;
 static constexpr auto DELTA_OP2_ONLY_MEM = 0x1da;
 
 static constexpr uint8_t hde32_table[] = {
@@ -45,19 +45,13 @@ static constexpr uint8_t hde32_table[] = {
 uint8_t dhooks::hde::hde32_disasm(const void* code, hde32s* hs)
 {
 	uint8_t x, c, *p = (uint8_t*)code, cflags, opcode, pref = 0;
-	auto    ht = hde32_table;
+	auto    ht       = hde32_table;
 	uint8_t m_mod;
 	uint8_t m_reg;
 	uint8_t m_rm;
 	uint8_t disp_size = 0;
 
-#
-	// Avoid using memset to reduce the footprint.
-#ifndef _MSC_VER
 	memset((LPBYTE)hs, 0, sizeof(hde32s));
-#else
-	__stosb((LPBYTE)hs, 0, sizeof(hde32s));
-#endif
 
 	for (x = 16; x; x--)
 	{
@@ -129,8 +123,8 @@ pref_done: hs->flags = static_cast<uint32_t>(pref) << 23;
 	if (cflags & C_GROUP)
 	{
 		const auto t = *(uint16_t*)(ht + (cflags & 0x7f));
-		cflags = static_cast<uint8_t>(t);
-		x = static_cast<uint8_t>(t >> 8);
+		cflags       = static_cast<uint8_t>(t);
+		x            = static_cast<uint8_t>(t >> 8);
 	}
 
 	if (hs->opcode2)
@@ -143,9 +137,9 @@ pref_done: hs->flags = static_cast<uint32_t>(pref) << 23;
 	if (cflags & C_MODRM)
 	{
 		hs->flags |= F_MODRM;
-		hs->modrm = c = *p++;
+		hs->modrm     = c     = *p++;
 		hs->modrm_mod = m_mod = c >> 6;
-		hs->modrm_rm = m_rm = c & 7;
+		hs->modrm_rm  = m_rm  = c & 7;
 		hs->modrm_reg = m_reg = (c & 0x3f) >> 3;
 
 		if (x && ((x << m_reg) & 0x80))
@@ -157,12 +151,12 @@ pref_done: hs->flags = static_cast<uint32_t>(pref) << 23;
 			if (m_mod == 3)
 			{
 				ht = hde32_table + DELTA_FPU_MODRM + t * 8;
-				t = ht[m_reg] << m_rm;
+				t  = ht[m_reg] << m_rm;
 			}
 			else
 			{
 				ht = hde32_table + DELTA_FPU_REG;
-				t = ht[t] << m_reg;
+				t  = ht[t] << m_reg;
 			}
 			if (t & 0x80)
 				hs->flags |= F_ERROR | F_ERROR_OPCODE;
@@ -177,12 +171,12 @@ pref_done: hs->flags = static_cast<uint32_t>(pref) << 23;
 				auto           op = opcode;
 				if (hs->opcode2)
 				{
-					ht = hde32_table + DELTA_OP2_LOCK_OK;
+					ht        = hde32_table + DELTA_OP2_LOCK_OK;
 					table_end = ht + DELTA_OP_ONLY_MEM - DELTA_OP2_LOCK_OK;
 				}
 				else
 				{
-					ht = hde32_table + DELTA_OP_LOCK_OK;
+					ht        = hde32_table + DELTA_OP_LOCK_OK;
 					table_end = ht + DELTA_OP2_LOCK_OK - DELTA_OP_LOCK_OK;
 					op &= -2;
 				}
@@ -243,12 +237,12 @@ pref_done: hs->flags = static_cast<uint32_t>(pref) << 23;
 			const uint8_t* table_end;
 			if (hs->opcode2)
 			{
-				ht = hde32_table + DELTA_OP2_ONLY_MEM;
+				ht        = hde32_table + DELTA_OP2_ONLY_MEM;
 				table_end = ht + sizeof(hde32_table) - DELTA_OP2_ONLY_MEM;
 			}
 			else
 			{
-				ht = hde32_table + DELTA_OP_ONLY_MEM;
+				ht        = hde32_table + DELTA_OP_ONLY_MEM;
 				table_end = ht + DELTA_OP2_ONLY_MEM - DELTA_OP_ONLY_MEM;
 			}
 			for (; ht != table_end; ht += 2)
@@ -319,7 +313,7 @@ pref_done: hs->flags = static_cast<uint32_t>(pref) << 23;
 		{
 			hs->flags |= F_SIB;
 			p++;
-			hs->sib = c;
+			hs->sib       = c;
 			hs->sib_scale = c >> 6;
 			hs->sib_index = (c & 0x3f) >> 3;
 			if ((hs->sib_base = c & 7) == 5 && !(m_mod & 1))

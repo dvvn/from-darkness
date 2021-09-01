@@ -1,5 +1,9 @@
 #include "runtime assert.h"
 
+#include <algorithm>
+#include <ranges>
+#include <vector>
+
 using namespace nstd;
 
 rt_assert_handler_ex nstd::rt_assert_object;
@@ -21,13 +25,45 @@ rt_assert_handler_ex::~rt_assert_handler_ex( )
 	if (data_ == nullptr)
 		return;
 
-	for (auto&& entry: *static_cast<data_type*>(data_) | ranges::views::reverse)
-	{
-		if (entry.allocated)
-			delete entry.handle;
-	}
+	auto* const data = data_;
+	data->clear( );
+	delete data;
+}
 
-	delete static_cast<data_type*>(data_);
+rt_assert_handler_ex::element_type::~element_type( )
+{
+	if (allocated_)
+		delete handle_;
+}
+
+rt_assert_handler_ex::element_type::element_type(element_type&& other) noexcept
+{
+	handle_          = other.handle_;
+	allocated_       = other.allocated_;
+	other.allocated_ = false;
+}
+
+rt_assert_handler_ex::element_type& rt_assert_handler_ex::element_type::operator=(element_type&& other) noexcept
+{
+	std::swap(handle_, other.handle_);
+	std::swap(allocated_, other.allocated_);
+
+	return *this;
+}
+
+rt_assert_handler_ex::element_type::element_type(rt_assert_handler* handle, bool allocated)
+	: handle_(handle), allocated_(allocated)
+{
+}
+
+bool rt_assert_handler_ex::element_type::operator==(const rt_assert_handler* other) const
+{
+	return handle_ == other;
+}
+
+rt_assert_handler* rt_assert_handler_ex::element_type::operator->( ) const
+{
+	return handle_;
 }
 
 rt_assert_handler_ex::rt_assert_handler_ex(rt_assert_handler_ex&& other) noexcept
@@ -44,26 +80,18 @@ rt_assert_handler_ex& rt_assert_handler_ex::operator=(rt_assert_handler_ex&& oth
 void rt_assert_handler_ex::add(rt_assert_handler* handler, bool allocated)
 {
 	(void)this;
-	static_cast<data_type*>(data_)->push_back({handler, allocated});
+	data_->push_back({handler, allocated});
 }
 
-void rt_assert_handler_ex::remove(rt_assert_handler* handler)
+void rt_assert_handler_ex::remove(const rt_assert_handler* handler)
 {
 	(void)this;
-	auto& data = *static_cast<data_type*>(data_);
-	auto  pos  = ranges::remove(data, handler, &element_type::handle);
-
-	for (auto&& [handle, allocated]: pos)
-	{
-		if (allocated)
-			delete handle;
-	}
-
-	data.erase(pos.begin( ), pos.end( ));
+	auto pos = std::ranges::remove_if(*data_, [=](const element_type& el) { return el == handler; });
+	data_->erase(pos.begin( ), pos.end( ));
 }
 
 void rt_assert_handler_ex::handle_impl(const rt_assert_arg_t& expression, const rt_assert_arg_t& message, const info_type& info) noexcept
 {
-	for (auto& [handle, _]: *static_cast<data_type*>(data_))
-		handle->handle_impl(expression, message, info);
+	for (const auto& elem: *data_)
+		elem->handle_impl(expression, message, info);
 }

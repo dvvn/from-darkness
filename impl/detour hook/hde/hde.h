@@ -22,18 +22,6 @@
 #define PRE_SEG  0x40
 #define PRE_ALL  0xff
 
-#if defined(_M_IX86) || defined(__i386__)
-#define DHOOKS_X86
-#elif defined(_M_X64) || defined(__x86_64__)
-#define DHOOKS_X64
-#else
-#error Only x86 and x64 operation systems supported.
-#endif
-
 #ifndef  __cplusplus
 #error C++ compiler required.
-#endif
-
-#ifndef _INC_DDEMLH
-#define _INC_DDEMLH
 #endif

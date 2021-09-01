@@ -1,7 +1,15 @@
+#if __has_include("../generated/C_BaseEntity_cpp")
 #include "../generated/C_BaseEntity_cpp"
+#else
+#include "C_BaseEntity.h"
+using namespace cheat::csgo;
+#endif
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/sdk/IClientEntityList.hpp"
+#include "cheat/core/csgo modules.h"
+
+#include <detour hook/hook_utils.h>
 
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {
@@ -16,16 +24,6 @@ datamap_t* C_BaseEntity::GetPredictionDescMap( )
 VarMapping_t* C_BaseEntity::GetInterpVarMap( )
 {
 	return nstd::address(this).add(0x24).ptr<VarMapping_t>( );
-}
-
-void C_BaseEntity::EstimateAbsVelocity(Vector&)
-{
-	CHEAT_UNUSED_FUNCTION;
-}
-
-bool C_BaseEntity::ShouldInterpolate( )
-{
-	CHEAT_UNUSED_FUNCTION;
 }
 
 CUtlVector<matrix3x4_t>& C_BaseEntity::BonesCache( )

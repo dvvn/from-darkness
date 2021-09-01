@@ -1,10 +1,20 @@
 #pragma once
 
-#include "settings detail.h"
 #include "cheat/core/service.h"
+#include "cheat/gui/objects/abstract page.h"
+#include "cheat/gui/tools/string wrapper.h"
+
+#include <nlohmann/json.hpp>
+
+#include <filesystem>
 
 namespace cheat
 {
+	namespace settings_detail
+	{
+		class folder_with_configs_mgr;
+	}
+
 	class settings_data: protected gui::tools::string_wrapper_base
 	{
 	public:
@@ -12,7 +22,7 @@ namespace cheat
 
 		using tree_type = nlohmann::json;
 
-		virtual ~settings_data( ) = default;
+		virtual ~settings_data( );
 
 		settings_data(const std::string_view& name);
 		settings_data(std::wstring&& name);
@@ -36,11 +46,13 @@ namespace cheat
 		std::filesystem::path path_;
 	};
 
-	class settings final: public gui::objects::empty_page, public settings_data,
-						  public service<settings>
+	class settings final: public gui::objects::empty_page
+						, public settings_data
+						, public service<settings>
 	{
 	public:
 		settings( );
+		~settings()override;
 
 		void update( ) override;
 		void render( ) override;
@@ -53,6 +65,6 @@ namespace cheat
 		bool merge__ = false;
 #endif
 
-		settings_detail::folder_with_configs_mgr mgr__;
+		std::unique_ptr<settings_detail::folder_with_configs_mgr> mgr__;
 	};
 }

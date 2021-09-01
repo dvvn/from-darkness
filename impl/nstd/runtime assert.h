@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 namespace std
 {
 	template <typename T>
@@ -11,6 +13,8 @@ namespace std
 	template <class El, class Tr>
 	class basic_ostream;
 }
+
+#include "core.h"
 
 namespace nstd
 {
@@ -93,10 +97,26 @@ namespace nstd
 		rt_assert_handler_ex( );
 		~rt_assert_handler_ex( ) override;
 
-		struct element_type
+		class element_type
 		{
-			rt_assert_handler* handle;
-			bool allocated;
+		public:
+			~element_type( );
+
+			element_type(element_type&& other) noexcept;
+			element_type& operator=(element_type&& other) noexcept;
+
+			element_type(element_type&)            = delete;
+			element_type& operator=(element_type&) = delete;
+
+			element_type(rt_assert_handler* handle, bool allocated);
+
+			bool operator==(const rt_assert_handler* other) const;
+
+			rt_assert_handler* operator->( ) const;
+
+		private:
+			rt_assert_handler* handle_;
+			bool               allocated_;
 		};
 
 		using data_type = std::vector<element_type, std::allocator<element_type>>;
@@ -108,28 +128,21 @@ namespace nstd
 		rt_assert_handler_ex& operator=(rt_assert_handler_ex&& other) noexcept;
 
 		void add(rt_assert_handler* handler, bool allocated = false);
-		void remove(rt_assert_handler* handler);
+		void remove(const rt_assert_handler* handler);
 
 	protected:
 		void handle_impl(const rt_assert_arg_t& expression, const rt_assert_arg_t& message, const info_type& info) noexcept override;
 
 	private:
-		void* data_;
+		data_type* data_;
 	};
 
 	extern rt_assert_handler_ex rt_assert_object;
 
 	namespace detail
 	{
-		template <class>
-		inline constexpr bool detect_msg = false;
-
-		template <class T, size_t S>
-		inline constexpr bool detect_msg<T[S]> = true;
-		template <class T, size_t S>
-		inline constexpr bool detect_msg<T(&)[S]> = true;
-		template <class T, size_t S>
-		inline constexpr bool detect_msg<const T(&)[S]> = true;
+		template <class T>
+		_INLINE_VAR constexpr bool detect_msg = std::is_bounded_array_v<std::remove_cvref_t<T>>;
 
 		template <typename T1, typename T2 = void>
 		constexpr rt_assert_arg_t expr_or_msg(T1&& msg, const T2* msg2 = nullptr)
@@ -138,16 +151,16 @@ namespace nstd
 		}
 	}
 
-	__forceinline constexpr void rt_assert_invoker(bool              result,
-												   rt_assert_arg_t&& expression,
-												   rt_assert_arg_t&& message,
-												   rt_assert_arg_t&& file_name,
-												   rt_assert_arg_t&& function,
-												   unsigned __int64  line)
+	constexpr void rt_assert_invoker(bool              result,
+									 rt_assert_arg_t&& expression,
+									 rt_assert_arg_t&& message,
+									 rt_assert_arg_t&& file_name,
+									 rt_assert_arg_t&& function,
+									 unsigned __int64  line)
 	{
 		// ReSharper disable once CppIfCanBeReplacedByConstexprIf
 		// ReSharper disable once CppRedundantBooleanExpressionArgument
-		if (__builtin_is_constant_evaluated( ))
+		if (std::is_constant_evaluated( ))
 		{
 			if (!result)
 				throw;

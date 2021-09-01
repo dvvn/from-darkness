@@ -2,8 +2,13 @@
 
 #include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style var.h"
-
 #include "cheat/gui/widgets/window.h"
+
+#include "nstd/runtime assert.h"
+
+#include <algorithm>
+#include <ranges>
+#include <span>
 
 using namespace cheat;
 using namespace gui;
@@ -17,7 +22,7 @@ static size_t _Get_num_chars(const pages_storage_data& page)
 
 static auto _Sizes(std::span<pages_storage_data>&& container)
 {
-	return container | ranges::views::transform(_Get_num_chars);
+	return container | std::views::transform(_Get_num_chars);
 }
 
 struct selected_info
@@ -75,7 +80,7 @@ static selected_info _Render_and_select(std::span<pages_storage_data>&& data, Fn
 
 			if (!page_active)
 			{
-				const auto selected_later = ranges::find_if(itr_next, data_end, &widgets::selectable_base::selected);
+				const auto selected_later = std::ranges::find_if(itr_next, data_end, &widgets::selectable_base::selected);
 				runtime_assert(selected_later != data_end);
 				page_active = selected_later._Unwrapped(  );
 			}
@@ -83,7 +88,7 @@ static selected_info _Render_and_select(std::span<pages_storage_data>&& data, Fn
 			{
 				if constexpr (!Sameline)
 				{
-					ranges::for_each(itr_next, data_end, obj_invoke);
+					std::ranges::for_each(itr_next, data_end, obj_invoke);
 				}
 				else
 				{
@@ -134,7 +139,7 @@ void vertical_pages_renderer::init( )
 	abstract_pages_renderer::init( );
 
 	auto sizes = _Sizes(pages_);
-	longest_string__ = *ranges::max_element(sizes, std::less<size_t>( ));
+	longest_string__ = *std::ranges::max_element(sizes, std::less<size_t>( ));
 }
 
 
@@ -194,7 +199,7 @@ void horizontal_pages_renderer::init( )
 	auto sizes = _Sizes(pages_);
 
 #ifdef CHEAT_GUI_HORIZONTAL_PAGES_RENDERER_USE_LONGEST_STRING
-	longest_string__ = *ranges::max_element(sizes, std::less<size_t>( ));
+	longest_string__ = *std::ranges::max_element(sizes, std::less<size_t>( ));
 #else
 	for (auto s: sizes)
 		chars_count__ += s;

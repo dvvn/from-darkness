@@ -5,6 +5,21 @@
 #include "objects/pages renderer.h"
 #include "widgets/window.h"
 
+// ReSharper disable CppInconsistentNaming
+using UINT = unsigned int;
+using UINT_PTR =
+#ifdef _W64
+_W64
+#endif
+unsigned
+#if defined(_WIN64)
+__int64
+#else
+int;
+#endif
+using WPARAM = UINT_PTR;
+// ReSharper restore CppInconsistentNaming
+
 #if defined(_DEBUG) ||  defined(CHEAT_GUI_TEST)
 #define CHEAT_GUI_HAS_DEMO_WINDOW 1
 #else
@@ -31,6 +46,6 @@ namespace cheat::gui
 		tools::string_wrapper            menu_title_;
 		objects::vertical_pages_renderer renderer_;
 
-		WPARAM hotkey_ = VK_HOME;
+		WPARAM hotkey_/* = VK_HOME*/;
 	};
 }

@@ -8,24 +8,11 @@
 #include <robin map/include/tsl/robin_map.h>
 #include <robin map/include/tsl/robin_set.h>
 
+#include <string>
 #include <include/veque.hpp>
 
 namespace nstd
 {
-	template <class ...Fs>
-	struct overload: Fs...
-	{
-		template <class ...Ts>
-		overload(Ts&& ...ts) : Fs{std::forward<Ts>(ts)}...
-		{
-		}
-
-		using Fs::operator()...;
-	};
-
-	template <class ...Ts>
-	overload(Ts&&...) -> overload<std::remove_reference_t<Ts>...>;
-
 	template <typename T>
 	struct equal_to: std::equal_to<T>
 	{
@@ -77,7 +64,7 @@ namespace nstd
 	}
 
 #ifdef TSL_ROBIN_MAP_H
-	#define NSTD_HAVE_UNORDERED_MAP
+#define NSTD_HAVE_UNORDERED_MAP
 
 	template <typename Key, typename Value,
 			  typename Hasher = hash<Key>,
@@ -87,7 +74,7 @@ namespace nstd
 #endif
 
 #ifdef TSL_ROBIN_SET_H
-	#define NSTD_HAVE_UNORDERED_SET
+#define NSTD_HAVE_UNORDERED_SET
 
 	template <typename Value,
 			  typename Hasher = hash<Value>,

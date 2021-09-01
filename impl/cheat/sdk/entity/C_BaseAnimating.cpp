@@ -1,29 +1,17 @@
+#if __has_include("../generated/C_BaseAnimating_cpp")
 #include "../generated/C_BaseAnimating_cpp"
+#else
+#include "C_BaseAnimating.h"
+using namespace cheat::csgo;
+#endif
 
-#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo modules.h"
+
+#include <detour hook/hook_utils.h>
 
 void C_BaseAnimating::UpdateClientSideAnimation( )
 {
 	dhooks::_Call_function(&C_BaseAnimating::UpdateClientSideAnimation, this, 223);
-}
-
-void C_BaseAnimating::DoExtraBoneProcessing(CStudioHdr*, Vector*, Quaternion [], matrix3x4a_t [], CBoneBitList&, CIKContext*)
-{
-	runtime_assert("Dont use. Added only for example");
-	(void)this;
-}
-
-bool C_BaseAnimating::ShouldSkipAnimationFrame(/*float current_time*/)
-{
-	runtime_assert("Dont use. Added only for example");
-	(void)this;
-	return true;
-}
-
-void C_BaseAnimating::StandardBlendingRules(CStudioHdr*, Vector [], QuaternionAligned [], float, int)
-{
-	runtime_assert("Dont use. Added only for example");
-	(void)this;
 }
 
 CUtlVector<CAnimationLayer>& C_BaseAnimating::GetAnimOverlays( )

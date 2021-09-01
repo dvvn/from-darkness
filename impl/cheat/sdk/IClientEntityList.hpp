@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseHandle.hpp"
+#include "CBaseHandle.hpp"
 
 namespace cheat::csgo
 {

@@ -1,6 +1,8 @@
 #pragma once
 #include "service.h"
 
+#include "nstd/address.h"
+
 namespace cheat::csgo
 {
 	class C_CSPlayer;
@@ -35,6 +37,8 @@ namespace cheat::csgo
 	class IBaseClientDLL;
 	class IStudioRender;
 }
+
+struct IDirect3DDevice9;
 
 namespace cheat::detail
 {
@@ -180,7 +184,7 @@ namespace cheat
 		using ifc = detail::csgo_interface<T, Ptrs>;
 
 	protected:
-		service_base::load_result load_impl( ) override ;
+		load_result load_impl( ) override ;
 
 	public:
 		//nstd::filesystem::path csgo_path;

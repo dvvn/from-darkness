@@ -5,9 +5,11 @@
  *
  */
 
-#include "include.h"
 
-#ifdef DHOOKS_X64
+
+#if defined(_M_X64) || defined(__x86_64__)
+
+#include "hde64.h"
 
 #include <windows.h>
 

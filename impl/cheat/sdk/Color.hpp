@@ -1,5 +1,9 @@
 #pragma once
 
+#include "nstd/runtime assert.h"
+
+#include <array>
+
 namespace cheat::csgo
 {
 	class Color: std::array<uint8_t, 4>

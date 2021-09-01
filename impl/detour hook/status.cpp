@@ -1,5 +1,10 @@
 #include "status.h"
 
+#include "nstd/runtime assert.h"
+
+#include <array>
+#include <ranges>
+
 using namespace dhooks;
 
 static constexpr auto _Status_to_string_cache = []
@@ -32,13 +37,15 @@ static constexpr auto _Status_to_string_cache = []
 #undef STATUS_STR
 
 #ifdef _DEBUG
-	for (const auto& key: data | ranges::views::keys)
+	for (const auto& key: data | std::ranges::views::keys)
 	{
 		if (key == std::remove_cvref_t<decltype(key)>( ))
 		{
 			if (std::is_constant_evaluated( ))
 				throw std::exception("Element isn't set!");
+				// ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
 			else
+				// ReSharper disable once CppUnreachableCode
 				runtime_assert("Element isn't set!");
 		}
 	}

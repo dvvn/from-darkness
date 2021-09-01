@@ -1,12 +1,16 @@
 #pragma once
 
+#include "nstd/memory backup.h"
+
+#include <imgui.h>
+
 namespace cheat::gui::tools
 {
 	//PushStyleColor(ImGuiCol idx, const ImVec4& col)
 	class push_style_color: public nstd::memory_backup<ImVec4>
 	{
 	public:
-		push_style_color( )=default;
+		push_style_color( ) = default;
 		push_style_color(ImGuiCol idx, const ImVec4& col);
 		push_style_color(ImGuiCol idx, ImU32 col);
 		push_style_color(ImGuiCol idx, float alpha_scale);

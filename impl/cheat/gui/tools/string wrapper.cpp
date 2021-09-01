@@ -1,5 +1,12 @@
 #include "string wrapper.h"
 
+#include "nstd/overload.h"
+#include "nstd/runtime assert.h"
+
+#include <functional>
+
+#include <Windows.h>
+
 using namespace cheat;
 using namespace gui;
 using namespace tools;

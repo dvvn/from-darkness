@@ -1,9 +1,10 @@
 ﻿#pragma once
+#include <type_traits>
 
 namespace nstd::detail
 {
 	template <typename T, typename ...Ts>
-	FORCEINLINE constexpr T bitflag_combine(Ts ...args)
+	constexpr T bitflag_combine(Ts ...args)
 	{
 		if constexpr (sizeof...(Ts) == 0)
 		{
@@ -22,7 +23,7 @@ namespace nstd::detail
 	}
 
 	template <typename T, typename T1>
-	FORCEINLINE constexpr bool bitflag_has(T enum_val, T1 val)
+	constexpr bool bitflag_has(T enum_val, T1 val)
 	{
 		if constexpr (!std::is_enum_v<T>)
 			return enum_val & static_cast<T>(val);
@@ -31,7 +32,7 @@ namespace nstd::detail
 	}
 
 	template <typename T, typename T1>
-	FORCEINLINE constexpr T bitflag_remove(T enum_val, T1 val)
+	constexpr T bitflag_remove(T enum_val, T1 val)
 	{
 		if constexpr (!std::is_enum_v<T>)
 		{
@@ -45,7 +46,7 @@ namespace nstd::detail
 	}
 
 	template <typename T>
-	FORCEINLINE constexpr auto bitflag_raw_type( )
+	constexpr auto bitflag_raw_type( )
 	{
 		if constexpr (std::is_enum_v<T>)
 			return std::underlying_type_t<T>( );
@@ -72,20 +73,20 @@ private:\
 	constexpr auto operator<=>(const _NAME_&) const = default;\
 	\
 	template <typename ...T>\
-		requires(std::convertible_to<T, value_type_raw> && ...)\
+		requires(std::is_convertible_v<T, value_type_raw> && ...)\
 	constexpr _NAME_(T... vals): value_(nstd::detail::bitflag_combine<value_type>(vals..., ##__VA_ARGS__)) { static_assert(std::is_final_v<_NAME_>); }\
 	template <typename ...T>\
-		requires(std::convertible_to<T, value_type_raw> && ...)\
+		requires(std::is_convertible_v<T, value_type_raw> && ...)\
 	constexpr bool has(T... vals) const { return (nstd::detail::bitflag_has(value_, vals) || ...); }\
 	constexpr bool has(_NAME_ other) const { return this->has(other.value_); }\
 	template <typename ...T>\
-		requires(std::convertible_to<T, value_type_raw> && ...)\
+		requires(std::is_convertible_v<T, value_type_raw> && ...)\
 	constexpr bool has_all(T... vals) const { return nstd::detail::bitflag_has(value_, nstd::detail::bitflag_combine<value_type>(vals...));}\
 	template <typename ...T>\
-		requires(std::convertible_to<T, value_type_raw> && ...)\
+		requires(std::is_convertible_v<T, value_type_raw> && ...)\
 	constexpr _NAME_& add(T... vals) { value_ = nstd::detail::bitflag_combine<value_type>(value_, vals...); return *this; }\
 	template <typename ...T>\
-		requires(std::convertible_to<T, value_type_raw> && ...)\
+		requires(std::is_convertible_v<T, value_type_raw> && ...)\
 	constexpr _NAME_& remove(T... vals) { value_ = nstd::detail::bitflag_remove<value_type>(value_, vals...); return *this; }\
 	\
 	constexpr value_type value() const {return value_;}\

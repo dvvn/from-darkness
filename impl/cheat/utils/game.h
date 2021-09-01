@@ -1,4 +1,7 @@
 #pragma once
+#include "nstd/chars cache.h"
+
+#include <string_view>
 
 namespace cheat::csgo
 {

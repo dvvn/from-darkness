@@ -1,17 +1,20 @@
 #pragma once
 
 #include "cheat/core/service.h"
-#include "cheat/gui/objects/abstract page.h"
-#include "cheat/sdk/entity/C_BaseAnimating.h"
+#include "cheat/hooks/base.h"
+
+namespace cheat::csgo
+{
+	class QuaternionAligned;
+	class Vector;
+	class C_BaseAnimating;
+	class CStudioHdr;
+}
 
 namespace cheat::hooks::c_base_animating
 {
-	class standard_blending_rules final: public service<standard_blending_rules>
-									   , public dhooks::_Detect_hook_holder_t<decltype(&csgo::C_BaseAnimating::StandardBlendingRules)>
-									   , service_hook_helper
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-									   , service_always_skipped
-#endif
+	class standard_blending_rules final: public base<standard_blending_rules, void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::QuaternionAligned*, float, int)>
+									   , service_sometimes_skipped
 	{
 	public:
 		standard_blending_rules( );

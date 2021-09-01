@@ -2,6 +2,7 @@
 
 #include "IHandleEntity.hpp"
 
+
 namespace cheat::csgo
 {
 	// How many bits to use to encode an edict.
@@ -37,7 +38,7 @@ namespace cheat::csgo
 		int GetSerialNumber( ) const;
 
 		int ToInt( ) const;
-		auto operator<=>(const CBaseHandle&) const = default;
+		auto operator<=>(const CBaseHandle&) const;
 
 		// Use this to dereference the handle.
 		// Note: this is implemented in game code (ehandle.h)
@@ -46,7 +47,6 @@ namespace cheat::csgo
 	protected:
 		// The low NUM_SERIAL_BITS hold the index. If this value is less than MAX_EDICTS, then the entity is networkable.
 		// The high NUM_SERIAL_NUM_BITS bits are the serial number.
-		/*unsigned long*/
-		int32_t m_Index;
+		unsigned long		 m_Index;
 	};
 }

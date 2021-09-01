@@ -1,6 +1,9 @@
 #pragma once
 #include "Studio.hpp"
 
+#include "cheat/sdk/QAngle.hpp"
+#include "cheat/sdk/Vector.hpp"
+
 namespace cheat::csgo
 {
 	enum PreviewImageRetVal_t
@@ -70,9 +73,7 @@ namespace cheat::csgo
 	struct MaterialLightingState_t;
 	struct ColorMeshInfo_t;
 
-	struct OverrideType_t final
-	{
-		enum value_type : int32_t
+	enum class OverrideType_t : int32_t
 		{
 			NORMAL = 0,
 			BUILD_SHADOWS,
@@ -80,9 +81,6 @@ namespace cheat::csgo
 			SELECTIVE,
 			SSAO_DEPTH_WRITE
 		};
-
-		NSTD_ENUM_STRUCT(OverrideType_t);
-	};
 
 	struct DrawModelState_t
 	{
@@ -210,7 +208,7 @@ namespace cheat::csgo
 		virtual int DrawModel(int flags, IClientRenderable* pRenderable, ModelInstanceHandle_t instance, int entity_index, const model_t* model, const Vector& origin,
 							  const QAngle& angles,
 							  int skin, int body, int hitboxset, const matrix3x4_t* modelToWorld = 0, const matrix3x4_t* pLightingOffset = 0) = 0;
-		virtual void ForcedMaterialOverride(IMaterial* newMaterial, OverrideType_t nOverrideType = 0, int nOverrides = 0) = 0;
+		virtual void ForcedMaterialOverride(IMaterial* newMaterial, OverrideType_t nOverrideType = OverrideType_t::NORMAL, int nOverrides = 0) = 0;
 		virtual bool IsForcedMaterialOverride( ) = 0;
 		virtual void SetViewTarget(const CStudioHdr* pStudioHdr, int nBodyIndex, const Vector& target) = 0;
 		virtual ModelInstanceHandle_t CreateInstance(IClientRenderable* pRenderable, LightCacheHandle_t* pCache = 0) = 0;

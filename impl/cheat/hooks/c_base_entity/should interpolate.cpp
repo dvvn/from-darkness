@@ -1,6 +1,8 @@
 #include "should interpolate.h"
 
+#include "cheat/core/csgo modules.h"
 #include "cheat/sdk/ClientClass.hpp"
+#include "cheat/sdk/entity/C_BaseEntity.h"
 
 using namespace cheat;
 using namespace hooks;
@@ -15,8 +17,8 @@ using namespace csgo;
 //csgo_modules::$2.find_vtable<$1>()
 
 should_interpolate::should_interpolate( )
+	: service_sometimes_skipped(true)
 {
-	this->add_service<netvars>( );
 }
 
 nstd::address should_interpolate::get_target_method_impl( ) const

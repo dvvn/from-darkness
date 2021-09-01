@@ -34,6 +34,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\widget animator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate abs velocity.h" />
@@ -42,16 +43,48 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\config.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\services loader.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\shared holder.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\tick record.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\shared holder.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\tick record.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Color.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatCharacter.h">
@@ -59,11 +92,19 @@
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BasePlayer.h">
@@ -71,17 +112,29 @@
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_CSPlayer.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_WeaponCSBase.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IStudioRender.h" />
@@ -97,15 +150,28 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players list.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players list.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CBaseHandle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ClientClass.hpp" />
@@ -152,7 +218,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\game.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\memory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde64.h" />
@@ -168,26 +233,27 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\containers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\core.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum as struct.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum overloads.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory backup.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory block.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory protect.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\one_instance.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\handle.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\data_cache.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections_storage.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables_storage.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports mgr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\root class.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections mgr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables mgr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\threads.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\overload.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\runtime assert.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\signature.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\std overloads.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\timer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\type name.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo modules.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\services loader.cpp" />
@@ -205,6 +271,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\widget animator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\base.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate abs velocity.cpp" />
@@ -214,14 +281,41 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick record.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick record.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatCharacter.cpp">
@@ -229,11 +323,19 @@
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BasePlayer.cpp">
@@ -241,17 +343,29 @@
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_CSPlayer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_WeaponCSBase.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IConVar.cpp" />
@@ -269,20 +383,32 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players list.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players list.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\BaseHandle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CBaseHandle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\game.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\memory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde64.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hook.cpp" />
@@ -296,18 +422,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)nstd\memory protect.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\handle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\data_cache.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports_storage.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections_storage.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables_storage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports mgr.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections mgr.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables mgr.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\threads.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)nstd\timer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)nstd\runtime assert.cpp" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,12 @@
 #include "cheat/sdk/entity/C_CSPlayer.h"
 #include "cheat/utils/game.h"
 
+#include "nstd/memory backup.h"
+#include "nstd/runtime assert.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include <excpt.h>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -12,6 +18,10 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 {
 	shared_holder::init( );
 
+#if !__has_include("cheat/sdk/generated/C_BasePlayer_h")
+#pragma message(__FUNCTION__ ": skipped")
+#else
+
 	const auto pl = this->get( );
 
 	pl->sim_time = /*ent->m_flSimulationTime( )*/-1;
@@ -19,7 +29,7 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 	//this->index = ent->EntIndex( );
 	pl->ent   = owner;
 	pl->alive = owner->IsAlive( );
-	pl->team  = owner->m_iTeamNum( );
+	pl->team  = (m_iTeamNum_t)owner->m_iTeamNum( );
 	pl->ticks.reserve(player::max_ticks_count( ));
 	owner->m_bClientSideAnimation( ) = false;
 	this->destroy_fn_                = [](const player& p)
@@ -32,12 +42,16 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 		{
 		}
 	};
+#endif
 }
 
 bool player_shared_impl::update_simtime( )
 {
 	//todo: tickbase shift workaround
-
+#if !__has_include("cheat/sdk/generated/C_BasePlayer_h")
+	(void)this;
+#pragma message(__FUNCTION__ ": skipped")
+#else
 	auto& p = **this;
 
 	if (const auto new_sim_time = p.ent->m_flSimulationTime( ); p.sim_time < new_sim_time)
@@ -45,11 +59,14 @@ bool player_shared_impl::update_simtime( )
 		p.sim_time = new_sim_time;
 		return true;
 	}
+#endif
 	return false;
 }
 
 void player_shared_impl::update_animations(bool simple)
 {
+	(void)this;
+
 	const auto p = this->get( )->ent;
 
 	const auto backup_layers = [p]
@@ -63,6 +80,7 @@ void player_shared_impl::update_animations(bool simple)
 
 	if (simple)
 	{
+		//--
 		p->UpdateClientSideAnimation( );
 	}
 	else
@@ -104,6 +122,7 @@ void player_shared_impl::remove_old_ticks(float curtime)
 		const auto begin = ticks.begin( );
 		const auto end   = ticks.end( );
 
+		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto first_valid = [&]
 		{
 			for (auto itr = begin; itr != end; ++itr)
@@ -121,6 +140,7 @@ void player_shared_impl::remove_old_ticks(float curtime)
 			return;
 		}
 
+		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto last_valid = [&]
 		{
 			for (auto itr = std::prev(end); itr != first_valid; --itr)
@@ -131,9 +151,6 @@ void player_shared_impl::remove_old_ticks(float curtime)
 
 			return end;
 		}( );
-
-		(void)first_valid;
-		(void)last_valid;
 
 		if (last_valid == end)
 			ticks_window = std::span(first_valid, 1);

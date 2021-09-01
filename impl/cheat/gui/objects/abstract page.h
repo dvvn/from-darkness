@@ -3,6 +3,9 @@
 #include "cheat/gui/tools/string wrapper.h"
 #include "cheat/gui/widgets/selectable.h"
 
+#include <memory>
+#include <vector>
+
 namespace cheat::gui::objects
 {
 	using empty_page = renderable_object;

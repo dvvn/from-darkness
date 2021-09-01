@@ -1,10 +1,36 @@
 #include "vtables_storage.h"
 
-#include "thread_pool.hpp"
+#include "nstd/signature.h"
+#include "nstd/os/module info.h"
+#include "nstd/os/threads.h"
 
-using namespace nstd;
-using namespace os;
-using namespace os::detail;
+#include <nlohmann/json.hpp>
+#include <thread_pool.hpp>
+
+#include <filesystem>
+
+using nstd::address;
+using nstd::os::vtable_info;
+using nstd::os::section_info;
+using namespace nstd::os::detail;
+
+template < >
+module_data_cache_fwd<vtable_info> nstd::os::detail::make_cache_fwd<vtable_info>( )
+{
+	return std::make_unique<module_data_cache<vtable_info>>( );
+}
+
+template < >
+bool nstd::os::detail::cache_empty<vtable_info>(const module_data_cache<vtable_info>& cache)
+{
+	return cache.empty( );
+}
+
+template < >
+void nstd::os::detail::cache_reserve<vtable_info>(module_data_cache<vtable_info>& cache, std::size_t count)
+{
+	cache.reserve(count);
+}
 
 //todo: add x64 support
 static std::optional<vtable_info> _Load_vtable_info(const section_info& dot_rdata, const section_info& dot_text, address type_descriptor)
@@ -48,6 +74,8 @@ static std::optional<vtable_info> _Load_vtable_info(const section_info& dot_rdat
 	return { };
 }
 
+using nstd::os::vtables_storage;
+
 vtables_storage::vtables_storage( )
 {
 	lock_ = std::make_shared<std::mutex>( );
@@ -75,15 +103,15 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 	///https://www.google.com/search?q=rtti+typedescriptor+x64
 #endif
 	auto& sections = this->derived_sections( );
-	if (!sections.load( ))
+	if (!sections.load({ }))
 		return false;
 
 	const auto& sections_cache = sections.get_cache( );
 	const auto& dot_rdata      = sections_cache.at(".rdata");
 	const auto& dot_text       = sections_cache.at(".text");
 
-	static const/*expr*/ auto part_before_sig = signature(".?AV");
-	static const/*expr*/ auto part_after_sig  = signature("@@");
+	static const/*expr*/ auto part_before_sig = make_signature(".?AV");
+	static const/*expr*/ auto part_after_sig  = make_signature("@@");
 	static const/*expr*/ auto part_before     = part_before_sig.get_known( );
 	static const/*expr*/ auto part_after      = part_after_sig.get_known( );
 
@@ -194,7 +222,7 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 		if (!block_start.has_value( ))
 			break;
 		bytes = bytes.shift_to_end(*block_start);
-		if (bad_byte(*block_start->_Unchecked_end( )))
+		if (bad_byte(*block_start->bytes_range( )._Unchecked_end( )))
 			continue;
 
 		const auto block_end = bytes.find_block(part_after);
@@ -205,8 +233,8 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 
 		auto generator = [block_start, block_end, &dot_rdata, &dot_text]( )-> task_result
 		{
-			const auto block_start_ptr = block_start->_Unchecked_begin( );
-			const auto block_end_ptr   = block_end->_Unchecked_end( );
+			const auto block_start_ptr = block_start->bytes_range( )._Unchecked_begin( );
+			const auto block_end_ptr   = block_end->bytes_range( )._Unchecked_end( );
 			const auto block_size_raw  = std::distance(block_start_ptr, block_end_ptr);
 
 			const auto class_descriptor = std::string_view(reinterpret_cast<const char*>(block_start_ptr), block_size_raw);
@@ -250,7 +278,7 @@ bool vtables_storage::load_from_memory(cache_type& cache)
 	return true;
 }
 
-bool vtables_storage::load_from_file(cache_type& cache, ptree_type&& storage)
+bool vtables_storage::load_from_file(cache_type& cache, detail::ptree_type&& storage)
 {
 	const auto base_address = this->base_addr( );
 
@@ -267,7 +295,7 @@ bool vtables_storage::load_from_file(cache_type& cache, ptree_type&& storage)
 	return true;
 }
 
-bool vtables_storage::read_to_storage(const cache_type& cache, ptree_type& storage) const
+bool vtables_storage::read_to_storage(const cache_type& cache, detail::ptree_type& storage) const
 {
 	const auto base_address = this->base_addr( );
 
@@ -279,12 +307,12 @@ bool vtables_storage::read_to_storage(const cache_type& cache, ptree_type& stora
 	return true;
 }
 
-sections_storage& vtables_storage::derived_sections( )
+nstd::os::sections_storage& vtables_storage::derived_sections( )
 {
 	return root_class( )->sections( );
 }
 
-memory_block vtables_storage::derived_mem_block( ) const
+nstd::memory_block vtables_storage::derived_mem_block( ) const
 {
 	return root_class( )->mem_block( );
 }

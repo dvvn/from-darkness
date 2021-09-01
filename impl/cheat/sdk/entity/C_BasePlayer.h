@@ -17,10 +17,9 @@ namespace cheat::csgo
 	class C_BasePlayer: public C_BaseCombatCharacter
 	{
 	public:
+#if __has_include("../generated/C_BasePlayer_h")
 #include "../generated/C_BasePlayer_h"
-
-		bool IsAlive( ) ;
+#endif
+		bool IsAlive( );
 	};
-
-
 }

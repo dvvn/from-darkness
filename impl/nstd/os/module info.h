@@ -1,14 +1,24 @@
 #pragma once
 
-#include "module info/exports_storage.h"
-#include "module info/sections_storage.h"
-#include "module info/vtables_storage.h"
+//#include "module info/exports_storage.h"
+//#include "module info/sections_storage.h"
+//#include "module info/vtables_storage.h"
+
+#include "module info/exports mgr.h"
+#include "module info/sections mgr.h"
+#include "module info/vtables mgr.h"
 
 #include "nstd/one_instance.h"
 
+namespace std
+{
+	template <class _Fty>
+	class function;
+}
+
 namespace nstd::os
 {
-	class module_info final: sections_storage, exports_storage, vtables_storage
+	class module_info final: sections_mgr, exports_mgr, vtables_mgr
 	{
 		LDR_DATA_TABLE_ENTRY* ldr_entry;
 		IMAGE_DOS_HEADER*     dos;
@@ -17,12 +27,23 @@ namespace nstd::os
 		std::wstring name_;
 		bool         name_is_unicode_;
 
+		struct mutex_type;
+		using mutex_type_fwd = std::unique_ptr<mutex_type>;
+
+		mutex_type_fwd mtx_;
+
 	protected:
 		module_info*       root_class( ) override;
 		const module_info* root_class( ) const override;
 
+		void lock( ) const override;
+		void unlock( ) const override;
+
 	public:
-		~module_info( ) override = default;
+		~module_info( ) override;
+
+		module_info(module_info&&) noexcept;
+		module_info& operator=(module_info&&) noexcept;
 
 		module_info(LDR_DATA_TABLE_ENTRY* ldr_entry, IMAGE_DOS_HEADER* dos, IMAGE_NT_HEADERS* nt);
 
@@ -48,72 +69,37 @@ namespace nstd::os
 		const std::wstring& name( ) const;
 		bool                name_is_unicode( ) const;
 
-		sections_storage&       sections( );
-		const sections_storage& sections_view( ) const;
-
-		exports_storage&       exports( );
-		const exports_storage& exports_view( ) const;
-
-		vtables_storage&       vtables( );
-		const vtables_storage& vtables_view( ) const;
+		const sections_mgr& sections( ) const;
+		const exports_mgr&  exports( ) const;
+		const vtables_mgr&  vtables( ) const;
 	};
 
 	class modules_storage
 	{
 	public:
-		modules_storage(modules_storage&&)            = default;
-		modules_storage& operator=(modules_storage&&) = default;
+		struct storage_type;
 
 		modules_storage(const modules_storage&)            = delete;
 		modules_storage& operator=(const modules_storage&) = delete;
 
-		using storage_type = std::list<module_info>;
+		modules_storage(modules_storage&&) noexcept;
+		modules_storage& operator=(modules_storage&&) noexcept;
 
-		modules_storage( ) = default;
+		modules_storage( );
+		~modules_storage( );
+
 		modules_storage& update(bool force = false);
 
 		module_info& current( ) const;
 		module_info& owner( );
 
-		storage_type& all(bool update = false);
-
-		template <typename Pr, class Pj = std::identity>
-		module_info* find(Pr pred, Pj proj = { })
-		{
-			auto found = ranges::find_if(storage_, pred, proj);
-			if (found == storage_.end( ))
-				return nullptr;
-
-			return std::addressof(*found);
-		}
+		using find_fn = std::function<bool(const module_info&)>;
+		module_info* find(const find_fn& fn);
+		module_info* rfind(const find_fn& fn);
 
 	private:
-		template <typename Ret, typename T, typename Proj>
-		module_info* find_unwrap(T&& val, Proj&& proj)
-		{
-			auto found = ranges::find(storage_, val, proj);
-			if (found == storage_.end( ))
-				return nullptr;
-
-			return std::addressof(*found);
-		}
-
-	public:
-		template <typename Ret, std::equality_comparable_with<Ret> T>
-		module_info* find(Ret (module_info::*proj)( ), T&& val)
-		{
-			return this->find_unwrap<Ret>(std::forward<T>(val), proj);
-		}
-
-		template <typename Ret, std::equality_comparable_with<Ret> T>
-		module_info* find(Ret (module_info::*proj)( ) const, T&& val)
-		{
-			return this->find_unwrap<Ret>(std::forward<T>(val), proj);
-		}
-
-	private:
-		storage_type storage_;
-		module_info* current_cached_ = nullptr;
+		std::unique_ptr<storage_type> storage_;
+		module_info*                  current_cached_ = nullptr;
 	};
 
 	namespace detail

@@ -33,10 +33,11 @@ namespace cheat::gui::objects
 		using child_frame_window::show;
 
 	private:
+		size_t
 #ifdef CHEAT_GUI_HORIZONTAL_PAGES_RENDERER_USE_LONGEST_STRING
-		size_t longest_string__
+		 longest_string__
 #else
-		size_t chars_count__
+		 chars_count__
 #endif
 				= 0;
 		widgets::group selected_group__;

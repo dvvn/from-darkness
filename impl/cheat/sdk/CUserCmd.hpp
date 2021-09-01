@@ -1,10 +1,13 @@
 #pragma once
+#include "cheat/sdk/QAngle.hpp"
+#include "cheat/sdk/Vector.hpp"
 
 namespace cheat::csgo
 {
-	struct cmd_buttons final
+	class CUserCmd
 	{
-		enum value_type :uint32_t
+	public:
+		enum buttons :uint32_t
 		{
 			IN_ATTACK = 1 << 0,
 			IN_JUMP = 1 << 1,
@@ -42,19 +45,12 @@ namespace cheat::csgo
 			IN_LOOKSPIN = 1 << 25,
 		};
 
-		NSTD_ENUM_STRUCT_BITFLAG(cmd_buttons);
-	};
-	class CUserCmd
-	{
-	public:
 		CUserCmd( )
 		{
 			memset(this, 0, sizeof(CUserCmd));
 		};
 
-		virtual ~CUserCmd( )
-		{
-		}
+		virtual ~CUserCmd( ) = default;
 
 #if 0
 		CRC32_t GetChecksum( ) const
@@ -82,26 +78,26 @@ namespace cheat::csgo
 		}
 #endif
 
-		int         command_number;     // 0x04 For matching server and client commands for debugging
-		int         tick_count;         // 0x08 the tick the client created this command
-		QAngle      view_angles;        // 0x0C Player instantaneous view angles.
-		Vector      aim_direction;      // 0x18
-		float       forward_move;       // 0x24
-		float       side_move;          // 0x28
-		float       up_move;            // 0x2C
-		cmd_buttons buttons;            // 0x30 Attack button states
-		char        impulse;            // 0x34
-		int         weapon_select;      // 0x38 Current weapon id
-		int         weapon_subtype;     // 0x3C
-		int         random_seed;        // 0x40 For shared random functions
-		short       mousedx;            // 0x44 mouse accum in x from create move
-		short       mousedy;            // 0x46 mouse accum in y from create move
-		bool        has_been_predicted; // 0x48 Client only, tracks whether we've predicted this command at least once
+		int     command_number;     // 0x04 For matching server and client commands for debugging
+		int     tick_count;         // 0x08 the tick the client created this command
+		QAngle  view_angles;        // 0x0C Player instantaneous view angles.
+		Vector  aim_direction;      // 0x18
+		float   forward_move;       // 0x24
+		float   side_move;          // 0x28
+		float   up_move;            // 0x2C
+		buttons buttons;            // 0x30 Attack button states
+		char    impulse;            // 0x34
+		int     weapon_select;      // 0x38 Current weapon id
+		int     weapon_subtype;     // 0x3C
+		int     random_seed;        // 0x40 For shared random functions
+		short   mousedx;            // 0x44 mouse accum in x from create move
+		short   mousedy;            // 0x46 mouse accum in y from create move
+		bool    has_been_predicted; // 0x48 Client only, tracks whether we've predicted this command at least once
 	private:
 		std::byte pad_0x4C[0x18]; // 0x4C Current sizeof( usercmd ) =  100  = 0x64
 	};
 
-	using crc32_t = /*unsigned long*/uint32_t;
+	using crc32_t = unsigned long;
 
 	class CVerifiedUserCmd
 	{

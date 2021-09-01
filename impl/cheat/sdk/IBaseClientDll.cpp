@@ -1,11 +1,8 @@
 #include "IBaseClientDll.hpp"
 
-using namespace cheat::csgo;
+#include "detour hook/hook_utils.h"
 
-void IBaseClientDLL::FrameStageNotify([[maybe_unused]] ClientFrameStage_t stage)
-{
-	CHEAT_UNUSED_FUNCTION;
-}
+using namespace cheat::csgo;
 
 bool IBaseClientDLL::DispatchUserMessage(int msg_type, int32_t flags, int size, const void* msg)
 {

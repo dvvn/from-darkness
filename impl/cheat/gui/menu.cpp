@@ -1,13 +1,14 @@
 ﻿#include "menu.h"
-
 #include "imgui context.h"
-
-#include "cheat/gui/tools/push style var.h"
 
 #include "cheat/features/aimbot.h"
 #include "cheat/features/anti aim.h"
 #include "cheat/hooks/c_baseanimating/should skip animation frame.h"
 #include "cheat/hooks/winapi/wndproc.h"
+
+#include <imgui.h>
+
+#include <Windows.h>
 
 using namespace cheat;
 using namespace gui;
@@ -17,7 +18,7 @@ using namespace widgets;
 
 menu::menu( )
 {
-	this->add_service<imgui_context>( );
+	hotkey_ = VK_HOME;
 
 	constexpr auto iso_date = []( )-> std::string_view
 	{
@@ -65,7 +66,7 @@ menu::menu( )
 		return std::string_view(ret, std::size(ret) - 1);
 	};
 
-	std::string name = CHEAT_NAME;
+	std::string name = /*CHEAT_NAME*/_STRINGIZE(VS_SolutionName);
 	name += " | ";
 	name += iso_date( );
 #ifdef _DEBUG
@@ -113,7 +114,8 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 
 class unused_page final: public empty_page, public string_wrapper_base
 {
-	unused_page(string_wrapper&& other) : string_wrapper_base(std::move(other))
+	unused_page(string_wrapper&& other)
+		: string_wrapper_base(std::move(other))
 	{
 	}
 
@@ -175,7 +177,7 @@ service_base::load_result menu::load_impl( )
 						return;
 				}
 
-				if (dynamic_cast<service_always_skipped*>(ptr_raw) != nullptr)
+				if (const auto skipped = dynamic_cast<service_sometimes_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
 					return;
 
 				debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});

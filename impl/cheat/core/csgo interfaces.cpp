@@ -1,11 +1,17 @@
 #include "csgo interfaces.h"
 
+#include "cheat/core/csgo modules.h"
 #include "cheat/sdk/IAppSystem.hpp"
+
+#include "detour hook/hook_utils.h"
+
+#include <d3d9.h>
 
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
+// ReSharper disable once CppInconsistentNaming
 [[maybe_unused]] static nstd::address get_vfunc(void* instance, size_t index)
 {
 	return dhooks::_Pointer_to_virtual_class_table(instance)[index];
@@ -121,8 +127,6 @@ service_base::load_result csgo_interfaces::load_impl( )
 
 	client_mode = get_vfunc(client, 10).add(5).deref(2);
 
-	using namespace utils;
-
 	global_vars  = csgo_modules::client.find_signature<"A1 ? ? ? ? 5E 8B 40 10">( ).add(1).deref(2);
 	input        = csgo_modules::client.find_signature<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">( ).add(1).deref(1);
 	move_helper  = csgo_modules::client.find_signature<"8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01">( ).add(2).deref(2);
@@ -143,5 +147,4 @@ service_base::load_result csgo_interfaces::load_impl( )
 
 csgo_interfaces::csgo_interfaces( )
 {
-	this->add_service<console>( );
 }

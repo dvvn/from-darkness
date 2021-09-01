@@ -9,7 +9,6 @@
 
 #pragma once
 
-
 namespace dhooks::hde
 {
 	// ReSharper disable CppInconsistentNaming

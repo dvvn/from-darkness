@@ -1,6 +1,8 @@
 #include "players list.h"
 #include "cheat/core/csgo interfaces.h"
 
+//DEPRECATED
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;

@@ -5,13 +5,14 @@
 #include "cheat/gui/menu.h"
 #include "cheat/gui/tools/push style var.h"
 
+#include <windows.h>
+
 using namespace cheat;
 using namespace hooks::winapi;
 using namespace gui;
 
 wndproc::wndproc( )
 {
-	this->add_service<imgui_context>( );
 }
 
 service_base::load_result wndproc::load_impl( )
@@ -22,7 +23,7 @@ service_base::load_result wndproc::load_impl( )
 	unicode_         = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	return service_hook_helper::load_impl( );
+	return base::load_impl( );
 }
 
 nstd::address wndproc::get_target_method_impl( ) const

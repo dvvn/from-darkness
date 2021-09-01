@@ -1,6 +1,30 @@
 #include "sections_storage.h"
 
-using namespace nstd::os;
+#include <Windows.h>
+
+#include <nlohmann/json.hpp>
+
+using nstd::os::sections_storage;
+using nstd::os::section_info;
+using namespace nstd::os::detail;
+
+template < >
+module_data_cache_fwd<section_info> nstd::os::detail::make_cache_fwd<section_info>( )
+{
+	return std::make_unique<module_data_cache<section_info>>( );
+}
+
+template < >
+bool nstd::os::detail::cache_empty<section_info>(const module_data_cache<section_info>& cache)
+{
+	return cache.empty( );
+}
+
+template < >
+void nstd::os::detail::cache_reserve<section_info>(module_data_cache<section_info>& cache, std::size_t count)
+{
+	cache.reserve(count);
+}
 
 bool sections_storage::load_from_memory(cache_type& cache)
 {
@@ -16,7 +40,7 @@ bool sections_storage::load_from_memory(cache_type& cache)
 	for (auto header = section_header; header != last_section_header; ++header)
 	{
 		auto& raw_name  = header->Name;
-		auto  info_name = std::string(raw_name, ranges::find(raw_name, '\0'));
+		auto  info_name = std::string(raw_name, std::ranges::find(raw_name, '\0'));
 
 		section_info info;
 		info.block = {base_address + header->VirtualAddress, header->SizeOfRawData};
@@ -28,12 +52,12 @@ bool sections_storage::load_from_memory(cache_type& cache)
 	return true;
 }
 
-bool sections_storage::load_from_file(cache_type& cache, ptree_type&& storage)
+bool sections_storage::load_from_file(cache_type& cache, detail::ptree_type&& storage)
 {
 	return false;
 }
 
-bool sections_storage::read_to_storage(const cache_type& cache, ptree_type& storage) const
+bool sections_storage::read_to_storage(const cache_type& cache, detail::ptree_type& storage) const
 {
 	return false;
 }

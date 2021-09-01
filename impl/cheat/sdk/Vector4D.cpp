@@ -1,5 +1,8 @@
 #include "Vector4D.hpp"
 
+#include <cstdlib>
+#include <limits>
+
 using namespace cheat::csgo;
 
 void VectorCopy(const Vector4D& src, Vector4D& dst)
