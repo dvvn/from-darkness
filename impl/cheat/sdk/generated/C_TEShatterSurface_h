@@ -1,0 +1,10 @@
+float& m_flHeight( );
+float& m_flShardSize( );
+float& m_flWidth( );
+int32_t& m_nSurfaceType( );
+Color& m_uchBackColor( );
+Color& m_uchFrontColor( );
+QAngle& m_vecAngles( );
+Vector& m_vecForce( );
+Vector& m_vecForcePos( );
+Vector& m_vecOrigin( );

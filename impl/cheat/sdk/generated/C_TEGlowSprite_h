@@ -1,0 +1,5 @@
+float& m_fLife( );
+float& m_fScale( );
+int32_t& m_nBrightness( );
+int32_t& m_nModelIndex( );
+Vector& m_vecOrigin( );

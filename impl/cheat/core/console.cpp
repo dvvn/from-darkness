@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include <fstream>
+#include <functional>
 #include <intrin.h>
 #include <iostream>
 #include <mutex>
@@ -31,6 +32,8 @@ class movable_function final: public movable_function_base
 public:
 	movable_function(const movable_function&)            = delete;
 	movable_function& operator=(const movable_function&) = delete;
+
+	using value_type = T;
 
 	movable_function(T&& obj)
 		: obj_(std::move(obj))
@@ -78,7 +81,7 @@ public:
 	}
 
 private:
-	std::mutex              lock_;
+	std::recursive_mutex    lock_;
 	std::vector<value_type> cache_;
 };
 
@@ -271,9 +274,10 @@ static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, 
 
 	if (instance->state( ) != service_state::loaded)
 	{
-		/*auto fn  = std::bind_front(_Write_text, std::forward<T>(text));
-		auto vfn = (std::make_unique<movable_function>(std::move(fn)));
-		cache.store(std::move(vfn));*/
+		auto fn = std::bind_front(_Write_text, std::forward<T>(text));
+		using fn_t = decltype(fn);
+		auto vfn = std::make_unique<movable_function<fn_t>>(std::move(fn));
+		cache->store(std::move(vfn));
 	}
 	else
 	{

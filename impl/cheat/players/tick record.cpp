@@ -8,7 +8,6 @@
 #include "cheat/sdk/IVEngineClient.hpp"
 #include "cheat/sdk/entity/C_CSPlayer.h"
 
-
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -43,8 +42,10 @@ void tick_record_shared_impl::init([[maybe_unused]] const player& holder)
 {
 	shared_holder::init( );
 
-#if !defined(CHEAT_GUI_TEST) && !defined(CHEAT_NETVARS_UPDATING)
-	C_BaseEntity* ent  = holder.ent;
+#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#pragma message(__FUNCTION__ ": skipped")
+#else
+C_BaseEntity* ent  = holder.ent;
 	const auto    tick = this->get( );
 
 	tick->origin           = ent->m_vecOrigin( );

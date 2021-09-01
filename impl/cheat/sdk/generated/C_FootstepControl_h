@@ -1,0 +1,2 @@
+char* m_destination( );
+char* m_source( );

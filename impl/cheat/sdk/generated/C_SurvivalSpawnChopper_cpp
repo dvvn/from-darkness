@@ -1,0 +1,22 @@
+#include "C_SurvivalSpawnChopper.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/sdk/Vector2D.hpp"
+
+using namespace cheat;
+using namespace csgo;
+
+Vector2D& C_SurvivalSpawnChopper::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector2D*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SurvivalSpawnChopper", "m_vecOrigin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<Vector2D>( );
+#endif
+}

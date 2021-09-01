@@ -41,12 +41,12 @@
   <ImportGroup Label="Shared">
     <Import Project="impl\impl.vcxitems" Label="Shared" />
     <Import Project="..\git\imgui\imgui shared dx9.vcxitems" Label="Shared" />
-    <Import Project="..\git\tsl\tsl shared.vcxitems" Label="Shared" />
     <Import Project="..\git\veque\veque shared.vcxitems" Label="Shared" />
     <Import Project="..\git\json\include\json shared.vcxitems" Label="Shared" />
     <Import Project="..\git\cppcoro\cppcoro shared.vcxitems" Label="Shared" />
     <Import Project="..\git\cppcoro\include\cppcoro shared include.vcxitems" Label="Shared" />
     <Import Project="..\git\thread-pool\thread_pool shared.vcxitems" Label="Shared" />
+    <Import Project="..\git\robin-hood-hashing\src\include\robin-hood-hashing shared.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />

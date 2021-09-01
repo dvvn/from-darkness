@@ -11,10 +11,14 @@
 
 #include "nstd/checksum.h"
 
+#include <robin_hood.h>
+
 #include <nlohmann/json.hpp>
 
 #include <filesystem>
 #include <fstream>
+#include <ranges>
+#include <set>
 
 using namespace cheat;
 using namespace detail;
@@ -70,7 +74,7 @@ netvars::netvars( )
 #ifdef CHEAT_NETVARS_DUMPER_DISABLED
 								true
 #else
-		false
+								false
 #endif
 							   )
 {
@@ -656,7 +660,15 @@ service_base::load_result netvars::load_impl( )
 	co_return service_state::loaded;
 }
 
+#define CHEAT_SOLUTION_DIR NSTD_RAW(VS_SolutionDir)"\\"
+#define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR NSTD_RAW(.out\dumps\)
+#define CHEAT_ROOT_DIR CHEAT_SOLUTION_DIR NSTD_RAW(impl\)
+#define CHEAT_SOURCE_DIR CHEAT_ROOT_DIR NSTD_RAW(cheat\)
+
 // ReSharper disable CppInconsistentNaming
+static const auto CHEAT_NETVARS_GENERATED_CLASSES_DIR = std::filesystem::path(CHEAT_SOURCE_DIR) / L"sdk" / L"generated";
+static const auto CHEAT_NETVARS_DUMP_DIR              = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
+
 static constexpr int  CHEAT_NETVARS_JSON_INDENT = 4;
 static constexpr char CHEAT_NETVARS_JSON_FILLER = ' ';
 // ReSharper restore CppInconsistentNaming
@@ -668,15 +680,10 @@ enum class dump_info:uint8_t
 	updated
 };
 
-#define CHEAT_SOLUTION_DIR NSTD_RAW(VS_SolutionDir)"\\"
-#define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR NSTD_RAW(.out\dumps\)
-#define CHEAT_IMPL_DIR CHEAT_SOLUTION_DIR NSTD_RAW(impl\cheat\)
-
 [[maybe_unused]]
 static dump_info _Dump_netvars(const netvars::hidden::storage_type& netvars_data)
 {
-	static const auto netvars_dump_dir = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
-	const auto        dirs_created     = std::filesystem::create_directories(netvars_dump_dir);
+	const auto dirs_created = std::filesystem::create_directories(CHEAT_NETVARS_DUMP_DIR);
 
 	constexpr auto get_file_name = []
 	{
@@ -686,36 +693,53 @@ static dump_info _Dump_netvars(const netvars::hidden::storage_type& netvars_data
 		return version;
 	};
 
-	const auto netvars_dump_file = netvars_dump_dir / get_file_name( );
-	const auto file_exists       = !dirs_created && std::filesystem::exists(netvars_dump_file);
-
-	dump_info info;
+	const auto netvars_dump_file = CHEAT_NETVARS_DUMP_DIR / get_file_name( );
+	const auto file_exists       = !dirs_created && exists(netvars_dump_file);
 
 	if (!file_exists)
 	{
 		std::ofstream(netvars_dump_file) << std::setw(CHEAT_NETVARS_JSON_INDENT) << std::setfill(CHEAT_NETVARS_JSON_FILLER) << netvars_data;
-		info = dump_info::created;
 		CHEAT_CONSOLE_LOG("Netvars dump done");
+		return dump_info::created;
 	}
-	else
+
+	//------
+
+	std::ostringstream netvars_data_as_text;
+	netvars_data_as_text << std::setw(CHEAT_NETVARS_JSON_INDENT) << std::setfill(CHEAT_NETVARS_JSON_FILLER) << netvars_data;
+
+	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
 	{
-		std::ostringstream test_to_write;
-		test_to_write << std::setw(CHEAT_NETVARS_JSON_INDENT) << std::setfill(CHEAT_NETVARS_JSON_FILLER) << netvars_data;
-
-		if (nstd::checksum(test_to_write) == nstd::checksum(netvars_dump_file))
-		{
-			info = dump_info::skipped;
-			CHEAT_CONSOLE_LOG("Netvars dump skipped");
-		}
-		else
-		{
-			std::ofstream(netvars_dump_file) << test_to_write.view( );
-			info = dump_info::updated;
-			CHEAT_CONSOLE_LOG("Netvars dump updated");
-		}
+		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
+		CHEAT_CONSOLE_LOG("Netvars dump updated");
+		return dump_info::updated;
 	}
 
-	return info;
+	//-----
+
+	CHEAT_CONSOLE_LOG("Netvars dump skipped");
+	const auto net_classes = [&]
+	{
+		auto data = robin_hood::unordered_set<std::string_view>( );
+		data.reserve(netvars_data.size( ));
+		for (auto& [class_name, netvars]: netvars_data.items( ))
+			data.emplace(class_name);
+		return data;
+	}( );
+	//check do we have generated classes
+	if (!exists(CHEAT_NETVARS_GENERATED_CLASSES_DIR) || is_empty(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
+		return dump_info::created;
+
+	for (auto& entry: std::filesystem::directory_iterator(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
+	{
+		const auto name      = entry.path( ).filename( ).string( );
+		const auto real_size = name.rfind('_'); //remove _h _cpp
+
+		const auto valid_name = std::string_view(name._Unchecked_begin( ), real_size);
+		if (!net_classes.contains(valid_name))
+			return dump_info::updated;
+	}
+	return dump_info::skipped;
 }
 
 [[maybe_unused]]
@@ -724,10 +748,8 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 	if (info == dump_info::skipped)
 		return;
 
-	static const auto dir = std::filesystem::path(CHEAT_IMPL_DIR) / L"sdk" / L"generated";
-
-	std::filesystem::remove_all(dir);
-	std::filesystem::create_directories(dir);
+	std::filesystem::remove_all(CHEAT_NETVARS_GENERATED_CLASSES_DIR);
+	std::filesystem::create_directories(CHEAT_NETVARS_GENERATED_CLASSES_DIR);
 
 	lazy_writer.reserve(netvars_data.size( ) * 2);
 	for (auto& [class_name, netvars]: netvars_data.items( ))
@@ -739,25 +761,118 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 		// ReSharper restore CppTooWideScope
 		// ReSharper restore CppInconsistentNaming
 
-		auto header = lazy_file_writer(dir / (class_name + "_h"));
-		auto source = lazy_file_writer(dir / (class_name + "_cpp"));
+		auto header = lazy_file_writer(CHEAT_NETVARS_GENERATED_CLASSES_DIR / (class_name + "_h"));
+		auto source = lazy_file_writer(CHEAT_NETVARS_GENERATED_CLASSES_DIR / (class_name + "_cpp"));
 
-		const auto source_add_include = [&source](const std::string_view& file_name)
+		const auto source_add_include = [&source](const std::string_view& file_name, bool global = false)
 		{
-			source << std::format("#include \"{}\"", file_name) << __New_line;
+			source <<
+				"#include "
+				<< (global ? '<' : '"')
+				<< file_name
+				<< (global ? '>' : '"')
+				<< __New_line;
 		};
 		const auto source_use_namespace = [&source](const std::string_view& name)
 		{
 			source << "using namespace " << name << ';' << __New_line;
 		};
 
+		const auto source_add_dynamic_includes = [&]
+		{
+#if !defined(CHEAT_NETVARS_RESOLVE_TYPE)
+			runtime_assert("Unable to get dynamic includes!");
+#else
+
+			struct include_name: std::string
+			{
+				include_name(std::string&& name, bool global)
+					: std::string(std::move(name)), global(global)
+				{
+				}
+
+				bool global;
+			};
+			//auto includes = robin_hood::unordered_set<include_name, robin_hood::hash<std::string>>( );
+			auto includes = std::set<include_name>( );
+			// ReSharper disable CppRemoveRedundantBraces
+			for (auto& [netvar_name, netvar_data]: netvars.items( ))
+			{
+				const auto& netvar_type = netvar_data.at("type").get_ref<const std::string&>( );
+				if (netvar_type.starts_with("std::array"))
+				{
+					includes.emplace("array", true);
+				}
+				else if (std::isupper(netvar_type[0])) //Vector Qangle etc
+				{
+					std::string extension;
+					for (auto& entry: std::filesystem::directory_iterator(CHEAT_SOURCE_DIR NSTD_RAW(sdk\)))
+					{
+						if (!entry.is_regular_file( ))
+							continue;
+						auto name = entry.path( ).filename( );
+						if (!name.has_extension( ))
+							continue;
+						auto ext = name.extension( );
+						if (ext == ".cpp")
+							continue;
+						if (name.replace_extension( ) == netvar_type)
+						{
+							auto& str = ext.native( );
+							extension = std::string(std::next(str.begin( )), str.end( )); //remove dot in front;
+							break;
+						}
+					}
+					runtime_assert(!extension.empty(), "Unable to find file extension");
+					includes.emplace(std::format("cheat/sdk/{}.{}", netvar_type, extension), false);
+				}
+				else if (netvar_type.find('_') != netvar_type.npos)
+				{
+					includes.emplace("cstdint", true);
+				}
+			}
+			// ReSharper restore CppRemoveRedundantBraces
+
+			switch (includes.size( ))
+			{
+				case 0:
+					return;
+				case 1:
+				{
+					auto& first = *includes.begin( );
+					source_add_include(first, first.global);
+					break;
+				}
+				default:
+				{
+					for (auto& in: includes)
+					{
+						if (!in.global)
+							source_add_include(in, false);
+					}
+					for (auto& in: includes)
+					{
+						if (in.global)
+							source_add_include(in, true);
+					}
+					break;
+				}
+			}
+
+			source << __New_line;
+
+#endif
+		};
+
 		source_add_include(class_name + ".h");
 		source_add_include("cheat/netvars/config.h");
 		source << "#ifndef CHEAT_NETVARS_UPDATING" << __New_line;
 		source_add_include("cheat/netvars/netvars.h");
+		source_add_include("nstd/address.h", true);
 		source << "#endif" << __New_line;
 
 		source << __New_line;
+		source_add_dynamic_includes( );
 
 		source_use_namespace("cheat");
 		source_use_namespace("csgo");
@@ -817,8 +932,8 @@ void netvars::after_load( )
 {
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
 
-	const auto info = _Dump_netvars(data_);
-	_Generate_classes(info, data_, lazy_writer);
+	const auto info = _Dump_netvars(hidden_->storage);
+	_Generate_classes(info, hidden_->storage, hidden_->lazy_writer);
 
 #endif
 }

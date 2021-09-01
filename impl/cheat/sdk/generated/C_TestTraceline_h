@@ -1,0 +1,4 @@
+QAngle& m_angRotation( );
+Color& m_clrRender( );
+Vector& m_vecOrigin( );
+int32_t& moveparent( );

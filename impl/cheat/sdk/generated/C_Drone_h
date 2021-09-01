@@ -1,0 +1,7 @@
+bool& m_bPilotTakeoverAllowed( );
+CBaseHandle& m_hCurrentPilot( );
+CBaseHandle& m_hDeliveryCargo( );
+CBaseHandle& m_hMoveToThisEntity( );
+CBaseHandle& m_hPotentialCargo( );
+std::array<int32_t, 24>& m_vecTagIncrements( );
+std::array<Vector, 24>& m_vecTagPositions( );

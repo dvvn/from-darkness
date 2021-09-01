@@ -1,0 +1,2 @@
+bool& m_bAwake( );
+int32_t& m_spawnflags( );

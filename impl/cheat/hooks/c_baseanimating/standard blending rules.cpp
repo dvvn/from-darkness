@@ -6,6 +6,8 @@
 
 #include "cheat/sdk/entity/C_BaseAnimating.h"
 
+#include <nstd/enum overloads.h>
+
 using namespace cheat;
 using namespace hooks;
 using namespace c_base_animating;
@@ -17,7 +19,7 @@ standard_blending_rules::standard_blending_rules( )
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
-		false
+								false
 #endif
 							   )
 {
@@ -33,7 +35,9 @@ nstd::address standard_blending_rules::get_target_method_impl( ) const
 
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
-	#if !defined(CHEAT_GUI_TEST) && !defined(CHEAT_NETVARS_UPDATING)
+#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#pragma message(__FUNCTION__ ": skipped")
+#else
 	const auto pl           = this->object_instance;
 	const auto client_class = pl->GetClientClass( );
 	//if (client_class->ClassID != ClassId::CCSPlayer)
@@ -44,9 +48,9 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 	/*if (flags.has(m_fEffects_t::EF_NOINTERP))
 		return;*/
 
-	flags.add(m_fEffects_t::EF_NOINTERP);
+	flags |= (m_fEffects_t::EF_NOINTERP);
 	this->call_original_ex(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
-	flags.remove(m_fEffects_t::EF_NOINTERP);
+	flags &= ~m_fEffects_t::EF_NOINTERP;
 
 	/*if (override_return__)
 		this->return_value_.store_value(override_return_to__);

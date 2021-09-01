@@ -1,0 +1,153 @@
+#include "C_BaseViewModel.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/sdk/CBaseHandle.hpp"
+#include <cstdint>
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_BaseViewModel::m_bShouldIgnoreOffsetAndAccuracy( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_bShouldIgnoreOffsetAndAccuracy");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_fEffects( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_fEffects");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+float& C_BaseViewModel::m_flPlaybackRate( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_flPlaybackRate");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+CBaseHandle& C_BaseViewModel::m_hOwner( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_hOwner");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+CBaseHandle& C_BaseViewModel::m_hWeapon( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_hWeapon");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nAnimationParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nAnimationParity");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nBody( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nBody");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nModelIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nMuzzleFlashParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nMuzzleFlashParity");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nNewSequenceParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nNewSequenceParity");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nResetEventsParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nResetEventsParity");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nSequence( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nSequence");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nSkin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nSkin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_BaseViewModel::m_nViewModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nViewModelIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}

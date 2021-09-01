@@ -1,0 +1,2 @@
+bool& m_bMaster( );
+std::array<float, 11>& m_flPostProcessParameters( );

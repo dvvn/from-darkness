@@ -1,0 +1,14 @@
+bool& m_bShouldIgnoreOffsetAndAccuracy( );
+int32_t& m_fEffects( );
+float& m_flPlaybackRate( );
+CBaseHandle& m_hOwner( );
+CBaseHandle& m_hWeapon( );
+int32_t& m_nAnimationParity( );
+int32_t& m_nBody( );
+int32_t& m_nModelIndex( );
+int32_t& m_nMuzzleFlashParity( );
+int32_t& m_nNewSequenceParity( );
+int32_t& m_nResetEventsParity( );
+int32_t& m_nSequence( );
+int32_t& m_nSkin( );
+int32_t& m_nViewModelIndex( );

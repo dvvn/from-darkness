@@ -4,6 +4,8 @@
 #include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/sync_wait.hpp>
 
+#include <Windows.h>
+
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "Synchronization.lib")
 #pragma comment(lib, "Mswsock.lib")

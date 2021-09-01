@@ -1,0 +1,7 @@
+float& m_flBombLaunchTime( );
+float& m_flExtraRadius( );
+float& m_flExtraRadiusStartTime( );
+float& m_flExtraRadiusTotalLerpTime( );
+int32_t& m_iWave( );
+int32_t& m_nDropOrder( );
+Vector& m_vecDangerZoneOriginStartedAt( );

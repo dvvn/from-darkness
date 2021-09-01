@@ -38,7 +38,9 @@ rt_assert_handler_ex::element_type::~element_type( )
 
 rt_assert_handler_ex::element_type::element_type(element_type&& other) noexcept
 {
-	*this = std::move(other);
+	handle_          = other.handle_;
+	allocated_       = other.allocated_;
+	other.allocated_ = false;
 }
 
 rt_assert_handler_ex::element_type& rt_assert_handler_ex::element_type::operator=(element_type&& other) noexcept

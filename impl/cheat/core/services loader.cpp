@@ -1,7 +1,6 @@
 #include "services loader.h"
 
 #include "console.h"
-
 #include "csgo interfaces.h"
 
 #include "cheat/gui/imgui context.h"
@@ -22,13 +21,18 @@
 #include "cheat/players/players list.h"
 #include "cheat/settings/settings.h"
 
+#include "nstd/os/module info.h"
 #include "nstd/os/threads.h"
 
 #include <robin_hood.h>
 
+#include <cppcoro/static_thread_pool.hpp>
+#include <cppcoro/sync_wait.hpp>
+
 #include <Windows.h>
 
 #include <functional>
+#include <thread>
 
 using namespace cheat;
 using namespace detail;
@@ -41,22 +45,19 @@ protected:
 	load_result load_impl( ) override
 	{
 		const auto modules = nstd::os::all_modules::get_ptr( );
-		auto&      all     = modules->update(false).all( );
+		modules->update(false);
 
 		auto  work_dir        = std::filesystem::path(modules->owner( ).work_dir( ));
 		auto& work_dir_native = const_cast<std::filesystem::path::string_type&>(work_dir.native( ));
-		ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
+		std::ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
 		work_dir.append(L"bin").append(L"serverbrowser.dll");
 
 		const auto is_game_loaded = [&]
 		{
-			for (const auto& path: all | ranges::views::transform(&nstd::os::module_info::full_path) | ranges::views::reverse)
+			return modules->rfind([&](const nstd::os::module_info& info)
 			{
-				if (path == work_dir_native)
-					return true;
-			}
-
-			return false;
+				return info.full_path( ) == work_dir;
+			}) != nullptr;
 		};
 
 		if (is_game_loaded( ))
@@ -67,7 +68,7 @@ protected:
 
 		do
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(all.size( ) < 120 ? 1000 : 100));
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			//todo: cppcoro::cancellation_token
 			//todo: co_yield
 			if (services_loader::get_ptr( )->load_thread_stop_token( ).stop_requested( ))
@@ -105,8 +106,19 @@ protected:
 	}*/
 
 private:
-	bool                             game_loaded_before_ = false;
+	bool game_loaded_before_ = false;
 	//nstd::os::frozen_threads_storage frozen_threads_{false};
+};
+
+struct services_loader::load_thread: std::jthread
+{
+	load_thread( ) = default;
+
+	load_thread& operator=(std::jthread&& thr)
+	{
+		*static_cast<std::jthread*>(this) = std::move(thr);
+		return *this;
+	}
 };
 
 #endif
@@ -165,8 +177,8 @@ HMODULE services_loader::my_handle( ) const
 
 void services_loader::load(HMODULE handle)
 {
-	my_handle__  = handle;
-	load_thread_ = std::jthread([this]
+	my_handle__   = handle;
+	*load_thread_ = std::jthread([this]
 	{
 		auto ex = executor(std::max<size_t>(8, std::thread::hardware_concurrency( )));
 		if (sync_wait(this->load(ex)) != service_state::loaded)
@@ -178,7 +190,7 @@ void services_loader::load(HMODULE handle)
 
 void services_loader::unload( )
 {
-	this->load_thread_.request_stop( );
+	this->load_thread_->request_stop( );
 
 	const auto data = new unload_helper_data;
 	data->sleep     = 1000;
@@ -192,7 +204,7 @@ void services_loader::unload( )
 std::stop_token services_loader::load_thread_stop_token( ) const
 {
 #ifndef CHEAT_GUI_TEST
-	return load_thread_.get_stop_token( );
+	return load_thread_->get_stop_token( );
 #else
 	return {};
 #endif
@@ -220,14 +232,10 @@ static void _Add_service( )
 	Where::get_ptr( )->template add_service<Obj>( );
 }
 
-template <typename Where, typename Obj>
-static void _Add_service(Where* ptr)
-{
-	ptr->template add_service<Obj>( );
-}
-
 services_loader::services_loader( )
 {
+	load_thread_ = std::make_unique<load_thread>( );
+
 	using namespace hooks;
 	using namespace gui;
 
@@ -260,7 +268,7 @@ services_loader::services_loader( )
 	this->add_service<studio_render::draw_model>( );                     //await: players_list
 
 #ifndef CHEAT_GUI_TEST
-	_Add_service<console,csgo_awaiter>();
+	_Add_service<console, csgo_awaiter>( );
 #endif
 	_Add_service<csgo_interfaces, console>( );
 

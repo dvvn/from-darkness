@@ -1,0 +1,6 @@
+bool& m_bIsPlayingBack( );
+bool& m_bMultiplayer( );
+bool& m_bPaused( );
+float& m_flForceClientTime( );
+std::array<int32_t, 16>& m_hActorList( );
+int32_t& m_nSceneStringIndex( );

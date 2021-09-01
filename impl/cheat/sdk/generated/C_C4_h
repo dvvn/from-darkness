@@ -1,0 +1,5 @@
+bool& m_bBombPlacedAnimation( );
+bool& m_bIsPlantingViaUse( );
+bool& m_bShowC4LED( );
+bool& m_bStartedArming( );
+float& m_fArmedTime( );

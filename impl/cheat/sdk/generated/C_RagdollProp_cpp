@@ -1,0 +1,64 @@
+#include "C_RagdollProp.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/sdk/CBaseHandle.hpp"
+#include <array>
+#include <cstdint>
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_RagdollProp::m_flBlendWeight( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_flBlendWeight");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+CBaseHandle& C_RagdollProp::m_hUnragdoll( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_hUnragdoll");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+int32_t& C_RagdollProp::m_nOverlaySequence( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_nOverlaySequence");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+std::array<QAngle, 24>& C_RagdollProp::m_ragAngles( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<QAngle, 24>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragAngles");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<QAngle, 24>>( );
+#endif
+}
+std::array<Vector, 24>& C_RagdollProp::m_ragPos( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<Vector, 24>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragPos");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<Vector, 24>>( );
+#endif
+}

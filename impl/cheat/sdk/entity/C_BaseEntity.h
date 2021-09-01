@@ -7,6 +7,9 @@
 namespace cheat::csgo
 {
 	class Vector;
+	class Vector2D;
+	class QAngle;
+	class Color;
 	using string_t = const char*;
 	// ReSharper disable once CppInconsistentNaming
 	using HSCRIPT = uint32_t;

@@ -1,0 +1,2 @@
+int32_t& m_KillingPlayer( );
+int32_t& m_OwningPlayer( );

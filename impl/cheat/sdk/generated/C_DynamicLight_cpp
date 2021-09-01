@@ -1,0 +1,82 @@
+#include "C_DynamicLight.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include <cstdint>
+
+using namespace cheat;
+using namespace csgo;
+
+int32_t& C_DynamicLight::m_Exponent( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_Exponent");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_DynamicLight::m_Flags( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_Flags");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+float& C_DynamicLight::m_InnerAngle( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_InnerAngle");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int32_t& C_DynamicLight::m_LightStyle( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_LightStyle");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+float& C_DynamicLight::m_OuterAngle( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_OuterAngle");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_DynamicLight::m_Radius( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_Radius");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_DynamicLight::m_SpotRadius( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_SpotRadius");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}

@@ -1,0 +1,134 @@
+#include "C_TEFireBullets.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/sdk/Vector.hpp"
+#include <array>
+#include <cstdint>
+
+using namespace cheat;
+using namespace csgo;
+
+float& C_TEFireBullets::m_fInaccuracy( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_fInaccuracy");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_TEFireBullets::m_fSpread( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_fSpread");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_TEFireBullets::m_flRecoilIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_flRecoilIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iMode( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iMode");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iPlayer( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iPlayer");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iSeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iSeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iSoundType( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iSoundType");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_iWeaponID( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_iWeaponID");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_nItemDefIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_nItemDefIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+std::array<float, 2>& C_TEFireBullets::m_vecAngles( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 2>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_vecAngles");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<float, 2>>( );
+#endif
+}
+Vector& C_TEFireBullets::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_vecOrigin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+int32_t& C_TEFireBullets::m_weapon( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFireBullets", "m_weapon");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}

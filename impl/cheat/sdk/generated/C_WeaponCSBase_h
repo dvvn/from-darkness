@@ -1,0 +1,13 @@
+bool& m_bBurstMode( );
+bool& m_bReloadVisuallyComplete( );
+bool& m_bSilencerOn( );
+float& m_fAccuracyPenalty( );
+float& m_fLastShotTime( );
+float& m_flDoneSwitchingSilencer( );
+float& m_flPostponeFireReadyTime( );
+float& m_flRecoilIndex( );
+CBaseHandle& m_hPrevOwner( );
+int32_t& m_iIronSightMode( );
+int32_t& m_iOriginalTeamNumber( );
+int32_t& m_iRecoilIndex( );
+int32_t& m_weaponMode( );

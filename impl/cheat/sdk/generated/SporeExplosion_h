@@ -1,0 +1,7 @@
+bool& m_bDontRemove( );
+bool& m_bEmit( );
+float& m_flEndSize( );
+float& m_flParticleLifetime( );
+float& m_flSpawnRadius( );
+float& m_flSpawnRate( );
+float& m_flStartSize( );

@@ -83,6 +83,8 @@ namespace cheat
 
 		using stored_service = std::shared_ptr<service_base>;
 
+		std::span<const stored_service> services( ) const;
+
 		stored_service find_service(const std::type_info& info) const;
 
 		template <derived_service T>
@@ -108,7 +110,7 @@ namespace cheat
 
 		service_state state( ) const;
 
-		void reset( );
+		virtual void reset( );
 
 	protected:
 		bool              validate_init_state( ) const;
@@ -124,9 +126,6 @@ namespace cheat
 
 		virtual const service_base_fields& fields( ) const =0;
 		virtual service_base_fields&       fields( ) =0;
-
-	public:
-		std::span<const stored_service> services( ) const;
 	};
 
 	class service_sometimes_skipped: public virtual service_base

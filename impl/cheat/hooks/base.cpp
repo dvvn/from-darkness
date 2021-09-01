@@ -13,3 +13,9 @@ std::string_view hooks::helper::object_name( ) const
 {
 	return "hook";
 }
+
+void hooks::helper::reset( )
+{
+	this->disable( );
+	service_base::reset( );
+}

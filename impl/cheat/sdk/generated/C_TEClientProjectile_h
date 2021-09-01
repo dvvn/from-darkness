@@ -1,0 +1,5 @@
+CBaseHandle& m_hOwner( );
+int32_t& m_nLifeTime( );
+int32_t& m_nModelIndex( );
+Vector& m_vecOrigin( );
+Vector& m_vecVelocity( );

@@ -1,0 +1,4 @@
+int32_t& m_nEndEntity( );
+int32_t& m_nStartEntity( );
+Vector& m_vecEndPoint( );
+Vector& m_vecStartPoint( );

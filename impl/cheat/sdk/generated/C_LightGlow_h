@@ -1,0 +1,12 @@
+float& HDRColorScale( );
+QAngle& m_angRotation( );
+Color& m_clrRender( );
+float& m_flGlowProxySize( );
+int32_t& m_nHorizontalSize( );
+int32_t& m_nMaxDist( );
+int32_t& m_nMinDist( );
+int32_t& m_nOuterMaxDist( );
+int32_t& m_nVerticalSize( );
+int32_t& m_spawnflags( );
+Vector& m_vecOrigin( );
+int32_t& moveparent( );

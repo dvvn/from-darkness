@@ -1,0 +1,3 @@
+QAngle& m_angRotation( );
+float& m_flSimulationTime( );
+Vector& m_vecOrigin( );

@@ -1,0 +1,3 @@
+bool& m_bExplosive( );
+Vector& m_vecDir( );
+Vector& m_vecPos( );

@@ -1,6 +1,6 @@
 #pragma once
 
-#define CHEAT_NETVARS_UPDATING
+//#define CHEAT_NETVARS_UPDATING
 
 #if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_NETVARS_RESOLVE_TYPE

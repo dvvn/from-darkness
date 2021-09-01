@@ -1,0 +1,154 @@
+#include "C_PropVehicleDriveable.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/sdk/CBaseHandle.hpp"
+#include "cheat/sdk/Vector.hpp"
+#include <cstdint>
+
+using namespace cheat;
+using namespace csgo;
+
+bool& C_PropVehicleDriveable::m_bEnterAnimOn( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_bEnterAnimOn");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_PropVehicleDriveable::m_bExitAnimOn( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_bExitAnimOn");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_PropVehicleDriveable::m_bHasGun( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_bHasGun");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_PropVehicleDriveable::m_bUnableToFire( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_bUnableToFire");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+float& C_PropVehicleDriveable::m_flThrottle( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_flThrottle");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+CBaseHandle& C_PropVehicleDriveable::m_hPlayer( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_hPlayer");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<CBaseHandle>( );
+#endif
+}
+int32_t& C_PropVehicleDriveable::m_nBoostTimeLeft( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nBoostTimeLeft");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_PropVehicleDriveable::m_nHasBoost( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nHasBoost");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_PropVehicleDriveable::m_nRPM( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nRPM");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_PropVehicleDriveable::m_nScannerDisabledVehicle( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nScannerDisabledVehicle");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_PropVehicleDriveable::m_nScannerDisabledWeapons( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nScannerDisabledWeapons");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_PropVehicleDriveable::m_nSpeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nSpeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+Vector& C_PropVehicleDriveable::m_vecEyeExitEndpoint( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_vecEyeExitEndpoint");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_PropVehicleDriveable::m_vecGunCrosshair( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_vecGunCrosshair");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}

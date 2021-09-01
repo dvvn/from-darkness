@@ -13,15 +13,15 @@ bool any_bytes_range::known( ) const
 					   [](const unknown_bytes_range_const&) { return false; }
 					  ), data_);
 #if 0
-	if (known)
+	if(known)
 	{
-		runtime_assert(try_rewrap_==false);
+		runtime_assert(try_rewrap_ == false);
 	}
-	else if (try_rewrap_)
+	else if(try_rewrap_)
 	{
-		try_rewrap_    = false;
+		try_rewrap_ = false;
 		const auto rng = this->get_unknown( );
-		if (all_bytes_known(rng))
+		if(all_bytes_known(rng))
 		{
 			auto rng2 = make_bytes_known(rng);
 			this->data_.emplace<known_bytes_object>(std::move(rng2));
@@ -59,19 +59,23 @@ unknown_bytes_range_const any_bytes_range::get_unknown( ) const
 							   }), data_);
 }
 
-memory_block::memory_block(const address& begin, size_type mem_size) : bytes_(begin.ptr<known_byte>( ), mem_size)
+memory_block::memory_block(const address& begin, size_type mem_size)
+	: bytes_(begin.ptr<known_byte>( ), mem_size)
 {
 }
 
-memory_block::memory_block(const address& begin, const address& end) : bytes_(begin.ptr<known_byte>( ), end.ptr<known_byte>( ))
+memory_block::memory_block(const address& begin, const address& end)
+	: bytes_(begin.ptr<known_byte>( ), end.ptr<known_byte>( ))
 {
 }
 
-memory_block::memory_block(const address& addr) : memory_block(addr, sizeof(address))
+memory_block::memory_block(const address& addr)
+	: memory_block(addr, sizeof(address))
 {
 }
 
-memory_block::memory_block(const known_bytes_range& span) : bytes_(span)
+memory_block::memory_block(const known_bytes_range& span)
+	: bytes_(span)
 {
 }
 
@@ -85,7 +89,7 @@ static auto _Rng_search(Where&& where, What&& what, Pr&& pred = { })
 	//ranges extremely slow in debug mode
 	auto a = std::initializer_list(std::_Get_unwrapped(where.begin( )), std::_Get_unwrapped(where.end( )));
 	auto b = std::initializer_list(std::_Get_unwrapped(what.begin( )), std::_Get_unwrapped(what.end( )));
-#if _ITERATOR_DEBUG_LEVEL == 0 && !defined(_DEBUG)
+#if /*_ITERATOR_DEBUG_LEVEL == 0 && !defined(_DEBUG)*/ 0
 
 	return std::ranges::search(a, b, pred);
 
@@ -115,7 +119,7 @@ static auto _Rng_search(Where&& where, What&& what, Pr&& pred = { })
 #endif
 }
 
-template <typename T, typename Span=std::span<const T>, typename Ptr=const T*>
+template <typename T, typename Span = std::span<const T>, typename Ptr = const T*>
 static std::optional<Span> _Rewrap_range(const known_bytes_range_const& rng)
 {
 	const auto size_bytes = rng.size( );
@@ -135,11 +139,11 @@ template <typename T>
 static memory_block_opt _Scan_memory(const known_bytes_range& block, const std::span<T>& rng)
 {
 	const auto unreachable = block.size( ) % rng.size_bytes( );
-	const auto fake_block  = std::span<T>((T*)block._Unchecked_begin( ), (block.size( ) - unreachable) / sizeof(T));
+	const auto fake_block  = std::span<T>(reinterpret_cast<T*>(block._Unchecked_begin( )), (block.size( ) - unreachable) / sizeof(T));
 	auto       result      = _Rng_search(fake_block, rng);
 	if (result.empty( ))
 		return { };
-	return memory_block({(known_byte*)result.begin( ), rng.size_bytes( )});
+	return memory_block({reinterpret_cast<known_byte*>(result.begin( )), rng.size_bytes( )});
 }
 
 static memory_block_opt _Scan_memory(const known_bytes_range& block, const known_bytes_range_const& data)
@@ -152,7 +156,8 @@ static memory_block_opt _Scan_memory(const known_bytes_range& block, const known
 
 memory_block_opt memory_block::find_block_impl(const known_bytes_range_const& rng) const
 {
-	try
+	//doen't work sometimes, idk why
+	/*try
 	{
 		if (const auto rng64 = _Rewrap_range<uint64_t>(rng); rng64.has_value( ))
 			return _Scan_memory(bytes_, *rng64);
@@ -163,7 +168,8 @@ memory_block_opt memory_block::find_block_impl(const known_bytes_range_const& rn
 	}
 	catch (const rewrap_range_exception&)
 	{
-	}
+	}*/
+
 	return _Scan_memory(bytes_, rng);
 }
 
@@ -175,7 +181,7 @@ memory_block_opt memory_block::find_block_impl(const unknown_bytes_range_const& 
 		return this->find_block_impl(make_bytes_known(rng));
 	}
 #else
-	runtime_assert(!all_bytes_known(rng),"Unknown bytes must be unwrapped before!");
+	runtime_assert(!all_bytes_known(rng), "Unknown bytes must be unwrapped before!");
 #endif
 	auto result = _Rng_search(bytes_, rng, [](const known_byte kbyte, const unknown_byte& unkbyte)
 	{
@@ -245,7 +251,8 @@ class MEMORY_BASIC_INFORMATION_UPDATER: protected MEMORY_BASIC_INFORMATION
 	//protected:
 	//auto& get_flags( ) { return reinterpret_cast<flags_type&>(Protect); }
 public:
-	MEMORY_BASIC_INFORMATION_UPDATER( ) : MEMORY_BASIC_INFORMATION( )
+	MEMORY_BASIC_INFORMATION_UPDATER( )
+		: MEMORY_BASIC_INFORMATION( )
 	{
 	}
 
@@ -274,18 +281,21 @@ template <std::default_initializable Fn>
 	requires(std::is_invocable_r_v<bool, Fn, flags_type, flags_type>)
 class flags_checker: public MEMORY_BASIC_INFORMATION_UPDATER
 {
-	flags_checker(flags_type flags) : MEMORY_BASIC_INFORMATION_UPDATER( ),
-									  flags_checked_(flags)
+	flags_checker(flags_type flags)
+		: MEMORY_BASIC_INFORMATION_UPDATER( ),
+		  flags_checked_(flags)
 	{
 	}
 
 public:
-	flags_checker(Fn&& checker_fn, flags_type flags) : flags_checker(flags)
+	flags_checker(Fn&& checker_fn, flags_type flags)
+		: flags_checker(flags)
 	{
 		checker_fn_ = std::move(checker_fn);
 	}
 
-	flags_checker(const Fn& checker_fn, flags_type flags) : flags_checker(flags)
+	flags_checker(const Fn& checker_fn, flags_type flags)
+		: flags_checker(flags)
 	{
 		checker_fn_ = checker_fn;
 	}

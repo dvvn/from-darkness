@@ -34,9 +34,7 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 		case FRAME_NET_UPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-#if !defined(CHEAT_GUI_TEST) && !defined(CHEAT_NETVARS_UPDATING)
 			players_list::get_ptr( )->update( );
-#endif
 			break;
 		case FRAME_NET_UPDATE_END: break;
 		case FRAME_RENDER_START: break;

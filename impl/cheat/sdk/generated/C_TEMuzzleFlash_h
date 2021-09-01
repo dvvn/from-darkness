@@ -1,0 +1,4 @@
+float& m_flScale( );
+int32_t& m_nType( );
+QAngle& m_vecAngles( );
+Vector& m_vecOrigin( );

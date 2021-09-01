@@ -31,7 +31,7 @@ players_list::players_list( )
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
-		false
+								false
 #endif
 							   )
 {
@@ -42,6 +42,11 @@ players_list::~players_list( ) = default;
 
 void players_list::update( )
 {
+#if !__has_include("cheat/sdk/generated/C_BasePlayer_h") || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+#pragma message(__FUNCTION__ ": skipped")
+	(void)this;
+#else
+
 	const auto interfaces = csgo_interfaces::get_ptr( );
 
 	[[maybe_unused]]
@@ -55,17 +60,9 @@ void players_list::update( )
 		storage_->resize(wished_storage_size);
 	}
 
-	// ReSharper disable once CppInconsistentNaming
-	constexpr auto _Get_team = [](C_BaseEntity* ent)
-	{
-		auto num = m_iTeamNum_t::UNKNOWN;
-		__if_exists(C_BaseEntity::m_iTeamNum) { num = ent->m_iTeamNum( ); }
-		return num;
-	};
-
-	C_CSPlayer* const  local_player       = interfaces->local_player;
-	const m_iTeamNum_t local_player_team  = _Get_team(local_player);
-	const auto         local_player_alive = local_player->IsAlive( );
+	C_CSPlayer* const local_player       = interfaces->local_player;
+	const auto        local_player_team  = (m_iTeamNum_t)(local_player->m_iTeamNum( ));
+	const auto        local_player_alive = local_player->IsAlive( );
 
 	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)-> C_CSPlayer*
 	{
@@ -100,7 +97,7 @@ void players_list::update( )
 			obj = std::move(new_obj);
 		}
 
-		const m_iTeamNum_t ent_team = ent->m_iTeamNum( );
+		const auto ent_team = (m_iTeamNum_t)ent->m_iTeamNum( );
 		if (obj_shared->team != ent_team)
 		{
 			storage_updated  = true;
@@ -129,7 +126,7 @@ void players_list::update( )
 				storage_updated   = true;
 			}
 
-			const auto is_ragdoll_active = [ent]
+			const auto is_ragdoll_active = [ent]( )-> bool
 			{
 				const auto ragdoll = ent->GetRagdoll( );
 				return ragdoll != nullptr && ragdoll->m_nSequence( ) != -1 && !ragdoll->IsDormant( );
@@ -192,6 +189,8 @@ void players_list::update( )
 
 	/*if (storage_updated)
 		filter_cache__.clear( );*/
+
+#endif
 }
 
 //const players_filter& players_list::filter(const players_filter_flags& flags)

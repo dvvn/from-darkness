@@ -4,6 +4,8 @@
 #include "cheat/sdk/Vector.hpp"
 #include "cheat/sdk/entity/C_BaseEntity.h"
 
+#include <nstd/enum overloads.h>
+
 using namespace cheat;
 using namespace hooks;
 using namespace c_base_entity;
@@ -15,7 +17,7 @@ estimate_abs_velocity::estimate_abs_velocity( )
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
-		false
+								false
 #endif
 							   )
 {
@@ -31,9 +33,11 @@ nstd::address estimate_abs_velocity::get_target_method_impl( ) const
 
 void estimate_abs_velocity::callback(Vector& vel)
 {
-#if !defined(CHEAT_GUI_TEST) && !defined(CHEAT_NETVARS_UPDATING)
+#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#pragma message(__FUNCTION__ ": skipped")
+#else
 	const auto ent = this->object_instance;
-	if (m_iEFlags_t(ent->m_iEFlags( )).has(m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
+	if (static_cast<m_iEFlags_t>(ent->m_iEFlags( )) & (m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
 	{
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []

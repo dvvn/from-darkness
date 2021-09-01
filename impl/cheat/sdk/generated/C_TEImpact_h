@@ -1,0 +1,4 @@
+int32_t& m_iType( );
+int32_t& m_ucFlags( );
+Vector& m_vecNormal( );
+Vector& m_vecOrigin( );

@@ -1,0 +1,10 @@
+float& HDRColorScale( );
+float& glowDistanceScale( );
+bool& m_bOn( );
+Color& m_clrOverlay( );
+Color& m_clrRender( );
+int32_t& m_nMaterial( );
+int32_t& m_nOverlayMaterial( );
+int32_t& m_nOverlaySize( );
+int32_t& m_nSize( );
+Vector& m_vDirection( );

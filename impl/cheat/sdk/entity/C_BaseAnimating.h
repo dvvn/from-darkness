@@ -37,12 +37,7 @@ namespace cheat::csgo
 #include "../generated/C_BaseAnimating_h"
 #endif
 
-		void UpdateClientSideAnimation( );
-
-		void DoExtraBoneProcessing(CStudioHdr* studio_hdr, Vector pos[], Quaternion q[], matrix3x4a_t bone_to_world[], CBoneBitList& bone_computed, CIKContext* ik_context);
-		bool ShouldSkipAnimationFrame(/*float current_time*/);
-		void StandardBlendingRules(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask);
-
+		void                         UpdateClientSideAnimation( );
 		CUtlVector<CAnimationLayer>& GetAnimOverlays( );
 	};
 }

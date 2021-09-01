@@ -44,11 +44,11 @@ const string_wrapper& abstract_page::name( ) const
 void abstract_pages_renderer::add_page(abstract_page&& page)
 {
 #ifdef _DEBUG
-	if (const auto renderer = dynamic_cast<abstract_pages_renderer*>((page.page( ))); renderer != nullptr)
+	if (const auto renderer = dynamic_cast<abstract_pages_renderer*>(page.page( )); renderer != nullptr)
 	{
 		if (renderer->pages_count( ) == 0)
 		{
-			DebugBreak( );
+			//DebugBreak( );
 			return;
 		}
 	}

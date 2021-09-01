@@ -1,6 +1,5 @@
 #pragma once
 #include "C_BasePlayer.h"
-#include "C_WeaponCSBase.h"
 
 namespace cheat::csgo
 {

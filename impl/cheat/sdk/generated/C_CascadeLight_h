@@ -1,0 +1,7 @@
+int32_t& m_LightColor( );
+int32_t& m_LightColorScale( );
+bool& m_bEnabled( );
+bool& m_bUseLightEnvAngles( );
+Vector& m_envLightShadowDirection( );
+float& m_flMaxShadowDist( );
+Vector& m_shadowDirection( );

@@ -1,0 +1,95 @@
+#include "C_TEPhysicsProp.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/sdk/Color.hpp"
+#include "cheat/sdk/QAngle.hpp"
+#include "cheat/sdk/Vector.hpp"
+#include <cstdint>
+
+using namespace cheat;
+using namespace csgo;
+
+QAngle& C_TEPhysicsProp::m_angRotation( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(QAngle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_angRotation");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<QAngle>( );
+#endif
+}
+Color& C_TEPhysicsProp::m_clrRender( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Color*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_clrRender");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<Color>( );
+#endif
+}
+int32_t& C_TEPhysicsProp::m_nEffects( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nEffects");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEPhysicsProp::m_nFlags( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nFlags");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEPhysicsProp::m_nModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nModelIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_TEPhysicsProp::m_nSkin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_nSkin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+Vector& C_TEPhysicsProp::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_vecOrigin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}
+Vector& C_TEPhysicsProp::m_vecVelocity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEPhysicsProp", "m_vecVelocity");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<Vector>( );
+#endif
+}

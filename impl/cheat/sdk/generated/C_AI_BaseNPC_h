@@ -1,0 +1,11 @@
+bool& m_bFadeCorpse( );
+bool& m_bImportanRagdoll( );
+bool& m_bIsMoving( );
+bool& m_bPerformAvoidance( );
+bool& m_bSpeedModActive( );
+float& m_flTimePingEffect( );
+int32_t& m_iDeathFrame( );
+int32_t& m_iDeathPose( );
+int32_t& m_iSpeedModRadius( );
+int32_t& m_iSpeedModSpeed( );
+int32_t& m_lifeState( );

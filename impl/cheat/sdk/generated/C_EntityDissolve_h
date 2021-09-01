@@ -1,0 +1,10 @@
+float& m_flFadeInLength( );
+float& m_flFadeInStart( );
+float& m_flFadeOutLength( );
+float& m_flFadeOutModelLength( );
+float& m_flFadeOutModelStart( );
+float& m_flFadeOutStart( );
+float& m_flStartTime( );
+int32_t& m_nDissolveType( );
+int32_t& m_nMagnitude( );
+Vector& m_vDissolverOrigin( );

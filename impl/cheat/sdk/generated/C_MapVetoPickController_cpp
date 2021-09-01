@@ -1,0 +1,163 @@
+#include "C_MapVetoPickController.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include <array>
+#include <cstdint>
+
+using namespace cheat;
+using namespace csgo;
+
+std::array<int32_t, 64>& C_MapVetoPickController::m_nAccountIDs( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nAccountIDs");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+int32_t& C_MapVetoPickController::m_nCurrentPhase( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nCurrentPhase");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_MapVetoPickController::m_nDraftType( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nDraftType");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nMapId0( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nMapId0");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nMapId1( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nMapId1");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nMapId2( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nMapId2");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nMapId3( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nMapId3");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nMapId4( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nMapId4");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nMapId5( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nMapId5");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+int32_t& C_MapVetoPickController::m_nPhaseDurationTicks( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nPhaseDurationTicks");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+int32_t& C_MapVetoPickController::m_nPhaseStartTick( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nPhaseStartTick");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nStartingSide0( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nStartingSide0");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+int32_t& C_MapVetoPickController::m_nTeamWinningCoinToss( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int32_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nTeamWinningCoinToss");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int32_t>( );
+#endif
+}
+std::array<int32_t, 64>& C_MapVetoPickController::m_nTeamWithFirstChoice( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nTeamWithFirstChoice");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 64>>( );
+#endif
+}
+std::array<int32_t, 7>& C_MapVetoPickController::m_nVoteMapIdsList( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int32_t, 7>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MapVetoPickController", "m_nVoteMapIdsList");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int32_t, 7>>( );
+#endif
+}

@@ -1,0 +1,7 @@
+bool& m_bDOFEnabled( );
+float& m_flFarBlurDepth( );
+float& m_flFarBlurRadius( );
+float& m_flFarFocusDepth( );
+float& m_flNearBlurDepth( );
+float& m_flNearBlurRadius( );
+float& m_flNearFocusDepth( );

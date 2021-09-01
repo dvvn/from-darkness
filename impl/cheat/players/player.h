@@ -3,6 +3,8 @@
 
 #include "cheat/sdk/entity/C_BaseEntity.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <string>
 #include <include/veque.hpp>
 
 #include <memory>
@@ -27,8 +29,8 @@ namespace cheat
 
 		using ticks_storage = veque::veque<detail::tick_record_shared_impl>;
 
-		ticks_storage                        ticks;
-		std::span<ticks_storage::value_type> ticks_window;
+		ticks_storage                              ticks;
+		std::span<const ticks_storage::value_type> ticks_window;
 
 		static size_t max_ticks_count( );
 	};

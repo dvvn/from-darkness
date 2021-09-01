@@ -1,0 +1,2 @@
+int32_t& m_jumpedThisFrame( );
+int32_t& m_leader( );

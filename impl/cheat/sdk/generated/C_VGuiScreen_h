@@ -1,0 +1,7 @@
+int32_t& m_fScreenFlags( );
+float& m_flHeight( );
+float& m_flWidth( );
+CBaseHandle& m_hPlayerOwner( );
+int32_t& m_nAttachmentIndex( );
+int32_t& m_nOverlayMaterial( );
+int32_t& m_nPanelName( );

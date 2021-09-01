@@ -63,6 +63,7 @@ imgui_context::~imgui_context( )
 
 imgui_context::imgui_context( )
 {
+	data_=std::make_unique<data_type>();
 }
 
 service_base::load_result imgui_context::load_impl( )

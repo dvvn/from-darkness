@@ -1,0 +1,3 @@
+int32_t& m_nMagnitude( );
+int32_t& m_nTrailLength( );
+Vector& m_vecDir( );

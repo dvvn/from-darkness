@@ -1,0 +1,2 @@
+int32_t& m_nIndex( );
+Vector& m_vecOrigin( );

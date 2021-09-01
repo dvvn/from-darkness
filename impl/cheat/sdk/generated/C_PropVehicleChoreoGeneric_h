@@ -1,0 +1,5 @@
+bool& m_bEnterAnimOn( );
+bool& m_bExitAnimOn( );
+bool& m_bForceEyesToAttachment( );
+CBaseHandle& m_hPlayer( );
+Vector& m_vecEyeExitEndpoint( );
