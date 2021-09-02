@@ -1,2 +1,2 @@
 bool& m_bClientPhysics( );
-QAngle& m_qPreferredPlayerCarryAngles( );
+cheat::csgo::QAngle& m_qPreferredPlayerCarryAngles( );

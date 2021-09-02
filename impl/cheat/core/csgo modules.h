@@ -50,7 +50,7 @@ namespace cheat::csgo_modules
 		template <typename Table/*, nstd::chars_cache ...IgnoreNamespaces*/>
 		Table* find_vtable( ) const
 		{
-			constexpr auto table_name = nstd::type_name<Table, "cheat", "csgo"/*IgnoreNamespaces...*/>( );
+			constexpr auto table_name = nstd::type_name<Table, "cheat::csgo"/*IgnoreNamespaces...*/>;
 			static void*   ptr        = detail::find_vtable_pointer(this->get( ), table_name);
 			return static_cast<Table*>(ptr);
 		}

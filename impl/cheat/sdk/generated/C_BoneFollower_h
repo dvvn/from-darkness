@@ -1,2 +1,2 @@
-int32_t& m_modelIndex( );
-int32_t& m_solidIndex( );
+int& m_modelIndex( );
+int& m_solidIndex( );

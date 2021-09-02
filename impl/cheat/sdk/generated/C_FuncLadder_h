@@ -1,4 +1,4 @@
 bool& m_bFakeLadder( );
-Vector& m_vecLadderDir( );
-Vector& m_vecPlayerMountPositionBottom( );
-Vector& m_vecPlayerMountPositionTop( );
+cheat::csgo::Vector& m_vecLadderDir( );
+cheat::csgo::Vector& m_vecPlayerMountPositionBottom( );
+cheat::csgo::Vector& m_vecPlayerMountPositionTop( );

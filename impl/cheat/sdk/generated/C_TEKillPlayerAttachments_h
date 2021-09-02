@@ -1,1 +1,1 @@
-int32_t& m_nPlayer( );
+int& m_nPlayer( );

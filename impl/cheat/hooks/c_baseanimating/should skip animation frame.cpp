@@ -33,7 +33,9 @@ nstd::address should_skip_animation_frame::get_target_method_impl( ) const
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
-#if !defined(CHEAT_GUI_TEST) && !defined(CHEAT_NETVARS_UPDATING)
+#if !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+#pragma message(__FUNCTION__": skipped")
+#else
 	if (override_return__)
 		this->return_value_.store_value(override_return_to__);
 	else

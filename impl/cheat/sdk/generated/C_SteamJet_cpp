@@ -5,10 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
-
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_SteamJet::m_EndSize( )
 {
@@ -100,23 +97,23 @@ float& C_SteamJet::m_flRollSpeed( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_SteamJet::m_nType( )
+int& C_SteamJet::m_nType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_nType");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_SteamJet::m_spawnflags( )
+int& C_SteamJet::m_spawnflags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_spawnflags");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

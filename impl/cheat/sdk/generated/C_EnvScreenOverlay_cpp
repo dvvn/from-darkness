@@ -6,10 +6,8 @@
 #endif
 
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_EnvScreenOverlay::m_bIsActive( )
 {
@@ -41,14 +39,14 @@ float& C_EnvScreenOverlay::m_flStartTime( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_EnvScreenOverlay::m_iDesiredOverlay( )
+int& C_EnvScreenOverlay::m_iDesiredOverlay( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_iDesiredOverlay");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
 std::array<char*, 10>& C_EnvScreenOverlay::m_iszOverlayNames( )

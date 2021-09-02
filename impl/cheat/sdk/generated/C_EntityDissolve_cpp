@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_EntityDissolve::m_flFadeInLength( )
 {
@@ -81,33 +79,33 @@ float& C_EntityDissolve::m_flStartTime( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_EntityDissolve::m_nDissolveType( )
+int& C_EntityDissolve::m_nDissolveType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityDissolve", "m_nDissolveType");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EntityDissolve::m_nMagnitude( )
+int& C_EntityDissolve::m_nMagnitude( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityDissolve", "m_nMagnitude");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_EntityDissolve::m_vDissolverOrigin( )
+cheat::csgo::Vector& C_EntityDissolve::m_vDissolverOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityDissolve", "m_vDissolverOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

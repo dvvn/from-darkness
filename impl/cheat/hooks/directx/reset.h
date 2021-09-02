@@ -12,7 +12,7 @@ using HRESULT = long;
 
 namespace cheat::hooks::directx
 {
-	class reset final: public base<reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
+	class reset final: public hook_base<reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
 	{
 	public:
 		reset( );

@@ -13,7 +13,7 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_base_animating
 {
-	class standard_blending_rules final: public base<standard_blending_rules, void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::QuaternionAligned*, float, int)>
+	class standard_blending_rules final: public hook_base<standard_blending_rules, void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::QuaternionAligned*, float, int)>
 									   , service_sometimes_skipped
 	{
 	public:

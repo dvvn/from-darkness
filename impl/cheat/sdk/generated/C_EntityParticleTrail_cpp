@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/CBaseHandle.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_EntityParticleTrail::m_flEndSize( )
 {
@@ -41,23 +39,23 @@ float& C_EntityParticleTrail::m_flStartSize( )
 	return addr.ref<float>( );
 #endif
 }
-CBaseHandle& C_EntityParticleTrail::m_hConstraintEntity( )
+cheat::csgo::CBaseHandle& C_EntityParticleTrail::m_hConstraintEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail", "m_hConstraintEntity");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int32_t& C_EntityParticleTrail::m_iMaterialName( )
+int& C_EntityParticleTrail::m_iMaterialName( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityParticleTrail", "m_iMaterialName");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

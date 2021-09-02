@@ -7,8 +7,7 @@
 
 #include <array>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_PostProcessController::m_bMaster( )
 {

@@ -1,3 +1,3 @@
-int32_t& m_blinktoggle( );
+int& m_blinktoggle( );
 std::array<float, 96>& m_flexWeight( );
-Vector& m_viewtarget( );
+cheat::csgo::Vector& m_viewtarget( );

@@ -7,10 +7,8 @@
 
 #include "cheat/sdk/CBaseHandle.hpp"
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_PropVehicleDriveable::m_bEnterAnimOn( )
 {
@@ -62,93 +60,93 @@ float& C_PropVehicleDriveable::m_flThrottle( )
 	return addr.ref<float>( );
 #endif
 }
-CBaseHandle& C_PropVehicleDriveable::m_hPlayer( )
+cheat::csgo::CBaseHandle& C_PropVehicleDriveable::m_hPlayer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_hPlayer");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int32_t& C_PropVehicleDriveable::m_nBoostTimeLeft( )
+int& C_PropVehicleDriveable::m_nBoostTimeLeft( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nBoostTimeLeft");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_PropVehicleDriveable::m_nHasBoost( )
+int& C_PropVehicleDriveable::m_nHasBoost( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nHasBoost");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_PropVehicleDriveable::m_nRPM( )
+int& C_PropVehicleDriveable::m_nRPM( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nRPM");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_PropVehicleDriveable::m_nScannerDisabledVehicle( )
+int& C_PropVehicleDriveable::m_nScannerDisabledVehicle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nScannerDisabledVehicle");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_PropVehicleDriveable::m_nScannerDisabledWeapons( )
+int& C_PropVehicleDriveable::m_nScannerDisabledWeapons( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nScannerDisabledWeapons");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_PropVehicleDriveable::m_nSpeed( )
+int& C_PropVehicleDriveable::m_nSpeed( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_nSpeed");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_PropVehicleDriveable::m_vecEyeExitEndpoint( )
+cheat::csgo::Vector& C_PropVehicleDriveable::m_vecEyeExitEndpoint( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_vecEyeExitEndpoint");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_PropVehicleDriveable::m_vecGunCrosshair( )
+cheat::csgo::Vector& C_PropVehicleDriveable::m_vecGunCrosshair( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PropVehicleDriveable", "m_vecGunCrosshair");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

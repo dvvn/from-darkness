@@ -1,4 +1,4 @@
-QAngle& m_angRotation( );
+cheat::csgo::QAngle& m_angRotation( );
 float& m_flDistance( );
-int32_t& m_nIndex( );
-Vector& m_vecOrigin( );
+int& m_nIndex( );
+cheat::csgo::Vector& m_vecOrigin( );

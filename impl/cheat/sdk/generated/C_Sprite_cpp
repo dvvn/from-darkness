@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/CBaseHandle.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_Sprite::m_bWorldSpaceScale( )
 {
@@ -91,33 +89,33 @@ float& C_Sprite::m_flSpriteScale( )
 	return addr.ref<float>( );
 #endif
 }
-CBaseHandle& C_Sprite::m_hAttachedToEntity( )
+cheat::csgo::CBaseHandle& C_Sprite::m_hAttachedToEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_hAttachedToEntity");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int32_t& C_Sprite::m_nAttachment( )
+int& C_Sprite::m_nAttachment( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_nAttachment");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Sprite::m_nBrightness( )
+int& C_Sprite::m_nBrightness( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_nBrightness");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

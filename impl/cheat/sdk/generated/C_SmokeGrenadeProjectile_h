@@ -1,2 +1,2 @@
 bool& m_bDidSmokeEffect( );
-int32_t& m_nSmokeEffectTickBegin( );
+int& m_nSmokeEffectTickBegin( );

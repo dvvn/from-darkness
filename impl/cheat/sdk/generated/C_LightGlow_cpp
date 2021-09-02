@@ -8,10 +8,8 @@
 #include "cheat/sdk/Color.hpp"
 #include "cheat/sdk/QAngle.hpp"
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_LightGlow::HDRColorScale( )
 {
@@ -23,24 +21,24 @@ float& C_LightGlow::HDRColorScale( )
 	return addr.ref<float>( );
 #endif
 }
-QAngle& C_LightGlow::m_angRotation( )
+cheat::csgo::QAngle& C_LightGlow::m_angRotation( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(QAngle*)nullptr;
+	return *(cheat::csgo::QAngle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_angRotation");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<QAngle>( );
+	return addr.ref<cheat::csgo::QAngle>( );
 #endif
 }
-Color& C_LightGlow::m_clrRender( )
+cheat::csgo::Color& C_LightGlow::m_clrRender( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Color*)nullptr;
+	return *(cheat::csgo::Color*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_clrRender");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Color>( );
+	return addr.ref<cheat::csgo::Color>( );
 #endif
 }
 float& C_LightGlow::m_flGlowProxySize( )
@@ -53,83 +51,83 @@ float& C_LightGlow::m_flGlowProxySize( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_LightGlow::m_nHorizontalSize( )
+int& C_LightGlow::m_nHorizontalSize( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_nHorizontalSize");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_LightGlow::m_nMaxDist( )
+int& C_LightGlow::m_nMaxDist( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_nMaxDist");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_LightGlow::m_nMinDist( )
+int& C_LightGlow::m_nMinDist( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_nMinDist");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_LightGlow::m_nOuterMaxDist( )
+int& C_LightGlow::m_nOuterMaxDist( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_nOuterMaxDist");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_LightGlow::m_nVerticalSize( )
+int& C_LightGlow::m_nVerticalSize( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_nVerticalSize");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_LightGlow::m_spawnflags( )
+int& C_LightGlow::m_spawnflags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_spawnflags");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_LightGlow::m_vecOrigin( )
+cheat::csgo::Vector& C_LightGlow::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-int32_t& C_LightGlow::moveparent( )
+int& C_LightGlow::moveparent( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_LightGlow", "moveparent");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

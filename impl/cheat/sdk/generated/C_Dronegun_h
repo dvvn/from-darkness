@@ -1,4 +1,4 @@
 bool& m_bHasTarget( );
-int32_t& m_iHealth( );
-Vector& m_vecAttentionTarget( );
-Vector& m_vecTargetOffset( );
+int& m_iHealth( );
+cheat::csgo::Vector& m_vecAttentionTarget( );
+cheat::csgo::Vector& m_vecTargetOffset( );

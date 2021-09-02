@@ -7,10 +7,8 @@
 
 #include "cheat/sdk/QAngle.hpp"
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 QAngle& C_TEBreakModel::m_angRotation( )
 {
@@ -32,73 +30,73 @@ float& C_TEBreakModel::m_fTime( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_TEBreakModel::m_nCount( )
+int& C_TEBreakModel::m_nCount( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel", "m_nCount");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_TEBreakModel::m_nFlags( )
+int& C_TEBreakModel::m_nFlags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel", "m_nFlags");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_TEBreakModel::m_nModelIndex( )
+int& C_TEBreakModel::m_nModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_TEBreakModel::m_nRandomization( )
+int& C_TEBreakModel::m_nRandomization( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel", "m_nRandomization");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_TEBreakModel::m_vecOrigin( )
+cheat::csgo::Vector& C_TEBreakModel::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_TEBreakModel::m_vecSize( )
+cheat::csgo::Vector& C_TEBreakModel::m_vecSize( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel", "m_vecSize");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_TEBreakModel::m_vecVelocity( )
+cheat::csgo::Vector& C_TEBreakModel::m_vecVelocity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBreakModel", "m_vecVelocity");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

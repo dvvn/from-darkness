@@ -1,6 +1,6 @@
 float& m_fNoise( );
-int32_t& m_nCount( );
-int32_t& m_nModelIndex( );
-int32_t& m_nSpeed( );
-Vector& m_vecDirection( );
-Vector& m_vecOrigin( );
+int& m_nCount( );
+int& m_nModelIndex( );
+int& m_nSpeed( );
+cheat::csgo::Vector& m_vecDirection( );
+cheat::csgo::Vector& m_vecOrigin( );

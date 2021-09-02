@@ -1,2 +1,2 @@
 float& m_fMass( );
-int32_t& m_iPhysicsMode( );
+int& m_iPhysicsMode( );

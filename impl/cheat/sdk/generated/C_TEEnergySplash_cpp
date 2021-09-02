@@ -7,8 +7,7 @@
 
 #include "cheat/sdk/Vector.hpp"
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_TEEnergySplash::m_bExplosive( )
 {
@@ -20,23 +19,23 @@ bool& C_TEEnergySplash::m_bExplosive( )
 	return addr.ref<bool>( );
 #endif
 }
-Vector& C_TEEnergySplash::m_vecDir( )
+cheat::csgo::Vector& C_TEEnergySplash::m_vecDir( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash", "m_vecDir");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_TEEnergySplash::m_vecPos( )
+cheat::csgo::Vector& C_TEEnergySplash::m_vecPos( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEEnergySplash", "m_vecPos");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

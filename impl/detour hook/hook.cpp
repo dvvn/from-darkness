@@ -9,6 +9,7 @@
 #include <ranges>
 #include <stdexcept>
 #include <vector>
+#include <list>
 
 using namespace dhooks;
 using namespace dhooks::detail;
@@ -101,20 +102,31 @@ status_ex::status_ex(status s) : status_ex_impl{s}
 }
 #endif
 
-struct context::storage_type: std::vector<element_type>
+struct context::storage_type: std::list<element_type>
 {
 };
 
 static hook_entry* _Find_hook(context::storage_type& storage, LPVOID target)
 {
-	if (target)
-		for (auto& h: storage)
-		{
-			if (h.target == target)
-				return std::addressof(h);
-		}
-
+	runtime_assert(target != nullptr);
+	for (auto& h: storage)
+	{
+		if (h.target == target)
+			return std::addressof(h);
+	}
 	return nullptr;
+}
+
+static auto _Find_hook_itr(context::storage_type& storage, LPVOID target)
+{
+	runtime_assert(target != nullptr);
+	//return std::ranges::find(storage, target, &context::element_type::target);
+	for (auto itr = storage.begin( ); itr != storage.end( ); ++itr)
+	{
+		if (itr->target == target)
+			return itr;
+	}
+	return storage.end( );
 }
 
 static hook_status _Set_hook_state(context::storage_type& storage, LPVOID target, bool enable)
@@ -204,7 +216,9 @@ hook_entry::~hook_entry( )
 
 hook_entry::hook_entry(hook_entry&& other) noexcept
 {
-	*this = std::move(other);
+	*static_cast<trampoline*>(this) = static_cast<trampoline&&>(other);
+	std::memcpy(backup, other.backup, sizeof(ips_type));
+	enabled = other.enabled;
 }
 
 hook_entry& hook_entry::operator=(hook_entry&& other) noexcept
@@ -357,13 +371,10 @@ hook_status context::remove_hook(LPVOID target, bool force)
 			if (!force || status != hook_status::ERROR_MEMORY_PROTECT)
 				return status;
 		}
+		entry->enabled = 0;
 	}
 
-	//erase if map, null if vector
-
-	//storage_->erase(entry);
-	*entry = { };
-
+	storage_->erase(_Find_hook_itr(*storage_, target));
 	return hook_status::OK;
 }
 

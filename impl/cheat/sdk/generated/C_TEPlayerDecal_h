@@ -1,6 +1,6 @@
-int32_t& m_nEntity( );
-int32_t& m_nHitbox( );
-int32_t& m_nPlayer( );
-Vector& m_vecOrigin( );
-Vector& m_vecRight( );
-Vector& m_vecStart( );
+int& m_nEntity( );
+int& m_nHitbox( );
+int& m_nPlayer( );
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::Vector& m_vecRight( );
+cheat::csgo::Vector& m_vecStart( );

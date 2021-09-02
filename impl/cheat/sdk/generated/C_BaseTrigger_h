@@ -1,2 +1,2 @@
 bool& m_bClientSidePredicted( );
-int32_t& m_spawnflags( );
+int& m_spawnflags( );

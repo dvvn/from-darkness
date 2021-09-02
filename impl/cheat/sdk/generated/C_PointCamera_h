@@ -1,5 +1,5 @@
 float& m_FOV( );
-int32_t& m_FogColor( );
+int& m_FogColor( );
 float& m_Resolution( );
 bool& m_bActive( );
 bool& m_bFogEnable( );

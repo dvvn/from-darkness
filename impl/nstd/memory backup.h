@@ -35,7 +35,8 @@ namespace nstd
 		}
 
 		template <typename T1=T>
-		memory_backup(T& from, T1&& owerride) : memory_backup(from)
+		memory_backup(T& from, T1&& owerride)
+			: memory_backup(from)
 		{
 			from = T(std::forward<T1>(owerride));
 		}
@@ -62,6 +63,11 @@ namespace nstd
 		void restore( )
 		{
 			this->restore_impl<false>( );
+		}
+
+		void reset( )
+		{
+			data_.reset( );
 		}
 
 		/**

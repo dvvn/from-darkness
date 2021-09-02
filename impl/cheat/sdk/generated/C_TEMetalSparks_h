@@ -1,2 +1,2 @@
-Vector& m_vecDir( );
-Vector& m_vecPos( );
+cheat::csgo::Vector& m_vecDir( );
+cheat::csgo::Vector& m_vecPos( );

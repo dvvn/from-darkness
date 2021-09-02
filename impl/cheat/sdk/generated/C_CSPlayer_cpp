@@ -10,49 +10,47 @@
 #include "cheat/sdk/Vector.hpp"
 #include "cheat/sdk/Vector2D.hpp"
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-int32_t& C_CSPlayer::m_ArmorValue( )
+int& C_CSPlayer::m_ArmorValue( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_ArmorValue");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<int32_t, 57>& C_CSPlayer::m_EquippedLoadoutItemDefIndices( )
+std::array<int, 57>& C_CSPlayer::m_EquippedLoadoutItemDefIndices( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 57>*)nullptr;
+	return *(std::array<int, 57>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_EquippedLoadoutItemDefIndices");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 57>>( );
+	return addr.ref<std::array<int, 57>>( );
 #endif
 }
-int32_t& C_CSPlayer::m_RetakesMVPBoostExtraUtility( )
+int& C_CSPlayer::m_RetakesMVPBoostExtraUtility( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_RetakesMVPBoostExtraUtility");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-QAngle& C_CSPlayer::m_angEyeAngles( )
+cheat::csgo::QAngle& C_CSPlayer::m_angEyeAngles( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(QAngle*)nullptr;
+	return *(cheat::csgo::QAngle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_angEyeAngles");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<QAngle>( );
+	return addr.ref<cheat::csgo::QAngle>( );
 #endif
 }
 bool& C_CSPlayer::m_bCanControlObservedBot( )
@@ -385,24 +383,24 @@ bool& C_CSPlayer::m_bNightVisionOn( )
 	return addr.ref<bool>( );
 #endif
 }
-std::array<int32_t, 65>& C_CSPlayer::m_bPlayerDominated( )
+std::array<int, 65>& C_CSPlayer::m_bPlayerDominated( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bPlayerDominated");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_CSPlayer::m_bPlayerDominatingMe( )
+std::array<int, 65>& C_CSPlayer::m_bPlayerDominatingMe( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_bPlayerDominatingMe");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
 bool& C_CSPlayer::m_bResumeZoom( )
@@ -455,14 +453,14 @@ bool& C_CSPlayer::m_bWaitForNoAttack( )
 	return addr.ref<bool>( );
 #endif
 }
-int32_t& C_CSPlayer::m_cycleLatch( )
+int& C_CSPlayer::m_cycleLatch( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_cycleLatch");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
 float& C_CSPlayer::m_fImmuneToGunGameDamageTime( )
@@ -635,544 +633,544 @@ float& C_CSPlayer::m_flVelocityModifier( )
 	return addr.ref<float>( );
 #endif
 }
-CBaseHandle& C_CSPlayer::m_hCarriedHostage( )
+cheat::csgo::CBaseHandle& C_CSPlayer::m_hCarriedHostage( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hCarriedHostage");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-CBaseHandle& C_CSPlayer::m_hCarriedHostageProp( )
+cheat::csgo::CBaseHandle& C_CSPlayer::m_hCarriedHostageProp( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hCarriedHostageProp");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-CBaseHandle& C_CSPlayer::m_hPlayerPing( )
+cheat::csgo::CBaseHandle& C_CSPlayer::m_hPlayerPing( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hPlayerPing");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-CBaseHandle& C_CSPlayer::m_hRagdoll( )
+cheat::csgo::CBaseHandle& C_CSPlayer::m_hRagdoll( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hRagdoll");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-CBaseHandle& C_CSPlayer::m_hSurvivalAssassinationTarget( )
+cheat::csgo::CBaseHandle& C_CSPlayer::m_hSurvivalAssassinationTarget( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_hSurvivalAssassinationTarget");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iAccount( )
+int& C_CSPlayer::m_iAccount( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iAccount");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iAddonBits( )
+int& C_CSPlayer::m_iAddonBits( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iAddonBits");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iBlockingUseActionInProgress( )
+int& C_CSPlayer::m_iBlockingUseActionInProgress( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iBlockingUseActionInProgress");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iClass( )
+int& C_CSPlayer::m_iClass( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iClass");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iControlledBotEntIndex( )
+int& C_CSPlayer::m_iControlledBotEntIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iControlledBotEntIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iDirection( )
+int& C_CSPlayer::m_iDirection( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iDirection");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iGunGameProgressiveWeaponIndex( )
+int& C_CSPlayer::m_iGunGameProgressiveWeaponIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iGunGameProgressiveWeaponIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Assists( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_Assists( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Assists");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_CashEarned( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_CashEarned( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_CashEarned");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Damage( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_Damage( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Damage");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Deaths( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_Deaths( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Deaths");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_EnemiesFlashed( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_EnemiesFlashed( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_EnemiesFlashed");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_EquipmentValue( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_EquipmentValue( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_EquipmentValue");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_HeadShotKills( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_HeadShotKills( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_HeadShotKills");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_KillReward( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_KillReward( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_KillReward");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Kills( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_Kills( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Kills");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_LiveTime( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_LiveTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_LiveTime");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_MoneySaved( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_MoneySaved( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_MoneySaved");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_Objective( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_Objective( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_Objective");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-std::array<int32_t, 30>& C_CSPlayer::m_iMatchStats_UtilityDamage( )
+std::array<int, 30>& C_CSPlayer::m_iMatchStats_UtilityDamage( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 30>*)nullptr;
+	return *(std::array<int, 30>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMatchStats_UtilityDamage");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 30>>( );
+	return addr.ref<std::array<int, 30>>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iMoveState( )
+int& C_CSPlayer::m_iMoveState( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iMoveState");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iNumGunGameKillsWithCurrentWeapon( )
+int& C_CSPlayer::m_iNumGunGameKillsWithCurrentWeapon( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumGunGameKillsWithCurrentWeapon");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iNumGunGameTRKillPoints( )
+int& C_CSPlayer::m_iNumGunGameTRKillPoints( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumGunGameTRKillPoints");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iNumRoundKills( )
+int& C_CSPlayer::m_iNumRoundKills( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumRoundKills");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iNumRoundKillsHeadshots( )
+int& C_CSPlayer::m_iNumRoundKillsHeadshots( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iNumRoundKillsHeadshots");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iPlayerState( )
+int& C_CSPlayer::m_iPlayerState( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iPlayerState");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iPrimaryAddon( )
+int& C_CSPlayer::m_iPrimaryAddon( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iPrimaryAddon");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iProgressBarDuration( )
+int& C_CSPlayer::m_iProgressBarDuration( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iProgressBarDuration");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iRetakesMVPBoostItem( )
+int& C_CSPlayer::m_iRetakesMVPBoostItem( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iRetakesMVPBoostItem");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iRetakesOffering( )
+int& C_CSPlayer::m_iRetakesOffering( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iRetakesOffering");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iRetakesOfferingCard( )
+int& C_CSPlayer::m_iRetakesOfferingCard( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iRetakesOfferingCard");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iSecondaryAddon( )
+int& C_CSPlayer::m_iSecondaryAddon( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iSecondaryAddon");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iShotsFired( )
+int& C_CSPlayer::m_iShotsFired( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iShotsFired");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iStartAccount( )
+int& C_CSPlayer::m_iStartAccount( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iStartAccount");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_iThrowGrenadeCounter( )
+int& C_CSPlayer::m_iThrowGrenadeCounter( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iThrowGrenadeCounter");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<int32_t, 499>& C_CSPlayer::m_iWeaponPurchasesThisMatch( )
+std::array<int, 499>& C_CSPlayer::m_iWeaponPurchasesThisMatch( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 499>*)nullptr;
+	return *(std::array<int, 499>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iWeaponPurchasesThisMatch");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 499>>( );
+	return addr.ref<std::array<int, 499>>( );
 #endif
 }
-std::array<int32_t, 256>& C_CSPlayer::m_iWeaponPurchasesThisRound( )
+std::array<int, 256>& C_CSPlayer::m_iWeaponPurchasesThisRound( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 256>*)nullptr;
+	return *(std::array<int, 256>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_iWeaponPurchasesThisRound");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 256>>( );
+	return addr.ref<std::array<int, 256>>( );
 #endif
 }
-int32_t& C_CSPlayer::m_isCurrentGunGameLeader( )
+int& C_CSPlayer::m_isCurrentGunGameLeader( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_isCurrentGunGameLeader");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_isCurrentGunGameTeamLeader( )
+int& C_CSPlayer::m_isCurrentGunGameTeamLeader( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_isCurrentGunGameTeamLeader");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nDeathCamMusic( )
+int& C_CSPlayer::m_nDeathCamMusic( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nDeathCamMusic");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nHeavyAssaultSuitCooldownRemaining( )
+int& C_CSPlayer::m_nHeavyAssaultSuitCooldownRemaining( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nHeavyAssaultSuitCooldownRemaining");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nIsAutoMounting( )
+int& C_CSPlayer::m_nIsAutoMounting( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nIsAutoMounting");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nLastConcurrentKilled( )
+int& C_CSPlayer::m_nLastConcurrentKilled( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nLastConcurrentKilled");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nLastKillerIndex( )
+int& C_CSPlayer::m_nLastKillerIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nLastKillerIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nNumFastDucks( )
+int& C_CSPlayer::m_nNumFastDucks( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nNumFastDucks");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nQuestProgressReason( )
+int& C_CSPlayer::m_nQuestProgressReason( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nQuestProgressReason");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_CSPlayer::m_nSurvivalTeam( )
+int& C_CSPlayer::m_nSurvivalTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_nSurvivalTeam");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<int32_t, 4>& C_CSPlayer::m_passiveItems( )
+std::array<int, 4>& C_CSPlayer::m_passiveItems( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 4>*)nullptr;
+	return *(std::array<int, 4>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_passiveItems");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 4>>( );
+	return addr.ref<std::array<int, 4>>( );
 #endif
 }
-std::array<int32_t, 6>& C_CSPlayer::m_rank( )
+std::array<int, 6>& C_CSPlayer::m_rank( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 6>*)nullptr;
+	return *(std::array<int, 6>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_rank");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 6>>( );
+	return addr.ref<std::array<int, 6>>( );
 #endif
 }
 char* C_CSPlayer::m_szArmsModel( )
@@ -1185,123 +1183,123 @@ char* C_CSPlayer::m_szArmsModel( )
 	return addr.ptr<char>( );
 #endif
 }
-int32_t& C_CSPlayer::m_totalHitsOnServer( )
+int& C_CSPlayer::m_totalHitsOnServer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_totalHitsOnServer");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-uint32_t& C_CSPlayer::m_unActiveQuestId( )
+unsigned int& C_CSPlayer::m_unActiveQuestId( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unActiveQuestId");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-uint32_t& C_CSPlayer::m_unCurrentEquipmentValue( )
+unsigned int& C_CSPlayer::m_unCurrentEquipmentValue( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unCurrentEquipmentValue");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-uint32_t& C_CSPlayer::m_unFreezetimeEndEquipmentValue( )
+unsigned int& C_CSPlayer::m_unFreezetimeEndEquipmentValue( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unFreezetimeEndEquipmentValue");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-uint32_t& C_CSPlayer::m_unMusicID( )
+unsigned int& C_CSPlayer::m_unMusicID( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unMusicID");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-uint32_t& C_CSPlayer::m_unPlayerTvControlFlags( )
+unsigned int& C_CSPlayer::m_unPlayerTvControlFlags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unPlayerTvControlFlags");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-uint32_t& C_CSPlayer::m_unRoundStartEquipmentValue( )
+unsigned int& C_CSPlayer::m_unRoundStartEquipmentValue( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unRoundStartEquipmentValue");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-uint32_t& C_CSPlayer::m_unTotalRoundDamageDealt( )
+unsigned int& C_CSPlayer::m_unTotalRoundDamageDealt( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_unTotalRoundDamageDealt");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-Vector& C_CSPlayer::m_vecAutomoveTargetEnd( )
+cheat::csgo::Vector& C_CSPlayer::m_vecAutomoveTargetEnd( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecAutomoveTargetEnd");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector2D& C_CSPlayer::m_vecOrigin( )
+cheat::csgo::Vector2D& C_CSPlayer::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector2D*)nullptr;
+	return *(cheat::csgo::Vector2D*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector2D>( );
+	return addr.ref<cheat::csgo::Vector2D>( );
 #endif
 }
-std::array<int32_t, 5>& C_CSPlayer::m_vecPlayerPatchEconIndices( )
+std::array<int, 5>& C_CSPlayer::m_vecPlayerPatchEconIndices( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 5>*)nullptr;
+	return *(std::array<int, 5>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecPlayerPatchEconIndices");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 5>>( );
+	return addr.ref<std::array<int, 5>>( );
 #endif
 }
-Vector& C_CSPlayer::m_vecSpawnRappellingRopeOrigin( )
+cheat::csgo::Vector& C_CSPlayer::m_vecSpawnRappellingRopeOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_CSPlayer", "m_vecSpawnRappellingRopeOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

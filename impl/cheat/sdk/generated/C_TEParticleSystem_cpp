@@ -7,8 +7,7 @@
 
 #include "cheat/sdk/Vector.hpp"
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 Vector& C_TEParticleSystem::m_vecOrigin( )
 {

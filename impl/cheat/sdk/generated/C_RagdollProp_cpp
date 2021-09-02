@@ -7,10 +7,8 @@
 
 #include "cheat/sdk/CBaseHandle.hpp"
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_RagdollProp::m_flBlendWeight( )
 {
@@ -22,43 +20,43 @@ float& C_RagdollProp::m_flBlendWeight( )
 	return addr.ref<float>( );
 #endif
 }
-CBaseHandle& C_RagdollProp::m_hUnragdoll( )
+cheat::csgo::CBaseHandle& C_RagdollProp::m_hUnragdoll( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_hUnragdoll");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int32_t& C_RagdollProp::m_nOverlaySequence( )
+int& C_RagdollProp::m_nOverlaySequence( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_nOverlaySequence");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<QAngle, 24>& C_RagdollProp::m_ragAngles( )
+std::array<cheat::csgo::QAngle, 24>& C_RagdollProp::m_ragAngles( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<QAngle, 24>*)nullptr;
+	return *(std::array<cheat::csgo::QAngle, 24>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragAngles");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<QAngle, 24>>( );
+	return addr.ref<std::array<cheat::csgo::QAngle, 24>>( );
 #endif
 }
-std::array<Vector, 24>& C_RagdollProp::m_ragPos( )
+std::array<cheat::csgo::Vector, 24>& C_RagdollProp::m_ragPos( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<Vector, 24>*)nullptr;
+	return *(std::array<cheat::csgo::Vector, 24>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragPos");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<Vector, 24>>( );
+	return addr.ref<std::array<cheat::csgo::Vector, 24>>( );
 #endif
 }

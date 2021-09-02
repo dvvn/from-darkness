@@ -5,10 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
-
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_EnvWind::m_flGustDuration( )
 {
@@ -60,73 +57,73 @@ float& C_EnvWind::m_flStartTime( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_EnvWind::m_iGustDirChange( )
+int& C_EnvWind::m_iGustDirChange( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvWind", "m_iGustDirChange");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvWind::m_iInitialWindDir( )
+int& C_EnvWind::m_iInitialWindDir( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvWind", "m_iInitialWindDir");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvWind::m_iMaxGust( )
+int& C_EnvWind::m_iMaxGust( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvWind", "m_iMaxGust");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvWind::m_iMaxWind( )
+int& C_EnvWind::m_iMaxWind( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvWind", "m_iMaxWind");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvWind::m_iMinGust( )
+int& C_EnvWind::m_iMinGust( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvWind", "m_iMinGust");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvWind::m_iMinWind( )
+int& C_EnvWind::m_iMinWind( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvWind", "m_iMinWind");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvWind::m_iWindSeed( )
+int& C_EnvWind::m_iWindSeed( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvWind", "m_iWindSeed");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

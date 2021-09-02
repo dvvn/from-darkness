@@ -8,19 +8,17 @@
 #include "cheat/sdk/Color.hpp"
 #include "cheat/sdk/Vector.hpp"
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-Color& C_Beam::m_clrRender( )
+cheat::csgo::Color& C_Beam::m_clrRender( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Color*)nullptr;
+	return *(cheat::csgo::Color*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_clrRender");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Color>( );
+	return addr.ref<cheat::csgo::Color>( );
 #endif
 }
 float& C_Beam::m_fAmplitude( )
@@ -123,133 +121,133 @@ float& C_Beam::m_flHDRColorScale( )
 	return addr.ref<float>( );
 #endif
 }
-std::array<int32_t, 10>& C_Beam::m_hAttachEntity( )
+std::array<int, 10>& C_Beam::m_hAttachEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 10>*)nullptr;
+	return *(std::array<int, 10>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_hAttachEntity");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 10>>( );
+	return addr.ref<std::array<int, 10>>( );
 #endif
 }
-std::array<int32_t, 10>& C_Beam::m_nAttachIndex( )
+std::array<int, 10>& C_Beam::m_nAttachIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 10>*)nullptr;
+	return *(std::array<int, 10>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nAttachIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 10>>( );
+	return addr.ref<std::array<int, 10>>( );
 #endif
 }
-int32_t& C_Beam::m_nBeamFlags( )
+int& C_Beam::m_nBeamFlags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nBeamFlags");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Beam::m_nBeamType( )
+int& C_Beam::m_nBeamType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nBeamType");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Beam::m_nClipStyle( )
+int& C_Beam::m_nClipStyle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nClipStyle");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Beam::m_nHaloIndex( )
+int& C_Beam::m_nHaloIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nHaloIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Beam::m_nModelIndex( )
+int& C_Beam::m_nModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Beam::m_nNumBeamEnts( )
+int& C_Beam::m_nNumBeamEnts( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nNumBeamEnts");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Beam::m_nRenderFX( )
+int& C_Beam::m_nRenderFX( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nRenderFX");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Beam::m_nRenderMode( )
+int& C_Beam::m_nRenderMode( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_nRenderMode");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_Beam::m_vecEndPos( )
+cheat::csgo::Vector& C_Beam::m_vecEndPos( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_vecEndPos");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_Beam::m_vecOrigin( )
+cheat::csgo::Vector& C_Beam::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-int32_t& C_Beam::moveparent( )
+int& C_Beam::moveparent( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Beam", "moveparent");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

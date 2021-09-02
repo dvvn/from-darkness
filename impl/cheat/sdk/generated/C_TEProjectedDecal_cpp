@@ -7,19 +7,17 @@
 
 #include "cheat/sdk/QAngle.hpp"
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-QAngle& C_TEProjectedDecal::m_angRotation( )
+cheat::csgo::QAngle& C_TEProjectedDecal::m_angRotation( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(QAngle*)nullptr;
+	return *(cheat::csgo::QAngle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEProjectedDecal", "m_angRotation");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<QAngle>( );
+	return addr.ref<cheat::csgo::QAngle>( );
 #endif
 }
 float& C_TEProjectedDecal::m_flDistance( )
@@ -32,23 +30,23 @@ float& C_TEProjectedDecal::m_flDistance( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_TEProjectedDecal::m_nIndex( )
+int& C_TEProjectedDecal::m_nIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEProjectedDecal", "m_nIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_TEProjectedDecal::m_vecOrigin( )
+cheat::csgo::Vector& C_TEProjectedDecal::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEProjectedDecal", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

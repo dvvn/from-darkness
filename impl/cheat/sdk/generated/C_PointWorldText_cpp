@@ -5,10 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
-
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_PointWorldText::m_flTextSize( )
 {
@@ -30,13 +27,13 @@ char* C_PointWorldText::m_szText( )
 	return addr.ptr<char>( );
 #endif
 }
-int32_t& C_PointWorldText::m_textColor( )
+int& C_PointWorldText::m_textColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PointWorldText", "m_textColor");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

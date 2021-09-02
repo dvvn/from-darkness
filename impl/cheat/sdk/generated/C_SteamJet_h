@@ -7,5 +7,5 @@ float& m_StartSize( );
 bool& m_bEmit( );
 bool& m_bFaceLeft( );
 float& m_flRollSpeed( );
-int32_t& m_nType( );
-int32_t& m_spawnflags( );
+int& m_nType( );
+int& m_spawnflags( );

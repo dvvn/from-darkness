@@ -5,8 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_C4::m_bBombPlacedAnimation( )
 {

@@ -5,18 +5,23 @@
 
 namespace cheat::hooks
 {
-	class helper: public virtual service_base, public virtual dhooks::hook_holder_base
+	namespace detail
 	{
-	protected:
-		load_result      load_impl( ) override;
-		std::string_view object_name( ) const final;
-		void             reset( ) override;
-	};
+		class helper : public virtual service_base, public virtual dhooks::hook_holder_base
+		{
+		protected:
+			load_result      load_impl( ) override;
+			std::string_view object_name( ) const final;
+			void             reset( ) final;
+		};
+	}
 
 	template <typename Proxy, typename Target>
-	struct base: service<Proxy>
-			   , dhooks::_Detect_hook_holder_t<Target>
-			   , helper
+	struct hook_base : service<Proxy>
+		, dhooks::_Detect_hook_holder_t<Target>
+		, detail::helper
 	{
+	protected:
+		std::string_view name( ) const final { return nstd::type_name<Proxy, "cheat::hooks">; }
 	};
 }

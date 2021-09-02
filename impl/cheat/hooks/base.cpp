@@ -2,20 +2,23 @@
 
 #include "cheat/core/console.h"
 
-using namespace cheat;
+using cheat::hooks::detail::helper;
+using cheat::service_base;
 
-service_base::load_result hooks::helper::load_impl( )
+service_base::load_result helper::load_impl( )
 {
 	co_return this->hook( ) && this->enable( ) ? service_state::loaded : service_state::error;
 }
 
-std::string_view hooks::helper::object_name( ) const
+std::string_view helper::object_name( ) const
 {
 	return "hook";
 }
 
-void hooks::helper::reset( )
+void helper::reset( )
 {
-	this->disable( );
+	this->disable_after_call( );
 	service_base::reset( );
 }
+
+

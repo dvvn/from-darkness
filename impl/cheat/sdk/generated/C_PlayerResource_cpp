@@ -7,106 +7,105 @@
 
 #include <array>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-std::array<int32_t, 65>& C_PlayerResource::m_bAlive( )
+std::array<int, 65>& C_PlayerResource::m_bAlive( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_bAlive");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_bConnected( )
+std::array<int, 65>& C_PlayerResource::m_bConnected( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_bConnected");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iAssists( )
+std::array<int, 65>& C_PlayerResource::m_iAssists( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iAssists");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iCoachingTeam( )
+std::array<int, 65>& C_PlayerResource::m_iCoachingTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iCoachingTeam");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iDeaths( )
+std::array<int, 65>& C_PlayerResource::m_iDeaths( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iDeaths");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iHealth( )
+std::array<int, 65>& C_PlayerResource::m_iHealth( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iHealth");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iKills( )
+std::array<int, 65>& C_PlayerResource::m_iKills( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iKills");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iPendingTeam( )
+std::array<int, 65>& C_PlayerResource::m_iPendingTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iPendingTeam");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iPing( )
+std::array<int, 65>& C_PlayerResource::m_iPing( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iPing");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }
-std::array<int32_t, 65>& C_PlayerResource::m_iTeam( )
+std::array<int, 65>& C_PlayerResource::m_iTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 65>*)nullptr;
+	return *(std::array<int, 65>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iTeam");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 65>>( );
+	return addr.ref<std::array<int, 65>>( );
 #endif
 }

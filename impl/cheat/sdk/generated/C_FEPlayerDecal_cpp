@@ -7,10 +7,8 @@
 
 #include "cheat/sdk/Vector.hpp"
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_FEPlayerDecal::m_flCreationTime( )
 {
@@ -22,143 +20,143 @@ float& C_FEPlayerDecal::m_flCreationTime( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_FEPlayerDecal::m_nEntity( )
+int& C_FEPlayerDecal::m_nEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_nEntity");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_FEPlayerDecal::m_nHitbox( )
+int& C_FEPlayerDecal::m_nHitbox( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_nHitbox");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_FEPlayerDecal::m_nPlayer( )
+int& C_FEPlayerDecal::m_nPlayer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_nPlayer");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_FEPlayerDecal::m_nTintID( )
+int& C_FEPlayerDecal::m_nTintID( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_nTintID");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_FEPlayerDecal::m_nUniqueID( )
+int& C_FEPlayerDecal::m_nUniqueID( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_nUniqueID");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_FEPlayerDecal::m_nVersion( )
+int& C_FEPlayerDecal::m_nVersion( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_nVersion");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_FEPlayerDecal::m_rtGcTime( )
+int& C_FEPlayerDecal::m_rtGcTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_rtGcTime");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<int32_t, 128>& C_FEPlayerDecal::m_ubSignature( )
+std::array<int, 128>& C_FEPlayerDecal::m_ubSignature( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 128>*)nullptr;
+	return *(std::array<int, 128>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_ubSignature");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 128>>( );
+	return addr.ref<std::array<int, 128>>( );
 #endif
 }
-uint32_t& C_FEPlayerDecal::m_unAccountID( )
+unsigned int& C_FEPlayerDecal::m_unAccountID( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_unAccountID");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-uint32_t& C_FEPlayerDecal::m_unTraceID( )
+unsigned int& C_FEPlayerDecal::m_unTraceID( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(uint32_t*)nullptr;
+	return *(unsigned int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_unTraceID");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<uint32_t>( );
+	return addr.ref<unsigned int>( );
 #endif
 }
-Vector& C_FEPlayerDecal::m_vecEndPos( )
+cheat::csgo::Vector& C_FEPlayerDecal::m_vecEndPos( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_vecEndPos");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_FEPlayerDecal::m_vecNormal( )
+cheat::csgo::Vector& C_FEPlayerDecal::m_vecNormal( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_vecNormal");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_FEPlayerDecal::m_vecRight( )
+cheat::csgo::Vector& C_FEPlayerDecal::m_vecRight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_vecRight");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_FEPlayerDecal::m_vecStart( )
+cheat::csgo::Vector& C_FEPlayerDecal::m_vecStart( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FEPlayerDecal", "m_vecStart");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

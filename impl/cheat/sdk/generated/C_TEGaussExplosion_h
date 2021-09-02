@@ -1,2 +1,2 @@
-int32_t& m_nType( );
-Vector& m_vecDirection( );
+int& m_nType( );
+cheat::csgo::Vector& m_vecDirection( );

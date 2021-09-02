@@ -4,5 +4,5 @@ float& m_flHDRColorScale( );
 float& m_flRotationSpeed( );
 float& m_flSpotlightGoalWidth( );
 float& m_flSpotlightMaxLength( );
-int32_t& m_nHaloIndex( );
-int32_t& m_nRotationAxis( );
+int& m_nHaloIndex( );
+int& m_nRotationAxis( );

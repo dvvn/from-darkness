@@ -4,4 +4,4 @@ float& m_flParticleLifetime( );
 float& m_flSpawnRadius( );
 float& m_flSpawnRate( );
 float& m_flStartSize( );
-Vector& m_vecEndColor( );
+cheat::csgo::Vector& m_vecEndColor( );

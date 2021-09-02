@@ -1,4 +1,4 @@
-int32_t& m_nCurrent( );
-int32_t& m_nDensity( );
-int32_t& m_nEntity( );
-int32_t& m_nModelIndex( );
+int& m_nCurrent( );
+int& m_nDensity( );
+int& m_nEntity( );
+int& m_nModelIndex( );

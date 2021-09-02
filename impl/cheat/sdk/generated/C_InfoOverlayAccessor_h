@@ -1,2 +1,2 @@
-int32_t& m_iOverlayID( );
-int32_t& m_iTextureFrameIndex( );
+int& m_iOverlayID( );
+int& m_iTextureFrameIndex( );

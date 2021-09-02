@@ -6,19 +6,17 @@
 #endif
 
 #include "cheat/sdk/CBaseHandle.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-int32_t& C_EnvProjectedTexture::m_LightColor( )
+int& C_EnvProjectedTexture::m_LightColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_LightColor");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
 char* C_EnvProjectedTexture::m_SpotlightTextureName( )
@@ -181,43 +179,43 @@ float& C_EnvProjectedTexture::m_flRotation( )
 	return addr.ref<float>( );
 #endif
 }
-CBaseHandle& C_EnvProjectedTexture::m_hTargetEntity( )
+cheat::csgo::CBaseHandle& C_EnvProjectedTexture::m_hTargetEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_hTargetEntity");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int32_t& C_EnvProjectedTexture::m_iStyle( )
+int& C_EnvProjectedTexture::m_iStyle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_iStyle");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvProjectedTexture::m_nShadowQuality( )
+int& C_EnvProjectedTexture::m_nShadowQuality( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_nShadowQuality");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_EnvProjectedTexture::m_nSpotlightTextureFrame( )
+int& C_EnvProjectedTexture::m_nSpotlightTextureFrame( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvProjectedTexture", "m_nSpotlightTextureFrame");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

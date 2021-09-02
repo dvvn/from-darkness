@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_Fish::m_angle( )
 {
@@ -21,34 +19,34 @@ float& C_Fish::m_angle( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_Fish::m_lifeState( )
+int& C_Fish::m_lifeState( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_lifeState");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_Fish::m_nModelIndex( )
+int& C_Fish::m_nModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_Fish::m_poolOrigin( )
+cheat::csgo::Vector& C_Fish::m_poolOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Fish", "m_poolOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 float& C_Fish::m_waterLevel( )

@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/Color.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_WorldVguiText::m_bEnabled( )
 {
@@ -21,24 +19,24 @@ bool& C_WorldVguiText::m_bEnabled( )
 	return addr.ref<bool>( );
 #endif
 }
-Color& C_WorldVguiText::m_clrText( )
+cheat::csgo::Color& C_WorldVguiText::m_clrText( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Color*)nullptr;
+	return *(cheat::csgo::Color*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_WorldVguiText", "m_clrText");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Color>( );
+	return addr.ref<cheat::csgo::Color>( );
 #endif
 }
-int32_t& C_WorldVguiText::m_iTextPanelWidth( )
+int& C_WorldVguiText::m_iTextPanelWidth( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_WorldVguiText", "m_iTextPanelWidth");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
 char* C_WorldVguiText::m_szDisplayText( )

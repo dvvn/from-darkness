@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/Color.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_DynamicProp::m_bShouldGlow( )
 {
@@ -31,14 +29,14 @@ bool& C_DynamicProp::m_bUseHitboxesForRenderBox( )
 	return addr.ref<bool>( );
 #endif
 }
-Color& C_DynamicProp::m_clrGlow( )
+cheat::csgo::Color& C_DynamicProp::m_clrGlow( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Color*)nullptr;
+	return *(cheat::csgo::Color*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_DynamicProp", "m_clrGlow");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Color>( );
+	return addr.ref<cheat::csgo::Color>( );
 #endif
 }
 float& C_DynamicProp::m_flGlowMaxDist( )
@@ -51,13 +49,13 @@ float& C_DynamicProp::m_flGlowMaxDist( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_DynamicProp::m_nGlowStyle( )
+int& C_DynamicProp::m_nGlowStyle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_DynamicProp", "m_nGlowStyle");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

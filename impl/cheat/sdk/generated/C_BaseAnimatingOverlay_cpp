@@ -7,8 +7,7 @@
 
 #include <array>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 std::array<_ST_m_AnimOverlay_15, 15>& C_BaseAnimatingOverlay::m_AnimOverlay( )
 {

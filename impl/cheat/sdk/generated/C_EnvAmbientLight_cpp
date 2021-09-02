@@ -7,16 +7,15 @@
 
 #include "cheat/sdk/Vector.hpp"
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-Vector& C_EnvAmbientLight::m_vecColor( )
+cheat::csgo::Vector& C_EnvAmbientLight::m_vecColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvAmbientLight", "m_vecColor");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

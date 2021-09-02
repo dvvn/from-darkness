@@ -1,5 +1,5 @@
-int32_t& m_nEntity( );
-int32_t& m_nHitbox( );
-int32_t& m_nIndex( );
-Vector& m_vecOrigin( );
-Vector& m_vecStart( );
+int& m_nEntity( );
+int& m_nHitbox( );
+int& m_nIndex( );
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::Vector& m_vecStart( );

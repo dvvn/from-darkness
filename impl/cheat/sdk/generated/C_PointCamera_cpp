@@ -5,10 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
-
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_PointCamera::m_FOV( )
 {
@@ -20,14 +17,14 @@ float& C_PointCamera::m_FOV( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_PointCamera::m_FogColor( )
+int& C_PointCamera::m_FogColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_FogColor");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
 float& C_PointCamera::m_Resolution( )

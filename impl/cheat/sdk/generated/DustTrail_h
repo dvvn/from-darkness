@@ -1,4 +1,4 @@
-Vector& m_Color( );
+cheat::csgo::Vector& m_Color( );
 float& m_EndSize( );
 float& m_MaxDirectedSpeed( );
 float& m_MaxSpeed( );

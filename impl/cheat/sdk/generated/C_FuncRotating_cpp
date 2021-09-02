@@ -8,8 +8,7 @@
 #include "cheat/sdk/QAngle.hpp"
 #include "cheat/sdk/Vector.hpp"
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 QAngle& C_FuncRotating::m_angRotation( )
 {
@@ -31,13 +30,13 @@ float& C_FuncRotating::m_flSimulationTime( )
 	return addr.ref<float>( );
 #endif
 }
-Vector& C_FuncRotating::m_vecOrigin( )
+cheat::csgo::Vector& C_FuncRotating::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FuncRotating", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

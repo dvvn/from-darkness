@@ -6,68 +6,66 @@
 #endif
 
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-std::array<int32_t, 100>& C_Inferno::m_bFireIsBurning( )
+std::array<int, 100>& C_Inferno::m_bFireIsBurning( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 100>*)nullptr;
+	return *(std::array<int, 100>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Inferno", "m_bFireIsBurning");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 100>>( );
+	return addr.ref<std::array<int, 100>>( );
 #endif
 }
-int32_t& C_Inferno::m_fireCount( )
+int& C_Inferno::m_fireCount( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Inferno", "m_fireCount");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<int32_t, 100>& C_Inferno::m_fireXDelta( )
+std::array<int, 100>& C_Inferno::m_fireXDelta( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 100>*)nullptr;
+	return *(std::array<int, 100>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Inferno", "m_fireXDelta");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 100>>( );
+	return addr.ref<std::array<int, 100>>( );
 #endif
 }
-std::array<int32_t, 100>& C_Inferno::m_fireYDelta( )
+std::array<int, 100>& C_Inferno::m_fireYDelta( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 100>*)nullptr;
+	return *(std::array<int, 100>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Inferno", "m_fireYDelta");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 100>>( );
+	return addr.ref<std::array<int, 100>>( );
 #endif
 }
-std::array<int32_t, 100>& C_Inferno::m_fireZDelta( )
+std::array<int, 100>& C_Inferno::m_fireZDelta( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 100>*)nullptr;
+	return *(std::array<int, 100>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Inferno", "m_fireZDelta");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 100>>( );
+	return addr.ref<std::array<int, 100>>( );
 #endif
 }
-int32_t& C_Inferno::m_nFireEffectTickBegin( )
+int& C_Inferno::m_nFireEffectTickBegin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Inferno", "m_nFireEffectTickBegin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

@@ -1,2 +1,2 @@
 float& m_flDuration( );
-int32_t& m_nType( );
+int& m_nType( );

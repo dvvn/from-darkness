@@ -26,23 +26,23 @@
         },
         "m_iDeathFrame": {
             "offset": 12056,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iDeathPose": {
             "offset": 12052,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSpeedModRadius": {
             "offset": 12060,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSpeedModSpeed": {
             "offset": 12064,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_lifeState": {
             "offset": 607,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BRC4Target": {
@@ -58,7 +58,7 @@
     "C_BaseAnimating": {
         "m_ScaleType": {
             "offset": 10060,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_bClientSideAnimation": {
             "offset": 10396,
@@ -102,55 +102,55 @@
         },
         "m_hLightingOrigin": {
             "offset": 10564,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nBody": {
             "offset": 2592,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nForceBone": {
             "offset": 9868,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHighlightColorB": {
             "offset": 2624,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHighlightColorG": {
             "offset": 2620,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHighlightColorR": {
             "offset": 2616,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHitboxSet": {
             "offset": 2556,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMuzzleFlashParity": {
             "offset": 2660,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNewSequenceParity": {
             "offset": 2628,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nResetEventsParity": {
             "offset": 2632,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSequence": {
             "offset": 10428,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSkin": {
             "offset": 2588,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecForce": {
             "offset": 9856,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_BaseAnimatingOverlay": {
@@ -166,15 +166,15 @@
         },
         "m_OriginalOwnerXuidHigh": {
             "offset": 12740,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_OriginalOwnerXuidLow": {
             "offset": 12736,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ProviderType": {
             "offset": 11684,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_bInitialized": {
             "offset": 12244,
@@ -186,47 +186,47 @@
         },
         "m_hOuter": {
             "offset": 11676,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iAccountID": {
             "offset": 12232,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iEntityLevel": {
             "offset": 12208,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iEntityQuality": {
             "offset": 12204,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iItemDefinitionIndex": {
             "offset": 12202,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iItemIDHigh": {
             "offset": 12224,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iItemIDLow": {
             "offset": 12228,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iReapplyProvisionParity": {
             "offset": 11672,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFallbackPaintKit": {
             "offset": 12744,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFallbackSeed": {
             "offset": 12748,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFallbackStatTrak": {
             "offset": 12756,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szCustomName": {
             "offset": 12348,
@@ -236,7 +236,7 @@
     "C_BaseButton": {
         "m_usable": {
             "offset": 2568,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BaseCSGrenade": {
@@ -268,29 +268,29 @@
     "C_BaseCSGrenadeProjectile": {
         "m_nBounces": {
             "offset": 10716,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nExplodeEffectIndex": {
             "offset": 10720,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nExplodeEffectTickBegin": {
             "offset": 10724,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vInitialVelocity": {
             "offset": 10704,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecExplodeEffectOrigin": {
             "offset": 10728,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_BaseCombatCharacter": {
         "m_LastHitGroup": {
             "offset": 11636,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flNextAttack": {
             "offset": 11632,
@@ -302,19 +302,19 @@
         },
         "m_hActiveWeapon": {
             "offset": 12024,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hMyWeapons": {
             "offset": 11768,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_hMyWearables": {
             "offset": 12036,
-            "type": "std::array<int32_t, 1>"
+            "type": "std::array<int, 1>"
         },
         "m_nRelativeDirectionOfLastInjury": {
             "offset": 12032,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BaseCombatWeapon": {
@@ -336,71 +336,71 @@
         },
         "m_hOwner": {
             "offset": 12848,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hWeaponWorldModel": {
             "offset": 12884,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iClip1": {
             "offset": 12900,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iClip2": {
             "offset": 12904,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumEmptyAttacks": {
             "offset": 12880,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPrimaryAmmoType": {
             "offset": 12892,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPrimaryReserveAmmoCount": {
             "offset": 12908,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSecondaryAmmoType": {
             "offset": 12896,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSecondaryReserveAmmoCount": {
             "offset": 12912,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iState": {
             "offset": 12888,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iViewModelIndex": {
             "offset": 12864,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWeaponModule": {
             "offset": 12876,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWeaponOrigin": {
             "offset": 13000,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWorldDroppedModelIndex": {
             "offset": 12872,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWorldModelIndex": {
             "offset": 12868,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNextThinkTick": {
             "offset": 252,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nViewModelIndex": {
             "offset": 12852,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BaseDoor": {
@@ -412,7 +412,7 @@
     "C_BaseEntity": {
         "m_CollisionGroup": {
             "offset": 1140,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ModelName": {
             "offset": 796,
@@ -420,23 +420,23 @@
         },
         "m_MoveCollide": {
             "offset": 605,
-            "type": "int8_t"
+            "type": "signed char"
         },
         "m_MoveType": {
             "offset": 604,
-            "type": "int8_t"
+            "type": "signed char"
         },
         "m_angAbsRotation": {
             "offset": 196,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_angNetworkAngles": {
             "offset": 300,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_angRotation": {
             "offset": 300,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_bAlternateSorting": {
             "offset": 2364,
@@ -468,39 +468,39 @@
         },
         "m_bSpottedBy": {
             "offset": 2366,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bSpottedByMask": {
             "offset": 2432,
-            "type": "std::array<int32_t, 2>"
+            "type": "std::array<int, 2>"
         },
         "m_cellX": {
             "offset": 124,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_cellY": {
             "offset": 128,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_cellZ": {
             "offset": 132,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_cellbits": {
             "offset": 116,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_clrRender": {
             "offset": 112,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_fEffects": {
             "offset": 240,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fFlags": {
             "offset": 260,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fadeMaxDist": {
             "offset": 760,
@@ -556,27 +556,27 @@
         },
         "m_hEffectEntity": {
             "offset": 2456,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hGroundEntity": {
             "offset": 336,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hNetworkMoveParent": {
             "offset": 328,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hOwnerEntity": {
             "offset": 332,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iEFlags": {
             "offset": 232,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iHealth": {
             "offset": 256,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iName": {
             "offset": 340,
@@ -584,63 +584,63 @@
         },
         "m_iParentAttachment": {
             "offset": 748,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPendingTeamNum": {
             "offset": 248,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iTeamNum": {
             "offset": 244,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iTextureFrameIndex": {
             "offset": 2444,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMaxCPULevel": {
             "offset": 2441,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMaxGPULevel": {
             "offset": 2443,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMinCPULevel": {
             "offset": 2440,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMinGPULevel": {
             "offset": 2442,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 600,
-            "type": "int16_t"
+            "type": "short"
         },
         "m_nRenderFX": {
             "offset": 602,
-            "type": "int8_t"
+            "type": "signed char"
         },
         "m_nRenderMode": {
             "offset": 603,
-            "type": "int8_t"
+            "type": "signed char"
         },
         "m_nSolidType": {
             "offset": 834,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSurroundType": {
             "offset": 842,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nWaterLevel": {
             "offset": 606,
-            "type": "int8_t"
+            "type": "signed char"
         },
         "m_nWaterType": {
             "offset": 236,
-            "type": "int8_t"
+            "type": "signed char"
         },
         "m_rgflCoordinateFrame": {
             "offset": 1092,
@@ -648,77 +648,77 @@
         },
         "m_triggerBloat": {
             "offset": 835,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_usSolidFlags": {
             "offset": 832,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecAbsOrigin": {
             "offset": 160,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecAbsVelocity": {
             "offset": 148,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecAngVelocity": {
             "offset": 184,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecBaseVelocity": {
             "offset": 288,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecMaxs": {
             "offset": 820,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecMins": {
             "offset": 808,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecNetworkOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSpecifiedSurroundingMaxs": {
             "offset": 856,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSpecifiedSurroundingMins": {
             "offset": 844,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecVelocity": {
             "offset": 276,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecViewOffset": {
             "offset": 264,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "movecollide": {
             "offset": 0,
-            "type": "int32_t"
+            "type": "int"
         },
         "moveparent": {
             "offset": 328,
-            "type": "int32_t"
+            "type": "int"
         },
         "movetype": {
             "offset": 0,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BaseFlex": {
         "m_blinktoggle": {
             "offset": 11220,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flexWeight": {
             "offset": 10792,
@@ -726,7 +726,7 @@
         },
         "m_viewtarget": {
             "offset": 10736,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_BaseGrenade": {
@@ -740,7 +740,7 @@
         },
         "m_fFlags": {
             "offset": 260,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flDamage": {
             "offset": 10648,
@@ -748,29 +748,29 @@
         },
         "m_hThrower": {
             "offset": 10656,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_vecVelocity": {
             "offset": 276,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_BasePlayer": {
         "deadflag": {
             "offset": 12756,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_afPhysicsFlags": {
             "offset": 13036,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_aimPunchAngle": {
             "offset": 12332,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_aimPunchAngleVel": {
             "offset": 12344,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_bActiveCameraMan": {
             "offset": 13180,
@@ -826,15 +826,15 @@
         },
         "m_chAreaBits": {
             "offset": 12224,
-            "type": "std::array<int32_t, 32>"
+            "type": "std::array<int, 32>"
         },
         "m_chAreaPortalBits": {
             "offset": 12256,
-            "type": "std::array<int32_t, 24>"
+            "type": "std::array<int, 24>"
         },
         "m_fFlags": {
             "offset": 260,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fForceTeam": {
             "offset": 13260,
@@ -842,7 +842,7 @@
         },
         "m_fOnTarget": {
             "offset": 13092,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flConstraintRadius": {
             "offset": 13140,
@@ -906,127 +906,127 @@
         },
         "m_hColorCorrectionCtrl": {
             "offset": 14252,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hConstraintEntity": {
             "offset": 13124,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hGroundEntity": {
             "offset": 336,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hLastWeapon": {
             "offset": 13044,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hObserverTarget": {
             "offset": 13196,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hPostProcessCtrl": {
             "offset": 14248,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hTonemapController": {
             "offset": 12748,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hUseEntity": {
             "offset": 13096,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hVehicle": {
             "offset": 13040,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hViewEntity": {
             "offset": 13116,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hViewModel": {
             "offset": 0,
-            "type": "std::array<CBaseHandle, 3>"
+            "type": "std::array<cheat::csgo::CBaseHandle, 3>"
         },
         "m_hZoomOwner": {
             "offset": 12876,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iAmmo": {
             "offset": 11640,
-            "type": "std::array<int32_t, 32>"
+            "type": "std::array<int, 32>"
         },
         "m_iBonusChallenge": {
             "offset": 12868,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iBonusProgress": {
             "offset": 12864,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iCoachingTeam": {
             "offset": 12112,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iDeathPostEffect": {
             "offset": 13172,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iDefaultFOV": {
             "offset": 13100,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iFOV": {
             "offset": 12772,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iFOVStart": {
             "offset": 12776,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iHealth": {
             "offset": 256,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iHideHUD": {
             "offset": 12292,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iObserverMode": {
             "offset": 13176,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ladderSurfaceProps": {
             "offset": 12800,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_lifeState": {
             "offset": 607,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDuckJumpTimeMsecs": {
             "offset": 12300,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDuckTimeMsecs": {
             "offset": 12296,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nJumpTimeMsecs": {
             "offset": 12304,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNextThinkTick": {
             "offset": 252,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nTickBase": {
             "offset": 13360,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nWaterLevel": {
             "offset": 606,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szLastPlaceName": {
             "offset": 13748,
@@ -1034,23 +1034,23 @@
         },
         "m_uCameraManGraphs": {
             "offset": 13184,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ubEFNoInterpParity": {
             "offset": 13784,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecBaseVelocity": {
             "offset": 288,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecConstraintCenter": {
             "offset": 13128,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecLadderNormal": {
             "offset": 12848,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecVelocity": {
             "offset": 276,
@@ -1062,21 +1062,21 @@
         },
         "m_viewPunchAngle": {
             "offset": 12320,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vphysicsCollisionState": {
             "offset": 12892,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BaseTeamObjectiveResource": {
         "m_bBlocked": {
             "offset": 7260,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_bCPIsVisible": {
             "offset": 2644,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_bControlPointsReset": {
             "offset": 2537,
@@ -1084,7 +1084,7 @@
         },
         "m_bInMiniRound": {
             "offset": 4828,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_bPlayingMiniRounds": {
             "offset": 2536,
@@ -1092,7 +1092,7 @@
         },
         "m_bTeamCanCap": {
             "offset": 4508,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_flLazyCapPerc": {
             "offset": 2652,
@@ -1108,63 +1108,63 @@
         },
         "m_iBaseControlPoints": {
             "offset": 4700,
-            "type": "std::array<int32_t, 32>"
+            "type": "std::array<int, 32>"
         },
         "m_iCappingTeam": {
             "offset": 7196,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_iNumControlPoints": {
             "offset": 2528,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumTeamMembers": {
             "offset": 6940,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_iOwner": {
             "offset": 7268,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_iPreviousPoints": {
             "offset": 3740,
-            "type": "std::array<int32_t, 192>"
+            "type": "std::array<int, 192>"
         },
         "m_iStopWatchTimer": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iTeamBaseIcons": {
             "offset": 4572,
-            "type": "std::array<int32_t, 32>"
+            "type": "std::array<int, 32>"
         },
         "m_iTeamIcons": {
             "offset": 2716,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_iTeamInZone": {
             "offset": 7228,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_iTeamOverlays": {
             "offset": 2972,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_iTeamReqCappers": {
             "offset": 3228,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_iTimerToShowInHUD": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iUpdateCapHudParity": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWarnOnCap": {
             "offset": 4836,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_iszWarnSound": {
             "offset": 0,
@@ -1176,7 +1176,7 @@
         },
         "m_vCPPositions": {
             "offset": 0,
-            "type": "std::array<Vector, 8>"
+            "type": "std::array<cheat::csgo::Vector, 8>"
         }
     },
     "C_BaseToggle": {
@@ -1186,11 +1186,11 @@
         },
         "m_movementType": {
             "offset": 2552,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecFinalDest": {
             "offset": 2540,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_BaseTrigger": {
@@ -1200,7 +1200,7 @@
         },
         "m_spawnflags": {
             "offset": 712,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BaseViewModel": {
@@ -1210,7 +1210,7 @@
         },
         "m_fEffects": {
             "offset": 240,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flPlaybackRate": {
             "offset": 2584,
@@ -1218,75 +1218,75 @@
         },
         "m_hOwner": {
             "offset": 10700,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hWeapon": {
             "offset": 10696,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nAnimationParity": {
             "offset": 10692,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nBody": {
             "offset": 2592,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 600,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMuzzleFlashParity": {
             "offset": 2660,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNewSequenceParity": {
             "offset": 2628,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nResetEventsParity": {
             "offset": 2632,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSequence": {
             "offset": 10428,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSkin": {
             "offset": 2588,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nViewModelIndex": {
             "offset": 10688,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BaseWeaponWorldModel": {
         "m_fEffects": {
             "offset": 240,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_hCombatWeaponParent": {
             "offset": 10736,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nBody": {
             "offset": 2592,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 600,
-            "type": "int32_t"
+            "type": "int"
         },
         "moveparent": {
             "offset": 328,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_Beam": {
         "m_clrRender": {
             "offset": 112,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_fAmplitude": {
             "offset": 2652,
@@ -1330,55 +1330,55 @@
         },
         "m_hAttachEntity": {
             "offset": 2556,
-            "type": "std::array<int32_t, 10>"
+            "type": "std::array<int, 10>"
         },
         "m_nAttachIndex": {
             "offset": 2596,
-            "type": "std::array<int32_t, 10>"
+            "type": "std::array<int, 10>"
         },
         "m_nBeamFlags": {
             "offset": 2552,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nBeamType": {
             "offset": 2548,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nClipStyle": {
             "offset": 2668,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHaloIndex": {
             "offset": 2544,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 600,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNumBeamEnts": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nRenderFX": {
             "offset": 602,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nRenderMode": {
             "offset": 603,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecEndPos": {
             "offset": 2672,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "moveparent": {
             "offset": 328,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BeamSpotlight": {
@@ -1408,21 +1408,21 @@
         },
         "m_nHaloIndex": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nRotationAxis": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BoneFollower": {
         "m_modelIndex": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_solidIndex": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BreachChargeProjectile": {
@@ -1432,15 +1432,15 @@
         },
         "m_nParentBoneIndex": {
             "offset": 10712,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecParentBonePos": {
             "offset": 10716,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_weaponThatThrewMe": {
             "offset": 10708,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_BreakableProp": {
@@ -1450,13 +1450,13 @@
         },
         "m_qPreferredPlayerCarryAngles": {
             "offset": 10628,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         }
     },
     "C_BreakableSurface": {
         "m_RawPanelBitVec": {
             "offset": 2604,
-            "type": "std::array<int32_t, 256>"
+            "type": "std::array<int, 256>"
         },
         "m_bIsBroken": {
             "offset": 2564,
@@ -1472,23 +1472,23 @@
         },
         "m_nNumHigh": {
             "offset": 2528,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNumWide": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSurfaceType": {
             "offset": 2568,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vCorner": {
             "offset": 2552,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vNormal": {
             "offset": 2540,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_BumpMineProjectile": {
@@ -1498,11 +1498,11 @@
         },
         "m_nParentBoneIndex": {
             "offset": 10708,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecParentBonePos": {
             "offset": 10712,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_C4": {
@@ -1530,35 +1530,35 @@
     "C_CSGameRulesProxy": {
         "m_GGProgressiveWeaponKillUpgradeOrderCT": {
             "offset": 620,
-            "type": "std::array<int32_t, 60>"
+            "type": "std::array<int, 60>"
         },
         "m_GGProgressiveWeaponKillUpgradeOrderT": {
             "offset": 860,
-            "type": "std::array<int32_t, 60>"
+            "type": "std::array<int, 60>"
         },
         "m_GGProgressiveWeaponOrderCT": {
             "offset": 140,
-            "type": "std::array<int32_t, 60>"
+            "type": "std::array<int, 60>"
         },
         "m_GGProgressiveWeaponOrderT": {
             "offset": 380,
-            "type": "std::array<int32_t, 60>"
+            "type": "std::array<int, 60>"
         },
         "m_MatchDevice": {
             "offset": 1100,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_SpawnTileState": {
             "offset": 3608,
-            "type": "std::array<int32_t, 224>"
+            "type": "std::array<int, 224>"
         },
         "m_SurvivalGameRuleDecisionTypes": {
             "offset": 4904,
-            "type": "std::array<int32_t, 16>"
+            "type": "std::array<int, 16>"
         },
         "m_SurvivalGameRuleDecisionValues": {
             "offset": 4968,
-            "type": "std::array<int32_t, 16>"
+            "type": "std::array<int, 16>"
         },
         "m_TeamRespawnWaveTimes": {
             "offset": 2848,
@@ -1566,19 +1566,19 @@
         },
         "m_arrFeaturedGiftersAccounts": {
             "offset": 2212,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_arrFeaturedGiftersGifts": {
             "offset": 2228,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_arrProhibitedItemIndices": {
             "offset": 2244,
-            "type": "std::array<int32_t, 100>"
+            "type": "std::array<int, 100>"
         },
         "m_arrTournamentActiveCasterAccounts": {
             "offset": 2444,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_bAnyHostageReached": {
             "offset": 112,
@@ -1682,7 +1682,7 @@
         },
         "m_eRoundWinReason": {
             "offset": 2476,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fMatchStartTime": {
             "offset": 72,
@@ -1770,155 +1770,155 @@
         },
         "m_gamePhase": {
             "offset": 96,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iActiveAssassinationTargetMissionID": {
             "offset": 3104,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iBombSite": {
             "offset": 5316,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iFirstSecondHalfRound": {
             "offset": 5312,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iHostagesRemaining": {
             "offset": 108,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMatchStats_PlayersAlive_CT": {
             "offset": 2608,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_PlayersAlive_T": {
             "offset": 2728,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_RoundResults": {
             "offset": 2488,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iNumConsecutiveCTLoses": {
             "offset": 3196,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumConsecutiveTerroristLoses": {
             "offset": 3200,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumGunGameProgressiveWeaponsCT": {
             "offset": 128,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumGunGameProgressiveWeaponsT": {
             "offset": 132,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPlayerSpawnHexIndices": {
             "offset": 3352,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_iRoundTime": {
             "offset": 68,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRoundWinStatus": {
             "offset": 2472,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSpectatorSlotCount": {
             "offset": 136,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nCTTimeOuts": {
             "offset": 60,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nEndMatchMapGroupVoteOptions": {
             "offset": 3152,
-            "type": "std::array<int32_t, 10>"
+            "type": "std::array<int, 10>"
         },
         "m_nEndMatchMapGroupVoteTypes": {
             "offset": 3112,
-            "type": "std::array<int32_t, 10>"
+            "type": "std::array<int, 10>"
         },
         "m_nEndMatchMapVoteWinner": {
             "offset": 3192,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nGuardianModeSpecialKillsRemaining": {
             "offset": 2184,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nGuardianModeSpecialWeaponNeeded": {
             "offset": 2188,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nGuardianModeWaveNumber": {
             "offset": 2180,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHalloweenMaskListSeed": {
             "offset": 2464,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMatchSeed": {
             "offset": 5304,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNextMapInMapgroup": {
             "offset": 1120,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nOvertimePlaying": {
             "offset": 104,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nQueuedMatchmakingMode": {
             "offset": 120,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nTerroristTimeOuts": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nTournamentPredictionsPct": {
             "offset": 2164,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_numBestOfMaps": {
             "offset": 2460,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_numGlobalGifters": {
             "offset": 2204,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_numGlobalGiftsGiven": {
             "offset": 2200,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_numGlobalGiftsPeriodSeconds": {
             "offset": 2208,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_roundData_playerPositions": {
             "offset": 4384,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_roundData_playerTeams": {
             "offset": 4644,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_roundData_playerXuids": {
             "offset": 3864,
-            "type": "std::array<int64_t, 65>"
+            "type": "std::array<__int64, 65>"
         },
         "m_spawnStage": {
             "offset": 3844,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szMatchStatTxt": {
             "offset": 1644,
@@ -1942,37 +1942,37 @@
         },
         "m_totalRoundsPlayed": {
             "offset": 100,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_unDMBonusWeaponLoadoutSlot": {
             "offset": 1116,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_vecPlayAreaMaxs": {
             "offset": 3340,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecPlayAreaMins": {
             "offset": 3328,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_CSPlayer": {
         "m_ArmorValue": {
             "offset": 45948,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_EquippedLoadoutItemDefIndices": {
             "offset": 45652,
-            "type": "std::array<int32_t, 57>"
+            "type": "std::array<int, 57>"
         },
         "m_RetakesMVPBoostExtraUtility": {
             "offset": 48308,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_angEyeAngles": {
             "offset": 45952,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_bCanControlObservedBot": {
             "offset": 47614,
@@ -2108,11 +2108,11 @@
         },
         "m_bPlayerDominated": {
             "offset": 46232,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bPlayerDominatingMe": {
             "offset": 46297,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bResumeZoom": {
             "offset": 14634,
@@ -2136,7 +2136,7 @@
         },
         "m_cycleLatch": {
             "offset": 46224,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fImmuneToGunGameDamageTime": {
             "offset": 14652,
@@ -2208,219 +2208,219 @@
         },
         "m_hCarriedHostage": {
             "offset": 41976,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hCarriedHostageProp": {
             "offset": 41980,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hPlayerPing": {
             "offset": 41968,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hRagdoll": {
             "offset": 41964,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hSurvivalAssassinationTarget": {
             "offset": 41924,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iAccount": {
             "offset": 45928,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iAddonBits": {
             "offset": 41844,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iBlockingUseActionInProgress": {
             "offset": 14644,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iClass": {
             "offset": 45944,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iControlledBotEntIndex": {
             "offset": 47616,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iDirection": {
             "offset": 41868,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iGunGameProgressiveWeaponIndex": {
             "offset": 14664,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMatchStats_Assists": {
             "offset": 42924,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_CashEarned": {
             "offset": 43284,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_Damage": {
             "offset": 42204,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_Deaths": {
             "offset": 42804,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_EnemiesFlashed": {
             "offset": 43524,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_EquipmentValue": {
             "offset": 42324,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_HeadShotKills": {
             "offset": 43044,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_KillReward": {
             "offset": 42564,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_Kills": {
             "offset": 42084,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_LiveTime": {
             "offset": 42684,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_MoneySaved": {
             "offset": 42444,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_Objective": {
             "offset": 43164,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMatchStats_UtilityDamage": {
             "offset": 43404,
-            "type": "std::array<int32_t, 30>"
+            "type": "std::array<int, 30>"
         },
         "m_iMoveState": {
             "offset": 14724,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumGunGameKillsWithCurrentWeapon": {
             "offset": 14672,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumGunGameTRKillPoints": {
             "offset": 14668,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumRoundKills": {
             "offset": 14676,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNumRoundKillsHeadshots": {
             "offset": 14680,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPlayerState": {
             "offset": 14636,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPrimaryAddon": {
             "offset": 41848,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iProgressBarDuration": {
             "offset": 41856,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRetakesMVPBoostItem": {
             "offset": 48304,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRetakesOffering": {
             "offset": 48292,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRetakesOfferingCard": {
             "offset": 48296,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSecondaryAddon": {
             "offset": 41852,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iShotsFired": {
             "offset": 41872,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iStartAccount": {
             "offset": 41892,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iThrowGrenadeCounter": {
             "offset": 14700,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWeaponPurchasesThisMatch": {
             "offset": 43644,
-            "type": "std::array<int32_t, 499>"
+            "type": "std::array<int, 499>"
         },
         "m_iWeaponPurchasesThisRound": {
             "offset": 46364,
-            "type": "std::array<int32_t, 256>"
+            "type": "std::array<int, 256>"
         },
         "m_isCurrentGunGameLeader": {
             "offset": 14729,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_isCurrentGunGameTeamLeader": {
             "offset": 14730,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDeathCamMusic": {
             "offset": 46008,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHeavyAssaultSuitCooldownRemaining": {
             "offset": 45940,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nIsAutoMounting": {
             "offset": 15000,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nLastConcurrentKilled": {
             "offset": 46004,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nLastKillerIndex": {
             "offset": 46000,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nNumFastDucks": {
             "offset": 41876,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nQuestProgressReason": {
             "offset": 45868,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSurvivalTeam": {
             "offset": 41920,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_passiveItems": {
             "offset": 45908,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_rank": {
             "offset": 45884,
-            "type": "std::array<int32_t, 6>"
+            "type": "std::array<int, 6>"
         },
         "m_szArmsModel": {
             "offset": 14731,
@@ -2428,57 +2428,57 @@
         },
         "m_totalHitsOnServer": {
             "offset": 41896,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_unActiveQuestId": {
             "offset": 45864,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_unCurrentEquipmentValue": {
             "offset": 45876,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_unFreezetimeEndEquipmentValue": {
             "offset": 45880,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_unMusicID": {
             "offset": 45912,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_unPlayerTvControlFlags": {
             "offset": 45872,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_unRoundStartEquipmentValue": {
             "offset": 45878,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_unTotalRoundDamageDealt": {
             "offset": 14684,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_vecAutomoveTargetEnd": {
             "offset": 15016,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector2D"
+            "type": "cheat::csgo::Vector2D"
         },
         "m_vecPlayerPatchEconIndices": {
             "offset": 47476,
-            "type": "std::array<int32_t, 5>"
+            "type": "std::array<int, 5>"
         },
         "m_vecSpawnRappellingRopeOrigin": {
             "offset": 41904,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_CSPlayerResource": {
         "m_bControllingBot": {
             "offset": 8156,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bEndMatchNextMapAllVoted": {
             "offset": 27532,
@@ -2486,207 +2486,207 @@
         },
         "m_bHasCommunicationAbuseMute": {
             "offset": 20964,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bHasDefuser": {
             "offset": 6136,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bHasHelmet": {
             "offset": 6201,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bHostageAlive": {
             "offset": 5756,
-            "type": "std::array<int32_t, 12>"
+            "type": "std::array<int, 12>"
         },
         "m_bombsiteCenterA": {
             "offset": 5732,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_bombsiteCenterB": {
             "offset": 5744,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_hostageRescueX": {
             "offset": 5828,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_hostageRescueY": {
             "offset": 5844,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_hostageRescueZ": {
             "offset": 5860,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_iArmor": {
             "offset": 6268,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iBotDifficulty": {
             "offset": 17064,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iCashSpentThisRound": {
             "offset": 19144,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iCompTeammateColor": {
             "offset": 7376,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iCompetitiveRankType": {
             "offset": 7308,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iCompetitiveRanking": {
             "offset": 6788,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iCompetitiveWins": {
             "offset": 7048,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iControlledByPlayer": {
             "offset": 8484,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iControlledPlayer": {
             "offset": 8224,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iGunGameLevel": {
             "offset": 18884,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iHostageEntityIDs": {
             "offset": 5780,
-            "type": "std::array<int32_t, 12>"
+            "type": "std::array<int, 12>"
         },
         "m_iLifetimeEnd": {
             "offset": 7896,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iLifetimeStart": {
             "offset": 7636,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMVPs": {
             "offset": 5876,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_3k_Total": {
             "offset": 24084,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_4k_Total": {
             "offset": 24344,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_5k_Total": {
             "offset": 24604,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_Assists_Total": {
             "offset": 23564,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_CashEarned_Total": {
             "offset": 26424,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_Damage_Total": {
             "offset": 24864,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_Deaths_Total": {
             "offset": 23824,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_EnemiesFlashed_Total": {
             "offset": 26944,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_EquipmentValue_Total": {
             "offset": 25124,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_HeadShotKills_Total": {
             "offset": 25904,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_KillReward_Total": {
             "offset": 25384,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_Kills_Total": {
             "offset": 23304,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_LiveTime_Total": {
             "offset": 25644,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_Objective_Total": {
             "offset": 26164,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iMatchStats_UtilityDamage_Total": {
             "offset": 26684,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iPlayerC4": {
             "offset": 5724,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPlayerVIP": {
             "offset": 5728,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iScore": {
             "offset": 6528,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iTotalCashSpent": {
             "offset": 18624,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_isHostageFollowingSomeone": {
             "offset": 5768,
-            "type": "std::array<int32_t, 12>"
+            "type": "std::array<int, 12>"
         },
         "m_nActiveCoinRank": {
             "offset": 19404,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_nCharacterDefIndex": {
             "offset": 18364,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_nEndMatchNextMapVotes": {
             "offset": 27272,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_nMusicID": {
             "offset": 19664,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_nPersonaDataPublicCommendsFriendly": {
             "offset": 20704,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_nPersonaDataPublicCommendsLeader": {
             "offset": 20184,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_nPersonaDataPublicCommendsTeacher": {
             "offset": 20444,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_nPersonaDataPublicLevel": {
             "offset": 19924,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_szClan": {
             "offset": 17324,
@@ -2712,53 +2712,53 @@
         },
         "m_hPlayer": {
             "offset": 10736,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iDeathFrame": {
             "offset": 10780,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iDeathPose": {
             "offset": 10776,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iTeamNum": {
             "offset": 244,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nForceBone": {
             "offset": 9868,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 600,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecForce": {
             "offset": 9856,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecRagdollOrigin": {
             "offset": 10764,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecRagdollVelocity": {
             "offset": 10752,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_CascadeLight": {
         "m_LightColor": {
             "offset": 2546,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_LightColorScale": {
             "offset": 2552,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_bEnabled": {
             "offset": 2544,
@@ -2770,7 +2770,7 @@
         },
         "m_envLightShadowDirection": {
             "offset": 2532,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_flMaxShadowDist": {
             "offset": 2556,
@@ -2778,17 +2778,17 @@
         },
         "m_shadowDirection": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_Chicken": {
         "m_jumpedThisFrame": {
             "offset": 10728,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_leader": {
             "offset": 10732,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_ColorCorrection": {
@@ -2838,7 +2838,7 @@
         },
         "m_vecOrigin": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_ColorCorrectionVolume": {
@@ -2882,21 +2882,21 @@
         },
         "m_iWave": {
             "offset": 2552,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDropOrder": {
             "offset": 2548,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDangerZoneOriginStartedAt": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_DangerZoneController": {
         "m_DangerZones": {
             "offset": 2556,
-            "type": "std::array<int32_t, 42>"
+            "type": "std::array<int, 42>"
         },
         "m_bDangerZoneControllerEnabled": {
             "offset": 2520,
@@ -2920,15 +2920,15 @@
         },
         "m_hTheFinalZone": {
             "offset": 2744,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_vecEndGameCircleEnd": {
             "offset": 2536,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecEndGameCircleStart": {
             "offset": 2524,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_Drone": {
@@ -2938,27 +2938,27 @@
         },
         "m_hCurrentPilot": {
             "offset": 10728,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hDeliveryCargo": {
             "offset": 10716,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hMoveToThisEntity": {
             "offset": 10712,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hPotentialCargo": {
             "offset": 10724,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_vecTagIncrements": {
             "offset": 0,
-            "type": "std::array<int32_t, 24>"
+            "type": "std::array<int, 24>"
         },
         "m_vecTagPositions": {
             "offset": 0,
-            "type": "std::array<Vector, 24>"
+            "type": "std::array<cheat::csgo::Vector, 24>"
         }
     },
     "C_Dronegun": {
@@ -2968,25 +2968,25 @@
         },
         "m_iHealth": {
             "offset": 256,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecAttentionTarget": {
             "offset": 10624,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecTargetOffset": {
             "offset": 10636,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_DynamicLight": {
         "m_Exponent": {
             "offset": 2528,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_Flags": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_InnerAngle": {
             "offset": 2532,
@@ -2994,7 +2994,7 @@
         },
         "m_LightStyle": {
             "offset": 2521,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_OuterAngle": {
             "offset": 2536,
@@ -3020,7 +3020,7 @@
         },
         "m_clrGlow": {
             "offset": 10697,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_flGlowMaxDist": {
             "offset": 10692,
@@ -3028,21 +3028,21 @@
         },
         "m_nGlowStyle": {
             "offset": 10704,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_EconEntity": {
         "m_OriginalOwnerXuidHigh": {
             "offset": 12740,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_OriginalOwnerXuidLow": {
             "offset": 12736,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ProviderType": {
             "offset": 11684,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_bInitialized": {
             "offset": 12244,
@@ -3054,47 +3054,47 @@
         },
         "m_hOuter": {
             "offset": 11676,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iAccountID": {
             "offset": 12232,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iEntityLevel": {
             "offset": 12208,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iEntityQuality": {
             "offset": 12204,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iItemDefinitionIndex": {
             "offset": 12202,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iItemIDHigh": {
             "offset": 12224,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iItemIDLow": {
             "offset": 12228,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iReapplyProvisionParity": {
             "offset": 11672,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFallbackPaintKit": {
             "offset": 12744,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFallbackSeed": {
             "offset": 12748,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFallbackStatTrak": {
             "offset": 12756,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szCustomName": {
             "offset": 12348,
@@ -3108,15 +3108,15 @@
         },
         "m_nDensity": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nLifetime": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSpeed": {
             "offset": 2528,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_EntityDissolve": {
@@ -3150,15 +3150,15 @@
         },
         "m_nDissolveType": {
             "offset": 2552,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMagnitude": {
             "offset": 2572,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vDissolverOrigin": {
             "offset": 2560,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_EntityFlame": {
@@ -3168,7 +3168,7 @@
         },
         "m_hEntAttached": {
             "offset": 2520,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         }
     },
     "C_EntityFreezing": {
@@ -3186,7 +3186,7 @@
         },
         "m_vFreezingOrigin": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_EntityParticleTrail": {
@@ -3204,17 +3204,17 @@
         },
         "m_hConstraintEntity": {
             "offset": 2776,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iMaterialName": {
             "offset": 2752,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_EnvAmbientLight": {
         "m_vecColor": {
             "offset": 2816,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_EnvDOFController": {
@@ -3308,43 +3308,43 @@
         },
         "m_hSkyboxCopy": {
             "offset": 10664,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nMyZoneIndex": {
             "offset": 10800,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDirection": {
             "offset": 10712,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecEnterWorldPosition": {
             "offset": 10700,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecImpactPosition": {
             "offset": 10676,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector2D"
+            "type": "cheat::csgo::Vector2D"
         },
         "m_vecParabolaDirection": {
             "offset": 10764,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSkyboxOrigin": {
             "offset": 10780,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecStartAngles": {
             "offset": 10724,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_vecStartPosition": {
             "offset": 10688,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_EnvParticleScript": {
@@ -3356,7 +3356,7 @@
     "C_EnvProjectedTexture": {
         "m_LightColor": {
             "offset": 2548,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_SpotlightTextureName": {
             "offset": 2584,
@@ -3424,25 +3424,25 @@
         },
         "m_hTargetEntity": {
             "offset": 2524,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iStyle": {
             "offset": 2860,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nShadowQuality": {
             "offset": 2856,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSpotlightTextureFrame": {
             "offset": 2852,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_EnvQuadraticBeam": {
         "m_controlPosition": {
             "offset": 2532,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_flWidth": {
             "offset": 2548,
@@ -3454,7 +3454,7 @@
         },
         "m_targetPosition": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_EnvScreenEffect": {
@@ -3464,7 +3464,7 @@
         },
         "m_nType": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_EnvScreenOverlay": {
@@ -3482,7 +3482,7 @@
         },
         "m_iDesiredOverlay": {
             "offset": 5116,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iszOverlayNames": {
             "offset": 0,
@@ -3566,31 +3566,31 @@
         },
         "m_iGustDirChange": {
             "offset": 2564,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iInitialWindDir": {
             "offset": 2628,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMaxGust": {
             "offset": 2548,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMaxWind": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMinGust": {
             "offset": 2544,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMinWind": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWindSeed": {
             "offset": 2528,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_FEPlayerDecal": {
@@ -3600,59 +3600,59 @@
         },
         "m_nEntity": {
             "offset": 2588,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHitbox": {
             "offset": 2592,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nPlayer": {
             "offset": 2584,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nTintID": {
             "offset": 2596,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nUniqueID": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nVersion": {
             "offset": 2604,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_rtGcTime": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ubSignature": {
             "offset": 2605,
-            "type": "std::array<int32_t, 128>"
+            "type": "std::array<int, 128>"
         },
         "m_unAccountID": {
             "offset": 2524,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_unTraceID": {
             "offset": 2528,
-            "type": "uint32_t"
+            "type": "unsigned int"
         },
         "m_vecEndPos": {
             "offset": 2536,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecNormal": {
             "offset": 2572,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecRight": {
             "offset": 2560,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecStart": {
             "offset": 2548,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_FireSmoke": {
@@ -3670,15 +3670,15 @@
         },
         "m_nFlags": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFlameFromAboveModelIndex": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFlameModelIndex": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_FireTrail": {
@@ -3688,7 +3688,7 @@
         },
         "m_nAttachment": {
             "offset": 2756,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_Fish": {
@@ -3698,15 +3698,15 @@
         },
         "m_lifeState": {
             "offset": 607,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 600,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_poolOrigin": {
             "offset": 10720,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_waterLevel": {
             "offset": 10732,
@@ -3756,7 +3756,7 @@
         },
         "m_iBackgroundModelIndex": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_FuncConveyor": {
@@ -3772,25 +3772,25 @@
         },
         "m_vecLadderDir": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecPlayerMountPositionBottom": {
             "offset": 2564,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecPlayerMountPositionTop": {
             "offset": 2552,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_FuncMoveLinear": {
         "m_fFlags": {
             "offset": 260,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecVelocity": {
             "offset": 276,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_FuncOccluder": {
@@ -3800,7 +3800,7 @@
         },
         "m_nOccluderIndex": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_FuncRotating": {
@@ -3814,17 +3814,17 @@
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_FuncSmokeVolume": {
         "m_Color1": {
             "offset": 2756,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_Color2": {
             "offset": 2760,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_Density": {
             "offset": 3040,
@@ -3860,53 +3860,53 @@
         },
         "m_nSolidType": {
             "offset": 834,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSurroundType": {
             "offset": 842,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_spawnflags": {
             "offset": 3048,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_triggerBloat": {
             "offset": 835,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_usSolidFlags": {
             "offset": 832,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecMaxs": {
             "offset": 820,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecMins": {
             "offset": 808,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSpecifiedSurroundingMaxs": {
             "offset": 856,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSpecifiedSurroundingMins": {
             "offset": 844,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_Func_Dust": {
         "m_Color": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_DistMax": {
             "offset": 2548,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_DustFlags": {
             "offset": 2560,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_FallSpeed": {
             "offset": 2552,
@@ -3914,19 +3914,19 @@
         },
         "m_LifetimeMax": {
             "offset": 2544,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_LifetimeMin": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_SpawnRate": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_SpeedMax": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_bAffectedByWind": {
             "offset": 2556,
@@ -3942,49 +3942,49 @@
         },
         "m_nModelIndex": {
             "offset": 600,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSolidType": {
             "offset": 834,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSurroundType": {
             "offset": 842,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_triggerBloat": {
             "offset": 835,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_usSolidFlags": {
             "offset": 832,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecMaxs": {
             "offset": 820,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecMins": {
             "offset": 808,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSpecifiedSurroundingMaxs": {
             "offset": 856,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSpecifiedSurroundingMins": {
             "offset": 844,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_Func_LOD": {
         "m_nDisappearMaxDist": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDisappearMinDist": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_GrassBurn": {
@@ -3996,7 +3996,7 @@
     "C_HandleTest": {
         "m_Handle": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_bSendHandle": {
             "offset": 2524,
@@ -4006,7 +4006,7 @@
     "C_Hostage": {
         "m_fFlags": {
             "offset": 260,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flDropStartTime": {
             "offset": 12096,
@@ -4022,61 +4022,61 @@
         },
         "m_iHealth": {
             "offset": 256,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMaxHealth": {
             "offset": 12056,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_isRescued": {
             "offset": 12080,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_jumpedThisFrame": {
             "offset": 12081,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_leader": {
             "offset": 12064,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_lifeState": {
             "offset": 607,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHostageState": {
             "offset": 12084,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vel": {
             "offset": 12068,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_Inferno": {
         "m_bFireIsBurning": {
             "offset": 3732,
-            "type": "std::array<int32_t, 100>"
+            "type": "std::array<int, 100>"
         },
         "m_fireCount": {
             "offset": 5032,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fireXDelta": {
             "offset": 2532,
-            "type": "std::array<int32_t, 100>"
+            "type": "std::array<int, 100>"
         },
         "m_fireYDelta": {
             "offset": 2932,
-            "type": "std::array<int32_t, 100>"
+            "type": "std::array<int, 100>"
         },
         "m_fireZDelta": {
             "offset": 3332,
-            "type": "std::array<int32_t, 100>"
+            "type": "std::array<int, 100>"
         },
         "m_nFireEffectTickBegin": {
             "offset": 5044,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_InfoMapRegion": {
@@ -4092,11 +4092,11 @@
     "C_InfoOverlayAccessor": {
         "m_iOverlayID": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iTextureFrameIndex": {
             "offset": 2444,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_Item": {
@@ -4112,17 +4112,17 @@
         },
         "m_nArmorValue": {
             "offset": 13376,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_ItemDogtags": {
         "m_KillingPlayer": {
             "offset": 13380,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_OwningPlayer": {
             "offset": 13376,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_LightGlow": {
@@ -4132,11 +4132,11 @@
         },
         "m_angRotation": {
             "offset": 300,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_clrRender": {
             "offset": 112,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_flGlowProxySize": {
             "offset": 2756,
@@ -4144,97 +4144,97 @@
         },
         "m_nHorizontalSize": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMaxDist": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMinDist": {
             "offset": 2528,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nOuterMaxDist": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nVerticalSize": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_spawnflags": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "moveparent": {
             "offset": 328,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_MapVetoPickController": {
         "m_nAccountIDs": {
             "offset": 2828,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nCurrentPhase": {
             "offset": 4876,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDraftType": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMapId0": {
             "offset": 3084,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nMapId1": {
             "offset": 3340,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nMapId2": {
             "offset": 3596,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nMapId3": {
             "offset": 3852,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nMapId4": {
             "offset": 4108,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nMapId5": {
             "offset": 4364,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nPhaseDurationTicks": {
             "offset": 4884,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nPhaseStartTick": {
             "offset": 4880,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nStartingSide0": {
             "offset": 4620,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nTeamWinningCoinToss": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nTeamWithFirstChoice": {
             "offset": 2544,
-            "type": "std::array<int32_t, 64>"
+            "type": "std::array<int, 64>"
         },
         "m_nVoteMapIdsList": {
             "offset": 2800,
-            "type": "std::array<int32_t, 7>"
+            "type": "std::array<int, 7>"
         }
     },
     "C_MaterialModifyControl": {
@@ -4268,15 +4268,15 @@
         },
         "m_iFrameEnd": {
             "offset": 3300,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iFrameStart": {
             "offset": 3296,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModifyMode": {
             "offset": 3336,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szMaterialName": {
             "offset": 2520,
@@ -4352,21 +4352,21 @@
     "C_ParadropChopper": {
         "m_hCallingPlayer": {
             "offset": 10640,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector2D"
+            "type": "cheat::csgo::Vector2D"
         }
     },
     "C_ParticleFire": {
         "m_vDirection": {
             "offset": 2776,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vOrigin": {
             "offset": 2764,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_ParticlePerformanceMonitor": {
@@ -4382,7 +4382,7 @@
     "C_ParticleSystem": {
         "m_angRotation": {
             "offset": 300,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_bActive": {
             "offset": 2528,
@@ -4390,7 +4390,7 @@
         },
         "m_fEffects": {
             "offset": 240,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flStartTime": {
             "offset": 2532,
@@ -4398,31 +4398,31 @@
         },
         "m_hControlPointEnts": {
             "offset": 2864,
-            "type": "std::array<int32_t, 63>"
+            "type": "std::array<int, 63>"
         },
         "m_hOwnerEntity": {
             "offset": 332,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iControlPointParents": {
             "offset": 3116,
-            "type": "std::array<int32_t, 63>"
+            "type": "std::array<int, 63>"
         },
         "m_iEffectIndex": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iParentAttachment": {
             "offset": 748,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iServerControlPointAssignments": {
             "offset": 2844,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_nStopType": {
             "offset": 2524,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szSnapshotFileName": {
             "offset": 2536,
@@ -4430,15 +4430,15 @@
         },
         "m_vServerControlPoints": {
             "offset": 2796,
-            "type": "std::array<Vector, 4>"
+            "type": "std::array<cheat::csgo::Vector, 4>"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "moveparent": {
             "offset": 328,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PhysBox": {
@@ -4454,7 +4454,7 @@
         },
         "m_iPhysicsMode": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PhysPropLootCrate": {
@@ -4468,11 +4468,11 @@
         },
         "m_iHealth": {
             "offset": 256,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iMaxHealth": {
             "offset": 10744,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PhysicsProp": {
@@ -4482,17 +4482,17 @@
         },
         "m_spawnflags": {
             "offset": 712,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PhysicsPropMultiplayer": {
         "m_collisionMaxs": {
             "offset": 10712,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_collisionMins": {
             "offset": 10700,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_fMass": {
             "offset": 10696,
@@ -4500,7 +4500,7 @@
         },
         "m_iPhysicsMode": {
             "offset": 10692,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PlantedC4": {
@@ -4530,11 +4530,11 @@
         },
         "m_hBombDefuser": {
             "offset": 10676,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nBombSite": {
             "offset": 10628,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_Plasma": {
@@ -4552,19 +4552,19 @@
         },
         "m_nFlags": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nGlowModelIndex": {
             "offset": 2544,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nPlasmaModelIndex": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nPlasmaModelIndex2": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PlayerPing": {
@@ -4574,15 +4574,15 @@
         },
         "m_hPingedEntity": {
             "offset": 2536,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hPlayer": {
             "offset": 2532,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iType": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szPlaceName": {
             "offset": 2549,
@@ -4592,43 +4592,43 @@
     "C_PlayerResource": {
         "m_bAlive": {
             "offset": 4416,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_bConnected": {
             "offset": 2788,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iAssists": {
             "offset": 3376,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iCoachingTeam": {
             "offset": 4744,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iDeaths": {
             "offset": 3636,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iHealth": {
             "offset": 4484,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iKills": {
             "offset": 3116,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iPendingTeam": {
             "offset": 4156,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iPing": {
             "offset": 2856,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         },
         "m_iTeam": {
             "offset": 3896,
-            "type": "std::array<int32_t, 65>"
+            "type": "std::array<int, 65>"
         }
     },
     "C_PointCamera": {
@@ -4638,7 +4638,7 @@
         },
         "m_FogColor": {
             "offset": 2529,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_Resolution": {
             "offset": 2524,
@@ -4680,15 +4680,15 @@
         },
         "m_hViewPosition": {
             "offset": 11420,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iNodeNumber": {
             "offset": 11408,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iNodeNumberMax": {
             "offset": 11412,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iszCommentaryFile": {
             "offset": 10632,
@@ -4714,7 +4714,7 @@
         },
         "m_textColor": {
             "offset": 2832,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PoseController": {
@@ -4728,7 +4728,7 @@
         },
         "m_chPoseIndex": {
             "offset": 2536,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_fCycleFrequency": {
             "offset": 2556,
@@ -4756,11 +4756,11 @@
         },
         "m_hProps": {
             "offset": 2520,
-            "type": "std::array<int32_t, 4>"
+            "type": "std::array<int, 4>"
         },
         "m_nFModType": {
             "offset": 2560,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PostProcessController": {
@@ -4776,7 +4776,7 @@
     "C_Precipitation": {
         "m_nPrecipType": {
             "offset": 2560,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_PropCounter": {
@@ -4806,11 +4806,11 @@
         },
         "m_hPlayer": {
             "offset": 10740,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_vecEyeExitEndpoint": {
             "offset": 10752,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_PropVehicleDriveable": {
@@ -4836,39 +4836,39 @@
         },
         "m_hPlayer": {
             "offset": 10628,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nBoostTimeLeft": {
             "offset": 10644,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHasBoost": {
             "offset": 10648,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nRPM": {
             "offset": 10636,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nScannerDisabledVehicle": {
             "offset": 10656,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nScannerDisabledWeapons": {
             "offset": 10652,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSpeed": {
             "offset": 10632,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecEyeExitEndpoint": {
             "offset": 10752,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecGunCrosshair": {
             "offset": 10696,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_Prop_Hallucination": {
@@ -4888,7 +4888,7 @@
     "C_RagdollManager": {
         "m_iCurrentMaxRagdollCount": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_RagdollProp": {
@@ -4898,55 +4898,55 @@
         },
         "m_hUnragdoll": {
             "offset": 11388,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nOverlaySequence": {
             "offset": 11400,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ragAngles": {
             "offset": 0,
-            "type": "std::array<QAngle, 24>"
+            "type": "std::array<cheat::csgo::QAngle, 24>"
         },
         "m_ragPos": {
             "offset": 0,
-            "type": "std::array<Vector, 24>"
+            "type": "std::array<cheat::csgo::Vector, 24>"
         }
     },
     "C_RagdollPropAttached": {
         "m_attachmentPointBoneSpace": {
             "offset": 11408,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_attachmentPointRagdollSpace": {
             "offset": 11432,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_boneIndexAttached": {
             "offset": 11448,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ragdollAttachedObjectIndex": {
             "offset": 11444,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_RopeKeyframe": {
         "m_RopeFlags": {
             "offset": 2576,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_RopeLength": {
             "offset": 3260,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_Slack": {
             "offset": 3264,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_Subdiv": {
             "offset": 3256,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_TextureScale": {
             "offset": 3268,
@@ -4962,7 +4962,7 @@
         },
         "m_fLockedPoints": {
             "offset": 3272,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flScrollSpeed": {
             "offset": 2572,
@@ -4970,63 +4970,63 @@
         },
         "m_hEndPoint": {
             "offset": 3248,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_hStartPoint": {
             "offset": 3244,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iDefaultRopeMaterialModelIndex": {
             "offset": 2584,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iEndAttachment": {
             "offset": 3254,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iParentAttachment": {
             "offset": 748,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRopeMaterialModelIndex": {
             "offset": 2580,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iStartAttachment": {
             "offset": 3252,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nChangeCount": {
             "offset": 3276,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMaxCPULevel": {
             "offset": 2441,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMaxGPULevel": {
             "offset": 2443,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMinCPULevel": {
             "offset": 2440,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMinGPULevel": {
             "offset": 2442,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSegments": {
             "offset": 3240,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "moveparent": {
             "offset": 328,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_SceneEntity": {
@@ -5048,11 +5048,11 @@
         },
         "m_hActorList": {
             "offset": 0,
-            "type": "std::array<int32_t, 16>"
+            "type": "std::array<int, 16>"
         },
         "m_nSceneStringIndex": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_ShadowControl": {
@@ -5070,11 +5070,11 @@
         },
         "m_shadowColor": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_shadowDirection": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_SlideshowDisplay": {
@@ -5088,7 +5088,7 @@
         },
         "m_chCurrentSlideLists": {
             "offset": 2800,
-            "type": "std::array<int32_t, 16>"
+            "type": "std::array<int, 16>"
         },
         "m_fMaxSlideTime": {
             "offset": 2828,
@@ -5100,7 +5100,7 @@
         },
         "m_iCycleType": {
             "offset": 2836,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szDisplayText": {
             "offset": 2521,
@@ -5118,7 +5118,7 @@
         },
         "m_nSmokeEffectTickBegin": {
             "offset": 10768,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_SmokeStack": {
@@ -5164,11 +5164,11 @@
         },
         "m_iMaterialModel": {
             "offset": 2952,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vWind": {
             "offset": 2936,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_SpatialEntity": {
@@ -5190,7 +5190,7 @@
         },
         "m_vecOrigin": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_SpotlightEnd": {
@@ -5238,15 +5238,15 @@
         },
         "m_hAttachedToEntity": {
             "offset": 2536,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nAttachment": {
             "offset": 2540,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nBrightness": {
             "offset": 2556,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_SpriteTrail": {
@@ -5280,7 +5280,7 @@
         },
         "m_vecSkyboxOrigin": {
             "offset": 4236,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_StatueProp": {
@@ -5290,19 +5290,19 @@
         },
         "m_hInitBaseAnimating": {
             "offset": 10688,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nShatterFlags": {
             "offset": 10696,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vShatterForce": {
             "offset": 10712,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vShatterPosition": {
             "offset": 10700,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_SteamJet": {
@@ -5344,11 +5344,11 @@
         },
         "m_nType": {
             "offset": 2784,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_spawnflags": {
             "offset": 2792,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_Sun": {
@@ -5366,37 +5366,37 @@
         },
         "m_clrOverlay": {
             "offset": 2872,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_clrRender": {
             "offset": 112,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_nMaterial": {
             "offset": 2900,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nOverlayMaterial": {
             "offset": 2904,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nOverlaySize": {
             "offset": 2880,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSize": {
             "offset": 2876,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vDirection": {
             "offset": 2884,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_SunlightShadowControl": {
         "m_LightColor": {
             "offset": 2800,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_TextureName": {
             "offset": 2533,
@@ -5432,41 +5432,41 @@
         },
         "m_shadowDirection": {
             "offset": 2520,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_SurvivalSpawnChopper": {
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector2D"
+            "type": "cheat::csgo::Vector2D"
         }
     },
     "C_TEBSPDecal": {
         "m_nEntity": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nIndex": {
             "offset": 32,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEBaseBeam": {
         "a": {
             "offset": 64,
-            "type": "int32_t"
+            "type": "int"
         },
         "b": {
             "offset": 60,
-            "type": "int32_t"
+            "type": "int"
         },
         "g": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fAmplitude": {
             "offset": 48,
@@ -5486,99 +5486,99 @@
         },
         "m_nFadeLength": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFlags": {
             "offset": 72,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFrameRate": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHaloIndex": {
             "offset": 20,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSpeed": {
             "offset": 68,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nStartFrame": {
             "offset": 24,
-            "type": "int32_t"
+            "type": "int"
         },
         "r": {
             "offset": 52,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEBeamEntPoint": {
         "m_nEndEntity": {
             "offset": 80,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nStartEntity": {
             "offset": 76,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecEndPoint": {
             "offset": 96,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecStartPoint": {
             "offset": 84,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEBeamEnts": {
         "m_nEndEntity": {
             "offset": 80,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nStartEntity": {
             "offset": 76,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEBeamFollow": {
         "m_iEntIndex": {
             "offset": 76,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEBeamLaser": {
         "m_nEndEntity": {
             "offset": 80,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nStartEntity": {
             "offset": 76,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEBeamPoints": {
         "m_vecEndPoint": {
             "offset": 88,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecStartPoint": {
             "offset": 76,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEBeamRing": {
         "m_nEndEntity": {
             "offset": 80,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nStartEntity": {
             "offset": 76,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEBeamRingPoint": {
@@ -5592,81 +5592,81 @@
         },
         "m_vecCenter": {
             "offset": 76,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEBeamSpline": {
         "m_nPoints": {
             "offset": 208,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecPoints": {
             "offset": 0,
-            "type": "std::array<Vector, 16>"
+            "type": "std::array<cheat::csgo::Vector, 16>"
         }
     },
     "C_TEBloodSprite": {
         "a": {
             "offset": 52,
-            "type": "int32_t"
+            "type": "int"
         },
         "b": {
             "offset": 48,
-            "type": "int32_t"
+            "type": "int"
         },
         "g": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDropModel": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSize": {
             "offset": 64,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSprayModel": {
             "offset": 60,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDirection": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "r": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEBloodStream": {
         "a": {
             "offset": 52,
-            "type": "int32_t"
+            "type": "int"
         },
         "b": {
             "offset": 48,
-            "type": "int32_t"
+            "type": "int"
         },
         "g": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nAmount": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDirection": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "r": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEBreakModel": {
@@ -5680,31 +5680,31 @@
         },
         "m_nCount": {
             "offset": 72,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFlags": {
             "offset": 80,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 68,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nRandomization": {
             "offset": 64,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecSize": {
             "offset": 40,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecVelocity": {
             "offset": 52,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEBubbleTrail": {
@@ -5718,19 +5718,19 @@
         },
         "m_nCount": {
             "offset": 48,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecMaxs": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecMins": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEBubbles": {
@@ -5744,63 +5744,63 @@
         },
         "m_nCount": {
             "offset": 48,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecMaxs": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecMins": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEClientProjectile": {
         "m_hOwner": {
             "offset": 48,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nLifeTime": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecVelocity": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEDecal": {
         "m_nEntity": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHitbox": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nIndex": {
             "offset": 48,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecStart": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEDust": {
@@ -5814,21 +5814,21 @@
         },
         "m_vecDirection": {
             "offset": 36,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEDynamicLight": {
         "b": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "exponent": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "g": {
             "offset": 36,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_fDecay": {
             "offset": 52,
@@ -5844,17 +5844,17 @@
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "r": {
             "offset": 32,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEEffectDispatch": {
         "entindex": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_bPositionsAreRelativeToEntity": {
             "offset": 113,
@@ -5862,7 +5862,7 @@
         },
         "m_fFlags": {
             "offset": 64,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flMagnitude": {
             "offset": 80,
@@ -5878,43 +5878,43 @@
         },
         "m_iEffectName": {
             "offset": 116,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nAttachmentIndex": {
             "offset": 88,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nColor": {
             "offset": 112,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDamageType": {
             "offset": 100,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHitBox": {
             "offset": 104,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMaterial": {
             "offset": 96,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nOtherEntIndex": {
             "offset": 108,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSurfaceProp": {
             "offset": 92,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vAngles": {
             "offset": 52,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_vNormal": {
             "offset": 40,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEEnergySplash": {
@@ -5924,17 +5924,17 @@
         },
         "m_vecDir": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecPos": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEExplosion": {
         "m_chMaterialType": {
             "offset": 56,
-            "type": "uint8_t"
+            "type": "unsigned char"
         },
         "m_fScale": {
             "offset": 32,
@@ -5942,27 +5942,27 @@
         },
         "m_nFlags": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFrameRate": {
             "offset": 36,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nMagnitude": {
             "offset": 64,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nRadius": {
             "offset": 60,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecNormal": {
             "offset": 44,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEFireBullets": {
@@ -5980,27 +5980,27 @@
         },
         "m_iMode": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iPlayer": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSeed": {
             "offset": 60,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iSoundType": {
             "offset": 76,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWeaponID": {
             "offset": 52,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nItemDefIndex": {
             "offset": 20,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecAngles": {
             "offset": 36,
@@ -6008,67 +6008,67 @@
         },
         "m_vecOrigin": {
             "offset": 24,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_weapon": {
             "offset": 48,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEFizz": {
         "m_nCurrent": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nDensity": {
             "offset": 24,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nEntity": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 20,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEFootprintDecal": {
         "m_chMaterialType": {
             "offset": 60,
-            "type": "uint8_t"
+            "type": "unsigned char"
         },
         "m_nEntity": {
             "offset": 52,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nIndex": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDirection": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEFoundryHelpers": {
         "m_iEntity": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEGaussExplosion": {
         "m_nType": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDirection": {
             "offset": 32,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEGlowSprite": {
@@ -6082,59 +6082,59 @@
         },
         "m_nBrightness": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEImpact": {
         "m_iType": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_ucFlags": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecNormal": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEKillPlayerAttachments": {
         "m_nPlayer": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TELargeFunnel": {
         "m_nModelIndex": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nReversed": {
             "offset": 32,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEMetalSparks": {
         "m_vecDir": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecPos": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEMuzzleFlash": {
@@ -6144,15 +6144,15 @@
         },
         "m_nType": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecAngles": {
             "offset": 28,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEParticleSystem": {
@@ -6168,91 +6168,91 @@
         },
         "m_clrRender": {
             "offset": 68,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_nEffects": {
             "offset": 64,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nFlags": {
             "offset": 60,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 52,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSkin": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecVelocity": {
             "offset": 40,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEPlantBomb": {
         "m_iPlayer": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_option": {
             "offset": 32,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 20,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEPlayerAnimEvent": {
         "m_hPlayer": {
             "offset": 16,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iEvent": {
             "offset": 20,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nData": {
             "offset": 24,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEPlayerDecal": {
         "m_nEntity": {
             "offset": 56,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nHitbox": {
             "offset": 60,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nPlayer": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 20,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecRight": {
             "offset": 44,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecStart": {
             "offset": 32,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEProjectedDecal": {
         "m_angRotation": {
             "offset": 28,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_flDistance": {
             "offset": 40,
@@ -6260,17 +6260,17 @@
         },
         "m_nIndex": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TERadioIcon": {
         "m_iAttachToClient": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TEShatterSurface": {
@@ -6288,7 +6288,7 @@
         },
         "m_nSurfaceType": {
             "offset": 80,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_uchBackColor": {
             "offset": 87,
@@ -6300,25 +6300,25 @@
         },
         "m_vecAngles": {
             "offset": 28,
-            "type": "QAngle"
+            "type": "cheat::csgo::QAngle"
         },
         "m_vecForce": {
             "offset": 40,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecForcePos": {
             "offset": 52,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEShowLine": {
         "m_vecEnd": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TESmoke": {
@@ -6328,29 +6328,29 @@
         },
         "m_nFrameRate": {
             "offset": 36,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TESparks": {
         "m_nMagnitude": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nTrailLength": {
             "offset": 32,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDir": {
             "offset": 36,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TESprite": {
@@ -6360,15 +6360,15 @@
         },
         "m_nBrightness": {
             "offset": 36,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TESpriteSpray": {
@@ -6378,33 +6378,33 @@
         },
         "m_nCount": {
             "offset": 52,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nModelIndex": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSpeed": {
             "offset": 44,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecDirection": {
             "offset": 28,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_TEWorldDecal": {
         "m_nIndex": {
             "offset": 28,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecOrigin": {
             "offset": 16,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "C_Tablet": {
@@ -6430,27 +6430,27 @@
         },
         "m_nContractKillGridHighResIndex": {
             "offset": 13460,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nContractKillGridIndex": {
             "offset": 13456,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nLastPurchaseIndex": {
             "offset": 13556,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_vecLocalHexFlags": {
             "offset": 0,
-            "type": "std::array<int32_t, 42>"
+            "type": "std::array<int, 42>"
         },
         "m_vecNearestMetalCratePos": {
             "offset": 13480,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_vecNotificationIds": {
             "offset": 0,
-            "type": "std::array<int32_t, 8>"
+            "type": "std::array<int, 8>"
         },
         "m_vecNotificationTimestamps": {
             "offset": 0,
@@ -6458,7 +6458,7 @@
         },
         "m_vecPlayerPositionHistory": {
             "offset": 0,
-            "type": "std::array<Vector, 24>"
+            "type": "std::array<cheat::csgo::Vector, 24>"
         }
     },
     "C_Team": {
@@ -6468,39 +6468,39 @@
         },
         "m_iClanID": {
             "offset": 2904,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iTeamNum": {
             "offset": 2920,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nGGLeaderEntIndex_CT": {
             "offset": 2896,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nGGLeaderEntIndex_T": {
             "offset": 2900,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_numMapVictories": {
             "offset": 2928,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_scoreFirstHalf": {
             "offset": 2884,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_scoreOvertime": {
             "offset": 2892,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_scoreSecondHalf": {
             "offset": 2888,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_scoreTotal": {
             "offset": 2880,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szClanTeamname": {
             "offset": 2572,
@@ -6524,7 +6524,7 @@
         },
         "player_array_element": {
             "offset": 0,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TeamplayRoundBasedRulesProxy": {
@@ -6558,7 +6558,7 @@
         },
         "m_bTeamReady": {
             "offset": 196,
-            "type": "std::array<int32_t, 32>"
+            "type": "std::array<int, 32>"
         },
         "m_flMapResetTime": {
             "offset": 64,
@@ -6574,11 +6574,11 @@
         },
         "m_iRoundState": {
             "offset": 40,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iWinningTeam": {
             "offset": 48,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_Tesla": {
@@ -6598,33 +6598,33 @@
         },
         "m_clrRender": {
             "offset": 112,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_vecOrigin": {
             "offset": 312,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "moveparent": {
             "offset": 328,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_Test_ProxyToggle_Networkable": {
         "m_WithProxy": {
             "offset": 2520,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_TriggerSoundOperator": {
         "m_nSoundOperator": {
             "offset": 2576,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_VGuiScreen": {
         "m_fScreenFlags": {
             "offset": 2572,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_flHeight": {
             "offset": 2532,
@@ -6636,19 +6636,19 @@
         },
         "m_hPlayerOwner": {
             "offset": 2664,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_nAttachmentIndex": {
             "offset": 2564,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nOverlayMaterial": {
             "offset": 2568,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nPanelName": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_VoteController": {
@@ -6658,19 +6658,19 @@
         },
         "m_iActiveIssueIndex": {
             "offset": 2532,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iOnlyTeamToVote": {
             "offset": 2536,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nPotentialVotes": {
             "offset": 2564,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nVoteOptionCount": {
             "offset": 2540,
-            "type": "std::array<int32_t, 5>"
+            "type": "std::array<int, 5>"
         }
     },
     "C_WaterLODControl": {
@@ -6724,51 +6724,51 @@
         },
         "m_hPrevOwner": {
             "offset": 13188,
-            "type": "CBaseHandle"
+            "type": "cheat::csgo::CBaseHandle"
         },
         "m_iIronSightMode": {
             "offset": 13252,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iOriginalTeamNumber": {
             "offset": 13148,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRecoilIndex": {
             "offset": 13120,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_weaponMode": {
             "offset": 13080,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_WeaponCSBaseGun": {
         "m_iBurstShotsRemaining": {
             "offset": 13268,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_zoomLevel": {
             "offset": 13264,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_WeaponM3": {
         "m_reloadState": {
             "offset": 13268,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_WeaponNOVA": {
         "m_reloadState": {
             "offset": 13268,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_WeaponSawedoff": {
         "m_reloadState": {
             "offset": 13268,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_WeaponTaser": {
@@ -6780,17 +6780,17 @@
     "C_WeaponXM1014": {
         "m_reloadState": {
             "offset": 13268,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "C_World": {
         "m_WorldMaxs": {
             "offset": 2536,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_WorldMins": {
             "offset": 2524,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_bColdWorld": {
             "offset": 2568,
@@ -6822,7 +6822,7 @@
         },
         "m_iTimeOfDay": {
             "offset": 2572,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iszDetailSpriteMaterial": {
             "offset": 2576,
@@ -6836,11 +6836,11 @@
         },
         "m_clrText": {
             "offset": 3353,
-            "type": "Color"
+            "type": "cheat::csgo::Color"
         },
         "m_iTextPanelWidth": {
             "offset": 3360,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_szDisplayText": {
             "offset": 2521,
@@ -6858,7 +6858,7 @@
     "DustTrail": {
         "m_Color": {
             "offset": 2760,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_EndSize": {
             "offset": 2808,
@@ -6912,7 +6912,7 @@
     "ParticleSmokeGrenade": {
         "m_CurrentStage": {
             "offset": 2756,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_FadeEndTime": {
             "offset": 2780,
@@ -6924,11 +6924,11 @@
         },
         "m_MaxColor": {
             "offset": 2800,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_MinColor": {
             "offset": 2788,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_flSpawnTime": {
             "offset": 2772,
@@ -6938,7 +6938,7 @@
     "RocketTrail": {
         "m_EndColor": {
             "offset": 2772,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_EndSize": {
             "offset": 2808,
@@ -6970,7 +6970,7 @@
         },
         "m_StartColor": {
             "offset": 2760,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_StartSize": {
             "offset": 2804,
@@ -6994,13 +6994,13 @@
         },
         "m_nAttachment": {
             "offset": 2832,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "SmokeTrail": {
         "m_EndColor": {
             "offset": 2772,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_EndSize": {
             "offset": 2816,
@@ -7040,7 +7040,7 @@
         },
         "m_StartColor": {
             "offset": 2760,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         },
         "m_StartSize": {
             "offset": 2812,
@@ -7056,7 +7056,7 @@
         },
         "m_nAttachment": {
             "offset": 2840,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "SporeExplosion": {
@@ -7116,7 +7116,7 @@
         },
         "m_vecEndColor": {
             "offset": 2752,
-            "type": "Vector"
+            "type": "cheat::csgo::Vector"
         }
     },
     "_ST_m_AnimOverlay_15": {
@@ -7142,11 +7142,11 @@
         },
         "m_nOrder": {
             "offset": 20,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nSequence": {
             "offset": 24,
-            "type": "int32_t"
+            "type": "int"
         }
     },
     "_ST_m_Attributes_32": {
@@ -7160,19 +7160,19 @@
         },
         "m_iAttributeDefinitionIndex": {
             "offset": 4,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRawInitialValue32": {
             "offset": 12,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_iRawValue32": {
             "offset": 8,
-            "type": "int32_t"
+            "type": "int"
         },
         "m_nRefundableCurrency": {
             "offset": 16,
-            "type": "int32_t"
+            "type": "int"
         }
     }
 }

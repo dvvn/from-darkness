@@ -1,2 +1,2 @@
-int32_t& m_jumpedThisFrame( );
-int32_t& m_leader( );
+int& m_jumpedThisFrame( );
+int& m_leader( );

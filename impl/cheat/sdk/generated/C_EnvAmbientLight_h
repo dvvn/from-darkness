@@ -1,1 +1,1 @@
-Vector& m_vecColor( );
+cheat::csgo::Vector& m_vecColor( );

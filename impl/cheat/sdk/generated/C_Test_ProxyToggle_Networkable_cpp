@@ -5,18 +5,15 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
+using namespace cheat::csgo;
 
-using namespace cheat;
-using namespace csgo;
-
-int32_t& C_Test_ProxyToggle_Networkable::m_WithProxy( )
+int& C_Test_ProxyToggle_Networkable::m_WithProxy( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Test_ProxyToggle_Networkable", "m_WithProxy");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

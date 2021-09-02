@@ -5,4 +5,4 @@ float& m_flSkyboxScale( );
 float& m_flStartWidth( );
 float& m_flStartWidthVariance( );
 float& m_flTextureRes( );
-Vector& m_vecSkyboxOrigin( );
+cheat::csgo::Vector& m_vecSkyboxOrigin( );

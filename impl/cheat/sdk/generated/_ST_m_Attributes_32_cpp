@@ -5,10 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
-
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& _ST_m_Attributes_32::m_bSetBonus( )
 {
@@ -30,43 +27,43 @@ float& _ST_m_Attributes_32::m_flValue( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& _ST_m_Attributes_32::m_iAttributeDefinitionIndex( )
+int& _ST_m_Attributes_32::m_iAttributeDefinitionIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_iAttributeDefinitionIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& _ST_m_Attributes_32::m_iRawInitialValue32( )
+int& _ST_m_Attributes_32::m_iRawInitialValue32( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_iRawInitialValue32");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& _ST_m_Attributes_32::m_iRawValue32( )
+int& _ST_m_Attributes_32::m_iRawValue32( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_iRawValue32");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& _ST_m_Attributes_32::m_nRefundableCurrency( )
+int& _ST_m_Attributes_32::m_nRefundableCurrency( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_Attributes_32", "m_nRefundableCurrency");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

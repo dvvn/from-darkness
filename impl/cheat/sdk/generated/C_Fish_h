@@ -1,7 +1,7 @@
 float& m_angle( );
-int32_t& m_lifeState( );
-int32_t& m_nModelIndex( );
-Vector& m_poolOrigin( );
+int& m_lifeState( );
+int& m_nModelIndex( );
+cheat::csgo::Vector& m_poolOrigin( );
 float& m_waterLevel( );
 float& m_x( );
 float& m_y( );

@@ -7,8 +7,7 @@
 
 #include "cheat/sdk/Vector.hpp"
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_TEDust::m_flSize( )
 {
@@ -30,13 +29,13 @@ float& C_TEDust::m_flSpeed( )
 	return addr.ref<float>( );
 #endif
 }
-Vector& C_TEDust::m_vecDirection( )
+cheat::csgo::Vector& C_TEDust::m_vecDirection( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEDust", "m_vecDirection");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

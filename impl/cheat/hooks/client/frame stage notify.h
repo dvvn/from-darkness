@@ -11,7 +11,7 @@ namespace cheat::csgo
 
 namespace cheat::hooks::client
 {
-	class frame_stage_notify final: public base<frame_stage_notify, void(csgo::IBaseClientDLL::*)(csgo::ClientFrameStage_t)>
+	class frame_stage_notify final: public hook_base<frame_stage_notify, void(csgo::IBaseClientDLL::*)(csgo::ClientFrameStage_t)>
 								  , service_sometimes_skipped
 	{
 	public:

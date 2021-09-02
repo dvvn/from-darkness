@@ -1,1 +1,1 @@
-Vector& m_vecEnd( );
+cheat::csgo::Vector& m_vecEnd( );

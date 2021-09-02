@@ -6,10 +6,8 @@
 #endif
 
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 std::array<float, 32>& C_TeamplayRoundBasedRulesProxy::m_TeamRespawnWaveTimes( )
 {
@@ -81,14 +79,14 @@ bool& C_TeamplayRoundBasedRulesProxy::m_bSwitchedTeamsThisRound( )
 	return addr.ref<bool>( );
 #endif
 }
-std::array<int32_t, 32>& C_TeamplayRoundBasedRulesProxy::m_bTeamReady( )
+std::array<int, 32>& C_TeamplayRoundBasedRulesProxy::m_bTeamReady( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 32>*)nullptr;
+	return *(std::array<int, 32>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy", "m_bTeamReady");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 32>>( );
+	return addr.ref<std::array<int, 32>>( );
 #endif
 }
 float& C_TeamplayRoundBasedRulesProxy::m_flMapResetTime( )
@@ -121,23 +119,23 @@ float& C_TeamplayRoundBasedRulesProxy::m_flRestartRoundTime( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_TeamplayRoundBasedRulesProxy::m_iRoundState( )
+int& C_TeamplayRoundBasedRulesProxy::m_iRoundState( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy", "m_iRoundState");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_TeamplayRoundBasedRulesProxy::m_iWinningTeam( )
+int& C_TeamplayRoundBasedRulesProxy::m_iWinningTeam( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TeamplayRoundBasedRulesProxy", "m_iWinningTeam");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

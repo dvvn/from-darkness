@@ -7,8 +7,7 @@
 
 #include "cheat/sdk/Vector.hpp"
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_ColorCorrection::m_bClientSide( )
 {
@@ -120,13 +119,13 @@ char* C_ColorCorrection::m_netLookupFilename( )
 	return addr.ptr<char>( );
 #endif
 }
-Vector& C_ColorCorrection::m_vecOrigin( )
+cheat::csgo::Vector& C_ColorCorrection::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

@@ -8,7 +8,6 @@
 
 namespace cheat::gui::objects
 {
-	using empty_page = renderable_object;
 
 	class abstract_page //:public renderable_object
 	{

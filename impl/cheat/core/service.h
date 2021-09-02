@@ -144,7 +144,7 @@ namespace cheat
 	class service_core: public virtual service_base
 	{
 	public:
-		std::string_view      name( ) const final { return nstd::type_name<T, "cheat">( ); }
+		std::string_view      name( ) const override { return nstd::type_name<T, "cheat">; }
 		const std::type_info& type( ) const final { return typeid(T); }
 
 	protected:

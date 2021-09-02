@@ -1,5 +1,5 @@
-uint8_t& m_chMaterialType( );
-int32_t& m_nEntity( );
-int32_t& m_nIndex( );
-Vector& m_vecDirection( );
-Vector& m_vecOrigin( );
+unsigned char& m_chMaterialType( );
+int& m_nEntity( );
+int& m_nIndex( );
+cheat::csgo::Vector& m_vecDirection( );
+cheat::csgo::Vector& m_vecOrigin( );

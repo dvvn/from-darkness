@@ -6,28 +6,26 @@
 #endif
 
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-int32_t& C_TEBeamSpline::m_nPoints( )
+int& C_TEBeamSpline::m_nPoints( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBeamSpline", "m_nPoints");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-std::array<Vector, 16>& C_TEBeamSpline::m_vecPoints( )
+std::array<cheat::csgo::Vector, 16>& C_TEBeamSpline::m_vecPoints( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<Vector, 16>*)nullptr;
+	return *(std::array<cheat::csgo::Vector, 16>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBeamSpline", "m_vecPoints");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<Vector, 16>>( );
+	return addr.ref<std::array<cheat::csgo::Vector, 16>>( );
 #endif
 }

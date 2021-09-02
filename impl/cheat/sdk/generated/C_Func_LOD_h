@@ -1,2 +1,2 @@
-int32_t& m_nDisappearMaxDist( );
-int32_t& m_nDisappearMinDist( );
+int& m_nDisappearMaxDist( );
+int& m_nDisappearMinDist( );

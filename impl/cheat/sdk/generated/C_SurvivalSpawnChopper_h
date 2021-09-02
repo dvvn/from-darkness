@@ -1,1 +1,1 @@
-Vector2D& m_vecOrigin( );
+cheat::csgo::Vector2D& m_vecOrigin( );

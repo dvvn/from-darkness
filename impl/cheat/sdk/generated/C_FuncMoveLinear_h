@@ -1,2 +1,2 @@
-int32_t& m_fFlags( );
-Vector& m_vecVelocity( );
+int& m_fFlags( );
+cheat::csgo::Vector& m_vecVelocity( );

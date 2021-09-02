@@ -32,7 +32,7 @@ public:
 		if (file_.empty( ))
 			return;
 
-		const auto str = this->str( );
+		const auto str = this->view( );
 		if (str.empty( ))
 			return;
 
@@ -50,8 +50,14 @@ public:
 
 	lazy_file_writer(lazy_file_writer&& other) noexcept
 	{
-		file_                                   = std::move(other.file_);
-		*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
+		*this = std::move(other);
+	}
+
+	lazy_file_writer& operator=(lazy_file_writer&& other) noexcept
+	{
+		std::swap(file_, other.file_);
+		std::swap<std::ostringstream>(*this, other);
+		return *this;
 	}
 
 private:
@@ -106,8 +112,8 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 	return std::ranges::find(name, '.') == name.end( );
 }
 
-template <typename Nstr>
-static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, int offset, [[maybe_unused]] std::string&& type)
+template <typename Nstr, typename Tstr>
+static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, int offset, [[maybe_unused]] Tstr&& type)
 {
 	auto path = std::string(std::forward<Nstr>(name));
 
@@ -115,11 +121,11 @@ static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, in
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		if (type != "void*")
+		if (type != nstd::type_name<void*>)
 		{
 			auto& type_obj = entry->at("type").get_ref<std::string&>( );
 			if (type_obj != type)
-				type_obj = std::move(type);
+				type_obj = std::forward<Tstr>(type);
 		}
 #endif
 	}
@@ -129,7 +135,7 @@ static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, in
 		{
 			{"offset", offset},
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-			{"type", std::move(type)}
+			{"type", std::string(std::forward<Tstr>(type))}
 #endif
 		};
 	}
@@ -159,14 +165,13 @@ static std::pair<netvars::hidden::storage_type::iterator, bool> _Add_child_class
 	return storage.emplace(std::move(class_name), netvars::hidden::storage_type::value_type{ });
 }
 
-static std::string _Array_type(const std::string_view& type, size_t size)
+static std::string _As_std_array_type(const std::string_view& type, size_t size)
 {
 	return std::format("std::array<{}, {}>", type, size);
 }
 
-static std::string _Netvar_vec_type(const std::string_view& name)
+static std::string_view _Netvar_vec_type(const std::string_view& name)
 {
-	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto is_qangle = [&]
 	{
 		if (name.starts_with("m_ang"))
@@ -175,171 +180,173 @@ static std::string _Netvar_vec_type(const std::string_view& name)
 		return lstr.find("angles") != lstr.npos;
 	};
 
-	return std::isdigit(name[0]) || !is_qangle( ) ? "Vector" : "QAngle";
+	return std::isdigit(name[0]) || !is_qangle( ) ? nstd::type_name<Vector> : nstd::type_name<QAngle>;
 }
 
-static std::string _Netvar_int_type(std::string_view name)
+static std::string_view _Netvar_int_type(std::string_view name)
 {
 	if (!std::isdigit(name[0]) && name.starts_with("m_"))
 	{
 		name.remove_prefix(2);
+		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto is_upper = [&](size_t i)
 		{
 			return name.size( ) > i && std::isupper(name[i]);
 		};
-		(void)is_upper;
 		if (is_upper(1))
 		{
 			if (name.starts_with('b'))
-				return "bool";
+				return nstd::type_name<bool>;
 			if (name.starts_with('c'))
-				return "uint8_t";
+				return nstd::type_name<uint8_t>;
 			if (name.starts_with('h'))
-				return "CBaseHandle";
+				return nstd::type_name<CBaseHandle>;
 		}
 		else if (is_upper(2))
 		{
 			if (name.starts_with("un"))
-				return "uint32_t";
+				return nstd::type_name<uint32_t>;
 			if (name.starts_with("ch"))
-				return "uint8_t";
+				return nstd::type_name<uint8_t>;
 			if (name.starts_with("fl") && _Str_to_lower(name).find("time") != std::string::npos) //m_flSimulationTime int ???
-				return "float";
+				return nstd::type_name<float>;
 		}
 		else if (is_upper(3))
 		{
 			if (name.starts_with("clr"))
-				return "Color"; //not sure
+				return nstd::type_name<Color>; //not sure
 		}
 	}
-	return "int32_t";
+	return nstd::type_name<int32_t>;
 }
 
 static std::string _Recv_prop_type(const RecvProp& prop)
 {
+	using str = std::string;
+
 	switch (prop.m_RecvType)
 	{
 		case DPT_Int:
-			return _Netvar_int_type(prop.m_pVarName);
+			return str(_Netvar_int_type(prop.m_pVarName));
 		case DPT_Float:
-			return "float";
+			return str(nstd::type_name<float>);
 		case DPT_Vector:
-			return _Netvar_vec_type(prop.m_pVarName);
+			return str(_Netvar_vec_type(prop.m_pVarName));
 		case DPT_VectorXY:
-			return "Vector2D"; //3d vector. z unused
+			return str(nstd::type_name<Vector2D>); //3d vector. z unused
 		case DPT_String:
-			return "char*";
+			return str(nstd::type_name<char*>);
 		case DPT_Array:
 		{
 			const auto& prev_prop = *std::prev(std::addressof(prop));
 			runtime_assert(std::string_view(prev_prop.m_pVarName).ends_with("[0]"));
 			const auto type = _Recv_prop_type(prev_prop);
-			return _Array_type(type, prop.m_nElements);
+			return _As_std_array_type(type, prop.m_nElements);
 		}
 		case DPT_DataTable:
 		{
 			runtime_assert("Data table type must be manually resolved!");
-			return "void*";
+			return str(nstd::type_name<void*>);
 		}
 		case DPT_Int64:
-			return "int64_t";
+			return str(nstd::type_name<int64_t>);
 		default:
 		{
 			runtime_assert("Unknown recv prop type");
-			return "void*";
+			return str(nstd::type_name<void*>);
 		}
 	}
 }
 
 [[maybe_unused]]
-static std::string _Datamap_field_type(const typedescription_t& field)
+static std::string_view _Datamap_field_type(const typedescription_t& field)
 {
 	switch (field.fieldType)
 	{
 		case FIELD_VOID:
-			return "void*";
+			return nstd::type_name<void*>;
 		case FIELD_FLOAT:
-			return "float";
+			return nstd::type_name<float>;
 		case FIELD_STRING:
-			return "char*"; //std::string_t at real
+			return nstd::type_name<char*>; //std::string_t at real
 		case FIELD_VECTOR:
 			return _Netvar_vec_type(field.fieldName);
 		case FIELD_QUATERNION:
 		{
 			//return "Quaterion";
 			runtime_assert("Quaterion field detected");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 		case FIELD_INTEGER:
 			return _Netvar_int_type(field.fieldName);
 		case FIELD_BOOLEAN:
-			return "bool";
+			return nstd::type_name<bool>;
 		case FIELD_SHORT:
-			return "int16_t";
+			return nstd::type_name<int16_t>;
 		case FIELD_CHARACTER:
-			return "int8_t";
+			return nstd::type_name<int8_t>;
 		case FIELD_COLOR32:
-			return "Color";
+			return nstd::type_name<Color>;
 		case FIELD_EMBEDDED:
 		{
 			runtime_assert("Embedded field detected");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 		case FIELD_CUSTOM:
 		{
 			runtime_assert("Custom field detected");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 		case FIELD_CLASSPTR:
-			return "C_BaseEntity*";
+			return nstd::type_name<C_BaseEntity*>;
 		case FIELD_EHANDLE:
-			return "CBaseHandle";
+			return nstd::type_name<CBaseHandle>;
 		case FIELD_EDICT:
 		{
 			//return "edict_t*";
 			runtime_assert("Edict field detected");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 		case FIELD_POSITION_VECTOR:
-			return "Vector";
+			return nstd::type_name<Vector>;
 		case FIELD_TIME:
-			return "float";
+			return nstd::type_name<float>;
 		case FIELD_TICK:
-			return "int32_t";
+			return nstd::type_name<int32_t>;
 		case FIELD_MODELNAME:
 		case FIELD_SOUNDNAME:
-			return "char*"; //string_t at real
+			return nstd::type_name<char*>; //string_t at real
 		case FIELD_INPUT:
 		{
 			//return "CMultiInputVar";
 			runtime_assert("Inputvar field detected");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 		case FIELD_FUNCTION:
 		{
 			runtime_assert("Function detected");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 		case FIELD_VMATRIX:
 		case FIELD_VMATRIX_WORLDSPACE:
-			return "VMatrix";
+			return nstd::type_name<VMatrix>;
 		case FIELD_MATRIX3X4_WORLDSPACE:
-			return "matrix3x4_t";
+			return nstd::type_name<matrix3x4_t>;
 		case FIELD_INTERVAL:
 		{
 			//return "interval_t";
 			runtime_assert("Interval field detected");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 		case FIELD_MODELINDEX:
 		case FIELD_MATERIALINDEX:
-			return "int32_t";
+			return nstd::type_name<int32_t>;
 		case FIELD_VECTOR2D:
-			return "Vector2D";
+			return nstd::type_name<Vector2D>;
 		default:
 		{
 			runtime_assert("Unknown datamap field type");
-			return "void*";
+			return nstd::type_name<void*>;
 		}
 	}
 }
@@ -448,7 +455,7 @@ static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars:
 					if (netvar_type.empty( ))
 					{
 						auto type   = _Recv_prop_type(prop);
-						netvar_type = _Array_type(type, *array_size);
+						netvar_type = _As_std_array_type(type, *array_size);
 					}
 #else
 					std::string netvar_type;
@@ -559,7 +566,7 @@ static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars:
 				}
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				auto netvar_type_array = _Array_type(netvar_type, array_size);
+				auto netvar_type_array = _As_std_array_type(netvar_type, array_size);
 #else
 				std::string netvar_type_array;
 #endif
@@ -600,9 +607,7 @@ static void _Store_datamap_props(netvars::hidden::storage_type& tree, datamap_t*
 		if (desc.fieldType == FIELD_EMBEDDED)
 		{
 			if (desc.TypeDescription != nullptr)
-			{
 				runtime_assert("Embedded datamap detected");
-			}
 		}
 		else if (desc.fieldName != nullptr)
 		{
@@ -675,7 +680,8 @@ static constexpr char CHEAT_NETVARS_JSON_FILLER = ' ';
 
 enum class dump_info:uint8_t
 {
-	skipped=0,
+	unset,
+	skipped,
 	created,
 	updated
 };
@@ -715,44 +721,60 @@ static dump_info _Dump_netvars(const netvars::hidden::storage_type& netvars_data
 		return dump_info::updated;
 	}
 
-	//-----
-
 	CHEAT_CONSOLE_LOG("Netvars dump skipped");
-	const auto net_classes = [&]
-	{
-		auto data = robin_hood::unordered_set<std::string_view>( );
-		data.reserve(netvars_data.size( ));
-		for (auto& [class_name, netvars]: netvars_data.items( ))
-			data.emplace(class_name);
-		return data;
-	}( );
-	//check do we have generated classes
-	if (!exists(CHEAT_NETVARS_GENERATED_CLASSES_DIR) || is_empty(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
-		return dump_info::created;
-
-	for (auto& entry: std::filesystem::directory_iterator(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
-	{
-		const auto name      = entry.path( ).filename( ).string( );
-		const auto real_size = name.rfind('_'); //remove _h _cpp
-
-		const auto valid_name = std::string_view(name._Unchecked_begin( ), real_size);
-		if (!net_classes.contains(valid_name))
-			return dump_info::updated;
-	}
 	return dump_info::skipped;
 }
 
 [[maybe_unused]]
 static void _Generate_classes(dump_info info, const netvars::hidden::storage_type& netvars_data, netvars::hidden::lazy_writer_type& lazy_writer)
 {
-	if (info == dump_info::skipped)
-		return;
+	if (info == dump_info::skipped || info == dump_info::updated)
+	{
+		if (!exists(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
+		{
+			info = dump_info::created;
+			goto _CREATE;
+		}
+		if (is_empty(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
+		{
+			info = dump_info::created;
+			goto _WORK;
+		}
 
+		const auto net_classes = [&]
+		{
+			auto data = robin_hood::unordered_set<std::string_view>( );
+			data.reserve(netvars_data.size( ));
+			for (auto& [class_name, netvars]: netvars_data.items( ))
+				data.emplace(class_name);
+			return data;
+		}( );
+
+		for (auto& entry: std::filesystem::directory_iterator(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
+		{
+			const auto name      = entry.path( ).filename( ).string( );
+			const auto real_size = name.rfind('_'); //remove _h _cpp
+
+			const auto valid_name = std::string_view(name._Unchecked_begin( ), real_size);
+			if (!net_classes.contains(valid_name))
+			{
+				info = dump_info::updated;
+				goto _REMOVE;
+			}
+		}
+
+		if (info == dump_info::skipped)
+			return;
+	}
+
+_REMOVE:
 	std::filesystem::remove_all(CHEAT_NETVARS_GENERATED_CLASSES_DIR);
+_CREATE:
 	std::filesystem::create_directories(CHEAT_NETVARS_GENERATED_CLASSES_DIR);
+_WORK:
 
 	lazy_writer.reserve(netvars_data.size( ) * 2);
-	for (auto& [class_name, netvars]: netvars_data.items( ))
+	for (auto& [CLASS_NAME, NETVARS]: netvars_data.items( ))
 	{
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppTooWideScope
@@ -761,8 +783,8 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 		// ReSharper restore CppTooWideScope
 		// ReSharper restore CppInconsistentNaming
 
-		auto header = lazy_file_writer(CHEAT_NETVARS_GENERATED_CLASSES_DIR / (class_name + "_h"));
-		auto source = lazy_file_writer(CHEAT_NETVARS_GENERATED_CLASSES_DIR / (class_name + "_cpp"));
+		auto header = lazy_file_writer(CHEAT_NETVARS_GENERATED_CLASSES_DIR / (CLASS_NAME + "_h"));
+		auto source = lazy_file_writer(CHEAT_NETVARS_GENERATED_CLASSES_DIR / (CLASS_NAME + "_cpp"));
 
 		const auto source_add_include = [&source](const std::string_view& file_name, bool global = false)
 		{
@@ -773,16 +795,21 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 				<< (global ? '>' : '"')
 				<< __New_line;
 		};
-		const auto source_use_namespace = [&source](const std::string_view& name)
-		{
-			source << "using namespace " << name << ';' << __New_line;
-		};
 
 		const auto source_add_dynamic_includes = [&]
 		{
 #if !defined(CHEAT_NETVARS_RESOLVE_TYPE)
 			runtime_assert("Unable to get dynamic includes!");
 #else
+
+			constexpr auto drop_namespaces = [](std::string_view& str)
+			{
+				const auto template_start = str.find('<');
+				const auto str_tmp        = template_start != str.npos ? str.substr(0, template_start) : str;
+				const auto namespace_size = str_tmp.rfind(':');
+				if (namespace_size != str_tmp.npos)
+					str.remove_prefix(namespace_size + 1); //+1 to add last ':'
+			};
 
 			struct include_name: std::string
 			{
@@ -796,10 +823,13 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 			//auto includes = robin_hood::unordered_set<include_name, robin_hood::hash<std::string>>( );
 			auto includes = std::set<include_name>( );
 			// ReSharper disable CppRemoveRedundantBraces
-			for (auto& [netvar_name, netvar_data]: netvars.items( ))
+			for (auto& [netvar_name, netvar_data]: NETVARS.items( ))
 			{
-				const auto& netvar_type = netvar_data.at("type").get_ref<const std::string&>( );
-				if (netvar_type.starts_with("std::array"))
+				std::string_view netvar_type = netvar_data.at("type").get_ref<const std::string&>( );
+
+				drop_namespaces(netvar_type);
+
+				if (netvar_type.starts_with("array<"))
 				{
 					includes.emplace("array", true);
 				}
@@ -864,27 +894,27 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 #endif
 		};
 
-		source_add_include(class_name + ".h");
+		source_add_include(CLASS_NAME + ".h");
 		source_add_include("cheat/netvars/config.h");
 		source << "#ifndef CHEAT_NETVARS_UPDATING" << __New_line;
 		source_add_include("cheat/netvars/netvars.h");
 		source_add_include("nstd/address.h", true);
 		source << "#endif" << __New_line;
-
 		source << __New_line;
+
 		source_add_dynamic_includes( );
 
-		source_use_namespace("cheat");
-		source_use_namespace("csgo");
+		//source << "using cheat::csgo::" << CLASS_NAME << ';' << __New_line;
+		source << "using namespace cheat::csgo;" << __New_line;
 
 		source << __New_line;
 
-		for (auto& [netvar_name, netvar_data]: netvars.items( ))
+		for (auto& [NETVAR_NAME, NETVAR_DATA]: NETVARS.items( ))
 		{
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
-			const auto netvar_offset = netvar_info::offset.get(netvar_data);
+			const auto netvar_offset = netvar_info::offset.get(NETVAR_DATA);
 #endif
-			std::string_view netvar_type         = netvar_data.at("type").get_ref<const std::string&>( );
+			std::string_view netvar_type         = NETVAR_DATA.at("type").get_ref<const std::string&>( );
 			const auto       netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
 				netvar_type.remove_suffix(1);
@@ -892,10 +922,10 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 			const auto netvar_ret_char = netvar_type_pointer ? '*' : '&';
 
 			// ReSharper disable once CppInconsistentNaming
-			constexpr auto _Address_class = nstd::type_name<nstd::address>( );
+			constexpr auto _Address_class = nstd::type_name<nstd::address>;
 
-			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, netvar_name) << __New_line;
-			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, class_name, netvar_name) << __New_line;
+			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, NETVAR_NAME) << __New_line;
+			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, CLASS_NAME, NETVAR_NAME) << __New_line;
 			source << '{' << __New_line;
 			source << "#ifdef CHEAT_NETVARS_UPDATING" << __New_line;
 			source << __Tab << std::format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
@@ -906,7 +936,7 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 			source
 				<< __Tab
 				<< "static const auto offset = netvars::get_ptr( )->at"
-				<< std::format("(\"{}\", \"{}\");", class_name, netvar_name)
+				<< std::format("(\"{}\", \"{}\");", CLASS_NAME, NETVAR_NAME)
 				<< __New_line;
 			source << __Tab << "auto addr = " << _Address_class << "(this).add(offset);" << __New_line;
 #endif

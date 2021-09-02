@@ -1,2 +1,2 @@
 bool& m_bCheapEffect( );
-CBaseHandle& m_hEntAttached( );
+cheat::csgo::CBaseHandle& m_hEntAttached( );

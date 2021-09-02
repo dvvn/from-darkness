@@ -1,2 +1,2 @@
-int32_t& m_Handle( );
+int& m_Handle( );
 bool& m_bSendHandle( );

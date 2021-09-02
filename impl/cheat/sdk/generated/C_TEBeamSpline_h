@@ -1,2 +1,2 @@
-int32_t& m_nPoints( );
-std::array<Vector, 16>& m_vecPoints( );
+int& m_nPoints( );
+std::array<cheat::csgo::Vector, 16>& m_vecPoints( );

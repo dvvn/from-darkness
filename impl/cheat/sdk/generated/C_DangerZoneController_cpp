@@ -9,17 +9,16 @@
 #include "cheat/sdk/Vector.hpp"
 #include <array>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-std::array<int32_t, 42>& C_DangerZoneController::m_DangerZones( )
+std::array<int, 42>& C_DangerZoneController::m_DangerZones( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int32_t, 42>*)nullptr;
+	return *(std::array<int, 42>*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_DangerZones");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int32_t, 42>>( );
+	return addr.ref<std::array<int, 42>>( );
 #endif
 }
 bool& C_DangerZoneController::m_bDangerZoneControllerEnabled( )
@@ -72,33 +71,33 @@ std::array<float, 5>& C_DangerZoneController::m_flWaveEndTimes( )
 	return addr.ref<std::array<float, 5>>( );
 #endif
 }
-CBaseHandle& C_DangerZoneController::m_hTheFinalZone( )
+cheat::csgo::CBaseHandle& C_DangerZoneController::m_hTheFinalZone( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_hTheFinalZone");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-Vector& C_DangerZoneController::m_vecEndGameCircleEnd( )
+cheat::csgo::Vector& C_DangerZoneController::m_vecEndGameCircleEnd( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_vecEndGameCircleEnd");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_DangerZoneController::m_vecEndGameCircleStart( )
+cheat::csgo::Vector& C_DangerZoneController::m_vecEndGameCircleStart( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_vecEndGameCircleStart");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

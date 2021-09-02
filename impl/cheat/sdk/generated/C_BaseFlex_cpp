@@ -7,19 +7,17 @@
 
 #include "cheat/sdk/Vector.hpp"
 #include <array>
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-int32_t& C_BaseFlex::m_blinktoggle( )
+int& C_BaseFlex::m_blinktoggle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_blinktoggle");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
 std::array<float, 96>& C_BaseFlex::m_flexWeight( )
@@ -32,13 +30,13 @@ std::array<float, 96>& C_BaseFlex::m_flexWeight( )
 	return addr.ref<std::array<float, 96>>( );
 #endif
 }
-Vector& C_BaseFlex::m_viewtarget( )
+cheat::csgo::Vector& C_BaseFlex::m_viewtarget( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_viewtarget");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

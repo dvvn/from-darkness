@@ -6,19 +6,17 @@
 #endif
 
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-int32_t& ParticleSmokeGrenade::m_CurrentStage( )
+int& ParticleSmokeGrenade::m_CurrentStage( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_CurrentStage");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
 float& ParticleSmokeGrenade::m_FadeEndTime( )
@@ -41,24 +39,24 @@ float& ParticleSmokeGrenade::m_FadeStartTime( )
 	return addr.ref<float>( );
 #endif
 }
-Vector& ParticleSmokeGrenade::m_MaxColor( )
+cheat::csgo::Vector& ParticleSmokeGrenade::m_MaxColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_MaxColor");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& ParticleSmokeGrenade::m_MinColor( )
+cheat::csgo::Vector& ParticleSmokeGrenade::m_MinColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_MinColor");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 float& ParticleSmokeGrenade::m_flSpawnTime( )

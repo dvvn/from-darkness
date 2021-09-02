@@ -7,8 +7,7 @@
 
 #include "cheat/sdk/CBaseHandle.hpp"
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_EntityFlame::m_bCheapEffect( )
 {
@@ -20,13 +19,13 @@ bool& C_EntityFlame::m_bCheapEffect( )
 	return addr.ref<bool>( );
 #endif
 }
-CBaseHandle& C_EntityFlame::m_hEntAttached( )
+cheat::csgo::CBaseHandle& C_EntityFlame::m_hEntAttached( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EntityFlame", "m_hEntAttached");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }

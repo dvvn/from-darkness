@@ -16,7 +16,7 @@ using RGNDATA = _RGNDATA;
 
 namespace cheat::hooks::directx
 {
-	class present final: public base<present, HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*)>
+	class present final: public hook_base<present, HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*)>
 	{
 	public:
 		present( );

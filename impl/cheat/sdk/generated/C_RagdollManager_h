@@ -1,1 +1,1 @@
-int32_t& m_iCurrentMaxRagdollCount( );
+int& m_iCurrentMaxRagdollCount( );

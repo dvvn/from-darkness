@@ -5,10 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
-
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_EnvScreenEffect::m_flDuration( )
 {
@@ -20,13 +17,13 @@ float& C_EnvScreenEffect::m_flDuration( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_EnvScreenEffect::m_nType( )
+int& C_EnvScreenEffect::m_nType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenEffect", "m_nType");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

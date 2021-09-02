@@ -5,10 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <cstdint>
-
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_PhysBoxMultiplayer::m_fMass( )
 {
@@ -20,13 +17,13 @@ float& C_PhysBoxMultiplayer::m_fMass( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_PhysBoxMultiplayer::m_iPhysicsMode( )
+int& C_PhysBoxMultiplayer::m_iPhysicsMode( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PhysBoxMultiplayer", "m_iPhysicsMode");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

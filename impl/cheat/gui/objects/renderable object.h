@@ -8,4 +8,7 @@ namespace cheat::gui::objects
 		virtual      ~renderable_object( ) = default;
 		virtual void render( ) =0;
 	};
+
+		using empty_page = renderable_object;
+
 }

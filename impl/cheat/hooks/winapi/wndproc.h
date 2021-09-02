@@ -1,5 +1,5 @@
 #pragma once
-#include "cheat/gui/objects/abstract page.h"
+#include "cheat/gui/objects/renderable object.h"
 #include "cheat/hooks/base.h"
 
 // ReSharper disable CppInconsistentNaming
@@ -33,7 +33,7 @@ namespace cheat::hooks::winapi
 {
 	using def_wndproc_t = LRESULT (_stdcall*)(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
-	class wndproc final: public base<wndproc, def_wndproc_t>
+	class wndproc final: public hook_base<wndproc, def_wndproc_t>
 					   , public gui::objects::empty_page
 	{
 	public:

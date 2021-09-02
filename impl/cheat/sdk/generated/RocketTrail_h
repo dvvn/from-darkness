@@ -1,4 +1,4 @@
-Vector& m_EndColor( );
+cheat::csgo::Vector& m_EndColor( );
 float& m_EndSize( );
 float& m_MaxSpeed( );
 float& m_MinSpeed( );
@@ -6,10 +6,10 @@ float& m_Opacity( );
 float& m_ParticleLifetime( );
 float& m_SpawnRadius( );
 float& m_SpawnRate( );
-Vector& m_StartColor( );
+cheat::csgo::Vector& m_StartColor( );
 float& m_StartSize( );
 float& m_StopEmitTime( );
 bool& m_bDamaged( );
 bool& m_bEmit( );
 float& m_flFlareScale( );
-int32_t& m_nAttachment( );
+int& m_nAttachment( );

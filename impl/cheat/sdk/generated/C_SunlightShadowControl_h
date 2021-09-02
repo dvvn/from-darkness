@@ -1,4 +1,4 @@
-int32_t& m_LightColor( );
+int& m_LightColor( );
 char* m_TextureName( );
 bool& m_bEnableShadows( );
 bool& m_bEnabled( );
@@ -7,4 +7,4 @@ float& m_flFOV( );
 float& m_flNearZ( );
 float& m_flNorthOffset( );
 float& m_flSunDistance( );
-Vector& m_shadowDirection( );
+cheat::csgo::Vector& m_shadowDirection( );

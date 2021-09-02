@@ -9,4 +9,4 @@ float& m_flMaxWeight( );
 float& m_maxFalloff( );
 float& m_minFalloff( );
 char* m_netLookupFilename( );
-Vector& m_vecOrigin( );
+cheat::csgo::Vector& m_vecOrigin( );

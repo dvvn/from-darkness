@@ -23,7 +23,7 @@ service_base::load_result wndproc::load_impl( )
 	unicode_         = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	return base::load_impl( );
+	return hook_base::load_impl( );
 }
 
 nstd::address wndproc::get_target_method_impl( ) const

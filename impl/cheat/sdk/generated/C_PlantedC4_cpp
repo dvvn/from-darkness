@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/CBaseHandle.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 bool& C_PlantedC4::m_bBombDefused( )
 {
@@ -71,23 +69,23 @@ float& C_PlantedC4::m_flTimerLength( )
 	return addr.ref<float>( );
 #endif
 }
-CBaseHandle& C_PlantedC4::m_hBombDefuser( )
+cheat::csgo::CBaseHandle& C_PlantedC4::m_hBombDefuser( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(CBaseHandle*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_hBombDefuser");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<CBaseHandle>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int32_t& C_PlantedC4::m_nBombSite( )
+int& C_PlantedC4::m_nBombSite( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_PlantedC4", "m_nBombSite");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }

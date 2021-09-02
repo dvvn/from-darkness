@@ -6,58 +6,56 @@
 #endif
 
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
-int32_t& C_BaseCSGrenadeProjectile::m_nBounces( )
+int& C_BaseCSGrenadeProjectile::m_nBounces( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenadeProjectile", "m_nBounces");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_BaseCSGrenadeProjectile::m_nExplodeEffectIndex( )
+int& C_BaseCSGrenadeProjectile::m_nExplodeEffectIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenadeProjectile", "m_nExplodeEffectIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-int32_t& C_BaseCSGrenadeProjectile::m_nExplodeEffectTickBegin( )
+int& C_BaseCSGrenadeProjectile::m_nExplodeEffectTickBegin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenadeProjectile", "m_nExplodeEffectTickBegin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_BaseCSGrenadeProjectile::m_vInitialVelocity( )
+cheat::csgo::Vector& C_BaseCSGrenadeProjectile::m_vInitialVelocity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenadeProjectile", "m_vInitialVelocity");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-Vector& C_BaseCSGrenadeProjectile::m_vecExplodeEffectOrigin( )
+cheat::csgo::Vector& C_BaseCSGrenadeProjectile::m_vecExplodeEffectOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenadeProjectile", "m_vecExplodeEffectOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

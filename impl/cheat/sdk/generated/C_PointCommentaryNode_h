@@ -1,8 +1,8 @@
 bool& m_bActive( );
 float& m_flStartTime( );
-CBaseHandle& m_hViewPosition( );
-int32_t& m_iNodeNumber( );
-int32_t& m_iNodeNumberMax( );
+cheat::csgo::CBaseHandle& m_hViewPosition( );
+int& m_iNodeNumber( );
+int& m_iNodeNumberMax( );
 char* m_iszCommentaryFile( );
 char* m_iszCommentaryFileNoHDR( );
 char* m_iszSpeakers( );

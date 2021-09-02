@@ -1,6 +1,6 @@
 bool& m_bSetBonus( );
 float& m_flValue( );
-int32_t& m_iAttributeDefinitionIndex( );
-int32_t& m_iRawInitialValue32( );
-int32_t& m_iRawValue32( );
-int32_t& m_nRefundableCurrency( );
+int& m_iAttributeDefinitionIndex( );
+int& m_iRawInitialValue32( );
+int& m_iRawValue32( );
+int& m_nRefundableCurrency( );

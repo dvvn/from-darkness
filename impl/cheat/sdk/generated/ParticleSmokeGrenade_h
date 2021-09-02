@@ -1,6 +1,6 @@
-int32_t& m_CurrentStage( );
+int& m_CurrentStage( );
 float& m_FadeEndTime( );
 float& m_FadeStartTime( );
-Vector& m_MaxColor( );
-Vector& m_MinColor( );
+cheat::csgo::Vector& m_MaxColor( );
+cheat::csgo::Vector& m_MinColor( );
 float& m_flSpawnTime( );

@@ -3,28 +3,32 @@
 
 namespace nstd
 {
-	template <typename T, chars_cache ...Ignore>
-	constexpr std::string_view type_name( )
+	namespace detail
 	{
-		if constexpr (sizeof...(Ignore) > 0)
+		template <typename T, chars_cache ...Ignore>
+		constexpr std::string_view type_name_impl( )
 		{
-			static_assert((std::is_same_v<char, typename decltype(Ignore)::value_type> && ...));
-			constexpr auto obj_name_fixed = []
+			if constexpr (sizeof...(Ignore) > 0)
 			{
-				auto name      = type_name<T>( );
-				auto to_ignore = std::array{Ignore.view( )...};
-				for (auto& str: to_ignore)
+				static_assert((std::is_same_v<char, typename decltype(Ignore)::value_type> && ...));
+				constexpr auto obj_name_fixed = []
 				{
-					if (name.starts_with(str))
+					auto name = type_name_impl<T>( );
+
+					const auto do_ignore = [&](std::string_view str)
 					{
-						name.remove_prefix(str.size( ));
-						if (name.starts_with("::"))
-							name.remove_prefix(2);
-					}
-				}
-				return name;
-			}( );
-			return obj_name_fixed;
+						if (name.starts_with(str))
+						{
+							name.remove_prefix(str.size( ));
+							if (name.starts_with("::"))
+								name.remove_prefix(2);
+						}
+					};
+					(do_ignore(Ignore.view( )), ...);
+
+					return name;
+				}( );
+				return obj_name_fixed;
 #if 0
 			constexpr auto obj_name      = type_name<T>( );
 			constexpr auto ignore_buffer = []
@@ -55,43 +59,47 @@ namespace nstd
 			}( );
 			return ret_val;
 #endif
-		}
-		else
-		{
-			constexpr auto full_name         = std::string_view(__FUNCSIG__);
-			constexpr auto left_marker       = std::string_view("type_name<");
-			constexpr auto right_marker      = std::string_view(">(");
-			constexpr auto left_marker_index = full_name.find(left_marker);
-			//static_assert(left_marker_index != std::string_view::npos);
-			constexpr auto start_index = left_marker_index + left_marker.size( );
-			constexpr auto end_index   = full_name.find(right_marker, left_marker_index);
-			//static_assert(end_index != std::string_view::npos);
-			constexpr auto length   = end_index - start_index;
-			constexpr auto obj_name = [&]
+			}
+			else
 			{
-				auto name = full_name.substr(start_index, length);
-				if constexpr (std::_Has_class_or_enum_type<T>)
+				constexpr auto full_name         = std::string_view(__FUNCSIG__);
+				constexpr auto left_marker       = std::string_view("type_name_impl<");
+				constexpr auto right_marker      = std::string_view(">(");
+				constexpr auto left_marker_index = full_name.find(left_marker);
+				//static_assert(left_marker_index != std::string_view::npos);
+				constexpr auto start_index = left_marker_index + left_marker.size( );
+				constexpr auto end_index   = full_name.find(right_marker, left_marker_index);
+				//static_assert(end_index != std::string_view::npos);
+				constexpr auto length   = end_index - start_index;
+				constexpr auto obj_name = [&]
 				{
-					//type_name<class X>
-					constexpr std::string_view skip[] = {"struct", "class", "enum", "union"};
-					for (auto& s: skip)
+					auto name = full_name.substr(start_index, length);
+					if constexpr (std::_Has_class_or_enum_type<T>)
 					{
-						if (name.starts_with(s))
+						//type_name<class X>
+						constexpr std::string_view skip[] = {"struct", "class", "enum", "union"};
+						for (auto& s: skip)
 						{
-							name.remove_prefix(s.size( ));
-							//type_name<class X >
-							if (name.starts_with(' '))
-								name.remove_prefix(1);
-							break;
+							if (name.starts_with(s))
+							{
+								name.remove_prefix(s.size( ));
+								//type_name<class X >
+								if (name.starts_with(' '))
+									name.remove_prefix(1);
+								break;
+							}
 						}
 					}
-				}
-				//type_name<..., >
-				while (name.ends_with(',') || name.ends_with(' '))
-					name.remove_suffix(1);
-				return name;
-			}( );
-			return obj_name;
+					//type_name<..., >
+					while (name.ends_with(',') || name.ends_with(' '))
+						name.remove_suffix(1);
+					return name;
+				}( );
+				return obj_name;
+			}
 		}
 	}
+
+	template <typename T, chars_cache ...Ignore>
+	_INLINE_VAR constexpr auto type_name = detail::type_name_impl<T, Ignore...>( );
 }

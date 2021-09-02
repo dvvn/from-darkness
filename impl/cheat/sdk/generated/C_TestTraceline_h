@@ -1,4 +1,4 @@
 QAngle& m_angRotation( );
-Color& m_clrRender( );
-Vector& m_vecOrigin( );
-int32_t& moveparent( );
+cheat::csgo::Color& m_clrRender( );
+cheat::csgo::Vector& m_vecOrigin( );
+int& moveparent( );

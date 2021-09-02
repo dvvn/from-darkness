@@ -1,5 +1,5 @@
 bool& m_bShatter( );
-CBaseHandle& m_hInitBaseAnimating( );
-int32_t& m_nShatterFlags( );
-Vector& m_vShatterForce( );
-Vector& m_vShatterPosition( );
+cheat::csgo::CBaseHandle& m_hInitBaseAnimating( );
+int& m_nShatterFlags( );
+cheat::csgo::Vector& m_vShatterForce( );
+cheat::csgo::Vector& m_vShatterPosition( );

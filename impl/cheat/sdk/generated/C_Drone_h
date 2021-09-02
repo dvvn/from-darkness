@@ -1,7 +1,7 @@
 bool& m_bPilotTakeoverAllowed( );
-CBaseHandle& m_hCurrentPilot( );
-CBaseHandle& m_hDeliveryCargo( );
-CBaseHandle& m_hMoveToThisEntity( );
-CBaseHandle& m_hPotentialCargo( );
-std::array<int32_t, 24>& m_vecTagIncrements( );
-std::array<Vector, 24>& m_vecTagPositions( );
+cheat::csgo::CBaseHandle& m_hCurrentPilot( );
+cheat::csgo::CBaseHandle& m_hDeliveryCargo( );
+cheat::csgo::CBaseHandle& m_hMoveToThisEntity( );
+cheat::csgo::CBaseHandle& m_hPotentialCargo( );
+std::array<int, 24>& m_vecTagIncrements( );
+std::array<cheat::csgo::Vector, 24>& m_vecTagPositions( );

@@ -6,10 +6,8 @@
 #endif
 
 #include "cheat/sdk/Vector.hpp"
-#include <cstdint>
 
-using namespace cheat;
-using namespace csgo;
+using namespace cheat::csgo;
 
 float& C_BaseToggle::m_flMoveTargetTime( )
 {
@@ -21,23 +19,23 @@ float& C_BaseToggle::m_flMoveTargetTime( )
 	return addr.ref<float>( );
 #endif
 }
-int32_t& C_BaseToggle::m_movementType( )
+int& C_BaseToggle::m_movementType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int32_t*)nullptr;
+	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle", "m_movementType");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int32_t>( );
+	return addr.ref<int>( );
 #endif
 }
-Vector& C_BaseToggle::m_vecFinalDest( )
+cheat::csgo::Vector& C_BaseToggle::m_vecFinalDest( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(Vector*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_BaseToggle", "m_vecFinalDest");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Vector>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

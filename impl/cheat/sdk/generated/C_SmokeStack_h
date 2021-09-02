@@ -8,5 +8,5 @@ bool& m_bEmit( );
 float& m_flBaseSpread( );
 float& m_flRollSpeed( );
 float& m_flTwist( );
-int32_t& m_iMaterialModel( );
-Vector& m_vWind( );
+int& m_iMaterialModel( );
+cheat::csgo::Vector& m_vWind( );
