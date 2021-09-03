@@ -5,11 +5,13 @@
     <OutputDir>$(SolutionDir).out\$(ProjectName)\$(Configuration)\</OutputDir>
     <OutPutDir__>$(SolutionDir).out\$(ProjectName)\$(Platform)\$(Configuration)</OutPutDir__>
     <OutputDirRam>G:\programming\$(SolutionName)\.out\$(ProjectName)\$(Configuration)\</OutputDirRam>
+    <GitClonedProjects>C:\Users\owner\Documents\programming\Projects\git</GitClonedProjects>
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(OutputDirRam)temp\</IntDir>
     <GenerateManifest>false</GenerateManifest>
     <OutDir>$(OutputDir)build\</OutDir>
+    <IncludePath>$(GitClonedProjects)\cppcoro\include;$(GitClonedProjects)\imgui;$(GitClonedProjects)\imgui\backends;$(GitClonedProjects)\imgui\misc\cpp;$(GitClonedProjects)\json\include;$(GitClonedProjects)\robin-hood-hashing\src\include;$(GitClonedProjects)\thread-pool;$(GitClonedProjects)\veque\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -45,6 +47,10 @@
     </BuildMacro>
     <BuildMacro Include="OutputDirRam">
       <Value>$(OutputDirRam)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="GitClonedProjects">
+      <Value>$(GitClonedProjects)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>

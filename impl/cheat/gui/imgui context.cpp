@@ -3,8 +3,8 @@
 #include "cheat/core/csgo interfaces.h"
 
 #include <imgui_internal.h>
-#include <backends/imgui_impl_dx9.h>
-#include <backends/imgui_impl_win32.h>
+#include <imgui_impl_dx9.h>
+#include <imgui_impl_win32.h>
 
 #include <d3d9.h>
 

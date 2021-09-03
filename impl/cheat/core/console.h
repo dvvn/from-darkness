@@ -17,10 +17,44 @@ using HWND = HWND__*;
 
 namespace cheat
 {
+	namespace detail
+	{
+		class string_packer
+		{
+			void init( );
+
+		public:
+			using str = std::string;
+			using strv = std::string_view;
+			using wstr = std::wstring;
+			using wstrv = std::wstring_view;
+			using ostr = std::ostringstream;
+			using wostr = std::wostringstream;
+
+			string_packer(const char* cstr);
+			string_packer(const wchar_t* wcstr);
+
+			string_packer(str&& s);
+			string_packer(const strv& s);
+			string_packer(wstr&& s);
+			string_packer(const wstrv& s);
+
+			string_packer(ostr&& os);
+			string_packer(const ostr& os);
+			string_packer(wostr&& os);
+			string_packer(const wostr& os);
+
+			~string_packer( );
+
+			struct data_type;
+			std::unique_ptr<data_type> packed;
+		};
+	}
+
 	class console final: public service<console>
 					   , nstd::rt_assert_handler
 #ifndef CHEAT_HAVE_CONSOLE
-					   , service_always_skipped
+		, service_always_skipped
 #endif
 	{
 	public:
@@ -29,23 +63,10 @@ namespace cheat
 		console( );
 		~console( ) override;
 
-		void write(std::string&& str);
-		void write(const std::string_view& str);
-		void write_line(const std::string_view& str);
+		void write(detail::string_packer&& str);
+		void write_line(detail::string_packer&& str);
 		void write(char c);
-
-		void write(std::wstring&& str);
-		void write(const std::wstring_view& str);
-		void write_line(const std::wstring_view& str);
 		void write(wchar_t c) = delete;
-
-		void write(std::ostringstream&& str);
-		void write(const std::ostringstream& str);
-		void write_line(const std::ostringstream& str);
-
-		void write(std::wostringstream&& str);
-		void write(const std::wostringstream& str);
-		void write_line(const std::wostringstream& str);
 
 	protected:
 		load_result load_impl( ) override;

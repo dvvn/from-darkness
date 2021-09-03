@@ -1,9 +1,8 @@
 #include "console.h"
 
-#include "nstd/os/module info.h"
+#include <nstd/os/module info.h>
 
 #include <Windows.h>
-
 #include <corecrt_io.h>
 #include <fcntl.h>
 
@@ -15,10 +14,81 @@
 
 using namespace cheat;
 
+struct detail::string_packer::data_type: std::variant<str, strv, wstr, wstrv, ostr, wostr>
+{
+};
+
+detail::string_packer::string_packer(const char* cstr)
+{
+	init( );
+	packed->emplace<strv>(cstr);
+}
+
+detail::string_packer::string_packer(const wchar_t* wcstr)
+{
+	init( );
+	packed->emplace<wstrv>(wcstr);
+}
+
+detail::string_packer::string_packer(str&& s)
+{
+	init( );
+	packed->emplace<str>(std::move(s));
+}
+
+detail::string_packer::string_packer(const strv& s)
+{
+	init( );
+	packed->emplace<strv>(s);
+}
+
+detail::string_packer::string_packer(wstr&& s)
+{
+	init( );
+	packed->emplace<wstr>(std::move(s));
+}
+
+detail::string_packer::string_packer(const wstrv& s)
+{
+	init( );
+	packed->emplace<wstrv>(s);
+}
+
+detail::string_packer::string_packer(ostr&& s)
+{
+	init( );
+	packed->emplace<ostr>(std::move(s));
+}
+
+detail::string_packer::string_packer(const ostr& os)
+{
+	init( );
+	packed->emplace<strv>(os.view( ));
+}
+
+detail::string_packer::string_packer(wostr&& os)
+{
+	init( );
+	packed->emplace<wostr>(std::move(os));
+}
+
+detail::string_packer::string_packer(const wostr& os)
+{
+	init( );
+	packed->emplace<wstrv>(os.view( ));
+}
+
+detail::string_packer::~string_packer( ) = default;
+
+void detail::string_packer::init( )
+{
+	packed = std::make_unique<data_type>( );
+}
+
 struct movable_function_base
 {
 	virtual      ~movable_function_base( ) = default;
-	virtual void operator()( ) =0;
+	virtual void operator()( ) = 0;
 
 	movable_function_base( ) = default;
 
@@ -230,6 +300,15 @@ constexpr auto is_basic_ostringstream_v = false;
 template <typename E, typename Tr, typename A>
 constexpr auto is_basic_ostringstream_v<std::basic_ostringstream<E, Tr, A>> = true;
 
+template <typename T>
+static decltype(auto) _Unwrap_view(T&& text)
+{
+	if constexpr (is_basic_ostringstream_v<std::remove_cvref_t<T>>)
+		return text.view( );
+	else
+		return std::forward<T>(text);
+}
+
 using console_cache_type_uptr = std::unique_ptr<console::cache_type>;
 static auto _Write_text = []<typename T>(T&& text)
 {
@@ -237,13 +316,7 @@ static auto _Write_text = []<typename T>(T&& text)
 	int   new_mode;
 	int   prev_mode;
 
-	auto&& text_fwd = [&]
-	{
-		if constexpr (is_basic_ostringstream_v<std::remove_cvref_t<decltype(text)>>)
-			return text.view( );
-		else
-			return std::forward<T>(text);
-	}( );
+	auto&& text_fwd = _Unwrap_view(std::forward<T>(text));
 	using value_type = std::remove_cvref_t<decltype(text_fwd)>;
 	if constexpr (stream_possible<std::ofstream&, value_type>)
 	{
@@ -268,21 +341,48 @@ static auto _Write_text = []<typename T>(T&& text)
 	if (prev_mode != new_mode)
 		_Set_mode(/*stdout*/file_out, prev_mode);
 };
+
+template <typename Fn, typename T>
+static auto _Decayed_bind(const Fn& fn, T&& text)
+{
+	auto get_text = [&]( )-> decltype(auto)
+	{
+		if constexpr (std::is_rvalue_reference_v<decltype(text)>)
+			return std::forward<T>(text);
+		else
+		{
+			auto&& str = _Unwrap_view(std::forward<T>(text));
+			using str_t = decltype(str);
+			using str_raw_t = std::remove_cvref_t<str_t>;
+
+			if constexpr (!std::_Has_member_value_type<str_raw_t>)
+				return std::forward<str_t>(str);
+			else
+			{
+				using chr_t = typename str_raw_t::value_type;
+				return std::basic_string<chr_t>(std::forward<str_t>(str));
+			}
+		}
+	};
+
+	return std::bind_front(fn, get_text( ));
+}
+
 static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, console_cache_type_uptr& cache)
 {
 	const auto lock = std::scoped_lock(*cache);
 
-	if (instance->state( ) != service_state::loaded)
-	{
-		auto fn = std::bind_front(_Write_text, std::forward<T>(text));
-		using fn_t = decltype(fn);
-		auto vfn = std::make_unique<movable_function<fn_t>>(std::move(fn));
-		cache->store(std::move(vfn));
-	}
-	else
+	if (instance->state( ) == service_state::loaded)
 	{
 		cache->write_all( );
 		_Write_text(std::forward<T>(text));
+	}
+	else
+	{
+		auto fn = _Decayed_bind(_Write_text, std::forward<T>(text));
+		using fn_t = decltype(fn);
+		auto vfn = std::make_unique<movable_function<fn_t>>(std::move(fn));
+		cache->store(std::move(vfn));
 	}
 };
 
@@ -343,71 +443,32 @@ static auto _Write_or_cache_full = []<typename T>(T&& text, const console* insta
 
 	constexpr Chr pad[] = {' ', '-', ' ', '\0'};
 
-	auto stream = _Get_time_str<Chr>( ) << pad << std::forward<T>(text) << static_cast<Chr>('\n');
+	auto stream = _Get_time_str<Chr>( ) << pad << _Unwrap_view(text) << static_cast<Chr>('\n');
 	_Write_or_cache(std::move(stream), instance, cache);
 };
-
-void console::write(std::string&& str)
-{
-	_Write_or_cache(std::move(str), this, cache_);
-}
-
-void console::write(const std::string_view& str)
-{
-	_Write_or_cache(str, this, cache_);
-}
-
-void console::write_line(const std::string_view& str)
-{
-	_Write_or_cache_full(str, this, cache_);
-}
 
 void console::write(char c)
 {
 	_Write_or_cache(c, this, cache_);
 }
 
-void console::write(std::wstring&& str)
+template <typename Fn, typename ...Args>
+static void _Pack(detail::string_packer& str, Fn&& fn, Args&&...args)
 {
-	_Write_or_cache(std::move(str), this, cache_);
+	auto packed = [&]<typename T>(T&& s)
+	{
+		fn(std::forward<T>(s), args...);
+	};
+
+	std::visit(packed, *str.packed);
 }
 
-void console::write(const std::wstring_view& str)
+void console::write(detail::string_packer&& str)
 {
-	_Write_or_cache(str, this, cache_);
+	_Pack(str, _Write_or_cache, this, cache_);
 }
 
-void console::write_line(const std::wstring_view& str)
+void console::write_line(detail::string_packer&& str)
 {
-	_Write_or_cache_full(str, this, cache_);
-}
-
-void console::write(std::ostringstream&& str)
-{
-	_Write_or_cache(std::move(str), this, cache_);
-}
-
-void console::write(const std::ostringstream& str)
-{
-	_Write_or_cache(str.view( ), this, cache_);
-}
-
-void console::write_line(const std::ostringstream& str)
-{
-	_Write_or_cache_full(str.view( ), this, cache_);
-}
-
-void console::write(std::wostringstream&& str)
-{
-	_Write_or_cache(std::move(str), this, cache_);
-}
-
-void console::write(const std::wostringstream& str)
-{
-	_Write_or_cache(str.view( ), this, cache_);
-}
-
-void console::write_line(const std::wostringstream& str)
-{
-	_Write_or_cache_full(str.view( ), this, cache_);
+	_Pack(str, _Write_or_cache_full, this, cache_);
 }

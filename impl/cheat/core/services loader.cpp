@@ -234,8 +234,9 @@ static void _Add_service( )
 
 services_loader::services_loader( )
 {
+#ifndef CHEAT_GUI_TEST
 	load_thread_ = std::make_unique<load_thread>( );
-
+#endif
 	using namespace hooks;
 	using namespace gui;
 

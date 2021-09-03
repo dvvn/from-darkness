@@ -24,8 +24,6 @@ namespace cheat::gui
 		HWND hwnd_ = nullptr;
 
 		struct data_type;
-		std::unique_ptr<data_type>data_;
-
-
+		std::unique_ptr<data_type> data_;
 	};
 }

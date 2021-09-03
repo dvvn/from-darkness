@@ -5,7 +5,7 @@
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include <string>
-#include <include/veque.hpp>
+#include <veque.hpp>
 
 #include <memory>
 #include <span>
