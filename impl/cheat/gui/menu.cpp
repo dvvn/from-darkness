@@ -103,7 +103,7 @@ struct menu::impl
 			add("adf");
 			add("adrrrrrrrrrr");
 
-			test_tab_bar.make_vertical();
+			test_tab_bar.make_vertical( );
 		};
 
 		init_title( );
@@ -126,7 +126,18 @@ void menu::render( )
 		auto& bar = impl_->test_tab_bar;
 		bar.calc_size_static( );
 		bar.render( );
+
+		const auto group = bar.is_vertical( );
+		if (group)
+		{
+			ImGui::SameLine( );
+			ImGui::BeginGroup( );
+		}
+
 		ImGui::Text("ass");
+
+		if (group)
+			ImGui::EndGroup( );
 	}
 	this->end( );
 }
