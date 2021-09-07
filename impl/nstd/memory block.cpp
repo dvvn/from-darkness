@@ -324,9 +324,9 @@ public:
 template <typename Fn>
 flags_checker(Fn&&) -> flags_checker<std::remove_cvref_t<Fn>>;
 
-static constexpr auto _Page_read_flags    = flags_type(PAGE_READONLY, PAGE_READWRITE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE);
-static constexpr auto _Page_write_flags   = flags_type(PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_WRITECOMBINE);
-static constexpr auto _Page_execute_flags = flags_type(PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY);
+static constexpr flags_type _Page_read_flags    = (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE);
+static constexpr flags_type _Page_write_flags   = (PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY | PAGE_WRITECOMBINE);
+static constexpr flags_type _Page_execute_flags = (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
 
 template <typename Fn>
 static bool _Memory_block_flags_checker(flags_type flags, memory_block block, Fn&& checker_fn = { })
@@ -348,7 +348,7 @@ struct have_flags_fn
 {
 	bool operator()(flags_type region_flags, flags_type target_flags) const
 	{
-		return region_flags.has(target_flags) == true;
+		return region_flags & (target_flags);
 	}
 };
 
@@ -356,7 +356,7 @@ struct dont_have_flags_fn
 {
 	bool operator()(flags_type region_flags, flags_type target_flags) const
 	{
-		return region_flags.has(target_flags) == false;
+		return !(region_flags & (target_flags));
 	}
 };
 
@@ -403,4 +403,9 @@ bool memory_block::code_padding( ) const
 			return false;
 	}
 	return true;
+}
+
+const known_bytes_range& memory_block::bytes_range( ) const
+{
+	return bytes_;
 }

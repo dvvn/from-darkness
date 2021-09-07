@@ -84,7 +84,7 @@ namespace cheat::settings_detail
 		bool updated__ = false;
 	};
 
-	class folders_storage final: public empty_page, child_frame_window
+	class folders_storage final: public renderable, child_frame_window
 	{
 	public:
 		using value_type = folder_with_configs;
@@ -126,7 +126,7 @@ namespace cheat::settings_detail
 		string_wrapper owner__;
 	};
 
-	class configs_unique_renderer final: public empty_page
+	class configs_unique_renderer final: public renderable
 	{
 	public:
 		using value_type = std::shared_ptr<config_renderer>;
@@ -164,7 +164,7 @@ namespace cheat::settings_detail
 		void Select_new_item_(const value_type& item, bool set_selected);
 	};
 
-	class folder_with_configs_mgr final: public empty_page
+	class folder_with_configs_mgr final: public renderable
 	{
 	public:
 		void set_work_dir(const std::filesystem::path& dir);

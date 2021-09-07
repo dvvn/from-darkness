@@ -18,7 +18,8 @@ static void _Loading_access_assert([[maybe_unused]] T&& state)
 
 service_base_fields::service_base_fields( )
 {
-	deps = std::make_unique<storage_type>( );
+	deps  = std::make_unique<storage_type>( );
+	state = service_state::unset;
 }
 
 service_base_fields::~service_base_fields( )
@@ -112,7 +113,7 @@ service_base::load_result service_base::load(executor& ex)
 	}
 	co_await ex.schedule( );
 	f.state = service_state::loading;
-	switch ((co_await this->load_impl( )).value( ))
+	switch ((co_await this->load_impl( )))
 	{
 		case service_state::loaded:
 		{
@@ -138,7 +139,7 @@ service_base::child_wait_result service_base::wait_for_others(executor& ex)
 	for (auto itr = fields( ).deps->begin( ); itr != fields( ).deps->end( );)
 	{
 		const auto& se = *itr;
-		switch (se->state( ).value( ))
+		switch (se->state( ))
 		{
 			case service_state::unset:
 				co_await ex.schedule( );

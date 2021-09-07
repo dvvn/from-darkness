@@ -143,9 +143,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector2D.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector4D.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\VMatrix.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
@@ -170,7 +174,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings mgr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CBaseHandle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.hpp" />
@@ -217,6 +227,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlMemory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings_shared.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\game.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.h" />
@@ -232,7 +243,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\checksum.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\containers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\core.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum as struct.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum overloads.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory backup.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory block.h" />
@@ -375,10 +385,20 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector2D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector4D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\VMatrix.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings mgr.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\anti aim.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
@@ -408,6 +428,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings_shared.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\game.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde64.cpp" />

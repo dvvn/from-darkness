@@ -2,7 +2,6 @@
 
 //#include "detour hook/hook_utils.h"
 
-#include "nstd/enum as struct.h"
 #include "nstd/one_instance.h"
 #include "nstd/type name.h"
 
@@ -20,19 +19,14 @@ namespace cppcoro
 
 namespace cheat
 {
-	struct service_state final
+	enum class service_state : std::uint8_t
 	{
-		enum value_type : std::uint8_t
-		{
-			unset = 0,
-			waiting,
-			loading,
-			loaded,
-			skipped,
-			error,
-		};
-
-		NSTD_ENUM_STRUCT(service_state, unset)
+		unset = 0,
+		waiting,
+		loading,
+		loaded,
+		skipped,
+		error,
 	};
 
 	class service_base;

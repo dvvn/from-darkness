@@ -3,25 +3,16 @@
 #include "widget animator.h"
 #include "cheat/gui/tools/string wrapper.h"
 
-#include "imgui.h"
-
-#include "nstd/enum as struct.h"
+#include <imgui.h>
 
 namespace cheat::gui::widgets
 {
-	struct window_flags final
-	{
-		using value_type = ImGuiWindowFlags_;
-		NSTD_ENUM_STRUCT_BITFLAG(window_flags, ImGuiWindowFlags_None);
-	};
-
 	class window: public content_background_fader
 	{
 	public:
 		window(tools::animator&& fade = { });
 
-		//ImGuiWindowFlags_
-		bool begin(tools::prefect_string&& title, window_flags flags = { });
+		bool begin(tools::prefect_string&& title, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
 		void end( );
 
 		void show( );
@@ -54,8 +45,11 @@ namespace cheat::gui::widgets
 			} type = UNSET;
 		};
 
+		[[deprecated]]
 		bool begin(const size_info& size_info_x, const size_info& size_info_y, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
 		void end( );
+
+		bool begin(const ImVec2&size, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
 
 		void show( );
 
@@ -68,7 +62,7 @@ namespace cheat::gui::widgets
 	public:
 		child_frame_window(tools::animator&& fade = { });
 
-	protected:
-		bool Begin_impl(ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags) override;
+	private:
+		bool Begin_impl(ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags) final;
 	};
 }

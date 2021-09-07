@@ -8,7 +8,6 @@
 
 namespace cheat::gui::objects
 {
-
 	class abstract_page //:public renderable_object
 	{
 	public:
@@ -91,14 +90,14 @@ namespace cheat::gui::objects
 		}
 
 		const tools::string_wrapper& name( ) const;
-		renderable_object*           page( ) const;
+		renderable*                  page( ) const;
 
 		void render( );
 
 	private:
-		using unique_page = std::unique_ptr<renderable_object>;
-		using shared_page = std::shared_ptr<renderable_object>;
-		using ref_page = std::reference_wrapper<renderable_object>;
+		using unique_page = std::unique_ptr<renderable>;
+		using shared_page = std::shared_ptr<renderable>;
+		using ref_page = std::reference_wrapper<renderable>;
 
 		std::variant<unique_page, shared_page, ref_page> page__;
 		tools::string_wrapper_abstract                   name__;
@@ -113,7 +112,7 @@ namespace cheat::gui::objects
 		tools::string_wrapper::value_type Label( ) const override;
 	};
 
-	class abstract_pages_renderer: public renderable_object
+	class abstract_pages_renderer: public renderable
 	{
 	public:
 		void add_page(abstract_page&& page);

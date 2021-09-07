@@ -13,11 +13,12 @@ using namespace gui;
 using namespace widgets;
 using namespace tools;
 
-window::window(animator&& fade) : content_background_fader(std::move(fade))
+window::window(animator&& fade)
+	: content_background_fader(std::move(fade))
 {
 }
 
-bool window::begin(prefect_string&& title, window_flags flags)
+bool window::begin(prefect_string&& title, ImGuiWindowFlags_ flags)
 {
 	runtime_assert(ignore_end__ == false);
 	auto& style = ImGui::GetStyle( );
@@ -46,7 +47,7 @@ bool window::begin(prefect_string&& title, window_flags flags)
 	if (min_size > style.WindowMinSize.x)
 		min_size_backup = {style.WindowMinSize.x, min_size};
 
-	return ImGui::Begin(title, nullptr, flags.value());
+	return ImGui::Begin(title, nullptr, flags);
 }
 
 void window::end( )
@@ -95,7 +96,8 @@ bool window::active( ) const
 	return visible__ && fade_.done(1);
 }
 
-child_window::child_window(animator&& fade): content_background_fader(std::move(fade))
+child_window::child_window(animator&& fade)
+	: content_background_fader(std::move(fade))
 {
 }
 
@@ -200,6 +202,11 @@ bool child_window::begin(const size_info& size_info_x, const size_info& size_inf
 	return Begin_impl(reinterpret_cast<ImGuiID>(this), size, border, flags);
 }
 
+bool child_window::begin(const ImVec2& size, bool border, ImGuiWindowFlags_ flags)
+{
+	return Begin_impl(reinterpret_cast<ImGuiID>(this), size, border, flags);
+}
+
 void child_window::end( )
 {
 	ImGui::EndChild( );
@@ -213,18 +220,19 @@ void child_window::show( )
 	return fade_.set(1);
 }
 
-child_frame_window::child_frame_window(animator&& fade): child_window(std::move(fade))
+child_frame_window::child_frame_window(animator&& fade)
+	: child_window(std::move(fade))
 {
 }
 
 bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags)
 {
 	const auto& style = ImGui::GetStyle( );
+	[[maybe_unused]]
+		const auto backups = std::make_tuple(push_style_color(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]),
+											 push_style_var(ImGuiStyleVar_ChildRounding, style.FrameRounding),
+											 push_style_var(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize),
+											 push_style_var(ImGuiStyleVar_WindowPadding, style.FramePadding));
 
-	const auto backups = std::make_tuple(push_style_color(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]),
-										 push_style_var(ImGuiStyleVar_ChildRounding, style.FrameRounding),
-										 push_style_var(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize),
-										 push_style_var(ImGuiStyleVar_WindowPadding, style.FramePadding));
-	(void)backups;
 	return child_window::Begin_impl(id, size_arg, border, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysUseWindowPadding | extra_flags);
 }

@@ -34,7 +34,7 @@ namespace cheat::hooks::winapi
 	using def_wndproc_t = LRESULT (_stdcall*)(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 	class wndproc final: public hook_base<wndproc, def_wndproc_t>
-					   , public gui::objects::empty_page
+					   , public gui::objects::renderable
 	{
 	public:
 		wndproc( );

@@ -63,7 +63,7 @@ imgui_context::~imgui_context( )
 
 imgui_context::imgui_context( )
 {
-	data_=std::make_unique<data_type>();
+	data_ = std::make_unique<data_type>( );
 }
 
 service_base::load_result imgui_context::load_impl( )
@@ -88,24 +88,39 @@ service_base::load_result imgui_context::load_impl( )
 	io.IniFilename = nullptr;
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-	ImFontConfig font_cfg;
-	//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
-	static ImWchar ranges[] =
+	io.FontDefault = [&]
 	{
-		0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
-		0,
-	};
-	font_cfg.OversampleH = 2;
-	font_cfg.OversampleV = 1;
-	font_cfg.PixelSnapH  = true;
-	font_cfg.GlyphRanges = /*io.Fonts->GetGlyphRangesCyrillic( )*/ranges;
+		ImFontConfig font_cfg;
+		//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+		static ImWchar ranges[] =
+		{
+			0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
+			0,
+		};
+		font_cfg.OversampleH = 2;
+		font_cfg.OversampleV = 1;
+		font_cfg.PixelSnapH  = true;
+		font_cfg.GlyphRanges = /*io.Fonts->GetGlyphRangesCyrillic( )*/ranges;
+
 #if !defined(_DEBUG) && 0
-	io.FontDefault = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arialuni.ttf", 15.0f, addressof(font_cfg), nullptr);
+	return io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 15.0f, std::addressof(font_cfg), nullptr);
 #else
-
-	io.Fonts->AddFontDefault(std::addressof(font_cfg));
-
+		return io.Fonts->AddFontDefault(std::addressof(font_cfg));
 #endif
+
+		/*if(font->FontSize==0)
+		{
+			for (const auto& d: io.Fonts->ConfigData)
+			{
+				if (d.DstFont == font)
+				{
+					font->FontSize = d.SizePixels;
+					break;
+				}
+			}
+		}*/
+	}( );
+
 	auto creation_parameters = D3DDEVICE_CREATION_PARAMETERS( );
 
 	[[maybe_unused]] const auto result = d3d->GetCreationParameters(&creation_parameters);
@@ -114,7 +129,7 @@ service_base::load_result imgui_context::load_impl( )
 	hwnd_ = creation_parameters.hFocusWindow;
 	ImGui_ImplWin32_Init(hwnd_);
 	ImGui_ImplDX9_Init(d3d);
-	//ImGui_ImplDX9_CreateDeviceObjects( ); d3d9 multithread error
+	//ImGui_ImplDX9_CreateDeviceObjects( ); //d3d9 multithread error
 
 	co_return service_state::loaded;
 }

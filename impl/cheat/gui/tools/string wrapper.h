@@ -1,13 +1,15 @@
 #pragma once
 
-#if !defined(IMGUI_HAS_IMSTR) || !IMGUI_HAS_IMSTR
-#define CHEAT_GUI_HAS_IMGUI_STRV 0
-#else
-#define CHEAT_GUI_HAS_IMGUI_STRV 1
-#endif
 #include <optional>
 #include <string>
 #include <variant>
+
+#include <imgui.h>
+#ifdef IMGUI_HAS_IMSTR
+#define CHEAT_GUI_HAS_IMGUI_STRV 1
+#else
+#define CHEAT_GUI_HAS_IMGUI_STRV 0
+#endif
 
 namespace cheat::gui::tools
 {
@@ -26,7 +28,8 @@ namespace cheat::gui::tools
 		string_wrapper(multibyte_type&& str);
 
 		template <typename T, size_t N>
-		string_wrapper(const T (&str)[N]) : string_wrapper(std::basic_string<T>(str, N - 1))
+		string_wrapper(const T (&str)[N])
+			: string_wrapper(std::basic_string<T>(str, N - 1))
 		{
 		}
 
@@ -38,8 +41,9 @@ namespace cheat::gui::tools
 		string_wrapper(const string_wrapper& other) noexcept;
 		string_wrapper& operator=(const string_wrapper& other) noexcept;
 
-		bool               operator==(const string_wrapper& other) const;
-		bool               operator!=(const string_wrapper& other) const;
+		bool operator==(const string_wrapper& other) const;
+		bool operator!=(const string_wrapper& other) const;
+
 		std::weak_ordering operator<=>(const string_wrapper& other) const;
 
 		operator std::wstring_view( ) const;
@@ -53,9 +57,9 @@ namespace cheat::gui::tools
 	private:
 		void Set_imgui_str_( );
 
-		raw_type       raw__;
-		multibyte_type multibyte__;
-		value_type     imgui__;
+		raw_type       raw_;
+		multibyte_type multibyte_;
+		value_type     imgui_;
 	};
 
 	string_wrapper::value_type _Get_imgui_str(const std::string_view& str);
@@ -63,7 +67,8 @@ namespace cheat::gui::tools
 	class string_wrapper_base: public string_wrapper
 	{
 	public:
-		string_wrapper_base(string_wrapper&& other) : string_wrapper(std::move(other))
+		string_wrapper_base(string_wrapper&& other)
+			: string_wrapper(std::move(other))
 		{
 		}
 
@@ -88,17 +93,11 @@ namespace cheat::gui::tools
 
 		void init(string_wrapper&& name);
 		void init(const string_wrapper& name);
-
-		template <class T>
-		T* init(T* obj)
-		{
-			init(obj->name( ));
-			return obj;
-		}
+		void init(const string_wrapper* name);
 
 	private:
 		std::variant<string_wrapper,
-					 std::reference_wrapper<const string_wrapper>> name__;
+					 std::reference_wrapper<const string_wrapper>> name_;
 	};
 
 	class prefect_string
@@ -125,9 +124,9 @@ namespace cheat::gui::tools
 			string_wrapper::value_type
 		>;
 
-		holder_type holder__;
-#if !defined(IMGUI_HAS_IMSTR) || !IMGUI_HAS_IMSTR
-		mutable std::optional<size_t> size__;
+		holder_type holder_;
+#if !CHEAT_GUI_HAS_IMGUI_STRV
+		mutable std::optional<size_t> size_;
 #endif
 	};
 }

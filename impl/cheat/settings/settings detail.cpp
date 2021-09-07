@@ -127,7 +127,7 @@ bool folder_with_configs::updated( ) const
 
 string_wrapper::value_type folder_with_configs::Label( ) const
 {
-	return shared->name( );
+	return *shared;
 }
 
 folder_with_configs::folder_with_configs(settings_data* shared_data)
@@ -138,7 +138,7 @@ folder_with_configs::folder_with_configs(settings_data* shared_data)
 void folders_storage::add_folder(value_type&& folder)
 {
 	const auto& item = data__.emplace_back(std::move(folder));
-	if (const auto name = std::wstring_view(item.shared->name( )); longest_title__ < name.size( ))
+	if (const auto name = std::wstring_view(*item.shared); longest_title__ < name.size( ))
 		longest_title__ = name.size( );
 }
 
@@ -146,7 +146,7 @@ folders_storage::value_type* folders_storage::get(const std::wstring_view& str)
 {
 	for (auto& d: data__)
 	{
-		if (d.shared->name( ) == str)
+		if (*d.shared == str)
 			return std::addressof(d);
 	}
 	return nullptr;

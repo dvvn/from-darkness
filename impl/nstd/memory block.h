@@ -1,7 +1,6 @@
 #pragma once
 
 #include "address.h"
-#include "enum as struct.h"
 
 #include <algorithm>
 #include <optional>
@@ -62,29 +61,33 @@ namespace nstd
 	public:
 		using value_type = std::variant<known_bytes_object, unknown_bytes_object, known_bytes_range_const, unknown_bytes_range_const>;
 
-		_CONSTEXPR20_CONTAINER explicit any_bytes_range(known_bytes_object&& obj): data_(
-																						 std::in_place_type<known_bytes_object>, std::move(obj)
-																						)
+		_CONSTEXPR20_CONTAINER explicit any_bytes_range(known_bytes_object&& obj)
+			: data_(
+					std::in_place_type<known_bytes_object>, std::move(obj)
+				   )
 		{
 		}
 
-		_CONSTEXPR20_CONTAINER explicit any_bytes_range(unknown_bytes_object&& obj): data_(
+		_CONSTEXPR20_CONTAINER explicit any_bytes_range(unknown_bytes_object&& obj)
+			: data_(
 #ifdef NSTD_MEM_BLOCK_UNWRAP_UNKNOWN_BYTES
-																						   std::in_place_type<unknown_bytes_object>, std::move(obj)
+					std::in_place_type<unknown_bytes_object>, std::move(obj)
 #else
 																						   all_bytes_known(obj)
 																							   ? value_type(std::in_place_type<known_bytes_object>, make_bytes_known(obj))
 																							   : value_type(std::in_place_type<unknown_bytes_object>, std::move(obj))
 #endif
-																						  )
+				   )
 		{
 		}
 
-		_CONSTEXPR20 explicit any_bytes_range(const known_bytes_range_const& obj): data_(std::in_place_type<known_bytes_range_const>, (obj))
+		_CONSTEXPR20 explicit any_bytes_range(const known_bytes_range_const& obj)
+			: data_(std::in_place_type<known_bytes_range_const>, (obj))
 		{
 		}
 
-		_CONSTEXPR20 explicit any_bytes_range(const unknown_bytes_range_const& obj): data_(std::in_place_type<unknown_bytes_range_const>, (obj))
+		_CONSTEXPR20 explicit any_bytes_range(const unknown_bytes_range_const& obj)
+			: data_(std::in_place_type<unknown_bytes_range_const>, (obj))
 		{
 		}
 
@@ -190,11 +193,7 @@ namespace nstd
 		memory_block shift_to_start(const memory_block& block) const;
 		memory_block shift_to_end(const memory_block& block) const;
 
-		struct flags_type final
-		{
-			using value_type = unsigned long;
-			NSTD_ENUM_STRUCT_BITFLAG(flags_type);
-		};
+		using flags_type = unsigned long;
 
 		bool have_flags(flags_type flags) const;
 		bool dont_have_flags(flags_type flags) const;
@@ -205,7 +204,7 @@ namespace nstd
 		bool executable( ) const;
 		bool code_padding( ) const;
 
-		const known_bytes_range& bytes_range( ) const { return bytes_; }
+		const known_bytes_range& bytes_range( ) const;
 
 	private:
 		known_bytes_range bytes_;

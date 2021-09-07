@@ -9,12 +9,14 @@ using namespace dhooks;
 
 static constexpr auto _Status_to_string_cache = []
 {
-#define STATUS_STR(x) data[hook_status::x].first = /*CRYPT_STR*/(#x);
+	using hook_status_raw=std::underlying_type_t<hook_status>;
 
-	auto data = std::array<std::pair<std::string_view, hook_status>, (hook_status::COUNT)>( );
+#define STATUS_STR(x) data[static_cast<hook_status_raw>(hook_status::x)].first = /*CRYPT_STR*/(#x);
+
+	auto data = std::array<std::pair<std::string_view, hook_status>, static_cast<hook_status_raw>(hook_status::COUNT)>( );
 	for (size_t i = 0; i < data.size( ); ++i)
 	{
-		data[i].second = i;
+		data[i].second = static_cast<hook_status>(i);
 	}
 
 	STATUS_STR(UNKNOWN)
@@ -54,11 +56,13 @@ static constexpr auto _Status_to_string_cache = []
 	return data;
 }( );
 
-std::string_view hook_status::to_string( ) const
+
+
+std::string_view dhooks::hook_status_to_string(hook_status status )
 {
 	try
 	{
-		return _Status_to_string_cache[(this->value_raw( ))].first;
+		return _Status_to_string_cache[static_cast<std::underlying_type_t<hook_status>>(status)].first;
 	}
 	catch (...)
 	{

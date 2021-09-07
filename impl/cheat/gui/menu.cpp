@@ -1,12 +1,13 @@
 ﻿#include "menu.h"
 #include "imgui context.h"
 
-#include "cheat/features/aimbot.h"
-#include "cheat/features/anti aim.h"
-#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
-#include "cheat/hooks/winapi/wndproc.h"
+//#include "cheat/features/aimbot.h"
+//#include "cheat/features/anti aim.h"
+//#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
+//#include "cheat/hooks/winapi/wndproc.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <Windows.h>
 
@@ -16,86 +17,123 @@ using namespace objects;
 using namespace tools;
 using namespace widgets;
 
-menu::menu( )
+static constexpr std::string_view _Iso_date( )
 {
-	hotkey_ = VK_HOME;
-
-	constexpr auto iso_date = []( )-> std::string_view
+	// ReSharper disable once CppVariableCanBeMadeConstexpr
+	const uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
+	// ReSharper disable once CppVariableCanBeMadeConstexpr
+	const uint32_t compile_month = []
 	{
-		// ReSharper disable once CppVariableCanBeMadeConstexpr
-		const uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
-		// ReSharper disable once CppVariableCanBeMadeConstexpr
-		const uint32_t compile_month = []
+		switch (__DATE__[0])
 		{
-			switch (__DATE__[0])
-			{
-				case 'J': // Jan, Jun or Jul
-					return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
-				case 'F': // Feb
-					return 2;
-				case 'M': // Mar or May
-					return (__DATE__[2] == 'r' ? 3 : 5);
-				case 'A': // Apr or Aug
-					return (__DATE__[2] == 'p' ? 4 : 8);
-				case 'S': // Sep
-					return 9;
-				case 'O': // Oct
-					return 10;
-				case 'N': // Nov
-					return 11;
-				case 'D': // Dec
-					return 12;
-			}
-			throw;
-		}( );
+			case 'J': // Jan, Jun or Jul
+				return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
+			case 'F': // Feb
+				return 2;
+			case 'M': // Mar or May
+				return (__DATE__[2] == 'r' ? 3 : 5);
+			case 'A': // Apr or Aug
+				return (__DATE__[2] == 'p' ? 4 : 8);
+			case 'S': // Sep
+				return 9;
+			case 'O': // Oct
+				return 10;
+			case 'N': // Nov
+				return 11;
+			case 'D': // Dec
+				return 12;
+		}
+		throw;
+	}( );
 
-		// ReSharper disable once CppVariableCanBeMadeConstexpr
-		// ReSharper disable once CppUnreachableCode
-		const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
+	// ReSharper disable once CppVariableCanBeMadeConstexpr
+	// ReSharper disable once CppUnreachableCode
+	const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
 
-		// ReSharper disable once CppVariableCanBeMadeConstexpr
-		const char ret[] = {
+	// ReSharper disable once CppVariableCanBeMadeConstexpr
+	const char ret[] = {
 
-			compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
-			'.',
-			compile_month / 10 + '0', compile_month % 10 + '0',
-			'.',
-			compile_day / 10 + '0', compile_day % 10 + '0',
-			'\0'
-		};
-		return std::string_view(ret, std::size(ret) - 1);
+		compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
+		'.',
+		compile_month / 10 + '0', compile_month % 10 + '0',
+		'.',
+		compile_day / 10 + '0', compile_day % 10 + '0',
+		'\0'
 	};
+	return std::string_view(ret, std::size(ret) - 1);
+};
 
-	std::string name = /*CHEAT_NAME*/_STRINGIZE(VS_SolutionName);
-	name += " | ";
-	name += iso_date( );
+struct menu::impl
+{
+	string_wrapper menu_title;
+	WPARAM         hotkey = VK_HOME;
+
+	tab_bar test_tab_bar;
+
+	impl( )
+	{
+		const auto init_title = [&]
+		{
+			std::string name = /*CHEAT_NAME*/_STRINGIZE(VS_SolutionName);
+			name += " | ";
+			name += _Iso_date( );
 #ifdef _DEBUG
-	name += _CONCAT(" | ", __TIME__);
+			name += _CONCAT(" | ", __TIME__);
 #endif
 
 #ifdef CHEAT_GUI_TEST
-	name += " (gui test)";
+			name += " (gui test)";
 #endif
 
 #ifdef _DEBUG
-	name += " DEBUG MODE";
+			name += " DEBUG MODE";
 #endif
 
-	menu_title_ = std::move(name);
+			menu_title = std::move(name);
+		};
+
+		const auto init_tabs = [&]
+		{
+			const auto add = [&](const char* text)
+			{
+				test_tab_bar.add(std::make_shared<non_abstract_label>(string_wrapper(text)));
+			};
+
+			add("aqqwqe");
+			add("adf");
+			add("adrrrrrrrrrr");
+
+			test_tab_bar.make_vertical();
+		};
+
+		init_title( );
+		init_tabs( );
+	}
+};
+
+menu::menu( )
+{
 }
+
+menu::~menu( ) = default;
 
 void menu::render( )
 {
-	if (this->begin(menu_title_, ImGuiWindowFlags_AlwaysAutoResize))
+	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		renderer_.render( );
+		//renderer_.render( );
+
+		auto& bar = impl_->test_tab_bar;
+		bar.calc_size_static( );
+		bar.render( );
+		ImGui::Text("ass");
 	}
 	this->end( );
 }
 
 bool menu::toggle(UINT msg, WPARAM wparam)
 {
-	if (wparam != hotkey_)
+	if (wparam != impl_->hotkey)
 		return false;
 
 	if (msg == WM_KEYDOWN)
@@ -112,7 +150,7 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 	return false;
 }
 
-class unused_page final: public empty_page, public string_wrapper_base
+class unused_page final: public renderable, public string_wrapper_base
 {
 	unused_page(string_wrapper&& other)
 		: string_wrapper_base(std::move(other))
@@ -139,6 +177,7 @@ public:
 
 service_base::load_result menu::load_impl( )
 {
+#if 0
 	renderer_.add_page([]
 	{
 		auto  rage_abstract = abstract_page( );
@@ -195,6 +234,11 @@ service_base::load_result menu::load_impl( )
 	}( ));
 #endif
 	renderer_.init( );
+#endif
+
+	const auto backup = nstd::memory_backup(GImGui->Font, ImGui::GetIO( ).FontDefault);
+
+	impl_ = std::make_unique<impl>( );
 
 	co_return service_state::loaded;
 }

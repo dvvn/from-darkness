@@ -15,7 +15,7 @@ namespace cheat
 		class folder_with_configs_mgr;
 	}
 
-	class settings_data: protected gui::tools::string_wrapper_base
+	class settings_data: public gui::tools::string_wrapper
 	{
 	public:
 		friend class settings;
@@ -24,8 +24,7 @@ namespace cheat
 
 		virtual ~settings_data( );
 
-		settings_data(const std::string_view& name);
-		settings_data(std::wstring&& name);
+		settings_data(string_wrapper&& name);
 
 		virtual bool save(const std::wstring_view& name) const;
 		bool         save(const std::wstring_view& name);
@@ -34,8 +33,6 @@ namespace cheat
 		bool         remove_all( ) const;
 
 		virtual void update( ) =0;
-
-		using string_wrapper_base::name;
 
 		std::wstring_view path( ) const;
 
@@ -46,7 +43,7 @@ namespace cheat
 		std::filesystem::path path_;
 	};
 
-	class settings final: public gui::objects::empty_page
+	class settings final: public gui::objects::renderable
 						, public settings_data
 						, public service<settings>
 	{

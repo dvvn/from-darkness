@@ -6,23 +6,37 @@
 
 #include <nstd/os/module info.h>
 
-#include <fstream>
+#include <WS2tcpip.h>
+#include <ShlObj.h>
 
+#include <fstream>
 using namespace cheat;
 using namespace gui;
 using namespace objects;
 
 settings_data::~settings_data( ) = default;
 
-settings_data::settings_data(const std::string_view& name)
-	: settings_data(std::wstring(name.begin( ), name.end( )))
+settings_data::settings_data(string_wrapper&& name)
+	: string_wrapper(std::move(name))
 {
-}
+	path_ = []( )-> decltype(auto)
+	{
+#ifdef CHEAT_GUI_TEST
+		return nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
+#else
+		static const auto path = []
+		{
+			PWSTR      buffer = nullptr;
+			const auto hr     = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, std::addressof(buffer));
+			runtime_assert(SUCCEEDED(hr));
+			auto ret = std::filesystem::path(buffer);
+			CoTaskMemFree(buffer);
+			return ret;
+		}( );
+		return path;
 
-settings_data::settings_data(std::wstring&& name)
-	: string_wrapper_base(raw_type(move(name)))
-{
-	path_ = nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
+#endif
+	}( );
 	path_ /= L"settings";
 	path_ /= this->raw( );
 }

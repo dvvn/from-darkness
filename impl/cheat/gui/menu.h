@@ -35,6 +35,7 @@ namespace cheat::gui
 
 	public:
 		menu( );
+		~menu( ) override;
 
 		void render( );
 		bool toggle(UINT msg, WPARAM wparam);
@@ -43,9 +44,7 @@ namespace cheat::gui
 		load_result load_impl( ) override;
 
 	private:
-		tools::string_wrapper            menu_title_;
-		objects::vertical_pages_renderer renderer_;
-
-		WPARAM hotkey_/* = VK_HOME*/;
+		struct impl;
+		std::unique_ptr<impl> impl_;
 	};
 }

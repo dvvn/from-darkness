@@ -12,10 +12,10 @@ using namespace gui;
 using namespace tools;
 using namespace objects;
 
-renderable_object* abstract_page::page( ) const
+renderable* abstract_page::page( ) const
 {
 	return std::addressof(std::visit(nstd::overload(std::bind_front(&unique_page::operator*),
-													std::bind_front(&shared_page::operator*<renderable_object>),
+													std::bind_front(&shared_page::operator*<renderable>),
 													std::bind_front(&ref_page::get)), page__));
 }
 

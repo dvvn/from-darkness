@@ -250,7 +250,7 @@ services_loader::services_loader( )
 #endif
 	this->add_service<console>( );                                       //await: csgo_awaiter
 	this->add_service<csgo_interfaces>( );                               //await: console
-	this->add_service<settings>( );                                      //
+	//this->add_service<settings>( );                                      //
 	this->add_service<imgui_context>( );                                 //await: csgo_interfaces
 	this->add_service<menu>( );                                          //await: imgui_context
 	this->add_service<vgui_surface::lock_cursor>( );                     //await: menu

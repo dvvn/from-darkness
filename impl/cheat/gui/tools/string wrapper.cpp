@@ -31,12 +31,12 @@ static std::wstring _UTF8_decode(const std::string_view& str)
 
 string_wrapper::string_wrapper(raw_type&& str)
 {
-	raw__ = std::move(str);
+	raw_ = std::move(str);
 
-	if (IsTextUnicode(raw__._Unchecked_begin( ), raw__.size( ) * sizeof(raw_type::value_type), nullptr))
-		multibyte__ = _UTF8_encode(raw__);
+	if (IsTextUnicode(raw_._Unchecked_begin( ), raw_.size( ) * sizeof(raw_type::value_type), nullptr))
+		multibyte_ = _UTF8_encode(raw_);
 	else
-		multibyte__ = std::string(raw__.begin( ), raw__.end( ));
+		multibyte_ = std::string(raw_.begin( ), raw_.end( ));
 
 	Set_imgui_str_( );
 }
@@ -47,13 +47,13 @@ string_wrapper::string_wrapper(multibyte_type&& str)
 
 	if (IsTextUnicode(str._Unchecked_begin( ), str.size( ), nullptr))
 	{
-		multibyte__ = _UTF8_encode(temp);
-		raw__       = _UTF8_decode(multibyte__);
+		multibyte_ = _UTF8_encode(temp);
+		raw_       = _UTF8_decode(multibyte_);
 	}
 	else
 	{
-		multibyte__ = std::move(str);
-		raw__       = std::move(temp);
+		multibyte_ = std::move(str);
+		raw_       = std::move(temp);
 	}
 
 	Set_imgui_str_( );
@@ -71,8 +71,8 @@ string_wrapper::string_wrapper(const string_wrapper& other) noexcept
 
 string_wrapper& string_wrapper::operator=(const string_wrapper& other) noexcept
 {
-	raw__       = other.raw__;
-	multibyte__ = other.multibyte__;
+	raw_       = other.raw_;
+	multibyte_ = other.multibyte_;
 
 	Set_imgui_str_( );
 	return *this;
@@ -80,53 +80,53 @@ string_wrapper& string_wrapper::operator=(const string_wrapper& other) noexcept
 
 bool string_wrapper::operator==(const string_wrapper& other) const
 {
-	return multibyte__ == other.multibyte__;
+	return multibyte_ == other.multibyte_;
 }
 
 bool string_wrapper::operator!=(const string_wrapper& other) const
 {
-	return multibyte__ != other.multibyte__;
+	return multibyte_ != other.multibyte_;
 }
 
 std::weak_ordering string_wrapper::operator<=>(const string_wrapper& other) const
 {
-	return multibyte__ <=> other.multibyte__;
+	return multibyte_ <=> other.multibyte_;
 }
 
 string_wrapper::operator std::wstring_view( ) const
 {
-	return raw__;
+	return raw_;
 }
 
 string_wrapper::operator std::string_view( ) const
 {
-	return multibyte__;
+	return multibyte_;
 }
 
 string_wrapper::operator value_type( ) const
 {
-	return imgui__;
+	return imgui_;
 }
 
 std::wstring_view string_wrapper::raw( ) const
 {
-	return raw__;
+	return raw_;
 }
 
 std::string_view string_wrapper::multibyte( ) const
 {
-	return multibyte__;
+	return multibyte_;
 }
 
 string_wrapper::value_type string_wrapper::imgui( ) const
 {
-	return imgui__;
+	return imgui_;
 }
 
 string_wrapper& string_wrapper::operator=(string_wrapper&& other) noexcept
 {
-	raw__       = std::move(other.raw__);
-	multibyte__ = std::move(other.multibyte__);
+	raw_       = std::move(other.raw_);
+	multibyte_ = std::move(other.multibyte_);
 
 	Set_imgui_str_( );
 	return *this;
@@ -134,7 +134,7 @@ string_wrapper& string_wrapper::operator=(string_wrapper&& other) noexcept
 
 void string_wrapper::Set_imgui_str_( )
 {
-	imgui__ = _Get_imgui_str(multibyte__);
+	imgui_ = _Get_imgui_str(multibyte_);
 }
 
 string_wrapper::value_type tools::_Get_imgui_str(const std::string_view& str)
@@ -147,7 +147,8 @@ string_wrapper::value_type tools::_Get_imgui_str(const std::string_view& str)
 #endif
 }
 
-string_wrapper_abstract::string_wrapper_abstract( ): name__(std::in_place_index<0>, string_wrapper( ))
+string_wrapper_abstract::string_wrapper_abstract( )
+	: name_(std::in_place_index<0>, string_wrapper( ))
 {
 }
 
@@ -161,17 +162,17 @@ const string_wrapper& string_wrapper_abstract::get( ) const
 	using val_t = const string_wrapper;
 	using ref_t = val_t&;
 	return visit(nstd::overload([](ref_t ref)-> ref_t { return ref; },
-								std::bind_front(&std::reference_wrapper<val_t>::get)), name__);
+								std::bind_front(&std::reference_wrapper<val_t>::get)), name_);
 }
 
 void string_wrapper_abstract::init(string_wrapper&& name)
 {
-	name__ = {std::move(name)};
+	name_ = {std::move(name)};
 }
 
 void string_wrapper_abstract::init(const string_wrapper& name)
 {
-	name__ = {std::ref(name)};
+	name_ = {std::ref(name)};
 }
 
 //auto imgui::operator<=>(const string_wrapper_abstract& str, const string_wrapper_abstract& other) noexcept -> std::strong_ordering
@@ -201,33 +202,43 @@ static auto _Ref_or_direct(string_wrapper::value_type&& val)
 	return (val);
 }
 
+void string_wrapper_abstract::init(const string_wrapper* name)
+{
+	this->init(*name);
+}
+
 // ReSharper disable once CppFunctionalStyleCast
-prefect_string::prefect_string(ref_or_direct_type str): holder__(_Ref_or_direct(std::forward<decltype(str)>(str)))
+prefect_string::prefect_string(ref_or_direct_type str)
+	: holder_(_Ref_or_direct(std::forward<decltype(str)>(str)))
 {
 }
 
-prefect_string::prefect_string(const std::string_view& str): holder__(_Get_imgui_str(str))
+prefect_string::prefect_string(const std::string_view& str)
+	: holder_(_Get_imgui_str(str))
 {
 }
 
-prefect_string::prefect_string(const std::wstring_view& str): prefect_string(std::wstring(str))
+prefect_string::prefect_string(const std::wstring_view& str)
+	: prefect_string(std::wstring(str))
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
-	size__ = str.size( );
+	size_ = str.size( );
 #endif
 }
 
-prefect_string::prefect_string(std::wstring&& str): holder__(string_wrapper(std::move(str)))
+prefect_string::prefect_string(std::wstring&& str)
+	: holder_(string_wrapper(std::move(str)))
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
-	size__ = str.size( );
+	size_ = str.size( );
 #endif
 }
 
-prefect_string::prefect_string(const string_wrapper& str): holder__(std::ref(str))
+prefect_string::prefect_string(const string_wrapper& str)
+	: holder_(std::ref(str))
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
-	size__ = str.raw( ).size( );
+	size_ = str.raw( ).size( );
 #endif
 }
 
@@ -244,16 +255,15 @@ prefect_string::operator string_wrapper::value_type( ) const
 								{
 									return val;
 								}
-
-							   ), holder__);
+							   ), holder_);
 }
 
 size_t prefect_string::size( ) const
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
-	if (!size__.has_value( ))
-		size__.emplace(string_wrapper(std::string(*this)).raw( ).size( ));
-	return *size__;
+	if (!size_.has_value( ))
+		size_.emplace(string_wrapper(std::string(*this)).raw( ).size( ));
+	return *size_;
 #else
 	const string_wrapper::value_type val = *this;
 	return val.length( );

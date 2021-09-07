@@ -2,13 +2,10 @@
 
 namespace cheat::gui::objects
 {
-	class renderable_object
+	class renderable
 	{
 	public:
-		virtual      ~renderable_object( ) = default;
+		virtual      ~renderable( ) = default;
 		virtual void render( ) =0;
 	};
-
-		using empty_page = renderable_object;
-
 }
