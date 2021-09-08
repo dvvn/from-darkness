@@ -75,52 +75,9 @@ namespace cheat::gui::objects
 		std::unique_ptr<storage_type> storage_;
 	};
 
-	class abstract_label
-	{
-	public:
-		virtual ~abstract_label( ) = default;
+	
 
-		virtual const tools::string_wrapper& label( ) const = 0;
-	};
+	
 
-	//move outside
-	class non_abstract_label: public abstract_label
-	{
-	public:
-		non_abstract_label(tools::string_wrapper&& label);
-		~non_abstract_label( ) override;
 
-		const tools::string_wrapper& label( ) const final;
-
-	private:
-		tools::string_wrapper label_;
-	};
-
-	class tab_bar final: public renderable
-	{
-	public:
-		tab_bar( );
-		~tab_bar( ) override;
-
-		using shared_label = std::shared_ptr<abstract_label>;
-
-		void   add(const shared_label& label);
-		size_t selected( ) const;
-
-		void calc_size_static( );
-		void call_size_auto( );
-
-		void make_horisontal( );
-		void make_vertical( );
-
-		bool is_horisontal( ) const;
-		bool is_vertical( ) const;
-
-		void render( ) override;
-
-	private:
-		class item;
-		struct impl;
-		std::unique_ptr<impl> impl_;
-	};
 }

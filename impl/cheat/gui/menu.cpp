@@ -1,13 +1,17 @@
 ﻿#include "menu.h"
 #include "imgui context.h"
 
-//#include "cheat/features/aimbot.h"
+#include "cheat/features/aimbot.h"
 //#include "cheat/features/anti aim.h"
 //#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
 //#include "cheat/hooks/winapi/wndproc.h"
 
+#include "widgets/tab_bar_with_pages.h"
+
+#include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <random>
 
 #include <Windows.h>
 
@@ -63,12 +67,49 @@ static constexpr std::string_view _Iso_date( )
 	return std::string_view(ret, std::size(ret) - 1);
 };
 
+//todo: move outside
+namespace cheat::gui::widgets
+{
+	class text: public renderable
+	{
+	public:
+		void render( ) override
+		{
+			ImGui::Text(text_);
+		}
+
+		void set(string_wrapper&& text)
+		{
+			text_ = std::move(text);
+		}
+
+	private:
+		string_wrapper text_;
+	};
+
+	template <typename ...Ts>
+	class multi_widget final: public renderable, public std::tuple<Ts...>
+	{
+		template <size_t ...I>
+		void render_impl(std::index_sequence<I...>)
+		{
+			(static_cast<renderable&>(std::get<I>(*this)).render( ), ...);
+		}
+
+	public:
+		void render( ) override
+		{
+			render_impl(std::index_sequence_for<Ts...>( ));
+		}
+	};
+};
+
 struct menu::impl
 {
 	string_wrapper menu_title;
 	WPARAM         hotkey = VK_HOME;
 
-	tab_bar test_tab_bar;
+	tab_bar_with_pages pages;
 
 	impl( )
 	{
@@ -94,16 +135,50 @@ struct menu::impl
 
 		const auto init_tabs = [&]
 		{
-			const auto add = [&](const char* text)
+			pages->make_vertical( );
+			pages->make_size_static( );
+
+			auto& rage_tab = *pages.add_item<tab_bar_with_pages>("rage"_shl);
+			rage_tab.add_item(features::aimbot::get_ptr_shared(true));
+
+			rage_tab->make_horisontal( );
+			rage_tab->make_size_auto( );
+
+			//---
+
+			auto& tab2 = *pages.add_item<tab_bar_with_pages>("test tab"_shl);
+			tab2->make_horisontal( );
+			tab2->make_size_auto( );
+
+			std::random_device rd;
+			std::mt19937       gen{rd( )};
+
+			auto       names     = std::array{"text"_shl, "text1"_shl, "1"_shl, "2"_shl, "long text"_shl, "longest text"_shl,};
+			const auto add_names = [&](tab_bar* where)
 			{
-				test_tab_bar.add(std::make_shared<non_abstract_label>(string_wrapper(text)));
+				std::ranges::shuffle(names, gen);
+				for (auto& n: names)
+					where->add_tab(n);
 			};
 
-			add("aqqwqe");
-			add("adf");
-			add("adrrrrrrrrrr");
-
-			test_tab_bar.make_vertical( );
+			auto& tab2_0all = *tab2.add_item<multi_widget<text, tab_bar>>("zero"_shl);
+			std::get<text>(tab2_0all).set("hello from multi widget");
+			auto tab2_0 = std::addressof(std::get<tab_bar>(tab2_0all));
+			add_names(tab2_0);
+			tab2_0->make_horisontal( );
+			tab2_0->make_size_static( );
+			auto tab2_1 = tab2.add_item<tab_bar>("one"_shl);
+			add_names(tab2_1);
+			tab2_1->make_horisontal( );
+			tab2_1->make_size_auto( );
+			auto tab2_2 = tab2.add_item<tab_bar>("two"_shl);
+			add_names(tab2_2);
+			tab2_2->make_vertical( );
+			tab2_2->make_size_auto( );
+			auto tab2_3 = tab2.add_item<tab_bar>("three"_shl);
+			add_names(tab2_3);
+			tab2_3->make_vertical( );
+			tab2_3->make_size_static( );
 		};
 
 		init_title( );
@@ -121,23 +196,8 @@ void menu::render( )
 {
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		//renderer_.render( );
-
-		auto& bar = impl_->test_tab_bar;
-		bar.calc_size_static( );
-		bar.render( );
-
-		const auto group = bar.is_vertical( );
-		if (group)
-		{
-			ImGui::SameLine( );
-			ImGui::BeginGroup( );
-		}
-
-		ImGui::Text("ass");
-
-		if (group)
-			ImGui::EndGroup( );
+		impl_->pages.render( );
+		//-
 	}
 	this->end( );
 }
@@ -161,6 +221,7 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 	return false;
 }
 
+#if 0
 class unused_page final: public renderable, public string_wrapper_base
 {
 	unused_page(string_wrapper&& other)
@@ -185,6 +246,7 @@ public:
 		return new unused_page("unused page " + std::to_string(counter++));
 	}
 };
+#endif
 
 service_base::load_result menu::load_impl( )
 {
@@ -246,8 +308,6 @@ service_base::load_result menu::load_impl( )
 #endif
 	renderer_.init( );
 #endif
-
-	const auto backup = nstd::memory_backup(GImGui->Font, ImGui::GetIO( ).FontDefault);
 
 	impl_ = std::make_unique<impl>( );
 

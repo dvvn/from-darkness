@@ -22,6 +22,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\abstract page.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\shared_label.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\renderable object.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.h" />
@@ -32,6 +33,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\group.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\tab_bar.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\tab_bar_with_pages.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\widget animator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\base.h" />
@@ -270,6 +273,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\abstract page.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\shared_label.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.cpp" />
@@ -279,6 +283,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\group.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable base.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\tab_bar.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\tab_bar_with_pages.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\widget animator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\base.cpp" />

@@ -29,7 +29,7 @@ namespace cheat::gui::tools
 
 		template <typename T, size_t N>
 		string_wrapper(const T (&str)[N])
-			: string_wrapper(std::basic_string<T>(str, N - 1))
+			: string_wrapper(std::basic_string<T>(str, str + (N - 1)))
 		{
 		}
 
@@ -64,6 +64,7 @@ namespace cheat::gui::tools
 
 	string_wrapper::value_type _Get_imgui_str(const std::string_view& str);
 
+	/*
 	class string_wrapper_base: public string_wrapper
 	{
 	public:
@@ -81,7 +82,7 @@ namespace cheat::gui::tools
 		{
 			return *this;
 		}
-	};
+	};*/
 
 	class string_wrapper_abstract
 	{

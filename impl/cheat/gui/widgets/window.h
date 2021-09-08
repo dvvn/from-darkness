@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+
+
 namespace cheat::gui::widgets
 {
 	class window: public content_background_fader
@@ -47,9 +49,9 @@ namespace cheat::gui::widgets
 
 		[[deprecated]]
 		bool begin(const size_info& size_info_x, const size_info& size_info_y, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
-		void end( );
+		bool begin(const ImVec2& size, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
 
-		bool begin(const ImVec2&size, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
+		void end( );
 
 		void show( );
 
