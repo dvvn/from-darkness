@@ -2,15 +2,35 @@
 
 using namespace nstd;
 
-void address::Error_handler_( ) const
+void address::error_handler( ) const
 {
-	runtime_assert(value__ != 0, "Address is null!");
-	runtime_assert(value__ != static_cast<uintptr_t>(-1), "Address is incorrect!");
+	runtime_assert(ptr_ != nullptr, "Address is null!");
+	runtime_assert(value_ != static_cast<uintptr_t>(-1), "Address is incorrect!");
+}
+
+address::address( )
+	: value_(0)
+{
+}
+
+address::address(uintptr_t a)
+	: value_(a)
+{
+}
+
+address::address(std::nullptr_t)
+	: value_(0)
+{
+}
+
+address::address(const void* a)
+	: ptr_((a))
+{
 }
 
 uintptr_t address::value( ) const
 {
-	return value__;
+	return value_;
 }
 
 address address::operator*( ) const
@@ -33,31 +53,46 @@ address address::deref_safe(size_t count) const
 	return count == 0 ? *this : deref(count);
 }
 
+std::strong_ordering address::operator<=>(const address& other) const
+{
+	return value_ <=> other.value_;
+}
+
+bool address::operator==(const address& other) const
+{
+	return value_ == other.value_;
+}
+
+bool address::operator!=(const address& other) const
+{
+	return !(operator==(other));
+}
+
 address& address::operator+=(const address& offset)
 {
-	value__ += offset.value__;
-	Error_handler_( );
+	value_ += offset.value_;
+	error_handler( );
 	return *this;
 }
 
 address& address::operator-=(const address& offset)
 {
-	value__ -= offset.value__;
-	Error_handler_( );
+	value_ -= offset.value_;
+	error_handler( );
 	return *this;
 }
 
 address& address::operator*=(const address& offset)
 {
-	value__ *= offset.value__;
-	Error_handler_( );
+	value_ *= offset.value_;
+	error_handler( );
 	return *this;
 }
 
 address& address::operator/=(const address& offset)
 {
-	value__ /= offset.value__;
-	Error_handler_( );
+	value_ /= offset.value_;
+	error_handler( );
 	return *this;
 }
 
@@ -70,7 +105,7 @@ address address::operator+(const address& offset) const
 	temp += offset;
 	return temp;
 #else
-            return value__ + offset.value__;
+            return value_ + offset.value_;
 #endif
 }
 
@@ -83,7 +118,7 @@ address address::operator-(const address& offset) const
 	temp -= offset;
 	return temp;
 #else
-            return value__ - offset.value__;
+            return value_ - offset.value_;
 #endif
 }
 
@@ -96,7 +131,7 @@ address address::operator*(const address& offset) const
 	temp *= offset;
 	return temp;
 #else
-            return value__ * offset.value__;
+            return value_ * offset.value_;
 #endif
 }
 
@@ -109,7 +144,7 @@ address address::operator/(const address& offset) const
 	temp /= offset;
 	return temp;
 #else
-            return value__ / offset.value__;
+            return value_ / offset.value_;
 #endif
 }
 

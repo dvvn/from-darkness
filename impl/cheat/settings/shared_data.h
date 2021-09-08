@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 namespace std
 {
 	template <class E, class Tr>
@@ -11,24 +13,19 @@ namespace std
 	template <typename E>
 	struct char_traits;
 
-	template <class _Ty>
+	template <class T>
 	class allocator;
 
-	using wstring_view = basic_string_view<wchar_t, char_traits<wchar_t>>;
-
-	using wstring = basic_string<wchar_t, char_traits<wchar_t>, allocator<wchar_t>>;
-	using string = basic_string<char, char_traits<char>, allocator<char>>;
-
-	template <class _Ty1, class _Ty2>
+	template <class T1, class T2>
 	struct pair;
 
-	template <class _Ty>
+	template <class T>
 	struct less;
 
-	template <class _Kty, class _Ty, class _Pr /*= less<_Kty>*/, class _Alloc /*= allocator<pair<const _Kty, _Ty>>*/>
+	template <class Key, class T, class Pred /*= less<_Kty>*/, class A /*= allocator<pair<const Key, T>>*/>
 	class map;
 
-	template <class _Ty, class _Alloc /*= allocator<_Ty>*/>
+	template <class T, class A /*= allocator<T>*/>
 	class vector;
 }
 
@@ -57,38 +54,36 @@ namespace nlohmann
 	class basic_json;
 }
 
-namespace cheat
+namespace cheat::settings
 {
-	class settings_shared
+	class shared_data
 	{
 	public:
-		settings_shared( );
-		virtual ~settings_shared( );
+		shared_data( );
+		virtual ~shared_data( );
 
 		/*using ostream = std::basic_ostream<char, std::char_traits<char>>;
 		using istream = std::basic_istream<char, std::char_traits<char>>;
 
-		friend ostream& operator<<(ostream& stream, const settings_shared& shared);
-		friend istream& operator>>(istream& stream, settings_shared& shared);*/
+		friend ostream& operator<<(ostream& stream, const shared_data& shared_data);
+		friend istream& operator>>(istream& stream, shared_data& shared_data);*/
 
 		using json = nlohmann::basic_json
 		<
 			std::map,
 			std::vector,
-			std::string,//wstring unsupported
+			std::basic_string<char, std::char_traits<char>, std::allocator<char>>, //wstring unsupported
 			bool,
-			int,
-			unsigned int,
+			intptr_t,
+			size_t,
 			double,
 			std::allocator,
 			nlohmann::adl_serializer,
-			std::vector<unsigned char, std::allocator<unsigned char>>
+			std::vector<uint8_t, std::allocator<uint8_t>>
 		>;
 
 		virtual void save(json& in) const =0;
 		virtual void load(const json& out) =0;
-
-		virtual std::wstring_view title( ) const =0;
 
 		/*protected:
 			virtual void save(ostream& stream) const =0;

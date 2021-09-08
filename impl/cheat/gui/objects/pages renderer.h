@@ -1,4 +1,5 @@
 #pragma once
+#if 0
 #include "abstract page.h"
 
 #include "cheat/gui/widgets/group.h"
@@ -74,10 +75,5 @@ namespace cheat::gui::objects
 		struct storage_type;
 		std::unique_ptr<storage_type> storage_;
 	};
-
-	
-
-	
-
-
 }
+#endif

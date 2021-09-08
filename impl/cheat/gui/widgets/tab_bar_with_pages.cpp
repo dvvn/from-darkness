@@ -30,7 +30,7 @@ void tab_bar_with_pages::render( )
 	{
 		bar.render( );
 
-		auto& selected = *wnds[bar.selected( )];
+		auto& selected = *wnds[bar.get_selected_index( )];
 
 		const auto render_selected_horisontal = [&]
 		{
@@ -60,4 +60,11 @@ void tab_bar_with_pages::add_item(const shared_label& bar_name, const renderable
 tab_bar* tab_bar_with_pages::operator->( ) const
 {
 	return std::addressof(impl_->bar);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+renderable* tab_bar_with_pages::get_item(tools::perfect_string&& title)
+{
+	const auto index = impl_->bar.get_index(std::move(title));
+	return impl_->wnds[index].get( );
 }

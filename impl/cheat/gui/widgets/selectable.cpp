@@ -12,7 +12,7 @@ selectable::selectable(bool selected): selectable_base(selected)
 {
 }
 
-bool selectable::operator()(prefect_string&& label, ImGuiSelectableFlags_ flags, const ImVec2& size)
+bool selectable::operator()(perfect_string&& label, ImGuiSelectableFlags_ flags, const ImVec2& size)
 {
 	const auto selectable = [&](bool selected)
 	{

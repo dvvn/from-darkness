@@ -18,7 +18,7 @@ window::window(animator&& fade)
 {
 }
 
-bool window::begin(prefect_string&& title, ImGuiWindowFlags_ flags)
+bool window::begin(perfect_string&& title, ImGuiWindowFlags_ flags)
 {
 	runtime_assert(ignore_end__ == false);
 	auto& style = ImGui::GetStyle( );

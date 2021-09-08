@@ -3,6 +3,11 @@
 
 #include <memory>
 
+namespace cheat::gui::tools
+{
+	class perfect_string;
+}
+
 namespace cheat::gui::objects
 {
 	class abstract_label;
@@ -17,8 +22,10 @@ namespace cheat::gui::widgets
 		tab_bar( );
 		~tab_bar( ) override;
 
-		void   add_tab(const objects::shared_label& label);
-		size_t selected( ) const;
+		size_t get_index(tools::perfect_string&& title) const;
+
+		void   add_tab(const objects::shared_label& title);
+		size_t get_selected_index( ) const;
 
 		void make_size_static( );
 		void make_size_auto( );

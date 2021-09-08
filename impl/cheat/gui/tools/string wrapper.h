@@ -33,6 +33,12 @@ namespace cheat::gui::tools
 		{
 		}
 
+		template <typename E, typename Tr>
+		string_wrapper(const std::basic_string_view<E, Tr>& str)
+			: string_wrapper(std::basic_string<E, Tr>(str._Unchecked_begin( ), str._Unchecked_end( )))
+		{
+		}
+
 		string_wrapper( ) = default;
 
 		string_wrapper(string_wrapper&& other) noexcept;
@@ -84,7 +90,7 @@ namespace cheat::gui::tools
 		}
 	};*/
 
-	class string_wrapper_abstract
+	/*class string_wrapper_abstract
 	{
 	public:
 		string_wrapper_abstract( );
@@ -99,22 +105,29 @@ namespace cheat::gui::tools
 	private:
 		std::variant<string_wrapper,
 					 std::reference_wrapper<const string_wrapper>> name_;
-	};
+	};*/
 
-	class prefect_string
+	class perfect_string
 	{
 	public:
-		using ref_or_direct_type = std::conditional_t<std::is_class_v<string_wrapper::value_type>, const string_wrapper::value_type&, string_wrapper::value_type>;
+		using ref_or_direct_type = std::conditional_t
+		<
+			std::is_class_v<string_wrapper::value_type>,
+			const string_wrapper::value_type&, string_wrapper::value_type
+		>;
 
-		prefect_string(ref_or_direct_type str);
-		prefect_string(const std::string_view& str);
-		prefect_string(const std::wstring_view& str);
-		prefect_string(std::wstring&& str);
-		prefect_string(const string_wrapper& str);
+		perfect_string(ref_or_direct_type str);
+		perfect_string(const std::string_view& str);
+		perfect_string(const std::wstring_view& str);
+		perfect_string(std::wstring&& str);
+		perfect_string(const string_wrapper& str);
 
 		operator string_wrapper::value_type( ) const;
 
 		size_t size( ) const;
+
+		bool operator==(const string_wrapper& wrapped) const;
+		bool operator!=(const string_wrapper& wrapped) const;
 
 	private:
 		using string_wrapper_ref = std::reference_wrapper<const string_wrapper>;
@@ -130,6 +143,9 @@ namespace cheat::gui::tools
 		mutable std::optional<size_t> size_;
 #endif
 	};
+
+	bool operator==(const string_wrapper& a, const perfect_string& b);
+	bool operator!=(const string_wrapper& a, const perfect_string& b);
 }
 
 _STD_BEGIN

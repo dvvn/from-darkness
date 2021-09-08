@@ -11,28 +11,13 @@ namespace nstd
 	// class size is only 4 bytes on x86-32 and 8 bytes on x86-64.
 	class address
 	{
-		void Error_handler_( ) const;
+		void error_handler( ) const;
 
 	public:
-		constexpr address( )
-			: value__(0)
-		{
-		}
-
-		constexpr address(uintptr_t a)
-			: value__(a)
-		{
-		}
-
-		constexpr explicit address(std::nullptr_t)
-			: address( )
-		{
-		}
-
-		address(const void* a)
-			: address(reinterpret_cast<uintptr_t>(a))
-		{
-		}
+		address( );
+		address(uintptr_t a);
+		explicit address(std::nullptr_t);
+		address(const void* a);
 
 		uintptr_t value( ) const;
 
@@ -40,8 +25,8 @@ namespace nstd
 		template <typename T>
 		T cast( ) const
 		{
-			Error_handler_( );
-			return (T)value__;
+			error_handler( );
+			return (T)value_;
 		}
 
 		template <typename T = uintptr_t>
@@ -68,7 +53,10 @@ namespace nstd
 		address deref(size_t count) const;
 		address deref_safe(size_t count) const;
 
-		constexpr auto operator<=>(const address& other) const = default;
+		std::strong_ordering operator<=>(const address& other) const;
+
+		bool operator==(const address& other) const;
+		bool operator!=(const address& other) const;
 
 		address& operator+=(const address& offset);
 		address& operator-=(const address& offset);
@@ -91,7 +79,13 @@ namespace nstd
 		address rel32(size_t offset) const;
 
 	private:
-		uintptr_t value__;
+		union
+		{
+			// ReSharper disable CppInconsistentNaming
+			uintptr_t   value_;
+			const void* ptr_;
+			// ReSharper restore CppInconsistentNaming
+		};
 	};
 
 	namespace address_pipe

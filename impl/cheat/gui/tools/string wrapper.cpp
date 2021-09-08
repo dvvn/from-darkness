@@ -85,7 +85,7 @@ bool string_wrapper::operator==(const string_wrapper& other) const
 
 bool string_wrapper::operator!=(const string_wrapper& other) const
 {
-	return multibyte_ != other.multibyte_;
+	return !operator==(other);
 }
 
 std::weak_ordering string_wrapper::operator<=>(const string_wrapper& other) const
@@ -125,8 +125,8 @@ string_wrapper::value_type string_wrapper::imgui( ) const
 
 string_wrapper& string_wrapper::operator=(string_wrapper&& other) noexcept
 {
-	raw_       = std::move(other.raw_);
-	multibyte_ = std::move(other.multibyte_);
+	std::swap(raw_, other.raw_);
+	std::swap(multibyte_, other.multibyte_);
 
 	Set_imgui_str_( );
 	return *this;
@@ -147,6 +147,7 @@ string_wrapper::value_type tools::_Get_imgui_str(const std::string_view& str)
 #endif
 }
 
+#if 0
 string_wrapper_abstract::string_wrapper_abstract( )
 	: name_(std::in_place_index<0>, string_wrapper( ))
 {
@@ -174,6 +175,7 @@ void string_wrapper_abstract::init(const string_wrapper& name)
 {
 	name_ = {std::ref(name)};
 }
+#endif
 
 //auto imgui::operator<=>(const string_wrapper_abstract& str, const string_wrapper_abstract& other) noexcept -> std::strong_ordering
 //{
@@ -202,31 +204,31 @@ static auto _Ref_or_direct(string_wrapper::value_type&& val)
 	return (val);
 }
 
-void string_wrapper_abstract::init(const string_wrapper* name)
-{
-	this->init(*name);
-}
+//void string_wrapper_abstract::init(const string_wrapper* name)
+//{
+//	this->init(*name);
+//}
 
 // ReSharper disable once CppFunctionalStyleCast
-prefect_string::prefect_string(ref_or_direct_type str)
+perfect_string::perfect_string(ref_or_direct_type str)
 	: holder_(_Ref_or_direct(std::forward<decltype(str)>(str)))
 {
 }
 
-prefect_string::prefect_string(const std::string_view& str)
+perfect_string::perfect_string(const std::string_view& str)
 	: holder_(_Get_imgui_str(str))
 {
 }
 
-prefect_string::prefect_string(const std::wstring_view& str)
-	: prefect_string(std::wstring(str))
+perfect_string::perfect_string(const std::wstring_view& str)
+	: perfect_string(std::wstring(str))
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
 	size_ = str.size( );
 #endif
 }
 
-prefect_string::prefect_string(std::wstring&& str)
+perfect_string::perfect_string(std::wstring&& str)
 	: holder_(string_wrapper(std::move(str)))
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
@@ -234,7 +236,7 @@ prefect_string::prefect_string(std::wstring&& str)
 #endif
 }
 
-prefect_string::prefect_string(const string_wrapper& str)
+perfect_string::perfect_string(const string_wrapper& str)
 	: holder_(std::ref(str))
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
@@ -242,7 +244,7 @@ prefect_string::prefect_string(const string_wrapper& str)
 #endif
 }
 
-prefect_string::operator string_wrapper::value_type( ) const
+perfect_string::operator string_wrapper::value_type( ) const
 {
 	return visit(nstd::overload([](const string_wrapper_ref& val)
 								{
@@ -258,14 +260,50 @@ prefect_string::operator string_wrapper::value_type( ) const
 							   ), holder_);
 }
 
-size_t prefect_string::size( ) const
+size_t perfect_string::size( ) const
 {
 #if !CHEAT_GUI_HAS_IMGUI_STRV
 	if (!size_.has_value( ))
-		size_.emplace(string_wrapper(std::string(*this)).raw( ).size( ));
+		return size_.emplace(string_wrapper(std::string(*this)).raw( ).size( ));
 	return *size_;
 #else
 	const string_wrapper::value_type val = *this;
 	return val.length( );
 #endif
+}
+
+bool perfect_string::operator==(const string_wrapper& wrapped) const
+{
+	return visit(nstd::overload([&](const string_wrapper_ref& val)
+								{
+									return val.get( ) == wrapped;
+								},
+								[&](const string_wrapper& val)
+								{
+									return wrapped == val;
+								},
+								[&](const string_wrapper::value_type& val)
+								{
+#if CHEAT_GUI_HAS_IMGUI_STRV
+									TODO
+#else
+									return wrapped.multibyte( ) == val;
+#endif
+								}
+							   ), holder_);
+}
+
+bool perfect_string::operator!=(const string_wrapper& wrapped) const
+{
+	return !operator==(wrapped);
+}
+
+bool tools::operator==(const string_wrapper& a, const perfect_string& b)
+{
+	return b == a;
+}
+
+bool tools::operator!=(const string_wrapper& a, const perfect_string& b)
+{
+	return !(b == a);
 }

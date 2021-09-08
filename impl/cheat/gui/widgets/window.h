@@ -14,7 +14,7 @@ namespace cheat::gui::widgets
 	public:
 		window(tools::animator&& fade = { });
 
-		bool begin(tools::prefect_string&& title, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
+		bool begin(tools::perfect_string&& title, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
 		void end( );
 
 		void show( );

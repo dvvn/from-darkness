@@ -1,3 +1,4 @@
+// ReSharper disable CppRedundantInlineSpecifier
 #pragma once
 #include "chars cache.h"
 
@@ -102,4 +103,64 @@ namespace nstd
 
 	template <typename T, chars_cache ...Ignore>
 	_INLINE_VAR constexpr auto type_name = detail::type_name_impl<T, Ignore...>( );
+
+	namespace detail
+	{
+		class drop_namespaces_impl
+		{
+			template <typename E, typename Tr>
+			constexpr static size_t drop_count(const std::basic_string_view<E, Tr>& str)
+			{
+				const auto template_start = str.find('<');
+				const auto str_tmp        = template_start != str.npos ? str.substr(0, template_start) : str;
+				const auto namespace_size = str_tmp.rfind(':');
+
+				return namespace_size == str_tmp.npos ? 0 : namespace_size + 1; //+1 to add second ':'
+			}
+
+		public:
+			template <typename E, typename Tr, typename A>
+			_CONSTEXPR20_CONTAINER auto operator()(std::basic_string<E, Tr, A>&& str) const
+			{
+				auto drop = drop_count(str);
+				if (drop > 0)
+					str.erase((0), drop);
+				return std::move(str);
+			}
+
+			template <typename E, typename Tr, typename A>
+			_CONSTEXPR20_CONTAINER auto operator()(const std::basic_string<E, Tr, A>& str) const
+			{
+				return std::invoke(*this, std::basic_string_view<E, Tr>(str));
+			}
+
+			template <typename E, typename Tr>
+			constexpr auto operator()(std::basic_string_view<E, Tr> str) const
+			{
+				auto drop = drop_count(str);
+				if (drop > 0)
+					str.remove_prefix(drop);
+				return str;
+			}
+		};
+	}
+
+	_INLINE_VAR constexpr auto drop_namespaces = detail::drop_namespaces_impl( );
+
+#if 0
+	template <typename E, typename Tr>
+	constexpr auto drop_namespaces(const std::basic_string_view<E, Tr>& str)
+	{
+		const auto template_start = str.find('<');
+		const auto str_tmp        = template_start != str.npos ? str.substr(0, template_start) : str;
+		const auto namespace_size = str_tmp.rfind(':');
+
+		auto copy = str;
+
+		if (namespace_size != str_tmp.npos)
+			copy.remove_prefix(namespace_size + 1); //+1 to add last ':'
+
+		return copy;
+	}
+#endif
 }

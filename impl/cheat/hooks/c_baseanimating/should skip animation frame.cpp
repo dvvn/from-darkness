@@ -9,6 +9,10 @@
 #include "cheat/sdk/ClientClass.hpp"
 #include "cheat/sdk/entity/C_BaseAnimating.h"
 
+#include "cheat/gui/tools/string wrapper.h"
+
+#include <nstd/memory backup.h>
+
 using namespace cheat;
 using namespace hooks;
 using namespace c_base_animating;
@@ -16,7 +20,8 @@ using namespace c_base_animating;
 using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame( )
-	: service_sometimes_skipped(
+	: non_abstract_label(nstd::drop_namespaces(nstd::type_name<should_skip_animation_frame>))
+	, service_sometimes_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -98,8 +103,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 		const auto animate_this_frame = ent->m_bClientSideAnimation( );
 		const auto skip_this_frame    = animate_this_frame == false;
 		this->return_value_.store_value(skip_this_frame);
-
-}
+	}
 #endif
 }
 

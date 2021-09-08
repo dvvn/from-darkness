@@ -5,12 +5,11 @@
 
 #include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style var.h"
-
 #include "cheat/gui/objects/shared_label.h"
 
-#include <imgui_internal.h>
-
 #include <nstd/runtime assert.h>
+
+#include <imgui_internal.h>
 
 #include <algorithm>
 #include <numeric>
@@ -118,7 +117,7 @@ enum class directions :uint8_t
 	VERTICAL
 };
 
-enum class size_modes:uint8_t
+enum class size_modes :uint8_t
 {
 	UNSET,
 	STATIC,
@@ -185,17 +184,29 @@ tab_bar::tab_bar( )
 
 tab_bar::~tab_bar( ) = default;
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void tab_bar::add_tab(const shared_label& label)
+size_t tab_bar::get_index(perfect_string&& title) const
 {
+	const auto& items = impl_->items;
+	for (size_t i = 0; i < items.size( ); i++)
+	{
+		if (items[i].label( ) == title)
+			return i;
+	}
+	return static_cast<size_t>(-1);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void tab_bar::add_tab(const shared_label& title)
+{
+	runtime_assert(get_index(title->label( )) == static_cast<size_t>(-1));
 	auto& items = impl_->items;
 
-	items.push_back(label);
+	items.push_back(title);
 	if (items.size( ) == 1)
 		items.front( ).select( );
 }
 
-size_t tab_bar::selected( ) const
+size_t tab_bar::get_selected_index( ) const
 {
 	const auto& items = impl_->items;
 	for (size_t i = 0; i < items.size( ); ++i)
@@ -376,14 +387,16 @@ void tab_bar::render( )
 			const auto temp_center = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
 
 			const auto want_sameline = direction == directions::HORISONTAL;
-			for (size_t i = 0; i < items.size( ); i++)
+			const auto items_count   = items.size( );
+			const auto last_item_idx = items_count - 1;
+			for (size_t i = 0; i < items_count; i++)
 			{
 				if (auto& item = items[i]; item.render( ))
 				{
-					items[this->selected( )].deselect( );
+					items[this->get_selected_index( )].deselect( );
 					item.select( );
 				}
-				if (want_sameline && i < items.size( ) - 1)
+				if (want_sameline && i < last_item_idx)
 					ImGui::SameLine( );
 			}
 		}

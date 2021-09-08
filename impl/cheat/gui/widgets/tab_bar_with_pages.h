@@ -6,6 +6,11 @@
 
 #include <memory>
 
+namespace cheat::gui::tools
+{
+	class perfect_string;
+}
+
 namespace cheat::gui::widgets
 {
 	class tab_bar_with_pages final: public objects::renderable
@@ -57,6 +62,10 @@ namespace cheat::gui::widgets
 		}
 
 		tab_bar* operator->( ) const;
+
+		//---
+
+		renderable* get_item(tools::perfect_string&& title);
 
 	private:
 		struct impl;

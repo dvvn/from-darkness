@@ -1,5 +1,6 @@
 #include "aimbot.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/gui/tools/string wrapper.h"
 
 #include <nstd/type name.h>
@@ -9,7 +10,7 @@
 using namespace cheat::features;
 
 aimbot::aimbot( )
-	: non_abstract_label(gui::tools::string_wrapper(std::string(nstd::type_name<aimbot, "cheat::features">)))
+	: non_abstract_label((nstd::drop_namespaces(nstd::type_name<aimbot>)))
 {
 }
 
@@ -23,11 +24,6 @@ void aimbot::save(json& in) const
 
 void aimbot::load(const json& out)
 {
-}
-
-std::wstring_view aimbot::title( ) const
-{
-	return label( );
 }
 
 void aimbot::render( )

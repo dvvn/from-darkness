@@ -802,14 +802,7 @@ _WORK:
 			runtime_assert("Unable to get dynamic includes!");
 #else
 
-			constexpr auto drop_namespaces = [](std::string_view& str)
-			{
-				const auto template_start = str.find('<');
-				const auto str_tmp        = template_start != str.npos ? str.substr(0, template_start) : str;
-				const auto namespace_size = str_tmp.rfind(':');
-				if (namespace_size != str_tmp.npos)
-					str.remove_prefix(namespace_size + 1); //+1 to add last ':'
-			};
+			
 
 			struct include_name: std::string
 			{
@@ -825,9 +818,7 @@ _WORK:
 			// ReSharper disable CppRemoveRedundantBraces
 			for (auto& [netvar_name, netvar_data]: NETVARS.items( ))
 			{
-				std::string_view netvar_type = netvar_data.at("type").get_ref<const std::string&>( );
-
-				drop_namespaces(netvar_type);
+				const auto netvar_type = nstd::drop_namespaces(netvar_data.at("type").get_ref<const std::string&>( ));
 
 				if (netvar_type.starts_with("array<"))
 				{

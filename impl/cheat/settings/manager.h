@@ -15,7 +15,7 @@ namespace std
 
 namespace cheat::settings
 {
-	class shared;
+	class shared_data;
 
 	class manager
 	{
@@ -28,9 +28,9 @@ namespace cheat::settings
 
 			bool   empty( ) const;
 			size_t size( ) const;
-			bool   contains(const shared* shared) const;
-			void   add(const shared* shared);
-			bool   remove(const shared* shared);
+			bool   contains(const shared_data* shared) const;
+			void   add(const shared_data* shared);
+			bool   remove(const shared_data* shared);
 			void   clear( );
 
 			//for ranges
@@ -38,7 +38,7 @@ namespace cheat::settings
 			{
 				return [&]<typename T>(const T& obj)
 				{
-					if constexpr (std::same_as<T, std::shared_ptr<shared>>)
+					if constexpr (std::same_as<T, std::shared_ptr<shared_data>>)
 						return this->contains(obj.get( ));
 					else
 						return this->contains(obj);
@@ -53,7 +53,7 @@ namespace cheat::settings
 		manager( );
 		~manager( );
 
-		void add(const std::shared_ptr<shared>& shared);
+		void add(const std::shared_ptr<shared_data>& shared);
 
 		void save(const std::wstring_view& file_name, const filter& filter_obj = { }) const;
 		void load(const std::wstring_view& file_name, const filter& filter_obj = { });

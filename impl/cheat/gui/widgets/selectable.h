@@ -13,7 +13,7 @@ namespace cheat::gui::widgets
 	public:
 		selectable(bool selected = false);
 
-		bool operator()(tools::prefect_string&& label,
+		bool operator()(tools::perfect_string&& label,
 						ImGuiSelectableFlags_   flags = ImGuiSelectableFlags_None, const ImVec2& size = ImVec2(0, 0));
 	};
 

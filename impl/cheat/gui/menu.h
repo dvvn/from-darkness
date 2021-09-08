@@ -28,6 +28,11 @@ using WPARAM = UINT_PTR;
 
 namespace cheat::gui
 {
+	namespace widgets
+	{
+		class tab_bar_with_pages;
+	}
+
 	class menu final: public service<menu>, public widgets::window
 	{
 		using window::begin;
@@ -39,6 +44,10 @@ namespace cheat::gui
 
 		void render( );
 		bool toggle(UINT msg, WPARAM wparam);
+
+		//---
+
+		
 
 	protected:
 		load_result load_impl( ) override;

@@ -1,5 +1,5 @@
-#include "settings mgr.h"
-#include "settings_shared.h"
+#include "manager.h"
+#include "shared_data.h"
 
 #ifdef CHEAT_GUI_TEST
 #include "nstd/os/module info.h"
@@ -12,21 +12,21 @@
 
 #include <nlohmann/json.hpp>
 
-using namespace cheat;
+using namespace cheat::settings;
 
-struct settings_mgr::filter::storage: std::vector<const settings_shared*>
+struct manager::filter::storage: std::vector<const shared_data*>
 {
 };
 
-settings_mgr::filter::filter( )  = default;
-settings_mgr::filter::~filter( ) = default;
+manager::filter::filter( )  = default;
+manager::filter::~filter( ) = default;
 
-bool settings_mgr::filter::empty( ) const
+bool manager::filter::empty( ) const
 {
 	return storage_ == nullptr || storage_->empty( );
 }
 
-size_t settings_mgr::filter::size( ) const
+size_t manager::filter::size( ) const
 {
 	return storage_ == nullptr ? 0 : storage_->size( );
 }
@@ -37,14 +37,14 @@ static bool _Contains(const std::vector<T>& vec, P ptr)
 	return std::ranges::find(vec, ptr) != vec.end( );
 }
 
-bool settings_mgr::filter::contains(const settings_shared* shared) const
+bool manager::filter::contains(const shared_data* shared) const
 {
 	if (this->empty( ))
 		return false;
 	return _Contains(*storage_, shared);
 }
 
-void settings_mgr::filter::add(const settings_shared* shared)
+void manager::filter::add(const shared_data* shared)
 {
 	if (!storage_)
 		storage_ = std::make_unique<storage>( );
@@ -52,7 +52,7 @@ void settings_mgr::filter::add(const settings_shared* shared)
 	storage_->push_back(shared);
 }
 
-bool settings_mgr::filter::remove(const settings_shared* shared)
+bool manager::filter::remove(const shared_data* shared)
 {
 	switch (this->size( ))
 	{
@@ -83,12 +83,12 @@ bool settings_mgr::filter::remove(const settings_shared* shared)
 	return false;
 }
 
-void settings_mgr::filter::clear( )
+void manager::filter::clear( )
 {
 	storage_.reset( );
 }
 
-struct settings_mgr::impl
+struct manager::impl
 {
 	std::filesystem::path path;
 
@@ -114,17 +114,17 @@ struct settings_mgr::impl
 		}( ) / "settings";
 	}
 
-	std::vector<std::shared_ptr<settings_shared>> data;
+	std::vector<std::shared_ptr<shared_data>> data;
 };
 
-settings_mgr::settings_mgr( )
+manager::manager( )
 {
 	impl_ = std::make_unique<impl>( );
 }
 
-settings_mgr::~settings_mgr( ) = default;
+manager::~manager( ) = default;
 
-void settings_mgr::add(const std::shared_ptr<settings_shared>& shared)
+void manager::add(const std::shared_ptr<shared_data>& shared)
 {
 	(void)this;
 	impl_->data.push_back(shared);
@@ -142,7 +142,7 @@ static std::filesystem::path _Generate_path(const std::filesystem::path& folder,
 	return full_path;
 }
 
-void settings_mgr::save(const std::wstring_view& file_name, const filter& filter_obj) const
+void manager::save(const std::wstring_view& file_name, const filter& filter_obj) const
 {
 	const auto& path = impl_->path;
 	if (!exists(path))
@@ -158,7 +158,7 @@ void settings_mgr::save(const std::wstring_view& file_name, const filter& filter
 	}
 
 	const auto full_path = _Generate_path(path, file_name);
-	auto       json      = settings_shared::json( );
+	auto       json      = shared_data::json( );
 	if (!filter_obj.empty( ) && exists(full_path) && is_regular_file(full_path))
 	{
 		//backup all other settings from this file
@@ -176,7 +176,7 @@ void settings_mgr::save(const std::wstring_view& file_name, const filter& filter
 	stream << json;
 }
 
-void settings_mgr::load(const std::wstring_view& file_name, const filter& filter_obj)
+void manager::load(const std::wstring_view& file_name, const filter& filter_obj)
 {
 	(void)this;
 
@@ -184,7 +184,7 @@ void settings_mgr::load(const std::wstring_view& file_name, const filter& filter
 	runtime_assert(exists(path));
 	runtime_assert(is_directory(path));
 
-	auto       json      = settings_shared::json( );
+	auto       json      = shared_data::json( );
 	const auto full_path = _Generate_path(path, file_name);
 
 	auto stream = std::ifstream(full_path);
