@@ -2,6 +2,8 @@
 #include "player.h"
 
 #include "cheat/core/csgo interfaces.h"
+#include "cheat/core/services loader.h"
+#include "cheat/netvars/netvars.h"
 
 #include "cheat/sdk/entity/C_CSPlayer.h"
 
@@ -27,7 +29,7 @@ struct players_list::storage_type: std::vector<player_shared_impl>
 };
 
 players_list::players_list( )
-	: service_sometimes_skipped(
+	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -36,6 +38,7 @@ players_list::players_list( )
 							   )
 {
 	storage_ = std::make_unique<storage_type>( );
+	this->wait_for_service<netvars>();
 }
 
 players_list::~players_list( ) = default;
@@ -198,3 +201,6 @@ void players_list::update( )
 //	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
 //	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
 //}
+
+
+CHEAT_REGISTER_SERVICE(players_list);

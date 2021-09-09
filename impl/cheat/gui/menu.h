@@ -47,8 +47,6 @@ namespace cheat::gui
 
 		//---
 
-		
-
 	protected:
 		load_result load_impl( ) override;
 

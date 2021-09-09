@@ -15,7 +15,7 @@ namespace cheat::hooks::c_base_animating
 	class should_skip_animation_frame final: public hook_base<should_skip_animation_frame, bool(csgo::C_BaseAnimating::*)( )>
 										   , public gui::objects::renderable
 										   , public gui::objects::non_abstract_label
-										   , service_sometimes_skipped
+										   , service_maybe_skipped
 	{
 	public :
 		should_skip_animation_frame( );

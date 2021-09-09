@@ -1,6 +1,7 @@
 #include "present.h"
 #include "reset.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
 
@@ -15,6 +16,7 @@ using namespace directx;
 
 present::present( )
 {
+	this->wait_for_service<gui::menu>();
 }
 
 nstd::address present::get_target_method_impl( ) const
@@ -50,3 +52,5 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	[[maybe_unused]] const auto end = d3d_device->EndScene( );
 	runtime_assert(SUCCEEDED(end));
 }
+
+CHEAT_REGISTER_SERVICE(present);

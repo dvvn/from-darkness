@@ -1,16 +1,18 @@
 #include "console.h"
 
+#include "csgo_awaiter.h"
+#include "services loader.h"
+
 #include <nstd/os/module info.h>
 
-#include <Windows.h>
 #include <corecrt_io.h>
 #include <fcntl.h>
-
 #include <fstream>
 #include <functional>
 #include <intrin.h>
 #include <iostream>
 #include <mutex>
+#include <Windows.h>
 
 using namespace cheat;
 
@@ -158,12 +160,13 @@ private:
 console::console( )
 {
 	cache_ = std::make_unique<cache_type>( );
-	nstd::rt_assert_object.add(this);
+	this->wait_for_service<csgo_awaiter>( );
+	nstd::rt_assert_object::get_ptr( )->add(this);
 }
 
 console::~console( )
 {
-	nstd::rt_assert_object.remove(this);
+	nstd::rt_assert_object::get_ptr( )->remove(this);
 
 	if (this->allocated_)
 	{
@@ -472,3 +475,5 @@ void console::write_line(detail::string_packer&& str)
 {
 	_Pack(str, _Write_or_cache_full, this, cache_);
 }
+
+CHEAT_REGISTER_SERVICE(console);

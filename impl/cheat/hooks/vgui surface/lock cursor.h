@@ -11,7 +11,7 @@ namespace cheat::csgo
 namespace cheat::hooks::vgui_surface
 {
 	class lock_cursor final: public hook_base<lock_cursor, void(csgo::ISurface::*)( )>
-						   , service_sometimes_skipped
+						   , service_maybe_skipped
 
 	{
 	public:

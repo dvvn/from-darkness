@@ -12,7 +12,7 @@ namespace cheat::csgo
 namespace cheat::hooks::client_mode
 {
 	class create_move final: public hook_base<create_move, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*)>
-						   , service_sometimes_skipped
+						   , service_maybe_skipped
 	{
 	public:
 		create_move( );

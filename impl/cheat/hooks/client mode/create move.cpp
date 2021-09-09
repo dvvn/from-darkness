@@ -1,6 +1,12 @@
 #include "create move.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/netvars/config.h"
+
+#include "cheat/players/players list.h"
 
 #include "cheat/sdk/CUserCmd.hpp"
 #include "cheat/sdk/IPrediction.hpp"
@@ -13,7 +19,7 @@ using namespace csgo;
 using namespace hooks::client_mode;
 
 create_move::create_move( )
-	: service_sometimes_skipped(
+	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -21,6 +27,7 @@ create_move::create_move( )
 #endif
 							   )
 {
+	this->wait_for_service<players_list>();
 }
 
 nstd::address create_move::get_target_method_impl( ) const
@@ -52,3 +59,6 @@ void create_move::callback(float input_sample_time, CUserCmd* cmd)
 					   .remove(4).deref(1)
 					   .remove(0x1C).ref<bool>( );
 }
+
+
+CHEAT_REGISTER_SERVICE(create_move);

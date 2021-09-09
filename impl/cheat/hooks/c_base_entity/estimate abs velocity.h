@@ -12,7 +12,7 @@ namespace cheat::csgo
 namespace cheat::hooks::c_base_entity
 {
 	class estimate_abs_velocity final: public hook_base<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
-									 , service_sometimes_skipped
+									 , service_maybe_skipped
 
 	{
 	public:

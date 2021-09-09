@@ -1,17 +1,21 @@
 ﻿#include "menu.h"
 #include "imgui context.h"
 
+#include "cheat/core/services loader.h"
+
 #include "cheat/features/aimbot.h"
 //#include "cheat/features/anti aim.h"
 //#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
 //#include "cheat/hooks/winapi/wndproc.h"
 
+#include "tools/string wrapper.h"
 #include "widgets/tab_bar_with_pages.h"
 
 #include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <random>
+#include <sstream>
 
 #include <Windows.h>
 
@@ -67,43 +71,6 @@ static constexpr std::string_view _Iso_date( )
 	return std::string_view(ret, std::size(ret) - 1);
 };
 
-//todo: move outside
-namespace cheat::gui::widgets
-{
-	class text: public renderable
-	{
-	public:
-		void render( ) override
-		{
-			ImGui::Text(text_);
-		}
-
-		void set(string_wrapper&& text)
-		{
-			text_ = std::move(text);
-		}
-
-	private:
-		string_wrapper text_;
-	};
-
-	template <typename ...Ts>
-	class multi_widget final: public renderable, public std::tuple<Ts...>
-	{
-		template <size_t ...I>
-		void render_impl(std::index_sequence<I...>)
-		{
-			(static_cast<renderable&>(std::get<I>(*this)).render( ), ...);
-		}
-
-	public:
-		void render( ) override
-		{
-			render_impl(std::index_sequence_for<Ts...>( ));
-		}
-	};
-};
-
 struct menu::impl
 {
 	string_wrapper menu_title;
@@ -115,22 +82,26 @@ struct menu::impl
 	{
 		const auto init_title = [&]
 		{
-			std::string name = /*CHEAT_NAME*/_STRINGIZE(VS_SolutionName);
-			name += " | ";
-			name += _Iso_date( );
+			std::ostringstream name;
+			name
+				<< /*CHEAT_NAME*/_STRINGIZE(VS_SolutionName)
+				<< " | "
+				<< _Iso_date( )
 #ifdef _DEBUG
-			name += _CONCAT(" | ", __TIME__);
+				<< " | "
+				<< __TIME__
 #endif
 
 #ifdef CHEAT_GUI_TEST
-			name += " (gui test)";
+				<< " (gui test)"
 #endif
 
 #ifdef _DEBUG
-			name += " DEBUG MODE";
+				<< " DEBUG MODE"
 #endif
+				;
 
-			menu_title = std::move(name);
+			menu_title = std::move(name).str( );
 		};
 
 		const auto init_tabs = [&]
@@ -139,46 +110,9 @@ struct menu::impl
 			pages->make_size_static( );
 
 			auto& rage_tab = *pages.add_item<tab_bar_with_pages>("rage"_shl);
-			rage_tab.add_item(features::aimbot::get_ptr_shared(true));
-
 			rage_tab->make_horisontal( );
 			rage_tab->make_size_auto( );
-
-			//---
-
-			auto& tab2 = *pages.add_item<tab_bar_with_pages>("test tab"_shl);
-			tab2->make_horisontal( );
-			tab2->make_size_auto( );
-
-			std::random_device rd;
-			std::mt19937       gen{rd( )};
-
-			auto       names     = std::array{"text"_shl, "text1"_shl, "1"_shl, "2"_shl, "long text"_shl, "longest text"_shl,};
-			const auto add_names = [&](tab_bar* where)
-			{
-				std::ranges::shuffle(names, gen);
-				for (auto& n: names)
-					where->add_tab(n);
-			};
-
-			auto& tab2_0all = *tab2.add_item<multi_widget<text, tab_bar>>("zero"_shl);
-			std::get<text>(tab2_0all).set("hello from multi widget");
-			auto tab2_0 = std::addressof(std::get<tab_bar>(tab2_0all));
-			add_names(tab2_0);
-			tab2_0->make_horisontal( );
-			tab2_0->make_size_static( );
-			auto tab2_1 = tab2.add_item<tab_bar>("one"_shl);
-			add_names(tab2_1);
-			tab2_1->make_horisontal( );
-			tab2_1->make_size_auto( );
-			auto tab2_2 = tab2.add_item<tab_bar>("two"_shl);
-			add_names(tab2_2);
-			tab2_2->make_vertical( );
-			tab2_2->make_size_auto( );
-			auto tab2_3 = tab2.add_item<tab_bar>("three"_shl);
-			add_names(tab2_3);
-			tab2_3->make_vertical( );
-			tab2_3->make_size_static( );
+			rage_tab.add_item(features::aimbot::get_ptr_shared(true));
 		};
 
 		init_title( );
@@ -188,6 +122,7 @@ struct menu::impl
 
 menu::menu( )
 {
+	this->wait_for_service<imgui_context>( );
 }
 
 menu::~menu( ) = default;
@@ -289,7 +224,7 @@ service_base::load_result menu::load_impl( )
 						return;
 				}
 
-				if (const auto skipped = dynamic_cast<service_sometimes_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
+				if (const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
 					return;
 
 				debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
@@ -313,3 +248,5 @@ service_base::load_result menu::load_impl( )
 
 	co_return service_state::loaded;
 }
+
+CHEAT_REGISTER_SERVICE(menu);

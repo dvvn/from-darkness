@@ -13,6 +13,7 @@ using namespace gui;
 
 wndproc::wndproc( )
 {
+	this->wait_for_service<imgui_context>( );
 }
 
 service_base::load_result wndproc::load_impl( )
@@ -134,3 +135,5 @@ void wndproc::render( )
 			override_return_to_ = 1;
 	}
 }
+
+CHEAT_REGISTER_SERVICE(wndproc);

@@ -3,6 +3,7 @@
 #include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style color.h"
 #include "cheat/gui/tools/push style var.h"
+#include "cheat/gui/tools/string wrapper.h"
 
 #include "nstd/runtime assert.h"
 

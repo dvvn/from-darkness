@@ -5,7 +5,7 @@
 namespace cheat
 {
 	class netvars final: public service<netvars>
-					   , service_sometimes_skipped
+					   , service_maybe_skipped
 	{
 	public:
 		~netvars( ) override;

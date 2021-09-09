@@ -76,4 +76,16 @@ namespace nstd
 			return weak;
 		}
 	};
+
+	template <typename T>
+	concept is_one_instance = requires
+	{
+		{ one_instance(T( )) }->std::destructible;
+	};
+
+	template <typename T>
+	concept is_one_instance_shared = requires
+	{
+		{ one_instance_shared(T( )) }->std::destructible;
+	};
 }

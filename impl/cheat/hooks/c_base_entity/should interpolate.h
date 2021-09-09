@@ -11,7 +11,7 @@ namespace cheat::csgo
 namespace cheat::hooks::c_base_entity
 {
 	class should_interpolate final: public hook_base<should_interpolate, bool(csgo::C_BaseEntity::*)( )>
-								  , service_sometimes_skipped
+								  , service_maybe_skipped
 	{
 	public:
 		should_interpolate( );

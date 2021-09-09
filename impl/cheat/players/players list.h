@@ -86,7 +86,7 @@ namespace cheat
 namespace cheat
 {
 	class players_list final: public service<players_list>
-							, service_sometimes_skipped
+							, service_maybe_skipped
 	{
 	public:
 		players_list( );

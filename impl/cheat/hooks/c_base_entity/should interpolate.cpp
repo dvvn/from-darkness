@@ -1,8 +1,14 @@
 #include "should interpolate.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/csgo modules.h"
+
 #include "cheat/sdk/ClientClass.hpp"
 #include "cheat/sdk/entity/C_BaseEntity.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/netvars/config.h"
+#include "cheat/netvars/netvars.h"
 
 using namespace cheat;
 using namespace hooks;
@@ -17,8 +23,9 @@ using namespace csgo;
 //csgo_modules::$2.find_vtable<$1>()
 
 should_interpolate::should_interpolate( )
-	: service_sometimes_skipped(true)
+	: service_maybe_skipped(true)
 {
+	this->wait_for_service<netvars>( );
 }
 
 nstd::address should_interpolate::get_target_method_impl( ) const
@@ -39,3 +46,5 @@ void should_interpolate::callback( )
 
 	this->return_value_.store_value(false);
 }
+
+CHEAT_REGISTER_SERVICE(should_interpolate);

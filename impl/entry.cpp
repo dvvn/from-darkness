@@ -73,7 +73,7 @@ int main(int, char**)
 	const auto try_load = []
 	{
 		using loader = cheat::services_loader;
-		auto       executor = loader::executor( );
+		auto       executor = loader::make_executor( );
 		const auto val = cppcoro::sync_wait(loader::get_ptr( )->load(executor));
 		return val == cheat::service_state::loaded;
 	};

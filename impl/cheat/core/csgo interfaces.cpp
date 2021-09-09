@@ -1,5 +1,8 @@
 #include "csgo interfaces.h"
 
+#include "console.h"
+#include "services loader.h"
+
 #include "cheat/core/csgo modules.h"
 #include "cheat/sdk/IAppSystem.hpp"
 
@@ -31,7 +34,6 @@ csgo_interface_base& csgo_interface_base::operator=(const nstd::address& addr)
 
 void csgo_interface_base::Set_result_assert_( ) const
 {
-	(void)this;
 	runtime_assert(result_ == 0u, "Result already set!");
 }
 
@@ -147,4 +149,7 @@ service_base::load_result csgo_interfaces::load_impl( )
 
 csgo_interfaces::csgo_interfaces( )
 {
+	this->wait_for_service<console>();
 }
+
+CHEAT_REGISTER_SERVICE(csgo_interfaces);

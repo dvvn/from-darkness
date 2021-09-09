@@ -1,6 +1,12 @@
 #include "draw model.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/netvars/config.h"
+
+#include "cheat/players/players list.h"
 
 using namespace cheat;
 using namespace csgo;
@@ -8,7 +14,7 @@ using namespace hooks;
 using namespace studio_render;
 
 draw_model::draw_model( )
-: service_sometimes_skipped(
+	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -16,6 +22,7 @@ draw_model::draw_model( )
 #endif
 							   )
 {
+	this->wait_for_service<players_list>( );
 }
 
 nstd::address draw_model::get_target_method_impl( ) const
@@ -29,3 +36,6 @@ void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& in
 						  const Vector&       model_origin, DrawModelFlags_t flags)
 {
 }
+
+
+CHEAT_REGISTER_SERVICE(draw_model);

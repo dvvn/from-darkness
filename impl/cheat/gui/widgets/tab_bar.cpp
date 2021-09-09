@@ -382,8 +382,10 @@ void tab_bar::render( )
 			return size;
 		}( );
 
-		if (wnd.begin(wnd_size))
+		//@note: render bored manually!
+		if (wnd.begin(wnd_size, false, ImGuiWindowFlags_None))
 		{
+			//@todo: move to global style
 			const auto temp_center = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
 
 			const auto want_sameline = direction == directions::HORISONTAL;

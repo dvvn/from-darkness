@@ -19,7 +19,7 @@ namespace cppcoro
 
 namespace cheat
 {
-	enum class service_state : std::uint8_t
+	enum class service_state : uint8_t
 	{
 		unset = 0,
 		waiting,
@@ -35,15 +35,10 @@ namespace cheat
 	concept root_service = std::derived_from<T, service_base>;
 
 	template <typename T>
-	concept derived_service = root_service<T> && std::default_initializable<T>;
+	concept derived_service = !requires { T::get_ptr( ); } && root_service<T> && std::default_initializable<T> ;
 
 	template <typename T>
-	concept shared_service = derived_service<T> && requires
-	{
-		T::get_ptr( );
-		T::get_ptr_weak( );
-		T::get_ptr_shared( );
-	};
+	concept shared_service = root_service<T> && nstd::is_one_instance_shared<T>;
 
 	struct service_base_fields
 	{
@@ -53,10 +48,10 @@ namespace cheat
 		service_base_fields(service_base_fields&& other) noexcept;
 		service_base_fields& operator=(service_base_fields&& other) noexcept;
 
-		service_state state;
+		std::atomic<service_state> state;
 
-		struct storage_type;
-		std::unique_ptr<storage_type> deps; //dependencies what must be loaded before
+		struct hidden_type;
+		std::unique_ptr<hidden_type> hidden;
 	};
 
 	class service_base
@@ -81,25 +76,26 @@ namespace cheat
 
 		stored_service find_service(const std::type_info& info) const;
 
-		template <derived_service T>
+		template <root_service T>
 		auto find_service( ) const
 		{
 			const auto found = find_service(typeid(T));
 			return std::dynamic_pointer_cast<T>(found);
 		}
 
-		void store_service(stored_service&& srv, const std::type_info& info);
-
+	private:
+		void add_service_dependency(stored_service&& srv, const std::type_info& info);
+	public:
 		template <derived_service T>
-		void add_service( )
+		void wait_for_service( )
 		{
-			store_service(std::make_shared<T>( ), typeid(T));
+			add_service_dependency(std::make_shared<T>( ), typeid(T));
 		}
 
 		template <shared_service T>
-		void add_service( )
+		void wait_for_service(bool steal = false)
 		{
-			store_service(T::get_ptr_shared(true), typeid(T));
+			add_service_dependency(T::get_ptr_shared(steal), typeid(T));
 		}
 
 		service_state state( ) const;
@@ -122,10 +118,10 @@ namespace cheat
 		virtual service_base_fields&       fields( ) =0;
 	};
 
-	class service_sometimes_skipped: public virtual service_base
+	class service_maybe_skipped: public virtual service_base
 	{
 	public:
-		service_sometimes_skipped(bool skip);
+		service_maybe_skipped(bool skip);
 		load_result load(executor& ex) final;
 
 		bool always_skipped( ) const;
@@ -142,8 +138,17 @@ namespace cheat
 		const std::type_info& type( ) const final { return typeid(T); }
 
 	protected:
-		const service_base_fields& fields( ) const final { return fileds_; }
-		service_base_fields&       fields( ) final { return fileds_; }
+		const service_base_fields& fields( ) const final
+		{
+			//_ReadWriteBarrier( );
+			return fileds_;
+		}
+
+		service_base_fields& fields( ) final
+		{
+			//_ReadWriteBarrier( );
+			return fileds_;
+		}
 
 	private:
 		service_base_fields fileds_;

@@ -59,8 +59,7 @@ namespace cheat::settings
 	class shared_data
 	{
 	public:
-		shared_data( );
-		virtual ~shared_data( );
+		virtual ~shared_data( )=default;
 
 		/*using ostream = std::basic_ostream<char, std::char_traits<char>>;
 		using istream = std::basic_istream<char, std::char_traits<char>>;

@@ -6,8 +6,6 @@
 
 using namespace nstd;
 
-rt_assert_handler_ex nstd::rt_assert_object;
-
 void rt_assert_handler::handle(bool result, rt_assert_arg_t&& expression, rt_assert_arg_t&& message, rt_assert_arg_t&& file_name, rt_assert_arg_t&& function, unsigned __int64 line) noexcept
 {
 	if (result == true)
@@ -15,20 +13,16 @@ void rt_assert_handler::handle(bool result, rt_assert_arg_t&& expression, rt_ass
 	this->handle_impl(expression, message, {std::move(file_name), std::move(function), line});
 }
 
+struct rt_assert_handler_ex::data_type: std::vector<element_type>
+{
+};
+
 rt_assert_handler_ex::rt_assert_handler_ex( )
 {
-	data_ = new data_type( );
+	data_ = std::make_unique<data_type>( );
 }
 
-rt_assert_handler_ex::~rt_assert_handler_ex( )
-{
-	if (data_ == nullptr)
-		return;
-
-	auto* const data = data_;
-	data->clear( );
-	delete data;
-}
+rt_assert_handler_ex::~rt_assert_handler_ex( ) = default;
 
 rt_assert_handler_ex::element_type::~element_type( )
 {
@@ -66,26 +60,25 @@ rt_assert_handler* rt_assert_handler_ex::element_type::operator->( ) const
 	return handle_;
 }
 
-rt_assert_handler_ex::rt_assert_handler_ex(rt_assert_handler_ex&& other) noexcept
-{
-	*this = std::move(other);
-}
+//rt_assert_handler_ex::rt_assert_handler_ex(rt_assert_handler_ex&& other) noexcept
+//{
+//	*this = std::move(other);
+//}
+//
+//rt_assert_handler_ex& rt_assert_handler_ex::operator=(rt_assert_handler_ex&& other) noexcept
+//{
+//	std::swap(data_, other.data_);
+//	return *this;
+//}
 
-rt_assert_handler_ex& rt_assert_handler_ex::operator=(rt_assert_handler_ex&& other) noexcept
-{
-	std::swap(data_, other.data_);
-	return *this;
-}
-
+// ReSharper disable once CppMemberFunctionMayBeConst
 void rt_assert_handler_ex::add(rt_assert_handler* handler, bool allocated)
 {
-	(void)this;
 	data_->push_back({handler, allocated});
 }
 
 void rt_assert_handler_ex::remove(const rt_assert_handler* handler)
 {
-	(void)this;
 	auto pos = std::ranges::remove_if(*data_, [=](const element_type& el) { return el == handler; });
 	data_->erase(pos.begin( ), pos.end( ));
 }

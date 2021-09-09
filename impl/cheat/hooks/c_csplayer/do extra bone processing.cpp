@@ -1,6 +1,11 @@
 #include "do extra bone processing.h"
 
 #include "cheat/core/csgo modules.h"
+#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/services loader.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/netvars/config.h"
 
 namespace cheat::csgo
 {
@@ -14,7 +19,7 @@ using namespace c_csplayer;
 using namespace csgo;
 
 do_extra_bone_processing::do_extra_bone_processing( )
-	: service_sometimes_skipped(
+	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -22,6 +27,7 @@ do_extra_bone_processing::do_extra_bone_processing( )
 #endif
 							   )
 {
+	this->wait_for_service<csgo_interfaces>( );
 }
 
 nstd::address do_extra_bone_processing::get_target_method_impl( ) const
@@ -40,3 +46,5 @@ void do_extra_bone_processing::callback([[maybe_unused]] CStudioHdr*   studio_hd
 
 	//DoProceduralFootPlant also skipped here
 }
+
+CHEAT_REGISTER_SERVICE(do_extra_bone_processing);

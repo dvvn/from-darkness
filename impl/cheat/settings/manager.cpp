@@ -1,6 +1,8 @@
 #include "manager.h"
 #include "shared_data.h"
 
+#include "nstd/runtime assert.h"
+
 #ifdef CHEAT_GUI_TEST
 #include "nstd/os/module info.h"
 #else
@@ -97,21 +99,22 @@ struct manager::impl
 		path = []( )-> std::filesystem::path
 		{
 #ifdef CHEAT_GUI_TEST
-			return nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
+			return NSTD_STRINGIZE_RAW(VS_SolutionDir) NSTD_STRINGIZE_RAW(\.out\);
+			//return nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
 #else
 			static const auto path = []
 			{
 				PWSTR      buffer = nullptr;
-				const auto hr = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, std::addressof(buffer));
+				const auto hr     = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, std::addressof(buffer));
 				runtime_assert(SUCCEEDED(hr));
 				auto ret = std::filesystem::path(buffer);
 				CoTaskMemFree(buffer);
-				return ret;
-			}();
+				return ret /= _STRINGIZE(VS_SolutionName);
+			}( );
 			return path;
 
 #endif
-		}( ) / "settings";
+		}( ) /= "settings";
 	}
 
 	std::vector<std::shared_ptr<shared_data>> data;
@@ -124,9 +127,9 @@ manager::manager( )
 
 manager::~manager( ) = default;
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void manager::add(const std::shared_ptr<shared_data>& shared)
 {
-	(void)this;
 	impl_->data.push_back(shared);
 }
 

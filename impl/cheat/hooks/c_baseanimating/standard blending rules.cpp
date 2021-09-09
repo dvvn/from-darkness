@@ -1,10 +1,16 @@
 #include "standard blending rules.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
+
 #include "cheat/sdk/Studio.hpp"
 
 #include "cheat/sdk/entity/C_BaseAnimating.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/netvars/config.h"
+#include "cheat/netvars/netvars.h"
 
 #include <nstd/enum overloads.h>
 
@@ -15,7 +21,7 @@ using namespace c_base_animating;
 using namespace csgo;
 
 standard_blending_rules::standard_blending_rules( )
-	: service_sometimes_skipped(
+	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -23,6 +29,7 @@ standard_blending_rules::standard_blending_rules( )
 #endif
 							   )
 {
+		this->wait_for_service<netvars>( );
 }
 
 nstd::address standard_blending_rules::get_target_method_impl( ) const
@@ -69,3 +76,5 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 	}*/
 #endif
 }
+
+CHEAT_REGISTER_SERVICE(standard_blending_rules);

@@ -19,7 +19,7 @@ namespace cheat::hooks::c_csplayer
 	class do_extra_bone_processing final: public hook_base<do_extra_bone_processing,
 													  void(csgo::C_BaseAnimating::*)
 													  (csgo::CStudioHdr*, csgo::Vector*, csgo::Quaternion*, csgo::matrix3x4a_t*, csgo::CBoneBitList&, csgo::CIKContext*)>
-										, service_sometimes_skipped
+										, service_maybe_skipped
 
 	{
 	public:

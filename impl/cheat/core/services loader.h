@@ -29,6 +29,8 @@ namespace cheat
 #endif
 		std::stop_token load_thread_stop_token( ) const;
 
+		static executor make_executor();
+
 	protected:
 		load_result load_impl( ) override;
 		void        after_load( ) override;
@@ -63,4 +65,8 @@ namespace cheat
 		std::vector<load_info> storage_;
 #endif
 	};
+
+#define CHEAT_REGISTER_SERVICE(_TYPE_)\
+	[[maybe_unused]]\
+	static const auto _CONCAT(_Unused,__COUNTER__) = (services_loader::get_ptr()->wait_for_service<_TYPE_>(true), 0)
 }

@@ -1,6 +1,8 @@
 #include "lock cursor.h"
 
 #include "cheat/core/csgo interfaces.h"
+#include "cheat/core/services loader.h"
+
 #include "cheat/gui/menu.h"
 #include "cheat/sdk/ISurface.hpp"
 
@@ -10,7 +12,7 @@ using namespace hooks;
 using namespace vgui_surface;
 
 lock_cursor::lock_cursor( )
-	: service_sometimes_skipped(
+	: service_maybe_skipped(
 #ifdef CHEAT_GUI_TEST
 								true
 #else
@@ -18,6 +20,7 @@ lock_cursor::lock_cursor( )
 #endif
 							   )
 {
+	this->wait_for_service<gui::menu>( );
 }
 
 nstd::address lock_cursor::get_target_method_impl( ) const
@@ -29,7 +32,9 @@ void lock_cursor::callback( )
 {
 	if (!object_instance->IsCursorVisible( ) && gui::menu::get_ptr( )->visible( ))
 	{
-		this->return_value_.set_original_called(true);
+		return_value_.set_original_called(true);
 		object_instance->UnlockCursor( );
 	}
 }
+
+CHEAT_REGISTER_SERVICE(lock_cursor);

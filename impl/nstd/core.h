@@ -7,7 +7,7 @@
 #define NSTD_STRINGIZE _STRINGIZE
 #endif
 
-#define NSTD_RAW(x) NSTD_CONCAT(R,NSTD_STRINGIZE(##(x)##))
+#define NSTD_STRINGIZE_RAW(x) NSTD_CONCAT(R,NSTD_STRINGIZE(##(x)##))
 
 #ifndef _CONCAT
 #define NSTD_CONCATX(x, y) x##y

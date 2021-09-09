@@ -1,10 +1,12 @@
 #include "should skip animation frame.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/netvars/config.h"
+#include "cheat/netvars/netvars.h"
 
 #include "cheat/sdk/ClientClass.hpp"
 #include "cheat/sdk/entity/C_BaseAnimating.h"
@@ -21,7 +23,7 @@ using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame( )
 	: non_abstract_label(nstd::drop_namespaces(nstd::type_name<should_skip_animation_frame>))
-	, service_sometimes_skipped(
+	, service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -29,6 +31,7 @@ should_skip_animation_frame::should_skip_animation_frame( )
 #endif
 							   )
 {
+	this->wait_for_service<netvars>( );
 }
 
 nstd::address should_skip_animation_frame::get_target_method_impl( ) const
@@ -125,3 +128,5 @@ void should_skip_animation_frame::render( )
 			override_return_to__ = true;
 	}
 }
+
+CHEAT_REGISTER_SERVICE(should_skip_animation_frame);

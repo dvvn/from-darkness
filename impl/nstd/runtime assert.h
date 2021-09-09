@@ -1,20 +1,7 @@
 #pragma once
 
-#include <type_traits>
-
-namespace std
-{
-	template <typename T>
-	class allocator;
-
-	template <class T, class Alloc>
-	class vector;
-
-	template <class El, class Tr>
-	class basic_ostream;
-}
-
 #include "core.h"
+#include "one_instance.h"
 
 namespace nstd
 {
@@ -119,13 +106,10 @@ namespace nstd
 			bool               allocated_;
 		};
 
-		using data_type = std::vector<element_type, std::allocator<element_type>>;
+		struct data_type;
 
-		rt_assert_handler_ex(const rt_assert_handler_ex&)            = delete;
-		rt_assert_handler_ex& operator=(const rt_assert_handler_ex&) = delete;
-
-		rt_assert_handler_ex(rt_assert_handler_ex&& other) noexcept;
-		rt_assert_handler_ex& operator=(rt_assert_handler_ex&& other) noexcept;
+		//rt_assert_handler_ex(rt_assert_handler_ex&& other) noexcept;
+		//rt_assert_handler_ex& operator=(rt_assert_handler_ex&& other) noexcept;
 
 		void add(rt_assert_handler* handler, bool allocated = false);
 		void remove(const rt_assert_handler* handler);
@@ -134,10 +118,10 @@ namespace nstd
 		void handle_impl(const rt_assert_arg_t& expression, const rt_assert_arg_t& message, const info_type& info) noexcept override;
 
 	private:
-		data_type* data_;
+		std::unique_ptr<data_type> data_;
 	};
 
-	extern rt_assert_handler_ex rt_assert_object;
+	using rt_assert_object = one_instance<rt_assert_handler_ex>;
 
 	namespace detail
 	{
@@ -168,12 +152,13 @@ namespace nstd
 		else
 		{
 			// ReSharper disable once CppUnreachableCode
-			rt_assert_object.handle(result,
-									static_cast<rt_assert_arg_t&&>(expression),
-									static_cast<rt_assert_arg_t&&>(message),
-									static_cast<rt_assert_arg_t&&>(file_name),
-									static_cast<rt_assert_arg_t&&>(function),
-									line);
+			rt_assert_object::get_ptr( )->handle
+				(result,
+				 static_cast<rt_assert_arg_t&&>(expression),
+				 static_cast<rt_assert_arg_t&&>(message),
+				 static_cast<rt_assert_arg_t&&>(file_name),
+				 static_cast<rt_assert_arg_t&&>(function),
+				 line);
 		}
 	}
 }

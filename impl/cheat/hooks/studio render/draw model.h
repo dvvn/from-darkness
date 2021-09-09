@@ -17,7 +17,7 @@ namespace cheat::hooks::studio_render
 {
 	class draw_model final: public hook_base<draw_model, void(csgo::IStudioRender::*)
 										(csgo::DrawModelResults_t*, const csgo::DrawModelInfo_t&, csgo::matrix3x4_t*, float*, float*, const csgo::Vector&, csgo::DrawModelFlags_t)>
-						  , service_sometimes_skipped
+						  , service_maybe_skipped
 	{
 	public:
 		draw_model( );

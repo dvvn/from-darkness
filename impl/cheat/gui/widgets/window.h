@@ -1,11 +1,18 @@
 #pragma once
 
 #include "widget animator.h"
-#include "cheat/gui/tools/string wrapper.h"
 
-#include <imgui.h>
+// ReSharper disable CppInconsistentNaming
+struct ImVec2;
+enum ImGuiWindowFlags_;
+using ImGuiID = unsigned int;
+using ImGuiWindowFlags = int;
+// ReSharper restore CppInconsistentNaming
 
-
+namespace cheat::gui::tools
+{
+	class perfect_string;
+}
 
 namespace cheat::gui::widgets
 {
@@ -14,7 +21,7 @@ namespace cheat::gui::widgets
 	public:
 		window(tools::animator&& fade = { });
 
-		bool begin(tools::perfect_string&& title, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
+		bool begin(tools::perfect_string&& title, ImGuiWindowFlags_ flags);
 		void end( );
 
 		void show( );
@@ -48,8 +55,8 @@ namespace cheat::gui::widgets
 		};
 
 		[[deprecated]]
-		bool begin(const size_info& size_info_x, const size_info& size_info_y, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
-		bool begin(const ImVec2& size, bool border = false, ImGuiWindowFlags_ flags = ImGuiWindowFlags_None);
+		bool begin(const size_info& size_info_x, const size_info& size_info_y, bool border, ImGuiWindowFlags_ flags);
+		bool begin(const ImVec2& size, bool border , ImGuiWindowFlags_ flags);
 
 		void end( );
 

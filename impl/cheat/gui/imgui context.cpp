@@ -1,6 +1,7 @@
 #include "imgui context.h"
 
 #include "cheat/core/csgo interfaces.h"
+#include "cheat/core/services loader.h"
 
 #include <imgui_internal.h>
 #include <imgui_impl_dx9.h>
@@ -64,6 +65,7 @@ imgui_context::~imgui_context( )
 imgui_context::imgui_context( )
 {
 	data_ = std::make_unique<data_type>( );
+	this->wait_for_service<csgo_interfaces>( );
 }
 
 service_base::load_result imgui_context::load_impl( )
@@ -84,7 +86,29 @@ service_base::load_result imgui_context::load_impl( )
 	ImGui::SetCurrentContext(std::addressof(data_->ctx));
 	ImGui::Initialize(std::addressof(data_->ctx));
 
-	auto& io       = data_->ctx.IO;
+	auto& io = data_->ctx.IO;
+	[[maybe_unused]]
+		auto& style = data_->ctx.Style;
+
+	const auto set_style = [&]
+	{
+#if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
+
+		/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;
+
+		shadow_cfg.TexCornerSize          = 16 ;
+		shadow_cfg.TexEdgeSize            = 1;
+		shadow_cfg.TexFalloffPower        = 4.8f ;
+		shadow_cfg.TexDistanceFieldOffset = 3.8f ;*/
+
+		style.WindowShadowSize              = 30;
+		style.WindowShadowOffsetDist        = 10;
+		style.Colors[ImGuiCol_WindowShadow] = /*ImColor(0, 0, 0, 255)*/style.Colors[ImGuiCol_WindowBg];
+#endif
+	};
+
+	set_style( );
+
 	io.IniFilename = nullptr;
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
@@ -103,7 +127,7 @@ service_base::load_result imgui_context::load_impl( )
 		font_cfg.GlyphRanges = /*io.Fonts->GetGlyphRangesCyrillic( )*/ranges;
 
 #if !defined(_DEBUG) && 0
-	return io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 15.0f, std::addressof(font_cfg), nullptr);
+		return io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 15.0f, std::addressof(font_cfg), nullptr);
 #else
 		return io.Fonts->AddFontDefault(std::addressof(font_cfg));
 #endif
@@ -133,3 +157,5 @@ service_base::load_result imgui_context::load_impl( )
 
 	co_return service_state::loaded;
 }
+
+CHEAT_REGISTER_SERVICE(imgui_context);

@@ -1,7 +1,12 @@
 #include "frame stage notify.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
+
 #include "cheat/players/players list.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/netvars/config.h"
 
 #include "cheat/sdk/IBaseClientDll.hpp"
 
@@ -10,7 +15,7 @@ using namespace csgo;
 using namespace hooks::client;
 
 frame_stage_notify::frame_stage_notify( )
-	: service_sometimes_skipped(
+	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 								true
 #else
@@ -18,6 +23,7 @@ frame_stage_notify::frame_stage_notify( )
 #endif
 							   )
 {
+	this->wait_for_service<players_list>();
 }
 
 nstd::address frame_stage_notify::get_target_method_impl( ) const
@@ -44,3 +50,5 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 			break;
 	}
 }
+
+CHEAT_REGISTER_SERVICE(frame_stage_notify);

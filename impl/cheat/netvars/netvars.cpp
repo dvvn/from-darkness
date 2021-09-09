@@ -1,6 +1,7 @@
 #include "netvars.h"
 #include "config.h"
 
+#include "cheat/core/services loader.h"
 #include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
@@ -76,7 +77,7 @@ struct netvars::hidden
 netvars::~netvars( ) = default;
 
 netvars::netvars( )
-	: service_sometimes_skipped(
+	: service_maybe_skipped(
 #ifdef CHEAT_NETVARS_DUMPER_DISABLED
 								true
 #else
@@ -85,6 +86,7 @@ netvars::netvars( )
 							   )
 {
 	hidden_ = std::make_unique<hidden>( );
+	this->wait_for_service<csgo_interfaces>();
 }
 
 static std::string _Str_to_lower(const std::string_view& str)
@@ -665,10 +667,10 @@ service_base::load_result netvars::load_impl( )
 	co_return service_state::loaded;
 }
 
-#define CHEAT_SOLUTION_DIR NSTD_RAW(VS_SolutionDir)"\\"
-#define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR NSTD_RAW(.out\dumps\)
-#define CHEAT_ROOT_DIR CHEAT_SOLUTION_DIR NSTD_RAW(impl\)
-#define CHEAT_SOURCE_DIR CHEAT_ROOT_DIR NSTD_RAW(cheat\)
+#define CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(VS_SolutionDir)"\\"
+#define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(.out\dumps\)
+#define CHEAT_ROOT_DIR CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(impl\)
+#define CHEAT_SOURCE_DIR CHEAT_ROOT_DIR NSTD_STRINGIZE_RAW(cheat\)
 
 // ReSharper disable CppInconsistentNaming
 static const auto CHEAT_NETVARS_GENERATED_CLASSES_DIR = std::filesystem::path(CHEAT_SOURCE_DIR) / L"sdk" / L"generated";
@@ -802,8 +804,6 @@ _WORK:
 			runtime_assert("Unable to get dynamic includes!");
 #else
 
-			
-
 			struct include_name: std::string
 			{
 				include_name(std::string&& name, bool global)
@@ -827,7 +827,7 @@ _WORK:
 				else if (std::isupper(netvar_type[0])) //Vector Qangle etc
 				{
 					std::string extension;
-					for (auto& entry: std::filesystem::directory_iterator(CHEAT_SOURCE_DIR NSTD_RAW(sdk\)))
+					for (auto& entry: std::filesystem::directory_iterator(CHEAT_SOURCE_DIR NSTD_STRINGIZE_RAW(sdk\)))
 					{
 						if (!entry.is_regular_file( ))
 							continue;
@@ -977,6 +977,7 @@ int netvars::at(const std::string_view& table, const std::string_view& item) con
 	}
 
 	runtime_assert(false, std::format(__FUNCTION__": table {} not found", table).c_str( ));
-
 	return 0;
 }
+
+CHEAT_REGISTER_SERVICE(netvars);
