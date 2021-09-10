@@ -32,11 +32,11 @@ bool selectable::operator()(perfect_string&& label, ImGuiSelectableFlags_ flags,
 	}
 }
 
-selectable_internal::selectable_internal(bool selected): selectable(selected)
-{
-}
-
-bool selectable_internal::operator()(ImGuiSelectableFlags_ flags, const ImVec2& size)
-{
-	return std::invoke(*static_cast<selectable*>(this), Label( ), flags, size);
-}
+//selectable_internal::selectable_internal(bool selected): selectable(selected)
+//{
+//}
+//
+//bool selectable_internal::operator()(ImGuiSelectableFlags_ flags, const ImVec2& size)
+//{
+//	return std::invoke(*static_cast<selectable*>(this), Label( ), flags, size);
+//}

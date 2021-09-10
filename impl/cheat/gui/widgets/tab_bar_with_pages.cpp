@@ -1,5 +1,7 @@
 #include "tab_bar_with_pages.h"
 
+#include "nstd/runtime assert.h"
+
 #include <imgui.h>
 
 #include <vector>
@@ -24,13 +26,14 @@ tab_bar_with_pages::~tab_bar_with_pages( ) = default;
 
 void tab_bar_with_pages::render( )
 {
-	auto& [bar, wnds] = *impl_;
+	auto& [_Bar, _Wnds] = *impl_;
+	runtime_assert(!_Wnds.empty());
 
 	ImGui::BeginGroup( );
 	{
-		bar.render( );
+		_Bar.render( );
 
-		auto& selected = *wnds[bar.get_selected_index( )];
+		auto& selected = *_Wnds[_Bar.get_selected_index( )];
 
 		const auto render_selected_horisontal = [&]
 		{
@@ -43,7 +46,7 @@ void tab_bar_with_pages::render( )
 			//ImGui::SameLine( );
 		};
 
-		bar.is_vertical( ) ? render_selected_verical( ) : render_selected_horisontal( );
+		_Bar.is_vertical( ) ? render_selected_verical( ) : render_selected_horisontal( );
 	}
 	ImGui::EndGroup( );
 }

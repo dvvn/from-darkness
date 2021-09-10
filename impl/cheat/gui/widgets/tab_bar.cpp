@@ -3,7 +3,6 @@
 #include "selectable.h"
 #include "window.h"
 
-#include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style var.h"
 #include "cheat/gui/objects/shared_label.h"
 
@@ -15,23 +14,24 @@
 #include <numeric>
 #include <ranges>
 #include <vector>
+#include <functional>
 
 using namespace cheat::gui;
 using namespace widgets;
 using namespace objects;
 using namespace tools;
 
-static ImVec2 _Chars_to_size(size_t count)
-{
-	const auto& chr_size = _Get_char_size( );
-	//const auto& style    = ImGui::GetStyle( );
+//static ImVec2 _Chars_to_size(size_t count)
+//{
+//	const auto& chr_size = _Get_char_size( );
+//	//const auto& style    = ImGui::GetStyle( );
+//
+//	//const auto frame_padding = style.FramePadding.x * 2.f;
+//
+//	return {chr_size.x * count, chr_size.y};
+//}
 
-	//const auto frame_padding = style.FramePadding.x * 2.f;
-
-	return {chr_size.x * count, chr_size.y};
-}
-
-class tab_bar::item: selectable
+class tab_bar::item final: selectable
 {
 public:
 	item(const shared_label& label/*, std::optional<ImVec2> size = { }*/)
@@ -40,74 +40,28 @@ public:
 		//size.has_value( ) ? set_size(*size) : set_size_auto( );
 	}
 
+	item(const item&)            = delete;
+	item& operator=(const item&) = delete;
+
+	item(item&&)            = default;
+	item& operator=(item&&) = default;
+
 	using selectable::select;
 	using selectable::deselect;
 	using selectable::toggle;
 	using selectable::selected;
 
-private:
-	void update_label_hash( )
+	bool render(const std::optional<ImVec2>& size_override)
 	{
-		if (!label_hash_.has_value( ))
-			return;
-
-		const auto& label = label_->label( );
-		const auto  hash  = std::invoke(std::hash<std::remove_cvref_t<decltype(label)>>( ), label);
-
-		auto& old_hash = *label_hash_;
-		if (old_hash == hash)
-			return;
-
-		old_hash = hash;
-		on_label_changed( );
+		const auto& size = size_override.has_value( ) ? *size_override : this->size( );
+		return std::invoke(*static_cast<selectable*>(this), this->label( ), ImGuiSelectableFlags_None, size);
 	}
 
-public:
-	bool render( )
-	{
-		this->update_label_hash( );
-
-		return std::invoke(*static_cast<selectable*>(this), this->label( ), ImGuiSelectableFlags_None, size_);
-	}
-
-	const ImVec2& size( ) const { return size_; }
-
-	void set_size(size_t chars_count)
-	{
-		const auto size = _Chars_to_size(chars_count);
-		this->set_size(size);
-	}
-
-	void set_size(const ImVec2& size)
-	{
-		label_hash_.reset( );
-		size_ = size;
-	}
-
-	void set_size_auto( )
-	{
-		if (label_hash_.has_value( ))
-			return;
-
-		label_hash_.emplace<size_t>(0);
-		update_label_hash( );
-	}
-
-	const string_wrapper& label( ) const
-	{
-		return label_->label( );
-	}
+	const ImVec2&         size( ) const { return label_->get_size( ); }
+	const string_wrapper& label( ) const { return label_->get_label( ); }
 
 private:
-	shared_label          label_;
-	std::optional<size_t> label_hash_;
-
-	ImVec2 size_;
-
-	void on_label_changed( )
-	{
-		size_ = _Chars_to_size(this->label( ).raw( ).size( ));
-	}
+	shared_label label_;
 };
 
 enum class directions :uint8_t
@@ -173,8 +127,8 @@ struct tab_bar::impl
 	child_frame_window wnd;
 	std::vector<item>  items;
 
-	delayed_value<size_modes> size_mode = size_modes::UNSET;
-	delayed_value<directions> dir       = directions::UNSET;
+	size_modes size_mode = size_modes::UNSET;
+	directions dir       = directions::UNSET;
 };
 
 tab_bar::tab_bar( )
@@ -198,7 +152,7 @@ size_t tab_bar::get_index(perfect_string&& title) const
 // ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::add_tab(const shared_label& title)
 {
-	runtime_assert(get_index(title->label( )) == static_cast<size_t>(-1));
+	runtime_assert(get_index(title->get_label( )) == static_cast<size_t>(-1));
 	auto& items = impl_->items;
 
 	items.push_back(title);
@@ -219,6 +173,22 @@ size_t tab_bar::get_selected_index( ) const
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
+void tab_bar::sort(const sort_pred& pred)
+{
+	std::ranges::sort(impl_->items, std::ref(pred), [](const item& i)-> const string_wrapper& { return i.label( ); });
+}
+
+size_t tab_bar::size( ) const
+{
+	return impl_->items.size( );
+}
+
+bool tab_bar::empty( ) const
+{
+	return impl_->items.size( );
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::make_size_static( )
 {
 	impl_->size_mode = size_modes::STATIC;
@@ -228,47 +198,6 @@ void tab_bar::make_size_static( )
 void tab_bar::make_size_auto( )
 {
 	impl_->size_mode = size_modes::AUTO;
-}
-
-void tab_bar::handle_size_change( )
-{
-	auto& size_mode = impl_->size_mode;
-	auto& new_val   = size_mode.begin_update( );
-	if (!new_val)
-		return;
-
-	switch (*new_val)
-	{
-		case size_modes::STATIC:
-		{
-			auto& items = impl_->items;
-
-			const auto longest = [&]
-			{
-				const auto sizes = items
-								   | std::views::transform(&item::label)
-								   | std::views::transform(&string_wrapper::raw)
-								   | std::views::transform(&std::wstring_view::size);
-				return *std::ranges::max_element(sizes);
-			}( );
-
-			for (auto& i: items)
-				i.set_size(longest);
-			break;
-		}
-		case size_modes::AUTO:
-		{
-			std::ranges::for_each(impl_->items, &item::set_size_auto);
-			break;
-		}
-		default:
-		{
-			runtime_assert("Wrong size mode!");
-			break;
-		}
-	}
-
-	size_mode.end_update( );
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -283,129 +212,131 @@ void tab_bar::make_vertical( )
 	impl_->dir = directions::VERTICAL;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void tab_bar::handle_direction_change( )
-{
-	auto& dir = impl_->dir;
-	if (!dir.begin_update( ))
-		return;
-
-	//-----
-
-	dir.end_update( );
-}
-
 bool tab_bar::is_horisontal( ) const
 {
-	return impl_->dir.get( ) == directions::HORISONTAL;
+	return impl_->dir == directions::HORISONTAL;
 }
 
 bool tab_bar::is_vertical( ) const
 {
-	return impl_->dir.get( ) == directions::VERTICAL;
+	return impl_->dir == directions::VERTICAL;
 }
 
 void tab_bar::render( )
 {
-	this->handle_size_change( );
-	this->handle_direction_change( );
+	auto& [_Wnd, _Items, _Size_mode, _Direction] = *impl_;
+	runtime_assert(!_Items.empty());
 
-	const auto& direction = impl_->dir.get( );
-
-	const auto render_bar = [&]
+	// ReSharper disable once CppTooWideScopeInitStatement
+	const auto wnd_size = [&]
 	{
-		auto& wnd   = impl_->wnd;
-		auto& items = impl_->items;
+		const auto& style = ImGui::GetStyle( );
 
-		// ReSharper disable once CppTooWideScopeInitStatement
-		const auto wnd_size = [&]
+		//const auto indent_headers = style.ItemInnerSpacing.x;
+		//const auto indent_page = style./*ItemInnerSpacing*/ItemSpacing.x; //ImGui use ItemSpacing by default
+
+		const auto frame_padding = style.FramePadding * 2.f;
+
+		const auto size_transform_helper = [&]<typename T>(T&& xy)
 		{
-			const auto& style = ImGui::GetStyle( );
+			return _Items
+				   | std::views::transform(&item::size)
+				   | std::views::transform(/*&ImVec2::x*/xy);
+		};
 
-			//const auto indent_headers = style.ItemInnerSpacing.x;
-			//const auto indent_page = style./*ItemInnerSpacing*/ItemSpacing.x; //ImGui use ItemSpacing by default
-
-			const auto frame_padding = style.FramePadding * 2.f;
-
-			const auto transform_helper = [&]<typename T>(T&& xy)
+		ImVec2 size;
+		if (_Direction == directions::HORISONTAL)
+		{
+			const auto reserve_x = [&]
 			{
-				return items
-					   | std::views::transform(&item::size)
-					   | std::views::transform(/*&ImVec2::x*/xy);
+				const auto sizes = size_transform_helper(&ImVec2::x);
+				return std::accumulate(sizes.begin( ), sizes.end( ), 0.f);
+			};
+			const auto reserve_y = [&]
+			{
+				const auto sizes = size_transform_helper(&ImVec2::y);
+				return *std::ranges::max_element(sizes);
 			};
 
-			ImVec2 size;
-			if (direction == directions::HORISONTAL)
+			size.x = frame_padding.x +                           //space before and after
+					 /*indent_headers +*/                        //to indent first selectable
+					 reserve_x( ) +                              //reserve width for all strings / whole data
+					 style.ItemSpacing.x * (_Items.size( ) - 1); //space between all headers
+
+			size.y = frame_padding.y + //space before and after
+					 reserve_y( );     //word height
+		}
+		else if (_Direction == directions::VERTICAL)
+		{
+			const auto reserve_x = [&]
 			{
-				const auto reserve_x = [&]
-				{
-					const auto sizes = transform_helper(&ImVec2::x);
-					return std::accumulate(sizes.begin( ), sizes.end( ), 0.f);
-				};
-				const auto reserve_y = [&]
-				{
-					const auto sizes = transform_helper(&ImVec2::y);
-					return *std::ranges::max_element(sizes);
-				};
-
-				size.x = frame_padding.x +                          //space before and after
-						 /*indent_headers +*/                       //to indent first selectable
-						 reserve_x( ) +                             //reserve width for all strings / whole data
-						 style.ItemSpacing.x * (items.size( ) - 1); //space between all headers
-
-				size.y = frame_padding.y + //space before and after
-						 reserve_y( );     //word height
-			}
-			else if (direction == directions::VERTICAL)
+				const auto sizes = size_transform_helper(&ImVec2::x);
+				return *std::ranges::max_element(sizes);
+			};
+			const auto reserve_y = [&]
 			{
-				const auto reserve_x = [&]
-				{
-					const auto sizes = transform_helper(&ImVec2::x);
-					return *std::ranges::max_element(sizes);
-				};
-				const auto reserve_y = [&]
-				{
-					const auto sizes = transform_helper(&ImVec2::y);
-					return std::accumulate(sizes.begin( ), sizes.end( ), 0.f);
-				};
+				const auto sizes = size_transform_helper(&ImVec2::y);
+				return std::accumulate(sizes.begin( ), sizes.end( ), 0.f);
+			};
 
-				size.x = frame_padding.x + //space before and after
-						 reserve_x( );     //reserve width for longest string
+			size.x = frame_padding.x + //space before and after
+					 reserve_x( );     //reserve width for longest string
 
-				size.y = frame_padding.y +                          //space before and after
-						 reserve_y( ) +                             //all strings height						                            
-						 style.ItemSpacing.y * (items.size( ) - 1); //space between all string
+			size.y = frame_padding.y +                           //space before and after
+					 reserve_y( ) +                              //all strings height						                            
+					 style.ItemSpacing.y * (_Items.size( ) - 1); //space between all string
+		}
+		else
+			runtime_assert("Unknown direction");
+
+		return size;
+	}( );
+
+	//@note: render border manually!
+	if (_Wnd.begin(wnd_size, false, ImGuiWindowFlags_None))
+	{
+		//@todo: move to global style
+		const auto temp_center = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
+
+		const auto want_sameline = _Direction == directions::HORISONTAL;
+		const auto items_count   = _Items.size( );
+		const auto last_item_idx = items_count - 1;
+
+		const auto item_static_size = [&]( )-> std::optional<ImVec2>
+		{
+			if (_Size_mode != size_modes::STATIC)
+				return { };
+
+			float max_x = 0;
+			float max_y = 0;
+
+			for (auto& i: _Items | std::views::transform(&item::size))
+			{
+				if (max_x < i.x)
+					max_x = i.x;
+				if (max_y < i.y)
+					max_y = i.y;
 			}
-			else
-				runtime_assert("Unknown direction");
 
-			return size;
+			/*const auto sizes_x = size_transform_helper(&ImVec2::x);
+			const auto sizes_y = size_transform_helper(&ImVec2::y);
+
+			const auto max_x = *std::ranges::max_element(sizes_x);
+			const auto max_y = *std::ranges::max_element(sizes_y);*/
+
+			return ImVec2(max_x, max_y);
 		}( );
 
-		//@note: render bored manually!
-		if (wnd.begin(wnd_size, false, ImGuiWindowFlags_None))
+		for (size_t i = 0; i < items_count; i++)
 		{
-			//@todo: move to global style
-			const auto temp_center = push_style_var(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-
-			const auto want_sameline = direction == directions::HORISONTAL;
-			const auto items_count   = items.size( );
-			const auto last_item_idx = items_count - 1;
-			for (size_t i = 0; i < items_count; i++)
+			if (auto& item = _Items[i]; item.render(item_static_size))
 			{
-				if (auto& item = items[i]; item.render( ))
-				{
-					items[this->get_selected_index( )].deselect( );
-					item.select( );
-				}
-				if (want_sameline && i < last_item_idx)
-					ImGui::SameLine( );
+				_Items[this->get_selected_index( )].deselect( );
+				item.select( );
 			}
+			if (want_sameline && i < last_item_idx)
+				ImGui::SameLine( );
 		}
-		wnd.end( );
-	};
-
-	//-----
-
-	render_bar( );
+	}
+	_Wnd.end( );
 }

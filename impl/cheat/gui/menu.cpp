@@ -1,22 +1,24 @@
 ﻿#include "menu.h"
+
 #include "imgui context.h"
 
 #include "cheat/core/services loader.h"
-
 #include "cheat/features/aimbot.h"
 //#include "cheat/features/anti aim.h"
 //#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
 //#include "cheat/hooks/winapi/wndproc.h"
 
 #include "tools/string wrapper.h"
+
 #include "widgets/tab_bar_with_pages.h"
+
+#include <nstd/runtime assert.h>
 
 #include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <random>
 #include <sstream>
-
 #include <Windows.h>
 
 using namespace cheat;
@@ -25,68 +27,68 @@ using namespace objects;
 using namespace tools;
 using namespace widgets;
 
-static constexpr std::string_view _Iso_date( )
-{
-	// ReSharper disable once CppVariableCanBeMadeConstexpr
-	const uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
-	// ReSharper disable once CppVariableCanBeMadeConstexpr
-	const uint32_t compile_month = []
-	{
-		switch (__DATE__[0])
-		{
-			case 'J': // Jan, Jun or Jul
-				return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
-			case 'F': // Feb
-				return 2;
-			case 'M': // Mar or May
-				return (__DATE__[2] == 'r' ? 3 : 5);
-			case 'A': // Apr or Aug
-				return (__DATE__[2] == 'p' ? 4 : 8);
-			case 'S': // Sep
-				return 9;
-			case 'O': // Oct
-				return 10;
-			case 'N': // Nov
-				return 11;
-			case 'D': // Dec
-				return 12;
-		}
-		throw;
-	}( );
-
-	// ReSharper disable once CppVariableCanBeMadeConstexpr
-	// ReSharper disable once CppUnreachableCode
-	const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
-
-	// ReSharper disable once CppVariableCanBeMadeConstexpr
-	const char ret[] = {
-
-		compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
-		'.',
-		compile_month / 10 + '0', compile_month % 10 + '0',
-		'.',
-		compile_day / 10 + '0', compile_day % 10 + '0',
-		'\0'
-	};
-	return std::string_view(ret, std::size(ret) - 1);
-};
-
 struct menu::impl
 {
-	string_wrapper menu_title;
-	WPARAM         hotkey = VK_HOME;
+	WPARAM hotkey = VK_HOME;
 
+	string_wrapper     menu_title;
 	tab_bar_with_pages pages;
 
 	impl( )
 	{
 		const auto init_title = [&]
 		{
+			constexpr auto iso_date = []
+			{
+				// ReSharper disable once CppVariableCanBeMadeConstexpr
+				const uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
+				// ReSharper disable once CppVariableCanBeMadeConstexpr
+				const uint32_t compile_month = []
+				{
+					switch (__DATE__[0])
+					{
+						case 'J': // Jan, Jun or Jul
+							return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
+						case 'F': // Feb
+							return 2;
+						case 'M': // Mar or May
+							return (__DATE__[2] == 'r' ? 3 : 5);
+						case 'A': // Apr or Aug
+							return (__DATE__[2] == 'p' ? 4 : 8);
+						case 'S': // Sep
+							return 9;
+						case 'O': // Oct
+							return 10;
+						case 'N': // Nov
+							return 11;
+						case 'D': // Dec
+							return 12;
+					}
+					throw;
+				}( );
+
+				// ReSharper disable once CppVariableCanBeMadeConstexpr
+				// ReSharper disable once CppUnreachableCode
+				const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
+
+				// ReSharper disable once CppVariableCanBeMadeConstexpr
+				const char ret[] = {
+
+					compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
+					'.',
+					compile_month / 10 + '0', compile_month % 10 + '0',
+					'.',
+					compile_day / 10 + '0', compile_day % 10 + '0',
+					'\0'
+				};
+				return std::string_view(ret, std::size(ret) - 1);
+			};
+
 			std::ostringstream name;
 			name
-				<< /*CHEAT_NAME*/_STRINGIZE(VS_SolutionName)
+				<< _STRINGIZE(VS_SolutionName)
 				<< " | "
-				<< _Iso_date( )
+				<< iso_date( )
 #ifdef _DEBUG
 				<< " | "
 				<< __TIME__
@@ -103,7 +105,6 @@ struct menu::impl
 
 			menu_title = std::move(name).str( );
 		};
-
 		const auto init_tabs = [&]
 		{
 			pages->make_vertical( );
@@ -115,6 +116,8 @@ struct menu::impl
 			rage_tab.add_item(features::aimbot::get_ptr_shared(true));
 		};
 
+		//-------
+
 		init_title( );
 		init_tabs( );
 	}
@@ -122,6 +125,7 @@ struct menu::impl
 
 menu::menu( )
 {
+	impl_ = std::make_unique<impl>( );
 	this->wait_for_service<imgui_context>( );
 }
 
@@ -243,8 +247,6 @@ service_base::load_result menu::load_impl( )
 #endif
 	renderer_.init( );
 #endif
-
-	impl_ = std::make_unique<impl>( );
 
 	co_return service_state::loaded;
 }

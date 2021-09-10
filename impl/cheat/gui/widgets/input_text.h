@@ -17,7 +17,7 @@ namespace cheat::gui::widgets
 		~text() override;
 		void render( ) override;
 
-		void set_text(tools::string_wrapper&& text);
+		void set(tools::string_wrapper&& text);
 
 	private:
 		struct data;

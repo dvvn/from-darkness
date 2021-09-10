@@ -1,21 +1,21 @@
-#include "text.h"
+#include "checkbox.h"
 
 #include "cheat/gui/tools/string wrapper.h"
 
 using namespace cheat::gui::widgets;
 
-struct text::data: tools::string_wrapper
+struct checkbox::data: tools::string_wrapper
 {
 };
 
-text::text( )
+checkbox::checkbox( )
 {
 	data_ = std::make_unique<data>( );
 }
 
-text::~text( ) = default;
+checkbox::~checkbox( ) = default;
 
-void text::render( )
+void checkbox::render( )
 {
 #if CHEAT_GUI_HAS_IMGUI_STRV
 	ImGui::TextUnformatted(*data_);
@@ -23,10 +23,12 @@ void text::render( )
 	const auto mb = data_->multibyte( );
 	ImGui::TextUnformatted(mb._Unchecked_begin( ), mb._Unchecked_end( ));
 #endif
+
+	ImGui::Checkbox()
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void text::set_text(tools::string_wrapper&& text)
+void checkbox::set(tools::string_wrapper&& checkbox)
 {
-	static_cast<tools::string_wrapper&>(*data_) = std::move(text);
+	static_cast<tools::string_wrapper&>(*data_) = std::move(checkbox);
 }

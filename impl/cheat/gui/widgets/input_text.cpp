@@ -26,7 +26,7 @@ void text::render( )
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void text::set_text(tools::string_wrapper&& text)
+void text::set(tools::string_wrapper&& text)
 {
 	static_cast<tools::string_wrapper&>(*data_) = std::move(text);
 }

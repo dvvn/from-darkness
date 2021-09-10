@@ -3,6 +3,8 @@
 #include "cheat/core/service.h"
 
 // ReSharper disable CppInconsistentNaming
+struct ImGuiContext;
+
 struct HWND__;
 using HWND = HWND__*;
 // ReSharper restore CppInconsistentNaming
@@ -15,14 +17,13 @@ namespace cheat::gui
 		~imgui_context( ) override;
 		imgui_context( );
 
-		HWND hwnd( ) const;
+		HWND          hwnd( ) const;
+		ImGuiContext& get( );
 
 	protected:
 		load_result load_impl( ) override;
 
 	private:
-		HWND hwnd_ = nullptr;
-
 		struct data_type;
 		std::unique_ptr<data_type> data_;
 	};

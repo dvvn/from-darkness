@@ -34,11 +34,18 @@ struct imgui_context::data_type
 
 	ImGuiContext ctx;
 	ImFontAtlas  fonts;
+	HWND         hwnd = nullptr;
 };
 
 HWND imgui_context::hwnd( ) const
 {
-	return hwnd_;
+	return data_->hwnd;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+ImGuiContext& imgui_context::get( )
+{
+	return data_->ctx;
 }
 
 imgui_context::~imgui_context( )
@@ -87,11 +94,11 @@ service_base::load_result imgui_context::load_impl( )
 	ImGui::Initialize(std::addressof(data_->ctx));
 
 	auto& io = data_->ctx.IO;
-	[[maybe_unused]]
-		auto& style = data_->ctx.Style;
 
 	const auto set_style = [&]
 	{
+		[[maybe_unused]]
+			auto& style = data_->ctx.Style;
 #if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
 
 		/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;
@@ -150,8 +157,8 @@ service_base::load_result imgui_context::load_impl( )
 	[[maybe_unused]] const auto result = d3d->GetCreationParameters(&creation_parameters);
 	runtime_assert(SUCCEEDED(result));
 
-	hwnd_ = creation_parameters.hFocusWindow;
-	ImGui_ImplWin32_Init(hwnd_);
+	data_->hwnd = creation_parameters.hFocusWindow;
+	ImGui_ImplWin32_Init(data_->hwnd);
 	ImGui_ImplDX9_Init(d3d);
 	//ImGui_ImplDX9_CreateDeviceObjects( ); //d3d9 multithread error
 

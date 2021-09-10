@@ -10,14 +10,14 @@ namespace cheat::gui::tools
 
 namespace cheat::gui::widgets
 {
-	class text: public objects::renderable
+	class checkbox: public objects::renderable
 	{
 	public:
-		text();
-		~text() override;
+		checkbox();
+		~checkbox() override;
 		void render( ) override;
 
-		void set_text(tools::string_wrapper&& text);
+		void set(tools::string_wrapper&& text);
 
 	private:
 		struct data;

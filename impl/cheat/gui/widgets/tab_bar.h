@@ -3,8 +3,15 @@
 
 #include <memory>
 
+namespace std
+{
+	template <class Fty>
+	class function;
+}
+
 namespace cheat::gui::tools
 {
+	class string_wrapper;
 	class perfect_string;
 }
 
@@ -27,20 +34,21 @@ namespace cheat::gui::widgets
 		void   add_tab(const objects::shared_label& title);
 		size_t get_selected_index( ) const;
 
+		using sort_pred = std::function<bool (const tools::string_wrapper&, const tools::string_wrapper&)>;
+
+		void sort(const sort_pred& pred);
+
+		size_t size( ) const;
+		bool   empty( ) const;
+
+		//----
+
 		void make_size_static( );
 		void make_size_auto( );
 
-	private:
-		void handle_size_change( );
-
-	public:
 		void make_horisontal( );
 		void make_vertical( );
 
-	private:
-		void handle_direction_change( );
-
-	public:
 		bool is_horisontal( ) const;
 		bool is_vertical( ) const;
 

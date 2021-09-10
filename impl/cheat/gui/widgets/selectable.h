@@ -17,7 +17,7 @@ namespace cheat::gui::widgets
 						ImGuiSelectableFlags_   flags = ImGuiSelectableFlags_None, const ImVec2& size = ImVec2(0, 0));
 	};
 
-	class selectable_internal: public selectable
+	/*class selectable_internal: public selectable
 	{
 		using selectable::operator();
 
@@ -28,5 +28,5 @@ namespace cheat::gui::widgets
 
 	public:
 		bool operator()(ImGuiSelectableFlags_ flags = ImGuiSelectableFlags_None, const ImVec2& size = ImVec2(0, 0));
-	};
+	};*/
 }

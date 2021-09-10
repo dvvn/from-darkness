@@ -26,9 +26,9 @@ const ImVec2& tools::_Get_char_size( )
 	};
 
 	const hash_data data = {ImGui::GetFont( ), ImGui::GetFontSize( )};
-
+	static_assert(sizeof(float) * 2 == sizeof(uint64_t));
 	auto& val = cache[data.hash( )];
-	if (static auto def = ImVec2( ); val.x == def.x && val.y == def.y)
+	if (static auto def = ImVec2( ); reinterpret_cast<uint64_t&>(val) == reinterpret_cast<uint64_t&>(def))
 	{
 		constexpr auto dummy_text = std::string_view("W");
 
@@ -37,12 +37,7 @@ const ImVec2& tools::_Get_char_size( )
 		const auto font      = g.Font ? g.Font : ImGui::GetDefaultFont( );
 		const auto font_size = [&]
 		{
-			if (g.CurrentWindow)
-				return g.FontSize;
-
-			
-
-			return font->FontSize;
+			return g.CurrentWindow ? g.FontSize : font->FontSize;
 		}( );
 
 		val = font->CalcTextSizeA(font_size, FLT_MAX, 0.f, dummy_text._Unchecked_begin( ), dummy_text._Unchecked_end( ), nullptr);
