@@ -14,6 +14,7 @@
 using namespace cheat::gui::objects;
 using cheat::gui::tools::string_wrapper;
 
+#if 0
 struct size_obj
 {
 	using level3 = robin_hood::unordered_map
@@ -59,7 +60,7 @@ struct size_obj
 		return holder->second;
 	}
 };
-
+#endif
 //struct abstract_label::impl
 //{
 //	size_obj size;
@@ -69,27 +70,27 @@ struct size_obj
 //	}
 //};
 
-abstract_label::abstract_label( )
-{
-	//impl_ = std::make_unique<impl>( );
-}
+//abstract_label::abstract_label( )
+//{
+//impl_ = std::make_unique<impl>( );
+//}
+//abstract_label::~abstract_label( ) = default;
 
-abstract_label::~abstract_label( ) = default;
+//const string_wrapper& abstract_label::get_label( ) const
+//{
+//	return const_cast<abstract_label*>(this)->get_label_impl( );
+//}
+//
+//void abstract_label::set_label(string_wrapper&& new_label)
+//{
+//	get_label_impl( ) = (std::move(new_label));
+//}
 
-const string_wrapper& abstract_label::get_label( ) const
-{
-	return const_cast<abstract_label*>(this)->get_label_impl( );
-}
-
-void abstract_label::set_label(string_wrapper&& new_label)
-{
-	get_label_impl( ) = (std::move(new_label));
-}
-
-const ImVec2& abstract_label::get_size( ) const
-{
-	return nstd::one_instance<size_obj>::get_ptr( )->get_size(this->get_label( ));
-}
+//const ImVec2& abstract_label::get_size( ) const
+//{
+//	static size_obj size_data;
+//	return size_data.get_size(this->get_label( ));
+//}
 
 non_abstract_label::non_abstract_label(string_wrapper&& label)
 {
@@ -100,7 +101,7 @@ non_abstract_label::~non_abstract_label( )
 {
 }
 
-string_wrapper& non_abstract_label::get_label_impl( )
+const string_wrapper& non_abstract_label::get_label( ) const
 {
 	return *label_;
 }

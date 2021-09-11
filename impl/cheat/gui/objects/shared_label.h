@@ -17,17 +17,16 @@ namespace cheat::gui::objects
 	class abstract_label
 	{
 	public:
-		abstract_label( );
-		virtual ~abstract_label( );
+		virtual ~abstract_label( ) = default;
 
-		const tools::string_wrapper& get_label( ) const;
-		void                         set_label(tools::string_wrapper&& new_label);
+		virtual const tools::string_wrapper& get_label( ) const =0;
+		/*void                         set_label(tools::string_wrapper&& new_label);
 
 	protected:
 		virtual tools::string_wrapper& get_label_impl( ) =0;
 
 	public:
-		const ImVec2& get_size( ) const;
+		const ImVec2& get_size( ) const;*/
 
 		/*private:
 			struct impl;
@@ -42,8 +41,7 @@ namespace cheat::gui::objects
 		non_abstract_label(tools::string_wrapper&& label);
 		~non_abstract_label( ) override;
 
-	protected:
-		 tools::string_wrapper& get_label_impl( )  override;
+		 const tools::string_wrapper& get_label( ) const override;
 
 	private:
 		std::unique_ptr<tools::string_wrapper> label_;

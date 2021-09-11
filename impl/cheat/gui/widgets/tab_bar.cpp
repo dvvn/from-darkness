@@ -57,6 +57,8 @@ public:
 		return std::invoke(*static_cast<selectable*>(this), this->label( ), ImGuiSelectableFlags_None, size);
 	}
 
+	//todo: own selectable class
+
 	const ImVec2&         size( ) const { return label_->get_size( ); }
 	const string_wrapper& label( ) const { return label_->get_label( ); }
 
