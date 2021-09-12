@@ -15,7 +15,7 @@ namespace cheat::gui::objects
 
 namespace cheat::gui::widgets
 {
-	struct tab_bar_item final: selectable2
+	struct tab_bar_item final: selectable
 	{
 	};
 

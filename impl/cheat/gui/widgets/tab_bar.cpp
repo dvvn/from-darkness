@@ -4,6 +4,7 @@
 #include "window.h"
 
 #include "cheat/gui/tools/push style var.h"
+#include "cheat/gui/tools/string wrapper.h"
 
 #include <nstd/runtime assert.h>
 
@@ -117,7 +118,7 @@ tab_bar_item* tab_bar::find_tab(perfect_string&& title)
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-tab_bar_item& tab_bar::add_tab(tools::string_wrapper&& title)
+tab_bar_item& tab_bar::add_tab(string_wrapper&& title)
 {
 	runtime_assert(find_tab(title) == nullptr);
 	auto& items = impl_->items;
@@ -141,7 +142,7 @@ tab_bar_item* tab_bar::get_selected( )
 	}
 
 	runtime_assert("No tabs selected");
-	return 0;
+	return nullptr;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -159,8 +160,7 @@ tab_bar_item* tab_bar::end( )
 // ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::sort(const sort_pred& pred)
 {
-	//runtime_assert("Todo");
-	std::ranges::sort(impl_->items, std::ref(pred), &tab_bar_item::get_label/*[]<class T>(T&&obj)->decltype(auto){return *(obj).get_label();}*/);
+	std::ranges::sort(impl_->items, std::ref(pred), &tab_bar_item::get_label);
 }
 
 size_t tab_bar::size( ) const
@@ -210,7 +210,7 @@ bool tab_bar::is_vertical( ) const
 void tab_bar::render( )
 {
 	auto& [_Wnd, _Items, _Size_mode, _Direction] = *impl_;
-	runtime_assert(!_Items.empty());
+	runtime_assert(!_Items.empty( ));
 
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto wnd_size = [&]

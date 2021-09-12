@@ -12,64 +12,26 @@ using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
 
-//ImGui::PushStyleColor(color_idx, !anim_updated ? header_color : ImVec4(header_color.x, header_color.y, header_color.z, header_color.w * anim__.value( )));
-
-selectable::selectable(bool selected)
-	: selectable_base(selected)
-{
-}
-
-bool selectable::operator()(perfect_string&& label, ImGuiSelectableFlags_ flags, const ImVec2& size)
-{
-	const auto selectable = [&](bool selected)
-	{
-		return ImGui::Selectable((label), selected, flags, size);
-	};
-
-	if (!this->Animate( ))
-	{
-		return selectable(this->selected( ));
-	}
-	else
-	{
-		const auto pop = push_style_color(ImGuiCol_Header, this->Anim_value( ));
-		(void)pop;
-		(void)selectable(true);
-		return false;
-	}
-}
-
-struct selectable2::data_type
+struct selectable::data_type
 {
 	std::vector<callback_type> on_pressed;
 };
 
-selectable2::selectable2( )
+selectable::selectable( )
 {
 	data_ = std::make_unique<data_type>( );
 }
 
-selectable2::~selectable2( )                                = default;
-selectable2::selectable2(selectable2&&) noexcept            = default;
-selectable2& selectable2::operator=(selectable2&&) noexcept = default;
+selectable::~selectable( )                               = default;
+selectable::selectable(selectable&&) noexcept            = default;
+selectable& selectable::operator=(selectable&&) noexcept = default;
 
-//selectable2::selectable2(selectable2&& other) noexcept
-//{
-//	data_ = std::move(other.data_);
-//}
-//
-//selectable2& selectable2::operator=(selectable2&& other) noexcept
-//{
-//	std::swap(data_, other.data_);
-//	return *this;
-//}
-
-void selectable2::render( )
+void selectable::render( )
 {
 	const auto  window = ImGui::GetCurrentWindow( );
 	const auto& style  = ImGui::GetStyle( );
 
-	/*if (window->SkipItems)//todo: check from window->begin
+	/*if (window->SkipItems)// uselles, window->begin already check it
 		return;*/
 
 	auto bb = this->make_rect(window);
@@ -136,7 +98,7 @@ void selectable2::render( )
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void selectable2::add_pressed_callback(callback_type&& callback)
+void selectable::add_pressed_callback(callback_type&& callback)
 {
 	data_->on_pressed.push_back(std::move(callback));
 }

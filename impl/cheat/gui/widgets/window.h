@@ -54,8 +54,6 @@ namespace cheat::gui::widgets
 			} type = UNSET;
 		};
 
-		[[deprecated]]
-		bool begin(const size_info& size_info_x, const size_info& size_info_y, bool border, ImGuiWindowFlags_ flags);
 		bool begin(const ImVec2& size, bool border , ImGuiWindowFlags_ flags);
 
 		void end( );

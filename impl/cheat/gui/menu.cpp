@@ -43,7 +43,7 @@ struct menu::impl
 
 		constexpr auto make_pressed_callback = [](tab_bar* source)
 		{
-			return [=](selectable2* sel)
+			return [=](selectable* sel)
 			{
 				auto selected_before = source->get_selected( );
 				if (selected_before == sel)

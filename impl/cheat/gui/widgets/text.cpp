@@ -47,15 +47,15 @@ text::text( )
 	data_ = std::make_unique<data>( );
 }
 
-text::~text( ) = default;
-text::text(text&&) noexcept = default;
+text::~text( )                         = default;
+text::text(text&&) noexcept            = default;
 text& text::operator=(text&&) noexcept = default;
 
 void text::render( )
 {
 	auto window = ImGui::GetCurrentWindow( );
 
-	/*if (window->SkipItems)//todo: sheck from window->begin
+	/*if (window->SkipItems)// uselles, window->begin already check it
 		return;*/
 
 	const auto bb = this->make_rect(window);
@@ -70,7 +70,7 @@ void text::render( )
 
 	//g.LogEnabled DEPRECATED
 	/*const bool is_clipped = ImGui::IsClippedEx(bb, id, false);
-   if (is_clipped)
+    if (is_clipped)
 	   return false;*/
 
 	/*
@@ -90,7 +90,6 @@ void text::render( )
 		return;
 
 	ImGui::ItemSize(data_->label_size, 0.0f);
-
 	render_text(window, bb.Min);
 
 #if 0
