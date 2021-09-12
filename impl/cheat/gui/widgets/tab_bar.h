@@ -1,13 +1,5 @@
 #pragma once
-#include "cheat/gui/objects/renderable object.h"
-
-#include <memory>
-
-namespace std
-{
-	template <class Fty>
-	class function;
-}
+#include "selectable.h"
 
 namespace cheat::gui::tools
 {
@@ -23,16 +15,23 @@ namespace cheat::gui::objects
 
 namespace cheat::gui::widgets
 {
+	struct tab_bar_item final: selectable2
+	{
+	};
+
 	class tab_bar final: public objects::renderable
 	{
 	public:
 		tab_bar( );
 		~tab_bar( ) override;
 
-		size_t get_index(tools::perfect_string&& title) const;
+		tab_bar_item* find_tab(tools::perfect_string&& title);
 
-		void   add_tab(const objects::shared_label& title);
-		size_t get_selected_index( ) const;
+		tab_bar_item& add_tab(tools::string_wrapper&& title);
+		tab_bar_item* get_selected( );
+
+		tab_bar_item* begin( );
+		tab_bar_item* end( );
 
 		using sort_pred = std::function<bool (const tools::string_wrapper&, const tools::string_wrapper&)>;
 
@@ -55,7 +54,6 @@ namespace cheat::gui::widgets
 		void render( ) override;
 
 	private:
-		class item;
 		struct impl;
 		std::unique_ptr<impl> impl_;
 	};

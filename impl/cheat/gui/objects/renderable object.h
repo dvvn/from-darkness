@@ -1,5 +1,8 @@
 #pragma once
 
+struct ImGuiWindow;
+typedef unsigned int ImGuiID;
+
 namespace std
 {
 	template <class T>
@@ -13,6 +16,9 @@ namespace cheat::gui::objects
 	public:
 		virtual      ~renderable( ) = default;
 		virtual void render( ) =0;
+
+		ImGuiID get_id( ) const;
+		ImGuiID get_id( ImGuiWindow*wnd) const;
 	};
 
 	using renderable_shared = std::shared_ptr<renderable>;

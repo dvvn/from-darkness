@@ -2,7 +2,9 @@
 #include "cheat/gui/objects/renderable object.h"
 #include "cheat/gui/objects/shared_label.h"
 
+struct ImGuiWindow;
 struct ImFont;
+struct ImRect;
 
 namespace cheat::gui::tools
 {
@@ -18,12 +20,21 @@ namespace cheat::gui::widgets
 		text( );
 		~text( ) override;
 
+		text(text&&) noexcept;
+		text&operator=(text&&) noexcept;
+
 		void render( ) override;
 
-		void set_font(ImFont* font);
+	protected:
+		void   render_text(ImGuiWindow* wnd, const ImVec2& pos);
+		ImRect make_rect(ImGuiWindow* wnd) const;
 
-		void set_label(tools::string_wrapper&& label); //todo: perfect_string ???
-		void set_label(const objects::shared_label& label);
+	public:
+		void set_font(ImFont* font);
+		void set_label(tools::string_wrapper&& label);
+
+		const tools::string_wrapper& get_label( ) const;
+		const ImVec2&                label_size( ) const;
 
 	private:
 		struct data;

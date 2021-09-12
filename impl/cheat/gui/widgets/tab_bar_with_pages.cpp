@@ -33,7 +33,14 @@ void tab_bar_with_pages::render( )
 	{
 		_Bar.render( );
 
-		auto& selected = *_Wnds[_Bar.get_selected_index( )];
+		auto& selected = [&]( )-> decltype(auto)
+		{
+			const auto target = _Bar.get_selected( ); //*_Wnds[_Bar.get_selected_index( )]
+			const auto first  = _Bar.begin( );
+
+			const auto index = std::distance(first, target);
+			return *_Wnds[index];
+		}( );
 
 		const auto render_selected_horisontal = [&]
 		{
@@ -52,12 +59,12 @@ void tab_bar_with_pages::render( )
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void tab_bar_with_pages::add_item(const shared_label& bar_name, const renderable_shared& data)
+tab_bar_item& tab_bar_with_pages::add_item(string_wrapper&& bar_name, const renderable_shared& data)
 {
 	auto& [bar, wnds] = *impl_;
 
-	bar.add_tab(bar_name);
 	wnds.push_back(data);
+	return bar.add_tab(std::move(bar_name));
 }
 
 tab_bar* tab_bar_with_pages::operator->( ) const
@@ -66,8 +73,13 @@ tab_bar* tab_bar_with_pages::operator->( ) const
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-renderable* tab_bar_with_pages::get_item(tools::perfect_string&& title)
+renderable* tab_bar_with_pages::get_item(perfect_string&& title)
 {
-	const auto index = impl_->bar.get_index(std::move(title));
-	return impl_->wnds[index].get( );
+	auto& [bar, wnds] = *impl_;
+
+	const auto target = bar.find_tab(std::move(title));
+	const auto first  = bar.begin( );
+
+	const auto index = std::distance(first, target);
+	return wnds[index].get( );
 }

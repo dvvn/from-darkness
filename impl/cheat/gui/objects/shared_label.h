@@ -47,6 +47,8 @@ namespace cheat::gui::objects
 		std::unique_ptr<tools::string_wrapper> label_;
 	};
 
+	[[deprecated]]
 	std::shared_ptr<non_abstract_label> operator""_shl(const char* ptr, size_t size);
+	[[deprecated]]
 	std::shared_ptr<non_abstract_label> operator""_shl(const wchar_t* ptr, size_t size);
 }

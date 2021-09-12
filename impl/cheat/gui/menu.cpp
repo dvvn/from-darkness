@@ -14,12 +14,14 @@
 
 #include <nstd/runtime assert.h>
 
+#include <Windows.h>
+
 #include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <random>
 #include <sstream>
-#include <Windows.h>
+#include <functional>
 
 using namespace cheat;
 using namespace gui;
@@ -33,6 +35,40 @@ struct menu::impl
 
 	string_wrapper     menu_title;
 	tab_bar_with_pages pages;
+
+	void init_pages( )
+	{
+		pages->make_vertical( );
+		pages->make_size_static( );
+
+		constexpr auto make_pressed_callback = [](tab_bar* source)
+		{
+			return [=](selectable2* sel)
+			{
+				auto selected_before = source->get_selected( );
+				if (selected_before == sel)
+					return;
+				selected_before->deselect( );
+				sel->select( );
+			};
+		};
+		constexpr auto add_item_set_callbacks = [&]<typename C,size_t S,typename T>(tab_bar_with_pages& storage, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
+		{
+			auto& item = storage.add_item(name, data);
+
+			const auto tab_bar = storage.operator->( );
+			item.add_pressed_callback(make_pressed_callback(tab_bar));
+			return *data;
+		};
+
+		auto& rage_tab = add_item_set_callbacks(pages, "rage", std::make_shared<tab_bar_with_pages>( ));
+
+		rage_tab->make_horisontal( );
+		rage_tab->make_size_auto( );
+		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared(true));
+		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
+	}
 
 	impl( )
 	{
@@ -105,21 +141,10 @@ struct menu::impl
 
 			menu_title = std::move(name).str( );
 		};
-		const auto init_tabs = [&]
-		{
-			pages->make_vertical( );
-			pages->make_size_static( );
-
-			auto& rage_tab = *pages.add_item<tab_bar_with_pages>("rage"_shl);
-			rage_tab->make_horisontal( );
-			rage_tab->make_size_auto( );
-			rage_tab.add_item(features::aimbot::get_ptr_shared(true));
-		};
 
 		//-------
 
 		init_title( );
-		init_tabs( );
 	}
 };
 
@@ -247,6 +272,8 @@ service_base::load_result menu::load_impl( )
 #endif
 	renderer_.init( );
 #endif
+
+	impl_->init_pages( );
 
 	co_return service_state::loaded;
 }

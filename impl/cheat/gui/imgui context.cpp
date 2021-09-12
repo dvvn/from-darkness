@@ -128,6 +128,7 @@ service_base::load_result imgui_context::load_impl( )
 			0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
 			0,
 		};
+		font_cfg.SizePixels  = 13;
 		font_cfg.OversampleH = 2;
 		font_cfg.OversampleV = 1;
 		font_cfg.PixelSnapH  = true;
@@ -161,6 +162,8 @@ service_base::load_result imgui_context::load_impl( )
 	ImGui_ImplWin32_Init(data_->hwnd);
 	ImGui_ImplDX9_Init(d3d);
 	//ImGui_ImplDX9_CreateDeviceObjects( ); //d3d9 multithread error
+
+	io.Fonts->Build();
 
 	co_return service_state::loaded;
 }

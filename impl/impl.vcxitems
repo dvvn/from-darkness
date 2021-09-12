@@ -300,6 +300,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\renderable object.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\shared_label.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

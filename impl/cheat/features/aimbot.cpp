@@ -9,8 +9,7 @@
 
 using namespace cheat::features;
 
-aimbot::aimbot( )
-	: non_abstract_label((nstd::drop_namespaces(nstd::type_name<aimbot>)))
+aimbot::aimbot( )	
 {
 }
 

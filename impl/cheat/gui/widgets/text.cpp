@@ -9,14 +9,14 @@
 using namespace cheat::gui;
 using namespace widgets;
 using namespace objects;
+using namespace tools;
 
 struct text::data
 {
 	ImFont* font = ImGui::GetDefaultFont( ); //todo: shared_ptr. no push_pop font allowed
 
-	shared_label label;
-	ImVec2       label_size;
-	bool         label_owned = false;
+	string_wrapper label;
+	ImVec2         label_size;
 	//todo: color
 
 	void set_font(ImFont* new_font)
@@ -25,11 +25,9 @@ struct text::data
 		update_label_size( );
 	}
 
-	void set_label(shared_label&& new_label, bool own)
+	void set_label(string_wrapper&& new_label)
 	{
-		runtime_assert(new_label != nullptr);
-		label       = std::move(new_label);
-		label_owned = own;
+		label = std::move(new_label);
 		update_label_size( );
 	}
 
@@ -39,7 +37,7 @@ private:
 		if (!font || !label)
 			return;
 
-		auto&& l   = label->get_label( ).multibyte( );
+		auto&& l   = label.multibyte( );
 		label_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.f, l._Unchecked_begin( ), l._Unchecked_end( ), nullptr);
 	}
 };
@@ -50,21 +48,17 @@ text::text( )
 }
 
 text::~text( ) = default;
+text::text(text&&) noexcept = default;
+text& text::operator=(text&&) noexcept = default;
 
 void text::render( )
 {
-	auto& d = *data_;
+	auto window = ImGui::GetCurrentWindow( );
 
-	auto  window = ImGui::GetCurrentWindow( );
-	auto& dc     = window->DC;
 	/*if (window->SkipItems)//todo: sheck from window->begin
 		return;*/
-	const auto& l      = d.label->get_label( ).multibyte( );
-	const auto& l_size = d.label_size;
-	const auto  l_pos  = ImVec2(dc.CursorPos.x, dc.CursorPos.y + dc.CurrLineTextBaseOffset);
 
-	const auto bb = ImRect(l_pos, l_pos + l_size);
-	ImGui::ItemSize(l_size, 0.0f); //do something with it
+	const auto bb = this->make_rect(window);
 
 	//auto &g=*GImGui;
 	//g.Font, g.FontSize DEPRECATED
@@ -91,11 +85,13 @@ void text::render( )
 	return false;
 	 */
 
+	//ItemAdd
 	if (!bb.Overlaps(window->ClipRect))
 		return;
 
-	//todo: own render text function without internal every-frame loops & shits
-	window->DrawList->AddText(d.font, d.font->FontSize, bb.Min, ImGui::GetColorU32(ImGuiCol_Text), l._Unchecked_begin( ), l._Unchecked_end( ));
+	ImGui::ItemSize(data_->label_size, 0.0f);
+
+	render_text(window, bb.Min);
 
 #if 0
 
@@ -109,6 +105,26 @@ void text::render( )
 #endif
 }
 
+void text::render_text(ImGuiWindow* wnd, const ImVec2& pos)
+{
+	auto&& d = *data_;
+	auto&& l = d.label.multibyte( );
+
+	//todo: own render text function without internal every-frame loops & shits
+	wnd->DrawList->AddText(d.font, d.font->FontSize, pos, ImGui::GetColorU32(ImGuiCol_Text), l._Unchecked_begin( ), l._Unchecked_end( ));
+}
+
+ImRect text::make_rect(ImGuiWindow* wnd) const
+{
+	auto& dc = wnd->DC;
+	/*if (window->SkipItems)//todo: sheck from window->begin
+		return;*/
+	const auto& l_size = data_->label_size;
+	const auto  l_pos  = ImVec2(dc.CursorPos.x, dc.CursorPos.y + dc.CurrLineTextBaseOffset);
+
+	return ImRect(l_pos, l_pos + l_size);
+}
+
 void text::set_font(ImFont* font)
 {
 	data_->set_font(font);
@@ -116,13 +132,17 @@ void text::set_font(ImFont* font)
 
 void text::set_label(tools::string_wrapper&& label)
 {
-	data_->set_label(std::make_shared<non_abstract_label>((std::move(label))), true);
+	data_->set_label(std::move(label));
 }
 
-void text::set_label(const shared_label& label)
+const tools::string_wrapper& text::get_label( ) const
 {
-	auto copy = label;
-	data_->set_label(std::move(copy), false);
+	return data_->label;
+}
+
+const ImVec2& text::label_size( ) const
+{
+	return data_->label_size;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

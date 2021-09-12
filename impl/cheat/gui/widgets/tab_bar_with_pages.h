@@ -21,8 +21,9 @@ namespace cheat::gui::widgets
 
 		void render( ) override;
 
-		void add_item(const objects::shared_label& bar_name, const objects::renderable_shared& data);
+		tab_bar_item& add_item(tools::string_wrapper&& bar_name, const objects::renderable_shared& data);
 
+#if 0
 		template <std::derived_from<objects::abstract_label> B, std::derived_from<renderable> R>
 		std::pair<B*, R*> add_item( )
 		{
@@ -60,6 +61,7 @@ namespace cheat::gui::widgets
 			this->add_item(obj, obj);
 			return obj.get( );
 		}
+#endif
 
 		tab_bar* operator->( ) const;
 

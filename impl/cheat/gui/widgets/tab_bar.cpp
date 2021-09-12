@@ -4,7 +4,6 @@
 #include "window.h"
 
 #include "cheat/gui/tools/push style var.h"
-#include "cheat/gui/objects/shared_label.h"
 
 #include <nstd/runtime assert.h>
 
@@ -31,40 +30,49 @@ using namespace tools;
 //	return {chr_size.x * count, chr_size.y};
 //}
 
-class tab_bar::item final: selectable
-{
-public:
-	item(const shared_label& label/*, std::optional<ImVec2> size = { }*/)
-	{
-		label_ = label;
-		//size.has_value( ) ? set_size(*size) : set_size_auto( );
-	}
-
-	item(const item&)            = delete;
-	item& operator=(const item&) = delete;
-
-	item(item&&)            = default;
-	item& operator=(item&&) = default;
-
-	using selectable::select;
-	using selectable::deselect;
-	using selectable::toggle;
-	using selectable::selected;
-
-	bool render(const std::optional<ImVec2>& size_override)
-	{
-		const auto& size = size_override.has_value( ) ? *size_override : this->size( );
-		return std::invoke(*static_cast<selectable*>(this), this->label( ), ImGuiSelectableFlags_None, size);
-	}
-
-	//todo: own selectable class
-
-	const ImVec2&         size( ) const { return label_->get_size( ); }
-	const string_wrapper& label( ) const { return label_->get_label( ); }
-
-private:
-	shared_label label_;
-};
+//template <typename T>
+//class delayed_value
+//{
+//public:
+//	template <typename Q>
+//		requires(std::constructible_from<T, Q>)
+//	delayed_value(Q&& temp_val)
+//	{
+//		value_ = T(std::forward<Q>(temp_val));
+//	}
+//
+//	const std::optional<T>& begin_update( )
+//	{
+//		return value_temp_;
+//	}
+//
+//	bool begin_update(const T& target_val)
+//	{
+//		return value_temp_.has_value( ) && *value_temp_ == target_val;
+//	}
+//
+//	void end_update( )
+//	{
+//		value_ = *value_temp_;
+//		value_temp_.reset( );
+//	}
+//
+//	template <typename Q>
+//		requires(std::constructible_from<T, Q>)
+//	T& operator=(Q&& temp_val)
+//	{
+//		return value_temp_.emplace(std::forward<Q>(temp_val));
+//	}
+//
+//	const T& get( ) const { return value_; }
+//
+//private:
+//	T                value_;
+//	std::optional<T> value_temp_;
+//};
+//
+//template <typename Q>
+//delayed_value(Q&&) -> delayed_value<std::remove_cvref_t<Q>>;
 
 enum class directions :uint8_t
 {
@@ -80,54 +88,10 @@ enum class size_modes :uint8_t
 	AUTO
 };
 
-template <typename T>
-class delayed_value
-{
-public:
-	template <typename Q>
-		requires(std::constructible_from<T, Q>)
-	delayed_value(Q&& temp_val)
-	{
-		value_ = T(std::forward<Q>(temp_val));
-	}
-
-	const std::optional<T>& begin_update( )
-	{
-		return value_temp_;
-	}
-
-	bool begin_update(const T& target_val)
-	{
-		return value_temp_.has_value( ) && *value_temp_ == target_val;
-	}
-
-	void end_update( )
-	{
-		value_ = *value_temp_;
-		value_temp_.reset( );
-	}
-
-	template <typename Q>
-		requires(std::constructible_from<T, Q>)
-	T& operator=(Q&& temp_val)
-	{
-		return value_temp_.emplace(std::forward<Q>(temp_val));
-	}
-
-	const T& get( ) const { return value_; }
-
-private:
-	T                value_;
-	std::optional<T> value_temp_;
-};
-
-template <typename Q>
-delayed_value(Q&&) -> delayed_value<std::remove_cvref_t<Q>>;
-
 struct tab_bar::impl
 {
-	child_frame_window wnd;
-	std::vector<item>  items;
+	child_frame_window        wnd;
+	std::vector<tab_bar_item> items;
 
 	size_modes size_mode = size_modes::UNSET;
 	directions dir       = directions::UNSET;
@@ -140,44 +104,63 @@ tab_bar::tab_bar( )
 
 tab_bar::~tab_bar( ) = default;
 
-size_t tab_bar::get_index(perfect_string&& title) const
+// ReSharper disable once CppMemberFunctionMayBeConst
+tab_bar_item* tab_bar::find_tab(perfect_string&& title)
 {
-	const auto& items = impl_->items;
-	for (size_t i = 0; i < items.size( ); i++)
+	for (auto& item: impl_->items)
 	{
-		if (items[i].label( ) == title)
-			return i;
+		if (item.get_label( ) == title)
+			return std::addressof(item);
 	}
-	return static_cast<size_t>(-1);
+
+	return nullptr;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void tab_bar::add_tab(const shared_label& title)
+tab_bar_item& tab_bar::add_tab(tools::string_wrapper&& title)
 {
-	runtime_assert(get_index(title->get_label( )) == static_cast<size_t>(-1));
+	runtime_assert(find_tab(title) == nullptr);
 	auto& items = impl_->items;
 
-	items.push_back(title);
+	auto& added = items.emplace_back( );
+	added.set_label(std::move(title));
+
 	if (items.size( ) == 1)
 		items.front( ).select( );
+
+	return added;
 }
 
-size_t tab_bar::get_selected_index( ) const
+// ReSharper disable once CppMemberFunctionMayBeConst
+tab_bar_item* tab_bar::get_selected( )
 {
-	const auto& items = impl_->items;
-	for (size_t i = 0; i < items.size( ); ++i)
+	for (auto& item: impl_->items)
 	{
-		if (items[i].selected( ))
-			return i;
+		if (item.selected( ))
+			return std::addressof(item);
 	}
+
 	runtime_assert("No tabs selected");
-	return static_cast<size_t>(-1);
+	return 0;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+tab_bar_item* tab_bar::begin( )
+{
+	return impl_->items._Unchecked_begin( );
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+tab_bar_item* tab_bar::end( )
+{
+	return impl_->items._Unchecked_end( );
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::sort(const sort_pred& pred)
 {
-	std::ranges::sort(impl_->items, std::ref(pred), [](const item& i)-> const string_wrapper& { return i.label( ); });
+	//runtime_assert("Todo");
+	std::ranges::sort(impl_->items, std::ref(pred), &tab_bar_item::get_label/*[]<class T>(T&&obj)->decltype(auto){return *(obj).get_label();}*/);
 }
 
 size_t tab_bar::size( ) const
@@ -242,7 +225,7 @@ void tab_bar::render( )
 		const auto size_transform_helper = [&]<typename T>(T&& xy)
 		{
 			return _Items
-				   | std::views::transform(&item::size)
+				   | std::views::transform(&tab_bar_item::label_size)
 				   | std::views::transform(/*&ImVec2::x*/xy);
 		};
 
@@ -304,7 +287,7 @@ void tab_bar::render( )
 		const auto items_count   = _Items.size( );
 		const auto last_item_idx = items_count - 1;
 
-		const auto item_static_size = [&]( )-> std::optional<ImVec2>
+		/*const auto item_static_size = [&]( )-> std::optional<ImVec2>
 		{
 			if (_Size_mode != size_modes::STATIC)
 				return { };
@@ -312,7 +295,7 @@ void tab_bar::render( )
 			float max_x = 0;
 			float max_y = 0;
 
-			for (auto& i: _Items | std::views::transform(&item::size))
+			for (auto& i: _Items | std::views::transform(&item::label_size))
 			{
 				if (max_x < i.x)
 					max_x = i.x;
@@ -320,22 +303,13 @@ void tab_bar::render( )
 					max_y = i.y;
 			}
 
-			/*const auto sizes_x = size_transform_helper(&ImVec2::x);
-			const auto sizes_y = size_transform_helper(&ImVec2::y);
-
-			const auto max_x = *std::ranges::max_element(sizes_x);
-			const auto max_y = *std::ranges::max_element(sizes_y);*/
-
 			return ImVec2(max_x, max_y);
-		}( );
+		}( );*/
 
 		for (size_t i = 0; i < items_count; i++)
 		{
-			if (auto& item = _Items[i]; item.render(item_static_size))
-			{
-				_Items[this->get_selected_index( )].deselect( );
-				item.select( );
-			}
+			auto& item = _Items[i];
+			item.render(/*item_static_size*/);
 			if (want_sameline && i < last_item_idx)
 				ImGui::SameLine( );
 		}
