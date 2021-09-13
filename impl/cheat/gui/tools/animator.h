@@ -1,51 +1,54 @@
 #pragma once
 
+using int8_t = signed char;
+
 namespace cheat::gui::tools
 {
 	class animator
 	{
 	public:
-		static constexpr float default_min  = 0;
-		static constexpr float default_max  = 1;
-		static constexpr float default_time = 0.3f;
+		static constexpr double default_min  = 0;
+		static constexpr double default_max  = 1;
+		static constexpr double default_time = 0.4;
 
-		int dir( ) const;
+		int8_t dir( ) const;
 
 		bool updating( ) const;
-		void set(int direction);
+		void set(int8_t direction);
 		bool update( );
 		void finish( );
 
-		void restart();
+		void restart( );
 
-		bool  done( ) const;
-		bool  done(int direction) const;
-		float value( ) const;
+		bool   done( ) const;
+		bool   done(int direction) const;
+		double value( ) const;
 
-		animator(float value_min = default_min, float value_max = default_max, float time_max = default_time);
+		animator(double value_min = default_min, double value_max = default_max, double time_max = default_time);
 
-		void set_min(float val);
-		void set_max(float val);
-		void set_min_max(float min, float max);
-		void set_time(float val);
+		void set_min(double val);
+		void set_max(double val);
+		void set_min_max(double min, double max);
+		void set_time(double val);
 
-		float min( ) const;
-		float max( ) const;
-		float time( ) const;
+		double min( ) const;
+		double max( ) const;
+		double time( ) const;
 
 	private:
-		float Limit_(float dir) const;
+		double get_limit(int8_t dir) const;
 
-		int   dir__  = 0;
-		float time__ = 0;
+		int8_t dir_  = 0;
+		double time_ = 0;
 
 		struct
 		{
-			float min;
-			float max;
-			float current = 0;
-		}         value__;
+			double min;
+			double max;
+			double current = 0;
+			//-
+		} value_;
 
-		float time_max__;
+		double time_max_;
 	};
 }

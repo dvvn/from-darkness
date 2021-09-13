@@ -7,39 +7,54 @@
 using namespace cheat;
 using namespace gui::tools;
 
-
-int animator::dir( ) const
+int8_t animator::dir( ) const
 {
-	return dir__;
+	return dir_;
 }
 
 bool animator::updating( ) const
 {
-	const auto val = value__.current;
-	return val > value__.min && val < value__.max;
+	const auto val = value_.current;
+	return val > value_.min && val < value_.max;
 }
 
-void animator::set(int direction)
+void animator::set(int8_t direction)
 {
 	runtime_assert(direction == 1 || direction == -1);
 	if (!updating( ))
 	{
-		time__ = time_max__;
-		value__.current = Limit_(static_cast<float>(-direction));
+		time_          = time_max_;
+		value_.current = get_limit(-direction);
 	}
-	dir__ = direction;
+	dir_ = direction;
+}
+
+static double _Get_percentage_diff(double a, double b)
+{
+	return ((b - a) * 100.0) / a;
+}
+
+static double _Get_precent_from_num(double percent, double num)
+{
+	return num * percent / 100.0;
 }
 
 bool animator::update( )
 {
-	if (time__ > 0)
+	if (time_ > 0)
 	{
 		const auto delta = ImGui::GetIO( ).DeltaTime;
-		const auto step = (value__.max - value__.min) * delta / time_max__;
-		time__ -= delta;
-		value__.current += step * dir__;
-		if (time__ > 0 && updating( ))
-			return true;
+
+		time_ -= delta;
+		if (time_ > 0)
+		{
+			const auto diff = _Get_percentage_diff(time_, time_max_);
+			const auto val  = _Get_precent_from_num(diff, value_.max - value_.min) + value_.min;
+			value_.current  = dir_ == 1 ? val : 1.0 - val;
+			if (updating( ))
+				return true;
+		}
+
 		finish( );
 	}
 	return false;
@@ -47,38 +62,38 @@ bool animator::update( )
 
 void animator::finish( )
 {
-	time__ = 0;
-	value__.current = Limit_(static_cast<float>(dir__));
+	time_          = 0;
+	value_.current = get_limit(dir_);
 }
 
 void animator::restart( )
 {
 	//finish(  );
-	set(dir__);
+	set(dir_);
 }
 
 bool animator::done( ) const
 {
-	return value__.current == Limit_(static_cast<float>(dir__));
+	return value_.current == get_limit(dir_);
 }
 
 bool animator::done(int direction) const
 {
-	if (dir__ == direction)
+	if (dir_ == direction)
 		return done( );
-	auto& dir = const_cast<int&>(dir__);
-	dir = direction;
+	auto& dir      = const_cast<decltype(dir_)&>(dir_);
+	dir            = direction;
 	const auto ret = done( );
-	dir = -direction;
+	dir            = -direction;
 	return ret;
 }
 
-float animator::value( ) const
+double animator::value( ) const
 {
-	return value__.current;
+	return value_.current;
 }
 
-animator::animator(float value_min, float value_max, float time_max)
+animator::animator(double value_min, double value_max, double time_max)
 {
 	runtime_assert(value_max <= 1);
 
@@ -86,62 +101,62 @@ animator::animator(float value_min, float value_max, float time_max)
 	set_time(time_max);
 }
 
-void animator::set_min(float val)
+void animator::set_min(double val)
 {
-	runtime_assert(val < value__.max);
+	runtime_assert(val < value_.max);
 	runtime_assert(val >= 0);
-	value__.min = val;
+	value_.min = val;
 }
 
-void animator::set_max(float val)
+void animator::set_max(double val)
 {
 	runtime_assert(val <= 1);
-	runtime_assert(val > value__.min);
-	value__.max = val;
+	runtime_assert(val > value_.min);
+	value_.max = val;
 }
 
-void animator::set_min_max(float min, float max)
+void animator::set_min_max(double min, double max)
 {
 	runtime_assert(min < max);
 	runtime_assert(min >= 0);
 	runtime_assert(max <= 1);
-	value__.min = min;
-	value__.max = max;
+	value_.min = min;
+	value_.max = max;
 }
 
-void animator::set_time(float val)
+void animator::set_time(double val)
 {
-	runtime_assert(val>0);
-	time_max__ = val;
+	runtime_assert(val > 0);
+	time_max_ = val;
 }
 
-float animator::min( ) const
+double animator::min( ) const
 {
-	return value__.min;
+	return value_.min;
 }
 
-float animator::max( ) const
+double animator::max( ) const
 {
-	return value__.max;
+	return value_.max;
 }
 
-float animator::time( ) const
+double animator::time( ) const
 {
-	return time_max__;
+	return time_max_;
 }
 
-//auto animator::setup_limits(float value_min, float value_max, float time_max) -> void
+//auto animator::setup_limits(double value_min, double value_max, double time_max) -> void
 //{
 //	runtime_assert(value_min < value_max);
 //	runtime_assert(value_min >= 0);
 //	runtime_assert(value_max <= 1);
 //	runtime_assert(time_max > 0);
-//	value__.min = value_min;
-//	value__.max = value_max;
-//	time_max__ = time_max;
+//	value_.min = value_min;
+//	value_.max = value_max;
+//	time_max_ = time_max;
 //}
 
-float animator::Limit_(float dir) const
+double animator::get_limit(int8_t dir) const
 {
-	return (/*dir__*/dir == 1 ? value__.max : value__.min);
+	return /*dir_*/dir == 1 ? value_.max : value_.min;
 }

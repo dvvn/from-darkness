@@ -3,8 +3,6 @@
 #include "selectable base.h"
 #include "text.h"
 
-#include "../objects/button_behavior.h"
-
 #include <memory>
 
 namespace std
@@ -15,9 +13,9 @@ namespace std
 
 namespace cheat::gui::widgets
 {
-	class selectable: public selectable_base
+	class selectable: public selectable_base2
 					, public text
-					, public objects::button_behavior
+
 	{
 	public:
 		selectable( );

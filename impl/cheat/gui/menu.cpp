@@ -43,14 +43,15 @@ struct menu::impl
 
 		constexpr auto make_pressed_callback = [](tab_bar* source)
 		{
-			return [=](const tab_bar_item::callback_data& data, [[maybe_unused]] const tab_bar_item::callback_state& state)
+			return [=](const callback_data& data, [[maybe_unused]] const callback_state& state)
 			{
 				const auto selected_before = source->get_selected( );
 				const auto current         = static_cast<tab_bar_item*>(data.caller);
 				if (selected_before == current)
 					return;
-				selected_before->deselect( );
-				current->select( );
+
+				selected_before->deselect({selected_before});
+				current->select({current});
 			};
 		};
 		constexpr auto add_item_set_callbacks =
@@ -59,7 +60,7 @@ struct menu::impl
 		{
 			auto& item = tab_bar.add_item(name, data);
 
-			item.add_pressed_callback(make_pressed_callback(std::addressof(tab_bar)), false);
+			item.add_pressed_callback(callback_info(make_pressed_callback(std::addressof(tab_bar)), false), two_way_callback::WAY_TRUE);
 			return *data;
 		};
 
@@ -112,12 +113,8 @@ struct menu::impl
 				// ReSharper disable once CppVariableCanBeMadeConstexpr
 				const char ret[] = {
 
-					compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0',
-					'.',
-					compile_month / 10 + '0', compile_month % 10 + '0',
-					'.',
-					compile_day / 10 + '0', compile_day % 10 + '0',
-					'\0'
+					compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0', '.', compile_month / 10 + '0'
+				  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0', '\0'
 				};
 				return std::string_view(ret, std::size(ret) - 1);
 			};

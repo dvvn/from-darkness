@@ -1,38 +1,50 @@
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "selectable base.h"
 
 using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
 
-//ImGui::PushStyleColor(color_idx, !anim_updated ? header_color : ImVec4(header_color.x, header_color.y, header_color.z, header_color.w * fade_.value( )));
-
-selectable_base::selectable_base(bool selected)
+struct selectable_base2::impl
 {
-	if (selected)
-		fade_.set(1);
-	else
-	{
-		fade_.set(-1);
-		fade_.finish( );
-	}
+	two_way_callback on_select;
+	bool             selected = false;
+};
+
+selectable_base2::selectable_base2( )
+{
+	impl_ = std::make_unique<impl>( );
 }
 
-void selectable_base::select( )
+selectable_base2::~selectable_base2( )                                     = default;
+selectable_base2::selectable_base2(selectable_base2&&) noexcept            = default;
+selectable_base2& selectable_base2::operator=(selectable_base2&&) noexcept = default;
+
+void selectable_base2::select(const callback_data& data)
 {
-	fade_.set(1);
+	impl_->selected = true;
+	impl_->on_select(true, data);
 }
 
-void selectable_base::deselect( )
+void selectable_base2::deselect(const callback_data& data)
 {
-	fade_.set(-1);
+	impl_->selected = false;
+	impl_->on_select(false, data);
 }
 
-void selectable_base::toggle( )
+void selectable_base2::toggle(const callback_data& data)
 {
-	fade_.set(selected( ) ? -1 : 1);
+	auto& selected = impl_->selected;
+	selected       = !selected;
+	impl_->on_select(selected, data);
 }
 
-bool selectable_base::selected( ) const
+bool selectable_base2::selected( ) const
 {
-	return fade_.dir( ) == 1;
+	return impl_->selected;
+}
+
+void selectable_base2::add_selected_callback(callback_info&& info, two_way_callback::ways way)
+{
+	impl_->on_select.add(std::move(info), way);
 }

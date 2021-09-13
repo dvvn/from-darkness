@@ -77,16 +77,16 @@ using namespace tools;
 
 enum class directions :uint8_t
 {
-	UNSET,
-	HORISONTAL,
-	VERTICAL
+	UNSET
+  , HORISONTAL
+  , VERTICAL
 };
 
 enum class size_modes :uint8_t
 {
-	UNSET,
-	STATIC,
-	AUTO
+	UNSET
+  , STATIC
+  , AUTO
 };
 
 struct tab_bar::impl
@@ -127,7 +127,7 @@ tab_bar_item& tab_bar::add_tab(string_wrapper&& title)
 	added.set_label(std::move(title));
 
 	if (items.size( ) == 1)
-		items.front( ).select( );
+		items.front( ).select(callback_data(std::addressof(added), added.get_id( )));
 
 	return added;
 }

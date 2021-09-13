@@ -38,6 +38,7 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\renderable object.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\callback.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.h" />
@@ -311,6 +312,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\callback.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.cpp" />

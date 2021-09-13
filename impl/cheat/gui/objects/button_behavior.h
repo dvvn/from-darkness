@@ -1,17 +1,8 @@
 ﻿#pragma once
 
+#include <cheat/gui/tools/callback.h>
+
 #include <memory>
-
-// ReSharper disable CppInconsistentNaming
-struct ImRect;
-using ImGuiID = unsigned int;
-// ReSharper restore CppInconsistentNaming
-
-namespace std
-{
-	template <class Fty>
-	class function;
-}
 
 namespace cheat::gui::objects
 {
@@ -26,40 +17,22 @@ namespace cheat::gui::objects
 		button_behavior(button_behavior&&) noexcept;
 		button_behavior& operator=(button_behavior&&) noexcept;
 
-		struct callback_state
+		struct callback_data_ex final: tools::callback_data
 		{
-			callback_state( );
-
-			void tick( );
-
-			size_t ticks = 0;
-			double start;
-			double duration = 0;
-		};
-
-		struct callback_data
-		{
-			renderable* caller;
-			ImGuiID     id;
+			callback_data_ex(const callback_data&data);
 
 			bool hovered = false;
 			bool held    = false;
 			bool pressed = false;
 		};
 
-		using callback_type = std::function<void(const callback_data&, const callback_state&)>;
-
-		void add_pressed_callback(callback_type&& callback, bool repeat);
-		void add_hovered_callback(callback_type&& callback, bool repeat);
-		void add_held_callback(callback_type&& callback, bool repeat);
-
-		void add_unpressed_callback(callback_type&& callback, bool repeat);
-		void add_unhovered_callback(callback_type&& callback, bool repeat);
-		void add_unheld_callback(callback_type&& callback, bool repeat);
+		void add_pressed_callback(tools::callback_info&& info, tools::two_way_callback::ways way);
+		void add_hovered_callback(tools::callback_info&& info, tools::two_way_callback::ways way);
+		void add_held_callback(tools::callback_info&& info, tools::two_way_callback::ways way);
 
 	protected:
 		//order: hovered, held, pressed
-		void invoke_callbacks(const ImRect& rect, callback_data& data) const;
+		void invoke_button_callbacks(const ImRect& rect, callback_data_ex& data) const;
 
 	private:
 		struct impl;
