@@ -1,8 +1,9 @@
 #pragma once
 
 #include "selectable base.h"
-
 #include "text.h"
+
+#include "../objects/button_behavior.h"
 
 #include <memory>
 
@@ -16,6 +17,7 @@ namespace cheat::gui::widgets
 {
 	class selectable: public selectable_base
 					, public text
+					, public objects::button_behavior
 	{
 	public:
 		selectable( );
@@ -25,10 +27,6 @@ namespace cheat::gui::widgets
 		selectable& operator=(selectable&&) noexcept;
 
 		void render( ) override;
-		//this->selected( ) ? this->deselect( ) : this->select( );
-		using callback_type = std::function<void(selectable*)>;
-
-		void add_pressed_callback(callback_type&& callback);
 
 	private:
 		struct data_type;

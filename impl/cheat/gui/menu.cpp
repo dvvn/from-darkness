@@ -34,37 +34,39 @@ struct menu::impl
 	WPARAM hotkey = VK_HOME;
 
 	string_wrapper     menu_title;
-	tab_bar_with_pages pages;
+	tab_bar_with_pages tabs_pages;
 
 	void init_pages( )
 	{
-		pages->make_vertical( );
-		pages->make_size_static( );
+		tabs_pages.make_vertical( );
+		tabs_pages.make_size_static( );
 
 		constexpr auto make_pressed_callback = [](tab_bar* source)
 		{
-			return [=](selectable* sel)
+			return [=](const tab_bar_item::callback_data& data, [[maybe_unused]] const tab_bar_item::callback_state& state)
 			{
-				auto selected_before = source->get_selected( );
-				if (selected_before == sel)
+				const auto selected_before = source->get_selected( );
+				const auto current         = static_cast<tab_bar_item*>(data.caller);
+				if (selected_before == current)
 					return;
 				selected_before->deselect( );
-				sel->select( );
+				current->select( );
 			};
 		};
-		constexpr auto add_item_set_callbacks = [&]<typename C,size_t S,typename T>(tab_bar_with_pages& storage, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
+		constexpr auto add_item_set_callbacks =
+			[&]
+			<typename C, size_t S, typename T>(tab_bar_with_pages& tab_bar, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
 		{
-			auto& item = storage.add_item(name, data);
+			auto& item = tab_bar.add_item(name, data);
 
-			const auto tab_bar = storage.operator->( );
-			item.add_pressed_callback(make_pressed_callback(tab_bar));
+			item.add_pressed_callback(make_pressed_callback(std::addressof(tab_bar)), false);
 			return *data;
 		};
 
-		auto& rage_tab = add_item_set_callbacks(pages, "rage", std::make_shared<tab_bar_with_pages>( ));
+		auto& rage_tab = add_item_set_callbacks(tabs_pages, "rage", std::make_shared<tab_bar_with_pages>( ));
 
-		rage_tab->make_horisontal( );
-		rage_tab->make_size_auto( );
+		rage_tab.make_horisontal( );
+		rage_tab.make_size_auto( );
 		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared(true));
 		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
 		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
@@ -160,7 +162,7 @@ void menu::render( )
 {
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		impl_->pages.render( );
+		impl_->tabs_pages.render( );
 		//-
 	}
 	this->end( );
@@ -186,7 +188,7 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 }
 
 #if 0
-class unused_page final: public renderable, public string_wrapper_base
+class unused_page final : public renderable, public string_wrapper_base
 {
 	unused_page(string_wrapper&& other)
 		: string_wrapper_base(std::move(other))
@@ -218,42 +220,42 @@ service_base::load_result menu::load_impl( )
 	renderer_.add_page([]
 	{
 		auto  rage_abstract = abstract_page( );
-		auto& rage          = *rage_abstract.init<horizontal_pages_renderer>("rage");
+		auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
 
 		using namespace features;
 		rage.add_page(aimbot::get_ptr( ));
 		rage.add_page(anti_aim::get_ptr( ));
 
 		return rage_abstract;
-	}( ));
+	}());
 	renderer_.add_page({"settings", settings::get_ptr_shared( )});
 
 #if defined(_DEBUG)
 	renderer_.add_page([]
 	{
 		auto  debug_abstract = abstract_page( );
-		auto& debug          = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
+		auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
 
 		debug.add_page([]
 		{
 			auto  debug_hooks_abstract = abstract_page( );
-			auto& debug_hooks          = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
+			auto& debug_hooks = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
 
-			const auto add_if_hookded = [&]<typename Tstr,typename Tptr>(Tstr&& name, Tptr&& ptr)
+			const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
 			{
 				service_base* ptr_raw = ptr.get( );
 
-				switch (ptr_raw->state( ).value( ))
+				switch(ptr_raw->state( ).value( ))
 				{
-					case service_state::waiting:
-					case service_state::loading:
-					case service_state::loaded:
-						break;
-					default:
-						return;
+				case service_state::waiting:
+				case service_state::loading:
+				case service_state::loaded:
+					break;
+				default:
+					return;
 				}
 
-				if (const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
+				if(const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
 					return;
 
 				debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
@@ -263,12 +265,12 @@ service_base::load_result menu::load_impl( )
 			add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared( ));
 
 			return debug_hooks_abstract;
-		}( ));
+		}());
 		debug.add_page(unused_page::get_ptr( ));
 		debug.add_page(unused_page::get_ptr( ));
 
 		return debug_abstract;
-	}( ));
+	}());
 #endif
 	renderer_.init( );
 #endif

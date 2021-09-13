@@ -51,6 +51,12 @@ void animator::finish( )
 	value__.current = Limit_(static_cast<float>(dir__));
 }
 
+void animator::restart( )
+{
+	//finish(  );
+	set(dir__);
+}
+
 bool animator::done( ) const
 {
 	return value__.current == Limit_(static_cast<float>(dir__));

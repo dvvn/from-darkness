@@ -1,13 +1,12 @@
 #pragma once
 
-
 namespace cheat::gui::tools
 {
 	class animator
 	{
 	public:
-		static constexpr float default_min = 0;
-		static constexpr float default_max = 1;
+		static constexpr float default_min  = 0;
+		static constexpr float default_max  = 1;
 		static constexpr float default_time = 0.3f;
 
 		int dir( ) const;
@@ -17,8 +16,10 @@ namespace cheat::gui::tools
 		bool update( );
 		void finish( );
 
-		bool done( ) const;
-		bool done(int direction) const;
+		void restart();
+
+		bool  done( ) const;
+		bool  done(int direction) const;
 		float value( ) const;
 
 		animator(float value_min = default_min, float value_max = default_max, float time_max = default_time);
@@ -35,16 +36,16 @@ namespace cheat::gui::tools
 	private:
 		float Limit_(float dir) const;
 
-		int dir__ = 0;
+		int   dir__  = 0;
 		float time__ = 0;
+
 		struct
 		{
 			float min;
 			float max;
 			float current = 0;
-		} value__;
+		}         value__;
+
 		float time_max__;
 	};
-
-
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 struct ImGuiWindow;
-typedef unsigned int ImGuiID;
+using ImGuiID = unsigned int;
 
 namespace std
 {
