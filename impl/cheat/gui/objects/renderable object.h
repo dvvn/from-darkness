@@ -1,7 +1,10 @@
 #pragma once
 
+// ReSharper disable CppInconsistentNaming
+struct ImRect;
 struct ImGuiWindow;
 using ImGuiID = unsigned int;
+// ReSharper restore CppInconsistentNaming
 
 namespace std
 {
@@ -18,7 +21,7 @@ namespace cheat::gui::objects
 		virtual void render( ) =0;
 
 		ImGuiID get_id( ) const;
-		ImGuiID get_id( ImGuiWindow*wnd) const;
+		ImGuiID get_id(ImGuiWindow* wnd) const;
 	};
 
 	using renderable_shared = std::shared_ptr<renderable>;

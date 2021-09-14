@@ -19,7 +19,7 @@ namespace cheat::gui::widgets
 	{
 	};
 
-	class tab_bar : public objects::renderable
+	class tab_bar: public objects::renderable
 	{
 	public:
 		tab_bar( );

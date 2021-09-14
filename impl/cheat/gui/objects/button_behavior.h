@@ -19,7 +19,7 @@ namespace cheat::gui::objects
 
 		struct callback_data_ex final: tools::callback_data
 		{
-			callback_data_ex(const callback_data&data);
+			callback_data_ex(const callback_data& data);
 
 			bool hovered = false;
 			bool held    = false;

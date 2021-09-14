@@ -1,3 +1,4 @@
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "text.h"
 
 #include "cheat/gui/tools/string wrapper.h"
@@ -115,7 +116,7 @@ void text::render_text(ImGuiWindow* wnd, const ImVec2& pos)
 
 ImRect text::make_rect(ImGuiWindow* wnd) const
 {
-	auto& dc = wnd->DC;
+	const auto& dc = wnd->DC;
 	/*if (window->SkipItems)//todo: sheck from window->begin
 		return;*/
 	const auto& l_size = data_->label_size;
@@ -129,12 +130,12 @@ void text::set_font(ImFont* font)
 	data_->set_font(font);
 }
 
-void text::set_label(tools::string_wrapper&& label)
+void text::set_label(string_wrapper&& label)
 {
 	data_->set_label(std::move(label));
 }
 
-const tools::string_wrapper& text::get_label( ) const
+const string_wrapper& text::get_label( ) const
 {
 	return data_->label;
 }
@@ -143,9 +144,3 @@ const ImVec2& text::label_size( ) const
 {
 	return data_->label_size;
 }
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-//void text::set_text(tools::string_wrapper&& text)
-//{
-//	static_cast<tools::string_wrapper&>(*data_) = std::move(text);
-//}

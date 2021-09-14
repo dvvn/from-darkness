@@ -6,6 +6,8 @@
 #include "cheat/gui/objects/renderable object.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
+#include "nstd/runtime assert.h"
+
 #include <string>
 #include <veque.hpp>
 
@@ -109,6 +111,7 @@ void callback::add(callback_info&& info)
 
 void two_way_callback::add(callback_info&& info, ways way)
 {
+	runtime_assert(way == WAY_TRUE || way == WAY_FALSE);
 	(way == WAY_TRUE ? way_true : way_false).add(std::move(info));
 }
 

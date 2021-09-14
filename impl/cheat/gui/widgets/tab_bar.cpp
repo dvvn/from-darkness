@@ -207,6 +207,7 @@ bool tab_bar::is_vertical( ) const
 	return impl_->dir == directions::VERTICAL;
 }
 
+
 void tab_bar::render( )
 {
 	auto& [_Wnd, _Items, _Size_mode, _Direction] = *impl_;
@@ -316,3 +317,5 @@ void tab_bar::render( )
 	}
 	_Wnd.end( );
 }
+
+

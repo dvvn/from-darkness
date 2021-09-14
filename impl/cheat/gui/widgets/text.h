@@ -2,9 +2,11 @@
 #include "cheat/gui/objects/renderable object.h"
 #include "cheat/gui/objects/shared_label.h"
 
+// ReSharper disable CppInconsistentNaming
 struct ImGuiWindow;
 struct ImFont;
 struct ImRect;
+// ReSharper restore CppInconsistentNaming
 
 namespace cheat::gui::tools
 {
@@ -21,7 +23,7 @@ namespace cheat::gui::widgets
 		~text( ) override;
 
 		text(text&&) noexcept;
-		text&operator=(text&&) noexcept;
+		text& operator=(text&&) noexcept;
 
 		void render( ) override;
 

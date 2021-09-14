@@ -5,14 +5,14 @@
 namespace cheat::gui::widgets
 {
 	//not a selectable. base to selectable, checkbox, ant all same widgets
-	class selectable_base2: public objects::button_behavior
+	class selectable_base: public objects::button_behavior
 	{
 	public:
-		selectable_base2( );
-		~selectable_base2( ) override;
+		selectable_base( );
+		~selectable_base( ) override;
 
-		selectable_base2(selectable_base2&&) noexcept;
-		selectable_base2& operator=(selectable_base2&&) noexcept;
+		selectable_base(selectable_base&&) noexcept;
+		selectable_base& operator=(selectable_base&&) noexcept;
 
 		void select(const tools::callback_data& data);
 		void deselect(const tools::callback_data& data);

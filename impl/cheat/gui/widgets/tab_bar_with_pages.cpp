@@ -39,14 +39,21 @@ void tab_bar_with_pages::render( )
 			return *(*pages_)[index];
 		}( );
 
+		const auto render_selected = [&]
+		{
+			ImGui::BeginGroup( );
+			selected.render( );
+			ImGui::EndGroup( );
+		};
+
 		const auto render_selected_horisontal = [&]
 		{
-			selected.render( );
+			render_selected( );
 		};
 		const auto render_selected_verical = [&]
 		{
 			ImGui::SameLine( );
-			selected.render( );
+			render_selected( );
 			//ImGui::SameLine( );
 		};
 

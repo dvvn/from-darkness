@@ -12,16 +12,14 @@
 
 #include "widgets/tab_bar_with_pages.h"
 
-#include <nstd/runtime assert.h>
-
 #include <Windows.h>
 
 #include <algorithm>
+#include <functional>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <random>
 #include <sstream>
-#include <functional>
 
 using namespace cheat;
 using namespace gui;
@@ -66,7 +64,7 @@ struct menu::impl
 
 		auto& rage_tab = add_item_set_callbacks(tabs_pages, "rage", std::make_shared<tab_bar_with_pages>( ));
 
-		rage_tab.make_horisontal( );
+		rage_tab.make_vertical( );
 		rage_tab.make_size_auto( );
 		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared(true));
 		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
