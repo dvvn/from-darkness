@@ -2,7 +2,7 @@
 
 #include "hook.h"
 
-#include "nstd/address.h"
+#include <nstd/address.h>
 
 #include <mutex>
 
@@ -17,12 +17,13 @@ namespace dhooks
 	// ReSharper disable CppInconsistentNaming
 	enum class call_conversion
 	{
-		thiscall__,
-		cdecl__,
-		stdcall__,
-		vectorcall__,
-		fastcall__
+		thiscall__
+	  , cdecl__
+	  , stdcall__
+	  , vectorcall__
+	  , fastcall__
 	};
+
 	// ReSharper restore CppInconsistentNaming
 
 	template <typename Ret, call_conversion CallCvs, typename C/*, bool Is_const*/, typename ...Args>
@@ -37,7 +38,8 @@ namespace dhooks
 
 		hiddent_type( ) = default;
 
-		hiddent_type(void* ptr) : value(reinterpret_cast<uintptr_t>(ptr))
+		hiddent_type(void* ptr)
+			: value(reinterpret_cast<uintptr_t>(ptr))
 		{
 		}
 
@@ -124,18 +126,21 @@ namespace dhooks
 		virtual                ~hook_callback( ) = default;
 		virtual Ret __thiscall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
+
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::fastcall__, C, Args...>
 	{
 		virtual                ~hook_callback( ) = default;
 		virtual Ret __fastcall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
+
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::stdcall__, C, Args...>
 	{
 		virtual               ~hook_callback( ) = default;
 		virtual Ret __stdcall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
+
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::cdecl__, C, Args...>
 	{
@@ -459,17 +464,12 @@ namespace dhooks
 			void get( ) { (void)this; }
 		};
 
-		struct context_shared
-		{
-			std::unique_ptr<context_base> ctx;
-			std::mutex                    lock;
-		};
-
 		struct hook_holder_data
 		{
-			std::shared_ptr<context_shared> context;
+			context            ctx;
+			mutable std::mutex lock;
 
-			void init( );
+			std::atomic<bool> active = false;
 
 			struct
 			{
@@ -490,19 +490,8 @@ namespace dhooks
 			nstd::address target_method_;
 
 		public:
-			nstd::address get_target_method( )
-			{
-				if (target_method_ == nullptr)
-					target_method_ = this->get_target_method_impl( );
-
-				return target_method_;
-			}
-
-			nstd::address get_target_method( ) const
-			{
-				runtime_assert(target_method_ != nullptr);
-				return target_method_;
-			}
+			nstd::address get_target_method( );
+			nstd::address get_target_method( ) const;
 
 			virtual nstd::address get_replace_method( ) = 0;
 		};
@@ -529,7 +518,7 @@ namespace dhooks
 		public:
 			~hook_holder_impl( ) override
 			{
-				if (data_.context == nullptr)
+				if (!data_.active)
 					return;
 
 				this->unhook( );
@@ -537,11 +526,12 @@ namespace dhooks
 
 			bool hook( ) final
 			{
-				if (data_.context == nullptr)
-					data_.init( );
+				const auto lock = std::scoped_lock(data_.lock);
 
-				const auto lock = std::scoped_lock(data_.context->lock);
-				auto&      ctx  = *data_.context->ctx;
+				if (!data_.active)
+					data_.active = true;
+
+				auto& ctx = data_.ctx;
 
 				// ReSharper disable once CppInconsistentNaming
 				auto& _Instance = this->instance( );
@@ -559,20 +549,20 @@ namespace dhooks
 					return false;
 				}
 
-				_Instance                                      = this;
-				reinterpret_cast<uint8_t*&>(this->original_fn) = result.entry->buffer( );
+				_Instance = this;
+
+				reinterpret_cast<uint8_t*&>(this->original_fn) = result.entry->trampoline( )/*._Unchecked_begin( )*/;
 				return true;
 			}
 
 			bool unhook( ) final
 			{
-				const auto [context, _] = std::move(data_);
-
-				if (context == nullptr)
+				if (!data_.active)
 					return false;
+				data_.active = false;
 
-				const auto lock = std::scoped_lock(context->lock);
-				auto&      ctx  = *context->ctx;
+				const auto lock = std::scoped_lock(data_.lock);
+				auto&      ctx  = data_.ctx;
 
 				auto       target_func = this->get_target_method( ).ptr<void>( );
 				const auto ok          = ctx.remove_hook(target_func, true) == hook_status::OK;
@@ -592,11 +582,11 @@ namespace dhooks
 
 			bool enable( ) final
 			{
-				if (data_.context == nullptr)
+				if (!data_.active)
 					return false;
 
-				const auto lock = std::scoped_lock(data_.context->lock);
-				auto&      ctx  = *data_.context->ctx;
+				const auto lock = std::scoped_lock(data_.lock);
+				auto&      ctx  = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 
@@ -605,11 +595,11 @@ namespace dhooks
 
 			bool disable( ) final
 			{
-				if (data_.context == nullptr)
+				if (!data_.active)
 					return false;
 
-				const auto lock = std::scoped_lock(data_.context->lock);
-				auto&      ctx  = *data_.context->ctx;
+				const auto lock = std::scoped_lock(data_.lock);
+				auto&      ctx  = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 
@@ -626,11 +616,11 @@ namespace dhooks
 
 			bool hooked( ) const final
 			{
-				if (data_.context == nullptr)
+				if (!data_.active)
 					return false;
 
-				const auto lock = std::scoped_lock(data_.context->lock);
-				auto&      ctx  = *data_.context->ctx;
+				const auto lock = std::scoped_lock(data_.lock);
+				auto&      ctx  = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 				return ctx.find_hook(target_func).status == hook_status::OK;
@@ -638,20 +628,21 @@ namespace dhooks
 
 			bool enabled( ) const final
 			{
-				if (data_.context == nullptr)
+				if (!data_.active)
 					return false;
 
-				const auto lock = std::scoped_lock(data_.context->lock);
-				auto&      ctx  = *data_.context->ctx;
+				const auto lock = std::scoped_lock(data_.lock);
+				auto&      ctx  = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 				auto hook        = ctx.find_hook(target_func);
 				if (hook.status != hook_status::OK)
 					return false;
-				return hook.entry->enabled;
+				return hook.entry->enabled( );
 			}
 
 		protected:
+			// ReSharper disable once CppNotAllPathsReturnValue
 			Ret call_original_ex(Args ...args)
 			{
 				if constexpr (!std::is_void_v<Ret>)
@@ -691,19 +682,19 @@ namespace dhooks
 	namespace detail
 	{
 		template <typename T, size_t ...I>
-		auto _Shift_left_impl(T& tpl, std::index_sequence<I...>)
+		auto shift_left_impl(T& tpl, std::index_sequence<I...>)
 		{
 			return std::forward_as_tuple
-					(
-					 reinterpret_cast<std::tuple_element_t<I + 1, T>&>(std::get<I>(tpl))
-					.unhide( )...
+				(
+					reinterpret_cast<std::tuple_element_t<I + 1, T>&>(std::get<I>(tpl))
+				   .unhide( )...
 					);
 		}
 
 		template <typename ...T>
-		auto _Shift_left(std::tuple<hiddent_type<T>...>&& tpl)
+		auto shift_left(std::tuple<hiddent_type<T>...>&& tpl)
 		{
-			return _Shift_left_impl(tpl, std::make_index_sequence<sizeof...(T) - 1>( ));
+			return shift_left_impl(tpl, std::make_index_sequence<sizeof...(T) - 1>( ));
 		}
 	}
 
@@ -728,7 +719,7 @@ namespace dhooks
 			{\
 				return std::apply(\
 								  &hook_holder::callback_impl,\
-								  std::tuple_cat(std::tuple(_Instance), detail::_Shift_left(std::tuple((this->get_replace_method_holder( )), args...)))\
+								  std::tuple_cat(std::tuple(_Instance), detail::shift_left(std::tuple((this->get_replace_method_holder( )), args...)))\
 								 );\
 			}\
 		}\

@@ -9,15 +9,17 @@
 //#include "cheat/hooks/winapi/wndproc.h"
 
 #include "tools/string wrapper.h"
-
 #include "widgets/tab_bar_with_pages.h"
+
+#include <nstd/runtime assert.h>
+
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include <Windows.h>
 
 #include <algorithm>
 #include <functional>
-#include <imgui.h>
-#include <imgui_internal.h>
 #include <random>
 #include <sstream>
 
@@ -44,7 +46,8 @@ struct menu::impl
 			return [=](const callback_data& data, [[maybe_unused]] const callback_state& state)
 			{
 				const auto selected_before = source->get_selected( );
-				const auto current         = static_cast<tab_bar_item*>(data.caller);
+				runtime_assert(dynamic_cast<tab_bar_item*>(data.caller) != nullptr);
+				const auto current = static_cast<tab_bar_item*>(data.caller);
 				if (selected_before == current)
 					return;
 
@@ -60,7 +63,7 @@ struct menu::impl
 			item.set_font(ImGui::GetDefaultFont( ));
 			item.set_label(name);
 			auto item_colors = std::make_unique<selectable_bg_colors_fade>( );
-			item_colors->init_colors(std::addressof(item));
+			item_colors->update_colors(std::addressof(item));
 			item.set_bg_colors(std::move(item_colors));
 			item.add_pressed_callback(callback_info(make_pressed_callback(std::addressof(tab_bar)), false), two_way_callback::WAY_TRUE);
 

@@ -111,7 +111,7 @@ static hook_entry* _Find_hook(context::storage_type& storage, LPVOID target)
 	runtime_assert(target != nullptr);
 	for (auto& h: storage)
 	{
-		if (h.target == target)
+		if (h.target( ) == target)
 			return std::addressof(h);
 	}
 	return nullptr;
@@ -123,7 +123,7 @@ static auto _Find_hook_itr(context::storage_type& storage, LPVOID target)
 	//return std::ranges::find(storage, target, &context::element_type::target);
 	for (auto itr = storage.begin( ); itr != storage.end( ); ++itr)
 	{
-		if (itr->target == target)
+		if (itr->target( ) == target)
 			return itr;
 	}
 	return storage.end( );
@@ -135,7 +135,7 @@ static hook_status _Set_hook_state(context::storage_type& storage, LPVOID target
 	if (!entry)
 		return hook_status::ERROR_NOT_CREATED;
 
-	if (entry->enabled == enable)
+	if (entry->enabled( ) == enable)
 		return enable ? hook_status::ERROR_ENABLED : hook_status::ERROR_DISABLED;
 
 	return entry->set_state(enable);
@@ -147,7 +147,7 @@ static hook_status _Set_hook_state_all(context::storage_type& storage, bool enab
 
 	auto storage_active = storage | std::views::filter([](const hook_entry& h)
 	{
-		return h.target != nullptr;
+		return h.target( ) != nullptr;
 	});
 	const auto begin = storage_active.begin( );
 	const auto end   = storage_active.end( );
@@ -155,7 +155,7 @@ static hook_status _Set_hook_state_all(context::storage_type& storage, bool enab
 	for (auto itr_main = begin; itr_main != end; ++itr_main)
 	{
 		auto& value = *itr_main;
-		if (value.enabled == enable)
+		if (value.enabled( ) == enable)
 			continue;
 
 #if 0
@@ -193,7 +193,7 @@ static hook_status _Set_hook_state_all(context::storage_type& storage, bool enab
 		for (auto itr_child = begin; itr_child != itr_main; ++itr_child)
 		{
 			auto& value_child = *itr_child;
-			if (value_child.enabled == enable)
+			if (value_child.enabled( ) == enable)
 				continue;
 			if (const auto temp_status = value_child.set_state(enable); temp_status != hook_status::OK)
 			{
@@ -209,36 +209,36 @@ static hook_status _Set_hook_state_all(context::storage_type& storage, bool enab
 
 //--------
 
+struct hook_entry::impl
+{
+	bool                 enabled = 0;
+	std::vector<uint8_t> backup;
+};
+
+hook_entry::hook_entry( )
+{
+	impl_ = std::make_unique<impl>( );
+}
+
 hook_entry::~hook_entry( )
 {
-	runtime_assert(!this->enabled, "Unable to destroy enabled hook entry!");
+	runtime_assert(!impl_->enabled, "Unable to destroy enabled hook entry!");
 }
 
-hook_entry::hook_entry(hook_entry&& other) noexcept
-{
-	*static_cast<trampoline*>(this) = static_cast<trampoline&&>(other);
-	std::memcpy(backup, other.backup, sizeof(ips_type));
-	enabled = other.enabled;
-}
-
-hook_entry& hook_entry::operator=(hook_entry&& other) noexcept
-{
-	std::swap<trampoline>(*this, other);
-	std::swap(backup, other.backup);
-	std::swap(enabled, other.enabled);
-
-	return *this;
-}
+hook_entry::hook_entry(hook_entry&&) noexcept            = default;
+hook_entry& hook_entry::operator=(hook_entry&&) noexcept = default;
 
 hook_status hook_entry::set_state(bool enable)
 {
-	if (this->enabled == enable)
+	if (this->enabled( ) == enable)
 		return enable ? hook_status::ERROR_ENABLED : hook_status::ERROR_DISABLED;
 
-	auto   patch_target = static_cast<LPBYTE>(this->target);
+	auto   patch_target = static_cast<LPBYTE>(this->target( ));
 	SIZE_T patch_size   = sizeof(JMP_REL);
 
-	if (this->patch_above)
+	const auto patch_above = this->patch_above( );
+
+	if (patch_above)
 	{
 		patch_target -= sizeof(JMP_REL);
 		patch_size += sizeof(JMP_REL_SHORT);
@@ -257,10 +257,10 @@ hook_status hook_entry::set_state(bool enable)
 		{
 			const auto jmp_rel = reinterpret_cast<JMP_REL*>(patch_target);
 			jmp_rel->opcode    = 0xE9;
-			jmp_rel->operand   = static_cast<UINT32>(static_cast<LPBYTE>(this->detour) - (patch_target + sizeof(JMP_REL)));
-			if (this->patch_above)
+			jmp_rel->operand   = static_cast<UINT32>(static_cast<LPBYTE>(this->detour( )) - (patch_target + sizeof(JMP_REL)));
+			if (patch_above)
 			{
-				const auto short_jmp = static_cast<JMP_REL_SHORT*>(this->target);
+				const auto short_jmp = static_cast<JMP_REL_SHORT*>(this->target( ));
 				short_jmp->opcode    = 0xEB;
 				short_jmp->operand   = static_cast<UINT8>(0 - (sizeof(JMP_REL_SHORT) + sizeof(JMP_REL)));
 			}
@@ -279,10 +279,11 @@ hook_status hook_entry::set_state(bool enable)
 	}
 	else
 	{
-		if (this->patch_above)
-			memcpy(patch_target, this->backup, sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
+		const auto backup = impl_->backup.data( );
+		if (patch_above)
+			memcpy(patch_target, backup, sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
 		else
-			memcpy(patch_target, this->backup, sizeof(JMP_REL));
+			memcpy(patch_target, backup, sizeof(JMP_REL));
 	}
 
 	VirtualProtect(patch_target, patch_size, old_protect, &old_protect);
@@ -290,9 +291,28 @@ hook_status hook_entry::set_state(bool enable)
 	// Just-in-case measure.
 	FlushInstructionCache(GetCurrentProcess( ), patch_target, patch_size);
 
-	this->enabled = enable;
+	impl_->enabled = enable;
 
 	return hook_status::OK;
+}
+
+bool hook_entry::enabled( ) const
+{
+	return impl_->enabled;
+}
+
+void hook_entry::init_backup(LPVOID from, size_t bytes_count)
+{
+	auto& b = impl_->backup;
+	runtime_assert(b.empty());
+
+	auto rng = nstd::memory_block(from, bytes_count).bytes_range( );
+	b.assign(rng.begin( ), rng.end( ));
+}
+
+void hook_entry::mark_disabled( )
+{
+	impl_->enabled = 0;
 }
 
 context::context( )
@@ -323,34 +343,30 @@ hook_result context::create_hook(LPVOID target, LPVOID detour)
 	};
 	for (const auto& value: *storage_)
 	{
-		if (check_ptr_helper(value.target) || check_ptr_helper(value.detour))
+		if (check_ptr_helper(value.target( )) || check_ptr_helper(value.detour( )))
 			return hook_status::ERROR_ALREADY_CREATED;
 	}
 
-	auto ct = trampoline( );
+	auto ct = trampoline2( );
+
+	if (!ct.create(target, detour))
+		return hook_status::ERROR_UNSUPPORTED_FUNCTION;
 	if (!ct.fix_page_protection( ))
 		return hook_status::ERROR_MEMORY_PROTECT;
 
-	ct.target = target;
-	ct.detour = detour;
-	if (!ct.create( ))
-		return hook_status::ERROR_UNSUPPORTED_FUNCTION;
-
 	auto& new_hook = storage_->emplace_back( );
 
-	static_cast<trampoline&>(new_hook) = std::move(ct);
-
-	new_hook.enabled = false;
+	static_cast<trampoline2&>(new_hook) = std::move(ct);
 
 #if defined(_M_X64) || defined(__x86_64__)
 	new_hook.detour = ct.pRelay;
 #endif
 	// Back up the target function.
 
-	if (new_hook.patch_above)
-		memcpy(new_hook.backup, static_cast<LPBYTE>(target) - sizeof(JMP_REL), sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
+	if (new_hook.patch_above( ))
+		new_hook.init_backup((static_cast<LPBYTE>(target) - sizeof(JMP_REL)), sizeof(JMP_REL) + sizeof(JMP_REL_SHORT));
 	else
-		memcpy(new_hook.backup, target, sizeof(JMP_REL));
+		new_hook.init_backup(target, sizeof(JMP_REL));
 
 	hook_result ret(hook_status::OK);
 	ret.entry = std::addressof(new_hook);
@@ -364,14 +380,14 @@ hook_status context::remove_hook(LPVOID target, bool force)
 	if (!entry)
 		return hook_status::ERROR_NOT_CREATED;
 
-	if (entry->enabled)
+	if (entry->enabled( ))
 	{
 		if (const auto status = entry->set_state(false); status != hook_status::OK)
 		{
 			if (!force || status != hook_status::ERROR_MEMORY_PROTECT)
 				return status;
 		}
-		entry->enabled = 0;
+		entry->mark_disabled( );
 	}
 
 	storage_->erase(_Find_hook_itr(*storage_, target));
@@ -388,7 +404,7 @@ hook_status context::disable_hook(LPVOID target)
 	return _Set_hook_state(*storage_, target, false);
 }
 
-hook_result context::find_hook(LPVOID target)
+hook_result context::find_hook(LPVOID target)const
 {
 	const auto entry = _Find_hook(*storage_, target);
 	if (!entry)
@@ -467,7 +483,7 @@ hook_status context_safe::disable_hook(LPVOID target)
 	return LOCK_AND_WORK(disable_hook, target);
 }
 
-hook_result context_safe::find_hook(LPVOID target)
+hook_result context_safe::find_hook(LPVOID target)const
 {
 	return LOCK_AND_WORK(find_hook, target);
 }

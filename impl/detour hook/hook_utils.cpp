@@ -7,17 +7,18 @@
 using namespace dhooks;
 using namespace dhooks::detail;
 
-static std::shared_ptr<context_shared> _Init_context( )
+nstd::address method_info::get_target_method( )
 {
-	auto ptr = std::make_shared<context_shared>( );
-	ptr->ctx = std::make_unique<context>( );
-	return ptr;
+	if (target_method_ == nullptr)
+		target_method_ = this->get_target_method_impl( );
+
+	return target_method_;
 }
 
-void hook_holder_data::init( )
+nstd::address method_info::get_target_method( ) const
 {
-	static auto hooks_context = _Init_context( );
-	context                   = hooks_context;
+	runtime_assert(target_method_ != nullptr);
+	return target_method_;
 }
 
 void detail::_Call_fn_trap(call_conversion original, call_conversion called)

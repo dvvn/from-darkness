@@ -22,20 +22,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\abstract page.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\button_behavior.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\shared_label.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\objects\renderable object.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\callback.h" />
@@ -262,7 +250,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hook.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hook_utils.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\status.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\target function.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\trampoline.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\address.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\chars cache.h" />
@@ -296,21 +283,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\services loader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\abstract page.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\button_behavior.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\renderable object.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\shared_label.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\objects\pages renderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\callback.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\info.cpp" />

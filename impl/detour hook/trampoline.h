@@ -1,17 +1,14 @@
 #pragma once
 
-#include "status.h"
-#include "target function.h"
-
-#include "nstd/memory protect.h"
-
-#include <array>
 #include <memory>
 
+// ReSharper disable CppInconsistentNaming
 using UINT8 = unsigned char;
 using UINT32 = unsigned int;
 using UINT64 = unsigned __int64;
 using UINT = unsigned int;
+using LPVOID = void*;
+// ReSharper restore CppInconsistentNaming
 
 namespace dhooks::detail
 {
@@ -78,35 +75,27 @@ namespace dhooks::detail
 	// ReSharper restore CppInconsistentNaming
 #pragma pack(pop)
 
-	class trampoline: public target_fn
+	class trampoline2
 	{
 	public:
-		trampoline( );
+		trampoline2( );
+		~trampoline2( );
 
-		trampoline(trampoline&&)            = default;
-		trampoline& operator=(trampoline&&) = default;
-
-		using ips_type = UINT8[8];
-
-		LPVOID detour = nullptr; // [In] Address of the detour function.
-
-#if defined(_M_X64) || defined(__x86_64__)
-		LPVOID pRelay=nullptr; // [Out] Address of the relay function.
-#endif
-		bool patch_above = false; // [Out] Should use the hot patch area?
-		UINT ips_count   = 0;     // [Out] Number of the instruction boundaries.
-
-		ips_type old_ips; // [Out] Instruction boundaries of the target function.
-		ips_type new_ips; // [Out] Instruction boundaries of the trampoline function.
-
-		UINT8* buffer( );
-		UINT8  buffer_size( ) const;
+		trampoline2(trampoline2&&) noexcept;
+		trampoline2& operator=(trampoline2&&) noexcept;
 
 		bool fix_page_protection( );
-		bool create( );
+		bool create(LPVOID target, LPVOID detour);
+
+		bool patch_above( ) const;
+
+		LPVOID target( ) const;
+		LPVOID detour( ) const;
+
+		UINT8* trampoline( ) const;
 
 	private:
-		nstd::memory_protect    old_protection__;
-		std::unique_ptr<UINT8[]> trampoline__;
+		struct impl;
+		std::unique_ptr<impl> impl_;
 	};
 }

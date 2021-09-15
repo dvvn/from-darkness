@@ -2,26 +2,50 @@
 
 //#include "vtable_counter.h"
 #include "trampoline.h"
+#include "status.h"
 
 #include "nstd/one_instance.h"
 
 namespace dhooks
 {
-	class hook_entry final: public detail::trampoline
+	//class hook_entry final
+	//{
+	//public:
+	//	~hook_entry( );
+	//	hook_entry( ) = default;
+
+	//	hook_entry(const hook_entry&)            = delete;
+	//	hook_entry& operator=(const hook_entry&) = delete;
+	//	hook_entry(hook_entry&& other) noexcept;
+	//	hook_entry& operator=(hook_entry&& other) noexcept;
+
+	//	
+
+	//private:
+	//	struct impl;
+	//	std::unique_ptr<impl>impl_;
+	//	detail::trampoline2 tr;
+
+	//	 backup; // Original prologue of the target function.
+	//	bool     enabled = false;
+	//};
+	class hook_entry: public detail::trampoline2
 	{
 	public:
+		hook_entry( );
 		~hook_entry( );
-		hook_entry( ) = default;
 
-		hook_entry(const hook_entry&)            = delete;
-		hook_entry& operator=(const hook_entry&) = delete;
-		hook_entry(hook_entry&& other) noexcept;
-		hook_entry& operator=(hook_entry&& other) noexcept;
+		hook_entry(hook_entry&&) noexcept;
+		hook_entry& operator=(hook_entry&&) noexcept;
 
 		hook_status set_state(bool enable);
 
-		ips_type backup; // Original prologue of the target function.
-		bool     enabled = false;
+		bool enabled( ) const;
+		void init_backup(LPVOID from, size_t bytes_count);
+		void mark_disabled( );
+	private:
+		struct impl;
+		std::unique_ptr<impl> impl_;
 	};
 
 	struct hook_result
@@ -46,7 +70,7 @@ namespace dhooks
 		virtual hook_status remove_hook(LPVOID target, bool force = false) = 0;
 		virtual hook_status enable_hook(LPVOID target) = 0;
 		virtual hook_status disable_hook(LPVOID target) = 0;
-		virtual hook_result find_hook(LPVOID target) = 0;
+		virtual hook_result find_hook(LPVOID target) const = 0;
 		virtual void        remove_all_hooks( ) = 0;
 		virtual hook_status enable_all_hooks( ) = 0;
 		virtual hook_status disable_all_hooks( ) = 0;
@@ -59,13 +83,13 @@ namespace dhooks
 		struct storage_type;
 
 		context( );
-		~context() override;
+		~context( ) override;
 
 		hook_result create_hook(LPVOID target, LPVOID detour) override;
 		hook_status remove_hook(LPVOID target, bool force) override;
 		hook_status enable_hook(LPVOID target) override;
 		hook_status disable_hook(LPVOID target) override;
-		hook_result find_hook(LPVOID target) override;
+		hook_result find_hook(LPVOID target) const override;
 		void        remove_all_hooks( ) override;
 		hook_status enable_all_hooks( ) override;
 		hook_status disable_all_hooks( ) override;
@@ -79,13 +103,14 @@ namespace dhooks
 	public:
 		struct lock_type;
 
+		[[deprecated]]
 		context_safe( );
 
 		hook_result create_hook(LPVOID target, LPVOID detour) override;
 		hook_status remove_hook(LPVOID target, bool force) override;
 		hook_status enable_hook(LPVOID target) override;
 		hook_status disable_hook(LPVOID target) override;
-		hook_result find_hook(LPVOID target) override;
+		hook_result find_hook(LPVOID target) const override;
 		void        remove_all_hooks( ) override;
 		hook_status enable_all_hooks( ) override;
 		hook_status disable_all_hooks( ) override;

@@ -5,12 +5,12 @@
 #include "cheat/gui/tools/animator.h"
 #include "cheat/gui/tools/string wrapper.h"
 
-#include "nstd/overload.h"
+#include <nstd/overload.h>
+
+#include <imgui_internal.h>
 
 #include <array>
 #include <format>
-#include <imgui_internal.h>
-
 #include <functional>
 
 using namespace cheat;
@@ -90,7 +90,7 @@ static callback_info _Build_callback(const std::wstring_view& debug_name, color_
 
 //-----------------
 
-class callbacks_setter
+class value_setter
 {
 public:
 	bool set( )
@@ -152,11 +152,11 @@ struct selectable_bg_colors_fade::impl
 		const auto dir = clr_last < clr_curr ? 1 : -1;
 
 		if (!fade.updating( ))
-			clr_from = colors[/*std::min(clr_last, clr_curr)*/clr_last];
+			clr_from = colors[clr_last];
 		else
 			clr_from = clr_tmp;
 
-		clr_to = colors[/*std::max(clr_last, clr_curr)*/clr_curr];
+		clr_to = colors[clr_curr];
 		fade.set(dir);
 	}
 
@@ -182,20 +182,35 @@ struct selectable_bg_colors_fade::impl
 		return ImGui::ColorConvertFloat4ToU32(clr_tmp);
 	}
 
-	callbacks_setter        callbacks_set;
+	value_setter            callbacks_set, colors_set;
 	selectable_style_colors colors;
 
-	void init( )
+	//todo: if style changed, call this fucntion
+	void update_colors( )
 	{
+		const auto clr_to_old = colors[clr_curr];
+
+		constexpr auto compare_colors = [](const ImVec4& a, const ImVec4& b)
+		{
+			return std::memcmp(&a, &b, sizeof(ImVec4)) == 0;
+		};
+
 		colors.update( );
 
+		//if style changed, animate it
+		if (colors_set && !compare_colors(clr_to_old, colors[clr_curr]))
+		{
+			if (!fade.updating( ))
+			{
+				clr_from = clr_to_old;
+				fade.restart( );
+			}
+
+			clr_to = colors[clr_curr];
+		}
 		if (!callbacks_set)
-			return;
-
-		set_from_to( );
+			set_from_to( );
 	}
-
-	//--------
 };
 
 selectable_bg_colors_fade::selectable_bg_colors_fade( )
@@ -207,12 +222,13 @@ selectable_bg_colors_fade::~selectable_bg_colors_fade( )                        
 selectable_bg_colors_fade::selectable_bg_colors_fade(selectable_bg_colors_fade&&) noexcept            = default;
 selectable_bg_colors_fade& selectable_bg_colors_fade::operator=(selectable_bg_colors_fade&&) noexcept = default;
 
-void selectable_bg_colors_fade::init_colors(selectable_bg* owner)
+void selectable_bg_colors_fade::update_colors(selectable_bg* owner)
 {
-	impl_->init( );
+	impl_->update_colors( );
 
 	if (impl_->callbacks_set.set( ))
 		return;
+	impl_->colors_set.set( );
 
 	owner->add_hovered_callback(_Build_callback(L"hovered", COLOR_HOVERED)
 	  , two_way_callback::WAY_TRUE);
@@ -264,7 +280,7 @@ ImU32 selectable_bg_colors_fade::get_color( )
 
 struct selectable_bg_colors_static::impl
 {
-	callbacks_setter        callbacks_set;
+	value_setter            callbacks_set;
 	selectable_style_colors colors;
 
 	struct
@@ -289,7 +305,7 @@ selectable_bg_colors_static::~selectable_bg_colors_static( )                    
 selectable_bg_colors_static::selectable_bg_colors_static(selectable_bg_colors_static&&) noexcept            = default;
 selectable_bg_colors_static& selectable_bg_colors_static::operator=(selectable_bg_colors_static&&) noexcept = default;
 
-void selectable_bg_colors_static::init_colors(selectable_bg* owner)
+void selectable_bg_colors_static::update_colors(selectable_bg* owner)
 {
 	impl_->colors.update( );
 	if (impl_->callbacks_set.set( ))

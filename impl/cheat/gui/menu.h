@@ -1,8 +1,6 @@
 #pragma once
 
 #include "cheat/core/service.h"
-
-#include "objects/pages renderer.h"
 #include "widgets/window.h"
 
 // ReSharper disable CppInconsistentNaming
@@ -44,8 +42,6 @@ namespace cheat::gui
 
 		void render( );
 		bool toggle(UINT msg, WPARAM wparam);
-
-		//---
 
 	protected:
 		load_result load_impl( ) override;

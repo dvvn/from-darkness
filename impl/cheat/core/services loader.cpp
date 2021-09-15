@@ -1,6 +1,8 @@
 #include "services loader.h"
-
 #include "console.h"
+#ifndef CHEAT_GUI_TEST
+#include "csgo_awaiter.h"
+#endif
 
 #include <detour hook/hook_utils.h>
 

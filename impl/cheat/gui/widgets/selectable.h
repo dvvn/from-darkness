@@ -32,7 +32,7 @@ namespace cheat::gui::widgets
 		  , COLOR_HELD
 		};
 
-		virtual void  init_colors(selectable_bg* owner) =0;
+		virtual void  update_colors(selectable_bg* owner) =0;
 		virtual void  set_color(color_priority clr) =0;
 		virtual ImU32 get_color( ) =0;
 
@@ -50,7 +50,7 @@ namespace cheat::gui::widgets
 		selectable_bg_colors_fade(selectable_bg_colors_fade&&) noexcept;
 		selectable_bg_colors_fade& operator=(selectable_bg_colors_fade&&) noexcept;
 
-		void  init_colors(selectable_bg* owner) override;
+		void  update_colors(selectable_bg* owner) override;
 		void  set_color(color_priority clr) override;
 		ImU32 get_color( ) override;
 
@@ -68,7 +68,7 @@ namespace cheat::gui::widgets
 		selectable_bg_colors_static(selectable_bg_colors_static&&) noexcept;
 		selectable_bg_colors_static& operator=(selectable_bg_colors_static&&) noexcept;
 
-		void  init_colors(selectable_bg* owner) override;
+		void  update_colors(selectable_bg* owner) override;
 		void  set_color(color_priority clr) override;
 		ImU32 get_color( ) override;
 

@@ -1,3 +1,4 @@
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "manager.h"
 #include "shared_data.h"
 
@@ -11,6 +12,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <ranges>
 
 #include <nlohmann/json.hpp>
 
@@ -181,8 +183,6 @@ void manager::save(const std::wstring_view& file_name, const filter& filter_obj)
 
 void manager::load(const std::wstring_view& file_name, const filter& filter_obj)
 {
-	(void)this;
-
 	const auto& path = impl_->path;
 	runtime_assert(exists(path));
 	runtime_assert(is_directory(path));
