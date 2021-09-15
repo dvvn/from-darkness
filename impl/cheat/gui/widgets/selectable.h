@@ -36,6 +36,8 @@ namespace cheat::gui::widgets
 		virtual void  set_color(color_priority clr) =0;
 		virtual ImU32 get_color( ) =0;
 
+		//todo: rect.min/max change
+
 	private:
 	};
 
@@ -57,6 +59,25 @@ namespace cheat::gui::widgets
 		std::unique_ptr<impl> impl_;
 	};
 
+	class selectable_bg_colors_static final: public selectable_bg_colors_base
+	{
+	public:
+		selectable_bg_colors_static( );
+		~selectable_bg_colors_static( ) override;
+
+		selectable_bg_colors_static(selectable_bg_colors_static&&) noexcept;
+		selectable_bg_colors_static& operator=(selectable_bg_colors_static&&) noexcept;
+
+		void  init_colors(selectable_bg* owner) override;
+		void  set_color(color_priority clr) override;
+		ImU32 get_color( ) override;
+
+	protected:
+	private:
+		struct impl;
+		std::unique_ptr<impl> impl_;
+	};
+
 	class selectable_bg: public selectable_base
 	{
 	public:
@@ -70,7 +91,7 @@ namespace cheat::gui::widgets
 		selectable_bg_colors_base* get_bg_colors( );
 
 	protected:
-		bool render(ImGuiWindow* window, ImRect& bb, callback_data_ex& cb_data,bool outer_spacing);
+		bool render(ImGuiWindow* window, ImRect& bb, callback_data_ex& cb_data, bool outer_spacing);
 
 	private:
 		struct data_type;

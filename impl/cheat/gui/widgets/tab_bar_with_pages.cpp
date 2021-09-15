@@ -63,10 +63,10 @@ void tab_bar_with_pages::render( )
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-tab_bar_item& tab_bar_with_pages::add_item(string_wrapper&& bar_name, const renderable_shared& data)
+void tab_bar_with_pages::add_item(tab_bar_item&& bar_item, const renderable_shared& data)
 {
+	this->add_tab(std::move(bar_item));
 	pages_->push_back(data);
-	return this->add_tab(std::move(bar_name));
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

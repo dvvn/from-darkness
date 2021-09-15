@@ -14,7 +14,7 @@ using namespace tools;
 
 struct text::data
 {
-	ImFont* font = ImGui::GetDefaultFont( ); //todo: shared_ptr. no push_pop font allowed
+	ImFont* font = /*ImGui::GetDefaultFont( )*/nullptr; //todo: shared_ptr. no push_pop font allowed
 
 	string_wrapper label;
 	ImVec2         label_size;

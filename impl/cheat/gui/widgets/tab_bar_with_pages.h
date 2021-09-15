@@ -26,7 +26,7 @@ namespace cheat::gui::widgets
 
 		void render( ) override;
 
-		tab_bar_item& add_item(tools::string_wrapper&& bar_name, const objects::renderable_shared& data);
+		void add_item(tab_bar_item&& bar_item, const objects::renderable_shared& data);
 
 		renderable* find_item(tools::perfect_string&& title);
 

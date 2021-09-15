@@ -56,19 +56,28 @@ struct menu::impl
 			[&]
 			<typename C, size_t S, typename T>(tab_bar_with_pages& tab_bar, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
 		{
-			auto& item = tab_bar.add_item(name, data);
-
+			auto item = tab_bar_item( );
+			item.set_font(ImGui::GetDefaultFont( ));
+			item.set_label(name);
+			auto item_colors = std::make_unique<selectable_bg_colors_fade>( );
+			item_colors->init_colors(std::addressof(item));
+			item.set_bg_colors(std::move(item_colors));
 			item.add_pressed_callback(callback_info(make_pressed_callback(std::addressof(tab_bar)), false), two_way_callback::WAY_TRUE);
+
+			tab_bar.add_item(std::move(item), data);
+
 			return *data;
 		};
 
 		auto& rage_tab = add_item_set_callbacks(tabs_pages, "rage", std::make_shared<tab_bar_with_pages>( ));
 
-		rage_tab.make_vertical( );
+		rage_tab.make_horisontal( );
 		rage_tab.make_size_auto( );
 		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared(true));
-		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
-		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "dummy 1", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "dummy 2", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "dummy 3", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "dummy 4", features::aimbot::get_ptr_shared( ));
 	}
 
 	impl( )

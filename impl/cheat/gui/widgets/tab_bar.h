@@ -27,7 +27,7 @@ namespace cheat::gui::widgets
 
 		tab_bar_item* find_tab(tools::perfect_string&& title);
 
-		tab_bar_item& add_tab(tools::string_wrapper&& title);
+		void          add_tab(tab_bar_item&& item);
 		tab_bar_item* get_selected( );
 
 		tab_bar_item* begin( );

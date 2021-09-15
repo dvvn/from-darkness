@@ -118,18 +118,16 @@ tab_bar_item* tab_bar::find_tab(perfect_string&& title)
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-tab_bar_item& tab_bar::add_tab(string_wrapper&& title)
+void tab_bar::add_tab(tab_bar_item&& item)
 {
-	runtime_assert(find_tab(title) == nullptr);
+	runtime_assert(item.get_label( ).raw( ).empty( ) == false);
+	runtime_assert(find_tab(item.get_label( )) == nullptr);
 	auto& items = impl_->items;
 
-	auto& added = items.emplace_back( );
-	added.set_label(std::move(title));
+	auto& added = items.emplace_back(std::move(item));
 
 	if (items.size( ) == 1)
 		items.front( ).select(callback_data(std::addressof(added), added.get_id( )));
-
-	return added;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -206,7 +204,6 @@ bool tab_bar::is_vertical( ) const
 {
 	return impl_->dir == directions::VERTICAL;
 }
-
 
 void tab_bar::render( )
 {
@@ -317,5 +314,3 @@ void tab_bar::render( )
 	}
 	_Wnd.end( );
 }
-
-
