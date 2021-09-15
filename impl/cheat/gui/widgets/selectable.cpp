@@ -132,6 +132,9 @@ struct selectable_bg_colors_fade::impl
 {
 	impl( )
 	{
+		//todo: ---fade----
+		//set time/min/max/dir once
+		//
 		fade.set(-1);
 		fade.finish( );
 
@@ -144,10 +147,12 @@ struct selectable_bg_colors_fade::impl
 	ImVec4         clr_from, clr_to;
 	ImVec4         clr_tmp;
 
-	void set_from_to( )
+	void set_color(color_priority clr)
 	{
-		if (clr_last == clr_curr)
-			return;
+		clr_last = clr_curr;
+		clr_curr = clr;
+
+		runtime_assert(clr_last != clr_curr, "Logic error");
 
 		const auto dir = clr_last < clr_curr ? 1 : -1;
 
@@ -160,16 +165,9 @@ struct selectable_bg_colors_fade::impl
 		fade.set(dir);
 	}
 
-	void set_color(color_priority clr)
-	{
-		clr_last = clr_curr;
-		clr_curr = clr;
-
-		set_from_to( );
-	}
-
 	ImU32 get_color( )
 	{
+		//update_colors( );//for testing
 		if (!fade.update( ))
 			return ImGui::ColorConvertFloat4ToU32(clr_to);
 
@@ -182,7 +180,7 @@ struct selectable_bg_colors_fade::impl
 		return ImGui::ColorConvertFloat4ToU32(clr_tmp);
 	}
 
-	value_setter            callbacks_set, colors_set;
+	value_setter            initialized;
 	selectable_style_colors colors;
 
 	//todo: if style changed, call this fucntion
@@ -190,15 +188,19 @@ struct selectable_bg_colors_fade::impl
 	{
 		const auto clr_to_old = colors[clr_curr];
 
+		colors.update( );
+
+		if (!initialized)
+			return;
+
+		// ReSharper disable once CppTooWideScopeInitStatement
 		constexpr auto compare_colors = [](const ImVec4& a, const ImVec4& b)
 		{
 			return std::memcmp(&a, &b, sizeof(ImVec4)) == 0;
 		};
 
-		colors.update( );
-
 		//if style changed, animate it
-		if (colors_set && !compare_colors(clr_to_old, colors[clr_curr]))
+		if (!compare_colors(clr_to_old, colors[clr_curr]))
 		{
 			if (!fade.updating( ))
 			{
@@ -208,8 +210,6 @@ struct selectable_bg_colors_fade::impl
 
 			clr_to = colors[clr_curr];
 		}
-		if (!callbacks_set)
-			set_from_to( );
 	}
 };
 
@@ -226,9 +226,8 @@ void selectable_bg_colors_fade::update_colors(selectable_bg* owner)
 {
 	impl_->update_colors( );
 
-	if (impl_->callbacks_set.set( ))
+	if (impl_->initialized.set( ))
 		return;
-	impl_->colors_set.set( );
 
 	owner->add_hovered_callback(_Build_callback(L"hovered", COLOR_HOVERED)
 	  , two_way_callback::WAY_TRUE);
