@@ -130,6 +130,11 @@ void text::set_font(ImFont* font)
 	data_->set_font(font);
 }
 
+ImFont* text::get_font( )
+{
+	return data_->font;
+}
+
 void text::set_label(string_wrapper&& label)
 {
 	data_->set_label(std::move(label));

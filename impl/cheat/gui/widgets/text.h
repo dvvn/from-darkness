@@ -32,8 +32,10 @@ namespace cheat::gui::widgets
 		ImRect make_rect(ImGuiWindow* wnd) const;
 
 	public:
-		void set_font(ImFont* font);
-		void set_label(tools::string_wrapper&& label);
+		void    set_font(ImFont* font);
+		ImFont* get_font( );
+
+		void    set_label(tools::string_wrapper&& label);
 
 		const tools::string_wrapper& get_label( ) const;
 		const ImVec2&                label_size( ) const;

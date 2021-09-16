@@ -23,7 +23,8 @@ namespace cheat::gui::objects
 
 		void set_button_flags(ImGuiButtonFlags flags);
 
-		/*virtual*/ ImGuiButtonFlags get_button_flags( ) const;
+		/*virtual*/
+		ImGuiButtonFlags get_button_flags( ) const;
 
 	public:
 		struct callback_data_ex final: tools::callback_data

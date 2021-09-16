@@ -8,14 +8,12 @@
 #include "cheat/core/services loader.h"
 #include "cheat/gui/tools/animator.h"
 
-#include <nstd/runtime assert.h>
-
-#include <nstd/type name.h>
-
 #include <imgui.h>
 #include <imgui_internal.h>
 
 #include <functional>
+#include <filesystem>
+#include <fstream>
 
 using namespace cheat::features;
 
@@ -29,13 +27,19 @@ struct aimbot::impl
 
 	void init_gui( )
 	{
-		cb.set_font(ImGui::GetDefaultFont( ));
+		auto fonts = gui::imgui_context::get_ptr( )->fonts( );
+
+		auto font_cfg        = fonts.default_font_config( );
+		font_cfg->SizePixels = 20;
+		auto test_font       = fonts.add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.ttf)", std::move(font_cfg));
+		fonts                = { };
+		cb.set_font(test_font);
 		cb.set_label("test");
 		auto bg_colors = init_selectable_colors<selectable_bg_colors_fade>(ImGuiCol_FrameBg, ImGuiCol_FrameBg, ImGuiCol_FrameBgHovered, ImGuiCol_FrameBgActive);
 		add_default_selectable_callbacks(&cb, bg_colors.get( ));
 		cb.set_bg_colors(std::move(bg_colors));
 		auto check_bg_color = init_selectable_colors<selectable_bg_colors_fade>({ }, ImGuiCol_CheckMark, { }, { });
-		check_bg_color->fade( ).set_time(animator::default_time * 2);
+		check_bg_color->fade( ).set_time(animator::default_time * 3);
 		cb.set_check_colors(std::move(check_bg_color));
 
 		cb.add_pressed_callback({[&](const callback_data& data, const callback_state& state)

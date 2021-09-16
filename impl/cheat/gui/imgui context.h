@@ -2,8 +2,22 @@
 
 #include "cheat/core/service.h"
 
+namespace std
+{
+	namespace filesystem
+	{
+		class path;
+	}
+
+	template <class Ty>
+	class optional;
+}
+
 // ReSharper disable CppInconsistentNaming
 struct ImGuiContext;
+struct ImFont;
+struct ImFontAtlas;
+struct ImFontConfig;
 
 struct HWND__;
 using HWND = HWND__*;
@@ -11,6 +25,31 @@ using HWND = HWND__*;
 
 namespace cheat::gui
 {
+	class fonts_builder_proxy
+	{
+	public:
+		fonts_builder_proxy( );
+		fonts_builder_proxy(ImFontAtlas* atlas);
+		~fonts_builder_proxy( );
+
+		fonts_builder_proxy(const fonts_builder_proxy& other)            = delete;
+		fonts_builder_proxy& operator=(const fonts_builder_proxy& other) = delete;
+
+		fonts_builder_proxy(fonts_builder_proxy&& other) noexcept;
+		fonts_builder_proxy& operator=(fonts_builder_proxy&& other) noexcept;
+
+		//ImFontAtlas* operator->( );
+		ImFont*add_default_font( std::optional<ImFontConfig>&& cfg_opt);
+		ImFont* add_font_from_ttf_file(const std::filesystem::path& path, std::optional<ImFontConfig>&& cfg_opt);
+		ImFont* add_font_from_memory_ttf_file(const std::span<uint8_t>& buffer, std::optional<ImFontConfig>&& cfg_opt);
+
+		static std::optional<ImFontConfig> default_font_config( );
+
+	private:
+		struct impl;
+		std::unique_ptr<impl> impl_;
+	};
+
 	class imgui_context final: public service<imgui_context>
 	{
 	public:
@@ -19,6 +58,8 @@ namespace cheat::gui
 
 		HWND          hwnd( ) const;
 		ImGuiContext& get( );
+
+		fonts_builder_proxy fonts( ) const;
 
 	protected:
 		load_result load_impl( ) override;

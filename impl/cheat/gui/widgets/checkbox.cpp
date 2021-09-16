@@ -25,7 +25,7 @@ void checkbox::render( )
 	const auto  window = ImGui::GetCurrentWindow( );
 	const auto& style  = ImGui::GetStyle( );
 
-	const float square_sz = ImGui::GetFrameHeight( );
+	const float square_sz = this->get_font( )->FontSize + style.FramePadding.y * 2.0f;
 	const auto  pos       = window->DC.CursorPos;
 
 	auto       check_bb  = ImRect(pos, pos + ImVec2(square_sz, square_sz));
