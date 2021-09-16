@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cheat/core/service.h"
 #include "cheat/gui/objects/renderable object.h"
 #include "cheat/settings/shared_data.h"
 
@@ -7,16 +8,27 @@
 
 namespace cheat::features
 {
-	class aimbot final: public gui::objects::renderable
+	class aimbot final: public service<aimbot>
+					  , public gui::objects::renderable
 					  , public settings::shared_data
-					  , public nstd::one_instance_shared<aimbot>
+
 	{
 	public:
 		aimbot( );
 		~aimbot( ) override;
 
+		aimbot(aimbot&&) noexcept;
+		aimbot& operator=(aimbot&&) noexcept;
+
 		void render( ) override;
 		void save(json& in) const override;
 		void load(const json& out) override;
+
+	protected:
+		load_result load_impl( ) override;
+
+	private:
+		struct impl;
+		std::unique_ptr<impl> impl_;
 	};
 }

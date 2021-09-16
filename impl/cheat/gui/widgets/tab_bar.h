@@ -26,16 +26,13 @@ namespace cheat::gui::widgets
 		~tab_bar( ) override;
 
 		tab_bar_item* find_tab(tools::perfect_string&& title);
+		size_t find_tab_index(const tab_bar_item* item)const;
 
-		void          add_tab(tab_bar_item&& item);
+		void          add_tab(std::unique_ptr<tab_bar_item>&& item);
 		tab_bar_item* get_selected( );
 
-		tab_bar_item* begin( );
-		tab_bar_item* end( );
-
-		using sort_pred = std::function<bool (const tools::string_wrapper&, const tools::string_wrapper&)>;
-
-		void sort(const sort_pred& pred);
+		//using sort_pred = std::function<bool (const tools::string_wrapper&, const tools::string_wrapper&)>;
+		//void sort(const sort_pred& pred);
 
 		size_t size( ) const;
 		bool   empty( ) const;

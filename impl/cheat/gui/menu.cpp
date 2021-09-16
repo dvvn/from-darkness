@@ -41,9 +41,24 @@ struct menu::impl
 		tabs_pages.make_vertical( );
 		tabs_pages.make_size_static( );
 
-		constexpr auto make_pressed_callback = [](tab_bar* source)
+		/*constexpr auto init_selectable_colors = []
 		{
-			return [=](const callback_data& data, [[maybe_unused]] const callback_state& state)
+			using p = selectable_bg_colors_base::color_priority;
+
+			auto updater = selectable_bg_colors_base::colors_updater( );
+			updater.set_style_idx(p::COLOR_DEFAULT, { });
+			updater.set_style_idx(p::COLOR_SELECTED, ImGuiCol_Header);
+			updater.set_style_idx(p::COLOR_HOVERED, ImGuiCol_HeaderHovered);
+			updater.set_style_idx(p::COLOR_HELD, ImGuiCol_HeaderActive);
+
+			auto bg            = std::make_unique<selectable_bg_colors_fade>( );
+			bg->clr_updater( ) = std::move(updater);
+
+			return bg;
+		};*/
+		constexpr auto make_pressed_callback = [](tab_bar* source)-> callback_info
+		{
+			auto fn = [=](const callback_data& data, [[maybe_unused]] const callback_state& state)
 			{
 				const auto selected_before = source->get_selected( );
 				runtime_assert(dynamic_cast<tab_bar_item*>(data.caller) != nullptr);
@@ -54,18 +69,20 @@ struct menu::impl
 				selected_before->deselect({selected_before});
 				current->select({current});
 			};
+
+			return {std::move(fn), false};
 		};
-		constexpr auto add_item_set_callbacks =
-			[&]
-			<typename C, size_t S, typename T>(tab_bar_with_pages& tab_bar, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
+
+		constexpr auto add_item_set_callbacks = [&] <typename C, size_t S, typename T>(tab_bar_with_pages& tab_bar, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
 		{
-			auto item = tab_bar_item( );
-			item.set_font(ImGui::GetDefaultFont( ));
-			item.set_label(name);
-			auto item_colors = std::make_unique<selectable_bg_colors_fade>( );
-			item_colors->update_colors(std::addressof(item));
-			item.set_bg_colors(std::move(item_colors));
-			item.add_pressed_callback(callback_info(make_pressed_callback(std::addressof(tab_bar)), false), two_way_callback::WAY_TRUE);
+			auto item = std::make_unique<tab_bar_item>( );
+
+			item->set_font(ImGui::GetDefaultFont( ));
+			item->set_label(name);
+			auto bg_colors = init_selectable_colors<selectable_bg_colors_fade>({ }, ImGuiCol_Header, ImGuiCol_HeaderHovered, ImGuiCol_HeaderActive);
+			add_default_selectable_callbacks(item.get( ), bg_colors.get( ));
+			item->set_bg_colors(std::move(bg_colors));
+			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar)), two_way_callback::WAY_TRUE);
 
 			tab_bar.add_item(std::move(item), data);
 
@@ -76,11 +93,9 @@ struct menu::impl
 
 		rage_tab.make_horisontal( );
 		rage_tab.make_size_auto( );
-		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared(true));
-		add_item_set_callbacks(rage_tab, "dummy 1", features::aimbot::get_ptr_shared( ));
-		add_item_set_callbacks(rage_tab, "dummy 2", features::aimbot::get_ptr_shared( ));
-		add_item_set_callbacks(rage_tab, "dummy 3", features::aimbot::get_ptr_shared( ));
-		add_item_set_callbacks(rage_tab, "dummy 4", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
 	}
 
 	impl( )
@@ -97,13 +112,13 @@ struct menu::impl
 					switch (__DATE__[0])
 					{
 						case 'J': // Jan, Jun or Jul
-							return (__DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7);
+							return __DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7;
 						case 'F': // Feb
 							return 2;
 						case 'M': // Mar or May
-							return (__DATE__[2] == 'r' ? 3 : 5);
+							return __DATE__[2] == 'r' ? 3 : 5;
 						case 'A': // Apr or Aug
-							return (__DATE__[2] == 'p' ? 4 : 8);
+							return __DATE__[2] == 'p' ? 4 : 8;
 						case 'S': // Sep
 							return 9;
 						case 'O': // Oct

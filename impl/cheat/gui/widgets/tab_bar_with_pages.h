@@ -16,9 +16,6 @@ namespace cheat::gui::widgets
 	class tab_bar_with_pages final: public tab_bar
 	{
 		using tab_bar::add_tab;
-		using tab_bar::sort;
-
-		using tab_bar::sort_pred;
 
 	public:
 		tab_bar_with_pages( );
@@ -26,7 +23,7 @@ namespace cheat::gui::widgets
 
 		void render( ) override;
 
-		void add_item(tab_bar_item&& bar_item, const objects::renderable_shared& data);
+		void add_item(std::unique_ptr<tab_bar_item>&& bar_item, const objects::renderable_shared& data);
 
 		renderable* find_item(tools::perfect_string&& title);
 

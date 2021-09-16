@@ -33,9 +33,7 @@ void tab_bar_with_pages::render( )
 		auto& selected = [&]( )-> decltype(auto)
 		{
 			const auto target = this->get_selected( ); //*_Wnds[this->get_selected_index( )]
-			const auto first  = this->begin( );
-
-			const auto index = std::distance(first, target);
+			const auto index  = this->find_tab_index(target);
 			return *(*pages_)[index];
 		}( );
 
@@ -63,7 +61,7 @@ void tab_bar_with_pages::render( )
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void tab_bar_with_pages::add_item(tab_bar_item&& bar_item, const renderable_shared& data)
+void tab_bar_with_pages::add_item(std::unique_ptr<tab_bar_item>&& bar_item, const renderable_shared& data)
 {
 	this->add_tab(std::move(bar_item));
 	pages_->push_back(data);
@@ -73,8 +71,6 @@ void tab_bar_with_pages::add_item(tab_bar_item&& bar_item, const renderable_shar
 renderable* tab_bar_with_pages::find_item(perfect_string&& title)
 {
 	const auto target = this->find_tab(std::move(title));
-	const auto first  = this->begin( );
-
-	const auto index = std::distance(first, target);
+	const auto index  = this->find_tab_index(target);
 	return (*pages_)[index].get( );
 }

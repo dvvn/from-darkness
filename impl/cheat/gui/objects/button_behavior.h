@@ -4,6 +4,10 @@
 
 #include <memory>
 
+// ReSharper disable CppInconsistentNaming
+typedef int ImGuiButtonFlags;
+// ReSharper restore CppInconsistentNaming
+
 namespace cheat::gui::objects
 {
 	class renderable;
@@ -17,6 +21,11 @@ namespace cheat::gui::objects
 		button_behavior(button_behavior&&) noexcept;
 		button_behavior& operator=(button_behavior&&) noexcept;
 
+		void set_button_flags(ImGuiButtonFlags flags);
+
+		/*virtual*/ ImGuiButtonFlags get_button_flags( ) const;
+
+	public:
 		struct callback_data_ex final: tools::callback_data
 		{
 			callback_data_ex(const callback_data& data);

@@ -68,5 +68,5 @@ namespace cheat
 
 #define CHEAT_REGISTER_SERVICE(_TYPE_)\
 	[[maybe_unused]]\
-	static const auto _CONCAT(_Unused,__COUNTER__) = (services_loader::get_ptr()->wait_for_service<_TYPE_>(true), 0)
+	static const auto _CONCAT(_Unused,__COUNTER__) = (cheat::services_loader::get_ptr()->wait_for_service<_TYPE_>(true), 0)
 }

@@ -1,7 +1,5 @@
 #pragma once
-#include "cheat/gui/objects/renderable object.h"
-
-#include <memory>
+#include "selectable.h"
 
 namespace cheat::gui::tools
 {
@@ -10,17 +8,26 @@ namespace cheat::gui::tools
 
 namespace cheat::gui::widgets
 {
-	class checkbox: public objects::renderable
+	class checkbox: public selectable_bg
+				  , public text
 	{
 	public:
-		checkbox();
-		~checkbox() override;
+		checkbox( );
+		~checkbox( ) override;
+
+		checkbox(checkbox&&) noexcept;
+		checkbox& operator=(checkbox&&) noexcept;
+
 		void render( ) override;
 
-		void set(tools::string_wrapper&& text);
+		void                       set_check_colors(std::unique_ptr<selectable_bg_colors_base>&& colors);
+		selectable_bg_colors_base* get_check_colors( );
+
+	protected:
+		//ImGuiButtonFlags_ get_button_flags( ) const override;
 
 	private:
-		struct data;
-		std::unique_ptr<data> data_;
+		struct impl;
+		std::unique_ptr<impl> impl_;
 	};
 }

@@ -42,11 +42,11 @@ namespace cheat::gui::tools
 		ImGuiID              id;
 	};
 
-	using callback_func_type = std::function<void(const callback_data&, const callback_state&)>;
+	using callback_func_type = std::function<void(const callback_data&data, const callback_state&state)>;
 
 	struct callback_info
 	{
-		callback_info(callback_func_type&& func, bool repeat);
+		callback_info(callback_func_type&& func, bool repeat=false);
 		~callback_info( );
 
 		callback_info(callback_info&&) noexcept;

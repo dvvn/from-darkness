@@ -1,3 +1,4 @@
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "tab_bar.h"
 
 #include "selectable.h"
@@ -91,8 +92,10 @@ enum class size_modes :uint8_t
 
 struct tab_bar::impl
 {
-	child_frame_window        wnd;
-	std::vector<tab_bar_item> items;
+	using items_storage = std::vector<std::unique_ptr<tab_bar_item>>;
+
+	child_frame_window wnd;
+	items_storage      items;
 
 	size_modes size_mode = size_modes::UNSET;
 	directions dir       = directions::UNSET;
@@ -105,61 +108,56 @@ tab_bar::tab_bar( )
 
 tab_bar::~tab_bar( ) = default;
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 tab_bar_item* tab_bar::find_tab(perfect_string&& title)
 {
 	for (auto& item: impl_->items)
 	{
-		if (item.get_label( ) == title)
-			return std::addressof(item);
+		if (item->get_label( ) == title)
+			return item.get( );
 	}
 
 	return nullptr;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void tab_bar::add_tab(tab_bar_item&& item)
+size_t tab_bar::find_tab_index(const tab_bar_item* item) const
 {
-	runtime_assert(item.get_label( ).raw( ).empty( ) == false);
-	runtime_assert(find_tab(item.get_label( )) == nullptr);
+	const auto& items = impl_->items;
+	for (size_t i = 0; i < items.size( ); ++i)
+	{
+		if (items[i].get( ) == item)
+			return i;
+	}
+	return static_cast<size_t>(-1);
+}
+
+void tab_bar::add_tab(std::unique_ptr<tab_bar_item>&& item)
+{
+	runtime_assert(item->get_label( ).raw( ).empty( ) == false);
+	runtime_assert(find_tab(item->get_label( )) == nullptr);
 	auto& items = impl_->items;
 
 	auto& added = items.emplace_back(std::move(item));
 
 	if (items.size( ) == 1)
-		items.front( ).select(callback_data(std::addressof(added), added.get_id( )));
+		items.front( )->select(callback_data(added.get( )));
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 tab_bar_item* tab_bar::get_selected( )
 {
 	for (auto& item: impl_->items)
 	{
-		if (item.selected( ))
-			return std::addressof(item);
+		if (item->selected( ))
+			return item.get( );
 	}
 
 	runtime_assert("No tabs selected");
 	return nullptr;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-tab_bar_item* tab_bar::begin( )
-{
-	return impl_->items._Unchecked_begin( );
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-tab_bar_item* tab_bar::end( )
-{
-	return impl_->items._Unchecked_end( );
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void tab_bar::sort(const sort_pred& pred)
-{
-	std::ranges::sort(impl_->items, std::ref(pred), &tab_bar_item::get_label);
-}
+//void tab_bar::sort(const sort_pred& pred)
+//{
+//	std::ranges::sort(impl_->items, std::ref(pred), &tab_bar_item::get_label);
+//}
 
 size_t tab_bar::size( ) const
 {
@@ -171,25 +169,21 @@ bool tab_bar::empty( ) const
 	return impl_->items.size( );
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::make_size_static( )
 {
 	impl_->size_mode = size_modes::STATIC;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::make_size_auto( )
 {
 	impl_->size_mode = size_modes::AUTO;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::make_horisontal( )
 {
 	impl_->dir = directions::HORISONTAL;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void tab_bar::make_vertical( )
 {
 	impl_->dir = directions::VERTICAL;
@@ -306,7 +300,7 @@ void tab_bar::render( )
 
 		for (size_t i = 0; i < items_count; i++)
 		{
-			auto& item = _Items[i];
+			auto& item = *_Items[i];
 			item.render(/*item_static_size*/);
 			if (want_sameline && i < last_item_idx)
 				ImGui::SameLine( );
