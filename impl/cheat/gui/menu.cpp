@@ -56,21 +56,19 @@ struct menu::impl
 
 			return bg;
 		};*/
-		constexpr auto make_pressed_callback = [](tab_bar* source)-> callback_info
+		constexpr auto make_pressed_callback = [](tab_bar* source, tab_bar_item* self)-> callback_info
 		{
-			auto fn = [=](const callback_data& data, [[maybe_unused]] const callback_state& state)
+			auto fn = [=]
 			{
 				const auto selected_before = source->get_selected( );
-				runtime_assert(dynamic_cast<tab_bar_item*>(data.caller) != nullptr);
-				const auto current = static_cast<tab_bar_item*>(data.caller);
-				if (selected_before == current)
+				if (selected_before == self)
 					return;
 
-				selected_before->deselect({selected_before});
-				current->select({current});
+				selected_before->deselect( );
+				self->select( );
 			};
 
-			return {std::move(fn), false};
+			return make_callback_info(std::move(fn), false);
 		};
 
 		constexpr auto add_item_set_callbacks = [&] <typename C, size_t S, typename T>(tab_bar_with_pages& tab_bar, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
@@ -79,10 +77,10 @@ struct menu::impl
 
 			item->set_font(ImGui::GetDefaultFont( ));
 			item->set_label(name);
-			auto bg_colors = init_selectable_colors<selectable_bg_colors_fade>({ }, ImGuiCol_Header, ImGuiCol_HeaderHovered, ImGuiCol_HeaderActive);
-			add_default_selectable_callbacks(item.get( ), bg_colors.get( ));
+			auto bg_colors = std::make_unique<selectable_bg_colors_fade>( );
+			bg_colors->get_colors_updater( ).set_style_indexes({ }, ImGuiCol_Header, ImGuiCol_HeaderHovered, ImGuiCol_HeaderActive);
 			item->set_bg_colors(std::move(bg_colors));
-			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar)), two_way_callback::WAY_TRUE);
+			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get( )), two_way_callback::WAY_TRUE);
 
 			tab_bar.add_item(std::move(item), data);
 

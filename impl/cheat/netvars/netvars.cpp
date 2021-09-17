@@ -755,7 +755,7 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 		for (auto& entry: std::filesystem::directory_iterator(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
 		{
 			const auto name      = entry.path( ).filename( ).string( );
-			const auto real_size = name.rfind('_'); //remove _h _cpp
+			const auto real_size = name.rfind('_'); //erase _h _cpp
 
 			const auto valid_name = std::string_view(name._Unchecked_begin( ), real_size);
 			if (!net_classes.contains(valid_name))
@@ -840,7 +840,7 @@ _WORK:
 						if (name.replace_extension( ) == netvar_type)
 						{
 							auto& str = ext.native( );
-							extension = std::string(std::next(str.begin( )), str.end( )); //remove dot in front;
+							extension = std::string(std::next(str.begin( )), str.end( )); //erase dot in front;
 							break;
 						}
 					}

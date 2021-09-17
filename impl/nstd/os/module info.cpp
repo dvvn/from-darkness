@@ -349,7 +349,7 @@ modules_storage& modules_storage::update(bool force)
 	{
 		auto all = _Get_all_modules( );
 
-		//remove all unused modules
+		//erase all unused modules
 		storage_->remove_if([&](const module_info& m)-> bool
 		{
 			for (const auto& m_new: all)

@@ -38,8 +38,9 @@ namespace cheat::gui
 		fonts_builder_proxy(fonts_builder_proxy&& other) noexcept;
 		fonts_builder_proxy& operator=(fonts_builder_proxy&& other) noexcept;
 
-		//ImFontAtlas* operator->( );
-		ImFont*add_default_font( std::optional<ImFontConfig>&& cfg_opt);
+		//todo: images loader
+
+		ImFont* add_default_font(std::optional<ImFontConfig>&& cfg_opt);
 		ImFont* add_font_from_ttf_file(const std::filesystem::path& path, std::optional<ImFontConfig>&& cfg_opt);
 		ImFont* add_font_from_memory_ttf_file(const std::span<uint8_t>& buffer, std::optional<ImFontConfig>&& cfg_opt);
 

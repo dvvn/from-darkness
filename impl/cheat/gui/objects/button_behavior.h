@@ -26,23 +26,38 @@ namespace cheat::gui::objects
 		/*virtual*/
 		ImGuiButtonFlags get_button_flags( ) const;
 
-	public:
-		struct callback_data_ex final: tools::callback_data
+		/*struct callback_data_ex final: tools::callback_data
 		{
 			callback_data_ex(const callback_data& data);
 
 			bool hovered = false;
 			bool held    = false;
 			bool pressed = false;
-		};
+		};*/
 
 		void add_pressed_callback(tools::callback_info&& info, tools::two_way_callback::ways way);
 		void add_hovered_callback(tools::callback_info&& info, tools::two_way_callback::ways way);
 		void add_held_callback(tools::callback_info&& info, tools::two_way_callback::ways way);
 
+#ifdef CHEAT_GUI_CALLBACK_HAVE_INDEX
+  		bool erase_pressed_callback(const tools::callback_id& ids, tools::two_way_callback::ways way);
+		bool erase_hovered_callback(const tools::callback_id& ids, tools::two_way_callback::ways way);
+		bool erase_held_callback(const tools::callback_id& ids, tools::two_way_callback::ways way);
+#endif
+
 	protected:
+		struct button_callback_data
+		{
+			ImGuiID id      = -1;
+			bool    hovered = false;
+			bool    held    = false;
+			bool    pressed = false;
+		};
+
 		//order: hovered, held, pressed
-		void invoke_button_callbacks(const ImRect& rect, callback_data_ex& data) const;
+		void invoke_button_callbacks(const ImRect& rect, ImGuiID id) const;
+
+		button_callback_data get_last_callback_data( ) const;
 
 	private:
 		struct impl;

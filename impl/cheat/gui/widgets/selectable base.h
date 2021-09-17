@@ -14,13 +14,16 @@ namespace cheat::gui::widgets
 		selectable_base(selectable_base&&) noexcept;
 		selectable_base& operator=(selectable_base&&) noexcept;
 
-		void select(const tools::callback_data& data);
-		void deselect(const tools::callback_data& data);
-		void toggle(const tools::callback_data& data);
+		void select( );
+		void deselect( );
+		void toggle( );
 
 		bool selected( ) const;
 
 		void add_selected_callback(tools::callback_info&& info, tools::two_way_callback::ways way);
+#ifdef CHEAT_GUI_CALLBACK_HAVE_INDEX
+  		bool erase_selected_callback(const tools::callback_id& ids, tools::two_way_callback::ways way);
+#endif
 
 	private:
 		struct impl;

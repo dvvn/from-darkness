@@ -5,41 +5,42 @@
 #include <variant>
 
 #include <imgui.h>
-#ifdef IMGUI_HAS_IMSTR
-#define CHEAT_GUI_HAS_IMGUI_STRV 1
-#else
-#define CHEAT_GUI_HAS_IMGUI_STRV 0
-#endif
 
 namespace cheat::gui::tools
 {
+	namespace detail
+	{
+		struct string_wrapper_multibyte_view
+		{
+		};
+	}
+
 	class string_wrapper
 	{
 	public:
-#if !CHEAT_GUI_HAS_IMGUI_STRV
-		using value_type = /*const*/ char*;
+#ifdef IMGUI_HAS_IMSTR
+	using value_type = ImStrv;
 #else
-		using value_type = ImStrv;
+		using value_type = /*const*/ char*;
 #endif
-		using raw_type = std::wstring;
-		using multibyte_type = std::string;
+		string_wrapper(std::string&& str);
+		string_wrapper(std::wstring&& str);
+		string_wrapper(std::u8string&& str);
 
-		string_wrapper(raw_type&& str);
-		string_wrapper(multibyte_type&& str);
+		template <typename C>
+		string_wrapper(const std::basic_string_view<C>& str)
+			: string_wrapper(std::basic_string<C>(str._Unchecked_begin( ), str._Unchecked_end( )))
+		{
+		}
 
 		template <typename T, size_t N>
 		string_wrapper(const T (&str)[N])
-			: string_wrapper(std::basic_string<T>(str, str + (N - 1)))
+			: string_wrapper(std::basic_string_view<T>(str, str + (N - 1)))
 		{
 		}
 
-		template <typename E, typename Tr>
-		string_wrapper(const std::basic_string_view<E, Tr>& str)
-			: string_wrapper(std::basic_string<E, Tr>(str._Unchecked_begin( ), str._Unchecked_end( )))
-		{
-		}
-
-		string_wrapper( ) = default;
+		~string_wrapper( );
+		string_wrapper( );
 
 		string_wrapper(string_wrapper&& other) noexcept;
 		string_wrapper& operator=(string_wrapper&& other) noexcept;
@@ -61,51 +62,16 @@ namespace cheat::gui::tools
 		value_type        imgui( ) const;
 
 	private:
-		void Set_imgui_str_( );
+		union
+		{
+			// ReSharper disable CppInconsistentNaming
+			std::u8string multibyte_real_;
+			std::string   multibyte_;
+			// ReSharper restore CppInconsistentNaming
+		};
 
-		raw_type       raw_;
-		multibyte_type multibyte_;
-		value_type     imgui_;
+		std::wstring raw_;
 	};
-
-	string_wrapper::value_type _Get_imgui_str(const std::string_view& str);
-
-	/*
-	class string_wrapper_base: public string_wrapper
-	{
-	public:
-		string_wrapper_base(string_wrapper&& other)
-			: string_wrapper(std::move(other))
-		{
-		}
-
-		string_wrapper& name( )
-		{
-			return *this;
-		}
-
-		const string_wrapper& name( ) const
-		{
-			return *this;
-		}
-	};*/
-
-	/*class string_wrapper_abstract
-	{
-	public:
-		string_wrapper_abstract( );
-
-		operator const string_wrapper&( ) const;
-		const string_wrapper& get( ) const;
-
-		void init(string_wrapper&& name);
-		void init(const string_wrapper& name);
-		void init(const string_wrapper* name);
-
-	private:
-		std::variant<string_wrapper,
-					 std::reference_wrapper<const string_wrapper>> name_;
-	};*/
 
 	class perfect_string
 	{

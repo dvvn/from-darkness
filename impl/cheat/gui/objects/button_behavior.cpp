@@ -8,6 +8,7 @@ using namespace cheat::gui::objects;
 struct button_behavior::impl
 {
 	tools::two_way_callback on_press, on_hovered, on_held;
+	button_callback_data    last_callback_data;
 
 	union
 	{
@@ -37,37 +38,70 @@ ImGuiButtonFlags button_behavior::get_button_flags( ) const
 	return impl_->flags.fi;
 }
 
-button_behavior::callback_data_ex::callback_data_ex(const callback_data& data)
-	: callback_data(data)
-{
-}
+//button_behavior::callback_data_ex::callback_data_ex(const callback_data& data)
+//	: callback_data(data)
+//{
+//}
 
-void button_behavior::invoke_button_callbacks(const ImRect& rect, callback_data_ex& data) const
+void button_behavior::invoke_button_callbacks(const ImRect& rect, ImGuiID id) const
 {
 	auto& on_press   = impl_->on_press;
 	auto& on_hovered = impl_->on_hovered;
 	auto& on_held    = impl_->on_held;
 
-	data.pressed = ImGui::ButtonBehavior(rect, data.id, &data.hovered, &data.held, this->get_button_flags( ));
+	// ReSharper disable once CppJoinDeclarationAndAssignment
+	bool hovered, held, pressed;
 
-	on_hovered(/*!data.held&&*/data.hovered, data);
-	on_held(data.held, data);
-	on_press(data.pressed, data);
+	pressed = ImGui::ButtonBehavior(rect, id, std::addressof(hovered), std::addressof(held), this->get_button_flags( ));
+
+	on_hovered(/*!held&&*/hovered);
+	on_held(held);
+	on_press(pressed);
+
+	// ReSharper disable once CppUseStructuredBinding
+	auto& data = impl_->last_callback_data;
+	//--
+	data.held    = held;
+	data.hovered = hovered;
+	data.pressed = pressed;
+	data.id      = id;
+}
+
+button_behavior::button_callback_data button_behavior::get_last_callback_data( ) const
+{
+	return impl_->last_callback_data;
 }
 
 // ReSharper disable CppMemberFunctionMayBeConst
 
 void button_behavior::add_pressed_callback(tools::callback_info&& info, tools::two_way_callback::ways way)
 {
-	impl_->on_press.add(std::move(info), way);
+	impl_->on_press[way].add(std::move(info));
 }
 
 void button_behavior::add_hovered_callback(tools::callback_info&& info, tools::two_way_callback::ways way)
 {
-	impl_->on_hovered.add(std::move(info), way);
+	impl_->on_hovered[way].add(std::move(info));
 }
 
 void button_behavior::add_held_callback(tools::callback_info&& info, tools::two_way_callback::ways way)
 {
-	impl_->on_held.add(std::move(info), way);
+	impl_->on_held[way].add(std::move(info));
 }
+
+#ifdef CHEAT_GUI_CALLBACK_HAVE_INDEX
+  bool button_behavior::erase_pressed_callback(const tools::callback_id& ids, tools::two_way_callback::ways way)
+{
+	return impl_->on_press[way].erase(ids);
+}
+
+bool button_behavior::erase_hovered_callback(const tools::callback_id& ids, tools::two_way_callback::ways way)
+{
+	return impl_->on_hovered[way].erase(ids);
+}
+
+bool button_behavior::erase_held_callback(const tools::callback_id& ids, tools::two_way_callback::ways way)
+{
+	return impl_->on_held[way].erase(ids);
+}
+#endif

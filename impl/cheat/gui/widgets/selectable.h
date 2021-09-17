@@ -27,7 +27,15 @@ namespace cheat::gui::tools
 
 namespace cheat::gui::widgets
 {
+	class selectable_bg_colors_base;
 	class selectable_bg;
+
+	namespace detail
+	{
+		void add_default_selectable_callbacks(selectable_bg* owner);
+	}
+
+	//-------
 
 	class selectable_bg_colors_base
 	{
@@ -51,7 +59,10 @@ namespace cheat::gui::widgets
 			colors_updater(colors_updater&&) noexcept;
 			colors_updater& operator=(colors_updater&&) noexcept;
 
-			void set_style_idx(color_priority priority, std::optional<ImGuiCol_>&& col);
+			using usnset_clr = std::optional<ImGuiCol_>;
+
+			void set_style_indexes(usnset_clr&& def, usnset_clr&& selected, usnset_clr&& hovered, usnset_clr&& held);
+			void set_style_idx(color_priority priority, usnset_clr&& col);
 			void change_color(color_priority priority, const ImVec4& color);
 			void update_style(ImGuiStyle* style);
 
@@ -62,7 +73,9 @@ namespace cheat::gui::widgets
 			std::unique_ptr<impl> impl_;
 		};
 
-		virtual colors_updater& clr_updater( ) =0;
+		//-----
+
+		virtual colors_updater& get_colors_updater( ) =0;
 
 		virtual void update_colors( ) =0;
 
@@ -75,25 +88,6 @@ namespace cheat::gui::widgets
 		//todo: rect.min/max change
 	};
 
-	void add_default_selectable_callbacks(selectable_bg* owner, selectable_bg_colors_base* colors);
-
-	template <std::derived_from<selectable_bg_colors_base> T>
-	std::unique_ptr<T> init_selectable_colors(std::optional<ImGuiCol_>&& def, std::optional<ImGuiCol_>&& selected, std::optional<ImGuiCol_>&& hovered, std::optional<ImGuiCol_>&& held)
-	{
-		using p = selectable_bg_colors_base::color_priority;
-
-		auto updater = selectable_bg_colors_base::colors_updater( );
-		updater.set_style_idx(p::COLOR_DEFAULT, std::move(def));
-		updater.set_style_idx(p::COLOR_SELECTED, std::move(selected));
-		updater.set_style_idx(p::COLOR_HOVERED, std::move(hovered));
-		updater.set_style_idx(p::COLOR_HELD, std::move(held));
-
-		auto bg            = std::make_unique<T>( );
-		bg->clr_updater( ) = std::move(updater);
-
-		return bg;
-	}
-
 	class selectable_bg_colors_fade: public selectable_bg_colors_base
 	{
 	public:
@@ -103,7 +97,7 @@ namespace cheat::gui::widgets
 		selectable_bg_colors_fade(selectable_bg_colors_fade&&) noexcept;
 		selectable_bg_colors_fade& operator=(selectable_bg_colors_fade&&) noexcept;
 
-		colors_updater& clr_updater( ) override;
+		colors_updater& get_colors_updater( ) override;
 
 		void  update_colors( ) override;
 		void  change_color(color_priority clr) override;
@@ -111,7 +105,6 @@ namespace cheat::gui::widgets
 
 		color_priority get_current_color( ) const override;
 		color_priority get_last_color( ) const override;
-
 
 		tools::animator&       fade( );
 		const tools::animator& fade( ) const;
@@ -130,7 +123,7 @@ namespace cheat::gui::widgets
 		selectable_bg_colors_static(selectable_bg_colors_static&&) noexcept;
 		selectable_bg_colors_static& operator=(selectable_bg_colors_static&&) noexcept;
 
-		colors_updater& clr_updater( ) override;
+		colors_updater& get_colors_updater( ) override;
 
 		void  update_colors( ) override;
 		void  change_color(color_priority clr) override;
@@ -157,8 +150,8 @@ namespace cheat::gui::widgets
 		selectable_bg_colors_base* get_bg_colors( );
 
 	protected:
-		bool         render(ImGuiWindow* window, ImRect& bb, callback_data_ex& cb_data, bool outer_spacing);
-		virtual void render_background(ImGuiWindow* window, ImRect& bb, selectable_bg_colors_base& color);
+		bool         render(ImGuiWindow* window, ImRect& bb, ImGuiID id, bool outer_spacing);
+		virtual void render_background(ImGuiWindow* window, ImRect& bb, selectable_bg_colors_base* color);
 
 	private:
 		struct data_type;

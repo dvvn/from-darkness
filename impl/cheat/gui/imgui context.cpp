@@ -14,7 +14,6 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
-#include <vector>
 
 using namespace cheat;
 using namespace gui;
@@ -54,7 +53,7 @@ fonts_builder_proxy& fonts_builder_proxy::operator=(fonts_builder_proxy&& other)
 ImFont* fonts_builder_proxy::add_default_font(std::optional<ImFontConfig>&& cfg_opt)
 {
 	if (!cfg_opt.has_value( ))
-		cfg_opt = (default_font_config( ));
+		cfg_opt = default_font_config( );
 
 	return impl_->atlas->AddFontDefault(std::addressof(*cfg_opt));
 }
@@ -62,7 +61,7 @@ ImFont* fonts_builder_proxy::add_default_font(std::optional<ImFontConfig>&& cfg_
 ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path& path, std::optional<ImFontConfig>&& cfg_opt)
 {
 	if (!cfg_opt.has_value( ))
-		cfg_opt = (default_font_config( ));
+		cfg_opt = default_font_config( );
 
 	auto&      cfg   = *cfg_opt;
 	const auto atlas = impl_->atlas;
@@ -75,12 +74,16 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 		// ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
 	else
 	{
-		auto buffer = std::vector<uint8_t>( );
-		buffer.reserve(file_size(path));
+		auto infile = std::ifstream(path, std::ios::in | std::ios::binary | std::ios::ate);
 
-		auto infile = std::ifstream(path, std::ios_base::binary);
-		using itr = std::istreambuf_iterator<char>;
-		std::copy(itr(infile), itr( ), std::back_inserter(buffer));
+		//infile.seekg(0, infile.end); //done by std::ios::ate
+		const auto size = infile.tellg( );
+		infile.seekg(0, std::ios::beg);
+
+		const auto buffer = std::make_unique<uint8_t[]>(size);
+		infile.read(reinterpret_cast<char*>(buffer.get( )), size);
+
+		runtime_assert(!infile.bad( ));
 
 		if (cfg.Name[0] == '\0')
 		{
@@ -92,14 +95,14 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 			std::ranges::copy(font_info, cfg.Name);
 		}
 
-		return this->add_font_from_memory_ttf_file(buffer, std::move(cfg_opt));
+		return this->add_font_from_memory_ttf_file({buffer.get( ), static_cast<size_t>(size)}, std::move(cfg_opt));
 	}
 }
 
 ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(const std::span<uint8_t>& buffer, std::optional<ImFontConfig>&& cfg_opt)
 {
 	if (!cfg_opt.has_value( ))
-		cfg_opt = (default_font_config( ));
+		cfg_opt = default_font_config( );
 
 	auto&      cfg   = *cfg_opt;
 	const auto atlas = impl_->atlas;
@@ -264,7 +267,7 @@ service_base::load_result imgui_context::load_impl( )
 #if !defined(_DEBUG) && 0
 		return io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 15.0f, std::addressof(font_cfg), nullptr);
 #else
-		return fonts.add_default_font((std::move(font_cfg)));
+		return fonts.add_default_font(std::move(font_cfg));
 #endif
 	}( );
 

@@ -112,7 +112,7 @@ void player_shared_impl::remove_old_ticks(float curtime)
 		if (ticks.size( ) <= limit)
 			return;
 
-		//dont remove any !valid ticks here, in theory we can increase (fake) ping and hit these
+		//dont erase any !valid ticks here, in theory we can increase (fake) ping and hit these
 
 		ticks.erase(std::next(ticks.begin( ), limit), ticks.end( ));
 	};

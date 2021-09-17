@@ -1,4 +1,4 @@
-#include "aimbot.h"
+﻿#include "aimbot.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/gui/imgui context.h"
@@ -27,36 +27,22 @@ struct aimbot::impl
 
 	void init_gui( )
 	{
-		auto fonts = gui::imgui_context::get_ptr( )->fonts( );
-
-		auto font_cfg        = fonts.default_font_config( );
+		auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
 		font_cfg->SizePixels = 20;
-		auto test_font       = fonts.add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.ttf)", std::move(font_cfg));
-		fonts                = { };
+
+		auto test_font = gui::imgui_context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\ARIALUNI.TTF)", std::move(font_cfg));
 		cb.set_font(test_font);
-		cb.set_label("test");
-		auto bg_colors = init_selectable_colors<selectable_bg_colors_fade>(ImGuiCol_FrameBg, ImGuiCol_FrameBg, ImGuiCol_FrameBgHovered, ImGuiCol_FrameBgActive);
-		add_default_selectable_callbacks(&cb, bg_colors.get( ));
+		cb.set_label(u8"test йцук 網站有中 ");
+
+		auto bg_colors = std::make_unique<selectable_bg_colors_fade>( );
+		bg_colors->get_colors_updater( ).set_style_indexes(ImGuiCol_FrameBg, ImGuiCol_FrameBg, ImGuiCol_FrameBgHovered, ImGuiCol_FrameBgActive);
 		cb.set_bg_colors(std::move(bg_colors));
-		auto check_bg_color = init_selectable_colors<selectable_bg_colors_fade>({ }, ImGuiCol_CheckMark, { }, { });
+		auto check_bg_color = std::make_unique<selectable_bg_colors_fade>( );
+		check_bg_color->get_colors_updater( ).set_style_indexes({ }, ImGuiCol_CheckMark, { }, { });
 		check_bg_color->fade( ).set_time(animator::default_time * 3);
 		cb.set_check_colors(std::move(check_bg_color));
 
-		cb.add_pressed_callback({[&](const callback_data& data, const callback_state& state)
-		{
-			cb.toggle({&cb});
-		}}, two_way_callback::WAY_TRUE);
-		cb.add_selected_callback({[&](const callback_data& data, const callback_state& state)
-		{
-			auto& clr = *cb.get_check_colors( );
-			clr.change_color(selectable_bg_colors_base::COLOR_SELECTED);
-		}}, two_way_callback::WAY_TRUE);
-		cb.add_selected_callback({[&](const callback_data& data, const callback_state& state)
-		{
-			auto& clr = *cb.get_check_colors( );
-			clr.change_color(selectable_bg_colors_base::COLOR_DEFAULT);
-		}}, two_way_callback::WAY_FALSE);
-		cb.select({&cb});
+		cb.select( );
 	}
 };
 

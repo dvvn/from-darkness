@@ -17,21 +17,61 @@ using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
 
+void gui::widgets::detail::add_default_selectable_callbacks(selectable_bg* owner)
+{
+	using p = selectable_bg_colors_base::color_priority;
+	using w = two_way_callback::ways;
+
+	owner->add_hovered_callback(make_callback_info([=]
+	{
+		auto colors = owner->get_bg_colors( );
+		colors->change_color(p::COLOR_HOVERED);
+	}), w::WAY_TRUE);
+	owner->add_hovered_callback(make_callback_info([=]
+	{
+		auto colors = owner->get_bg_colors( );
+		colors->change_color(owner->selected( ) ? p::COLOR_SELECTED : p::COLOR_DEFAULT);
+	}), w::WAY_FALSE);
+
+	owner->add_held_callback(make_callback_info([=]
+	{
+		auto colors = owner->get_bg_colors( );
+		colors->change_color(p::COLOR_HELD);
+	}), w::WAY_TRUE);
+	owner->add_held_callback(make_callback_info([=]
+	{
+		auto colors = owner->get_bg_colors( );
+		colors->change_color(colors->get_last_color( ));
+	}), w::WAY_FALSE);
+
+	owner->add_selected_callback(make_callback_info([=]
+	{
+		auto colors = owner->get_bg_colors( );
+		if (colors->get_current_color( ) != p::COLOR_DEFAULT)
+			return;
+		colors->change_color(p::COLOR_SELECTED);
+	}), w::WAY_TRUE);
+	owner->add_selected_callback(make_callback_info([=]
+	{
+		auto colors = owner->get_bg_colors( );
+		if (colors->get_current_color( ) != p::COLOR_SELECTED)
+			return;
+		colors->change_color(p::COLOR_DEFAULT);
+	}), w::WAY_FALSE);
+}
+
+//----
+
 struct selectable_bg_colors_base::colors_updater::impl
 {
-	template <typename T>
-	struct colors_map: std::array<T, 4>
-	{
-	};
-
-	colors_map<std::optional<ImGuiCol_>> styles_map;
-	colors_map<ImVec4>                   colors;
+	std::array<usnset_clr, 4> styles_map;
+	std::array<ImVec4, 4>     colors;
 
 private:
 	template <size_t ...I>
 	void update_style_impl(ImVec4* stcolors, std::index_sequence<I...>)
 	{
-		const auto change_color = [&](color_priority pr, const std::optional<ImGuiCol_>& idx)
+		const auto change_color = [&](color_priority pr, const usnset_clr& idx)
 		{
 			//colors[pr] = idx.has_value( ) ? stcolors[*idx] : ImVec4{ };
 			if (idx.has_value( ))
@@ -65,7 +105,12 @@ selectable_bg_colors_base::colors_updater::~colors_updater( )                   
 selectable_bg_colors_base::colors_updater::colors_updater(colors_updater&&) noexcept                                       = default;
 selectable_bg_colors_base::colors_updater& selectable_bg_colors_base::colors_updater::operator=(colors_updater&&) noexcept = default;
 
-void selectable_bg_colors_base::colors_updater::set_style_idx(color_priority priority, std::optional<ImGuiCol_>&& col)
+void selectable_bg_colors_base::colors_updater::set_style_indexes(usnset_clr&& def, usnset_clr&& selected, usnset_clr&& hovered, usnset_clr&& held)
+{
+	impl_->styles_map = {std::move(def), std::move(selected), std::move(hovered), std::move(held)};
+}
+
+void selectable_bg_colors_base::colors_updater::set_style_idx(color_priority priority, usnset_clr&& col)
 {
 	impl_->styles_map[priority] = std::move(col);
 }
@@ -86,77 +131,6 @@ const ImVec4& selectable_bg_colors_base::colors_updater::operator[](color_priori
 }
 
 //------------------
-
-struct selectable_exception final: std::exception
-{
-};
-
-class color_proxy
-{
-public:
-	using color_priority = selectable_bg_colors_base::color_priority;
-
-	using fn_type_min = std::function<color_priority( )>;
-	using fn_type = std::function<color_priority(selectable_bg*)>;
-	using fn_type_ex = std::function<color_priority(selectable_bg*, const callback_data&, const callback_state&)>;
-
-	template <typename T>
-	color_proxy(T&& obj)
-		: getter_(std::forward<T>(obj))
-	{
-	}
-
-	color_priority get(selectable_bg* caller, const callback_data& data, const callback_state& state) const
-	{
-		return std::visit(nstd::overload(
-			[](const color_priority clr) { return clr; },
-			[](const fn_type_min&   fn) { return fn( ); },
-			[=](const fn_type&      fn) { return fn(caller); },
-			[&](const fn_type_ex&   fn) { return fn(caller, data, state); }), getter_);
-	}
-
-private:
-	std::variant<color_priority, fn_type_min, fn_type, fn_type_ex> getter_;
-};
-
-static callback_info _Build_callback([[maybe_unused]]
-									 const std::wstring_view&   debug_name,
-									 color_proxy&&              proxy,
-									 selectable_bg_colors_base* bg_colors)
-{
-	auto fn =
-		[=, color = std::move(proxy)]
-	(const callback_data& data, const callback_state& state)
-	{
-		const auto set = dynamic_cast<selectable_bg*>(data.caller);
-		runtime_assert(set != nullptr);
-		try
-		{
-			bg_colors->change_color(color.get(set, data, state));
-		}
-		catch (const selectable_exception&)
-		{
-			// ReSharper disable once CppRedundantControlFlowJump
-			return;
-		}
-		catch (...)
-		{
-			throw;
-		}
-
-#if 1
-		CHEAT_CONSOLE_LOG(std::format(L""
-			"selectable_bg {} callback \"{}\".\n"
-			"  state     : start: {}, ticks: {}, duration: {}\n"
-		  , (uintptr_t)bg_colors, debug_name
-		  , state.start, state.ticks, state.duration));
-#endif
-	};
-
-	return {std::move(fn), false};
-};
-
-//-----------------
 
 struct selectable_bg_colors_fade::impl
 {
@@ -182,10 +156,10 @@ struct selectable_bg_colors_fade::impl
 		clr_last = clr_curr;
 		clr_curr = clr;
 
-		if (clr_last == clr_curr)
-			return;
+		/*if (clr_last == clr_curr)
+			return;*/
 
-		//runtime_assert(clr_last != clr_curr, "Logic error");
+		runtime_assert(clr_last != clr_curr, "Logic error");
 
 		const auto dir = clr_last < clr_curr ? 1 : -1;
 
@@ -242,43 +216,6 @@ struct selectable_bg_colors_fade::impl
 	}
 };
 
-void gui::widgets::add_default_selectable_callbacks(selectable_bg* owner, selectable_bg_colors_base* colors)
-{
-	using p = selectable_bg_colors_base::color_priority;
-	using w = two_way_callback::ways;
-
-	owner->add_hovered_callback({[=](const callback_data& data, const callback_state& state)
-	{
-		colors->change_color(p::COLOR_HOVERED);
-	}}, w::WAY_TRUE);
-	owner->add_hovered_callback({[=](const callback_data& data, const callback_state& state)
-	{
-		colors->change_color(owner->selected( ) ? p::COLOR_SELECTED : p::COLOR_DEFAULT);
-	}}, w::WAY_FALSE);
-
-	owner->add_held_callback({[=](const callback_data& data, const callback_state& state)
-	{
-		colors->change_color(p::COLOR_HELD);
-	}}, w::WAY_TRUE);
-	owner->add_held_callback({[=](const callback_data& data, const callback_state& state)
-	{
-		colors->change_color(colors->get_last_color( ));
-	}}, w::WAY_FALSE);
-
-	owner->add_selected_callback({[=](const callback_data& data, const callback_state& state)
-	{
-		if (colors->get_current_color( ) != p::COLOR_DEFAULT)
-			return;
-		colors->change_color(p::COLOR_SELECTED);
-	}}, w::WAY_TRUE);
-	owner->add_selected_callback({[=](const callback_data& data, const callback_state& state)
-	{
-		if (colors->get_current_color( ) != p::COLOR_SELECTED)
-			return;
-		colors->change_color(p::COLOR_DEFAULT);
-	}}, w::WAY_FALSE);
-}
-
 selectable_bg_colors_fade::selectable_bg_colors_fade( )
 {
 	impl_ = std::make_unique<impl>( );
@@ -288,9 +225,9 @@ selectable_bg_colors_fade::~selectable_bg_colors_fade( )                        
 selectable_bg_colors_fade::selectable_bg_colors_fade(selectable_bg_colors_fade&&) noexcept            = default;
 selectable_bg_colors_fade& selectable_bg_colors_fade::operator=(selectable_bg_colors_fade&&) noexcept = default;
 
-selectable_bg_colors_base::colors_updater& selectable_bg_colors_fade::clr_updater( )
+selectable_bg_colors_base::colors_updater& selectable_bg_colors_fade::get_colors_updater( )
 {
-	return impl_->colors;
+	return (impl_->colors);
 }
 
 void selectable_bg_colors_fade::update_colors( )
@@ -359,9 +296,9 @@ selectable_bg_colors_static::~selectable_bg_colors_static( )                    
 selectable_bg_colors_static::selectable_bg_colors_static(selectable_bg_colors_static&&) noexcept            = default;
 selectable_bg_colors_static& selectable_bg_colors_static::operator=(selectable_bg_colors_static&&) noexcept = default;
 
-selectable_bg_colors_base::colors_updater& selectable_bg_colors_static::clr_updater( )
+selectable_bg_colors_base::colors_updater& selectable_bg_colors_static::get_colors_updater( )
 {
-	return impl_->colors;
+	return (impl_->colors);
 }
 
 void selectable_bg_colors_static::update_colors( )
@@ -399,6 +336,7 @@ struct selectable_bg::data_type
 selectable_bg::selectable_bg( )
 {
 	data_ = std::make_unique<data_type>( );
+	detail::add_default_selectable_callbacks(this);
 }
 
 selectable_bg::~selectable_bg( )                                  = default;
@@ -416,7 +354,7 @@ selectable_bg_colors_base* selectable_bg::get_bg_colors( )
 	return data_->colors.get( );
 }
 
-bool selectable_bg::render(ImGuiWindow* window, ImRect& bb, callback_data_ex& cb_data, bool outer_spacing)
+bool selectable_bg::render(ImGuiWindow* window, ImRect& bb, ImGuiID id, bool outer_spacing)
 {
 	if (outer_spacing)
 	{
@@ -436,17 +374,17 @@ bool selectable_bg::render(ImGuiWindow* window, ImRect& bb, callback_data_ex& cb
 	if (!bb.Overlaps(window->ClipRect))
 		return false;
 
-	this->invoke_button_callbacks(bb, cb_data);
-	this->render_background(window, bb, *data_->colors);
+	this->invoke_button_callbacks(bb, id);
+	this->render_background(window, bb, this->get_bg_colors( ));
 
 	//RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
 	return true;
 }
 
-void selectable_bg::render_background(ImGuiWindow* window, ImRect& bb, selectable_bg_colors_base& color)
+void selectable_bg::render_background(ImGuiWindow* window, ImRect& bb, selectable_bg_colors_base* color)
 {
 	//ImGui::RenderFrame(bb.Min, bb.Max, col, false);
-	window->DrawList->AddRectFilled(bb.Min, bb.Max, color.calculate_color( ));
+	window->DrawList->AddRectFilled(bb.Min, bb.Max, color->calculate_color( ));
 }
 
 //--------------
@@ -472,10 +410,7 @@ void selectable::render( )
 	ImGui::ItemSize(bb.GetSize( ));
 	const auto text_pos = bb.Min;
 
-	const auto id      = this->get_id(window);
-	auto       cb_data = callback_data_ex(callback_data(this, id));
-
-	if (!selectable_bg::render(window, bb, cb_data, true))
+	if (!selectable_bg::render(window, bb, this->get_id(window), true))
 		return;
 
 	this->render_text(window, text_pos);

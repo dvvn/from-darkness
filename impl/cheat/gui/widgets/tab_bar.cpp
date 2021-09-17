@@ -136,10 +136,9 @@ void tab_bar::add_tab(std::unique_ptr<tab_bar_item>&& item)
 	runtime_assert(find_tab(item->get_label( )) == nullptr);
 	auto& items = impl_->items;
 
-	auto& added = items.emplace_back(std::move(item));
-
+	items.push_back(std::move(item));
 	if (items.size( ) == 1)
-		items.front( )->select(callback_data(added.get( )));
+		items.front( )->select( );
 }
 
 tab_bar_item* tab_bar::get_selected( )
