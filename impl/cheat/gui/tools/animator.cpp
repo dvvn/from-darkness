@@ -29,14 +29,14 @@ void animator::set(int8_t direction)
 	dir_ = direction;
 }
 
-static double _Get_percentage_diff(double a, double b)
+static animator::float_type _Get_percentage_diff(animator::float_type a, animator::float_type b)
 {
-	return ((b - a) * 100.0) / a;
+	return ((b - a) * static_cast<animator::float_type>(100.0)) / a;
 }
 
-static double _Get_precent_from_num(double percent, double num)
+static animator::float_type _Get_precent_from_num(animator::float_type percent, animator::float_type num)
 {
-	return num * percent / 100.0;
+	return num * percent / static_cast<animator::float_type>(100.0);
 }
 
 bool animator::update( )
@@ -46,11 +46,11 @@ bool animator::update( )
 		const auto delta = ImGui::GetIO( ).DeltaTime;
 
 		time_ -= delta;
-		if (time_ > 0)
+		if (time_ > static_cast<float_type>(0))
 		{
 			const auto diff = _Get_percentage_diff(time_, time_max_);
 			const auto val  = _Get_precent_from_num(diff, value_.max - value_.min) + value_.min;
-			value_.current  = dir_ == 1 ? val : 1.0 - val;
+			value_.current  = dir_ == 1 ? val : static_cast<float_type>(1.0) - val;
 			if (updating( ))
 				return true;
 		}
@@ -77,23 +77,32 @@ bool animator::done( ) const
 	return value_.current == get_limit(dir_);
 }
 
-bool animator::done(int direction) const
+bool animator::done(int8_t direction) const
 {
+	bool ret;
+
 	if (dir_ == direction)
-		return done( );
-	auto& dir      = const_cast<decltype(dir_)&>(dir_);
-	dir            = direction;
-	const auto ret = done( );
-	dir            = -direction;
+	{
+		ret = done( );
+		//-
+	}
+	else
+	{
+		auto& dir = const_cast<int8_t&>(dir_);
+
+		dir = direction;
+		ret = done( );
+		dir = -direction;
+	}
 	return ret;
 }
 
-double animator::value( ) const
+animator::float_type animator::value( ) const
 {
 	return value_.current;
 }
 
-animator::animator(double value_min, double value_max, double time_max)
+animator::animator(float_type value_min, float_type value_max, float_type time_max)
 {
 	runtime_assert(value_max <= 1);
 
@@ -101,21 +110,21 @@ animator::animator(double value_min, double value_max, double time_max)
 	set_time(time_max);
 }
 
-void animator::set_min(double val)
+void animator::set_min(float_type val)
 {
 	runtime_assert(val < value_.max);
 	runtime_assert(val >= 0);
 	value_.min = val;
 }
 
-void animator::set_max(double val)
+void animator::set_max(float_type val)
 {
 	runtime_assert(val <= 1);
 	runtime_assert(val > value_.min);
 	value_.max = val;
 }
 
-void animator::set_min_max(double min, double max)
+void animator::set_min_max(float_type min, float_type max)
 {
 	runtime_assert(min < max);
 	runtime_assert(min >= 0);
@@ -124,28 +133,28 @@ void animator::set_min_max(double min, double max)
 	value_.max = max;
 }
 
-void animator::set_time(double val)
+void animator::set_time(float_type val)
 {
 	runtime_assert(val > 0);
 	time_max_ = val;
 }
 
-double animator::min( ) const
+animator::float_type animator::min( ) const
 {
 	return value_.min;
 }
 
-double animator::max( ) const
+animator::float_type animator::max( ) const
 {
 	return value_.max;
 }
 
-double animator::time( ) const
+animator::float_type animator::time( ) const
 {
 	return time_max_;
 }
 
-//auto animator::setup_limits(double value_min, double value_max, double time_max) -> void
+//auto animator::setup_limits(float_type value_min, float_type value_max, float_type time_max) -> void
 //{
 //	runtime_assert(value_min < value_max);
 //	runtime_assert(value_min >= 0);
@@ -156,7 +165,7 @@ double animator::time( ) const
 //	time_max_ = time_max;
 //}
 
-double animator::get_limit(int8_t dir) const
+animator::float_type animator::get_limit(int8_t dir) const
 {
 	return /*dir_*/dir == 1 ? value_.max : value_.min;
 }

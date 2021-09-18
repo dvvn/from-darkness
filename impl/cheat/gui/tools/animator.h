@@ -7,9 +7,11 @@ namespace cheat::gui::tools
 	class animator
 	{
 	public:
-		static constexpr double default_min  = 0;
-		static constexpr double default_max  = 1;
-		static constexpr double default_time = 0.4;
+		using float_type=float;
+
+		static constexpr float_type default_min  = 0;
+		static constexpr float_type default_max  = 1;
+		static constexpr float_type default_time = 0.25;
 
 		int8_t dir( ) const;
 
@@ -20,35 +22,35 @@ namespace cheat::gui::tools
 
 		void restart( );
 
-		bool   done( ) const;
-		bool   done(int direction) const;
-		double value( ) const;
+		bool  done( ) const;
+		bool  done(int8_t direction) const;
+		float_type value( ) const;
 
-		animator(double value_min = default_min, double value_max = default_max, double time_max = default_time);
+		animator(float_type value_min = default_min, float_type value_max = default_max, float_type time_max = default_time);
 
-		void set_min(double val);
-		void set_max(double val);
-		void set_min_max(double min, double max);
-		void set_time(double val);
+		void set_min(float_type val);
+		void set_max(float_type val);
+		void set_min_max(float_type min, float_type max);
+		void set_time(float_type val);
 
-		double min( ) const;
-		double max( ) const;
-		double time( ) const;
+		float_type min( ) const;
+		float_type max( ) const;
+		float_type time( ) const;
 
 	private:
-		double get_limit(int8_t dir) const;
+		float_type get_limit(int8_t dir) const;
 
 		int8_t dir_  = 0;
-		double time_ = 0;
+		float_type  time_ = 0;
 
 		struct
 		{
-			double min;
-			double max;
-			double current = 0;
+			float_type min;
+			float_type max;
+			float_type current = 0;
 			//-
 		} value_;
 
-		double time_max_;
+		float_type time_max_;
 	};
 }

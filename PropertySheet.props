@@ -3,12 +3,12 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <OutputDir>$(SolutionDir).out\$(ProjectName)\$(Configuration)\</OutputDir>
+    <OutputDirTemp>$(TMP)\CPP\$(SolutionName)\$(ProjectName)\$(Platform)\$(Configuration)\</OutputDirTemp>
     <OutPutDir__>$(SolutionDir).out\$(ProjectName)\$(Platform)\$(Configuration)</OutPutDir__>
-    <OutputDirRam>G:\programming\$(SolutionName)\.out\$(ProjectName)\$(Configuration)\</OutputDirRam>
     <GitClonedProjects>C:\Users\owner\Documents\programming\Projects\git</GitClonedProjects>
   </PropertyGroup>
   <PropertyGroup>
-    <IntDir>$(OutputDirRam)temp\</IntDir>
+    <IntDir>$(OutputDirTemp)temp\</IntDir>
     <GenerateManifest>false</GenerateManifest>
     <OutDir>$(OutputDir)build\</OutDir>
     <IncludePath>$(GitClonedProjects)\cppcoro\include;$(GitClonedProjects)\imgui;$(GitClonedProjects)\imgui\backends;$(GitClonedProjects)\imgui\misc\cpp;$(GitClonedProjects)\json\include;$(GitClonedProjects)\robin-hood-hashing\src\include;$(GitClonedProjects)\thread-pool;$(GitClonedProjects)\veque\include;$(IncludePath)</IncludePath>
@@ -29,7 +29,7 @@
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <EnableModules>
       </EnableModules>
-      <DisableSpecificWarnings>4250;5103;4100;4101</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4250;5103;4100;4101;4471</DisableSpecificWarnings>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <ObjectFileName>$(IntDir)%(Directory)</ObjectFileName>
     </ClCompile>
@@ -42,12 +42,12 @@
       <Value>$(OutputDir)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
+    <BuildMacro Include="OutputDirTemp">
+      <Value>$(OutputDirTemp)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
     <BuildMacro Include="OutPutDir__">
       <Value>$(OutPutDir__)</Value>
-    </BuildMacro>
-    <BuildMacro Include="OutputDirRam">
-      <Value>$(OutputDirRam)</Value>
-      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="GitClonedProjects">
       <Value>$(GitClonedProjects)</Value>

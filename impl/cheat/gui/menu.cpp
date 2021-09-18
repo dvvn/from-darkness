@@ -102,9 +102,9 @@ struct menu::impl
 		{
 			constexpr auto iso_date = []
 			{
-				// ReSharper disable once CppVariableCanBeMadeConstexpr
-				const uint32_t compile_year = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
-				// ReSharper disable once CppVariableCanBeMadeConstexpr
+				// ReSharper disable CppVariableCanBeMadeConstexpr
+
+				const uint32_t compile_year  = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
 				const uint32_t compile_month = []
 				{
 					switch (__DATE__[0])
@@ -129,37 +129,39 @@ struct menu::impl
 					throw;
 				}( );
 
-				// ReSharper disable once CppVariableCanBeMadeConstexpr
 				// ReSharper disable once CppUnreachableCode
 				const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
 
-				// ReSharper disable once CppVariableCanBeMadeConstexpr
 				const char ret[] = {
 
 					compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0', '.', compile_month / 10 + '0'
-				  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0', '\0'
+				  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0'
+				  , '\0'
 				};
+
+				// ReSharper restore CppVariableCanBeMadeConstexpr
 				return std::string_view(ret, std::size(ret) - 1);
 			};
 
-			std::ostringstream name;
-			name
-				<< _STRINGIZE(VS_SolutionName)
-				<< " | "
-				<< iso_date( )
+			auto name = std::ostringstream( );
+
+			const auto append_name = [&]<class T>(T&& text, bool delim = true)
+			{
+				if (delim)
+					name << " | ";
+				name << text;
+			};
+
+			append_name(_STRINGIZE(VS_SolutionName), false);
+			append_name(iso_date( ));
 #ifdef _DEBUG
-				<< " | "
-				<< __TIME__
+			append_name("DEBUG");
+			append_name(__TIME__);
 #endif
 
 #ifdef CHEAT_GUI_TEST
-				<< " (gui test)"
+			append_name("GUI TEST");
 #endif
-
-#ifdef _DEBUG
-				<< " DEBUG MODE"
-#endif
-				;
 
 			menu_title = std::move(name).str( );
 		};

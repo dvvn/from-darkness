@@ -48,7 +48,7 @@ namespace cheat::gui::objects
 	protected:
 		struct button_callback_data
 		{
-			ImGuiID id      = -1;
+			ImGuiID id      = static_cast<ImGuiID>(-1);
 			bool    hovered = false;
 			bool    held    = false;
 			bool    pressed = false;

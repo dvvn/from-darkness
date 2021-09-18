@@ -161,7 +161,7 @@ struct selectable_bg_colors_fade::impl
 
 		runtime_assert(clr_last != clr_curr, "Logic error");
 
-		const auto dir = clr_last < clr_curr ? 1 : -1;
+		const int8_t dir = clr_last < clr_curr ? 1 : -1;
 
 		if (!fade.updating( ))
 			clr_from = colors[clr_last];
@@ -180,7 +180,7 @@ struct selectable_bg_colors_fade::impl
 
 		auto val = fade.value( );
 		if (fade.dir( ) == -1)
-			val = 1.0 - val;
+			val = static_cast<animator::float_type>(1.0) - val;
 		const auto diff = clr_to - clr_from;
 		clr_tmp         = clr_from + diff * ImVec4(val, val, val, val);
 

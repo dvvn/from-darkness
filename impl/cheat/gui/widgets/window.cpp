@@ -38,7 +38,7 @@ bool window::begin(perfect_string&& title, ImGuiWindowFlags_ flags)
 
 	const auto min_size = ImGui::GetFontSize( ) + //small button size
 						  style.ItemInnerSpacing.x +
-						  _Get_char_size( ).x * title.size( ) + //string size
+						  _Get_char_size( ).x * title.chars_count( ) + //string size
 						  style.FramePadding.x * 2.f +          //space between and after
 						  style.WindowBorderSize;
 
