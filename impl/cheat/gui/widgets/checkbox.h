@@ -8,30 +8,28 @@ namespace cheat::gui::tools
 
 namespace cheat::gui::widgets
 {
-	class checkbox;
-
-	namespace detail
-	{
-		void add_default_checkbox_callbacks(checkbox* owner);
-	}
-
-	class checkbox: public selectable_bg
-				  , public text
+	class checkbox : public selectable_bg
+				   , public text
 	{
 	public:
-		checkbox( );
-		~checkbox( ) override;
+		checkbox();
+		~checkbox() override;
 
 		checkbox(checkbox&&) noexcept;
 		checkbox& operator=(checkbox&&) noexcept;
 
-		void render( ) override;
+		enum state:uint8_t
+		{
+			STATE_IDLE
+		  , STATE_SELECTED
+		};
 
-		void                       set_check_colors(std::unique_ptr<selectable_bg_colors_base>&& colors);
-		selectable_bg_colors_base* get_check_colors( );
+		void render() override;
+
+		void set_check_color_modifier(std::unique_ptr<animation_property<ImVec4>>&& mod);
 
 	protected:
-		void render_check_mark(ImGuiWindow* window, const ImVec2& basic_pos, float basic_size,selectable_bg_colors_base*colors);
+		void render_check_mark(ImGuiWindow* window, const ImVec2& basic_pos, float basic_size);
 		//ImGuiButtonFlags_ get_button_flags( ) const override;
 
 	private:

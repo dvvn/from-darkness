@@ -36,7 +36,7 @@ struct menu::impl
 	string_wrapper     menu_title;
 	tab_bar_with_pages tabs_pages;
 
-	void init_pages( )
+	void init_pages()
 	{
 		tabs_pages.make_vertical( );
 		tabs_pages.make_size_static( );
@@ -51,7 +51,7 @@ struct menu::impl
 			updater.set_style_idx(p::COLOR_HOVERED, ImGuiCol_HeaderHovered);
 			updater.set_style_idx(p::COLOR_HELD, ImGuiCol_HeaderActive);
 
-			auto bg            = std::make_unique<selectable_bg_colors_fade>( );
+			auto bg            = std::make_unique<selectable_bg_colors_dynamic>( );
 			bg->clr_updater( ) = std::move(updater);
 
 			return bg;
@@ -73,13 +73,15 @@ struct menu::impl
 
 		constexpr auto add_item_set_callbacks = [&] <typename C, size_t S, typename T>(tab_bar_with_pages& tab_bar, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
 		{
+			using namespace std::chrono_literals;
+
 			auto item = std::make_unique<tab_bar_item>( );
 
 			item->set_font(ImGui::GetDefaultFont( ));
 			item->set_label(name);
-			auto bg_colors = std::make_unique<selectable_bg_colors_fade>( );
-			bg_colors->get_colors_updater( ).set_style_indexes({ }, ImGuiCol_Header, ImGuiCol_HeaderHovered, ImGuiCol_HeaderActive);
-			item->set_bg_colors(std::move(bg_colors));
+			auto anim = std::make_unique<animation_property_linear<ImVec4>>( );
+			anim->set_duration(1s);
+			item->set_background_color_modifier(std::move(anim));
 			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get( )), two_way_callback::WAY_TRUE);
 
 			tab_bar.add_item(std::move(item), data);
@@ -96,7 +98,7 @@ struct menu::impl
 		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
 	}
 
-	impl( )
+	impl()
 	{
 		const auto init_title = [&]
 		{
@@ -134,9 +136,9 @@ struct menu::impl
 
 				const char ret[] = {
 
-					compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0', '.', compile_month / 10 + '0'
-				  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0'
-				  , '\0'
+						compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0', '.', compile_month / 10 + '0'
+					  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0'
+					  , '\0'
 				};
 
 				// ReSharper restore CppVariableCanBeMadeConstexpr
@@ -172,15 +174,15 @@ struct menu::impl
 	}
 };
 
-menu::menu( )
+menu::menu()
 {
 	impl_ = std::make_unique<impl>( );
 	this->wait_for_service<imgui_context>( );
 }
 
-menu::~menu( ) = default;
+menu::~menu() = default;
 
-void menu::render( )
+void menu::render()
 {
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -236,7 +238,7 @@ public:
 };
 #endif
 
-service_base::load_result menu::load_impl( )
+service_base::load_result menu::load_impl()
 {
 #if 0
 	renderer_.add_page([]

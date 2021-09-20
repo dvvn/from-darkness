@@ -25,8 +25,10 @@ struct aimbot::impl
 {
 	checkbox cb;
 
-	void init_gui( )
+	void init_gui()
 	{
+		using namespace std::chrono_literals;
+
 		auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
 		font_cfg->SizePixels = 20;
 
@@ -34,25 +36,24 @@ struct aimbot::impl
 		cb.set_font(test_font);
 		cb.set_label(u8"test йцук 網站有中 ");
 
-		auto bg_colors = std::make_unique<selectable_bg_colors_fade>( );
-		bg_colors->get_colors_updater( ).set_style_indexes(ImGuiCol_FrameBg, ImGuiCol_FrameBg, ImGuiCol_FrameBgHovered, ImGuiCol_FrameBgActive);
-		cb.set_bg_colors(std::move(bg_colors));
-		auto check_bg_color = std::make_unique<selectable_bg_colors_fade>( );
-		check_bg_color->get_colors_updater( ).set_style_indexes({ }, ImGuiCol_CheckMark, { }, { });
-		check_bg_color->fade( ).set_time(animator::default_time * 3);
-		cb.set_check_colors(std::move(check_bg_color));
+		auto bg_anim = std::make_unique<animation_property_linear<ImVec4>>( );
+		bg_anim->set_duration(300ms);
+		cb.set_background_color_modifier(std::move(bg_anim));
+		auto check_anim = std::make_unique<animation_property_linear<ImVec4>>( );
+		check_anim->set_duration(300ms);
+		cb.set_check_color_modifier(std::move(check_anim));
+		//check_anim->set_time(animator::default_time * 3);
 
 		cb.select( );
 	}
 };
 
-aimbot::aimbot( )
+aimbot::aimbot()
 {
-	impl_ = std::make_unique<impl>( );
 	this->wait_for_service<gui::imgui_context>( );
 }
 
-aimbot::~aimbot( )                           = default;
+aimbot::~aimbot()                            = default;
 aimbot::aimbot(aimbot&&) noexcept            = default;
 aimbot& aimbot::operator=(aimbot&&) noexcept = default;
 
@@ -64,13 +65,14 @@ void aimbot::load(const json& out)
 {
 }
 
-cheat::service_base::load_result aimbot::load_impl( )
+cheat::service_base::load_result aimbot::load_impl()
 {
+	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );
 	co_return service_state::loaded;
 }
 
-void aimbot::render( )
+void aimbot::render()
 {
 	impl_->cb.render( );
 

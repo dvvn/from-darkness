@@ -4,6 +4,9 @@
 #include "text.h"
 
 #include <memory>
+#include <chrono>
+
+#include <imgui.h>
 
 // ReSharper disable CppInconsistentNaming
 struct ImGuiStyle;
@@ -25,150 +28,185 @@ namespace cheat::gui::tools
 	class animator;
 }
 
+namespace std
+{
+	ImVec4 lerp(const ImVec4& a,const ImVec4&b,double diff);
+}
+
 namespace cheat::gui::widgets
 {
-	class selectable_bg_colors_base;
-	class selectable_bg;
-
-	namespace detail
+	class animation_base
 	{
-		void add_default_selectable_callbacks(selectable_bg* owner);
-	}
+	protected:
+		virtual ~animation_base() = default;
 
-	//-------
-
-	class selectable_bg_colors_base
-	{
 	public:
-		virtual ~selectable_bg_colors_base( ) = default;
-
-		enum color_priority :uint8_t
-		{
-			COLOR_DEFAULT
-		  , COLOR_SELECTED
-		  , COLOR_HOVERED
-		  , COLOR_HELD
-		};
-
-		class colors_updater
-		{
-		public:
-			colors_updater( );
-			~colors_updater( );
-
-			colors_updater(colors_updater&&) noexcept;
-			colors_updater& operator=(colors_updater&&) noexcept;
-
-			using usnset_clr = std::optional<ImGuiCol_>;
-
-			void set_style_indexes(usnset_clr&& def, usnset_clr&& selected, usnset_clr&& hovered, usnset_clr&& held);
-			void set_style_idx(color_priority priority, usnset_clr&& col);
-			void change_color(color_priority priority, const ImVec4& color);
-			void update_style(ImGuiStyle* style);
-
-			const ImVec4& operator[](color_priority idx) const;
-
-		private:
-			struct impl;
-			std::unique_ptr<impl> impl_;
-		};
-
-		//-----
-
-		virtual colors_updater& get_colors_updater( ) =0;
-
-		virtual void update_colors( ) =0;
-
-		virtual void  change_color(color_priority clr) =0;
-		virtual ImU32 calculate_color( ) =0;
-
-		virtual color_priority get_last_color( ) const =0;
-		virtual color_priority get_current_color( ) const =0;
-
-		//todo: rect.min/max change
+		virtual void update() = 0;
 	};
 
-	class selectable_bg_colors_fade: public selectable_bg_colors_base
+	template <class T, class Clock = std::chrono::high_resolution_clock>
+	class animation_property : public animation_base
 	{
 	public:
-		selectable_bg_colors_fade( );
-		~selectable_bg_colors_fade( ) override;
+		animation_property()
+		{
+			static_assert(std::copyable<T>);
+			static_assert(std::chrono::is_clock_v<Clock>);
+		}
 
-		selectable_bg_colors_fade(selectable_bg_colors_fade&&) noexcept;
-		selectable_bg_colors_fade& operator=(selectable_bg_colors_fade&&) noexcept;
+		~animation_property() override
+		{
+			if (target_val_)
+				*target_val_ = std::move(start_val_);
+		}
 
-		colors_updater& get_colors_updater( ) override;
+		void set_target(T& obj)
+		{
+			target_val_ = std::addressof(obj);
+		}
 
-		void  update_colors( ) override;
-		void  change_color(color_priority clr) override;
-		ImU32 calculate_color( ) override;
+		void set_start(const T& start) { start_val_ = start; }
+		void set_start(T&& start) { start_val_ = std::move(start); }
+		void set_end(const T& end) { end_val_ = end; }
+		void set_end(T&& end) { end_val_ = std::move(end); }
 
-		color_priority get_current_color( ) const override;
-		color_priority get_last_color( ) const override;
+		void set_duration(typename Clock::duration duration)
+		{
+			duration_ = duration;
+		}
 
-		tools::animator&       fade( );
-		const tools::animator& fade( ) const;
+		//----
+
+		void start(bool wait_for_finish, bool delayed)
+		{
+			if (!finished_ && wait_for_finish)
+				return;
+
+			restart(delayed);
+		}
+
+		void restart(bool delayed)
+		{
+			if (delayed)
+			{
+				restart_on_update_ = 1;
+				return;
+			}
+			current_val_       = start_val_;
+			finished_          = false;
+			restart_on_update_ = false;
+			start_time_        = Clock::now( );
+		}
+
+		void inverse()
+		{
+			std::swap(start_val_, end_val_);
+		}
+
+		//---
+
+		bool running() const
+		{
+			return finished_;
+		}
+
+		//---
+
+		void update() final
+		{
+			if (restart_on_update_)
+				this->restart(false);
+			else if (finished_)
+				return;
+
+			T target;
+
+			const auto diff = Clock::now( ) - start_time_;
+			if (diff < duration_)
+			{
+				const auto normalize = []<class A,class B,class C>(A val, B min, C max)
+				{
+					const auto range = static_cast<double>(max - min);
+					return (val - min) / range;
+				};
+
+				const auto normalized = normalize(diff.count( ), 0, (duration_.count( )));
+
+				this->update_impl(/*start_val_,*/ current_val_, end_val_, normalized);
+				target = current_val_;
+			}
+			else
+			{
+				finished_ = true;
+				target    = current_val_ = end_val_;
+			}
+
+			*target_val_ = std::move(target);
+		}
+
+	protected:
+		/**
+		 * \brief
+		 * \param current: value between start and end
+		 * \param to: target value
+		 * \param diff_normalized: time difference converted to 0..1 range
+		 */
+		virtual void update_impl(T& current, const T& to, double diff_normalized) = 0;
 
 	private:
-		struct impl;
-		std::unique_ptr<impl> impl_;
+		typename Clock::time_point start_time_;
+		typename Clock::duration   duration_;
+
+		T* target_val_ = 0;
+		T  start_val_, current_val_, end_val_;
+
+		bool finished_          = true;
+		bool restart_on_update_ = 1;
+	};
+	
+	template <typename T>
+	class animation_property_linear : public animation_property<T>
+	{
+	protected:
+		void update_impl(T& current, const T& to, double diff_normalized) override
+		{
+			current = std::lerp(current, to, diff_normalized);
+		}
 	};
 
-	class selectable_bg_colors_static: public selectable_bg_colors_base
+	//----
+
+	class selectable_bg : public selectable_base
 	{
 	public:
-		selectable_bg_colors_static( );
-		~selectable_bg_colors_static( ) override;
-
-		selectable_bg_colors_static(selectable_bg_colors_static&&) noexcept;
-		selectable_bg_colors_static& operator=(selectable_bg_colors_static&&) noexcept;
-
-		colors_updater& get_colors_updater( ) override;
-
-		void  update_colors( ) override;
-		void  change_color(color_priority clr) override;
-		ImU32 calculate_color( ) override;
-
-		color_priority get_current_color( ) const override;
-		color_priority get_last_color( ) const override;
-
-	private:
-		struct impl;
-		std::unique_ptr<impl> impl_;
-	};
-
-	class selectable_bg: public selectable_base
-	{
-	public:
-		selectable_bg( );
-		~selectable_bg( ) override;
+		selectable_bg();
+		~selectable_bg() override;
 
 		selectable_bg(selectable_bg&&) noexcept;
 		selectable_bg& operator=(selectable_bg&&) noexcept;
 
-		void                       set_bg_colors(std::unique_ptr<selectable_bg_colors_base>&& colors);
-		selectable_bg_colors_base* get_bg_colors( );
+		void set_background_color_modifier(std::unique_ptr<animation_property<ImVec4>>&& mod);
 
 	protected:
 		bool         render(ImGuiWindow* window, ImRect& bb, ImGuiID id, bool outer_spacing);
-		virtual void render_background(ImGuiWindow* window, ImRect& bb, selectable_bg_colors_base* color);
+		virtual void render_background(ImGuiWindow* window, ImRect& bb);
 
 	private:
 		struct data_type;
 		std::unique_ptr<data_type> data_;
 	};
 
-	class selectable: public selectable_bg
-					, public text
+	class selectable : public selectable_bg
+					 , public text
 	{
 	public:
-		selectable( );
-		~selectable( ) override;
+		selectable();
+		~selectable() override;
 
 		selectable(selectable&&) noexcept;
 		selectable& operator=(selectable&&) noexcept;
 
-		void render( ) override;
+		void render() override;
 
 	private:
 		struct data_type;
