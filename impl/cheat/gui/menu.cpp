@@ -8,8 +8,8 @@
 //#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
 //#include "cheat/hooks/winapi/wndproc.h"
 
-#include "tools/string wrapper.h"
 #include "widgets/tab_bar_with_pages.h"
+#include "tools/cached_text.h"
 
 #include <nstd/runtime assert.h>
 
@@ -80,7 +80,7 @@ struct menu::impl
 			item->set_font(ImGui::GetDefaultFont( ));
 			item->set_label(name);
 			auto anim = std::make_unique<animation_property_linear<ImVec4>>( );
-			anim->set_duration(1s);
+			anim->set_duration(400ms);
 			item->set_background_color_modifier(std::move(anim));
 			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get( )), two_way_callback::WAY_TRUE);
 

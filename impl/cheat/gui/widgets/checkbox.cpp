@@ -1,7 +1,5 @@
 #include "checkbox.h"
 
-#include "cheat/gui/tools/string wrapper.h"
-
 #include <imgui_internal.h>
 
 #include <functional>

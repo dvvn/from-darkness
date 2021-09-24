@@ -264,8 +264,8 @@ service_base::load_result imgui_context::load_impl( )
 		auto font_cfg        = fonts.default_font_config( );
 		font_cfg->SizePixels = 13;
 
-#if !defined(_DEBUG) && 0
-		return io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 15.0f, std::addressof(font_cfg), nullptr);
+#if /*!defined(_DEBUG)*/0
+		return fonts.add_font_from_ttf_file("C:\\Windows\\Fonts\\arial.ttf", std::move(font_cfg));
 #else
 		return fonts.add_default_font(std::move(font_cfg));
 #endif

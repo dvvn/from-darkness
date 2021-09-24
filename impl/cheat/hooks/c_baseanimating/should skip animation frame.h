@@ -3,7 +3,6 @@
 #include "cheat/core/service.h"
 #include "cheat/hooks/base.h"
 #include "cheat/gui/objects/renderable object.h"
-#include "cheat/gui/objects/shared_label.h"
 
 namespace cheat::csgo
 {
@@ -14,7 +13,6 @@ namespace cheat::hooks::c_base_animating
 {
 	class should_skip_animation_frame final: public hook_base<should_skip_animation_frame, bool(csgo::C_BaseAnimating::*)( )>
 										   , public gui::objects::renderable
-										   , public gui::objects::non_abstract_label
 										   , service_maybe_skipped
 	{
 	public :

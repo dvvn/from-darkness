@@ -11,9 +11,9 @@
 #include "cheat/sdk/ClientClass.hpp"
 #include "cheat/sdk/entity/C_BaseAnimating.h"
 
-#include "cheat/gui/tools/string wrapper.h"
-
 #include <nstd/memory backup.h>
+
+#include <imgui.h>
 
 using namespace cheat;
 using namespace hooks;
@@ -21,20 +21,19 @@ using namespace c_base_animating;
 
 using namespace csgo;
 
-should_skip_animation_frame::should_skip_animation_frame( )
-	: non_abstract_label(nstd::drop_namespaces(nstd::type_name<should_skip_animation_frame>))
-	, service_maybe_skipped(
+should_skip_animation_frame::should_skip_animation_frame()
+	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-								true
+			true
 #else
 		false
 #endif
-							   )
+			)
 {
 	this->wait_for_service<netvars>( );
 }
 
-nstd::address should_skip_animation_frame::get_target_method_impl( ) const
+nstd::address should_skip_animation_frame::get_target_method_impl() const
 {
 	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
 }
@@ -110,7 +109,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 #endif
 }
 
-void should_skip_animation_frame::render( )
+void should_skip_animation_frame::render()
 {
 	ImGui::Checkbox("override return", &override_return__);
 	if (override_return__)

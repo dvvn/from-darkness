@@ -5,7 +5,6 @@
 #include "window.h"
 
 #include "cheat/gui/tools/push style var.h"
-#include "cheat/gui/tools/string wrapper.h"
 
 #include <nstd/runtime assert.h>
 
@@ -16,6 +15,8 @@
 #include <ranges>
 #include <vector>
 #include <functional>
+
+#include "cheat/gui/tools/cached_text.h"
 
 using namespace cheat::gui;
 using namespace widgets;
@@ -101,19 +102,27 @@ struct tab_bar::impl
 	directions dir       = directions::UNSET;
 };
 
-tab_bar::tab_bar( )
+tab_bar::tab_bar()
 {
 	impl_ = std::make_unique<impl>( );
 }
 
-tab_bar::~tab_bar( ) = default;
+tab_bar::~tab_bar() = default;
 
 tab_bar_item* tab_bar::find_tab(perfect_string&& title)
 {
-	for (auto& item: impl_->items)
+	for (const auto& item : impl_->items)
 	{
-		if (item->get_label( ) == title)
+		if (
+#ifdef IMGUI_HAS_STRV
+		item->get_label( ).imgui(  ) == title
+#else
+			item->get_label( ).multibyte( ) == std::string_view(title, title.chars_capacity( ))
+#endif
+		)
+		{
 			return item.get( );
+		}
 	}
 
 	return nullptr;
@@ -141,9 +150,9 @@ void tab_bar::add_tab(std::unique_ptr<tab_bar_item>&& item)
 		items.front( )->select( );
 }
 
-tab_bar_item* tab_bar::get_selected( )
+tab_bar_item* tab_bar::get_selected()
 {
-	for (auto& item: impl_->items)
+	for (auto& item : impl_->items)
 	{
 		if (item->selected( ))
 			return item.get( );
@@ -158,47 +167,47 @@ tab_bar_item* tab_bar::get_selected( )
 //	std::ranges::sort(impl_->items, std::ref(pred), &tab_bar_item::get_label);
 //}
 
-size_t tab_bar::size( ) const
+size_t tab_bar::size() const
 {
 	return impl_->items.size( );
 }
 
-bool tab_bar::empty( ) const
+bool tab_bar::empty() const
 {
 	return impl_->items.size( );
 }
 
-void tab_bar::make_size_static( )
+void tab_bar::make_size_static()
 {
 	impl_->size_mode = size_modes::STATIC;
 }
 
-void tab_bar::make_size_auto( )
+void tab_bar::make_size_auto()
 {
 	impl_->size_mode = size_modes::AUTO;
 }
 
-void tab_bar::make_horisontal( )
+void tab_bar::make_horisontal()
 {
 	impl_->dir = directions::HORISONTAL;
 }
 
-void tab_bar::make_vertical( )
+void tab_bar::make_vertical()
 {
 	impl_->dir = directions::VERTICAL;
 }
 
-bool tab_bar::is_horisontal( ) const
+bool tab_bar::is_horisontal() const
 {
 	return impl_->dir == directions::HORISONTAL;
 }
 
-bool tab_bar::is_vertical( ) const
+bool tab_bar::is_vertical() const
 {
 	return impl_->dir == directions::VERTICAL;
 }
 
-void tab_bar::render( )
+void tab_bar::render()
 {
 	auto& [_Wnd, _Items, _Size_mode, _Direction] = *impl_;
 	runtime_assert(!_Items.empty( ));

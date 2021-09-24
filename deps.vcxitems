@@ -19,7 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(GitClonedProjects)\cppcoro\lib\*.cpp" />
-
     <ClCompile Include="$(GitClonedProjects)\imgui\*.cpp" />
     <ClCompile Include="$(GitClonedProjects)\imgui\misc\cpp\*.cpp" />
     <ClCompile Include="$(GitClonedProjects)\imgui\backends\imgui_impl_dx9.cpp" />

@@ -3,7 +3,6 @@
 
 #include "cheat/core/console.h"
 #include "cheat/gui/tools/animator.h"
-#include "cheat/gui/tools/string wrapper.h"
 
 #include <nstd/overload.h>
 
@@ -16,19 +15,6 @@
 using namespace cheat;
 using namespace gui::widgets;
 using namespace gui::tools;
-
-ImVec4 std::lerp(const ImVec4& a, const ImVec4& b, double diff)
-{
-	const auto d = static_cast<float>(diff);
-	return {
-			std::lerp(a.x, b.x, d)
-		  , std::lerp(a.y, b.y, d)
-		  , std::lerp(a.z, b.z, d)
-		  , std::lerp(a.w, b.w, d)
-	};
-}
-
-//-----------------
 
 struct selectable_bg::data_type
 {
@@ -64,10 +50,7 @@ struct selectable_bg::data_type
 		}
 		else
 		{
-			const auto& prev_color = colors[current_state];
-			color_modifier->set_start(prev_color);
-			color_modifier->set_end(new_color);
-			color_modifier->start(true, true);
+			color_modifier->update_end(new_color);
 		}
 		current_state = s;
 	}
@@ -109,7 +92,7 @@ selectable_bg::selectable_bg()
 	this->add_held_callback(make_callback_info([=]
 	{
 		auto& data = *this->data_;
-		data.set_state(STATE_SELECTED);
+		data.set_state(STATE_HOVERED);
 	}), w::WAY_FALSE);
 
 	this->add_selected_callback(make_callback_info([=]
@@ -202,3 +185,5 @@ void selectable::render()
 
 	this->render_text(window, text_pos);
 }
+
+

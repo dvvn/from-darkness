@@ -2,8 +2,6 @@
 
 #include "tab_bar.h"
 
-#include "cheat/gui/objects/shared_label.h"
-
 #include <memory>
 
 namespace cheat::gui::tools
