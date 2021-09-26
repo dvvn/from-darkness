@@ -22,6 +22,16 @@ enum ImGuiCol_;
 //	return {a.x * fl2, a.y * fl2, a.z * fl2, a.w * fl2};
 //}
 
+inline bool operator==(const ImVec4& a, const ImVec4& b)
+{
+	return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+}
+
+inline bool operator!=(const ImVec4& a, const ImVec4& b)
+{
+	return !(a == b);
+}
+
 namespace std
 {
 	template <typename T>
@@ -51,7 +61,7 @@ namespace cheat::gui::widgets
 		virtual void update() = 0;
 	};
 
-	namespace detail
+	/*namespace detail
 	{
 		template <typename T>
 		bool equal_helper(const T& a, const T& b)
@@ -66,9 +76,58 @@ namespace cheat::gui::widgets
 				return false;
 			}
 		}
-	}
+	}*/
 
-	template <class T, class Clock = std::chrono::high_resolution_clock>
+	template <typename T>
+	class animation_property_target
+	{
+	public:
+		virtual ~animation_property_target() = default;
+		virtual void set_target(T& obj) =0;
+
+		virtual T& get_value() =0;
+	};
+
+	template <typename T>
+	class animation_property_target_external final : public animation_property_target<T>
+	{
+	public:
+		void set_target(T& obj) override
+		{
+			target_val_ = std::addressof(obj);
+		}
+
+		T& get_value() override
+		{
+			return *target_val_;
+		}
+
+	private:
+		T* target_val_ = nullptr;
+	};
+
+	template <typename T>
+	class animation_property_target_internal final : public animation_property_target<T>
+	{
+	public:
+		animation_property_target_internal() = default;
+
+		void set_target(T& obj) override
+		{
+			target_val_ = (obj);
+		}
+
+		T& get_value() override
+		{
+			return target_val_;
+		}
+
+	private:
+		T target_val_;
+	};
+
+	template <class T
+			, class Clock = std::chrono::high_resolution_clock>
 	class animation_property : public animation_base
 	{
 	public:
@@ -77,10 +136,12 @@ namespace cheat::gui::widgets
 
 		using unachieved_value = std::optional<T>;
 
+		using target_holder = std::unique_ptr<animation_property_target<T>>;
+
 		~animation_property() override
 		{
-			if (target_val_)
-				*target_val_ = std::move(start_val_);
+			//if (target_val_)
+			//	*target_val_ = std::move(start_val_);
 		}
 
 		animation_property()
@@ -90,10 +151,24 @@ namespace cheat::gui::widgets
 			start_val_ = temp_val_ = end_val_ = T( );
 		}
 
-		void set_target(T& obj)
+		animation_property(const animation_property& other)                = delete;
+		animation_property(animation_property&& other) noexcept            = default;
+		animation_property& operator=(const animation_property& other)     = delete;
+		animation_property& operator=(animation_property&& other) noexcept = default;
+
+		//----
+
+		void set_target(target_holder&& holder)
 		{
-			target_val_ = std::addressof(obj);
+			target_val_ = std::move(holder);
 		}
+
+		T& get_target_value()
+		{
+			return target_val_->get_value( );
+		}
+
+		//----
 
 		void set_start(const T& start)
 		{
@@ -105,9 +180,19 @@ namespace cheat::gui::widgets
 			end_val_ = end;
 		}
 
+		const T& get_start_val() const
+		{
+			return start_val_;
+		}
+
+		const T& get_end_val() const
+		{
+			return end_val_;
+		}
+
 		void update_end(const T& new_end)
 		{
-			if (finished_ || !detail::equal_helper(start_val_, new_end))
+			if (finished_ || (start_val_!= new_end))
 			{
 				start_val_    = std::move(end_val_);
 				end_val_      = new_end;
@@ -137,7 +222,8 @@ namespace cheat::gui::widgets
 		{
 			if (!finished_ && wait_for_finish)
 				return;
-
+			//if (target_val_ == nullptr)
+			//	target_val_ = std::make_unique<animation_property_target_internal<T>>( );
 			restart(delayed);
 		}
 
@@ -148,6 +234,7 @@ namespace cheat::gui::widgets
 				restart_on_update_ = true;
 				return;
 			}
+
 			temp_val_          = start_val_;
 			finished_          = false;
 			restart_on_update_ = false;
@@ -195,13 +282,13 @@ namespace cheat::gui::widgets
 
 			if (elapsed_time >= duration_)
 			{
-				finished_    = true;
-				*target_val_ = end_val_;
+				finished_                 = true;
+				target_val_->get_value( ) = end_val_;
 			}
 			else
 			{
 				this->update_impl(temp_val_old_, start_val_, temp_val_, end_val_, frame_time, elapsed_time, duration_);
-				*target_val_ = temp_val_;
+				target_val_->get_value( ) = temp_val_;
 			}
 		}
 
@@ -212,7 +299,7 @@ namespace cheat::gui::widgets
 	private:
 		time_point start_time_, last_time_;
 		duration duration_;
-		T* target_val_ = nullptr;
+		target_holder target_val_;
 		T start_val_, temp_val_, end_val_;
 		unachieved_value temp_val_old_;
 		bool update_started_    = false;

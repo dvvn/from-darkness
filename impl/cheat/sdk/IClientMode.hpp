@@ -143,7 +143,7 @@ public:
 		// Gets a panel hierarchically below the viewport by name like so "ASWHudInventoryMode/SuitAbilityPanel/ItemPanel1"...
 		virtual vgui::Panel* GetPanelFromViewport(const char* pchNamePath) = 0;
 
-		// Gets at the viewports vgui panel animation controller, if there is one...
+		// Gets at the viewports vgui panel animation_ controller, if there is one...
 		virtual vgui::AnimationController* GetViewportAnimationController( ) = 0;
 
 		// called every time shared client dll/engine data gets changed,
@@ -287,7 +287,7 @@ public:
 	virtual vgui::Panel* GetViewport()=0;// { return m_pViewport; }
 	virtual vgui::Panel *GetPanelFromViewport( const char *pchNamePath );
 
-	// Gets at the viewports vgui panel animation controller, if there is one...
+	// Gets at the viewports vgui panel animation_ controller, if there is one...
 	virtual vgui::AnimationController *GetViewportAnimationController()=0;	//	{ return m_pViewport->GetAnimationController(); }
 	
 	virtual void FireGameEvent( IGameEvent *event );

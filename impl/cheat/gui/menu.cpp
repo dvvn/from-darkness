@@ -5,7 +5,7 @@
 #include "cheat/core/services loader.h"
 #include "cheat/features/aimbot.h"
 //#include "cheat/features/anti aim.h"
-//#include "cheat/hooks/c_baseanimating/should skip animation frame.h"
+//#include "cheat/hooks/c_baseanimating/should skip animation_ frame.h"
 //#include "cheat/hooks/winapi/wndproc.h"
 
 #include "widgets/tab_bar_with_pages.h"

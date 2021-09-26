@@ -18,7 +18,7 @@ using namespace gui::tools;
 
 struct selectable_bg::data_type
 {
-	state  current_state = STATE_IDLE;
+	state current_state = STATE_IDLE;
 	ImVec4 current_color;
 
 	struct
@@ -117,7 +117,9 @@ selectable_bg& selectable_bg::operator=(selectable_bg&&) noexcept = default;
 
 void selectable_bg::set_background_color_modifier(std::unique_ptr<animation_property<ImVec4>>&& mod)
 {
-	mod->set_target(data_->current_color);
+	auto target = std::make_unique<animation_property_target_external<ImVec4>>( );
+	target->set_target(data_->current_color);
+	mod->set_target(std::move(target));
 	data_->color_modifier = std::move(mod);
 }
 
@@ -185,5 +187,3 @@ void selectable::render()
 
 	this->render_text(window, text_pos);
 }
-
-

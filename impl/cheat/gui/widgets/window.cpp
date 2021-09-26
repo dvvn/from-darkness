@@ -23,7 +23,7 @@ bool window::begin(imgui_string_transparent&& title, ImGuiWindowFlags_ flags)
 {
 	runtime_assert(ignore_end__ == false);
 	auto& style = ImGui::GetStyle( );
-	runtime_assert(style.Alpha == fade_.max( ));
+	//runtime_assert(style.Alpha == fade_.max( ));
 
 	if (!this->Animate( ) && !visible__)
 	{
