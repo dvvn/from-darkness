@@ -68,9 +68,9 @@ void tab_bar_with_pages::add_item(std::unique_ptr<tab_bar_item>&& bar_item, cons
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-renderable* tab_bar_with_pages::find_item(perfect_string&& title)
+renderable* tab_bar_with_pages::find_item(const tools::cached_text::label_type& title)
 {
-	const auto target = this->find_tab(std::move(title));
+	const auto target = this->find_tab((title));
 	const auto index  = this->find_tab_index(target);
 	return (*pages_)[index].get( );
 }

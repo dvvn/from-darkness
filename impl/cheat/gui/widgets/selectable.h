@@ -72,20 +72,22 @@ namespace cheat::gui::widgets
 	class animation_property : public animation_base
 	{
 	public:
-		using clock_duration = typename Clock::duration;
+		using duration = typename Clock::duration;
+		using time_point = typename Clock::time_point;
 
 		using unachieved_value = std::optional<T>;
-
-		animation_property()
-		{
-			static_assert(std::copyable<T>);
-			static_assert(std::chrono::is_clock_v<Clock>);
-		}
 
 		~animation_property() override
 		{
 			if (target_val_)
 				*target_val_ = std::move(start_val_);
+		}
+
+		animation_property()
+		{
+			static_assert(std::copyable<T>);
+			static_assert(std::chrono::is_clock_v<Clock>);
+			start_val_ = temp_val_ = end_val_ = T( );
 		}
 
 		void set_target(T& obj)
@@ -113,8 +115,8 @@ namespace cheat::gui::widgets
 			}
 			else
 			{
-				const auto time_elapsed   = last_time_ - start_time_;
-				const auto time_remaining = duration_ - time_elapsed;
+				const auto elapsed_time   = last_time_ - start_time_;
+				const auto time_remaining = duration_ - elapsed_time;
 
 				//some time has passed, now we only need to wait for this segment
 				start_time_ = last_time_ - time_remaining;
@@ -124,7 +126,7 @@ namespace cheat::gui::widgets
 			this->start(true, true);
 		}
 
-		void set_duration(clock_duration duration)
+		void set_duration(duration duration)
 		{
 			duration_ = duration;
 		}
@@ -175,66 +177,41 @@ namespace cheat::gui::widgets
 			else if (finished_)
 				return;
 
-			clock_duration frame_time, time_elapsed;
-			// ReSharper disable once CppInconsistentNaming
-			const auto _Get_current_time = [&]
+			duration frame_time, elapsed_time;
+			if (update_started_)
 			{
-				if (!update_started_)
-				{
-					frame_time   = clock_duration::zero( );
-					time_elapsed = clock_duration::zero( );
-					return start_time_;
-				}
-				else
-				{
-					auto now     = Clock::now( );
-					frame_time   = now - last_time_;
-					time_elapsed = now - start_time_;
-					return now;
-				}
-			};
-			last_time_ = _Get_current_time( );
-
-			// ReSharper disable once CppInconsistentNaming
-			const auto _Get_new_target_value = [&]()-> const T&
+				auto now     = Clock::now( );
+				frame_time   = now - last_time_;
+				elapsed_time = now - start_time_;
+				last_time_   = now;
+			}
+			else
 			{
-				if (time_elapsed >= duration_)
-				{
-					finished_ = true;
-					return end_val_;
-				}
+				update_started_ = true;
+				frame_time      = elapsed_time = duration::zero( );
+				last_time_      = start_time_;
+				return;
+			}
 
-				if (update_started_)
-				{
-					this->update_impl(temp_val_old_, start_val_, temp_val_, end_val_, duration_, frame_time, time_elapsed);
-#if 0
-					if (temp_val_old_.has_value( ))
-					{
-						// ReSharper disable once CppInconsistentNaming
-						const auto _Any_of = [&]<class ...Ts>(Ts&& ...args)
-						{
-							return (detail::equal_helper(*temp_val_old_, args) || ...);
-						};
-
-						if (_Any_of(start_val_, temp_val_, end_val_))
-							temp_val_old_.reset( );
-					}
-#endif
-				}
-				return temp_val_;
-			};
-			*target_val_ = _Get_new_target_value( );
-
-			update_started_ = true;
+			if (elapsed_time >= duration_)
+			{
+				finished_    = true;
+				*target_val_ = end_val_;
+			}
+			else
+			{
+				this->update_impl(temp_val_old_, start_val_, temp_val_, end_val_, frame_time, elapsed_time, duration_);
+				*target_val_ = temp_val_;
+			}
 		}
 
 	protected:
 		virtual void update_impl(const unachieved_value& current_unachieved, const T& from, T& current, const T& to,
-								 clock_duration duration, clock_duration frame_time, clock_duration time_elapsed) = 0;
+								 duration frame_time, duration elapsed_time, duration duration) = 0;
 
 	private:
-		typename Clock::time_point start_time_, last_time_;
-		clock_duration duration_;
+		time_point start_time_, last_time_;
+		duration duration_;
 		T* target_val_ = nullptr;
 		T start_val_, temp_val_, end_val_;
 		unachieved_value temp_val_old_;
@@ -248,15 +225,14 @@ namespace cheat::gui::widgets
 	{
 	protected:
 		using base = animation_property<T>;
-		using clock_duration = typename base::clock_duration;
+		using duration = typename base::duration;
 		using unachieved_value = typename base::unachieved_value;
 
 		void update_impl(const unachieved_value& current_old, const T& from, T& current, const T& to,
-						 clock_duration duration, clock_duration frame_time, clock_duration time_elapsed) override
+						 duration frame_time, duration elapsed_time, duration duration) override
 		{
-			const auto diff = static_cast<float>(time_elapsed.count( )) / static_cast<float>(duration.count( ));
-
-			current = std::lerp(current_old.value_or(from), to, diff);
+			const auto diff = static_cast<float>(elapsed_time.count( )) / static_cast<float>(duration.count( ));
+			current         = std::lerp(current_old.value_or(from), to, diff);
 		}
 	};
 

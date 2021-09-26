@@ -89,7 +89,7 @@ void checkbox::render()
 
 	auto       check_bb  = ImRect(pos, pos + ImVec2(square_sz, square_sz));
 	const auto label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
-	const auto total_bb  = ImRect(pos, label_pos + this->label_size( ));
+	const auto total_bb  = ImRect(pos, label_pos + this->get_label_size( ));
 
 	ImGui::ItemSize(total_bb.GetSize( ));
 	if (!total_bb.Overlaps(window->ClipRect))

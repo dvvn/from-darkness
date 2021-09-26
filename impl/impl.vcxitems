@@ -277,6 +277,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\signature.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\timer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\type name.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\unistring.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />

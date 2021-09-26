@@ -96,7 +96,7 @@ struct tab_bar::impl
 	using items_storage = std::vector<std::unique_ptr<tab_bar_item>>;
 
 	child_frame_window wnd;
-	items_storage      items;
+	items_storage items;
 
 	size_modes size_mode = size_modes::UNSET;
 	directions dir       = directions::UNSET;
@@ -109,17 +109,11 @@ tab_bar::tab_bar()
 
 tab_bar::~tab_bar() = default;
 
-tab_bar_item* tab_bar::find_tab(perfect_string&& title)
+tab_bar_item* tab_bar::find_tab(const tools::cached_text::label_type& title)
 {
 	for (const auto& item : impl_->items)
 	{
-		if (
-#ifdef IMGUI_HAS_STRV
-		item->get_label( ).imgui(  ) == title
-#else
-			item->get_label( ).multibyte( ) == std::string_view(title, title.chars_capacity( ))
-#endif
-		)
+		if (item->get_label( ) == (title))
 		{
 			return item.get( );
 		}
@@ -141,7 +135,7 @@ size_t tab_bar::find_tab_index(const tab_bar_item* item) const
 
 void tab_bar::add_tab(std::unique_ptr<tab_bar_item>&& item)
 {
-	runtime_assert(item->get_label( ).raw( ).empty( ) == false);
+	runtime_assert(item->get_label( ).empty( ) == false);
 	runtime_assert(find_tab(item->get_label( )) == nullptr);
 	auto& items = impl_->items;
 
@@ -225,7 +219,7 @@ void tab_bar::render()
 		const auto size_transform_helper = [&]<typename T>(T&& xy)
 		{
 			return _Items
-				   | std::views::transform(&tab_bar_item::label_size)
+				   | std::views::transform(&tab_bar_item::get_label_size)
 				   | std::views::transform(/*&ImVec2::x*/xy);
 		};
 

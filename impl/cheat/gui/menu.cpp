@@ -33,7 +33,7 @@ struct menu::impl
 {
 	WPARAM hotkey = VK_HOME;
 
-	string_wrapper     menu_title;
+	imgui_string menu_title;
 	tab_bar_with_pages tabs_pages;
 
 	void init_pages()
@@ -78,7 +78,7 @@ struct menu::impl
 			auto item = std::make_unique<tab_bar_item>( );
 
 			item->set_font(ImGui::GetDefaultFont( ));
-			item->set_label(name);
+			item->set_label((name));
 			auto anim = std::make_unique<animation_property_linear<ImVec4>>( );
 			anim->set_duration(400ms);
 			item->set_background_color_modifier(std::move(anim));

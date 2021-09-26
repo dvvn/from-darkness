@@ -4,10 +4,7 @@
 
 #include <memory>
 
-namespace cheat::gui::tools
-{
-	class perfect_string;
-}
+
 
 namespace cheat::gui::widgets
 {
@@ -23,7 +20,7 @@ namespace cheat::gui::widgets
 
 		void add_item(std::unique_ptr<tab_bar_item>&& bar_item, const objects::renderable_shared& data);
 
-		renderable* find_item(tools::perfect_string&& title);
+		renderable* find_item(const tools::cached_text::label_type& title);
 
 	private:
 		struct pages;

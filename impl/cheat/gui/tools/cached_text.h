@@ -1,134 +1,192 @@
 ﻿#pragma once
 
+#include <nstd/unistring.h>
+#include <nstd/overload.h>
+
 #include <imgui.h>
 
 #include <string>
 #include <variant>
-#include <vector>
 
 namespace cheat::gui::tools
 {
 	namespace detail
 	{
-		class string_wrapper_multibyte
+		template <std::ranges::range T>
+			requires(sizeof(std::ranges::range_value_t<T>) == sizeof(char))
+		auto get_imgui_string(const T& str)
 		{
-		public:
-			auto operator<=>(const string_wrapper_multibyte&) const = default;
-
-			operator std::string_view() const { return multibyte_; }
-			std::string_view multibyte() const { return multibyte_; }
-
-		protected:
-			// ReSharper disable once CppInconsistentNaming
-			std::string multibyte_;
-		};
-
-		class string_wrapper_raw
-		{
-		public:
-			operator std::wstring_view() const { return raw_; }
-			std::wstring_view raw() const { return raw_; }
-
-		protected:
-			// ReSharper disable once CppInconsistentNaming
-			std::wstring raw_;
-		};
+#ifdef IMGUI_HAS_IMSTR
+	return ImStrv(str._Unchecked_begin( ), str._Unchecked_end( ));
+#else
+			return reinterpret_cast<const char*>(/*std::_Const_cast*/str._Unchecked_begin( ));
+#endif
+		}
 	}
 
-	//deprecated!!!
-	class string_wrapper : public detail::string_wrapper_multibyte, public detail::string_wrapper_raw
+	class imgui_string
 	{
 	public:
+		imgui_string() = default;
+
+		using multibyte_type = nstd::unistring<char>;
+		using native_type = nstd::unistring<wchar_t>;
+		using imgui_type =
 #ifdef IMGUI_HAS_IMSTR
-		using value_type = ImStrv;
-		using const_type= const ImStrv&
+			ImStrv
 #else
-		using value_type = /*const*/ char*;
-		using const_type = const char*;
+		const char*
 #endif
-		string_wrapper() = default;
+		;
 
-		string_wrapper(std::string&& str);
-		string_wrapper(std::wstring&& str);
-		string_wrapper(std::u8string&& str);
-
-		template <typename C>
-		string_wrapper(const std::basic_string_view<C>& str)
-			: string_wrapper(std::basic_string<C>(str._Unchecked_begin( ), str._Unchecked_end( )))
+		template <typename T>
+		imgui_string(T&& str)
 		{
+			//it safe to 'move' twice, only one string allows it
+			multibyte_.uni_assign(std::forward<T>(str));
+			native_.uni_assign(std::forward<T>(str));
 		}
 
-		template <typename T, size_t N>
-		string_wrapper(const T (&str)[N])
-			: string_wrapper(std::basic_string<T>(str, str + (N - 1)))
+		auto imgui() const
 		{
+			return detail::get_imgui_string(multibyte_);
 		}
 
-		operator value_type() const;
-		value_type imgui() const;
-	};
+		const multibyte_type& multibyte() const
+		{
+			return multibyte_;
+		}
 
-	//deprecated!!!
-	class perfect_string
-	{
-	public:
-		perfect_string(const string_wrapper& wrstr);
-		perfect_string(string_wrapper&& wrstr);
-		perfect_string(string_wrapper::const_type str);
-
-		operator string_wrapper::value_type() const;
-
-		size_t chars_count() const;
-		size_t chars_capacity() const;
+		const native_type& raw() const
+		{
+			return native_;
+		}
 
 	private:
-		using string_wrapper_ref = std::reference_wrapper<const string_wrapper>;
-		using holder_type = std::variant<
-			string_wrapper_ref
-		  , string_wrapper
-		  , string_wrapper::value_type
-		>;
-
-		holder_type holder_;
-		size_t      chars_count_, chars_capacity_;
+		multibyte_type multibyte_;
+		native_type native_;
 	};
 
-	//----
-
-	//todo: template this, separate with render function
-	//return str(const string&), view(string_view)
-	class cached_text
+	class imgui_string_transparent
 	{
-		template <typename T>
-		struct size_checker : std::bool_constant<sizeof(ImWchar) == sizeof(T)>
+		template <typename Str, typename T>
+		static void set_count_helper(const T& str, size_t& count)
 		{
-			using type = T;
-		};
+			if constexpr (sizeof(Str::value_type) == sizeof(T::value_type))
+				count = str.size( );
+			else
+				count = Str(str).size( );
+		}
 
-		template <typename ...Ts>
-		using char_type_helper = std::disjunction<size_checker<Ts>...>;
+		template <typename T>
+		void set_chars_count(const T& str)
+		{
+			set_count_helper<imgui_string::native_type>(str, chars_count_);
+		}
+
+		template <typename T>
+		void set_chars_capacity(const T& str)
+		{
+			set_count_helper<imgui_string::multibyte_type>(str, chars_capacity_);
+		}
+
+		template <typename T>
+		void construct_multibyte(T&& str)
+		{
+			this->set_chars_count(str);
+			this->set_chars_capacity(str);
+			buff_.emplace<imgui_string::multibyte_type>(std::forward<T>(str));
+		}
 
 	public:
-		using char_type = char_type_helper<char8_t, char16_t, char32_t>::type;
+		template <typename Chr>
+		imgui_string_transparent(const std::basic_string_view<Chr>& str)
+		{
+			if constexpr (sizeof(Chr) == sizeof(char))
+			{
+				this->set_chars_count(str);
+				this->set_chars_capacity(str);
+				buff_.emplace<imgui_string::imgui_type>(detail::get_imgui_string(str));
+			}
+			else
+				this->construct_multibyte(str);
+		}
+
+		template <typename Chr>
+		imgui_string_transparent(std::basic_string<Chr>&& str)
+		{
+			this->construct_multibyte(std::move(str));
+		}
+
+		imgui_string_transparent(const imgui_string& str)
+		{
+			this->set_chars_count(str.raw( ));
+			this->set_chars_capacity(str.multibyte( ));
+
+			buff_.emplace<const imgui_string*>(std::addressof(str));
+		}
+
+		imgui_string_transparent(imgui_string&& str)
+		{
+			this->set_chars_count(str.raw( ));
+			this->set_chars_capacity(str.multibyte( ));
+
+			auto& mb = const_cast<imgui_string::multibyte_type&>(str.multibyte( ));
+			buff_.emplace<imgui_string::multibyte_type>(std::move(mb));
+		}
+
+		template <typename Chr, size_t N>
+		imgui_string_transparent(const Chr (&str)[N])
+			: imgui_string_transparent(std::basic_string_view<Chr>(str, std::next(str, N - 1)))
+		{
+		}
+
+	private:
+		std::variant
+		<
+			const imgui_string*,
+			imgui_string::imgui_type,
+			imgui_string::multibyte_type
+		> buff_;
+
+	public:
+		operator imgui_string::imgui_type() const
+		{
+			return std::visit(nstd::overload(
+									  [](const imgui_string* str)
+									  {
+										  return str->imgui( );
+									  }
+									, [](const imgui_string::imgui_type& str)
+									  {
+										  return str;
+									  }
+									, [](const imgui_string::multibyte_type& str)
+									  {
+										  return detail::get_imgui_string(str);
+									  }), buff_);
+		}
+
+	private:
+		size_t chars_count_ = 0, chars_capacity_ = 0;
+
+	public:
+		size_t chars_count() const { return chars_count_; }
+		size_t chars_capacity() const { return chars_capacity_; }
+	};
+
+	class cached_text
+	{
+	public:
+		using label_type = nstd::unistring<ImWchar>;
 
 		void set_font(ImFont* new_font);
 
-		void set_label(const std::string_view& str);
-		void set_label(const std::u8string_view& str);
-		void set_label(const std::wstring_view& str);
-		void set_label(const std::u16string_view& str);
-		void set_label(const std::u32string_view& str);
-
-		void set_label(std::string&& str);
-		void set_label(std::u8string&& str);
-		void set_label(std::wstring&& str);
-		void set_label(std::u16string&& str);
-		void set_label(std::u32string&& str);
-
-		template <typename T, size_t N>
-		void set_label(const T (&str)[N])
+		template <typename T>
+		void set_label(T&& str)
 		{
-			set_label((std::basic_string_view<T>(str, str + (N - 1))));
+			label_.uni_assign(std::forward<T>(str));
+			this->update( );
 		}
 
 	private:
@@ -139,8 +197,8 @@ namespace cheat::gui::tools
 
 	private:
 		//todo: invisible chars ignored
-		std::basic_string<char_type> label_;
-		ImVec2                       label_size_;
+		label_type label_;
+		ImVec2 label_size_;
 
 		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after efery atlas build, so it uselles
 		size_t visible_glyphs_count_ = 0;
@@ -149,6 +207,8 @@ namespace cheat::gui::tools
 
 	public:
 		const ImVec2& get_label_size() const { return label_size_; }
-		ImFont*       get_font() const { return font_; }
+		ImFont* get_font() const { return font_; }
+
+		const label_type& get_label() const { return label_; }
 	};
 }

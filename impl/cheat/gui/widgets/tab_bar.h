@@ -3,15 +3,10 @@
 
 namespace cheat::gui::tools
 {
-	class string_wrapper;
-	class perfect_string;
+	class imgui_string;
+	class imgui_string_transparent;
 }
 
-namespace cheat::gui::objects
-{
-	class abstract_label;
-	using shared_label = std::shared_ptr<abstract_label>;
-}
 
 namespace cheat::gui::widgets
 {
@@ -25,7 +20,7 @@ namespace cheat::gui::widgets
 		tab_bar( );
 		~tab_bar( ) override;
 
-		tab_bar_item* find_tab(tools::perfect_string&& title);
+		tab_bar_item* find_tab(const tools::cached_text::label_type& title);
 		size_t find_tab_index(const tab_bar_item* item)const;
 
 		void          add_tab(std::unique_ptr<tab_bar_item>&& item);

@@ -3,9 +3,9 @@
 #include "cheat/gui/tools/info.h"
 #include "cheat/gui/tools/push style color.h"
 #include "cheat/gui/tools/push style var.h"
-#include "cheat/gui/tools/string wrapper.h"
+#include "cheat/gui/tools/cached_text.h"
 
-#include "nstd/runtime assert.h"
+#include <nstd/runtime assert.h>
 
 #include <imgui_internal.h>
 
@@ -19,7 +19,7 @@ window::window(animator&& fade)
 {
 }
 
-bool window::begin(perfect_string&& title, ImGuiWindowFlags_ flags)
+bool window::begin(imgui_string_transparent&& title, ImGuiWindowFlags_ flags)
 {
 	runtime_assert(ignore_end__ == false);
 	auto& style = ImGui::GetStyle( );
@@ -39,7 +39,7 @@ bool window::begin(perfect_string&& title, ImGuiWindowFlags_ flags)
 	const auto min_size = ImGui::GetFontSize( ) + //small button size
 						  style.ItemInnerSpacing.x +
 						  _Get_char_size( ).x * title.chars_count( ) + //string size
-						  style.FramePadding.x * 2.f +          //space between and after
+						  style.FramePadding.x * 2.f +                 //space between and after
 						  style.WindowBorderSize;
 
 	nstd::memory_backup<float> min_size_backup;
@@ -51,7 +51,7 @@ bool window::begin(perfect_string&& title, ImGuiWindowFlags_ flags)
 	return ImGui::Begin(title, nullptr, flags);
 }
 
-void window::end( )
+void window::end()
 {
 	if (ignore_end__)
 	{
@@ -69,30 +69,30 @@ void window::end( )
 	}
 }
 
-void window::show( )
+void window::show()
 {
 	visible__ = true;
 	fade_.set(1);
 }
 
-void window::hide( )
+void window::hide()
 {
 	visible__ = false;
 	fade_.set(-1);
 }
 
-void window::toggle( )
+void window::toggle()
 {
 	visible__ = !visible__;
 	fade_.set(visible__ ? 1 : -1);
 }
 
-bool window::visible( ) const
+bool window::visible() const
 {
 	return visible__ || animating( );
 }
 
-bool window::active( ) const
+bool window::active() const
 {
 	return visible__ && fade_.done(1);
 }
@@ -112,7 +112,7 @@ bool child_window::begin(const ImVec2& size, bool border, ImGuiWindowFlags_ flag
 	return Begin_impl(reinterpret_cast<ImGuiID>(this), size, border, flags);
 }
 
-void child_window::end( )
+void child_window::end()
 {
 	ImGui::EndChild( );
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
@@ -120,7 +120,7 @@ void child_window::end( )
 #endif
 }
 
-void child_window::show( )
+void child_window::show()
 {
 	return fade_.set(1);
 }
@@ -134,10 +134,10 @@ bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool bor
 {
 	const auto& style = ImGui::GetStyle( );
 	[[maybe_unused]]
-		const auto backups = std::make_tuple(push_style_color(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]),
-											 push_style_var(ImGuiStyleVar_ChildRounding, style.FrameRounding),
-											 push_style_var(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize),
-											 push_style_var(ImGuiStyleVar_WindowPadding, style.FramePadding));
+			const auto backups = std::make_tuple(push_style_color(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]),
+												 push_style_var(ImGuiStyleVar_ChildRounding, style.FrameRounding),
+												 push_style_var(ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize),
+												 push_style_var(ImGuiStyleVar_WindowPadding, style.FramePadding));
 
 	return child_window::Begin_impl(id, size_arg, border, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysUseWindowPadding | extra_flags);
 }

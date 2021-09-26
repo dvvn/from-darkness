@@ -11,7 +11,7 @@ using ImGuiWindowFlags = int;
 
 namespace cheat::gui::tools
 {
-	class perfect_string;
+	class imgui_string_transparent;
 }
 
 namespace cheat::gui::widgets
@@ -21,7 +21,7 @@ namespace cheat::gui::widgets
 	public:
 		window(tools::animator&& fade = { });
 
-		bool begin(tools::perfect_string&& title, ImGuiWindowFlags_ flags);
+		bool begin(tools::imgui_string_transparent&& title, ImGuiWindowFlags_ flags);
 		void end( );
 
 		void show( );
