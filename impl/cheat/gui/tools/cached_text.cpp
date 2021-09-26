@@ -1,6 +1,7 @@
 ﻿#include "cached_text.h"
 
 #include <nstd/runtime assert.h>
+#include <nstd/overload.h>
 
 #include <imgui_internal.h>
 
@@ -8,6 +9,67 @@
 #include <ranges>
 
 using namespace cheat::gui::tools;
+
+imgui_string::imgui_type imgui_string::imgui() const
+{
+	return detail::get_imgui_string(multibyte_);
+}
+
+const imgui_string::multibyte_type& imgui_string::multibyte() const
+{
+	return multibyte_;
+}
+
+const imgui_string::native_type& imgui_string::raw() const
+{
+	return native_;
+}
+
+imgui_string_transparent::imgui_string_transparent(const imgui_string& str)
+{
+	this->set_chars_count(str.raw( ));
+	this->set_chars_capacity(str.multibyte( ));
+
+	buff_.emplace<const imgui_string*>(std::addressof(str));
+}
+
+imgui_string_transparent::imgui_string_transparent(imgui_string&& str)
+{
+	this->set_chars_count(str.raw( ));
+	this->set_chars_capacity(str.multibyte( ));
+
+	auto& mb = const_cast<imgui_string::multibyte_type&>(str.multibyte( ));
+	buff_.emplace<imgui_string::multibyte_type>(std::move(mb));
+}
+
+size_t imgui_string_transparent::chars_count() const
+{
+	return chars_count_;
+}
+
+size_t imgui_string_transparent::chars_capacity() const
+{
+	return chars_capacity_;
+}
+
+imgui_string_transparent::operator const char*() const
+{
+	return std::visit(nstd::overload(
+							  [](const imgui_string* str)
+							  {
+								  return str->imgui( );
+							  }
+							, [](const imgui_string::imgui_type& str)
+							  {
+								  return str;
+							  }
+							, [](const imgui_string::multibyte_type& str)
+							  {
+								  return detail::get_imgui_string(str);
+							  }), buff_);
+}
+
+//-------------------
 
 void cached_text::set_font(ImFont* new_font)
 {

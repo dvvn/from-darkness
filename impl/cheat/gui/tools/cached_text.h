@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <nstd/unistring.h>
-#include <nstd/overload.h>
 
 #include <imgui.h>
 
@@ -42,25 +41,14 @@ namespace cheat::gui::tools
 		template <typename T>
 		imgui_string(T&& str)
 		{
-			//it safe to 'move' twice, only one string allows it
+			//it safe to 'move' twice, only one string accept move
 			multibyte_.uni_assign(std::forward<T>(str));
 			native_.uni_assign(std::forward<T>(str));
 		}
 
-		auto imgui() const
-		{
-			return detail::get_imgui_string(multibyte_);
-		}
-
-		const multibyte_type& multibyte() const
-		{
-			return multibyte_;
-		}
-
-		const native_type& raw() const
-		{
-			return native_;
-		}
+		imgui_type imgui() const;
+		const multibyte_type& multibyte() const;
+		const native_type& raw() const;
 
 	private:
 		multibyte_type multibyte_;
@@ -72,10 +60,12 @@ namespace cheat::gui::tools
 		template <typename Str, typename T>
 		static void set_count_helper(const T& str, size_t& count)
 		{
+			// ReSharper disable CppRedundantParentheses
 			if constexpr (sizeof(Str::value_type) == sizeof(T::value_type))
 				count = str.size( );
 			else
 				count = Str(str).size( );
+			// ReSharper restore CppRedundantParentheses
 		}
 
 		template <typename T>
@@ -118,22 +108,8 @@ namespace cheat::gui::tools
 			this->construct_multibyte(std::move(str));
 		}
 
-		imgui_string_transparent(const imgui_string& str)
-		{
-			this->set_chars_count(str.raw( ));
-			this->set_chars_capacity(str.multibyte( ));
-
-			buff_.emplace<const imgui_string*>(std::addressof(str));
-		}
-
-		imgui_string_transparent(imgui_string&& str)
-		{
-			this->set_chars_count(str.raw( ));
-			this->set_chars_capacity(str.multibyte( ));
-
-			auto& mb = const_cast<imgui_string::multibyte_type&>(str.multibyte( ));
-			buff_.emplace<imgui_string::multibyte_type>(std::move(mb));
-		}
+		imgui_string_transparent(const imgui_string& str);
+		imgui_string_transparent(imgui_string&& str);
 
 		template <typename Chr, size_t N>
 		imgui_string_transparent(const Chr (&str)[N])
@@ -150,29 +126,14 @@ namespace cheat::gui::tools
 		> buff_;
 
 	public:
-		operator imgui_string::imgui_type() const
-		{
-			return std::visit(nstd::overload(
-									  [](const imgui_string* str)
-									  {
-										  return str->imgui( );
-									  }
-									, [](const imgui_string::imgui_type& str)
-									  {
-										  return str;
-									  }
-									, [](const imgui_string::multibyte_type& str)
-									  {
-										  return detail::get_imgui_string(str);
-									  }), buff_);
-		}
+		operator imgui_string::imgui_type() const;
 
 	private:
 		size_t chars_count_ = 0, chars_capacity_ = 0;
 
 	public:
-		size_t chars_count() const { return chars_count_; }
-		size_t chars_capacity() const { return chars_capacity_; }
+		size_t chars_count() const;
+		size_t chars_capacity() const;
 	};
 
 	class cached_text
@@ -200,7 +161,7 @@ namespace cheat::gui::tools
 		label_type label_;
 		ImVec2 label_size_;
 
-		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after efery atlas build, so it uselles
+		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after every atlas build, so it uselles
 		size_t visible_glyphs_count_ = 0;
 
 		ImFont* font_ = 0;
