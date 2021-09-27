@@ -137,8 +137,8 @@ void aimbot::render()
 
 	auto& sb_data = impl_->test_selectable;
 	gui::widgets::selectable2(sb_data, sb_data.value, std::addressof(sb_data));
-	ImGui::SameLine( );
-	ImGui::Selectable("Test selectable", sb_data.value);
+		ImGui::Selectable("Test selectable", sb_data.value);
+
 	auto& cb_data       = impl_->test_cb;
 	auto& cb_check_anim = impl_->test_cb_check_anim;
 	ImGui::Checkbox("Test checkbox", &sb_data.value);

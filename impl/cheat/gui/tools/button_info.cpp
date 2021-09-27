@@ -1,6 +1,6 @@
 ﻿#include "button_info.h"
 
-#include "cheat/core/console.h"
+//#include "cheat/core/console.h"
 
 #include <format>
 #include <vector>
@@ -32,8 +32,8 @@ button_state cheat::gui::tools::button_behavior(const ImRect& bb, ImGuiID id, bo
 		if (state != active)
 			state = state == normal ? active : normal;
 	};
-
-	auto old_state = state;
+	
+	/*auto old_state = state;*/
 
 	if (pressed)
 		state = button_state::PRESSED;
@@ -46,6 +46,7 @@ button_state cheat::gui::tools::button_behavior(const ImRect& bb, ImGuiID id, bo
 	else
 		state = button_state::IDLE;
 
+#if 0
 	if (state != old_state)
 	{
 		constexpr auto to_string = [](button_state e)->std::string_view
@@ -60,12 +61,13 @@ button_state cheat::gui::tools::button_behavior(const ImRect& bb, ImGuiID id, bo
 				case button_state::HELD: return "HELD";
 				case button_state::HELD_ACTIVE: return "HELD_ACTIVE";
 				case button_state::PRESSED: return "PRESSED";
-				default: return "idk";
+				default: throw;
 			}
 		};
 
 		CHEAT_CONSOLE_LOG(std::format("{}: {} -> {}",id,to_string(old_state),to_string(state)));
 	}
+#endif
 
 	return state;
 }

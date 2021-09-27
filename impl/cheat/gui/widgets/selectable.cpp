@@ -240,7 +240,7 @@ button_state widgets::selectable2(const cached_text& label, bool selected, anima
 	if (/*outer_spacing*/1)
 	{
 		const auto& spacing = style.ItemSpacing;
-		const auto spacing2 = ImVec2(IM_FLOOR(spacing.x / 2.0), IM_FLOOR(spacing.x / 2.0));
+		const auto spacing2 = ImVec2(IM_FLOOR(spacing.x / 2.f), IM_FLOOR(spacing.y / 2.f));
 
 		bb.Min -= spacing2;
 		bb.Max += spacing - spacing2;
