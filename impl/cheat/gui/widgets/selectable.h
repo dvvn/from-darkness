@@ -2,12 +2,14 @@
 
 #include "selectable base.h"
 #include "text.h"
-
-#include <memory>
-#include <chrono>
+#include "cheat/gui/tools/button_info.h"
 
 #include <imgui_internal.h>
 
+#include <nstd/confirmable_value.h>
+
+#include <memory>
+#include <chrono>
 // ReSharper disable CppInconsistentNaming
 struct ImGuiStyle;
 struct ImVec4;
@@ -136,7 +138,11 @@ namespace cheat::gui::widgets
 
 		using unachieved_value = std::optional<T>;
 
-		using target_holder = std::unique_ptr<animation_property_target<T>>;
+		using target_type = animation_property_target<T>;
+		using target_holder = std::unique_ptr<target_type>;
+
+		template <template<class V>typename Prop>
+		using target_holder_fwd = Prop<T>;
 
 		~animation_property() override
 		{
@@ -161,6 +167,13 @@ namespace cheat::gui::widgets
 		void set_target(target_holder&& holder)
 		{
 			target_val_ = std::move(holder);
+		}
+
+		template <template<class>typename Prop>
+			requires(std::derived_from<Prop<T>, target_type>)
+		void set_target()
+		{
+			set_target(std::make_unique<Prop<T>>( ));
 		}
 
 		T& get_target_value()
@@ -190,9 +203,12 @@ namespace cheat::gui::widgets
 			return end_val_;
 		}
 
-		void update_end(const T& new_end)
+		void update_end(const T& new_end, bool force = false)
 		{
-			if (finished_ || (start_val_!= new_end))
+			if (!force && new_end == end_val_)
+				return;
+
+			if (finished_ || (start_val_ != new_end))
 			{
 				start_val_    = std::move(end_val_);
 				end_val_      = new_end;
@@ -222,8 +238,8 @@ namespace cheat::gui::widgets
 		{
 			if (!finished_ && wait_for_finish)
 				return;
-			//if (target_val_ == nullptr)
-			//	target_val_ = std::make_unique<animation_property_target_internal<T>>( );
+			/*if (target_val_ == nullptr)
+				set_target<animation_property_target_internal>( );*/
 			restart(delayed);
 		}
 
@@ -361,4 +377,74 @@ namespace cheat::gui::widgets
 		struct data_type;
 		std::unique_ptr<data_type> data_;
 	};
+
+	//---------
+
+	//todo: move to tools namesapce
+	template <typename T>
+	ImGuiID make_imgui_id(const T& obj, ImGuiWindow* wnd)
+	{
+		static_assert(sizeof(ImGuiID) % sizeof(void*) == 0);
+
+		const auto ptr     = std::addressof(obj);
+		const auto id_temp = reinterpret_cast<uintptr_t>(ptr);
+
+		constexpr auto arr_size = sizeof(uintptr_t) / sizeof(ImGuiID);
+		using arr = std::array<ImGuiID, arr_size>;
+
+		auto& id_arr    = reinterpret_cast<const arr&>(id_temp);
+		const auto seed = wnd->IDStack.back( );
+
+		const auto make_id = [&]<size_t ...I>(std::index_sequence<I...>)
+		{
+			return (id_arr[I] ^ ...) ^ seed;
+		};
+
+		const ImGuiID id = make_id(std::make_index_sequence<arr_size>( ));
+
+		ImGui::KeepAliveID(id);
+		return id;
+	}
+
+	//move to tools namespace
+	class animation_color_helper
+	{
+		animation_property<ImVec4>* animation_;
+
+	public:
+		animation_color_helper(animation_property<ImVec4>* const animation)
+			: animation_(animation)
+		{
+		}
+
+		ImU32 operator()(const ImVec4& clr) const
+		{
+			ImVec4 result;
+			if (!animation_)
+			{
+				result = clr;
+			}
+			else
+			{
+				animation_->update_end(clr);
+				animation_->update( );
+				result = animation_->get_target_value( );
+			}
+			const auto alpha = ImGui::GetStyle( ).Alpha;
+			result.w *= alpha;
+			return ImGui::ColorConvertFloat4ToU32(result);
+		}
+	};
+
+	//move to tools namespace
+	ImU32 get_selectable_color(tools::button_state state, bool idle_visible
+							 , const ImVec4& idle_clr, const ImVec4& hovered_clr, const ImVec4& held_clr, const ImVec4& pressed_clr
+							 , animation_property<ImVec4>* animation);
+	//move to tools namespace
+	ImU32 get_boolean_color(bool value
+						  , const ImVec4& clr
+						  , animation_property<ImVec4>* animation);
+
+	tools::button_state selectable2(const tools::cached_text& label, bool selected
+								  , animation_property<ImVec4>* bg_animation = 0);
 }

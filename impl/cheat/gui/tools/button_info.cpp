@@ -1,26 +1,39 @@
 ﻿#include "button_info.h"
 
-#include <robin_hood.h>
+#include "cheat/core/console.h"
+
+#include <format>
+#include <vector>
 
 using namespace cheat::gui::tools;
 
-button_state cheat::gui::tools::button_behavior(const ImRect& bb, ImGuiID id, button_flags flags)
+button_state cheat::gui::tools::button_behavior(const ImRect& bb, ImGuiID id, bool unreachable, button_flags flags)
 {
-	static robin_hood::unordered_map<ImGuiID, button_state> infos;
+	static std::vector<std::pair<ImGuiID, button_state>> infos;
 
-	// ReSharper disable once CppJoinDeclarationAndAssignment
 	bool hovered, held, pressed;
-	pressed = ImGui::ButtonBehavior(bb, id, std::addressof(hovered), std::addressof(held), flags.fi);
+	if (!unreachable)
+		pressed = ImGui::ButtonBehavior(bb, id, std::addressof(hovered), std::addressof(held), flags.fi);
+	else
+		hovered = held = pressed = false;
 
-	button_state& state = infos[id];
-
-	//state_last = state;
+	button_state& state = [&]()-> button_state&
+	{
+		for (auto& [id_stored,state] : infos)
+		{
+			if (id_stored == id)
+				return state;
+		}
+		return infos.emplace_back(std::make_pair(id, button_state::IDLE)).second;
+	}( );
 
 	const auto mark_active = [&](button_state normal, button_state active)
 	{
 		if (state != active)
 			state = state == normal ? active : normal;
 	};
+
+	auto old_state = state;
 
 	if (pressed)
 		state = button_state::PRESSED;
@@ -32,6 +45,27 @@ button_state cheat::gui::tools::button_behavior(const ImRect& bb, ImGuiID id, bu
 		state = button_state::INACTIVE;
 	else
 		state = button_state::IDLE;
+
+	if (state != old_state)
+	{
+		constexpr auto to_string = [](button_state e)->std::string_view
+		{
+			switch (e)
+			{
+				case button_state::UNKNOWN: return "UNKNOWN";
+				case button_state::IDLE: return "IDLE";
+				case button_state::INACTIVE: return "INACTIVE";
+				case button_state::HOVERED: return "HOVERED";
+				case button_state::HOVERED_ACTIVE: return "HOVERED_ACTIVE";
+				case button_state::HELD: return "HELD";
+				case button_state::HELD_ACTIVE: return "HELD_ACTIVE";
+				case button_state::PRESSED: return "PRESSED";
+				default: return "idk";
+			}
+		};
+
+		CHEAT_CONSOLE_LOG(std::format("{}: {} -> {}",id,to_string(old_state),to_string(state)));
+	}
 
 	return state;
 }

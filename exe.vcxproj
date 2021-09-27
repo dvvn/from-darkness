@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="impl\cheat\gui\tools\button_info.h" />
+    <ClInclude Include="impl\nstd\confirmable_value.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="impl\cheat\gui\tools\button_info.cpp" />

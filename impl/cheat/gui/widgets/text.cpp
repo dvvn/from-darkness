@@ -80,9 +80,7 @@ void text::render_text(ImGuiWindow* wnd, const ImVec2& pos)
 ImRect text::make_rect(ImGuiWindow* wnd) const
 {
 	const auto& dc = wnd->DC;
-	/*if (window->SkipItems)//todo: sheck from window->begin
-		return;*/
-	const auto& l_size = this->get_label_size( );
+		const auto& l_size = this->get_label_size( );
 	const auto l_pos   = ImVec2(dc.CursorPos.x, dc.CursorPos.y + dc.CurrLineTextBaseOffset);
 
 	return ImRect(l_pos, l_pos + l_size);

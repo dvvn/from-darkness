@@ -12,9 +12,9 @@
 #include <format>
 #include <functional>
 
-using namespace cheat;
-using namespace gui::widgets;
-using namespace gui::tools;
+using namespace cheat::gui;
+using namespace widgets;
+using namespace tools;
 
 struct selectable_bg::data_type
 {
@@ -186,4 +186,92 @@ void selectable::render()
 		return;
 
 	this->render_text(window, text_pos);
+}
+
+//--------
+
+static ImVec4 _Color_remove_alpha(const ImVec4& color)
+{
+	return {color.x, color.y, color.z, 0};
+}
+
+ImU32 widgets::get_selectable_color(button_state state, bool idle_visible
+									   , const ImVec4& idle_clr, const ImVec4& hovered_clr, const ImVec4& held_clr, const ImVec4& pressed_clr
+									   , animation_property<ImVec4>* animation)
+{
+	const animation_color_helper get_color = animation;
+
+	switch (state)
+	{
+		case button_state::IDLE:
+		case button_state::INACTIVE:
+			return get_color(idle_visible || idle_clr.w == 0 ? idle_clr : _Color_remove_alpha(idle_clr));
+		case button_state::HOVERED:
+		case button_state::HOVERED_ACTIVE:
+			return get_color(hovered_clr);
+		case button_state::HELD:
+		case button_state::HELD_ACTIVE:
+			return get_color(held_clr);
+		case button_state::PRESSED:
+			return get_color(pressed_clr);
+		default: throw;
+	}
+}
+
+ImU32 widgets::get_boolean_color(bool value, const ImVec4& clr, animation_property<ImVec4>* animation)
+{
+	const animation_color_helper get_color = animation;
+	return get_color(value || clr.w == 0 ? clr : _Color_remove_alpha(clr));
+}
+
+button_state widgets::selectable2(const cached_text& label, bool selected, animation_property<ImVec4>* bg_animation)
+{
+	const auto window = ImGui::GetCurrentWindow( );
+	const auto& style = ImGui::GetStyle( );
+
+	// ReSharper disable once CppUseStructuredBinding
+	const auto& dc       = window->DC;
+	const auto label_pos = ImVec2(dc.CursorPos.x, dc.CursorPos.y + dc.CurrLineTextBaseOffset);
+
+	auto bb = ImRect(label_pos, label_pos + label.get_label_size( ));
+	ImGui::ItemSize(bb.GetSize( ));
+
+	// ReSharper disable once CppIfCanBeReplacedByConstexprIf
+	if (/*outer_spacing*/1)
+	{
+		const auto& spacing = style.ItemSpacing;
+		const auto spacing2 = ImVec2(IM_FLOOR(spacing.x / 2.0), IM_FLOOR(spacing.x / 2.0));
+
+		bb.Min -= spacing2;
+		bb.Max += spacing - spacing2;
+
+#if 0
+		const auto spacing_x = /*span_all_columns ? 0.0f :*/ style.ItemSpacing.x;
+		const auto spacing_y = style.ItemSpacing.y;
+		const auto spacing_L = IM_FLOOR(spacing_x * 0.50f);
+		const auto spacing_U = IM_FLOOR(spacing_y * 0.50f);
+		bb.Min.x -= spacing_L;
+		bb.Min.y -= spacing_U;
+		bb.Max.x += spacing_x - spacing_L;
+		bb.Max.y += spacing_y - spacing_U;
+#endif
+	}
+
+	if (!bb.Overlaps(window->ClipRect))
+		return button_state::UNKNOWN;
+
+	const auto id    = make_imgui_id(label, window);
+	const auto state = button_behavior(bb, id);
+
+	const auto bg_color = [&]
+	{
+		const auto& colors = style.Colors;
+		return get_selectable_color(state, selected,
+									colors[ImGuiCol_Header], colors[ImGuiCol_HeaderHovered], colors[ImGuiCol_HeaderActive], colors[ImGuiCol_HeaderActive]
+								  , bg_animation);
+	};
+	window->DrawList->AddRectFilled(bb.Min, bb.Max, bg_color( ));
+
+	label.render(window->DrawList, label_pos, ImGui::GetColorU32(ImGuiCol_Text));
+	return state;
 }

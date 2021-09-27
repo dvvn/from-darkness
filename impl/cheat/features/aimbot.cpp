@@ -20,14 +20,19 @@ using namespace cheat::gui::tools;
 using namespace cheat::gui::objects;
 using namespace cheat::gui::widgets;
 
+struct widget_bool_data : cached_text, animation_property_linear<ImVec4>
+{
+	bool value = 0;
+};
+
 struct aimbot::impl
 {
 	checkbox cb, cb2, cb3;
 	selectable sel, sel2;
 
-	cached_text label;
-	confirmable_value<bool> value = 0;
-	animation_property_linear<ImVec4> animation, animation_check;
+	widget_bool_data test_cb;
+	animation_property_linear<ImVec4> test_cb_check_anim;
+	widget_bool_data test_selectable;
 
 	void init_gui()
 	{
@@ -38,24 +43,27 @@ struct aimbot::impl
 
 		auto test_font = gui::imgui_context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.TTF)", std::move(font_cfg));
 
-		label.set_label(u8"ПРИВЕТ HELLO");
-		label.set_font(test_font);
-		animation.set_target(std::make_unique<animation_property_target_internal<ImVec4>>( ));
-		animation.set_duration(300ms);
-		animation_check.set_target(std::make_unique<animation_property_target_internal<ImVec4>>( ));
-		animation_check.set_duration(900ms);
+		test_cb.set_label(u8"hello привет 12345");
+		test_cb.set_font(test_font);
+		test_cb.set_duration(300ms);
+		test_cb.set_target<animation_property_target_internal>( );
+		test_cb_check_anim.set_duration(600ms);
+		test_cb_check_anim.set_target<animation_property_target_internal>( );
+
+		test_selectable.set_label(U"hello default");
+		test_selectable.set_font(ImGui::GetDefaultFont( ));
+		test_selectable.set_duration(300ms);
+		test_selectable.set_target<animation_property_target_internal>( );
+
 		//-----
 
 		constexpr auto get_anim_sample = []
 		{
 			auto sample = std::make_unique<animation_property_linear<ImVec4>>( );
 			sample->set_duration(300ms);
-			sample->set_target(std::make_unique<animation_property_target_external<ImVec4>>( ));
+			sample->set_target<animation_property_target_external>( );
 			return sample;
 		};
-
-		auto anim_sample = animation_property_linear<ImVec4>( );
-		anim_sample.set_duration(300ms);
 
 		cb3.set_font(ImGui::GetDefaultFont( ));
 		cb3.set_label("asdaewbabwabebe");
@@ -127,8 +135,15 @@ void aimbot::render()
 	ImGui::SameLine( );
 	impl_->sel.render( );
 
-	gui::widgets::checkbox2(impl_->label, impl_->value, std::addressof(impl_->animation), std::addressof(impl_->animation_check));
-	ImGui::Checkbox("Test", &impl_->value);
+	auto& sb_data = impl_->test_selectable;
+	gui::widgets::selectable2(sb_data, sb_data.value, std::addressof(sb_data));
+	ImGui::SameLine( );
+	ImGui::Selectable("Test selectable", sb_data.value);
+	auto& cb_data       = impl_->test_cb;
+	auto& cb_check_anim = impl_->test_cb_check_anim;
+	ImGui::Checkbox("Test checkbox", &sb_data.value);
+	ImGui::SameLine( );
+	gui::widgets::checkbox2(cb_data, sb_data.value, std::addressof(cb_data), std::addressof(cb_check_anim));
 }
 
 CHEAT_REGISTER_SERVICE(aimbot);

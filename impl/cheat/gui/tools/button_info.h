@@ -35,5 +35,5 @@ namespace cheat::gui::tools
 		ImGuiButtonFlags fi;
 	};
 
-	button_state button_behavior(const ImRect& bb, ImGuiID id, button_flags flags = {});
+	button_state button_behavior(const ImRect& bb, ImGuiID id,bool unreachable=0, button_flags flags = {});
 }

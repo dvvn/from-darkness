@@ -164,7 +164,7 @@ namespace cheat::gui::tools
 		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after every atlas build, so it uselles
 		size_t visible_glyphs_count_ = 0;
 
-		ImFont* font_ = 0;
+		ImFont* font_ = nullptr;
 
 	public:
 		const ImVec2& get_label_size() const { return label_size_; }

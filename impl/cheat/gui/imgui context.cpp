@@ -13,6 +13,7 @@
 #include <excpt.h>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <optional>
 
 using namespace cheat;
@@ -20,7 +21,7 @@ using namespace gui;
 
 struct fonts_builder_proxy::impl
 {
-	~impl( )
+	~impl()
 	{
 		if (!atlas)
 			return;
@@ -30,11 +31,11 @@ struct fonts_builder_proxy::impl
 		atlas->Build( );
 	}
 
-	ImFontAtlas* atlas       = 0;
-	int          known_fonts = 0;
+	ImFontAtlas* atlas = 0;
+	int known_fonts    = 0;
 };
 
-fonts_builder_proxy::fonts_builder_proxy( )
+fonts_builder_proxy::fonts_builder_proxy()
 {
 	impl_ = std::make_unique<impl>( );
 }
@@ -46,7 +47,7 @@ fonts_builder_proxy::fonts_builder_proxy(ImFontAtlas* atlas)
 	impl_->known_fonts = atlas->ConfigData.size( );
 }
 
-fonts_builder_proxy::~fonts_builder_proxy( )                                              = default;
+fonts_builder_proxy::~fonts_builder_proxy()                                               = default;
 fonts_builder_proxy::fonts_builder_proxy(fonts_builder_proxy&& other) noexcept            = default;
 fonts_builder_proxy& fonts_builder_proxy::operator=(fonts_builder_proxy&& other) noexcept = default;
 
@@ -63,7 +64,7 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 	if (!cfg_opt.has_value( ))
 		cfg_opt = default_font_config( );
 
-	auto&      cfg   = *cfg_opt;
+	auto& cfg        = *cfg_opt;
 	const auto atlas = impl_->atlas;
 
 	if (cfg.FontDataOwnedByAtlas)
@@ -87,8 +88,8 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 
 		if (cfg.Name[0] == '\0')
 		{
-			const auto font_size    = static_cast<uint32_t>(cfg.SizePixels);
-			auto       font_size_ex = font_size == 0 ? "?" : std::to_string(font_size);
+			const auto font_size = static_cast<uint32_t>(cfg.SizePixels);
+			auto font_size_ex    = font_size == 0 ? "?" : std::to_string(font_size);
 
 			auto font_info = std::format("{}, {}px", path.filename( ).string( ), font_size);
 			runtime_assert(font_info.size( ) + 1 <= std::size(cfg.Name));
@@ -104,7 +105,7 @@ ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(const std::span<uint8
 	if (!cfg_opt.has_value( ))
 		cfg_opt = default_font_config( );
 
-	auto&      cfg   = *cfg_opt;
+	auto& cfg        = *cfg_opt;
 	const auto atlas = impl_->atlas;
 
 	runtime_assert(cfg.FontData == nullptr);
@@ -115,13 +116,13 @@ ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(const std::span<uint8
 	return atlas->AddFont(std::addressof(cfg));
 }
 
-std::optional<ImFontConfig> fonts_builder_proxy::default_font_config( )
+std::optional<ImFontConfig> fonts_builder_proxy::default_font_config()
 {
 	ImFontConfig font_cfg;
 	//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 	static ImWchar ranges[] = {
-		0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
-		0
+			0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
+			0
 	};
 	//font_cfg.OversampleH = 3;
 	//font_cfg.OversampleV = 1;
@@ -136,14 +137,9 @@ std::optional<ImFontConfig> fonts_builder_proxy::default_font_config( )
 
 struct imgui_context::data_type
 {
-	data_type( )
+	data_type()
 		: ctx(std::addressof(fonts))
 	{
-	}
-
-	~data_type( )
-	{
-		ImGui::Shutdown(std::addressof(ctx));
 	}
 
 	data_type(const data_type&)            = delete;
@@ -153,65 +149,62 @@ struct imgui_context::data_type
 	data_type& operator=(data_type&& other) = delete;
 
 	ImGuiContext ctx;
-	ImFontAtlas  fonts;
-	HWND         hwnd = nullptr;
+	ImFontAtlas fonts;
+	HWND hwnd = nullptr;
 };
 
-HWND imgui_context::hwnd( ) const
+HWND imgui_context::hwnd() const
 {
 	return data_->hwnd;
 }
 
-ImGuiContext& imgui_context::get( )
+ImGuiContext& imgui_context::get()
 {
 	return data_->ctx;
 }
 
-fonts_builder_proxy imgui_context::fonts( ) const
+fonts_builder_proxy imgui_context::fonts() const
 {
 	return {std::addressof(data_->fonts)};
 }
 
-imgui_context::~imgui_context( )
+imgui_context::~imgui_context()
 {
-	std::invoke([]
+	constexpr auto safe_call = []<typename T>(T&& fn)
 	{
 		__try
 		{
-			ImGui_ImplWin32_Shutdown( );
+			std::invoke(fn);
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER)
 		{
 		}
-		__try
-		{
-			ImGui_ImplDX9_Shutdown( );
-		}
-		__except (EXCEPTION_EXECUTE_HANDLER)
-		{
-		}
-	});
+	};
+
+	safe_call(ImGui_ImplWin32_Shutdown);
+	safe_call(ImGui_ImplDX9_Shutdown);
+	safe_call(std::bind_front(ImGui::Shutdown, std::addressof(data_->ctx)));
 }
 
-imgui_context::imgui_context( )
+imgui_context::imgui_context()
 {
 	data_ = std::make_unique<data_type>( );
 	this->wait_for_service<csgo_interfaces>( );
 }
 
-service_base::load_result imgui_context::load_impl( )
+service_base::load_result imgui_context::load_impl()
 {
 	const auto d3d = csgo_interfaces::get_ptr( )->d3d_device.get( );
 
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*)
-		{
-			return operator new(size);
-		},
-		[](void* ptr, void*)
-		{
-			return operator delete(ptr);
-		});
+								 {
+									 return operator new(size);
+								 },
+								 [](void* ptr, void*)
+								 {
+									 return operator delete(ptr);
+								 });
 
 	ImGui::SetCurrentContext(std::addressof(data_->ctx));
 	ImGui::Initialize(std::addressof(data_->ctx));
@@ -236,7 +229,7 @@ service_base::load_result imgui_context::load_impl( )
 	const auto set_style = [&]
 	{
 		[[maybe_unused]]
-			auto& style = data_->ctx.Style;
+				auto& style = data_->ctx.Style;
 #if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
 
 		/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;
