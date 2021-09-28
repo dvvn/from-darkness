@@ -5,15 +5,18 @@
 #include <format>
 #include <vector>
 
-using namespace cheat::gui::tools;
+#include <imgui_internal.h>
 
-button_state cheat::gui::tools::button_behavior(const ImRect& bb, ImGuiID id, bool unreachable, button_flags flags)
+using namespace cheat::gui;
+using namespace tools;
+
+button_state tools::button_behavior(const ImRect& bb, ImGuiID id, bool unreachable, ImGuiButtonFlags flags)
 {
 	static std::vector<std::pair<ImGuiID, button_state>> infos;
 
 	bool hovered, held, pressed;
 	if (!unreachable)
-		pressed = ImGui::ButtonBehavior(bb, id, std::addressof(hovered), std::addressof(held), flags.fi);
+		pressed = ImGui::ButtonBehavior(bb, id, std::addressof(hovered), std::addressof(held), flags);
 	else
 		hovered = held = pressed = false;
 

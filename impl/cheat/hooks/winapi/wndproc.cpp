@@ -79,7 +79,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 		};
 
-		if (menu->toggle(msg, wparam) || menu->animating( ))
+		if (menu->toggle(msg, wparam) || menu->updating( ))
 		{
 			return skip_input( );
 		}

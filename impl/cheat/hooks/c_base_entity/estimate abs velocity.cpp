@@ -10,7 +10,7 @@
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
 
-#include <nstd/enum overloads.h>
+#include "nstd/enum_tools.h"
 
 using namespace cheat;
 using namespace hooks;
@@ -18,19 +18,19 @@ using namespace c_base_entity;
 
 using namespace csgo;
 
-estimate_abs_velocity::estimate_abs_velocity( )
+estimate_abs_velocity::estimate_abs_velocity()
 	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-								true
+			true
 #else
 								false
 #endif
-							   )
+			)
 {
 	this->wait_for_service<netvars>( );
 }
 
-nstd::address estimate_abs_velocity::get_target_method_impl( ) const
+nstd::address estimate_abs_velocity::get_target_method_impl() const
 {
 	const auto vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
 	const auto index  = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).add(2).deref(1).divide(4).value( );
@@ -44,13 +44,13 @@ void estimate_abs_velocity::callback(Vector& vel)
 #pragma message(__FUNCTION__ ": skipped")
 #else
 	const auto ent = this->object_instance;
-	if (static_cast<m_iEFlags_t>(ent->m_iEFlags( )) & (m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
+	if ((ent->m_iEFlags( )) & nstd::unwrap_enum(m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
 	{
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []
 		{
-			const auto           addr = csgo_modules::client.find_signature<"55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7">( );
-			void (C_BaseEntity::*fn)( );
+			const auto addr = csgo_modules::client.find_signature<"55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7">( );
+			void (C_BaseEntity::*fn)();
 			reinterpret_cast<void*&>(fn) = addr.ptr<void>( );
 			return fn;
 		}( );

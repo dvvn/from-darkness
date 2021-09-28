@@ -1,11 +1,14 @@
 ﻿#include "aimbot.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
+#include "cheat/core/services loader.h"
+
+#include "cheat/gui/tools/animation_tools.h"
 #include "cheat/gui/imgui context.h"
 #include "cheat/gui/widgets/checkbox.h"
-
-#include "cheat/core/services loader.h"
 #include "cheat/gui/tools/cached_text.h"
+#include "cheat/gui/widgets/selectable.h"
+
+#include <nstd/smooth_value.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -15,23 +18,19 @@
 #include <fstream>
 
 using namespace cheat::features;
-
+using namespace cheat::gui;
 using namespace cheat::gui::tools;
-using namespace cheat::gui::objects;
 using namespace cheat::gui::widgets;
 
-struct widget_bool_data : cached_text, animation_property_linear<ImVec4>
+struct widget_bool_data : cached_text, nstd::smooth_value_linear<ImVec4>
 {
 	bool value = 0;
 };
 
 struct aimbot::impl
 {
-	checkbox cb, cb2, cb3;
-	selectable sel, sel2;
-
 	widget_bool_data test_cb;
-	animation_property_linear<ImVec4> test_cb_check_anim;
+	nstd::smooth_value_linear<ImVec4> test_cb_check_anim;
 	widget_bool_data test_selectable;
 
 	void init_gui()
@@ -43,27 +42,32 @@ struct aimbot::impl
 
 		auto test_font = gui::imgui_context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.TTF)", std::move(font_cfg));
 
+		using target_internal = nstd::smooth_value_linear<ImVec4>::target_internal;
+		using target_external = nstd::smooth_value_linear<ImVec4>::target_external;
+
 		test_cb.set_label(u8"hello привет 12345");
 		test_cb.set_font(test_font);
 		test_cb.set_duration(300ms);
-		test_cb.set_target<animation_property_target_internal>( );
+		test_cb.set_target<target_internal>( );
 		test_cb_check_anim.set_duration(600ms);
-		test_cb_check_anim.set_target<animation_property_target_internal>( );
+		test_cb_check_anim.set_target<target_internal>( );
 
 		test_selectable.set_label(U"hello default");
 		test_selectable.set_font(ImGui::GetDefaultFont( ));
 		test_selectable.set_duration(300ms);
-		test_selectable.set_target<animation_property_target_internal>( );
+		test_selectable.set_target<target_internal>( );
 
 		//-----
 
 		constexpr auto get_anim_sample = []
 		{
-			auto sample = std::make_unique<animation_property_linear<ImVec4>>( );
+			auto sample = std::make_unique<nstd::smooth_value_linear<ImVec4>>( );
 			sample->set_duration(300ms);
-			sample->set_target<animation_property_target_external>( );
+			sample->set_target<target_external>( );
 			return sample;
 		};
+
+#if 0
 
 		cb3.set_font(ImGui::GetDefaultFont( ));
 		cb3.set_label("asdaewbabwabebe");
@@ -93,6 +97,7 @@ struct aimbot::impl
 		sel2.set_font(ImGui::GetDefaultFont( ));
 		sel2.set_label(u8"е45е4е аааааaaaaa 88888888");
 		sel2.set_background_color_modifier(get_anim_sample( ));
+#endif
 	}
 };
 
@@ -122,7 +127,7 @@ cheat::service_base::load_result aimbot::load_impl()
 
 void aimbot::render()
 {
-	impl_->cb3.render( );
+	/*impl_->cb3.render( );
 	ImGui::Text("1");
 	impl_->cb.render( );
 	ImGui::SameLine( );
@@ -133,11 +138,11 @@ void aimbot::render()
 	ImGui::Text("3");
 	impl_->sel2.render( );
 	ImGui::SameLine( );
-	impl_->sel.render( );
+	impl_->sel.render( );*/
 
 	auto& sb_data = impl_->test_selectable;
 	gui::widgets::selectable2(sb_data, sb_data.value, std::addressof(sb_data));
-		ImGui::Selectable("Test selectable", sb_data.value);
+	ImGui::Selectable("Test selectable", sb_data.value);
 
 	auto& cb_data       = impl_->test_cb;
 	auto& cb_check_anim = impl_->test_cb_check_anim;

@@ -1,18 +1,17 @@
 #include "standard blending rules.h"
 
-#include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
+#include "cheat/core/services loader.h"
 
 #include "cheat/sdk/Studio.hpp"
-
 #include "cheat/sdk/entity/C_BaseAnimating.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
 
-#include <nstd/enum overloads.h>
+#include <nstd/enum_tools.h>
 
 using namespace cheat;
 using namespace hooks;
@@ -50,14 +49,14 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;
 
-	auto& flags = reinterpret_cast<m_fEffects_t&>(pl->m_fEffects( ));
+	auto& flags = (pl->m_fEffects( ));
 
 	/*if (flags.has(m_fEffects_t::EF_NOINTERP))
 		return;*/
 
-	flags |= (m_fEffects_t::EF_NOINTERP);
+	flags |= nstd::unwrap_enum(m_fEffects_t::EF_NOINTERP);
 	this->call_original_ex(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
-	flags &= ~m_fEffects_t::EF_NOINTERP;
+	flags &= ~nstd::unwrap_enum(m_fEffects_t::EF_NOINTERP);
 
 	/*if (override_return__)
 		this->return_value_.store_value(override_return_to__);

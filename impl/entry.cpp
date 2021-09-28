@@ -80,7 +80,6 @@ int main(int, char**)
 
 	if(!try_load( ))
 		goto _RESET;
-	cheat::gui::menu::get_ptr( )->show( );
 
 	// Setup Dear ImGui context
 	//IMGUI_CHECKVERSION( );

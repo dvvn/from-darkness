@@ -12,7 +12,7 @@ using namespace cheat::gui::tools;
 
 imgui_string::imgui_type imgui_string::imgui() const
 {
-	return detail::get_imgui_string(multibyte_);
+	return get_imgui_string(multibyte_);
 }
 
 const imgui_string::multibyte_type& imgui_string::multibyte() const
@@ -52,7 +52,7 @@ size_t imgui_string_transparent::chars_capacity() const
 	return chars_capacity_;
 }
 
-imgui_string_transparent::operator const char*() const
+imgui_string_transparent::operator imgui_string::imgui_type() const
 {
 	return std::visit(nstd::overload(
 							  [](const imgui_string* str)
@@ -65,7 +65,7 @@ imgui_string_transparent::operator const char*() const
 							  }
 							, [](const imgui_string::multibyte_type& str)
 							  {
-								  return detail::get_imgui_string(str);
+								  return get_imgui_string(str);
 							  }), buff_);
 }
 
@@ -116,18 +116,22 @@ void cached_text::update()
 		label_size_.y = font_->FontSize; //line_height
 	};
 
+	const auto update_label_hash = [&]
+	{
+		label_hash_ = std::_Hash_array_representation(label_._Unchecked_begin( ), label_.size( ));
+	};
+
 	cache_glyphs( );
 	update_label_size( );
+	update_label_hash( );
 }
 
-void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color) const
+void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color,const ImVec4* clip_rect_override) const
 {
 	if ((color & IM_COL32_A_MASK) == 0)
 		return;
 
 	runtime_assert(font_->ContainerAtlas->TexID == draw_list->_CmdHeader.TextureId);
-
-	const ImVec4 clip_rect = draw_list->_CmdHeader.ClipRect;
 
 	// Align to be pixel perfect
 	pos.x = IM_FLOOR(pos.x);
@@ -135,6 +139,9 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color) const
 
 	auto x = pos.x;
 	auto y = pos.y;
+
+	const auto& clip_rect = clip_rect_override ? *clip_rect_override : draw_list->_CmdHeader.ClipRect;
+
 	if (y > clip_rect.w)
 		return;
 

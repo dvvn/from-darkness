@@ -1,75 +1,72 @@
 #pragma once
 
-#include "widget animator.h"
+#include "cheat/gui/tools/cached_text.h"
 
-// ReSharper disable CppInconsistentNaming
+#include <nstd/smooth_value.h>
+
 struct ImVec2;
-enum ImGuiWindowFlags_;
 using ImGuiID = unsigned int;
 using ImGuiWindowFlags = int;
-// ReSharper restore CppInconsistentNaming
-
-namespace cheat::gui::tools
-{
-	class imgui_string_transparent;
-}
 
 namespace cheat::gui::widgets
 {
-	class window: public content_background_fader
+	class end_token
 	{
 	public:
-		window(tools::animator&& fade = { });
+		end_token();
 
-		bool begin(tools::imgui_string_transparent&& title, ImGuiWindowFlags_ flags);
-		void end( );
+		end_token(const end_token& other)            = delete;
+		end_token& operator=(const end_token& other) = delete;
+		end_token(end_token&& other) noexcept;
+		end_token& operator=(end_token&& other) noexcept;
 
-		void show( );
-		void hide( );
-		void toggle( );
+		void set(uint8_t val);
+		uint8_t release();
 
-		bool visible( ) const;
-		bool active( ) const;
+		bool unset() const;
+
+		bool operator!() const;
+		bool operator==(bool val) const;
+		bool operator!=(bool val) const;
+		uint8_t value() const;
 
 	private:
-		bool ignore_end__ = false;
-		bool visible__    = false;
+		uint8_t value_;
 	};
 
-	class child_window: public content_background_fader
+	struct window_end_token : end_token
 	{
-	public:
-		child_window(tools::animator&& fade = { });
-
-		struct size_info
-		{
-			size_t count           = static_cast<size_t>(-1);
-			float  biggest_element = FLT_MAX;
-
-			enum
-			{
-				UNSET,
-				WORD,
-				RAW
-			} type = UNSET;
-		};
-
-		bool begin(const ImVec2& size, bool border , ImGuiWindowFlags_ flags);
-
-		void end( );
-
-		void show( );
-
-	protected:
-		virtual bool Begin_impl(ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags);
 	};
 
-	class child_frame_window: public child_window
+	class window_end_token_ex : public end_token
 	{
 	public:
-		child_frame_window(tools::animator&& fade = { });
+		window_end_token_ex();
+
+		~window_end_token_ex();
+		window_end_token_ex(window_end_token_ex&& other) noexcept;
+		window_end_token_ex& operator=(window_end_token_ex&& other) noexcept;
+	private:
+		float global_alpha_;
+	};
+
+	window_end_token window2(const tools::cached_text& title, bool* open = nullptr, ImGuiWindowFlags flags = 0);
+
+	struct window_wrapped
+	{
+		using show_anim_type = nstd::smooth_value_linear<float>;
+
+		tools::cached_text title;
+		show_anim_type show_anim;
+		ImGuiWindowFlags flags = 0;
+		bool show;
+
+		bool visible() const;
+		bool updating() const;
+
+		window_end_token_ex operator()(bool close_button = false);
 
 	private:
-		bool Begin_impl(ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags) final;
+		ImGuiWindowFlags temp_flags_ = 0;
 	};
 }

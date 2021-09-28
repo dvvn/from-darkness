@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cheat/core/service.h"
-#include "cheat/gui/objects/renderable object.h"
+#include "cheat/gui/widgets/absrtact_renderable.h"
 #include "cheat/settings/shared_data.h"
 
 #include <nstd/one_instance.h>
@@ -9,7 +9,7 @@
 namespace cheat::features
 {
 	class aimbot final: public service<aimbot>
-					  , public gui::objects::renderable
+					  , public gui::widgets::abstract_renderable
 					  , public settings::shared_data
 
 	{

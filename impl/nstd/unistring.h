@@ -33,20 +33,31 @@ namespace nstd
 		template <typename T, unistring_valid<T> CharType = type_selector_t<T, char8_t, char16_t, char32_t>, typename Tr = std::char_traits<CharType>>
 		class unistring_base : public std::basic_string<CharType, Tr>
 		{
-			auto& uni_unwrap() { return *static_cast<std::basic_string<CharType, Tr>*>(this); }
-
 		public:
+			// ReSharper disable CppInconsistentNaming
+			auto& _Uni_unwrap()
+			{
+				return *static_cast<std::basic_string<CharType, Tr>*>(this);
+			}
+
+			std::basic_string_view<CharType, Tr> _Uni_unwrap() const
+			{
+				return (std::_Const_cast(this)->_Uni_unwrap( ));
+			}
+
+			// ReSharper restore  CppInconsistentNaming
+
 			_CONSTEXPR20_CONTAINER unistring_base() = default;
 
 			/*template <typename T1,typename Chr1,typename Tr1>
 			_CONSTEXPR20_CONTAINER void uni_assign(const unistring_base<T1,Chr1,Tr1>&str)
 			{
-				uni_assign(str.uni_unwrap());
+				uni_assign(str._Uni_unwrap());
 			}
 			template <typename T1,typename Chr1,typename Tr1>
 			_CONSTEXPR20_CONTAINER void uni_assign(unistring_base<T1,Chr1,Tr1>&&str)
 			{
-				uni_assign(std::move(str.uni_unwrap()));
+				uni_assign(std::move(str._Uni_unwrap()));
 			}*/
 
 			template <typename Chr>
@@ -58,7 +69,7 @@ namespace nstd
 					std::copy(in._Unchecked_begin( ), in._Unchecked_end( ), this->_Unchecked_begin( ));
 				}
 				else
-					this->uni_unwrap( ) = ww898::utf::conv<CharType>(in);
+					this->_Uni_unwrap( ) = ww898::utf::conv<CharType>(in);
 			}
 
 			template <typename Chr>

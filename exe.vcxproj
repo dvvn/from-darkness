@@ -18,13 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="impl\cheat\gui\tools\button_info.h" />
-    <ClInclude Include="impl\nstd\confirmable_value.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="impl\cheat\gui\tools\button_info.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

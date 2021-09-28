@@ -8,8 +8,10 @@
 //#include "cheat/hooks/c_baseanimating/should skip animation_ frame.h"
 //#include "cheat/hooks/winapi/wndproc.h"
 
-#include "widgets/tab_bar_with_pages.h"
+//#include "widgets/tab_bar_with_pages.h"
 #include "tools/cached_text.h"
+
+#include "widgets/window.h"
 
 #include <nstd/runtime assert.h>
 
@@ -23,21 +25,21 @@
 #include <random>
 #include <sstream>
 
-using namespace cheat;
-using namespace gui;
-using namespace objects;
+using namespace cheat::gui;
 using namespace tools;
 using namespace widgets;
+
+using namespace std::chrono_literals;
 
 struct menu::impl
 {
 	WPARAM hotkey = VK_HOME;
 
-	imgui_string menu_title;
-	tab_bar_with_pages tabs_pages;
+	window_wrapped menu_window;
 
 	void init_pages()
 	{
+#if 0
 		tabs_pages.make_vertical( );
 		tabs_pages.make_size_static( );
 
@@ -79,7 +81,7 @@ struct menu::impl
 
 			item->set_font(ImGui::GetDefaultFont( ));
 			item->set_label((name));
-			auto anim = std::make_unique<animation_property_linear<ImVec4>>( );
+			auto anim = std::make_unique<smooth_value_linear<ImVec4>>( );
 			anim->set_duration(400ms);
 			item->set_background_color_modifier(std::move(anim));
 			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get( )), two_way_callback::WAY_TRUE);
@@ -96,81 +98,91 @@ struct menu::impl
 		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared( ));
 		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
 		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
+#endif
 	}
 
-	impl()
+	void init_window()
 	{
-		const auto init_title = [&]
+		constexpr auto iso_date = []
 		{
-			constexpr auto iso_date = []
-			{
-				// ReSharper disable CppVariableCanBeMadeConstexpr
+			// ReSharper disable CppVariableCanBeMadeConstexpr
 
-				const uint32_t compile_year  = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
-				const uint32_t compile_month = []
+			const uint32_t compile_year  = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
+			const uint32_t compile_month = []
+			{
+				switch (__DATE__[0])
 				{
-					switch (__DATE__[0])
-					{
-						case 'J': // Jan, Jun or Jul
-							return __DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7;
-						case 'F': // Feb
-							return 2;
-						case 'M': // Mar or May
-							return __DATE__[2] == 'r' ? 3 : 5;
-						case 'A': // Apr or Aug
-							return __DATE__[2] == 'p' ? 4 : 8;
-						case 'S': // Sep
-							return 9;
-						case 'O': // Oct
-							return 10;
-						case 'N': // Nov
-							return 11;
-						case 'D': // Dec
-							return 12;
-					}
-					throw;
-				}( );
+					case 'J': // Jan, Jun or Jul
+						return __DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7;
+					case 'F': // Feb
+						return 2;
+					case 'M': // Mar or May
+						return __DATE__[2] == 'r' ? 3 : 5;
+					case 'A': // Apr or Aug
+						return __DATE__[2] == 'p' ? 4 : 8;
+					case 'S': // Sep
+						return 9;
+					case 'O': // Oct
+						return 10;
+					case 'N': // Nov
+						return 11;
+					case 'D': // Dec
+						return 12;
+				}
+				throw;
+			}( );
 
-				// ReSharper disable once CppUnreachableCode
-				const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
+			// ReSharper disable once CppUnreachableCode
+			const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
 
-				const char ret[] = {
+			const char ret[] = {
 
-						compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0', '.', compile_month / 10 + '0'
-					  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0'
-					  , '\0'
-				};
-
-				// ReSharper restore CppVariableCanBeMadeConstexpr
-				return std::string_view(ret, std::size(ret) - 1);
+					compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0', '.', compile_month / 10 + '0'
+				  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0'
+				  , '\0'
 			};
 
-			auto name = std::ostringstream( );
+			// ReSharper restore CppVariableCanBeMadeConstexpr
+			return std::string_view(ret, std::size(ret) - 1);
+		};
 
-			const auto append_name = [&]<class T>(T&& text, bool delim = true)
-			{
-				if (delim)
-					name << " | ";
-				name << text;
-			};
+		auto name = std::ostringstream( );
 
-			append_name(_STRINGIZE(VS_SolutionName), false);
-			append_name(iso_date( ));
+		const auto append_name = [&]<class T>(T&& text, bool delim = true)
+		{
+			if (delim)
+				name << " | ";
+			name << text;
+		};
+
+		append_name(_STRINGIZE(VS_SolutionName), false);
+		append_name(iso_date( ));
 #ifdef _DEBUG
-			append_name("DEBUG");
-			append_name(__TIME__);
+		append_name("DEBUG");
+		append_name(__TIME__);
 #endif
 
 #ifdef CHEAT_GUI_TEST
-			append_name("GUI TEST");
+		append_name("GUI TEST");
 #endif
 
-			menu_title = std::move(name).str( );
-		};
+		//----------
 
-		//-------
+		// ReSharper disable once CppUseStructuredBinding
+		auto& w = menu_window;
+		w.title.set_label(std::move(name).str( ));
+		w.title.set_font(ImGui::GetDefaultFont( ));
+		w.show_anim.set_start(0);
+		auto& global_alpha = ImGui::GetStyle( ).Alpha;
+		w.show_anim.set_end(/*1*/global_alpha);
+		w.show_anim.set_duration(1s);
+		auto show_anim_target = std::make_unique<decltype(w.show_anim)::target_external>( );
+		show_anim_target->set_target(global_alpha);
+		w.show_anim.set_target(std::move(show_anim_target));
+		w.flags |= ImGuiWindowFlags_AlwaysAutoResize;
+		w.show = CHEAT_GUI_HAS_DEMO_WINDOW;
 
-		init_title( );
+		//----------
 	}
 };
 
@@ -184,12 +196,25 @@ menu::~menu() = default;
 
 void menu::render()
 {
+	const auto end = impl_->menu_window( );
+	if (!end)
+		return;
+
+	ImGui::Text("hello");
+	ImGui::Text("hello1");
+	ImGui::Text("hello2");
+	ImGui::Text("hello3");
+	ImGui::Text("hello4");
+	ImGui::Text("hello5");
+
+#if 0
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		impl_->tabs_pages.render( );
 		//-
 	}
 	this->end( );
+#endif
 }
 
 bool menu::toggle(UINT msg, WPARAM wparam)
@@ -204,11 +229,22 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 	}
 	if (msg == WM_KEYUP)
 	{
-		window::toggle( );
+		auto& show = impl_->menu_window.show;
+		show       = !show;
 		return true;
 	}
 
 	return false;
+}
+
+bool menu::visible() const
+{
+	return impl_->menu_window.visible( );
+}
+
+bool menu::updating() const
+{
+	return impl_->menu_window.updating( );
 }
 
 #if 0
@@ -238,7 +274,7 @@ public:
 };
 #endif
 
-service_base::load_result menu::load_impl()
+cheat::service_base::load_result menu::load_impl()
 {
 #if 0
 	renderer_.add_page([]
@@ -299,6 +335,7 @@ service_base::load_result menu::load_impl()
 	renderer_.init( );
 #endif
 
+	impl_->init_window( );
 	impl_->init_pages( );
 
 	co_return service_state::loaded;

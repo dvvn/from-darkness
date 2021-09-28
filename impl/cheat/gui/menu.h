@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cheat/core/service.h"
-#include "widgets/window.h"
+#include "widgets/absrtact_renderable.h"
 
 // ReSharper disable CppInconsistentNaming
 using UINT = unsigned int;
@@ -31,20 +31,19 @@ namespace cheat::gui
 		class tab_bar_with_pages;
 	}
 
-	class menu final: public service<menu>, public widgets::window
+	class menu final : public service<menu>, public widgets::abstract_renderable
 	{
-		using window::begin;
-		using window::end;
-
 	public:
-		menu( );
-		~menu( ) override;
+		menu();
+		~menu() override;
 
-		void render( );
+		void render() override;
 		bool toggle(UINT msg, WPARAM wparam);
+		bool visible()const;
+		bool updating()const;
 
 	protected:
-		load_result load_impl( ) override;
+		load_result load_impl() override;
 
 	private:
 		struct impl;
