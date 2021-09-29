@@ -239,6 +239,12 @@ window_end_token_ex::~window_end_token_ex()
 
 //-----
 
+template <class T/*ImGuiWindow*/>
+concept imgui_window_has_font_dpi_scale = requires()
+{
+	typename T::FontDpiScale;
+};
+
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
 	const auto window_title = get_imgui_string(title.legacy);
@@ -279,7 +285,12 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 	{
 		if (window)
 		{
-			__if_exists(ImGuiWindow::FontDpiScale){ runtime_assert(window->FontDpiScale == 1, "imgui's dpi scale unsupported");}
+			constexpr auto font_dpi_scale_assert = []<class T>(T* wnd)
+			{
+				if constexpr (imgui_window_has_font_dpi_scale<T>)
+					runtime_assert(wnd->FontDpiScale == 1, "imgui's dpi scale unsupported");
+			};
+			font_dpi_scale_assert(window);
 			runtime_assert(window->FontWindowScale == 1, "imgui's window font scale unsupported");
 		}
 
