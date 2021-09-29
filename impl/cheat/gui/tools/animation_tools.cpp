@@ -43,7 +43,7 @@ ImU32 animation_color_helper::operator()(const ImVec4& clr) const
 	}( );
 
 	const auto alpha = ImGui::GetStyle( ).Alpha;
-	return ImGui::ColorConvertFloat4ToU32(alpha == 1 ? result : _Color_remove_alpha(result));
+	return ImGui::ColorConvertFloat4ToU32(alpha == 1 ? result : _Color_set_alpha<std::multiplies>(result, alpha));
 }
 
 //---

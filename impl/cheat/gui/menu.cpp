@@ -213,6 +213,8 @@ void menu::render()
 	ImGui::Text("hello4");
 	ImGui::Text("hello5");
 
+	features::aimbot::get_ptr(  )->render();
+
 #if 0
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
