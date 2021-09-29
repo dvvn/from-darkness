@@ -128,6 +128,8 @@ void cached_text::update()
 	cache_glyphs( );
 	update_label_size( );
 	update_label_hash( );
+
+	this->on_update( );
 }
 
 template <typename Rng, typename Pred, size_t ...I>
@@ -149,7 +151,7 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 	auto make_backup = [index = 0, &clip_rect_backup](float& target, float replace) mutable
 	{
 		const auto i = index++;
-		if (replace > 0)
+		if (replace > 0 && replace < target)
 			clip_rect_backup[i] = {target, replace};
 	};
 	make_backup(cmd_clip_rect.x, pos_start.x);

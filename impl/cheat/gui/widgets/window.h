@@ -51,16 +51,25 @@ namespace cheat::gui::widgets
 		nstd::memory_backup<float> global_alpha_backup_;
 	};
 
-	window_end_token window2(const tools::cached_text& title, bool* open = nullptr, ImGuiWindowFlags flags = 0);
+	struct window_title final : tools::cached_text
+	{
+		tools::imgui_string::multibyte_type legacy;
+		bool render_manually = false;
+
+	protected:
+		void on_update() override;
+	};
+
+	window_end_token window2(const window_title& title, bool* open = nullptr, ImGuiWindowFlags flags = 0);
 
 	struct window_wrapped
 	{
 		using show_anim_type = nstd::smooth_value_linear<float>;
 
-		tools::cached_text title;
 		show_anim_type show_anim;
 		ImGuiWindowFlags flags = 0;
 		bool show;
+		window_title title;
 
 		bool visible() const;
 		bool updating() const;

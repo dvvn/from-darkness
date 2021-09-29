@@ -14,12 +14,12 @@ using namespace cheat;
 using namespace hooks;
 using namespace directx;
 
-present::present( )
+present::present()
 {
-	this->wait_for_service<gui::menu>();
+	this->wait_for_service<gui::menu>( );
 }
 
-nstd::address present::get_target_method_impl( ) const
+nstd::address present::get_target_method_impl() const
 {
 	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[17];
 }
@@ -27,6 +27,10 @@ nstd::address present::get_target_method_impl( ) const
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
 	const auto d3d_device = this->object_instance;
+
+#ifdef IMGUI_HAS_DOCK
+	runtime_assert(ImGui::GetIO( ).ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer unsupported!");
+#endif
 
 	ImGui_ImplDX9_NewFrame( );   //todo: erase. it only calls CreateDeviceObjects, what can be done after reset and init
 	ImGui_ImplWin32_NewFrame( ); //todo: call it from input (it only update mouse and keys). (if do it move timers outside)

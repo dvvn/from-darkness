@@ -86,6 +86,8 @@ namespace cheat::gui::tools
 		}
 
 	public:
+		imgui_string_transparent() = default;
+
 		template <typename Chr>
 		imgui_string_transparent(const std::basic_string_view<Chr>& str)
 		{
@@ -136,6 +138,9 @@ namespace cheat::gui::tools
 	class cached_text
 	{
 	public:
+		virtual ~cached_text() = default;
+		cached_text()          = default;
+
 		using label_type = nstd::unistring<ImWchar>;
 
 		void set_font(ImFont* new_font);
@@ -150,8 +155,12 @@ namespace cheat::gui::tools
 	private:
 		void update();
 
+	protected:
+		// ReSharper disable once CppRedundantControlFlowJump
+		virtual void on_update() { return; }
+
 	public:
-		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color,const ImVec2&align={},  const ImVec2& pos_start = {},const ImVec2& pos_end = {}) const;
+		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align = {}, const ImVec2& pos_start = {}, const ImVec2& pos_end = {}) const;
 
 	private:
 		//todo: invisible chars ignored
@@ -160,9 +169,9 @@ namespace cheat::gui::tools
 		ImVec2 label_size_;
 
 		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after every atlas build, so it uselles
-		size_t visible_glyphs_count_ = 0;
-		size_t randerable_glyphs_count_=0;
-		ImFont* font_ = nullptr;
+		size_t visible_glyphs_count_    = 0;
+		size_t randerable_glyphs_count_ = 0;
+		ImFont* font_                   = nullptr;
 
 	public:
 		const label_type& get_label() const { return label_; }

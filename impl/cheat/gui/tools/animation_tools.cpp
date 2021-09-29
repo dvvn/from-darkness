@@ -43,7 +43,7 @@ ImU32 animation_color_helper::operator()(const ImVec4& clr) const
 	}( );
 
 	const auto alpha = ImGui::GetStyle( ).Alpha;
-	return ImGui::ColorConvertFloat4ToU32(alpha == 1 ? result : _Color_set_alpha<std::multiplies>(result, alpha));
+	return ImGui::ColorConvertFloat4ToU32(alpha == 1 || result.w == 0 ? result : _Color_set_alpha<std::multiplies>(result, alpha));
 }
 
 //---
@@ -58,7 +58,7 @@ ImU32 tools::get_button_color(button_state state, bool idle_visible
 	{
 		case button_state::IDLE:
 		case button_state::INACTIVE:
-			return get_color(idle_visible || idle_clr.w == 0 ? idle_clr : _Color_set_alpha<std::multiplies>(idle_clr, 0));
+			return get_color(idle_visible || idle_clr.w == 0 ? idle_clr : _Color_remove_alpha(idle_clr));
 		case button_state::HOVERED:
 		case button_state::HOVERED_ACTIVE:
 			return get_color(hovered_clr);

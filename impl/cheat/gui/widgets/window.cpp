@@ -239,71 +239,21 @@ window_end_token_ex::~window_end_token_ex()
 
 //-----
 
-class legacy_window_helper
+window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
-public:
-	using string_type = nstd::unistring<char>;
-
-	struct string_info
-	{
-		size_t hash;
-		string_type title;
-		bool render_manually;
-
-		string_info(const cached_text& cached_title)
-		{
-			hash        = cached_title.get_label_hash( );
-			auto& label = cached_title.get_label( );
-
-			auto tmp        = string_type(label._Uni_unwrap( ));
-			render_manually = tmp.size( ) != label.size( );
-
-			if (!render_manually)
-			{
-				title = std::move(tmp);
-			}
-			else
-			{
-				const auto pad_size = cached_title.get_randerable_chars_count( );
-				const auto num      = std::to_string(reinterpret_cast<uintptr_t>(std::addressof(cached_title)));
-
-				title.reserve(pad_size + 2 + num.size( ) + num.size( ));
-				title.resize(pad_size, static_cast<string_type::value_type>(' '));
-				title.append(u8"##").append(num.begin( ), num.end( ));
-			}
-		}
-	};
-
-	string_info& operator[](const cached_text& title)
-	{
-		const auto found = std::ranges::find(names_, title.get_label_hash( ), &string_info::hash);
-		return found != names_.end( )
-				   ? *found
-				   : names_.emplace_back(title);
-	}
-
-private:
-	std::vector<string_info> names_;
-};
-
-static legacy_window_helper _Window_helper;
-
-window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWindowFlags flags)
-{
-	const auto& helper      = _Window_helper[title];
-	const auto window_title = get_imgui_string(helper.title);
+	const auto window_title = get_imgui_string(title.legacy);
 	const auto window       = ImGui::FindWindowByName(window_title);
 	auto& style             = ImGui::GetStyle( );
 
 	const auto backups = [&]
 	{
-		auto& g            = *ImGui::GetCurrentContext( );
-		const auto font    = title.get_font( );
-		ImFontAtlas* atlas = g.Font->ContainerAtlas;
-		auto& s            = g.DrawListSharedData;;
-		s.TexUvLines       = atlas->TexUvLines;
-		s.Font             = g.Font;
-		s.FontSize         = g.FontSize;
+		auto& g          = *ImGui::GetCurrentContext( );
+		const auto font  = title.get_font( );
+		const auto atlas = g.Font->ContainerAtlas;
+		auto& s          = g.DrawListSharedData;;
+		s.TexUvLines     = atlas->TexUvLines;
+		s.Font           = g.Font;
+		s.FontSize       = g.FontSize;
 
 		return std::make_tuple(nstd::memory_backup(g.Font, font)
 							 , nstd::memory_backup{g.FontBaseSize, font->FontSize}
@@ -321,24 +271,17 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 	};
 
 	std::optional<title_rect_t> title_rect;
-	if (!(flags & ImGuiWindowFlags_NoTitleBar) && window && !window->DockIsActive)
+	if (!(flags & ImGuiWindowFlags_NoTitleBar) && window
+#ifdef IMGUI_HAS_DOCK
+		&& !window->DockIsActive
+#endif
+	)
 	{
 		if (window)
 		{
-			runtime_assert(window->FontDpiScale == 1, "imgui's dpi scale unsupported");
+			__if_exists(ImGuiWindow::FontDpiScale){ runtime_assert(window->FontDpiScale == 1, "imgui's dpi scale unsupported");}
 			runtime_assert(window->FontWindowScale == 1, "imgui's window font scale unsupported");
 		}
-
-		const auto title_bar_rect = [&]()-> ImRect
-		{
-			const auto rect = window->TitleBarRect( );
-			return {
-					rect.Min.x + window->WindowBorderSize
-				  , rect.Min.y
-				  , rect.Max.x - window->WindowBorderSize
-				  , rect.Max.y
-			};
-		}( );
 
 		auto pad_l           = style.FramePadding.x;
 		auto pad_r           = style.FramePadding.x;
@@ -371,6 +314,26 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 		if (flags & ImGuiWindowFlags_UnsavedDocument)
 			pad_l += button_sz * 0.80f;
 
+		const auto title_bar_rect = [&]()-> ImRect
+		{
+			ImRect rect;
+			if (!title.render_manually)
+			{
+				rect = window->TitleBarRect( );
+				rect.Min.x += window->WindowBorderSize;
+				rect.Max.x -= window->WindowBorderSize;
+			}
+			else
+			{
+				const auto& pos = window->Pos;
+				rect.Min        = pos;
+				rect.Max.x      = pos.x + pad_l + pad_r + title.get_label_size( ).x /*+ style.FramePadding.x * 2.f*/;
+				rect.Max.y      = pos.y + window->TitleBarHeight( );
+			}
+
+			return rect;
+		}( );
+
 		if (style.WindowTitleAlign.x > 0.0f && style.WindowTitleAlign.x < 1.0f)
 		{
 			const auto centerness = ImSaturate(1.0f - ImFabs(style.WindowTitleAlign.x - 0.5f) * 2.0f); // 0.0f on either edges, 1.0f on center
@@ -380,9 +343,9 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 			pad_l = ImMax(pad_l, pad_max);
 			pad_r = ImMax(pad_r, pad_max);
 		}
-		if (helper.render_manually)
+		if (title.render_manually)
 		{
-			auto& [layout_r,clip_r] = title_rect.emplace( );
+			auto& [layout_r, clip_r] = title_rect.emplace( );
 
 			layout_r = ImRect(title_bar_rect.Min.x + pad_l, title_bar_rect.Min.y, title_bar_rect.Max.x - pad_r, title_bar_rect.Max.y);
 			clip_r   = ImRect(layout_r.Min.x, layout_r.Min.y, ImMin(layout_r.Max.x + style.ItemInnerSpacing.x, title_bar_rect.Max.x), layout_r.Max.y);
@@ -396,7 +359,7 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 
 	if (title_rect.has_value( ))
 	{
-		auto& [layout_r,clip_r] = *title_rect;
+		auto& [layout_r, clip_r] = *title_rect;
 		title.render(window->DrawList, clip_r.Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, layout_r.Min, layout_r.Max);
 	}
 
@@ -404,6 +367,20 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 	//ImGui::PushFont(ImGui::GetDefaultFont( ));
 
 	return ret;
+}
+
+void window_title::on_update()
+{
+	cached_text::on_update( );
+	auto& modern    = this->get_label( );
+	legacy          = modern._Uni_unwrap( );
+	render_manually = 1; //legacy.size( ) != modern.size( );
+
+	if (render_manually)
+	{
+		auto num = "##" + std::to_string(reinterpret_cast<uintptr_t>((this)));
+		legacy.assign(num.begin( ), num.end( ));
+	}
 }
 
 bool window_wrapped::visible() const
