@@ -183,14 +183,14 @@ void end_token::set(uint8_t val)
 
 uint8_t end_token::release()
 {
-	const auto ret = (value_);
+	const auto ret = value_;
 	value_         = static_cast<uint8_t>(-1);
 	return ret;
 }
 
 bool end_token::unset() const
 {
-	return value_ != static_cast<bool>(value_);
+	return value_ != static_cast<uint8_t>(static_cast<bool>(value_));
 }
 
 bool end_token::operator!() const
@@ -217,19 +217,7 @@ uint8_t end_token::value() const
 
 window_end_token_ex::window_end_token_ex()
 {
-	global_alpha_ = ImGui::GetStyle( ).Alpha;
-}
-
-window_end_token_ex::window_end_token_ex(window_end_token_ex&& other) noexcept
-{
-	*this = std::move(other);
-}
-
-window_end_token_ex& window_end_token_ex::operator=(window_end_token_ex&& other) noexcept
-{
-	end_token::operator=(std::move(other));
-	global_alpha_ = other.global_alpha_;
-	return *this;
+	global_alpha_backup_ = ImGui::GetStyle( ).Alpha;
 }
 
 window_end_token_ex::~window_end_token_ex()
@@ -239,68 +227,107 @@ window_end_token_ex::~window_end_token_ex()
 		case 0:
 		case 1:
 			ImGui::End( );
+			//ImGui::PopFont( );
 		case 2:
-			ImGui::GetStyle( ).Alpha = global_alpha_;
+			global_alpha_backup_.restore( );
+			break;
+		default:
+			global_alpha_backup_.reset( );
 			break;
 	}
 }
 
 //-----
 
-class legacy_window_names
+class legacy_window_helper
 {
 public:
 	using string_type = nstd::unistring<char>;
-	using value_type = std::pair<size_t, string_type>;
 
-	auto operator[](const cached_text& title)
+	struct string_info
 	{
-		auto hash = title.get_label_hash( );
+		size_t hash;
+		string_type title;
+		bool render_manually;
 
-		string_type* str;
-		// ReSharper disable once CppTooWideScopeInitStatement
-		const auto found = std::ranges::find(names_, title.get_label_hash( ), &value_type::first);
-		if (found != names_.end( ))
+		string_info(const cached_text& cached_title)
 		{
-			str = std::addressof(found->second);
-		}
-		else
-		{
-			auto temp_str = u8"##" + string_type(
-#if 0
-				title.get_label( )._Uni_unwrap( )
-#else
-									std::to_string(reinterpret_cast<uintptr_t>(std::addressof(title)))
-#endif
-									);
-			names_.push_back(std::make_pair(hash, std::move(temp_str)));
-			str = std::addressof(names_.back( ).second);
-		}
+			hash        = cached_title.get_label_hash( );
+			auto& label = cached_title.get_label( );
 
-		return get_imgui_string(*str);
+			auto tmp        = string_type(label._Uni_unwrap( ));
+			render_manually = tmp.size( ) != label.size( );
+
+			if (!render_manually)
+			{
+				title = std::move(tmp);
+			}
+			else
+			{
+				const auto pad_size = cached_title.get_randerable_chars_count( );
+				const auto num      = std::to_string(reinterpret_cast<uintptr_t>(std::addressof(cached_title)));
+
+				title.reserve(pad_size + 2 + num.size( ) + num.size( ));
+				title.resize(pad_size, static_cast<string_type::value_type>(' '));
+				title.append(u8"##").append(num.begin( ), num.end( ));
+			}
+		}
+	};
+
+	string_info& operator[](const cached_text& title)
+	{
+		const auto found = std::ranges::find(names_, title.get_label_hash( ), &string_info::hash);
+		return found != names_.end( )
+				   ? *found
+				   : names_.emplace_back(title);
 	}
 
 private:
-	std::vector<value_type> names_;
+	std::vector<string_info> names_;
 };
 
-static legacy_window_names _Window_names;
+static legacy_window_helper _Window_helper;
 
 window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWindowFlags flags)
 {
-	//ImGui::PushFont(title.get_font( ));
+	const auto& helper      = _Window_helper[title];
+	const auto window_title = get_imgui_string(helper.title);
+	const auto window       = ImGui::FindWindowByName(window_title);
+	auto& style             = ImGui::GetStyle( );
 
-	window_end_token ret;
-	ret.set(ImGui::Begin(_Window_names[title], open, flags));
-
-	const auto window = ImGui::GetCurrentWindowRead( );
-
-	if (false && !(flags & ImGuiWindowFlags_NoTitleBar))
+	const auto backups = [&]
 	{
-		runtime_assert(window->FontDpiScale == 1, "imgui's dpi scale unsupported");
-		runtime_assert(window->FontWindowScale == 1, "imgui's window font scale unsupported");
+		auto& g            = *ImGui::GetCurrentContext( );
+		const auto font    = title.get_font( );
+		ImFontAtlas* atlas = g.Font->ContainerAtlas;
+		auto& s            = g.DrawListSharedData;;
+		s.TexUvLines       = atlas->TexUvLines;
+		s.Font             = g.Font;
+		s.FontSize         = g.FontSize;
 
-		const auto& style = ImGui::GetStyle( );
+		return std::make_tuple(nstd::memory_backup(g.Font, font)
+							 , nstd::memory_backup{g.FontBaseSize, font->FontSize}
+							 , nstd::memory_backup(g.FontSize)
+							 , nstd::memory_backup(s.TexUvWhitePixel, atlas->TexUvWhitePixel)
+							 , nstd::memory_backup(s.TexUvLines, atlas->TexUvLines)
+							 , nstd::memory_backup(s.Font, font)
+							 , nstd::memory_backup(s.FontSize, font->FontSize),
+							   nstd::memory_backup(style.WindowMinSize));
+	}( );
+
+	struct title_rect_t
+	{
+		ImRect layout, clip;
+	};
+
+	std::optional<title_rect_t> title_rect;
+	if (!(flags & ImGuiWindowFlags_NoTitleBar) && window && !window->DockIsActive)
+	{
+		if (window)
+		{
+			runtime_assert(window->FontDpiScale == 1, "imgui's dpi scale unsupported");
+			runtime_assert(window->FontWindowScale == 1, "imgui's window font scale unsupported");
+		}
 
 		const auto title_bar_rect = [&]()-> ImRect
 		{
@@ -315,22 +342,20 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 
 		auto pad_l           = style.FramePadding.x;
 		auto pad_r           = style.FramePadding.x;
-		const auto button_sz = title.get_font( )->FontSize;
+		const auto button_sz = /*title.get_font( )->FontSize*/title.get_label_size( ).y;
 
-		const auto has_collapse_button = !(flags & ImGuiWindowFlags_NoCollapse) && (style.WindowMenuButtonPosition != ImGuiDir_None);
-		const auto has_close_button    = /*(p_open != NULL)*/window->HasCloseButton;
+		const auto has_collapse_button = !(flags & ImGuiWindowFlags_NoCollapse) && style.WindowMenuButtonPosition != ImGuiDir_None;
+		const auto has_close_button    = /* window ?*/ window->HasCloseButton /*: open != NULL*/;
 
 		if (has_collapse_button)
 		{
-			switch (static_cast<ImGuiDir_>(style.WindowMenuButtonPosition))
+			switch (style.WindowMenuButtonPosition)
 			{
-				case ImGuiDir_Left:
+				case ImGuiDir_Right:
 					pad_r += button_sz;
 					break;
-				case ImGuiDir_Right:
+				case ImGuiDir_Left:
 					pad_l += button_sz;
-					break;
-				default:
 					break;
 			}
 		}
@@ -339,8 +364,12 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 
 		if (pad_l > style.FramePadding.x)
 			pad_l += style.ItemInnerSpacing.x;
-		if (has_close_button)
+		if (pad_r > style.FramePadding.x)
 			pad_r += style.ItemInnerSpacing.x;
+
+		//warning: watch changes in imgui.cpp
+		if (flags & ImGuiWindowFlags_UnsavedDocument)
+			pad_l += button_sz * 0.80f;
 
 		if (style.WindowTitleAlign.x > 0.0f && style.WindowTitleAlign.x < 1.0f)
 		{
@@ -351,18 +380,30 @@ window_end_token widgets::window2(const cached_text& title, bool* open, ImGuiWin
 			pad_l = ImMax(pad_l, pad_max);
 			pad_r = ImMax(pad_r, pad_max);
 		}
-		/*ImRect layout_r(title_bar_rect.Min.x + pad_l, title_bar_rect.Min.y, title_bar_rect.Max.x - pad_r, title_bar_rect.Max.y);
-		ImRect clip_r(layout_r.Min.x, layout_r.Min.y, ImMin(layout_r.Max.x + g.Style.ItemInnerSpacing.x, title_bar_rect.Max.x), layout_r.Max.y);*/
-		const auto layout_r = ImVec4(title_bar_rect.Min.x + pad_l,
-									 title_bar_rect.Min.y,
-									 ImMin(title_bar_rect.Max.x - pad_r + style.ItemInnerSpacing.x, title_bar_rect.Max.x),
-									 title_bar_rect.Max.y);
-		title.render(window->DrawList, {layout_r.x, layout_r.y}, ImGui::GetColorU32(ImGuiCol_Text), std::addressof(layout_r));
+		if (helper.render_manually)
+		{
+			auto& [layout_r,clip_r] = title_rect.emplace( );
+
+			layout_r = ImRect(title_bar_rect.Min.x + pad_l, title_bar_rect.Min.y, title_bar_rect.Max.x - pad_r, title_bar_rect.Max.y);
+			clip_r   = ImRect(layout_r.Min.x, layout_r.Min.y, ImMin(layout_r.Max.x + style.ItemInnerSpacing.x, title_bar_rect.Max.x), layout_r.Max.y);
+		}
+
+		style.WindowMinSize = ImVec2(title.get_label_size( ).x + pad_r + pad_l, /*title.get_label_size( ).y*/button_sz);
+	}
+
+	window_end_token ret;
+	ret.set(ImGui::Begin(window_title, open, flags));
+
+	if (title_rect.has_value( ))
+	{
+		auto& [layout_r,clip_r] = *title_rect;
+		title.render(window->DrawList, clip_r.Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, layout_r.Min, layout_r.Max);
 	}
 
 	//ImGui::PopFont( );
+	//ImGui::PushFont(ImGui::GetDefaultFont( ));
 
-	return (ret);
+	return ret;
 }
 
 bool window_wrapped::visible() const
@@ -397,6 +438,8 @@ window_end_token_ex window_wrapped::operator()(bool close_button)
 	{
 		token.set(window2(this->title, close_button ? std::addressof(show) : nullptr, flags | temp_flags_).release( ));
 
+		//todo: toggle only of window focused?
+		//todo2: ignore toggle when text input active
 		/*if (ImGui::IsWindowFocused(ImGuiFocusedFlags_DockHierarchy | ImGuiFocusedFlags_RootWindow))
 			temp_flags_ &= ~ImGuiWindowFlags_NoFocusOnAppearing;
 		else

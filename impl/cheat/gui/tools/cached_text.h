@@ -151,7 +151,7 @@ namespace cheat::gui::tools
 		void update();
 
 	public:
-		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color,const ImVec4*clip_rect_override=0) const;
+		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color,const ImVec2&align={},  const ImVec2& pos_start = {},const ImVec2& pos_end = {}) const;
 
 	private:
 		//todo: invisible chars ignored
@@ -161,7 +161,7 @@ namespace cheat::gui::tools
 
 		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after every atlas build, so it uselles
 		size_t visible_glyphs_count_ = 0;
-
+		size_t randerable_glyphs_count_=0;
 		ImFont* font_ = nullptr;
 
 	public:
@@ -169,5 +169,7 @@ namespace cheat::gui::tools
 		size_t get_label_hash() const { return label_hash_; }
 		const ImVec2& get_label_size() const { return label_size_; }
 		ImFont* get_font() const { return font_; }
+		size_t get_visible_chars_count() const { return visible_glyphs_count_; }
+		size_t get_randerable_chars_count() const { return randerable_glyphs_count_; }
 	};
 }

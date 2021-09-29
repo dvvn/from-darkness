@@ -2,6 +2,7 @@
 
 #include "cheat/gui/tools/cached_text.h"
 
+#include <nstd/memory backup.h>
 #include <nstd/smooth_value.h>
 
 struct ImVec2;
@@ -44,10 +45,10 @@ namespace cheat::gui::widgets
 		window_end_token_ex();
 
 		~window_end_token_ex();
-		window_end_token_ex(window_end_token_ex&& other) noexcept;
-		window_end_token_ex& operator=(window_end_token_ex&& other) noexcept;
+		window_end_token_ex(window_end_token_ex&& other) noexcept            = default;
+		window_end_token_ex& operator=(window_end_token_ex&& other) noexcept = default;
 	private:
-		float global_alpha_;
+		nstd::memory_backup<float> global_alpha_backup_;
 	};
 
 	window_end_token window2(const tools::cached_text& title, bool* open = nullptr, ImGuiWindowFlags flags = 0);

@@ -24,6 +24,7 @@
 #include <functional>
 #include <random>
 #include <sstream>
+#include <filesystem>
 
 using namespace cheat::gui;
 using namespace tools;
@@ -143,10 +144,10 @@ struct menu::impl
 			};
 
 			// ReSharper restore CppVariableCanBeMadeConstexpr
-			return std::string_view(ret, std::size(ret) - 1);
+			return (ret);
 		};
 
-		auto name = std::ostringstream( );
+		auto name = std::basic_ostringstream<char8_t>( );
 
 		const auto append_name = [&]<class T>(T&& text, bool delim = true)
 		{
@@ -163,7 +164,7 @@ struct menu::impl
 #endif
 
 #ifdef CHEAT_GUI_TEST
-		append_name("GUI TEST");
+		append_name(u8"GUI TEST");
 #endif
 
 		//----------
@@ -171,7 +172,12 @@ struct menu::impl
 		// ReSharper disable once CppUseStructuredBinding
 		auto& w = menu_window;
 		w.title.set_label(std::move(name).str( ));
-		w.title.set_font(ImGui::GetDefaultFont( ));
+		w.title.set_font(ImGui::GetDefaultFont( ) /*[]
+		{
+			auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
+			font_cfg->SizePixels = 25;
+			return gui::imgui_context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\verdana.TTF)", std::move(font_cfg));
+		}( )*/);
 		w.show_anim.set_start(0);
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
 		w.show_anim.set_end(/*1*/global_alpha);

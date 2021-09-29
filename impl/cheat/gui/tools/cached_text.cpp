@@ -1,5 +1,6 @@
 ﻿#include "cached_text.h"
 
+#include <nstd/memory backup.h>
 #include <nstd/runtime assert.h>
 #include <nstd/overload.h>
 
@@ -7,7 +8,8 @@
 
 #include <numeric>
 #include <ranges>
-
+#include <algorithm>
+#include <array>
 using namespace cheat::gui::tools;
 
 imgui_string::imgui_type imgui_string::imgui() const
@@ -90,7 +92,7 @@ void cached_text::update()
 		{
 			const auto glyph =
 #if 0
-					font_->FindGlyphNoFallback(chr);
+				font_->FindGlyphNoFallback(chr);
 			runtime_assert(glyph != nullptr);
 #else
 					font_->FindGlyph(chr);
@@ -105,8 +107,10 @@ void cached_text::update()
 	{
 		auto glyphs = get_glyphs_for(label_);
 		//glyphs_.assign(glyphs.begin( ), glyphs.end( ));
-		auto visible_glyphs   = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.Visible; });
-		visible_glyphs_count_ = std::ranges::distance(visible_glyphs);
+		auto visible_glyphs      = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.Visible; });
+		auto renderavle_glyphs   = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.AdvanceX > 0; });
+		visible_glyphs_count_    = std::ranges::distance(visible_glyphs);
+		randerable_glyphs_count_ = std::ranges::distance(renderavle_glyphs);
 	};
 
 	const auto update_label_size = [&]
@@ -126,29 +130,69 @@ void cached_text::update()
 	update_label_hash( );
 }
 
-void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color,const ImVec4* clip_rect_override) const
+template <typename Rng, typename Pred, size_t ...I>
+static bool _Any_of_noloop(Rng&& rng, Pred&& pred, std::index_sequence<I...>)
+{
+	return (std::invoke(pred, rng[I]) || ...);
+}
+
+void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImVec2& pos_start, const ImVec2& pos_end) const
 {
 	if ((color & IM_COL32_A_MASK) == 0)
 		return;
 
 	runtime_assert(font_->ContainerAtlas->TexID == draw_list->_CmdHeader.TextureId);
 
+	auto& cmd_clip_rect = draw_list->_CmdHeader.ClipRect;
+
+	std::array<nstd::memory_backup<float>, 4> clip_rect_backup;
+	auto make_backup = [index = 0, &clip_rect_backup](float& target, float replace) mutable
+	{
+		const auto i = index++;
+		if (replace > 0)
+			clip_rect_backup[i] = {target, replace};
+	};
+	make_backup(cmd_clip_rect.x, pos_start.x);
+	make_backup(cmd_clip_rect.y, pos_start.y);
+	make_backup(cmd_clip_rect.z, pos_end.x);
+	make_backup(cmd_clip_rect.w, pos_end.y);
+
+	const auto add_draw_cmd = _Any_of_noloop(clip_rect_backup, &nstd::memory_backup<float>::has_value, std::make_index_sequence<4>( ));
+	if (add_draw_cmd)
+		draw_list->_OnChangedClipRect( );
+
+	auto& x = pos.x;
+	auto& y = pos.y;
+
+	if (align.x > 0.0f)
+		x = ImMax(x, x + (cmd_clip_rect.z - x - label_size_.x) * align.x);
+	if (align.y > 0.0f)
+		y = ImMax(y, y + (cmd_clip_rect.w - y - label_size_.y) * align.y);
 	// Align to be pixel perfect
-	pos.x = IM_FLOOR(pos.x);
-	pos.y = IM_FLOOR(pos.y);
+	x = IM_FLOOR(x);
+	y = IM_FLOOR(y);
 
-	auto x = pos.x;
-	auto y = pos.y;
+	const auto finish = [&]
+	{
+		if (add_draw_cmd)
+		{
+			{
+				decltype(clip_rect_backup) dummy;
+				std::swap(clip_rect_backup, dummy);
+			}
+			draw_list->_OnChangedClipRect( );
+		}
+	};
 
-	const auto& clip_rect = clip_rect_override ? *clip_rect_override : draw_list->_CmdHeader.ClipRect;
-
-	if (y > clip_rect.w)
-		return;
+	if (x > cmd_clip_rect.z || y > cmd_clip_rect.w)
+	{
+		return finish( );
+	}
 
 	// Reserve vertices for remaining worse case (over-reserving is useful and easily amortized)
 	draw_list->PrimReserve(visible_glyphs_count_ * 6, visible_glyphs_count_ * 4);
 
-	const ImU32 col_untinted = color | ~IM_COL32_A_MASK;
+	const auto col_untinted = color | ~IM_COL32_A_MASK;
 
 	size_t glyphs_rendered = 0;
 	for (const auto glyph : /*glyphs_*/this->label_ | std::views::transform([&](label_type::value_type chr) { return font_->FindGlyph(chr); }))
@@ -157,7 +201,7 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color,const Im
 		const auto x1 = x + glyph->X0;
 		const auto x2 = x + glyph->X1;
 
-		if (glyph->Visible && x1 <= clip_rect.z && x2 >= clip_rect.x)
+		if (glyph->Visible && x1 <= cmd_clip_rect.z && x2 >= cmd_clip_rect.x)
 		{
 			const auto y1 = y + glyph->Y0;
 			const auto y2 = y + glyph->Y1;
@@ -184,4 +228,6 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color,const Im
 		const auto vtx_dummy     = unused_glyphs * 4;
 		draw_list->PrimUnreserve(idx_dummy, vtx_dummy);
 	}
+
+	finish( );
 }

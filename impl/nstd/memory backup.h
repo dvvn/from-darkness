@@ -10,7 +10,7 @@ namespace nstd
 		struct value_type
 		{
 			std::reference_wrapper<T> owner;
-			T                         value;
+			T value;
 		};
 
 		memory_backup(const memory_backup& other)            = delete;
@@ -27,14 +27,15 @@ namespace nstd
 			return *this;
 		}
 
-		memory_backup( ) = default;
+		memory_backup() = default;
 
 		memory_backup(T& from)
 		{
 			data_.emplace(std::ref(from), from);
 		}
 
-		template <typename T1=T>
+		template <typename T1>
+			requires(std::constructible_from<T, T1>)
 		memory_backup(T& from, T1&& owerride)
 			: memory_backup(from)
 		{
@@ -43,7 +44,7 @@ namespace nstd
 
 	private:
 		template <bool FromDestructor>
-		void restore_impl( )
+		void restore_impl()
 		{
 			if (data_.has_value( ))
 			{
@@ -55,17 +56,17 @@ namespace nstd
 		}
 
 	public:
-		~memory_backup( )
+		~memory_backup()
 		{
 			this->restore_impl<true>( );
 		}
 
-		void restore( )
+		void restore()
 		{
 			this->restore_impl<false>( );
 		}
 
-		void reset( )
+		void reset()
 		{
 			data_.reset( );
 		}
@@ -80,7 +81,7 @@ namespace nstd
 			return val;
 		}
 
-		bool has_value( ) const
+		bool has_value() const
 		{
 			return data_.has_value( );
 		}
