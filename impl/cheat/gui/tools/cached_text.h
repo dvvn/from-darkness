@@ -2,7 +2,7 @@
 
 #include <nstd/unistring.h>
 
-#include <imgui.h>
+#include <imgui_internal.h>
 
 #include <string>
 #include <variant>
@@ -160,7 +160,7 @@ namespace cheat::gui::tools
 		virtual void on_update() { return; }
 
 	public:
-		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align = {}, const ImVec2& pos_start = {}, const ImVec2& pos_end = {}) const;
+		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align = {}, const ImRect& clip_rect_override= {},bool cram_clip_rect=0) const;
 
 	private:
 		//todo: invisible chars ignored

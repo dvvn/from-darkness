@@ -22,7 +22,7 @@ namespace std
 	template <class T>
 	struct less;
 
-	template <class Key, class T, class Pred /*= less<_Kty>*/, class A /*= allocator<pair<const Key, T>>*/>
+	template <class Key, class T, class Fn /*= less<_Kty>*/, class A /*= allocator<pair<const Key, T>>*/>
 	class map;
 
 	template <class T, class A /*= allocator<T>*/>

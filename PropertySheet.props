@@ -11,7 +11,6 @@
     <IntDir>$(OutputDir)temp\</IntDir>
     <GenerateManifest>false</GenerateManifest>
     <OutDir>$(OutputDir)build\</OutDir>
-    <IncludePath>$(GitClonedProjects)\cppcoro\include;$(GitClonedProjects)\imgui;$(GitClonedProjects)\imgui\backends;$(GitClonedProjects)\imgui\misc\cpp;$(GitClonedProjects)\json\include;$(GitClonedProjects)\robin-hood-hashing\src\include;$(GitClonedProjects)\thread-pool;$(GitClonedProjects)\veque\include;$(GitClonedProjects)\ww898\utf-cpp\include;$(GitClonedProjects)\nothings\stb;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -32,6 +31,7 @@
       <DisableSpecificWarnings>4250;5103;4100;4101</DisableSpecificWarnings>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <ObjectFileName>$(IntDir)%(Directory)</ObjectFileName>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <EnableUAC>false</EnableUAC>

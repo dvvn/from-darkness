@@ -277,6 +277,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 	};
 
 	std::optional<title_rect_t> title_rect;
+	std::optional<ImRect> title_rect2;
 	if (!(flags & ImGuiWindowFlags_NoTitleBar) && window
 #ifdef IMGUI_HAS_DOCK
 		&& !window->DockIsActive
@@ -338,29 +339,18 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 			{
 				const auto& pos = window->Pos;
 				rect.Min        = pos;
-				rect.Max.x      = pos.x + pad_l + pad_r + title.get_label_size( ).x /*+ style.FramePadding.x * 2.f*/;
-				rect.Max.y      = pos.y + window->TitleBarHeight( );
+				rect.Max.x      = pos.x + std::max(window->SizeFull.x - window->WindowBorderSize
+												 , pad_l + pad_r + title.get_label_size( ).x + (window->ScrollbarY ? window->ScrollbarSizes.x : 0));
+				rect.Max.y = pos.y + window->TitleBarHeight( );
 			}
 
 			return rect;
 		}( );
 
-		if (style.WindowTitleAlign.x > 0.0f && style.WindowTitleAlign.x < 1.0f)
-		{
-			const auto centerness = ImSaturate(1.0f - ImFabs(style.WindowTitleAlign.x - 0.5f) * 2.0f); // 0.0f on either edges, 1.0f on center
-			const auto pad_extend = ImMin(ImMax(pad_l, pad_r), title_bar_rect.GetWidth( ) - (pad_l + pad_r + title.get_label_size( ).x));
-			const auto pad_max    = pad_extend * centerness;
-
-			pad_l = ImMax(pad_l, pad_max);
-			pad_r = ImMax(pad_r, pad_max);
-		}
-		if (title.render_manually)
-		{
-			auto& [layout_r, clip_r] = title_rect.emplace( );
-
-			layout_r = ImRect(title_bar_rect.Min.x + pad_l, title_bar_rect.Min.y, title_bar_rect.Max.x - pad_r, title_bar_rect.Max.y);
-			clip_r   = ImRect(layout_r.Min.x, layout_r.Min.y, ImMin(layout_r.Max.x + style.ItemInnerSpacing.x, title_bar_rect.Max.x), layout_r.Max.y);
-		}
+		title_rect2 = ImRect(title_bar_rect.Min.x + pad_l
+						   , title_bar_rect.Min.y
+						   , window->Pos.x + (window->SizeFull.x - window->WindowBorderSize - pad_r)
+						   , title_bar_rect.Max.y);
 
 		style.WindowMinSize = ImVec2(title.get_label_size( ).x + pad_r + pad_l, /*title.get_label_size( ).y*/button_sz);
 	}
@@ -368,14 +358,10 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 	window_end_token ret;
 	ret.set(ImGui::Begin(window_title, open, flags));
 
-	if (title_rect.has_value( ))
+	if (title_rect2.has_value( ))
 	{
-		auto& [layout_r, clip_r] = *title_rect;
-		title.render(window->DrawList, clip_r.Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, layout_r.Min, layout_r.Max);
+		title.render(window->DrawList, title_rect2->Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, *title_rect2, true);
 	}
-
-	//ImGui::PopFont( );
-	//ImGui::PushFont(ImGui::GetDefaultFont( ));
 
 	return ret;
 }
@@ -384,12 +370,12 @@ void window_title::on_update()
 {
 	cached_text::on_update( );
 	auto& modern    = this->get_label( );
-	legacy          = modern._Uni_unwrap( );
-	render_manually = 1; //legacy.size( ) != modern.size( );
+	legacy          = modern;
+	render_manually = legacy.size( ) != modern.size( );
 
 	if (render_manually)
 	{
-		auto num = "##" + std::to_string(reinterpret_cast<uintptr_t>((this)));
+		auto num = "##" + std::to_string(reinterpret_cast<uintptr_t>(this));
 		legacy.assign(num.begin( ), num.end( ));
 	}
 }

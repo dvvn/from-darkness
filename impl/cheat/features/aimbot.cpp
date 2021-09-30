@@ -2,10 +2,10 @@
 
 #include "cheat/core/services loader.h"
 
-#include "cheat/gui/tools/animation_tools.h"
 #include "cheat/gui/imgui context.h"
-#include "cheat/gui/widgets/checkbox.h"
+#include "cheat/gui/tools/animation_tools.h"
 #include "cheat/gui/tools/cached_text.h"
+#include "cheat/gui/widgets/checkbox.h"
 #include "cheat/gui/widgets/selectable.h"
 
 #include <nstd/smooth_value.h>
@@ -13,9 +13,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include <functional>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 
 using namespace cheat::features;
 using namespace cheat::gui;
@@ -58,7 +58,7 @@ struct aimbot::impl
 		test_selectable.set_target<target_internal>( );
 
 		//-----
-
+#if 0
 		constexpr auto get_anim_sample = []
 		{
 			auto sample = std::make_unique<nstd::smooth_value_linear<ImVec4>>( );
@@ -66,9 +66,7 @@ struct aimbot::impl
 			sample->set_target<target_external>( );
 			return sample;
 		};
-
-#if 0
-
+		
 		cb3.set_font(ImGui::GetDefaultFont( ));
 		cb3.set_label("asdaewbabwabebe");
 		auto cb3_anim = get_anim_sample( );

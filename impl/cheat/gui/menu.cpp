@@ -104,74 +104,53 @@ struct menu::impl
 
 	void init_window()
 	{
-		constexpr auto iso_date = []
-		{
-			// ReSharper disable CppVariableCanBeMadeConstexpr
+		cached_text::label_type title_str;
 
-			const uint32_t compile_year  = (__DATE__[7] - '0') * 1000 + (__DATE__[8] - '0') * 100 + (__DATE__[9] - '0') * 10 + (__DATE__[10] - '0');
-			const uint32_t compile_month = []
+		const auto title_append = [&]<class ...T>(T&& ...texts)
+		{
+			(title_str.uni_append(texts), ...);
+		};
+
+		auto day   = std::string_view(__DATE__ + 3 + 1, 2);
+		auto month = []()-> std::string_view
+		{
+			switch (__DATE__[0])
 			{
-				switch (__DATE__[0])
-				{
-					case 'J': // Jan, Jun or Jul
-						return __DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7;
-					case 'F': // Feb
-						return 2;
-					case 'M': // Mar or May
-						return __DATE__[2] == 'r' ? 3 : 5;
-					case 'A': // Apr or Aug
-						return __DATE__[2] == 'p' ? 4 : 8;
-					case 'S': // Sep
-						return 9;
-					case 'O': // Oct
-						return 10;
-					case 'N': // Nov
-						return 11;
-					case 'D': // Dec
-						return 12;
-				}
-				throw;
-			}( );
+				case 'J': // Jan, Jun or Jul
+					return __DATE__[1] == 'a' ? "01" : __DATE__[2] == 'n' ? "06" : "07";
+				case 'F': // Feb
+					return "02";
+				case 'M': // Mar or May
+					return __DATE__[2] == 'r' ? "03" : "05";
+				case 'A': // Apr or Aug
+					return __DATE__[2] == 'p' ? "04" : "08";
+				case 'S': // Sep
+					return "09";
+				case 'O': // Oct
+					return "10";
+				case 'N': // Nov
+					return "11";
+				case 'D': // Dec
+					return "12";
+			}
+			throw;
+		}( );
+		auto year = std::string_view(day._Unchecked_end( ) + 1, 4);
 
-			// ReSharper disable once CppUnreachableCode
-			const uint32_t compile_day = __DATE__[4] == ' ' ? __DATE__[5] - '0' : (__DATE__[4] - '0') * 10 + (__DATE__[5] - '0');
-
-			const char ret[] = {
-
-					compile_year / 1000 + '0', compile_year % 1000 / 100 + '0', compile_year % 100 / 10 + '0', compile_year % 10 + '0', '.', compile_month / 10 + '0'
-				  , compile_month % 10 + '0', '.', compile_day / 10 + '0', compile_day % 10 + '0'
-				  , '\0'
-			};
-
-			// ReSharper restore CppVariableCanBeMadeConstexpr
-			return (ret);
-		};
-
-		auto name = std::basic_ostringstream<char8_t>( );
-
-		const auto append_name = [&]<class T>(T&& text, bool delim = true)
-		{
-			if (delim)
-				name << " | ";
-			name << text;
-		};
-
-		append_name(_STRINGIZE(VS_SolutionName), false);
-		append_name(iso_date( ));
+		title_append(_STRINGIZE(VS_SolutionName), ' ', day, '.', month, '.', year);
 #ifdef _DEBUG
-		append_name("DEBUG");
-		append_name(__TIME__);
+		title_append(" | ", "DEBUG", " | ",__TIME__);
 #endif
 
 #ifdef CHEAT_GUI_TEST
-		append_name(u8"GUI TEST");
+		title_append(" | ", "GUI TEST");
 #endif
 
 		//----------
 
 		// ReSharper disable once CppUseStructuredBinding
 		auto& w = menu_window;
-		w.title.set_label(std::move(name).str( ));
+		w.title.set_label(std::move(title_str));
 		w.title.set_font(ImGui::GetDefaultFont( ) /*[]
 		{
 			auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
@@ -181,12 +160,17 @@ struct menu::impl
 		w.show_anim.set_start(0);
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
 		w.show_anim.set_end(/*1*/global_alpha);
-		w.show_anim.set_duration(1s);
+		w.show_anim.set_duration(250ms);
+#ifdef CHEAT_GUI_HAS_DEMO_WINDOW
+		w.show_anim.restart(true);
+		w.show = true;
+#else
+		w.show = false;
+#endif
 		auto show_anim_target = std::make_unique<decltype(w.show_anim)::target_external>( );
 		show_anim_target->set_target(global_alpha);
 		w.show_anim.set_target(std::move(show_anim_target));
 		w.flags |= ImGuiWindowFlags_AlwaysAutoResize;
-		w.show = CHEAT_GUI_HAS_DEMO_WINDOW;
 
 		//----------
 	}
@@ -213,7 +197,7 @@ void menu::render()
 	ImGui::Text("hello4");
 	ImGui::Text("hello5");
 
-	features::aimbot::get_ptr(  )->render();
+	features::aimbot::get_ptr( )->render( );
 
 #if 0
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))

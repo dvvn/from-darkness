@@ -7,7 +7,18 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+       <AdditionalIncludeDirectories>
+	 $(GitClonedProjects)\cppcoro\include;
+	 $(GitClonedProjects)\imgui;
+	 $(GitClonedProjects)\imgui\backends;
+	 $(GitClonedProjects)\imgui\misc\cpp;
+	 $(GitClonedProjects)\json\include;
+	 $(GitClonedProjects)\robin-hood-hashing\src\include;
+	 $(GitClonedProjects)\veque\include;
+	 $(GitClonedProjects)\ww898\utf-cpp\include;
+	 $(GitClonedProjects)\nothings\stb;
+	 $(AdditionalIncludeDirs);%(AdditionalIncludeDirectories)
+       </AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

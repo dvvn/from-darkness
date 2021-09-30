@@ -10,6 +10,8 @@
 #include <ranges>
 #include <algorithm>
 #include <array>
+#include <cmath>
+
 using namespace cheat::gui::tools;
 
 imgui_string::imgui_type imgui_string::imgui() const
@@ -132,61 +134,96 @@ void cached_text::update()
 	this->on_update( );
 }
 
-template <typename Rng, typename Pred, size_t ...I>
-static bool _Any_of_noloop(Rng&& rng, Pred&& pred, std::index_sequence<I...>)
+template <typename T>
+using make_index_sequence_tuple = std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>;
+
+template <typename Rng, typename Fn, size_t ...I>
+static bool _Any_of_noloop(Rng&& rng, Fn&& pred, std::index_sequence<I...>)
 {
 	return (std::invoke(pred, rng[I]) || ...);
 }
 
-void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImVec2& pos_start, const ImVec2& pos_end) const
+template <typename Rng, typename Fn>
+static bool _Any_of_noloop(Rng&& rng, Fn&& pred)
+{
+	return _Any_of_noloop(rng, pred, make_index_sequence_tuple<Rng>( ));
+}
+
+template <typename Rng, typename Fn, size_t ...I>
+static void _For_each_noloop(Rng&& rng, Fn&& fn, std::index_sequence<I...>)
+{
+	(std::invoke(fn, rng[I]), ...);
+}
+
+template <typename Rng, typename Fn>
+static void _For_each_noloop(Rng&& rng, Fn&& fn)
+{
+	_For_each_noloop(rng, fn, make_index_sequence_tuple<Rng>( ));
+}
+
+void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImRect& clip_rect_override, bool cram_clip_rect) const
 {
 	if ((color & IM_COL32_A_MASK) == 0)
 		return;
 
 	runtime_assert(font_->ContainerAtlas->TexID == draw_list->_CmdHeader.TextureId);
 
-	auto& cmd_clip_rect = draw_list->_CmdHeader.ClipRect;
-
-	std::array<nstd::memory_backup<float>, 4> clip_rect_backup;
-	auto make_backup = [index = 0, &clip_rect_backup](float& target, float replace) mutable
+	auto& clip_rect       = draw_list->_CmdHeader.ClipRect;
+	auto clip_rect_backup = [&]
 	{
-		const auto i = index++;
-		if (replace > 0 && replace < target)
-			clip_rect_backup[i] = {target, replace};
-	};
-	make_backup(cmd_clip_rect.x, pos_start.x);
-	make_backup(cmd_clip_rect.y, pos_start.y);
-	make_backup(cmd_clip_rect.z, pos_end.x);
-	make_backup(cmd_clip_rect.w, pos_end.y);
+		std::array<nstd::memory_backup<float>, 4> backup;
 
-	const auto add_draw_cmd = _Any_of_noloop(clip_rect_backup, &nstd::memory_backup<float>::has_value, std::make_index_sequence<4>( ));
+		auto& [min,max] = clip_rect_override;
+		if (min.x > 0 && (cram_clip_rect || min.x > clip_rect.x))
+			backup[0] = {clip_rect.x, min.x};
+		if (min.y > 0 && (cram_clip_rect || min.y > clip_rect.y))
+			backup[1] = {clip_rect.y, min.y};
+		if (max.x > 0 && (cram_clip_rect || max.x < clip_rect.z))
+			backup[2] = {clip_rect.z, max.x};
+		if (max.y > 0 && (cram_clip_rect || max.y < clip_rect.w))
+			backup[3] = {clip_rect.w, max.y};
+		return backup;
+	}( );
+
+	const auto add_draw_cmd = _Any_of_noloop(clip_rect_backup, &nstd::memory_backup<float>::has_value);
 	if (add_draw_cmd)
 		draw_list->_OnChangedClipRect( );
 
-	auto& x = pos.x;
-	auto& y = pos.y;
+	const auto align_helper = [&](float ImVec2::* dir, float ImVec4::* clip_rect_dir)
+	{
+		const auto align_val = std::invoke(dir, align);
 
-	if (align.x > 0.0f)
-		x = ImMax(x, x + (cmd_clip_rect.z - x - label_size_.x) * align.x);
-	if (align.y > 0.0f)
-		y = ImMax(y, y + (cmd_clip_rect.w - y - label_size_.y) * align.y);
+		if (align_val == 0)
+			return;
+
+		const auto label_size_val = std::invoke(dir, label_size_);
+		const auto clip_val       = std::invoke(clip_rect_dir, clip_rect);
+
+		auto& val = std::invoke(dir, pos);
+
+		if (align_val == 1)
+			val = clip_val - label_size_val;
+		else /*if (align_val != 0)*/
+			val += std::max(0.f, clip_val - /*clip_rect.XY*/val - label_size_val) * align_val;
+	};
+
+	align_helper(&ImVec2::x, &ImVec4::z);
+	align_helper(&ImVec2::y, &ImVec4::w);
+
 	// Align to be pixel perfect
-	x = IM_FLOOR(x);
-	y = IM_FLOOR(y);
+	pos.x = std::floor(pos.x);
+	pos.y = std::floor(pos.y);
 
 	const auto finish = [&]
 	{
 		if (add_draw_cmd)
 		{
-			{
-				decltype(clip_rect_backup) dummy;
-				std::swap(clip_rect_backup, dummy);
-			}
+			_For_each_noloop((clip_rect_backup), &nstd::memory_backup<float>::restore);
 			draw_list->_OnChangedClipRect( );
 		}
 	};
 
-	if (x > cmd_clip_rect.z || y > cmd_clip_rect.w)
+	if (pos.x > clip_rect.z || pos.y > clip_rect.w)
 	{
 		return finish( );
 	}
@@ -200,13 +237,13 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 	for (const auto glyph : /*glyphs_*/this->label_ | std::views::transform([&](label_type::value_type chr) { return font_->FindGlyph(chr); }))
 	{
 		// We don't do a second finer clipping test on the Y axis as we've already skipped anything before clip_rect.y and exit once we pass clip_rect.w
-		const auto x1 = x + glyph->X0;
-		const auto x2 = x + glyph->X1;
+		const auto x1 = pos.x + glyph->X0;
+		const auto x2 = pos.x + glyph->X1;
 
-		if (glyph->Visible && x1 <= cmd_clip_rect.z && x2 >= cmd_clip_rect.x)
+		if (glyph->Visible && x1 <= clip_rect.z && x2 >= clip_rect.x)
 		{
-			const auto y1 = y + glyph->Y0;
-			const auto y2 = y + glyph->Y1;
+			const auto y1 = pos.y + glyph->Y0;
+			const auto y2 = pos.y + glyph->Y1;
 
 			const auto u1 = glyph->U0;
 			const auto v1 = glyph->V0;
@@ -220,7 +257,7 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 			++glyphs_rendered;
 		}
 
-		x += glyph->AdvanceX;
+		pos.x += glyph->AdvanceX;
 	}
 
 	if (glyphs_rendered < visible_glyphs_count_)
