@@ -1,5 +1,7 @@
 ﻿#include "cached_text.h"
 
+#include "nstd/enum_tools.h"
+
 #include <nstd/memory backup.h>
 #include <nstd/runtime assert.h>
 #include <nstd/overload.h>
@@ -77,27 +79,30 @@ imgui_string_transparent::operator imgui_string::imgui_type() const
 
 void cached_text::set_font(ImFont* new_font)
 {
-	font_ = new_font;
+	font = new_font;
+	update_flags_.add(update_flags::FONT_CHANGED);
+	if (label.empty( ))
+		return;
 	this->update( );
 }
 
 void cached_text::update()
 {
-	if (!font_ || label_.empty( ))
-		return;
+	runtime_assert(!label.empty());
+	runtime_assert(font!=nullptr);
+	runtime_assert(update_flags_.has(update_flags::CHANGED));
 
 	using char_type = label_type::value_type;
-
 	const auto get_glyphs_for = [&](const std::basic_string_view<char_type>& str)
 	{
 		const auto get_glyph_safe = [&](char_type chr)-> ImFontGlyph&
 		{
 			const auto glyph =
 #if 0
-				font_->FindGlyphNoFallback(chr);
+				font->FindGlyphNoFallback(chr);
 			runtime_assert(glyph != nullptr);
 #else
-					font_->FindGlyph(chr);
+					font->FindGlyph(chr);
 #endif
 			return *const_cast<ImFontGlyph*>(glyph);
 		};
@@ -105,33 +110,25 @@ void cached_text::update()
 		return str | std::views::transform(get_glyph_safe);
 	};
 
-	const auto cache_glyphs = [&]
-	{
-		auto glyphs = get_glyphs_for(label_);
-		//glyphs_.assign(glyphs.begin( ), glyphs.end( ));
-		auto visible_glyphs      = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.Visible; });
-		auto renderavle_glyphs   = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.AdvanceX > 0; });
-		visible_glyphs_count_    = std::ranges::distance(visible_glyphs);
-		randerable_glyphs_count_ = std::ranges::distance(renderavle_glyphs);
-	};
+	//cache_glyphs
+	auto glyphs = get_glyphs_for(label);
+	//glyphs_.assign(glyphs.begin( ), glyphs.end( ));
+	auto visible_glyphs      = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.Visible; });
+	auto renderavle_glyphs   = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.AdvanceX > 0; });
+	visible_glyphs_count    = std::ranges::distance(visible_glyphs);
+	randerable_glyphs_count = std::ranges::distance(renderavle_glyphs);
 
-	const auto update_label_size = [&]
-	{
-		auto advances = /*glyphs_*/get_glyphs_for(label_) | std::views::transform(&ImFontGlyph::AdvanceX); //AdvanceX is valid after atlas rebuild
-		label_size_.x = std::accumulate(advances.begin( ), advances.end( ), 0.f);
-		label_size_.y = font_->FontSize; //line_height
-	};
+	//update_label_size
+	auto advances = glyphs | std::views::transform(&ImFontGlyph::AdvanceX); //AdvanceX is valid after atlas rebuild
+	label_size.x = std::accumulate(advances.begin( ), advances.end( ), 0.f);
+	label_size.y = font->FontSize; //line_height
 
-	const auto update_label_hash = [&]
-	{
-		label_hash_ = std::_Hash_array_representation(label_._Unchecked_begin( ), label_.size( ));
-	};
+	if (update_flags_.has(update_flags::LABEL_CHANGED))
+		label_hash = std::_Hash_array_representation(label._Unchecked_begin( ), label.size( ));
 
-	cache_glyphs( );
-	update_label_size( );
-	update_label_hash( );
+	this->on_update(update_flags_);
 
-	this->on_update( );
+	update_flags_ = update_flags::NONE;
 }
 
 template <typename T>
@@ -166,7 +163,7 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 	if ((color & IM_COL32_A_MASK) == 0)
 		return;
 
-	runtime_assert(font_->ContainerAtlas->TexID == draw_list->_CmdHeader.TextureId);
+	runtime_assert(font->ContainerAtlas->TexID == draw_list->_CmdHeader.TextureId);
 
 	auto& clip_rect       = draw_list->_CmdHeader.ClipRect;
 	auto clip_rect_backup = [&]
@@ -196,7 +193,7 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 		if (align_val == 0)
 			return;
 
-		const auto label_size_val = std::invoke(dir, label_size_);
+		const auto label_size_val = std::invoke(dir, label_size);
 		const auto clip_val       = std::invoke(clip_rect_dir, clip_rect);
 
 		auto& val = std::invoke(dir, pos);
@@ -229,12 +226,12 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 	}
 
 	// Reserve vertices for remaining worse case (over-reserving is useful and easily amortized)
-	draw_list->PrimReserve(visible_glyphs_count_ * 6, visible_glyphs_count_ * 4);
+	draw_list->PrimReserve(visible_glyphs_count * 6, visible_glyphs_count * 4);
 
 	const auto col_untinted = color | ~IM_COL32_A_MASK;
 
 	size_t glyphs_rendered = 0;
-	for (const auto glyph : /*glyphs_*/this->label_ | std::views::transform([&](label_type::value_type chr) { return font_->FindGlyph(chr); }))
+	for (const auto glyph : /*glyphs_*/this->label | std::views::transform([&](label_type::value_type chr) { return font->FindGlyph(chr); }))
 	{
 		// We don't do a second finer clipping test on the Y axis as we've already skipped anything before clip_rect.y and exit once we pass clip_rect.w
 		const auto x1 = pos.x + glyph->X0;
@@ -260,9 +257,9 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 		pos.x += glyph->AdvanceX;
 	}
 
-	if (glyphs_rendered < visible_glyphs_count_)
+	if (glyphs_rendered < visible_glyphs_count)
 	{
-		const auto unused_glyphs = visible_glyphs_count_ - glyphs_rendered;
+		const auto unused_glyphs = visible_glyphs_count - glyphs_rendered;
 		const auto idx_dummy     = unused_glyphs * 6;
 		const auto vtx_dummy     = unused_glyphs * 4;
 		draw_list->PrimUnreserve(idx_dummy, vtx_dummy);

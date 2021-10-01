@@ -49,7 +49,7 @@ ImU32 animation_color_helper::operator()(const ImVec4& clr) const
 //---
 
 ImU32 tools::get_button_color(button_state state, bool idle_visible
-							, const ImVec4& idle_clr, const ImVec4& hovered_clr, const ImVec4& held_clr, const ImVec4& pressed_clr
+							, const ImVec4& idle_clr, const ImVec4& hovered_clr, const ImVec4& held_clr
 							, smooth_value_base<ImVec4>* animation)
 {
 	const animation_color_helper get_color = animation;
@@ -64,9 +64,8 @@ ImU32 tools::get_button_color(button_state state, bool idle_visible
 			return get_color(hovered_clr);
 		case button_state::HELD:
 		case button_state::HELD_ACTIVE:
-			return get_color(held_clr);
 		case button_state::PRESSED:
-			return get_color(pressed_clr);
+			return get_color(held_clr);
 		default: throw;
 	}
 }

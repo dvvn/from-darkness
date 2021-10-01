@@ -88,7 +88,7 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 
 		if (cfg.Name[0] == '\0')
 		{
-			const auto font_size = static_cast<uint32_t>(cfg.SizePixels);
+			const auto font_size = static_cast<uint16_t>(cfg.SizePixels);
 			auto font_size_ex    = font_size == 0 ? "?" : std::to_string(font_size);
 
 			auto font_info = std::format("{}, {}px", path.filename( ).string( ), font_size);

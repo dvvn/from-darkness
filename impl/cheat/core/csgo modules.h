@@ -19,15 +19,15 @@ namespace cheat::csgo_modules
 	namespace detail
 	{
 		nstd::os::module_info* get_module_impl(const std::string_view& target_name);
-		nstd::address          find_signature_impl(nstd::os::module_info* md, const std::string_view& sig);
-		nstd::address          find_csgo_interface(nstd::os::module_info* from, const std::string_view& target_name);
-		void*                  find_vtable_pointer(nstd::os::module_info* from, const std::string_view& class_name);
+		nstd::address find_signature_impl(nstd::os::module_info* md, const std::string_view& sig);
+		nstd::address find_csgo_interface(nstd::os::module_info* from, const std::string_view& target_name);
+		void* find_vtable_pointer(nstd::os::module_info* from, const std::string_view& class_name);
 	}
 
 	template <nstd::chars_cache Name>
 	struct game_module_base
 	{
-		nstd::os::module_info* get( ) const
+		nstd::os::module_info* get() const
 		{
 			using namespace nstd::os;
 
@@ -36,7 +36,7 @@ namespace cheat::csgo_modules
 		}
 
 		template <nstd::chars_cache Sig>
-		nstd::address find_signature( ) const
+		nstd::address find_signature() const
 		{
 #ifdef _DEBUG
 			static auto found_before = false;
@@ -48,15 +48,15 @@ namespace cheat::csgo_modules
 		}
 
 		template <typename Table/*, nstd::chars_cache ...IgnoreNamespaces*/>
-		Table* find_vtable( ) const
+		Table* find_vtable() const
 		{
 			constexpr auto table_name = nstd::type_name<Table, "cheat::csgo"/*IgnoreNamespaces...*/>;
-			static void*   ptr        = detail::find_vtable_pointer(this->get( ), table_name);
+			static void* ptr          = detail::find_vtable_pointer(this->get( ), table_name);
 			return static_cast<Table*>(ptr);
 		}
 
 		template <nstd::chars_cache Ifc>
-		nstd::address find_interface( ) const
+		nstd::address find_interface() const
 		{
 			static auto addr = detail::find_csgo_interface(this->get( ), Ifc.view( ));
 			return addr;

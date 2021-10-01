@@ -19,19 +19,19 @@ using namespace c_base_animating;
 
 using namespace csgo;
 
-standard_blending_rules::standard_blending_rules( )
+standard_blending_rules::standard_blending_rules()
 	: service_maybe_skipped(
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-								true
+			true
 #else
 								false
 #endif
-							   )
+			)
 {
-		this->wait_for_service<netvars>( );
+	this->wait_for_service<netvars>( );
 }
 
-nstd::address standard_blending_rules::get_target_method_impl( ) const
+nstd::address standard_blending_rules::get_target_method_impl() const
 {
 	const auto vtable = csgo_modules::client.find_vtable<C_BaseAnimating>( );
 	const auto index  = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).add(11).deref(1).divide(4).value( );
@@ -49,14 +49,14 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;
 
-	auto& flags = (pl->m_fEffects( ));
+	auto& flags = reinterpret_cast<nstd::decayed_enum<m_fEffects_t>&>(pl->m_fEffects( ));
 
 	/*if (flags.has(m_fEffects_t::EF_NOINTERP))
 		return;*/
 
-	flags |= nstd::unwrap_enum(m_fEffects_t::EF_NOINTERP);
+	flags.add(m_fEffects_t::EF_NOINTERP);
 	this->call_original_ex(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
-	flags &= ~nstd::unwrap_enum(m_fEffects_t::EF_NOINTERP);
+	flags.remove(m_fEffects_t::EF_NOINTERP);
 
 	/*if (override_return__)
 		this->return_value_.store_value(override_return_to__);

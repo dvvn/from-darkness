@@ -25,7 +25,7 @@ namespace cheat::gui::tools
 	};
 
 	ImU32 get_button_color(button_state state, bool idle_visible
-						 , const ImVec4& idle_clr, const ImVec4& hovered_clr, const ImVec4& held_clr, const ImVec4& pressed_clr
+						 , const ImVec4& idle_clr, const ImVec4& hovered_clr, const ImVec4& held_clr
 						 , nstd::smooth_value_base<ImVec4>* animation);
 
 	ImU32 get_boolean_color(bool value

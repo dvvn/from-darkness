@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "nstd/enum_tools.h"
+
 #include <nstd/unistring.h>
 
 #include <imgui_internal.h>
@@ -14,7 +16,7 @@ namespace cheat::gui::tools
 	auto get_imgui_string(const T& str)
 	{
 #ifdef IMGUI_HAS_IMSTR
-	return ImStrv(str._Unchecked_begin( ), str._Unchecked_end( ));
+		return ImStrv(str._Unchecked_begin( ), str._Unchecked_end( ));
 #else
 		return reinterpret_cast<const char*>(/*std::_Const_cast*/str._Unchecked_begin( ));
 #endif
@@ -148,37 +150,40 @@ namespace cheat::gui::tools
 		template <typename T>
 		void set_label(T&& str)
 		{
-			label_.uni_assign(std::forward<T>(str));
+			label.uni_assign(std::forward<T>(str));
+			update_flags_.add(update_flags::LABEL_CHANGED);
+			if (!font)
+				return;
 			this->update( );
 		}
+
+		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align = {}, const ImRect& clip_rect_override = {}, bool cram_clip_rect = 0) const;
+
+		//todo: invisible chars ignored
+
+		label_type label;
+		ImVec2 label_size;
+		size_t label_hash = 0;
+
+		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after every atlas build, so it uselles
+		size_t visible_glyphs_count    = 0;
+		size_t randerable_glyphs_count = 0;
+		ImFont* font                   = nullptr;
+
+	protected:
+		enum class update_flags :uint8_t
+		{
+			NONE
+		  , LABEL_CHANGED = 1 << 0
+		  , FONT_CHANGED = 1 << 1
+		  , CHANGED = LABEL_CHANGED | FONT_CHANGED
+		};
+
+		virtual void on_update(update_flags flags) { return; }
 
 	private:
 		void update();
 
-	protected:
-		// ReSharper disable once CppRedundantControlFlowJump
-		virtual void on_update() { return; }
-
-	public:
-		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align = {}, const ImRect& clip_rect_override= {},bool cram_clip_rect=0) const;
-
-	private:
-		//todo: invisible chars ignored
-		label_type label_;
-		size_t label_hash_ = 0;
-		ImVec2 label_size_;
-
-		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after every atlas build, so it uselles
-		size_t visible_glyphs_count_    = 0;
-		size_t randerable_glyphs_count_ = 0;
-		ImFont* font_                   = nullptr;
-
-	public:
-		const label_type& get_label() const { return label_; }
-		size_t get_label_hash() const { return label_hash_; }
-		const ImVec2& get_label_size() const { return label_size_; }
-		ImFont* get_font() const { return font_; }
-		size_t get_visible_chars_count() const { return visible_glyphs_count_; }
-		size_t get_randerable_chars_count() const { return randerable_glyphs_count_; }
+		nstd::decayed_enum<update_flags> update_flags_ = update_flags::NONE;
 	};
 }

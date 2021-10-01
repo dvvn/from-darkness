@@ -53,11 +53,11 @@ namespace cheat::gui::widgets
 
 	struct window_title final : tools::cached_text
 	{
-		tools::imgui_string::multibyte_type legacy;
-		bool render_manually = false;
+		tools::imgui_string::multibyte_type label_legacy;
+		bool render_manually;
 
 	protected:
-		void on_update() override;
+		void on_update(update_flags flags) override;
 	};
 
 	window_end_token window2(const window_title& title, bool* open = nullptr, ImGuiWindowFlags flags = 0);

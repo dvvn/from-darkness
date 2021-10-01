@@ -44,7 +44,7 @@ void estimate_abs_velocity::callback(Vector& vel)
 #pragma message(__FUNCTION__ ": skipped")
 #else
 	const auto ent = this->object_instance;
-	if ((ent->m_iEFlags( )) & nstd::unwrap_enum(m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
+	if (reinterpret_cast<nstd::decayed_enum<m_iEFlags_t>&>(ent->m_iEFlags( )).has(m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
 	{
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []

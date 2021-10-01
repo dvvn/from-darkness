@@ -247,14 +247,14 @@ concept imgui_window_has_font_dpi_scale = requires()
 
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
-	const auto window_title = get_imgui_string(title.legacy);
+	const auto window_title = get_imgui_string(title.label_legacy);
 	const auto window       = ImGui::FindWindowByName(window_title);
 	auto& style             = ImGui::GetStyle( );
 
 	const auto backups = [&]
 	{
 		auto& g          = *ImGui::GetCurrentContext( );
-		const auto font  = title.get_font( );
+		const auto font  = title.font;
 		const auto atlas = g.Font->ContainerAtlas;
 		auto& s          = g.DrawListSharedData;;
 		s.TexUvLines     = atlas->TexUvLines;
@@ -297,7 +297,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 
 		auto pad_l           = style.FramePadding.x;
 		auto pad_r           = style.FramePadding.x;
-		const auto button_sz = /*title.get_font( )->FontSize*/title.get_label_size( ).y;
+		const auto button_sz = /*title.get_font( )->FontSize*/title.label_size.y;
 
 		const auto has_collapse_button = !(flags & ImGuiWindowFlags_NoCollapse) && style.WindowMenuButtonPosition != ImGuiDir_None;
 		const auto has_close_button    = /* window ?*/ window->HasCloseButton /*: open != NULL*/;
@@ -340,7 +340,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 				const auto& pos = window->Pos;
 				rect.Min        = pos;
 				rect.Max.x      = pos.x + std::max(window->SizeFull.x - window->WindowBorderSize
-												 , pad_l + pad_r + title.get_label_size( ).x + (window->ScrollbarY ? window->ScrollbarSizes.x : 0));
+												 , pad_l + pad_r + title.label_size.x + (window->ScrollbarY ? window->ScrollbarSizes.x : 0));
 				rect.Max.y = pos.y + window->TitleBarHeight( );
 			}
 
@@ -352,7 +352,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 						   , window->Pos.x + (window->SizeFull.x - window->WindowBorderSize - pad_r)
 						   , title_bar_rect.Max.y);
 
-		style.WindowMinSize = ImVec2(title.get_label_size( ).x + pad_r + pad_l, /*title.get_label_size( ).y*/button_sz);
+		style.WindowMinSize = ImVec2(title.label_size.x + pad_r + pad_l, /*title.label_size.y*/button_sz);
 	}
 
 	window_end_token ret;
@@ -366,17 +366,18 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 	return ret;
 }
 
-void window_title::on_update()
+void window_title::on_update(update_flags flags)
 {
-	cached_text::on_update( );
-	auto& modern    = this->get_label( );
-	legacy          = modern;
-	render_manually = legacy.size( ) != modern.size( );
+	if (!nstd::unwrap_enum(flags).has(update_flags::LABEL_CHANGED))
+		return;
+
+	label_legacy    = label;
+	render_manually = label_legacy.size( ) != label.size( );
 
 	if (render_manually)
 	{
 		auto num = "##" + std::to_string(reinterpret_cast<uintptr_t>(this));
-		legacy.assign(num.begin( ), num.end( ));
+		label_legacy.assign(num.begin( ), num.end( ));
 	}
 }
 
