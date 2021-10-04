@@ -31,7 +31,7 @@ service_base::load_result csgo_awaiter::load_impl()noexcept
 	{
 		return modules->rfind([&](const nstd::os::module_info& info)
 		{
-			return info.full_path( ) == work_dir;
+			return info.full_path( ) == work_dir.native(  );
 		}) != nullptr;
 	};
 

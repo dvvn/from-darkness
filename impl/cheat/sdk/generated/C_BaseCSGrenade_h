@@ -2,5 +2,6 @@ bool& m_bIsHeldByPlayer( );
 bool& m_bLoopingSoundPlaying( );
 bool& m_bPinPulled( );
 bool& m_bRedraw( );
+float& m_fDropTime( );
 float& m_fThrowTime( );
 float& m_flThrowStrength( );

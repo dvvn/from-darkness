@@ -640,39 +640,6 @@ static void _Iterate_datamap(netvars::hidden::storage_type& root_tree, datamap_t
 	}
 }
 
-service_base::load_result netvars::load_impl() noexcept
-{
-#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
-
-	CHEAT_SERVICE_SKIPPED
-#else
-
-	auto& data = hidden_->storage;
-
-#ifdef _DEBUG
-	data.clear( );
-#endif
-
-	const auto interfaces = csgo_interfaces::get_ptr( );
-
-	_Iterate_client_class(data, interfaces->client->GetAllClasses( ));
-
-	const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
-
-	_Iterate_datamap(data, baseent->GetDataDescMap( ));
-	_Iterate_datamap(data, baseent->GetPredictionDescMap( ));
-
-#if defined(CHEAT_NETVARS_RESOLVE_TYPE)
-
-	const auto info = _Dump_netvars(hidden_->storage);
-	_Generate_classes(info, hidden_->storage, hidden_->lazy_writer);
-
-#endif
-	CHEAT_SERVICE_LOADED
-	
-#endif
-}
-
 #define CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(VS_SolutionDir)"\\"
 #define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(.out\dumps\)
 #define CHEAT_ROOT_DIR CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(impl\)
@@ -953,6 +920,39 @@ _WORK:
 	}
 
 	CHEAT_CONSOLE_LOG("Netvars classes generation done");
+}
+
+service_base::load_result netvars::load_impl() noexcept
+{
+#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
+
+	CHEAT_SERVICE_SKIPPED
+#else
+
+	auto& data = hidden_->storage;
+
+#ifdef _DEBUG
+	data.clear( );
+#endif
+
+	const auto interfaces = csgo_interfaces::get_ptr( );
+
+	_Iterate_client_class(data, interfaces->client->GetAllClasses( ));
+
+	const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
+
+	_Iterate_datamap(data, baseent->GetDataDescMap( ));
+	_Iterate_datamap(data, baseent->GetPredictionDescMap( ));
+
+#if defined(CHEAT_NETVARS_RESOLVE_TYPE)
+
+	const auto info = _Dump_netvars(hidden_->storage);
+	_Generate_classes(info, hidden_->storage, hidden_->lazy_writer);
+
+#endif
+	CHEAT_SERVICE_LOADED
+
+#endif
 }
 
 int netvars::at(const std::string_view& table, const std::string_view& item) const

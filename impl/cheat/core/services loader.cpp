@@ -26,9 +26,9 @@ using namespace detail;
 
 #ifndef CHEAT_GUI_TEST
 
-struct services_loader::load_thread: std::jthread
+struct services_loader::load_thread : std::jthread
 {
-	load_thread( ) = default;
+	load_thread() = default;
 
 	load_thread& operator=(std::jthread&& thr)
 	{
@@ -86,7 +86,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 
 #ifndef CHEAT_GUI_TEST
 
-HMODULE services_loader::my_handle( ) const
+HMODULE services_loader::my_handle() const
 {
 	return my_handle__;
 }
@@ -96,15 +96,15 @@ void services_loader::load(HMODULE handle)
 	my_handle__   = handle;
 	*load_thread_ = std::jthread([this]
 	{
-		auto ex = make_executor();
-		if (sync_wait(this->load(ex)) != service_state::loaded)
+		auto ex = make_executor( );
+		if (sync_wait(this->load(ex)) == false)
 			this->unload( );
 		else
 			csgo_awaiter::get_ptr( )->reset( );
 	});
 }
 
-void services_loader::unload( )
+void services_loader::unload()
 {
 	this->load_thread_->request_stop( );
 
@@ -118,7 +118,8 @@ void services_loader::unload( )
 }
 
 std::stop_token services_loader::load_thread_stop_token() const
-{	return load_thread_->get_stop_token( );
+{
+	return load_thread_->get_stop_token( );
 }
 #endif
 
@@ -127,7 +128,7 @@ service_base::executor services_loader::make_executor()
 	return executor(std::max<size_t>(8, std::thread::hardware_concurrency( )));
 }
 
-service_base::load_result services_loader::load_impl()noexcept
+service_base::load_result services_loader::load_impl() noexcept
 {
 	CHEAT_CONSOLE_LOG("Cheat fully loaded");
 	co_return true;

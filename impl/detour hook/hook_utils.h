@@ -4,6 +4,8 @@
 
 #include <nstd/address.h>
 
+#include <intrin.h>
+
 #include <mutex>
 
 namespace dhooks
@@ -36,7 +38,7 @@ namespace dhooks
 	{
 		uintptr_t value;
 
-		hiddent_type( ) = default;
+		hiddent_type() = default;
 
 		hiddent_type(void* ptr)
 			: value(reinterpret_cast<uintptr_t>(ptr))
@@ -44,14 +46,14 @@ namespace dhooks
 		}
 
 		template <typename T1>
-		hiddent_type<T1> change_type( ) const
+		hiddent_type<T1> change_type() const
 		{
 			hiddent_type<T1> ret;
 			ret.value = value;
 			return ret;
 		}
 
-		decltype(auto) unhide( )
+		decltype(auto) unhide()
 		{
 			if constexpr (std::is_pointer_v<T>)
 				return reinterpret_cast<T>(value);
@@ -123,28 +125,28 @@ namespace dhooks
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::thiscall__, C, Args...>
 	{
-		virtual                ~hook_callback( ) = default;
+		virtual ~hook_callback() = default;
 		virtual Ret __thiscall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::fastcall__, C, Args...>
 	{
-		virtual                ~hook_callback( ) = default;
+		virtual ~hook_callback() = default;
 		virtual Ret __fastcall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::stdcall__, C, Args...>
 	{
-		virtual               ~hook_callback( ) = default;
+		virtual ~hook_callback() = default;
 		virtual Ret __stdcall callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 
 	template <typename Ret, typename C, typename ...Args>
 	struct hook_callback<Ret, call_conversion::cdecl__, C, Args...>
 	{
-		virtual             ~hook_callback( ) = default;
+		virtual ~hook_callback() = default;
 		virtual Ret __cdecl callback_proxy(hiddent_type<Args> ...) = 0;
 	};
 
@@ -264,51 +266,51 @@ namespace dhooks
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::*fn_sample)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__thiscall C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__thiscall C::*fn_sample)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::*fn_sample)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__fastcall C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__fastcall C::*fn_sample)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::*fn_sample)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__stdcall C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__stdcall C::*fn_sample)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::*fn)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::*fn_sample)(Args ...), C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	template <typename Ret, typename C, typename ...Args>
-	Ret _Call_function(Ret (__cdecl C::*fn)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
+	Ret _Call_function(Ret (__cdecl C::*fn_sample)(Args ...) const, const C* instance, size_t index, std::type_identity_t<Args> ...args)
 	{
-		return detail::_Call_virtual_fn(fn, instance, index, std::forward<Args>(args)...);
+		return detail::_Call_virtual_fn(fn_sample, instance, index, std::forward<Args>(args)...);
 	}
 
 	/**
@@ -338,22 +340,22 @@ namespace dhooks
 	}
 #pragma endregion
 
-	class hook_holder_base
+	class __declspec(novtable) hook_holder_base
 	{
 	protected:
-		virtual ~hook_holder_base( ) = default;
+		virtual ~hook_holder_base() = default;
 
 	public:
-		virtual bool hook( ) = 0;
-		virtual bool unhook( ) = 0;
-		virtual void unhook_after_call( ) = 0;
+		virtual bool hook() = 0;
+		virtual bool unhook() = 0;
+		virtual void unhook_after_call() = 0;
 
-		virtual bool enable( ) = 0;
-		virtual bool disable( ) = 0;
-		virtual void disable_after_call( ) = 0;
+		virtual bool enable() = 0;
+		virtual bool disable() = 0;
+		virtual void disable_after_call() = 0;
 
-		virtual bool hooked( ) const = 0;
-		virtual bool enabled( ) const = 0;
+		virtual bool hooked() const = 0;
+		virtual bool enabled() const = 0;
 	};
 
 	namespace detail
@@ -398,9 +400,9 @@ namespace dhooks
 		CHEAT_HOOKS_CALL_CVS_HELPER(CHEAT_HOOK_ORIGINAL_FN)
 
 		template <typename Ret, typename Arg1, typename ...Args>
-		struct hook_callback
+		struct __declspec(novtable) hook_callback
 		{
-			virtual      ~hook_callback( ) = default;
+			virtual ~hook_callback() = default;
 			virtual void callback(Args ...) = 0;
 		};
 
@@ -417,17 +419,17 @@ namespace dhooks
 				value_.emplace(Ret(std::forward<T>(val)));
 			}
 
-			void reset( )
+			void reset()
 			{
 				value_.reset( );
 			}
 
-			bool empty( ) const
+			bool empty() const
 			{
 				return !value_.has_value( );
 			}
 
-			Ret get( )
+			Ret get()
 			{
 				if constexpr (std::is_copy_constructible_v<Ret>)
 					return *value_;
@@ -451,22 +453,22 @@ namespace dhooks
 				skip_original__ = called;
 			}
 
-			void reset( )
+			void reset()
 			{
 				skip_original__ = false;
 			}
 
-			bool empty( ) const
+			bool empty() const
 			{
 				return skip_original__ == false;
 			}
 
-			void get( ) { (void)this; }
+			void get() { (void)this; }
 		};
 
 		struct hook_holder_data
 		{
-			context            ctx;
+			context ctx;
 			mutable std::mutex lock;
 
 			std::atomic<bool> active = false;
@@ -477,37 +479,40 @@ namespace dhooks
 				bool disable = false;
 				//-
 			} after_call;
+
+			std::optional<void*> return_address;
+			std::optional<void*> address_of_return_address;
 		};
 
-		class method_info
+		class __declspec(novtable) method_info
 		{
 		protected:
-			virtual ~method_info( ) = default;
+			virtual ~method_info() = default;
 
-			virtual nstd::address get_target_method_impl( ) const = 0;
+			virtual nstd::address get_target_method_impl() const = 0;
 
 		private:
 			nstd::address target_method_;
 
 		public:
-			nstd::address get_target_method( );
-			nstd::address get_target_method( ) const;
+			nstd::address get_target_method();
+			nstd::address get_target_method() const;
 
-			virtual nstd::address get_replace_method( ) = 0;
+			virtual nstd::address get_replace_method() = 0;
 		};
 
 		template <typename Ret, call_conversion CallCvs, typename Arg1, typename ...Args>
-		struct hook_holder_impl: virtual hook_holder_base,
-								 method_info,
-								 original_function<Ret, CallCvs, Arg1, Args...>,
-								 hook_callback<Ret, Arg1, Args...>
+		struct hook_holder_impl : hook_holder_base,
+								  method_info,
+								  original_function<Ret, CallCvs, Arg1, Args...>,
+								  hook_callback<Ret, Arg1, Args...>
 
 		{
 		private:
-			hook_holder_data data_;
+			hook_holder_data data_ = {};
 
 		protected:
-			static hook_holder_impl*& instance( )
+			static hook_holder_impl*& instance()
 			{
 				static hook_holder_impl* obj;
 				return obj;
@@ -516,7 +521,10 @@ namespace dhooks
 			lazy_return_value<Ret> return_value_;
 
 		public:
-			~hook_holder_impl( ) override
+			std::optional<void*>& get_return_address() { return data_.return_address; }
+			std::optional<void*>& get_address_of_return_address() { return data_.address_of_return_address; }
+
+			~hook_holder_impl() override
 			{
 				if (!data_.active)
 					return;
@@ -524,7 +532,7 @@ namespace dhooks
 				this->unhook( );
 			}
 
-			bool hook( ) final
+			bool hook() final
 			{
 				const auto lock = std::scoped_lock(data_.lock);
 
@@ -555,17 +563,17 @@ namespace dhooks
 				return true;
 			}
 
-			bool unhook( ) final
+			bool unhook() final
 			{
 				if (!data_.active)
 					return false;
 				data_.active = false;
 
 				const auto lock = std::scoped_lock(data_.lock);
-				auto&      ctx  = data_.ctx;
+				auto& ctx       = data_.ctx;
 
-				auto       target_func = this->get_target_method( ).ptr<void>( );
-				const auto ok          = ctx.remove_hook(target_func, true) == hook_status::OK;
+				auto target_func = this->get_target_method( ).ptr<void>( );
+				const auto ok    = ctx.remove_hook(target_func, true) == hook_status::OK;
 				/*if (!ok && !force)
 				{
 					runtime_assert("Unable to unhook function");
@@ -575,31 +583,31 @@ namespace dhooks
 				return ok;
 			}
 
-			void unhook_after_call( ) final
+			void unhook_after_call() final
 			{
 				data_.after_call.unhook = true;
 			}
 
-			bool enable( ) final
+			bool enable() final
 			{
 				if (!data_.active)
 					return false;
 
 				const auto lock = std::scoped_lock(data_.lock);
-				auto&      ctx  = data_.ctx;
+				auto& ctx       = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 
 				return (ctx.enable_hook(target_func) == hook_status::OK);
 			}
 
-			bool disable( ) final
+			bool disable() final
 			{
 				if (!data_.active)
 					return false;
 
 				const auto lock = std::scoped_lock(data_.lock);
-				auto&      ctx  = data_.ctx;
+				auto& ctx       = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 
@@ -609,30 +617,30 @@ namespace dhooks
 				return ret;
 			}
 
-			void disable_after_call( ) final
+			void disable_after_call() final
 			{
 				data_.after_call.disable = true;
 			}
 
-			bool hooked( ) const final
+			bool hooked() const final
 			{
 				if (!data_.active)
 					return false;
 
 				const auto lock = std::scoped_lock(data_.lock);
-				auto&      ctx  = data_.ctx;
+				auto& ctx       = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 				return ctx.find_hook(target_func).status == hook_status::OK;
 			}
 
-			bool enabled( ) const final
+			bool enabled() const final
 			{
 				if (!data_.active)
 					return false;
 
 				const auto lock = std::scoped_lock(data_.lock);
-				auto&      ctx  = data_.ctx;
+				auto& ctx       = data_.ctx;
 
 				auto target_func = this->get_target_method( ).ptr<void>( );
 				auto hook        = ctx.find_hook(target_func);
@@ -685,10 +693,10 @@ namespace dhooks
 		auto shift_left_impl(T& tpl, std::index_sequence<I...>)
 		{
 			return std::forward_as_tuple
-				(
-					reinterpret_cast<std::tuple_element_t<I + 1, T>&>(std::get<I>(tpl))
-				   .unhide( )...
-					);
+					(
+							reinterpret_cast<std::tuple_element_t<I + 1, T>&>(std::get<I>(tpl))
+						   .unhide( )...
+							);
 		}
 
 		template <typename ...T>
@@ -707,6 +715,13 @@ namespace dhooks
 		Ret __##_CALL_CVS_ callback_proxy(hiddent_type<Args> ...args)\
 		{\
 			auto _Instance = this->instance();\
+			auto &ra1=_Instance->get_return_address();\
+			if(ra1.has_value())\
+				ra1.emplace(_ReturnAddress());\
+			auto &ra2=_Instance->get_address_of_return_address();\
+			if(ra2.has_value())\
+				ra2.emplace(_AddressOfReturnAddress());\
+			\
 			if constexpr (std::is_class_v<Arg1>)\
 			{\
 				_Instance->object_instance = (Arg1*)this;\

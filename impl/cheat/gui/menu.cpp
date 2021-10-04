@@ -164,7 +164,7 @@ struct menu::impl
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
 		w.show_anim.set_end(/*1*/global_alpha);
 		w.show_anim.set_duration(250ms);
-#ifdef CHEAT_GUI_HAS_DEMO_WINDOW
+#ifdef CHEAT_GUI_TEST
 		w.show_anim.restart(true);
 		w.show = true;
 #else

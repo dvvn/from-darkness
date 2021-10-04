@@ -1,0 +1,19 @@
+#include "C_WeaponShield.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+using namespace cheat::csgo;
+
+float& C_WeaponShield::m_flDisplayHealth( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponShield", "m_flDisplayHealth");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}

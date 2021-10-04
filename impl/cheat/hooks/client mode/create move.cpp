@@ -21,6 +21,7 @@ using namespace hooks::client_mode;
 create_move::create_move()
 {
 	this->wait_for_service<players_list>( );
+	this->get_address_of_return_address( ).emplace( );
 }
 
 nstd::address create_move::get_target_method_impl() const
@@ -54,7 +55,7 @@ void create_move::callback(float input_sample_time, CUserCmd* cmd)
 	if (interfaces->client_state == nullptr || interfaces->engine->IsPlayingDemo( ))
 		return;
 
-	auto& send_packet = nstd::address(_AddressOfReturnAddress( ))//_AddressOfReturnAddress wrog here, store it in hook class
+	auto& send_packet = nstd::address(*this->get_address_of_return_address( ))
 					   .remove(4).deref(1)
 					   .remove(0x1C).ref<bool>( );
 #endif

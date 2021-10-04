@@ -1,4 +1,5 @@
 bool& m_bClientSideAnimation( );
+bool& m_bDiedAirborne( );
 float& m_flAbsYaw( );
 float& m_flDeathYaw( );
 cheat::csgo::CBaseHandle& m_hPlayer( );

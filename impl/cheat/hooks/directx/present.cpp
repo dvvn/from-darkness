@@ -42,7 +42,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 		const auto menu = gui::menu::get_ptr( );
 #if CHEAT_GUI_HAS_DEMO_WINDOW && !defined(IMGUI_DISABLE_DEMO_WINDOWS)
 #ifndef CHEAT_GUI_TEST
-		if (menu->active( ))
+		if (menu->visible( ))
 #endif
 		ImGui::ShowDemoWindow( );
 #endif

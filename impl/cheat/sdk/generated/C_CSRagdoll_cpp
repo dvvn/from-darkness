@@ -20,6 +20,16 @@ bool& C_CSRagdoll::m_bClientSideAnimation( )
 	return addr.ref<bool>( );
 #endif
 }
+bool& C_CSRagdoll::m_bDiedAirborne( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_CSRagdoll", "m_bDiedAirborne");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
 float& C_CSRagdoll::m_flAbsYaw( )
 {
 #ifdef CHEAT_NETVARS_UPDATING

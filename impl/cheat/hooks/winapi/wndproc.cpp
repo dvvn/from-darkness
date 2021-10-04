@@ -86,7 +86,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 
 #if !defined(CHEAT_GUI_HAS_DEMO_WINDOW) || !defined(CHEAT_GUI_TEST)
-		if (menu->active( ))
+		if (menu->visible( ))
 #endif
 		{
 			if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
