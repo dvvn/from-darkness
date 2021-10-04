@@ -1,5 +1,6 @@
 #include "wndproc.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/services loader.h"
 #include "cheat/gui/imgui context.h"
 #include "cheat/gui/menu.h"
@@ -11,12 +12,12 @@ using namespace cheat;
 using namespace hooks::winapi;
 using namespace gui;
 
-wndproc::wndproc( )
+wndproc::wndproc()
 {
 	this->wait_for_service<imgui_context>( );
 }
 
-service_base::load_result wndproc::load_impl( )
+service_base::load_result wndproc::load_impl()noexcept
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
 	runtime_assert(hwnd != nullptr);
@@ -24,10 +25,10 @@ service_base::load_result wndproc::load_impl( )
 	unicode_         = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	return hook_base::load_impl( );
+	CHEAT_SERVICE_HOOK_PROXY_RUN
 }
 
-nstd::address wndproc::get_target_method_impl( ) const
+nstd::address wndproc::get_target_method_impl() const
 {
 	return std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get_ptr( )->hwnd( ), GWLP_WNDPROC);
 }
@@ -49,9 +50,9 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 	enum class result : uint8_t
 	{
-		none,
-		blocked,
-		skipped
+		none
+	  , blocked
+	  , skipped
 	};
 
 	// ReSharper disable once CppTooWideScopeInitStatement
@@ -117,7 +118,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 }
 
-void wndproc::render( )
+void wndproc::render()
 {
 	ImGui::Checkbox("override return", &override_return_);
 	if (override_return_)

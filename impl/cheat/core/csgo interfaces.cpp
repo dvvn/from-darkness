@@ -20,7 +20,7 @@ using namespace csgo;
 	return dhooks::_Pointer_to_virtual_class_table(instance)[index];
 }
 
-nstd::address csgo_interface_base::addr( ) const
+nstd::address csgo_interface_base::addr() const
 {
 	return result_;
 }
@@ -32,7 +32,7 @@ csgo_interface_base& csgo_interface_base::operator=(const nstd::address& addr)
 	return *this;
 }
 
-void csgo_interface_base::Set_result_assert_( ) const
+void csgo_interface_base::Set_result_assert_() const
 {
 	runtime_assert(result_ == 0u, "Result already set!");
 }
@@ -41,7 +41,7 @@ void csgo_interface_base::Set_result_assert_( ) const
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-service_base::load_result csgo_interfaces::load_impl( )
+service_base::load_result csgo_interfaces::load_impl() noexcept
 {
 	//unused
 #if 0
@@ -102,8 +102,10 @@ service_base::load_result csgo_interfaces::load_impl( )
 #endif
 #endif
 
-#ifndef CHEAT_GUI_TEST
+#ifdef CHEAT_GUI_TEST
 
+	d3d_device = (g_pd3dDevice);
+#else
 	client        = csgo_modules::client.find_interface<"VClient">( );
 	entity_list   = csgo_modules::client.find_interface<"VClientEntityList">( );
 	prediction    = csgo_modules::client.find_interface<"VClientPrediction">( );
@@ -140,16 +142,14 @@ service_base::load_result csgo_interfaces::load_impl( )
 	client_state = csgo_modules::engine.find_signature<"A1 ? ? ? ? 8B 80 ? ? ? ? C3">( ).add(1).deref(2);
 
 	d3d_device = csgo_modules::shaderapidx9.find_signature<"A1 ? ? ? ? 50 8B 08 FF 51 0C">( ).add(1).deref(2);
-#else
-	d3d_device = (g_pd3dDevice);
 #endif
 
-	co_return service_state::loaded;
+	co_return true;
 }
 
-csgo_interfaces::csgo_interfaces( )
+csgo_interfaces::csgo_interfaces()
 {
-	this->wait_for_service<console>();
+	this->wait_for_service<console>( );
 }
 
 CHEAT_REGISTER_SERVICE(csgo_interfaces);

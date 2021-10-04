@@ -1,12 +1,12 @@
 #include "estimate abs velocity.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/services loader.h"
 #include "cheat/core/csgo modules.h"
 
 #include "cheat/sdk/Vector.hpp"
 #include "cheat/sdk/entity/C_BaseEntity.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
 
@@ -19,13 +19,6 @@ using namespace c_base_entity;
 using namespace csgo;
 
 estimate_abs_velocity::estimate_abs_velocity()
-	: service_maybe_skipped(
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-			true
-#else
-								false
-#endif
-			)
 {
 	this->wait_for_service<netvars>( );
 }
@@ -38,13 +31,19 @@ nstd::address estimate_abs_velocity::get_target_method_impl() const
 	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }
 
+CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(estimate_abs_velocity)
+
 void estimate_abs_velocity::callback(Vector& vel)
 {
-#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#if !CHEAT_SERVICE_INGAME||!__has_include("cheat/sdk/generated/C_BaseEntity_h")
+	runtime_assert("Skipped but called");
 #pragma message(__FUNCTION__ ": skipped")
 #else
+using namespace nstd::enum_operators;
+
 	const auto ent = this->object_instance;
-	if (reinterpret_cast<nstd::decayed_enum<m_iEFlags_t>&>(ent->m_iEFlags( )).has(m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
+
+	if ((ent->m_iEFlags( )) & (m_iEFlags_t::EFL_DIRTY_ABSVELOCITY))
 	{
 		// ReSharper disable once CppInconsistentNaming
 		static auto CalcAbsoluteVelocity_fn = []

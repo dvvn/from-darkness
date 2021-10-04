@@ -249,7 +249,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\address.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\chars cache.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\checksum.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\containers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\core.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum_tools.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\smooth_value.h" />
@@ -297,7 +296,6 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\base.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate abs velocity.cpp" />

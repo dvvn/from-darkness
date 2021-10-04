@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include "cheat/core/service.h"
 
 #include "nstd/runtime assert.h"
@@ -21,7 +22,7 @@ namespace cheat
 	{
 		class string_packer
 		{
-			void init( );
+			void init();
 
 		public:
 			using str = std::string;
@@ -44,24 +45,20 @@ namespace cheat
 			string_packer(wostr&& os);
 			string_packer(const wostr& os);
 
-			~string_packer( );
+			~string_packer();
 
 			struct data_type;
 			std::unique_ptr<data_type> packed;
 		};
 	}
 
-	class console final: public service<console>
-					   , nstd::rt_assert_handler
-#ifndef CHEAT_HAVE_CONSOLE
-		, service_always_skipped
-#endif
+	class console final : public service<console>, nstd::rt_assert_handler
 	{
 	public:
 		class cache_type;
 
-		console( );
-		~console( ) override;
+		console();
+		~console() override;
 
 		void write(detail::string_packer&& str);
 		void write_line(detail::string_packer&& str);
@@ -69,8 +66,8 @@ namespace cheat
 		void write(wchar_t c) = delete;
 
 	protected:
-		load_result load_impl( ) override;
-		void        handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept override;
+		load_result load_impl() noexcept override;
+		void handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept override;
 
 	private:
 		bool allocated_ = false;
@@ -78,9 +75,9 @@ namespace cheat
 
 		std::unique_ptr<cache_type> cache_;
 
-		FILE* in_  = 0;
-		FILE* out_ = 0;
-		FILE* err_ = 0;
+		FILE* in_  = nullptr;
+		FILE* out_ = nullptr;
+		FILE* err_ = nullptr;
 	};
 
 #ifdef CHEAT_HAVE_CONSOLE

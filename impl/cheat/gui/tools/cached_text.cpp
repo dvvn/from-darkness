@@ -1,7 +1,6 @@
 ﻿#include "cached_text.h"
 
-#include "nstd/enum_tools.h"
-
+#include <nstd/enum_tools.h>
 #include <nstd/memory backup.h>
 #include <nstd/runtime assert.h>
 #include <nstd/overload.h>
@@ -80,7 +79,7 @@ imgui_string_transparent::operator imgui_string::imgui_type() const
 void cached_text::set_font(ImFont* new_font)
 {
 	font = new_font;
-	update_flags_.add(update_flags::FONT_CHANGED);
+	add_update_flag(update_flags::FONT_CHANGED);
 	if (label.empty( ))
 		return;
 	this->update( );
@@ -88,9 +87,11 @@ void cached_text::set_font(ImFont* new_font)
 
 void cached_text::update()
 {
-	runtime_assert(!label.empty());
-	runtime_assert(font!=nullptr);
-	runtime_assert(update_flags_.has(update_flags::CHANGED));
+	using namespace nstd::enum_operators;
+
+	runtime_assert(!label.empty( ));
+	runtime_assert(font != nullptr);
+	runtime_assert(update_flags_ & (update_flags::CHANGED));
 
 	using char_type = label_type::value_type;
 	const auto get_glyphs_for = [&](const std::basic_string_view<char_type>& str)
@@ -113,22 +114,28 @@ void cached_text::update()
 	//cache_glyphs
 	auto glyphs = get_glyphs_for(label);
 	//glyphs_.assign(glyphs.begin( ), glyphs.end( ));
-	auto visible_glyphs      = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.Visible; });
-	auto renderavle_glyphs   = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.AdvanceX > 0; });
+	auto visible_glyphs     = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.Visible; });
+	auto renderavle_glyphs  = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.AdvanceX > 0; });
 	visible_glyphs_count    = std::ranges::distance(visible_glyphs);
 	randerable_glyphs_count = std::ranges::distance(renderavle_glyphs);
 
 	//update_label_size
 	auto advances = glyphs | std::views::transform(&ImFontGlyph::AdvanceX); //AdvanceX is valid after atlas rebuild
-	label_size.x = std::accumulate(advances.begin( ), advances.end( ), 0.f);
-	label_size.y = font->FontSize; //line_height
+	label_size.x  = std::accumulate(advances.begin( ), advances.end( ), 0.f);
+	label_size.y  = font->FontSize; //line_height
 
-	if (update_flags_.has(update_flags::LABEL_CHANGED))
+	if (update_flags_ & (update_flags::LABEL_CHANGED))
 		label_hash = std::_Hash_array_representation(label._Unchecked_begin( ), label.size( ));
 
 	this->on_update(update_flags_);
 
 	update_flags_ = update_flags::NONE;
+}
+
+void cached_text::add_update_flag(update_flags flag)
+{
+	using namespace nstd::enum_operators;
+	update_flags_ |= (flag);
 }
 
 template <typename T>
@@ -170,7 +177,7 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 	{
 		std::array<nstd::memory_backup<float>, 4> backup;
 
-		auto& [min,max] = clip_rect_override;
+		auto& [min, max] = clip_rect_override;
 		if (min.x > 0 && (cram_clip_rect || min.x > clip_rect.x))
 			backup[0] = {clip_rect.x, min.x};
 		if (min.y > 0 && (cram_clip_rect || min.y > clip_rect.y))

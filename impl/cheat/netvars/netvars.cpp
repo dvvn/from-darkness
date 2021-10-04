@@ -25,10 +25,10 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-class lazy_file_writer final: public std::ostringstream
+class lazy_file_writer final : public std::ostringstream
 {
 public:
-	~lazy_file_writer( ) override
+	~lazy_file_writer() override
 	{
 		if (file_.empty( ))
 			return;
@@ -71,29 +71,22 @@ struct netvars::hidden
 	using lazy_writer_type = std::vector<lazy_file_writer>;
 
 	lazy_writer_type lazy_writer;
-	storage_type     storage;
+	storage_type storage;
 };
 
-netvars::~netvars( ) = default;
+netvars::~netvars() = default;
 
-netvars::netvars( )
-	: service_maybe_skipped(
-#ifdef CHEAT_NETVARS_DUMPER_DISABLED
-								true
-#else
-								false
-#endif
-							   )
+netvars::netvars()
 {
 	hidden_ = std::make_unique<hidden>( );
-	this->wait_for_service<csgo_interfaces>();
+	this->wait_for_service<csgo_interfaces>( );
 }
 
 static std::string _Str_to_lower(const std::string_view& str)
 {
 	std::string ret;
 	ret.reserve(str.size( ));
-	for (const auto c: str)
+	for (const auto c : str)
 		ret += static_cast<char>(std::tolower(c));
 	return ret;
 }
@@ -119,7 +112,7 @@ static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, in
 {
 	auto path = std::string(std::forward<Nstr>(name));
 
-	auto&& [entry, added] = storage.emplace(std::move(path), netvars::hidden::storage_type{ });
+	auto&& [entry, added] = storage.emplace(std::move(path), netvars::hidden::storage_type{});
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -135,9 +128,9 @@ static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, in
 	{
 		*entry =
 		{
-			{"offset", offset},
+				{"offset", offset},
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-			{"type", std::string(std::forward<Tstr>(type))}
+				{"type", std::string(std::forward<Tstr>(type))}
 #endif
 		};
 	}
@@ -164,7 +157,7 @@ static std::pair<netvars::hidden::storage_type::iterator, bool> _Add_child_class
 		runtime_assert(!class_name.starts_with("DT_"));
 	}
 
-	return storage.emplace(std::move(class_name), netvars::hidden::storage_type::value_type{ });
+	return storage.emplace(std::move(class_name), netvars::hidden::storage_type::value_type{});
 }
 
 static std::string _As_std_array_type(const std::string_view& type, size_t size)
@@ -417,7 +410,7 @@ static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars:
 				auto array_size = std::optional<size_t>(1);
 
 				// ReSharper disable once CppUseStructuredBinding
-				for (const auto& p: std::span(std::next(itr), props.end( )))
+				for (const auto& p : std::span(std::next(itr), props.end( )))
 				{
 					if (const auto name = std::string_view(p.m_pVarName); name.starts_with(real_prop_name))
 					{
@@ -505,7 +498,7 @@ static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars:
 		}
 		else
 		{
-			const auto  child_table = prop.m_pDataTable;
+			const auto child_table  = prop.m_pDataTable;
 			const auto& child_props = child_table->props;
 			if (!child_table || child_props.empty( ))
 				continue;
@@ -526,7 +519,7 @@ static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars:
 
 #ifdef _DEBUG
 				// ReSharper disable once CppUseStructuredBinding
-				for (const auto& rp: std::span(array_begin + 1, child_props.end( )))
+				for (const auto& rp : std::span(array_begin + 1, child_props.end( )))
 				{
 					runtime_assert(std::isdigit(rp.m_pVarName[0]));
 					runtime_assert(rp.m_RecvType == array_begin->m_RecvType);
@@ -534,7 +527,7 @@ static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars:
 #endif
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				const auto  array_size = std::distance(array_begin, child_props.end( ));
+				const auto array_size = std::distance(array_begin, child_props.end( ));
 				std::string netvar_type;
 #endif
 				if (array_begin->m_RecvType != DPT_DataTable)
@@ -545,7 +538,7 @@ static void _Store_recv_props(netvars::hidden::storage_type& root_tree, netvars:
 				}
 				else
 				{
-					const auto  child_table_name = std::string_view(child_table->m_pNetTableName);
+					const auto child_table_name = std::string_view(child_table->m_pNetTableName);
 					std::string child_table_unique_name;
 					if (prop_name != child_table_name)
 					{
@@ -604,7 +597,7 @@ static void _Iterate_client_class(netvars::hidden::storage_type& root_tree, Clie
 static void _Store_datamap_props(netvars::hidden::storage_type& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
-	for (auto& desc: map->data)
+	for (auto& desc : map->data)
 	{
 		if (desc.fieldType == FIELD_EMBEDDED)
 		{
@@ -647,8 +640,13 @@ static void _Iterate_datamap(netvars::hidden::storage_type& root_tree, datamap_t
 	}
 }
 
-service_base::load_result netvars::load_impl( )
+service_base::load_result netvars::load_impl() noexcept
 {
+#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
+
+	CHEAT_SERVICE_SKIPPED
+#else
+
 	auto& data = hidden_->storage;
 
 #ifdef _DEBUG
@@ -664,7 +662,15 @@ service_base::load_result netvars::load_impl( )
 	_Iterate_datamap(data, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data, baseent->GetPredictionDescMap( ));
 
-	co_return service_state::loaded;
+#if defined(CHEAT_NETVARS_RESOLVE_TYPE)
+
+	const auto info = _Dump_netvars(hidden_->storage);
+	_Generate_classes(info, hidden_->storage, hidden_->lazy_writer);
+
+#endif
+	CHEAT_SERVICE_LOADED
+	
+#endif
 }
 
 #define CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(VS_SolutionDir)"\\"
@@ -676,16 +682,16 @@ service_base::load_result netvars::load_impl( )
 static const auto CHEAT_NETVARS_GENERATED_CLASSES_DIR = std::filesystem::path(CHEAT_SOURCE_DIR) / L"sdk" / L"generated";
 static const auto CHEAT_NETVARS_DUMP_DIR              = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
 
-static constexpr int  CHEAT_NETVARS_JSON_INDENT = 4;
+static constexpr int CHEAT_NETVARS_JSON_INDENT  = 4;
 static constexpr char CHEAT_NETVARS_JSON_FILLER = ' ';
 // ReSharper restore CppInconsistentNaming
 
 enum class dump_info:uint8_t
 {
-	unset,
-	skipped,
-	created,
-	updated
+	unset
+  , skipped
+  , created
+  , updated
 };
 
 [[maybe_unused]]
@@ -747,12 +753,12 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 		{
 			auto data = robin_hood::unordered_set<std::string_view>( );
 			data.reserve(netvars_data.size( ));
-			for (auto& [class_name, netvars]: netvars_data.items( ))
+			for (auto& [class_name, netvars] : netvars_data.items( ))
 				data.emplace(class_name);
 			return data;
 		}( );
 
-		for (auto& entry: std::filesystem::directory_iterator(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
+		for (auto& entry : std::filesystem::directory_iterator(CHEAT_NETVARS_GENERATED_CLASSES_DIR))
 		{
 			const auto name      = entry.path( ).filename( ).string( );
 			const auto real_size = name.rfind('_'); //erase _h _cpp
@@ -776,7 +782,7 @@ _CREATE:
 _WORK:
 
 	lazy_writer.reserve(netvars_data.size( ) * 2);
-	for (auto& [CLASS_NAME, NETVARS]: netvars_data.items( ))
+	for (auto& [CLASS_NAME, NETVARS] : netvars_data.items( ))
 	{
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppTooWideScope
@@ -791,11 +797,11 @@ _WORK:
 		const auto source_add_include = [&source](const std::string_view& file_name, bool global = false)
 		{
 			source <<
-				"#include "
-				<< (global ? '<' : '"')
-				<< file_name
-				<< (global ? '>' : '"')
-				<< __New_line;
+					"#include "
+					<< (global ? '<' : '"')
+					<< file_name
+					<< (global ? '>' : '"')
+					<< __New_line;
 		};
 
 		const auto source_add_dynamic_includes = [&]
@@ -804,7 +810,7 @@ _WORK:
 			runtime_assert("Unable to get dynamic includes!");
 #else
 
-			struct include_name: std::string
+			struct include_name : std::string
 			{
 				include_name(std::string&& name, bool global)
 					: std::string(std::move(name)), global(global)
@@ -816,7 +822,7 @@ _WORK:
 			//auto includes = robin_hood::unordered_set<include_name, robin_hood::hash<std::string>>( );
 			auto includes = std::set<include_name>( );
 			// ReSharper disable CppRemoveRedundantBraces
-			for (auto& [netvar_name, netvar_data]: NETVARS.items( ))
+			for (auto& [netvar_name, netvar_data] : NETVARS.items( ))
 			{
 				const auto netvar_type = nstd::drop_namespaces(netvar_data.at("type").get_ref<const std::string&>( ));
 
@@ -827,7 +833,7 @@ _WORK:
 				else if (std::isupper(netvar_type[0])) //Vector Qangle etc
 				{
 					std::string extension;
-					for (auto& entry: std::filesystem::directory_iterator(CHEAT_SOURCE_DIR NSTD_STRINGIZE_RAW(sdk\)))
+					for (auto& entry : std::filesystem::directory_iterator(CHEAT_SOURCE_DIR NSTD_STRINGIZE_RAW(sdk\)))
 					{
 						if (!entry.is_regular_file( ))
 							continue;
@@ -866,12 +872,12 @@ _WORK:
 				}
 				default:
 				{
-					for (auto& in: includes)
+					for (auto& in : includes)
 					{
 						if (!in.global)
 							source_add_include(in, false);
 					}
-					for (auto& in: includes)
+					for (auto& in : includes)
 					{
 						if (in.global)
 							source_add_include(in, true);
@@ -900,13 +906,13 @@ _WORK:
 
 		source << __New_line;
 
-		for (auto& [NETVAR_NAME, NETVAR_DATA]: NETVARS.items( ))
+		for (auto& [NETVAR_NAME, NETVAR_DATA] : NETVARS.items( ))
 		{
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.get(NETVAR_DATA);
 #endif
-			std::string_view netvar_type         = NETVAR_DATA.at("type").get_ref<const std::string&>( );
-			const auto       netvar_type_pointer = netvar_type.ends_with('*');
+			std::string_view netvar_type   = NETVAR_DATA.at("type").get_ref<const std::string&>( );
+			const auto netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
 				netvar_type.remove_suffix(1);
 
@@ -925,10 +931,10 @@ _WORK:
 			source << __Tab << format("auto addr = {}(this).add({});", _Address_class, netvar_offset) << __New_line;
 #else
 			source
-				<< __Tab
-				<< "static const auto offset = netvars::get_ptr( )->at"
-				<< std::format("(\"{}\", \"{}\");", CLASS_NAME, NETVAR_NAME)
-				<< __New_line;
+					<< __Tab
+					<< "static const auto offset = netvars::get_ptr( )->at"
+					<< std::format("(\"{}\", \"{}\");", CLASS_NAME, NETVAR_NAME)
+					<< __New_line;
 			source << __Tab << "auto addr = " << _Address_class << "(this).add(offset);" << __New_line;
 #endif
 			source << __Tab << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
@@ -949,24 +955,14 @@ _WORK:
 	CHEAT_CONSOLE_LOG("Netvars classes generation done");
 }
 
-void netvars::after_load( )
-{
-#if defined(CHEAT_NETVARS_RESOLVE_TYPE) && !defined(CHEAT_NETVARS_DUMPER_DISABLED)
-
-	const auto info = _Dump_netvars(hidden_->storage);
-	_Generate_classes(info, hidden_->storage, hidden_->lazy_writer);
-
-#endif
-}
-
 int netvars::at(const std::string_view& table, const std::string_view& item) const
 {
-	for (auto& [table_stored, keys]: hidden_->storage.items( ))
+	for (auto& [table_stored, keys] : hidden_->storage.items( ))
 	{
 		if (table_stored != table)
 			continue;
 
-		for (const auto& [item_stored, data]: keys.items( ))
+		for (const auto& [item_stored, data] : keys.items( ))
 		{
 			if (item_stored == item)
 				return data["offset"].get<int>( );

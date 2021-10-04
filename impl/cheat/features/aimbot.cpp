@@ -1,5 +1,6 @@
 ﻿#include "aimbot.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/services loader.h"
 
 #include "cheat/gui/imgui context.h"
@@ -116,11 +117,11 @@ void aimbot::load(const json& out)
 {
 }
 
-cheat::service_base::load_result aimbot::load_impl()
+cheat::service_base::load_result aimbot::load_impl()noexcept
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );
-	co_return service_state::loaded;
+	CHEAT_SERVICE_LOADED
 }
 
 void aimbot::render()
@@ -146,7 +147,7 @@ void aimbot::render()
 	auto& cb_check_anim = impl_->test_cb_check_anim;
 	ImGui::Checkbox("Test checkbox", &sb_data.value);
 	ImGui::SameLine( );
-	gui::widgets::checkbox2(cb_data, sb_data.value, std::addressof(cb_data), std::addressof(cb_check_anim));
+	gui::widgets::checkbox2(cb_data, sb_data.value, true, std::addressof(cb_data), std::addressof(cb_check_anim));
 }
 
 CHEAT_REGISTER_SERVICE(aimbot);

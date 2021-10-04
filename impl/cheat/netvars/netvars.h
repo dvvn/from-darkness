@@ -5,7 +5,6 @@
 namespace cheat
 {
 	class netvars final: public service<netvars>
-					   , service_maybe_skipped
 	{
 	public:
 		~netvars( ) override;
@@ -16,8 +15,7 @@ namespace cheat
 		struct hidden;
 
 	protected:
-		load_result load_impl( ) override;
-		void        after_load( ) override;
+		load_result load_impl( )noexcept override;
 
 	private:
 		std::unique_ptr<hidden> hidden_;

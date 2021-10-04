@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include "nstd/enum_tools.h"
-
 #include <nstd/unistring.h>
 
 #include <imgui_internal.h>
@@ -151,7 +149,7 @@ namespace cheat::gui::tools
 		void set_label(T&& str)
 		{
 			label.uni_assign(std::forward<T>(str));
-			update_flags_.add(update_flags::LABEL_CHANGED);
+			add_update_flag(update_flags::LABEL_CHANGED);
 			if (!font)
 				return;
 			this->update( );
@@ -184,6 +182,8 @@ namespace cheat::gui::tools
 	private:
 		void update();
 
-		nstd::decayed_enum<update_flags> update_flags_ = update_flags::NONE;
+		void add_update_flag(update_flags flag);
+
+		update_flags update_flags_ = update_flags::NONE;
 	};
 }

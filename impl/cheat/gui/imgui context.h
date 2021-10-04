@@ -63,7 +63,7 @@ namespace cheat::gui
 		fonts_builder_proxy fonts( ) const;
 
 	protected:
-		load_result load_impl( ) override;
+		load_result load_impl( )noexcept override;
 
 	private:
 		struct data_type;

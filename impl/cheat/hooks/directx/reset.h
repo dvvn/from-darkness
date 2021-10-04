@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cheat/core/service.h"
 #include "cheat/hooks/base.h"
 
 // ReSharper disable CppInconsistentNaming
@@ -12,13 +11,14 @@ using HRESULT = long;
 
 namespace cheat::hooks::directx
 {
-	class reset final: public hook_base<reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
+	class reset final : public service_hook_proxy<reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
 	{
 	public:
-		reset( );
+		reset();
 
 	protected:
-		nstd::address get_target_method_impl( ) const override;
-		void          callback(D3DPRESENT_PARAMETERS*) override;
+		load_result load_impl() noexcept override;
+		nstd::address get_target_method_impl() const override;
+		void callback(D3DPRESENT_PARAMETERS*) override;
 	};
 }

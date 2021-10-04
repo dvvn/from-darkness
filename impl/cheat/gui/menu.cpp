@@ -2,6 +2,7 @@
 
 #include "imgui context.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/services loader.h"
 #include "cheat/features/aimbot.h"
 //#include "cheat/features/anti aim.h"
@@ -9,6 +10,8 @@
 //#include "cheat/hooks/winapi/wndproc.h"
 
 //#include "widgets/tab_bar_with_pages.h"
+
+
 #include "tools/cached_text.h"
 
 #include "widgets/window.h"
@@ -266,7 +269,7 @@ public:
 };
 #endif
 
-cheat::service_base::load_result menu::load_impl()
+cheat::service_base::load_result menu::load_impl()noexcept
 {
 #if 0
 	renderer_.add_page([]
@@ -330,7 +333,7 @@ cheat::service_base::load_result menu::load_impl()
 	impl_->init_window( );
 	impl_->init_pages( );
 
-	co_return service_state::loaded;
+CHEAT_SERVICE_LOADED
 }
 
 CHEAT_REGISTER_SERVICE(menu);

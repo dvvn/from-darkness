@@ -32,21 +32,32 @@ namespace nstd
 	template <class T, class Clock>
 	class smooth_value_base : public smooth_object_base
 	{
-	public:
-		class target
+		struct target_id_base
 		{
-		public:
-			virtual ~target() = default;
-			virtual void set_target(T& obj) = 0;
-
-			virtual T& get_value() = 0;
+			virtual ~target_id_base() = default;
 			//typeid suck
 			virtual size_t id() const =0;
 		};
 
-		class target_external final : public target
+		template <size_t Id>
+		struct target_id : virtual target_id_base
+		{
+			static constexpr size_t id_value = Id;
+			size_t id() const override { return Id; }
+		};
+
+		struct target : virtual target_id_base
+		{
+			virtual void set_target(T& obj) = 0;
+			virtual T& get_value() = 0;
+		};
+
+	public:
+		class target_external final : public target, public target_id<__COUNTER__>
 		{
 		public:
+			target_external() = default;
+
 			void set_target(T& obj) override
 			{
 				target_val_ = std::addressof(obj);
@@ -57,18 +68,11 @@ namespace nstd
 				return *target_val_;
 			}
 
-			static constexpr auto id_value = __COUNTER__;
-
-			size_t id() const override
-			{
-				return id_value;
-			}
-
 		private:
 			T* target_val_ = nullptr;
 		};
 
-		class target_internal final : public target
+		class target_internal final : public target, public target_id<__COUNTER__>
 		{
 		public:
 			target_internal() = default;
@@ -81,13 +85,6 @@ namespace nstd
 			T& get_value() override
 			{
 				return target_val_;
-			}
-
-			static constexpr auto id_value = __COUNTER__;
-
-			size_t id() const override
-			{
-				return id_value;
 			}
 
 		private:
@@ -108,7 +105,7 @@ namespace nstd
 		{
 			if (!target_val_ || state_ == state::FINISHED)
 				return;
-			if (target_val_->id() == target_external::id_value)
+			if (target_val_->id( ) == target_external::id_value)
 				target_val_->set_target(end_val_);
 		}
 
@@ -252,7 +249,7 @@ namespace nstd
 				state_     = state::STARTED;
 				frame_time = elapsed_time = duration::zero( );
 				last_time_ = start_time_;
-				if (target_val_->id() == target_external::id_value)
+				if (target_val_->id( ) == target_external::id_value)
 				{
 					//force if value externally changed
 					target_val_->get_value( ) = temp_val_old_.value_or(start_val_);

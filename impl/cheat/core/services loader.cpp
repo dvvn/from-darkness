@@ -41,9 +41,9 @@ struct services_loader::load_thread: std::jthread
 
 struct unload_helper_data
 {
-	DWORD            sleep;
-	HMODULE          handle;
-	BOOL             retval;
+	DWORD sleep;
+	HMODULE handle;
+	BOOL retval;
 	services_loader* holder;
 };
 
@@ -58,7 +58,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	using get_all_hooks_fn = std::function<void(const service_base& base, hooks_storage& set)>;
 	const get_all_hooks_fn get_all_hooks = [&](const service_base& base, hooks_storage& set)
 	{
-		for (auto& s: base.services( ))
+		for (auto& s : base.services( ))
 		{
 			auto ptr = std::dynamic_pointer_cast<dhooks::hook_holder_base>(s);
 			if (ptr != nullptr)
@@ -72,7 +72,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	get_all_hooks(*holder, all_hooks);
 
 	auto frozen = nstd::os::frozen_threads_storage(true);
-	for (auto& h: all_hooks)
+	for (auto& h : all_hooks)
 		h->disable( );
 
 	frozen.clear( );
@@ -116,34 +116,24 @@ void services_loader::unload( )
 
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
-#endif
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
-std::stop_token services_loader::load_thread_stop_token( ) const
-{
-#ifndef CHEAT_GUI_TEST
-	return load_thread_->get_stop_token( );
-#else
-	return { };
-#endif
+std::stop_token services_loader::load_thread_stop_token() const
+{	return load_thread_->get_stop_token( );
 }
+#endif
 
-service_base::executor services_loader::make_executor( )
+service_base::executor services_loader::make_executor()
 {
 	return executor(std::max<size_t>(8, std::thread::hardware_concurrency( )));
 }
 
-service_base::load_result services_loader::load_impl( )
-{
-	co_return service_state::loaded;
-}
-
-void services_loader::after_load( )
+service_base::load_result services_loader::load_impl()noexcept
 {
 	CHEAT_CONSOLE_LOG("Cheat fully loaded");
+	co_return true;
 }
 
-services_loader::~services_loader( )
+services_loader::~services_loader()
 {
 }
 
@@ -153,7 +143,7 @@ services_loader::~services_loader( )
 //	Where::get_ptr( )->template wait_for_service<Obj>( );
 //}
 
-services_loader::services_loader( )
+services_loader::services_loader()
 {
 #ifndef CHEAT_GUI_TEST
 	load_thread_ = std::make_unique<load_thread>( );

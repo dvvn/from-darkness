@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cheat/core/service.h"
 #include "cheat/hooks/base.h"
 
 namespace cheat::csgo
@@ -11,14 +10,14 @@ namespace cheat::csgo
 
 namespace cheat::hooks::client_mode
 {
-	class create_move final: public hook_base<create_move, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*)>
-						   , service_maybe_skipped
+	class create_move final : public service_hook_proxy<create_move, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*)>
 	{
 	public:
-		create_move( );
+		create_move();
 
 	protected:
-		nstd::address get_target_method_impl( ) const override;
-		void          callback(float input_sample_time, csgo::CUserCmd* cmd) override;
+		load_result load_impl() noexcept override;
+		nstd::address get_target_method_impl() const override;
+		void callback(float input_sample_time, csgo::CUserCmd* cmd) override;
 	};
 }

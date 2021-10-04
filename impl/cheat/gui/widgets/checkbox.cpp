@@ -14,7 +14,7 @@ using namespace cheat::gui;
 using namespace widgets;
 using namespace tools;
 
-button_state widgets::checkbox2(const cached_text& text,/* nstd::confirmable_value<bool>*/bool& value
+button_state widgets::checkbox2(const cached_text& text,/* nstd::confirmable_value<bool>*/bool& value, bool text_clickable
 							  , smooth_value_base<ImVec4>* bg_animation, smooth_value_base<ImVec4>* check_animation)
 {
 	const auto window = ImGui::GetCurrentWindow( );
@@ -36,7 +36,8 @@ button_state widgets::checkbox2(const cached_text& text,/* nstd::confirmable_val
 		return button_state::UNKNOWN;
 
 	const auto id    = imgui_id(text, window);
-	const auto state = button_behavior(check_bb, id, render_check == false);
+	const auto state = text_clickable ? button_behavior(total_bb, id) : button_behavior(check_bb, id, render_check == false);
+
 	if (state == button_state::PRESSED)
 		value = !value;
 

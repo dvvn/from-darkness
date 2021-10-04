@@ -2,31 +2,32 @@
 
 //#include "detour hook/hook_utils.h"
 
-#include "nstd/one_instance.h"
-#include "nstd/type name.h"
+#include <nstd/one_instance.h>
+#include <nstd/type name.h>
 
+#include <cppcoro/async_mutex.hpp>
+#include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/task.hpp>
 
 #include <concepts>
 #include <span>
-
-namespace cppcoro
-{
-	class static_thread_pool;
-	/*template <typename T>
-	class [[nodiscard]] task;*/
-}
+#include <vector>
 
 namespace cheat
 {
+	#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+	#define CHEAT_SERVICE_INGAME 0
+#else
+	#define CHEAT_SERVICE_INGAME 1
+#endif
+
 	enum class service_state : uint8_t
 	{
-		unset = 0,
-		waiting,
-		loading,
-		loaded,
-		skipped,
-		error,
+		unset = 0
+	  , waiting
+	  , loading
+	  , loaded
+	  , error
 	};
 
 	class service_base;
@@ -40,44 +41,33 @@ namespace cheat
 	template <typename T>
 	concept shared_service = root_service<T> && nstd::is_one_instance_shared<T>;
 
-	struct service_base_fields
-	{
-		service_base_fields( );
-		~service_base_fields( );
-
-		service_base_fields(service_base_fields&& other) noexcept;
-		service_base_fields& operator=(service_base_fields&& other) noexcept;
-
-		std::atomic<service_state> state;
-
-		struct hidden_type;
-		std::unique_ptr<hidden_type> hidden;
-	};
-
 	class service_base
 	{
 	public:
-		virtual ~service_base( ) = default;
-		service_base( )          = default;
-
-		virtual std::string_view      name( ) const = 0;
-		virtual const std::type_info& type( ) const = 0;
-
-		virtual std::string_view object_name( ) const;
-
-		using load_result = cppcoro::task<service_state>;
-		using child_wait_result = cppcoro::task<bool>;
+		using load_result = cppcoro::task<bool>;
+		using mutex_type = cppcoro::async_mutex;
 
 		using executor = cppcoro::static_thread_pool;
 
 		using stored_service = std::shared_ptr<service_base>;
 
-		std::span<const stored_service> services( ) const;
+		service_base() = default;
+		virtual ~service_base();
+
+		service_base(const service_base& other) = delete;
+		service_base(service_base&& other) noexcept;
+		service_base& operator=(const service_base& other) = delete;
+		service_base& operator=(service_base&& other) noexcept;
+
+		virtual std::string_view name() const = 0;
+		virtual const std::type_info& type() const = 0;
+
+		std::span<const stored_service> services() const;
 
 		stored_service find_service(const std::type_info& info) const;
 
 		template <root_service T>
-		auto find_service( ) const
+		auto find_service() const
 		{
 			const auto found = find_service(typeid(T));
 			return std::dynamic_pointer_cast<T>(found);
@@ -85,9 +75,10 @@ namespace cheat
 
 	private:
 		void add_service_dependency(stored_service&& srv, const std::type_info& info);
+
 	public:
 		template <derived_service T>
-		void wait_for_service( )
+		void wait_for_service()
 		{
 			add_service_dependency(std::make_shared<T>( ), typeid(T));
 		}
@@ -95,67 +86,43 @@ namespace cheat
 		template <shared_service T>
 		void wait_for_service(bool steal = false)
 		{
-			add_service_dependency(T::get_ptr_shared(steal), typeid(T));
+			add_service_dependency(T::get_ptr_shared(steal), typeid(T::value_type));
 		}
 
-		service_state state( ) const;
+		service_state state() const;
 
-		virtual void reset( );
+		virtual void reset();
+
+		virtual load_result load(executor& ex) noexcept;
 
 	protected:
-		bool              validate_init_state( ) const;
-		child_wait_result wait_for_others(executor& ex);
-	public:
-		virtual load_result load(executor& ex);
-	protected:
-		virtual load_result load_impl( ) = 0;
-
-		virtual void after_load( );
-		virtual void after_skip( );
-		virtual void after_error( );
-
-		virtual const service_base_fields& fields( ) const =0;
-		virtual service_base_fields&       fields( ) =0;
-	};
-
-	class service_maybe_skipped: public virtual service_base
-	{
-	public:
-		service_maybe_skipped(bool skip);
-		load_result load(executor& ex) final;
-
-		bool always_skipped( ) const;
+		virtual load_result load_impl() noexcept = 0;
 
 	private:
-		bool skipped_;
+		service_state state_ = service_state::unset;
+		std::vector<stored_service> deps_;
+		mutex_type lock_;
 	};
 
 	template <typename T>
-	class service_core: public virtual service_base
+	struct service : service_base, nstd::one_instance_shared<T>
 	{
-	public:
-		std::string_view      name( ) const override { return nstd::type_name<T, "cheat">; }
-		const std::type_info& type( ) const final { return typeid(T); }
-
-	protected:
-		const service_base_fields& fields( ) const final
-		{
-			//_ReadWriteBarrier( );
-			return fileds_;
-		}
-
-		service_base_fields& fields( ) final
-		{
-			//_ReadWriteBarrier( );
-			return fileds_;
-		}
-
-	private:
-		service_base_fields fileds_;
+		std::string_view name() const override { return nstd::type_name<T, "cheat">; }
+		const std::type_info& type() const final { return typeid(T); }
 	};
 
-	template <typename T>
-	class service: public service_core<T>, public nstd::one_instance_shared<T>
-	{
-	};
+	#define CHEAT_SERVICE_RESULT(msg, ret)\
+	CHEAT_CONSOLE_LOG(msg);\
+	co_return ret;
+
+#define CHEAT_SERVICE_LOADED\
+	{CHEAT_SERVICE_RESULT(std::format("Service \'{}\' loaded!",this->name()), true)}
+#define CHEAT_SERVICE_SKIPPED\
+	{CHEAT_SERVICE_RESULT(std::format("Service \'{}\' skipped!",this->name()), true)}
+#define CHEAT_SERVICE_NOT_LOADED(why,...)\
+	{\
+	__VA_ARGS__\
+	runtime_assert(why);\
+	CHEAT_SERVICE_RESULT(std::format("Service \'{}\' NOT loaded! "##why,this->name()), false)\
+	}
 }

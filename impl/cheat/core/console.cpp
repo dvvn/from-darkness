@@ -1,22 +1,22 @@
 #include "console.h"
-
 #include "csgo_awaiter.h"
 #include "services loader.h"
 
 #include <nstd/os/module info.h>
 
 #include <corecrt_io.h>
+#include <Windows.h>
 #include <fcntl.h>
+#include <intrin.h>
+
 #include <fstream>
 #include <functional>
-#include <intrin.h>
 #include <iostream>
 #include <mutex>
-#include <Windows.h>
 
 using namespace cheat;
 
-struct detail::string_packer::data_type: std::variant<str, strv, wstr, wstrv, ostr, wostr>
+struct detail::string_packer::data_type : std::variant<str, strv, wstr, wstrv, ostr, wostr>
 {
 };
 
@@ -80,26 +80,26 @@ detail::string_packer::string_packer(const wostr& os)
 	packed->emplace<wstrv>(os.view( ));
 }
 
-detail::string_packer::~string_packer( ) = default;
+detail::string_packer::~string_packer() = default;
 
-void detail::string_packer::init( )
+void detail::string_packer::init()
 {
 	packed = std::make_unique<data_type>( );
 }
 
 struct movable_function_base
 {
-	virtual      ~movable_function_base( ) = default;
-	virtual void operator()( ) = 0;
+	virtual ~movable_function_base() = default;
+	virtual void operator()() = 0;
 
-	movable_function_base( ) = default;
+	movable_function_base() = default;
 
 	movable_function_base(const movable_function_base&)            = delete;
 	movable_function_base& operator=(const movable_function_base&) = delete;
 };
 
 template <typename T>
-class movable_function final: public movable_function_base
+class movable_function final : public movable_function_base
 {
 public:
 	movable_function(const movable_function&)            = delete;
@@ -112,7 +112,7 @@ public:
 	{
 	}
 
-	void operator()( ) override
+	void operator()() override
 	{
 		std::invoke(obj_);
 	}
@@ -129,9 +129,9 @@ class console::cache_type
 public:
 	using value_type = std::unique_ptr<movable_function_base>;
 
-	cache_type( ) = default;
+	cache_type() = default;
 
-	void write_all( )
+	void write_all()
 	{
 		std::ranges::for_each(cache_, &value_type::element_type::operator(), &value_type::operator*);
 		cache_.clear( );
@@ -142,29 +142,29 @@ public:
 		cache_.emplace_back(std::move(obj));
 	}
 
-	void lock( )
+	void lock()
 	{
 		lock_.lock( );
 	}
 
-	void unlock( )
+	void unlock()
 	{
 		lock_.unlock( );
 	}
 
 private:
-	std::recursive_mutex    lock_;
+	std::recursive_mutex lock_;
 	std::vector<value_type> cache_;
 };
 
-console::console( )
+console::console()
 {
 	cache_ = std::make_unique<cache_type>( );
 	this->wait_for_service<csgo_awaiter>( );
 	nstd::rt_assert_object::get_ptr( )->add(this);
 }
 
-console::~console( )
+console::~console()
 {
 	nstd::rt_assert_object::get_ptr( )->remove(this);
 
@@ -182,55 +182,50 @@ console::~console( )
 		_fclose_nolock(err_);
 }
 
-service_base::load_result console::load_impl( )
+service_base::load_result console::load_impl()noexcept
 {
+#ifndef CHEAT_HAVE_CONSOLE
+	CHEAT_SERVICE_SKIPPED
+#else
 	handle_ = GetConsoleWindow( );
 	if (handle_ != nullptr)
 	{
 		allocated_ = false;
-		//pad
 	}
 	else
 	{
 		//create new console window
 		if (!AllocConsole( ))
-		{
-			runtime_assert("Unable to alloc console!");
-			co_return service_state::error;
-		}
+			CHEAT_SERVICE_NOT_LOADED("Unable to alloc console!")
+
 		allocated_ = true;
 
 		handle_ = GetConsoleWindow( );
 		if (handle_ == nullptr)
-		{
-			runtime_assert("Unable to get console window");
-			co_return service_state::error;
-		}
+			CHEAT_SERVICE_NOT_LOADED("Unable to get console window")
 
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppEnforceCVQualifiersPlacement
-		constexpr auto _Freopen = [](_Outptr_result_maybenull_ FILE** _Stream, _In_z_ char const* _FileName, _In_z_ char const* _Mode, _Inout_ FILE* _OldStream)
-			// ReSharper restore CppEnforceCVQualifiersPlacement
-			// ReSharper restore CppInconsistentNaming
+		constexpr auto _Freopen = [](_Outptr_result_maybenull_ FILE*& _Stream, _In_z_ char const* _FileName, _In_z_ char const* _Mode, _Inout_ FILE* _OldStream)
 		{
-			[[maybe_unused]] const auto err = freopen_s(_Stream, _FileName, _Mode, _OldStream);
+			[[maybe_unused]] const auto err = freopen_s(std::addressof(_Stream), _FileName, _Mode, _OldStream);
 			runtime_assert(err == NULL);
 		};
+		// ReSharper restore CppEnforceCVQualifiersPlacement
+		// ReSharper restore CppInconsistentNaming
 
-		_Freopen(&in_, "CONIN$", "r", stdin);
-		_Freopen(&out_, "CONOUT$", "w", stdout);
-		_Freopen(&err_, "CONOUT$", "w", stderr);
+		_Freopen(in_, "CONIN$", "r", stdin);
+		_Freopen(out_, "CONOUT$", "w", stdout);
+		_Freopen(err_, "CONOUT$", "w", stderr);
 
 		const auto full_path = nstd::os::all_modules::get_ptr( )->current( ).full_path( );
 		if (!SetConsoleTitle(full_path.data( )))
-		{
-			runtime_assert("Unable set console title");
-			co_return service_state::error;
-		}
+			CHEAT_SERVICE_NOT_LOADED("Unable set console title");
 	}
 
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
-	co_return service_state::loaded;
+	co_return true;
+#endif
 }
 
 void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept
@@ -316,8 +311,8 @@ using console_cache_type_uptr = std::unique_ptr<console::cache_type>;
 static auto _Write_text = []<typename T>(T&& text)
 {
 	FILE* file_out;
-	int   new_mode;
-	int   prev_mode;
+	int new_mode;
+	int prev_mode;
 
 	auto&& text_fwd = _Unwrap_view(std::forward<T>(text));
 	using value_type = std::remove_cvref_t<decltype(text_fwd)>;
@@ -348,7 +343,7 @@ static auto _Write_text = []<typename T>(T&& text)
 template <typename Fn, typename T>
 static auto _Decayed_bind(const Fn& fn, T&& text)
 {
-	auto get_text = [&]( )-> decltype(auto)
+	auto get_text = [&]()-> decltype(auto)
 	{
 		if constexpr (std::is_rvalue_reference_v<decltype(text)>)
 			return std::forward<T>(text);
@@ -390,14 +385,14 @@ static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, 
 };
 
 template <typename T>
-static auto _Get_time_str( )
+static auto _Get_time_str()
 {
 	using namespace std::chrono;
 	using clock = system_clock;
 
 	const auto current_time_point = clock::now( );
 	const auto current_time       = clock::to_time_t(current_time_point);
-	auto       current_localtime  = tm( );
+	auto current_localtime        = tm( );
 
 	localtime_s(&current_localtime, &current_time);
 
@@ -430,7 +425,7 @@ concept _Has_member_char_type = requires
 };
 
 template <typename T>
-static auto _Detect_char_type( )
+static auto _Detect_char_type()
 {
 	if constexpr (_Has_member_char_type<T>)
 		return T::char_type( );

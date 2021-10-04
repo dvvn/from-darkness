@@ -1,6 +1,7 @@
 #include "present.h"
 #include "reset.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
@@ -24,12 +25,14 @@ nstd::address present::get_target_method_impl() const
 	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[17];
 }
 
+CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE_ALWAYS_ON(present)
+
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
 	const auto d3d_device = this->object_instance;
 
 #ifdef IMGUI_HAS_DOCK
-	runtime_assert(ImGui::GetIO( ).ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer unsupported!");
+	runtime_assert(ImGui::GetIO( ).ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
 #endif
 
 	ImGui_ImplDX9_NewFrame( );   //todo: erase. it only calls CreateDeviceObjects, what can be done after reset and init
@@ -37,7 +40,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	ImGui::NewFrame( );
 	{
 		const auto menu = gui::menu::get_ptr( );
-#if CHEAT_GUI_HAS_DEMO_WINDOW
+#if CHEAT_GUI_HAS_DEMO_WINDOW && !defined(IMGUI_DISABLE_DEMO_WINDOWS)
 #ifndef CHEAT_GUI_TEST
 		if (menu->active( ))
 #endif

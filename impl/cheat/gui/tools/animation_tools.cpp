@@ -17,7 +17,7 @@ using namespace tools;
 template <template <typename> typename T>
 static ImVec4 _Color_set_alpha(const ImVec4& color, float val, T<float>&& operation = {})
 {
-	return {color.x, color.y, color.z, operation(color.w, val)};
+	return {color.x, color.y, color.z, std::invoke(operation, color.w, val)};
 }
 
 static ImVec4 _Color_remove_alpha(const ImVec4& color)

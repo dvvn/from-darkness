@@ -1,5 +1,6 @@
 #pragma once
 
+
 //#define CHEAT_NETVARS_UPDATING
 
 #if defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
@@ -11,3 +12,6 @@
 #if defined(CHEAT_GUI_TEST) || (defined(CHEAT_NETVARS_DUMP_STATIC_OFFSET) && !defined(_DEBUG))
 #define CHEAT_NETVARS_DUMPER_DISABLED
 #endif
+
+//intellisense gap
+#define CHEAT_NETVARS_CONFIG_USED

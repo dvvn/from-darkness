@@ -1,6 +1,7 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 #include "imgui context.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/services loader.h"
 
@@ -10,7 +11,6 @@
 
 #include <d3d9.h>
 
-#include <excpt.h>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -192,7 +192,7 @@ imgui_context::imgui_context()
 	this->wait_for_service<csgo_interfaces>( );
 }
 
-service_base::load_result imgui_context::load_impl()
+service_base::load_result imgui_context::load_impl()noexcept
 {
 	const auto d3d = csgo_interfaces::get_ptr( )->d3d_device.get( );
 
@@ -264,7 +264,7 @@ service_base::load_result imgui_context::load_impl()
 #endif
 	}( );
 
-	co_return service_state::loaded;
+	CHEAT_SERVICE_LOADED
 }
 
 CHEAT_REGISTER_SERVICE(imgui_context);

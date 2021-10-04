@@ -1,15 +1,15 @@
 #include "standard blending rules.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
 #include "cheat/core/services loader.h"
 
-#include "cheat/sdk/Studio.hpp"
-#include "cheat/sdk/entity/C_BaseAnimating.h"
-
-// ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
+
+#include "cheat/sdk/Studio.hpp"
+#include "cheat/sdk/entity/C_BaseAnimating.h"
 
 #include <nstd/enum_tools.h>
 
@@ -20,13 +20,6 @@ using namespace c_base_animating;
 using namespace csgo;
 
 standard_blending_rules::standard_blending_rules()
-	: service_maybe_skipped(
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-			true
-#else
-								false
-#endif
-			)
 {
 	this->wait_for_service<netvars>( );
 }
@@ -39,9 +32,12 @@ nstd::address standard_blending_rules::get_target_method_impl() const
 	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
 }
 
+CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(standard_blending_rules)
+
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
-#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#if !CHEAT_SERVICE_INGAME || !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+runtime_assert("Skipped but called");
 #pragma message(__FUNCTION__ ": skipped")
 #else
 	const auto pl           = this->object_instance;
@@ -49,14 +45,15 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;
 
-	auto& flags = reinterpret_cast<nstd::decayed_enum<m_fEffects_t>&>(pl->m_fEffects( ));
+	auto& flags = (pl->m_fEffects( ));
 
 	/*if (flags.has(m_fEffects_t::EF_NOINTERP))
 		return;*/
 
-	flags.add(m_fEffects_t::EF_NOINTERP);
+	using namespace nstd::enum_operators;
+	flags |= (m_fEffects_t::EF_NOINTERP);
 	this->call_original_ex(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
-	flags.remove(m_fEffects_t::EF_NOINTERP);
+	flags &= ~(m_fEffects_t::EF_NOINTERP);
 
 	/*if (override_return__)
 		this->return_value_.store_value(override_return_to__);

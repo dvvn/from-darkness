@@ -1,6 +1,9 @@
 #include "players list.h"
 #include "player.h"
 
+#include "cheat/hooks/base.h"
+
+#include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/services loader.h"
 #include "cheat/netvars/netvars.h"
@@ -11,7 +14,8 @@
 #include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
 
-#include "nstd/memory backup.h"
+#include <nstd/memory backup.h>
+#include <nstd/runtime assert.h>
 
 #include <vector>
 
@@ -19,41 +23,35 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-service_base::load_result players_list::load_impl( )
+service_base::load_result players_list::load_impl() noexcept
 {
-	co_return service_state::loaded;
+	CHEAT_SERVICE_LOADED
 }
 
-struct players_list::storage_type: std::vector<player_shared_impl>
+struct players_list::storage_type : std::vector<player_shared_impl>
 {
 };
 
-players_list::players_list( )
-	: service_maybe_skipped(
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-								true
-#else
-								false
-#endif
-							   )
+players_list::players_list()
 {
 	storage_ = std::make_unique<storage_type>( );
-	this->wait_for_service<netvars>();
+	this->wait_for_service<netvars>( );
 }
 
-players_list::~players_list( ) = default;
+players_list::~players_list() = default;
 
-void players_list::update( )
+void players_list::update()
 {
-#if !__has_include("cheat/sdk/generated/C_BasePlayer_h") || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_SERVICE_INGAME || !__has_include("cheat/sdk/generated/C_BasePlayer_h") || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+	runtime_assert("Disabled but called");
+#pragma message(__FUNCTION__ ": disabled")
 	(void)this;
 #else
 
 	const auto interfaces = csgo_interfaces::get_ptr( );
 
 	[[maybe_unused]]
-		auto storage_updated = false;
+			auto storage_updated = false;
 
 	const auto max_clients = interfaces->global_vars->max_clients;
 	if (const size_t wished_storage_size = max_clients + 1; storage_->size( ) != wished_storage_size)
@@ -63,9 +61,9 @@ void players_list::update( )
 		storage_->resize(wished_storage_size);
 	}
 
-	C_CSPlayer* const local_player       = interfaces->local_player;
-	const auto        local_player_team  = (m_iTeamNum_t)(local_player->m_iTeamNum( ));
-	const auto        local_player_alive = local_player->IsAlive( );
+	C_CSPlayer* const local_player = interfaces->local_player;
+	const auto local_player_team   = (m_iTeamNum_t)(local_player->m_iTeamNum( ));
+	const auto local_player_alive  = local_player->IsAlive( );
 
 	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)-> C_CSPlayer*
 	{
@@ -78,16 +76,16 @@ void players_list::update( )
 
 	for (auto i = 1; i <= max_clients; ++i)
 	{
-		const auto ent        = ent_by_index(i);
-		auto&      obj        = (*storage_)[i];
-		auto&      obj_shared = obj.share( );
+		const auto ent   = ent_by_index(i);
+		auto& obj        = (*storage_)[i];
+		auto& obj_shared = obj.share( );
 
 		if (ent == nullptr)
 		{
 			if (obj != nullptr)
 			{
 				storage_updated = true;
-				obj             = { };
+				obj             = {};
 			}
 			continue;
 		}
@@ -129,7 +127,7 @@ void players_list::update( )
 				storage_updated   = true;
 			}
 
-			const auto is_ragdoll_active = [ent]( )-> bool
+			const auto is_ragdoll_active = [ent]()-> bool
 			{
 				const auto ragdoll = ent->GetRagdoll( );
 				return ragdoll != nullptr && ragdoll->m_nSequence( ) != -1 && !ragdoll->IsDormant( );
@@ -201,6 +199,5 @@ void players_list::update( )
 //	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
 //	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
 //}
-
 
 CHEAT_REGISTER_SERVICE(players_list);

@@ -1,22 +1,28 @@
 ﻿#include "csgo_awaiter.h"
+#include "console.h"
 
 #include "services loader.h"
 
 #include <nstd/os/module info.h>
 
 #include <filesystem>
-// ReSharper disable once CppUnusedIncludeDirective
 #include <functional>
+#ifndef CHEAT_GUI_TEST
 #include <thread>
+#endif
 
 using namespace cheat;
 
-service_base::load_result csgo_awaiter::load_impl( )
+service_base::load_result csgo_awaiter::load_impl()noexcept
 {
+#ifdef CHEAT_GUI_TEST
+	CHEAT_SERVICE_SKIPPED
+#else
+
 	const auto modules = nstd::os::all_modules::get_ptr( );
 	modules->update(false);
 
-	auto  work_dir        = std::filesystem::path(modules->owner( ).work_dir( ));
+	auto work_dir         = std::filesystem::path(modules->owner( ).work_dir( ));
 	auto& work_dir_native = const_cast<std::filesystem::path::string_type&>(work_dir.native( ));
 	std::ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
 	work_dir.append(L"bin").append(L"serverbrowser.dll");
@@ -31,41 +37,28 @@ service_base::load_result csgo_awaiter::load_impl( )
 
 	if (is_game_loaded( ))
 	{
-		game_loaded_before_ = true;
-		co_return service_state::loaded;
+		game_loaded_before = true;
+		CHEAT_SERVICE_LOADED
 	}
 
 	do
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for((100ms));
 		//todo: cppcoro::cancellation_token
 		//todo: co_yield
 		if (services_loader::get_ptr( )->load_thread_stop_token( ).stop_requested( ))
-			co_return service_state::error;
+		{
+			CHEAT_SERVICE_NOT_LOADED("Loading thread stopped");
+		}
 
 		modules->update(true);
 
 		if (is_game_loaded( ))
-			co_return service_state::loaded;
+			CHEAT_SERVICE_LOADED
 	}
 	while (true);
-}
-
-csgo_awaiter::csgo_awaiter( )
-	: service_maybe_skipped
-	(
-#ifdef CHEAT_GUI_TEST
-	 true
-#else
-	false
 #endif
-	)
-{
-}
-
-bool csgo_awaiter::game_loaded_before( ) const
-{
-	return game_loaded_before_;
 }
 
 CHEAT_REGISTER_SERVICE(csgo_awaiter);

@@ -1,5 +1,6 @@
 #include "reset.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/imgui context.h"
@@ -10,12 +11,14 @@ using namespace cheat;
 using namespace hooks;
 using namespace directx;
 
-reset::reset( )
+reset::reset()
 {
-	this->wait_for_service<gui::imgui_context>();
+	this->wait_for_service<gui::imgui_context>( );
 }
 
-nstd::address reset::get_target_method_impl( ) const
+CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE_ALWAYS_ON(reset)
+
+nstd::address reset::get_target_method_impl() const
 {
 	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[16];
 }

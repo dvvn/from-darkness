@@ -184,7 +184,7 @@ namespace cheat
 		using ifc = detail::csgo_interface<T, Ptrs>;
 
 	protected:
-		load_result load_impl( ) override ;
+		load_result load_impl( )noexcept override ;
 
 	public:
 		//nstd::filesystem::path csgo_path;

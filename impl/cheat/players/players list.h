@@ -86,7 +86,6 @@ namespace cheat
 namespace cheat
 {
 	class players_list final: public service<players_list>
-							, service_maybe_skipped
 	{
 	public:
 		players_list( );
@@ -97,7 +96,7 @@ namespace cheat
 		//const detail::players_filter& filter(const players_filter_flags& flags);
 
 	protected:
-		load_result load_impl( ) override;
+		load_result load_impl( )noexcept override;
 
 	private:
 		struct storage_type;

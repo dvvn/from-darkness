@@ -1,6 +1,5 @@
 #include "service.h"
 
-#include "console.h"
 #include "csgo interfaces.h"
 
 #include <cppcoro/static_thread_pool.hpp>
@@ -8,220 +7,126 @@
 
 using namespace cheat;
 
-struct service_base_fields::hidden_type
-{
-	//cppcoro::async_mutex                      lock;
-	std::vector<service_base::stored_service> deps; //dependencies what must be loaded before
-};
-
 template <typename T>
 static void _Loading_access_assert([[maybe_unused]] T&& state)
 {
-	runtime_assert(state != service_state::loading, "Unable to modify service while loading!");
+	runtime_assert(state != service_state::loading && state != service_state::waiting, "Unable to modify running service!");
 }
 
-service_base_fields::service_base_fields( )
+service_base::~service_base()
 {
-	hidden = std::make_unique<hidden_type>( );
-	state  = service_state::unset;
+	_Loading_access_assert(state_);
 }
 
-service_base_fields::~service_base_fields( )
+service_base::service_base(service_base&& other) noexcept
 {
-	_Loading_access_assert(state);
+	*this = std::move(other);
 }
 
-service_base_fields::service_base_fields(service_base_fields&& other) noexcept
+service_base& service_base::operator=(service_base&& other) noexcept
 {
-	_Loading_access_assert(other.state);
+	_Loading_access_assert(this->state_);
+	_Loading_access_assert(other.state_);
 
-	state  = static_cast<service_state>(other.state);
-	hidden = std::move(other.hidden);
-}
-
-service_base_fields& service_base_fields::operator=(service_base_fields&& other) noexcept
-{
-	_Loading_access_assert(this->state);
-	_Loading_access_assert(other.state);
-
-	//std::swap(state, other.state);
-	const auto state_old = static_cast<service_state>(state);
-	state                = static_cast<service_state>(other.state);
-	other.state          = state_old;
-
-	std::swap(hidden, other.hidden);
+	std::swap(state_, other.state_);
+	std::swap(deps_, other.deps_);
 
 	return *this;
 }
 
-std::string_view service_base::object_name( ) const
-{
-	return "service";
-}
-
 service_base::stored_service service_base::find_service(const std::type_info& info) const
 {
-	for (const auto& service: fields( ).hidden->deps)
+	for (const auto& service : this->deps_)
 	{
 		if (service->type( ) == info)
 			return service;
 	}
 
-	return { };
+	return {};
 }
 
 void service_base::add_service_dependency(stored_service&& srv, const std::type_info& info)
 {
 	runtime_assert(find_service(info) == stored_service( ), "Service already stored!");
-	fields( ).hidden->deps.push_back(std::move(srv));
+	this->deps_.push_back(std::move(srv));
 }
 
-service_state service_base::state( ) const
+service_state service_base::state() const
 {
-	return fields( ).state;
+	return state_;
 }
 
-void service_base::reset( )
+void service_base::reset()
 {
-	auto& f = this->fields( );
-	_Loading_access_assert(f.state);
-	f.hidden->deps.clear( );
-	f.state = service_state::unset;
+	_Loading_access_assert(state_);
+	deps_.clear( );
+	state_ = service_state::unset;
 }
 
-bool service_base::validate_init_state( ) const
+service_base::load_result service_base::load(executor& ex) noexcept
 {
-	if (fields( ).state == service_state::unset)
-		return true;
-
-	runtime_assert("Unable to validate state!");
-	return false;
-}
-
-static void _Service_msg([[maybe_unused]] const service_base* owner, [[maybe_unused]] const std::string_view& msg)
-{
-	CHEAT_CONSOLE_LOG(std::ostringstream( )
-					  << owner->name( ) << ' '
-					  << owner->object_name( ) << ": "
-					  << msg);
-}
-
-service_base::load_result service_base::load(executor& ex)
-{
-	auto& f = this->fields( );
-
-	/*const auto lock =std::scoped_lock*/
-	//co_await(f.hidden->lock.lock_async( ));
-
-	if (!this->validate_init_state( ))
-		co_return f.state;
-
-	f.state = service_state::waiting;
-	if (!co_await this->wait_for_others(ex))
+	const auto set_error = [&]
 	{
-		_Service_msg(this, "error while child waiting");
-		co_return f.state = service_state::error;
-	}
+		state_ = service_state::error;
+		return false;
+	};
 
-	f.state = service_state::loading;
-	co_await ex.schedule( );
-	switch ((co_await this->load_impl( )))
+	switch (state_)
 	{
+		case service_state::unset:
+		{
+			const auto thread_id = std::this_thread::get_id( );
+			const auto mtx       = co_await lock_.scoped_lock_async( );
+
+			if (thread_id != std::this_thread::get_id( ))
+			{
+				co_return state_ == service_state::loaded;
+			}
+
+			co_await ex.schedule( );
+
+			state_ = service_state::waiting;
+			for (const auto& d : deps_)
+			{
+				if (!co_await d->load(ex))
+				{
+					runtime_assert("Unable to load other services!");
+					co_return set_error( );
+				}
+			}
+			state_ = service_state::loading;
+			if (!co_await this->load_impl( ))
+			{
+				runtime_assert("Unable to load service!");
+				co_return set_error( );
+			}
+			state_ = service_state::loaded;
+			co_return true;
+		}
+		case service_state::waiting:
+		case service_state::loading:
+		{
+			const auto mtx = co_await lock_.scoped_lock_async( );
+			co_return state_ == service_state::loaded;
+		}
 		case service_state::loaded:
 		{
-			this->after_load( );
-			co_return f.state = service_state::loaded;
+			co_return true;
 		}
-		case service_state::skipped:
+		case service_state::error:
 		{
-			this->after_skip( );
-			co_return f.state = service_state::skipped;
+			runtime_assert("Service loaded with errors!");
+			co_return false;
 		}
 		default:
 		{
-			this->after_error( );
-			co_return f.state = service_state::error;
+			runtime_assert("Unknown state");
+			co_return false;
 		}
 	}
 }
 
-service_base::child_wait_result service_base::wait_for_others(executor& ex)
+std::span<const service_base::stored_service> service_base::services() const
 {
-	auto& deps = fields( ).hidden->deps;
-
-	for (auto itr = deps.begin( ); itr != deps.end( );)
-	{
-		const auto& se = *itr;
-		switch (se->state( ))
-		{
-			case service_state::unset:
-				co_await ex.schedule( );
-				co_await se->load(ex);
-				break;
-			case service_state::loaded:
-			case service_state::skipped:
-				break;
-			case service_state::error:
-				co_return false;
-			case service_state::waiting:
-			case service_state::loading:
-				runtime_assert("Service still loading!");
-				break;
-			default:
-				runtime_assert("Update function!");
-				break;
-		}
-
-		++itr;
-	}
-
-	co_return true;
-}
-
-void service_base::after_load( )
-{
-	_Service_msg(this, "loaded");
-}
-
-void service_base::after_skip( )
-{
-	_Service_msg(this, "skipped");
-}
-
-void service_base::after_error( )
-{
-	_Service_msg(this, "error while loading");
-}
-
-std::span<const service_base::stored_service> service_base::services( ) const
-{
-	return fields( ).hidden->deps;
-}
-
-service_maybe_skipped::service_maybe_skipped(bool skip)
-	: skipped_(skip)
-{
-}
-
-service_base::load_result service_maybe_skipped::load(executor& ex)
-{
-	auto& f = this->fields( );
-
-	/*const auto lock =std::scoped_lock*/
-	//co_await(f.hidden->lock.lock_async( ));
-
-	if (!skipped_)
-		co_return co_await service_base::load(ex);
-
-	if (this->validate_init_state( ))
-	{
-		f.state = service_state::skipped;
-		this->after_skip( );
-	}
-	co_return f.state;
-}
-
-bool service_maybe_skipped::always_skipped( ) const
-{
-	return skipped_;
+	return this->deps_;
 }

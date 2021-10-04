@@ -1,10 +1,10 @@
 #include "should skip animation frame.h"
 
+#include "cheat/core/console.h"
 #include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
 
@@ -22,13 +22,6 @@ using namespace c_base_animating;
 using namespace csgo;
 
 should_skip_animation_frame::should_skip_animation_frame()
-	: service_maybe_skipped(
-#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-			true
-#else
-		false
-#endif
-			)
 {
 	this->wait_for_service<netvars>( );
 }
@@ -38,9 +31,12 @@ nstd::address should_skip_animation_frame::get_target_method_impl() const
 	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
 }
 
+CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(should_skip_animation_frame)
+
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
-#if !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+#if !CHEAT_SERVICE_INGAME ||!__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+	runtime_assert("Skipped but called");
 #pragma message(__FUNCTION__": skipped")
 #else
 	if (override_return__)

@@ -34,19 +34,19 @@ namespace cheat::hooks::winapi
 {
 	using def_wndproc_t = LRESULT (_stdcall*)(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
-	class wndproc final: public hook_base<wndproc, def_wndproc_t>
-					   , public gui::widgets::abstract_renderable
+	class wndproc final : public service_hook_proxy<wndproc, def_wndproc_t>
+						, public gui::widgets::abstract_renderable
 	{
 	public:
-		wndproc( );
-		void render( ) override;
+		wndproc();
+		void render() override;
 
 	protected:
-		load_result load_impl( ) override;
+		load_result load_impl() noexcept override;
 
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
-		nstd::address get_target_method_impl( ) const override;
+		nstd::address get_target_method_impl() const override;
 
 	private:
 		def_wndproc_t default_wndproc_ = nullptr;
@@ -54,7 +54,7 @@ namespace cheat::hooks::winapi
 		bool unicode_ = false;
 		HWND hwnd_    = nullptr;
 
-		bool    override_return_    = false;
+		bool override_return_       = false;
 		LRESULT override_return_to_ = 1;
 	};
 }

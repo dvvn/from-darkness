@@ -13,27 +13,25 @@ using HMODULE = HINSTANCE__*;
 
 namespace cheat
 {
-	class services_loader final: public service_core<services_loader>, public nstd::one_instance<services_loader>
+	class services_loader final : public service<services_loader>
 	{
 #ifndef CHEAT_GUI_TEST
 		using service_base::load;
 #endif
 	public:
-		~services_loader( ) override;
-		services_loader( );
+		~services_loader() override;
+		services_loader();
 
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle( ) const;
 		void    load(HMODULE handle);
 		void    unload( );
+		std::stop_token load_thread_stop_token() const;
 #endif
-		std::stop_token load_thread_stop_token( ) const;
-
 		static executor make_executor();
 
 	protected:
-		load_result load_impl( ) override;
-		void        after_load( ) override;
+		load_result load_impl() noexcept override;
 
 	private:
 #ifndef CHEAT_GUI_TEST

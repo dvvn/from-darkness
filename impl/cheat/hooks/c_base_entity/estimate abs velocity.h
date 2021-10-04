@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cheat/core/service.h"
 #include "cheat/hooks/base.h"
 
 namespace cheat::csgo
@@ -11,15 +10,14 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_base_entity
 {
-	class estimate_abs_velocity final: public hook_base<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
-									 , service_maybe_skipped
-
-	{
+	class estimate_abs_velocity final: public service_hook_proxy<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
+			{
 	public:
 		estimate_abs_velocity( );
 
 	protected:
 		nstd::address get_target_method_impl( ) const override;
 		void          callback(csgo::Vector& vel) override;
-	};
+		load_result load_impl() noexcept override;
+			};
 }

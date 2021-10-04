@@ -3,18 +3,12 @@
 
 namespace cheat
 {
-	class csgo_awaiter final: public service<csgo_awaiter>
-							, service_maybe_skipped
+	class csgo_awaiter final : public service<csgo_awaiter>
 	{
 	protected:
-		load_result load_impl( ) override;
+		load_result load_impl()noexcept override;
 
 	public:
-		csgo_awaiter();
-
-		bool game_loaded_before( ) const;
-
-	protected:
 		//todo:fix
 		//now this stop threadpool and main thread
 		/*void after_load( ) override
@@ -31,8 +25,7 @@ namespace cheat
 			frozen_threads_.clear( );
 		}*/
 
-	private:
-		bool game_loaded_before_ = false;
+		bool game_loaded_before = false;
 		//nstd::os::frozen_threads_storage frozen_threads_{false};
 	};
 }
