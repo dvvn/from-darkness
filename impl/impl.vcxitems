@@ -40,6 +40,7 @@
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\slider.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.h" />
@@ -295,6 +296,7 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\slider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.cpp" />

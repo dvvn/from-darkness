@@ -48,7 +48,7 @@ namespace nstd
 
 		struct target : virtual target_id_base
 		{
-			virtual void set_target(T& obj) = 0;
+			virtual void write_value(T& obj) = 0;
 			virtual T& get_value() = 0;
 		};
 
@@ -58,7 +58,7 @@ namespace nstd
 		public:
 			target_external() = default;
 
-			void set_target(T& obj) override
+			void write_value(T& obj) override
 			{
 				target_val_ = std::addressof(obj);
 			}
@@ -77,7 +77,7 @@ namespace nstd
 		public:
 			target_internal() = default;
 
-			void set_target(T& obj) override
+			void write_value(T& obj) override
 			{
 				target_val_ = (obj);
 			}
@@ -106,7 +106,7 @@ namespace nstd
 			if (!target_val_ || state_ == state::FINISHED)
 				return;
 			if (target_val_->id( ) == target_external::id_value)
-				target_val_->set_target(end_val_);
+				target_val_->write_value(end_val_);
 		}
 
 		smooth_value_base()

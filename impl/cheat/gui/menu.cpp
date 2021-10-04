@@ -171,7 +171,7 @@ struct menu::impl
 		w.show = false;
 #endif
 		auto show_anim_target = std::make_unique<decltype(w.show_anim)::target_external>( );
-		show_anim_target->set_target(global_alpha);
+		show_anim_target->write_value(global_alpha);
 		w.show_anim.set_target(std::move(show_anim_target));
 		w.flags |= ImGuiWindowFlags_AlwaysAutoResize;
 

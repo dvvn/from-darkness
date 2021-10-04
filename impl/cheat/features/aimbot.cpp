@@ -6,8 +6,10 @@
 #include "cheat/gui/imgui context.h"
 #include "cheat/gui/tools/animation_tools.h"
 #include "cheat/gui/tools/cached_text.h"
+
 #include "cheat/gui/widgets/checkbox.h"
 #include "cheat/gui/widgets/selectable.h"
+#include "cheat/gui/widgets/slider.h"
 
 #include <nstd/smooth_value.h>
 
@@ -30,9 +32,16 @@ struct widget_bool_data : cached_text, nstd::smooth_value_linear<ImVec4>
 
 struct aimbot::impl
 {
+	impl() = default;
+
 	widget_bool_data test_cb;
 	nstd::smooth_value_linear<ImVec4> test_cb_check_anim;
 	widget_bool_data test_selectable;
+
+	tools::cached_text slider_text;
+	slider_input_data<float> slider_data{1, 0.1f, 2.3f, 0.1f};
+	nstd::smooth_value_linear<ImVec4> slider_bg_anim;
+	nstd::smooth_value_linear<float> slider_anim;
 
 	void init_gui()
 	{
@@ -45,6 +54,16 @@ struct aimbot::impl
 
 		using target_internal = nstd::smooth_value_linear<ImVec4>::target_internal;
 		using target_external = nstd::smooth_value_linear<ImVec4>::target_external;
+
+		slider_text.set_font(ImGui::GetDefaultFont( ));
+		slider_text.set_label("slider test");
+		slider_bg_anim.set_duration(600ms);
+		slider_bg_anim.set_target<target_internal>( );
+		slider_anim.set_duration(200ms);
+		slider_anim.set_target<nstd::smooth_value_linear<float>::target_external>( );
+		slider_anim.get_target( )->write_value(slider_data.value);
+		slider_anim.set_start(slider_data.min);
+		slider_anim.set_end(slider_data.max);
 
 		test_cb.set_label(u8"hello привет 12345");
 		test_cb.set_font(test_font);
@@ -64,7 +83,7 @@ struct aimbot::impl
 		{
 			auto sample = std::make_unique<nstd::smooth_value_linear<ImVec4>>( );
 			sample->set_duration(300ms);
-			sample->set_target<target_external>( );
+			sample->write_value<target_external>( );
 			return sample;
 		};
 		
@@ -117,7 +136,7 @@ void aimbot::load(const json& out)
 {
 }
 
-cheat::service_base::load_result aimbot::load_impl()noexcept
+cheat::service_base::load_result aimbot::load_impl() noexcept
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );
@@ -148,6 +167,8 @@ void aimbot::render()
 	ImGui::Checkbox("Test checkbox", &sb_data.value);
 	ImGui::SameLine( );
 	gui::widgets::checkbox2(cb_data, sb_data.value, true, std::addressof(cb_data), std::addressof(cb_check_anim));
+
+	gui::widgets::slider(impl_->slider_text, impl_->slider_data, &impl_->slider_bg_anim, &impl_->slider_anim);
 }
 
 CHEAT_REGISTER_SERVICE(aimbot);
