@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 //#include "detour hook/hook_utils.h"
 
 #include <nstd/one_instance.h>
@@ -15,10 +17,10 @@
 
 namespace cheat
 {
-	#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-	#define CHEAT_SERVICE_INGAME 0
+#if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
+#define CHEAT_MODE_INGAME 0
 #else
-	#define CHEAT_SERVICE_INGAME 1
+	#define CHEAT_MODE_INGAME 1
 #endif
 
 	enum class service_state : uint8_t
@@ -41,7 +43,7 @@ namespace cheat
 	template <typename T>
 	concept shared_service = root_service<T> && nstd::is_one_instance_shared<T>;
 
-	class service_base
+	class __declspec(novtable) service_base
 	{
 	public:
 		using load_result = cppcoro::task<bool>;
@@ -59,7 +61,16 @@ namespace cheat
 		service_base& operator=(const service_base& other) = delete;
 		service_base& operator=(service_base&& other) noexcept;
 
+		struct debug_info_t
+		{
+			std::string_view obj_name;
+			std::string_view loaded_msg;
+			std::string_view skipped_msg;
+			std::string_view error_msg;
+		};
+
 		virtual std::string_view name() const = 0;
+		virtual debug_info_t debug_info() const = 0;
 		virtual const std::type_info& type() const = 0;
 
 		std::span<const stored_service> services() const;
@@ -109,20 +120,41 @@ namespace cheat
 	{
 		std::string_view name() const override { return nstd::type_name<T, "cheat">; }
 		const std::type_info& type() const final { return typeid(T); }
+		debug_info_t debug_info() const override { return {"Service", "loaded", "skipped", "NOT loaded"}; }
 	};
 
-	#define CHEAT_SERVICE_RESULT(msg, ret)\
+	namespace detail
+	{
+		enum class log_type
+		{
+			LOADED
+		  , SKIPPED
+			// ReSharper disable once CppInconsistentNaming
+		  , ERROR_//fuck ERROR macro 
+		};
+
+		std::string make_log_message(const service_base* srv, log_type type, std::string_view extra = "");
+	}
+}
+
+#define CHEAT_SERVICE_RESULT(msg, ret)\
+	using cheat::detail::log_type;\
+	using cheat::detail::make_log_message;\
 	CHEAT_CONSOLE_LOG(msg);\
 	co_return ret;
 
-#define CHEAT_SERVICE_LOADED\
-	{CHEAT_SERVICE_RESULT(std::format("Service \'{}\' loaded!",this->name()), true)}
-#define CHEAT_SERVICE_SKIPPED\
-	{CHEAT_SERVICE_RESULT(std::format("Service \'{}\' skipped!",this->name()), true)}
-#define CHEAT_SERVICE_NOT_LOADED(why,...)\
-	{\
-	__VA_ARGS__\
+#define CHEAT_SERVICE_LOADED \
+{\
+	CHEAT_SERVICE_RESULT(make_log_message(this, log_type::LOADED), true)\
+}
+
+#define CHEAT_SERVICE_SKIPPED \
+{\
+	CHEAT_SERVICE_RESULT(make_log_message(this, log_type::SKIPPED), true)\
+}
+
+#define CHEAT_SERVICE_NOT_LOADED(why) \
+{\
 	runtime_assert(why);\
-	CHEAT_SERVICE_RESULT(std::format("Service \'{}\' NOT loaded! "##why,this->name()), false)\
-	}
+	CHEAT_SERVICE_RESULT(make_log_message(this, log_type::ERROR_, #why), false)\
 }

@@ -2,7 +2,6 @@
 
 #include "smooth_value_fwd.h"
 
-#include <typeindex>
 #include <chrono>
 
 // ReSharper disable once CppUnusedIncludeDirective
@@ -32,60 +31,36 @@ namespace nstd
 	template <class T, class Clock>
 	class smooth_value_base : public smooth_object_base
 	{
-		struct target_id_base
+		struct target
 		{
-			virtual ~target_id_base() = default;
-			//typeid suck
-			virtual size_t id() const =0;
-		};
-
-		template <size_t Id>
-		struct target_id : virtual target_id_base
-		{
-			static constexpr size_t id_value = Id;
-			size_t id() const override { return Id; }
-		};
-
-		struct target : virtual target_id_base
-		{
+			virtual ~target() = default;
 			virtual void write_value(T& obj) = 0;
 			virtual T& get_value() = 0;
+			virtual const std::type_info& type() const =0;
 		};
 
 	public:
-		class target_external final : public target, public target_id<__COUNTER__>
+		class target_external final : public target
 		{
 		public:
 			target_external() = default;
 
-			void write_value(T& obj) override
-			{
-				target_val_ = std::addressof(obj);
-			}
-
-			T& get_value() override
-			{
-				return *target_val_;
-			}
+			void write_value(T& obj) override { target_val_ = std::addressof(obj); }
+			T& get_value() override { return *target_val_; }
+			const std::type_info& type() const override { return typeid(target_external); }
 
 		private:
 			T* target_val_ = nullptr;
 		};
 
-		class target_internal final : public target, public target_id<__COUNTER__>
+		class target_internal final : public target
 		{
 		public:
 			target_internal() = default;
 
-			void write_value(T& obj) override
-			{
-				target_val_ = (obj);
-			}
-
-			T& get_value() override
-			{
-				return target_val_;
-			}
+			void write_value(T& obj) override { target_val_ = (obj); }
+			T& get_value() override { return target_val_; }
+			const std::type_info& type() const override { return typeid(target_internal); }
 
 		private:
 			T target_val_;
@@ -103,9 +78,9 @@ namespace nstd
 
 		~smooth_value_base() override
 		{
-			if (!target_val_ || state_ == state::FINISHED)
+			if (!target_val_ || !this->active( ))
 				return;
-			if (target_val_->id( ) == target_external::id_value)
+			if (target_val_->type( ) == typeid(target_external))
 				target_val_->write_value(end_val_);
 		}
 
@@ -174,7 +149,7 @@ namespace nstd
 			if (!force && equal(new_end, end_val_))
 				return;
 
-			if (state_ == state::FINISHED || !equal(start_val_, new_end))
+			if (!this->active( ) || !equal(start_val_, new_end))
 			{
 				start_val_    = std::move(end_val_);
 				end_val_      = new_end;
@@ -202,7 +177,7 @@ namespace nstd
 
 		void start(bool wait_for_finish, bool delayed)
 		{
-			if (state_ != state::FINISHED && wait_for_finish)
+			if (active( ) && wait_for_finish)
 				return;
 			/*if (target_val_ == nullptr)
 				set_target<target_internal>( );*/
@@ -212,6 +187,18 @@ namespace nstd
 		state get_state() const
 		{
 			return state_;
+		}
+
+		bool active() const
+		{
+			switch (state_)
+			{
+				case state::IDLE:
+				case state::FINISHED:
+					return false;
+				default:
+					return true;
+			}
 		}
 
 		void restart(bool delayed)
@@ -237,10 +224,16 @@ namespace nstd
 
 		bool update() final
 		{
-			if (state_ == state::RESTARTED_DELAYED)
-				this->restart(false);
-			else if (state_ == state::FINISHED)
-				return false;
+			switch (state_)
+			{
+				case state::RESTARTED_DELAYED:
+					this->restart(false);
+					break;
+				case state::FINISHED:
+					state_ = state::IDLE;
+				case state::IDLE:
+					return false;
+			}
 
 			duration frame_time, elapsed_time;
 
@@ -249,7 +242,7 @@ namespace nstd
 				state_     = state::STARTED;
 				frame_time = elapsed_time = duration::zero( );
 				last_time_ = start_time_;
-				if (target_val_->id( ) == target_external::id_value)
+				if (target_val_->type( ) == typeid(target_external))
 				{
 					//force if value externally changed
 					target_val_->get_value( ) = temp_val_old_.value_or(start_val_);

@@ -2,13 +2,13 @@
 
 using namespace nstd;
 
-void address::error_handler( ) const
+void address::error_handler() const
 {
 	runtime_assert(ptr_ != nullptr, "Address is null!");
 	runtime_assert(value_ != static_cast<uintptr_t>(-1), "Address is incorrect!");
 }
 
-address::address( )
+address::address()
 	: value_(0)
 {
 }
@@ -28,12 +28,17 @@ address::address(const void* a)
 {
 }
 
-uintptr_t address::value( ) const
+address::address(void* a)
+	: ptr_((a))
+{
+}
+
+uintptr_t address::value() const
 {
 	return value_;
 }
 
-address address::operator*( ) const
+address address::operator*() const
 {
 	return ref<uintptr_t>( );
 }

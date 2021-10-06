@@ -25,7 +25,7 @@ using namespace csgo;
 
 service_base::load_result players_list::load_impl() noexcept
 {
-	CHEAT_SERVICE_LOADED
+	CHEAT_FEATURE_INIT(CHEAT_FEATURE_PLAYER_LIST)
 }
 
 struct players_list::storage_type : std::vector<player_shared_impl>
@@ -42,10 +42,8 @@ players_list::~players_list() = default;
 
 void players_list::update()
 {
-#if !CHEAT_SERVICE_INGAME || !__has_include("cheat/sdk/generated/C_BasePlayer_h") || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
-	runtime_assert("Disabled but called");
-#pragma message(__FUNCTION__ ": disabled")
-	(void)this;
+#if !CHEAT_FEATURE_PLAYER_LIST
+	CHEAT_FEATURE_CALL_BLOCKER
 #else
 
 	const auto interfaces = csgo_interfaces::get_ptr( );
@@ -193,6 +191,8 @@ void players_list::update()
 
 #endif
 }
+
+
 
 //const players_filter& players_list::filter(const players_filter_flags& flags)
 //{

@@ -6,7 +6,7 @@
 #include "cheat/gui/menu.h"
 #include "cheat/gui/tools/push style var.h"
 
-#include <windows.h>
+#include <Windows.h>
 
 using namespace cheat;
 using namespace hooks::winapi;
@@ -17,7 +17,7 @@ wndproc::wndproc()
 	this->wait_for_service<imgui_context>( );
 }
 
-service_base::load_result wndproc::load_impl()noexcept
+service_base::load_result wndproc::load_impl() noexcept
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
 	runtime_assert(hwnd != nullptr);
@@ -25,7 +25,7 @@ service_base::load_result wndproc::load_impl()noexcept
 	unicode_         = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	CHEAT_SERVICE_HOOK_PROXY_RUN
+	CHEAT_HOOK_PROXY_INIT(TRUE)
 }
 
 nstd::address wndproc::get_target_method_impl() const

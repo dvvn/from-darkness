@@ -15,31 +15,36 @@ namespace cheat::csgo
 using namespace cheat;
 using namespace hooks;
 using namespace c_csplayer;
-
 using namespace csgo;
+
+using namespace nstd::address_pipe;
 
 do_extra_bone_processing::do_extra_bone_processing()
 {
 	this->wait_for_service<csgo_interfaces>( );
 }
 
-nstd::address do_extra_bone_processing::get_target_method_impl() const
-{
-	const auto vtable = csgo_modules::client.find_vtable<C_CSPlayer>( );
-	const auto index  = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC">( ).add(11).deref(1).divide(4).value( );
+//nstd::address do_extra_bone_processing::get_target_method_impl() const
+//{
+//	const auto vtable = csgo_modules::client.find_vtable<C_CSPlayer>( );
+//	const auto index  = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC">( ).add(11).deref(1).divide(4).value( );
+//
+//	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
+//}
+//
+//CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(do_extra_bone_processing)
 
-	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(do_extra_bone_processing)
+CHEAT_HOOK_PROXY_INIT_FN(do_extra_bone_processing, CHEAT_MODE_INGAME)
+CHEAT_HOOK_PROXY_TARGET_FN(do_extra_bone_processing,
+						   CHEAT_FIND_VTABLE(client, C_CSPlayer),
+						   CHEAT_FIND_SIG(client,"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC",add(11),deref(1),divide(4),value));
 
 void do_extra_bone_processing::callback([[maybe_unused]] CStudioHdr* studio_hdr, [[maybe_unused]] Vector pos[],
 										[[maybe_unused]] Quaternion q[], [[maybe_unused]] matrix3x4a_t bone_to_world[],
 										[[maybe_unused]] CBoneBitList& bone_computed, [[maybe_unused]] CIKContext* ik_context)
 {
-#if !CHEAT_SERVICE_INGAME
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_MODE_INGAME
+	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
 	this->return_value_.set_original_called( );
 

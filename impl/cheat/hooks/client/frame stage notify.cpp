@@ -19,18 +19,13 @@ frame_stage_notify::frame_stage_notify()
 	this->wait_for_service<players_list>( );
 }
 
-nstd::address frame_stage_notify::get_target_method_impl() const
-{
-	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client.get( ))[37];
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(frame_stage_notify)
+CHEAT_HOOK_PROXY_INIT_FN(frame_stage_notify, CHEAT_MODE_INGAME)
+CHEAT_HOOK_PROXY_TARGET_FN(frame_stage_notify, &csgo_interfaces::client_mode, 37);
 
 void frame_stage_notify::callback(ClientFrameStage_t stage)
 {
-#if !CHEAT_SERVICE_INGAME
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_MODE_INGAME
+	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
 	switch (stage)
 	{

@@ -8,20 +8,85 @@
 
 #include <imgui_internal.h>
 
-#include <variant>
-#include <typeinfo>
-
-#define CHEAT_GUI_SLIDER_DATA_TYPES\
-	uint8_t, uint16_t, uint32_t, uint64_t,\
-	int8_t, int16_t, int32_t, int64_t,\
-	float, double, long double
-
-struct ImVec4;
-using ImGuiSliderFlags = int;
-
-namespace cheat::gui::tools
+namespace nstd
 {
-	class cached_text;
+	template <std::floating_point T>
+	constexpr T normalize(T value, T min, T max)
+	{
+		if (value <= min)
+			return 0;
+		if (value >= max)
+			return 1;
+
+		return (value - min) / (max - min);
+	}
+
+	constexpr auto qeqwe = sizeof(long double);
+
+	template <std::integral T>
+	constexpr auto to_floating(T value)
+	{
+		// ReSharper disable once CppTooWideScopeInitStatement
+		constexpr auto sz = sizeof(T);
+
+		if constexpr (sz <= sizeof(float))
+			return static_cast<float>(value);
+		else if constexpr (sz == sizeof(double))
+			return static_cast<double>(value);
+		else
+			return static_cast<long double>(value);
+	}
+
+	template <std::floating_point T>
+	constexpr T to_floating(T value)
+	{
+		return value;
+	}
+
+	enum class scale_mode:uint8_t
+	{
+		RIGHT
+	  , LEFT
+	  , AUTO
+	};
+
+	template <scale_mode Mode = scale_mode::AUTO, typename T>
+	constexpr T scale(T diff, T left, T right)
+	{
+		if constexpr (Mode == scale_mode::RIGHT)
+			return left + (right - left) * diff;
+		else if constexpr (Mode == scale_mode::LEFT)
+			return right - (right - left) * diff;
+		else if constexpr (Mode == scale_mode::AUTO)
+		{
+			return left < right
+					   ? scale<scale_mode::RIGHT>(diff, left, right)
+					   : scale<scale_mode::LEFT>(diff, right, left);
+		}
+		else
+		{
+			static_assert(__FUNCTION__": unknown mode");
+			return left;
+		}
+	}
+
+	template <scale_mode Mode = scale_mode::AUTO, typename T>
+		requires(std::is_arithmetic_v<T>)
+	constexpr T scale(T diff, T left, T right, T step)
+	{
+		auto val = scale<Mode>(diff, left, right);
+
+		if constexpr (std::is_floating_point_v<T>)
+		{
+			auto ideal = std::floor(val / step);
+			return ideal * step;
+		}
+		else
+		{
+			auto rem = val % step;
+			return val - rem;
+		}
+	}
 }
 
 namespace cheat::gui::widgets
@@ -65,39 +130,35 @@ namespace cheat::gui::widgets
 		const auto grab_size = [&]
 		{
 			const auto slider_sz = frame_bb.GetWidth( );
-			const auto v_range   = (in.max - in.min) / in.step;
+			const float v_range  = (in.max - in.min) / in.step;
 			const auto grab_sz   = std::max(slider_sz / v_range, style.GrabMinSize);
 			return grab_sz;
 		}( );
 		const auto grab_offset = [&]
 		{
 			const auto safe_max = in.max - in.step;
-			const auto value    = safe_max < in.value ? safe_max : in.value; //magic
+			const auto value    = safe_max < in.value ? safe_max : in.value;
 
-			const auto value_offset_normalized = (float)(value - in.min) / (float)(in.max - in.min); //magic
+			const auto value_offset_normalized = nstd::normalize<float>(value, in.min, in.max);
 			return frame_bb.Min.x + frame_bb.GetWidth( ) * value_offset_normalized;;
 		}( );
 
-		const ImRect grab_bb({grab_offset, frame_bb.Min.y}, {grab_offset + grab_size, frame_bb.Max.y});
-		const ImGuiID id = tools::imgui_id(text);
+		const auto grab_bb = ImRect({grab_offset, frame_bb.Min.y}, {grab_offset + grab_size, frame_bb.Max.y});
+		const auto id      = tools::imgui_id(text);
 
-		const auto mouse_offset = [&]
+		const auto get_mouse_offset = [&]()-> float
 		{
 			const auto val = ImGui::GetIO( ).MousePos.x;
 			const auto min = frame_bb.Min.x;
 			const auto max = frame_bb.Max.x;
 
-			const auto normalized = (val - min) / (max - min);
-			return std::clamp<float>(normalized, 0, 1);
+			return nstd::normalize(val, min, max);
 		};
 
 		const auto set_new_value = [&](bool animate)
 		{
-			T new_value = in.min + (in.max - in.min) * mouse_offset( ); //magic
-
-			auto new_value_fixed = std::floor(new_value / in.step) * in.step; //magic
-
-			using state = nstd::smooth_object_base::state;
+			using nstd::scale_mode;
+			auto new_value_fixed = nstd::scale<scale_mode::RIGHT, float>(get_mouse_offset( ), in.min, in.max, in.step);
 
 			if (!slide_animation)
 				in.value = new_value_fixed;
@@ -105,6 +166,7 @@ namespace cheat::gui::widgets
 				slide_animation->update_end(new_value_fixed);
 			else
 			{
+				using state = nstd::smooth_object_base::state;
 				switch (slide_animation->get_state( ))
 				{
 					case state::STARTED:
@@ -122,16 +184,16 @@ namespace cheat::gui::widgets
 
 		//---
 
-		const auto state = tools::button_behavior(frame_bb, id);
-		using bs = tools::button_state;
+		const auto state = button_behavior(frame_bb, id);
+		using tools::button_state;
 		switch (state)
 		{
-			case bs::UNKNOWN:
-				return bs::UNKNOWN;
-			case bs::HELD:
+			case button_state::UNKNOWN:
+				return state;
+			case button_state::HELD:
 				set_new_value(!ImGui::IsMouseHoveringRect(grab_bb.Min, grab_bb.Max, false));
 				break;
-			case bs::HELD_ACTIVE:
+			case button_state::HELD_ACTIVE:
 				set_new_value(false);
 				break;
 			default:
@@ -146,9 +208,9 @@ namespace cheat::gui::widgets
 		//---
 
 		const auto& colors  = style.Colors;
-		const auto bg_color = tools::get_button_color(state, true
-													, colors[ImGuiCol_FrameBg], colors[ImGuiCol_FrameBgHovered], colors[ImGuiCol_FrameBgActive]
-													, bg_animation);
+		const auto bg_color = get_button_color(state, true
+											 , colors[ImGuiCol_FrameBg], colors[ImGuiCol_FrameBgHovered], colors[ImGuiCol_FrameBgActive]
+											 , bg_animation);
 
 		//----
 

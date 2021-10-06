@@ -26,20 +26,15 @@ should_skip_animation_frame::should_skip_animation_frame()
 	this->wait_for_service<netvars>( );
 }
 
-nstd::address should_skip_animation_frame::get_target_method_impl() const
-{
-	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(should_skip_animation_frame)
+CHEAT_HOOK_PROXY_INIT_FN(should_skip_animation_frame, CHEAT_MODE_INGAME)
+CHEAT_HOOK_PROXY_TARGET_FN(should_skip_animation_frame, CHEAT_FIND_SIG(client, "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02"))
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
-#if !CHEAT_SERVICE_INGAME ||!__has_include("cheat/sdk/generated/C_BaseAnimating_h")
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__": skipped")
+#if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
-	if (override_return__)
+	if(override_return__)
 		this->return_value_.store_value(override_return_to__);
 	else
 	{
@@ -58,7 +53,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 
 		C_BaseAnimating* ent;
 
-		if (const auto inst = this->object_instance; is_player(inst))
+		if(const auto inst = this->object_instance; is_player(inst))
 		{
 			ent = inst;
 		}
@@ -69,7 +64,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 
 			CBaseHandle owner_handle;
 
-			if (is_weapon(inst))
+			if(is_weapon(inst))
 			{
 				auto wpn = (C_BaseCombatWeapon*)inst;
 				owner_handle = wpn->m_hOwner( );
@@ -79,17 +74,17 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 				owner_handle = inst->m_hOwnerEntity( );
 			}
 
-			if (!owner_handle.IsValid( ))
+			if(!owner_handle.IsValid( ))
 				return;
 
 			const auto owner = static_cast<C_CSPlayer*>(owner_handle.Get( ));
 
-			if (!owner)
+			if(!owner)
 				return;
 
-			if (!is_player(owner))
+			if(!is_player(owner))
 				return;
-			if (csgo_interfaces::get_shared( )->local_player.get( ) == owner)
+			if(csgo_interfaces::get_shared( )->local_player.get( ) == owner)
 				return;
 
 			ent = owner;
@@ -99,7 +94,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 		}
 
 		const auto animate_this_frame = ent->m_bClientSideAnimation( );
-		const auto skip_this_frame    = animate_this_frame == false;
+		const auto skip_this_frame = animate_this_frame == false;
 		this->return_value_.store_value(skip_this_frame);
 	}
 #endif

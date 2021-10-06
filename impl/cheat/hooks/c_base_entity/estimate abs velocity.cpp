@@ -13,31 +13,25 @@
 #include "nstd/enum_tools.h"
 
 using namespace cheat;
-using namespace hooks;
-using namespace c_base_entity;
-
 using namespace csgo;
+using namespace hooks::c_base_entity;
+
+using namespace nstd::address_pipe;
 
 estimate_abs_velocity::estimate_abs_velocity()
 {
 	this->wait_for_service<netvars>( );
 }
 
-nstd::address estimate_abs_velocity::get_target_method_impl() const
-{
-	const auto vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
-	const auto index  = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).add(2).deref(1).divide(4).value( );
-
-	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(estimate_abs_velocity)
+CHEAT_HOOK_PROXY_INIT_FN(estimate_abs_velocity, CHEAT_MODE_INGAME)
+CHEAT_HOOK_PROXY_TARGET_FN(estimate_abs_velocity,
+						   CHEAT_FIND_VTABLE(client, C_BaseEntity),
+						   CHEAT_FIND_SIG(client,"FF 90 ? ? 00 00 F3 0F 10 4C 24 18",add(2),deref(1),divide(4),value));
 
 void estimate_abs_velocity::callback(Vector& vel)
 {
-#if !CHEAT_SERVICE_INGAME||!__has_include("cheat/sdk/generated/C_BaseEntity_h")
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_MODE_INGAME||!__has_include("cheat/sdk/generated/C_BaseEntity_h")
+	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
 using namespace nstd::enum_operators;
 

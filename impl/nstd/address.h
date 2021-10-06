@@ -11,43 +11,44 @@ namespace nstd
 	// class size is only 4 bytes on x86-32 and 8 bytes on x86-64.
 	class address
 	{
-		void error_handler( ) const;
+		void error_handler() const;
 
 	public:
-		address( );
+		address();
 		address(uintptr_t a);
-		explicit address(std::nullptr_t);
+		address(std::nullptr_t);
 		address(const void* a);
+		address(void* a);
 
-		uintptr_t value( ) const;
+		uintptr_t value() const;
 
 		/// @brief cast / add offset and cast.
 		template <typename T>
-		T cast( ) const
+		T cast() const
 		{
 			error_handler( );
 			return (T)value_;
 		}
 
 		template <typename T = uintptr_t>
-		T* ptr( ) const
+		T* ptr() const
 		{
 			return cast<T*>( );
 		}
 
 		template <typename T = uintptr_t>
-		const T& ref( ) const
+		const T& ref() const
 		{
 			return *ptr<T>( );
 		}
 
 		template <typename T = uintptr_t>
-		T& ref( )
+		T& ref()
 		{
 			return *ptr<T>( );
 		}
 
-		address operator*( ) const;
+		address operator*() const;
 
 		//derefference
 		address deref(size_t count) const;
@@ -62,10 +63,10 @@ namespace nstd
 		address& operator-=(const address& offset);
 		address& operator*=(const address& offset);
 		address& operator/=(const address& offset);
-		address  operator+(const address& offset) const;
-		address  operator-(const address& offset) const;
-		address  operator*(const address& offset) const;
-		address  operator/(const address& offset) const;
+		address operator+(const address& offset) const;
+		address operator-(const address& offset) const;
+		address operator*(const address& offset) const;
+		address operator/(const address& offset) const;
 
 		address add(const address& offset) const;
 		address remove(const address& offset) const;
@@ -82,7 +83,7 @@ namespace nstd
 		union
 		{
 			// ReSharper disable CppInconsistentNaming
-			uintptr_t   value_;
+			uintptr_t value_;
 			const void* ptr_;
 			// ReSharper restore CppInconsistentNaming
 		};
@@ -125,27 +126,28 @@ namespace nstd
 		}
 
 		template <typename T, typename ...Ts>
-		struct address_pipe_impl: address_pipe_tag
+		struct address_pipe_impl : address_pipe_tag
 		{
-			address_pipe_impl(T&& addr, std::tuple<Ts...>&& tpl)
-				: addr(std::move(addr)),
-				  line(std::move(tpl))
+			template <typename Tnew, typename ...Args>
+			address_pipe_impl(address_pipe_impl<T, Args...>&& old, Tnew&& back)
+				: addr(std::move(old.addr)), line(std::tuple_cat(std::move(old.line), std::make_tuple(std::forward<Tnew>(back))))
 			{
 			}
 
-			address_pipe_impl(const T& addr, std::tuple<Ts...>&& tpl)
-				: addr(addr),
-				  line(std::move(tpl))
+			template <typename A, typename ...Args>
+				requires(!std::derived_from<std::remove_cvref_t<A>, address_pipe_tag>)
+			address_pipe_impl(A&& a, Args&&...args)
+				: addr(std::forward<A>(a)), line(std::forward<Args>(args)...)
 			{
 			}
 
-			T                 addr;
+			T addr;
 			std::tuple<Ts...> line;
 
 #ifdef _DEBUG
 			mutable bool done = false;
 #endif
-			auto get_addr( ) const
+			auto get_addr() const
 			{
 				if constexpr (!std::invocable<T>)
 					return addr;
@@ -159,7 +161,7 @@ namespace nstd
 				return do_invoke(get_addr( ), std::get<I>(line)...);
 			}
 
-			auto operator()( ) const
+			auto operator()() const
 			{
 #ifdef _DEBUG
 				runtime_assert(done == false);
@@ -240,15 +242,20 @@ namespace nstd
 			return addr.ptr<T>( );
 		};
 
-		template <typename T>
-		auto operator|(const address& addr, const T& obj)
+		template <typename T, typename ...Ts>
+		address_pipe_impl(address_pipe_impl<Ts...>&& old, T&& val) -> address_pipe_impl<Ts..., std::remove_cvref_t<T>>;
+
+		template <typename A, typename B>
+			requires(!std::derived_from<std::remove_cvref_t<A>, address_pipe_tag>)
+		address_pipe_impl(A&& a, B&& b) -> address_pipe_impl<std::remove_cvref_t<A>, std::remove_cvref_t<B>>;
+
+		template <typename A, typename B>
+		auto operator|(A&& a, B&& b)
 		{
-			return address_pipe_impl<address, T>
-				(
-				 addr, std::make_tuple(obj)
-				);
+			return address_pipe_impl(std::forward<A>(a), std::forward<B>(b));
 		}
 
+#if 0
 		template <typename Tpl, typename T, size_t ...Idx>
 		auto tuple_cat_custom(Tpl&& tpl, T&& val, std::index_sequence<Idx...>)
 		{
@@ -258,10 +265,7 @@ namespace nstd
 		template <typename T, typename ...Ts>
 		auto operator|(address_pipe_impl<Ts...>&& pipe, T&& obj)
 		{
-			return address_pipe_impl<Ts..., T>
-				(
-				 std::move(pipe.addr), tuple_cat_custom(pipe.line, std::forward<T>(obj), std::make_index_sequence<sizeof...(Ts) - 1>( ))
-				);
+			return address_pipe_impl(std::move(pipe), std::forward<T>(obj));
 		}
 
 		template <std::invocable Fn, typename T>
@@ -269,9 +273,22 @@ namespace nstd
 		auto operator|(Fn&& addr, T&& obj)
 		{
 			return address_pipe_impl<std::remove_cvref_t<Fn>, T>
-				(
-				 std::forward<Fn>(addr), std::make_tuple(std::forward<T>(obj))
-				);
+					(
+							std::forward<Fn>(addr), std::make_tuple(std::forward<T>(obj))
+							);
+		}
+#endif
+	}
+
+	template <typename ...Ts>
+	auto apply_address_pipe(nstd::address addr, Ts&& ...args)
+	{
+		if constexpr (sizeof...(Ts) == 0)
+			return addr;
+		else
+		{
+			auto pipe = address_pipe::address_pipe_impl<address, std::remove_cvref_t<Ts>...>((addr), std::forward<Ts>(args)...);
+			return std::invoke(pipe);
 		}
 	}
 }

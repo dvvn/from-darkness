@@ -130,3 +130,23 @@ std::span<const service_base::stored_service> service_base::services() const
 {
 	return this->deps_;
 }
+
+//----
+
+std::string detail::make_log_message(const service_base* srv, log_type type, std::string_view extra)
+{
+	const auto info = srv->debug_info( );
+
+	const auto info_msg = [&]
+	{
+		switch (type)
+		{
+			case log_type::LOADED: return info.loaded_msg;
+			case log_type::SKIPPED: return info.skipped_msg;
+			case log_type::ERROR_: return info.error_msg;
+			default: throw;;
+		}
+	};
+
+	return std::format("{} \"{}\": {}{}", info.obj_name, srv->name( ), info_msg( ), extra); //todo: colors
+}

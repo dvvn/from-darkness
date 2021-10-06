@@ -20,6 +20,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo_awaiter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animation_tools.h" />

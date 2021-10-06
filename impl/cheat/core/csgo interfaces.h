@@ -43,7 +43,7 @@ struct IDirect3DDevice9;
 namespace cheat::detail
 {
 	template <typename T, size_t Num, size_t Counter = 0>
-	constexpr auto _Generate_pointer( )
+	constexpr auto _Generate_pointer()
 	{
 		if constexpr (Num == Counter)
 			return static_cast<T>(nullptr);
@@ -52,7 +52,7 @@ namespace cheat::detail
 	}
 
 	template <typename T>
-	constexpr size_t _Count_pointers( )
+	constexpr size_t _Count_pointers()
 	{
 		if constexpr (!std::is_pointer_v<T>)
 			return 0;
@@ -63,22 +63,22 @@ namespace cheat::detail
 	class csgo_interface_base
 	{
 	protected:
-		virtual ~csgo_interface_base( ) = default;
+		virtual ~csgo_interface_base() = default;
 
 	public:
-		nstd::address addr( ) const;
+		nstd::address addr() const;
 
 		csgo_interface_base& operator=(const nstd::address& addr);
 
 	private:
-		void Set_result_assert_( ) const;
+		void Set_result_assert_() const;
 
 	protected:
 		nstd::address result_;
 	};
 
 	template <class To, size_t Ptrs>
-	class csgo_interface final: public csgo_interface_base
+	class csgo_interface final : public csgo_interface_base
 	{
 	public:
 		using raw_pointer = decltype(detail::_Generate_pointer<To, Ptrs>( ));
@@ -93,7 +93,7 @@ namespace cheat::detail
 		}
 
 	private:
-		pointer Pointer_( ) const
+		pointer Pointer_() const
 		{
 			if constexpr (constexpr size_t deref = detail::_Count_pointers<raw_pointer>( ) - 1; deref > 0)
 				return result_.deref(deref).cast<pointer>( );
@@ -101,12 +101,12 @@ namespace cheat::detail
 				return result_.cast<pointer>( );
 		}
 
-		reference Reference_( )
+		reference Reference_()
 		{
 			return *Pointer_( );
 		}
 
-		bool Is_null_( ) const
+		bool Is_null_() const
 		{
 			if (this->empty( ))
 				return true;
@@ -149,27 +149,27 @@ namespace cheat::detail
 			return !((*this) == other);
 		}
 
-		operator To*( ) const
+		operator To*() const
 		{
 			return Pointer_( );
 		}
 
-		To* operator->( ) const
+		To* operator->() const
 		{
 			return Pointer_( );
 		}
 
-		To& operator*( )
+		To& operator*()
 		{
 			return Reference_( );
 		}
 
-		To* get( ) const
+		To* get() const
 		{
 			return Pointer_( );
 		}
 
-		bool empty( ) const
+		bool empty() const
 		{
 			return result_ == 0u;
 		}
@@ -178,48 +178,54 @@ namespace cheat::detail
 
 namespace cheat
 {
-	class csgo_interfaces final: public service<csgo_interfaces>
+	class csgo_interfaces final : public service<csgo_interfaces>
 	{
 		template <typename T, size_t Ptrs = 1>
 		using ifc = detail::csgo_interface<T, Ptrs>;
 
 	protected:
-		load_result load_impl( )noexcept override ;
+		load_result load_impl() noexcept override;
 
 	public:
 		//nstd::filesystem::path csgo_path;
 
 		csgo_interfaces();
 
-		ifc<csgo::IBaseClientDLL>       client;
-		ifc<csgo::IClientEntityList>    entity_list;
-		ifc<csgo::IPrediction>          prediction;
-		ifc<csgo::CGameMovement>        game_movement;
-		ifc<csgo::IMDLCache>            mdl_cache;
-		ifc<csgo::IVEngineClient>       engine;
-		ifc<csgo::IVModelInfoClient>    mdl_info;
-		ifc<csgo::IVModelRender>        mdl_render;
-		ifc<csgo::IVRenderView>         render_view;
-		ifc<csgo::IEngineTrace>         engine_trace;
-		ifc<csgo::IVDebugOverlay>       debug_overlay;
-		ifc<csgo::IGameEventManager2>   game_events;
-		ifc<csgo::IEngineSound>         engine_sound;
-		ifc<csgo::IMaterialSystem>      material_system;
-		ifc<csgo::ICvar>                cvars;
-		ifc<csgo::IPanel>               vgui_panel;
-		ifc<csgo::ISurface>             vgui_surface;
+		ifc<csgo::IBaseClientDLL> client;
+		ifc<csgo::IClientEntityList> entity_list;
+		ifc<csgo::IPrediction> prediction;
+		ifc<csgo::CGameMovement> game_movement;
+		ifc<csgo::IMDLCache> mdl_cache;
+		ifc<csgo::IVEngineClient> engine;
+		ifc<csgo::IVModelInfoClient> mdl_info;
+		ifc<csgo::IVModelRender> mdl_render;
+		ifc<csgo::IVRenderView> render_view;
+		ifc<csgo::IEngineTrace> engine_trace;
+		ifc<csgo::IVDebugOverlay> debug_overlay;
+		ifc<csgo::IGameEventManager2> game_events;
+		ifc<csgo::IEngineSound> engine_sound;
+		ifc<csgo::IMaterialSystem> material_system;
+		ifc<csgo::ICvar> cvars;
+		ifc<csgo::IPanel> vgui_panel;
+		ifc<csgo::ISurface> vgui_surface;
 		ifc<csgo::IPhysicsSurfaceProps> phys_props;
-		ifc<csgo::IInputSystem>         input_sys;
-		ifc<csgo::ClientModeShared>     client_mode;
-		ifc<csgo::CGlobalVarsBase>      global_vars;
-		ifc<csgo::CInput>               input;
-		ifc<csgo::IMoveHelper>          move_helper;
-		ifc<csgo::CGlowObjectManager>   glow_mgr;
-		ifc<csgo::IViewRender>          view_render;
-		ifc<csgo::CClientState>         client_state;
-		ifc<csgo::IWeaponSystem>        weapon_sys;
-		ifc<csgo::IStudioRender>        studio_renderer;
-		ifc<csgo::C_CSPlayer, 2>        local_player;
-		ifc<IDirect3DDevice9>           d3d_device;
+		ifc<csgo::IInputSystem> input_sys;
+		ifc<csgo::ClientModeShared> client_mode;
+		ifc<csgo::CGlobalVarsBase> global_vars;
+		ifc<csgo::CInput> input;
+		ifc<csgo::IMoveHelper> move_helper;
+		ifc<csgo::CGlowObjectManager> glow_mgr;
+		ifc<csgo::IViewRender> view_render;
+		ifc<csgo::CClientState> client_state;
+		ifc<csgo::IWeaponSystem> weapon_sys;
+		ifc<csgo::IStudioRender> studio_renderer;
+		ifc<csgo::C_CSPlayer, 2> local_player;
+		ifc<IDirect3DDevice9> d3d_device;
+	};
+
+	template <typename T, typename I=csgo_interfaces>
+	concept known_csgo_interface = requires
+	{
+		{ I::T }->std::derived_from<detail::csgo_interface_base>;
 	};
 }

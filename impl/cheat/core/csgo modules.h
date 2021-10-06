@@ -80,3 +80,9 @@ namespace cheat::csgo_modules
 
 #undef CHEAT_GAME_MODULE
 }
+
+#define CHEAT_FIND_VTABLE(_HOLDER_,_CLASS_) \
+	cheat::csgo_modules::_HOLDER_.find_vtable<_CLASS_>( )
+
+#define CHEAT_FIND_SIG(_HOLDER_,_SIG_,...) \
+	nstd::apply_address_pipe( cheat::csgo_modules::_HOLDER_.find_signature<_SIG_>( ), ##__VA_ARGS__ )

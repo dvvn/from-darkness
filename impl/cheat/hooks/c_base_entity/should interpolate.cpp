@@ -12,9 +12,10 @@
 #include "cheat/netvars/netvars.h"
 
 using namespace cheat;
-using namespace hooks;
-using namespace c_base_entity;
+using namespace hooks::c_base_entity;
 using namespace csgo;
+
+using namespace nstd::address_pipe;
 
 //utils::find_signature\("([a-z]+).*,.("[A-F0-9 ]+")
 //find_signature\("([a-z0-9]+).*,.(".*")
@@ -28,21 +29,15 @@ should_interpolate::should_interpolate()
 	this->wait_for_service<netvars>( );
 }
 
-nstd::address should_interpolate::get_target_method_impl() const
-{
-	const auto vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
-	const auto index  = csgo_modules::client.find_signature<"8B 06 8B CE 8B 80 ? ? 00 00 FF D0 84 C0 74 5C">( ).add(6).deref(1).divide(4).value( );
-
-	return dhooks::_Pointer_to_virtual_class_table(vtable)[index];
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE_ALWAYS_OFF(should_interpolate)
+CHEAT_HOOK_PROXY_INIT_FN(should_interpolate, FALSE)
+CHEAT_HOOK_PROXY_TARGET_FN(should_interpolate,
+						   CHEAT_FIND_VTABLE(client,C_BaseEntity),
+						   CHEAT_FIND_SIG(client,"8B 06 8B CE 8B 80 ? ? 00 00 FF D0 84 C0 74 5C",add(6),deref(1),divide(4),value));
 
 void should_interpolate::callback()
 {
-#if !CHEAT_SERVICE_INGAME || false
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__": skipped")
+#if /*!CHEAT_MODE_INGAME*/!FALSE
+CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
 	auto ent          = this->object_instance;
 	auto client_class = ent->GetClientClass( );

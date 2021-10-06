@@ -1,4 +1,5 @@
 #include "player.h"
+#include "players list.h"
 
 #include "cheat/sdk/IConVar.hpp"
 #include "cheat/sdk/entity/C_CSPlayer.h"
@@ -7,8 +8,7 @@
 #include "nstd/memory backup.h"
 #include "nstd/runtime assert.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
-#include <excpt.h>
+
 
 using namespace cheat;
 using namespace detail;
@@ -16,12 +16,10 @@ using namespace csgo;
 
 void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 {
-	shared_holder::init( );
-
-#if !__has_include("cheat/sdk/generated/C_BasePlayer_h")
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_FEATURE_PLAYER_LIST
+	CHEAT_FEATURE_CALL_BLOCKER
 #else
-
+	shared_holder::init( );
 	const auto pl = this->get( );
 
 	pl->sim_time = /*ent->m_flSimulationTime( )*/-1;
@@ -45,12 +43,11 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 #endif
 }
 
-bool player_shared_impl::update_simtime( )
+bool player_shared_impl::update_simtime()
 {
 	//todo: tickbase shift workaround
-#if !__has_include("cheat/sdk/generated/C_BasePlayer_h")
-	(void)this;
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_FEATURE_PLAYER_LIST
+	CHEAT_FEATURE_CALL_BLOCKER
 #else
 	auto& p = **this;
 
@@ -63,8 +60,12 @@ bool player_shared_impl::update_simtime( )
 	return false;
 }
 
-void player_shared_impl::update_animations(bool simple)
+void player_shared_impl::update_animations([[maybe_unused]] bool simple)
 {
+#if !CHEAT_FEATURE_PLAYER_LIST
+	CHEAT_FEATURE_CALL_BLOCKER
+#else
+
 	(void)this;
 
 	const auto p = this->get( )->ent;
@@ -88,9 +89,10 @@ void player_shared_impl::update_animations(bool simple)
 		//todo: proper animfix
 		p->UpdateClientSideAnimation( );
 	}
+#endif
 }
 
-void player_shared_impl::store_tick( )
+void player_shared_impl::store_tick()
 {
 	auto& data = this->share( );
 	auto& t    = data->ticks.emplace_front( );
@@ -136,7 +138,7 @@ void player_shared_impl::remove_old_ticks(float curtime)
 
 		if (first_valid == end)
 		{
-			ticks_window = { };
+			ticks_window = {};
 			return;
 		}
 
@@ -164,7 +166,7 @@ void player_shared_impl::remove_old_ticks(float curtime)
 	update_window( );
 }
 
-size_t player::max_ticks_count( )
+size_t player::max_ticks_count()
 {
 	return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
 }

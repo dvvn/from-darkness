@@ -18,18 +18,13 @@ lock_cursor::lock_cursor()
 	this->wait_for_service<gui::menu>( );
 }
 
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(lock_cursor)
-
-nstd::address lock_cursor::get_target_method_impl() const
-{
-	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->vgui_surface.get( ))[67];
-}
+CHEAT_HOOK_PROXY_INIT_FN(lock_cursor, CHEAT_MODE_INGAME)
+CHEAT_HOOK_PROXY_TARGET_FN(lock_cursor, &csgo_interfaces::vgui_surface, 67);
 
 void lock_cursor::callback()
 {
-#if !CHEAT_SERVICE_INGAME
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_MODE_INGAME
+	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
 	if (!object_instance->IsCursorVisible( ) && gui::menu::get_ptr( )->visible( ))
 	{

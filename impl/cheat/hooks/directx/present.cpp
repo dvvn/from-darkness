@@ -5,6 +5,7 @@
 #include "cheat/core/services loader.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
+#include "cheat/netvars/config.h"
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -20,12 +21,8 @@ present::present()
 	this->wait_for_service<gui::menu>( );
 }
 
-nstd::address present::get_target_method_impl() const
-{
-	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->d3d_device.get( ))[17];
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE_ALWAYS_ON(present)
+CHEAT_HOOK_PROXY_INIT_FN(present, TRUE)
+CHEAT_HOOK_PROXY_TARGET_FN(present, &csgo_interfaces::d3d_device, 17);
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {

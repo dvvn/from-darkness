@@ -24,18 +24,13 @@ create_move::create_move()
 	this->get_address_of_return_address( ).emplace( );
 }
 
-nstd::address create_move::get_target_method_impl() const
-{
-	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->client_mode.get( ))[24];
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(create_move)
+CHEAT_HOOK_PROXY_INIT_FN(create_move, CHEAT_MODE_INGAME)
+CHEAT_HOOK_PROXY_TARGET_FN(create_move, &csgo_interfaces::client_mode, 24);
 
 void create_move::callback(float input_sample_time, CUserCmd* cmd)
 {
-#if !CHEAT_SERVICE_INGAME
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_MODE_INGAME
+	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
 	const auto original_return = this->call_original_ex(input_sample_time, cmd);
 

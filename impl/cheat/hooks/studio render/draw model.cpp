@@ -18,21 +18,16 @@ draw_model::draw_model()
 	this->wait_for_service<players_list>( );
 }
 
-nstd::address draw_model::get_target_method_impl() const
-{
-	return dhooks::_Pointer_to_virtual_class_table(csgo_interfaces::get_ptr( )->studio_renderer.get( ))[29];
-}
-
-CHEAT_SERVICE_HOOK_PROXY_IMPL_SIMPLE(draw_model)
+CHEAT_HOOK_PROXY_INIT_FN(draw_model, CHEAT_MODE_INGAME)
+CHEAT_HOOK_PROXY_TARGET_FN(draw_model, &csgo_interfaces::studio_renderer, 29);
 
 void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& info,
 						  matrix3x4_t* bone_to_world,
 						  float* flex_weights, float* flex_delayed_weights,
 						  const Vector& model_origin, DrawModelFlags_t flags)
 {
-#if !CHEAT_SERVICE_INGAME
-	runtime_assert("Skipped but called");
-#pragma message(__FUNCTION__ ": skipped")
+#if !CHEAT_MODE_INGAME
+	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
 #else
 
 #endif

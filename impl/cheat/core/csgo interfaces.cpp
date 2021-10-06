@@ -8,7 +8,7 @@
 
 #include "detour hook/hook_utils.h"
 
-#include <d3d9.h>
+//#include <d3d9.h>
 
 using namespace cheat;
 using namespace detail;
@@ -38,6 +38,7 @@ void csgo_interface_base::Set_result_assert_() const
 }
 
 #ifdef CHEAT_GUI_TEST
+typedef struct IDirect3DDevice9 *LPDIRECT3DDEVICE9, *PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 

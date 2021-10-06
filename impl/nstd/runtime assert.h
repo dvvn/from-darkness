@@ -193,5 +193,4 @@ namespace std
 #else
 #define runtime_assert(...) (void)0
 #endif
-
 // ReSharper restore CppInconsistentNaming
