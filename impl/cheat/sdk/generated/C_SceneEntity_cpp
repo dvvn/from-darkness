@@ -5,10 +5,20 @@
 #include <nstd/address.h>
 #endif
 
-#include <array>
+#include <array<int, 16>>
 
 using namespace cheat::csgo;
 
+int& C_SceneEntity::m_nSceneStringIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_nSceneStringIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
 bool& C_SceneEntity::m_bIsPlayingBack( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -19,22 +29,22 @@ bool& C_SceneEntity::m_bIsPlayingBack( )
 	return addr.ref<bool>( );
 #endif
 }
-bool& C_SceneEntity::m_bMultiplayer( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bMultiplayer");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 bool& C_SceneEntity::m_bPaused( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bPaused");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_SceneEntity::m_bMultiplayer( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bMultiplayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
@@ -57,15 +67,5 @@ std::array<int, 16>& C_SceneEntity::m_hActorList( )
 	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_hActorList");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 16>>( );
-#endif
-}
-int& C_SceneEntity::m_nSceneStringIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_nSceneStringIndex");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
 #endif
 }

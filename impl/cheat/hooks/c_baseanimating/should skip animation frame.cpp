@@ -27,14 +27,14 @@ should_skip_animation_frame::should_skip_animation_frame()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(should_skip_animation_frame, CHEAT_MODE_INGAME)
-CHEAT_HOOK_PROXY_TARGET_FN(should_skip_animation_frame, CHEAT_FIND_SIG(client, "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02"))
+CHEAT_HOOK_PROXY_TARGET_FN(should_skip_animation_frame, CHEAT_MODE_INGAME, CHEAT_FIND_SIG(client, "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02"))
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
 #if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
-	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
+	CHEAT_HOOK_PROXY_CALL_BLOCKER
 #else
-	if(override_return__)
+	if (override_return__)
 		this->return_value_.store_value(override_return_to__);
 	else
 	{
@@ -53,7 +53,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 
 		C_BaseAnimating* ent;
 
-		if(const auto inst = this->object_instance; is_player(inst))
+		if (const auto inst = this->object_instance; is_player(inst))
 		{
 			ent = inst;
 		}
@@ -94,7 +94,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 		}
 
 		const auto animate_this_frame = ent->m_bClientSideAnimation( );
-		const auto skip_this_frame = animate_this_frame == false;
+		const auto skip_this_frame    = animate_this_frame == false;
 		this->return_value_.store_value(skip_this_frame);
 	}
 #endif

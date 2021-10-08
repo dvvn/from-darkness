@@ -1,4 +1,4 @@
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::QAngle& m_vecAngles( );
 float& m_flScale( );
 int& m_nType( );
-cheat::csgo::QAngle& m_vecAngles( );
-cheat::csgo::Vector& m_vecOrigin( );

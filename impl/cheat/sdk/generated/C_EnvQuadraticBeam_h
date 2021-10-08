@@ -1,4 +1,4 @@
-cheat::csgo::Vector& m_controlPosition( );
-float& m_flWidth( );
-float& m_scrollRate( );
 cheat::csgo::Vector& m_targetPosition( );
+cheat::csgo::Vector& m_controlPosition( );
+float& m_scrollRate( );
+float& m_flWidth( );

@@ -1,2 +1,2 @@
-float& m_flLifetime( );
 int& m_nAttachment( );
+float& m_flLifetime( );

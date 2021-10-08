@@ -1,2 +1,2 @@
-int& m_nIndex( );
 cheat::csgo::Vector& m_vecOrigin( );
+int& m_nIndex( );

@@ -1,5 +1,5 @@
-bool& m_bUrgent( );
-cheat::csgo::CBaseHandle& m_hPingedEntity( );
 cheat::csgo::CBaseHandle& m_hPlayer( );
+cheat::csgo::CBaseHandle& m_hPingedEntity( );
 int& m_iType( );
+bool& m_bUrgent( );
 char* m_szPlaceName( );

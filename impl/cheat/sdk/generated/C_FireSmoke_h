@@ -1,6 +1,6 @@
+float& m_flStartScale( );
 float& m_flScale( );
 float& m_flScaleTime( );
-float& m_flStartScale( );
 int& m_nFlags( );
-int& m_nFlameFromAboveModelIndex( );
 int& m_nFlameModelIndex( );
+int& m_nFlameFromAboveModelIndex( );

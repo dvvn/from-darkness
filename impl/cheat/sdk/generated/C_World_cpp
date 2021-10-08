@@ -5,18 +5,18 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-cheat::csgo::Vector& C_World::m_WorldMaxs( )
+float& C_World::m_flWaveHeight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World", "m_WorldMaxs");
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flWaveHeight");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<float>( );
 #endif
 }
 cheat::csgo::Vector& C_World::m_WorldMins( )
@@ -29,14 +29,14 @@ cheat::csgo::Vector& C_World::m_WorldMins( )
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-bool& C_World::m_bColdWorld( )
+cheat::csgo::Vector& C_World::m_WorldMaxs( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World", "m_bColdWorld");
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_WorldMaxs");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 bool& C_World::m_bStartDark( )
@@ -59,22 +59,22 @@ float& C_World::m_flMaxOccludeeArea( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_World::m_flMaxPropScreenSpaceWidth( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flMaxPropScreenSpaceWidth");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_World::m_flMinOccluderArea( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flMinOccluderArea");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_World::m_flMaxPropScreenSpaceWidth( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flMaxPropScreenSpaceWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -89,14 +89,24 @@ float& C_World::m_flMinPropScreenSpaceWidth( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_World::m_flWaveHeight( )
+char* C_World::m_iszDetailSpriteMaterial( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return (char*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_World", "m_flWaveHeight");
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_iszDetailSpriteMaterial");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ptr<char>( );
+#endif
+}
+bool& C_World::m_bColdWorld( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_World", "m_bColdWorld");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }
 int& C_World::m_iTimeOfDay( )
@@ -107,15 +117,5 @@ int& C_World::m_iTimeOfDay( )
 	static const auto offset = netvars::get_ptr( )->at("C_World", "m_iTimeOfDay");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
-}
-char* C_World::m_iszDetailSpriteMaterial( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_World", "m_iszDetailSpriteMaterial");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ptr<char>( );
 #endif
 }

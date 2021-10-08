@@ -1,11 +1,11 @@
-cheat::csgo::Vector& m_WorldMaxs( );
+float& m_flWaveHeight( );
 cheat::csgo::Vector& m_WorldMins( );
-bool& m_bColdWorld( );
+cheat::csgo::Vector& m_WorldMaxs( );
 bool& m_bStartDark( );
 float& m_flMaxOccludeeArea( );
-float& m_flMaxPropScreenSpaceWidth( );
 float& m_flMinOccluderArea( );
+float& m_flMaxPropScreenSpaceWidth( );
 float& m_flMinPropScreenSpaceWidth( );
-float& m_flWaveHeight( );
-int& m_iTimeOfDay( );
 char* m_iszDetailSpriteMaterial( );
+bool& m_bColdWorld( );
+int& m_iTimeOfDay( );

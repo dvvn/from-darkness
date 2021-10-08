@@ -7,22 +7,22 @@
 
 using namespace cheat::csgo;
 
-int& C_Func_LOD::m_nDisappearMaxDist( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_LOD", "m_nDisappearMaxDist");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
 int& C_Func_LOD::m_nDisappearMinDist( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_LOD", "m_nDisappearMinDist");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_Func_LOD::m_nDisappearMaxDist( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_LOD", "m_nDisappearMaxDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif

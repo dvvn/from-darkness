@@ -5,26 +5,16 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-bool& C_FuncLadder::m_bFakeLadder( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_bFakeLadder");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-cheat::csgo::Vector& C_FuncLadder::m_vecLadderDir( )
+cheat::csgo::Vector& C_FuncLadder::m_vecPlayerMountPositionTop( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_vecLadderDir");
+	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_vecPlayerMountPositionTop");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
@@ -39,13 +29,23 @@ cheat::csgo::Vector& C_FuncLadder::m_vecPlayerMountPositionBottom( )
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-cheat::csgo::Vector& C_FuncLadder::m_vecPlayerMountPositionTop( )
+cheat::csgo::Vector& C_FuncLadder::m_vecLadderDir( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_vecPlayerMountPositionTop");
+	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_vecLadderDir");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+bool& C_FuncLadder::m_bFakeLadder( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncLadder", "m_bFakeLadder");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

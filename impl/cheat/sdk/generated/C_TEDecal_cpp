@@ -5,10 +5,30 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
+cheat::csgo::Vector& C_TEDecal::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_vecOrigin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+cheat::csgo::Vector& C_TEDecal::m_vecStart( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_vecStart");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
 int& C_TEDecal::m_nEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -37,25 +57,5 @@ int& C_TEDecal::m_nIndex( )
 	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_nIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
-}
-cheat::csgo::Vector& C_TEDecal::m_vecOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_vecOrigin");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
-#endif
-}
-cheat::csgo::Vector& C_TEDecal::m_vecStart( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_vecStart");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

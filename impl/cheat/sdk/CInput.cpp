@@ -1,7 +1,7 @@
 #include "CInput.hpp"
 #include "CUserCmd.hpp"
 
-#include "detour hook/hook_utils.h"
+#include <dhooks/hook_utils.h>
 
 using namespace cheat::csgo;
 
@@ -12,7 +12,6 @@ CUserCmd* CInput::GetUserCmd(int sequence_number, int nSlot)
 
 CVerifiedUserCmd* CInput::GetVerifiedCmd(int sequence_number)
 {
-	(void)this;
 	const auto verified_commands = nstd::address(this).add(0xF8).deref(1).ptr<CVerifiedUserCmd>( );
 	return &verified_commands[sequence_number % MULTIPLAYER_BACKUP];
 }

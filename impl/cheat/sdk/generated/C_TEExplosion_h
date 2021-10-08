@@ -1,8 +1,8 @@
-unsigned char& m_chMaterialType( );
-float& m_fScale( );
-int& m_nFlags( );
-int& m_nFrameRate( );
-int& m_nMagnitude( );
 int& m_nModelIndex( );
-int& m_nRadius( );
+float& m_fScale( );
+int& m_nFrameRate( );
+int& m_nFlags( );
 cheat::csgo::Vector& m_vecNormal( );
+unsigned char& m_chMaterialType( );
+int& m_nRadius( );
+int& m_nMagnitude( );

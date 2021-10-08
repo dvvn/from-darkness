@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <array>
+#include <array<int, 16>>
 
 using namespace cheat::csgo;
 
@@ -17,56 +17,6 @@ bool& C_SlideshowDisplay::m_bEnabled( )
 	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_bEnabled");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
-}
-bool& C_SlideshowDisplay::m_bNoListRepeats( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_bNoListRepeats");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-std::array<int, 16>& C_SlideshowDisplay::m_chCurrentSlideLists( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 16>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_chCurrentSlideLists");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 16>>( );
-#endif
-}
-float& C_SlideshowDisplay::m_fMaxSlideTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_fMaxSlideTime");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_SlideshowDisplay::m_fMinSlideTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_fMinSlideTime");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-int& C_SlideshowDisplay::m_iCycleType( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_iCycleType");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
 #endif
 }
 char* C_SlideshowDisplay::m_szDisplayText( )
@@ -87,5 +37,55 @@ char* C_SlideshowDisplay::m_szSlideshowDirectory( )
 	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_szSlideshowDirectory");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
+#endif
+}
+std::array<int, 16>& C_SlideshowDisplay::m_chCurrentSlideLists( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 16>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_chCurrentSlideLists");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 16>>( );
+#endif
+}
+float& C_SlideshowDisplay::m_fMinSlideTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_fMinSlideTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_SlideshowDisplay::m_fMaxSlideTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_fMaxSlideTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int& C_SlideshowDisplay::m_iCycleType( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_iCycleType");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+bool& C_SlideshowDisplay::m_bNoListRepeats( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SlideshowDisplay", "m_bNoListRepeats");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

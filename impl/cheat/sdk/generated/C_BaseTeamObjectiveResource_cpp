@@ -5,158 +5,25 @@
 #include <nstd/address.h>
 #endif
 
-#include <array>
+#include <array<char*, 8>>
+#include <array<cheat::csgo::Vector, 8>>
+#include <array<float, 64>>
+#include <array<float, 8>>
+#include <array<int, 192>>
+#include <array<int, 32>>
+#include <array<int, 64>>
+#include <array<int, 8>>
 
 using namespace cheat::csgo;
 
-std::array<int, 8>& C_BaseTeamObjectiveResource::m_bBlocked( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bBlocked");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 8>>( );
-#endif
-}
-std::array<int, 8>& C_BaseTeamObjectiveResource::m_bCPIsVisible( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bCPIsVisible");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 8>>( );
-#endif
-}
-bool& C_BaseTeamObjectiveResource::m_bControlPointsReset( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bControlPointsReset");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-std::array<int, 8>& C_BaseTeamObjectiveResource::m_bInMiniRound( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bInMiniRound");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 8>>( );
-#endif
-}
-bool& C_BaseTeamObjectiveResource::m_bPlayingMiniRounds( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bPlayingMiniRounds");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-std::array<int, 64>& C_BaseTeamObjectiveResource::m_bTeamCanCap( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 64>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bTeamCanCap");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 64>>( );
-#endif
-}
-std::array<float, 8>& C_BaseTeamObjectiveResource::m_flLazyCapPerc( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<float, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_flLazyCapPerc");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<float, 8>>( );
-#endif
-}
-std::array<float, 8>& C_BaseTeamObjectiveResource::m_flPathDistance( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<float, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_flPathDistance");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<float, 8>>( );
-#endif
-}
-std::array<float, 64>& C_BaseTeamObjectiveResource::m_flTeamCapTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<float, 64>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_flTeamCapTime");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<float, 64>>( );
-#endif
-}
-std::array<int, 32>& C_BaseTeamObjectiveResource::m_iBaseControlPoints( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 32>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iBaseControlPoints");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 32>>( );
-#endif
-}
-std::array<int, 8>& C_BaseTeamObjectiveResource::m_iCappingTeam( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iCappingTeam");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 8>>( );
-#endif
-}
-int& C_BaseTeamObjectiveResource::m_iNumControlPoints( )
+int& C_BaseTeamObjectiveResource::m_iTimerToShowInHUD( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iNumControlPoints");
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iTimerToShowInHUD");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
-}
-std::array<int, 64>& C_BaseTeamObjectiveResource::m_iNumTeamMembers( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 64>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iNumTeamMembers");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 64>>( );
-#endif
-}
-std::array<int, 8>& C_BaseTeamObjectiveResource::m_iOwner( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iOwner");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 8>>( );
-#endif
-}
-std::array<int, 192>& C_BaseTeamObjectiveResource::m_iPreviousPoints( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 192>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iPreviousPoints");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 192>>( );
 #endif
 }
 int& C_BaseTeamObjectiveResource::m_iStopWatchTimer( )
@@ -169,14 +36,74 @@ int& C_BaseTeamObjectiveResource::m_iStopWatchTimer( )
 	return addr.ref<int>( );
 #endif
 }
-std::array<int, 32>& C_BaseTeamObjectiveResource::m_iTeamBaseIcons( )
+int& C_BaseTeamObjectiveResource::m_iNumControlPoints( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 32>*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iTeamBaseIcons");
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iNumControlPoints");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 32>>( );
+	return addr.ref<int>( );
+#endif
+}
+bool& C_BaseTeamObjectiveResource::m_bPlayingMiniRounds( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bPlayingMiniRounds");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_BaseTeamObjectiveResource::m_bControlPointsReset( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bControlPointsReset");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+int& C_BaseTeamObjectiveResource::m_iUpdateCapHudParity( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iUpdateCapHudParity");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+std::array<cheat::csgo::Vector, 8>& C_BaseTeamObjectiveResource::m_vCPPositions( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<cheat::csgo::Vector, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_vCPPositions");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<cheat::csgo::Vector, 8>>( );
+#endif
+}
+std::array<int, 8>& C_BaseTeamObjectiveResource::m_bCPIsVisible( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bCPIsVisible");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 8>>( );
+#endif
+}
+std::array<float, 8>& C_BaseTeamObjectiveResource::m_flLazyCapPerc( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_flLazyCapPerc");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<float, 8>>( );
 #endif
 }
 std::array<int, 64>& C_BaseTeamObjectiveResource::m_iTeamIcons( )
@@ -187,16 +114,6 @@ std::array<int, 64>& C_BaseTeamObjectiveResource::m_iTeamIcons( )
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iTeamIcons");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 64>>( );
-#endif
-}
-std::array<int, 8>& C_BaseTeamObjectiveResource::m_iTeamInZone( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iTeamInZone");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 8>>( );
 #endif
 }
 std::array<int, 64>& C_BaseTeamObjectiveResource::m_iTeamOverlays( )
@@ -219,24 +136,64 @@ std::array<int, 64>& C_BaseTeamObjectiveResource::m_iTeamReqCappers( )
 	return addr.ref<std::array<int, 64>>( );
 #endif
 }
-int& C_BaseTeamObjectiveResource::m_iTimerToShowInHUD( )
+std::array<float, 64>& C_BaseTeamObjectiveResource::m_flTeamCapTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(std::array<float, 64>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iTimerToShowInHUD");
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_flTeamCapTime");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<std::array<float, 64>>( );
 #endif
 }
-int& C_BaseTeamObjectiveResource::m_iUpdateCapHudParity( )
+std::array<int, 192>& C_BaseTeamObjectiveResource::m_iPreviousPoints( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(std::array<int, 192>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iUpdateCapHudParity");
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iPreviousPoints");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<std::array<int, 192>>( );
+#endif
+}
+std::array<int, 64>& C_BaseTeamObjectiveResource::m_bTeamCanCap( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bTeamCanCap");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 64>>( );
+#endif
+}
+std::array<int, 32>& C_BaseTeamObjectiveResource::m_iTeamBaseIcons( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 32>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iTeamBaseIcons");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 32>>( );
+#endif
+}
+std::array<int, 32>& C_BaseTeamObjectiveResource::m_iBaseControlPoints( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 32>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iBaseControlPoints");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 32>>( );
+#endif
+}
+std::array<int, 8>& C_BaseTeamObjectiveResource::m_bInMiniRound( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bInMiniRound");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 8>>( );
 #endif
 }
 std::array<int, 8>& C_BaseTeamObjectiveResource::m_iWarnOnCap( )
@@ -259,6 +216,66 @@ std::array<char*, 8>& C_BaseTeamObjectiveResource::m_iszWarnSound( )
 	return addr.ref<std::array<char*, 8>>( );
 #endif
 }
+std::array<float, 8>& C_BaseTeamObjectiveResource::m_flPathDistance( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_flPathDistance");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<float, 8>>( );
+#endif
+}
+std::array<int, 64>& C_BaseTeamObjectiveResource::m_iNumTeamMembers( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 64>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iNumTeamMembers");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 64>>( );
+#endif
+}
+std::array<int, 8>& C_BaseTeamObjectiveResource::m_iCappingTeam( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iCappingTeam");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 8>>( );
+#endif
+}
+std::array<int, 8>& C_BaseTeamObjectiveResource::m_iTeamInZone( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iTeamInZone");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 8>>( );
+#endif
+}
+std::array<int, 8>& C_BaseTeamObjectiveResource::m_bBlocked( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_bBlocked");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 8>>( );
+#endif
+}
+std::array<int, 8>& C_BaseTeamObjectiveResource::m_iOwner( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 8>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_iOwner");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 8>>( );
+#endif
+}
 char* C_BaseTeamObjectiveResource::m_pszCapLayoutInHUD( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -267,15 +284,5 @@ char* C_BaseTeamObjectiveResource::m_pszCapLayoutInHUD( )
 	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_pszCapLayoutInHUD");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
-#endif
-}
-std::array<cheat::csgo::Vector, 8>& C_BaseTeamObjectiveResource::m_vCPPositions( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<cheat::csgo::Vector, 8>*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTeamObjectiveResource", "m_vCPPositions");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<cheat::csgo::Vector, 8>>( );
 #endif
 }

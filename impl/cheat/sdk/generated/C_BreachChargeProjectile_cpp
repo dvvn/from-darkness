@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
@@ -17,6 +17,16 @@ bool& C_BreachChargeProjectile::m_bShouldExplode( )
 	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_bShouldExplode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
+#endif
+}
+int& C_BreachChargeProjectile::m_weaponThatThrewMe( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_weaponThatThrewMe");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
 #endif
 }
 int& C_BreachChargeProjectile::m_nParentBoneIndex( )
@@ -37,15 +47,5 @@ cheat::csgo::Vector& C_BreachChargeProjectile::m_vecParentBonePos( )
 	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_vecParentBonePos");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
-#endif
-}
-int& C_BreachChargeProjectile::m_weaponThatThrewMe( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_weaponThatThrewMe");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
 #endif
 }

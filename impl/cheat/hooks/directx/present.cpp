@@ -22,7 +22,7 @@ present::present()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(present, TRUE)
-CHEAT_HOOK_PROXY_TARGET_FN(present, &csgo_interfaces::d3d_device, 17);
+CHEAT_HOOK_PROXY_TARGET_FN(present, TRUE, &csgo_interfaces::d3d_device, 17);
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
@@ -41,7 +41,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 #ifndef CHEAT_GUI_TEST
 		if (menu->visible( ))
 #endif
-		ImGui::ShowDemoWindow( );
+			ImGui::ShowDemoWindow( );
 #endif
 		menu->render( );
 	}

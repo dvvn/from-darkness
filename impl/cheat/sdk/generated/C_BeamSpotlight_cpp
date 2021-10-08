@@ -7,14 +7,14 @@
 
 using namespace cheat::csgo;
 
-bool& C_BeamSpotlight::m_bHasDynamicLight( )
+int& C_BeamSpotlight::m_nHaloIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_bHasDynamicLight");
+	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_nHaloIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<int>( );
 #endif
 }
 bool& C_BeamSpotlight::m_bSpotlightOn( )
@@ -27,22 +27,22 @@ bool& C_BeamSpotlight::m_bSpotlightOn( )
 	return addr.ref<bool>( );
 #endif
 }
-float& C_BeamSpotlight::m_flHDRColorScale( )
+bool& C_BeamSpotlight::m_bHasDynamicLight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flHDRColorScale");
+	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_bHasDynamicLight");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<bool>( );
 #endif
 }
-float& C_BeamSpotlight::m_flRotationSpeed( )
+float& C_BeamSpotlight::m_flSpotlightMaxLength( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flRotationSpeed");
+	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flSpotlightMaxLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -57,24 +57,14 @@ float& C_BeamSpotlight::m_flSpotlightGoalWidth( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_BeamSpotlight::m_flSpotlightMaxLength( )
+float& C_BeamSpotlight::m_flHDRColorScale( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flSpotlightMaxLength");
+	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flHDRColorScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
-}
-int& C_BeamSpotlight::m_nHaloIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_nHaloIndex");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
 #endif
 }
 int& C_BeamSpotlight::m_nRotationAxis( )
@@ -85,5 +75,15 @@ int& C_BeamSpotlight::m_nRotationAxis( )
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_nRotationAxis");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
+#endif
+}
+float& C_BeamSpotlight::m_flRotationSpeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flRotationSpeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }

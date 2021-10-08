@@ -19,7 +19,7 @@ draw_model::draw_model()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(draw_model, CHEAT_MODE_INGAME)
-CHEAT_HOOK_PROXY_TARGET_FN(draw_model, &csgo_interfaces::studio_renderer, 29);
+CHEAT_HOOK_PROXY_TARGET_FN(draw_model, CHEAT_MODE_INGAME, &csgo_interfaces::studio_renderer, 29);
 
 void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& info,
 						  matrix3x4_t* bone_to_world,
@@ -27,7 +27,7 @@ void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& in
 						  const Vector& model_origin, DrawModelFlags_t flags)
 {
 #if !CHEAT_MODE_INGAME
-	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
+	CHEAT_HOOK_PROXY_CALL_BLOCKER
 #else
 
 #endif

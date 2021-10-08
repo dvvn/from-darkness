@@ -5,20 +5,10 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-float& C_SpriteTrail::m_flEndWidth( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_flEndWidth");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_SpriteTrail::m_flLifeTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -29,32 +19,22 @@ float& C_SpriteTrail::m_flLifeTime( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_SpriteTrail::m_flMinFadeLength( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_flMinFadeLength");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_SpriteTrail::m_flSkyboxScale( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_flSkyboxScale");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_SpriteTrail::m_flStartWidth( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_flStartWidth");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_SpriteTrail::m_flEndWidth( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_flEndWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -79,6 +59,16 @@ float& C_SpriteTrail::m_flTextureRes( )
 	return addr.ref<float>( );
 #endif
 }
+float& C_SpriteTrail::m_flMinFadeLength( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_flMinFadeLength");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
 cheat::csgo::Vector& C_SpriteTrail::m_vecSkyboxOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -87,5 +77,15 @@ cheat::csgo::Vector& C_SpriteTrail::m_vecSkyboxOrigin( )
 	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_vecSkyboxOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+float& C_SpriteTrail::m_flSkyboxScale( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SpriteTrail", "m_flSkyboxScale");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }

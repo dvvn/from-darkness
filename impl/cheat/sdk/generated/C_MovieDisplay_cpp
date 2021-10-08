@@ -17,16 +17,6 @@ bool& C_MovieDisplay::m_bEnabled( )
 	return addr.ref<bool>( );
 #endif
 }
-bool& C_MovieDisplay::m_bForcedSlave( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_bForcedSlave");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 bool& C_MovieDisplay::m_bLooping( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -37,12 +27,42 @@ bool& C_MovieDisplay::m_bLooping( )
 	return addr.ref<bool>( );
 #endif
 }
+char* C_MovieDisplay::m_szMovieFilename( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_szMovieFilename");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_MovieDisplay::m_szGroupName( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_szGroupName");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
 bool& C_MovieDisplay::m_bStretchToFill( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_bStretchToFill");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_MovieDisplay::m_bForcedSlave( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_bForcedSlave");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
@@ -57,16 +77,6 @@ bool& C_MovieDisplay::m_bUseCustomUVs( )
 	return addr.ref<bool>( );
 #endif
 }
-float& C_MovieDisplay::m_flUMax( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_flUMax");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_MovieDisplay::m_flUMin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -77,12 +87,12 @@ float& C_MovieDisplay::m_flUMin( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_MovieDisplay::m_flVMax( )
+float& C_MovieDisplay::m_flUMax( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_flVMax");
+	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_flUMax");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -97,23 +107,13 @@ float& C_MovieDisplay::m_flVMin( )
 	return addr.ref<float>( );
 #endif
 }
-char* C_MovieDisplay::m_szGroupName( )
+float& C_MovieDisplay::m_flVMax( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_szGroupName");
+	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_flVMax");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-char* C_MovieDisplay::m_szMovieFilename( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_MovieDisplay", "m_szMovieFilename");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ptr<char>( );
+	return addr.ref<float>( );
 #endif
 }

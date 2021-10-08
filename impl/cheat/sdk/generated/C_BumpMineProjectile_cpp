@@ -5,20 +5,10 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-bool& C_BumpMineProjectile::m_bArmed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BumpMineProjectile", "m_bArmed");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 int& C_BumpMineProjectile::m_nParentBoneIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -37,5 +27,15 @@ cheat::csgo::Vector& C_BumpMineProjectile::m_vecParentBonePos( )
 	static const auto offset = netvars::get_ptr( )->at("C_BumpMineProjectile", "m_vecParentBonePos");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+bool& C_BumpMineProjectile::m_bArmed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BumpMineProjectile", "m_bArmed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

@@ -1,9 +1,9 @@
-std::array<int, 256>& m_RawPanelBitVec( );
-bool& m_bIsBroken( );
-float& m_flPanelHeight( );
-float& m_flPanelWidth( );
-int& m_nNumHigh( );
 int& m_nNumWide( );
-int& m_nSurfaceType( );
-cheat::csgo::Vector& m_vCorner( );
+int& m_nNumHigh( );
+float& m_flPanelWidth( );
+float& m_flPanelHeight( );
 cheat::csgo::Vector& m_vNormal( );
+cheat::csgo::Vector& m_vCorner( );
+bool& m_bIsBroken( );
+int& m_nSurfaceType( );
+std::array<int, 256>& m_RawPanelBitVec( );

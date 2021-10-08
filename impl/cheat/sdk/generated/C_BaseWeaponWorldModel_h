@@ -1,5 +1,5 @@
-int& m_fEffects( );
-cheat::csgo::CBaseHandle& m_hCombatWeaponParent( );
-int& m_nBody( );
 int& m_nModelIndex( );
+int& m_nBody( );
+int& m_fEffects( );
 int& moveparent( );
+cheat::csgo::CBaseHandle& m_hCombatWeaponParent( );

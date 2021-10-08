@@ -5,51 +5,15 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
-#include <array>
+#include "cheat\sdk\Vector.hpp"
+#include <array<cheat::csgo::Vector, 24>>
+#include <array<float, 4>>
+#include <array<float, 8>>
+#include <array<int, 42>>
+#include <array<int, 8>>
 
 using namespace cheat::csgo;
 
-bool& C_Tablet::m_bTabletReceptionIsBlocked( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_bTabletReceptionIsBlocked");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-float& C_Tablet::m_flBootTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flBootTime");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_Tablet::m_flScanProgress( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flScanProgress");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_Tablet::m_flShowMapTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flShowMapTime");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 std::array<float, 4>& C_Tablet::m_flUpgradeExpirationTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -58,36 +22,6 @@ std::array<float, 4>& C_Tablet::m_flUpgradeExpirationTime( )
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flUpgradeExpirationTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 4>>( );
-#endif
-}
-int& C_Tablet::m_nContractKillGridHighResIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nContractKillGridHighResIndex");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_Tablet::m_nContractKillGridIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nContractKillGridIndex");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_Tablet::m_nLastPurchaseIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nLastPurchaseIndex");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
 #endif
 }
 std::array<int, 42>& C_Tablet::m_vecLocalHexFlags( )
@@ -100,14 +34,64 @@ std::array<int, 42>& C_Tablet::m_vecLocalHexFlags( )
 	return addr.ref<std::array<int, 42>>( );
 #endif
 }
-cheat::csgo::Vector& C_Tablet::m_vecNearestMetalCratePos( )
+int& C_Tablet::m_nContractKillGridIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecNearestMetalCratePos");
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nContractKillGridIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<int>( );
+#endif
+}
+int& C_Tablet::m_nContractKillGridHighResIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nContractKillGridHighResIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+bool& C_Tablet::m_bTabletReceptionIsBlocked( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_bTabletReceptionIsBlocked");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+float& C_Tablet::m_flScanProgress( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flScanProgress");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_Tablet::m_flBootTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flBootTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_Tablet::m_flShowMapTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flShowMapTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 std::array<int, 8>& C_Tablet::m_vecNotificationIds( )
@@ -138,5 +122,25 @@ std::array<cheat::csgo::Vector, 24>& C_Tablet::m_vecPlayerPositionHistory( )
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecPlayerPositionHistory");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<cheat::csgo::Vector, 24>>( );
+#endif
+}
+int& C_Tablet::m_nLastPurchaseIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nLastPurchaseIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+cheat::csgo::Vector& C_Tablet::m_vecNearestMetalCratePos( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecNearestMetalCratePos");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

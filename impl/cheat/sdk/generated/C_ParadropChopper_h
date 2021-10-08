@@ -1,2 +1,2 @@
-cheat::csgo::CBaseHandle& m_hCallingPlayer( );
 cheat::csgo::Vector2D& m_vecOrigin( );
+cheat::csgo::CBaseHandle& m_hCallingPlayer( );

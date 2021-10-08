@@ -7,32 +7,12 @@
 
 using namespace cheat::csgo;
 
-float& C_SteamJet::m_EndSize( )
+float& C_SteamJet::m_SpreadSpeed( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_EndSize");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_SteamJet::m_JetLength( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_JetLength");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_SteamJet::m_Rate( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_Rate");
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_SpreadSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -47,22 +27,42 @@ float& C_SteamJet::m_Speed( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_SteamJet::m_SpreadSpeed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_SpreadSpeed");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_SteamJet::m_StartSize( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_StartSize");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_SteamJet::m_EndSize( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_EndSize");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_SteamJet::m_Rate( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_Rate");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_SteamJet::m_JetLength( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_JetLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -87,16 +87,6 @@ bool& C_SteamJet::m_bFaceLeft( )
 	return addr.ref<bool>( );
 #endif
 }
-float& C_SteamJet::m_flRollSpeed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_flRollSpeed");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 int& C_SteamJet::m_nType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -115,5 +105,15 @@ int& C_SteamJet::m_spawnflags( )
 	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_spawnflags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
+#endif
+}
+float& C_SteamJet::m_flRollSpeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SteamJet", "m_flRollSpeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }

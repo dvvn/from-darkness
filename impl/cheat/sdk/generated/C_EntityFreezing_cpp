@@ -5,29 +5,19 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
-#include <array>
+#include "cheat\sdk\Vector.hpp"
+#include <array<float, 50>>
 
 using namespace cheat::csgo;
 
-bool& C_EntityFreezing::m_bFinishFreezing( )
+cheat::csgo::Vector& C_EntityFreezing::m_vFreezingOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_bFinishFreezing");
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_vFreezingOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-float& C_EntityFreezing::m_flFrozen( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_flFrozen");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 std::array<float, 50>& C_EntityFreezing::m_flFrozenPerHitbox( )
@@ -40,13 +30,23 @@ std::array<float, 50>& C_EntityFreezing::m_flFrozenPerHitbox( )
 	return addr.ref<std::array<float, 50>>( );
 #endif
 }
-cheat::csgo::Vector& C_EntityFreezing::m_vFreezingOrigin( )
+float& C_EntityFreezing::m_flFrozen( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_vFreezingOrigin");
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_flFrozen");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<float>( );
+#endif
+}
+bool& C_EntityFreezing::m_bFinishFreezing( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_EntityFreezing", "m_bFinishFreezing");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

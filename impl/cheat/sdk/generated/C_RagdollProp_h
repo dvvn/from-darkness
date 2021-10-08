@@ -1,5 +1,5 @@
-float& m_flBlendWeight( );
-cheat::csgo::CBaseHandle& m_hUnragdoll( );
-int& m_nOverlaySequence( );
 std::array<cheat::csgo::QAngle, 24>& m_ragAngles( );
 std::array<cheat::csgo::Vector, 24>& m_ragPos( );
+cheat::csgo::CBaseHandle& m_hUnragdoll( );
+float& m_flBlendWeight( );
+int& m_nOverlaySequence( );

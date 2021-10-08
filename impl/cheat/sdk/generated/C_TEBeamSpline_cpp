@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <array>
+#include <array<cheat::csgo::Vector, 16>>
 
 using namespace cheat::csgo;
 

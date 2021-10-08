@@ -1,2 +1,2 @@
-bool& m_bIsHeavyAssaultSuit( );
 int& m_nArmorValue( );
+bool& m_bIsHeavyAssaultSuit( );

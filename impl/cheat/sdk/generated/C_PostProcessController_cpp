@@ -5,20 +5,10 @@
 #include <nstd/address.h>
 #endif
 
-#include <array>
+#include <array<float, 11>>
 
 using namespace cheat::csgo;
 
-bool& C_PostProcessController::m_bMaster( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_bMaster");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 std::array<float, 11>& C_PostProcessController::m_flPostProcessParameters( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -27,5 +17,15 @@ std::array<float, 11>& C_PostProcessController::m_flPostProcessParameters( )
 	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_flPostProcessParameters");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 11>>( );
+#endif
+}
+bool& C_PostProcessController::m_bMaster( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_bMaster");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

@@ -7,22 +7,22 @@
 
 using namespace cheat::csgo;
 
-bool& C_EnvTonemapController::m_bUseCustomAutoExposureMax( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_bUseCustomAutoExposureMax");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 bool& C_EnvTonemapController::m_bUseCustomAutoExposureMin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_bUseCustomAutoExposureMin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_EnvTonemapController::m_bUseCustomAutoExposureMax( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_bUseCustomAutoExposureMax");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
@@ -37,22 +37,12 @@ bool& C_EnvTonemapController::m_bUseCustomBloomScale( )
 	return addr.ref<bool>( );
 #endif
 }
-float& C_EnvTonemapController::m_flBloomExponent( )
+float& C_EnvTonemapController::m_flCustomAutoExposureMin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flBloomExponent");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_EnvTonemapController::m_flBloomSaturation( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flBloomSaturation");
+	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flCustomAutoExposureMin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -63,16 +53,6 @@ float& C_EnvTonemapController::m_flCustomAutoExposureMax( )
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flCustomAutoExposureMax");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_EnvTonemapController::m_flCustomAutoExposureMin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flCustomAutoExposureMin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -97,12 +77,32 @@ float& C_EnvTonemapController::m_flCustomBloomScaleMinimum( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_EnvTonemapController::m_flTonemapMinAvgLum( )
+float& C_EnvTonemapController::m_flBloomExponent( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flTonemapMinAvgLum");
+	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flBloomExponent");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_EnvTonemapController::m_flBloomSaturation( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flBloomSaturation");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_EnvTonemapController::m_flTonemapPercentTarget( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flTonemapPercentTarget");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -117,12 +117,12 @@ float& C_EnvTonemapController::m_flTonemapPercentBrightPixels( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_EnvTonemapController::m_flTonemapPercentTarget( )
+float& C_EnvTonemapController::m_flTonemapMinAvgLum( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flTonemapPercentTarget");
+	static const auto offset = netvars::get_ptr( )->at("C_EnvTonemapController", "m_flTonemapMinAvgLum");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif

@@ -25,12 +25,12 @@ create_move::create_move()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(create_move, CHEAT_MODE_INGAME)
-CHEAT_HOOK_PROXY_TARGET_FN(create_move, &csgo_interfaces::client_mode, 24);
+CHEAT_HOOK_PROXY_TARGET_FN(create_move, CHEAT_MODE_INGAME, &csgo_interfaces::client_mode, 24);
 
 void create_move::callback(float input_sample_time, CUserCmd* cmd)
 {
 #if !CHEAT_MODE_INGAME
-	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
+	CHEAT_HOOK_PROXY_CALL_BLOCKER
 #else
 	const auto original_return = this->call_original_ex(input_sample_time, cmd);
 

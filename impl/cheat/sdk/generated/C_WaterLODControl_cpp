@@ -7,22 +7,22 @@
 
 using namespace cheat::csgo;
 
-float& C_WaterLODControl::m_flCheapWaterEndDistance( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_WaterLODControl", "m_flCheapWaterEndDistance");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_WaterLODControl::m_flCheapWaterStartDistance( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_WaterLODControl", "m_flCheapWaterStartDistance");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_WaterLODControl::m_flCheapWaterEndDistance( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_WaterLODControl", "m_flCheapWaterEndDistance");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif

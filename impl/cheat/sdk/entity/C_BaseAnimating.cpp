@@ -7,7 +7,7 @@ using namespace cheat::csgo;
 
 #include "cheat/core/csgo modules.h"
 
-#include <detour hook/hook_utils.h>
+#include <dhooks/hook_utils.h>
 
 void C_BaseAnimating::UpdateClientSideAnimation()
 {

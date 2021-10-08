@@ -1,2 +1,2 @@
-int& m_nDisappearMaxDist( );
 int& m_nDisappearMinDist( );
+int& m_nDisappearMaxDist( );

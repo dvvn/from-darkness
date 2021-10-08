@@ -1,4 +1,4 @@
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::Vector& m_vecNormal( );
 int& m_iType( );
 int& m_ucFlags( );
-cheat::csgo::Vector& m_vecNormal( );
-cheat::csgo::Vector& m_vecOrigin( );

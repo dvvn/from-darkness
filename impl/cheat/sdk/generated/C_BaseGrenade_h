@@ -1,6 +1,6 @@
+float& m_flDamage( );
 float& m_DmgRadius( );
 bool& m_bIsLive( );
-int& m_fFlags( );
-float& m_flDamage( );
 cheat::csgo::CBaseHandle& m_hThrower( );
 cheat::csgo::Vector& m_vecVelocity( );
+int& m_fFlags( );

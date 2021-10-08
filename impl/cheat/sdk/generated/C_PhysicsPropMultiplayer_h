@@ -1,4 +1,4 @@
-cheat::csgo::Vector& m_collisionMaxs( );
-cheat::csgo::Vector& m_collisionMins( );
-float& m_fMass( );
 int& m_iPhysicsMode( );
+float& m_fMass( );
+cheat::csgo::Vector& m_collisionMins( );
+cheat::csgo::Vector& m_collisionMaxs( );

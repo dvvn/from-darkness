@@ -175,11 +175,11 @@ console::~console()
 	}
 
 	if (in_)
-		_fclose_nolock(in_);
+		fclose(in_);
 	if (out_)
-		_fclose_nolock(out_);
+		fclose(out_);
 	if (err_)
-		_fclose_nolock(err_);
+		fclose(err_);
 }
 
 service_base::load_result console::load_impl()noexcept

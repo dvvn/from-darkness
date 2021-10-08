@@ -5,28 +5,18 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-cheat::csgo::Vector& C_PhysicsPropMultiplayer::m_collisionMaxs( )
+int& C_PhysicsPropMultiplayer::m_iPhysicsMode( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_collisionMaxs");
+	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_iPhysicsMode");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
-#endif
-}
-cheat::csgo::Vector& C_PhysicsPropMultiplayer::m_collisionMins( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_collisionMins");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<int>( );
 #endif
 }
 float& C_PhysicsPropMultiplayer::m_fMass( )
@@ -39,13 +29,23 @@ float& C_PhysicsPropMultiplayer::m_fMass( )
 	return addr.ref<float>( );
 #endif
 }
-int& C_PhysicsPropMultiplayer::m_iPhysicsMode( )
+cheat::csgo::Vector& C_PhysicsPropMultiplayer::m_collisionMins( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_iPhysicsMode");
+	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_collisionMins");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+cheat::csgo::Vector& C_PhysicsPropMultiplayer::m_collisionMaxs( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_collisionMaxs");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

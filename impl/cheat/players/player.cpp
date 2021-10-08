@@ -8,7 +8,9 @@
 #include "nstd/memory backup.h"
 #include "nstd/runtime assert.h"
 
-
+#if CHEAT_FEATURE_PLAYER_LIST
+#include <excpt.h>
+#endif
 
 using namespace cheat;
 using namespace detail;
@@ -27,7 +29,7 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 	//this->index = ent->EntIndex( );
 	pl->ent   = owner;
 	pl->alive = owner->IsAlive( );
-	pl->team  = (m_iTeamNum_t)owner->m_iTeamNum( );
+	pl->team  = static_cast<m_iTeamNum_t>(owner->m_iTeamNum( ));
 	pl->ticks.reserve(player::max_ticks_count( ));
 	owner->m_bClientSideAnimation( ) = false;
 	this->destroy_fn_                = [](const player& p)

@@ -17,22 +17,22 @@ bool& C_Prop_Hallucination::m_bEnabled( )
 	return addr.ref<bool>( );
 #endif
 }
-float& C_Prop_Hallucination::m_fRechargeTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Prop_Hallucination", "m_fRechargeTime");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 float& C_Prop_Hallucination::m_fVisibleTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Prop_Hallucination", "m_fVisibleTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_Prop_Hallucination::m_fRechargeTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Prop_Hallucination", "m_fRechargeTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif

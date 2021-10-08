@@ -7,22 +7,22 @@
 
 using namespace cheat::csgo;
 
-int& C_ItemDogtags::m_KillingPlayer( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_ItemDogtags", "m_KillingPlayer");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
 int& C_ItemDogtags::m_OwningPlayer( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_ItemDogtags", "m_OwningPlayer");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_ItemDogtags::m_KillingPlayer( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_ItemDogtags", "m_KillingPlayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif

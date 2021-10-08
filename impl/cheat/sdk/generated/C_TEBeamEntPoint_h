@@ -1,4 +1,4 @@
-int& m_nEndEntity( );
 int& m_nStartEntity( );
-cheat::csgo::Vector& m_vecEndPoint( );
+int& m_nEndEntity( );
 cheat::csgo::Vector& m_vecStartPoint( );
+cheat::csgo::Vector& m_vecEndPoint( );

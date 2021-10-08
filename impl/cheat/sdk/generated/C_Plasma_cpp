@@ -7,6 +7,16 @@
 
 using namespace cheat::csgo;
 
+float& C_Plasma::m_flStartScale( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_flStartScale");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
 float& C_Plasma::m_flScale( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -27,32 +37,12 @@ float& C_Plasma::m_flScaleTime( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_Plasma::m_flStartScale( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_flStartScale");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 int& C_Plasma::m_nFlags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nFlags");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_Plasma::m_nGlowModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nGlowModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif
@@ -73,6 +63,16 @@ int& C_Plasma::m_nPlasmaModelIndex2( )
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nPlasmaModelIndex2");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_Plasma::m_nGlowModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nGlowModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif

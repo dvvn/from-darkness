@@ -7,6 +7,16 @@
 
 using namespace cheat::csgo;
 
+float& C_FireSmoke::m_flStartScale( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FireSmoke", "m_flStartScale");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
 float& C_FireSmoke::m_flScale( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -27,16 +37,6 @@ float& C_FireSmoke::m_flScaleTime( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_FireSmoke::m_flStartScale( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FireSmoke", "m_flStartScale");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 int& C_FireSmoke::m_nFlags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -47,22 +47,22 @@ int& C_FireSmoke::m_nFlags( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_FireSmoke::m_nFlameFromAboveModelIndex( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FireSmoke", "m_nFlameFromAboveModelIndex");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
 int& C_FireSmoke::m_nFlameModelIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FireSmoke", "m_nFlameModelIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_FireSmoke::m_nFlameFromAboveModelIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FireSmoke", "m_nFlameFromAboveModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif

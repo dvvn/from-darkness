@@ -1,10 +1,10 @@
-float& m_flFadeInLength( );
-float& m_flFadeInStart( );
-float& m_flFadeOutLength( );
-float& m_flFadeOutModelLength( );
-float& m_flFadeOutModelStart( );
-float& m_flFadeOutStart( );
 float& m_flStartTime( );
+float& m_flFadeOutStart( );
+float& m_flFadeOutLength( );
+float& m_flFadeOutModelStart( );
+float& m_flFadeOutModelLength( );
+float& m_flFadeInStart( );
+float& m_flFadeInLength( );
 int& m_nDissolveType( );
-int& m_nMagnitude( );
 cheat::csgo::Vector& m_vDissolverOrigin( );
+int& m_nMagnitude( );

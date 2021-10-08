@@ -5,20 +5,10 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/QAngle.hpp"
+#include "cheat\sdk\QAngle.hpp"
 
 using namespace cheat::csgo;
 
-bool& C_BreakableProp::m_bClientPhysics( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableProp", "m_bClientPhysics");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 cheat::csgo::QAngle& C_BreakableProp::m_qPreferredPlayerCarryAngles( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -27,5 +17,15 @@ cheat::csgo::QAngle& C_BreakableProp::m_qPreferredPlayerCarryAngles( )
 	static const auto offset = netvars::get_ptr( )->at("C_BreakableProp", "m_qPreferredPlayerCarryAngles");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::QAngle>( );
+#endif
+}
+bool& C_BreakableProp::m_bClientPhysics( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableProp", "m_bClientPhysics");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

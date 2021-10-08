@@ -9,7 +9,7 @@ using namespace cheat::csgo;
 #include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/core/csgo modules.h"
 
-#include <detour hook/hook_utils.h>
+#include <dhooks/hook_utils.h>
 
 datamap_t* C_BaseEntity::GetDataDescMap()
 {

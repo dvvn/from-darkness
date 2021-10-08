@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
@@ -29,26 +29,6 @@ int& C_FuncSmokeVolume::m_Color2( )
 	return addr.ref<int>( );
 #endif
 }
-float& C_FuncSmokeVolume::m_Density( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_Density");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_FuncSmokeVolume::m_DensityRampSpeed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_DensityRampSpeed");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
 char* C_FuncSmokeVolume::m_MaterialName( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -57,16 +37,6 @@ char* C_FuncSmokeVolume::m_MaterialName( )
 	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_MaterialName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
-#endif
-}
-float& C_FuncSmokeVolume::m_MovementSpeed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_MovementSpeed");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
 #endif
 }
 float& C_FuncSmokeVolume::m_ParticleDrawWidth( )
@@ -89,12 +59,42 @@ float& C_FuncSmokeVolume::m_ParticleSpacingDistance( )
 	return addr.ref<float>( );
 #endif
 }
+float& C_FuncSmokeVolume::m_DensityRampSpeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_DensityRampSpeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
 float& C_FuncSmokeVolume::m_RotationSpeed( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_RotationSpeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_FuncSmokeVolume::m_MovementSpeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_MovementSpeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_FuncSmokeVolume::m_Density( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_Density");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -109,26 +109,6 @@ float& C_FuncSmokeVolume::m_maxDrawDistance( )
 	return addr.ref<float>( );
 #endif
 }
-int& C_FuncSmokeVolume::m_nSolidType( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_nSolidType");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_FuncSmokeVolume::m_nSurroundType( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_nSurroundType");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
 int& C_FuncSmokeVolume::m_spawnflags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -139,12 +119,32 @@ int& C_FuncSmokeVolume::m_spawnflags( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_FuncSmokeVolume::m_triggerBloat( )
+cheat::csgo::Vector& C_FuncSmokeVolume::m_vecMins( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_vecMins");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+cheat::csgo::Vector& C_FuncSmokeVolume::m_vecMaxs( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_vecMaxs");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+int& C_FuncSmokeVolume::m_nSolidType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_triggerBloat");
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_nSolidType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif
@@ -159,22 +159,32 @@ int& C_FuncSmokeVolume::m_usSolidFlags( )
 	return addr.ref<int>( );
 #endif
 }
-cheat::csgo::Vector& C_FuncSmokeVolume::m_vecMaxs( )
+int& C_FuncSmokeVolume::m_nSurroundType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_vecMaxs");
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_nSurroundType");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<int>( );
 #endif
 }
-cheat::csgo::Vector& C_FuncSmokeVolume::m_vecMins( )
+int& C_FuncSmokeVolume::m_triggerBloat( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_triggerBloat");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+cheat::csgo::Vector& C_FuncSmokeVolume::m_vecSpecifiedSurroundingMins( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_vecMins");
+	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_vecSpecifiedSurroundingMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
@@ -185,16 +195,6 @@ cheat::csgo::Vector& C_FuncSmokeVolume::m_vecSpecifiedSurroundingMaxs( )
 	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_vecSpecifiedSurroundingMaxs");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
-#endif
-}
-cheat::csgo::Vector& C_FuncSmokeVolume::m_vecSpecifiedSurroundingMins( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_FuncSmokeVolume", "m_vecSpecifiedSurroundingMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 #endif

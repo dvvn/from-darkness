@@ -5,18 +5,19 @@
 #include <nstd/address.h>
 #endif
 
-#include <array>
+#include <array<char*, 10>>
+#include <array<float, 10>>
 
 using namespace cheat::csgo;
 
-bool& C_EnvScreenOverlay::m_bIsActive( )
+std::array<char*, 10>& C_EnvScreenOverlay::m_iszOverlayNames( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(std::array<char*, 10>*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_bIsActive");
+	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_iszOverlayNames");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<std::array<char*, 10>>( );
 #endif
 }
 std::array<float, 10>& C_EnvScreenOverlay::m_flOverlayTimes( )
@@ -49,13 +50,13 @@ int& C_EnvScreenOverlay::m_iDesiredOverlay( )
 	return addr.ref<int>( );
 #endif
 }
-std::array<char*, 10>& C_EnvScreenOverlay::m_iszOverlayNames( )
+bool& C_EnvScreenOverlay::m_bIsActive( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<char*, 10>*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_iszOverlayNames");
+	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenOverlay", "m_bIsActive");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<char*, 10>>( );
+	return addr.ref<bool>( );
 #endif
 }

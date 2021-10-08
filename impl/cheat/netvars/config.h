@@ -15,11 +15,8 @@
 #define CHEAT_NETVARS_DUMPER_DISABLED
 #endif
 
-#define CHEAT_CSGO_SDK_PATH cheat/sdk/
-#define CHEAT_CSGO_SDK_DIR _CONCAT(VS_SolutionDir, impl\cheat\sdk\)
-#define CHEAT_NETVARS_GENERATED_PATH _CONCAT(CHEAT_CSGO_SDK_PATH,generated/)
-#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(CHEAT_CSGO_SDK_DIR, generated\)
-#define CHEAT_NETVARS_DUMPS_DIR _CONCAT(VS_SolutionDir, .out\netvars\)
+#define CHEAT_NETVARS_DUMPS_DIR _CONCAT(VS_SolutionDir, \.out\netvars\)
+#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\sdk\generated\)
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
 #define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX _cpp
 #define CHEAT_NETVARS_DUMP_FILE_INDENT 4

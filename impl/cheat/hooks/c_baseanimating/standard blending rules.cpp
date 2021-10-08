@@ -25,16 +25,16 @@ standard_blending_rules::standard_blending_rules()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(standard_blending_rules, CHEAT_MODE_INGAME)
-CHEAT_HOOK_PROXY_TARGET_FN(standard_blending_rules,
+CHEAT_HOOK_PROXY_TARGET_FN(standard_blending_rules, CHEAT_MODE_INGAME,
 						   CHEAT_FIND_VTABLE(client, C_BaseAnimating),
 						   CHEAT_FIND_SIG(client, "8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC", add(11), deref(1), divide(4), value));
 
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
 #if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseEntity_h")
-	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
+	CHEAT_HOOK_PROXY_CALL_BLOCKER
 #else
-	const auto pl = this->object_instance;
+	const auto pl           = this->object_instance;
 	const auto client_class = pl->GetClientClass( );
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;

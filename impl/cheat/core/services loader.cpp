@@ -4,7 +4,7 @@
 #include "csgo_awaiter.h"
 #endif
 
-#include <detour hook/hook_utils.h>
+#include <dhooks/hook_utils.h>
 
 #include <nstd/os/module info.h>
 #include <nstd/os/threads.h>

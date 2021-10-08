@@ -22,6 +22,8 @@
 #include <ranges>
 #include <set>
 
+#include <nstd/memory backup.h>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -66,9 +68,35 @@ private:
 	std::filesystem::path file_;
 };
 
+template <class Key, class T, class IgnoredLess = std::less<Key>,
+		  class Allocator = std::allocator<std::pair<const Key, T>>>
+struct ordered_map_own : nlohmann::ordered_map<Key, T, IgnoredLess, Allocator>
+{
+	using key_type = Key;
+	using mapped_type = T;
+	using Container = std::vector<std::pair<const Key, T>, Allocator>;
+	using typename Container::iterator;
+	using typename Container::const_iterator;
+	using typename Container::size_type;
+	using typename Container::value_type;
+
+	std::pair<iterator, bool> emplace(key_type&& key, T&& t)
+	{
+		for (auto it = this->begin( ); it != this->end( ); ++it)
+		{
+			if (it->first == key)
+			{
+				return {it, false};
+			}
+		}
+		Container::emplace_back(std::move(key), std::move(t));
+		return {--this->end( ), true};
+	}
+};
+
 struct netvars::hidden
 {
-	using storage_type = nlohmann::ordered_json;
+	using storage_type = nlohmann::basic_json<ordered_map_own>;
 	using lazy_writer_type = std::vector<lazy_file_writer>;
 
 	lazy_writer_type lazy_writer;
@@ -105,7 +133,10 @@ static bool _Save_netvar_allowed(const char* name)
 
 static bool _Save_netvar_allowed(const std::string_view& name)
 {
-	return std::ranges::any_of(name, [](char c) { return c == '.'; });
+	return !std::ranges::any_of(name, [](char c)
+	{
+		return c == '.';
+	});
 }
 
 struct netvar_type_holder : std::string
@@ -138,7 +169,7 @@ static bool _Save_netvar(netvars::hidden::storage_type& storage, Nstr&& name, in
 		{
 			auto& type_obj = entry->at("type").get_ref<std::string&>( );
 			if (type_obj != type)
-				type_obj.assign(((std::string&&)type));
+				type_obj.assign(static_cast<std::string&&>(type));
 		}
 #endif
 	}
@@ -659,19 +690,6 @@ static void _Iterate_datamap(netvars::hidden::storage_type& root_tree, datamap_t
 	}
 }
 
-//#define CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW((VS_SolutionDir))
-//#define CHEAT_DUMPS_DIR /*CHEAT_OUTPUT_DIR*/CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(.out\dumps\)
-//#define CHEAT_ROOT_DIR CHEAT_SOLUTION_DIR NSTD_STRINGIZE_RAW(impl\)
-//#define CHEAT_SOURCE_DIR CHEAT_ROOT_DIR NSTD_STRINGIZE_RAW(cheat\)
-//
-//// ReSharper disable CppInconsistentNaming
-//static const auto CHEAT_NETVARS_GENERATED_CLASSES_DIR = std::filesystem::path(R"((C:\Users\owner\Documents\programming\Projects\git\dvvn\from-darkness\))" R"(impl\)" R"(cheat\)") / L"sdk" / L"generated";
-//static const auto CHEAT_NETVARS_DUMP_DIR              = std::filesystem::path(CHEAT_DUMPS_DIR) / L"netvars";
-//
-//static constexpr int CHEAT_NETVARS_JSON_INDENT  = 4;
-//static constexpr char CHEAT_NETVARS_JSON_FILLER = ' ';
-//// ReSharper restore CppInconsistentNaming
-
 enum class dump_info :uint8_t
 {
 	unset
@@ -736,9 +754,11 @@ struct include_name : std::string
 };
 
 [[maybe_unused]]
-static void _Generate_classes(dump_info info, const netvars::hidden::storage_type& netvars_data, netvars::hidden::lazy_writer_type& lazy_writer)
+static void _Generate_classes(dump_info info, netvars::hidden::storage_type& netvars_data, netvars::hidden::lazy_writer_type& lazy_writer)
 {
 	const std::filesystem::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
+
+	nstd::memory_backup<netvars::hidden::storage_type> netvars_data_backup;
 
 	if (info == dump_info::skipped || info == dump_info::updated)
 	{
@@ -753,26 +773,45 @@ static void _Generate_classes(dump_info info, const netvars::hidden::storage_typ
 			goto _WORK;
 		}
 
-		const auto net_classes = [&]
-		{
-			auto data = robin_hood::unordered_set<std::string_view>( );
-			data.reserve(netvars_data.size( ));
-			for (auto& [class_name, netvars] : netvars_data.items( ))
-				data.emplace(class_name);
-			return data;
-		}( );
-
+		netvars_data_backup = netvars_data;
+		size_t exists_count = 0;
 		for (auto& entry : std::filesystem::directory_iterator(generated_classes_dir))
 		{
 			const auto name      = entry.path( ).filename( ).string( );
 			const auto real_size = name.rfind('_'); //erase _h _cpp
 
-			const auto valid_name = std::string_view(name._Unchecked_begin( ), real_size);
-			if (!net_classes.contains(valid_name))
+			const auto valid_name = std::string(name._Unchecked_begin( ), real_size);
+			auto name_entry       = netvars_data.find(valid_name);
+
+			if (name_entry == netvars_data.end( ))
 			{
 				info = dump_info::updated;
 				goto _REMOVE;
 			}
+
+			++exists_count;
+			//netvars_data.erase(name_entry);
+
+			auto& key = const_cast<std::string&>(name_entry.key( ));
+			key[0]    = '\0';
+		}
+
+		if (exists_count != netvars_data.size( ))
+		{
+			if (exists_count > 0)
+			{
+				netvars::hidden::storage_type to_create;
+				for (auto& [key,val] : netvars_data.items( ))
+				{
+					if (key[0] == '\0')
+						continue;
+
+					to_create.emplace(const_cast<std::string&&>(key), std::move(val));
+				}
+				netvars_data = std::move(to_create);
+			}
+			info = dump_info::updated;
+			goto _WORK;
 		}
 
 		if (info == dump_info::skipped)
@@ -820,7 +859,7 @@ _WORK:
 			const auto dir_path = std::filesystem::path(STRINGIZE_PATH(CHEAT_CSGO_SDK_DIR));
 			for (auto& [netvar_name, netvar_data] : NETVARS.items( ))
 			{
-				const auto netvar_type = nstd::drop_namespaces(netvar_data.at("type").get_ref<const std::string&>( ));
+				const auto& netvar_type = netvar_data.at("type").get_ref<const std::string&>( );
 
 				if (netvar_type.starts_with("std"))
 				{
@@ -832,16 +871,17 @@ _WORK:
 				else if (netvar_type.starts_with("cheat"))
 				{
 					std::wstring full_path;
-					full_path.reserve(netvar_type.size( ));
 					std::wstring_view path_to_file;
 
+#if 0
+					full_path.reserve(netvar_type.size( ));
 					for (auto itr = netvar_type.begin( ); itr != netvar_type.end( ); ++itr)
 					{
 						const auto c = *itr;
 						if (c == ':')
 						{
 							++itr;
-							full_path += '/';
+							full_path += std::filesystem::path::preferred_separator;
 							path_to_file = full_path;
 						}
 						else
@@ -849,9 +889,16 @@ _WORK:
 							full_path += c;
 						}
 					}
+#else
+					runtime_assert(netvar_type.starts_with("cheat::csgo::"));
+					path_to_file = STRINGIZE_PATH(cheat\sdk\);
+					full_path.append(path_to_file);
+					const auto name = nstd::drop_namespaces(netvar_type);
+					full_path.append(name.begin( ), name.end( ));
 
+#endif
 					const auto test_file_name = std::wstring_view(full_path).substr(path_to_file.size( ));
-					const auto checked_folder = STRINGIZE_PATH(_CONCAT(VS_SolutionDir, impl\)) / std::filesystem::path(path_to_file);
+					const auto checked_folder = STRINGIZE_PATH(_CONCAT(VS_SolutionDir, \impl\)) / std::filesystem::path(path_to_file);
 
 					for (auto& entry : std::filesystem::directory_iterator(checked_folder))
 					{
@@ -872,8 +919,8 @@ _WORK:
 						std::string include;
 
 						include.reserve(full_path.size( ) + extension.size( ));
-						include.append(full_path._Unchecked_begin( ), full_path._Unchecked_end( ));
-						include.append(extension._Unchecked_begin( ), extension._Unchecked_end( ));
+						include.append(full_path.begin( ), full_path.end( ));
+						include.append(extension.begin( ), extension.end( ));
 
 						includes.emplace(std::move(include), false);
 						break;
@@ -881,7 +928,7 @@ _WORK:
 				}
 				else
 				{
-					runtime_assert(netvar_type.find("::") != netvar_type.npos, "Unknown namespace detected");
+					runtime_assert(netvar_type.find("::") == netvar_type.npos, "Unknown namespace detected");
 
 					if (netvar_type.ends_with("_t"))
 						includes.emplace("cstdint", true);
@@ -981,6 +1028,8 @@ _WORK:
 		//write all without waiting
 		lazy_writer.clear( );
 	}
+
+	(void)netvars_data_backup;
 
 	CHEAT_CONSOLE_LOG("Netvars classes generation done");
 }

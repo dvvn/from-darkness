@@ -5,27 +5,18 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/CBaseHandle.hpp"
-#include <array>
+#include "cheat\sdk\CBaseHandle.hpp"
+#include <array<cheat::csgo::Vector, 24>>
+#include <array<int, 24>>
 
 using namespace cheat::csgo;
 
-bool& C_Drone::m_bPilotTakeoverAllowed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_bPilotTakeoverAllowed");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-cheat::csgo::CBaseHandle& C_Drone::m_hCurrentPilot( )
+cheat::csgo::CBaseHandle& C_Drone::m_hMoveToThisEntity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hCurrentPilot");
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hMoveToThisEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
@@ -40,14 +31,14 @@ cheat::csgo::CBaseHandle& C_Drone::m_hDeliveryCargo( )
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-cheat::csgo::CBaseHandle& C_Drone::m_hMoveToThisEntity( )
+bool& C_Drone::m_bPilotTakeoverAllowed( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::CBaseHandle*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hMoveToThisEntity");
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_bPilotTakeoverAllowed");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::CBaseHandle>( );
+	return addr.ref<bool>( );
 #endif
 }
 cheat::csgo::CBaseHandle& C_Drone::m_hPotentialCargo( )
@@ -60,14 +51,14 @@ cheat::csgo::CBaseHandle& C_Drone::m_hPotentialCargo( )
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-std::array<int, 24>& C_Drone::m_vecTagIncrements( )
+cheat::csgo::CBaseHandle& C_Drone::m_hCurrentPilot( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 24>*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_vecTagIncrements");
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_hCurrentPilot");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 24>>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
 std::array<cheat::csgo::Vector, 24>& C_Drone::m_vecTagPositions( )
@@ -78,5 +69,15 @@ std::array<cheat::csgo::Vector, 24>& C_Drone::m_vecTagPositions( )
 	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_vecTagPositions");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<cheat::csgo::Vector, 24>>( );
+#endif
+}
+std::array<int, 24>& C_Drone::m_vecTagIncrements( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 24>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Drone", "m_vecTagIncrements");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 24>>( );
 #endif
 }

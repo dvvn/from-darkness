@@ -1,7 +1,7 @@
-int& m_fScreenFlags( );
-float& m_flHeight( );
 float& m_flWidth( );
-cheat::csgo::CBaseHandle& m_hPlayerOwner( );
+float& m_flHeight( );
+int& m_fScreenFlags( );
+int& m_nPanelName( );
 int& m_nAttachmentIndex( );
 int& m_nOverlayMaterial( );
-int& m_nPanelName( );
+cheat::csgo::CBaseHandle& m_hPlayerOwner( );

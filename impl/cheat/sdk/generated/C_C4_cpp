@@ -7,42 +7,22 @@
 
 using namespace cheat::csgo;
 
-bool& C_C4::m_bBombPlacedAnimation( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_bBombPlacedAnimation");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-bool& C_C4::m_bIsPlantingViaUse( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_bIsPlantingViaUse");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-bool& C_C4::m_bShowC4LED( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_bShowC4LED");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 bool& C_C4::m_bStartedArming( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_bStartedArming");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_C4::m_bBombPlacedAnimation( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_bBombPlacedAnimation");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
@@ -55,5 +35,25 @@ float& C_C4::m_fArmedTime( )
 	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_fArmedTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
+#endif
+}
+bool& C_C4::m_bShowC4LED( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_bShowC4LED");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_C4::m_bIsPlantingViaUse( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_C4", "m_bIsPlantingViaUse");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

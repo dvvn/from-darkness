@@ -1,6 +1,6 @@
-int& a( );
-int& b( );
-int& g( );
-int& m_nAmount( );
 cheat::csgo::Vector& m_vecDirection( );
 int& r( );
+int& g( );
+int& b( );
+int& a( );
+int& m_nAmount( );

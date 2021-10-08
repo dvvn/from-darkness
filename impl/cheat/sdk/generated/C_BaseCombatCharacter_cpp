@@ -5,21 +5,12 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/CBaseHandle.hpp"
-#include <array>
+#include "cheat\sdk\CBaseHandle.hpp"
+#include <array<int, 1>>
+#include <array<int, 64>>
 
 using namespace cheat::csgo;
 
-int& C_BaseCombatCharacter::m_LastHitGroup( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_LastHitGroup");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
 float& C_BaseCombatCharacter::m_flNextAttack( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -28,26 +19,6 @@ float& C_BaseCombatCharacter::m_flNextAttack( )
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_flNextAttack");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
-}
-float& C_BaseCombatCharacter::m_flTimeOfLastInjury( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_flTimeOfLastInjury");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-cheat::csgo::CBaseHandle& C_BaseCombatCharacter::m_hActiveWeapon( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::CBaseHandle*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_hActiveWeapon");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
 std::array<int, 64>& C_BaseCombatCharacter::m_hMyWeapons( )
@@ -60,14 +31,34 @@ std::array<int, 64>& C_BaseCombatCharacter::m_hMyWeapons( )
 	return addr.ref<std::array<int, 64>>( );
 #endif
 }
-std::array<int, 1>& C_BaseCombatCharacter::m_hMyWearables( )
+int& C_BaseCombatCharacter::m_LastHitGroup( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 1>*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_hMyWearables");
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_LastHitGroup");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 1>>( );
+	return addr.ref<int>( );
+#endif
+}
+cheat::csgo::CBaseHandle& C_BaseCombatCharacter::m_hActiveWeapon( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_hActiveWeapon");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::CBaseHandle>( );
+#endif
+}
+float& C_BaseCombatCharacter::m_flTimeOfLastInjury( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_flTimeOfLastInjury");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 int& C_BaseCombatCharacter::m_nRelativeDirectionOfLastInjury( )
@@ -78,5 +69,15 @@ int& C_BaseCombatCharacter::m_nRelativeDirectionOfLastInjury( )
 	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_nRelativeDirectionOfLastInjury");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
+#endif
+}
+std::array<int, 1>& C_BaseCombatCharacter::m_hMyWearables( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 1>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatCharacter", "m_hMyWearables");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 1>>( );
 #endif
 }

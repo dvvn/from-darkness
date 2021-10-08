@@ -5,70 +5,20 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Color.hpp"
-#include "cheat/sdk/QAngle.hpp"
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Color.hpp"
+#include "cheat\sdk\QAngle.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-float& C_TEShatterSurface::m_flHeight( )
+cheat::csgo::Vector& C_TEShatterSurface::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flHeight");
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_TEShatterSurface::m_flShardSize( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flShardSize");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_TEShatterSurface::m_flWidth( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flWidth");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-int& C_TEShatterSurface::m_nSurfaceType( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_nSurfaceType");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-Color& C_TEShatterSurface::m_uchBackColor( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(Color*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_uchBackColor");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Color>( );
-#endif
-}
-Color& C_TEShatterSurface::m_uchFrontColor( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(Color*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_uchFrontColor");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<Color>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 cheat::csgo::QAngle& C_TEShatterSurface::m_vecAngles( )
@@ -101,13 +51,63 @@ cheat::csgo::Vector& C_TEShatterSurface::m_vecForcePos( )
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-cheat::csgo::Vector& C_TEShatterSurface::m_vecOrigin( )
+float& C_TEShatterSurface::m_flWidth( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_vecOrigin");
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flWidth");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<float>( );
+#endif
+}
+float& C_TEShatterSurface::m_flHeight( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flHeight");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_TEShatterSurface::m_flShardSize( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_flShardSize");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int& C_TEShatterSurface::m_nSurfaceType( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_nSurfaceType");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+cheat::csgo::Color& C_TEShatterSurface::m_uchFrontColor( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Color*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_uchFrontColor");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Color>( );
+#endif
+}
+cheat::csgo::Color& C_TEShatterSurface::m_uchBackColor( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Color*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEShatterSurface", "m_uchBackColor");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Color>( );
 #endif
 }

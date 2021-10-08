@@ -1,7 +1,7 @@
-int& m_LightColor( );
-int& m_LightColorScale( );
+cheat::csgo::Vector& m_shadowDirection( );
+cheat::csgo::Vector& m_envLightShadowDirection( );
 bool& m_bEnabled( );
 bool& m_bUseLightEnvAngles( );
-cheat::csgo::Vector& m_envLightShadowDirection( );
+int& m_LightColor( );
+int& m_LightColorScale( );
 float& m_flMaxShadowDist( );
-cheat::csgo::Vector& m_shadowDirection( );

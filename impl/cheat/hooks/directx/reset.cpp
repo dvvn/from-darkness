@@ -18,7 +18,7 @@ reset::reset()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(reset, TRUE)
-CHEAT_HOOK_PROXY_TARGET_FN(reset, &csgo_interfaces::d3d_device, 16);
+CHEAT_HOOK_PROXY_TARGET_FN(reset, TRUE, &csgo_interfaces::d3d_device, 16);
 
 void reset::callback(D3DPRESENT_PARAMETERS*)
 {

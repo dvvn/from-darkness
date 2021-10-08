@@ -19,12 +19,12 @@ lock_cursor::lock_cursor()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(lock_cursor, CHEAT_MODE_INGAME)
-CHEAT_HOOK_PROXY_TARGET_FN(lock_cursor, &csgo_interfaces::vgui_surface, 67);
+CHEAT_HOOK_PROXY_TARGET_FN(lock_cursor, CHEAT_MODE_INGAME, &csgo_interfaces::vgui_surface, 67);
 
 void lock_cursor::callback()
 {
 #if !CHEAT_MODE_INGAME
-	CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
+	CHEAT_HOOK_PROXY_CALL_BLOCKER
 #else
 	if (!object_instance->IsCursorVisible( ) && gui::menu::get_ptr( )->visible( ))
 	{

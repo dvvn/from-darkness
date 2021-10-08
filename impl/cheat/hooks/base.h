@@ -42,7 +42,7 @@ service_base::load_result _NAME_::load_impl() noexcept\
 	CHEAT_HOOK_PROXY_INIT(_ACTIVE_)\
 }
 
-#define CHEAT_HOOK_PROXY_CALLBACK_BLOCKER\
+#define CHEAT_HOOK_PROXY_CALL_BLOCKER\
 	runtime_assert("Skipped but called");\
 	__pragma(message(__FUNCTION__": skipped"))
 
@@ -84,15 +84,16 @@ namespace cheat::hooks
 	}
 }
 
-#define CHEAT_HOOK_PROXY_TARGET_FN(_NAME_,...) \
-nstd::address _NAME_::get_target_method_impl() const\
-{\
-	return get_target_method_helper(__VA_ARGS__);\
-}
+#define CHEAT_HOOK_PROXY_TARGET_FN_0(...) \
+	CHEAT_HOOK_PROXY_CALL_BLOCKER\
+	return nullptr;
+#define CHEAT_HOOK_PROXY_TARGET_FN_1(...) \
+	return get_target_method_helper(__VA_ARGS__);
+#define CHEAT_HOOK_PROXY_TARGET_FN_X(_HOLDER_, ...) \
+	_CONCAT(CHEAT_HOOK_PROXY_TARGET_FN_,_HOLDER_)(__VA_ARGS__)
 
-//using namespace nstd::address_pipe; manualy
-#define CHEAT_HOOK_PROXY_TARGET_PTR_FN(_NAME_, _HOLDER_, _SIG_, ...) \
+#define CHEAT_HOOK_PROXY_TARGET_FN(_NAME_, _HOLDER_, ...) \
 nstd::address _NAME_::get_target_method_impl() const\
 {\
-	return CHEAT_FIND_SIG(_HOLDER_,_SIG_,__VA_ARGS__);\
+	CHEAT_HOOK_PROXY_TARGET_FN_X(_HOLDER_, __VA_ARGS__)\
 }

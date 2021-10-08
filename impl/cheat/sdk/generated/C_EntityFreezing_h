@@ -1,4 +1,4 @@
-bool& m_bFinishFreezing( );
-float& m_flFrozen( );
-std::array<float, 50>& m_flFrozenPerHitbox( );
 cheat::csgo::Vector& m_vFreezingOrigin( );
+std::array<float, 50>& m_flFrozenPerHitbox( );
+float& m_flFrozen( );
+bool& m_bFinishFreezing( );

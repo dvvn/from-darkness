@@ -5,18 +5,28 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-unsigned char& C_TEFootprintDecal::m_chMaterialType( )
+cheat::csgo::Vector& C_TEFootprintDecal::m_vecOrigin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(unsigned char*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFootprintDecal", "m_chMaterialType");
+	static const auto offset = netvars::get_ptr( )->at("C_TEFootprintDecal", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<unsigned char>( );
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+cheat::csgo::Vector& C_TEFootprintDecal::m_vecDirection( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEFootprintDecal", "m_vecDirection");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 int& C_TEFootprintDecal::m_nEntity( )
@@ -39,23 +49,13 @@ int& C_TEFootprintDecal::m_nIndex( )
 	return addr.ref<int>( );
 #endif
 }
-cheat::csgo::Vector& C_TEFootprintDecal::m_vecDirection( )
+unsigned char& C_TEFootprintDecal::m_chMaterialType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(unsigned char*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFootprintDecal", "m_vecDirection");
+	static const auto offset = netvars::get_ptr( )->at("C_TEFootprintDecal", "m_chMaterialType");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
-#endif
-}
-cheat::csgo::Vector& C_TEFootprintDecal::m_vecOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEFootprintDecal", "m_vecOrigin");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<unsigned char>( );
 #endif
 }

@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
@@ -15,56 +15,6 @@ int& C_Func_Dust::m_Color( )
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_Color");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_Func_Dust::m_DistMax( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_DistMax");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_Func_Dust::m_DustFlags( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_DustFlags");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-float& C_Func_Dust::m_FallSpeed( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_FallSpeed");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-int& C_Func_Dust::m_LifetimeMax( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_LifetimeMax");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_Func_Dust::m_LifetimeMin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_LifetimeMin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif
@@ -79,24 +29,14 @@ int& C_Func_Dust::m_SpawnRate( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_Func_Dust::m_SpeedMax( )
+float& C_Func_Dust::m_flSizeMin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_SpeedMax");
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_flSizeMin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-bool& C_Func_Dust::m_bAffectedByWind( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_bAffectedByWind");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<float>( );
 #endif
 }
 float& C_Func_Dust::m_flSizeMax( )
@@ -109,14 +49,54 @@ float& C_Func_Dust::m_flSizeMax( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_Func_Dust::m_flSizeMin( )
+int& C_Func_Dust::m_LifetimeMin( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_flSizeMin");
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_LifetimeMin");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<int>( );
+#endif
+}
+int& C_Func_Dust::m_LifetimeMax( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_LifetimeMax");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_Func_Dust::m_DustFlags( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_DustFlags");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_Func_Dust::m_SpeedMax( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_SpeedMax");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_Func_Dust::m_DistMax( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_DistMax");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
 #endif
 }
 int& C_Func_Dust::m_nModelIndex( )
@@ -129,12 +109,62 @@ int& C_Func_Dust::m_nModelIndex( )
 	return addr.ref<int>( );
 #endif
 }
+float& C_Func_Dust::m_FallSpeed( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_FallSpeed");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+bool& C_Func_Dust::m_bAffectedByWind( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_bAffectedByWind");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+cheat::csgo::Vector& C_Func_Dust::m_vecMins( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecMins");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+cheat::csgo::Vector& C_Func_Dust::m_vecMaxs( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecMaxs");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
 int& C_Func_Dust::m_nSolidType( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_nSolidType");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_Func_Dust::m_usSolidFlags( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_usSolidFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif
@@ -159,32 +189,12 @@ int& C_Func_Dust::m_triggerBloat( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_Func_Dust::m_usSolidFlags( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_usSolidFlags");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-cheat::csgo::Vector& C_Func_Dust::m_vecMaxs( )
+cheat::csgo::Vector& C_Func_Dust::m_vecSpecifiedSurroundingMins( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecMaxs");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
-#endif
-}
-cheat::csgo::Vector& C_Func_Dust::m_vecMins( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecMins");
+	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecSpecifiedSurroundingMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
@@ -195,16 +205,6 @@ cheat::csgo::Vector& C_Func_Dust::m_vecSpecifiedSurroundingMaxs( )
 	return *(cheat::csgo::Vector*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecSpecifiedSurroundingMaxs");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
-#endif
-}
-cheat::csgo::Vector& C_Func_Dust::m_vecSpecifiedSurroundingMins( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Func_Dust", "m_vecSpecifiedSurroundingMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 #endif

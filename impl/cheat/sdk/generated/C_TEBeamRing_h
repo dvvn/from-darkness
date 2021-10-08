@@ -1,2 +1,2 @@
-int& m_nEndEntity( );
 int& m_nStartEntity( );
+int& m_nEndEntity( );

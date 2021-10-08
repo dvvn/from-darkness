@@ -5,49 +5,19 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
-#include <array>
+#include "cheat\sdk\Vector.hpp"
+#include <array<int, 256>>
 
 using namespace cheat::csgo;
 
-std::array<int, 256>& C_BreakableSurface::m_RawPanelBitVec( )
+int& C_BreakableSurface::m_nNumWide( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 256>*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_RawPanelBitVec");
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_nNumWide");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 256>>( );
-#endif
-}
-bool& C_BreakableSurface::m_bIsBroken( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_bIsBroken");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-float& C_BreakableSurface::m_flPanelHeight( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_flPanelHeight");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_BreakableSurface::m_flPanelWidth( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_flPanelWidth");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<int>( );
 #endif
 }
 int& C_BreakableSurface::m_nNumHigh( )
@@ -60,24 +30,34 @@ int& C_BreakableSurface::m_nNumHigh( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_BreakableSurface::m_nNumWide( )
+float& C_BreakableSurface::m_flPanelWidth( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_nNumWide");
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_flPanelWidth");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<float>( );
 #endif
 }
-int& C_BreakableSurface::m_nSurfaceType( )
+float& C_BreakableSurface::m_flPanelHeight( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_nSurfaceType");
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_flPanelHeight");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<float>( );
+#endif
+}
+cheat::csgo::Vector& C_BreakableSurface::m_vNormal( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_vNormal");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 cheat::csgo::Vector& C_BreakableSurface::m_vCorner( )
@@ -90,13 +70,33 @@ cheat::csgo::Vector& C_BreakableSurface::m_vCorner( )
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-cheat::csgo::Vector& C_BreakableSurface::m_vNormal( )
+bool& C_BreakableSurface::m_bIsBroken( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_vNormal");
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_bIsBroken");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<bool>( );
+#endif
+}
+int& C_BreakableSurface::m_nSurfaceType( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_nSurfaceType");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+std::array<int, 256>& C_BreakableSurface::m_RawPanelBitVec( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 256>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_RawPanelBitVec");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 256>>( );
 #endif
 }

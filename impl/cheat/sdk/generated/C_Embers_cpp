@@ -7,16 +7,6 @@
 
 using namespace cheat::csgo;
 
-bool& C_Embers::m_bEmit( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Embers", "m_bEmit");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 int& C_Embers::m_nDensity( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -45,5 +35,15 @@ int& C_Embers::m_nSpeed( )
 	static const auto offset = netvars::get_ptr( )->at("C_Embers", "m_nSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
+#endif
+}
+bool& C_Embers::m_bEmit( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Embers", "m_bEmit");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
 #endif
 }

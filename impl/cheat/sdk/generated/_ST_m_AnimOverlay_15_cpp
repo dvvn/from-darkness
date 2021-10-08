@@ -7,6 +7,16 @@
 
 using namespace cheat::csgo;
 
+int& _ST_m_AnimOverlay_15::m_nSequence( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_nSequence");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
 float& _ST_m_AnimOverlay_15::m_flCycle( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -63,16 +73,6 @@ int& _ST_m_AnimOverlay_15::m_nOrder( )
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_nOrder");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& _ST_m_AnimOverlay_15::m_nSequence( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_nSequence");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif

@@ -1,5 +1,5 @@
-unsigned char& m_chMaterialType( );
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::Vector& m_vecDirection( );
 int& m_nEntity( );
 int& m_nIndex( );
-cheat::csgo::Vector& m_vecDirection( );
-cheat::csgo::Vector& m_vecOrigin( );
+unsigned char& m_chMaterialType( );

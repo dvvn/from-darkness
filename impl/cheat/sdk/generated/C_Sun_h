@@ -1,10 +1,10 @@
-float& HDRColorScale( );
-float& glowDistanceScale( );
-bool& m_bOn( );
-cheat::csgo::Color& m_clrOverlay( );
 cheat::csgo::Color& m_clrRender( );
+cheat::csgo::Color& m_clrOverlay( );
+cheat::csgo::Vector& m_vDirection( );
+bool& m_bOn( );
+int& m_nSize( );
+int& m_nOverlaySize( );
 int& m_nMaterial( );
 int& m_nOverlayMaterial( );
-int& m_nOverlaySize( );
-int& m_nSize( );
-cheat::csgo::Vector& m_vDirection( );
+float& HDRColorScale( );
+float& glowDistanceScale( );

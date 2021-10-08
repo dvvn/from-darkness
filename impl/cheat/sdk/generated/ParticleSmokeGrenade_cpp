@@ -5,26 +5,16 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-int& ParticleSmokeGrenade::m_CurrentStage( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_CurrentStage");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-float& ParticleSmokeGrenade::m_FadeEndTime( )
+float& ParticleSmokeGrenade::m_flSpawnTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_FadeEndTime");
+	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_flSpawnTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -39,14 +29,14 @@ float& ParticleSmokeGrenade::m_FadeStartTime( )
 	return addr.ref<float>( );
 #endif
 }
-cheat::csgo::Vector& ParticleSmokeGrenade::m_MaxColor( )
+float& ParticleSmokeGrenade::m_FadeEndTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_MaxColor");
+	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_FadeEndTime");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<float>( );
 #endif
 }
 cheat::csgo::Vector& ParticleSmokeGrenade::m_MinColor( )
@@ -59,13 +49,23 @@ cheat::csgo::Vector& ParticleSmokeGrenade::m_MinColor( )
 	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
-float& ParticleSmokeGrenade::m_flSpawnTime( )
+cheat::csgo::Vector& ParticleSmokeGrenade::m_MaxColor( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_flSpawnTime");
+	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_MaxColor");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+int& ParticleSmokeGrenade::m_CurrentStage( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("ParticleSmokeGrenade", "m_CurrentStage");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
 #endif
 }

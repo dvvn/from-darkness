@@ -5,11 +5,21 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/QAngle.hpp"
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\QAngle.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
+cheat::csgo::Vector& C_TEProjectedDecal::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEProjectedDecal", "m_vecOrigin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
 cheat::csgo::QAngle& C_TEProjectedDecal::m_angRotation( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -38,15 +48,5 @@ int& C_TEProjectedDecal::m_nIndex( )
 	static const auto offset = netvars::get_ptr( )->at("C_TEProjectedDecal", "m_nIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
-}
-cheat::csgo::Vector& C_TEProjectedDecal::m_vecOrigin( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_TEProjectedDecal", "m_vecOrigin");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }

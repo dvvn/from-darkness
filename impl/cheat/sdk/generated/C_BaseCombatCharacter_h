@@ -1,7 +1,7 @@
-int& m_LastHitGroup( );
 float& m_flNextAttack( );
-float& m_flTimeOfLastInjury( );
-cheat::csgo::CBaseHandle& m_hActiveWeapon( );
 std::array<int, 64>& m_hMyWeapons( );
-std::array<int, 1>& m_hMyWearables( );
+int& m_LastHitGroup( );
+cheat::csgo::CBaseHandle& m_hActiveWeapon( );
+float& m_flTimeOfLastInjury( );
 int& m_nRelativeDirectionOfLastInjury( );
+std::array<int, 1>& m_hMyWearables( );

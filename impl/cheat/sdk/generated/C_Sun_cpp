@@ -5,39 +5,19 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Color.hpp"
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Color.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-float& C_Sun::HDRColorScale( )
+cheat::csgo::Color& C_Sun::m_clrRender( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(cheat::csgo::Color*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "HDRColorScale");
+	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_clrRender");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_Sun::glowDistanceScale( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "glowDistanceScale");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-bool& C_Sun::m_bOn( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_bOn");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<cheat::csgo::Color>( );
 #endif
 }
 cheat::csgo::Color& C_Sun::m_clrOverlay( )
@@ -50,14 +30,44 @@ cheat::csgo::Color& C_Sun::m_clrOverlay( )
 	return addr.ref<cheat::csgo::Color>( );
 #endif
 }
-cheat::csgo::Color& C_Sun::m_clrRender( )
+cheat::csgo::Vector& C_Sun::m_vDirection( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Color*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_clrRender");
+	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_vDirection");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Color>( );
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+bool& C_Sun::m_bOn( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_bOn");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+int& C_Sun::m_nSize( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nSize");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_Sun::m_nOverlaySize( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nOverlaySize");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
 #endif
 }
 int& C_Sun::m_nMaterial( )
@@ -80,33 +90,23 @@ int& C_Sun::m_nOverlayMaterial( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_Sun::m_nOverlaySize( )
+float& C_Sun::HDRColorScale( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nOverlaySize");
+	static const auto offset = netvars::get_ptr( )->at("C_Sun", "HDRColorScale");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<float>( );
 #endif
 }
-int& C_Sun::m_nSize( )
+float& C_Sun::glowDistanceScale( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nSize");
+	static const auto offset = netvars::get_ptr( )->at("C_Sun", "glowDistanceScale");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-cheat::csgo::Vector& C_Sun::m_vDirection( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_vDirection");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<float>( );
 #endif
 }

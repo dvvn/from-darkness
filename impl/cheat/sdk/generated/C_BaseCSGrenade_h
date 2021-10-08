@@ -1,7 +1,7 @@
-bool& m_bIsHeldByPlayer( );
-bool& m_bLoopingSoundPlaying( );
-bool& m_bPinPulled( );
 bool& m_bRedraw( );
-float& m_fDropTime( );
+bool& m_bIsHeldByPlayer( );
+bool& m_bPinPulled( );
 float& m_fThrowTime( );
+bool& m_bLoopingSoundPlaying( );
 float& m_flThrowStrength( );
+float& m_fDropTime( );

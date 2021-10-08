@@ -5,10 +5,20 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
+cheat::csgo::Vector& C_DangerZone::m_vecDangerZoneOriginStartedAt( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_vecDangerZoneOriginStartedAt");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
 float& C_DangerZone::m_flBombLaunchTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -49,16 +59,6 @@ float& C_DangerZone::m_flExtraRadiusTotalLerpTime( )
 	return addr.ref<float>( );
 #endif
 }
-int& C_DangerZone::m_iWave( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_iWave");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
 int& C_DangerZone::m_nDropOrder( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -69,13 +69,13 @@ int& C_DangerZone::m_nDropOrder( )
 	return addr.ref<int>( );
 #endif
 }
-cheat::csgo::Vector& C_DangerZone::m_vecDangerZoneOriginStartedAt( )
+int& C_DangerZone::m_iWave( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_vecDangerZoneOriginStartedAt");
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_iWave");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<int>( );
 #endif
 }

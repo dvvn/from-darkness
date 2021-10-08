@@ -1,2 +1,2 @@
-int& m_iBurstShotsRemaining( );
 int& m_zoomLevel( );
+int& m_iBurstShotsRemaining( );

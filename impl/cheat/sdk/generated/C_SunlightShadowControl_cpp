@@ -5,38 +5,18 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/Vector.hpp"
+#include "cheat\sdk\Vector.hpp"
 
 using namespace cheat::csgo;
 
-int& C_SunlightShadowControl::m_LightColor( )
+cheat::csgo::Vector& C_SunlightShadowControl::m_shadowDirection( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(cheat::csgo::Vector*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_LightColor");
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_shadowDirection");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-char* C_SunlightShadowControl::m_TextureName( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_TextureName");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ptr<char>( );
-#endif
-}
-bool& C_SunlightShadowControl::m_bEnableShadows( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_bEnableShadows");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<cheat::csgo::Vector>( );
 #endif
 }
 bool& C_SunlightShadowControl::m_bEnabled( )
@@ -49,12 +29,42 @@ bool& C_SunlightShadowControl::m_bEnabled( )
 	return addr.ref<bool>( );
 #endif
 }
+char* C_SunlightShadowControl::m_TextureName( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_TextureName");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+int& C_SunlightShadowControl::m_LightColor( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_LightColor");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
 float& C_SunlightShadowControl::m_flColorTransitionTime( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_flColorTransitionTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_SunlightShadowControl::m_flSunDistance( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_flSunDistance");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -89,23 +99,13 @@ float& C_SunlightShadowControl::m_flNorthOffset( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_SunlightShadowControl::m_flSunDistance( )
+bool& C_SunlightShadowControl::m_bEnableShadows( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_flSunDistance");
+	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_bEnableShadows");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-cheat::csgo::Vector& C_SunlightShadowControl::m_shadowDirection( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_SunlightShadowControl", "m_shadowDirection");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::Vector>( );
+	return addr.ref<bool>( );
 #endif
 }

@@ -5,18 +5,18 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/CBaseHandle.hpp"
+#include "cheat\sdk\CBaseHandle.hpp"
 
 using namespace cheat::csgo;
 
-int& C_VGuiScreen::m_fScreenFlags( )
+float& C_VGuiScreen::m_flWidth( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_fScreenFlags");
+	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_flWidth");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<float>( );
 #endif
 }
 float& C_VGuiScreen::m_flHeight( )
@@ -29,24 +29,24 @@ float& C_VGuiScreen::m_flHeight( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_VGuiScreen::m_flWidth( )
+int& C_VGuiScreen::m_fScreenFlags( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_flWidth");
+	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_fScreenFlags");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<int>( );
 #endif
 }
-cheat::csgo::CBaseHandle& C_VGuiScreen::m_hPlayerOwner( )
+int& C_VGuiScreen::m_nPanelName( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::CBaseHandle*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_hPlayerOwner");
+	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_nPanelName");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<cheat::csgo::CBaseHandle>( );
+	return addr.ref<int>( );
 #endif
 }
 int& C_VGuiScreen::m_nAttachmentIndex( )
@@ -69,13 +69,13 @@ int& C_VGuiScreen::m_nOverlayMaterial( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_VGuiScreen::m_nPanelName( )
+cheat::csgo::CBaseHandle& C_VGuiScreen::m_hPlayerOwner( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(cheat::csgo::CBaseHandle*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_nPanelName");
+	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_hPlayerOwner");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }

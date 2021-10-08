@@ -1,10 +1,10 @@
-int& m_LightColor( );
-char* m_TextureName( );
-bool& m_bEnableShadows( );
+cheat::csgo::Vector& m_shadowDirection( );
 bool& m_bEnabled( );
+char* m_TextureName( );
+int& m_LightColor( );
 float& m_flColorTransitionTime( );
+float& m_flSunDistance( );
 float& m_flFOV( );
 float& m_flNearZ( );
 float& m_flNorthOffset( );
-float& m_flSunDistance( );
-cheat::csgo::Vector& m_shadowDirection( );
+bool& m_bEnableShadows( );

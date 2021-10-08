@@ -5,20 +5,10 @@
 #include <nstd/address.h>
 #endif
 
-#include <array>
+#include <array<int, 5>>
 
 using namespace cheat::csgo;
 
-bool& C_VoteController::m_bIsYesNoVote( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_bIsYesNoVote");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
 int& C_VoteController::m_iActiveIssueIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -39,6 +29,16 @@ int& C_VoteController::m_iOnlyTeamToVote( )
 	return addr.ref<int>( );
 #endif
 }
+std::array<int, 5>& C_VoteController::m_nVoteOptionCount( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 5>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_nVoteOptionCount");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 5>>( );
+#endif
+}
 int& C_VoteController::m_nPotentialVotes( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -49,13 +49,13 @@ int& C_VoteController::m_nPotentialVotes( )
 	return addr.ref<int>( );
 #endif
 }
-std::array<int, 5>& C_VoteController::m_nVoteOptionCount( )
+bool& C_VoteController::m_bIsYesNoVote( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 5>*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_nVoteOptionCount");
+	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_bIsYesNoVote");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<std::array<int, 5>>( );
+	return addr.ref<bool>( );
 #endif
 }

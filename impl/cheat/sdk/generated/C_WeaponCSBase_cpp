@@ -5,38 +5,18 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat/sdk/CBaseHandle.hpp"
+#include "cheat\sdk\CBaseHandle.hpp"
 
 using namespace cheat::csgo;
 
-bool& C_WeaponCSBase::m_bBurstMode( )
+int& C_WeaponCSBase::m_weaponMode( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bBurstMode");
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_weaponMode");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-bool& C_WeaponCSBase::m_bReloadVisuallyComplete( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bReloadVisuallyComplete");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-bool& C_WeaponCSBase::m_bSilencerOn( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bSilencerOn");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<int>( );
 #endif
 }
 float& C_WeaponCSBase::m_fAccuracyPenalty( )
@@ -59,24 +39,14 @@ float& C_WeaponCSBase::m_fLastShotTime( )
 	return addr.ref<float>( );
 #endif
 }
-float& C_WeaponCSBase::m_flDoneSwitchingSilencer( )
+int& C_WeaponCSBase::m_iRecoilIndex( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_flDoneSwitchingSilencer");
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_iRecoilIndex");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-float& C_WeaponCSBase::m_flPostponeFireReadyTime( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_flPostponeFireReadyTime");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<int>( );
 #endif
 }
 float& C_WeaponCSBase::m_flRecoilIndex( )
@@ -99,14 +69,54 @@ cheat::csgo::CBaseHandle& C_WeaponCSBase::m_hPrevOwner( )
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 #endif
 }
-int& C_WeaponCSBase::m_iIronSightMode( )
+bool& C_WeaponCSBase::m_bBurstMode( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_iIronSightMode");
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bBurstMode");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<bool>( );
+#endif
+}
+float& C_WeaponCSBase::m_flPostponeFireReadyTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_flPostponeFireReadyTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+bool& C_WeaponCSBase::m_bReloadVisuallyComplete( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bReloadVisuallyComplete");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_WeaponCSBase::m_bSilencerOn( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bSilencerOn");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+float& C_WeaponCSBase::m_flDoneSwitchingSilencer( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_flDoneSwitchingSilencer");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }
 int& C_WeaponCSBase::m_iOriginalTeamNumber( )
@@ -119,22 +129,12 @@ int& C_WeaponCSBase::m_iOriginalTeamNumber( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_WeaponCSBase::m_iRecoilIndex( )
+int& C_WeaponCSBase::m_iIronSightMode( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_iRecoilIndex");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
-#endif
-}
-int& C_WeaponCSBase::m_weaponMode( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_weaponMode");
+	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_iIronSightMode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif

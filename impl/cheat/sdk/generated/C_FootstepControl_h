@@ -1,2 +1,2 @@
-char* m_destination( );
 char* m_source( );
+char* m_destination( );

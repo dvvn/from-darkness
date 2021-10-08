@@ -30,14 +30,14 @@ should_interpolate::should_interpolate()
 }
 
 CHEAT_HOOK_PROXY_INIT_FN(should_interpolate, FALSE)
-CHEAT_HOOK_PROXY_TARGET_FN(should_interpolate,
+CHEAT_HOOK_PROXY_TARGET_FN(should_interpolate, FALSE,
 						   CHEAT_FIND_VTABLE(client,C_BaseEntity),
 						   CHEAT_FIND_SIG(client,"8B 06 8B CE 8B 80 ? ? 00 00 FF D0 84 C0 74 5C",add(6),deref(1),divide(4),value));
 
 void should_interpolate::callback()
 {
 #if /*!CHEAT_MODE_INGAME*/!FALSE
-CHEAT_HOOK_PROXY_CALLBACK_BLOCKER
+CHEAT_HOOK_PROXY_CALL_BLOCKER
 #else
 	auto ent          = this->object_instance;
 	auto client_class = ent->GetClientClass( );

@@ -1,9 +1,9 @@
-QAngle& m_angRotation( );
-float& m_fTime( );
-int& m_nCount( );
-int& m_nFlags( );
-int& m_nModelIndex( );
-int& m_nRandomization( );
 cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::QAngle& m_angRotation( );
 cheat::csgo::Vector& m_vecSize( );
 cheat::csgo::Vector& m_vecVelocity( );
+int& m_nModelIndex( );
+int& m_nRandomization( );
+int& m_nCount( );
+float& m_fTime( );
+int& m_nFlags( );

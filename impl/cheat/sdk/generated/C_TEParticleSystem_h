@@ -1,1 +1,1 @@
-Vector& m_vecOrigin( );
+cheat::csgo::Vector& m_vecOrigin( );

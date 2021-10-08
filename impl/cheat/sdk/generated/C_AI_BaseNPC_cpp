@@ -7,22 +7,22 @@
 
 using namespace cheat::csgo;
 
-bool& C_AI_BaseNPC::m_bFadeCorpse( )
+int& C_AI_BaseNPC::m_lifeState( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
+	return *(int*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bFadeCorpse");
+	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_lifeState");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
+	return addr.ref<int>( );
 #endif
 }
-bool& C_AI_BaseNPC::m_bImportanRagdoll( )
+bool& C_AI_BaseNPC::m_bPerformAvoidance( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bImportanRagdoll");
+	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bPerformAvoidance");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 #endif
@@ -37,44 +37,14 @@ bool& C_AI_BaseNPC::m_bIsMoving( )
 	return addr.ref<bool>( );
 #endif
 }
-bool& C_AI_BaseNPC::m_bPerformAvoidance( )
+bool& C_AI_BaseNPC::m_bFadeCorpse( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bPerformAvoidance");
+	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bFadeCorpse");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
-}
-bool& C_AI_BaseNPC::m_bSpeedModActive( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bSpeedModActive");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-float& C_AI_BaseNPC::m_flTimePingEffect( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_flTimePingEffect");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
-#endif
-}
-int& C_AI_BaseNPC::m_iDeathFrame( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iDeathFrame");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
 #endif
 }
 int& C_AI_BaseNPC::m_iDeathPose( )
@@ -83,6 +53,16 @@ int& C_AI_BaseNPC::m_iDeathPose( )
 	return *(int*)nullptr;
 #else
 	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iDeathPose");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_AI_BaseNPC::m_iDeathFrame( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iDeathFrame");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 #endif
@@ -107,13 +87,33 @@ int& C_AI_BaseNPC::m_iSpeedModSpeed( )
 	return addr.ref<int>( );
 #endif
 }
-int& C_AI_BaseNPC::m_lifeState( )
+bool& C_AI_BaseNPC::m_bSpeedModActive( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_lifeState");
+	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bSpeedModActive");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<int>( );
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_AI_BaseNPC::m_bImportanRagdoll( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bImportanRagdoll");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+float& C_AI_BaseNPC::m_flTimePingEffect( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_flTimePingEffect");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
 #endif
 }

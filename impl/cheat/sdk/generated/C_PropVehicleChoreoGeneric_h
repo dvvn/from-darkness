@@ -1,5 +1,5 @@
+cheat::csgo::CBaseHandle& m_hPlayer( );
 bool& m_bEnterAnimOn( );
 bool& m_bExitAnimOn( );
 bool& m_bForceEyesToAttachment( );
-cheat::csgo::CBaseHandle& m_hPlayer( );
 cheat::csgo::Vector& m_vecEyeExitEndpoint( );

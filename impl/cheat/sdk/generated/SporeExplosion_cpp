@@ -7,32 +7,12 @@
 
 using namespace cheat::csgo;
 
-bool& SporeExplosion::m_bDontRemove( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_bDontRemove");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-bool& SporeExplosion::m_bEmit( )
-{
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
-	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_bEmit");
-	auto addr = nstd::address(this).add(offset);
-	return addr.ref<bool>( );
-#endif
-}
-float& SporeExplosion::m_flEndSize( )
+float& SporeExplosion::m_flSpawnRate( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
 	return *(float*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_flEndSize");
+	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_flSpawnRate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 #endif
@@ -47,6 +27,26 @@ float& SporeExplosion::m_flParticleLifetime( )
 	return addr.ref<float>( );
 #endif
 }
+float& SporeExplosion::m_flStartSize( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_flStartSize");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& SporeExplosion::m_flEndSize( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_flEndSize");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
 float& SporeExplosion::m_flSpawnRadius( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
@@ -57,23 +57,23 @@ float& SporeExplosion::m_flSpawnRadius( )
 	return addr.ref<float>( );
 #endif
 }
-float& SporeExplosion::m_flSpawnRate( )
+bool& SporeExplosion::m_bEmit( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_flSpawnRate");
+	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_bEmit");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<bool>( );
 #endif
 }
-float& SporeExplosion::m_flStartSize( )
+bool& SporeExplosion::m_bDontRemove( )
 {
 #ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
+	return *(bool*)nullptr;
 #else
-	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_flStartSize");
+	static const auto offset = netvars::get_ptr( )->at("SporeExplosion", "m_bDontRemove");
 	auto addr = nstd::address(this).add(offset);
-	return addr.ref<float>( );
+	return addr.ref<bool>( );
 #endif
 }
