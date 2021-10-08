@@ -39,8 +39,8 @@ namespace cheat::gui::tools
 		imgui_string(T&& str)
 		{
 			//it safe to 'move' twice, only one string accept move
-			multibyte_.uni_assign(std::forward<T>(str));
-			native_.uni_assign(std::forward<T>(str));
+			multibyte_.assign(std::forward<T>(str));
+			native_.assign(std::forward<T>(str));
 		}
 
 		imgui_type imgui() const;
@@ -148,14 +148,15 @@ namespace cheat::gui::tools
 		template <typename T>
 		void set_label(T&& str)
 		{
-			label.uni_assign(std::forward<T>(str));
+			label.assign(std::forward<T>(str));
 			add_update_flag(update_flags::LABEL_CHANGED);
 			if (!font)
 				return;
 			this->update( );
 		}
 
-		void render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align = {}, const ImRect& clip_rect_override = {}, bool cram_clip_rect = 0) const;
+		size_t render(ImDrawList* draw_list, ImVec2 pos, ImU32 color
+					, const ImVec2& align = {}, const ImRect& clip_rect_override = {FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX}, bool cram_clip_rect_x = 0, bool cram_clip_rect_y = 0) const;
 
 		//todo: invisible chars ignored
 

@@ -1,5 +1,7 @@
 ﻿#include "cached_text.h"
 
+#include "imgui_id.h"
+
 #include <nstd/enum_tools.h>
 #include <nstd/memory backup.h>
 #include <nstd/runtime assert.h>
@@ -165,10 +167,11 @@ static void _For_each_noloop(Rng&& rng, Fn&& fn)
 	_For_each_noloop(rng, fn, make_index_sequence_tuple<Rng>( ));
 }
 
-void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImRect& clip_rect_override, bool cram_clip_rect) const
+size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImRect& clip_rect_override, bool cram_clip_rect_x
+						 , bool cram_clip_rect_y) const
 {
 	if ((color & IM_COL32_A_MASK) == 0)
-		return;
+		return 0;
 
 	runtime_assert(font->ContainerAtlas->TexID == draw_list->_CmdHeader.TextureId);
 
@@ -178,20 +181,22 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 		std::array<nstd::memory_backup<float>, 4> backup;
 
 		auto& [min, max] = clip_rect_override;
-		if (min.x > 0 && (cram_clip_rect || min.x > clip_rect.x))
+		if (min.x != FLT_MAX && (cram_clip_rect_x || min.x > clip_rect.x))
 			backup[0] = {clip_rect.x, min.x};
-		if (min.y > 0 && (cram_clip_rect || min.y > clip_rect.y))
+		if (min.y != FLT_MAX && (cram_clip_rect_y || min.y > clip_rect.y))
 			backup[1] = {clip_rect.y, min.y};
-		if (max.x > 0 && (cram_clip_rect || max.x < clip_rect.z))
+		if (max.x != FLT_MAX && (cram_clip_rect_x || max.x < clip_rect.z))
 			backup[2] = {clip_rect.z, max.x};
-		if (max.y > 0 && (cram_clip_rect || max.y < clip_rect.w))
+		if (max.y != FLT_MAX && (cram_clip_rect_y || max.y < clip_rect.w))
 			backup[3] = {clip_rect.w, max.y};
 		return backup;
 	}( );
 
 	const auto add_draw_cmd = _Any_of_noloop(clip_rect_backup, &nstd::memory_backup<float>::has_value);
 	if (add_draw_cmd)
+	{
 		draw_list->_OnChangedClipRect( );
+	}
 
 	const auto align_helper = [&](float ImVec2::* dir, float ImVec4::* clip_rect_dir)
 	{
@@ -227,9 +232,11 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 		}
 	};
 
-	if (pos.x > clip_rect.z || pos.y > clip_rect.w)
+	const auto label_rect = ImRect(pos, pos + label_size);
+	if (label_rect.Max.y <= 0 || label_rect.Max.x <= 0 || label_rect.Min.x >= clip_rect.z || label_rect.Min.y >= clip_rect.w)
 	{
-		return finish( );
+		finish( );
+		return 0;
 	}
 
 	// Reserve vertices for remaining worse case (over-reserving is useful and easily amortized)
@@ -273,4 +280,17 @@ void cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const I
 	}
 
 	finish( );
+	auto id = imgui_id(*this);
+
+	
+		//todo: left right / up down
+		ImGui::SetNextWindowPos(label_rect.Max, ImGuiCond_Always);
+	
+
+	if (ImGui::IsMouseHoveringRect(label_rect.Min, label_rect.Max, false))
+	{
+		ImGui::BeginTooltip( );
+		ImGui::Text("Visible %d glyphs", glyphs_rendered);
+		ImGui::EndTooltip( );
+	}
 }

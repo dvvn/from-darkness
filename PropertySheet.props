@@ -32,7 +32,6 @@
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <ObjectFileName>$(IntDir)%(Directory)</ObjectFileName>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <UndefinePreprocessorDefinitions>ERROR;%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableUAC>false</EnableUAC>

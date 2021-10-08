@@ -1,5 +1,6 @@
 #pragma once
 #include "player.h"
+#include "cheat/netvars/config.h"
 
 #include "cheat/features/base.h"
 

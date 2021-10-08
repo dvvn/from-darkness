@@ -270,6 +270,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\signature.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\timer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\type name.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\type_traits.h">
+      <FileType>CppHeader</FileType>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)nstd\unistring.h" />
   </ItemGroup>
   <ItemGroup>

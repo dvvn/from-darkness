@@ -350,12 +350,20 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 			}
 
 			return rect;
-		}( );
+		};
 
-		title_rect = ImRect(title_bar_rect.Min.x + pad_l
-						  , title_bar_rect.Min.y
-						  , window->Pos.x + (window->SizeFull.x - window->WindowBorderSize - pad_r)
-						  , title_bar_rect.Max.y);
+		title_rect = [&]()-> std::optional<ImRect>
+		{
+			if (!title.render_manually)
+				return {};
+
+			const auto tb_rect = title_bar_rect( );
+
+			return ImRect(tb_rect.Min.x + pad_l //fix out-of-bounds text when moving (temp: window->InnerRect)
+						, std::min(tb_rect.Min.y, window->OuterRectClipped.Min.y)
+						, tb_rect.Min.x + (window->SizeFull.x - window->WindowBorderSize - pad_r) //fix also
+						, std::min(tb_rect.Max.y, window->OuterRectClipped.Max.y));
+		}( );
 
 		style.WindowMinSize = ImVec2(title.label_size.x + pad_r + pad_l, /*title.label_size.y*/button_sz);
 	}
@@ -365,7 +373,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 
 	if (title_rect.has_value( ))
 	{
-		title.render(window->DrawList, title_rect->Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, *title_rect, true);
+		title.render(window->DrawList, title_rect->Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, *title_rect, 0, 1);
 	}
 
 	return ret;

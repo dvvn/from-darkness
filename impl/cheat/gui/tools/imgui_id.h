@@ -19,7 +19,13 @@ namespace cheat::gui::tools
 			{
 				using arr = std::array<ImGuiID, arr_size>;
 
-				const auto ptr     = std::addressof(obj);
+				const auto ptr = [&]
+				{
+					if constexpr (std::is_pointer_v<T>)
+						return obj;
+					else
+						return std::addressof(obj);
+				}( );
 				const auto id_temp = reinterpret_cast<uintptr_t>(ptr);
 
 				auto& id_arr    = reinterpret_cast<const arr&>(id_temp);

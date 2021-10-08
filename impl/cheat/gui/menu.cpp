@@ -11,7 +11,6 @@
 
 //#include "widgets/tab_bar_with_pages.h"
 
-
 #include "tools/cached_text.h"
 
 #include "widgets/window.h"
@@ -111,22 +110,27 @@ struct menu::impl
 
 		const auto title_append = [&]<class ...T>(T&& ...texts)
 		{
-			(title_str.uni_append(texts), ...);
+			(title_str.append(std::forward<T>(texts)), ...);
 		};
 
-		auto day   = std::string_view(__DATE__ + 3 + 1, 2);
-		auto month = []()-> std::string_view
+		// ReSharper disable CppInconsistentNaming
+		constexpr auto _Month = std::string_view(__DATE__, 3);
+		constexpr auto _Day   = std::string_view(_Month._Unchecked_end( ) + 1, 2);
+		constexpr auto _Year  = std::string_view(_Day._Unchecked_end( ) + 1, 4);
+		// ReSharper restore CppInconsistentNaming
+
+		auto month = [&]()-> std::string_view
 		{
-			switch (__DATE__[0])
+			switch (_Month[0])
 			{
 				case 'J': // Jan, Jun or Jul
-					return __DATE__[1] == 'a' ? "01" : __DATE__[2] == 'n' ? "06" : "07";
+					return _Month[1] == 'a' ? "01" : _Month[2] == 'n' ? "06" : "07";
 				case 'F': // Feb
 					return "02";
 				case 'M': // Mar or May
-					return __DATE__[2] == 'r' ? "03" : "05";
+					return _Month[2] == 'r' ? "03" : "05";
 				case 'A': // Apr or Aug
-					return __DATE__[2] == 'p' ? "04" : "08";
+					return _Month[2] == 'p' ? "04" : "08";
 				case 'S': // Sep
 					return "09";
 				case 'O': // Oct
@@ -138,7 +142,10 @@ struct menu::impl
 			}
 			throw;
 		}( );
-		auto year = std::string_view(day._Unchecked_end( ) + 1, 4);
+		auto day = std::string(_Day);
+		if (!std::isdigit(day[0])) //01 02 etc
+			day[0] = '0';
+		auto year = _Year;
 
 		title_append(_STRINGIZE(VS_SolutionName), ' ', day, '.', month, '.', year);
 #ifdef _DEBUG
@@ -269,7 +276,7 @@ public:
 };
 #endif
 
-cheat::service_base::load_result menu::load_impl()noexcept
+cheat::service_base::load_result menu::load_impl() noexcept
 {
 #if 0
 	renderer_.add_page([]
@@ -333,7 +340,7 @@ cheat::service_base::load_result menu::load_impl()noexcept
 	impl_->init_window( );
 	impl_->init_pages( );
 
-CHEAT_SERVICE_LOADED
+	CHEAT_SERVICE_LOADED
 }
 
 CHEAT_REGISTER_SERVICE(menu);
