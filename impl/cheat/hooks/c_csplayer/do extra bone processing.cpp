@@ -34,7 +34,7 @@ void do_extra_bone_processing::callback([[maybe_unused]] CStudioHdr* studio_hdr,
 										[[maybe_unused]] CBoneBitList& bone_computed, [[maybe_unused]] CIKContext* ik_context)
 {
 #if !CHEAT_MODE_INGAME
-	CHEAT_HOOK_PROXY_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 	this->return_value_.set_original_called( );
 

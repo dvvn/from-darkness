@@ -19,7 +19,7 @@ using namespace csgo;
 void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 {
 #if !CHEAT_FEATURE_PLAYER_LIST
-	CHEAT_FEATURE_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 	shared_holder::init( );
 	const auto pl = this->get( );
@@ -49,7 +49,7 @@ bool player_shared_impl::update_simtime()
 {
 	//todo: tickbase shift workaround
 #if !CHEAT_FEATURE_PLAYER_LIST
-	CHEAT_FEATURE_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 	auto& p = **this;
 
@@ -65,7 +65,7 @@ bool player_shared_impl::update_simtime()
 void player_shared_impl::update_animations([[maybe_unused]] bool simple)
 {
 #if !CHEAT_FEATURE_PLAYER_LIST
-	CHEAT_FEATURE_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 
 	(void)this;

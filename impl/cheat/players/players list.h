@@ -1,8 +1,7 @@
 #pragma once
 #include "player.h"
-#include "cheat/netvars/config.h"
 
-#include "cheat/features/base.h"
+#include "cheat/core/service.h"
 
 #if CHEAT_MODE_INGAME && __has_include("cheat/sdk/generated/C_BasePlayer_h") && __has_include("cheat/sdk/generated/C_BaseAnimating_h")
 #define CHEAT_FEATURE_PLAYER_LIST 1
@@ -12,7 +11,7 @@
 
 namespace cheat
 {
-	class players_list final : public features::service_feature<players_list>
+	class players_list final : public service<players_list>
 	{
 	public:
 		players_list();

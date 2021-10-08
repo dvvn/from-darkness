@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <array<_ST_m_AnimOverlay_15, 15>>
+#include <array>
 
 using namespace cheat::csgo;
 

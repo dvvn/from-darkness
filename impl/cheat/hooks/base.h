@@ -10,7 +10,7 @@ namespace cheat::hooks
 	struct service_hook_proxy : service<Proxy>, dhooks::_Detect_hook_holder_t<Target>
 	{
 		std::string_view name() const final { return nstd::type_name<Proxy, "cheat::hooks">; }
-		service_base::debug_info_t debug_info() const final { return {"Hook", "set", "unused", "NOT set"}; }
+		service_base::debug_info_t debug_info() const final { return {"Hook", "set", "ignored", "NOT set"}; }
 	};
 }
 
@@ -41,10 +41,6 @@ service_base::load_result _NAME_::load_impl() noexcept\
 	CHEAT_NETVARS_CONFIG_USED\
 	CHEAT_HOOK_PROXY_INIT(_ACTIVE_)\
 }
-
-#define CHEAT_HOOK_PROXY_CALL_BLOCKER\
-	runtime_assert("Skipped but called");\
-	__pragma(message(__FUNCTION__": skipped"))
 
 namespace cheat::hooks
 {
@@ -85,7 +81,7 @@ namespace cheat::hooks
 }
 
 #define CHEAT_HOOK_PROXY_TARGET_FN_0(...) \
-	CHEAT_HOOK_PROXY_CALL_BLOCKER\
+	CHEAT_CALL_BLOCKER\
 	return nullptr;
 #define CHEAT_HOOK_PROXY_TARGET_FN_1(...) \
 	return get_target_method_helper(__VA_ARGS__);

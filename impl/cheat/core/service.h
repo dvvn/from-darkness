@@ -158,3 +158,12 @@ namespace cheat
 	runtime_assert(why);\
 	CHEAT_SERVICE_RESULT(make_log_message(this, log_type::ERROR_, #why), false)\
 }
+
+#define CHEAT_SERVICE_INIT_1 CHEAT_SERVICE_LOADED
+#define CHEAT_SERVICE_INIT_0 CHEAT_SERVICE_SKIPPED
+
+#define CHEAT_SERVICE_INIT(FT) _CONCAT(CHEAT_SERVICE_INIT_,FT)
+#define CHEAT_CALL_BLOCKER\
+	runtime_assert("Unused but called");\
+	__pragma(message(__FUNCTION__": disabled"))\
+	(void)this;

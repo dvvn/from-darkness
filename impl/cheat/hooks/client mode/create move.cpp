@@ -30,7 +30,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(create_move, CHEAT_MODE_INGAME, &csgo_interfaces::cli
 void create_move::callback(float input_sample_time, CUserCmd* cmd)
 {
 #if !CHEAT_MODE_INGAME
-	CHEAT_HOOK_PROXY_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 	const auto original_return = this->call_original_ex(input_sample_time, cmd);
 

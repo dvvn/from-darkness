@@ -11,11 +11,3 @@ namespace cheat::features
 	};
 }
 
-#define CHEAT_FEATURE_INIT_1 CHEAT_SERVICE_LOADED
-#define CHEAT_FEATURE_INIT_0 CHEAT_SERVICE_SKIPPED
-
-#define CHEAT_FEATURE_INIT(FT) _CONCAT(CHEAT_FEATURE_INIT_,FT)
-#define CHEAT_FEATURE_CALL_BLOCKER\
-	runtime_assert("Disable but called");\
-	__pragma(message(__FUNCTION__": disabled"))\
-	(void)this;

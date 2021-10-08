@@ -5,9 +5,9 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat\sdk\Color.hpp"
-#include "cheat\sdk\Vector.hpp"
-#include <array<int, 10>>
+#include "cheat/sdk/Color.hpp"
+#include "cheat/sdk/Vector.hpp"
+#include <array>
 
 using namespace cheat::csgo;
 

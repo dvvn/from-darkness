@@ -5,10 +5,9 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat\sdk\CBaseHandle.hpp"
-#include "cheat\sdk\Vector.hpp"
-#include <array<float, 24>>
-#include <array<float, 4>>
+#include "cheat/sdk/CBaseHandle.hpp"
+#include "cheat/sdk/Vector.hpp"
+#include <array>
 
 using namespace cheat::csgo;
 

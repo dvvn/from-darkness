@@ -27,7 +27,7 @@ void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& in
 						  const Vector& model_origin, DrawModelFlags_t flags)
 {
 #if !CHEAT_MODE_INGAME
-	CHEAT_HOOK_PROXY_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 
 #endif

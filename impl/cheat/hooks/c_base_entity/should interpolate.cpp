@@ -37,7 +37,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(should_interpolate, FALSE,
 void should_interpolate::callback()
 {
 #if /*!CHEAT_MODE_INGAME*/!FALSE
-CHEAT_HOOK_PROXY_CALL_BLOCKER
+CHEAT_CALL_BLOCKER
 #else
 	auto ent          = this->object_instance;
 	auto client_class = ent->GetClientClass( );

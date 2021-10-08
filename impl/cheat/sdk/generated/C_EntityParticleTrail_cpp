@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat\sdk\CBaseHandle.hpp"
+#include "cheat/sdk/CBaseHandle.hpp"
 
 using namespace cheat::csgo;
 

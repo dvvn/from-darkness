@@ -5,8 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <array<char*, 10>>
-#include <array<float, 10>>
+#include <array>
 
 using namespace cheat::csgo;
 

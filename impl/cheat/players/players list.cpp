@@ -1,8 +1,6 @@
 #include "players list.h"
 #include "player.h"
 
-#include "cheat/hooks/base.h"
-
 #include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/services loader.h"
@@ -25,7 +23,7 @@ using namespace csgo;
 
 service_base::load_result players_list::load_impl() noexcept
 {
-	CHEAT_FEATURE_INIT(CHEAT_FEATURE_PLAYER_LIST)
+	CHEAT_SERVICE_INIT(CHEAT_FEATURE_PLAYER_LIST)
 }
 
 struct players_list::storage_type : std::vector<player_shared_impl>
@@ -43,7 +41,7 @@ players_list::~players_list() = default;
 void players_list::update()
 {
 #if !CHEAT_FEATURE_PLAYER_LIST
-	CHEAT_FEATURE_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 
 	const auto interfaces = csgo_interfaces::get_ptr( );

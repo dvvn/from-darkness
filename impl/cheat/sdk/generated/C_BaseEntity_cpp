@@ -5,12 +5,11 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat\sdk\CBaseHandle.hpp"
-#include "cheat\sdk\Color.hpp"
-#include "cheat\sdk\QAngle.hpp"
-#include "cheat\sdk\Vector.hpp"
-#include <array<int, 2>>
-#include <array<int, 65>>
+#include "cheat/sdk/CBaseHandle.hpp"
+#include "cheat/sdk/Color.hpp"
+#include "cheat/sdk/QAngle.hpp"
+#include "cheat/sdk/Vector.hpp"
+#include <array>
 
 using namespace cheat::csgo;
 

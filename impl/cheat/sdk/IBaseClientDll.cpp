@@ -1,6 +1,6 @@
 #include "IBaseClientDll.hpp"
 
-#include "detour hook/hook_utils.h"
+#include "dhooks/hook_utils.h"
 
 using namespace cheat::csgo;
 

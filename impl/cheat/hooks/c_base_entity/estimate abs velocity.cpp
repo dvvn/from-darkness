@@ -31,7 +31,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(estimate_abs_velocity, CHEAT_MODE_INGAME,
 void estimate_abs_velocity::callback(Vector& vel)
 {
 #if !CHEAT_MODE_INGAME||!__has_include("cheat/sdk/generated/C_BaseEntity_h")
-	CHEAT_HOOK_PROXY_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 	using namespace nstd::enum_operators;
 

@@ -777,23 +777,27 @@ static void _Generate_classes(dump_info info, netvars::hidden::storage_type& net
 		size_t exists_count = 0;
 		for (auto& entry : std::filesystem::directory_iterator(generated_classes_dir))
 		{
-			const auto name      = entry.path( ).filename( ).string( );
-			const auto real_size = name.rfind('_'); //erase _h _cpp
+			constexpr std::string_view suffix = _STRINGIZE(CHEAT_NETVARS_GENERATED_HEADER_POSTFIX);
 
-			const auto valid_name = std::string(name._Unchecked_begin( ), real_size);
-			auto name_entry       = netvars_data.find(valid_name);
+			auto name   = entry.path( ).filename( ).string( );
+			auto namesv = std::string_view(name);
 
+			if (!namesv.ends_with(suffix))
+				continue;
+
+			namesv.remove_suffix(suffix.size( ));
+
+			auto name_entry = netvars_data.find(std::string(namesv));
 			if (name_entry == netvars_data.end( ))
 			{
-				info = dump_info::updated;
+				info = dump_info::created;
 				goto _REMOVE;
 			}
 
 			++exists_count;
 			//netvars_data.erase(name_entry);
 
-			auto& key = const_cast<std::string&>(name_entry.key( ));
-			key[0]    = '\0';
+			const_cast<char&>(name_entry.key( )[0]) = '\0';
 		}
 
 		if (exists_count != netvars_data.size( ))
@@ -810,7 +814,7 @@ static void _Generate_classes(dump_info info, netvars::hidden::storage_type& net
 				}
 				netvars_data = std::move(to_create);
 			}
-			info = dump_info::updated;
+			info = dump_info::created;
 			goto _WORK;
 		}
 
@@ -863,10 +867,8 @@ _WORK:
 
 				if (netvar_type.starts_with("std"))
 				{
-					auto decayed = nstd::drop_namespaces(netvar_type);
-					if (decayed.ends_with('<'))
-						decayed.remove_suffix(1);
-					includes.emplace(decayed, true);
+					const auto decayed = nstd::drop_namespaces(netvar_type);
+					includes.emplace(decayed.substr(0, decayed.find('<')), true);
 				}
 				else if (netvar_type.starts_with("cheat"))
 				{
@@ -891,7 +893,7 @@ _WORK:
 					}
 #else
 					runtime_assert(netvar_type.starts_with("cheat::csgo::"));
-					path_to_file = STRINGIZE_PATH(cheat\sdk\);
+					path_to_file = STRINGIZE_PATH(cheat/sdk/);
 					full_path.append(path_to_file);
 					const auto name = nstd::drop_namespaces(netvar_type);
 					full_path.append(name.begin( ), name.end( ));

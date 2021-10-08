@@ -5,14 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include <array<char*, 8>>
-#include <array<cheat::csgo::Vector, 8>>
-#include <array<float, 64>>
-#include <array<float, 8>>
-#include <array<int, 192>>
-#include <array<int, 32>>
-#include <array<int, 64>>
-#include <array<int, 8>>
+#include <array>
 
 using namespace cheat::csgo;
 

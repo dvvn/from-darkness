@@ -32,7 +32,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(should_skip_animation_frame, CHEAT_MODE_INGAME, CHEAT
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
 #if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
-	CHEAT_HOOK_PROXY_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 	if (override_return__)
 		this->return_value_.store_value(override_return_to__);

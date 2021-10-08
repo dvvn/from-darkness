@@ -5,7 +5,7 @@
 #include <nstd/address.h>
 #endif
 
-#include "cheat\sdk\Vector.hpp"
+#include "cheat/sdk/Vector.hpp"
 
 using namespace cheat::csgo;
 

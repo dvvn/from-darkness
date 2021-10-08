@@ -32,7 +32,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(standard_blending_rules, CHEAT_MODE_INGAME,
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
 #if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseEntity_h")
-	CHEAT_HOOK_PROXY_CALL_BLOCKER
+	CHEAT_CALL_BLOCKER
 #else
 	const auto pl           = this->object_instance;
 	const auto client_class = pl->GetClientClass( );
