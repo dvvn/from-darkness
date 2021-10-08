@@ -246,8 +246,19 @@ concept imgui_window_has_font_dpi_scale = requires()
 	typename T::FontDpiScale;
 };
 
+static float _Min(float a, float b)
+{
+	return std::min(a, b);
+}
+
+static float _Max(float a, float b)
+{
+	return std::max(a, b);
+}
+
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
+	flags |= ImGuiWindowFlags_NoCollapse;
 	const auto window_title = get_imgui_string(title.label_legacy);
 	const auto window       = ImGui::FindWindowByName(window_title);
 	auto& style             = ImGui::GetStyle( );
@@ -359,9 +370,10 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 
 			const auto tb_rect = title_bar_rect( );
 
-			return ImRect(tb_rect.Min.x + pad_l //fix out-of-bounds text when moving (temp: window->InnerRect)
+			const auto min_x = std::invoke(tb_rect.Min.x > 0 ? _Min : _Max, tb_rect.Min.x, window->InnerRect.Min.x);
+			return ImRect(min_x + pad_l
 						, std::min(tb_rect.Min.y, window->OuterRectClipped.Min.y)
-						, tb_rect.Min.x + (window->SizeFull.x - window->WindowBorderSize - pad_r) //fix also
+						, min_x + (window->SizeFull.x - window->WindowBorderSize - pad_r)
 						, std::min(tb_rect.Max.y, window->OuterRectClipped.Max.y));
 		}( );
 
@@ -373,7 +385,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 
 	if (title_rect.has_value( ))
 	{
-		title.render(window->DrawList, title_rect->Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, *title_rect, 0, 1);
+		title.render(window->DrawList, title_rect->Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, *title_rect, false, true);
 	}
 
 	return ret;
@@ -387,7 +399,7 @@ void window_title::on_update(update_flags flags)
 		return;
 
 	label_legacy    = label;
-	render_manually = label_legacy.size( ) != label.size( );
+	render_manually = 1; //label_legacy.size( ) != label.size( );
 
 	if (render_manually)
 	{
