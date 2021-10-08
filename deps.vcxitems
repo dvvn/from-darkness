@@ -19,6 +19,7 @@
 	 $(GitClonedProjects)\ww898\utf-cpp\include;
 	 $(GitClonedProjects)\nothings\stb;
 	 $(GitClonedProjects)\dvvn\nstd\impl;
+	 $(GitClonedProjects)\dvvn\detour_hook\impl;
 	 $(AdditionalIncludeDirs);%(AdditionalIncludeDirectories)
        </AdditionalIncludeDirectories>
     </ClCompile>
@@ -36,8 +37,7 @@
     <ClCompile Include="$(GitClonedProjects)\imgui\misc\cpp\*.cpp" />
     <ClCompile Include="$(GitClonedProjects)\imgui\backends\imgui_impl_dx9.cpp" />
     <ClCompile Include="$(GitClonedProjects)\imgui\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="$(GitClonedProjects)\dvvn\nstd\impl\**\*.cpp">
-      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
-    </ClCompile>
+    <ClCompile Include="$(GitClonedProjects)\dvvn\nstd\impl\**\*.cpp" />
+    <ClCompile Include="$(GitClonedProjects)\dvvn\detour_hook\**\*.cpp" />
   </ItemGroup>
 </Project> 

@@ -6,7 +6,7 @@
 #include "cheat/core/csgo modules.h"
 #include "cheat/sdk/IAppSystem.hpp"
 
-#include "detour hook/hook_utils.h"
+#include <dhooks/hook_utils.h>
 
 //#include <d3d9.h>
 

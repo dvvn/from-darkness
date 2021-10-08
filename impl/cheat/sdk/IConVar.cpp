@@ -1,6 +1,6 @@
 #include "IConVar.hpp"
 
-#include "detour hook/hook_utils.h"
+#include "dhooks/hook_utils.h"
 
 using namespace cheat;
 using namespace csgo;
@@ -12,25 +12,25 @@ static T _Get_helper(const ConVar* ptr, size_t index)
 }
 
 template < >
-const char* ConVar::get<const char*>( ) const
+const char* ConVar::get() const
 {
 	return _Get_helper<const char*>(this, 11);
 }
 
 template < >
-float ConVar::get<float>( ) const
+float ConVar::get() const
 {
 	return _Get_helper<float>(this, 12);
 }
 
 template < >
-int ConVar::get<int>( ) const
+int ConVar::get() const
 {
 	return _Get_helper<int>(this, 13);
 }
 
 template < >
-bool ConVar::get<bool>( ) const
+bool ConVar::get() const
 {
 	return !!this->get<int>( );
 }
@@ -38,21 +38,25 @@ bool ConVar::get<bool>( ) const
 template <typename T>
 static void _Set_helper(ConVar* ptr, size_t index, T value)
 {
-	return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
+	//return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
+	return dhooks::_Call_function(&ConVar::set<T>, ptr, index, value);
 }
 
+template < >
 void ConVar::set(const char* value)
 {
 	_Set_helper(this, 14, value);
 	//dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 14, value);
 }
 
+template < >
 void ConVar::set(float value)
 {
 	_Set_helper(this, 15, value);
 	//dhooks::_Call_function(&ConVar::SetValue_<decltype(value)>, this, 15, value);
 }
 
+template < >
 void ConVar::set(int value)
 {
 	_Set_helper(this, 16, value);

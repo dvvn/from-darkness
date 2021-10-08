@@ -2,7 +2,7 @@
 //#include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
 
-#include <detour hook/hook_utils.h>
+#include <dhooks/hook_utils.h>
 
 namespace cheat::hooks
 {

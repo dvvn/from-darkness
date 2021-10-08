@@ -240,14 +240,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\shared_data.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\game.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\hde64.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hde\include.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hook.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hook_utils.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\status.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\trampoline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
@@ -423,12 +415,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\game.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde32.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hde\hde64.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hook.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\hook_utils.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\status.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\trampoline.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)entry.cpp" />
   </ItemGroup>
 </Project>

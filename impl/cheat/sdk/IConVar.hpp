@@ -112,19 +112,11 @@ namespace cheat::csgo
 	class ConVar
 	{
 	public:
-		void set(const char* value);
-		void set(float value);
-		void set(int value);
+		template <typename T>
+		void set(T value);
 
 		template <typename T>
 		T get( ) const;
-
-		template < >
-		const char* get( ) const;
-		template < >
-		float get( ) const;
-		template < >
-		int get( ) const;
 
 	private:
 		void* virtualtable;
