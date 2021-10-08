@@ -248,32 +248,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\hook_utils.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\status.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)detour hook\trampoline.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\address.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\chars cache.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\checksum.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\core.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\enum_tools.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\smooth_value.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory backup.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory block.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\memory protect.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\one_instance.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\handle.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports mgr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\root class.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections mgr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables mgr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\os\threads.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\overload.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\runtime assert.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\signature.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\timer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\type name.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\type_traits.h">
-      <FileType>CppHeader</FileType>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)nstd\unistring.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
@@ -456,17 +430,5 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\status.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)detour hook\trampoline.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)entry.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\address.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\checksum.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\memory block.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\memory protect.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\handle.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\exports mgr.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\sections mgr.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\module info\vtables mgr.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\os\threads.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\timer.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)nstd\runtime assert.cpp" />
   </ItemGroup>
 </Project>

@@ -17,6 +17,7 @@
 
 using namespace cheat::gui::tools;
 
+#if 0
 imgui_string::imgui_type imgui_string::imgui() const
 {
 	return get_imgui_string(multibyte_);
@@ -76,7 +77,7 @@ imgui_string_transparent::operator imgui_string::imgui_type() const
 							  }), buff_);
 }
 
-//-------------------
+#endif
 
 void cached_text::set_font(ImFont* new_font)
 {
@@ -126,7 +127,7 @@ void cached_text::update()
 	label_size.x  = std::accumulate(advances.begin( ), advances.end( ), 0.f);
 	label_size.y  = font->FontSize; //line_height
 
-	if (update_flags_ & (update_flags::LABEL_CHANGED))
+	if (update_flags_ & update_flags::LABEL_CHANGED)
 		label_hash = std::_Hash_array_representation(label._Unchecked_begin( ), label.size( ));
 
 	this->on_update(update_flags_);
@@ -137,7 +138,7 @@ void cached_text::update()
 void cached_text::add_update_flag(update_flags flag)
 {
 	using namespace nstd::enum_operators;
-	update_flags_ |= (flag);
+	update_flags_ |= flag;
 }
 
 template <typename T>
@@ -227,7 +228,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 	{
 		if (add_draw_cmd)
 		{
-			_For_each_noloop((clip_rect_backup), &nstd::memory_backup<float>::restore);
+			_For_each_noloop(clip_rect_backup, &nstd::memory_backup<float>::restore);
 			draw_list->_OnChangedClipRect( );
 		}
 	};
@@ -280,10 +281,8 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 	}
 
 	finish( );
-	auto id = imgui_id(*this);
-
-	
-		//todo: left right / up down
+#if 0
+	//todo: left right / up down
 		ImGui::SetNextWindowPos(label_rect.Max, ImGuiCond_Always);
 	
 
@@ -293,4 +292,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 		ImGui::Text("Visible %d glyphs", glyphs_rendered);
 		ImGui::EndTooltip( );
 	}
+#endif
+
+	return glyphs_rendered;
 }

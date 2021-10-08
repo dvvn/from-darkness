@@ -53,7 +53,7 @@ namespace cheat::gui::widgets
 
 	struct window_title final : tools::cached_text
 	{
-		tools::imgui_string::multibyte_type label_legacy;
+		nstd::unistring<char> label_legacy;
 		bool render_manually;
 
 	protected:

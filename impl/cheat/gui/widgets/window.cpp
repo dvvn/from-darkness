@@ -258,7 +258,6 @@ static float _Max(float a, float b)
 
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
-	flags |= ImGuiWindowFlags_NoCollapse;
 	const auto window_title = get_imgui_string(title.label_legacy);
 	const auto window       = ImGui::FindWindowByName(window_title);
 	auto& style             = ImGui::GetStyle( );
@@ -300,16 +299,13 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 #endif
 	)
 	{
-		if (window)
+		constexpr auto font_dpi_scale_assert = []<class T>(T* wnd)
 		{
-			constexpr auto font_dpi_scale_assert = []<class T>(T* wnd)
-			{
-				if constexpr (imgui_window_has_font_dpi_scale<T>)
-					runtime_assert(wnd->FontDpiScale == 1, "imgui's dpi scale unsupported");
-			};
-			font_dpi_scale_assert(window);
-			runtime_assert(window->FontWindowScale == 1, "imgui's window font scale unsupported");
-		}
+			if constexpr (imgui_window_has_font_dpi_scale<T>)
+				runtime_assert(wnd->FontDpiScale == 1, "imgui's dpi scale unsupported");
+		};
+		font_dpi_scale_assert(window);
+		runtime_assert(window->FontWindowScale == 1, "imgui's window font scale unsupported");
 
 		auto pad_l           = style.FramePadding.x;
 		auto pad_r           = style.FramePadding.x;
@@ -370,7 +366,24 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 
 			const auto tb_rect = title_bar_rect( );
 
-			const auto min_x = std::invoke(tb_rect.Min.x > 0 ? _Min : _Max, tb_rect.Min.x, window->InnerRect.Min.x);
+			const auto fix_min_x = [&]
+			{
+				const auto wpt = static_cast<ImGuiViewportP*>(
+					ImGui::
+#ifdef IMGUI_HAS_VIEWPORT
+				GetWindowViewport
+#else
+					GetMainViewport
+#endif
+					( ));
+
+				const auto rect = wpt->GetMainRect( );
+				return !rect.Contains(tb_rect);
+			}( );
+
+			const auto min_x = !fix_min_x
+								   ? tb_rect.Min.x
+								   : std::invoke(tb_rect.Min.x > 0 ? _Min : _Max, tb_rect.Min.x, window->InnerRect.Min.x);
 			return ImRect(min_x + pad_l
 						, std::min(tb_rect.Min.y, window->OuterRectClipped.Min.y)
 						, min_x + (window->SizeFull.x - window->WindowBorderSize - pad_r)
@@ -399,7 +412,7 @@ void window_title::on_update(update_flags flags)
 		return;
 
 	label_legacy    = label;
-	render_manually = 1; //label_legacy.size( ) != label.size( );
+	render_manually = label_legacy.size( ) != label.size( );
 
 	if (render_manually)
 	{

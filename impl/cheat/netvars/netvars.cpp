@@ -872,8 +872,8 @@ _WORK:
 						std::string include;
 
 						include.reserve(full_path.size( ) + extension.size( ));
-						include.append(full_path.begin( ), full_path.end( ));
-						include.append(extension.begin( ), extension.end( ));
+						include.append(full_path._Unchecked_begin( ), full_path._Unchecked_end( ));
+						include.append(extension._Unchecked_begin( ), extension._Unchecked_end( ));
 
 						includes.emplace(std::move(include), false);
 						break;

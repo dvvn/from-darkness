@@ -4,14 +4,13 @@
 
 #include <imgui_internal.h>
 
-#include <string>
-#include <variant>
+//#include <variant>
 
 namespace cheat::gui::tools
 {
-	template <std::ranges::range T>
-		requires(sizeof(std::ranges::range_value_t<T>) == sizeof(char))
+	template <nstd::std_string_or_view T>
 	auto get_imgui_string(const T& str)
+		requires(sizeof(typename T::value_type) == sizeof(char))
 	{
 #ifdef IMGUI_HAS_IMSTR
 		return ImStrv(str._Unchecked_begin( ), str._Unchecked_end( ));
@@ -19,6 +18,8 @@ namespace cheat::gui::tools
 		return reinterpret_cast<const char*>(/*std::_Const_cast*/str._Unchecked_begin( ));
 #endif
 	}
+
+#if 0//deprecated
 
 	class imgui_string
 	{
@@ -134,6 +135,7 @@ namespace cheat::gui::tools
 		size_t chars_count() const;
 		size_t chars_capacity() const;
 	};
+#endif
 
 	class cached_text
 	{
