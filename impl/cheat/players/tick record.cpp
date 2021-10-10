@@ -12,15 +12,42 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-stored_player_bones::stored_player_bones([[maybe_unused]] C_BaseEntity* ent)
+bones_cache_copy::bones_cache_copy(bones_cache_copy&& other) noexcept
 {
-	const auto&  bones     = ent->BonesCache( );
-	const size_t num_bones = bones.size( );
+	auto& l = *static_cast<base*>(this);
+	auto& r = static_cast<base&>(other);
 
-	cache__ = std::make_unique<matrix3x4_t[]>(num_bones);
-	std::memcpy(cache__.get( ), bones.data( ), num_bones * sizeof(matrix3x4_t));
+	l = r;
+	r = {};
+}
 
-	*static_cast<span*>(this) = {cache__.get( ), num_bones};
+bones_cache_copy& bones_cache_copy::operator=(bones_cache_copy&& other) noexcept
+{
+	auto& l = *static_cast<base*>(this);
+	auto& r = static_cast<base&>(other);
+
+	std::swap(l, r);
+	return *this;
+}
+
+bones_cache_copy::~bones_cache_copy()
+{
+	const auto ptr = this->data( );
+	if (!ptr)
+		return;
+	delete[] ptr;
+}
+
+void tick_record::store_bones(C_BaseEntity* ent)
+{
+	runtime_assert(this->bones.data( ) == nullptr);
+	const auto& bones_cache = ent->BonesCache( );
+	const size_t num_bones  = bones_cache.size( );
+
+	const auto bytes_allocated = sizeof(matrix3x4_t) * num_bones;
+	const auto ptr             = new uint8_t[bytes_allocated];
+	std::memcpy(ptr, bones_cache.data( ), bytes_allocated);
+	static_cast<bones_cache_copy_base&>(this->bones) = {reinterpret_cast<matrix3x4_t*>(ptr), num_bones};
 }
 
 bool tick_record::is_valid(float curtime) const
@@ -38,32 +65,20 @@ bool tick_record::is_valid(float curtime) const
 	return std::abs(correct - (curtime - sim_time)) < utils::unlag_range( ) /*&& correct < 1.f*/;
 }
 
-void tick_record_shared_impl::init([[maybe_unused]] const player& holder)
+tick_record::tick_record(const player& holder)
 {
-	shared_holder::init( );
-
-#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+	#if !__has_include("cheat/sdk/generated/C_BaseEntity_h")
 #pragma message(__FUNCTION__ ": skipped")
 #else
-C_BaseEntity* ent  = holder.ent;
-	const auto    tick = this->get( );
+	C_BaseEntity* ent = holder.ent;
 
-	tick->origin           = ent->m_vecOrigin( );
-	tick->abs_origin       = ent->m_vecAbsOrigin( );
-	tick->rotation         = ent->m_angRotation( );
-	tick->abs_rotation     = ent->m_angAbsRotation( );
-	tick->mins             = ent->m_vecMins( );
-	tick->maxs             = ent->m_vecMaxs( );
-	tick->sim_time         = holder.sim_time;
-	tick->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
+	this->origin           = ent->m_vecOrigin( );
+	this->abs_origin       = ent->m_vecAbsOrigin( );
+	this->rotation         = ent->m_angRotation( );
+	this->abs_rotation     = ent->m_angAbsRotation( );
+	this->mins             = ent->m_vecMins( );
+	this->maxs             = ent->m_vecMaxs( );
+	this->sim_time         = holder.sim_time;
+	this->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
 #endif
-}
-
-void tick_record_shared_impl::store_bones(C_BaseEntity* ent)
-{
-	auto& bones = this->get( )->bones;
-	runtime_assert(bones.empty( ));
-	bones = {ent};
-
-	(void)this;
 }

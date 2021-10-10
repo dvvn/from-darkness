@@ -4,7 +4,7 @@
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/console.h"
 
-#include "cheat/players/players list.h"
+#include "cheat/players/players_list.h"
 
 #include "cheat/netvars/config.h"
 

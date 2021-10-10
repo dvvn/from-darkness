@@ -15,43 +15,42 @@ namespace cheat
 		class C_BaseEntity;
 	}
 
-	struct player;
+	class player;
 
 	namespace detail
 	{
-		class stored_player_bones: public std::span<csgo::matrix3x4_t>
-		{
-		public:
-			stored_player_bones(csgo::C_BaseEntity*ent);
-			stored_player_bones( ) = default;
+		using bones_cache_copy_base = std::span<csgo::matrix3x4_t>;
 
-		private:
-			std::unique_ptr<csgo::matrix3x4_t[]> cache__;
+		struct bones_cache_copy : bones_cache_copy_base
+		{
+			using base = bones_cache_copy_base;
+
+			bones_cache_copy(const bones_cache_copy& other)            = delete;
+			bones_cache_copy& operator=(const bones_cache_copy& other) = delete;
+
+			bones_cache_copy(bones_cache_copy&& other) noexcept;
+			bones_cache_copy& operator=(bones_cache_copy&& other) noexcept;
+
+			bones_cache_copy() = default;
+			~bones_cache_copy();
 		};
 	}
 
-	struct tick_record: detail::shared_holder_info
+	struct tick_record
 	{
 		csgo::Vector origin, abs_origin;
 		csgo::QAngle rotation, abs_rotation;
 		csgo::Vector mins, maxs;
 		float sim_time;
 		csgo::matrix3x4_t coordinate_frame;
+		detail::bones_cache_copy bones;
 
-		detail::stored_player_bones bones;
-
+		void store_bones(csgo::C_BaseEntity* ent);
 		bool is_valid(float curtime) const;
+
+		tick_record() = default;
+		tick_record(const player& holder);
 	};
 
-	using tick_record_shared = std::shared_ptr<tick_record>;
-
-	namespace detail
-	{
-		class tick_record_shared_impl final: public shared_holder<tick_record>
-		{
-		public:
-			void init(const player& holder);
-			void store_bones(csgo::C_BaseEntity*ent );
-		};
-	}
+	using tick_record_shared = detail::shared_holder<tick_record>;
 }

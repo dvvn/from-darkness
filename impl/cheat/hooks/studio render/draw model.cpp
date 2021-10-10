@@ -6,7 +6,7 @@
 
 #include "cheat/netvars/config.h"
 
-#include "cheat/players/players list.h"
+#include "cheat/players/players_list.h"
 
 using namespace cheat;
 using namespace csgo;

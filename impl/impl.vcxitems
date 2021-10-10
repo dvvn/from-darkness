@@ -163,7 +163,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players list.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players_list.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -389,7 +389,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players list.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players_list.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

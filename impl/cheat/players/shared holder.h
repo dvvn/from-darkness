@@ -1,91 +1,59 @@
 #pragma once
 
-#include "nstd/runtime assert.h"
-
 #include <functional>
 #include <memory>
 
 namespace cheat::detail
 {
-	template <std::default_initializable T>
-	class shared_holder: protected std::shared_ptr<T>
+	template <std::default_initializable B>
+	struct shared_holder_obj : B
 	{
-		std::shared_ptr<T>& Get_shared_( )
-		{
-			return *static_cast<std::shared_ptr<T>*>(this);
-		}
+		bool held = true;
+	};
 
-		const std::shared_ptr<T>& Get_shared_( ) const
-		{
-			return *static_cast<const std::shared_ptr<T>*>(this);
-		}
-
-	protected:
-		shared_holder( ) = default;
-
-		virtual ~shared_holder( )
-		{
-			auto& ptr = Get_shared_( );
-			if (ptr == nullptr)
-				return;
-
-			auto& in_use = ptr->in_use;
-			runtime_assert(in_use == true);
-
-			in_use = false;
-
-			if (destroy_fn_)
-				destroy_fn_(*ptr);
-		}
-
-		using destroy_fn_type = std::function<void(T&)>;
-		destroy_fn_type destroy_fn_;
-
-		// ReSharper disable once CppInconsistentNaming
-		void reset( ) = delete;
-
+	template <class T>
+	class shared_holder
+	{
 	public:
-		shared_holder(const shared_holder&)            = delete;
-		shared_holder& operator=(const shared_holder&) = delete;
+		using element_type = shared_holder_obj<T>;
+		using shared_type = std::shared_ptr<element_type>;
 
-		/*virtual*/
-		void init( )
-		{
-			auto& ptr = Get_shared_( );
-			runtime_assert(ptr == nullptr);
-			ptr         = std::make_shared<T>( );
-			ptr->in_use = 1;
-		}
-
-		const std::shared_ptr<T>& share( ) const
-		{
-			return Get_shared_( );
-		}
+		shared_holder(const shared_holder& other)            = delete;
+		shared_holder& operator=(const shared_holder& other) = delete;
 
 		shared_holder(shared_holder&& other) noexcept
 		{
-			*this = std::move(other);
+			shared_ = std::move(other.shared_);
 		}
 
-		void operator=(shared_holder&& other) noexcept
+		shared_holder& operator=(shared_holder&& other) noexcept
 		{
-			std::swap(Get_shared_( ), other.Get_shared_( ));
-			std::swap(destroy_fn_, other.destroy_fn_);
+			std::swap(shared_, other.shared_);
+			return *this;
 		}
 
-		bool operator==(nullptr_t) const
+		shared_holder()
 		{
-			return Get_shared_( ) == nullptr;
+			shared_ = std::make_shared<T>( );
 		}
 
-		bool operator!=(nullptr_t) const
+		~shared_holder()
 		{
-			return !(*this == nullptr);
+			if (!shared_) //moved
+				return;
+			shared_->held = false;
 		}
-	};
 
-	struct shared_holder_info
-	{
-		bool in_use = 0;
+		//---
+
+		const element_type* get() const { return shared_.get( ); }
+		auto use_count() const { return shared_.use_count( ); }
+		const element_type* operator->() const { return shared_.operator->( ); }
+		const element_type& operator*() const { return shared_.operator*( ); }
+
+		const shared_type& share() const { return shared_; }
+
+	private:
+		shared_type shared_;
 	};
 }
