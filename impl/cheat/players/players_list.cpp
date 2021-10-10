@@ -1,4 +1,4 @@
-#include "players list.h"
+#include "players_list.h"
 #include "player.h"
 
 #include "cheat/core/console.h"
@@ -189,8 +189,6 @@ void players_list::update()
 
 #endif
 }
-
-
 
 //const players_filter& players_list::filter(const players_filter_flags& flags)
 //{

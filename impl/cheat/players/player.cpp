@@ -1,12 +1,17 @@
 #include "player.h"
-#include "players list.h"
+#include "players_list.h"
 
+#include "cheat/core/csgo interfaces.h"
+#include "cheat/sdk/CClientState.hpp"
+#include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/sdk/IConVar.hpp"
 #include "cheat/sdk/entity/C_CSPlayer.h"
 #include "cheat/utils/game.h"
 
 #include "nstd/memory backup.h"
 #include "nstd/runtime assert.h"
+
+#include <nstd/enum_tools.h>
 
 #if CHEAT_FEATURE_PLAYER_LIST
 #include <excpt.h>
@@ -15,6 +20,8 @@
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
+
+#if 0
 
 void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 {
@@ -168,7 +175,136 @@ void player_shared_impl::remove_old_ticks(float curtime)
 	update_window( );
 }
 
+#endif
+
 size_t player::max_ticks_count()
 {
 	return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
+}
+
+player::team_info::team_info(m_iTeamNum_t val)
+	: value(val)
+{
+	switch (val)
+	{
+		case m_iTeamNum_t::UNKNOWN:
+		case m_iTeamNum_t::SPEC:
+		{
+			enemy = false;
+			ghost = true;
+			break;
+		}
+		case m_iTeamNum_t::T:
+		case m_iTeamNum_t::CT:
+		{
+			const auto local      = csgo_interfaces::get_ptr( )->local_player.get( );
+			const auto local_team = static_cast<m_iTeamNum_t>(local->m_iTeamNum( ));
+
+			enemy = local_team != val;
+			break;
+		}
+	}
+}
+
+player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
+	: team_info(static_cast<m_iTeamNum_t>(val))
+{
+}
+
+//todo: bool return only when wanted (othervise void)
+
+void player::update(int index)
+{
+	const auto ent = static_cast<C_CSPlayer*>(csgo_interfaces::get_ptr( )->entity_list->GetClientEntity(index));
+
+	CHEAT_PLAYER_PROP_FN_INVOKE(entptr, ent);
+	if (!entptr)
+		return;
+	CHEAT_PLAYER_PROP_FN_INVOKE(simtime, ent->m_flSimulationTime( ));
+	if (tick.updated == update_state::IDLE)
+		return;
+	CHEAT_PLAYER_PROP_FN_INVOKE(team, ent->m_iTeamNum( ));
+	CHEAT_PLAYER_PROP_FN_INVOKE(health, ent->m_iHealth( ));
+	CHEAT_PLAYER_PROP_FN_INVOKE(dormant, ent->IsDormant( ));
+
+	if (team.ghost || !team.enemy)
+	{
+		//todo: clear ticks
+	}
+	else
+	{
+	}
+}
+
+CHEAT_PLAYER_PROP_CPP(entptr)
+{
+	if (entptr_new == entptr)
+		return;
+
+	auto new_player = player( );
+
+	if (entptr_new != nullptr)
+	{
+		new_player.local  = (entptr_new == csgo_interfaces::get_ptr( )->local_player.get( ));
+		new_player.entptr = entptr_new;
+	}
+
+	*this = std::move(new_player);
+}
+
+CHEAT_PLAYER_PROP_CPP(simtime)
+{
+	const auto diff = simtime_new - simtime;
+
+	if (diff == 0)
+	{
+		tick.updated = update_state::IDLE;
+	}
+	else if (diff < 0)
+	{
+		tick.updated = update_state::SILENT;
+		//auto ticks_shifted=tick.client.current-tick.server.current;
+	}
+	else
+	{
+		tick.updated = update_state::NORMAL;
+
+		tick.server.set(csgo_interfaces::get_ptr( )->client_state->ClockDriftMgr.nServerTick);
+		tick.client.set(utils::time_to_ticks(simtime_new));
+
+		simtime = simtime_new;
+	}
+}
+
+CHEAT_PLAYER_PROP_CPP(team)
+{
+	if (team_new == team)
+		return;
+
+	team = team_new;
+}
+
+CHEAT_PLAYER_PROP_CPP(health)
+{
+	if (health_new == health)
+		return;
+
+	health = health_new;
+
+	if (health_new <= 0)
+		team.ghost = true;
+}
+
+CHEAT_PLAYER_PROP_CPP(dormant)
+{
+	if (dormant_new == dormant)
+		return;
+
+	const auto dormant_in  = !dormant && dormant_new;
+	const auto dormant_out = dormant && !dormant_new;
+
+	dormant = dormant_new;
+
+	if (dormant_new || dormant_out)
+		tick.updated = update_state::SILENT;
 }
