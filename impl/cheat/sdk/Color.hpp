@@ -37,8 +37,8 @@ namespace cheat::csgo
 
 		Color( );
 
-		template <class R, class G, class B, class A = uint8_t>
-		Color(R r, G g, B b, A a = 255) : array{To_uint_(r), To_uint_(g), To_uint_(b), To_uint_(a)}
+		template <class R, class G, class T, class A = uint8_t>
+		Color(R r, G g, T b, A a = 255) : array{To_uint_(r), To_uint_(g), To_uint_(b), To_uint_(a)}
 		{
 		}
 

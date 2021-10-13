@@ -53,8 +53,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\config.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\data_dumper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\data_filler.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\detail.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\services loader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\type_resolve.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -65,7 +69,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\shared holder.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\shared_holder.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -75,7 +79,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\tick record.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\tick_record.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -276,7 +280,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\data_dumper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\data_filler.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\detail.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\type_resolve.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\player.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
@@ -287,13 +295,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players filter.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick record.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\tick_record.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

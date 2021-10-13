@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 //#include "detour hook/hook_utils.h"
 
 #include <nstd/one_instance.h>
@@ -20,7 +18,7 @@ namespace cheat
 #if defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_MODE_INGAME 0
 #else
-	#define CHEAT_MODE_INGAME 1
+#define CHEAT_MODE_INGAME 1
 #endif
 
 	enum class service_state : uint8_t
@@ -130,7 +128,7 @@ namespace cheat
 			LOADED
 		  , SKIPPED
 			// ReSharper disable once CppInconsistentNaming
-		  , ERROR_//fuck ERROR macro 
+		  , ERROR_ //fuck ERROR macro 
 		};
 
 		std::string make_log_message(const service_base* srv, log_type type, std::string_view extra = "");
@@ -167,3 +165,9 @@ namespace cheat
 	runtime_assert("Unused but called");\
 	__pragma(message(__FUNCTION__": disabled"))\
 	(void)this;
+
+//for resharper
+#define TODO_IMPLEMENT_ME \
+	(void)this;\
+	static_assert(false,__FUNCTION__": not implemented!");\
+	[]{}

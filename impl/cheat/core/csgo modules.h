@@ -56,7 +56,7 @@ namespace cheat::csgo_modules
 		}
 
 		template <nstd::chars_cache Ifc>
-		nstd::address find_interface() const
+		nstd::address find_game_interface() const
 		{
 			static auto addr = detail::find_csgo_interface(this->get( ), Ifc.view( ));
 			return addr;
@@ -81,8 +81,9 @@ namespace cheat::csgo_modules
 #undef CHEAT_GAME_MODULE
 }
 
-#define CHEAT_FIND_VTABLE(_HOLDER_,_CLASS_) \
-	cheat::csgo_modules::_HOLDER_.find_vtable<_CLASS_>( )
-
 #define CHEAT_FIND_SIG(_HOLDER_,_SIG_,...) \
 	nstd::apply_address_pipe( cheat::csgo_modules::_HOLDER_.find_signature<_SIG_>( ), ##__VA_ARGS__ )
+#define CHEAT_FIND_VTABLE(_HOLDER_,_CLASS_) \
+	cheat::csgo_modules::_HOLDER_.find_vtable<_CLASS_>( )
+#define CHEAT_FIND_GAME_INTERFACE(_HOLDER_,_CLASS_,...) \
+	nstd::apply_address_pipe(cheat::csgo_modules::_HOLDER_.find_game_interface<_CLASS_>( ))

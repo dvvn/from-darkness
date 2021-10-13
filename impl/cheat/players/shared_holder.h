@@ -1,13 +1,18 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 
 namespace cheat::detail
 {
-	template <std::default_initializable B>
-	struct shared_holder_obj : B
+	template <class T>
+	struct shared_holder_obj : T
 	{
+		template <typename ...Ts>
+		shared_holder_obj(Ts&& ...types)
+			: T(std::forward<Ts>(types)...)
+		{
+		}
+
 		bool held = true;
 	};
 
@@ -32,9 +37,10 @@ namespace cheat::detail
 			return *this;
 		}
 
-		shared_holder()
+		template <typename ...Ts>
+		shared_holder(Ts&& ...types)
 		{
-			shared_ = std::make_shared<T>( );
+			shared_ = std::make_shared<element_type>(std::forward<Ts>(types)...);
 		}
 
 		~shared_holder()

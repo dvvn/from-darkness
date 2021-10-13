@@ -11,22 +11,17 @@ using namespace cheat::csgo;
 
 void C_BaseAnimating::UpdateClientSideAnimation()
 {
-	static auto func = []
-	{
-		//224
-		const auto addr = csgo_modules::client.find_signature<"55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36">( );
-		decltype(&C_BaseAnimating::UpdateClientSideAnimation) fn;
-		reinterpret_cast<void*&>(fn) = addr.ptr<void>( );
-		return fn;
-	}( );
-
-	dhooks::_Call_function(func, this);
+	//224
+	static auto fn = CHEAT_FIND_SIG(client, "55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36").cast<decltype(&C_BaseAnimating::UpdateClientSideAnimation)>( );
+	dhooks::_Call_function(fn, this);
 }
 
-CUtlVector<CAnimationLayer>& C_BaseAnimating::GetAnimOverlays()
+AnimOverlaysArr_t& C_BaseAnimating::GetAnimOverlays()
 {
-	static const auto offset = csgo_modules::client.find_signature<"8B 87 ? ? ? ? 83 79 04 00 8B">( ).add(2).deref(1);
+	using namespace nstd::address_pipe;
+	static const auto offset = CHEAT_FIND_SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", add(2), deref(1));
 
-	(void)this;
-	return nstd::address(this).add(offset).ref<CUtlVector<CAnimationLayer>>( );
+	auto& layers = nstd::address(this).add(offset).ref<CUtlVector<CAnimationLayer>>( );
+	runtime_assert(layers.size( ) == 13);
+	return *reinterpret_cast<AnimOverlaysArr_t*>(layers.data( ));
 }

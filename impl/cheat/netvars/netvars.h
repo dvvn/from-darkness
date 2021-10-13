@@ -4,6 +4,11 @@
 
 namespace cheat
 {
+	namespace detail
+	{
+		struct netvars_data;
+	}
+
 	class netvars final : public service<netvars>
 	{
 	public:
@@ -12,12 +17,10 @@ namespace cheat
 
 		int at(const std::string_view& table, const std::string_view& item) const;
 
-		struct hidden;
-
 	protected:
 		load_result load_impl() noexcept override;
 
 	private:
-		std::unique_ptr<hidden> hidden_;
+		std::unique_ptr<detail::netvars_data> data_;
 	};
 }

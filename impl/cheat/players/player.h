@@ -1,54 +1,36 @@
 #pragma once
-#include "tick record.h"
+#include "tick_record.h"
 
-#include "cheat/sdk/entity/C_BasePlayer.h"
+#include "cheat/sdk/entity/C_CSPlayer.h"
 
+#if __has_include("veque.hpp")
+// ReSharper disable once CppUnusedIncludeDirective
 #include <string>
 #include <veque.hpp>
-
+#define CHEAT_PLAYER_TICKS_CONTAINER veque::veque
+#else
+#include <deque>
+#define CHEAT_PLAYER_TICKS_CONTAINER std::deque
+#endif
 #include <memory>
 #include <span>
 
 namespace cheat
 {
-	namespace csgo
-	{
-		// ReSharper disable once CppInconsistentNaming
-		class C_CSPlayer;
-	}
-
-#define  CHEAT_PLAYER_PROP_FN_NAME(_NAME_) handle_##_NAME_
-
-#define CHEAT_PLAYER_PROP_H_IMPL(_VALT_,_NAME_,_DEF_,_RETT_) \
-	_VALT_ _NAME_ = _DEF_;\
-	_RETT_ CHEAT_PLAYER_PROP_FN_NAME(_NAME_)(_VALT_ _NAME_##_new);
-
-	//#define CHEAT_PLAYER_PROP_NAME_AS_TYPE0(_NAME_,_TYPE_,...) _TYPE_
-	//#define CHEAT_PLAYER_PROP_NAME_AS_TYPE(_NAME_, ...) CHEAT_PLAYER_PROP_NAME_AS_TYPE0(_NAME_,##__VA_ARGS__,_NAME_)
-
-#define CHEAT_PLAYER_PROP_H(_NAME_, _DEF_) CHEAT_PLAYER_PROP_H_IMPL(decltype(_DEF_),_NAME_,_DEF_,void)
-
-#define CHEAT_PLAYER_PROP_FN(_NAME_) player::CHEAT_PLAYER_PROP_FN_NAME(_NAME_)
-
-#define CHEAT_PLAYER_PROP_CPP(_NAME_) \
-	auto CHEAT_PLAYER_PROP_FN(_NAME_)(decltype(_NAME_) _NAME_##_new)\
-	->\
-	std::invoke_result_t<decltype(&CHEAT_PLAYER_PROP_FN(_NAME_)),player*,decltype(_NAME_)>
-
-#define CHEAT_PLAYER_PROP_FN_INVOKE(_NAME_,...)\
-	std::invoke(&CHEAT_PLAYER_PROP_FN(_NAME_),this,decltype(_NAME_)(__VA_ARGS__));
+#define CHEAT_PLAYER_PROP(_NAME_, _DEF_) \
+	decltype(_DEF_) _NAME_ = _DEF_
 
 	class player
 	{
-		template <typename T>
-		// ReSharper disable once CppInconsistentNaming
-		inline static T* _Defptr = nullptr;
-
-		template <std::default_initializable T>
-		// ReSharper disable once CppInconsistentNaming
-		inline static T _Def = T( );
-
 	public:
+		~player();
+		player() = default;
+
+		player(const player& other)                = delete;
+		player(player&& other) noexcept            = default;
+		player& operator=(const player& other)     = delete;
+		player& operator=(player&& other) noexcept = default;
+
 		struct team_info
 		{
 			constexpr team_info() = default;
@@ -57,19 +39,19 @@ namespace cheat
 
 			csgo::m_iTeamNum_t value = csgo::m_iTeamNum_t::UNKNOWN;
 			bool enemy               = false;
-			bool ghost               = true; //dead,spectator,godmode
+			bool ghost               = true; //dead,spectator
 
 			constexpr bool operator==(const team_info&) const = default;
 		};
 
-		void update(int index);
+		void update(int index, float curtime, float correct);
 
-		CHEAT_PLAYER_PROP_H(entptr, _Defptr<csgo::C_CSPlayer>);
-		CHEAT_PLAYER_PROP_H(simtime, -1.f)
-		CHEAT_PLAYER_PROP_H(team, _Def<team_info>)
-		CHEAT_PLAYER_PROP_H(health, -1)
-		CHEAT_PLAYER_PROP_H(dormant, true)
-		CHEAT_PLAYER_PROP_H(dmgprotect, true)
+		csgo::C_CSPlayer* entptr = nullptr;
+		float simtime            = -1.f;
+		team_info team           = {};
+		int health               = -1;
+		std::optional<bool> dormant;
+		std::optional<bool> dmgprotect;
 		//todo: weaponfire
 		//spawntime (also can be calculated manually while health changes from 0)
 
@@ -90,7 +72,7 @@ namespace cheat
 		enum class update_state:uint8_t
 		{
 			IDLE
-		  , SILENT
+		  , SILENT //updated, but not in lag compensation or unresolvable
 		  , NORMAL
 		};
 
@@ -103,10 +85,16 @@ namespace cheat
 
 		//--
 
-		veque::veque<tick_record_shared> ticks;
-		std::span<const tick_record_shared> ticks_window;
+		CHEAT_PLAYER_TICKS_CONTAINER<tick_record_shared> ticks;
+		std::span<const decltype(ticks)::value_type> ticks_window;
+
 		static size_t max_ticks_count();
+
+	private:
+		void reset_ticks();
+		void update_animations(bool backup_layers);
+		tick_record& store_tick();
 	};
 
-	using player_shared = std::shared_ptr<player>;
+	//using player_shared = detail::shared_holder<player>;
 }

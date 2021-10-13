@@ -47,24 +47,35 @@ namespace cheat::hooks
 	namespace detail
 	{
 		template <typename T>
-		constexpr auto unwrap_invocable(const T& obj)
+		constexpr decltype(auto) unwrap_invocable(T&& obj)
 		{
-			if constexpr (!std::invocable<T>)
-				return obj;
+			if constexpr (!std::invocable<decltype(obj)>)
+				return std::forward<T>(obj);
 			else
-				return std::invoke(obj);
+				return std::invoke((obj));
 		};
 	}
 
 	template <typename Source, typename Index>
-	nstd::address get_target_method_helper(const Source& src, const Index& idx)
+	nstd::address get_target_method_helper(Source&& src, Index&& idx)
 	{
-		auto src_unw = detail::unwrap_invocable(src);
-		auto idx_unw = detail::unwrap_invocable(idx);
+		decltype(auto) src_unw = detail::unwrap_invocable(std::forward<Source>(src));
+		decltype(auto) idx_unw = detail::unwrap_invocable(std::forward<Index>(idx));
 
-		constexpr auto get_vfunc = [&]<typename C>(C* instance)
+		const auto index_to_number = [&]
 		{
-			return dhooks::_Pointer_to_virtual_class_table(instance)[idx_unw];
+			using idx_t = std::remove_cvref_t<decltype(idx_unw)>;
+			if constexpr (std::convertible_to<idx_t, size_t>)
+				return static_cast<size_t>(idx_unw);
+			else if constexpr (std::derived_from<idx_t, nstd::address>)
+				return idx_unw.value( );
+		};
+
+		const auto get_vfunc = [&]<typename C>(C* instance)
+		{
+			auto vtable = dhooks::_Pointer_to_virtual_class_table(instance);
+			auto index  = index_to_number( );
+			return vtable[index];
 		};
 
 		if constexpr (std::invocable<decltype(src_unw), csgo_interfaces*>)

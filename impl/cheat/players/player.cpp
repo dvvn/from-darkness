@@ -1,21 +1,15 @@
 #include "player.h"
-#include "players_list.h"
 
 #include "cheat/core/csgo interfaces.h"
+
 #include "cheat/sdk/CClientState.hpp"
 #include "cheat/sdk/IClientEntityList.hpp"
-#include "cheat/sdk/IConVar.hpp"
-#include "cheat/sdk/entity/C_CSPlayer.h"
+
 #include "cheat/utils/game.h"
 
-#include "nstd/memory backup.h"
-#include "nstd/runtime assert.h"
-
-#include <nstd/enum_tools.h>
-
-#if CHEAT_FEATURE_PLAYER_LIST
 #include <excpt.h>
-#endif
+
+#include <nstd/memory backup.h>
 
 using namespace cheat;
 using namespace detail;
@@ -111,7 +105,7 @@ void player_shared_impl::store_tick()
 	(void)this;
 }
 
-void player_shared_impl::remove_old_ticks(float curtime)
+void player_shared_impl::update_ticks_window(float curtime)
 {
 	auto& pl           = *share( );
 	auto& ticks        = pl.ticks;
@@ -177,9 +171,21 @@ void player_shared_impl::remove_old_ticks(float curtime)
 
 #endif
 
-size_t player::max_ticks_count()
+player::~player()
 {
-	return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
+	if (!entptr || local)
+		return;
+
+	[&]
+	{
+		__try
+		{
+			entptr->m_bClientSideAnimation( ) = true;
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+		}
+	}( );
 }
 
 player::team_info::team_info(m_iTeamNum_t val)
@@ -201,6 +207,7 @@ player::team_info::team_info(m_iTeamNum_t val)
 			const auto local_team = static_cast<m_iTeamNum_t>(local->m_iTeamNum( ));
 
 			enemy = local_team != val;
+			ghost = false;
 			break;
 		}
 	}
@@ -211,57 +218,35 @@ player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
 {
 }
 
-//todo: bool return only when wanted (othervise void)
-
-void player::update(int index)
+void player::update(int index, float curtime, float correct)
 {
+	//note: if fps < server tickount, all next calculations are wrong!!!
+
 	const auto ent = static_cast<C_CSPlayer*>(csgo_interfaces::get_ptr( )->entity_list->GetClientEntity(index));
-
-	CHEAT_PLAYER_PROP_FN_INVOKE(entptr, ent);
-	if (!entptr)
-		return;
-	CHEAT_PLAYER_PROP_FN_INVOKE(simtime, ent->m_flSimulationTime( ));
-	if (tick.updated == update_state::IDLE)
-		return;
-	CHEAT_PLAYER_PROP_FN_INVOKE(team, ent->m_iTeamNum( ));
-	CHEAT_PLAYER_PROP_FN_INVOKE(health, ent->m_iHealth( ));
-	CHEAT_PLAYER_PROP_FN_INVOKE(dormant, ent->IsDormant( ));
-	CHEAT_PLAYER_PROP_FN_INVOKE(dmgprotect, ent->m_bGunGameImmunity( ));
-
-	if (team.ghost || !team.enemy)
+	if (ent != entptr)
 	{
-		//todo: clear ticks
-	}
-	else
-	{
-	}
-}
+		auto new_player = player( );
 
-CHEAT_PLAYER_PROP_CPP(entptr)
-{
-	if (entptr_new == entptr)
+		if (ent != nullptr)
+		{
+			new_player.local  = ent == csgo_interfaces::get_ptr( )->local_player.get( );
+			new_player.entptr = ent;
+		}
+
+		*this = std::move(new_player);
+	}
+	if (!ent || this->local)
 		return;
 
-	auto new_player = player( );
+	//-----
 
-	if (entptr_new != nullptr)
-	{
-		new_player.local  = (entptr_new == csgo_interfaces::get_ptr( )->local_player.get( ));
-		new_player.entptr = entptr_new;
-	}
-
-	*this = std::move(new_player);
-}
-
-CHEAT_PLAYER_PROP_CPP(simtime)
-{
-	const auto diff = simtime_new - simtime;
-
-	if (diff == 0)
+	const auto simtime_new  = ent->m_flSimulationTime( );
+	const auto simtime_diff = simtime_new - simtime;
+	if (simtime_diff == 0)
 	{
 		tick.updated = update_state::IDLE;
 	}
-	else if (diff < 0)
+	else if (simtime_diff < 0)
 	{
 		tick.updated = update_state::SILENT;
 		//auto ticks_shifted=tick.client.current-tick.server.current;
@@ -275,64 +260,177 @@ CHEAT_PLAYER_PROP_CPP(simtime)
 
 		simtime = simtime_new;
 	}
-}
 
-CHEAT_PLAYER_PROP_CPP(team)
-{
-	if (team_new == team)
-		return;
+	//-----
 
-	//nothing do here, all team base stuff called after all props updated
-
-	team = team_new;
-}
-
-CHEAT_PLAYER_PROP_CPP(health)
-{
-	if (health_new == health)
-		return;
-
-	health = health_new;
-
-	if (health_new <= 0)
-		team.ghost = true;
-}
-
-CHEAT_PLAYER_PROP_CPP(dormant)
-{
-	//simtime not changed while dormant??
-
-	if (dormant_new == dormant)
-		return;
-
-	//const auto dormant_in  = !dormant && dormant_new;
-	//const auto dormant_out = dormant && !dormant_new;
-
-	if (dormant_new)
+	if (tick.updated != update_state::IDLE)
 	{
-		//todo: check can we hit here
-		tick.updated = update_state::IDLE;
-	}
-	else if (dormant)
-	{
-		//dormant out
-		tick.updated = update_state::SILENT;
+		const team_info new_team = ent->m_iTeamNum( );
+		if (new_team != team)
+		{
+			//all logic moved outside
+
+			team = new_team;
+		}
+
+		//-----
+
+		const auto new_health = ent->m_iHealth( );
+		if (new_health != health)
+		{
+			if (new_health <= 0)
+			{
+				team.ghost = true;
+				//allow ragdoll animation
+				entptr->m_bClientSideAnimation( ) = true;
+			}
+			else if (health <= 0)
+			{
+				//spawned
+
+				if (team.enemy)
+					reset_ticks( );
+
+				//block setupbones also??
+				entptr->m_bClientSideAnimation( ) = false;
+			}
+
+			health = new_health;
+		}
+
+		//-----
+
+		const auto new_dormant = ent->IsDormant( );
+		if (new_dormant != dormant)
+		{
+			//const auto dormant_in  = !dormant && dormant_new;
+			//const auto dormant_out = dormant && !dormant_new;
+
+			if (new_dormant)
+			{
+				//todo: check can we hit here
+				tick.updated = update_state::IDLE;
+			}
+			else if (dormant)
+			{
+				//dormant out
+				tick.updated = update_state::SILENT;
+			}
+
+			dormant = new_dormant;
+		}
+
+		const auto new_dmgprotect = ent->m_bGunGameImmunity( );
+		if (new_dmgprotect != dmgprotect)
+		{
+			//nothing here
+			dmgprotect = new_dmgprotect;
+		}
 	}
 
-	dormant = dormant_new;
+	//-----
+
+	const auto updated = tick.updated == update_state::NORMAL;
+
+	if (!team.enemy)
+	{
+		if (updated)
+		{
+			update_animations(false);
+		}
+	}
+	else
+	{
+		if (team.ghost)
+		{
+			reset_ticks( );
+			return;
+		}
+
+		if (updated)
+		{
+			const auto update_anims_backup = nstd::memory_backup(entptr->m_bClientSideAnimation( ), true);
+			//--
+			auto& new_tick = store_tick( );
+			update_animations(true);
+			new_tick.store_bones(entptr, true);
+		}
+
+		///update ticks window
+		if (!ticks.empty( ))
+		{
+			///erase uselles
+			const auto limit = max_ticks_count( );
+			//dont erase any !valid ticks here, in theory we can increase (fake) ping and remove possible valid tick
+			//erase X ticks uselles from back (because we push to front)
+			while (ticks.size( ) > limit)
+				ticks.pop_back( );
+
+			//if (ticks.size( ) <= limit)
+			//	return;
+			//ticks.erase(std::next(ticks.begin( ), limit), ticks.end( ));
+
+			//---------
+
+			///update window
+			//todo: optimize this fn
+			//prevent loop throught whole 'ticks'
+			//check begin-1 end+1 from ticks_window etc
+
+			const auto find_valid_tick = [&]<typename Itr>(Itr first, Itr last)-> std::optional<Itr>
+			{
+				for (auto itr = first; itr != last; ++itr)
+				{
+					if (itr->get( )->is_valid(curtime, correct))
+						return std::make_optional(itr);
+				}
+
+				return {};
+			};
+
+			const auto first_valid = find_valid_tick(ticks.begin( ), ticks.end( ));
+			if (!first_valid.has_value( ))
+			{
+				ticks_window = {};
+				return;
+			}
+			const auto last_valid = find_valid_tick(ticks.rbegin( ), std::make_reverse_iterator(std::next(*first_valid)));
+
+			if (!last_valid.has_value( ))
+				ticks_window = std::span(*first_valid, 1);
+			else
+				ticks_window = std::span(*first_valid, std::distance(*first_valid, std::next(*last_valid).base( )) + 1);
+		}
+	}
 }
 
-CHEAT_PLAYER_PROP_CPP(dmgprotect)
+size_t player::max_ticks_count()
 {
-	//checked here because can be changed in dormant function
-	if (tick.updated == update_state::IDLE)
+	return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
+}
+
+void player::reset_ticks()
+{
+	if (ticks.empty( ))
 		return;
 
-	//some cheats disable aa while frozen/protected, so we can backtrack to it
-	//
+	ticks.clear( );
+	ticks_window = {};
+}
 
-	if (dmgprotect_new)
-		team.ghost = true;
+tick_record& player::store_tick()
+{
+	auto& ref = ticks.emplace_front(*this).share( );
+	return *ref;
+}
 
-	dmgprotect = dmgprotect_new;
+void player::update_animations(bool backup_layers)
+{
+	using bytes_array = std::array<uint8_t, sizeof(AnimOverlaysArr_t)>;
+	nstd::memory_backup<bytes_array> layers_backup;
+	(void)layers_backup;
+	if (backup_layers)
+		layers_backup = reinterpret_cast<bytes_array&>(entptr->GetAnimOverlays( ));;
+
+	entptr->UpdateClientSideAnimation( );
 }

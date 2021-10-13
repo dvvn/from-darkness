@@ -11,6 +11,7 @@
 #include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
+#include "cheat/utils/game.h"
 
 #include <nstd/memory backup.h>
 #include <nstd/runtime assert.h>
@@ -26,7 +27,7 @@ service_base::load_result players_list::load_impl() noexcept
 	CHEAT_SERVICE_INIT(CHEAT_FEATURE_PLAYER_LIST)
 }
 
-struct players_list::storage_type : std::vector<player_shared_impl>
+struct players_list::storage_type : std::vector<player>
 {
 };
 
@@ -46,154 +47,25 @@ void players_list::update()
 
 	const auto interfaces = csgo_interfaces::get_ptr( );
 
-	[[maybe_unused]]
-			auto storage_updated = false;
-
 	const auto max_clients = interfaces->global_vars->max_clients;
-	if (const size_t wished_storage_size = max_clients + 1; storage_->size( ) != wished_storage_size)
+	storage_->resize(max_clients);
+
+	const auto curtime = interfaces->global_vars->curtime; //todo: made it fixed
+	const auto correct = [&]
 	{
-		storage_updated = true;
-		storage_->clear( );
-		storage_->resize(wished_storage_size);
+		const auto engine = interfaces->engine.get( );
+		const auto nci    = engine->GetNetChannelInfo( );
+
+		return std::clamp(nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING) + utils::lerp_time( ), 0.f, utils::unlag_limit( ));
+	}( );
+
+	for (size_t i = 1; i <= max_clients; ++i)
+	{
+		auto& entry = (*storage_)[i - 1];
+		entry.update(i, curtime, correct);
 	}
-
-	C_CSPlayer* const local_player = interfaces->local_player;
-	const auto local_player_team   = (m_iTeamNum_t)(local_player->m_iTeamNum( ));
-	const auto local_player_alive  = local_player->IsAlive( );
-
-	const auto ent_by_index = [local_player_index = local_player->EntIndex( ), &interfaces](int idx)-> C_CSPlayer*
-	{
-		return idx == local_player_index
-				   ? nullptr
-				   : static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(idx));
-	};
-
-	const auto fixed_curtime = interfaces->global_vars->curtime; //todo
-
-	for (auto i = 1; i <= max_clients; ++i)
-	{
-		const auto ent   = ent_by_index(i);
-		auto& obj        = (*storage_)[i];
-		auto& obj_shared = obj.share( );
-
-		if (ent == nullptr)
-		{
-			if (obj != nullptr)
-			{
-				storage_updated = true;
-				obj             = {};
-			}
-			continue;
-		}
-
-		if (obj == nullptr || obj_shared->ent != ent /*|| obj->index( ) != i*/)
-		{
-			storage_updated = true;
-			storage_type::value_type new_obj;
-			new_obj.init(ent);
-			obj = std::move(new_obj);
-		}
-
-		const auto ent_team = (m_iTeamNum_t)ent->m_iTeamNum( );
-		if (obj_shared->team != ent_team)
-		{
-			storage_updated  = true;
-			obj_shared->team = ent_team;
-		}
-
-		bool update_animations;
-		bool store_tick;
-
-		if (ent->IsAlive( ))
-		{
-			if (!obj_shared->alive)
-			{
-				obj_shared->alive = true;
-				storage_updated   = true;
-			}
-
-			update_animations = true;
-			store_tick        = true;
-		}
-		else
-		{
-			if (obj_shared->alive)
-			{
-				obj_shared->alive = false;
-				storage_updated   = true;
-			}
-
-			const auto is_ragdoll_active = [ent]()-> bool
-			{
-				const auto ragdoll = ent->GetRagdoll( );
-				return ragdoll != nullptr && ragdoll->m_nSequence( ) != -1 && !ragdoll->IsDormant( );
-			};
-
-			update_animations = is_ragdoll_active( );
-			store_tick        = false;
-		}
-
-		if (ent->IsDormant( ))
-		{
-			if (obj_shared->dormant == false)
-			{
-				obj_shared->dormant = true;
-				storage_updated     = true;
-			}
-			update_animations = false;
-			store_tick        = false;
-		}
-		else
-		{
-			if (obj_shared->dormant == true)
-			{
-				obj_shared->dormant = false;
-				store_tick          = false;
-				storage_updated     = true;
-			}
-		}
-
-		if (!obj.update_simtime( ))
-		{
-			update_animations = false;
-			store_tick        = false;
-		}
-
-		if (!local_player_alive || local_player_team == ent_team || local_player_team == m_iTeamNum_t::SPEC)
-			store_tick = false;
-
-		if (store_tick)
-		{
-			obj.store_tick( );
-			//---
-		}
-		if (update_animations)
-		{
-			const auto backup = nstd::memory_backup(ent->m_bClientSideAnimation( ), true);
-			(void)backup;
-
-			obj.update_animations(store_tick == false);
-			ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, fixed_curtime);
-			if (store_tick)
-			{
-				obj_shared->ticks.front( ).store_bones(ent);
-				//store bones, animations, and do all useful shit
-			}
-		}
-
-		obj.remove_old_ticks(fixed_curtime);
-	}
-
-	/*if (storage_updated)
-		filter_cache__.clear( );*/
 
 #endif
 }
-
-//const players_filter& players_list::filter(const players_filter_flags& flags)
-//{
-//	static_assert(sizeof(players_list_container_interface) == sizeof(players_list_container));
-//	return *filter_cache__.emplace(reinterpret_cast<const players_list_container_interface&>(storage__), flags).first;
-//}
 
 CHEAT_REGISTER_SERVICE(players_list);
