@@ -66,6 +66,7 @@ namespace cheat::csgo_modules
 #define CHEAT_GAME_MODULE(_NAME_)\
 	_INLINE_VAR constexpr auto _NAME_ = game_module_base<#_NAME_>( )
 
+	CHEAT_GAME_MODULE(server);
 	CHEAT_GAME_MODULE(client);
 	CHEAT_GAME_MODULE(engine);
 	CHEAT_GAME_MODULE(datacache);

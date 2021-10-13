@@ -1,8 +1,10 @@
 #include "player.h"
 
 #include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo modules.h"
 
 #include "cheat/sdk/CClientState.hpp"
+#include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/IClientEntityList.hpp"
 
 #include "cheat/utils/game.h"
@@ -218,6 +220,23 @@ player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
 {
 }
 
+static void* _Player_by_index_server(int client_index)
+{
+	using namespace nstd::address_pipe;
+	static auto fn = CHEAT_FIND_SIG(server, "85 C9 7E 32 A1", cast<void*(__fastcall*)(int )>);
+	return fn(client_index);
+}
+
+static void _Draw_server_hitboxes(int client_index, float duration, bool use_mono_color)
+{
+	using namespace nstd::address_pipe;
+	static auto fn =
+			CHEAT_FIND_SIG(server, "E8 ? ? ? ? F6 83 ? ? ? ? ? 0F 84 ? ? ? ? 33 FF", jmp()
+						 , cast<void( __vectorcall* )( void*, uintptr_t, float, float, float, bool )>);
+	const auto player = _Player_by_index_server(client_index);
+	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
+}
+
 void player::update(int index, float curtime, float correct)
 {
 	//note: if fps < server tickount, all next calculations are wrong!!!
@@ -336,7 +355,7 @@ void player::update(int index, float curtime, float correct)
 	{
 		if (updated)
 		{
-			update_animations(false);
+			update_animations(true);
 		}
 	}
 	else
@@ -401,6 +420,11 @@ void player::update(int index, float curtime, float correct)
 			else
 				ticks_window = std::span(*first_valid, std::distance(*first_valid, std::next(*last_valid).base( )) + 1);
 		}
+
+#ifdef _DEBUG
+		const auto& globals = *csgo_interfaces::get_ptr( )->global_vars.get( );
+		_Draw_server_hitboxes(index, globals.interval_per_tick, false);
+#endif
 	}
 }
 
