@@ -19,7 +19,7 @@ void C_BaseAnimating::UpdateClientSideAnimation()
 AnimOverlaysArr_t& C_BaseAnimating::GetAnimOverlays()
 {
 	using namespace nstd::address_pipe;
-	static const auto offset = CHEAT_FIND_SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", add(2), deref(1));
+	static const auto offset = CHEAT_FIND_SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", add(2), deref(1), value);
 
 	auto& layers = nstd::address(this).add(offset).ref<CUtlVector<CAnimationLayer>>( );
 	runtime_assert(layers.size( ) == 13);

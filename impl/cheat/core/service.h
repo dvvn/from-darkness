@@ -41,17 +41,42 @@ namespace cheat
 	template <typename T>
 	concept shared_service = root_service<T> && nstd::is_one_instance_shared<T>;
 
+	namespace detail
+	{
+#ifdef _SEMAPHORE_
+		struct mutex_semaphore_adaptor : std::binary_semaphore
+		{
+			mutex_semaphore_adaptor();
+			void lock();
+			void unlock();
+		};
+#endif
+	}
+
 	class __declspec(novtable) service_base
 	{
 	public:
+#if CHEAT_SERVICE_USE_COROUTINE || 1
+		using executor = cppcoro::static_thread_pool;
 		using load_result = cppcoro::task<bool>;
 		using mutex_type = cppcoro::async_mutex;
+#else
+		using executor = thread_pool;
+		using load_result = std::future<bool>;
+		using mutex_type =
+#ifdef _SEMAPHORE_
+		detail::mutex_semaphore_adaptor
+#else
+		std::mutex
+#endif
+		;
+#endif
 
-		using executor = cppcoro::static_thread_pool;
+		static size_t _Services_count();
 
 		using stored_service = std::shared_ptr<service_base>;
 
-		service_base() = default;
+		service_base();
 		virtual ~service_base();
 
 		service_base(const service_base& other) = delete;
@@ -102,7 +127,7 @@ namespace cheat
 
 		virtual void reset();
 
-		virtual load_result load(executor& ex) noexcept;
+		load_result load(executor& ex) noexcept;
 
 	protected:
 		virtual load_result load_impl() noexcept = 0;
@@ -139,7 +164,7 @@ namespace cheat
 	using cheat::detail::log_type;\
 	using cheat::detail::make_log_message;\
 	CHEAT_CONSOLE_LOG(msg);\
-	co_return ret;
+	co_return (ret);
 
 #define CHEAT_SERVICE_LOADED \
 {\

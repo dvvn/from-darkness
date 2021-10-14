@@ -15,7 +15,7 @@
 
 #include "widgets/window.h"
 
-#include <nstd/runtime assert.h>
+#include <nstd/runtime_assert_fwd.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>

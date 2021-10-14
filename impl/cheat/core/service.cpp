@@ -1,9 +1,10 @@
 #include "service.h"
 
-#include "csgo interfaces.h"
+#include <nstd/runtime_assert_fwd.h>
 
-#include <cppcoro/static_thread_pool.hpp>
-#include <cppcoro/async_mutex.hpp>
+#include <cppcoro/when_all.hpp>
+
+#include <ranges>
 
 using namespace cheat;
 
@@ -13,14 +14,48 @@ static void _Loading_access_assert([[maybe_unused]] T&& state)
 	runtime_assert(state != service_state::loading && state != service_state::waiting, "Unable to modify running service!");
 }
 
+#ifdef _SEMAPHORE_
+detail::mutex_semaphore_adaptor::mutex_semaphore_adaptor( )
+	: std::binary_semaphore(std::binary_semaphore::max( ))
+{
+}
+
+void detail::mutex_semaphore_adaptor::lock( )
+{
+	this->acquire( );
+}
+
+void detail::mutex_semaphore_adaptor::unlock( )
+{
+	this->release( );
+}
+#endif
+
+struct services_counter
+{
+	size_t count = 0;
+};
+
+size_t service_base::_Services_count()
+{
+	return nstd::one_instance<services_counter>::get_ptr( )->count;
+}
+
+service_base::service_base()
+{
+	++nstd::one_instance<services_counter>::get_ptr( )->count;
+}
+
 service_base::~service_base()
 {
 	_Loading_access_assert(state_);
+	--nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
 service_base::service_base(service_base&& other) noexcept
 {
 	*this = std::move(other);
+	++nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
 service_base& service_base::operator=(service_base&& other) noexcept
@@ -65,49 +100,131 @@ void service_base::reset()
 
 service_base::load_result service_base::load(executor& ex) noexcept
 {
-	const auto set_error = [&]
-	{
-		state_ = service_state::error;
-		return false;
-	};
-
 	switch (state_)
 	{
 		case service_state::unset:
 		{
-			const auto thread_id = std::this_thread::get_id( );
-			const auto mtx       = co_await lock_.scoped_lock_async( );
-
-			if (thread_id != std::this_thread::get_id( ))
+			const auto mtx = co_await lock_.scoped_lock_async( );
+			//check is other thread do all the work
+			switch (state_)
 			{
-				co_return state_ == service_state::loaded;
+				case service_state::loaded:
+					co_return true;
+				case service_state::error:
+					co_return false;
+				case service_state::unset:
+					break;
+				default:
+					runtime_assert("Preload: mutex released, but state isnt't sets correctly!");
+					std::terminate( );
 			}
 
-			co_await ex.schedule( );
+			//-----------
 
-			state_ = service_state::waiting;
-			for (const auto& d : deps_)
+			enum class deps_preload_info :uint8_t
 			{
-				if (!co_await d->load(ex))
+				NOTHING
+			  , ERROR
+			  , SOMETHING
+			};
+
+			const auto have_deps_to_load = [&]
+			{
+				if (deps_.empty( ))
+					return deps_preload_info::NOTHING;
+
+				constexpr auto check_state = [](service_state target)
 				{
-					runtime_assert("Unable to load other services!");
-					co_return set_error( );
-				}
+					return [=](service_state checked)
+					{
+						return checked == target;
+					};
+				};
+
+				const auto states = deps_ | std::views::transform([](const stored_service& srv) { return srv->state( ); });
+				if (std::ranges::any_of(states, check_state(service_state::error)))
+					return deps_preload_info::ERROR;
+				if (std::ranges::all_of(states, check_state(service_state::loaded)))
+					return deps_preload_info::NOTHING;
+
+				return deps_preload_info::SOMETHING;
+			};
+
+			const auto load_deps = [&]()-> load_result
+			{
+				state_ = service_state::waiting;
+				co_await ex.schedule( );
+				auto tasks_view = deps_ | std::views::transform([&](const stored_service& srv)-> load_result
+				{
+					return srv->load(ex);
+				});
+				const auto results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
+				co_return std::ranges::all_of(results, [](bool val)
+				{
+					return val == true;
+				});
+			};
+
+			bool deps_loaded;
+			switch (have_deps_to_load( ))
+			{
+				case deps_preload_info::NOTHING:
+					deps_loaded = true;
+					break;
+				case deps_preload_info::ERROR:
+					deps_loaded = false;
+					break;
+				case deps_preload_info::SOMETHING:
+					deps_loaded = co_await load_deps( );
+					break;
+				default:
+					runtime_assert("Unknown state");
+					std::terminate( );
 			}
-			state_ = service_state::loading;
-			if (!co_await this->load_impl( ))
+
+			if (!deps_loaded)
+			{
+				runtime_assert("Unable to load other services!");
+				state_ = service_state::error;
+				co_return false;
+			}
+
+			const auto load_this = [&]()-> load_result
+			{
+				state_ = service_state::loading;
+				co_await ex.schedule( );
+				co_return co_await this->load_impl( );
+			};
+
+			//-----------
+
+			if (!co_await load_this( ))
 			{
 				runtime_assert("Unable to load service!");
-				co_return set_error( );
+				state_ = service_state::error;
+				co_return false;
 			}
+
+			//-----------
+
 			state_ = service_state::loaded;
 			co_return true;
 		}
 		case service_state::waiting:
 		case service_state::loading:
 		{
+			//some other thread loads this service,
 			const auto mtx = co_await lock_.scoped_lock_async( );
-			co_return state_ == service_state::loaded;
+			switch (state_)
+			{
+				case service_state::loaded:
+					co_return true;
+				case service_state::error:
+					co_return false;
+				default:
+					runtime_assert("Postload: mutex released, but state isnt't sets correctly!");
+					std::terminate( );
+			}
 		}
 		case service_state::loaded:
 		{

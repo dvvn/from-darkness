@@ -1,8 +1,8 @@
 #pragma once
 
-#include "nstd/address.h"
-#include "nstd/chars cache.h"
-#include "nstd/type name.h"
+#include <nstd/address_pipe.h>
+#include <nstd/chars cache.h>
+#include <nstd/type name.h>
 
 namespace nstd
 {

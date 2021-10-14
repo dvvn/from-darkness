@@ -2,35 +2,35 @@
 #include "manager.h"
 #include "shared_data.h"
 
-#include "nstd/runtime assert.h"
-
 #ifdef CHEAT_GUI_TEST
 #include "nstd/os/module info.h"
 #else
 #include <shlobj_core.h>
 #endif
 
+#include <nstd/runtime_assert_fwd.h>
+
+#include <nlohmann/json.hpp>
+
 #include <filesystem>
 #include <fstream>
 #include <ranges>
 
-#include <nlohmann/json.hpp>
-
 using namespace cheat::settings;
 
-struct manager::filter::storage: std::vector<const shared_data*>
+struct manager::filter::storage : std::vector<const shared_data*>
 {
 };
 
-manager::filter::filter( )  = default;
-manager::filter::~filter( ) = default;
+manager::filter::filter()  = default;
+manager::filter::~filter() = default;
 
-bool manager::filter::empty( ) const
+bool manager::filter::empty() const
 {
 	return storage_ == nullptr || storage_->empty( );
 }
 
-size_t manager::filter::size( ) const
+size_t manager::filter::size() const
 {
 	return storage_ == nullptr ? 0 : storage_->size( );
 }
@@ -87,7 +87,7 @@ bool manager::filter::remove(const shared_data* shared)
 	return false;
 }
 
-void manager::filter::clear( )
+void manager::filter::clear()
 {
 	storage_.reset( );
 }
@@ -96,9 +96,9 @@ struct manager::impl
 {
 	std::filesystem::path path;
 
-	impl( )
+	impl()
 	{
-		path = []( )-> std::filesystem::path
+		path = []()-> std::filesystem::path
 		{
 #ifdef CHEAT_GUI_TEST
 			return NSTD_STRINGIZE_RAW(VS_SolutionDir) NSTD_STRINGIZE_RAW(\.out\);
@@ -106,28 +106,28 @@ struct manager::impl
 #else
 			static const auto path = []
 			{
-				PWSTR      buffer = nullptr;
-				const auto hr     = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, std::addressof(buffer));
+				PWSTR buffer  = nullptr;
+				const auto hr = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, std::addressof(buffer));
 				runtime_assert(SUCCEEDED(hr));
 				auto ret = std::filesystem::path(buffer);
 				CoTaskMemFree(buffer);
-				return ret /= _STRINGIZE(VS_SolutionName);
+				return std::move(ret /= _CONCAT(L, _STRINGIZE(VS_SolutionName)));
 			}( );
 			return path;
 
 #endif
-		}( ) /= "settings";
+		}( ) /= L"settings";
 	}
 
 	std::vector<std::shared_ptr<shared_data>> data;
 };
 
-manager::manager( )
+manager::manager()
 {
 	impl_ = std::make_unique<impl>( );
 }
 
-manager::~manager( ) = default;
+manager::~manager() = default;
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 void manager::add(const std::shared_ptr<shared_data>& shared)
@@ -163,7 +163,7 @@ void manager::save(const std::wstring_view& file_name, const filter& filter_obj)
 	}
 
 	const auto full_path = _Generate_path(path, file_name);
-	auto       json      = shared_data::json( );
+	auto json            = shared_data::json( );
 	if (!filter_obj.empty( ) && exists(full_path) && is_regular_file(full_path))
 	{
 		//backup all other settings from this file
@@ -172,7 +172,7 @@ void manager::save(const std::wstring_view& file_name, const filter& filter_obj)
 			stream >> json;
 	}
 
-	for (auto&& d: impl_->data | std::views::filter(filter_obj.get( )))
+	for (auto&& d : impl_->data | std::views::filter(filter_obj.get( )))
 		d->save(json);
 
 	auto stream = std::ofstream(full_path);
@@ -187,13 +187,13 @@ void manager::load(const std::wstring_view& file_name, const filter& filter_obj)
 	runtime_assert(exists(path));
 	runtime_assert(is_directory(path));
 
-	auto       json      = shared_data::json( );
+	auto json            = shared_data::json( );
 	const auto full_path = _Generate_path(path, file_name);
 
 	auto stream = std::ifstream(full_path);
 	runtime_assert(!stream.fail( ));
 	stream >> json;
 
-	for (auto&& d: impl_->data | std::views::filter(filter_obj.get( )))
+	for (auto&& d : impl_->data | std::views::filter(filter_obj.get( )))
 		d->load(json);
 }

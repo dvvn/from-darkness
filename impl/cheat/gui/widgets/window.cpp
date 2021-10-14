@@ -148,7 +148,7 @@ bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool bor
 #include "cheat/gui/tools/cached_text.h"
 
 #include <nstd/enum_tools.h>
-#include <nstd/runtime assert.h>
+#include <nstd/runtime_assert_fwd.h>
 #include <nstd/unistring.h>
 #include <nstd/smooth_value.h>
 

@@ -8,7 +8,7 @@ using namespace cheat::csgo;
 //Color Color::Green(0, 128, 0, 255);
 //Color Color::Blue(0, 0, 255, 255);
 
-Color::Color( )
+Color::Color()
 {
 	*data_raw( ) = 0;
 }
@@ -24,12 +24,12 @@ Color::Color( )
 //{
 //}
 
-const uint32_t* Color::data_raw( ) const
+const uint32_t* Color::data_raw() const
 {
 	return reinterpret_cast<const uint32_t*>(this);
 }
 
-uint32_t* Color::data_raw( )
+uint32_t* Color::data_raw()
 {
 	return reinterpret_cast<uint32_t*>(this);
 }
@@ -44,13 +44,13 @@ bool Color::operator!=(const Color& other) const
 	return !(*this == other);
 }
 
-int Color::r( ) const { return data( )[0]; }
+int Color::r() const { return data( )[0]; }
 
-int Color::g( ) const { return data( )[1]; }
+int Color::g() const { return data( )[1]; }
 
-int Color::b( ) const { return data( )[2]; }
+int Color::b() const { return data( )[2]; }
 
-int Color::a( ) const { return data( )[3]; }
+int Color::a() const { return data( )[3]; }
 
 Color Color::FromHSB(float hue, float saturation, float brightness)
 {

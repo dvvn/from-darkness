@@ -6,6 +6,7 @@ using namespace cheat::csgo;
 #endif
 
 #include "cheat/core/csgo interfaces.h"
+
 #include "cheat/sdk/IClientEntityList.hpp"
 #include "cheat/core/csgo modules.h"
 
@@ -29,6 +30,6 @@ VarMapping_t* C_BaseEntity::GetInterpVarMap()
 CUtlVector<matrix3x4_t>& C_BaseEntity::BonesCache()
 {
 	using namespace nstd::address_pipe;
-	static const auto offset = CHEAT_FIND_SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", add(9), deref(1), remove(8));
+	static const auto offset = CHEAT_FIND_SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", add(9), deref(1), remove(8u), value);
 	return nstd::address(this).add(offset).ref<CUtlVector<matrix3x4_t>>( );
 }

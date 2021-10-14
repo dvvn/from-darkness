@@ -1,7 +1,7 @@
 ﻿#include "type_resolve.h"
 
 #include <nstd/type name.h>
-#include <nstd/runtime assert.h>
+#include <nstd/runtime_assert_fwd.h>
 
 #include <format>
 

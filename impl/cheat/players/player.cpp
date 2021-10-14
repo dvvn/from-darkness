@@ -6,12 +6,13 @@
 #include "cheat/sdk/CClientState.hpp"
 #include "cheat/sdk/GlobalVars.hpp"
 #include "cheat/sdk/IClientEntityList.hpp"
+#include "cheat/sdk/Studio.hpp"
 
 #include "cheat/utils/game.h"
 
-#include <excpt.h>
-
 #include <nstd/memory backup.h>
+
+#include <excpt.h>
 
 using namespace cheat;
 using namespace detail;
@@ -28,27 +29,27 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 	const auto pl = this->get( );
 
 	pl->sim_time = /*ent->m_flSimulationTime( )*/-1;
-	pl->dormant  = owner->IsDormant( );
+	pl->dormant = owner->IsDormant( );
 	//this->index = ent->EntIndex( );
-	pl->ent   = owner;
+	pl->ent = owner;
 	pl->alive = owner->IsAlive( );
-	pl->team  = static_cast<m_iTeamNum_t>(owner->m_iTeamNum( ));
+	pl->team = static_cast<m_iTeamNum_t>(owner->m_iTeamNum( ));
 	pl->ticks.reserve(player::max_ticks_count( ));
 	owner->m_bClientSideAnimation( ) = false;
-	this->destroy_fn_                = [](const player& p)
+	this->destroy_fn_ = [](const player& p)
 	{
 		__try
 		{
 			p.ent->m_bClientSideAnimation( ) = true;
 		}
-		__except (EXCEPTION_EXECUTE_HANDLER)
+		__except(EXCEPTION_EXECUTE_HANDLER)
 		{
 		}
 	};
 #endif
 }
 
-bool player_shared_impl::update_simtime()
+bool player_shared_impl::update_simtime( )
 {
 	//todo: tickbase shift workaround
 #if !CHEAT_FEATURE_PLAYER_LIST
@@ -56,7 +57,7 @@ bool player_shared_impl::update_simtime()
 #else
 	auto& p = **this;
 
-	if (const auto new_sim_time = p.ent->m_flSimulationTime( ); p.sim_time < new_sim_time)
+	if(const auto new_sim_time = p.ent->m_flSimulationTime( ); p.sim_time < new_sim_time)
 	{
 		p.sim_time = new_sim_time;
 		return true;
@@ -81,10 +82,10 @@ void player_shared_impl::update_animations([[maybe_unused]] bool simple)
 		runtime_assert(layers.size( ) == 13);
 		auto& bytes_array = *reinterpret_cast<std::array<uint8_t, sizeof(CAnimationLayer) * 13>*>(layers.begin( ));
 		return nstd::memory_backup(bytes_array);
-	}( );
+	}();
 	(void)backup_layers;
 
-	if (simple)
+	if(simple)
 	{
 		//--
 		p->UpdateClientSideAnimation( );
@@ -97,10 +98,10 @@ void player_shared_impl::update_animations([[maybe_unused]] bool simple)
 #endif
 }
 
-void player_shared_impl::store_tick()
+void player_shared_impl::store_tick( )
 {
 	auto& data = this->share( );
-	auto& t    = data->ticks.emplace_front( );
+	auto& t = data->ticks.emplace_front( );
 
 	t.init(*data);
 
@@ -109,14 +110,14 @@ void player_shared_impl::store_tick()
 
 void player_shared_impl::update_ticks_window(float curtime)
 {
-	auto& pl           = *share( );
-	auto& ticks        = pl.ticks;
+	auto& pl = *share( );
+	auto& ticks = pl.ticks;
 	auto& ticks_window = pl.ticks_window;
 
 	const auto erase_uselles = [&]
 	{
 		const auto limit = player::max_ticks_count( );
-		if (ticks.size( ) <= limit)
+		if(ticks.size( ) <= limit)
 			return;
 
 		//dont erase any !valid ticks here, in theory we can increase (fake) ping and hit these
@@ -127,21 +128,21 @@ void player_shared_impl::update_ticks_window(float curtime)
 	const auto update_window = [&]
 	{
 		const auto begin = ticks.begin( );
-		const auto end   = ticks.end( );
+		const auto end = ticks.end( );
 
 		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto first_valid = [&]
 		{
-			for (auto itr = begin; itr != end; ++itr)
+			for(auto itr = begin; itr != end; ++itr)
 			{
-				if (itr->share( )->is_valid(curtime))
+				if(itr->share( )->is_valid(curtime))
 					return itr;
 			}
 
 			return end;
-		}( );
+		}();
 
-		if (first_valid == end)
+		if(first_valid == end)
 		{
 			ticks_window = {};
 			return;
@@ -150,16 +151,16 @@ void player_shared_impl::update_ticks_window(float curtime)
 		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto last_valid = [&]
 		{
-			for (auto itr = std::prev(end); itr != first_valid; --itr)
+			for(auto itr = std::prev(end); itr != first_valid; --itr)
 			{
-				if (itr->share( )->is_valid(curtime))
+				if(itr->share( )->is_valid(curtime))
 					return itr;
 			}
 
 			return end;
-		}( );
+		}();
 
-		if (last_valid == end)
+		if(last_valid == end)
 			ticks_window = std::span(first_valid, 1);
 		else
 			ticks_window = std::span(first_valid, last_valid);
@@ -220,26 +221,10 @@ player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
 {
 }
 
-static void* _Player_by_index_server(int client_index)
-{
-	using namespace nstd::address_pipe;
-	static auto fn = CHEAT_FIND_SIG(server, "85 C9 7E 32 A1", cast<void*(__fastcall*)(int )>);
-	return fn(client_index);
-}
-
-static void _Draw_server_hitboxes(int client_index, float duration, bool use_mono_color)
-{
-	using namespace nstd::address_pipe;
-	static auto fn =
-			CHEAT_FIND_SIG(server, "E8 ? ? ? ? F6 83 ? ? ? ? ? 0F 84 ? ? ? ? 33 FF", jmp()
-						 , cast<void( __vectorcall* )( void*, uintptr_t, float, float, float, bool )>);
-	const auto player = _Player_by_index_server(client_index);
-	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
-}
-
 void player::update(int index, float curtime, float correct)
 {
 	//note: if fps < server tickount, all next calculations are wrong!!!
+	//if we got low fps, invalidate bones cache or it never updates!
 
 	const auto ent = static_cast<C_CSPlayer*>(csgo_interfaces::get_ptr( )->entity_list->GetClientEntity(index));
 	if (ent != entptr)
@@ -355,7 +340,9 @@ void player::update(int index, float curtime, float correct)
 	{
 		if (updated)
 		{
+			const auto update_anims_backup = nstd::memory_backup(entptr->m_bClientSideAnimation( ), true);
 			update_animations(true);
+			entptr->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, curtime);
 		}
 	}
 	else
@@ -372,7 +359,7 @@ void player::update(int index, float curtime, float correct)
 			//--
 			auto& new_tick = store_tick( );
 			update_animations(true);
-			new_tick.store_bones(entptr, true);
+			new_tick.store_bones(entptr, curtime);
 		}
 
 		///update ticks window
@@ -420,11 +407,6 @@ void player::update(int index, float curtime, float correct)
 			else
 				ticks_window = std::span(*first_valid, std::distance(*first_valid, std::next(*last_valid).base( )) + 1);
 		}
-
-#ifdef _DEBUG
-		const auto& globals = *csgo_interfaces::get_ptr( )->global_vars.get( );
-		_Draw_server_hitboxes(index, globals.interval_per_tick, false);
-#endif
 	}
 }
 

@@ -18,6 +18,7 @@ using namespace csgo;
 netvars::netvars()
 {
 	data_ = std::make_unique<detail::netvars_data>( );
+	this->wait_for_service<csgo_interfaces>( );
 }
 
 netvars::~netvars() = default;

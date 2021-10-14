@@ -224,10 +224,10 @@ service_base::load_result console::load_impl()noexcept
 	}
 
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
-	co_return true;
+	co_return (true);
 #endif
 }
-
+#ifdef _DEBUG
 void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept
 {
 	//static auto lock = std::mutex( );
@@ -263,6 +263,7 @@ void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::r
 
 	[[maybe_unused]] static volatile auto skip_helper = '\1';
 }
+#endif
 
 template <typename Chr, typename Tr>
 static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)

@@ -10,17 +10,14 @@
 #include <nstd/os/threads.h>
 
 #include <robin_hood.h>
-
-#include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/sync_wait.hpp>
 
 #include <Windows.h>
 
-#include <functional>
 #ifndef CHEAT_GUI_TEST
 #include <thread>
 #endif
-
+#include <functional>
 using namespace cheat;
 using namespace detail;
 
@@ -76,11 +73,11 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 		h->disable( );
 
 	frozen.clear( );
-	all_hooks.clear( );
-	holder->reset( );
-
+	holder->reset( ); //destroy all except hooks
+	Sleep(sleep / 2);
+	all_hooks.clear( ); //unhook all
+	Sleep(sleep / 2);
 	//we must be close all threads before unload!
-	Sleep(sleep);
 	FreeLibraryAndExitThread(handle, retval);
 }
 
@@ -97,7 +94,13 @@ void services_loader::load(HMODULE handle)
 	*load_thread_ = std::jthread([this]
 	{
 		auto ex = make_executor( );
-		if (sync_wait(this->load(ex)) == false)
+
+		const auto load_helper = [&]
+		{
+			return cppcoro::sync_wait(this->load(ex));
+		};
+
+		if (!load_helper( ))
 			this->unload( );
 		else
 			csgo_awaiter::get_ptr( )->reset( );
@@ -125,13 +128,13 @@ std::stop_token services_loader::load_thread_stop_token() const
 
 service_base::executor services_loader::make_executor()
 {
-	return executor(std::max<size_t>(8, std::thread::hardware_concurrency( )));
+	return executor(/*std::min<size_t>(8, std::thread::hardware_concurrency( ))*/);
 }
 
 service_base::load_result services_loader::load_impl() noexcept
 {
 	CHEAT_CONSOLE_LOG("Cheat fully loaded");
-	co_return true;
+	co_return (true);
 }
 
 services_loader::~services_loader()

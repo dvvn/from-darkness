@@ -21,8 +21,6 @@ namespace nstd
 		return (value - min) / (max - min);
 	}
 
-	constexpr auto qeqwe = sizeof(long double);
-
 	template <std::integral T>
 	constexpr auto to_floating(T value)
 	{
@@ -43,7 +41,7 @@ namespace nstd
 		return value;
 	}
 
-	enum class scale_mode:uint8_t
+	enum class scale_mode :uint8_t
 	{
 		RIGHT
 	  , LEFT
@@ -91,9 +89,6 @@ namespace nstd
 
 namespace cheat::gui::widgets
 {
-	//ImGuiSliderFlags_Logarithmic unsupported
-	//ImGuiSliderFlags_NoRoundToFormat must be set
-
 	template <typename T>
 	struct slider_input_data
 	{

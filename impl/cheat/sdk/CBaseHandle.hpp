@@ -38,7 +38,6 @@ namespace cheat::csgo
 		int GetSerialNumber( ) const;
 
 		int ToInt( ) const;
-		auto operator<=>(const CBaseHandle&) const;
 
 		// Use this to dereference the handle.
 		// Note: this is implemented in game code (ehandle.h)

@@ -5,12 +5,11 @@
 
 #include "cheat/core/csgo interfaces.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
-#include <compare>
+#include <nstd/runtime_assert_fwd.h>
 
 using namespace cheat::csgo;
 
-CBaseHandle::CBaseHandle( )
+CBaseHandle::CBaseHandle()
 {
 	m_Index = INVALID_EHANDLE_INDEX;
 }
@@ -39,31 +38,31 @@ CBaseHandle::CBaseHandle(int iEntry, int iSerialNumber)
 	m_Index = iEntry | (iSerialNumber << /*NUM_ENT_ENTRY_BITS*/NUM_SERIAL_NUM_SHIFT_BITS);
 }
 
-bool CBaseHandle::IsValid( ) const
+bool CBaseHandle::IsValid() const
 {
 	return m_Index != INVALID_EHANDLE_INDEX;
 }
 
-int CBaseHandle::GetEntryIndex( ) const
+int CBaseHandle::GetEntryIndex() const
 {
 	if (!IsValid( ))
 		return NUM_ENT_ENTRIES - 1;
 	return m_Index & ENT_ENTRY_MASK;
 }
 
-int CBaseHandle::GetSerialNumber( ) const
+int CBaseHandle::GetSerialNumber() const
 {
 	return m_Index >> /*NUM_ENT_ENTRY_BITS*/NUM_SERIAL_NUM_SHIFT_BITS;
 }
 
-int CBaseHandle::ToInt( ) const
+int CBaseHandle::ToInt() const
 {
 	return (int)m_Index;
 }
 
-auto CBaseHandle::operator<=>(const CBaseHandle&) const = default;
+//auto CBaseHandle::operator<=>(const CBaseHandle&) const = default;
 
-IHandleEntity* CBaseHandle::Get( ) const
+IHandleEntity* CBaseHandle::Get() const
 {
 	/*if (!IsValid( ))
 		return 0;*/

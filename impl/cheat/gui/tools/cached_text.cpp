@@ -1,10 +1,8 @@
 ﻿#include "cached_text.h"
 
-#include "imgui_id.h"
-
 #include <nstd/enum_tools.h>
 #include <nstd/memory backup.h>
-#include <nstd/runtime assert.h>
+#include <nstd/runtime_assert_fwd.h>
 #include <nstd/overload.h>
 
 #include <imgui_internal.h>

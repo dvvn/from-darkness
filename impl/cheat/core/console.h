@@ -1,9 +1,8 @@
 #pragma once
 
-
 #include "cheat/core/service.h"
 
-#include "nstd/runtime assert.h"
+#include <nstd/runtime_assert_fwd.h>
 
 #include <memory>
 
@@ -52,7 +51,10 @@ namespace cheat
 		};
 	}
 
-	class console final : public service<console>, nstd::rt_assert_handler
+	class console final : public service<console>
+#ifdef _DEBUG
+						, nstd::rt_assert_handler
+#endif
 	{
 	public:
 		class cache_type;
@@ -67,7 +69,9 @@ namespace cheat
 
 	protected:
 		load_result load_impl() noexcept override;
+#ifdef _DEBUG
 		void handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept override;
+#endif
 
 	private:
 		bool allocated_ = false;

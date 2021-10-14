@@ -1,8 +1,8 @@
 ﻿#include "data_filler.h"
 #include "config.h"
 
-#include <nstd/runtime assert.h>
 #include <nstd/type name.h>
+#include <nstd/runtime_assert_fwd.h>
 
 using namespace cheat::detail;
 using namespace cheat::csgo;
@@ -26,9 +26,8 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 	});
 }
 
-bool cheat::detail::_Save_netvar(netvars_storage& storage,const std::string_view& name, int offset, netvar_type_holder&& type)
+bool cheat::detail::_Save_netvar(netvars_storage& storage, const std::string_view& name, int offset, netvar_type_holder&& type)
 {
-
 	auto&& [entry, added] = storage.emplace(std::string(name), netvars_storage{});
 	if (added == false)
 	{
@@ -75,7 +74,7 @@ std::pair<netvars_storage::iterator, bool> cheat::detail::_Add_child_class(netva
 	return storage.emplace(std::move(class_name), netvars_storage::value_type{});
 }
 
-void  cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storage& tree, const RecvTable* recv_table, int offset)
+void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storage& tree, const RecvTable* recv_table, int offset)
 {
 	static constexpr auto prop_is_length_proxy = [](const RecvProp& prop)
 	{
@@ -283,7 +282,7 @@ void  cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_stora
 						child_table_unique_name.append(child_table_name);
 						child_table_unique_name.append(unique_str);
 					}
-					auto [new_tree, added] = _Add_child_class(root_tree,(child_table_unique_name));
+					auto [new_tree, added] = _Add_child_class(root_tree, (child_table_unique_name));
 					if (!added)
 						continue;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE

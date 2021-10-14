@@ -147,7 +147,7 @@ service_base::load_result csgo_interfaces::load_impl() noexcept
 	d3d_device = CHEAT_FIND_SIG(shaderapidx9, "A1 ? ? ? ? 50 8B 08 FF 51 0C", add(1), deref(2));
 #endif
 
-	co_return true;
+	co_return (true);
 }
 
 csgo_interfaces::csgo_interfaces()

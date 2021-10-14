@@ -1,6 +1,6 @@
 #include "push style var.h"
 
-#include "nstd/runtime assert.h"
+#include <nstd/runtime_assert_fwd.h>
 
 using namespace cheat;
 using namespace gui::tools;

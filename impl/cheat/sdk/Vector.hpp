@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cstdint>
 #include <limits>
 
@@ -10,23 +11,23 @@ namespace cheat::csgo
 		Vector(float val = std::numeric_limits<float>::infinity( ));
 		Vector(float X, float Y, float Z);
 
-		bool IsValid( ) const;
+		bool IsValid() const;
 
-		void Invalidate( );
+		void Invalidate();
 
 		float& operator[](int i);
 		float operator[](int i) const;
 
-		void NormalizeInPlace( );
-		Vector Normalized( ) const;
+		void NormalizeInPlace();
+		Vector Normalized() const;
 		float DistTo(const Vector& other) const;
 		float DistToSqr(const Vector& other) const;
 		float Dot(const Vector& other) const;
 
-		float Length( ) const;
-		float LengthSqr( ) const;
-		float Length2D( ) const;
-		Vector operator-( ) const;
+		float Length() const;
+		float LengthSqr() const;
+		float Length2D() const;
+		Vector operator-() const;
 
 		Vector& operator+=(const Vector& v);
 		Vector& operator-=(const Vector& v);
@@ -44,10 +45,10 @@ namespace cheat::csgo
 		float x, y, z;
 	};
 
-	class alignas(uint16_t) VectorAligned: public Vector
+	class alignas(uint16_t) VectorAligned : public Vector
 	{
 	public:
-		VectorAligned(const Vector& other = { });
+		VectorAligned(const Vector& other = {});
 
 		VectorAligned& operator=(const VectorAligned& other);
 

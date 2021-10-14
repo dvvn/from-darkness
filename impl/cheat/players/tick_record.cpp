@@ -8,6 +8,8 @@
 #include "cheat/sdk/IVEngineClient.hpp"
 #include "cheat/sdk/entity/C_CSPlayer.h"
 
+#include <nstd/runtime_assert_fwd.h>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -18,7 +20,7 @@ void tick_record::store_bones(C_BaseEntity* ent, std::optional<float> setup_curt
 
 	if (setup_curtime.has_value( ))
 	{
-		ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, /*this->sim_time*/*setup_curtime);
+		ent->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING/*BONE_USED_BY_HITBOX*/, *setup_curtime);
 	}
 
 	const auto& bones_cache = ent->BonesCache( );
