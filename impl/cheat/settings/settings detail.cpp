@@ -2,7 +2,7 @@
 #include "settings.h"
 
 #include "cheat/gui/tools/info.h"
-#include "cheat/gui/tools/push style var.h"
+#include "cheat/gui/tools/push_style_var.h"
 
 #include <nstd/runtime assert.h>
 

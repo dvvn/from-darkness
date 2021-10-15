@@ -224,7 +224,7 @@ player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
 void player::update(int index, float curtime, float correct)
 {
 	//note: if fps < server tickount, all next calculations are wrong!!!
-	//if we got low fps, invalidate bones cache or it never updates!
+	//if we got low fps, invalidate bones cache or it never updates (todo: invalidate always)!
 
 	const auto ent = static_cast<C_CSPlayer*>(csgo_interfaces::get_ptr( )->entity_list->GetClientEntity(index));
 	if (ent != entptr)

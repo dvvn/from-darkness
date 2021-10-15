@@ -27,8 +27,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\button_info.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\cached_text.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\imgui_id.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push_style_color.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push_style_var.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\absrtact_renderable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\checkbox.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -257,8 +257,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animation_tools.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\button_info.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\cached_text.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style color.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push style var.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push_style_color.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\push_style_var.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\checkbox.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ExcludedFromBuild>

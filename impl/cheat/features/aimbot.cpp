@@ -32,7 +32,7 @@ struct widget_bool_data : cached_text, nstd::smooth_value_linear<ImVec4>
 
 struct aimbot::impl
 {
-	impl() = default;
+	impl( ) = default;
 
 	widget_bool_data test_cb;
 	nstd::smooth_value_linear<ImVec4> test_cb_check_anim;
@@ -43,7 +43,7 @@ struct aimbot::impl
 	nstd::smooth_value_linear<ImVec4> slider_bg_anim;
 	nstd::smooth_value_linear<float> slider_anim;
 
-	void init_gui()
+	void init_gui( )
 	{
 		using namespace std::chrono_literals;
 
@@ -55,15 +55,15 @@ struct aimbot::impl
 		using target_internal = nstd::smooth_value_linear<ImVec4>::target_internal;
 		using target_external = nstd::smooth_value_linear<ImVec4>::target_external;
 
-		slider_text.set_font(ImGui::GetDefaultFont( ));
-		slider_text.set_label("slider test");
 		slider_bg_anim.set_duration(600ms);
 		slider_bg_anim.set_target<target_internal>( );
 		slider_anim.set_duration(200ms);
-		slider_anim.set_target<nstd::smooth_value_linear<float>::target_external>( );
+		slider_anim.set_target<nstd::smooth_value_linear<float>::target_internal>( );
 		slider_anim.get_target( )->write_value(slider_data.value);
 		slider_anim.set_start(slider_data.min);
 		slider_anim.set_end(slider_data.max);
+		slider_text.set_font(ImGui::GetDefaultFont( ));
+		slider_text.set_label(std::format("custom slider: {} value", slider_anim.get_target( )->own_value( ) ? "internal" : "external"));
 
 		test_cb.set_label(u8"hello привет 12345");
 		test_cb.set_font(test_font);
@@ -119,12 +119,12 @@ struct aimbot::impl
 	}
 };
 
-aimbot::aimbot()
+aimbot::aimbot( )
 {
 	this->wait_for_service<gui::imgui_context>( );
 }
 
-aimbot::~aimbot()                            = default;
+aimbot::~aimbot( )                           = default;
 aimbot::aimbot(aimbot&&) noexcept            = default;
 aimbot& aimbot::operator=(aimbot&&) noexcept = default;
 
@@ -136,14 +136,14 @@ void aimbot::load(const json& out)
 {
 }
 
-cheat::service_base::load_result aimbot::load_impl() noexcept
+cheat::service_base::load_result aimbot::load_impl( ) noexcept
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );
 	CHEAT_SERVICE_LOADED
 }
 
-void aimbot::render()
+void aimbot::render( )
 {
 	/*impl_->cb3.render( );
 	ImGui::Text("1");
@@ -168,7 +168,9 @@ void aimbot::render()
 	ImGui::SameLine( );
 	gui::widgets::checkbox2(cb_data, sb_data.value, true, std::addressof(cb_data), std::addressof(cb_check_anim));
 
-	gui::widgets::slider(impl_->slider_text, impl_->slider_data, &impl_->slider_bg_anim, &impl_->slider_anim);
+	auto& sdata = impl_->slider_data;
+	gui::widgets::slider(impl_->slider_text, sdata, &impl_->slider_bg_anim, &impl_->slider_anim);
+	ImGui::SliderFloat("imgui slider", &sdata.value, sdata.min, sdata.max, "%.1f", ImGuiSliderFlags_NoRoundToFormat);
 }
 
 CHEAT_REGISTER_SERVICE(aimbot);

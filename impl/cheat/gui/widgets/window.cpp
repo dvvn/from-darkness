@@ -446,7 +446,7 @@ window_end_token_ex window_wrapped::operator()(bool close_button)
 	runtime_assert(show_anim.get_target( )->get_value( ) == 1);
 	window_end_token_ex token;
 
-	show_anim.update_end(show);
+	show_anim.set_new_range(show);
 	const auto updated = show_anim.update( );
 
 	if (visible( ))
