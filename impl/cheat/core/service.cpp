@@ -14,23 +14,6 @@ static void _Loading_access_assert([[maybe_unused]] T&& state)
 	runtime_assert(state != service_state::loading && state != service_state::waiting, "Unable to modify running service!");
 }
 
-#ifdef _SEMAPHORE_
-detail::mutex_semaphore_adaptor::mutex_semaphore_adaptor( )
-	: std::binary_semaphore(std::binary_semaphore::max( ))
-{
-}
-
-void detail::mutex_semaphore_adaptor::lock( )
-{
-	this->acquire( );
-}
-
-void detail::mutex_semaphore_adaptor::unlock( )
-{
-	this->release( );
-}
-#endif
-
 struct services_counter
 {
 	size_t count = 0;

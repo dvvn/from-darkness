@@ -227,12 +227,13 @@ service_base::load_result console::load_impl( ) noexcept
 	co_return (true);
 #endif
 }
-#if defined(_DEBUG) 
 
-static auto _Prepare_message(const std::source_location& location, const char* expression, const char* message)
+#if defined(_DEBUG)
+
+static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
 {
 	auto msg = std::ostringstream( );
-	msg << "\nAssertion falied!\n\n";
+	msg << "Assertion falied!\n\n";
 
 	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool newline = true)
 	{
@@ -254,12 +255,12 @@ static auto _Prepare_message(const std::source_location& location, const char* e
 	return msg;
 }
 
-void console::handle(const std::source_location& location, bool expression_result, const char* expression, const char* message) noexcept
+void console::handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept
 {
 	if (expression_result)
 		return;
 
-	this->write_line(_Prepare_message(location, expression, message));
+	this->write_line(_Prepare_message(expression, message, location));
 #ifdef _DEBUG
 	[[maybe_unused]] const auto from  = _ReturnAddress( );
 	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
@@ -267,9 +268,9 @@ void console::handle(const std::source_location& location, bool expression_resul
 #endif
 }
 
-void console::handle(const std::source_location& location, const char* message) noexcept
+void console::handle(const char* message, const std::source_location& location) noexcept
 {
-	this->write_line(_Prepare_message(location, nullptr, message));
+	this->write_line(_Prepare_message(nullptr, message, location));
 #ifdef _DEBUG
 	[[maybe_unused]] const auto from  = _ReturnAddress( );
 	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );

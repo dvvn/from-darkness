@@ -251,3 +251,13 @@ int& C_BaseAnimating::m_nHighlightColorB( )
 	return addr.ref<int>( );
 #endif
 }
+cheat::csgo::CUtlVector<cheat::csgo::CAnimationLayer>& C_BaseAnimating::m_AnimOverlays( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::CUtlVector<cheat::csgo::CAnimationLayer>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_AnimOverlays");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::CUtlVector<cheat::csgo::CAnimationLayer>>( );
+#endif
+}

@@ -29,6 +29,7 @@ namespace cheat::detail
 	std::string str_to_lower(const std::string_view& str);
 
 	netvar_type_holder _As_std_array_type(const std::string_view& type, size_t size);
+	netvar_type_holder _As_utlvector_type(const std::string_view& type);
 	netvar_type_holder _Netvar_vec_type(const std::string_view& name);
 	netvar_type_holder _Netvar_int_type(std::string_view name);
 

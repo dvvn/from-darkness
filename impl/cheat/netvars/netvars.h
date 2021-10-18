@@ -9,16 +9,16 @@ namespace cheat
 		struct netvars_data;
 	}
 
-	class netvars final : public service<netvars>
+	class netvars : public service<netvars>
 	{
 	public:
-		~netvars() override;
-		netvars();
+		~netvars( ) override;
+		netvars( );
 
 		int at(const std::string_view& table, const std::string_view& item) const;
 
 	protected:
-		load_result load_impl() noexcept override;
+		load_result load_impl( ) noexcept override;
 
 	private:
 		std::unique_ptr<detail::netvars_data> data_;

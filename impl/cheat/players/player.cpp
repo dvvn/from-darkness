@@ -1,4 +1,6 @@
 #include "player.h"
+#include "players_list.h"
+#if CHEAT_FEATURE_PLAYER_LIST
 
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
@@ -13,6 +15,8 @@
 #include <nstd/memory backup.h>
 
 #include <excpt.h>
+
+#include <nstd/runtime_assert_fwd.h>
 
 using namespace cheat;
 using namespace detail;
@@ -441,11 +445,18 @@ tick_record& player::store_tick( )
 
 void player::update_animations(bool backup_layers)
 {
-	using bytes_array = std::array<uint8_t, sizeof(AnimOverlaysArr_t)>;
+	using layers_array = std::array<CAnimationLayer, 13>;
+	using bytes_array = std::array<uint8_t, sizeof(layers_array)>;
 	nstd::memory_backup<bytes_array> layers_backup;
 	(void)layers_backup;
 	if (backup_layers)
-		layers_backup = reinterpret_cast<bytes_array&>(entptr->GetAnimOverlays( ));;
+	{
+		auto& layers = entptr->m_AnimOverlays( );
+		runtime_assert(layers.size( )==13);
+		auto& arr     = *reinterpret_cast<layers_array*>(layers.data( ));
+		layers_backup = reinterpret_cast<bytes_array&>(arr);
+	}
 
 	entptr->UpdateClientSideAnimation( );
 }
+#endif

@@ -1,12 +1,16 @@
 #include "csgo interfaces.h"
 
-#include "console.h"
 #include "services loader.h"
+#include "console.h"
 
+#ifndef CHEAT_GUI_TEST
 #include "cheat/core/csgo modules.h"
 #include "cheat/sdk/IAppSystem.hpp"
 
 #include <dhooks/hook_utils.h>
+#else
+#include <nstd/runtime_assert_fwd.h>
+#endif
 
 //#include <d3d9.h>
 
@@ -14,13 +18,15 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
+#ifndef CHEAT_GUI_TEST
 // ReSharper disable once CppInconsistentNaming
-[[maybe_unused]] static nstd::address get_vfunc(void* instance, size_t index)
+ static nstd::address get_vfunc(void* instance, size_t index)
 {
 	return dhooks::_Pointer_to_virtual_class_table(instance)[index];
 }
+#endif
 
-nstd::address csgo_interface_base::addr() const
+nstd::address csgo_interface_base::addr( ) const
 {
 	return result_;
 }
@@ -32,17 +38,17 @@ csgo_interface_base& csgo_interface_base::operator=(const nstd::address& addr)
 	return *this;
 }
 
-void csgo_interface_base::Set_result_assert_() const
+void csgo_interface_base::Set_result_assert_( ) const
 {
 	runtime_assert(result_ == 0u, "Result already set!");
 }
 
 #ifdef CHEAT_GUI_TEST
-typedef struct IDirect3DDevice9* LPDIRECT3DDEVICE9, * PDIRECT3DDEVICE9;
+typedef struct IDirect3DDevice9 *LPDIRECT3DDEVICE9, *PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-service_base::load_result csgo_interfaces::load_impl() noexcept
+service_base::load_result csgo_interfaces::load_impl( ) noexcept
 {
 	//unused
 #if 0
@@ -150,7 +156,7 @@ service_base::load_result csgo_interfaces::load_impl() noexcept
 	co_return (true);
 }
 
-csgo_interfaces::csgo_interfaces()
+csgo_interfaces::csgo_interfaces( )
 {
 	this->wait_for_service<console>( );
 }

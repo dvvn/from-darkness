@@ -1,4 +1,6 @@
 #include "csgo modules.h"
+
+#ifndef CHEAT_GUI_TEST
 #include "console.h"
 
 #include "cheat/sdk/IAppSystem.hpp"
@@ -9,7 +11,10 @@
 #include <robin_hood.h>
 
 #include <format>
+
+#ifdef CHEAT_HAVE_CONSOLE
 #include <sstream>
+#endif
 
 using nstd::os::module_info;
 using cheat::csgo::InstantiateInterfaceFn;
@@ -54,8 +59,8 @@ module_info* detail::get_module_impl(const std::string_view& target_name)
 
 nstd::address detail::find_signature_impl(module_info* md, const std::string_view& sig)
 {
-	auto bytes = nstd::make_signature(sig);
-	auto ret   = md->mem_block( ).find_block(bytes);
+	const auto bytes = nstd::make_signature(sig);
+	const auto ret   = md->mem_block( ).find_block(bytes);
 	if (!ret.has_value( ))
 	{
 		CHEAT_CONSOLE_LOG(std::format(L"{} -> signature {} not found", md->name( ), std::wstring(sig.begin( ), sig.end( ))));
@@ -103,7 +108,7 @@ static const ifcs_entry_type& _Interface_entry(ifcs_storage_type& storage, modul
 	const auto contains_duplicate = [&](const std::string_view& new_string, size_t original_size)
 	{
 		auto detected = false;
-		for (auto& e : temp_entry /*| std::views::keys*/)
+		for (auto& e: temp_entry /*| std::views::keys*/)
 		{
 			auto&& raw_string = e.first;
 			if (raw_string.size( ) != original_size)
@@ -128,7 +133,7 @@ static const ifcs_entry_type& _Interface_entry(ifcs_storage_type& storage, modul
 	const auto get_pretty_string = [&](const std::string_view& str) -> std::optional<std::string_view>
 	{
 		size_t remove = 0;
-		for (const auto c : str | std::views::reverse)
+		for (const auto c: str | std::views::reverse)
 		{
 			if (!std::isdigit(c))
 				break;
@@ -148,7 +153,7 @@ static const ifcs_entry_type& _Interface_entry(ifcs_storage_type& storage, modul
 		return drop_underline(str2, original_size).value_or(str2);
 	};
 
-	for (const auto& [name, fn] : temp_entry)
+	for (const auto& [name, fn]: temp_entry)
 	{
 		const auto name_pretty = get_pretty_string(name);
 		entry.emplace(name_pretty.value_or(name), fn);
@@ -167,7 +172,8 @@ nstd::address detail::find_csgo_interface(module_info* from, const std::string_v
 	const auto found = entry.find(target_name);
 	runtime_assert(found != entry.end( ));
 
-	[[maybe_unused]] const auto debug_message = [&]
+#ifdef CHEAT_HAVE_CONSOLE
+	const auto debug_message = [&]
 	{
 		const auto original_interface_name     = found->first;
 		const auto original_interface_name_end = original_interface_name._Unchecked_end( );
@@ -175,21 +181,12 @@ nstd::address detail::find_csgo_interface(module_info* from, const std::string_v
 		auto msg = std::wostringstream( );
 		msg << "Found interface: " << std::wstring(target_name.begin( ), target_name.end( )) << ' ';
 		if (*original_interface_name_end != '\0')
-		{
-			msg
-					<< '('
-					<< std::wstring(original_interface_name.begin( ), original_interface_name.end( ))
-					<< original_interface_name_end
-					<< ") ";
-		}
-
-		msg
-				<< "in module "
-				<< from->name( );
-
+			msg << '(' << std::wstring(original_interface_name.begin( ), original_interface_name.end( )) << original_interface_name_end << ") ";
+		msg << "in module " << from->name( );
 		return msg;
 	};
 	CHEAT_CONSOLE_LOG(debug_message( ));
+#endif
 
 	return std::invoke(found->second);
 }
@@ -215,3 +212,4 @@ void* detail::find_vtable_pointer(module_info* from, const std::string_view& cla
 	CHEAT_CONSOLE_LOG(found_msg( ));
 	return addr.ptr<void>( );
 }
+#endif

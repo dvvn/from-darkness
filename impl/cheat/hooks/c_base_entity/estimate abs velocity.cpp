@@ -16,9 +16,11 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_entity;
 
+#ifndef CHEAT_GUI_TEST
 using namespace nstd::address_pipe;
+#endif
 
-estimate_abs_velocity::estimate_abs_velocity()
+estimate_abs_velocity::estimate_abs_velocity( )
 {
 	this->wait_for_service<netvars>( );
 }
@@ -30,20 +32,20 @@ CHEAT_HOOK_PROXY_TARGET_FN(estimate_abs_velocity, CHEAT_MODE_INGAME,
 
 void estimate_abs_velocity::callback(Vector& vel)
 {
-#if !CHEAT_MODE_INGAME||!__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseEntity_h")
 	CHEAT_CALL_BLOCKER
 #else
 	using namespace nstd::enum_operators;
 
 	const auto ent = this->object_instance;
 
-	if (ent->m_iEFlags( ) & m_iEFlags_t::EFL_DIRTY_ABSVELOCITY)
+	if (ent->m_iEFlags() & m_iEFlags_t::EFL_DIRTY_ABSVELOCITY)
 	{
 		static auto calc_absolute_velocity = CHEAT_FIND_SIG(client, "55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7", cast<void (C_BaseEntity::*)()>);
 		dhooks::_Call_function(calc_absolute_velocity, ent);
 	}
 
-	vel = ent->m_vecAbsVelocity( );
+	vel = ent->m_vecAbsVelocity();
 
 	this->return_value_.set_original_called(true);
 #endif

@@ -24,7 +24,7 @@ dump_info cheat::detail::_Dump_netvars(const netvars_storage& netvars_data)
 
 	const auto dirs_created = std::filesystem::create_directories(dumps_dir);
 
-	constexpr auto get_file_name = []()-> std::filesystem::path
+	constexpr auto get_file_name = []( )-> std::filesystem::path
 	{
 		std::string version = csgo_interfaces::get_ptr( )->engine->GetProductVersionString( );
 		std::ranges::replace(version, '.', '_');
@@ -80,7 +80,7 @@ void cheat::detail::_Generate_classes(dump_info info, netvars_storage& netvars_d
 
 		netvars_data_backup = netvars_data;
 		size_t exists_count = 0;
-		for (auto& entry : std::filesystem::directory_iterator(generated_classes_dir))
+		for (auto& entry: std::filesystem::directory_iterator(generated_classes_dir))
 		{
 			constexpr std::string_view suffix = _STRINGIZE(CHEAT_NETVARS_GENERATED_HEADER_POSTFIX);
 
@@ -110,7 +110,7 @@ void cheat::detail::_Generate_classes(dump_info info, netvars_storage& netvars_d
 			if (exists_count > 0)
 			{
 				netvars_storage to_create;
-				for (auto& [key,val] : netvars_data.items( ))
+				for (auto& [key,val]: netvars_data.items( ))
 				{
 					if (key[0] == '\0')
 						continue;
@@ -135,7 +135,7 @@ _WORK:
 	auto& lazy_writer = lazy_storage.write;
 
 	lazy_writer.reserve(netvars_data.size( ) * 2);
-	for (auto& [CLASS_NAME, NETVARS] : netvars_data.items( ))
+	for (auto& [CLASS_NAME, NETVARS]: netvars_data.items( ))
 	{
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppTooWideScope
@@ -167,7 +167,7 @@ _WORK:
 			auto includes = std::set<include_name>( );
 
 			const auto dir_path = std::filesystem::path(STRINGIZE_PATH(CHEAT_CSGO_SDK_DIR));
-			for (auto& [netvar_name, netvar_data] : NETVARS.items( ))
+			for (auto& [netvar_name, netvar_data]: NETVARS.items( ))
 			{
 				const auto& netvar_type = netvar_data.at("type").get_ref<const std::string&>( );
 
@@ -199,16 +199,21 @@ _WORK:
 					}
 #else
 					runtime_assert(netvar_type.starts_with("cheat::csgo::"));
+
 					path_to_file = STRINGIZE_PATH(cheat/sdk/);
 					full_path.append(path_to_file);
-					const auto name = nstd::drop_namespaces(netvar_type);
-					full_path.append(name.begin( ), name.end( ));
+					auto type_name = nstd::drop_namespaces(netvar_type);
+					const auto template_start  = type_name.find('<');
+					if (template_start != type_name.npos) //todo: resolve & include template parameters
+						type_name = type_name.substr(0, template_start);
+
+					full_path.append(type_name.begin( ), type_name.end( ));
 
 #endif
 					const auto test_file_name = std::wstring_view(full_path).substr(path_to_file.size( ));
 					const auto checked_folder = STRINGIZE_PATH(_CONCAT(VS_SolutionDir, \impl\)) / std::filesystem::path(path_to_file);
 
-					for (auto& entry : std::filesystem::directory_iterator(checked_folder))
+					for (auto& entry: std::filesystem::directory_iterator(checked_folder))
 					{
 						if (!entry.is_regular_file( ))
 							continue;
@@ -257,7 +262,7 @@ _WORK:
 				{
 					const auto includes_adder = [&](bool global)
 					{
-						for (auto& in : includes)
+						for (auto& in: includes)
 						{
 							if (in.global == global)
 								source_add_include(in, global);
@@ -291,7 +296,7 @@ _WORK:
 
 		source << __New_line;
 
-		for (auto& [NETVAR_NAME, NETVAR_DATA] : NETVARS.items( ))
+		for (auto& [NETVAR_NAME, NETVAR_DATA]: NETVARS.items( ))
 		{
 #ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.get(NETVAR_DATA);
@@ -334,7 +339,8 @@ _WORK:
 	if (info == dump_info::created)
 	{
 		//write all without waiting
-		lazy_storage = {};
+		auto dummy = lazy_files_storage( );
+		std::swap(lazy_storage, dummy);
 	}
 
 	(void)netvars_data_backup;

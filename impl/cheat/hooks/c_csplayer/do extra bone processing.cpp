@@ -17,9 +17,11 @@ using namespace hooks;
 using namespace c_csplayer;
 using namespace csgo;
 
+#ifndef CHEAT_GUI_TEST
 using namespace nstd::address_pipe;
+#endif
 
-do_extra_bone_processing::do_extra_bone_processing()
+do_extra_bone_processing::do_extra_bone_processing( )
 {
 	this->wait_for_service<csgo_interfaces>( );
 }

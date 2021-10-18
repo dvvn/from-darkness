@@ -53,6 +53,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\config.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\custom.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\data_dumper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\data_filler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\detail.h" />
@@ -279,6 +280,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\custom.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\data_dumper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\data_filler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\detail.cpp" />

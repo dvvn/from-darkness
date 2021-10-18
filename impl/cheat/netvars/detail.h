@@ -78,13 +78,12 @@ namespace cheat::detail
 
 	using netvars_storage = nlohmann::basic_json<ordered_map_json>;
 
-
 #endif
 
 	struct netvars_data
 	{
 #ifndef CHEAT_NETVARS_DUMPER_DISABLED
-  lazy_files_storage lazy;
+		lazy_files_storage lazy;
 		netvars_storage storage;
 #endif
 	};

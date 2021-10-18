@@ -17,7 +17,9 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
+#ifndef CHEAT_GUI_TEST
 using namespace nstd::address_pipe;
+#endif
 
 standard_blending_rules::standard_blending_rules()
 {

@@ -24,22 +24,27 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-service_base::load_result players_list::load_impl() noexcept
+service_base::load_result players_list::load_impl( ) noexcept
 {
 	CHEAT_SERVICE_INIT(CHEAT_FEATURE_PLAYER_LIST)
 }
 
-struct players_list::storage_type : std::vector<player>
+struct players_list::storage_type
+#if CHEAT_FEATURE_PLAYER_LIST
+		: std::vector<player>
+#endif
 {
 };
 
-players_list::players_list()
+players_list::players_list( )
 {
 	storage_ = std::make_unique<storage_type>( );
 	this->wait_for_service<netvars>( );
 }
 
-players_list::~players_list() = default;
+players_list::~players_list( ) = default;
+
+#if defined(_DEBUG) && CHEAT_FEATURE_PLAYER_LIST
 
 static void* _Player_by_index_server(int client_index)
 {
@@ -55,8 +60,9 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 	const auto player = _Player_by_index_server(client_index);
 	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
 }
+#endif
 
-void players_list::update()
+void players_list::update( )
 {
 #if !CHEAT_FEATURE_PLAYER_LIST
 	CHEAT_CALL_BLOCKER

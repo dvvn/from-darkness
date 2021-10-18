@@ -3,6 +3,7 @@
 #ifndef CHEAT_NETVARS_DUMPER_DISABLED
 #include "data_dumper.h"
 #include "data_filler.h"
+#include "custom.h"
 #endif
 #include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
@@ -44,15 +45,14 @@ service_base::load_result netvars::load_impl( ) noexcept
 
 	_Iterate_datamap(data, baseent->GetDataDescMap( ));
 	_Iterate_datamap(data, baseent->GetPredictionDescMap( ));
+	_Write_custom_netvars(data);
 
 #if defined(CHEAT_NETVARS_RESOLVE_TYPE)
-
 	const auto info = _Dump_netvars(data_->storage);
 	_Generate_classes(info, data_->storage, data_->lazy);
-
 #endif
-	CHEAT_SERVICE_LOADED
 
+	CHEAT_SERVICE_LOADED
 #endif
 }
 

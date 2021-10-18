@@ -21,7 +21,5 @@ namespace cheat::csgo
 #if __has_include("../generated/C_BasePlayer_h")
 #include "../generated/C_BasePlayer_h"
 #endif
-		[[deprecated]]
-		bool IsAlive();
 	};
 }

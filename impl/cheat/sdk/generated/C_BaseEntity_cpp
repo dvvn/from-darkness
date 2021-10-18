@@ -773,3 +773,23 @@ bool& C_BaseEntity::m_bEverHadPredictionErrorsForThisCommand( )
 	return addr.ref<bool>( );
 #endif
 }
+cheat::csgo::VarMapping_t& C_BaseEntity::m_InterpVarMap( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::VarMapping_t*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_InterpVarMap");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::VarMapping_t>( );
+#endif
+}
+cheat::csgo::CUtlVector<cheat::csgo::matrix3x4_t>& C_BaseEntity::m_BonesCache( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::CUtlVector<cheat::csgo::matrix3x4_t>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_BonesCache");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::CUtlVector<cheat::csgo::matrix3x4_t>>( );
+#endif
+}

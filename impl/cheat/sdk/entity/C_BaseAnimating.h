@@ -30,7 +30,6 @@ namespace cheat::csgo
 		int m_nInvalidatePhysicsBits; //0x34
 	};
 
-	using AnimOverlaysArr_t = std::array<CAnimationLayer, 13>;
 	class C_BaseAnimating : public C_BaseEntity
 	{
 	public:
@@ -38,7 +37,6 @@ namespace cheat::csgo
 #include "../generated/C_BaseAnimating_h"
 #endif
 
-		void UpdateClientSideAnimation();
-		AnimOverlaysArr_t& GetAnimOverlays();
+		void UpdateClientSideAnimation( );
 	};
 }

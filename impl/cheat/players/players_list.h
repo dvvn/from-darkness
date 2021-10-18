@@ -3,7 +3,7 @@
 
 #include "cheat/core/service.h"
 
-#if CHEAT_MODE_INGAME && __has_include("cheat/sdk/generated/C_BasePlayer_h") && __has_include("cheat/sdk/generated/C_BaseAnimating_h")
+#if CHEAT_MODE_INGAME && __has_include("cheat/sdk/generated/C_BasePlayer_h") && __has_include("cheat/sdk/generated/C_BaseAnimating_h")&& __has_include("cheat/sdk/generated/C_BaseEntity_h")
 #define CHEAT_FEATURE_PLAYER_LIST 1
 #else
 #define CHEAT_FEATURE_PLAYER_LIST 0
@@ -14,15 +14,15 @@ namespace cheat
 	class players_list final : public service<players_list>
 	{
 	public:
-		players_list();
-		~players_list() override;
+		players_list( );
+		~players_list( ) override;
 
-		void update();
+		void update( );
 
 		//const detail::players_filter& filter(const players_filter_flags& flags);
-		
+
 	protected:
-		load_result load_impl() noexcept override;
+		load_result load_impl( ) noexcept override;
 
 	private:
 		struct storage_type;

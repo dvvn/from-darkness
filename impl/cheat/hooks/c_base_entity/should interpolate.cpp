@@ -15,7 +15,9 @@ using namespace cheat;
 using namespace hooks::c_base_entity;
 using namespace csgo;
 
+#ifndef CHEAT_GUI_TEST
 using namespace nstd::address_pipe;
+#endif
 
 //utils::find_signature\("([a-z]+).*,.("[A-F0-9 ]+")
 //find_signature\("([a-z0-9]+).*,.(".*")

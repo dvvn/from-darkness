@@ -70,10 +70,9 @@ namespace cheat
 	protected:
 		load_result load_impl( ) noexcept override;
 #ifdef _DEBUG
-		void handle(const std::source_location& location, bool expression_result, const char* expression, const char* message) noexcept override;
-		void handle(const std::source_location& location, const char* message) noexcept override;
+		void handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept override;
+		void handle(const char* message, const std::source_location& location) noexcept override;
 		size_t id( ) const override;
-	protected:
 #endif
 
 	private:

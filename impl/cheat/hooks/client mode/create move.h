@@ -10,14 +10,13 @@ namespace cheat::csgo
 
 namespace cheat::hooks::client_mode
 {
-	class create_move final : public service_hook_proxy<create_move, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*)>
+	CHEAT_SETUP_HOOK_PROXY(create_move, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*))
 	{
-	public:
-		create_move();
+		create_move( );
 
 	protected:
-		load_result load_impl() noexcept override;
-		nstd::address get_target_method_impl() const override;
+		load_result load_impl( ) noexcept override;
+		nstd::address get_target_method_impl( ) const override;
 		void callback(float input_sample_time, csgo::CUserCmd* cmd) override;
 	};
 }

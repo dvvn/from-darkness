@@ -13,7 +13,7 @@ using namespace csgo;
 using namespace hooks;
 using namespace studio_render;
 
-draw_model::draw_model()
+draw_model::draw_model( )
 {
 	this->wait_for_service<players_list>( );
 }

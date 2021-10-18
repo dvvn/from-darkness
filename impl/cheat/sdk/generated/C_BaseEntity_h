@@ -74,3 +74,5 @@ int& m_iEFlags( );
 float& m_flGravity( );
 float& m_flProxyRandomValue( );
 bool& m_bEverHadPredictionErrorsForThisCommand( );
+cheat::csgo::VarMapping_t& m_InterpVarMap( );
+cheat::csgo::CUtlVector<cheat::csgo::matrix3x4_t>& m_BonesCache( );

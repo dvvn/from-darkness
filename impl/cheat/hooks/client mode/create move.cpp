@@ -12,8 +12,6 @@
 #include "cheat/sdk/IPrediction.hpp"
 #include "cheat/sdk/IVEngineClient.hpp"
 
-#include <intrin.h>
-
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::client_mode;

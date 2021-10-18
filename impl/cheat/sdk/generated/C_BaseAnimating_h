@@ -22,3 +22,4 @@ bool& m_bSuppressAnimSounds( );
 int& m_nHighlightColorR( );
 int& m_nHighlightColorG( );
 int& m_nHighlightColorB( );
+cheat::csgo::CUtlVector<cheat::csgo::CAnimationLayer>& m_AnimOverlays( );

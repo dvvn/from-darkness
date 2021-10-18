@@ -14,7 +14,7 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client;
 
-frame_stage_notify::frame_stage_notify()
+frame_stage_notify::frame_stage_notify( )
 {
 	this->wait_for_service<players_list>( );
 }

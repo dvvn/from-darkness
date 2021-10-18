@@ -1,5 +1,7 @@
 ﻿#include "type_resolve.h"
 
+#include "cheat/sdk/UtlVector.hpp"
+
 #include <nstd/type name.h>
 #include <nstd/runtime_assert_fwd.h>
 
@@ -8,7 +10,7 @@
 using namespace cheat::detail;
 using namespace cheat::csgo;
 
-netvar_type_holder::netvar_type_holder() = default;
+netvar_type_holder::netvar_type_holder( ) = default;
 
 netvar_type_holder::netvar_type_holder(const std::string_view& sv)
 	: std::string(sv.begin( ), sv.end( ))
@@ -24,7 +26,7 @@ std::string cheat::detail::str_to_lower(const std::string_view& str)
 {
 	std::string ret;
 	ret.reserve(str.size( ));
-	for (const auto c : str)
+	for (const auto c: str)
 		ret += static_cast<char>(std::tolower(c));
 	return ret;
 }
@@ -32,6 +34,16 @@ std::string cheat::detail::str_to_lower(const std::string_view& str)
 netvar_type_holder cheat::detail::_As_std_array_type(const std::string_view& type, size_t size)
 {
 	return std::format("std::array<{}, {}>", type, size);
+}
+
+netvar_type_holder cheat::detail::_As_utlvector_type(const std::string_view& type)
+{
+	constexpr auto class_name = []
+	{
+		auto sample = (nstd::type_name<CUtlVector<void*>>);
+		return sample.substr(0, sample.find('<'));
+	}( );
+	return std::format("{}<{}>", class_name, type);
 }
 
 netvar_type_holder cheat::detail::_Netvar_vec_type(const std::string_view& name)
