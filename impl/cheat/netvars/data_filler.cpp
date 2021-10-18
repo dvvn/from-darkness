@@ -1,5 +1,6 @@
-﻿#include "data_filler.h"
-#include "config.h"
+﻿#include "config.h"
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
+#include "data_filler.h"
 
 #include <nstd/type name.h>
 #include <nstd/runtime_assert_fwd.h>
@@ -368,3 +369,4 @@ void cheat::detail::_Iterate_datamap(netvars_storage& root_tree, csgo::datamap_t
 			root_tree.erase(tree);
 	}
 }
+#endif

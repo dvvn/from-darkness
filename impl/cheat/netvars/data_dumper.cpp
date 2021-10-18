@@ -1,6 +1,6 @@
-﻿#include "data_dumper.h"
-
-#include "config.h"
+﻿#include "config.h"
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
+#include "data_dumper.h"
 
 #include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
@@ -340,3 +340,4 @@ _WORK:
 	(void)netvars_data_backup;
 	CHEAT_CONSOLE_LOG("Netvars classes generation done");
 }
+#endif

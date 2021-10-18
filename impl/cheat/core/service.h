@@ -160,6 +160,9 @@ namespace cheat
 	}
 }
 
+#define CHEAT_FUNC_MESSAGE(_MSG_) \
+	__pragma(message(__FUNCTION__": "##_MSG_))
+
 #define CHEAT_SERVICE_RESULT(msg, ret)\
 	using cheat::detail::log_type;\
 	using cheat::detail::make_log_message;\
@@ -173,6 +176,7 @@ namespace cheat
 
 #define CHEAT_SERVICE_SKIPPED \
 {\
+	CHEAT_FUNC_MESSAGE("unused");\
 	CHEAT_SERVICE_RESULT(make_log_message(this, log_type::SKIPPED), true)\
 }
 
@@ -185,10 +189,11 @@ namespace cheat
 #define CHEAT_SERVICE_INIT_1 CHEAT_SERVICE_LOADED
 #define CHEAT_SERVICE_INIT_0 CHEAT_SERVICE_SKIPPED
 
-#define CHEAT_SERVICE_INIT(FT) _CONCAT(CHEAT_SERVICE_INIT_,FT)
+#define CHEAT_SERVICE_INIT(FT) \
+	_CONCAT(CHEAT_SERVICE_INIT_,FT)
 #define CHEAT_CALL_BLOCKER\
 	runtime_assert("Unused but called");\
-	__pragma(message(__FUNCTION__": disabled"))\
+	CHEAT_FUNC_MESSAGE("disabled");\
 	(void)this;
 
 //for resharper

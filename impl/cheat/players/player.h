@@ -17,14 +17,11 @@
 
 namespace cheat
 {
-#define CHEAT_PLAYER_PROP(_NAME_, _DEF_) \
-	decltype(_DEF_) _NAME_ = _DEF_
-
 	class player
 	{
 	public:
-		~player();
-		player() = default;
+		~player( );
+		player( ) = default;
 
 		player(const player& other)                = delete;
 		player(player&& other) noexcept            = default;
@@ -33,7 +30,7 @@ namespace cheat
 
 		struct team_info
 		{
-			constexpr team_info() = default;
+			constexpr team_info( ) = default;
 			team_info(csgo::m_iTeamNum_t val);
 			team_info(std::underlying_type_t<csgo::m_iTeamNum_t> val);
 
@@ -47,9 +44,9 @@ namespace cheat
 		void update(int index, float curtime, float correct);
 
 		csgo::C_CSPlayer* entptr = nullptr;
-		float simtime            = -1.f;
-		team_info team           = {};
-		int health               = -1;
+		std::optional<float> simtime;
+		team_info team = {};
+		int health     = -1;
 		std::optional<bool> dormant;
 		std::optional<bool> dmgprotect;
 		//todo: weaponfire
@@ -59,8 +56,8 @@ namespace cheat
 
 		struct ticks_info
 		{
-			size_t prev    = -1;
-			size_t current = -1;
+			size_t prev    = static_cast<size_t>(-1);
+			size_t current = static_cast<size_t>(-1);
 
 			void set(size_t curr)
 			{
@@ -88,12 +85,12 @@ namespace cheat
 		CHEAT_PLAYER_TICKS_CONTAINER<tick_record_shared> ticks;
 		std::span<const decltype(ticks)::value_type> ticks_window;
 
-		static size_t max_ticks_count();
+		static size_t max_ticks_count( );
 
 	private:
-		void reset_ticks();
+		void reset_ticks( );
 		void update_animations(bool backup_layers);
-		tick_record& store_tick();
+		tick_record& store_tick( );
 	};
 
 	//using player_shared = detail::shared_holder<player>;

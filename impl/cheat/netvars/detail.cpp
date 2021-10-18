@@ -1,5 +1,7 @@
 ﻿#include "detail.h"
 
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
+
 #include <fstream>
 
 using namespace cheat::detail;
@@ -67,4 +69,4 @@ lazy_fs_remover::lazy_fs_remover(const path& path , bool all)
 	all_ = all;
 }
 
-//-----
+#endif

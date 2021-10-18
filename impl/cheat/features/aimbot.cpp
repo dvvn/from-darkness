@@ -62,6 +62,7 @@ struct aimbot::impl
 		slider_anim.get_target( )->write_value(slider_data.value);
 		slider_anim.set_start(slider_data.min);
 		slider_anim.set_end(slider_data.max);
+		slider_anim.inverse(  );
 		slider_text.set_font(ImGui::GetDefaultFont( ));
 		slider_text.set_label(std::format("custom slider: {} value", slider_anim.get_target( )->own_value( ) ? "internal" : "external"));
 

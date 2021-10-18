@@ -1,11 +1,16 @@
 ﻿#pragma once
+
+#include "config.h"
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
 #include <nlohmann/json.hpp>
 
 #include <filesystem>
 #include <sstream>
+#endif
 
 namespace cheat::detail
 {
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
 	template <class Key, class T, class IgnoredLess = std::less<Key>,
 			  class Allocator = std::allocator<std::pair<const Key, T>>>
 	struct ordered_map_json : nlohmann::ordered_map<Key, T, IgnoredLess, Allocator>
@@ -35,7 +40,7 @@ namespace cheat::detail
 	class lazy_file_writer final : public std::ostringstream
 	{
 	public:
-		~lazy_file_writer() override;
+		~lazy_file_writer( ) override;
 
 		lazy_file_writer(std::filesystem::path&& file);
 
@@ -50,17 +55,15 @@ namespace cheat::detail
 	class lazy_fs_creator final : public std::filesystem::path
 	{
 	public:
-		~lazy_fs_creator();
+		~lazy_fs_creator( );
 		lazy_fs_creator(const path& path);
-
-
 	};
 
 	class lazy_fs_remover final : public std::filesystem::path
 	{
 	public:
-		~lazy_fs_remover();
-		lazy_fs_remover(const path& path,bool all);
+		~lazy_fs_remover( );
+		lazy_fs_remover(const path& path, bool all);
 
 	private:
 		bool all_;
@@ -75,11 +78,14 @@ namespace cheat::detail
 
 	using netvars_storage = nlohmann::basic_json<ordered_map_json>;
 
-	//----
+
+#endif
 
 	struct netvars_data
 	{
-		lazy_files_storage lazy;
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
+  lazy_files_storage lazy;
 		netvars_storage storage;
+#endif
 	};
 }

@@ -36,17 +36,17 @@ struct services_counter
 	size_t count = 0;
 };
 
-size_t service_base::_Services_count()
+size_t service_base::_Services_count( )
 {
 	return nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base::service_base()
+service_base::service_base( )
 {
 	++nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base::~service_base()
+service_base::~service_base( )
 {
 	_Loading_access_assert(state_);
 	--nstd::one_instance<services_counter>::get_ptr( )->count;
@@ -71,7 +71,7 @@ service_base& service_base::operator=(service_base&& other) noexcept
 
 service_base::stored_service service_base::find_service(const std::type_info& info) const
 {
-	for (const auto& service : this->deps_)
+	for (const auto& service: this->deps_)
 	{
 		if (service->type( ) == info)
 			return service;
@@ -86,12 +86,12 @@ void service_base::add_service_dependency(stored_service&& srv, const std::type_
 	this->deps_.push_back(std::move(srv));
 }
 
-service_state service_base::state() const
+service_state service_base::state( ) const
 {
 	return state_;
 }
 
-void service_base::reset()
+void service_base::reset( )
 {
 	_Loading_access_assert(state_);
 	deps_.clear( );
@@ -150,15 +150,16 @@ service_base::load_result service_base::load(executor& ex) noexcept
 				return deps_preload_info::SOMETHING;
 			};
 
-			const auto load_deps = [&]()-> load_result
+			const auto load_deps = [&]( )-> load_result
 			{
 				state_ = service_state::waiting;
 				co_await ex.schedule( );
-				auto tasks_view = deps_ | std::views::transform([&](const stored_service& srv)-> load_result
-				{
-					return srv->load(ex);
-				});
-				const auto results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
+				auto tasks_view = deps_ | std::views::transform(
+										  [&](const stored_service& srv)-> load_result
+										  {
+											  return srv->load(ex);
+										  });
+				const auto&& results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
 				co_return std::ranges::all_of(results, [](bool val)
 				{
 					return val == true;
@@ -189,7 +190,7 @@ service_base::load_result service_base::load(executor& ex) noexcept
 				co_return false;
 			}
 
-			const auto load_this = [&]()-> load_result
+			const auto load_this = [&]( )-> load_result
 			{
 				state_ = service_state::loading;
 				co_await ex.schedule( );
@@ -243,7 +244,7 @@ service_base::load_result service_base::load(executor& ex) noexcept
 	}
 }
 
-std::span<const service_base::stored_service> service_base::services() const
+std::span<const service_base::stored_service> service_base::services( ) const
 {
 	return this->deps_;
 }

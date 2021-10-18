@@ -54,7 +54,7 @@ tick_record::tick_record(const player& holder)
 	this->abs_rotation     = ent->m_angAbsRotation( );
 	this->mins             = ent->m_vecMins( );
 	this->maxs             = ent->m_vecMaxs( );
-	this->sim_time         = holder.simtime;
+	this->sim_time         = *holder.simtime;
 	this->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
 #endif
 }

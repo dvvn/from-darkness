@@ -1,31 +1,32 @@
 #include "netvars.h"
-#include "config.h"
+#include "detail.h"
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
 #include "data_dumper.h"
 #include "data_filler.h"
-
-#include "cheat/core/service.h"
+#endif
 #include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/core/csgo modules.h"
 #include "cheat/core/services loader.h"
-
+#ifndef CHEAT_NETVARS_DUMPER_DISABLED
+#include "cheat/core/csgo modules.h"
 #include "cheat/sdk/IBaseClientDll.hpp"
 #include "cheat/sdk/entity/C_BaseEntity.h"
+#endif
 
 using namespace cheat;
 using namespace csgo;
 
-netvars::netvars()
+netvars::netvars( )
 {
 	data_ = std::make_unique<detail::netvars_data>( );
 	this->wait_for_service<csgo_interfaces>( );
 }
 
-netvars::~netvars() = default;
+netvars::~netvars( ) = default;
 
-service_base::load_result netvars::load_impl() noexcept
+service_base::load_result netvars::load_impl( ) noexcept
 {
-#if defined(CHEAT_NETVARS_DUMPER_DISABLED)
+#ifdef CHEAT_NETVARS_DUMPER_DISABLED
 	CHEAT_SERVICE_SKIPPED
 #else
 
@@ -55,8 +56,11 @@ service_base::load_result netvars::load_impl() noexcept
 #endif
 }
 
-int netvars::at(const std::string_view& table, const std::string_view& item) const
+int netvars::at([[maybe_unused]] const std::string_view& table, [[maybe_unused]] const std::string_view& item) const
 {
+#ifdef CHEAT_NETVARS_DUMPER_DISABLED
+	CHEAT_CALL_BLOCKER
+#else
 	for (auto& [table_stored, keys] : data_->storage.items( ))
 	{
 		if (table_stored != table)
@@ -68,11 +72,11 @@ int netvars::at(const std::string_view& table, const std::string_view& item) con
 				return data["offset"].get<int>( );
 		}
 
-		runtime_assert(false, std::format(__FUNCTION__": item {} not found in table {}", item, table).c_str( ));
+		runtime_assert(std::format(__FUNCTION__": item {} not found in table {}", item, table).c_str( ));
 		return 0;
 	}
-
-	runtime_assert(false, std::format(__FUNCTION__": table {} not found", table).c_str( ));
+		runtime_assert(std::format(__FUNCTION__": table {} not found", table).c_str( ));
+#endif
 	return 0;
 }
 

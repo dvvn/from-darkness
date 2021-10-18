@@ -174,7 +174,7 @@ void player_shared_impl::update_ticks_window(float curtime)
 
 #endif
 
-player::~player()
+player::~player( )
 {
 	if (!entptr || local)
 		return;
@@ -244,8 +244,16 @@ void player::update(int index, float curtime, float correct)
 
 	//-----
 
-	const auto simtime_new  = ent->m_flSimulationTime( );
-	const auto simtime_diff = simtime_new - simtime;
+	const auto simtime_new = ent->m_flSimulationTime( );
+	// ReSharper disable once CppJoinDeclarationAndAssignment
+	float simtime_diff;
+	if (!simtime.has_value( ))
+	{
+		tick.updated = update_state::SILENT;
+		goto _SET_SIMTIME;
+	}
+
+	simtime_diff = simtime_new - *simtime;
 	if (simtime_diff == 0)
 	{
 		tick.updated = update_state::IDLE;
@@ -259,6 +267,7 @@ void player::update(int index, float curtime, float correct)
 	{
 		tick.updated = update_state::NORMAL;
 
+	_SET_SIMTIME:
 		tick.server.set(csgo_interfaces::get_ptr( )->client_state->ClockDriftMgr.nServerTick);
 		tick.client.set(utils::time_to_ticks(simtime_new));
 
@@ -410,12 +419,12 @@ void player::update(int index, float curtime, float correct)
 	}
 }
 
-size_t player::max_ticks_count()
+size_t player::max_ticks_count( )
 {
 	return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
 }
 
-void player::reset_ticks()
+void player::reset_ticks( )
 {
 	if (ticks.empty( ))
 		return;
@@ -424,7 +433,7 @@ void player::reset_ticks()
 	ticks_window = {};
 }
 
-tick_record& player::store_tick()
+tick_record& player::store_tick( )
 {
 	auto& ref = ticks.emplace_front(*this).share( );
 	return *ref;
