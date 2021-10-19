@@ -386,11 +386,19 @@ _WORK:
 
 			const auto write_includes = [&](std::vector<std::string>& data, bool global)
 			{
-				if (data.empty( ))
-					return false;
-				std::ranges::sort(data);
-				for (auto& d: data)
-					source_add_include(d, global);
+				switch (data.size( ))
+				{
+					case 0:
+						return false;
+					case 1:
+						source_add_include(data.front( ), global);
+						break;
+					default:
+						std::ranges::sort(data);
+						for (auto& d: data)
+							source_add_include(d, global);
+						break;
+				}
 				return true;
 			};
 
