@@ -16,7 +16,7 @@
 #endif
 
 #define CHEAT_NETVARS_DUMPS_DIR _CONCAT(VS_SolutionDir, \.out\netvars\)
-#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\sdk\generated\)
+#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\generated\)
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
 #define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX _cpp
 #define CHEAT_NETVARS_DUMP_FILE_INDENT 4

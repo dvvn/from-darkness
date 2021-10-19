@@ -7,9 +7,9 @@
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/utils/game.h"
 
-#include "cheat/sdk/IConVar.hpp"
-#include "cheat/sdk/IVEngineClient.hpp"
-#include "cheat/sdk/entity/C_CSPlayer.h"
+#include "cheat/csgo/IConVar.hpp"
+#include "cheat/csgo/IVEngineClient.hpp"
+#include "cheat/csgo/entity/C_CSPlayer.h"
 
 #include <nstd/runtime_assert_fwd.h>
 

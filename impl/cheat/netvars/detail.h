@@ -35,6 +35,25 @@ namespace cheat::detail
 			Container::emplace_back(std::move(key), std::move(t));
 			return {--this->end( ), true};
 		}
+
+		template <std::equality_comparable_with<Key> Q>
+		iterator find(const Q& key)
+		{
+			for (auto it = this->begin( ); it != this->end( ); ++it)
+			{
+				if (it->first == key)
+				{
+					return it;
+				}
+			}
+			return Container::end( );
+		}
+
+		template <std::equality_comparable_with<Key> Q>
+		const_iterator find(const Q& key) const
+		{
+			return std::_Const_cast(this)->find(key);
+		}
 	};
 
 	class lazy_file_writer final : public std::ostringstream

@@ -2,8 +2,8 @@
 
 #include "cheat/core/console.h"
 #include "cheat/core/csgo interfaces.h"
-#include "cheat/sdk/GlobalVars.hpp"
-#include "cheat/sdk/IConVar.hpp"
+#include "cheat/csgo/GlobalVars.hpp"
+#include "cheat/csgo/IConVar.hpp"
 
 #include <format>
 

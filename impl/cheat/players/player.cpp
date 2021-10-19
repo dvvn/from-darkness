@@ -5,10 +5,10 @@
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
 
-#include "cheat/sdk/CClientState.hpp"
-#include "cheat/sdk/GlobalVars.hpp"
-#include "cheat/sdk/IClientEntityList.hpp"
-#include "cheat/sdk/Studio.hpp"
+#include "cheat/csgo/CClientState.hpp"
+#include "cheat/csgo/GlobalVars.hpp"
+#include "cheat/csgo/IClientEntityList.hpp"
+#include "cheat/csgo/Studio.hpp"
 
 #include "cheat/utils/game.h"
 

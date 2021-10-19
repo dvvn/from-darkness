@@ -5,7 +5,7 @@
 
 #ifndef CHEAT_GUI_TEST
 #include "cheat/core/csgo modules.h"
-#include "cheat/sdk/IAppSystem.hpp"
+#include "cheat/csgo/IAppSystem.hpp"
 
 #include <dhooks/hook_utils.h>
 #else

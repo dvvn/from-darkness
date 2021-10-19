@@ -8,7 +8,7 @@
 
 #include "cheat/netvars/config.h"
 
-#include "cheat/sdk/IBaseClientDll.hpp"
+#include "cheat/csgo/IBaseClientDll.hpp"
 
 using namespace cheat;
 using namespace csgo;

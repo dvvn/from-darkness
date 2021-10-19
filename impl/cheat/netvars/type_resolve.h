@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "cheat/sdk/datamap.hpp"
-#include "cheat/sdk/Recv.hpp"
+#include "cheat/csgo/datamap.hpp"
+#include "cheat/csgo/Recv.hpp"
 
 #include <string>
 

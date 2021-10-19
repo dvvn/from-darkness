@@ -20,6 +20,66 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo_awaiter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CBaseHandle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CClientState.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CInput.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\ClientClass.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Color.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CUserCmd.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\datamap.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseAnimating.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseCombatCharacter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseCombatWeapon.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseEntity.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BasePlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_CSPlayer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_WeaponCSBase.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Enums.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\GlobalVars.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\glow_outline_effect.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IAppSystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IBaseClientDll.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IClientEntity.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IClientEntityList.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IClientMode.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IClientNetworkable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IClientRenderable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IClientThinkable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IClientUnknown.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\ICollideable.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IConVar.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\ICvar.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IEngineSound.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IEngineTrace.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IGameEventmanager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IHandleEntity.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IInputSystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IMaterialSystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IMDLCache.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IMoveHelper.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IPanel.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IPhysics.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IPrediction.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IRefCounted.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IRenderView.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IStudioRender.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\ISurface.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IVDebugOverlay.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IVEngineClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IViewRender.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IVModelInfoClient.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\IVModelRender.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\QAngle.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Recv.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Studio.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\UtlBuffer.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CUtlMemory.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\UtlString.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CUtlVector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector2D.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector4D.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\VMatrix.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu.h" />
@@ -90,73 +150,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Color.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatCharacter.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BasePlayer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_CSPlayer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_WeaponCSBase.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IStudioRender.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\QAngle.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector2D.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector4D.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\VMatrix.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\settings detail.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -178,16 +171,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\manager.h">
       <FileType>Document</FileType>
     </ClInclude>
@@ -197,52 +180,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CBaseHandle.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CClientState.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ClientClass.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\CUserCmd.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\datamap.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Enums.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\GlobalVars.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\glow_outline_effect.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IAppSystem.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientEntity.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientEntityList.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientMode.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientNetworkable.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientRenderable.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientThinkable.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IClientUnknown.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ICollideable.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IConVar.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ICvar.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineSound.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IGameEventmanager.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IHandleEntity.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IInputSystem.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IMaterialSystem.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IMDLCache.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IMoveHelper.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IPanel.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IPhysics.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IPrediction.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IRefCounted.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IRenderView.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\ISurface.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVDebugOverlay.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVEngineClient.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IViewRender.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVModelInfoClient.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\IVModelRender.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Recv.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\Studio.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlBuffer.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlMemory.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlVector.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\settings\shared_data.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\utils\game.h" />
   </ItemGroup>
@@ -253,6 +190,26 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\services loader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\CBaseHandle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\CInput.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\Color.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseAnimating.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseCombatCharacter.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseCombatWeapon.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BaseEntity.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_BasePlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_CSPlayer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\entity\C_WeaponCSBase.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\IBaseClientDll.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\IConVar.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\ICvar.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\IEngineTrace.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\QAngle.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\UtlString.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector2D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector4D.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\VMatrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animation_tools.cpp" />
@@ -306,74 +263,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Color.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseAnimating.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatCharacter.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseCombatWeapon.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BasePlayer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_CSPlayer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_WeaponCSBase.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IConVar.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\ICvar.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\QAngle.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector2D.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\Vector4D.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\VMatrix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\manager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\settings\settings.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -402,21 +291,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\entity\C_BaseEntity.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IBaseClientDll.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CBaseHandle.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\CInput.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\IEngineTrace.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\sdk\UtlString.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\utils\game.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)entry.cpp" />
   </ItemGroup>

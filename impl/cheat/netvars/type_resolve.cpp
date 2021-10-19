@@ -1,6 +1,6 @@
 ﻿#include "type_resolve.h"
 
-#include "cheat/sdk/UtlVector.hpp"
+#include "cheat/csgo/CUtlVector.hpp"
 
 #include <nstd/type name.h>
 #include <nstd/runtime_assert_fwd.h>
@@ -31,19 +31,21 @@ std::string cheat::detail::str_to_lower(const std::string_view& str)
 	return ret;
 }
 
+template <class T>
+static constexpr auto _Template_sample = []
+{
+	auto sample = (nstd::type_name<T>);
+	return sample.substr(0, sample.find('<'));
+}( );
+
 netvar_type_holder cheat::detail::_As_std_array_type(const std::string_view& type, size_t size)
 {
-	return std::format("std::array<{}, {}>", type, size);
+	return std::format("{}<{}, {}>", _Template_sample<std::array<void*, 1>>, type, size);
 }
 
 netvar_type_holder cheat::detail::_As_utlvector_type(const std::string_view& type)
 {
-	constexpr auto class_name = []
-	{
-		auto sample = (nstd::type_name<CUtlVector<void*>>);
-		return sample.substr(0, sample.find('<'));
-	}( );
-	return std::format("{}<{}>", class_name, type);
+	return std::format("{}<{}>", _Template_sample<CUtlVector<void*>>, type);
 }
 
 netvar_type_holder cheat::detail::_Netvar_vec_type(const std::string_view& name)

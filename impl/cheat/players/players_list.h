@@ -3,7 +3,7 @@
 
 #include "cheat/core/service.h"
 
-#if CHEAT_MODE_INGAME && __has_include("cheat/sdk/generated/C_BasePlayer_h") && __has_include("cheat/sdk/generated/C_BaseAnimating_h")&& __has_include("cheat/sdk/generated/C_BaseEntity_h")
+#if CHEAT_MODE_INGAME && __has_include("cheat/csgo/generated/C_BasePlayer_h") && __has_include("cheat/csgo/generated/C_BaseAnimating_h")&& __has_include("cheat/csgo/generated/C_BaseEntity_h")
 #define CHEAT_FEATURE_PLAYER_LIST 1
 #else
 #define CHEAT_FEATURE_PLAYER_LIST 0

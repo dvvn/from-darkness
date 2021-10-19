@@ -4,8 +4,8 @@
 #include "cheat/core/services loader.h"
 #include "cheat/core/csgo modules.h"
 
-#include "cheat/sdk/ClientClass.hpp"
-#include "cheat/sdk/entity/C_BaseEntity.h"
+#include "cheat/csgo/ClientClass.hpp"
+#include "cheat/csgo/entity/C_BaseEntity.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "cheat/netvars/config.h"

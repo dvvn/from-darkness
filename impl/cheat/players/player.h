@@ -1,7 +1,7 @@
 #pragma once
 #include "tick_record.h"
 
-#include "cheat/sdk/entity/C_CSPlayer.h"
+#include "cheat/csgo/entity/C_CSPlayer.h"
 
 #if __has_include("veque.hpp")
 // ReSharper disable once CppUnusedIncludeDirective

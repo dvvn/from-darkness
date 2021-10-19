@@ -6,7 +6,7 @@
 #include "data_filler.h"
 
 #include "cheat/core/csgo modules.h"
-#include "cheat/sdk/UtlVector.hpp"
+#include "cheat/csgo/CUtlVector.hpp"
 
 #include <nstd/memory backup.h>
 #include <nstd/runtime_assert_fwd.h>

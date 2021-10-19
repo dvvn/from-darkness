@@ -8,9 +8,9 @@
 
 #include "cheat/players/players_list.h"
 
-#include "cheat/sdk/CUserCmd.hpp"
-#include "cheat/sdk/IPrediction.hpp"
-#include "cheat/sdk/IVEngineClient.hpp"
+#include "cheat/csgo/CUserCmd.hpp"
+#include "cheat/csgo/IPrediction.hpp"
+#include "cheat/csgo/IVEngineClient.hpp"
 
 using namespace cheat;
 using namespace csgo;

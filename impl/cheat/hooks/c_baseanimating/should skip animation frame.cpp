@@ -8,8 +8,8 @@
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
 
-#include "cheat/sdk/ClientClass.hpp"
-#include "cheat/sdk/entity/C_BaseAnimating.h"
+#include "cheat/csgo/ClientClass.hpp"
+#include "cheat/csgo/entity/C_BaseAnimating.h"
 
 #include <nstd/memory backup.h>
 
@@ -31,7 +31,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(should_skip_animation_frame, CHEAT_MODE_INGAME, CHEAT
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
-#if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseAnimating_h")
+#if !CHEAT_MODE_INGAME || !__has_include("cheat/csgo/generated/C_BaseAnimating_h")
 	CHEAT_CALL_BLOCKER
 #else
 	if (override_return__)

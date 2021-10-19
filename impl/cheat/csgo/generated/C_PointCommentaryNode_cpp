@@ -1,0 +1,91 @@
+#include "C_PointCommentaryNode.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/csgo/CBaseHandle.hpp"
+
+using namespace cheat::csgo;
+
+bool& C_PointCommentaryNode::m_bActive( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_bActive");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+float& C_PointCommentaryNode::m_flStartTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_flStartTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+char* C_PointCommentaryNode::m_iszCommentaryFile( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszCommentaryFile");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_PointCommentaryNode::m_iszCommentaryFileNoHDR( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszCommentaryFileNoHDR");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+char* C_PointCommentaryNode::m_iszSpeakers( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return (char*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszSpeakers");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ptr<char>( );
+#endif
+}
+int& C_PointCommentaryNode::m_iNodeNumber( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iNodeNumber");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_PointCommentaryNode::m_iNodeNumberMax( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iNodeNumberMax");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+cheat::csgo::CBaseHandle& C_PointCommentaryNode::m_hViewPosition( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_hViewPosition");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::CBaseHandle>( );
+#endif
+}

@@ -13,6 +13,7 @@ namespace cheat::detail
 
 	struct include_name : std::string
 	{
+		include_name()=default;
 		template <typename T>
 		include_name(T&& name, bool global)
 			: std::string(std::forward<T>(name)), global(global)

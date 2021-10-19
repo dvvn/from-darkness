@@ -8,8 +8,8 @@
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
 
-#include "cheat/sdk/Studio.hpp"
-#include "cheat/sdk/entity/C_BaseAnimating.h"
+#include "cheat/csgo/Studio.hpp"
+#include "cheat/csgo/entity/C_BaseAnimating.h"
 
 #include <nstd/enum_tools.h>
 
@@ -33,7 +33,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(standard_blending_rules, CHEAT_MODE_INGAME,
 
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
-#if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#if !CHEAT_MODE_INGAME || !__has_include("cheat/csgo/generated/C_BaseEntity_h")
 	CHEAT_CALL_BLOCKER
 #else
 	const auto pl           = this->object_instance;

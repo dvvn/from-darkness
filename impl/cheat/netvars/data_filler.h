@@ -3,7 +3,7 @@
 #include "detail.h"
 #include "type_resolve.h"
 
-#include "cheat/sdk/ClientClass.hpp"
+#include "cheat/csgo/ClientClass.hpp"
 
 namespace cheat::detail
 {

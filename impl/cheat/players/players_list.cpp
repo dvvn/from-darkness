@@ -5,13 +5,14 @@
 #include "cheat/core/csgo interfaces.h"
 #include "cheat/core/csgo modules.h"
 #include "cheat/core/services loader.h"
+
+#include "cheat/csgo/entity/C_CSPlayer.h"
+#include "cheat/csgo/GlobalVars.hpp"
+#include "cheat/csgo/IClientEntityList.hpp"
+#include "cheat/csgo/IVEngineClient.hpp"
+
 #include "cheat/netvars/netvars.h"
 
-#include "cheat/sdk/entity/C_CSPlayer.h"
-
-#include "cheat/sdk/GlobalVars.hpp"
-#include "cheat/sdk/IClientEntityList.hpp"
-#include "cheat/sdk/IVEngineClient.hpp"
 #include "cheat/utils/game.h"
 
 #include <nstd/memory backup.h>

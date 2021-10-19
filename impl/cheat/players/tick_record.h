@@ -2,9 +2,9 @@
 
 #include "shared_holder.h"
 
-#include "cheat/sdk/QAngle.hpp"
-#include "cheat/sdk/Vector.hpp"
-#include "cheat/sdk/VMatrix.hpp"
+#include "cheat/csgo/QAngle.hpp"
+#include "cheat/csgo/Vector.hpp"
+#include "cheat/csgo/VMatrix.hpp"
 
 #include <optional>
 #include <vector>

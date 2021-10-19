@@ -6,7 +6,7 @@
 
 #include "cheat/gui/menu.h"
 #include "cheat/netvars/config.h"
-#include "cheat/sdk/ISurface.hpp"
+#include "cheat/csgo/ISurface.hpp"
 
 using namespace cheat;
 using namespace csgo;

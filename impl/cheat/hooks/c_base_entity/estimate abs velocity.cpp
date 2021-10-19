@@ -4,8 +4,8 @@
 #include "cheat/core/services loader.h"
 #include "cheat/core/csgo modules.h"
 
-#include "cheat/sdk/Vector.hpp"
-#include "cheat/sdk/entity/C_BaseEntity.h"
+#include "cheat/csgo/Vector.hpp"
+#include "cheat/csgo/entity/C_BaseEntity.h"
 
 #include "cheat/netvars/config.h"
 #include "cheat/netvars/netvars.h"
@@ -32,7 +32,7 @@ CHEAT_HOOK_PROXY_TARGET_FN(estimate_abs_velocity, CHEAT_MODE_INGAME,
 
 void estimate_abs_velocity::callback(Vector& vel)
 {
-#if !CHEAT_MODE_INGAME || !__has_include("cheat/sdk/generated/C_BaseEntity_h")
+#if !CHEAT_MODE_INGAME || !__has_include("cheat/csgo/generated/C_BaseEntity_h")
 	CHEAT_CALL_BLOCKER
 #else
 	using namespace nstd::enum_operators;

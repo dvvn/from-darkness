@@ -3,7 +3,7 @@
 #ifndef CHEAT_GUI_TEST
 #include "console.h"
 
-#include "cheat/sdk/IAppSystem.hpp"
+#include "cheat/csgo/IAppSystem.hpp"
 
 #include <nstd/signature.h>
 #include <nstd/os/module info.h>

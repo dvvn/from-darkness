@@ -10,8 +10,8 @@
 #include "cheat/core/services loader.h"
 #ifndef CHEAT_NETVARS_DUMPER_DISABLED
 #include "cheat/core/csgo modules.h"
-#include "cheat/sdk/IBaseClientDll.hpp"
-#include "cheat/sdk/entity/C_BaseEntity.h"
+#include "cheat/csgo/IBaseClientDll.hpp"
+#include "cheat/csgo/entity/C_BaseEntity.h"
 #endif
 
 using namespace cheat;
