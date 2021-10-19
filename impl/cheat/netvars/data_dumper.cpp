@@ -18,9 +18,6 @@
 #include <ranges>
 #include <regex>
 
-using strings_cache_small = std::set<std::string_view>;
-using strings_cache_huge = robin_hood::unordered_set<std::string_view>;
-
 using namespace cheat::detail;
 
 #define STRINGIZE_PATH(_PATH_) \
@@ -66,10 +63,10 @@ dump_info cheat::detail::_Dump_netvars(const netvars_storage& netvars_data)
 	return dump_info::skipped;
 }
 
-static auto _Get_includes(std::string_view type)
+static auto _Get_includes(std::string_view type, bool detect_duplicates)
 {
 	std::vector<include_name> result;
-	strings_cache_small results_used; //skip stuff list array<array<X,....
+	std::set<std::string_view> results_used; //skip stuff list array<array<X,....
 
 	using namespace std::string_view_literals;
 
@@ -100,7 +97,7 @@ static auto _Get_includes(std::string_view type)
 
 		//-----
 
-		if (!results_used.emplace(str).second)
+		if (detect_duplicates && !results_used.emplace(str).second)
 			continue;
 
 		include_name info;
@@ -114,7 +111,7 @@ static auto _Get_includes(std::string_view type)
 
 			if (info.global)
 			{
-				if (str.starts_with(cheat_namespace))
+				if (str.starts_with(std_namespace))
 					str.remove_prefix(std_namespace.size( ));
 			}
 
@@ -244,8 +241,8 @@ _WORK:
 			runtime_assert("Unable to get dynamic includes!");
 #else
 
-			std::vector<std::string> includes_global, includes_local;
-			auto includes_cache = strings_cache_huge( );
+			std::vector<std::string> includes_local, includes_global;
+			auto includes_cache = robin_hood::unordered_set<std::string>( );
 
 			const auto cheat_impl_dir = std::filesystem::path(STRINGIZE_PATH(_CONCAT(VS_SolutionDir, \impl\)));
 			for (auto& [netvar_name, netvar_data]: NETVARS.items( ))
@@ -338,8 +335,16 @@ _WORK:
 				if (netvar_type.find(':') == netvar_type.npos && !netvar_type.ends_with("_t"))
 					continue;
 
-				for (auto& incl: _Get_includes(netvar_type))
+				const auto netvar_type_templates_count = std::ranges::count(netvar_type, '<');
+				auto types_found                       = _Get_includes(netvar_type, netvar_type_templates_count > 1);
+				for (auto& incl: types_found)
 				{
+					if (netvar_type_templates_count > 0)
+					{
+						if (!includes_cache.emplace(incl).second)
+							continue;
+					}
+
 					if (incl.global)
 					{
 						includes_global.push_back(std::move(incl));
@@ -389,9 +394,15 @@ _WORK:
 				return true;
 			};
 
-			if (write_includes(includes_local, false) || write_includes(includes_global, true))
-				source << __New_line;
+			auto empty = true;
 
+			if (write_includes(includes_local, false))
+				empty = false;
+			if (write_includes(includes_global, true))
+				empty = false;
+
+			if (!empty)
+				source << __New_line;
 #endif
 		};
 

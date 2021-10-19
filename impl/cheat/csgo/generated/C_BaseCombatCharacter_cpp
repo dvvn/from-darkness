@@ -6,6 +6,7 @@
 #endif
 
 #include "cheat/csgo/CBaseHandle.hpp"
+#include <array>
 
 using namespace cheat::csgo;
 

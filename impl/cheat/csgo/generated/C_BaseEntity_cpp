@@ -10,6 +10,7 @@
 #include "cheat/csgo/Color.hpp"
 #include "cheat/csgo/QAngle.hpp"
 #include "cheat/csgo/Vector.hpp"
+#include <array>
 
 using namespace cheat::csgo;
 

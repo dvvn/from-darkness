@@ -6,6 +6,7 @@
 #endif
 
 #include "cheat/csgo/Vector.hpp"
+#include <array>
 
 using namespace cheat::csgo;
 
