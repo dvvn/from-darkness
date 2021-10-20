@@ -19,25 +19,24 @@ namespace cheat
 		using service_base::load;
 #endif
 	public:
-		~services_loader() override;
-		services_loader();
+		~services_loader( ) override;
+		services_loader( );
 
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle( ) const;
-		void    load(HMODULE handle);
-		void    unload( );
-		std::stop_token load_thread_stop_token() const;
+		void load(HMODULE handle);
+		void unload_delayed( );
+		std::stop_token load_thread_stop_token( ) const;
 #endif
-		static executor make_executor();
+		static executor make_executor( );
 
 	protected:
-		load_result load_impl() noexcept override;
+		load_result load_impl( ) noexcept override;
 
 	private:
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle__ = nullptr;
-		struct load_thread;
-		std::unique_ptr<load_thread> load_thread_;
+		std::jthread load_thread_;
 #endif
 
 #if 0

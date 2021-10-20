@@ -66,7 +66,7 @@ dump_info cheat::detail::_Dump_netvars(const netvars_storage& netvars_data)
 static auto _Get_includes(std::string_view type, bool detect_duplicates)
 {
 	std::vector<include_name> result;
-	std::set<std::string_view> results_used; //skip stuff list array<array<X,....
+	std::set<std::string_view> results_used; //skip stuff like array<array<X,....
 
 	using namespace std::string_view_literals;
 

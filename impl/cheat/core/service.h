@@ -60,17 +60,12 @@ namespace cheat
 		service_base& operator=(const service_base& other) = delete;
 		service_base& operator=(service_base&& other) noexcept;
 
-		struct debug_info_t
-		{
-			std::string_view obj_name;
-			std::string_view loaded_msg;
-			std::string_view skipped_msg;
-			std::string_view error_msg;
-		};
-
 		virtual std::string_view name( ) const = 0;
-		virtual debug_info_t debug_info( ) const = 0;
 		virtual const std::type_info& type( ) const = 0;
+		virtual std::string_view debug_type( ) const = 0;
+		virtual std::string_view debug_msg_loaded( ) const = 0;
+		virtual std::string_view debug_msg_skipped( ) const = 0;
+		virtual std::string_view debug_msg_error( ) const = 0;
 
 		std::span<const stored_service> services( ) const;
 
@@ -82,6 +77,24 @@ namespace cheat
 			const auto found = find_service(typeid(T));
 			return std::dynamic_pointer_cast<T>(found);
 		}
+
+		stored_service* find_service_ptr(const std::type_info& info);
+
+		template <root_service T>
+		stored_service* find_service_ptr( ) const
+		{
+			return find_service_ptr(typeid(T));
+		}
+
+		void remove_service(const std::type_info& info);
+
+		template <root_service T>
+		void remove_service( )
+		{
+			remove_service(typeid(T));
+		}
+
+		void unload( );
 
 	private:
 		void add_service_dependency(stored_service&& srv, const std::type_info& info);
@@ -101,8 +114,6 @@ namespace cheat
 
 		service_state state( ) const;
 
-		virtual void reset( );
-
 		load_result load(executor& ex) noexcept;
 
 	protected:
@@ -115,11 +126,19 @@ namespace cheat
 	};
 
 	template <typename T>
-	struct service : service_base, nstd::one_instance_shared<T>
+	struct service_info : service_base
 	{
 		std::string_view name( ) const override { return nstd::type_name<T, "cheat">; }
 		const std::type_info& type( ) const final { return typeid(T); }
-		debug_info_t debug_info( ) const override { return {"Service", "loaded", "skipped", "NOT loaded"}; }
+		std::string_view debug_type( ) const override { return "Service"; }
+		std::string_view debug_msg_loaded( ) const override { return "loaded"; }
+		std::string_view debug_msg_skipped( ) const override { return "skipped"; }
+		std::string_view debug_msg_error( ) const override { return "NOT loaded"; }
+	};
+
+	template <typename T>
+	struct service : service_info<T>, nstd::one_instance_shared<T>
+	{
 	};
 
 	namespace detail

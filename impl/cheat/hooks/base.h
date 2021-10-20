@@ -7,13 +7,12 @@
 namespace cheat::hooks
 {
 	template <typename Proxy/*, typename ...TargetTypes*/>
-	struct service_hook_proxy : service<Proxy>//, dhooks::hook_holder<TargetTypes...>
+	struct service_hook_proxy : service<Proxy> //, dhooks::hook_holder<TargetTypes...>
 	{
-		std::string_view name() const final { return nstd::type_name<Proxy, "cheat::hooks">; }
-		service_base::debug_info_t debug_info() const final { return {"Hook", "set", "ignored", "NOT set"}; }
+		std::string_view name( ) const final { return nstd::type_name<Proxy, "cheat", "hooks">; }
+		std::string_view debug_type( ) const override { return "Hook"; }
 	};
 }
-
 
 #define CHEAT_SETUP_HOOK_PROXY(_PROXY_,_TARGET_,...) \
 	struct _PROXY_ final: service_hook_proxy<_PROXY_>, DHOOKS_DETECT_HOOK_HOLDER(std::declval<_TARGET_>( )),##__VA_ARGS__

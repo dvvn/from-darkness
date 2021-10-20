@@ -73,6 +73,7 @@ netvar_type_holder cheat::detail::_Netvar_int_type(std::string_view name)
 		};
 		if (is_upper(1))
 		{
+			constexpr auto qweqe = nstd::type_name<bool>;
 			if (name.starts_with('b'))
 				return nstd::type_name<bool>;
 			if (name.starts_with('c'))

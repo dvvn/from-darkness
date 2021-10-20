@@ -28,7 +28,7 @@ static netvars_storage* _Current_storage = nullptr;
 template <typename T>
 static void _Load_class( )
 {
-	const auto name       = nstd::drop_namespaces(nstd::type_name<T>);
+	const auto name       = (nstd::type_name<T, "cheat", "csgo">);
 	auto&& [entry, added] = _Add_child_class(*_Root_storage, name);
 	runtime_assert(added == false);
 	_Current_storage = std::addressof(entry.value( ));

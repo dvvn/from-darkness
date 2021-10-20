@@ -23,7 +23,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 		services_loader::get_ptr( )->load(hModule);
 		break;
 	case DLL_PROCESS_DETACH:
-		services_loader::get_ptr( )->reset( );
+		services_loader::get_ptr( )->unload( );
 		break;
 	}
 

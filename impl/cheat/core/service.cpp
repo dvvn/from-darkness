@@ -1,5 +1,7 @@
 #include "service.h"
 
+#include "console.h"
+
 #include <nstd/runtime_assert_fwd.h>
 
 #include <cppcoro/when_all.hpp>
@@ -63,6 +65,34 @@ service_base::stored_service service_base::find_service(const std::type_info& in
 	return {};
 }
 
+service_base::stored_service* service_base::find_service_ptr(const std::type_info& info)
+{
+	for (auto& service: this->deps_)
+	{
+		if (service->type( ) == info)
+			return std::addressof(service);
+	}
+
+	return (nullptr);
+}
+
+struct dummy_service final : service_info<dummy_service>
+{
+protected:
+	load_result load_impl( ) noexcept override
+	{
+		CHEAT_SERVICE_SKIPPED
+	}
+};
+
+void service_base::remove_service(const std::type_info& info)
+{
+	const auto ptr = find_service_ptr(info);
+	if (ptr == nullptr)
+		return;
+	*ptr = std::make_shared<dummy_service>( );
+}
+
 void service_base::add_service_dependency(stored_service&& srv, const std::type_info& info)
 {
 	runtime_assert(find_service(info) == stored_service( ), "Service already stored!");
@@ -72,13 +102,6 @@ void service_base::add_service_dependency(stored_service&& srv, const std::type_
 service_state service_base::state( ) const
 {
 	return state_;
-}
-
-void service_base::reset( )
-{
-	_Loading_access_assert(state_);
-	deps_.clear( );
-	state_ = service_state::unset;
 }
 
 service_base::load_result service_base::load(executor& ex) noexcept
@@ -111,6 +134,8 @@ service_base::load_result service_base::load(executor& ex) noexcept
 			  , SOMETHING
 			};
 
+			using std::views::transform;
+
 			const auto have_deps_to_load = [&]
 			{
 				if (deps_.empty( ))
@@ -124,7 +149,7 @@ service_base::load_result service_base::load(executor& ex) noexcept
 					};
 				};
 
-				const auto states = deps_ | std::views::transform([](const stored_service& srv) { return srv->state( ); });
+				const auto states = deps_ | transform([](const stored_service& srv) { return srv->state( ); });
 				if (std::ranges::any_of(states, check_state(service_state::error)))
 					return deps_preload_info::ERROR;
 				if (std::ranges::all_of(states, check_state(service_state::loaded)))
@@ -137,16 +162,9 @@ service_base::load_result service_base::load(executor& ex) noexcept
 			{
 				state_ = service_state::waiting;
 				co_await ex.schedule( );
-				auto tasks_view = deps_ | std::views::transform(
-										  [&](const stored_service& srv)-> load_result
-										  {
-											  return srv->load(ex);
-										  });
+				auto tasks_view      = deps_ | transform([&](const stored_service& srv)-> load_result { return srv->load(ex); });
 				const auto&& results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
-				co_return std::ranges::all_of(results, [](bool val)
-				{
-					return val == true;
-				});
+				co_return std::ranges::all_of(results, [](bool val) { return val == true; });
 			};
 
 			bool deps_loaded;
@@ -236,18 +254,16 @@ std::span<const service_base::stored_service> service_base::services( ) const
 
 std::string detail::make_log_message(const service_base* srv, log_type type, std::string_view extra)
 {
-	const auto info = srv->debug_info( );
-
 	const auto info_msg = [&]
 	{
 		switch (type)
 		{
-			case log_type::LOADED: return info.loaded_msg;
-			case log_type::SKIPPED: return info.skipped_msg;
-			case log_type::ERROR_: return info.error_msg;
-			default: throw;;
+			case log_type::LOADED: return srv->debug_msg_loaded( );
+			case log_type::SKIPPED: return srv->debug_msg_skipped( );
+			case log_type::ERROR_: return srv->debug_msg_error( );
+			default: throw;
 		}
 	};
 
-	return std::format("{} \"{}\": {}{}", info.obj_name, srv->name( ), info_msg( ), extra); //todo: colors
+	return std::format("{} \"{}\": {}{}", srv->debug_type( ), srv->name( ), info_msg( ), extra); //todo: colors
 }
