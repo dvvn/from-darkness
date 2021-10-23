@@ -1,9 +1,11 @@
 ﻿#include "config.h"
+
 #ifndef CHEAT_NETVARS_DUMPER_DISABLED
 #include "data_filler.h"
 
 #include <nstd/type name.h>
 #include <nstd/runtime_assert_fwd.h>
+#include <nstd/overload.h>
 
 using namespace cheat::detail;
 using namespace cheat::csgo;
@@ -27,27 +29,35 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 	});
 }
 
-bool cheat::detail::_Save_netvar(netvars_storage& storage, const std::string_view& name, int offset, netvar_type_holder&& type)
+bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_view& name, int offset, string_or_view_holder&& type)
 {
-	auto&& [entry, added] = storage.emplace(std::string(name), netvars_storage{});
+	auto&& [entry, added] = storage.emplace(name);
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		if (type != nstd::type_name<void*>)
+		const std::string_view view = (type);
+		if (view != nstd::type_name<void*>)
 		{
 			auto& type_obj = entry->at("type").get_ref<std::string&>( );
-			if (type_obj != type)
-				type_obj.assign(static_cast<std::string&&>(type));
+			if (view != type_obj)
+			{
+				std::string str = std::move(type);
+				type_obj.assign(std::move(str));
+			}
 		}
+
 #endif
 	}
 	else
 	{
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+		std::string str = std::move(type);
+#endif
 		*entry =
 		{
 				{"offset", offset},
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				{"type", std::move(type)}
+				{"type", std::move(str)}
 #endif
 		};
 	}
@@ -55,53 +65,69 @@ bool cheat::detail::_Save_netvar(netvars_storage& storage, const std::string_vie
 	return added;
 }
 
-std::pair<netvars_storage::iterator, bool> cheat::detail::_Add_child_class(netvars_storage& storage, const std::string_view& name)
+auto netvars::add_child_class_to_storage(netvars_storage& storage, const std::string_view& name) -> std::pair<netvars_storage::iterator, bool>
 {
-	std::string class_name;
+	std::pair<netvars_storage::iterator, bool> ret;
 	if (name[0] == 'C' && name[1] != '_')
 	{
+		runtime_assert(std::isalnum(name[1]));
+		std::string class_name;
 		//internal csgo classes looks like C_***
 		//same classes in shared code look like C***
 		class_name.reserve(name.size( ) + 1);
 		class_name += "C_";
 		class_name.append(std::next(name.begin( )), name.end( ));
+		ret = storage.emplace(std::move(class_name));
 	}
 	else
 	{
-		class_name = (name);
-		runtime_assert(!class_name.starts_with("DT_"));
+		runtime_assert(!name.starts_with("DT_"));
+		ret = storage.emplace(name);
 	}
 
-	return storage.emplace(std::move(class_name), netvars_storage::value_type{});
+	return ret;
 }
 
-void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storage& tree, const RecvTable* recv_table, int offset)
+//-----
+
+static bool _Prop_is_length_proxy(const RecvProp& prop)
 {
-	static constexpr auto prop_is_length_proxy = [](const RecvProp& prop)
-	{
-		if (prop.m_ArrayLengthProxy)
-			return true;
-		const auto lstr = str_to_lower(prop.m_pVarName);
-		return lstr.find("length") != lstr.npos && lstr.find("proxy") != lstr.npos;
-	};
+	if (prop.m_ArrayLengthProxy)
+		return true;
+	const auto lstr = netvars::str_to_lower(prop.m_pVarName);
+	return lstr.find("length") != lstr.npos && lstr.find("proxy") != lstr.npos;
+};
 
-	static constexpr auto prop_is_base_class = [](const RecvProp& prop)
-	{
-		return prop.m_pVarName == std::string_view("baseclass");
-	};
+template <size_t ...I>
+static bool _Strcmp_legacy_impl(const char* l, const char* r, std::index_sequence<I...>)
+{
+	return ((l[I] == r[I]) && ...);
+}
 
-	static constexpr auto table_is_array = [](const RecvTable& table)
-	{
-		return !table.props.empty( ) && std::isdigit(table.props.back( ).m_pVarName[0]);
-	};
+template <bool Whole, size_t Size>
+static bool _Strcmp_legacy(const char* str, const char (&check)[Size])
+{
+	return _Strcmp_legacy_impl(str, check, std::make_index_sequence<Whole ? Size : Size - 1>( ));
+}
 
-	static constexpr auto table_is_data_table = [](const RecvTable& table)
-	{
-		//DT_XXXXXX
-		auto n = table.m_pNetTableName;
-		return n[2] == '_' && n[0] == 'D' && n[1] == 'T';
-	};
+static bool _Prop_is_base_class(const RecvProp& prop)
+{
+	return _Strcmp_legacy<true>(prop.m_pVarName, "baseclass");
+};
 
+static bool _Table_is_array(const RecvTable& table)
+{
+	return !table.props.empty( ) && std::isdigit(table.props.back( ).m_pVarName[0]);
+};
+
+static bool _Table_is_data_table(const RecvTable& table)
+{
+	//DT_*****
+	return _Strcmp_legacy<false>(table.m_pNetTableName, "DT_");
+};
+
+void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree, const RecvTable* recv_table, int offset)
+{
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto props = [&]
 	{
@@ -110,9 +136,9 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 		auto front = raw_props.begin( );
 		auto back  = std::prev(raw_props.end( ));
 
-		if (prop_is_base_class(*front))
+		if (_Prop_is_base_class(*front))
 			++front;
-		if (prop_is_length_proxy(*back))
+		if (_Prop_is_length_proxy(*back))
 			--back;
 
 		return std::span(front, std::next(back));
@@ -139,7 +165,7 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 				auto array_size = std::optional<size_t>(1);
 
 				// ReSharper disable once CppUseStructuredBinding
-				for (const auto& p : std::span(std::next(itr), props.end( )))
+				for (const auto& p: std::span(std::next(itr), props.end( )))
 				{
 					if (const auto name = std::string_view(p.m_pVarName); name.starts_with(real_prop_name))
 					{
@@ -157,7 +183,7 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 
 				if (array_size.has_value( ))
 				{
-					netvar_type_holder netvar_type;
+					string_or_view_holder netvar_type;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 					if (*array_size == 3 && (std::isupper(real_prop_name[5]) && real_prop_name.starts_with("m_")))
 					{
@@ -176,13 +202,13 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 						}
 					}
 
-					if (netvar_type.empty( ))
+					if (std::string_view(netvar_type).empty( ))
 					{
-						auto type   = _Recv_prop_type(prop);
-						netvar_type = _As_std_array_type(type, *array_size);
+						auto type   = type_recv_prop(prop);
+						netvar_type = type_std_array(type, *array_size);
 					}
 #endif
-					_Save_netvar(tree, real_prop_name, real_prop_offset, std::move(netvar_type));
+					add_netvar_to_storage(tree, real_prop_name, real_prop_offset, std::move(netvar_type));
 					itr += *array_size - 1;
 				}
 			}
@@ -210,18 +236,17 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 			continue;
 		}
 #else
-		runtime_assert(!prop_is_length_proxy(prop));
+		runtime_assert(!_Prop_is_length_proxy(prop));
 		runtime_assert(!std::isdigit(prop_name[0]));
 #endif
 
 		if (prop.m_RecvType != DPT_DataTable)
 		{
+			string_or_view_holder netvar_type;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-			auto netvar_type = _Recv_prop_type(prop);
-#else
-			std::string netvar_type;
+			netvar_type = type_recv_prop(prop);
 #endif
-			_Save_netvar(tree, prop_name, real_prop_offset, std::move(netvar_type));
+			add_netvar_to_storage(tree, prop_name, real_prop_offset, std::move(netvar_type));
 		}
 		else
 		{
@@ -230,19 +255,19 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 			if (!child_table || child_props.empty( ))
 				continue;
 
-			if (table_is_data_table(*child_table))
+			if (_Table_is_data_table(*child_table))
 			{
-				_Store_recv_props(root_tree, tree, child_table, real_prop_offset);
+				store_recv_props(root_tree, tree, child_table, real_prop_offset);
 			}
-			else if (table_is_array(*child_table))
+			else if (_Table_is_array(*child_table))
 			{
 				auto array_begin = child_props.
-#if _ITERATOR_DEBUG_LEVEL >= 1
+#if _ITERATOR_DEBUG_LEVEL > 0
 					_Unchecked_begin( )
 #else
 						begin( );
 #endif
-				if (prop_is_length_proxy(*array_begin))
+				if (_Prop_is_length_proxy(*array_begin))
 				{
 					++array_begin;
 					runtime_assert(array_begin->m_pVarName[0] == '0');
@@ -251,7 +276,7 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 
 #ifdef _DEBUG
 				// ReSharper disable once CppUseStructuredBinding
-				for (const auto& rp : std::span(std::next(array_begin), child_props.end( )))
+				for (const auto& rp: std::span(std::next(array_begin), child_props.end( )))
 				{
 					runtime_assert(std::isdigit(rp.m_pVarName[0]));
 					runtime_assert(rp.m_RecvType == array_begin->m_RecvType);
@@ -260,44 +285,37 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 				const auto array_size = std::distance(array_begin, child_props.end( ));
-				std::string netvar_type;
+				string_or_view_holder netvar_type;
 #endif
 				if (array_begin->m_RecvType != DPT_DataTable)
 				{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-					netvar_type = _Recv_prop_type(*array_begin);
+					netvar_type = type_recv_prop(*array_begin);
 #endif
 				}
 				else
 				{
 					const auto child_table_name = std::string_view(child_table->m_pNetTableName);
-					std::string child_table_unique_name;
+					string_or_view_holder child_table_unique_name;
 					if (prop_name != child_table_name)
-					{
 						child_table_unique_name = child_table_name;
-					}
 					else
-					{
-						constexpr auto unique_str = std::string_view("_t");
-						child_table_unique_name.reserve(child_table_name.size( ) + unique_str.size( ));
-						child_table_unique_name.append(child_table_name);
-						child_table_unique_name.append(unique_str);
-					}
-					auto [new_tree, added] = _Add_child_class(root_tree, (child_table_unique_name));
+						child_table_unique_name = std::format("{}_t", child_table_name);
+
+					auto [new_tree, added] = add_child_class_to_storage(root_tree, child_table_unique_name);
 					if (!added)
 						continue;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 					netvar_type = std::move(child_table_unique_name);
 #endif
-					_Store_recv_props(root_tree, *new_tree, array_begin->m_pDataTable, /*real_prop_offset*/0);
+					store_recv_props(root_tree, *new_tree, array_begin->m_pDataTable, /*real_prop_offset*/0);
 				}
 
+				string_or_view_holder netvar_type_array;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				auto netvar_type_array = _As_std_array_type(netvar_type, array_size);
-#else
-				std::string netvar_type_array;
+				netvar_type_array = type_std_array(netvar_type, array_size);
 #endif
-				_Save_netvar(tree, prop_name, real_prop_offset, std::move(netvar_type_array));
+				add_netvar_to_storage(tree, prop_name, real_prop_offset, std::move(netvar_type_array));
 			}
 			else
 			{
@@ -307,7 +325,7 @@ void cheat::detail::_Store_recv_props(netvars_storage& root_tree, netvars_storag
 	}
 }
 
-void cheat::detail::_Iterate_client_class(netvars_storage& root_tree, csgo::ClientClass* root_class)
+void netvars::iterate_client_class(netvars_storage& root_tree, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
@@ -315,20 +333,20 @@ void cheat::detail::_Iterate_client_class(netvars_storage& root_tree, csgo::Clie
 		if (!recv_table || recv_table->props.empty( ))
 			continue;
 
-		auto [new_tree, added] = _Add_child_class(root_tree, client_class->pNetworkName);
+		auto [new_tree, added] = add_child_class_to_storage(root_tree, client_class->pNetworkName);
 		runtime_assert(added == true);
 
-		_Store_recv_props(root_tree, *new_tree, recv_table, 0);
+		store_recv_props(root_tree, *new_tree, recv_table, 0);
 
 		if (new_tree->empty( ))
 			root_tree.erase(new_tree);
 	}
 }
 
-void cheat::detail::_Store_datamap_props(netvars_storage& tree, csgo::datamap_t* map)
+void netvars::store_datamap_props(netvars_storage& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
-	for (auto& desc : map->data)
+	for (auto& desc: map->data)
 	{
 		if (desc.fieldType == FIELD_EMBEDDED)
 		{
@@ -344,26 +362,25 @@ void cheat::detail::_Store_datamap_props(netvars_storage& tree, csgo::datamap_t*
 
 			const auto offset = desc.fieldOffset[TD_OFFSET_NORMAL];
 
+			string_or_view_holder field_type;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-			auto field_type = _Datamap_field_type(desc);
-#else
-			std::string field_type;
+			field_type = type_datamap_field(desc);
 #endif
-			_Save_netvar(tree, field_name, offset, std::move(field_type));
+			add_netvar_to_storage(tree, field_name, offset, std::move(field_type));
 		}
 	}
 }
 
-void cheat::detail::_Iterate_datamap(netvars_storage& root_tree, csgo::datamap_t* root_map)
+void netvars::iterate_datamap(netvars_storage& root_tree, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
 		if (map->data.empty( ))
 			continue;
 
-		auto&& [tree, added] = _Add_child_class(root_tree, map->dataClassName);
+		auto&& [tree, added] = add_child_class_to_storage(root_tree, map->dataClassName);
 
-		_Store_datamap_props(*tree, map);
+		store_datamap_props(*tree, map);
 
 		if (added && tree->empty( ))
 			root_tree.erase(tree);

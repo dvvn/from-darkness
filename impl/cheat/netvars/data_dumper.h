@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "detail.h"
 
-namespace cheat::detail
+namespace cheat::detail::netvars
 {
-	enum class dump_info :uint8_t
+	enum class log_info :uint8_t
 	{
 		unset
 	  , skipped
@@ -13,7 +13,8 @@ namespace cheat::detail
 
 	struct include_name : std::string
 	{
-		include_name()=default;
+		include_name( ) = default;
+
 		template <typename T>
 		include_name(T&& name, bool global)
 			: std::string(std::forward<T>(name)), global(global)
@@ -23,6 +24,6 @@ namespace cheat::detail
 		bool global;
 	};
 
-	dump_info _Dump_netvars(const netvars_storage& netvars_data);
-	void _Generate_classes(dump_info info, netvars_storage& netvars_data, lazy_files_storage& lazy_storage);
+	log_info log_netvars(const netvars_storage& netvars_data);
+	void generate_classes(log_info info, netvars_storage& netvars_data, lazy_files_storage& lazy_storage);
 }

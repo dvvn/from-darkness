@@ -5,10 +5,10 @@
 using namespace cheat::csgo;
 #endif
 
-#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo_interfaces.h"
 
 #include "cheat/csgo/IClientEntityList.hpp"
-#include "cheat/core/csgo modules.h"
+#include "cheat/core/csgo_modules.h"
 
 #include <dhooks/hook_utils.h>
 

@@ -1,9 +1,9 @@
 ﻿#include "aimbot.h"
 
 #include "cheat/core/console.h"
-#include "cheat/core/services loader.h"
+#include "cheat/core/services_loader.h"
 
-#include "cheat/gui/imgui context.h"
+#include "cheat/gui/imgui_context.h"
 #include "cheat/gui/tools/animation_tools.h"
 #include "cheat/gui/tools/cached_text.h"
 

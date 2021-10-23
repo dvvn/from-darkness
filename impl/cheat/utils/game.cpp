@@ -1,7 +1,7 @@
 #include "game.h"
 
 #include "cheat/core/console.h"
-#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo_interfaces.h"
 #include "cheat/csgo/GlobalVars.hpp"
 #include "cheat/csgo/IConVar.hpp"
 

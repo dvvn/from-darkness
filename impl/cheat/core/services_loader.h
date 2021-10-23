@@ -64,6 +64,7 @@ namespace cheat
 	};
 
 #define CHEAT_REGISTER_SERVICE(_TYPE_)\
+	__pragma(message("Service \""#_TYPE_"\" registered at " __TIME__))\
 	[[maybe_unused]]\
-	static const auto _CONCAT(_Unused,__LINE__) = (cheat::services_loader::get_ptr()->wait_for_service<_TYPE_>(true), 0)
+	static const auto _CONCAT(_Unused,__LINE__) = (cheat::services_loader::get_ptr()->wait_for_service<_TYPE_>(true), static_cast<uint8_t>(0))
 }

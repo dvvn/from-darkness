@@ -1,11 +1,6 @@
 #include "present.h"
-#include "reset.h"
 
-#include "cheat/core/console.h"
-#include "cheat/core/services loader.h"
-#include "cheat/core/csgo interfaces.h"
 #include "cheat/gui/menu.h"
-#include "cheat/netvars/config.h"
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -13,16 +8,7 @@
 #include <d3d9.h>
 
 using namespace cheat;
-using namespace hooks;
-using namespace directx;
-
-present::present()
-{
-	this->wait_for_service<gui::menu>( );
-}
-
-CHEAT_HOOK_PROXY_INIT_FN(present, TRUE)
-CHEAT_HOOK_PROXY_TARGET_FN(present, TRUE, &csgo_interfaces::d3d_device, 17);
+using namespace hooks::directx;
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
@@ -56,5 +42,3 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	[[maybe_unused]] const auto end = d3d_device->EndScene( );
 	runtime_assert(SUCCEEDED(end));
 }
-
-CHEAT_REGISTER_SERVICE(present);

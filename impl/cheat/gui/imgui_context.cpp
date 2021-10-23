@@ -1,9 +1,9 @@
 // ReSharper disable CppMemberFunctionMayBeConst
-#include "imgui context.h"
+#include "imgui_context.h"
 
 #include "cheat/core/console.h"
-#include "cheat/core/csgo interfaces.h"
-#include "cheat/core/services loader.h"
+#include "cheat/core/csgo_interfaces.h"
+#include "cheat/core/services_loader.h"
 
 #include <imgui_internal.h>
 #include <imgui_impl_dx9.h>
@@ -21,7 +21,7 @@ using namespace gui;
 
 struct fonts_builder_proxy::impl
 {
-	~impl()
+	~impl( )
 	{
 		if (!atlas)
 			return;
@@ -35,7 +35,7 @@ struct fonts_builder_proxy::impl
 	int known_fonts    = 0;
 };
 
-fonts_builder_proxy::fonts_builder_proxy()
+fonts_builder_proxy::fonts_builder_proxy( )
 {
 	impl_ = std::make_unique<impl>( );
 }
@@ -47,7 +47,7 @@ fonts_builder_proxy::fonts_builder_proxy(ImFontAtlas* atlas)
 	impl_->known_fonts = atlas->ConfigData.size( );
 }
 
-fonts_builder_proxy::~fonts_builder_proxy()                                               = default;
+fonts_builder_proxy::~fonts_builder_proxy( )                                              = default;
 fonts_builder_proxy::fonts_builder_proxy(fonts_builder_proxy&& other) noexcept            = default;
 fonts_builder_proxy& fonts_builder_proxy::operator=(fonts_builder_proxy&& other) noexcept = default;
 
@@ -78,13 +78,15 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 		auto infile = std::ifstream(path, std::ios::in | std::ios::binary | std::ios::ate);
 
 		//infile.seekg(0, infile.end); //done by std::ios::ate
-		const auto size = infile.tellg( );
+		const std::make_unsigned_t<std::streamoff> size0 = infile.tellg( );
+		runtime_assert(size0 > 0 && size0 < std::numeric_limits<size_t>::max());
+		const auto size=static_cast<size_t>(size0);
 		infile.seekg(0, std::ios::beg);
 
-		const auto buffer = std::make_unique<uint8_t[]>(size);
-		infile.read(reinterpret_cast<char*>(buffer.get( )), size);
+		const auto buffer = std::make_unique<char[]>(size);
+		infile.read(buffer.get( ), size);
 
-		runtime_assert(!infile.bad( ));
+		runtime_assert(!infile.bad());
 
 		if (cfg.Name[0] == '\0')
 		{
@@ -92,11 +94,12 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 			auto font_size_ex    = font_size == 0 ? "?" : std::to_string(font_size);
 
 			auto font_info = std::format("{}, {}px", path.filename( ).string( ), font_size);
-			runtime_assert(font_info.size( ) + 1 <= std::size(cfg.Name));
+			runtime_assert(font_info.size() + 1 <= std::size(cfg.Name));
 			std::ranges::copy(font_info, cfg.Name);
+			cfg.Name[font_info.size( )] = '\0';
 		}
 
-		return this->add_font_from_memory_ttf_file({buffer.get( ), static_cast<size_t>(size)}, std::move(cfg_opt));
+		return this->add_font_from_memory_ttf_file({reinterpret_cast<uint8_t*>(buffer.get( )), size}, std::move(cfg_opt));
 	}
 }
 
@@ -116,7 +119,7 @@ ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(const std::span<uint8
 	return atlas->AddFont(std::addressof(cfg));
 }
 
-std::optional<ImFontConfig> fonts_builder_proxy::default_font_config()
+std::optional<ImFontConfig> fonts_builder_proxy::default_font_config( )
 {
 	ImFontConfig font_cfg;
 	//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
@@ -137,7 +140,7 @@ std::optional<ImFontConfig> fonts_builder_proxy::default_font_config()
 
 struct imgui_context::data_type
 {
-	data_type()
+	data_type( )
 		: ctx(std::addressof(fonts))
 	{
 	}
@@ -153,22 +156,22 @@ struct imgui_context::data_type
 	HWND hwnd = nullptr;
 };
 
-HWND imgui_context::hwnd() const
+HWND imgui_context::hwnd( ) const
 {
 	return data_->hwnd;
 }
 
-ImGuiContext& imgui_context::get()
+ImGuiContext& imgui_context::get( )
 {
 	return data_->ctx;
 }
 
-fonts_builder_proxy imgui_context::fonts() const
+fonts_builder_proxy imgui_context::fonts( ) const
 {
 	return {std::addressof(data_->fonts)};
 }
 
-imgui_context::~imgui_context()
+imgui_context::~imgui_context( )
 {
 	constexpr auto safe_call = []<typename T>(T&& fn)
 	{
@@ -186,13 +189,13 @@ imgui_context::~imgui_context()
 	safe_call(std::bind_front(ImGui::Shutdown, std::addressof(data_->ctx)));
 }
 
-imgui_context::imgui_context()
+imgui_context::imgui_context( )
 {
 	data_ = std::make_unique<data_type>( );
 	this->wait_for_service<csgo_interfaces>( );
 }
 
-service_base::load_result imgui_context::load_impl()noexcept
+service_base::load_result imgui_context::load_impl( ) noexcept
 {
 	const auto d3d = csgo_interfaces::get_ptr( )->d3d_device.get( );
 

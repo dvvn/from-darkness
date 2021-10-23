@@ -4,25 +4,64 @@
 
 #include <nstd/type name.h>
 #include <nstd/runtime_assert_fwd.h>
+#include <nstd/overload.h>
 
 #include <format>
 
+using nstd::type_name;
 using namespace cheat::detail;
+using netvars::string_or_view_holder;
 using namespace cheat::csgo;
 
-netvar_type_holder::netvar_type_holder( ) = default;
-
-netvar_type_holder::netvar_type_holder(const std::string_view& sv)
-	: std::string(sv.begin( ), sv.end( ))
+string_or_view_holder::string_or_view_holder( )
 {
+	str_.emplace<std::string_view>( );
 }
 
-netvar_type_holder::netvar_type_holder(std::string&& sv)
-	: std::string(std::move(sv))
+string_or_view_holder::string_or_view_holder(const std::string_view& sv)
 {
+	str_.emplace<std::string_view>(sv);
 }
 
-std::string cheat::detail::str_to_lower(const std::string_view& str)
+string_or_view_holder::string_or_view_holder(std::string&& str)
+{
+	str_.emplace<std::string>(std::move(str));
+}
+
+bool string_or_view_holder::view( )
+{
+	return std::visit(nstd::overload([](std::string&) { return false; }
+								   , [](std::string_view&) { return true; }), str_);
+}
+
+bool string_or_view_holder::view( ) const
+{
+	return true;
+}
+
+string_or_view_holder::operator std::string&( ) &
+{
+	return std::visit(nstd::overload([](std::string& str)-> std::string& { return str; }
+								   , [](std::string_view&)-> std::string& { throw std::logic_error("Incorrect string type!"); }), str_);
+}
+
+string_or_view_holder::operator std::string( ) &&
+{
+	return std::visit(nstd::overload([](std::string&& str)-> std::string { return std::move(str); }
+								   , [](std::string_view&& sv)-> std::string { return {sv.begin( ), sv.end( )}; }), std::move(str_));
+}
+
+string_or_view_holder::operator const std::string&( ) const
+{
+	return *std::_Const_cast(this);
+}
+
+string_or_view_holder::operator std::string_view( ) const
+{
+	return std::visit(nstd::overload([]<typename T>(T&& obj)-> std::string_view { return {obj.data( ), obj.size( )}; }), str_);
+}
+
+std::string netvars::str_to_lower(const std::string_view& str)
 {
 	std::string ret;
 	ret.reserve(str.size( ));
@@ -34,21 +73,22 @@ std::string cheat::detail::str_to_lower(const std::string_view& str)
 template <class T>
 static constexpr auto _Template_sample = []
 {
-	auto sample = (nstd::type_name<T>);
+	auto sample = type_name<T>;
 	return sample.substr(0, sample.find('<'));
 }( );
 
-netvar_type_holder cheat::detail::_As_std_array_type(const std::string_view& type, size_t size)
+string_or_view_holder netvars::type_std_array(const std::string_view& type, size_t size)
 {
+	runtime_assert(size>0);
 	return std::format("{}<{}, {}>", _Template_sample<std::array<void*, 1>>, type, size);
 }
 
-netvar_type_holder cheat::detail::_As_utlvector_type(const std::string_view& type)
+string_or_view_holder netvars::type_utlvector(const std::string_view& type)
 {
 	return std::format("{}<{}>", _Template_sample<CUtlVector<void*>>, type);
 }
 
-netvar_type_holder cheat::detail::_Netvar_vec_type(const std::string_view& name)
+string_or_view_holder netvars::type_vec3(const std::string_view& name)
 {
 	const auto is_qangle = [&]
 	{
@@ -57,11 +97,10 @@ netvar_type_holder cheat::detail::_Netvar_vec_type(const std::string_view& name)
 		auto lstr = str_to_lower(name);
 		return lstr.find("angles") != lstr.npos;
 	};
-
-	return std::isdigit(name[0]) || !is_qangle( ) ? nstd::type_name<Vector> : nstd::type_name<QAngle>;
+	return std::isdigit(name[0]) || !is_qangle( ) ? type_name<Vector> : type_name<QAngle>;
 }
 
-netvar_type_holder cheat::detail::_Netvar_int_type(std::string_view name)
+string_or_view_holder netvars::type_integer(std::string_view name)
 {
 	if (!std::isdigit(name[0]) && name.starts_with("m_"))
 	{
@@ -73,158 +112,158 @@ netvar_type_holder cheat::detail::_Netvar_int_type(std::string_view name)
 		};
 		if (is_upper(1))
 		{
-			constexpr auto qweqe = nstd::type_name<bool>;
 			if (name.starts_with('b'))
-				return nstd::type_name<bool>;
+				return type_name<bool>;
 			if (name.starts_with('c'))
-				return nstd::type_name<uint8_t>;
+				return type_name<uint8_t>;
 			if (name.starts_with('h'))
-				return nstd::type_name<CBaseHandle>;
+				return type_name<CBaseHandle>;
 		}
 		else if (is_upper(2))
 		{
 			if (name.starts_with("un"))
-				return nstd::type_name<uint32_t>;
+				return type_name<uint32_t>;
 			if (name.starts_with("ch"))
-				return nstd::type_name<uint8_t>;
+				return type_name<uint8_t>;
 			if (name.starts_with("fl") && str_to_lower(name).find("time") != std::string::npos) //m_flSimulationTime int ???
-				return nstd::type_name<float>;
+				return type_name<float>;
 		}
 		else if (is_upper(3))
 		{
 			if (name.starts_with("clr"))
-				return nstd::type_name<Color>; //not sure
+				return type_name<Color>; //not sure
 		}
 	}
-	return nstd::type_name<int32_t>;
+
+	return type_name<int32_t>;
 }
 
 //---
 
-netvar_type_holder cheat::detail::_Recv_prop_type(const RecvProp& prop)
+string_or_view_holder netvars::type_recv_prop(const RecvProp& prop)
 {
 	switch (prop.m_RecvType)
 	{
 		case DPT_Int:
-			return (_Netvar_int_type(prop.m_pVarName));
+			return type_integer(prop.m_pVarName);
 		case DPT_Float:
-			return (nstd::type_name<float>);
+			return type_name<float>;
 		case DPT_Vector:
-			return (_Netvar_vec_type(prop.m_pVarName));
+			return type_vec3(prop.m_pVarName);
 		case DPT_VectorXY:
-			return (nstd::type_name<Vector2D>); //3d vector. z unused
+			return type_name<Vector2D>; //3d vector. z unused
 		case DPT_String:
-			return (nstd::type_name<char*>);
+			return type_name<char*>;
 		case DPT_Array:
 		{
 			const auto& prev_prop = *std::prev(std::addressof(prop));
 			runtime_assert(std::string_view(prev_prop.m_pVarName).ends_with("[0]"));
-			const auto type = _Recv_prop_type(prev_prop);
-			return _As_std_array_type(type, prop.m_nElements);
+			const auto type = type_recv_prop(prev_prop);
+			return type_std_array(type, prop.m_nElements);
 		}
 		case DPT_DataTable:
 		{
 			runtime_assert("Data table type must be manually resolved!");
-			return (nstd::type_name<void*>);
+			return type_name<void*>;
 		}
 		case DPT_Int64:
-			return (nstd::type_name<int64_t>);
+			return type_name<int64_t>;
 		default:
 		{
 			runtime_assert("Unknown recv prop type");
-			return (nstd::type_name<void*>);
+			return type_name<void*>;
 		}
 	}
 }
 
-netvar_type_holder cheat::detail::_Datamap_field_type(const typedescription_t& field)
+string_or_view_holder netvars::type_datamap_field(const typedescription_t& field)
 {
 	switch (field.fieldType)
 	{
 		case FIELD_VOID:
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		case FIELD_FLOAT:
-			return nstd::type_name<float>;
+			return type_name<float>;
 		case FIELD_STRING:
-			return nstd::type_name<char*>; //std::string_t at real
+			return type_name<char*>; //std::string_t at real
 		case FIELD_VECTOR:
-			return _Netvar_vec_type(field.fieldName);
+			return type_vec3(field.fieldName);
 		case FIELD_QUATERNION:
 		{
 			//return "Quaterion";
 			runtime_assert("Quaterion field detected");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 		case FIELD_INTEGER:
-			return _Netvar_int_type(field.fieldName);
+			return type_integer(field.fieldName);
 		case FIELD_BOOLEAN:
-			return nstd::type_name<bool>;
+			return type_name<bool>;
 		case FIELD_SHORT:
-			return nstd::type_name<int16_t>;
+			return type_name<int16_t>;
 		case FIELD_CHARACTER:
-			return nstd::type_name<int8_t>;
+			return type_name<int8_t>;
 		case FIELD_COLOR32:
-			return nstd::type_name<Color>;
+			return type_name<Color>;
 		case FIELD_EMBEDDED:
 		{
 			runtime_assert("Embedded field detected");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 		case FIELD_CUSTOM:
 		{
 			runtime_assert("Custom field detected");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 		case FIELD_CLASSPTR:
-			return nstd::type_name<C_BaseEntity*>;
+			return type_name<C_BaseEntity*>;
 		case FIELD_EHANDLE:
-			return nstd::type_name<CBaseHandle>;
+			return type_name<CBaseHandle>;
 		case FIELD_EDICT:
 		{
 			//return "edict_t*";
 			runtime_assert("Edict field detected");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 		case FIELD_POSITION_VECTOR:
-			return nstd::type_name<Vector>;
+			return type_name<Vector>;
 		case FIELD_TIME:
-			return nstd::type_name<float>;
+			return type_name<float>;
 		case FIELD_TICK:
-			return nstd::type_name<int32_t>;
+			return type_name<int32_t>;
 		case FIELD_MODELNAME:
 		case FIELD_SOUNDNAME:
-			return nstd::type_name<char*>; //string_t at real
+			return type_name<char*>; //string_t at real
 		case FIELD_INPUT:
 		{
 			//return "CMultiInputVar";
 			runtime_assert("Inputvar field detected");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 		case FIELD_FUNCTION:
 		{
 			runtime_assert("Function detected");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 		case FIELD_VMATRIX:
 		case FIELD_VMATRIX_WORLDSPACE:
-			return nstd::type_name<VMatrix>;
+			return type_name<VMatrix>;
 		case FIELD_MATRIX3X4_WORLDSPACE:
-			return nstd::type_name<matrix3x4_t>;
+			return type_name<matrix3x4_t>;
 		case FIELD_INTERVAL:
 		{
 			//return "interval_t";
 			runtime_assert("Interval field detected");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 		case FIELD_MODELINDEX:
 		case FIELD_MATERIALINDEX:
-			return nstd::type_name<int32_t>;
+			return type_name<int32_t>;
 		case FIELD_VECTOR2D:
-			return nstd::type_name<Vector2D>;
+			return type_name<Vector2D>;
 		default:
 		{
 			runtime_assert("Unknown datamap field type");
-			return nstd::type_name<void*>;
+			return type_name<void*>;
 		}
 	}
 }

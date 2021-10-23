@@ -16,10 +16,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\console.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo modules.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo_modules.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo_awaiter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\service.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\csgo_interfaces.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CBaseHandle.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CClientState.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\CInput.hpp" />
@@ -81,7 +81,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector4D.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\csgo\VMatrix.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\base.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\imgui_context.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\menu.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animation_tools.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\tools\button_info.h" />
@@ -104,21 +104,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\slider.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\base.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate abs velocity.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\should interpolate.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do extra bone processing.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should_skip_animation_frame.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard_blending_rules.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate_abs_velocity.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\should_interpolate.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do_extra_bone_processing.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw_model.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock_cursor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\config.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\custom.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\data_handmade.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\data_dumper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\data_filler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\detail.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\netvars.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\services loader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\core\services_loader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\netvars\type_resolve.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\player.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -157,8 +157,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create_move.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame_stage_notify.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)cheat\players\players_list.h">
@@ -185,11 +185,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\console.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo modules.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo_modules.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo_awaiter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\service.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo interfaces.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\services loader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\csgo_interfaces.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\core\services_loader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\CBaseHandle.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\CInput.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\Color.cpp" />
@@ -210,7 +210,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector2D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\Vector4D.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\csgo\VMatrix.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui context.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\imgui_context.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\menu.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\animation_tools.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\tools\button_info.cpp" />
@@ -229,15 +229,27 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\selectable.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\gui\widgets\window.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should skip animation frame.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard blending rules.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate abs velocity.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\should interpolate.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do extra bone processing.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw model.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock cursor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create_move_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame_stage_notify_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should_skip_animation_frame.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\should_skip_animation_frame_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard_blending_rules.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_baseanimating\standard_blending_rules_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate_abs_velocity.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\estimate_abs_velocity_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\should_interpolate.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_base_entity\should_interpolate_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do_extra_bone_processing.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\c_csplayer\do_extra_bone_processing_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw_model.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\studio render\draw_model_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock_cursor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\vgui surface\lock_cursor_init.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\custom.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\winapi\wndproc_init.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\data_handmade.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\data_dumper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\data_filler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\netvars\detail.cpp" />
@@ -277,8 +289,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\features\aimbot.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create move.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame stage notify.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client mode\create_move.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\client\frame_stage_notify.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\present.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\hooks\directx\reset.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)cheat\players\players_list.cpp">

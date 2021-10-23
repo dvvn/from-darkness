@@ -2,9 +2,9 @@
 #include "player.h"
 
 #include "cheat/core/console.h"
-#include "cheat/core/csgo interfaces.h"
-#include "cheat/core/csgo modules.h"
-#include "cheat/core/services loader.h"
+#include "cheat/core/csgo_interfaces.h"
+#include "cheat/core/csgo_modules.h"
+#include "cheat/core/services_loader.h"
 
 #include "cheat/csgo/entity/C_CSPlayer.h"
 #include "cheat/csgo/GlobalVars.hpp"
@@ -49,15 +49,16 @@ players_list::~players_list( ) = default;
 
 static void* _Player_by_index_server(int client_index)
 {
-	using namespace nstd::address_pipe;
-	static auto fn = CHEAT_FIND_SIG(server, "85 C9 7E 32 A1", cast<void* (__fastcall*)(int)>);
+	static auto fn = (csgo_modules::server.find_signature<"85 C9 7E 32 A1">( ).cast<void* (__fastcall*)(int)>( ));
 	return fn(client_index);
 }
 
 static void _Draw_server_hitboxes(int client_index, float duration, bool use_mono_color)
 {
 	using namespace nstd::address_pipe;
-	static auto fn    = CHEAT_FIND_SIG(server, "E8 ? ? ? ? F6 83 ? ? ? ? ? 0F 84 ? ? ? ? 33 FF", jmp(1), cast<void(__vectorcall*)(void*, uintptr_t, float, float, float, bool)>);
+	static auto fn = (csgo_modules::server.find_signature<"E8 ? ? ? ? F6 83 ? ? ? ? ? 0F 84 ? ? ? ? 33 FF">( )
+										  .jmp(1)
+										  .cast<void(__vectorcall*)(void*, uintptr_t, float, float, float, bool)>( ));
 	const auto player = _Player_by_index_server(client_index);
 	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
 }
@@ -85,7 +86,7 @@ void players_list::update( )
 		return std::clamp(nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING) + utils::lerp_time( ), 0.f, utils::unlag_limit( ));
 	}( );
 
-	for (size_t i = 1; i <= max_clients; ++i)
+	for (auto i = static_cast<decltype(CGlobalVarsBase::max_clients)>(1u); i <= max_clients; ++i)
 	{
 		auto& entry = (*storage_)[i - 1];
 		entry.update(i, curtime, correct);

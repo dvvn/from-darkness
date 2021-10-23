@@ -4,7 +4,7 @@
 #include "data_dumper.h"
 
 #include "cheat/core/console.h"
-#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo_interfaces.h"
 
 #include "cheat/csgo/IVEngineClient.hpp"
 
@@ -19,15 +19,24 @@
 #include <regex>
 
 using namespace cheat::detail;
+using netvars::log_info;
+using netvars::include_name;
 
 #define STRINGIZE_PATH(_PATH_) \
 	_CONCAT(LR,_STRINGIZE(##(_PATH_)##))
 
-dump_info cheat::detail::_Dump_netvars(const netvars_storage& netvars_data)
-{
-	const std::filesystem::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_DUMPS_DIR);
+#define CHEAT_NETVARS_LOG_FILE_INDENT 4
+#define CHEAT_NETVARS_LOG_FILE_FILLER ' '
+#define CHEAT_NETVARS_LOGS_DIR _CONCAT(VS_SolutionDir, \.out\netvars\)
+#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\generated\)
+#define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
+#define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX _cpp
 
-	const auto dirs_created = std::filesystem::create_directories(dumps_dir);
+log_info netvars::log_netvars(const netvars_storage& netvars_data)
+{
+	const std::filesystem::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
+
+	const auto dirs_created = create_directories(dumps_dir);
 
 	constexpr auto get_file_name = []( )-> std::filesystem::path
 	{
@@ -42,25 +51,25 @@ dump_info cheat::detail::_Dump_netvars(const netvars_storage& netvars_data)
 
 	if (!file_exists)
 	{
-		std::ofstream(netvars_dump_file) << std::setw(CHEAT_NETVARS_DUMP_FILE_INDENT) << std::setfill(CHEAT_NETVARS_DUMP_FILE_FILLER) << netvars_data;
+		std::ofstream(netvars_dump_file) << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << netvars_data;
 		CHEAT_CONSOLE_LOG("Netvars dump done");
-		return dump_info::created;
+		return log_info::created;
 	}
 
 	//------
 
 	std::ostringstream netvars_data_as_text;
-	netvars_data_as_text << std::setw(CHEAT_NETVARS_DUMP_FILE_INDENT) << std::setfill(CHEAT_NETVARS_DUMP_FILE_FILLER) << netvars_data;
+	netvars_data_as_text << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << netvars_data;
 
 	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
 	{
 		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
 		CHEAT_CONSOLE_LOG("Netvars dump updated");
-		return dump_info::updated;
+		return log_info::updated;
 	}
 
 	CHEAT_CONSOLE_LOG("Netvars dump skipped");
-	return dump_info::skipped;
+	return log_info::skipped;
 }
 
 static auto _Get_includes(std::string_view type, bool detect_duplicates)
@@ -70,7 +79,7 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 
 	using namespace std::string_view_literals;
 
-	const auto pat   = std::regex("[a-zA-Z0-9:_]+");
+	const auto pat   = std::regex("[\\w:*]+");
 	const auto start = std::regex_iterator(type.begin( ), type.end( ), pat);
 	const auto end   = decltype(start)( );
 
@@ -126,7 +135,7 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 		}
 		else if (str.ends_with("_t"))
 		{
-			info = {"cstdint", true};
+			info = {"cstdint"sv, true};
 		}
 		else
 		{
@@ -139,23 +148,23 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 	return result;
 }
 
-void cheat::detail::_Generate_classes(dump_info info, netvars_storage& netvars_data, lazy_files_storage& lazy_storage)
+void netvars::generate_classes(log_info info, netvars_storage& netvars_data, lazy_files_storage& lazy_storage)
 {
 	const std::filesystem::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
 
 	nstd::memory_backup<netvars_storage> netvars_data_backup;
 	(void)netvars_data_backup;
 
-	if (info == dump_info::skipped || info == dump_info::updated)
+	if (info == log_info::skipped || info == log_info::updated)
 	{
 		if (!exists(generated_classes_dir))
 		{
-			info = dump_info::created;
+			info = log_info::created;
 			goto _CREATE;
 		}
 		if (is_empty(generated_classes_dir))
 		{
-			info = dump_info::created;
+			info = log_info::created;
 			goto _WORK;
 		}
 
@@ -172,10 +181,10 @@ void cheat::detail::_Generate_classes(dump_info info, netvars_storage& netvars_d
 				continue;
 			namesv.remove_suffix(suffix.size( ));
 
-			auto name_entry = netvars_data.find((namesv));
+			auto name_entry = netvars_data.find(namesv);
 			if (name_entry == netvars_data.end( ))
 			{
-				info = dump_info::created;
+				info = log_info::created;
 				goto _REMOVE;
 			}
 
@@ -197,11 +206,11 @@ void cheat::detail::_Generate_classes(dump_info info, netvars_storage& netvars_d
 				}
 				netvars_data = std::move(to_create);
 			}
-			info = dump_info::created;
+			info = log_info::created;
 			goto _WORK;
 		}
 
-		if (info == dump_info::skipped)
+		if (info == log_info::skipped)
 			return;
 	}
 
@@ -431,7 +440,7 @@ _WORK:
 
 		for (auto& [NETVAR_NAME, NETVAR_DATA]: NETVARS.items( ))
 		{
-#ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
+#ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.get(NETVAR_DATA);
 #endif
 			std::string_view netvar_type   = NETVAR_DATA.at("type").get_ref<const std::string&>( );
@@ -450,7 +459,7 @@ _WORK:
 			source << "#ifdef CHEAT_NETVARS_UPDATING" << __New_line;
 			source << __Tab << std::format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
 			source << "#else" << __New_line;
-#ifdef CHEAT_NETVARS_DUMP_STATIC_OFFSET
+#ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
 			source << __Tab << format("auto addr = {}(this).add({});", _Address_class, netvar_offset) << __New_line;
 #else
 			source
@@ -469,7 +478,7 @@ _WORK:
 		lazy_writer.push_back(std::move(source));
 	}
 
-	if (info == dump_info::created)
+	if (info == log_info::created)
 	{
 		//write all without waiting
 		auto dummy = lazy_files_storage( );

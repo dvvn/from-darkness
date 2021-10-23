@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-using namespace cheat::detail;
+using namespace cheat::detail::netvars;
 
 lazy_file_writer::~lazy_file_writer()
 {
@@ -44,12 +44,12 @@ lazy_fs_creator::~lazy_fs_creator()
 	if (this->empty( ))
 		return;
 
-	std::filesystem::create_directories(*this);
+	create_directories(*this);
 }
 
 lazy_fs_creator::lazy_fs_creator(const path& path)
 {
-	assign((path));
+	assign(path);
 }
 
 lazy_fs_remover::~lazy_fs_remover()
@@ -65,7 +65,7 @@ lazy_fs_remover::~lazy_fs_remover()
 
 lazy_fs_remover::lazy_fs_remover(const path& path , bool all)
 {
-	assign((path));
+	assign(path);
 	all_ = all;
 }
 

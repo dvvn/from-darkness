@@ -1,12 +1,8 @@
-#include "create move.h"
+#include "create_move.h"
 
-#include "cheat/core/console.h"
-#include "cheat/core/services loader.h"
-#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo_interfaces.h"
 
-#include "cheat/netvars/config.h"
-
-#include "cheat/players/players_list.h"
+//#include "cheat/players/players_list.h"
 
 #include "cheat/csgo/CUserCmd.hpp"
 #include "cheat/csgo/IPrediction.hpp"
@@ -15,15 +11,6 @@
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::client_mode;
-
-create_move::create_move()
-{
-	this->wait_for_service<players_list>( );
-	this->get_address_of_return_address( ).emplace( );
-}
-
-CHEAT_HOOK_PROXY_INIT_FN(create_move, CHEAT_MODE_INGAME)
-CHEAT_HOOK_PROXY_TARGET_FN(create_move, CHEAT_MODE_INGAME, &csgo_interfaces::client_mode, 24);
 
 void create_move::callback(float input_sample_time, CUserCmd* cmd)
 {
@@ -53,5 +40,3 @@ void create_move::callback(float input_sample_time, CUserCmd* cmd)
 					   .remove(0x1C).ref<bool>( );
 #endif
 }
-
-CHEAT_REGISTER_SERVICE(create_move);

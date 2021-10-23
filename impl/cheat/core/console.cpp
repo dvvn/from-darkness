@@ -1,6 +1,6 @@
 #include "console.h"
 #include "csgo_awaiter.h"
-#include "services loader.h"
+#include "services_loader.h"
 
 #include <nstd/os/module info.h>
 

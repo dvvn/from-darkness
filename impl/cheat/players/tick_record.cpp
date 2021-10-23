@@ -4,7 +4,7 @@
 #if CHEAT_FEATURE_PLAYER_LIST
 #include "player.h"
 
-#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo_interfaces.h"
 #include "cheat/utils/game.h"
 
 #include "cheat/csgo/IConVar.hpp"

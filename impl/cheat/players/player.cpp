@@ -2,8 +2,8 @@
 #include "players_list.h"
 #if CHEAT_FEATURE_PLAYER_LIST
 
-#include "cheat/core/csgo interfaces.h"
-#include "cheat/core/csgo modules.h"
+#include "cheat/core/csgo_interfaces.h"
+#include "cheat/core/csgo_modules.h"
 
 #include "cheat/csgo/CClientState.hpp"
 #include "cheat/csgo/GlobalVars.hpp"

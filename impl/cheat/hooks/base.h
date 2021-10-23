@@ -1,6 +1,6 @@
 #pragma once
 //#include "cheat/core/console.h"
-#include "cheat/core/csgo interfaces.h"
+#include "cheat/core/csgo_interfaces.h"
 
 #include <dhooks/hook_utils.h>
 

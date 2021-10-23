@@ -1,12 +1,4 @@
-#include "should skip animation frame.h"
-
-#include "cheat/core/console.h"
-#include "cheat/core/services loader.h"
-#include "cheat/core/csgo interfaces.h"
-#include "cheat/core/csgo modules.h"
-
-#include "cheat/netvars/config.h"
-#include "cheat/netvars/netvars.h"
+#include "should_skip_animation_frame.h"
 
 #include "cheat/csgo/ClientClass.hpp"
 #include "cheat/csgo/entity/C_BaseAnimating.h"
@@ -16,18 +8,8 @@
 #include <imgui.h>
 
 using namespace cheat;
-using namespace hooks;
-using namespace c_base_animating;
-
 using namespace csgo;
-
-should_skip_animation_frame::should_skip_animation_frame()
-{
-	this->wait_for_service<netvars>( );
-}
-
-CHEAT_HOOK_PROXY_INIT_FN(should_skip_animation_frame, CHEAT_MODE_INGAME)
-CHEAT_HOOK_PROXY_TARGET_FN(should_skip_animation_frame, CHEAT_MODE_INGAME, CHEAT_FIND_SIG(client, "57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02"))
+using namespace hooks::c_base_animating;
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
@@ -100,7 +82,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 #endif
 }
 
-void should_skip_animation_frame::render()
+void should_skip_animation_frame::render( )
 {
 	ImGui::Checkbox("override return", &override_return__);
 	if (override_return__)
@@ -118,5 +100,3 @@ void should_skip_animation_frame::render()
 			override_return_to__ = true;
 	}
 }
-
-CHEAT_REGISTER_SERVICE(should_skip_animation_frame);

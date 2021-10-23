@@ -8,49 +8,47 @@
 #include <sstream>
 #endif
 
-namespace cheat::detail
+
+namespace cheat::detail::netvars
 {
 #ifndef CHEAT_NETVARS_DUMPER_DISABLED
-	template <class Key, class T, class IgnoredLess = std::less<Key>,
-			  class Allocator = std::allocator<std::pair<const Key, T>>>
-	struct ordered_map_json : nlohmann::ordered_map<Key, T, IgnoredLess, Allocator>
+	template <class Key, class T, class IgnoredLess = std::less<Key>    //
+			, class Allocator = std::allocator<std::pair<const Key, T>> //
+			, class Base = nlohmann::ordered_map<Key, T, IgnoredLess, Allocator>>
+	struct ordered_map_json : Base
 	{
-		using key_type = Key;
-		using mapped_type = T;
-		using Container = std::vector<std::pair<const Key, T>, Allocator>;
-		using typename Container::iterator;
-		using typename Container::const_iterator;
-		using typename Container::size_type;
-		using typename Container::value_type;
+		using typename Base::key_type;
+		using typename Base::mapped_type;
 
-		std::pair<iterator, bool> emplace(key_type&& key, T&& t)
+		using typename Base::Container;
+
+		using typename Base::iterator;
+		using typename Base::const_iterator;
+		using typename Base::size_type;
+		using typename Base::value_type;
+
+		template <std::equality_comparable_with<Key> Key2, typename T1 = T>
+			requires(std::constructible_from<Key, Key2> && std::constructible_from<T, T1>)
+		std::pair<iterator, bool> emplace(Key2&& key, T1&& t = {})
 		{
-			for (auto it = this->begin( ); it != this->end( ); ++it)
-			{
-				if (it->first == key)
-				{
-					return {it, false};
-				}
-			}
-			Container::emplace_back(std::move(key), std::move(t));
-			return {--this->end( ), true};
+			auto end   = this->end( );
+			auto found = this->find(key);
+			if (found != end)
+				return {found, false};
+
+			Container::emplace_back(std::forward<Key2>(key), std::forward<T1>(t));
+			return {std::prev(end), true};
 		}
 
-		template <std::equality_comparable_with<Key> Q>
-		iterator find(const Q& key)
+		template <std::equality_comparable_with<Key> Key2>
+		iterator find(const Key2& key)
 		{
-			for (auto it = this->begin( ); it != this->end( ); ++it)
-			{
-				if (it->first == key)
-				{
-					return it;
-				}
-			}
-			return Container::end( );
+			constexpr auto trivial = std::is_trivially_copyable_v<Key> && std::is_trivially_destructible_v<Key>;
+			return std::ranges::find(*this, key, [](auto&& val)-> std::conditional_t<trivial, Key, const Key&> { return val.first; });
 		}
 
-		template <std::equality_comparable_with<Key> Q>
-		const_iterator find(const Q& key) const
+		template <std::equality_comparable_with<Key> Key2>
+		const_iterator find(const Key2& key) const
 		{
 			return std::_Const_cast(this)->find(key);
 		}
@@ -62,9 +60,7 @@ namespace cheat::detail
 		~lazy_file_writer( ) override;
 
 		lazy_file_writer(std::filesystem::path&& file);
-
 		lazy_file_writer(lazy_file_writer&& other) noexcept;
-
 		lazy_file_writer& operator=(lazy_file_writer&& other) noexcept;
 
 	private:
