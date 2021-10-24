@@ -15,8 +15,11 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_csplayer
 {
-	CHEAT_SETUP_HOOK_PROXY(do_extra_bone_processing, void(csgo::C_BaseAnimating::*)
-						   (csgo::CStudioHdr*, csgo::Vector*, csgo::Quaternion*, csgo::matrix3x4a_t*, csgo::CBoneBitList&, csgo::CIKContext*))
+	struct do_extra_bone_processing final :
+			hook_instance_shared<do_extra_bone_processing
+							   , __COUNTER__
+							   , void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::Quaternion*, csgo::matrix3x4a_t*
+															  , csgo::CBoneBitList&, csgo::CIKContext*)>
 	{
 		do_extra_bone_processing( );
 

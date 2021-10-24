@@ -51,7 +51,7 @@ namespace cheat
 		};
 	}
 
-	class console final : public service<console>
+	class console final : public service_instance_shared<console>
 #ifdef _DEBUG
 						, nstd::rt_assert_handler
 #endif

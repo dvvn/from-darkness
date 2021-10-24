@@ -178,7 +178,7 @@ namespace cheat::detail
 
 namespace cheat
 {
-	class csgo_interfaces final : public service<csgo_interfaces>
+	class csgo_interfaces final : public service_instance_shared<csgo_interfaces>
 	{
 		template <typename T, size_t Ptrs = 1>
 		using ifc = detail::csgo_interface<T, Ptrs>;

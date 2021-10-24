@@ -12,7 +12,10 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_base_animating
 {
-	CHEAT_SETUP_HOOK_PROXY(should_skip_animation_frame, bool(csgo::C_BaseAnimating::*)( ), gui::widgets::abstract_renderable)
+	struct should_skip_animation_frame final : hook_instance_shared<should_skip_animation_frame
+																   ,__COUNTER__
+																  , bool(csgo::C_BaseAnimating::*)( )>
+											 , gui::widgets::abstract_renderable
 	{
 		should_skip_animation_frame( );
 

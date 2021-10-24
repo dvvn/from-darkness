@@ -48,7 +48,7 @@ typedef struct IDirect3DDevice9 *LPDIRECT3DDEVICE9, *PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-service_base::load_result csgo_interfaces::load_impl( ) noexcept
+service_impl::load_result csgo_interfaces::load_impl( ) noexcept
 {
 	//unused
 #if 0

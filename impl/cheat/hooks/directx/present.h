@@ -16,7 +16,7 @@ using RGNDATA = _RGNDATA;
 
 namespace cheat::hooks::directx
 {
-	CHEAT_SETUP_HOOK_PROXY(present, HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*))
+	struct present final: hook_instance_shared<present,__COUNTER__,HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*)>
 	{
 		present( );
 

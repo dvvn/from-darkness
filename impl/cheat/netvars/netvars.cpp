@@ -26,7 +26,7 @@ netvars::netvars( )
 
 netvars::~netvars( ) = default;
 
-service_base::load_result netvars::load_impl( ) noexcept
+service_impl::load_result netvars::load_impl( ) noexcept
 {
 #ifdef CHEAT_NETVARS_DUMPER_DISABLED
 	CHEAT_SERVICE_SKIPPED

@@ -11,7 +11,7 @@
 
 namespace cheat
 {
-	class players_list final : public service<players_list>
+	class players_list final : public service_instance_shared<players_list>
 	{
 	public:
 		players_list( );

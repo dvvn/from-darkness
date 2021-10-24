@@ -10,7 +10,7 @@ namespace cheat::csgo
 
 namespace cheat::hooks::vgui_surface
 {
-	CHEAT_SETUP_HOOK_PROXY(lock_cursor, void(csgo::ISurface::*)())
+	struct lock_cursor final: hook_instance_shared<lock_cursor,__COUNTER__,void(csgo::ISurface::*)()>
 	{
 		lock_cursor( );
 

@@ -45,7 +45,7 @@ namespace cheat
 
 	class settings final: public gui::objects::renderable
 						, public settings_data
-						, public service<settings>
+						, public service_instance_shared<settings>
 	{
 	public:
 		settings( );

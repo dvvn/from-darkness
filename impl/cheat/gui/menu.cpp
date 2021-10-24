@@ -276,7 +276,7 @@ public:
 };
 #endif
 
-cheat::service_base::load_result menu::load_impl() noexcept
+cheat::service_impl::load_result menu::load_impl() noexcept
 {
 #if 0
 	renderer_.add_page([]
@@ -305,7 +305,7 @@ cheat::service_base::load_result menu::load_impl() noexcept
 
 			const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
 			{
-				service_base* ptr_raw = ptr.get( );
+				service_impl* ptr_raw = ptr.get( );
 
 				switch(ptr_raw->state( ).value( ))
 				{

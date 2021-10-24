@@ -21,29 +21,29 @@ struct services_counter
 	size_t count = 0;
 };
 
-size_t service_base::_Services_count( )
+size_t service_impl::_Services_count( )
 {
 	return nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base::service_base( )
+service_impl::service_impl( )
 {
 	++nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base::~service_base( )
+service_impl::~service_impl( )
 {
 	_Loading_access_assert(state_);
 	--nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base::service_base(service_base&& other) noexcept
+service_impl::service_impl(service_impl&& other) noexcept
 {
 	*this = std::move(other);
 	++nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base& service_base::operator=(service_base&& other) noexcept
+service_impl& service_impl::operator=(service_impl&& other) noexcept
 {
 	_Loading_access_assert(this->state_);
 	_Loading_access_assert(other.state_);
@@ -54,57 +54,41 @@ service_base& service_base::operator=(service_base&& other) noexcept
 	return *this;
 }
 
-service_base::stored_service service_base::find_service(const std::type_info& info) const
+auto service_impl::find_service(const std::type_info& info) const -> stored_service
 {
-	for (const auto& service: this->deps_)
-	{
-		if (service->type( ) == info)
-			return service;
-	}
-
-	return {};
+	const auto tmp = this->find_service_itr(info);
+	return tmp.valid( ) ? *tmp : stored_service( );
 }
 
-service_base::stored_service* service_base::find_service_ptr(const std::type_info& info)
+auto service_impl::find_service_itr(const std::type_info& info) -> iterator_proxy<deps_storage::iterator>
 {
-	for (auto& service: this->deps_)
-	{
-		if (service->type( ) == info)
-			return std::addressof(service);
-	}
-
-	return (nullptr);
+	return {std::ranges::find(deps_, info, [&](const stored_service& srv)-> auto& { return srv->type( ); }), std::addressof(deps_)};
 }
 
-struct dummy_service final : service_info<dummy_service>
+auto service_impl::find_service_itr(const std::type_info& info) const -> iterator_proxy<deps_storage::const_iterator>
 {
-protected:
-	load_result load_impl( ) noexcept override
-	{
-		CHEAT_SERVICE_SKIPPED
-	}
-};
-
-void service_base::remove_service(const std::type_info& info)
-{
-	const auto ptr = find_service_ptr(info);
-	if (ptr == nullptr)
-		return;
-	*ptr = std::make_shared<dummy_service>( );
+	auto tmp = std::_Const_cast(this)->find_service_itr(info);
+	return {static_cast<deps_storage::iterator&&>(tmp), std::addressof(deps_)};
 }
 
-void service_base::add_service_dependency(stored_service&& srv, const std::type_info& info)
+auto service_impl::add_service_dependency(stored_service&& srv, const std::type_info& info) -> stored_service&
 {
-	runtime_assert(find_service(info) == stored_service( ), "Service already stored!");
-	this->deps_.push_back(std::move(srv));
+	runtime_assert(!find_service_itr(info).valid(), "Service already stored!");
+	return deps_.emplace_back(std::move(srv));
 }
 
-service_state service_base::state( ) const
+auto service_impl::add_service_dependency(const stored_service& srv, const std::type_info& info) -> stored_service&
+{
+	runtime_assert(!find_service_itr(info).valid(), "Service already stored!");
+	return deps_.emplace_back(srv);
+}
+
+service_state service_impl::state( ) const
 {
 	return state_;
 }
 
-service_base::load_result service_base::load(executor& ex) noexcept
+service_impl::load_result service_impl::load(executor& ex) noexcept
 {
 	switch (state_)
 	{
@@ -245,14 +229,14 @@ service_base::load_result service_base::load(executor& ex) noexcept
 	}
 }
 
-std::span<const service_base::stored_service> service_base::services( ) const
+std::span<const service_impl::stored_service> service_impl::services( ) const
 {
 	return this->deps_;
 }
 
 //----
 
-std::string detail::make_log_message(const service_base* srv, log_type type, std::string_view extra)
+std::string detail::make_log_message(const service_impl* srv, log_type type, std::string_view extra)
 {
 	const auto info_msg = [&]
 	{

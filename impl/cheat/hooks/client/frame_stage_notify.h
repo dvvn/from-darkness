@@ -10,7 +10,7 @@ namespace cheat::csgo
 
 namespace cheat::hooks::client
 {
-	CHEAT_SETUP_HOOK_PROXY(frame_stage_notify, void(csgo::IBaseClientDLL::*)(csgo::ClientFrameStage_t))
+	struct frame_stage_notify final : hook_instance_shared<frame_stage_notify,__COUNTER__, void(csgo::IBaseClientDLL::*)(csgo::ClientFrameStage_t)>
 	{
 		frame_stage_notify( );
 

@@ -10,7 +10,7 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_base_entity
 {
-	CHEAT_SETUP_HOOK_PROXY(estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&))
+	struct estimate_abs_velocity final : hook_instance_shared<estimate_abs_velocity,__COUNTER__, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
 	{
 		estimate_abs_velocity( );
 

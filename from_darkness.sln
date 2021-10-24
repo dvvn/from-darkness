@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_cheat_impl", "impl\impl.vc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "__cheat_dll", "dll.vcxproj", "{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "__cheat_test_exe", "exe.vcxproj", "{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "deps", "deps.vcxitems", "{17F387B3-5F09-4E35-97C5-0948D816B7E7}"
 EndProject
 Global
@@ -17,12 +15,12 @@ Global
 		deps.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
 		impl\impl.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
 		impl\impl.vcxitems*{916e8d22-2269-4ed6-91fd-d0b929079422}*SharedItemsImports = 9
-		deps.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
-		impl\impl.vcxitems*{ee7d273d-18e8-4b69-9220-2e44f57c7eef}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		DebugGUI|x64 = DebugGUI|x64
+		DebugGUI|x86 = DebugGUI|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -30,21 +28,18 @@ Global
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Debug|x64.ActiveCfg = Debug|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Debug|x86.ActiveCfg = Debug|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Debug|x86.Build.0 = Debug|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.DebugGUI|x64.ActiveCfg = DebugGUI|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.DebugGUI|x86.ActiveCfg = DebugGUI|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.DebugGUI|x86.Build.0 = DebugGUI|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x64.ActiveCfg = Release|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.ActiveCfg = Release|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.Build.0 = Release|Win32
-		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Debug|x64.ActiveCfg = Debug|Win32
-		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Debug|x86.ActiveCfg = Debug|Win32
-		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Debug|x86.Build.0 = Debug|Win32
-		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Release|x64.ActiveCfg = Release|Win32
-		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Release|x86.ActiveCfg = Release|Win32
-		{EE7D273D-18E8-4B69-9220-2E44F57C7EEF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		Qt5Version = $(DefaultQtVersion)
 		SolutionGuid = {4C2BD1D5-32A3-4BEF-BEB3-A5E5EE8A1521}
+		Qt5Version = $(DefaultQtVersion)
 	EndGlobalSection
 EndGlobal

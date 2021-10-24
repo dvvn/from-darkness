@@ -14,9 +14,11 @@ namespace cheat::csgo
 
 namespace cheat::hooks::studio_render
 {
-	CHEAT_SETUP_HOOK_PROXY(draw_model, void(csgo::IStudioRender::*)
-						   (csgo::DrawModelResults_t*, const csgo::DrawModelInfo_t&,
-							   csgo::matrix3x4_t*, float*, float*, const csgo::Vector&, csgo::DrawModelFlags_t))
+	struct draw_model final :
+			hook_instance_shared<draw_model
+								,__COUNTER__
+							   , void(csgo::IStudioRender::*)(csgo::DrawModelResults_t*, const csgo::DrawModelInfo_t&, csgo::matrix3x4_t*, float*, float*
+															, const csgo::Vector&, csgo::DrawModelFlags_t)>
 	{
 		draw_model( );
 

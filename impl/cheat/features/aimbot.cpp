@@ -137,7 +137,7 @@ void aimbot::load(const json& out)
 {
 }
 
-cheat::service_base::load_result aimbot::load_impl( ) noexcept
+cheat::service_impl::load_result aimbot::load_impl( ) noexcept
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );

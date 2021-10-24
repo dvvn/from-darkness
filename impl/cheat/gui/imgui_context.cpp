@@ -195,7 +195,7 @@ imgui_context::imgui_context( )
 	this->wait_for_service<csgo_interfaces>( );
 }
 
-service_base::load_result imgui_context::load_impl( ) noexcept
+service_impl::load_result imgui_context::load_impl( ) noexcept
 {
 	const auto d3d = csgo_interfaces::get_ptr( )->d3d_device.get( );
 

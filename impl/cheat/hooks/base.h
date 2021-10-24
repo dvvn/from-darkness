@@ -6,16 +6,13 @@
 
 namespace cheat::hooks
 {
-	template <typename Proxy/*, typename ...TargetTypes*/>
-	struct service_hook_proxy : service<Proxy> //, dhooks::hook_holder<TargetTypes...>
+	template <typename Proxy,size_t Idx, typename Fn>
+	struct hook_instance_shared : service_instance_shared<Proxy> , dhooks::_Detect_hook_holder_t<Idx,Fn>
 	{
 		std::string_view name( ) const final { return nstd::type_name<Proxy, "cheat", "hooks">; }
 		std::string_view debug_type( ) const override { return "Hook"; }
 	};
 }
-
-#define CHEAT_SETUP_HOOK_PROXY(_PROXY_,_TARGET_,...) \
-	struct _PROXY_ final: service_hook_proxy<_PROXY_>, DHOOKS_DETECT_HOOK_HOLDER(std::declval<_TARGET_>( )),##__VA_ARGS__
 
 #ifndef TRUE
 #define TRUE 1
@@ -39,7 +36,7 @@ CHEAT_SERVICE_LOADED
 #define CHEAT_HOOK_PROXY_INIT(PX) CHEAT_HOOK_PROXY_INIT_X(PX)
 
 #define CHEAT_HOOK_PROXY_INIT_FN(_NAME_, _ACTIVE_) \
-service_base::load_result _NAME_::load_impl() noexcept\
+service_impl::load_result _NAME_::load_impl() noexcept\
 {\
 	CHEAT_NETVARS_CONFIG_USED\
 	CHEAT_HOOK_PROXY_INIT(_ACTIVE_)\

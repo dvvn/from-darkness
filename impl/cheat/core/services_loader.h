@@ -13,10 +13,10 @@ using HMODULE = HINSTANCE__*;
 
 namespace cheat
 {
-	class services_loader final : public service<services_loader>
+	class services_loader final : public service_instance_shared<services_loader>
 	{
 #ifndef CHEAT_GUI_TEST
-		using service_base::load;
+		using service_impl::load;
 #endif
 	public:
 		~services_loader( ) override;
@@ -28,12 +28,15 @@ namespace cheat
 		void unload_delayed( );
 		std::stop_token load_thread_stop_token( ) const;
 #endif
-		static executor make_executor( );
+
+		std::shared_ptr<executor> get_executor(size_t threads_count = std::thread::hardware_concurrency( ));
 
 	protected:
 		load_result load_impl( ) noexcept override;
 
 	private:
+		std::weak_ptr<executor> executor_;
+
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle__ = nullptr;
 		std::jthread load_thread_;
@@ -44,10 +47,10 @@ namespace cheat
 		T* find_service( ) const
 		{
 
-			for(const stored_service& service : storage_ | ranges::views::elements<0>)
+			for(const stored_service& service_instance_shared : storage_ | ranges::views::elements<0>)
 			{
-				if(service->type( ) == typeid(T))
-					return service.get( );
+				if(service_instance_shared->type( ) == typeid(T))
+					return service_instance_shared.get( );
 			}
 
 			return nullptr;
@@ -56,7 +59,7 @@ namespace cheat
 		template <initializable_service T>
 		services_loader& load_service(bool lock = false)
 		{
-			ranges::find_if(storage_, [](const load_info& info) { return info.service })
+			ranges::find_if(storage_, [](const load_info& info) { return info.service_instance_shared })
 		}
 
 		std::vector<load_info> storage_;

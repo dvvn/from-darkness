@@ -10,7 +10,7 @@ namespace cheat::csgo
 
 namespace cheat::hooks::client_mode
 {
-	CHEAT_SETUP_HOOK_PROXY(create_move, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*))
+	struct create_move final : hook_instance_shared<create_move,__COUNTER__, bool(csgo::IClientMode::*)(float, csgo::CUserCmd*)>
 	{
 		create_move( );
 

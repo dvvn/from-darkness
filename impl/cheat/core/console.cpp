@@ -182,7 +182,7 @@ console::~console( )
 		fclose(err_);
 }
 
-service_base::load_result console::load_impl( ) noexcept
+service_impl::load_result console::load_impl( ) noexcept
 {
 #ifndef CHEAT_HAVE_CONSOLE
 	CHEAT_SERVICE_SKIPPED

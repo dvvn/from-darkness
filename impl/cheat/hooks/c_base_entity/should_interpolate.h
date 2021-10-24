@@ -10,7 +10,7 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_base_entity
 {
-	CHEAT_SETUP_HOOK_PROXY(should_interpolate, bool(csgo::C_BaseEntity::*)( ))
+	struct should_interpolate final: hook_instance_shared<should_interpolate,__COUNTER__,bool(csgo::C_BaseEntity::*)( )>
 	{
 		should_interpolate( );
 

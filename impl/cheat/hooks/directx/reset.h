@@ -11,7 +11,7 @@ using HRESULT = long;
 
 namespace cheat::hooks::directx
 {
-	CHEAT_SETUP_HOOK_PROXY(reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*))
+	struct reset final : hook_instance_shared<reset,__COUNTER__, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
 	{
 		reset( );
 

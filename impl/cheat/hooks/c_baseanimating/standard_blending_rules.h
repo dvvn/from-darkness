@@ -12,7 +12,9 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_base_animating
 {
-	CHEAT_SETUP_HOOK_PROXY(standard_blending_rules, void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::QuaternionAligned*, float, int))
+	struct standard_blending_rules final : hook_instance_shared<standard_blending_rules
+															   ,__COUNTER__
+															  , void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::QuaternionAligned*, float, int)>
 	{
 		standard_blending_rules( );
 

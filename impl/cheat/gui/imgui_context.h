@@ -51,19 +51,19 @@ namespace cheat::gui
 		std::unique_ptr<impl> impl_;
 	};
 
-	class imgui_context final: public service<imgui_context>
+	class imgui_context final : public service_instance_shared<imgui_context>
 	{
 	public:
 		~imgui_context( ) override;
 		imgui_context( );
 
-		HWND          hwnd( ) const;
+		HWND hwnd( ) const;
 		ImGuiContext& get( );
 
 		fonts_builder_proxy fonts( ) const;
 
 	protected:
-		load_result load_impl( )noexcept override;
+		load_result load_impl( ) noexcept override;
 
 	private:
 		struct data_type;

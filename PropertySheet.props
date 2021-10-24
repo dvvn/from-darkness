@@ -4,8 +4,7 @@
   <PropertyGroup Label="UserMacros">
     <OutputDir>$(SolutionDir).out\$(ProjectName)\$(Configuration)\</OutputDir>
     <OutPutDir__>$(SolutionDir).out\$(ProjectName)\$(Platform)\$(Configuration)</OutPutDir__>
-    <OutputDirRam>G:\programming\$(SolutionName)\.out\$(ProjectName)\$(Configuration)\</OutputDirRam>
-    <GitClonedProjects>C:\Users\owner\Documents\programming\Projects\git</GitClonedProjects>
+    <GitClonedProjects>$(HOMEDRIVE)$(HOMEPATH)\documents\programming\Projects\git</GitClonedProjects>
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(OutputDir)temp\</IntDir>
@@ -14,7 +13,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>VS_OutputDir=$(OutputDir);VS_SolutionDir=$(SolutionDir);VS_ProjectDir=$(ProjectDir);VS_SolutionName=$(SolutionName);VS_ProjectName=$(ProjectName);VS_TargetName=$(TargetName);VS_TargetFileName=$(TargetFileName);NOMINMAX;WIN32_LEAN_AND_MEAN;MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0;_FSTREAM_SUPPORTS_EXPERIMENTAL_FILESYSTEM=0;_ITERATOR_DEBUG_LEVEL=0;_CONTAINER_DEBUG_LEVEL=0;IMGUI_DISABLE_DEFAULT_ALLOCATORS=1;IMGUI_USE_WCHAR32;IMGUI_USE_STB_SPRINTF;IMGUI_DEBUG_PARANOID__;IMGUI_DEFINE_MATH_OPERATORS;IMGUI_ENABLE_FREETYPE__;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_IMPL_WIN32_DISABLE_GAMEPAD;IM_ASSERT=__noop;IM_ASSERT_USER_ERROR__=runtime_assert;IMGUI_STB_TRUETYPE_FILENAME=&lt;stb_truetype.h&gt;;IMGUI_STB_RECT_PACK_FILENAME=&lt;stb_rect_pack.h&gt;;ImDrawIdx=size_t;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VS_OutputDir=$(OutputDir);VS_SolutionDir=$(SolutionDir);VS_ProjectDir=$(ProjectDir);VS_SolutionName=$(SolutionName);VS_ProjectName=$(ProjectName);VS_TargetName=$(TargetName);VS_TargetFileName=$(TargetFileName);NOMINMAX;WIN32_LEAN_AND_MEAN;MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0;_FSTREAM_SUPPORTS_EXPERIMENTAL_FILESYSTEM=0;_ITERATOR_DEBUG_LEVEL=0;_CONTAINER_DEBUG_LEVEL=0;IMGUI_DISABLE_DEFAULT_ALLOCATORS=1;IMGUI_USE_WCHAR32;IMGUI_USE_STB_SPRINTF;IMGUI_DEBUG_PARANOID__;IMGUI_DEFINE_MATH_OPERATORS;IMGUI_ENABLE_FREETYPE__;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_IMPL_WIN32_DISABLE_GAMEPAD;IMGUI_STB_TRUETYPE_FILENAME=&lt;stb_truetype.h&gt;;IMGUI_STB_RECT_PACK_FILENAME=&lt;stb_rect_pack.h&gt;;ImDrawIdx=size_t;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -44,10 +43,6 @@
     </BuildMacro>
     <BuildMacro Include="OutPutDir__">
       <Value>$(OutPutDir__)</Value>
-    </BuildMacro>
-    <BuildMacro Include="OutputDirRam">
-      <Value>$(OutputDirRam)</Value>
-      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="GitClonedProjects">
       <Value>$(GitClonedProjects)</Value>

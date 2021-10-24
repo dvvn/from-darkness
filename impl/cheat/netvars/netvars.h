@@ -9,7 +9,7 @@ namespace cheat
 		struct netvars_data;
 	}
 
-	class netvars final : public service<netvars>
+	class netvars final : public service_instance_shared<netvars>
 	{
 	public:
 		~netvars( ) override;

@@ -25,7 +25,7 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-service_base::load_result players_list::load_impl( ) noexcept
+service_impl::load_result players_list::load_impl( ) noexcept
 {
 	CHEAT_SERVICE_INIT(CHEAT_FEATURE_PLAYER_LIST)
 }

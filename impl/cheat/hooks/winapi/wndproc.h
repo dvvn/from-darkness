@@ -34,7 +34,7 @@ namespace cheat::hooks::winapi
 {
 	using def_wndproc_t = LRESULT (_stdcall*)(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
-	CHEAT_SETUP_HOOK_PROXY(wndproc, def_wndproc_t, gui::widgets::abstract_renderable)
+	struct wndproc final : hook_instance_shared<wndproc,__COUNTER__, def_wndproc_t>, gui::widgets::abstract_renderable
 	{
 		wndproc( );
 		void render( ) override;

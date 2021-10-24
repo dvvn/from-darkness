@@ -30,10 +30,10 @@ namespace cheat
 	  , error
 	};
 
-	class service_base;
+	class service_impl;
 
 	template <typename T>
-	concept root_service = std::derived_from<T, service_base>;
+	concept root_service = std::derived_from<T, service_impl>;
 
 	template <typename T>
 	concept derived_service = !requires { T::get_ptr( ); } && root_service<T> && std::default_initializable<T> ;
@@ -41,31 +41,28 @@ namespace cheat
 	template <typename T>
 	concept shared_service = root_service<T> && nstd::is_one_instance_shared<T>;
 
-	class __declspec(novtable) service_base
+	class __declspec(novtable) service_impl
 	{
 	public:
 		using executor = cppcoro::static_thread_pool;
-		using load_result = cppcoro::task<bool>;
 		using mutex_type = cppcoro::async_mutex;
+		using load_result = cppcoro::task<bool>;
 
 		static size_t _Services_count( );
 
-		using stored_service = std::shared_ptr<service_base>;
+		using stored_service = std::shared_ptr<service_impl>;
 
-		service_base( );
-		virtual ~service_base( );
+	protected:
+		using deps_storage = std::vector<stored_service>;
 
-		service_base(const service_base& other) = delete;
-		service_base(service_base&& other) noexcept;
-		service_base& operator=(const service_base& other) = delete;
-		service_base& operator=(service_base&& other) noexcept;
+	public:
+		service_impl( );
+		virtual ~service_impl( );
 
-		virtual std::string_view name( ) const = 0;
-		virtual const std::type_info& type( ) const = 0;
-		virtual std::string_view debug_type( ) const = 0;
-		virtual std::string_view debug_msg_loaded( ) const = 0;
-		virtual std::string_view debug_msg_skipped( ) const = 0;
-		virtual std::string_view debug_msg_error( ) const = 0;
+		service_impl(const service_impl& other) = delete;
+		service_impl(service_impl&& other) noexcept;
+		service_impl& operator=(const service_impl& other) = delete;
+		service_impl& operator=(service_impl&& other) noexcept;
 
 		std::span<const stored_service> services( ) const;
 
@@ -78,32 +75,53 @@ namespace cheat
 			return std::dynamic_pointer_cast<T>(found);
 		}
 
-		stored_service* find_service_ptr(const std::type_info& info);
+	protected:
+		template <typename Itr>
+		struct iterator_proxy : Itr
+		{
+			using base_type = Itr;
+
+			template <class T>
+				requires(std::constructible_from<Itr, T>)
+			iterator_proxy(T&& itr, const deps_storage* storage)
+				: Itr(std::forward<T>(itr)), storage_(storage)
+			{
+			}
+
+			bool valid( ) const { return *this != storage_->end( ); }
+
+		private:
+			const deps_storage* storage_;
+		};
+
+		iterator_proxy<deps_storage::iterator> find_service_itr(const std::type_info& info);
+		iterator_proxy<deps_storage::const_iterator> find_service_itr(const std::type_info& info) const;
 
 		template <root_service T>
-		stored_service* find_service_ptr( ) const
-		{
-			return find_service_ptr(typeid(T));
-		}
+		auto find_service_itr( ) { return find_service_itr(typeid(T)); }
 
+		template <root_service T>
+		auto find_service_itr( ) const { return find_service_itr(typeid(T)); }
+
+	public:
 		void remove_service(const std::type_info& info);
 
 		template <root_service T>
-		void remove_service( )
-		{
-			remove_service(typeid(T));
-		}
+		void remove_service( ) { remove_service(typeid(T)); }
 
 		void unload( );
 
 	private:
-		void add_service_dependency(stored_service&& srv, const std::type_info& info);
+		stored_service& add_service_dependency(stored_service&& srv, const std::type_info& info);
+		stored_service& add_service_dependency(const stored_service& srv, const std::type_info& info);
 
 	public:
 		template <derived_service T>
-		void wait_for_service( )
+		auto wait_for_service( )
 		{
-			add_service_dependency(std::make_shared<T>( ), typeid(T));
+			auto out = std::make_shared<T>( );
+			add_service_dependency(out, typeid(T));
+			return out;
 		}
 
 		template <shared_service T>
@@ -113,6 +131,12 @@ namespace cheat
 		}
 
 		service_state state( ) const;
+		virtual std::string_view name( ) const = 0;
+		virtual const std::type_info& type( ) const = 0;
+		virtual std::string_view debug_type( ) const = 0;
+		virtual std::string_view debug_msg_loaded( ) const = 0;
+		virtual std::string_view debug_msg_skipped( ) const = 0;
+		virtual std::string_view debug_msg_error( ) const = 0;
 
 		load_result load(executor& ex) noexcept;
 
@@ -121,12 +145,12 @@ namespace cheat
 
 	private:
 		service_state state_ = service_state::unset;
-		std::vector<stored_service> deps_;
+		deps_storage deps_;
 		mutex_type lock_;
 	};
 
 	template <typename T>
-	struct service_info : service_base
+	struct service : service_impl
 	{
 		std::string_view name( ) const override { return nstd::type_name<T, "cheat">; }
 		const std::type_info& type( ) const final { return typeid(T); }
@@ -137,7 +161,7 @@ namespace cheat
 	};
 
 	template <typename T>
-	struct service : service_info<T>, nstd::one_instance_shared<T>
+	struct service_instance_shared : service<T>, nstd::one_instance_shared<T>
 	{
 	};
 
@@ -151,7 +175,7 @@ namespace cheat
 		  , ERROR_ //fuck ERROR macro 
 		};
 
-		std::string make_log_message(const service_base* srv, log_type type, std::string_view extra = "");
+		std::string make_log_message(const service_impl* srv, log_type type, std::string_view extra = "");
 	}
 }
 

@@ -13,7 +13,7 @@
 
 using namespace cheat;
 
-service_base::load_result csgo_awaiter::load_impl( ) noexcept
+service_impl::load_result csgo_awaiter::load_impl( ) noexcept
 {
 #ifdef CHEAT_GUI_TEST
 	CHEAT_SERVICE_SKIPPED

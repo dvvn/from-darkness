@@ -3,7 +3,7 @@
 
 namespace cheat
 {
-	class csgo_awaiter final : public service<csgo_awaiter>
+	class csgo_awaiter final : public service_instance_shared<csgo_awaiter>
 	{
 	protected:
 		load_result load_impl( ) noexcept override;

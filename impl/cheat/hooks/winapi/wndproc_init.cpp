@@ -16,7 +16,7 @@ wndproc::wndproc( )
 	this->wait_for_service<imgui_context>( );
 }
 
-service_base::load_result wndproc::load_impl( ) noexcept
+service_impl::load_result wndproc::load_impl( ) noexcept
 {
 	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
 	runtime_assert(hwnd != nullptr);
