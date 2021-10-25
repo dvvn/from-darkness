@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>IMGUI_DISABLE_DEFAULT_ALLOCATORS=1;IMGUI_USE_WCHAR32;IMGUI_USE_STB_SPRINTF;IMGUI_DEFINE_MATH_OPERATORS;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_IMPL_WIN32_DISABLE_GAMEPAD;IMGUI_STB_TRUETYPE_FILENAME=&lt;stb_truetype.h&gt;;IMGUI_STB_RECT_PACK_FILENAME=&lt;stb_rect_pack.h&gt;;ImDrawIdx=size_t;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(GitClonedProjects)\imgui;$(GitClonedProjects)\imgui\backends;$(GitClonedProjects)\imgui\misc\cpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>

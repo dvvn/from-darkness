@@ -219,7 +219,7 @@ service_impl::load_result console::load_impl( ) noexcept
 		_Freopen(err_, "CONOUT$", "w", stderr);
 
 		const auto full_path = nstd::os::all_modules::get_ptr( )->current( ).full_path( );
-		if (!SetConsoleTitle(full_path.data( )))
+		if (!SetConsoleTitleW(full_path.data( )))
 			CHEAT_SERVICE_NOT_LOADED("Unable set console title");
 	}
 
