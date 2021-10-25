@@ -37,7 +37,7 @@ ImU32 animation_color_helper::operator()(const ImVec4& clr) const
 		if (!animation_)
 			return clr;
 
-		animation_->update_end(clr);
+		animation_->set_new_range(clr);
 		animation_->update( );
 		return animation_->get_target( )->get_value( );
 	}( );

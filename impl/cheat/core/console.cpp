@@ -1,6 +1,6 @@
 #include "console.h"
 #include "csgo_awaiter.h"
-#include "services loader.h"
+#include "services_loader.h"
 
 #include <nstd/os/module info.h>
 
@@ -80,19 +80,19 @@ detail::string_packer::string_packer(const wostr& os)
 	packed->emplace<wstrv>(os.view( ));
 }
 
-detail::string_packer::~string_packer() = default;
+detail::string_packer::~string_packer( ) = default;
 
-void detail::string_packer::init()
+void detail::string_packer::init( )
 {
 	packed = std::make_unique<data_type>( );
 }
 
 struct movable_function_base
 {
-	virtual ~movable_function_base() = default;
-	virtual void operator()() = 0;
+	virtual ~movable_function_base( ) = default;
+	virtual void operator()( ) = 0;
 
-	movable_function_base() = default;
+	movable_function_base( ) = default;
 
 	movable_function_base(const movable_function_base&)            = delete;
 	movable_function_base& operator=(const movable_function_base&) = delete;
@@ -112,7 +112,7 @@ public:
 	{
 	}
 
-	void operator()() override
+	void operator()( ) override
 	{
 		std::invoke(obj_);
 	}
@@ -129,9 +129,9 @@ class console::cache_type
 public:
 	using value_type = std::unique_ptr<movable_function_base>;
 
-	cache_type() = default;
+	cache_type( ) = default;
 
-	void write_all()
+	void write_all( )
 	{
 		std::ranges::for_each(cache_, &value_type::element_type::operator(), &value_type::operator*);
 		cache_.clear( );
@@ -142,12 +142,12 @@ public:
 		cache_.emplace_back(std::move(obj));
 	}
 
-	void lock()
+	void lock( )
 	{
 		lock_.lock( );
 	}
 
-	void unlock()
+	void unlock( )
 	{
 		lock_.unlock( );
 	}
@@ -157,16 +157,16 @@ private:
 	std::vector<value_type> cache_;
 };
 
-console::console()
+console::console( )
 {
+	runtime_assert_add_handler(this);
 	cache_ = std::make_unique<cache_type>( );
 	this->wait_for_service<csgo_awaiter>( );
-	nstd::rt_assert_object::get_ptr( )->add(this);
 }
 
-console::~console()
+console::~console( )
 {
-	nstd::rt_assert_object::get_ptr( )->remove(this);
+	runtime_assert_remove_handler(this);
 
 	if (this->allocated_)
 	{
@@ -182,7 +182,7 @@ console::~console()
 		fclose(err_);
 }
 
-service_base::load_result console::load_impl()noexcept
+service_impl::load_result console::load_impl( ) noexcept
 {
 #ifndef CHEAT_HAVE_CONSOLE
 	CHEAT_SERVICE_SKIPPED
@@ -219,50 +219,70 @@ service_base::load_result console::load_impl()noexcept
 		_Freopen(err_, "CONOUT$", "w", stderr);
 
 		const auto full_path = nstd::os::all_modules::get_ptr( )->current( ).full_path( );
-		if (!SetConsoleTitle(full_path.data( )))
+		if (!SetConsoleTitleW(full_path.data( )))
 			CHEAT_SERVICE_NOT_LOADED("Unable set console title");
 	}
 
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
-	co_return true;
+	co_return (true);
 #endif
 }
 
-void console::handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept
-{
-	//static auto lock = std::mutex( );
-	//const auto  _    = std::scoped_lock(lock);
+#if defined(_DEBUG)
 
+static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
+{
+	auto msg = std::ostringstream( );
+	msg << "Assertion falied!\n\n";
+
+	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool newline = true)
+	{
+		msg << name << ": " << value;
+		if (newline)
+			msg << '\n';
+	};
+
+	append("File", location.file_name( ));
+	append("Line", location.line( ));
+	append("Column", location.column( ));
+	append("Function", location.function_name( ), false);
+
+	if (expression)
+		append("\n\nExpression", expression, false);
+	if (message)
+		msg << "\nMessage" << message;
+
+	return msg;
+}
+
+void console::handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept
+{
+	if (expression_result)
+		return;
+
+	this->write_line(_Prepare_message(expression, message, location));
 #ifdef _DEBUG
 	[[maybe_unused]] const auto from  = _ReturnAddress( );
 	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
 	DebugBreak( );
 #endif
-
-	auto msg = std::wostringstream( );
-	msg << "Assertion falied!\n\n";
-
-	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool last = false)
-	{
-		msg << name << ": " << value;
-		if (!last)
-			msg << '\n';
-	};
-
-	if (!expression.empty( ))
-		append("Expression", expression);
-
-	append("File", info.file_name);
-	append("Line", info.line);
-	append("Function", info.function, message.empty( ));
-
-	if (!message.empty( ))
-		msg << '\n' << message;
-
-	this->write_line(std::move(msg));
-
-	[[maybe_unused]] static volatile auto skip_helper = '\1';
 }
+
+void console::handle(const char* message, const std::source_location& location) noexcept
+{
+	this->write_line(_Prepare_message(nullptr, message, location));
+#ifdef _DEBUG
+	[[maybe_unused]] const auto from  = _ReturnAddress( );
+	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
+	DebugBreak( );
+#endif
+}
+
+size_t console::id( ) const
+{
+	return __COUNTER__;
+}
+#endif
 
 template <typename Chr, typename Tr>
 static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
@@ -271,7 +291,7 @@ static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 
 	auto buff      = stream.rdbuf( );
 	auto real_buff = dynamic_cast<fb*>(buff);
-	runtime_assert(real_buff != nullptr);
+	assert(real_buff != nullptr);
 	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
 	//_Myfile
 	return nstd::address(real_buff).add(offset).ref<FILE*>( );
@@ -282,7 +302,7 @@ static auto _Set_mode(FILE* file, int mode)
 {
 	const auto old_mode = _setmode(_fileno(file), mode);
 	if constexpr (Assert)
-		runtime_assert(old_mode != -1, "Unable to change mode");
+		assert(old_mode != -1 && "Unable to change mode");
 	return old_mode;
 }
 
@@ -343,7 +363,7 @@ static auto _Write_text = []<typename T>(T&& text)
 template <typename Fn, typename T>
 static auto _Decayed_bind(const Fn& fn, T&& text)
 {
-	auto get_text = [&]()-> decltype(auto)
+	auto get_text = [&]( )-> decltype(auto)
 	{
 		if constexpr (std::is_rvalue_reference_v<decltype(text)>)
 			return std::forward<T>(text);
@@ -385,7 +405,7 @@ static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, 
 };
 
 template <typename T>
-static auto _Get_time_str()
+static auto _Get_time_str( )
 {
 	using namespace std::chrono;
 	using clock = system_clock;
@@ -425,7 +445,7 @@ concept _Has_member_char_type = requires
 };
 
 template <typename T>
-static auto _Detect_char_type()
+static auto _Detect_char_type( )
 {
 	if constexpr (_Has_member_char_type<T>)
 		return T::char_type( );

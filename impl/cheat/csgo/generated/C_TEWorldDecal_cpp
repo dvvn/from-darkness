@@ -1,0 +1,31 @@
+#include "C_TEWorldDecal.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/csgo/Vector.hpp"
+
+using namespace cheat::csgo;
+
+cheat::csgo::Vector& C_TEWorldDecal::m_vecOrigin( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEWorldDecal", "m_vecOrigin");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+int& C_TEWorldDecal::m_nIndex( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_TEWorldDecal", "m_nIndex");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}

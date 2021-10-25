@@ -1,0 +1,81 @@
+#include "C_DangerZone.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/csgo/Vector.hpp"
+
+using namespace cheat::csgo;
+
+cheat::csgo::Vector& C_DangerZone::m_vecDangerZoneOriginStartedAt( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_vecDangerZoneOriginStartedAt");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+float& C_DangerZone::m_flBombLaunchTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_flBombLaunchTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_DangerZone::m_flExtraRadius( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_flExtraRadius");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_DangerZone::m_flExtraRadiusStartTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_flExtraRadiusStartTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_DangerZone::m_flExtraRadiusTotalLerpTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_flExtraRadiusTotalLerpTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int& C_DangerZone::m_nDropOrder( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_nDropOrder");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}
+int& C_DangerZone::m_iWave( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZone", "m_iWave");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}

@@ -1,9 +1,12 @@
 #include "service.h"
 
-#include "csgo interfaces.h"
+#include "console.h"
 
-#include <cppcoro/static_thread_pool.hpp>
-#include <cppcoro/async_mutex.hpp>
+#include <nstd/runtime_assert_fwd.h>
+
+#include <cppcoro/when_all.hpp>
+
+#include <ranges>
 
 using namespace cheat;
 
@@ -13,17 +16,34 @@ static void _Loading_access_assert([[maybe_unused]] T&& state)
 	runtime_assert(state != service_state::loading && state != service_state::waiting, "Unable to modify running service!");
 }
 
-service_base::~service_base()
+struct services_counter
+{
+	size_t count = 0;
+};
+
+size_t service_impl::_Services_count( )
+{
+	return nstd::one_instance<services_counter>::get_ptr( )->count;
+}
+
+service_impl::service_impl( )
+{
+	++nstd::one_instance<services_counter>::get_ptr( )->count;
+}
+
+service_impl::~service_impl( )
 {
 	_Loading_access_assert(state_);
+	--nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base::service_base(service_base&& other) noexcept
+service_impl::service_impl(service_impl&& other) noexcept
 {
 	*this = std::move(other);
+	++nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
-service_base& service_base::operator=(service_base&& other) noexcept
+service_impl& service_impl::operator=(service_impl&& other) noexcept
 {
 	_Loading_access_assert(this->state_);
 	_Loading_access_assert(other.state_);
@@ -34,80 +54,163 @@ service_base& service_base::operator=(service_base&& other) noexcept
 	return *this;
 }
 
-service_base::stored_service service_base::find_service(const std::type_info& info) const
+auto service_impl::find_service(const std::type_info& info) const -> stored_service
 {
-	for (const auto& service : this->deps_)
-	{
-		if (service->type( ) == info)
-			return service;
-	}
-
-	return {};
+	const auto tmp = this->find_service_itr(info);
+	return tmp.valid( ) ? *tmp : stored_service( );
 }
 
-void service_base::add_service_dependency(stored_service&& srv, const std::type_info& info)
+auto service_impl::find_service_itr(const std::type_info& info) -> iterator_proxy<deps_storage::iterator>
 {
-	runtime_assert(find_service(info) == stored_service( ), "Service already stored!");
-	this->deps_.push_back(std::move(srv));
+	return {std::ranges::find(deps_, info, [&](const stored_service& srv)-> auto& { return srv->type( ); }), std::addressof(deps_)};
 }
 
-service_state service_base::state() const
+auto service_impl::find_service_itr(const std::type_info& info) const -> iterator_proxy<deps_storage::const_iterator>
+{
+	auto tmp = std::_Const_cast(this)->find_service_itr(info);
+	return {static_cast<deps_storage::iterator&&>(tmp), std::addressof(deps_)};
+}
+
+auto service_impl::add_service_dependency(stored_service&& srv, const std::type_info& info) -> stored_service&
+{
+	runtime_assert(!find_service_itr(info).valid(), "Service already stored!");
+	return deps_.emplace_back(std::move(srv));
+}
+
+auto service_impl::add_service_dependency(const stored_service& srv, const std::type_info& info) -> stored_service&
+{
+	runtime_assert(!find_service_itr(info).valid(), "Service already stored!");
+	return deps_.emplace_back(srv);
+}
+
+service_state service_impl::state( ) const
 {
 	return state_;
 }
 
-void service_base::reset()
+service_impl::load_result service_impl::load(executor& ex) noexcept
 {
-	_Loading_access_assert(state_);
-	deps_.clear( );
-	state_ = service_state::unset;
-}
-
-service_base::load_result service_base::load(executor& ex) noexcept
-{
-	const auto set_error = [&]
-	{
-		state_ = service_state::error;
-		return false;
-	};
-
 	switch (state_)
 	{
 		case service_state::unset:
 		{
-			const auto thread_id = std::this_thread::get_id( );
-			const auto mtx       = co_await lock_.scoped_lock_async( );
-
-			if (thread_id != std::this_thread::get_id( ))
+			const auto mtx = co_await lock_.scoped_lock_async( );
+			//check is other thread do all the work
+			switch (state_)
 			{
-				co_return state_ == service_state::loaded;
+				case service_state::loaded:
+					co_return true;
+				case service_state::error:
+					co_return false;
+				case service_state::unset:
+					break;
+				default:
+					runtime_assert("Preload: mutex released, but state isnt't sets correctly!");
+					std::terminate( );
 			}
 
-			co_await ex.schedule( );
+			//-----------
 
-			state_ = service_state::waiting;
-			for (const auto& d : deps_)
+			enum class deps_preload_info :uint8_t
 			{
-				if (!co_await d->load(ex))
+				NOTHING
+			  , ERROR
+			  , SOMETHING
+			};
+
+			using std::views::transform;
+
+			const auto have_deps_to_load = [&]
+			{
+				if (deps_.empty( ))
+					return deps_preload_info::NOTHING;
+
+				constexpr auto check_state = [](service_state target)
 				{
-					runtime_assert("Unable to load other services!");
-					co_return set_error( );
-				}
+					return [=](service_state checked)
+					{
+						return checked == target;
+					};
+				};
+
+				const auto states = deps_ | transform([](const stored_service& srv) { return srv->state( ); });
+				if (std::ranges::any_of(states, check_state(service_state::error)))
+					return deps_preload_info::ERROR;
+				if (std::ranges::all_of(states, check_state(service_state::loaded)))
+					return deps_preload_info::NOTHING;
+
+				return deps_preload_info::SOMETHING;
+			};
+
+			const auto load_deps = [&]( )-> load_result
+			{
+				state_ = service_state::waiting;
+				co_await ex.schedule( );
+				auto tasks_view      = deps_ | transform([&](const stored_service& srv)-> load_result { return srv->load(ex); });
+				const auto&& results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
+				co_return std::ranges::all_of(results, [](bool val) { return val == true; });
+			};
+
+			bool deps_loaded;
+			switch (have_deps_to_load( ))
+			{
+				case deps_preload_info::NOTHING:
+					deps_loaded = true;
+					break;
+				case deps_preload_info::ERROR:
+					deps_loaded = false;
+					break;
+				case deps_preload_info::SOMETHING:
+					deps_loaded = co_await load_deps( );
+					break;
+				default:
+					runtime_assert("Unknown state");
+					std::terminate( );
 			}
-			state_ = service_state::loading;
-			if (!co_await this->load_impl( ))
+
+			if (!deps_loaded)
+			{
+				runtime_assert("Unable to load other services!");
+				state_ = service_state::error;
+				co_return false;
+			}
+
+			const auto load_this = [&]( )-> load_result
+			{
+				state_ = service_state::loading;
+				co_await ex.schedule( );
+				co_return co_await this->load_impl( );
+			};
+
+			//-----------
+
+			if (!co_await load_this( ))
 			{
 				runtime_assert("Unable to load service!");
-				co_return set_error( );
+				state_ = service_state::error;
+				co_return false;
 			}
+
+			//-----------
+
 			state_ = service_state::loaded;
 			co_return true;
 		}
 		case service_state::waiting:
 		case service_state::loading:
 		{
+			//some other thread loads this service,
 			const auto mtx = co_await lock_.scoped_lock_async( );
-			co_return state_ == service_state::loaded;
+			switch (state_)
+			{
+				case service_state::loaded:
+					co_return true;
+				case service_state::error:
+					co_return false;
+				default:
+					runtime_assert("Postload: mutex released, but state isnt't sets correctly!");
+					std::terminate( );
+			}
 		}
 		case service_state::loaded:
 		{
@@ -126,27 +229,25 @@ service_base::load_result service_base::load(executor& ex) noexcept
 	}
 }
 
-std::span<const service_base::stored_service> service_base::services() const
+std::span<const service_impl::stored_service> service_impl::services( ) const
 {
 	return this->deps_;
 }
 
 //----
 
-std::string detail::make_log_message(const service_base* srv, log_type type, std::string_view extra)
+std::string detail::make_log_message(const service_impl* srv, log_type type, std::string_view extra)
 {
-	const auto info = srv->debug_info( );
-
 	const auto info_msg = [&]
 	{
 		switch (type)
 		{
-			case log_type::LOADED: return info.loaded_msg;
-			case log_type::SKIPPED: return info.skipped_msg;
-			case log_type::ERROR_: return info.error_msg;
-			default: throw;;
+			case log_type::LOADED: return srv->debug_msg_loaded( );
+			case log_type::SKIPPED: return srv->debug_msg_skipped( );
+			case log_type::ERROR_: return srv->debug_msg_error( );
+			default: throw;
 		}
 	};
 
-	return std::format("{} \"{}\": {}{}", info.obj_name, srv->name( ), info_msg( ), extra); //todo: colors
+	return std::format("{} \"{}\": {}{}", srv->debug_type( ), srv->name( ), info_msg( ), extra); //todo: colors
 }

@@ -1,0 +1,32 @@
+#pragma once
+#include "player.h"
+
+#include "cheat/core/service.h"
+
+#if CHEAT_MODE_INGAME && __has_include("cheat/csgo/generated/C_BasePlayer_h") && __has_include("cheat/csgo/generated/C_BaseAnimating_h")&& __has_include("cheat/csgo/generated/C_BaseEntity_h")
+#define CHEAT_FEATURE_PLAYER_LIST 1
+#else
+#define CHEAT_FEATURE_PLAYER_LIST 0
+#endif
+
+namespace cheat
+{
+	class players_list final : public service_instance_shared<players_list>
+	{
+	public:
+		players_list( );
+		~players_list( ) override;
+
+		void update( );
+
+		//const detail::players_filter& filter(const players_filter_flags& flags);
+
+	protected:
+		load_result load_impl( ) noexcept override;
+
+	private:
+		struct storage_type;
+		std::unique_ptr<storage_type> storage_;
+		//nstd::unordered_set<detail::players_filter> filter_cache__;
+	};
+}

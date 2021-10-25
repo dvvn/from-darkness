@@ -31,7 +31,7 @@ namespace cheat::gui
 		class tab_bar_with_pages;
 	}
 
-	class menu final : public service<menu>, public widgets::abstract_renderable
+	class menu final : public service_instance_shared<menu>, public widgets::abstract_renderable
 	{
 	public:
 		menu();

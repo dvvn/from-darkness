@@ -148,7 +148,7 @@ bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool bor
 #include "cheat/gui/tools/cached_text.h"
 
 #include <nstd/enum_tools.h>
-#include <nstd/runtime assert.h>
+#include <nstd/runtime_assert_fwd.h>
 #include <nstd/unistring.h>
 #include <nstd/smooth_value.h>
 
@@ -446,7 +446,7 @@ window_end_token_ex window_wrapped::operator()(bool close_button)
 	runtime_assert(show_anim.get_target( )->get_value( ) == 1);
 	window_end_token_ex token;
 
-	show_anim.update_end(show);
+	show_anim.set_new_range(show);
 	const auto updated = show_anim.update( );
 
 	if (visible( ))

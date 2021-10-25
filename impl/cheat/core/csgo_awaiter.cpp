@@ -1,19 +1,19 @@
 ﻿#include "csgo_awaiter.h"
 #include "console.h"
 
-#include "services loader.h"
+#include "services_loader.h"
 
+#ifndef CHEAT_GUI_TEST
 #include <nstd/os/module info.h>
 
 #include <filesystem>
 #include <functional>
-#ifndef CHEAT_GUI_TEST
 #include <thread>
 #endif
 
 using namespace cheat;
 
-service_base::load_result csgo_awaiter::load_impl()noexcept
+service_impl::load_result csgo_awaiter::load_impl( ) noexcept
 {
 #ifdef CHEAT_GUI_TEST
 	CHEAT_SERVICE_SKIPPED

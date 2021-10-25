@@ -1,9 +1,8 @@
 #pragma once
 
-
 #include "cheat/core/service.h"
 
-#include "nstd/runtime assert.h"
+#include <nstd/runtime_assert_fwd.h>
 
 #include <memory>
 
@@ -22,7 +21,7 @@ namespace cheat
 	{
 		class string_packer
 		{
-			void init();
+			void init( );
 
 		public:
 			using str = std::string;
@@ -45,20 +44,23 @@ namespace cheat
 			string_packer(wostr&& os);
 			string_packer(const wostr& os);
 
-			~string_packer();
+			~string_packer( );
 
 			struct data_type;
 			std::unique_ptr<data_type> packed;
 		};
 	}
 
-	class console final : public service<console>, nstd::rt_assert_handler
+	class console final : public service_instance_shared<console>
+#ifdef _DEBUG
+						, nstd::rt_assert_handler
+#endif
 	{
 	public:
 		class cache_type;
 
-		console();
-		~console() override;
+		console( );
+		~console( ) override;
 
 		void write(detail::string_packer&& str);
 		void write_line(detail::string_packer&& str);
@@ -66,8 +68,12 @@ namespace cheat
 		void write(wchar_t c) = delete;
 
 	protected:
-		load_result load_impl() noexcept override;
-		void handle_impl(const nstd::rt_assert_arg_t& expression, const nstd::rt_assert_arg_t& message, const info_type& info) noexcept override;
+		load_result load_impl( ) noexcept override;
+#ifdef _DEBUG
+		void handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept override;
+		void handle(const char* message, const std::source_location& location) noexcept override;
+		size_t id( ) const override;
+#endif
 
 	private:
 		bool allocated_ = false;

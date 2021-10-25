@@ -1,0 +1,103 @@
+#include "C_DangerZoneController.h"
+#include "cheat/netvars/config.h"
+#ifndef CHEAT_NETVARS_UPDATING
+#include "cheat/netvars/netvars.h"
+#include <nstd/address.h>
+#endif
+
+#include "cheat/csgo/CBaseHandle.hpp"
+#include "cheat/csgo/Vector.hpp"
+#include <array>
+
+using namespace cheat::csgo;
+
+bool& C_DangerZoneController::m_bDangerZoneControllerEnabled( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_bDangerZoneControllerEnabled");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+bool& C_DangerZoneController::m_bMissionControlledExplosions( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(bool*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_bMissionControlledExplosions");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<bool>( );
+#endif
+}
+float& C_DangerZoneController::m_flStartTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_flStartTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+float& C_DangerZoneController::m_flFinalExpansionTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_flFinalExpansionTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+cheat::csgo::Vector& C_DangerZoneController::m_vecEndGameCircleStart( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_vecEndGameCircleStart");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+cheat::csgo::Vector& C_DangerZoneController::m_vecEndGameCircleEnd( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::Vector*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_vecEndGameCircleEnd");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::Vector>( );
+#endif
+}
+std::array<int, 42>& C_DangerZoneController::m_DangerZones( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<int, 42>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_DangerZones");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<int, 42>>( );
+#endif
+}
+std::array<float, 5>& C_DangerZoneController::m_flWaveEndTimes( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(std::array<float, 5>*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_flWaveEndTimes");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<std::array<float, 5>>( );
+#endif
+}
+cheat::csgo::CBaseHandle& C_DangerZoneController::m_hTheFinalZone( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(cheat::csgo::CBaseHandle*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_DangerZoneController", "m_hTheFinalZone");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<cheat::csgo::CBaseHandle>( );
+#endif
+}

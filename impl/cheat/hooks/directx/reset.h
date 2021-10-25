@@ -11,14 +11,13 @@ using HRESULT = long;
 
 namespace cheat::hooks::directx
 {
-	class reset final : public service_hook_proxy<reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
+	struct reset final : hook_instance_shared<reset,__COUNTER__, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
 	{
-	public:
-		reset();
+		reset( );
 
 	protected:
-		load_result load_impl() noexcept override;
-		nstd::address get_target_method_impl() const override;
+		load_result load_impl( ) noexcept override;
+		nstd::address get_target_method_impl( ) const override;
 		void callback(D3DPRESENT_PARAMETERS*) override;
 	};
 }

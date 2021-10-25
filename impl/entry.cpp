@@ -1,4 +1,4 @@
-#include "cheat/core/services loader.h"
+#include "cheat/core/services_loader.h"
 #include "cheat/gui/menu.h"
 
 #include <cppcoro/static_thread_pool.hpp>
@@ -23,7 +23,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 		services_loader::get_ptr( )->load(hModule);
 		break;
 	case DLL_PROCESS_DETACH:
-		services_loader::get_ptr( )->reset( );
+		services_loader::get_ptr( )->unload( );
 		break;
 	}
 
@@ -45,8 +45,8 @@ static D3DPRESENT_PARAMETERS g_d3dpp = {};
 
 // Forward declarations of helper functions
 static bool CreateDeviceD3D(HWND hWnd);
-static void CleanupDeviceD3D();
-static void ResetDevice();
+static void CleanupDeviceD3D( );
+static void ResetDevice( );
 static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Main code
@@ -54,9 +54,9 @@ int main(int, char**)
 {
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
-	WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("ImGui Example"), nullptr};
+	const WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("ImGui Example"), nullptr};
 	::RegisterClassEx(&wc);
-	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("Dear ImGui DirectX9 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+	const HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("Dear ImGui DirectX9 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(hwnd))
@@ -70,11 +70,11 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	const auto try_load = []
+	constexpr auto try_load = []
 	{
-		using loader = cheat::services_loader;
-		auto executor = loader::make_executor( );
-		return cppcoro::sync_wait(loader::get_ptr( )->load(executor));
+		const auto loader   = cheat::services_loader::get_ptr( );
+		const auto executor = loader->get_executor( );
+		return sync_wait(loader->load(*executor));
 	};
 
 	if (!try_load( ))
@@ -141,7 +141,7 @@ int main(int, char**)
 													 (int)(clear_color.z * clear_color.w * 255.0f),
 													 (int)(clear_color.w * 255.0f));
 		g_pd3dDevice->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
-		HRESULT result = g_pd3dDevice->Present(nullptr, nullptr, nullptr, nullptr);
+		const HRESULT result = g_pd3dDevice->Present(nullptr, nullptr, nullptr, nullptr);
 
 		// Handle loss of D3D9 device
 		if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel( ) == D3DERR_DEVICENOTRESET)
@@ -150,7 +150,7 @@ int main(int, char**)
 
 _RESET:
 
-	cheat::services_loader::get_ptr( )->reset( );
+	cheat::services_loader::get_ptr( )->unload(  );
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );
@@ -182,7 +182,7 @@ bool CreateDeviceD3D(HWND hWnd)
 	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice));
 }
 
-void CleanupDeviceD3D()
+void CleanupDeviceD3D( )
 {
 	if (g_pd3dDevice)
 	{
@@ -196,10 +196,10 @@ void CleanupDeviceD3D()
 	}
 }
 
-void ResetDevice()
+void ResetDevice( )
 {
 	//ImGui_ImplDX9_InvalidateDeviceObjects( );
-	HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
+	const HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
 	if (hr == D3DERR_INVALIDCALL)
 		IM_ASSERT(0);
 	//ImGui_ImplDX9_CreateDeviceObjects( );
