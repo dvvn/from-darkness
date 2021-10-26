@@ -96,9 +96,9 @@ static const ifcs_entry_type& _Interface_entry(ifcs_storage_type& storage, modul
 
 	runtime_assert(entry.empty( ), "Entry already filled!");
 
-	const auto& exports = target_module->exports( );
-
-	const auto create_fn = exports.at("CreateInterface").addr;
+	auto& exports = target_module->exports( );
+	using namespace std::string_view_literals;
+	const auto create_fn = exports.at("CreateInterface"sv).addr;
 	const auto reg       = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
 
 	auto temp_entry = std::vector<ifcs_entry_type::value_type>( );
