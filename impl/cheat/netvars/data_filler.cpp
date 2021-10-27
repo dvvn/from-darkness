@@ -31,6 +31,9 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 
 bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_view& name, int offset, string_or_view_holder&& type)
 {
+	using namespace std::string_literals;
+	using namespace std::string_view_literals;
+
 	auto&& [entry, added] = storage.emplace(name);
 	if (added == false)
 	{
@@ -38,7 +41,7 @@ bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_
 		const std::string_view view = (type);
 		if (view != nstd::type_name<void*>)
 		{
-			auto& type_obj = entry->at("type").get_ref<std::string&>( );
+			auto& type_obj = entry->find("type"sv)->get_ref<std::string&>( );
 			if (view != type_obj)
 			{
 				std::string str = std::move(type);
@@ -50,14 +53,11 @@ bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_
 	}
 	else
 	{
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		std::string str = std::move(type);
-#endif
 		*entry =
 		{
-				{"offset", offset},
+				{"offset"s, offset},
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				{"type", std::move(str)}
+				{"type"s, std::move(type)}
 #endif
 		};
 	}

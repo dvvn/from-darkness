@@ -28,9 +28,6 @@ namespace cheat::detail::netvars
 		string_or_view_holder(std::string& str) = delete;
 		string_or_view_holder(const char*)      = delete;
 
-		bool view( );
-		bool view( ) const;
-
 		operator std::string&( ) &;
 		operator std::string( ) &&;
 		operator const std::string&( ) const;

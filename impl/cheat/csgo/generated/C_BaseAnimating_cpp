@@ -262,3 +262,23 @@ cheat::csgo::CUtlVector<cheat::csgo::CAnimationLayer>& C_BaseAnimating::m_AnimOv
 	return addr.ref<cheat::csgo::CUtlVector<cheat::csgo::CAnimationLayer>>( );
 #endif
 }
+float& C_BaseAnimating::m_flLastBoneSetupTime( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(float*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_flLastBoneSetupTime");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<float>( );
+#endif
+}
+int& C_BaseAnimating::m_iMostRecentModelBoneCounter( )
+{
+#ifdef CHEAT_NETVARS_UPDATING
+	return *(int*)nullptr;
+#else
+	static const auto offset = netvars::get_ptr( )->at("C_BaseAnimating", "m_iMostRecentModelBoneCounter");
+	auto addr = nstd::address(this).add(offset);
+	return addr.ref<int>( );
+#endif
+}

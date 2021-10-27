@@ -23,3 +23,5 @@ int& m_nHighlightColorR( );
 int& m_nHighlightColorG( );
 int& m_nHighlightColorB( );
 cheat::csgo::CUtlVector<cheat::csgo::CAnimationLayer>& m_AnimOverlays( );
+float& m_flLastBoneSetupTime( );
+int& m_iMostRecentModelBoneCounter( );

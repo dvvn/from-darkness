@@ -38,5 +38,6 @@ namespace cheat::csgo
 #endif
 
 		void UpdateClientSideAnimation( );
+		void InvalidateBoneCache();
 	};
 }

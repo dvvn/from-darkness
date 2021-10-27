@@ -15,7 +15,7 @@ using namespace cheat::csgo;
 
 string_or_view_holder::string_or_view_holder( )
 {
-	str_.emplace<std::string_view>( );
+	str_.emplace<std::string_view>("");
 }
 
 string_or_view_holder::string_or_view_holder(const std::string_view& sv)
@@ -26,17 +26,6 @@ string_or_view_holder::string_or_view_holder(const std::string_view& sv)
 string_or_view_holder::string_or_view_holder(std::string&& str)
 {
 	str_.emplace<std::string>(std::move(str));
-}
-
-bool string_or_view_holder::view( )
-{
-	return std::visit(nstd::overload([](std::string&) { return false; }
-								   , [](std::string_view&) { return true; }), str_);
-}
-
-bool string_or_view_holder::view( ) const
-{
-	return true;
 }
 
 string_or_view_holder::operator std::string&( ) &

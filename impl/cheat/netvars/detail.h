@@ -8,7 +8,6 @@
 #include <sstream>
 #endif
 
-
 namespace cheat::detail::netvars
 {
 #ifndef CHEAT_NETVARS_DUMPER_DISABLED
@@ -31,13 +30,12 @@ namespace cheat::detail::netvars
 			requires(std::constructible_from<Key, Key2> && std::constructible_from<T, T1>)
 		std::pair<iterator, bool> emplace(Key2&& key, T1&& t = {})
 		{
-			auto end   = this->end( );
 			auto found = this->find(key);
-			if (found != end)
+			if (found != this->end( ))
 				return {found, false};
 
-			Container::emplace_back(std::forward<Key2>(key), std::forward<T1>(t));
-			return {std::prev(end), true};
+			this->emplace_back(std::forward<Key2>(key), std::forward<T1>(t));
+			return {std::prev(this->end( )), true};
 		}
 
 		template <std::equality_comparable_with<Key> Key2>

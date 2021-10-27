@@ -349,12 +349,20 @@ void player::update(int index, float curtime, float correct)
 
 	const auto updated = tick.updated == update_state::NORMAL;
 
+	const auto setupbones_prepare = [&]( )
+	{
+		auto backups = std::make_tuple(nstd::memory_backup(entptr->m_InterpVarMap( ).m_nInterpolatedEntries, 0)
+									 , nstd::memory_backup(entptr->m_bClientSideAnimation( ), true));
+		entptr->InvalidateBoneCache( );
+		this->update_animations(true);
+		return backups;
+	};
+
 	if (!team.enemy)
 	{
 		if (updated)
 		{
-			const auto update_anims_backup = nstd::memory_backup(entptr->m_bClientSideAnimation( ), true);
-			update_animations(true);
+			const auto backups = setupbones_prepare( );
 			entptr->SetupBones(nullptr, -1, BONE_USED_BY_ANYTHING, curtime);
 		}
 	}
@@ -368,10 +376,8 @@ void player::update(int index, float curtime, float correct)
 
 		if (updated)
 		{
-			const auto update_anims_backup = nstd::memory_backup(entptr->m_bClientSideAnimation( ), true);
-			//--
-			auto& new_tick = store_tick( );
-			update_animations(true);
+			auto& new_tick     = store_tick( );
+			const auto backups = setupbones_prepare( );
 			new_tick.store_bones(entptr, curtime);
 		}
 

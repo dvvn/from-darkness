@@ -11,6 +11,7 @@
     <GenerateManifest>false</GenerateManifest>
     <OutDir>$(OutputDir)build\</OutDir>
     <_PropertySheetDisplayName>Project Settings</_PropertySheetDisplayName>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -36,6 +37,10 @@
     <Link>
       <EnableUAC>false</EnableUAC>
     </Link>
+    <ProjectReference />
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
     <BuildMacro Include="OutputDir">

@@ -61,24 +61,20 @@ int netvars::at([[maybe_unused]] const std::string_view& table, [[maybe_unused]]
 {
 #ifdef CHEAT_NETVARS_DUMPER_DISABLED
 	CHEAT_CALL_BLOCKER
-#else
-	for (auto& [table_stored, keys]: data_->storage.items( ))
-	{
-		if (table_stored != table)
-			continue;
-
-		for (const auto& [item_stored, data]: keys.items( ))
-		{
-			if (item_stored == item)
-				return data["offset"].get<int>( );
-		}
-
-		runtime_assert(std::format(__FUNCTION__": item {} not found in table {}", item, table).c_str( ));
-		return 0;
-	}
-	runtime_assert(std::format(__FUNCTION__": table {} not found", table).c_str( ));
-#endif
 	return 0;
+#else
+	const auto& storage = data_->storage;
+
+	const auto& target_class = storage.find(table);
+	runtime_assert(target_class!=storage.end());
+	const auto& netvar_info = target_class->find(item);
+	runtime_assert(netvar_info!=target_class->end());
+
+	using namespace std::string_view_literals;
+	const auto basic_offset = netvar_info->find("offset"sv)->get<int>( );
+
+	return basic_offset;
+#endif
 }
 
 CHEAT_REGISTER_SERVICE(netvars);
