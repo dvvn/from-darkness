@@ -1,13 +1,6 @@
 #pragma once
 #include "player.h"
-
 #include "cheat/core/service.h"
-
-#if CHEAT_MODE_INGAME && __has_include("cheat/csgo/generated/C_BasePlayer_h") && __has_include("cheat/csgo/generated/C_BaseAnimating_h")&& __has_include("cheat/csgo/generated/C_BaseEntity_h")
-#define CHEAT_FEATURE_PLAYER_LIST 1
-#else
-#define CHEAT_FEATURE_PLAYER_LIST 0
-#endif
 
 namespace cheat
 {
@@ -25,8 +18,7 @@ namespace cheat
 		load_result load_impl( ) noexcept override;
 
 	private:
-		struct storage_type;
-		std::unique_ptr<storage_type> storage_;
+		std::vector<player> storage_;
 		//nstd::unordered_set<detail::players_filter> filter_cache__;
 	};
 }

@@ -1,6 +1,6 @@
 #include "IConVar.hpp"
 
-#include "dhooks/hook_utils.h"
+#include "dhooks/helpers.h"
 
 using namespace cheat;
 using namespace csgo;

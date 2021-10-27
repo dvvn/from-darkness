@@ -1,7 +1,4 @@
 #include "tick_record.h"
-#include "players_list.h"
-
-#if CHEAT_FEATURE_PLAYER_LIST
 #include "player.h"
 
 #include "cheat/core/csgo_interfaces.h"
@@ -19,7 +16,7 @@ using namespace csgo;
 
 void tick_record::store_bones(C_BaseEntity* ent, std::optional<float> setup_curtime)
 {
-	runtime_assert(bones.empty(), "bones already cached");
+	runtime_assert(bones.empty( ), "bones already cached");
 
 	if (setup_curtime.has_value( ))
 	{
@@ -27,7 +24,6 @@ void tick_record::store_bones(C_BaseEntity* ent, std::optional<float> setup_curt
 	}
 
 	const auto& bones_cache = ent->m_BonesCache( );
-	//todo: check is vector allocate more than cache.size
 	bones.assign(bones_cache.begin( ), bones_cache.end( ));
 }
 
@@ -57,4 +53,3 @@ tick_record::tick_record(const player& holder)
 	this->sim_time         = *holder.simtime;
 	this->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
 }
-#endif

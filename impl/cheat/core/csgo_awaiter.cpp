@@ -15,10 +15,6 @@ using namespace cheat;
 
 service_impl::load_result csgo_awaiter::load_impl( ) noexcept
 {
-#ifdef CHEAT_GUI_TEST
-	CHEAT_SERVICE_SKIPPED
-#else
-
 	const auto modules = nstd::os::all_modules::get_ptr( );
 	modules->update(false);
 
@@ -31,7 +27,7 @@ service_impl::load_result csgo_awaiter::load_impl( ) noexcept
 	{
 		return modules->rfind([&](const nstd::os::module_info& info)
 		{
-			return info.full_path( ) == work_dir.native(  );
+			return info.full_path( ) == work_dir.native( );
 		}) != nullptr;
 	};
 
@@ -48,9 +44,7 @@ service_impl::load_result csgo_awaiter::load_impl( ) noexcept
 		//todo: cppcoro::cancellation_token
 		//todo: co_yield
 		if (services_loader::get_ptr( )->load_thread_stop_token( ).stop_requested( ))
-		{
 			CHEAT_SERVICE_NOT_LOADED("Loading thread stopped");
-		}
 
 		modules->update(true);
 
@@ -58,7 +52,6 @@ service_impl::load_result csgo_awaiter::load_impl( ) noexcept
 			CHEAT_SERVICE_LOADED
 	}
 	while (true);
-#endif
 }
 
 CHEAT_REGISTER_SERVICE(csgo_awaiter);

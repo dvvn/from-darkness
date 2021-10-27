@@ -1,9 +1,6 @@
 #include "C_Tablet.h"
-#include "cheat/netvars/config.h"
-#ifndef CHEAT_NETVARS_UPDATING
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
-#endif
 
 #include "cheat/csgo/Vector.hpp"
 #include "cheat/csgo/Vector.hpp"
@@ -13,131 +10,79 @@ using namespace cheat::csgo;
 
 std::array<float, 4>& C_Tablet::m_flUpgradeExpirationTime( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<float, 4>*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flUpgradeExpirationTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 4>>( );
-#endif
 }
 std::array<int, 42>& C_Tablet::m_vecLocalHexFlags( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 42>*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecLocalHexFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 42>>( );
-#endif
 }
 int& C_Tablet::m_nContractKillGridIndex( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nContractKillGridIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 int& C_Tablet::m_nContractKillGridHighResIndex( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nContractKillGridHighResIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 bool& C_Tablet::m_bTabletReceptionIsBlocked( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_bTabletReceptionIsBlocked");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
 }
 float& C_Tablet::m_flScanProgress( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flScanProgress");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_Tablet::m_flBootTime( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flBootTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_Tablet::m_flShowMapTime( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_flShowMapTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 std::array<int, 8>& C_Tablet::m_vecNotificationIds( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 8>*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecNotificationIds");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 8>>( );
-#endif
 }
 std::array<float, 8>& C_Tablet::m_vecNotificationTimestamps( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<float, 8>*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecNotificationTimestamps");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 8>>( );
-#endif
 }
 std::array<cheat::csgo::Vector, 24>& C_Tablet::m_vecPlayerPositionHistory( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<cheat::csgo::Vector, 24>*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecPlayerPositionHistory");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<cheat::csgo::Vector, 24>>( );
-#endif
 }
 int& C_Tablet::m_nLastPurchaseIndex( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_nLastPurchaseIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 cheat::csgo::Vector& C_Tablet::m_vecNearestMetalCratePos( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Tablet", "m_vecNearestMetalCratePos");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
-#endif
 }

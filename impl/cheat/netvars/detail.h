@@ -1,19 +1,15 @@
 ﻿#pragma once
 
-#include "config.h"
-#ifndef CHEAT_NETVARS_DUMPER_DISABLED
 #include <nlohmann/json.hpp>
 
 #include <filesystem>
 #include <sstream>
-#endif
 
 namespace cheat::detail::netvars
 {
-#ifndef CHEAT_NETVARS_DUMPER_DISABLED
-	template <class Key, class T, class IgnoredLess = std::less<Key>    //
-			, class Allocator = std::allocator<std::pair<const Key, T>> //
-			, class Base = nlohmann::ordered_map<Key, T, IgnoredLess, Allocator>>
+	template <class Key, class Value, class IgnoredLess = std::less<Key>    //
+			, class Allocator = std::allocator<std::pair<const Key, Value>> //
+			, class Base = nlohmann::ordered_map<Key, Value, IgnoredLess, Allocator>>
 	struct ordered_map_json : Base
 	{
 		using typename Base::key_type;
@@ -26,15 +22,15 @@ namespace cheat::detail::netvars
 		using typename Base::size_type;
 		using typename Base::value_type;
 
-		template <std::equality_comparable_with<Key> Key2, typename T1 = T>
-			requires(std::constructible_from<Key, Key2> && std::constructible_from<T, T1>)
-		std::pair<iterator, bool> emplace(Key2&& key, T1&& t = {})
+		template <std::equality_comparable_with<Key> Key2, typename Value1 = Value>
+			requires(std::constructible_from<Key, Key2> && std::constructible_from<Value, Value1>)
+		std::pair<iterator, bool> emplace(Key2&& key, Value1&& t = {})
 		{
 			auto found = this->find(key);
 			if (found != this->end( ))
 				return {found, false};
 
-			this->emplace_back(std::forward<Key2>(key), std::forward<T1>(t));
+			this->emplace_back(std::forward<Key2>(key), std::forward<Value1>(t));
 			return {std::prev(this->end( )), true};
 		}
 
@@ -69,14 +65,26 @@ namespace cheat::detail::netvars
 	{
 	public:
 		~lazy_fs_creator( );
-		lazy_fs_creator(const path& path);
+
+		template <typename T>
+			requires(std::constructible_from<path, T>)
+		lazy_fs_creator(T&& source) noexcept(std::is_rvalue_reference_v<decltype(source)>)
+			: path(std::forward<T>(source))
+		{
+		}
 	};
 
 	class lazy_fs_remover final : public std::filesystem::path
 	{
 	public:
 		~lazy_fs_remover( );
-		lazy_fs_remover(const path& path, bool all);
+
+		template <typename T>
+			requires(std::constructible_from<path, T>)
+		lazy_fs_remover(T&& source, bool all) noexcept(std::is_rvalue_reference_v<decltype(source)>)
+			: path(std::forward<T>(source)), all_(all)
+		{
+		}
 
 	private:
 		bool all_;
@@ -89,15 +97,11 @@ namespace cheat::detail::netvars
 		std::vector<lazy_fs_remover> remove;
 	};
 
-	using netvars_storage = nlohmann::basic_json<ordered_map_json>;
-
-#endif
+	using netvars_storage = nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, ptrdiff_t, size_t, float>;
 
 	struct netvars_data
 	{
-#ifndef CHEAT_NETVARS_DUMPER_DISABLED
 		lazy_files_storage lazy;
 		netvars_storage storage;
-#endif
 	};
 }

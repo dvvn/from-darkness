@@ -1,13 +1,8 @@
-#if __has_include("../generated/C_BaseAnimating_cpp")
 #include "../generated/C_BaseAnimating_cpp"
-#else
-#include "C_BaseAnimating.h"
-using namespace cheat::csgo;
-#endif
-#ifndef CHEAT_GUI_TEST
+
 #include "cheat/core/csgo_modules.h"
-#include <dhooks/hook_utils.h>
-#endif
+
+#include <dhooks/helpers.h>
 
 void C_BaseAnimating::UpdateClientSideAnimation( )
 {

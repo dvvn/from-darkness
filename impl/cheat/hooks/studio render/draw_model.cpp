@@ -9,9 +9,4 @@ void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& in
 						  float* flex_weights, float* flex_delayed_weights,
 						  const Vector& model_origin, DrawModelFlags_t flags)
 {
-#if !CHEAT_MODE_INGAME
-	CHEAT_CALL_BLOCKER
-#else
-
-#endif
 }

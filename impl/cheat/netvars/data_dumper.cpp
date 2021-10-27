@@ -1,7 +1,4 @@
-﻿#include "config.h"
-
-#ifndef CHEAT_NETVARS_DUMPER_DISABLED
-#include "data_dumper.h"
+﻿#include "data_dumper.h"
 
 #include "cheat/core/console.h"
 #include "cheat/core/csgo_interfaces.h"
@@ -36,7 +33,7 @@ log_info netvars::log_netvars(const netvars_storage& netvars_data)
 {
 	const std::filesystem::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
 
-	const auto dirs_created = create_directories(dumps_dir);
+	[[maybe_unused]] const auto dirs_created = create_directories(dumps_dir);
 
 	constexpr auto get_file_name = []( )-> std::filesystem::path
 	{
@@ -47,9 +44,10 @@ log_info netvars::log_netvars(const netvars_storage& netvars_data)
 	};
 
 	const auto netvars_dump_file = dumps_dir / get_file_name( );
-	const auto file_exists       = !dirs_created && exists(netvars_dump_file);
-
+#if !CHEAT_NETVARS_UPDATING
+	const auto file_exists = !dirs_created && exists(netvars_dump_file);
 	if (!file_exists)
+#endif
 	{
 		std::ofstream(netvars_dump_file) << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << netvars_data;
 		CHEAT_CONSOLE_LOG("Netvars dump done");
@@ -58,6 +56,7 @@ log_info netvars::log_netvars(const netvars_storage& netvars_data)
 
 	//------
 
+	// ReSharper disable CppUnreachableCode
 	std::ostringstream netvars_data_as_text;
 	netvars_data_as_text << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << netvars_data;
 
@@ -70,6 +69,7 @@ log_info netvars::log_netvars(const netvars_storage& netvars_data)
 
 	CHEAT_CONSOLE_LOG("Netvars dump skipped");
 	return log_info::skipped;
+	// ReSharper restore CppUnreachableCode
 }
 
 static auto _Get_includes(std::string_view type, bool detect_duplicates)
@@ -246,10 +246,6 @@ _WORK:
 
 		const auto source_add_dynamic_includes = [&]
 		{
-#if !defined(CHEAT_NETVARS_RESOLVE_TYPE)
-			runtime_assert("Unable to get dynamic includes!");
-#else
-
 			std::vector<std::string> includes_local, includes_global;
 			auto includes_cache = robin_hood::unordered_set<std::string>( );
 
@@ -261,86 +257,6 @@ _WORK:
 				//netvar type already processed
 				if (!includes_cache.emplace(netvar_type).second)
 					continue;
-#if 0
-
-				if (netvar_type.starts_with("std"))
-				{
-					const auto decayed = nstd::drop_namespaces(netvar_type);
-					includes.emplace(decayed.substr(0, decayed.find('<')), true);
-				}
-				else if (netvar_type.starts_with("cheat"))
-				{
-					std::wstring full_path;
-					std::wstring_view path_to_file;
-
-#if 0
-					full_path.reserve(netvar_type.size());
-					for (auto itr = netvar_type.begin(); itr != netvar_type.end(); ++itr)
-					{
-						const auto c = *itr;
-						if (c == ':')
-						{
-							++itr;
-							full_path += std::filesystem::path::preferred_separator;
-							path_to_file = full_path;
-						}
-						else
-						{
-							full_path += c;
-						}
-					}
-#else
-					runtime_assert(netvar_type.starts_with("cheat::csgo::"));
-
-					path_to_file = STRINGIZE_PATH(cheat / sdk / );
-					full_path.append(path_to_file);
-					auto type_name = nstd::drop_namespaces(netvar_type);
-					const auto template_start = type_name.find('<');
-					if (template_start != type_name.npos) //todo: resolve & include template parameters
-						type_name = type_name.substr(0, template_start);
-
-					full_path.append(type_name.begin(), type_name.end());
-
-#endif
-					const auto test_file_name = std::wstring_view(full_path).substr(path_to_file.size());
-					const auto checked_folder = STRINGIZE_PATH(_CONCAT(VS_SolutionDir, \impl\)) / std::filesystem::path(path_to_file);
-
-					for (auto& entry : std::filesystem::directory_iterator(checked_folder))
-					{
-						if (!entry.is_regular_file())
-							continue;
-
-						auto full_file_name = std::wstring_view(entry.path().native()).substr(checked_folder.native().size());
-						if (!full_file_name.starts_with(test_file_name))
-							continue;
-
-						auto extension = full_file_name.substr(test_file_name.size());
-						if (extension[0] != L'.')
-							continue;
-
-						if (extension[1] != L'h') //.cpp .cxx etc
-							continue;
-
-						std::string include;
-
-						include.reserve(full_path.size() + extension.size());
-						include.append(full_path.begin(), full_path.end());
-						include.append(extension.begin(), extension.end());
-
-						includes.emplace(std::move(include), false);
-						break;
-					}
-				}
-				else
-				{
-					runtime_assert(netvar_type.find("::") == netvar_type.npos, "Unknown namespace detected");
-
-					if (netvar_type.ends_with("_t"))
-						includes.emplace("cstdint", true);
-				}
-
-#endif
-
 				if (netvar_type.find(':') == netvar_type.npos && !netvar_type.ends_with("_t"))
 					continue;
 
@@ -420,15 +336,11 @@ _WORK:
 
 			if (!empty)
 				source << __New_line;
-#endif
 		};
 
 		source_add_include(CLASS_NAME + ".h");
-		source_add_include("cheat/netvars/config.h");
-		source << "#ifndef CHEAT_NETVARS_UPDATING" << __New_line;
 		source_add_include("cheat/netvars/netvars.h");
 		source_add_include("nstd/address.h", true);
-		source << "#endif" << __New_line;
 		source << __New_line;
 
 		source_add_dynamic_includes( );
@@ -456,21 +368,16 @@ _WORK:
 			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, NETVAR_NAME) << __New_line;
 			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, CLASS_NAME, NETVAR_NAME) << __New_line;
 			source << '{' << __New_line;
-			source << "#ifdef CHEAT_NETVARS_UPDATING" << __New_line;
-			source << __Tab << std::format("return {}({}*)nullptr;", netvar_type_pointer ? "" : "*", netvar_type) << __New_line;
-			source << "#else" << __New_line;
 #ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
 			source << __Tab << format("auto addr = {}(this).add({});", _Address_class, netvar_offset) << __New_line;
 #else
-			source
-					<< __Tab
+			source << __Tab
 					<< "static const auto offset = netvars::get_ptr( )->at"
 					<< std::format("(\"{}\", \"{}\");", CLASS_NAME, NETVAR_NAME)
 					<< __New_line;
 			source << __Tab << "auto addr = " << _Address_class << "(this).add(offset);" << __New_line;
 #endif
 			source << __Tab << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
-			source << "#endif" << __New_line;
 			source << '}' << __New_line;
 		}
 
@@ -487,4 +394,3 @@ _WORK:
 
 	CHEAT_CONSOLE_LOG("Netvars classes generation done");
 }
-#endif

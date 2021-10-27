@@ -60,25 +60,8 @@ namespace cheat::detail
 			return _Count_pointers<std::remove_pointer_t<T>>( ) + 1;
 	}
 
-	class csgo_interface_base
-	{
-	protected:
-		virtual ~csgo_interface_base( ) = default;
-
-	public:
-		nstd::address addr( ) const;
-
-		csgo_interface_base& operator=(const nstd::address& addr);
-
-	private:
-		void Set_result_assert_( ) const;
-
-	protected:
-		nstd::address result_;
-	};
-
 	template <class To, size_t Ptrs>
-	class csgo_interface final : public csgo_interface_base
+	class csgo_interface final
 	{
 	public:
 		using raw_pointer = decltype(detail::_Generate_pointer<To, Ptrs>( ));
@@ -86,14 +69,33 @@ namespace cheat::detail
 		using reference = To&;
 		using value_type = To;
 
-		csgo_interface& operator=(const nstd::address& addr)
+		bool empty( ) const
 		{
-			*static_cast<csgo_interface_base*>(this) = addr;
-			return *this;
+			return result_ == 0u;
+		}
+
+		nstd::address addr( ) const
+		{
+			return result_;
+		}
+
+		nstd::address vfunc(ptrdiff_t index) const
+		{
+			return result_.ref<ptrdiff_t*>( )[index];
+		}
+
+		void operator=(const nstd::address& addr)
+		{
+#ifdef _DEBUG
+			if (!empty( ))
+				throw;
+#endif
+
+			result_ = addr;
 		}
 
 	private:
-		pointer Pointer_( ) const
+		pointer get_pointer( ) const
 		{
 			if constexpr (constexpr size_t deref = detail::_Count_pointers<raw_pointer>( ) - 1; deref > 0)
 				return result_.deref(deref).cast<pointer>( );
@@ -101,12 +103,12 @@ namespace cheat::detail
 				return result_.cast<pointer>( );
 		}
 
-		reference Reference_( )
+		reference get_reference( )
 		{
-			return *Pointer_( );
+			return *get_pointer( );
 		}
 
-		bool Is_null_( ) const
+		bool is_null( ) const
 		{
 			if (this->empty( ))
 				return true;
@@ -127,52 +129,23 @@ namespace cheat::detail
 		}
 
 	public:
-		bool operator==(nullptr_t) const
-		{
-			return Is_null_( );
-		}
+		bool operator==(nullptr_t) const { return is_null( ); }
+		bool operator!=(nullptr_t) const { return !(*this == nullptr); }
 
-		bool operator!=(nullptr_t) const
-		{
-			return !((*this) == nullptr);
-		}
+		/*template <std::derived_from<To> T = To>
+		bool operator==(const T* other) const { return get_pointer( ) != other; }
 
 		template <std::derived_from<To> T = To>
-		bool operator==(const T* other) const
-		{
-			return Pointer_( ) != other;
-		}
+		bool operator!=(const T* other) const { return !(*this == other); }*/
 
-		template <std::derived_from<To> T = To>
-		bool operator!=(const T* other) const
-		{
-			return !((*this) == other);
-		}
+		operator pointer( ) const { return get_pointer( ); }
 
-		operator To*( ) const
-		{
-			return Pointer_( );
-		}
+		pointer operator->( ) const { return get_pointer( ); }
+		reference operator*( ) { return get_reference( ); }
+		pointer get( ) const { return get_pointer( ); }
 
-		To* operator->( ) const
-		{
-			return Pointer_( );
-		}
-
-		To& operator*( )
-		{
-			return Reference_( );
-		}
-
-		To* get( ) const
-		{
-			return Pointer_( );
-		}
-
-		bool empty( ) const
-		{
-			return result_ == 0u;
-		}
+	private:
+		nstd::address result_;
 	};
 }
 
@@ -221,11 +194,5 @@ namespace cheat
 		ifc<csgo::IStudioRender> studio_renderer;
 		ifc<csgo::C_CSPlayer, 2> local_player;
 		ifc<IDirect3DDevice9> d3d_device;
-	};
-
-	template <typename T, typename I = csgo_interfaces>
-	concept known_csgo_interface = requires
-	{
-		{ I::T }->std::derived_from<detail::csgo_interface_base>;
 	};
 }

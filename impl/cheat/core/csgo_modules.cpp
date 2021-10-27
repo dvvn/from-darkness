@@ -1,20 +1,16 @@
 #include "csgo_modules.h"
 
-#ifndef CHEAT_GUI_TEST
 #include "console.h"
 
 #include "cheat/csgo/IAppSystem.hpp"
 
 #include <nstd/signature.h>
 #include <nstd/os/module info.h>
-
+#include <nstd/unistring.h>
 #include <robin_hood.h>
 
 #include <format>
-
-#ifdef CHEAT_HAVE_CONSOLE
 #include <sstream>
-#endif
 
 using nstd::os::module_info;
 using cheat::csgo::InstantiateInterfaceFn;
@@ -23,33 +19,29 @@ using namespace cheat::csgo_modules;
 template <typename E, typename Tr>
 static module_info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
 {
-	constexpr E dot_dll_arr[] = {'.', 'd', 'l', 'l', '\0'};
-	constexpr auto dot_dll    = std::basic_string_view<E, Tr>(dot_dll_arr);
-
-	auto target_name_correct = [&]
+	const auto do_find = []<typename T>(T&& str)
 	{
-		if constexpr (std::same_as<E, wchar_t>)
-			return target_name;
-		else
-			return std::wstring(target_name.begin( ), target_name.end( )).append(dot_dll.begin( ), dot_dll.end( ));
-	}( );
-
-	auto compare = [&](const std::wstring& full_name)
-	{
-		if constexpr (std::same_as<E, wchar_t>)
+		return nstd::os::all_modules::get_ptr( )->find([&](const module_info& info)-> bool
 		{
-			return full_name.size( ) == target_name.size( ) + dot_dll.size( )
-				   && full_name.starts_with(target_name_correct)
-				   && full_name.ends_with(dot_dll);
-		}
-		else
-			return full_name == target_name_correct;
+			return std::ranges::equal(info.name( ), str);
+		});
 	};
 
-	return nstd::os::all_modules::get_ptr( )->find([&](const module_info& info)-> bool
+	if (target_name.rfind(E('.')) == target_name.npos)
 	{
-		return compare(info.name( )) == true;
-	});
+		using ustring = nstd::unistring<wchar_t>;
+
+		constexpr ustring::value_type dot_dll_arr[] = {'.', 'd', 'l', 'l'};
+		constexpr auto dot_dll                      = std::basic_string_view(dot_dll_arr, 4);
+
+		const auto str = ustring(target_name).append(dot_dll);
+		return do_find(str);
+	}
+
+	if constexpr (std::same_as<E, wchar_t>)
+		return do_find(target_name);
+	else
+		return do_find(nstd::unistring<wchar_t>(target_name));
 }
 
 module_info* detail::get_module_impl(const std::string_view& target_name)
@@ -63,7 +55,7 @@ nstd::address detail::find_signature_impl(module_info* md, const std::string_vie
 	const auto ret   = md->mem_block( ).find_block(bytes);
 	if (!ret.has_value( ))
 	{
-		CHEAT_CONSOLE_LOG(std::format(L"{} -> signature {} not found", md->name( ), std::wstring(sig.begin( ), sig.end( ))));
+		CHEAT_CONSOLE_LOG(std::format(L"{} -> signature {} not found", md->name( ), (std::wstring(sig.begin( ),sig.end( )))));
 		return nullptr;
 	}
 
@@ -212,4 +204,3 @@ void* detail::find_vtable_pointer(module_info* from, const std::string_view& cla
 	CHEAT_CONSOLE_LOG(found_msg( ));
 	return addr.ptr<void>( );
 }
-#endif

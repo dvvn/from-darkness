@@ -1,9 +1,6 @@
 #include "C_TEBloodSprite.h"
-#include "cheat/netvars/config.h"
-#ifndef CHEAT_NETVARS_UPDATING
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
-#endif
 
 #include "cheat/csgo/Vector.hpp"
 
@@ -11,91 +8,55 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEBloodSprite::m_vecOrigin( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
-#endif
 }
 cheat::csgo::Vector& C_TEBloodSprite::m_vecDirection( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(cheat::csgo::Vector*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "m_vecDirection");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
-#endif
 }
 int& C_TEBloodSprite::r( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "r");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 int& C_TEBloodSprite::g( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "g");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 int& C_TEBloodSprite::b( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "b");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 int& C_TEBloodSprite::a( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "a");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 int& C_TEBloodSprite::m_nSprayModel( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "m_nSprayModel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 int& C_TEBloodSprite::m_nDropModel( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "m_nDropModel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 int& C_TEBloodSprite::m_nSize( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_TEBloodSprite", "m_nSize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }

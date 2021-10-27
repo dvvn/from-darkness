@@ -19,7 +19,6 @@
     <ClCompile Include="cheat\csgo\Color.cpp" />
     <ClCompile Include="cheat\csgo\IBaseClientDll.cpp" />
     <ClCompile Include="cheat\csgo\IConVar.cpp" />
-    <ClCompile Include="cheat\csgo\ICvar.cpp" />
     <ClCompile Include="cheat\csgo\IEngineTrace.cpp" />
     <ClCompile Include="cheat\csgo\QAngle.cpp" />
     <ClCompile Include="cheat\csgo\UtlString.cpp" />
@@ -111,7 +110,6 @@
     <ClInclude Include="cheat\csgo\IClientUnknown.hpp" />
     <ClInclude Include="cheat\csgo\ICollideable.hpp" />
     <ClInclude Include="cheat\csgo\IConVar.hpp" />
-    <ClInclude Include="cheat\csgo\ICvar.hpp" />
     <ClInclude Include="cheat\csgo\IEngineSound.hpp" />
     <ClInclude Include="cheat\csgo\IEngineTrace.hpp" />
     <ClInclude Include="cheat\csgo\IGameEventmanager.hpp" />
@@ -142,7 +140,6 @@
     <ClInclude Include="cheat\csgo\Vector4D.hpp" />
     <ClInclude Include="cheat\csgo\VMatrix.hpp" />
     <ClInclude Include="cheat\features\aimbot.h" />
-    <ClInclude Include="cheat\features\base.h" />
     <ClInclude Include="cheat\gui\tools\animation_tools.h" />
     <ClInclude Include="cheat\gui\tools\button_info.h" />
     <ClInclude Include="cheat\gui\tools\cached_text.h" />
@@ -156,7 +153,6 @@
     <ClInclude Include="cheat\gui\imgui_context.h" />
     <ClInclude Include="cheat\gui\menu.h" />
     <ClInclude Include="cheat\hooks\c_base_entity\estimate_abs_velocity.h" />
-    <ClInclude Include="cheat\hooks\c_base_entity\should_interpolate.h" />
     <ClInclude Include="cheat\hooks\c_baseanimating\should_skip_animation_frame.h" />
     <ClInclude Include="cheat\hooks\c_baseanimating\standard_blending_rules.h" />
     <ClInclude Include="cheat\hooks\c_csplayer\do_extra_bone_processing.h" />
@@ -168,7 +164,6 @@
     <ClInclude Include="cheat\hooks\vgui surface\lock_cursor.h" />
     <ClInclude Include="cheat\hooks\winapi\wndproc.h" />
     <ClInclude Include="cheat\hooks\base.h" />
-    <ClInclude Include="cheat\netvars\config.h" />
     <ClInclude Include="cheat\netvars\data_dumper.h" />
     <ClInclude Include="cheat\netvars\data_filler.h" />
     <ClInclude Include="cheat\netvars\data_handmade.h" />

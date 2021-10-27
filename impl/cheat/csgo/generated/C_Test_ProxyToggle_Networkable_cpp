@@ -1,19 +1,12 @@
 #include "C_Test_ProxyToggle_Networkable.h"
-#include "cheat/netvars/config.h"
-#ifndef CHEAT_NETVARS_UPDATING
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
-#endif
 
 using namespace cheat::csgo;
 
 int& C_Test_ProxyToggle_Networkable::m_WithProxy( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_Test_ProxyToggle_Networkable", "m_WithProxy");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }

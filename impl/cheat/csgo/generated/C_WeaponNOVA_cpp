@@ -1,19 +1,12 @@
 #include "C_WeaponNOVA.h"
-#include "cheat/netvars/config.h"
-#ifndef CHEAT_NETVARS_UPDATING
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
-#endif
 
 using namespace cheat::csgo;
 
 int& C_WeaponNOVA::m_reloadState( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_WeaponNOVA", "m_reloadState");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }

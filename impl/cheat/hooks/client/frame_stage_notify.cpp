@@ -10,9 +10,6 @@ using namespace hooks::client;
 
 void frame_stage_notify::callback(ClientFrameStage_t stage)
 {
-#if !CHEAT_MODE_INGAME
-	CHEAT_CALL_BLOCKER
-#else
 	switch (stage)
 	{
 		case FRAME_UNDEFINED: break;
@@ -29,5 +26,4 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 			//runtime_assert("Unknown frame stage detectetd!");
 			break;
 	}
-#endif
 }

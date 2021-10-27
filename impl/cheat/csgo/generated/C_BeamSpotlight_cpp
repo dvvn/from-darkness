@@ -1,89 +1,54 @@
 #include "C_BeamSpotlight.h"
-#include "cheat/netvars/config.h"
-#ifndef CHEAT_NETVARS_UPDATING
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
-#endif
 
 using namespace cheat::csgo;
 
 int& C_BeamSpotlight::m_nHaloIndex( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_nHaloIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 bool& C_BeamSpotlight::m_bSpotlightOn( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_bSpotlightOn");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
 }
 bool& C_BeamSpotlight::m_bHasDynamicLight( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_bHasDynamicLight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
 }
 float& C_BeamSpotlight::m_flSpotlightMaxLength( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flSpotlightMaxLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_BeamSpotlight::m_flSpotlightGoalWidth( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flSpotlightGoalWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_BeamSpotlight::m_flHDRColorScale( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flHDRColorScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 int& C_BeamSpotlight::m_nRotationAxis( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_nRotationAxis");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 float& C_BeamSpotlight::m_flRotationSpeed( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flRotationSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }

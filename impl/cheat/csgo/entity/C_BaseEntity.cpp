@@ -1,16 +1,16 @@
-#if __has_include("../generated/C_BaseEntity_cpp")
+#if !CHEAT_NETVARS_UPDATING
 #include "../generated/C_BaseEntity_cpp"
 #else
 #include "C_BaseEntity.h"
 using namespace cheat::csgo;
 #endif
 
-#include "cheat/core/csgo_interfaces.h"
+#include <dhooks/helpers.h>
 
-#include "cheat/csgo/IClientEntityList.hpp"
-#include "cheat/core/csgo_modules.h"
-
-#include <dhooks/hook_utils.h>
+namespace cheat::csgo
+{
+	struct datamap_t;
+}
 
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {

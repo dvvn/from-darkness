@@ -1,5 +1,2 @@
-#if __has_include("../generated/C_BaseCombatWeapon_cpp")
+// ReSharper disable once CppUnusedIncludeDirective
 #include "../generated/C_BaseCombatWeapon_cpp"
-#else
-#include "C_BaseCombatWeapon.h"
-#endif

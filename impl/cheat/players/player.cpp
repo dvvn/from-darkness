@@ -1,22 +1,17 @@
 #include "player.h"
-#include "players_list.h"
-#if CHEAT_FEATURE_PLAYER_LIST
-
 #include "cheat/core/csgo_interfaces.h"
 #include "cheat/core/csgo_modules.h"
 
 #include "cheat/csgo/CClientState.hpp"
-#include "cheat/csgo/GlobalVars.hpp"
 #include "cheat/csgo/IClientEntityList.hpp"
 #include "cheat/csgo/Studio.hpp"
 
 #include "cheat/utils/game.h"
 
 #include <nstd/memory backup.h>
+#include <nstd/runtime_assert_fwd.h>
 
 #include <excpt.h>
-
-#include <nstd/runtime_assert_fwd.h>
 
 using namespace cheat;
 using namespace detail;
@@ -228,7 +223,8 @@ player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
 void player::update(int index, float curtime, float correct)
 {
 	//note: if fps < server tickount, all next calculations are wrong!!!
-	//if we got low fps, invalidate bones cache or it never updates (todo: invalidate always)!
+	//if we got low fps, invalidate bones cache or it never updates!
+	//update: after invalidate it updates pretty decent
 
 	const auto ent = static_cast<C_CSPlayer*>(csgo_interfaces::get_ptr( )->entity_list->GetClientEntity(index));
 	if (ent != entptr)
@@ -465,4 +461,3 @@ void player::update_animations(bool backup_layers)
 
 	entptr->UpdateClientSideAnimation( );
 }
-#endif

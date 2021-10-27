@@ -9,11 +9,121 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="NetvarsDump|Win32">
+      <Configuration>NetvarsDump</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deps\deps_lib.vcxproj">
+      <Project>{2c54cc99-fd10-425b-8439-62695be7bb6c}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}</ProjectGuid>
+    <Keyword>QtVS_v304</Keyword>
+    <RootNamespace>Exetemplate</RootNamespace>
+    <ProjectName>impl</ProjectName>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="..\deps\cppcoro_include.vcxitems" Label="Shared" />
+    <Import Project="..\deps\json_include.vcxitems" Label="Shared" />
+    <Import Project="..\deps\nstd_include.vcxitems" Label="Shared" />
+    <Import Project="..\deps\robin_hood_hashing_include.vcxitems" Label="Shared" />
+    <Import Project="..\deps\utf8_convertor_include.vcxitems" Label="Shared" />
+    <Import Project="..\deps\veque_include.vcxitems" Label="Shared" />
+    <Import Project="..\deps\imgui_include.vcxitems" Label="Shared" />
+    <Import Project="..\deps\dhooks_include.vcxitems" Label="Shared" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="..\deps\imgui_config.props" />
+    <Import Project="..\Debug Settings.props" />
+    <Import Project="impl_config.props" />
+    <Import Project="..\Project Settings.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'" Label="PropertySheets">
+    <Import Project="..\deps\imgui_config.props" />
+    <Import Project="..\Debug Settings.props" />
+    <Import Project="impl_config.props" />
+    <Import Project="..\Project Settings.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">
+    <Import Project="..\deps\imgui_config.props" />
+    <Import Project="..\Debug Settings.props" />
+    <Import Project="impl_config.props" />
+    <Import Project="..\Project Settings.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="..\deps\imgui_config.props" />
+    <Import Project="..\Release Settings.props" />
+    <Import Project="impl_config.props" />
+    <Import Project="..\Project Settings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile />
+    <Link />
+    <ClCompile />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">
+    <ClCompile />
+    <Link />
+    <ClCompile />
+    <ClCompile>
+      <PreprocessorDefinitions>CHEAT_NETVARS_UPDATING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">
+    <ClCompile />
+    <Link />
+    <ClCompile />
+    <ClCompile>
+      <PreprocessorDefinitions>CHEAT_GUI_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile />
+    <Link />
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
   <ItemGroup>
     <ClCompile Include="cheat\core\console.cpp" />
     <ClCompile Include="cheat\core\csgo_awaiter.cpp" />
@@ -24,16 +134,35 @@
     <ClCompile Include="cheat\csgo\CBaseHandle.cpp" />
     <ClCompile Include="cheat\csgo\CInput.cpp" />
     <ClCompile Include="cheat\csgo\Color.cpp" />
-    <ClCompile Include="cheat\csgo\entity\C_BaseAnimating.cpp" />
-    <ClCompile Include="cheat\csgo\entity\C_BaseCombatCharacter.cpp" />
-    <ClCompile Include="cheat\csgo\entity\C_BaseCombatWeapon.cpp" />
-    <ClCompile Include="cheat\csgo\entity\C_BaseEntity.cpp" />
-    <ClCompile Include="cheat\csgo\entity\C_BasePlayer.cpp" />
-    <ClCompile Include="cheat\csgo\entity\C_CSPlayer.cpp" />
-    <ClCompile Include="cheat\csgo\entity\C_WeaponCSBase.cpp" />
+    <ClCompile Include="cheat\csgo\entity\C_BaseAnimating.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\entity\C_BaseCombatCharacter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\entity\C_BaseCombatWeapon.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\entity\C_BaseEntity.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\entity\C_BasePlayer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\entity\C_CSPlayer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\entity\C_WeaponCSBase.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="cheat\csgo\IBaseClientDll.cpp" />
     <ClCompile Include="cheat\csgo\IConVar.cpp" />
-    <ClCompile Include="cheat\csgo\ICvar.cpp" />
     <ClCompile Include="cheat\csgo\IEngineTrace.cpp" />
     <ClCompile Include="cheat\csgo\QAngle.cpp" />
     <ClCompile Include="cheat\csgo\UtlString.cpp" />
@@ -52,28 +181,92 @@
     <ClCompile Include="cheat\gui\widgets\checkbox.cpp" />
     <ClCompile Include="cheat\gui\widgets\selectable.cpp" />
     <ClCompile Include="cheat\gui\widgets\window.cpp" />
-    <ClCompile Include="cheat\hooks\client mode\create_move.cpp" />
-    <ClCompile Include="cheat\hooks\client mode\create_move_init.cpp" />
-    <ClCompile Include="cheat\hooks\client\frame_stage_notify.cpp" />
-    <ClCompile Include="cheat\hooks\client\frame_stage_notify_init.cpp" />
-    <ClCompile Include="cheat\hooks\c_baseanimating\should_skip_animation_frame.cpp" />
-    <ClCompile Include="cheat\hooks\c_baseanimating\should_skip_animation_frame_init.cpp" />
-    <ClCompile Include="cheat\hooks\c_baseanimating\standard_blending_rules.cpp" />
-    <ClCompile Include="cheat\hooks\c_baseanimating\standard_blending_rules_init.cpp" />
-    <ClCompile Include="cheat\hooks\c_base_entity\estimate_abs_velocity.cpp" />
-    <ClCompile Include="cheat\hooks\c_base_entity\estimate_abs_velocity_init.cpp" />
-    <ClCompile Include="cheat\hooks\c_base_entity\should_interpolate.cpp" />
-    <ClCompile Include="cheat\hooks\c_base_entity\should_interpolate_init.cpp" />
-    <ClCompile Include="cheat\hooks\c_csplayer\do_extra_bone_processing.cpp" />
-    <ClCompile Include="cheat\hooks\c_csplayer\do_extra_bone_processing_init.cpp" />
-    <ClCompile Include="cheat\hooks\directx\present.cpp" />
-    <ClCompile Include="cheat\hooks\directx\present_init.cpp" />
-    <ClCompile Include="cheat\hooks\directx\reset.cpp" />
-    <ClCompile Include="cheat\hooks\directx\reset_init.cpp" />
-    <ClCompile Include="cheat\hooks\studio render\draw_model.cpp" />
-    <ClCompile Include="cheat\hooks\studio render\draw_model_init.cpp" />
-    <ClCompile Include="cheat\hooks\vgui surface\lock_cursor.cpp" />
-    <ClCompile Include="cheat\hooks\vgui surface\lock_cursor_init.cpp" />
+    <ClCompile Include="cheat\hooks\client mode\create_move.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\client mode\create_move_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\client\frame_stage_notify.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\client\frame_stage_notify_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_baseanimating\should_skip_animation_frame.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_baseanimating\should_skip_animation_frame_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_baseanimating\standard_blending_rules.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_baseanimating\standard_blending_rules_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_base_entity\estimate_abs_velocity.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_base_entity\estimate_abs_velocity_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_base_entity\should_interpolate.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_base_entity\should_interpolate_init.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_csplayer\do_extra_bone_processing.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\c_csplayer\do_extra_bone_processing_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\directx\present.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\directx\present_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\directx\reset.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\directx\reset_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\studio render\draw_model.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\studio render\draw_model_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\vgui surface\lock_cursor.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\hooks\vgui surface\lock_cursor_init.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="cheat\hooks\winapi\wndproc.cpp" />
     <ClCompile Include="cheat\hooks\winapi\wndproc_init.cpp" />
     <ClCompile Include="cheat\netvars\data_dumper.cpp" />
@@ -82,9 +275,18 @@
     <ClCompile Include="cheat\netvars\detail.cpp" />
     <ClCompile Include="cheat\netvars\netvars.cpp" />
     <ClCompile Include="cheat\netvars\type_resolve.cpp" />
-    <ClCompile Include="cheat\players\player.cpp" />
-    <ClCompile Include="cheat\players\players_list.cpp" />
-    <ClCompile Include="cheat\players\tick_record.cpp" />
+    <ClCompile Include="cheat\players\player.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\players\players_list.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\players\tick_record.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="cheat\utils\game.cpp" />
     <ClCompile Include="entry.cpp" />
   </ItemGroup>
@@ -125,7 +327,6 @@
     <ClInclude Include="cheat\csgo\IClientUnknown.hpp" />
     <ClInclude Include="cheat\csgo\ICollideable.hpp" />
     <ClInclude Include="cheat\csgo\IConVar.hpp" />
-    <ClInclude Include="cheat\csgo\ICvar.hpp" />
     <ClInclude Include="cheat\csgo\IEngineSound.hpp" />
     <ClInclude Include="cheat\csgo\IEngineTrace.hpp" />
     <ClInclude Include="cheat\csgo\IGameEventmanager.hpp" />
@@ -156,7 +357,6 @@
     <ClInclude Include="cheat\csgo\Vector4D.hpp" />
     <ClInclude Include="cheat\csgo\VMatrix.hpp" />
     <ClInclude Include="cheat\features\aimbot.h" />
-    <ClInclude Include="cheat\features\base.h" />
     <ClInclude Include="cheat\gui\imgui_context.h" />
     <ClInclude Include="cheat\gui\menu.h" />
     <ClInclude Include="cheat\gui\tools\animation_tools.h" />
@@ -176,14 +376,12 @@
     <ClInclude Include="cheat\hooks\c_baseanimating\should_skip_animation_frame.h" />
     <ClInclude Include="cheat\hooks\c_baseanimating\standard_blending_rules.h" />
     <ClInclude Include="cheat\hooks\c_base_entity\estimate_abs_velocity.h" />
-    <ClInclude Include="cheat\hooks\c_base_entity\should_interpolate.h" />
     <ClInclude Include="cheat\hooks\c_csplayer\do_extra_bone_processing.h" />
     <ClInclude Include="cheat\hooks\directx\present.h" />
     <ClInclude Include="cheat\hooks\directx\reset.h" />
     <ClInclude Include="cheat\hooks\studio render\draw_model.h" />
     <ClInclude Include="cheat\hooks\vgui surface\lock_cursor.h" />
     <ClInclude Include="cheat\hooks\winapi\wndproc.h" />
-    <ClInclude Include="cheat\netvars\config.h" />
     <ClInclude Include="cheat\netvars\data_dumper.h" />
     <ClInclude Include="cheat\netvars\data_filler.h" />
     <ClInclude Include="cheat\netvars\data_handmade.h" />
@@ -196,86 +394,4 @@
     <ClInclude Include="cheat\players\tick_record.h" />
     <ClInclude Include="cheat\utils\game.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\deps\deps_lib.vcxproj">
-      <Project>{2c54cc99-fd10-425b-8439-62695be7bb6c}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <VCProjectVersion>16.0</VCProjectVersion>
-    <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}</ProjectGuid>
-    <Keyword>QtVS_v304</Keyword>
-    <RootNamespace>Exetemplate</RootNamespace>
-    <ProjectName>impl</ProjectName>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-    <Import Project="..\deps\cppcoro_include.vcxitems" Label="Shared" />
-    <Import Project="..\deps\json_include.vcxitems" Label="Shared" />
-    <Import Project="..\deps\nstd_include.vcxitems" Label="Shared" />
-    <Import Project="..\deps\robin_hood_hashing_include.vcxitems" Label="Shared" />
-    <Import Project="..\deps\utf8_convertor_include.vcxitems" Label="Shared" />
-    <Import Project="..\deps\veque_include.vcxitems" Label="Shared" />
-    <Import Project="..\deps\imgui_include.vcxitems" Label="Shared" />
-    <Import Project="..\deps\dhooks_include.vcxitems" Label="Shared" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets">
-    <Import Project="..\Project Settings.props" />
-    <Import Project="impl_config.props" />
-    <Import Project="..\deps\imgui_config.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="..\Debug Settings.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'" Label="PropertySheets">
-    <Import Project="..\Debug Settings.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="..\Release Settings.props" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile />
-    <Link />
-    <ClCompile />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">
-    <ClCompile />
-    <Link />
-    <ClCompile />
-    <ClCompile>
-      <PreprocessorDefinitions>CHEAT_GUI_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile />
-    <Link />
-  </ItemDefinitionGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
 </Project>

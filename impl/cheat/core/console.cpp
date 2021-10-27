@@ -15,74 +15,74 @@
 #include <mutex>
 
 using namespace cheat;
-
-struct detail::string_packer::data_type : std::variant<str, strv, wstr, wstrv, ostr, wostr>
+using detail::string_packer;
+struct string_packer::data_type : std::variant<str, strv, wstr, wstrv, ostr, wostr>
 {
 };
 
-detail::string_packer::string_packer(const char* cstr)
+string_packer::string_packer(const char* cstr)
 {
 	init( );
 	packed->emplace<strv>(cstr);
 }
 
-detail::string_packer::string_packer(const wchar_t* wcstr)
+string_packer::string_packer(const wchar_t* wcstr)
 {
 	init( );
 	packed->emplace<wstrv>(wcstr);
 }
 
-detail::string_packer::string_packer(str&& s)
+string_packer::string_packer(str&& s)
 {
 	init( );
 	packed->emplace<str>(std::move(s));
 }
 
-detail::string_packer::string_packer(const strv& s)
+string_packer::string_packer(const strv& s)
 {
 	init( );
 	packed->emplace<strv>(s);
 }
 
-detail::string_packer::string_packer(wstr&& s)
+string_packer::string_packer(wstr&& s)
 {
 	init( );
 	packed->emplace<wstr>(std::move(s));
 }
 
-detail::string_packer::string_packer(const wstrv& s)
+string_packer::string_packer(const wstrv& s)
 {
 	init( );
 	packed->emplace<wstrv>(s);
 }
 
-detail::string_packer::string_packer(ostr&& s)
+string_packer::string_packer(ostr&& s)
 {
 	init( );
 	packed->emplace<ostr>(std::move(s));
 }
 
-detail::string_packer::string_packer(const ostr& os)
+string_packer::string_packer(const ostr& os)
 {
 	init( );
 	packed->emplace<strv>(os.view( ));
 }
 
-detail::string_packer::string_packer(wostr&& os)
+string_packer::string_packer(wostr&& os)
 {
 	init( );
 	packed->emplace<wostr>(std::move(os));
 }
 
-detail::string_packer::string_packer(const wostr& os)
+string_packer::string_packer(const wostr& os)
 {
 	init( );
 	packed->emplace<wstrv>(os.view( ));
 }
 
-detail::string_packer::~string_packer( ) = default;
+string_packer::~string_packer( ) = default;
 
-void detail::string_packer::init( )
+void string_packer::init( )
 {
 	packed = std::make_unique<data_type>( );
 }
@@ -184,9 +184,6 @@ console::~console( )
 
 service_impl::load_result console::load_impl( ) noexcept
 {
-#ifndef CHEAT_HAVE_CONSOLE
-	CHEAT_SERVICE_SKIPPED
-#else
 	handle_ = GetConsoleWindow( );
 	if (handle_ != nullptr)
 	{
@@ -196,13 +193,13 @@ service_impl::load_result console::load_impl( ) noexcept
 	{
 		//create new console window
 		if (!AllocConsole( ))
-			CHEAT_SERVICE_NOT_LOADED("Unable to alloc console!")
+			CHEAT_SERVICE_NOT_LOADED("Unable to alloc console!");
 
 		allocated_ = true;
 
 		handle_ = GetConsoleWindow( );
 		if (handle_ == nullptr)
-			CHEAT_SERVICE_NOT_LOADED("Unable to get console window")
+			CHEAT_SERVICE_NOT_LOADED("Unable to get console window");
 
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppEnforceCVQualifiersPlacement
@@ -224,8 +221,7 @@ service_impl::load_result console::load_impl( ) noexcept
 	}
 
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
-	co_return (true);
-#endif
+	CHEAT_SERVICE_LOADED;
 }
 
 #if defined(_DEBUG)
@@ -471,7 +467,7 @@ void console::write(char c)
 }
 
 template <typename Fn, typename ...Args>
-static void _Pack(detail::string_packer& str, Fn&& fn, Args&&...args)
+static void _Pack(string_packer& str, Fn&& fn, Args&&...args)
 {
 	auto packed = [&]<typename T>(T&& s)
 	{
@@ -481,14 +477,16 @@ static void _Pack(detail::string_packer& str, Fn&& fn, Args&&...args)
 	std::visit(packed, *str.packed);
 }
 
-void console::write(detail::string_packer&& str)
+void console::write(string_packer&& str)
 {
 	_Pack(str, _Write_or_cache, this, cache_);
 }
 
-void console::write_line(detail::string_packer&& str)
+void console::write_line(string_packer&& str)
 {
 	_Pack(str, _Write_or_cache_full, this, cache_);
 }
 
+#ifdef CHEAT_HAVE_CONSOLE
 CHEAT_REGISTER_SERVICE(console);
+#endif

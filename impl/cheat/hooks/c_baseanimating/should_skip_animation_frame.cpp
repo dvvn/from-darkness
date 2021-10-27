@@ -13,34 +13,33 @@ using namespace hooks::c_base_animating;
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {
-#if !CHEAT_MODE_INGAME || !__has_include("cheat/csgo/generated/C_BaseAnimating_h")
-	CHEAT_CALL_BLOCKER
-#else
 	if (override_return__)
-		this->return_value_.store_value(override_return_to__);
-	else
 	{
-		constexpr auto is_player = [](IClientNetworkable* ent)
-		{
-			const auto client_class = ent->GetClientClass( );
-			return client_class->ClassID == ClassId::CCSPlayer;
-		};
+		this->return_value_.store_value(override_return_to__);
+		return;
+	}
 
-		/*constexpr auto is_weapon = [](IClientNetworkable* ent)
+	constexpr auto is_player = [](IClientNetworkable* ent)
+	{
+		const auto client_class = ent->GetClientClass( );
+		return client_class->ClassID == ClassId::CCSPlayer;
+	};
+
+	/*constexpr auto is_weapon = [](IClientNetworkable* ent)
 		{
 			const auto client_class = ent->GetClientClass( );
 			const string_view name = client_class->pNetworkName;
 			return name.find("Weapon") != name.npos;
 		};*/
 
-		C_BaseAnimating* ent;
+	C_BaseAnimating* ent;
 
-		if (const auto inst = this->object_instance; is_player(inst))
-		{
-			ent = inst;
-		}
-		else
-		{
+	if (const auto inst = this->object_instance; is_player(inst))
+	{
+		ent = inst;
+	}
+	else
+	{
 #if 0
 			//unreachable
 
@@ -72,14 +71,12 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 			ent = owner;
 #endif
 
-			return;
-		}
-
-		const auto animate_this_frame = ent->m_bClientSideAnimation( );
-		const auto skip_this_frame    = animate_this_frame == false;
-		this->return_value_.store_value(skip_this_frame);
+		return;
 	}
-#endif
+
+	const auto animate_this_frame = ent->m_bClientSideAnimation( );
+	const auto skip_this_frame    = animate_this_frame == false;
+	this->return_value_.store_value(skip_this_frame);
 }
 
 void should_skip_animation_frame::render( )

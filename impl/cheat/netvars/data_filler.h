@@ -14,3 +14,7 @@ namespace cheat::detail::netvars
 	void store_datamap_props(netvars_storage& tree, csgo::datamap_t* map);
 	void iterate_datamap(netvars_storage& root_tree, csgo::datamap_t* root_map);
 }
+
+#if _DEBUG || CHEAT_NETVARS_UPDATING
+#define CHEAT_NETVARS_RESOLVE_TYPE
+#endif

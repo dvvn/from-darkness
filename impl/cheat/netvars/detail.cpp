@@ -1,12 +1,10 @@
 ﻿#include "detail.h"
 
-#ifndef CHEAT_NETVARS_DUMPER_DISABLED
-
 #include <fstream>
 
 using namespace cheat::detail::netvars;
 
-lazy_file_writer::~lazy_file_writer()
+lazy_file_writer::~lazy_file_writer( )
 {
 	if (file_.empty( ))
 		return;
@@ -39,7 +37,7 @@ lazy_file_writer& lazy_file_writer::operator=(lazy_file_writer&& other) noexcept
 	return *this;
 }
 
-lazy_fs_creator::~lazy_fs_creator()
+lazy_fs_creator::~lazy_fs_creator( )
 {
 	if (this->empty( ))
 		return;
@@ -47,12 +45,7 @@ lazy_fs_creator::~lazy_fs_creator()
 	create_directories(*this);
 }
 
-lazy_fs_creator::lazy_fs_creator(const path& path)
-{
-	assign(path);
-}
-
-lazy_fs_remover::~lazy_fs_remover()
+lazy_fs_remover::~lazy_fs_remover( )
 {
 	if (this->empty( ))
 		return;
@@ -62,11 +55,3 @@ lazy_fs_remover::~lazy_fs_remover()
 	else
 		remove_all(*this);
 }
-
-lazy_fs_remover::lazy_fs_remover(const path& path , bool all)
-{
-	assign(path);
-	all_ = all;
-}
-
-#endif

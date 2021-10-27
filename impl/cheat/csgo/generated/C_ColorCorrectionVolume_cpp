@@ -1,59 +1,36 @@
 #include "C_ColorCorrectionVolume.h"
-#include "cheat/netvars/config.h"
-#ifndef CHEAT_NETVARS_UPDATING
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
-#endif
 
 using namespace cheat::csgo;
 
 bool& C_ColorCorrectionVolume::m_bEnabled( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_bEnabled");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
 }
 float& C_ColorCorrectionVolume::m_MaxWeight( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_MaxWeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_ColorCorrectionVolume::m_FadeDuration( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_FadeDuration");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_ColorCorrectionVolume::m_Weight( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_Weight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 char* C_ColorCorrectionVolume::m_lookupFilename( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return (char*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_lookupFilename");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
-#endif
 }

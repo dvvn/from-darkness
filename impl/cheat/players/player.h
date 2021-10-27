@@ -36,7 +36,7 @@ namespace cheat
 
 			csgo::m_iTeamNum_t value = csgo::m_iTeamNum_t::UNKNOWN;
 			bool enemy               = false;
-			bool ghost               = true; //dead,spectator
+			bool ghost               = true; //dead,spectator,null pointer
 
 			constexpr bool operator==(const team_info&) const = default;
 		};

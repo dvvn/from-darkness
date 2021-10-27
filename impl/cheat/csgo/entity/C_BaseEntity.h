@@ -210,7 +210,7 @@ namespace cheat::csgo
 	public:
 		~C_BaseEntity( ) override = 0;
 
-#if __has_include("../generated/C_BaseEntity_h")
+#if __has_include("../generated/C_BaseEntity_h") && !CHEAT_NETVARS_UPDATING
 #include "../generated/C_BaseEntity_h"
 #endif
 

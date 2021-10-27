@@ -16,31 +16,18 @@ static void _Loading_access_assert([[maybe_unused]] T&& state)
 	runtime_assert(state != service_state::loading && state != service_state::waiting, "Unable to modify running service!");
 }
 
-struct services_counter
-{
-	size_t count = 0;
-};
-
-size_t service_impl::_Services_count( )
-{
-	return nstd::one_instance<services_counter>::get_ptr( )->count;
-}
-
 service_impl::service_impl( )
 {
-	++nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
 service_impl::~service_impl( )
 {
 	_Loading_access_assert(state_);
-	--nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
 service_impl::service_impl(service_impl&& other) noexcept
 {
 	*this = std::move(other);
-	++nstd::one_instance<services_counter>::get_ptr( )->count;
 }
 
 service_impl& service_impl::operator=(service_impl&& other) noexcept
@@ -232,22 +219,4 @@ service_impl::load_result service_impl::load(executor& ex) noexcept
 std::span<const service_impl::stored_service> service_impl::services( ) const
 {
 	return this->deps_;
-}
-
-//----
-
-std::string detail::make_log_message(const service_impl* srv, log_type type, std::string_view extra)
-{
-	const auto info_msg = [&]
-	{
-		switch (type)
-		{
-			case log_type::LOADED: return srv->debug_msg_loaded( );
-			case log_type::SKIPPED: return srv->debug_msg_skipped( );
-			case log_type::ERROR_: return srv->debug_msg_error( );
-			default: throw;
-		}
-	};
-
-	return std::format("{} \"{}\": {}{}", srv->debug_type( ), srv->name( ), info_msg( ), extra); //todo: colors
 }

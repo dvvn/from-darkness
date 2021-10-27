@@ -24,7 +24,7 @@ service_impl::load_result wndproc::load_impl( ) noexcept
 	unicode_         = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	CHEAT_HOOK_PROXY_INIT(TRUE)
+	CHEAT_LOAD_HOOK_PROXY;
 }
 
 nstd::address wndproc::get_target_method_impl( ) const

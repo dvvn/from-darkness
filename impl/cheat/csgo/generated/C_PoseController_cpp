@@ -1,9 +1,6 @@
 #include "C_PoseController.h"
-#include "cheat/netvars/config.h"
-#ifndef CHEAT_NETVARS_UPDATING
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
-#endif
 
 #include <array>
 
@@ -11,111 +8,67 @@ using namespace cheat::csgo;
 
 std::array<int, 4>& C_PoseController::m_hProps( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 4>*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_hProps");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 4>>( );
-#endif
 }
 std::array<int, 4>& C_PoseController::m_chPoseIndex( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(std::array<int, 4>*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_chPoseIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 4>>( );
-#endif
 }
 bool& C_PoseController::m_bPoseValueParity( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_bPoseValueParity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
 }
 float& C_PoseController::m_fPoseValue( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fPoseValue");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_PoseController::m_fInterpolationTime( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fInterpolationTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 bool& C_PoseController::m_bInterpolationWrap( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(bool*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_bInterpolationWrap");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
-#endif
 }
 float& C_PoseController::m_fCycleFrequency( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fCycleFrequency");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 int& C_PoseController::m_nFModType( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(int*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_nFModType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
-#endif
 }
 float& C_PoseController::m_fFModTimeOffset( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fFModTimeOffset");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_PoseController::m_fFModRate( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fFModRate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
 float& C_PoseController::m_fFModAmplitude( )
 {
-#ifdef CHEAT_NETVARS_UPDATING
-	return *(float*)nullptr;
-#else
 	static const auto offset = netvars::get_ptr( )->at("C_PoseController", "m_fFModAmplitude");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
-#endif
 }
