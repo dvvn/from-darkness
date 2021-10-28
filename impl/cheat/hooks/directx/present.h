@@ -16,9 +16,10 @@ using RGNDATA = _RGNDATA;
 
 namespace cheat::hooks::directx
 {
-	struct present final: hook_instance_shared<present,__COUNTER__,HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*)>
+	struct present_impl final : service<present_impl>
+							  , dhooks::_Detect_hook_holder_t<__COUNTER__, HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*)>
 	{
-		present( );
+		present_impl( );
 
 	protected:
 		load_result load_impl( ) noexcept override;
@@ -28,4 +29,6 @@ namespace cheat::hooks::directx
 					  HWND dest_window_override,
 					  const RGNDATA* dirty_region_parameters) override;
 	};
+
+	CHEAT_SERVICE_SHARE(present);
 }

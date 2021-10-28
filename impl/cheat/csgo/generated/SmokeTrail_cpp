@@ -8,91 +8,91 @@ using namespace cheat::csgo;
 
 float& SmokeTrail::m_SpawnRate( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_SpawnRate");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_SpawnRate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 cheat::csgo::Vector& SmokeTrail::m_StartColor( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_StartColor");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_StartColor");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& SmokeTrail::m_EndColor( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_EndColor");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_EndColor");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 float& SmokeTrail::m_ParticleLifetime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_ParticleLifetime");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_ParticleLifetime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_StopEmitTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_StopEmitTime");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_StopEmitTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_MinSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_MinSpeed");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_MinSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_MaxSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_MaxSpeed");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_MaxSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_MinDirectedSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_MinDirectedSpeed");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_MinDirectedSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_MaxDirectedSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_MaxDirectedSpeed");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_MaxDirectedSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_StartSize( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_StartSize");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_StartSize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_EndSize( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_EndSize");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_EndSize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& SmokeTrail::m_SpawnRadius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_SpawnRadius");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_SpawnRadius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& SmokeTrail::m_bEmit( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_bEmit");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_bEmit");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& SmokeTrail::m_nAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_nAttachment");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_nAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& SmokeTrail::m_Opacity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("SmokeTrail", "m_Opacity");
+	static const auto offset = netvars::get( )->at("SmokeTrail", "m_Opacity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

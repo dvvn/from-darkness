@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_InfoOverlayAccessor::m_iTextureFrameIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_InfoOverlayAccessor", "m_iTextureFrameIndex");
+	static const auto offset = netvars::get( )->at("C_InfoOverlayAccessor", "m_iTextureFrameIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_InfoOverlayAccessor::m_iOverlayID( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_InfoOverlayAccessor", "m_iOverlayID");
+	static const auto offset = netvars::get( )->at("C_InfoOverlayAccessor", "m_iOverlayID");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

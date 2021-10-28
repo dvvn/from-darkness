@@ -17,7 +17,7 @@ using namespace gui;
 // ReSharper disable once CppInconsistentNaming
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+void wndproc_impl::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 #ifndef CHEAT_GUI_TEST
 	if (wparam == VK_DELETE && msg == WM_KEYUP)
@@ -39,7 +39,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto owerride_input = [&]
 	{
-		const auto menu = menu::get_ptr( );
+		const auto &menu = menu::get( );
 
 		const auto skip_input = [&]
 		{
@@ -99,7 +99,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 }
 
-void wndproc::render( )
+void wndproc_impl::render( )
 {
 	ImGui::Checkbox("override return", &override_return_);
 	if (override_return_)
@@ -117,5 +117,3 @@ void wndproc::render( )
 			override_return_to_ = 1;
 	}
 }
-
-

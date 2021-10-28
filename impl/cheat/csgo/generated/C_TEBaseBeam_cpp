@@ -6,91 +6,91 @@ using namespace cheat::csgo;
 
 int& C_TEBaseBeam::m_nModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_nModelIndex");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::m_nHaloIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_nHaloIndex");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_nHaloIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::m_nStartFrame( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_nStartFrame");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_nStartFrame");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::m_nFrameRate( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_nFrameRate");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_nFrameRate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_TEBaseBeam::m_fLife( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_fLife");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_fLife");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_TEBaseBeam::m_fWidth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_fWidth");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_fWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_TEBaseBeam::m_fEndWidth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_fEndWidth");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_fEndWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_TEBaseBeam::m_nFadeLength( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_nFadeLength");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_nFadeLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_TEBaseBeam::m_fAmplitude( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_fAmplitude");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_fAmplitude");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_TEBaseBeam::m_nSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_nSpeed");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_nSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::r( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "r");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "r");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::g( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "g");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "g");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::b( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "b");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "b");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::a( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "a");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "a");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBaseBeam::m_nFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBaseBeam", "m_nFlags");
+	static const auto offset = netvars::get( )->at("C_TEBaseBeam", "m_nFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

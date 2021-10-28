@@ -8,13 +8,13 @@ using namespace cheat::csgo;
 
 int& C_TEGaussExplosion::m_nType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEGaussExplosion", "m_nType");
+	static const auto offset = netvars::get( )->at("C_TEGaussExplosion", "m_nType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_TEGaussExplosion::m_vecDirection( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEGaussExplosion", "m_vecDirection");
+	static const auto offset = netvars::get( )->at("C_TEGaussExplosion", "m_vecDirection");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

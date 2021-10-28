@@ -129,7 +129,7 @@
     <ClCompile Include="cheat\core\csgo_awaiter.cpp" />
     <ClCompile Include="cheat\core\csgo_interfaces.cpp" />
     <ClCompile Include="cheat\core\csgo_modules.cpp" />
-    <ClCompile Include="cheat\core\service.cpp" />
+    <ClCompile Include="cheat\core\service_impl.cpp" />
     <ClCompile Include="cheat\core\services_loader.cpp" />
     <ClCompile Include="cheat\csgo\CBaseHandle.cpp" />
     <ClCompile Include="cheat\csgo\CInput.cpp" />
@@ -296,7 +296,11 @@
     <ClInclude Include="cheat\core\csgo_interfaces.h" />
     <ClInclude Include="cheat\core\csgo_modules.h" />
     <ClInclude Include="cheat\core\service.h" />
+    <ClInclude Include="cheat\core\service_data.h" />
+    <ClInclude Include="cheat\core\service_impl.h" />
     <ClInclude Include="cheat\core\services_loader.h" />
+    <ClInclude Include="cheat\core\service_state.h" />
+    <ClInclude Include="cheat\core\stored_service.h" />
     <ClInclude Include="cheat\csgo\CBaseHandle.hpp" />
     <ClInclude Include="cheat\csgo\CClientState.hpp" />
     <ClInclude Include="cheat\csgo\CInput.hpp" />

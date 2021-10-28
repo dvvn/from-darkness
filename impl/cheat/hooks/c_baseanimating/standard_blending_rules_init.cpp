@@ -9,21 +9,21 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
-standard_blending_rules::standard_blending_rules( )
+standard_blending_rules_impl::standard_blending_rules_impl( )
 {
-	this->wait_for_service<netvars>( );
+	this->add_dependency(netvars::get( ));
 }
 
-nstd::address standard_blending_rules::get_target_method_impl( ) const
+nstd::address standard_blending_rules_impl::get_target_method_impl( ) const
 {
 	const nstd::address vtable = csgo_modules::client.find_vtable<C_BaseAnimating>( );
 	const auto index           = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).add(11).deref(1).divide(4).value( );
 	return vtable.ref<ptrdiff_t*>( )[index];
 }
 
-service_impl::load_result standard_blending_rules::load_impl( ) noexcept
+basic_service::load_result standard_blending_rules_impl::load_impl( ) noexcept
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-CHEAT_REGISTER_SERVICE(standard_blending_rules);
+CHEAT_SERVICE_REGISTER(standard_blending_rules);

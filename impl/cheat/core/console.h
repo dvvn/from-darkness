@@ -51,16 +51,16 @@ namespace cheat
 		};
 	}
 
-	class console final : public service_instance_shared<console>
+	class console_impl final : public service<console_impl>
 #ifdef _DEBUG
-						, nstd::rt_assert_handler
+							 , nstd::rt_assert_handler
 #endif
 	{
 	public:
 		class cache_type;
 
-		console( );
-		~console( ) override;
+		console_impl( );
+		~console_impl( ) override;
 
 		void write(detail::string_packer&& str);
 		void write_line(detail::string_packer&& str);
@@ -86,9 +86,11 @@ namespace cheat
 		FILE* err_ = nullptr;
 	};
 
+	CHEAT_SERVICE_SHARE(console);
+
 #ifdef CHEAT_HAVE_CONSOLE
 
-#define CHEAT_CONSOLE_LOG(msg) cheat::console::get_ptr( )->write_line(msg);
+#define CHEAT_CONSOLE_LOG(msg) cheat::console::get( )->write_line(msg);
 #else
 #define CHEAT_CONSOLE_LOG(msg) (void)0
 

@@ -6,67 +6,67 @@ using namespace cheat::csgo;
 
 int& C_AI_BaseNPC::m_lifeState( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_lifeState");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_lifeState");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_AI_BaseNPC::m_bPerformAvoidance( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bPerformAvoidance");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_bPerformAvoidance");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_AI_BaseNPC::m_bIsMoving( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bIsMoving");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_bIsMoving");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_AI_BaseNPC::m_bFadeCorpse( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bFadeCorpse");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_bFadeCorpse");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_AI_BaseNPC::m_iDeathPose( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iDeathPose");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_iDeathPose");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_AI_BaseNPC::m_iDeathFrame( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iDeathFrame");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_iDeathFrame");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_AI_BaseNPC::m_iSpeedModRadius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iSpeedModRadius");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_iSpeedModRadius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_AI_BaseNPC::m_iSpeedModSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_iSpeedModSpeed");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_iSpeedModSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_AI_BaseNPC::m_bSpeedModActive( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bSpeedModActive");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_bSpeedModActive");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_AI_BaseNPC::m_bImportanRagdoll( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_bImportanRagdoll");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_bImportanRagdoll");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_AI_BaseNPC::m_flTimePingEffect( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_AI_BaseNPC", "m_flTimePingEffect");
+	static const auto offset = netvars::get( )->at("C_AI_BaseNPC", "m_flTimePingEffect");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

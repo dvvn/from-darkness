@@ -9,31 +9,31 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEClientProjectile::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_TEClientProjectile", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_TEClientProjectile::m_vecVelocity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_vecVelocity");
+	static const auto offset = netvars::get( )->at("C_TEClientProjectile", "m_vecVelocity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_TEClientProjectile::m_nModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_nModelIndex");
+	static const auto offset = netvars::get( )->at("C_TEClientProjectile", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEClientProjectile::m_nLifeTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_nLifeTime");
+	static const auto offset = netvars::get( )->at("C_TEClientProjectile", "m_nLifeTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_TEClientProjectile::m_hOwner( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEClientProjectile", "m_hOwner");
+	static const auto offset = netvars::get( )->at("C_TEClientProjectile", "m_hOwner");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }

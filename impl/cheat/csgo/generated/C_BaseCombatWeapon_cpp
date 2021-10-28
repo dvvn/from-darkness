@@ -8,127 +8,127 @@ using namespace cheat::csgo;
 
 int& C_BaseCombatWeapon::m_iPrimaryAmmoType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iPrimaryAmmoType");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iPrimaryAmmoType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iSecondaryAmmoType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iSecondaryAmmoType");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iSecondaryAmmoType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_nViewModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_nViewModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_nViewModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_BaseCombatWeapon::m_bFlipViewModel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_bFlipViewModel");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_bFlipViewModel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_BaseCombatWeapon::m_iWeaponOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWeaponOrigin");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iWeaponOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iWeaponModule( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWeaponModule");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iWeaponModule");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BaseCombatWeapon::m_flNextPrimaryAttack( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_flNextPrimaryAttack");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_flNextPrimaryAttack");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseCombatWeapon::m_flNextSecondaryAttack( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_flNextSecondaryAttack");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_flNextSecondaryAttack");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseCombatWeapon::m_nNextThinkTick( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_nNextThinkTick");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_nNextThinkTick");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BaseCombatWeapon::m_flTimeWeaponIdle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_flTimeWeaponIdle");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_flTimeWeaponIdle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseCombatWeapon::m_iViewModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iViewModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iViewModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iWorldModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWorldModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iWorldModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iWorldDroppedModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iWorldDroppedModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iWorldDroppedModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iState( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iState");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iState");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_BaseCombatWeapon::m_hOwner( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_hOwner");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_hOwner");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_BaseCombatWeapon::m_iClip1( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iClip1");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iClip1");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iClip2( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iClip2");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iClip2");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iPrimaryReserveAmmoCount( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iPrimaryReserveAmmoCount");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iPrimaryReserveAmmoCount");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseCombatWeapon::m_iSecondaryReserveAmmoCount( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iSecondaryReserveAmmoCount");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iSecondaryReserveAmmoCount");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_BaseCombatWeapon::m_hWeaponWorldModel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_hWeaponWorldModel");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_hWeaponWorldModel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_BaseCombatWeapon::m_iNumEmptyAttacks( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCombatWeapon", "m_iNumEmptyAttacks");
+	static const auto offset = netvars::get( )->at("C_BaseCombatWeapon", "m_iNumEmptyAttacks");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

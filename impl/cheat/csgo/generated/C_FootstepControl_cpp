@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 char* C_FootstepControl::m_source( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FootstepControl", "m_source");
+	static const auto offset = netvars::get( )->at("C_FootstepControl", "m_source");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 char* C_FootstepControl::m_destination( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FootstepControl", "m_destination");
+	static const auto offset = netvars::get( )->at("C_FootstepControl", "m_destination");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }

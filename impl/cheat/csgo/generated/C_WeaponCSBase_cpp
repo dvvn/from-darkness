@@ -8,79 +8,79 @@ using namespace cheat::csgo;
 
 int& C_WeaponCSBase::m_weaponMode( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_weaponMode");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_weaponMode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_WeaponCSBase::m_fAccuracyPenalty( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_fAccuracyPenalty");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_fAccuracyPenalty");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_WeaponCSBase::m_fLastShotTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_fLastShotTime");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_fLastShotTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_WeaponCSBase::m_iRecoilIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_iRecoilIndex");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_iRecoilIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_WeaponCSBase::m_flRecoilIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_flRecoilIndex");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_flRecoilIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 cheat::csgo::CBaseHandle& C_WeaponCSBase::m_hPrevOwner( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_hPrevOwner");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_hPrevOwner");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 bool& C_WeaponCSBase::m_bBurstMode( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bBurstMode");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_bBurstMode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_WeaponCSBase::m_flPostponeFireReadyTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_flPostponeFireReadyTime");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_flPostponeFireReadyTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_WeaponCSBase::m_bReloadVisuallyComplete( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bReloadVisuallyComplete");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_bReloadVisuallyComplete");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_WeaponCSBase::m_bSilencerOn( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_bSilencerOn");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_bSilencerOn");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_WeaponCSBase::m_flDoneSwitchingSilencer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_flDoneSwitchingSilencer");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_flDoneSwitchingSilencer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_WeaponCSBase::m_iOriginalTeamNumber( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_iOriginalTeamNumber");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_iOriginalTeamNumber");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_WeaponCSBase::m_iIronSightMode( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBase", "m_iIronSightMode");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBase", "m_iIronSightMode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

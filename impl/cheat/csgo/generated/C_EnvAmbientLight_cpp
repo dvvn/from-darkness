@@ -8,7 +8,7 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_EnvAmbientLight::m_vecColor( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvAmbientLight", "m_vecColor");
+	static const auto offset = netvars::get( )->at("C_EnvAmbientLight", "m_vecColor");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

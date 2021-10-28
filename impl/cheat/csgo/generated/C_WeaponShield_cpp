@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 float& C_WeaponShield::m_flDisplayHealth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponShield", "m_flDisplayHealth");
+	static const auto offset = netvars::get( )->at("C_WeaponShield", "m_flDisplayHealth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

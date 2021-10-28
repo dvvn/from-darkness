@@ -8,25 +8,25 @@ using namespace cheat::csgo;
 
 int& C_PhysicsPropMultiplayer::m_iPhysicsMode( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_iPhysicsMode");
+	static const auto offset = netvars::get( )->at("C_PhysicsPropMultiplayer", "m_iPhysicsMode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_PhysicsPropMultiplayer::m_fMass( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_fMass");
+	static const auto offset = netvars::get( )->at("C_PhysicsPropMultiplayer", "m_fMass");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 cheat::csgo::Vector& C_PhysicsPropMultiplayer::m_collisionMins( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_collisionMins");
+	static const auto offset = netvars::get( )->at("C_PhysicsPropMultiplayer", "m_collisionMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_PhysicsPropMultiplayer::m_collisionMaxs( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsPropMultiplayer", "m_collisionMaxs");
+	static const auto offset = netvars::get( )->at("C_PhysicsPropMultiplayer", "m_collisionMaxs");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

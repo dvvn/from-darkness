@@ -8,25 +8,25 @@ using namespace cheat::csgo;
 
 int& C_TEBeamEntPoint::m_nStartEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_nStartEntity");
+	static const auto offset = netvars::get( )->at("C_TEBeamEntPoint", "m_nStartEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBeamEntPoint::m_nEndEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_nEndEntity");
+	static const auto offset = netvars::get( )->at("C_TEBeamEntPoint", "m_nEndEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_TEBeamEntPoint::m_vecStartPoint( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_vecStartPoint");
+	static const auto offset = netvars::get( )->at("C_TEBeamEntPoint", "m_vecStartPoint");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_TEBeamEntPoint::m_vecEndPoint( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamEntPoint", "m_vecEndPoint");
+	static const auto offset = netvars::get( )->at("C_TEBeamEntPoint", "m_vecEndPoint");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

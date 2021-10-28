@@ -8,43 +8,43 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_CascadeLight::m_shadowDirection( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_shadowDirection");
+	static const auto offset = netvars::get( )->at("C_CascadeLight", "m_shadowDirection");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_CascadeLight::m_envLightShadowDirection( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_envLightShadowDirection");
+	static const auto offset = netvars::get( )->at("C_CascadeLight", "m_envLightShadowDirection");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 bool& C_CascadeLight::m_bEnabled( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_bEnabled");
+	static const auto offset = netvars::get( )->at("C_CascadeLight", "m_bEnabled");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_CascadeLight::m_bUseLightEnvAngles( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_bUseLightEnvAngles");
+	static const auto offset = netvars::get( )->at("C_CascadeLight", "m_bUseLightEnvAngles");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_CascadeLight::m_LightColor( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_LightColor");
+	static const auto offset = netvars::get( )->at("C_CascadeLight", "m_LightColor");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_CascadeLight::m_LightColorScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_LightColorScale");
+	static const auto offset = netvars::get( )->at("C_CascadeLight", "m_LightColorScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_CascadeLight::m_flMaxShadowDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_CascadeLight", "m_flMaxShadowDist");
+	static const auto offset = netvars::get( )->at("C_CascadeLight", "m_flMaxShadowDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

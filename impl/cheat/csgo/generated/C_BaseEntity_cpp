@@ -13,469 +13,469 @@ using namespace cheat::csgo;
 
 float& C_BaseEntity::m_flAnimTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flAnimTime");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flAnimTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseEntity::m_flSimulationTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flSimulationTime");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flSimulationTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseEntity::m_cellbits( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_cellbits");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_cellbits");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_cellX( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_cellX");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_cellX");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_cellY( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_cellY");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_cellY");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_cellZ( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_cellZ");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_cellZ");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::QAngle& C_BaseEntity::m_angRotation( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_angRotation");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_angRotation");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::QAngle>( );
 }
 short& C_BaseEntity::m_nModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<short>( );
 }
 int& C_BaseEntity::m_fEffects( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_fEffects");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_fEffects");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 signed char& C_BaseEntity::m_nRenderMode( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nRenderMode");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nRenderMode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<signed char>( );
 }
 signed char& C_BaseEntity::m_nRenderFX( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nRenderFX");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nRenderFX");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<signed char>( );
 }
 cheat::csgo::Color& C_BaseEntity::m_clrRender( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_clrRender");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_clrRender");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Color>( );
 }
 int& C_BaseEntity::m_iTeamNum( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_iTeamNum");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_iTeamNum");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_iPendingTeamNum( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_iPendingTeamNum");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_iPendingTeamNum");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_CollisionGroup( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_CollisionGroup");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_CollisionGroup");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BaseEntity::m_flElasticity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flElasticity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flElasticity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseEntity::m_flShadowCastDistance( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flShadowCastDistance");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flShadowCastDistance");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 cheat::csgo::CBaseHandle& C_BaseEntity::m_hOwnerEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_hOwnerEntity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_hOwnerEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 cheat::csgo::CBaseHandle& C_BaseEntity::m_hEffectEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_hEffectEntity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_hEffectEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_BaseEntity::moveparent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "moveparent");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "moveparent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_iParentAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_iParentAttachment");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_iParentAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 char* C_BaseEntity::m_iName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_iName");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_iName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 int& C_BaseEntity::movetype( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "movetype");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "movetype");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::movecollide( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "movecollide");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "movecollide");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecMins( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecMins");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecMaxs( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecMaxs");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecMaxs");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_BaseEntity::m_nSolidType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nSolidType");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nSolidType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_usSolidFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_usSolidFlags");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_usSolidFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_nSurroundType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nSurroundType");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nSurroundType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_triggerBloat( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_triggerBloat");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_triggerBloat");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecSpecifiedSurroundingMins( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecSpecifiedSurroundingMins");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecSpecifiedSurroundingMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecSpecifiedSurroundingMaxs( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecSpecifiedSurroundingMaxs");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecSpecifiedSurroundingMaxs");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_BaseEntity::m_iTextureFrameIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_iTextureFrameIndex");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_iTextureFrameIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_BaseEntity::m_bSimulatedEveryTick( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bSimulatedEveryTick");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bSimulatedEveryTick");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_BaseEntity::m_bAnimatedEveryTick( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bAnimatedEveryTick");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bAnimatedEveryTick");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_BaseEntity::m_bAlternateSorting( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bAlternateSorting");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bAlternateSorting");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_BaseEntity::m_bSpotted( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bSpotted");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bSpotted");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 std::array<int, 65>& C_BaseEntity::m_bSpottedBy( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bSpottedBy");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bSpottedBy");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 2>& C_BaseEntity::m_bSpottedByMask( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bSpottedByMask");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bSpottedByMask");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 2>>( );
 }
 bool& C_BaseEntity::m_bIsAutoaimTarget( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bIsAutoaimTarget");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bIsAutoaimTarget");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_BaseEntity::m_fadeMinDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_fadeMinDist");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_fadeMinDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseEntity::m_fadeMaxDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_fadeMaxDist");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_fadeMaxDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseEntity::m_flFadeScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flFadeScale");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flFadeScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseEntity::m_nMinCPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nMinCPULevel");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nMinCPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_nMaxCPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nMaxCPULevel");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nMaxCPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_nMinGPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nMinGPULevel");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nMinGPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseEntity::m_nMaxGPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nMaxGPULevel");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nMaxGPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BaseEntity::m_flUseLookAtAngle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flUseLookAtAngle");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flUseLookAtAngle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseEntity::m_flLastMadeNoiseTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flLastMadeNoiseTime");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flLastMadeNoiseTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseEntity::m_flMaxFallVelocity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flMaxFallVelocity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flMaxFallVelocity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_BaseEntity::m_bEligibleForScreenHighlight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bEligibleForScreenHighlight");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bEligibleForScreenHighlight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 char* C_BaseEntity::m_ModelName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_ModelName");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_ModelName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecAbsOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecAbsOrigin");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecAbsOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::QAngle& C_BaseEntity::m_angAbsRotation( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_angAbsRotation");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_angAbsRotation");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::QAngle>( );
 }
 float& C_BaseEntity::m_rgflCoordinateFrame( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_rgflCoordinateFrame");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_rgflCoordinateFrame");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseEntity::m_fFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_fFlags");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_fFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 signed char& C_BaseEntity::m_MoveType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_MoveType");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_MoveType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<signed char>( );
 }
 signed char& C_BaseEntity::m_MoveCollide( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_MoveCollide");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_MoveCollide");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<signed char>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecAbsVelocity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecAbsVelocity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecAbsVelocity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecVelocity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecVelocity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecVelocity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecViewOffset( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecViewOffset");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecViewOffset");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 float& C_BaseEntity::m_flFriction( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flFriction");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flFriction");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseEntity::m_iHealth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_iHealth");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_iHealth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_BaseEntity::m_hNetworkMoveParent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_hNetworkMoveParent");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_hNetworkMoveParent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecNetworkOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecNetworkOrigin");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecNetworkOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::QAngle& C_BaseEntity::m_angNetworkAngles( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_angNetworkAngles");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_angNetworkAngles");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::QAngle>( );
 }
 cheat::csgo::CBaseHandle& C_BaseEntity::m_hGroundEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_hGroundEntity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_hGroundEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 signed char& C_BaseEntity::m_nWaterLevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nWaterLevel");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nWaterLevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<signed char>( );
 }
 signed char& C_BaseEntity::m_nWaterType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_nWaterType");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_nWaterType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<signed char>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecAngVelocity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecAngVelocity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecAngVelocity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_BaseEntity::m_vecBaseVelocity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_vecBaseVelocity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_vecBaseVelocity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_BaseEntity::m_iEFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_iEFlags");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_iEFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BaseEntity::m_flGravity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flGravity");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flGravity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseEntity::m_flProxyRandomValue( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_flProxyRandomValue");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_flProxyRandomValue");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_BaseEntity::m_bEverHadPredictionErrorsForThisCommand( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_bEverHadPredictionErrorsForThisCommand");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_bEverHadPredictionErrorsForThisCommand");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 cheat::csgo::VarMapping_t& C_BaseEntity::m_InterpVarMap( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_InterpVarMap");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_InterpVarMap");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::VarMapping_t>( );
 }
 cheat::csgo::CUtlVector<cheat::csgo::matrix3x4_t>& C_BaseEntity::m_BonesCache( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseEntity", "m_BonesCache");
+	static const auto offset = netvars::get( )->at("C_BaseEntity", "m_BonesCache");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CUtlVector<cheat::csgo::matrix3x4_t>>( );
 }

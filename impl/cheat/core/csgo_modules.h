@@ -1,7 +1,5 @@
 #pragma once
 
-#ifndef CHEAT_GUI_TEST
-
 #include <nstd/chars cache.h>
 #include <nstd/type name.h>
 #include <nstd/os/module info.h>
@@ -72,4 +70,3 @@ namespace cheat::csgo_modules
 
 #undef CHEAT_GAME_MODULE
 }
-#endif

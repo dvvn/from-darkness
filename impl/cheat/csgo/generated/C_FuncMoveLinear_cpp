@@ -8,13 +8,13 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_FuncMoveLinear::m_vecVelocity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncMoveLinear", "m_vecVelocity");
+	static const auto offset = netvars::get( )->at("C_FuncMoveLinear", "m_vecVelocity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_FuncMoveLinear::m_fFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncMoveLinear", "m_fFlags");
+	static const auto offset = netvars::get( )->at("C_FuncMoveLinear", "m_fFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

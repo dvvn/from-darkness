@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 float& C_PhysBox::m_mass( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysBox", "m_mass");
+	static const auto offset = netvars::get( )->at("C_PhysBox", "m_mass");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

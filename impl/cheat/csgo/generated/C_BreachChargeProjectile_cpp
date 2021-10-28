@@ -8,25 +8,25 @@ using namespace cheat::csgo;
 
 bool& C_BreachChargeProjectile::m_bShouldExplode( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_bShouldExplode");
+	static const auto offset = netvars::get( )->at("C_BreachChargeProjectile", "m_bShouldExplode");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_BreachChargeProjectile::m_weaponThatThrewMe( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_weaponThatThrewMe");
+	static const auto offset = netvars::get( )->at("C_BreachChargeProjectile", "m_weaponThatThrewMe");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BreachChargeProjectile::m_nParentBoneIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_nParentBoneIndex");
+	static const auto offset = netvars::get( )->at("C_BreachChargeProjectile", "m_nParentBoneIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_BreachChargeProjectile::m_vecParentBonePos( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreachChargeProjectile", "m_vecParentBonePos");
+	static const auto offset = netvars::get( )->at("C_BreachChargeProjectile", "m_vecParentBonePos");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

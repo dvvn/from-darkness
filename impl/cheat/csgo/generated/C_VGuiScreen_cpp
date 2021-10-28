@@ -8,43 +8,43 @@ using namespace cheat::csgo;
 
 float& C_VGuiScreen::m_flWidth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_flWidth");
+	static const auto offset = netvars::get( )->at("C_VGuiScreen", "m_flWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_VGuiScreen::m_flHeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_flHeight");
+	static const auto offset = netvars::get( )->at("C_VGuiScreen", "m_flHeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_VGuiScreen::m_fScreenFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_fScreenFlags");
+	static const auto offset = netvars::get( )->at("C_VGuiScreen", "m_fScreenFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_VGuiScreen::m_nPanelName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_nPanelName");
+	static const auto offset = netvars::get( )->at("C_VGuiScreen", "m_nPanelName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_VGuiScreen::m_nAttachmentIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_nAttachmentIndex");
+	static const auto offset = netvars::get( )->at("C_VGuiScreen", "m_nAttachmentIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_VGuiScreen::m_nOverlayMaterial( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_nOverlayMaterial");
+	static const auto offset = netvars::get( )->at("C_VGuiScreen", "m_nOverlayMaterial");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_VGuiScreen::m_hPlayerOwner( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VGuiScreen", "m_hPlayerOwner");
+	static const auto offset = netvars::get( )->at("C_VGuiScreen", "m_hPlayerOwner");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }

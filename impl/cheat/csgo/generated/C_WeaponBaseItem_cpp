@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 bool& C_WeaponBaseItem::m_bRedraw( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponBaseItem", "m_bRedraw");
+	static const auto offset = netvars::get( )->at("C_WeaponBaseItem", "m_bRedraw");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

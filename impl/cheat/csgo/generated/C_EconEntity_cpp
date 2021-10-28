@@ -8,103 +8,103 @@ using namespace cheat::csgo;
 
 cheat::csgo::CBaseHandle& C_EconEntity::m_hOuter( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_hOuter");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_hOuter");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_EconEntity::m_ProviderType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_ProviderType");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_ProviderType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_iReapplyProvisionParity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_iReapplyProvisionParity");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_iReapplyProvisionParity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_iItemDefinitionIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_iItemDefinitionIndex");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_iItemDefinitionIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_iEntityLevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_iEntityLevel");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_iEntityLevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_iItemIDHigh( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_iItemIDHigh");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_iItemIDHigh");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_iItemIDLow( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_iItemIDLow");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_iItemIDLow");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_iAccountID( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_iAccountID");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_iAccountID");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_iEntityQuality( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_iEntityQuality");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_iEntityQuality");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_EconEntity::m_bInitialized( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_bInitialized");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_bInitialized");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 char* C_EconEntity::m_szCustomName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_szCustomName");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_szCustomName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 int& C_EconEntity::m_OriginalOwnerXuidLow( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_OriginalOwnerXuidLow");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_OriginalOwnerXuidLow");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_OriginalOwnerXuidHigh( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_OriginalOwnerXuidHigh");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_OriginalOwnerXuidHigh");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_nFallbackPaintKit( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_nFallbackPaintKit");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_nFallbackPaintKit");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_EconEntity::m_nFallbackSeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_nFallbackSeed");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_nFallbackSeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_EconEntity::m_flFallbackWear( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_flFallbackWear");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_flFallbackWear");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_EconEntity::m_nFallbackStatTrak( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EconEntity", "m_nFallbackStatTrak");
+	static const auto offset = netvars::get( )->at("C_EconEntity", "m_nFallbackStatTrak");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

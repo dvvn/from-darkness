@@ -8,13 +8,13 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEBeamPoints::m_vecStartPoint( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamPoints", "m_vecStartPoint");
+	static const auto offset = netvars::get( )->at("C_TEBeamPoints", "m_vecStartPoint");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_TEBeamPoints::m_vecEndPoint( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamPoints", "m_vecEndPoint");
+	static const auto offset = netvars::get( )->at("C_TEBeamPoints", "m_vecEndPoint");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

@@ -6,25 +6,25 @@ using namespace cheat::csgo;
 
 int& C_Embers::m_nDensity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Embers", "m_nDensity");
+	static const auto offset = netvars::get( )->at("C_Embers", "m_nDensity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Embers::m_nLifetime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Embers", "m_nLifetime");
+	static const auto offset = netvars::get( )->at("C_Embers", "m_nLifetime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Embers::m_nSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Embers", "m_nSpeed");
+	static const auto offset = netvars::get( )->at("C_Embers", "m_nSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_Embers::m_bEmit( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Embers", "m_bEmit");
+	static const auto offset = netvars::get( )->at("C_Embers", "m_bEmit");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

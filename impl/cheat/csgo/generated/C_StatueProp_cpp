@@ -9,31 +9,31 @@ using namespace cheat::csgo;
 
 cheat::csgo::CBaseHandle& C_StatueProp::m_hInitBaseAnimating( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_StatueProp", "m_hInitBaseAnimating");
+	static const auto offset = netvars::get( )->at("C_StatueProp", "m_hInitBaseAnimating");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 bool& C_StatueProp::m_bShatter( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_StatueProp", "m_bShatter");
+	static const auto offset = netvars::get( )->at("C_StatueProp", "m_bShatter");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_StatueProp::m_nShatterFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_StatueProp", "m_nShatterFlags");
+	static const auto offset = netvars::get( )->at("C_StatueProp", "m_nShatterFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_StatueProp::m_vShatterPosition( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_StatueProp", "m_vShatterPosition");
+	static const auto offset = netvars::get( )->at("C_StatueProp", "m_vShatterPosition");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_StatueProp::m_vShatterForce( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_StatueProp", "m_vShatterForce");
+	static const auto offset = netvars::get( )->at("C_StatueProp", "m_vShatterForce");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

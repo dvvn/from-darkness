@@ -205,7 +205,7 @@ player::team_info::team_info(m_iTeamNum_t val)
 		case m_iTeamNum_t::T:
 		case m_iTeamNum_t::CT:
 		{
-			const auto local      = csgo_interfaces::get_ptr( )->local_player.get( );
+			const auto local      = csgo_interfaces::get( )->local_player.get( );
 			const auto local_team = static_cast<m_iTeamNum_t>(local->m_iTeamNum( ));
 
 			enemy = local_team != val;
@@ -226,14 +226,16 @@ void player::update(int index, float curtime, float correct)
 	//if we got low fps, invalidate bones cache or it never updates!
 	//update: after invalidate it updates pretty decent
 
-	const auto ent = static_cast<C_CSPlayer*>(csgo_interfaces::get_ptr( )->entity_list->GetClientEntity(index));
+	auto interfaces = csgo_interfaces::get( ).operator->(  );
+
+	const auto ent = static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(index));
 	if (ent != entptr)
 	{
 		auto new_player = player( );
 
 		if (ent != nullptr)
 		{
-			new_player.local  = ent == csgo_interfaces::get_ptr( )->local_player.get( );
+			new_player.local  = ent == interfaces->local_player.get( );
 			new_player.entptr = ent;
 		}
 
@@ -268,7 +270,7 @@ void player::update(int index, float curtime, float correct)
 		tick.updated = update_state::NORMAL;
 
 	_SET_SIMTIME:
-		tick.server.set(csgo_interfaces::get_ptr( )->client_state->ClockDriftMgr.nServerTick);
+		tick.server.set(interfaces->client_state->ClockDriftMgr.nServerTick);
 		tick.client.set(utils::time_to_ticks(simtime_new));
 
 		simtime = simtime_new;

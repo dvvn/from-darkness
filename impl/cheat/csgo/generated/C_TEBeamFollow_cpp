@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 int& C_TEBeamFollow::m_iEntIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamFollow", "m_iEntIndex");
+	static const auto offset = netvars::get( )->at("C_TEBeamFollow", "m_iEntIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

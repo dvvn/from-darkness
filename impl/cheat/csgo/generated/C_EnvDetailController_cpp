@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 float& C_EnvDetailController::m_flFadeStartDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDetailController", "m_flFadeStartDist");
+	static const auto offset = netvars::get( )->at("C_EnvDetailController", "m_flFadeStartDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_EnvDetailController::m_flFadeEndDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDetailController", "m_flFadeEndDist");
+	static const auto offset = netvars::get( )->at("C_EnvDetailController", "m_flFadeEndDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

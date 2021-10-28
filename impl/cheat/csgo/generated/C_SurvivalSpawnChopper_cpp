@@ -8,7 +8,7 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector2D& C_SurvivalSpawnChopper::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SurvivalSpawnChopper", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_SurvivalSpawnChopper", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector2D>( );
 }

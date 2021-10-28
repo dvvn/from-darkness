@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_WeaponCSBaseGun::m_zoomLevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun", "m_zoomLevel");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBaseGun", "m_zoomLevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_WeaponCSBaseGun::m_iBurstShotsRemaining( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponCSBaseGun", "m_iBurstShotsRemaining");
+	static const auto offset = netvars::get( )->at("C_WeaponCSBaseGun", "m_iBurstShotsRemaining");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

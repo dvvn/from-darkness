@@ -11,7 +11,7 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
-void should_skip_animation_frame::callback(/*float current_time*/)
+void should_skip_animation_frame_impl::callback(/*float current_time*/)
 {
 	if (override_return__)
 	{
@@ -79,7 +79,7 @@ void should_skip_animation_frame::callback(/*float current_time*/)
 	this->return_value_.store_value(skip_this_frame);
 }
 
-void should_skip_animation_frame::render( )
+void should_skip_animation_frame_impl::render( )
 {
 	ImGui::Checkbox("override return", &override_return__);
 	if (override_return__)

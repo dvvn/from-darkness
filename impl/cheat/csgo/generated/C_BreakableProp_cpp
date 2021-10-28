@@ -8,13 +8,13 @@ using namespace cheat::csgo;
 
 cheat::csgo::QAngle& C_BreakableProp::m_qPreferredPlayerCarryAngles( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableProp", "m_qPreferredPlayerCarryAngles");
+	static const auto offset = netvars::get( )->at("C_BreakableProp", "m_qPreferredPlayerCarryAngles");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::QAngle>( );
 }
 bool& C_BreakableProp::m_bClientPhysics( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableProp", "m_bClientPhysics");
+	static const auto offset = netvars::get( )->at("C_BreakableProp", "m_bClientPhysics");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

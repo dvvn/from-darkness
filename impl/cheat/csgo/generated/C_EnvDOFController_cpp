@@ -6,43 +6,43 @@ using namespace cheat::csgo;
 
 bool& C_EnvDOFController::m_bDOFEnabled( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController", "m_bDOFEnabled");
+	static const auto offset = netvars::get( )->at("C_EnvDOFController", "m_bDOFEnabled");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_EnvDOFController::m_flNearBlurDepth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController", "m_flNearBlurDepth");
+	static const auto offset = netvars::get( )->at("C_EnvDOFController", "m_flNearBlurDepth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_EnvDOFController::m_flNearFocusDepth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController", "m_flNearFocusDepth");
+	static const auto offset = netvars::get( )->at("C_EnvDOFController", "m_flNearFocusDepth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_EnvDOFController::m_flFarFocusDepth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController", "m_flFarFocusDepth");
+	static const auto offset = netvars::get( )->at("C_EnvDOFController", "m_flFarFocusDepth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_EnvDOFController::m_flFarBlurDepth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController", "m_flFarBlurDepth");
+	static const auto offset = netvars::get( )->at("C_EnvDOFController", "m_flFarBlurDepth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_EnvDOFController::m_flNearBlurRadius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController", "m_flNearBlurRadius");
+	static const auto offset = netvars::get( )->at("C_EnvDOFController", "m_flNearBlurRadius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_EnvDOFController::m_flFarBlurRadius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvDOFController", "m_flFarBlurRadius");
+	static const auto offset = netvars::get( )->at("C_EnvDOFController", "m_flFarBlurRadius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

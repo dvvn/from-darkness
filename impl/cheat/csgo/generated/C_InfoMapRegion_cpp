@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 float& C_InfoMapRegion::m_flRadius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_InfoMapRegion", "m_flRadius");
+	static const auto offset = netvars::get( )->at("C_InfoMapRegion", "m_flRadius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 char* C_InfoMapRegion::m_szLocToken( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_InfoMapRegion", "m_szLocToken");
+	static const auto offset = netvars::get( )->at("C_InfoMapRegion", "m_szLocToken");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }

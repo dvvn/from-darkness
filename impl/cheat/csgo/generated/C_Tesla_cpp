@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 char* C_Tesla::m_SoundName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Tesla", "m_SoundName");
+	static const auto offset = netvars::get( )->at("C_Tesla", "m_SoundName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 char* C_Tesla::m_iszSpriteName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Tesla", "m_iszSpriteName");
+	static const auto offset = netvars::get( )->at("C_Tesla", "m_iszSpriteName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }

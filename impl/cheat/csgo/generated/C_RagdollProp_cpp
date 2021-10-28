@@ -11,31 +11,31 @@ using namespace cheat::csgo;
 
 std::array<cheat::csgo::QAngle, 24>& C_RagdollProp::m_ragAngles( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragAngles");
+	static const auto offset = netvars::get( )->at("C_RagdollProp", "m_ragAngles");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<cheat::csgo::QAngle, 24>>( );
 }
 std::array<cheat::csgo::Vector, 24>& C_RagdollProp::m_ragPos( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_ragPos");
+	static const auto offset = netvars::get( )->at("C_RagdollProp", "m_ragPos");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<cheat::csgo::Vector, 24>>( );
 }
 cheat::csgo::CBaseHandle& C_RagdollProp::m_hUnragdoll( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_hUnragdoll");
+	static const auto offset = netvars::get( )->at("C_RagdollProp", "m_hUnragdoll");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 float& C_RagdollProp::m_flBlendWeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_flBlendWeight");
+	static const auto offset = netvars::get( )->at("C_RagdollProp", "m_flBlendWeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_RagdollProp::m_nOverlaySequence( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollProp", "m_nOverlaySequence");
+	static const auto offset = netvars::get( )->at("C_RagdollProp", "m_nOverlaySequence");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

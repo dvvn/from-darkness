@@ -31,11 +31,11 @@ namespace cheat::gui
 		class tab_bar_with_pages;
 	}
 
-	class menu final : public service_instance_shared<menu>, public widgets::abstract_renderable
+	class menu_impl final : public service<menu_impl>, public widgets::abstract_renderable
 	{
 	public:
-		menu();
-		~menu() override;
+		menu_impl();
+		~menu_impl() override;
 
 		void render() override;
 		bool toggle(UINT msg, WPARAM wparam);
@@ -49,4 +49,6 @@ namespace cheat::gui
 		struct impl;
 		std::unique_ptr<impl> impl_;
 	};
+
+	CHEAT_SERVICE_SHARE(menu);
 }

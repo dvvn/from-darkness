@@ -8,19 +8,19 @@
 using namespace cheat;
 using namespace hooks::directx;
 
-reset::reset( )
+reset_impl::reset_impl( )
 {
-	this->wait_for_service<gui::imgui_context>( );
+	this->add_dependency(gui::imgui_context::get( ));
 }
 
-nstd::address reset::get_target_method_impl( ) const
+nstd::address reset_impl::get_target_method_impl( ) const
 {
-	return csgo_interfaces::get_ptr( )->d3d_device.vfunc(16);
+	return csgo_interfaces::get( )->d3d_device.vfunc(16);
 }
 
-service_impl::load_result reset::load_impl( ) noexcept
+auto reset_impl::load_impl( ) noexcept -> load_result
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-CHEAT_REGISTER_SERVICE(reset);
+CHEAT_SERVICE_REGISTER(reset);

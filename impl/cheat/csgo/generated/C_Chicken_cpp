@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_Chicken::m_jumpedThisFrame( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Chicken", "m_jumpedThisFrame");
+	static const auto offset = netvars::get( )->at("C_Chicken", "m_jumpedThisFrame");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Chicken::m_leader( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Chicken", "m_leader");
+	static const auto offset = netvars::get( )->at("C_Chicken", "m_leader");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

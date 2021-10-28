@@ -9,19 +9,19 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client;
 
-frame_stage_notify::frame_stage_notify( )
+frame_stage_notify_impl::frame_stage_notify_impl( )
 {
-	this->wait_for_service<players_list>( );
+	this->add_dependency(players_list::get( ));
 }
 
-nstd::address frame_stage_notify::get_target_method_impl( ) const
+nstd::address frame_stage_notify_impl::get_target_method_impl( ) const
 {
-	return csgo_interfaces::get_ptr( )->client.vfunc(37);
+	return csgo_interfaces::get( )->client.vfunc(37);
 }
 
-service_impl::load_result frame_stage_notify::load_impl( ) noexcept
+basic_service::load_result frame_stage_notify_impl::load_impl( ) noexcept
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-CHEAT_REGISTER_SERVICE(frame_stage_notify);
+CHEAT_SERVICE_REGISTER(frame_stage_notify);

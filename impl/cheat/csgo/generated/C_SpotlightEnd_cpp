@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 float& C_SpotlightEnd::m_flLightScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SpotlightEnd", "m_flLightScale");
+	static const auto offset = netvars::get( )->at("C_SpotlightEnd", "m_flLightScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SpotlightEnd::m_Radius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SpotlightEnd", "m_Radius");
+	static const auto offset = netvars::get( )->at("C_SpotlightEnd", "m_Radius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

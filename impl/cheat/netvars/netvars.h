@@ -9,11 +9,11 @@ namespace cheat
 		struct netvars_data;
 	}
 
-	class netvars final : public service_instance_shared<netvars>
+	class netvars_impl final : public service<netvars_impl>
 	{
 	public:
-		~netvars( ) override;
-		netvars( );
+		~netvars_impl( ) override;
+		netvars_impl( );
 
 		int at(const std::string_view& table, const std::string_view& item) const;
 
@@ -24,4 +24,6 @@ namespace cheat
 		using data_type=detail::netvars::netvars_data;
 		std::unique_ptr<data_type> data_;
 	};
+
+	CHEAT_SERVICE_SHARE(netvars);
 }

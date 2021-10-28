@@ -30,7 +30,7 @@ struct widget_bool_data : cached_text, nstd::smooth_value_linear<ImVec4>
 	bool value = 0;
 };
 
-struct aimbot::impl
+struct aimbot_impl::impl
 {
 	impl( ) = default;
 
@@ -50,7 +50,7 @@ struct aimbot::impl
 		auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
 		font_cfg->SizePixels = 15;
 
-		auto test_font = gui::imgui_context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.TTF)", std::move(font_cfg));
+		auto test_font = gui::imgui_context::get( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.TTF)", std::move(font_cfg));
 
 		using target_internal = nstd::smooth_value_linear<ImVec4>::target_internal;
 		using target_external = nstd::smooth_value_linear<ImVec4>::target_external;
@@ -62,7 +62,7 @@ struct aimbot::impl
 		slider_anim.get_target( )->write_value(slider_data.value);
 		slider_anim.set_start(slider_data.min);
 		slider_anim.set_end(slider_data.max);
-		slider_anim.inverse(  );
+		slider_anim.inverse( );
 		slider_text.set_font(ImGui::GetDefaultFont( ));
 		slider_text.set_label(std::format("custom slider: {} value", slider_anim.get_target( )->own_value( ) ? "internal" : "external"));
 
@@ -120,31 +120,31 @@ struct aimbot::impl
 	}
 };
 
-aimbot::aimbot( )
+aimbot_impl::aimbot_impl( )
 {
-	this->wait_for_service<gui::imgui_context>( );
+	this->add_dependency(gui::imgui_context::get(  ) );
 }
 
-aimbot::~aimbot( )                           = default;
-aimbot::aimbot(aimbot&&) noexcept            = default;
-aimbot& aimbot::operator=(aimbot&&) noexcept = default;
+aimbot_impl::~aimbot_impl( )                                = default;
+aimbot_impl::aimbot_impl(aimbot_impl&&) noexcept            = default;
+aimbot_impl& aimbot_impl::operator=(aimbot_impl&&) noexcept = default;
 
-void aimbot::save(json& in) const
-{
-}
-
-void aimbot::load(const json& out)
+void aimbot_impl::save(json& in) const
 {
 }
 
-cheat::service_impl::load_result aimbot::load_impl( ) noexcept
+void aimbot_impl::load(const json& out)
+{
+}
+
+cheat::basic_service::load_result aimbot_impl::load_impl( ) noexcept
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );
 	CHEAT_SERVICE_LOADED
 }
 
-void aimbot::render( )
+void aimbot_impl::render( )
 {
 	/*impl_->cb3.render( );
 	ImGui::Text("1");
@@ -174,4 +174,4 @@ void aimbot::render( )
 	ImGui::SliderFloat("imgui slider", &sdata.value, sdata.min, sdata.max, "%.1f", ImGuiSliderFlags_NoRoundToFormat);
 }
 
-CHEAT_REGISTER_SERVICE(aimbot);
+CHEAT_SERVICE_REGISTER(aimbot);

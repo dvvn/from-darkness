@@ -6,25 +6,25 @@ using namespace cheat::csgo;
 
 float& C_FuncAreaPortalWindow::m_flFadeStartDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_flFadeStartDist");
+	static const auto offset = netvars::get( )->at("C_FuncAreaPortalWindow", "m_flFadeStartDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_FuncAreaPortalWindow::m_flFadeDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_flFadeDist");
+	static const auto offset = netvars::get( )->at("C_FuncAreaPortalWindow", "m_flFadeDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_FuncAreaPortalWindow::m_flTranslucencyLimit( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_flTranslucencyLimit");
+	static const auto offset = netvars::get( )->at("C_FuncAreaPortalWindow", "m_flTranslucencyLimit");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_FuncAreaPortalWindow::m_iBackgroundModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncAreaPortalWindow", "m_iBackgroundModelIndex");
+	static const auto offset = netvars::get( )->at("C_FuncAreaPortalWindow", "m_iBackgroundModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

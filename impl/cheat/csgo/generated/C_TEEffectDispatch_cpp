@@ -9,97 +9,97 @@ using namespace cheat::csgo;
 
 cheat::csgo::QAngle& C_TEEffectDispatch::m_vAngles( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_vAngles");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_vAngles");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::QAngle>( );
 }
 cheat::csgo::Vector& C_TEEffectDispatch::m_vNormal( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_vNormal");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_vNormal");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_TEEffectDispatch::m_fFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_fFlags");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_fFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_TEEffectDispatch::m_flMagnitude( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_flMagnitude");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_flMagnitude");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_TEEffectDispatch::m_flScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_flScale");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_flScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_TEEffectDispatch::m_nAttachmentIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_nAttachmentIndex");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_nAttachmentIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::m_nSurfaceProp( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_nSurfaceProp");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_nSurfaceProp");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::m_iEffectName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_iEffectName");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_iEffectName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::m_nMaterial( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_nMaterial");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_nMaterial");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::m_nDamageType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_nDamageType");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_nDamageType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::m_nHitBox( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_nHitBox");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_nHitBox");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::entindex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "entindex");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "entindex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::m_nOtherEntIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_nOtherEntIndex");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_nOtherEntIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEEffectDispatch::m_nColor( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_nColor");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_nColor");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_TEEffectDispatch::m_flRadius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_flRadius");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_flRadius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_TEEffectDispatch::m_bPositionsAreRelativeToEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEEffectDispatch", "m_bPositionsAreRelativeToEntity");
+	static const auto offset = netvars::get( )->at("C_TEEffectDispatch", "m_bPositionsAreRelativeToEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

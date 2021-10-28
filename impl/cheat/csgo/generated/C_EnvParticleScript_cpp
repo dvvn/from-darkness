@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 float& C_EnvParticleScript::m_flSequenceScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvParticleScript", "m_flSequenceScale");
+	static const auto offset = netvars::get( )->at("C_EnvParticleScript", "m_flSequenceScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

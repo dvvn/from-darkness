@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 float& C_WaterLODControl::m_flCheapWaterStartDistance( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WaterLODControl", "m_flCheapWaterStartDistance");
+	static const auto offset = netvars::get( )->at("C_WaterLODControl", "m_flCheapWaterStartDistance");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_WaterLODControl::m_flCheapWaterEndDistance( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WaterLODControl", "m_flCheapWaterEndDistance");
+	static const auto offset = netvars::get( )->at("C_WaterLODControl", "m_flCheapWaterEndDistance");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

@@ -14,13 +14,13 @@ namespace cheat::csgo
 
 namespace cheat::hooks::studio_render
 {
-	struct draw_model final :
-			hook_instance_shared<draw_model
-								,__COUNTER__
-							   , void(csgo::IStudioRender::*)(csgo::DrawModelResults_t*, const csgo::DrawModelInfo_t&, csgo::matrix3x4_t*, float*, float*
-															, const csgo::Vector&, csgo::DrawModelFlags_t)>
+	struct draw_model_impl final : service<draw_model_impl>
+							, dhooks::_Detect_hook_holder_t<__COUNTER__
+														  , void(csgo::IStudioRender::*)(csgo::DrawModelResults_t*, const csgo::DrawModelInfo_t&, csgo::matrix3x4_t*, float*
+																					   , float*
+																					   , const csgo::Vector&, csgo::DrawModelFlags_t)>
 	{
-		draw_model( );
+		draw_model_impl( );
 
 	protected:
 		load_result load_impl( ) noexcept override;
@@ -33,4 +33,6 @@ namespace cheat::hooks::studio_render
 					  const csgo::Vector& model_origin,
 					  csgo::DrawModelFlags_t flags) override;
 	};
+
+	CHEAT_SERVICE_SHARE(draw_model);
 }

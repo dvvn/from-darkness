@@ -9,61 +9,61 @@ using namespace cheat::csgo;
 
 cheat::csgo::Color& C_Sun::m_clrRender( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_clrRender");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_clrRender");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Color>( );
 }
 cheat::csgo::Color& C_Sun::m_clrOverlay( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_clrOverlay");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_clrOverlay");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Color>( );
 }
 cheat::csgo::Vector& C_Sun::m_vDirection( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_vDirection");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_vDirection");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 bool& C_Sun::m_bOn( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_bOn");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_bOn");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_Sun::m_nSize( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nSize");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_nSize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Sun::m_nOverlaySize( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nOverlaySize");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_nOverlaySize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Sun::m_nMaterial( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nMaterial");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_nMaterial");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Sun::m_nOverlayMaterial( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "m_nOverlayMaterial");
+	static const auto offset = netvars::get( )->at("C_Sun", "m_nOverlayMaterial");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_Sun::HDRColorScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "HDRColorScale");
+	static const auto offset = netvars::get( )->at("C_Sun", "HDRColorScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Sun::glowDistanceScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sun", "glowDistanceScale");
+	static const auto offset = netvars::get( )->at("C_Sun", "glowDistanceScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

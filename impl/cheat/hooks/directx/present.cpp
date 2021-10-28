@@ -10,7 +10,7 @@
 using namespace cheat;
 using namespace hooks::directx;
 
-void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
+void present_impl::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
 	const auto d3d_device = this->object_instance;
 
@@ -22,7 +22,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	ImGui_ImplWin32_NewFrame( ); //todo: call it from input (it only update mouse and keys). (if do it move timers outside)
 	ImGui::NewFrame( );
 	{
-		const auto menu = gui::menu::get_ptr( );
+		const auto &menu = gui::menu::get( );
 #if CHEAT_GUI_HAS_DEMO_WINDOW && !defined(IMGUI_DISABLE_DEMO_WINDOWS)
 #ifndef CHEAT_GUI_TEST
 		if (menu->visible( ))

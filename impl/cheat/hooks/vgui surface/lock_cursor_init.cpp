@@ -7,19 +7,19 @@
 using namespace cheat;
 using namespace hooks::vgui_surface;
 
-lock_cursor::lock_cursor( )
+lock_cursor_impl::lock_cursor_impl( )
 {
-	this->wait_for_service<gui::menu>( );
+	this->add_dependency(gui::menu::get());
 }
 
-nstd::address lock_cursor::get_target_method_impl( ) const
+nstd::address lock_cursor_impl::get_target_method_impl( ) const
 {
-	return csgo_interfaces::get_ptr( )->vgui_surface.vfunc(67);
+	return csgo_interfaces::get( )->vgui_surface.vfunc(67);
 }
 
-service_impl::load_result lock_cursor::load_impl( ) noexcept
+basic_service::load_result lock_cursor_impl::load_impl( ) noexcept
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-CHEAT_REGISTER_SERVICE(lock_cursor);
+CHEAT_SERVICE_REGISTER(lock_cursor);

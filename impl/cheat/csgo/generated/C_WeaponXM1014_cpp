@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 int& C_WeaponXM1014::m_reloadState( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponXM1014", "m_reloadState");
+	static const auto offset = netvars::get( )->at("C_WeaponXM1014", "m_reloadState");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

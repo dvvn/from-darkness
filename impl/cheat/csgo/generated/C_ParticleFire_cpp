@@ -8,13 +8,13 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_ParticleFire::m_vOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire", "m_vOrigin");
+	static const auto offset = netvars::get( )->at("C_ParticleFire", "m_vOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_ParticleFire::m_vDirection( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleFire", "m_vDirection");
+	static const auto offset = netvars::get( )->at("C_ParticleFire", "m_vDirection");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

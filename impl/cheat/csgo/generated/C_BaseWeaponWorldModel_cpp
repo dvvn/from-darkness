@@ -8,31 +8,31 @@ using namespace cheat::csgo;
 
 int& C_BaseWeaponWorldModel::m_nModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_nModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseWeaponWorldModel", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseWeaponWorldModel::m_nBody( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_nBody");
+	static const auto offset = netvars::get( )->at("C_BaseWeaponWorldModel", "m_nBody");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseWeaponWorldModel::m_fEffects( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_fEffects");
+	static const auto offset = netvars::get( )->at("C_BaseWeaponWorldModel", "m_fEffects");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseWeaponWorldModel::moveparent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "moveparent");
+	static const auto offset = netvars::get( )->at("C_BaseWeaponWorldModel", "moveparent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_BaseWeaponWorldModel::m_hCombatWeaponParent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseWeaponWorldModel", "m_hCombatWeaponParent");
+	static const auto offset = netvars::get( )->at("C_BaseWeaponWorldModel", "m_hCombatWeaponParent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }

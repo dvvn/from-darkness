@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 bool& C_PhysicsProp::m_bAwake( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsProp", "m_bAwake");
+	static const auto offset = netvars::get( )->at("C_PhysicsProp", "m_bAwake");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_PhysicsProp::m_spawnflags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysicsProp", "m_spawnflags");
+	static const auto offset = netvars::get( )->at("C_PhysicsProp", "m_spawnflags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

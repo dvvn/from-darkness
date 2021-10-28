@@ -6,43 +6,43 @@ using namespace cheat::csgo;
 
 int& _ST_m_AnimOverlay_15::m_nSequence( )
 {
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_nSequence");
+	static const auto offset = netvars::get( )->at("_ST_m_AnimOverlay_15", "m_nSequence");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& _ST_m_AnimOverlay_15::m_flCycle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flCycle");
+	static const auto offset = netvars::get( )->at("_ST_m_AnimOverlay_15", "m_flCycle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& _ST_m_AnimOverlay_15::m_flPlaybackRate( )
 {
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flPlaybackRate");
+	static const auto offset = netvars::get( )->at("_ST_m_AnimOverlay_15", "m_flPlaybackRate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& _ST_m_AnimOverlay_15::m_flPrevCycle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flPrevCycle");
+	static const auto offset = netvars::get( )->at("_ST_m_AnimOverlay_15", "m_flPrevCycle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& _ST_m_AnimOverlay_15::m_flWeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flWeight");
+	static const auto offset = netvars::get( )->at("_ST_m_AnimOverlay_15", "m_flWeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& _ST_m_AnimOverlay_15::m_flWeightDeltaRate( )
 {
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_flWeightDeltaRate");
+	static const auto offset = netvars::get( )->at("_ST_m_AnimOverlay_15", "m_flWeightDeltaRate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& _ST_m_AnimOverlay_15::m_nOrder( )
 {
-	static const auto offset = netvars::get_ptr( )->at("_ST_m_AnimOverlay_15", "m_nOrder");
+	static const auto offset = netvars::get( )->at("_ST_m_AnimOverlay_15", "m_nOrder");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

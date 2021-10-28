@@ -9,109 +9,109 @@ using namespace cheat::csgo;
 
 cheat::csgo::CBaseHandle& C_BaseAttributableItem::m_hOuter( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_hOuter");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_hOuter");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_BaseAttributableItem::m_ProviderType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_ProviderType");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_ProviderType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_iReapplyProvisionParity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_iReapplyProvisionParity");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_iReapplyProvisionParity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_iItemDefinitionIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_iItemDefinitionIndex");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_iItemDefinitionIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_iEntityLevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_iEntityLevel");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_iEntityLevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_iItemIDHigh( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_iItemIDHigh");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_iItemIDHigh");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_iItemIDLow( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_iItemIDLow");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_iItemIDLow");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_iAccountID( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_iAccountID");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_iAccountID");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_iEntityQuality( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_iEntityQuality");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_iEntityQuality");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_BaseAttributableItem::m_bInitialized( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_bInitialized");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_bInitialized");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 char* C_BaseAttributableItem::m_szCustomName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_szCustomName");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_szCustomName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 std::array<_ST_m_Attributes_32, 32>& C_BaseAttributableItem::m_Attributes( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_Attributes");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_Attributes");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<_ST_m_Attributes_32, 32>>( );
 }
 int& C_BaseAttributableItem::m_OriginalOwnerXuidLow( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_OriginalOwnerXuidLow");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_OriginalOwnerXuidLow");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_OriginalOwnerXuidHigh( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_OriginalOwnerXuidHigh");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_OriginalOwnerXuidHigh");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_nFallbackPaintKit( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_nFallbackPaintKit");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_nFallbackPaintKit");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseAttributableItem::m_nFallbackSeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_nFallbackSeed");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_nFallbackSeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BaseAttributableItem::m_flFallbackWear( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_flFallbackWear");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_flFallbackWear");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseAttributableItem::m_nFallbackStatTrak( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseAttributableItem", "m_nFallbackStatTrak");
+	static const auto offset = netvars::get( )->at("C_BaseAttributableItem", "m_nFallbackStatTrak");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

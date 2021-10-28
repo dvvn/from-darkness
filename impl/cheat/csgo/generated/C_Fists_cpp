@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 bool& C_Fists::m_bPlayingUninterruptableAct( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Fists", "m_bPlayingUninterruptableAct");
+	static const auto offset = netvars::get( )->at("C_Fists", "m_bPlayingUninterruptableAct");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

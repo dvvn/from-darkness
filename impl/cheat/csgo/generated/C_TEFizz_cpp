@@ -6,25 +6,25 @@ using namespace cheat::csgo;
 
 int& C_TEFizz::m_nEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEFizz", "m_nEntity");
+	static const auto offset = netvars::get( )->at("C_TEFizz", "m_nEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEFizz::m_nModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEFizz", "m_nModelIndex");
+	static const auto offset = netvars::get( )->at("C_TEFizz", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEFizz::m_nDensity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEFizz", "m_nDensity");
+	static const auto offset = netvars::get( )->at("C_TEFizz", "m_nDensity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEFizz::m_nCurrent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEFizz", "m_nCurrent");
+	static const auto offset = netvars::get( )->at("C_TEFizz", "m_nCurrent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

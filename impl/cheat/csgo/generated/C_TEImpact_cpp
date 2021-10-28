@@ -8,25 +8,25 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEImpact::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_TEImpact", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_TEImpact::m_vecNormal( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_vecNormal");
+	static const auto offset = netvars::get( )->at("C_TEImpact", "m_vecNormal");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_TEImpact::m_iType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_iType");
+	static const auto offset = netvars::get( )->at("C_TEImpact", "m_iType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEImpact::m_ucFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEImpact", "m_ucFlags");
+	static const auto offset = netvars::get( )->at("C_TEImpact", "m_ucFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

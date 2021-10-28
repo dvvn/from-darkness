@@ -8,7 +8,7 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client;
 
-void frame_stage_notify::callback(ClientFrameStage_t stage)
+void frame_stage_notify_impl::callback(ClientFrameStage_t stage)
 {
 	switch (stage)
 	{
@@ -17,7 +17,7 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 		case FRAME_NET_UPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_START: break;
 		case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-			players_list::get_ptr( )->update( ); //todo: move to createmove
+			players_list::get( )->update( ); //todo: move to createmove
 			break;
 		case FRAME_NET_UPDATE_END: break;
 		case FRAME_RENDER_START: break;

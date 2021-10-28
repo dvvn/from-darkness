@@ -3,7 +3,7 @@
 
 namespace cheat
 {
-	class csgo_awaiter final : public service_instance_shared<csgo_awaiter>
+	class csgo_awaiter_impl final : public service<csgo_awaiter_impl>
 	{
 	protected:
 		load_result load_impl( ) noexcept override;
@@ -28,4 +28,6 @@ namespace cheat
 		bool game_loaded_before = false;
 		//nstd::os::frozen_threads_storage frozen_threads_{false};
 	};
+
+	CHEAT_SERVICE_SHARE(csgo_awaiter);
 }

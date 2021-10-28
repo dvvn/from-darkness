@@ -12,12 +12,11 @@ namespace cheat::csgo
 
 namespace cheat::hooks::c_base_animating
 {
-	struct should_skip_animation_frame final : hook_instance_shared<should_skip_animation_frame
-																   ,__COUNTER__
-																  , bool(csgo::C_BaseAnimating::*)( )>
+	struct should_skip_animation_frame_impl final : service<should_skip_animation_frame_impl>
+											 , dhooks::_Detect_hook_holder_t<__COUNTER__, bool(csgo::C_BaseAnimating::*)( )>
 											 , gui::widgets::abstract_renderable
 	{
-		should_skip_animation_frame( );
+		should_skip_animation_frame_impl( );
 
 		void render( ) override;
 
@@ -30,4 +29,6 @@ namespace cheat::hooks::c_base_animating
 		bool override_return__    = false;
 		bool override_return_to__ = false;
 	};
+
+	CHEAT_SERVICE_SHARE(should_skip_animation_frame);
 }

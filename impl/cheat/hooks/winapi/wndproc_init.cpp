@@ -11,14 +11,14 @@ using namespace hooks::winapi;
 
 using gui::imgui_context;
 
-wndproc::wndproc( )
+wndproc_impl::wndproc_impl( )
 {
-	this->wait_for_service<imgui_context>( );
+	this->add_dependency(imgui_context::get( ));
 }
 
-service_impl::load_result wndproc::load_impl( ) noexcept
+basic_service::load_result wndproc_impl::load_impl( ) noexcept
 {
-	const auto hwnd = imgui_context::get_ptr( )->hwnd( );
+	const auto hwnd = imgui_context::get( )->hwnd( );
 	runtime_assert(hwnd != nullptr);
 
 	unicode_         = IsWindowUnicode(hwnd);
@@ -27,9 +27,9 @@ service_impl::load_result wndproc::load_impl( ) noexcept
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-nstd::address wndproc::get_target_method_impl( ) const
+nstd::address wndproc_impl::get_target_method_impl( ) const
 {
-	return std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get_ptr( )->hwnd( ), GWLP_WNDPROC);
+	return std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get( )->hwnd( ), GWLP_WNDPROC);
 }
 
-CHEAT_REGISTER_SERVICE(wndproc);
+CHEAT_SERVICE_REGISTER(wndproc);

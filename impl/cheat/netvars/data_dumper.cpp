@@ -37,7 +37,7 @@ log_info netvars::log_netvars(const netvars_storage& netvars_data)
 
 	constexpr auto get_file_name = []( )-> std::filesystem::path
 	{
-		std::string version = csgo_interfaces::get_ptr( )->engine->GetProductVersionString( );
+		std::string version = csgo_interfaces::get( )->engine->GetProductVersionString( );
 		std::ranges::replace(version, '.', '_');
 		version.append(".json");
 		return version;
@@ -372,7 +372,7 @@ _WORK:
 			source << __Tab << format("auto addr = {}(this).add({});", _Address_class, netvar_offset) << __New_line;
 #else
 			source << __Tab
-					<< "static const auto offset = netvars::get_ptr( )->at"
+					<< "static const auto offset = netvars::get( )->at"
 					<< std::format("(\"{}\", \"{}\");", CLASS_NAME, NETVAR_NAME)
 					<< __New_line;
 			source << __Tab << "auto addr = " << _Address_class << "(this).add(offset);" << __New_line;

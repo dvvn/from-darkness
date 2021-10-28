@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_FireTrail::m_nAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FireTrail", "m_nAttachment");
+	static const auto offset = netvars::get( )->at("C_FireTrail", "m_nAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_FireTrail::m_flLifetime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FireTrail", "m_flLifetime");
+	static const auto offset = netvars::get( )->at("C_FireTrail", "m_flLifetime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

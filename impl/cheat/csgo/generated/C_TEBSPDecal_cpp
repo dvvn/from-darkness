@@ -8,19 +8,19 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEBSPDecal::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBSPDecal", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_TEBSPDecal", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_TEBSPDecal::m_nEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBSPDecal", "m_nEntity");
+	static const auto offset = netvars::get( )->at("C_TEBSPDecal", "m_nEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBSPDecal::m_nIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBSPDecal", "m_nIndex");
+	static const auto offset = netvars::get( )->at("C_TEBSPDecal", "m_nIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

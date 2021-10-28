@@ -8,49 +8,49 @@ using namespace cheat::csgo;
 
 bool& C_PointCommentaryNode::m_bActive( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_bActive");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_bActive");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_PointCommentaryNode::m_flStartTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_flStartTime");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_flStartTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 char* C_PointCommentaryNode::m_iszCommentaryFile( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszCommentaryFile");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_iszCommentaryFile");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 char* C_PointCommentaryNode::m_iszCommentaryFileNoHDR( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszCommentaryFileNoHDR");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_iszCommentaryFileNoHDR");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 char* C_PointCommentaryNode::m_iszSpeakers( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iszSpeakers");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_iszSpeakers");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 int& C_PointCommentaryNode::m_iNodeNumber( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iNodeNumber");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_iNodeNumber");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_PointCommentaryNode::m_iNodeNumberMax( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_iNodeNumberMax");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_iNodeNumberMax");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_PointCommentaryNode::m_hViewPosition( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCommentaryNode", "m_hViewPosition");
+	static const auto offset = netvars::get( )->at("C_PointCommentaryNode", "m_hViewPosition");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }

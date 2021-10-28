@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 bool& C_SmokeGrenadeProjectile::m_bDidSmokeEffect( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeGrenadeProjectile", "m_bDidSmokeEffect");
+	static const auto offset = netvars::get( )->at("C_SmokeGrenadeProjectile", "m_bDidSmokeEffect");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_SmokeGrenadeProjectile::m_nSmokeEffectTickBegin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeGrenadeProjectile", "m_nSmokeEffectTickBegin");
+	static const auto offset = netvars::get( )->at("C_SmokeGrenadeProjectile", "m_nSmokeEffectTickBegin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

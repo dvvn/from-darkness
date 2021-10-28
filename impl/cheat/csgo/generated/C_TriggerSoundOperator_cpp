@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 int& C_TriggerSoundOperator::m_nSoundOperator( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TriggerSoundOperator", "m_nSoundOperator");
+	static const auto offset = netvars::get( )->at("C_TriggerSoundOperator", "m_nSoundOperator");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

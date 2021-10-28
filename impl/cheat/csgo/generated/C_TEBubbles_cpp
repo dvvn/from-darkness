@@ -8,37 +8,37 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEBubbles::m_vecMins( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBubbles", "m_vecMins");
+	static const auto offset = netvars::get( )->at("C_TEBubbles", "m_vecMins");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_TEBubbles::m_vecMaxs( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBubbles", "m_vecMaxs");
+	static const auto offset = netvars::get( )->at("C_TEBubbles", "m_vecMaxs");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_TEBubbles::m_nModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBubbles", "m_nModelIndex");
+	static const auto offset = netvars::get( )->at("C_TEBubbles", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_TEBubbles::m_fHeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBubbles", "m_fHeight");
+	static const auto offset = netvars::get( )->at("C_TEBubbles", "m_fHeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_TEBubbles::m_nCount( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBubbles", "m_nCount");
+	static const auto offset = netvars::get( )->at("C_TEBubbles", "m_nCount");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_TEBubbles::m_fSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBubbles", "m_fSpeed");
+	static const auto offset = netvars::get( )->at("C_TEBubbles", "m_fSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

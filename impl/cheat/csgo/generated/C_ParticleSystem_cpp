@@ -12,91 +12,91 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_ParticleSystem::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_ParticleSystem::m_fEffects( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_fEffects");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_fEffects");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_ParticleSystem::m_hOwnerEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_hOwnerEntity");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_hOwnerEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_ParticleSystem::moveparent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "moveparent");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "moveparent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_ParticleSystem::m_iParentAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iParentAttachment");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_iParentAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::QAngle& C_ParticleSystem::m_angRotation( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_angRotation");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_angRotation");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::QAngle>( );
 }
 int& C_ParticleSystem::m_iEffectIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iEffectIndex");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_iEffectIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_ParticleSystem::m_bActive( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_bActive");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_bActive");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_ParticleSystem::m_nStopType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_nStopType");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_nStopType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_ParticleSystem::m_flStartTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_flStartTime");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_flStartTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 char* C_ParticleSystem::m_szSnapshotFileName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_szSnapshotFileName");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_szSnapshotFileName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 std::array<cheat::csgo::Vector, 4>& C_ParticleSystem::m_vServerControlPoints( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_vServerControlPoints");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_vServerControlPoints");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<cheat::csgo::Vector, 4>>( );
 }
 std::array<int, 4>& C_ParticleSystem::m_iServerControlPointAssignments( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iServerControlPointAssignments");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_iServerControlPointAssignments");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 4>>( );
 }
 std::array<int, 63>& C_ParticleSystem::m_hControlPointEnts( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_hControlPointEnts");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_hControlPointEnts");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 63>>( );
 }
 std::array<int, 63>& C_ParticleSystem::m_iControlPointParents( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticleSystem", "m_iControlPointParents");
+	static const auto offset = netvars::get( )->at("C_ParticleSystem", "m_iControlPointParents");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 63>>( );
 }

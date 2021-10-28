@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 int& C_Test_ProxyToggle_Networkable::m_WithProxy( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Test_ProxyToggle_Networkable", "m_WithProxy");
+	static const auto offset = netvars::get( )->at("C_Test_ProxyToggle_Networkable", "m_WithProxy");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_Func_LOD::m_nDisappearMinDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Func_LOD", "m_nDisappearMinDist");
+	static const auto offset = netvars::get( )->at("C_Func_LOD", "m_nDisappearMinDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Func_LOD::m_nDisappearMaxDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Func_LOD", "m_nDisappearMaxDist");
+	static const auto offset = netvars::get( )->at("C_Func_LOD", "m_nDisappearMaxDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

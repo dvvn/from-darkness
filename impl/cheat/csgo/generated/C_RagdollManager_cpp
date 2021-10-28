@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 int& C_RagdollManager::m_iCurrentMaxRagdollCount( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RagdollManager", "m_iCurrentMaxRagdollCount");
+	static const auto offset = netvars::get( )->at("C_RagdollManager", "m_iCurrentMaxRagdollCount");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

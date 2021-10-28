@@ -6,43 +6,43 @@ using namespace cheat::csgo;
 
 int& C_DynamicLight::m_Flags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_Flags");
+	static const auto offset = netvars::get( )->at("C_DynamicLight", "m_Flags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_DynamicLight::m_LightStyle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_LightStyle");
+	static const auto offset = netvars::get( )->at("C_DynamicLight", "m_LightStyle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_DynamicLight::m_Radius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_Radius");
+	static const auto offset = netvars::get( )->at("C_DynamicLight", "m_Radius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_DynamicLight::m_Exponent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_Exponent");
+	static const auto offset = netvars::get( )->at("C_DynamicLight", "m_Exponent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_DynamicLight::m_InnerAngle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_InnerAngle");
+	static const auto offset = netvars::get( )->at("C_DynamicLight", "m_InnerAngle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_DynamicLight::m_OuterAngle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_OuterAngle");
+	static const auto offset = netvars::get( )->at("C_DynamicLight", "m_OuterAngle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_DynamicLight::m_SpotRadius( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicLight", "m_SpotRadius");
+	static const auto offset = netvars::get( )->at("C_DynamicLight", "m_SpotRadius");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

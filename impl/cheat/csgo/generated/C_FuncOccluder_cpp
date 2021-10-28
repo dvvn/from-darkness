@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 bool& C_FuncOccluder::m_bActive( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncOccluder", "m_bActive");
+	static const auto offset = netvars::get( )->at("C_FuncOccluder", "m_bActive");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_FuncOccluder::m_nOccluderIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncOccluder", "m_nOccluderIndex");
+	static const auto offset = netvars::get( )->at("C_FuncOccluder", "m_nOccluderIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

@@ -9,145 +9,145 @@ using namespace cheat::csgo;
 
 int& C_RopeKeyframe::m_nChangeCount( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nChangeCount");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_nChangeCount");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_iRopeMaterialModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iRopeMaterialModelIndex");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_iRopeMaterialModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_RopeKeyframe::m_hStartPoint( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_hStartPoint");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_hStartPoint");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 cheat::csgo::CBaseHandle& C_RopeKeyframe::m_hEndPoint( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_hEndPoint");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_hEndPoint");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_RopeKeyframe::m_iStartAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iStartAttachment");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_iStartAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_iEndAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iEndAttachment");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_iEndAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_fLockedPoints( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_fLockedPoints");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_fLockedPoints");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_Slack( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Slack");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_Slack");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_RopeLength( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_RopeLength");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_RopeLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_RopeFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_RopeFlags");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_RopeFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_RopeKeyframe::m_TextureScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_TextureScale");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_TextureScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_RopeKeyframe::m_nSegments( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nSegments");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_nSegments");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_RopeKeyframe::m_bConstrainBetweenEndpoints( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_bConstrainBetweenEndpoints");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_bConstrainBetweenEndpoints");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_RopeKeyframe::m_Subdiv( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Subdiv");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_Subdiv");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_RopeKeyframe::m_Width( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_Width");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_Width");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_RopeKeyframe::m_flScrollSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_flScrollSpeed");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_flScrollSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 cheat::csgo::Vector& C_RopeKeyframe::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_RopeKeyframe::moveparent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "moveparent");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "moveparent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_iParentAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iParentAttachment");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_iParentAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_iDefaultRopeMaterialModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_iDefaultRopeMaterialModelIndex");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_iDefaultRopeMaterialModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_nMinCPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMinCPULevel");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_nMinCPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_nMaxCPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMaxCPULevel");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_nMaxCPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_nMinGPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMinGPULevel");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_nMinGPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_RopeKeyframe::m_nMaxGPULevel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_RopeKeyframe", "m_nMaxGPULevel");
+	static const auto offset = netvars::get( )->at("C_RopeKeyframe", "m_nMaxGPULevel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

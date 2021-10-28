@@ -8,13 +8,13 @@ using namespace cheat::csgo;
 
 cheat::csgo::CBaseHandle& C_EntityFlame::m_hEntAttached( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFlame", "m_hEntAttached");
+	static const auto offset = netvars::get( )->at("C_EntityFlame", "m_hEntAttached");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 bool& C_EntityFlame::m_bCheapEffect( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EntityFlame", "m_bCheapEffect");
+	static const auto offset = netvars::get( )->at("C_EntityFlame", "m_bCheapEffect");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

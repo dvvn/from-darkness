@@ -15,21 +15,19 @@
 using namespace cheat;
 using namespace csgo;
 
-netvars::netvars( )
+netvars_impl::netvars_impl( )
 {
 	data_ = std::make_unique<data_type>( );
-	this->wait_for_service<csgo_interfaces>( );
+	this->add_dependency(csgo_interfaces::get( ));
 }
 
-netvars::~netvars( ) = default;
+netvars_impl::~netvars_impl( ) = default;
 
-service_impl::load_result netvars::load_impl( ) noexcept
+basic_service::load_result netvars_impl::load_impl( ) noexcept
 {
 	detail::netvars::netvars_storage storage;
 
-	const auto interfaces = csgo_interfaces::get_ptr( );
-
-	iterate_client_class(storage, interfaces->client->GetAllClasses( ));
+	iterate_client_class(storage, csgo_interfaces::get( )->client->GetAllClasses( ));
 
 	const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
 
@@ -47,7 +45,7 @@ service_impl::load_result netvars::load_impl( ) noexcept
 	CHEAT_SERVICE_LOADED
 }
 
-int netvars::at(const std::string_view& table, const std::string_view& item) const
+int netvars_impl::at(const std::string_view& table, const std::string_view& item) const
 {
 	const auto& storage = data_->storage;
 
@@ -62,4 +60,4 @@ int netvars::at(const std::string_view& table, const std::string_view& item) con
 	return basic_offset;
 }
 
-CHEAT_REGISTER_SERVICE(netvars);
+CHEAT_SERVICE_REGISTER(netvars);

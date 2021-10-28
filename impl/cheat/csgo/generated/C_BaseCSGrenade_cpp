@@ -6,43 +6,43 @@ using namespace cheat::csgo;
 
 bool& C_BaseCSGrenade::m_bRedraw( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade", "m_bRedraw");
+	static const auto offset = netvars::get( )->at("C_BaseCSGrenade", "m_bRedraw");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_BaseCSGrenade::m_bIsHeldByPlayer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade", "m_bIsHeldByPlayer");
+	static const auto offset = netvars::get( )->at("C_BaseCSGrenade", "m_bIsHeldByPlayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_BaseCSGrenade::m_bPinPulled( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade", "m_bPinPulled");
+	static const auto offset = netvars::get( )->at("C_BaseCSGrenade", "m_bPinPulled");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_BaseCSGrenade::m_fThrowTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade", "m_fThrowTime");
+	static const auto offset = netvars::get( )->at("C_BaseCSGrenade", "m_fThrowTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_BaseCSGrenade::m_bLoopingSoundPlaying( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade", "m_bLoopingSoundPlaying");
+	static const auto offset = netvars::get( )->at("C_BaseCSGrenade", "m_bLoopingSoundPlaying");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_BaseCSGrenade::m_flThrowStrength( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade", "m_flThrowStrength");
+	static const auto offset = netvars::get( )->at("C_BaseCSGrenade", "m_flThrowStrength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BaseCSGrenade::m_fDropTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseCSGrenade", "m_fDropTime");
+	static const auto offset = netvars::get( )->at("C_BaseCSGrenade", "m_fDropTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

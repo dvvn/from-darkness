@@ -23,12 +23,12 @@ typedef struct IDirect3DDevice9 *LPDIRECT3DDEVICE9, *PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-service_impl::load_result csgo_interfaces::load_impl( ) noexcept
+basic_service::load_result csgo_interfaces_impl::load_impl( ) noexcept
 {
 	//unused
 #if 0
 #ifndef CHEAT_GUI_TEST
-	csgo_path = all_modules::get_ptr( )->owner( ).work_dir( );
+	csgo_path = all_modules::get( )->owner( ).work_dir( );
 #else
 	using string_type = filesystem::path::string_type;
 	const auto steam_path = filesystem::path(winreg::RegKey(HKEY_CURRENT_USER, L"Software\\Valve\\Steam").GetStringValue(L"SteamPath")).make_preferred( );
@@ -77,7 +77,7 @@ service_impl::load_result csgo_interfaces::load_impl( ) noexcept
 	load_lib(bin, L"vphysics");
 	load_lib(bin, L"inputsystem");
 
-	all_modules::get_ptr( )->update(true);
+	all_modules::get( )->update(true);
 
 #endif
 
@@ -130,9 +130,9 @@ service_impl::load_result csgo_interfaces::load_impl( ) noexcept
 	CHEAT_SERVICE_LOADED;
 }
 
-csgo_interfaces::csgo_interfaces( )
+csgo_interfaces_impl::csgo_interfaces_impl( )
 {
-	this->wait_for_service<console>( );
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(console);
 }
 
-CHEAT_REGISTER_SERVICE(csgo_interfaces);
+CHEAT_SERVICE_REGISTER(csgo_interfaces);

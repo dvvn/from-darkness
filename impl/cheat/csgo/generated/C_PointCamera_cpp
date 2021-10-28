@@ -6,55 +6,55 @@ using namespace cheat::csgo;
 
 float& C_PointCamera::m_FOV( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_FOV");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_FOV");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_PointCamera::m_Resolution( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_Resolution");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_Resolution");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_PointCamera::m_bFogEnable( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_bFogEnable");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_bFogEnable");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_PointCamera::m_FogColor( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_FogColor");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_FogColor");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_PointCamera::m_flFogStart( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_flFogStart");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_flFogStart");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_PointCamera::m_flFogEnd( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_flFogEnd");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_flFogEnd");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_PointCamera::m_flFogMaxDensity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_flFogMaxDensity");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_flFogMaxDensity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_PointCamera::m_bActive( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_bActive");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_bActive");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_PointCamera::m_bUseScreenAspectRatio( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PointCamera", "m_bUseScreenAspectRatio");
+	static const auto offset = netvars::get( )->at("C_PointCamera", "m_bUseScreenAspectRatio");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

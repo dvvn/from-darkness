@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_TEBeamLaser::m_nStartEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamLaser", "m_nStartEntity");
+	static const auto offset = netvars::get( )->at("C_TEBeamLaser", "m_nStartEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEBeamLaser::m_nEndEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamLaser", "m_nEndEntity");
+	static const auto offset = netvars::get( )->at("C_TEBeamLaser", "m_nEndEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

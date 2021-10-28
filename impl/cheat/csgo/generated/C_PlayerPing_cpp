@@ -8,31 +8,31 @@ using namespace cheat::csgo;
 
 cheat::csgo::CBaseHandle& C_PlayerPing::m_hPlayer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerPing", "m_hPlayer");
+	static const auto offset = netvars::get( )->at("C_PlayerPing", "m_hPlayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 cheat::csgo::CBaseHandle& C_PlayerPing::m_hPingedEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerPing", "m_hPingedEntity");
+	static const auto offset = netvars::get( )->at("C_PlayerPing", "m_hPingedEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_PlayerPing::m_iType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerPing", "m_iType");
+	static const auto offset = netvars::get( )->at("C_PlayerPing", "m_iType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_PlayerPing::m_bUrgent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerPing", "m_bUrgent");
+	static const auto offset = netvars::get( )->at("C_PlayerPing", "m_bUrgent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 char* C_PlayerPing::m_szPlaceName( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerPing", "m_szPlaceName");
+	static const auto offset = netvars::get( )->at("C_PlayerPing", "m_szPlaceName");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }

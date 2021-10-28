@@ -7,19 +7,19 @@
 using namespace cheat;
 using namespace hooks::directx;
 
-present::present( )
+present_impl::present_impl( )
 {
-	this->wait_for_service<gui::menu>( );
+	this->add_dependency(gui::menu::get( ));
 }
 
-nstd::address present::get_target_method_impl( ) const
+nstd::address present_impl::get_target_method_impl( ) const
 {
-	return csgo_interfaces::get_ptr( )->d3d_device.vfunc(17);
+	return csgo_interfaces::get( )->d3d_device.vfunc(17);
 }
 
-service_impl::load_result present::load_impl( ) noexcept
+basic_service::load_result present_impl::load_impl( ) noexcept
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-CHEAT_REGISTER_SERVICE(present);
+CHEAT_SERVICE_REGISTER(present);

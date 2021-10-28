@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 int& C_TEFoundryHelpers::m_iEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEFoundryHelpers", "m_iEntity");
+	static const auto offset = netvars::get( )->at("C_TEFoundryHelpers", "m_iEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

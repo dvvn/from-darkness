@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_BoneFollower::m_modelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BoneFollower", "m_modelIndex");
+	static const auto offset = netvars::get( )->at("C_BoneFollower", "m_modelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BoneFollower::m_solidIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BoneFollower", "m_solidIndex");
+	static const auto offset = netvars::get( )->at("C_BoneFollower", "m_solidIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

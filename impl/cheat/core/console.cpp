@@ -16,6 +16,7 @@
 
 using namespace cheat;
 using detail::string_packer;
+
 struct string_packer::data_type : std::variant<str, strv, wstr, wstrv, ostr, wostr>
 {
 };
@@ -124,7 +125,7 @@ private:
 template <typename T>
 movable_function(T&&) -> movable_function<std::remove_cvref_t<T>>;
 
-class console::cache_type
+class console_impl::cache_type
 {
 public:
 	using value_type = std::unique_ptr<movable_function_base>;
@@ -157,14 +158,14 @@ private:
 	std::vector<value_type> cache_;
 };
 
-console::console( )
+console_impl::console_impl( )
 {
 	runtime_assert_add_handler(this);
 	cache_ = std::make_unique<cache_type>( );
-	this->wait_for_service<csgo_awaiter>( );
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(csgo_awaiter);
 }
 
-console::~console( )
+console_impl::~console_impl( )
 {
 	runtime_assert_remove_handler(this);
 
@@ -182,7 +183,7 @@ console::~console( )
 		fclose(err_);
 }
 
-service_impl::load_result console::load_impl( ) noexcept
+basic_service::load_result console_impl::load_impl( ) noexcept
 {
 	handle_ = GetConsoleWindow( );
 	if (handle_ != nullptr)
@@ -191,15 +192,15 @@ service_impl::load_result console::load_impl( ) noexcept
 	}
 	else
 	{
-		//create new console window
+		//create new console_impl window
 		if (!AllocConsole( ))
-			CHEAT_SERVICE_NOT_LOADED("Unable to alloc console!");
+			CHEAT_SERVICE_NOT_LOADED("Unable to alloc console_impl!");
 
 		allocated_ = true;
 
 		handle_ = GetConsoleWindow( );
 		if (handle_ == nullptr)
-			CHEAT_SERVICE_NOT_LOADED("Unable to get console window");
+			CHEAT_SERVICE_NOT_LOADED("Unable to get console_impl window");
 
 		// ReSharper disable CppInconsistentNaming
 		// ReSharper disable CppEnforceCVQualifiersPlacement
@@ -217,7 +218,7 @@ service_impl::load_result console::load_impl( ) noexcept
 
 		const auto full_path = nstd::os::all_modules::get_ptr( )->current( ).full_path( );
 		if (!SetConsoleTitleW(full_path.data( )))
-			CHEAT_SERVICE_NOT_LOADED("Unable set console title");
+			CHEAT_SERVICE_NOT_LOADED("Unable set console_impl title");
 	}
 
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
@@ -251,7 +252,7 @@ static auto _Prepare_message(const char* expression, const char* message, const 
 	return msg;
 }
 
-void console::handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept
+void console_impl::handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept
 {
 	if (expression_result)
 		return;
@@ -264,7 +265,7 @@ void console::handle(bool expression_result, const char* expression, const char*
 #endif
 }
 
-void console::handle(const char* message, const std::source_location& location) noexcept
+void console_impl::handle(const char* message, const std::source_location& location) noexcept
 {
 	this->write_line(_Prepare_message(nullptr, message, location));
 #ifdef _DEBUG
@@ -274,7 +275,7 @@ void console::handle(const char* message, const std::source_location& location) 
 #endif
 }
 
-size_t console::id( ) const
+size_t console_impl::id( ) const
 {
 	return __COUNTER__;
 }
@@ -323,7 +324,7 @@ static decltype(auto) _Unwrap_view(T&& text)
 		return std::forward<T>(text);
 }
 
-using console_cache_type_uptr = std::unique_ptr<console::cache_type>;
+using console_cache_type_uptr = std::unique_ptr<console_impl::cache_type>;
 static auto _Write_text = []<typename T>(T&& text)
 {
 	FILE* file_out;
@@ -382,7 +383,7 @@ static auto _Decayed_bind(const Fn& fn, T&& text)
 	return std::bind_front(fn, get_text( ));
 }
 
-static auto _Write_or_cache = []<typename T>(T&& text, const console* instance, console_cache_type_uptr& cache)
+static auto _Write_or_cache = []<typename T>(T&& text, const console_impl* instance, console_cache_type_uptr& cache)
 {
 	const auto lock = std::scoped_lock(*cache);
 
@@ -451,7 +452,7 @@ static auto _Detect_char_type( )
 		return char( );
 }
 
-static auto _Write_or_cache_full = []<typename T>(T&& text, const console* instance, console_cache_type_uptr& cache)
+static auto _Write_or_cache_full = []<typename T>(T&& text, const console_impl* instance, console_cache_type_uptr& cache)
 {
 	using Chr = decltype(_Detect_char_type<std::remove_cvref_t<T>>( ));
 
@@ -461,7 +462,7 @@ static auto _Write_or_cache_full = []<typename T>(T&& text, const console* insta
 	_Write_or_cache(std::move(stream), instance, cache);
 };
 
-void console::write(char c)
+void console_impl::write(char c)
 {
 	_Write_or_cache(c, this, cache_);
 }
@@ -477,16 +478,14 @@ static void _Pack(string_packer& str, Fn&& fn, Args&&...args)
 	std::visit(packed, *str.packed);
 }
 
-void console::write(string_packer&& str)
+void console_impl::write(string_packer&& str)
 {
 	_Pack(str, _Write_or_cache, this, cache_);
 }
 
-void console::write_line(string_packer&& str)
+void console_impl::write_line(string_packer&& str)
 {
 	_Pack(str, _Write_or_cache_full, this, cache_);
 }
 
-#ifdef CHEAT_HAVE_CONSOLE
-CHEAT_REGISTER_SERVICE(console);
-#endif
+CHEAT_SERVICE_REGISTER(console);

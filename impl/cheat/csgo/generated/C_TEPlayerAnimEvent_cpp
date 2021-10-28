@@ -8,19 +8,19 @@ using namespace cheat::csgo;
 
 cheat::csgo::CBaseHandle& C_TEPlayerAnimEvent::m_hPlayer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_hPlayer");
+	static const auto offset = netvars::get( )->at("C_TEPlayerAnimEvent", "m_hPlayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_TEPlayerAnimEvent::m_iEvent( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_iEvent");
+	static const auto offset = netvars::get( )->at("C_TEPlayerAnimEvent", "m_iEvent");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEPlayerAnimEvent::m_nData( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlayerAnimEvent", "m_nData");
+	static const auto offset = netvars::get( )->at("C_TEPlayerAnimEvent", "m_nData");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

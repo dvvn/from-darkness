@@ -8,19 +8,19 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEPlantBomb::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlantBomb", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_TEPlantBomb", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_TEPlantBomb::m_iPlayer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlantBomb", "m_iPlayer");
+	static const auto offset = netvars::get( )->at("C_TEPlantBomb", "m_iPlayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEPlantBomb::m_option( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEPlantBomb", "m_option");
+	static const auto offset = netvars::get( )->at("C_TEPlantBomb", "m_option");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 int& C_TEKillPlayerAttachments::m_nPlayer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEKillPlayerAttachments", "m_nPlayer");
+	static const auto offset = netvars::get( )->at("C_TEKillPlayerAttachments", "m_nPlayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

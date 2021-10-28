@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 float& C_WeaponTaser::m_fFireTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_WeaponTaser", "m_fFireTime");
+	static const auto offset = netvars::get( )->at("C_WeaponTaser", "m_fFireTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

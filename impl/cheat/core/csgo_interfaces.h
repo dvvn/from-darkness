@@ -151,7 +151,7 @@ namespace cheat::detail
 
 namespace cheat
 {
-	class csgo_interfaces final : public service_instance_shared<csgo_interfaces>
+	class csgo_interfaces_impl final : public service<csgo_interfaces_impl>
 	{
 		template <typename T, size_t Ptrs = 1>
 		using ifc = detail::csgo_interface<T, Ptrs>;
@@ -162,7 +162,7 @@ namespace cheat
 	public:
 		//nstd::filesystem::path csgo_path;
 
-		csgo_interfaces( );
+		csgo_interfaces_impl( );
 
 		ifc<csgo::IBaseClientDLL> client;
 		ifc<csgo::IClientEntityList> entity_list;
@@ -195,4 +195,6 @@ namespace cheat
 		ifc<csgo::C_CSPlayer, 2> local_player;
 		ifc<IDirect3DDevice9> d3d_device;
 	};
+
+	CHEAT_SERVICE_SHARE(csgo_interfaces);
 }

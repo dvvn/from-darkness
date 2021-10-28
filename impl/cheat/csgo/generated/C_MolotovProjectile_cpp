@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 bool& C_MolotovProjectile::m_bIsIncGrenade( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_MolotovProjectile", "m_bIsIncGrenade");
+	static const auto offset = netvars::get( )->at("C_MolotovProjectile", "m_bIsIncGrenade");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

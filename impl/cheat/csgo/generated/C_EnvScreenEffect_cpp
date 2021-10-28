@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 float& C_EnvScreenEffect::m_flDuration( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenEffect", "m_flDuration");
+	static const auto offset = netvars::get( )->at("C_EnvScreenEffect", "m_flDuration");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_EnvScreenEffect::m_nType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_EnvScreenEffect", "m_nType");
+	static const auto offset = netvars::get( )->at("C_EnvScreenEffect", "m_nType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

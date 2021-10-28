@@ -8,85 +8,85 @@ using namespace cheat::csgo;
 
 int& C_BaseViewModel::m_nModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_BaseViewModel::m_hWeapon( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_hWeapon");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_hWeapon");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_BaseViewModel::m_nSkin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nSkin");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nSkin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseViewModel::m_nBody( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nBody");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nBody");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseViewModel::m_nSequence( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nSequence");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nSequence");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseViewModel::m_nViewModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nViewModelIndex");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nViewModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BaseViewModel::m_flPlaybackRate( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_flPlaybackRate");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_flPlaybackRate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BaseViewModel::m_fEffects( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_fEffects");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_fEffects");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseViewModel::m_nAnimationParity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nAnimationParity");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nAnimationParity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::CBaseHandle& C_BaseViewModel::m_hOwner( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_hOwner");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_hOwner");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_BaseViewModel::m_nNewSequenceParity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nNewSequenceParity");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nNewSequenceParity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseViewModel::m_nResetEventsParity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nResetEventsParity");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nResetEventsParity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BaseViewModel::m_nMuzzleFlashParity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_nMuzzleFlashParity");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_nMuzzleFlashParity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_BaseViewModel::m_bShouldIgnoreOffsetAndAccuracy( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseViewModel", "m_bShouldIgnoreOffsetAndAccuracy");
+	static const auto offset = netvars::get( )->at("C_BaseViewModel", "m_bShouldIgnoreOffsetAndAccuracy");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

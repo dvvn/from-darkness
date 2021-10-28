@@ -6,17 +6,13 @@
 #include "cheat/core/csgo_modules.h"
 #include "cheat/core/services_loader.h"
 
-#include "cheat/csgo/entity/C_CSPlayer.h"
 #include "cheat/csgo/GlobalVars.hpp"
-#include "cheat/csgo/IClientEntityList.hpp"
 #include "cheat/csgo/IVEngineClient.hpp"
 
 #include "cheat/netvars/netvars.h"
 
 #include "cheat/utils/game.h"
 
-#include <nstd/memory backup.h>
-#include <nstd/runtime_assert_fwd.h>
 #include <nstd/address_pipe.h>
 
 #include <vector>
@@ -25,17 +21,17 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-service_impl::load_result players_list::load_impl( ) noexcept
+basic_service::load_result players_list_impl::load_impl( ) noexcept
 {
 	CHEAT_SERVICE_LOADED;
 }
 
-players_list::players_list( )
+players_list_impl::players_list_impl( )
 {
-	this->wait_for_service<netvars>( );
+	this->add_dependency(netvars::get());
 }
 
-players_list::~players_list( ) = default;
+players_list_impl::~players_list_impl( ) = default;
 
 static void* _Player_by_index_server(int client_index)
 {
@@ -52,9 +48,9 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
 }
 
-void players_list::update( )
+void players_list_impl::update( )
 {
-	const auto interfaces = csgo_interfaces::get_ptr( );
+	const auto &interfaces = csgo_interfaces::get( );
 	// ReSharper disable once CppUseStructuredBinding
 	const auto& globals = *interfaces->global_vars.get( );
 
@@ -84,4 +80,4 @@ void players_list::update( )
 	}
 }
 
-CHEAT_REGISTER_SERVICE(players_list);
+CHEAT_SERVICE_REGISTER(players_list);

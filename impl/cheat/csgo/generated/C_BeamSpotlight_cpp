@@ -6,49 +6,49 @@ using namespace cheat::csgo;
 
 int& C_BeamSpotlight::m_nHaloIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_nHaloIndex");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_nHaloIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_BeamSpotlight::m_bSpotlightOn( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_bSpotlightOn");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_bSpotlightOn");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_BeamSpotlight::m_bHasDynamicLight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_bHasDynamicLight");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_bHasDynamicLight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_BeamSpotlight::m_flSpotlightMaxLength( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flSpotlightMaxLength");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_flSpotlightMaxLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BeamSpotlight::m_flSpotlightGoalWidth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flSpotlightGoalWidth");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_flSpotlightGoalWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BeamSpotlight::m_flHDRColorScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flHDRColorScale");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_flHDRColorScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_BeamSpotlight::m_nRotationAxis( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_nRotationAxis");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_nRotationAxis");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BeamSpotlight::m_flRotationSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BeamSpotlight", "m_flRotationSpeed");
+	static const auto offset = netvars::get( )->at("C_BeamSpotlight", "m_flRotationSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

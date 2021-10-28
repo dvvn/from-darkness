@@ -9,19 +9,19 @@ using namespace cheat::csgo;
 
 std::array<float, 96>& C_BaseFlex::m_flexWeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_flexWeight");
+	static const auto offset = netvars::get( )->at("C_BaseFlex", "m_flexWeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 96>>( );
 }
 int& C_BaseFlex::m_blinktoggle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_blinktoggle");
+	static const auto offset = netvars::get( )->at("C_BaseFlex", "m_blinktoggle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_BaseFlex::m_viewtarget( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseFlex", "m_viewtarget");
+	static const auto offset = netvars::get( )->at("C_BaseFlex", "m_viewtarget");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

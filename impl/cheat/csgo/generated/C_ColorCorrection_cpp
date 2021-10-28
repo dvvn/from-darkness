@@ -8,73 +8,73 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_ColorCorrection::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 float& C_ColorCorrection::m_minFalloff( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_minFalloff");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_minFalloff");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_ColorCorrection::m_maxFalloff( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_maxFalloff");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_maxFalloff");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_ColorCorrection::m_flCurWeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_flCurWeight");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_flCurWeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_ColorCorrection::m_flMaxWeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_flMaxWeight");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_flMaxWeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_ColorCorrection::m_flFadeInDuration( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_flFadeInDuration");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_flFadeInDuration");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_ColorCorrection::m_flFadeOutDuration( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_flFadeOutDuration");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_flFadeOutDuration");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 char* C_ColorCorrection::m_netLookupFilename( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_netLookupFilename");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_netLookupFilename");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }
 bool& C_ColorCorrection::m_bEnabled( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_bEnabled");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_bEnabled");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_ColorCorrection::m_bMaster( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_bMaster");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_bMaster");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_ColorCorrection::m_bClientSide( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_bClientSide");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_bClientSide");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_ColorCorrection::m_bExclusive( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrection", "m_bExclusive");
+	static const auto offset = netvars::get( )->at("C_ColorCorrection", "m_bExclusive");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

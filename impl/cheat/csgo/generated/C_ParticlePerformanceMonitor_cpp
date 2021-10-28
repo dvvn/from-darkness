@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 bool& C_ParticlePerformanceMonitor::m_bMeasurePerf( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticlePerformanceMonitor", "m_bMeasurePerf");
+	static const auto offset = netvars::get( )->at("C_ParticlePerformanceMonitor", "m_bMeasurePerf");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_ParticlePerformanceMonitor::m_bDisplayPerf( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParticlePerformanceMonitor", "m_bDisplayPerf");
+	static const auto offset = netvars::get( )->at("C_ParticlePerformanceMonitor", "m_bDisplayPerf");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

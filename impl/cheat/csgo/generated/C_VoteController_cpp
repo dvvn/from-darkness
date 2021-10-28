@@ -8,31 +8,31 @@ using namespace cheat::csgo;
 
 int& C_VoteController::m_iActiveIssueIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_iActiveIssueIndex");
+	static const auto offset = netvars::get( )->at("C_VoteController", "m_iActiveIssueIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_VoteController::m_iOnlyTeamToVote( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_iOnlyTeamToVote");
+	static const auto offset = netvars::get( )->at("C_VoteController", "m_iOnlyTeamToVote");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 std::array<int, 5>& C_VoteController::m_nVoteOptionCount( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_nVoteOptionCount");
+	static const auto offset = netvars::get( )->at("C_VoteController", "m_nVoteOptionCount");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 5>>( );
 }
 int& C_VoteController::m_nPotentialVotes( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_nPotentialVotes");
+	static const auto offset = netvars::get( )->at("C_VoteController", "m_nPotentialVotes");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_VoteController::m_bIsYesNoVote( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_VoteController", "m_bIsYesNoVote");
+	static const auto offset = netvars::get( )->at("C_VoteController", "m_bIsYesNoVote");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

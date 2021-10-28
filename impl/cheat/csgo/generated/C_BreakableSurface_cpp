@@ -9,55 +9,55 @@ using namespace cheat::csgo;
 
 int& C_BreakableSurface::m_nNumWide( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_nNumWide");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_nNumWide");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_BreakableSurface::m_nNumHigh( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_nNumHigh");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_nNumHigh");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_BreakableSurface::m_flPanelWidth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_flPanelWidth");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_flPanelWidth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_BreakableSurface::m_flPanelHeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_flPanelHeight");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_flPanelHeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 cheat::csgo::Vector& C_BreakableSurface::m_vNormal( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_vNormal");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_vNormal");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_BreakableSurface::m_vCorner( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_vCorner");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_vCorner");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 bool& C_BreakableSurface::m_bIsBroken( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_bIsBroken");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_bIsBroken");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_BreakableSurface::m_nSurfaceType( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_nSurfaceType");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_nSurfaceType");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 std::array<int, 256>& C_BreakableSurface::m_RawPanelBitVec( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BreakableSurface", "m_RawPanelBitVec");
+	static const auto offset = netvars::get( )->at("C_BreakableSurface", "m_RawPanelBitVec");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 256>>( );
 }

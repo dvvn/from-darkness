@@ -5,6 +5,7 @@
 #include "cheat/csgo/GlobalVars.hpp"
 #include "cheat/csgo/IConVar.hpp"
 
+#include <algorithm>
 #include <format>
 
 using namespace cheat;
@@ -77,7 +78,7 @@ ConVar* find_cvar_impl::operator()(const std::string_view& cvar) const
 {
 	constexpr auto get_root_cvar = []
 	{
-		const auto cvars = csgo_interfaces::get_ptr( )->cvars.get( );
+		const auto cvars = csgo_interfaces::get( )->cvars.get( );
 		return nstd::address(cvars).add(0x30).deref(1).ptr<ConVar>( );
 	};
 	const auto get_cvar_from_game = [&]()-> ConVar*
@@ -98,7 +99,7 @@ ConVar* find_cvar_impl::operator()(const std::string_view& cvar) const
 
 static float _Interval_per_ticks()
 {
-	return csgo_interfaces::get_ptr( )->global_vars->interval_per_tick;
+	return csgo_interfaces::get( )->global_vars->interval_per_tick;
 }
 
 size_t time_to_ticks_impl::operator()(float time) const

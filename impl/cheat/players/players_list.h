@@ -4,11 +4,11 @@
 
 namespace cheat
 {
-	class players_list final : public service_instance_shared<players_list>
+	class players_list_impl final : public service<players_list_impl>
 	{
 	public:
-		players_list( );
-		~players_list( ) override;
+		players_list_impl( );
+		~players_list_impl( ) override;
 
 		void update( );
 
@@ -21,4 +21,6 @@ namespace cheat
 		std::vector<player> storage_;
 		//nstd::unordered_set<detail::players_filter> filter_cache__;
 	};
+
+	CHEAT_SERVICE_SHARE(players_list);
 }

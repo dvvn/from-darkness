@@ -8,19 +8,19 @@ using namespace cheat::csgo;
 
 int& C_TESparks::m_nMagnitude( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TESparks", "m_nMagnitude");
+	static const auto offset = netvars::get( )->at("C_TESparks", "m_nMagnitude");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TESparks::m_nTrailLength( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TESparks", "m_nTrailLength");
+	static const auto offset = netvars::get( )->at("C_TESparks", "m_nTrailLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_TESparks::m_vecDir( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TESparks", "m_vecDir");
+	static const auto offset = netvars::get( )->at("C_TESparks", "m_vecDir");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

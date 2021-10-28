@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 bool& C_PropJeep::m_bHeadlightIsOn( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PropJeep", "m_bHeadlightIsOn");
+	static const auto offset = netvars::get( )->at("C_PropJeep", "m_bHeadlightIsOn");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

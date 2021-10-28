@@ -12,7 +12,7 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client_mode;
 
-void create_move::callback(float input_sample_time, CUserCmd* cmd)
+void create_move_impl::callback(float input_sample_time, CUserCmd* cmd)
 {
 	const auto original_return = this->call_original_ex(input_sample_time, cmd);
 
@@ -20,7 +20,7 @@ void create_move::callback(float input_sample_time, CUserCmd* cmd)
 	if (cmd->command_number == 0)
 		return;
 
-	const auto interfaces = csgo_interfaces::get_ptr( );
+	const auto &interfaces = csgo_interfaces::get( );
 	return_value_.store_value(false);
 
 	if (original_return == true)

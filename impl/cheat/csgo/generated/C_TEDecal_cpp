@@ -8,31 +8,31 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEDecal::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_TEDecal", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_TEDecal::m_vecStart( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_vecStart");
+	static const auto offset = netvars::get( )->at("C_TEDecal", "m_vecStart");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_TEDecal::m_nEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_nEntity");
+	static const auto offset = netvars::get( )->at("C_TEDecal", "m_nEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEDecal::m_nHitbox( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_nHitbox");
+	static const auto offset = netvars::get( )->at("C_TEDecal", "m_nHitbox");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_TEDecal::m_nIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEDecal", "m_nIndex");
+	static const auto offset = netvars::get( )->at("C_TEDecal", "m_nIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

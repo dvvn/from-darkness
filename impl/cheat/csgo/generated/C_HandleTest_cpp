@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_HandleTest::m_Handle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_HandleTest", "m_Handle");
+	static const auto offset = netvars::get( )->at("C_HandleTest", "m_Handle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_HandleTest::m_bSendHandle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_HandleTest", "m_bSendHandle");
+	static const auto offset = netvars::get( )->at("C_HandleTest", "m_bSendHandle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

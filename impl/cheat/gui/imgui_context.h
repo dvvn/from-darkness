@@ -2,6 +2,8 @@
 
 #include "cheat/core/service.h"
 
+#include <span>
+
 namespace std
 {
 	namespace filesystem
@@ -51,11 +53,11 @@ namespace cheat::gui
 		std::unique_ptr<impl> impl_;
 	};
 
-	class imgui_context final : public service_instance_shared<imgui_context>
+	class imgui_context_impl final : public service<imgui_context_impl>
 	{
 	public:
-		~imgui_context( ) override;
-		imgui_context( );
+		~imgui_context_impl( ) override;
+		imgui_context_impl( );
 
 		HWND hwnd( ) const;
 		ImGuiContext& get( );
@@ -69,4 +71,6 @@ namespace cheat::gui
 		struct data_type;
 		std::unique_ptr<data_type> data_;
 	};
+
+	CHEAT_SERVICE_SHARE(imgui_context);
 }

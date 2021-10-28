@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 bool& C_BaseTrigger::m_bClientSidePredicted( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTrigger", "m_bClientSidePredicted");
+	static const auto offset = netvars::get( )->at("C_BaseTrigger", "m_bClientSidePredicted");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_BaseTrigger::m_spawnflags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_BaseTrigger", "m_spawnflags");
+	static const auto offset = netvars::get( )->at("C_BaseTrigger", "m_spawnflags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

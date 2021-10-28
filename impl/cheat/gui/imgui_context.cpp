@@ -80,7 +80,7 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 		//infile.seekg(0, infile.end); //done by std::ios::ate
 		const std::make_unsigned_t<std::streamoff> size0 = infile.tellg( );
 		runtime_assert(size0 > 0 && size0 < std::numeric_limits<size_t>::max());
-		const auto size=static_cast<size_t>(size0);
+		const auto size = static_cast<size_t>(size0);
 		infile.seekg(0, std::ios::beg);
 
 		const auto buffer = std::make_unique<char[]>(size);
@@ -138,7 +138,7 @@ std::optional<ImFontConfig> fonts_builder_proxy::default_font_config( )
 
 //-------------
 
-struct imgui_context::data_type
+struct imgui_context_impl::data_type
 {
 	data_type( )
 		: ctx(std::addressof(fonts))
@@ -156,22 +156,22 @@ struct imgui_context::data_type
 	HWND hwnd = nullptr;
 };
 
-HWND imgui_context::hwnd( ) const
+HWND imgui_context_impl::hwnd( ) const
 {
 	return data_->hwnd;
 }
 
-ImGuiContext& imgui_context::get( )
+ImGuiContext& imgui_context_impl::get( )
 {
 	return data_->ctx;
 }
 
-fonts_builder_proxy imgui_context::fonts( ) const
+fonts_builder_proxy imgui_context_impl::fonts( ) const
 {
 	return {std::addressof(data_->fonts)};
 }
 
-imgui_context::~imgui_context( )
+imgui_context_impl::~imgui_context_impl( )
 {
 	constexpr auto safe_call = []<typename T>(T&& fn)
 	{
@@ -189,15 +189,15 @@ imgui_context::~imgui_context( )
 	safe_call(std::bind_front(ImGui::Shutdown, std::addressof(data_->ctx)));
 }
 
-imgui_context::imgui_context( )
+imgui_context_impl::imgui_context_impl( )
 {
 	data_ = std::make_unique<data_type>( );
-	this->wait_for_service<csgo_interfaces>( );
+	this->add_dependency(csgo_interfaces::get( ));
 }
 
-service_impl::load_result imgui_context::load_impl( ) noexcept
+basic_service::load_result imgui_context_impl::load_impl( ) noexcept
 {
-	const auto d3d = csgo_interfaces::get_ptr( )->d3d_device.get( );
+	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
 
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*)
@@ -270,4 +270,4 @@ service_impl::load_result imgui_context::load_impl( ) noexcept
 	CHEAT_SERVICE_LOADED
 }
 
-CHEAT_REGISTER_SERVICE(imgui_context);
+CHEAT_SERVICE_REGISTER(imgui_context);

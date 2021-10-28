@@ -8,73 +8,73 @@ using namespace cheat::csgo;
 
 float& C_SmokeStack::m_SpreadSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_SpreadSpeed");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_SpreadSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SmokeStack::m_Speed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_Speed");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_Speed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SmokeStack::m_StartSize( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_StartSize");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_StartSize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SmokeStack::m_EndSize( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_EndSize");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_EndSize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SmokeStack::m_Rate( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_Rate");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_Rate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SmokeStack::m_JetLength( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_JetLength");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_JetLength");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_SmokeStack::m_bEmit( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_bEmit");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_bEmit");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_SmokeStack::m_flBaseSpread( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_flBaseSpread");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_flBaseSpread");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SmokeStack::m_flTwist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_flTwist");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_flTwist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_SmokeStack::m_flRollSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_flRollSpeed");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_flRollSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_SmokeStack::m_iMaterialModel( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_iMaterialModel");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_iMaterialModel");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 cheat::csgo::Vector& C_SmokeStack::m_vWind( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SmokeStack", "m_vWind");
+	static const auto offset = netvars::get( )->at("C_SmokeStack", "m_vWind");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

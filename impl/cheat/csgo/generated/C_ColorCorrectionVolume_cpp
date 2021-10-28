@@ -6,31 +6,31 @@ using namespace cheat::csgo;
 
 bool& C_ColorCorrectionVolume::m_bEnabled( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_bEnabled");
+	static const auto offset = netvars::get( )->at("C_ColorCorrectionVolume", "m_bEnabled");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_ColorCorrectionVolume::m_MaxWeight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_MaxWeight");
+	static const auto offset = netvars::get( )->at("C_ColorCorrectionVolume", "m_MaxWeight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_ColorCorrectionVolume::m_FadeDuration( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_FadeDuration");
+	static const auto offset = netvars::get( )->at("C_ColorCorrectionVolume", "m_FadeDuration");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_ColorCorrectionVolume::m_Weight( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_Weight");
+	static const auto offset = netvars::get( )->at("C_ColorCorrectionVolume", "m_Weight");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 char* C_ColorCorrectionVolume::m_lookupFilename( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ColorCorrectionVolume", "m_lookupFilename");
+	static const auto offset = netvars::get( )->at("C_ColorCorrectionVolume", "m_lookupFilename");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ptr<char>( );
 }

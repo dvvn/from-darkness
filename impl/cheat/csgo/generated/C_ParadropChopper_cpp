@@ -9,13 +9,13 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector2D& C_ParadropChopper::m_vecOrigin( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParadropChopper", "m_vecOrigin");
+	static const auto offset = netvars::get( )->at("C_ParadropChopper", "m_vecOrigin");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector2D>( );
 }
 cheat::csgo::CBaseHandle& C_ParadropChopper::m_hCallingPlayer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ParadropChopper", "m_hCallingPlayer");
+	static const auto offset = netvars::get( )->at("C_ParadropChopper", "m_hCallingPlayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }

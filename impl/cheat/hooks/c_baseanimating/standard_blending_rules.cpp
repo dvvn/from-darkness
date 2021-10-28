@@ -9,7 +9,7 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
-void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
+void standard_blending_rules_impl::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
 	const auto pl           = this->object_instance;
 	const auto client_class = pl->GetClientClass( );

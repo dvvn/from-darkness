@@ -8,31 +8,31 @@ using namespace cheat::csgo;
 
 bool& C_DynamicProp::m_bUseHitboxesForRenderBox( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicProp", "m_bUseHitboxesForRenderBox");
+	static const auto offset = netvars::get( )->at("C_DynamicProp", "m_bUseHitboxesForRenderBox");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_DynamicProp::m_flGlowMaxDist( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicProp", "m_flGlowMaxDist");
+	static const auto offset = netvars::get( )->at("C_DynamicProp", "m_flGlowMaxDist");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 bool& C_DynamicProp::m_bShouldGlow( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicProp", "m_bShouldGlow");
+	static const auto offset = netvars::get( )->at("C_DynamicProp", "m_bShouldGlow");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 cheat::csgo::Color& C_DynamicProp::m_clrGlow( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicProp", "m_clrGlow");
+	static const auto offset = netvars::get( )->at("C_DynamicProp", "m_clrGlow");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Color>( );
 }
 int& C_DynamicProp::m_nGlowStyle( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_DynamicProp", "m_nGlowStyle");
+	static const auto offset = netvars::get( )->at("C_DynamicProp", "m_nGlowStyle");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

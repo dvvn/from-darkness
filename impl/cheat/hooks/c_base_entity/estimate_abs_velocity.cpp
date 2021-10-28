@@ -11,7 +11,7 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_entity;
 
-void estimate_abs_velocity::callback(Vector& vel)
+void estimate_abs_velocity_impl::callback(Vector& vel)
 {
 	using namespace nstd::enum_operators;
 

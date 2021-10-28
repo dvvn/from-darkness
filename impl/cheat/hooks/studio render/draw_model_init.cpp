@@ -7,19 +7,19 @@
 using namespace cheat;
 using namespace hooks::studio_render;
 
-draw_model::draw_model( )
+draw_model_impl::draw_model_impl( )
 {
-	this->wait_for_service<players_list>( );
+	this->add_dependency(players_list::get( ));
 }
 
-nstd::address draw_model::get_target_method_impl( ) const
+nstd::address draw_model_impl::get_target_method_impl( ) const
 {
-	return csgo_interfaces::get_ptr( )->studio_renderer.vfunc(29);
+	return csgo_interfaces::get( )->studio_renderer.vfunc(29);
 }
 
-service_impl::load_result draw_model::load_impl( ) noexcept
+basic_service::load_result draw_model_impl::load_impl( ) noexcept
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-CHEAT_REGISTER_SERVICE(draw_model);
+CHEAT_SERVICE_REGISTER(draw_model);

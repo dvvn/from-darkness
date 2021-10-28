@@ -8,37 +8,37 @@ using namespace cheat::csgo;
 
 int& C_SceneEntity::m_nSceneStringIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_nSceneStringIndex");
+	static const auto offset = netvars::get( )->at("C_SceneEntity", "m_nSceneStringIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_SceneEntity::m_bIsPlayingBack( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bIsPlayingBack");
+	static const auto offset = netvars::get( )->at("C_SceneEntity", "m_bIsPlayingBack");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_SceneEntity::m_bPaused( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bPaused");
+	static const auto offset = netvars::get( )->at("C_SceneEntity", "m_bPaused");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_SceneEntity::m_bMultiplayer( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_bMultiplayer");
+	static const auto offset = netvars::get( )->at("C_SceneEntity", "m_bMultiplayer");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 float& C_SceneEntity::m_flForceClientTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_flForceClientTime");
+	static const auto offset = netvars::get( )->at("C_SceneEntity", "m_flForceClientTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 std::array<int, 16>& C_SceneEntity::m_hActorList( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_SceneEntity", "m_hActorList");
+	static const auto offset = netvars::get( )->at("C_SceneEntity", "m_hActorList");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 16>>( );
 }

@@ -6,7 +6,7 @@ using namespace cheat::csgo;
 
 float& C_FuncConveyor::m_flConveyorSpeed( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_FuncConveyor", "m_flConveyorSpeed");
+	static const auto offset = netvars::get( )->at("C_FuncConveyor", "m_flConveyorSpeed");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }

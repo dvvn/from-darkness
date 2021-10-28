@@ -6,25 +6,25 @@ using namespace cheat::csgo;
 
 bool& C_PhysPropLootCrate::m_bRenderInPSPM( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate", "m_bRenderInPSPM");
+	static const auto offset = netvars::get( )->at("C_PhysPropLootCrate", "m_bRenderInPSPM");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 bool& C_PhysPropLootCrate::m_bRenderInTablet( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate", "m_bRenderInTablet");
+	static const auto offset = netvars::get( )->at("C_PhysPropLootCrate", "m_bRenderInTablet");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }
 int& C_PhysPropLootCrate::m_iHealth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate", "m_iHealth");
+	static const auto offset = netvars::get( )->at("C_PhysPropLootCrate", "m_iHealth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_PhysPropLootCrate::m_iMaxHealth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PhysPropLootCrate", "m_iMaxHealth");
+	static const auto offset = netvars::get( )->at("C_PhysPropLootCrate", "m_iMaxHealth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

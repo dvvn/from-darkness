@@ -6,17 +6,17 @@
 
 namespace cheat::features
 {
-	class aimbot final : public service_instance_shared<aimbot>
-					   , public gui::widgets::abstract_renderable
-					   , public settings::shared_data
+	class aimbot_impl final : public service<aimbot_impl>
+							, public gui::widgets::abstract_renderable
+							, public settings::shared_data
 
 	{
 	public:
-		aimbot( );
-		~aimbot( ) override;
+		aimbot_impl( );
+		~aimbot_impl( ) override;
 
-		aimbot(aimbot&&) noexcept;
-		aimbot& operator=(aimbot&&) noexcept;
+		aimbot_impl(aimbot_impl&&) noexcept;
+		aimbot_impl& operator=(aimbot_impl&&) noexcept;
 
 		void render( ) override;
 		void save(json& in) const override;
@@ -29,4 +29,6 @@ namespace cheat::features
 		struct impl;
 		std::unique_ptr<impl> impl_;
 	};
+
+	CHEAT_SERVICE_SHARE(aimbot);
 }

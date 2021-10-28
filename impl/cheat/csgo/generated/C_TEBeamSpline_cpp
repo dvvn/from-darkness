@@ -9,13 +9,13 @@ using namespace cheat::csgo;
 
 int& C_TEBeamSpline::m_nPoints( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamSpline", "m_nPoints");
+	static const auto offset = netvars::get( )->at("C_TEBeamSpline", "m_nPoints");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 std::array<cheat::csgo::Vector, 16>& C_TEBeamSpline::m_vecPoints( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEBeamSpline", "m_vecPoints");
+	static const auto offset = netvars::get( )->at("C_TEBeamSpline", "m_vecPoints");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<cheat::csgo::Vector, 16>>( );
 }

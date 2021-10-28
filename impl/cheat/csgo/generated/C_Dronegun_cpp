@@ -8,25 +8,25 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_Dronegun::m_vecAttentionTarget( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Dronegun", "m_vecAttentionTarget");
+	static const auto offset = netvars::get( )->at("C_Dronegun", "m_vecAttentionTarget");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 cheat::csgo::Vector& C_Dronegun::m_vecTargetOffset( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Dronegun", "m_vecTargetOffset");
+	static const auto offset = netvars::get( )->at("C_Dronegun", "m_vecTargetOffset");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }
 int& C_Dronegun::m_iHealth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Dronegun", "m_iHealth");
+	static const auto offset = netvars::get( )->at("C_Dronegun", "m_iHealth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_Dronegun::m_bHasTarget( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Dronegun", "m_bHasTarget");
+	static const auto offset = netvars::get( )->at("C_Dronegun", "m_bHasTarget");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

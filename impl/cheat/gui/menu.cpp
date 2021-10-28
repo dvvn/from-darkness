@@ -34,13 +34,13 @@ using namespace widgets;
 
 using namespace std::chrono_literals;
 
-struct menu::impl
+struct menu_impl::impl
 {
 	WPARAM hotkey = VK_HOME;
 
 	window_wrapped menu_window;
 
-	void init_pages()
+	void init_pages( )
 	{
 #if 0
 		tabs_pages.make_vertical( );
@@ -104,7 +104,7 @@ struct menu::impl
 #endif
 	}
 
-	void init_window()
+	void init_window( )
 	{
 		cached_text::label_type title_str;
 
@@ -119,7 +119,7 @@ struct menu::impl
 		constexpr auto _Year  = std::string_view(_Day._Unchecked_end( ) + 1, 4);
 		// ReSharper restore CppInconsistentNaming
 
-		auto month = [&]()-> std::string_view
+		auto month = [&]( )-> std::string_view
 		{
 			switch (_Month[0])
 			{
@@ -186,15 +186,15 @@ struct menu::impl
 	}
 };
 
-menu::menu()
+menu_impl::menu_impl( )
 {
 	impl_ = std::make_unique<impl>( );
-	this->wait_for_service<imgui_context>( );
+	this->add_dependency(imgui_context::get( ));
 }
 
-menu::~menu() = default;
+menu_impl::~menu_impl( ) = default;
 
-void menu::render()
+void menu_impl::render( )
 {
 	const auto end = impl_->menu_window( );
 	if (!end)
@@ -207,8 +207,7 @@ void menu::render()
 	ImGui::Text("hello4");
 	ImGui::Text("hello5");
 
-
-	features::aimbot::get_ptr( )->render( );
+	features::aimbot::get( )->render( );
 
 #if 0
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
@@ -220,7 +219,7 @@ void menu::render()
 #endif
 }
 
-bool menu::toggle(UINT msg, WPARAM wparam)
+bool menu_impl::toggle(UINT msg, WPARAM wparam)
 {
 	if (wparam != impl_->hotkey)
 		return false;
@@ -240,12 +239,12 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 	return false;
 }
 
-bool menu::visible() const
+bool menu_impl::visible( ) const
 {
 	return impl_->menu_window.visible( );
 }
 
-bool menu::updating() const
+bool menu_impl::updating( ) const
 {
 	return impl_->menu_window.updating( );
 }
@@ -277,7 +276,7 @@ public:
 };
 #endif
 
-cheat::service_impl::load_result menu::load_impl() noexcept
+cheat::basic_service::load_result menu_impl::load_impl( ) noexcept
 {
 #if 0
 	renderer_.add_page([]
@@ -306,7 +305,7 @@ cheat::service_impl::load_result menu::load_impl() noexcept
 
 			const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
 			{
-				service_impl* ptr_raw = ptr.get( );
+				basic_service* ptr_raw = ptr.get( );
 
 				switch(ptr_raw->state( ).value( ))
 				{
@@ -344,4 +343,4 @@ cheat::service_impl::load_result menu::load_impl() noexcept
 	CHEAT_SERVICE_LOADED
 }
 
-CHEAT_REGISTER_SERVICE(menu);
+CHEAT_SERVICE_REGISTER(menu);

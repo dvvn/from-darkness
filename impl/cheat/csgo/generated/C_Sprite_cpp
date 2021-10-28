@@ -8,67 +8,67 @@ using namespace cheat::csgo;
 
 cheat::csgo::CBaseHandle& C_Sprite::m_hAttachedToEntity( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_hAttachedToEntity");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_hAttachedToEntity");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::CBaseHandle>( );
 }
 int& C_Sprite::m_nAttachment( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_nAttachment");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_nAttachment");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 float& C_Sprite::m_flScaleTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_flScaleTime");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_flScaleTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Sprite::m_flSpriteScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_flSpriteScale");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_flSpriteScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Sprite::m_flSpriteFramerate( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_flSpriteFramerate");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_flSpriteFramerate");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Sprite::m_flGlowProxySize( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_flGlowProxySize");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_flGlowProxySize");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Sprite::m_flHDRColorScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_flHDRColorScale");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_flHDRColorScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Sprite::m_flFrame( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_flFrame");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_flFrame");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Sprite::m_flBrightnessTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_flBrightnessTime");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_flBrightnessTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_Sprite::m_nBrightness( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_nBrightness");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_nBrightness");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_Sprite::m_bWorldSpaceScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Sprite", "m_bWorldSpaceScale");
+	static const auto offset = netvars::get( )->at("C_Sprite", "m_bWorldSpaceScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

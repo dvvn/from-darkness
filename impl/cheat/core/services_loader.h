@@ -1,6 +1,13 @@
 #pragma once
 #include "service.h"
 
+#include <thread>
+
+namespace dhooks
+{
+	class hook_holder_base;
+}
+
 namespace std
 {
 	class stop_token;
@@ -13,10 +20,10 @@ using HMODULE = HINSTANCE__*;
 
 namespace cheat
 {
-	class services_loader final : public service_instance_shared<services_loader>
+	class services_loader final : public service<services_loader>, public nstd::one_instance<services_loader>
 	{
 #ifndef CHEAT_GUI_TEST
-		using service_impl::load;
+		using basic_service::load;
 #endif
 	public:
 		~services_loader( ) override;
@@ -30,6 +37,8 @@ namespace cheat
 #endif
 
 		std::shared_ptr<executor> get_executor(size_t threads_count = std::thread::hardware_concurrency( ));
+
+		std::vector<std::shared_ptr<dhooks::hook_holder_base>> get_hooks(bool steal);
 
 	protected:
 		load_result load_impl( ) noexcept override;
@@ -66,8 +75,8 @@ namespace cheat
 #endif
 	};
 
-#define CHEAT_REGISTER_SERVICE(_TYPE_)\
-	__pragma(message("Service \""#_TYPE_"\" registered at " __TIME__))\
+#define CHEAT_SERVICE_REGISTER(_NAME_)\
+	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\
 	[[maybe_unused]]\
-	static const auto _CONCAT(_Unused,__LINE__) = (cheat::services_loader::get_ptr()->wait_for_service<_TYPE_>(true), static_cast<uint8_t>(0))
+	static const auto _CONCAT(_Unused,__LINE__) = (_NAME_::get(), static_cast<std::byte>(0))
 }

@@ -6,13 +6,13 @@ using namespace cheat::csgo;
 
 int& C_ItemAssaultSuitUseable::m_nArmorValue( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ItemAssaultSuitUseable", "m_nArmorValue");
+	static const auto offset = netvars::get( )->at("C_ItemAssaultSuitUseable", "m_nArmorValue");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 bool& C_ItemAssaultSuitUseable::m_bIsHeavyAssaultSuit( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_ItemAssaultSuitUseable", "m_bIsHeavyAssaultSuit");
+	static const auto offset = netvars::get( )->at("C_ItemAssaultSuitUseable", "m_bIsHeavyAssaultSuit");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

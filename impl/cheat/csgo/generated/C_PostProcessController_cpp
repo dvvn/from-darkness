@@ -8,13 +8,13 @@ using namespace cheat::csgo;
 
 std::array<float, 11>& C_PostProcessController::m_flPostProcessParameters( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_flPostProcessParameters");
+	static const auto offset = netvars::get( )->at("C_PostProcessController", "m_flPostProcessParameters");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<float, 11>>( );
 }
 bool& C_PostProcessController::m_bMaster( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PostProcessController", "m_bMaster");
+	static const auto offset = netvars::get( )->at("C_PostProcessController", "m_bMaster");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<bool>( );
 }

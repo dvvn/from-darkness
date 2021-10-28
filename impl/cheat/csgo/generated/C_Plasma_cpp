@@ -6,43 +6,43 @@ using namespace cheat::csgo;
 
 float& C_Plasma::m_flStartScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_flStartScale");
+	static const auto offset = netvars::get( )->at("C_Plasma", "m_flStartScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Plasma::m_flScale( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_flScale");
+	static const auto offset = netvars::get( )->at("C_Plasma", "m_flScale");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 float& C_Plasma::m_flScaleTime( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_flScaleTime");
+	static const auto offset = netvars::get( )->at("C_Plasma", "m_flScaleTime");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<float>( );
 }
 int& C_Plasma::m_nFlags( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nFlags");
+	static const auto offset = netvars::get( )->at("C_Plasma", "m_nFlags");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Plasma::m_nPlasmaModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nPlasmaModelIndex");
+	static const auto offset = netvars::get( )->at("C_Plasma", "m_nPlasmaModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Plasma::m_nPlasmaModelIndex2( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nPlasmaModelIndex2");
+	static const auto offset = netvars::get( )->at("C_Plasma", "m_nPlasmaModelIndex2");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }
 int& C_Plasma::m_nGlowModelIndex( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_Plasma", "m_nGlowModelIndex");
+	static const auto offset = netvars::get( )->at("C_Plasma", "m_nGlowModelIndex");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<int>( );
 }

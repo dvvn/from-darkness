@@ -8,61 +8,61 @@ using namespace cheat::csgo;
 
 std::array<int, 65>& C_PlayerResource::m_iPing( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iPing");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iPing");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_iKills( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iKills");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iKills");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_iAssists( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iAssists");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iAssists");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_iDeaths( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iDeaths");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iDeaths");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_bConnected( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_bConnected");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_bConnected");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_iTeam( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iTeam");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iTeam");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_iPendingTeam( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iPendingTeam");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iPendingTeam");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_bAlive( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_bAlive");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_bAlive");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_iHealth( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iHealth");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iHealth");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }
 std::array<int, 65>& C_PlayerResource::m_iCoachingTeam( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_PlayerResource", "m_iCoachingTeam");
+	static const auto offset = netvars::get( )->at("C_PlayerResource", "m_iCoachingTeam");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<std::array<int, 65>>( );
 }

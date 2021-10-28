@@ -8,7 +8,7 @@ using namespace cheat::csgo;
 
 cheat::csgo::Vector& C_TEShowLine::m_vecEnd( )
 {
-	static const auto offset = netvars::get_ptr( )->at("C_TEShowLine", "m_vecEnd");
+	static const auto offset = netvars::get( )->at("C_TEShowLine", "m_vecEnd");
 	auto addr = nstd::address(this).add(offset);
 	return addr.ref<cheat::csgo::Vector>( );
 }

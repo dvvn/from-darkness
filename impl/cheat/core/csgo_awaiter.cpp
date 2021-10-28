@@ -13,7 +13,7 @@
 
 using namespace cheat;
 
-service_impl::load_result csgo_awaiter::load_impl( ) noexcept
+basic_service::load_result csgo_awaiter_impl::load_impl( ) noexcept
 {
 	const auto modules = nstd::os::all_modules::get_ptr( );
 	modules->update(false);
@@ -54,4 +54,4 @@ service_impl::load_result csgo_awaiter::load_impl( ) noexcept
 	while (true);
 }
 
-CHEAT_REGISTER_SERVICE(csgo_awaiter);
+CHEAT_SERVICE_REGISTER(csgo_awaiter);
