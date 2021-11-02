@@ -12,7 +12,8 @@
 #include <deque>
 #define CHEAT_PLAYER_TICKS_CONTAINER std::deque
 #endif
-#include <memory>
+
+#include <optional>
 #include <span>
 
 namespace cheat
@@ -78,12 +79,12 @@ namespace cheat
 			ticks_info server; //clock based
 			ticks_info client; //simtime based
 			update_state updated = update_state::IDLE;
-		} tick;
+		} time;
 
 		//--
 
 		CHEAT_PLAYER_TICKS_CONTAINER<tick_record_shared> ticks;
-		std::span<const decltype(ticks)::value_type> ticks_window;
+		std::span<const tick_record_shared> ticks_window;
 
 		static size_t max_ticks_count( );
 

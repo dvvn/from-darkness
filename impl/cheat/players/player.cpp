@@ -13,6 +13,8 @@
 
 #include <excpt.h>
 
+#include <nstd/signature.h>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -226,7 +228,7 @@ void player::update(int index, float curtime, float correct)
 	//if we got low fps, invalidate bones cache or it never updates!
 	//update: after invalidate it updates pretty decent
 
-	auto interfaces = csgo_interfaces::get( ).operator->(  );
+	auto interfaces = csgo_interfaces::get( ).operator->( );
 
 	const auto ent = static_cast<C_CSPlayer*>(interfaces->entity_list->GetClientEntity(index));
 	if (ent != entptr)
@@ -251,34 +253,34 @@ void player::update(int index, float curtime, float correct)
 	float simtime_diff;
 	if (!simtime.has_value( ))
 	{
-		tick.updated = update_state::SILENT;
+		time.updated = update_state::SILENT;
 		goto _SET_SIMTIME;
 	}
 
 	simtime_diff = simtime_new - *simtime;
 	if (simtime_diff == 0)
 	{
-		tick.updated = update_state::IDLE;
+		time.updated = update_state::IDLE;
 	}
 	else if (simtime_diff < 0)
 	{
-		tick.updated = update_state::SILENT;
+		time.updated = update_state::SILENT;
 		//auto ticks_shifted=tick.client.current-tick.server.current;
 	}
 	else
 	{
-		tick.updated = update_state::NORMAL;
+		time.updated = update_state::NORMAL;
 
 	_SET_SIMTIME:
-		tick.server.set(interfaces->client_state->ClockDriftMgr.nServerTick);
-		tick.client.set(utils::time_to_ticks(simtime_new));
+		time.server.set(interfaces->client_state->ClockDriftMgr.nServerTick);
+		time.client.set(utils::time_to_ticks(simtime_new));
 
 		simtime = simtime_new;
 	}
 
 	//-----
 
-	if (tick.updated != update_state::IDLE)
+	if (time.updated != update_state::IDLE)
 	{
 		const team_info new_team = ent->m_iTeamNum( );
 		if (new_team != team)
@@ -324,12 +326,12 @@ void player::update(int index, float curtime, float correct)
 			if (new_dormant)
 			{
 				//todo: check can we hit here
-				tick.updated = update_state::IDLE;
+				time.updated = update_state::IDLE;
 			}
 			else if (dormant)
 			{
 				//dormant out
-				tick.updated = update_state::SILENT;
+				time.updated = update_state::SILENT;
 			}
 
 			dormant = new_dormant;
@@ -345,12 +347,13 @@ void player::update(int index, float curtime, float correct)
 
 	//-----
 
-	const auto updated = tick.updated == update_state::NORMAL;
+	const auto updated = time.updated == update_state::NORMAL;
 
 	const auto setupbones_prepare = [&]( )
 	{
 		auto backups = std::make_tuple(nstd::memory_backup(entptr->m_InterpVarMap( ).m_nInterpolatedEntries, 0)
-									 , nstd::memory_backup(entptr->m_bClientSideAnimation( ), true));
+									 , nstd::memory_backup(entptr->m_bClientSideAnimation( ), true)
+									 , nstd::memory_backup(entptr->m_vecAbsOrigin( ), static_cast<C_BaseEntity*>(entptr)->m_vecOrigin( )));
 		entptr->InvalidateBoneCache( );
 		this->update_animations(true);
 		return backups;
@@ -377,6 +380,7 @@ void player::update(int index, float curtime, float correct)
 			auto& new_tick     = store_tick( );
 			const auto backups = setupbones_prepare( );
 			new_tick.store_bones(entptr, curtime);
+			new_tick.store_animations(entptr);
 		}
 
 		///update ticks window

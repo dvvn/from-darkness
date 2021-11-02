@@ -1,5 +1,4 @@
 #include "csgo_modules.h"
-
 #include "console.h"
 
 #include "cheat/csgo/IAppSystem.hpp"
@@ -7,9 +6,12 @@
 #include <nstd/signature.h>
 #include <nstd/os/module info.h>
 #include <nstd/unistring.h>
+
 #include <robin_hood.h>
 
+#include <ranges>
 #include <format>
+#include <optional>
 #include <sstream>
 
 using nstd::os::module_info;
@@ -51,15 +53,17 @@ module_info* detail::get_module_impl(const std::string_view& target_name)
 
 nstd::address detail::find_signature_impl(module_info* md, const std::string_view& sig)
 {
+	const auto block = md->mem_block( );
 	const auto bytes = nstd::make_signature(sig);
-	const auto ret   = md->mem_block( ).find_block(bytes);
-	if (!ret.has_value( ))
+	const auto ret   = block.find_block(bytes);
+
+	if (ret.empty( ))
 	{
 		CHEAT_CONSOLE_LOG(std::format(L"{} -> signature {} not found", md->name( ), (std::wstring(sig.begin( ),sig.end( )))));
 		return nullptr;
 	}
 
-	return ret->addr( );
+	return ret.addr( );
 }
 
 // ReSharper disable once CppInconsistentNaming

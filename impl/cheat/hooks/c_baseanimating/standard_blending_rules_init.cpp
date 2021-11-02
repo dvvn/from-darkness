@@ -18,7 +18,7 @@ nstd::address standard_blending_rules_impl::get_target_method_impl( ) const
 {
 	const nstd::address vtable = csgo_modules::client.find_vtable<C_BaseAnimating>( );
 	const auto index           = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).add(11).deref(1).divide(4).value( );
-	return vtable.ref<ptrdiff_t*>( )[index];
+	return (vtable.ref<nstd::address*>( )[index]);
 }
 
 basic_service::load_result standard_blending_rules_impl::load_impl( ) noexcept

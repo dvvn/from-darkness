@@ -15,7 +15,7 @@ public:
 
     // constructor, destructor
     CUtlVector(int growSize = 0, int initSize = 0);
-    CUtlVector(T* pMemory, int allocationCount, int numElements = 0);
+    CUtlVector(T* memory_, int allocationCount, int numElements = 0);
     ~CUtlVector();
 
     // Copy the array.
@@ -129,8 +129,8 @@ inline CUtlVector<T, A>::CUtlVector(int growSize, int initSize) :
 }
 
 template< typename T, class A >
-inline CUtlVector<T, A>::CUtlVector(T* pMemory, int allocationCount, int numElements) :
-    m_Memory(pMemory, allocationCount), m_Size(numElements)
+inline CUtlVector<T, A>::CUtlVector(T* memory_, int allocationCount, int numElements) :
+    m_Memory(memory_, allocationCount), m_Size(numElements)
 {
     ResetDbgInfo();
 }
@@ -762,58 +762,65 @@ public:
 	class CUtlVector
 	{
 	public:
-		using CAllocator = A;
+		using allocator_type = A;
+		using value_type = T;
+		using size_type = int;
+
+		CUtlVector(const CUtlVector& other)                = delete;
+		CUtlVector(CUtlVector&& other) noexcept            = delete;
+		CUtlVector& operator=(const CUtlVector& other)     = delete;
+		CUtlVector& operator=(CUtlVector&& other) noexcept = delete;
 
 		CUtlVector( ) = delete;
 
 		T* begin( ) noexcept
 		{
-			return pMemory.data( );
+			return memory_.data( );
 		}
 
 		T* end( ) noexcept
 		{
-			return pMemory.data( ) + iSize;
+			return memory_.data( ) + size_;
 		}
 
 		const T* begin( ) const noexcept
 		{
-			return pMemory.data( );
+			return memory_.data( );
 		}
 
 		const T* end( ) const noexcept
 		{
-			return pMemory.data( ) + iSize;
+			return memory_.data( ) + size_;
 		}
 
-		T& operator[](int i)
+		T& operator[](size_type i)
 		{
-			return pMemory[i];
+			return memory_[i];
 		}
 
-		const T& operator[](int i) const
+		const T& operator[](size_type i) const
 		{
-			return pMemory[i];
+			return memory_[i];
 		}
 
 		T* data( )
 		{
-			return pMemory.data( );
+			return memory_.data( );
 		}
 
 		const T* data( ) const
 		{
-			return pMemory.data( );
+			return memory_.data( );
 		}
 
-		int size( ) const
+		size_type size( ) const
 		{
-			return iSize;
+			return size_;
 		}
 
-	protected:
-		CAllocator pMemory;
-		int iSize;
-		T* pElements;
+	private:
+		allocator_type memory_;
+		size_type size_;
+		T* debug_elements_;
 	};
 }

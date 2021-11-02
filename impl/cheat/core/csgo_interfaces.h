@@ -71,7 +71,7 @@ namespace cheat::detail
 
 		bool empty( ) const
 		{
-			return result_ == 0u;
+			return result_ == nullptr;
 		}
 
 		nstd::address addr( ) const
@@ -81,7 +81,7 @@ namespace cheat::detail
 
 		nstd::address vfunc(ptrdiff_t index) const
 		{
-			return result_.ref<ptrdiff_t*>( )[index];
+			return (result_.ref<nstd::address*>( )[index]);
 		}
 
 		void operator=(const nstd::address& addr)

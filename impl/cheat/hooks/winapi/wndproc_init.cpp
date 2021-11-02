@@ -29,7 +29,8 @@ basic_service::load_result wndproc_impl::load_impl( ) noexcept
 
 nstd::address wndproc_impl::get_target_method_impl( ) const
 {
-	return std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get( )->hwnd( ), GWLP_WNDPROC);
+	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get( )->hwnd( ), GWLP_WNDPROC);
+	return nstd::address(val);
 }
 
 CHEAT_SERVICE_REGISTER(wndproc);

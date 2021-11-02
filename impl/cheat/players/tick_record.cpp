@@ -10,11 +10,13 @@
 
 #include <nstd/runtime_assert_fwd.h>
 
+#include <optional>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-void tick_record::store_bones(C_BaseEntity* ent, std::optional<float> setup_curtime)
+void tick_record::store_bones(C_BaseEntity* ent, const std::optional<float>& setup_curtime)
 {
 	runtime_assert(bones.empty( ), "bones already cached");
 
@@ -25,6 +27,17 @@ void tick_record::store_bones(C_BaseEntity* ent, std::optional<float> setup_curt
 
 	const auto& bones_cache = ent->m_BonesCache( );
 	bones.assign(bones_cache.begin( ), bones_cache.end( ));
+}
+
+void tick_record::store_animations(C_BaseAnimating* ent)
+{
+	runtime_assert(layers.empty( ), "layers already cached");
+	const auto& layers0 = ent->m_AnimOverlays( );
+	layers.assign(layers0.begin( ), layers0.end( ));
+
+	runtime_assert(poses.empty( ), "poses already cached");
+	const auto& poses0 = ent->m_flPoseParameter( );
+	poses.assign(poses0.begin( ), poses0.end( ));
 }
 
 bool tick_record::is_valid(float curtime, float correct) const

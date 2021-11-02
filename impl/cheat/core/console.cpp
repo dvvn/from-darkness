@@ -13,6 +13,7 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
+#include <variant>
 
 using namespace cheat;
 using detail::string_packer;

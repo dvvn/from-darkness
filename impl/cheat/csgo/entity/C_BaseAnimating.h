@@ -11,9 +11,8 @@ namespace cheat::csgo
 	class CBoneBitList;
 	class CIKContext;
 
-	class CAnimationLayer
+	struct CAnimationLayer
 	{
-	public:
 		bool m_bClientBlend;          //0x00
 		float m_flBlendIn;            //0x04
 		void* m_pStudioHdr;           //0x08
@@ -38,6 +37,6 @@ namespace cheat::csgo
 #endif
 
 		void UpdateClientSideAnimation( );
-		void InvalidateBoneCache();
+		void InvalidateBoneCache( );
 	};
 }
