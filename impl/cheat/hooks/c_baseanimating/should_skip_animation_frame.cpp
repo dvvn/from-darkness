@@ -3,7 +3,7 @@
 #include "cheat/csgo/ClientClass.hpp"
 #include "cheat/csgo/entity/C_BaseAnimating.h"
 
-#include <nstd/memory backup.h>
+#include <nstd/mem/backup.h>
 
 #include <imgui.h>
 
@@ -84,7 +84,7 @@ void should_skip_animation_frame_impl::render( )
 	ImGui::Checkbox("override return", &override_return__);
 	if (override_return__)
 	{
-		const auto pop = nstd::memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
+		const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
 		(void)pop;
 
 		ImGui::SameLine( );

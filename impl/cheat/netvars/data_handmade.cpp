@@ -4,7 +4,7 @@
 
 #include "cheat/core/csgo_modules.h"
 
-#include <nstd/memory backup.h>
+#include <nstd/mem/backup.h>
 #include <nstd/runtime_assert_fwd.h>
 #include <nstd/type name.h>
 
@@ -67,7 +67,8 @@ namespace cheat::detail::netvars
 
 void netvars::store_handmade_netvars(netvars_storage& root_tree)
 {
-	const auto backups = std::make_tuple(nstd::memory_backup(_Root_storage, std::addressof(root_tree)), nstd::memory_backup(_Current_storage));
+	const auto backups = std::make_tuple(nstd::mem::backup(_Root_storage, std::addressof(root_tree)), nstd::mem::backup(_Current_storage));
+	(void)backups;
 
 	_Load_class<C_BaseEntity>( );
 	add_netvar_to_storage<VarMapping_t, "m_InterpVarMap">(0x24);

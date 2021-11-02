@@ -8,12 +8,12 @@
 
 #include "cheat/utils/game.h"
 
-#include <nstd/memory backup.h>
+#include <nstd/mem/backup.h>
 #include <nstd/runtime_assert_fwd.h>
 
 #include <excpt.h>
 
-#include <nstd/signature.h>
+#include <dhooks/hook.h>
 
 using namespace cheat;
 using namespace detail;
@@ -351,9 +351,10 @@ void player::update(int index, float curtime, float correct)
 
 	const auto setupbones_prepare = [&]( )
 	{
-		auto backups = std::make_tuple(nstd::memory_backup(entptr->m_InterpVarMap( ).m_nInterpolatedEntries, 0)
-									 , nstd::memory_backup(entptr->m_bClientSideAnimation( ), true)
-									 , nstd::memory_backup(entptr->m_vecAbsOrigin( ), static_cast<C_BaseEntity*>(entptr)->m_vecOrigin( )));
+		using nstd::mem::backup;
+		auto backups = std::make_tuple(backup(entptr->m_InterpVarMap( ).m_nInterpolatedEntries, 0)
+									 , backup(entptr->m_bClientSideAnimation( ), true)
+									 , backup(entptr->m_vecAbsOrigin( ), static_cast<C_BaseEntity*>(entptr)->m_vecOrigin( )));
 		entptr->InvalidateBoneCache( );
 		this->update_animations(true);
 		return backups;
@@ -455,7 +456,7 @@ void player::update_animations(bool backup_layers)
 {
 	using layers_array = std::array<CAnimationLayer, 13>;
 	using bytes_array = std::array<uint8_t, sizeof(layers_array)>;
-	nstd::memory_backup<bytes_array> layers_backup;
+	nstd::mem::backup<bytes_array> layers_backup;
 	(void)layers_backup;
 	if (backup_layers)
 	{

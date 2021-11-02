@@ -63,7 +63,7 @@ nstd::address detail::find_signature_impl(module_info* md, const std::string_vie
 		return nullptr;
 	}
 
-	return ret.addr( );
+	return ret._Unchecked_begin( );
 }
 
 // ReSharper disable once CppInconsistentNaming

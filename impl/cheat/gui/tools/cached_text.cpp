@@ -1,7 +1,7 @@
 ﻿#include "cached_text.h"
 
 #include <nstd/enum_tools.h>
-#include <nstd/memory backup.h>
+#include <nstd/mem/backup.h>
 #include <nstd/runtime_assert_fwd.h>
 #include <nstd/overload.h>
 
@@ -86,7 +86,7 @@ void cached_text::set_font(ImFont* new_font)
 	this->update( );
 }
 
-void cached_text::update()
+void cached_text::update( )
 {
 	using namespace nstd::enum_operators;
 
@@ -166,18 +166,20 @@ static void _For_each_noloop(Rng&& rng, Fn&& fn)
 	_For_each_noloop(rng, fn, make_index_sequence_tuple<Rng>( ));
 }
 
-size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImRect& clip_rect_override, bool cram_clip_rect_x
-						 , bool cram_clip_rect_y) const
+size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImRect& clip_rect_override
+						 , bool cram_clip_rect_x, bool cram_clip_rect_y) const
 {
 	if ((color & IM_COL32_A_MASK) == 0)
 		return 0;
 
 	runtime_assert(font->ContainerAtlas->TexID == draw_list->_CmdHeader.TextureId);
 
+	using backup_t = nstd::mem::backup<float>;
+
 	auto& clip_rect       = draw_list->_CmdHeader.ClipRect;
 	auto clip_rect_backup = [&]
 	{
-		std::array<nstd::memory_backup<float>, 4> backup;
+		std::array<backup_t, 4> backup;
 
 		auto& [min, max] = clip_rect_override;
 		if (min.x != FLT_MAX && (cram_clip_rect_x || min.x > clip_rect.x))
@@ -191,7 +193,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 		return backup;
 	}( );
 
-	const auto add_draw_cmd = _Any_of_noloop(clip_rect_backup, &nstd::memory_backup<float>::has_value);
+	const auto add_draw_cmd = _Any_of_noloop(clip_rect_backup, &backup_t::has_value);
 	if (add_draw_cmd)
 	{
 		draw_list->_OnChangedClipRect( );
@@ -226,7 +228,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 	{
 		if (add_draw_cmd)
 		{
-			_For_each_noloop(clip_rect_backup, &nstd::memory_backup<float>::restore);
+			_For_each_noloop(clip_rect_backup, &backup_t::restore);
 			draw_list->_OnChangedClipRect( );
 		}
 	};
@@ -244,7 +246,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 	const auto col_untinted = color | ~IM_COL32_A_MASK;
 
 	size_t glyphs_rendered = 0;
-	for (const auto glyph : /*glyphs_*/this->label | std::views::transform([&](label_type::value_type chr) { return font->FindGlyph(chr); }))
+	for (const auto glyph: /*glyphs_*/this->label | std::views::transform([&](label_type::value_type chr) { return font->FindGlyph(chr); }))
 	{
 		// We don't do a second finer clipping test on the Y axis as we've already skipped anything before clip_rect.y and exit once we pass clip_rect.w
 		const auto x1 = pos.x + glyph->X0;

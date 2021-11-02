@@ -6,7 +6,7 @@
 #include "cheat/csgo/IVEngineClient.hpp"
 
 #include <nstd/checksum.h>
-#include <nstd/memory backup.h>
+#include <nstd/mem/backup.h>
 
 #include <robin_hood.h>
 
@@ -152,7 +152,7 @@ void netvars::generate_classes(log_info info, netvars_storage& netvars_data, laz
 {
 	const std::filesystem::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
 
-	nstd::memory_backup<netvars_storage> netvars_data_backup;
+	nstd::mem::backup<netvars_storage> netvars_data_backup;
 	(void)netvars_data_backup;
 
 	if (info == log_info::skipped || info == log_info::updated)

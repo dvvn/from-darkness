@@ -12,8 +12,6 @@
 #include <nstd/runtime_assert_fwd.h>
 #endif
 
-//#include <d3d9.h>
-
 using namespace cheat;
 using namespace detail;
 using namespace csgo;

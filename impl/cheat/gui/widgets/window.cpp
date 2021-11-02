@@ -161,7 +161,7 @@ using namespace cheat::gui;
 using namespace widgets;
 using namespace tools;
 
-end_token::end_token()
+end_token::end_token( )
 {
 	value_ = static_cast<uint8_t>(-1);
 }
@@ -182,19 +182,19 @@ void end_token::set(uint8_t val)
 	value_ = val;
 }
 
-uint8_t end_token::release()
+uint8_t end_token::release( )
 {
 	const auto ret = value_;
 	value_         = static_cast<uint8_t>(-1);
 	return ret;
 }
 
-bool end_token::unset() const
+bool end_token::unset( ) const
 {
 	return value_ != static_cast<uint8_t>(static_cast<bool>(value_));
 }
 
-bool end_token::operator!() const
+bool end_token::operator!( ) const
 {
 	return value_ != 1;
 }
@@ -209,19 +209,19 @@ bool end_token::operator!=(bool val) const
 	return !unset( ) && static_cast<bool>(value_) != val;
 }
 
-uint8_t end_token::value() const
+uint8_t end_token::value( ) const
 {
 	return value_;
 }
 
 //----
 
-window_end_token_ex::window_end_token_ex()
+window_end_token_ex::window_end_token_ex( )
 {
 	global_alpha_backup_ = ImGui::GetStyle( ).Alpha;
 }
 
-window_end_token_ex::~window_end_token_ex()
+window_end_token_ex::~window_end_token_ex( )
 {
 	switch (value( ))
 	{
@@ -241,7 +241,7 @@ window_end_token_ex::~window_end_token_ex()
 //-----
 
 template <class T/*ImGuiWindow*/>
-concept imgui_window_has_font_dpi_scale = requires()
+concept imgui_window_has_font_dpi_scale = requires( )
 {
 	typename T::FontDpiScale;
 };
@@ -272,19 +272,15 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 		s.Font           = g.Font;
 		s.FontSize       = g.FontSize;
 
-		constexpr auto bck = []<typename ...Ts>(Ts&&...ts)
-		{
-			return nstd::memory_backup(std::forward<Ts>(ts)...);
-		};
-
-		return std::make_tuple(bck(g.Font, font)
-							 , bck(g.FontBaseSize, font->FontSize)
-							 , bck(g.FontSize)
-							 , bck(s.TexUvWhitePixel, atlas->TexUvWhitePixel)
-							 , bck(s.TexUvLines, atlas->TexUvLines)
-							 , bck(s.Font, font)
-							 , bck(s.FontSize, font->FontSize),
-							   bck(style.WindowMinSize));
+		using nstd::mem::backup;
+		return std::make_tuple(backup(g.Font, font)
+							 , backup(g.FontBaseSize, font->FontSize)
+							 , backup(g.FontSize)
+							 , backup(s.TexUvWhitePixel, atlas->TexUvWhitePixel)
+							 , backup(s.TexUvLines, atlas->TexUvLines)
+							 , backup(s.Font, font)
+							 , backup(s.FontSize, font->FontSize),
+							   backup(style.WindowMinSize));
 	}( );
 
 	struct title_rect_t
@@ -338,7 +334,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 		if (flags & ImGuiWindowFlags_UnsavedDocument)
 			pad_l += button_sz * 0.80f;
 
-		const auto title_bar_rect = [&]()-> ImRect
+		const auto title_bar_rect = [&]( )-> ImRect
 		{
 			ImRect rect;
 			if (!title.render_manually)
@@ -359,7 +355,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 			return rect;
 		};
 
-		title_rect = [&]()-> std::optional<ImRect>
+		title_rect = [&]( )-> std::optional<ImRect>
 		{
 			if (!title.render_manually)
 				return {};
@@ -421,12 +417,12 @@ void window_title::on_update(update_flags flags)
 	}
 }
 
-bool window_wrapped::visible() const
+bool window_wrapped::visible( ) const
 {
 	return show || updating( );
 }
 
-bool window_wrapped::updating() const
+bool window_wrapped::updating( ) const
 {
 	using state = nstd::smooth_object_base::state;
 	switch (show_anim.get_state( ))

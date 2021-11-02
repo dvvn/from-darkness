@@ -4,7 +4,7 @@
 #endif
 #include "cheat/gui/menu.h"
 
-#include <nstd/memory backup.h>
+#include <nstd/mem/backup.h>
 
 #include <imgui.h>
 
@@ -104,7 +104,7 @@ void wndproc_impl::render( )
 	ImGui::Checkbox("override return", &override_return_);
 	if (override_return_)
 	{
-		const auto pop = nstd::memory_backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
+		const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0.f);
 		(void)pop;
 
 		ImGui::SameLine( );
