@@ -4,9 +4,6 @@
 
 #ifndef CHEAT_GUI_TEST
 #include "cheat/core/csgo_modules.h"
-#include "cheat/csgo/IAppSystem.hpp"
-
-#include <dhooks/hook_utils.h>
 #else
 #include <nstd/runtime_assert_fwd.h>
 #endif
@@ -22,7 +19,7 @@ typedef struct IDirect3DDevice9 *LPDIRECT3DDEVICE9, *PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-auto csgo_interfaces_impl::load_impl( ) noexcept -> basic_service::load_result
+auto csgo_interfaces_impl::load_impl( ) noexcept -> load_result
 {
 	//unused
 #if 0
