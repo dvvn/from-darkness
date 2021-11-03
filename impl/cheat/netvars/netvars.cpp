@@ -12,18 +12,20 @@
 #include "cheat/csgo/IBaseClientDll.hpp"
 #include "cheat/csgo/entity/C_BaseEntity.h"
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace csgo;
 
 netvars_impl::netvars_impl( )
 {
 	data_ = std::make_unique<data_type>( );
-	this->add_dependency(csgo_interfaces::get( ));
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(csgo_interfaces);
 }
 
 netvars_impl::~netvars_impl( ) = default;
 
-basic_service::load_result netvars_impl::load_impl( ) noexcept
+auto netvars_impl::load_impl( ) noexcept -> basic_service::load_result
 {
 	detail::netvars::netvars_storage storage;
 

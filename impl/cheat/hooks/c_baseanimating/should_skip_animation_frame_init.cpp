@@ -5,13 +5,15 @@
 #include "cheat/core/services_loader.h"
 #include "cheat/netvars/netvars.h"
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
 should_skip_animation_frame_impl::should_skip_animation_frame_impl( )
 {
-	this->add_dependency(netvars::get());
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(netvars);
 }
 
 nstd::address should_skip_animation_frame_impl::get_target_method_impl( ) const

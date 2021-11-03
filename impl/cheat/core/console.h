@@ -1,10 +1,8 @@
 #pragma once
 
-#include "cheat/core/service.h"
+#include "cheat/service/include.h"
 
 #include <nstd/runtime_assert_fwd.h>
-
-#include <memory>
 
 // ReSharper disable CppInconsistentNaming
 struct HWND__;
@@ -19,11 +17,8 @@ namespace cheat
 {
 	namespace detail
 	{
-		class string_packer
+		struct string_packer
 		{
-			void init( );
-
-		public:
 			using str = std::string;
 			using strv = std::string_view;
 			using wstr = std::wstring;

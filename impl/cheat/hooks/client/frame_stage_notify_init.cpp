@@ -5,6 +5,8 @@
 #include "cheat/core/services_loader.h"
 #include "cheat/players/players_list.h"
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::client;
@@ -19,7 +21,7 @@ nstd::address frame_stage_notify_impl::get_target_method_impl( ) const
 	return csgo_interfaces::get( )->client.vfunc(37);
 }
 
-basic_service::load_result frame_stage_notify_impl::load_impl( ) noexcept
+auto frame_stage_notify_impl::load_impl( ) noexcept -> load_result
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }

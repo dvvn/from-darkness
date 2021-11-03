@@ -1,30 +1,33 @@
 #pragma once
 
-#include "service_state.h"
-#include "stored_service.h"
+#include "state.h"
+#include "stored.h"
 
 #include <nstd/runtime_assert_fwd.h>
-#include <cppcoro/task.hpp>
+
 #include <concepts>
 
 namespace cppcoro
 {
 	class static_thread_pool;
+	template <typename T>
+	class [[nodiscard]] task;
 }
 
-#ifndef _VECTOR_
 namespace std
 {
-	template <class _Myvec>
-	// ReSharper disable once CppInconsistentNaming
-	class _Vector_iterator;
+	template <class _Elem>
+	struct char_traits;
+	template <class _Elem, class _Traits>
+	class basic_string_view;
+	using string_view = basic_string_view<char, char_traits<char>>;
 }
-#endif
 
 namespace cheat
 {
 	struct basic_service_data;
 	class basic_service;
+
 
 	template <typename T>
 	concept root_service = std::derived_from<T, basic_service>;
@@ -32,8 +35,10 @@ namespace cheat
 	class basic_service_shared
 	{
 	protected:
-		void add_to_loader(stored_service<>&& srv) const;
-		stored_service<>* get_from_loader(const std::type_info& info) const;
+		using value_type = stored_service<basic_service>;
+
+		void add_to_loader(value_type&& srv) const;
+		value_type* get_from_loader(const std::type_info& info) const;
 	};
 
 	template <root_service T>
@@ -41,7 +46,7 @@ namespace cheat
 	{
 	public:
 		using element_type = T;
-		using shared_type = std::shared_ptr<T>;
+		using shared_type = stored_service<T>;
 
 		service_shared(const service_shared& other)            = delete;
 		service_shared& operator=(const service_shared& other) = delete;
@@ -118,6 +123,7 @@ namespace cheat
 	public:
 		using executor = cppcoro::static_thread_pool;
 		using load_result = cppcoro::task<bool>;
+		using value_type = stored_service<basic_service>;
 
 		basic_service( );
 		virtual ~basic_service( );
@@ -127,28 +133,24 @@ namespace cheat
 		basic_service& operator=(const basic_service& other) = delete;
 		basic_service& operator=(basic_service&& other) noexcept;
 
-		const stored_service<>* find_service(const std::type_info& info) const;
-		stored_service<>* find_service(const std::type_info& info);
-
+		const value_type* find_service(const std::type_info& info) const;
+		value_type* find_service(const std::type_info& info);
 		void remove_service(const std::type_info& info);
-
 		void unload( );
 
-		void add_dependency(stored_service<>&& srv);
+		void add_dependency(value_type&& srv);
 
 		template <root_service T>
 		void add_dependency(const service_shared<T>& srv) { add_dependency(srv.share( )); }
 
-		service_state state( ) const;
-
 		virtual std::string_view name( ) const = 0;
 		virtual const std::type_info& type( ) const = 0;
 
+		service_state state( ) const;
 		load_result load(executor& ex) noexcept;
 
 	protected:
 		virtual load_result load_impl( ) noexcept = 0;
-
 	private:
 		friend class services_loader;
 

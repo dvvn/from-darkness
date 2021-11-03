@@ -3,10 +3,6 @@
 #include "cheat/csgo/ClientClass.hpp"
 #include "cheat/csgo/entity/C_BaseAnimating.h"
 
-#include <nstd/mem/backup.h>
-
-#include <imgui.h>
-
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
@@ -79,21 +75,25 @@ void should_skip_animation_frame_impl::callback(/*float current_time*/)
 	this->return_value_.store_value(skip_this_frame);
 }
 
-void should_skip_animation_frame_impl::render( )
+#if 0
+bool should_skip_animation_frame_impl::render( )
 {
 	ImGui::Checkbox("override return", &override_return__);
-	if (override_return__)
-	{
-		const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
-		(void)pop;
+	if (!override_return__)
+		return true;
 
-		ImGui::SameLine( );
-		ImGui::Text(" to ");
-		ImGui::SameLine( );
-		if (ImGui::RadioButton("false ", override_return_to__ == false))
-			override_return_to__ = false;
-		ImGui::SameLine( );
-		if (ImGui::RadioButton("true", override_return_to__ == true))
-			override_return_to__ = true;
-	}
+	const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
+	(void)pop;
+
+	ImGui::SameLine( );
+	ImGui::Text(" to ");
+	ImGui::SameLine( );
+	if (ImGui::RadioButton("false ", override_return_to__ == false))
+		override_return_to__ = false;
+	ImGui::SameLine( );
+	if (ImGui::RadioButton("true", override_return_to__ == true))
+		override_return_to__ = true;
+
+	return true;
 }
+#endif

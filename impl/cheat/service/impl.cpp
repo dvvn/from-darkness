@@ -1,18 +1,19 @@
-#include "service_impl.h"
-#include "service_data.h"
+#include "impl.h"
+#include "data.h"
 
 #include <nstd/runtime_assert_fwd.h>
 
 #include <cppcoro/when_all.hpp>
 #include <cppcoro/async_mutex.hpp>
 #include <cppcoro/static_thread_pool.hpp>
+#include <cppcoro/task.hpp>
 
 #include <ranges>
 
 using namespace cheat;
 
 template <typename T>
-static void _Loading_access_assert([[maybe_unused]] T&& state)
+static CPPCORO_FORCE_INLINE void _Loading_access_assert([[maybe_unused]] T&& state)
 {
 	runtime_assert(state != service_state::loading && state != service_state::waiting, "Unable to modify running service!");
 }
@@ -20,21 +21,6 @@ static void _Loading_access_assert([[maybe_unused]] T&& state)
 struct basic_service::lock_impl : cppcoro::async_mutex
 {
 };
-
-//detail::service_iterator detail::find_service(basic_service_data& storage, const std::type_info& info)
-//{
-//	const auto itr = std::ranges::find(storage, info, [](const stored_service<>& srv)-> decltype(auto) { return srv->type( ); });
-//
-//	if (itr == storage.end( ))
-//		return {nullptr, static_cast<size_t>(-1)};
-//	else
-//		return {std::_Get_unwrapped(itr), std::distance(storage.begin( ), itr)};
-//}
-//
-//detail::service_const_iterator detail::find_service(const basic_service_data& storage, const std::type_info& info)
-//{
-//	return find_service(const_cast<basic_service_data&>(storage), info);
-//}
 
 basic_service::basic_service( )
 {
@@ -65,12 +51,12 @@ basic_service& basic_service::operator=(basic_service&& other) noexcept
 	return *this;
 }
 
-auto basic_service::find_service(const std::type_info& info) const -> const stored_service<>*
+auto basic_service::find_service(const std::type_info& info) const -> const value_type*
 {
 	return std::_Const_cast(this)->find_service(info);
 }
 
-stored_service<>* basic_service::find_service(const std::type_info& info)
+auto basic_service::find_service(const std::type_info& info) -> value_type*
 {
 	for (auto& d: *deps_)
 	{
@@ -82,7 +68,7 @@ stored_service<>* basic_service::find_service(const std::type_info& info)
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void basic_service::add_dependency(stored_service<>&& srv)
+void basic_service::add_dependency(value_type&& srv)
 {
 	runtime_assert(!find_service(srv->type()), "Service already stored!");
 	deps_->push_back(std::move(srv));
@@ -93,7 +79,7 @@ service_state basic_service::state( ) const
 	return state_;
 }
 
-basic_service::load_result basic_service::load(executor& ex) noexcept
+auto basic_service::load(executor& ex) noexcept -> load_result
 {
 	switch (state_)
 	{
@@ -116,71 +102,30 @@ basic_service::load_result basic_service::load(executor& ex) noexcept
 
 			//-----------
 
-			enum class deps_preload_info :uint8_t
-			{
-				NOTHING
-			  , ERROR
-			  , SOMETHING
-			};
-
-			using std::views::transform;
-			using std::ranges::any_of;
-			using std::ranges::all_of;
-
-			const auto have_deps_to_load = [&]
-			{
-				if (deps_->empty( ))
-					return deps_preload_info::NOTHING;
-
-				constexpr auto check_state = [](service_state target)
-				{
-					return [=](service_state checked)
-					{
-						return checked == target;
-					};
-				};
-
-				const auto states = *deps_ | transform([](const stored_service<>& srv) { return srv->state( ); });
-				if (any_of(states, check_state(service_state::error)))
-					return deps_preload_info::ERROR;
-				if (all_of(states, check_state(service_state::loaded)))
-					return deps_preload_info::NOTHING;
-
-				return deps_preload_info::SOMETHING;
-			};
-
 			const auto load_deps = [&]( )-> load_result
 			{
+				if (deps_->empty( ))
+					co_return true;
+
+				using std::views::transform;
+				using std::ranges::all_of;
+
 				state_ = service_state::waiting;
 				co_await ex.schedule( );
-				auto tasks_view = *deps_ | transform([&](const stored_service<>& srv)-> load_result { return srv->load(ex); });
-				auto results    = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
+				const auto unwrapped = *deps_ | transform([](const auto& srv)-> basic_service& { return *srv; });
+				auto tasks_view      = unwrapped | transform([&](basic_service& srv)-> load_result { return srv.load(ex); });
+				auto results         = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
 				co_return all_of(results, [](bool val) { return val == true; });
 			};
 
-			bool deps_loaded;
-			switch (have_deps_to_load( ))
-			{
-				case deps_preload_info::NOTHING:
-					deps_loaded = true;
-					break;
-				case deps_preload_info::ERROR:
-					deps_loaded = false;
-					break;
-				case deps_preload_info::SOMETHING:
-					deps_loaded = co_await load_deps( );
-					break;
-				default:
-					runtime_assert("Unknown state");
-					std::terminate( );
-			}
-
-			if (!deps_loaded)
+			if (!co_await load_deps( ))
 			{
 				runtime_assert("Unable to load other services!");
 				state_ = service_state::error;
 				co_return false;
 			}
+
+			//-----------
 
 			const auto load_this = [&]( )-> load_result
 			{

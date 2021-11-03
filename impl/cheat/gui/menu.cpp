@@ -5,14 +5,8 @@
 #include "cheat/core/console.h"
 #include "cheat/core/services_loader.h"
 #include "cheat/features/aimbot.h"
-//#include "cheat/features/anti aim.h"
-//#include "cheat/hooks/c_baseanimating/should skip animation_ frame.h"
-//#include "cheat/hooks/winapi/wndproc.h"
-
-//#include "widgets/tab_bar_with_pages.h"
 
 #include "tools/cached_text.h"
-
 #include "widgets/window.h"
 
 #include <nstd/runtime_assert_fwd.h>
@@ -20,12 +14,13 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <cppcoro/task.hpp>
+
 #include <Windows.h>
 
 #include <algorithm>
 #include <functional>
 #include <random>
-#include <sstream>
 #include <filesystem>
 
 using namespace cheat::gui;
@@ -43,8 +38,8 @@ struct menu_impl::impl
 	void init_pages( )
 	{
 #if 0
-		tabs_pages.make_vertical( );
-		tabs_pages.make_size_static( );
+		tabs_pages.make_vertical();
+		tabs_pages.make_size_static();
 
 		/*constexpr auto init_selectable_colors = []
 		{
@@ -65,42 +60,42 @@ struct menu_impl::impl
 		{
 			auto fn = [=]
 			{
-				const auto selected_before = source->get_selected( );
+				const auto selected_before = source->get_selected();
 				if (selected_before == self)
 					return;
 
-				selected_before->deselect( );
-				self->select( );
+				selected_before->deselect();
+				self->select();
 			};
 
 			return make_callback_info(std::move(fn), false);
 		};
 
-		constexpr auto add_item_set_callbacks = [&] <typename C, size_t S, typename T>(tab_bar_with_pages& tab_bar, const C (&name)[S], const std::shared_ptr<T>& data)-> T&
+		constexpr auto add_item_set_callbacks = [&] <typename C, size_t S, typename T>(tab_bar_with_pages & tab_bar, const C(&name)[S], const std::shared_ptr<T>&data)-> T&
 		{
 			using namespace std::chrono_literals;
 
-			auto item = std::make_unique<tab_bar_item>( );
+			auto item = std::make_unique<tab_bar_item>();
 
-			item->set_font(ImGui::GetDefaultFont( ));
+			item->set_font(ImGui::GetDefaultFont());
 			item->set_label((name));
-			auto anim = std::make_unique<smooth_value_linear<ImVec4>>( );
+			auto anim = std::make_unique<smooth_value_linear<ImVec4>>();
 			anim->set_duration(400ms);
 			item->set_background_color_modifier(std::move(anim));
-			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get( )), two_way_callback::WAY_TRUE);
+			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get()), two_way_callback::WAY_TRUE);
 
 			tab_bar.add_item(std::move(item), data);
 
 			return *data;
 		};
 
-		auto& rage_tab = add_item_set_callbacks(tabs_pages, "rage", std::make_shared<tab_bar_with_pages>( ));
+		auto& rage_tab = add_item_set_callbacks(tabs_pages, "rage", std::make_shared<tab_bar_with_pages>());
 
-		rage_tab.make_horisontal( );
-		rage_tab.make_size_auto( );
-		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared( ));
-		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
-		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
+		rage_tab.make_horisontal();
+		rage_tab.make_size_auto();
+		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared());
+		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared());
+		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared());
 #endif
 	}
 
@@ -149,7 +144,7 @@ struct menu_impl::impl
 
 		title_append(_STRINGIZE(VS_SolutionName), ' ', day, '.', month, '.', year);
 #ifdef _DEBUG
-		title_append(" | ", "DEBUG", " | ",__TIME__);
+		title_append(" | ", "DEBUG", " | ", __TIME__);
 #endif
 
 #ifdef CHEAT_GUI_TEST
@@ -171,15 +166,15 @@ struct menu_impl::impl
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
 		w.show_anim.set_end(/*1*/global_alpha);
 		w.show_anim.set_duration(250ms);
-#ifdef CHEAT_GUI_TEST
+#if CHEAT_GUI_TEST || _DEBUG
 		w.show_anim.restart(true);
-		w.show = true;
+		w.set(true);
 #else
-		w.show = false;
+		w.set(false);
 #endif
-		auto show_anim_target = std::make_unique<decltype(w.show_anim)::target_external>( );
-		show_anim_target->write_value(global_alpha);
-		w.show_anim.set_target(std::move(show_anim_target));
+
+		auto& show_anim_target = w.show_anim.set_target(nstd::smooth_object_base::target_external_tag{});
+		show_anim_target.write_value(global_alpha);
 		w.flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
 		//----------
@@ -194,11 +189,11 @@ menu_impl::menu_impl( )
 
 menu_impl::~menu_impl( ) = default;
 
-void menu_impl::render( )
+bool menu_impl::render( )
 {
 	const auto end = impl_->menu_window( );
 	if (!end)
-		return;
+		return false;
 
 	ImGui::Text("hello");
 	ImGui::Text("hello1");
@@ -212,11 +207,13 @@ void menu_impl::render( )
 #if 0
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		impl_->tabs_pages.render( );
+		impl_->tabs_pages.render();
 		//-
 	}
-	this->end( );
+	this->end();
 #endif
+
+	return true;
 }
 
 bool menu_impl::toggle(UINT msg, WPARAM wparam)
@@ -231,8 +228,7 @@ bool menu_impl::toggle(UINT msg, WPARAM wparam)
 	}
 	if (msg == WM_KEYUP)
 	{
-		auto& show = impl_->menu_window.show;
-		show       = !show;
+		impl_->menu_window.toggle( );
 		return true;
 	}
 
@@ -258,17 +254,17 @@ class unused_page final : public renderable, public string_wrapper_base
 	}
 
 public:
-	void render( ) override
+	void render() override
 	{
 #if CHEAT_GUI_HAS_IMGUI_STRV
 		ImGui::TextUnformatted(*this);
 #else
-		auto&& mb = this->multibyte( );
-		ImGui::TextUnformatted(mb._Unchecked_begin( ), mb._Unchecked_end( ));
+		auto&& mb = this->multibyte();
+		ImGui::TextUnformatted(mb._Unchecked_begin(), mb._Unchecked_end());
 #endif
 	}
 
-	static unused_page* get_ptr( )
+	static unused_page* get_ptr()
 	{
 		static size_t counter = 0;
 		return new unused_page("unused page " + std::to_string(counter++));
@@ -280,61 +276,61 @@ cheat::basic_service::load_result menu_impl::load_impl( ) noexcept
 {
 #if 0
 	renderer_.add_page([]
-	{
-		auto  rage_abstract = abstract_page( );
-		auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
+		{
+			auto  rage_abstract = abstract_page();
+			auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
 
-		using namespace features;
-		rage.add_page(aimbot::get_ptr( ));
-		rage.add_page(anti_aim::get_ptr( ));
+			using namespace features;
+			rage.add_page(aimbot::get_ptr());
+			rage.add_page(anti_aim::get_ptr());
 
-		return rage_abstract;
-	}());
-	renderer_.add_page({"settings", settings::get_ptr_shared( )});
+			return rage_abstract;
+		}());
+	renderer_.add_page({ "settings", settings::get_ptr_shared() });
 
 #if defined(_DEBUG)
 	renderer_.add_page([]
-	{
-		auto  debug_abstract = abstract_page( );
-		auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
-
-		debug.add_page([]
 		{
-			auto  debug_hooks_abstract = abstract_page( );
-			auto& debug_hooks = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
+			auto  debug_abstract = abstract_page();
+			auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
 
-			const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
-			{
-				basic_service* ptr_raw = ptr.get( );
-
-				switch(ptr_raw->state( ).value( ))
+			debug.add_page([]
 				{
-				case service_state::waiting:
-				case service_state::loading:
-				case service_state::loaded:
-					break;
-				default:
-					return;
-				}
+					auto  debug_hooks_abstract = abstract_page();
+					auto& debug_hooks = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
 
-				if(const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
-					return;
+					const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
+					{
+						basic_service* ptr_raw = ptr.get();
 
-				debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
-			};
-			using namespace hooks;
-			add_if_hookded("window proc", winapi::wndproc::get_ptr_shared( ));
-			add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared( ));
+						switch (ptr_raw->state().value())
+						{
+						case service_state::waiting:
+						case service_state::loading:
+						case service_state::loaded:
+							break;
+						default:
+							return;
+						}
 
-			return debug_hooks_abstract;
+						if (const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped())
+							return;
+
+						debug_hooks.add_page({ std::forward<Tstr>(name), std::forward<Tptr>(ptr) });
+					};
+					using namespace hooks;
+					add_if_hookded("window proc", winapi::wndproc::get_ptr_shared());
+					add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared());
+
+					return debug_hooks_abstract;
+				}());
+			debug.add_page(unused_page::get_ptr());
+			debug.add_page(unused_page::get_ptr());
+
+			return debug_abstract;
 		}());
-		debug.add_page(unused_page::get_ptr( ));
-		debug.add_page(unused_page::get_ptr( ));
-
-		return debug_abstract;
-	}());
 #endif
-	renderer_.init( );
+	renderer_.init();
 #endif
 
 	impl_->init_window( );

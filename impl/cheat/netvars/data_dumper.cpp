@@ -8,10 +8,17 @@
 #include <nstd/checksum.h>
 #include <nstd/mem/backup.h>
 
+#if __has_include(<robin_hood.h>)
 #include <robin_hood.h>
+#define UNORDERED_SET robin_hood::unordered_set
+#else
+#include <unordered_set>
+#define UNORDERED_SET std::unordered_set
+#endif
 
-#include <fstream>
+
 #include <set>
+#include <fstream>
 #include <ranges>
 #include <regex>
 
@@ -247,7 +254,7 @@ _WORK:
 		const auto source_add_dynamic_includes = [&]
 		{
 			std::vector<std::string> includes_local, includes_global;
-			auto includes_cache = robin_hood::unordered_set<std::string>( );
+			auto includes_cache = UNORDERED_SET<std::string>( );
 
 			const auto cheat_impl_dir = std::filesystem::path(STRINGIZE_PATH(_CONCAT(VS_SolutionDir, \impl\)));
 			for (auto& [netvar_name, netvar_data]: NETVARS.items( ))

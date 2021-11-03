@@ -1,11 +1,14 @@
 ﻿#include "csgo_awaiter.h"
 #include "console.h"
-
 #include "services_loader.h"
 
 #ifndef CHEAT_GUI_TEST
 #include <nstd/os/module info.h>
+#endif
 
+#include <cppcoro/task.hpp>
+
+#ifndef CHEAT_GUI_TEST
 #include <filesystem>
 #include <functional>
 #include <thread>
@@ -13,19 +16,23 @@
 
 using namespace cheat;
 
-basic_service::load_result csgo_awaiter_impl::load_impl( ) noexcept
+auto csgo_awaiter_impl::load_impl( ) noexcept -> load_result
 {
-	const auto modules = nstd::os::all_modules::get_ptr( );
+	using nstd::os::module_info;
+	using nstd::os::all_modules;
+	using std::filesystem::path;
+
+	const auto modules = all_modules::get_ptr( );
 	modules->update(false);
 
-	auto work_dir         = std::filesystem::path(modules->owner( ).work_dir( ));
-	auto& work_dir_native = const_cast<std::filesystem::path::string_type&>(work_dir.native( ));
+	auto work_dir         = path(modules->owner( ).work_dir( ));
+	auto& work_dir_native = const_cast<path::string_type&>(work_dir.native( ));
 	std::ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
 	work_dir.append(L"bin").append(L"serverbrowser.dll");
 
 	const auto is_game_loaded = [&]
 	{
-		return modules->rfind([&](const nstd::os::module_info& info)
+		return modules->rfind([&](const module_info& info)
 		{
 			return info.full_path( ) == work_dir.native( );
 		}) != nullptr;

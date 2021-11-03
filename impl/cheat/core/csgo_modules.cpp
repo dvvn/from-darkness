@@ -7,7 +7,7 @@
 #include <nstd/os/module info.h>
 #include <nstd/unistring.h>
 
-#include <robin_hood.h>
+#include NSTD_OS_MODULE_INFO_DATA_INCLUDE
 
 #include <ranges>
 #include <format>
@@ -75,11 +75,16 @@ public:
 	CInterfaceRegister* next;
 };
 
-using ifcs_entry_type = robin_hood::unordered_map<std::string_view, InstantiateInterfaceFn>;
-using ifcs_storage_type = robin_hood::unordered_map<module_info*, ifcs_entry_type>;
+using ifcs_entry_type = NSTD_OS_MODULE_INFO_DATA_CACHE<std::string_view, InstantiateInterfaceFn>;
+using ifcs_storage_type = NSTD_OS_MODULE_INFO_DATA_CACHE<module_info*, ifcs_entry_type>;
 
-static const ifcs_entry_type& _Interface_entry(ifcs_storage_type& storage, module_info* target_module)
+// ReSharper disable once CppInconsistentNaming
+using _Storage = nstd::one_instance<ifcs_storage_type>;
+
+static const ifcs_entry_type& _Interface_entry(module_info* target_module)
 {
+	auto& storage = _Storage::get( );
+
 	auto found = storage.find(target_module);
 	if (found != storage.end( ))
 		return found->second;
@@ -160,9 +165,7 @@ static const ifcs_entry_type& _Interface_entry(ifcs_storage_type& storage, modul
 
 nstd::address detail::find_csgo_interface(module_info* from, const std::string_view& target_name)
 {
-	static ifcs_storage_type storage;
-
-	const auto& entry = _Interface_entry(storage, from);
+	const auto& entry = _Interface_entry(from);
 	//const auto& fn = entry.at(interface_name);
 
 	const auto found = entry.find(target_name);
@@ -185,6 +188,11 @@ nstd::address detail::find_csgo_interface(module_info* from, const std::string_v
 #endif
 
 	return std::invoke(found->second);
+}
+
+void detail::reset_interfaces_storage( )
+{
+	nstd::reload_one_instance<_Storage>( );
 }
 
 void* detail::find_vtable_pointer(module_info* from, const std::string_view& class_name)

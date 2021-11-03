@@ -14,7 +14,7 @@ namespace cheat::gui::widgets
 	class end_token
 	{
 	public:
-		end_token();
+		end_token( );
 
 		end_token(const end_token& other)            = delete;
 		end_token& operator=(const end_token& other) = delete;
@@ -22,14 +22,14 @@ namespace cheat::gui::widgets
 		end_token& operator=(end_token&& other) noexcept;
 
 		void set(uint8_t val);
-		uint8_t release();
+		uint8_t release( );
 
-		bool unset() const;
+		bool unset( ) const;
 
-		bool operator!() const;
+		bool operator!( ) const;
 		bool operator==(bool val) const;
 		bool operator!=(bool val) const;
-		uint8_t value() const;
+		uint8_t value( ) const;
 
 	private:
 		uint8_t value_;
@@ -42,9 +42,9 @@ namespace cheat::gui::widgets
 	class window_end_token_ex : public end_token
 	{
 	public:
-		window_end_token_ex();
+		window_end_token_ex( );
 
-		~window_end_token_ex();
+		~window_end_token_ex( );
 		window_end_token_ex(window_end_token_ex&& other) noexcept            = default;
 		window_end_token_ex& operator=(window_end_token_ex&& other) noexcept = default;
 	private:
@@ -68,15 +68,20 @@ namespace cheat::gui::widgets
 
 		show_anim_type show_anim;
 		ImGuiWindowFlags flags = 0;
-		bool show;
+
 		window_title title;
 
-		bool visible() const;
-		bool updating() const;
+		void set(bool value);
+		void toggle( );
+
+		bool visible( ) const;
+		bool updating( ) const;
 
 		window_end_token_ex operator()(bool close_button = false);
 
 	private:
 		ImGuiWindowFlags temp_flags_ = 0;
+		bool show_                   = 0;
+		bool show_wished_            = 0;
 	};
 }

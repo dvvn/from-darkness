@@ -5,16 +5,13 @@
 #include "cheat/core/csgo_interfaces.h"
 #include "cheat/core/csgo_modules.h"
 #include "cheat/core/services_loader.h"
-
 #include "cheat/csgo/GlobalVars.hpp"
 #include "cheat/csgo/IVEngineClient.hpp"
-
 #include "cheat/netvars/netvars.h"
-
 #include "cheat/utils/game.h"
 
+#include <cppcoro/task.hpp>
 #include <nstd/address_pipe.h>
-
 #include <vector>
 
 using namespace cheat;

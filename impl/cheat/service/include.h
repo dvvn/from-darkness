@@ -1,15 +1,34 @@
 ﻿#pragma once
-#include "service_impl.h"
+#include "impl.h"
 
+#ifdef _DEBUG
 #include <nstd/type name.h>
+#endif
 
 namespace cheat
 {
 	template <typename T>
 	struct service : basic_service
 	{
-		std::string_view name( ) const final { return nstd::type_name<T, "cheat">; }
-		const std::type_info& type( ) const final { return typeid(T); }
+		std::string_view name( ) const final
+		{
+#ifdef _DEBUG
+			constexpr auto tmp   = nstd::type_name<T, "cheat">;
+			constexpr auto dummy = std::string_view("_impl");
+			if constexpr (tmp.ends_with(dummy))
+				return tmp.substr(0, tmp.size( ) - dummy.size( ));
+			else
+				return tmp;
+
+#else
+			std::terminate();
+#endif
+		}
+
+		const std::type_info& type( ) const final
+		{
+			return typeid(T);
+		}
 	};
 }
 

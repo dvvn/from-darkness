@@ -4,6 +4,8 @@
 #include "cheat/core/services_loader.h"
 #include "cheat/gui/menu.h"
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace hooks::vgui_surface;
 
@@ -17,7 +19,7 @@ nstd::address lock_cursor_impl::get_target_method_impl( ) const
 	return csgo_interfaces::get( )->vgui_surface.vfunc(67);
 }
 
-basic_service::load_result lock_cursor_impl::load_impl( ) noexcept
+auto lock_cursor_impl::load_impl( ) noexcept -> load_result
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }

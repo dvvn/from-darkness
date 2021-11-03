@@ -1,7 +1,6 @@
 #pragma once
 #include "cheat/hooks/base.h"
 
-#include "cheat/gui/widgets/absrtact_renderable.h"
 
 // ReSharper disable CppInconsistentNaming
 using UINT_PTR =
@@ -34,10 +33,9 @@ namespace cheat::hooks::winapi
 {
 	using def_wndproc_t = LRESULT (_stdcall*)(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
-	struct wndproc_impl final : service<wndproc_impl>, dhooks::_Detect_hook_holder_t<__COUNTER__, def_wndproc_t>, gui::widgets::abstract_renderable
+	struct wndproc_impl final : service<wndproc_impl>, dhooks::_Detect_hook_holder_t<__COUNTER__, def_wndproc_t>
 	{
 		wndproc_impl( );
-		void render( ) override;
 
 	protected:
 		load_result load_impl( ) noexcept override;

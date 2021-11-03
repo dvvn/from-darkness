@@ -1,7 +1,7 @@
 #pragma once
 
-#include "cheat/core/service.h"
 #include "cheat/gui/widgets/absrtact_renderable.h"
+#include "cheat/service/include.h"
 #include "cheat/settings/shared_data.h"
 
 namespace cheat::features
@@ -18,7 +18,7 @@ namespace cheat::features
 		aimbot_impl(aimbot_impl&&) noexcept;
 		aimbot_impl& operator=(aimbot_impl&&) noexcept;
 
-		void render( ) override;
+		bool render( ) override;
 		void save(json& in) const override;
 		void load(const json& out) override;
 

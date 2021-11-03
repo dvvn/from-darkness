@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cheat/core/service.h"
+#include "cheat/service/include.h"
 
 namespace cheat
 {

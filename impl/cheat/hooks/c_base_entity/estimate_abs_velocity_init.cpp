@@ -5,6 +5,8 @@
 #include "cheat/core/services_loader.h"
 #include "cheat/netvars/netvars.h"
 
+#include <cppcoro/task.hpp>
+
 namespace cheat::csgo
 {
 	class C_BaseEntity;
@@ -16,7 +18,7 @@ using namespace hooks::c_base_entity;
 
 estimate_abs_velocity_impl::estimate_abs_velocity_impl( )
 {
-	this->add_dependency(netvars::get( ));
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(netvars);
 }
 
 nstd::address estimate_abs_velocity_impl::get_target_method_impl( ) const

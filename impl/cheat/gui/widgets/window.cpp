@@ -417,9 +417,19 @@ void window_title::on_update(update_flags flags)
 	}
 }
 
+void window_wrapped::set(bool value)
+{
+	show_wished_ = value;
+}
+
+void window_wrapped::toggle( )
+{
+	show_wished_ = !show_wished_;
+}
+
 bool window_wrapped::visible( ) const
 {
-	return show || updating( );
+	return show_ || updating( );
 }
 
 bool window_wrapped::updating( ) const
@@ -442,14 +452,24 @@ window_end_token_ex window_wrapped::operator()(bool close_button)
 	runtime_assert(show_anim.get_target( )->get_value( ) == 1);
 	window_end_token_ex token;
 
-	show_anim.set_new_range(show);
+	show_ = show_wished_;
+	show_anim.set_new_range(show_);
 	const auto updated = show_anim.update( );
 
 	if (visible( ))
 	{
-		token.set(window2(this->title, close_button ? std::addressof(show) : nullptr, flags | temp_flags_).release( ));
+		const auto wnd_flags = flags | temp_flags_;
+		if (close_button)
+		{
+			token.set(window2(this->title, std::addressof(show_), wnd_flags).release( ));
+			show_wished_ = show_;
+		}
+		else
+		{
+			token.set(window2(this->title, nullptr, wnd_flags).release( ));
+		}
 
-		//todo: toggle only of window focused?
+		//todo: toggle only on window focused?
 		//todo2: ignore toggle when text input active
 		/*if (ImGui::IsWindowFocused(ImGuiFocusedFlags_DockHierarchy | ImGuiFocusedFlags_RootWindow))
 			temp_flags_ &= ~ImGuiWindowFlags_NoFocusOnAppearing;

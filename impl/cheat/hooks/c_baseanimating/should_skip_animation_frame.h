@@ -1,9 +1,6 @@
 #pragma once
 
-#include "cheat/core/service.h"
 #include "cheat/hooks/base.h"
-
-#include "cheat/gui/widgets/absrtact_renderable.h"
 
 namespace cheat::csgo
 {
@@ -13,12 +10,9 @@ namespace cheat::csgo
 namespace cheat::hooks::c_base_animating
 {
 	struct should_skip_animation_frame_impl final : service<should_skip_animation_frame_impl>
-											 , dhooks::_Detect_hook_holder_t<__COUNTER__, bool(csgo::C_BaseAnimating::*)( )>
-											 , gui::widgets::abstract_renderable
+												  , dhooks::_Detect_hook_holder_t<__COUNTER__, bool(csgo::C_BaseAnimating::*)( )>
 	{
 		should_skip_animation_frame_impl( );
-
-		void render( ) override;
 
 	protected:
 		nstd::address get_target_method_impl( ) const override;

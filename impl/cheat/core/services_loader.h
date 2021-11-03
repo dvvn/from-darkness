@@ -1,5 +1,5 @@
 #pragma once
-#include "service.h"
+#include "cheat/service/include.h"
 
 #include <thread>
 
@@ -29,6 +29,9 @@ namespace cheat
 		~services_loader( ) override;
 		services_loader( );
 
+		services_loader(services_loader&& other) =default;
+		services_loader& operator=(services_loader&& other) =default;
+
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle( ) const;
 		void load(HMODULE handle);
@@ -38,7 +41,7 @@ namespace cheat
 
 		std::shared_ptr<executor> get_executor(size_t threads_count = std::thread::hardware_concurrency( ));
 
-		std::vector<std::shared_ptr<dhooks::hook_holder_base>> get_hooks(bool steal);
+		std::vector<stored_service<dhooks::hook_holder_base>> get_hooks(bool steal);
 
 	protected:
 		load_result load_impl( ) noexcept override;

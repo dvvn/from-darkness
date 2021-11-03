@@ -4,6 +4,8 @@
 
 #include <nstd/os/module info.h>
 
+#include <cppcoro/task.hpp>
+
 #include <corecrt_io.h>
 #include <Windows.h>
 #include <fcntl.h>
@@ -22,120 +24,75 @@ struct string_packer::data_type : std::variant<str, strv, wstr, wstrv, ostr, wos
 {
 };
 
+template <typename Store, typename Pack, typename T>
+static __forceinline void _Init_packer(std::unique_ptr<Pack>& pack, T&& obj)
+{
+	if (!pack)
+		pack = std::make_unique<Pack>( );
+	pack->template emplace<Store>(std::forward<T>(obj));
+}
+
 string_packer::string_packer(const char* cstr)
 {
-	init( );
-	packed->emplace<strv>(cstr);
+	_Init_packer<strv>(packed, cstr);
 }
 
 string_packer::string_packer(const wchar_t* wcstr)
 {
-	init( );
-	packed->emplace<wstrv>(wcstr);
+	_Init_packer<wstrv>(packed, wcstr);
 }
 
 string_packer::string_packer(str&& s)
 {
-	init( );
-	packed->emplace<str>(std::move(s));
+	_Init_packer<str>(packed, std::move(s));
 }
 
 string_packer::string_packer(const strv& s)
 {
-	init( );
-	packed->emplace<strv>(s);
+	_Init_packer<strv>(packed, s);
 }
 
 string_packer::string_packer(wstr&& s)
 {
-	init( );
-	packed->emplace<wstr>(std::move(s));
+	_Init_packer<wstr>(packed, std::move(s));
 }
 
 string_packer::string_packer(const wstrv& s)
 {
-	init( );
-	packed->emplace<wstrv>(s);
+	_Init_packer<wstrv>(packed, s);
 }
 
 string_packer::string_packer(ostr&& s)
 {
-	init( );
-	packed->emplace<ostr>(std::move(s));
+	_Init_packer<ostr>(packed, std::move(s));
 }
 
 string_packer::string_packer(const ostr& os)
 {
-	init( );
-	packed->emplace<strv>(os.view( ));
+	_Init_packer<strv>(packed, os.view( ));
 }
 
 string_packer::string_packer(wostr&& os)
 {
-	init( );
-	packed->emplace<wostr>(std::move(os));
+	_Init_packer<wostr>(packed, std::move(os));
 }
 
 string_packer::string_packer(const wostr& os)
 {
-	init( );
-	packed->emplace<wstrv>(os.view( ));
+	_Init_packer<wstrv>(packed, os.view( ));
 }
 
 string_packer::~string_packer( ) = default;
 
-void string_packer::init( )
-{
-	packed = std::make_unique<data_type>( );
-}
-
-struct movable_function_base
-{
-	virtual ~movable_function_base( ) = default;
-	virtual void operator()( ) = 0;
-
-	movable_function_base( ) = default;
-
-	movable_function_base(const movable_function_base&)            = delete;
-	movable_function_base& operator=(const movable_function_base&) = delete;
-};
-
-template <typename T>
-class movable_function final : public movable_function_base
-{
-public:
-	movable_function(const movable_function&)            = delete;
-	movable_function& operator=(const movable_function&) = delete;
-
-	using value_type = T;
-
-	movable_function(T&& obj)
-		: obj_(std::move(obj))
-	{
-	}
-
-	void operator()( ) override
-	{
-		std::invoke(obj_);
-	}
-
-private:
-	T obj_;
-};
-
-template <typename T>
-movable_function(T&&) -> movable_function<std::remove_cvref_t<T>>;
-
 class console_impl::cache_type
 {
 public:
-	using value_type = std::unique_ptr<movable_function_base>;
-
+	using value_type = std::function<void( )>;
 	cache_type( ) = default;
 
 	void write_all( )
 	{
-		std::ranges::for_each(cache_, &value_type::element_type::operator(), &value_type::operator*);
+		std::ranges::for_each(cache_, &value_type::operator ());
 		cache_.clear( );
 	}
 
@@ -184,7 +141,7 @@ console_impl::~console_impl( )
 		fclose(err_);
 }
 
-basic_service::load_result console_impl::load_impl( ) noexcept
+auto console_impl::load_impl( ) noexcept -> load_result
 {
 	handle_ = GetConsoleWindow( );
 	if (handle_ != nullptr)
@@ -253,6 +210,17 @@ static auto _Prepare_message(const char* expression, const char* message, const 
 	return msg;
 }
 
+#ifdef _DEBUG
+static void _Assert(const char* message, const std::source_location& location)
+{
+	constexpr auto make_wstring = [](const char* str)
+	{
+		return std::wstring(str, str + std::char_traits<char>::length(str));
+	};
+	return _wassert(make_wstring(message).c_str( ), make_wstring(location.file_name( )).c_str( ), location.line( ));
+}
+#endif
+
 void console_impl::handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept
 {
 	if (expression_result)
@@ -262,7 +230,7 @@ void console_impl::handle(bool expression_result, const char* expression, const 
 #ifdef _DEBUG
 	[[maybe_unused]] const auto from  = _ReturnAddress( );
 	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
-	DebugBreak( );
+	_Assert(message, location);
 #endif
 }
 
@@ -272,7 +240,7 @@ void console_impl::handle(const char* message, const std::source_location& locat
 #ifdef _DEBUG
 	[[maybe_unused]] const auto from  = _ReturnAddress( );
 	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
-	DebugBreak( );
+	_Assert(message, location);
 #endif
 }
 
@@ -332,7 +300,7 @@ static auto _Write_text = []<typename T>(T&& text)
 	int new_mode;
 	int prev_mode;
 
-	auto&& text_fwd = _Unwrap_view(std::forward<T>(text));
+	decltype(auto) text_fwd = _Unwrap_view(std::forward<T>(text));
 	using value_type = std::remove_cvref_t<decltype(text_fwd)>;
 	if constexpr (stream_possible<std::ofstream&, value_type>)
 	{
@@ -358,30 +326,36 @@ static auto _Write_text = []<typename T>(T&& text)
 		_Set_mode(/*stdout*/file_out, prev_mode);
 };
 
+template <nstd::std_string_view_based T>
+static auto _Make_string(const T& view) { return std::basic_string<typename T::value_type, typename T::traits_type>(view.begin( ), view.end( )); }
+
+template <nstd::std_string_based T>
+static auto _Make_string(const T& view) { return std::basic_string<typename T::value_type, typename T::traits_type, typename T::allocator_type>(view.begin( ), view.end( )); }
+
+template <class T>
+	requires(!std::is_class_v<T>)
+static auto _Make_string(const T* ptr) { return std::basic_string<T>(ptr); }
+
+template <class T>
+	requires(!std::is_class_v<T>)
+static auto _Make_string(const T val) { return val; }
+
+template <class T>
+	requires(is_basic_ostringstream_v<T>)
+static auto _Make_string(const T& ostr) { return ostr.str( ); }
+
 template <typename Fn, typename T>
-static auto _Decayed_bind(const Fn& fn, T&& text)
+static auto _Decayed_bind(Fn&& fn, T&& text)
 {
-	auto get_text = [&]( )-> decltype(auto)
+	const auto get_text = [&]( )-> decltype(auto)
 	{
 		if constexpr (std::is_rvalue_reference_v<decltype(text)>)
 			return std::forward<T>(text);
 		else
-		{
-			auto&& str = _Unwrap_view(std::forward<T>(text));
-			using str_t = decltype(str);
-			using str_raw_t = std::remove_cvref_t<str_t>;
-
-			if constexpr (!std::_Has_member_value_type<str_raw_t>)
-				return std::forward<str_t>(str);
-			else
-			{
-				using chr_t = typename str_raw_t::value_type;
-				return std::basic_string<chr_t>(std::forward<str_t>(str));
-			}
-		}
+			return _Make_string(text);
 	};
 
-	return std::bind_front(fn, get_text( ));
+	return std::bind_front(std::forward<Fn>(fn), get_text( ));
 }
 
 static auto _Write_or_cache = []<typename T>(T&& text, const console_impl* instance, console_cache_type_uptr& cache)
@@ -396,9 +370,10 @@ static auto _Write_or_cache = []<typename T>(T&& text, const console_impl* insta
 	else
 	{
 		auto fn = _Decayed_bind(_Write_text, std::forward<T>(text));
-		using fn_t = decltype(fn);
-		auto vfn = std::make_unique<movable_function<fn_t>>(std::move(fn));
-		cache->store(std::move(vfn));
+		if constexpr (std::copyable<decltype(fn)>)
+			cache->store(fn);
+		else
+			cache->store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))] { std::invoke(*fn1); });
 	}
 };
 
@@ -435,31 +410,32 @@ static auto _Get_time_str( )
 		   << std::setw(3) << current_microseconds;
 }
 
-template <class T>
-// ReSharper disable once CppInconsistentNaming
-concept _Has_member_char_type = requires
-{
-	typename T::char_type;
-};
-
-template <typename T>
-static auto _Detect_char_type( )
-{
-	if constexpr (_Has_member_char_type<T>)
-		return T::char_type( );
-	else if constexpr (std::_Has_member_value_type<T>)
-		return T::value_type( );
-	else
-		return char( );
-}
+//template <class T>
+//// ReSharper disable once CppInconsistentNaming
+//concept _Has_member_char_type = requires
+//{
+//	typename T::char_type;
+//};
+//
+//template <typename T>
+//static auto _Detect_char_type( )
+//{
+//	if constexpr (_Has_member_char_type<T>)
+//		return T::char_type( );
+//	else if constexpr (std::_Has_member_value_type<T>)
+//		return T::value_type( );
+//	else
+//		return char( );
+//}
 
 static auto _Write_or_cache_full = []<typename T>(T&& text, const console_impl* instance, console_cache_type_uptr& cache)
 {
-	using Chr = decltype(_Detect_char_type<std::remove_cvref_t<T>>( ));
+	decltype(auto) view = _Unwrap_view(text);
 
+	using Chr = std::iter_value_t<decltype(view)>;
 	constexpr Chr pad[] = {' ', '-', ' ', '\0'};
 
-	auto stream = _Get_time_str<Chr>( ) << pad << _Unwrap_view(text) << static_cast<Chr>('\n');
+	auto stream = _Get_time_str<Chr>( ) << pad << view << static_cast<Chr>('\n');
 	_Write_or_cache(std::move(stream), instance, cache);
 };
 

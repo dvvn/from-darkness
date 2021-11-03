@@ -5,13 +5,15 @@
 #include "cheat/core/services_loader.h"
 #include "cheat/netvars/netvars.h"
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
 standard_blending_rules_impl::standard_blending_rules_impl( )
 {
-	this->add_dependency(netvars::get( ));
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(netvars);
 }
 
 nstd::address standard_blending_rules_impl::get_target_method_impl( ) const
@@ -21,7 +23,7 @@ nstd::address standard_blending_rules_impl::get_target_method_impl( ) const
 	return (vtable.ref<nstd::address*>( )[index]);
 }
 
-basic_service::load_result standard_blending_rules_impl::load_impl( ) noexcept
+auto standard_blending_rules_impl::load_impl( ) noexcept -> load_result
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }

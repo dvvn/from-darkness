@@ -5,6 +5,8 @@
 #include "cheat/core/csgo_modules.h"
 #include "cheat/core/services_loader.h"
 
+#include <cppcoro/task.hpp>
+
 namespace cheat::csgo
 {
 	class C_CSPlayer;
@@ -16,6 +18,7 @@ using namespace hooks::c_csplayer;
 
 do_extra_bone_processing_impl::do_extra_bone_processing_impl( )
 {
+
 	this->add_dependency(csgo_interfaces::get( ));
 }
 
@@ -26,7 +29,7 @@ nstd::address do_extra_bone_processing_impl::get_target_method_impl( ) const
 	return (vtable.ref<nstd::address*>( )[index]);
 }
 
-basic_service::load_result do_extra_bone_processing_impl::load_impl( ) noexcept
+auto do_extra_bone_processing_impl::load_impl( ) noexcept -> load_result
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }

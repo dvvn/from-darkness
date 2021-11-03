@@ -1,6 +1,7 @@
 #pragma once
 
-#include "cheat/core/service.h"
+#include "cheat/service/include.h"
+
 #include "widgets/absrtact_renderable.h"
 
 // ReSharper disable CppInconsistentNaming
@@ -18,12 +19,6 @@ int;
 using WPARAM = UINT_PTR;
 // ReSharper restore CppInconsistentNaming
 
-#if defined(_DEBUG) ||  defined(CHEAT_GUI_TEST)
-#define CHEAT_GUI_HAS_DEMO_WINDOW 1
-#else
-#define CHEAT_GUI_HAS_DEMO_WINDOW 0
-#endif
-
 namespace cheat::gui
 {
 	namespace widgets
@@ -37,7 +32,7 @@ namespace cheat::gui
 		menu_impl();
 		~menu_impl() override;
 
-		void render() override;
+		bool render() override;
 		bool toggle(UINT msg, WPARAM wparam);
 		bool visible()const;
 		bool updating()const;

@@ -3,7 +3,7 @@
 #ifndef CHEAT_GUI_TEST
 #include "csgo_awaiter.h"
 #endif
-#include "service_data.h"
+#include "cheat/service/data.h"
 
 #include <nstd/os/module info.h>
 #include <nstd/os/threads.h>
@@ -12,8 +12,10 @@
 
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/static_thread_pool.hpp>
+#include <cppcoro/task.hpp>
 
 #include <Windows.h>
+
 #include <functional>
 
 using namespace cheat;
@@ -64,7 +66,7 @@ services_loader::~services_loader( ) = default;
 
 services_loader::services_loader( )
 {
-	this->add_dependency((std::make_shared<dummy_service>( )));
+	this->add_dependency(std::make_shared<dummy_service>( ));
 }
 
 HMODULE services_loader::my_handle( ) const
@@ -86,7 +88,7 @@ void services_loader::load(HMODULE handle)
 		if (!load_helper( ))
 			this->unload( );
 		else
-			this->remove_service(csgo_awaiter::type(  ));
+			this->remove_service(csgo_awaiter::type( ));
 	});
 }
 
@@ -121,9 +123,9 @@ auto services_loader::get_executor(size_t threads_count) -> std::shared_ptr<exec
 using dhooks::hook_holder_base;
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-std::vector<std::shared_ptr<hook_holder_base>> services_loader::get_hooks(bool steal)
+std::vector<stored_service<hook_holder_base>> services_loader::get_hooks(bool steal)
 {
-	std::vector<std::shared_ptr<hook_holder_base>> out;
+	std::vector<stored_service<hook_holder_base>> out;
 
 	auto& deps = *this->deps_;
 	for (auto& d: deps)
@@ -132,18 +134,18 @@ std::vector<std::shared_ptr<hook_holder_base>> services_loader::get_hooks(bool s
 		if (!ptr)
 			continue;
 
-		out.push_back(std::move(ptr));
+		out.push_back({std::move(ptr), stored_service_cast_tag{}});
 
 		if (steal)
 		{
-			stored_service<> empty;
+			value_type empty;
 			std::swap(empty, d);
 		}
 	}
 
 	if (steal && !out.empty( ))
 	{
-		auto to_remove = std::ranges::remove(deps, stored_service<>( ));
+		auto to_remove = std::ranges::remove(deps, value_type( ));
 		deps.erase(to_remove.begin( ), to_remove.end( ));
 	}
 
@@ -163,7 +165,7 @@ void basic_service::unload( )
 {
 	auto loader = services_loader::get_ptr( );
 	if (this->type( ) == loader->type( ))
-		nstd::reload_one_instance(*loader);
+		reload_one_instance(*loader);
 	else
 		loader->remove_service(this->type( ));
 }
@@ -187,14 +189,14 @@ void basic_service::remove_service(const std::type_info& info)
 
 //-----
 
-void basic_service_shared::add_to_loader(stored_service<>&& srv) const
+void basic_service_shared::add_to_loader(value_type&& srv) const
 {
 	const auto loader = services_loader::get_ptr( );
 	loader->add_dependency(std::move(srv));
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-auto basic_service_shared::get_from_loader(const std::type_info& info) const -> stored_service<>*
+auto basic_service_shared::get_from_loader(const std::type_info& info) const -> value_type*
 {
 	const auto loader = services_loader::get_ptr( );
 	return loader->find_service(info);

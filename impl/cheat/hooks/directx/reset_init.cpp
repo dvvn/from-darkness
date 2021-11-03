@@ -5,12 +5,14 @@
 #include "cheat/core/services_loader.h"
 #include "cheat/gui/imgui_context.h"
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace hooks::directx;
 
 reset_impl::reset_impl( )
 {
-	this->add_dependency(gui::imgui_context::get( ));
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(gui::imgui_context);
 }
 
 nstd::address reset_impl::get_target_method_impl( ) const

@@ -1,8 +1,6 @@
 #pragma once
 
-#include "cheat/core/service.h"
-
-#include <span>
+#include "cheat/service/include.h"
 
 namespace std
 {
@@ -44,7 +42,7 @@ namespace cheat::gui
 
 		ImFont* add_default_font(std::optional<ImFontConfig>&& cfg_opt);
 		ImFont* add_font_from_ttf_file(const std::filesystem::path& path, std::optional<ImFontConfig>&& cfg_opt);
-		ImFont* add_font_from_memory_ttf_file(const std::span<uint8_t>& buffer, std::optional<ImFontConfig>&& cfg_opt);
+		ImFont* add_font_from_memory_ttf_file( uint8_t* buffer_start,  uint8_t* buffer_end, std::optional<ImFontConfig>&& cfg_opt);
 
 		static std::optional<ImFontConfig> default_font_config( );
 

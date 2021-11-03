@@ -5,7 +5,7 @@
     <ClCompile Include="cheat\core\csgo_awaiter.cpp" />
     <ClCompile Include="cheat\core\csgo_interfaces.cpp" />
     <ClCompile Include="cheat\core\csgo_modules.cpp" />
-    <ClCompile Include="cheat\core\service_impl.cpp" />
+    <ClCompile Include="cheat\service\impl.cpp" />
     <ClCompile Include="cheat\core\services_loader.cpp" />
     <ClCompile Include="cheat\csgo\entity\C_BaseAnimating.cpp" />
     <ClCompile Include="cheat\csgo\entity\C_BaseCombatCharacter.cpp" />
@@ -78,7 +78,7 @@
     <ClInclude Include="cheat\core\csgo_awaiter.h" />
     <ClInclude Include="cheat\core\csgo_interfaces.h" />
     <ClInclude Include="cheat\core\csgo_modules.h" />
-    <ClInclude Include="cheat\core\service_impl.h" />
+    <ClInclude Include="cheat\service\impl.h" />
     <ClInclude Include="cheat\core\services_loader.h" />
     <ClInclude Include="cheat\csgo\entity\C_BaseAnimating.h" />
     <ClInclude Include="cheat\csgo\entity\C_BaseCombatCharacter.h" />
@@ -176,9 +176,9 @@
     <ClInclude Include="cheat\players\tick_record.h" />
     <ClInclude Include="cheat\utils\game.h" />
     <ClInclude Include="cheat\gui\widgets\selectable.h" />
-    <ClInclude Include="cheat\core\service.h" />
-    <ClInclude Include="cheat\core\service_data.h" />
-    <ClInclude Include="cheat\core\service_state.h" />
-    <ClInclude Include="cheat\core\stored_service.h" />
+    <ClInclude Include="cheat\service\include.h" />
+    <ClInclude Include="cheat\service\data.h" />
+    <ClInclude Include="cheat\service\state.h" />
+    <ClInclude Include="cheat\service\stored.h" />
   </ItemGroup>
 </Project>

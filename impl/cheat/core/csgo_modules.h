@@ -12,6 +12,7 @@ namespace cheat::csgo_modules
 		nstd::os::module_info* get_module_impl(const std::string_view& target_name);
 		nstd::address find_signature_impl(nstd::os::module_info* md, const std::string_view& sig);
 		nstd::address find_csgo_interface(nstd::os::module_info* from, const std::string_view& target_name);
+		void reset_interfaces_storage();
 		void* find_vtable_pointer(nstd::os::module_info* from, const std::string_view& class_name);
 	}
 

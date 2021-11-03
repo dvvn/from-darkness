@@ -7,16 +7,25 @@ namespace cheat
 {
 	class basic_service;
 
-	template <typename T = basic_service>
+	struct stored_service_cast_tag
+	{
+	};
+
+	template <class T>
 	struct stored_service : std::shared_ptr<T>
 	{
-		static_assert(std::derived_from<T, basic_service>);
-
 		stored_service( ) = default;
 
 		template <class Q>
-		stored_service(Q&& basic_service)
-			: std::shared_ptr<T>((std::forward<Q>(basic_service)))
+		stored_service(Q&& service)
+			: std::shared_ptr<T>(std::forward<Q>(service))
+		{
+			static_assert(std::derived_from<T, basic_service>);
+		}
+
+		template <class Q>
+		stored_service(Q&& cast_service, stored_service_cast_tag)
+			: std::shared_ptr<T>(std::forward<Q>(cast_service))
 		{
 		}
 	};

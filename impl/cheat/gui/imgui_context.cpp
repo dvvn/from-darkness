@@ -5,6 +5,8 @@
 #include "cheat/core/csgo_interfaces.h"
 #include "cheat/core/services_loader.h"
 
+#include <cppcoro/task.hpp>
+
 #include <imgui_internal.h>
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -31,7 +33,7 @@ struct fonts_builder_proxy::impl
 		atlas->Build( );
 	}
 
-	ImFontAtlas* atlas = 0;
+	ImFontAtlas* atlas = nullptr;
 	int known_fonts    = 0;
 };
 
@@ -75,47 +77,48 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 		// ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
 	else
 	{
-		auto infile = std::ifstream(path, std::ios::in | std::ios::binary | std::ios::ate);
+		using namespace std;
+		auto infile = ifstream(path, ios::in | ios::binary | ios::ate);
 
-		//infile.seekg(0, infile.end); //done by std::ios::ate
-		const std::make_unsigned_t<std::streamoff> size0 = infile.tellg( );
-		runtime_assert(size0 > 0 && size0 < std::numeric_limits<size_t>::max());
-		const auto size = static_cast<size_t>(size0);
-		infile.seekg(0, std::ios::beg);
+		//infile.seekg(0, infile.end); //done by ios::ate
+		const make_unsigned_t<streamoff> file_size0 = infile.tellg( );
+		runtime_assert(file_size0 > 0 && file_size0 < numeric_limits<size_t>::max());
+		const auto file_size = static_cast<size_t>(file_size0);
+		infile.seekg(0, ios::beg);
 
-		const auto buffer = std::make_unique<char[]>(size);
-		infile.read(buffer.get( ), size);
+		const auto buffer = make_unique<uint8_t[]>(file_size);
+		infile.read(reinterpret_cast<char*>(buffer.get( )), file_size);
 
 		runtime_assert(!infile.bad());
 
 		if (cfg.Name[0] == '\0')
 		{
-			const auto font_size = static_cast<uint16_t>(cfg.SizePixels);
-			auto font_size_ex    = font_size == 0 ? "?" : std::to_string(font_size);
+			const auto font_size = static_cast<size_t>(cfg.SizePixels);
+			runtime_assert(cfg.SizePixels - static_cast<float>(font_size) == 0);
+			const auto font_size_ex = font_size == 0 ? "?" : to_string(font_size);
 
-			auto font_info = std::format("{}, {}px", path.filename( ).string( ), font_size);
-			runtime_assert(font_info.size() + 1 <= std::size(cfg.Name));
-			std::ranges::copy(font_info, cfg.Name);
+			auto font_info = format("{}, {}px", path.filename( ).string( ), font_size_ex);
+			runtime_assert(font_info.size() + 1 <= size(cfg.Name));
+			ranges::copy(font_info, cfg.Name);
 			cfg.Name[font_info.size( )] = '\0';
 		}
 
-		return this->add_font_from_memory_ttf_file({reinterpret_cast<uint8_t*>(buffer.get( )), size}, std::move(cfg_opt));
+		return this->add_font_from_memory_ttf_file(buffer.get( ), std::next(buffer.get( ), file_size), std::move(cfg_opt));
 	}
 }
 
-ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(const std::span<uint8_t>& buffer, std::optional<ImFontConfig>&& cfg_opt)
+ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(uint8_t* buffer_start, uint8_t* buffer_end, std::optional<ImFontConfig>&& cfg_opt)
 {
+	runtime_assert(buffer_start < buffer_end);
 	if (!cfg_opt.has_value( ))
 		cfg_opt = default_font_config( );
 
-	auto& cfg        = *cfg_opt;
-	const auto atlas = impl_->atlas;
-
+	auto& cfg = *cfg_opt;
 	runtime_assert(cfg.FontData == nullptr);
+	cfg.FontData     = buffer_start;
+	cfg.FontDataSize = std::distance(buffer_start, buffer_end);
 
-	cfg.FontData     = buffer._Unchecked_begin( );
-	cfg.FontDataSize = buffer.size( );
-
+	const auto atlas = impl_->atlas;
 	return atlas->AddFont(std::addressof(cfg));
 }
 
@@ -195,7 +198,7 @@ imgui_context_impl::imgui_context_impl( )
 	this->add_dependency(csgo_interfaces::get( ));
 }
 
-basic_service::load_result imgui_context_impl::load_impl( ) noexcept
+auto imgui_context_impl::load_impl( ) noexcept -> basic_service::load_result
 {
 	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
 

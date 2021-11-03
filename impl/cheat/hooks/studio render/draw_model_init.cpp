@@ -4,12 +4,14 @@
 #include "cheat/core/services_loader.h"
 #include "cheat/players/players_list.h"
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace hooks::studio_render;
 
 draw_model_impl::draw_model_impl( )
 {
-	this->add_dependency(players_list::get( ));
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(players_list);
 }
 
 nstd::address draw_model_impl::get_target_method_impl( ) const

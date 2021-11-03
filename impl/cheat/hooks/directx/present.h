@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cheat/core/service.h"
 #include "cheat/hooks/base.h"
 
 // ReSharper disable CppInconsistentNaming

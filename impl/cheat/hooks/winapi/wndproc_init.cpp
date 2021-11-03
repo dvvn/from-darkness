@@ -4,6 +4,8 @@
 #include "cheat/core/console.h"
 #include "cheat/gui/imgui_context.h"
 
+#include <cppcoro/task.hpp>
+
 #include <windows.h>
 
 using namespace cheat;
@@ -13,10 +15,10 @@ using gui::imgui_context;
 
 wndproc_impl::wndproc_impl( )
 {
-	this->add_dependency(imgui_context::get( ));
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(imgui_context);
 }
 
-basic_service::load_result wndproc_impl::load_impl( ) noexcept
+auto wndproc_impl::load_impl( ) noexcept -> load_result
 {
 	const auto hwnd = imgui_context::get( )->hwnd( );
 	runtime_assert(hwnd != nullptr);

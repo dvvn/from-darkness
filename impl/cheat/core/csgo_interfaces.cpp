@@ -1,5 +1,4 @@
 #include "csgo_interfaces.h"
-
 #include "services_loader.h"
 #include "console.h"
 
@@ -12,6 +11,8 @@
 #include <nstd/runtime_assert_fwd.h>
 #endif
 
+#include <cppcoro/task.hpp>
+
 using namespace cheat;
 using namespace detail;
 using namespace csgo;
@@ -21,7 +22,7 @@ typedef struct IDirect3DDevice9 *LPDIRECT3DDEVICE9, *PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-basic_service::load_result csgo_interfaces_impl::load_impl( ) noexcept
+auto csgo_interfaces_impl::load_impl( ) noexcept -> basic_service::load_result
 {
 	//unused
 #if 0
@@ -109,6 +110,8 @@ basic_service::load_result csgo_interfaces_impl::load_impl( ) noexcept
 	phys_props      = csgo_modules::vphysics.find_game_interface<"VPhysicsSurfaceProps">( );
 	input_sys       = csgo_modules::inputsystem.find_game_interface<"InputSystemVersion">( );
 	studio_renderer = csgo_modules::studiorender.find_game_interface<"VStudioRender">( );
+
+	csgo_modules::detail::reset_interfaces_storage( );
 
 	client_mode = this->client.vfunc(10).add(5).deref(2);
 

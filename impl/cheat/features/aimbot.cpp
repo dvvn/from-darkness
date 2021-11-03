@@ -13,6 +13,8 @@
 
 #include <nstd/smooth_value.h>
 
+#include <cppcoro/task.hpp>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -122,7 +124,7 @@ struct aimbot_impl::impl
 
 aimbot_impl::aimbot_impl( )
 {
-	this->add_dependency(gui::imgui_context::get(  ) );
+	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(imgui_context);
 }
 
 aimbot_impl::~aimbot_impl( )                                = default;
@@ -137,14 +139,14 @@ void aimbot_impl::load(const json& out)
 {
 }
 
-cheat::basic_service::load_result aimbot_impl::load_impl( ) noexcept
+auto aimbot_impl::load_impl( ) noexcept -> cheat::basic_service::load_result
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );
 	CHEAT_SERVICE_LOADED
 }
 
-void aimbot_impl::render( )
+bool aimbot_impl::render( )
 {
 	/*impl_->cb3.render( );
 	ImGui::Text("1");
@@ -172,6 +174,8 @@ void aimbot_impl::render( )
 	auto& sdata = impl_->slider_data;
 	gui::widgets::slider(impl_->slider_text, sdata, &impl_->slider_bg_anim, &impl_->slider_anim);
 	ImGui::SliderFloat("imgui slider", &sdata.value, sdata.min, sdata.max, "%.1f", ImGuiSliderFlags_NoRoundToFormat);
+
+	return true;
 }
 
 CHEAT_SERVICE_REGISTER(aimbot);

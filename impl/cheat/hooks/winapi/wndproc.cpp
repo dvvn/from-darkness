@@ -4,10 +4,6 @@
 #endif
 #include "cheat/gui/menu.h"
 
-#include <nstd/mem/backup.h>
-
-#include <imgui.h>
-
 #include <Windows.h>
 
 using namespace cheat;
@@ -39,7 +35,7 @@ void wndproc_impl::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto owerride_input = [&]
 	{
-		const auto &menu = menu::get( );
+		const auto& menu = menu::get( );
 
 		const auto skip_input = [&]
 		{
@@ -54,6 +50,7 @@ void wndproc_impl::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				case WM_SIZE:
 				case WM_KILLFOCUS:
 				case WM_SETFOCUS:
+				case WM_FONTCHANGE:
 				case WM_ACTIVATE:
 					return result::none;
 				default:
@@ -66,7 +63,7 @@ void wndproc_impl::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			return skip_input( );
 		}
 
-#if !defined(CHEAT_GUI_HAS_DEMO_WINDOW) || !defined(CHEAT_GUI_TEST)
+#ifndef  CHEAT_GUI_TEST
 		if (menu->visible( ))
 #endif
 		{
@@ -98,7 +95,7 @@ void wndproc_impl::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		}
 	}
 }
-
+#if 0
 void wndproc_impl::render( )
 {
 	ImGui::Checkbox("override return", &override_return_);
@@ -117,3 +114,4 @@ void wndproc_impl::render( )
 			override_return_to_ = 1;
 	}
 }
+#endif
