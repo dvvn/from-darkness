@@ -74,17 +74,17 @@ namespace cheat
 		  , NORMAL
 		};
 
-		struct
+		struct 
 		{
 			ticks_info server; //clock based
 			ticks_info client; //simtime based
 			update_state updated = update_state::IDLE;
-		} time;
+		} ticks_diff;
 
 		//--
 
-		CHEAT_PLAYER_TICKS_CONTAINER<tick_record_shared> ticks;
-		std::span<const tick_record_shared> ticks_window;
+		CHEAT_PLAYER_TICKS_CONTAINER<tick_record_shared> ticks_stored;
+		std::span<const tick_record_shared> ticks_stored_hittable;
 
 		static size_t max_ticks_count( );
 

@@ -16,9 +16,9 @@ frame_stage_notify_impl::frame_stage_notify_impl( )
 	this->add_dependency(players_list::get( ));
 }
 
-nstd::address frame_stage_notify_impl::get_target_method_impl( ) const
+void* frame_stage_notify_impl::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->client.vfunc(37);
+	return csgo_interfaces::get( )->client.vfunc(37).ptr( );
 }
 
 auto frame_stage_notify_impl::load_impl( ) noexcept -> load_result

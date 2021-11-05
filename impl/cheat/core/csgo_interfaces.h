@@ -60,6 +60,18 @@ namespace cheat::detail
 			return _Count_pointers<std::remove_pointer_t<T>>( ) + 1;
 	}
 
+	/*template <typename T>
+	constexpr auto remove_all_pointers( )
+	{
+		if constexpr (std::is_pointer_v<T>)
+			return remove_all_pointers<std::remove_pointer_t<T>>( );
+		else
+			return std::type_identity<T>( );
+	}*/
+}
+
+namespace cheat
+{
 	template <class To, size_t Ptrs>
 	class csgo_interface final
 	{
@@ -68,6 +80,13 @@ namespace cheat::detail
 		using pointer = To*;
 		using reference = To&;
 		using value_type = To;
+
+		csgo_interface( ) = default;
+
+		csgo_interface(raw_pointer ptr)
+			: result_(ptr)
+		{
+		}
 
 		bool empty( ) const
 		{
@@ -147,14 +166,14 @@ namespace cheat::detail
 	private:
 		nstd::address result_;
 	};
-}
 
-namespace cheat
-{
+	template <typename T>
+	csgo_interface(T) -> csgo_interface<nstd::remove_all_pointers_t<T>, detail::_Count_pointers<T>( )>;
+
 	class csgo_interfaces_impl final : public service<csgo_interfaces_impl>
 	{
 		template <typename T, size_t Ptrs = 1>
-		using ifc = detail::csgo_interface<T, Ptrs>;
+		using ifc = csgo_interface<T, Ptrs>;
 
 	protected:
 		load_result load_impl( ) noexcept override;

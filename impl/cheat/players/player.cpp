@@ -35,7 +35,7 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 	pl->ent = owner;
 	pl->alive = owner->IsAlive( );
 	pl->team = static_cast<m_iTeamNum_t>(owner->m_iTeamNum( ));
-	pl->ticks.reserve(player::max_ticks_count( ));
+	pl->ticks_stored.reserve(player::max_ticks_count( ));
 	owner->m_bClientSideAnimation( ) = false;
 	this->destroy_fn_ = [](const player& p)
 	{
@@ -102,7 +102,7 @@ void player_shared_impl::update_animations([[maybe_unused]] bool simple)
 void player_shared_impl::store_tick( )
 {
 	auto& data = this->share( );
-	auto& t = data->ticks.emplace_front( );
+	auto& t = data->ticks_stored.emplace_front( );
 
 	t.init(*data);
 
@@ -112,24 +112,24 @@ void player_shared_impl::store_tick( )
 void player_shared_impl::update_ticks_window(float curtime)
 {
 	auto& pl = *share( );
-	auto& ticks = pl.ticks;
-	auto& ticks_window = pl.ticks_window;
+	auto& ticks_stored = pl.ticks_stored;
+	auto& ticks_stored_hittable = pl.ticks_stored_hittable;
 
 	const auto erase_uselles = [&]
 	{
 		const auto limit = player::max_ticks_count( );
-		if(ticks.size( ) <= limit)
+		if(ticks_stored.size( ) <= limit)
 			return;
 
 		//dont erase any !valid ticks here, in theory we can increase (fake) ping and hit these
 
-		ticks.erase(std::next(ticks.begin( ), limit), ticks.end( ));
+		ticks_stored.erase(std::next(ticks_stored.begin( ), limit), ticks_stored.end( ));
 	};
 
 	const auto update_window = [&]
 	{
-		const auto begin = ticks.begin( );
-		const auto end = ticks.end( );
+		const auto begin = ticks_stored.begin( );
+		const auto end = ticks_stored.end( );
 
 		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto first_valid = [&]
@@ -145,7 +145,7 @@ void player_shared_impl::update_ticks_window(float curtime)
 
 		if(first_valid == end)
 		{
-			ticks_window = {};
+			ticks_stored_hittable = {};
 			return;
 		}
 
@@ -162,9 +162,9 @@ void player_shared_impl::update_ticks_window(float curtime)
 		}();
 
 		if(last_valid == end)
-			ticks_window = std::span(first_valid, 1);
+			ticks_stored_hittable = std::span(first_valid, 1);
 		else
-			ticks_window = std::span(first_valid, last_valid);
+			ticks_stored_hittable = std::span(first_valid, last_valid);
 	};
 
 	(void)this;
@@ -253,34 +253,34 @@ void player::update(int index, float curtime, float correct)
 	float simtime_diff;
 	if (!simtime.has_value( ))
 	{
-		time.updated = update_state::SILENT;
+		ticks_diff.updated = update_state::SILENT;
 		goto _SET_SIMTIME;
 	}
 
 	simtime_diff = simtime_new - *simtime;
 	if (simtime_diff == 0)
 	{
-		time.updated = update_state::IDLE;
+		ticks_diff.updated = update_state::IDLE;
 	}
 	else if (simtime_diff < 0)
 	{
-		time.updated = update_state::SILENT;
+		ticks_diff.updated = update_state::SILENT;
 		//auto ticks_shifted=tick.client.current-tick.server.current;
 	}
 	else
 	{
-		time.updated = update_state::NORMAL;
+		ticks_diff.updated = update_state::NORMAL;
 
 	_SET_SIMTIME:
-		time.server.set(interfaces->client_state->ClockDriftMgr.nServerTick);
-		time.client.set(utils::time_to_ticks(simtime_new));
+		ticks_diff.server.set(interfaces->client_state->ClockDriftMgr.nServerTick);
+		ticks_diff.client.set(utils::time_to_ticks(simtime_new));
 
 		simtime = simtime_new;
 	}
 
 	//-----
 
-	if (time.updated != update_state::IDLE)
+	if (ticks_diff.updated != update_state::IDLE)
 	{
 		const team_info new_team = ent->m_iTeamNum( );
 		if (new_team != team)
@@ -326,12 +326,12 @@ void player::update(int index, float curtime, float correct)
 			if (new_dormant)
 			{
 				//todo: check can we hit here
-				time.updated = update_state::IDLE;
+				ticks_diff.updated = update_state::IDLE;
 			}
 			else if (dormant)
 			{
 				//dormant out
-				time.updated = update_state::SILENT;
+				ticks_diff.updated = update_state::SILENT;
 			}
 
 			dormant = new_dormant;
@@ -347,7 +347,7 @@ void player::update(int index, float curtime, float correct)
 
 	//-----
 
-	const auto updated = time.updated == update_state::NORMAL;
+	const auto updated = ticks_diff.updated == update_state::NORMAL;
 
 	const auto setupbones_prepare = [&]( )
 	{
@@ -385,14 +385,14 @@ void player::update(int index, float curtime, float correct)
 		}
 
 		///update ticks window
-		if (!ticks.empty( ))
+		if (!ticks_stored.empty( ))
 		{
 			///erase uselles
 			const auto limit = max_ticks_count( );
 			//dont erase any !valid ticks here, in theory we can increase (fake) ping and remove possible valid tick
 			//erase X ticks uselles from back (because we push to front)
-			while (ticks.size( ) > limit)
-				ticks.pop_back( );
+			while (ticks_stored.size( ) > limit)
+				ticks_stored.pop_back( );
 
 			//if (ticks.size( ) <= limit)
 			//	return;
@@ -403,7 +403,7 @@ void player::update(int index, float curtime, float correct)
 			///update window
 			//todo: optimize this fn
 			//prevent loop throught whole 'ticks'
-			//check begin-1 end+1 from ticks_window etc
+			//check begin-1 end+1 from ticks_stored_hittable etc
 
 			const auto find_valid_tick = [&]<typename Itr>(Itr first, Itr last)-> std::optional<Itr>
 			{
@@ -416,18 +416,18 @@ void player::update(int index, float curtime, float correct)
 				return {};
 			};
 
-			const auto first_valid = find_valid_tick(ticks.begin( ), ticks.end( ));
+			const auto first_valid = find_valid_tick(ticks_stored.begin( ), ticks_stored.end( ));
 			if (!first_valid.has_value( ))
 			{
-				ticks_window = {};
+				ticks_stored_hittable = {};
 				return;
 			}
-			const auto last_valid = find_valid_tick(ticks.rbegin( ), std::make_reverse_iterator(std::next(*first_valid)));
+			const auto last_valid = find_valid_tick(ticks_stored.rbegin( ), std::make_reverse_iterator(std::next(*first_valid)));
 
 			if (!last_valid.has_value( ))
-				ticks_window = std::span(*first_valid, 1);
+				ticks_stored_hittable = std::span(*first_valid, 1);
 			else
-				ticks_window = std::span(*first_valid, std::distance(*first_valid, std::next(*last_valid).base( )) + 1);
+				ticks_stored_hittable = std::span(*first_valid, std::distance(*first_valid, std::next(*last_valid).base( )) + 1);
 		}
 	}
 }
@@ -439,16 +439,16 @@ size_t player::max_ticks_count( )
 
 void player::reset_ticks( )
 {
-	if (ticks.empty( ))
+	if (ticks_stored.empty( ))
 		return;
 
-	ticks.clear( );
-	ticks_window = {};
+	ticks_stored.clear( );
+	ticks_stored_hittable = {};
 }
 
 tick_record& player::store_tick( )
 {
-	auto& ref = ticks.emplace_front(*this).share( );
+	auto& ref = ticks_stored.emplace_front(*this).share( );
 	return *ref;
 }
 

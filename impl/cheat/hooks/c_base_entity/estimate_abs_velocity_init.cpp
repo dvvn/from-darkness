@@ -18,14 +18,14 @@ using namespace hooks::c_base_entity;
 
 estimate_abs_velocity_impl::estimate_abs_velocity_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(netvars);
+	this->add_dependency(netvars::get( ));
 }
 
-nstd::address estimate_abs_velocity_impl::get_target_method_impl( ) const
+void* estimate_abs_velocity_impl::get_target_method( ) const
 {
-	const nstd::address vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
-	const auto index           = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).add(2).deref(1).divide(4).value( );
-	return (vtable.ref<nstd::address*>( )[index]);
+	const csgo_interface vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
+	const auto index            = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).add(2).deref(1).divide(4).value( );
+	return vtable.vfunc(index).ptr( );
 }
 
 basic_service::load_result estimate_abs_velocity_impl::load_impl( ) noexcept

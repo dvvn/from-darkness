@@ -24,8 +24,8 @@
 
 using namespace cheat::features;
 using namespace cheat::gui;
-using namespace cheat::gui::tools;
-using namespace cheat::gui::widgets;
+using namespace tools;
+using namespace widgets;
 
 struct widget_bool_data : cached_text, nstd::smooth_value_linear<ImVec4>
 {
@@ -40,7 +40,7 @@ struct aimbot_impl::impl
 	nstd::smooth_value_linear<ImVec4> test_cb_check_anim;
 	widget_bool_data test_selectable;
 
-	tools::cached_text slider_text;
+	cached_text slider_text;
 	slider_input_data<float> slider_data{1, 0.1f, 2.3f, 0.1f};
 	nstd::smooth_value_linear<ImVec4> slider_bg_anim;
 	nstd::smooth_value_linear<float> slider_anim;
@@ -49,10 +49,10 @@ struct aimbot_impl::impl
 	{
 		using namespace std::chrono_literals;
 
-		auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
+		auto font_cfg        = fonts_builder_proxy::default_font_config( );
 		font_cfg->SizePixels = 15;
 
-		auto test_font = gui::imgui_context::get( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.TTF)", std::move(font_cfg));
+		auto test_font = imgui_context::get( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.TTF)", std::move(font_cfg));
 
 		using target_internal = nstd::smooth_value_linear<ImVec4>::target_internal;
 		using target_external = nstd::smooth_value_linear<ImVec4>::target_external;
@@ -124,7 +124,7 @@ struct aimbot_impl::impl
 
 aimbot_impl::aimbot_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(imgui_context);
+	this->add_dependency(imgui_context::get());
 }
 
 aimbot_impl::~aimbot_impl( )                                = default;
@@ -139,7 +139,7 @@ void aimbot_impl::load(const json& out)
 {
 }
 
-auto aimbot_impl::load_impl( ) noexcept -> cheat::basic_service::load_result
+auto aimbot_impl::load_impl( ) noexcept -> load_result
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );
@@ -162,17 +162,17 @@ bool aimbot_impl::render( )
 	impl_->sel.render( );*/
 
 	auto& sb_data = impl_->test_selectable;
-	gui::widgets::selectable2(sb_data, sb_data.value, std::addressof(sb_data));
+	selectable2(sb_data, sb_data.value, std::addressof(sb_data));
 	ImGui::Selectable("Test selectable", sb_data.value);
 
 	auto& cb_data       = impl_->test_cb;
 	auto& cb_check_anim = impl_->test_cb_check_anim;
 	ImGui::Checkbox("Test checkbox", &sb_data.value);
 	ImGui::SameLine( );
-	gui::widgets::checkbox2(cb_data, sb_data.value, true, std::addressof(cb_data), std::addressof(cb_check_anim));
+	checkbox2(cb_data, sb_data.value, true, std::addressof(cb_data), std::addressof(cb_check_anim));
 
 	auto& sdata = impl_->slider_data;
-	gui::widgets::slider(impl_->slider_text, sdata, &impl_->slider_bg_anim, &impl_->slider_anim);
+	slider(impl_->slider_text, sdata, &impl_->slider_bg_anim, &impl_->slider_anim);
 	ImGui::SliderFloat("imgui slider", &sdata.value, sdata.min, sdata.max, "%.1f", ImGuiSliderFlags_NoRoundToFormat);
 
 	return true;

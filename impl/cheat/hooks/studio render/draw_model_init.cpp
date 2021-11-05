@@ -11,12 +11,12 @@ using namespace hooks::studio_render;
 
 draw_model_impl::draw_model_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(players_list);
+	this->add_dependency(players_list::get( ));
 }
 
-nstd::address draw_model_impl::get_target_method_impl( ) const
+void* draw_model_impl::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->studio_renderer.vfunc(29);
+	return csgo_interfaces::get( )->studio_renderer.vfunc(29).ptr( );
 }
 
 basic_service::load_result draw_model_impl::load_impl( ) noexcept

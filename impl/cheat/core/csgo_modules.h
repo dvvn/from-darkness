@@ -3,16 +3,15 @@
 #include <nstd/chars cache.h>
 #include <nstd/type name.h>
 #include <nstd/os/module info.h>
-#include <nstd/address_pipe.h>
 
 namespace cheat::csgo_modules
 {
 	namespace detail
 	{
 		nstd::os::module_info* get_module_impl(const std::string_view& target_name);
-		nstd::address find_signature_impl(nstd::os::module_info* md, const std::string_view& sig);
-		nstd::address find_csgo_interface(nstd::os::module_info* from, const std::string_view& target_name);
-		void reset_interfaces_storage();
+		void* find_signature_impl(nstd::os::module_info* md, const std::string_view& sig);
+		void* find_csgo_interface(nstd::os::module_info* from, const std::string_view& target_name);
+		void reset_interfaces_storage( );
 		void* find_vtable_pointer(nstd::os::module_info* from, const std::string_view& class_name);
 	}
 
@@ -34,7 +33,8 @@ namespace cheat::csgo_modules
 				throw;
 			found_before = true;
 #endif
-			return detail::find_signature_impl(get( ), Sig.view( ));
+			const auto result = detail::find_signature_impl(get( ), Sig.view( ));
+			return (result);
 		}
 
 		template <typename Table/*, nstd::chars_cache ...IgnoreNamespaces*/>
@@ -48,8 +48,8 @@ namespace cheat::csgo_modules
 		template <nstd::chars_cache Ifc>
 		nstd::address find_game_interface( ) const
 		{
-			static auto addr = detail::find_csgo_interface(this->get( ), Ifc.view( ));
-			return addr;
+			static nstd::address result = detail::find_csgo_interface(this->get( ), Ifc.view( ));
+			return (result);
 		}
 	};
 

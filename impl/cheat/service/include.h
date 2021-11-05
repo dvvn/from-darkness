@@ -35,9 +35,6 @@ namespace cheat
 #define CHEAT_SERVICE_SHARE(_NAME_) \
 	struct _NAME_ : service_shared<_NAME_##_impl>, nstd::one_instance<_NAME_> { }
 
-#define CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(_NAME_) \
-	this->add_dependency(_NAME_::get())
-
 #define CHEAT_SERVICE_RESULT(msg, ret)\
 	CHEAT_CONSOLE_LOG(std::format("\"{}\" {}", ((basic_service*)this)->name(), msg));\
 	co_return ret;

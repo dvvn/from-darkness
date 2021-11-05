@@ -17,7 +17,7 @@ namespace cheat::hooks::client
 
 	protected:
 		load_result load_impl( ) noexcept override;
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 		void callback(csgo::ClientFrameStage_t stage) override;
 	};
 

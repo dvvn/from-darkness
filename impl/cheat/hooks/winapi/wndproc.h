@@ -42,7 +42,7 @@ namespace cheat::hooks::winapi
 
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 
 	private:
 		def_wndproc_t default_wndproc_ = nullptr;

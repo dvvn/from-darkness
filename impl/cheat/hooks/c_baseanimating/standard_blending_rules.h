@@ -19,7 +19,7 @@ namespace cheat::hooks::c_base_animating
 		standard_blending_rules_impl( );
 
 	protected:
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 		void callback(csgo::CStudioHdr* hdr, csgo::Vector pos[], csgo::QuaternionAligned q[], float current_time, int bone_mask) override;
 		load_result load_impl( ) noexcept override;
 	};

@@ -43,7 +43,7 @@ static module_info* _Get_module(const std::basic_string_view<E, Tr>& target_name
 	if constexpr (std::same_as<E, wchar_t>)
 		return do_find(target_name);
 	else
-		return do_find(nstd::unistring<wchar_t>(target_name));
+		return do_find((target_name));
 }
 
 module_info* detail::get_module_impl(const std::string_view& target_name)
@@ -51,7 +51,7 @@ module_info* detail::get_module_impl(const std::string_view& target_name)
 	return _Get_module(target_name);
 }
 
-nstd::address detail::find_signature_impl(module_info* md, const std::string_view& sig)
+void* detail::find_signature_impl(module_info* md, const std::string_view& sig)
 {
 	const auto block = md->mem_block( );
 	const auto bytes = nstd::make_signature(sig);
@@ -163,7 +163,7 @@ static const ifcs_entry_type& _Interface_entry(module_info* target_module)
 	return entry;
 }
 
-nstd::address detail::find_csgo_interface(module_info* from, const std::string_view& target_name)
+void* detail::find_csgo_interface(module_info* from, const std::string_view& target_name)
 {
 	const auto& entry = _Interface_entry(from);
 	//const auto& fn = entry.at(interface_name);

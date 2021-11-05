@@ -13,12 +13,13 @@ using namespace hooks::c_base_animating;
 
 should_skip_animation_frame_impl::should_skip_animation_frame_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(netvars);
+	this->add_dependency(netvars::get());
 }
 
-nstd::address should_skip_animation_frame_impl::get_target_method_impl( ) const
+void* should_skip_animation_frame_impl::get_target_method( ) const
 {
-	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
+	const auto addr = csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
+	return addr.ptr( );
 }
 
 basic_service::load_result should_skip_animation_frame_impl::load_impl( ) noexcept

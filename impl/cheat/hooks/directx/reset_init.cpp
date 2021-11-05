@@ -12,12 +12,12 @@ using namespace hooks::directx;
 
 reset_impl::reset_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(gui::imgui_context);
+	this->add_dependency(gui::imgui_context::get( ));
 }
 
-nstd::address reset_impl::get_target_method_impl( ) const
+void* reset_impl::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->d3d_device.vfunc(16);
+	return csgo_interfaces::get( )->d3d_device.vfunc(16).ptr( );
 }
 
 auto reset_impl::load_impl( ) noexcept -> load_result

@@ -11,12 +11,12 @@ using namespace hooks::vgui_surface;
 
 lock_cursor_impl::lock_cursor_impl( )
 {
-	this->add_dependency(gui::menu::get());
+	this->add_dependency(gui::menu::get( ));
 }
 
-nstd::address lock_cursor_impl::get_target_method_impl( ) const
+void* lock_cursor_impl::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->vgui_surface.vfunc(67);
+	return csgo_interfaces::get( )->vgui_surface.vfunc(67).ptr( );
 }
 
 auto lock_cursor_impl::load_impl( ) noexcept -> load_result

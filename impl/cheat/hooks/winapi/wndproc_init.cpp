@@ -10,12 +10,11 @@
 
 using namespace cheat;
 using namespace hooks::winapi;
-
 using gui::imgui_context;
 
 wndproc_impl::wndproc_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(imgui_context);
+	this->add_dependency(imgui_context::get( ));
 }
 
 auto wndproc_impl::load_impl( ) noexcept -> load_result
@@ -29,10 +28,10 @@ auto wndproc_impl::load_impl( ) noexcept -> load_result
 	CHEAT_LOAD_HOOK_PROXY;
 }
 
-nstd::address wndproc_impl::get_target_method_impl( ) const
+void* wndproc_impl::get_target_method( ) const
 {
 	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, imgui_context::get( )->hwnd( ), GWLP_WNDPROC);
-	return nstd::address(val);
+	return reinterpret_cast<void*>(val);
 }
 
 CHEAT_SERVICE_REGISTER(wndproc);

@@ -15,7 +15,7 @@ namespace cheat::hooks::c_base_animating
 		should_skip_animation_frame_impl( );
 
 	protected:
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 		void callback(/*float current_time*/) override;
 		load_result load_impl( ) noexcept override;
 

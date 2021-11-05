@@ -13,14 +13,14 @@ using namespace hooks::c_base_animating;
 
 standard_blending_rules_impl::standard_blending_rules_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(netvars);
+	this->add_dependency(netvars::get( ));
 }
 
-nstd::address standard_blending_rules_impl::get_target_method_impl( ) const
+void* standard_blending_rules_impl::get_target_method( ) const
 {
-	const nstd::address vtable = csgo_modules::client.find_vtable<C_BaseAnimating>( );
-	const auto index           = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).add(11).deref(1).divide(4).value( );
-	return (vtable.ref<nstd::address*>( )[index]);
+	const csgo_interface vtable = csgo_modules::client.find_vtable<C_BaseAnimating>( );
+	const auto index            = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).add(11).deref(1).divide(4).value( );
+	return vtable.vfunc(index).ptr( );
 }
 
 auto standard_blending_rules_impl::load_impl( ) noexcept -> load_result

@@ -25,7 +25,7 @@ basic_service::load_result players_list_impl::load_impl( ) noexcept
 
 players_list_impl::players_list_impl( )
 {
-	this->add_dependency(netvars::get());
+	this->add_dependency(netvars::get( ));
 }
 
 players_list_impl::~players_list_impl( ) = default;
@@ -47,7 +47,7 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 
 void players_list_impl::update( )
 {
-	const auto &interfaces = csgo_interfaces::get( );
+	const auto& interfaces = csgo_interfaces::get( );
 	// ReSharper disable once CppUseStructuredBinding
 	const auto& globals = *interfaces->global_vars.get( );
 

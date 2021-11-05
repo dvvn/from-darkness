@@ -1,7 +1,9 @@
 #include "CInput.hpp"
 #include "CUserCmd.hpp"
 
-#include <dhooks/hook_utils.h>
+#include <dhooks/helpers.h>
+
+#include <nstd/address.h>
 
 using namespace cheat::csgo;
 

@@ -20,12 +20,12 @@ using namespace csgo;
 netvars_impl::netvars_impl( )
 {
 	data_ = std::make_unique<data_type>( );
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(csgo_interfaces);
+	this->add_dependency(csgo_interfaces::get( ));
 }
 
 netvars_impl::~netvars_impl( ) = default;
 
-auto netvars_impl::load_impl( ) noexcept -> basic_service::load_result
+auto netvars_impl::load_impl( ) noexcept -> load_result
 {
 	detail::netvars::netvars_storage storage;
 
@@ -52,9 +52,9 @@ int netvars_impl::at(const std::string_view& table, const std::string_view& item
 	const auto& storage = data_->storage;
 
 	const auto& target_class = storage.find(table);
-	runtime_assert(target_class != storage.end());
+	runtime_assert(target_class != storage.end( ));
 	const auto& netvar_info = target_class->find(item);
-	runtime_assert(netvar_info != target_class->end());
+	runtime_assert(netvar_info != target_class->end( ));
 
 	using namespace std::string_view_literals;
 	const auto basic_offset = netvar_info->find("offset"sv)->get<int>( );

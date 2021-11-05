@@ -76,6 +76,9 @@ HMODULE services_loader::my_handle( ) const
 
 void services_loader::load(HMODULE handle)
 {
+	//probably not best place for this
+	dhooks::active_context::get( ) = std::make_unique<dhooks::context>( );
+
 	my_handle__  = handle;
 	load_thread_ = std::jthread([this]
 	{

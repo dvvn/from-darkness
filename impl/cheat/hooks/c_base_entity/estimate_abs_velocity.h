@@ -16,7 +16,7 @@ namespace cheat::hooks::c_base_entity
 		estimate_abs_velocity_impl( );
 
 	protected:
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 		void callback(csgo::Vector& vel) override;
 		load_result load_impl( ) noexcept override;
 	};

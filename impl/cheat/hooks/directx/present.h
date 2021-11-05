@@ -22,7 +22,7 @@ namespace cheat::hooks::directx
 
 	protected:
 		load_result load_impl( ) noexcept override;
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 		void callback(const RECT* source_rect,
 					  const RECT* dest_rect,
 					  HWND dest_window_override,

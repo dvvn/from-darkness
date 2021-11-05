@@ -20,7 +20,7 @@ void create_move_impl::callback(float input_sample_time, CUserCmd* cmd)
 	if (cmd->command_number == 0)
 		return;
 
-	const auto &interfaces = csgo_interfaces::get( );
+	const auto& interfaces = csgo_interfaces::get( );
 	return_value_.store_value(false);
 
 	if (original_return == true)
@@ -32,6 +32,7 @@ void create_move_impl::callback(float input_sample_time, CUserCmd* cmd)
 	if (interfaces->client_state == nullptr || interfaces->engine->IsPlayingDemo( ))
 		return;
 
-	auto& send_packet = nstd::address(*this->get_address_of_return_address( )).remove(4).deref(1)
-																			  .remove(0x1C).ref<bool>( );
+	bool& send_packet = nstd::address(*this->get_address_of_return_address( ))
+					   .remove(4).deref(1)
+					   .remove(0x1C).ref( );
 }

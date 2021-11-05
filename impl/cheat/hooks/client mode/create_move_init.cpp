@@ -14,12 +14,12 @@ using namespace hooks::client_mode;
 create_move_impl::create_move_impl( )
 {
 	this->get_address_of_return_address( ).emplace( );
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(players_list);
+	this->add_dependency(players_list::get( ));
 }
 
-nstd::address create_move_impl::get_target_method_impl( ) const
+void* create_move_impl::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->client_mode.vfunc(24);
+	return csgo_interfaces::get( )->client_mode.vfunc(24).ptr( );
 }
 
 auto create_move_impl::load_impl( ) noexcept -> load_result

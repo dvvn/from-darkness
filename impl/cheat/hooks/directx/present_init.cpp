@@ -11,12 +11,12 @@ using namespace hooks::directx;
 
 present_impl::present_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(gui::menu);
+	this->add_dependency(gui::menu::get());
 }
 
-nstd::address present_impl::get_target_method_impl( ) const
+void* present_impl::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->d3d_device.vfunc(17);
+	return csgo_interfaces::get( )->d3d_device.vfunc(17).ptr( );
 }
 
 auto present_impl::load_impl( ) noexcept -> load_result

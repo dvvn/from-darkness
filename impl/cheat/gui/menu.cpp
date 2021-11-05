@@ -272,7 +272,7 @@ public:
 };
 #endif
 
-cheat::basic_service::load_result menu_impl::load_impl( ) noexcept
+auto menu_impl::load_impl( ) noexcept -> load_result
 {
 #if 0
 	renderer_.add_page([]

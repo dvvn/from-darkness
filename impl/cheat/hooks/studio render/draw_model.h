@@ -24,7 +24,7 @@ namespace cheat::hooks::studio_render
 
 	protected:
 		load_result load_impl( ) noexcept override;
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 		void callback(csgo::DrawModelResults_t* results,
 					  const csgo::DrawModelInfo_t& info,
 					  csgo::matrix3x4_t* bone_to_world,

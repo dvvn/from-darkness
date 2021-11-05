@@ -120,7 +120,7 @@ console_impl::console_impl( )
 {
 	runtime_assert_add_handler(this);
 	cache_ = std::make_unique<cache_type>( );
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(csgo_awaiter);
+	this->add_dependency(csgo_awaiter::get( ));
 }
 
 console_impl::~console_impl( )
@@ -260,7 +260,7 @@ static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 	assert(real_buff != nullptr);
 	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
 	//_Myfile
-	return nstd::address(real_buff).add(offset).ref<FILE*>( );
+	return nstd::address(real_buff).add(offset).ref( );
 }
 
 template <bool Assert = true>

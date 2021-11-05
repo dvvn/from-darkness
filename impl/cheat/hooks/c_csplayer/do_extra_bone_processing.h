@@ -25,7 +25,7 @@ namespace cheat::hooks::c_csplayer
 
 	protected:
 		load_result load_impl( ) noexcept override;
-		nstd::address get_target_method_impl( ) const override;
+		void* get_target_method( ) const override;
 		void callback(csgo::CStudioHdr* studio_hdr, csgo::Vector pos[], csgo::Quaternion q[], csgo::matrix3x4a_t bone_to_world[], csgo::CBoneBitList& bone_computed,
 					  csgo::CIKContext* ik_context) override;
 	};

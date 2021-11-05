@@ -20,9 +20,9 @@ static bool _Save_netvar_allowed(const char* name)
 
 static bool _Save_netvar_allowed(const std::string_view& name)
 {
-	return !std::ranges::any_of(name, [](char c)
+	return std::ranges::all_of(name, [](char c)
 	{
-		return c == '.';
+		return c != '.';
 	});
 }
 
@@ -146,7 +146,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 		// ReSharper disable once CppUseStructuredBinding
 		const auto& prop = *itr;
 		runtime_assert(prop.m_pVarName != nullptr);
-		const auto prop_name = std::string_view(prop.m_pVarName);
+		const std::string_view prop_name = (prop.m_pVarName);
 
 		if (!_Save_netvar_allowed(prop_name))
 			continue;

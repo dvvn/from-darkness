@@ -8,6 +8,7 @@
 #include <nstd/runtime_assert_fwd.h>
 #endif
 
+
 #include <cppcoro/task.hpp>
 
 using namespace cheat;
@@ -80,8 +81,8 @@ auto csgo_interfaces_impl::load_impl( ) noexcept -> load_result
 #endif
 #endif
 
-#ifdef CHEAT_GUI_TEST
 
+#ifdef CHEAT_GUI_TEST
 	d3d_device = (g_pd3dDevice);
 #else
 
@@ -130,7 +131,7 @@ auto csgo_interfaces_impl::load_impl( ) noexcept -> load_result
 
 csgo_interfaces_impl::csgo_interfaces_impl( )
 {
-	CHEAT_SERVICE_ADD_SHARED_DEPENDENCY(console);
+	this->add_dependency(console::get( ));
 }
 
 CHEAT_SERVICE_REGISTER(csgo_interfaces);
