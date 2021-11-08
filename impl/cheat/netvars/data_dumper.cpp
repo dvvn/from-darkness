@@ -16,7 +16,6 @@
 #define UNORDERED_SET std::unordered_set
 #endif
 
-
 #include <set>
 #include <fstream>
 #include <ranges>
@@ -42,15 +41,13 @@ log_info netvars::log_netvars(const netvars_storage& netvars_data)
 
 	[[maybe_unused]] const auto dirs_created = create_directories(dumps_dir);
 
-	constexpr auto get_file_name = []( )-> std::filesystem::path
+	const auto netvars_dump_file = [&]
 	{
-		std::string version = csgo_interfaces::get( )->engine->GetProductVersionString( );
-		std::ranges::replace(version, '.', '_');
-		version.append(".json");
-		return version;
-	};
-
-	const auto netvars_dump_file = dumps_dir / get_file_name( );
+		const std::string_view version        = csgo_interfaces::get( )->engine->GetProductVersionString( );
+		const auto chars                      = version | std::views::transform([](char c) { return c == '.' ? '_' : c; });
+		const std::filesystem::path file_name = std::wstring{chars.begin( ), chars.end( )};
+		return dumps_dir / file_name;
+	}( );
 #if !CHEAT_NETVARS_UPDATING
 	const auto file_exists = !dirs_created && exists(netvars_dump_file);
 	if (!file_exists)

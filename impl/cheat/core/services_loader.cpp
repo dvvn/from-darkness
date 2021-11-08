@@ -5,8 +5,7 @@
 #endif
 #include "cheat/service/data.h"
 
-#include <nstd/os/module info.h>
-#include <nstd/os/threads.h>
+#include <nstd/module/info.h>
 
 #include <dhooks/hook_utils.h>
 
@@ -39,11 +38,8 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	const auto loader = services_loader::get_ptr( );
 
 	auto all_hooks = loader->get_hooks(true);
-
-	auto frozen = nstd::os::frozen_threads_storage(true);
 	for (const auto& h: all_hooks)
-		h->disable( );
-	frozen.clear( );
+		h->disable_after_call( );
 
 	loader->unload( ); //destroy all except hooks
 	Sleep(sleep / 2);

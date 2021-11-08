@@ -18,8 +18,8 @@ standard_blending_rules_impl::standard_blending_rules_impl( )
 
 void* standard_blending_rules_impl::get_target_method( ) const
 {
-	const csgo_interface vtable = csgo_modules::client.find_vtable<C_BaseAnimating>( );
-	const auto index            = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).add(11).deref(1).divide(4).value( );
+	const csgo_interface vtable = csgo_modules::client->find_vtable<C_BaseAnimating>( );
+	const auto index            = csgo_modules::client->find_signature("8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).divide(4).value( );
 	return vtable.vfunc(index).ptr( );
 }
 

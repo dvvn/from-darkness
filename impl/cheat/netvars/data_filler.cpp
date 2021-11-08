@@ -35,7 +35,7 @@ bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		const std::string_view view = (type);
+		const std::string_view view = type;
 		if (view != nstd::type_name<void*>)
 		{
 			auto& type_obj = entry->find("type"sv)->get_ref<std::string&>( );
@@ -114,7 +114,7 @@ static bool _Prop_is_base_class(const RecvProp& prop)
 
 static bool _Table_is_array(const RecvTable& table)
 {
-	return !table.props.empty( ) && std::isdigit(table.props.back( ).m_pVarName[0]);
+	return /*!table.props.empty( ) &&*/ std::isdigit(table.props.back( ).m_pVarName[0]);
 };
 
 static bool _Table_is_data_table(const RecvTable& table)
@@ -146,7 +146,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 		// ReSharper disable once CppUseStructuredBinding
 		const auto& prop = *itr;
 		runtime_assert(prop.m_pVarName != nullptr);
-		const std::string_view prop_name = (prop.m_pVarName);
+		const std::string_view prop_name = prop.m_pVarName;
 
 		if (!_Save_netvar_allowed(prop_name))
 			continue;
@@ -247,9 +247,11 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 		}
 		else
 		{
-			const auto child_table  = prop.m_pDataTable;
+			const auto child_table = prop.m_pDataTable;
+			if (!child_table)
+				continue;
 			const auto& child_props = child_table->props;
-			if (!child_table || child_props.empty( ))
+			if (child_props.empty( ))
 				continue;
 
 			if (_Table_is_data_table(*child_table))
@@ -258,12 +260,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 			}
 			else if (_Table_is_array(*child_table))
 			{
-				auto array_begin = child_props.
-#if _ITERATOR_DEBUG_LEVEL > 0
-					_Unchecked_begin( )
-#else
-						begin( );
-#endif
+				auto array_begin = child_props.begin( );
 				if (_Prop_is_length_proxy(*array_begin))
 				{
 					++array_begin;
@@ -281,7 +278,6 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 #endif
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				const auto array_size = std::distance(array_begin, child_props.end( ));
 				string_or_view_holder netvar_type;
 #endif
 				if (array_begin->m_RecvType != DPT_DataTable)
@@ -292,7 +288,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 				}
 				else
 				{
-					const auto child_table_name = std::string_view(child_table->m_pNetTableName);
+					const std::string_view child_table_name = child_table->m_pNetTableName;
 					string_or_view_holder child_table_unique_name;
 					if (prop_name != child_table_name)
 						child_table_unique_name = child_table_name;
@@ -310,7 +306,8 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 
 				string_or_view_holder netvar_type_array;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				netvar_type_array = type_std_array(netvar_type, array_size);
+				const auto array_size = std::distance(array_begin, child_props.end( ));
+				netvar_type_array     = type_std_array(netvar_type, array_size);
 #endif
 				add_netvar_to_storage(tree, prop_name, real_prop_offset, std::move(netvar_type_array));
 			}

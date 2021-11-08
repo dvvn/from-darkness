@@ -31,7 +31,7 @@ auto netvars_impl::load_impl( ) noexcept -> load_result
 
 	iterate_client_class(storage, csgo_interfaces::get( )->client->GetAllClasses( ));
 
-	const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
+	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
 
 	iterate_datamap(storage, baseent->GetDataDescMap( ));
 	iterate_datamap(storage, baseent->GetPredictionDescMap( ));

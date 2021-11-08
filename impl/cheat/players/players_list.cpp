@@ -18,7 +18,7 @@ using namespace cheat;
 using namespace detail;
 using namespace csgo;
 
-basic_service::load_result players_list_impl::load_impl( ) noexcept
+auto players_list_impl::load_impl( ) noexcept -> load_result
 {
 	CHEAT_SERVICE_LOADED;
 }
@@ -32,15 +32,15 @@ players_list_impl::~players_list_impl( ) = default;
 
 static void* _Player_by_index_server(int client_index)
 {
-	static auto fn = csgo_modules::server.find_signature<"85 C9 7E 32 A1">( ).cast<void* (__fastcall*)(int)>( );
+	static auto fn = csgo_modules::server->find_signature("85 C9 7E 32 A1").cast<void* (__fastcall*)(int)>( );
 	return fn(client_index);
 }
 
 static void _Draw_server_hitboxes(int client_index, float duration, bool use_mono_color)
 {
-	static auto fn = csgo_modules::server.find_signature<"E8 ? ? ? ? F6 83 ? ? ? ? ? 0F 84 ? ? ? ? 33 FF">( )
-										 .jmp(1)
-										 .cast<void(__vectorcall*)(void*, uintptr_t, float, float, float, bool)>( );
+	static auto fn = csgo_modules::server->find_signature("E8 ? ? ? ? F6 83 ? ? ? ? ? 0F 84 ? ? ? ? 33 FF")
+										  .jmp(1)
+										  .cast<void(__vectorcall*)(void*, uintptr_t, float, float, float, bool)>( );
 	const auto player = _Player_by_index_server(client_index);
 	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
 }

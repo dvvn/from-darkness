@@ -19,7 +19,7 @@ void estimate_abs_velocity_impl::callback(Vector& vel)
 
 	if (ent->m_iEFlags( ) & m_iEFlags_t::EFL_DIRTY_ABSVELOCITY)
 	{
-		static auto calc_absolute_velocity = csgo_modules::client.find_signature<"55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7">( ).cast<void (C_BaseEntity::*)( )>( );
+		static auto calc_absolute_velocity = csgo_modules::client->find_signature("55 8B EC 83 E4 F8 83 EC 1C 53 56 57 8B F9 F7").cast<void (C_BaseEntity::*)( )>( );
 		dhooks::_Call_function(calc_absolute_velocity, ent);
 	}
 

@@ -185,6 +185,7 @@ menu_impl::menu_impl( )
 {
 	impl_ = std::make_unique<impl>( );
 	this->add_dependency(imgui_context::get( ));
+	this->add_dependency(features::aimbot::get( ));
 }
 
 menu_impl::~menu_impl( ) = default;

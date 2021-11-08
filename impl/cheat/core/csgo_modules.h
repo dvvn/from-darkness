@@ -1,61 +1,70 @@
 #pragma once
 
-#include <nstd/chars cache.h>
+#include <nstd/address.h>
 #include <nstd/type name.h>
-#include <nstd/os/module info.h>
+
+#include <memory>
+
+namespace nstd::module
+{
+	class info;
+}
 
 namespace cheat::csgo_modules
 {
 	namespace detail
 	{
-		nstd::os::module_info* get_module_impl(const std::string_view& target_name);
-		void* find_signature_impl(nstd::os::module_info* md, const std::string_view& sig);
-		void* find_csgo_interface(nstd::os::module_info* from, const std::string_view& target_name);
+		struct game_module_storage
+		{
+			game_module_storage(const std::string_view& name);
+			~game_module_storage( );
+
+			game_module_storage(const game_module_storage& other) = delete;
+			game_module_storage(game_module_storage&& other) noexcept;
+			game_module_storage& operator=(const game_module_storage& other) = delete;
+			game_module_storage& operator=(game_module_storage&& other) noexcept;
+
+			nstd::address find_signature(const std::string_view& sig);
+			void* find_vtable(const std::string_view& class_name);
+			nstd::address find_game_interface(const std::string_view& ifc_name);
+
+			template <typename Table>
+			Table* find_vtable( )
+			{
+				constexpr auto table_name = nstd::type_name<Table, "cheat::csgo"/*IgnoreNamespaces...*/>;
+				void* ptr                 = find_vtable(table_name);
+				return static_cast<Table*>(ptr);
+			}
+
+			void clear_interfaces_cache( );
+
+		private:
+			struct impl;
+			std::unique_ptr<impl> impl_;
+		};
+
 		void reset_interfaces_storage( );
-		void* find_vtable_pointer(nstd::os::module_info* from, const std::string_view& class_name);
 	}
 
-	template <nstd::chars_cache Name>
 	struct game_module_base
 	{
-		nstd::os::module_info* get( ) const
+		constexpr game_module_base(std::string_view name, size_t index)
+			: name_(name), index_(index)
 		{
-			static auto info = detail::get_module_impl(Name.view( ));
-			return info;
 		}
 
-		template <nstd::chars_cache Sig>
-		nstd::address find_signature( ) const
-		{
-#ifdef _DEBUG
-			static auto found_before = false;
-			if (found_before)
-				throw;
-			found_before = true;
-#endif
-			const auto result = detail::find_signature_impl(get( ), Sig.view( ));
-			return (result);
-		}
+		detail::game_module_storage* operator->( ) const;
 
-		template <typename Table/*, nstd::chars_cache ...IgnoreNamespaces*/>
-		Table* find_vtable( ) const
-		{
-			constexpr auto table_name = nstd::type_name<Table, "cheat::csgo"/*IgnoreNamespaces...*/>;
-			static void* ptr          = detail::find_vtable_pointer(this->get( ), table_name);
-			return static_cast<Table*>(ptr);
-		}
-
-		template <nstd::chars_cache Ifc>
-		nstd::address find_game_interface( ) const
-		{
-			static nstd::address result = detail::find_csgo_interface(this->get( ), Ifc.view( ));
-			return (result);
-		}
+	private:
+		std::string_view name_;
+		size_t index_;
 	};
 
 #define CHEAT_GAME_MODULE(_NAME_)\
-	_INLINE_VAR constexpr auto _NAME_ = game_module_base<#_NAME_>( )
+	_INLINE_VAR constexpr auto _NAME_ = game_module_base(#_NAME_,__LINE__ - _first_line )
 
+	// ReSharper disable once CppInconsistentNaming
+	static constexpr auto _first_line = __LINE__ + 1;
 	CHEAT_GAME_MODULE(server);
 	CHEAT_GAME_MODULE(client);
 	CHEAT_GAME_MODULE(engine);

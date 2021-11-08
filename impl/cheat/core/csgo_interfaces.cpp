@@ -8,7 +8,6 @@
 #include <nstd/runtime_assert_fwd.h>
 #endif
 
-
 #include <cppcoro/task.hpp>
 
 using namespace cheat;
@@ -81,49 +80,48 @@ auto csgo_interfaces_impl::load_impl( ) noexcept -> load_result
 #endif
 #endif
 
-
 #ifdef CHEAT_GUI_TEST
 	d3d_device = (g_pd3dDevice);
 #else
 
-	client        = csgo_modules::client.find_game_interface<"VClient">( );
-	entity_list   = csgo_modules::client.find_game_interface<"VClientEntityList">( );
-	prediction    = csgo_modules::client.find_game_interface<"VClientPrediction">( );
-	game_movement = csgo_modules::client.find_game_interface<"GameMovement">( );
+	client        = csgo_modules::client->find_game_interface("VClient");
+	entity_list   = csgo_modules::client->find_game_interface("VClientEntityList");
+	prediction    = csgo_modules::client->find_game_interface("VClientPrediction");
+	game_movement = csgo_modules::client->find_game_interface("GameMovement");
 
-	engine        = csgo_modules::engine.find_game_interface<"VEngineClient">( );
-	mdl_info      = csgo_modules::engine.find_game_interface<"VModelInfoClient">( );
-	mdl_render    = csgo_modules::engine.find_game_interface<"VEngineModel">( );
-	render_view   = csgo_modules::engine.find_game_interface<"VEngineRenderView">( );
-	engine_trace  = csgo_modules::engine.find_game_interface<"EngineTraceClient">( );
-	debug_overlay = csgo_modules::engine.find_game_interface<"VDebugOverlay">( );
-	game_events   = csgo_modules::engine.find_game_interface<"GAMEEVENTSMANAGER002">( );
-	engine_sound  = csgo_modules::engine.find_game_interface<"IEngineSoundClient">( );
+	engine        = csgo_modules::engine->find_game_interface("VEngineClient");
+	mdl_info      = csgo_modules::engine->find_game_interface("VModelInfoClient");
+	mdl_render    = csgo_modules::engine->find_game_interface("VEngineModel");
+	render_view   = csgo_modules::engine->find_game_interface("VEngineRenderView");
+	engine_trace  = csgo_modules::engine->find_game_interface("EngineTraceClient");
+	debug_overlay = csgo_modules::engine->find_game_interface("VDebugOverlay");
+	game_events   = csgo_modules::engine->find_game_interface("GAMEEVENTSMANAGER002");
+	engine_sound  = csgo_modules::engine->find_game_interface("IEngineSoundClient");
 
-	mdl_cache       = csgo_modules::datacache.find_game_interface<"MDLCache">( );
-	material_system = csgo_modules::materialsystem.find_game_interface<"VMaterialSystem">( );
-	cvars           = csgo_modules::vstdlib.find_game_interface<"VEngineCvar">( );
-	vgui_panel      = csgo_modules::vgui2.find_game_interface<"VGUI_Panel">( );
-	vgui_surface    = csgo_modules::vguimatsurface.find_game_interface<"VGUI_Surface">( );
-	phys_props      = csgo_modules::vphysics.find_game_interface<"VPhysicsSurfaceProps">( );
-	input_sys       = csgo_modules::inputsystem.find_game_interface<"InputSystemVersion">( );
-	studio_renderer = csgo_modules::studiorender.find_game_interface<"VStudioRender">( );
+	mdl_cache       = csgo_modules::datacache->find_game_interface("MDLCache");
+	material_system = csgo_modules::materialsystem->find_game_interface("VMaterialSystem");
+	cvars           = csgo_modules::vstdlib->find_game_interface("VEngineCvar");
+	vgui_panel      = csgo_modules::vgui2->find_game_interface("VGUI_Panel");
+	vgui_surface    = csgo_modules::vguimatsurface->find_game_interface("VGUI_Surface");
+	phys_props      = csgo_modules::vphysics->find_game_interface("VPhysicsSurfaceProps");
+	input_sys       = csgo_modules::inputsystem->find_game_interface("InputSystemVersion");
+	studio_renderer = csgo_modules::studiorender->find_game_interface("VStudioRender");
 
 	csgo_modules::detail::reset_interfaces_storage( );
 
 	client_mode = this->client.vfunc(10).add(5).deref(2);
 
-	global_vars  = csgo_modules::client.find_signature<"A1 ? ? ? ? 5E 8B 40 10">( ).add(1).deref(2);
-	input        = csgo_modules::client.find_signature<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">( ).add(1).deref(1);
-	move_helper  = csgo_modules::client.find_signature<"8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01">( ).add(2).deref(2);
-	glow_mgr     = csgo_modules::client.find_signature<"0F 11 05 ? ? ? ? 83 C8 01">( ).add(3).deref(1);
-	view_render  = csgo_modules::client.find_signature<"A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10">( ).add(1).deref(1);
-	weapon_sys   = csgo_modules::client.find_signature<"8B 35 ? ? ? ? FF 10 0F B7 C0">( ).add(2).deref(1);
-	local_player = csgo_modules::client.find_signature<"8B 0D ? ? ? ? 83 FF FF 74 07">( ).add(2).deref(1);
+	global_vars  = csgo_modules::client->find_signature("A1 ? ? ? ? 5E 8B 40 10").add(1).deref(2);
+	input        = csgo_modules::client->find_signature("B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").add(1).deref(1);
+	move_helper  = csgo_modules::client->find_signature("8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01").add(2).deref(2);
+	glow_mgr     = csgo_modules::client->find_signature("0F 11 05 ? ? ? ? 83 C8 01").add(3).deref(1);
+	view_render  = csgo_modules::client->find_signature("A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").add(1).deref(1);
+	weapon_sys   = csgo_modules::client->find_signature("8B 35 ? ? ? ? FF 10 0F B7 C0").add(2).deref(1);
+	local_player = csgo_modules::client->find_signature("8B 0D ? ? ? ? 83 FF FF 74 07").add(2).deref(1);
 
-	client_state = csgo_modules::engine.find_signature<"A1 ? ? ? ? 8B 80 ? ? ? ? C3">( ).add(1).deref(2);
+	client_state = csgo_modules::engine->find_signature("A1 ? ? ? ? 8B 80 ? ? ? ? C3").add(1).deref(2);
 
-	d3d_device = csgo_modules::shaderapidx9.find_signature<"A1 ? ? ? ? 50 8B 08 FF 51 0C">( ).add(1).deref(2);
+	d3d_device = csgo_modules::shaderapidx9->find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
 #endif
 
 	CHEAT_SERVICE_LOADED;

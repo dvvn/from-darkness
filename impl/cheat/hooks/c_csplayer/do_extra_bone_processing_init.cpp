@@ -23,8 +23,8 @@ do_extra_bone_processing_impl::do_extra_bone_processing_impl( )
 
 void* do_extra_bone_processing_impl::get_target_method( ) const
 {
-	const csgo_interface vtable = csgo_modules::client.find_vtable<C_CSPlayer>( );
-	const auto index            = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC">( ).add(11).deref(1).divide(4).value( );
+	const csgo_interface vtable = csgo_modules::client->find_vtable<C_CSPlayer>( );
+	const auto index            = csgo_modules::client->find_signature("8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC").add(11).deref(1).divide(4).value( );
 	return vtable.vfunc(index).ptr( );
 }
 

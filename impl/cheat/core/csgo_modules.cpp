@@ -4,26 +4,27 @@
 #include "cheat/csgo/IAppSystem.hpp"
 
 #include <nstd/signature.h>
-#include <nstd/os/module info.h>
 #include <nstd/unistring.h>
-
-#include NSTD_OS_MODULE_INFO_DATA_INCLUDE
+#include <nstd/module/info.h>
 
 #include <ranges>
 #include <format>
 #include <optional>
 #include <sstream>
+#include <algorithm>
+#include <functional>
+#include <mutex>
 
-using nstd::os::module_info;
+using nstd::module::info;
 using cheat::csgo::InstantiateInterfaceFn;
 using namespace cheat::csgo_modules;
 
 template <typename E, typename Tr>
-static module_info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
+static info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
 {
 	const auto do_find = []<typename T>(T&& str)
 	{
-		return nstd::os::all_modules::get_ptr( )->find([&](const module_info& info)-> bool
+		return nstd::module::all_modules::get_ptr( )->find([&](const info& info)-> bool
 		{
 			return std::ranges::equal(info.name( ), str);
 		});
@@ -43,27 +44,7 @@ static module_info* _Get_module(const std::basic_string_view<E, Tr>& target_name
 	if constexpr (std::same_as<E, wchar_t>)
 		return do_find(target_name);
 	else
-		return do_find((target_name));
-}
-
-module_info* detail::get_module_impl(const std::string_view& target_name)
-{
-	return _Get_module(target_name);
-}
-
-void* detail::find_signature_impl(module_info* md, const std::string_view& sig)
-{
-	const auto block = md->mem_block( );
-	const auto bytes = nstd::make_signature(sig);
-	const auto ret   = block.find_block(bytes);
-
-	if (ret.empty( ))
-	{
-		CHEAT_CONSOLE_LOG(std::format(L"{} -> signature {} not found", md->name( ), (std::wstring(sig.begin( ),sig.end( )))));
-		return nullptr;
-	}
-
-	return ret._Unchecked_begin( );
+		return do_find(target_name);
 }
 
 // ReSharper disable once CppInconsistentNaming
@@ -75,27 +56,37 @@ public:
 	CInterfaceRegister* next;
 };
 
-using ifcs_entry_type = NSTD_OS_MODULE_INFO_DATA_CACHE<std::string_view, InstantiateInterfaceFn>;
-using ifcs_storage_type = NSTD_OS_MODULE_INFO_DATA_CACHE<module_info*, ifcs_entry_type>;
+#if __has_include(<robin_hood.h>)
+#include <robin_hood.h>
+#define UNOREDERD_MAP robin_hood::unordered_map
+#define UNOREDERD_SET robin_hood::unordered_set
+#define UNOREDERD_HASH robin_hood::hash
 
-// ReSharper disable once CppInconsistentNaming
-using _Storage = nstd::one_instance<ifcs_storage_type>;
-
-static const ifcs_entry_type& _Interface_entry(module_info* target_module)
+namespace robin_hood::detail
 {
-	auto& storage = _Storage::get( );
+	template <typename T>
+	struct has_is_transparent<hash<T>> : std::true_type
+	{
+	};
 
-	auto found = storage.find(target_module);
-	if (found != storage.end( ))
-		return found->second;
+	template <typename T>
+	struct has_is_transparent<std::equal_to<T>> : std::true_type
+	{
+	};
+}
 
-	//---
+#else
+#include <unordered_map>
+#include <unordered_set>
+#define UNOREDERD_MAP std::unordered_map
+#define UNOREDERD_SET std::unordered_set
+#define UNOREDERD_HASH std::hash
+#endif
+using ifcs_entry_type = UNOREDERD_MAP<std::string_view, InstantiateInterfaceFn>;
 
-	auto& entry = storage[target_module];
-
-	//---
-
-	runtime_assert(entry.empty( ), "Entry already filled!");
+static ifcs_entry_type _Interface_entry(info* target_module)
+{
+	ifcs_entry_type entry;
 
 	auto& exports = target_module->exports( );
 	using namespace std::string_view_literals;
@@ -163,56 +154,174 @@ static const ifcs_entry_type& _Interface_entry(module_info* target_module)
 	return entry;
 }
 
-void* detail::find_csgo_interface(module_info* from, const std::string_view& target_name)
+using detail::game_module_storage;
+
+struct game_module_storage::impl
 {
-	const auto& entry = _Interface_entry(from);
-	//const auto& fn = entry.at(interface_name);
-
-	const auto found = entry.find(target_name);
-	runtime_assert(found != entry.end( ));
-
+	info* info_ptr;
+#ifdef _DEBUG
+	UNOREDERD_SET<std::string> sigs_tested;
+#endif
 #ifdef CHEAT_HAVE_CONSOLE
-	const auto debug_message = [&]
-	{
-		const auto original_interface_name     = found->first;
-		const auto original_interface_name_end = original_interface_name._Unchecked_end( );
+	UNOREDERD_SET<std::string> vtables_tested;
+#endif
+	ifcs_entry_type interfaces;
 
-		auto msg = std::wostringstream( );
-		msg << "Found interface: " << std::wstring(target_name.begin( ), target_name.end( )) << ' ';
-		if (*original_interface_name_end != '\0')
-			msg << '(' << std::wstring(original_interface_name.begin( ), original_interface_name.end( )) << original_interface_name_end << ") ";
-		msg << "in module " << from->name( );
-		return msg;
-	};
-	CHEAT_CONSOLE_LOG(debug_message( ));
+	impl(const std::string_view& name)
+	{
+		info_ptr   = _Get_module(name);
+		interfaces = _Interface_entry(info_ptr);
+	}
+
+	void* find_signature(const std::string_view& sig)
+	{
+#ifdef _DEBUG
+		auto [itr,added] = sigs_tested.emplace(sig);
+		if (!added)
+			throw;
 #endif
 
-	return std::invoke(found->second);
-}
+		//no cache inside
 
-void detail::reset_interfaces_storage( )
-{
-	nstd::reload_one_instance<_Storage>( );
-}
+		const auto block = info_ptr->mem_block( );
+		const auto bytes = nstd::make_signature(sig);
+		const auto ret   = block.find_block(bytes);
 
-void* detail::find_vtable_pointer(module_info* from, const std::string_view& class_name)
-{
-	auto& mgr = from->vtables( );
+		if (ret.empty( ))
+		{
+			CHEAT_CONSOLE_LOG(std::format(L"{} -> signature \"{}\" not found", info_ptr->name( ), std::wstring(sig.begin( ),sig.end( ))));
+			return nullptr;
+		}
 
-	const auto [addr] = mgr.at(class_name);
-	[[maybe_unused]]
+		return ret._Unchecked_begin( );
+	}
+
+	void* find_vtable(const std::string_view& class_name)
+	{
+		auto& mgr     = info_ptr->vtables( );
+		const auto vt = mgr.at(class_name);
+#ifdef CHEAT_HAVE_CONSOLE
+		// ReSharper disable once CppTooWideScope
+		const auto created = vtables_tested.emplace(class_name).second;
+		if (created)
+		{
 			const auto found_msg = [&]
 			{
-				const auto& from_name         = from->name( );
-				const auto second_module_name = nstd::os::all_modules::get_ptr( )->rfind([&](const module_info& info)
+				const auto& from_name         = info_ptr->name( );
+				const auto second_module_name = nstd::module::all_modules::get_ptr( )->rfind([&](const info& info)
 				{
 					return info.name( ) == from_name;
 				});
-				const auto module_name = second_module_name == from ? from_name : from->full_path( );
+				const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
 				return std::wostringstream( )
 					   << "Found \"" << std::wstring(class_name.begin( ), class_name.end( ))
 					   << "\" vtable in module \"" << module_name << '\"';
 			};
-	CHEAT_CONSOLE_LOG(found_msg( ));
-	return addr.ptr<void>( );
+			CHEAT_CONSOLE_LOG(found_msg( ));
+		}
+#endif
+		return vt.addr.ptr<void>( );
+	}
+
+	void* find_game_interface(const std::string_view& ifc_name)
+	{
+		const auto found = interfaces.find(ifc_name);
+		runtime_assert(found != interfaces.end( ));
+
+#ifdef CHEAT_HAVE_CONSOLE
+		const auto debug_message = [&]
+		{
+			const auto original_interface_name     = found->first;
+			const auto original_interface_name_end = original_interface_name._Unchecked_end( );
+
+			auto msg = std::wostringstream( );
+			msg << "Found interface: " << std::wstring(ifc_name.begin( ), ifc_name.end( )) << ' ';
+			if (*original_interface_name_end != '\0')
+				msg << '(' << std::wstring(original_interface_name.begin( ), original_interface_name.end( )) << original_interface_name_end << ") ";
+			msg << "in module " << info_ptr->name( );
+			return msg;
+		};
+		CHEAT_CONSOLE_LOG(debug_message( ));
+#endif
+
+		return std::invoke(found->second);
+	}
+};
+
+game_module_storage::game_module_storage(const std::string_view& name)
+{
+	impl_ = std::make_unique<impl>(name);
+}
+
+game_module_storage::~game_module_storage( )                                        = default;
+game_module_storage::game_module_storage(game_module_storage&&) noexcept            = default;
+game_module_storage& game_module_storage::operator=(game_module_storage&&) noexcept = default;
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+nstd::address game_module_storage::find_signature(const std::string_view& sig)
+{
+	return impl_->find_signature(sig);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+
+void* game_module_storage::find_vtable(const std::string_view& class_name)
+{
+	return impl_->find_vtable(class_name);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+nstd::address game_module_storage::find_game_interface(const std::string_view& ifc_name)
+{
+	return impl_->find_game_interface(ifc_name);
+}
+
+void game_module_storage::clear_interfaces_cache( )
+{
+	auto& ifc = impl_->interfaces;
+	std::_Destroy_in_place(ifc);
+	std::_Construct_in_place(ifc);
+}
+
+struct modules_database : std::recursive_mutex, std::vector<std::unique_ptr<game_module_storage>>
+{
+	modules_database( ) = default;
+};
+
+static modules_database _Modules_database;
+
+static game_module_storage* _Get_storage_for(const std::string_view& name, size_t index)
+{
+	if (_Modules_database.size( ) < index + 1)
+	{
+		const auto lock = std::unique_lock(_Modules_database);
+		while (_Modules_database.size( ) != index + 1)
+			_Modules_database.push_back(nullptr);
+		return _Get_storage_for(name, index);
+	}
+
+	if (!_Modules_database[index])
+	{
+		const auto my_thread = std::this_thread::get_id( );
+		const auto lock      = std::unique_lock(_Modules_database);
+		if (my_thread == std::this_thread::get_id( ))
+			_Modules_database[index] = std::make_unique<game_module_storage>(name);
+	}
+
+	return _Modules_database[index].get( );
+}
+
+void detail::reset_interfaces_storage( )
+{
+	const auto lock = std::unique_lock(_Modules_database);
+	for (const auto& m: _Modules_database)
+	{
+		if (m)
+			m->clear_interfaces_cache( );
+	}
+}
+
+game_module_storage* game_module_base::operator->( ) const
+{
+	return _Get_storage_for(name_, index_);
 }

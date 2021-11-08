@@ -49,6 +49,8 @@ fonts_builder_proxy::fonts_builder_proxy(ImFontAtlas* atlas)
 	impl_->known_fonts = atlas->ConfigData.size( );
 }
 
+#include <nstd/module/info.h>
+
 fonts_builder_proxy::~fonts_builder_proxy( )                                              = default;
 fonts_builder_proxy::fonts_builder_proxy(fonts_builder_proxy&& other) noexcept            = default;
 fonts_builder_proxy& fonts_builder_proxy::operator=(fonts_builder_proxy&& other) noexcept = default;
@@ -60,6 +62,8 @@ ImFont* fonts_builder_proxy::add_default_font(std::optional<ImFontConfig>&& cfg_
 
 	return impl_->atlas->AddFontDefault(std::addressof(*cfg_opt));
 }
+
+#include <nstd/file/to_memory.h>
 
 ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path& path, std::optional<ImFontConfig>&& cfg_opt)
 {
@@ -78,18 +82,7 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 	else
 	{
 		using namespace std;
-		auto infile = ifstream(path, ios::in | ios::binary | ios::ate);
-
-		//infile.seekg(0, infile.end); //done by ios::ate
-		const make_unsigned_t<streamoff> file_size0 = infile.tellg( );
-		runtime_assert(file_size0 > 0 && file_size0 < numeric_limits<size_t>::max());
-		const auto file_size = static_cast<size_t>(file_size0);
-		infile.seekg(0, ios::beg);
-
-		const auto buffer = make_unique<uint8_t[]>(file_size);
-		infile.read(reinterpret_cast<char*>(buffer.get( )), file_size);
-
-		runtime_assert(!infile.bad());
+		const auto buffer = nstd::file::to_memory(path.native( ));
 
 		if (cfg.Name[0] == '\0')
 		{
@@ -103,7 +96,7 @@ ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path&
 			cfg.Name[font_info.size( )] = '\0';
 		}
 
-		return this->add_font_from_memory_ttf_file(buffer.get( ), std::next(buffer.get( ), file_size), std::move(cfg_opt));
+		return this->add_font_from_memory_ttf_file(buffer.begin( ), buffer.end( ), std::move(cfg_opt));
 	}
 }
 

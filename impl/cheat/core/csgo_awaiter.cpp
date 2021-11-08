@@ -3,7 +3,7 @@
 #include "services_loader.h"
 
 #ifndef CHEAT_GUI_TEST
-#include <nstd/os/module info.h>
+#include <nstd/module/info.h>
 #endif
 
 #include <cppcoro/task.hpp>
@@ -18,8 +18,8 @@ using namespace cheat;
 
 auto csgo_awaiter_impl::load_impl( ) noexcept -> load_result
 {
-	using nstd::os::module_info;
-	using nstd::os::all_modules;
+	using nstd::module::info;
+	using nstd::module::all_modules;
 	using std::filesystem::path;
 
 	const auto modules = all_modules::get_ptr( );
@@ -32,9 +32,9 @@ auto csgo_awaiter_impl::load_impl( ) noexcept -> load_result
 
 	const auto is_game_loaded = [&]
 	{
-		return modules->rfind([&](const module_info& info)
+		return modules->rfind([&](const info& i)
 		{
-			return info.full_path( ) == work_dir.native( );
+			return i.full_path( ) == work_dir.native( );
 		}) != nullptr;
 	};
 
