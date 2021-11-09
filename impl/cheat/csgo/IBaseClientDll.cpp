@@ -1,6 +1,6 @@
 #include "IBaseClientDll.hpp"
 
-#include "dhooks/hook_utils.h"
+#include <dhooks/helpers.h>
 
 using namespace cheat::csgo;
 

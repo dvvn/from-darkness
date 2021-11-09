@@ -9,9 +9,10 @@ using namespace hooks::vgui_surface;
 
 void lock_cursor_impl::callback( )
 {
-	if (!object_instance->IsCursorVisible( ) && gui::menu::get( )->visible( ))
-	{
-		return_value_.set_original_called(true);
-		object_instance->UnlockCursor( );
-	}
+    auto inst = this->get_object_instance( );
+    if (!inst->IsCursorVisible( ) && gui::menu::get( )->visible( ))
+    {
+        this->store_return_value( );
+        inst->UnlockCursor( );
+    }
 }

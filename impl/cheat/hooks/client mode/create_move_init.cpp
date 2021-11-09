@@ -13,7 +13,6 @@ using namespace hooks::client_mode;
 
 create_move_impl::create_move_impl( )
 {
-	this->get_address_of_return_address( ).emplace( );
 	this->add_dependency(players_list::get( ));
 }
 

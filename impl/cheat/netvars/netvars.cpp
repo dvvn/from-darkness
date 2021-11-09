@@ -19,47 +19,47 @@ using namespace csgo;
 
 netvars_impl::netvars_impl( )
 {
-	data_ = std::make_unique<data_type>( );
-	this->add_dependency(csgo_interfaces::get( ));
+    data_ = std::make_unique<data_type>( );
+    this->add_dependency(csgo_interfaces::get( ));
 }
 
 netvars_impl::~netvars_impl( ) = default;
 
 auto netvars_impl::load_impl( ) noexcept -> load_result
 {
-	detail::netvars::netvars_storage storage;
+    detail::netvars::netvars_storage storage;
 
-	iterate_client_class(storage, csgo_interfaces::get( )->client->GetAllClasses( ));
+    iterate_client_class(storage, csgo_interfaces::get( )->client->GetAllClasses( ));
 
-	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
+    const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
 
-	iterate_datamap(storage, baseent->GetDataDescMap( ));
-	iterate_datamap(storage, baseent->GetPredictionDescMap( ));
-	store_handmade_netvars(storage);
+    iterate_datamap(storage, baseent->GetDataDescMap( ));
+    iterate_datamap(storage, baseent->GetPredictionDescMap( ));
+    store_handmade_netvars(storage);
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	const auto info = log_netvars(storage);
-	generate_classes(info, storage, data_->lazy);
+    const auto info = log_netvars(storage);
+    generate_classes(info, storage, data_->lazy);
 #endif
 
-	std::swap(data_->storage, storage);
+    std::swap(data_->storage, storage);
 
-	CHEAT_SERVICE_LOADED
+    CHEAT_SERVICE_LOADED
 }
 
 int netvars_impl::at(const std::string_view& table, const std::string_view& item) const
 {
-	const auto& storage = data_->storage;
+    const auto& storage = data_->storage;
 
-	const auto& target_class = storage.find(table);
-	runtime_assert(target_class != storage.end( ));
-	const auto& netvar_info = target_class->find(item);
-	runtime_assert(netvar_info != target_class->end( ));
+    const auto& target_class = storage.find(table);
+    runtime_assert(target_class != storage.end( ));
+    const auto& netvar_info = target_class->find(item);
+    runtime_assert(netvar_info != target_class->end( ));
 
-	using namespace std::string_view_literals;
-	const auto basic_offset = netvar_info->find("offset"sv)->get<int>( );
+    using namespace std::string_view_literals;
+    const auto basic_offset = netvar_info->find("offset"sv)->get<int>( );
 
-	return basic_offset;
+    return basic_offset;
 }
 
 CHEAT_SERVICE_REGISTER(netvars);

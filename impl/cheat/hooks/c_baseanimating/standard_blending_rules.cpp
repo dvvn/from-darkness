@@ -11,7 +11,7 @@ using namespace hooks::c_base_animating;
 
 void standard_blending_rules_impl::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
-	const auto pl           = this->object_instance;
+	const auto pl           = this->get_object_instance();
 	const auto client_class = pl->GetClientClass( );
 	//if (client_class->ClassID != ClassId::CCSPlayer)
 	//return;
@@ -23,7 +23,7 @@ void standard_blending_rules_impl::callback(CStudioHdr* hdr, Vector pos[], Quate
 
 	using namespace nstd::enum_operators;
 	flags |= m_fEffects_t::EF_NOINTERP;
-	this->call_original_ex(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
+	this->call_original_and_store_result(hdr, pos, q, current_time, bone_mask | BONE_USED_BY_HITBOX);
 	flags &= ~m_fEffects_t::EF_NOINTERP;
 
 	/*if (override_return__)

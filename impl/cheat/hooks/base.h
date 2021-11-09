@@ -2,7 +2,7 @@
 //#include "cheat/core/console.h"
 #include "cheat/core/csgo_interfaces.h"
 
-#include <dhooks/hook_utils.h>
+#include <dhooks/wrapper.h>
 
 #define CHEAT_LOAD_HOOK_PROXY \
 if(!this->hook( )) \

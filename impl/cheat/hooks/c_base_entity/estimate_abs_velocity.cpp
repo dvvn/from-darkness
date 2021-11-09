@@ -15,7 +15,7 @@ void estimate_abs_velocity_impl::callback(Vector& vel)
 {
 	using namespace nstd::enum_operators;
 
-	const auto ent = this->object_instance;
+	const auto ent = this->get_object_instance();
 
 	if (ent->m_iEFlags( ) & m_iEFlags_t::EFL_DIRTY_ABSVELOCITY)
 	{
@@ -25,5 +25,5 @@ void estimate_abs_velocity_impl::callback(Vector& vel)
 
 	vel = ent->m_vecAbsVelocity( );
 
-	this->return_value_.set_original_called(true);
+	this->store_return_value(true);
 }

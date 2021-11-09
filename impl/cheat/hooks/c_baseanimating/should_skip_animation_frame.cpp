@@ -11,7 +11,7 @@ void should_skip_animation_frame_impl::callback(/*float current_time*/)
 {
 	if (override_return__)
 	{
-		this->return_value_.store_value(override_return_to__);
+		this->store_return_value(override_return_to__);
 		return;
 	}
 
@@ -30,7 +30,7 @@ void should_skip_animation_frame_impl::callback(/*float current_time*/)
 
 	C_BaseAnimating* ent;
 
-	if (const auto inst = this->object_instance; is_player(inst))
+	if (const auto inst = this->get_object_instance(); is_player(inst))
 	{
 		ent = inst;
 	}
@@ -72,7 +72,7 @@ void should_skip_animation_frame_impl::callback(/*float current_time*/)
 
 	const auto animate_this_frame = ent->m_bClientSideAnimation( );
 	const auto skip_this_frame    = animate_this_frame == false;
-	this->return_value_.store_value(skip_this_frame);
+	this->store_return_value(skip_this_frame);
 }
 
 #if 0

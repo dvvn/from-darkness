@@ -13,8 +13,6 @@
 
 #include <excpt.h>
 
-#include <dhooks/hook.h>
-
 using namespace cheat;
 using namespace detail;
 using namespace csgo;

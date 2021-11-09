@@ -5,8 +5,8 @@ using namespace csgo;
 using namespace hooks::c_csplayer;
 
 void do_extra_bone_processing_impl::callback(CStudioHdr* studio_hdr, Vector pos[],
-										Quaternion q[], matrix3x4a_t bone_to_world[],
-										CBoneBitList& bone_computed, CIKContext* ik_context)
+                                             Quaternion q[], matrix3x4a_t bone_to_world[],
+                                             CBoneBitList& bone_computed, CIKContext* ik_context)
 {
-	this->return_value_.set_original_called( );
+    this->store_return_value( );
 }

@@ -12,7 +12,7 @@ using namespace hooks::directx;
 
 void present_impl::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
-	const auto d3d_device = this->object_instance;
+	const auto d3d_device = this->get_object_instance();
 
 #ifdef IMGUI_HAS_DOCK
 	runtime_assert(ImGui::GetIO( ).ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
