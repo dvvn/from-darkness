@@ -2,8 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include <filesystem>
-#include <sstream>
+#define NSTD_UTG
 
 namespace cheat::detail::netvars
 {
@@ -48,60 +47,17 @@ namespace cheat::detail::netvars
 		}
 	};
 
-	class lazy_file_writer final : public std::ostringstream
+	struct netvars_root_storage : nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, ptrdiff_t, size_t, float>
 	{
-	public:
-		~lazy_file_writer( ) override;
-
-		lazy_file_writer(std::filesystem::path&& file);
-		lazy_file_writer(lazy_file_writer&& other) noexcept;
-		lazy_file_writer& operator=(lazy_file_writer&& other) noexcept;
-
-	private:
-		std::filesystem::path file_;
-	};
-
-	class lazy_fs_creator final : public std::filesystem::path
-	{
-	public:
-		~lazy_fs_creator( );
-
-		template <typename T>
-			requires(std::constructible_from<path, T>)
-		lazy_fs_creator(T&& source) noexcept(std::is_rvalue_reference_v<decltype(source)>)
-			: path(std::forward<T>(source))
+		template <std::derived_from<iterator> T>
+		T erase(T pos)
+			requires(std::constructible_from<T, iterator>)
 		{
+			return static_cast<value_type*>(this)->erase(static_cast<iterator&&>(pos));
 		}
 	};
 
-	class lazy_fs_remover final : public std::filesystem::path
+	struct netvars_storage : netvars_root_storage
 	{
-	public:
-		~lazy_fs_remover( );
-
-		template <typename T>
-			requires(std::constructible_from<path, T>)
-		lazy_fs_remover(T&& source, bool all) noexcept(std::is_rvalue_reference_v<decltype(source)>)
-			: path(std::forward<T>(source)), all_(all)
-		{
-		}
-
-	private:
-		bool all_;
-	};
-
-	struct lazy_files_storage
-	{
-		std::vector<lazy_file_writer> write;
-		std::vector<lazy_fs_creator> create;
-		std::vector<lazy_fs_remover> remove;
-	};
-
-	using netvars_storage = nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, ptrdiff_t, size_t, float>;
-
-	struct netvars_data
-	{
-		lazy_files_storage lazy;
-		netvars_storage storage;
 	};
 }

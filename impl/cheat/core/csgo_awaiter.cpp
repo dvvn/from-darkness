@@ -2,27 +2,22 @@
 #include "console.h"
 #include "services_loader.h"
 
-#ifndef CHEAT_GUI_TEST
-#include <nstd/module/info.h>
-#endif
+#include <nstd/module/all_infos.h>
 
 #include <cppcoro/task.hpp>
 
-#ifndef CHEAT_GUI_TEST
 #include <filesystem>
 #include <functional>
-#include <thread>
-#endif
 
 using namespace cheat;
 
 auto csgo_awaiter_impl::load_impl( ) noexcept -> load_result
 {
 	using nstd::module::info;
-	using nstd::module::all_modules;
+	using nstd::module::all_infos;
 	using std::filesystem::path;
 
-	const auto modules = all_modules::get_ptr( );
+	const auto modules = all_infos::get_ptr( );
 	modules->update(false);
 
 	auto work_dir         = path(modules->owner( ).work_dir( ));

@@ -2,7 +2,7 @@
 #include "csgo_awaiter.h"
 #include "services_loader.h"
 
-#include <nstd/module/info.h>
+#include <nstd/module/all_infos.h>
 
 #include <cppcoro/task.hpp>
 
@@ -174,7 +174,7 @@ auto console_impl::load_impl( ) noexcept -> load_result
 		_Freopen(out_, "CONOUT$", "w", stdout);
 		_Freopen(err_, "CONOUT$", "w", stderr);
 
-		const auto full_path = nstd::module::all_modules::get_ptr( )->current( ).full_path( );
+		const auto full_path = nstd::module::all_infos::get_ptr( )->current( ).full_path( );
 		if (!SetConsoleTitleW(full_path.data( )))
 			CHEAT_SERVICE_NOT_LOADED("Unable set console_impl title");
 	}

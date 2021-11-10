@@ -1,8 +1,22 @@
 ﻿#include "data_filler.h"
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+#include "storage.h"
+#else
+#include "storage_ndebug.h"
+#endif
+#include "storage_iter.h"
+#include "type_resolve.h"
 
+#include "cheat/csgo/ClientClass.hpp"
+
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
 #include <nstd/type name.h>
+#endif
+
 #include <nstd/runtime_assert_fwd.h>
-#include <nstd/overload.h>
+
+#include <optional>
+#include <format>
 
 using namespace cheat::detail;
 using namespace cheat::csgo;
@@ -26,12 +40,13 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 	});
 }
 
-bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_view& name, int offset, string_or_view_holder&& type)
+bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_view& name, int offset, [[maybe_unused]] string_or_view_holder&& type)
 {
 	using namespace std::string_literals;
 	using namespace std::string_view_literals;
 
-	auto&& [entry, added] = storage.emplace(name);
+	auto&& [entry0, added] = storage.emplace(name);
+	auto&& entry           = static_cast<netvars_storage_iter&&>(entry0);
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -45,26 +60,27 @@ bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_
 				type_obj.assign(std::move(str));
 			}
 		}
-
 #endif
 	}
 	else
 	{
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
 		*entry =
 		{
-				{"offset"s, offset},
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-				{"type"s, std::move(type)}
-#endif
+				{"offset"s, offset}
+			  , {"type"s, std::move(type)}
 		};
+#else
+		*entry = offset;
+#endif
 	}
 
 	return added;
 }
 
-auto netvars::add_child_class_to_storage(netvars_storage& storage, const std::string_view& name) -> std::pair<netvars_storage::iterator, bool>
+auto netvars::add_child_class_to_storage(netvars_root_storage& storage, const std::string_view& name) -> std::pair<netvars_root_storage_iter, bool>
 {
-	std::pair<netvars_storage::iterator, bool> ret;
+	std::pair<netvars_root_storage_iter, bool> ret;
 	if (name[0] == 'C' && name[1] != '_')
 	{
 		runtime_assert(std::isalnum(name[1]));
@@ -123,7 +139,7 @@ static bool _Table_is_data_table(const RecvTable& table)
 	return _Strcmp_legacy<false>(table.m_pNetTableName, "DT_");
 };
 
-void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree, const RecvTable* recv_table, int offset)
+void netvars::store_recv_props(netvars_root_storage& root_tree, netvars_storage& tree, const RecvTable* recv_table, int offset)
 {
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto props = [&]
@@ -157,14 +173,14 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 		{
 			if (prop_name.ends_with("[0]"))
 			{
-				const auto real_prop_name = std::string_view(prop_name.begin( ), std::prev(prop_name.end( ), 3));
+				const std::string_view real_prop_name = {prop_name.begin( ), std::prev(prop_name.end( ), 3)};
 				runtime_assert(!real_prop_name.ends_with(']'));
-				auto array_size = std::optional<size_t>(1);
+				std::optional array_size = 1u;
 
 				// ReSharper disable once CppUseStructuredBinding
 				for (const auto& p: std::span(std::next(itr), props.end( )))
 				{
-					if (const auto name = std::string_view(p.m_pVarName); name.starts_with(real_prop_name))
+					if (const std::string_view name = (p.m_pVarName); name.starts_with(real_prop_name))
 					{
 						if (p.m_RecvType == prop.m_RecvType && name.size( ) != real_prop_name.size( ))
 						{
@@ -213,13 +229,13 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 		}
 #if 0
 		optional<size_t> array_size;
-		if(std::isdigit(prop_name[0]))
+		if (std::isdigit(prop_name[0]))
 		{
 			runtime_assert(prop_name[0] == '0');
 
 			const auto part = props.subspan(i + 1);
 			const auto array_end_itr = ranges::find_if_not(part, [](const RecvProp& rp) { return std::isdigit(rp.m_pVarName[0]); });
-			const auto array_end_num = std::distance(part.begin( ), array_end_itr);
+			const auto array_end_num = std::distance(part.begin(), array_end_itr);
 
 			array_size = array_end_num - i + 1;
 			i += array_end_num;
@@ -228,7 +244,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 			prop_name = props_array;
 		}
 
-		if(prop.m_ArrayLengthProxy != nullptr)
+		if (prop.m_ArrayLengthProxy != nullptr)
 		{
 			continue;
 		}
@@ -266,7 +282,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 					++array_begin;
 					runtime_assert(array_begin->m_pVarName[0] == '0');
 				}
-				runtime_assert(array_begin != child_props.end( ));
+				runtime_assert(array_begin != child_props.end());
 
 #ifdef _DEBUG
 				// ReSharper disable once CppUseStructuredBinding
@@ -301,7 +317,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 					netvar_type = std::move(child_table_unique_name);
 #endif
-					store_recv_props(root_tree, *new_tree, array_begin->m_pDataTable, /*real_prop_offset*/0);
+					store_recv_props(root_tree, static_cast<netvars_storage&>(*new_tree), array_begin->m_pDataTable, /*real_prop_offset*/0);
 				}
 
 				string_or_view_holder netvar_type_array;
@@ -319,7 +335,7 @@ void netvars::store_recv_props(netvars_storage& root_tree, netvars_storage& tree
 	}
 }
 
-void netvars::iterate_client_class(netvars_storage& root_tree, ClientClass* root_class)
+void netvars::iterate_client_class(netvars_root_storage& root_tree, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
@@ -330,9 +346,9 @@ void netvars::iterate_client_class(netvars_storage& root_tree, ClientClass* root
 		auto [new_tree, added] = add_child_class_to_storage(root_tree, client_class->pNetworkName);
 		runtime_assert(added == true);
 
-		store_recv_props(root_tree, *new_tree, recv_table, 0);
+		store_recv_props(root_tree, static_cast<netvars_storage&>(*new_tree), recv_table, 0);
 
-		if (new_tree->empty( ))
+		if ((*new_tree).empty( ))
 			root_tree.erase(new_tree);
 	}
 }
@@ -340,7 +356,7 @@ void netvars::iterate_client_class(netvars_storage& root_tree, ClientClass* root
 void netvars::store_datamap_props(netvars_storage& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
-	for (auto& desc: map->data)
+	for (const auto& desc: map->data)
 	{
 		if (desc.fieldType == FIELD_EMBEDDED)
 		{
@@ -349,7 +365,7 @@ void netvars::store_datamap_props(netvars_storage& tree, datamap_t* map)
 		}
 		else if (desc.fieldName != nullptr)
 		{
-			const auto field_name = std::string_view(desc.fieldName);
+			const std::string_view field_name = (desc.fieldName);
 
 			if (!_Save_netvar_allowed(field_name))
 				continue;
@@ -365,7 +381,7 @@ void netvars::store_datamap_props(netvars_storage& tree, datamap_t* map)
 	}
 }
 
-void netvars::iterate_datamap(netvars_storage& root_tree, datamap_t* root_map)
+void netvars::iterate_datamap(netvars_root_storage& root_tree, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
@@ -374,9 +390,9 @@ void netvars::iterate_datamap(netvars_storage& root_tree, datamap_t* root_map)
 
 		auto&& [tree, added] = add_child_class_to_storage(root_tree, map->dataClassName);
 
-		store_datamap_props(*tree, map);
+		store_datamap_props(static_cast<netvars_storage&>(*tree), map);
 
-		if (added && tree->empty( ))
+		if (added && (*tree).empty( ))
 			root_tree.erase(tree);
 	}
 }

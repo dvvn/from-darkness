@@ -1,4 +1,10 @@
-﻿#include "data_dumper.h"
+﻿// ReSharper disable once CppUnusedIncludeDirective
+#include "data_filler.h"
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+
+#include "data_dumper.h"
+#include "lazy.h"
+#include "storage.h"
 
 #include "cheat/core/console.h"
 #include "cheat/core/csgo_interfaces.h"
@@ -7,16 +13,9 @@
 
 #include <nstd/checksum.h>
 #include <nstd/mem/backup.h>
+#include <nstd/custom_types.h>
+#include NSTD_UNORDERED_SET_INCLUDE
 
-#if __has_include(<robin_hood.h>)
-#include <robin_hood.h>
-#define UNORDERED_SET robin_hood::unordered_set
-#else
-#include <unordered_set>
-#define UNORDERED_SET std::unordered_set
-#endif
-
-#include <set>
 #include <fstream>
 #include <ranges>
 #include <regex>
@@ -35,7 +34,7 @@ using netvars::include_name;
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
 #define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX _cpp
 
-log_info netvars::log_netvars(const netvars_storage& netvars_data)
+log_info netvars::log_netvars(const netvars_root_storage& netvars_data)
 {
 	const std::filesystem::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
 
@@ -79,9 +78,10 @@ log_info netvars::log_netvars(const netvars_storage& netvars_data)
 static auto _Get_includes(std::string_view type, bool detect_duplicates)
 {
 	std::vector<include_name> result;
-	std::set<std::string_view> results_used; //skip stuff like array<array<X,....
+	NSTD_UNORDERED_SET<std::string_view> results_used; //skip stuff like array<array<X,....
 
 	using namespace std::string_view_literals;
+	using namespace std::string_literals;
 
 	const auto pat   = std::regex("[\\w:*]+");
 	const auto start = std::regex_iterator(type.begin( ), type.end( ), pat);
@@ -139,7 +139,7 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 		}
 		else if (str.ends_with("_t"))
 		{
-			info = {"cstdint"sv, true};
+			info = {"cstdint"s, true};
 		}
 		else
 		{
@@ -152,11 +152,11 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 	return result;
 }
 
-void netvars::generate_classes(log_info info, netvars_storage& netvars_data, lazy_files_storage& lazy_storage)
+void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data, lazy_files_storage& lazy_storage)
 {
 	const std::filesystem::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
 
-	nstd::mem::backup<netvars_storage> netvars_data_backup;
+	nstd::mem::backup<netvars_root_storage> netvars_data_backup;
 	(void)netvars_data_backup;
 
 	if (info == log_info::skipped || info == log_info::updated)
@@ -251,7 +251,7 @@ _WORK:
 		const auto source_add_dynamic_includes = [&]
 		{
 			std::vector<std::string> includes_local, includes_global;
-			auto includes_cache = UNORDERED_SET<std::string>( );
+			auto includes_cache = NSTD_UNORDERED_SET<std::string>( );
 
 			const auto cheat_impl_dir = std::filesystem::path(STRINGIZE_PATH(_CONCAT(VS_SolutionDir, \impl\)));
 			for (auto& [netvar_name, netvar_data]: NETVARS.items( ))
@@ -398,3 +398,5 @@ _WORK:
 
 	CHEAT_CONSOLE_LOG("Netvars classes generation done");
 }
+
+#endif

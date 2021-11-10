@@ -75,6 +75,7 @@ namespace cheat::gui::widgets
 		void toggle( );
 
 		bool visible( ) const;
+		bool show_next_tick()const;
 		bool updating( ) const;
 
 		window_end_token_ex operator()(bool close_button = false);

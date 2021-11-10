@@ -5,7 +5,12 @@
 
 #include <nstd/signature.h>
 #include <nstd/unistring.h>
-#include <nstd/module/info.h>
+#include <nstd/module/all_infos.h>
+#include <nstd/custom_types.h>
+
+#include NSTD_UNORDERED_MAP_INCLUDE
+// ReSharper disable once CppUnusedIncludeDirective
+#include NSTD_UNORDERED_SET_INCLUDE
 
 #include <ranges>
 #include <format>
@@ -24,7 +29,7 @@ static info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
 {
 	const auto do_find = []<typename T>(T&& str)
 	{
-		return nstd::module::all_modules::get_ptr( )->find([&](const info& info)-> bool
+		return nstd::module::all_infos::get_ptr( )->find([&](const info& info)-> bool
 		{
 			return std::ranges::equal(info.name( ), str);
 		});
@@ -35,16 +40,13 @@ static info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
 		using ustring = nstd::unistring<wchar_t>;
 
 		constexpr ustring::value_type dot_dll_arr[] = {'.', 'd', 'l', 'l'};
-		constexpr auto dot_dll                      = std::basic_string_view(dot_dll_arr, 4);
+		constexpr std::basic_string_view dot_dll    = {dot_dll_arr, 4};
 
 		const auto str = ustring(target_name).append(dot_dll);
 		return do_find(str);
 	}
 
-	if constexpr (std::same_as<E, wchar_t>)
-		return do_find(target_name);
-	else
-		return do_find(target_name);
+	return do_find(target_name);
 }
 
 // ReSharper disable once CppInconsistentNaming
@@ -56,33 +58,7 @@ public:
 	CInterfaceRegister* next;
 };
 
-#if __has_include(<robin_hood.h>)
-#include <robin_hood.h>
-#define UNOREDERD_MAP robin_hood::unordered_map
-#define UNOREDERD_SET robin_hood::unordered_set
-#define UNOREDERD_HASH robin_hood::hash
-
-namespace robin_hood::detail
-{
-	template <typename T>
-	struct has_is_transparent<hash<T>> : std::true_type
-	{
-	};
-
-	template <typename T>
-	struct has_is_transparent<std::equal_to<T>> : std::true_type
-	{
-	};
-}
-
-#else
-#include <unordered_map>
-#include <unordered_set>
-#define UNOREDERD_MAP std::unordered_map
-#define UNOREDERD_SET std::unordered_set
-#define UNOREDERD_HASH std::hash
-#endif
-using ifcs_entry_type = UNOREDERD_MAP<std::string_view, InstantiateInterfaceFn>;
+using ifcs_entry_type = NSTD_UNORDERED_MAP<std::string_view, InstantiateInterfaceFn>;
 
 static ifcs_entry_type _Interface_entry(info* target_module)
 {
@@ -160,10 +136,10 @@ struct game_module_storage::impl
 {
 	info* info_ptr;
 #ifdef _DEBUG
-	UNOREDERD_SET<std::string> sigs_tested;
+	NSTD_UNORDERED_SET<std::string> sigs_tested;
 #endif
 #ifdef CHEAT_HAVE_CONSOLE
-	UNOREDERD_SET<std::string> vtables_tested;
+	NSTD_UNORDERED_SET<std::string> vtables_tested;
 #endif
 	ifcs_entry_type interfaces;
 
@@ -208,7 +184,7 @@ struct game_module_storage::impl
 			const auto found_msg = [&]
 			{
 				const auto& from_name         = info_ptr->name( );
-				const auto second_module_name = nstd::module::all_modules::get_ptr( )->rfind([&](const info& info)
+				const auto second_module_name = nstd::module::all_infos::get_ptr( )->rfind([&](const info& info)
 				{
 					return info.name( ) == from_name;
 				});

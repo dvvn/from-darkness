@@ -129,6 +129,7 @@
     <ClCompile Include="cheat\core\csgo_awaiter.cpp" />
     <ClCompile Include="cheat\core\csgo_interfaces.cpp" />
     <ClCompile Include="cheat\core\csgo_modules.cpp" />
+    <ClCompile Include="cheat\netvars\lazy.cpp" />
     <ClCompile Include="cheat\service\impl.cpp" />
     <ClCompile Include="cheat\core\services_loader.cpp" />
     <ClCompile Include="cheat\csgo\CBaseHandle.cpp" />
@@ -272,7 +273,6 @@
     <ClCompile Include="cheat\netvars\data_dumper.cpp" />
     <ClCompile Include="cheat\netvars\data_filler.cpp" />
     <ClCompile Include="cheat\netvars\data_handmade.cpp" />
-    <ClCompile Include="cheat\netvars\detail.cpp" />
     <ClCompile Include="cheat\netvars\netvars.cpp" />
     <ClCompile Include="cheat\netvars\type_resolve.cpp" />
     <ClCompile Include="cheat\players\player.cpp">
@@ -295,6 +295,9 @@
     <ClInclude Include="cheat\core\csgo_awaiter.h" />
     <ClInclude Include="cheat\core\csgo_interfaces.h" />
     <ClInclude Include="cheat\core\csgo_modules.h" />
+    <ClInclude Include="cheat\netvars\lazy.h" />
+    <ClInclude Include="cheat\netvars\storage_iter.h" />
+    <ClInclude Include="cheat\netvars\storage_ndebug.h" />
     <ClInclude Include="cheat\service\include.h" />
     <ClInclude Include="cheat\service\data.h" />
     <ClInclude Include="cheat\service\impl.h" />
@@ -389,7 +392,7 @@
     <ClInclude Include="cheat\netvars\data_dumper.h" />
     <ClInclude Include="cheat\netvars\data_filler.h" />
     <ClInclude Include="cheat\netvars\data_handmade.h" />
-    <ClInclude Include="cheat\netvars\detail.h" />
+    <ClInclude Include="cheat\netvars\storage.h" />
     <ClInclude Include="cheat\netvars\netvars.h" />
     <ClInclude Include="cheat\netvars\type_resolve.h" />
     <ClInclude Include="cheat\players\player.h" />

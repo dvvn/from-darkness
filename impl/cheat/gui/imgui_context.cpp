@@ -191,6 +191,12 @@ imgui_context_impl::imgui_context_impl( )
 	this->add_dependency(csgo_interfaces::get( ));
 }
 
+bool imgui_context_impl::inctive( ) const
+{
+	const auto hwnd = this->hwnd( );
+	return (hwnd != GetForegroundWindow( ));
+}
+
 auto imgui_context_impl::load_impl( ) noexcept -> basic_service::load_result
 {
 	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );

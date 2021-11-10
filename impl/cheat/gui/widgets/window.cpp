@@ -424,12 +424,18 @@ void window_wrapped::set(bool value)
 
 void window_wrapped::toggle( )
 {
-	show_wished_ = !show_wished_;
+	if (show_ == show_wished_)
+		show_wished_ = !show_wished_;
 }
 
 bool window_wrapped::visible( ) const
 {
 	return show_ || updating( );
+}
+
+bool window_wrapped::show_next_tick( ) const
+{
+	return show_wished_;
 }
 
 bool window_wrapped::updating( ) const

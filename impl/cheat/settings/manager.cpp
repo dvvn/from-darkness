@@ -102,7 +102,7 @@ struct manager::impl
 		{
 #ifdef CHEAT_GUI_TEST
 			return NSTD_STRINGIZE_RAW(VS_SolutionDir) NSTD_STRINGIZE_RAW(\.out\);
-			//return nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
+			//return nstd::os::all_infos::get_ptr( )->current( ).work_dir( );
 #else
 			static const auto path = []
 			{

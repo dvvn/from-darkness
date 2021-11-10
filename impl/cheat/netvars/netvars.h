@@ -4,11 +4,6 @@
 
 namespace cheat
 {
-	namespace detail::netvars
-	{
-		struct netvars_data;
-	}
-
 	class netvars_impl final : public service<netvars_impl>
 	{
 	public:
@@ -21,7 +16,7 @@ namespace cheat
 		load_result load_impl( ) noexcept override;
 
 	private:
-		using data_type=detail::netvars::netvars_data;
+		struct data_type;
 		std::unique_ptr<data_type> data_;
 	};
 

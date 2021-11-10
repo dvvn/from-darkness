@@ -24,7 +24,7 @@ auto csgo_interfaces_impl::load_impl( ) noexcept -> load_result
 	//unused
 #if 0
 #ifndef CHEAT_GUI_TEST
-	csgo_path = all_modules::get( )->owner( ).work_dir( );
+	csgo_path = all_infos::get( )->owner( ).work_dir( );
 #else
 	using string_type = filesystem::path::string_type;
 	const auto steam_path = filesystem::path(winreg::RegKey(HKEY_CURRENT_USER, L"Software\\Valve\\Steam").GetStringValue(L"SteamPath")).make_preferred( );
@@ -73,7 +73,7 @@ auto csgo_interfaces_impl::load_impl( ) noexcept -> load_result
 	load_lib(bin, L"vphysics");
 	load_lib(bin, L"inputsystem");
 
-	all_modules::get( )->update(true);
+	all_infos::get( )->update(true);
 
 #endif
 

@@ -192,7 +192,12 @@ menu_impl::~menu_impl( ) = default;
 
 bool menu_impl::render( )
 {
-	const auto end = impl_->menu_window( );
+	auto& wnd = impl_->menu_window;
+
+	if (wnd.show_next_tick( ) && !wnd.visible( ) && imgui_context::get( )->inctive( ))
+		return false;
+
+	const auto end = wnd( );
 	if (!end)
 		return false;
 

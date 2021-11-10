@@ -57,6 +57,7 @@ namespace cheat::gui
 		~imgui_context_impl( ) override;
 		imgui_context_impl( );
 
+		bool inctive()const;
 		HWND hwnd( ) const;
 		ImGuiContext& get( );
 

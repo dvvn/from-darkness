@@ -1,4 +1,4 @@
-﻿#include "detail.h"
+﻿#include "lazy.h"
 
 #include <fstream>
 
@@ -39,19 +39,19 @@ lazy_file_writer& lazy_file_writer::operator=(lazy_file_writer&& other) noexcept
 
 lazy_fs_creator::~lazy_fs_creator( )
 {
-	if (this->empty( ))
+	if (path_.empty( ))
 		return;
 
-	create_directories(*this);
+	create_directories(path_);
 }
 
 lazy_fs_remover::~lazy_fs_remover( )
 {
-	if (this->empty( ))
+	if (path_.empty( ))
 		return;
 
 	if (!all_)
-		remove(*this);
+		remove(path_);
 	else
-		remove_all(*this);
+		remove_all(path_);
 }

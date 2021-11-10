@@ -22,7 +22,7 @@ settings_data::settings_data(string_wrapper&& name)
 	path_ = []( )-> decltype(auto)
 	{
 #ifdef CHEAT_GUI_TEST
-		return nstd::os::all_modules::get_ptr( )->current( ).work_dir( );
+		return nstd::os::all_infos::get_ptr( )->current( ).work_dir( );
 #else
 		static const auto path = []
 		{

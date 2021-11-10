@@ -1,5 +1,13 @@
 ﻿#include "data_handmade.h"
 #include "data_filler.h"
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+#include "storage.h"
+#else
+#include "storage_ndebug.h"
+#endif
+// ReSharper disable once CppUnusedIncludeDirective
+#include "storage_iter.h"
+#include "type_resolve.h"
 
 #include "cheat/core/csgo_modules.h"
 
@@ -15,26 +23,31 @@ namespace cheat::csgo
 	struct VarMapping_t;
 }
 
-using namespace cheat::detail;
-using netvars::netvars_storage;
+using namespace cheat;
 using namespace cheat::csgo;
+using namespace detail;
 
-static netvars_storage* _Root_storage    = nullptr;
-static netvars_storage* _Current_storage = nullptr;
+static netvars::netvars_root_storage* _Root_storage = nullptr;
+static netvars::netvars_storage* _Current_storage   = nullptr;
 
 template <typename T>
 static void _Load_class( )
 {
 	const auto name       = nstd::type_name<T, "cheat::csgo">;
-	auto&& [entry, added] = add_child_class_to_storage(*_Root_storage, name);
+	auto&& [entry, added] = netvars::add_child_class_to_storage(*_Root_storage, name);
 	runtime_assert(added == false);
-	_Current_storage = std::addressof(entry.value( ));
+	_Current_storage = 
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+static_cast<netvars::netvars_storage*>(entry.operator->( ));
+#else
+			std::addressof(entry->second);
+#endif
 }
 
 namespace cheat::detail::netvars
 {
 	template <typename Type, typename TypeProj = std::identity>
-	auto add_netvar_to_storage(const std::string_view& name, int offset, TypeProj&& type_proj = {})
+	auto add_netvar_to_storage(const std::string_view& name, int offset, [[maybe_unused]] TypeProj&& type_proj = {})
 	{
 		string_or_view_holder type;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -55,12 +68,18 @@ namespace cheat::detail::netvars
 	auto add_netvar_to_storage(const std::string_view& name, const std::string_view& offset_from, int offset, TypeProj&& type_proj = {})
 	{
 		using namespace std::string_view_literals;
-		const auto offset0 = _Current_storage->find(offset_from)->find("offset"sv)->get<int>( );
+		const auto offset0 = _Current_storage->find(offset_from NSTD_UTG)->
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+							 find("offset"sv)->get<int>( )
+#else
+											   second
+#endif
+				;
 		return add_netvar_to_storage<Type>(name, offset0 + offset, std::forward<TypeProj>(type_proj));
 	}
 }
 
-void netvars::store_handmade_netvars(netvars_storage& root_tree)
+void netvars::store_handmade_netvars(netvars_root_storage& root_tree)
 {
 	using nstd::mem::backup;
 	const auto backups = std::make_tuple(backup(_Root_storage, std::addressof(root_tree)), backup(_Current_storage));
