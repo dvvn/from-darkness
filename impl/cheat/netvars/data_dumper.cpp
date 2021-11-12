@@ -42,9 +42,15 @@ log_info netvars::log_netvars(const netvars_root_storage& netvars_data)
 
 	const auto netvars_dump_file = [&]
 	{
-		const std::string_view version        = csgo_interfaces::get( )->engine->GetProductVersionString( );
-		const auto chars                      = version | std::views::transform([](char c) { return c == '.' ? '_' : c; });
-		const std::filesystem::path file_name = std::wstring{chars.begin( ), chars.end( )};
+		const std::string_view version = csgo_interfaces::get( )->engine->GetProductVersionString( );
+		std::filesystem::path file_name;
+		if (version.size( ) > file_name.native( ).capacity( ))
+		{
+			auto& str = const_cast<std::wstring&>(file_name.native( ));
+			str.reserve(version.size( ));
+		}
+		for (const auto c: version)
+			file_name += static_cast<wchar_t>(c == '.' ? '_' : c);
 		return dumps_dir / file_name;
 	}( );
 #if !CHEAT_NETVARS_UPDATING

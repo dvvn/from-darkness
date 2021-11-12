@@ -36,8 +36,14 @@ namespace cheat::detail::netvars
 		template <std::equality_comparable_with<Key> Key2>
 		iterator find(const Key2& key)
 		{
-			constexpr auto trivial = std::is_trivially_copyable_v<Key> && std::is_trivially_destructible_v<Key>;
-			return std::ranges::find(*this, key, [](auto&& val)-> std::conditional_t<trivial, Key, const Key&> { return val.first; });
+			auto begin = this->begin( );
+			auto end   = this->end( );
+			for (auto itr = begin; itr != end; ++itr)
+			{
+				if (itr->first == key)
+					return itr;
+			}
+			return end;
 		}
 
 		template <std::equality_comparable_with<Key> Key2>

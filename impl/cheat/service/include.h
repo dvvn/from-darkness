@@ -1,9 +1,8 @@
 ﻿#pragma once
 #include "impl.h"
 
-#ifdef _DEBUG
 #include <nstd/type name.h>
-#endif
+#include <nstd/one_instance.h>
 
 namespace cheat
 {
@@ -12,17 +11,12 @@ namespace cheat
 	{
 		std::string_view name( ) const final
 		{
-#ifdef _DEBUG
 			constexpr auto tmp   = nstd::type_name<T, "cheat">;
 			constexpr auto dummy = std::string_view("_impl");
 			if constexpr (tmp.ends_with(dummy))
 				return tmp.substr(0, tmp.size( ) - dummy.size( ));
 			else
 				return tmp;
-
-#else
-			std::terminate();
-#endif
 		}
 
 		const std::type_info& type( ) const final

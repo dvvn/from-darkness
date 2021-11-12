@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <format>
+#include <algorithm>
 
 using namespace cheat::detail;
 using namespace cheat::csgo;
@@ -390,6 +391,7 @@ void netvars::iterate_datamap(netvars_root_storage& root_tree, datamap_t* root_m
 
 		auto&& [tree, added] = add_child_class_to_storage(root_tree, map->dataClassName);
 
+		// ReSharper disable once CppRedundantCastExpression
 		store_datamap_props(static_cast<netvars_storage&>(*tree), map);
 
 		if (added && (*tree).empty( ))

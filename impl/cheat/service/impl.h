@@ -28,7 +28,6 @@ namespace cheat
 	struct basic_service_data;
 	class basic_service;
 
-
 	template <typename T>
 	concept root_service = std::derived_from<T, basic_service>;
 
@@ -55,7 +54,7 @@ namespace cheat
 		{
 			obj_ = std::move(other.obj_);
 #ifndef _DEBUG
-			other.obj_ = {};
+			other.obj_ = nullptr;
 #endif
 		}
 
@@ -69,11 +68,9 @@ namespace cheat
 		service_shared(Args&&...args)
 		{
 			auto obj = std::make_shared<T>(std::forward<Args>(args)...);
-			obj_     =
-#ifdef _DEBUG
-					obj
-#else
-					*obj
+			obj_     = obj
+#ifndef _DEBUG
+				   .get( )
 #endif
 					;
 			add_to_loader(std::move(obj));
@@ -102,7 +99,7 @@ namespace cheat
 #ifdef _DEBUG
 		shared_type _Get( ) const { return shared_type(obj_); }
 #else
-			T* _Get() const noexcept { return obj_.get(); }
+		T* _Get( ) const noexcept { return obj_; }
 #endif
 
 	public:
@@ -113,7 +110,7 @@ namespace cheat
 #ifdef _DEBUG
 		std::weak_ptr<T>
 #else
-		std::reference_wrapper<T>
+		T*
 #endif
 		obj_;
 	};

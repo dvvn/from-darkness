@@ -3,12 +3,11 @@
 #include "data_filler.h"
 #include "data_handmade.h"
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-#include "storage.h"
 #include "lazy.h"
+#include "storage.h"
 #else
 #include "storage_ndebug.h"
 #endif
-
 #include "storage_iter.h"
 
 #include "cheat/core/console.h"

@@ -2,6 +2,7 @@
 #include "cheat/service/include.h"
 
 #include <nstd/address.h>
+#include <nstd/type_traits.h>
 
 namespace cheat::csgo
 {
