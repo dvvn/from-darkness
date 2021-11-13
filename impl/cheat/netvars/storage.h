@@ -59,8 +59,9 @@ namespace cheat::detail::netvars
 		T erase(T pos)
 			requires(std::constructible_from<T, iterator>)
 		{
-			return static_cast<value_type*>(this)->erase(static_cast<iterator&&>(pos));
+			return T(static_cast<value_type*>(this)->erase(static_cast<iterator&&>(pos)));
 		}
+		using nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, ptrdiff_t, size_t, float>::erase;
 	};
 
 	struct netvars_storage : netvars_root_storage

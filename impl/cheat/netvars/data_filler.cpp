@@ -41,13 +41,19 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 	});
 }
 
+template <typename T, typename ...Args>
+static auto _Emplace_wrapped(T& storage, Args&& ...args)
+{
+	auto [itr, added] = storage.emplace(std::forward<Args>(args)...);
+	return std::make_pair(netvars::iterator_wrapper(std::move(itr)), added);
+}
+
 bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_view& name, int offset, [[maybe_unused]] string_or_view_holder&& type)
 {
 	using namespace std::string_literals;
 	using namespace std::string_view_literals;
 
-	auto&& [entry0, added] = storage.emplace(name);
-	auto&& entry           = static_cast<netvars_storage_iter&&>(entry0);
+	auto [entry, added] = _Emplace_wrapped(storage, name);
 	if (added == false)
 	{
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -56,10 +62,7 @@ bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_
 		{
 			auto& type_obj = entry->find("type"sv)->get_ref<std::string&>( );
 			if (view != type_obj)
-			{
-				std::string str = std::move(type);
-				type_obj.assign(std::move(str));
-			}
+				type_obj = static_cast<std::string>(std::move(type));
 		}
 #endif
 	}
@@ -72,16 +75,15 @@ bool netvars::add_netvar_to_storage(netvars_storage& storage, const std::string_
 			  , {"type"s, std::move(type)}
 		};
 #else
-		*entry = offset;
+		* entry = offset;
 #endif
 	}
 
 	return added;
 }
 
-auto netvars::add_child_class_to_storage(netvars_root_storage& storage, const std::string_view& name) -> std::pair<netvars_root_storage_iter, bool>
+static auto _Add_child_class_to_storage(netvars::netvars_root_storage& storage, const std::string_view& name)
 {
-	std::pair<netvars_root_storage_iter, bool> ret;
 	if (name[0] == 'C' && name[1] != '_')
 	{
 		runtime_assert(std::isalnum(name[1]));
@@ -91,15 +93,21 @@ auto netvars::add_child_class_to_storage(netvars_root_storage& storage, const st
 		class_name.reserve(name.size( ) + 1);
 		class_name += "C_";
 		class_name.append(std::next(name.begin( )), name.end( ));
-		ret = storage.emplace(std::move(class_name));
+		return _Emplace_wrapped(storage, std::move(class_name));
 	}
 	else
 	{
 		runtime_assert(!name.starts_with("DT_"));
-		ret = storage.emplace(name);
+		return _Emplace_wrapped(storage, name);
 	}
+}
 
-	return ret;
+auto netvars::add_child_class_to_storage(netvars_root_storage& storage, const std::string_view& name) -> void*
+{
+	auto out     = _Add_child_class_to_storage(storage, name);
+	auto out_ptr = new decltype(out);
+	*out_ptr     = std::move(out);
+	return out_ptr;
 }
 
 //-----
@@ -312,7 +320,7 @@ void netvars::store_recv_props(netvars_root_storage& root_tree, netvars_storage&
 					else
 						child_table_unique_name = std::format("{}_t", child_table_name);
 
-					auto [new_tree, added] = add_child_class_to_storage(root_tree, child_table_unique_name);
+					auto [new_tree, added] = _Add_child_class_to_storage(root_tree, child_table_unique_name);
 					if (!added)
 						continue;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -344,7 +352,7 @@ void netvars::iterate_client_class(netvars_root_storage& root_tree, ClientClass*
 		if (!recv_table || recv_table->props.empty( ))
 			continue;
 
-		auto [new_tree, added] = add_child_class_to_storage(root_tree, client_class->pNetworkName);
+		auto [new_tree, added] = _Add_child_class_to_storage(root_tree, client_class->pNetworkName);
 		runtime_assert(added == true);
 
 		store_recv_props(root_tree, static_cast<netvars_storage&>(*new_tree), recv_table, 0);
@@ -389,7 +397,7 @@ void netvars::iterate_datamap(netvars_root_storage& root_tree, datamap_t* root_m
 		if (map->data.empty( ))
 			continue;
 
-		auto&& [tree, added] = add_child_class_to_storage(root_tree, map->dataClassName);
+		auto [tree, added] = _Add_child_class_to_storage(root_tree, map->dataClassName);
 
 		// ReSharper disable once CppRedundantCastExpression
 		store_datamap_props(static_cast<netvars_storage&>(*tree), map);

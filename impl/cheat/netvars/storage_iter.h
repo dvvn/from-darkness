@@ -3,45 +3,26 @@
 namespace cheat::detail::netvars
 {
 	template <typename T>
-	auto unwrap_iter(T&& itr)
+	struct iterator_wrapper : T
 	{
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		return itr.operator->( );
-#else
-		return std::addressof(itr->second);
-#endif
-	}
+		using iter_type = T;
 
-	struct netvars_storage_iter : netvars_storage::iterator
-	{
+		iterator_wrapper( ) = default;
+
+		template <typename ...Args>
+		iterator_wrapper(Args&&...args)
+			: T(std::forward<Args>(args)...)
+		{
+		}
+
 #ifndef CHEAT_NETVARS_RESOLVE_TYPE
-		auto& operator*( )
-		{
-			return *unwrap_iter(*this);
-		}
+		auto& operator*( ) { return T::operator->( )->second; }
+		auto& operator*( ) const { return T::operator->( )->second; }
+		auto operator->( ) { return std::addressof(T::operator->( )->second); }
+		auto operator->( ) const { return std::addressof(T::operator->( )->second); }
 #endif
-
-		netvars_storage_iter( ) = default;
-
-		netvars_storage_iter(netvars_storage::iterator itr)
-			: netvars_storage::iterator(itr)
-		{
-		}
 	};
 
-	struct netvars_root_storage_iter : netvars_root_storage::iterator
-	{
-#ifndef CHEAT_NETVARS_RESOLVE_TYPE
-		auto& operator*( )
-		{
-			return *unwrap_iter(*this);
-		}
-#endif
-		netvars_root_storage_iter( ) = default;
-
-		netvars_root_storage_iter(netvars_root_storage::iterator itr)
-			: netvars_root_storage::iterator(itr)
-		{
-		}
-	};
+	template <typename T>
+	iterator_wrapper(T&&) -> iterator_wrapper<std::remove_cvref_t<T>>;
 }

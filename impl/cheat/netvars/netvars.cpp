@@ -1,8 +1,8 @@
 #include "netvars.h"
-#include "data_dumper.h"
 #include "data_filler.h"
 #include "data_handmade.h"
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
+#include "data_dumper.h"
 #include "lazy.h"
 #include "storage.h"
 #else
@@ -43,11 +43,9 @@ netvars_impl::~netvars_impl( ) = default;
 auto netvars_impl::load_impl( ) noexcept -> load_result
 {
 	netvars_root_storage storage;
-
 	iterate_client_class(storage, csgo_interfaces::get( )->client->GetAllClasses( ));
 
 	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
-
 	iterate_datamap(storage, baseent->GetDataDescMap( ));
 	iterate_datamap(storage, baseent->GetPredictionDescMap( ));
 	store_handmade_netvars(storage);
@@ -67,16 +65,16 @@ int netvars_impl::at(const std::string_view& table, const std::string_view& item
 {
 	const auto& storage = data_->storage;
 
-	const auto target_class = storage.find(table NSTD_UTG);
+	const iterator_wrapper target_class = storage.find(table NSTD_UTG);
 	runtime_assert(target_class != storage.end( ));
-	const auto netvar_info = unwrap_iter(target_class)->find(item NSTD_UTG);
-	runtime_assert(netvar_info != unwrap_iter(target_class)->end( ));
+	const iterator_wrapper netvar_info = target_class->find(item NSTD_UTG);
+	runtime_assert(netvar_info != target_class->end( ));
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 	using namespace std::string_view_literals;
 	return netvar_info->find("offset"sv)->get<int>( );
 #else
-	return *unwrap_iter(netvar_info);
+	return *netvar_info;
 #endif
 }
 

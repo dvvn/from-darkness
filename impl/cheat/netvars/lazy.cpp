@@ -50,8 +50,14 @@ lazy_fs_remover::~lazy_fs_remover( )
 	if (path_.empty( ))
 		return;
 
-	if (!all_)
-		remove(path_);
-	else
-		remove_all(path_);
+	try
+	{
+		if (!all_)
+			remove(path_);
+		else
+			remove_all(path_);
+	}
+	catch (...)
+	{
+	}
 }

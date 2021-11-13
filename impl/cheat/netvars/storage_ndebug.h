@@ -24,51 +24,34 @@ namespace cheat::detail::netvars
 	{
 #ifndef _DEBUG
 
-		T& operator[](const std::string_view& str)
+		template <typename S>
+		static auto string_hash(const S& str)
 		{
-			auto hash = std::invoke(NSTD_UNORDERED_HASH<std::string_view>( ), str);
-			return Base::operator[](hash);
+			return std::invoke(NSTD_UNORDERED_HASH<S>( ), str);
 		}
 
-		T& at(const std::string_view& str)
-		{
-			auto hash = std::invoke(NSTD_UNORDERED_HASH<std::string_view>( ), str);
-			return Base::at(hash);
-		}
+		T& operator[](const std::string_view& str) { return Base::operator[](string_hash(str)); }
 
-		const T& at(const std::string_view& str) const
-		{
-			return std::_Const_cast(this)->at(str);
-		}
+		T& at(const std::string_view& str) { return Base::at(string_hash(str)); }
+		const T& at(const std::string_view& str) const { return std::_Const_cast(this)->at(str); }
 
-		typename Base::iterator find(const std::string_view& str)
-		{
-			auto hash = std::invoke(NSTD_UNORDERED_HASH<std::string_view>( ), str);
-			return Base::find(hash);
-		}
+		typename Base::iterator find(const std::string_view& str) { return Base::find(string_hash(str)); }
+		typename Base::const_iterator find(const std::string_view& str) const { return std::_Const_cast(this)->find(str); }
 
-		typename Base::const_iterator find(const std::string_view& str) const
-		{
-			return std::_Const_cast(this)->find(str);
-		}
-
-		template <typename T1 = T>
-		decltype(auto) emplace(const std::string_view& str, T1&& value = {})
-		{
-			auto hash = std::invoke(NSTD_UNORDERED_HASH<std::string_view>( ), str);
-			return Base::emplace(hash, std::forward<T1>(value));
-		}
-
-#else
-
-		template <class K>
-		requires(std::constructible_from<std::string, K>)
-			decltype(auto) emplace(K&& key)
-		{
-			T dummy = {};
-			return Base::emplace((std::forward<K>(key)), std::move(dummy));
-		}
 #endif
+
+		template <class K, typename T1 = T>
+			requires(std::constructible_from<std::string, K>)
+		decltype(auto) emplace(K&& key, T1&& value = {})
+		{
+			return Base::emplace(
+#ifndef _DEBUG
+					string_hash(key)
+#else
+				std::forward<K>(key)
+#endif
+				  , std::forward<T1>(value));
+		}
 	};
 
 	struct netvars_storage : netvars_unordered_map<int>

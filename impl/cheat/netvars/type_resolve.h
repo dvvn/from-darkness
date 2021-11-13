@@ -47,3 +47,4 @@ namespace cheat::detail::netvars
 	string_or_view_holder type_recv_prop(const csgo::RecvProp& prop);
 	string_or_view_holder type_datamap_field(const csgo::typedescription_t& field);
 }
+

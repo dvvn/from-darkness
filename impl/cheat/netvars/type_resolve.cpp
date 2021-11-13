@@ -13,6 +13,8 @@ using namespace cheat::detail;
 using netvars::string_or_view_holder;
 using namespace cheat::csgo;
 
+using nstd::overload;
+
 string_or_view_holder::string_or_view_holder( )
 {
 	str_.emplace<std::string_view>("");
@@ -30,14 +32,14 @@ string_or_view_holder::string_or_view_holder(std::string&& str)
 
 string_or_view_holder::operator std::string&( ) &
 {
-	return std::visit(nstd::overload([](std::string& str)-> std::string& { return str; }
-								   , [](std::string_view&)-> std::string& { throw std::logic_error("Incorrect string type!"); }), str_);
+	return std::visit(overload([](std::string& str)-> std::string& { return str; }
+							 , [](std::string_view&)-> std::string& { throw std::logic_error("Incorrect string type!"); }), str_);
 }
 
 string_or_view_holder::operator std::string( ) &&
 {
-	return std::visit(nstd::overload([](std::string&& str)-> std::string { return std::move(str); }
-								   , [](std::string_view&& sv)-> std::string { return {sv.begin( ), sv.end( )}; }), std::move(str_));
+	return std::visit(overload([](std::string&& str)-> std::string { return std::move(str); }
+							 , [](std::string_view&& sv)-> std::string { return {sv.begin( ), sv.end( )}; }), std::move(str_));
 }
 
 string_or_view_holder::operator const std::string&( ) const
@@ -47,7 +49,7 @@ string_or_view_holder::operator const std::string&( ) const
 
 string_or_view_holder::operator std::string_view( ) const
 {
-	return std::visit(nstd::overload([]<typename T>(T&& obj)-> std::string_view { return {obj.data( ), obj.size( )}; }), str_);
+	return std::visit(overload([]<typename T>(T&& obj)-> std::string_view { return {obj.data( ), obj.size( )}; }), str_);
 }
 
 std::string netvars::str_to_lower(const std::string_view& str)
@@ -68,7 +70,7 @@ static constexpr auto _Template_sample = []
 
 string_or_view_holder netvars::type_std_array(const std::string_view& type, size_t size)
 {
-	runtime_assert(size>0);
+	runtime_assert(size > 0);
 	return std::format("{}<{}, {}>", _Template_sample<std::array<void*, 1>>, type, size);
 }
 
@@ -91,10 +93,9 @@ string_or_view_holder netvars::type_vec3(const std::string_view& name)
 
 string_or_view_holder netvars::type_integer(std::string_view name)
 {
-	if (!std::isdigit(name[0]) && name.starts_with("m_"))
+	if (/*!std::isdigit(name[0]) &&*/ name.starts_with("m_"))
 	{
 		name.remove_prefix(2);
-		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto is_upper = [&](size_t i)
 		{
 			return name.size( ) > i && std::isupper(name[i]);
@@ -142,7 +143,7 @@ string_or_view_holder netvars::type_recv_prop(const RecvProp& prop)
 		case DPT_VectorXY:
 			return type_name<Vector2D>; //3d vector. z unused
 		case DPT_String:
-			return type_name<char*>;
+			return type_name<char*>;// char[X]
 		case DPT_Array:
 		{
 			const auto& prev_prop = *std::prev(std::addressof(prop));

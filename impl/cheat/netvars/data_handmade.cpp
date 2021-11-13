@@ -33,15 +33,11 @@ static netvars::netvars_storage* _Current_storage   = nullptr;
 template <typename T>
 static void _Load_class( )
 {
-	const auto name       = nstd::type_name<T, "cheat::csgo">;
-	auto&& [entry, added] = netvars::add_child_class_to_storage(*_Root_storage, name);
+	using namespace netvars;
+	constexpr auto name = nstd::type_name<T, "cheat::csgo">;
+	auto [entry, added] = CHEAT_NETVARS_UNWRAP_ADDED_CLASS(add_child_class_to_storage(*_Root_storage, name));
 	runtime_assert(added == false);
-	_Current_storage = 
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-static_cast<netvars::netvars_storage*>(entry.operator->( ));
-#else
-			std::addressof(entry->second);
-#endif
+	_Current_storage = std::addressof(static_cast<netvars_storage&>(*entry));
 }
 
 namespace cheat::detail::netvars
@@ -53,7 +49,7 @@ namespace cheat::detail::netvars
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 		type = std::invoke(type_proj, nstd::type_name<Type>);
 #endif
-		const auto added = add_netvar_to_storage(*_Current_storage, name, offset, std::move(type));
+		[[maybe_unused]] const auto added = add_netvar_to_storage(*_Current_storage, name, offset, std::move(type));
 		runtime_assert(added == true);
 		return offset;
 	}
@@ -68,11 +64,12 @@ namespace cheat::detail::netvars
 	auto add_netvar_to_storage(const std::string_view& name, const std::string_view& offset_from, int offset, TypeProj&& type_proj = {})
 	{
 		using namespace std::string_view_literals;
-		const auto offset0 = _Current_storage->find(offset_from NSTD_UTG)->
+		const iterator_wrapper offset_itr = _Current_storage->find(offset_from NSTD_UTG);
+		const auto offset0                =
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-							 find("offset"sv)->get<int>( )
+						offset_itr->find("offset"sv)->get<int>( )
 #else
-											   second
+						*offset_itr
 #endif
 				;
 		return add_netvar_to_storage<Type>(name, offset0 + offset, std::forward<TypeProj>(type_proj));

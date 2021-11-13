@@ -50,6 +50,8 @@ namespace cheat::detail::netvars
 		{
 		}
 
+		bool all()const{return all_;}
+
 	private:
 		std::filesystem::path path_;
 		bool all_;
