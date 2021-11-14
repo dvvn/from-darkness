@@ -1,6 +1,5 @@
 #pragma once
 
-#include "state.h"
 #include "stored.h"
 
 #include <nstd/runtime_assert_fwd.h>
@@ -21,12 +20,18 @@ namespace std
 	template <class _Elem, class _Traits>
 	class basic_string_view;
 	using string_view = basic_string_view<char, char_traits<char>>;
+	template <class _Fty>
+	class function;
 }
 
 namespace cheat
 {
 	struct basic_service_data;
 	class basic_service;
+
+	enum class service_state : uint8_t;
+
+	//--
 
 	template <typename T>
 	concept root_service = std::derived_from<T, basic_service>;
@@ -130,9 +135,12 @@ namespace cheat
 		basic_service& operator=(const basic_service& other) = delete;
 		basic_service& operator=(basic_service&& other) noexcept;
 
-		const value_type* find_service(const std::type_info& info) const;
-		value_type* find_service(const std::type_info& info);
-		void remove_service(const std::type_info& info);
+		const value_type* find(const std::type_info& info) const;
+		value_type* find(const std::type_info& info);
+		void erase(const std::type_info& info);
+		using erase_pred = std::function<bool(const value_type&)>;
+		void erase(const erase_pred& fn);
+		void erase_all(const erase_pred& fn);
 		void unload( );
 
 		void add_dependency(value_type&& srv);
@@ -146,15 +154,13 @@ namespace cheat
 		service_state state( ) const;
 		load_result load(executor& ex) noexcept;
 
+		virtual bool root_class( ) const =0;
+
 	protected:
 		virtual load_result load_impl( ) noexcept = 0;
 	private:
-		friend class services_loader;
-
-		struct lock_impl;
-		std::unique_ptr<lock_impl> lock_;
-		std::unique_ptr<basic_service_data> deps_;
-		service_state state_;
+		struct impl;
+		std::unique_ptr<impl> impl_;
 	};
 }
 

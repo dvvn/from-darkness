@@ -2,16 +2,10 @@
 
 #include "cheat/service/include.h"
 
-#include <nstd/runtime_assert_fwd.h>
-
 // ReSharper disable CppInconsistentNaming
 struct HWND__;
 using HWND = HWND__*;
 // ReSharper restore CppInconsistentNaming
-
-#if 1//defined(_DEBUG) || defined(CHEAT_GUI_TEST) || defined(CHEAT_NETVARS_UPDATING)
-#define CHEAT_HAVE_CONSOLE
-#endif
 
 namespace cheat
 {
@@ -47,9 +41,6 @@ namespace cheat
 	}
 
 	class console_impl final : public service<console_impl>
-#ifdef _DEBUG
-							 , nstd::rt_assert_handler
-#endif
 	{
 	public:
 		class cache_type;
@@ -64,12 +55,6 @@ namespace cheat
 
 	protected:
 		load_result load_impl( ) noexcept override;
-#ifdef _DEBUG
-		void handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept override;
-		void handle(const char* message, const std::source_location& location) noexcept override;
-		size_t id( ) const override;
-#endif
-
 	private:
 		bool allocated_ = false;
 		HWND handle_    = nullptr;

@@ -4,8 +4,6 @@
 
 #ifndef CHEAT_GUI_TEST
 #include "cheat/core/csgo_modules.h"
-#else
-#include <nstd/runtime_assert_fwd.h>
 #endif
 
 #include <cppcoro/task.hpp>

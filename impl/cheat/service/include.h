@@ -1,12 +1,19 @@
 ﻿#pragma once
+// ReSharper disable CppUnusedIncludeDirective
 #include "impl.h"
 
 #include <nstd/type name.h>
 #include <nstd/one_instance.h>
 
+#ifdef CHEAT_HAVE_CONSOLE
+#include <format>
+#endif
+
+// ReSharper restore CppUnusedIncludeDirective
+
 namespace cheat
 {
-	template <typename T>
+	template <typename T,bool Root=false>
 	struct service : basic_service
 	{
 		std::string_view name( ) const final
@@ -22,6 +29,11 @@ namespace cheat
 		const std::type_info& type( ) const final
 		{
 			return typeid(T);
+		}
+
+		bool root_class( ) const final
+		{
+			return Root;
 		}
 	};
 }

@@ -35,6 +35,8 @@ namespace cheat::detail::netvars
 	void iterate_datamap(netvars_root_storage& root_tree, csgo::datamap_t* root_map);
 }
 
+#ifndef CHEAT_NETVARS_RESOLVE_TYPE
 #if  defined(_DEBUG) || defined(CHEAT_NETVARS_UPDATING)
 #define CHEAT_NETVARS_RESOLVE_TYPE
+#endif
 #endif

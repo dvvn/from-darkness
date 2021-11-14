@@ -125,11 +125,26 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <ClCompile Include="cheat\core\console.cpp" />
-    <ClCompile Include="cheat\core\csgo_awaiter.cpp" />
+    <ClCompile Include="cheat\core\console.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\core\csgo_awaiter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="cheat\core\csgo_interfaces.cpp" />
-    <ClCompile Include="cheat\core\csgo_modules.cpp" />
-    <ClCompile Include="cheat\netvars\lazy.cpp" />
+    <ClCompile Include="cheat\core\csgo_modules.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\netvars\lazy.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="cheat\service\impl.cpp" />
     <ClCompile Include="cheat\core\services_loader.cpp" />
     <ClCompile Include="cheat\csgo\CBaseHandle.cpp" />
@@ -270,11 +285,21 @@
     </ClCompile>
     <ClCompile Include="cheat\hooks\winapi\wndproc.cpp" />
     <ClCompile Include="cheat\hooks\winapi\wndproc_init.cpp" />
-    <ClCompile Include="cheat\netvars\data_dumper.cpp" />
-    <ClCompile Include="cheat\netvars\data_filler.cpp" />
-    <ClCompile Include="cheat\netvars\data_handmade.cpp" />
-    <ClCompile Include="cheat\netvars\netvars.cpp" />
-    <ClCompile Include="cheat\netvars\type_resolve.cpp" />
+    <ClCompile Include="cheat\netvars\data_dumper.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\netvars\data_filler.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\netvars\data_handmade.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\netvars\netvars.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="cheat\netvars\type_resolve.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="cheat\players\player.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
@@ -299,7 +324,6 @@
     <ClInclude Include="cheat\netvars\storage_iter.h" />
     <ClInclude Include="cheat\netvars\storage_ndebug.h" />
     <ClInclude Include="cheat\service\include.h" />
-    <ClInclude Include="cheat\service\data.h" />
     <ClInclude Include="cheat\service\impl.h" />
     <ClInclude Include="cheat\core\services_loader.h" />
     <ClInclude Include="cheat\service\state.h" />
@@ -399,6 +423,7 @@
     <ClInclude Include="cheat\players\players_list.h" />
     <ClInclude Include="cheat\players\shared_holder.h" />
     <ClInclude Include="cheat\players\tick_record.h" />
+    <ClInclude Include="cheat\settings\shared_data.h" />
     <ClInclude Include="cheat\utils\game.h" />
   </ItemGroup>
 </Project>

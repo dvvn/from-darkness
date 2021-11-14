@@ -47,6 +47,7 @@ namespace cheat::gui::widgets
 		~window_end_token_ex( );
 		window_end_token_ex(window_end_token_ex&& other) noexcept            = default;
 		window_end_token_ex& operator=(window_end_token_ex&& other) noexcept = default;
+
 	private:
 		nstd::mem::backup<float> global_alpha_backup_;
 	};
@@ -75,7 +76,7 @@ namespace cheat::gui::widgets
 		void toggle( );
 
 		bool visible( ) const;
-		bool show_next_tick()const;
+		bool show_next_tick( ) const;
 		bool updating( ) const;
 
 		window_end_token_ex operator()(bool close_button = false);

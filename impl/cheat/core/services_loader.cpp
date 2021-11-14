@@ -1,9 +1,11 @@
 #include "services_loader.h"
 #include "console.h"
+
 #ifndef CHEAT_GUI_TEST
 #include "csgo_awaiter.h"
 #endif
-#include "cheat/service/data.h"
+
+#include "cheat/service/stored.h"
 
 #include <nstd/module/info.h>
 #include <dhooks/context.h>
@@ -20,7 +22,115 @@
 using namespace cheat;
 using namespace detail;
 
+struct all_hooks_storage::impl : std::vector<value_type>
+{
+};
+
+all_hooks_storage::all_hooks_storage( )
+{
+	impl_ = std::make_unique<impl>( );
+}
+
+all_hooks_storage::~all_hooks_storage( )                                      = default;
+all_hooks_storage::all_hooks_storage(all_hooks_storage&&) noexcept            = default;
+all_hooks_storage& all_hooks_storage::operator=(all_hooks_storage&&) noexcept = default;
+
+all_hooks_storage::value_type* all_hooks_storage::begin( ) const
+{
+	return impl_->_Unchecked_begin( );
+}
+
+all_hooks_storage::value_type* all_hooks_storage::end( ) const
+{
+	return impl_->_Unchecked_end( );
+}
+
+void all_hooks_storage::push_back(value_type&& val)
+{
+	impl_->push_back(std::move(val));
+}
+
+void all_hooks_storage::push_back(const value_type& val)
+{
+	impl_->push_back(val);
+}
+
+bool all_hooks_storage::empty( ) const
+{
+	return impl_->empty( );
+}
+
+size_t all_hooks_storage::size( ) const
+{
+	return impl_->size( );
+}
+
+void all_hooks_storage::clear( )
+{
+	auto impl2 = std::make_unique<impl>( );
+	std::swap(impl_, impl2);
+}
+
+//---
+struct services_loader::impl
+{
+	std::weak_ptr<executor> executor;
+
 #ifndef CHEAT_GUI_TEST
+	HMODULE own_handle = nullptr;
+	std::jthread load_thread;
+#endif
+};
+
+services_loader::services_loader( )
+{
+	impl_ = std::make_unique<impl>( );
+}
+
+services_loader::~services_loader( ) = default;
+
+static void _Setup_hooks_context( )
+{
+	//probably not best place for this
+	using namespace dhooks;
+	current_context::set(std::make_shared<context_safe>(std::make_unique<context>( )));
+}
+
+#ifdef CHEAT_GUI_TEST
+
+bool services_loader::load( )
+{
+	_Setup_hooks_context( );
+	const auto executor = this->get_executor( );
+	return sync_wait(basic_service::load(*executor));
+}
+
+#else
+
+HMODULE services_loader::my_handle( ) const
+{
+	return impl_->own_handle;
+}
+
+void services_loader::load(HMODULE handle)
+{
+	_Setup_hooks_context( );
+
+	impl_->own_handle  = handle;
+	impl_->load_thread = std::jthread([this]
+	{
+		const auto load_helper = [&]
+		{
+			const auto ex = this->get_executor( );
+			return sync_wait(this->load(*ex));
+		};
+
+		if (!load_helper( ))
+			this->unload( );
+		else
+			this->erase(csgo_awaiter::type( ));
+	});
+}
 
 struct unload_helper_data
 {
@@ -49,56 +159,13 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	FreeLibraryAndExitThread(handle, retval);
 }
 
-struct dummy_service final : service<dummy_service>
-{
-protected:
-	load_result load_impl( ) noexcept override
-	{
-		co_return true;
-	}
-};
-
-services_loader::~services_loader( ) = default;
-
-services_loader::services_loader( )
-{
-	this->add_dependency(std::make_shared<dummy_service>( ));
-}
-
-HMODULE services_loader::my_handle( ) const
-{
-	return my_handle__;
-}
-
-void services_loader::load(HMODULE handle)
-{
-	//probably not best place for this
-	using namespace dhooks;
-	current_context::set(std::make_shared<context_safe>(std::make_unique<context>( )));
-
-	my_handle__  = handle;
-	load_thread_ = std::jthread([this]
-	{
-		const auto load_helper = [&]
-		{
-			const auto ex = this->get_executor( );
-			return sync_wait(this->load(*ex));
-		};
-
-		if (!load_helper( ))
-			this->unload( );
-		else
-			this->remove_service(csgo_awaiter::type( ));
-	});
-}
-
 void services_loader::unload_delayed( )
 {
-	this->load_thread_.request_stop( );
+	this->impl_->load_thread.request_stop( );
 	(void)this;
 	const auto data = new unload_helper_data;
 	data->sleep     = 1000;
-	data->handle    = my_handle__;
+	data->handle    = impl_->own_handle;
 	data->retval    = TRUE;
 
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
@@ -106,48 +173,46 @@ void services_loader::unload_delayed( )
 
 std::stop_token services_loader::load_thread_stop_token( ) const
 {
-	return load_thread_.get_stop_token( );
+	return impl_->load_thread.get_stop_token( );
 }
 #endif
 
-auto services_loader::get_executor(size_t threads_count) -> std::shared_ptr<executor>
+// ReSharper disable once CppMemberFunctionMayBeConst
+auto services_loader::get_executor(size_t threads_count) -> executor_shared
 {
-	if (!executor_.expired( ))
-		return executor_.lock( );
+	auto& exc = impl_->executor;
+	if (!exc.expired( ))
+		return exc.lock( );
 
-	auto out  = std::make_shared<executor>(threads_count);
-	executor_ = out;
+	auto out = std::make_shared<executor>(threads_count);
+	exc      = out;
 	return out;
 }
 
-using dhooks::hook_holder_base;
+auto services_loader::get_executor( ) -> executor_shared
+{
+	return get_executor(std::thread::hardware_concurrency( ));
+}
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-std::vector<stored_service<hook_holder_base>> services_loader::get_hooks(bool steal)
+auto services_loader::get_hooks(bool steal) -> all_hooks_storage
 {
-	std::vector<stored_service<hook_holder_base>> out;
+	using stored_value = all_hooks_storage::value_type;
+	using stored_element = stored_value::element_type;
+	all_hooks_storage out;
 
-	auto& deps = *this->deps_;
-	for (auto& d: deps)
+	this->erase_all([steal, &out](const value_type& val)
 	{
-		auto ptr = std::dynamic_pointer_cast<hook_holder_base>(d);
+		auto ptr = steal
+					   ? std::dynamic_pointer_cast<stored_element>(const_cast<value_type&&>(val))
+					   : std::dynamic_pointer_cast<stored_element>(val);
 		if (!ptr)
-			continue;
+			return false;
 
 		out.push_back({std::move(ptr), stored_service_cast_tag{}});
 
-		if (steal)
-		{
-			value_type empty;
-			std::swap(empty, d);
-		}
-	}
-
-	if (steal && !out.empty( ))
-	{
-		auto to_remove = std::ranges::remove(deps, value_type( ));
-		deps.erase(to_remove.begin( ), to_remove.end( ));
-	}
+		return steal;
+	});
 
 	return out;
 }
@@ -163,28 +228,11 @@ basic_service::load_result services_loader::load_impl( ) noexcept
 // ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::unload( )
 {
-	auto loader = services_loader::get_ptr( );
-	if (this->type( ) == loader->type( ))
-		reload_one_instance(*loader);
+	auto& loader = services_loader::get( );
+	if (this->root_class( ))
+		reload_one_instance(loader);
 	else
-		loader->remove_service(this->type( ));
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void basic_service::remove_service(const std::type_info& info)
-{
-	const auto loader = services_loader::get_ptr( );
-	if (this->type( ) == loader->type( ))
-	{
-		auto& deps       = *loader->deps_;
-		const auto found = loader->find_service(info);
-		deps.erase(deps.begin( ) + std::distance(deps._Unchecked_begin( ), found));
-	}
-	else
-	{
-		auto dummy                = loader->find_service(typeid(dummy_service));
-		*this->find_service(info) = std::move(*dummy);
-	}
+		loader.erase(this->type( ));
 }
 
 //-----
@@ -199,5 +247,5 @@ void basic_service_shared::add_to_loader(value_type&& srv) const
 auto basic_service_shared::get_from_loader(const std::type_info& info) const -> value_type*
 {
 	const auto loader = services_loader::get_ptr( );
-	return loader->find_service(info);
+	return loader->find(info);
 }

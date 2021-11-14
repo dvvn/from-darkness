@@ -3,6 +3,7 @@
 
 #include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/sync_wait.hpp>
+#include <cppcoro/sync_wait.hpp>
 
 #include <Windows.h>
 
@@ -70,14 +71,7 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	constexpr auto try_load = []
-	{
-		const auto loader   = cheat::services_loader::get_ptr( );
-		const auto executor = loader->get_executor( );
-		return sync_wait(loader->load(*executor));
-	};
-
-	if (!try_load( ))
+	if (!cheat::services_loader::get( ).load( ))
 		goto _RESET;
 
 	// Setup Dear ImGui context
@@ -150,7 +144,7 @@ int main(int, char**)
 
 _RESET:
 
-	cheat::services_loader::get_ptr( )->unload(  );
+	cheat::services_loader::get( ).unload( );
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

@@ -246,16 +246,6 @@ concept imgui_window_has_font_dpi_scale = requires( )
 	typename T::FontDpiScale;
 };
 
-static float _Min(float a, float b)
-{
-	return std::min(a, b);
-}
-
-static float _Max(float a, float b)
-{
-	return std::max(a, b);
-}
-
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
 	const auto window_title = get_imgui_string(title.label_legacy);
@@ -348,7 +338,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 				const auto& pos = window->Pos;
 				rect.Min        = pos;
 				rect.Max.x      = pos.x + std::max(window->SizeFull.x - window->WindowBorderSize
-												 , pad_l + pad_r + title.label_size.x + (window->ScrollbarY ? window->ScrollbarSizes.x : 0));
+												 , pad_l + pad_r + title.label_size.x + (window->ScrollbarY ? window->ScrollbarSizes.x : 0.f));
 				rect.Max.y = pos.y + window->TitleBarHeight( );
 			}
 
@@ -362,28 +352,10 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 
 			const auto tb_rect = title_bar_rect( );
 
-			const auto fix_min_x = [&]
-			{
-				const auto wpt = static_cast<ImGuiViewportP*>(
-					ImGui::
-#ifdef IMGUI_HAS_VIEWPORT
-				GetWindowViewport
-#else
-					GetMainViewport
-#endif
-					( ));
-
-				const auto rect = wpt->GetMainRect( );
-				return !rect.Contains(tb_rect);
-			}( );
-
-			const auto min_x = !fix_min_x
-								   ? tb_rect.Min.x
-								   : std::invoke(tb_rect.Min.x > 0 ? _Min : _Max, tb_rect.Min.x, window->InnerRect.Min.x);
-			return ImRect(min_x + pad_l
-						, std::min(tb_rect.Min.y, window->OuterRectClipped.Min.y)
-						, min_x + (window->SizeFull.x - window->WindowBorderSize - pad_r)
-						, std::min(tb_rect.Max.y, window->OuterRectClipped.Max.y));
+			return ImRect(tb_rect.Min.x + pad_l
+						, tb_rect.Min.y
+						, tb_rect.Min.x + (window->SizeFull.x - window->WindowBorderSize - pad_r)
+						, tb_rect.Max.y);
 		}( );
 
 		style.WindowMinSize = ImVec2(title.label_size.x + pad_r + pad_l, /*title.label_size.y*/button_sz);

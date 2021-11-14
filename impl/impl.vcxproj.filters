@@ -177,11 +177,11 @@
     <ClInclude Include="cheat\utils\game.h" />
     <ClInclude Include="cheat\gui\widgets\selectable.h" />
     <ClInclude Include="cheat\service\include.h" />
-    <ClInclude Include="cheat\service\data.h" />
     <ClInclude Include="cheat\service\state.h" />
     <ClInclude Include="cheat\service\stored.h" />
     <ClInclude Include="cheat\netvars\storage_ndebug.h" />
     <ClInclude Include="cheat\netvars\storage_iter.h" />
     <ClInclude Include="cheat\netvars\lazy.h" />
+    <ClInclude Include="cheat\settings\shared_data.h" />
   </ItemGroup>
 </Project>

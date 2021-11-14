@@ -1,6 +1,11 @@
 #include "console.h"
-#include "csgo_awaiter.h"
+#ifdef CHEAT_HAVE_CONSOLE
 #include "services_loader.h"
+#ifndef CHEAT_GUI_TEST
+#include "csgo_awaiter.h"
+#endif
+
+#include "cheat/service/state.h"
 
 #include <nstd/module/all_infos.h>
 
@@ -25,7 +30,7 @@ struct string_packer::data_type : std::variant<str, strv, wstr, wstrv, ostr, wos
 };
 
 template <typename Store, typename Pack, typename T>
-static __forceinline void _Init_packer(std::unique_ptr<Pack>& pack, T&& obj)
+static void _Init_packer(std::unique_ptr<Pack>& pack, T&& obj)
 {
 	if (!pack)
 		pack = std::make_unique<Pack>( );
@@ -116,16 +121,74 @@ private:
 	std::vector<value_type> cache_;
 };
 
+#ifdef _DEBUG
+static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
+{
+	auto msg = std::ostringstream( );
+	msg << "Assertion falied!\n\n";
+
+	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool newline = true)
+	{
+		msg << name << ": " << value;
+		if (newline)
+			msg << '\n';
+	};
+
+	append("File", location.file_name( ));
+	append("Line", location.line( ));
+	append("Column", location.column( ));
+	append("Function", location.function_name( ), false);
+
+	if (expression)
+		append("\n\nExpression", expression, false);
+	if (message)
+		msg << "\nMessage" << message;
+
+	return msg;
+}
+
+struct console_assert_handler final : nstd::rt_assert_handler
+{
+	void handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept override
+	{
+		if (expression_result)
+			return;
+
+		impl_->write_line(_Prepare_message(expression, message, location));
+	}
+
+	void handle(const char* message, const std::source_location& location) noexcept override
+	{
+		impl_->write_line(_Prepare_message(nullptr, message, location));
+	}
+
+	size_t id( ) const override
+	{
+		return reinterpret_cast<size_t>(impl_);
+	}
+
+	console_assert_handler(console_impl* const impl)
+		: impl_(impl)
+	{
+	}
+
+private:
+	console_impl* impl_;
+};
+#endif
+
 console_impl::console_impl( )
 {
-	runtime_assert_add_handler(this);
 	cache_ = std::make_unique<cache_type>( );
+	runtime_assert_add_handler(std::make_unique<console_assert_handler>(this));
+#ifndef CHEAT_GUI_TEST
 	this->add_dependency(csgo_awaiter::get( ));
+#endif
 }
 
 console_impl::~console_impl( )
 {
-	runtime_assert_remove_handler(this);
+	runtime_assert_remove_handler(reinterpret_cast<size_t>(this));
 
 	if (this->allocated_)
 	{
@@ -182,73 +245,6 @@ auto console_impl::load_impl( ) noexcept -> load_result
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
 	CHEAT_SERVICE_LOADED;
 }
-
-#if defined(_DEBUG)
-
-static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
-{
-	auto msg = std::ostringstream( );
-	msg << "Assertion falied!\n\n";
-
-	const auto append = [&]<typename Name, typename Value>(Name&& name, Value&& value, bool newline = true)
-	{
-		msg << name << ": " << value;
-		if (newline)
-			msg << '\n';
-	};
-
-	append("File", location.file_name( ));
-	append("Line", location.line( ));
-	append("Column", location.column( ));
-	append("Function", location.function_name( ), false);
-
-	if (expression)
-		append("\n\nExpression", expression, false);
-	if (message)
-		msg << "\nMessage" << message;
-
-	return msg;
-}
-
-#ifdef _DEBUG
-static void _Assert(const char* message, const std::source_location& location)
-{
-	constexpr auto make_wstring = [](const char* str)
-	{
-		return std::wstring(str, str + std::char_traits<char>::length(str));
-	};
-	return _wassert(make_wstring(message).c_str( ), make_wstring(location.file_name( )).c_str( ), location.line( ));
-}
-#endif
-
-void console_impl::handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept
-{
-	if (expression_result)
-		return;
-
-	this->write_line(_Prepare_message(expression, message, location));
-#ifdef _DEBUG
-	[[maybe_unused]] const auto from  = _ReturnAddress( );
-	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
-	_Assert(message, location);
-#endif
-}
-
-void console_impl::handle(const char* message, const std::source_location& location) noexcept
-{
-	this->write_line(_Prepare_message(nullptr, message, location));
-#ifdef _DEBUG
-	[[maybe_unused]] const auto from  = _ReturnAddress( );
-	[[maybe_unused]] const auto from2 = _AddressOfReturnAddress( );
-	_Assert(message, location);
-#endif
-}
-
-size_t console_impl::id( ) const
-{
-	return __COUNTER__;
-}
-#endif
 
 template <typename Chr, typename Tr>
 static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
@@ -410,24 +406,6 @@ static auto _Get_time_str( )
 		   << std::setw(3) << current_microseconds;
 }
 
-//template <class T>
-//// ReSharper disable once CppInconsistentNaming
-//concept _Has_member_char_type = requires
-//{
-//	typename T::char_type;
-//};
-//
-//template <typename T>
-//static auto _Detect_char_type( )
-//{
-//	if constexpr (_Has_member_char_type<T>)
-//		return T::char_type( );
-//	else if constexpr (std::_Has_member_value_type<T>)
-//		return T::value_type( );
-//	else
-//		return char( );
-//}
-
 static auto _Write_or_cache_full = []<typename T>(T&& text, const console_impl* instance, console_cache_type_uptr& cache)
 {
 	decltype(auto) view = _Unwrap_view(text);
@@ -466,3 +444,4 @@ void console_impl::write_line(string_packer&& str)
 }
 
 CHEAT_SERVICE_REGISTER(console);
+#endif
