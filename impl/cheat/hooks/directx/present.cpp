@@ -1,6 +1,7 @@
 #include "present.h"
 
 #include "cheat/gui/menu.h"
+#include "cheat/gui/shaders/PostProcessing.h"
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -12,7 +13,7 @@ using namespace hooks::directx;
 
 void present_impl::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
-	const auto d3d_device = this->get_object_instance();
+	const auto d3d_device = this->get_object_instance( );
 
 #ifdef IMGUI_HAS_DOCK
 	runtime_assert(ImGui::GetIO( ).ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
@@ -21,6 +22,7 @@ void present_impl::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*
 	ImGui_ImplDX9_NewFrame( );   //todo: erase. it only calls CreateDeviceObjects, what can be done after reset and init
 	ImGui_ImplWin32_NewFrame( ); //todo: call it from input (it only update mouse and keys). (if do it move timers outside)
 	ImGui::NewFrame( );
+	PostProcessing::newFrame( );
 	{
 		const auto& menu = gui::menu::get( );
 		[[maybe_unused]]
@@ -29,7 +31,7 @@ void present_impl::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*
 #ifndef CHEAT_GUI_TEST
 		if (render_result)
 #endif
-			ImGui::ShowDemoWindow( );
+		ImGui::ShowDemoWindow( );
 #endif
 	}
 	ImGui::EndFrame( );

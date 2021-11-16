@@ -27,7 +27,7 @@ using namespace cheat::csgo_modules;
 template <typename E, typename Tr>
 static info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
 {
-	const auto do_find = []<typename T>(T&& str)
+	const auto do_find = []<typename T>(const T& str)
 	{
 		return nstd::module::all_infos::get_ptr( )->find([&](const info& info)-> bool
 		{
@@ -69,16 +69,15 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	const auto create_fn = exports.at("CreateInterface"sv).addr;
 	const auto reg       = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
 
-	auto temp_entry = std::vector<ifcs_entry_type::value_type>( );
+	std::vector<std::pair<std::string_view, InstantiateInterfaceFn>> temp_entry;
 	for (auto r = reg; r != nullptr; r = r->next)
 		temp_entry.emplace_back(make_pair(std::string_view(r->name), r->create_fn));
 
 	const auto contains_duplicate = [&](const std::string_view& new_string, size_t original_size)
 	{
 		auto detected = false;
-		for (auto& e: temp_entry /*| std::views::keys*/)
+		for (auto& raw_string: temp_entry | std::views::keys)
 		{
-			auto&& raw_string = e.first;
 			if (raw_string.size( ) != original_size)
 				continue;
 			if (!raw_string.starts_with(new_string))
@@ -93,7 +92,8 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	{
 		if (str.ends_with('_'))
 		{
-			if (const auto str2 = std::string_view(str.begin( ), str.end( ) - 1); !contains_duplicate(str2, original_size))
+			const auto str2 = str.substr(0, str.size( ) - 1);
+			if (!contains_duplicate(str2, original_size))
 				return str2;
 		}
 		return {};
@@ -121,7 +121,7 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 		return drop_underline(str2, original_size).value_or(str2);
 	};
 
-	for (const auto& [name, fn]: temp_entry)
+	for (const auto [name, fn]: temp_entry)
 	{
 		const auto name_pretty = get_pretty_string(name);
 		entry.emplace(name_pretty.value_or(name), fn);
@@ -160,7 +160,7 @@ struct game_module_storage::impl
 		//no cache inside
 
 		const auto block = info_ptr->mem_block( );
-		const auto bytes = nstd::make_signature(sig);
+		const auto bytes = nstd::make_signature(sig.begin( ), sig.end( ));
 		const auto ret   = block.find_block(bytes);
 
 		if (ret.empty( ))

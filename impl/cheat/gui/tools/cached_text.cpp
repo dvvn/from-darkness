@@ -92,7 +92,7 @@ void cached_text::update( )
 
 	runtime_assert(!label.empty( ));
 	runtime_assert(font != nullptr);
-	runtime_assert(update_flags_ & (update_flags::CHANGED));
+	runtime_assert(update_flags_ & update_flags::CHANGED);
 
 	using char_type = label_type::value_type;
 	const auto get_glyphs_for = [&](const std::basic_string_view<char_type>& str)

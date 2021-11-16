@@ -13,9 +13,10 @@
 
 namespace cheat
 {
-	template <typename T,bool Root=false>
+	template <typename T, bool Root = false>
 	struct service : basic_service
 	{
+#ifdef CEHAT_SERVICE_HAVE_NAME
 		std::string_view name( ) const final
 		{
 			constexpr auto tmp   = nstd::type_name<T, "cheat">;
@@ -25,6 +26,7 @@ namespace cheat
 			else
 				return tmp;
 		}
+#endif
 
 		const std::type_info& type( ) const final
 		{
@@ -39,7 +41,7 @@ namespace cheat
 }
 
 #define CHEAT_SERVICE_SHARE(_NAME_) \
-	struct _NAME_ : service_shared<_NAME_##_impl>, nstd::one_instance<_NAME_> { }
+	struct _NAME_ : cheat::service_shared<_NAME_##_impl>, nstd::one_instance<_NAME_> { }
 
 #define CHEAT_SERVICE_RESULT(msg, ret)\
 	CHEAT_CONSOLE_LOG(std::format("\"{}\" {}", ((basic_service*)this)->name(), msg));\

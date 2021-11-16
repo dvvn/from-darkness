@@ -147,12 +147,22 @@ bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool bor
 #include "cheat/core/console.h"
 #include "cheat/gui/tools/cached_text.h"
 
+#include "../shaders/PostProcessing.h"
+
+#include <intrin.h>
+
+#include "cheat/hooks/base.h"
+#include "cheat/core/services_loader.h"
+#include "cheat/gui/imgui_context.h"
+
 #include <nstd/enum_tools.h>
 #include <nstd/runtime_assert_fwd.h>
 #include <nstd/unistring.h>
 #include <nstd/smooth_value.h>
 
 #include <imgui_internal.h>
+
+#include <cppcoro/task.hpp>
 
 #include <ranges>
 #include <vector>
@@ -245,6 +255,56 @@ concept imgui_window_has_font_dpi_scale = requires( )
 {
 	typename T::FontDpiScale;
 };
+
+class PushClipRect_callback_impl : public cheat::service<PushClipRect_callback_impl>
+								 , public decltype(dhooks::_Detect_hook_holder(ImGui::PushClipRect))
+{
+public:
+	PushClipRect_callback_impl( )
+	{
+		this->add_dependency(imgui_context::get( ));
+	}
+
+	void* get_target_method( ) const override
+	{
+		//return dhooks::_Pointer_to_class_method(&ImDrawList::_ResetForNewFrame);
+		return ImGui::PushClipRect;
+	}
+
+	void callback(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect) override
+	{
+		/*if (disable_for == this->get_object_instance( ))
+			this->store_return_value( );*/
+
+		auto addr = this->return_address( );
+		auto fn   = ImGui::Begin;
+
+		auto wnd = ImGui::GetCurrentWindowRead( );
+
+		if (wnd->DrawList->CmdBuffer.Size != 1 || wnd->DrawList->CmdBuffer[0].ElemCount != 0)
+			return;
+		if (wnd->SkipItems || wnd->ParentWindow || GImGui->NavWindow != wnd)
+			return;
+
+		this->call_original_and_store_result(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
+
+		auto dlist = wnd->DrawList;;
+		auto& rect = wnd->InnerClipRect;
+		dlist->PushClipRect(rect.Min, rect.Max);
+		PostProcessing::performFullscreenBlur(dlist, ImGui::GetStyle().Alpha);
+		dlist->PopClipRect( );
+	}
+
+protected:
+	load_result load_impl( ) noexcept override
+	{
+		CHEAT_LOAD_HOOK_PROXY
+	}
+};
+
+CHEAT_SERVICE_SHARE(PushClipRect_callback);
+
+CHEAT_SERVICE_REGISTER(PushClipRect_callback);
 
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
@@ -362,12 +422,31 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 	}
 
 	window_end_token ret;
-	ret.set(ImGui::Begin(window_title, open, flags));
+	ret.set(ImGui::Begin(window_title, open, 0));
 
 	if (title_rect.has_value( ))
 	{
 		title.render(window->DrawList, title_rect->Min, ImGui::GetColorU32(ImGuiCol_Text), style.WindowTitleAlign, *title_rect, false, true);
 	}
+
+	//note: this suck, hooking the only way
+#if 0
+	if (ret == true && window)
+	{
+		static float alpha = 1;
+
+		//WARNING: it blur window decorations, because they rendered before!.
+		//hook something inside Begin, or fix clip rect
+
+		auto dlist = window->DrawList;
+		auto& rect = window->InnerRect;
+
+		ImGui::PushClipRect(rect.Min + style.WindowPadding, rect.Max - style.WindowPadding, 0);
+		PostProcessing::performFullscreenBlur(dlist, alpha);
+		ImGui::PopClipRect( );
+		ImGui::SliderFloat("alpha", &alpha, 0, 1);
+	}
+#endif
 
 	return ret;
 }

@@ -5,6 +5,10 @@
 #include "cheat/core/csgo_interfaces.h"
 #include "cheat/core/services_loader.h"
 
+#include "shaders/PostProcessing.h"
+
+#include <nstd/file/to_memory.h>
+
 #include <cppcoro/task.hpp>
 
 #include <imgui_internal.h>
@@ -14,7 +18,6 @@
 #include <d3d9.h>
 
 #include <filesystem>
-#include <fstream>
 #include <functional>
 #include <optional>
 
@@ -49,8 +52,6 @@ fonts_builder_proxy::fonts_builder_proxy(ImFontAtlas* atlas)
 	impl_->known_fonts = atlas->ConfigData.size( );
 }
 
-#include <nstd/module/info.h>
-
 fonts_builder_proxy::~fonts_builder_proxy( )                                              = default;
 fonts_builder_proxy::fonts_builder_proxy(fonts_builder_proxy&& other) noexcept            = default;
 fonts_builder_proxy& fonts_builder_proxy::operator=(fonts_builder_proxy&& other) noexcept = default;
@@ -62,8 +63,6 @@ ImFont* fonts_builder_proxy::add_default_font(std::optional<ImFontConfig>&& cfg_
 
 	return impl_->atlas->AddFontDefault(std::addressof(*cfg_opt));
 }
-
-#include <nstd/file/to_memory.h>
 
 ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path& path, std::optional<ImFontConfig>&& cfg_opt)
 {
@@ -197,7 +196,7 @@ bool imgui_context_impl::inctive( ) const
 	return (hwnd != GetForegroundWindow( ));
 }
 
-auto imgui_context_impl::load_impl( ) noexcept -> basic_service::load_result
+auto imgui_context_impl::load_impl( ) noexcept -> load_result
 {
 	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
 
@@ -268,6 +267,11 @@ auto imgui_context_impl::load_impl( ) noexcept -> basic_service::load_result
 		return fonts.add_default_font(std::move(font_cfg));
 #endif
 	}( );
+
+	//----
+
+	//TESTING
+	PostProcessing::setDevice(d3d);
 
 	CHEAT_SERVICE_LOADED
 }

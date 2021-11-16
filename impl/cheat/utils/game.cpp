@@ -56,7 +56,7 @@ float lerp_time_impl::operator()() const
 	const auto min_ratio = find_cvar<"sv_client_min_interp_ratio">( )->get<float>( );
 	const auto max_ratio = find_cvar<"sv_client_max_interp_ratio">( )->get<float>( );
 
-	if ((min_ratio) != -1.0f)
+	if (min_ratio != -1.0f)
 		lerp_ratio = std::clamp(lerp_ratio, min_ratio, max_ratio);
 
 	const auto ret = std::max(lerp_amount, lerp_ratio / update_rate);
@@ -76,10 +76,10 @@ float unlag_range_impl::operator()() const
 
 ConVar* find_cvar_impl::operator()(const std::string_view& cvar) const
 {
-	constexpr auto get_root_cvar = []
+	constexpr auto get_root_cvar = []()->ConVar*
 	{
-		const auto cvars = csgo_interfaces::get( )->cvars.get( );
-		return nstd::address(cvars).add(0x30).deref(1).ptr<ConVar>( );
+		const nstd::address cvars = csgo_interfaces::get( )->cvars.get();
+		return cvars.add(0x30).deref(1).ptr( );
 	};
 	const auto get_cvar_from_game = [&]()-> ConVar*
 	{
@@ -96,6 +96,7 @@ ConVar* find_cvar_impl::operator()(const std::string_view& cvar) const
 	CHEAT_CONSOLE_LOG(std::format("Cvar \"{}\" {}", cvar, cv == nullptr ? "not found" : "found"));
 	return cv;
 }
+
 
 static float _Interval_per_ticks()
 {

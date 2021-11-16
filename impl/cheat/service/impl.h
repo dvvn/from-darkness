@@ -6,6 +6,10 @@
 
 #include <concepts>
 
+#if defined(_DEBUG) || defined(CHEAT_HAVE_CONSOLE)
+#define CEHAT_SERVICE_HAVE_NAME
+#endif
+
 namespace cppcoro
 {
 	class static_thread_pool;
@@ -148,7 +152,9 @@ namespace cheat
 		template <root_service T>
 		void add_dependency(const service_shared<T>& srv) { add_dependency(srv.share( )); }
 
+#ifdef CEHAT_SERVICE_HAVE_NAME
 		virtual std::string_view name( ) const = 0;
+#endif
 		virtual const std::type_info& type( ) const = 0;
 
 		service_state state( ) const;
