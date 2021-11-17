@@ -311,14 +311,18 @@ protected:
 private:
 	void first_pass(const ImDrawList*, const ImDrawCmd*) const noexcept
 	{
-		data_.x.shader.use(1.0f / (_Back_buffer_width / down_sample_), 0);
-		_Set_render_target(data_.y.texture.get( ));
+		auto& [x,y] = data_;
+
+		x.shader.use(1.0f / (_Back_buffer_width / down_sample_), 0);
+		_Set_render_target(y.texture.get( ));
 	}
 
 	void second_pass(const ImDrawList*, const ImDrawCmd*) const noexcept
 	{
-		data_.y.shader.use(1.0f / (_Back_buffer_height / down_sample_), 0);
-		_Set_render_target(data_.x.texture.get( ));
+		auto& [x,y] = data_;
+
+		y.shader.use(1.0f / (_Back_buffer_height / down_sample_), 0);
+		_Set_render_target(x.texture.get( ));
 	}
 
 protected:
@@ -327,12 +331,14 @@ protected:
 		const auto min = ImVec2(0, 0);
 		const auto max = ImVec2(_Back_buffer_width, _Back_buffer_height);
 
+		auto& [x,y] = data_;
+
 		for (auto i = 0; i < 8; ++i)
 		{
 			drawList->AddCallback({this, &blur_shader_updater::first_pass}, nullptr);
-			drawList->AddImage(data_.x.texture.get( ), min, max);
+			drawList->AddImage(x.texture.get( ), min, max);
 			drawList->AddCallback({this, &blur_shader_updater::second_pass}, nullptr);
-			drawList->AddImage(data_.y.texture.get( ), min, max);
+			drawList->AddImage(y.texture.get( ), min, max);
 		}
 	}
 
@@ -1012,6 +1018,7 @@ public:
 		if (add_on_new_frame_.empty( ))
 			return;
 
+		Storage::reserve(Storage::size( ) + add_on_new_frame_.size( ));
 		for (auto& entry: add_on_new_frame_)
 			Storage::push_back(std::move(entry));
 
