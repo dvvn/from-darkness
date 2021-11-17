@@ -8,9 +8,10 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>
+	 $(MSBuildThisFileDirectory);
 	 $(GitClonedProjects)\imgui;
 	 $(GitClonedProjects)\imgui\backends;
-	 $(GitClonedProjects)\imgui\misc\cpp;
+	 $(GitClonedProjects)\imgui\misc\cpp;	 
 	 %(AdditionalIncludeDirectories)
        </AdditionalIncludeDirectories>
     </ClCompile>

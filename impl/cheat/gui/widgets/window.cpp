@@ -276,22 +276,28 @@ public:
 		/*if (disable_for == this->get_object_instance( ))
 			this->store_return_value( );*/
 
-		auto addr = this->return_address( );
-		auto fn   = ImGui::Begin;
+		//auto addr = this->return_address( );
+		//auto fn   = ImGui::Begin;
 
 		auto wnd = ImGui::GetCurrentWindowRead( );
 
+		//todo: remove fallback window
+		if (wnd->IsFallbackWindow)
+			return;
+
+		//see ImGui::Begin
+		//rendering starts after this line
 		if (wnd->DrawList->CmdBuffer.Size != 1 || wnd->DrawList->CmdBuffer[0].ElemCount != 0)
 			return;
-		if (wnd->SkipItems || wnd->ParentWindow || GImGui->NavWindow != wnd)
+		if (wnd->SkipItems || wnd->ParentWindow || wnd->Hidden)
 			return;
 
 		this->call_original_and_store_result(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
 
-		auto dlist = wnd->DrawList;;
-		auto& rect = wnd->InnerClipRect;
+		auto dlist       = wnd->DrawList;
+		const auto& rect = wnd->OuterRectClipped;
 		dlist->PushClipRect(rect.Min, rect.Max);
-		PostProcessing::performFullscreenBlur(dlist, ImGui::GetStyle().Alpha);
+		PostProcessing::performFullscreenBlur(dlist, ImGui::GetStyle( ).Alpha);
 		dlist->PopClipRect( );
 	}
 

@@ -6,15 +6,7 @@
   <ItemDefinitionGroup>
      <ClCompile>
 	<PreprocessorDefinitions>
-	 IMGUI_DISABLE_DEFAULT_ALLOCATORS=1;
-	 IMGUI_USE_WCHAR32;
-	 IMGUI_USE_STB_SPRINTF;
-	 IMGUI_DEFINE_MATH_OPERATORS;
-	 IMGUI_DISABLE_OBSOLETE_FUNCTIONS;
-	 IMGUI_IMPL_WIN32_DISABLE_GAMEPAD;
-	 IMGUI_STB_TRUETYPE_FILENAME=&lt;stb_truetype.h&gt;;
-	 IMGUI_STB_RECT_PACK_FILENAME=&lt;stb_rect_pack.h&gt;;
-	 ImDrawIdx=size_t;
+	 IMGUI_USER_CONFIG=&lt;imgui_user_config.h&gt;;
 	 %(PreprocessorDefinitions)
 	</PreprocessorDefinitions>
     </ClCompile>
