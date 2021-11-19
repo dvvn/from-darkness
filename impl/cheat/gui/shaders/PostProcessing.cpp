@@ -422,45 +422,67 @@ public:
 		return true;
 	}
 
+private:
 	struct last_data
 	{
-		blur_effect* effect    = 0;
-		const ImDrawList* list = 0;
-		const ImDrawCmd* cmd   = 0;
+		blur_effect* effect    = nullptr;
+		const ImDrawList* list = nullptr;
+		const ImDrawCmd* cmd   = nullptr;
 	};
 
 	inline static last_data last_data_;
-private:
-	bool skip_update_ = 0;
+	inline static uint32_t first_begin_framecount_ = static_cast<uint32_t>(-1);
+
+	bool reset_last_data( )
+	{
+		if (first_begin_framecount_ == ImGui::GetFrameCount( ))
+			return false;
+
+		first_begin_framecount_ = ImGui::GetFrameCount( );
+		last_                   = last_data_ = {};
+		return true;
+	}
+
+	bool skip_update_ = false;
 	last_data last_;
 
 	bool can_skip_update(const ImDrawCmd* this_cmd) const
 	{
-		bool ret = 0;
-
-		for (auto prev = &this->last_; prev->effect != 0; prev = &prev->effect->last_)
+		auto skip = false;
+		for (auto prev = &this->last_; prev->effect != nullptr; prev = &prev->effect->last_)
 		{
-			ret = 1;
+			skip = true;
 
 			const auto prev_cmd = prev->cmd;
 			auto& this_rect     = reinterpret_cast<const ImRect&>(this_cmd->ClipRect);
 			auto& prev_rect     = reinterpret_cast<const ImRect&>(prev_cmd->ClipRect);
 
 			if (this_rect.Overlaps(prev_rect))
-				return 0;
+			{
+				//todo: do something if overlapped region too small
+
+				skip = false;
+				break;
+			}
 		}
 
-		return ret;
+		return skip;
 	}
 
 protected:
 	void begin(const ImDrawList* list, const ImDrawCmd* cmd) override
 	{
-		last_        = last_data_;
-		last_data_   = {this, list, cmd};
-		skip_update_ = can_skip_update(cmd);
-		if (skip_update_)
-			return;
+		if (!reset_last_data( ))
+		{
+			last_      = last_data_;
+			last_data_ = {this, list, cmd};
+			if (can_skip_update(cmd))
+			{
+				skip_update_ = true;
+				return;
+			}
+		}
+		skip_update_ = false;
 
 		TEST_RESULT = _D3d_device->GetRenderTarget(0, std::addressof(backup_));
 		x.texture.store_back_buffer(D3DTEXF_LINEAR);
@@ -505,28 +527,33 @@ protected:
 		}
 	}
 
+private:
+	void set_previous_texture(ImDrawList* list, const ImDrawCmd* cmd) const
+	{
+		auto prev = this->last_.effect;
+		while (prev->skip_update_)
+			prev = prev->last_.effect;
+
+		auto draw_cmd = std::ranges::find(list->CmdBuffer, cmd, [](const ImDrawCmd& cmd0) { return std::addressof(cmd0); }) + 2; //current and reset
+		auto texture  = prev->x.texture.get( );
+
+		draw_cmd->TextureId = texture;
+	}
+
+protected:
 	void end(const ImDrawList* list, const ImDrawCmd* cmd) override
 	{
-		if (!skip_update_)
+		if (skip_update_)
+		{
+			//todo: workaround down_sample_ and clarity_
+			set_previous_texture(const_cast<ImDrawList*>(list), cmd);
+		}
+		else
 		{
 			TEST_RESULT = _D3d_device->SetRenderTarget(0, backup_);
 			backup_->Release( );
 			TEST_RESULT = _D3d_device->SetPixelShader(nullptr);
 			TEST_RESULT = _D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
-		}
-		else
-		{
-			for (auto prev = this->last_.effect;; prev = prev->last_.effect)
-			{
-				if (prev->skip_update_)
-					continue;
-
-				auto draw_cmd = std::ranges::find(list->CmdBuffer, cmd, [](const ImDrawCmd& cmd0) { return std::addressof(cmd0); }) + 2; //current and reset
-				auto texture  = prev->x.texture.get( );
-
-				const_cast<ImTextureID&>(draw_cmd->TextureId) = (texture);
-				break;
-			}
 		}
 	}
 
@@ -1349,7 +1376,6 @@ void PostProcessing::newFrame( ) noexcept
 	_Back_buffer_height = size.y;
 
 	_Blur.on_new_frame( );
-	blur_effect::last_data_ = {};
 }
 
 void PostProcessing::performFullscreenBlur(ImDrawList* drawList, float alpha) noexcept
