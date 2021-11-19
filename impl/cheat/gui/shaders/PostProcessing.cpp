@@ -1387,12 +1387,12 @@ void PostProcessing::performFullscreenBlur(ImDrawList* drawList, float alpha) no
 	if (!stored)
 		return;
 
-	const auto wnd = ImGui::GetCurrentWindowRead( );
 	blur.set_color(alpha);
 	blur.update(drawList);
 	blur.render(drawList);
 
 #ifdef _DEBUG
+	const auto wnd = ImGui::GetCurrentWindowRead( );
 	if (!(wnd->Flags & (ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)))
 		blur.debug_update( );
 #endif
