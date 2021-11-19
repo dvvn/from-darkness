@@ -119,8 +119,8 @@ std::optional<ImFontConfig> fonts_builder_proxy::default_font_config( )
 	ImFontConfig font_cfg;
 	//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 	static ImWchar ranges[] = {
-			0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
-			0
+		0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
+		0
 	};
 	//font_cfg.OversampleH = 3;
 	//font_cfg.OversampleV = 1;
@@ -232,8 +232,7 @@ auto imgui_context_impl::load_impl( ) noexcept -> load_result
 
 	const auto set_style = [&]
 	{
-		[[maybe_unused]]
-				auto& style = data_->ctx.Style;
+		[[maybe_unused]] auto& style = data_->ctx.Style;
 #if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
 
 		/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;
@@ -247,6 +246,9 @@ auto imgui_context_impl::load_impl( ) noexcept -> load_result
 		style.WindowShadowOffsetDist = 10;
 		style.Colors[ImGuiCol_WindowShadow] = /*ImColor(0, 0, 0, 255)*/style.Colors[ImGuiCol_WindowBg];
 #endif
+
+		style.Colors[ImGuiCol_WindowBg].w = 0.7f;
+		style.Colors[ImGuiCol_PopupBg].w = 0.5f;
 	};
 
 	set_style( );

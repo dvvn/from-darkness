@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugMENU|Win32">
-      <Configuration>DebugMENU</Configuration>
+    <ProjectConfiguration Include="GuiTest|Win32">
+      <Configuration>GuiTest</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="GuiTestDebug|Win32">
+      <Configuration>GuiTestDebug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
@@ -43,10 +47,16 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -79,9 +89,15 @@
     <Import Project="impl_config.props" />
     <Import Project="..\Project Settings.props" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">
     <Import Project="..\deps\imgui_config.props" />
     <Import Project="..\Debug Settings.props" />
+    <Import Project="impl_config.props" />
+    <Import Project="..\Project Settings.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'" Label="PropertySheets">
+    <Import Project="..\deps\imgui_config.props" />
+    <Import Project="..\Release Settings.props" />
     <Import Project="impl_config.props" />
     <Import Project="..\Project Settings.props" />
   </ImportGroup>
@@ -94,7 +110,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile />
@@ -109,7 +126,15 @@
       <PreprocessorDefinitions>CHEAT_NETVARS_UPDATING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">
+    <ClCompile />
+    <Link />
+    <ClCompile />
+    <ClCompile>
+      <PreprocessorDefinitions>CHEAT_GUI_TEST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">
     <ClCompile />
     <Link />
     <ClCompile />
@@ -126,7 +151,9 @@
   </ImportGroup>
   <ItemGroup>
     <ClCompile Include="cheat\core\console.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
@@ -136,15 +163,18 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\core\csgo_awaiter.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\core\csgo_interfaces.cpp" />
     <ClCompile Include="cheat\core\csgo_modules.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\gui\shaders\PostProcessing.cpp" />
     <ClCompile Include="cheat\netvars\lazy.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\service\impl.cpp" />
     <ClCompile Include="cheat\core\services_loader.cpp" />
@@ -152,30 +182,37 @@
     <ClCompile Include="cheat\csgo\CInput.cpp" />
     <ClCompile Include="cheat\csgo\Color.cpp" />
     <ClCompile Include="cheat\csgo\entity\C_BaseAnimating.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\csgo\entity\C_BaseCombatCharacter.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\csgo\entity\C_BaseCombatWeapon.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\csgo\entity\C_BaseEntity.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\csgo\entity\C_BasePlayer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\csgo\entity\C_CSPlayer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\csgo\entity\C_WeaponCSBase.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\csgo\IBaseClientDll.cpp" />
@@ -200,42 +237,52 @@
     <ClCompile Include="cheat\gui\widgets\window.cpp" />
     <ClCompile Include="cheat\hooks\client mode\create_move.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\client mode\create_move_init.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\client\frame_stage_notify.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\client\frame_stage_notify_init.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_baseanimating\should_skip_animation_frame.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_baseanimating\should_skip_animation_frame_init.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_baseanimating\standard_blending_rules.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_baseanimating\standard_blending_rules_init.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_base_entity\estimate_abs_velocity.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_base_entity\estimate_abs_velocity_init.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_base_entity\should_interpolate.cpp">
@@ -246,11 +293,13 @@
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_csplayer\do_extra_bone_processing.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\c_csplayer\do_extra_bone_processing_init.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\directx\present.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">
@@ -269,49 +318,61 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\studio render\draw_model.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\studio render\draw_model_init.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\vgui surface\lock_cursor.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\vgui surface\lock_cursor_init.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\hooks\winapi\wndproc.cpp" />
     <ClCompile Include="cheat\hooks\winapi\wndproc_init.cpp" />
     <ClCompile Include="cheat\netvars\data_dumper.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\netvars\data_filler.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\netvars\data_handmade.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\netvars\netvars.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\netvars\type_resolve.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\players\player.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\players\players_list.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\players\tick_record.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugMENU|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\utils\game.cpp" />
     <ClCompile Include="entry.cpp" />

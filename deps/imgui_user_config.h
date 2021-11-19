@@ -28,7 +28,7 @@ namespace ImGui
 		template <std::invocable<ImDrawList*, ImDrawCmd*> Fn>
 		ImDrawCallback_custom(Fn fn)
 		{
-			idx     = 1;
+			idx     = index::STATIC;
 			static_ = fn;
 		}
 
@@ -91,13 +91,24 @@ namespace ImGui
 
 		bool operator==(decltype(nullptr)) const
 		{
-			return static_ == 0;
+			switch (idx)
+			{
+				case index::UNSET:
+					return true;
+				case index::STATIC:
+					return static_ == 0;
+				case index::MEMBER:
+					static auto empty_arr = ImDrawCallback_custom( ).dummy_;
+					return __builtin_memcmp(dummy_, empty_arr, _Dummy_size) == 0;
+				case index::RESET:
+					return false;
+			}
 		}
 
 		bool operator==(const ImDrawCallback_custom& other) const
 		{
 			if (idx != other.idx)
-				return 0;
+				return false;
 
 			switch (idx)
 			{

@@ -76,23 +76,28 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
-		DebugMENU|x86 = DebugMENU|x86
+		GuiTest|x86 = GuiTest|x86
+		GuiTestDebug|x86 = GuiTestDebug|x86
 		NetvarsDump|x86 = NetvarsDump|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Debug|x86.ActiveCfg = Debug|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Debug|x86.Build.0 = Debug|Win32
-		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.DebugMENU|x86.ActiveCfg = DebugMENU|Win32
-		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.DebugMENU|x86.Build.0 = DebugMENU|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.GuiTest|x86.ActiveCfg = GuiTest|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.GuiTest|x86.Build.0 = GuiTest|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.GuiTestDebug|x86.ActiveCfg = GuiTestDebug|Win32
+		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.GuiTestDebug|x86.Build.0 = GuiTestDebug|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.NetvarsDump|x86.ActiveCfg = NetvarsDump|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.NetvarsDump|x86.Build.0 = NetvarsDump|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.ActiveCfg = Release|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.Build.0 = Release|Win32
 		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.Debug|x86.ActiveCfg = Debug|Win32
 		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.Debug|x86.Build.0 = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.DebugMENU|x86.ActiveCfg = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.DebugMENU|x86.Build.0 = Debug|Win32
+		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTest|x86.ActiveCfg = Release|Win32
+		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTest|x86.Build.0 = Release|Win32
+		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTestDebug|x86.ActiveCfg = Debug|Win32
+		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTestDebug|x86.Build.0 = Debug|Win32
 		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.NetvarsDump|x86.ActiveCfg = Debug|Win32
 		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.NetvarsDump|x86.Build.0 = Debug|Win32
 		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.Release|x86.ActiveCfg = Release|Win32
@@ -102,7 +107,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		Qt5Version = $(DefaultQtVersion)
 		SolutionGuid = {4C2BD1D5-32A3-4BEF-BEB3-A5E5EE8A1521}
+		Qt5Version = $(DefaultQtVersion)
 	EndGlobalSection
 EndGlobal

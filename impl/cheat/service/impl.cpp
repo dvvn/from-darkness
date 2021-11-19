@@ -19,7 +19,7 @@ using namespace cheat;
 	const service_state _state = _STATE_;\
 	runtime_assert(_state != service_state::loading && _state != service_state::waiting, "Unable to modify running service!");}
 #else
-CHEAT_SERVICE_LOADING_ASSERT(...) (void)0
+#define CHEAT_SERVICE_LOADING_ASSERT(...) (void)0
 #endif
 
 struct basic_service::impl

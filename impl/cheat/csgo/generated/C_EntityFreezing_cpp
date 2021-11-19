@@ -2,6 +2,7 @@
 #include "cheat/netvars/netvars.h"
 #include <nstd/address.h>
 
+#include "cheat/csgo/Vector.hpp"
 #include <array>
 
 using namespace cheat::csgo;

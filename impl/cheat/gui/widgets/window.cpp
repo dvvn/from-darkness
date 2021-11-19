@@ -273,23 +273,17 @@ public:
 
 	void callback(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect) override
 	{
-		/*if (disable_for == this->get_object_instance( ))
-			this->store_return_value( );*/
-
-		//auto addr = this->return_address( );
-		//auto fn   = ImGui::Begin;
-
 		auto wnd = ImGui::GetCurrentWindowRead( );
-
-		//todo: remove fallback window
-		if (wnd->IsFallbackWindow)
-			return;
 
 		//see ImGui::Begin
 		//rendering starts after this line
 		if (wnd->DrawList->CmdBuffer.Size != 1 || wnd->DrawList->CmdBuffer[0].ElemCount != 0)
 			return;
-		if (wnd->SkipItems || wnd->ParentWindow || wnd->Hidden)
+
+		//todo: remove fallback window
+		if (wnd->IsFallbackWindow)
+			return;
+		if (!PostProcessing::custom_textures_applicable(wnd))
 			return;
 
 		this->call_original_and_store_result(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
@@ -428,7 +422,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 	}
 
 	window_end_token ret;
-	ret.set(ImGui::Begin(window_title, open, 0));
+	ret.set(ImGui::Begin(window_title, open, flags));
 
 	if (title_rect.has_value( ))
 	{
