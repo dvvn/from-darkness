@@ -422,9 +422,46 @@ public:
 		return true;
 	}
 
-protected:
-	void begin(const ImDrawList*, const ImDrawCmd*) override
+	struct last_data
 	{
+		blur_effect* effect    = 0;
+		const ImDrawList* list = 0;
+		const ImDrawCmd* cmd   = 0;
+	};
+
+	inline static last_data last_data_;
+private:
+	bool skip_update_ = 0;
+	last_data last_;
+
+	bool can_skip_update(const ImDrawCmd* this_cmd) const
+	{
+		bool ret = 0;
+
+		for (auto prev = &this->last_; prev->effect != 0; prev = &prev->effect->last_)
+		{
+			ret = 1;
+
+			const auto prev_cmd = prev->cmd;
+			auto& this_rect     = reinterpret_cast<const ImRect&>(this_cmd->ClipRect);
+			auto& prev_rect     = reinterpret_cast<const ImRect&>(prev_cmd->ClipRect);
+
+			if (this_rect.Overlaps(prev_rect))
+				return 0;
+		}
+
+		return ret;
+	}
+
+protected:
+	void begin(const ImDrawList* list, const ImDrawCmd* cmd) override
+	{
+		last_        = last_data_;
+		last_data_   = {this, list, cmd};
+		skip_update_ = can_skip_update(cmd);
+		if (skip_update_)
+			return;
+
 		TEST_RESULT = _D3d_device->GetRenderTarget(0, std::addressof(backup_));
 		x.texture.store_back_buffer(D3DTEXF_LINEAR);
 
@@ -438,12 +475,16 @@ protected:
 private:
 	void first_pass(const ImDrawList*, const ImDrawCmd*) const noexcept
 	{
+		if (skip_update_)
+			return;
 		x.shader.use(1.0f / (_Back_buffer_width / down_sample_), 0);
 		y.texture.set_as_target( );
 	}
 
 	void second_pass(const ImDrawList*, const ImDrawCmd*) const noexcept
 	{
+		if (skip_update_)
+			return;
 		y.shader.use(1.0f / (_Back_buffer_height / down_sample_), 0);
 		x.texture.set_as_target( );
 	}
@@ -464,12 +505,29 @@ protected:
 		}
 	}
 
-	void end(const ImDrawList*, const ImDrawCmd*) override
+	void end(const ImDrawList* list, const ImDrawCmd* cmd) override
 	{
-		TEST_RESULT = _D3d_device->SetRenderTarget(0, backup_);
-		backup_->Release( );
-		TEST_RESULT = _D3d_device->SetPixelShader(nullptr);
-		TEST_RESULT = _D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
+		if (!skip_update_)
+		{
+			TEST_RESULT = _D3d_device->SetRenderTarget(0, backup_);
+			backup_->Release( );
+			TEST_RESULT = _D3d_device->SetPixelShader(nullptr);
+			TEST_RESULT = _D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
+		}
+		else
+		{
+			for (auto prev = this->last_.effect;; prev = prev->last_.effect)
+			{
+				if (prev->skip_update_)
+					continue;
+
+				auto draw_cmd = std::ranges::find(list->CmdBuffer, cmd, [](const ImDrawCmd& cmd0) { return std::addressof(cmd0); }) + 2; //current and reset
+				auto texture  = prev->x.texture.get( );
+
+				const_cast<ImTextureID&>(draw_cmd->TextureId) = (texture);
+				break;
+			}
+		}
 	}
 
 public:
@@ -1224,10 +1282,10 @@ private :
 
 	void prepare_textures( )
 	{
-		/*for (auto& [key,value]: *this)
+		for (auto& [key,value]: *this)
 		{
-			value.reset_textures( );
-		}*/
+			//value.reset_textures( );
+		}
 	}
 
 public:
@@ -1291,38 +1349,7 @@ void PostProcessing::newFrame( ) noexcept
 	_Back_buffer_height = size.y;
 
 	_Blur.on_new_frame( );
-}
-
-//unstable, but save tons fps on multiwindow gui
-static ImDrawList* _Find_generated_texture_data(const ImGuiWindow* current, const ImRect& test_rect)
-{
-	const auto& windows = GImGui->Windows;
-	if (windows.size( ) <= 2) //fallback and current
-		return nullptr;
-
-	const auto start = windows.begin( ) + 1;
-
-	const auto current_ptr = std::find(start, windows.end( ), current);
-	if (current_ptr == start)
-		return nullptr;
-
-	auto valid_windows = std::views::filter(std::ranges::subrange(start, current_ptr), PostProcessing::custom_textures_applicable);
-	if (valid_windows.empty( ))
-		return nullptr;
-
-	// ReSharper disable once CppInconsistentNaming
-	const auto _override = [&](const ImGuiWindow* w)
-	{
-		const auto& r = (w->OuterRectClipped); //InnerClipRect for better perfomance but ugliest look on small intersections
-		const auto& l = test_rect;
-
-		return r.Overlaps(l);
-	};
-
-	if (std::ranges::any_of(valid_windows, _override))
-		return nullptr;
-
-	return valid_windows.back( )->DrawList;
+	blur_effect::last_data_ = {};
 }
 
 void PostProcessing::performFullscreenBlur(ImDrawList* drawList, float alpha) noexcept
@@ -1334,36 +1361,10 @@ void PostProcessing::performFullscreenBlur(ImDrawList* drawList, float alpha) no
 	if (!stored)
 		return;
 
-	auto& rect           = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.back( ));
-	const auto wnd       = ImGui::GetCurrentWindowRead( );
-	const auto generated = _Find_generated_texture_data(wnd, rect);
-
-	if (!generated)
-	{
-	_RENDER:
-		blur.set_color(alpha);
-		blur.update(drawList);
-		blur.render(drawList);
-	}
-	else
-	{
-		const auto blur1 = _Blur.find(generated);
-		if (!blur1)
-			goto _RENDER;
-		if (!blur1->updated( ))
-		{
-			//blur1->update(generated);
-			goto _RENDER;
-		}
-		if (blur1->get_color( ) != blur.get_color( ))
-			goto _RENDER;
-		if (blur1->get_clarity( ) != blur.get_clarity( ))
-			goto _RENDER;
-		if (blur1->get_down_sample( ) != blur.get_down_sample( ))
-			goto _RENDER;
-
-		blur1->render(drawList);
-	}
+	const auto wnd = ImGui::GetCurrentWindowRead( );
+	blur.set_color(alpha);
+	blur.update(drawList);
+	blur.render(drawList);
 
 #ifdef _DEBUG
 	if (!(wnd->Flags & (ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)))
@@ -1388,7 +1389,7 @@ void PostProcessing::performFullscreenMonochrome(ImDrawList* drawList, float amo
 
 bool PostProcessing::custom_textures_applicable(const ImGuiWindow* wnd)
 {
-	if (!(wnd->WasActive) || wnd->SkipItems || wnd->Hidden)
+	if (!wnd->WasActive || wnd->SkipItems || wnd->Hidden)
 		return false;
 
 	if (wnd->Flags & ImGuiWindowFlags_NoBackground)
