@@ -188,3 +188,6 @@ namespace ImGui
 
 struct IDirect3DTexture9;
 #define ImTextureID IDirect3DTexture9*
+
+#define IMGUI_USE_BGRA_PACKED_COLOR
+#define IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT struct ImDrawVert { ImVec2 pos; float z; ImU32 col; ImVec2 uv; }

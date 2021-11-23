@@ -172,6 +172,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cheat\gui\shaders\PostProcessing.cpp" />
+    <ClCompile Include="cheat\hooks\studio render\targets.cpp" />
     <ClCompile Include="cheat\netvars\lazy.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>

@@ -144,16 +144,7 @@ bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool bor
 }
 #endif
 
-#include "cheat/core/console.h"
 #include "cheat/gui/tools/cached_text.h"
-
-#include "../shaders/PostProcessing.h"
-
-#include <intrin.h>
-
-#include "cheat/hooks/base.h"
-#include "cheat/core/services_loader.h"
-#include "cheat/gui/imgui_context.h"
 
 #include <nstd/enum_tools.h>
 #include <nstd/runtime_assert_fwd.h>
@@ -161,11 +152,6 @@ bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool bor
 #include <nstd/smooth_value.h>
 
 #include <imgui_internal.h>
-
-#include <cppcoro/task.hpp>
-
-#include <ranges>
-#include <vector>
 
 using namespace cheat::gui;
 using namespace widgets;
@@ -255,58 +241,6 @@ concept imgui_window_has_font_dpi_scale = requires( )
 {
 	typename T::FontDpiScale;
 };
-
-
-
-class PushClipRect_callback_impl : public cheat::service<PushClipRect_callback_impl>
-								 , public decltype(dhooks::_Detect_hook_holder(ImGui::PushClipRect))
-{
-public:
-	PushClipRect_callback_impl( )
-	{
-		this->add_dependency(imgui_context::get( ));
-	}
-
-	void* get_target_method( ) const override
-	{
-		//return dhooks::_Pointer_to_class_method(&ImDrawList::_ResetForNewFrame);
-		return ImGui::PushClipRect;
-	}
-
-	void callback(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect) override
-	{
-		auto wnd = ImGui::GetCurrentWindowRead( );
-
-		//see ImGui::Begin
-		//rendering starts after this line
-		if (wnd->DrawList->CmdBuffer.Size != 1 || wnd->DrawList->CmdBuffer[0].ElemCount != 0)
-			return;
-
-		//todo: remove fallback window
-		if (wnd->IsFallbackWindow)
-			return;
-		if (!PostProcessing::custom_textures_applicable(wnd))
-			return;
-
-		this->call_original_and_store_result(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
-
-		auto dlist       = wnd->DrawList;
-		const auto& rect = wnd->OuterRectClipped;
-		dlist->PushClipRect(rect.Min, rect.Max);
-		PostProcessing::performFullscreenBlur(dlist, ImGui::GetStyle( ).Alpha);
-		dlist->PopClipRect( );
-	}
-
-protected:
-	load_result load_impl( ) noexcept override
-	{
-		CHEAT_LOAD_HOOK_PROXY
-	}
-};
-
-CHEAT_SERVICE_SHARE(PushClipRect_callback);
-
-CHEAT_SERVICE_REGISTER(PushClipRect_callback);
 
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {

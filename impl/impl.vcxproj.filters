@@ -73,6 +73,7 @@
     <ClCompile Include="cheat\gui\widgets\selectable.cpp" />
     <ClCompile Include="cheat\netvars\lazy.cpp" />
     <ClCompile Include="cheat\gui\shaders\PostProcessing.cpp" />
+    <ClCompile Include="cheat\hooks\studio render\targets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\core\console.h" />

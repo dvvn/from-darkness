@@ -1,10 +1,5 @@
 #include "PostProcessing.h"
 
-#include <algorithm>
-#include <functional>
-
-#include <nstd/math.h>
-
 #ifdef _WIN32
 
 typedef unsigned char BYTE;
@@ -17,6 +12,7 @@ typedef unsigned char BYTE;
 #endif
 
 #include <nstd/runtime_assert_fwd.h>
+#include<nstd/custom_types.h>
 
 #include <imgui_internal.h>
 
@@ -25,10 +21,13 @@ typedef unsigned char BYTE;
 #include <d3d9.h>
 #include <wrl/client.h>
 
-#include <vector>
+#include NSTD_UNORDERED_MAP_INCLUDE
+
 #include <array>
 #include <string>
 #include <ranges>
+#include <algorithm>
+#include <functional>
 
 struct result_tester
 {
@@ -39,17 +38,17 @@ struct result_tester
 };
 
 #define TEST_RESULT \
-[[maybe_unuser]] const result_tester _CONCAT(test,__LINE__)
+[[maybe_unused]] const result_tester _CONCAT(test,__LINE__)
 
 template <typename T, typename Base = Microsoft::WRL::ComPtr<T>>
 struct comptr : Base
 {
 	using base_type = Base;
 
-	comptr( ) = default;
-
 	using Base::Base;
 	using Base::operator=;
+
+	comptr(T* ptr) = delete; //it call unwanted addref method
 
 	template <typename T1>
 		requires(std::derived_from<T, T1>)
@@ -93,24 +92,25 @@ struct comptr : Base
 static IDirect3DDevice9* _D3d_device; // DO NOT RELEASE!
 
 [[nodiscard]]
-static IDirect3DTexture9* _Create_texture(UINT width, UINT height) noexcept
+static auto _Create_texture(UINT width, UINT height) noexcept
 {
-	IDirect3DTexture9* texture;
-	TEST_RESULT = _D3d_device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, std::addressof(texture), nullptr);
+	comptr<IDirect3DTexture9> texture;
+	TEST_RESULT = _D3d_device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr);
 	return texture;
 }
 
 [[nodiscard]]
-static IDirect3DTexture9* _Create_texture( ) noexcept
+static auto _Create_texture(UINT scale = 1) noexcept
 {
 	comptr<IDirect3DSurface9> back_buffer;
 	TEST_RESULT = _D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer);
 	D3DSURFACE_DESC desc;
 	TEST_RESULT = back_buffer->GetDesc(&desc);
+	return _Create_texture(desc.Width / scale, desc.Height / scale);
 
-	IDirect3DTexture9* texture;
+	/*IDirect3DTexture9* texture;
 	TEST_RESULT = _D3d_device->CreateTexture(desc.Width, desc.Height, 1, desc.Usage, desc.Format, desc.Pool, std::addressof(texture), nullptr);
-	return texture;
+	return texture;*/
 }
 
 #else
@@ -145,6 +145,7 @@ struct basic_shader_program : comptr<Shader>
 
 	}
 #endif
+
 	basic_shader_program( ) = default;
 
 	basic_shader_program(const BYTE* shader_source_function)
@@ -220,21 +221,14 @@ struct custom_texture : comptr<IDirect3DTexture9>
 {
 	using comptr::comptr;
 
-	custom_texture( ) = default;
-
-	custom_texture(IDirect3DTexture9* texture)
-		: comptr(texture)
-	{
-	}
-
-	void prepare_buffer(const RECT& surface_pos)
+	void prepare_buffer(const RECT* surface_pos = nullptr)
 	{
 		comptr<IDirect3DSurface9> back_buffer;
 		TEST_RESULT = _D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer);
 		comptr<IDirect3DSurface9> surface;
 		TEST_RESULT = Get( )->GetSurfaceLevel(0, surface);
 
-		TEST_RESULT = _D3d_device->StretchRect(back_buffer, &surface_pos, surface, &surface_pos, D3DTEXTUREFILTERTYPE::D3DTEXF_NONE);
+		TEST_RESULT = _D3d_device->StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_POINT);
 	}
 
 	void set_as_target( ) const
@@ -257,8 +251,6 @@ protected:
 	virtual void end(const ImDrawList*, const ImDrawCmd*) = 0;
 
 public:
-	virtual bool updated( ) const = 0;
-
 	//call once per frame!
 	virtual void update(ImDrawList* drawList) noexcept
 	{
@@ -270,13 +262,10 @@ public:
 	}
 
 	//call multiple per frame (with different clip rects)
-	virtual void render(ImDrawList* drawList)
-	{
-		update(drawList);
-	}
+	virtual void render(ImDrawList* drawList) = 0;
 
-	virtual void update_data( ) =0;
-	virtual void reset_data( ) =0;
+	virtual void update_data( ) = 0;
+	virtual void reset_data( ) = 0;
 };
 
 struct effect_data
@@ -301,19 +290,26 @@ static void _Set_projection(int width, int height, float p0 = 1.f, float p1 = 1.
 }
 
 #ifdef _DEBUG
-static std::string _Make_debug_string(const std::string_view& str, const void* _this)
+
+struct debug_string : std::string
 {
-	const auto num = std::to_string(reinterpret_cast<uintptr_t>(_this));
-	std::string out;
-	out.reserve(str.size( ) + 2 + num.size( ));
-	out += str;
-	out += "##";
-	out += num;
-	return out;
-}
+	template <typename T>
+	debug_string(const T& str)
+	{
+		static size_t counter = 0;
+
+		auto tmp = std::to_string(counter++);
+		append(str).append("##").append(tmp);
+	}
+
+	operator const char*( ) const
+	{
+		return c_str( );
+	}
+};
 #endif
 
-static RECT _ImRect_to_rect(const ImRect& rect)
+static auto _ImRect_to_rect(const ImRect& rect)
 {
 	RECT out;
 
@@ -321,6 +317,20 @@ static RECT _ImRect_to_rect(const ImRect& rect)
 	out.top    = rect.Min.y;
 	out.right  = rect.Max.x;
 	out.bottom = rect.Max.y;
+
+	return out;
+}
+
+static auto _ImRect_to_viewport(const ImRect& rect)
+{
+	D3DVIEWPORT9 out;
+
+	out.X      = rect.Min.x;
+	out.Y      = rect.Min.y;
+	out.Width  = rect.GetWidth( );
+	out.Height = rect.GetHeight( );
+	out.MinZ   = 0;
+	out.MaxZ   = 1;
 
 	return out;
 }
@@ -337,32 +347,22 @@ private:
 	effect_data data_;
 };
 
-class blur_effect final : public basic_effect
+class blur_effect : public basic_effect
 {
 public:
 	blur_effect( )
 	{
 		set_default_values( );
-		x.shader = {blur_x};
-		y.shader = {blur_y};
-	}
-
-	bool updated( ) const override
-	{
-		return x.texture;
 	}
 
 private:
-	comptr<IDirect3DSurface9> backup_;
-	std::function<void( )> states_restore_;
+	std::function<void( )> end_restore_;
 
 protected:
-	void begin(const ImDrawList* list, const ImDrawCmd* cmd) override
+	void post_begin( )
 	{
-		TEST_RESULT = _D3d_device->GetRenderTarget(0, backup_);
-
-		x.texture.prepare_buffer(_ImRect_to_rect(rect_));
-
+		IDirect3DSurface9* target;
+		TEST_RESULT = _D3d_device->GetRenderTarget(0, &target);
 		DWORD addessu;
 		TEST_RESULT = _D3d_device->GetSamplerState(0, D3DSAMP_ADDRESSU, &addessu);
 		TEST_RESULT = _D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
@@ -375,16 +375,23 @@ protected:
 		IDirect3DPixelShader9* shader;
 		TEST_RESULT = _D3d_device->GetPixelShader(&shader);
 
-		states_restore_ = [=]
+		end_restore_ = [=]
 		{
 			TEST_RESULT = _D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, addessu);
 			TEST_RESULT = _D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSV, addessv);
 			TEST_RESULT = _D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, scissortest);
 			TEST_RESULT = _D3d_device->SetPixelShader(shader);
+			TEST_RESULT = _D3d_device->SetRenderTarget(0, target);
+			target->Release( );
 		};
 	}
 
-private:
+	void begin(const ImDrawList* list, const ImDrawCmd* cmd) override
+	{
+		x.texture.prepare_buffer( );
+		post_begin( );
+	}
+
 	void first_pass(const ImDrawList* drawList, const ImDrawCmd* cmd) const noexcept
 	{
 		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front( ));
@@ -399,7 +406,6 @@ private:
 		x.texture.set_as_target( );
 	}
 
-protected:
 	void process(ImDrawList* drawList) override
 	{
 		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front( ));
@@ -407,19 +413,9 @@ protected:
 		const auto min = ImVec2(0, 0);
 		const auto max = ImVec2(rect.GetWidth( ), rect.GetHeight( ));
 
-		//const auto& min1 = rect_.Min;
-		//const auto& max1 = rect_.Max;
-
 		auto clarity = clarity_;
 		while (clarity-- != 0)
 		{
-			//one window loads gpu at 20% with this method
-			//because it re-render whole screen every loop (clarity * textures count)
-			//have no idea how render specific part only
-			//almost fixed this with setting texture size to rect size, but it rendered blurry
-
-			//all pseudo-fixes removed, find a way to do it correctly, or dont use blur at all
-
 			drawList->AddCallback({this, &blur_effect::first_pass}, nullptr);
 			drawList->AddImage(x.texture, min, max);
 			drawList->AddCallback({this, &blur_effect::second_pass}, nullptr);
@@ -429,28 +425,16 @@ protected:
 
 	void end(const ImDrawList*, const ImDrawCmd*) override
 	{
-		TEST_RESULT = _D3d_device->SetRenderTarget(0, backup_);
-		states_restore_( );
+		end_restore_( );
 	}
 
 public:
-	void update(ImDrawList* drawList) noexcept override
-	{
-#ifdef _DEBUG
-		this->finish_debug_update( );
-#endif
-		basic_effect::update(drawList);
-	}
-
 	void render(ImDrawList* drawList) noexcept override
 	{
 		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front( ));
 
 		const auto min = ImVec2(0, 0);
 		const auto max = ImVec2(rect.GetWidth( ), rect.GetHeight( ));
-
-		//const auto& min1 = rect_.Min;
-		//const auto& max1 = rect_.Max;
 
 		drawList->AddImage(x.texture, min, max, {0.f, 0.f}, {1.0f, 1.0f}, color_);
 	}
@@ -459,36 +443,19 @@ public:
 	{
 		if (!x.texture)
 		{
-			auto w    = rect_.GetWidth( );
-			auto h    = rect_.GetHeight( );
-			x.texture = _Create_texture(/*w, h*/);
-			y.texture = _Create_texture(/*w, h*/);
-
-			//if texture size != backbuffer size it will be burred
+			x.texture = _Create_texture( );
+			y.texture = _Create_texture( );
 		}
-	}
-
-	void reset_textures( )
-	{
-		x.texture.Reset( );
-		y.texture.Reset( );
+		if (!x.shader)
+		{
+			x.shader = {blur_x};
+			y.shader = {blur_y};
+		}
 	}
 
 	void reset_data( ) override
 	{
-		reset_textures( );
-		backup_.Reset( );
-	}
-
-private:
-	ImRect rect_;
-public:
-	void set_rect(const ImRect& rect)
-	{
-		/*if (std::memcmp(&rect_, &rect, sizeof(ImRect)) == 0)
-			return;
-		reset_textures( );*/
-		rect_ = rect;
+		[[maybe_unused]] const auto dummy = std::make_tuple(std::move(x), std::move(y));
 	}
 
 private:
@@ -524,11 +491,7 @@ public:
 private:
 	uint8_t clarity_ = 0;
 public:
-	void set_clarity(uint8_t clarity)
-	{
-		clarity_ = clarity;
-	}
-
+	void set_clarity(uint8_t clarity) { clarity_ = clarity; }
 	uint8_t get_clarity( ) const { return clarity_; }
 
 private:
@@ -539,50 +502,100 @@ private:
 		set_down_sample(4);
 	}
 
+protected:
 	effect_data x;
 	effect_data y;
 
+private:
 #ifdef _DEBUG
 
 	struct
 	{
-		std::string clarity        = _Make_debug_string("clarity", this);
-		std::string down_sample    = _Make_debug_string("down sample", this);
-		std::string reset_values   = _Make_debug_string("reset values", this);
-		std::string reset_textures = _Make_debug_string("reset textures", this);
+		debug_string clarity        = "clarity";
+		debug_string down_sample    = "down sample";
+		debug_string reset_values   = "reset values";
+		debug_string reset_textures = "reset textures";
 	} debug_strings_;
 
-	std::function<void( )> debug_update_;
-
-	void finish_debug_update( )
-	{
-		if (!debug_update_)
-			return;
-
-		debug_update_( );
-		debug_update_ = nullptr;
-	}
-
 public:
-	void debug_update( )
+	virtual void debug_update( )
 	{
 		//constexpr auto absolute_max = std::numeric_limits<uint8_t>::max( ) - 1;
 		int clarity = clarity_;
 		if (ImGui::SliderInt(debug_strings_.clarity.c_str( ), &clarity, 1, 128))
-			debug_update_ = std::bind_front(&blur_effect::set_clarity, this, clarity);;
+			set_clarity(clarity);
 
 		int down_sample = down_sample_;
-		if (ImGui::SliderInt(debug_strings_.down_sample.c_str( ), &down_sample, 1, 64))
-			debug_update_ = std::bind_front(&blur_effect::set_down_sample, this, down_sample);
+		if (ImGui::SliderInt(debug_strings_.down_sample, &down_sample, 1, 64))
+			set_down_sample(down_sample);
 
-		if (ImGui::Button(debug_strings_.reset_values.c_str( )))
-			debug_update_ = std::bind_front(&blur_effect::set_default_values, this);
+		if (ImGui::Button(debug_strings_.reset_values))
+			set_default_values( );
 
-		if (ImGui::Button(debug_strings_.reset_textures.c_str( )))
-			debug_update_ = std::bind_front(&blur_effect::reset_textures, this);
+		if (ImGui::Button(debug_strings_.reset_textures))
+			reset_data( );
 	}
 
 #endif
+};
+
+class blur_effect_scaled final : public blur_effect
+{
+public:
+	using blur_effect::blur_effect;
+
+private:
+	ImRect rect_;
+public:
+	void set_rect(const ImRect& rect)
+	{
+		if (std::memcmp(&rect_, &rect, sizeof(ImRect)) == 0)
+			return;
+		x.texture.Reset( );
+		rect_ = rect;
+	}
+
+	void update_data( ) override
+	{
+		if (!x.texture)
+		{
+			const auto w = rect_.GetWidth( );
+			const auto h = rect_.GetHeight( );
+			x.texture    = _Create_texture(w, h);
+			y.texture    = _Create_texture(w, h);
+		}
+		blur_effect::update_data( );
+	}
+
+protected:
+	void begin(const ImDrawList* list, const ImDrawCmd* cmd) override
+	{
+		const auto rect = static_cast<RECT*>(cmd->UserCallbackData);
+		x.texture.prepare_buffer(rect);
+		delete rect;
+
+		post_begin( );
+	}
+
+public:
+	void update(ImDrawList* drawList) noexcept override
+	{
+		auto& cmdbuffer = drawList->CmdBuffer;
+
+		blur_effect::update(drawList);
+
+		auto& begin_cmd = *std::ranges::find_if(cmdbuffer, [this](const ImDrawCmd& cmd)
+		{
+			return cmd.UserCallback == ImDrawCallback{static_cast<basic_effect*>(this), 1};
+		});
+		begin_cmd.UserCallbackData = new RECT(_ImRect_to_rect(rect_));
+	}
+
+	void render(ImDrawList* drawList) noexcept override
+	{
+		//do something with uv_min and uv_max to fix streching
+		drawList->AddImage(x.texture, rect_.Min, rect_.Max, {0.f, 0.f}, {1.0f, 1.0f}, get_color( ));
+	}
 };
 
 #if 0
@@ -835,7 +848,7 @@ private:
 #else
 		drawList->AddImage(reinterpret_cast<ImTextureID>(blurTexture1), min, max, ImVec2(0, 0), ImVec2(_Back_buffer_width * 1, _Back_buffer_height * 1), IM_COL32(255, 255, 255, 255 * alpha));
 #endif
-}
+	}
 };
 #endif
 
@@ -1151,85 +1164,62 @@ private:
 };
 #endif
 
-template <std::derived_from<basic_effect> T, class Storage = std::vector<std::pair<ImDrawList*, T>>>
-class drawlist_storage : public Storage
+template <class ValueType = std::pair<void*, blur_effect_scaled>>
+class blur_scaled_data : public std::vector<ValueType>
 {
+	using std::vector<ValueType>::operator[];
+
 public:
-	std::tuple<T&, bool> operator[](ImDrawList* list)
+	using key_type = typename ValueType::first_type;
+	using mapped_type = typename ValueType::second_type;
+
+	auto operator[](const key_type& key_wanted)
 	{
-		for (auto& [ptr, entry]: *this)
-		{
-			if (list == ptr)
-				return {entry, true};
-		}
+		auto found = find(key_wanted);
+		if (found)
+			return std::forward_as_tuple(*found, false);
 
-		/*for (auto& [ptr, entry]: add_on_new_frame_)
-		{
-			if (list == ptr)
-				return {entry, false};
-		}*/
+		auto& tmp = temp_data_.emplace_back( );
+		tmp.first = key_wanted;
 
-		return {write_for_new_frame(list), false};
+		return std::forward_as_tuple(tmp.second, true);
 	}
 
-	T* find(ImDrawList* list)
+	void write_temp_data( )
 	{
-		for (auto& [ptr, entry]: *this)
-		{
-			if (list == ptr)
-				return std::addressof(entry);
-		}
+		if (temp_data_.empty( ))
+			return;
+		for (auto& d: temp_data_)
+			this->push_back(std::move(d));
+		temp_data_.clear( );
+	}
 
+	blur_effect_scaled* find(const key_type& key_wanted)
+	{
+		for (auto& [key, value]: *this)
+		{
+			if (key == key_wanted)
+				return std::addressof(value);
+		}
 		return nullptr;
 	}
 
-private:
-	void write_old_data( )
-	{
-		if (add_on_new_frame_.empty( ))
-			return;
-
-		Storage::reserve(Storage::size( ) + add_on_new_frame_.size( ));
-		for (auto& entry: add_on_new_frame_)
-			Storage::push_back(std::move(entry));
-
-		Storage tmp;
-		std::swap(add_on_new_frame_, tmp);
-	}
-
-	void prepare_textures( )
+	void reset_all_data( )
 	{
 		for (auto& [key, value]: *this)
-		{
-			//value.reset_textures( );
-		}
-	}
-
-public:
-	void on_new_frame( )
-	{
-		write_old_data( );
-		prepare_textures( );
-	}
-
-	void on_reset( )
-	{
-		for (auto& [key, value]: *this)
-		{
 			value.reset_data( );
-		}
 	}
 
 private:
-	T& write_for_new_frame(ImDrawList* list)
-	{
-		return add_on_new_frame_.emplace_back(list, T( )).second;
-	}
-
-	Storage add_on_new_frame_;
+	std::list<ValueType> temp_data_;
 };
 
-static drawlist_storage<blur_effect> _Blur;
+//gpu-friendly, but stretch background (fixable in theory) and worsk look because of small textures
+static blur_scaled_data _Blur_scaled;
+//burn gpu, but looks perfect
+static blur_effect _Blur;
+
+#define USE_SCALED_BLUR
 
 #ifdef _WIN32
 void PostProcessing::setDevice(IDirect3DDevice9* device) noexcept
@@ -1239,42 +1229,56 @@ void PostProcessing::setDevice(IDirect3DDevice9* device) noexcept
 
 void PostProcessing::clearBlurTextures( ) noexcept
 {
-	//BlurEffect::clearTextures( );
 }
 
 void PostProcessing::onDeviceReset( ) noexcept
 {
-	//BlurEffect::clearTextures( );
-	//ChromaticAberration::clearTexture( );
-
-	_Blur.on_reset( );
+#ifdef USE_SCALED_BLUR
+	_Blur_scaled.write_temp_data( );
+	_Blur_scaled.reset_all_data( );
+#else
+	_Blur.reset_data();
+#endif
 }
 #endif
 
 void PostProcessing::newFrame( ) noexcept
 {
-	_Blur.on_new_frame( );
+#ifdef USE_SCALED_BLUR
+	_Blur_scaled.write_temp_data( );
+#endif
+
+#ifdef _DEBUG
+#ifdef USE_SCALED_BLUR
+	for (const auto wnd: GImGui->Windows | std::views::reverse | std::views::filter(custom_textures_applicable))
+	{
+		auto ptr = _Blur_scaled.find(wnd->DrawList);
+		if (!ptr)
+			continue;
+		if (!ImGui::CollapsingHeader(wnd->Name))
+			continue;
+
+		ptr->debug_update( );
+	}
+#else
+	_Blur.debug_update();
+#endif
+#endif
 }
 
 void PostProcessing::performFullscreenBlur(ImDrawList* drawList, float alpha) noexcept
 {
-	auto [blur, stored] = _Blur[drawList];
-	if (!stored)
-		return;
+#ifdef USE_SCALED_BLUR
+	const auto& rect   = reinterpret_cast<ImRect&>(drawList->_ClipRectStack.back( ));
+	auto [blur, added] = _Blur_scaled[drawList];
+	blur.set_rect(rect);
+#else
+	auto& blur = _Blur;
+#endif
 
 	blur.set_color(alpha);
-	blur.set_rect(drawList->_ClipRectStack.back( )/*ImRect{0,0,_Back_buffer_width, _Back_buffer_height}*/);
-	/*if (strstr(drawList->_OwnerName, "from") == 0)
-		return;
-	drawList = ImGui::GetForegroundDrawList( );*/
 	blur.update(drawList);
 	blur.render(drawList);
-
-#ifdef _DEBUG
-	const auto wnd = ImGui::GetCurrentWindowRead( );
-	if (!(wnd->Flags & (ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)))
-		blur.debug_update( );
-#endif
 }
 
 void PostProcessing::performBlur(ImDrawList* drawList, const ImVec2& min, const ImVec2& max, float alpha) noexcept
