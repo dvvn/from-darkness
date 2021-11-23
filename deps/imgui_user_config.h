@@ -1,20 +1,6 @@
 // ReSharper disable CppInconsistentNaming
 #pragma once
 
-#define IMGUI_DISABLE_DEFAULT_ALLOCATORS 1
-#define	IMGUI_USE_WCHAR32
-#define IMGUI_DEFINE_MATH_OPERATORS
-#define	IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-#if __has_include(<stb_truetype.h>) && __has_include(<stb_rect_pack.h>)
-#define	IMGUI_STB_TRUETYPE_FILENAME <stb_truetype.h>
-#define	IMGUI_STB_RECT_PACK_FILENAME <stb_rect_pack.h>
-#endif
-#if __has_include("stb_sprintf.h")
-#define IMGUI_USE_STB_SPRINTF
-#endif
-#define	ImDrawIdx size_t
-
 #include <concepts>
 
 struct ImDrawCmd;
@@ -49,8 +35,9 @@ namespace ImGui
 			requires(std::is_abstract_v<C>)
 		ImDrawCallback_custom(C* inst, size_t index)
 		{
-			auto vtable0 = *(void**)inst;
-			auto vtable  = (void**)vtable0;
+			auto num     = reinterpret_cast<uintptr_t>(inst);
+			auto vtable0 = *reinterpret_cast<void**>(num);
+			auto vtable  = static_cast<void**>(vtable0);
 
 			_Set_class_member(inst, vtable[index]);
 		}
@@ -84,11 +71,6 @@ namespace ImGui
 			}
 		}
 
-		/*operator bool( ) const
-		{
-			return idx == 1 || idx == 2;
-		}*/
-
 		bool operator==(decltype(nullptr)) const
 		{
 			switch (idx)
@@ -96,12 +78,14 @@ namespace ImGui
 				case index::UNSET:
 					return true;
 				case index::STATIC:
-					return static_ == 0;
+					return static_ == nullptr;
 				case index::MEMBER:
 					static auto empty_arr = ImDrawCallback_custom( ).dummy_;
 					return __builtin_memcmp(dummy_, empty_arr, _Dummy_size) == 0;
 				case index::RESET:
 					return false;
+				default:
+					throw;
 			}
 		}
 
@@ -146,9 +130,9 @@ namespace ImGui
 		template <typename C, typename Fn>
 		void _Set_class_member(C inst, Fn fn)
 		{
-			idx                    = index::MEMBER;
-			member_.instance       = inst;
-			(void*&)member_.member = (void*&)fn;
+			idx                                      = index::MEMBER;
+			member_.instance                         = inst;
+			reinterpret_cast<void*&>(member_.member) = reinterpret_cast<void*&>(fn);
 		}
 
 		struct class_member_unwrapped
@@ -160,7 +144,7 @@ namespace ImGui
 
 			void operator()(const ImDrawList* parent_list, const ImDrawCmd* cmd) const
 			{
-				member(instance, nullptr, parent_list, cmd);
+				std::invoke(member, instance, nullptr, parent_list, cmd);
 			}
 		};
 
@@ -188,3 +172,19 @@ namespace ImGui
 }
 
 #define ImDrawCallback ImGui::ImDrawCallback_custom
+#define IMGUI_DISABLE_DEFAULT_ALLOCATORS 1
+#define	IMGUI_USE_WCHAR32
+#define IMGUI_DEFINE_MATH_OPERATORS
+#define	IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+#if __has_include(<stb_truetype.h>) && __has_include(<stb_rect_pack.h>)
+#define	IMGUI_STB_TRUETYPE_FILENAME <stb_truetype.h>
+#define	IMGUI_STB_RECT_PACK_FILENAME <stb_rect_pack.h>
+#endif
+#if __has_include("stb_sprintf.h")
+#define IMGUI_USE_STB_SPRINTF
+#endif
+#define	ImDrawIdx size_t
+
+struct IDirect3DTexture9;
+#define ImTextureID IDirect3DTexture9*

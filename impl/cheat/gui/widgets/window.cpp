@@ -256,6 +256,8 @@ concept imgui_window_has_font_dpi_scale = requires( )
 	typename T::FontDpiScale;
 };
 
+
+
 class PushClipRect_callback_impl : public cheat::service<PushClipRect_callback_impl>
 								 , public decltype(dhooks::_Detect_hook_holder(ImGui::PushClipRect))
 {
