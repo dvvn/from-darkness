@@ -70,51 +70,33 @@ auto basic_service::find(const std::type_info& info) -> value_type*
 	return nullptr;
 }
 
-template <class A, class B, typename ...Args>
-static constexpr decltype(auto) _Select_one(A&& a, B&& b, Args&& ...args)
-{
-	if constexpr (std::invocable<A, Args...>)
-		return std::invoke(std::forward<A>(a), std::forward<Args>(args)...);
-	else if constexpr (std::invocable<B, Args...>)
-		return std::invoke(std::forward<B>(b), std::forward<Args>(args)...);
-}
-
-template <bool Once, typename T, typename Pred, typename Proj = std::identity>
-static auto _Erase_impl(T& from, Pred&& pred, Proj proj = {})
-{
-	namespace rng = std::ranges;
-	if constexpr (Once)
-	{
-		auto itr = _Select_one(rng::find_if, rng::find, from, pred, proj);
-		if (itr != from.end( ))
-			return from.erase(itr);
-	}
-	else
-	{
-		auto to_remove = _Select_one(rng::remove_if, rng::remove, from, pred, proj);
-		if (!to_remove.empty( ))
-			return from.erase(to_remove.begin( ), to_remove.end( ));
-	}
-
-	return from.end( );
-}
-
 // ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::erase(const std::type_info& info)
 {
-	_Erase_impl<true>(impl_->deps, info, &basic_service::type);
+	auto& deps       = impl_->deps;
+	const auto found = std::ranges::find(deps, info, &basic_service::type);
+	if (found != deps.end( ))
+		deps.erase(found);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::erase(const erase_pred& fn)
 {
-	_Erase_impl<true>(impl_->deps, std::_Pass_fn(fn));
+	auto& deps       = impl_->deps;
+	const auto found = std::ranges::find_if(deps, std::_Pass_fn(fn));
+	if (found != deps.end( ))
+		deps.erase(found);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::erase_all(const erase_pred& fn)
 {
-	_Erase_impl<false>(impl_->deps, std::_Pass_fn(fn));
+	auto& deps       = impl_->deps;
+	const auto found = std::remove_if(deps.begin( ), deps.end( ), std::_Pass_fn(fn));
+	if (found != deps.end( ))
+		deps.erase(found, deps.end( ));
+	/*if (!found.empty( ))
+		deps.erase(found.begin( ), found.end( ));*/
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

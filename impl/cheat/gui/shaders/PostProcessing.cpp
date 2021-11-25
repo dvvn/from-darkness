@@ -12,7 +12,7 @@ typedef unsigned char BYTE;
 #endif
 
 #include <nstd/runtime_assert_fwd.h>
-#include<nstd/custom_types.h>
+#include <nstd/custom_types.h>
 
 #include <imgui_internal.h>
 
@@ -313,10 +313,10 @@ static auto _ImRect_to_rect(const ImRect& rect)
 {
 	RECT out;
 
-	out.left   = rect.Min.x;
-	out.top    = rect.Min.y;
-	out.right  = rect.Max.x;
-	out.bottom = rect.Max.y;
+	out.left   = static_cast<LONG>(rect.Min.x);
+	out.top    = static_cast<LONG>(rect.Min.y);
+	out.right  = static_cast<LONG>(rect.Max.x);
+	out.bottom = static_cast<LONG>(rect.Max.y);
 
 	return out;
 }
@@ -325,8 +325,8 @@ static auto _ImRect_to_viewport(const ImRect& rect)
 {
 	D3DVIEWPORT9 out;
 
-	out.X      = rect.Min.x;
-	out.Y      = rect.Min.y;
+	out.X      = static_cast<DWORD>(rect.Min.x);
+	out.Y      = static_cast<DWORD>(rect.Min.y);
 	out.Width  = rect.GetWidth( );
 	out.Height = rect.GetHeight( );
 	out.MinZ   = 0;
@@ -559,8 +559,8 @@ public:
 	{
 		if (!x.texture)
 		{
-			const auto w = rect_.GetWidth( );
-			const auto h = rect_.GetHeight( );
+			const auto w = static_cast<UINT>(rect_.GetWidth( ));
+			const auto h = static_cast<UINT>(rect_.GetHeight( ));
 			x.texture    = _Create_texture(w, h);
 			y.texture    = _Create_texture(w, h);
 		}
@@ -1214,12 +1214,12 @@ private:
 	std::list<ValueType> temp_data_;
 };
 
-//gpu-friendly, but stretch background (fixable in theory) and worsk look because of small textures
+//gpu-friendly, but stretch background (fixable in theory) and work look because of small textures
 static blur_scaled_data _Blur_scaled;
 //burn gpu, but looks perfect
 static blur_effect _Blur;
 
-#define USE_SCALED_BLUR
+//#define USE_SCALED_BLUR
 
 #ifdef _WIN32
 void PostProcessing::setDevice(IDirect3DDevice9* device) noexcept
@@ -1250,8 +1250,10 @@ void PostProcessing::newFrame( ) noexcept
 
 #ifdef _DEBUG
 #ifdef USE_SCALED_BLUR
-	for (const auto wnd: GImGui->Windows | std::views::reverse | std::views::filter(custom_textures_applicable))
+	for (const auto wnd: GImGui->Windows | std::views::reverse)
 	{
+		if (!custom_textures_applicable(wnd))
+			continue;
 		auto ptr = _Blur_scaled.find(wnd->DrawList);
 		if (!ptr)
 			continue;

@@ -4,7 +4,7 @@
   <PropertyGroup Label="UserMacros">
     <OutputDir>$(SolutionDir).out\$(ProjectName)\$(Configuration)\</OutputDir>
     <OutPutDir__>$(SolutionDir).out\$(ProjectName)\$(Platform)\$(Configuration)</OutPutDir__>
-    <GitClonedProjects>$(HOMEDRIVE)$(HOMEPATH)\documents\programming\Projects\git</GitClonedProjects>
+    <GitClonedProjects>$(HOMEDRIVE)\Programming\Projects\git</GitClonedProjects>
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(OutputDir)temp\</IntDir>

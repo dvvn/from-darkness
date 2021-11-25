@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <vector>
 
 using namespace cheat::gui::tools;
 
@@ -33,18 +34,18 @@ const imgui_string::native_type& imgui_string::raw() const
 
 imgui_string_transparent::imgui_string_transparent(const imgui_string& str)
 {
-	this->set_chars_count(str.raw( ));
-	this->set_chars_capacity(str.multibyte( ));
+	this->set_chars_count(str.raw());
+	this->set_chars_capacity(str.multibyte());
 
 	buff_.emplace<const imgui_string*>(std::addressof(str));
 }
 
 imgui_string_transparent::imgui_string_transparent(imgui_string&& str)
 {
-	this->set_chars_count(str.raw( ));
-	this->set_chars_capacity(str.multibyte( ));
+	this->set_chars_count(str.raw());
+	this->set_chars_capacity(str.multibyte());
 
-	auto& mb = const_cast<imgui_string::multibyte_type&>(str.multibyte( ));
+	auto& mb = const_cast<imgui_string::multibyte_type&>(str.multibyte());
 	buff_.emplace<imgui_string::multibyte_type>(std::move(mb));
 }
 
@@ -61,18 +62,18 @@ size_t imgui_string_transparent::chars_capacity() const
 imgui_string_transparent::operator imgui_string::imgui_type() const
 {
 	return std::visit(nstd::overload(
-							  [](const imgui_string* str)
-							  {
-								  return str->imgui( );
-							  }
-							, [](const imgui_string::imgui_type& str)
-							  {
-								  return str;
-							  }
-							, [](const imgui_string::multibyte_type& str)
-							  {
-								  return get_imgui_string(str);
-							  }), buff_);
+		[](const imgui_string* str)
+		{
+			return str->imgui();
+		}
+		, [](const imgui_string::imgui_type& str)
+		{
+			return str;
+		}
+			, [](const imgui_string::multibyte_type& str)
+		{
+			return get_imgui_string(str);
+		}), buff_);
 }
 
 #endif
@@ -90,43 +91,49 @@ void cached_text::update( )
 {
 	using namespace nstd::enum_operators;
 
-	runtime_assert(!label.empty( ));
+	runtime_assert(!label.empty());
 	runtime_assert(font != nullptr);
 	runtime_assert(update_flags_ & update_flags::CHANGED);
 
-	using char_type = label_type::value_type;
-	const auto get_glyphs_for = [&](const std::basic_string_view<char_type>& str)
+	const auto glyphs = [&]
 	{
-		const auto get_glyph_safe = [&](char_type chr)-> ImFontGlyph&
+		using char_type = label_type::value_type;
+		const auto get_glyph_safe = [&](char_type chr)
 		{
 			const auto glyph =
 #if 0
 				font->FindGlyphNoFallback(chr);
 			runtime_assert(glyph != nullptr);
 #else
-					font->FindGlyph(chr);
+				font->FindGlyph(chr);
 #endif
-			return *const_cast<ImFontGlyph*>(glyph);
+			return glyph;
 		};
 
-		return str | std::views::transform(get_glyph_safe);
-	};
+		//return str | std::views::transform(get_glyph_safe);
 
-	//cache_glyphs
-	auto glyphs = get_glyphs_for(label);
-	//glyphs_.assign(glyphs.begin( ), glyphs.end( ));
-	auto visible_glyphs     = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.Visible; });
-	auto renderavle_glyphs  = /*glyphs_*/glyphs | std::views::filter([](const ImFontGlyph& gl)-> bool { return gl.AdvanceX > 0; });
-	visible_glyphs_count    = std::ranges::distance(visible_glyphs);
-	randerable_glyphs_count = std::ranges::distance(renderavle_glyphs);
+		std::vector<const ImFontGlyph*> out;
+		out.reserve(label.size( ));
+		for (const auto c: label)
+			out.push_back(get_glyph_safe(c));
 
-	//update_label_size
-	auto advances = glyphs | std::views::transform(&ImFontGlyph::AdvanceX); //AdvanceX is valid after atlas rebuild
-	label_size.x  = std::accumulate(advances.begin( ), advances.end( ), 0.f);
-	label_size.y  = font->FontSize; //line_height
+		return out;
+	}( );
+
+	visible_glyphs_count    = std::ranges::count_if(glyphs, [](const ImFontGlyph* gl)-> bool { return gl->Visible; });
+	randerable_glyphs_count = std::ranges::count_if(glyphs, [](const ImFontGlyph* gl)-> bool { return gl->AdvanceX > 0; });
+
+	label_size.x = [&]
+	{
+		auto out = 0.f;
+		for (const auto g: glyphs)
+			out += g->AdvanceX; //AdvanceX is valid after atlas rebuild
+		return out;
+	}( );
+	label_size.y = font->FontSize; //line_height
 
 	if (update_flags_ & update_flags::LABEL_CHANGED)
-		label_hash = std::_Hash_array_representation(label._Unchecked_begin( ), label.size( ));
+		label_hash = std::invoke(std::hash<label_type::_Str_type>{}, label);
 
 	this->on_update(update_flags_);
 
@@ -283,14 +290,14 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 	finish( );
 #if 0
 	//todo: left right / up down
-		ImGui::SetNextWindowPos(label_rect.Max, ImGuiCond_Always);
-	
+	ImGui::SetNextWindowPos(label_rect.Max, ImGuiCond_Always);
+
 
 	if (ImGui::IsMouseHoveringRect(label_rect.Min, label_rect.Max, false))
 	{
-		ImGui::BeginTooltip( );
+		ImGui::BeginTooltip();
 		ImGui::Text("Visible %d glyphs", glyphs_rendered);
-		ImGui::EndTooltip( );
+		ImGui::EndTooltip();
 	}
 #endif
 
