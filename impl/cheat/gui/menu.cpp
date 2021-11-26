@@ -166,15 +166,14 @@ struct menu_impl::impl
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
 		w.show_anim.set_end(/*1*/global_alpha);
 		w.show_anim.set_duration(250ms);
-#if CHEAT_GUI_TEST || _DEBUG
+#if 1//CHEAT_GUI_TEST || _DEBUG
 		w.show_anim.restart(true);
 		w.set(true);
 #else
 		w.set(false);
 #endif
 
-		auto& show_anim_target = w.show_anim.set_target(nstd::smooth_object_base::target_external_tag{});
-		show_anim_target.write_value(global_alpha);
+		w.show_anim.set_target(global_alpha);
 		w.flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
 		//----------

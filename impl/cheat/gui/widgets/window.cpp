@@ -427,7 +427,7 @@ bool window_wrapped::show_next_tick( ) const
 
 bool window_wrapped::updating( ) const
 {
-	using state = nstd::smooth_object_base::state;
+	using state = nstd::smooth_object_state;
 	switch (show_anim.get_state( ))
 	{
 			//case state::RESTARTED_DELAYED:
@@ -442,7 +442,7 @@ bool window_wrapped::updating( ) const
 
 window_end_token_ex window_wrapped::operator()(bool close_button)
 {
-	runtime_assert(show_anim.get_target( )->get_value( ) == 1);
+	runtime_assert(show_anim.get_target( )->get( ) == 1);
 	window_end_token_ex token;
 
 	show_ = show_wished_;

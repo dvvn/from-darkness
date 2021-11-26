@@ -54,31 +54,27 @@ struct aimbot_impl::impl
 
 		auto test_font = imgui_context::get( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\arial.TTF)", std::move(font_cfg));
 
-		using target_internal = nstd::smooth_value_linear<ImVec4>::target_internal;
-		using target_external = nstd::smooth_value_linear<ImVec4>::target_external;
-
 		slider_bg_anim.set_duration(600ms);
-		slider_bg_anim.set_target<target_internal>( );
+		slider_bg_anim.set_target( );
 		slider_anim.set_duration(200ms);
-		slider_anim.set_target<nstd::smooth_value_linear<float>::target_internal>( );
-		slider_anim.get_target( )->write_value(slider_data.value);
+		slider_anim.set_target(slider_data.value);
 		slider_anim.set_start(slider_data.min);
 		slider_anim.set_end(slider_data.max);
 		slider_anim.inverse( );
 		slider_text.set_font(ImGui::GetDefaultFont( ));
-		slider_text.set_label(std::format("custom slider: {} value", slider_anim.get_target( )->own_value( ) ? "internal" : "external"));
+		slider_text.set_label(std::format("custom slider: {} value", slider_anim.get_target( )->own( ) ? "internal" : "external"));
 
 		test_cb.set_label(u8"hello привет 12345");
 		test_cb.set_font(test_font);
 		test_cb.set_duration(300ms);
-		test_cb.set_target<target_internal>( );
+		test_cb.set_target( );
 		test_cb_check_anim.set_duration(600ms);
-		test_cb_check_anim.set_target<target_internal>( );
+		test_cb_check_anim.set_target( );
 
 		test_selectable.set_label(U"hello default");
 		test_selectable.set_font(ImGui::GetDefaultFont( ));
 		test_selectable.set_duration(300ms);
-		test_selectable.set_target<target_internal>( );
+		test_selectable.set_target( );
 
 		//-----
 #if 0
@@ -124,7 +120,7 @@ struct aimbot_impl::impl
 
 aimbot_impl::aimbot_impl( )
 {
-	this->add_dependency(imgui_context::get());
+	this->add_dependency(imgui_context::get( ));
 }
 
 aimbot_impl::~aimbot_impl( )                                = default;

@@ -39,7 +39,7 @@ ImU32 animation_color_helper::operator()(const ImVec4& clr) const
 
 		animation_->set_new_range(clr);
 		animation_->update( );
-		return animation_->get_target( )->get_value( );
+		return animation_->get_target( )->get( );
 	}( );
 
 	const auto alpha = ImGui::GetStyle( ).Alpha;

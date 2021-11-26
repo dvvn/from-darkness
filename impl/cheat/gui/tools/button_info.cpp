@@ -6,8 +6,6 @@
 #include <format>
 #include <vector>
 
-
-
 using namespace cheat::gui;
 using namespace tools;
 
@@ -21,9 +19,9 @@ button_state tools::button_behavior(const ImRect& bb, ImGuiID id, bool unreachab
 	else
 		hovered = held = pressed = false;
 
-	button_state& state = [&]()-> button_state&
+	auto& state = [&]( )-> button_state&
 	{
-		for (auto& [id_stored,state] : infos)
+		for (auto& [id_stored, state]: infos)
 		{
 			if (id_stored == id)
 				return state;
@@ -36,7 +34,7 @@ button_state tools::button_behavior(const ImRect& bb, ImGuiID id, bool unreachab
 		if (state != active)
 			state = state == normal ? active : normal;
 	};
-	
+
 	/*auto old_state = state;*/
 
 	if (pressed)
@@ -57,19 +55,19 @@ button_state tools::button_behavior(const ImRect& bb, ImGuiID id, bool unreachab
 		{
 			switch (e)
 			{
-				case button_state::UNKNOWN: return "UNKNOWN";
-				case button_state::IDLE: return "IDLE";
-				case button_state::INACTIVE: return "INACTIVE";
-				case button_state::HOVERED: return "HOVERED";
-				case button_state::HOVERED_ACTIVE: return "HOVERED_ACTIVE";
-				case button_state::HELD: return "HELD";
-				case button_state::HELD_ACTIVE: return "HELD_ACTIVE";
-				case button_state::PRESSED: return "PRESSED";
-				default: throw;
+			case button_state::UNKNOWN: return "UNKNOWN";
+			case button_state::IDLE: return "IDLE";
+			case button_state::INACTIVE: return "INACTIVE";
+			case button_state::HOVERED: return "HOVERED";
+			case button_state::HOVERED_ACTIVE: return "HOVERED_ACTIVE";
+			case button_state::HELD: return "HELD";
+			case button_state::HELD_ACTIVE: return "HELD_ACTIVE";
+			case button_state::PRESSED: return "PRESSED";
+			default: throw;
 			}
 		};
 
-		CHEAT_CONSOLE_LOG(std::format("{}: {} -> {}",id,to_string(old_state),to_string(state)));
+		CHEAT_CONSOLE_LOG(std::format("{}: {} -> {}", id, to_string(old_state), to_string(state)));
 	}
 #endif
 

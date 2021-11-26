@@ -65,7 +65,7 @@ namespace cheat::gui::widgets
 			return grab_sz;
 		}( );
 
-		const auto current_value = !slide_animation ? in.value : slide_animation->get_target( )->get_value( );
+		const auto current_value = !slide_animation ? in.value : slide_animation->get_target( )->get( );
 
 		const auto grab_offset = [&]
 		{
@@ -87,7 +87,7 @@ namespace cheat::gui::widgets
 
 			return nstd::normalize(val, min, max);
 		};
-		using animation_state = nstd::smooth_object_base::state;
+		using animation_state = nstd::smooth_object_state;
 		const auto set_new_value = [&](bool animate, bool external = false)-> void
 		{
 			T new_value_fixed;
@@ -115,7 +115,7 @@ namespace cheat::gui::widgets
 			{
 				if (animate)
 				{
-					if (!external || slide_animation->get_target( )->own_value( ))
+					if (!external || slide_animation->get_target( )->own( ))
 					{
 						slide_animation->set_new_range(new_value_fixed);
 					}
@@ -136,7 +136,7 @@ namespace cheat::gui::widgets
 						case animation_state::IDLE:
 							slide_animation->set_start(in.value);
 							slide_animation->set_end(new_value_fixed);
-							slide_animation->get_target( )->get_value( ) = new_value_fixed;
+							slide_animation->get_target( )->get( ) = new_value_fixed;
 							break;
 					}
 				}
@@ -155,8 +155,8 @@ namespace cheat::gui::widgets
 				return state;
 			case button_state::PRESSED:
 #ifndef CHEAT_GUI_SLIDER_WRITE_INSTANT
-				if (slide_animation && slide_animation->get_target()->own_value() && !slide_animation->active( ))
-					in.value = slide_animation->get_target( )->get_value( );
+				if (slide_animation && slide_animation->get_target()->own() && !slide_animation->active( ))
+					in.value = slide_animation->get_target( )->get( );
 #endif
 				break;
 			case button_state::HELD:
@@ -173,9 +173,9 @@ namespace cheat::gui::widgets
 		if (slide_animation && slide_animation->update( ))
 		{
 #ifndef CHEAT_GUI_SLIDER_WRITE_INSTANT
-			if (slide_animation->get_state( ) == animation_state::FINISHED && slide_animation->get_target( )->own_value( ) )
+			if (slide_animation->get_state( ) == animation_state::FINISHED && slide_animation->get_target( )->own( ) )
 			{
-				in.value = slide_animation->get_target( )->get_value( );
+				in.value = slide_animation->get_target( )->get( );
 			}
 #endif
 		}
