@@ -5,8 +5,6 @@
 #include "cheat/core/csgo_interfaces.h"
 #include "cheat/core/services_loader.h"
 
-#include "shaders/PostProcessing.h"
-
 #include <nstd/file/to_memory.h>
 
 #include <cppcoro/task.hpp>
@@ -270,10 +268,6 @@ auto imgui_context_impl::load_impl( ) noexcept -> load_result
 #endif
 	}( );
 
-	//----
-
-	//TESTING
-	PostProcessing::setDevice(d3d);
 
 	CHEAT_SERVICE_LOADED
 }

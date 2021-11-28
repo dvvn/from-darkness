@@ -1,27 +1,28 @@
-#include "PostProcessing.h"
+#include "effects.h"
+#include "cheat/core/csgo_interfaces.h"
+
+using namespace cheat;
+using namespace gui;
 
 #ifdef _WIN32
 
-typedef unsigned char BYTE;
+using BYTE = unsigned char;
 
 // shaders are build during compilation and header files are created
-#include "Build/blur_x.h"
-#include "Build/blur_y.h"
-#include "Build/chromatic_aberration.h"
-#include "Build/monochrome.h"
+#include "effects_data/Build/blur_x.h"
+#include "effects_data/Build/blur_y.h"
+#include "effects_data/Build/chromatic_aberration.h"
+#include "effects_data/Build/monochrome.h"
 #endif
 
 #include <nstd/runtime_assert_fwd.h>
 #include <nstd/custom_types.h>
+#include NSTD_UNORDERED_MAP_INCLUDE
 
 #include <imgui_internal.h>
 
-#include <cppcoro/task.hpp>
-
 #include <d3d9.h>
 #include <wrl/client.h>
-
-#include NSTD_UNORDERED_MAP_INCLUDE
 
 #include <array>
 #include <string>
@@ -29,16 +30,11 @@ typedef unsigned char BYTE;
 #include <algorithm>
 #include <functional>
 
-struct result_tester
-{
-	__forceinline result_tester(const HRESULT result)
-	{
-		runtime_assert(result == D3D_OK);
-	}
-};
-
-#define TEST_RESULT \
-[[maybe_unused]] const result_tester _CONCAT(test,__LINE__)
+#ifdef _DEBUG
+#define HRESULT_VALIDATE(fn, ...) runtime_assert(fn == D3D_OK,##__VA_ARGS__)
+#else
+#define HRESULT_VALIDATE(fn, ...) fn
+#endif
 
 template <typename T, typename Base = Microsoft::WRL::ComPtr<T>>
 struct comptr : Base
@@ -48,7 +44,7 @@ struct comptr : Base
 	using Base::Base;
 	using Base::operator=;
 
-	comptr(T* ptr) = delete; //it call unwanted addref method
+	comptr(T* ptr) = delete; //it calls unwanted addref method
 
 	template <typename T1>
 		requires(std::derived_from<T, T1>)
@@ -82,34 +78,29 @@ struct comptr : Base
 	}
 };
 
-//template <class T>
-//comptr(T*) -> comptr<std::remove_const_t<T>>;
-
-//static float _Back_buffer_width  = 0;
-//static float _Back_buffer_height = 0;
-
-#ifdef _WIN32
-static IDirect3DDevice9* _D3d_device; // DO NOT RELEASE!
+#if _WIN32
 
 [[nodiscard]]
 static auto _Create_texture(UINT width, UINT height) noexcept
 {
+	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
 	comptr<IDirect3DTexture9> texture;
-	TEST_RESULT = _D3d_device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr);
+	HRESULT_VALIDATE(d3d->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr));
 	return texture;
 }
 
 [[nodiscard]]
 static auto _Create_texture(UINT scale = 1) noexcept
 {
+	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
 	comptr<IDirect3DSurface9> back_buffer;
-	TEST_RESULT = _D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer);
+	HRESULT_VALIDATE(d3d->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
 	D3DSURFACE_DESC desc;
-	TEST_RESULT = back_buffer->GetDesc(&desc);
+	HRESULT_VALIDATE(back_buffer->GetDesc(&desc));
 	return _Create_texture(desc.Width / scale, desc.Height / scale);
 
 	/*IDirect3DTexture9* texture;
-	TEST_RESULT = _D3d_device->CreateTexture(desc.Width, desc.Height, 1, desc.Usage, desc.Format, desc.Pool, std::addressof(texture), nullptr);
+	TEST_RESULT = csgo_interfaces::get()->d3d_device->CreateTexture(desc.Width, desc.Height, 1, desc.Usage, desc.Format, desc.Pool, std::addressof(texture), nullptr);
 	return texture;*/
 }
 
@@ -150,7 +141,8 @@ struct basic_shader_program : comptr<Shader>
 
 	basic_shader_program(const BYTE* shader_source_function)
 	{
-		TEST_RESULT = _D3d_device->CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this);
+		const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
+		HRESULT_VALIDATE(d3d->CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this));
 	}
 
 	basic_shader_program(const basic_shader_program& other)                = delete;
@@ -162,9 +154,10 @@ struct basic_shader_program : comptr<Shader>
 	{
 #ifdef _WIN32
 
-		TEST_RESULT       = _D3d_device->SetPixelShader(*this);
+		const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
+		HRESULT_VALIDATE(d3d->SetPixelShader(*this));
 		std::array params = {uniform, 0.f, 0.f, 0.f};
-		TEST_RESULT       = _D3d_device->SetPixelShaderConstantF(location, params._Unchecked_begin( ), 1);
+		HRESULT_VALIDATE(d3d->SetPixelShaderConstantF(location, params._Unchecked_begin(), 1));
 #else
 		glUseProgram(program);
 		glUniform1f(location, uniform);
@@ -223,20 +216,24 @@ struct custom_texture : comptr<IDirect3DTexture9>
 
 	void prepare_buffer(const RECT* surface_pos = nullptr)
 	{
-		comptr<IDirect3DSurface9> back_buffer;
-		TEST_RESULT = _D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer);
-		comptr<IDirect3DSurface9> surface;
-		TEST_RESULT = Get( )->GetSurfaceLevel(0, surface);
+		const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
 
-		TEST_RESULT = _D3d_device->StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_POINT);
+		comptr<IDirect3DSurface9> back_buffer;
+		HRESULT_VALIDATE(d3d->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
+		comptr<IDirect3DSurface9> surface;
+		HRESULT_VALIDATE(Get()->GetSurfaceLevel(0, surface));
+
+		HRESULT_VALIDATE(d3d->StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_NONE));
 	}
 
 	void set_as_target( ) const
 	{
+		const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
+
 		comptr<IDirect3DSurface9> surface;
-		TEST_RESULT = Get( )->GetSurfaceLevel(0, surface);
+		HRESULT_VALIDATE(Get()->GetSurfaceLevel(0, surface));
 		//SetRenderTarget resets viewport!!!
-		TEST_RESULT = _D3d_device->SetRenderTarget(0, surface);
+		HRESULT_VALIDATE(d3d->SetRenderTarget(0, surface));
 	}
 };
 
@@ -274,23 +271,6 @@ struct effect_data
 	shader_program shader;
 };
 
-static void _Set_projection(int width, int height, float p0 = 1.f, float p1 = 1.f, float p2 = 1.f, float p3 = 1.f)
-{
-	using std::array;
-	using matrix_t = array<array<float, 4>, 4>;
-	static_assert(sizeof(matrix_t) == sizeof(D3DMATRIX));
-	matrix_t matrix;
-
-	matrix[0] = {p0, 0.0f, 0.0f, 0.0f};
-	matrix[1] = {0.0f, p1, 0.0f, 0.0f};
-	matrix[2] = {0.0f, 0.0f, p2, 0.0f};
-	matrix[3] = {-1.0f / width, 1.0f / height, 0.0f, p3};
-
-	TEST_RESULT = _D3d_device->SetVertexShaderConstantF(0, reinterpret_cast<const float*>(matrix._Unchecked_begin( )), matrix.size( ));
-}
-
-#ifdef _DEBUG
-
 struct debug_string : std::string
 {
 	template <typename T>
@@ -307,6 +287,22 @@ struct debug_string : std::string
 		return c_str( );
 	}
 };
+
+#if 0
+static void _Set_projection(int width, int height, float p0 = 1.f, float p1 = 1.f, float p2 = 1.f, float p3 = 1.f)
+{
+	using std::array;
+	using matrix_t = array<array<float, 4>, 4>;
+	static_assert(sizeof(matrix_t) == sizeof(D3DMATRIX));
+	matrix_t matrix;
+
+	matrix[0] = { p0, 0.0f, 0.0f, 0.0f };
+	matrix[1] = { 0.0f, p1, 0.0f, 0.0f };
+	matrix[2] = { 0.0f, 0.0f, p2, 0.0f };
+	matrix[3] = { -1.0f / width, 1.0f / height, 0.0f, p3 };
+
+	TEST_RESULT = csgo_interfaces::get()->d3d_device->SetVertexShaderConstantF(0, reinterpret_cast<const float*>(matrix._Unchecked_begin()), matrix.size());
+}
 #endif
 
 static auto _ImRect_to_rect(const ImRect& rect)
@@ -327,8 +323,8 @@ static auto _ImRect_to_viewport(const ImRect& rect)
 
 	out.X      = static_cast<DWORD>(rect.Min.x);
 	out.Y      = static_cast<DWORD>(rect.Min.y);
-	out.Width  = rect.GetWidth( );
-	out.Height = rect.GetHeight( );
+	out.Width  = static_cast<DWORD>(rect.GetWidth( ));
+	out.Height = static_cast<DWORD>(rect.GetHeight( ));
 	out.MinZ   = 0;
 	out.MaxZ   = 1;
 
@@ -361,28 +357,29 @@ private:
 protected:
 	void post_begin( )
 	{
-		IDirect3DSurface9* target;
-		TEST_RESULT = _D3d_device->GetRenderTarget(0, &target);
+		const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
+
+		comptr<IDirect3DSurface9> target;
+		HRESULT_VALIDATE(d3d->GetRenderTarget(0, target));
 		DWORD addessu;
-		TEST_RESULT = _D3d_device->GetSamplerState(0, D3DSAMP_ADDRESSU, &addessu);
-		TEST_RESULT = _D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+		HRESULT_VALIDATE(d3d->GetSamplerState(0, D3DSAMP_ADDRESSU, &addessu));
+		HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP));
 		DWORD addessv;
-		TEST_RESULT = _D3d_device->GetSamplerState(0, D3DSAMP_ADDRESSV, &addessv);
-		TEST_RESULT = _D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+		HRESULT_VALIDATE(d3d->GetSamplerState(0, D3DSAMP_ADDRESSV, &addessv));
+		HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP));
 		DWORD scissortest;
-		TEST_RESULT = _D3d_device->GetRenderState(D3DRS_SCISSORTESTENABLE, &scissortest);
-		TEST_RESULT = _D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+		HRESULT_VALIDATE(d3d->GetRenderState(D3DRS_SCISSORTESTENABLE, &scissortest));
+		HRESULT_VALIDATE(d3d->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE));
 		IDirect3DPixelShader9* shader;
-		TEST_RESULT = _D3d_device->GetPixelShader(&shader);
+		HRESULT_VALIDATE(d3d->GetPixelShader(&shader));
 
 		end_restore_ = [=]
 		{
-			TEST_RESULT = _D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, addessu);
-			TEST_RESULT = _D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSV, addessv);
-			TEST_RESULT = _D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, scissortest);
-			TEST_RESULT = _D3d_device->SetPixelShader(shader);
-			TEST_RESULT = _D3d_device->SetRenderTarget(0, target);
-			target->Release( );
+			HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSU, addessu));
+			HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSV, addessv));
+			HRESULT_VALIDATE(d3d->SetRenderState(D3DRS_SCISSORTESTENABLE, scissortest));
+			HRESULT_VALIDATE(d3d->SetPixelShader(shader));
+			HRESULT_VALIDATE(d3d->SetRenderTarget(0, target));
 		};
 	}
 
@@ -523,11 +520,11 @@ public:
 		//constexpr auto absolute_max = std::numeric_limits<uint8_t>::max( ) - 1;
 		int clarity = clarity_;
 		if (ImGui::SliderInt(debug_strings_.clarity.c_str( ), &clarity, 1, 128))
-			set_clarity(clarity);
+			set_clarity(static_cast<uint32_t>(clarity));
 
 		int down_sample = down_sample_;
 		if (ImGui::SliderInt(debug_strings_.down_sample, &down_sample, 1, 64))
-			set_down_sample(down_sample);
+			set_down_sample(static_cast<uint32_t>(down_sample));
 
 		if (ImGui::Button(debug_strings_.reset_values))
 			set_default_values( );
@@ -1221,57 +1218,10 @@ static blur_effect _Blur;
 
 //#define USE_SCALED_BLUR
 
-#ifdef _WIN32
-void PostProcessing::setDevice(IDirect3DDevice9* device) noexcept
-{
-	_D3d_device = device;
-}
-
-void PostProcessing::clearBlurTextures( ) noexcept
-{
-}
-
-void PostProcessing::onDeviceReset( ) noexcept
+void effects::perform_blur(ImDrawList* drawList, float alpha) noexcept
 {
 #ifdef USE_SCALED_BLUR
-	_Blur_scaled.write_temp_data( );
-	_Blur_scaled.reset_all_data( );
-#else
-	_Blur.reset_data();
-#endif
-}
-#endif
-
-void PostProcessing::newFrame( ) noexcept
-{
-#ifdef USE_SCALED_BLUR
-	_Blur_scaled.write_temp_data( );
-#endif
-
-#ifdef _DEBUG
-#ifdef USE_SCALED_BLUR
-	for (const auto wnd: GImGui->Windows | std::views::reverse)
-	{
-		if (!custom_textures_applicable(wnd))
-			continue;
-		auto ptr = _Blur_scaled.find(wnd->DrawList);
-		if (!ptr)
-			continue;
-		if (!ImGui::CollapsingHeader(wnd->Name))
-			continue;
-
-		ptr->debug_update( );
-	}
-#else
-	_Blur.debug_update();
-#endif
-#endif
-}
-
-void PostProcessing::performFullscreenBlur(ImDrawList* drawList, float alpha) noexcept
-{
-#ifdef USE_SCALED_BLUR
-	const auto& rect   = reinterpret_cast<ImRect&>(drawList->_ClipRectStack.back( ));
+	const auto& rect = reinterpret_cast<ImRect&>(drawList->_ClipRectStack.back());
 	auto [blur, added] = _Blur_scaled[drawList];
 	blur.set_rect(rect);
 #else
@@ -1283,22 +1233,43 @@ void PostProcessing::performFullscreenBlur(ImDrawList* drawList, float alpha) no
 	blur.render(drawList);
 }
 
-void PostProcessing::performBlur(ImDrawList* drawList, const ImVec2& min, const ImVec2& max, float alpha) noexcept
+void effects::new_frame( ) noexcept
 {
-	//BlurEffect::draws(drawList, min, max, alpha);
+#ifdef USE_SCALED_BLUR
+	_Blur_scaled.write_temp_data();
+#endif
+
+#ifdef _DEBUG
+#ifdef USE_SCALED_BLUR
+	for (const auto wnd : GImGui->Windows | std::views::reverse)
+	{
+		if (!custom_textures_applicable(wnd))
+			continue;
+		auto ptr = _Blur_scaled.find(wnd->DrawList);
+		if (!ptr)
+			continue;
+
+		if (!ImGui::CollapsingHeader(wnd->Name))
+			continue;
+		ptr->debug_update();
+	}
+#else
+	_Blur.debug_update( );
+#endif
+#endif
 }
 
-void PostProcessing::performFullscreenChromaticAberration(ImDrawList* drawList, float amount) noexcept
+void effects::invalidate_objects( ) noexcept
 {
-	//ChromaticAberration::draw(drawList, amount);
+#ifdef USE_SCALED_BLUR
+	_Blur_scaled.write_temp_data();
+	_Blur_scaled.reset_all_data();
+#else
+	_Blur.reset_data( );
+#endif
 }
 
-void PostProcessing::performFullscreenMonochrome(ImDrawList* drawList, float amount) noexcept
-{
-	//MonochromeEffect::draw(drawList, amount);
-}
-
-bool PostProcessing::custom_textures_applicable(const ImGuiWindow* wnd)
+bool effects::is_applicable(const ImGuiWindow* wnd)
 {
 	if (!wnd->WasActive || wnd->SkipItems || wnd->Hidden)
 		return false;
@@ -1306,11 +1277,10 @@ bool PostProcessing::custom_textures_applicable(const ImGuiWindow* wnd)
 	if (wnd->Flags & ImGuiWindowFlags_NoBackground)
 		return false;
 
-	const auto& style = ImGui::GetStyle( );
-
-	const auto bad_color = [&](ImGuiCol_ col)
+	constexpr auto bad_color = [](ImGuiCol_ col)
 	{
-		auto& clr = style.Colors[col];
+		const auto& style = ImGui::GetStyle( );
+		const auto& clr   = style.Colors[col];
 		return /*clr.w == 0 ||*/ clr.w == 1;
 	};
 

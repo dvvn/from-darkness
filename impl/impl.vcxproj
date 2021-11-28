@@ -176,8 +176,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="cheat\gui\shaders\PostProcessing.cpp" />
-    <ClCompile Include="cheat\hooks\studio render\targets.cpp" />
+    <ClCompile Include="cheat\gui\effects.cpp" />
+    <ClCompile Include="cheat\hooks\imgui\targets.cpp" />
     <ClCompile Include="cheat\netvars\lazy.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
@@ -388,7 +388,7 @@
     <ClInclude Include="cheat\core\csgo_awaiter.h" />
     <ClInclude Include="cheat\core\csgo_interfaces.h" />
     <ClInclude Include="cheat\core\csgo_modules.h" />
-    <ClInclude Include="cheat\gui\shaders\PostProcessing.h" />
+    <ClInclude Include="cheat\gui\effects.h" />
     <ClInclude Include="cheat\netvars\lazy.h" />
     <ClInclude Include="cheat\netvars\storage_iter.h" />
     <ClInclude Include="cheat\netvars\storage_ndebug.h" />

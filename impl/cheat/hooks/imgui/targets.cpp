@@ -1,7 +1,7 @@
 #include "cheat/core/console.h"
 #include "cheat/core/services_loader.h"
 #include "cheat/gui/imgui_context.h"
-#include "cheat/gui/shaders/PostProcessing.h"
+#include "cheat/gui/effects.h"
 #include "cheat/hooks/base.h"
 
 #include <imgui_internal.h>
@@ -24,7 +24,9 @@ struct PushClipRect_callback_impl : cheat::service<PushClipRect_callback_impl>
 
 	void callback(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect) override
 	{
-		auto wnd = ImGui::GetCurrentWindowRead( );
+		using namespace cheat::gui;
+
+		const auto wnd = ImGui::GetCurrentWindowRead( );
 
 		//see ImGui::Begin
 		//rendering starts after this line
@@ -34,15 +36,15 @@ struct PushClipRect_callback_impl : cheat::service<PushClipRect_callback_impl>
 		//todo: remove fallback window
 		if (wnd->IsFallbackWindow)
 			return;
-		if (!PostProcessing::custom_textures_applicable(wnd))
+		if (!effects::is_applicable(wnd))
 			return;
 
 		this->call_original_and_store_result(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
 
-		auto dlist       = wnd->DrawList;
+		const auto dlist = wnd->DrawList;
 		const auto& rect = wnd->OuterRectClipped;
 		dlist->PushClipRect(rect.Min, rect.Max);
-		PostProcessing::performFullscreenBlur(dlist, ImGui::GetStyle( ).Alpha);
+		effects::perform_blur(dlist, ImGui::GetStyle( ).Alpha);
 		dlist->PopClipRect( );
 	}
 
