@@ -34,7 +34,7 @@ template <typename T>
 static void _Load_class( )
 {
 	using namespace netvars;
-	constexpr auto name = nstd::type_name<T, "cheat::csgo">;
+	constexpr auto name = CSGO_class_name<T>;
 	auto [entry, added] = CHEAT_NETVARS_UNWRAP_ADDED_CLASS(add_child_class_to_storage(*_Root_storage, name));
 	runtime_assert(added == false);
 	_Current_storage = std::addressof(static_cast<netvars_storage&>(*entry));
@@ -67,11 +67,11 @@ namespace cheat::detail::netvars
 		const iterator_wrapper offset_itr = _Current_storage->find(offset_from NSTD_UTG);
 		const auto offset0                =
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-						offset_itr->find("offset"sv)->get<int>( )
+				offset_itr->find("offset"sv)->get<int>( )
 #else
-						*offset_itr
+			* offset_itr
 #endif
-				;
+			;
 		return add_netvar_to_storage<Type>(name, offset0 + offset, std::forward<TypeProj>(type_proj));
 	}
 }

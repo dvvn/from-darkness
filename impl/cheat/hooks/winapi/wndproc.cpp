@@ -5,6 +5,8 @@
 #include "cheat/gui/imgui_context.h"
 #include "cheat/gui/menu.h"
 
+#include "nstd/type name.h"
+
 #include <Windows.h>
 
 #include <imgui_impl_win32.h>
@@ -12,6 +14,8 @@
 using namespace cheat;
 using namespace hooks::winapi;
 using namespace gui;
+
+
 
 // ReSharper disable once CppInconsistentNaming
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);

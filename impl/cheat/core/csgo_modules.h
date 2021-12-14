@@ -10,6 +10,20 @@ namespace nstd::module
 	class info;
 }
 
+namespace cheat
+{
+	template <typename T>
+	// ReSharper disable once CppInconsistentNaming
+	_INLINE_VAR constexpr auto CSGO_class_name = []
+	{
+		constexpr auto name             = nstd::type_name<T>;
+		constexpr std::string_view drop = "cheat::csgo";
+		constexpr auto out_size         = nstd::drop_namespace(name, drop).size( );
+		const auto out                  = nstd::drop_namespace(name, drop);
+		return nstd::string_to_buffer<out_size>(out);
+	}( ).view( );
+}
+
 namespace cheat::csgo_modules
 {
 	namespace detail
@@ -31,7 +45,7 @@ namespace cheat::csgo_modules
 			template <typename Table>
 			Table* find_vtable( )
 			{
-				constexpr auto table_name = nstd::type_name<Table, "cheat::csgo"/*IgnoreNamespaces...*/>;
+				constexpr auto table_name = CSGO_class_name<Table>;
 				void* ptr                 = find_vtable(table_name);
 				return static_cast<Table*>(ptr);
 			}

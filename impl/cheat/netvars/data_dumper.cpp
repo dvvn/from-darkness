@@ -50,11 +50,15 @@ log_info netvars::log_netvars(const netvars_root_storage& netvars_data)
 	const auto netvars_dump_file = [&]
 	{
 		const std::string_view version = csgo_interfaces::get( )->engine->GetProductVersionString( );
+		constexpr auto extension       = L".json"sv;
+
 		std::wstring file_name;
-		file_name.reserve(version.size( ));
+		file_name.reserve(version.size( ) + extension.size( ));
 		for (const auto c: version)
 			file_name += static_cast<wchar_t>(c == '.' ? '_' : c);
-		return dumps_dir / fs::path(std::move(file_name));
+		file_name += extension;
+
+		return dumps_dir / std::move(file_name);
 	}( );
 #if !CHEAT_NETVARS_UPDATING
 	const auto file_exists = !dirs_created && exists(netvars_dump_file);
@@ -133,18 +137,34 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 			}
 
 			std::string include;
-			for (const auto c: str
-							   | std::views::split("::"sv)
-							   | std::views::transform(subrange_to_string_view))
+#if 0
+			//correct, but currently incompatible because of broken compiler
+			for (const auto subrng: str | std::views::split("::"sv))
 			{
 				if (!include.empty( ))
 					include += '/';
-				include += c;
+				include += subrange_to_string_view(subrng);
 			}
+#else
+			runtime_assert("TEST ME");
+			size_t pos     = 0;
+			const auto ptr = str._Unchecked_begin( );
+			for (;;)
+			{
+				const auto pos2 = str.find("::"sv, pos);
+				if (pos2 == str.npos)
+					break;
+				const auto substr = std::string_view(ptr + pos, ptr + pos2);
+				if (!include.empty( ))
+					include += '/';
+				include += substr;
+				pos = pos2 + 2;
+			}
+#endif
 
 			result.emplace_back(std::move(include), global);
 		}
-		else if (str.ends_with("_t"))
+		else if (str.ends_with("_t"sv))
 		{
 			result.emplace_back("cstdint"s, true);
 		}
@@ -350,7 +370,7 @@ void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data
 		netvars_data_backup = netvars_data;
 
 		const auto generated_files = _Get_generated_files(generated_classes_dir, wsuffix_cpp, wsuffix_h);
-		for (auto& [cpp,h,file]: generated_files)
+		for (auto& [cpp, h, file]: generated_files)
 		{
 			const auto add_to_erase0 = [&](const std::wstring_view& postfix)
 			{
@@ -435,11 +455,11 @@ _WORK:
 		const auto source_add_include = [&](const std::string_view& file_name, bool global = false)
 		{
 			source <<
-					"#include "
-					<< (global ? '<' : '"')
-					<< file_name
-					<< (global ? '>' : '"')
-					<< __New_line;
+				"#include "sv
+				<< (global ? '<' : '"')
+				<< file_name
+				<< (global ? '>' : '"')
+				<< __New_line;
 		};
 
 		const auto source_add_dynamic_includes = [&]
@@ -475,14 +495,14 @@ _WORK:
 		};
 
 		source_add_include(CLASS_NAME + ".h");
-		source_add_include("cheat/netvars/netvars.h");
-		source_add_include("nstd/address.h", true);
+		source_add_include("cheat/netvars/netvars.h"sv);
+		source_add_include("nstd/address.h"sv, true);
 		source << __New_line;
 
 		source_add_dynamic_includes( );
 
 		//source << "using cheat::csgo::" << CLASS_NAME << ';' << __New_line;
-		source << "using namespace cheat::csgo;" << __New_line;
+		source << "using namespace cheat::csgo;"sv << __New_line;
 
 		source << __New_line;
 
@@ -501,19 +521,19 @@ _WORK:
 			// ReSharper disable once CppInconsistentNaming
 			constexpr auto _Address_class = nstd::type_name<nstd::address>;
 
-			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, NETVAR_NAME) << __New_line;
-			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, CLASS_NAME, NETVAR_NAME) << __New_line;
+			header << std::format("{}{} {}( );"sv, netvar_type, netvar_ret_char, NETVAR_NAME) << __New_line;
+			source << std::format("{}{} {}::{}( )"sv, netvar_type, netvar_ret_char, CLASS_NAME, NETVAR_NAME) << __New_line;
 			source << '{' << __New_line;
 #ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
 			source << __Tab << format("auto addr = {}(this).add({});", _Address_class, netvar_offset) << __New_line;
 #else
 			source << __Tab
-					<< "static const auto offset = netvars::get( )->at"
-					<< std::format("(\"{}\", \"{}\");", CLASS_NAME, NETVAR_NAME)
-					<< __New_line;
-			source << __Tab << "auto addr = " << _Address_class << "(this).add(offset);" << __New_line;
+				<< "static const auto offset = netvars::get( )->at"sv
+				<< std::format("(\"{}\", \"{}\");"sv, CLASS_NAME, NETVAR_NAME)
+				<< __New_line;
+			source << __Tab << "auto addr = " << _Address_class << "(this).add(offset);"sv << __New_line;
 #endif
-			source << __Tab << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << __New_line;
+			source << __Tab << std::format("return addr.{}<{}>( );"sv, netvar_type_pointer ? "ptr"sv : "ref"sv, netvar_type) << __New_line;
 			source << '}' << __New_line;
 		}
 
@@ -538,7 +558,7 @@ _WORK:
 
 #endif
 
-	CHEAT_CONSOLE_LOG(std::format("Netvars classes generation done.{}{}",removed_msg, created_msg));
+	CHEAT_CONSOLE_LOG(std::format("Netvars classes generation done.{}{}"sv, removed_msg, created_msg));
 
 	if (info == log_info::created)
 	{
