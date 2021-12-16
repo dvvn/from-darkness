@@ -82,12 +82,12 @@ void cached_text::set_font(ImFont* new_font)
 {
 	font = new_font;
 	add_update_flag(update_flags::FONT_CHANGED);
-	if (label.empty( ))
+	if (label.empty())
 		return;
-	this->update( );
+	this->update();
 }
 
-void cached_text::update( )
+void cached_text::update()
 {
 	using namespace nstd::enum_operators;
 
@@ -113,27 +113,30 @@ void cached_text::update( )
 		//return str | std::views::transform(get_glyph_safe);
 
 		std::vector<const ImFontGlyph*> out;
-		out.reserve(label.size( ));
-		for (const auto c: label)
+		out.reserve(label.size());
+		for (const auto c : label)
 			out.push_back(get_glyph_safe(c));
 
 		return out;
-	}( );
+	}();
 
-	visible_glyphs_count    = std::ranges::count_if(glyphs, [](const ImFontGlyph* gl)-> bool { return gl->Visible; });
+	visible_glyphs_count = std::ranges::count_if(glyphs, [](const ImFontGlyph* gl)-> bool { return gl->Visible; });
 	randerable_glyphs_count = std::ranges::count_if(glyphs, [](const ImFontGlyph* gl)-> bool { return gl->AdvanceX > 0; });
 
 	label_size.x = [&]
 	{
 		auto out = 0.f;
-		for (const auto g: glyphs)
+		for (const auto g : glyphs)
 			out += g->AdvanceX; //AdvanceX is valid after atlas rebuild
 		return out;
-	}( );
+	}();
 	label_size.y = font->FontSize; //line_height
 
 	if (update_flags_ & update_flags::LABEL_CHANGED)
-		label_hash = std::invoke(std::hash<label_type::_Str_type>{}, label);
+	{
+		using view_t = std::basic_string_view<label_type::value_type>;
+		label_hash = std::invoke(std::hash<view_t>{}, label);
+	}
 
 	this->on_update(update_flags_);
 
@@ -158,7 +161,7 @@ static bool _Any_of_noloop(Rng&& rng, Fn&& pred, std::index_sequence<I...>)
 template <typename Rng, typename Fn>
 static bool _Any_of_noloop(Rng&& rng, Fn&& pred)
 {
-	return _Any_of_noloop(rng, pred, make_index_sequence_tuple<Rng>( ));
+	return _Any_of_noloop(rng, pred, make_index_sequence_tuple<Rng>());
 }
 
 template <typename Rng, typename Fn, size_t ...I>
@@ -170,11 +173,11 @@ static void _For_each_noloop(Rng&& rng, Fn&& fn, std::index_sequence<I...>)
 template <typename Rng, typename Fn>
 static void _For_each_noloop(Rng&& rng, Fn&& fn)
 {
-	_For_each_noloop(rng, fn, make_index_sequence_tuple<Rng>( ));
+	_For_each_noloop(rng, fn, make_index_sequence_tuple<Rng>());
 }
 
 size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const ImVec2& align, const ImRect& clip_rect_override
-						 , bool cram_clip_rect_x, bool cram_clip_rect_y) const
+	, bool cram_clip_rect_x, bool cram_clip_rect_y) const
 {
 	if ((color & IM_COL32_A_MASK) == 0)
 		return 0;
@@ -183,27 +186,27 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 
 	using backup_t = nstd::mem::backup<float>;
 
-	auto& clip_rect       = draw_list->_CmdHeader.ClipRect;
+	auto& clip_rect = draw_list->_CmdHeader.ClipRect;
 	auto clip_rect_backup = [&]
 	{
 		std::array<backup_t, 4> backup;
 
 		auto& [min, max] = clip_rect_override;
 		if (min.x != FLT_MAX && (cram_clip_rect_x || min.x > clip_rect.x))
-			backup[0] = {clip_rect.x, min.x};
+			backup[0] = { clip_rect.x, min.x };
 		if (min.y != FLT_MAX && (cram_clip_rect_y || min.y > clip_rect.y))
-			backup[1] = {clip_rect.y, min.y};
+			backup[1] = { clip_rect.y, min.y };
 		if (max.x != FLT_MAX && (cram_clip_rect_x || max.x < clip_rect.z))
-			backup[2] = {clip_rect.z, max.x};
+			backup[2] = { clip_rect.z, max.x };
 		if (max.y != FLT_MAX && (cram_clip_rect_y || max.y < clip_rect.w))
-			backup[3] = {clip_rect.w, max.y};
+			backup[3] = { clip_rect.w, max.y };
 		return backup;
-	}( );
+	}();
 
 	const auto add_draw_cmd = _Any_of_noloop(clip_rect_backup, &backup_t::has_value);
 	if (add_draw_cmd)
 	{
-		draw_list->_OnChangedClipRect( );
+		draw_list->_OnChangedClipRect();
 	}
 
 	const auto align_helper = [&](float ImVec2::* dir, float ImVec4::* clip_rect_dir)
@@ -214,7 +217,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 			return;
 
 		const auto label_size_val = std::invoke(dir, label_size);
-		const auto clip_val       = std::invoke(clip_rect_dir, clip_rect);
+		const auto clip_val = std::invoke(clip_rect_dir, clip_rect);
 
 		auto& val = std::invoke(dir, pos);
 
@@ -236,14 +239,14 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 		if (add_draw_cmd)
 		{
 			_For_each_noloop(clip_rect_backup, &backup_t::restore);
-			draw_list->_OnChangedClipRect( );
+			draw_list->_OnChangedClipRect();
 		}
 	};
 
 	const auto label_rect = ImRect(pos, pos + label_size);
 	if (label_rect.Max.y <= 0 || label_rect.Max.x <= 0 || label_rect.Min.x >= clip_rect.z || label_rect.Min.y >= clip_rect.w)
 	{
-		finish( );
+		finish();
 		return 0;
 	}
 
@@ -253,7 +256,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 	const auto col_untinted = color | ~IM_COL32_A_MASK;
 
 	size_t glyphs_rendered = 0;
-	for (const auto glyph: /*glyphs_*/this->label | std::views::transform([&](label_type::value_type chr) { return font->FindGlyph(chr); }))
+	for (const auto glyph : /*glyphs_*/this->label | std::views::transform([&](label_type::value_type chr) { return font->FindGlyph(chr); }))
 	{
 		// We don't do a second finer clipping test on the Y axis as we've already skipped anything before clip_rect.y and exit once we pass clip_rect.w
 		const auto x1 = pos.x + glyph->X0;
@@ -271,7 +274,7 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 
 			// Support for untinted glyphs
 			const auto glyph_col = glyph->Colored ? col_untinted : color;
-			draw_list->PrimRectUV({x1, y1}, {x2, y2}, {u1, v1}, {u2, v2}, glyph_col);
+			draw_list->PrimRectUV({ x1, y1 }, { x2, y2 }, { u1, v1 }, { u2, v2 }, glyph_col);
 
 			++glyphs_rendered;
 		}
@@ -282,12 +285,12 @@ size_t cached_text::render(ImDrawList* draw_list, ImVec2 pos, ImU32 color, const
 	if (glyphs_rendered < visible_glyphs_count)
 	{
 		const auto unused_glyphs = visible_glyphs_count - glyphs_rendered;
-		const auto idx_dummy     = unused_glyphs * 6;
-		const auto vtx_dummy     = unused_glyphs * 4;
+		const auto idx_dummy = unused_glyphs * 6;
+		const auto vtx_dummy = unused_glyphs * 4;
 		draw_list->PrimUnreserve(idx_dummy, vtx_dummy);
 	}
 
-	finish( );
+	finish();
 #if 0
 	//todo: left right / up down
 	ImGui::SetNextWindowPos(label_rect.Max, ImGuiCond_Always);

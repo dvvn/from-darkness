@@ -8,16 +8,16 @@
 
 namespace cheat::gui::tools
 {
-	template <nstd::std_string_or_view T>
-	auto get_imgui_string(const T& str)
-		requires(sizeof(typename T::value_type) == sizeof(char))
-	{
-#ifdef IMGUI_HAS_IMSTR
-		return ImStrv(str._Unchecked_begin( ), str._Unchecked_end( ));
-#else
-		return reinterpret_cast<const char*>(/*std::_Const_cast*/str._Unchecked_begin( ));
-#endif
-	}
+	//	template <nstd::std_string_or_view T>
+	//	auto get_imgui_string(const T& str)
+	//		requires(sizeof(typename T::value_type) == sizeof(char))
+	//	{
+	//#ifdef IMGUI_HAS_IMSTR
+	//		return ImStrv(str._Unchecked_begin( ), str._Unchecked_end( ));
+	//#else
+	//		return reinterpret_cast<const char*>(/*std::_Const_cast*/str._Unchecked_begin( ));
+	//#endif
+	//	}
 
 #if 0//deprecated
 
@@ -32,9 +32,9 @@ namespace cheat::gui::tools
 #ifdef IMGUI_HAS_IMSTR
 			ImStrv
 #else
-		const char*
+			const char*
 #endif
-		;
+			;
 
 		template <typename T>
 		imgui_string(T&& str)
@@ -60,9 +60,9 @@ namespace cheat::gui::tools
 		{
 			// ReSharper disable CppRedundantParentheses
 			if constexpr (sizeof(Str::value_type) == sizeof(T::value_type))
-				count = str.size( );
+				count = str.size();
 			else
-				count = Str(str).size( );
+				count = Str(str).size();
 			// ReSharper restore CppRedundantParentheses
 		}
 
@@ -112,18 +112,18 @@ namespace cheat::gui::tools
 		imgui_string_transparent(imgui_string&& str);
 
 		template <typename Chr, size_t N>
-		imgui_string_transparent(const Chr (&str)[N])
+		imgui_string_transparent(const Chr(&str)[N])
 			: imgui_string_transparent(std::basic_string_view<Chr>(str, std::next(str, N - 1)))
 		{
 		}
 
 	private:
 		std::variant
-		<
+			<
 			const imgui_string*,
 			imgui_string::imgui_type,
 			imgui_string::multibyte_type
-		> buff_;
+			> buff_;
 
 	public:
 		operator imgui_string::imgui_type() const;
@@ -141,7 +141,7 @@ namespace cheat::gui::tools
 	{
 	public:
 		virtual ~cached_text() = default;
-		cached_text()          = default;
+		cached_text() = default;
 
 		using label_type = nstd::unistring<ImWchar>;
 
@@ -154,11 +154,11 @@ namespace cheat::gui::tools
 			add_update_flag(update_flags::LABEL_CHANGED);
 			if (!font)
 				return;
-			this->update( );
+			this->update();
 		}
 
 		size_t render(ImDrawList* draw_list, ImVec2 pos, ImU32 color
-					, const ImVec2& align = {}, const ImRect& clip_rect_override = {FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX}, bool cram_clip_rect_x = 0, bool cram_clip_rect_y = 0) const;
+			, const ImVec2& align = {}, const ImRect& clip_rect_override = { FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX }, bool cram_clip_rect_x = false, bool cram_clip_rect_y = false) const;
 
 		//todo: invisible chars ignored
 
@@ -167,17 +167,17 @@ namespace cheat::gui::tools
 		size_t label_hash = 0;
 
 		//std::vector<ImFontGlyph> glyphs_;//ImFontGlyph invalid after every atlas build, so it uselles
-		size_t visible_glyphs_count    = 0;
+		size_t visible_glyphs_count = 0;
 		size_t randerable_glyphs_count = 0;
-		ImFont* font                   = nullptr;
+		ImFont* font = nullptr;
 
 	protected:
 		enum class update_flags :uint8_t
 		{
 			NONE
-		  , LABEL_CHANGED = 1 << 0
-		  , FONT_CHANGED = 1 << 1
-		  , CHANGED = LABEL_CHANGED | FONT_CHANGED
+			, LABEL_CHANGED = 1 << 0
+			, FONT_CHANGED = 1 << 1
+			, CHANGED = LABEL_CHANGED | FONT_CHANGED
 		};
 
 		virtual void on_update(update_flags flags) { return; }

@@ -23,10 +23,10 @@ window::window(animator&& fade)
 bool window::begin(imgui_string_transparent&& title, ImGuiWindowFlags_ flags)
 {
 	runtime_assert(ignore_end__ == false);
-	auto& style = ImGui::GetStyle( );
+	auto& style = ImGui::GetStyle();
 	//runtime_assert(style.Alpha == fade_.max( ));
 
-	if(!this->Animate( ) && !visible__)
+	if (!this->Animate() && !visible__)
 	{
 		ignore_end__ = true;
 		return false;
@@ -37,63 +37,63 @@ bool window::begin(imgui_string_transparent&& title, ImGuiWindowFlags_ flags)
 	(void)alpha_backup;
 #endif
 
-	const auto min_size = ImGui::GetFontSize( ) + //small button size
+	const auto min_size = ImGui::GetFontSize() + //small button size
 		style.ItemInnerSpacing.x +
-		_Get_char_size( ).x * title.chars_count( ) + //string size
+		_Get_char_size().x * title.chars_count() + //string size
 		style.FramePadding.x * 2.f +                 //space between and after
 		style.WindowBorderSize;
 
 	nstd::memory_backup<float> min_size_backup;
 	(void)min_size_backup;
 
-	if(min_size > style.WindowMinSize.x)
-		min_size_backup = {style.WindowMinSize.x, min_size};
+	if (min_size > style.WindowMinSize.x)
+		min_size_backup = { style.WindowMinSize.x, min_size };
 
 	return ImGui::Begin(title, nullptr, flags);
 }
 
-void window::end( )
+void window::end()
 {
-	if(ignore_end__)
+	if (ignore_end__)
 	{
 		ignore_end__ = false;
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
-		runtime_assert(!fade_alpha_backup_.has_value( ));
+		runtime_assert(!fade_alpha_backup_.has_value());
 #endif
 	}
 	else
 	{
-		ImGui::End( );
+		ImGui::End();
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
-		fade_alpha_backup_.restore( );
+		fade_alpha_backup_.restore();
 #endif
 	}
 }
 
-void window::show( )
+void window::show()
 {
 	visible__ = true;
 	fade_.set(1);
 }
 
-void window::hide( )
+void window::hide()
 {
 	visible__ = false;
 	fade_.set(uint8_t(-1));
 }
 
-void window::toggle( )
+void window::toggle()
 {
 	visible__ = !visible__;
 	fade_.set(visible__ ? 1 : uint8_t(-1));
 }
 
-bool window::visible( ) const
+bool window::visible() const
 {
-	return visible__ || animating( );
+	return visible__ || animating();
 }
 
-bool window::active( ) const
+bool window::active() const
 {
 	return visible__ && fade_.done(1);
 }
@@ -113,15 +113,15 @@ bool child_window::begin(const ImVec2& size, bool border, ImGuiWindowFlags_ flag
 	return Begin_impl(reinterpret_cast<ImGuiID>(this), size, border, flags);
 }
 
-void child_window::end( )
+void child_window::end()
 {
-	ImGui::EndChild( );
+	ImGui::EndChild();
 #ifdef CHEAT_GUI_WIDGETS_FADE_CONTENT
-	fade_alpha_backup_.restore( );
+	fade_alpha_backup_.restore();
 #endif
 }
 
-void child_window::show( )
+void child_window::show()
 {
 	return fade_.set(1);
 }
@@ -133,7 +133,7 @@ child_frame_window::child_frame_window(animator&& fade)
 
 bool child_frame_window::Begin_impl(ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags)
 {
-	const auto& style = ImGui::GetStyle( );
+	const auto& style = ImGui::GetStyle();
 	[[maybe_unused]]
 	const auto backups = std::make_tuple(push_style_color(ImGuiCol_ChildBg, style.Colors[ImGuiCol_FrameBg]),
 		push_style_var(ImGuiStyleVar_ChildRounding, style.FrameRounding),
@@ -224,7 +224,7 @@ window_end_token_ex::~window_end_token_ex( )
 		case 0:
 		case 1:
 			ImGui::End( );
-			//ImGui::PopFont( );
+		//ImGui::PopFont( );
 		case 2:
 			global_alpha_backup_.restore( );
 			break;
@@ -244,11 +244,16 @@ concept imgui_window_has_font_dpi_scale = requires( )
 
 window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWindowFlags flags)
 {
-	const auto window_title = get_imgui_string(title.label_legacy);
-	const auto window       = ImGui::FindWindowByName(window_title);
-	auto& style             = ImGui::GetStyle( );
+	const auto window_title =
+#ifdef IMGUI_HAS_IMSTR
+		get_imgui_string(title.label_legacy);
+#else
+		reinterpret_cast<const char*>(title.label_legacy._Unchecked_begin( ));
+#endif
+	const auto window = ImGui::FindWindowByName(window_title);
+	auto& style       = ImGui::GetStyle( );
 
-	const auto backups = [&]
+	[[maybe_unused]] const auto backups = [&]
 	{
 		auto& g          = *ImGui::GetCurrentContext( );
 		const auto font  = title.font;
@@ -379,7 +384,7 @@ window_end_token widgets::window2(const window_title& title, bool* open, ImGuiWi
 
 		ImGui::PushClipRect(rect.Min + style.WindowPadding, rect.Max - style.WindowPadding, 0);
 		PostProcessing::performFullscreenBlur(dlist, alpha);
-		ImGui::PopClipRect( );
+		ImGui::PopClipRect();
 		ImGui::SliderFloat("alpha", &alpha, 0, 1);
 	}
 #endif
@@ -430,8 +435,8 @@ bool window_wrapped::updating( ) const
 	using state = nstd::smooth_object_state;
 	switch (show_anim.get_state( ))
 	{
-			//case state::RESTARTED_DELAYED:
-			//case state::RESTARTED:
+		//case state::RESTARTED_DELAYED:
+		//case state::RESTARTED:
 		case state::STARTED:
 		case state::RUNNING:
 			return true;
@@ -442,7 +447,7 @@ bool window_wrapped::updating( ) const
 
 window_end_token_ex window_wrapped::operator()(bool close_button)
 {
-	runtime_assert(show_anim.get_target( )->get( ) == 1);
+	runtime_assert(show_anim.get_target()->get() == 1);
 	window_end_token_ex token;
 
 	show_ = show_wished_;
