@@ -176,6 +176,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="cheat\csgo\BaseHadle.cpp" />
+    <ClCompile Include="cheat\csgo\ConVar.ixx" />
+    <ClCompile Include="cheat\csgo\math.ixx" />
+    <ClCompile Include="cheat\csgo\Quaternion.ixx" />
+    <ClCompile Include="cheat\csgo\structs.ixx" />
     <ClCompile Include="cheat\gui\effects.cpp" />
     <ClCompile Include="cheat\hooks\imgui\targets.cpp" />
     <ClCompile Include="cheat\netvars\lazy.cpp">
@@ -184,9 +189,6 @@
     </ClCompile>
     <ClCompile Include="cheat\service\impl.cpp" />
     <ClCompile Include="cheat\core\services_loader.cpp" />
-    <ClCompile Include="cheat\csgo\CBaseHandle.cpp" />
-    <ClCompile Include="cheat\csgo\CInput.cpp" />
-    <ClCompile Include="cheat\csgo\Color.cpp" />
     <ClCompile Include="cheat\csgo\entity\C_BaseAnimating.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
@@ -221,15 +223,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDump|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="cheat\csgo\IBaseClientDll.cpp" />
-    <ClCompile Include="cheat\csgo\IConVar.cpp" />
-    <ClCompile Include="cheat\csgo\IEngineTrace.cpp" />
-    <ClCompile Include="cheat\csgo\QAngle.cpp" />
-    <ClCompile Include="cheat\csgo\UtlString.cpp" />
-    <ClCompile Include="cheat\csgo\Vector.cpp" />
-    <ClCompile Include="cheat\csgo\Vector2D.cpp" />
-    <ClCompile Include="cheat\csgo\Vector4D.cpp" />
-    <ClCompile Include="cheat\csgo\VMatrix.cpp" />
     <ClCompile Include="cheat\features\aimbot.cpp" />
     <ClCompile Include="cheat\gui\imgui_context.cpp" />
     <ClCompile Include="cheat\gui\menu.cpp" />
@@ -380,13 +373,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTest|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="cheat\utils\game.cpp" />
+    <ClCompile Include="cheat\utils\game.ixx" />
+    <ClCompile Include="cheat\utils\utils.ixx" />
     <ClCompile Include="entry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\core\console.h" />
     <ClInclude Include="cheat\core\csgo_awaiter.h" />
-    <ClInclude Include="cheat\core\csgo_interfaces.h" />
+    <ClInclude Include="cheat\core\csgo_interfaces.h">
+      <FileType>Document</FileType>
+    </ClInclude>
     <ClInclude Include="cheat\core\csgo_modules.h" />
     <ClInclude Include="cheat\gui\effects.h" />
     <ClInclude Include="cheat\netvars\lazy.h" />
@@ -397,15 +393,33 @@
     <ClInclude Include="cheat\core\services_loader.h" />
     <ClInclude Include="cheat\service\state.h" />
     <ClInclude Include="cheat\service\stored.h" />
-    <ClInclude Include="cheat\csgo\CBaseHandle.hpp" />
-    <ClInclude Include="cheat\csgo\CClientState.hpp" />
-    <ClInclude Include="cheat\csgo\CInput.hpp" />
-    <ClInclude Include="cheat\csgo\ClientClass.hpp" />
-    <ClInclude Include="cheat\csgo\Color.hpp" />
-    <ClInclude Include="cheat\csgo\CUserCmd.hpp" />
-    <ClInclude Include="cheat\csgo\CUtlMemory.hpp" />
-    <ClInclude Include="cheat\csgo\CUtlVector.hpp" />
-    <ClInclude Include="cheat\csgo\datamap.hpp" />
+    <ClCompile Include="cheat\csgo\BaseHandle.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientState.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Input.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientClass.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Color.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\UserCmd.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\UtlMemory.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\UtlVector.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\DataMap.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClInclude Include="cheat\csgo\entity\C_BaseAnimating.h" />
     <ClInclude Include="cheat\csgo\entity\C_BaseCombatCharacter.h" />
     <ClInclude Include="cheat\csgo\entity\C_BaseCombatWeapon.h" />
@@ -413,49 +427,114 @@
     <ClInclude Include="cheat\csgo\entity\C_BasePlayer.h" />
     <ClInclude Include="cheat\csgo\entity\C_CSPlayer.h" />
     <ClInclude Include="cheat\csgo\entity\C_WeaponCSBase.h" />
-    <ClInclude Include="cheat\csgo\Enums.hpp" />
-    <ClInclude Include="cheat\csgo\GlobalVars.hpp" />
-    <ClInclude Include="cheat\csgo\glow_outline_effect.hpp" />
-    <ClInclude Include="cheat\csgo\IAppSystem.hpp" />
-    <ClInclude Include="cheat\csgo\IBaseClientDll.hpp" />
-    <ClInclude Include="cheat\csgo\IClientEntity.hpp" />
-    <ClInclude Include="cheat\csgo\IClientEntityList.hpp" />
-    <ClInclude Include="cheat\csgo\IClientMode.hpp" />
-    <ClInclude Include="cheat\csgo\IClientNetworkable.hpp" />
-    <ClInclude Include="cheat\csgo\IClientRenderable.hpp" />
-    <ClInclude Include="cheat\csgo\IClientThinkable.hpp" />
-    <ClInclude Include="cheat\csgo\IClientUnknown.hpp" />
-    <ClInclude Include="cheat\csgo\ICollideable.hpp" />
-    <ClInclude Include="cheat\csgo\IConVar.hpp" />
-    <ClInclude Include="cheat\csgo\IEngineSound.hpp" />
-    <ClInclude Include="cheat\csgo\IEngineTrace.hpp" />
-    <ClInclude Include="cheat\csgo\IGameEventmanager.hpp" />
-    <ClInclude Include="cheat\csgo\IHandleEntity.hpp" />
-    <ClInclude Include="cheat\csgo\IInputSystem.hpp" />
-    <ClInclude Include="cheat\csgo\IMaterialSystem.hpp" />
-    <ClInclude Include="cheat\csgo\IMDLCache.hpp" />
-    <ClInclude Include="cheat\csgo\IMoveHelper.hpp" />
-    <ClInclude Include="cheat\csgo\IPanel.hpp" />
-    <ClInclude Include="cheat\csgo\IPhysics.hpp" />
-    <ClInclude Include="cheat\csgo\IPrediction.hpp" />
-    <ClInclude Include="cheat\csgo\IRefCounted.hpp" />
-    <ClInclude Include="cheat\csgo\IRenderView.hpp" />
-    <ClInclude Include="cheat\csgo\IStudioRender.h" />
-    <ClInclude Include="cheat\csgo\ISurface.hpp" />
-    <ClInclude Include="cheat\csgo\IVDebugOverlay.hpp" />
-    <ClInclude Include="cheat\csgo\IVEngineClient.hpp" />
-    <ClInclude Include="cheat\csgo\IViewRender.hpp" />
-    <ClInclude Include="cheat\csgo\IVModelInfoClient.hpp" />
-    <ClInclude Include="cheat\csgo\IVModelRender.hpp" />
-    <ClInclude Include="cheat\csgo\QAngle.hpp" />
-    <ClInclude Include="cheat\csgo\Recv.hpp" />
-    <ClInclude Include="cheat\csgo\Studio.hpp" />
-    <ClInclude Include="cheat\csgo\UtlBuffer.hpp" />
-    <ClInclude Include="cheat\csgo\UtlString.hpp" />
-    <ClInclude Include="cheat\csgo\Vector.hpp" />
-    <ClInclude Include="cheat\csgo\Vector2D.hpp" />
-    <ClInclude Include="cheat\csgo\Vector4D.hpp" />
-    <ClInclude Include="cheat\csgo\VMatrix.hpp" />
+    <ClCompile Include="cheat\csgo\GlobalVars.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\GlowEffect.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\AppSystem.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\BaseClient.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientEntity.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientEntityList.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientMode.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientNetworkable.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientRenderable.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientThinkable.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ClientUnknown.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Collideable.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\EngineSound.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\EngineTrace.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\GameEvents.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\InputSystem.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\MaterialSystem.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\MDLCache.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\MoveHelper.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\VguiPanel.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Physics.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Prediction.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\RefCounted.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\RenderView.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\StudioRender.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\VguiSurface.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\DebugOverlay.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\EngineClient.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ViewRender.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ModelInfoClient.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\ModelRender.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\QAngle.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Recv.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Studio.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Vector.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
+    <ClCompile Include="cheat\csgo\Vmatrix.ixx">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClInclude Include="cheat\features\aimbot.h" />
     <ClInclude Include="cheat\gui\imgui_context.h" />
     <ClInclude Include="cheat\gui\menu.h" />

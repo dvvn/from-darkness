@@ -3,6 +3,7 @@
 
 #include <string_view>
 
+
 namespace cheat::csgo
 {
 	class ConVar;

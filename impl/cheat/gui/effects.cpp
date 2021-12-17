@@ -213,6 +213,7 @@ using shader_program = basic_shader_program<IDirect3DPixelShader9>;
 struct custom_texture : comptr<IDirect3DTexture9>
 {
 	using comptr::comptr;
+	using comptr::operator=;
 
 	void prepare_buffer(const RECT* surface_pos = nullptr)
 	{

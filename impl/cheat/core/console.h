@@ -69,10 +69,9 @@ namespace cheat
 	CHEAT_SERVICE_SHARE(console);
 
 #ifdef CHEAT_HAVE_CONSOLE
-
+#include <format>
 #define CHEAT_CONSOLE_LOG(msg) cheat::console::get( )->write_line(msg);
 #else
 #define CHEAT_CONSOLE_LOG(msg) (void)0
-
 #endif
 }
