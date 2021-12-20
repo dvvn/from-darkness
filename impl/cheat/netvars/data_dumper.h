@@ -17,8 +17,6 @@ namespace cheat::detail::netvars
 	  , updated
 	};
 
-
-
 	log_info log_netvars(const netvars_root_storage& netvars_data);
 	void generate_classes(log_info info, netvars_root_storage& netvars_data, lazy_files_storage& lazy_storage);
 }

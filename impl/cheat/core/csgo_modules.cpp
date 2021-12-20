@@ -1,8 +1,6 @@
 #include "csgo_modules.h"
 #include "console.h"
 
-#include "cheat/csgo/IAppSystem.hpp"
-
 #include <nstd/signature.h>
 #include <nstd/unistring.h>
 #include <nstd/module/all_infos.h>
@@ -19,6 +17,8 @@
 #include <algorithm>
 #include <functional>
 #include <mutex>
+
+import cheat.csgo.structs;
 
 using nstd::module::info;
 using cheat::csgo::InstantiateInterfaceFn;

@@ -1,8 +1,9 @@
 #pragma once
-#include "cheat/csgo/datamap.hpp"
-#include "cheat/csgo/IClientEntity.hpp"
-#include "cheat/csgo/IClientRenderable.hpp"
-#include "cheat/csgo/CUtlVector.hpp"
+
+#include <cstdint>
+
+import cheat.csgo.structs;
+import cheat.csgo.math;
 
 namespace cheat::csgo
 {
