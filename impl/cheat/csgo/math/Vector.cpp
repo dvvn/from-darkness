@@ -6,74 +6,13 @@ module cheat.csgo.math.Vector;
 
 using namespace cheat::csgo;
 
-Vector::Vector(float val)
-{
-	x = y = z = val;
-}
 
-Vector::Vector(float X, float Y, float Z)
-{
-	x = X;
-	y = Y;
-	z = Z;
-}
-
-bool Vector::IsValid( ) const
-{
-	return std::isfinite(x) && std::isfinite(y) && std::isfinite(z);
-}
-
-void Vector::Invalidate( )
-{
-	x = y = z = std::numeric_limits<float>::infinity( );
-}
-
-float& Vector::operator[](int i)
-{
-	return reinterpret_cast<float*>(this)[i];
-}
-
-float Vector::operator[](int i) const
-{
-	return reinterpret_cast<const float*>(this)[i];
-}
-
-Vector& Vector::operator+=(const Vector& v)
-{
-	x += v.x;
-	y += v.y;
-	z += v.z;
-	return *this;
-}
-
-Vector& Vector::operator-=(const Vector& v)
-{
-	x -= v.x;
-	y -= v.y;
-	z -= v.z;
-	return *this;
-}
-
-Vector& Vector::operator*=(const Vector& v)
-{
-	x *= v.x;
-	y *= v.y;
-	z *= v.z;
-	return *this;
-}
-
-Vector& Vector::operator/=(const Vector& v)
-{
-	x /= v.x;
-	y /= v.y;
-	z /= v.z;
-	return *this;
-}
 
 void Vector::NormalizeInPlace( )
 {
 	*this = Normalized( );
 }
+
 
 Vector Vector::Normalized( ) const
 {
@@ -91,13 +30,13 @@ Vector Vector::Normalized( ) const
 
 float Vector::DistTo(const Vector& other) const
 {
-	const auto delta = *this - other;
+	const Vector delta = *this - other;
 	return delta.Length( );
 }
 
 float Vector::DistToSqr(const Vector& other) const
 {
-	const auto delta = *this - other;
+	const Vector delta = *this - other;
 	return delta.LengthSqr( );
 }
 
@@ -121,40 +60,7 @@ float Vector::Length2D( ) const
 	return sqrt(x * x + y * y);
 }
 
-Vector Vector::operator-( ) const
-{
-	return Vector(-x, -y, -z);
-}
 
-Vector Vector::operator+(const Vector& v) const
-{
-	return Vector(x + v.x, y + v.y, z + v.z);
-}
-
-Vector Vector::operator-(const Vector& v) const
-{
-	return Vector(x - v.x, y - v.y, z - v.z);
-}
-
-Vector Vector::operator*(const Vector& v) const
-{
-	return Vector(x * v.x, y * v.y, z * v.z);
-}
-
-Vector Vector::operator/(const Vector& v) const
-{
-	return Vector(x / v.x, y / v.y, z / v.z);
-}
-
-bool Vector::operator==(const Vector& v) const
-{
-	return x == v.x && y == v.y && z == v.z;
-}
-
-bool Vector::operator!=(const Vector& v) const
-{
-	return !(*this == v);
-}
 
 VectorAligned::VectorAligned(const Vector& other) : Vector(other)
 {
@@ -170,172 +76,16 @@ VectorAligned& VectorAligned::operator=(const VectorAligned& other)
 
 //-------------------------
 
-Vector2D::Vector2D(float X, float Y)
-{
-	x = X;
-	y = Y;
-}
 
-Vector2D::Vector2D(float* clr)
-{
-	x = clr[0];
-	y = clr[1];
-}
-
-Vector2D::Vector2D(const Vector2D& vOther)
-{
-	x = vOther.x;
-	y = vOther.y;
-}
-
-//-----------------------------------------------------------------------------
-// initialization
-//-----------------------------------------------------------------------------
-
-void Vector2D::Init(float ix, float iy)
-{
-	x = ix;
-	y = iy;
-}
-
-void Vector2D::Random(float minVal, float maxVal)
-{
-	x = minVal + ((float)rand( ) / RAND_MAX) * (maxVal - minVal);
-	y = minVal + ((float)rand( ) / RAND_MAX) * (maxVal - minVal);
-}
 
 void Vector2DClear(Vector2D& a)
 {
 	a.x = a.y = 0.0f;
 }
 
-//-----------------------------------------------------------------------------
-// assignment
-//-----------------------------------------------------------------------------
-
-Vector2D& Vector2D::operator=(const Vector2D& vOther)
-{
-	x = vOther.x;
-	y = vOther.y;
-	return *this;
-}
-
-//-----------------------------------------------------------------------------
-// Array access
-//-----------------------------------------------------------------------------
-
-float& Vector2D::operator[](int i)
-{
-	return ((float*)this)[i];
-}
-
-float Vector2D::operator[](int i) const
-{
-	return ((float*)this)[i];
-}
-
-//-----------------------------------------------------------------------------
-// Base address...
-//-----------------------------------------------------------------------------
-
-float* Vector2D::Base( )
-{
-	return (float*)this;
-}
-
-float const* Vector2D::Base( ) const
-{
-	return (float const*)this;
-}
-
-//-----------------------------------------------------------------------------
-// IsValid?
-//-----------------------------------------------------------------------------
-
-bool Vector2D::IsValid( ) const
-{
-	return !isinf(x) && !isinf(y);
-}
-
-//-----------------------------------------------------------------------------
-// comparison
-//-----------------------------------------------------------------------------
-
-bool Vector2D::operator==(const Vector2D& src) const
-{
-	return (src.x == x) && (src.y == y);
-}
-
-bool Vector2D::operator!=(const Vector2D& src) const
-{
-	return (src.x != x) || (src.y != y);
-}
-
-Vector2D& Vector2D::operator+=(const Vector2D& v)
-{
-	x += v.x;
-	y += v.y;
-	return *this;
-}
-
-Vector2D& Vector2D::operator-=(const Vector2D& v)
-{
-	x -= v.x;
-	y -= v.y;
-	return *this;
-}
-
-Vector2D& Vector2D::operator*=(float fl)
-{
-	x *= fl;
-	y *= fl;
-	return *this;
-}
-
-Vector2D& Vector2D::operator*=(const Vector2D& v)
-{
-	x *= v.x;
-	y *= v.y;
-	return *this;
-}
-
-Vector2D& Vector2D::operator/=(const Vector2D& v)
-{
-	x /= v.x;
-	y /= v.y;
-	return *this;
-}
-
-Vector2D& Vector2D::operator+=(float fl)
-{
-	x += fl;
-	y += fl;
-	return *this;
-}
-
-Vector2D& Vector2D::operator/=(float fl)
-{
-	x /= fl;
-	y /= fl;
-	return *this;
-}
-
-Vector2D& Vector2D::operator-=(float fl)
-{
-	x -= fl;
-	y -= fl;
-	return *this;
-}
-
 float Vector2D::LengthSqr( ) const
 {
 	return (x * x + y * y);
-}
-
-bool Vector2D::IsZero(float tolerance) const
-{
-	return (x > -tolerance && x < tolerance &&
-			y > -tolerance && y < tolerance);
 }
 
 float Vector2D::DistToSqr(const Vector2D& vOther) const
@@ -368,12 +118,6 @@ void Vector2D::CopyToArray(float* rgfl) const
 // standard Math operations
 //-----------------------------------------------------------------------------
 
-void Vector2D::Negate( )
-{
-	x = -x;
-	y = -y;
-}
-
 void Vector2DAdd(const Vector2D& a, const Vector2D& b, Vector2D& c)
 {
 	c.x = a.x + b.x;
@@ -401,8 +145,8 @@ void Vector2DMultiply(const Vector2D& a, const Vector2D& b, Vector2D& c)
 void Vector2DDivide(const Vector2D& a, float b, Vector2D& c)
 {
 	float oob = 1.0f / b;
-	c.x       = a.x * oob;
-	c.y       = a.y * oob;
+	c.x = a.x * oob;
+	c.y = a.y * oob;
 }
 
 void Vector2DDivide(const Vector2D& a, const Vector2D& b, Vector2D& c)
@@ -536,57 +280,7 @@ Vector2D Vector2D::Max(const Vector2D& vOther) const
 // arithmetic operations
 //-----------------------------------------------------------------------------
 
-Vector2D Vector2D::operator-(void) const
-{
-	return Vector2D(-x, -y);
-}
 
-Vector2D Vector2D::operator+(const Vector2D& v) const
-{
-	Vector2D res;
-	Vector2DAdd(*this, v, res);
-	return res;
-}
-
-Vector2D Vector2D::operator-(const Vector2D& v) const
-{
-	Vector2D res;
-	Vector2DSubtract(*this, v, res);
-	return res;
-}
-
-Vector2D Vector2D::operator*(float fl) const
-{
-	Vector2D res;
-	Vector2DMultiply(*this, fl, res);
-	return res;
-}
-
-Vector2D Vector2D::operator*(const Vector2D& v) const
-{
-	Vector2D res;
-	Vector2DMultiply(*this, v, res);
-	return res;
-}
-
-Vector2D Vector2D::operator/(float fl) const
-{
-	Vector2D res;
-	Vector2DDivide(*this, fl, res);
-	return res;
-}
-
-Vector2D Vector2D::operator/(const Vector2D& v) const
-{
-	Vector2D res;
-	Vector2DDivide(*this, v, res);
-	return res;
-}
-
-Vector2D operator*(float fl, const Vector2D& v)
-{
-	return v * fl;
-}
 
 //-----------------------
 
@@ -625,241 +319,19 @@ float NormalizeVector(Vector4D& v)
 	return l;
 }
 
-Vector4D::Vector4D( )
-{
-	Invalidate( );
-}
 
-Vector4D::Vector4D(float X, float Y, float Z, float W)
-{
-	x = X;
-	y = Y;
-	z = Z;
-	w = W;
-}
-
-Vector4D::Vector4D(float* clr)
-{
-	x = clr[0];
-	y = clr[1];
-	z = clr[2];
-	w = clr[3];
-}
-
-//-----------------------------------------------------------------------------
-// initialization
-//-----------------------------------------------------------------------------
-
-void Vector4D::Init(float ix, float iy, float iz, float iw)
-{
-	x = ix;
-	y = iy;
-	z = iz;
-	w = iw;
-}
-
-void Vector4D::Random(float minVal, float maxVal)
-{
-	x = minVal + (float)rand( ) / RAND_MAX * (maxVal - minVal);
-	y = minVal + (float)rand( ) / RAND_MAX * (maxVal - minVal);
-	z = minVal + (float)rand( ) / RAND_MAX * (maxVal - minVal);
-	w = minVal + (float)rand( ) / RAND_MAX * (maxVal - minVal);
-}
-
-// This should really be a single opcode on the PowerPC (move r0 onto the vec reg)
-void Vector4D::Zero( )
-{
-	x = y = z = w = 0.0f;
-}
-
-//-----------------------------------------------------------------------------
-// assignment
-//-----------------------------------------------------------------------------
-
-Vector4D& Vector4D::operator=(const Vector4D& vOther)
-{
-	x = vOther.x;
-	y = vOther.y;
-	z = vOther.z;
-	w = vOther.w;
-	return *this;
-}
-
-//-----------------------------------------------------------------------------
-// Array access
-//-----------------------------------------------------------------------------
-float& Vector4D::operator[](int i)
-{
-	return ((float*)this)[i];
-}
-
-float Vector4D::operator[](int i) const
-{
-	return ((float*)this)[i];
-}
-
-//-----------------------------------------------------------------------------
-// Base address...
-//-----------------------------------------------------------------------------
-float* Vector4D::Base( )
-{
-	return (float*)this;
-}
-
-float const* Vector4D::Base( ) const
-{
-	return (float const*)this;
-}
-
-//-----------------------------------------------------------------------------
-// IsValid?
-//-----------------------------------------------------------------------------
-
-bool Vector4D::IsValid( ) const
-{
-	return !isinf(x) && !isinf(y) && !isinf(z) && !isinf(w);
-}
-
-//-----------------------------------------------------------------------------
-// Invalidate
-//-----------------------------------------------------------------------------
-
-void Vector4D::Invalidate( )
-{
-	//#ifdef _DEBUG
-	//#ifdef VECTOR_PARANOIA
-	x = y = z = w = std::numeric_limits<float>::infinity( );
-	//#endif
-	//#endif
-}
-
-//-----------------------------------------------------------------------------
-// comparison
-//-----------------------------------------------------------------------------
-
-bool Vector4D::operator==(const Vector4D& src) const
-{
-	return src.x == x && src.y == y && src.z == z && src.w == w;
-}
-
-bool Vector4D::operator!=(const Vector4D& src) const
-{
-	return src.x != x || src.y != y || src.z != z || src.w != w;
-}
-
-Vector4D& Vector4D::operator+=(const Vector4D& v)
-{
-	x += v.x;
-	y += v.y;
-	z += v.z;
-	w += v.w;
-	return *this;
-}
-
-Vector4D& Vector4D::operator-=(const Vector4D& v)
-{
-	x -= v.x;
-	y -= v.y;
-	z -= v.z;
-	w -= v.w;
-	return *this;
-}
-
-Vector4D& Vector4D::operator*=(float fl)
-{
-	x *= fl;
-	y *= fl;
-	z *= fl;
-	w *= fl;
-	return *this;
-}
-
-Vector4D& Vector4D::operator*=(const Vector4D& v)
-{
-	x *= v.x;
-	y *= v.y;
-	z *= v.z;
-	w *= v.w;
-	return *this;
-}
-
-Vector4D& Vector4D::operator/=(const Vector4D& v)
-{
-	x /= v.x;
-	y /= v.y;
-	z /= v.z;
-	w /= v.w;
-	return *this;
-}
-
-Vector4D& Vector4D::operator+=(float fl)
-{
-	x += fl;
-	y += fl;
-	z += fl;
-	w += fl;
-	return *this;
-}
-
-Vector4D& Vector4D::operator/=(float fl)
-{
-	x /= fl;
-	y /= fl;
-	z /= fl;
-	w /= fl;
-	return *this;
-}
-
-Vector4D& Vector4D::operator-=(float fl)
-{
-	x -= fl;
-	y -= fl;
-	z -= fl;
-	w -= fl;
-	return *this;
-}
 
 float Vector4D::LengthSqr( ) const
 {
 	return x * x + y * y + z * z;
 }
 
-//-----------------------------------------------------------------------------
-// Copy
-//-----------------------------------------------------------------------------
-void Vector4D::CopyToArray(float* rgfl) const
-{
-	rgfl[0] = x, rgfl[1] = y, rgfl[2] = z;
-	rgfl[3] = w;
-}
 
-//-----------------------------------------------------------------------------
-// standard Math operations
-//-----------------------------------------------------------------------------
-// #pragma message("TODO: these should be SSE")
-
-void Vector4D::Negate( )
-{
-	x = -x;
-	y = -y;
-	z = -z;
-	w = -w;
-}
 
 // Get the component of this vector parallel to some other given vector
 Vector4D Vector4D::ProjectOnto(const Vector4D& onto)
 {
 	return onto * (this->Dot(onto) / onto.LengthSqr( ));
-}
-
-// FIXME: Remove
-// For backwards compatability
-void Vector4D::MulAdd(const Vector4D& a, const Vector4D& b, float scalar)
-{
-	x = a.x + b.x * scalar;
-	y = a.y + b.y * scalar;
-	z = a.z + b.z * scalar;
-	w = a.w + b.w * scalar;
 }
 
 Vector4D VectorLerp(const Vector4D& src1, const Vector4D& src2, float t)
@@ -884,21 +356,13 @@ float Vector4D::Length( ) const
 	return sqrt(x * x + y * y + z * z + w * w);
 }
 
-bool Vector4D::IsZero(float tolerance) const
-{
-	return x > -tolerance && x < tolerance &&
-			y > -tolerance && y < tolerance &&
-			z > -tolerance && z < tolerance &&
-			w > -tolerance && w < tolerance;
-}
-
 // check a point against a box
 bool Vector4D::WithinAABox(Vector4D const& boxmin, Vector4D const& boxmax)
 {
 	return x >= boxmin.x && x <= boxmax.x &&
-			y >= boxmin.y && y <= boxmax.y &&
-			z >= boxmin.z && z <= boxmax.z &&
-			w >= boxmin.w && w <= boxmax.w;
+		y >= boxmin.y && y <= boxmax.y &&
+		z >= boxmin.z && z <= boxmax.z &&
+		w >= boxmin.w && w <= boxmax.w;
 }
 
 //-----------------------------------------------------------------------------
@@ -923,65 +387,3 @@ float Vector4D::DistToSqr(const Vector4D& vOther) const
 	return delta.LengthSqr( );
 }
 
-//-----------------------------------------------------------------------------
-// Returns a vector with the min or max in X, Y, and Z.
-//-----------------------------------------------------------------------------
-Vector4D Vector4D::Min(const Vector4D& vOther) const
-{
-	return Vector4D(x < vOther.x ? x : vOther.x,
-					y < vOther.y ? y : vOther.y,
-					z < vOther.z ? z : vOther.z,
-					w < vOther.w ? w : vOther.w);
-}
-
-Vector4D Vector4D::Max(const Vector4D& vOther) const
-{
-	return Vector4D(x > vOther.x ? x : vOther.x,
-					y > vOther.y ? y : vOther.y,
-					z > vOther.z ? z : vOther.z,
-					w > vOther.w ? w : vOther.w);
-}
-
-//-----------------------------------------------------------------------------
-// arithmetic operations
-//-----------------------------------------------------------------------------
-
-Vector4D Vector4D::operator-( ) const
-{
-	return Vector4D(-x, -y, -z, -w);
-}
-
-Vector4D Vector4D::operator+(const Vector4D& v) const
-{
-	return Vector4D(x + v.x, y + v.y, z + v.z, w + v.w);
-}
-
-Vector4D Vector4D::operator-(const Vector4D& v) const
-{
-	return Vector4D(x - v.x, y - v.y, z - v.z, w - v.w);
-}
-
-Vector4D Vector4D::operator*(float fl) const
-{
-	return Vector4D(x * fl, y * fl, z * fl, w * fl);
-}
-
-Vector4D Vector4D::operator*(const Vector4D& v) const
-{
-	return Vector4D(x * v.x, y * v.y, z * v.z, w * v.w);
-}
-
-Vector4D Vector4D::operator/(float fl) const
-{
-	return Vector4D(x / fl, y / fl, z / fl, w / fl);
-}
-
-Vector4D Vector4D::operator/(const Vector4D& v) const
-{
-	return Vector4D(x / v.x, y / v.y, z / v.z, w / v.w);
-}
-
-Vector4D operator*(float fl, const Vector4D& v)
-{
-	return v * fl;
-}

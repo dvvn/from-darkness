@@ -1,11 +1,11 @@
 module;
 
 #include <cstdint>
+#include <array>
 
 export module cheat.csgo.structs.RenderView;
 import cheat.csgo.math.Vector;
 import cheat.csgo.math.Qangle;
-
 
 export namespace cheat::csgo
 {
@@ -136,11 +136,11 @@ export namespace cheat::csgo
 		virtual void ComputeLightmapCoordinate(const Vector& worldPos, Vector2D& lightmapCoord) = 0;
 
 		// Gets the vertex data for this surface
-		virtual int  GetVertexCount() const = 0;
+		virtual int  GetVertexCount( ) const = 0;
 		virtual void GetVertexData(BrushVertex_t* pVerts) = 0;
 
 		// Gets at the material properties for this surface
-		virtual IMaterial* GetMaterial() = 0;
+		virtual IMaterial* GetMaterial( ) = 0;
 	};
 
 	//-----------------------------------------------------------------------------
@@ -168,43 +168,43 @@ export namespace cheat::csgo
 		virtual void  DrawBrushModel(IClientEntity* baseentity, model_t* model, const Vector& origin, const QAngle& angles, bool sort) = 0;
 		virtual void  DrawIdentityBrushModel(IWorldRenderList* pList, model_t* model) = 0;
 		virtual void  TouchLight(struct dlight_t* light) = 0;
-		virtual void  Draw3DDebugOverlays() = 0;
+		virtual void  Draw3DDebugOverlays( ) = 0;
 		virtual void  SetBlend(float blend) = 0;
-		virtual float GetBlend() = 0;
+		virtual float GetBlend( ) = 0;
 		virtual void  SetColorModulation(const float* blend) = 0;
 
 		void SetColorModulation(float r, float g, float b)
 		{
-			float clr[3] = { r, g, b };
+			float clr[3] = {r, g, b};
 			SetColorModulation(clr);
 		}
 
 		virtual void              GetColorModulation(float* blend) = 0;
-		virtual void              SceneBegin() = 0;
-		virtual void              SceneEnd() = 0;
+		virtual void              SceneBegin( ) = 0;
+		virtual void              SceneEnd( ) = 0;
 		virtual void              GetVisibleFogVolume(const Vector& eyePoint, VisibleFogVolumeInfo_t* pInfo) = 0;
-		virtual IWorldRenderList* CreateWorldList() = 0;
+		virtual IWorldRenderList* CreateWorldList( ) = 0;
 		virtual void              BuildWorldLists(IWorldRenderList* pList, WorldListInfo_t* pInfo, int iForceFViewLeaf, const VisOverrideData_t* pVisData = 0, bool bShadowDepth = false,
-			float* pReflectionWaterHeight = 0) = 0;
+												  float* pReflectionWaterHeight = 0) = 0;
 		virtual void            DrawWorldLists(IWorldRenderList* pList, unsigned long flags, float waterZAdjust) = 0;
 		virtual int             GetNumIndicesForWorldLists(IWorldRenderList* pList, unsigned long nFlags) = 0;
 		virtual void            DrawTopView(bool enable) = 0;
 		virtual void            TopViewBounds(const Vector2D& mins, const Vector2D& maxs) = 0;
-		virtual void            DrawLights() = 0;
-		virtual void            DrawMaskEntities() = 0;
+		virtual void            DrawLights( ) = 0;
+		virtual void            DrawMaskEntities( ) = 0;
 		virtual void            DrawTranslucentSurfaces(IWorldRenderList* pList, int* pSortList, int sortCount, unsigned long flags) = 0;
-		virtual void            DrawLineFile() = 0;
+		virtual void            DrawLineFile( ) = 0;
 		virtual void            DrawLightmaps(IWorldRenderList* pList, int pageId) = 0;
 		virtual void            ViewSetupVis(bool novis, int numorigins, const Vector origin[]) = 0;
 		virtual bool            AreAnyLeavesVisible(int* leafList, int nLeaves) = 0;
-		virtual void            VguiPaint() = 0;
+		virtual void            VguiPaint( ) = 0;
 		virtual void            ViewDrawFade(uint8_t* color, IMaterial* pMaterial) = 0;
 		virtual void            OLD_SetProjectionMatrix(float fov, float zNear, float zFar) = 0;
 		virtual unsigned long   GetLightAtPoint(Vector& pos) = 0;
-		virtual int             GetViewEntity() = 0;
+		virtual int             GetViewEntity( ) = 0;
 		virtual bool            IsViewEntity(int entindex) = 0;
-		virtual float           GetFieldOfView() = 0;
-		virtual unsigned char** GetAreaBits() = 0;
+		virtual float           GetFieldOfView( ) = 0;
+		virtual unsigned char** GetAreaBits( ) = 0;
 		virtual void            SetFogVolumeState(int nVisibleFogVolume, bool bUseHeightFog) = 0;
 		virtual void            InstallBrushSurfaceRenderer(IBrushRenderer* pBrushRenderer) = 0;
 		virtual void            DrawBrushModelShadow(IClientRenderable* pRenderable) = 0;
@@ -220,8 +220,8 @@ export namespace cheat::csgo
 		virtual void            OverrideViewFrustum(Frustum custom) = 0;
 		virtual void            DrawBrushModelShadowDepth(IClientEntity* baseentity, model_t* model, const Vector& origin, const QAngle& angles, bool bSort) = 0;
 		virtual void            UpdateBrushModelLightmap(model_t* model, IClientRenderable* pRenderable) = 0;
-		virtual void            BeginUpdateLightmaps() = 0;
-		virtual void            EndUpdateLightmaps() = 0;
+		virtual void            BeginUpdateLightmaps( ) = 0;
+		virtual void            EndUpdateLightmaps( ) = 0;
 		virtual void            OLD_SetOffCenterProjectionMatrix(float fov, float zNear, float zFar, float flAspectRatio, float flBottom, float flTop, float flLeft, float flRight) = 0;
 		virtual void            OLD_SetProjectionMatrixOrtho(float left, float top, float right, float bottom, float zNear, float zFar) = 0;
 		virtual void            Push3DView(const CViewSetup& view, int nFlags, ITexture* pRenderTarget, Frustum frustumPlanes, ITexture* pDepthTexture) = 0;

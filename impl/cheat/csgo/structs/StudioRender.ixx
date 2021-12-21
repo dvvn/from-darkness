@@ -2,6 +2,7 @@ module;
 
 #include <cstdint>
 #include <cstring>
+#include <array>
 
 export module cheat.csgo.structs.StudioRender;
 import cheat.csgo.tools.UtlVector;

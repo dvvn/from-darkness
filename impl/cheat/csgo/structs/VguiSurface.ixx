@@ -1,3 +1,7 @@
+module;
+
+#include <array>
+
 export module cheat.csgo.structs.VguiSurface;
 import cheat.csgo.structs.AppSystem;
 import cheat.csgo.math.Vector;
@@ -57,7 +61,7 @@ namespace cheat::csgo
 
 	struct Vertex_t
 	{
-		Vertex_t()=default;
+		/*Vertex_t()=default;
 
 		Vertex_t(const Vector2D& pos, const Vector2D& coord = Vector2D(0, 0))
 		{
@@ -69,7 +73,7 @@ namespace cheat::csgo
 		{
 			m_Position = pos;
 			m_TexCoord = coord;
-		}
+		}*/
 
 		Vector2D m_Position;
 		Vector2D m_TexCoord;
