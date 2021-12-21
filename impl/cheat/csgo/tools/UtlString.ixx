@@ -1,8 +1,7 @@
-#pragma once
+export module cheat.csgo.tools.UtlString;
+import cheat.csgo.tools.UtlMemory;
 
-#include "CUtlMemory.hpp"
-
-namespace cheat::csgo
+export namespace cheat::csgo
 {
 #if 0
 

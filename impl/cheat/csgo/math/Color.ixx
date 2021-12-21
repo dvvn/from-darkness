@@ -2,6 +2,8 @@ module;
 
 #include <array>
 
+export module cheat.csgo.math.Color;
+
 template <typename T>
 static uint8_t _To_uint(T num)
 {
@@ -23,8 +25,6 @@ static uint8_t _To_uint(T num)
 		throw;
 	}
 }
-
-export module cheat.csgo.math.Color;
 
 export namespace cheat::csgo
 {
