@@ -1,65 +1,11 @@
 ﻿module;
 
 #include <cmath>
+#include <array>
 
 module cheat.csgo.math.Vector;
 
 using namespace cheat::csgo;
-
-
-
-void Vector::NormalizeInPlace( )
-{
-	*this = Normalized( );
-}
-
-
-Vector Vector::Normalized( ) const
-{
-	auto res = *this;
-	if (const auto l = res.Length( ); l != 0.0f)
-	{
-		res /= l;
-	}
-	else
-	{
-		res = 0.0f;
-	}
-	return res;
-}
-
-float Vector::DistTo(const Vector& other) const
-{
-	const Vector delta = *this - other;
-	return delta.Length( );
-}
-
-float Vector::DistToSqr(const Vector& other) const
-{
-	const Vector delta = *this - other;
-	return delta.LengthSqr( );
-}
-
-float Vector::Dot(const Vector& other) const
-{
-	return (x * other.x + y * other.y + z * other.z);
-}
-
-float Vector::Length( ) const
-{
-	return sqrt(x * x + y * y + z * z);
-}
-
-float Vector::LengthSqr( ) const
-{
-	return (x * x + y * y + z * z);
-}
-
-float Vector::Length2D( ) const
-{
-	return sqrt(x * x + y * y);
-}
-
 
 
 VectorAligned::VectorAligned(const Vector& other) : Vector(other)

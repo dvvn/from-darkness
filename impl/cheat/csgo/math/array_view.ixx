@@ -12,61 +12,117 @@ export module cheat.csgo.math.array_view;
 
 namespace rn = std::ranges;
 
-struct args_count_getter
-{
-	template<typename T>
-		requires(std::is_arithmetic_v<T>)
-	constexpr size_t operator()(T)const
-	{
-		return 1;
-	}
-	template<typename T, size_t ...I>
-	constexpr size_t operator()(const T& obj, std::index_sequence<I...>)const
-	{
-		return (std::invoke(*this, std::get<I>(obj)) + ...);
-	}
+//struct args_count_getter
+//{
+//	template<typename T>
+//		requires(std::is_arithmetic_v<T>)
+//	constexpr size_t operator()(T)const
+//	{
+//		return 1;
+//	}
+//	template<typename T, size_t ...I>
+//	constexpr size_t operator()(const T& obj, std::index_sequence<I...>)const
+//	{
+//		return (std::invoke(*this, std::get<I>(obj)) + ...);
+//	}
+//
+//	template<typename ...Args>
+//	constexpr size_t operator()(const std::tuple<Args...>& tpl)const
+//	{
+//		return std::invoke(*this, tpl, std::index_sequence_for<Args...>( ));
+//	}
+//
+//	template<typename T, size_t Size>
+//	constexpr size_t operator()(const std::array<T, Size>& arr)const
+//	{
+//		return std::invoke(*this, arr[0]) * Size;
+//	}
+//
+//	template<typename ...Args>
+//	constexpr size_t operator()(const Args&...args)const
+//	{
+//		return (std::invoke(*this, args) + ...);
+//	}
+//};
+//
+//_INLINE_VAR constexpr auto _Get_args_count = args_count_getter( );
 
-	template<typename ...Args>
-	constexpr size_t operator()(const std::tuple<Args...>& tpl)const
-	{
-		return std::invoke(*this, tpl, std::index_sequence_for<Args...>( ));
-	}
-
-	template<typename T, size_t Size>
-	constexpr size_t operator()(const std::array<T, Size>& arr)const
-	{
-		return std::invoke(*this, arr[0]) * Size;
-	}
-
-	template<typename ...Args>
-	constexpr size_t operator()(const Args&...args)const
-	{
-		return (std::invoke(*this, args) + ...);
-	}
-};
-
-_INLINE_VAR constexpr auto _Get_args_count = args_count_getter( );
-
-template<typename Arg1, typename ...Args>
+template<typename Arg1 = void, typename ...Args>
 struct first_arg
 {
 	using type = Arg1;
 };
 
-template<typename Itr>
-struct partial_filler
+template<typename T>
+struct inner_value //for ranges
 {
-	Itr itr;
+	using value_type = T;
+	T val;
+};
+
+template<typename T>
+_INLINE_VAR constexpr bool is_inner_value_v = false;
+
+template<typename T>
+_INLINE_VAR constexpr bool is_inner_value_v<inner_value<T>> = true;
+
+template<typename Arg1, typename ...Args>
+static constexpr decltype(auto) _Get_first_value(Arg1&& arg, Args&&...)
+{
+	using val_t = std::remove_cvref_t<Arg1>;
+	if constexpr (is_inner_value_v<val_t>)
+		return std::forward<val_t::value_type>(arg.val);
+	else
+		return std::forward<Arg1>(arg);
+}
+
+template<typename ValT, typename Arg>
+static constexpr bool _In_out_constructible( )
+{
+	if constexpr (is_inner_value_v<Arg>)
+		return std::constructible_from<ValT, Arg::value_type>;
+	else
+		return std::constructible_from<ValT, Arg>;
+}
+
+template<typename ...T>
+_INLINE_VAR constexpr bool is_tuple_v = false;
+
+template<typename ...T>
+_INLINE_VAR constexpr bool is_tuple_v<std::tuple<T...>> = true;
+
+template<typename Itr>
+class partial_filler
+{
+	Itr begin_, end_;
+public:
 	using value_type = std::iter_value_t<Itr>;
 
-	constexpr partial_filler(Itr itr) :itr(itr) { }
+	constexpr partial_filler(Itr begin, Itr end) :begin_(begin), end_(end)
+	{
+	}
+
+	template<class T>
+	constexpr partial_filler(T& obj) : partial_filler(rn::_Ubegin(obj), rn::_Uend(obj))
+	{
+	}
+
+	constexpr Itr begin( )const { return begin_; }
+	constexpr Itr end( )const { return end_; }
+
+	template<typename T, size_t ...I>
+		requires(is_tuple_v<std::remove_cvref_t<T>>)
+	constexpr void operator()(T&& tpl, std::index_sequence<I...>)
+	{
+		std::invoke(*this, inner_value{std::get<I>(std::forward<T>(tpl))}...);
+	}
 
 	template<typename T>
-		requires(std::constructible_from<value_type, T>)
-	constexpr void operator()(T&& val)
+		requires(is_tuple_v<std::remove_cvref_t<T>>)
+	constexpr void operator()(T&& tpl)
 	{
-		*itr = std::forward<T>(val);
-		++itr;
+		//std::apply(*this,std::forward<T>(tpl));
+		std::invoke(*this, std::forward<T>(tpl), std::make_index_sequence<std::tuple_size_v<T>>( ));
 	}
 
 	template<rn::range Rng>
@@ -74,52 +130,68 @@ struct partial_filler
 	{
 		constexpr bool rvalue = std::is_rvalue_reference_v<decltype(rng)>;
 		using rng_val = rn::range_value_t<Rng>;
-		if constexpr (std::is_same_v<rng_val, value_type>)
+		if constexpr (std::constructible_from<rng_val, value_type>)
 		{
 			if constexpr (rvalue)
-				rn::move(rng, itr);
+				rn::move(rng, begin_);
 			else
-				rn::copy(rng, itr);
+				rn::copy(rng, begin_);
 		}
 		else
 		{
-
 			for (auto& v : rng)
 			{
 				if constexpr (rvalue)
-					std::invoke(*this, std::move(v));
+					std::invoke(*this, inner_value(std::move(v)));
 				else
-					std::invoke(*this, v);
+					std::invoke(*this, inner_value(v));
 			}
 		}
-		itr += rn::distance(rng);
+		begin_ += rn::distance(rng);
 	}
 
 	template<typename ...Args>
 	constexpr void operator()(Args&&...args)
 	{
 		constexpr size_t args_count = sizeof...(Args);
-		if constexpr (args_count > 1 && std::_All_same<std::remove_cvref_t<Args>...>::value)
+		using first_raw_t = first_arg<Args...>::type;
+		using first_t = std::remove_cvref_t<first_raw_t>;
+		if constexpr (args_count == 0)
 		{
-			using raw_t = std::remove_cvref_t<first_arg<Args...>::type>;
-			constexpr size_t size = _Get_args_count(std::remove_cvref_t<Args>( )...);
-			std::invoke(*this, std::array<raw_t, size>{std::forward<Args>(args)...});
+			//nothing
 		}
-		else if constexpr (args_count > 0)
+		else if constexpr (args_count == 1 && _In_out_constructible<value_type, first_t>( ))
+		{
+			decltype(auto) first = _Get_first_value(std::forward<Args>(args)...);
+			if constexpr (is_inner_value_v<first_t>)
+			{
+				*begin_++ = std::forward<decltype(first)>(first);
+			}
+			else
+			{
+				rn::fill(begin_, end_, first);
+				begin_ = end_;
+			}
+		}
+		else if constexpr (std::_All_same<std::remove_cvref_t<Args>...>::value)
+		{
+			std::invoke(*this, std::array{std::forward<Args>(args)...});
+		}
+		else
 		{
 			(std::invoke(*this, std::forward<Args>(args)), ...);
 		}
 	}
 };
 
-template<typename Itr>
-partial_filler(Itr)->partial_filler<Itr>;
+template<rn::range Rng>
+partial_filler(Rng& rng)->partial_filler<decltype(rn::_Ubegin(rng))>;
 
 //template<typename Def, nstd::has_array_access T, typename ...Args>
 //	requires(sizeof...(Args) > 0 && _Get_args_count(T( )) >= _Get_args_count(Args( )...) && std::invocable<partial_filler<rn::iterator_t<T>>, Args...>)
 //static constexpr void _AV_construct(Def def, T& in, Args&&...vals)
 //{
-//	partial_filler filler = in.begin( );
+//	partial_filler filler = in.begin_( );
 //	std::invoke(filler, std::forward<Args>(vals)...);
 //	rn::fill(filler.itr, in.end( ), def);
 //}
@@ -161,18 +233,19 @@ export namespace cheat::csgo
 		constexpr array_view(Args&&...args) : Base( )
 		{
 			auto def = std::invoke(Default{});
-			partial_filler filler = Base::begin( );
+			partial_filler filler = *this;
 			std::invoke(filler, std::forward<Args>(args)...);
-			rn::fill(filler.itr, Base::end( ), def);
+			rn::fill(filler, def);
 		}
 	};
 
 	template<typename Arg1, typename ...Args>
 	array_view(Arg1, Args...)->array_view<Arg1, sizeof...(Args) + 1>;
 
+	constexpr array_view<float, 4> test = std::tuple{2};
+
 	template<class R, class L>
-	concept array_view_constructible = array_view_based<R> /*&& _Get_args_count(L( )) >= _Get_args_count(R( ))*/
-		|| std::constructible_from<std::remove_cvref_t<L>, R>;
+	concept array_view_constructible = array_view_based<R> || std::constructible_from<std::remove_cvref_t<L>, R>;
 }
 
 namespace cheat::csgo
@@ -225,8 +298,7 @@ namespace cheat::csgo
 		}
 		else
 		{
-			using r_raw = std::remove_cvref_t<R>;
-			array_view<L::value_type, _Get_args_count(r_raw( )), L::default_type> tmp = std::forward<R>(r);
+			L tmp = std::forward<R>(r);
 			_AV_operator_selector<Op>(l, std::move(tmp));
 		}
 
