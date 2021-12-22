@@ -17,8 +17,6 @@ export namespace cheat::csgo
 		}
 	};
 
-
-
 	class Vector :public array_view<float, 4, Vector_default_value>
 	{
 	public:
@@ -37,7 +35,7 @@ export namespace cheat::csgo
 		[[no_unique_address]] float x, y, z;
 	};
 
-	class alignas(uint16_t) VectorAligned : public Vector
+	class alignas(16) VectorAligned : public Vector
 	{
 	public:
 		VectorAligned(const Vector& other = {});
@@ -134,7 +132,7 @@ export namespace cheat::csgo
 
 		// Dot product.
 		float Dot(const Vector4D& vOther) const;
-				
+
 		// 2d
 		float Length2D( ) const;
 		float Length2DSqr( ) const;
