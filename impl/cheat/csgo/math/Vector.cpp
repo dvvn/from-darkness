@@ -23,7 +23,6 @@ VectorAligned& VectorAligned::operator=(const VectorAligned& other)
 //-------------------------
 
 
-
 void Vector2DClear(Vector2D& a)
 {
 	a.x = a.y = 0.0f;

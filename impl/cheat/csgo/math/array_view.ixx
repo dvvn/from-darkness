@@ -376,4 +376,19 @@ export namespace cheat::csgo
 			v = -v;
 		return val;
 	}
+	
+	//----helpers
+
+	template<size_t Number>
+	class Array_view_item
+	{
+		std::array<uint8_t, sizeof(float)* (Number == 0 ? 0 : Number - 1)> pad_;
+		float val_;
+
+	public:
+		constexpr operator const float& ()const { return val_; }
+		constexpr operator float& () { return val_; }
+	};
+
+	static_assert(sizeof(Array_view_item<__LINE__>) == sizeof(float) * __LINE__);
 }

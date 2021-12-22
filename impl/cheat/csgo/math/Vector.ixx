@@ -25,19 +25,6 @@ export namespace cheat::csgo
 
 	struct Vector_base_tag { };
 
-	template<size_t Number>
-	class Vector_base_item
-	{
-		std::array<uint8_t, sizeof(float)* (Number == 0 ? 0 : Number - 1)> pad_;
-		float val_;
-
-	public:
-		constexpr operator const float& ()const { return val_; }
-		constexpr operator float& () { return val_; }
-	};
-
-	static_assert(sizeof(Vector_base_item<__LINE__>) == sizeof(float) * __LINE__);
-
 	template<typename ...Args>
 	Vector_base(Args...)->Vector_base<sizeof...(Args)>;
 
@@ -83,66 +70,10 @@ export namespace cheat::csgo
 		return !(l == std::forward<R>(r));
 	}
 
-#define CONST_CLONE(_PRE_,_POST_) \
-	_PRE_ const {return _POST_;}\
-	_PRE_ {return _POST_; }
-
-#define VECTOR_BASE_IMPL\
+#define VECTOR_BASE_CONSTRUCTOR\
 	template<typename ...Args>\
-	constexpr Vector_base(Args&&...args) : _Data(args...) { }\
-	CONST_CLONE(constexpr auto& operator[](size_t idx), _Data[idx] )\
-	CONST_CLONE(constexpr auto& operator->( ), _Data)\
-	CONST_CLONE(constexpr auto data( ), _Data.data( ))\
-	CONST_CLONE(constexpr auto begin( ), _Data.begin( ))\
-	CONST_CLONE(constexpr auto end( ), _Data.end( ))\
-	constexpr auto size( ) const {return _Data.size();}
-
-#define VECTOR_BASE_FUNCS\
-	float Length( ) const\
+	constexpr Vector_base(Args&&...args) : _Data(args...)\
 	{\
-		return std::sqrt(LengthSqr( ));\
-	}\
-	constexpr float LengthSqr( ) const\
-	{\
-		float tmp = 0;\
-		for (auto v : *this)\
-			tmp += v * v;\
-		return tmp;\
-	}\
-	float DistTo(const _This_type& other) const\
-	{\
-		const auto delta = *this - other;\
-		return delta.Length( );\
-	}\
-	float DistToSqr(const _This_type& other) const\
-	{\
-		const auto delta = *this - other;\
-		return delta.LengthSqr( );\
-	}\
-	_This_type Normalized( ) const\
-	{\
-		const auto l = Length( );\
-		if (l != 0.0f)\
-			return *this / l;\
-		else\
-			return 0.0f;\
-	}\
-	constexpr float Dot(const _This_type& other) const\
-	{\
-		float tmp = 0;\
-		for (size_t i = 0; i < this->size(); ++i)\
-			tmp +=(*this)[i]*other[i];\
-		return tmp;\
-	}
-
-#define VECTOR_BASE_FUNCS_2D\
-	float Length2D( ) const\
-	{\
-		return std::sqrt(Length2DSqr( ));\
-	}\
-	constexpr float Length2DSqr( ) const\
-	{\
-		return (*this)[0] * (*this)[0] + (*this)[1] * (*this)[1];\
 	}
 
 	template<>
@@ -151,11 +82,11 @@ export namespace cheat::csgo
 		union
 		{
 			array_view<float, 2> _Data;
-			Vector_base_item<0> x;
-			Vector_base_item<1> y;
+			Array_view_item<0> x;
+			Array_view_item<1> y;
 		};
 
-		VECTOR_BASE_IMPL;
+		VECTOR_BASE_CONSTRUCTOR;
 	};
 
 	template<>
@@ -164,12 +95,12 @@ export namespace cheat::csgo
 		union
 		{
 			array_view<float, 3, Vector3_default_value> _Data;
-			Vector_base_item<0> x;
-			Vector_base_item<1> y;
-			Vector_base_item<2> z;
+			Array_view_item<0> x;
+			Array_view_item<1> y;
+			Array_view_item<2> z;
 		};
 
-		VECTOR_BASE_IMPL;
+		VECTOR_BASE_CONSTRUCTOR;
 	};
 
 	template<>
@@ -178,13 +109,72 @@ export namespace cheat::csgo
 		union
 		{
 			array_view<float, 4> _Data;
-			Vector_base_item<0> x;
-			Vector_base_item<1> y;
-			Vector_base_item<2> z;
-			Vector_base_item<3> w;
+			Array_view_item<0> x;
+			Array_view_item<1> y;
+			Array_view_item<2> z;
+			Array_view_item<3> w;
 		};
 
-		VECTOR_BASE_IMPL;
+		VECTOR_BASE_CONSTRUCTOR;
+	};
+
+	template<size_t Size, class Base = Vector_base<Size>>
+	struct Vector_base_impl :Base
+	{
+		template<typename ...Args>
+		constexpr Vector_base_impl(Args&&...args) : Base(args...)
+		{
+		}
+
+		//compiler stuck here
+		//using Base::Base;
+		using Base::_Data;
+
+		constexpr auto& operator[](size_t idx) { return _Data[idx]; }
+		constexpr auto& operator[](size_t idx) const { return _Data[idx]; }
+		constexpr auto begin( ) { return _Data.begin( ); }
+		constexpr auto begin( ) const { return _Data.begin( ); }
+		constexpr auto end( ) { return _Data.end( ); }
+		constexpr auto end( ) const { return _Data.end( ); }
+		constexpr auto size( ) const { return _Data.size( ); }
+
+		float Length( ) const
+		{
+			return std::sqrt(LengthSqr( ));
+		}
+		constexpr float LengthSqr( ) const
+		{
+			float tmp = 0;
+			for (auto v : *this)
+				tmp += v * v;
+			return tmp;
+		}
+		float DistTo(const Vector_base_impl& other) const
+		{
+			const auto delta = *this - other;
+			return delta.Length( );
+		}
+		float DistToSqr(const Vector_base_impl& other) const
+		{
+			const auto delta = *this - other;
+			return delta.LengthSqr( );
+		}
+		Vector_base_impl Normalized( ) const
+		{
+			const auto l = Length( );
+			if (l != 0.0f)
+				return *this / l;
+			else
+				return 0.0f;
+		}
+
+		constexpr float Dot(const Vector_base_impl& other) const
+		{
+			float tmp = 0;
+			for (size_t i = 0; i < std::size(*this); ++i)
+				tmp += (*this)[i] * other[i];
+			return tmp;
+		}
 	};
 
 	class Vector2D :public array_view<float, 2>
@@ -246,14 +236,10 @@ export namespace cheat::csgo
 		[[no_unique_address]] float x, y;
 	};
 
-	class Vector :public Vector_base<3>
+	class Vector :public Vector_base_impl<3>
 	{
 	public:
-		using _This_type = Vector;
-
-		using Vector_base::Vector_base;
-		VECTOR_BASE_FUNCS;
-		VECTOR_BASE_FUNCS_2D;
+		using Vector_base_impl::Vector_base_impl;
 	};
 
 	class alignas(16) VectorAligned : public Vector
