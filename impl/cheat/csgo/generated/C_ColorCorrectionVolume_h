@@ -1,5 +1,0 @@
-bool& m_bEnabled( );
-float& m_MaxWeight( );
-float& m_FadeDuration( );
-float& m_Weight( );
-char* m_lookupFilename( );

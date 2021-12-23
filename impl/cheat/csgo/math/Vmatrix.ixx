@@ -1,9 +1,11 @@
 export module cheat.csgo.math.Vmatrix;
+export import cheat.csgo.math.Vector;
 
 export namespace cheat::csgo
 {
-	class Vector;
-	class QAngle;
+
+	using test_t = array_view<Vector, 4>;
+	constexpr auto aa = test_t{1,1,1,2,2,2,3,3,3,4,4,4};
 
 	class matrix3x4_t
 	{
@@ -180,4 +182,4 @@ export namespace cheat::csgo
 	[[deprecated]]
 	auto MatrixPosition(const matrix3x4_t& matrix, Vector& position) -> void;
 #endif
-}
+	}

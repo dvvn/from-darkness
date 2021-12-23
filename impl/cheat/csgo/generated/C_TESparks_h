@@ -1,3 +1,0 @@
-int& m_nMagnitude( );
-int& m_nTrailLength( );
-cheat::csgo::Vector& m_vecDir( );

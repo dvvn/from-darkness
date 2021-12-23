@@ -1,67 +1,60 @@
+module;
+
+#include <cmath>
+
+
+#include "helpers.h"
+
 export module cheat.csgo.math.Qangle;
+export import cheat.csgo.math.array_view;
 
 export namespace cheat::csgo
 {
-	class QAngle
+	using QAngle_base_data = array_view<float, 3>;
+
+	template<size_t Number>
+	using QAngle_base_item = Array_view_item<Number, float>;
+
+	class QAngle_base
 	{
 	public:
-		QAngle(void);
+		union
+		{
+			QAngle_base_data _Data;
+			QAngle_base_item<0> pitch;
+			QAngle_base_item<1> yaw;
+			QAngle_base_item<2> roll;
+		};
 
-		QAngle(float X, float Y, float Z);
+		using value_type = float;
 
-		QAngle(const float* clr);
-
-		void Init(float ix = 0.0f, float iy = 0.0f, float iz = 0.0f);
-
-		float operator[](int i) const;
-
-		float& operator[](int i);
-
-		QAngle& operator+=(const QAngle& v);
-
-		QAngle& operator-=(const QAngle& v);
-
-		QAngle& operator*=(float fl);
-
-		QAngle& operator*=(const QAngle& v);
-
-		QAngle& operator/=(const QAngle& v);
-
-		QAngle& operator+=(float fl);
-
-		QAngle& operator/=(float fl);
-
-		QAngle& operator-=(float fl);
-
-		QAngle& operator=(const QAngle& vOther);
-
-		QAngle operator-(void) const;
-
-		QAngle operator+(const QAngle& v) const;
-
-		QAngle operator-(const QAngle& v) const;
-
-		QAngle operator*(float fl) const;
-
-		QAngle operator*(const QAngle& v) const;
-
-		QAngle operator/(float fl) const;
-
-		QAngle operator/(const QAngle& v) const;
-
-		float Length( ) const;
-
-		float LengthSqr(void) const;
-
-		bool IsZero(float tolerance = 0.01f) const;
-
-		float Normalize( ) const;
-
-		float pitch;
-		float yaw;
-		float roll;
+		template<typename ...Args>
+		constexpr QAngle_base(Args&&...args) : _Data(args...)
+		{
+		}
 	};
 
-	 QAngle operator*(float lhs, const QAngle& rhs);
-	 QAngle operator/(float lhs, const QAngle& rhs);
+	template<typename R, class Vb>
+	concept QAngle_base_op = std::derived_from<Vb, QAngle_base> && array_view_constructible<QAngle_base_data, R>;
+
+#define QANGLE_BASE_OPERATOR(_OP_) ARRAY_VIEW_OPERATOR(_OP_, QAngle_base_op)
+
+	QANGLE_BASE_OPERATOR(+);
+	QANGLE_BASE_OPERATOR(-);
+	QANGLE_BASE_OPERATOR(*);
+	QANGLE_BASE_OPERATOR(/ );
+	ARRAY_VIEW_OPERATOR2(QAngle_base_op);
+
+	class QAngle :public QAngle_base
+	{
+	public:
+		using _This_type = QAngle;
+
+		ARRAY_VIEW_DATA_PROXY;
+		ARRAY_VIEW_LENGTH;
+		ARRAY_VIEW_DIST_TO;
+		ARRAY_VIEW_NORMALIZE;
+
+		using QAngle_base::QAngle_base;
+	};
 }

@@ -1,7 +1,0 @@
-cheat::csgo::Vector& m_vecDangerZoneOriginStartedAt( );
-float& m_flBombLaunchTime( );
-float& m_flExtraRadius( );
-float& m_flExtraRadiusStartTime( );
-float& m_flExtraRadiusTotalLerpTime( );
-int& m_nDropOrder( );
-int& m_iWave( );

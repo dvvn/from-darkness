@@ -1,3 +1,0 @@
-cheat::csgo::Vector& m_vecPos( );
-cheat::csgo::Vector& m_vecDir( );
-bool& m_bExplosive( );

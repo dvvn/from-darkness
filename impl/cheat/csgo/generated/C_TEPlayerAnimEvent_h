@@ -1,3 +1,0 @@
-cheat::csgo::CBaseHandle& m_hPlayer( );
-int& m_iEvent( );
-int& m_nData( );

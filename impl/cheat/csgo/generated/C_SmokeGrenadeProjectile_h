@@ -1,2 +1,0 @@
-bool& m_bDidSmokeEffect( );
-int& m_nSmokeEffectTickBegin( );

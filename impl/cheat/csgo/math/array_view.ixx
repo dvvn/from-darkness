@@ -12,6 +12,10 @@ export module cheat.csgo.math.array_view;
 
 namespace rn = std::ranges;
 
+export using std::array;
+export using std::_Array_iterator;
+export using std::_Array_const_iterator;
+
 //struct args_count_getter
 //{
 //	template<typename T>
@@ -92,10 +96,9 @@ template<typename ...T>
 _INLINE_VAR constexpr bool is_tuple_v<std::tuple<T...>> = true;
 
 template<typename Itr>
-class partial_filler
+struct partial_filler
 {
 	Itr begin_, end_;
-public:
 	using value_type = std::iter_value_t<Itr>;
 
 	constexpr partial_filler(Itr begin, Itr end) :begin_(begin), end_(end)
@@ -187,18 +190,12 @@ public:
 template<rn::range Rng>
 partial_filler(Rng& rng)->partial_filler<decltype(rn::_Ubegin(rng))>;
 
-//template<typename Def, nstd::has_array_access T, typename ...Args>
-//	requires(sizeof...(Args) > 0 && _Get_args_count(T( )) >= _Get_args_count(Args( )...) && std::invocable<partial_filler<rn::iterator_t<T>>, Args...>)
-//static constexpr void _AV_construct(Def def, T& in, Args&&...vals)
-//{
-//	partial_filler filler = in.begin_( );
-//	std::invoke(filler, std::forward<Args>(vals)...);
-//	rn::fill(filler.itr, in.end( ), def);
-//}
+template<class Itr>
+partial_filler(Itr, Itr)->partial_filler<Itr>;
 
 export namespace cheat::csgo
 {
-	template<std::default_initializable T>
+	template<class T>
 	struct array_view_default_value
 	{
 		constexpr array_view_default_value( ) = default;
@@ -215,7 +212,7 @@ export namespace cheat::csgo
 	//template<typename A, typename B>
 	//concept array_view_equal = array_view_based<A> && array_view_based<B> && std::same_as<typename A::value_type, typename B::value_type> && A::_Size == B::_Size;
 
-	template <std::copyable _Ty, size_t Size, class Default = array_view_default_value<_Ty>, class Base = std::array<_Ty, Size>>
+	template <class _Ty, size_t Size, class Default = array_view_default_value<_Ty>, class Base = std::array<_Ty, Size>>
 	struct array_view :Base, array_view_tag
 	{
 		static constexpr size_t _Size = Size;
@@ -233,7 +230,7 @@ export namespace cheat::csgo
 		constexpr array_view(Args&&...args) : Base( )
 		{
 			auto def = std::invoke(Default{});
-			partial_filler filler = *this;
+			partial_filler filler = {Base::_Unchecked_begin(), Base::_Unchecked_end()};
 			std::invoke(filler, std::forward<Args>(args)...);
 			rn::fill(filler, def);
 		}
@@ -241,8 +238,6 @@ export namespace cheat::csgo
 
 	template<typename Arg1, typename ...Args>
 	array_view(Arg1, Args...)->array_view<Arg1, sizeof...(Args) + 1>;
-
-	constexpr array_view<float, 4> test = std::tuple{2};
 
 	template<class R, class L>
 	concept array_view_constructible = array_view_based<R> || std::constructible_from<std::remove_cvref_t<L>, R>;
@@ -358,6 +353,23 @@ export namespace cheat::csgo
 		return l /= std::forward<R>(r);
 	}
 
+	//----
+
+	template<array_view_based L, array_view_constructible<L> R>
+	constexpr bool operator==(const L& l, R&& r)
+	{
+		if constexpr (array_view_based<R> && std::same_as<rn::range_value_t<L>, rn::range_value_t<R>>)
+			return rn::equal(l, std::forward<R>((r)));
+		else
+			return l == L(std::forward<R>(r));
+	}
+
+	template<array_view_based L, array_view_constructible<L> R>
+	constexpr bool operator!=(const L& l, R&& r)
+	{
+		return !(l == std::forward<R>(r));
+	}
+
 	/*constexpr array_view av = 1;
 	constexpr auto aa = array_view{1,4} - 1;
 
@@ -376,19 +388,22 @@ export namespace cheat::csgo
 			v = -v;
 		return val;
 	}
-	
+
 	//----helpers
 
-	template<size_t Number>
+	template<size_t Number, typename T>
 	class Array_view_item
 	{
-		std::array<uint8_t, sizeof(float)* (Number == 0 ? 0 : Number - 1)> pad_;
-		float val_;
+		std::array<uint8_t, (Number == 0 ? 0 : sizeof(T) * (Number - 1))> pad_;
+		T val_;
 
 	public:
-		constexpr operator const float& ()const { return val_; }
-		constexpr operator float& () { return val_; }
+
+		constexpr Array_view_item( ) = default;
+
+		constexpr operator const T& ()const { return val_; }
+		constexpr operator T& () { return val_; }
 	};
 
-	static_assert(sizeof(Array_view_item<__LINE__>) == sizeof(float) * __LINE__);
+	static_assert(sizeof(Array_view_item<__LINE__, size_t>) == sizeof(size_t) * __LINE__);
 }

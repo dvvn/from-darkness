@@ -1,6 +1,0 @@
-float& m_flSpawnTime( );
-float& m_FadeStartTime( );
-float& m_FadeEndTime( );
-cheat::csgo::Vector& m_MinColor( );
-cheat::csgo::Vector& m_MaxColor( );
-int& m_CurrentStage( );

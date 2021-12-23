@@ -1,2 +1,0 @@
-bool& m_bAwake( );
-int& m_spawnflags( );

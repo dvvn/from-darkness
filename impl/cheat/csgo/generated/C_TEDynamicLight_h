@@ -1,8 +1,0 @@
-cheat::csgo::Vector& m_vecOrigin( );
-int& r( );
-int& g( );
-int& b( );
-int& exponent( );
-float& m_fRadius( );
-float& m_fTime( );
-float& m_fDecay( );

@@ -1,5 +1,0 @@
-bool& m_bUseHitboxesForRenderBox( );
-float& m_flGlowMaxDist( );
-bool& m_bShouldGlow( );
-cheat::csgo::Color& m_clrGlow( );
-int& m_nGlowStyle( );

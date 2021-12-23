@@ -1,3 +1,0 @@
-cheat::csgo::Vector& m_vecFinalDest( );
-int& m_movementType( );
-float& m_flMoveTargetTime( );

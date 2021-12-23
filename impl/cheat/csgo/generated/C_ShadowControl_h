@@ -1,5 +1,0 @@
-cheat::csgo::Vector& m_shadowDirection( );
-int& m_shadowColor( );
-float& m_flShadowMaxDist( );
-bool& m_bDisableShadows( );
-bool& m_bEnableLocalLightShadows( );
