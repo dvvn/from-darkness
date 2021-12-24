@@ -1,6 +1,7 @@
 ﻿module;
 
 #include <limits>
+#include <tuple>
 
 module cheat.csgo.structs.EngineTrace;
 

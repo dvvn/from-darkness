@@ -9,6 +9,9 @@ module;
 export module cheat.csgo.math.Vector;
 export import cheat.csgo.math.array_view;
 
+export using cheat::csgo::_Array_view_proxy;
+export using cheat::csgo::_Array_view_proxy_math;
+
 export namespace cheat::csgo
 {
 	struct Vector3_default_value
@@ -50,12 +53,6 @@ export namespace cheat::csgo
 		};
 
 		VECTOR_BASE_CONSTRUCTOR;
-
-		constexpr const float& _X( )const { return _Data[0]; }
-		constexpr const float& _Y( )const { return _Data[1]; }
-
-		constexpr  float& _X( ) { return _Data[0]; }
-		constexpr  float& _Y( ) { return _Data[1]; }
 	};
 
 	template<>
@@ -70,14 +67,6 @@ export namespace cheat::csgo
 		};
 
 		VECTOR_BASE_CONSTRUCTOR;
-
-		constexpr const float& _X( )const { return _Data[0]; }
-		constexpr const float& _Y( )const { return _Data[1]; }
-		constexpr const float& _Z( )const { return _Data[2]; }
-
-		constexpr  float& _X( ) { return _Data[0]; }
-		constexpr  float& _Y( ) { return _Data[1]; }
-		constexpr  float& _Z( ) { return _Data[2]; }
 	};
 
 	template<>
@@ -93,70 +82,61 @@ export namespace cheat::csgo
 		};
 
 		VECTOR_BASE_CONSTRUCTOR;
-
-		constexpr const float& _X( )const { return _Data[0]; }
-		constexpr const float& _Y( )const { return _Data[1]; }
-		constexpr const float& _Z( )const { return _Data[2]; }
-		constexpr const float& _W( )const { return _Data[3]; }
-
-		constexpr  float& _X( ) { return _Data[0]; }
-		constexpr  float& _Y( ) { return _Data[1]; }
-		constexpr  float& _Z( ) { return _Data[2]; }
-		constexpr  float& _W( ) { return _Data[3]; }
 	};
 
 	template<typename R, class Vb>
 	concept Vector_base_op = std::derived_from<Vb, Vector_base_tag> && array_view_constructible<decltype(std::declval<Vb>( )._Data), R>;
 
-#define VECTOR_BASE_OPERATOR(_OP_) ARRAY_VIEW_OPERATOR(_OP_, Vector_base_op)
+	ARRAY_VIEW_OPERATORS(Vector_base_op);
 
-	VECTOR_BASE_OPERATOR(+);
-	VECTOR_BASE_OPERATOR(-);
-	VECTOR_BASE_OPERATOR(*);
-	VECTOR_BASE_OPERATOR(/ );
-	ARRAY_VIEW_OPERATOR2(Vector_base_op);
-
-	template<size_t Size, class Base = Vector_base<Size>>
-	struct Vector_base_impl :Base
+	template<size_t Size, class Base = _Array_view_proxy_math<_Array_view_proxy<Vector_base<Size>>, float>>
+	struct Vector_base_impl : Base
 	{
 		template<typename ...Args>
 		constexpr Vector_base_impl(Args&&...args) : Base(args...)
 		{
 		}
 
-		//compiler stuck here
-		//using Base::Base;
-		using Base::_Data;
-		using value_type = float;
-		using _This_type = Vector_base_impl;
-		using _Base = Base;
-
-		ARRAY_VIEW_DATA_PROXY;
-		ARRAY_VIEW_LENGTH;
-		ARRAY_VIEW_DIST_TO;
-		ARRAY_VIEW_NORMALIZE;
-		ARRAY_VIEW_DOT;
+		//using Base::Base; compiler stuck here
 	};
 
 	class Vector2D :public Vector_base_impl<2>
 	{
 	public:
 		using Vector_base_impl::Vector_base_impl;
+
+		using Vector_base_impl::x;
+		using Vector_base_impl::y;
 	};
 
 	class Vector :public Vector_base_impl<3>
 	{
 	public:
 		using Vector_base_impl::Vector_base_impl;
-		using Vector_base_impl::_This_type;
 
-		constexpr Vector Cross(const _This_type& vecCross) const
+		using Vector_base_impl::x;
+		using Vector_base_impl::y;
+		using Vector_base_impl::z;
+
+		constexpr Vector Cross(const Vector& vecCross) const
 		{
-			return {
-				  _Y( ) * vecCross._Z( ) - _Z( ) * vecCross._Y( )
-				, _Z( ) * vecCross._X( ) - _X( ) * vecCross._Z( )
-				, _X( ) * vecCross._Y( ) - _Y( ) * vecCross._X( )
-			};
+			Vector cross_P;
+			auto& vect_A = *this;
+			auto& vect_B = vecCross;
+
+			cross_P[0] = vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1];
+			cross_P[1] = vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2];
+			cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
+
+			return cross_P;
+		}
+
+		float Dot(const Vector& other) const
+		{
+			float tmp = 0;
+			for (size_t i = 0; i < Vector_base_impl::size( ); ++i)
+				tmp += (*this)[i] * other[i];
+			return tmp;
 		}
 	};
 
@@ -174,16 +154,32 @@ export namespace cheat::csgo
 	{
 	public:
 		using Vector_base_impl::Vector_base_impl;
-		using Vector_base_impl::_This_type;
+
+		using Vector_base_impl::x;
+		using Vector_base_impl::y;
+		using Vector_base_impl::z;
+		using Vector_base_impl::w;
 
 		// check if a vector is within the box defined by two other vectors
-		constexpr bool WithinAABox(const _This_type& boxmin, const _This_type& boxmax)
+		constexpr bool WithinAABox(const Vector4D& boxmin, const Vector4D& boxmax)
 		{
-			return
+			for (size_t i = 0; i < boxmin.size( ); ++i)
+			{
+				auto v = (*this)[i];
+
+				if (v < boxmin[i])
+					return false;
+				if (v > boxmax[i])
+					return false;
+			}
+
+			return true;
+
+			/*return
 				_X( ) >= boxmin._X( ) && _X( ) <= boxmax._X( ) &&
 				_Y( ) >= boxmin._Y( ) && _Y( ) <= boxmax._Y( ) &&
 				_Z( ) >= boxmin._Z( ) && _Z( ) <= boxmax._Z( ) &&
-				_W( ) >= boxmin._W( ) && _W( ) <= boxmax._W( );
+				_W( ) >= boxmin._W( ) && _W( ) <= boxmax._W( );*/
 		}
 	};
 }

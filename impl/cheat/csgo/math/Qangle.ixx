@@ -1,8 +1,6 @@
 module;
 
 #include <cmath>
-
-
 #include "helpers.h"
 
 export module cheat.csgo.math.Qangle;
@@ -15,9 +13,8 @@ export namespace cheat::csgo
 	template<size_t Number>
 	using QAngle_base_item = Array_view_item<Number, float>;
 
-	class QAngle_base
+	struct QAngle_base
 	{
-	public:
 		union
 		{
 			QAngle_base_data _Data;
@@ -26,7 +23,6 @@ export namespace cheat::csgo
 			QAngle_base_item<2> roll;
 		};
 
-		using value_type = float;
 
 		template<typename ...Args>
 		constexpr QAngle_base(Args&&...args) : _Data(args...)
@@ -34,27 +30,24 @@ export namespace cheat::csgo
 		}
 	};
 
+	struct QAngle_base_impl : _Array_view_proxy_math<_Array_view_proxy<QAngle_base>, float>
+	{
+		//using _Array_view_proxy_math::_Array_view_proxy_math; compiler stuck here
+
+		template<typename ...Args>
+		constexpr QAngle_base_impl(Args&&...args) : _Array_view_proxy_math(args...)
+		{
+		}
+	};
+
 	template<typename R, class Vb>
 	concept QAngle_base_op = std::derived_from<Vb, QAngle_base> && array_view_constructible<QAngle_base_data, R>;
 
-#define QANGLE_BASE_OPERATOR(_OP_) ARRAY_VIEW_OPERATOR(_OP_, QAngle_base_op)
+	ARRAY_VIEW_OPERATORS(QAngle_base_op);
 
-	QANGLE_BASE_OPERATOR(+);
-	QANGLE_BASE_OPERATOR(-);
-	QANGLE_BASE_OPERATOR(*);
-	QANGLE_BASE_OPERATOR(/ );
-	ARRAY_VIEW_OPERATOR2(QAngle_base_op);
-
-	class QAngle :public QAngle_base
+	class QAngle :public QAngle_base_impl
 	{
 	public:
-		using _This_type = QAngle;
-
-		ARRAY_VIEW_DATA_PROXY;
-		ARRAY_VIEW_LENGTH;
-		ARRAY_VIEW_DIST_TO;
-		ARRAY_VIEW_NORMALIZE;
-
-		using QAngle_base::QAngle_base;
+		using QAngle_base_impl::QAngle_base_impl;
 	};
 }

@@ -6,8 +6,6 @@ module;
 #include <algorithm>
 #include <variant>
 
-#include <nstd/type_traits.h>
-
 export module cheat.csgo.math.array_view;
 
 namespace rn = std::ranges;
@@ -62,8 +60,6 @@ _INLINE_VAR constexpr bool is_tuple_v<std::tuple<T...>> = true;
 template<typename T>
 _INLINE_VAR constexpr bool is_array_v = std::_Is_std_array_v<T> || std::is_bounded_array_v<T>;
 
-
-
 constexpr auto flatten( ) noexcept { return std::tuple<>{}; }
 
 template<class T, class... Tail>
@@ -93,7 +89,6 @@ constexpr auto flatten(T&& t, Tail&&... tail)
 }
 
 
-
 template<size_t OffsetDst = 0, size_t OffsetSrc = 0, class Dst, class Src, size_t ...I>
 static constexpr void _Construct(Dst& dst, Src& src, std::index_sequence<I...>)
 {
@@ -110,11 +105,12 @@ template<size_t Offset, class Dst, class Src, size_t ...SrcI>
 static constexpr void _Fill_step(Dst& dst, Src& src, std::index_sequence<SrcI...> seq)
 {
 	constexpr auto pos = Offset - seq.size( );
-	if constexpr (pos > 0)
-	{
+
+	if constexpr (pos >= 0)
 		_Construct<pos>(dst, src, seq);
+	if constexpr (pos > 0)
 		_Fill_step<pos>(dst, src, seq);
-	}
+
 }
 
 template<typename T>
@@ -152,6 +148,20 @@ export namespace cheat::csgo
 	};
 
 	template<typename T>
+	struct array_view_fill
+	{
+		T value;
+
+		constexpr array_view_fill(T val) :value(val) { }
+	};
+
+#define ARRAY_VIEW_FILL(_TYPE_)\
+	constexpr array_view_fill<_TYPE_> operator"" _fill(_TYPE_ val){ return val; }
+
+	ARRAY_VIEW_FILL(long double);
+	ARRAY_VIEW_FILL(unsigned long long);
+
+	template<typename T>
 	concept array_view_based = std::derived_from<std::remove_cvref_t<T>, array_view_tag>;
 
 	//template<typename A, typename B>
@@ -169,6 +179,12 @@ export namespace cheat::csgo
 		{
 			fill(std::invoke(default_type{}));
 		}*/
+
+		template<typename T>
+		constexpr array_view(array_view_fill<T> f) : Base( )
+		{
+			fill(f.value);
+		}
 
 		template<typename ...Args>
 		constexpr array_view(Args&&...args) : Base( )
@@ -201,10 +217,6 @@ export namespace cheat::csgo
 	array_view(T...)->array_view<
 		std::remove_cvref_t<decltype(std::get<0>(flatten(_Get_first_value(std::declval<T>( )...))))>
 		, std::tuple_size_v<decltype(flatten(std::declval<T>( )...))>>;
-
-	//constexpr array_view<array_view<int, 2>, 2> test = std::make_tuple(std::make_tuple(1), std::array{2,3});
-	//constexpr auto qweqe=flatten( std::array<std::array<int, 2>, 2>());
-
 
 	template<class R, class L>
 	concept array_view_constructible = array_view_based<R> || std::constructible_from<std::remove_cvref_t<L>, R>;
