@@ -15,20 +15,20 @@ export using std::_Array_iterator;
 export using std::_Array_const_iterator;
 
 template<typename Arg1, typename ...Args>
-static constexpr decltype(auto) _Get_first_value(Arg1&& arg, Args&&...)
+constexpr decltype(auto) _Get_first_value(Arg1&& arg, Args&&...)
 {
 	return std::forward<Arg1>(arg);
 }
 
 //template<class>
-//static constexpr void _Std_array_based( ) { }
+//constexpr void _Std_array_based( ) { }
 
 template<class T, size_t S>
-static constexpr auto& _Array_unpack(const std::array<T, S>& arr) { return arr; }
+constexpr auto& _Array_unpack(const std::array<T, S>& arr) { return arr; }
 template<class T, size_t S>
-static constexpr auto& _Array_unpack(std::array<T, S>& arr) { return arr; }
+constexpr auto& _Array_unpack(std::array<T, S>& arr) { return arr; }
 template<class T, size_t S>
-static constexpr decltype(auto) _Array_unpack(std::array<T, S>&& arr) { return std::move(arr); }
+constexpr decltype(auto) _Array_unpack(std::array<T, S>&& arr) { return std::move(arr); }
 
 template<typename T>
 concept array_unpackable = requires(T val)
@@ -40,11 +40,11 @@ concept array_unpackable = requires(T val)
 //	requires(!std::is_void_v<decltype(_Std_array_based(std::declval<Arr>( )))>)
 //struct std::tuple_size<Arr>
 //{
-//	static constexpr size_t value = sizeof(Arr) / sizeof(rn::range_value_t<Arr>);
+//	constexpr size_t value = sizeof(Arr) / sizeof(rn::range_value_t<Arr>);
 //};
 
 template<typename ValT, typename Arg>
-static constexpr bool _In_out_constructible( )
+constexpr bool _In_out_constructible( )
 {
 	if constexpr (is_inner_value_v<Arg>)
 		return std::constructible_from<ValT, Arg::value_type>;
@@ -88,21 +88,20 @@ constexpr auto flatten(T&& t, Tail&&... tail)
 	}
 }
 
-
 template<size_t OffsetDst = 0, size_t OffsetSrc = 0, class Dst, class Src, size_t ...I>
-static constexpr void _Construct(Dst& dst, Src& src, std::index_sequence<I...>)
+constexpr void _Construct(Dst& dst, Src& src, std::index_sequence<I...>)
 {
 	((std::get<I + OffsetDst>(dst) = std::get<I + OffsetSrc>(src)), ...);
 }
 
 template<size_t Offset, class Dst, class T, size_t ...I>
-static constexpr void _Fill(Dst& dst, T val, std::index_sequence<I...>)
+constexpr void _Fill(Dst& dst, T val, std::index_sequence<I...>)
 {
 	((std::get<I + Offset>(dst) = val), ...);
 }
 
 template<size_t Offset, class Dst, class Src, size_t ...SrcI>
-static constexpr void _Fill_step(Dst& dst, Src& src, std::index_sequence<SrcI...> seq)
+constexpr void _Fill_step(Dst& dst, Src& src, std::index_sequence<SrcI...> seq)
 {
 	constexpr auto pos = Offset - seq.size( );
 
@@ -116,19 +115,21 @@ static constexpr void _Fill_step(Dst& dst, Src& src, std::index_sequence<SrcI...
 template<typename T>
 struct min_max_result
 {
-	constexpr min_max_result(T min, T max) :min(min), max(max), diff(max - min)
+	template<class Pair>
+	constexpr min_max_result(Pair&& mmax) :min(mmax.first), max(mmax.second), diff(max - min)
 	{
 	}
 
-	[[no_unique_address]] T min, max, diff;
+	[[no_unique_address]] T min, max;
+	[[no_unique_address]] std::remove_cvref_t<T> diff;
 };
 
 template<typename T>
-static constexpr auto _Min_max(T l, T r)
-{
-	auto [min, max] = std::minmax(l, r);
-	return min_max_result{min,max};
-}
+min_max_result(std::pair<T, T>&)->min_max_result<T>;
+template<typename T>
+min_max_result(const std::pair<T, T>&)->min_max_result<T>;
+template<typename T>
+min_max_result(std::pair<T, T>&&)->min_max_result<std::remove_cvref_t<T>>;
 
 export namespace cheat::csgo
 {
@@ -191,7 +192,7 @@ export namespace cheat::csgo
 		{
 			auto dst = flatten(*static_cast<Base*>(this));
 			auto src = flatten(std::forward<Args>(args)...);
-			constexpr auto m = _Min_max(std::tuple_size_v<decltype(dst)>, std::tuple_size_v<decltype(src)>);
+			constexpr min_max_result m = std::minmax(std::tuple_size_v<decltype(dst)>, std::tuple_size_v<decltype(src)>);
 
 			if constexpr (m.min > 0)
 				_Construct(dst, src, std::make_index_sequence<m.min>( ));
@@ -233,7 +234,7 @@ namespace cheat::csgo
 	};
 
 	template<array_view_operator Op, typename Src, typename Dst>
-	static constexpr void _AV_operator_impl(Src& src, Dst&& dst)
+	constexpr void _AV_operator_impl(Src& src, Dst&& dst)
 	{
 		if constexpr (Op == plus)
 			src += std::forward<Dst>(dst);
@@ -246,7 +247,7 @@ namespace cheat::csgo
 	}
 
 	template<array_view_operator Op, array_view_based L, array_view_constructible<L> R>
-	static constexpr L& _AV_operator_selector(L& l, R&& r)
+	constexpr L& _AV_operator_selector(L& l, R&& r)
 	{
 		if constexpr (rn::range<R>)
 		{
@@ -373,16 +374,20 @@ export namespace cheat::csgo
 	template<size_t Number, typename T>
 	class Array_view_item
 	{
-		std::array<uint8_t, (Number == 0 ? 0 : sizeof(T) * (Number - 1))> pad_;
-		T val_;
-
+		std::array<T, Number + 1> data_;
 	public:
 
 		constexpr Array_view_item( ) = default;
 
-		constexpr operator const T& ()const { return val_; }
-		constexpr operator T& () { return val_; }
+		constexpr operator const T& ()const { return data_.back( ); }
+		constexpr operator T& () { return data_.back( ); }
 	};
 
-	static_assert(sizeof(Array_view_item<__LINE__, size_t>) == sizeof(size_t) * __LINE__);
+	static_assert(sizeof(Array_view_item<0, size_t>) == sizeof(size_t));
+	static_assert(sizeof(Array_view_item<1, size_t>) == sizeof(size_t) * 2);
+	static_assert(sizeof(Array_view_item<2, size_t>) == sizeof(size_t) * 3);
+
+	//---
+
+
 }

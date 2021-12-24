@@ -131,7 +131,7 @@ export namespace cheat::csgo
 			return cross_P;
 		}
 
-		float Dot(const Vector& other) const
+		constexpr float Dot(const Vector& other) const
 		{
 			float tmp = 0;
 			for (size_t i = 0; i < Vector_base_impl::size( ); ++i)
@@ -143,9 +143,7 @@ export namespace cheat::csgo
 	class alignas(16) VectorAligned : public Vector
 	{
 	public:
-		VectorAligned(const Vector& other = {});
-
-		VectorAligned& operator=(const VectorAligned& other);
+		using Vector::Vector_base_impl;
 
 		float w;
 	};
