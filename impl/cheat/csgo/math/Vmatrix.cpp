@@ -1,6 +1,7 @@
 ﻿module;
 
 #include <cstring>
+#include <limits>
 
 module cheat.csgo.math.Vmatrix;
 import cheat.csgo.math.Vector;
@@ -266,7 +267,7 @@ void VMatrix::SetTranslation(const Vector& vTrans)
 }
 
 //-----------------------------------------------------------------------------
-// appply translation to this matrix in the input space
+// apply translation to this matrix in the input space
 //-----------------------------------------------------------------------------
 void VMatrix::PreTranslate(const Vector& vTrans)
 {

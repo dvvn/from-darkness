@@ -9,19 +9,8 @@ module;
 export module cheat.csgo.math.Vector;
 export import cheat.csgo.math.array_view;
 
-export using cheat::csgo::_Array_view_proxy;
-export using cheat::csgo::_Array_view_proxy_math;
-
 export namespace cheat::csgo
 {
-	struct Vector3_default_value
-	{
-		constexpr float operator()( )const
-		{
-			return std::numeric_limits<float>::infinity( );
-		}
-	};
-
 	template<size_t Size>
 	struct Vector_base;
 
@@ -32,11 +21,11 @@ export namespace cheat::csgo
 	template<typename ...Args>
 	Vector_base(Args...)->Vector_base<sizeof...(Args)>;
 
-	template<size_t Count, typename ...Def>
-	using Vector_base_data = array_view<float, Count, Def...>;
+	template<size_t Count, array_view_default_value Def = 0.f>
+	using Vector_base_data = array_view<float, Count, Def>;
 
 	template<size_t Number>
-	using Vector_base_item = Array_view_item<Number, float>;
+	using Vector_base_item = Array_view_item<float, Number, Number>;
 
 #define VECTOR_BASE_CONSTRUCTOR\
 	template<typename ...Args>\
@@ -60,7 +49,7 @@ export namespace cheat::csgo
 	{
 		union
 		{
-			Vector_base_data<3, Vector3_default_value> _Data;
+			Vector_base_data<3, std::numeric_limits<float>::infinity( )> _Data;
 			Vector_base_item<0> x;
 			Vector_base_item<1> y;
 			Vector_base_item<2> z;
@@ -143,9 +132,13 @@ export namespace cheat::csgo
 	class alignas(16) VectorAligned : public Vector
 	{
 	public:
-		using Vector::Vector_base_impl;
+		template<typename ...Args>
+		constexpr VectorAligned(Args&&...args) : Vector(args...)
+		{
+		}
 
-		float w;
+	private:
+		std::array<uint8_t, sizeof(float)> pad_;
 	};
 
 	class Vector4D :public Vector_base_impl<4>

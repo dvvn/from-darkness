@@ -20,28 +20,21 @@ constexpr decltype(auto) _Get_first_value(Arg1&& arg, Args&&...)
 	return std::forward<Arg1>(arg);
 }
 
-//template<class>
-//constexpr void _Std_array_based( ) { }
-
-template<class T, size_t S>
-constexpr auto& _Array_unpack(const std::array<T, S>& arr) { return arr; }
-template<class T, size_t S>
-constexpr auto& _Array_unpack(std::array<T, S>& arr) { return arr; }
-template<class T, size_t S>
-constexpr decltype(auto) _Array_unpack(std::array<T, S>&& arr) { return std::move(arr); }
-
-template<typename T>
-concept array_unpackable = requires(T val)
+export
 {
-	_Array_unpack(val);
-};
+	template<class T, size_t S>
+	constexpr auto& _Array_unpack(const std::array<T, S>& arr) { return arr; }
+	template<class T, size_t S>
+	constexpr auto& _Array_unpack(std::array<T, S>& arr) { return arr; }
+	template<class T, size_t S>
+	constexpr decltype(auto) _Array_unpack(std::array<T, S>&& arr) { return std::move(arr); }
 
-//template <class Arr>
-//	requires(!std::is_void_v<decltype(_Std_array_based(std::declval<Arr>( )))>)
-//struct std::tuple_size<Arr>
-//{
-//	constexpr size_t value = sizeof(Arr) / sizeof(rn::range_value_t<Arr>);
-//};
+	template<typename T>
+	concept array_unpackable = requires(T && val)
+	{
+		_Array_unpack(std::forward<T>(val));
+	};
+}
 
 template<typename ValT, typename Arg>
 constexpr bool _In_out_constructible( )
@@ -60,10 +53,10 @@ _INLINE_VAR constexpr bool is_tuple_v<std::tuple<T...>> = true;
 template<typename T>
 _INLINE_VAR constexpr bool is_array_v = std::_Is_std_array_v<T> || std::is_bounded_array_v<T>;
 
-constexpr auto flatten( ) noexcept { return std::tuple<>{}; }
+constexpr auto _Flatten( ) noexcept { return std::tuple<>{}; }
 
 template<class T, class... Tail>
-constexpr auto flatten(T&& t, Tail&&... tail)
+constexpr auto _Flatten(T&& t, Tail&&... tail)
 {
 	constexpr auto unpack = []<typename Q>(Q && val)->decltype(auto)
 	{
@@ -76,17 +69,27 @@ constexpr auto flatten(T&& t, Tail&&... tail)
 	using raw_t = std::remove_cvref_t<T>;
 	if constexpr (std::is_class_v<raw_t> || std::is_bounded_array_v<T>)
 	{
-
-
 		return std::tuple_cat(
-			std::apply([]<typename ...Q>(Q&&... args) { return flatten(unpack(std::forward<Q>(args))...); }, unpack(t)), flatten(unpack(std::forward<Tail>(tail))...)
+			std::apply([]<typename ...Q>(Q&&... args) { return _Flatten(unpack(std::forward<Q>(args))...); }, unpack(t)), _Flatten(unpack(std::forward<Tail>(tail))...)
 		);
 	}
 	else
 	{
-		return std::tuple_cat(std::forward_as_tuple(std::forward<T>(t)), flatten(unpack(std::forward<Tail>(tail))...));
+		return std::tuple_cat(std::forward_as_tuple(unpack(std::forward<T>(t))), _Flatten(unpack(std::forward<Tail>(tail))...));
 	}
 }
+
+template<typename ...T>
+struct smart_tuple :std::tuple<T...>
+{
+	constexpr smart_tuple(std::tuple<T...> tpl) :std::tuple<T...>(tpl) { }
+
+	static constexpr bool size( ) { return sizeof...(T); }
+};
+
+//template<typename ...T>
+//smart_tuple(std::tuple<T...>)->smart_tuple<std::tuple<T...>>;
+//smart_tuple( )->smart_tuple<std::tuple<>>;
 
 template<size_t OffsetDst = 0, size_t OffsetSrc = 0, class Dst, class Src, size_t ...I>
 constexpr void _Construct(Dst& dst, Src& src, std::index_sequence<I...>)
@@ -100,16 +103,17 @@ constexpr void _Fill(Dst& dst, T val, std::index_sequence<I...>)
 	((std::get<I + Offset>(dst) = val), ...);
 }
 
-template<size_t Offset, class Dst, class Src, size_t ...SrcI>
+template<size_t DstOffset, size_t DstLimit, class Dst, class Src, size_t ...SrcI>
 constexpr void _Fill_step(Dst& dst, Src& src, std::index_sequence<SrcI...> seq)
 {
-	constexpr auto pos = Offset - seq.size( );
-
-	if constexpr (pos >= 0)
-		_Construct<pos>(dst, src, seq);
-	if constexpr (pos > 0)
-		_Fill_step<pos>(dst, src, seq);
-
+	if constexpr (DstOffset != DstLimit)
+	{
+		static_assert(DstOffset < DstLimit, "incorrect DstOffset");
+		_Construct<DstOffset>(dst, src, seq);
+		constexpr size_t next = DstOffset + seq.size( );
+		static_assert(next <= DstLimit, "incorrect sequence");
+		_Fill_step<next, DstLimit>(dst, src, seq);
+	}
 }
 
 template<typename T>
@@ -136,13 +140,14 @@ export namespace cheat::csgo
 	template<class T>
 	struct array_view_default_value
 	{
-		constexpr array_view_default_value( ) = default;
-		constexpr auto operator()( ) const
-		{
-			T tmp = {};
-			return std::get<0>(flatten(std::move(tmp)));
-		}
+		using value_type = T;
+		T value;
+
+		constexpr array_view_default_value(T val) :value(val) { }
 	};
+
+	template<typename T>
+	array_view_default_value(T&&)->array_view_default_value<std::remove_cvref_t<T>>;
 
 	struct array_view_tag
 	{
@@ -168,18 +173,21 @@ export namespace cheat::csgo
 	//template<typename A, typename B>
 	//concept array_view_equal = array_view_based<A> && array_view_based<B> && std::same_as<typename A::value_type, typename B::value_type> && A::_Size == B::_Size;
 
-	template <class _Ty, size_t Size, class Default = array_view_default_value<_Ty>, class Base = std::array<_Ty, Size>>
+	template <class _Ty, size_t Size, array_view_default_value Default, class Base = std::array<_Ty, Size>>
 	struct array_view :Base, array_view_tag
 	{
 		static constexpr size_t _Size = Size;
 
 		using typename Base::value_type;
-		using default_type = Default;
 
 		/*constexpr array_view( ) :Base( )
 		{
 			fill(std::invoke(default_type{}));
 		}*/
+
+		//added for compatibility. Currently come code use this
+		//array_view(_Ty) = delete;
+		array_view(typename decltype(Default)::value_type) = delete;
 
 		template<typename T>
 		constexpr array_view(array_view_fill<T> f) : Base( )
@@ -190,34 +198,60 @@ export namespace cheat::csgo
 		template<typename ...Args>
 		constexpr array_view(Args&&...args) : Base( )
 		{
-			auto dst = flatten(*static_cast<Base*>(this));
-			auto src = flatten(std::forward<Args>(args)...);
-			constexpr min_max_result m = std::minmax(std::tuple_size_v<decltype(dst)>, std::tuple_size_v<decltype(src)>);
+			smart_tuple dst = _Flatten(*static_cast<Base*>(this));
+			smart_tuple src = _Flatten(std::forward<Args>(args)...);
 
-			if constexpr (m.min > 0)
-				_Construct(dst, src, std::make_index_sequence<m.min>( ));
+			if constexpr (src.size( ) >= dst.size( ))
+			{
+				//copy visible src part
+				_Construct(dst, src, std::make_index_sequence<dst.size( )>( ));
+			}
+			else
+			{
+				//copy src
+				_Construct(dst, src, std::make_index_sequence<src.size( )>( ));
+				fill<src.size( )>(Default.value);
+			}
+		}
 
-			if constexpr (m.diff > 0)
-				_Fill<m.min>(dst, std::invoke(default_type{}), std::make_index_sequence<m.diff>( ));
+		template<size_t Offset, typename T>
+		constexpr void fill(T&& val, std::in_place_index_t<Offset> = std::in_place_index<Offset>)
+		{
+			smart_tuple dst = _Flatten(*static_cast<Base*>(this));
+			smart_tuple src = _Flatten(std::forward<T>(val));
+
+			_Fill_step<Offset, dst.size( )>(dst, src, std::make_index_sequence<src.size( )>( ));
 		}
 
 		template<typename T>
 		constexpr void fill(T&& val)
 		{
-			auto dst = flatten(*static_cast<Base*>(this));
-			auto src = flatten(std::forward<T>(val));
-
-			constexpr auto dst_s = std::tuple_size_v<decltype(dst)>;
-			constexpr auto src_s = std::tuple_size_v<decltype(src)>;
-
-			_Fill_step<dst_s>(dst, src, std::make_index_sequence<src_s>( ));
+			fill<0>(std::forward<T>((val)));
 		}
 	};
+}
+
+namespace cheat::csgo
+{
+	template<typename ...T>
+	using array_view_detect_type = std::remove_cvref_t<decltype(std::get<0>(_Flatten(_Get_first_value(std::declval<T>( )...))))>;
 
 	template<typename ...T>
-	array_view(T...)->array_view<
-		std::remove_cvref_t<decltype(std::get<0>(flatten(_Get_first_value(std::declval<T>( )...))))>
-		, std::tuple_size_v<decltype(flatten(std::declval<T>( )...))>>;
+	_INLINE_VAR constexpr size_t array_view_detect_size = std::tuple_size_v<decltype(_Flatten(std::declval<T>( )...))>;
+
+	template<typename ...T>
+	constexpr auto array_view_make_default_value( )
+	{
+		using val_t = array_view_detect_type<T...>;
+		array_view_default_value out = val_t{};
+		return out;
+	}
+}
+
+export namespace cheat::csgo
+{
+	template<typename ...T>
+	array_view(T...)->array_view<array_view_detect_type<T...>, array_view_detect_size<T...>, array_view_make_default_value<T...>( )>;
 
 	template<class R, class L>
 	concept array_view_constructible = array_view_based<R> || std::constructible_from<std::remove_cvref_t<L>, R>;
@@ -233,22 +267,50 @@ namespace cheat::csgo
 		, divide
 	};
 
-	template<array_view_operator Op, typename Src, typename Dst>
-	constexpr void _AV_operator_impl(Src& src, Dst&& dst)
+	template<array_view_operator Op, typename Dst, typename Src>
+	constexpr void _AV_math_operator(Dst& dst, Src&& src)
 	{
 		if constexpr (Op == plus)
-			src += std::forward<Dst>(dst);
+			dst += std::forward<Dst>(src);
 		else if constexpr (Op == minus)
-			src -= std::forward<Dst>(dst);
+			dst -= std::forward<Dst>(src);
 		else if constexpr (Op == multiply)
-			src *= std::forward<Dst>(dst);
+			dst *= std::forward<Dst>(src);
 		else if constexpr (Op == divide)
-			src /= std::forward<Dst>(dst);
+			dst /= std::forward<Dst>(src);
+	}
+
+	template<size_t Offset, size_t Limit, size_t ...I>
+	constexpr size_t _Get_next_offset(std::index_sequence<I...> seq)
+	{
+		if constexpr (Offset == Limit)
+		{
+			return Limit;
+		}
+		else
+		{
+			static_assert(Offset < Limit, "Incorrect Limit");
+			constexpr auto next = Offset + seq.size( );
+			static_assert(next <= Limit, "Incorrect sequence");
+			return next;
+		}
+	}
+
+	template<array_view_operator Op, size_t Offset, size_t Limit, typename Dst, typename Src, size_t ...I>
+	constexpr void _AV_operator_apply(Dst& dst, Src&& src, std::index_sequence<I...> seq)
+	{
+		if constexpr (Offset != Limit)
+		{
+			constexpr auto next = _Get_next_offset<Offset, Limit>(seq);
+			(_AV_math_operator<Op>(std::get<Offset + I>(dst), std::get<I>(src)), ...);
+			_AV_operator_apply<Op, next, Limit>(dst, std::forward<Src>(src), seq);
+		}
 	}
 
 	template<array_view_operator Op, array_view_based L, array_view_constructible<L> R>
 	constexpr L& _AV_operator_selector(L& l, R&& r)
 	{
+#if 0
 		if constexpr (rn::range<R>)
 		{
 			auto _L = rn::_Ubegin(l);
@@ -264,12 +326,12 @@ namespace cheat::csgo
 			};
 
 			while (limit-- > 0)
-				_AV_operator_impl<Op>(*_L++, dst( ));
+				_AV_math_operator<Op>(*_L++, dst( ));
 		}
 		else if constexpr (std::is_arithmetic_v<L::value_type> && std::constructible_from<L::value_type, R>)
 		{
 			for (auto& src : l)
-				_AV_operator_impl<Op>(src, r);
+				_AV_math_operator<Op>(src, r);
 		}
 		else
 		{
@@ -278,30 +340,50 @@ namespace cheat::csgo
 		}
 
 		return l;
+#endif
+
+		smart_tuple l_tpl = _Flatten(l);
+		smart_tuple r_tpl = _Flatten(std::forward<R>(r));
+
+		constexpr auto limit = std::min(l_tpl.size( ), r_tpl.size( ));
+		_AV_operator_apply<Op, 0, limit>(l_tpl, r_tpl, std::make_index_sequence<limit>( ));
+
+		return l;
+	}
+
+	template<array_view_operator Op, array_view_based L, array_view_constructible<L> R>
+	constexpr L& _AV_operator_selector(L& l, const array_view_fill<R>& r)
+	{
+		smart_tuple l_tpl = _Flatten(l);
+		smart_tuple r_tpl = _Flatten(r.value);
+
+		_AV_operator_apply<Op, 0, l_tpl.size( )>(l_tpl, r_tpl, std::make_index_sequence<r_tpl.size( )>( ));
+
+		return l;
 	}
 }
 
 export namespace cheat::csgo
 {
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L& operator+=(L& l, R&& r)
 	{
 		return _AV_operator_selector<plus>(l, std::forward<R>(r));
 	}
 
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L& operator-=(L& l, R&& r)
 	{
 		return _AV_operator_selector<minus>(l, std::forward<R>(r));
 	}
 
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L& operator*=(L& l, R&& r)
 	{
 		return _AV_operator_selector<multiply>(l, std::forward<R>(r));
 	}
 
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L& operator/=(L& l, R&& r)
 	{
 		return _AV_operator_selector<divide>(l, std::forward<R>(r));
@@ -309,42 +391,99 @@ export namespace cheat::csgo
 
 	//---
 
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L operator+(L l, R&& r)
 	{
 		return l += std::forward<R>(r);
 	}
 
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L operator-(L l, R&& r)
 	{
 		return l -= std::forward<R>(r);
 	}
 
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L operator*(L l, R&& r)
 	{
 		return l *= std::forward<R>(r);
 	}
 
-	template<array_view_based L, array_view_constructible<L> R>
+	template<array_view_based L, typename R>
 	constexpr L operator/(L l, R&& r)
 	{
 		return l /= std::forward<R>(r);
 	}
 
-	//----
+}
 
-	template<array_view_based L, array_view_constructible<L> R>
-	constexpr bool operator==(const L& l, R&& r)
+namespace cheat::csgo
+{
+	template<size_t Offset, size_t Limit, typename L, typename R, size_t ...Idx>
+	constexpr bool _AV_equal_operator(const L& l, const R& r, std::index_sequence<Idx...> seq)
 	{
-		if constexpr (array_view_based<R> && std::same_as<rn::range_value_t<L>, rn::range_value_t<R>>)
-			return rn::equal(l, std::forward<R>((r)));
+		if constexpr (Offset == Limit)
+		{
+			static_assert(Offset > 0);
+			return true;
+		}
 		else
-			return l == L(std::forward<R>(r));
+		{
+			constexpr auto next = _Get_next_offset<Offset, Limit>(seq);
+			const bool equal = ((std::get<Idx>(l) == std::get<Idx>(r)) && ...);
+			const bool equal_next = _AV_equal_operator<next, Limit>(l, r, seq);
+			return equal && equal_next;
+		}
+	}
+
+	template<typename L, typename R, size_t ...Idx>
+	constexpr bool _AV_equal_operator(const L& l, const R& r, std::index_sequence<Idx...> seq)
+	{
+		constexpr bool can_memcmp = sizeof(L) == sizeof(R) &&
+			(std::_Can_memcmp_elements<std::remove_cvref_t<decltype(std::get<Idx>(l))>, std::remove_cvref_t<decltype(std::get<Idx>(r))>> && ...);
+
+		if constexpr (can_memcmp)
+		{
+			if (!std::is_constant_evaluated( ))
+				return std::memcmp(std::addressof(l), std::addressof(r), sizeof(L));
+		}
+
+		return _AV_equal_operator<0, l.size( )>(l, r, seq);
+
+		//return (std::get<Idx>(l) == std::get<Idx>(r) && ...);
 	}
 
 	template<array_view_based L, array_view_constructible<L> R>
+	constexpr bool _AV_equal(const L& l, R&& r)
+	{
+		smart_tuple l_tpl = _Flatten(l);
+		smart_tuple r_tpl = _Flatten(std::forward<R>(r));
+
+		if constexpr (l_tpl.size( ) == r_tpl.size( ))
+			return _AV_equal_operator(l_tpl, r_tpl, std::make_index_sequence<l_tpl.size( )>( ));
+		else
+			return false;
+	}
+
+	template<array_view_based L, array_view_constructible<L> R>
+	constexpr bool _AV_equal(const L& l, const array_view_fill<R>& r)
+	{
+		smart_tuple l_tpl = _Flatten(l);
+		smart_tuple r_tpl = _Flatten(std::forward<R>(r.value));
+
+		return _AV_equal_operator<0, l_tpl.size( )>(l_tpl, r_tpl, std::make_index_sequence<r_tpl.size( )>( ));
+	}
+}
+
+export namespace cheat::csgo
+{
+	template<array_view_based L, typename R>
+	constexpr bool operator==(const L& l, R&& r)
+	{
+		return _AV_equal(l, std::forward<R>(r));
+	}
+
+	template<array_view_based L, typename R>
 	constexpr bool operator!=(const L& l, R&& r)
 	{
 		return !(l == std::forward<R>(r));
@@ -371,21 +510,27 @@ export namespace cheat::csgo
 
 	//----helpers
 
-	template<size_t Number, typename T>
+	template<typename T, size_t Pos, size_t Index>
 	class Array_view_item
 	{
-		std::array<T, Number + 1> data_;
+		std::array<T, Pos + 1> data_;
 	public:
 
-		constexpr Array_view_item( ) = default;
+		constexpr Array_view_item( ) = delete;
 
-		constexpr operator const T& ()const { return data_.back( ); }
-		constexpr operator T& () { return data_.back( ); }
+		constexpr operator const T& ()const { return data_[Index]; }
+		constexpr operator T& () { return data_[Index]; }
+
+		Array_view_item& operator=(const T& value)
+		{
+			data_[Index] = value;
+			return *this;
+		}
 	};
 
-	static_assert(sizeof(Array_view_item<0, size_t>) == sizeof(size_t));
-	static_assert(sizeof(Array_view_item<1, size_t>) == sizeof(size_t) * 2);
-	static_assert(sizeof(Array_view_item<2, size_t>) == sizeof(size_t) * 3);
+	static_assert(sizeof(Array_view_item<size_t, 0, 0>) == sizeof(size_t));
+	static_assert(sizeof(Array_view_item<size_t, 1, 0>) == sizeof(size_t) * 2);
+	static_assert(sizeof(Array_view_item<size_t, 2, 0>) == sizeof(size_t) * 3);
 
 	//---
 

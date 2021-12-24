@@ -1,6 +1,7 @@
 module;
 
 #include <cmath>
+
 #include "helpers.h"
 
 export module cheat.csgo.math.Qangle;
@@ -8,10 +9,10 @@ export import cheat.csgo.math.array_view;
 
 export namespace cheat::csgo
 {
-	using QAngle_base_data = array_view<float, 3>;
+	using QAngle_base_data = array_view<float, 3, 0.f>;
 
 	template<size_t Number>
-	using QAngle_base_item = Array_view_item<Number, float>;
+	using QAngle_base_item = Array_view_item<float, Number, Number>;
 
 	struct QAngle_base
 	{
@@ -22,7 +23,6 @@ export namespace cheat::csgo
 			QAngle_base_item<1> yaw;
 			QAngle_base_item<2> roll;
 		};
-
 
 		template<typename ...Args>
 		constexpr QAngle_base(Args&&...args) : _Data(args...)

@@ -2,8 +2,6 @@
 
 #include <cmath>
 
-import cheat.csgo.math.array_view;
-
 #define ARRAY_VIEW_OPERATOR(_OP_,_CONCEPT_)\
 	template<class Av, _CONCEPT_##<Av> R>\
 	constexpr Av& operator##_OP_##=(Av& l, R&& r)\
@@ -37,8 +35,12 @@ import cheat.csgo.math.array_view;
 	ARRAY_VIEW_OPERATOR(/,_CONCEPT_);\
 	ARRAY_VIEW_OPERATOR2(_CONCEPT_);
 
-namespace cheat::csgo
+export import cheat.csgo.math.array_view;
+
+export
 {
+	
+
 	template<typename Base>
 	class _Array_view_proxy :public Base
 	{
@@ -107,8 +109,15 @@ namespace cheat::csgo
 				return 0_fill;
 		}
 	};
-}
 
+	template<class T>
+	constexpr auto& _Array_unpack(const _Array_view_proxy<T>& arr) { return arr._Data; }
+	template<class T>
+	constexpr auto& _Array_unpack(_Array_view_proxy<T>& arr) { return arr._Data; }
+	template<class T>
+	constexpr decltype(auto) _Array_unpack(_Array_view_proxy<T>&& arr) { return std::move(arr._Data); }
+
+}
 //#define ARRAY_VIEW_DATA_PROXY \
 //	constexpr auto& operator[](size_t idx) { return _Data[idx]; }\
 //	constexpr auto& operator[](size_t idx) const { return _Data[idx]; }\
