@@ -52,11 +52,11 @@ void Ray_t::Init(const Vector& start, const Vector& end)
 	m_Extents = {};
 
 	m_pWorldAxisTransform = nullptr;
-	m_IsRay               = true;
+	m_IsRay = true;
 
 	// Offset m_Start to be in the center of the box...
 	m_StartOffset = {};
-	m_Start       = start;
+	m_Start = start;
 }
 
 void Ray_t::Init(const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs)
@@ -64,18 +64,20 @@ void Ray_t::Init(const Vector& start, const Vector& end, const Vector& mins, con
 	m_Delta = end - start;
 
 	m_pWorldAxisTransform = nullptr;
-	m_IsSwept             = (m_Delta.LengthSqr( ) != 0);
+	m_IsSwept = (m_Delta.LengthSqr( ) != 0);
 
 	m_Extents = maxs - mins;
-	m_Extents *= 0.5f;
+	m_Extents *= 0.5f_fill;
 	m_IsRay = (m_Extents.LengthSqr( ) < 1e-6);
 
 	// Offset m_Start to be in the center of the box...
 	m_StartOffset = maxs + mins;
-	m_StartOffset *= 0.5f;
+	m_StartOffset *= 0.5f_fill;
 	m_Start = start + m_StartOffset;
-	m_StartOffset *= -1.0f;
+	m_StartOffset *= -1.0f_fill;
 }
+
+//constexpr Vector  ec = -1.0f;
 
 Vector Ray_t::InvDelta( ) const
 {
@@ -106,7 +108,7 @@ bool CBaseTrace::IsDispSurfaceProp2( ) { return ((dispFlags & DISPSURF_FLAG_SURF
 
 bool CGameTrace::DidHit( ) const
 {
-	return fraction<1 || allsolid || startsolid;
+	return fraction < 1 || allsolid || startsolid;
 }
 
 bool CGameTrace::IsVisible( ) const

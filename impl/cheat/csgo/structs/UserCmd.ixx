@@ -83,21 +83,23 @@ export namespace cheat::csgo
 	}
 #endif
 
-		int     command_number;     // 0x04 For matching server and client commands for debugging
-		int     tick_count;         // 0x08 the tick the client created this command
-		QAngle  view_angles;        // 0x0C Player instantaneous view angles.
-		Vector  aim_direction;      // 0x18
-		float   forward_move;       // 0x24
-		float   side_move;          // 0x28
-		float   up_move;            // 0x2C
-		buttons buttons;            // 0x30 Attack button states
-		char    impulse;            // 0x34
-		int     weapon_select;      // 0x38 Current weapon id
-		int     weapon_subtype;     // 0x3C
-		int     random_seed;        // 0x40 For shared random functions
-		short   mousedx;            // 0x44 mouse accum in x from create move
-		short   mousedy;            // 0x46 mouse accum in y from create move
-		bool    has_been_predicted; // 0x48 Client only, tracks whether we've predicted this command at least once
+		int				iCommandNumber;		// 0x04
+		int				iTickCount;			// 0x08
+		QAngle			angViewPoint;		// 0x0C
+		Vector			vecAimDirection;	// 0x18
+		float			flForwardMove;		// 0x24
+		float			flSideMove;			// 0x28
+		float			flUpMove;			// 0x2C
+		int				iButtons;			// 0x30
+		std::uint8_t	uImpulse;			// 0x34
+		int				iWeaponSelect;		// 0x38
+		int				iWeaponSubType;		// 0x3C
+		int				iRandomSeed;		// 0x40
+		short			sMouseDeltaX;		// 0x44
+		short			sMouseDeltaY;		// 0x46
+		bool			bHasBeenPredicted;	// 0x48
+		Vector			vecHeadAngles;		// 0x4C
+		Vector			vecHeadOffset;		// 0x58
 	private:
 		uint8_t pad_0x4C[0x18]; // 0x4C Current sizeof( usercmd ) =  100  = 0x64
 };

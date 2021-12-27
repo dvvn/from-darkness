@@ -2,10 +2,11 @@ module;
 
 #include <string_view>
 
-using texture_string_t = std::string_view;
 
 export module cheat.csgo.structs.MaterialSystem;
 import cheat.csgo.structs.AppSystem;
+
+using texture_string_t = std::string_view;
 
 export namespace cheat::csgo
 {

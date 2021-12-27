@@ -1,6 +1,9 @@
+module;
+
+#include <cstddef>
+
 export module cheat.csgo.structs.Input;
 import cheat.csgo.math.Vector;
-
 
 export namespace cheat::csgo
 {
@@ -12,31 +15,17 @@ export namespace cheat::csgo
 	class CInput
 	{
 	public:
-		char pad_0x00[0x0C];
-		bool trackir_available;
-		bool mouse_initiated;
-		bool mouse_active;
-		bool fJoystickAdvancedInit;
-		char pad_0x08[0x2C];
-		void* pKeys;
-		char pad_0x38[0x6C];
-		bool fCameraInterceptingMouse;
-		bool fCameraInThirdPerson;
-		bool fCameraMovingWithMouse;
-		Vector vecCameraOffset;
-		bool fCameraDistanceMove;
-		int nCameraOldX;
-		int nCameraOldY;
-		int nCameraX;
-		int nCameraY;
-		bool CameraIsOrthographic;
-		Vector angPreviousViewAngles;
-		Vector angPreviousViewAnglesTilt;
-		float flLastForwardMove;
-		int nClearInputState;
-		char pad_0xE4[0x8];
-		CUserCmd* pCommands;
-		CVerifiedUserCmd* pVerifiedCommands;
+		std::byte			pad0[0xC];				//0x0000
+		bool				bTrackIRAvailable;		//0x000C
+		bool				bMouseInitialized;		//0x000D
+		bool				bMouseActive;			//0x000E
+		std::byte			pad1[0xB2];				//0x000F
+		bool				bCameraInThirdPerson;	//0x00C1
+		std::byte			pad2[0x2];				//0x00C2
+		Vector				vecCameraOffset;		//0x00C4
+		std::byte			pad3[0x38];				//0x00D0
+		CUserCmd* pCommands;				//0x0108
+		CVerifiedUserCmd* pVerifiedCommands;		//0x010C
 
 		CUserCmd* GetUserCmd(int sequence_number, int nSlot = 0);
 		CVerifiedUserCmd* GetVerifiedCmd(int sequence_number);

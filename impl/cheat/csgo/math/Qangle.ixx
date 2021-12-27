@@ -2,10 +2,8 @@ module;
 
 #include <cmath>
 
-#include "helpers.h"
-
 export module cheat.csgo.math.Qangle;
-export import cheat.csgo.math.array_view;
+export import cheat.csgo.math.vector_base;
 
 export namespace cheat::csgo
 {
@@ -30,24 +28,17 @@ export namespace cheat::csgo
 		}
 	};
 
-	struct QAngle_base_impl : _Array_view_proxy_math<_Array_view_proxy<QAngle_base>, float>
+	class QAngle :public _Vector_math_base<_Array_view_proxy<QAngle_base>, float>
 	{
-		//using _Array_view_proxy_math::_Array_view_proxy_math; compiler stuck here
+	public:
+
+		//using _Vector_math_base::_Vector_math_base; compiler stuck here
 
 		template<typename ...Args>
-		constexpr QAngle_base_impl(Args&&...args) : _Array_view_proxy_math(args...)
+		constexpr QAngle(Args&&...args) : _Vector_math_base(args...)
 		{
 		}
 	};
 
-	template<typename R, class Vb>
-	concept QAngle_base_op = std::derived_from<Vb, QAngle_base> && array_view_constructible<QAngle_base_data, R>;
-
-	ARRAY_VIEW_OPERATORS(QAngle_base_op);
-
-	class QAngle :public QAngle_base_impl
-	{
-	public:
-		using QAngle_base_impl::QAngle_base_impl;
-	};
+	static_assert(sizeof(QAngle) == sizeof(float) * 3);
 }

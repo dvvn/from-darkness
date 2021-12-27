@@ -3,18 +3,12 @@ module;
 #include <limits>
 #include <tuple>
 
-#include "helpers.h"
-
 export module cheat.csgo.math.Vmatrix;
 
-export import cheat.csgo.math.Vector;
 export import cheat.csgo.math.array_view;
+export import cheat.csgo.math.Vector;
 
-template<typename T>
-concept array_unpackable1 = requires(T && val)
-{
-	_Array_unpack(std::forward<T>(val));
-};
+
 
 namespace cheat::csgo
 {
@@ -32,44 +26,30 @@ namespace cheat::csgo
 
 export namespace cheat::csgo
 {
-
-
-	using matrix3x4_item0 = Array_view_item<float, 4, 0>;
-	struct matrix3x4_asix_base
+	template<size_t Index>
+	struct matrix3x4_asix
 	{
+		using value_type = Array_view_item<float, 3, Index>;
 
-		/*m_flMatVal[0][0] = xAxis.x; <---x
-		m_flMatVal[0][1] = yAxis.x;
+		/*
+		m_flMatVal[0][0] = xAxis.x; <---x (Index==0)
+		m_flMatVal[0][1] = yAxis.x; <---x (Index==1)
 		m_flMatVal[0][2] = zAxis.x;
 		m_flMatVal[0][3] = vecOrigin.x;
-		m_flMatVal[1][0] = xAxis.y; <---y
-		m_flMatVal[1][1] = yAxis.y;
+		m_flMatVal[1][0] = xAxis.y; <---y (Index==0)
+		m_flMatVal[1][1] = yAxis.y; <---y (Index==1)
 		m_flMatVal[1][2] = zAxis.y;
 		m_flMatVal[1][3] = vecOrigin.y;
-		m_flMatVal[2][0] = xAxis.z; <---z
-		m_flMatVal[2][1] = yAxis.z;
+		m_flMatVal[2][0] = xAxis.z; <---z (Index==0)
+		m_flMatVal[2][1] = yAxis.z; <---z (Index==1)
 		m_flMatVal[2][2] = zAxis.z;
-		m_flMatVal[2][3] = vecOrigin.z;*/
+		m_flMatVal[2][3] = vecOrigin.z;
+		*/
 
-		matrix3x4_item0 x, y, z;
-
-		//constexpr matrix3x4_asix_base(const Vector& vec) :x(vec.x), y(vec.y), z(vec.z) { }
+		value_type x, y, z;
 	};
 
-
-
-	//todo [[no_unique_address]] test!!!
-	template<size_t Idx>
-	class matrix3x4_asix :public matrix3x4_asix_base
-	{
-		[[no_unique_address]] std::array<float, Idx> pad_;
-	};
-
-
-	/*template<>
-	class matrix3x4_asix<0> :public matrix3x4_asix_base
-	{
-	};*/
+	//todo: operators between matrix3x4_asix and Vector
 
 	struct matrix3x4_base
 	{
@@ -83,10 +63,9 @@ export namespace cheat::csgo
 		};
 
 		constexpr matrix3x4_base(const Vector& x, const Vector& y, const Vector& z, const Vector& origin) :_Data(construct_matrix3x4(x, y, z, origin)) { }
-
-		constexpr bool operator==(const matrix3x4_base& other)const { return _Data == other._Data; }
-		constexpr bool operator!=(const matrix3x4_base& other)const { return _Data != other._Data; }
 	};
+
+	static_assert(sizeof(matrix3x4_base) == sizeof(float) * 3 * 4);
 
 	class matrix3x4_t
 	{

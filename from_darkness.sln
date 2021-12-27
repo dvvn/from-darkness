@@ -5,75 +5,7 @@ VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "impl", "impl\impl.vcxproj", "{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stb_include", "deps\stb_include.vcxitems", "{4C28BE03-6A47-4C45-B417-FB47680F45E4}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nstd_include", "deps\nstd_include.vcxitems", "{692CE4C8-120B-4072-BC86-5FAF7C247D0D}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nstd_source", "deps\nstd_source.vcxitems", "{4D5AE349-1F00-4C08-A56E-7C7AE5252E76}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cppcoro_source", "deps\cppcoro_source.vcxitems", "{F46F479C-C5F5-4B2C-B162-714CF7AA372C}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "veque_include", "deps\veque_include.vcxitems", "{48E82856-6E3D-4915-9235-A633A03F3699}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utf8_convertor_include", "deps\utf8_convertor_include.vcxitems", "{9B093753-01FC-4811-8EC4-6F3C2CF8BFF9}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thread_pool_include", "deps\thread_pool_include.vcxitems", "{6B556D7E-E4F9-49B0-85F1-64032B9B4A26}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robin_hood_hashing_include", "deps\robin_hood_hashing_include.vcxitems", "{EE94A4BA-5732-4E99-AEC4-A925EA6B1599}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "json_include", "deps\json_include.vcxitems", "{8614273C-9398-4E84-9C5E-3145FAF5BC1C}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cppcoro_include", "deps\cppcoro_include.vcxitems", "{A59F50BC-0F7E-48B0-9704-AB0B5AB49C1E}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "deps_lib", "deps\deps_lib.vcxproj", "{2C54CC99-FD10-425B-8439-62695BE7BB6C}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui_include", "deps\imgui_include.vcxitems", "{CD0471AE-A59D-4585-A809-1D29A98BD579}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui_source", "deps\imgui_source.vcxitems", "{80473C15-A300-4D99-8356-F092DFB31B95}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dhooks_source", "deps\dhooks_source.vcxitems", "{0EE40689-D6B3-413E-887C-59F689FA9B5C}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dhooks_include", "deps\dhooks_include.vcxitems", "{BB9E6292-C9DE-48C6-8280-1479E8BCC8BD}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fu2_include", "deps\fu2_include.vcxitems", "{E6C151CF-4692-48AF-A11D-C0D3B3B471B1}"
-EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		deps\dhooks_source.vcxitems*{0ee40689-d6b3-413e-887c-59f689fa9b5c}*SharedItemsImports = 9
-		deps\cppcoro_include.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\cppcoro_source.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\dhooks_include.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\dhooks_source.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\imgui_include.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\imgui_source.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\json_include.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\nstd_include.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\nstd_source.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\robin_hood_hashing_include.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\stb_include.vcxitems*{2c54cc99-fd10-425b-8439-62695be7bb6c}*SharedItemsImports = 4
-		deps\veque_include.vcxitems*{48e82856-6e3d-4915-9235-a633a03f3699}*SharedItemsImports = 9
-		deps\stb_include.vcxitems*{4c28be03-6a47-4c45-b417-fb47680f45e4}*SharedItemsImports = 9
-		deps\nstd_source.vcxitems*{4d5ae349-1f00-4c08-a56e-7c7ae5252e76}*SharedItemsImports = 9
-		deps\nstd_include.vcxitems*{692ce4c8-120b-4072-bc86-5faf7c247d0d}*SharedItemsImports = 9
-		deps\thread_pool_include.vcxitems*{6b556d7e-e4f9-49b0-85f1-64032b9b4a26}*SharedItemsImports = 9
-		deps\imgui_source.vcxitems*{80473c15-a300-4d99-8356-f092dfb31b95}*SharedItemsImports = 9
-		deps\json_include.vcxitems*{8614273c-9398-4e84-9c5e-3145faf5bc1c}*SharedItemsImports = 9
-		deps\cppcoro_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\dhooks_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\imgui_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\json_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\nstd_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\robin_hood_hashing_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\utf8_convertor_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\veque_include.vcxitems*{87cd33f0-cb3f-43ee-9c49-34bd29a62ce7}*SharedItemsImports = 4
-		deps\utf8_convertor_include.vcxitems*{9b093753-01fc-4811-8ec4-6f3c2cf8bff9}*SharedItemsImports = 9
-		deps\cppcoro_include.vcxitems*{a59f50bc-0f7e-48b0-9704-ab0b5ab49c1e}*SharedItemsImports = 9
-		deps\dhooks_include.vcxitems*{bb9e6292-c9de-48c6-8280-1479e8bcc8bd}*SharedItemsImports = 9
-		deps\imgui_include.vcxitems*{cd0471ae-a59d-4585-a809-1d29a98bd579}*SharedItemsImports = 9
-		deps\fu2_include.vcxitems*{e6c151cf-4692-48af-a11d-c0d3b3b471b1}*SharedItemsImports = 9
-		deps\robin_hood_hashing_include.vcxitems*{ee94a4ba-5732-4e99-aec4-a925ea6b1599}*SharedItemsImports = 9
-		deps\cppcoro_source.vcxitems*{f46f479c-c5f5-4b2c-b162-714cf7aa372c}*SharedItemsImports = 9
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		GuiTestDebug|x86 = GuiTestDebug|x86
@@ -92,16 +24,6 @@ Global
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.NetvarsDumpDebug|x86.Build.0 = NetvarsDumpDebug|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.ActiveCfg = Release|Win32
 		{87CD33F0-CB3F-43EE-9C49-34BD29A62CE7}.Release|x86.Build.0 = Release|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.Debug|x86.ActiveCfg = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.Debug|x86.Build.0 = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTestDebug|x86.ActiveCfg = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTestDebug|x86.Build.0 = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTestRelease|x86.ActiveCfg = Release|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.GuiTestRelease|x86.Build.0 = Release|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.NetvarsDumpDebug|x86.ActiveCfg = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.NetvarsDumpDebug|x86.Build.0 = Debug|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.Release|x86.ActiveCfg = Release|Win32
-		{2C54CC99-FD10-425B-8439-62695BE7BB6C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

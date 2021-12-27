@@ -54,14 +54,12 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
     <Import Project="cppcoro_include.vcxitems" Label="Shared" />
-    <Import Project="cppcoro_source.vcxitems" Label="Shared" />
     <Import Project="json_include.vcxitems" Label="Shared" />
     <Import Project="nstd_include.vcxitems" Label="Shared" />
     <Import Project="nstd_source.vcxitems" Label="Shared" />
     <Import Project="robin_hood_hashing_include.vcxitems" Label="Shared" />
     <Import Project="stb_include.vcxitems" Label="Shared" />
     <Import Project="imgui_include.vcxitems" Label="Shared" />
-    <Import Project="imgui_source.vcxitems" Label="Shared" />
     <Import Project="dhooks_include.vcxitems" Label="Shared" />
     <Import Project="dhooks_source.vcxitems" Label="Shared" />
   </ImportGroup>
