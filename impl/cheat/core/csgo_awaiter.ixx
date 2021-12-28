@@ -1,10 +1,11 @@
-﻿#pragma once
+﻿module;
 
-#include "cheat/service/include.h"
+export module cheat.core.csgo_awaiter;
+import cheat.core.service;
 
-namespace cheat
+export namespace cheat
 {
-	class csgo_awaiter_impl final : public service<csgo_awaiter_impl>
+	class csgo_awaiter final : public dynamic_service<csgo_awaiter>
 	{
 	protected:
 		load_result load_impl( ) noexcept override;
@@ -18,7 +19,7 @@ namespace cheat
 				return;
 			frozen_threads_.fill( );
 		}
-	
+
 		void after_reset( ) override
 		{
 			if (!game_loaded_before_)
@@ -29,6 +30,4 @@ namespace cheat
 		bool game_loaded_before = false;
 		//nstd::os::frozen_threads_storage frozen_threads_{false};
 	};
-
-	CHEAT_SERVICE_SHARE(csgo_awaiter);
 }

@@ -17,7 +17,7 @@ namespace cheat
 }
 
 #define CHEAT_SERVICE_SHARE(_NAME_) \
-	struct _NAME_ : cheat::service_shared<_NAME_##_impl>, nstd::one_instance<_NAME_> { }
+	struct _NAME_ : cheat::shared_service<_NAME_##_impl>, nstd::one_instance<_NAME_> { }
 
 #define CHEAT_SERVICE_RESULT(msg, ret)\
 	CHEAT_CONSOLE_LOG(std::format("\"{}\" {}", ((basic_service*)this)->name(), msg));\

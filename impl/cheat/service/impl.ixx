@@ -1,6 +1,6 @@
 module;
 
-#include <nstd/runtime_assert_fwd.h>
+#include <nstd/runtime_assert.h>
 #include <nstd/type name.h>
 
 #include <cppcoro/static_thread_pool.hpp>
@@ -13,19 +13,26 @@ module;
 
 export module cheat.core.service;
 
-constexpr auto _Fix_service_name(const std::string_view& name)
-{
-	auto str = nstd::drop_namespace(name, "cheat");
-	constexpr auto dummy = std::string_view("_impl");
-	if (str.ends_with(dummy))
-		str.erase(str.end( ) - dummy.size( ), str.end( ));
-	return str;
-}
+//constexpr auto _Fix_service_name(const std::string_view& name)
+//{
+//	auto str = nstd::drop_namespace(name, "cheat");
+//	constexpr std::string_view dummy = "_impl";
+//	if (str.ends_with(dummy))
+//		str.erase(str.end( ) - dummy.size( ), str.end( ));
+//	return str;
+//}
 
 template <typename T>
 _INLINE_VAR constexpr auto service_name = []
 {
 	constexpr auto raw = nstd::type_name<T>;
+#if 1
+	constexpr auto buffer = nstd::drop_namespace(raw, "cheat");
+	if constexpr (buffer.ideal( ))
+		return buffer;
+	else
+		return buffer.make_ideal<buffer.str_size>( );
+#else
 	const auto raw_str = _Fix_service_name(raw);
 #if 1
 	constexpr auto buff_size = _Fix_service_name(raw).size( );
@@ -34,6 +41,7 @@ _INLINE_VAR constexpr auto service_name = []
 	auto buff = nstd::string_to_buffer<raw_str.size( )>(raw_str);
 #endif
 	return buff;
+#endif
 }();
 
 export namespace cheat
@@ -49,6 +57,8 @@ export namespace cheat
 
 	class basic_service;
 
+	struct stored_service_cast_tag { };
+
 	template <class T>
 	struct stored_service : std::shared_ptr<T>
 	{
@@ -61,18 +71,18 @@ export namespace cheat
 			static_assert(std::derived_from<T, basic_service>);
 		}
 
-		/*template <class Q>
+		template <class Q>
 		stored_service(Q&& cast_service, stored_service_cast_tag)
 			: std::shared_ptr<T>(std::forward<Q>(cast_service))
 		{
-		}*/
+		}
 	};
 
 	template <typename T>
 	concept root_service = std::derived_from<T, basic_service>;
 
-	template <root_service T>
-	class service_shared;
+	template </*root_service*/class T>
+	class shared_service;
 
 	class __declspec(novtable) basic_service
 	{
@@ -100,7 +110,7 @@ export namespace cheat
 		void add_dependency(value_type&& srv);
 
 		template <root_service T>
-		void add_dependency(const service_shared<T>& srv) { add_dependency(srv.share( )); }
+		void add_dependency(const shared_service<T>& srv) { add_dependency(srv.share( )); }
 
 		virtual std::string_view name( ) const = 0;
 		virtual const std::type_info& type( ) const = 0;
@@ -108,7 +118,7 @@ export namespace cheat
 		service_state state( ) const;
 		load_result load(executor& ex) noexcept;
 
-		virtual bool root_class( ) const = 0;
+		virtual bool root_class( ) const { return false; }
 
 	protected:
 		virtual load_result load_impl( ) noexcept = 0;
@@ -128,17 +138,17 @@ export namespace cheat
 		value_type* get_from_loader(const std::type_info& info) const;
 	};
 
-	template <root_service T>
-	class service_shared : public basic_service_shared
+	template </*root_service*/class T>
+	class shared_service : public basic_service_shared
 	{
 	public:
 		using element_type = T;
 		using shared_type = stored_service<T>;
 
-		service_shared(const service_shared& other) = delete;
-		service_shared& operator=(const service_shared& other) = delete;
+		shared_service(const shared_service& other) = delete;
+		shared_service& operator=(const shared_service& other) = delete;
 
-		service_shared(service_shared&& other) noexcept
+		shared_service(shared_service&& other) noexcept
 		{
 			obj_ = std::move(other.obj_);
 #ifndef _DEBUG
@@ -146,14 +156,14 @@ export namespace cheat
 #endif
 	}
 
-		service_shared& operator=(service_shared&& other) noexcept
+		shared_service& operator=(shared_service&& other) noexcept
 		{
 			std::swap(obj_, other.obj_);
 			return *this;
 		}
 
 		template <typename ...Args>
-		service_shared(Args&&...args)
+		shared_service(Args&&...args)
 		{
 			auto obj = std::make_shared<T>(std::forward<Args>(args)...);
 			obj_ = obj
@@ -164,7 +174,7 @@ export namespace cheat
 			add_to_loader(std::move(obj));
 		}
 
-		~service_shared( )
+		~shared_service( )
 		{
 #ifdef _DEBUG
 			if (obj_.expired( ))
@@ -203,7 +213,7 @@ export namespace cheat
 			obj_;
 };
 
-	template <typename T, bool Root = false>
+	template <typename T>
 	struct service : basic_service
 	{
 		std::string_view name( ) const final
@@ -221,10 +231,12 @@ export namespace cheat
 		{
 			return typeid(T);
 		}
-
-		bool root_class( ) const final
-		{
-			return Root;
-		}
 	};
+
+
+	template<typename T>
+	struct dynamic_service :service<T>, shared_service<T>, nstd::one_instance<T> { };
+	template<typename T>
+	struct static_service :service<T>, nstd::one_instance<T> { };
+
 }

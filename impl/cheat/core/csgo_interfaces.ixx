@@ -1,10 +1,12 @@
-#pragma once
-#include "cheat/service/include.h"
+module;
 
 #include <nstd/address.h>
 #include <nstd/type_traits.h>
 
-namespace cheat::csgo
+export module cheat.core.csgo_interfaces;
+import cheat.core.service;
+
+export namespace cheat::csgo
 {
 	class C_CSPlayer;
 	class ClientModeShared;
@@ -39,45 +41,41 @@ namespace cheat::csgo
 	class IStudioRender;
 }
 
-struct IDirect3DDevice9;
+export struct IDirect3DDevice9;
 
-namespace cheat::detail
+template <typename T, size_t Num, size_t Counter = 0>
+constexpr auto _Generate_pointer( )
 {
-	template <typename T, size_t Num, size_t Counter = 0>
-	constexpr auto _Generate_pointer( )
-	{
-		if constexpr (Num == Counter)
-			return static_cast<T>(nullptr);
-		else
-			return _Generate_pointer<T*, Num, Counter + 1>( );
-	}
-
-	template <typename T>
-	constexpr size_t _Count_pointers( )
-	{
-		if constexpr (!std::is_pointer_v<T>)
-			return 0;
-		else
-			return _Count_pointers<std::remove_pointer_t<T>>( ) + 1;
-	}
-
-	/*template <typename T>
-	constexpr auto remove_all_pointers( )
-	{
-		if constexpr (std::is_pointer_v<T>)
-			return remove_all_pointers<std::remove_pointer_t<T>>( );
-		else
-			return std::type_identity<T>( );
-	}*/
+	if constexpr (Num == Counter)
+		return static_cast<T>(nullptr);
+	else
+		return _Generate_pointer<T*, Num, Counter + 1>( );
 }
 
-namespace cheat
+template <typename T>
+constexpr size_t _Count_pointers( )
+{
+	if constexpr (!std::is_pointer_v<T>)
+		return 0;
+	else
+		return _Count_pointers<std::remove_pointer_t<T>>( ) + 1;
+}
+
+/*template <typename T>
+constexpr auto remove_all_pointers( )
+{
+	if constexpr (std::is_pointer_v<T>)
+		return remove_all_pointers<std::remove_pointer_t<T>>( );
+	else
+		return std::type_identity<T>( );
+}*/
+export namespace cheat
 {
 	template <class To, size_t Ptrs>
 	class csgo_interface final
 	{
 	public:
-		using raw_pointer = decltype(detail::_Generate_pointer<To, Ptrs>( ));
+		using raw_pointer = decltype(_Generate_pointer<To, Ptrs>( ));
 		using pointer = To*;
 		using reference = To&;
 		using value_type = To;
@@ -117,7 +115,7 @@ namespace cheat
 	private:
 		pointer get_pointer( ) const
 		{
-			if constexpr (constexpr size_t deref = detail::_Count_pointers<raw_pointer>( ) - 1; deref > 0)
+			if constexpr (constexpr size_t deref = _Count_pointers<raw_pointer>( ) - 1; deref > 0)
 				return result_.deref(deref).cast<pointer>( );
 			else
 				return result_.cast<pointer>( );
@@ -133,7 +131,7 @@ namespace cheat
 			if (this->empty( ))
 				return true;
 
-			constexpr auto extra_deref = detail::_Count_pointers<raw_pointer>( ) - 1;
+			constexpr auto extra_deref = _Count_pointers<raw_pointer>( ) - 1;
 			if constexpr (extra_deref > 0)
 			{
 				auto addr = result_.value( );
@@ -169,9 +167,9 @@ namespace cheat
 	};
 
 	template <typename T>
-	csgo_interface(T) -> csgo_interface<nstd::remove_all_pointers_t<T>, detail::_Count_pointers<T>( )>;
+	csgo_interface(T)->csgo_interface<nstd::remove_all_pointers_t<T>, _Count_pointers<T>( )>;
 
-	class csgo_interfaces_impl final : public service<csgo_interfaces_impl>
+	class csgo_interfaces final : public dynamic_service<csgo_interfaces>
 	{
 		template <typename T, size_t Ptrs = 1>
 		using ifc = csgo_interface<T, Ptrs>;
@@ -182,7 +180,7 @@ namespace cheat
 	public:
 		//nstd::filesystem::path csgo_path;
 
-		csgo_interfaces_impl( );
+		csgo_interfaces( );
 
 		ifc<csgo::IBaseClientDLL> client;
 		ifc<csgo::IClientEntityList> entity_list;
@@ -216,5 +214,4 @@ namespace cheat
 		ifc<IDirect3DDevice9> d3d_device;
 	};
 
-	CHEAT_SERVICE_SHARE(csgo_interfaces);
 }

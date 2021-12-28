@@ -162,6 +162,7 @@
 				%(PreprocessorDefinitions)
 			</PreprocessorDefinitions>
 			<PreprocessorDefinitions>
+				CHEAT_HAVE_CONSOLE;
 				VS_OutputDir=$(OutputDir);
 				VS_SolutionDir=$(SolutionDir);
 				VS_ProjectDir=$(ProjectDir);
@@ -265,6 +266,7 @@
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestRelease|Win32'">true</ExcludedFromBuild>
 		</ClCompile>
 		<ClCompile Include="cheat\service\impl.cpp" />
+		<ClCompile Include="cheat\service\impl2.cpp" />
 		<ClCompile Include="cheat\core\services_loader.cpp" />
 		<ClCompile Include="cheat\csgo\entity\C_BaseAnimating.cpp">
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>

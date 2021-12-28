@@ -1,6 +1,6 @@
 module;
 
-#include <nstd/runtime_assert_fwd.h>
+#include <nstd/runtime_assert.h>
 
 #include <cppcoro/when_all.hpp>
 #include <cppcoro/async_mutex.hpp>
