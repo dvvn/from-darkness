@@ -1,7 +1,7 @@
 ﻿module;
 
 export module cheat.core.csgo_awaiter;
-import cheat.core.service;
+export import cheat.core.service;
 
 export namespace cheat
 {

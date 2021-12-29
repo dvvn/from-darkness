@@ -1,17 +1,11 @@
-﻿#include "menu.h"
+﻿module;
 
-#include "imgui_context.h"
-
-#include "cheat/core/console.h"
-#include "cheat/core/services_loader.h"
-#include "cheat/features/aimbot.h"
+//#include "cheat/features/aimbot.h"
 
 #include "tools/cached_text.h"
 #include "widgets/window.h"
 
-#include <nstd/runtime_assert_fwd.h>
-
-#include <imgui.h>
+#include <nstd/runtime_assert.h>
 #include <imgui_internal.h>
 
 #include <cppcoro/task.hpp>
@@ -23,13 +17,16 @@
 #include <random>
 #include <filesystem>
 
+module cheat.gui.menu;
+import cheat.core.console;
+
 using namespace cheat::gui;
 using namespace tools;
 using namespace widgets;
 
 using namespace std::chrono_literals;
 
-struct menu_impl::impl
+struct menu::impl
 {
 	WPARAM hotkey = VK_HOME;
 
@@ -160,7 +157,7 @@ struct menu_impl::impl
 		{
 			auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
 			font_cfg->SizePixels = 25;
-			return gui::imgui_context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\verdana.TTF)", std::move(font_cfg));
+			return gui::gui::context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\verdana.TTF)", std::move(font_cfg));
 		}( )*/);
 		w.show_anim.set_start(0);
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
@@ -180,20 +177,20 @@ struct menu_impl::impl
 	}
 };
 
-menu_impl::menu_impl( )
+menu::menu( )
 {
 	impl_ = std::make_unique<impl>( );
-	this->add_dependency(imgui_context::get( ));
-	this->add_dependency(features::aimbot::get( ));
+	this->add_dependency(gui::context::get( ));
+	//this->add_dependency(features::aimbot::get( ));
 }
 
-menu_impl::~menu_impl( ) = default;
+menu::~menu( ) = default;
 
-bool menu_impl::render( )
+bool menu::render( )
 {
 	auto& wnd = impl_->menu_window;
 
-	if (wnd.show_next_tick( ) && !wnd.visible( ) && imgui_context::get( )->inctive( ))
+	if (wnd.show_next_tick( ) && !wnd.visible( ) && gui::context::get( )->inctive( ))
 		return false;
 
 	const auto end = wnd( );
@@ -207,7 +204,7 @@ bool menu_impl::render( )
 	ImGui::Text("hello4");
 	ImGui::Text("hello5");
 
-	features::aimbot::get( )->render( );
+	//features::aimbot::get( )->render( );
 
 #if 0
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
@@ -221,7 +218,7 @@ bool menu_impl::render( )
 	return true;
 }
 
-bool menu_impl::toggle(UINT msg, WPARAM wparam)
+bool menu::toggle(UINT msg, WPARAM wparam)
 {
 	if (wparam != impl_->hotkey)
 		return false;
@@ -240,12 +237,12 @@ bool menu_impl::toggle(UINT msg, WPARAM wparam)
 	return false;
 }
 
-bool menu_impl::visible( ) const
+bool menu::visible( ) const
 {
 	return impl_->menu_window.visible( );
 }
 
-bool menu_impl::updating( ) const
+bool menu::updating( ) const
 {
 	return impl_->menu_window.updating( );
 }
@@ -277,7 +274,7 @@ public:
 };
 #endif
 
-auto menu_impl::load_impl( ) noexcept -> load_result
+auto menu::load_impl( ) noexcept -> load_result
 {
 #if 0
 	renderer_.add_page([]
@@ -341,7 +338,7 @@ auto menu_impl::load_impl( ) noexcept -> load_result
 	impl_->init_window( );
 	impl_->init_pages( );
 
-	CHEAT_SERVICE_LOADED
+	co_return console::get().on_service_loaded(this);
 }
 
-CHEAT_SERVICE_REGISTER(menu);
+//CHEAT_SERVICE_REGISTER(menu);

@@ -1,6 +1,7 @@
 module;
 
 #include <nstd/runtime_assert.h>
+#include <nstd/format.h>
 
 #include <Windows.h>
 
@@ -11,7 +12,7 @@ module;
 #include <mutex>
 
 export module cheat.core.console;
-import cheat.core.service;
+export import cheat.core.service;
 
 namespace cheat
 {
@@ -84,18 +85,25 @@ namespace cheat
 		void write(wchar_t c) = delete;
 	public:
 
-		template<typename Fmt, typename ...T>
+		template<bool NewLine = true, typename Fmt, typename ...T>
 		void log(Fmt&& fmt, T&& ...args)
 		{
 #ifdef CHEAT_HAVE_CONSOLE
 			if constexpr (sizeof...(T) > 0)
-				write_line(std::format(fmt, std::forward<T>(args)...));
+			{
+				log<NewLine>(std::format(std::forward<Fmt>(fmt), std::forward<T>(args)...));
+			}
 			else
-				write_line(std::forward<Fmt>(fmt));
+			{
+				if constexpr (NewLine)
+					write_line(std::forward<Fmt>(fmt));
+				else
+					write(std::forward<Fmt>(fmt));
+			}
 #endif
 		}
 
-		template<bool Loaded = true, typename ...Ex>
+		template<bool Success = true, typename ...Ex>
 		_NODISCARD bool on_service_loaded(const basic_service* srv, Ex&& ...extra)
 		{
 #ifdef CHEAT_HAVE_CONSOLE
@@ -103,15 +111,28 @@ namespace cheat
 
 			if constexpr (have_extra)
 				cache_.lock( );
-			this->log("\"{}\" {}", srv->name( ), Loaded ? "loaded" : "not loaded");
+
+			const auto srv_name = srv->name( );
+			constexpr std::string_view message = Success ? "loaded" : "not loaded";
+#ifdef __cpp_lib_format
+			this->log("\"{}\" {}", srv_name, message);
+#else
+			std::string buff;
+			buff.reserve(srv_name.size( ) + 3 + message.size( ));
+			buff += '\'';
+			buff += srv_name;
+			buff += "\' ";
+			buff += message;
+			this->log(std::move(buff));
+#endif
 			if constexpr (have_extra)
 			{
-				this->write(' ');
-				this->write(std::format(std::forward<Ex>(extra)...));
+				this->log<false>(". ");
+				this->log<false>(std::forward<Ex>(extra)...);
 				cache_.unlock( );
 			}
 #endif
-			return Loaded;
+			return Success;
 		}
 
 	protected:

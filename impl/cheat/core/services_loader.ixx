@@ -7,7 +7,7 @@ module;
 #include <vector>
 
 export module cheat.core.services_loader;
-import cheat.core.service;
+export import cheat.core.service;
 
 export namespace cheat
 {

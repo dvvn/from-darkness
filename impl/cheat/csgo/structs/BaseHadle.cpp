@@ -1,12 +1,11 @@
 ﻿module;
 
-#include "cheat/core/csgo_interfaces.h"
-
-#include <nstd/runtime_assert_fwd.h>
+#include <nstd/runtime_assert.h>
 
 module cheat.csgo.structs.BaseHandle;
 import cheat.csgo.structs.ClientEntityList;
 import cheat.csgo.structs.ClientEntity;
+import cheat.core.csgo_interfaces;
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts

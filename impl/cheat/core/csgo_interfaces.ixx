@@ -4,7 +4,7 @@ module;
 #include <nstd/type_traits.h>
 
 export module cheat.core.csgo_interfaces;
-import cheat.core.service;
+export import cheat.core.service;
 
 export namespace cheat::csgo
 {

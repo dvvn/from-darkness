@@ -18,7 +18,7 @@ module;
 
 module cheat.core.csgo_modules;
 import cheat.core.console;
-
+\
 using namespace cheat::csgo_modules;
 
 template <typename E, typename Tr>

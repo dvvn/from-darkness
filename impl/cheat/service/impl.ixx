@@ -13,6 +13,8 @@ module;
 
 export module cheat.core.service;
 
+export using std::coroutine_traits;
+
 //constexpr auto _Fix_service_name(const std::string_view& name)
 //{
 //	auto str = nstd::drop_namespace(name, "cheat");
@@ -154,7 +156,7 @@ export namespace cheat
 #ifndef _DEBUG
 			other.obj_ = nullptr;
 #endif
-	}
+		}
 
 		shared_service& operator=(shared_service&& other) noexcept
 		{
@@ -202,6 +204,7 @@ export namespace cheat
 
 	public:
 		auto operator->( ) const { return _Get( ); }
+		[[deprecated]]
 		_NODISCARD T& operator*( ) const { return *_Get( ); }
 
 	private:
@@ -211,7 +214,7 @@ export namespace cheat
 		T*
 #endif
 			obj_;
-};
+	};
 
 	template <typename T>
 	struct service : basic_service
@@ -235,8 +238,12 @@ export namespace cheat
 
 
 	template<typename T>
-	struct dynamic_service :service<T>, shared_service<T>, nstd::one_instance<T> { };
+	struct dynamic_service :service<T>, shared_service<T>, nstd::one_instance<T>
+	{
+	};
 	template<typename T>
-	struct static_service :service<T>, nstd::one_instance<T> { };
+	struct static_service :service<T>, nstd::one_instance<T>
+	{
+	};
 
 }

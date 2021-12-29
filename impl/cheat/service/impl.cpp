@@ -1,13 +1,11 @@
 module;
 
 #include <nstd/runtime_assert.h>
-
+#include <nstd/ranges.h>
 #include <cppcoro/when_all.hpp>
 #include <cppcoro/async_mutex.hpp>
 #include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/task.hpp>
-
-#include <ranges>
 
 module cheat.core.service;
 
@@ -103,7 +101,7 @@ auto basic_service::load(executor & ex) noexcept -> load_result
 		case service_state::unset:
 			break;
 		default:
-			runtime_assert("Preload: mutex released, but state isnt't sets correctly!");
+			runtime_assert("Preload: mutex released, but state isn't sets correctly!");
 			std::terminate( );
 		}
 
