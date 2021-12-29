@@ -4,9 +4,9 @@ module;
 #include "csgo_awaiter.h"
 #endif
 
-#include <nstd/module/all_infos.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/type_traits.h>
+#include <nstd/rtlib/info_includes.h>
 
 #include <cppcoro/task.hpp>
 
@@ -20,9 +20,11 @@ module;
 #include <iostream>
 #include <mutex>
 #include <variant>
+#include <iomanip>
 
 module cheat.core.console;
 import cheat.core.services_loader;
+import nstd.rtlib.all_infos;
 
 using namespace cheat;
 
@@ -133,7 +135,7 @@ auto console::load_impl( ) noexcept -> load_result
 		_Freopen(out_, "CONOUT$", "w", stdout);
 		_Freopen(err_, "CONOUT$", "w", stderr);
 
-		const auto full_path = nstd::module::all_infos::get_ptr( )->current( ).full_path( );
+		const auto full_path = nstd::rtlib::all_infos::get_ptr( )->current( ).full_path( );
 		if (!SetConsoleTitleW(full_path.data( )))
 		{
 			runtime_assert("Unable set console title");

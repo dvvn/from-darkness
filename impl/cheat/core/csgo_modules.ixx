@@ -1,16 +1,13 @@
 module;
 
-#include <nstd/address.h>
 #include <nstd/type name.h>
-#include <nstd/module/info.h>
-#include <nstd/custom_types.h>
-#include NSTD_UNORDERED_MAP_INCLUDE
-#include NSTD_UNORDERED_SET_INCLUDE
+#include <nstd/rtlib/cache_includes.h>
 
 #include <memory>
 
 export module cheat.core.csgo_modules;
 import cheat.csgo.structs.AppSystem;
+import nstd.rtlib.info;
 
 export namespace cheat
 {
@@ -38,7 +35,7 @@ export namespace cheat
 namespace cheat::csgo_modules
 {
 	using instance_fn = cheat::csgo::InstantiateInterfaceFn;
-	using nstd::module::info;
+	using nstd::rtlib::info;
 
 	class CInterfaceRegister
 	{

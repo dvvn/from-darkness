@@ -1,10 +1,10 @@
 module;
 
-#include <nstd/address.h>
 #include <nstd/type_traits.h>
 
 export module cheat.core.csgo_interfaces;
 export import cheat.core.service;
+export import nstd.address;
 
 export namespace cheat::csgo
 {

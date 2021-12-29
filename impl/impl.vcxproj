@@ -250,10 +250,6 @@
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestRelease|Win32'">true</ExcludedFromBuild>
 		</ClCompile>
-		<ClCompile Include="cheat\csgo\math\Color.cpp" />
-		<ClCompile Include="cheat\csgo\math\Qangle.cpp" />
-		<ClCompile Include="cheat\csgo\math\Vector.cpp" />
-		<ClCompile Include="cheat\csgo\math\Vmatrix.cpp" />
 		<ClCompile Include="cheat\csgo\structs\BaseClient.cpp" />
 		<ClCompile Include="cheat\csgo\structs\BaseHadle.cpp" />
 		<ClCompile Include="cheat\csgo\structs\ConVar.cpp" />
@@ -462,8 +458,10 @@
 		<!--<ClCompile Include="$(GitClonedProjects)\fmtlib\fmt\src\fmt.cc" />-->
 		<!--<ClInclude Include="$(GitClonedProjects)\dvvn\nstd\impl\**\*.h*" />-->
 		<ClCompile Include="$(GitClonedProjects)\dvvn\nstd\impl\**\*.cpp" />
+		<ClCompile Include="$(GitClonedProjects)\dvvn\nstd\impl\**\*.i*" />
 		<!--<ClInclude Include="$(GitClonedProjects)\dvvn\detour_hook\impl\**\*.h*" />-->
 		<ClCompile Include="$(GitClonedProjects)\dvvn\detour_hook\impl\**\*.cpp" />
+		<ClCompile Include="$(GitClonedProjects)\dvvn\detour_hook\impl\**\*.i*" />
 		<!--<ClInclude Include="$(GitClonedProjects)\cppcoro\include\*.h*" />
 		<ClInclude Include="$(GitClonedProjects)\cppcoro\include\net\*.h*" />-->
 		<ClCompile Include="$(GitClonedProjects)\cppcoro\lib\*.cpp" />
