@@ -1,13 +1,20 @@
 module;
 
-#include "cheat/core/csgo_interfaces.h"
-#include "cheat/core/console.h"
+#include "cheat/core/console_includes.h"
 
-#include <nstd/address.h>
+#include <nstd/chars cache.h>
+#include <nstd/address_includes.h>
+#include <nstd/format.h>
+
+#include <string>
+#include <algorithm>
 
 module cheat.utils.game;
 import cheat.csgo.structs.ConVar;
 import cheat.csgo.structs.GlobalVars;
+import cheat.core.console;
+import cheat.core.csgo_interfaces;
+import nstd.address;
 
 using namespace cheat;
 using namespace csgo;
@@ -15,18 +22,18 @@ using namespace csgo;
 ConVar* utils::find_cvar(const std::string_view& cvar)
 {
 	nstd::address cvars = csgo_interfaces::get( )->cvars.get( );
-	ConVar* root_cvar   = cvars.add(0x30).deref(1).ptr( );
+	ConVar* root_cvar = cvars.add(0x30).deref(1).ptr( );
 
 	for (auto cv = root_cvar; cv != nullptr; cv = cv->m_pNext)
 	{
 		if (std::strncmp(cv->m_pszName, cvar._Unchecked_begin( ), cvar.size( )) != 0)
 			continue;
 
-		CHEAT_CONSOLE_LOG(std::format("Cvar \"{}\" found", cvar));
+		console::get( )->log("Cvar \"{}\" found", cvar);
 		return cv;
 	}
 
-	CHEAT_CONSOLE_LOG(std::format("Cvar \"{}\" not found", cvar));
+	console::get( )->log("Cvar \"{}\" not found", cvar);
 	return nullptr;
 }
 
@@ -64,7 +71,7 @@ float utils::lerp_time( )
 #endif
 
 	const auto update_rate = std::clamp(find_cvar<"cl_updaterate">( )->get<float>( ), find_cvar<"sv_minupdaterate">( )->get<float>( ), find_cvar<"sv_maxupdaterate">( )->get<float>( ));
-	auto lerp_ratio        = find_cvar<"cl_interp_ratio">( )->get<float>( );
+	auto lerp_ratio = find_cvar<"cl_interp_ratio">( )->get<float>( );
 
 	if (lerp_ratio == 0.0f)
 		lerp_ratio = 1.0f;

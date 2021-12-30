@@ -1,10 +1,11 @@
-#include "cheat/core/services_loader.h"
-#include "cheat/gui/menu.h"
 
 #include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/sync_wait.hpp>
 
 #include <Windows.h>
+
+import cheat.core.services_loader;
+import cheat.gui.menu;
 
 #pragma comment(lib, "Synchronization.lib")
 //#pragma comment(lib, "ws2_32.lib")

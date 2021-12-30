@@ -413,7 +413,6 @@
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='NetvarsDumpDebug|Win32'">true</ExcludedFromBuild>
 		</ClCompile>
 		<ClCompile Include="cheat\hooks\winapi\wndproc.cpp" />
-		<ClCompile Include="cheat\hooks\winapi\wndproc_init.cpp" />
 		<ClCompile Include="cheat\netvars\data_dumper.cpp">
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestRelease|Win32'">true</ExcludedFromBuild>

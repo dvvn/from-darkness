@@ -1,5 +1,6 @@
+
+
 #include "effects.h"
-#include "cheat/core/csgo_interfaces.h"
 
 using namespace cheat;
 using namespace gui;
@@ -15,7 +16,8 @@ using BYTE = unsigned char;
 #include "effects_data/Build/monochrome.h"
 #endif
 
-#include <nstd/runtime_assert_fwd.h>
+#include <nstd/ranges.h>
+#include <nstd/runtime_assert.h>
 #include <nstd/custom_types.h>
 #include NSTD_UNORDERED_MAP_INCLUDE
 
@@ -26,9 +28,10 @@ using BYTE = unsigned char;
 
 #include <array>
 #include <string>
-#include <ranges>
 #include <algorithm>
 #include <functional>
+
+import cheat.core.csgo_interfaces;
 
 #ifdef _DEBUG
 #define HRESULT_VALIDATE(fn, ...) runtime_assert(fn == D3D_OK,##__VA_ARGS__)

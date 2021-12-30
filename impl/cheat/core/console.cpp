@@ -4,22 +4,18 @@ module;
 #include "csgo_awaiter.h"
 #endif
 
-#include <nstd/runtime_assert.h>
-#include <nstd/type_traits.h>
-#include <nstd/rtlib/info_includes.h>
+#include "console_includes.h"
 
+#include <nstd/rtlib/info_includes.h>
+#include <nstd/type_traits.h>
 #include <cppcoro/task.hpp>
 
 #include <corecrt_io.h>
-#include <Windows.h>
 #include <fcntl.h>
 #include <intrin.h>
 
 #include <fstream>
-#include <functional>
 #include <iostream>
-#include <mutex>
-#include <variant>
 #include <iomanip>
 
 module cheat.core.console;

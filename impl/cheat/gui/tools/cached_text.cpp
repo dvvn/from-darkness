@@ -1,18 +1,19 @@
 ﻿#include "cached_text.h"
 
 #include <nstd/enum_tools.h>
-#include <nstd/mem/backup.h>
-#include <nstd/runtime_assert_fwd.h>
+#include <nstd/runtime_assert.h>
 #include <nstd/overload.h>
+#include <nstd/ranges.h>
 
 #include <imgui_internal.h>
 
 #include <numeric>
-#include <ranges>
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <vector>
+
+import nstd.mem.backup;
 
 using namespace cheat::gui::tools;
 

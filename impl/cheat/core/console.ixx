@@ -1,15 +1,6 @@
 module;
 
-#include <nstd/runtime_assert.h>
-#include <nstd/format.h>
-
-#include <Windows.h>
-
-#include <string>
-#include <variant>
-#include <sstream>
-#include <functional>
-#include <mutex>
+#include "console_includes.h"
 
 export module cheat.core.console;
 export import cheat.core.service;
@@ -72,6 +63,12 @@ namespace cheat
 		std::vector<value_type> cache_;
 	};
 
+#if defined(FMT_VERSION) && defined(CHEAT_HAVE_CONSOLE)
+#define _FMT_RUNTIME(x) fmt::runtime(x)
+#else
+#define _FMT_RUNTIME(x) x
+#endif
+
 	export class console final :public dynamic_service<console>, nstd::rt_assert_handler
 	{
 	public:
@@ -83,15 +80,15 @@ namespace cheat
 		void write_line(string_packer&& str);
 		void write(char c);
 		void write(wchar_t c) = delete;
-	public:
 
+	public:
 		template<bool NewLine = true, typename Fmt, typename ...T>
 		void log(Fmt&& fmt, T&& ...args)
 		{
 #ifdef CHEAT_HAVE_CONSOLE
 			if constexpr (sizeof...(T) > 0)
 			{
-				log<NewLine>(std::format(std::forward<Fmt>(fmt), std::forward<T>(args)...));
+				log<NewLine>(std::format(_FMT_RUNTIME(fmt), std::forward<T>(args)...));
 			}
 			else
 			{
@@ -114,17 +111,7 @@ namespace cheat
 
 			const auto srv_name = srv->name( );
 			constexpr std::string_view message = Success ? "loaded" : "not loaded";
-#ifdef __cpp_lib_format
 			this->log("\"{}\" {}", srv_name, message);
-#else
-			std::string buff;
-			buff.reserve(srv_name.size( ) + 3 + message.size( ));
-			buff += '\'';
-			buff += srv_name;
-			buff += "\' ";
-			buff += message;
-			this->log(std::move(buff));
-#endif
 			if constexpr (have_extra)
 			{
 				this->log<false>(". ");
