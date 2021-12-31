@@ -1,5 +1,7 @@
 module;
 
+#include <nstd/type name.h>
+
 #include "includes.h"
 
 export module cheat.service:core;
@@ -109,6 +111,9 @@ export namespace cheat
 
 		service_state state( ) const;
 		load_result load(executor& ex) noexcept;
+	private:
+		void set_state(service_state state);
+	public:
 
 		virtual bool root_class( ) const { return false; }
 

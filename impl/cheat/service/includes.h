@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <nstd/runtime_assert.h>
-#include <nstd/type name.h>
 
 #include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/task.hpp>

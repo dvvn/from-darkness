@@ -4,9 +4,10 @@ module;
 
 #include <nstd/rtlib/includes.h>
 #include <nstd/mem/block_includes.h>
+
 #include <nstd/unistring.h>
 
-module cheat.csgo_modules;
+module cheat.csgo.modules;
 import cheat.console;
 import nstd.rtlib;
 import nstd.mem.block;

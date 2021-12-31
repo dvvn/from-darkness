@@ -8,7 +8,7 @@ export namespace cheat
 	class csgo_awaiter final : public dynamic_service<csgo_awaiter>
 	{
 	protected:
-		load_result load_impl( ) noexcept override;
+		bool load_impl( ) noexcept override;
 
 	public:
 		//todo:fix

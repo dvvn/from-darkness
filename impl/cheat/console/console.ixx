@@ -63,8 +63,6 @@ namespace cheat
 		std::vector<value_type> cache_;
 	};
 
-
-
 	export class console final :public dynamic_service<console>, nstd::rt_assert_handler
 	{
 	public:
@@ -82,16 +80,19 @@ namespace cheat
 		void log(Fmt&& fmt, T&& ...args)
 		{
 #ifdef CHEAT_HAVE_CONSOLE
-
-#ifdef FMT_VERSION
-#define _FMT_RUNTIME(x) fmt::basic_runtime<std::ranges::range_value_t<Fmt>>{x}
-#else
-#define _FMT_RUNTIME(x) x
-#endif
-
 			if constexpr (sizeof...(T) > 0)
 			{
-				auto str = std::format(_FMT_RUNTIME(fmt), std::forward<T>(args)...);
+				const auto fmt_fixed = [&]( )->decltype(auto)
+				{
+#ifdef FMT_VERSION
+					using val_t = std::ranges::range_value_t<Fmt>;
+					if constexpr (std::is_same_v<val_t, char>)//fmt support compile time only for char today
+						return fmt::runtime(fmt);
+					else
+#endif
+						return std::forward<Fmt>(fmt);
+				};
+				auto str = std::format(fmt_fixed( ), std::forward<T>(args)...);
 				log<NewLine>(std::move(str));
 			}
 			else
@@ -104,6 +105,7 @@ namespace cheat
 #endif
 		}
 
+#if 0
 		template<bool Success = true, typename ...Ex>
 		_NODISCARD bool on_service_loaded(const basic_service* srv, Ex&& ...extra)
 		{
@@ -125,9 +127,10 @@ namespace cheat
 #endif
 			return Success;
 		}
+#endif
 
 	protected:
-		load_result load_impl( ) noexcept override;
+		bool load_impl( ) noexcept override;
 	private:
 		bool allocated_ = false;
 		HWND handle_ = nullptr;

@@ -49,7 +49,7 @@ export namespace cheat::gui
 		fonts_builder_proxy fonts( );
 
 	protected:
-		load_result load_impl( ) noexcept override;
+		bool load_impl( ) noexcept override;
 
 	private:
 		ImGuiContext ctx_;

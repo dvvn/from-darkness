@@ -2,7 +2,7 @@ module;
 
 #include <nstd/type_traits.h>
 
-export module cheat.csgo_interfaces;
+export module cheat.csgo.interfaces;
 export import cheat.service;
 export import nstd.address;
 
@@ -175,7 +175,7 @@ export namespace cheat
 		using ifc = csgo_interface<T, Ptrs>;
 
 	protected:
-		load_result load_impl( ) noexcept override;
+		bool load_impl( ) noexcept override;
 
 	public:
 		//nstd::filesystem::path csgo_path;

@@ -1,14 +1,10 @@
 module;
 
-#include <nstd/runtime_assert.h>
-
-#include <cppcoro/task.hpp>
+#include "cheat/service/includes.h"
 
 module cheat.csgo_interfaces;
-import cheat.console;
-import cheat.services_loader;
 #ifndef CHEAT_GUI_TEST
-import cheat.csgo_modules;
+import cheat.csgo.modules;
 #endif
 
 using namespace cheat;
@@ -124,7 +120,7 @@ auto csgo_interfaces::load_impl( ) noexcept -> load_result
 	d3d_device = csgo_modules::shaderapidx9->find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
 #endif
 
-	co_return console::get( ).on_service_loaded(this);
+	return true;
 }
 
 csgo_interfaces::csgo_interfaces( )

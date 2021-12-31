@@ -61,12 +61,11 @@ void basic_service::erase(const erase_pred & fn)
 // ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::erase_all(const erase_pred & fn)
 {
-	auto& deps = deps_;
-	const auto found = std::remove_if(deps.begin( ), deps.end( ), std::_Pass_fn(fn));
-	if (found != deps.end( ))
-		deps.erase(found, deps.end( ));
-	/*if (!found.empty( ))
-		deps.erase(found.begin( ), found.end( ));*/
+	const auto found = std::ranges::remove_if(deps_, std::_Pass_fn(fn));
+	/*if (found != deps_.end( ))
+		deps_.erase(found, deps_.end( ));*/
+	if (!found.empty( ))
+		deps_.erase(found.begin( ), found.end( ));
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -107,29 +106,30 @@ auto basic_service::load(executor & ex) noexcept -> load_result
 			using std::views::transform;
 			using std::ranges::all_of;
 
-			state_ = service_state::waiting;
+			set_state(service_state::waiting);
 			co_await ex.schedule( );
-			const auto unwrapped = deps_ | transform([](const auto& srv)-> basic_service& { return *srv; });
+			const auto unwrapped = deps_ | transform([]<typename T>(const T& srv)-> basic_service& { return *srv; });
 			auto tasks_view = unwrapped | transform([&](basic_service& srv)-> load_result { return srv.load(ex); });
+			//todo: stop when error detected
 			auto results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
-			if (!co_await all_of(results, [](bool val) { return val == true; }))
+			if (!all_of(results, [](bool val) { return val == true; }))
 			{
 				runtime_assert("Unable to load other services!");
-				state_ = service_state::error;
+				set_state(service_state::error);
 				co_return false;
 			}
 		}
 
-		state_ = service_state::loading;
+		set_state(service_state::loading);
 		co_await ex.schedule( );
 		if (!/*co_await*/ this->load_impl( ))
 		{
 			runtime_assert("Unable to load service!");
-			state_ = service_state::error;
+			set_state(service_state::error);
 			co_return false;
 		}
 
-		state_ = service_state::loaded;
+		set_state(service_state::loaded);
 		co_return true;
 	}
 	case service_state::waiting:

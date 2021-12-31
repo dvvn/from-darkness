@@ -40,7 +40,7 @@ export namespace cheat
 		all_hooks_storage get_hooks(bool steal);
 
 	protected:
-		load_result load_impl( ) noexcept override;
+		bool load_impl( ) noexcept override;
 
 	private:
 		std::weak_ptr<executor> executor_;

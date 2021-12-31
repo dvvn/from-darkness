@@ -1,10 +1,10 @@
 module;
 
+#include "cheat/service/includes.h"
 #include <dhooks/wrapper.h>
 
 export module cheat.hooks.base;
-export import cheat.csgo_interfaces;
-export import cheat.console;
+export import cheat.service;
 
 export namespace cheat::hooks
 {
@@ -12,16 +12,10 @@ export namespace cheat::hooks
 	struct hook_base : dynamic_service<T>, dhooks::select_hook_holder<Fn>
 	{
 	protected:
-		//fix for broken compiler
-		//most be renamed to load_impl .... override later
-		basic_service::load_result load_impl2( ) noexcept /*override*/
-		{
-			if (!this->hook( ))
-				co_return console::get( ).on_service_loaded<false>(this, "(Unable to setup hook)");
-			if (!this->enable( ))
-				co_return console::get( ).on_service_loaded<false>(this, "(Unable to enable hook)");
 
-			co_return console::get( ).on_service_loaded(this);
+		bool load_impl( ) noexcept override
+		{
+			return this->hook( ) && this->enable( );
 		}
 	};
 }

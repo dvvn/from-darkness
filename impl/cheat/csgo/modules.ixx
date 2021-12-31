@@ -6,7 +6,7 @@ module;
 #include <nstd/unordered_set.h>
 #include <memory>
 
-export module cheat.csgo_modules;
+export module cheat.csgo.modules;
 import cheat.csgo.structs.AppSystem;
 import nstd.rtlib;
 

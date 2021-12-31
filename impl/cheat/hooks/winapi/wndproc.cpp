@@ -21,7 +21,7 @@ wndproc::wndproc( )
 	this->add_dependency(gui::context::get( ));
 }
 
-auto wndproc::load_impl( ) noexcept -> load_result
+bool wndproc::load_impl( ) noexcept
 {
 	const auto hwnd = gui::context::get( )->hwnd( );
 	runtime_assert(hwnd != nullptr);
@@ -29,8 +29,7 @@ auto wndproc::load_impl( ) noexcept -> load_result
 	unicode_ = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	//return basic_service::load_impl( );
-	return load_impl2( );
+	return basic_service::load_impl( );
 }
 
 void* wndproc::get_target_method( ) const
@@ -134,6 +133,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	}
 }
+
 #if 0
 void wndproc::render( )
 {

@@ -1,16 +1,18 @@
 module;
 
-#ifndef CHEAT_GUI_TEST
-#include "csgo_awaiter.h"
-#endif
 
 #include "cheat/service/includes.h"
+
+#include <cppcoro/sync_wait.hpp>
+
 #include <dhooks/context.h>
 #include <dhooks/wrapper_fwd.h>
 
 module cheat.service:loader;
+#ifndef CHEAT_GUI_TEST
+import cheat.csgo.awaiter;
+#endif
 import cheat.console;
-import nstd.rtlib.all_infos;
 
 using namespace cheat;
 
@@ -46,18 +48,18 @@ void services_loader::load(HMODULE handle)
 
 	own_handle_ = handle;
 	load_thread_ = std::jthread([this]
-									  {
-										  const auto load_helper = [&]
-										  {
-											  const auto ex = this->get_executor( );
-											  return sync_wait(this->load(*ex));
-										  };
+								{
+									const auto load_helper = [&]
+									{
+										const auto ex = this->get_executor( );
+										return sync_wait(this->load(*ex));
+									};
 
-										  if (!load_helper( ))
-											  this->unload( );
-										  else
-											  this->erase(csgo_awaiter::type( ));
-									  });
+									if (!load_helper( ))
+										this->unload( );
+									else
+										this->erase(csgo_awaiter::type( ));
+								});
 }
 
 struct unload_helper_data
@@ -144,23 +146,12 @@ auto services_loader::get_hooks(bool steal) -> all_hooks_storage
 	return out;
 }
 
-auto services_loader::load_impl( ) noexcept-> load_result
+bool services_loader::load_impl( ) noexcept
 {
 	console::get( ).log("Cheat fully loaded");
-	co_return true;
+	return true;
 }
 
-void basic_service_shared::add_to_loader(value_type && srv) const
-{
-	const auto loader = services_loader::get_ptr( );
-	loader->add_dependency(std::move(srv));
-}
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
-auto basic_service_shared::get_from_loader(const std::type_info & info) const -> value_type*
-{
-	const auto loader = services_loader::get_ptr( );
-	return loader->find(info);
-}
 
 
