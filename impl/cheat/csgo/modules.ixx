@@ -1,13 +1,14 @@
 module;
 
 #include <nstd/type name.h>
-#include <nstd/rtlib/cache_includes.h>
-
+//unordered_map included here
+#include <nstd/rtlib/includes.h>
+#include <nstd/unordered_set.h>
 #include <memory>
 
-export module cheat.core.csgo_modules;
+export module cheat.csgo_modules;
 import cheat.csgo.structs.AppSystem;
-import nstd.rtlib.info;
+import nstd.rtlib;
 
 export namespace cheat
 {
@@ -29,7 +30,7 @@ export namespace cheat
 		const auto out = nstd::drop_namespace(name, drop);
 		return nstd::string_to_buffer<out_size>(out);
 #endif
-	}().view( );
+	}();
 }
 
 namespace cheat::csgo_modules
@@ -45,7 +46,7 @@ namespace cheat::csgo_modules
 		CInterfaceRegister* next;
 	};
 
-	using ifcs_entry_type = NSTD_UNORDERED_MAP<std::string_view, instance_fn>;
+	using ifcs_entry_type = nstd::unordered_map<std::string_view, instance_fn>;
 
 	export struct game_module_storage
 	{
@@ -64,7 +65,7 @@ namespace cheat::csgo_modules
 		template <typename Table>
 		Table* find_vtable( )
 		{
-			constexpr auto table_name = CSGO_class_name<Table>;
+			constexpr auto table_name = CSGO_class_name<Table>.view( );
 			void* ptr = find_vtable(table_name);
 			return static_cast<Table*>(ptr);
 		}
@@ -74,10 +75,10 @@ namespace cheat::csgo_modules
 	private:
 		info* info_ptr;
 #ifdef _DEBUG
-		NSTD_UNORDERED_SET<std::string> sigs_tested;
+		nstd::unordered_set<std::string> sigs_tested;
 #endif
 #ifdef CHEAT_HAVE_CONSOLE
-		NSTD_UNORDERED_SET<std::string> vtables_tested;
+		nstd::unordered_set<std::string> vtables_tested;
 #endif
 		ifcs_entry_type interfaces;
 	};

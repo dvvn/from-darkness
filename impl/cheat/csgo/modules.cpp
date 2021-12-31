@@ -1,45 +1,33 @@
 module;
 
-#include <nstd/signature.h>
+#include "cheat/console/includes.h"
+
+#include <nstd/rtlib/includes.h>
+#include <nstd/mem/block_includes.h>
 #include <nstd/unistring.h>
-#include <nstd/module/all_infos.h>
-#include <nstd/custom_types.h>
 
-#include NSTD_UNORDERED_MAP_INCLUDE
-#include NSTD_UNORDERED_SET_INCLUDE
+module cheat.csgo_modules;
+import cheat.console;
+import nstd.rtlib;
+import nstd.mem.block;
 
-#include <ranges>
-#include <format>
-#include <optional>
-#include <sstream>
-#include <algorithm>
-#include <functional>
-#include <mutex>
-
-module cheat.core.csgo_modules;
-import cheat.core.console;
-\
 using namespace cheat::csgo_modules;
+using namespace nstd::rtlib;
 
 template <typename E, typename Tr>
 static info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
 {
 	const auto do_find = []<typename T>(const T & str)
 	{
-		return nstd::module::all_infos::get_ptr( )->find([&](const info& info)-> bool
-														 {
-															 return std::ranges::equal(info.name( ), str);
-														 });
+		return all_infos::get_ptr( )->find([&](const info& info)-> bool
+										   {
+											   return std::ranges::equal(info.name( ), str);
+										   });
 	};
 
-	if (target_name.rfind(E('.')) == target_name.npos)
+	if (target_name.rfind('.') == target_name.npos)
 	{
-		using ustring = nstd::unistring<wchar_t>;
-
-		constexpr ustring::value_type dot_dll_arr[] = {'.', 'd', 'l', 'l'};
-		constexpr std::basic_string_view dot_dll = {dot_dll_arr, 4};
-
-		const auto str = ustring(target_name).append(dot_dll);
+		const auto str = nstd::unistring<wchar_t>(target_name).append(L".dll");
 		return do_find(str);
 	}
 
@@ -55,9 +43,9 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	const auto create_fn = exports.at("CreateInterface"sv).addr;
 	const auto reg = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
 
-	std::vector<std::pair<std::string_view, InstantiateInterfaceFn>> temp_entry;
+	std::vector<ifcs_entry_type::value_type> temp_entry;
 	for (auto r = reg; r != nullptr; r = r->next)
-		temp_entry.emplace_back(make_pair(std::string_view(r->name), r->create_fn));
+		temp_entry.emplace_back(r->name, r->create_fn);
 
 	const auto contains_duplicate = [&](const std::string_view& new_string, size_t original_size)
 	{
@@ -68,11 +56,13 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 				continue;
 			if (!raw_string.starts_with(new_string))
 				continue;
-			if (detected)
-				return true;
-			detected = true;
+
+			if (!detected)
+				detected = true;
+			else
+				break;
 		}
-		return false;
+		return detected;
 	};
 	const auto drop_underline = [&](const std::string_view& str, size_t original_size) -> std::optional<std::string_view>
 	{
@@ -91,7 +81,6 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 		{
 			if (!std::isdigit(c))
 				break;
-
 			++remove;
 		}
 
@@ -100,11 +89,11 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 		if (remove == 0)
 			return drop_underline(str, original_size);
 
-		auto str2 = str;
-		str2.remove_suffix(remove);
-		if (contains_duplicate(str2, original_size))
+		const auto str2 = str.substr(0, str.size( ) - remove);
+		if (!contains_duplicate(str2, original_size))
+			return drop_underline(str2, original_size).value_or(str2);
+		else
 			return drop_underline(str, original_size);
-		return drop_underline(str2, original_size).value_or(str2);
 	};
 
 	for (const auto [name, fn] : temp_entry)
@@ -128,6 +117,30 @@ game_module_storage::~game_module_storage( ) = default;
 game_module_storage::game_module_storage(game_module_storage&&) noexcept = default;
 game_module_storage& game_module_storage::operator=(game_module_storage&&) noexcept = default;
 
+template<typename T>
+struct transform_cast
+{
+	static constexpr auto cast_fn = []<typename Q>(Q q)
+	{
+		return static_cast<T>(q);
+	};
+
+	template<typename Rng>
+	auto operator()(Rng&& rng)const
+	{
+		return std::views::transform(std::forward<Rng>(rng), cast_fn);
+	}
+
+	template<typename Itr>
+	auto operator()(Itr begin, Itr end)const
+	{
+		return std::invoke(*this, std::subrange(begin, end));
+	}
+};
+
+template<typename T>
+static constexpr auto _Transform_cast = transform_cast<T>();
+
 nstd::address game_module_storage::find_signature(const std::string_view & sig)
 {
 #ifdef _DEBUG
@@ -139,12 +152,12 @@ nstd::address game_module_storage::find_signature(const std::string_view & sig)
 	//no cache inside
 
 	const auto block = info_ptr->mem_block( );
-	const auto bytes = nstd::make_signature(sig.begin( ), sig.end( ));
+	const auto bytes = nstd::make_signature < nstd::make_signature_tag_convert{} > (sig.begin( ), sig.end( ));
 	const auto ret = block.find_block(bytes);
 
 	if (ret.empty( ))
 	{
-		CHEAT_CONSOLE_LOG(std::format(L"{} -> signature \"{}\" not found", info_ptr->name( ), std::wstring(sig.begin( ), sig.end( ))));
+		console::get( ).log(L"{} -> signature \"{}\" not found", info_ptr->name( ), _Transform_cast<wchar_t>(sig));
 		return nullptr;
 	}
 
@@ -159,19 +172,11 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 	const auto created = vtables_tested.emplace(class_name).second;
 	if (created)
 	{
-		const auto found_msg = [&]
-		{
-			const auto& from_name = info_ptr->name( );
-			const auto second_module_name = nstd::module::all_infos::get_ptr( )->rfind([&](const info& info)
-																					   {
-																						   return info.name( ) == from_name;
-																					   });
-			const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
-			return std::wostringstream( )
-				<< "Found \"" << std::wstring(class_name.begin( ), class_name.end( ))
-				<< "\" vtable in module \"" << module_name << '\"';
-		};
-		console::get( ).log(found_msg( ));
+		const std::wstring_view from_name = info_ptr->name( );
+		const auto second_module_name = all_infos::get_ptr( )->rfind([&](const info& info) { return info.name( ) == from_name; });
+		const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
+
+		console::get( ).log(L"Found \"{}\" vtable in module \"{}\"", _Transform_cast<wchar_t>(class_name), module_name);
 	}
 #endif
 	return vt.addr.ptr<void>( );
@@ -183,19 +188,19 @@ nstd::address game_module_storage::find_game_interface(const std::string_view & 
 	runtime_assert(found != interfaces.end( ));
 
 #ifdef CHEAT_HAVE_CONSOLE
-	const auto debug_message = [&]
+	const auto raw_ifc_name = [&]( )->std::wstring
 	{
-		const auto original_interface_name = found->first;
-		const auto original_interface_name_end = original_interface_name._Unchecked_end( );
-
-		auto msg = std::wostringstream( );
-		msg << "Found interface: " << std::wstring(ifc_name.begin( ), ifc_name.end( )) << ' ';
-		if (*original_interface_name_end != '\0')
-			msg << '(' << std::wstring(original_interface_name.begin( ), original_interface_name.end( )) << original_interface_name_end << ") ";
-		msg << "in module " << info_ptr->name( );
-		return msg;
+		const auto orig_ifc_name = found->first;
+		const auto orig_ifc_name_end = orig_ifc_name._Unchecked_end( );
+		if (*orig_ifc_name_end == '\0')
+			return {};
+		const auto real_end_offset = std::char_traits<char>::length(orig_ifc_name_end);
+		const auto begin = orig_ifc_name._Unchecked_begin( );
+		const auto real_end = orig_ifc_name_end + real_end_offset;
+		return std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
 	};
-	console::get( ).log(debug_message( ));
+
+	console::get( ).log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name( ), info_ptr->name( ));
 #endif
 
 	return std::invoke(found->second);

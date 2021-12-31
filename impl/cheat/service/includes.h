@@ -1,4 +1,22 @@
 ﻿#pragma once
+
+#include <nstd/runtime_assert.h>
+#include <nstd/type name.h>
+
+#include <cppcoro/static_thread_pool.hpp>
+#include <cppcoro/task.hpp>
+#include <cppcoro/async_mutex.hpp>
+
+#include <string>
+#include <functional>
+#include <vector>
+#ifndef CHEAT_GUI_TEST
+#include <thread>
+#include <stop_token>
+#endif
+
+#if 0
+
 // ReSharper disable CppUnusedIncludeDirective
 #include "impl.h"
 
@@ -29,3 +47,5 @@ namespace cheat
 #define CHEAT_SERVICE_NOT_LOADED(why) \
 	{runtime_assert(why);\
 	CHEAT_SERVICE_RESULT(std::format("not loaded. {}", _STRINGIZE(why)), false)}
+
+#endif

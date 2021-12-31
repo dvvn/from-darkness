@@ -4,22 +4,19 @@ module;
 #include "csgo_awaiter.h"
 #endif
 
-#include "console_includes.h"
-
+#include "includes.h"
+#include "cheat/service/includes.h"
 #include <nstd/rtlib/info_includes.h>
-#include <nstd/type_traits.h>
-#include <cppcoro/task.hpp>
 
 #include <corecrt_io.h>
 #include <fcntl.h>
 #include <intrin.h>
-
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 
-module cheat.core.console;
-import cheat.core.services_loader;
+module cheat.console;
 import nstd.rtlib.all_infos;
 
 using namespace cheat;
@@ -27,7 +24,7 @@ using namespace cheat;
 static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
 {
 	auto msg = std::ostringstream( );
-	msg << "Assertion falied!\n\n";
+	msg << "Assertion failed!\n\n";
 
 	const auto append = [&]<typename Name, typename Value>(Name && name, Value && value, bool newline = true)
 	{

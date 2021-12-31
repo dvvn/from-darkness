@@ -1,13 +1,10 @@
 module;
 
-#include <nstd/runtime_assert.h>
+#include "includes.h"
 #include <nstd/ranges.h>
 #include <cppcoro/when_all.hpp>
-#include <cppcoro/async_mutex.hpp>
-#include <cppcoro/static_thread_pool.hpp>
-#include <cppcoro/task.hpp>
 
-module cheat.core.service;
+module cheat.service:core;
 
 using namespace cheat;
 

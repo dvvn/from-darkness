@@ -1,9 +1,9 @@
 module;
 
-#include "console_includes.h"
+#include "includes.h"
 
-export module cheat.core.console;
-export import cheat.core.service;
+export module cheat.console;
+export import cheat.service;
 
 namespace cheat
 {
@@ -63,12 +63,6 @@ namespace cheat
 		std::vector<value_type> cache_;
 	};
 
-#if defined(FMT_VERSION) && defined(CHEAT_HAVE_CONSOLE)
-#define _FMT_RUNTIME(x) fmt::runtime(x)
-#else
-#define _FMT_RUNTIME(x) x
-#endif
-
 	export class console final :public dynamic_service<console>, nstd::rt_assert_handler
 	{
 	public:
@@ -88,7 +82,7 @@ namespace cheat
 #ifdef CHEAT_HAVE_CONSOLE
 			if constexpr (sizeof...(T) > 0)
 			{
-				log<NewLine>(std::format(_FMT_RUNTIME(fmt), std::forward<T>(args)...));
+				log<NewLine>(std::format(fmt, std::forward<T>(args)...));
 			}
 			else
 			{

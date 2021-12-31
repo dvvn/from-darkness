@@ -1,29 +1,25 @@
 ﻿module;
-#include <nstd/module/all_infos.h>
-
-#include <cppcoro/task.hpp>
-
-#include <functional>
-#include <filesystem>
+#include "cheat/service/includes.h"
+#include <nstd/rtlib/info_includes.h>
 #include <thread>
+#include <filesystem>
 
-module cheat.core.csgo_awaiter;
-import cheat.core.console;
-import cheat.core.services_loader;
+module cheat.csgo.awaiter;
+import cheat.console;
+import nstd.rtlib.all_infos;
 
 using namespace cheat;
+using namespace nstd::rtlib;
+namespace fs = std::filesystem;
 
 auto csgo_awaiter::load_impl( ) noexcept -> load_result
 {
-	using nstd::module::info;
-	using nstd::module::all_infos;
-	using std::filesystem::path;
 
 	const auto modules = all_infos::get_ptr( );
 	modules->update(false);
 
-	auto work_dir = path(modules->owner( ).work_dir( ));
-	auto& work_dir_native = const_cast<path::string_type&>(work_dir.native( ));
+	fs::path work_dir = modules->owner( ).work_dir( );
+	auto& work_dir_native = const_cast<fs::path::string_type&>(work_dir.native( ));
 	std::ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
 	work_dir.append(L"bin").append(L"serverbrowser.dll");
 

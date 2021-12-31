@@ -2,8 +2,8 @@ module;
 
 #include <nstd/type_traits.h>
 
-export module cheat.core.csgo_interfaces;
-export import cheat.core.service;
+export module cheat.csgo_interfaces;
+export import cheat.service;
 export import nstd.address;
 
 export namespace cheat::csgo

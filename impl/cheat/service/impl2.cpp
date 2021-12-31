@@ -2,8 +2,8 @@ module;
 
 #include <nstd/one_instance.h>
 
-module cheat.core.service;
-import cheat.core.services_loader;
+module cheat.service;
+import :loader;
 
 using namespace cheat;
 

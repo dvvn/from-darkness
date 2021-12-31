@@ -4,20 +4,13 @@ module;
 #include "csgo_awaiter.h"
 #endif
 
-#include <nstd/module/info.h>
+#include "cheat/service/includes.h"
 #include <dhooks/context.h>
 #include <dhooks/wrapper_fwd.h>
 
-#include <cppcoro/sync_wait.hpp>
-#include <cppcoro/static_thread_pool.hpp>
-#include <cppcoro/task.hpp>
-
-#include <Windows.h>
-
-#include <functional>
-
-module cheat.core.services_loader;
-import cheat.core.console;
+module cheat.service:loader;
+import cheat.console;
+import nstd.rtlib.all_infos;
 
 using namespace cheat;
 

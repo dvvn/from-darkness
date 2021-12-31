@@ -22,9 +22,9 @@ module;
 #include <mutex>
 
 module cheat.gui.context;
-import cheat.core.csgo_interfaces;
-import cheat.core.services_loader;
-import cheat.core.console;
+import cheat.csgo_interfaces;
+import cheat.services_loader;
+import cheat.console;
 
 using namespace cheat;
 using namespace gui;

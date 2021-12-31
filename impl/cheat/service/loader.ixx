@@ -1,13 +1,10 @@
 module;
 
-#include <dhooks/wrapper.h>
+#include "includes.h"
+#include <dhooks/wrapper_fwd.h>
 
-#include <Windows.h>
-
-#include <vector>
-
-export module cheat.core.services_loader;
-export import cheat.core.service;
+export module cheat.service:loader;
+export import :core;
 
 export namespace cheat
 {

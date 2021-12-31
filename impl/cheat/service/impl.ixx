@@ -1,19 +1,8 @@
 module;
 
-#include <nstd/runtime_assert.h>
-#include <nstd/type name.h>
+#include "includes.h"
 
-#include <cppcoro/static_thread_pool.hpp>
-#include <cppcoro/task.hpp>
-#include <cppcoro/async_mutex.hpp>
-
-#include <string>
-#include <functional>
-#include <vector>
-
-export module cheat.core.service;
-
-export using std::coroutine_traits;
+export module cheat.service:core;
 
 //constexpr auto _Fix_service_name(const std::string_view& name)
 //{
@@ -91,6 +80,7 @@ export namespace cheat
 	public:
 		using executor = cppcoro::static_thread_pool;
 		using load_result = cppcoro::task<bool>;
+		using mutex_type = cppcoro::async_mutex;
 		using value_type = stored_service<basic_service>;
 
 		basic_service( );
@@ -126,7 +116,7 @@ export namespace cheat
 		virtual load_result load_impl( ) noexcept = 0;
 
 	private:
-		cppcoro::async_mutex lock_;
+		mutex_type lock_;
 		std::vector<stored_service<basic_service>> deps_;
 		service_state state_ = service_state::unset;
 	};

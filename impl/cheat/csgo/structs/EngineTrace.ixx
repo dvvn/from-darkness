@@ -279,12 +279,12 @@ export namespace cheat::csgo
 
 	private:
 		template <size_t ...I>
-		bool find(IHandleEntity* ent, std::index_sequence<I>) const
+		bool find(IHandleEntity* ent, std::index_sequence<I...>) const
 		{
 			return ((std::get<I>(skip_) == ent) || ...);
 		}
 
-		std::tuple<E...> skip_;
+		std::tuple<E*...> skip_;
 	};
 
 	template <bool Ignore, class ...E>

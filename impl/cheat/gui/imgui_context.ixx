@@ -8,7 +8,7 @@ module;
 #include <optional>
 
 export module cheat.gui.context;
-export import cheat.core.service;
+export import cheat.service;
 
 export namespace cheat::gui
 {

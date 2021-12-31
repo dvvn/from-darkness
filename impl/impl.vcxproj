@@ -239,8 +239,9 @@
 	</ItemDefinitionGroup>
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 	<!--dummy-->
-	<ItemGroup>
-		<ClCompile Include="cheat\core\console.cpp" />
+	<!--ItemGroup>
+		<ClCompile Include="cheat\console\console.cpp" />
+		<ClCompile Include="cheat\service\*.cpp" />
 		<ClCompile Include="cheat\core\csgo_awaiter.cpp">
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestRelease|Win32'">true</ExcludedFromBuild>
@@ -262,9 +263,6 @@
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestRelease|Win32'">true</ExcludedFromBuild>
 		</ClCompile>
-		<ClCompile Include="cheat\service\impl.cpp" />
-		<ClCompile Include="cheat\service\impl2.cpp" />
-		<ClCompile Include="cheat\core\services_loader.cpp" />
 		<ClCompile Include="cheat\csgo\entity\C_BaseAnimating.cpp">
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestDebug|Win32'">true</ExcludedFromBuild>
 			<ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GuiTestRelease|Win32'">true</ExcludedFromBuild>
@@ -450,8 +448,10 @@
 		</ClCompile>
 		<ClCompile Include="cheat\utils\game.cpp" />
 		<ClCompile Include="init.cpp" />
-	</ItemGroup>
+	</ItemGroup-->
 	<ItemGroup>
+		<ClCompile Include="*.c*" />
+		<ClCompile Include="cheat\**\*.c*" />
 		<ClCompile Include="cheat\**\*.i*" />
 		<ClInclude Include="cheat\**\*.h*" />
 		<!--<ClCompile Include="$(GitClonedProjects)\fmtlib\fmt\src\fmt.cc" />-->

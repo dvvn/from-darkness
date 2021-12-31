@@ -4,11 +4,11 @@ module;
 
 #include <cppcoro/task.hpp>
 
-module cheat.core.csgo_interfaces;
-import cheat.core.console;
-import cheat.core.services_loader;
+module cheat.csgo_interfaces;
+import cheat.console;
+import cheat.services_loader;
 #ifndef CHEAT_GUI_TEST
-import cheat.core.csgo_modules;
+import cheat.csgo_modules;
 #endif
 
 using namespace cheat;

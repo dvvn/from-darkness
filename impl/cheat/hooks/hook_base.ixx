@@ -3,10 +3,8 @@ module;
 #include <dhooks/wrapper.h>
 
 export module cheat.hooks.base;
-export import cheat.core.service;
-export import cheat.core.csgo_interfaces;
-export import cheat.core.services_loader;
-export import cheat.core.console;
+export import cheat.csgo_interfaces;
+export import cheat.console;
 
 export namespace cheat::hooks
 {
