@@ -113,7 +113,7 @@ export namespace cheat
 		virtual bool root_class( ) const { return false; }
 
 	protected:
-		virtual load_result load_impl( ) noexcept = 0;
+		virtual bool load_impl( ) noexcept = 0;
 
 	private:
 		mutex_type lock_;
@@ -225,7 +225,6 @@ export namespace cheat
 			return typeid(T);
 		}
 	};
-
 
 	template<typename T>
 	struct dynamic_service :service<T>, shared_service<T>, nstd::one_instance<T>

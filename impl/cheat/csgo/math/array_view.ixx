@@ -496,6 +496,7 @@ namespace cheat::csgo
 	template<typename L, typename R, size_t ...Idx>
 	constexpr bool _AV_equal_operator(const L& l, const R& r, std::index_sequence<Idx...> seq)
 	{
+#if 0
 		constexpr bool can_memcmp = sizeof(L) == sizeof(R) &&
 			(std::_Can_memcmp_elements<std::remove_cvref_t<decltype(std::get<Idx>(l))>, std::remove_cvref_t<decltype(std::get<Idx>(r))>> && ...);
 
@@ -504,6 +505,7 @@ namespace cheat::csgo
 			if (!std::is_constant_evaluated( ))
 				return std::memcmp(std::addressof(l), std::addressof(r), sizeof(L));
 		}
+#endif
 
 		return _AV_equal_operator<0, l.size( )>(l, r, seq);
 	}

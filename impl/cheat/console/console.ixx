@@ -63,6 +63,8 @@ namespace cheat
 		std::vector<value_type> cache_;
 	};
 
+
+
 	export class console final :public dynamic_service<console>, nstd::rt_assert_handler
 	{
 	public:
@@ -80,9 +82,17 @@ namespace cheat
 		void log(Fmt&& fmt, T&& ...args)
 		{
 #ifdef CHEAT_HAVE_CONSOLE
+
+#ifdef FMT_VERSION
+#define _FMT_RUNTIME(x) fmt::basic_runtime<std::ranges::range_value_t<Fmt>>{x}
+#else
+#define _FMT_RUNTIME(x) x
+#endif
+
 			if constexpr (sizeof...(T) > 0)
 			{
-				log<NewLine>(std::format(fmt, std::forward<T>(args)...));
+				auto str = std::format(_FMT_RUNTIME(fmt), std::forward<T>(args)...);
+				log<NewLine>(std::move(str));
 			}
 			else
 			{
@@ -105,10 +115,10 @@ namespace cheat
 
 			const auto srv_name = srv->name( );
 			constexpr std::string_view message = Success ? "loaded" : "not loaded";
-			this->log("\"{}\" {}", srv_name, message);
+			this->log("\"{}\" {}.", srv_name, message);
 			if constexpr (have_extra)
 			{
-				this->log<false>(". ");
+				this->log<false>(' ');
 				this->log<false>(std::forward<Ex>(extra)...);
 				cache_.unlock( );
 			}
