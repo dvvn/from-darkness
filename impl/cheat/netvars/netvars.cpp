@@ -41,7 +41,7 @@ struct netvars::data_type
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 	lazy::files_storage lazy;
 #endif
-	netvars_root_storage storage;
+	netvars_storage storage;
 };
 
 netvars::netvars( )
@@ -52,15 +52,14 @@ netvars::netvars( )
 
 netvars::~netvars( ) = default;
 
-bool netvars::load_impl( ) noexcept 
+bool netvars::load_impl( ) noexcept
 {
-#if 0//TEMPORARY
-	netvars_root_storage storage;
+	netvars_storage storage;
 	iterate_client_class(storage, csgo_interfaces::get( )->client->GetAllClasses( ));
 
-	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
+	/*const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
 	iterate_datamap(storage, baseent->GetDataDescMap( ));
-	iterate_datamap(storage, baseent->GetPredictionDescMap( ));
+	iterate_datamap(storage, baseent->GetPredictionDescMap( ));*/
 	store_handmade_netvars(storage);
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -70,25 +69,20 @@ bool netvars::load_impl( ) noexcept
 	std::swap(data_->lazy, lazy);
 #endif
 	std::swap(data_->storage, storage);
-#endif
 	return true;
 }
 
-int netvars::at(const std::string_view& table, const std::string_view& item) const
+int netvars::at(const std::string_view & table, const std::string_view & item) const
 {
 	const auto& storage = data_->storage;
 
-	const iterator_wrapper target_class = storage.find(table);
+	const auto target_class = storage.find(table);
 	runtime_assert(target_class != storage.end( ));
-	const iterator_wrapper netvar_info = target_class->find(item);
+	const auto netvar_info = target_class->find(item);
 	runtime_assert(netvar_info != target_class->end( ));
 
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
 	using namespace std::string_view_literals;
 	return netvar_info->find("offset"sv)->get<int>( );
-#else
-	return *netvar_info;
-#endif
 }
 
 //CHEAT_SERVICE_REGISTER(netvars);

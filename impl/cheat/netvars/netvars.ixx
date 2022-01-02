@@ -4,10 +4,10 @@ module;
 
 export module cheat.netvars;
 export import cheat.service;
+
+
 namespace cheat
 {
-
-
 	export class netvars final : public dynamic_service<netvars>
 	{
 	public:

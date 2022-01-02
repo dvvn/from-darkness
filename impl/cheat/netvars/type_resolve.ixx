@@ -8,17 +8,6 @@ export import cheat.csgo.structs.Recv;
 export import cheat.csgo.structs.DataMap;
 //export import cheat.csgo.structs.BaseHandle;
 
-namespace cheat::csgo
-{
-	class matrix3x4_t;
-	class VMatrix;
-	class Vector2D;
-	class Color;
-	class QAngle;
-	class Vector;
-	class CBaseHandle;
-}
-
 export namespace cheat::netvars_impl
 {
 	struct string_or_view_holder
@@ -28,12 +17,12 @@ export namespace cheat::netvars_impl
 		string_or_view_holder(std::string&& str);
 
 		string_or_view_holder(std::string& str) = delete;
-		string_or_view_holder(const char*)      = delete;
+		string_or_view_holder(const char*) = delete;
 
-		operator std::string&( ) &;
-		operator std::string( ) &&;
-		operator const std::string&( ) const;
-		operator std::string_view( ) const;
+		std::string& str( )&;
+		std::string str( )&&;
+		std::string_view view( )const&;
+		std::string_view view( )const&& = delete;
 
 	private:
 		std::variant<std::string, std::string_view> str_;

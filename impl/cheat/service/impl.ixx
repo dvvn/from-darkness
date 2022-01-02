@@ -18,7 +18,7 @@ export module cheat.service:core;
 template <typename T>
 _INLINE_VAR constexpr auto service_name = []
 {
-	constexpr auto raw = nstd::type_name<T>;
+	constexpr auto raw = nstd::type_name<T>( );
 #if 1
 	constexpr auto buffer = nstd::drop_namespace(raw, "cheat");
 	if constexpr (buffer.ideal( ))

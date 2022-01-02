@@ -1,31 +1,31 @@
-// ReSharper disable once CppUnusedIncludeDirective
-#include "data_filler.h"
+module;
 
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+#include "storage_includes.h"
 
-#include "data_dumper.h"
-#include "lazy.h"
-#include "storage.h"
+#include "cheat/console/includes.h"
 
-#include "cheat/core/console.h"
-#include "cheat/core/csgo_interfaces.h"
-
+#include <nstd/signature_includes.h>
+#include <nstd/type name.h>
 #include <nstd/unistring.h>
 #include <nstd/checksum.h>
-#include <nstd/mem/backup.h>
-#include <nstd/custom_types.h>
-#include NSTD_UNORDERED_SET_INCLUDE
+#include <nstd/unordered_set.h>
+#include <nstd/ranges.h>
+#include <nstd/format.h>
+#include <nstd/enum_tools.h>
 
 #include <fstream>
-#include <ranges>
 #include <regex>
 
-#include <nstd/signature.h>
+module cheat.netvars:data_dump;
+import cheat.console;
+import cheat.csgo.interfaces;
+import nstd.mem.backup;
+import nstd.signature;
 
-import cheat.csgo.structs;
+import cheat.csgo.structs.EngineClient;
 
-using namespace cheat::detail;
-using netvars::log_info;
+using namespace cheat;
+using netvars_impl::log_info;
 
 namespace fs = std::filesystem;
 
@@ -41,7 +41,10 @@ namespace fs = std::filesystem;
 
 #define STRINGIZE_PATH(_PATH_) _CONCAT(LR,_STRINGIZE(##(_PATH_)##))
 
-log_info netvars::log_netvars(const netvars_root_storage& netvars_data)
+//TEMPORARY
+#define CHEAT_NETVARS_UPDATING 0
+
+log_info netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
 {
 	const fs::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
 
@@ -49,40 +52,41 @@ log_info netvars::log_netvars(const netvars_root_storage& netvars_data)
 
 	const auto netvars_dump_file = [&]
 	{
-		const std::string_view version        = csgo_interfaces::get( )->engine->GetProductVersionString( );
+		const std::string_view version = csgo_interfaces::get( )->engine->GetProductVersionString( );
 		constexpr std::wstring_view extension = L".json";
 
 		std::wstring file_name;
 		file_name.reserve(version.size( ) + extension.size( ));
-		for (const auto c: version)
+		for (const auto c : version)
 			file_name += static_cast<wchar_t>(c == '.' ? '_' : c);
 		file_name += extension;
 
 		return dumps_dir / std::move(file_name);
-	}( );
+	}();
 #if !CHEAT_NETVARS_UPDATING
 	const auto file_exists = !dirs_created && exists(netvars_dump_file);
 	if (!file_exists)
 #endif
 	{
-		std::ofstream(netvars_dump_file) << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << netvars_data;
-		CHEAT_CONSOLE_LOG("Netvars dump done");
+		auto file = std::ofstream(netvars_dump_file);
+		file << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
+		console::get( ).log("Netvars dump done");
 		return log_info::created;
 	}
 
 	//------
 
 	std::ostringstream netvars_data_as_text;
-	netvars_data_as_text << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << netvars_data;
+	netvars_data_as_text << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
 
 	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
 	{
 		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
-		CHEAT_CONSOLE_LOG("Netvars dump updated");
+		console::get( ).log("Netvars dump updated");
 		return log_info::updated;
 	}
 
-	CHEAT_CONSOLE_LOG("Netvars dump skipped");
+	console::get( ).log("Netvars dump skipped");
 	return log_info::skipped;
 }
 
@@ -123,7 +127,7 @@ static T _Parse_extension(const T& str)
 template <typename T, typename ...Args>
 static void _Reserve_append(T& obj, const Args&...args)
 {
-	runtime_assert(obj.empty());
+	runtime_assert(obj.empty( ));
 	obj.reserve((args.size( ) + ...));
 	(obj.append(args.begin( ), args.end( )), ...);
 }
@@ -149,8 +153,8 @@ struct generated_file_type
 	enum types :uint8_t
 	{
 		UNSET
-	  , CPP = 1 << 0
-	  , H = 1 << 1
+		, CPP = 1 << 0
+		, H = 1 << 1
 	};
 
 	types type;
@@ -192,7 +196,7 @@ static auto _Get_generated_files(const fs::path& folder, const std::wstring_view
 {
 	std::vector<generated_file> storage;
 
-	for (const auto& entry: fs::directory_iterator(folder))
+	for (const auto& entry : fs::directory_iterator(folder))
 	{
 		const auto& str = entry.path( ).native( );
 		if (str.ends_with(postfix))
@@ -209,14 +213,14 @@ static auto _Get_known_files(const fs::path& path, const std::wstring_view& exte
 	runtime_assert(extension_prefix.starts_with('.'), "Incorrect extension prefix");
 	std::vector<std::string> out;
 
-	for (const auto& entry: fs::directory_iterator(path))
+	for (const auto& entry : fs::directory_iterator(path))
 	{
 		if (!entry.is_regular_file( ))
 			continue;
 
 		const auto& str = entry.path( ).native( );
 
-		const auto filename  = _Parse_filename<false>(str);
+		const auto filename = _Parse_filename<false>(str);
 		const auto extension = _Parse_extension(filename);
 
 		if (!extension.starts_with(extension_prefix))
@@ -232,32 +236,34 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 {
 	using include_name = std::pair<std::string, bool>;
 	std::vector<include_name> result;
-	NSTD_UNORDERED_SET<std::string_view> results_used; //skip stuff like array<array<X,....
+	nstd::unordered_set<std::string_view> results_used; //skip stuff like array<array<X,....
 
-	const auto pat   = std::regex("[\\w:*]+");
+	const auto pat = std::regex("[\\w:*]+");
 	const auto start = std::regex_iterator(type.begin( ), type.end( ), pat);
-	const auto end   = decltype(start)( );
+	const auto end = decltype(start)();
 
 	/*constexpr auto subrange_to_string_view = []<class T>(T && srng)-> std::string_view
 	{
 		return { std::addressof(*srng.begin()), static_cast<size_t>(std::ranges::distance(srng)) };
 	};*/
 
-	for (const auto& match: std::ranges::subrange(start, end))
+	for (const auto& match : std::ranges::subrange(start, end))
 	{
 #if 0
-		_NODISCARD string_type str(size_type _Sub = 0) const {
+		_NODISCARD string_type str(size_type _Sub = 0) const
+		{
 			return string_type((*this)[_Sub]);
 		}
 #endif
 		auto& match0 = match[0];
 #if 0
-		_NODISCARD string_type str() const { // convert matched text to string
-			const _Mybase _Range(_Effective_range());
+		_NODISCARD string_type str( ) const
+		{ // convert matched text to string
+			const _Mybase _Range(_Effective_range( ));
 			return string_type(_Range.first, _Range.second);
 		}
 #endif
-		auto str = std::string_view(match0.first, match0.second); //match.str()
+		std::string_view str = {match0.first, match0.second}; //match.str()
 
 		//-----
 
@@ -266,7 +272,7 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 
 		if (str.find(':') != str.npos)
 		{
-			constexpr std::string_view std_namespace   = "std::";
+			constexpr std::string_view std_namespace = "std::";
 			constexpr std::string_view cheat_namespace = "cheat::";
 
 			auto global = !str.starts_with(cheat_namespace);
@@ -282,13 +288,13 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 			//correct, but currently incompatible because of broken compiler
 			for (const auto subrng : str | std::views::split("::"))
 			{
-				if (!include.empty())
+				if (!include.empty( ))
 					include += '/';
 				include += subrange_to_string_view(subrng);
 			}
 #else
 			runtime_assert("TEST ME");
-			size_t pos     = 0;
+			size_t pos = 0;
 			const auto ptr = str._Unchecked_begin( );
 			for (;;)
 			{
@@ -309,37 +315,38 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 		{
 			result.emplace_back("cstdint", true);
 		}
-	}
+		}
 
 	return result;
-}
+	}
 
 struct generated_includes
 {
 	std::vector<std::string> local, global;
 };
 
-static auto _Generate_includes_from_types(const netvars::netvars_root_storage& storage)
+static auto _Generate_includes_from_types(const netvars_impl::netvars_storage& storage)
 {
+	using namespace std::string_view_literals;
 	generated_includes includes;
 	const fs::path csgosdk_dir = STRINGIZE_PATH(CHEAT_CSGOSDK_DIR);
 
-	NSTD_UNORDERED_SET<std::string> processed;
+	nstd::unordered_set<std::string> processed;
 	const auto known_files = _Get_known_files(csgosdk_dir, L".h");
 
-	for (auto& [netvar_name, netvar_data]: storage.items( ))
+	for (auto& [netvar_name, netvar_data] : storage.items( ))
 	{
-		const std::string_view netvar_type = netvar_data.find(std::string_view("type"))->get_ref<const std::string&>( );
+		const std::string_view netvar_type = netvar_data.find("type"sv)->get_ref<const std::string&>( );
 
 		//netvar type already processed
 		if (!processed.emplace(netvar_type).second)
 			continue;
-		if (netvar_type.find(':') == netvar_type.npos && !netvar_type.ends_with(std::string_view("_t")))
+		if (netvar_type.find(':') == netvar_type.npos && !netvar_type.ends_with("_t"))
 			continue;
 
 		const auto templates_count = std::ranges::count(netvar_type, '<');
-		auto types_found           = _Get_includes(netvar_type, templates_count > 1);
-		for (auto& [incl, global]: types_found)
+		auto types_found = _Get_includes(netvar_type, templates_count > 1);
+		for (auto& [incl, global] : types_found)
 		{
 			if (templates_count > 0 && !processed.emplace(incl).second)
 				continue;
@@ -351,7 +358,7 @@ static auto _Generate_includes_from_types(const netvars::netvars_root_storage& s
 			else
 			{
 				const auto incl_sv = _Parse_filename<false, std::string_view>(incl);
-				for (const std::string_view file: known_files)
+				for (const std::string_view file : known_files)
 				{
 					if (!file.starts_with(incl_sv))
 						continue;
@@ -368,23 +375,26 @@ static auto _Generate_includes_from_types(const netvars::netvars_root_storage& s
 	return includes;
 }
 
-template <typename T>
-struct NSTD_UNORDERED_HASH<generated_file<T>>
+namespace nstd
 {
-	size_t operator()(const generated_file<T>& f) const
+	template <typename T>
+	struct hash<generated_file<T>>
 	{
-		return std::invoke(NSTD_UNORDERED_HASH<T>( ), /*_Parse_filename*/f.str);
-	}
-};
+		size_t operator()(const generated_file<T>& f) const
+		{
+			return std::invoke(hash<T>( ), /*_Parse_filename*/f.str);
+		}
+	};
+}
 
 template <class StrType, typename GenFile = generated_file<StrType>, typename ViewT = typename GenFile::string_view_type>
 static auto _Get_generated_files(const fs::path& folder, const ViewT& cpp, const ViewT& h)
 {
-	NSTD_UNORDERED_SET<GenFile> storage;
+	nstd::unordered_set<GenFile> storage;
 
-	for (const auto& entry: fs::directory_iterator(folder))
+	for (const auto& entry : fs::directory_iterator(folder))
 	{
-		const auto& str    = entry.path( ).native( );
+		const auto& str = entry.path( ).native( );
 		const auto add_str = [&](const ViewT& postfix)
 		{
 			const auto& fstr = folder.native( );
@@ -399,28 +409,29 @@ static auto _Get_generated_files(const fs::path& folder, const ViewT& cpp, const
 			}
 		};
 
+		using namespace nstd::enum_operators;
 		if (str.ends_with(cpp))
-			add_str(cpp).first->type |= GenFile::CPP;
+			add_str(cpp).first->type |= generated_file_type::CPP;
 		else if (str.ends_with(h))
-			add_str(h).first->type |= GenFile::H;
+			add_str(h).first->type |= generated_file_type::H;
 	}
 
 	return storage;
 }
 #endif
 
-void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data, lazy::files_storage& lazy_storage)
+void netvars_impl::generate_classes(log_info info, netvars_storage& root_netvars_data, lazy::files_storage& lazy_storage)
 {
 	const fs::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
-	runtime_assert(std::_Is_slash(generated_classes_dir.native().back()));
+	runtime_assert(std::_Is_slash(generated_classes_dir.native( ).back( )));
 
-	constexpr std::string_view suffix_h   = _STRINGIZE(CHEAT_NETVARS_GENERATED_HEADER_POSTFIX);
+	constexpr std::string_view suffix_h = _STRINGIZE(CHEAT_NETVARS_GENERATED_HEADER_POSTFIX);
 	constexpr std::string_view suffix_cpp = _STRINGIZE(CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX);
 
-	constexpr std::wstring_view wsuffix_h   = _CRT_WIDE(_STRINGIZE(CHEAT_NETVARS_GENERATED_HEADER_POSTFIX));
+	constexpr std::wstring_view wsuffix_h = _CRT_WIDE(_STRINGIZE(CHEAT_NETVARS_GENERATED_HEADER_POSTFIX));
 	constexpr std::wstring_view wsuffix_cpp = _CRT_WIDE(_STRINGIZE(CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX));
 
-	nstd::mem::backup<netvars_root_storage> netvars_data_backup;
+	nstd::mem::backup<netvars_storage> netvars_data_backup;
 
 	if (info == log_info::skipped || info == log_info::updated)
 	{
@@ -435,11 +446,11 @@ void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data
 			goto _WORK;
 		}
 
-		netvars_data_backup = netvars_data;
+		netvars_data_backup = root_netvars_data;
 
 		using generated_file_path = std::wstring;
 		const auto generated_files = _Get_generated_files<generated_file_path>(generated_classes_dir, wsuffix_cpp, wsuffix_h);
-		for (const auto& gen_file: generated_files)
+		for (const auto& gen_file : generated_files)
 		{
 			const auto TYPE = gen_file.type;
 			runtime_assert(TYPE != generated_file_type::UNSET);
@@ -455,11 +466,11 @@ void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data
 			if (TYPE & (generated_file_type::H | generated_file_type::CPP))
 			{
 				const nstd::unistring<char> filechr = FILE;
-				const std::string_view filechr_sv   = {reinterpret_cast<const char*>(filechr._Unchecked_begin( )), filechr.size( )};
-				const auto name_entry               = netvars_data.find(filechr_sv);
-				if (name_entry != netvars_data.end( ))
+				const std::string_view filechr_sv = {reinterpret_cast<const char*>(filechr._Unchecked_begin( )), filechr.size( )};
+				const auto name_entry = root_netvars_data.find(filechr_sv);
+				if (name_entry != root_netvars_data.end( ))
 					continue;
-				netvars_data.erase(name_entry);
+				root_netvars_data.erase(name_entry);
 			}
 			else if (TYPE & generated_file_type::H)
 			{
@@ -475,7 +486,7 @@ void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data
 			}
 		}
 
-		if (!netvars_data.empty( ) && (netvars_data_backup.get( ).size( ) != netvars_data.size( ) || !lazy_storage.remove.empty( )))
+		if (!root_netvars_data.empty( ) && (netvars_data_backup.get( ).size( ) != root_netvars_data.size( ) || !lazy_storage.remove.empty( )))
 		{
 			info = log_info::created;
 			goto _WORK;
@@ -489,7 +500,7 @@ _REMOVE:
 _CREATE:
 	lazy_storage.create.emplace_back(generated_classes_dir);
 _WORK:
-	lazy_storage.write.reserve(netvars_data.size( ) * 2);
+	lazy_storage.write.reserve(root_netvars_data.size( ) * 2);
 
 	const auto make_file_writer = [&](const std::string_view& class_name, const std::string_view& suffix) -> lazy::file_writer
 	{
@@ -498,7 +509,7 @@ _WORK:
 		return generated_classes_dir / std::move(tmp);
 	};
 
-	for (const auto& [CLASS_NAME, NETVARS]: netvars_data.items( ))
+	for (const auto& [CLASS_NAME, NETVARS] : root_netvars_data.items( ))
 	{
 #ifndef CHEAT_NETVARS_GENERATE_MODULES
 		auto header = make_file_writer(CLASS_NAME, suffix_h);
@@ -538,21 +549,21 @@ _WORK:
 
 		const auto source_add_dynamic_includes = [&]
 		{
-			auto [local, global]      = _Generate_includes_from_types(static_cast<const netvars_root_storage&>(NETVARS));
+			auto [local, global] = _Generate_includes_from_types(static_cast<const netvars_storage&>(NETVARS));
 			const auto write_includes = [&](std::vector<std::string>& data, bool is_global)
 			{
 				switch (data.size( ))
 				{
-					case 0:
-						return false;
-					case 1:
-						source_add_include(data.front( ), is_global);
-						break;
-					default:
-						std::ranges::sort(data);
-						for (auto& d: data)
-							source_add_include(d, is_global);
-						break;
+				case 0:
+					return false;
+				case 1:
+					source_add_include(data.front( ), is_global);
+					break;
+				default:
+					std::ranges::sort(data);
+					for (auto& d : data)
+						source_add_include(d, is_global);
+					break;
 				}
 				return true;
 			};
@@ -580,12 +591,12 @@ _WORK:
 		source << '\n';
 #endif
 
-		for (auto& [NETVAR_NAME, NETVAR_DATA]: NETVARS.items( ))
+		for (auto& [NETVAR_NAME, NETVAR_DATA] : NETVARS.items( ))
 		{
 #ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.get(NETVAR_DATA);
 #endif
-			std::string_view netvar_type   = NETVAR_DATA.find("type")->get_ref<const std::string&>( );
+			std::string_view netvar_type = NETVAR_DATA.find("type")->get_ref<const std::string&>( );
 			const auto netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
 				netvar_type.remove_suffix(1);
@@ -599,7 +610,7 @@ _WORK:
 				stream << NETVAR_NAME << "( )";
 				if (inside_class)
 					stream << ';';
-			};
+		};
 			const auto write_fn_body = [&](std::basic_ostream<char>& stream)
 			{
 				stream
@@ -607,16 +618,16 @@ _WORK:
 					<< '	'
 #ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
 					<< "constexpr auto offset = "
-				    << netvar_offset
+					<< netvar_offset
 #else
 					<< "static const auto offset = "
-					<< "netvars::get( )->at"
+					<< "netvars_impl::get( )->at"
 					<< "(\"" << CLASS_NAME << ", " << '\"' << NETVAR_NAME << "\")"
 #endif
 					<< ";\n"
 					<< '	'
 					<< "auto addr = "
-					<< nstd::type_name<nstd::address>
+					<< nstd::type_name<nstd::address>( )
 					<< "(this).add(offset);\n"
 
 					<< "return addr." << (netvar_type_pointer ? "ptr" : "ref") << '<' << netvar_type << ">( );\n"
@@ -635,7 +646,7 @@ _WORK:
 			source << '	' << format("auto addr = {}(this).add({});", _Address_class, netvar_offset) << '\n';
 #else
 			source << '	'
-				<< "static const auto offset = netvars::get( )->at"
+				<< "static const auto offset = netvars_impl::get( )->at"
 				<< std::format("(\"{}\", \"{}\");", CLASS_NAME, NETVAR_NAME)
 				<< '\n';
 			source << '	' << "auto addr = " << _Address_class << "(this).add(offset);" << '\n';
@@ -643,7 +654,7 @@ _WORK:
 			source << '	' << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << '\n';
 			source << '}' << '\n';
 #endif
-		}
+			}
 
 		lazy_storage.write.push_back(std::move(header));
 		lazy_storage.write.push_back(std::move(source));
@@ -665,7 +676,7 @@ _WORK:
 	{
 		created_msg = std::format(" Created {} files.", lazy_storage.write.size( ));
 	}
-	CHEAT_CONSOLE_LOG(std::format("Netvars classes generation done.{}{}", removed_msg, created_msg));
+	console::get( ).log(std::format("Netvars classes generation done.{}{}", removed_msg, created_msg));
 #endif
 
 	if (info == log_info::created)
@@ -675,5 +686,3 @@ _WORK:
 		std::swap(lazy_storage, dummy);
 	}
 }
-
-#endif
