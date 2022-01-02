@@ -1,5 +1,6 @@
 ﻿module;
 
+#include "cheat/csgo/modules_includes.h"
 #include "storage_includes.h"
 
 #include <nstd/runtime_assert.h>
@@ -9,6 +10,7 @@ module cheat.netvars:data_handmade;
 import :type_resolve;
 import :data_fill;
 import cheat.csgo.interfaces;
+import cheat.csgo.modules;
 import nstd.mem.backup;
 
 namespace cheat::csgo
@@ -17,6 +19,7 @@ namespace cheat::csgo
 	class C_BaseAnimating;
 	class CAnimationLayer;
 	struct VarMapping_t;
+	class matrix3x4_t;
 }
 
 using namespace cheat;
@@ -30,10 +33,10 @@ template <typename T>
 static void _Load_class( )
 {
 	using namespace netvars_impl;
-	constexpr auto name = CSGO_class_name<T>;
+	constexpr auto name = CSGO_class_name<T>( );
 	auto [entry, added] = add_child_class_to_storage(*_Root_storage, name);
 	runtime_assert(added == false);
-	_Current_storage = std::addressof(static_cast<netvars_storage&>(*entry));
+	_Current_storage = std::addressof(*entry);
 }
 
 namespace cheat::netvars_impl
@@ -43,7 +46,7 @@ namespace cheat::netvars_impl
 	{
 		string_or_view_holder type;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		type = std::invoke(type_proj, nstd::type_name<Type>);
+		type = std::invoke(type_proj, nstd::type_name<Type>( ));
 #endif
 		[[maybe_unused]] const auto added = add_netvar_to_storage(*_Current_storage, name, offset, std::move(type));
 		runtime_assert(added == true);
@@ -60,14 +63,8 @@ namespace cheat::netvars_impl
 	auto add_netvar_to_storage(const std::string_view& name, const std::string_view& offset_from, int offset, TypeProj&& type_proj = {})
 	{
 		using namespace std::string_view_literals;
-		const iterator_wrapper offset_itr = _Current_storage->find(offset_from);
-		const auto offset0 =
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-			offset_itr->find("offset"sv)->get<int>( )
-#else
-			* offset_itr
-#endif
-			;
+		const auto  offset_itr = _Current_storage->find(offset_from);
+		const auto offset0 = offset_itr->find("offset"sv)->get<int>( );
 		return add_netvar_to_storage<Type>(name, offset0 + offset, std::forward<TypeProj>(type_proj));
 	}
 }

@@ -74,7 +74,8 @@ bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const st
 	return added;
 }
 
-static auto _Add_child_class_to_storage(netvars_impl::netvars_storage& storage, const std::string_view& name)
+
+auto netvars_impl::add_child_class_to_storage(netvars_storage& storage, const std::string_view& name) -> add_child_t
 {
 	if (name[0] == 'C' && name[1] != '_')
 	{
@@ -92,14 +93,6 @@ static auto _Add_child_class_to_storage(netvars_impl::netvars_storage& storage, 
 		runtime_assert(!name.starts_with("DT_"));
 		return storage.emplace(name);
 	}
-}
-
-auto netvars_impl::add_child_class_to_storage(netvars_storage& storage, const std::string_view& name) -> void*
-{
-	auto out = _Add_child_class_to_storage(storage, name);
-	auto out_ptr = new decltype(out);
-	*out_ptr = std::move(out);
-	return out_ptr;
 }
 
 //-----
@@ -312,7 +305,7 @@ void netvars_impl::store_recv_props(netvars_storage& root_tree, netvars_storage&
 					else
 						child_table_unique_name = std::format("{}_t", child_table_name);
 
-					auto [new_tree, added] = _Add_child_class_to_storage(root_tree, child_table_unique_name.view( ));
+					auto [new_tree, added] = add_child_class_to_storage(root_tree, child_table_unique_name.view( ));
 					if (!added)
 						continue;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -344,7 +337,7 @@ void netvars_impl::iterate_client_class(netvars_storage& root_tree, ClientClass*
 		if (!recv_table || recv_table->props.empty( ))
 			continue;
 
-		auto [new_tree, added] = _Add_child_class_to_storage(root_tree, client_class->pNetworkName);
+		auto [new_tree, added] = add_child_class_to_storage(root_tree, client_class->pNetworkName);
 		runtime_assert(added == true);
 
 		store_recv_props(root_tree, (*new_tree), recv_table, 0);
@@ -389,7 +382,7 @@ void netvars_impl::iterate_datamap(netvars_storage& root_tree, datamap_t* root_m
 		if (map->data.empty( ))
 			continue;
 
-		auto [tree, added] = _Add_child_class_to_storage(root_tree, map->dataClassName);
+		auto [tree, added] = add_child_class_to_storage(root_tree, map->dataClassName);
 
 		// ReSharper disable once CppRedundantCastExpression
 		store_datamap_props((*tree), map);
