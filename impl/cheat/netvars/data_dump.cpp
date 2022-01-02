@@ -593,10 +593,11 @@ _WORK:
 
 		for (auto& [NETVAR_NAME, NETVAR_DATA] : NETVARS.items( ))
 		{
+			using namespace std::string_view_literals;
 #ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
 			const auto netvar_offset = netvar_info::offset.get(NETVAR_DATA);
 #endif
-			std::string_view netvar_type = NETVAR_DATA.find("type")->get_ref<const std::string&>( );
+			std::string_view netvar_type = NETVAR_DATA.find("type"sv)->get_ref<const std::string&>( );
 			const auto netvar_type_pointer = netvar_type.ends_with('*');
 			if (netvar_type_pointer)
 				netvar_type.remove_suffix(1);

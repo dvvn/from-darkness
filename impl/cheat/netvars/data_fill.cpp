@@ -13,15 +13,15 @@ module;
 
 module cheat.netvars:data_fill;
 
-using namespace cheat;
-using namespace csgo;
-
 namespace cheat::csgo
 {
 	class QAngle;
 	class Vector;
 	class Color;
 }
+
+using namespace cheat;
+using namespace csgo;
 
 [[maybe_unused]]
 static bool _Save_netvar_allowed(const char* name)
