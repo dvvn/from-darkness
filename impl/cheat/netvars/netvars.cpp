@@ -14,7 +14,6 @@ import cheat.csgo.modules;
 import cheat.csgo.structs.BaseClient;
 
 using namespace cheat;
-using namespace netvars_impl;
 using namespace csgo;
 
 netvars::netvars( ) = default;

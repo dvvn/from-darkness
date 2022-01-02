@@ -22,15 +22,23 @@ export namespace cheat::netvars_impl
 		using typename Base::size_type;
 		using typename Base::value_type;
 
-		template <std::equality_comparable_with<Key> Key2, typename Value1 = Value>
-			requires(std::constructible_from<Key, Key2>&& std::constructible_from<Value, Value1>)
-		std::pair<iterator, bool> emplace(Key2&& key, Value1&& t = {})
+		template <std::equality_comparable_with<Key> Key2, typename ...Args>
+			requires(std::constructible_from<Key, Key2>)
+		std::pair<iterator, bool> emplace(Key2&& key, Args&&...args)
 		{
 			auto found = this->find(key);
 			if (found != this->end( ))
 				return {found, false};
 
-			this->emplace_back(std::forward<Key2>(key), std::forward<Value1>(t));
+			if constexpr (sizeof...(Args) == 0)
+			{
+				static_assert(std::default_initializable<Value>, "Unable to construct empty mapped type");
+				this->emplace_back(std::forward<Key2>(key), Value( ));
+			}
+			else
+			{
+				this->emplace_back(std::forward<Key2>(key), std::forward<Args>(args)...);
+			}
 			return {std::prev(this->end( )), true};
 		}
 
@@ -52,6 +60,16 @@ export namespace cheat::netvars_impl
 		{
 			return std::_Const_cast(this)->find(key);
 		}
+
+		//----
+
+		using _Char_type = Key::value_type;
+
+		template<typename ...Args>
+		std::pair<iterator, bool> emplace(const _Char_type* key, Args&&...) = delete;
+
+		iterator find(const _Char_type* key) = delete;
+		const_iterator find(const _Char_type* key) const = delete;
 	};
 
 	using netvars_storage = nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, ptrdiff_t, size_t, float>;
