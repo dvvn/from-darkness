@@ -1,10 +1,12 @@
-﻿#pragma once
-
-#include "cheat/csgo/datamap.hpp"
-#include "cheat/csgo/Recv.hpp"
+﻿module;
 
 #include <string>
 #include <variant>
+
+export module cheat.netvars:type_resolve;
+export import cheat.csgo.structs.Recv;
+export import cheat.csgo.structs.DataMap;
+//export import cheat.csgo.structs.BaseHandle;
 
 namespace cheat::csgo
 {
@@ -17,7 +19,7 @@ namespace cheat::csgo
 	class CBaseHandle;
 }
 
-namespace cheat::detail::netvars
+export namespace cheat::netvars_impl
 {
 	struct string_or_view_holder
 	{

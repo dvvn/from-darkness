@@ -6,7 +6,8 @@ module;
 
 #include "includes.h"
 #include "cheat/service/includes.h"
-#include <nstd/rtlib/info_includes.h>
+#include <nstd/rtlib/includes.h>
+#include <nstd/type_traits.h>
 
 #include <corecrt_io.h>
 #include <fcntl.h>
@@ -17,7 +18,7 @@ module;
 #include <iomanip>
 
 module cheat.console;
-import nstd.rtlib.all_infos;
+import nstd.rtlib;
 
 using namespace cheat;
 
@@ -89,7 +90,7 @@ console::~console( )
 		fclose(err_);
 }
 
-auto console::load_impl( ) noexcept -> load_result
+bool console::load_impl( ) noexcept
 {
 	handle_ = GetConsoleWindow( );
 	if (handle_ != nullptr)
@@ -102,7 +103,7 @@ auto console::load_impl( ) noexcept -> load_result
 		if (!AllocConsole( ))
 		{
 			runtime_assert("Unable to alloc console!");
-			co_return false;
+			return false;
 		}
 
 		allocated_ = true;
@@ -111,7 +112,7 @@ auto console::load_impl( ) noexcept -> load_result
 		if (handle_ == nullptr)
 		{
 			runtime_assert("Unable to get console window");
-			co_return false;
+			return false;
 		}
 
 		// ReSharper disable CppInconsistentNaming
@@ -132,13 +133,13 @@ auto console::load_impl( ) noexcept -> load_result
 		if (!SetConsoleTitleW(full_path.data( )))
 		{
 			runtime_assert("Unable set console title");
-			co_return false;
+			return false;
 		}
 	}
 
 	runtime_assert_add_handler(this);
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
-	co_return this->on_service_loaded(this);
+	return true;
 }
 
 template <typename Chr, typename Tr>
@@ -269,7 +270,7 @@ static auto _Write_or_cache = []<typename T>(T && text, const console * instance
 		if constexpr (std::copyable<decltype(fn)>)
 			cache.store(fn);
 		else
-			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1); });
+			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1);});
 	}
 };
 

@@ -50,8 +50,8 @@ export namespace cheat
 #endif
 	};
 
-//#define CHEAT_SERVICE_REGISTER(_NAME_)\
-//	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\
-//	[[maybe_unused]]\
-//	static const auto _CONCAT(_Unused,__LINE__) = (_NAME_::get(), static_cast<std::byte>(0))
+	//#define CHEAT_SERVICE_REGISTER(_NAME_)\
+	//	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\
+	//	[[maybe_unused]]\
+	//	static const auto _CONCAT(_Unused,__LINE__) = (_NAME_::get(), static_cast<std::byte>(0))
 }

@@ -1,4 +1,4 @@
-﻿// ReSharper disable once CppUnusedIncludeDirective
+// ReSharper disable once CppUnusedIncludeDirective
 #include "data_filler.h"
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -409,7 +409,7 @@ static auto _Get_generated_files(const fs::path& folder, const ViewT& cpp, const
 }
 #endif
 
-void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data, lazy_files_storage& lazy_storage)
+void netvars::generate_classes(log_info info, netvars_root_storage& netvars_data, lazy::files_storage& lazy_storage)
 {
 	const fs::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
 	runtime_assert(std::_Is_slash(generated_classes_dir.native().back()));
@@ -491,7 +491,7 @@ _CREATE:
 _WORK:
 	lazy_storage.write.reserve(netvars_data.size( ) * 2);
 
-	const auto make_file_writer = [&](const std::string_view& class_name, const std::string_view& suffix) -> lazy_file_writer
+	const auto make_file_writer = [&](const std::string_view& class_name, const std::string_view& suffix) -> lazy::file_writer
 	{
 		std::wstring tmp;
 		_Reserve_append(tmp, class_name, suffix);
@@ -671,7 +671,7 @@ _WORK:
 	if (info == log_info::created)
 	{
 		//write all without waiting
-		auto dummy = lazy_files_storage( );
+		auto dummy = lazy::files_storage( );
 		std::swap(lazy_storage, dummy);
 	}
 }

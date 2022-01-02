@@ -77,6 +77,9 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	};
 	const auto get_pretty_string = [&](const std::string_view& str) -> std::optional<std::string_view>
 	{
+#if 0
+		const auto remove = std::ranges::distance(str | std::views::reverse | std::views::take_while(std::isdigit));
+#else
 		size_t remove = 0;
 		for (const auto c : str | std::views::reverse)
 		{
@@ -84,7 +87,7 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 				break;
 			++remove;
 		}
-
+#endif
 		const auto original_size = str.size( );
 
 		if (remove == 0)
@@ -147,7 +150,7 @@ nstd::address game_module_storage::find_signature(const std::string_view & sig)
 #ifdef _DEBUG
 	auto [itr, added] = sigs_tested.emplace(sig);
 	if (!added)
-		throw;
+		throw std::logic_error("Signature already added!");
 #endif
 
 	//no cache inside
@@ -222,10 +225,11 @@ static modules_database _Modules_database;
 
 static game_module_storage* _Get_storage_for(const std::string_view & name, size_t index)
 {
-	if (_Modules_database.size( ) < index + 1)
+	const auto estimated_size = index + 1;
+	if (_Modules_database.size( ) < estimated_size)
 	{
-		const auto lock = std::unique_lock(_Modules_database);
-		while (_Modules_database.size( ) != index + 1)
+		const auto lock = std::scoped_lock(_Modules_database);
+		while (_Modules_database.size( ) != estimated_size)
 			_Modules_database.push_back(nullptr);
 		return _Get_storage_for(name, index);
 	}
@@ -233,7 +237,7 @@ static game_module_storage* _Get_storage_for(const std::string_view & name, size
 	if (!_Modules_database[index])
 	{
 		const auto my_thread = std::this_thread::get_id( );
-		const auto lock = std::unique_lock(_Modules_database);
+		const auto lock = std::scoped_lock(_Modules_database);
 		if (my_thread == std::this_thread::get_id( ))
 			_Modules_database[index] = std::make_unique<game_module_storage>(name);
 	}

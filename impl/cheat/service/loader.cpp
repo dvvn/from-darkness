@@ -1,6 +1,4 @@
 module;
-
-
 #include "cheat/service/includes.h"
 
 #include <cppcoro/sync_wait.hpp>

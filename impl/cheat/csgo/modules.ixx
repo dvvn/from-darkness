@@ -1,14 +1,14 @@
 module;
 
 #include <nstd/type name.h>
-//unordered_map included here
 #include <nstd/rtlib/includes.h>
 #include <nstd/unordered_set.h>
+#include <nstd/unordered_map.h>
 #include <memory>
 
 export module cheat.csgo.modules;
 import cheat.csgo.structs.AppSystem;
-import nstd.rtlib;
+export import nstd.rtlib;
 
 export namespace cheat
 {
@@ -100,7 +100,7 @@ namespace cheat::csgo_modules
 	};
 
 #define CHEAT_GAME_MODULE(_NAME_)\
-	export _INLINE_VAR constexpr auto _NAME_ = game_module_base(#_NAME_,__LINE__ - _first_line )
+	export _INLINE_VAR constexpr game_module_base _NAME_ = {#_NAME_, __LINE__ - _first_line}
 
 	// ReSharper disable once CppInconsistentNaming
 	constexpr auto _first_line = __LINE__ + 1;

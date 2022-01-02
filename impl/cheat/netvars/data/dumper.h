@@ -6,7 +6,7 @@
 namespace cheat::detail::netvars
 {
 	struct netvars_root_storage;
-	struct lazy_files_storage;
+	struct lazy::files_storage;
 	struct netvars_storage;
 
 	enum class log_info :uint8_t
@@ -18,5 +18,5 @@ namespace cheat::detail::netvars
 	};
 
 	log_info log_netvars(const netvars_root_storage& netvars_data);
-	void generate_classes(log_info info, netvars_root_storage& netvars_data, lazy_files_storage& lazy_storage);
+	void generate_classes(log_info info, netvars_root_storage& netvars_data, lazy::files_storage& lazy_storage);
 }

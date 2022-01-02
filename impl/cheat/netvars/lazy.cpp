@@ -1,10 +1,13 @@
-﻿#include "lazy.h"
+﻿module;
 
 #include <fstream>
+#include <filesystem>
 
-using namespace cheat::detail::netvars;
+module cheat.netvars:lazy;
 
-lazy_file_writer::~lazy_file_writer( )
+using namespace cheat::netvars_impl::lazy;
+
+file_writer::~file_writer( )
 {
 	if (file_.empty( ))
 		return;
@@ -13,31 +16,31 @@ lazy_file_writer::~lazy_file_writer( )
 	if (str.empty( ))
 		return;
 
-	std::ofstream ofs(file_);
+	auto ofs = std::ofstream(file_);
 	if (!ofs)
 		return;
 
 	ofs << str;
 }
 
-lazy_file_writer::lazy_file_writer(std::filesystem::path&& file)
+file_writer::file_writer(std::filesystem::path&& file)
 	: file_(std::move(file))
 {
 }
 
-lazy_file_writer::lazy_file_writer(lazy_file_writer&& other) noexcept
+file_writer::file_writer(file_writer&& other) noexcept
 {
 	*this = std::move(other);
 }
 
-lazy_file_writer& lazy_file_writer::operator=(lazy_file_writer&& other) noexcept
+file_writer& file_writer::operator=(file_writer&& other) noexcept
 {
 	std::swap(file_, other.file_);
 	std::swap<std::ostringstream>(*this, other);
 	return *this;
 }
 
-lazy_fs_creator::~lazy_fs_creator( )
+fs_creator::~fs_creator( )
 {
 	if (path_.empty( ))
 		return;
@@ -45,7 +48,7 @@ lazy_fs_creator::~lazy_fs_creator( )
 	create_directories(path_);
 }
 
-lazy_fs_remover::~lazy_fs_remover( )
+fs_remover::~fs_remover( )
 {
 	if (path_.empty( ))
 		return;

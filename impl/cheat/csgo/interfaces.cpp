@@ -2,7 +2,8 @@ module;
 
 #include "cheat/service/includes.h"
 
-module cheat.csgo_interfaces;
+module cheat.csgo.interfaces;
+import cheat.console;
 #ifndef CHEAT_GUI_TEST
 import cheat.csgo.modules;
 #endif
@@ -15,7 +16,7 @@ typedef struct IDirect3DDevice9* LPDIRECT3DDEVICE9, * PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
-auto csgo_interfaces::load_impl( ) noexcept -> load_result
+bool csgo_interfaces::load_impl( ) noexcept
 {
 	//unused
 #if 0
