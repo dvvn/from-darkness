@@ -1,6 +1,5 @@
-#include "UtlString.hpp"
-
 #if 0
+#include "UtlString.hpp"
 
 #define NOMINMAX
 #include <Windows.h>

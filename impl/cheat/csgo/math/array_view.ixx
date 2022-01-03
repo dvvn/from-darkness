@@ -1,12 +1,8 @@
 module;
 
-#include <array>
-#include <ranges>
-#include <functional>
-#include <algorithm>
-#include <variant>
+#include "array_view_includes.h"
 
-export module cheat.csgo.math.array_view;
+export module cheat.csgo.math:array_view;
 
 namespace rn = std::ranges;
 

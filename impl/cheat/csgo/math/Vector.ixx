@@ -1,11 +1,9 @@
 module;
 
-#include <limits>
-#include <cstdint>
-#include <tuple>
+#include "vector_base_includes.h"
 
-export module cheat.csgo.math.Vector;
-export import cheat.csgo.math.vector_base;
+export module cheat.csgo.math:Vector;
+export import :vector_base;
 
 namespace cheat::csgo
 {

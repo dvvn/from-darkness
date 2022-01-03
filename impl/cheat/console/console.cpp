@@ -1,11 +1,8 @@
 module;
 
-#ifndef CHEAT_GUI_TEST
-#include "csgo_awaiter.h"
-#endif
-
 #include "includes.h"
 #include "cheat/service/includes.h"
+
 #include <nstd/rtlib/includes.h>
 #include <nstd/type_traits.h>
 
@@ -18,6 +15,9 @@ module;
 #include <iomanip>
 
 module cheat.console;
+#ifndef CHEAT_GUI_TEST
+import cheat.csgo.awaiter;
+#endif
 import nstd.rtlib;
 
 using namespace cheat;

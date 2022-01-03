@@ -35,8 +35,8 @@ file_writer::file_writer(file_writer&& other) noexcept
 
 file_writer& file_writer::operator=(file_writer&& other) noexcept
 {
-	std::swap(file_, other.file_);
-	std::swap<std::ostringstream>(*this, other);
+	file_ = std::move(other.file_);
+	*static_cast<std::ostringstream*>(this) = static_cast<std::ostringstream&&>(other);
 	return *this;
 }
 
@@ -55,10 +55,10 @@ fs_remover::~fs_remover( )
 
 	try
 	{
-		if (!all_)
-			remove(path_);
-		else
+		if (all_)
 			remove_all(path_);
+		else
+			remove(path_);
 	}
 	catch (...)
 	{

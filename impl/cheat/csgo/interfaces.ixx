@@ -1,47 +1,50 @@
 module;
 
+#include "cheat/service/includes.h"
+#include <nstd/address_includes.h>
 #include <nstd/type_traits.h>
+#include <d3d9.h>
 
 export module cheat.csgo.interfaces;
+
+export import :ModelRender;
+export import :BaseClient;
+export import :ClientEntityList;
+export import :Prediction;
+export import :MDLCache;
+export import :EngineClient;
+export import :ModelInfoClient;
+export import :RenderView;
+export import :EngineTrace;
+export import :DebugOverlay;
+export import :GameEvents;
+export import :EngineSound;
+export import :MaterialSystem;
+export import :ConVar;
+export import :VguiPanel;
+export import :VguiSurface;
+export import :Physics;
+export import :InputSystem;
+export import :ClientMode;
+export import :GlobalVars;
+export import :Input;
+export import :MoveHelper;
+export import :GlowEffect;
+export import :ViewRender;
+export import :ClientState;
+export import :WeaponSystem;
+export import :StudioRender;
+
+export import :Recv;
+export import :DataMap;
+
 export import cheat.service;
 export import nstd.address;
 
 export namespace cheat::csgo
 {
 	class C_CSPlayer;
-	class ClientModeShared;
-	class C_BasePlayer;
-	class IWeaponSystem;
-	class CClientState;
-	class IViewRender;
-	class CGlowObjectManager;
-	class IMoveHelper;
-	class CInput;
-	class CGlobalVarsBase;
-	class IClientMode;
-	class IInputSystem;
-	class IPhysicsSurfaceProps;
-	class ISurface;
-	class IPanel;
-	class ICvar;
-	class IMaterialSystem;
-	class IEngineSound;
-	class IGameEventManager2;
-	class IVDebugOverlay;
-	class IEngineTrace;
-	class IVRenderView;
-	class IVModelRender;
-	class IVModelInfoClient;
-	class IVEngineClient;
-	class IMDLCache;
-	class CGameMovement;
-	class IPrediction;
-	class IClientEntityList;
-	class IBaseClientDLL;
-	class IStudioRender;
 }
-
-export struct IDirect3DDevice9;
 
 template <typename T, size_t Num, size_t Counter = 0>
 constexpr auto _Generate_pointer( )
@@ -196,7 +199,7 @@ export namespace cheat
 		ifc<csgo::IGameEventManager2> game_events;
 		ifc<csgo::IEngineSound> engine_sound;
 		ifc<csgo::IMaterialSystem> material_system;
-		ifc<csgo::ICvar> cvars;
+		ifc<csgo::IConVar> cvars;
 		ifc<csgo::IPanel> vgui_panel;
 		ifc<csgo::ISurface> vgui_surface;
 		ifc<csgo::IPhysicsSurfaceProps> phys_props;

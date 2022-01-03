@@ -677,7 +677,7 @@ _WORK:
 	{
 		created_msg = std::format(" Created {} files.", lazy_storage.write.size( ));
 	}
-	console::get( ).log(std::format("Netvars classes generation done.{}{}", removed_msg, created_msg));
+	console::get( ).log("Netvars classes generation done.{}{}", removed_msg, created_msg);
 #endif
 
 	if (info == log_info::created)

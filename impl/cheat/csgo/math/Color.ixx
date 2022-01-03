@@ -2,7 +2,7 @@ module;
 
 #include <array>
 
-export module cheat.csgo.math.Color;
+export module cheat.csgo.math:Color;
 
 template <typename T>
 static uint8_t _To_uint(T num)

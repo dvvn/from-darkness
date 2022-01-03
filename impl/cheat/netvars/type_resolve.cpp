@@ -11,24 +11,12 @@
 #include <variant>
 
 module cheat.netvars:type_resolve;
-import cheat.csgo.tools.UtlVector;
 
 using nstd::type_name;
 using nstd::overload;
 using namespace cheat;
 using namespace csgo;
 using netvars_impl::string_or_view_holder;
-
-namespace cheat::csgo
-{
-	class matrix3x4_t;
-	class VMatrix;
-	class Vector2D;
-	class Color;
-	class QAngle;
-	class Vector;
-	class CBaseHandle;
-}
 
 string_or_view_holder::string_or_view_holder( )
 {
@@ -53,8 +41,8 @@ std::string& string_or_view_holder::str( )&
 
 std::string string_or_view_holder::str( )&&
 {
-	return std::visit(overload([](std::string&& str)-> std::string&& { return std::move(str); }
-	, [](std::string_view&& sv)-> std::string&& { return {sv.begin( ), sv.end( )}; }), std::move(str_));
+	return std::visit(overload([](std::string&& str)-> std::string { return std::move(str); }
+	, [](std::string_view&& sv)-> std::string { return {sv.begin( ), sv.end( )}; }), std::move(str_));
 }
 
 std::string_view string_or_view_holder::view( )const &

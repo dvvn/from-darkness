@@ -4,9 +4,7 @@
 #include <variant>
 
 export module cheat.netvars:type_resolve;
-export import cheat.csgo.structs.Recv;
-export import cheat.csgo.structs.DataMap;
-//export import cheat.csgo.structs.BaseHandle;
+export import cheat.csgo.interfaces;
 
 export namespace cheat::netvars_impl
 {

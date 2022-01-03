@@ -26,7 +26,7 @@ ConVar* utils::find_cvar(const std::string_view& cvar)
 
 	for (auto cv = root_cvar; cv != nullptr; cv = cv->m_pNext)
 	{
-		if (std::strncmp(cv->m_pszName, cvar._Unchecked_begin( ), cvar.size( )) != 0)
+		if (std::strcmp(cv->m_pszName, cvar._Unchecked_begin( )) != 0)
 			continue;
 
 		console::get( )->log("Cvar \"{}\" found", cvar);

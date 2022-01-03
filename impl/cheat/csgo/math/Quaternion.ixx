@@ -1,4 +1,4 @@
-export module cheat.csgo.math.Quaternion;
+export module cheat.csgo.math:Quaternion;
 
 export namespace cheat::csgo
 {

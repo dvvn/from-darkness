@@ -1,14 +1,9 @@
 module;
 
-#include <limits>
-#include <tuple>
+#include "vector_base_includes.h"
 
-export module cheat.csgo.math.Vmatrix;
-
-export import cheat.csgo.math.array_view;
-export import cheat.csgo.math.Vector;
-
-
+export module cheat.csgo.math:Vmatrix;
+export import :Vector;
 
 namespace cheat::csgo
 {

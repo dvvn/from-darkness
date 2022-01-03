@@ -15,15 +15,37 @@ import nstd.mem.block;
 using namespace cheat::csgo_modules;
 using namespace nstd::rtlib;
 
-template <typename E, typename Tr>
-static info* _Get_module(const std::basic_string_view<E, Tr>& target_name)
+#pragma warning(disable:4702)
+template <class T, class Rng>
+static bool _Equal(const T& name, const Rng& rng)
 {
-	const auto do_find = []<typename T>(const T & str)
+	if constexpr (std::equality_comparable_with<T, Rng>)
 	{
-		return all_infos::get_ptr( )->find([&](const info& info)-> bool
-										   {
-											   return std::ranges::equal(info.name( ), str);
-										   });
+		return name == rng;
+	}
+	else
+	{
+		namespace rn = std::ranges;
+#ifndef __cpp_lib_ranges
+		using t_v = rn::range_value_t<T>;
+		using rng_v = rn::range_value_t<Rng>;
+		const auto name_size = rn::size(name);
+		if (name_size != rn::size(rng))
+			return false;
+		if constexpr (sizeof(t_v) == sizeof(rng_v) && rn::random_access_range<T> && rn::random_access_range<Rng>)
+			return std::memcmp(std::addressof(*rn::begin(name)), std::addressof(*rn::begin(rng)), sizeof(t_v) * name_size) == 0;
+#endif
+		return rn::equal(name, rng);
+	}
+}
+#pragma warning(default:4702)
+
+template <class Rng>
+static info* _Get_module(const Rng& target_name)
+{
+	constexpr auto do_find = []<typename T>(const T & str)
+	{
+		return all_infos::get_ptr( )->find([&](const info& info)-> bool { return _Equal(info.name( ), str); });
 	};
 
 	if (target_name.rfind('.') == target_name.npos)
@@ -165,7 +187,7 @@ nstd::address game_module_storage::find_signature(const std::string_view & sig)
 		return nullptr;
 	}
 
-	return ret._Unchecked_begin( );
+	return std::addressof(*ret);
 }
 
 void* game_module_storage::find_vtable(const std::string_view & class_name)
@@ -186,6 +208,13 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 	return vt.addr.ptr<void>( );
 }
 
+template<class T>
+static auto _Unwrap_safe(T itr)
+{
+	//msvc
+	return std::_Get_unwrapped(itr);
+}
+
 nstd::address game_module_storage::find_game_interface(const std::string_view & ifc_name)
 {
 	const auto found = interfaces.find(ifc_name);
@@ -195,11 +224,11 @@ nstd::address game_module_storage::find_game_interface(const std::string_view & 
 	const auto raw_ifc_name = [&]( )->std::wstring
 	{
 		const auto orig_ifc_name = found->first;
-		const auto orig_ifc_name_end = orig_ifc_name._Unchecked_end( );
+		const auto orig_ifc_name_end = _Unwrap_safe(orig_ifc_name.end( ));
 		if (*orig_ifc_name_end == '\0')
 			return {};
 		const auto real_end_offset = std::char_traits<char>::length(orig_ifc_name_end);
-		const auto begin = orig_ifc_name._Unchecked_begin( );
+		const auto begin = _Unwrap_safe(orig_ifc_name.begin( ));
 		const auto real_end = orig_ifc_name_end + real_end_offset;
 		return std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
 	};
@@ -212,6 +241,7 @@ nstd::address game_module_storage::find_game_interface(const std::string_view & 
 
 void game_module_storage::clear_interfaces_cache( )
 {
+	//'clear' not called because we also want to clear memory
 	std::_Destroy_in_place(interfaces);
 	std::_Construct_in_place(interfaces);
 }
@@ -230,15 +260,18 @@ static game_module_storage* _Get_storage_for(const std::string_view & name, size
 	{
 		const auto lock = std::scoped_lock(_Modules_database);
 		while (_Modules_database.size( ) != estimated_size)
+		{
+			//write nulls because we use vector
 			_Modules_database.push_back(nullptr);
+		}
 		return _Get_storage_for(name, index);
 	}
 
 	if (!_Modules_database[index])
 	{
-		const auto my_thread = std::this_thread::get_id( );
 		const auto lock = std::scoped_lock(_Modules_database);
-		if (my_thread == std::this_thread::get_id( ))
+		//maybe another thread lock it before and do all the work
+		if (!_Modules_database[index])
 			_Modules_database[index] = std::make_unique<game_module_storage>(name);
 	}
 
@@ -247,7 +280,7 @@ static game_module_storage* _Get_storage_for(const std::string_view & name, size
 
 void cheat::csgo_modules::reset_interfaces_storage( )
 {
-	const auto lock = std::unique_lock(_Modules_database);
+	const auto lock = std::scoped_lock(_Modules_database);
 	for (const auto& m : _Modules_database)
 	{
 		if (m)

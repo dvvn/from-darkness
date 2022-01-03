@@ -1,6 +1,11 @@
 module;
 
 #include "cheat/service/includes.h"
+#ifndef CHEAT_GUI_TEST
+#include "cheat/csgo/modules_includes.h"
+#endif
+
+#include <d3d.h>
 
 module cheat.csgo.interfaces;
 import cheat.console;
@@ -12,7 +17,6 @@ using namespace cheat;
 using namespace csgo;
 
 #ifdef CHEAT_GUI_TEST
-typedef struct IDirect3DDevice9* LPDIRECT3DDEVICE9, * PDIRECT3DDEVICE9;
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
 
@@ -78,7 +82,7 @@ bool csgo_interfaces::load_impl( ) noexcept
 #endif
 
 #ifdef CHEAT_GUI_TEST
-	d3d_device = (g_pd3dDevice);
+	d3d_device = g_pd3dDevice;
 #else
 
 	client = csgo_modules::client->find_game_interface("VClient");

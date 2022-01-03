@@ -3,7 +3,7 @@ module;
 #include "modules_includes.h"
 
 export module cheat.csgo.modules;
-import cheat.csgo.structs.AppSystem;
+import cheat.csgo.interfaces;
 export import nstd.rtlib;
 
 template <typename T>
@@ -34,7 +34,7 @@ export namespace cheat
 	}
 }
 
-namespace csgo_modules
+namespace cheat::csgo_modules
 {
 	using instance_fn = cheat::csgo::InstantiateInterfaceFn;
 	using nstd::rtlib::info;
