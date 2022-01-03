@@ -15,6 +15,13 @@ import nstd.mem.block;
 using namespace cheat::csgo_modules;
 using namespace nstd::rtlib;
 
+template<class T>
+static auto _Unwrap_safe(T itr)
+{
+	//msvc
+	return std::_Get_unwrapped(itr);
+}
+
 #pragma warning(disable:4702)
 template <class T, class Rng>
 static bool _Equal(const T& name, const Rng& rng)
@@ -33,7 +40,7 @@ static bool _Equal(const T& name, const Rng& rng)
 		if (name_size != rn::size(rng))
 			return false;
 		if constexpr (sizeof(t_v) == sizeof(rng_v) && rn::random_access_range<T> && rn::random_access_range<Rng>)
-			return std::memcmp(std::addressof(*rn::begin(name)), std::addressof(*rn::begin(rng)), sizeof(t_v) * name_size) == 0;
+			return std::memcmp(_Unwrap_safe(rn::begin(name)), _Unwrap_safe(rn::begin(rng)), sizeof(t_v) * name_size) == 0;
 #endif
 		return rn::equal(name, rng);
 	}
@@ -178,7 +185,7 @@ nstd::address game_module_storage::find_signature(const std::string_view & sig)
 	//no cache inside
 
 	const auto block = info_ptr->mem_block( );
-	const auto bytes = nstd::make_signature < nstd::make_signature_tag_convert{} > (sig.begin( ), sig.end( ));
+	const auto bytes = nstd::make_signature(sig.begin( ), sig.end( ), nstd::signature_convert( ));
 	const auto ret = block.find_block(bytes);
 
 	if (ret.empty( ))
@@ -187,7 +194,7 @@ nstd::address game_module_storage::find_signature(const std::string_view & sig)
 		return nullptr;
 	}
 
-	return std::addressof(*ret);
+	return _Unwrap_safe(ret.begin( ));
 }
 
 void* game_module_storage::find_vtable(const std::string_view & class_name)
@@ -206,13 +213,6 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 	}
 #endif
 	return vt.addr.ptr<void>( );
-}
-
-template<class T>
-static auto _Unwrap_safe(T itr)
-{
-	//msvc
-	return std::_Get_unwrapped(itr);
 }
 
 nstd::address game_module_storage::find_game_interface(const std::string_view & ifc_name)
