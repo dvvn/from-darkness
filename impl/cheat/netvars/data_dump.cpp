@@ -31,11 +31,11 @@ namespace fs = std::filesystem;
 #define CHEAT_NETVARS_LOG_FILE_INDENT 4
 #define CHEAT_NETVARS_LOG_FILE_FILLER ' '
 #define CHEAT_NETVARS_LOGS_DIR _CONCAT(VS_SolutionDir, \.out\netvars\)
-#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\generated\)
-#define CHEAT_CSGOSDK_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\)
+#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\interfaces_custom\)
 #ifdef CHEAT_NETVARS_GENERATE_MODULES
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX .ixx
 #else
+#define CHEAT_CSGOSDK_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\)
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX .h
 #endif
 #define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX .cpp
@@ -422,7 +422,7 @@ static auto _Generate_includes_from_types(const netvars_impl::netvars_storage& s
 			}
 			else
 			{
-				//todo: rewrite, search classes in files, ignore their filenames
+				runtime_assert(rewrite, search classes in files, ignore their filenames);
 				const auto incl_sv = _Parse_filename<false, std::string_view>(incl);
 				for (const std::string_view file : known_files)
 				{
