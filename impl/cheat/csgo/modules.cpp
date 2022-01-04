@@ -10,9 +10,10 @@ module;
 module cheat.csgo.modules;
 import cheat.console;
 import nstd.rtlib;
-import nstd.mem.block;
+import nstd.mem;
 
 using namespace cheat::csgo_modules;
+using namespace nstd::mem;
 using namespace nstd::rtlib;
 
 template<class T>
@@ -22,37 +23,22 @@ static auto _Unwrap_safe(T itr)
 	return std::_Get_unwrapped(itr);
 }
 
-#pragma warning(disable:4702)
 template <class T, class Rng>
 static bool _Equal(const T& name, const Rng& rng)
 {
 	if constexpr (std::equality_comparable_with<T, Rng>)
-	{
 		return name == rng;
-	}
 	else
-	{
-		namespace rn = std::ranges;
-#ifndef __cpp_lib_ranges
-		using t_v = rn::range_value_t<T>;
-		using rng_v = rn::range_value_t<Rng>;
-		const auto name_size = rn::size(name);
-		if (name_size != rn::size(rng))
-			return false;
-		if constexpr (sizeof(t_v) == sizeof(rng_v) && rn::random_access_range<T> && rn::random_access_range<Rng>)
-			return std::memcmp(_Unwrap_safe(rn::begin(name)), _Unwrap_safe(rn::begin(rng)), sizeof(t_v) * name_size) == 0;
-#endif
-		return rn::equal(name, rng);
-	}
+		return std::ranges::equal(name, rng);
+
 }
-#pragma warning(default:4702)
 
 template <class Rng>
 static info* _Get_module(const Rng& target_name)
 {
 	constexpr auto do_find = []<typename T>(const T & str)
 	{
-		return all_infos::get_ptr( )->find([&](const info& info)-> bool { return _Equal(info.name( ), str); });
+		return all_infos::get( ).find([&](const info& info)-> bool { return _Equal(info.name( ), str); });
 	};
 
 	if (target_name.rfind('.') == target_name.npos)
@@ -71,7 +57,7 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	auto& exports = target_module->exports( );
 	using namespace std::string_view_literals;
 	const auto create_fn = exports.at("CreateInterface"sv).addr;
-	const auto reg = create_fn.rel32(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
+	const auto reg = create_fn./*rel32*/jmp(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
 
 	std::vector<ifcs_entry_type::value_type> temp_entry;
 	for (auto r = reg; r != nullptr; r = r->next)
@@ -174,7 +160,7 @@ struct transform_cast
 template<typename T>
 static constexpr auto _Transform_cast = transform_cast<T>();
 
-nstd::address game_module_storage::find_signature(const std::string_view & sig)
+address game_module_storage::find_signature(const std::string_view & sig)
 {
 #ifdef _DEBUG
 	auto [itr, added] = sigs_tested.emplace(sig);
@@ -185,7 +171,7 @@ nstd::address game_module_storage::find_signature(const std::string_view & sig)
 	//no cache inside
 
 	const auto block = info_ptr->mem_block( );
-	const auto bytes = nstd::make_signature(sig.begin( ), sig.end( ), nstd::signature_convert( ));
+	const auto bytes = make_signature(sig.begin( ), sig.end( ), signature_convert( ));
 	const auto ret = block.find_block(bytes);
 
 	if (ret.empty( ))
@@ -215,7 +201,7 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 	return vt.addr.ptr<void>( );
 }
 
-nstd::address game_module_storage::find_game_interface(const std::string_view & ifc_name)
+address game_module_storage::find_game_interface(const std::string_view & ifc_name)
 {
 	const auto found = interfaces.find(ifc_name);
 	runtime_assert(found != interfaces.end( ));
@@ -241,7 +227,7 @@ nstd::address game_module_storage::find_game_interface(const std::string_view & 
 
 void game_module_storage::clear_interfaces_cache( )
 {
-	//'clear' not called because we also want to clear memory
+	//'clear' not called because we also want to free memory
 	std::_Destroy_in_place(interfaces);
 	std::_Construct_in_place(interfaces);
 }

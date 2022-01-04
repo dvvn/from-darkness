@@ -11,7 +11,7 @@ import :data_dump;
 #endif
 import cheat.csgo.interfaces;
 import cheat.csgo.modules;
-import cheat.csgo.structs.BaseClient;
+import cheat.csgo.interfaces;
 
 using namespace cheat;
 using namespace csgo;

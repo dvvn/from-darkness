@@ -4,7 +4,7 @@ module;
 
 #include "cheat/console/includes.h"
 
-#include <nstd/signature_includes.h>
+#include <nstd/mem/signature_includes.h>
 #include <nstd/type name.h>
 #include <nstd/unistring.h>
 #include <nstd/checksum.h>
@@ -19,25 +19,27 @@ module;
 module cheat.netvars:data_dump;
 import cheat.console;
 import cheat.csgo.interfaces;
-import nstd.mem.backup;
-import nstd.signature;
-
-import cheat.csgo.structs.EngineClient;
+import nstd.mem;
 
 using namespace cheat;
 using netvars_impl::log_info;
 
 namespace fs = std::filesystem;
 
+#define CHEAT_NETVARS_GENERATE_MODULES
+
 #define CHEAT_NETVARS_LOG_FILE_INDENT 4
 #define CHEAT_NETVARS_LOG_FILE_FILLER ' '
 #define CHEAT_NETVARS_LOGS_DIR _CONCAT(VS_SolutionDir, \.out\netvars\)
 #define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\generated\)
 #define CHEAT_CSGOSDK_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\)
-#define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
-#define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX _cpp
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+#define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX .ixx
+#else
+#define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX .h
+#endif
+#define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX .cpp
 
-//#define CHEAT_NETVARS_GENERATE_MODULES
 
 #define STRINGIZE_PATH(_PATH_) _CONCAT(LR,_STRINGIZE(##(_PATH_)##))
 
@@ -124,12 +126,48 @@ static T _Parse_extension(const T& str)
 	return str.substr(dot);
 }
 
+template<class S>
+static size_t _Get_size(const S& str)
+{
+	namespace rn = std::ranges;
+	if constexpr (rn::range<rn::range_value_t<S>>)
+	{
+		size_t size = 0;
+		for (auto& item : str)
+			size += _Get_size(item);
+		return size;
+	}
+	else
+	{
+		return str.size( );
+	}
+}
+
+template<class T, class S>
+static void _Append(T& obj, const S& str)
+{
+	namespace rn = std::ranges;
+	if constexpr (rn::range<rn::range_value_t<S>>)
+	{
+		for (auto& item : str)
+			_Append(obj, item);
+	}
+	else
+	{
+		obj.append(str.begin( ), str.end( ));
+	}
+}
+
 template <typename T, typename ...Args>
 static void _Reserve_append(T& obj, const Args&...args)
 {
 	runtime_assert(obj.empty( ));
-	obj.reserve((args.size( ) + ...));
-	(obj.append(args.begin( ), args.end( )), ...);
+
+	const auto size = (_Get_size(args) + ...);
+	obj.reserve(size);
+	(_Append(obj, args), ...);
+	//obj.reserve((args.size( ) + ...));
+	//(obj.append(args.begin( ), args.end( )), ...);
 }
 
 template <class T>
@@ -149,7 +187,6 @@ struct extract_traits<T>
 
 struct generated_file_type
 {
-#ifndef CHEAT_NETVARS_GENERATE_MODULES
 	enum types :uint8_t
 	{
 		UNSET
@@ -163,8 +200,6 @@ struct generated_file_type
 		: type(static_cast<types>(type))
 	{
 	}
-
-#endif
 };
 
 template <std::_Has_member_value_type Str>
@@ -190,23 +225,6 @@ struct generated_file : generated_file_type
 		return str == other.str;
 	}
 };
-
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-static auto _Get_generated_files(const fs::path& folder, const std::wstring_view& postfix)
-{
-	std::vector<generated_file> storage;
-
-	for (const auto& entry : fs::directory_iterator(folder))
-	{
-		const auto& str = entry.path( ).native( );
-		if (str.ends_with(postfix))
-			storage.emplace_back(str, folder.native( ), postfix);
-	}
-
-	return storage;
-}
-
-#else
 
 static auto _Get_known_files(const fs::path& path, const std::wstring_view& extension_prefix)
 {
@@ -234,18 +252,23 @@ static auto _Get_known_files(const fs::path& path, const std::wstring_view& exte
 
 static auto _Get_includes(std::string_view type, bool detect_duplicates)
 {
-	using include_name = std::pair<std::string, bool>;
-	std::vector<include_name> result;
+	std::vector<
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+		std::string
+#else
+		std::pair<std::string, bool>
+#endif
+	> result;
 	nstd::unordered_set<std::string_view> results_used; //skip stuff like array<array<X,....
 
 	const auto pat = std::regex("[\\w:*]+");
 	const auto start = std::regex_iterator(type.begin( ), type.end( ), pat);
 	const auto end = decltype(start)();
 
-	/*constexpr auto subrange_to_string_view = []<class T>(T && srng)-> std::string_view
+	constexpr auto subrange_to_string_view = []<class T>(T && srng)-> std::string_view
 	{
-		return { std::addressof(*srng.begin()), static_cast<size_t>(std::ranges::distance(srng)) };
-	};*/
+		return {std::addressof(*srng.begin( )), static_cast<size_t>(std::ranges::distance(srng))};
+	};
 
 	for (const auto& match : std::ranges::subrange(start, end))
 	{
@@ -281,12 +304,20 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 			{
 				if (str.starts_with(std_namespace))
 					str.remove_prefix(std_namespace.size( ));
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+				else
+					runtime_assert(str.starts_with(std_namespace), "Unknown namespace detected");
+#endif
 			}
-
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+			else
+			{
+				continue;
+			}
+#endif
 			std::string include;
-#if 0
-			//correct, but currently incompatible because of broken compiler
-			for (const auto subrng : str | std::views::split("::"))
+#if 1
+			for (const auto subrng : str | std::views::split(std::string_view("::")))
 			{
 				if (!include.empty( ))
 					include += '/';
@@ -307,32 +338,56 @@ static auto _Get_includes(std::string_view type, bool detect_duplicates)
 				include += substr;
 				pos = pos2 + 2;
 			}
-#endif
 
-			result.emplace_back(std::move(include), global);
+#endif
+			result.emplace_back(std::move(include)
+#ifndef CHEAT_NETVARS_GENERATE_MODULES
+								, global
+#endif
+			);
+
 		}
 		else if (str.ends_with("_t"))
 		{
-			result.emplace_back("cstdint", true);
+			result.emplace_back("cstdint"
+#ifndef CHEAT_NETVARS_GENERATE_MODULES
+								, true
+#endif
+			);
 		}
-		}
+	}
 
 	return result;
-	}
+}
+
 
 struct generated_includes
 {
-	std::vector<std::string> local, global;
+	std::vector<std::string> global;
+
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+	bool add_tools = 0;
+	bool add_interfaces = 0;
+	//todo
+	//std::vector<std::string> interfaces; <--- ":NAME"
+	bool add_math = 0;
+#else
+	std::vector<std::string> local;
+#endif
 };
+
 
 static auto _Generate_includes_from_types(const netvars_impl::netvars_storage& storage)
 {
 	using namespace std::string_view_literals;
 	generated_includes includes;
+
+#ifndef CHEAT_NETVARS_GENERATE_MODULES
 	const fs::path csgosdk_dir = STRINGIZE_PATH(CHEAT_CSGOSDK_DIR);
+	const auto known_files = _Get_known_files(csgosdk_dir, L".h");
+#endif
 
 	nstd::unordered_set<std::string> processed;
-	const auto known_files = _Get_known_files(csgosdk_dir, L".h");
 
 	for (auto& [netvar_name, netvar_data] : storage.items( ))
 	{
@@ -346,10 +401,20 @@ static auto _Generate_includes_from_types(const netvars_impl::netvars_storage& s
 
 		const auto templates_count = std::ranges::count(netvar_type, '<');
 		auto types_found = _Get_includes(netvar_type, templates_count > 1);
-		for (auto& [incl, global] : types_found)
+		for (
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+			auto& incl
+#else
+			auto& [incl, global]
+#endif
+			: types_found)
 		{
 			if (templates_count > 0 && !processed.emplace(incl).second)
 				continue;
+
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+			includes.global.push_back(std::move(incl));
+#else
 
 			if (global)
 			{
@@ -357,6 +422,7 @@ static auto _Generate_includes_from_types(const netvars_impl::netvars_storage& s
 			}
 			else
 			{
+				//todo: rewrite, search classes in files, ignore their filenames
 				const auto incl_sv = _Parse_filename<false, std::string_view>(incl);
 				for (const std::string_view file : known_files)
 				{
@@ -369,7 +435,41 @@ static auto _Generate_includes_from_types(const netvars_impl::netvars_storage& s
 					includes.local.push_back(std::move(incl));
 				}
 			}
+#endif
 		}
+
+#ifdef CHEAT_NETVARS_GENERATE_MODULES
+		if (types_found.empty( ))
+		{
+			auto& [vec, b1, b2, b3] = includes;
+			if (b1 && b2 && b3)//includes.add_* already true
+				continue;
+
+			//class from cheat namespace
+			static constexpr std::string_view nspc = "cheat::csgo";
+			runtime_assert(netvar_type.starts_with(nspc));
+			const auto class_name = netvar_type.substr(nspc.size( ));
+
+			if (class_name.starts_with("CUtl"))
+			{
+				includes.add_tools = true;
+			}
+			else if (class_name.starts_with("Vec") //Vector
+					 || class_name.starts_with("Qua") //Quaternion
+					 || class_name.starts_with("QA") //QAngle
+					 || class_name.starts_with("matrix_")
+					 || class_name.starts_with("VM") //VMatrix
+					 || class_name.starts_with("Col")) //Color
+			{
+				includes.add_math = true;
+			}
+			else
+			{
+				includes.add_interfaces = true;
+			}
+
+		}
+#endif
 	}
 
 	return includes;
@@ -418,7 +518,7 @@ static auto _Get_generated_files(const fs::path& folder, const ViewT& cpp, const
 
 	return storage;
 }
-#endif
+
 
 void netvars_impl::generate_classes(log_info info, netvars_storage& root_netvars_data, lazy::files_storage& lazy_storage)
 {
@@ -511,17 +611,52 @@ _WORK:
 
 	for (const auto& [CLASS_NAME, NETVARS] : root_netvars_data.items( ))
 	{
-#ifndef CHEAT_NETVARS_GENERATE_MODULES
 		auto header = make_file_writer(CLASS_NAME, suffix_h);
-#endif
 		auto source = make_file_writer(CLASS_NAME, suffix_cpp);
 
 #ifdef CHEAT_NETVARS_GENERATE_MODULES
+		auto [global, add_tools, add_interfaces, add_math] = _Generate_includes_from_types(NETVARS);
+		runtime_assert(!add_interfaces, "Currently not implemented");
 
-		//todo: include std stuff
+		std::string global_includes;
+		if (!global.empty( ))
+		{
+			constexpr std::string_view module_head = "module;\n\n";
+			constexpr std::string_view include_start = "#include <";
+			constexpr std::string_view include_end = ">\n";
 
-		source << "module cheat.csgo.structs." << CLASS_NAME << ':' << '\n';
-		source << "import cheat.core.netvars;" << '\n'(2); //TEST NAME
+			size_t reserve = module_head.size( );
+			for (auto& incl : global)
+				reserve += module_head.size( ) + incl.size( ) + include_end.size( );
+			reserve += 1;
+			global_includes.reserve(reserve);
+
+			global_includes += module_head;
+			for (auto& incl : global)
+			{
+				global_includes += include_start;
+				global_includes += incl;
+				global_includes += include_end;
+			}
+			global_includes += '\n';
+		}
+
+		const auto module_head = std::format("module cheat.csgo.interfaces:{}_generated;\n", CLASS_NAME);
+
+		header << global_includes;
+		header << "export " << module_head << '\n';
+		if (add_interfaces)
+			(void)0;//todo
+		if (add_tools)
+			header << "export import cheat.csgo.tools;\n";
+		if (add_math)
+			header << "export import cheat.csgo.math;\n";
+		if (add_interfaces || add_tools || add_math)
+			header << '\n';
+
+		source << global_includes;
+		source << module_head;
+		source << "import cheat.netvars;\n\n";
 
 #else
 		const auto source_add_include = [&](const std::string_view& file_name, bool global = false)
@@ -547,44 +682,36 @@ _WORK:
 				<< '\n';
 		};
 
-		const auto source_add_dynamic_includes = [&]
-		{
-			auto [local, global] = _Generate_includes_from_types(static_cast<const netvars_storage&>(NETVARS));
-			const auto write_includes = [&](std::vector<std::string>& data, bool is_global)
-			{
-				switch (data.size( ))
-				{
-				case 0:
-					return false;
-				case 1:
-					source_add_include(data.front( ), is_global);
-					break;
-				default:
-					std::ranges::sort(data);
-					for (auto& d : data)
-						source_add_include(d, is_global);
-					break;
-				}
-				return true;
-			};
-
-			auto empty = true;
-
-			if (write_includes(local, false))
-				empty = false;
-			if (write_includes(global, true))
-				empty = false;
-
-			if (!empty)
-				source << '\n';
-		};
-
 		source_add_include(CLASS_NAME + ".h");
 		source_add_include("cheat/netvars/netvars.h");
 		source_add_include("nstd/address.h", true);
 		source << '\n';
 
-		source_add_dynamic_includes( );
+		auto [local, global] = _Generate_includes_from_types(static_cast<const netvars_storage&>(NETVARS));
+		const auto write_includes = [&](std::vector<std::string>& data, bool is_global)
+		{
+			switch (data.size( ))
+			{
+			case 0:
+				return false;
+			case 1:
+				source_add_include(data.front( ), is_global);
+				break;
+			default:
+				std::ranges::sort(data);
+				for (auto& d : data)
+					source_add_include(d, is_global);
+				break;
+			}
+			return true;
+		};
+		auto empty = true;
+		if (write_includes(local, false))
+			empty = false;
+		if (write_includes(global, true))
+			empty = false;
+		if (!empty)
+			source << '\n';
 
 		//source << "using cheat::csgo::" << CLASS_NAME << ';' << '\n';
 		source << "using namespace cheat::csgo;" << '\n';
@@ -611,7 +738,7 @@ _WORK:
 				stream << NETVAR_NAME << "( )";
 				if (inside_class)
 					stream << ';';
-		};
+			};
 			const auto write_fn_body = [&](std::basic_ostream<char>& stream)
 			{
 				stream
@@ -622,13 +749,13 @@ _WORK:
 					<< netvar_offset
 #else
 					<< "static const auto offset = "
-					<< "netvars_impl::get( )->at"
+					<< "netvars::get( )->at"
 					<< "(\"" << CLASS_NAME << ", " << '\"' << NETVAR_NAME << "\")"
 #endif
 					<< ";\n"
 					<< '	'
 					<< "auto addr = "
-					<< nstd::type_name<nstd::address>( )
+					<< nstd::type_name<nstd::mem::address>( )
 					<< "(this).add(offset);\n"
 
 					<< "return addr." << (netvar_type_pointer ? "ptr" : "ref") << '<' << netvar_type << ">( );\n"
@@ -640,6 +767,7 @@ _WORK:
 			write_fn_body(source);
 
 #if 0
+			//outdated
 			header << std::format("{}{} {}( );", netvar_type, netvar_ret_char, NETVAR_NAME) << '\n';
 			source << std::format("{}{} {}::{}( )", netvar_type, netvar_ret_char, CLASS_NAME, NETVAR_NAME) << '\n';
 			source << '{' << '\n';
@@ -655,7 +783,7 @@ _WORK:
 			source << '	' << std::format("return addr.{}<{}>( );", netvar_type_pointer ? "ptr" : "ref", netvar_type) << '\n';
 			source << '}' << '\n';
 #endif
-			}
+		}
 
 		lazy_storage.write.push_back(std::move(header));
 		lazy_storage.write.push_back(std::move(source));

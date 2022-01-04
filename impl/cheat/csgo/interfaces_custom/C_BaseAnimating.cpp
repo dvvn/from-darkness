@@ -1,8 +1,12 @@
-#include "../generated/C_BaseAnimating_cpp"
+module;
 
-#include "cheat/core/csgo_modules.h"
-
+#include <nstd/mem/signature_includes.h>
 #include <dhooks/helpers.h>
+
+module cheat.csgo.interfaces:C_BaseAnimating;
+import cheat.csgo.modules;
+
+using namespace cheat::csgo;
 
 void C_BaseAnimating::UpdateClientSideAnimation( )
 {
@@ -13,9 +17,13 @@ void C_BaseAnimating::UpdateClientSideAnimation( )
 
 void C_BaseAnimating::InvalidateBoneCache( )
 {
-	auto& time    = m_flLastBoneSetupTime( );
+#if __has_include("C_BaseAnimating_generated.ixx")
+	auto& time = m_flLastBoneSetupTime( );
 	auto& counter = m_iMostRecentModelBoneCounter( );
 
-	time    = -FLT_MAX;
+	time = -FLT_MAX;
 	counter = -1;
+#else
+	runtime_assert("Not implemented");
+#endif
 }

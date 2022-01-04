@@ -1,7 +1,7 @@
 module;
 
 #include "cheat/service/includes.h"
-#include <nstd/address_includes.h>
+#include <nstd/mem/address_includes.h>
 #include <nstd/type_traits.h>
 #include <d3d9.h>
 
@@ -39,7 +39,7 @@ export import :Recv;
 export import :DataMap;
 
 export import cheat.service;
-export import nstd.address;
+export import nstd.mem;
 
 export namespace cheat::csgo
 {
@@ -95,17 +95,17 @@ export namespace cheat
 			return result_ == nullptr;
 		}
 
-		nstd::address addr( ) const
+		nstd::mem::address addr( ) const
 		{
 			return result_;
 		}
 
-		nstd::address vfunc(ptrdiff_t index) const
+		nstd::mem::address vfunc(ptrdiff_t index) const
 		{
-			return (result_.ref<nstd::address*>( )[index]);
+			return (result_.ref<nstd::mem::address*>( )[index]);
 		}
 
-		void operator=(const nstd::address& addr)
+		void operator=(const nstd::mem::address& addr)
 		{
 #ifdef _DEBUG
 			if (!empty( ))
@@ -166,7 +166,7 @@ export namespace cheat
 		pointer get( ) const { return get_pointer( ); }
 
 	private:
-		nstd::address result_;
+		nstd::mem::address result_;
 	};
 
 	template <typename T>

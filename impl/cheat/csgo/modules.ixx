@@ -38,6 +38,7 @@ namespace cheat::csgo_modules
 {
 	using instance_fn = cheat::csgo::InstantiateInterfaceFn;
 	using nstd::rtlib::info;
+	using nstd::mem::address;
 
 	class CInterfaceRegister
 	{
@@ -59,9 +60,9 @@ namespace cheat::csgo_modules
 		game_module_storage& operator=(const game_module_storage& other) = delete;
 		game_module_storage& operator=(game_module_storage&& other) noexcept;
 
-		nstd::address find_signature(const std::string_view& sig);
+		address find_signature(const std::string_view& sig);
 		void* find_vtable(const std::string_view& class_name);
-		nstd::address find_game_interface(const std::string_view& ifc_name);
+		address find_game_interface(const std::string_view& ifc_name);
 
 		template <typename Table>
 		Table* find_vtable( )

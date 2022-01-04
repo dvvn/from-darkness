@@ -1,13 +1,17 @@
-#pragma once
-#include "C_BaseEntity.h"
+module;
 
-namespace cheat::csgo
+#include <cstdint>
+
+export module cheat.csgo.interfaces:C_BaseAnimating;
+export import :C_BaseEntity;
+#if __has_include("C_BaseAnimating_generated.ixx")
+export import : C_BaseAnimating_generated;
+#endif
+
+export namespace cheat::csgo
 {
-	class matrix3x4a_t;
-	class Vector;
 	class QuaternionAligned;
 	class CStudioHdr;
-	class Quaternion;
 	class CBoneBitList;
 	class CIKContext;
 
@@ -29,13 +33,13 @@ namespace cheat::csgo
 		int m_nInvalidatePhysicsBits; //0x34
 	};
 
-	class C_BaseAnimating : public C_BaseEntity
+	class C_BaseAnimating :
+		public C_BaseEntity
+#if __has_include("C_BaseAnimating_generated.ixx")
+		, public C_BaseAnimating_generated
+#endif
 	{
 	public:
-#if __has_include("../generated/C_BaseAnimating_h")
-#include "../generated/C_BaseAnimating_h"
-#endif
-
 		void UpdateClientSideAnimation( );
 		void InvalidateBoneCache( );
 	};

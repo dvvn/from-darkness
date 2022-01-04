@@ -18,7 +18,7 @@
 #include <filesystem>
 
 module cheat.gui.menu;
-import cheat.core.console;
+import cheat.console;
 
 using namespace cheat::gui;
 using namespace tools;
