@@ -9,8 +9,6 @@ module;
 #include <nstd/unistring.h>
 #include <nstd/checksum.h>
 #include <nstd/unordered_set.h>
-#include <nstd/ranges.h>
-#include <nstd/format.h>
 #include <nstd/enum_tools.h>
 
 #include <fstream>
@@ -39,7 +37,6 @@ namespace fs = std::filesystem;
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX .h
 #endif
 #define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX .cpp
-
 
 #define STRINGIZE_PATH(_PATH_) _CONCAT(LR,_STRINGIZE(##(_PATH_)##))
 

@@ -1,10 +1,11 @@
 export module cheat.csgo.interfaces:ClientEntityList;
+export import :ClientEntity;
 
 export namespace cheat::csgo
 {
-	class IClientNetworkable;
+	/*class IClientNetworkable;
 	class IClientEntity;
-	class CBaseHandle;
+	class CBaseHandle;*/
 
 	class IClientEntityList
 	{

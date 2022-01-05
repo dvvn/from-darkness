@@ -4,7 +4,7 @@
 
 #include <Windows.h>
 
-import cheat.core.services_loader;
+import cheat.service;
 import cheat.gui.menu;
 
 #pragma comment(lib, "Synchronization.lib")

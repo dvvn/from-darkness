@@ -2,7 +2,7 @@
 
 #include <dhooks/helpers.h>
 
-module cheat.csgo.structs.BaseClient;
+module cheat.csgo.interfaces;
 
 using namespace cheat::csgo;
 

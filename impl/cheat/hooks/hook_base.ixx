@@ -1,10 +1,12 @@
 module;
 
+
 #include "cheat/service/includes.h"
-#include <dhooks/wrapper.h>
+#include <dhooks/includes.h>
 
 export module cheat.hooks.base;
 export import cheat.service;
+export import dhooks;
 
 export namespace cheat::hooks
 {
@@ -12,7 +14,6 @@ export namespace cheat::hooks
 	struct hook_base : dynamic_service<T>, dhooks::select_hook_holder<Fn>
 	{
 	protected:
-
 		bool load_impl( ) noexcept override
 		{
 			return this->hook( ) && this->enable( );

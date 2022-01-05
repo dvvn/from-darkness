@@ -1,7 +1,6 @@
 module;
 
-#include <dhooks/wrapper.h>
-
+#include <dhooks/includes.h>
 #include <windows.h>
 
 export module cheat.hooks.winapi.wndproc;

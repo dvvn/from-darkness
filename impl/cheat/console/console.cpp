@@ -152,7 +152,7 @@ static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 	assert(real_buff != nullptr);
 	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
 	//_Myfile
-	return nstd::address(real_buff).add(offset).ref( );
+	return nstd::mem::address(real_buff).add(offset).ref( );
 }
 
 template <bool Assert = true>

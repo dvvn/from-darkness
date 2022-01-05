@@ -1,14 +1,15 @@
 module;
 
 #include "includes.h"
-#include <dhooks/wrapper_fwd.h>
+#include <dhooks/includes.h>
 
 export module cheat.service:loader;
 export import :core;
+import dhooks;
 
 export namespace cheat
 {
-	using all_hooks_storage = std::vector<stored_service<dhooks::hook_holder_base>>;
+	using all_hooks_storage = std::vector<stored_service<dhooks::hook_holder_data>>;
 
 	class services_loader final : public static_service<services_loader>
 	{
