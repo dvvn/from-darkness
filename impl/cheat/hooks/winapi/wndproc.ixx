@@ -1,9 +1,9 @@
 module;
 
-#include <dhooks/includes.h>
+#include "cheat/hooks/base_includes.h"
 #include <windows.h>
 
-export module cheat.hooks.winapi.wndproc;
+export module cheat.hooks.winapi:wndproc;
 import cheat.hooks.base;
 
 namespace cheat::hooks::winapi

@@ -1,4 +1,5 @@
 #pragma once
+#if 0
 #include "selectable.h"
 
 namespace cheat::gui::tools
@@ -50,3 +51,4 @@ namespace cheat::gui::widgets
 		std::unique_ptr<impl> impl_;
 	};
 }
+#endif

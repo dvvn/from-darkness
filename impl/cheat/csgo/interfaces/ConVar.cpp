@@ -1,9 +1,7 @@
 ﻿module;
 
-#include <dhooks/helpers.h>
-#include <type_traits>
-
 module cheat.csgo.interfaces:ConVar;
+import dhooks;
 
 using namespace cheat::csgo;
 
@@ -11,13 +9,13 @@ template <typename T>
 static void _Set_helper(ConVar* ptr, size_t index, T value)
 {
 	//return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
-	return dhooks::_Call_function(&ConVar::set<T>, ptr, index, value);
+	dhooks::call_function(&ConVar::set<T>, ptr, index, value);
 }
 
 template <typename T>
 static T _Get_helper(const ConVar* ptr, size_t index)
 {
-	return dhooks::_Call_function(&ConVar::get<T>, ptr, index);
+	return dhooks::call_function(&ConVar::get<T>, ptr, index);
 }
 
 template < >

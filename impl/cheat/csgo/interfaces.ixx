@@ -35,16 +35,14 @@ export import :ClientState;
 export import :WeaponSystem;
 export import :StudioRender;
 
+export import :C_BaseCombatWeapon;
+export import :C_CSPlayer;
 export import :Recv;
 export import :DataMap;
+export import :UserCmd;
 
 export import cheat.service;
 export import nstd.mem;
-
-export namespace cheat::csgo
-{
-	class C_CSPlayer;
-}
 
 template <typename T, size_t Num, size_t Counter = 0>
 constexpr auto _Generate_pointer( )
@@ -150,8 +148,8 @@ export namespace cheat
 		}
 
 	public:
-		bool operator==(nullptr_t) const { return is_null( ); }
-		bool operator!=(nullptr_t) const { return !(*this == nullptr); }
+		/*bool operator==(nullptr_t) const { return is_null( ); }
+		bool operator!=(nullptr_t) const { return !(*this == nullptr); }*/
 
 		/*template <std::derived_from<To> T = To>
 		bool operator==(const T* other) const { return get_pointer( ) != other; }
@@ -216,5 +214,4 @@ export namespace cheat
 		ifc<csgo::C_CSPlayer, 2> local_player;
 		ifc<IDirect3DDevice9> d3d_device;
 	};
-
 }

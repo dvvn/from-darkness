@@ -1,45 +1,45 @@
 module;
 
-#include "cheat/core/console_includes.h"
+#include "cheat/console/includes.h"
 
+#include <nstd/mem/address_includes.h>
 #include <nstd/chars cache.h>
-#include <nstd/address_includes.h>
 #include <nstd/format.h>
 
 #include <string>
 #include <algorithm>
 
 module cheat.utils.game;
-import cheat.csgo.structs.ConVar;
-import cheat.csgo.structs.GlobalVars;
-import cheat.core.console;
-import cheat.core.csgo_interfaces;
-import nstd.address;
+import cheat.csgo.interfaces;
+import cheat.console;
+import nstd.mem;
 
 using namespace cheat;
 using namespace csgo;
+using nstd::mem::address;
 
 ConVar* utils::find_cvar(const std::string_view& cvar)
 {
-	nstd::address cvars = csgo_interfaces::get( )->cvars.get( );
+	address cvars = csgo_interfaces::get( )->cvars.get( );
 	ConVar* root_cvar = cvars.add(0x30).deref(1).ptr( );
+	ConVar* target_cvar = 0;
 
 	for (auto cv = root_cvar; cv != nullptr; cv = cv->m_pNext)
 	{
-		if (std::strcmp(cv->m_pszName, cvar._Unchecked_begin( )) != 0)
+		if (std::strncmp(cv->m_pszName, cvar.data( ), cvar.size( )) != 0)
 			continue;
 
-		console::get( )->log("Cvar \"{}\" found", cvar);
-		return cv;
+		target_cvar = cv;
+		break;
 	}
 
-	console::get( )->log("Cvar \"{}\" not found", cvar);
-	return nullptr;
+	console::get( )->log("Cvar \"{}\"{}found", cvar, target_cvar ? " not " : " ");
+	return target_cvar;
 }
 
 float utils::lerp_time( )
 {
-	using utils::find_cvar;
+	//using utils::find_cvar;
 
 #if 0
 	const auto cl_interp = m_cvar( )->FindVar(crypt_str("cl_interp"));

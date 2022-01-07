@@ -1,3 +1,4 @@
+#if 0
 #include "settings.h"
 #include "settings detail.h"
 
@@ -127,3 +128,4 @@ service_impl::load_result settings::load_impl( )
 
 	co_return service_state::loaded;
 }
+#endif

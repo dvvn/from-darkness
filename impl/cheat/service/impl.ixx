@@ -118,7 +118,10 @@ export namespace cheat
 		virtual bool root_class( ) const { return false; }
 
 	protected:
-		virtual bool load_impl( ) noexcept = 0;
+		virtual bool load_impl( ) noexcept
+		{
+			return true;
+		}
 
 	private:
 		mutex_type lock_;
@@ -231,6 +234,7 @@ export namespace cheat
 		}
 	};
 
+	//this is wrong. hide service insed shared_services
 	template<typename T>
 	struct dynamic_service :service<T>, shared_service<T>, nstd::one_instance<T>
 	{

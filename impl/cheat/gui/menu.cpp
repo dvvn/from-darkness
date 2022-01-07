@@ -18,7 +18,6 @@
 #include <filesystem>
 
 module cheat.gui.menu;
-import cheat.console;
 
 using namespace cheat::gui;
 using namespace tools;
@@ -274,7 +273,7 @@ public:
 };
 #endif
 
-auto menu::load_impl( ) noexcept -> load_result
+bool menu::load_impl( ) noexcept
 {
 #if 0
 	renderer_.add_page([]
@@ -338,7 +337,7 @@ auto menu::load_impl( ) noexcept -> load_result
 	impl_->init_window( );
 	impl_->init_pages( );
 
-	co_return console::get().on_service_loaded(this);
+	return true;
 }
 
 //CHEAT_SERVICE_REGISTER(menu);

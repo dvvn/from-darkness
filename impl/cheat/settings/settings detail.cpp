@@ -1,3 +1,4 @@
+#if 0
 #include "settings detail.h"
 #include "settings.h"
 
@@ -864,4 +865,5 @@ void settings_data_on_disc::update( )
 	files__ = std::move(files_detected);
 }
 
+#endif
 #endif

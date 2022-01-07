@@ -2,9 +2,7 @@ module;
 #include "cheat/service/includes.h"
 
 #include <cppcoro/sync_wait.hpp>
-
-#include <dhooks/context.h>
-#include <dhooks/wrapper_fwd.h>
+#include <dhooks/includes.h>
 
 module cheat.service:loader;
 #ifndef CHEAT_GUI_TEST

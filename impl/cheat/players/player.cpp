@@ -1,20 +1,15 @@
-#include "player.h"
-#include "cheat/core/csgo_interfaces.h"
-#include "cheat/core/csgo_modules.h"
+module;
 
-#include "cheat/csgo/CClientState.hpp"
-#include "cheat/csgo/IClientEntityList.hpp"
-#include "cheat/csgo/Studio.hpp"
+#include "player_includes.h"
 
-#include "cheat/utils/game.h"
-
-#include <nstd/mem/backup.h>
-#include <nstd/runtime_assert_fwd.h>
-
+#include <nstd/runtime_assert.h>
 #include <excpt.h>
 
+module cheat.players:player;
+import nstd.mem;
+import cheat.utils.game;
+
 using namespace cheat;
-using namespace detail;
 using namespace csgo;
 
 #if 0
@@ -41,7 +36,7 @@ void player_shared_impl::init([[maybe_unused]] C_CSPlayer* owner)
 		{
 			p.ent->m_bClientSideAnimation( ) = true;
 		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
+		__except (EXCEPTION_EXECUTE_HANDLER)
 		{
 		}
 	};
@@ -56,7 +51,7 @@ bool player_shared_impl::update_simtime( )
 #else
 	auto& p = **this;
 
-	if(const auto new_sim_time = p.ent->m_flSimulationTime( ); p.sim_time < new_sim_time)
+	if (const auto new_sim_time = p.ent->m_flSimulationTime( ); p.sim_time < new_sim_time)
 	{
 		p.sim_time = new_sim_time;
 		return true;
@@ -84,7 +79,7 @@ void player_shared_impl::update_animations([[maybe_unused]] bool simple)
 	}();
 	(void)backup_layers;
 
-	if(simple)
+	if (simple)
 	{
 		//--
 		p->UpdateClientSideAnimation( );
@@ -116,7 +111,7 @@ void player_shared_impl::update_ticks_window(float curtime)
 	const auto erase_uselles = [&]
 	{
 		const auto limit = player::max_ticks_count( );
-		if(ticks_stored.size( ) <= limit)
+		if (ticks_stored.size( ) <= limit)
 			return;
 
 		//dont erase any !valid ticks here, in theory we can increase (fake) ping and hit these
@@ -132,16 +127,16 @@ void player_shared_impl::update_ticks_window(float curtime)
 		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto first_valid = [&]
 		{
-			for(auto itr = begin; itr != end; ++itr)
+			for (auto itr = begin; itr != end; ++itr)
 			{
-				if(itr->share( )->is_valid(curtime))
+				if (itr->share( )->is_valid(curtime))
 					return itr;
 			}
 
 			return end;
 		}();
 
-		if(first_valid == end)
+		if (first_valid == end)
 		{
 			ticks_stored_hittable = {};
 			return;
@@ -150,16 +145,16 @@ void player_shared_impl::update_ticks_window(float curtime)
 		// ReSharper disable once CppTooWideScopeInitStatement
 		const auto last_valid = [&]
 		{
-			for(auto itr = std::prev(end); itr != first_valid; --itr)
+			for (auto itr = std::prev(end); itr != first_valid; --itr)
 			{
-				if(itr->share( )->is_valid(curtime))
+				if (itr->share( )->is_valid(curtime))
 					return itr;
 			}
 
 			return end;
 		}();
 
-		if(last_valid == end)
+		if (last_valid == end)
 			ticks_stored_hittable = std::span(first_valid, 1);
 		else
 			ticks_stored_hittable = std::span(first_valid, last_valid);
@@ -175,7 +170,7 @@ void player_shared_impl::update_ticks_window(float curtime)
 
 player::~player( )
 {
-	if (!entptr || local)
+	/*if (!entptr || local)
 		return;
 
 	[&]
@@ -187,32 +182,32 @@ player::~player( )
 		__except (EXCEPTION_EXECUTE_HANDLER)
 		{
 		}
-	}( );
+	}();*/
 }
 
 player::team_info::team_info(m_iTeamNum_t val)
 	: value(val)
 {
-	switch (val)
+	/*switch (val)
 	{
-		case m_iTeamNum_t::UNKNOWN:
-		case m_iTeamNum_t::SPEC:
-		{
-			enemy = false;
-			ghost = true;
-			break;
-		}
-		case m_iTeamNum_t::T:
-		case m_iTeamNum_t::CT:
-		{
-			const auto local      = csgo_interfaces::get( )->local_player.get( );
-			const auto local_team = static_cast<m_iTeamNum_t>(local->m_iTeamNum( ));
-
-			enemy = local_team != val;
-			ghost = false;
-			break;
-		}
+	case m_iTeamNum_t::UNKNOWN:
+	case m_iTeamNum_t::SPEC:
+	{
+		enemy = false;
+		ghost = true;
+		break;
 	}
+	case m_iTeamNum_t::T:
+	case m_iTeamNum_t::CT:
+	{
+		const auto local = csgo_interfaces::get( )->local_player.get( );
+		const auto local_team = static_cast<m_iTeamNum_t>(local->m_iTeamNum( ));
+
+		enemy = local_team != val;
+		ghost = false;
+		break;
+	}
+	}*/
 }
 
 player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
@@ -222,6 +217,7 @@ player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
 
 void player::update(int index, float curtime, float correct)
 {
+#if 0
 	//note: if fps < server tickount, all next calculations are wrong!!!
 	//if we got low fps, invalidate bones cache or it never updates!
 	//update: after invalidate it updates pretty decent
@@ -235,7 +231,7 @@ void player::update(int index, float curtime, float correct)
 
 		if (ent != nullptr)
 		{
-			new_player.local  = ent == interfaces->local_player.get( );
+			new_player.local = ent == interfaces->local_player.get( );
 			new_player.entptr = ent;
 		}
 
@@ -351,8 +347,8 @@ void player::update(int index, float curtime, float correct)
 	{
 		using nstd::mem::backup;
 		auto backups = std::make_tuple(backup(entptr->m_InterpVarMap( ).m_nInterpolatedEntries, 0)
-									 , backup(entptr->m_bClientSideAnimation( ), true)
-									 , backup(entptr->m_vecAbsOrigin( ), static_cast<C_BaseEntity*>(entptr)->m_vecOrigin( )));
+									   , backup(entptr->m_bClientSideAnimation( ), true)
+									   , backup(entptr->m_vecAbsOrigin( ), static_cast<C_BaseEntity*>(entptr)->m_vecOrigin( )));
 		entptr->InvalidateBoneCache( );
 		this->update_animations(true);
 		return backups;
@@ -376,7 +372,7 @@ void player::update(int index, float curtime, float correct)
 
 		if (updated)
 		{
-			auto& new_tick     = store_tick( );
+			auto& new_tick = store_tick( );
 			const auto backups = setupbones_prepare( );
 			new_tick.store_bones(entptr, curtime);
 			new_tick.store_animations(entptr);
@@ -428,6 +424,7 @@ void player::update(int index, float curtime, float correct)
 				ticks_stored_hittable = std::span(*first_valid, std::distance(*first_valid, std::next(*last_valid).base( )) + 1);
 		}
 	}
+#endif
 }
 
 size_t player::max_ticks_count( )
@@ -452,17 +449,17 @@ tick_record& player::store_tick( )
 
 void player::update_animations(bool backup_layers)
 {
-	using layers_array = std::array<CAnimationLayer, 13>;
+	/*using layers_array = std::array<CAnimationLayer, 13>;
 	using bytes_array = std::array<uint8_t, sizeof(layers_array)>;
 	nstd::mem::backup<bytes_array> layers_backup;
 	(void)layers_backup;
 	if (backup_layers)
 	{
 		auto& layers = entptr->m_AnimOverlays( );
-		runtime_assert(layers.size( )==13);
-		auto& arr     = *reinterpret_cast<layers_array*>(layers.data( ));
+		runtime_assert(layers.size( ) == 13);
+		auto& arr = *reinterpret_cast<layers_array*>(layers.data( ));
 		layers_backup = reinterpret_cast<bytes_array&>(arr);
 	}
 
-	entptr->UpdateClientSideAnimation( );
+	entptr->UpdateClientSideAnimation( );*/
 }

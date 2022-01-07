@@ -1,17 +1,10 @@
 module;
-#include <nstd/type name.h>
-#include <nstd/one_instance.h>
-#include <nstd/runtime_assert.h>
-#include <dhooks/wrapper.h>
-#include <cppcoro/static_thread_pool.hpp>
-#include <cppcoro/task.hpp>
-#include <cppcoro/async_mutex.hpp>
-#include <imgui_impl_win32.h>
-#include <Windows.h>
 
-module cheat.hooks.winapi.wndproc;
+#include "cheat/hooks/base_includes.h"
+#include <windows.h>
+
+module cheat.hooks.winapi:wndproc;
 import cheat.gui.menu;
-import cheat.core.services_loader;
 
 using namespace cheat;
 using namespace hooks::winapi;
@@ -154,3 +147,5 @@ void wndproc::render( )
 	}
 }
 #endif
+
+CHEAT_SERVICE_REGISTER(wndproc);

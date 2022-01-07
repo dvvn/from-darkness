@@ -1,4 +1,5 @@
-﻿#include "aimbot.h"
+﻿#if 0
+#include "aimbot.h"
 
 #include "cheat/core/console.h"
 #include "cheat/core/services_loader.h"
@@ -175,3 +176,4 @@ bool aimbot_impl::render( )
 }
 
 CHEAT_SERVICE_REGISTER(aimbot);
+#endif

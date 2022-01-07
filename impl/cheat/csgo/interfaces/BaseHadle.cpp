@@ -1,9 +1,9 @@
 ﻿module;
 
+#include "cheat/service/includes.h"
 #include <nstd/runtime_assert.h>
 
 module cheat.csgo.interfaces:BaseHandle;
-import cheat.csgo.interfaces;
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
@@ -11,13 +11,13 @@ constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
 constexpr auto MAX_EDICTS = 1 << MAX_EDICT_BITS;
 
 // Used for networking ehandles.
-constexpr auto NUM_ENT_ENTRY_BITS    = MAX_EDICT_BITS + 2;
-constexpr auto NUM_ENT_ENTRIES       = 1 << NUM_ENT_ENTRY_BITS;
+constexpr auto NUM_ENT_ENTRY_BITS = MAX_EDICT_BITS + 2;
+constexpr auto NUM_ENT_ENTRIES = 1 << NUM_ENT_ENTRY_BITS;
 constexpr auto INVALID_EHANDLE_INDEX = 0xFFFFFFFF;
 
-constexpr auto NUM_SERIAL_NUM_BITS       = 16/*32 - NUM_ENT_ENTRY_BITS*/;
+constexpr auto NUM_SERIAL_NUM_BITS = 16/*32 - NUM_ENT_ENTRY_BITS*/;
 constexpr auto NUM_SERIAL_NUM_SHIFT_BITS = 32 - NUM_SERIAL_NUM_BITS;
-constexpr auto ENT_ENTRY_MASK            = (1 << NUM_SERIAL_NUM_BITS) - 1;
+constexpr auto ENT_ENTRY_MASK = (1 << NUM_SERIAL_NUM_BITS) - 1;
 
 using namespace cheat::csgo;
 
@@ -74,9 +74,16 @@ int32_t CBaseHandle::ToInt( ) const
 	return (int32_t)m_Index;
 }
 
+#if 0
+
+//unable to import interfaces module here
+
 IHandleEntity* CBaseHandle::Get( ) const
 {
+	//runtime_assert("temporary disabled, use direct entity_list call");
+	//return 0;
 	/*if (!IsValid( ))
 		return 0;*/
 	return csgo_interfaces::get( )->entity_list->GetClientEntityFromHandle(*this);
 }
+#endif

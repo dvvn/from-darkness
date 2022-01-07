@@ -1,3 +1,5 @@
+
+#if 0
 #include "text.h"
 
 #include "cheat/gui/tools/string wrapper.h"
@@ -30,3 +32,4 @@ void text::set(tools::string_wrapper&& text)
 {
 	static_cast<tools::string_wrapper&>(*data_) = std::move(text);
 }
+#endif

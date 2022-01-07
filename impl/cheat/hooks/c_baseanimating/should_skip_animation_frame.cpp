@@ -1,14 +1,31 @@
-#include "should_skip_animation_frame.h"
+module;
 
-#include "cheat/csgo/ClientClass.hpp"
-#include "cheat/csgo/entity/C_BaseAnimating.h"
+#include "cheat/hooks/base_includes.h"
+#include "cheat/netvars/includes.h"
+
+module cheat.hooks.c_base_animating:should_skip_animation_frame;
+import cheat.netvars;
+import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
-void should_skip_animation_frame_impl::callback(/*float current_time*/)
+
+should_skip_animation_frame::should_skip_animation_frame( )
 {
+	this->add_dependency(netvars::get( ));
+}
+
+void* should_skip_animation_frame::get_target_method( ) const
+{
+	const auto addr = csgo_modules::client->find_signature("57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02");
+	return addr.ptr( );
+}
+
+void should_skip_animation_frame::callback(/*float current_time*/)
+{
+#if 0
 	if (override_return__)
 	{
 		this->store_return_value(override_return_to__);
@@ -30,53 +47,54 @@ void should_skip_animation_frame_impl::callback(/*float current_time*/)
 
 	C_BaseAnimating* ent;
 
-	if (const auto inst = this->get_object_instance(); is_player(inst))
+	if (const auto inst = this->get_object_instance( ); is_player(inst))
 	{
 		ent = inst;
 	}
 	else
 	{
 #if 0
-			//unreachable
+		//unreachable
 
-			CBaseHandle owner_handle;
+		CBaseHandle owner_handle;
 
-			if(is_weapon(inst))
-			{
-				auto wpn = (C_BaseCombatWeapon*)inst;
-				owner_handle = wpn->m_hOwner( );
-			}
-			else
-			{
-				owner_handle = inst->m_hOwnerEntity( );
-			}
+		if (is_weapon(inst))
+		{
+			auto wpn = (C_BaseCombatWeapon*)inst;
+			owner_handle = wpn->m_hOwner( );
+		}
+		else
+		{
+			owner_handle = inst->m_hOwnerEntity( );
+		}
 
-			if(!owner_handle.IsValid( ))
-				return;
+		if (!owner_handle.IsValid( ))
+			return;
 
-			const auto owner = static_cast<C_CSPlayer*>(owner_handle.Get( ));
+		const auto owner = static_cast<C_CSPlayer*>(owner_handle.Get( ));
 
-			if(!owner)
-				return;
+		if (!owner)
+			return;
 
-			if(!is_player(owner))
-				return;
-			if(csgo_interfaces::get_shared( )->local_player.get( ) == owner)
-				return;
+		if (!is_player(owner))
+			return;
+		if (csgo_interfaces::get_shared( )->local_player.get( ) == owner)
+			return;
 
-			ent = owner;
+		ent = owner;
 #endif
 
 		return;
 	}
 
 	const auto animate_this_frame = ent->m_bClientSideAnimation( );
-	const auto skip_this_frame    = animate_this_frame == false;
+	const auto skip_this_frame = animate_this_frame == false;
 	this->store_return_value(skip_this_frame);
+#endif
 }
 
 #if 0
-bool should_skip_animation_frame_impl::render( )
+bool should_skip_animation_frame::render( )
 {
 	ImGui::Checkbox("override return", &override_return__);
 	if (!override_return__)
@@ -97,3 +115,5 @@ bool should_skip_animation_frame_impl::render( )
 	return true;
 }
 #endif
+
+CHEAT_SERVICE_REGISTER_GAME(should_skip_animation_frame);

@@ -1,5 +1,5 @@
 #include "tab_bar_with_pages.h"
-
+#if 0
 #include "nstd/runtime assert.h"
 
 #include <imgui.h>
@@ -74,3 +74,4 @@ renderable* tab_bar_with_pages::find_item(const tools::cached_text::label_type& 
 	const auto index  = this->find_tab_index(target);
 	return (*pages_)[index].get( );
 }
+#endif

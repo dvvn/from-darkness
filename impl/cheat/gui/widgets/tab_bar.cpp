@@ -1,4 +1,6 @@
 // ReSharper disable CppMemberFunctionMayBeConst
+#if 0
+
 #include "tab_bar.h"
 
 #include "selectable.h"
@@ -310,3 +312,4 @@ void tab_bar::render()
 	}
 	_Wnd.end( );
 }
+#endif 

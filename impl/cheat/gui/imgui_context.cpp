@@ -1,10 +1,9 @@
 module;
 
-#include "cheat/console/includes.h"
+#include "cheat/service/includes.h"
 
 #include <nstd/file/to_memory.h>
-
-#include <cppcoro/task.hpp>
+#include <nstd/format.h>
 
 #include <imgui_internal.h>
 #include <imgui_impl_dx9.h>
@@ -22,8 +21,7 @@ module;
 //#include <mutex>
 
 module cheat.gui.context;
-import cheat.csgo_interfaces;
-import cheat.console;
+import cheat.csgo.interfaces;
 
 using namespace cheat;
 using namespace gui;
@@ -164,7 +162,7 @@ bool context::inctive( ) const
 	return (hwnd_ != GetForegroundWindow( ));
 }
 
-auto context::load_impl( ) noexcept -> load_result
+bool context::load_impl( ) noexcept
 {
 	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
 
@@ -239,7 +237,7 @@ auto context::load_impl( ) noexcept -> load_result
 	}();
 
 
-	co_return console::get( )->on_service_loaded(this);
+	return true;
 }
 
-//CHEAT_SERVICE_REGISTER(imgui_context);
+CHEAT_SERVICE_REGISTER(context);

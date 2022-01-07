@@ -8,8 +8,8 @@ import cheat.service;
 import cheat.gui.menu;
 
 #pragma comment(lib, "Synchronization.lib")
-//#pragma comment(lib, "ws2_32.lib")
-//#pragma comment(lib, "Mswsock.lib")
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "Mswsock.lib")
 
 #ifndef CHEAT_GUI_TEST
 

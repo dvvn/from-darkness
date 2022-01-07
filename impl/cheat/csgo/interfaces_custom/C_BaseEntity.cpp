@@ -1,17 +1,18 @@
 module;
 
-#include <dhooks/helpers.h>
+#include <functional>
 
 module cheat.csgo.interfaces:C_BaseEntity;
+import dhooks;
 
 using namespace cheat::csgo;
 
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {
-	return dhooks::_Call_function(&C_BaseEntity::GetDataDescMap, this, 15);
+	return dhooks::call_function(&C_BaseEntity::GetDataDescMap, this, 15);
 }
 
 datamap_t* C_BaseEntity::GetPredictionDescMap( )
 {
-	return dhooks::_Call_function(&C_BaseEntity::GetPredictionDescMap, this, 17);
+	return dhooks::call_function(&C_BaseEntity::GetPredictionDescMap, this, 17);
 }

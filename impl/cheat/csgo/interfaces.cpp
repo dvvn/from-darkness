@@ -4,14 +4,15 @@ module;
 #ifndef CHEAT_GUI_TEST
 #include "cheat/csgo/modules_includes.h"
 #endif
+#include <nstd/mem/address_includes.h>
 
-#include <d3d.h>
+#include <d3d9.h>
 
 module cheat.csgo.interfaces;
-import cheat.console;
 #ifndef CHEAT_GUI_TEST
 import cheat.csgo.modules;
 #endif
+import cheat.console;
 
 using namespace cheat;
 using namespace csgo;
@@ -133,4 +134,4 @@ csgo_interfaces::csgo_interfaces( )
 	this->add_dependency(console::get( ));
 }
 
-//CHEAT_SERVICE_REGISTER(csgo_interfaces);
+CHEAT_SERVICE_REGISTER(csgo_interfaces);

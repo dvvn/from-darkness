@@ -1,3 +1,5 @@
+#if 0
+
 // ReSharper disable CppMemberFunctionMayBeConst
 #include "manager.h"
 #include "shared_data.h"
@@ -197,3 +199,4 @@ void manager::load(const std::wstring_view& file_name, const filter& filter_obj)
 	for (auto&& d : impl_->data | std::views::filter(filter_obj.get( )))
 		d->load(json);
 }
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "cheat/hooks/base.h"
@@ -20,3 +21,4 @@ namespace cheat::hooks::c_base_entity
 		load_result load_impl( ) noexcept override;
 	};
 }
+#endif

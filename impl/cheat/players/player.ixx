@@ -1,22 +1,12 @@
-#pragma once
-#include "tick_record.h"
+module;
 
-#include "cheat/csgo/entity/C_CSPlayer.h"
+#include "player_includes.h"
 
-#if __has_include("veque.hpp")
-// ReSharper disable once CppUnusedIncludeDirective
-#include <string>
-#include <veque.hpp>
-#define CHEAT_PLAYER_TICKS_CONTAINER veque::veque
-#else
-#include <deque>
-#define CHEAT_PLAYER_TICKS_CONTAINER std::deque
-#endif
+export module cheat.players:player;
+export import :tick_record;
+export import cheat.csgo.interfaces;
 
-#include <optional>
-#include <span>
-
-namespace cheat
+export namespace cheat
 {
 	class player
 	{
@@ -24,9 +14,9 @@ namespace cheat
 		~player( );
 		player( ) = default;
 
-		player(const player& other)                = delete;
-		player(player&& other) noexcept            = default;
-		player& operator=(const player& other)     = delete;
+		player(const player& other) = delete;
+		player(player&& other) noexcept = default;
+		player& operator=(const player& other) = delete;
 		player& operator=(player&& other) noexcept = default;
 
 		struct team_info
@@ -36,8 +26,8 @@ namespace cheat
 			team_info(std::underlying_type_t<csgo::m_iTeamNum_t> val);
 
 			csgo::m_iTeamNum_t value = csgo::m_iTeamNum_t::UNKNOWN;
-			bool enemy               = false;
-			bool ghost               = true; //dead,spectator,null pointer
+			bool enemy = false;
+			bool ghost = true; //dead,spectator,null pointer
 
 			constexpr bool operator==(const team_info&) const = default;
 		};
@@ -47,7 +37,7 @@ namespace cheat
 		csgo::C_CSPlayer* entptr = nullptr;
 		std::optional<float> simtime;
 		team_info team = {};
-		int health     = -1;
+		int health = -1;
 		std::optional<bool> dormant;
 		std::optional<bool> dmgprotect;
 		//todo: weaponfire
@@ -57,24 +47,24 @@ namespace cheat
 
 		struct ticks_info
 		{
-			size_t prev    = static_cast<size_t>(-1);
+			size_t prev = static_cast<size_t>(-1);
 			size_t current = static_cast<size_t>(-1);
 
 			void set(size_t curr)
 			{
-				prev    = current;
+				prev = current;
 				current = curr;
 			}
 		};
 
-		enum class update_state:uint8_t
+		enum class update_state :uint8_t
 		{
 			IDLE
-		  , SILENT //updated, but not in lag compensation or unresolvable
-		  , NORMAL
+			, SILENT //updated, but not in lag compensation or unresolvable
+			, NORMAL
 		};
 
-		struct 
+		struct
 		{
 			ticks_info server; //clock based
 			ticks_info client; //simtime based
@@ -83,7 +73,7 @@ namespace cheat
 
 		//--
 
-		CHEAT_PLAYER_TICKS_CONTAINER<tick_record_shared> ticks_stored;
+		nstd::deque<tick_record_shared> ticks_stored;
 		std::span<const tick_record_shared> ticks_stored_hittable;
 
 		static size_t max_ticks_count( );

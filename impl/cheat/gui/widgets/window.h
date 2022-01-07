@@ -2,8 +2,9 @@
 
 #include "cheat/gui/tools/cached_text.h"
 
-#include <nstd/mem/backup.h>
 #include <nstd/smooth_value.h>
+
+import nstd.mem;
 
 struct ImVec2;
 using ImGuiID = unsigned int;

@@ -34,7 +34,8 @@ export namespace cheat::csgo
 
 		//auto operator<=>(const CBaseHandle&) const = default;
 
-		IHandleEntity* Get( ) const;
+		//implementer in main interfaces file
+		//IHandleEntity* Get( ) const;
 
 	protected:
 		// The low NUM_SERIAL_BITS hold the index. If this value is less than MAX_EDICTS, then the entity is networkable.

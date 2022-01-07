@@ -1,4 +1,5 @@
 #pragma once
+#if 0
 #include "cheat/gui/objects/renderable object.h"
 
 #include <memory>
@@ -24,3 +25,4 @@ namespace cheat::gui::widgets
 		std::unique_ptr<data> data_;
 	};
 }
+#endif

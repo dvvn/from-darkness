@@ -11,7 +11,7 @@ import :type_resolve;
 import :data_fill;
 import cheat.csgo.interfaces;
 import cheat.csgo.modules;
-import nstd.mem.backup;
+import nstd.mem;
 
 namespace cheat::csgo
 {
@@ -25,6 +25,7 @@ namespace cheat::csgo
 using namespace cheat;
 using namespace csgo;
 using netvars_impl::netvars_storage;
+using nstd::mem::address;
 
 static netvars_storage* _Root_storage = nullptr;
 static netvars_storage* _Current_storage = nullptr;
@@ -54,9 +55,9 @@ namespace cheat::netvars_impl
 	}
 
 	template <typename Type, typename TypeProj = std::identity>
-	auto add_netvar_to_storage(const std::string_view& name, nstd::address addr, TypeProj&& type_proj = {})
+	auto add_netvar_to_storage(const std::string_view& name, address addr, TypeProj&& type_proj = {})
 	{
-		return add_netvar_to_storage<Type>(name, addr.value( ), std::forward<TypeProj>(type_proj));
+		return add_netvar_to_storage<Type>(name, addr._Unwrap<int>( ), std::forward<TypeProj>(type_proj));
 	}
 
 	template <typename Type, typename TypeProj = std::identity>

@@ -1,5 +1,6 @@
 #include "group.h"
 
+#if 0
 #include <imgui.h>
 
 using namespace cheat;
@@ -30,3 +31,4 @@ void group::end( )
 	ImGui::EndGroup( );
 	fade_alpha_backup_.restore( );
 }
+#endif

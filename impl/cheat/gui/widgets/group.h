@@ -1,4 +1,5 @@
 #pragma once
+#if 0
 #include "widget animator.h"
 
 namespace cheat::gui::widgets
@@ -14,3 +15,4 @@ namespace cheat::gui::widgets
 		void end( );
 	};
 }
+#endif

@@ -1,8 +1,6 @@
 module;
 
-
-#include "cheat/service/includes.h"
-#include <dhooks/includes.h>
+#include "base_includes.h"
 
 export module cheat.hooks.base;
 export import cheat.service;

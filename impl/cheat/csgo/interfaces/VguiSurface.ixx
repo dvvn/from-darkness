@@ -6,7 +6,7 @@ export module cheat.csgo.interfaces:VguiSurface;
 export import :AppSystem;
 export import cheat.csgo.math;
 
-namespace cheat::csgo
+export namespace cheat::csgo
 {
 	namespace vgui
 	{

@@ -13,6 +13,7 @@ module;
 
 #include <fstream>
 #include <regex>
+#include <filesystem>
 
 module cheat.netvars:data_dump;
 import cheat.console;

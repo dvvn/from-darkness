@@ -1,28 +1,14 @@
-#pragma once
-
-#include "shared_holder.h"
-
-#include "cheat/csgo/QAngle.hpp"
-#include "cheat/csgo/Vector.hpp"
-#include "cheat/csgo/VMatrix.hpp"
+module;
 
 #include <vector>
+#include <optional>
 
-namespace std
+export module cheat.players:tick_record;
+export import :shared_holder;
+export import cheat.csgo.interfaces;
+
+export namespace cheat
 {
-	template <class _Ty>
-	class optional;
-}
-
-namespace cheat
-{
-	namespace csgo
-	{
-		class C_BaseAnimating;
-		class C_BaseEntity;
-		struct CAnimationLayer;
-	}
-
 	class player;
 
 	struct tick_record
@@ -46,5 +32,5 @@ namespace cheat
 		bool is_valid(float curtime, float correct) const;
 	};
 
-	using tick_record_shared = detail::shared_holder<tick_record>;
+	using tick_record_shared = shared_holder<tick_record>;
 }

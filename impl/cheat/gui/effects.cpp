@@ -18,8 +18,7 @@ using BYTE = unsigned char;
 
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
-#include <nstd/custom_types.h>
-#include NSTD_UNORDERED_MAP_INCLUDE
+#include <nstd/unordered_map.h>
 
 #include <imgui_internal.h>
 
@@ -31,7 +30,7 @@ using BYTE = unsigned char;
 #include <algorithm>
 #include <functional>
 
-import cheat.core.csgo_interfaces;
+import cheat.csgo.interfaces;
 
 #ifdef _DEBUG
 #define HRESULT_VALIDATE(fn, ...) runtime_assert(fn == D3D_OK,##__VA_ARGS__)
