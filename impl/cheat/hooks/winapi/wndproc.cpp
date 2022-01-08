@@ -24,8 +24,8 @@ bool wndproc::load_impl( ) noexcept
 	unicode_ = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	return basic_service::load_impl( );
-}
+	return hook_base::load_impl( );
+} 
 
 void* wndproc::get_target_method( ) const
 {

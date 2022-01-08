@@ -8,24 +8,38 @@ import cheat.console;
 
 using namespace cheat;
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::unload( )
 {
-	/*auto loader = services_loader::get_ptr( );
-	if (this == loader)
-		reload_one_instance(loader);
+	auto loader = services_loader::get_ptr( );
+	auto this_type = this->type( );
+	if (this_type == loader->type( ))
+	{
+		this->deps_.clear( );
+		this->state_ = service_state::unset;
+	}
 	else
-		loader.erase(this->type( ));*/
+	{
+		//todo: erase & updater indexes
+		auto sptr = loader->find(this_type);
+		auto ptr = sptr->get( );
+		ptr->deps_.clear( );
+		ptr->set_state(service_state::unset);
+	}
 }
 
 void basic_service::set_state(service_state state)
 {
 	runtime_assert(state_ != state);
-	runtime_assert(state_ < state);
+
 #ifdef CHEAT_HAVE_CONSOLE
 	auto& c = services_loader::get( ).get_dependency<console>( );
 	switch (state)
 	{
+	case service_state::unset:
+	{
+		c.log("{} - Unloaded.", name( ));
+		break;
+	}
 	case service_state::waiting:
 		c.log("{} - Trying to load {} dependencies...", name( ), deps_.size( ));
 		break;
