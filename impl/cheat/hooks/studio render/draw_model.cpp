@@ -10,20 +10,22 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::studio_render;
 
-draw_model::draw_model( )
+draw_model::draw_model( ) = default;
+
+void draw_model::load_async( ) noexcept
 {
-	this->add_dependency(players_list::get( ));
+	this->add_dependency<players_list>( );
 }
 
 void* draw_model::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->studio_renderer.vfunc(29).ptr( );
+	return services_loader::get( ).get_dependency<csgo_interfaces>( ).studio_renderer.vfunc(29).ptr( );
 }
 
-void draw_model::callback(DrawModelResults_t* results, const DrawModelInfo_t& info,
-						  matrix3x4_t* bone_to_world,
+void draw_model::callback(DrawModelResults_t * results, const DrawModelInfo_t & info,
+						  matrix3x4_t * bone_to_world,
 						  float* flex_weights, float* flex_delayed_weights,
-						  const Vector& model_origin, DrawModelFlags_t flags)
+						  const Vector & model_origin, DrawModelFlags_t flags)
 {
 }
 

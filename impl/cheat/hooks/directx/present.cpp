@@ -16,14 +16,16 @@ using namespace cheat;
 using namespace gui;
 using namespace hooks::directx;
 
-present::present( )
+present::present( ) = default;
+
+void present::load_async( ) noexcept
 {
-	this->add_dependency(gui::menu::get( ));
+	this->add_dependency<gui::menu>( );
 }
 
 void* present::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->d3d_device.vfunc(17).ptr( );
+	return services_loader::get( ).get_dependency<csgo_interfaces>( ).d3d_device.vfunc(17).ptr( );
 }
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
@@ -45,9 +47,8 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	ImGui::NewFrame( );
 	effects::new_frame( );
 	{
-		const auto& menu = menu::get( );
 		[[maybe_unused]]
-		const auto render_result = menu->render( );
+		const auto render_result = this->get_dependency<menu>( ).render( );
 #if !defined(IMGUI_DISABLE_DEMO_WINDOWS)
 #ifndef CHEAT_GUI_TEST
 		if (render_result)

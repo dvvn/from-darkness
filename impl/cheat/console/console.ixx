@@ -130,6 +130,7 @@ namespace cheat
 #endif
 
 	protected:
+		void load_async( ) noexcept override;
 		bool load_impl( ) noexcept override;
 	private:
 		bool allocated_ = false;

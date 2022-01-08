@@ -10,14 +10,16 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client;
 
-frame_stage_notify::frame_stage_notify( )
+frame_stage_notify::frame_stage_notify( ) = default;
+
+void frame_stage_notify::load_async( ) noexcept
 {
-	this->add_dependency(players_list::get( ));
+	this->add_dependency<players_list>( );
 }
 
 void* frame_stage_notify::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->client.vfunc(37).ptr( );
+	return services_loader::get( ).get_dependency<csgo_interfaces>( ).client.vfunc(37).ptr( );
 }
 
 void frame_stage_notify::callback(ClientFrameStage_t stage)
@@ -29,7 +31,7 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 	case FRAME_NET_UPDATE_START: break;
 	case FRAME_NET_UPDATE_POSTDATAUPDATE_START: break;
 	case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-		players_list::get( )->update( ); //todo: move to createmove
+		this->get_dependency<players_list>( ).update( ); //todo: move to createmove
 		break;
 	case FRAME_NET_UPDATE_END: break;
 	case FRAME_RENDER_START: break;

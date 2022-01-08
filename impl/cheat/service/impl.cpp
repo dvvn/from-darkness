@@ -40,7 +40,7 @@ auto basic_service::find(const std::type_info & info) -> value_type*
 	return nullptr;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
+#if 0
 void basic_service::erase(const std::type_info & info)
 {
 	auto& deps = deps_;
@@ -49,7 +49,7 @@ void basic_service::erase(const std::type_info & info)
 		deps.erase(found);
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
+
 void basic_service::erase(const erase_pred & fn)
 {
 	auto& deps = deps_;
@@ -58,7 +58,6 @@ void basic_service::erase(const erase_pred & fn)
 		deps.erase(found);
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::erase_all(const erase_pred & fn)
 {
 	const auto found = std::ranges::remove_if(deps_, std::_Pass_fn(fn));
@@ -68,11 +67,13 @@ void basic_service::erase_all(const erase_pred & fn)
 		deps_.erase(found.begin( ), found.end( ));
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void basic_service::add_dependency(value_type && srv)
+#endif
+
+size_t basic_service::add_dependency(value_type && srv)
 {
 	runtime_assert(!find(srv->type( )), "Service already stored!");
 	deps_.push_back(std::move(srv));
+	return deps_.size( ) - 1;
 }
 
 service_state basic_service::state( ) const
@@ -101,6 +102,8 @@ auto basic_service::load(executor & ex) noexcept -> load_result
 			std::terminate( );
 		}
 
+		this->load_async( );
+
 		if (!deps_.empty( ))
 		{
 			using std::views::transform;
@@ -108,7 +111,7 @@ auto basic_service::load(executor & ex) noexcept -> load_result
 
 			set_state(service_state::waiting);
 			co_await ex.schedule( );
-			const auto unwrapped = deps_ | transform([]<typename T>(const T& srv)-> basic_service& { return *srv; });
+			const auto unwrapped = deps_ | transform([]<typename T>(const T & srv)-> basic_service& { return *srv; });
 			auto tasks_view = unwrapped | transform([&](basic_service& srv)-> load_result { return srv.load(ex); });
 			//todo: stop when error detected
 			auto results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));

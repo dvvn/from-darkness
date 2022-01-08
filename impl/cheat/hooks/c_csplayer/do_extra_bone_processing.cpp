@@ -11,11 +11,11 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_csplayer;
 
-CHEAT_SERVICE_REGISTER_GAME(do_extra_bone_processing);
+do_extra_bone_processing::do_extra_bone_processing( ) = default;
 
-do_extra_bone_processing::do_extra_bone_processing( )
+void do_extra_bone_processing::load_async( ) noexcept
 {
-	this->add_dependency(csgo_interfaces::get( ));
+	this->add_dependency<csgo_interfaces>( );
 }
 
 void* do_extra_bone_processing::get_target_method( ) const
@@ -25,9 +25,12 @@ void* do_extra_bone_processing::get_target_method( ) const
 	return vtable.vfunc(index).ptr( );
 }
 
-void do_extra_bone_processing::callback(CStudioHdr* studio_hdr, Vector pos[],
+void do_extra_bone_processing::callback(CStudioHdr * studio_hdr, Vector pos[],
 										Quaternion q[], matrix3x4a_t bone_to_world[],
-										CBoneBitList& bone_computed, CIKContext* ik_context)
+										CBoneBitList & bone_computed, CIKContext * ik_context)
 {
 	this->store_return_value( );
 }
+
+
+CHEAT_SERVICE_REGISTER_GAME(do_extra_bone_processing);

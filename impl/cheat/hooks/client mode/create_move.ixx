@@ -13,6 +13,7 @@ export namespace cheat::hooks::client_mode
 		create_move( );
 
 	protected:
+		void load_async( ) noexcept override;
 		void* get_target_method( ) const override;
 		void callback(float input_sample_time, csgo::CUserCmd* cmd) override;
 	};

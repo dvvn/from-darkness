@@ -29,6 +29,7 @@ export namespace cheat::hooks::studio_render
 		draw_model( );
 
 	protected:
+		void load_async( ) noexcept override;
 		void* get_target_method( ) const override;
 		void callback(csgo::DrawModelResults_t* results,
 					  const csgo::DrawModelInfo_t& info,

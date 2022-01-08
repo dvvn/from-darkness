@@ -9,14 +9,16 @@ import cheat.gui.menu;
 using namespace cheat;
 using namespace hooks::winapi;
 
-wndproc::wndproc( )
+wndproc::wndproc( ) = default;
+
+void wndproc::load_async( ) noexcept
 {
-	this->add_dependency(gui::context::get( ));
+	this->add_dependency<gui::context>( );
 }
 
 bool wndproc::load_impl( ) noexcept
 {
-	const auto hwnd = gui::context::get( )->hwnd( );
+	const auto hwnd = this->get_dependency<gui::context>( ).hwnd( );
 	runtime_assert(hwnd != nullptr);
 
 	unicode_ = IsWindowUnicode(hwnd);
@@ -27,7 +29,7 @@ bool wndproc::load_impl( ) noexcept
 
 void* wndproc::get_target_method( ) const
 {
-	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, gui::context::get( )->hwnd( ), GWLP_WNDPROC);
+	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, this->get_dependency<gui::context>( ).hwnd( ), GWLP_WNDPROC);
 	return reinterpret_cast<void*>(val);
 }
 
@@ -56,12 +58,12 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto owerride_input = [&]
 	{
-		if (gui::context::get( ).inctive( ))
+		if (this->get_dependency<gui::context>( ).inctive( ))
 			return result::none;
 
-		const auto menu = gui::menu::get( ).operator->( );
+		auto& menu = services_loader::get( ).get_dependency<gui::menu>( );
 
-		if (menu->toggle(msg, wparam))
+		if (menu.toggle(msg, wparam))
 			return result::skipped;
 
 		const auto can_skip_input = [&](bool manual_imgui_handler)
@@ -89,11 +91,11 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 		};
 
-		if (menu->updating( ))
+		if (menu.updating( ))
 			return can_skip_input(true) ? result::skipped : result::none;
 
 #ifndef  CHEAT_GUI_TEST
-		if (menu->visible( ))
+		if (menu.visible( ))
 #endif
 		{
 			if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))

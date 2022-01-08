@@ -12,11 +12,11 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
-CHEAT_SERVICE_REGISTER_GAME(standard_blending_rules);
+standard_blending_rules::standard_blending_rules( ) = default;
 
-standard_blending_rules::standard_blending_rules( )
+void standard_blending_rules::load_async( ) noexcept
 {
-	this->add_dependency(netvars::get( ));
+	this->add_dependency<netvars>( );
 }
 
 void* standard_blending_rules::get_target_method( ) const
@@ -26,7 +26,7 @@ void* standard_blending_rules::get_target_method( ) const
 	return vtable.vfunc(index).ptr( );
 }
 
-void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
+void standard_blending_rules::callback(CStudioHdr * hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
 #if 0
 	const auto pl = this->get_object_instance( );
@@ -62,3 +62,5 @@ void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], Quaternion
 
 #endif
 }
+
+CHEAT_SERVICE_REGISTER_GAME(standard_blending_rules);

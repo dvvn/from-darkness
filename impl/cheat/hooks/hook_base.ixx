@@ -8,6 +8,8 @@ export import dhooks;
 
 export namespace cheat::hooks
 {
+	//todo: template in hooks for return address
+
 	template<typename T, typename Fn>
 	struct hook_base : dynamic_service<T>, dhooks::select_hook_holder<Fn>
 	{

@@ -176,7 +176,7 @@ address game_module_storage::find_signature(const std::string_view & sig)
 
 	if (ret.empty( ))
 	{
-		console::get( ).log(L"{} -> signature \"{}\" not found", info_ptr->name( ), _Transform_cast<wchar_t>(sig));
+		services_loader::get( ).get_dependency<console>( ).log(L"{} -> signature \"{}\" not found", info_ptr->name( ), _Transform_cast<wchar_t>(sig));
 		return nullptr;
 	}
 
@@ -195,7 +195,7 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 		const auto second_module_name = all_infos::get_ptr( )->rfind([&](const info& info) { return info.name( ) == from_name; });
 		const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
 
-		console::get( ).log(L"Found \"{}\" vtable in module \"{}\"", _Transform_cast<wchar_t>(class_name), module_name);
+		services_loader::get( ).get_dependency<console>( ).log(L"Found \"{}\" vtable in module \"{}\"", _Transform_cast<wchar_t>(class_name), module_name);
 	}
 #endif
 	return vt.addr.ptr<void>( );
@@ -219,7 +219,7 @@ address game_module_storage::find_game_interface(const std::string_view & ifc_na
 		return std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
 	};
 
-	console::get( ).log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name( ), info_ptr->name( ));
+	services_loader::get( ).get_dependency<console>( ).log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name( ), info_ptr->name( ));
 #endif
 
 	return std::invoke(found->second);

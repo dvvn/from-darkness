@@ -48,34 +48,13 @@ export namespace cheat
 		, error
 	};
 
-	class basic_service;
-
-	struct stored_service_cast_tag { };
-
-	template <class T>
-	struct stored_service : std::shared_ptr<T>
-	{
-		stored_service( ) = default;
-
-		template <class Q>
-		stored_service(Q&& service)
-			: std::shared_ptr<T>(std::forward<Q>(service))
-		{
-			static_assert(std::derived_from<T, basic_service>);
-		}
-
-		template <class Q>
-		stored_service(Q&& cast_service, stored_service_cast_tag)
-			: std::shared_ptr<T>(std::forward<Q>(cast_service))
-		{
-		}
-	};
+	/*class basic_service;
 
 	template <typename T>
-	concept root_service = std::derived_from<T, basic_service>;
+	concept root_service = std::derived_from<T, basic_service>;*/
 
-	template </*root_service*/class T>
-	class shared_service;
+	//template </*root_service*/class T>
+	//class shared_service;
 
 	class __declspec(novtable) basic_service
 	{
@@ -83,7 +62,8 @@ export namespace cheat
 		using executor = cppcoro::static_thread_pool;
 		using load_result = cppcoro::task<bool>;
 		using mutex_type = cppcoro::async_mutex;
-		using value_type = stored_service<basic_service>;
+		using value_type = std::shared_ptr<basic_service>;
+		using deps_storage = std::vector<value_type>;
 
 		basic_service( );
 		virtual ~basic_service( );
@@ -95,51 +75,68 @@ export namespace cheat
 
 		const value_type* find(const std::type_info& info) const;
 		value_type* find(const std::type_info& info);
-		void erase(const std::type_info& info);
-		using erase_pred = std::function<bool(const value_type&)>;
-		void erase(const erase_pred& fn);
-		void erase_all(const erase_pred& fn);
+		//void erase(const std::type_info& info);
+		//using erase_pred = std::function<bool(const value_type&)>;
+		//void erase(const erase_pred& fn);
+		//void erase_all(const erase_pred& fn);
 		void unload( );
 
-		void add_dependency(value_type&& srv);
-
-		template <root_service T>
-		void add_dependency(const shared_service<T>& srv) { add_dependency(srv.share( )); }
+	protected:
+		size_t add_dependency(value_type&& srv);
+		/*template <root_service T>
+		size_t add_dependency(const shared_service<T>& srv)
+		{
+			return add_dependency(srv.share( ));
+		}*/
+	public:
 
 		virtual std::string_view name( ) const = 0;
 		virtual const std::type_info& type( ) const = 0;
 
 		service_state state( ) const;
+		//rename to 'do load'
 		load_result load(executor& ex) noexcept;
 	private:
 		void set_state(service_state state);
 	public:
 
-		virtual bool root_class( ) const { return false; }
+#if defined(_DEBUG) && _ITERATOR_DEBUG_LEVEL != 0
+#define CHEAT_SERVICE_AT at
+#else
+#define CHEAT_SERVICE_AT operator[]
+#endif
+
+		value_type& at(size_t index)
+		{
+			return deps_.CHEAT_SERVICE_AT(index);
+		}
+
+		const value_type& at(size_t index)const
+		{
+			return deps_.CHEAT_SERVICE_AT(index);
+		}
 
 	protected:
+		//rename to 'construct' 'lazy load' or something like it
+		virtual void load_async( )noexcept = 0;
+		//rename to 'load'
 		virtual bool load_impl( ) noexcept
 		{
 			return true;
 		}
 
+		std::span<value_type>deps( ) { return deps_; }
+		std::span<const value_type>deps( )const { return deps_; }
+
 	private:
 		mutex_type lock_;
-		std::vector<stored_service<basic_service>> deps_;
+		deps_storage deps_;
 		service_state state_ = service_state::unset;
 	};
 
-	class basic_service_shared
-	{
-	protected:
-		using value_type = stored_service<basic_service>;
-
-		void add_to_loader(value_type&& srv) const;
-		value_type* get_from_loader(const std::type_info& info) const;
-	};
-
+#if 0
 	template </*root_service*/class T>
-	class shared_service : public basic_service_shared
+	class shared_service
 	{
 	public:
 		using element_type = T;
@@ -213,13 +210,72 @@ export namespace cheat
 #endif
 			obj_;
 	};
+#endif
+}
 
-	template <typename T>
+export namespace cheat
+{
+	class services_loader;
+	basic_service* get_root_service( );
+}
+
+export namespace cheat
+{
+	template<typename ...Args>
+	struct service_getter_index
+	{
+		static constexpr size_t default_value = static_cast<size_t>(-1);
+		size_t index = default_value;
+		size_t offset = default_value;
+	};
+
+	template<typename T, typename Holder>
+	class service_getter
+	{
+		using _Holder = basic_service/*Holder*/;
+	public:
+		service_getter( ) = delete;
+
+		using index_holder = nstd::one_instance<service_getter_index<T, Holder>>;
+		using value_type = /*typename Holder*/basic_service::value_type;
+
+		static void set(size_t index, Holder* holder)
+		{
+			auto& ref = index_holder::get( );
+			runtime_assert(ref.index == ref.default_value);
+			runtime_assert(ref.offset == ref.default_value);
+			ref.index = index;
+			auto base = static_cast<basic_service*>(holder);
+			ref.offset = std::distance(reinterpret_cast<uint8_t*>(base), reinterpret_cast<uint8_t*>(holder));
+			__noop;
+		}
+
+		static const value_type& get(const _Holder* holder)
+		{
+			return holder->at(index_holder::get( ).index);
+		}
+
+		static value_type& get(_Holder* holder)
+		{
+			return holder->at(index_holder::get( ).index);
+		}
+
+		static T* unwrap(basic_service* base)
+		{
+			auto addr = reinterpret_cast<uintptr_t>(base) + index_holder::get( ).offset;
+			return reinterpret_cast<T*>(addr);
+		}
+	};
+
+	template <typename Holder>
 	struct service : basic_service
 	{
+		template<typename T>
+		using deps_getter = service_getter<T, Holder>;
+
 		std::string_view name( ) const final
 		{
-			return service_name<T>.view( );
+			return service_name<Holder>.view( );
 			/*constexpr auto tmp   = nstd::type_name<T, "cheat">;
 			constexpr auto dummy = std::string_view("_impl");
 			if constexpr (tmp.ends_with(dummy))
@@ -230,18 +286,71 @@ export namespace cheat
 
 		const std::type_info& type( ) const final
 		{
-			return typeid(T);
+			return typeid(Holder);
 		}
+
+		template<typename T>
+		auto& share_dependency( )const
+		{
+			return deps_getter<T>::get(this);
+		}
+
+		/*template<typename Q, bool Cast = false>
+		auto& get_dependency( )
+		{
+			auto& sptr = deps_getter<Q>::get(this);
+			auto ptr = sptr.get( );
+			if constexpr (Cast)
+				return *dynamic_cast<Q*>(ptr);
+			else
+				return *ptr;
+		}*/
+
+		template<typename T>
+		T& get_dependency( )
+		{
+			auto& sptr = deps_getter<T>::get(this);
+			auto ptr = sptr.get( );
+			return *deps_getter<T>::unwrap(ptr);
+		}
+
+		template<typename T>
+		const T& get_dependency( )const
+		{
+			return std::_Const_cast(this)->get_dependency<T>( );
+		}
+
+		template<typename T>
+		void add_dependency(std::shared_ptr<T> sptr = {})
+		{
+			//provide pointer manually to root service
+			//othervise take it from there
+
+			if (!sptr)
+			{
+				auto root = get_root_service( );
+				//this cannot be called from a constructor
+				runtime_assert(root->find(typeid(T)), "Service not registered");
+				auto& asptr = service_getter<T, services_loader>::get(root);
+				sptr = std::dynamic_pointer_cast<T>(asptr);
+				//sptr = service_getter<T, services_loader>::get(root);
+			}
+
+			size_t index = basic_service::add_dependency(std::move(sptr));
+			deps_getter<T>::set(index, dynamic_cast<Holder*>(this));
+		}
+
 	};
 
-	//this is wrong. hide service insed shared_services
 	template<typename T>
-	struct dynamic_service :service<T>, shared_service<T>, nstd::one_instance<T>
+	struct dynamic_service :service<T>
 	{
+	private:
+		using service<T>::deps;
 	};
+
 	template<typename T>
 	struct static_service :service<T>, nstd::one_instance<T>
 	{
 	};
-
 }

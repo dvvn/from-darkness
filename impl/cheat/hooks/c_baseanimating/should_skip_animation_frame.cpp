@@ -11,10 +11,11 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_animating;
 
+should_skip_animation_frame::should_skip_animation_frame( ) = default;
 
-should_skip_animation_frame::should_skip_animation_frame( )
+void should_skip_animation_frame::load_async( ) noexcept
 {
-	this->add_dependency(netvars::get( ));
+	this->add_dependency<netvars>( );
 }
 
 void* should_skip_animation_frame::get_target_method( ) const

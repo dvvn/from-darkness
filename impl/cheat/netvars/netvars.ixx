@@ -23,6 +23,7 @@ namespace cheat
 		int at(const std::string_view& table, const std::string_view& item) const;
 
 	protected:
+		void load_async( ) noexcept override;
 		bool load_impl( ) noexcept override;
 
 	private:

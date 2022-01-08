@@ -49,6 +49,7 @@ export namespace cheat::gui
 		fonts_builder_proxy fonts( );
 
 	protected:
+		void load_async( ) noexcept override;
 		bool load_impl( ) noexcept override;
 
 	private:

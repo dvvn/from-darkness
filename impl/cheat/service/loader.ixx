@@ -9,7 +9,7 @@ import dhooks;
 
 export namespace cheat
 {
-	using all_hooks_storage = std::vector<stored_service<dhooks::hook_holder_data>>;
+	using all_hooks_storage = std::vector<std::shared_ptr<dhooks::hook_holder_data>>;
 
 	class services_loader final : public static_service<services_loader>
 	{
@@ -22,8 +22,6 @@ export namespace cheat
 
 		services_loader(services_loader&& other) = default;
 		services_loader& operator=(services_loader&& other) = default;
-
-		bool root_class( )const override { return true; }
 
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle( ) const;
@@ -41,6 +39,7 @@ export namespace cheat
 		all_hooks_storage get_hooks(bool steal);
 
 	protected:
+		void load_async( ) noexcept override;
 		bool load_impl( ) noexcept override;
 
 	private:
@@ -50,6 +49,8 @@ export namespace cheat
 		std::jthread load_thread_;
 #endif
 	};
+
+	
 
 	//#define CHEAT_SERVICE_REGISTER(_NAME_)\
 	//	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\

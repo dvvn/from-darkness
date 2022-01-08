@@ -177,6 +177,7 @@ export namespace cheat
 
 	protected:
 		bool load_impl( ) noexcept override;
+		void load_async( ) noexcept override;
 
 	public:
 		//nstd::filesystem::path csgo_path;

@@ -162,9 +162,14 @@ bool context::inctive( ) const
 	return (hwnd_ != GetForegroundWindow( ));
 }
 
+void context::load_async( ) noexcept
+{
+	this->add_dependency<csgo_interfaces>( );
+}
+
 bool context::load_impl( ) noexcept
 {
-	const auto d3d = csgo_interfaces::get( )->d3d_device.get( );
+	const auto d3d = this->get_dependency<csgo_interfaces>( ).d3d_device.get( );
 
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*)

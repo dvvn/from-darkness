@@ -47,12 +47,13 @@ namespace fs = std::filesystem;
 log_info netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
 {
 	const fs::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
+	auto& logger = services_loader::get( ).get_dependency<console>( );
 
 	[[maybe_unused]] const auto dirs_created = create_directories(dumps_dir);
 
 	const auto netvars_dump_file = [&]
 	{
-		const std::string_view version = csgo_interfaces::get( )->engine->GetProductVersionString( );
+		const std::string_view version = services_loader::get( ).get_dependency<csgo_interfaces>( ).engine->GetProductVersionString( );
 		constexpr std::wstring_view extension = L".json";
 
 		std::wstring file_name;
@@ -70,7 +71,7 @@ log_info netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
 	{
 		auto file = std::ofstream(netvars_dump_file);
 		file << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
-		console::get( ).log("Netvars dump done");
+		logger.log("Netvars dump done");
 		return log_info::created;
 	}
 
@@ -82,11 +83,11 @@ log_info netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
 	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
 	{
 		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
-		console::get( ).log("Netvars dump updated");
+		logger.log("Netvars dump updated");
 		return log_info::updated;
 	}
 
-	console::get( ).log("Netvars dump skipped");
+	logger.log("Netvars dump skipped");
 	return log_info::skipped;
 }
 
@@ -803,7 +804,8 @@ _WORK:
 	{
 		created_msg = std::format(" Created {} files.", lazy_storage.write.size( ));
 	}
-	console::get( ).log("Netvars classes generation done.{}{}", removed_msg, created_msg);
+
+	services_loader::get( ).get_dependency<console>( ).log("Netvars classes generation done.{}{}", removed_msg, created_msg);
 #endif
 
 	if (info == log_info::created)

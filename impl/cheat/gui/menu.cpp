@@ -1,21 +1,14 @@
 ﻿module;
 
+#include "cheat/service/includes.h"
 //#include "cheat/features/aimbot.h"
 
 #include "tools/cached_text.h"
 #include "widgets/window.h"
 
-#include <nstd/runtime_assert.h>
 #include <imgui_internal.h>
 
-#include <cppcoro/task.hpp>
-
 #include <Windows.h>
-
-#include <algorithm>
-#include <functional>
-#include <random>
-#include <filesystem>
 
 module cheat.gui.menu;
 
@@ -34,8 +27,8 @@ struct menu::impl
 	void init_pages( )
 	{
 #if 0
-		tabs_pages.make_vertical();
-		tabs_pages.make_size_static();
+		tabs_pages.make_vertical( );
+		tabs_pages.make_size_static( );
 
 		/*constexpr auto init_selectable_colors = []
 		{
@@ -56,12 +49,12 @@ struct menu::impl
 		{
 			auto fn = [=]
 			{
-				const auto selected_before = source->get_selected();
+				const auto selected_before = source->get_selected( );
 				if (selected_before == self)
 					return;
 
-				selected_before->deselect();
-				self->select();
+				selected_before->deselect( );
+				self->select( );
 			};
 
 			return make_callback_info(std::move(fn), false);
@@ -71,27 +64,27 @@ struct menu::impl
 		{
 			using namespace std::chrono_literals;
 
-			auto item = std::make_unique<tab_bar_item>();
+			auto item = std::make_unique<tab_bar_item>( );
 
-			item->set_font(ImGui::GetDefaultFont());
+			item->set_font(ImGui::GetDefaultFont( ));
 			item->set_label((name));
-			auto anim = std::make_unique<smooth_value_linear<ImVec4>>();
+			auto anim = std::make_unique<smooth_value_linear<ImVec4>>( );
 			anim->set_duration(400ms);
 			item->set_background_color_modifier(std::move(anim));
-			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get()), two_way_callback::WAY_TRUE);
+			item->add_pressed_callback(make_pressed_callback(std::addressof(tab_bar), item.get( )), two_way_callback::WAY_TRUE);
 
 			tab_bar.add_item(std::move(item), data);
 
 			return *data;
 		};
 
-		auto& rage_tab = add_item_set_callbacks(tabs_pages, "rage", std::make_shared<tab_bar_with_pages>());
+		auto& rage_tab = add_item_set_callbacks(tabs_pages, "rage", std::make_shared<tab_bar_with_pages>( ));
 
-		rage_tab.make_horisontal();
-		rage_tab.make_size_auto();
-		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared());
-		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared());
-		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared());
+		rage_tab.make_horisontal( );
+		rage_tab.make_size_auto( );
+		add_item_set_callbacks(rage_tab, "aimbot", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "aimbot1", features::aimbot::get_ptr_shared( ));
+		add_item_set_callbacks(rage_tab, "aimbot2", features::aimbot::get_ptr_shared( ));
 #endif
 	}
 
@@ -106,33 +99,33 @@ struct menu::impl
 
 		// ReSharper disable CppInconsistentNaming
 		constexpr auto _Month = std::string_view(__DATE__, 3);
-		constexpr auto _Day   = std::string_view(_Month._Unchecked_end( ) + 1, 2);
-		constexpr auto _Year  = std::string_view(_Day._Unchecked_end( ) + 1, 4);
+		constexpr auto _Day = std::string_view(_Month._Unchecked_end( ) + 1, 2);
+		constexpr auto _Year = std::string_view(_Day._Unchecked_end( ) + 1, 4);
 		// ReSharper restore CppInconsistentNaming
 
 		auto month = [&]( )-> std::string_view
 		{
 			switch (_Month[0])
 			{
-				case 'J': // Jan, Jun or Jul
-					return _Month[1] == 'a' ? "01" : _Month[2] == 'n' ? "06" : "07";
-				case 'F': // Feb
-					return "02";
-				case 'M': // Mar or May
-					return _Month[2] == 'r' ? "03" : "05";
-				case 'A': // Apr or Aug
-					return _Month[2] == 'p' ? "04" : "08";
-				case 'S': // Sep
-					return "09";
-				case 'O': // Oct
-					return "10";
-				case 'N': // Nov
-					return "11";
-				case 'D': // Dec
-					return "12";
+			case 'J': // Jan, Jun or Jul
+				return _Month[1] == 'a' ? "01" : _Month[2] == 'n' ? "06" : "07";
+			case 'F': // Feb
+				return "02";
+			case 'M': // Mar or May
+				return _Month[2] == 'r' ? "03" : "05";
+			case 'A': // Apr or Aug
+				return _Month[2] == 'p' ? "04" : "08";
+			case 'S': // Sep
+				return "09";
+			case 'O': // Oct
+				return "10";
+			case 'N': // Nov
+				return "11";
+			case 'D': // Dec
+				return "12";
 			}
 			throw;
-		}( );
+		}();
 		auto day = std::string(_Day);
 		if (!std::isdigit(day[0])) //01 02 etc
 			day[0] = '0';
@@ -176,20 +169,89 @@ struct menu::impl
 	}
 };
 
-menu::menu( )
+menu::menu( ) = default;
+
+menu::~menu( ) = default;
+
+void menu::load_async( ) noexcept
 {
 	impl_ = std::make_unique<impl>( );
-	this->add_dependency(gui::context::get( ));
+	this->add_dependency<gui::context>( );
 	//this->add_dependency(features::aimbot::get( ));
 }
 
-menu::~menu( ) = default;
+bool menu::load_impl( ) noexcept
+{
+#if 0
+	renderer_.add_page([]
+					   {
+						   auto  rage_abstract = abstract_page( );
+						   auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
+
+						   using namespace features;
+						   rage.add_page(aimbot::get_ptr( ));
+						   rage.add_page(anti_aim::get_ptr( ));
+
+						   return rage_abstract;
+					   }());
+	renderer_.add_page({"settings", settings::get_ptr_shared( )});
+
+#if defined(_DEBUG)
+	renderer_.add_page([]
+					   {
+						   auto  debug_abstract = abstract_page( );
+						   auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
+
+						   debug.add_page([]
+										  {
+											  auto  debug_hooks_abstract = abstract_page( );
+											  auto& debug_hooks = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
+
+											  const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
+											  {
+												  basic_service* ptr_raw = ptr.get( );
+
+												  switch (ptr_raw->state( ).value( ))
+												  {
+												  case service_state::waiting:
+												  case service_state::loading:
+												  case service_state::loaded:
+													  break;
+												  default:
+													  return;
+												  }
+
+												  if (const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
+													  return;
+
+												  debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
+											  };
+											  using namespace hooks;
+											  add_if_hookded("window proc", winapi::wndproc::get_ptr_shared( ));
+											  add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared( ));
+
+											  return debug_hooks_abstract;
+										  }());
+						   debug.add_page(unused_page::get_ptr( ));
+						   debug.add_page(unused_page::get_ptr( ));
+
+						   return debug_abstract;
+					   }());
+#endif
+	renderer_.init( );
+#endif
+
+	impl_->init_window( );
+	impl_->init_pages( );
+
+	return true;
+}
 
 bool menu::render( )
 {
 	auto& wnd = impl_->menu_window;
 
-	if (wnd.show_next_tick( ) && !wnd.visible( ) && gui::context::get( )->inctive( ))
+	if (wnd.show_next_tick( ) && !wnd.visible( ) && this->get_dependency<gui::context>( ).inctive( ))
 		return false;
 
 	const auto end = wnd( );
@@ -208,10 +270,10 @@ bool menu::render( )
 #if 0
 	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		impl_->tabs_pages.render();
+		impl_->tabs_pages.render( );
 		//-
 	}
-	this->end();
+	this->end( );
 #endif
 
 	return true;
@@ -255,17 +317,17 @@ class unused_page final : public renderable, public string_wrapper_base
 	}
 
 public:
-	void render() override
+	void render( ) override
 	{
 #if CHEAT_GUI_HAS_IMGUI_STRV
 		ImGui::TextUnformatted(*this);
 #else
-		auto&& mb = this->multibyte();
-		ImGui::TextUnformatted(mb._Unchecked_begin(), mb._Unchecked_end());
+		auto&& mb = this->multibyte( );
+		ImGui::TextUnformatted(mb._Unchecked_begin( ), mb._Unchecked_end( ));
 #endif
 	}
 
-	static unused_page* get_ptr()
+	static unused_page* get_ptr( )
 	{
 		static size_t counter = 0;
 		return new unused_page("unused page " + std::to_string(counter++));
@@ -273,71 +335,5 @@ public:
 };
 #endif
 
-bool menu::load_impl( ) noexcept
-{
-#if 0
-	renderer_.add_page([]
-		{
-			auto  rage_abstract = abstract_page();
-			auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
+CHEAT_SERVICE_REGISTER(menu);
 
-			using namespace features;
-			rage.add_page(aimbot::get_ptr());
-			rage.add_page(anti_aim::get_ptr());
-
-			return rage_abstract;
-		}());
-	renderer_.add_page({ "settings", settings::get_ptr_shared() });
-
-#if defined(_DEBUG)
-	renderer_.add_page([]
-		{
-			auto  debug_abstract = abstract_page();
-			auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
-
-			debug.add_page([]
-				{
-					auto  debug_hooks_abstract = abstract_page();
-					auto& debug_hooks = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
-
-					const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
-					{
-						basic_service* ptr_raw = ptr.get();
-
-						switch (ptr_raw->state().value())
-						{
-						case service_state::waiting:
-						case service_state::loading:
-						case service_state::loaded:
-							break;
-						default:
-							return;
-						}
-
-						if (const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped())
-							return;
-
-						debug_hooks.add_page({ std::forward<Tstr>(name), std::forward<Tptr>(ptr) });
-					};
-					using namespace hooks;
-					add_if_hookded("window proc", winapi::wndproc::get_ptr_shared());
-					add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared());
-
-					return debug_hooks_abstract;
-				}());
-			debug.add_page(unused_page::get_ptr());
-			debug.add_page(unused_page::get_ptr());
-
-			return debug_abstract;
-		}());
-#endif
-	renderer_.init();
-#endif
-
-	impl_->init_window( );
-	impl_->init_pages( );
-
-	return true;
-}
-
-//CHEAT_SERVICE_REGISTER(menu);

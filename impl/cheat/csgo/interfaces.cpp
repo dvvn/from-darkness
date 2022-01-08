@@ -20,6 +20,12 @@ using namespace csgo;
 #ifdef CHEAT_GUI_TEST
 extern LPDIRECT3DDEVICE9 g_pd3dDevice;
 #endif
+csgo_interfaces::csgo_interfaces( ) = default;
+
+void csgo_interfaces::load_async( )noexcept
+{
+	this->add_dependency<console>( );
+}
 
 bool csgo_interfaces::load_impl( ) noexcept
 {
@@ -127,11 +133,6 @@ bool csgo_interfaces::load_impl( ) noexcept
 #endif
 
 	return true;
-}
-
-csgo_interfaces::csgo_interfaces( )
-{
-	this->add_dependency(console::get( ));
 }
 
 CHEAT_SERVICE_REGISTER(csgo_interfaces);

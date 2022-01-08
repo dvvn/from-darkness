@@ -25,6 +25,7 @@ export namespace cheat::gui
 		bool updating( )const;
 
 	protected:
+		void load_async( ) noexcept override;
 		bool load_impl( )noexcept override;
 
 	private:

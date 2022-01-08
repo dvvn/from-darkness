@@ -52,40 +52,48 @@ struct comptr : Base
 		requires(std::derived_from<T, T1>)
 	operator T1* () const noexcept
 	{
-		return Base::Get();
+		return Base::Get( );
 	}
 
 	template <typename T1>
 		requires(std::derived_from<T, T1>)
 	operator T1** () noexcept
 	{
-		return Base::ReleaseAndGetAddressOf();
+		return Base::ReleaseAndGetAddressOf( );
 	}
 
 	template <typename T1>
 		requires(std::derived_from<T, T1>)
 	operator T1* const* () const noexcept
 	{
-		return Base::GetAddressOf();
+		return Base::GetAddressOf( );
 	}
 
-	explicit operator bool() const
+	explicit operator bool( ) const
 	{
-		return !!Base::Get();
+		return !!Base::Get( );
 	}
 
-	bool operator!() const
+	bool operator!( ) const
 	{
-		return !Base::Get();
+		return !Base::Get( );
 	}
 };
 
+
+
 #if _WIN32
+
+//temporary
+static auto _Get_d3d( )
+{
+	return cheat::services_loader::get( ).get_dependency<csgo_interfaces>( ).d3d_device.get( );
+}
 
 [[nodiscard]]
 static auto _Create_texture(UINT width, UINT height) noexcept
 {
-	const auto d3d = csgo_interfaces::get()->d3d_device.get();
+	const auto d3d = _Get_d3d( );
 	comptr<IDirect3DTexture9> texture;
 	HRESULT_VALIDATE(d3d->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr));
 	return texture;
@@ -94,7 +102,7 @@ static auto _Create_texture(UINT width, UINT height) noexcept
 [[nodiscard]]
 static auto _Create_texture(UINT scale = 1) noexcept
 {
-	const auto d3d = csgo_interfaces::get()->d3d_device.get();
+	const auto d3d = _Get_d3d( );
 	comptr<IDirect3DSurface9> back_buffer;
 	HRESULT_VALIDATE(d3d->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
 	D3DSURFACE_DESC desc;
@@ -130,7 +138,7 @@ template <class Shader>
 struct basic_shader_program : comptr<Shader>
 {
 #ifndef _WIN32
-	~basic_shader_program()
+	~basic_shader_program( )
 	{
 
 		if (program)
@@ -139,11 +147,11 @@ struct basic_shader_program : comptr<Shader>
 	}
 #endif
 
-	basic_shader_program() = default;
+	basic_shader_program( ) = default;
 
 	basic_shader_program(const BYTE* shader_source_function)
 	{
-		const auto d3d = csgo_interfaces::get()->d3d_device.get();
+		const auto d3d = _Get_d3d( );
 		HRESULT_VALIDATE(d3d->CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this));
 	}
 
@@ -156,10 +164,10 @@ struct basic_shader_program : comptr<Shader>
 	{
 #ifdef _WIN32
 
-		const auto d3d = csgo_interfaces::get()->d3d_device.get();
+		const auto d3d = _Get_d3d( );
 		HRESULT_VALIDATE(d3d->SetPixelShader(*this));
-		std::array params = { uniform, 0.f, 0.f, 0.f };
-		HRESULT_VALIDATE(d3d->SetPixelShaderConstantF(location, params._Unchecked_begin(), 1));
+		std::array params = {uniform, 0.f, 0.f, 0.f};
+		HRESULT_VALIDATE(d3d->SetPixelShaderConstantF(location, params._Unchecked_begin( ), 1));
 #else
 		glUseProgram(program);
 		glUniform1f(location, uniform);
@@ -179,7 +187,7 @@ struct basic_shader_program : comptr<Shader>
 		initialized = true;
 
 #ifdef _WIN32
-		device->CreatePixelShader(reinterpret_cast<const DWORD*>(pixelShaderSrc), pixelShader.GetAddressOf());
+		device->CreatePixelShader(reinterpret_cast<const DWORD*>(pixelShaderSrc), pixelShader.GetAddressOf( ));
 #else
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &pixelShaderSrc, nullptr);
@@ -189,7 +197,7 @@ struct basic_shader_program : comptr<Shader>
 		glShaderSource(vertexShader, 1, &vertexShaderSrc, nullptr);
 		glCompileShader(vertexShader);
 
-		program = glCreateProgram();
+		program = glCreateProgram( );
 		glAttachShader(program, fragmentShader);
 		glAttachShader(program, vertexShader);
 		glLinkProgram(program);
@@ -219,22 +227,22 @@ struct custom_texture : comptr<IDirect3DTexture9>
 
 	void prepare_buffer(const RECT* surface_pos = nullptr)
 	{
-		const auto d3d = csgo_interfaces::get()->d3d_device.get();
+		const auto d3d = _Get_d3d( );
 
 		comptr<IDirect3DSurface9> back_buffer;
 		HRESULT_VALIDATE(d3d->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
 		comptr<IDirect3DSurface9> surface;
-		HRESULT_VALIDATE(Get()->GetSurfaceLevel(0, surface));
+		HRESULT_VALIDATE(Get( )->GetSurfaceLevel(0, surface));
 
 		HRESULT_VALIDATE(d3d->StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_NONE));
 	}
 
-	void set_as_target() const
+	void set_as_target( ) const
 	{
-		const auto d3d = csgo_interfaces::get()->d3d_device.get();
+		const auto d3d = _Get_d3d( );
 
 		comptr<IDirect3DSurface9> surface;
-		HRESULT_VALIDATE(Get()->GetSurfaceLevel(0, surface));
+		HRESULT_VALIDATE(Get( )->GetSurfaceLevel(0, surface));
 		//SetRenderTarget resets viewport!!!
 		HRESULT_VALIDATE(d3d->SetRenderTarget(0, surface));
 	}
@@ -243,7 +251,7 @@ struct custom_texture : comptr<IDirect3DTexture9>
 class basic_effect
 {
 public:
-	virtual ~basic_effect() = default;
+	virtual ~basic_effect( ) = default;
 
 protected:
 	virtual void begin(const ImDrawList*, const ImDrawCmd*) = 0;
@@ -254,18 +262,18 @@ public:
 	//call once per frame!
 	virtual void update(ImDrawList* drawList) noexcept
 	{
-		this->update_data();
-		drawList->AddCallback({ this, 1 }, nullptr);
+		this->update_data( );
+		drawList->AddCallback({this, 1}, nullptr);
 		this->process(drawList);
-		drawList->AddCallback({ this, 3 }, nullptr);
+		drawList->AddCallback({this, 3}, nullptr);
 		//drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 	}
 
 	//call multiple per frame (with different clip rects)
 	virtual void render(ImDrawList* drawList) = 0;
 
-	virtual void update_data() = 0;
-	virtual void reset_data() = 0;
+	virtual void update_data( ) = 0;
+	virtual void reset_data( ) = 0;
 };
 
 struct effect_data
@@ -287,7 +295,7 @@ struct debug_string : std::string
 
 	operator const char* () const
 	{
-		return c_str();
+		return c_str( );
 	}
 };
 
@@ -299,12 +307,12 @@ static void _Set_projection(int width, int height, float p0 = 1.f, float p1 = 1.
 	static_assert(sizeof(matrix_t) == sizeof(D3DMATRIX));
 	matrix_t matrix;
 
-	matrix[0] = { p0, 0.0f, 0.0f, 0.0f };
-	matrix[1] = { 0.0f, p1, 0.0f, 0.0f };
-	matrix[2] = { 0.0f, 0.0f, p2, 0.0f };
-	matrix[3] = { -1.0f / width, 1.0f / height, 0.0f, p3 };
+	matrix[0] = {p0, 0.0f, 0.0f, 0.0f};
+	matrix[1] = {0.0f, p1, 0.0f, 0.0f};
+	matrix[2] = {0.0f, 0.0f, p2, 0.0f};
+	matrix[3] = {-1.0f / width, 1.0f / height, 0.0f, p3};
 
-	TEST_RESULT = csgo_interfaces::get()->d3d_device->SetVertexShaderConstantF(0, reinterpret_cast<const float*>(matrix._Unchecked_begin()), matrix.size());
+	TEST_RESULT = csgo_interfaces::get( )->d3d_device->SetVertexShaderConstantF(0, reinterpret_cast<const float*>(matrix._Unchecked_begin( )), matrix.size( ));
 }
 #endif
 
@@ -326,8 +334,8 @@ static auto _ImRect_to_viewport(const ImRect& rect)
 
 	out.X = static_cast<DWORD>(rect.Min.x);
 	out.Y = static_cast<DWORD>(rect.Min.y);
-	out.Width = static_cast<DWORD>(rect.GetWidth());
-	out.Height = static_cast<DWORD>(rect.GetHeight());
+	out.Width = static_cast<DWORD>(rect.GetWidth( ));
+	out.Height = static_cast<DWORD>(rect.GetHeight( ));
 	out.MinZ = 0;
 	out.MaxZ = 1;
 
@@ -349,18 +357,18 @@ private:
 class blur_effect : public basic_effect
 {
 public:
-	blur_effect()
+	blur_effect( )
 	{
-		set_default_values();
+		set_default_values( );
 	}
 
 private:
-	std::function<void()> end_restore_;
+	std::function<void( )> end_restore_;
 
 protected:
-	void post_begin()
+	void post_begin( )
 	{
-		const auto d3d = csgo_interfaces::get()->d3d_device.get();
+		const auto d3d = _Get_d3d( );
 
 		comptr<IDirect3DSurface9> target;
 		HRESULT_VALIDATE(d3d->GetRenderTarget(0, target));
@@ -388,72 +396,72 @@ protected:
 
 	void begin(const ImDrawList* list, const ImDrawCmd* cmd) override
 	{
-		x.texture.prepare_buffer();
-		post_begin();
+		x.texture.prepare_buffer( );
+		post_begin( );
 	}
 
 	void first_pass(const ImDrawList* drawList, const ImDrawCmd* cmd) const noexcept
 	{
-		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front());
-		x.shader.use(1.0f / (rect.GetWidth() / down_sample_), 0);
-		y.texture.set_as_target();
+		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front( ));
+		x.shader.use(1.0f / (rect.GetWidth( ) / down_sample_), 0);
+		y.texture.set_as_target( );
 	}
 
 	void second_pass(const ImDrawList* drawList, const ImDrawCmd* cmd) const noexcept
 	{
-		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front());
-		y.shader.use(1.0f / (rect.GetHeight() / down_sample_), 0);
-		x.texture.set_as_target();
+		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front( ));
+		y.shader.use(1.0f / (rect.GetHeight( ) / down_sample_), 0);
+		x.texture.set_as_target( );
 	}
 
 	void process(ImDrawList* drawList) override
 	{
-		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front());
+		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front( ));
 
 		const auto min = ImVec2(0, 0);
-		const auto max = ImVec2(rect.GetWidth(), rect.GetHeight());
+		const auto max = ImVec2(rect.GetWidth( ), rect.GetHeight( ));
 
 		auto clarity = clarity_;
 		while (clarity-- != 0)
 		{
-			drawList->AddCallback({ this, &blur_effect::first_pass }, nullptr);
+			drawList->AddCallback({this, &blur_effect::first_pass}, nullptr);
 			drawList->AddImage(x.texture, min, max);
-			drawList->AddCallback({ this, &blur_effect::second_pass }, nullptr);
+			drawList->AddCallback({this, &blur_effect::second_pass}, nullptr);
 			drawList->AddImage(y.texture, min, max);
 		}
 	}
 
 	void end(const ImDrawList*, const ImDrawCmd*) override
 	{
-		end_restore_();
+		end_restore_( );
 	}
 
 public:
 	void render(ImDrawList* drawList) noexcept override
 	{
-		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front());
+		const auto& rect = reinterpret_cast<const ImRect&>(drawList->_ClipRectStack.front( ));
 
 		const auto min = ImVec2(0, 0);
-		const auto max = ImVec2(rect.GetWidth(), rect.GetHeight());
+		const auto max = ImVec2(rect.GetWidth( ), rect.GetHeight( ));
 
-		drawList->AddImage(x.texture, min, max, { 0.f, 0.f }, { 1.0f, 1.0f }, color_);
+		drawList->AddImage(x.texture, min, max, {0.f, 0.f}, {1.0f, 1.0f}, color_);
 	}
 
-	void update_data() override
+	void update_data( ) override
 	{
 		if (!x.texture)
 		{
-			x.texture = _Create_texture();
-			y.texture = _Create_texture();
+			x.texture = _Create_texture( );
+			y.texture = _Create_texture( );
 		}
 		if (!x.shader)
 		{
-			x.shader = { blur_x };
-			y.shader = { blur_y };
+			x.shader = {blur_x};
+			y.shader = {blur_y};
 		}
 	}
 
-	void reset_data() override
+	void reset_data( ) override
 	{
 		[[maybe_unused]] const auto dummy = std::make_tuple(std::move(x), std::move(y), std::move(end_restore_));
 	}
@@ -473,7 +481,7 @@ public:
 		color_ = clr;
 	}
 
-	ImU32 get_color() const { return color_; }
+	ImU32 get_color( ) const { return color_; }
 
 private:
 	uint8_t down_sample_ = 0;
@@ -486,16 +494,16 @@ public:
 		down_sample_ = down_sample;
 	}
 
-	uint8_t get_down_sample() const { return down_sample_; }
+	uint8_t get_down_sample( ) const { return down_sample_; }
 
 private:
 	uint8_t clarity_ = 0;
 public:
 	void set_clarity(uint8_t clarity) { clarity_ = clarity; }
-	uint8_t get_clarity() const { return clarity_; }
+	uint8_t get_clarity( ) const { return clarity_; }
 
 private:
-	void set_default_values()
+	void set_default_values( )
 	{
 		set_color(IM_COL32(255, 255, 255, 255));
 		set_clarity(8);
@@ -518,11 +526,11 @@ private:
 	} debug_strings_;
 
 public:
-	virtual void debug_update()
+	virtual void debug_update( )
 	{
 		//constexpr auto absolute_max = std::numeric_limits<uint8_t>::max( ) - 1;
 		int clarity = clarity_;
-		if (ImGui::SliderInt(debug_strings_.clarity.c_str(), &clarity, 1, 128))
+		if (ImGui::SliderInt(debug_strings_.clarity.c_str( ), &clarity, 1, 128))
 			set_clarity(static_cast<uint32_t>(clarity));
 
 		int down_sample = down_sample_;
@@ -530,10 +538,10 @@ public:
 			set_down_sample(static_cast<uint32_t>(down_sample));
 
 		if (ImGui::Button(debug_strings_.reset_values))
-			set_default_values();
+			set_default_values( );
 
 		if (ImGui::Button(debug_strings_.reset_textures))
-			reset_data();
+			reset_data( );
 	}
 
 #endif
@@ -551,20 +559,20 @@ public:
 	{
 		if (std::memcmp(&rect_, &rect, sizeof(ImRect)) == 0)
 			return;
-		x.texture.Reset();
+		x.texture.Reset( );
 		rect_ = rect;
 	}
 
-	void update_data() override
+	void update_data( ) override
 	{
 		if (!x.texture)
 		{
-			const auto w = static_cast<UINT>(rect_.GetWidth());
-			const auto h = static_cast<UINT>(rect_.GetHeight());
+			const auto w = static_cast<UINT>(rect_.GetWidth( ));
+			const auto h = static_cast<UINT>(rect_.GetHeight( ));
 			x.texture = _Create_texture(w, h);
 			y.texture = _Create_texture(w, h);
 		}
-		blur_effect::update_data();
+		blur_effect::update_data( );
 	}
 
 protected:
@@ -574,7 +582,7 @@ protected:
 		x.texture.prepare_buffer(rect);
 		delete rect;
 
-		post_begin();
+		post_begin( );
 	}
 
 public:
@@ -585,16 +593,16 @@ public:
 		blur_effect::update(drawList);
 
 		auto& begin_cmd = *std::ranges::find_if(cmdbuffer, [this](const ImDrawCmd& cmd)
-			{
-				return cmd.UserCallback == ImDrawCallback{ static_cast<basic_effect*>(this), 1 };
-			});
+												{
+													return cmd.UserCallback == ImDrawCallback{static_cast<basic_effect*>(this), 1};
+												});
 		begin_cmd.UserCallbackData = new RECT(_ImRect_to_rect(rect_));
 	}
 
 	void render(ImDrawList* drawList) noexcept override
 	{
 		//do something with uv_min and uv_max to fix streching
-		drawList->AddImage(x.texture, rect_.Min, rect_.Max, { 0.f, 0.f }, { 1.0f, 1.0f }, get_color());
+		drawList->AddImage(x.texture, rect_.Min, rect_.Max, {0.f, 0.f}, {1.0f, 1.0f}, get_color( ));
 	}
 };
 
@@ -604,37 +612,37 @@ class BlurEffect
 public:
 	static void draw(ImDrawList* drawList, float alpha) noexcept
 	{
-		instance()._draw(drawList, alpha);
+		instance( )._draw(drawList, alpha);
 	}
 
 	static void draws(ImDrawList* drawList, const ImVec2& min, const ImVec2& max, float alpha) noexcept
 	{
-		instance()._draws(drawList, min, max, alpha);
+		instance( )._draws(drawList, min, max, alpha);
 	}
 #ifdef _WIN32
-	static void clearTextures() noexcept
+	static void clearTextures( ) noexcept
 	{
-		if (instance().blurTexture1)
+		if (instance( ).blurTexture1)
 		{
-			instance().blurTexture1->Release();
-			instance().blurTexture1 = nullptr;
+			instance( ).blurTexture1->Release( );
+			instance( ).blurTexture1 = nullptr;
 		}
-		if (instance().blurTexture2)
+		if (instance( ).blurTexture2)
 		{
-			instance().blurTexture2->Release();
-			instance().blurTexture2 = nullptr;
+			instance( ).blurTexture2->Release( );
+			instance( ).blurTexture2 = nullptr;
 		}
 	}
 #else
-	static void clearTextures() noexcept
+	static void clearTextures( ) noexcept
 	{
-		if (instance().blurTexture1) {
-			glDeleteTextures(1, &instance().blurTexture1);
-			instance().blurTexture1 = 0;
+		if (instance( ).blurTexture1) {
+			glDeleteTextures(1, &instance( ).blurTexture1);
+			instance( ).blurTexture1 = 0;
 		}
-		if (instance().blurTexture2) {
-			glDeleteTextures(1, &instance().blurTexture2);
-			instance().blurTexture2 = 0;
+		if (instance( ).blurTexture2) {
+			glDeleteTextures(1, &instance( ).blurTexture2);
+			instance( ).blurTexture2 = 0;
 		}
 	}
 #endif
@@ -657,33 +665,33 @@ private:
 	ShaderProgram blurShaderY;
 	static constexpr auto blurDownsample = 4;
 
-	BlurEffect() = default;
+	BlurEffect( ) = default;
 	BlurEffect(const BlurEffect&) = delete;
 
-	~BlurEffect()
+	~BlurEffect( )
 	{
 #ifdef _WIN32
 		if (rtBackup)
-			rtBackup->Release();
+			rtBackup->Release( );
 		if (blurTexture1)
-			blurTexture1->Release();
+			blurTexture1->Release( );
 		if (blurTexture2)
-			blurTexture2->Release();
+			blurTexture2->Release( );
 #endif
 	}
 
-	static BlurEffect& instance() noexcept
+	static BlurEffect& instance( ) noexcept
 	{
 		static BlurEffect blurEffect;
 		return blurEffect;
 	}
 
-	static void begin(const ImDrawList*, const ImDrawCmd*) noexcept { instance()._begin(); }
-	static void firstPass(const ImDrawList*, const ImDrawCmd*) noexcept { instance()._firstPass(); }
-	static void secondPass(const ImDrawList*, const ImDrawCmd*) noexcept { instance()._secondPass(); }
-	static void end(const ImDrawList*, const ImDrawCmd*) noexcept { instance()._end(); }
+	static void begin(const ImDrawList*, const ImDrawCmd*) noexcept { instance( )._begin( ); }
+	static void firstPass(const ImDrawList*, const ImDrawCmd*) noexcept { instance( )._firstPass( ); }
+	static void secondPass(const ImDrawList*, const ImDrawCmd*) noexcept { instance( )._secondPass( ); }
+	static void end(const ImDrawList*, const ImDrawCmd*) noexcept { instance( )._end( ); }
 
-	void createTextures() noexcept
+	void createTextures( ) noexcept
 	{
 		if (!blurTexture1)
 			blurTexture1 = _Create_texture(_Back_buffer_width / blurDownsample, _Back_buffer_height / blurDownsample);
@@ -691,7 +699,7 @@ private:
 			blurTexture2 = _Create_texture(_Back_buffer_width / blurDownsample, _Back_buffer_height / blurDownsample);
 	}
 
-	void createShaders() noexcept
+	void createShaders( ) noexcept
 	{
 #ifdef _WIN32
 		blurShaderX.init(blur_x);
@@ -711,7 +719,7 @@ private:
 #endif
 	}
 
-	void _begin() noexcept
+	void _begin( ) noexcept
 	{
 #ifdef _WIN32
 		device->GetRenderTarget(0, &rtBackup);
@@ -757,7 +765,7 @@ private:
 #endif
 	}
 
-	void _firstPass() noexcept
+	void _firstPass( ) noexcept
 	{
 		blurShaderX.use(1.0f / (_Back_buffer_width / blurDownsample), 0);
 #ifdef _WIN32
@@ -768,7 +776,7 @@ private:
 #endif
 	}
 
-	void _secondPass() noexcept
+	void _secondPass( ) noexcept
 	{
 		blurShaderY.use(1.0f / (_Back_buffer_height / blurDownsample), 0);
 #ifdef _WIN32
@@ -779,11 +787,11 @@ private:
 #endif
 	}
 
-	void _end() noexcept
+	void _end( ) noexcept
 	{
 #ifdef _WIN32
 		device->SetRenderTarget(0, rtBackup);
-		rtBackup->Release();
+		rtBackup->Release( );
 
 		device->SetPixelShader(nullptr);
 		device->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
@@ -796,8 +804,8 @@ private:
 
 	void _draw(ImDrawList* drawList, float alpha) noexcept
 	{
-		createTextures();
-		createShaders();
+		createTextures( );
+		createShaders( );
 
 		if (!blurTexture1 || !blurTexture2)
 			return;
@@ -817,16 +825,16 @@ private:
 
 #ifdef _WIN32
 
-		drawList->AddImage(blurTexture1, min, max, { 0.0f, 0.0f }, { 1.0f, 1.0f }, IM_COL32(255, 255, 255, 255 * alpha));
+		drawList->AddImage(blurTexture1, min, max, {0.0f, 0.0f}, {1.0f, 1.0f}, IM_COL32(255, 255, 255, 255 * alpha));
 #else
-		drawList->AddImage(reinterpret_cast<ImTextureID>(blurTexture1), { 0.0f, 0.0f }, { _Back_buffer_width * 1.0f, _Back_buffer_height * 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f }, IM_COL32(255, 255, 255, 255 * alpha));
+		drawList->AddImage(reinterpret_cast<ImTextureID>(blurTexture1), {0.0f, 0.0f}, {_Back_buffer_width * 1.0f, _Back_buffer_height * 1.0f}, {0.0f, 1.0f}, {1.0f, 0.0f}, IM_COL32(255, 255, 255, 255 * alpha));
 #endif
 	}
 
 	void _draws(ImDrawList* drawList, const ImVec2& min, const ImVec2& max, float alpha) noexcept
 	{
-		createTextures();
-		createShaders();
+		createTextures( );
+		createShaders( );
 
 		if (!blurTexture1 || !blurTexture2)
 			return;
@@ -844,7 +852,7 @@ private:
 
 #ifdef _WIN32
 		drawList->AddImage(blurTexture1, min, max, ImVec2(0, 0), ImVec2(_Back_buffer_width * 1, _Back_buffer_height * 1)
-			, IM_COL32(255, 255, 255, 255 * alpha));
+						   , IM_COL32(255, 255, 255, 255 * alpha));
 #else
 		drawList->AddImage(reinterpret_cast<ImTextureID>(blurTexture1), min, max, ImVec2(0, 0), ImVec2(_Back_buffer_width * 1, _Back_buffer_height * 1), IM_COL32(255, 255, 255, 255 * alpha));
 #endif
@@ -858,13 +866,13 @@ class ChromaticAberration
 public:
 	static void draw(ImDrawList* drawList, float amount) noexcept
 	{
-		instance().amount = amount;
-		instance()._draw(drawList);
+		instance( ).amount = amount;
+		instance( )._draw(drawList);
 	}
 
-	static void clearTexture() noexcept
+	static void clearTexture( ) noexcept
 	{
-		instance()._clearTexture();
+		instance( )._clearTexture( );
 	}
 
 private:
@@ -881,29 +889,29 @@ private:
 	ShaderProgram shader;
 	float amount = 0.0f;
 
-	ChromaticAberration() = default;
+	ChromaticAberration( ) = default;
 	ChromaticAberration(const ChromaticAberration&) = delete;
 
-	~ChromaticAberration()
+	~ChromaticAberration( )
 	{
 #ifdef _WIN32
 		if (texture)
-			texture->Release();
+			texture->Release( );
 #endif
 	}
 
-	static ChromaticAberration& instance() noexcept
+	static ChromaticAberration& instance( ) noexcept
 	{
 		static ChromaticAberration chromaticAberration;
 		return chromaticAberration;
 	}
 
-	void _clearTexture() noexcept
+	void _clearTexture( ) noexcept
 	{
 #ifdef _WIN32
 		if (texture)
 		{
-			texture->Release();
+			texture->Release( );
 			texture = nullptr;
 		}
 #else
@@ -914,16 +922,16 @@ private:
 #endif
 	}
 
-	static void begin(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance()._begin(); }
-	static void end(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance()._end(); }
+	static void begin(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance( )._begin( ); }
+	static void end(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance( )._end( ); }
 
-	void _Create_texture() noexcept
+	void _Create_texture( ) noexcept
 	{
 		if (!texture)
 			texture = ::_Create_texture(_Back_buffer_width, _Back_buffer_height);
 	}
 
-	void createShaders() noexcept
+	void createShaders( ) noexcept
 	{
 #ifdef _WIN32
 		shader.init(chromatic_aberration);
@@ -936,7 +944,7 @@ private:
 #endif
 	}
 
-	void _begin() noexcept
+	void _begin( ) noexcept
 	{
 #ifdef _WIN32
 		copyBackbufferToTexture(texture, D3DTEXF_NONE);
@@ -983,7 +991,7 @@ private:
 #endif
 	}
 
-	void _end() noexcept
+	void _end( ) noexcept
 	{
 #ifdef _WIN32
 		device->SetPixelShader(nullptr);
@@ -996,13 +1004,13 @@ private:
 
 	void _draw(ImDrawList* drawList) noexcept
 	{
-		_Create_texture();
-		createShaders();
+		_Create_texture( );
+		createShaders( );
 		if (!texture)
 			return;
 
 		drawList->AddCallback(&begin, nullptr);
-		drawList->AddImage(texture, { -1.0f, -1.0f }, { 1.0f, 1.0f });
+		drawList->AddImage(texture, {-1.0f, -1.0f}, {1.0f, 1.0f});
 		drawList->AddCallback(&end, nullptr);
 		drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 	}
@@ -1013,13 +1021,13 @@ class MonochromeEffect
 public:
 	static void draw(ImDrawList* drawList, float amount) noexcept
 	{
-		instance().amount = amount;
-		instance()._draw(drawList);
+		instance( ).amount = amount;
+		instance( )._draw(drawList);
 	}
 
-	static void clearTexture() noexcept
+	static void clearTexture( ) noexcept
 	{
-		instance()._clearTexture();
+		instance( )._clearTexture( );
 	}
 
 private:
@@ -1036,29 +1044,29 @@ private:
 	ShaderProgram shader;
 	float amount = 0.0f;
 
-	MonochromeEffect() = default;
+	MonochromeEffect( ) = default;
 	MonochromeEffect(const MonochromeEffect&) = delete;
 
-	~MonochromeEffect()
+	~MonochromeEffect( )
 	{
 #ifdef _WIN32
 		if (texture)
-			texture->Release();
+			texture->Release( );
 #endif
 	}
 
-	static MonochromeEffect& instance() noexcept
+	static MonochromeEffect& instance( ) noexcept
 	{
 		static MonochromeEffect monochromeEffect;
 		return monochromeEffect;
 	}
 
-	void _clearTexture() noexcept
+	void _clearTexture( ) noexcept
 	{
 #ifdef _WIN32
 		if (texture)
 		{
-			texture->Release();
+			texture->Release( );
 			texture = nullptr;
 		}
 #else
@@ -1069,16 +1077,16 @@ private:
 #endif
 	}
 
-	static void begin(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance()._begin(); }
-	static void end(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance()._end(); }
+	static void begin(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance( )._begin( ); }
+	static void end(const ImDrawList*, const ImDrawCmd* cmd) noexcept { instance( )._end( ); }
 
-	void _Create_texture() noexcept
+	void _Create_texture( ) noexcept
 	{
 		if (!texture)
 			texture = ::_Create_texture(_Back_buffer_width, _Back_buffer_height);
 	}
 
-	void createShaders() noexcept
+	void createShaders( ) noexcept
 	{
 #ifdef _WIN32
 		shader.init(monochrome);
@@ -1091,7 +1099,7 @@ private:
 #endif
 	}
 
-	void _begin() noexcept
+	void _begin( ) noexcept
 	{
 #ifdef _WIN32
 		copyBackbufferToTexture(texture, D3DTEXF_NONE);
@@ -1138,7 +1146,7 @@ private:
 #endif
 	}
 
-	void _end() noexcept
+	void _end( ) noexcept
 	{
 #ifdef _WIN32
 		device->SetPixelShader(nullptr);
@@ -1151,13 +1159,13 @@ private:
 
 	void _draw(ImDrawList* drawList) noexcept
 	{
-		_Create_texture();
-		createShaders();
+		_Create_texture( );
+		createShaders( );
 		if (!texture)
 			return;
 
 		drawList->AddCallback(&begin, nullptr);
-		drawList->AddImage(texture, { -1.0f, -1.0f }, { 1.0f, 1.0f });
+		drawList->AddImage(texture, {-1.0f, -1.0f}, {1.0f, 1.0f});
 		drawList->AddCallback(&end, nullptr);
 		drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 	}
@@ -1179,19 +1187,19 @@ public:
 		if (found)
 			return std::forward_as_tuple(*found, false);
 
-		auto& tmp = temp_data_.emplace_back();
+		auto& tmp = temp_data_.emplace_back( );
 		tmp.first = key_wanted;
 
 		return std::forward_as_tuple(tmp.second, true);
 	}
 
-	void write_temp_data()
+	void write_temp_data( )
 	{
-		if (temp_data_.empty())
+		if (temp_data_.empty( ))
 			return;
 		for (auto& d : temp_data_)
 			this->push_back(std::move(d));
-		temp_data_.clear();
+		temp_data_.clear( );
 	}
 
 	blur_effect_scaled* find(const key_type& key_wanted)
@@ -1204,10 +1212,10 @@ public:
 		return nullptr;
 	}
 
-	void reset_all_data()
+	void reset_all_data( )
 	{
 		for (auto& [key, value] : *this)
-			value.reset_data();
+			value.reset_data( );
 	}
 
 private:
@@ -1224,7 +1232,7 @@ static blur_effect _Blur;
 void effects::perform_blur(ImDrawList* drawList, float alpha) noexcept
 {
 #ifdef USE_SCALED_BLUR
-	const auto& rect = reinterpret_cast<ImRect&>(drawList->_ClipRectStack.back());
+	const auto& rect = reinterpret_cast<ImRect&>(drawList->_ClipRectStack.back( ));
 	auto [blur, added] = _Blur_scaled[drawList];
 	blur.set_rect(rect);
 #else
@@ -1236,10 +1244,10 @@ void effects::perform_blur(ImDrawList* drawList, float alpha) noexcept
 	blur.render(drawList);
 }
 
-void effects::new_frame() noexcept
+void effects::new_frame( ) noexcept
 {
 #ifdef USE_SCALED_BLUR
-	_Blur_scaled.write_temp_data();
+	_Blur_scaled.write_temp_data( );
 #endif
 
 #ifdef _DEBUG
@@ -1254,21 +1262,21 @@ void effects::new_frame() noexcept
 
 		if (!ImGui::CollapsingHeader(wnd->Name))
 			continue;
-		ptr->debug_update();
+		ptr->debug_update( );
 	}
 #else
-	_Blur.debug_update();
+	_Blur.debug_update( );
 #endif
 #endif
 }
 
-void effects::invalidate_objects() noexcept
+void effects::invalidate_objects( ) noexcept
 {
 #ifdef USE_SCALED_BLUR
-	_Blur_scaled.write_temp_data();
-	_Blur_scaled.reset_all_data();
+	_Blur_scaled.write_temp_data( );
+	_Blur_scaled.reset_all_data( );
 #else
-	_Blur.reset_data();
+	_Blur.reset_data( );
 #endif
 }
 
@@ -1282,14 +1290,14 @@ bool effects::is_applicable(const ImGuiWindow* wnd)
 
 	constexpr auto bad_color = [](ImGuiCol_ col)
 	{
-		const auto& style = ImGui::GetStyle();
+		const auto& style = ImGui::GetStyle( );
 		const auto& clr = style.Colors[col];
 		return /*clr.w == 0 ||*/ clr.w == 1;
 	};
 
 	if (wnd->Flags & ImGuiWindowFlags_MenuBar)
 	{
-		if (wnd->Size.y == wnd->MenuBarHeight())
+		if (wnd->Size.y == wnd->MenuBarHeight( ))
 			return false;
 		if (bad_color(ImGuiCol_MenuBarBg) && bad_color(ImGuiCol_WindowBg))
 			return false;

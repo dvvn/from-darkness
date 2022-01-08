@@ -19,9 +19,14 @@ using namespace csgo;
 netvars::netvars( ) = default;
 netvars::~netvars( ) = default;
 
+void netvars::load_async( ) noexcept
+{
+	this->add_dependency<csgo_interfaces>( );
+}
+
 bool netvars::load_impl( ) noexcept
 {
-	iterate_client_class(storage_, csgo_interfaces::get( )->client->GetAllClasses( ));
+	iterate_client_class(storage_, this->get_dependency<csgo_interfaces>( ).client->GetAllClasses( ));
 
 	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
 	iterate_datamap(storage_, /*baseent->GetDataDescMap( )*/0);
@@ -46,4 +51,4 @@ int netvars::at(const std::string_view & table, const std::string_view & item) c
 	return netvar_info->find("offset"sv)->get<int>( );
 }
 
-//CHEAT_SERVICE_REGISTER(netvars);
+CHEAT_SERVICE_REGISTER_GAME(netvars);

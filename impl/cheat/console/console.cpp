@@ -1,7 +1,6 @@
 module;
 
 #include "includes.h"
-#include "cheat/service/includes.h"
 
 #include <nstd/rtlib/includes.h>
 #include <nstd/type_traits.h>
@@ -65,12 +64,7 @@ size_t console::id( ) const
 	return reinterpret_cast<size_t>(this);
 }
 
-console::console( )
-{
-#ifndef CHEAT_GUI_TEST
-	this->add_dependency(csgo_awaiter::get( ));
-#endif
-}
+console::console( ) = default;
 
 console::~console( )
 {
@@ -88,6 +82,13 @@ console::~console( )
 		fclose(out_);
 	if (err_)
 		fclose(err_);
+}
+
+void console::load_async( )noexcept
+{
+#ifndef CHEAT_GUI_TEST
+	this->add_dependency<csgo_awaiter>( );
+#endif
 }
 
 bool console::load_impl( ) noexcept
@@ -143,7 +144,7 @@ bool console::load_impl( ) noexcept
 }
 
 template <typename Chr, typename Tr>
-static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
+static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>&stream)
 {
 	using fb = std::basic_filebuf<Chr, Tr>;
 
@@ -156,7 +157,7 @@ static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 }
 
 template <bool Assert = true>
-static auto _Set_mode(FILE* file, int mode)
+static auto _Set_mode(FILE * file, int mode)
 {
 	const auto old_mode = _setmode(_fileno(file), mode);
 	if constexpr (Assert)
@@ -177,7 +178,7 @@ template <typename E, typename Tr, typename A>
 constexpr auto is_basic_ostringstream_v<std::basic_ostringstream<E, Tr, A>> = true;
 
 template <typename T>
-static decltype(auto) _Unwrap_view(T&& text)
+static decltype(auto) _Unwrap_view(T && text)
 {
 	if constexpr (is_basic_ostringstream_v<std::remove_cvref_t<T>>)
 		return text.view( );
@@ -218,7 +219,7 @@ static auto _Write_text = []<typename T>(T && text)
 };
 
 template <std::_Has_member_value_type T>
-static auto _Make_string(const T& str)
+static auto _Make_string(const T & str)
 {
 	auto bg = str.begin( );
 	auto ed = str.end( );
@@ -231,7 +232,7 @@ static auto _Make_string(const T& str)
 
 template <class T>
 	requires(!std::is_class_v<T>)
-static auto _Make_string(const T* ptr) { return std::basic_string<T>(ptr); }
+static auto _Make_string(const T * ptr) { return std::basic_string<T>(ptr); }
 
 template <class T>
 	requires(!std::is_class_v<T>)
@@ -239,10 +240,10 @@ static auto _Make_string(const T val) { return val; }
 
 template <class T>
 	requires(is_basic_ostringstream_v<T>)
-static auto _Make_string(const T& ostr) { return ostr.str( ); }
+static auto _Make_string(const T & ostr) { return ostr.str( ); }
 
 template <typename Fn, typename T>
-static auto _Decayed_bind(Fn&& fn, T&& text)
+static auto _Decayed_bind(Fn && fn, T && text)
 {
 	const auto get_text = [&]( )-> decltype(auto)
 	{
@@ -344,4 +345,4 @@ void console::write_line(string_packer&& str)
 	_Pack(str, _Write_or_cache_full, this, cache_);
 }
 
-//CHEAT_SERVICE_REGISTER(console);
+CHEAT_SERVICE_REGISTER(console);

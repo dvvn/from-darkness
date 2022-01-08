@@ -20,7 +20,7 @@ using nstd::mem::address;
 
 ConVar* utils::find_cvar(const std::string_view& cvar)
 {
-	address cvars = csgo_interfaces::get( )->cvars.get( );
+	address cvars = services_loader::get( ).get_dependency<csgo_interfaces>( ).cvars.get( );
 	ConVar* root_cvar = cvars.add(0x30).deref(1).ptr( );
 	ConVar* target_cvar = 0;
 
@@ -32,8 +32,7 @@ ConVar* utils::find_cvar(const std::string_view& cvar)
 		target_cvar = cv;
 		break;
 	}
-
-	console::get( )->log("Cvar \"{}\"{}found", cvar, target_cvar ? " not " : " ");
+	services_loader::get( ).get_dependency<console>( ).log("Cvar \"{}\"{}found", cvar, target_cvar ? " not " : " ");
 	return target_cvar;
 }
 
@@ -99,14 +98,19 @@ float utils::unlag_range( )
 	return range;
 }
 
+static const auto& _Globals( )
+{
+	return *services_loader::get( ).get_dependency<csgo_interfaces>( ).global_vars;
+}
+
 size_t utils::time_to_ticks(float time)
 {
-	const auto interval = csgo_interfaces::get( )->global_vars->interval_per_tick;
+	const auto interval = _Globals( ).interval_per_tick;
 	return static_cast<size_t>(time / interval + 0.5f);
 }
 
 float utils::ticks_to_time(size_t ticks)
 {
-	const auto interval = csgo_interfaces::get( )->global_vars->interval_per_tick;
+	const auto interval = _Globals( ).interval_per_tick;
 	return interval * static_cast<float>(ticks);
 }

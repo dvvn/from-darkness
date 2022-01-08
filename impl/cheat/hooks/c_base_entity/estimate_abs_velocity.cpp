@@ -14,9 +14,11 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_entity;
 
-estimate_abs_velocity::estimate_abs_velocity( )
+estimate_abs_velocity::estimate_abs_velocity( ) = default;
+
+void estimate_abs_velocity::load_async( ) noexcept
 {
-	this->add_dependency(netvars::get( ));
+	this->add_dependency<netvars>();
 }
 
 void* estimate_abs_velocity::get_target_method( ) const
@@ -26,7 +28,7 @@ void* estimate_abs_velocity::get_target_method( ) const
 	return vtable.vfunc(index).ptr( );
 }
 
-void estimate_abs_velocity::callback(Vector& vel)
+void estimate_abs_velocity::callback(Vector & vel)
 {
 #if 0
 	using namespace nstd::enum_operators;

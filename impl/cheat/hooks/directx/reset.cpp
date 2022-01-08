@@ -13,14 +13,16 @@ using namespace cheat;
 using namespace gui;
 using namespace hooks::directx;
 
-reset::reset( )
+reset::reset( ) = default;
+
+void reset::load_async( ) noexcept
 {
-	this->add_dependency(gui::context::get( ));
+	this->add_dependency<gui::context>( );
 }
 
 void* reset::get_target_method( ) const
 {
-	return csgo_interfaces::get( )->d3d_device.vfunc(16).ptr( );
+	return services_loader::get( ).get_dependency<csgo_interfaces>( ).d3d_device.vfunc(16).ptr( );
 }
 
 void reset::callback(D3DPRESENT_PARAMETERS*)

@@ -12,12 +12,13 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-players_list::players_list( )
-{
-	this->add_dependency(netvars::get( ));
-}
-
+players_list::players_list( ) = default;
 players_list::~players_list( ) = default;
+
+void players_list::load_async( ) noexcept
+{
+	this->add_dependency<netvars>( );
+}
 
 static void* _Player_by_index_server(int client_index)
 {
@@ -36,9 +37,9 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 
 void players_list::update( )
 {
-	const auto& interfaces = csgo_interfaces::get( );
+	const auto& interfaces = services_loader::get( ).get_dependency<csgo_interfaces>( );
 	// ReSharper disable once CppUseStructuredBinding
-	const auto& globals = *interfaces->global_vars.get( );
+	const auto& globals = *interfaces.global_vars.get( );
 
 	const auto max_clients = globals.max_clients;
 	storage_.resize(max_clients);
@@ -46,7 +47,7 @@ void players_list::update( )
 	const auto curtime = globals.curtime; //todo: made it fixed
 	const auto correct = [&]
 	{
-		const auto engine = interfaces->engine.get( );
+		const auto engine = interfaces.engine.get( );
 		const auto nci = engine->GetNetChannelInfo( );
 
 		return std::clamp(nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING) + utils::lerp_time( ), 0.f, utils::unlag_limit( ));
@@ -66,4 +67,4 @@ void players_list::update( )
 	}
 }
 
-CHEAT_SERVICE_REGISTER(players_list);
+CHEAT_SERVICE_REGISTER_GAME(players_list);

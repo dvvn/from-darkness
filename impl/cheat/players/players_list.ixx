@@ -16,6 +16,9 @@ export namespace cheat
 
 		//const detail::players_filter& filter(const players_filter_flags& flags);
 
+	protected:
+		void load_async( ) noexcept override;
+
 	private:
 		std::vector<player> storage_;
 		//nstd::unordered_set<detail::players_filter> filter_cache__;

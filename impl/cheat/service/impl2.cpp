@@ -11,11 +11,11 @@ using namespace cheat;
 // ReSharper disable once CppMemberFunctionMayBeConst
 void basic_service::unload( )
 {
-	auto& loader = services_loader::get( );
-	if (this->root_class( ))
+	/*auto loader = services_loader::get_ptr( );
+	if (this == loader)
 		reload_one_instance(loader);
 	else
-		loader.erase(this->type( ));
+		loader.erase(this->type( ));*/
 }
 
 void basic_service::set_state(service_state state)
@@ -23,7 +23,7 @@ void basic_service::set_state(service_state state)
 	runtime_assert(state_ != state);
 	runtime_assert(state_ < state);
 #ifdef CHEAT_HAVE_CONSOLE
-	auto& c = console::get( );
+	auto& c = services_loader::get( ).get_dependency<console>( );
 	switch (state)
 	{
 	case service_state::waiting:
@@ -47,15 +47,21 @@ void basic_service::set_state(service_state state)
 	state_ = state;
 }
 
+#if 0
 void basic_service_shared::add_to_loader(value_type&& srv) const
 {
 	const auto loader = services_loader::get_ptr( );
 	loader->add_dependency(std::move(srv));
 }
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
 auto basic_service_shared::get_from_loader(const std::type_info& info) const -> value_type*
 {
 	const auto loader = services_loader::get_ptr( );
 	return loader->find(info);
+}
+#endif
+
+basic_service* cheat::get_root_service( )
+{
+	return services_loader::get_ptr( );
 }

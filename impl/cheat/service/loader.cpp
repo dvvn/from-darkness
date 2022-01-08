@@ -40,6 +40,7 @@ HMODULE services_loader::my_handle( ) const
 
 void services_loader::load(HMODULE handle)
 {
+	runtime_assert("oh shit");
 	_Setup_hooks_context( );
 
 	own_handle_ = handle;
@@ -103,7 +104,6 @@ std::stop_token services_loader::load_thread_stop_token( ) const
 }
 #endif
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 auto services_loader::get_executor(size_t threads_count) -> executor_shared
 {
 	if (!executor_.expired( ))
@@ -119,13 +119,13 @@ auto services_loader::get_executor( ) -> executor_shared
 	return get_executor(std::thread::hardware_concurrency( ));
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 auto services_loader::get_hooks(bool steal) -> all_hooks_storage
 {
 	using stored_value = all_hooks_storage::value_type;
 	using stored_element = stored_value::element_type;
 	all_hooks_storage out;
 
+#if 0
 	this->erase_all([steal, &out](const value_type& val)
 					{
 						auto ptr = steal
@@ -138,13 +138,28 @@ auto services_loader::get_hooks(bool steal) -> all_hooks_storage
 
 						return steal;
 					});
+#endif
+
+	for (value_type& d : this->deps( ))
+	{
+		auto ptr = steal
+			? std::dynamic_pointer_cast<stored_element>(std::move(d))
+			: std::dynamic_pointer_cast<stored_element>(d);
+
+		if (ptr)
+			out.push_back(std::move(ptr));
+	}
 
 	return out;
 }
 
+void services_loader::load_async( ) noexcept
+{
+	this->get_dependency<console>( ).log("Cheat started");
+}
 bool services_loader::load_impl( ) noexcept
 {
-	console::get( ).log("Cheat fully loaded");
+	this->get_dependency<console>( ).log("Cheat fully loaded");
 	return true;
 }
 

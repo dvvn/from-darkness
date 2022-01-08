@@ -13,6 +13,7 @@ export namespace cheat::hooks::imgui
 		PushClipRect( );
 
 	protected:
+		void load_async( ) noexcept override;
 		void callback(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect) override;
 		void* get_target_method( ) const override;
 	};
