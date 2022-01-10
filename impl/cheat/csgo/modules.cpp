@@ -38,7 +38,9 @@ static info* _Get_module(const Rng& target_name)
 {
 	constexpr auto do_find = []<typename T>(const T & str)
 	{
-		return all_infos::get( ).find([&](const info& info)-> bool { return _Equal(info.name( ), str); });
+		auto itr = std::ranges::find_if(all_infos::get( ), [&](const info& info)-> bool { return _Equal(info.name( ).fixed, str); });
+		return _Unwrap_safe(itr);
+
 	};
 
 	if (target_name.rfind('.') == target_name.npos)
@@ -176,7 +178,7 @@ address game_module_storage::find_signature(const std::string_view & sig)
 
 	if (ret.empty( ))
 	{
-		services_loader::get( ).get_dependency<console>( ).log(L"{} -> signature \"{}\" not found", info_ptr->name( ), _Transform_cast<wchar_t>(sig));
+		services_loader::get( ).get_dependency<console>( ).log(L"{} -> signature \"{}\" not found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(sig));
 		return nullptr;
 	}
 
@@ -191,9 +193,19 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 	const auto created = vtables_tested.emplace(class_name).second;
 	if (created)
 	{
-		const std::wstring_view from_name = info_ptr->name( );
-		const auto second_module_name = all_infos::get_ptr( )->rfind([&](const info& info) { return info.name( ) == from_name; });
-		const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
+		auto infos = all_infos::get( ) | std::views::reverse;
+		const info_string& from_name = info_ptr->name( );
+
+		const auto other_module_itr = std::ranges::find_if(infos, [&](const info_string& str) {return str.fixed == from_name.fixed; }, &info::name);
+
+		std::wstring_view module_name;
+		if (other_module_itr->base( ) == info_ptr->base( ))
+			module_name = from_name.raw;
+		else
+			module_name = info_ptr->full_path( ).raw;
+
+		//const auto second_module_name = all_infos::get_ptr( )->rfind([&](const info& info) { return info.name( ) == from_name; });
+		//const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
 
 		services_loader::get( ).get_dependency<console>( ).log(L"Found \"{}\" vtable in module \"{}\"", _Transform_cast<wchar_t>(class_name), module_name);
 	}
@@ -219,7 +231,7 @@ address game_module_storage::find_game_interface(const std::string_view & ifc_na
 		return std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
 	};
 
-	services_loader::get( ).get_dependency<console>( ).log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name( ), info_ptr->name( ));
+	services_loader::get( ).get_dependency<console>( ).log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name( ), info_ptr->name( ).raw);
 #endif
 
 	return std::invoke(found->second);

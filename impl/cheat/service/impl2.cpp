@@ -11,7 +11,7 @@ using namespace cheat;
 void basic_service::unload( )
 {
 	auto loader = services_loader::get_ptr( );
-	auto this_type = this->type( );
+	auto &this_type = this->type( );
 	if (this_type == loader->type( ))
 	{
 		this->deps_.clear( );

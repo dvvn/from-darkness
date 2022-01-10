@@ -23,8 +23,7 @@ using namespace cheat;
 
 static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
 {
-	auto msg = std::ostringstream( );
-	msg << "Assertion failed!\n\n";
+	std::ostringstream msg;
 
 	const auto append = [&]<typename Name, typename Value>(Name && name, Value && value, bool newline = true)
 	{
@@ -33,11 +32,11 @@ static auto _Prepare_message(const char* expression, const char* message, const 
 			msg << '\n';
 	};
 
+	msg << "Assertion failed!\n\n";
 	append("File", location.file_name( ));
 	append("Line", location.line( ));
 	append("Column", location.column( ));
 	append("Function", location.function_name( ), false);
-
 	if (expression)
 		append("\n\nExpression", expression, false);
 	if (message)
@@ -70,7 +69,9 @@ console::~console( )
 {
 	runtime_assert_remove_handler(this->id( ));
 
+#if !defined(CHEAT_GUI_TEST) || 1
 	if (this->allocated_)
+#endif
 	{
 		FreeConsole( );
 		PostMessage(this->handle_, WM_CLOSE, 0U, 0L);
@@ -130,7 +131,7 @@ bool console::load_impl( ) noexcept
 		_Freopen(out_, "CONOUT$", "w", stdout);
 		_Freopen(err_, "CONOUT$", "w", stderr);
 
-		const auto full_path = nstd::rtlib::all_infos::get_ptr( )->current( ).full_path( );
+		const std::wstring_view full_path = nstd::rtlib::all_infos::get( ).current( ).full_path( ).raw;
 		if (!SetConsoleTitleW(full_path.data( )))
 		{
 			runtime_assert("Unable set console title");
