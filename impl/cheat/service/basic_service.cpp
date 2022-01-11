@@ -1,10 +1,9 @@
 module;
 
 #include "includes.h"
-#include <nstd/ranges.h>
 #include <cppcoro/when_all.hpp>
 
-module cheat.service:core;
+module cheat.service:basic;
 
 using namespace cheat;
 
@@ -24,54 +23,13 @@ basic_service& basic_service::operator=(basic_service && other) noexcept
 	return *this;
 }
 
-auto basic_service::find(const std::type_info & info) const -> const value_type*
+size_t basic_service::_Add_dependency(value_type && srv)
 {
-	return std::_Const_cast(this)->find(info);
-}
-
-auto basic_service::find(const std::type_info & info) -> value_type*
-{
-	for (auto& d : deps_)
-	{
-		auto& info1 = d->type( );
-		if (info == info1)
-			return std::addressof(d);
-	}
-	return nullptr;
-}
-
-#if 0
-void basic_service::erase(const std::type_info & info)
-{
-	auto& deps = deps_;
-	const auto found = std::ranges::find(deps, info, &basic_service::type);
-	if (found != deps.end( ))
-		deps.erase(found);
-}
-
-
-void basic_service::erase(const erase_pred & fn)
-{
-	auto& deps = deps_;
-	const auto found = std::ranges::find_if(deps, std::_Pass_fn(fn));
-	if (found != deps.end( ))
-		deps.erase(found);
-}
-
-void basic_service::erase_all(const erase_pred & fn)
-{
-	const auto found = std::ranges::remove_if(deps_, std::_Pass_fn(fn));
-	/*if (found != deps_.end( ))
-		deps_.erase(found, deps_.end( ));*/
-	if (!found.empty( ))
-		deps_.erase(found.begin( ), found.end( ));
-}
-
-#endif
-
-size_t basic_service::add_dependency(value_type && srv)
-{
-	runtime_assert(!find(srv->type( )), "Service already stored!");
+#ifdef _DEBUG
+	auto deps = _Deps<true>( );
+	if (std::ranges::find(deps, srv->type( ), &basic_service::type) != deps.end( ))
+		runtime_assert("Service already stored!");
+#endif 
 	deps_.push_back(std::move(srv));
 	return deps_.size( ) - 1;
 }

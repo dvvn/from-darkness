@@ -87,7 +87,7 @@ struct comptr : Base
 //temporary
 static auto _Get_d3d( )
 {
-	return cheat::services_loader::get( ).get_dependency<csgo_interfaces>( ).d3d_device.get( );
+	return cheat::services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.get( );
 }
 
 [[nodiscard]]

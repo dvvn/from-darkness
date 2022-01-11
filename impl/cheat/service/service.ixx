@@ -1,4 +1,4 @@
 export module cheat.service;
 
-export import :core;
-export import :loader;
+export import :impl;
+export import :root;

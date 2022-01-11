@@ -15,7 +15,7 @@ do_extra_bone_processing::do_extra_bone_processing( ) = default;
 
 void do_extra_bone_processing::load_async( ) noexcept
 {
-	this->add_dependency<csgo_interfaces>( );
+	this->deps( ).add<csgo_interfaces>( );
 }
 
 void* do_extra_bone_processing::get_target_method( ) const

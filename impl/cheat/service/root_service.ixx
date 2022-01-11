@@ -1,22 +1,23 @@
 module;
 
 #include "includes.h"
-#include <dhooks/includes.h>
 
-export module cheat.service:loader;
-export import :core;
-import dhooks;
+export module cheat.service:root;
+export import :impl;
 
 export namespace cheat
 {
-	using all_hooks_storage = std::vector<std::shared_ptr<dhooks::hook_holder_data>>;
-
 	class services_loader final : public static_service<services_loader>
 	{
-#ifndef CHEAT_GUI_TEST
-		using basic_service::load;
-#endif
 	public:
+		struct lazy_reset
+		{
+			virtual ~lazy_reset( ) = default;
+		};
+
+		using reset_object = std::unique_ptr<lazy_reset>;
+
+
 		~services_loader( ) override;
 		services_loader( );
 
@@ -25,18 +26,20 @@ export namespace cheat
 
 #ifndef CHEAT_GUI_TEST
 		HMODULE my_handle( ) const;
+	private:
+		using basic_service::load;
+	public:
 		void load(HMODULE handle);
-		void unload_delayed( );
 		std::stop_token load_thread_stop_token( ) const;
 #else
 		bool load( );
 #endif
+		void unload( );
+
+		reset_object reset( );
+
 		using executor_shared = std::shared_ptr<executor>;
-
-		executor_shared get_executor(size_t threads_count);
-		executor_shared get_executor( );
-
-		all_hooks_storage get_hooks(bool steal);
+		executor_shared get_executor(size_t threads_count = std::thread::hardware_concurrency( ));
 
 	protected:
 		void load_async( ) noexcept override;
@@ -49,11 +52,4 @@ export namespace cheat
 		std::jthread load_thread_;
 #endif
 	};
-
-	
-
-	//#define CHEAT_SERVICE_REGISTER(_NAME_)\
-	//	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\
-	//	[[maybe_unused]]\
-	//	static const auto _CONCAT(_Unused,__LINE__) = (_NAME_::get(), static_cast<std::byte>(0))
 }

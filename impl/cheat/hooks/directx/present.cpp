@@ -20,12 +20,12 @@ present::present( ) = default;
 
 void present::load_async( ) noexcept
 {
-	this->add_dependency<gui::menu>( );
+	this->deps( ).add<gui::menu>( );
 }
 
 void* present::get_target_method( ) const
 {
-	return services_loader::get( ).get_dependency<csgo_interfaces>( ).d3d_device.vfunc(17).ptr( );
+	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(17).ptr( );
 }
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
@@ -48,7 +48,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	effects::new_frame( );
 	{
 		[[maybe_unused]]
-		const auto render_result = this->get_dependency<menu>( ).render( );
+		const auto render_result = this->deps( ).get<menu>( ).render( );
 #if !defined(IMGUI_DISABLE_DEMO_WINDOWS)
 #ifndef CHEAT_GUI_TEST
 		if (render_result)

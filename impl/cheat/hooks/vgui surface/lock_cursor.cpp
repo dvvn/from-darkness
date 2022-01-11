@@ -12,18 +12,18 @@ lock_cursor::lock_cursor( ) = default;
 
 void lock_cursor::load_async( ) noexcept
 {
-	this->add_dependency<gui::menu>( );
+	this->deps( ).add<gui::menu>( );
 }
 
 void* lock_cursor::get_target_method( ) const
 {
-	return services_loader::get( ).get_dependency<csgo_interfaces>( ).vgui_surface.vfunc(67).ptr( );
+	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).vgui_surface.vfunc(67).ptr( );
 }
 
 void lock_cursor::callback( )
 {
 	auto inst = this->get_object_instance( );
-	if (!inst->IsCursorVisible( ) && this->get_dependency<gui::menu>( ).visible( ))
+	if (!inst->IsCursorVisible( ) && this->deps( ).get<gui::menu>( ).visible( ))
 	{
 		this->store_return_value( );
 		inst->UnlockCursor( );

@@ -14,12 +14,12 @@ draw_model::draw_model( ) = default;
 
 void draw_model::load_async( ) noexcept
 {
-	this->add_dependency<players_list>( );
+	this->deps( ).add<players_list>( );
 }
 
 void* draw_model::get_target_method( ) const
 {
-	return services_loader::get( ).get_dependency<csgo_interfaces>( ).studio_renderer.vfunc(29).ptr( );
+	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29).ptr( );
 }
 
 void draw_model::callback(DrawModelResults_t * results, const DrawModelInfo_t & info,

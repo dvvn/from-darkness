@@ -15,7 +15,7 @@ should_skip_animation_frame::should_skip_animation_frame( ) = default;
 
 void should_skip_animation_frame::load_async( ) noexcept
 {
-	this->add_dependency<netvars>( );
+	this->deps( ).add<netvars>( );
 }
 
 void* should_skip_animation_frame::get_target_method( ) const

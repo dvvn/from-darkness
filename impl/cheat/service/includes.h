@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <nstd/runtime_assert.h>
+#include <nstd/ranges.h>
 
 #include <cppcoro/static_thread_pool.hpp>
 #include <cppcoro/task.hpp>
@@ -13,12 +14,13 @@
 #ifndef CHEAT_GUI_TEST
 #include <thread>
 #include <stop_token>
+#include <windows.h>
 #endif
 
 #define CHEAT_SERVICE_REGISTER(_NAME_) \
 	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\
 	[[maybe_unused]]\
-	static const auto _CONCAT(_Reg_,_NAME_) = (::cheat::services_loader::get( ).add_dependency(std::make_shared<_NAME_>( )), static_cast<std::byte>(0))
+	static const auto _CONCAT(_Reg_,_NAME_) = (::cheat::services_loader::get( ).deps().add(std::make_shared<_NAME_>( )), static_cast<std::byte>(0))
 
 #ifdef CHEAT_GUI_TEST
 #define CHEAT_SERVICE_REGISTER_GAME(_NAME_) __pragma(message("Service \""#_NAME_"\" is disabled"))

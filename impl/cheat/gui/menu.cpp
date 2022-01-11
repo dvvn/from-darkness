@@ -176,8 +176,8 @@ menu::~menu( ) = default;
 void menu::load_async( ) noexcept
 {
 	impl_ = std::make_unique<impl>( );
-	this->add_dependency<gui::context>( );
-	//this->add_dependency(features::aimbot::get( ));
+	this->deps( ).add<gui::context>( );
+	//this->deps( ).add(features::aimbot::get( ));
 }
 
 bool menu::load_impl( ) noexcept
@@ -251,7 +251,7 @@ bool menu::render( )
 {
 	auto& wnd = impl_->menu_window;
 
-	if (wnd.show_next_tick( ) && !wnd.visible( ) && this->get_dependency<gui::context>( ).inctive( ))
+	if (wnd.show_next_tick( ) && !wnd.visible( ) && this->deps( ).get<gui::context>( ).inctive( ))
 		return false;
 
 	const auto end = wnd( );

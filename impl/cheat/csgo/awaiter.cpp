@@ -5,31 +5,45 @@
 #include <filesystem>
 
 module cheat.csgo.awaiter;
-import cheat.console;
 import nstd.rtlib;
 
 using namespace cheat;
 using namespace nstd::rtlib;
-namespace fs = std::filesystem;
 
 #ifndef CHEAT_GUI_TEST
 
+namespace fs = std::filesystem;
+
+template<class T>
+struct fs_hash :std::hash<typename T::string_type>
+{
+	auto operator()(const T& p)const
+	{
+		return std::invoke(*this, p.native( ));
+	}
+};
+
+void csgo_awaiter::load_async( ) noexcept
+{
+}
+
 bool csgo_awaiter::load_impl( ) noexcept
 {
-	const auto modules = all_infos::get_ptr( );
-	modules->update(false);
+	using hashed_sv = nstd::hashed_wstring_view;
 
-	fs::path work_dir = modules->owner( ).work_dir( );
-	auto& work_dir_native = const_cast<fs::path::string_type&>(work_dir.native( ));
-	std::ranges::transform(work_dir_native, work_dir_native.begin( ), towlower);
+	auto& modules = all_infos::get( );
+	modules.update(false);
+
+	const hashed_sv work_dir0 = modules.owner( ).work_dir( ).fixed;
+	fs::path work_dir = {work_dir0.begin( ),work_dir0.end( )};
 	work_dir.append(L"bin").append(L"serverbrowser.dll");
+	const hashed_sv work_dir_hash = work_dir.native( );
 
 	const auto is_game_loaded = [&]
 	{
-		return modules->rfind([&](const info& i)
-							  {
-								  return i.full_path( ) == work_dir.native( );
-							  }) != nullptr;
+		auto modules_r = modules | std::views::reverse;
+		auto itr = std::ranges::find(modules_r, work_dir_hash, [](const info& i)->hashed_sv {return i.full_path( ).fixed; });
+		return itr != modules_r.end( );
 	};
 
 	if (is_game_loaded( ))
@@ -46,7 +60,7 @@ bool csgo_awaiter::load_impl( ) noexcept
 		if (services_loader::get_ptr( )->load_thread_stop_token( ).stop_requested( ))
 			return false;
 
-		modules->update(true);
+		modules.update(true);
 
 		if (is_game_loaded( ))
 			return true;
@@ -54,6 +68,6 @@ bool csgo_awaiter::load_impl( ) noexcept
 	}
 	while (true);
 }
-
-CHEAT_SERVICE_REGISTER(csgo_awaiter);
 #endif
+
+CHEAT_SERVICE_REGISTER_GAME(csgo_awaiter);

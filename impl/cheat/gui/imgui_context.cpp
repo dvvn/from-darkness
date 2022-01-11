@@ -164,12 +164,12 @@ bool context::inctive( ) const
 
 void context::load_async( ) noexcept
 {
-	this->add_dependency<csgo_interfaces>( );
+	this->deps( ).add<csgo_interfaces>( );
 }
 
 bool context::load_impl( ) noexcept
 {
-	const auto d3d = this->get_dependency<csgo_interfaces>( ).d3d_device.get( );
+	const auto d3d = this->deps( ).get<csgo_interfaces>( ).d3d_device.get( );
 
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*)

@@ -13,12 +13,12 @@ wndproc::wndproc( ) = default;
 
 void wndproc::load_async( ) noexcept
 {
-	this->add_dependency<gui::context>( );
+	this->deps( ).add<gui::context>( );
 }
 
 bool wndproc::load_impl( ) noexcept
 {
-	const auto hwnd = this->get_dependency<gui::context>( ).hwnd( );
+	const auto hwnd = this->deps( ).get<gui::context>( ).hwnd( );
 	runtime_assert(hwnd != nullptr);
 
 	unicode_ = IsWindowUnicode(hwnd);
@@ -29,7 +29,7 @@ bool wndproc::load_impl( ) noexcept
 
 void* wndproc::get_target_method( ) const
 {
-	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, this->get_dependency<gui::context>( ).hwnd( ), GWLP_WNDPROC);
+	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, this->deps( ).get<gui::context>( ).hwnd( ), GWLP_WNDPROC);
 	return reinterpret_cast<void*>(val);
 }
 
@@ -58,10 +58,10 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto owerride_input = [&]
 	{
-		if (this->get_dependency<gui::context>( ).inctive( ))
+		if (this->deps( ).get<gui::context>( ).inctive( ))
 			return result::none;
 
-		auto& menu = services_loader::get( ).get_dependency<gui::menu>( );
+		auto& menu = services_loader::get( ).deps( ).get<gui::menu>( );
 
 		if (menu.toggle(msg, wparam))
 			return result::skipped;

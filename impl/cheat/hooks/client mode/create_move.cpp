@@ -15,12 +15,12 @@ create_move::create_move( ) = default;
 void create_move::load_async( ) noexcept
 {
 	this->addr1.emplace( );
-	this->add_dependency<players_list>( );
+	this->deps( ).add<players_list>( );
 }
 
 void* create_move::get_target_method( ) const
 {
-	return services_loader::get( ).get_dependency<csgo_interfaces>( ).client_mode.vfunc(24).ptr( );
+	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).client_mode.vfunc(24).ptr( );
 }
 
 void create_move::callback(float input_sample_time, CUserCmd * cmd)
@@ -31,7 +31,7 @@ void create_move::callback(float input_sample_time, CUserCmd * cmd)
 	if (cmd->iCommandNumber == 0)
 		return;
 
-	const auto& interfaces = services_loader::get( ).get_dependency<csgo_interfaces>( );
+	const auto& interfaces = services_loader::get( ).deps( ).get<csgo_interfaces>( );
 	this->store_return_value(false);
 
 	if (original_return == true)

@@ -17,7 +17,7 @@ players_list::~players_list( ) = default;
 
 void players_list::load_async( ) noexcept
 {
-	this->add_dependency<netvars>( );
+	this->deps( ).add<netvars>( );
 }
 
 static void* _Player_by_index_server(int client_index)
@@ -37,7 +37,7 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 
 void players_list::update( )
 {
-	const auto& interfaces = services_loader::get( ).get_dependency<csgo_interfaces>( );
+	const auto& interfaces = services_loader::get( ).deps( ).get<csgo_interfaces>( );
 	// ReSharper disable once CppUseStructuredBinding
 	const auto& globals = *interfaces.global_vars.get( );
 

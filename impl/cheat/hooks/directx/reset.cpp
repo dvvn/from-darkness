@@ -17,12 +17,12 @@ reset::reset( ) = default;
 
 void reset::load_async( ) noexcept
 {
-	this->add_dependency<gui::context>( );
+	this->deps( ).add<gui::context>( );
 }
 
 void* reset::get_target_method( ) const
 {
-	return services_loader::get( ).get_dependency<csgo_interfaces>( ).d3d_device.vfunc(16).ptr( );
+	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(16).ptr( );
 }
 
 void reset::callback(D3DPRESENT_PARAMETERS*)

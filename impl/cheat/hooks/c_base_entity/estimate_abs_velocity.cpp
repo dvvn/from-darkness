@@ -18,7 +18,7 @@ estimate_abs_velocity::estimate_abs_velocity( ) = default;
 
 void estimate_abs_velocity::load_async( ) noexcept
 {
-	this->add_dependency<netvars>();
+	this->deps( ).add<netvars>();
 }
 
 void* estimate_abs_velocity::get_target_method( ) const

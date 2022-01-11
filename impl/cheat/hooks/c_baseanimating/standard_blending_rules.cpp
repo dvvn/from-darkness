@@ -16,7 +16,7 @@ standard_blending_rules::standard_blending_rules( ) = default;
 
 void standard_blending_rules::load_async( ) noexcept
 {
-	this->add_dependency<netvars>( );
+	this->deps( ).add<netvars>( );
 }
 
 void* standard_blending_rules::get_target_method( ) const

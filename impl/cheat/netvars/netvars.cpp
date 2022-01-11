@@ -21,12 +21,12 @@ netvars::~netvars( ) = default;
 
 void netvars::load_async( ) noexcept
 {
-	this->add_dependency<csgo_interfaces>( );
+	this->deps( ).add<csgo_interfaces>( );
 }
 
 bool netvars::load_impl( ) noexcept
 {
-	iterate_client_class(storage_, this->get_dependency<csgo_interfaces>( ).client->GetAllClasses( ));
+	iterate_client_class(storage_, this->deps( ).get<csgo_interfaces>( ).client->GetAllClasses( ));
 
 	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
 	iterate_datamap(storage_, /*baseent->GetDataDescMap( )*/0);
