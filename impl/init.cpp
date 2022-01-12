@@ -18,7 +18,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 {
 	using namespace cheat;
 
-	switch(dwReason)
+	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
 		services_loader::get_ptr( )->load(hModule);
@@ -39,9 +39,87 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 
 #pragma comment (lib, "d3d9.lib")
 
+//#define RUN_HOOKS_TEST
+
+#ifdef RUN_HOOKS_TEST
+#include <dhooks/includes.h>
+import dhooks;
+
+struct target_struct
+{
+	int target_func( )
+	{
+		return 999;
+	}
+};
+
+int __fastcall target_func( )
+{
+	return 888;
+}
+
+struct test_struct_hook : dhooks::select_hook_holder<decltype(&target_struct::target_func)>
+{
+	void callback( ) override
+	{
+		this->store_return_value(9991);
+	}
+
+	void* get_target_method( ) const override
+	{
+		return dhooks::pointer_to_class_method(&target_struct::target_func);
+	}
+};
+
+struct test_fn_hook : dhooks::select_hook_holder<decltype(target_func)>
+{
+	void callback( ) override
+	{
+		this->store_return_value(8881);
+	}
+
+	void* get_target_method( ) const override
+	{
+		return target_func;
+	}
+};
+
+template<class T>
+static auto make_hook( )
+{
+	auto hook = std::make_unique<T>( );
+	auto h = hook->hook( );
+	runtime_assert(h == true);
+	auto e = hook->enable( );
+	runtime_assert(e == true);
+	return hook;
+}
+
+static void run_hooks_test( )
+{
+	dhooks::current_context::set(std::make_shared<dhooks::context>( ));
+	auto struct_hook = make_hook<test_struct_hook>( );
+	auto fn_hook = make_hook<test_fn_hook>( );
+	dhooks::current_context::reset( );
+
+	target_struct obj;
+
+	auto hooked_struct = obj.target_func( );
+	struct_hook.reset( );
+	auto original_struct = obj.target_func( );
+
+	auto hooked_fn = target_func( );
+	fn_hook->disable( );
+	auto original_fn = target_func( );
+
+	DebugBreak( );
+}
+
+#endif
+
 // Data
-static LPDIRECT3D9 g_pD3D            = nullptr;
-LPDIRECT3DDEVICE9 g_pd3dDevice       = nullptr;
+static LPDIRECT3D9 g_pD3D = nullptr;
+LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
 static D3DPRESENT_PARAMETERS g_d3dpp = {};
 
 // Forward declarations of helper functions
@@ -53,6 +131,10 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // Main code
 int main(int, char**)
 {
+#ifdef RUN_HOOKS_TEST
+	run_hooks_test( );
+#endif
+
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
 	const WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("ImGui Example"), nullptr};
@@ -129,7 +211,7 @@ int main(int, char**)
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 
-		static ImVec4 clear_color    = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+		static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 		static D3DCOLOR clear_col_dx = D3DCOLOR_RGBA((int)(clear_color.x * clear_color.w * 255.0f),
 													 (int)(clear_color.y * clear_color.w * 255.0f),
 													 (int)(clear_color.z * clear_color.w * 255.0f),
@@ -166,12 +248,12 @@ bool CreateDeviceD3D(HWND hWnd)
 
 	// Create the D3DDevice
 	ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
-	g_d3dpp.Windowed               = TRUE;
-	g_d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
-	g_d3dpp.BackBufferFormat       = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+	g_d3dpp.Windowed = TRUE;
+	g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
 	g_d3dpp.EnableAutoDepthStencil = TRUE;
 	g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-	g_d3dpp.PresentationInterval   = D3DPRESENT_INTERVAL_ONE; // Present with vsync
+	g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE; // Present with vsync
 	//g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
 	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice));
 }
@@ -204,21 +286,21 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
-		case WM_SIZE:
-			if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
-			{
-				g_d3dpp.BackBufferWidth  = LOWORD(lParam);
-				g_d3dpp.BackBufferHeight = HIWORD(lParam);
-				ResetDevice( );
-			}
+	case WM_SIZE:
+		if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
+		{
+			g_d3dpp.BackBufferWidth = LOWORD(lParam);
+			g_d3dpp.BackBufferHeight = HIWORD(lParam);
+			ResetDevice( );
+		}
+		return 0;
+	case WM_SYSCOMMAND:
+		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
 			return 0;
-		case WM_SYSCOMMAND:
-			if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
-				return 0;
-			break;
-		case WM_DESTROY:
-			::PostQuitMessage(0);
-			return 0;
+		break;
+	case WM_DESTROY:
+		::PostQuitMessage(0);
+		return 0;
 	}
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);
 }

@@ -94,8 +94,6 @@ void services_loader::unload( )
 #endif
 }
 
-
-
 auto services_loader::reset( )->reset_object
 {
 	using stored_value = all_hooks_storage::value_type;
@@ -130,7 +128,8 @@ void services_loader::load_async( ) noexcept
 {
 	//this->deps( ).get<console>( ).log("Cheat started");
 	using namespace dhooks;
-	current_context::set(std::make_shared<context_safe>(std::make_unique<context>( )));
+	//current_context::set(std::make_shared<context_safe>(std::make_unique<context>( )));
+	current_context::set(std::make_shared<context>( ));
 }
 bool services_loader::load_impl( ) noexcept
 {
