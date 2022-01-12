@@ -65,29 +65,32 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	for (auto r = reg; r != nullptr; r = r->next)
 		temp_entry.emplace_back(r->name, r->create_fn);
 
-	const auto contains_duplicate = [&](const std::string_view& new_string, size_t original_size)
+	const auto contains_duplicate = [&](const std::string_view& new_string, size_t max_size)
 	{
-		auto detected = false;
+		bool detected = false;
 		for (auto& raw_string : temp_entry | std::views::keys)
 		{
-			if (raw_string.size( ) != original_size)
+			if (raw_string.size( ) >= max_size)
 				continue;
+
 			if (!raw_string.starts_with(new_string))
+				continue;
+			if (raw_string.size( ) == new_string.size( ))
 				continue;
 
 			if (!detected)
 				detected = true;
 			else
-				break;
+				return true;
 		}
-		return detected;
+		return false;
 	};
-	const auto drop_underline = [&](const std::string_view& str, size_t original_size) -> std::optional<std::string_view>
+	const auto drop_underline = [&](const std::string_view& str, size_t max_size) -> std::optional<std::string_view>
 	{
 		if (str.ends_with('_'))
 		{
 			const auto str2 = str.substr(0, str.size( ) - 1);
-			if (!contains_duplicate(str2, original_size))
+			if (!contains_duplicate(str2, max_size))
 				return str2;
 		}
 		return {};
@@ -105,16 +108,15 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 			++remove;
 		}
 #endif
-		const auto original_size = str.size( );
+		const auto str_size = str.size( );
 
-		if (remove == 0)
-			return drop_underline(str, original_size);
-
-		const auto str2 = str.substr(0, str.size( ) - remove);
-		if (!contains_duplicate(str2, original_size))
-			return drop_underline(str2, original_size).value_or(str2);
-		else
-			return drop_underline(str, original_size);
+		if (remove != 0)
+		{
+			const auto str2 = str.substr(0, str.size( ) - remove);
+			if (!contains_duplicate(str2, str_size))
+				return drop_underline(str2, str_size).value_or(str2);
+		}
+		return drop_underline(str, str_size);
 	};
 
 	for (const auto [name, fn] : temp_entry)
@@ -149,7 +151,12 @@ struct transform_cast
 	template<typename Rng>
 	auto operator()(Rng&& rng)const
 	{
-		return std::views::transform(std::forward<Rng>(rng), cast_fn);
+		auto tr = std::views::transform(std::forward<Rng>(rng), cast_fn);
+#if 0
+		return tr;
+#else
+		return std::basic_string(tr.begin( ), tr.end( ));
+#endif
 	}
 
 	template<typename Itr>
@@ -216,9 +223,16 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 address game_module_storage::find_game_interface(const std::string_view & ifc_name)
 {
 	const auto found = interfaces.find(ifc_name);
+#ifdef _DEBUG
+	std::vector<std::string_view> ifcs_view;
+	ifcs_view.reserve(interfaces.size( ));
+	for (auto& [name, _] : interfaces)
+		ifcs_view.push_back(name);
+#endif 
+
 	runtime_assert(found != interfaces.end( ));
 
-#ifdef CHEAT_HAVE_CONSOLE
+#ifdef CHEAT_HAVE_CONSOLE 
 	const auto raw_ifc_name = [&]( )->std::wstring
 	{
 		const auto orig_ifc_name = found->first;
@@ -240,8 +254,8 @@ address game_module_storage::find_game_interface(const std::string_view & ifc_na
 void game_module_storage::clear_interfaces_cache( )
 {
 	//'clear' not called because we also want to free memory
-	std::_Destroy_in_place(interfaces);
-	std::_Construct_in_place(interfaces);
+	ifcs_entry_type tmp;
+	tmp.swap(interfaces);
 }
 
 struct modules_database : std::recursive_mutex, std::vector<std::unique_ptr<game_module_storage>>

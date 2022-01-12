@@ -103,7 +103,7 @@ bool csgo_interfaces::load_impl( ) noexcept
 	render_view = csgo_modules::engine->find_game_interface("VEngineRenderView");
 	engine_trace = csgo_modules::engine->find_game_interface("EngineTraceClient");
 	debug_overlay = csgo_modules::engine->find_game_interface("VDebugOverlay");
-	game_events = csgo_modules::engine->find_game_interface("GAMEEVENTSMANAGER002");
+	game_events = csgo_modules::engine->find_game_interface("GAMEEVENTSMANAGER");
 	engine_sound = csgo_modules::engine->find_game_interface("IEngineSoundClient");
 
 	mdl_cache = csgo_modules::datacache->find_game_interface("MDLCache");

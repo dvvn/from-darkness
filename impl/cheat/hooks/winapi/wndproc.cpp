@@ -43,7 +43,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		this->disable( );
 		this->store_return_value(TRUE);
-		services_loader::get( ).unload_delayed( );
+		services_loader::get( ).unload( );
 		return;
 	}
 #endif

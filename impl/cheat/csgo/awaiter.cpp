@@ -29,20 +29,18 @@ void csgo_awaiter::load_async( ) noexcept
 
 bool csgo_awaiter::load_impl( ) noexcept
 {
-	using hashed_sv = nstd::hashed_wstring_view;
-
 	auto& modules = all_infos::get( );
 	modules.update(false);
 
-	const hashed_sv work_dir0 = modules.owner( ).work_dir( ).fixed;
+	const auto& work_dir0 = modules.owner( ).work_dir( ).fixed;
 	fs::path work_dir = {work_dir0.begin( ),work_dir0.end( )};
 	work_dir.append(L"bin").append(L"serverbrowser.dll");
-	const hashed_sv work_dir_hash = work_dir.native( );
+	const nstd::hashed_wstring_view work_dir_hash = work_dir.native( );
 
 	const auto is_game_loaded = [&]
 	{
 		auto modules_r = modules | std::views::reverse;
-		auto itr = std::ranges::find(modules_r, work_dir_hash, [](const info& i)->hashed_sv {return i.full_path( ).fixed; });
+		auto itr = std::ranges::find_if(modules_r, [&](const info& i) {return work_dir_hash == i.full_path( ).fixed; });
 		return itr != modules_r.end( );
 	};
 

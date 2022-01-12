@@ -88,7 +88,7 @@ console::~console( )
 void console::load_async( )noexcept
 {
 #ifndef CHEAT_GUI_TEST
-	this->add_dependency<csgo_awaiter>( );
+	this->deps().add<csgo_awaiter>( );
 #endif
 }
 

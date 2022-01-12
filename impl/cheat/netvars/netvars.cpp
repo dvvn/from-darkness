@@ -29,8 +29,8 @@ bool netvars::load_impl( ) noexcept
 	iterate_client_class(storage_, this->deps( ).get<csgo_interfaces>( ).client->GetAllClasses( ));
 
 	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
-	iterate_datamap(storage_, /*baseent->GetDataDescMap( )*/0);
-	iterate_datamap(storage_, /*baseent->GetPredictionDescMap( )*/0);
+	iterate_datamap(storage_, baseent->GetDataDescMap( ));
+	iterate_datamap(storage_, baseent->GetPredictionDescMap( ));
 	store_handmade_netvars(storage_);
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE

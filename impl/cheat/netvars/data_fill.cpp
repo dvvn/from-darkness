@@ -64,9 +64,9 @@ bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const st
 	{
 		*entry =
 		{
-		{"offset"s, offset}
-#ifndef CHEAT_NETVARS_RESOLVE_TYPE
-	  , {"type"s, std::move(type)}
+			{"offset"s, offset}
+#ifdef CHEAT_NETVARS_RESOLVE_TYPE
+		  , {"type"s, std::move(type).str( )}
 #endif
 		};
 	}

@@ -17,24 +17,6 @@ export namespace cheat::csgo
 	using string_t = const char*;
 	// ReSharper disable once CppInconsistentNaming
 	using HSCRIPT = uint32_t;
-	class IInterpolatedVar;
-
-	class VarMapEntry_t
-	{
-	public:
-		unsigned short type;
-		unsigned short m_bNeedsToInterpolate; // Set to false when this var doesn't
-		// need Interpolate() called on it anymore.
-		void* data;
-		IInterpolatedVar* watcher;
-	};
-
-	struct VarMapping_t
-	{
-		CUtlVector<VarMapEntry_t> m_Entries;
-		int m_nInterpolatedEntries = 0;
-		float m_lastInterpolationTime = 0;
-	};
 
 	enum class m_iTeamNum_t :int32_t
 	{

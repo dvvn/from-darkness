@@ -15,6 +15,15 @@ using namespace cheat;
 services_loader::services_loader( ) = default;
 services_loader::~services_loader( ) = default;
 
+struct all_hooks_storage : services_loader::lazy_reset
+{
+	using value_type = std::shared_ptr<dhooks::hook_holder_data>;
+	using storage_type = std::vector<value_type>;
+
+	storage_type vec;
+
+	all_hooks_storage(storage_type&& storage) :vec(std::move(storage)) { }
+};
 
 #ifdef CHEAT_GUI_TEST
 
@@ -58,8 +67,10 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 
 	//destroy all except hooks
 	auto all_hooks = services_loader::get( ).reset( );
+	for (auto& h : static_cast<all_hooks_storage*>(all_hooks.get( ))->vec)
+		h->unhook_after_call( );
 	Sleep(sleep / 2);
-	all_hooks.reset( ); //unhook all
+	all_hooks.reset( ); //unhook force
 	Sleep(sleep / 2);
 	//we must close all threads before unload!
 	FreeLibraryAndExitThread(handle, retval);
@@ -83,28 +94,19 @@ void services_loader::unload( )
 #endif
 }
 
-struct all_hooks_storage : services_loader::lazy_reset
-{
-	using value_type = std::shared_ptr<dhooks::hook_holder_data>;
-	using storage_type = std::vector<value_type>;
 
-	storage_type vec;
-
-	all_hooks_storage(storage_type&& storage) :vec(std::move(storage)) { }
-};
 
 auto services_loader::reset( )->reset_object
 {
 	using stored_value = all_hooks_storage::value_type;
 	using stored_element = stored_value::element_type;
 	all_hooks_storage::storage_type hooks;
-	 
+
 	for (value_type& d : this->_Deps<false>( ))
 	{
 		auto ptr = std::dynamic_pointer_cast<stored_element>(std::move(d));
 		if (!ptr)
 			continue;
-		ptr->disable_after_call( );
 		hooks.push_back(std::move(ptr));
 	}
 
