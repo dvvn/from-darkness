@@ -1,42 +1,28 @@
 
-#include <cppcoro/static_thread_pool.hpp>
+#include "cheat/hooks/base_includes.h"
+#include "cheat/netvars/includes.h"
+#include "cheat/players/player_includes.h"
+
+#include <nstd/runtime_assert.h>
 #include <cppcoro/sync_wait.hpp>
 
 #include <Windows.h>
-
-import cheat.service;
-import cheat.gui.menu;
-
-#pragma comment(lib, "Synchronization.lib")
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-
-#ifndef CHEAT_GUI_TEST
-
-// ReSharper disable once CppInconsistentNaming
-extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
-{
-	using namespace cheat;
-
-	switch (dwReason)
-	{
-	case DLL_PROCESS_ATTACH:
-		services_loader::get_ptr( )->load(hModule);
-		break;
-	case DLL_PROCESS_DETACH:
-		services_loader::get_ptr( )->unload( );
-		break;
-	}
-
-	return TRUE;
-}
-
-#else
 
 #include <imgui.h>
 #include <d3d9.h>
 #include <tchar.h>
 
+import cheat.console;
+import cheat.csgo.interfaces;
+import cheat.gui.menu;
+import cheat.hooks.winapi;
+import cheat.hooks.imgui;
+import cheat.hooks.directx;
+import cheat.hooks.winapi;
+
+#pragma comment(lib, "Synchronization.lib")
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "Mswsock.lib")
 #pragma comment (lib, "d3d9.lib")
 
 //#define RUN_HOOKS_TEST
@@ -47,7 +33,7 @@ import dhooks;
 
 struct target_struct
 {
-	int target_func( )
+	int __stdcall target_func( )
 	{
 		return 999;
 	}
@@ -119,7 +105,7 @@ static void run_hooks_test( )
 
 // Data
 static LPDIRECT3D9 g_pD3D = nullptr;
-LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
+static LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
 static D3DPRESENT_PARAMETERS g_d3dpp = {};
 
 // Forward declarations of helper functions
@@ -128,12 +114,38 @@ static void CleanupDeviceD3D( );
 static void ResetDevice( );
 static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+template<class T>
+static void _Reg( )
+{
+	auto deps = cheat::services_loader::get( ).deps( );
+	deps.add(std::make_shared<T>( ));
+	if constexpr (std::same_as<T, cheat::csgo_interfaces>)//dont wanna to do this manually
+		deps.get<T>( ).prepare_for_gui_test(g_pd3dDevice);
+}
+
+static void register_services( )
+{
+	using namespace cheat;
+	_Reg<console>( );
+	_Reg<csgo_interfaces>( );
+	_Reg<gui::menu>( );
+	_Reg<gui::context>( );
+	using namespace hooks;
+	_Reg<winapi::wndproc>( );
+	_Reg<imgui::PushClipRect>( );
+	_Reg<directx::reset>( );
+	_Reg<directx::present>( );
+}
+
+
 // Main code
 int main(int, char**)
 {
-#ifdef RUN_HOOKS_TEST
+#ifdef RUN_HOOKS_TEST 
 	run_hooks_test( );
 #endif
+
+	using namespace cheat;
 
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
@@ -149,11 +161,15 @@ int main(int, char**)
 		return 1;
 	}
 
+	register_services( );
+
 	// Show the window
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	if (!cheat::services_loader::get( ).load( ))
+	services_loader::executor ex;
+	const auto loaded = sync_wait(services_loader::get( ).load(ex));
+	if (!loaded)
 		goto _RESET;
 
 	// Setup Dear ImGui context
@@ -226,7 +242,7 @@ int main(int, char**)
 
 _RESET:
 
-	cheat::services_loader::get( ).unload( );
+	services_loader::get( ).reset( );
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );
@@ -304,5 +320,3 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);
 }
-
-#endif

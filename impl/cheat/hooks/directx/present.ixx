@@ -6,7 +6,7 @@ module;
 export module cheat.hooks.directx:present;
 import cheat.hooks.base;
 
-namespace cheat::hooks::directx
+export namespace cheat::hooks::directx
 {
 	struct present final : hook_base<present
 		, HRESULT(__stdcall IDirect3DDevice9::*)(const RECT*, const RECT*, HWND, const RGNDATA*)>

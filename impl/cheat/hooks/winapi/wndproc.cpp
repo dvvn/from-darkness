@@ -25,7 +25,7 @@ bool wndproc::load_impl( ) noexcept
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
 	return hook_base::load_impl( );
-} 
+}
 
 void* wndproc::get_target_method( ) const
 {
@@ -38,7 +38,6 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam
 
 void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-#ifndef CHEAT_GUI_TEST
 	if (wparam == VK_DELETE && msg == WM_KEYUP)
 	{
 		this->disable( );
@@ -46,7 +45,6 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		services_loader::get( ).unload( );
 		return;
 	}
-#endif
 
 	enum class result : uint8_t
 	{
@@ -94,9 +92,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		if (menu.updating( ))
 			return can_skip_input(true) ? result::skipped : result::none;
 
-#ifndef  CHEAT_GUI_TEST
 		if (menu.visible( ))
-#endif
 		{
 			if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 				return result::blocked;
@@ -150,4 +146,3 @@ void wndproc::render( )
 }
 #endif
 
-CHEAT_SERVICE_REGISTER(wndproc);

@@ -186,6 +186,8 @@ export namespace cheat
 
 		csgo_interfaces( );
 
+		void prepare_for_gui_test(IDirect3DDevice9* d3d);
+
 		ifc<csgo::IBaseClientDLL> client;
 		ifc<csgo::IClientEntityList> entity_list;
 		ifc<csgo::IPrediction> prediction;

@@ -116,5 +116,3 @@ bool should_skip_animation_frame::render( )
 	return true;
 }
 #endif
-
-CHEAT_SERVICE_REGISTER_GAME(should_skip_animation_frame);

@@ -174,6 +174,4 @@ bool aimbot_impl::render( )
 
 	return true;
 }
-
-CHEAT_SERVICE_REGISTER(aimbot);
 #endif

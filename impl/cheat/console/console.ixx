@@ -79,7 +79,9 @@ namespace cheat
 		template<bool NewLine = true, typename Fmt, typename ...T>
 		void log(Fmt&& fmt, T&& ...args)
 		{
-#ifdef CHEAT_HAVE_CONSOLE
+#ifndef CHEAT_HAVE_CONSOLE
+			throw std::logic_error("Console not loaded");
+#endif
 			if constexpr (sizeof...(T) > 0)
 			{
 				const auto fmt_fixed = [&]( )->decltype(auto)
@@ -102,32 +104,7 @@ namespace cheat
 				else
 					write(std::forward<Fmt>(fmt));
 			}
-#endif
 		}
-
-#if 0
-		template<bool Success = true, typename ...Ex>
-		_NODISCARD bool on_service_loaded(const basic_service* srv, Ex&& ...extra)
-		{
-#ifdef CHEAT_HAVE_CONSOLE
-			constexpr bool have_extra = sizeof...(Ex) > 0;
-
-			if constexpr (have_extra)
-				cache_.lock( );
-
-			const auto srv_name = srv->name( );
-			constexpr std::string_view message = Success ? "loaded" : "not loaded";
-			this->log("\"{}\" {}.", srv_name, message);
-			if constexpr (have_extra)
-			{
-				this->log<false>(' ');
-				this->log<false>(std::forward<Ex>(extra)...);
-				cache_.unlock( );
-			}
-#endif
-			return Success;
-		}
-#endif
 
 	protected:
 		void load_async( ) noexcept override;
@@ -146,11 +123,4 @@ namespace cheat
 		void handle(const char* message, const std::source_location& location) noexcept override;
 		size_t id( ) const override;
 	};
-
-	//#ifdef CHEAT_HAVE_CONSOLE
-	//#include <format>
-	//#define CHEAT_CONSOLE_LOG(msg) cheat::console::get( )->write_line(msg);
-	//#else
-	//#define CHEAT_CONSOLE_LOG(msg) (void)0
-	//#endif
 }

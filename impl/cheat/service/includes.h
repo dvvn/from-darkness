@@ -17,16 +17,16 @@
 #include <windows.h>
 #endif
 
-#define CHEAT_SERVICE_REGISTER(_NAME_) \
-	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\
-	[[maybe_unused]]\
-	static const auto _CONCAT(_Reg_,_NAME_) = (::cheat::services_loader::get( ).deps().add(std::make_shared<_NAME_>( )), static_cast<std::byte>(0))
+//#define CHEAT_SERVICE_REGISTER(_NAME_) \
+//	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\
+//	[[maybe_unused]]\
+//	static const auto _CONCAT(_Reg_,_NAME_) = (::cheat::services_loader::get( ).deps().add(std::make_shared<_NAME_>( )), static_cast<std::byte>(0))
 
-#ifdef CHEAT_GUI_TEST
-#define CHEAT_SERVICE_REGISTER_GAME(_NAME_) __pragma(message("Service \""#_NAME_"\" is disabled"))
-#else
-#define CHEAT_SERVICE_REGISTER_GAME CHEAT_SERVICE_REGISTER
-#endif
+//#ifdef CHEAT_GUI_TEST
+//#define CHEAT_SERVICE_REGISTER(_NAME_) __pragma(message("Service \""#_NAME_"\" is disabled"))
+//#else
+//#define CHEAT_SERVICE_REGISTER CHEAT_SERVICE_REGISTER
+//#endif
 
 #if 0
 

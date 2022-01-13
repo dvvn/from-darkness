@@ -50,9 +50,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 		[[maybe_unused]]
 		const auto render_result = this->deps( ).get<menu>( ).render( );
 #if !defined(IMGUI_DISABLE_DEMO_WINDOWS)
-#ifndef CHEAT_GUI_TEST
 		if (render_result)
-#endif
 			ImGui::ShowDemoWindow( );
 #endif
 	}
@@ -67,5 +65,3 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	[[maybe_unused]] const auto end = d3d_device->EndScene( );
 	runtime_assert(SUCCEEDED(end));
 }
-
-CHEAT_SERVICE_REGISTER(present);

@@ -62,5 +62,3 @@ void standard_blending_rules::callback(CStudioHdr * hdr, Vector pos[], Quaternio
 
 #endif
 }
-
-CHEAT_SERVICE_REGISTER_GAME(standard_blending_rules);

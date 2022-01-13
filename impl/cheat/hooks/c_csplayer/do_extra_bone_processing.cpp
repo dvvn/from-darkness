@@ -31,6 +31,3 @@ void do_extra_bone_processing::callback(CStudioHdr * studio_hdr, Vector pos[],
 {
 	this->store_return_value( );
 }
-
-
-CHEAT_SERVICE_REGISTER_GAME(do_extra_bone_processing);

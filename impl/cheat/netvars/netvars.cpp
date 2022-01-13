@@ -51,4 +51,3 @@ int netvars::at(const std::string_view & table, const std::string_view & item) c
 	return netvar_info->find("offset"sv)->get<int>( );
 }
 
-CHEAT_SERVICE_REGISTER_GAME(netvars);

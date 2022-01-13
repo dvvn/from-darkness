@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build"
+		 xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="Debug|Win32">
+			<Configuration>Debug</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|Win32">
+			<Configuration>Release</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+
+	<PropertyGroup Label="Globals">
+		<ProjectGuid>{DDAA17EC-019B-4B6C-80E0-DAD3DFC2C6C5}</ProjectGuid>
+		<RootNamespace>imgui</RootNamespace>
+	</PropertyGroup>
+	<Import Project="$(SolutionDir)/Props/Globals.props"/>
+
+	<PropertyGroup Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+	</PropertyGroup>
+
+	<ImportGroup Label="PropertySheets">
+		<Import Project="$(SolutionDir)/Props/Configuration.props"/>
+		<Import Project="$(SolutionDir)/deps/imgui/Settings.props"/>
+		<Import Project="$(SolutionDir)/Props/Settings.props"/>
+	</ImportGroup>
+
+	<ItemGroup>
+		<Natvis Include="$(GitClonedProjects)\imgui\misc\debuggers\*.natvis" />
+		<ClCompile Include="$(GitClonedProjects)\imgui\*.cpp" />
+		<ClCompile Include="$(GitClonedProjects)\imgui\misc\cpp\*.cpp" />
+		<ClCompile Include="$(GitClonedProjects)\imgui\backends\*dx9.cpp" />
+		<ClCompile Include="$(GitClonedProjects)\imgui\backends\*win32.cpp" />
+	</ItemGroup>
+</Project>

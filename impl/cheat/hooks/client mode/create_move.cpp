@@ -45,5 +45,3 @@ void create_move::callback(float input_sample_time, CUserCmd * cmd)
 
 	bool& send_packet = address(/*this->return_address( )*/*this->addr1).remove(4).deref(1).remove(0x1C).ref( );
 }
-
-CHEAT_SERVICE_REGISTER_GAME(create_move);

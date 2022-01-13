@@ -30,14 +30,6 @@ export namespace cheat
 		, error
 	};
 
-	/*class basic_service;
-
-	template <typename T>
-	concept root_service = std::derived_from<T, basic_service>;*/
-
-	//template </*root_service*/class T>
-	//class shared_service;
-
 	class __declspec(novtable) basic_service
 	{
 	public:
@@ -64,10 +56,10 @@ export namespace cheat
 		service_state state( ) const;
 		//rename to 'do load'
 		load_result load(executor& ex) noexcept;
-	private:
-		void set_state(service_state state);
 
 	protected:
+		void set_state(service_state state);
+
 		//rename to 'construct' 'lazy load' or something like it
 		virtual void load_async( )noexcept = 0;
 		//rename to 'load'

@@ -6,7 +6,7 @@ module;
 export module cheat.hooks.directx:reset;
 import cheat.hooks.base;
 
-namespace cheat::hooks::directx
+export namespace cheat::hooks::directx
 {
 	struct reset final : hook_base < reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
 	{

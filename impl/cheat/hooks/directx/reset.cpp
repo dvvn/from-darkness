@@ -30,5 +30,3 @@ void reset::callback(D3DPRESENT_PARAMETERS*)
 	ImGui_ImplDX9_InvalidateDeviceObjects( );
 	effects::invalidate_objects( );
 }
-
-CHEAT_SERVICE_REGISTER(reset);

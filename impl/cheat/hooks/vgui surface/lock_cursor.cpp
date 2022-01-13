@@ -29,5 +29,3 @@ void lock_cursor::callback( )
 		inst->UnlockCursor( );
 	}
 }
-
-CHEAT_SERVICE_REGISTER_GAME(lock_cursor);

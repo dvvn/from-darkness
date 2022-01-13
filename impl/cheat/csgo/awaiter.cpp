@@ -10,8 +10,6 @@ import nstd.rtlib;
 using namespace cheat;
 using namespace nstd::rtlib;
 
-#ifndef CHEAT_GUI_TEST
-
 namespace fs = std::filesystem;
 
 template<class T>
@@ -55,7 +53,7 @@ bool csgo_awaiter::load_impl( ) noexcept
 		using namespace std::chrono_literals;
 		std::this_thread::sleep_for((100ms));
 		//todo: cppcoro::cancellation_token
-		if (services_loader::get_ptr( )->load_thread_stop_token( ).stop_requested( ))
+		if (services_loader::get( ).load_thread.get_stop_token( ).stop_requested( ))
 			return false;
 
 		modules.update(true);
@@ -66,6 +64,3 @@ bool csgo_awaiter::load_impl( ) noexcept
 	}
 	while (true);
 }
-#endif
-
-CHEAT_SERVICE_REGISTER_GAME(csgo_awaiter);

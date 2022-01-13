@@ -244,5 +244,3 @@ bool context::load_impl( ) noexcept
 
 	return true;
 }
-
-CHEAT_SERVICE_REGISTER(context);

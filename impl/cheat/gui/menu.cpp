@@ -136,9 +136,9 @@ struct menu::impl
 		title_append(" | ", "DEBUG", " | ", __TIME__);
 #endif
 
-#ifdef CHEAT_GUI_TEST
-		title_append(" | ", "GUI TEST");
-#endif
+//#ifdef CHEAT_GUI_TEST
+//		title_append(" | ", "GUI TEST");
+//#endif
 
 		//----------
 
@@ -155,13 +155,8 @@ struct menu::impl
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
 		w.show_anim.set_end(/*1*/global_alpha);
 		w.show_anim.set_duration(250ms);
-#if 1//CHEAT_GUI_TEST || _DEBUG
 		w.show_anim.restart(true);
 		w.set(true);
-#else
-		w.set(false);
-#endif
-
 		w.show_anim.set_target(global_alpha);
 		w.flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
@@ -334,6 +329,3 @@ public:
 	}
 };
 #endif
-
-CHEAT_SERVICE_REGISTER(menu);
-

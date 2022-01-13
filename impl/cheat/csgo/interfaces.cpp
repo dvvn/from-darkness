@@ -1,26 +1,24 @@
 module;
 
 #include "cheat/service/includes.h"
-#ifndef CHEAT_GUI_TEST
 #include "cheat/csgo/modules_includes.h"
-#endif
 #include <nstd/mem/address_includes.h>
 
 #include <d3d9.h>
 
 module cheat.csgo.interfaces;
-#ifndef CHEAT_GUI_TEST
 import cheat.csgo.modules;
-#endif
 import cheat.console;
 
 using namespace cheat;
 using namespace csgo;
 
-#ifdef CHEAT_GUI_TEST
-extern LPDIRECT3DDEVICE9 g_pd3dDevice;
-#endif
 csgo_interfaces::csgo_interfaces( ) = default;
+
+void csgo_interfaces::prepare_for_gui_test(IDirect3DDevice9 * d3d)
+{
+	this->d3d_device = d3d;
+}
 
 void csgo_interfaces::load_async( )noexcept
 {
@@ -88,9 +86,12 @@ bool csgo_interfaces::load_impl( ) noexcept
 #endif
 #endif
 
-#ifdef CHEAT_GUI_TEST
-	d3d_device = g_pd3dDevice;
-#else
+	if (!d3d_device.empty( ))
+	{
+		//prepare_for_gui_test called
+		return true;
+	}
+
 
 	client = csgo_modules::client->find_game_interface("VClient");
 	entity_list = csgo_modules::client->find_game_interface("VClientEntityList");
@@ -130,9 +131,6 @@ bool csgo_interfaces::load_impl( ) noexcept
 	client_state = csgo_modules::engine->find_signature("A1 ? ? ? ? 8B 80 ? ? ? ? C3").add(1).deref(2);
 
 	d3d_device = csgo_modules::shaderapidx9->find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
-#endif
 
 	return true;
 }
-
-CHEAT_SERVICE_REGISTER(csgo_interfaces);

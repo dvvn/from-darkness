@@ -48,5 +48,3 @@ void PushClipRect::callback(const ImVec2 & clip_rect_min, const ImVec2 & clip_re
 	effects::perform_blur(dlist, ImGui::GetStyle( ).Alpha);
 	dlist->PopClipRect( );
 }
-
-CHEAT_SERVICE_REGISTER(PushClipRect);

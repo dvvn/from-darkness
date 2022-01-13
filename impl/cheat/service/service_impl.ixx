@@ -39,7 +39,6 @@ _INLINE_VAR constexpr auto service_name = []
 
 export namespace cheat
 {
-
 	template<typename ...Args>
 	struct service_getter_index
 	{
@@ -148,11 +147,12 @@ export namespace cheat
 			if (!sptr)//this code cannot be called from a constructor
 			{
 				auto rootptr = get_root_service( );
-#ifdef _DEBUG
+
 				auto deps = rootptr->_Deps<true>( );
-				if (std::ranges::find(deps, typeid(T), &basic_service::type) == deps.end( ))
-					runtime_assert("Service not registered");
-#endif
+				auto loaded = std::ranges::find(deps, typeid(T), &basic_service::type);
+				if (loaded == deps.end( ))
+					return;
+
 				auto& asptr = service_getter<T, services_loader>::get(rootptr);
 				sptr = std::dynamic_pointer_cast<T>(asptr);
 				//sptr = service_getter<T, services_loader>::get(rootptr);
@@ -167,11 +167,6 @@ export namespace cheat
 	struct service;
 
 	template <typename Holder>
-	service_deps_getter(service<Holder>*)->service_deps_getter<Holder, false>;
-	template <typename Holder>
-	service_deps_getter(const service<Holder>*)->service_deps_getter<Holder, true>;
-
-	template <typename Holder>
 	struct service : basic_service
 	{
 		std::string_view name( ) const final
@@ -184,19 +179,20 @@ export namespace cheat
 			else
 				return tmp;*/
 		}
+
 		const std::type_info& type( ) const final
 		{
 			return typeid(Holder);
 		}
 
-		auto deps( )
+		service_deps_getter<Holder, false> deps( )
 		{
-			return service_deps_getter(this);
+			return {static_cast<basic_service*>(this)};
 		}
 
-		auto deps( )const
+		service_deps_getter<Holder, true> deps( )const
 		{
-			return service_deps_getter(this);
+			return {static_cast<const basic_service*>(this)};
 		}
 	};
 

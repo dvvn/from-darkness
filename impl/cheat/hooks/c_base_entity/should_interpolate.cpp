@@ -5,8 +5,6 @@
 using namespace cheat;
 using namespace hooks::c_base_entity;
 
-CHEAT_SERVICE_REGISTER_GAME(should_interpolate);
-
 should_interpolate::should_interpolate( )
 {
 	this->wait_for_service<netvars>( );

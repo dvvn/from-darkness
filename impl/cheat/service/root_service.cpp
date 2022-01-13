@@ -1,13 +1,13 @@
 module;
 #include "includes.h"
-#include <cppcoro/sync_wait.hpp>
+
 #include <dhooks/includes.h>
+
+#include <cppcoro/sync_wait.hpp>
 
 module cheat.service:root;
 //import cheat.console;
-#ifndef CHEAT_GUI_TEST
 import cheat.csgo.awaiter;
-#endif
 import dhooks;
 
 using namespace cheat;
@@ -25,46 +25,32 @@ struct all_hooks_storage : services_loader::lazy_reset
 	all_hooks_storage(storage_type&& storage) :vec(std::move(storage)) { }
 };
 
-#ifdef CHEAT_GUI_TEST
-
-bool services_loader::load( )
+void services_loader::load_async(const std::shared_ptr<executor>&ex)
 {
-	const auto executor = this->get_executor( );
-	return cppcoro::sync_wait(basic_service::load(*executor));
-}
-
-#else
-
-HMODULE services_loader::my_handle( ) const
-{
-	return own_handle_;
-}
-
-void services_loader::load(HMODULE handle)
-{
-
-	own_handle_ = handle;
-	load_thread_ = std::jthread([this]
-								{
-									const auto ex = this->get_executor( );
-									if (!sync_wait(this->load(*ex)))
-										this->unload( );
-								});
+	load_thread = std::jthread([=]
+							   {
+								   if (sync_wait(this->load(*ex)))
+									   return;
+								   auto hooks = this->reset( );
+								   using namespace std::chrono_literals;
+								   std::this_thread::sleep_for(200ms);
+								   FreeLibrary(module_handle);
+							   });
 }
 
 struct unload_helper_data
 {
 	DWORD sleep;
-	HMODULE handle;
 	BOOL retval;
 };
 
 static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 {
 	const auto data_ptr = static_cast<unload_helper_data*>(data_packed);
-	const auto [sleep, handle, retval] = *data_ptr;
+	const auto [sleep, retval] = *data_ptr;
 	delete data_ptr;
 
+	auto handle = services_loader::get( ).module_handle;
 	//destroy all except hooks
 	auto all_hooks = services_loader::get( ).reset( );
 	for (auto& h : static_cast<all_hooks_storage*>(all_hooks.get( ))->vec)
@@ -76,22 +62,11 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	FreeLibraryAndExitThread(handle, retval);
 }
 
-std::stop_token services_loader::load_thread_stop_token( ) const
-{
-	return load_thread_.get_stop_token( );
-}
-#endif
-
 void services_loader::unload( )
 {
-#ifdef CHEAT_GUI_TEST
-	this->reset( );
-#else
-	this->load_thread_.request_stop( );
-	(void)this;
-	const auto data = new unload_helper_data{1000,own_handle_,TRUE};
+	load_thread.request_stop( );
+	const auto data = new unload_helper_data{1500,TRUE};
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
-#endif
 }
 
 auto services_loader::reset( )->reset_object
@@ -112,16 +87,6 @@ auto services_loader::reset( )->reset_object
 	tmp = std::move(*this);
 
 	return std::make_unique<all_hooks_storage>(std::move(hooks));
-}
-
-auto services_loader::get_executor(size_t threads_count) -> executor_shared
-{
-	if (!executor_.expired( ))
-		return executor_.lock( );
-
-	auto out = std::make_shared<executor>(threads_count);
-	executor_ = out;
-	return out;
 }
 
 void services_loader::load_async( ) noexcept

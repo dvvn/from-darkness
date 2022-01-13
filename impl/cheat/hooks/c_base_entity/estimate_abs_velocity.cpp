@@ -46,5 +46,3 @@ void estimate_abs_velocity::callback(Vector & vel)
 	this->store_return_value(true);
 #endif
 }
-
-CHEAT_SERVICE_REGISTER_GAME(estimate_abs_velocity);

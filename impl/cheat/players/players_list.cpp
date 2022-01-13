@@ -66,5 +66,3 @@ void players_list::update( )
 #endif
 	}
 }
-
-CHEAT_SERVICE_REGISTER_GAME(players_list);

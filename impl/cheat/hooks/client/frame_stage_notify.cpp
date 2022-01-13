@@ -41,5 +41,3 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 		break;
 	}
 }
-
-CHEAT_SERVICE_REGISTER_GAME(frame_stage_notify);

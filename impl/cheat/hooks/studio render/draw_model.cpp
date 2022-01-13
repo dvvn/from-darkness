@@ -29,6 +29,3 @@ void draw_model::callback(DrawModelResults_t * results, const DrawModelInfo_t & 
 {
 }
 
-CHEAT_SERVICE_REGISTER_GAME(draw_model);
-
-

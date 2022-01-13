@@ -14,9 +14,7 @@ module;
 #include <iomanip>
 
 module cheat.console;
-#ifndef CHEAT_GUI_TEST
 import cheat.csgo.awaiter;
-#endif
 import nstd.rtlib;
 
 using namespace cheat;
@@ -69,9 +67,7 @@ console::~console( )
 {
 	runtime_assert_remove_handler(this->id( ));
 
-#if !defined(CHEAT_GUI_TEST) || 1
 	if (this->allocated_)
-#endif
 	{
 		FreeConsole( );
 		PostMessage(this->handle_, WM_CLOSE, 0U, 0L);
@@ -87,9 +83,7 @@ console::~console( )
 
 void console::load_async( )noexcept
 {
-#ifndef CHEAT_GUI_TEST
-	this->deps().add<csgo_awaiter>( );
-#endif
+	this->deps( ).add<csgo_awaiter>( );
 }
 
 bool console::load_impl( ) noexcept
@@ -345,5 +339,3 @@ void console::write_line(string_packer&& str)
 {
 	_Pack(str, _Write_or_cache_full, this, cache_);
 }
-
-CHEAT_SERVICE_REGISTER(console);

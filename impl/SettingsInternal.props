@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0"
+		 xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<ImportGroup Label="PropertySheets">
+		<Import Project="$(SolutionDir)/Props/Configuration.props"/>
+		<Import Project="$(SolutionDir)/impl/Settings.props"/>
+		<Import Project="$(SolutionDir)/Props/Settings.props"/>
+	</ImportGroup>
+
+	<ItemGroup>
+		<ClCompile Include="$(SolutionDir)\impl\$(ProjectName)\main.cpp"/>
+	</ItemGroup>	
+	
+	<ItemGroup>
+		<ProjectReference Include="$(SolutionDir)\impl\impl.vcxproj">
+			<Project>{D4B46FB7-85BB-4462-9275-134467FBF6D8}</Project>
+		</ProjectReference>
+	</ItemGroup>
+	
+</Project>

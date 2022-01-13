@@ -24,32 +24,16 @@ export namespace cheat
 		services_loader(services_loader&& other) = default;
 		services_loader& operator=(services_loader&& other) = default;
 
-#ifndef CHEAT_GUI_TEST
-		HMODULE my_handle( ) const;
-	private:
-		using basic_service::load;
-	public:
-		void load(HMODULE handle);
-		std::stop_token load_thread_stop_token( ) const;
-#else
-		bool load( );
-#endif
-		void unload( );
+		void load_async(const std::shared_ptr<executor>& ex);
 
+		void unload( );
 		reset_object reset( );
 
-		using executor_shared = std::shared_ptr<executor>;
-		executor_shared get_executor(size_t threads_count = std::thread::hardware_concurrency( ));
+		std::jthread load_thread;
+		HMODULE module_handle = nullptr;
 
 	protected:
 		void load_async( ) noexcept override;
 		bool load_impl( ) noexcept override;
-
-	private:
-		std::weak_ptr<executor> executor_;
-#ifndef CHEAT_GUI_TEST
-		HMODULE own_handle_ = nullptr;
-		std::jthread load_thread_;
-#endif
 	};
 }

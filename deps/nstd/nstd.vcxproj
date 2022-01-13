@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build"
+		 xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="Debug|Win32">
+			<Configuration>Debug</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|Win32">
+			<Configuration>Release</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+
+	<PropertyGroup Label="Globals">
+		<ProjectGuid>{6832F075-A85B-4F2B-91B6-6055A57B2BF8}</ProjectGuid>
+		<RootNamespace>nstd</RootNamespace>
+	</PropertyGroup>
+	<Import Label="PropertySheets"
+			Project="$(SolutionDir)/Props/Globals.props"/>
+
+	<PropertyGroup Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+	</PropertyGroup>
+
+	<ImportGroup Label="PropertySheets">
+		<Import Project="$(SolutionDir)/Props/Configuration.props"/>
+		<Import Project="$(SolutionDir)/deps/nstd/Settings.props"/>
+		<Import Project="$(SolutionDir)/Props/Settings.props"/>
+	</ImportGroup>
+
+	<ItemGroup>
+		<!--<ClCompile Include="$(GitClonedProjects)\fmtlib\fmt\src\fmt.cc" />-->
+		<ClCompile Include="$(GitClonedProjects)\dvvn\nstd\impl\**\*.cpp" />
+		<ClCompile Include="$(GitClonedProjects)\dvvn\nstd\impl\**\*.i*" />
+	</ItemGroup>
+</Project>
