@@ -6,9 +6,6 @@ module;
 
 export module cheat.csgo.interfaces:C_BasePlayer;
 export import :C_BaseCombatCharacter;
-#if __has_include("C_BasePlayer_generated.ixx")
-export import : C_BasePlayer_generated;
-#endif
 
 export namespace cheat::csgo
 {
@@ -24,11 +21,12 @@ export namespace cheat::csgo
 		, BROKEN = std::numeric_limits<std::underlying_type_t<m_lifeState_t>>::max( )
 	};
 
-	class C_BasePlayer :
-		public C_BaseCombatCharacter
-#if __has_include("C_BasePlayer_generated.ixx")
-		, public C_BasePlayer_generated
-#endif
+	class C_BasePlayer : public C_BaseCombatCharacter
 	{
+	public:
+
+#if __has_include("C_BasePlayer_generated_h")
+#include "C_BasePlayer_generated_h"
+#endif
 	};
 }

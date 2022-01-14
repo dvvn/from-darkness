@@ -4,9 +4,6 @@ module;
 
 export module cheat.csgo.interfaces:C_BaseAnimating;
 export import :C_BaseEntity;
-#if __has_include("C_BaseAnimating_generated.ixx")
-export import : C_BaseAnimating_generated;
-#endif
 
 export namespace cheat::csgo
 {
@@ -15,15 +12,14 @@ export namespace cheat::csgo
 	class CBoneBitList;
 	class CIKContext;
 
-	
-
-	class C_BaseAnimating :
-		public C_BaseEntity
-#if __has_include("C_BaseAnimating_generated.ixx")
-		, public C_BaseAnimating_generated
-#endif
+	class C_BaseAnimating : public C_BaseEntity
 	{
 	public:
+
+#if __has_include("C_BaseAnimating_generated_h")
+#include "C_BaseAnimating_generated_h"
+#endif
+
 		void UpdateClientSideAnimation( );
 		void InvalidateBoneCache( );
 	};

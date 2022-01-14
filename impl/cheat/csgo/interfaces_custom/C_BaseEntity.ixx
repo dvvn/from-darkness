@@ -6,9 +6,6 @@ export module cheat.csgo.interfaces:C_BaseEntity;
 export import :ClientEntity;
 export import :Recv;
 export import :DataMap;
-#if __has_include("C_BaseEntity_generated.ixx")
-export import :C_BaseEntity_generated;
-#endif
 export import cheat.csgo.math;
 export import cheat.csgo.tools;
 
@@ -191,13 +188,14 @@ export namespace cheat::csgo
 		//EF_MAX_BITS = 15
 	};
 
-	class C_BaseEntity : public IClientEntity
-		, public IClientModelRenderable
-#if __has_include("C_BaseEntity_generated.ixx")
-		, public C_BaseEntity_generated
-#endif
+	class C_BaseEntity : public IClientEntity, public IClientModelRenderable
 	{
 	public:
+
+#if __has_include("C_BaseEntity_generated_h")
+#include "C_BaseEntity_generated_h"
+#endif
+
 		datamap_t* GetDataDescMap( );
 		datamap_t* GetPredictionDescMap( );
 	};

@@ -10,6 +10,8 @@ export namespace cheat::netvars_impl::lazy
 	public:
 		~file_writer( ) override;
 
+		file_writer( ) = default;
+
 		file_writer(std::filesystem::path&& file);
 		file_writer(file_writer&& other) noexcept;
 		file_writer& operator=(file_writer&& other) noexcept;
@@ -52,7 +54,7 @@ export namespace cheat::netvars_impl::lazy
 		{
 		}
 
-		bool all()const{return all_;}
+		bool all( )const { return all_; }
 
 	private:
 		std::filesystem::path path_;

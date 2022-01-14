@@ -7,6 +7,10 @@ import dhooks;
 
 using namespace cheat::csgo;
 
+#if __has_include("C_BaseEntity_generated_cpp")
+#include "C_BaseEntity_generated_cpp"
+#endif
+
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {
 	return dhooks::call_function(&C_BaseEntity::GetDataDescMap, this, 15);
