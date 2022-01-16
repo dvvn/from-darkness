@@ -11,31 +11,39 @@ import cheat.csgo.awaiter;
 import dhooks;
 
 using namespace cheat;
+using dhooks::hook_holder_data;
 
 services_loader::services_loader( ) = default;
 services_loader::~services_loader( ) = default;
 
-struct all_hooks_storage : services_loader::lazy_reset
+struct all_hooks_storage : services_loader::lazy_reset, std::vector<std::shared_ptr<hook_holder_data>>
 {
-	using value_type = std::shared_ptr<dhooks::hook_holder_data>;
-	using storage_type = std::vector<value_type>;
+};
 
-	storage_type vec;
-
-	all_hooks_storage(storage_type&& storage) :vec(std::move(storage)) { }
+static constexpr auto _Load_async = []<class S, typename T >(S * service, T && executor, HMODULE module_handle)
+{
+	if (cppcoro::sync_wait(service->load(*executor)))
+		return;
+	auto delayed = service->reset( );
+	using namespace std::chrono_literals;
+	std::this_thread::sleep_for(200ms);
+	::FreeLibrary(module_handle);
 };
 
 void services_loader::load_async(const std::shared_ptr<executor>&ex)
 {
-	load_thread = std::jthread([=]
-							   {
-								   if (sync_wait(this->load(*ex)))
-									   return;
-								   auto hooks = this->reset( );
-								   using namespace std::chrono_literals;
-								   std::this_thread::sleep_for(200ms);
-								   FreeLibrary(module_handle);
-							   });
+	load_thread = std::jthread(_Load_async, this, ex, module_handle);
+}
+
+void services_loader::load_async(std::unique_ptr<executor> && ex)
+{
+	load_thread = std::jthread(_Load_async, this, std::move(ex), module_handle);
+}
+
+bool services_loader::load_sync( )
+{
+	executor ex;
+	return cppcoro::sync_wait(this->load(ex));
 }
 
 struct unload_helper_data
@@ -50,43 +58,42 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	const auto [sleep, retval] = *data_ptr;
 	delete data_ptr;
 
-	auto handle = services_loader::get( ).module_handle;
+	auto& loader = services_loader::get( );
+	loader.load_thread.request_stop( );
+	auto handle = loader.module_handle;
 	//destroy all except hooks
-	auto all_hooks = services_loader::get( ).reset( );
-	for (auto& h : static_cast<all_hooks_storage*>(all_hooks.get( ))->vec)
-		h->unhook_after_call( );
+	auto all_hooks = loader.reset( );
 	Sleep(sleep / 2);
 	all_hooks.reset( ); //unhook force
 	Sleep(sleep / 2);
 	//we must close all threads before unload!
-	FreeLibraryAndExitThread(handle, retval);
+	FreeLibraryAndExitThread(loader.module_handle, retval);
 }
 
 void services_loader::unload( )
 {
-	load_thread.request_stop( );
 	const auto data = new unload_helper_data{1500,TRUE};
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
 
 auto services_loader::reset( )->reset_object
 {
-	using stored_value = all_hooks_storage::value_type;
-	using stored_element = stored_value::element_type;
-	all_hooks_storage::storage_type hooks;
+	using stored_element = all_hooks_storage::value_type;
+	auto hooks = std::make_unique<all_hooks_storage>( );
 
-	for (value_type& d : this->_Deps<false>( ))
+	for (auto& d : this->_Deps<false>( ))
 	{
-		auto ptr = std::dynamic_pointer_cast<stored_element>(std::move(d));
+		auto ptr = std::dynamic_pointer_cast<hook_holder_data>(std::move(d));
 		if (!ptr)
 			continue;
-		hooks.push_back(std::move(ptr));
+		ptr->unhook_after_call( );
+		hooks->push_back(std::move(ptr));
 	}
 
 	services_loader tmp;
 	tmp = std::move(*this);
 
-	return std::make_unique<all_hooks_storage>(std::move(hooks));
+	return hooks;
 }
 
 void services_loader::load_async( ) noexcept

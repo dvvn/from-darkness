@@ -11,15 +11,17 @@ import cheat.service;
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
-	using cheat::services_loader;
+	using srv_loader = cheat::services_loader;
+	auto& loader = srv_loader::get( );
 
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		services_loader::get_ptr( )->load(hModule);
+		loader.module_handle = hModule;
+		loader.load_async(std::make_unique<srv_loader::executor>( ));
 		break;
 	case DLL_PROCESS_DETACH:
-		services_loader::get_ptr( )->unload( );
+		loader.reset( );
 		break;
 	}
 

@@ -576,7 +576,7 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 	constexpr std::wstring_view wgenerated_tag = _CRT_WIDE(_STRINGIZE(CHEAT_NETVARS_GENERATED_TAG));
 #endif
 
-	nstd::mem::backup<netvars_storage> netvars_data_backup;
+	//nstd::mem::backup<netvars_storage> netvars_data_backup;
 
 	//files to be created from netvars classes
 	nstd::unordered_map<std::string, generated_file_data> files_to_generate;
@@ -599,8 +599,8 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 			const auto wcfile_name = file.path( ).filename( ).native( );
 			std::wstring_view wfile_name = wcfile_name;
 
-			bool h = wcfile_name.ends_with(wsuffix_h);
-			bool cpp = !h && wcfile_name.ends_with(wsuffix_cpp);
+			const bool h = wcfile_name.ends_with(wsuffix_h);
+			const bool cpp = !h && wcfile_name.ends_with(wsuffix_cpp);
 
 			if (h)
 				wfile_name.remove_suffix(wsuffix_h.size( ));
@@ -755,7 +755,7 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 		if (cpp)
 			writer_cpp = make_file_writer(suffix_cpp);
 
-		for (auto& [NETVAR_NAME, NETVAR_DATA] : DATA.netvars->items( ))
+		for (const auto& [NETVAR_NAME, NETVAR_DATA] : DATA.netvars->items( ))
 		{
 			using namespace std::string_view_literals;
 #ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
