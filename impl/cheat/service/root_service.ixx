@@ -9,6 +9,7 @@ export namespace cheat
 {
 	class services_loader final : public static_service<services_loader>
 	{
+		using static_service::load;
 	public:
 		struct lazy_reset
 		{

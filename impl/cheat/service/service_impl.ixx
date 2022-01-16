@@ -37,33 +37,32 @@ _INLINE_VAR constexpr auto service_name = []
 #endif
 }();
 
-template <typename T, typename V>
-using add_const_if = std::conditional_t<std::is_const_v<T>, std::add_const_t<V>, V>;
+template <bool Val, typename T>
+using add_const_if_v = std::conditional_t<Val, std::add_const_t<T>, T>;
+
+template <typename Test, typename T>
+using add_const_if = add_const_if_v<std::is_const_v<Test>, T>;
 
 export namespace cheat
 {
 	template<typename T, typename Holder>
 	struct service_getter_index
 	{
-		using value_type = T;
-
 		size_t index;
 		size_t offset;
 		bool unset = true;
 	};
 
 	template<typename T, typename Holder>
-	class service_getter
+	struct service_getter
 	{
-	public:
-		service_getter( ) = delete;
-		using index_holder_type = service_getter_index<T, Holder>;
-		using index_holder = nstd::one_instance<index_holder_type>;
-		using value_type = /*typename Holder*/basic_service::value_type;
+		//using value_type = /*typename Holder*/basic_service::value_type;
 
-		static void set(size_t index, Holder* holder)
+		[[no_unique_address]] nstd::one_instance<service_getter_index<T, Holder>> index_holder;
+
+		void set(size_t index, Holder* holder) const
 		{
-			auto& ref = index_holder::get( );
+			auto& ref = index_holder.get( );
 			runtime_assert(ref.unset);
 			ref.index = index;
 			auto base = static_cast<basic_service*>(holder);
@@ -72,29 +71,29 @@ export namespace cheat
 		}
 
 		template<std::derived_from<basic_service> H>
-		static auto& get(H* holder)
+		auto& get(H* holder)const
 		{
-			auto& idx_holder = index_holder::get( );
+			auto& idx_holder = index_holder.get( );
 			runtime_assert(!idx_holder.unset);
 			const auto deps = holder->_Deps<false>( );
 			return deps[idx_holder.index];
 		}
 
-		static bool valid( )
+		bool valid( )const
 		{
-			return !index_holder::get( ).unset;
+			return !index_holder.get( ).unset;
 		}
 
 		template<std::derived_from<basic_service> H>
-		static bool valid(const H* holder)
+		bool valid(const H* holder)const
 		{
-			auto& idx_holder = index_holder::get( );
+			auto& idx_holder = index_holder.get( );
 			if (idx_holder.unset)
 				return false;
 			const auto deps = holder->_Deps<false>( );
 			if (deps.size( ) <= idx_holder.index)
 				return false;
-			runtime_assert(deps[idx_holder.index].type( ) == typeid(index_holder_type::value_type));
+			runtime_assert(deps[idx_holder.index].type( ) == typeid(T));
 			return true;
 		}
 
@@ -104,9 +103,9 @@ export namespace cheat
 		/// <param name="element"> element inside holder </param>
 		/// <returns></returns>
 		template<std::derived_from<basic_service> E>
-		static auto unwrap(E* element)
+		auto unwrap(E* element)const
 		{
-			auto& idx_holder = index_holder::get( );
+			auto& idx_holder = index_holder.get( );
 			runtime_assert(!idx_holder.unset);
 			const auto basic = static_cast<const basic_service*>(element);
 			const auto addr = reinterpret_cast<uintptr_t>(basic) + idx_holder.offset;
@@ -114,10 +113,88 @@ export namespace cheat
 		}
 
 		template<class H>
-		static auto get_unwrap(H* holder)
+		auto get_unwrap(H* holder)const
 		{
 			auto& val = get(holder);
 			return unwrap<add_const_if<H, basic_service>>(val.get( ));
+		}
+	};
+
+	class services_loader;
+	basic_service* get_root_service( );
+
+	///if wont export code before singleton with service_getter will be corrupted inside shared library
+	//----
+	//----
+	//----
+
+	template <typename Holder, bool Const>
+	class basic_service_deps_getter
+	{
+	public:
+		using value_type = add_const_if_v<Const, basic_service>*;
+		using holder_type = Holder;
+
+		basic_service_deps_getter(value_type h) :holder(h)
+		{
+		}
+
+	protected:
+		value_type holder;
+	public:
+
+		template<typename T>
+		const auto& share( )const
+		{
+			service_getter<T, Holder> getter;
+			return getter.get(holder);
+		}
+
+		template<typename T>
+		auto get_ptr( )const
+		{
+			service_getter<T, Holder> getter;
+			return getter.get_unwrap(holder);
+		}
+
+		template<typename T>
+		auto& get( )const
+		{
+			return *get_ptr<T>( );
+		}
+
+		template<typename T>
+		auto try_get( )const
+		{
+			service_getter<T, Holder> getter;
+			const auto ok = getter.valid(
+#ifdef _DEBUG
+				holder
+#endif
+			);
+			return ok ? get_ptr<T>( ) : nullptr;
+		}
+
+		template<typename T, typename Fn>
+		decltype(auto) try_call(Fn fn)const
+		{
+			using val_t = add_const_if_v<Const, T>*;
+			using ret_t = std::invoke_result_t<Fn, val_t>;
+
+			if constexpr (std::is_void_v<ret_t> || std::default_initializable<ret_t>)
+			{
+				auto ptr = try_get<T>( );
+				if (ptr)
+					return std::invoke(fn, ptr);
+
+				if constexpr (!std::is_void_v<ret_t>)
+					return ret_t{};
+			}
+			else
+			{
+				runtime_assert(try_get<T>( ) != nullptr, "Unable to create default value!");
+				return std::invoke(fn, get_ptr<T>( ));
+			}
 		}
 	};
 
@@ -125,106 +202,41 @@ export namespace cheat
 	struct service_deps_getter;
 
 	template <typename Holder>
-	struct service_deps_getter<Holder, true>
+	struct service_deps_getter<Holder, true> : basic_service_deps_getter<Holder, true>
 	{
-		template<typename T>
-		using deps_getter = service_getter<T, Holder>;
-		const basic_service* holder;
-
-		template<typename T>
-		auto& share( )const
-		{
-			return deps_getter<T>::get(holder);
-		}
-
-		template<typename T>
-		const T& get( )const
-		{
-			return *deps_getter<T>::get_unwrap(holder);
-		}
+		using basic_service_deps_getter<Holder, true>::basic_service_deps_getter;
 	};
 
-	class services_loader;
-	basic_service* get_root_service( );
-
 	template <typename Holder>
-	struct service_deps_getter<Holder, false>
+	struct service_deps_getter<Holder, false> : basic_service_deps_getter<Holder, false>
 	{
-		template<typename T>
-		using deps_getter = service_getter<T, Holder>;
-		basic_service* holder;
-
-		template<typename T>
-		const auto& share( )const
-		{
-			return deps_getter<T>::get(holder);
-		}
-
-		template<typename T>
-		T& get( )const
-		{
-			return *deps_getter<T>::get_unwrap(holder);
-		}
-
-		template<typename T>
-		T* try_get( )const
-		{
-			if (!deps_getter<T>::valid(
-#ifdef _DEBUG
-				holder
-#endif
-				))
-			{
-				return nullptr;
-			}
-			return deps_getter<T>::get_unwrap(holder);
-		}
-
-		template<typename T, typename Fn>
-		decltype(auto) try_call(Fn fn)const
-		{
-			using ret_t = std::invoke_result_t<Fn, T*>;
-			if constexpr (std::is_void_v<ret_t>)
-			{
-				T* ptr = try_get<T>( );
-				if (ptr)
-					std::invoke(fn, ptr);
-			}
-			else if constexpr (std::default_initializable<ret_t>)
-			{
-				T* ptr = try_get<T>( );
-				ret_t ret = {};
-				if (ptr)
-					ret = std::invoke(fn, ptr);
-				return ret;
-			}
-			else
-			{
-				T* ptr = std::addressof(get<T>( ));
-				return std::invoke(fn, ptr);
-			}
-		}
+		using _Base = basic_service_deps_getter<Holder, false>;
+		using _Base::basic_service_deps_getter;
+		using _Base::holder;
 
 		template<typename T>
 		void add(std::shared_ptr<T>&& sptr)const
 		{
 			size_t index = holder->_Add_dependency(std::move(sptr));
-			deps_getter<T>::set(index, dynamic_cast<Holder*>(holder));
+			service_getter<T, Holder> getter;
+			getter.set(index, dynamic_cast<Holder*>(holder));
 		}
 
 		template<typename T>
 		void add( )const
 		{
-			auto rootptr = get_root_service( );
+			auto root_ptr = get_root_service( );
 
-			auto deps = rootptr->_Deps<true>( );
+			auto deps = root_ptr->_Deps<true>( );
 			auto loaded = std::ranges::find(deps, typeid(T), &basic_service::type);
 			if (loaded == deps.end( ))
 				return;
 
-			auto& asptr = service_getter<T, services_loader>::get(rootptr);
+			service_getter<T, services_loader> root_getter;
+
+			auto& asptr = root_getter.get(root_ptr);
 			auto sptr = std::dynamic_pointer_cast<T>(asptr);
-			//sptr = service_getter<T, services_loader>::get(rootptr);
+			//sptr = service_getter<T, services_loader>::get(root_ptr);
 
 			add(std::move(sptr));
 		}
@@ -244,11 +256,11 @@ export namespace cheat
 
 		service_deps_getter<Holder, false> deps( )
 		{
-			return {static_cast<basic_service*>(this)};
+			return this;
 		}
 		service_deps_getter<Holder, true> deps( )const
 		{
-			return {static_cast<const basic_service*>(this)};
+			return this;
 		}
 	};
 

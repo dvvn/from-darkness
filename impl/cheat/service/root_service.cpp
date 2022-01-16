@@ -20,9 +20,11 @@ struct all_hooks_storage : services_loader::lazy_reset, std::vector<std::shared_
 {
 };
 
-static constexpr auto _Load_async = []<class S, typename T >(S * service, T && executor, HMODULE module_handle)
+static constexpr auto _Load_async = []<typename T >(services_loader * service, T && executor, HMODULE module_handle)
 {
-	if (cppcoro::sync_wait(service->load(*executor)))
+	//hack: loader is private
+	auto task = static_cast<basic_service*>(service)->load(*executor);
+	if (cppcoro::sync_wait(std::move(task)))
 		return;
 	auto delayed = service->reset( );
 	using namespace std::chrono_literals;
@@ -67,7 +69,7 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	all_hooks.reset( ); //unhook force
 	Sleep(sleep / 2);
 	//we must close all threads before unload!
-	FreeLibraryAndExitThread(loader.module_handle, retval);
+	FreeLibraryAndExitThread(handle, retval);
 }
 
 void services_loader::unload( )

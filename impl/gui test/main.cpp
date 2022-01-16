@@ -168,9 +168,9 @@ int main(int, char**)
 	::UpdateWindow(hwnd);
 
 	services_loader::executor ex;
-	const auto loaded = sync_wait(services_loader::get( ).load(ex));
+	const auto loaded = services_loader::get( ).load_sync();
 	if (!loaded)
-		goto _RESET;
+		goto _RESET; 
 
 	// Setup Dear ImGui context
 	//IMGUI_CHECKVERSION( );
