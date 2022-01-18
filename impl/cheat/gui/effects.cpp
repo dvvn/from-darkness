@@ -1,5 +1,3 @@
-
-
 #include "effects.h"
 
 using namespace cheat;
@@ -15,7 +13,7 @@ using BYTE = unsigned char;
 #include "effects_data/Build/chromatic_aberration.h"
 #include "effects_data/Build/monochrome.h"
 #endif
-
+ 
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/unordered_map.h>
@@ -31,6 +29,7 @@ using BYTE = unsigned char;
 #include <functional>
 
 import cheat.csgo.interfaces;
+import cheat.utils.comptr;
 
 #ifdef _DEBUG
 #define HRESULT_VALIDATE(fn, ...) runtime_assert(fn == D3D_OK,##__VA_ARGS__)
@@ -38,51 +37,9 @@ import cheat.csgo.interfaces;
 #define HRESULT_VALIDATE(fn, ...) fn
 #endif
 
-template <typename T, typename Base = Microsoft::WRL::ComPtr<T>>
-struct comptr : Base
-{
-	using base_type = Base;
-
-	using Base::Base;
-	using Base::operator=;
-
-	comptr(T* ptr) = delete; //it calls unwanted addref method
-
-	template <typename T1>
-		requires(std::derived_from<T, T1>)
-	operator T1* () const noexcept
-	{
-		return Base::Get( );
-	}
-
-	template <typename T1>
-		requires(std::derived_from<T, T1>)
-	operator T1** () noexcept
-	{
-		return Base::ReleaseAndGetAddressOf( );
-	}
-
-	template <typename T1>
-		requires(std::derived_from<T, T1>)
-	operator T1* const* () const noexcept
-	{
-		return Base::GetAddressOf( );
-	}
-
-	explicit operator bool( ) const
-	{
-		return !!Base::Get( );
-	}
-
-	bool operator!( ) const
-	{
-		return !Base::Get( );
-	}
-};
-
-
-
 #if _WIN32
+
+using cheat::utils::comptr;
 
 //temporary
 static auto _Get_d3d( )
@@ -167,7 +124,7 @@ struct basic_shader_program : comptr<Shader>
 		const auto d3d = _Get_d3d( );
 		HRESULT_VALIDATE(d3d->SetPixelShader(*this));
 		std::array params = {uniform, 0.f, 0.f, 0.f};
-		HRESULT_VALIDATE(d3d->SetPixelShaderConstantF(location, params._Unchecked_begin( ), 1));
+		HRESULT_VALIDATE(d3d->SetPixelShaderConstantF(location, params.data( ), 1));
 #else
 		glUseProgram(program);
 		glUniform1f(location, uniform);
@@ -312,7 +269,7 @@ static void _Set_projection(int width, int height, float p0 = 1.f, float p1 = 1.
 	matrix[2] = {0.0f, 0.0f, p2, 0.0f};
 	matrix[3] = {-1.0f / width, 1.0f / height, 0.0f, p3};
 
-	TEST_RESULT = csgo_interfaces::get( )->d3d_device->SetVertexShaderConstantF(0, reinterpret_cast<const float*>(matrix._Unchecked_begin( )), matrix.size( ));
+	TEST_RESULT = csgo_interfaces::get( )->d3d_device->SetVertexShaderConstantF(0, reinterpret_cast<const float*>(matrix.data( )), matrix.size( ));
 }
 #endif
 

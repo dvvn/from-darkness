@@ -32,7 +32,7 @@ namespace fs = std::filesystem;
 
 #define CHEAT_NETVARS_LOG_FILE_INDENT 4
 #define CHEAT_NETVARS_LOG_FILE_FILLER ' '
-#define CHEAT_NETVARS_LOGS_DIR _CONCAT(VS_SolutionDir, \.out\netvars\)
+#define CHEAT_NETVARS_LOGS_DIR _CONCAT(VS_SolutionDir, \.dumps\netvars\)
 #define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\interfaces_custom\)
 #define CHEAT_CSGOSDK_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\)
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
@@ -43,53 +43,6 @@ namespace fs = std::filesystem;
 
 //TEMPORARY
 #define CHEAT_NETVARS_UPDATING 0
-
-bool netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
-{
-	const fs::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
-
-	[[maybe_unused]]
-	const auto dirs_created = create_directories(dumps_dir);
-
-	const auto netvars_dump_file = [&]
-	{
-		const std::string_view version = services_loader::get( ).deps( ).get<csgo_interfaces>( ).engine->GetProductVersionString( );
-		constexpr std::wstring_view extension = L".json";
-
-		std::wstring file_name;
-		file_name.reserve(version.size( ) + extension.size( ));
-		for (const auto c : version)
-			file_name += static_cast<wchar_t>(c == '.' ? '_' : c);
-		file_name += extension;
-
-		return dumps_dir / std::move(file_name);
-	}();
-#if !CHEAT_NETVARS_UPDATING
-	const auto file_exists = !dirs_created && exists(netvars_dump_file);
-	if (!file_exists)
-#endif
-	{
-		auto file = std::ofstream(netvars_dump_file);
-		file << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
-		CHEAT_CONSOLE_LOG_G("Netvars dump done");
-		return true;
-	}
-
-	//------
-
-	std::ostringstream netvars_data_as_text;
-	netvars_data_as_text << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
-
-	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
-	{
-		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
-		CHEAT_CONSOLE_LOG_G("Netvars dump updated");
-		return true;
-	}
-
-	CHEAT_CONSOLE_LOG_G("Netvars dump skipped");
-	return false;
-}
 
 template<class S>
 static size_t _Get_size(const S& str)
@@ -141,6 +94,50 @@ static auto _Construct_append(const Args&...args)
 	T obj;
 	_Reserve_append(obj, args...);
 	return obj;
+}
+
+bool netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
+{
+	const fs::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
+
+	[[maybe_unused]]
+	const auto dirs_created = create_directories(dumps_dir);
+
+	const auto netvars_dump_file = [&]
+	{
+		const std::string_view version = services_loader::get( ).deps( ).get<csgo_interfaces>( ).engine->GetProductVersionString( );
+		auto version_fixed = version | std::views::transform([](char c)->wchar_t {return c == '.' ? '_' : c; });
+		constexpr std::wstring_view extension = L".json";
+
+		std::wstring file_name;
+		_Reserve_append(file_name, version_fixed, extension);
+		return dumps_dir / file_name;
+	}();
+#if !CHEAT_NETVARS_UPDATING
+	const auto file_exists = !dirs_created && exists(netvars_dump_file);
+	if (!file_exists)
+#endif
+	{
+		auto file = std::ofstream(netvars_dump_file);
+		file << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
+		CHEAT_CONSOLE_LOG_G("Netvars dump done");
+		return true;
+	}
+
+	//------
+
+	std::ostringstream netvars_data_as_text;
+	netvars_data_as_text << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
+
+	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
+	{
+		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
+		CHEAT_CONSOLE_LOG_G("Netvars dump updated");
+		return true;
+	}
+
+	CHEAT_CONSOLE_LOG_G("Netvars dump skipped");
+	return false;
 }
 
 #if 0
@@ -789,7 +786,8 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 					<< netvar_offset
 #else
 					<< "static const auto offset = "
-					<< nstd::type_name<services_loader>( ) << "::get( ).deps( ).get<" << nstd::type_name<netvars>( ) << ">( ).at"
+					//<< nstd::type_name<services_loader>( ) << "::get( ).deps( ).get<" << nstd::type_name<netvars>( ) << ">( ).at"
+					<< "cheat::get_netvar_offset"
 					<< "(\"" << CLASS_NAME << "\", \"" << NETVAR_NAME << "\")"
 #endif
 					<< ";\n"

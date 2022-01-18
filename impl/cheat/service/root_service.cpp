@@ -20,32 +20,15 @@ struct all_hooks_storage : services_loader::lazy_reset, std::vector<std::shared_
 {
 };
 
-static constexpr auto _Load_async = []<typename T >(services_loader * service, T && executor, HMODULE module_handle)
+bool services_loader::load_impl(executor & ex)
 {
-	//hack: loader is private
-	auto task = static_cast<basic_service*>(service)->load(*executor);
-	if (cppcoro::sync_wait(std::move(task)))
-		return;
-	auto delayed = service->reset( );
-	using namespace std::chrono_literals;
-	std::this_thread::sleep_for(200ms);
-	::FreeLibrary(module_handle);
-};
-
-void services_loader::load_async(const std::shared_ptr<executor>&ex)
-{
-	load_thread = std::jthread(_Load_async, this, ex, module_handle);
-}
-
-void services_loader::load_async(std::unique_ptr<executor> && ex)
-{
-	load_thread = std::jthread(_Load_async, this, std::move(ex), module_handle);
+	return cppcoro::sync_wait(this->load(ex));
 }
 
 bool services_loader::load_sync( )
 {
 	executor ex;
-	return cppcoro::sync_wait(this->load(ex));
+	return load_impl(ex);
 }
 
 struct unload_helper_data
@@ -80,9 +63,7 @@ void services_loader::unload( )
 
 auto services_loader::reset( )->reset_object
 {
-	using stored_element = all_hooks_storage::value_type;
 	auto hooks = std::make_unique<all_hooks_storage>( );
-
 	for (auto& d : this->_Deps<false>( ))
 	{
 		auto ptr = std::dynamic_pointer_cast<hook_holder_data>(std::move(d));

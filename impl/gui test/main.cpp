@@ -7,12 +7,14 @@
 #include <cppcoro/sync_wait.hpp>
 
 #include <Windows.h>
+#include <wrl/client.h>
 
 #include <imgui.h>
 #include <d3d9.h>
 #include <tchar.h>
 
 import cheat.console;
+import cheat.utils.comptr;
 import cheat.csgo.interfaces;
 import cheat.gui.menu;
 import cheat.hooks.winapi;
@@ -103,40 +105,34 @@ static void run_hooks_test( )
 
 #endif
 
+using cheat::utils::comptr;
+
 // Data
-static LPDIRECT3D9 g_pD3D = nullptr;
-static LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
-static D3DPRESENT_PARAMETERS g_d3dpp = {};
+static comptr<IDirect3D9> g_pD3D;
+static comptr<IDirect3DDevice9> g_pd3dDevice;
+static D3DPRESENT_PARAMETERS g_d3dpp;
 
 // Forward declarations of helper functions
 static bool CreateDeviceD3D(HWND hWnd);
-static void CleanupDeviceD3D( );
 static void ResetDevice( );
 static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-template<class T>
-static void _Reg( )
-{
-	auto deps = cheat::services_loader::get( ).deps( );
-	deps.add(std::make_shared<T>( ));
-	if constexpr (std::same_as<T, cheat::csgo_interfaces>)//dont wanna to do this manually
-		deps.get<T>( ).prepare_for_gui_test(g_pd3dDevice);
-}
 
 static void register_services( )
 {
 	using namespace cheat;
-	_Reg<console>( );
-	_Reg<csgo_interfaces>( );
-	_Reg<gui::menu>( );
-	_Reg<gui::context>( );
+	service_deps_getter_add_allow_skip = false;
+	auto deps = services_loader::get( ).deps( );
+	deps.add<console>( );
+	deps.add<csgo_interfaces>( )->prepare_for_gui_test(g_pd3dDevice);
+	deps.add<gui::menu>( );
+	deps.add<gui::context>( );
 	using namespace hooks;
-	_Reg<winapi::wndproc>( );
-	_Reg<imgui::PushClipRect>( );
-	_Reg<directx::reset>( );
-	_Reg<directx::present>( );
+	deps.add<winapi::wndproc>( );
+	deps.add<imgui::PushClipRect>( );
+	deps.add<directx::reset>( );
+	deps.add<directx::present>( );
+	service_deps_getter_add_allow_skip = true;
 }
-
 
 // Main code
 int main(int, char**)
@@ -156,7 +152,6 @@ int main(int, char**)
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(hwnd))
 	{
-		CleanupDeviceD3D( );
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
 		return 1;
 	}
@@ -168,9 +163,9 @@ int main(int, char**)
 	::UpdateWindow(hwnd);
 
 	services_loader::executor ex;
-	const auto loaded = services_loader::get( ).load_sync();
+	const auto loaded = services_loader::get( ).load_sync( );
 	if (!loaded)
-		goto _RESET; 
+		goto _RESET;
 
 	// Setup Dear ImGui context
 	//IMGUI_CHECKVERSION( );
@@ -248,7 +243,6 @@ _RESET:
 	ImGui_ImplWin32_Shutdown( );
 	ImGui::DestroyContext( );*/
 
-	CleanupDeviceD3D( );
 	::DestroyWindow(hwnd);
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
@@ -259,7 +253,8 @@ _RESET:
 
 bool CreateDeviceD3D(HWND hWnd)
 {
-	if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == nullptr)
+	g_pD3D.Attach(Direct3DCreate9(D3D_SDK_VERSION));
+	if (!g_pD3D)
 		return false;
 
 	// Create the D3DDevice
@@ -271,21 +266,7 @@ bool CreateDeviceD3D(HWND hWnd)
 	g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
 	g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE; // Present with vsync
 	//g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
-	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice));
-}
-
-void CleanupDeviceD3D( )
-{
-	if (g_pd3dDevice)
-	{
-		g_pd3dDevice->Release( );
-		g_pd3dDevice = nullptr;
-	}
-	if (g_pD3D)
-	{
-		g_pD3D->Release( );
-		g_pD3D = nullptr;
-	}
+	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, g_pd3dDevice));
 }
 
 void ResetDevice( )

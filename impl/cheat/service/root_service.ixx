@@ -5,11 +5,14 @@ module;
 export module cheat.service:root;
 export import :impl;
 
-export namespace cheat
+namespace cheat
 {
-	class services_loader final : public static_service<services_loader>
+	export class services_loader final : public static_service<services_loader>
 	{
 		using static_service::load;
+
+		bool load_impl(executor& ex);
+
 	public:
 		struct lazy_reset
 		{
@@ -24,9 +27,23 @@ export namespace cheat
 		services_loader(services_loader&& other) = default;
 		services_loader& operator=(services_loader&& other) = default;
 
+		template<class T>
+		void load_async(T&& ex)
+		{
+			load_thread = std::jthread(
+				[ex2 = std::forward<T>(ex), this]
+				{
+					if (this->load_impl(*ex2))
+						return;
+					[[maybe_unused]]
+					const auto delayed = this->reset( );
+					using namespace std::chrono_literals;
+					std::this_thread::sleep_for(200ms);
+					::FreeLibrary(this->module_handle);
+				});
+		}
+		template<>
 		void load_async(std::shared_ptr<executor>&& ex) = delete;
-		void load_async(const std::shared_ptr<executor>& ex);
-		void load_async(std::unique_ptr<executor>&& ex);
 		bool load_sync( );
 
 		void unload( );
