@@ -162,7 +162,6 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	services_loader::executor ex;
 	const auto loaded = services_loader::get( ).load_sync( );
 	if (!loaded)
 		goto _RESET;
