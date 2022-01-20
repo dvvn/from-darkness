@@ -24,6 +24,7 @@ namespace cheat
 		using reset_object = std::unique_ptr<lazy_reset>;
 		using promise_type = std::promise<bool>;
 		using async_task_type = std::future<bool>;
+		using thread_type = std::jthread;
 
 		~services_loader( ) override;
 		services_loader( );
@@ -53,7 +54,7 @@ namespace cheat
 					promise_type prom;
 					auto f = prom.get_future( );
 
-					load_thread = std::jthread([this, ex = _Get<0>(std::forward<Args>(args)...), prom2 = std::move(prom)]( )mutable
+					load_thread = thread_type([this, ex = _Get<0>(std::forward<Args>(args)...), prom2 = std::move(prom)]( )mutable
 					{
 						auto started = this->start(*ex, sync_start( ));
 						prom2.set_value(std::move(started));
@@ -62,13 +63,13 @@ namespace cheat
 					return f;
 				}
 			}
-			else if constexpr (args_count == 2)
+			else
 			{
 				static_assert(args_count == 2, "Incorrect arguments count!");
 				using tag_t = std::remove_cvref_t<decltype(_Get<1>(args...))>;
 				static_assert(std::same_as<tag_t, async_detach>, "Incorrect tag type!");
 
-				load_thread = std::jthread([this, ex = _Get<0>(std::forward<Args>(args)...)]( )
+				load_thread = thread_type([this, ex = _Get<0>(std::forward<Args>(args)...)]( )
 				{
 					[[maybe_unused]]
 					const auto started = this->start(*ex, sync_start( ));
@@ -83,7 +84,7 @@ namespace cheat
 		void unload( );
 		reset_object reset(bool deps_only);
 
-		std::jthread load_thread;
+		thread_type load_thread;
 		void* module_handle = nullptr;
 
 	protected:
