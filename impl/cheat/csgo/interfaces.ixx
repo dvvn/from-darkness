@@ -1,6 +1,6 @@
 module;
 
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 #include <nstd/mem/address_includes.h>
 #include <nstd/type_traits.h>
 #include <d3d9.h>
@@ -178,8 +178,8 @@ export namespace cheat
 		using ifc = csgo_interface<T, Ptrs>;
 
 	protected:
-		bool load_impl( ) noexcept override;
-		void load_async( ) noexcept override;
+		bool load( ) noexcept override;
+		void construct( ) noexcept override;
 
 	public:
 		//nstd::filesystem::path csgo_path;

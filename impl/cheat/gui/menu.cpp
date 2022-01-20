@@ -1,6 +1,6 @@
 ﻿module;
 
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 //#include "cheat/features/aimbot.h"
 
 #include "tools/cached_text.h"
@@ -168,14 +168,14 @@ menu::menu( ) = default;
 
 menu::~menu( ) = default;
 
-void menu::load_async( ) noexcept
+void menu::construct( ) noexcept
 {
 	impl_ = std::make_unique<impl>( );
 	this->deps( ).add<gui::context>( );
 	//this->deps( ).add(features::aimbot::get( ));
 }
 
-bool menu::load_impl( ) noexcept
+bool menu::load( ) noexcept
 {
 #if 0
 	renderer_.add_page([]

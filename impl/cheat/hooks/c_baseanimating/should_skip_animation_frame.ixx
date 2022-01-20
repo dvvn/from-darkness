@@ -18,7 +18,7 @@ namespace cheat::hooks::c_base_animating
 		should_skip_animation_frame( );
 
 	protected:
-		void load_async( ) noexcept override;
+		void construct( ) noexcept override;
 		void* get_target_method( ) const override;
 		void callback(/*float current_time*/) override;
 

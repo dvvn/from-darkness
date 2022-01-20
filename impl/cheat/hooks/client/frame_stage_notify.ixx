@@ -13,7 +13,7 @@ namespace cheat::hooks::client
 		frame_stage_notify( );
 
 	protected:
-		void load_async( ) noexcept override;
+		void construct( ) noexcept override;
 		void* get_target_method( ) const override;
 		void callback(csgo::ClientFrameStage_t stage) override;
 	};

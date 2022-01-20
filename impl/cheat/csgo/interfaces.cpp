@@ -1,6 +1,6 @@
 module;
 
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 #include "cheat/csgo/modules_includes.h"
 #include <nstd/mem/address_includes.h>
 
@@ -20,12 +20,12 @@ void csgo_interfaces::prepare_for_gui_test(IDirect3DDevice9 * d3d)
 	this->d3d_device = d3d;
 }
 
-void csgo_interfaces::load_async( )noexcept
+void csgo_interfaces::construct( )noexcept
 {
 	this->deps( ).add<console>( );
 }
 
-bool csgo_interfaces::load_impl( ) noexcept
+bool csgo_interfaces::load( ) noexcept
 {
 	//unused
 #if 0
@@ -91,7 +91,6 @@ bool csgo_interfaces::load_impl( ) noexcept
 		//prepare_for_gui_test called
 		return true;
 	}
-
 
 	client = csgo_modules::client->find_game_interface("VClient");
 	entity_list = csgo_modules::client->find_game_interface("VClientEntityList");

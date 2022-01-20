@@ -15,7 +15,7 @@ using namespace hooks::directx;
 
 reset::reset( ) = default;
 
-void reset::load_async( ) noexcept
+void reset::construct( ) noexcept
 {
 	this->deps( ).add<gui::context>( );
 }

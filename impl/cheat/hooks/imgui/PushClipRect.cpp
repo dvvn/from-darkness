@@ -12,7 +12,7 @@ using namespace hooks::imgui;
 
 PushClipRect::PushClipRect( ) = default;
 
-void PushClipRect::load_async( ) noexcept
+void PushClipRect::construct( ) noexcept
 {
 	//this->add_dependency<gui::context>( );
 }

@@ -12,7 +12,7 @@ using namespace nstd::mem;
 
 create_move::create_move( ) = default;
 
-void create_move::load_async( ) noexcept
+void create_move::construct( ) noexcept
 {
 	this->addr1.emplace( );
 	this->deps( ).add<players_list>( );

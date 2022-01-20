@@ -25,8 +25,8 @@ export namespace cheat::gui
 		bool updating( )const;
 
 	protected:
-		void load_async( ) noexcept override;
-		bool load_impl( )noexcept override;
+		void construct( ) noexcept override;
+		bool load( )noexcept override;
 
 	private:
 		struct impl;

@@ -14,7 +14,7 @@ export namespace cheat::hooks
 	struct hook_base : dynamic_service<T>, dhooks::select_hook_holder<Fn>
 	{
 	protected:
-		bool load_impl( ) noexcept override
+		bool load( ) noexcept override
 		{
 			return this->hook( ) && this->enable( );
 		}

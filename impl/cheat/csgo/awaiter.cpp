@@ -1,5 +1,5 @@
 ﻿module;
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 #include <nstd/rtlib/includes.h>
 
 #include <filesystem>
@@ -21,11 +21,11 @@ struct fs_hash :std::hash<typename T::string_type>
 	}
 };
 
-void csgo_awaiter::load_async( ) noexcept
+void csgo_awaiter::construct( ) noexcept
 {
 }
 
-bool csgo_awaiter::load_impl( ) noexcept
+bool csgo_awaiter::load( ) noexcept
 {
 	auto& modules = all_infos::get( );
 	modules.update(false);

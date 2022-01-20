@@ -13,7 +13,7 @@ namespace cheat::hooks::vgui_surface
 		lock_cursor( );
 
 	protected:
-		void load_async( ) noexcept override;
+		void construct( ) noexcept override;
 		void* get_target_method( ) const override;
 		void callback( ) override;
 	};

@@ -17,7 +17,7 @@ nstd::address should_interpolate::get_target_method_impl( ) const
 	return vtable.ref<ptrdiff_t*>( )[index];
 }
 
-basic_service::load_result should_interpolate::load_impl( ) noexcept
+basic_service::task_type should_interpolate::load_impl( ) noexcept
 {
 	CHEAT_LOAD_HOOK_PROXY;
 }

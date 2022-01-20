@@ -1,6 +1,6 @@
 module;
 
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 #include "storage_includes.h"
 
 export module cheat.netvars;
@@ -23,8 +23,8 @@ namespace cheat
 		int at(const std::string_view& table, const std::string_view& item) const;
 
 	protected:
-		void load_async( ) noexcept override;
-		bool load_impl( ) noexcept override;
+		void construct( ) noexcept override;
+		bool load( ) noexcept override;
 
 	private:
 		netvars_storage storage_;
@@ -32,6 +32,4 @@ namespace cheat
 		lazy::files_storage lazy_;
 #endif
 	};
-
-	//CHEAT_SERVICE_SHARE(netvars);
 }

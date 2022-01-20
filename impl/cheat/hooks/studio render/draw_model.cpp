@@ -12,7 +12,7 @@ using namespace hooks::studio_render;
 
 draw_model::draw_model( ) = default;
 
-void draw_model::load_async( ) noexcept
+void draw_model::construct( ) noexcept
 {
 	this->deps( ).add<players_list>( );
 }

@@ -14,7 +14,7 @@ using namespace hooks::c_base_animating;
 
 standard_blending_rules::standard_blending_rules( ) = default;
 
-void standard_blending_rules::load_async( ) noexcept
+void standard_blending_rules::construct( ) noexcept
 {
 	this->deps( ).add<netvars>( );
 }

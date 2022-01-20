@@ -136,7 +136,7 @@ void aimbot_impl::load(const json& out)
 {
 }
 
-auto aimbot_impl::load_impl( ) noexcept -> load_result
+auto aimbot_impl::load_impl( ) noexcept -> task_type
 {
 	impl_ = std::make_unique<impl>( );
 	impl_->init_gui( );

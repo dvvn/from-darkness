@@ -14,7 +14,7 @@ export namespace cheat::hooks::directx
 		present( );
 
 	protected:
-		void load_async( ) noexcept override;
+		void construct( ) noexcept override;
 		void* get_target_method( ) const override;
 		void callback(const RECT* source_rect,
 					  const RECT* dest_rect,

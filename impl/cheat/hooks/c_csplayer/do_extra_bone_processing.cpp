@@ -13,7 +13,7 @@ using namespace hooks::c_csplayer;
 
 do_extra_bone_processing::do_extra_bone_processing( ) = default;
 
-void do_extra_bone_processing::load_async( ) noexcept
+void do_extra_bone_processing::construct( ) noexcept
 {
 	this->deps( ).add<csgo_interfaces>( );
 }

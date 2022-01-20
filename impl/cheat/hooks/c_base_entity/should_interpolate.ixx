@@ -18,7 +18,7 @@ namespace cheat::hooks::c_base_entity
 	protected:
 		nstd::address get_target_method_impl( ) const override;
 		void callback( ) override;
-		load_result load_impl( ) noexcept override;
+		task_type load( ) noexcept override;
 	};
 }
 #endif

@@ -115,7 +115,7 @@ void settings::render( )
 	mgr__->render( );
 }
 
-service_impl::load_result settings::load_impl( )
+service_impl::task_type settings::load_impl( )
 {
 	mgr__->add_folder(features::aimbot::get_ptr( ));
 	mgr__->add_folder(features::anti_aim::get_ptr( ));

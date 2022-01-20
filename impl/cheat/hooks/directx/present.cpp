@@ -18,7 +18,7 @@ using namespace hooks::directx;
 
 present::present( ) = default;
 
-void present::load_async( ) noexcept
+void present::construct( ) noexcept
 {
 	this->deps( ).add<gui::menu>( );
 }

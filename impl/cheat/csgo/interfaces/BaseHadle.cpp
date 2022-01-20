@@ -1,6 +1,6 @@
 ﻿module;
 
-#include "cheat/service/includes.h"
+//#include "cheat/service/includes.h"
 #include <nstd/runtime_assert.h>
 
 module cheat.csgo.interfaces:BaseHandle;

@@ -1,6 +1,6 @@
 module;
 
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 
 #include <nstd/file/to_memory.h>
 #include <nstd/format.h>
@@ -10,15 +10,6 @@ module;
 #include <imgui_impl_win32.h>
 
 #include <d3d9.h>
-
-//#include <filesystem>
-//#include <functional>
-//#include <optional>
-//#include <string>
-//#include <variant>
-//#include <sstream>
-//#include <functional>
-//#include <mutex>
 
 module cheat.gui.context;
 import cheat.csgo.interfaces;
@@ -162,12 +153,12 @@ bool context::inctive( ) const
 	return (hwnd_ != GetForegroundWindow( ));
 }
 
-void context::load_async( ) noexcept
+void context::construct( ) noexcept
 {
 	this->deps( ).add<csgo_interfaces>( );
 }
 
-bool context::load_impl( ) noexcept
+bool context::load( ) noexcept
 {
 	const auto d3d = this->deps( ).get<csgo_interfaces>( ).d3d_device.get( );
 

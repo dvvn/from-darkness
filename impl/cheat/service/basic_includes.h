@@ -11,11 +11,6 @@
 #include <string>
 #include <functional>
 #include <vector>
-#ifndef CHEAT_GUI_TEST
-#include <thread>
-#include <stop_token>
-#include <windows.h>
-#endif
 
 //#define CHEAT_SERVICE_REGISTER(_NAME_) \
 //	__pragma(message("Service \""#_NAME_"\" registered at " __TIME__))\

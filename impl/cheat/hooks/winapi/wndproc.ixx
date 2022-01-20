@@ -16,8 +16,8 @@ namespace cheat::hooks::winapi
 		wndproc( );
 
 	protected:
-		void load_async( ) noexcept override;
-		bool load_impl( ) noexcept override;
+		void construct( ) noexcept override;
+		bool load( ) noexcept override;
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 		void* get_target_method( ) const override;
 

@@ -1,6 +1,6 @@
 module;
 
-#include "includes.h"
+#include "basic_includes.h"
 #include <nstd/type name.h>
 
 export module cheat.service:impl;
@@ -37,11 +37,7 @@ _INLINE_VAR constexpr auto service_name = []
 #endif
 }();
 
-template <bool Val, typename T>
-using add_const_if_v = std::conditional_t<Val, std::add_const_t<T>, T>;
 
-template <typename Test, typename T>
-using add_const_if = add_const_if_v<std::is_const_v<Test>, T>;
 
 export namespace cheat
 {
@@ -109,14 +105,14 @@ export namespace cheat
 			runtime_assert(!idx_holder.unset);
 			const auto basic = static_cast<const basic_service*>(element);
 			const auto addr = reinterpret_cast<uintptr_t>(basic) + idx_holder.offset;
-			return reinterpret_cast<add_const_if<E, T*>>(addr);
+			return reinterpret_cast<nstd::add_const_if<E, T*>>(addr);
 		}
 
 		template<class H>
 		auto get_unwrap(H* holder)const
 		{
 			auto& val = get(holder);
-			return unwrap<add_const_if<H, basic_service>>(val.get( ));
+			return unwrap<nstd::add_const_if<H, basic_service>>(val.get( ));
 		}
 	};
 
@@ -132,7 +128,7 @@ export namespace cheat
 	class basic_service_deps_getter
 	{
 	public:
-		using value_type = add_const_if_v<Const, basic_service>*;
+		using value_type = nstd::add_const_if_v<Const, basic_service>*;
 		using holder_type = Holder;
 
 		basic_service_deps_getter(value_type h) :holder(h)
@@ -189,7 +185,7 @@ export namespace cheat
 		template<typename T, typename Fn>
 		decltype(auto) try_call(Fn fn)const
 		{
-			using val_t = add_const_if_v<Const, T>*;
+			using val_t = nstd::add_const_if_v<Const, T>*;
 			using ret_t = std::invoke_result_t<Fn, val_t>;
 
 			if constexpr (std::is_void_v<ret_t> || std::default_initializable<ret_t>)
@@ -269,7 +265,7 @@ export namespace cheat
 		auto add( )const
 		{
 			service_deps_getter<services_loader, true> root_getter = get_root_service( );
-			auto sptr = root_getter.try_share<T>(service_deps_getter_add_allow_skip);
+			auto sptr = root_getter.try_share<T>(!service_deps_getter_add_allow_skip);
 			return this->add(std::move(sptr));
 		}
 	};

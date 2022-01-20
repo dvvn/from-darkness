@@ -49,8 +49,8 @@ export namespace cheat::gui
 		fonts_builder_proxy fonts( );
 
 	protected:
-		void load_async( ) noexcept override;
-		bool load_impl( ) noexcept override;
+		void construct( ) noexcept override;
+		bool load( ) noexcept override;
 
 	private:
 		ImGuiContext ctx_;

@@ -1,9 +1,8 @@
 module;
-#include "includes.h"
+#include "root_includes.h"
 
 #include <dhooks/includes.h>
-
-#include <cppcoro/sync_wait.hpp>
+#include <windows.h>
 
 module cheat.service:root;
 //import cheat.console;
@@ -20,17 +19,6 @@ struct all_hooks_storage : services_loader::lazy_reset, std::vector<std::shared_
 {
 };
 
-bool services_loader::load_impl(executor & ex)
-{
-	return cppcoro::sync_wait(this->load(ex));
-}
-
-bool services_loader::load_sync( )
-{
-	executor ex;
-	return load_impl(ex);
-}
-
 struct unload_helper_data
 {
 	DWORD sleep;
@@ -44,10 +32,15 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	delete data_ptr;
 
 	auto& loader = services_loader::get( );
-	loader.load_thread.request_stop( );
-	auto handle = loader.module_handle;
+	if (loader.load_thread.joinable( ))
+	{
+		loader.load_thread.request_stop( );
+		loader.load_thread.join( );
+	}
+	auto handle = static_cast<HMODULE>(loader.module_handle);
 	//destroy all except hooks
-	auto all_hooks = loader.reset( );
+	auto all_hooks = loader.reset(true);
+	dhooks::current_context::reset( );
 	Sleep(sleep / 2);
 	all_hooks.reset( ); //unhook force
 	Sleep(sleep / 2);
@@ -61,8 +54,10 @@ void services_loader::unload( )
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
 
-auto services_loader::reset( )->reset_object
+auto services_loader::reset(bool deps_only)->reset_object
 {
+	this->set_state(service_state::unset);
+
 	auto hooks = std::make_unique<all_hooks_storage>( );
 	for (auto& d : this->_Deps<false>( ))
 	{
@@ -73,20 +68,32 @@ auto services_loader::reset( )->reset_object
 		hooks->push_back(std::move(ptr));
 	}
 
-	services_loader tmp;
-	tmp = std::move(*this);
+	if (deps_only)
+	{
+		for (auto& d : _Deps<false>( ))
+		{
+			value_type empty;
+			std::swap(empty, d);
+		}
+	}
+	else
+	{
+		services_loader tmp;
+		std::swap(tmp, *this);
+	}
 
 	return hooks;
 }
 
-void services_loader::load_async( ) noexcept
+void services_loader::construct( ) noexcept
 {
 	//this->deps( ).get<console>( ).log("Cheat started");
 	using namespace dhooks;
 	//current_context::set(std::make_shared<context_safe>(std::make_unique<context>( )));
 	current_context::set(std::make_shared<context>( ));
 }
-bool services_loader::load_impl( ) noexcept
+
+bool services_loader::load( ) noexcept
 {
 	//this->deps( ).get<console>( ).log("Cheat fully loaded");
 	return true;

@@ -55,7 +55,7 @@ namespace cheat
 		void render( ) override;
 
 	protected:
-		load_result load_impl( ) override;
+		task_type load_impl( ) override;
 
 	private:
 #if 0

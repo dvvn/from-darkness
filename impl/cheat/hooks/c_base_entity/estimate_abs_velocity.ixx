@@ -19,7 +19,7 @@ namespace cheat::hooks::c_base_entity
 		estimate_abs_velocity( );
 
 	protected:
-		void load_async( ) noexcept override;
+		void construct( ) noexcept override;
 		void* get_target_method( ) const override;
 		void callback(csgo::Vector& vel) override;
 	};

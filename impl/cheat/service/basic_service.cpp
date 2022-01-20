@@ -1,7 +1,9 @@
 module;
 
-#include "includes.h"
+#include "basic_includes.h"
+
 #include <cppcoro/when_all.hpp>
+#include <cppcoro/sync_wait.hpp>
 
 module cheat.service:basic;
 
@@ -39,7 +41,7 @@ service_state basic_service::state( ) const
 	return state_;
 }
 
-auto basic_service::load(executor & ex) noexcept -> load_result
+auto basic_service::start(executor & ex) noexcept -> task_type
 {
 	switch (state_)
 	{
@@ -60,37 +62,39 @@ auto basic_service::load(executor & ex) noexcept -> load_result
 			std::terminate( );
 		}
 
-		this->load_async( );
+		this->construct( );
 
 		if (!deps_.empty( ))
 		{
-			using std::views::transform;
-			using std::ranges::all_of;
+			this->set_state(service_state::waiting);
+			auto refs = _Deps<true>( );
 
-			set_state(service_state::waiting);
+			std::vector<task_type> tasks;
+			tasks.reserve(refs.size( ));
 			co_await ex.schedule( );
-			const auto unwrapped = deps_ | transform([]<typename T>(const T & srv)-> basic_service& { return *srv; });
-			auto tasks_view = unwrapped | transform([&](basic_service& srv)-> load_result { return srv.load(ex); });
+			for (auto& srv : refs)
+				tasks.push_back(srv.start(ex));
+
 			//todo: stop when error detected
-			auto results = co_await when_all(std::vector(tasks_view.begin( ), tasks_view.end( )));
-			if (!all_of(results, [](bool val) { return val == true; }))
+			auto results = co_await cppcoro::when_all(std::move(tasks));
+			if (std::ranges::any_of(results, [](bool val) { return !val; }))
 			{
 				runtime_assert("Unable to load other services!");
-				set_state(service_state::error);
+				this->set_state(service_state::error);
 				co_return false;
 			}
 		}
 
-		set_state(service_state::loading);
+		this->set_state(service_state::loading);
 		co_await ex.schedule( );
-		if (!/*co_await*/ this->load_impl( ))
+		if (!/*co_await*/ this->load( ))
 		{
 			runtime_assert("Unable to load service!");
 			set_state(service_state::error);
 			co_return false;
 		}
 
-		set_state(service_state::loaded);
+		this->set_state(service_state::loaded);
 		co_return true;
 	}
 	case service_state::waiting:
@@ -124,4 +128,13 @@ auto basic_service::load(executor & ex) noexcept -> load_result
 		co_return false;
 	}
 	}
+}
+auto basic_service::start(executor & ex, sync_start) noexcept -> task_type::value_type
+{
+	return cppcoro::sync_wait(start(ex));
+}
+auto basic_service::start( ) noexcept -> task_type::value_type
+{
+	executor ex;
+	return start(ex, sync_start( ));
 }

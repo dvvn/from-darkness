@@ -16,7 +16,7 @@ using namespace hooks::c_base_entity;
 
 estimate_abs_velocity::estimate_abs_velocity( ) = default;
 
-void estimate_abs_velocity::load_async( ) noexcept
+void estimate_abs_velocity::construct( ) noexcept
 {
 	this->deps( ).add<netvars>();
 }

@@ -81,12 +81,12 @@ console::~console( )
 		fclose(err_);
 }
 
-void console::load_async( )noexcept
+void console::construct( )noexcept
 {
 	this->deps( ).add<csgo_awaiter>( );
 }
 
-bool console::load_impl( ) noexcept
+bool console::load( ) noexcept
 {
 	handle_ = GetConsoleWindow( );
 	if (handle_ != nullptr)

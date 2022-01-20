@@ -1,6 +1,6 @@
 module;
 
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 #include "cheat/csgo/modules_includes.h"
 #include "cheat/netvars/storage_includes.h"
 
@@ -15,7 +15,7 @@ using namespace csgo;
 players_list::players_list( ) = default;
 players_list::~players_list( ) = default;
 
-void players_list::load_async( ) noexcept
+void players_list::construct( ) noexcept
 {
 	this->deps( ).add<netvars>( );
 }

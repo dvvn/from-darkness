@@ -11,12 +11,12 @@ using namespace hooks::winapi;
 
 wndproc::wndproc( ) = default;
 
-void wndproc::load_async( ) noexcept
+void wndproc::construct( ) noexcept
 {
 	this->deps( ).add<gui::context>( );
 }
 
-bool wndproc::load_impl( ) noexcept
+bool wndproc::load( ) noexcept
 {
 	const auto hwnd = this->deps( ).get<gui::context>( ).hwnd( );
 	runtime_assert(hwnd != nullptr);
@@ -24,7 +24,7 @@ bool wndproc::load_impl( ) noexcept
 	unicode_ = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	return hook_base::load_impl( );
+	return hook_base::load( );
 }
 
 void* wndproc::get_target_method( ) const

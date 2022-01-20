@@ -13,7 +13,7 @@ using namespace hooks::c_base_animating;
 
 should_skip_animation_frame::should_skip_animation_frame( ) = default;
 
-void should_skip_animation_frame::load_async( ) noexcept
+void should_skip_animation_frame::construct( ) noexcept
 {
 	this->deps( ).add<netvars>( );
 }

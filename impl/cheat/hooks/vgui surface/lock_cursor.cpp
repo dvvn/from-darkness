@@ -10,7 +10,7 @@ using namespace hooks::vgui_surface;
 
 lock_cursor::lock_cursor( ) = default;
 
-void lock_cursor::load_async( ) noexcept
+void lock_cursor::construct( ) noexcept
 {
 	this->deps( ).add<gui::menu>( );
 }

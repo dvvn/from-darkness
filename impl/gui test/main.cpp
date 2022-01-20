@@ -162,7 +162,7 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	const auto loaded = services_loader::get( ).load_sync( );
+	const bool loaded = services_loader::get( ).start( );
 	if (!loaded)
 		goto _RESET;
 
@@ -236,7 +236,7 @@ int main(int, char**)
 
 _RESET:
 
-	services_loader::get( ).reset( );
+	services_loader::get( ).reset(false);
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

@@ -1,23 +1,25 @@
 module;
 
-#include <nstd/type name.h>
-
-#include "includes.h"
+#include "basic_includes.h"
+#include <nstd/type_traits.h>
 
 export module cheat.service:basic;
 
-_INLINE_VAR constexpr auto _Unwrap_smart_ptr = []<typename T>(T && ptr)->auto&
+template<bool Unwrap, typename T>
+auto _Ref_view(const std::span<T>& rng)
 {
-	if constexpr (std::is_const_v<T>)
+	if constexpr (!Unwrap)
 	{
-		const auto& tmp = *ptr;
-		return tmp;
+		return rng;
 	}
 	else
 	{
-		return *ptr;
+		return std::views::transform(rng, []<class C>(C & item)->nstd::add_const_if<C, decltype(*item)>
+		{
+			return *item;
+		});
 	}
-};
+}
 
 export namespace cheat
 {
@@ -34,7 +36,7 @@ export namespace cheat
 	{
 	public:
 		using executor = cppcoro::static_thread_pool;
-		using load_result = cppcoro::task<bool>;
+		using task_type = cppcoro::task<bool>;
 		using mutex_type = cppcoro::async_mutex;
 		using value_type = std::shared_ptr<basic_service>;
 		using deps_storage = std::vector<value_type>;
@@ -53,39 +55,33 @@ export namespace cheat
 		virtual std::string_view name( ) const = 0;
 		virtual const std::type_info& type( ) const = 0;
 
+		struct sync_start { };
+
 		service_state state( ) const;
-		//rename to 'do load'
-		load_result load(executor& ex) noexcept;
+		[[nodiscard]] task_type start(executor& ex) noexcept;
+		[[nodiscard]] task_type::value_type start(executor& ex, sync_start) noexcept;
+		[[nodiscard]] task_type::value_type start( ) noexcept;
 
 	protected:
 		void set_state(service_state state);
 
-		//rename to 'construct' 'lazy load' or something like it
-		virtual void load_async( )noexcept = 0;
-		//rename to 'load'
-		virtual bool load_impl( ) noexcept
+		//delayed constructor
+		virtual void construct( )noexcept = 0;
+		virtual bool load( ) noexcept
 		{
 			return true;
 		}
 
 	public:
-		template<bool Raw>
-		auto _Deps( )
+		template<bool Unwrap>
+		[[nodiscard]] auto _Deps( )
 		{
-			std::span<value_type> deps = deps_;
-			if constexpr (Raw)
-				return deps | std::views::transform(_Unwrap_smart_ptr);
-			else
-				return deps;
+			return _Ref_view<Unwrap, value_type>(deps_);
 		}
-		template<bool Raw>
-		auto _Deps( )const
+		template<bool Unwrap>
+		[[nodiscard]] auto _Deps( )const
 		{
-			std::span<const value_type> deps = deps_;
-			if constexpr (Raw)
-				return deps | std::views::transform(_Unwrap_smart_ptr);
-			else
-				return deps;
+			return _Ref_view<Unwrap, const value_type>(deps_);
 		}
 
 	private:
@@ -93,84 +89,6 @@ export namespace cheat
 		deps_storage deps_;
 		service_state state_ = service_state::unset;
 	};
-
-#if 0
-	template </*root_service*/class T>
-	class shared_service
-	{
-	public:
-		using element_type = T;
-		using shared_type = stored_service<T>;
-
-		shared_service(const shared_service& other) = delete;
-		shared_service& operator=(const shared_service& other) = delete;
-
-		shared_service(shared_service&& other) noexcept
-		{
-			obj_ = std::move(other.obj_);
-#ifndef _DEBUG
-			other.obj_ = nullptr;
-#endif
-		}
-
-		shared_service& operator=(shared_service&& other) noexcept
-		{
-			std::swap(obj_, other.obj_);
-			return *this;
-		}
-
-		template <typename ...Args>
-		shared_service(Args&&...args)
-		{
-			auto obj = std::make_shared<T>(std::forward<Args>(args)...);
-			obj_ = obj
-#ifndef _DEBUG
-				.get( )
-#endif
-				;
-			add_to_loader(std::move(obj));
-		}
-
-		~shared_service( )
-		{
-#ifdef _DEBUG
-			if (obj_.expired( ))
-				return;
-#endif
-			runtime_assert(get_from_loader(type( )) == nullptr, "shared service destroyed before loader!");
-		}
-
-		static const std::type_info& type( ) { return typeid(T); }
-
-		_NODISCARD shared_type share( ) const
-		{
-			auto stored = get_from_loader(type( ));
-			runtime_assert(stored != nullptr, "unable to share service!");
-			return std::dynamic_pointer_cast<T>(*stored);
-		}
-
-	private:
-		_NODISCARD
-#ifdef _DEBUG
-			shared_type _Get( ) const { return shared_type(obj_); }
-#else
-			T* _Get( ) const noexcept { return obj_; }
-#endif
-
-	public:
-		auto operator->( ) const { return _Get( ); }
-		[[deprecated]]
-		_NODISCARD T& operator*( ) const { return *_Get( ); }
-
-	private:
-#ifdef _DEBUG
-		std::weak_ptr<T>
-#else
-		T*
-#endif
-			obj_;
-	};
-#endif
 }
 
 

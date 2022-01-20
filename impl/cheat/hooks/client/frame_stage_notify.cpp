@@ -12,7 +12,7 @@ using namespace hooks::client;
 
 frame_stage_notify::frame_stage_notify( ) = default;
 
-void frame_stage_notify::load_async( ) noexcept
+void frame_stage_notify::construct( ) noexcept
 {
 	this->deps( ).add<players_list>( );
 }

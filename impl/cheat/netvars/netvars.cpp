@@ -1,6 +1,6 @@
 module;
 
-#include "cheat/service/includes.h"
+#include "cheat/service/basic_includes.h"
 #include "storage_includes.h"
 
 module cheat.netvars;
@@ -19,12 +19,12 @@ using namespace csgo;
 netvars::netvars( ) = default;
 netvars::~netvars( ) = default;
 
-void netvars::load_async( ) noexcept
+void netvars::construct( ) noexcept
 {
 	this->deps( ).add<csgo_interfaces>( );
 }
 
-bool netvars::load_impl( ) noexcept
+bool netvars::load( ) noexcept
 {
 	iterate_client_class(storage_, this->deps( ).get<csgo_interfaces>( ).client->GetAllClasses( ));
 
