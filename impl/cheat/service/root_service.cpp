@@ -32,11 +32,6 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	delete data_ptr;
 
 	auto& loader = services_loader::get( );
-	if (loader.load_thread.joinable( ))
-	{
-		loader.load_thread.request_stop( );
-		loader.load_thread.join( );
-	}
 	auto handle = static_cast<HMODULE>(loader.module_handle);
 	//destroy all except hooks
 	auto all_hooks = loader.reset(true);
