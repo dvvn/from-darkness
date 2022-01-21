@@ -22,11 +22,6 @@ import cheat.hooks.imgui;
 import cheat.hooks.directx;
 import cheat.hooks.winapi;
 
-#pragma comment(lib, "Synchronization.lib")
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-#pragma comment (lib, "d3d9.lib")
-
 //#define RUN_HOOKS_TEST
 
 #ifdef RUN_HOOKS_TEST

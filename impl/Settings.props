@@ -24,6 +24,12 @@
 				%(AdditionalIncludeDirectories)
 			</AdditionalIncludeDirectories>
 		</ClCompile>
+		<Link>
+			<AdditionalDependencies>
+				d3d9.lib;
+				%(AdditionalDependencies)
+			</AdditionalDependencies>
+		</Link>
 	</ItemDefinitionGroup>
 
 	<ImportGroup Label="PropertySheets">

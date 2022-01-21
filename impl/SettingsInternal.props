@@ -13,7 +13,7 @@
 	</ItemGroup>	
 	
 	<ItemGroup>
-		<ProjectReference Include="$(SolutionDir)\impl\impl.vcxproj">
+		<ProjectReference Include="$(SolutionDir)\impl\cheat\impl.vcxproj">
 			<Project>{D4B46FB7-85BB-4462-9275-134467FBF6D8}</Project>
 		</ProjectReference>
 	</ItemGroup>

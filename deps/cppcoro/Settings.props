@@ -9,6 +9,15 @@
 				%(AdditionalIncludeDirectories)
 			</AdditionalIncludeDirectories>
 		</ClCompile>
+		<Link>
+			<AdditionalDependencies>
+				Synchronization.lib;
+				kernel32.lib;
+				WS2_32.lib;
+				Mswsock.lib;
+				%(AdditionalDependencies)
+			</AdditionalDependencies>
+		</Link>
 	</ItemDefinitionGroup>
 
 </Project>

@@ -15,7 +15,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gui test", "impl\gui test\g
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "library", "impl\library\library.vcxproj", "{59F214ED-6BE9-4EEB-B6C5-0CA273F61A5C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "impl", "impl\impl.vcxproj", "{D4B46FB7-85BB-4462-9275-134467FBF6D8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "impl", "impl\cheat\impl.vcxproj", "{D4B46FB7-85BB-4462-9275-134467FBF6D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

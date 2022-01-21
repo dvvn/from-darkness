@@ -5,10 +5,6 @@
 
 import cheat.service;
 
-#pragma comment(lib, "Synchronization.lib")
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-
 using namespace cheat;
 
 template<typename Holder>
