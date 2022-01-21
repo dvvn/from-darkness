@@ -4,23 +4,22 @@
 #include "cheat/players/player_includes.h"
 
 #include <nstd/runtime_assert.h>
-#include <cppcoro/sync_wait.hpp>
+#include <nstd/winapi/comptr_includes.h>
 
 #include <Windows.h>
-#include <wrl/client.h>
 
 #include <imgui.h>
 #include <d3d9.h>
 #include <tchar.h>
 
 import cheat.console;
-import cheat.utils.comptr;
 import cheat.csgo.interfaces;
 import cheat.gui.menu;
 import cheat.hooks.winapi;
 import cheat.hooks.imgui;
 import cheat.hooks.directx;
 import cheat.hooks.winapi;
+import nstd.winapi;
 
 //#define RUN_HOOKS_TEST
 
@@ -100,7 +99,7 @@ static void run_hooks_test( )
 
 #endif
 
-using cheat::utils::comptr;
+using nstd::winapi::comptr;
 
 // Data
 static comptr<IDirect3D9> g_pD3D;

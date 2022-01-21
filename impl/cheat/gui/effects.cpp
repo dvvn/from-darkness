@@ -17,11 +17,11 @@ using BYTE = unsigned char;
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/unordered_map.h>
+#include <nstd/winapi/comptr_includes.h>
 
 #include <imgui_internal.h>
 
 #include <d3d9.h>
-#include <wrl/client.h>
 
 #include <array>
 #include <string>
@@ -29,7 +29,7 @@ using BYTE = unsigned char;
 #include <functional>
 
 import cheat.csgo.interfaces;
-import cheat.utils.comptr;
+import nstd.winapi;
 
 #ifdef _DEBUG
 #define HRESULT_VALIDATE(fn, ...) runtime_assert(fn == D3D_OK,##__VA_ARGS__)
@@ -39,7 +39,7 @@ import cheat.utils.comptr;
 
 #if _WIN32
 
-using cheat::utils::comptr;
+using nstd::winapi::comptr;
 
 //temporary
 static auto _Get_d3d( )
