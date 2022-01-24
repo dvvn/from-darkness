@@ -109,9 +109,7 @@ bool netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
 		auto version_fixed = version | std::views::transform([](char c)->wchar_t {return c == '.' ? '_' : c; });
 		constexpr std::wstring_view extension = L".json";
 
-		std::wstring file_name;
-		_Reserve_append(file_name, version_fixed, extension);
-		return dumps_dir / file_name;
+		return dumps_dir / _Construct_append<std::wstring>(version_fixed, extension);
 	}();
 #if !CHEAT_NETVARS_UPDATING
 	const auto file_exists = !dirs_created && exists(netvars_dump_file);
@@ -602,11 +600,10 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 				continue;
 
 			const auto wcfile_name = file.path( ).filename( ).native( );
-			std::wstring_view wfile_name = wcfile_name;
-
 			const bool h = wcfile_name.ends_with(wsuffix_h);
 			const bool cpp = !h && wcfile_name.ends_with(wsuffix_cpp);
 
+			std::wstring_view wfile_name = wcfile_name;
 			if (h)
 				wfile_name.remove_suffix(wsuffix_h.size( ));
 			else if (cpp)
@@ -693,14 +690,11 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 
 		const auto make_file_writer = [&](const std::string_view& suffix)
 		{
-			std::wstring tmp;
-			_Reserve_append(tmp
-							, CLASS_NAME
+			return generated_classes_dir / _Construct_append<std::wstring>(CLASS_NAME
 #ifdef CHEAT_NETVARS_GENERATED_TAG
-							, generated_tag
+																		   , generated_tag
 #endif
-							, suffix);
-			return generated_classes_dir / tmp;
+																		   , suffix);
 		};
 
 		lazy::file_writer writer_h, writer_cpp;
@@ -779,9 +773,7 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 #if 0
 	const auto make_file_writer = [&](const std::string_view& class_name, const std::string_view& suffix) -> lazy::file_writer
 	{
-		std::wstring tmp;
-		_Reserve_append(tmp, class_name, suffix);
-		return generated_classes_dir / std::move(tmp);
+		return generated_classes_dir / _Construct_append(class_name, suffix);
 	};
 
 
