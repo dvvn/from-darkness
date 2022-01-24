@@ -5,7 +5,7 @@ module;
 #include <imgui_internal.h>
 
 module cheat.hooks.imgui:PushClipRect;
-import cheat.gui.context;
+import cheat.gui;
 
 using namespace cheat;
 using namespace hooks::imgui;

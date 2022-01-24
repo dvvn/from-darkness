@@ -1,0 +1,7 @@
+float& C_GrassBurn::m_flGrassBurnClearTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_GrassBurn", "m_flGrassBurnClearTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

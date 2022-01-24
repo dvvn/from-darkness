@@ -8,7 +8,7 @@ import cheat.csgo.interfaces;
 
 namespace cheat::hooks::client
 {
-	struct frame_stage_notify final : hook_base<frame_stage_notify, void(csgo::IBaseClientDLL::*)(csgo::ClientFrameStage_t)>
+	export struct frame_stage_notify final : hook_base<frame_stage_notify, void(csgo::IBaseClientDLL::*)(csgo::ClientFrameStage_t)>
 	{
 		frame_stage_notify( );
 

@@ -1,0 +1,14 @@
+float& C_WaterLODControl::m_flCheapWaterStartDistance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_WaterLODControl", "m_flCheapWaterStartDistance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_WaterLODControl::m_flCheapWaterEndDistance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_WaterLODControl", "m_flCheapWaterEndDistance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

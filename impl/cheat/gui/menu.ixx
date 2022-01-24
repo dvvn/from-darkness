@@ -4,8 +4,8 @@ module;
 #include <windows.h>
 #include <memory>
 
-export module cheat.gui.menu;
-export import cheat.gui.context;
+export module cheat.gui:menu;
+export import cheat.service;
 
 export namespace cheat::gui
 {
@@ -32,6 +32,4 @@ export namespace cheat::gui
 		struct impl;
 		std::unique_ptr<impl> impl_;
 	};
-
-	//CHEAT_SERVICE_SHARE(menu);
 }

@@ -1,0 +1,35 @@
+cheat::csgo::CBaseHandle& C_StatueProp::m_hInitBaseAnimating( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_StatueProp", "m_hInitBaseAnimating");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_StatueProp::m_bShatter( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_StatueProp", "m_bShatter");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_StatueProp::m_nShatterFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_StatueProp", "m_nShatterFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_StatueProp::m_vShatterPosition( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_StatueProp", "m_vShatterPosition");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_StatueProp::m_vShatterForce( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_StatueProp", "m_vShatterForce");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

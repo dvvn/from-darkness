@@ -1,0 +1,9 @@
+bool& m_bDangerZoneControllerEnabled( );
+bool& m_bMissionControlledExplosions( );
+float& m_flStartTime( );
+float& m_flFinalExpansionTime( );
+cheat::csgo::Vector& m_vecEndGameCircleStart( );
+cheat::csgo::Vector& m_vecEndGameCircleEnd( );
+std::array<int, 42>& m_DangerZones( );
+std::array<float, 5>& m_flWaveEndTimes( );
+cheat::csgo::CBaseHandle& m_hTheFinalZone( );

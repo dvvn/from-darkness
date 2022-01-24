@@ -1,0 +1,7 @@
+float& C_FuncConveyor::m_flConveyorSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncConveyor", "m_flConveyorSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

@@ -1,0 +1,28 @@
+cheat::csgo::Vector& C_EntityFreezing::m_vFreezingOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EntityFreezing", "m_vFreezingOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+std::array<float, 50>& C_EntityFreezing::m_flFrozenPerHitbox( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EntityFreezing", "m_flFrozenPerHitbox");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EntityFreezing::m_flFrozen( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EntityFreezing", "m_flFrozen");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_EntityFreezing::m_bFinishFreezing( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EntityFreezing", "m_bFinishFreezing");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

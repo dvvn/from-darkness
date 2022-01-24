@@ -1,0 +1,5 @@
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::Vector& m_vecStart( );
+int& m_nEntity( );
+int& m_nHitbox( );
+int& m_nIndex( );

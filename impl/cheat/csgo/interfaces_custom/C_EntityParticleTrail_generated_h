@@ -1,0 +1,5 @@
+int& m_iMaterialName( );
+float& m_flLifetime( );
+float& m_flStartSize( );
+float& m_flEndSize( );
+cheat::csgo::CBaseHandle& m_hConstraintEntity( );

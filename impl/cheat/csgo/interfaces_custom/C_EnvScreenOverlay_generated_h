@@ -1,0 +1,5 @@
+std::array<char*, 10>& m_iszOverlayNames( );
+std::array<float, 10>& m_flOverlayTimes( );
+float& m_flStartTime( );
+int& m_iDesiredOverlay( );
+bool& m_bIsActive( );

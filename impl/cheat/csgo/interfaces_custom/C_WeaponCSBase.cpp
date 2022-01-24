@@ -1,5 +1,10 @@
 module cheat.csgo.interfaces:C_WeaponCSBase;
 
+import cheat.netvars_getter;
+import nstd.mem;
+
+using namespace cheat::csgo;
+
 #if __has_include("C_WeaponCSBase_generated_cpp")
 #include "C_WeaponCSBase_generated_cpp"
 #endif

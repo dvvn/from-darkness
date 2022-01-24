@@ -1,0 +1,15 @@
+float& m_SpawnRate( );
+cheat::csgo::Vector& m_StartColor( );
+cheat::csgo::Vector& m_EndColor( );
+float& m_ParticleLifetime( );
+float& m_StopEmitTime( );
+float& m_MinSpeed( );
+float& m_MaxSpeed( );
+float& m_StartSize( );
+float& m_EndSize( );
+float& m_SpawnRadius( );
+bool& m_bEmit( );
+int& m_nAttachment( );
+float& m_Opacity( );
+bool& m_bDamaged( );
+float& m_flFlareScale( );

@@ -1,0 +1,14 @@
+cheat::csgo::Vector2D& C_ParadropChopper::m_vecOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_ParadropChopper", "m_vecOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::CBaseHandle& C_ParadropChopper::m_hCallingPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_ParadropChopper", "m_hCallingPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

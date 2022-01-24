@@ -1,0 +1,14 @@
+int& C_TELargeFunnel::m_nModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TELargeFunnel", "m_nModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TELargeFunnel::m_nReversed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TELargeFunnel", "m_nReversed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

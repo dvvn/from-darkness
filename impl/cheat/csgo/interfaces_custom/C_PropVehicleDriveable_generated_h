@@ -1,0 +1,14 @@
+cheat::csgo::CBaseHandle& m_hPlayer( );
+int& m_nSpeed( );
+int& m_nRPM( );
+float& m_flThrottle( );
+int& m_nBoostTimeLeft( );
+int& m_nHasBoost( );
+int& m_nScannerDisabledWeapons( );
+int& m_nScannerDisabledVehicle( );
+bool& m_bEnterAnimOn( );
+bool& m_bExitAnimOn( );
+bool& m_bUnableToFire( );
+cheat::csgo::Vector& m_vecEyeExitEndpoint( );
+bool& m_bHasGun( );
+cheat::csgo::Vector& m_vecGunCrosshair( );

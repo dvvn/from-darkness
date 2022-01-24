@@ -1,0 +1,4 @@
+int& m_boneIndexAttached( );
+int& m_ragdollAttachedObjectIndex( );
+cheat::csgo::Vector& m_attachmentPointBoneSpace( );
+cheat::csgo::Vector& m_attachmentPointRagdollSpace( );

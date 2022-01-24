@@ -6,7 +6,7 @@ module;
 #include <d3d9.h>
 
 module cheat.hooks.directx:reset;
-import cheat.gui.context;
+import cheat.gui;
 import cheat.csgo.interfaces;
 
 using namespace cheat;

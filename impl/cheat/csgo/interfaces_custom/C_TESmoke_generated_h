@@ -1,0 +1,4 @@
+cheat::csgo::Vector& m_vecOrigin( );
+int& m_nModelIndex( );
+float& m_fScale( );
+int& m_nFrameRate( );

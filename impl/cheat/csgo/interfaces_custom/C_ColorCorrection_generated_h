@@ -1,0 +1,12 @@
+cheat::csgo::Vector& m_vecOrigin( );
+float& m_minFalloff( );
+float& m_maxFalloff( );
+float& m_flCurWeight( );
+float& m_flMaxWeight( );
+float& m_flFadeInDuration( );
+float& m_flFadeOutDuration( );
+char* m_netLookupFilename( );
+bool& m_bEnabled( );
+bool& m_bMaster( );
+bool& m_bClientSide( );
+bool& m_bExclusive( );

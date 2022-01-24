@@ -10,7 +10,8 @@
 
 #include <Windows.h>
 
-module cheat.gui.menu;
+module cheat.gui:menu;
+import :context;
 
 using namespace cheat::gui;
 using namespace tools;
@@ -136,13 +137,13 @@ struct menu::impl
 		title_append(" | ", "DEBUG", " | ", __TIME__);
 #endif
 
-//#ifdef CHEAT_GUI_TEST
-//		title_append(" | ", "GUI TEST");
-//#endif
+		//#ifdef CHEAT_GUI_TEST
+		//		title_append(" | ", "GUI TEST");
+		//#endif
 
-		//----------
+				//----------
 
-		// ReSharper disable once CppUseStructuredBinding
+				// ReSharper disable once CppUseStructuredBinding
 		auto& w = menu_window;
 		w.title.set_label(std::move(title_str));
 		w.title.set_font(ImGui::GetDefaultFont( ) /*[]
@@ -165,7 +166,6 @@ struct menu::impl
 };
 
 menu::menu( ) = default;
-
 menu::~menu( ) = default;
 
 void menu::construct( ) noexcept

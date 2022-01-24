@@ -1,0 +1,14 @@
+int& C_Chicken::m_jumpedThisFrame( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Chicken", "m_jumpedThisFrame");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Chicken::m_leader( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Chicken", "m_leader");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

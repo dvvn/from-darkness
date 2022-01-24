@@ -1,0 +1,77 @@
+float& C_SteamJet::m_SpreadSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_SpreadSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SteamJet::m_Speed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_Speed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SteamJet::m_StartSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_StartSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SteamJet::m_EndSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_EndSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SteamJet::m_Rate( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_Rate");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SteamJet::m_JetLength( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_JetLength");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_SteamJet::m_bEmit( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_bEmit");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_SteamJet::m_bFaceLeft( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_bFaceLeft");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_SteamJet::m_nType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_nType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_SteamJet::m_spawnflags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_spawnflags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SteamJet::m_flRollSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SteamJet", "m_flRollSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

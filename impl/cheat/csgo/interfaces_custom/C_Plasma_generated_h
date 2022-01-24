@@ -1,0 +1,7 @@
+float& m_flStartScale( );
+float& m_flScale( );
+float& m_flScaleTime( );
+int& m_nFlags( );
+int& m_nPlasmaModelIndex( );
+int& m_nPlasmaModelIndex2( );
+int& m_nGlowModelIndex( );

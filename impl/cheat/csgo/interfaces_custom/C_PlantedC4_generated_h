@@ -1,0 +1,8 @@
+bool& m_bBombTicking( );
+int& m_nBombSite( );
+float& m_flC4Blow( );
+float& m_flTimerLength( );
+float& m_flDefuseLength( );
+float& m_flDefuseCountDown( );
+bool& m_bBombDefused( );
+cheat::csgo::CBaseHandle& m_hBombDefuser( );

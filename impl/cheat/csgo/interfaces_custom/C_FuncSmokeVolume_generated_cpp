@@ -1,0 +1,133 @@
+int& C_FuncSmokeVolume::m_Color1( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_Color1");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FuncSmokeVolume::m_Color2( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_Color2");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+char* C_FuncSmokeVolume::m_MaterialName( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_MaterialName");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ptr( );
+}
+
+float& C_FuncSmokeVolume::m_ParticleDrawWidth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_ParticleDrawWidth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncSmokeVolume::m_ParticleSpacingDistance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_ParticleSpacingDistance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncSmokeVolume::m_DensityRampSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_DensityRampSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncSmokeVolume::m_RotationSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_RotationSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncSmokeVolume::m_MovementSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_MovementSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncSmokeVolume::m_Density( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_Density");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncSmokeVolume::m_maxDrawDistance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_maxDrawDistance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FuncSmokeVolume::m_spawnflags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_spawnflags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_FuncSmokeVolume::m_vecMins( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_vecMins");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_FuncSmokeVolume::m_vecMaxs( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_vecMaxs");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FuncSmokeVolume::m_nSolidType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_nSolidType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FuncSmokeVolume::m_usSolidFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_usSolidFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FuncSmokeVolume::m_nSurroundType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_nSurroundType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FuncSmokeVolume::m_triggerBloat( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_triggerBloat");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_FuncSmokeVolume::m_vecSpecifiedSurroundingMins( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_vecSpecifiedSurroundingMins");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_FuncSmokeVolume::m_vecSpecifiedSurroundingMaxs( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncSmokeVolume", "m_vecSpecifiedSurroundingMaxs");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

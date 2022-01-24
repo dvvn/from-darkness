@@ -1,0 +1,14 @@
+int& C_ItemDogtags::m_OwningPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_ItemDogtags", "m_OwningPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_ItemDogtags::m_KillingPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_ItemDogtags", "m_KillingPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

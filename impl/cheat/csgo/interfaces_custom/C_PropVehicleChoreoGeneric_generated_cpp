@@ -1,0 +1,35 @@
+cheat::csgo::CBaseHandle& C_PropVehicleChoreoGeneric::m_hPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PropVehicleChoreoGeneric", "m_hPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_PropVehicleChoreoGeneric::m_bEnterAnimOn( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PropVehicleChoreoGeneric", "m_bEnterAnimOn");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_PropVehicleChoreoGeneric::m_bExitAnimOn( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PropVehicleChoreoGeneric", "m_bExitAnimOn");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_PropVehicleChoreoGeneric::m_bForceEyesToAttachment( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PropVehicleChoreoGeneric", "m_bForceEyesToAttachment");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_PropVehicleChoreoGeneric::m_vecEyeExitEndpoint( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PropVehicleChoreoGeneric", "m_vecEyeExitEndpoint");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

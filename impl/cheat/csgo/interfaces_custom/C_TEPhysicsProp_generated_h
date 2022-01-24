@@ -1,0 +1,8 @@
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::QAngle& m_angRotation( );
+cheat::csgo::Vector& m_vecVelocity( );
+int& m_nModelIndex( );
+int& m_nFlags( );
+int& m_nSkin( );
+int& m_nEffects( );
+cheat::csgo::Color& m_clrRender( );

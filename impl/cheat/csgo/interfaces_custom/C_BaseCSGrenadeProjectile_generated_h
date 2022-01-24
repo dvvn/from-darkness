@@ -1,0 +1,5 @@
+cheat::csgo::Vector& m_vInitialVelocity( );
+int& m_nBounces( );
+int& m_nExplodeEffectIndex( );
+int& m_nExplodeEffectTickBegin( );
+cheat::csgo::Vector& m_vecExplodeEffectOrigin( );

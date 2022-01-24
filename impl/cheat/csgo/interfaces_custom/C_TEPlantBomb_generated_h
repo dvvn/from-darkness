@@ -1,0 +1,3 @@
+cheat::csgo::Vector& m_vecOrigin( );
+int& m_iPlayer( );
+int& m_option( );

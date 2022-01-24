@@ -1,0 +1,77 @@
+int& C_AI_BaseNPC::m_lifeState( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_lifeState");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_AI_BaseNPC::m_bPerformAvoidance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_bPerformAvoidance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_AI_BaseNPC::m_bIsMoving( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_bIsMoving");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_AI_BaseNPC::m_bFadeCorpse( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_bFadeCorpse");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_AI_BaseNPC::m_iDeathPose( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_iDeathPose");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_AI_BaseNPC::m_iDeathFrame( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_iDeathFrame");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_AI_BaseNPC::m_iSpeedModRadius( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_iSpeedModRadius");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_AI_BaseNPC::m_iSpeedModSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_iSpeedModSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_AI_BaseNPC::m_bSpeedModActive( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_bSpeedModActive");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_AI_BaseNPC::m_bImportanRagdoll( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_bImportanRagdoll");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_AI_BaseNPC::m_flTimePingEffect( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_AI_BaseNPC", "m_flTimePingEffect");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

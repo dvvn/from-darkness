@@ -1,0 +1,14 @@
+int& C_HandleTest::m_Handle( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_HandleTest", "m_Handle");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_HandleTest::m_bSendHandle( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_HandleTest", "m_bSendHandle");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

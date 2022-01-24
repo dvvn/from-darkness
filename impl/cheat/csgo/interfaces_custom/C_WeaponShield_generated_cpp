@@ -1,0 +1,7 @@
+float& C_WeaponShield::m_flDisplayHealth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_WeaponShield", "m_flDisplayHealth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

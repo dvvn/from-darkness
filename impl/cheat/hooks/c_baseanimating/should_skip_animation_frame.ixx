@@ -13,7 +13,7 @@ import cheat.csgo.interfaces;
 
 namespace cheat::hooks::c_base_animating
 {
-	struct should_skip_animation_frame final : hook_base<should_skip_animation_frame, bool(csgo::C_BaseAnimating::*)()>
+	export struct should_skip_animation_frame final : hook_base<should_skip_animation_frame, bool(csgo::C_BaseAnimating::*)()>
 	{
 		should_skip_animation_frame( );
 

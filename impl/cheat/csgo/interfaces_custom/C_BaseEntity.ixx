@@ -6,6 +6,7 @@ export module cheat.csgo.interfaces:C_BaseEntity;
 export import :ClientEntity;
 export import :Recv;
 export import :DataMap;
+export import :VarMapping;
 export import cheat.csgo.math;
 export import cheat.csgo.tools;
 

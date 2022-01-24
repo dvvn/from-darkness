@@ -1,0 +1,4 @@
+float& m_flFadeStartDist( );
+float& m_flFadeDist( );
+float& m_flTranslucencyLimit( );
+int& m_iBackgroundModelIndex( );

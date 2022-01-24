@@ -1,0 +1,7 @@
+int& C_Precipitation::m_nPrecipType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Precipitation", "m_nPrecipType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

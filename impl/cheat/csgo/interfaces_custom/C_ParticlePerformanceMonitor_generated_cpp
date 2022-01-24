@@ -1,0 +1,14 @@
+bool& C_ParticlePerformanceMonitor::m_bMeasurePerf( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_ParticlePerformanceMonitor", "m_bMeasurePerf");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_ParticlePerformanceMonitor::m_bDisplayPerf( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_ParticlePerformanceMonitor", "m_bDisplayPerf");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

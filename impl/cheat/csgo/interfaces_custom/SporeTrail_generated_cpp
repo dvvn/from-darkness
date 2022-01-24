@@ -1,0 +1,49 @@
+float& SporeTrail::m_flSpawnRate( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeTrail", "m_flSpawnRate");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& SporeTrail::m_vecEndColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeTrail", "m_vecEndColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeTrail::m_flParticleLifetime( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeTrail", "m_flParticleLifetime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeTrail::m_flStartSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeTrail", "m_flStartSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeTrail::m_flEndSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeTrail", "m_flEndSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeTrail::m_flSpawnRadius( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeTrail", "m_flSpawnRadius");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& SporeTrail::m_bEmit( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeTrail", "m_bEmit");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

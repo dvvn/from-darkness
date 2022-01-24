@@ -1,0 +1,84 @@
+int& C_Hostage::m_isRescued( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_isRescued");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Hostage::m_jumpedThisFrame( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_jumpedThisFrame");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Hostage::m_iHealth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_iHealth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Hostage::m_iMaxHealth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_iMaxHealth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Hostage::m_lifeState( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_lifeState");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Hostage::m_fFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_fFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Hostage::m_nHostageState( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_nHostageState");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Hostage::m_flRescueStartTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_flRescueStartTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Hostage::m_flGrabSuccessTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_flGrabSuccessTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Hostage::m_flDropStartTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_flDropStartTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_Hostage::m_vel( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_vel");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Hostage::m_leader( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Hostage", "m_leader");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

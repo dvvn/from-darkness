@@ -1,0 +1,49 @@
+bool& C_BaseCSGrenade::m_bRedraw( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BaseCSGrenade", "m_bRedraw");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_BaseCSGrenade::m_bIsHeldByPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BaseCSGrenade", "m_bIsHeldByPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_BaseCSGrenade::m_bPinPulled( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BaseCSGrenade", "m_bPinPulled");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_BaseCSGrenade::m_fThrowTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BaseCSGrenade", "m_fThrowTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_BaseCSGrenade::m_bLoopingSoundPlaying( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BaseCSGrenade", "m_bLoopingSoundPlaying");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_BaseCSGrenade::m_flThrowStrength( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BaseCSGrenade", "m_flThrowStrength");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_BaseCSGrenade::m_fDropTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BaseCSGrenade", "m_fDropTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

@@ -7,7 +7,7 @@ module;
 #include <filesystem>
 #include <optional>
 
-export module cheat.gui.context;
+export module cheat.gui:context;
 export import cheat.service;
 
 export namespace cheat::gui
@@ -58,6 +58,4 @@ export namespace cheat::gui
 		//todo: move outside
 		HWND hwnd_ = nullptr;
 	};
-
-	//CHEAT_SERVICE_SHARE(imgui_context);
 }

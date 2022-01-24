@@ -1,0 +1,105 @@
+float& SmokeTrail::m_SpawnRate( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_SpawnRate");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& SmokeTrail::m_StartColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_StartColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& SmokeTrail::m_EndColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_EndColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_ParticleLifetime( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_ParticleLifetime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_StopEmitTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_StopEmitTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_MinSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_MinSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_MaxSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_MaxSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_MinDirectedSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_MinDirectedSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_MaxDirectedSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_MaxDirectedSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_StartSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_StartSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_EndSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_EndSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_SpawnRadius( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_SpawnRadius");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& SmokeTrail::m_bEmit( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_bEmit");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& SmokeTrail::m_nAttachment( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_nAttachment");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SmokeTrail::m_Opacity( )
+{
+	static const auto offset = cheat::get_netvar_offset("SmokeTrail", "m_Opacity");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

@@ -1,0 +1,35 @@
+cheat::csgo::CBaseHandle& C_PlayerPing::m_hPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PlayerPing", "m_hPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::CBaseHandle& C_PlayerPing::m_hPingedEntity( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PlayerPing", "m_hPingedEntity");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_PlayerPing::m_iType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PlayerPing", "m_iType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_PlayerPing::m_bUrgent( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PlayerPing", "m_bUrgent");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+char* C_PlayerPing::m_szPlaceName( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PlayerPing", "m_szPlaceName");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ptr( );
+}
+

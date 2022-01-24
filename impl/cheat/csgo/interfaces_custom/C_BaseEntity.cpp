@@ -1,9 +1,8 @@
-module;
-
-#include <functional>
-
 module cheat.csgo.interfaces:C_BaseEntity;
+
+import cheat.netvars_getter;
 import dhooks;
+import nstd.mem;
 
 using namespace cheat::csgo;
 

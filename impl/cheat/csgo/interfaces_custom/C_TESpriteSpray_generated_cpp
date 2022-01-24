@@ -1,0 +1,42 @@
+cheat::csgo::Vector& C_TESpriteSpray::m_vecOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TESpriteSpray", "m_vecOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_TESpriteSpray::m_vecDirection( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TESpriteSpray", "m_vecDirection");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TESpriteSpray::m_nModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TESpriteSpray", "m_nModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TESpriteSpray::m_fNoise( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TESpriteSpray", "m_fNoise");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TESpriteSpray::m_nCount( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TESpriteSpray", "m_nCount");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TESpriteSpray::m_nSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TESpriteSpray", "m_nSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

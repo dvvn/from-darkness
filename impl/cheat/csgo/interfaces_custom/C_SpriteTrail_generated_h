@@ -1,0 +1,8 @@
+float& m_flLifeTime( );
+float& m_flStartWidth( );
+float& m_flEndWidth( );
+float& m_flStartWidthVariance( );
+float& m_flTextureRes( );
+float& m_flMinFadeLength( );
+cheat::csgo::Vector& m_vecSkyboxOrigin( );
+float& m_flSkyboxScale( );

@@ -1,0 +1,2 @@
+int& m_nType( );
+cheat::csgo::Vector& m_vecDirection( );

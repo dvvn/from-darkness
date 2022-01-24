@@ -1,0 +1,70 @@
+cheat::csgo::Vector& C_SunlightShadowControl::m_shadowDirection( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_shadowDirection");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_SunlightShadowControl::m_bEnabled( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_bEnabled");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+char* C_SunlightShadowControl::m_TextureName( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_TextureName");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ptr( );
+}
+
+int& C_SunlightShadowControl::m_LightColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_LightColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SunlightShadowControl::m_flColorTransitionTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_flColorTransitionTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SunlightShadowControl::m_flSunDistance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_flSunDistance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SunlightShadowControl::m_flFOV( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_flFOV");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SunlightShadowControl::m_flNearZ( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_flNearZ");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SunlightShadowControl::m_flNorthOffset( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_flNorthOffset");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_SunlightShadowControl::m_bEnableShadows( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SunlightShadowControl", "m_bEnableShadows");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

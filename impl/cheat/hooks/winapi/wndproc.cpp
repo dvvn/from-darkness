@@ -4,7 +4,7 @@ module;
 #include <windows.h>
 
 module cheat.hooks.winapi:wndproc;
-import cheat.gui.menu;
+import cheat.gui;
 
 using namespace cheat;
 using namespace hooks::winapi;

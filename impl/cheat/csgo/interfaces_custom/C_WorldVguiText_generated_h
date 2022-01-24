@@ -1,0 +1,6 @@
+bool& m_bEnabled( );
+char* m_szDisplayText( );
+char* m_szDisplayTextOption( );
+char* m_szFont( );
+int& m_iTextPanelWidth( );
+cheat::csgo::Color& m_clrText( );

@@ -1,0 +1,7 @@
+int& C_TEKillPlayerAttachments::m_nPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEKillPlayerAttachments", "m_nPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

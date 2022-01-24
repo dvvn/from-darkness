@@ -1,0 +1,5 @@
+cheat::csgo::Vector& m_vecOrigin( );
+int& m_nModelIndex( );
+float& m_fScale( );
+float& m_fLife( );
+int& m_nBrightness( );

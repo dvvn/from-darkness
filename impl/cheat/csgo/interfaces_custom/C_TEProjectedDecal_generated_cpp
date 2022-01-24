@@ -1,0 +1,28 @@
+cheat::csgo::Vector& C_TEProjectedDecal::m_vecOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEProjectedDecal", "m_vecOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::QAngle& C_TEProjectedDecal::m_angRotation( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEProjectedDecal", "m_angRotation");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TEProjectedDecal::m_flDistance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEProjectedDecal", "m_flDistance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEProjectedDecal::m_nIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEProjectedDecal", "m_nIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

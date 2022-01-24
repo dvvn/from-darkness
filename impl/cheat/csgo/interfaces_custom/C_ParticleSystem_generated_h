@@ -1,0 +1,15 @@
+cheat::csgo::Vector& m_vecOrigin( );
+int& m_fEffects( );
+cheat::csgo::CBaseHandle& m_hOwnerEntity( );
+int& moveparent( );
+int& m_iParentAttachment( );
+cheat::csgo::QAngle& m_angRotation( );
+int& m_iEffectIndex( );
+bool& m_bActive( );
+int& m_nStopType( );
+float& m_flStartTime( );
+char* m_szSnapshotFileName( );
+std::array<cheat::csgo::Vector, 4>& m_vServerControlPoints( );
+std::array<int, 4>& m_iServerControlPointAssignments( );
+std::array<int, 63>& m_hControlPointEnts( );
+std::array<int, 63>& m_iControlPointParents( );

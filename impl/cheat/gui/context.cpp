@@ -11,7 +11,7 @@ module;
 
 #include <d3d9.h>
 
-module cheat.gui.context;
+module cheat.gui:context;
 import cheat.csgo.interfaces;
 
 using namespace cheat;

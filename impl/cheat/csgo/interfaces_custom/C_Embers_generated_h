@@ -1,0 +1,4 @@
+int& m_nDensity( );
+int& m_nLifetime( );
+int& m_nSpeed( );
+bool& m_bEmit( );

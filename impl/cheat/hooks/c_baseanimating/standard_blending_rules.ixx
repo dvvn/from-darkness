@@ -16,7 +16,7 @@ import cheat.csgo.interfaces;
 
 namespace cheat::hooks::c_base_animating
 {
-	struct standard_blending_rules final : hook_base<standard_blending_rules, void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::QuaternionAligned*, float, int)>
+	export struct standard_blending_rules final : hook_base<standard_blending_rules, void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::QuaternionAligned*, float, int)>
 	{
 		standard_blending_rules( );
 

@@ -1,0 +1,42 @@
+cheat::csgo::Vector& C_TEBubbleTrail::m_vecMins( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEBubbleTrail", "m_vecMins");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_TEBubbleTrail::m_vecMaxs( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEBubbleTrail", "m_vecMaxs");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEBubbleTrail::m_nModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEBubbleTrail", "m_nModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TEBubbleTrail::m_flWaterZ( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEBubbleTrail", "m_flWaterZ");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEBubbleTrail::m_nCount( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEBubbleTrail", "m_nCount");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TEBubbleTrail::m_fSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEBubbleTrail", "m_fSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

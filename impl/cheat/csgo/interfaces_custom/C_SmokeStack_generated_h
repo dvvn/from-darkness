@@ -1,0 +1,12 @@
+float& m_SpreadSpeed( );
+float& m_Speed( );
+float& m_StartSize( );
+float& m_EndSize( );
+float& m_Rate( );
+float& m_JetLength( );
+bool& m_bEmit( );
+float& m_flBaseSpread( );
+float& m_flTwist( );
+float& m_flRollSpeed( );
+int& m_iMaterialModel( );
+cheat::csgo::Vector& m_vWind( );

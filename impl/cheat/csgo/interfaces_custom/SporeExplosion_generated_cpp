@@ -1,0 +1,49 @@
+float& SporeExplosion::m_flSpawnRate( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeExplosion", "m_flSpawnRate");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeExplosion::m_flParticleLifetime( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeExplosion", "m_flParticleLifetime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeExplosion::m_flStartSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeExplosion", "m_flStartSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeExplosion::m_flEndSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeExplosion", "m_flEndSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& SporeExplosion::m_flSpawnRadius( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeExplosion", "m_flSpawnRadius");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& SporeExplosion::m_bEmit( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeExplosion", "m_bEmit");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& SporeExplosion::m_bDontRemove( )
+{
+	static const auto offset = cheat::get_netvar_offset("SporeExplosion", "m_bDontRemove");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

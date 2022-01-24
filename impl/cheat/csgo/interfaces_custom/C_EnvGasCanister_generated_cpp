@@ -1,0 +1,154 @@
+float& C_EnvGasCanister::m_flFlightSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flFlightSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvGasCanister::m_flLaunchTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flLaunchTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_EnvGasCanister::m_vecParabolaDirection( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecParabolaDirection");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvGasCanister::m_flFlightTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flFlightTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvGasCanister::m_flWorldEnterTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flWorldEnterTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvGasCanister::m_flInitialZSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flInitialZSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvGasCanister::m_flZAcceleration( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flZAcceleration");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvGasCanister::m_flHorizSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flHorizSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_EnvGasCanister::m_bLaunchedFromWithinWorld( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_bLaunchedFromWithinWorld");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_EnvGasCanister::m_vecImpactPosition( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecImpactPosition");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_EnvGasCanister::m_vecStartPosition( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecStartPosition");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_EnvGasCanister::m_vecEnterWorldPosition( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecEnterWorldPosition");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_EnvGasCanister::m_vecDirection( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecDirection");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::QAngle& C_EnvGasCanister::m_vecStartAngles( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecStartAngles");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_EnvGasCanister::m_vecSkyboxOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecSkyboxOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvGasCanister::m_flSkyboxScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_flSkyboxScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_EnvGasCanister::m_bInSkybox( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_bInSkybox");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_EnvGasCanister::m_bDoImpactEffects( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_bDoImpactEffects");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_EnvGasCanister::m_bLanded( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_bLanded");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::CBaseHandle& C_EnvGasCanister::m_hSkyboxCopy( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_hSkyboxCopy");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_EnvGasCanister::m_nMyZoneIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_nMyZoneIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector2D& C_EnvGasCanister::m_vecOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvGasCanister", "m_vecOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

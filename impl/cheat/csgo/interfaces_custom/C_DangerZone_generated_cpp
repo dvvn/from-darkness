@@ -1,0 +1,49 @@
+cheat::csgo::Vector& C_DangerZone::m_vecDangerZoneOriginStartedAt( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_DangerZone", "m_vecDangerZoneOriginStartedAt");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_DangerZone::m_flBombLaunchTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_DangerZone", "m_flBombLaunchTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_DangerZone::m_flExtraRadius( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_DangerZone", "m_flExtraRadius");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_DangerZone::m_flExtraRadiusStartTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_DangerZone", "m_flExtraRadiusStartTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_DangerZone::m_flExtraRadiusTotalLerpTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_DangerZone", "m_flExtraRadiusTotalLerpTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_DangerZone::m_nDropOrder( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_DangerZone", "m_nDropOrder");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_DangerZone::m_iWave( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_DangerZone", "m_iWave");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

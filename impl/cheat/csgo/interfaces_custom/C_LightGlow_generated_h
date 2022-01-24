@@ -1,0 +1,12 @@
+cheat::csgo::Color& m_clrRender( );
+int& m_nHorizontalSize( );
+int& m_nVerticalSize( );
+int& m_nMinDist( );
+int& m_nMaxDist( );
+int& m_nOuterMaxDist( );
+int& m_spawnflags( );
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::QAngle& m_angRotation( );
+int& moveparent( );
+float& m_flGlowProxySize( );
+float& HDRColorScale( );

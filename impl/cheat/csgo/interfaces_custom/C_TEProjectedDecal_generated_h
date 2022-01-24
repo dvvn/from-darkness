@@ -1,0 +1,4 @@
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::QAngle& m_angRotation( );
+float& m_flDistance( );
+int& m_nIndex( );

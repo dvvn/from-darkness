@@ -1,0 +1,2 @@
+int& m_OwningPlayer( );
+int& m_KillingPlayer( );

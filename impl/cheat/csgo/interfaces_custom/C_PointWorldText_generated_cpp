@@ -1,0 +1,21 @@
+char* C_PointWorldText::m_szText( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PointWorldText", "m_szText");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ptr( );
+}
+
+float& C_PointWorldText::m_flTextSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PointWorldText", "m_flTextSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_PointWorldText::m_textColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PointWorldText", "m_textColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

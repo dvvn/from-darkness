@@ -1,0 +1,56 @@
+int& C_TEExplosion::m_nModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_nModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TEExplosion::m_fScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_fScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEExplosion::m_nFrameRate( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_nFrameRate");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEExplosion::m_nFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_nFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_TEExplosion::m_vecNormal( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_vecNormal");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+unsigned char& C_TEExplosion::m_chMaterialType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_chMaterialType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEExplosion::m_nRadius( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_nRadius");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEExplosion::m_nMagnitude( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEExplosion", "m_nMagnitude");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

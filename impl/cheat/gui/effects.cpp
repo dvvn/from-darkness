@@ -13,7 +13,7 @@ using BYTE = unsigned char;
 #include "effects_data/Build/chromatic_aberration.h"
 #include "effects_data/Build/monochrome.h"
 #endif
- 
+
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/unordered_map.h>
@@ -1183,11 +1183,17 @@ private:
 static blur_scaled_data _Blur_scaled;
 //burn gpu, but looks perfect
 static blur_effect _Blur;
-
+#ifdef _DEBUG
+static size_t _Blurred_targetes = 0;
+#endif
 //#define USE_SCALED_BLUR
 
 void effects::perform_blur(ImDrawList* drawList, float alpha) noexcept
 {
+#ifdef _DEBUG
+	++_Blurred_targetes;
+#endif
+
 #ifdef USE_SCALED_BLUR
 	const auto& rect = reinterpret_cast<ImRect&>(drawList->_ClipRectStack.back( ));
 	auto [blur, added] = _Blur_scaled[drawList];
@@ -1208,6 +1214,9 @@ void effects::new_frame( ) noexcept
 #endif
 
 #ifdef _DEBUG
+	if (_Blurred_targetes == 0)
+		return;
+	_Blurred_targetes = 0;
 #ifdef USE_SCALED_BLUR
 	for (const auto wnd : GImGui->Windows | std::views::reverse)
 	{

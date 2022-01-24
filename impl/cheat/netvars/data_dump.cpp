@@ -584,10 +584,18 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 	}
 
 	const bool create_dir = !fs::exists(generated_classes_dir);
-	size_t reserve = root_netvars_data.size( ) * 2;
+	size_t empty_files_count = root_netvars_data.size( ) * 2;
 
-	if (!create_dir && !fs::is_empty(generated_classes_dir))
+	if (create_dir)
 	{
+		recreate = false;
+		lazy_storage.create.emplace_back(generated_classes_dir);
+	}
+	else if (!fs::is_empty(generated_classes_dir))
+	{
+		size_t not_generated = empty_files_count;
+
+		auto not_generated_max = not_generated;
 		for (const auto& file : fs::directory_iterator(generated_classes_dir))
 		{
 			if (!is_regular_file(file.path( )))
@@ -617,114 +625,63 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 			if (data == files_to_generate.end( ))
 				continue;
 
+			--not_generated;
 			auto& cached = h ? data->second.h_cached : data->second.cpp_cached;
 			cached = file.path( );
 		}
 
-		if (recreate)
+		const auto run_fn = [&]<typename Fn>(Fn fn)
 		{
-			const auto try_remove = [&](fs::path& p)
-			{
-				if (!p.empty( ))
-					lazy_storage.remove.emplace_back(std::move(p), false);
-			};
-
 			for (auto& [class_name, data] : files_to_generate)
 			{
-				try_remove(data.h_cached);
-				try_remove(data.cpp_cached);
+				std::invoke(fn, data.h_cached, class_name, suffix_h);
+				std::invoke(fn, data.cpp_cached, class_name, suffix_cpp);
 			}
+		};
+		const auto construct = [&]<typename ...Args>(const Args& ...args)
+		{
+			return generated_classes_dir / _Construct_append<std::wstring>(args...);
+		};
+
+		//no files generated before
+		if (not_generated_max == not_generated)
+		{
+			run_fn([&]<typename ...Args>(fs::path & p, const Args& ...args)
+			{
+				p = construct(args...);
+			});
+		}
+		else if (recreate)
+		{
+			run_fn([&]<typename ...Args>(fs::path & p, const Args& ...args)
+			{
+				if (!p.empty( ))
+					lazy_storage.remove.emplace_back(p, false);
+				else
+					p = construct(args...);
+			});
 		}
 		else
 		{
-			size_t not_generated = 0;
-			for (const auto& [class_name, data] : files_to_generate)
-			{
-				if (data.h_cached.empty( ))
-					++not_generated;
-				if (data.cpp_cached.empty( ))
-					++not_generated;
-			}
-
 			if (not_generated == 0)
 			{
 				CHEAT_CONSOLE_LOG_G("Netvars classes are up-to-date.");
 				return;
 			}
 
-			reserve = not_generated;
+			empty_files_count = not_generated;
+
+			run_fn([&]<typename ...Args>(fs::path & p, const Args& ...args)
+			{
+				if (!p.empty( ))
+					p.clear( );
+				else
+					p = construct(args...);
+			});
 		}
 	}
 
-#if 0
-	if (info == log_info::skipped || info == log_info::updated)
-	{
-		if (!exists(generated_classes_dir))
-		{
-			info = log_info::created;
-			goto _CREATE;
-		}
-		if (is_empty(generated_classes_dir))
-		{
-			info = log_info::created;
-			goto _WORK;
-		}
-
-		netvars_data_backup = root_netvars_data;
-
-		//generated tag added to class name directly
-
-		using generated_file_path = std::wstring;
-		const auto generated_files = _Get_generated_files<generated_file_path>(generated_classes_dir, wsuffix_cpp, wsuffix_h, wgenerated_tag);
-		for (const auto& gen_file : generated_files)
-		{
-			const auto TYPE = gen_file.type;
-			runtime_assert(TYPE != generated_file_type::UNSET);
-			const auto& FILE = gen_file.str;
-
-			const auto add_to_erase = [&](const std::wstring_view& postfix)
-			{
-				generated_file_path path;
-				_Reserve_append(path, generated_classes_dir.native( ), FILE, postfix);
-				lazy_storage.remove.emplace_back(std::move(path), false);
-			};
-
-			if (TYPE & (generated_file_type::H | generated_file_type::CPP))
-			{
-				const nstd::unistring<char> filechr = FILE;
-				const std::string_view filechr_sv = {reinterpret_cast<const char*>(filechr.data( )), filechr.size( )};
-				const auto name_entry = root_netvars_data.find(filechr_sv);
-				if (name_entry != root_netvars_data.end( ))
-					continue;
-				root_netvars_data.erase(name_entry);
-			}
-			else if (TYPE & generated_file_type::H)
-			{
-				add_to_erase(wsuffix_h);
-			}
-			else if (TYPE & generated_file_type::CPP)
-			{
-				add_to_erase(wsuffix_cpp);
-			}
-			else
-			{
-				runtime_assert("flags are broken");
-			}
-		}
-
-		if (generated_files.empty( ) || !root_netvars_data.empty( ) && (netvars_data_backup.get( ).size( ) != root_netvars_data.size( ) || !lazy_storage.remove.empty( )))
-		{
-			info = log_info::created;
-			goto _WORK;
-		}
-
-		return;
-	}
-#endif
-
-	if (create_dir)
-		lazy_storage.create.emplace_back(generated_classes_dir);
-	lazy_storage.write.reserve(reserve);
+	lazy_storage.write.reserve(empty_files_count);
 
 	for (const auto& [CLASS_NAME, DATA] : files_to_generate)
 	{

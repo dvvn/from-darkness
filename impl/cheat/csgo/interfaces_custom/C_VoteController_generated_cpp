@@ -1,0 +1,35 @@
+int& C_VoteController::m_iActiveIssueIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_VoteController", "m_iActiveIssueIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_VoteController::m_iOnlyTeamToVote( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_VoteController", "m_iOnlyTeamToVote");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+std::array<int, 5>& C_VoteController::m_nVoteOptionCount( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_VoteController", "m_nVoteOptionCount");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_VoteController::m_nPotentialVotes( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_VoteController", "m_nPotentialVotes");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_VoteController::m_bIsYesNoVote( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_VoteController", "m_bIsYesNoVote");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

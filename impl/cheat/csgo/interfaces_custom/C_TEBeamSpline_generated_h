@@ -1,0 +1,2 @@
+int& m_nPoints( );
+std::array<cheat::csgo::Vector, 16>& m_vecPoints( );

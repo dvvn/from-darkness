@@ -1,0 +1,8 @@
+cheat::csgo::Vector& m_poolOrigin( );
+float& m_x( );
+float& m_y( );
+float& m_z( );
+float& m_angle( );
+int& m_nModelIndex( );
+int& m_lifeState( );
+float& m_waterLevel( );

@@ -1,0 +1,42 @@
+float& ParticleSmokeGrenade::m_flSpawnTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("ParticleSmokeGrenade", "m_flSpawnTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& ParticleSmokeGrenade::m_FadeStartTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("ParticleSmokeGrenade", "m_FadeStartTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& ParticleSmokeGrenade::m_FadeEndTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("ParticleSmokeGrenade", "m_FadeEndTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& ParticleSmokeGrenade::m_MinColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("ParticleSmokeGrenade", "m_MinColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& ParticleSmokeGrenade::m_MaxColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("ParticleSmokeGrenade", "m_MaxColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& ParticleSmokeGrenade::m_CurrentStage( )
+{
+	static const auto offset = cheat::get_netvar_offset("ParticleSmokeGrenade", "m_CurrentStage");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

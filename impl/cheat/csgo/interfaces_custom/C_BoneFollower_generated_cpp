@@ -1,0 +1,14 @@
+int& C_BoneFollower::m_modelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BoneFollower", "m_modelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_BoneFollower::m_solidIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BoneFollower", "m_solidIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

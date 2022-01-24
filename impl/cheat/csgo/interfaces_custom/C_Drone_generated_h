@@ -1,0 +1,7 @@
+cheat::csgo::CBaseHandle& m_hMoveToThisEntity( );
+cheat::csgo::CBaseHandle& m_hDeliveryCargo( );
+bool& m_bPilotTakeoverAllowed( );
+cheat::csgo::CBaseHandle& m_hPotentialCargo( );
+cheat::csgo::CBaseHandle& m_hCurrentPilot( );
+std::array<cheat::csgo::Vector, 24>& m_vecTagPositions( );
+std::array<int, 24>& m_vecTagIncrements( );

@@ -1,0 +1,9 @@
+float& m_FOV( );
+float& m_Resolution( );
+bool& m_bFogEnable( );
+int& m_FogColor( );
+float& m_flFogStart( );
+float& m_flFogEnd( );
+float& m_flFogMaxDensity( );
+bool& m_bActive( );
+bool& m_bUseScreenAspectRatio( );

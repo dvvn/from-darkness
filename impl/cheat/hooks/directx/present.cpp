@@ -9,7 +9,7 @@ module;
 #include <d3d9.h>
 
 module cheat.hooks.directx:present;
-import cheat.gui.menu;
+import cheat.gui;
 import cheat.csgo.interfaces;
 
 using namespace cheat;

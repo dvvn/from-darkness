@@ -1,0 +1,91 @@
+char* C_MaterialModifyControl::m_szMaterialName( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_szMaterialName");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ptr( );
+}
+
+char* C_MaterialModifyControl::m_szMaterialVar( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_szMaterialVar");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ptr( );
+}
+
+char* C_MaterialModifyControl::m_szMaterialVarValue( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_szMaterialVarValue");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ptr( );
+}
+
+int& C_MaterialModifyControl::m_iFrameStart( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_iFrameStart");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_MaterialModifyControl::m_iFrameEnd( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_iFrameEnd");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_MaterialModifyControl::m_bWrap( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_bWrap");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_MaterialModifyControl::m_flFramerate( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_flFramerate");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_MaterialModifyControl::m_bNewAnimCommandsSemaphore( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_bNewAnimCommandsSemaphore");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_MaterialModifyControl::m_flFloatLerpStartValue( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_flFloatLerpStartValue");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_MaterialModifyControl::m_flFloatLerpEndValue( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_flFloatLerpEndValue");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_MaterialModifyControl::m_flFloatLerpTransitionTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_flFloatLerpTransitionTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_MaterialModifyControl::m_bFloatLerpWrap( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_bFloatLerpWrap");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_MaterialModifyControl::m_nModifyMode( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_MaterialModifyControl", "m_nModifyMode");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

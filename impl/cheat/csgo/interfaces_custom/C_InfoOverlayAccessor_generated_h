@@ -1,0 +1,2 @@
+int& m_iTextureFrameIndex( );
+int& m_iOverlayID( );

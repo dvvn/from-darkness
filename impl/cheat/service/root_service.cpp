@@ -35,7 +35,6 @@ static DWORD WINAPI _Unload_helper(LPVOID data_packed)
 	auto handle = static_cast<HMODULE>(loader.module_handle);
 	//destroy all except hooks
 	auto all_hooks = loader.reset(true);
-	dhooks::current_context::reset( );
 	Sleep(sleep / 2);
 	all_hooks.reset( ); //unhook force
 	Sleep(sleep / 2);
@@ -51,10 +50,17 @@ void services_loader::unload( )
 
 auto services_loader::reset(bool deps_only)->reset_object
 {
+	auto deps = this->_Deps<false>( );
+	if (this->state( ) == service_state::unset)
+	{
+		runtime_assert(std::ranges::count(deps, nullptr) == deps.size( ));
+		return nullptr;
+	}
+
 	this->set_state(service_state::unset);
 
 	auto hooks = std::make_unique<all_hooks_storage>( );
-	for (auto& d : this->_Deps<false>( ))
+	for (auto& d : deps)
 	{
 		auto ptr = std::dynamic_pointer_cast<hook_holder_data>(std::move(d));
 		if (!ptr)
@@ -83,9 +89,7 @@ auto services_loader::reset(bool deps_only)->reset_object
 void services_loader::construct( ) noexcept
 {
 	//this->deps( ).get<console>( ).log("Cheat started");
-	using namespace dhooks;
-	//current_context::set(std::make_shared<context_safe>(std::make_unique<context>( )));
-	current_context::set(std::make_shared<context>( ));
+
 }
 
 bool services_loader::load( ) noexcept

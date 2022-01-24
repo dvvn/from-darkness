@@ -1,0 +1,49 @@
+float& C_Plasma::m_flStartScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Plasma", "m_flStartScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Plasma::m_flScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Plasma", "m_flScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Plasma::m_flScaleTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Plasma", "m_flScaleTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Plasma::m_nFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Plasma", "m_nFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Plasma::m_nPlasmaModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Plasma", "m_nPlasmaModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Plasma::m_nPlasmaModelIndex2( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Plasma", "m_nPlasmaModelIndex2");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Plasma::m_nGlowModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Plasma", "m_nGlowModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

@@ -1,0 +1,28 @@
+float& C_FuncAreaPortalWindow::m_flFadeStartDist( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncAreaPortalWindow", "m_flFadeStartDist");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncAreaPortalWindow::m_flFadeDist( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncAreaPortalWindow", "m_flFadeDist");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FuncAreaPortalWindow::m_flTranslucencyLimit( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncAreaPortalWindow", "m_flTranslucencyLimit");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FuncAreaPortalWindow::m_iBackgroundModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FuncAreaPortalWindow", "m_iBackgroundModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

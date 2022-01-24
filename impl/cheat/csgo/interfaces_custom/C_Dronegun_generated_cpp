@@ -1,0 +1,28 @@
+cheat::csgo::Vector& C_Dronegun::m_vecAttentionTarget( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Dronegun", "m_vecAttentionTarget");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_Dronegun::m_vecTargetOffset( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Dronegun", "m_vecTargetOffset");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Dronegun::m_iHealth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Dronegun", "m_iHealth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_Dronegun::m_bHasTarget( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Dronegun", "m_bHasTarget");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

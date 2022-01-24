@@ -1,0 +1,2 @@
+int& m_nArmorValue( );
+bool& m_bIsHeavyAssaultSuit( );

@@ -1,0 +1,7 @@
+int& C_RagdollManager::m_iCurrentMaxRagdollCount( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_RagdollManager", "m_iCurrentMaxRagdollCount");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

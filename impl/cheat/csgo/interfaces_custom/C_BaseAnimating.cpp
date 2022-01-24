@@ -4,7 +4,10 @@ module;
 
 module cheat.csgo.interfaces:C_BaseAnimating;
 import cheat.csgo.modules;
+import cheat.netvars_getter;
 import dhooks;
+import nstd.mem;
+
 using namespace cheat::csgo;
 
 #if __has_include("C_BaseAnimating_generated_cpp")
@@ -20,7 +23,7 @@ void C_BaseAnimating::UpdateClientSideAnimation( )
 
 void C_BaseAnimating::InvalidateBoneCache( )
 {
-#if __has_include("C_BaseAnimating_generated.ixx")
+#if __has_include("C_BaseAnimating_generated_cpp")
 	auto& time = m_flLastBoneSetupTime( );
 	auto& counter = m_iMostRecentModelBoneCounter( );
 

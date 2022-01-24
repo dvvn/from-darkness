@@ -1,0 +1,4 @@
+bool& m_bShouldExplode( );
+int& m_weaponThatThrewMe( );
+int& m_nParentBoneIndex( );
+cheat::csgo::Vector& m_vecParentBonePos( );

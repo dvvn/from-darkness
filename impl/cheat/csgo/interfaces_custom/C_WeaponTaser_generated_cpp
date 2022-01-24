@@ -1,0 +1,7 @@
+float& C_WeaponTaser::m_fFireTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_WeaponTaser", "m_fFireTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

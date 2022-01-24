@@ -1,0 +1,84 @@
+int& C_EnvWind::m_iMinWind( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_iMinWind");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_EnvWind::m_iMaxWind( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_iMaxWind");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_EnvWind::m_iMinGust( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_iMinGust");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_EnvWind::m_iMaxGust( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_iMaxGust");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvWind::m_flMinGustDelay( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_flMinGustDelay");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvWind::m_flMaxGustDelay( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_flMaxGustDelay");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_EnvWind::m_iGustDirChange( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_iGustDirChange");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_EnvWind::m_iWindSeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_iWindSeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_EnvWind::m_iInitialWindDir( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_iInitialWindDir");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvWind::m_flInitialWindSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_flInitialWindSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvWind::m_flStartTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_flStartTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_EnvWind::m_flGustDuration( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_EnvWind", "m_flGustDuration");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

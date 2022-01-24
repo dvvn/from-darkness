@@ -1,0 +1,3 @@
+cheat::csgo::Vector& m_vecCenter( );
+float& m_flStartRadius( );
+float& m_flEndRadius( );

@@ -4,6 +4,7 @@ module;
 
 export module cheat.csgo.interfaces:C_BaseAnimating;
 export import :C_BaseEntity;
+export import :AnimationLayer;
 
 export namespace cheat::csgo
 {

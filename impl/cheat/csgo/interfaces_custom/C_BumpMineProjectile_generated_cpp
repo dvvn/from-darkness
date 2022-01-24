@@ -1,0 +1,21 @@
+int& C_BumpMineProjectile::m_nParentBoneIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BumpMineProjectile", "m_nParentBoneIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_BumpMineProjectile::m_vecParentBonePos( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BumpMineProjectile", "m_vecParentBonePos");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_BumpMineProjectile::m_bArmed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BumpMineProjectile", "m_bArmed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

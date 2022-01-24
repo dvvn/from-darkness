@@ -1,0 +1,10 @@
+cheat::csgo::Vector& m_vecOrigin( );
+cheat::csgo::QAngle& m_vecAngles( );
+cheat::csgo::Vector& m_vecForce( );
+cheat::csgo::Vector& m_vecForcePos( );
+float& m_flWidth( );
+float& m_flHeight( );
+float& m_flShardSize( );
+int& m_nSurfaceType( );
+cheat::csgo::Color& m_uchFrontColor( );
+cheat::csgo::Color& m_uchBackColor( );

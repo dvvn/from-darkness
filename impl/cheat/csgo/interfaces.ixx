@@ -41,7 +41,6 @@ export import :Recv;
 export import :DataMap;
 export import :UserCmd;
 export import :VarMapping;
-export import :AnimationLayer;
 
 export import cheat.service;
 export import nstd.mem;

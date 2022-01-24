@@ -1,0 +1,7 @@
+float& m_flSpawnRate( );
+cheat::csgo::Vector& m_vecEndColor( );
+float& m_flParticleLifetime( );
+float& m_flStartSize( );
+float& m_flEndSize( );
+float& m_flSpawnRadius( );
+bool& m_bEmit( );

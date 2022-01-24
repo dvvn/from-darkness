@@ -14,7 +14,7 @@
 
 import cheat.console;
 import cheat.csgo.interfaces;
-import cheat.gui.menu;
+import cheat.gui;
 import cheat.hooks.winapi;
 import cheat.hooks.imgui;
 import cheat.hooks.directx;

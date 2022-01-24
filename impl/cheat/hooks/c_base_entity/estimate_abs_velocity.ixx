@@ -14,7 +14,7 @@ import cheat.csgo.interfaces;
 
 namespace cheat::hooks::c_base_entity
 {
-	struct estimate_abs_velocity final : hook_base<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
+	export struct estimate_abs_velocity final : hook_base<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
 	{
 		estimate_abs_velocity( );
 

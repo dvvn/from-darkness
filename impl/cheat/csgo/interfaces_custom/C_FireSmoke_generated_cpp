@@ -1,0 +1,42 @@
+float& C_FireSmoke::m_flStartScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FireSmoke", "m_flStartScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FireSmoke::m_flScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FireSmoke", "m_flScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_FireSmoke::m_flScaleTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FireSmoke", "m_flScaleTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FireSmoke::m_nFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FireSmoke", "m_nFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FireSmoke::m_nFlameModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FireSmoke", "m_nFlameModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_FireSmoke::m_nFlameFromAboveModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_FireSmoke", "m_nFlameFromAboveModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

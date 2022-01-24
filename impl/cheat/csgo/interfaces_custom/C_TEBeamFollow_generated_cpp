@@ -1,0 +1,7 @@
+int& C_TEBeamFollow::m_iEntIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEBeamFollow", "m_iEntIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

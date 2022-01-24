@@ -1,0 +1,140 @@
+int& C_Func_Dust::m_Color( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_Color");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_SpawnRate( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_SpawnRate");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Func_Dust::m_flSizeMin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_flSizeMin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Func_Dust::m_flSizeMax( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_flSizeMax");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_LifetimeMin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_LifetimeMin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_LifetimeMax( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_LifetimeMax");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_DustFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_DustFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_SpeedMax( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_SpeedMax");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_DistMax( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_DistMax");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_nModelIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_nModelIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_Func_Dust::m_FallSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_FallSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_Func_Dust::m_bAffectedByWind( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_bAffectedByWind");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_Func_Dust::m_vecMins( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_vecMins");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_Func_Dust::m_vecMaxs( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_vecMaxs");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_nSolidType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_nSolidType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_usSolidFlags( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_usSolidFlags");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_nSurroundType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_nSurroundType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_Func_Dust::m_triggerBloat( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_triggerBloat");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_Func_Dust::m_vecSpecifiedSurroundingMins( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_vecSpecifiedSurroundingMins");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_Func_Dust::m_vecSpecifiedSurroundingMaxs( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Func_Dust", "m_vecSpecifiedSurroundingMaxs");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

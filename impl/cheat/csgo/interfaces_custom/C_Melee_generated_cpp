@@ -1,0 +1,7 @@
+float& C_Melee::m_flThrowAt( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_Melee", "m_flThrowAt");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

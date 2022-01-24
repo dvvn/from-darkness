@@ -1,0 +1,11 @@
+cheat::csgo::CBaseHandle& m_hAttachedToEntity( );
+int& m_nAttachment( );
+float& m_flScaleTime( );
+float& m_flSpriteScale( );
+float& m_flSpriteFramerate( );
+float& m_flGlowProxySize( );
+float& m_flHDRColorScale( );
+float& m_flFrame( );
+float& m_flBrightnessTime( );
+int& m_nBrightness( );
+bool& m_bWorldSpaceScale( );

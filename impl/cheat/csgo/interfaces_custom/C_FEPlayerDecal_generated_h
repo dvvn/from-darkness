@@ -1,0 +1,15 @@
+int& m_nUniqueID( );
+unsigned int& m_unAccountID( );
+unsigned int& m_unTraceID( );
+int& m_rtGcTime( );
+cheat::csgo::Vector& m_vecEndPos( );
+cheat::csgo::Vector& m_vecStart( );
+cheat::csgo::Vector& m_vecRight( );
+cheat::csgo::Vector& m_vecNormal( );
+int& m_nEntity( );
+int& m_nPlayer( );
+int& m_nHitbox( );
+int& m_nTintID( );
+float& m_flCreationTime( );
+int& m_nVersion( );
+std::array<int, 128>& m_ubSignature( );

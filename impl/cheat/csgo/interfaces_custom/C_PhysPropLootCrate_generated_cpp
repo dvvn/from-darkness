@@ -1,0 +1,28 @@
+bool& C_PhysPropLootCrate::m_bRenderInPSPM( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PhysPropLootCrate", "m_bRenderInPSPM");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_PhysPropLootCrate::m_bRenderInTablet( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PhysPropLootCrate", "m_bRenderInTablet");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_PhysPropLootCrate::m_iHealth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PhysPropLootCrate", "m_iHealth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_PhysPropLootCrate::m_iMaxHealth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_PhysPropLootCrate", "m_iMaxHealth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

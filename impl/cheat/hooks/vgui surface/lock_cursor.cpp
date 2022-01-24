@@ -3,7 +3,7 @@ module;
 #include "cheat/hooks/base_includes.h"
 
 module cheat.hooks.vgui_surface:lock_cursor;
-import cheat.gui.menu;
+import cheat.gui;
 
 using namespace cheat;
 using namespace hooks::vgui_surface;

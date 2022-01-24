@@ -1,0 +1,56 @@
+float& C_SpriteTrail::m_flLifeTime( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_flLifeTime");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SpriteTrail::m_flStartWidth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_flStartWidth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SpriteTrail::m_flEndWidth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_flEndWidth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SpriteTrail::m_flStartWidthVariance( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_flStartWidthVariance");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SpriteTrail::m_flTextureRes( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_flTextureRes");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SpriteTrail::m_flMinFadeLength( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_flMinFadeLength");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_SpriteTrail::m_vecSkyboxOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_vecSkyboxOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_SpriteTrail::m_flSkyboxScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_SpriteTrail", "m_flSkyboxScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

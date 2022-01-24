@@ -15,9 +15,9 @@ export namespace cheat::csgo
 		virtual void* vtablepad0x2( ) = 0;
 		virtual IClientEntity* GetClientEntity(int entNum) = 0;
 		virtual IClientEntity* GetClientEntityFromHandle(CBaseHandle hEnt) = 0;
-		virtual int                 NumberOfEntities(bool bIncludeNonNetworkable) = 0;
-		virtual int                 GetHighestEntityIndex( ) = 0;
-		virtual void                SetMaxEntities(int maxEnts) = 0;
-		virtual int                 GetMaxEntities( ) = 0;
+		virtual int NumberOfEntities(bool bIncludeNonNetworkable) = 0;
+		virtual int GetHighestEntityIndex( ) = 0;
+		virtual void SetMaxEntities(int maxEnts) = 0;
+		virtual int GetMaxEntities( ) = 0;
 	};
 }

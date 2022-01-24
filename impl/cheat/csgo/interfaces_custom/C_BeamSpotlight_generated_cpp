@@ -1,0 +1,56 @@
+int& C_BeamSpotlight::m_nHaloIndex( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_nHaloIndex");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_BeamSpotlight::m_bSpotlightOn( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_bSpotlightOn");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+bool& C_BeamSpotlight::m_bHasDynamicLight( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_bHasDynamicLight");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_BeamSpotlight::m_flSpotlightMaxLength( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_flSpotlightMaxLength");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_BeamSpotlight::m_flSpotlightGoalWidth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_flSpotlightGoalWidth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_BeamSpotlight::m_flHDRColorScale( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_flHDRColorScale");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_BeamSpotlight::m_nRotationAxis( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_nRotationAxis");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_BeamSpotlight::m_flRotationSpeed( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_BeamSpotlight", "m_flRotationSpeed");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

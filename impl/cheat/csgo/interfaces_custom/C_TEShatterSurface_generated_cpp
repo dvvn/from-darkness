@@ -1,0 +1,70 @@
+cheat::csgo::Vector& C_TEShatterSurface::m_vecOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_vecOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::QAngle& C_TEShatterSurface::m_vecAngles( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_vecAngles");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_TEShatterSurface::m_vecForce( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_vecForce");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Vector& C_TEShatterSurface::m_vecForcePos( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_vecForcePos");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TEShatterSurface::m_flWidth( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_flWidth");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TEShatterSurface::m_flHeight( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_flHeight");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+float& C_TEShatterSurface::m_flShardSize( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_flShardSize");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEShatterSurface::m_nSurfaceType( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_nSurfaceType");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Color& C_TEShatterSurface::m_uchFrontColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_uchFrontColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+cheat::csgo::Color& C_TEShatterSurface::m_uchBackColor( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEShatterSurface", "m_uchBackColor");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+

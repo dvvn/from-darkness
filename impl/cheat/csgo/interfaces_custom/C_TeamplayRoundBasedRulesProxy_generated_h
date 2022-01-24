@@ -1,0 +1,13 @@
+int& m_iRoundState( );
+bool& m_bInWaitingForPlayers( );
+int& m_iWinningTeam( );
+bool& m_bInOvertime( );
+bool& m_bInSetup( );
+bool& m_bSwitchedTeamsThisRound( );
+bool& m_bAwaitingReadyRestart( );
+float& m_flRestartRoundTime( );
+float& m_flMapResetTime( );
+std::array<float, 32>& m_flNextRespawnWave( );
+std::array<float, 32>& m_TeamRespawnWaveTimes( );
+std::array<int, 32>& m_bTeamReady( );
+bool& m_bStopWatch( );

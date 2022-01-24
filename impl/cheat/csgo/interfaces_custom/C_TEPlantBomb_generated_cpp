@@ -1,0 +1,21 @@
+cheat::csgo::Vector& C_TEPlantBomb::m_vecOrigin( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEPlantBomb", "m_vecOrigin");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEPlantBomb::m_iPlayer( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEPlantBomb", "m_iPlayer");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
+int& C_TEPlantBomb::m_option( )
+{
+	static const auto offset = cheat::get_netvar_offset("C_TEPlantBomb", "m_option");
+	auto addr = nstd::mem::address(this).add(offset);
+	return addr.ref( );
+}
+
