@@ -112,9 +112,9 @@ struct basic_shader_program : comptr<Shader>
 		HRESULT_VALIDATE(d3d->CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this));
 	}
 
-	basic_shader_program(const basic_shader_program& other) = delete;
-	basic_shader_program& operator=(const basic_shader_program& other) = delete;
-	basic_shader_program(basic_shader_program&& other) noexcept = default;
+	basic_shader_program(const basic_shader_program& other)                = delete;
+	basic_shader_program& operator=(const basic_shader_program& other)     = delete;
+	basic_shader_program(basic_shader_program&& other) noexcept            = default;
 	basic_shader_program& operator=(basic_shader_program&& other) noexcept = default;
 
 	void use(float uniform, int location) const noexcept
@@ -250,7 +250,7 @@ struct debug_string : std::string
 		append(str).append("##").append(tmp);
 	}
 
-	operator const char* () const
+	operator const char*( ) const
 	{
 		return c_str( );
 	}
@@ -277,9 +277,9 @@ static auto _ImRect_to_rect(const ImRect& rect)
 {
 	RECT out;
 
-	out.left = static_cast<LONG>(rect.Min.x);
-	out.top = static_cast<LONG>(rect.Min.y);
-	out.right = static_cast<LONG>(rect.Max.x);
+	out.left   = static_cast<LONG>(rect.Min.x);
+	out.top    = static_cast<LONG>(rect.Min.y);
+	out.right  = static_cast<LONG>(rect.Max.x);
 	out.bottom = static_cast<LONG>(rect.Max.y);
 
 	return out;
@@ -289,12 +289,12 @@ static auto _ImRect_to_viewport(const ImRect& rect)
 {
 	D3DVIEWPORT9 out;
 
-	out.X = static_cast<DWORD>(rect.Min.x);
-	out.Y = static_cast<DWORD>(rect.Min.y);
-	out.Width = static_cast<DWORD>(rect.GetWidth( ));
+	out.X      = static_cast<DWORD>(rect.Min.x);
+	out.Y      = static_cast<DWORD>(rect.Min.y);
+	out.Width  = static_cast<DWORD>(rect.GetWidth( ));
 	out.Height = static_cast<DWORD>(rect.GetHeight( ));
-	out.MinZ = 0;
-	out.MaxZ = 1;
+	out.MinZ   = 0;
+	out.MaxZ   = 1;
 
 	return out;
 }
@@ -435,7 +435,7 @@ public:
 		if (clr.Value.w == alpha)
 			return;
 		clr.Value.w = alpha;
-		color_ = clr;
+		color_      = clr;
 	}
 
 	ImU32 get_color( ) const { return color_; }
@@ -476,9 +476,9 @@ private:
 
 	struct
 	{
-		debug_string clarity = "clarity";
-		debug_string down_sample = "down sample";
-		debug_string reset_values = "reset values";
+		debug_string clarity        = "clarity";
+		debug_string down_sample    = "down sample";
+		debug_string reset_values   = "reset values";
 		debug_string reset_textures = "reset textures";
 	} debug_strings_;
 
@@ -526,8 +526,8 @@ public:
 		{
 			const auto w = static_cast<UINT>(rect_.GetWidth( ));
 			const auto h = static_cast<UINT>(rect_.GetHeight( ));
-			x.texture = _Create_texture(w, h);
-			y.texture = _Create_texture(w, h);
+			x.texture    = _Create_texture(w, h);
+			y.texture    = _Create_texture(w, h);
 		}
 		blur_effect::update_data( );
 	}
@@ -550,9 +550,9 @@ public:
 		blur_effect::update(drawList);
 
 		auto& begin_cmd = *std::ranges::find_if(cmdbuffer, [this](const ImDrawCmd& cmd)
-												{
-													return cmd.UserCallback == ImDrawCallback{static_cast<basic_effect*>(this), 1};
-												});
+		{
+			return cmd.UserCallback == ImDrawCallback{static_cast<basic_effect*>(this), 1};
+		});
 		begin_cmd.UserCallbackData = new RECT(_ImRect_to_rect(rect_));
 	}
 
@@ -1146,7 +1146,6 @@ public:
 
 		auto& tmp = temp_data_.emplace_back( );
 		tmp.first = key_wanted;
-
 		return std::forward_as_tuple(tmp.second, true);
 	}
 
@@ -1154,14 +1153,14 @@ public:
 	{
 		if (temp_data_.empty( ))
 			return;
-		for (auto& d : temp_data_)
+		for (auto& d: temp_data_)
 			this->push_back(std::move(d));
 		temp_data_.clear( );
 	}
 
 	blur_effect_scaled* find(const key_type& key_wanted)
 	{
-		for (auto& [key, value] : *this)
+		for (auto& [key, value]: *this)
 		{
 			if (key == key_wanted)
 				return std::addressof(value);
@@ -1171,7 +1170,7 @@ public:
 
 	void reset_all_data( )
 	{
-		for (auto& [key, value] : *this)
+		for (auto& [key, value]: *this)
 			value.reset_data( );
 	}
 
@@ -1179,20 +1178,21 @@ private:
 	std::list<ValueType> temp_data_;
 };
 
+//#define USE_SCALED_BLUR
+
+#ifdef USE_SCALED_BLUR
 //gpu-friendly, but stretch background (fixable in theory) and work look because of small textures
 static blur_scaled_data _Blur_scaled;
+#else
 //burn gpu, but looks perfect
 static blur_effect _Blur;
-#ifdef _DEBUG
-static size_t _Blurred_targetes = 0;
 #endif
-//#define USE_SCALED_BLUR
+
+static size_t _Blurred_targetes = 0;
 
 void effects::perform_blur(ImDrawList* drawList, float alpha) noexcept
 {
-#ifdef _DEBUG
 	++_Blurred_targetes;
-#endif
 
 #ifdef USE_SCALED_BLUR
 	const auto& rect = reinterpret_cast<ImRect&>(drawList->_ClipRectStack.back( ));
@@ -1209,18 +1209,15 @@ void effects::perform_blur(ImDrawList* drawList, float alpha) noexcept
 
 void effects::new_frame( ) noexcept
 {
-#ifdef USE_SCALED_BLUR
-	_Blur_scaled.write_temp_data( );
-#endif
-
-#ifdef _DEBUG
 	if (_Blurred_targetes == 0)
 		return;
 	_Blurred_targetes = 0;
+
 #ifdef USE_SCALED_BLUR
+	_Blur_scaled.write_temp_data( );
 	for (const auto wnd : GImGui->Windows | std::views::reverse)
 	{
-		if (!custom_textures_applicable(wnd))
+		if (!is_applicable(wnd))
 			continue;
 		auto ptr = _Blur_scaled.find(wnd->DrawList);
 		if (!ptr)
@@ -1232,7 +1229,6 @@ void effects::new_frame( ) noexcept
 	}
 #else
 	_Blur.debug_update( );
-#endif
 #endif
 }
 
@@ -1254,10 +1250,9 @@ bool effects::is_applicable(const ImGuiWindow* wnd)
 	if (wnd->Flags & ImGuiWindowFlags_NoBackground)
 		return false;
 
-	constexpr auto bad_color = [](ImGuiCol_ col)
+	const auto bad_color = [style = std::addressof(ImGui::GetStyle( ))](ImGuiCol_ col)
 	{
-		const auto& style = ImGui::GetStyle( );
-		const auto& clr = style.Colors[col];
+		const auto& clr = style->Colors[col];
 		return /*clr.w == 0 ||*/ clr.w == 1;
 	};
 
