@@ -22,6 +22,7 @@ import cheat.hooks.client;
 import cheat.hooks.c_csplayer;
 import cheat.hooks.c_base_animating;
 import cheat.hooks.c_base_entity;
+import cheat.hooks.other;
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
@@ -57,6 +58,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 		deps.add<hooks::c_base_animating::should_skip_animation_frame>( );
 		deps.add<hooks::c_base_animating::standard_blending_rules>( );
 		deps.add<hooks::c_base_entity::estimate_abs_velocity>( );
+		deps.add<hooks::other::rta_holder>( );
 
 		loader.start_async(services_loader::async_detach( ));
 		break;
