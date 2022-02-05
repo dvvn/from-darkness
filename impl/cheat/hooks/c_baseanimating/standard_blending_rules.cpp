@@ -19,11 +19,12 @@ void standard_blending_rules::construct( ) noexcept
 	this->deps( ).add<netvars>( );
 }
 
-void* standard_blending_rules::get_target_method( ) const
+bool standard_blending_rules::load( ) noexcept
 {
 	const csgo_interface vtable = csgo_modules::client->find_vtable<C_BaseAnimating>( );
 	const auto index = csgo_modules::client->find_signature("8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1).divide(4)._Unwrap<uintptr_t>( );
-	return vtable.vfunc(index).ptr( );
+	this->set_target_method(vtable.vfunc(index).ptr( ));
+	return hook_base::load( );
 }
 
 void standard_blending_rules::callback(CStudioHdr * hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)

@@ -14,12 +14,14 @@ frame_stage_notify::frame_stage_notify( ) = default;
 
 void frame_stage_notify::construct( ) noexcept
 {
+	this->deps( ).add<csgo_interfaces>( );
 	this->deps( ).add<players_list>( );
 }
 
-void* frame_stage_notify::get_target_method( ) const
+bool frame_stage_notify::load( ) noexcept
 {
-	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).client.vfunc(37).ptr( );
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client.vfunc(32).ptr( ));
+	return hook_base::load( );
 }
 
 void frame_stage_notify::callback(ClientFrameStage_t stage)

@@ -18,19 +18,20 @@ import cheat.csgo.interfaces;
 //	class IStudioRender;
 //}
 
-export namespace cheat::hooks::studio_render
+namespace cheat::hooks::studio_render
 {
-	struct draw_model final : hook_base<draw_model
+	export class draw_model final :public hook_base<draw_model
 		, void(csgo::IStudioRender::*)(csgo::DrawModelResults_t*, const csgo::DrawModelInfo_t&, csgo::matrix3x4_t*, float*
 									   , float*
 									   , const csgo::Vector&, csgo::DrawModelFlags_t)>
 
 	{
+	public:
 		draw_model( );
 
 	protected:
 		void construct( ) noexcept override;
-		void* get_target_method( ) const override;
+		bool load( ) noexcept override;
 		void callback(csgo::DrawModelResults_t* results,
 					  const csgo::DrawModelInfo_t& info,
 					  csgo::matrix3x4_t* bone_to_world,

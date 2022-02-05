@@ -14,13 +14,7 @@ PushClipRect::PushClipRect( ) = default;
 
 void PushClipRect::construct( ) noexcept
 {
-	//this->add_dependency<gui::context>( );
-}
-
-void* PushClipRect::get_target_method( ) const
-{
-	//return dhooks::_Pointer_to_class_method(&ImDrawList::_ResetForNewFrame);
-	return ImGui::PushClipRect;
+	this->set_target_method(ImGui::PushClipRect);
 }
 
 void PushClipRect::callback(const ImVec2 & clip_rect_min, const ImVec2 & clip_rect_max, bool intersect_with_current_clip_rect)

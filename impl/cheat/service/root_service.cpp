@@ -65,7 +65,7 @@ auto services_loader::reset(bool deps_only)->reset_object
 		auto ptr = std::dynamic_pointer_cast<hook_holder_data>(std::move(d));
 		if (!ptr)
 			continue;
-		ptr->unhook_after_call( );
+		ptr->disable_after_call( );
 		hooks->push_back(std::move(ptr));
 	}
 

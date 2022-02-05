@@ -18,14 +18,15 @@ estimate_abs_velocity::estimate_abs_velocity( ) = default;
 
 void estimate_abs_velocity::construct( ) noexcept
 {
-	this->deps( ).add<netvars>();
+	this->deps( ).add<netvars>( );
 }
 
-void* estimate_abs_velocity::get_target_method( ) const
+bool estimate_abs_velocity::load( ) noexcept
 {
 	const csgo_interface vtable = csgo_modules::client->find_vtable<C_BaseEntity>( );
 	const auto index = csgo_modules::client->find_signature("FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1).divide(4)._Unwrap<uintptr_t>( );
-	return vtable.vfunc(index).ptr( );
+	this->set_target_method(vtable.vfunc(index).ptr( ));
+	return hook_base::load( );
 }
 
 void estimate_abs_velocity::callback(Vector & vel)

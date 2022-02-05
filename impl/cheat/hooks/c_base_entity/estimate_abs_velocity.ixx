@@ -14,13 +14,14 @@ import cheat.csgo.interfaces;
 
 namespace cheat::hooks::c_base_entity
 {
-	export struct estimate_abs_velocity final : hook_base<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
+	export class estimate_abs_velocity final :public hook_base<estimate_abs_velocity, void(csgo::C_BaseEntity::*)(csgo::Vector&)>
 	{
+	public:
 		estimate_abs_velocity( );
 
 	protected:
 		void construct( ) noexcept override;
-		void* get_target_method( ) const override;
+		bool load( ) noexcept override;
 		void callback(csgo::Vector& vel) override;
 	};
 

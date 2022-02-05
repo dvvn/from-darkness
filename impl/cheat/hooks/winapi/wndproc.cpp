@@ -24,13 +24,10 @@ bool wndproc::load( ) noexcept
 	unicode_ = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
-	return hook_base::load( );
-}
+	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC);
+	this->set_target_method(reinterpret_cast<void*>(val));
 
-void* wndproc::get_target_method( ) const
-{
-	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, this->deps( ).get<gui::context>( ).hwnd( ), GWLP_WNDPROC);
-	return reinterpret_cast<void*>(val);
+	return hook_base::load( );
 }
 
 // ReSharper disable once CppInconsistentNaming

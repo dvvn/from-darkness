@@ -8,13 +8,14 @@ import cheat.csgo.interfaces;
 
 namespace cheat::hooks::vgui_surface
 {
-	export struct lock_cursor final : hook_base<lock_cursor, void(csgo::ISurface::*)()>
+	export class lock_cursor final :public hook_base<lock_cursor, void(csgo::ISurface::*)()>
 	{
+	public:
 		lock_cursor( );
 
 	protected:
 		void construct( ) noexcept override;
-		void* get_target_method( ) const override;
+		bool load( ) noexcept override;
 		void callback( ) override;
 	};
 }

@@ -13,13 +13,14 @@ import cheat.csgo.interfaces;
 
 namespace cheat::hooks::c_base_animating
 {
-	export struct should_skip_animation_frame final : hook_base<should_skip_animation_frame, bool(csgo::C_BaseAnimating::*)()>
+	export class should_skip_animation_frame final :public hook_base<should_skip_animation_frame, bool(csgo::C_BaseAnimating::*)()>
 	{
+	public:
 		should_skip_animation_frame( );
 
 	protected:
 		void construct( ) noexcept override;
-		void* get_target_method( ) const override;
+		bool load( ) noexcept override;
 		void callback(/*float current_time*/) override;
 
 	private:

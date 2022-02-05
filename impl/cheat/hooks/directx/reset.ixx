@@ -6,15 +6,16 @@ module;
 export module cheat.hooks.directx:reset;
 import cheat.hooks.base;
 
-export namespace cheat::hooks::directx
+namespace cheat::hooks::directx
 {
-	struct reset final : hook_base < reset, HRESULT(__stdcall IDirect3DDevice9::*)(_D3DPRESENT_PARAMETERS_*)>
+	export class reset final :public hook_base<reset, decltype(&IDirect3DDevice9::Reset)>
 	{
+	public:
 		reset( );
 
 	protected:
 		void construct( ) noexcept override;
-		void* get_target_method( ) const override;
+		bool load( ) noexcept override;
 		void callback(D3DPRESENT_PARAMETERS*) override;
 	};
 }

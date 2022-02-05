@@ -20,12 +20,14 @@ present::present( ) = default;
 
 void present::construct( ) noexcept
 {
+	this->deps( ).add<csgo_interfaces>( );
 	this->deps( ).add<gui::menu>( );
 }
 
-void* present::get_target_method( ) const
+bool present::load( ) noexcept
 {
-	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(17).ptr( );
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(17).ptr( ));
+	return hook_base::load( );
 }
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)

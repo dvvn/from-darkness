@@ -12,12 +12,14 @@ lock_cursor::lock_cursor( ) = default;
 
 void lock_cursor::construct( ) noexcept
 {
+	this->deps( ).add<csgo_interfaces>( );
 	this->deps( ).add<gui::menu>( );
 }
 
-void* lock_cursor::get_target_method( ) const
+bool lock_cursor::load( ) noexcept
 {
-	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).vgui_surface.vfunc(67).ptr( );
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).vgui_surface.vfunc(67).ptr( ));
+	return hook_base::load( );
 }
 
 void lock_cursor::callback( )

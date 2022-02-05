@@ -17,12 +17,14 @@ reset::reset( ) = default;
 
 void reset::construct( ) noexcept
 {
+	this->deps( ).add<csgo_interfaces >( );
 	this->deps( ).add<gui::context>( );
 }
 
-void* reset::get_target_method( ) const
+bool reset::load( ) noexcept
 {
-	return services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(16).ptr( );
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(16).ptr( ));
+	return hook_base::load( );
 }
 
 void reset::callback(D3DPRESENT_PARAMETERS*)
