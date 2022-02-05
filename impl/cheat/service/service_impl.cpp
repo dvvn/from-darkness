@@ -27,7 +27,7 @@ void basic_service::set_state(service_state state)
 		break;
 	}
 	case service_state::waiting:
-		c.log("{} - Trying to load {} dependencies...", name( ), deps_.size( ));
+		c.log("{} - Trying to load {} dependenc{}...", name( ), deps_.size( ), deps_.size( ) == 1 ? "y" : "ies");
 		break;
 	case service_state::loading:
 		c.log("{} - Loading started.", name( ));
