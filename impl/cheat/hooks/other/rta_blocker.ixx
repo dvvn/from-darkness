@@ -1,10 +1,10 @@
 module;
 
-#include "cheat/hooks/base_includes.h"
-#include <string>
+#include <dhooks/includes.h>
+#include <string_view>
 
 export module cheat.hooks.other:rta_blocker;
-export import cheat.hooks.base;
+export import dhooks;
 
 namespace cheat::hooks::other
 {
@@ -13,27 +13,19 @@ namespace cheat::hooks::other
 	void* rta_blocker_get_target_method(const std::wstring_view& module_name);
 
 	export template<size_t Index>
-		class rta_blocker final :public hook_base<rta_blocker<Index>, char(std::false_type::*)(const char*), Index>
+		class rta_blocker final :public dhooks::select_hook_holder<char(std::false_type::*)(const char*), Index>
 	{
 	public:
-		rta_blocker(const std::wstring_view& module_name)
-			:module_name_(module_name)
+		bool load(const std::wstring_view& module_name)
 		{
+			this->set_target_method(rta_blocker_get_target_method(module_name));
+			return this->hook( ) && this->enable( );
 		}
 
 	protected:
-
-		void construct( ) noexcept override
-		{
-			this->set_target_method(rta_blocker_get_target_method(module_name_));
-		}
-
 		void callback([[maybe_unused]] const char* module_name) override
 		{
 			this->store_return_value(1);
 		}
-
-	private:
-		std::wstring module_name_;
 	};
 }
