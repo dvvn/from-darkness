@@ -8,10 +8,7 @@
 
 import cheat.console;
 import cheat.csgo.awaiter;
-import cheat.csgo.interfaces;
 import cheat.gui;
-import cheat.netvars;
-import cheat.players;
 import cheat.hooks.winapi;
 import cheat.hooks.vgui_surface;
 import cheat.hooks.studio_render;
@@ -32,8 +29,6 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 	{
 	case DLL_PROCESS_ATTACH:
 	{
-		service_deps_getter_add_allow_skip = false;
-
 		auto& loader = services_loader::get( );
 		loader.module_handle = hModule;
 
@@ -41,11 +36,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 		//deps.add<>();
 		deps.add<csgo_awaiter>( );
 		deps.add<console>( );
-		deps.add<csgo_interfaces>( );
-		deps.add<gui::context>( );
 		deps.add<gui::menu>( );
-		deps.add<netvars>( );
-		deps.add<players_list>( );
 		deps.add<hooks::winapi::wndproc>( );
 		deps.add<hooks::vgui_surface::lock_cursor>( );
 		deps.add<hooks::studio_render::draw_model>( );

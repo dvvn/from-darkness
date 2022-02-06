@@ -246,7 +246,7 @@ bool menu::render( )
 {
 	auto& wnd = impl_->menu_window;
 
-	if (wnd.show_next_tick( ) && !wnd.visible( ) && this->deps( ).get<gui::context>( ).inctive( ))
+	if (wnd.show_next_tick( ) && !wnd.visible( ) && this->deps( ).get<gui::context>( ).inactive( ))
 		return false;
 
 	const auto end = wnd( );

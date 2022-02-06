@@ -86,7 +86,7 @@ namespace cheat
 #ifdef FMT_VERSION
 					using val_t = std::ranges::range_value_t<Fmt>;
 					//fmt support compile time only for char today
-					if constexpr (std::is_same_v<val_t, char> )
+					if constexpr (std::is_same_v<val_t, char>)
 						return fmt::runtime(fmt_str);
 					else
 #endif
@@ -122,20 +122,18 @@ namespace cheat
 		size_t id( ) const override;
 	};
 
-
-
 	export template<typename Base = console, typename T, std::invocable<Base*> Fn>
-		void console_log(T* holder, Fn&& fn)
+		auto console_log(T* holder, Fn&& fn)
 	{
-		holder->deps( ).try_call<Base>(fn);
+		return holder->deps( ).try_call<Base>(fn);
 	}
 
 	export template<typename Base = console, typename T, typename ...Args>
-		void console_log(T* holder, Args&&...args)
+		auto console_log(T* holder, Args&&...args)
 	{
-		console_log<Base>(holder, [&](Base* c)
-						  {
-							  c->log(std::forward<Args>(args)...);
-						  });
+		return console_log<Base>(holder, [&](Base* c)
+								 {
+									 c->log(std::forward<Args>(args)...);
+								 });
 	}
 }

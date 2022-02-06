@@ -115,7 +115,7 @@ HWND context::hwnd( ) const
 	return hwnd_;
 }
 
-ImGuiContext& context::get_context( )
+ImGuiContext& context::access( )
 {
 	return ctx_;
 }
@@ -148,7 +148,7 @@ context::context( )
 {
 }
 
-bool context::inctive( ) const
+bool context::inactive( ) const
 {
 	return (hwnd_ != GetForegroundWindow( ));
 }

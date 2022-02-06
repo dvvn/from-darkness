@@ -118,6 +118,22 @@ export namespace cheat
 		}
 	};
 
+	template<typename T>
+	struct try_call_result
+	{
+		T result;
+		bool called = false;
+
+		try_call_result( ) = default;
+		try_call_result(T result) :result(result), called(true) { }
+	};
+
+	template<>
+	struct try_call_result<void>
+	{
+		bool called = false;
+	};
+
 	template <typename Holder, bool Const>
 	class basic_service_deps_getter
 	{
@@ -178,24 +194,42 @@ export namespace cheat
 		}
 
 		template<typename T, typename Fn, typename...Args>
-		decltype(auto) try_call(Fn fn, Args&&...args)const
+		auto try_call(Fn fn, Args&&...args)const
 		{
-			using val_t = nstd::add_const_if_v<Const, T>*;
-			using ret_t = std::invoke_result_t<Fn, val_t, Args...>;
+			auto ptr = try_get<T>( );
 
-			if constexpr (std::is_void_v<ret_t> || std::default_initializable<ret_t>)
+			const auto invoke = [&]( )->decltype(auto)
 			{
-				auto ptr = try_get<T>( );
-				if (ptr)
-					return std::invoke(fn, ptr, std::forward<Args>(args)...);
+				return std::invoke(fn, ptr, std::forward<Args>(args)...);
+			};
 
-				if constexpr (!std::is_void_v<ret_t>)
-					return ret_t{};
+			using ret_t = decltype(invoke( ));
+			const auto valid_ptr = ptr != nullptr;
+
+			if constexpr (std::is_void_v<ret_t>)
+			{
+				try_call_result<void> ret;
+				if (valid_ptr)
+				{
+					ret.called = true;
+					invoke( );
+				}
+				return ret;
+			}
+			else if constexpr (std::default_initializable<ret_t>)
+			{
+				try_call_result<ret_t> ret;
+				if (valid_ptr)
+				{
+					ret.called = true;
+					invoke( );
+				}
+				return ret;
 			}
 			else
 			{
-				runtime_assert(try_get<T>( ) != nullptr, "Unable to create default value!");
-				return std::invoke(fn, get_ptr<T>( ), std::forward<Args>(args)...);
+				runtime_assert(valid_ptr == true, "Unable to create default value!");
+				return try_call_result<ret_t>(invoke( ));
 			}
 		}
 	};

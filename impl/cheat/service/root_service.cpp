@@ -6,8 +6,8 @@ module;
 
 module cheat.service:root;
 //import cheat.console;
-import cheat.csgo.awaiter;
 import dhooks;
+import nstd.rtlib;
 
 using namespace cheat;
 using dhooks::hook_holder_data;
@@ -60,6 +60,7 @@ auto services_loader::reset(bool deps_only)->reset_object
 	this->set_state(service_state::unset);
 
 	auto hooks = std::make_unique<all_hooks_storage>( );
+	//todo: scal all deps not root only
 	for (auto& d : deps)
 	{
 		auto ptr = std::dynamic_pointer_cast<hook_holder_data>(std::move(d));
@@ -71,7 +72,7 @@ auto services_loader::reset(bool deps_only)->reset_object
 
 	if (deps_only)
 	{
-		for (auto& d : _Deps<false>( ))
+		for (auto& d : deps)
 		{
 			value_type empty;
 			std::swap(empty, d);
@@ -88,7 +89,6 @@ auto services_loader::reset(bool deps_only)->reset_object
 void services_loader::construct( ) noexcept
 {
 	//this->deps( ).get<console>( ).log("Cheat started");
-
 }
 
 bool services_loader::load( ) noexcept

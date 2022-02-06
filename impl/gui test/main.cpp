@@ -189,7 +189,7 @@ int main(int, char**)
 	//bool   show_another_window = false;
 
 	// Main loop	
-	while (1)
+	for (;;)
 	{
 		// Poll and handle messages (inputs, window resize, etc.)
 		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -197,16 +197,17 @@ int main(int, char**)
 		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
 		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		MSG msg;
-		bool done = false;
 		while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
 			if (msg.message == WM_QUIT)
-				done = true;
+				goto _RESET; 
 		}
-		if (done)
-			break;
+
+		//unload called
+		if (services_loader::get( ).state( ) == service_state::unset)
+			goto _RESET;
 
 		g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);

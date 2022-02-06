@@ -35,31 +35,38 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam
 
 void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	if (wparam == VK_DELETE && msg == WM_KEYUP)
-	{
-		this->disable( );
-		this->store_return_value(TRUE);
-		services_loader::get( ).unload( );
-		return;
-	}
+	auto& menu = this->deps( ).get<gui::menu>( );
+	auto& ctx = menu.deps( ).get<gui::context>( );
 
 	enum class result : uint8_t
 	{
 		none
 		, blocked
 		, skipped
+		, special
 	};
 
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto owerride_input = [&]
 	{
-		auto& menu = this->deps( ).get<gui::menu>( );
-
-		if (menu.deps( ).get<gui::context>( ).inctive( ))
+		const auto window_active = !ctx.inactive( );
+		if (!window_active)
 			return result::none;
 
-		if (menu.toggle(msg, wparam))
-			return result::skipped;
+		const auto input_active = ctx.access( ).IO.WantTextInput;
+		if (!input_active)
+		{
+			const auto unload_wanted = wparam == VK_DELETE && msg == WM_KEYUP;
+			if (unload_wanted)
+			{
+				this->disable( );
+				this->store_return_value(TRUE);
+				services_loader::get( ).unload( );
+				return result::special;
+			}
+			if (menu.toggle(msg, wparam))
+				return result::skipped;
+		}
 
 		const auto can_skip_input = [&](bool manual_imgui_handler)
 		{
@@ -103,6 +110,12 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 
 	switch (owerride_input( ))
 	{
+	case result::none:
+	{
+		if (override_return_)
+			this->store_return_value(override_return_to_);
+		break;
+	}
 	case result::blocked:
 	{
 		this->store_return_value(TRUE);
@@ -113,11 +126,8 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		this->store_return_value(default_wndproc_(hwnd, msg, wparam, lparam));
 		break;
 	}
-	default:
+	case result::special:
 	{
-		if (override_return_)
-			this->store_return_value(override_return_to_);
-		break;
 	}
 	}
 }

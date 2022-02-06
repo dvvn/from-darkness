@@ -44,7 +44,9 @@ using nstd::winapi::comptr;
 //temporary
 static auto _Get_d3d( )
 {
-	return cheat::services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.get( );
+	//TEMP FIX
+	static auto ptr = cheat::services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.get( );
+	return ptr;
 }
 
 [[nodiscard]]

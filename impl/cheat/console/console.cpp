@@ -19,6 +19,208 @@ import nstd.rtlib;
 
 using namespace cheat;
 
+template <typename Chr, typename Tr>
+static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
+{
+	using fb = std::basic_filebuf<Chr, Tr>;
+
+	auto buff = stream.rdbuf( );
+	auto real_buff = dynamic_cast<fb*>(buff);
+	assert(real_buff != nullptr);
+	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
+	//_Myfile
+	return nstd::mem::address(real_buff).add(offset).ref( );
+}
+
+template <bool Assert = true>
+static auto _Set_mode(FILE* file, int mode)
+{
+	const auto old_mode = _setmode(_fileno(file), mode);
+	if constexpr (Assert)
+		assert(old_mode != -1 && "Unable to change mode");
+	return old_mode;
+}
+
+template <typename S, typename T>
+concept stream_possible = requires(S stream, T val)
+{
+	stream << val;
+};
+
+template <typename T>
+constexpr auto is_basic_ostringstream_v = false;
+
+template <typename E, typename Tr, typename A>
+constexpr auto is_basic_ostringstream_v<std::basic_ostringstream<E, Tr, A>> = true;
+
+template <typename T>
+static decltype(auto) _Unwrap_view(T&& text)
+{
+	if constexpr (is_basic_ostringstream_v<std::remove_cvref_t<T>>)
+		return text.view( );
+	else
+		return std::forward<T>(text);
+}
+
+static auto _Write_text = []<typename T>(T && text)
+{
+	FILE* file_out;
+	int new_mode;
+	int prev_mode;
+
+	decltype(auto) text_fwd = _Unwrap_view(std::forward<T>(text));
+	using value_type = std::remove_cvref_t<decltype(text_fwd)>;
+	if constexpr (stream_possible<std::ofstream&, value_type>)
+	{
+		file_out = _Get_file_buff(std::cin);
+		new_mode = _O_TEXT;
+		prev_mode = _Set_mode(file_out, new_mode);
+		std::cout << text_fwd;
+	}
+	else if constexpr (stream_possible<std::wofstream&, value_type>)
+	{
+		file_out = _Get_file_buff(std::wcin);
+		new_mode = _O_U16TEXT;
+		prev_mode = _Set_mode(file_out, new_mode);
+		std::wcout << text_fwd;
+	}
+	else
+	{
+		static_assert(std::_Always_false<value_type>, __FUNCSIG__);
+		return;
+	}
+
+	if (prev_mode != new_mode)
+		_Set_mode(/*stdout*/file_out, prev_mode);
+};
+
+template <std::_Has_member_value_type T>
+static auto _Make_string(const T& str)
+{
+	auto bg = str.begin( );
+	auto ed = str.end( );
+
+	if constexpr (nstd::_Has_member_allocator_type<T>)
+		return std::basic_string<typename T::value_type, typename T::traits_type, typename T::allocator_type>(bg, ed);
+	else
+		return std::basic_string<typename T::value_type, typename T::traits_type>(bg, ed);
+}
+
+template <class T>
+	requires(!std::is_class_v<T>)
+static auto _Make_string(const T* ptr) { return std::basic_string<T>(ptr); }
+
+template <class T>
+	requires(!std::is_class_v<T>)
+static auto _Make_string(const T val) { return val; }
+
+template <class T>
+	requires(is_basic_ostringstream_v<T>)
+static auto _Make_string(const T& ostr) { return ostr.str( ); }
+
+template <typename Fn, typename T>
+static auto _Decayed_bind(Fn&& fn, T&& text)
+{
+	const auto get_text = [&]( )-> decltype(auto)
+	{
+		if constexpr (std::is_rvalue_reference_v<decltype(text)>)
+			return std::forward<T>(text);
+		else
+			return _Make_string(text);
+	};
+
+	return std::bind_front(std::forward<Fn>(fn), get_text( ));
+}
+
+static auto _Write_or_cache = []<typename T>(T && text, const console * instance, console_cache & cache)
+{
+	const auto lock = std::scoped_lock(cache);
+
+	if (instance->state( ) == service_state::loaded)
+	{
+		cache.write_all( );
+		_Write_text(std::forward<T>(text));
+	}
+	else
+	{
+		auto fn = _Decayed_bind(_Write_text, std::forward<T>(text));
+		if constexpr (std::copyable<decltype(fn)>)
+			cache.store(fn);
+		else
+			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1);});
+	}
+};
+
+template <typename T>
+static auto _Get_time_str( )
+{
+	using namespace std::chrono;
+	using clock = system_clock;
+
+	const auto current_time_point = clock::now( );
+	const auto current_time = clock::to_time_t(current_time_point);
+	auto current_localtime = tm( );
+
+	localtime_s(&current_localtime, &current_time);
+
+	const auto current_time_since_epoch = current_time_point.time_since_epoch( );
+	const auto current_milliseconds = duration_cast<milliseconds>(current_time_since_epoch).count( ) % 1000;
+	const auto current_microseconds = duration_cast<microseconds>(current_time_since_epoch).count( ) % 1000;
+
+	// ReSharper disable CppInconsistentNaming
+	constexpr T ZERO = '0';
+	constexpr T SPACE = ' ';
+	constexpr T DOT = '.';
+
+	constexpr T FMT_ARG[] = {'%', 'T', '\0'};
+	// ReSharper restore CppInconsistentNaming
+
+	return std::basic_ostringstream<T>( )
+		<< std::setfill(ZERO)
+		<< std::put_time(&current_localtime, FMT_ARG)
+		<< SPACE
+		<< std::setw(3) << current_milliseconds
+		<< DOT
+		<< std::setw(3) << current_microseconds;
+}
+
+static auto _Write_or_cache_full = []<typename T>(T && text, const console * instance, console_cache & cache)
+{
+	decltype(auto) view = _Unwrap_view(text);
+
+	using Chr = std::iter_value_t<decltype(view)>;
+	constexpr Chr pad[] = {' ', '-', ' ', '\0'};
+
+	auto stream = _Get_time_str<Chr>( ) << pad << view << static_cast<Chr>('\n');
+	_Write_or_cache(std::move(stream), instance, cache);
+};
+
+void console::write(char c)
+{
+	_Write_or_cache(c, this, cache_);
+}
+
+template <typename Fn, typename ...Args>
+static void _Pack(string_packer& str, Fn&& fn, Args&&...args)
+{
+	auto packed = [&]<typename T>(T && s)
+	{
+		fn(std::forward<T>(s), args...);
+	};
+
+	std::visit(packed, str.packed);
+}
+
+void console::write(string_packer&& str)
+{
+	_Pack(str, _Write_or_cache, this, cache_);
+}
+
+void console::write_line(string_packer&& str)
+{
+	_Pack(str, _Write_or_cache_full, this, cache_);
+}
+
 static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
 {
 	std::ostringstream msg;
@@ -125,7 +327,7 @@ bool console::load( ) noexcept
 		_Freopen(out_, "CONOUT$", "w", stdout);
 		_Freopen(err_, "CONOUT$", "w", stderr);
 
-		const std::wstring_view full_path = nstd::rtlib::all_infos::get( ).current( ).full_path( ).raw;
+		decltype(auto) full_path = nstd::rtlib::all_infos::get( ).current( ).full_path( ).raw;
 		if (!SetConsoleTitleW(full_path.data( )))
 		{
 			runtime_assert("Unable set console title");
@@ -135,207 +337,9 @@ bool console::load( ) noexcept
 
 	runtime_assert_add_handler(this);
 	runtime_assert(IsWindowUnicode(handle_) == TRUE);
+
+	const auto lock = std::scoped_lock(cache_);
+	cache_.write_all( );
+
 	return true;
-}
-
-template <typename Chr, typename Tr>
-static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>&stream)
-{
-	using fb = std::basic_filebuf<Chr, Tr>;
-
-	auto buff = stream.rdbuf( );
-	auto real_buff = dynamic_cast<fb*>(buff);
-	assert(real_buff != nullptr);
-	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
-	//_Myfile
-	return nstd::mem::address(real_buff).add(offset).ref( );
-}
-
-template <bool Assert = true>
-static auto _Set_mode(FILE * file, int mode)
-{
-	const auto old_mode = _setmode(_fileno(file), mode);
-	if constexpr (Assert)
-		assert(old_mode != -1 && "Unable to change mode");
-	return old_mode;
-}
-
-template <typename S, typename T>
-concept stream_possible = requires(S stream, T val)
-{
-	stream << val;
-};
-
-template <typename T>
-constexpr auto is_basic_ostringstream_v = false;
-
-template <typename E, typename Tr, typename A>
-constexpr auto is_basic_ostringstream_v<std::basic_ostringstream<E, Tr, A>> = true;
-
-template <typename T>
-static decltype(auto) _Unwrap_view(T && text)
-{
-	if constexpr (is_basic_ostringstream_v<std::remove_cvref_t<T>>)
-		return text.view( );
-	else
-		return std::forward<T>(text);
-}
-
-static auto _Write_text = []<typename T>(T && text)
-{
-	FILE* file_out;
-	int new_mode;
-	int prev_mode;
-
-	decltype(auto) text_fwd = _Unwrap_view(std::forward<T>(text));
-	using value_type = std::remove_cvref_t<decltype(text_fwd)>;
-	if constexpr (stream_possible<std::ofstream&, value_type>)
-	{
-		file_out = _Get_file_buff(std::cin);
-		new_mode = _O_TEXT;
-		prev_mode = _Set_mode(file_out, new_mode);
-		std::cout << text_fwd;
-	}
-	else if constexpr (stream_possible<std::wofstream&, value_type>)
-	{
-		file_out = _Get_file_buff(std::wcin);
-		new_mode = _O_U16TEXT;
-		prev_mode = _Set_mode(file_out, new_mode);
-		std::wcout << text_fwd;
-	}
-	else
-	{
-		static_assert(std::_Always_false<value_type>, __FUNCSIG__);
-		return;
-	}
-
-	if (prev_mode != new_mode)
-		_Set_mode(/*stdout*/file_out, prev_mode);
-};
-
-template <std::_Has_member_value_type T>
-static auto _Make_string(const T & str)
-{
-	auto bg = str.begin( );
-	auto ed = str.end( );
-
-	if constexpr (nstd::_Has_member_allocator_type<T>)
-		return std::basic_string<typename T::value_type, typename T::traits_type, typename T::allocator_type>(bg, ed);
-	else
-		return std::basic_string<typename T::value_type, typename T::traits_type>(bg, ed);
-}
-
-template <class T>
-	requires(!std::is_class_v<T>)
-static auto _Make_string(const T * ptr) { return std::basic_string<T>(ptr); }
-
-template <class T>
-	requires(!std::is_class_v<T>)
-static auto _Make_string(const T val) { return val; }
-
-template <class T>
-	requires(is_basic_ostringstream_v<T>)
-static auto _Make_string(const T & ostr) { return ostr.str( ); }
-
-template <typename Fn, typename T>
-static auto _Decayed_bind(Fn && fn, T && text)
-{
-	const auto get_text = [&]( )-> decltype(auto)
-	{
-		if constexpr (std::is_rvalue_reference_v<decltype(text)>)
-			return std::forward<T>(text);
-		else
-			return _Make_string(text);
-	};
-
-	return std::bind_front(std::forward<Fn>(fn), get_text( ));
-}
-
-static auto _Write_or_cache = []<typename T>(T && text, const console * instance, console_cache & cache)
-{
-	const auto lock = std::scoped_lock(cache);
-
-	if (instance->state( ) == service_state::loaded)
-	{
-		cache.write_all( );
-		_Write_text(std::forward<T>(text));
-	}
-	else
-	{
-		auto fn = _Decayed_bind(_Write_text, std::forward<T>(text));
-		if constexpr (std::copyable<decltype(fn)>)
-			cache.store(fn);
-		else
-			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1); });
-	}
-};
-
-template <typename T>
-static auto _Get_time_str( )
-{
-	using namespace std::chrono;
-	using clock = system_clock;
-
-	const auto current_time_point = clock::now( );
-	const auto current_time = clock::to_time_t(current_time_point);
-	auto current_localtime = tm( );
-
-	localtime_s(&current_localtime, &current_time);
-
-	const auto current_time_since_epoch = current_time_point.time_since_epoch( );
-	const auto current_milliseconds = duration_cast<milliseconds>(current_time_since_epoch).count( ) % 1000;
-	const auto current_microseconds = duration_cast<microseconds>(current_time_since_epoch).count( ) % 1000;
-
-	// ReSharper disable CppInconsistentNaming
-	constexpr T ZERO = '0';
-	constexpr T SPACE = ' ';
-	constexpr T DOT = '.';
-
-	constexpr T FMT_ARG[] = {'%', 'T', '\0'};
-	// ReSharper restore CppInconsistentNaming
-
-	return std::basic_ostringstream<T>( )
-		<< std::setfill(ZERO)
-		<< std::put_time(&current_localtime, FMT_ARG)
-		<< SPACE
-		<< std::setw(3) << current_milliseconds
-		<< DOT
-		<< std::setw(3) << current_microseconds;
-}
-
-static auto _Write_or_cache_full = []<typename T>(T && text, const console * instance, console_cache & cache)
-{
-	decltype(auto) view = _Unwrap_view(text);
-
-	using Chr = std::iter_value_t<decltype(view)>;
-	constexpr Chr pad[] = {' ', '-', ' ', '\0'};
-
-	auto stream = _Get_time_str<Chr>( ) << pad << view << static_cast<Chr>('\n');
-	_Write_or_cache(std::move(stream), instance, cache);
-};
-
-void console::write(char c)
-{
-	_Write_or_cache(c, this, cache_);
-}
-
-template <typename Fn, typename ...Args>
-static void _Pack(string_packer& str, Fn&& fn, Args&&...args)
-{
-	auto packed = [&]<typename T>(T && s)
-	{
-		fn(std::forward<T>(s), args...);
-	};
-
-	std::visit(packed, str.packed);
-}
-
-void console::write(string_packer&& str)
-{
-	_Pack(str, _Write_or_cache, this, cache_);
-}
-
-void console::write_line(string_packer&& str)
-{
-	_Pack(str, _Write_or_cache_full, this, cache_);
 }

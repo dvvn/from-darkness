@@ -8,38 +8,8 @@ import cheat.console;
 
 using namespace cheat;
 
-static void _Print_state(basic_service* holder, service_state state)
+static void _Print_state_impl(console* c, basic_service* holder, service_state state)
 {
-	console* c = nullptr;
-	if (holder->type( ) == typeid(console))
-	{
-		c = dynamic_cast<console*>(holder);
-	}
-	else
-	{
-		constexpr auto find_console = [](basic_service* from)->console*
-		{
-			for (auto& d : from->_Deps<false>( ))
-			{
-				if (d->type( ) != typeid(console))
-					continue;
-				return dynamic_cast<console*>(d.get( ));
-
-			}
-			return nullptr;
-		};
-
-		c = find_console(holder);
-		if (!c)
-		{
-#ifdef _DEBUG
-			c = find_console(services_loader::get_ptr( ));
-			if (!c)
-#endif
-				return;
-		}
-	}
-
 	switch (state)
 	{
 	case service_state::unset:
@@ -72,6 +42,26 @@ static void _Print_state(basic_service* holder, service_state state)
 		if (!extra_text.empty( ))
 			c->log("{} - {}", holder->name()( ),extra_text);
 		break;*/
+	}
+}
+
+static void _Print_state(basic_service* holder, service_state state)
+{
+#ifdef _DEBUG
+	if (services_loader::get( ).deps( ).try_call<console>(_Print_state_impl, holder, state).called)
+		return;
+#endif
+	if (holder->type( ) == typeid(console))
+	{
+		_Print_state_impl(dynamic_cast<console*>(holder), holder, state);
+		return;
+	}
+	for (auto& d : holder->_Deps<false>( ))
+	{
+		if (d->type( ) != typeid(console))
+			continue;
+		_Print_state_impl(dynamic_cast<console*>(d.get( )), holder, state);
+		return;
 	}
 }
 

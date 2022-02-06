@@ -42,9 +42,10 @@ export namespace cheat::gui
 		~context( ) override;
 		context( );
 
-		bool inctive( )const;
+		//todo: set in wndproc
+		bool inactive( )const;
 		HWND hwnd( ) const;
-		ImGuiContext& get_context( );
+		ImGuiContext& access( );
 
 		fonts_builder_proxy fonts( );
 
