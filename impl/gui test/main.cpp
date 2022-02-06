@@ -114,18 +114,15 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 static void register_services( )
 {
 	using namespace cheat;
-	service_deps_getter_add_allow_skip = false;
 	auto deps = services_loader::get( ).deps( );
 	deps.add<console>( );
 	deps.add<csgo_interfaces>( )->prepare_for_gui_test(g_pd3dDevice);
 	deps.add<gui::menu>( );
-	deps.add<gui::context>( );
 	using namespace hooks;
 	deps.add<winapi::wndproc>( );
 	deps.add<imgui::PushClipRect>( );
 	deps.add<directx::reset>( );
 	deps.add<directx::present>( );
-	service_deps_getter_add_allow_skip = true;
 }
 
 // Main code

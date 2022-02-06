@@ -77,22 +77,20 @@ namespace cheat
 
 	public:
 		template<bool NewLine = true, typename Fmt, typename ...T>
-		void log(Fmt&& fmt, T&& ...args)
+		void log(Fmt&& fmt_str, T&& ...args)
 		{
-#ifndef CHEAT_HAVE_CONSOLE
-			throw std::logic_error("Console not loaded");
-#endif
 			if constexpr (sizeof...(T) > 0)
 			{
 				const auto fmt_fixed = [&]( )->decltype(auto)
 				{
 #ifdef FMT_VERSION
 					using val_t = std::ranges::range_value_t<Fmt>;
-					if constexpr (std::is_same_v<val_t, char>)//fmt support compile time only for char today
-						return fmt::runtime(fmt);
+					//fmt support compile time only for char today
+					if constexpr (std::is_same_v<val_t, char> )
+						return fmt::runtime(fmt_str);
 					else
 #endif
-						return std::forward<Fmt>(fmt);
+						return std::forward<Fmt>(fmt_str);
 				};
 				auto str = std::format(fmt_fixed( ), std::forward<T>(args)...);
 				log<NewLine>(std::move(str));
@@ -100,9 +98,9 @@ namespace cheat
 			else
 			{
 				if constexpr (NewLine)
-					write_line(std::forward<Fmt>(fmt));
+					write_line(std::forward<Fmt>(fmt_str));
 				else
-					write(std::forward<Fmt>(fmt));
+					write(std::forward<Fmt>(fmt_str));
 			}
 		}
 
@@ -123,4 +121,21 @@ namespace cheat
 		void handle(const char* message, const std::source_location& location) noexcept override;
 		size_t id( ) const override;
 	};
+
+
+
+	export template<typename Base = console, typename T, std::invocable<Base*> Fn>
+		void console_log(T* holder, Fn&& fn)
+	{
+		holder->deps( ).try_call<Base>(fn);
+	}
+
+	export template<typename Base = console, typename T, typename ...Args>
+		void console_log(T* holder, Args&&...args)
+	{
+		console_log<Base>(holder, [&](Base* c)
+						  {
+							  c->log(std::forward<Args>(args)...);
+						  });
+	}
 }

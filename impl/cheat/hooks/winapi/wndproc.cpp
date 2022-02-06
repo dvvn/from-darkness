@@ -13,12 +13,12 @@ wndproc::wndproc( ) = default;
 
 void wndproc::construct( ) noexcept
 {
-	this->deps( ).add<gui::context>( );
+	this->deps( ).add<gui::menu>( );
 }
 
 bool wndproc::load( ) noexcept
 {
-	const auto hwnd = this->deps( ).get<gui::context>( ).hwnd( );
+	const auto hwnd = this->deps( ).get<gui::menu>( ).deps( ).get<gui::context>( ).hwnd( );
 	runtime_assert(hwnd != nullptr);
 
 	unicode_ = IsWindowUnicode(hwnd);
@@ -53,10 +53,10 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto owerride_input = [&]
 	{
-		if (this->deps( ).get<gui::context>( ).inctive( ))
-			return result::none;
+		auto& menu = this->deps( ).get<gui::menu>( );
 
-		auto& menu = services_loader::get( ).deps( ).get<gui::menu>( );
+		if (menu.deps( ).get<gui::context>( ).inctive( ))
+			return result::none;
 
 		if (menu.toggle(msg, wparam))
 			return result::skipped;

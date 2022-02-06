@@ -22,6 +22,7 @@ netvars::~netvars( ) = default;
 void netvars::construct( ) noexcept
 {
 	this->deps( ).add<csgo_interfaces>( );
+	this->deps( ).add<console>( );
 }
 
 bool netvars::load( ) noexcept
@@ -34,8 +35,9 @@ bool netvars::load( ) noexcept
 	store_handmade_netvars(storage_);
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	const auto info = log_netvars(storage_);
-	generate_classes(info, storage_, lazy_);
+	auto* const cons = this->deps( ).try_get<console>( );
+	const auto log_result = log_netvars(cons, storage_);
+	generate_classes(cons, log_result, storage_, lazy_);
 #endif
 	return true;
 }

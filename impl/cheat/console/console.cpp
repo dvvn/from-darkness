@@ -83,7 +83,7 @@ console::~console( )
 
 void console::construct( )noexcept
 {
-	this->deps( ).add<csgo_awaiter>( );
+	this->deps( ).add<csgo_awaiter>(true);
 }
 
 bool console::load( ) noexcept
@@ -266,7 +266,7 @@ static auto _Write_or_cache = []<typename T>(T && text, const console * instance
 		if constexpr (std::copyable<decltype(fn)>)
 			cache.store(fn);
 		else
-			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1);});
+			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1); });
 	}
 };
 

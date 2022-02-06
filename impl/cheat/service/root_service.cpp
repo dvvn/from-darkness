@@ -79,8 +79,7 @@ auto services_loader::reset(bool deps_only)->reset_object
 	}
 	else
 	{
-		services_loader tmp;
-		std::swap(tmp, *this);
+		this->_Reload( );
 	}
 
 	return hooks;
@@ -95,6 +94,7 @@ void services_loader::construct( ) noexcept
 bool services_loader::load( ) noexcept
 {
 	//this->deps( ).get<console>( ).log("Cheat fully loaded");
+	services_cache::_Reload( );
 	return true;
 }
 

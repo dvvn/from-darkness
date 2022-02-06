@@ -96,7 +96,7 @@ static auto _Construct_append(const Args&...args)
 	return obj;
 }
 
-bool netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
+bool netvars_impl::log_netvars(console* logger, const netvars_storage& root_netvars_data)
 {
 	const fs::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
 
@@ -118,7 +118,8 @@ bool netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
 	{
 		auto file = std::ofstream(netvars_dump_file);
 		file << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
-		CHEAT_CONSOLE_LOG_G("Netvars dump done");
+		if (logger)
+			logger->log("Netvars dump done");
 		return true;
 	}
 
@@ -130,420 +131,15 @@ bool netvars_impl::log_netvars(const netvars_storage& root_netvars_data)
 	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
 	{
 		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
-		CHEAT_CONSOLE_LOG_G("Netvars dump updated");
+		if (logger)
+			logger->log("Netvars dump updated");
 		return true;
 	}
 
-	CHEAT_CONSOLE_LOG_G("Netvars dump skipped");
+	if (logger)
+		logger->log("Netvars dump skipped");
 	return false;
 }
-
-#if 0
-
-template <bool Unsafe = true, typename T>
-static T _Parse_filename(const T& str)
-{
-#if 0
-	auto end = str._Unchecked_end( );
-	auto itr = end;
-	for (;;)
-	{
-		if constexpr (!Unsafe)
-		{
-			if (itr == str.data( ))
-				return str;
-		}
-
-		const auto chr = *--itr;
-
-		if (std::_Is_slash(static_cast<wchar_t>(chr)))
-		{
-			++itr;
-			break;
-		}
-	}
-
-	return T(itr, end);
-#endif
-}
-
-template <typename T>
-static T _Parse_extension(const T& str)
-{
-	auto dot = str.rfind(static_cast<typename T::value_type>('.'));
-	if (dot == str.npos)
-		return str;
-	return str.substr(dot);
-}
-
-template <class T>
-concept has_traits_type = requires { typename T::traits_type; };
-
-template <typename T>
-struct extract_traits
-{
-	using type = std::char_traits<typename T::value_type>;
-};
-
-template <has_traits_type T>
-struct extract_traits<T>
-{
-	using type = typename T::traits_type;
-};
-
-struct generated_file_type
-{
-	enum types :uint8_t
-	{
-		UNSET
-		, CPP = 1 << 0
-		, H = 1 << 1
-	};
-
-	types type;
-
-	generated_file_type(size_t type = UNSET)
-		: type(static_cast<types>(type))
-	{
-	}
-};
-
-template <std::_Has_member_value_type Str>
-struct generated_file : generated_file_type
-{
-	using value_type = typename Str::value_type;
-	using traits_type = typename extract_traits<Str>::type;
-
-	using string_type = Str;
-	using string_view_type = std::basic_string_view<value_type, traits_type>;
-
-	generated_file(string_view_type full_str, const string_view_type& prefix, const string_view_type& postfix)
-	{
-		full_str.remove_prefix(prefix.size( ));
-		full_str.remove_suffix(postfix.size( ));
-		str.assign(full_str.begin( ), full_str.end( ));
-	}
-
-	string_type str;
-
-	bool operator==(const generated_file& other) const
-	{
-		return str == other.str;
-	}
-};
-
-static auto _Get_known_files(const fs::path& path, const std::wstring_view& extension_prefix)
-{
-	runtime_assert(extension_prefix.starts_with('.'), "Incorrect extension prefix");
-	std::vector<std::string> out;
-
-	for (const auto& entry : fs::directory_iterator(path))
-	{
-		if (!entry.is_regular_file( ))
-			continue;
-
-		const auto& str = entry.path( ).native( );
-
-		const auto filename = _Parse_filename<false>(str);
-		const auto extension = _Parse_extension(filename);
-
-		if (!extension.starts_with(extension_prefix))
-			continue;
-
-		out.push_back({filename.begin( ), filename.end( )});
-	}
-
-	return out;
-}
-
-static auto _Get_includes(std::string_view type, bool detect_duplicates)
-{
-	std::vector<
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-		std::string
-#else
-		std::pair<std::string, bool>
-#endif
-	> result;
-	nstd::unordered_set<std::string_view> results_used; //skip stuff like array<array<X,....
-
-	const auto pat = std::regex("[\\w:*]+");
-	const auto start = std::regex_iterator(type.begin( ), type.end( ), pat);
-	const auto end = decltype(start)();
-
-	constexpr auto subrange_to_string_view = []<class T>(T && srng)-> std::string_view
-	{
-		return {std::addressof(*srng.begin( )), static_cast<size_t>(std::ranges::distance(srng))};
-	};
-
-	for (const auto& match : std::ranges::subrange(start, end))
-	{
-#if 0
-		_NODISCARD string_type str(size_type _Sub = 0) const
-		{
-			return string_type((*this)[_Sub]);
-		}
-#endif
-		auto& match0 = match[0];
-#if 0
-		_NODISCARD string_type str( ) const
-		{ // convert matched text to string
-			const _Mybase _Range(_Effective_range( ));
-			return string_type(_Range.first, _Range.second);
-		}
-#endif
-		std::string_view str = {match0.first, match0.second}; //match.str()
-
-		//-----
-
-		if (detect_duplicates && !results_used.emplace(str).second)
-			continue;
-
-		if (str.find(':') != str.npos)
-		{
-			constexpr std::string_view std_namespace = "std::";
-			constexpr std::string_view cheat_namespace = "cheat::";
-
-			auto global = !str.starts_with(cheat_namespace);
-
-			if (global)
-			{
-				if (str.starts_with(std_namespace))
-					str.remove_prefix(std_namespace.size( ));
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-				else
-					runtime_assert(str.starts_with(std_namespace), "Unknown namespace detected");
-#endif
-			}
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-			else
-			{
-				continue;
-			}
-#endif
-			std::string include;
-#if 1
-			for (const auto subrng : str | std::views::split(std::string_view("::")))
-			{
-				if (!include.empty( ))
-					include += '/';
-				include += subrange_to_string_view(subrng);
-			}
-#else
-			runtime_assert("TEST ME");
-			size_t pos = 0;
-			const auto ptr = str.data( );
-			for (;;)
-			{
-				const auto pos2 = str.find("::", pos);
-				if (pos2 == str.npos)
-					break;
-				const auto substr = std::string_view(ptr + pos, ptr + pos2);
-				if (!include.empty( ))
-					include += '/';
-				include += substr;
-				pos = pos2 + 2;
-			}
-
-#endif
-			result.emplace_back(std::move(include)
-#ifndef CHEAT_NETVARS_GENERATE_MODULES
-								, global
-#endif
-			);
-
-		}
-		else if (str.ends_with("_t"))
-		{
-			result.emplace_back("cstdint"
-#ifndef CHEAT_NETVARS_GENERATE_MODULES
-								, true
-#endif
-			);
-		}
-	}
-
-	return result;
-}
-
-struct generated_includes
-{
-	std::vector<std::string> global;
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-	bool add_tools = 0;
-	nstd::unordered_set<std::string> interfaces;
-	bool add_math = 0;
-#else
-	std::vector<std::string> local;
-#endif
-};
-
-static auto _Generate_includes_from_types(const netvars_impl::netvars_storage& storage)
-{
-	using namespace std::string_view_literals;
-	generated_includes includes;
-
-#ifndef CHEAT_NETVARS_GENERATE_MODULES
-	const fs::path csgosdk_dir = STRINGIZE_PATH(CHEAT_CSGOSDK_DIR);
-	const auto known_files = _Get_known_files(csgosdk_dir, L".h");
-#endif
-
-	nstd::unordered_set<std::string> processed;
-
-	for (auto& [netvar_name, netvar_data] : storage.items( ))
-	{
-		const std::string_view netvar_type = netvar_data.find("type"sv)->get_ref<const std::string&>( );
-
-		//netvar type already processed
-		if (!processed.emplace(netvar_type).second)
-			continue;
-		if (netvar_type.find(':') == netvar_type.npos && !netvar_type.ends_with("_t"))
-			continue;
-
-		const auto templates_count = std::ranges::count(netvar_type, '<');
-		auto types_found = _Get_includes(netvar_type, templates_count > 1);
-		for (
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-			auto& incl
-#else
-			auto& [incl, global]
-#endif
-			: types_found)
-		{
-			if (templates_count > 0 && !processed.emplace(incl).second)
-				continue;
-
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-			includes.global.push_back(std::move(incl));
-#else
-
-			if (global)
-			{
-				includes.global.push_back(std::move(incl));
-			}
-			else
-			{
-				runtime_assert(rewrite, search classes in files, ignore their filenames);
-				const auto incl_sv = _Parse_filename<false, std::string_view>(incl);
-				for (const std::string_view file : known_files)
-				{
-					if (!file.starts_with(incl_sv))
-						continue;
-					const auto extension = file.substr(incl_sv.size( ));
-					if (!extension.starts_with('.'))
-						continue;
-					incl.append(extension.begin( ), extension.end( ));
-					includes.local.push_back(std::move(incl));
-				}
-			}
-#endif
-		}
-
-#ifdef CHEAT_NETVARS_GENERATE_MODULES
-		if (types_found.empty( ))
-		{
-#if 0
-			//forgot what is it
-			auto& [vec, b1, b2, b3] = includes;
-			if (b1 && b2 && b3)//includes.add_* already true
-				continue;
-#endif
-
-			//class from cheat namespace
-			static constexpr std::string_view nspc = "cheat::csgo::";
-			runtime_assert(netvar_type.starts_with(nspc));
-			const auto class_name = netvar_type.substr(nspc.size( ));
-
-
-
-			if (class_name.starts_with("CUtl"))
-			{
-				includes.add_tools = true;
-			}
-			else if (class_name.starts_with("Vec") //Vector
-					 || class_name.starts_with("Qua") //Quaternion
-					 || class_name.starts_with("QA") //QAngle
-					 || class_name.starts_with("matrix_")
-					 || class_name.starts_with("VM") //VMatrix
-					 || class_name.starts_with("Col")) //Color
-			{
-				includes.add_math = true;
-			}
-			else
-			{
-				if (class_name.starts_with("CBa"))//CBase
-					includes.interfaces.emplace(class_name.substr(1));
-				else if (class_name.starts_with("VarM"))//VarMap
-					includes.interfaces.emplace("VarMapping");
-				else
-					runtime_assert("Not implemented");
-			}
-
-		}
-#endif
-	}
-
-	return includes;
-}
-
-namespace nstd
-{
-	template <typename T>
-	struct hash<generated_file<T>>
-	{
-		size_t operator()(const generated_file<T>& f) const
-		{
-			return std::invoke(hash<T>( ), /*_Parse_filename*/f.str);
-		}
-	};
-}
-
-template <class StrType, typename GenFile = generated_file<StrType>, typename ViewT = typename GenFile::string_view_type>
-static auto _Get_generated_files(const fs::path& folder, const ViewT& cpp, const ViewT& h, const ViewT& extra_postfix = {})
-{
-	nstd::unordered_set<GenFile> storage;
-
-	for (const auto& entry : fs::directory_iterator(folder))
-	{
-		const std::wstring_view str = entry.path( ).native( );
-		const auto add_str = [&](const ViewT& postfix)
-		{
-			const auto& fstr = folder.native( );
-			if constexpr (std::constructible_from<ViewT, std::wstring>)
-			{
-				return storage.emplace(str, fstr, postfix);
-			}
-			else
-			{
-				nstd::unistring<typename GenFile::value_type> fstr_correct = fstr;
-				return storage.emplace(str, fstr_correct, postfix);
-			}
-		};
-
-		const auto ends_with_ex = [&](const ViewT& postfix)
-		{
-			if (!str.ends_with(postfix))
-				return false;
-			if (!extra_postfix.empty( ))
-			{
-				const auto str2 = str.substr(0, str.size( ) - postfix.size( ));
-				if (!str.ends_with(extra_postfix))
-					return false;
-			}
-			return true;
-		};
-
-		using namespace nstd::enum_operators;
-		if (ends_with_ex(cpp))
-			add_str(cpp).first->type |= generated_file_type::CPP;
-		else if (ends_with_ex(h))
-			add_str(h).first->type |= generated_file_type::H;
-	}
-
-	return storage;
-}
-
-#endif
 
 struct generated_file_data
 {
@@ -556,7 +152,7 @@ struct generated_file_data
 	const netvars_storage::value_type* netvars;
 };
 
-void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars_data, lazy::files_storage& lazy_storage)
+void netvars_impl::generate_classes(console* logger, bool recreate, netvars_storage& root_netvars_data, lazy::files_storage& lazy_storage)
 {
 	const fs::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
 
@@ -662,7 +258,8 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 		{
 			if (not_generated == 0)
 			{
-				CHEAT_CONSOLE_LOG_G("Netvars classes are up-to-date.");
+				if (logger)
+					logger->log("Netvars classes are up-to-date.");
 				return;
 			}
 
@@ -969,21 +566,22 @@ void netvars_impl::generate_classes(bool recreate, netvars_storage& root_netvars
 	}
 #endif
 
-#ifdef CHEAT_HAVE_CONSOLE
-	std::string removed_msg;
-	if (!lazy_storage.remove.empty( ))
+	if (logger)
 	{
-		if (lazy_storage.remove.size( ) == 1 && lazy_storage.remove[0].all( ))
-			removed_msg = " Whole folder removed.";
-		else
-			removed_msg = std::format(" Removed {} files.", lazy_storage.remove.size( ));
-	}
-	std::string created_msg;
-	if (!lazy_storage.write.empty( ))
-	{
-		created_msg = std::format(" Created {} files.", lazy_storage.write.size( ));
-	}
+		std::string removed_msg;
+		if (!lazy_storage.remove.empty( ))
+		{
+			if (lazy_storage.remove.size( ) == 1 && lazy_storage.remove[0].all( ))
+				removed_msg = " Whole folder removed.";
+			else
+				removed_msg = std::format(" Removed {} files.", lazy_storage.remove.size( ));
+		}
+		std::string created_msg;
+		if (!lazy_storage.write.empty( ))
+		{
+			created_msg = std::format(" Created {} files.", lazy_storage.write.size( ));
+		}
 
-	services_loader::get( ).deps( ).get<console>( ).log("Netvars classes generation done.{}{}", removed_msg, created_msg);
-#endif
+		logger->log("Netvars classes generation done.{}{}", removed_msg, created_msg);
+	}
 }

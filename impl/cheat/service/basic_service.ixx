@@ -41,6 +41,12 @@ export namespace cheat
 		using value_type = std::shared_ptr<basic_service>;
 		using deps_storage = std::vector<value_type>;
 
+		template<class T>
+		static value_type _Create( )
+		{
+			return std::make_shared<T>( );
+		}
+
 		basic_service( );
 		virtual ~basic_service( );
 

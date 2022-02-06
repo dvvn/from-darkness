@@ -37,16 +37,19 @@ _INLINE_VAR constexpr auto service_name = []
 #endif
 }();
 
-
-
 export namespace cheat
 {
 	template<typename T, typename Holder>
 	struct service_getter_index
 	{
-		size_t index;
-		size_t offset;
-		bool unset = true;
+		static constexpr size_t _Default = static_cast<size_t>(-1);
+
+		size_t index = _Default;
+		size_t offset = _Default;
+		bool unset( )const
+		{
+			return index == _Default || offset == _Default;
+		}
 	};
 
 	template<typename T, typename Holder>
@@ -59,32 +62,31 @@ export namespace cheat
 		void set(size_t index, Holder* holder) const
 		{
 			auto& ref = index_holder.get( );
-			runtime_assert(ref.unset);
+			runtime_assert(ref.unset( ));
 			ref.index = index;
 			auto base = static_cast<basic_service*>(holder);
 			ref.offset = std::distance(reinterpret_cast<uint8_t*>(base), reinterpret_cast<uint8_t*>(holder));
-			ref.unset = false;
 		}
 
 		template<std::derived_from<basic_service> H>
 		auto& get(H* holder)const
 		{
 			auto& idx_holder = index_holder.get( );
-			runtime_assert(!idx_holder.unset);
+			runtime_assert(!idx_holder.unset( ));
 			const auto deps = holder->_Deps<false>( );
 			return deps[idx_holder.index];
 		}
 
 		bool valid( )const
 		{
-			return !index_holder.get( ).unset;
+			return !index_holder.get( ).unset( );
 		}
 
 		template<std::derived_from<basic_service> H>
 		bool valid(const H* holder)const
 		{
 			auto& idx_holder = index_holder.get( );
-			if (idx_holder.unset)
+			if (idx_holder.unset( ))
 				return false;
 			const auto deps = holder->_Deps<false>( );
 			if (deps.size( ) <= idx_holder.index)
@@ -102,7 +104,7 @@ export namespace cheat
 		auto unwrap(E* element)const
 		{
 			auto& idx_holder = index_holder.get( );
-			runtime_assert(!idx_holder.unset);
+			runtime_assert(!idx_holder.unset( ));
 			const auto basic = static_cast<const basic_service*>(element);
 			const auto addr = reinterpret_cast<uintptr_t>(basic) + idx_holder.offset;
 			return reinterpret_cast<nstd::add_const_if<E, T*>>(addr);
@@ -115,14 +117,6 @@ export namespace cheat
 			return unwrap<nstd::add_const_if<H, basic_service>>(val.get( ));
 		}
 	};
-
-	class services_loader;
-	basic_service* get_root_service( );
-
-	///if wont export code before singleton with service_getter will be corrupted inside shared library
-	//----
-	//----
-	//----
 
 	template <typename Holder, bool Const>
 	class basic_service_deps_getter
@@ -158,6 +152,7 @@ export namespace cheat
 		}
 
 		template<typename T>
+		[[deprecated]]
 		std::shared_ptr<T> try_share(bool force_valid = false)const
 		{
 			return (force_valid || valid<T>( )) ? std::dynamic_pointer_cast<T>(share<T>( )) : nullptr;
@@ -182,17 +177,17 @@ export namespace cheat
 			return valid<T>( ) ? get_ptr<T>( ) : nullptr;
 		}
 
-		template<typename T, typename Fn>
-		decltype(auto) try_call(Fn fn)const
+		template<typename T, typename Fn, typename...Args>
+		decltype(auto) try_call(Fn fn, Args&&...args)const
 		{
 			using val_t = nstd::add_const_if_v<Const, T>*;
-			using ret_t = std::invoke_result_t<Fn, val_t>;
+			using ret_t = std::invoke_result_t<Fn, val_t, Args...>;
 
 			if constexpr (std::is_void_v<ret_t> || std::default_initializable<ret_t>)
 			{
 				auto ptr = try_get<T>( );
 				if (ptr)
-					return std::invoke(fn, ptr);
+					return std::invoke(fn, ptr, std::forward<Args>(args)...);
 
 				if constexpr (!std::is_void_v<ret_t>)
 					return ret_t{};
@@ -200,7 +195,7 @@ export namespace cheat
 			else
 			{
 				runtime_assert(try_get<T>( ) != nullptr, "Unable to create default value!");
-				return std::invoke(fn, get_ptr<T>( ));
+				return std::invoke(fn, get_ptr<T>( ), std::forward<Args>(args)...);
 			}
 		}
 	};
@@ -214,9 +209,59 @@ export namespace cheat
 		using basic_service_deps_getter<Holder, true>::basic_service_deps_getter;
 	};
 
-	_INLINE_VAR bool service_deps_getter_add_allow_skip = true;
+	class services_cache_impl
+	{
+		using storage_type = basic_service::deps_storage;
+		using value_type = basic_service::value_type;
 
-	template <typename Holder, class Base = basic_service_deps_getter<Holder, false>>
+		mutable std::recursive_mutex mtx_;
+		storage_type storage_;
+
+		template<typename T>
+		static auto find(T& storage, const std::type_info& type)
+		{
+			/*return std::ranges::find_if(storage, [&](value_type& val)
+										{
+											return val->type( ) == type;
+										});*/
+			auto end = storage.end( );
+			for (auto itr = storage.begin( ); itr != end; ++itr)
+			{
+				if ((*itr)->type( ) == type)
+					return itr;
+			}
+			return end;
+		}
+	public:
+
+		template<typename T>
+		value_type try_access( )const
+		{
+			const auto lock = std::scoped_lock(mtx_);
+			auto item = find(storage_, typeid(T));
+			return item != storage_.end( ) ? *item : value_type( );
+		}
+
+		template<typename T>
+		std::conditional_t<std::ranges::random_access_range<storage_type>, value_type, value_type&> access( )
+		{
+			const auto lock = std::scoped_lock(mtx_);
+			auto item = find(storage_, typeid(T));
+			return item != storage_.end( ) ? *item : storage_.emplace_back(basic_service::_Create<T>( ));
+		}
+
+		auto store(const value_type& val)
+		{
+			const auto lock = std::scoped_lock(mtx_);
+			const auto item = find(storage_, val->type( ));
+			if (item != storage_.end( ))
+				return;
+			storage_.emplace_back(val);
+		}
+	};
+	using services_cache = nstd::one_instance<services_cache_impl>;
+
+	/*template <typename Holder, class Base = basic_service_deps_getter<Holder, false>>
 	struct service_deps_getter_rw : Base
 	{
 		using typename Base::value_type;
@@ -227,10 +272,10 @@ export namespace cheat
 		}
 
 		template<typename T>
-		T* add(std::shared_ptr<T>&& sptr)const
+		T* add(std::shared_ptr<T>&& sptr, bool use_later)const
 		{
 			service_getter<T, Holder> getter;
-			if (service_deps_getter_add_allow_skip && !sptr)
+			if (!use_later && !sptr)
 				return nullptr;
 
 			T* ret = sptr.get( );
@@ -238,35 +283,35 @@ export namespace cheat
 			getter.set(index, dynamic_cast<Holder*>(holder));
 			return ret;
 		}
-	};
-
-	template <>
-	struct service_deps_getter<services_loader, false> : service_deps_getter_rw<services_loader>
-	{
-		using service_deps_getter_rw::service_deps_getter_rw;
-		using service_deps_getter_rw::add;
-
-		template<typename T>
-		auto add( )const
-		{
-			auto sptr = std::make_shared<T>( );
-			return this->add(std::move(sptr));
-		}
-	};
+	};*/
 
 	template <typename Holder>
-	struct service_deps_getter<Holder, false> : service_deps_getter_rw<Holder>
+	struct service_deps_getter<Holder, false> : basic_service_deps_getter<Holder, false>
 	{
-		using _Base = service_deps_getter_rw<Holder>;
-		using _Base::service_deps_getter_rw;
-		using _Base::add;
+		using _Base = basic_service_deps_getter<Holder, false>;
+		using _Base::_Base;
+		using _Base::holder;
 
 		template<typename T>
-		auto add( )const
+		T* add(bool can_be_skipped = false)const
 		{
-			service_deps_getter<services_loader, true> root_getter = get_root_service( );
-			auto sptr = root_getter.try_share<T>(!service_deps_getter_add_allow_skip);
-			return this->add(std::move(sptr));
+			basic_service::value_type item;
+			if (!can_be_skipped)
+			{
+				item = services_cache::get( ).access<T>( );
+			}
+			else
+			{
+				item = services_cache::get( ).try_access<T>( );
+				if (!item)
+					return nullptr;
+			}
+
+			service_getter<T, Holder> getter;
+			T* ret = dynamic_cast<T*>(item.get( ));
+			size_t index = holder->_Add_dependency(std::move(item));
+			getter.set(index, dynamic_cast<Holder*>(holder));
+			return ret;
 		}
 	};
 
