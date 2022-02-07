@@ -37,6 +37,25 @@ _INLINE_VAR constexpr auto service_name = []
 #endif
 }();
 
+template<typename Ret, typename Arg1>
+struct function_info
+{
+	using return_type = Ret;
+	using value_type = Arg1;
+};
+
+template<typename Ret, typename T, typename ...Args>
+function_info<Ret, std::remove_const_t<T>> _Function_info_impl(std::function<Ret(T*, Args...)>)
+{
+	return {};
+}
+
+template<typename Fn>
+auto _Function_info(Fn&& fn)
+{
+	return _Function_info_impl(std::function(fn));
+}
+
 export namespace cheat
 {
 	template<typename T, typename Holder>
@@ -118,32 +137,6 @@ export namespace cheat
 		}
 	};
 
-	struct basic_try_call_result
-	{
-		bool called = false;
-
-		bool operator==(basic_try_call_result other)const { return called; }
-		bool operator!=(basic_try_call_result other)const { return !called; }
-		operator bool( )const { return called; }
-	};
-
-	template<typename T>
-	struct try_call_result :basic_try_call_result
-	{
-		T result;
-
-		try_call_result( ) = default;
-		try_call_result(T result) :result(result)
-		{
-			this->called = true;
-		}
-	};
-
-	template<>
-	struct try_call_result<void> :basic_try_call_result
-	{
-	};
-
 	template <typename Holder, bool Const>
 	class basic_service_deps_getter
 	{
@@ -178,13 +171,6 @@ export namespace cheat
 		}
 
 		template<typename T>
-		[[deprecated]]
-		std::shared_ptr<T> try_share(bool force_valid = false)const
-		{
-			return (force_valid || valid<T>( )) ? std::dynamic_pointer_cast<T>(share<T>( )) : nullptr;
-		}
-
-		template<typename T>
 		auto get_ptr( )const
 		{
 			service_getter<T, Holder> getter;
@@ -203,43 +189,36 @@ export namespace cheat
 			return valid<T>( ) ? get_ptr<T>( ) : nullptr;
 		}
 
-		template<typename T, typename Fn, typename...Args>
+		template<typename Fn, typename...Args>
 		auto try_call(Fn fn, Args&&...args)const
 		{
-			auto ptr = try_get<T>( );
+			using fn_info = decltype(_Function_info(fn));
+			using ret_t = fn_info::return_type;
+
+			auto ptr = try_get<fn_info::value_type>( );
+			const auto valid_ptr = ptr != nullptr;
 
 			const auto invoke = [&]( )->decltype(auto)
 			{
 				return std::invoke(fn, ptr, std::forward<Args>(args)...);
 			};
 
-			using ret_t = decltype(invoke( ));
-			const auto valid_ptr = ptr != nullptr;
-
 			if constexpr (std::is_void_v<ret_t>)
 			{
-				try_call_result<void> ret;
+				bool ret = false;
 				if (valid_ptr)
 				{
-					ret.called = true;
-					invoke( );
-				}
-				return ret;
-			}
-			else if constexpr (std::default_initializable<ret_t>)
-			{
-				try_call_result<ret_t> ret;
-				if (valid_ptr)
-				{
-					ret.called = true;
+					ret = true;
 					invoke( );
 				}
 				return ret;
 			}
 			else
 			{
-				runtime_assert(valid_ptr == true, "Unable to create default value!");
-				return try_call_result<ret_t>(invoke( ));
+				std::optional<ret_t> ret;
+				if (valid_ptr)
+					ret->emplace(invoke( ));
+				return ret;
 			}
 		}
 	};
@@ -334,12 +313,6 @@ export namespace cheat
 			return ret;
 		}
 	};
-
-	template<typename Service, typename T, typename Fn>
-	auto access_service(T* holder, Fn&& fn)
-	{
-		return holder->deps( ).try_call<Service>(std::forward<Fn>(fn));
-	}
 
 	//-----
 

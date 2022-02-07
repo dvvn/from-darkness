@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <d3d9.h>
 
+import cheat.root_service;
 import cheat.console;
 import cheat.csgo.awaiter;
 import cheat.gui;

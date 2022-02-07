@@ -38,7 +38,7 @@ ConVar* utils::find_cvar(const std::string_view& cvar)
 		target_cvar = cv;
 		break;
 	}
-	cheat::access_service<console>(services_loader::get_ptr( ), [&](console* c)
+	services_loader::get( ).deps( ).try_call([&](console* c)
 	{
 		std::ostringstream msg;
 		msg << std::format("Cvar \"{}\"", cvar);

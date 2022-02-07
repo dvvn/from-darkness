@@ -18,7 +18,7 @@ namespace cheat
 			, std::wostringstream>;
 
 		template<typename T>
-			requires(std::constructible_from<value_type, T> && !std::same_as<std::remove_cv_t<T>, std::monostate>)
+			requires(std::constructible_from<value_type, T> /*&& !std::same_as<std::remove_cv_t<T>, std::monostate>*/)
 		string_packer(T&& val) :packed(std::forward<T>(val))
 		{
 		}
@@ -125,7 +125,7 @@ namespace cheat
 	export template<typename Base = console, typename T, typename ...Args>
 		auto console_log(T* holder, Args&&...args)
 	{
-		return access_service<Base>(holder, [&](Base* c)
+		return holder->deps( ).try_call([&](Base* c)
 		{
 			c->log(std::forward<Args>(args)...);
 		});

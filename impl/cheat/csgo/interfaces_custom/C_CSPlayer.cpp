@@ -1,10 +1,6 @@
 module;
 
-#include "cheat/service/basic_includes.h"
-
 module cheat.csgo.interfaces:C_CSPlayer;
-
-import cheat.csgo.interfaces;
 import cheat.netvars_getter;
 import nstd.mem;
 

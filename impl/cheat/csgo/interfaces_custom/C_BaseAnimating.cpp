@@ -13,7 +13,7 @@ using namespace cheat::csgo;
 #if __has_include("C_BaseAnimating_generated_cpp")
 #include "C_BaseAnimating_generated_cpp"
 #endif
-
+ 
 void C_BaseAnimating::UpdateClientSideAnimation( )
 {
 	//224

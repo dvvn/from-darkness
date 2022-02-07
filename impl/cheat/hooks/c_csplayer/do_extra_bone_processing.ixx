@@ -24,6 +24,7 @@ namespace cheat::hooks::c_csplayer
 		void(csgo::C_BaseAnimating::*)(csgo::CStudioHdr*, csgo::Vector*, csgo::Quaternion*, csgo::matrix3x4a_t*
 									   , csgo::CBoneBitList&, csgo::CIKContext*)>
 	{
+	public:
 		do_extra_bone_processing( );
 
 	protected:

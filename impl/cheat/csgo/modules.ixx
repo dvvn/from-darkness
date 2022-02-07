@@ -3,7 +3,6 @@ module;
 #include "modules_includes.h"
 
 export module cheat.csgo.modules;
-import cheat.csgo.interfaces;
 export import nstd.rtlib;
 
 template <typename T>
@@ -36,18 +35,10 @@ export namespace cheat
 
 namespace cheat::csgo_modules
 {
-	using instance_fn = cheat::csgo::InstantiateInterfaceFn;
 	using nstd::rtlib::info;
-	using nstd::mem::address;
+	using nstd::mem::address;	
 
-	class CInterfaceRegister
-	{
-	public:
-		instance_fn create_fn;
-		const char* name;
-		CInterfaceRegister* next;
-	};
-
+	typedef void* (*instance_fn)();
 	using ifcs_entry_type = nstd::unordered_map<std::string_view, instance_fn>;
 
 	export struct game_module_storage

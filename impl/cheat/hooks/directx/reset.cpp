@@ -1,7 +1,6 @@
 module;
 
 #include "cheat/hooks/base_includes.h"
-#include "cheat/gui/effects.h"
 #include <imgui_impl_dx9.h>
 #include <d3d9.h>
 

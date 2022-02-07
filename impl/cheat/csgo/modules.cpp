@@ -8,6 +8,7 @@ module;
 #include <nstd/unistring.h>
 
 module cheat.csgo.modules;
+import cheat.csgo.interfaces;
 import cheat.root_service;
 import cheat.console;
 import nstd.rtlib;
@@ -40,7 +41,10 @@ static info* _Get_module(const Rng& target_name)
 {
 	constexpr auto do_find = []<typename T>(const T & str)
 	{
-		auto itr = std::ranges::find_if(all_infos::get( ), [&](const info& info)-> bool { return _Equal(info.name( ).fixed, str); });
+		auto itr = std::ranges::find_if(all_infos::get( ), [&](const info& info)-> bool
+		{
+			return _Equal(info.name( ).fixed, str);
+		});
 		return _Unwrap_safe(itr);
 
 	};
@@ -56,6 +60,14 @@ static info* _Get_module(const Rng& target_name)
 
 static ifcs_entry_type _Interface_entry(info* target_module)
 {
+	class CInterfaceRegister
+	{
+	public:
+		instance_fn create_fn;
+		const char* name;
+		CInterfaceRegister* next;
+	};
+
 	ifcs_entry_type entry;
 
 	auto& exports = target_module->exports( );
@@ -187,7 +199,7 @@ address game_module_storage::find_signature(const std::string_view & sig)
 
 	if (ret.empty( ))
 	{
-		access_service<console>(services_loader::get_ptr( ), [&](console* c)
+		services_loader::get( ).deps( ).try_call([&](console* c)
 		{
 			c->log(L"{} -> signature \"{}\" not found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(sig));
 		});
@@ -201,7 +213,7 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 {
 	auto& mgr = info_ptr->vtables( );
 	const auto vt = mgr.at(class_name);
-	access_service<console>(services_loader::get_ptr( ), [&](console* c)
+	services_loader::get( ).deps( ).try_call([&](console* c)
 	{
 		const auto created = vtables_tested.emplace(class_name).second;
 		if (!created)
@@ -236,7 +248,7 @@ address game_module_storage::find_game_interface(const std::string_view & ifc_na
 	const auto found = interfaces.find(ifc_name);
 	runtime_assert(found != interfaces.end( ));
 
-	access_service<console>(services_loader::get_ptr( ), [&](console* c)
+	services_loader::get( ).deps( ).try_call([&](console* c)
 	{
 		std::wstring raw_ifc_name;
 

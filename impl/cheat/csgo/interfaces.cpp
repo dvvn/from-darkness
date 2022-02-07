@@ -8,7 +8,7 @@ module;
 
 module cheat.csgo.interfaces;
 import cheat.csgo.modules;
-import cheat.console;
+import cheat.csgo.awaiter;
 
 using namespace cheat;
 using namespace csgo;
@@ -22,7 +22,7 @@ void csgo_interfaces::prepare_for_gui_test(IDirect3DDevice9 * d3d)
 
 void csgo_interfaces::construct( )noexcept
 {
-	this->deps( ).add<console>( );
+	this->deps( ).add<csgo_awaiter>(true);
 }
 
 bool csgo_interfaces::load( ) noexcept
@@ -88,7 +88,7 @@ bool csgo_interfaces::load( ) noexcept
 
 	if (!d3d_device.empty( ))
 	{
-		//prepare_for_gui_test called
+		//gui test mode
 		return true;
 	}
 

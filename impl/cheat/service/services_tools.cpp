@@ -52,7 +52,7 @@ static void _Log(console* c, basic_service* holder, service_state state)
 void cheat::log_service_state(basic_service* holder, service_state state)
 {
 #ifdef _DEBUG
-	if (services_loader::get( ).deps( ).try_call<console>(_Log, holder, state).called)
+	if (services_loader::get( ).deps( ).try_call(_Log, holder, state))
 		return;
 #endif
 	if (holder->type( ) == typeid(console))
