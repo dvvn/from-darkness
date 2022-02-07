@@ -35,6 +35,12 @@ static bool _Init_tagets(H& holder, const Tpl& targets)
 	return _Init_tagets_impl(holder, targets, std::make_index_sequence<std::tuple_size_v<Tpl>>( ));
 }
 
+template<typename ...T>
+static constexpr auto _Set_targetes(T&& ...args)
+{
+	return std::make_tuple(std::basic_string_view(args)...);
+}
+
 void rta_holder::construct( )noexcept
 {
 	this->deps( ).add<csgo_awaiter>( );
@@ -42,7 +48,13 @@ void rta_holder::construct( )noexcept
 
 bool rta_holder::load( )noexcept
 {
-	constexpr auto targets = std::forward_as_tuple(L"client.dll", L"engine.dll", L"server.dll", L"studiorender.dll", L"materialsystem.dll", L"shaderapidx9.dll", L"vstdlib.dll", L"vguimatsurface.dll");
+	constexpr auto targets = _Set_targetes(L"client.dll", L"engine.dll", L"server.dll", L"studiorender.dll", L"materialsystem.dll", L"shaderapidx9.dll", L"vstdlib.dll", L"vguimatsurface.dll");
 	return _Init_tagets(proxies_, targets);
+}
+
+void rta_holder::request_disable( )
+{
+	for (auto& p : proxies_)
+		p->request_disable( );
 }
 

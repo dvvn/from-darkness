@@ -16,9 +16,7 @@ using namespace cheat::csgo;
 C_BaseCombatWeapon* C_BaseCombatCharacter::GetActiveWeapon( )
 {
 #if __has_include("C_BaseCombatWeapon_generated_h")
-	auto& list = services_loader::get( ).deps( ).get<csgo_interfaces>( ).entity_list;
-	auto ptr = list->GetClientEntityFromHandle(m_hActiveWeapon( ));//m_hActiveWeapon( ).Get( )
-	return static_cast<C_BaseCombatWeapon*>(ptr);
+	return static_cast<C_BaseCombatWeapon*>(m_hActiveWeapon( ).Get( ));
 #else
 	return nullptr;
 #endif

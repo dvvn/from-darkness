@@ -17,9 +17,7 @@ using namespace cheat::csgo;
 C_BaseAnimating* C_CSPlayer::GetRagdoll( )
 {
 #if __has_include("C_BaseAnimating_generated_h")
-	auto& list = services_loader::get( ).deps( ).get<csgo_interfaces>( ).entity_list;
-	auto ptr = list->GetClientEntityFromHandle(m_hRagdoll( ));//m_hRagdoll( )( ).Get( )
-	return static_cast<C_BaseAnimating*>(ptr);
+	return static_cast<C_BaseAnimating*>(m_hRagdoll( ).Get( ));
 #else
 	return nullptr;
 #endif

@@ -1,18 +1,10 @@
-#include "effects.h"
-
-using namespace cheat;
-using namespace gui;
-
-#ifdef _WIN32
-
-using BYTE = unsigned char;
+module;
 
 // shaders are build during compilation and header files are created
 #include "effects_data/Build/blur_x.h"
 #include "effects_data/Build/blur_y.h"
 #include "effects_data/Build/chromatic_aberration.h"
 #include "effects_data/Build/monochrome.h"
-#endif
 
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
@@ -28,8 +20,13 @@ using BYTE = unsigned char;
 #include <algorithm>
 #include <functional>
 
-import cheat.csgo.interfaces;
+module cheat.gui:effects;
 import nstd.winapi;
+
+using namespace cheat;
+using namespace gui;
+
+using BYTE = unsigned char;
 
 #ifdef _DEBUG
 #define HRESULT_VALIDATE(fn, ...) runtime_assert(fn == D3D_OK,##__VA_ARGS__)
@@ -41,29 +38,26 @@ import nstd.winapi;
 
 using nstd::winapi::comptr;
 
-//temporary
-static auto _Get_d3d( )
+static IDirect3DDevice9* _D3d_device;
+
+void effects::init(IDirect3DDevice9* renderer)
 {
-	//TEMP FIX
-	static auto ptr = cheat::services_loader::get( ).deps( ).get<csgo_interfaces>( ).d3d_device.get( );
-	return ptr;
+	_D3d_device = renderer;
 }
 
 [[nodiscard]]
 static auto _Create_texture(UINT width, UINT height) noexcept
 {
-	const auto d3d = _Get_d3d( );
 	comptr<IDirect3DTexture9> texture;
-	HRESULT_VALIDATE(d3d->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr));
+	HRESULT_VALIDATE(_D3d_device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr));
 	return texture;
 }
 
 [[nodiscard]]
 static auto _Create_texture(UINT scale = 1) noexcept
 {
-	const auto d3d = _Get_d3d( );
 	comptr<IDirect3DSurface9> back_buffer;
-	HRESULT_VALIDATE(d3d->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
+	HRESULT_VALIDATE(_D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
 	D3DSURFACE_DESC desc;
 	HRESULT_VALIDATE(back_buffer->GetDesc(&desc));
 	return _Create_texture(desc.Width / scale, desc.Height / scale);
@@ -110,8 +104,7 @@ struct basic_shader_program : comptr<Shader>
 
 	basic_shader_program(const BYTE* shader_source_function)
 	{
-		const auto d3d = _Get_d3d( );
-		HRESULT_VALIDATE(d3d->CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this));
+		HRESULT_VALIDATE(_D3d_device->CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this));
 	}
 
 	basic_shader_program(const basic_shader_program& other) = delete;
@@ -123,10 +116,9 @@ struct basic_shader_program : comptr<Shader>
 	{
 #ifdef _WIN32
 
-		const auto d3d = _Get_d3d( );
-		HRESULT_VALIDATE(d3d->SetPixelShader(*this));
+		HRESULT_VALIDATE(_D3d_device->SetPixelShader(*this));
 		std::array params = {uniform, 0.f, 0.f, 0.f};
-		HRESULT_VALIDATE(d3d->SetPixelShaderConstantF(location, params.data( ), 1));
+		HRESULT_VALIDATE(_D3d_device->SetPixelShaderConstantF(location, params.data( ), 1));
 #else
 		glUseProgram(program);
 		glUniform1f(location, uniform);
@@ -186,24 +178,20 @@ struct custom_texture : comptr<IDirect3DTexture9>
 
 	void prepare_buffer(const RECT* surface_pos = nullptr)
 	{
-		const auto d3d = _Get_d3d( );
-
 		comptr<IDirect3DSurface9> back_buffer;
-		HRESULT_VALIDATE(d3d->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
+		HRESULT_VALIDATE(_D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
 		comptr<IDirect3DSurface9> surface;
 		HRESULT_VALIDATE(Get( )->GetSurfaceLevel(0, surface));
 
-		HRESULT_VALIDATE(d3d->StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_NONE));
+		HRESULT_VALIDATE(_D3d_device->StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_NONE));
 	}
 
 	void set_as_target( ) const
 	{
-		const auto d3d = _Get_d3d( );
-
 		comptr<IDirect3DSurface9> surface;
 		HRESULT_VALIDATE(Get( )->GetSurfaceLevel(0, surface));
 		//SetRenderTarget resets viewport!!!
-		HRESULT_VALIDATE(d3d->SetRenderTarget(0, surface));
+		HRESULT_VALIDATE(_D3d_device->SetRenderTarget(0, surface));
 	}
 };
 
@@ -327,29 +315,27 @@ private:
 protected:
 	void post_begin( )
 	{
-		const auto d3d = _Get_d3d( );
-
 		comptr<IDirect3DSurface9> target;
-		HRESULT_VALIDATE(d3d->GetRenderTarget(0, target));
+		HRESULT_VALIDATE(_D3d_device->GetRenderTarget(0, target));
 		DWORD addessu;
-		HRESULT_VALIDATE(d3d->GetSamplerState(0, D3DSAMP_ADDRESSU, &addessu));
-		HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP));
+		HRESULT_VALIDATE(_D3d_device->GetSamplerState(0, D3DSAMP_ADDRESSU, &addessu));
+		HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP));
 		DWORD addessv;
-		HRESULT_VALIDATE(d3d->GetSamplerState(0, D3DSAMP_ADDRESSV, &addessv));
-		HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP));
+		HRESULT_VALIDATE(_D3d_device->GetSamplerState(0, D3DSAMP_ADDRESSV, &addessv));
+		HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP));
 		DWORD scissortest;
-		HRESULT_VALIDATE(d3d->GetRenderState(D3DRS_SCISSORTESTENABLE, &scissortest));
-		HRESULT_VALIDATE(d3d->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE));
+		HRESULT_VALIDATE(_D3d_device->GetRenderState(D3DRS_SCISSORTESTENABLE, &scissortest));
+		HRESULT_VALIDATE(_D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE));
 		comptr<IDirect3DPixelShader9> shader;
-		HRESULT_VALIDATE(d3d->GetPixelShader(shader));
+		HRESULT_VALIDATE(_D3d_device->GetPixelShader(shader));
 
 		end_restore_ = [=]
 		{
-			HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSU, addessu));
-			HRESULT_VALIDATE(d3d->SetSamplerState(0, D3DSAMP_ADDRESSV, addessv));
-			HRESULT_VALIDATE(d3d->SetRenderState(D3DRS_SCISSORTESTENABLE, scissortest));
-			HRESULT_VALIDATE(d3d->SetPixelShader(shader));
-			HRESULT_VALIDATE(d3d->SetRenderTarget(0, target));
+			HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, addessu));
+			HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSV, addessv));
+			HRESULT_VALIDATE(_D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, scissortest));
+			HRESULT_VALIDATE(_D3d_device->SetPixelShader(shader));
+			HRESULT_VALIDATE(_D3d_device->SetRenderTarget(0, target));
 		};
 	}
 
@@ -552,9 +538,9 @@ public:
 		blur_effect::update(drawList);
 
 		auto& begin_cmd = *std::ranges::find_if(cmdbuffer, [this](const ImDrawCmd& cmd)
-												{
-													return cmd.UserCallback == ImDrawCallback{static_cast<basic_effect*>(this), 1};
-												});
+		{
+			return cmd.UserCallback == ImDrawCallback{static_cast<basic_effect*>(this), 1};
+		});
 		begin_cmd.UserCallbackData = new RECT(_ImRect_to_rect(rect_));
 	}
 

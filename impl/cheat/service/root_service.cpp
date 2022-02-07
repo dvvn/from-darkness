@@ -4,7 +4,7 @@ module;
 #include <dhooks/includes.h>
 #include <windows.h>
 
-module cheat.service:root;
+module cheat.root_service;
 //import cheat.console;
 import dhooks;
 import nstd.rtlib;
@@ -15,8 +15,22 @@ using dhooks::hook_holder_data;
 services_loader::services_loader( ) = default;
 services_loader::~services_loader( ) = default;
 
-struct all_hooks_storage : services_loader::lazy_reset, std::vector<std::shared_ptr<hook_holder_data>>
+class all_hooks_storage :public services_loader::lazy_reset, std::vector<basic_service::value_type>
 {
+public:
+	void try_add(basic_service::value_type& srv, bool steal, bool recursive)
+	{
+		auto ptr = dynamic_cast<dhooks::hook_disabler_lazy*>(srv.get( ));
+		if (!ptr)
+			return;
+		if (recursive && std::find(this->begin( ), this->end( ), srv) != this->end( ))
+			return;
+		ptr->request_disable( );
+		if (steal)
+			this->push_back(std::move(srv));
+		else
+			this->push_back(srv);
+	}
 };
 
 struct unload_helper_data
@@ -48,6 +62,39 @@ void services_loader::unload( )
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
 
+template<typename T>
+static void _Fill_storage(all_hooks_storage * storage, T && deps)
+{
+	for (auto& d : deps)
+	{
+		if (!d)
+			continue;
+		_Fill_storage(storage, d->_Deps<false>( ));
+		storage->try_add(d, true, true);
+	}
+}
+
+template<typename T>
+static void _Reset_storage(T & deps)
+{
+	using val_t = std::ranges::range_value_t<T>;
+	static_assert(std::default_initializable<val_t>);
+
+	if constexpr (std::copy_constructible<val_t>)
+	{
+		val_t val;
+		std::ranges::fill(deps, val);
+	}
+	else
+	{
+		for (auto& d : deps)
+		{
+			val_t val;
+			std::swap(d, val);
+		}
+	}
+}
+
 auto services_loader::reset(bool deps_only)->reset_object
 {
 	auto deps = this->_Deps<false>( );
@@ -60,28 +107,12 @@ auto services_loader::reset(bool deps_only)->reset_object
 	this->set_state(service_state::unset);
 
 	auto hooks = std::make_unique<all_hooks_storage>( );
-	//todo: scal all deps not root only
-	for (auto& d : deps)
-	{
-		auto ptr = std::dynamic_pointer_cast<hook_holder_data>(std::move(d));
-		if (!ptr)
-			continue;
-		ptr->disable_after_call( );
-		hooks->push_back(std::move(ptr));
-	}
+	_Fill_storage(hooks.get( ), deps);
 
 	if (deps_only)
-	{
-		for (auto& d : deps)
-		{
-			value_type empty;
-			std::swap(empty, d);
-		}
-	}
+		_Reset_storage(deps);
 	else
-	{
 		this->_Reload( );
-	}
 
 	return hooks;
 }

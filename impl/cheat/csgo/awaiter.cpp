@@ -5,6 +5,7 @@
 #include <filesystem>
 
 module cheat.csgo.awaiter;
+import cheat.root_service;
 import nstd.rtlib;
 
 using namespace cheat;

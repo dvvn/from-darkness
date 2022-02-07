@@ -17,7 +17,6 @@ module;
 #include <filesystem>
 
 module cheat.netvars:data_dump;
-import cheat.console;
 import cheat.csgo.interfaces;
 import nstd.mem;
 
@@ -96,7 +95,7 @@ static auto _Construct_append(const Args&...args)
 	return obj;
 }
 
-bool netvars_impl::log_netvars(console* logger, const netvars_storage& root_netvars_data)
+bool netvars_impl::log_netvars(console* logger, const char* game_version, const netvars_storage& root_netvars_data)
 {
 	const fs::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
 
@@ -105,7 +104,7 @@ bool netvars_impl::log_netvars(console* logger, const netvars_storage& root_netv
 
 	const auto netvars_dump_file = [&]
 	{
-		const std::string_view version = services_loader::get( ).deps( ).get<csgo_interfaces>( ).engine->GetProductVersionString( );
+		const std::string_view version = game_version;
 		auto version_fixed = version | std::views::transform([](char c)->wchar_t {return c == '.' ? '_' : c; });
 		constexpr std::wstring_view extension = L".json";
 

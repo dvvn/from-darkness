@@ -1,9 +1,12 @@
 ﻿module;
 
-//#include "cheat/service/includes.h"
+#include "cheat/service/root_includes.h"
 #include <nstd/runtime_assert.h>
 
 module cheat.csgo.interfaces:BaseHandle;
+import cheat.root_service;
+import cheat.netvars;
+import cheat.csgo.interfaces;
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
@@ -74,8 +77,6 @@ int32_t CBaseHandle::ToInt( ) const
 	return (int32_t)m_Index;
 }
 
-#if 0
-
 //unable to import interfaces module here
 
 IHandleEntity* CBaseHandle::Get( ) const
@@ -84,6 +85,7 @@ IHandleEntity* CBaseHandle::Get( ) const
 	//return 0;
 	/*if (!IsValid( ))
 		return 0;*/
-	return csgo_interfaces::get( )->entity_list->GetClientEntityFromHandle(*this);
+
+		//i down want to store csgo_interfaces somewhere only for easy access
+	return services_loader::get( ).deps( ).get<netvars>( ).deps( ).get<csgo_interfaces>( ).entity_list->GetClientEntityFromHandle(*this);
 }
-#endif

@@ -162,15 +162,16 @@ bool context::load( ) noexcept
 {
 	const auto d3d = this->deps( ).get<csgo_interfaces>( ).d3d_device.get( );
 
+	effects::init(d3d);
+
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*)
-								 {
-									 return operator new(size);
-								 },
-								 [](void* ptr, void*)
-								 {
-									 return operator delete(ptr);
-								 });
+	{
+		return operator new(size);
+	}, [](void* ptr, void*)
+	{
+		return operator delete(ptr);
+	});
 
 	ImGui::SetCurrentContext(std::addressof(ctx_));
 	ImGui::Initialize(std::addressof(ctx_));

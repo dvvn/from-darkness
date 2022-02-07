@@ -8,11 +8,13 @@ module;
 #include <nstd/unistring.h>
 
 module cheat.csgo.modules;
+import cheat.root_service;
 import cheat.console;
 import nstd.rtlib;
 import nstd.mem;
 
-using namespace cheat::csgo_modules;
+using namespace cheat;
+using namespace csgo_modules;
 using namespace nstd::mem;
 using namespace nstd::rtlib;
 
@@ -185,7 +187,10 @@ address game_module_storage::find_signature(const std::string_view & sig)
 
 	if (ret.empty( ))
 	{
-		services_loader::get( ).deps( ).get<console>( ).log(L"{} -> signature \"{}\" not found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(sig));
+		access_service<console>(services_loader::get_ptr( ), [&](console* c)
+		{
+			c->log(L"{} -> signature \"{}\" not found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(sig));
+		});
 		return nullptr;
 	}
 
@@ -196,14 +201,19 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 {
 	auto& mgr = info_ptr->vtables( );
 	const auto vt = mgr.at(class_name);
-#ifdef CHEAT_HAVE_CONSOLE
-	const auto created = vtables_tested.emplace(class_name).second;
-	if (created)
+	access_service<console>(services_loader::get_ptr( ), [&](console* c)
 	{
-		auto infos = all_infos::get( ) | std::views::reverse;
+		const auto created = vtables_tested.emplace(class_name).second;
+		if (!created)
+			return;
+
+		const auto infos = all_infos::get( ) | std::views::reverse;
 		const info_string& from_name = info_ptr->name( );
 
-		const auto other_module_itr = std::ranges::find_if(infos, [&](const info_string& str) {return str.fixed == from_name.fixed; }, &info::name);
+		const auto other_module_itr = std::ranges::find_if(infos, [&](const info_string& str)
+		{
+			return str.fixed == from_name.fixed;
+		}, &info::name);
 
 		std::wstring_view module_name;
 		if (other_module_itr->base( ) == info_ptr->base( ))
@@ -214,39 +224,33 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 		//const auto second_module_name = all_infos::get_ptr( )->rfind([&](const info& info) { return info.name( ) == from_name; });
 		//const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
 
-		services_loader::get( ).deps( ).get<console>( ).log(L"Found \"{}\" vtable in module \"{}\"", _Transform_cast<wchar_t>(class_name), module_name);
-	}
-#endif
+		c->log(L"Found \"{}\" vtable in module \"{}\"", _Transform_cast<wchar_t>(class_name), module_name);
+
+	});
+
 	return vt.addr.ptr<void>( );
 }
 
 address game_module_storage::find_game_interface(const std::string_view & ifc_name)
 {
 	const auto found = interfaces.find(ifc_name);
-#ifdef _DEBUG
-	std::vector<std::string_view> ifcs_view;
-	ifcs_view.reserve(interfaces.size( ));
-	for (auto& [name, _] : interfaces)
-		ifcs_view.push_back(name);
-#endif 
-
 	runtime_assert(found != interfaces.end( ));
 
-#ifdef CHEAT_HAVE_CONSOLE 
-	const auto raw_ifc_name = [&]( )->std::wstring
+	access_service<console>(services_loader::get_ptr( ), [&](console* c)
 	{
+		std::wstring raw_ifc_name;
+
 		const auto orig_ifc_name = found->first;
 		const auto orig_ifc_name_end = _Unwrap_safe(orig_ifc_name.end( ));
-		if (*orig_ifc_name_end == '\0')
-			return {};
-		const auto real_end_offset = std::char_traits<char>::length(orig_ifc_name_end);
-		const auto begin = _Unwrap_safe(orig_ifc_name.begin( ));
-		const auto real_end = orig_ifc_name_end + real_end_offset;
-		return std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
-	};
-
-	services_loader::get( ).deps( ).get<console>( ).log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name( ), info_ptr->name( ).raw);
-#endif
+		if (*orig_ifc_name_end != '\0')
+		{
+			const auto real_end_offset = std::char_traits<char>::length(orig_ifc_name_end);
+			const auto begin = _Unwrap_safe(orig_ifc_name.begin( ));
+			const auto real_end = orig_ifc_name_end + real_end_offset;
+			raw_ifc_name = std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
+		}
+		c->log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name, info_ptr->name( ).raw);
+	});
 
 	return std::invoke(found->second);
 }

@@ -2,9 +2,8 @@ module;
 
 #include "root_includes.h"
 
-export module cheat.service:root;
-export import :impl;
-
+export module cheat.root_service;
+export import cheat.service;
 
 template<size_t I, class ...T>
 decltype(auto) _Get(T&&...args)

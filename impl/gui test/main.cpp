@@ -12,6 +12,7 @@
 #include <d3d9.h>
 #include <tchar.h>
 
+import cheat.root_service;
 import cheat.console;
 import cheat.csgo.interfaces;
 import cheat.gui;

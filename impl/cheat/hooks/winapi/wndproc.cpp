@@ -5,6 +5,7 @@ module;
 
 module cheat.hooks.winapi:wndproc;
 import cheat.gui;
+import cheat.root_service;
 
 using namespace cheat;
 using namespace hooks::winapi;

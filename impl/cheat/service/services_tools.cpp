@@ -2,13 +2,17 @@ module;
 
 #include "cheat/console/includes.h"
 
-module cheat.service:impl;
-import :root;
+module cheat.service:tools;
 import cheat.console;
+#ifdef _DEBUG
+import cheat.root_service;
+#endif
 
-using namespace cheat;
+using cheat::console;
+using cheat::service_state;
+using cheat::basic_service;
 
-static void _Print_state_impl(console* c, basic_service* holder, service_state state)
+static void _Log(console* c, basic_service* holder, service_state state)
 {
 	switch (state)
 	{
@@ -45,29 +49,22 @@ static void _Print_state_impl(console* c, basic_service* holder, service_state s
 	}
 }
 
-static void _Print_state(basic_service* holder, service_state state)
+void cheat::log_service_state(basic_service* holder, service_state state)
 {
 #ifdef _DEBUG
-	if (services_loader::get( ).deps( ).try_call<console>(_Print_state_impl, holder, state).called)
+	if (services_loader::get( ).deps( ).try_call<console>(_Log, holder, state).called)
 		return;
 #endif
 	if (holder->type( ) == typeid(console))
 	{
-		_Print_state_impl(dynamic_cast<console*>(holder), holder, state);
+		_Log(dynamic_cast<console*>(holder), holder, state);
 		return;
 	}
 	for (auto& d : holder->_Deps<false>( ))
 	{
 		if (d->type( ) != typeid(console))
 			continue;
-		_Print_state_impl(dynamic_cast<console*>(d.get( )), holder, state);
+		_Log(dynamic_cast<console*>(d.get( )), holder, state);
 		return;
 	}
-}
-
-void basic_service::set_state(service_state state)
-{
-	runtime_assert(state_ != state);
-	_Print_state(this, state);
-	state_ = state;
 }

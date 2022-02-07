@@ -11,18 +11,24 @@ module;
 
 module cheat.utils.game;
 import cheat.csgo.interfaces;
+import cheat.root_service;
+import cheat.netvars;
 import cheat.console;
 import nstd.mem;
 
 using namespace cheat;
 using namespace csgo;
-using nstd::mem::address;
+
+static const auto& _Interfaces( )
+{
+	return services_loader::get( ).deps( ).get<netvars>( ).deps( ).get<csgo_interfaces>( );
+}
 
 ConVar* utils::find_cvar(const std::string_view& cvar)
 {
-	address cvars = services_loader::get( ).deps( ).get<csgo_interfaces>( ).cvars.get( );
+	nstd::mem::address cvars = _Interfaces( ).cvars.get( );
 	ConVar* root_cvar = cvars.add(0x30).deref(1).ptr( );
-	ConVar* target_cvar = 0;
+	ConVar* target_cvar = nullptr;
 
 	for (auto cv = root_cvar; cv != nullptr; cv = cv->m_pNext)
 	{
@@ -32,7 +38,28 @@ ConVar* utils::find_cvar(const std::string_view& cvar)
 		target_cvar = cv;
 		break;
 	}
-	services_loader::get( ).deps( ).get<console>( ).log("Cvar \"{}\"{}found", cvar, target_cvar ? " not " : " ");
+	cheat::access_service<console>(services_loader::get_ptr( ), [&](console* c)
+	{
+		std::ostringstream msg;
+		msg << std::format("Cvar \"{}\"", cvar);
+		if (!target_cvar)
+		{
+			msg << " NOT ";
+		}
+		else
+		{
+			//we already know how long a string can be
+			const auto known_end = target_cvar->m_pszName + cvar.size( );
+			//so only look for the zero character
+			const auto real_end = known_end + std::char_traits<char>::length(known_end);
+			if (known_end != real_end)
+				msg << std::format(" (full name: \"{}\")", std::string_view(target_cvar->m_pszName, real_end));
+			msg << ' ';
+		}
+		msg << "found";
+
+		c->log(std::move(msg));
+	});
 	return target_cvar;
 }
 
@@ -98,19 +125,17 @@ float utils::unlag_range( )
 	return range;
 }
 
-static const auto& _Globals( )
+static auto _Tick_interval( )
 {
-	return *services_loader::get( ).deps( ).get<csgo_interfaces>( ).global_vars;
+	return _Interfaces( ).global_vars->interval_per_tick;
 }
 
 size_t utils::time_to_ticks(float time)
 {
-	const auto interval = _Globals( ).interval_per_tick;
-	return static_cast<size_t>(time / interval + 0.5f);
+	return static_cast<size_t>(time / _Tick_interval( ) + 0.5f);
 }
 
 float utils::ticks_to_time(size_t ticks)
 {
-	const auto interval = _Globals( ).interval_per_tick;
-	return interval * static_cast<float>(ticks);
+	return _Tick_interval( ) * static_cast<float>(ticks);
 }

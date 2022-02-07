@@ -122,18 +122,12 @@ namespace cheat
 		size_t id( ) const override;
 	};
 
-	export template<typename Base = console, typename T, std::invocable<Base*> Fn>
-		auto console_log(T* holder, Fn&& fn)
-	{
-		return holder->deps( ).try_call<Base>(fn);
-	}
-
 	export template<typename Base = console, typename T, typename ...Args>
 		auto console_log(T* holder, Args&&...args)
 	{
-		return console_log<Base>(holder, [&](Base* c)
-								 {
-									 c->log(std::forward<Args>(args)...);
-								 });
+		return access_service<Base>(holder, [&](Base* c)
+		{
+			c->log(std::forward<Args>(args)...);
+		});
 	}
 }

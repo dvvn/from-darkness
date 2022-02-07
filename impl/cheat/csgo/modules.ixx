@@ -76,12 +76,8 @@ namespace cheat::csgo_modules
 
 	private:
 		info* info_ptr;
-#ifdef _DEBUG
 		nstd::unordered_set<std::string> sigs_tested;
-#endif
-#ifdef CHEAT_HAVE_CONSOLE
 		nstd::unordered_set<std::string> vtables_tested;
-#endif
 		ifcs_entry_type interfaces;
 	};
 

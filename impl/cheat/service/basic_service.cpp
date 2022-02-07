@@ -6,6 +6,7 @@ module;
 #include <cppcoro/sync_wait.hpp>
 
 module cheat.service:basic;
+import :tools;
 
 using namespace cheat;
 
@@ -137,4 +138,11 @@ auto basic_service::start( ) noexcept -> task_type::value_type
 {
 	executor ex;
 	return start(ex, sync_start( ));
+}
+
+void basic_service::set_state(service_state state)
+{
+	runtime_assert(state_ != state);
+	log_service_state(this, state);
+	state_ = state;
 }

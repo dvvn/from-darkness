@@ -1,19 +1,12 @@
 module;
 
 #include "cheat/service/basic_includes.h"
-#include "storage_includes.h"
 
 export module cheat.netvars;
 export import cheat.service;
-import :storage;
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-import :lazy;
-#endif
 
 namespace cheat
 {
-	using namespace netvars_impl;
-
 	export class netvars final : public dynamic_service<netvars>
 	{
 	public:
@@ -27,9 +20,7 @@ namespace cheat
 		bool load( ) noexcept override;
 
 	private:
-		netvars_storage storage_;
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		lazy::files_storage lazy_;
-#endif
+		struct impl;
+		std::unique_ptr<impl>impl_;
 	};
 }

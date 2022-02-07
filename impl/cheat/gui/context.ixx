@@ -8,6 +8,7 @@ module;
 #include <optional>
 
 export module cheat.gui:context;
+export import :effects;
 export import cheat.service;
 
 export namespace cheat::gui
