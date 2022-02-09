@@ -5,14 +5,10 @@
 	<ItemDefinitionGroup>
 		<ClCompile>
 			<AdditionalIncludeDirectories>
-				$(GitClonedProjects)\dvvn\detour_hook\impl;
-				$(GitClonedProjects)\danielkrupinski\x86RetSpoof;
+				$(GitClonedProjects)\David-Haim\concurrencpp\include;
 				%(AdditionalIncludeDirectories)
 			</AdditionalIncludeDirectories>
 		</ClCompile>
 	</ItemDefinitionGroup>
-
-	<Import Label="PropertySheets"
-			Project="$(SolutionDir)/deps/nstd/Settings.props"/>
 
 </Project>

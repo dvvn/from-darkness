@@ -12,6 +12,11 @@
 #include <d3d9.h>
 #include <tchar.h>
 
+#define RUN_HOOKS_TEST
+#ifdef RUN_HOOKS_TEST
+#include <dhooks/includes.h>
+#endif
+
 import cheat.root_service;
 import cheat.console;
 import cheat.csgo.interfaces;
@@ -21,49 +26,48 @@ import cheat.hooks.imgui;
 import cheat.hooks.directx;
 import cheat.hooks.winapi;
 import nstd.winapi;
-
-//#define RUN_HOOKS_TEST
-
 #ifdef RUN_HOOKS_TEST
-#include <dhooks/includes.h>
 import dhooks;
+
+#pragma section(".text")
+__declspec(allocate(".text")) constexpr std::array<std::uint8_t, 2> gadget{0xFF, 0x23}; // jmp dword ptr[ebx]
 
 struct target_struct
 {
-	int __stdcall target_func( )
+	void* __fastcall target_func( )
 	{
-		return 999;
+		return _ReturnAddress( );
 	}
 };
 
-int __fastcall target_func( )
+static void* __fastcall target_func( )
 {
-	return 888;
+	return _ReturnAddress( );
 }
 
 struct test_struct_hook : dhooks::select_hook_holder<decltype(&target_struct::target_func)>
 {
-	void callback( ) override
+	test_struct_hook( )
 	{
-		this->store_return_value(9991);
+		this->set_target_method(dhooks::pointer_to_class_method(&target_struct::target_func));
 	}
 
-	void* get_target_method( ) const override
+	void callback( ) override
 	{
-		return dhooks::pointer_to_class_method(&target_struct::target_func);
+		//this->store_return_value(0);
 	}
 };
 
 struct test_fn_hook : dhooks::select_hook_holder<decltype(target_func)>
 {
-	void callback( ) override
+	test_fn_hook( )
 	{
-		this->store_return_value(8881);
+		this->set_target_method(target_func);
 	}
 
-	void* get_target_method( ) const override
+	void callback( ) override
 	{
-		return target_func;
+		//this->store_return_value(0);
 	}
 };
 
@@ -80,10 +84,8 @@ static auto make_hook( )
 
 static void run_hooks_test( )
 {
-	dhooks::current_context::set(std::make_shared<dhooks::context>( ));
 	auto struct_hook = make_hook<test_struct_hook>( );
 	auto fn_hook = make_hook<test_fn_hook>( );
-	dhooks::current_context::reset( );
 
 	target_struct obj;
 
@@ -203,7 +205,7 @@ int main(int, char**)
 			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
 			if (msg.message == WM_QUIT)
-				goto _RESET; 
+				goto _RESET;
 		}
 
 		//unload called
