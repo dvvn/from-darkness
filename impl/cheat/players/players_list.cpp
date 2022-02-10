@@ -87,7 +87,7 @@ void players_list::update( )
 	{
 		for (auto i = start; std::invoke(validator, i, limit); ++i)
 		{
-			auto& entry = storage_[i - 1];
+			auto& entry = storage_[i];
 			auto end = static_cast<C_CSPlayer*>(ents_list->GetClientEntity(i));
 			entry.update(end, curtime, correct);
 #ifdef _DEBUG
@@ -102,6 +102,6 @@ void players_list::update( )
 	const auto local_idx = engine->GetLocalPlayer( );
 
 	update_players(1, std::less( ), local_idx);
-	storage_[local_idx - 1].update(nullptr, 0, 0);
+	storage_[local_idx].update(nullptr, 0, 0);
 	update_players(local_idx + 1, std::less_equal( ), max_clients);
 }
