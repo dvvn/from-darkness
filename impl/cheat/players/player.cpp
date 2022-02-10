@@ -7,7 +7,6 @@ module;
 
 module cheat.players:player;
 import nstd.mem;
-import cheat.utils.game;
 
 using namespace cheat;
 using namespace csgo;
@@ -215,7 +214,7 @@ player::team_info::team_info(std::underlying_type_t<m_iTeamNum_t> val)
 {
 }
 
-void player::update(int index, float curtime, float correct)
+void player::update(C_CSPlayer* ent, float curtime, float correct)
 {
 #if 0
 	//note: if fps < server tickount, all next calculations are wrong!!!

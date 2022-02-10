@@ -32,7 +32,7 @@ export namespace cheat
 			constexpr bool operator==(const team_info&) const = default;
 		};
 
-		void update(int index, float curtime, float correct);
+		void update(csgo::C_CSPlayer* ent, float curtime, float correct);
 
 		csgo::C_CSPlayer* entptr = nullptr;
 		std::optional<float> simtime;
@@ -42,8 +42,6 @@ export namespace cheat
 		std::optional<bool> dmgprotect;
 		//todo: weaponfire
 		//spawntime (also can be calculated manually while health changes from 0)
-
-		bool local = false;
 
 		struct ticks_info
 		{

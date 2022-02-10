@@ -4,9 +4,10 @@ module;
 #include "cheat/csgo/modules_includes.h"
 #include "cheat/netvars/storage_includes.h"
 
+#include <functional>
+
 module cheat.players:list;
 import cheat.netvars;
-import cheat.utils.game;
 import cheat.csgo.modules;
 
 using namespace cheat;
@@ -36,34 +37,71 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
 }
 
+static float _Lerp_time(const ICVar * cvars)
+{
+	const auto lerp_amount = cvars->FindVar<"cl_interp">( )->get<float>( );
+	auto lerp_ratio = cvars->FindVar<"cl_interp_ratio">( )->get<float>( );
+
+	if (lerp_ratio == 0.0f)
+		lerp_ratio = 1.0f;
+
+	const auto min_ratio = cvars->FindVar<"sv_client_min_interp_ratio">( )->get<float>( );
+	if (min_ratio != -1.0f)
+	{
+		const auto max_ratio = cvars->FindVar<"sv_client_max_interp_ratio">( )->get<float>( );
+		lerp_ratio = std::clamp(lerp_ratio, min_ratio, max_ratio);
+	}
+
+	const auto update_rate = std::clamp(cvars->FindVar<"cl_updaterate">( )->get<float>( ), cvars->FindVar<"sv_minupdaterate">( )->get<float>( ), cvars->FindVar<"sv_maxupdaterate">( )->get<float>( ));
+	return std::max(lerp_amount, lerp_ratio / update_rate);
+}
+
+static float _Correct_value(IVEngineClient * engine, const ICVar * cvars)
+{
+	const auto nci = engine->GetNetChannelInfo( );
+	const auto latency = nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING);
+	const auto lerp = _Lerp_time(cvars);
+	const auto unlag_limit = cvars->FindVar<"sv_maxunlag">( )->get<float>( );
+	return std::clamp(latency + lerp, 0.f, unlag_limit);
+}
+
 void players_list::update( )
 {
 	const auto& interfaces = this->deps( ).get<csgo_interfaces>( );
-	// ReSharper disable once CppUseStructuredBinding
-	const auto& globals = *interfaces.global_vars.get( );
 
-	const auto max_clients = globals.max_clients;
+	const auto globals = interfaces.global_vars.get( );
+	const auto max_clients = static_cast<size_t>(globals->max_clients);
 	storage_.resize(max_clients);
 
-	const auto curtime = globals.curtime; //todo: made it fixed
-	const auto correct = [&]
-	{
-		const auto engine = interfaces.engine.get( );
-		const auto nci = engine->GetNetChannelInfo( );
-
-		return std::clamp(nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING) + utils::lerp_time( ), 0.f, utils::unlag_limit( ));
-	}();
-
-	for (auto i = static_cast<decltype(CGlobalVarsBase::max_clients)>(1u); i <= max_clients; ++i)
-	{
-		auto& entry = storage_[i - 1];
-		entry.update(i, curtime, correct);
-
+	const auto engine = interfaces.engine.get( );
+	const auto cvars = interfaces.cvars.get( );
+	const auto update_players =
+		[this,
+		ents_list = interfaces.entity_list.get( ),
 #ifdef _DEBUG
-		if (!entry.team.ghost && !entry.local)
-		{
-			_Draw_server_hitboxes(i, globals.frametime, false);
-		}
+		frametime = globals->frametime,
 #endif
-	}
+		curtime = globals->curtime,//todo: made it fixed
+		correct = _Correct_value(engine, cvars)
+		]<class Fn>(size_t start, const Fn validator, size_t limit)
+	{
+		for (auto i = start; std::invoke(validator, i, limit); ++i)
+		{
+			auto& entry = storage_[i - 1];
+			auto end = static_cast<C_CSPlayer*>(ents_list->GetClientEntity(i));
+			entry.update(end, curtime, correct);
+#ifdef _DEBUG
+			if (!entry.team.ghost)
+			{
+				_Draw_server_hitboxes(i, frametime, false);
+			}
+#endif
+		}
+	};
+
+	const auto local_idx = engine->GetLocalPlayer( );
+
+	update_players(1, std::less( ), local_idx);
+	storage_[local_idx - 1].update(nullptr, 0, 0);
+	update_players(local_idx + 1, std::less_equal( ), max_clients);
 }

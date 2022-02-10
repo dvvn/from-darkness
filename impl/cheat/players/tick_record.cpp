@@ -55,15 +55,7 @@ void tick_record::store_animations(C_BaseAnimating* ent)
 
 bool tick_record::is_valid(float curtime, float correct) const
 {
-	/*const auto interfaces  = csgo_interfaces::get_ptr( );
-	const auto engine      = interfaces->engine.get( );
-	const auto get_latency = [&](int flow)
-	{
-		return engine->GetNetChannelInfo( )->GetLatency(flow);
-	};
-	const auto correct = std::clamp(get_latency(FLOW_INCOMING) + get_latency(FLOW_OUTGOING) + utils::lerp_time( ), 0.f, utils::unlag_limit( ));*/
-
-	return std::abs(correct - (curtime - sim_time)) < utils::unlag_range( ) /*&& correct < 1.f*/;
+	return std::abs(correct - (curtime - sim_time)) < 0.2f;
 }
 
 tick_record::tick_record(const player& holder)
