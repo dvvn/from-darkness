@@ -30,8 +30,8 @@
 	</ImportGroup>
 	
 	<ItemGroup>
-		<ClCompile Include="$(GitClonedProjects)\dvvn\detour_hook\impl\**\*.cpp" />
-		<ClCompile Include="$(GitClonedProjects)\dvvn\detour_hook\impl\**\*.i*" />
+		<ClCompile Include="$(GitClonedProjects)\dvvn\detour_hooks\impl\**\*.cpp" />
+		<ClCompile Include="$(GitClonedProjects)\dvvn\detour_hooks\impl\**\*.i*" />
 	</ItemGroup>
 
 	<ItemGroup>
