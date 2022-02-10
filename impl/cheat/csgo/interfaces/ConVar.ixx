@@ -1,21 +1,19 @@
+module;
+
+#include <nstd/chars cache.h>
+
 export module cheat.csgo.interfaces:ConVar;
 export import :AppSystem;
 export import cheat.csgo.tools;
 export import cheat.csgo.math;
 
-#define CHEAT_CSGOSDK_CVAR_GSET(_TYPE_) \
-	template < >\
-	_TYPE_ get( )const;\
-	template < >\
-	void set(_TYPE_ value);	
-
 export namespace cheat::csgo
 {
 	class IConVar;
 	class CCommand;
-	class CConBase;
+	class ConCommandBase;
 	class ConVar;
-	class CConCmd;
+	class ConCommand;
 
 	enum ConVarFlags : int
 	{
@@ -88,36 +86,103 @@ export namespace cheat::csgo
 	// NOTE: For FCVAR_NEVER_AS_STRING ConVars, pOldValue == 0
 	//-----------------------------------------------------------------------------
 	typedef void (*FnChangeCallback_t)(IConVar* var, const char* pOldValue, float flOldValue);
-	typedef void (*FnChangeCallbackV1_t)(void);
+	typedef void (*FnChangeCallbackV1_t)();
 	using CVarDLLIdentifier_t = int;
 
-	//-----------------------------------------------------------------------------
-	// Abstract interface for ConVars
-	//-----------------------------------------------------------------------------
-	class IConVar : public IAppSystem
+	class IConVar
 	{
 	public:
-		virtual CVarDLLIdentifier_t	AllocateDLLIdentifier( ) = 0;
-		virtual void			RegisterConCommand(ConVar* pCommandBase, int iDefaultValue = 1) = 0;
-		virtual void			UnregisterConCommand(ConVar* pCommandBase) = 0;
-		virtual void			UnregisterConCommands(CVarDLLIdentifier_t id) = 0;
-		virtual const char* GetCommandLineValue(const char* szVariableName) = 0;
-		virtual CConBase* FindCommandBase(const char* szName) = 0;
-		virtual const CConBase* FindCommandBase(const char* szName) const = 0;
-		virtual ConVar* FindVar(const char* szVariableName) = 0;
-		virtual const ConVar* FindVar(const char* szVariableName) const = 0;
-		virtual CConCmd* FindCommand(const char* szName) = 0;
-		virtual const CConCmd* FindCommand(const char* szName) const = 0;
-		virtual void			InstallGlobalChangeCallback(FnChangeCallback_t callback) = 0;
-		virtual void			RemoveGlobalChangeCallback(FnChangeCallback_t callback) = 0;
-		virtual void			CallGlobalChangeCallbacks(ConVar* pVar, const char* szOldString, float flOldValue) = 0;
-		virtual void			InstallConsoleDisplayFunc(void* pDisplayFunc) = 0;
-		virtual void			RemoveConsoleDisplayFunc(void* pDisplayFunc) = 0;
-		virtual void			ConsoleColorPrintf(const Color& color, const char* pFormat, ...) const = 0;
-		virtual void			ConsolePrintf(const char* pFormat, ...) const = 0;
-		virtual void			ConsoleDPrintf(const char* pFormat, ...) const = 0;
-		virtual void			RevertFlaggedConVars(int nFlag) = 0;
+		// Value set
+		virtual void SetValue(const char* pValue) = 0;
+		virtual void SetValue(float flValue) = 0;
+		virtual void SetValue(int nValue) = 0;
+
+		// Return name of command
+		virtual const char* GetName( ) const = 0;
+
+		// Accessors.. not as efficient as using GetState()/GetInfo()
+		// if you call these methods multiple times on the same IConVar
+		virtual bool IsFlagSet(int nFlag) const = 0;
 	};
+
+	class ConCommandBase
+	{
+#if 0
+		friend class CCvar;
+		friend class ConVar;
+		friend class ConCommand;
+		friend void ConVar_Register(int nCVarFlag, IConCommandBaseAccessor* pAccessor);
+		friend void ConVar_PublishToVXConsole( );
+
+		// FIXME: Remove when ConVar changes are done
+		friend class CDefaultCvar;
+#endif
+	public:
+		//ConCommandBase();
+		//ConCommandBase(const char* pName, const char* pHelpString = 0, int flags = 0);
+
+		virtual						~ConCommandBase( ) = default;
+
+		virtual	bool				IsCommand( ) const = 0;
+
+		// Check flag
+		virtual bool				IsFlagSet(int flag) const = 0;
+		// Set flag
+		virtual void				AddFlags(int flags) = 0;
+
+			// Return name of cvar
+			virtual const char* GetName( ) const = 0;
+
+		// Return help text for cvar
+		virtual const char* GetHelpText( ) const = 0;
+
+		// Deal with next pointer
+		//const ConCommandBase* GetNext() const;
+		//ConCommandBase* GetNext();
+
+		virtual bool				IsRegistered( ) const = 0;
+
+		// Returns the DLL identifier
+		virtual CVarDLLIdentifier_t	GetDLLIdentifier( ) const = 0;
+
+	protected:
+		virtual void				CreateBase(const char* pName, const char* pHelpString = 0, int flags = 0) = 0;
+
+		// Used internally by OneTimeInit to initialize/shutdown
+		virtual void				Init( ) = 0;
+		//void						Shutdown( );
+
+		// Internal copy routine ( uses new operator from correct module )
+		//char* CopyString(const char* from);
+
+	public:
+		// Next ConVar in chain
+		// Prior to register, it points to the next convar in the DLL.
+		// Once registered, though, m_pNext is reset to point to the next
+		// convar in the global list
+		ConCommandBase* m_pNext;
+
+		// Has the cvar been added to the global list?
+		bool						m_bRegistered;
+
+		// Static data
+		const char* m_pszName;
+		const char* m_pszHelpString;
+
+		// ConVar flags
+		int							m_nFlags;
+
+	protected:
+		// ConVars add themselves to this list for the executable. 
+		// Then ConVar_Register runs through  all the console variables 
+		// and registers them into a global list stored in vstdlib.dll
+		//static ConCommandBase* s_pConCommandBases;
+
+		// ConVars in this executable use this 'global' to access values.
+		//static IConCommandBaseAccessor* s_pAccessor;
+	};
+
+	
 
 	struct CVValue_t
 	{
@@ -129,7 +194,7 @@ export namespace cheat::csgo
 		int   m_nValue;
 	};
 
-	class ConVar
+	class ConVar : public ConCommandBase, public IConVar
 	{
 	public:
 		template <typename T>
@@ -137,31 +202,107 @@ export namespace cheat::csgo
 		template <typename T>
 		void set(T value);
 
+#define CHEAT_CSGOSDK_CVAR_GSET(_TYPE_) \
+		template < >\
+		_TYPE_ get( )const;\
+		template < >\
+		void set(_TYPE_ value);
+
 		CHEAT_CSGOSDK_CVAR_GSET(const char*);
 		CHEAT_CSGOSDK_CVAR_GSET(float);
 		CHEAT_CSGOSDK_CVAR_GSET(int);
 		CHEAT_CSGOSDK_CVAR_GSET(bool);
 
-	private:
-		void* virtualtable;
-	public:
-		ConVar* m_pNext;
-		int m_bRegistered;
-		char* m_pszName;
-		char* m_pszHelpString;
-		ConVarFlags          m_nFlags;
-		FnChangeCallbackV1_t m_fnChangeCallbacksV1;
+		// This either points to "this" or it points to the original declaration of a ConVar.
+	// This allows ConVars to exist in separate modules, and they all use the first one to be declared.
+	// m_pParent->m_pParent must equal m_pParent (ie: m_pParent must be the root, or original, ConVar).
 		ConVar* m_pParent;
-		char* m_pszDefaultValue;
-		CVValue_t            m_Value;
-		int                  m_bHasMin;
-		float                m_fMinVal;
-		int                  m_bHasMax;
-		float                m_fMaxVal;
 
-		CUtlVector<FnChangeCallback_t> m_fnChangeCallbacks; // note: this is also accessible as FnChangeCallback_t* instead of CUtlVector
+		// Static data
+		const char* m_pszDefaultValue;
+
+		CVValue_t					m_Value;
+
+		// Min/Max values
+		bool						m_bHasMin;
+		float						m_fMinVal;
+		bool						m_bHasMax;
+		float						m_fMaxVal;
+
+		// Call this function when ConVar changes
+		CUtlVector< FnChangeCallback_t > m_fnChangeCallbacks;
 
 		/*float GetValue();
 		int GetValueN();*/
 	}; //Size=0x0048*
+
+	class ConCommandBaseIterator
+	{
+	public:
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = ConCommandBase;
+		using pointer = value_type*;
+		using reference = value_type&;
+
+		ConCommandBaseIterator(pointer ptr) :itr_(ptr) { }
+
+		pointer get( ) const { return itr_; }
+
+		reference operator*( ) const { return *itr_; }
+		pointer operator->( ) const { return itr_; }
+
+		// Prefix increment
+		ConCommandBaseIterator& operator++( ) { itr_ = itr_->m_pNext; return *this; }
+
+		// Postfix increment
+		ConCommandBaseIterator operator++(difference_type) { ConCommandBaseIterator tmp = *this; ++(*this); return tmp; }
+
+		friend bool operator== (const ConCommandBaseIterator& a, const ConCommandBaseIterator& b) { return a.itr_ == b.itr_; };
+		friend bool operator!= (const ConCommandBaseIterator& a, const ConCommandBaseIterator& b) { return a.itr_ != b.itr_; };
+
+	private:
+		pointer itr_;
+	};
+
+	//-----------------------------------------------------------------------------
+	// Abstract interface for ConVars
+	//-----------------------------------------------------------------------------
+	class ICVar : IAppSystem
+	{
+		virtual CVarDLLIdentifier_t	AllocateDLLIdentifier( ) = 0;
+		virtual void			RegisterConCommand(ConVar* pCommandBase, int iDefaultValue = 1) = 0;
+		virtual void			UnregisterConCommand(ConVar* pCommandBase) = 0;
+		virtual void			UnregisterConCommands(CVarDLLIdentifier_t id) = 0;
+		virtual const char* GetCommandLineValue(const char* szVariableName) = 0;
+		virtual ConCommandBase* FindCommandBase(const char* szName) = 0;
+		virtual const ConCommandBase* FindCommandBase(const char* szName) const = 0;
+		virtual ConVar* FindVar(const char* szVariableName) = 0;
+		virtual const ConVar* FindVar(const char* szVariableName) const = 0;
+		virtual ConCommand* FindCommand(const char* szName) = 0;
+		virtual const ConCommand* FindCommand(const char* szName) const = 0;
+		virtual void			InstallGlobalChangeCallback(FnChangeCallback_t callback) = 0;
+		virtual void			RemoveGlobalChangeCallback(FnChangeCallback_t callback) = 0;
+		virtual void			CallGlobalChangeCallbacks(ConVar* pVar, const char* szOldString, float flOldValue) = 0;
+		virtual void			InstallConsoleDisplayFunc(void* pDisplayFunc) = 0;
+		virtual void			RemoveConsoleDisplayFunc(void* pDisplayFunc) = 0;
+		virtual void			ConsoleColorPrintf(const Color& color, const char* pFormat, ...) const = 0;
+		virtual void			ConsolePrintf(const char* pFormat, ...) const = 0;
+		virtual void			ConsoleDPrintf(const char* pFormat, ...) const = 0;
+		virtual void			RevertFlaggedConVars(int nFlag) = 0;
+
+	public:
+
+		ConCommandBaseIterator begin( )const;
+		ConCommandBaseIterator end( )const;
+
+		ConVar* FindVar(std::string_view name)const;
+
+		template<nstd::chars_cache Cvar>
+		ConVar* FindVar( )const
+		{
+			static auto cvar = FindVar(Cvar.view( ));
+			return cvar;
+		}
+	};
 }

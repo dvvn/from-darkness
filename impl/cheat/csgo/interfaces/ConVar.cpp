@@ -1,7 +1,13 @@
 ﻿module;
 
+#include "cheat/console/includes.h"
+#include <nstd/format.h>
+
 module cheat.csgo.interfaces:ConVar;
+import cheat.console;
+import cheat.root_service;
 import dhooks;
+import nstd.mem;
 
 using namespace cheat::csgo;
 
@@ -38,3 +44,62 @@ void ConVar::set(float value) { _Set_helper(this, 15, value); }
 
 template < >
 void ConVar::set(int value) { _Set_helper(this, 16, value); }
+
+ConCommandBaseIterator ICVar::begin( )const
+{
+	using namespace nstd::mem;
+	return address(this).add(0x30).deref(1).ptr<ConCommandBase>( );
+}
+
+ConCommandBaseIterator ICVar::end( )const
+{
+	return nullptr;
+}
+
+ConVar* ICVar::FindVar(std::string_view name)const
+{
+	const auto compare = [&](const ConCommandBase& cv)
+	{
+		if (cv.IsCommand( ))
+			return false;
+		return std::strncmp(cv.m_pszName, name.data( ), name.size( )) == 0;
+	};
+
+	const auto first_cvar = this->begin( );
+	const auto invalid_cvar = this->end( );
+
+	const auto target_cvar = std::find_if(first_cvar, invalid_cvar, compare);
+
+#ifdef _DEBUG
+	if (target_cvar != invalid_cvar)
+	{
+		for (auto cv = std::next(target_cvar); cv != invalid_cvar; ++cv)
+			runtime_assert(!compare(*cv), "Found multiple cvars with given name!");
+	}
+#endif
+
+	services_loader::get( ).deps( ).try_call([&](console* c)
+	{
+		std::ostringstream msg;
+		msg << std::format("Cvar \"{}\"", name);
+		if (target_cvar == invalid_cvar)
+		{
+			msg << " NOT ";
+		}
+		else
+		{
+			//we already know how long a string can be
+			const auto known_end = target_cvar->m_pszName + name.size( );
+			//so only look for the zero character
+			const auto real_end = known_end + std::char_traits<char>::length(known_end);
+			if (known_end != real_end)
+				msg << std::format(" (full name: \"{}\")", std::string_view(target_cvar->m_pszName, real_end));
+			msg << ' ';
+		}
+		msg << "found";
+
+		c->log(std::move(msg));
+	});
+
+	return target_cvar == invalid_cvar ? nullptr : static_cast<ConVar*>(target_cvar.get( ));
+}

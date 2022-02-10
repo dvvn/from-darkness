@@ -22,9 +22,9 @@
 			<DiagnosticsFormat>Caret</DiagnosticsFormat>
 			<UseStandardPreprocessor>true</UseStandardPreprocessor>
 			<SDLCheck>true</SDLCheck>
-			<DisableSpecificWarnings>4250;5103;4100;4101;4359</DisableSpecificWarnings>
+			<DisableSpecificWarnings>5103;</DisableSpecificWarnings>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalBMIDirectories>$(IntDir)</AdditionalBMIDirectories>
+			<!--<AdditionalBMIDirectories>$(IntDir)</AdditionalBMIDirectories>-->
 			<AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
 			<PreprocessorDefinitions>
 				VS_SolutionDir=$(SolutionDir);

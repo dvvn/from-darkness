@@ -166,7 +166,7 @@ export namespace cheat
 		ifc<csgo::IGameEventManager2> game_events;
 		ifc<csgo::IEngineSound> engine_sound;
 		ifc<csgo::IMaterialSystem> material_system;
-		ifc<csgo::IConVar> cvars;
+		ifc<csgo::ICVar> cvars;
 		ifc<csgo::IPanel> vgui_panel;
 		ifc<csgo::ISurface> vgui_surface;
 		ifc<csgo::IPhysicsSurfaceProps> phys_props;

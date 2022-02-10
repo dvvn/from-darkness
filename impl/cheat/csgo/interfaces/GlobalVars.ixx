@@ -27,5 +27,17 @@ export namespace cheat::csgo
 		// 32 (entindex() % nTimestampRandomizeWindow ) is subtracted from gpGlobals->tickcount to Set the networking basis, prevents
 		//  all of the entities from forcing a new PackedEntity on the same tick (i.e., prevents them from getting lockstepped on this)
 		int timestamp_randomize_window;
+
+		//----
+
+		int time_to_ticks(float time)const
+		{
+			return static_cast<int>(time / interval_per_tick + 0.5f);
+		}
+
+		float ticks_to_time(int ticks)const
+		{
+			return static_cast<float>(interval_per_tick) * static_cast<float>(ticks);
+		}
 	};
 }
