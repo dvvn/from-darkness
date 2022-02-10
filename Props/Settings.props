@@ -22,7 +22,7 @@
 			<DiagnosticsFormat>Caret</DiagnosticsFormat>
 			<UseStandardPreprocessor>true</UseStandardPreprocessor>
 			<SDLCheck>true</SDLCheck>
-			<DisableSpecificWarnings>5103;</DisableSpecificWarnings>
+			<DisableSpecificWarnings>5103;4250</DisableSpecificWarnings>
 			<FloatingPointModel>Fast</FloatingPointModel>
 			<!--<AdditionalBMIDirectories>$(IntDir)</AdditionalBMIDirectories>-->
 			<AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>

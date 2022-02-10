@@ -12,7 +12,7 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-#define RUN_HOOKS_TEST
+//#define RUN_HOOKS_TEST
 #ifdef RUN_HOOKS_TEST
 #include <dhooks/includes.h>
 #endif

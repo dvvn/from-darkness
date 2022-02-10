@@ -428,7 +428,9 @@ void player::update(C_CSPlayer* ent, float curtime, float correct)
 
 size_t player::max_ticks_count( )
 {
-	return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
+	runtime_assert("not implemented");
+	return 0;
+	//return utils::time_to_ticks(utils::unlag_limit( ) + utils::unlag_range( ));
 }
 
 void player::reset_ticks( )

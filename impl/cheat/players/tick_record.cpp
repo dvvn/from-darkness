@@ -20,7 +20,6 @@ module;
 
 module cheat.players:tick_record;
 import :player;
-import cheat.utils.game;
 
 using namespace cheat;
 using namespace csgo;
