@@ -117,7 +117,7 @@ namespace cheat
 		FILE* out_ = nullptr;
 		FILE* err_ = nullptr;
 
-		void handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept override;
+		void handle(const char* expression, const char* message, const std::source_location& location) noexcept override;
 		void handle(const char* message, const std::source_location& location) noexcept override;
 		size_t id( ) const override;
 	};

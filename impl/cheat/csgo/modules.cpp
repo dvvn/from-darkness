@@ -79,7 +79,7 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	for (auto r = reg; r != nullptr; r = r->next)
 		temp_entry.emplace_back(r->name, r->create_fn);
 
-	const auto contains_duplicate = [&](const std::string_view& new_string, size_t max_size)
+	const auto contains_duplicate = [&](std::string_view new_string, size_t max_size)
 	{
 		bool detected = false;
 		for (auto& raw_string : temp_entry | std::views::keys)
@@ -99,17 +99,21 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 		}
 		return false;
 	};
-	const auto drop_underline = [&](const std::string_view& str, size_t max_size) -> std::optional<std::string_view>
+	const auto drop_underline = [&](std::string_view str, size_t max_size) -> std::optional<std::string_view>
 	{
 		if (str.ends_with('_'))
 		{
-			const auto str2 = str.substr(0, str.size( ) - 1);
+			/*const auto str2 = str.substr(0, str.size( ) - 1);
 			if (!contains_duplicate(str2, max_size))
-				return str2;
+				return str2;*/
+			str.remove_suffix(1);
+			if (!contains_duplicate(str, max_size))
+				return str;
+
 		}
 		return {};
 	};
-	const auto get_pretty_string = [&](const std::string_view& str) -> std::optional<std::string_view>
+	const auto get_pretty_string = [&](std::string_view str) -> std::optional<std::string_view>
 	{
 #if 0
 		const auto remove = std::ranges::distance(str | std::views::reverse | std::views::take_while(std::isdigit));
@@ -142,7 +146,7 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	return entry;
 }
 
-game_module_storage::game_module_storage(const std::string_view& name)
+game_module_storage::game_module_storage(std::string_view name)
 {
 	const auto ptr = _Get_module(name);
 
@@ -183,13 +187,24 @@ struct transform_cast
 template<typename T>
 static constexpr auto _Transform_cast = transform_cast<T>();
 
-address game_module_storage::find_signature(const std::string_view & sig)
+address game_module_storage::find_signature(std::string_view sig)
 {
-#ifdef _DEBUG
-	auto [itr, added] = sigs_tested.emplace(sig);
-	if (!added)
-		throw std::logic_error("Signature already added!");
-#endif
+	const auto added = services_loader::get( ).deps( ).try_call([&](console* c)
+	{
+		auto [itr, added] = sigs_tested.emplace(sig);
+
+		const auto& name = info_ptr->name( ).raw;
+		const auto wsig = _Transform_cast<wchar_t>(sig);
+
+		if (added)
+			c->log(L"{} -> signature \"{}\": searching...", name, wsig);
+		else
+			c->log(L"{} -> signature \"{}\": already found!", name, wsig);
+		return added;
+	});
+
+	if (added.has_value( ) && !*added)
+		return nullptr;
 
 	//no cache inside
 
@@ -197,19 +212,16 @@ address game_module_storage::find_signature(const std::string_view & sig)
 	const auto bytes = make_signature(sig.begin( ), sig.end( ), signature_convert( ));
 	const auto ret = block.find_block(bytes);
 
-	if (ret.empty( ))
+	services_loader::get( ).deps( ).try_call([&](console* c)
 	{
-		services_loader::get( ).deps( ).try_call([&](console* c)
-		{
-			c->log(L"{} -> signature \"{}\" not found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(sig));
-		});
-		return nullptr;
-	}
+		const auto postfix = ret.empty( ) ? L" NOT " : L" ";
+		c->log(L"{} -> signature \"{}\":{}found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(sig), postfix);
+	});
 
 	return _Unwrap_safe(ret.begin( ));
 }
 
-void* game_module_storage::find_vtable(const std::string_view & class_name)
+void* game_module_storage::find_vtable(std::string_view class_name)
 {
 	auto& mgr = info_ptr->vtables( );
 	const auto vt = mgr.at(class_name);
@@ -233,17 +245,13 @@ void* game_module_storage::find_vtable(const std::string_view & class_name)
 		else
 			module_name = info_ptr->full_path( ).raw;
 
-		//const auto second_module_name = all_infos::get_ptr( )->rfind([&](const info& info) { return info.name( ) == from_name; });
-		//const auto module_name = second_module_name == info_ptr ? from_name : info_ptr->full_path( );
-
-		c->log(L"Found \"{}\" vtable in module \"{}\"", _Transform_cast<wchar_t>(class_name), module_name);
-
+		c->log(L"{} -> vtable \"{}\" found", module_name, _Transform_cast<wchar_t>(class_name));
 	});
 
 	return vt.addr.ptr<void>( );
 }
 
-address game_module_storage::find_game_interface(const std::string_view & ifc_name)
+address game_module_storage::find_game_interface(std::string_view ifc_name)
 {
 	const auto found = interfaces.find(ifc_name);
 	runtime_assert(found != interfaces.end( ));
@@ -261,7 +269,7 @@ address game_module_storage::find_game_interface(const std::string_view & ifc_na
 			const auto real_end = orig_ifc_name_end + real_end_offset;
 			raw_ifc_name = std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
 		}
-		c->log(L"Found interface {}{} in module \"{}\"", _Transform_cast<wchar_t>(ifc_name), raw_ifc_name, info_ptr->name( ).raw);
+		c->log(L"{} -> interface {}{}: found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(ifc_name), raw_ifc_name);
 	});
 
 	return std::invoke(found->second);
@@ -281,7 +289,7 @@ struct modules_database : std::recursive_mutex, std::vector<std::unique_ptr<game
 
 static modules_database _Modules_database;
 
-static game_module_storage* _Get_storage_for(const std::string_view & name, size_t index)
+game_module_storage* cheat::csgo_modules::get(std::string_view name, size_t index)
 {
 	const auto estimated_size = index + 1;
 	if (_Modules_database.size( ) < estimated_size)
@@ -292,7 +300,7 @@ static game_module_storage* _Get_storage_for(const std::string_view & name, size
 			//write nulls because we use vector
 			_Modules_database.push_back(nullptr);
 		}
-		return _Get_storage_for(name, index);
+		return get(name, index);
 	}
 
 	if (!_Modules_database[index])
@@ -316,7 +324,13 @@ void cheat::csgo_modules::reset_interfaces_storage( )
 	}
 }
 
+game_module_storage* game_module_base::get( ) const
+{
+	return csgo_modules::get(name, index);
+}
+
 game_module_storage* game_module_base::operator->( ) const
 {
-	return _Get_storage_for(name_, index_);
+	return this->get( );
 }
+

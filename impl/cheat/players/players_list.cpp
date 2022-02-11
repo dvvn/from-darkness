@@ -83,13 +83,13 @@ void players_list::update( )
 #endif
 		curtime = globals->curtime,//todo: made it fixed
 		correct = _Correct_value(engine, cvars)
-		]<class Fn>(size_t start, const Fn validator, size_t limit)
+		]<typename Fn>(const size_t start, const Fn validator,const size_t limit)
 	{
 		for (auto i = start; std::invoke(validator, i, limit); ++i)
 		{
 			auto& entry = storage_[i];
-			auto end = static_cast<C_CSPlayer*>(ents_list->GetClientEntity(i));
-			entry.update(end, curtime, correct);
+			const auto ent = static_cast<C_CSPlayer*>(ents_list->GetClientEntity(i));
+			entry.update(ent, curtime, correct);
 #ifdef _DEBUG
 			if (!entry.team.ghost)
 			{

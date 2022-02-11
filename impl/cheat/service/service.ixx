@@ -217,7 +217,7 @@ export namespace cheat
 			{
 				std::optional<ret_t> ret;
 				if (valid_ptr)
-					ret->emplace(invoke( ));
+					ret.emplace(invoke( ));
 				return ret;
 			}
 		}

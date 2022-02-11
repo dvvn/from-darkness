@@ -147,7 +147,7 @@ static auto _Write_or_cache = []<typename T>(T && text, const console * instance
 		if constexpr (std::copyable<decltype(fn)>)
 			cache.store(fn);
 		else
-			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1);});
+			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1); });
 	}
 };
 
@@ -245,11 +245,8 @@ static auto _Prepare_message(const char* expression, const char* message, const 
 	return msg;
 }
 
-void console::handle(bool expression_result, const char* expression, const char* message, const std::source_location& location) noexcept
+void console::handle(const char* expression, const char* message, const std::source_location& location) noexcept
 {
-	if (expression_result)
-		return;
-
 	write_line(_Prepare_message(expression, message, location));
 }
 

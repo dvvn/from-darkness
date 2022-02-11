@@ -5,20 +5,19 @@ module;
 
 export module cheat.hooks.other:rta_blocker;
 export import dhooks;
+export import cheat.csgo.modules;
 
 namespace cheat::hooks::other
 {
 	//return address blocker
 
-	void* rta_blocker_get_target_method(const std::wstring_view& module_name);
-
-	export template<size_t Index>
-		class rta_blocker final :public dhooks::select_hook_holder<char(std::false_type::*)(const char*), Index>
+	export template<size_t Num>
+		class rta_blocker final :public dhooks::select_hook_holder<char(std::false_type::*)(const char*), Num>
 	{
 	public:
-		bool load(const std::wstring_view& module_name)
+		bool load(const csgo_modules::game_module_base& mod)
 		{
-			this->set_target_method(rta_blocker_get_target_method(module_name));
+			this->set_target_method(mod->find_signature("55 8B EC 56 8B F1 33 C0 57 8B 7D 08").ptr());
 			return this->hook( ) && this->enable( );
 		}
 
