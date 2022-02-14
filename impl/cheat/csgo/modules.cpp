@@ -48,13 +48,6 @@ struct transform_cast
 //static constexpr auto _Transform_cast = transform_cast<T>();
 static constexpr auto _Wide = transform_cast<wchar_t>();
 
-template<class T>
-static auto _Unwrap_iterator(T itr)
-{
-	//msvc
-	return std::_Get_unwrapped(itr);
-}
-
 static console* _Get_console( )
 {
 	return services_loader::get( ).deps( ).try_get<console>( );
@@ -192,18 +185,19 @@ struct module_storage_data
 {
 	struct _Fake_mutex
 	{
-		void lock( ) { }
-		void unlock( ) { }
+		void lock( ) noexcept { }
+		void unlock( ) noexcept { }
 	};
 
 	template<class Mtx>
-	class _String_tester :public Mtx
+	class _String_tester
 	{
+		Mtx mtx_;
 		nstd::unordered_set<std::string> cache_;
 	public:
 		bool operator()(std::string_view sig)
 		{
-			const auto lock = std::scoped_lock(*this);
+			const auto lock = std::scoped_lock(mtx_);
 			const auto created = cache_.emplace(sig).second;
 			return created == false;
 		}
@@ -262,7 +256,7 @@ address game_module_storage::find_signature(std::string_view sig)
 		_Console->log(L"{} -> signature \"{}\":{}found", log_name, log_sig, postfix);
 	};
 
-	return _Unwrap_iterator(ret.begin( ));
+	return ret.data( );
 }
 
 void* game_module_storage::find_vtable(std::string_view class_name)
