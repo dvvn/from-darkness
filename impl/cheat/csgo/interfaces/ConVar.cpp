@@ -69,16 +69,8 @@ ConVar* ICVar::FindVar(std::string_view name)const
 	const auto invalid_cvar = this->end( );
 
 	const auto target_cvar = std::find_if(first_cvar, invalid_cvar, compare);
-
-#ifdef _DEBUG
-	if (target_cvar != invalid_cvar)
-	{
-		for (auto cv = std::next(target_cvar); cv != invalid_cvar; ++cv)
-			runtime_assert(!compare(*cv), "Found multiple cvars with given name!");
-	}
-#endif
-
-	services_loader::get( ).deps( ).try_call([&](console* c)
+	const auto _Console = services_loader::get( ).deps( ).try_get<console>( );
+	if (_Console)
 	{
 		std::ostringstream msg;
 		msg << std::format("Cvar \"{}\"", name);
@@ -88,6 +80,24 @@ ConVar* ICVar::FindVar(std::string_view name)const
 		}
 		else
 		{
+			bool duplicate = false;
+			for (auto cv = std::next(target_cvar); cv != invalid_cvar; ++cv)
+			{
+				if (!compare(*cv))
+					continue;
+				if (!duplicate)
+				{
+					msg << std::format("(\"{}\"",cv->m_pszName);
+					duplicate = true;
+				}
+				else
+				{
+					msg << std::format(", \"{}\"",cv->m_pszName);
+				}
+			}
+			if (duplicate)
+				msg << ')';
+
 			//we already know how long a string can be
 			const auto known_end = target_cvar->m_pszName + name.size( );
 			//so only look for the zero character
@@ -97,9 +107,8 @@ ConVar* ICVar::FindVar(std::string_view name)const
 			msg << ' ';
 		}
 		msg << "found";
-
-		c->log(std::move(msg));
-	});
+		_Console->log(std::move(msg));
+	};
 
 	return target_cvar == invalid_cvar ? nullptr : static_cast<ConVar*>(target_cvar.get( ));
 }

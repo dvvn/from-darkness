@@ -115,7 +115,7 @@ bool csgo_interfaces::load( ) noexcept
 	input_sys = csgo_modules::inputsystem->find_game_interface("InputSystemVersion");
 	studio_renderer = csgo_modules::studiorender->find_game_interface("VStudioRender");
 
-	csgo_modules::reset_interfaces_storage( );
+	//csgo_modules::reset_interfaces_storage( );
 
 	client_mode = this->client.vfunc(10).add(5).deref(2);
 

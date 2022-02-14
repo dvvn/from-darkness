@@ -4,76 +4,116 @@ module;
 
 #include <nstd/rtlib/includes.h>
 #include <nstd/mem/block_includes.h>
-
-#include <nstd/unistring.h>
+#include <nstd/unordered_set.h>
+#include <nstd/unordered_map.h>
 
 module cheat.csgo.modules;
 import cheat.csgo.interfaces;
 import cheat.root_service;
 import cheat.console;
 import nstd.rtlib;
-import nstd.mem;
 
 using namespace cheat;
 using namespace csgo_modules;
-using namespace nstd::mem;
-using namespace nstd::rtlib;
+using nstd::mem::address;
+namespace rtlib = nstd::rtlib;
+
+template<typename T>
+struct transform_cast
+{
+	static constexpr auto cast_fn = []<typename Q>(Q q)
+	{
+		return static_cast<T>(q);
+	};
+
+	template<typename Rng>
+	auto operator()(Rng&& rng)const
+	{
+		auto tr = std::views::transform(std::forward<Rng>(rng), cast_fn);
+#if 0
+		return tr;
+#else
+		return std::basic_string(tr.begin( ), tr.end( ));
+#endif
+	}
+
+	template<typename Itr>
+	auto operator()(Itr begin, Itr end)const
+	{
+		return std::invoke(*this, std::span(begin, end));
+	}
+};
+
+//template<typename T>
+//static constexpr auto _Transform_cast = transform_cast<T>();
+static constexpr auto _Wide = transform_cast<wchar_t>();
 
 template<class T>
-static auto _Unwrap_safe(T itr)
+static auto _Unwrap_iterator(T itr)
 {
 	//msvc
 	return std::_Get_unwrapped(itr);
 }
 
-template <class T, class Rng>
-static bool _Equal(const T& name, const Rng& rng)
+static console* _Get_console( )
 {
-	if constexpr (std::equality_comparable_with<T, Rng>)
-		return name == rng;
-	else
-		return std::ranges::equal(name, rng);
+	return services_loader::get( ).deps( ).try_get<console>( );
+}
 
+using fixed_rtstring = rtlib::info_string::fixed_type;
+static rtlib::info* _Find_modue(const fixed_rtstring& str)
+{
+	for (rtlib::info& entry : rtlib::all_infos::get( ))
+	{
+		if (entry.name( ) == str)
+			return std::addressof(entry);
+	}
+	return nullptr;
 }
 
 template <class Rng>
-static info* _Get_module(const Rng& target_name)
+static rtlib::info* _Get_module(const Rng& target_name)
 {
-	constexpr auto do_find = []<typename T>(const T & str)
+	if (target_name.rfind(static_cast<Rng::value_type>('.')) == target_name.npos)
 	{
-		auto itr = std::ranges::find_if(all_infos::get( ), [&](const info& info)-> bool
-		{
-			return _Equal(info.name( ).fixed, str);
-		});
-		return _Unwrap_safe(itr);
-
-	};
-
-	if (target_name.rfind('.') == target_name.npos)
-	{
-		const auto str = nstd::unistring<wchar_t>(target_name).append(L".dll");
-		return do_find(str);
+		std::wstring wstr;
+		constexpr std::string_view dot_dll = ".dll";
+		wstr.reserve(target_name.size( ) + dot_dll.size( ));
+		wstr.assign(target_name.begin( ), target_name.end( ));
+		wstr.append(dot_dll.begin( ), dot_dll.end( ));
+		return _Find_modue(wstr);
 	}
 
-	return do_find(target_name);
+	return _Find_modue(target_name);
 }
 
-static ifcs_entry_type _Interface_entry(info* target_module)
+static ifcs_entry_type _Interface_entry(rtlib::info* target_module)
 {
-	class CInterfaceRegister
+	struct interface_register
 	{
-	public:
 		instance_fn create_fn;
 		const char* name;
-		CInterfaceRegister* next;
+		interface_register* next;
 	};
 
-	ifcs_entry_type entry;
+	constexpr std::string_view export_name = "CreateInterface";
 
-	auto& exports = target_module->exports( );
-	using namespace std::string_view_literals;
-	const auto create_fn = exports.at("CreateInterface"sv).addr;
-	const auto reg = create_fn./*rel32*/jmp(0x5).add(0x6).deref(2).ptr<CInterfaceRegister>( );
+	const auto log_fn = [&](rtlib::export_data* e, bool created)->void
+	{
+		using namespace cheat;
+		const auto _Console = _Get_console( );
+		if (_Console)
+		{
+			const std::wstring_view dllname = target_module->name( ).raw;
+			if (created)
+				_Console->log(L"{} -> export \"{}\" at {:#X} found", dllname, _Wide(export_name), e->addr._Unwrap<size_t>( ));
+			else if (!e)
+				_Console->log(L"{} -> export \"{}\" not found", dllname, _Wide(export_name));
+		}
+	};
+
+	const auto create_fn = target_module->exports( ).at(export_name, log_fn).addr;
+	const auto reg = create_fn./*rel32*/jmp(0x5).add(0x6).deref(2).ptr<interface_register>( );
 
 	std::vector<ifcs_entry_type::value_type> temp_entry;
 	for (auto r = reg; r != nullptr; r = r->next)
@@ -137,6 +177,8 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 		return drop_underline(str, str_size);
 	};
 
+	ifcs_entry_type entry;
+
 	for (const auto [name, fn] : temp_entry)
 	{
 		const auto name_pretty = get_pretty_string(name);
@@ -146,182 +188,194 @@ static ifcs_entry_type _Interface_entry(info* target_module)
 	return entry;
 }
 
-game_module_storage::game_module_storage(std::string_view name)
+struct module_storage_data
 {
-	const auto ptr = _Get_module(name);
-
-	info_ptr = ptr;
-	interfaces = _Interface_entry(ptr);
-}
-
-game_module_storage::~game_module_storage( ) = default;
-game_module_storage::game_module_storage(game_module_storage&&) noexcept = default;
-game_module_storage& game_module_storage::operator=(game_module_storage&&) noexcept = default;
-
-template<typename T>
-struct transform_cast
-{
-	static constexpr auto cast_fn = []<typename Q>(Q q)
+	struct _Fake_mutex
 	{
-		return static_cast<T>(q);
+		void lock( ) { }
+		void unlock( ) { }
 	};
 
-	template<typename Rng>
-	auto operator()(Rng&& rng)const
+	template<class Mtx>
+	class _String_tester :public Mtx
 	{
-		auto tr = std::views::transform(std::forward<Rng>(rng), cast_fn);
-#if 0
-		return tr;
-#else
-		return std::basic_string(tr.begin( ), tr.end( ));
-#endif
-	}
+		nstd::unordered_set<std::string> cache_;
+	public:
+		bool operator()(std::string_view sig)
+		{
+			const auto lock = std::scoped_lock(*this);
+			const auto created = cache_.emplace(sig).second;
+			return created == false;
+		}
+		bool operator()(std::string_view sig)const
+		{
+			return cache_.contains(sig);
+		}
+	};
 
-	template<typename Itr>
-	auto operator()(Itr begin, Itr end)const
+	rtlib::info* info_ptr = nullptr;
+	_String_tester<std::mutex> sigs_tested;
+	_String_tester<_Fake_mutex> vtables_tested;
+	ifcs_entry_type interfaces;
+
+	module_storage_data(std::string_view name)
 	{
-		return std::invoke(*this, std::subrange(begin, end));
+		info_ptr = _Get_module(name);
+		interfaces = _Interface_entry(info_ptr);
 	}
 };
 
-template<typename T>
-static constexpr auto _Transform_cast = transform_cast<T>();
+game_module_storage::game_module_storage(storage_type data) :data_(data)
+{
+}
 
 address game_module_storage::find_signature(std::string_view sig)
 {
-	const auto added = services_loader::get( ).deps( ).try_call([&](console* c)
+	const auto storage = static_cast<module_storage_data*>(data_);
+
+	std::wstring_view log_name;
+	std::wstring log_sig;
+	const auto _Console = _Get_console( );
+	if (_Console)
 	{
-		auto [itr, added] = sigs_tested.emplace(sig);
+		log_name = storage->info_ptr->name( ).raw;
+		log_sig = _Wide(sig);
 
-		const auto& name = info_ptr->name( ).raw;
-		const auto wsig = _Transform_cast<wchar_t>(sig);
-
-		if (added)
-			c->log(L"{} -> signature \"{}\": searching...", name, wsig);
-		else
-			c->log(L"{} -> signature \"{}\": already found!", name, wsig);
-		return added;
-	});
-
-	if (added.has_value( ) && !*added)
-		return nullptr;
+		if (storage->sigs_tested(sig))
+		{
+			_Console->log(L"{} -> signature \"{}\": found before!", log_name, log_sig);
+			return nullptr;
+		}
+		_Console->log(L"{} -> signature \"{}\": searching...", log_name, log_sig);
+	};
 
 	//no cache inside
 
-	const auto block = info_ptr->mem_block( );
+	using namespace nstd::mem;
+	const auto block = storage->info_ptr->mem_block( );
 	const auto bytes = make_signature(sig.begin( ), sig.end( ), signature_convert( ));
 	const auto ret = block.find_block(bytes);
 
-	services_loader::get( ).deps( ).try_call([&](console* c)
+	if (_Console)
 	{
 		const auto postfix = ret.empty( ) ? L" NOT " : L" ";
-		c->log(L"{} -> signature \"{}\":{}found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(sig), postfix);
-	});
+		_Console->log(L"{} -> signature \"{}\":{}found", log_name, log_sig, postfix);
+	};
 
-	return _Unwrap_safe(ret.begin( ));
+	return _Unwrap_iterator(ret.begin( ));
 }
 
 void* game_module_storage::find_vtable(std::string_view class_name)
 {
-	auto& mgr = info_ptr->vtables( );
-	const auto vt = mgr.at(class_name);
-	services_loader::get( ).deps( ).try_call([&](console* c)
+	const auto storage = static_cast<module_storage_data*>(data_);
+
+	auto& mgr = storage->info_ptr->vtables( );
+	const auto vt = mgr.at(class_name, [&]<class C>(C*, bool created)
 	{
-		const auto created = vtables_tested.emplace(class_name).second;
 		if (!created)
 			return;
 
-		const auto infos = all_infos::get( ) | std::views::reverse;
-		const info_string& from_name = info_ptr->name( );
+		const auto _Console = _Get_console( );
+		if (!_Console)
+			return;
 
-		const auto other_module_itr = std::ranges::find_if(infos, [&](const info_string& str)
-		{
-			return str.fixed == from_name.fixed;
-		}, &info::name);
+		using namespace nstd::rtlib;
+		const auto infos = all_infos::get( ) | std::views::reverse;
+		const info_string& from_name = storage->info_ptr->name( );
+
+		const auto module_with_same_name = std::ranges::find(infos, from_name, &info::name);
 
 		std::wstring_view module_name;
-		if (other_module_itr->base( ) == info_ptr->base( ))
+		if (module_with_same_name->base( ) == storage->info_ptr->base( ))
 			module_name = from_name.raw;
 		else
-			module_name = info_ptr->full_path( ).raw;
+			module_name = storage->info_ptr->full_path( ).raw;
 
-		c->log(L"{} -> vtable \"{}\" found", module_name, _Transform_cast<wchar_t>(class_name));
+		_Console->log(L"{} -> vtable \"{}\" found", module_name, _Wide(class_name));
 	});
 
 	return vt.addr.ptr<void>( );
 }
 
+static std::wstring _Get_full_interface_name(const char* begin, size_t known_size)
+{
+	const auto known_end = begin + known_size;
+	if (*known_end == '\0')
+		return {};
+
+	const auto hidden_size = std::char_traits<char>::length(known_end);
+	return std::format(L" (full name \"{}\")", _Wide(begin, known_end + hidden_size));
+}
+
 address game_module_storage::find_game_interface(std::string_view ifc_name)
 {
-	const auto found = interfaces.find(ifc_name);
-	runtime_assert(found != interfaces.end( ));
+	const auto storage = static_cast<module_storage_data*>(data_);
 
-	services_loader::get( ).deps( ).try_call([&](console* c)
+	const auto found = storage->interfaces.find(ifc_name);
+	runtime_assert(found != storage->interfaces.end( ));
+
+	const auto _Console = _Get_console( );
+	if (_Console)
 	{
-		std::wstring raw_ifc_name;
-
-		const auto orig_ifc_name = found->first;
-		const auto orig_ifc_name_end = _Unwrap_safe(orig_ifc_name.end( ));
-		if (*orig_ifc_name_end != '\0')
-		{
-			const auto real_end_offset = std::char_traits<char>::length(orig_ifc_name_end);
-			const auto begin = _Unwrap_safe(orig_ifc_name.begin( ));
-			const auto real_end = orig_ifc_name_end + real_end_offset;
-			raw_ifc_name = std::format(L" ({})", _Transform_cast<wchar_t>(begin, real_end));
-		}
-		c->log(L"{} -> interface {}{}: found", info_ptr->name( ).raw, _Transform_cast<wchar_t>(ifc_name), raw_ifc_name);
-	});
+		_Console->log(L"{} -> interface \"{}\"{}: found"
+					  , storage->info_ptr->name( ).raw
+					  , _Wide(ifc_name)
+					  , _Get_full_interface_name(found->first.data( ), ifc_name.size( ))
+		);
+	}
 
 	return std::invoke(found->second);
 }
 
 void game_module_storage::clear_interfaces_cache( )
 {
+	const auto storage = static_cast<module_storage_data*>(data_);
+
 	//'clear' not called because we also want to free memory
 	ifcs_entry_type tmp;
-	tmp.swap(interfaces);
+	tmp.swap(storage->interfaces);
 }
 
-struct modules_database : std::recursive_mutex, std::vector<std::unique_ptr<game_module_storage>>
+struct module_storage
 {
-	modules_database( ) = default;
+	module_storage_data storage;
+	game_module_storage unnamed;
+
+	module_storage(std::string_view name)
+		:storage(name), unnamed(std::addressof(storage))
+	{
+	}
 };
 
-static modules_database _Modules_database;
+class storage_getter
+{
+	std::optional<module_storage> data_;
+	std::mutex builder_;
+
+public:
+	game_module_storage* get(std::string_view name)
+	{
+		if (!data_.has_value( ))
+		{
+			const auto lock = std::scoped_lock(builder_);
+			data_.emplace(name);
+		}
+		return std::addressof(data_->unnamed);
+	}
+
+	const game_module_storage* get( )const
+	{
+		return std::addressof(data_->unnamed);
+	}
+};
+
+struct modules_database : std::array<storage_getter, modules_count>
+{
+};
 
 game_module_storage* cheat::csgo_modules::get(std::string_view name, size_t index)
 {
-	const auto estimated_size = index + 1;
-	if (_Modules_database.size( ) < estimated_size)
-	{
-		const auto lock = std::scoped_lock(_Modules_database);
-		while (_Modules_database.size( ) != estimated_size)
-		{
-			//write nulls because we use vector
-			_Modules_database.push_back(nullptr);
-		}
-		return get(name, index);
-	}
-
-	if (!_Modules_database[index])
-	{
-		const auto lock = std::scoped_lock(_Modules_database);
-		//maybe another thread lock it before and do all the work
-		if (!_Modules_database[index])
-			_Modules_database[index] = std::make_unique<game_module_storage>(name);
-	}
-
-	return _Modules_database[index].get( );
-}
-
-void cheat::csgo_modules::reset_interfaces_storage( )
-{
-	const auto lock = std::scoped_lock(_Modules_database);
-	for (const auto& m : _Modules_database)
-	{
-		if (m)
-			m->clear_interfaces_cache( );
-	}
+	return nstd::one_instance<modules_database>::get( )[index].get(name);
 }
 
 game_module_storage* game_module_base::get( ) const

@@ -39,17 +39,17 @@ namespace cheat::csgo_modules
 	using nstd::mem::address;
 
 	typedef void* (*instance_fn)();
+	//not thread-safe
 	using ifcs_entry_type = nstd::unordered_map<std::string_view, instance_fn>;
 
+	//todo: rename
 	export struct game_module_storage
 	{
-		game_module_storage(std::string_view name);
-		~game_module_storage( );
+		using storage_type = void*;
 
+		game_module_storage(storage_type data);
 		game_module_storage(const game_module_storage& other) = delete;
-		game_module_storage(game_module_storage&& other) noexcept;
 		game_module_storage& operator=(const game_module_storage& other) = delete;
-		game_module_storage& operator=(game_module_storage&& other) noexcept;
 
 		address find_signature(std::string_view sig);
 		void* find_vtable(std::string_view class_name);
@@ -66,13 +66,8 @@ namespace cheat::csgo_modules
 		void clear_interfaces_cache( );
 
 	private:
-		info* info_ptr;
-		nstd::unordered_set<std::string> sigs_tested;
-		nstd::unordered_set<std::string> vtables_tested;
-		ifcs_entry_type interfaces;
+		storage_type data_;
 	};
-
-	export void reset_interfaces_storage( );
 
 	export game_module_storage* get(std::string_view name, size_t index);
 
@@ -93,7 +88,7 @@ namespace cheat::csgo_modules
 #define CHEAT_GAME_MODULE(_NAME_)\
 	export inline constexpr game_module_base _NAME_ = {#_NAME_, __LINE__ - _first_line}
 
-	constexpr auto _first_line = __LINE__ + 1;
+	inline constexpr auto _first_line = __LINE__ + 1;
 	CHEAT_GAME_MODULE(server);
 	CHEAT_GAME_MODULE(client);
 	CHEAT_GAME_MODULE(engine);
@@ -106,4 +101,5 @@ namespace cheat::csgo_modules
 	CHEAT_GAME_MODULE(inputsystem);
 	CHEAT_GAME_MODULE(studiorender);
 	CHEAT_GAME_MODULE(shaderapidx9);
+	inline constexpr auto modules_count = __LINE__ - _first_line;
 }
