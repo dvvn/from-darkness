@@ -76,42 +76,40 @@ export namespace cheat
 	{
 		//using value_type = /*typename Holder*/basic_service::value_type;
 
-		[[no_unique_address]] nstd::one_instance<service_getter_index<T, Holder>> index_holder;
-
-		void set(size_t index, Holder* holder) const
-		{
-			auto& ref = index_holder.get( );
-			runtime_assert(ref.unset( ));
-			ref.index = index;
-			auto base = static_cast<basic_service*>(holder);
-			ref.offset = std::distance(reinterpret_cast<uint8_t*>(base), reinterpret_cast<uint8_t*>(holder));
-		}
-
-		template<std::derived_from<basic_service> H>
-		auto& get(H* holder)const
-		{
-			auto& idx_holder = index_holder.get( );
-			runtime_assert(!idx_holder.unset( ));
-			const auto deps = holder->_Deps<false>( );
-			return deps[idx_holder.index];
-		}
+		using _Getter_type = service_getter_index<T, Holder>;
+		_Getter_type& _Getter = nstd::one_instance<_Getter_type>::get( );
 
 		bool valid( )const
 		{
-			return !index_holder.get( ).unset( );
+			return !_Getter.unset( );
 		}
 
 		template<std::derived_from<basic_service> H>
 		bool valid(const H* holder)const
 		{
-			auto& idx_holder = index_holder.get( );
-			if (idx_holder.unset( ))
+			if (!valid( ))
 				return false;
 			const auto deps = holder->_Deps<false>( );
-			if (deps.size( ) <= idx_holder.index)
+			if (deps.size( ) <= _Getter.index)
 				return false;
-			runtime_assert(deps[idx_holder.index]->type( ) == typeid(T));
+			runtime_assert(deps[_Getter.index]->type( ) == typeid(T));
 			return true;
+		}
+
+		void set(size_t index, Holder* holder) const
+		{
+			runtime_assert(!valid( ));
+			_Getter.index = index;
+			auto base = static_cast<basic_service*>(holder);
+			_Getter.offset = std::distance(reinterpret_cast<uint8_t*>(base), reinterpret_cast<uint8_t*>(holder));
+		}
+
+		template<std::derived_from<basic_service> H>
+		auto& get(H* holder)const
+		{
+			runtime_assert(valid( ));
+			const auto deps = holder->_Deps<false>( );
+			return deps[_Getter.index];
 		}
 
 		/// <summary>
@@ -122,10 +120,9 @@ export namespace cheat
 		template<std::derived_from<basic_service> E>
 		auto unwrap(E* element)const
 		{
-			auto& idx_holder = index_holder.get( );
-			runtime_assert(!idx_holder.unset( ));
+			runtime_assert(valid( ));
 			const auto basic = static_cast<const basic_service*>(element);
-			const auto addr = reinterpret_cast<uintptr_t>(basic) + idx_holder.offset;
+			const auto addr = reinterpret_cast<uintptr_t>(basic) + _Getter.offset;
 			return reinterpret_cast<nstd::add_const_if<E, T*>>(addr);
 		}
 
@@ -188,39 +185,6 @@ export namespace cheat
 		{
 			return valid<T>( ) ? get_ptr<T>( ) : nullptr;
 		}
-
-		template<typename Fn, typename...Args>
-		auto try_call(Fn fn, Args&&...args)const
-		{
-			using fn_info = decltype(_Function_info(fn));
-			using ret_t = fn_info::return_type;
-
-			auto ptr = try_get<fn_info::value_type>( );
-			const auto valid_ptr = ptr != nullptr;
-
-			const auto invoke = [&]( )->decltype(auto)
-			{
-				return std::invoke(fn, ptr, std::forward<Args>(args)...);
-			};
-
-			if constexpr (std::is_void_v<ret_t>)
-			{
-				bool ret = false;
-				if (valid_ptr)
-				{
-					ret = true;
-					invoke( );
-				}
-				return ret;
-			}
-			else
-			{
-				std::optional<ret_t> ret;
-				if (valid_ptr)
-					ret.emplace(invoke( ));
-				return ret;
-			}
-		}
 	};
 
 	template <typename Holder, bool Const>
@@ -273,7 +237,8 @@ export namespace cheat
 			return item != storage_.end( ) ? *item : storage_.emplace_back(basic_service::_Create<T>( ));
 		}
 
-		auto store(const value_type& val)
+		void store(value_type&& val) = delete;
+		void store(const value_type& val)
 		{
 			const auto lock = std::scoped_lock(mtx_);
 			const auto item = find(storage_, val->type( ));

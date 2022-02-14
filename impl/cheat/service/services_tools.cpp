@@ -4,9 +4,7 @@ module;
 
 module cheat.service:tools;
 import cheat.console;
-#ifdef _DEBUG
 import cheat.root_service;
-#endif
 
 using cheat::console;
 using cheat::service_state;
@@ -51,20 +49,18 @@ static void _Log(console* c, basic_service* holder, service_state state)
 
 void cheat::log_service_state(basic_service* holder, service_state state)
 {
-#ifdef _DEBUG
-	if (services_loader::get( ).deps( ).try_call(_Log, holder, state))
-		return;
-#endif
+	const auto c = services_loader::get( ).deps( ).try_get<console>( );
+	if (c)
+		return _Log(c, holder, state);
+
 	if (holder->type( ) == typeid(console))
-	{
-		_Log(dynamic_cast<console*>(holder), holder, state);
-		return;
-	}
+		return _Log(dynamic_cast<console*>(holder), holder, state);
+
 	for (auto& d : holder->_Deps<false>( ))
 	{
 		if (d->type( ) != typeid(console))
 			continue;
 		_Log(dynamic_cast<console*>(d.get( )), holder, state);
-		return;
+		break;
 	}
 }

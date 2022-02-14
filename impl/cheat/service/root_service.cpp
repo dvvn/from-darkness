@@ -90,7 +90,8 @@ static void _Reset_storage(T & deps)
 		for (auto& d : deps)
 		{
 			val_t val;
-			std::swap(d, val);
+			using std::swap;
+			swap(d, val);
 		}
 	}
 }
@@ -128,6 +129,3 @@ bool services_loader::load( ) noexcept
 	services_cache::_Reload( );
 	return true;
 }
-
-
-
