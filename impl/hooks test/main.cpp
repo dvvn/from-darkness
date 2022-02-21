@@ -8,7 +8,6 @@
 #include <array>
 #include <string_view>
 
-import nstd.winapi;
 import dhooks;
 
 using namespace dhooks;
