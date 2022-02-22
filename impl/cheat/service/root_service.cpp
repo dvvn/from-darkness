@@ -5,7 +5,6 @@ module;
 #include <windows.h>
 
 module cheat.root_service;
-//import cheat.console;
 import dhooks;
 import nstd.rtlib;
 
@@ -15,7 +14,7 @@ using dhooks::hook_holder_data;
 services_loader::services_loader( ) = default;
 services_loader::~services_loader( ) = default;
 
-class all_hooks_storage :public services_loader::lazy_reset, std::vector<basic_service::value_type>
+class all_hooks_storage :public services_loader::lazy_reset, basic_service::deps_storage
 {
 public:
 	void try_add(basic_service::value_type& srv, bool steal, bool recursive)
@@ -23,7 +22,7 @@ public:
 		auto ptr = dynamic_cast<dhooks::hook_disabler_lazy*>(srv.get( ));
 		if (!ptr)
 			return;
-		if (recursive && std::find(this->begin( ), this->end( ), srv) != this->end( ))
+		if (recursive && this->contains(srv->type( )))
 			return;
 		ptr->request_disable( );
 		if (steal)
@@ -63,13 +62,13 @@ void services_loader::unload( )
 }
 
 template<typename T>
-static void _Fill_storage(all_hooks_storage * storage, T && deps)
+static void _Fill_storage(all_hooks_storage * storage, T & deps)
 {
 	for (auto& d : deps)
 	{
 		if (!d)
 			continue;
-		_Fill_storage(storage, d->_Deps<false>( ));
+		_Fill_storage(storage, d->load_before);
 		storage->try_add(d, true, true);
 	}
 }
@@ -98,22 +97,24 @@ static void _Reset_storage(T & deps)
 
 auto services_loader::reset(bool deps_only)->reset_object
 {
-	auto deps = this->_Deps<false>( );
-	if (this->state( ) == service_state::unset)
+	if (this->state == state_type::idle)
 	{
-		runtime_assert(std::ranges::count(deps, nullptr) == deps.size( ));
+		runtime_assert(std::ranges::count(this->load_before, nullptr) == this->load_before.size( ));
 		return nullptr;
 	}
 
-	this->set_state(service_state::unset);
-
 	auto hooks = std::make_unique<all_hooks_storage>( );
-	_Fill_storage(hooks.get( ), deps);
+	_Fill_storage(hooks.get( ), this->load_before);
 
 	if (deps_only)
-		_Reset_storage(deps);
+	{
+		this->state = state_type::idle;
+		_Reset_storage(this->load_before);
+	}
 	else
+	{
 		this->_Reload( );
+	}
 
 	return hooks;
 }

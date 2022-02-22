@@ -20,7 +20,7 @@ void draw_model::construct( ) noexcept
 
 bool draw_model::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29).ptr( ));
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29));
 	return hook_base::load( );
 }
 

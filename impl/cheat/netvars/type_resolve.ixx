@@ -26,8 +26,6 @@ export namespace cheat::netvars_impl
 		std::variant<std::string, std::string_view> str_;
 	};
 
-	std::string str_to_lower(const std::string_view& str);
-
 	string_or_view_holder type_std_array(const std::string_view& type, size_t size);
 	string_or_view_holder type_utlvector(const std::string_view& type);
 	string_or_view_holder type_vec3(const std::string_view& name);

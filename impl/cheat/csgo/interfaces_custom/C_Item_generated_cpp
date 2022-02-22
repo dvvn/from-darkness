@@ -1,7 +1,0 @@
-bool& C_Item::m_bShouldGlow( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_Item", "m_bShouldGlow");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

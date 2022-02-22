@@ -7,11 +7,14 @@ module;
 
 #include <nstd/runtime_assert.h>
 #include <nstd/format.h>
+#include <nstd/ranges.h>
 
 #include <optional>
 #include <algorithm>
 
 module cheat.netvars:data_fill;
+import nstd.container.wrapper;
+import nstd.text.actions;
 
 namespace cheat::csgo
 {
@@ -37,9 +40,9 @@ static bool _Save_netvar_allowed(const char* name)
 static bool _Save_netvar_allowed(const std::string_view& name)
 {
 	return std::ranges::all_of(name, [](char c)
-							   {
-								   return c != '.';
-							   });
+	{
+		return c != '.';
+	});
 }
 
 bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const std::string_view& name, int offset, [[maybe_unused]] string_or_view_holder&& type)
@@ -80,12 +83,10 @@ auto netvars_impl::add_child_class_to_storage(netvars_storage& storage, const st
 	if (name[0] == 'C' && name[1] != '_')
 	{
 		runtime_assert(std::isalnum(name[1]));
-		std::string class_name;
 		//internal csgo classes looks like C_***
 		//same classes in shared code look like C***
-		class_name.reserve(name.size( ) + 1);
-		class_name += "C_";
-		class_name.append(std::next(name.begin( )), name.end( ));
+		using namespace std::string_view_literals;
+		auto class_name = nstd::container::append<std::string>("C_"sv, name | std::views::drop(1));
 		return storage.emplace(std::move(class_name));
 	}
 	else
@@ -101,7 +102,9 @@ static bool _Prop_is_length_proxy(const RecvProp& prop)
 {
 	if (prop.m_ArrayLengthProxy)
 		return true;
-	const auto lstr = netvars_impl::str_to_lower(prop.m_pVarName);
+
+	using namespace nstd;
+	const auto lstr = container::append<std::string>(std::string_view(prop.m_pVarName) | std::views::transform(text::to_lower));
 	return lstr.find("length") != lstr.npos && lstr.find("proxy") != lstr.npos;
 };
 

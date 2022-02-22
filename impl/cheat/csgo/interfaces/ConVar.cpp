@@ -7,7 +7,7 @@ module cheat.csgo.interfaces:ConVar;
 import cheat.console;
 import cheat.root_service;
 import dhooks;
-import nstd.mem;
+import nstd.mem.address;
 
 using namespace cheat::csgo;
 
@@ -48,7 +48,7 @@ void ConVar::set(int value) { _Set_helper(this, 16, value); }
 ConCommandBaseIterator ICVar::begin( )const
 {
 	using namespace nstd::mem;
-	return address(this).add(0x30).deref(1).ptr<ConCommandBase>( );
+	return basic_address(this).add(0x30).deref<1>( ).get<ConCommandBase*>( );
 }
 
 ConCommandBaseIterator ICVar::end( )const
@@ -87,12 +87,12 @@ ConVar* ICVar::FindVar(std::string_view name)const
 					continue;
 				if (!duplicate)
 				{
-					msg << std::format("(\"{}\"",cv->m_pszName);
+					msg << std::format("(\"{}\"", cv->m_pszName);
 					duplicate = true;
 				}
 				else
 				{
-					msg << std::format(", \"{}\"",cv->m_pszName);
+					msg << std::format(", \"{}\"", cv->m_pszName);
 				}
 			}
 			if (duplicate)

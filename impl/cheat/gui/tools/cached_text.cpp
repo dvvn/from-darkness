@@ -13,7 +13,7 @@
 #include <cmath>
 #include <vector>
 
-import nstd.mem;
+import nstd.mem.backup;
 
 using namespace cheat::gui::tools;
 

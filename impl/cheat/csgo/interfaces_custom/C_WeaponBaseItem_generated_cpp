@@ -1,7 +1,0 @@
-bool& C_WeaponBaseItem::m_bRedraw( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_WeaponBaseItem", "m_bRedraw");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

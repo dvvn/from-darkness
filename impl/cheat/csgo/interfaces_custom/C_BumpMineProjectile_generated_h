@@ -1,3 +1,0 @@
-int& m_nParentBoneIndex( );
-cheat::csgo::Vector& m_vecParentBonePos( );
-bool& m_bArmed( );

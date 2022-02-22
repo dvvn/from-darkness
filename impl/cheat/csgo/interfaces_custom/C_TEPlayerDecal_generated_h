@@ -1,6 +1,0 @@
-cheat::csgo::Vector& m_vecOrigin( );
-cheat::csgo::Vector& m_vecStart( );
-cheat::csgo::Vector& m_vecRight( );
-int& m_nEntity( );
-int& m_nPlayer( );
-int& m_nHitbox( );

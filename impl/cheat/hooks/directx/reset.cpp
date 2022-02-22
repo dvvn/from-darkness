@@ -22,7 +22,7 @@ void reset::construct( ) noexcept
 
 bool reset::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(16).ptr( ));
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(16));
 	return hook_base::load( );
 }
 

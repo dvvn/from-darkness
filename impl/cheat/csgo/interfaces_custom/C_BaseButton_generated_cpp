@@ -1,7 +1,0 @@
-int& C_BaseButton::m_usable( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_BaseButton", "m_usable");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

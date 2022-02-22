@@ -21,7 +21,7 @@ void create_move::construct( ) noexcept
 
 bool create_move::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client_mode.vfunc(24).ptr( ));
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client_mode.vfunc(24));
 	return hook_base::load( );
 }
 
@@ -45,5 +45,5 @@ void create_move::callback(float input_sample_time, CUserCmd * cmd)
 	if (interfaces.client_state == nullptr || interfaces.engine->IsPlayingDemo( ))
 		return;
 
-	bool& send_packet = address(/*this->return_address( )*/*this->addr1).remove(4).deref(1).remove(0x1C).ref( );
+	//bool& send_packet = address(/*this->return_address( )*/*this->addr1).remove(4).deref(1).remove(0x1C).ref( );
 }

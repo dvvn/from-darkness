@@ -1,6 +1,0 @@
-cheat::csgo::Vector& m_vecMins( );
-cheat::csgo::Vector& m_vecMaxs( );
-int& m_nModelIndex( );
-float& m_fHeight( );
-int& m_nCount( );
-float& m_fSpeed( );

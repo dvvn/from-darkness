@@ -5,42 +5,43 @@
 #include <filesystem>
 
 module cheat.csgo.awaiter;
-import cheat.root_service;
 import nstd.rtlib;
 
 using namespace cheat;
-using namespace nstd::rtlib;
 
-namespace fs = std::filesystem;
-
-template<class T>
-struct fs_hash :std::hash<typename T::string_type>
+csgo_awaiter::~csgo_awaiter( )
 {
-	auto operator()(const T& p)const
-	{
-		return std::invoke(*this, p.native( ));
-	}
-};
+	*destroyed_ = true;
+}
 
 void csgo_awaiter::construct( ) noexcept
 {
+	destroyed_ = std::make_shared<std::atomic_bool>(false);
 }
 
 bool csgo_awaiter::load( ) noexcept
 {
+	using namespace nstd;
+	using namespace rtlib;
+
+	namespace fs = std::filesystem;
+
 	auto& modules = all_infos::get( );
 	modules.update(false);
 
-	const auto& work_dir0 = modules.owner( ).work_dir( ).fixed;
-	fs::path work_dir = {work_dir0.begin( ),work_dir0.end( )};
-	work_dir.append(L"bin").append(L"serverbrowser.dll");
-	const nstd::hashed_wstring_view work_dir_hash = work_dir.native( );
+	const auto& owner_path = modules.owner( ).work_dir( ).fixed;
+	const nstd::hashed_wstring last_dll = const_cast<std::wstring&&>(
+		fs::path(owner_path.begin( ), owner_path.end( )).append(L"bin").append(L"serverbrowser.dll").native( ));
 
 	const auto is_game_loaded = [&]
 	{
-		auto modules_r = modules | std::views::reverse;
-		auto itr = std::ranges::find_if(modules_r, [&](const info& i) {return work_dir_hash == i.full_path( ).fixed; });
-		return itr != modules_r.end( );
+		for (const auto& m : modules | std::views::reverse)
+		{
+			if (m.full_path( ).fixed == last_dll)
+				return true;
+		}
+
+		return false;
 	};
 
 	if (is_game_loaded( ))
@@ -49,19 +50,19 @@ bool csgo_awaiter::load( ) noexcept
 		return true;
 	}
 
-	do
+	auto destroyed = destroyed_;
+
+	for (;;)
 	{
-		using namespace std::chrono_literals;
-		std::this_thread::sleep_for((100ms));
-		//todo: cppcoro::cancellation_token
-		if (services_loader::get( ).load_thread.get_stop_token( ).stop_requested( ))
+		if (*destroyed)
 			return false;
 
 		modules.update(true);
-
 		if (is_game_loaded( ))
 			return true;
 
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(100ms);
 	}
-	while (true);
+
 }

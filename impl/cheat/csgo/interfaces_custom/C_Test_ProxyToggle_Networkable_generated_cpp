@@ -1,7 +1,0 @@
-int& C_Test_ProxyToggle_Networkable::m_WithProxy( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_Test_ProxyToggle_Networkable", "m_WithProxy");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

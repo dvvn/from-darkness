@@ -4,7 +4,7 @@
 
 #include <nstd/smooth_value.h>
 
-import nstd.mem;
+import nstd.mem.backup;
 
 struct ImVec2;
 using ImGuiID = unsigned int;

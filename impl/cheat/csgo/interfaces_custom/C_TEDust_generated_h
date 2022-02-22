@@ -1,3 +1,0 @@
-float& m_flSize( );
-float& m_flSpeed( );
-cheat::csgo::Vector& m_vecDirection( );

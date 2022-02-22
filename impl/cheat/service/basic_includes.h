@@ -4,8 +4,10 @@
 #include <nstd/ranges.h>
 
 #include <cppcoro/static_thread_pool.hpp>
-#include <cppcoro/task.hpp>
-#include <cppcoro/async_mutex.hpp>
+//#include <cppcoro/task.hpp>
+#include <cppcoro/shared_task.hpp>
+//#include <cppcoro/async_mutex.hpp>
+#include <cppcoro/when_all.hpp>
 
 #include <span>
 #include <string>

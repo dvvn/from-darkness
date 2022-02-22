@@ -21,7 +21,7 @@ module;
 #include <functional>
 
 module cheat.gui:effects;
-import nstd.winapi;
+import nstd.winapi.comptr;
 
 using namespace cheat;
 using namespace gui;

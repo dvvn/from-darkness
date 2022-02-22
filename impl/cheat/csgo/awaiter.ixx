@@ -1,5 +1,7 @@
 ﻿module;
 
+#include <atomic>
+
 export module cheat.csgo.awaiter;
 export import cheat.service;
 
@@ -7,28 +9,16 @@ export namespace cheat
 {
 	class csgo_awaiter final : public dynamic_service<csgo_awaiter>
 	{
+		std::shared_ptr<std::atomic_bool> destroyed_;
+
 	protected:
 		void construct( ) noexcept override;
 		bool load( ) noexcept override;
 
 	public:
-		//todo:fix
-		//now this stop threadpool and main thread
-		/*void after_load( ) override
-		{
-			if (!game_loaded_before_)
-				return;
-			frozen_threads_.fill( );
-		}
-
-		void after_reset( ) override
-		{
-			if (!game_loaded_before_)
-				return;
-			frozen_threads_.clear( );
-		}*/
+		~csgo_awaiter( )override;
 
 		bool game_loaded_before = false;
-		//nstd::os::frozen_threads_storage frozen_threads_{false};
 	};
+
 }

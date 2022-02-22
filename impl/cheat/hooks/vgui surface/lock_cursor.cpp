@@ -18,7 +18,7 @@ void lock_cursor::construct( ) noexcept
 
 bool lock_cursor::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).vgui_surface.vfunc(67).ptr( ));
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).vgui_surface.vfunc(67));
 	return hook_base::load( );
 }
 

@@ -6,7 +6,7 @@ module;
 #include <excpt.h>
 
 module cheat.players:player;
-import nstd.mem;
+import nstd.mem.backup;
 
 using namespace cheat;
 using namespace csgo;

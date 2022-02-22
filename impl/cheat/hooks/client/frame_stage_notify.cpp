@@ -20,7 +20,7 @@ void frame_stage_notify::construct( ) noexcept
 
 bool frame_stage_notify::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client.vfunc(32).ptr( ));
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client.vfunc(32));
 	return hook_base::load( );
 }
 

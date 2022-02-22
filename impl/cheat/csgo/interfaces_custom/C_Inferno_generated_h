@@ -1,6 +1,0 @@
-std::array<int, 100>& m_fireXDelta( );
-std::array<int, 100>& m_fireYDelta( );
-std::array<int, 100>& m_fireZDelta( );
-std::array<int, 100>& m_bFireIsBurning( );
-int& m_nFireEffectTickBegin( );
-int& m_fireCount( );

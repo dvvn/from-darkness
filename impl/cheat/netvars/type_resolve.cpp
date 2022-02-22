@@ -6,6 +6,7 @@
 #include <nstd/runtime_assert.h>
 #include <nstd/overload.h>
 #include <nstd/format.h>
+#include <nstd/ranges.h>
 
 #include <array>
 #include <span>
@@ -13,6 +14,17 @@
 #include <variant>
 
 module cheat.netvars:type_resolve;
+import nstd.text.actions;
+import nstd.container.wrapper;
+
+template<typename Rng>
+static auto _To_lower(const Rng& rng)
+{
+	std::basic_string<std::ranges::range_value_t<Rng>> out;
+	auto tmp = rng | std::views::transform(nstd::text::to_lower);
+	nstd::container::append(out, tmp);
+	return out;
+}
 
 using nstd::type_name;
 using nstd::overload;
@@ -47,18 +59,9 @@ std::string string_or_view_holder::str( )&&
 	, [](std::string_view&& sv)-> std::string { return {sv.begin( ), sv.end( )}; }), std::move(str_));
 }
 
-std::string_view string_or_view_holder::view( )const &
+std::string_view string_or_view_holder::view( )const&
 {
 	return std::visit(overload([]<typename T>(T && obj)-> std::string_view { return {obj.data( ), obj.size( )}; }), str_);
-}
-
-std::string netvars_impl::str_to_lower(const std::string_view& str)
-{
-	std::string ret;
-	ret.reserve(str.size( ));
-	for (const auto c : str)
-		ret += static_cast<char>(std::tolower(c));
-	return ret;
 }
 
 string_or_view_holder netvars_impl::type_std_array(const std::string_view& type, size_t size)
@@ -78,7 +81,7 @@ string_or_view_holder netvars_impl::type_vec3(const std::string_view& name)
 	{
 		if (name.starts_with("m_ang"))
 			return true;
-		auto lstr = str_to_lower(name);
+		auto lstr = _To_lower(name);
 		return lstr.find("angles") != lstr.npos;
 	};
 	return std::isdigit(name[0]) || !is_qangle( ) ? type_name<Vector>( ) : type_name<QAngle>( );
@@ -108,7 +111,7 @@ string_or_view_holder netvars_impl::type_integer(std::string_view name)
 				return type_name<uint32_t>( );
 			if (name.starts_with("ch"))
 				return type_name<uint8_t>( );
-			if (name.starts_with("fl") && str_to_lower(name).find("time") != std::string::npos) //m_flSimulationTime int ???
+			if (name.starts_with("fl") && _To_lower(name).find("time") != std::string::npos) //m_flSimulationTime int ???
 				return type_name<float>( );
 		}
 		else if (is_upper(3))

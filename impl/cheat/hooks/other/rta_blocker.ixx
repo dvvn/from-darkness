@@ -17,7 +17,7 @@ namespace cheat::hooks::other
 	public:
 		bool load(const csgo_modules::game_module_base& mod)
 		{
-			this->set_target_method(mod->find_signature("55 8B EC 56 8B F1 33 C0 57 8B 7D 08").ptr());
+			this->set_target_method(mod->find_signature("55 8B EC 56 8B F1 33 C0 57 8B 7D 08"));
 			return this->hook( ) && this->enable( );
 		}
 

@@ -1,2 +1,0 @@
-int& m_jumpedThisFrame( );
-int& m_leader( );

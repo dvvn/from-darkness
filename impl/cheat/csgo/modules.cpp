@@ -12,41 +12,21 @@ import cheat.csgo.interfaces;
 import cheat.root_service;
 import cheat.console;
 import nstd.rtlib;
+import nstd.container.wrapper;
+import nstd.text.actions;
 
 using namespace cheat;
 using namespace csgo_modules;
 using nstd::mem::address;
 namespace rtlib = nstd::rtlib;
 
-template<typename T>
-struct transform_cast
+template<typename ...Args>
+static constexpr auto _Wide(Args&&...args)
 {
-	static constexpr auto cast_fn = []<typename Q>(Q q)
-	{
-		return static_cast<T>(q);
-	};
-
-	template<typename Rng>
-	auto operator()(Rng&& rng)const
-	{
-		auto tr = std::views::transform(std::forward<Rng>(rng), cast_fn);
-#if 0
-		return tr;
-#else
-		return std::basic_string(tr.begin( ), tr.end( ));
-#endif
-	}
-
-	template<typename Itr>
-	auto operator()(Itr begin, Itr end)const
-	{
-		return std::invoke(*this, std::span(begin, end));
-	}
-};
-
-//template<typename T>
-//static constexpr auto _Transform_cast = transform_cast<T>();
-static constexpr auto _Wide = transform_cast<wchar_t>();
+	using namespace nstd;
+	auto tmp = std::views::transform(std::span(args...), text::cast_all<wchar_t>);
+	return container::append<std::wstring>(tmp);
+}
 
 static console* _Get_console( )
 {
@@ -69,11 +49,9 @@ static rtlib::info* _Get_module(const Rng& target_name)
 {
 	if (target_name.rfind(static_cast<Rng::value_type>('.')) == target_name.npos)
 	{
-		std::wstring wstr;
-		constexpr std::string_view dot_dll = ".dll";
-		wstr.reserve(target_name.size( ) + dot_dll.size( ));
-		wstr.assign(target_name.begin( ), target_name.end( ));
-		wstr.append(dot_dll.begin( ), dot_dll.end( ));
+		using namespace nstd;
+		using namespace std::string_view_literals;
+		const auto wstr = container::append<std::wstring>(target_name | std::views::transform(text::cast_all<wchar_t>), L".dll"sv);
 		return _Find_modue(wstr);
 	}
 
@@ -99,14 +77,14 @@ static ifcs_entry_type _Interface_entry(rtlib::info* target_module)
 		{
 			const std::wstring_view dllname = target_module->name( ).raw;
 			if (created)
-				_Console->log(L"{} -> export \"{}\" at {:#X} found", dllname, _Wide(export_name), e->addr._Unwrap<size_t>( ));
+				_Console->log(L"{} -> export \"{}\" at {:#X} found", dllname, _Wide(export_name), e->addr.value);
 			else if (!e)
 				_Console->log(L"{} -> export \"{}\" not found", dllname, _Wide(export_name));
 		}
 	};
 
 	const auto create_fn = target_module->exports( ).at(export_name, log_fn).addr;
-	const auto reg = create_fn./*rel32*/jmp(0x5).add(0x6).deref(2).ptr<interface_register>( );
+	const interface_register* reg = create_fn./*rel32*/jmp(0x5).add(0x6).deref(2);
 
 	std::vector<ifcs_entry_type::value_type> temp_entry;
 	for (auto r = reg; r != nullptr; r = r->next)
@@ -288,7 +266,7 @@ void* game_module_storage::find_vtable(std::string_view class_name)
 		_Console->log(L"{} -> vtable \"{}\" found", module_name, _Wide(class_name));
 	});
 
-	return vt.addr.ptr<void>( );
+	return vt.addr;
 }
 
 static std::wstring _Get_full_interface_name(const char* begin, size_t known_size)

@@ -1,9 +1,0 @@
-cheat::csgo::Vector& m_vecOrigin( );
-cheat::csgo::Vector& m_vecDirection( );
-int& r( );
-int& g( );
-int& b( );
-int& a( );
-int& m_nSprayModel( );
-int& m_nDropModel( );
-int& m_nSize( );

@@ -18,7 +18,9 @@ module;
 
 module cheat.netvars:data_dump;
 import cheat.csgo.interfaces;
-import nstd.mem;
+//import nstd.mem;
+import nstd.container.wrapper;
+import nstd.text.actions;
 
 namespace cheat
 {
@@ -43,56 +45,33 @@ namespace fs = std::filesystem;
 //TEMPORARY
 #define CHEAT_NETVARS_UPDATING 0
 
-template<class S>
-static size_t _Get_size(const S& str)
+template<typename T>
+static decltype(auto) _To_wide(const T& str)
 {
-	namespace rn = std::ranges;
-	if constexpr (rn::range<rn::range_value_t<S>>)
-	{
-		size_t size = 0;
-		for (auto& item : str)
-			size += _Get_size(item);
-		return size;
-	}
+	using val_t = std::ranges::range_value_t<T>;
+
+	if constexpr (!std::is_class_v<T>)
+		return _To_wide(std::basic_string_view<val_t>(str));
+	else if constexpr (std::same_as<val_t, wchar_t>)
+		return str;
 	else
-	{
-		return str.size( );
-	}
+		return str | std::views::transform(nstd::text::cast_all<wchar_t>);
 }
 
-template<class T, class S>
-static void _Append(T& obj, const S& str)
+template<typename ...Args>
+static constexpr auto _To_wstring(const Args& ...args)
 {
-	namespace rn = std::ranges;
-	if constexpr (rn::range<rn::range_value_t<S>>)
-	{
-		for (auto& item : str)
-			_Append(obj, item);
-	}
-	else
-	{
-		obj.append(str.begin( ), str.end( ));
-	}
+	return nstd::container::append<std::wstring>(_To_wide(args)...);
 }
 
-template <typename T, typename ...Args>
-static void _Reserve_append(T& obj, const Args&...args)
+static auto _Correct_game_version_string(const std::string_view game_version)
 {
-	runtime_assert(obj.empty( ));
+	constexpr auto replace_dots = [](char c)
+	{
+		return c == '.' ? L'_' : static_cast<wchar_t>(c);
+	};
 
-	const auto size = (_Get_size(args) + ...);
-	obj.reserve(size);
-	(_Append(obj, args), ...);
-	//obj.reserve((args.size( ) + ...));
-	//(obj.append(args.begin( ), args.end( )), ...);
-}
-
-template <typename T, typename ...Args>
-static auto _Construct_append(const Args&...args)
-{
-	T obj;
-	_Reserve_append(obj, args...);
-	return obj;
+	return game_version | std::views::transform(replace_dots);
 }
 
 bool netvars_impl::log_netvars(console* logger, const char* game_version, const netvars_storage& root_netvars_data)
@@ -102,14 +81,8 @@ bool netvars_impl::log_netvars(console* logger, const char* game_version, const 
 	[[maybe_unused]]
 	const auto dirs_created = create_directories(dumps_dir);
 
-	const auto netvars_dump_file = [&]
-	{
-		const std::string_view version = game_version;
-		auto version_fixed = version | std::views::transform([](char c)->wchar_t {return c == '.' ? '_' : c; });
-		constexpr std::wstring_view extension = L".json";
+	const auto netvars_dump_file = dumps_dir / _To_wstring(_Correct_game_version_string(game_version), L".json");
 
-		return dumps_dir / _Construct_append<std::wstring>(version_fixed, extension);
-	}();
 #if !CHEAT_NETVARS_UPDATING
 	const auto file_exists = !dirs_created && exists(netvars_dump_file);
 	if (!file_exists)
@@ -230,9 +203,10 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 				std::invoke(fn, data.cpp_cached, class_name, suffix_cpp);
 			}
 		};
+
 		const auto construct = [&]<typename ...Args>(const Args& ...args)
 		{
-			return generated_classes_dir / _Construct_append<std::wstring>(args...);
+			return generated_classes_dir / _To_wstring(args...);
 		};
 
 		//no files generated before
@@ -286,11 +260,11 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 
 		const auto make_file_writer = [&](const std::string_view& suffix)
 		{
-			return generated_classes_dir / _Construct_append<std::wstring>(CLASS_NAME
+			return generated_classes_dir / _To_wstring(CLASS_NAME
 #ifdef CHEAT_NETVARS_GENERATED_TAG
-																		   , generated_tag
+													   , generated_tag
 #endif
-																		   , suffix);
+													   , suffix);
 		};
 
 		lazy::file_writer writer_h, writer_cpp;
@@ -339,13 +313,7 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 #endif
 					<< ";\n"
 					<< '	'
-					<< "auto addr = "
-					<< nstd::type_name<nstd::mem::address>( )
-					<< "(this).add(offset);\n"
-
-					<< '	'
-					//<< "return addr." << (netvar_type_pointer ? "ptr" : "ref") << '<' << netvar_type << ">( );\n"
-					<< "return addr." << (netvar_type_pointer ? "ptr" : "ref") << "( );\n"
+					<< "return " << nstd::type_name<nstd::mem::basic_address>( ) << "(this) + offset;\n"
 					<< "}\n\n";
 			};
 
@@ -366,6 +334,7 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 			lazy_storage.write.push_back(std::move(writer_cpp));
 
 	}
+
 #if 0
 	const auto make_file_writer = [&](const std::string_view& class_name, const std::string_view& suffix) -> lazy::file_writer
 	{
@@ -567,20 +536,20 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 
 	if (logger)
 	{
-		std::string removed_msg;
+		std::ostringstream msg;
+		msg << "Netvars classes generation done.";
 		if (!lazy_storage.remove.empty( ))
 		{
 			if (lazy_storage.remove.size( ) == 1 && lazy_storage.remove[0].all( ))
-				removed_msg = " Whole folder removed.";
+				msg << " Whole folder removed.";
 			else
-				removed_msg = std::format(" Removed {} files.", lazy_storage.remove.size( ));
+				msg << std::format(" Removed {} files.", lazy_storage.remove.size( ));
 		}
-		std::string created_msg;
 		if (!lazy_storage.write.empty( ))
 		{
-			created_msg = std::format(" Created {} files.", lazy_storage.write.size( ));
+			msg << std::format(" Created {} files.", lazy_storage.write.size( ));
 		}
 
-		logger->log("Netvars classes generation done.{}{}", removed_msg, created_msg);
-	}
+		logger->log(std::move(msg));
+}
 }

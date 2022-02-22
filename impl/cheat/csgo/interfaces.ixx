@@ -8,7 +8,7 @@ module;
 export module cheat.csgo.interfaces;
 export import :sdk;
 export import cheat.service;
-export import nstd.mem;
+export import nstd.mem.address;
 
 template <typename T, size_t Num, size_t Counter = 0>
 constexpr auto _Generate_pointer( )
@@ -47,6 +47,8 @@ export namespace cheat
 		using reference = To&;
 		using value_type = To;
 
+		using address_type = nstd::mem::basic_address<std::remove_pointer_t<raw_pointer>>;
+
 		csgo_interface( ) = default;
 
 		csgo_interface(raw_pointer ptr)
@@ -59,14 +61,16 @@ export namespace cheat
 			return result_ == nullptr;
 		}
 
-		nstd::mem::address addr( ) const
+		address_type addr( ) const
 		{
 			return result_;
 		}
 
-		nstd::mem::address vfunc(ptrdiff_t index) const
+		auto vfunc(ptrdiff_t index) const
 		{
-			return (result_.ref<nstd::mem::address*>( )[index]);
+			//return (result_.ref<nstd::mem::basic_address<void>*>( )[index]);
+			auto vtable = *result_.get<nstd::mem::basic_address<void>**>( );
+			return vtable[index];
 		}
 
 		void operator=(const nstd::mem::address& addr)
@@ -79,39 +83,33 @@ export namespace cheat
 			result_ = addr;
 		}
 
-	private:
-		pointer get_pointer( ) const
+		pointer get( ) const
 		{
-			if constexpr (constexpr size_t deref = _Count_pointers<raw_pointer>( ) - 1; deref > 0)
-				return result_.deref(deref).cast<pointer>( );
+			if constexpr (Ptrs > 1)
+				return result_.deref<Ptrs - 1>( );
 			else
-				return result_.cast<pointer>( );
+				return result_;
 		}
 
-		reference get_reference( )
-		{
-			return *get_pointer( );
-		}
+		/*bool is_null( ) const
+{
+	if (this->empty( ))
+		return true;
 
-		bool is_null( ) const
+	constexpr auto extra_deref = _Count_pointers<raw_pointer>( ) - 1;
+	if constexpr (extra_deref > 0)
+	{
+		auto addr = result_.value( );
+		for (size_t deref = 0; deref < extra_deref; ++deref)
 		{
-			if (this->empty( ))
+			addr = *reinterpret_cast<uintptr_t*>(addr);
+			if (addr == 0u)
 				return true;
-
-			constexpr auto extra_deref = _Count_pointers<raw_pointer>( ) - 1;
-			if constexpr (extra_deref > 0)
-			{
-				auto addr = result_.value( );
-				for (size_t deref = 0; deref < extra_deref; ++deref)
-				{
-					addr = *reinterpret_cast<uintptr_t*>(addr);
-					if (addr == 0u)
-						return true;
-				}
-			}
-
-			return false;
 		}
+	}
+
+	return false;
+}*/
 
 	public:
 		/*bool operator==(nullptr_t) const { return is_null( ); }
@@ -123,14 +121,13 @@ export namespace cheat
 		template <std::derived_from<To> T = To>
 		bool operator!=(const T* other) const { return !(*this == other); }*/
 
-		operator pointer( ) const { return get_pointer( ); }
+		operator pointer( ) const { return get( ); }
 
-		pointer operator->( ) const { return get_pointer( ); }
-		reference operator*( ) { return get_reference( ); }
-		pointer get( ) const { return get_pointer( ); }
+		pointer operator->( ) const { return get( ); }
+		reference operator*( ) { return *get( ); }
 
 	private:
-		nstd::mem::address result_;
+		address_type result_;
 	};
 
 	template <typename T>

@@ -1,7 +1,0 @@
-int& C_TERadioIcon::m_iAttachToClient( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_TERadioIcon", "m_iAttachToClient");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

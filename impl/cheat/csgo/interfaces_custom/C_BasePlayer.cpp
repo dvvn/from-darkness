@@ -1,6 +1,6 @@
 module cheat.csgo.interfaces:C_BasePlayer;
 import cheat.netvars_getter;
-import nstd.mem;
+import nstd.mem.address;
 
 using namespace cheat::csgo;
 

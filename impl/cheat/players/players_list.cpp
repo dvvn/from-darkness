@@ -24,7 +24,7 @@ void players_list::construct( ) noexcept
 
 static void* _Player_by_index_server(int client_index)
 {
-	static auto fn = csgo_modules::server->find_signature("85 C9 7E 32 A1").cast<void* (__fastcall*)(int)>( );
+	static auto fn = csgo_modules::server->find_signature("85 C9 7E 32 A1").get<void* (__fastcall*)(int)>( );
 	return fn(client_index);
 }
 
@@ -32,7 +32,7 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 {
 	static auto fn = csgo_modules::server->find_signature("E8 ? ? ? ? F6 83 ? ? ? ? ? 0F 84 ? ? ? ? 33 FF")
 		.jmp(1)
-		.cast<void(__vectorcall*)(void*, uintptr_t, float, float, float, bool)>( );
+		.get<void(__vectorcall*)(void*, uintptr_t, float, float, float, bool)>( );
 	const auto player = _Player_by_index_server(client_index);
 	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
 }
@@ -83,7 +83,7 @@ void players_list::update( )
 #endif
 		curtime = globals->curtime,//todo: made it fixed
 		correct = _Correct_value(engine, cvars)
-		]<typename Fn>(const size_t start, const Fn validator,const size_t limit)
+		]<typename Fn>(const size_t start, const Fn validator, const size_t limit)
 	{
 		for (auto i = start; std::invoke(validator, i, limit); ++i)
 		{

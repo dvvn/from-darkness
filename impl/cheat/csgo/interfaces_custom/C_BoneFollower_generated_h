@@ -1,2 +1,0 @@
-int& m_modelIndex( );
-int& m_solidIndex( );

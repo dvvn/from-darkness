@@ -1,7 +1,0 @@
-bool& C_PropJeep::m_bHeadlightIsOn( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_PropJeep", "m_bHeadlightIsOn");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

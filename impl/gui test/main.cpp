@@ -6,16 +6,13 @@
 #include <nstd/runtime_assert.h>
 #include <nstd/winapi/comptr_includes.h>
 
+#include <cppcoro/sync_wait.hpp>
+
 #include <Windows.h>
 
 #include <imgui.h>
 #include <d3d9.h>
 #include <tchar.h>
-
-//#define RUN_HOOKS_TEST
-#ifdef RUN_HOOKS_TEST
-#include <dhooks/includes.h>
-#endif
 
 import cheat.root_service;
 import cheat.console;
@@ -25,82 +22,7 @@ import cheat.hooks.winapi;
 import cheat.hooks.imgui;
 import cheat.hooks.directx;
 import cheat.hooks.winapi;
-import nstd.winapi;
-#ifdef RUN_HOOKS_TEST
-import dhooks;
-
-#pragma section(".text")
-__declspec(allocate(".text")) constexpr std::array<std::uint8_t, 2> gadget{0xFF, 0x23}; // jmp dword ptr[ebx]
-
-struct target_struct
-{
-	void* __fastcall target_func( )
-	{
-		return _ReturnAddress( );
-	}
-};
-
-static void* __fastcall target_func( )
-{
-	return _ReturnAddress( );
-}
-
-struct test_struct_hook : dhooks::select_hook_holder<decltype(&target_struct::target_func)>
-{
-	test_struct_hook( )
-	{
-		this->set_target_method(dhooks::pointer_to_class_method(&target_struct::target_func));
-	}
-
-	void callback( ) override
-	{
-		//this->store_return_value(0);
-	}
-};
-
-struct test_fn_hook : dhooks::select_hook_holder<decltype(target_func)>
-{
-	test_fn_hook( )
-	{
-		this->set_target_method(target_func);
-	}
-
-	void callback( ) override
-	{
-		//this->store_return_value(0);
-	}
-};
-
-template<class T>
-static auto make_hook( )
-{
-	auto hook = std::make_unique<T>( );
-	auto h = hook->hook( );
-	runtime_assert(h == true);
-	auto e = hook->enable( );
-	runtime_assert(e == true);
-	return hook;
-}
-
-static void run_hooks_test( )
-{
-	auto struct_hook = make_hook<test_struct_hook>( );
-	auto fn_hook = make_hook<test_fn_hook>( );
-
-	target_struct obj;
-
-	auto hooked_struct = obj.target_func( );
-	struct_hook.reset( );
-	auto original_struct = obj.target_func( );
-
-	auto hooked_fn = target_func( );
-	fn_hook->disable( );
-	auto original_fn = target_func( );
-
-	DebugBreak( );
-}
-
-#endif
+import nstd.winapi.comptr;
 
 using nstd::winapi::comptr;
 
@@ -131,10 +53,6 @@ static void register_services( )
 // Main code
 int main(int, char**)
 {
-#ifdef RUN_HOOKS_TEST 
-	run_hooks_test( );
-#endif
-
 	using namespace cheat;
 
 	// Create application window
@@ -156,8 +74,10 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	const bool loaded = services_loader::get( ).start( );
-	if (!loaded)
+	auto& loader = services_loader::get( );
+
+	loader.start( );
+	if (!cppcoro::sync_wait(loader.start_result))
 		goto _RESET;
 
 	// Setup Dear ImGui context
@@ -209,7 +129,7 @@ int main(int, char**)
 		}
 
 		//unload called
-		if (services_loader::get( ).state( ) == service_state::unset)
+		if (loader.state == services_loader::state_type::idle)
 			goto _RESET;
 
 		g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
@@ -227,11 +147,11 @@ int main(int, char**)
 		// Handle loss of D3D9 device
 		if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel( ) == D3DERR_DEVICENOTRESET)
 			ResetDevice( );
-	}
+		}
 
 _RESET:
 
-	services_loader::get( ).reset(false);
+	loader.reset(false);
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );
@@ -241,7 +161,7 @@ _RESET:
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
 	return 0;
-}
+	}
 
 // Helper functions
 

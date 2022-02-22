@@ -1,5 +1,0 @@
-cheat::csgo::Vector& m_vecOrigin( );
-float& m_minFalloff( );
-float& m_maxFalloff( );
-float& m_flCurWeight( );
-bool& m_bEnabled( );

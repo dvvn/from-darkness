@@ -1,7 +1,0 @@
-float& C_EnvParticleScript::m_flSequenceScale( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_EnvParticleScript", "m_flSequenceScale");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

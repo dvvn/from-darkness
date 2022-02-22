@@ -5,6 +5,7 @@ module;
 
 export module cheat.service;
 export import :basic;
+export import :tools;
 
 //constexpr auto _Fix_service_name(const std::string_view& name)
 //{
@@ -89,7 +90,7 @@ export namespace cheat
 		{
 			if (!valid( ))
 				return false;
-			const auto deps = holder->_Deps<false>( );
+			const auto& deps = holder->load_before;
 			if (deps.size( ) <= _Getter.index)
 				return false;
 			runtime_assert(deps[_Getter.index]->type( ) == typeid(T));
@@ -108,8 +109,7 @@ export namespace cheat
 		auto& get(H* holder)const
 		{
 			runtime_assert(valid( ));
-			const auto deps = holder->_Deps<false>( );
-			return deps[_Getter.index];
+			return holder->load_before[_Getter.index];
 		}
 
 		/// <summary>
@@ -187,14 +187,8 @@ export namespace cheat
 		}
 	};
 
-	template <typename Holder, bool Const>
-	struct service_deps_getter;
-
 	template <typename Holder>
-	struct service_deps_getter<Holder, true> : basic_service_deps_getter<Holder, true>
-	{
-		using basic_service_deps_getter<Holder, true>::basic_service_deps_getter;
-	};
+	using service_deps_getter_const = basic_service_deps_getter<Holder, true>;
 
 	class services_cache_impl
 	{
@@ -204,28 +198,13 @@ export namespace cheat
 		mutable std::recursive_mutex mtx_;
 		storage_type storage_;
 
-		template<typename T>
-		static auto find(T& storage, const std::type_info& type)
-		{
-			/*return std::ranges::find_if(storage, [&](value_type& val)
-										{
-											return val->type( ) == type;
-										});*/
-			auto end = storage.end( );
-			for (auto itr = storage.begin( ); itr != end; ++itr)
-			{
-				if ((*itr)->type( ) == type)
-					return itr;
-			}
-			return end;
-		}
 	public:
 
 		template<typename T>
 		value_type try_access( )const
 		{
 			const auto lock = std::scoped_lock(mtx_);
-			auto item = find(storage_, typeid(T));
+			auto item = storage_.find(typeid(T));
 			return item != storage_.end( ) ? *item : value_type( );
 		}
 
@@ -233,28 +212,26 @@ export namespace cheat
 		std::conditional_t<std::ranges::random_access_range<storage_type>, value_type, value_type&> access( )
 		{
 			const auto lock = std::scoped_lock(mtx_);
-			auto item = find(storage_, typeid(T));
-			return item != storage_.end( ) ? *item : storage_.emplace_back(basic_service::_Create<T>( ));
+			auto item = storage_.find(typeid(T));
+			return item != storage_.end( ) ? *item : storage_[storage_.add<T>( )];
 		}
 
 		void store(value_type&& val) = delete;
 		void store(const value_type& val)
 		{
 			const auto lock = std::scoped_lock(mtx_);
-			const auto item = find(storage_, val->type( ));
-			if (item != storage_.end( ))
+			if (storage_.contains(val->type( )))
 				return;
-			storage_.emplace_back(val);
+			storage_.add(val);
 		}
 	};
 	using services_cache = nstd::one_instance<services_cache_impl>;
 
-	template <typename Holder>
-	struct service_deps_getter<Holder, false> : basic_service_deps_getter<Holder, false>
+	template <typename Holder, class Base = basic_service_deps_getter<Holder, false>>
+	struct service_deps_getter :Base
 	{
-		using _Base = basic_service_deps_getter<Holder, false>;
-		using _Base::_Base;
-		using _Base::holder;
+		using Base::Base;
+		using Base::holder;
 
 		template<typename T>
 		T* add(bool can_be_skipped = false)const
@@ -273,7 +250,7 @@ export namespace cheat
 
 			service_getter<T, Holder> getter;
 			T* ret = dynamic_cast<T*>(item.get( ));
-			size_t index = holder->_Add_dependency(std::move(item));
+			size_t index = holder->load_before.add(std::move(item));
 			getter.set(index, dynamic_cast<Holder*>(holder));
 			return ret;
 		}
@@ -293,11 +270,11 @@ export namespace cheat
 			return typeid(Holder);
 		}
 
-		service_deps_getter<Holder, false> deps( )
+		service_deps_getter<Holder> deps( )
 		{
 			return this;
 		}
-		service_deps_getter<Holder, true> deps( )const
+		service_deps_getter_const<Holder> deps( )const
 		{
 			return this;
 		}
@@ -306,8 +283,6 @@ export namespace cheat
 	template<typename Holder>
 	struct dynamic_service :service<Holder>
 	{
-	private:
-		using basic_service::_Deps;
 	};
 
 	template<typename Holder>

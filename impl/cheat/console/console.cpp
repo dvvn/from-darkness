@@ -20,7 +20,7 @@ import nstd.rtlib;
 using namespace cheat;
 
 template <typename Chr, typename Tr>
-static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
+static FILE*& _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 {
 	using fb = std::basic_filebuf<Chr, Tr>;
 
@@ -29,7 +29,7 @@ static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 	assert(real_buff != nullptr);
 	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
 	//_Myfile
-	return nstd::mem::address(real_buff).add(offset).ref( );
+	return nstd::mem::basic_address(real_buff) + offset;
 }
 
 template <bool Assert = true>
@@ -134,9 +134,13 @@ static auto _Decayed_bind(Fn&& fn, T&& text)
 
 static auto _Write_or_cache = []<typename T>(T && text, const console * instance, console_cache & cache)
 {
+	using service_state = basic_service::state_type;
+	if (instance->state == service_state::loaded_error)
+		return;
+
 	const auto lock = std::scoped_lock(cache);
 
-	if (instance->state( ) == service_state::loaded)
+	if (instance->state == service_state::loaded)
 	{
 		cache.write_all( );
 		_Write_text(std::forward<T>(text));
@@ -144,10 +148,18 @@ static auto _Write_or_cache = []<typename T>(T && text, const console * instance
 	else
 	{
 		auto fn = _Decayed_bind(_Write_text, std::forward<T>(text));
-		if constexpr (std::copyable<decltype(fn)>)
+		using fn_t = decltype(fn);
+		if constexpr (std::copyable<fn_t>)
+		{
 			cache.store(fn);
+		}
 		else
-			cache.store([fn1 = std::make_shared<decltype(fn)>(std::move(fn))]{std::invoke(*fn1); });
+		{
+			cache.store([fn1 = std::make_shared<fn_t>(std::move(fn))]
+						{
+							std::invoke(*fn1);
+						});
+		}
 	}
 };
 
@@ -205,7 +217,7 @@ static void _Pack(string_packer& str, Fn&& fn, Args&&...args)
 {
 	auto packed = [&]<typename T>(T && s)
 	{
-		fn(std::forward<T>(s), args...);
+		fn(std::forward<T>(s), std::forward<Args>(args)...);
 	};
 
 	std::visit(packed, str.packed);
@@ -297,7 +309,7 @@ bool console::load( ) noexcept
 		//create new console window
 		if (!AllocConsole( ))
 		{
-			runtime_assert("Unable to alloc console!");
+			runtime_assert("Unable to allocate the console!");
 			return false;
 		}
 

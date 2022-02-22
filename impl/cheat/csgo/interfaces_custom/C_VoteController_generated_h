@@ -1,5 +1,0 @@
-int& m_iActiveIssueIndex( );
-int& m_iOnlyTeamToVote( );
-std::array<int, 5>& m_nVoteOptionCount( );
-int& m_nPotentialVotes( );
-bool& m_bIsYesNoVote( );

@@ -25,7 +25,7 @@ void present::construct( ) noexcept
 
 bool present::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(17).ptr( ));
+	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(17));
 	return hook_base::load( );
 }
 

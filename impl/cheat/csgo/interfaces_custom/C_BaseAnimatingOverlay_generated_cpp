@@ -1,7 +1,0 @@
-std::array<_ST_m_AnimOverlay_15, 15>& C_BaseAnimatingOverlay::m_AnimOverlay( )
-{
-	static const auto offset = cheat::get_netvar_offset("C_BaseAnimatingOverlay", "m_AnimOverlay");
-	auto addr = nstd::mem::address(this).add(offset);
-	return addr.ref( );
-}
-

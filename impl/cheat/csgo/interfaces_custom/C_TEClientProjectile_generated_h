@@ -1,5 +1,0 @@
-cheat::csgo::Vector& m_vecOrigin( );
-cheat::csgo::Vector& m_vecVelocity( );
-int& m_nModelIndex( );
-int& m_nLifeTime( );
-cheat::csgo::CBaseHandle& m_hOwner( );
