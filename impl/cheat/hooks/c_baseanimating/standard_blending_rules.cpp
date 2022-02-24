@@ -22,7 +22,7 @@ void standard_blending_rules::construct( ) noexcept
 bool standard_blending_rules::load( ) noexcept
 {
 	const csgo_interface vtable = csgo_modules::client->find_vtable<C_BaseAnimating>( );
-	const auto index = csgo_modules::client->find_signature("8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").add(11).deref(1) / 4;
+	const auto index = csgo_modules::client->find_signature("8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").plus(11).deref<1>( ).divide(4);
 	this->set_target_method(vtable.vfunc(index.value));
 	return hook_base::load( );
 }

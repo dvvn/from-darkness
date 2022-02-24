@@ -117,19 +117,19 @@ bool csgo_interfaces::load( ) noexcept
 
 	//csgo_modules::reset_interfaces_storage( );
 
-	client_mode = this->client.vfunc(10).add(5).deref(2);
+	client_mode = this->client.vfunc(10).plus(5).deref<2>( );
 
-	global_vars = csgo_modules::client->find_signature("A1 ? ? ? ? 5E 8B 40 10").add(1).deref(2);
-	input = csgo_modules::client->find_signature("B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").add(1).deref(1);
-	move_helper = csgo_modules::client->find_signature("8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01").add(2).deref(2);
-	glow_mgr = csgo_modules::client->find_signature("0F 11 05 ? ? ? ? 83 C8 01").add(3).deref(1);
-	view_render = csgo_modules::client->find_signature("A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").add(1).deref(1);
-	weapon_sys = csgo_modules::client->find_signature("8B 35 ? ? ? ? FF 10 0F B7 C0").add(2).deref(1);
-	local_player = csgo_modules::client->find_signature("8B 0D ? ? ? ? 83 FF FF 74 07").add(2).deref(1);
+	global_vars = csgo_modules::client->find_signature("A1 ? ? ? ? 5E 8B 40 10").plus(1).deref<2>( );
+	input = csgo_modules::client->find_signature("B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").plus(1).deref<1>( );
+	move_helper = csgo_modules::client->find_signature("8B 0D ? ? ? ? 8B 45 ? 51 8B D4 89 02 8B 01").plus(2).deref<2>( );
+	glow_mgr = csgo_modules::client->find_signature("0F 11 05 ? ? ? ? 83 C8 01").plus(3).deref<1>( );
+	view_render = csgo_modules::client->find_signature("A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").plus(1).deref<1>( );
+	weapon_sys = csgo_modules::client->find_signature("8B 35 ? ? ? ? FF 10 0F B7 C0").plus(2).deref<1>( );
+	local_player = csgo_modules::client->find_signature("8B 0D ? ? ? ? 83 FF FF 74 07").plus(2).deref<1>( );
 
-	client_state = csgo_modules::engine->find_signature("A1 ? ? ? ? 8B 80 ? ? ? ? C3").add(1).deref(2);
+	client_state = csgo_modules::engine->find_signature("A1 ? ? ? ? 8B 80 ? ? ? ? C3").plus(1).deref<2>( );
 
-	d3d_device = csgo_modules::shaderapidx9->find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C").add(1).deref(2);
+	d3d_device = csgo_modules::shaderapidx9->find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C").plus(1).deref<2>( );
 
 	return true;
 }

@@ -336,7 +336,7 @@ bool console::load( ) noexcept
 		_Freopen(out_, "CONOUT$", "w", stdout);
 		_Freopen(err_, "CONOUT$", "w", stderr);
 
-		decltype(auto) full_path = nstd::rtlib::all_infos::get( ).current( ).full_path( ).raw;
+		const auto& full_path = nstd::rtlib::all_infos::get( ).current( ).full_path.raw;
 		if (!SetConsoleTitleW(full_path.data( )))
 		{
 			runtime_assert("Unable set console title");

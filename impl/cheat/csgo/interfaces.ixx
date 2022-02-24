@@ -36,6 +36,7 @@ constexpr auto remove_all_pointers( )
 	else
 		return std::type_identity<T>( );
 }*/
+
 export namespace cheat
 {
 	template <class To, size_t Ptrs>

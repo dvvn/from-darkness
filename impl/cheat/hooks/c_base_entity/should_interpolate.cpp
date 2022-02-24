@@ -13,8 +13,8 @@ should_interpolate::should_interpolate( )
 nstd::address should_interpolate::get_target_method_impl( ) const
 {
 	const nstd::address vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
-	const auto index = csgo_modules::client.find_signature<"8B 06 8B CE 8B 80 ? ? 00 00 FF D0 84 C0 74 5C">( ).add(6).deref(1).divide(4).value( );
-	return vtable.ref<ptrdiff_t*>( )[index];
+	const auto index = csgo_modules::client.find_signature<"8B 06 8B CE 8B 80 ? ? 00 00 FF D0 84 C0 74 5C">( ).plus(6).deref<1>( ).divide(4);
+	return vtable.ref<ptrdiff_t*>( )[index.value];
 }
 
 basic_service::task_type should_interpolate::load_impl( ) noexcept
@@ -27,7 +27,7 @@ void should_interpolate::callback( )
 #if /*!CHEAT_MODE_INGAME*/!FALSE
 	CHEAT_CALL_BLOCKER
 #else
-	auto ent          = this->object_instance;
+	auto ent = this->object_instance;
 	auto client_class = ent->GetClientClass( );
 
 	if (client_class->ClassID != ClassId::CCSPlayer)

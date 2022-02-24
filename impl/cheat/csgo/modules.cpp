@@ -38,7 +38,7 @@ static rtlib::info* _Find_modue(const fixed_rtstring& str)
 {
 	for (rtlib::info& entry : rtlib::all_infos::get( ))
 	{
-		if (entry.name( ) == str)
+		if (entry.name == str)
 			return std::addressof(entry);
 	}
 	return nullptr;
@@ -75,7 +75,7 @@ static ifcs_entry_type _Interface_entry(rtlib::info* target_module)
 		const auto _Console = _Get_console( );
 		if (_Console)
 		{
-			const std::wstring_view dllname = target_module->name( ).raw;
+			const std::wstring_view dllname = target_module->name.raw;
 			if (created)
 				_Console->log(L"{} -> export \"{}\" at {:#X} found", dllname, _Wide(export_name), e->addr.value);
 			else if (!e)
@@ -84,7 +84,8 @@ static ifcs_entry_type _Interface_entry(rtlib::info* target_module)
 	};
 
 	const auto create_fn = target_module->exports( ).at(export_name, log_fn).addr;
-	const interface_register* reg = create_fn./*rel32*/jmp(0x5).add(0x6).deref(2);
+
+	const interface_register* reg = create_fn./*rel32*/jmp(0x5).plus(0x6).deref<2>( );
 
 	std::vector<ifcs_entry_type::value_type> temp_entry;
 	for (auto r = reg; r != nullptr; r = r->next)
@@ -161,11 +162,11 @@ static ifcs_entry_type _Interface_entry(rtlib::info* target_module)
 
 struct module_storage_data
 {
-	struct _Fake_mutex
+	/*struct _Fake_mutex
 	{
 		void lock( ) noexcept { }
 		void unlock( ) noexcept { }
-	};
+	};*/
 
 	template<class Mtx>
 	class _String_tester
@@ -187,7 +188,7 @@ struct module_storage_data
 
 	rtlib::info* info_ptr = nullptr;
 	_String_tester<std::mutex> sigs_tested;
-	_String_tester<_Fake_mutex> vtables_tested;
+	//_String_tester<_Fake_mutex> vtables_tested;
 	ifcs_entry_type interfaces;
 
 	module_storage_data(std::string_view name)
@@ -210,7 +211,7 @@ address game_module_storage::find_signature(std::string_view sig)
 	const auto _Console = _Get_console( );
 	if (_Console)
 	{
-		log_name = storage->info_ptr->name( ).raw;
+		log_name = storage->info_ptr->name.raw;
 		log_sig = _Wide(sig);
 
 		if (storage->sigs_tested(sig))
@@ -253,15 +254,15 @@ void* game_module_storage::find_vtable(std::string_view class_name)
 
 		using namespace nstd::rtlib;
 		const auto infos = all_infos::get( ) | std::views::reverse;
-		const info_string& from_name = storage->info_ptr->name( );
+		const info_string& from_name = storage->info_ptr->name;
 
 		const auto module_with_same_name = std::ranges::find(infos, from_name, &info::name);
 
 		std::wstring_view module_name;
-		if (module_with_same_name->base( ) == storage->info_ptr->base( ))
+		if (*module_with_same_name == *storage->info_ptr)
 			module_name = from_name.raw;
 		else
-			module_name = storage->info_ptr->full_path( ).raw;
+			module_name = storage->info_ptr->full_path.raw;
 
 		_Console->log(L"{} -> vtable \"{}\" found", module_name, _Wide(class_name));
 	});
@@ -290,7 +291,7 @@ address game_module_storage::find_game_interface(std::string_view ifc_name)
 	if (_Console)
 	{
 		_Console->log(L"{} -> interface \"{}\"{}: found"
-					  , storage->info_ptr->name( ).raw
+					  , storage->info_ptr->name.raw
 					  , _Wide(ifc_name)
 					  , _Get_full_interface_name(found->first.data( ), ifc_name.size( ))
 		);

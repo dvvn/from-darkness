@@ -24,7 +24,7 @@ void estimate_abs_velocity::construct( ) noexcept
 bool estimate_abs_velocity::load( ) noexcept
 {
 	const csgo_interface vtable = csgo_modules::client->find_vtable<C_BaseEntity>( );
-	const auto index = csgo_modules::client->find_signature("FF 90 ? ? 00 00 F3 0F 10 4C 24 18").add(2).deref(1) / 4;
+	const auto index = csgo_modules::client->find_signature("FF 90 ? ? 00 00 F3 0F 10 4C 24 18").plus(2).deref<1>().divide(4);
 	this->set_target_method(vtable.vfunc(index.value));
 	return hook_base::load( );
 }
