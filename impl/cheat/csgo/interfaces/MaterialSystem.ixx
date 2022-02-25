@@ -2,44 +2,44 @@ module;
 
 #include <string_view>
 
-export module cheat.csgo.interfaces:MaterialSystem;
-export import :AppSystem;
+export module cheat.csgo.interfaces.MaterialSystem;
+export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo
 {
 	//#define DECLARE_POINTER_HANDLE(name) struct name##__ { int unused; }; typedef struct name##__ *name
-	_INLINE_VAR constexpr auto MAXSTUDIOSKINS = 32;
+	inline constexpr auto MAXSTUDIOSKINS = 32;
 
 	// These are given to FindMaterial to reference the texture groups that Show up on the 
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_LIGHTMAP = "Lightmaps";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_WORLD = "World textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_MODEL = "Model textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_VGUI = "VGUI textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_PARTICLE = "Particle textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_DECAL = "Decal textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_SKYBOX = "SkyBox textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_CLIENT_EFFECTS = "ClientEffect textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_OTHER = "Other textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_PRECACHED = "Precached";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_CUBE_MAP = "CubeMap textures";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_RENDER_TARGET = "RenderTargets";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_UNACCOUNTED = "Unaccounted textures";
-	// _INLINE_VAR constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER	=	  "Static Vertex";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_STATIC_INDEX_BUFFER = "Static Indices";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_DISP = "Displacement Verts";
-	_INLINE_VAR	constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_COLOR = "Lighting Verts";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_WORLD = "World Verts";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_MODELS = "Model Verts";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_OTHER = "Other Verts";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_DYNAMIC_INDEX_BUFFER = "Dynamic Indices";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_DYNAMIC_VERTEX_BUFFER = "Dynamic Verts";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_DEPTH_BUFFER = "DepthBuffer";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_VIEW_MODEL = "ViewModel";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_PIXEL_SHADERS = "Pixel Shaders";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_VERTEX_SHADERS = "Vertex Shaders";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_RENDER_TARGET_SURFACE = "RenderTarget Surfaces";
-	_INLINE_VAR constexpr std::string_view TEXTURE_GROUP_MORPH_TARGETS = "Morph Targets";
+	inline constexpr std::string_view TEXTURE_GROUP_LIGHTMAP = "Lightmaps";
+	inline	constexpr std::string_view TEXTURE_GROUP_WORLD = "World textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_MODEL = "Model textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_VGUI = "VGUI textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_PARTICLE = "Particle textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_DECAL = "Decal textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_SKYBOX = "SkyBox textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_CLIENT_EFFECTS = "ClientEffect textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_OTHER = "Other textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_PRECACHED = "Precached";
+	inline	constexpr std::string_view TEXTURE_GROUP_CUBE_MAP = "CubeMap textures";
+	inline	constexpr std::string_view TEXTURE_GROUP_RENDER_TARGET = "RenderTargets";
+	inline	constexpr std::string_view TEXTURE_GROUP_UNACCOUNTED = "Unaccounted textures";
+	// inline constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER	=	  "Static Vertex";
+	inline	constexpr std::string_view TEXTURE_GROUP_STATIC_INDEX_BUFFER = "Static Indices";
+	inline	constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_DISP = "Displacement Verts";
+	inline	constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_COLOR = "Lighting Verts";
+	inline constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_WORLD = "World Verts";
+	inline constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_MODELS = "Model Verts";
+	inline constexpr std::string_view TEXTURE_GROUP_STATIC_VERTEX_BUFFER_OTHER = "Other Verts";
+	inline constexpr std::string_view TEXTURE_GROUP_DYNAMIC_INDEX_BUFFER = "Dynamic Indices";
+	inline constexpr std::string_view TEXTURE_GROUP_DYNAMIC_VERTEX_BUFFER = "Dynamic Verts";
+	inline constexpr std::string_view TEXTURE_GROUP_DEPTH_BUFFER = "DepthBuffer";
+	inline constexpr std::string_view TEXTURE_GROUP_VIEW_MODEL = "ViewModel";
+	inline constexpr std::string_view TEXTURE_GROUP_PIXEL_SHADERS = "Pixel Shaders";
+	inline constexpr std::string_view TEXTURE_GROUP_VERTEX_SHADERS = "Vertex Shaders";
+	inline constexpr std::string_view TEXTURE_GROUP_RENDER_TARGET_SURFACE = "RenderTarget Surfaces";
+	inline constexpr std::string_view TEXTURE_GROUP_MORPH_TARGETS = "Morph Targets";
 
 	//-----------------------------------------------------------------------------
 	// forward declarations

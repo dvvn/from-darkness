@@ -2,11 +2,11 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:ClientEntity;
-export import :ClientUnknown;
-export import :ClientRenderable;
-export import :ClientNetworkable;
-export import :ClientThinkable;
+export module cheat.csgo.interfaces.ClientEntity;
+export import cheat.csgo.interfaces.ClientUnknown;
+export import cheat.csgo.interfaces.ClientRenderable;
+export import cheat.csgo.interfaces.ClientNetworkable;
+export import cheat.csgo.interfaces.ClientThinkable;
 
 export namespace cheat::csgo
 {

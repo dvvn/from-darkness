@@ -3,7 +3,7 @@
 #include <limits>
 #include <tuple>
 
-module cheat.csgo.interfaces:EngineTrace;
+module cheat.csgo.interfaces.EngineTrace;
 
 using namespace cheat::csgo;
 

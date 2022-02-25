@@ -1,6 +1,6 @@
 module;
 
-export module cheat.csgo.interfaces:AnimationLayer;
+export module cheat.csgo.interfaces.AnimationLayer;
 
 export namespace cheat::csgo
 {

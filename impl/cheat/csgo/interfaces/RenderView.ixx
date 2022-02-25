@@ -3,7 +3,7 @@ module;
 #include <cstdint>
 #include <array>
 
-export module cheat.csgo.interfaces:RenderView;
+export module cheat.csgo.interfaces.RenderView;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

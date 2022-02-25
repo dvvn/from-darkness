@@ -2,8 +2,8 @@ module;
 
 #include <nstd/chars cache.h>
 
-export module cheat.csgo.interfaces:ConVar;
-export import :AppSystem;
+export module cheat.csgo.interfaces.ConVar;
+export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.tools;
 export import cheat.csgo.math;
 

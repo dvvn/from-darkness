@@ -4,8 +4,8 @@ module;
 #include <type_traits>
 #include <limits>
 
-export module cheat.csgo.interfaces:C_BasePlayer;
-export import :C_BaseCombatCharacter;
+export module cheat.csgo.interfaces.C_BasePlayer;
+export import cheat.csgo.interfaces.C_BaseCombatCharacter;
 
 export namespace cheat::csgo
 {

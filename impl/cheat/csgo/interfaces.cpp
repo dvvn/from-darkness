@@ -1,7 +1,6 @@
 module;
 
 #include "cheat/service/basic_includes.h"
-#include "cheat/csgo/modules_includes.h"
 #include <nstd/mem/address_includes.h>
 
 #include <d3d9.h>
@@ -92,10 +91,10 @@ bool csgo_interfaces::load( ) noexcept
 		return true;
 	}
 
-	client = csgo_modules::client->find_game_interface("VClient");
-	entity_list = csgo_modules::client->find_game_interface("VClientEntityList");
-	prediction = csgo_modules::client->find_game_interface("VClientPrediction");
-	game_movement = csgo_modules::client->find_game_interface("GameMovement");
+	//client = csgo_modules::client->find_game_interface("VClient");
+	//entity_list = csgo_modules::client->find_game_interface("VClientEntityList");
+	//prediction = csgo_modules::client->find_game_interface("VClientPrediction");
+	//game_movement = csgo_modules::client->find_game_interface("GameMovement");
 
 	engine = csgo_modules::engine->find_game_interface("VEngineClient");
 	mdl_info = csgo_modules::engine->find_game_interface("VModelInfoClient");

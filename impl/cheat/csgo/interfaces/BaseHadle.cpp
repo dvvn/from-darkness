@@ -1,12 +1,8 @@
 ﻿module;
 
-#include "cheat/service/root_includes.h"
 #include <nstd/runtime_assert.h>
 
-module cheat.csgo.interfaces:BaseHandle;
-import cheat.root_service;
-import cheat.netvars;
-import cheat.csgo.interfaces;
+module cheat.csgo.interfaces.BaseHandle;
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
@@ -87,5 +83,7 @@ IHandleEntity* CBaseHandle::Get( ) const
 		return 0;*/
 
 		//i down want to store csgo_interfaces somewhere only for easy access
-	return services_loader::get( ).deps( ).get<netvars>( ).deps( ).get<csgo_interfaces>( ).entity_list->GetClientEntityFromHandle(*this);
+	//return services_loader::get( ).deps( ).get<netvars>( ).deps( ).get<csgo_interfaces>( ).entity_list->GetClientEntityFromHandle(*this);
+	runtime_assert("WIP. Disabled.");
+	return nullptr;
 }

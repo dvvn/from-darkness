@@ -1,7 +1,7 @@
 module;
 #include <cstdint>
 
-export module cheat.csgo.interfaces:ClientRenderable;
+export module cheat.csgo.interfaces.ClientRenderable;
 
 export namespace cheat::csgo
 {

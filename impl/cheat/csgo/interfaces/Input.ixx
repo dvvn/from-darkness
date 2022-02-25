@@ -3,7 +3,7 @@ module;
 #include <cstddef>
 #include <cstdint>
 
-export module cheat.csgo.interfaces:Input;
+export module cheat.csgo.interfaces.Input;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

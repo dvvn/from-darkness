@@ -1,4 +1,4 @@
-export module cheat.csgo.interfaces:ClientNetworkable;
+export module cheat.csgo.interfaces.ClientNetworkable;
 
 export namespace cheat::csgo
 {

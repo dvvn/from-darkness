@@ -2,7 +2,7 @@ module;
 
 #include <array>
 
-export module cheat.csgo.interfaces:GlowEffect;
+export module cheat.csgo.interfaces.GlowEffect;
 export import cheat.csgo.math;
 export import cheat.csgo.tools;
 

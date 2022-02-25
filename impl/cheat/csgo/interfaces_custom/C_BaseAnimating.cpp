@@ -2,7 +2,7 @@ module;
 
 #include <nstd/mem/signature_includes.h>
 
-module cheat.csgo.interfaces:C_BaseAnimating;
+module cheat.csgo.interfaces.C_BaseAnimating;
 import cheat.csgo.modules;
 import cheat.netvars_getter;
 import dhooks;

@@ -2,10 +2,11 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:Prediction;
-export import :BaseHandle;
+export module cheat.csgo.interfaces.Prediction;
+export import cheat.csgo.interfaces.BaseHandle;
 export import cheat.csgo.math;
 export import cheat.csgo.tools;
+import cheat.csgo.interface_accesser;
 
 export namespace cheat::csgo
 {
@@ -41,32 +42,7 @@ export namespace cheat::csgo
 
 	class C_BasePlayer;
 
-	class IGameMovement
-	{
-	public:
-		virtual ~IGameMovement( ) = default;
-
-		virtual void               ProcessMovement(C_BasePlayer* pPlayer, CMoveData* pMove) = 0;
-		virtual void               Reset( ) = 0;
-		virtual void               StartTrackPredictionErrors(C_BasePlayer* pPlayer) = 0;
-		virtual void               FinishTrackPredictionErrors(C_BasePlayer* pPlayer) = 0;
-		virtual void               DiffPrint(const char* fmt, ...) = 0;
-		virtual const Vector& GetPlayerMins(bool ducked) const = 0;
-		virtual const Vector& GetPlayerMaxs(bool ducked) const = 0;
-		virtual const Vector& GetPlayerViewOffset(bool ducked) const = 0;
-		virtual bool               IsMovingPlayerStuck( ) const = 0;
-		virtual C_BasePlayer* GetMovingPlayer( ) const = 0;
-		virtual void               UnblockPusher(C_BasePlayer* pPlayer, C_BasePlayer* pPusher) = 0;
-		virtual void               SetupMovementBounds(CMoveData* pMove) = 0;
-	};
-
-	class CGameMovement : public IGameMovement
-	{
-	public:
-		~CGameMovement( ) override = default;
-	};
-
-	class IPrediction
+	class IPrediction :public interface_accesser<IPrediction>
 	{
 		//std::byte pad0[0x4]; // 0x0000
 	public:

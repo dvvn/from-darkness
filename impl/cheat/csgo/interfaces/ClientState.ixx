@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:ClientState;
+export module cheat.csgo.interfaces.ClientState;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

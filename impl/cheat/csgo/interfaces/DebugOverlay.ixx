@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:DebugOverlay;
+export module cheat.csgo.interfaces.DebugOverlay;
 
 export namespace cheat::csgo
 {

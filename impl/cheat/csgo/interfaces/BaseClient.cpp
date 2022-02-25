@@ -1,11 +1,15 @@
 ﻿module;
 
-#include <functional>
-
-module cheat.csgo.interfaces:BaseClient;
+module cheat.csgo.interfaces.BaseClient;
+import cheat.csgo.modules;
 import dhooks;
 
 using namespace cheat::csgo;
+
+IBaseClientDLL* interface_getter<IBaseClientDLL>::set( )const
+{
+	return csgo_modules::client->find_game_interface("VClient");
+}
 
 bool IBaseClientDLL::DispatchUserMessage(int msg_type, int flags, int size, const void* msg)
 {

@@ -1,5 +1,5 @@
-export module cheat.csgo.interfaces:C_CSPlayer;
-export import :C_BasePlayer;
+export module cheat.csgo.interfaces.C_CSPlayer;
+export import cheat.csgo.interfaces.C_BasePlayer;
 
 export namespace cheat::csgo
 {

@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:ModelInfoClient;
+export module cheat.csgo.interfaces.ModelInfoClient;
 
 export namespace cheat::csgo
 {

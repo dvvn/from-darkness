@@ -1,5 +1,5 @@
-export module cheat.csgo.interfaces:ClientUnknown;
-export import :BaseHandle;
+export module cheat.csgo.interfaces.ClientUnknown;
+export import cheat.csgo.interfaces.BaseHandle;
 
 export namespace cheat::csgo
 {

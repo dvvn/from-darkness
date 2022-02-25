@@ -3,7 +3,7 @@ module;
 #include <cstdint>
 #include <cstddef>
 
-export module cheat.csgo.interfaces:WeaponSystem;
+export module cheat.csgo.interfaces.WeaponSystem;
 
 export namespace cheat::csgo
 {

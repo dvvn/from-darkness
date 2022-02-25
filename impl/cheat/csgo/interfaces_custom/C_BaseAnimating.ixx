@@ -2,9 +2,9 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:C_BaseAnimating;
-export import :C_BaseEntity;
-export import :AnimationLayer;
+export module cheat.csgo.interfaces.C_BaseAnimating;
+export import cheat.csgo.interfaces.C_BaseEntity;
+export import cheat.csgo.interfaces.AnimationLayer;
 
 export namespace cheat::csgo
 {

@@ -1,5 +1,5 @@
-export module cheat.csgo.interfaces:C_BaseCombatWeapon;
-export import :C_BaseAnimating;
+export module cheat.csgo.interfaces.C_BaseCombatWeapon;
+export import cheat.csgo.interfaces.C_BaseAnimating;
 
 export namespace cheat::csgo
 {

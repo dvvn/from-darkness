@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:UserCmd;
+export module cheat.csgo.interfaces.UserCmd;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

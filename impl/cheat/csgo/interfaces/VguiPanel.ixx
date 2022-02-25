@@ -1,5 +1,5 @@
 
-export module cheat.csgo.interfaces:VguiPanel;
+export module cheat.csgo.interfaces.VguiPanel;
 
 export namespace cheat::csgo
 {

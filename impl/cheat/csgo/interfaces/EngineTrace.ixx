@@ -3,8 +3,8 @@ module;
 #include <tuple>
 #include <cstdint>
 
-export module cheat.csgo.interfaces:EngineTrace;
-export import :ClientClass;
+export module cheat.csgo.interfaces.EngineTrace;
+export import cheat.csgo.interfaces.ClientClass;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

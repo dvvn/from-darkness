@@ -1,4 +1,4 @@
-export module cheat.csgo.interfaces:EngineSound;
+export module cheat.csgo.interfaces.EngineSound;
 export import cheat.csgo.tools;
 export import cheat.csgo.math;
 

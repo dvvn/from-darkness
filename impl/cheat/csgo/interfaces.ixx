@@ -6,7 +6,7 @@ module;
 #include <d3d9.h>
 
 export module cheat.csgo.interfaces;
-export import :sdk;
+export import cheat.csgo.interfaces.sdk;
 export import cheat.service;
 export import nstd.mem.address;
 
@@ -153,7 +153,7 @@ export namespace cheat
 		ifc<csgo::IBaseClientDLL> client;
 		ifc<csgo::IClientEntityList> entity_list;
 		ifc<csgo::IPrediction> prediction;
-		ifc<csgo::CGameMovement> game_movement;
+		//ifc<csgo::CGameMovement> game_movement;
 		ifc<csgo::IMDLCache> mdl_cache;
 		ifc<csgo::IVEngineClient> engine;
 		ifc<csgo::IVModelInfoClient> mdl_info;

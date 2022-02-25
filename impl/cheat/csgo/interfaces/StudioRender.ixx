@@ -4,11 +4,11 @@ module;
 #include <cstring>
 #include <array>
 
-export module cheat.csgo.interfaces:StudioRender;
+export module cheat.csgo.interfaces.StudioRender;
 export import cheat.csgo.tools;
-export import :Studio;
-export import :AppSystem;
-export import :ModelRender;
+export import cheat.csgo.interfaces.Studio;
+export import cheat.csgo.interfaces.AppSystem;
+export import cheat.csgo.interfaces.ModelRender;
 
 export namespace cheat::csgo
 {

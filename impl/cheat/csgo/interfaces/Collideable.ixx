@@ -1,4 +1,4 @@
-export module cheat.csgo.interfaces:Collideable;
+export module cheat.csgo.interfaces.Collideable;
 
 export namespace cheat::csgo
 {

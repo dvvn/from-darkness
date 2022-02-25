@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:BaseHandle;
+export module cheat.csgo.interfaces.BaseHandle;
 
 export namespace cheat::csgo
 {

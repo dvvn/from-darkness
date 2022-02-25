@@ -1,5 +1,5 @@
-export module cheat.csgo.interfaces:MDLCache;
-export import :AppSystem;
+export module cheat.csgo.interfaces.MDLCache;
+export import cheat.csgo.interfaces.AppSystem;
 
 export namespace cheat::csgo
 {

@@ -1,6 +1,6 @@
 module;
 
-export module cheat.csgo.interfaces:VarMapping;
+export module cheat.csgo.interfaces.VarMapping;
 export import cheat.csgo.tools;
 
 export namespace cheat::csgo

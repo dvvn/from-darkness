@@ -1,5 +1,6 @@
-export module cheat.csgo.interfaces:ClientEntityList;
-export import :ClientEntity;
+export module cheat.csgo.interfaces.ClientEntityList;
+export import cheat.csgo.interfaces.ClientEntity;
+import cheat.csgo.interface_accesser;
 
 export namespace cheat::csgo
 {
@@ -7,7 +8,7 @@ export namespace cheat::csgo
 	class IClientEntity;
 	class CBaseHandle;*/
 
-	class IClientEntityList
+	class IClientEntityList :public interface_accesser<IClientEntityList>
 	{
 	public:
 		virtual IClientNetworkable* GetClientNetworkable(int entnum) = 0;

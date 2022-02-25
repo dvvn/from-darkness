@@ -2,7 +2,6 @@ module;
 
 #include "cheat/hooks/base_includes.h"
 #include "cheat/netvars/includes.h"
-#include "cheat/csgo/modules_includes.h"
 
 #include <nstd/enum_tools.h>
 

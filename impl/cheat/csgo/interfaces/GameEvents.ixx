@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:GameEvents;
+export module cheat.csgo.interfaces.GameEvents;
 
 //#ifdef CreateEvent
 //#undef CreateEvent

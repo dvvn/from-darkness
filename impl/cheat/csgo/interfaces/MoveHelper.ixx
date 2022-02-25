@@ -1,5 +1,5 @@
 
-export module cheat.csgo.interfaces:MoveHelper;
+export module cheat.csgo.interfaces.MoveHelper;
 
 export namespace cheat::csgo
 {

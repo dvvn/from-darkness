@@ -1,6 +1,6 @@
 #pragma once
 
-export module cheat.csgo.interfaces:ViewRender;
+export module cheat.csgo.interfaces.ViewRender;
 
 export namespace cheat::csgo
 {

@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:ModelRender;
+export module cheat.csgo.interfaces.ModelRender;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

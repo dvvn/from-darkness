@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:Physics;
+export module cheat.csgo.interfaces.Physics;
 
 export namespace cheat::csgo
 {

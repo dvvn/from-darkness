@@ -1,4 +1,4 @@
-export module cheat.csgo.interfaces:ClientThinkable;
+export module cheat.csgo.interfaces.ClientThinkable;
 
 export namespace cheat::csgo
 {

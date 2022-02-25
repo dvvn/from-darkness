@@ -37,7 +37,7 @@ static bool _Save_netvar_allowed(const char* name)
 	return true;
 }
 
-static bool _Save_netvar_allowed(const std::string_view& name)
+static bool _Save_netvar_allowed(const std::string_view name)
 {
 	return std::ranges::all_of(name, [](char c)
 	{
@@ -45,7 +45,7 @@ static bool _Save_netvar_allowed(const std::string_view& name)
 	});
 }
 
-bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const std::string_view& name, int offset, [[maybe_unused]] string_or_view_holder&& type)
+bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const std::string_view name, int offset, [[maybe_unused]] string_or_view_holder&& type)
 {
 	using namespace std::string_literals;
 	using namespace std::string_view_literals;
@@ -78,7 +78,7 @@ bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const st
 }
 
 
-auto netvars_impl::add_child_class_to_storage(netvars_storage& storage, const std::string_view& name) -> add_child_t
+auto netvars_impl::add_child_class_to_storage(netvars_storage& storage, const std::string_view name) -> add_child_t
 {
 	if (name[0] == 'C' && name[1] != '_')
 	{

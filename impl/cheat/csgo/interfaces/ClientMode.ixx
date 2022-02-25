@@ -2,8 +2,8 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:ClientMode;
-export import :GameEvents;
+export module cheat.csgo.interfaces.ClientMode;
+export import cheat.csgo.interfaces.GameEvents;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

@@ -2,8 +2,8 @@ module;
 
 #include <array>
 
-export module cheat.csgo.interfaces:VguiSurface;
-export import :AppSystem;
+export module cheat.csgo.interfaces.VguiSurface;
+export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.math;
 
 export namespace cheat::csgo

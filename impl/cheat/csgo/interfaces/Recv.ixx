@@ -2,7 +2,7 @@ module;
 
 #include <span>
 
-export module cheat.csgo.interfaces:Recv;
+export module cheat.csgo.interfaces.Recv;
 
 export namespace cheat::csgo
 {

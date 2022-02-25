@@ -2,8 +2,8 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:EngineClient;
-export import :MaterialSystem;
+export module cheat.csgo.interfaces.EngineClient;
+export import cheat.csgo.interfaces.MaterialSystem;
 
 export namespace cheat::csgo
 {

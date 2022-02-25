@@ -1,4 +1,4 @@
-export module cheat.csgo.interfaces:RefCounted;
+export module cheat.csgo.interfaces.RefCounted;
 
 export namespace cheat::csgo
 {

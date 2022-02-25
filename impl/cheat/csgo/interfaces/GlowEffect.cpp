@@ -1,4 +1,4 @@
-﻿module cheat.csgo.interfaces:GlowEffect;
+﻿module cheat.csgo.interfaces.GlowEffect;
 
 using namespace cheat::csgo;
 

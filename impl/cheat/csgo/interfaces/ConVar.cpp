@@ -3,7 +3,7 @@
 #include "cheat/console/includes.h"
 #include <nstd/format.h>
 
-module cheat.csgo.interfaces:ConVar;
+module cheat.csgo.interfaces.ConVar;
 import cheat.console;
 import cheat.root_service;
 import dhooks;
@@ -48,7 +48,7 @@ void ConVar::set(int value) { _Set_helper(this, 16, value); }
 ConCommandBaseIterator ICVar::begin( )const
 {
 	using namespace nstd::mem;
-	return basic_address(this).add(0x30).deref<1>( ).get<ConCommandBase*>( );
+	return basic_address(this).plus(0x30).deref<1>( ).get<ConCommandBase*>( );
 }
 
 ConCommandBaseIterator ICVar::end( )const

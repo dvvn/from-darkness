@@ -1,4 +1,4 @@
-module cheat.csgo.interfaces:C_BasePlayer;
+module cheat.csgo.interfaces.C_BasePlayer;
 import cheat.netvars_getter;
 import nstd.mem.address;
 

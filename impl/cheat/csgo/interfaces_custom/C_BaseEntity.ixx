@@ -2,11 +2,11 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces:C_BaseEntity;
-export import :ClientEntity;
-export import :Recv;
-export import :DataMap;
-export import :VarMapping;
+export module cheat.csgo.interfaces.C_BaseEntity;
+export import cheat.csgo.interfaces.ClientEntity;
+export import cheat.csgo.interfaces.Recv;
+export import cheat.csgo.interfaces.DataMap;
+export import cheat.csgo.interfaces.VarMapping;
 export import cheat.csgo.math;
 export import cheat.csgo.tools;
 

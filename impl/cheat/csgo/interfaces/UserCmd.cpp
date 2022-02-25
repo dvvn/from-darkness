@@ -2,7 +2,7 @@ module;
 
 #include <cstring>
 
-module cheat.csgo.interfaces:UserCmd;
+module cheat.csgo.interfaces.UserCmd;
 
 using namespace cheat::csgo;
 

@@ -1,5 +1,7 @@
-export module cheat.csgo.interfaces:BaseClient;
-export import :AppSystem;
+export module cheat.csgo.interfaces.BaseClient;
+export import cheat.csgo.interfaces.AppSystem;
+
+import cheat.csgo.interface_accesser;
 
 export namespace cheat::csgo
 {
@@ -27,7 +29,7 @@ export namespace cheat::csgo
 	class CGlobalVarsBase;
 	class ClientClass;
 
-	class IBaseClientDLL
+	class IBaseClientDLL :public interface_accesser<IBaseClientDLL>
 	{
 	public:
 		virtual int          Connect(CreateInterfaceFn appSystemFactory, CGlobalVarsBase* pGlobals) = 0;
@@ -46,4 +48,5 @@ export namespace cheat::csgo
 		// The engine has received the specified user message, this code is used to dispatch the message handler
 		bool DispatchUserMessage(int msg_type, int flags, int size, const void* msg);
 	};
+
 }

@@ -1,4 +1,4 @@
-module cheat.csgo.interfaces:C_BaseEntity;
+module cheat.csgo.interfaces.C_BaseEntity;
 
 import cheat.netvars_getter;
 import dhooks;

@@ -1,4 +1,4 @@
-export module cheat.csgo.interfaces:GlobalVars;
+export module cheat.csgo.interfaces.GlobalVars;
 
 export namespace cheat::csgo
 {
