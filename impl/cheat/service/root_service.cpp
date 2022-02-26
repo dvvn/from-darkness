@@ -17,7 +17,8 @@ services_loader::~services_loader( ) = default;
 class all_hooks_storage :public services_loader::lazy_reset, basic_service::deps_storage
 {
 public:
-	void try_add(basic_service::value_type& srv, bool steal, bool recursive)
+	template<class SPtr>
+	void try_add(SPtr& srv, bool steal, bool recursive)
 	{
 		auto ptr = dynamic_cast<dhooks::hook_disabler_lazy*>(srv.get( ));
 		if (!ptr)
@@ -61,7 +62,7 @@ void services_loader::unload( )
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
 
-static void _Fill_storage(all_hooks_storage * storage, basic_service::deps_storage& deps)
+static void _Fill_storage(all_hooks_storage * storage, basic_service::deps_storage & deps)
 {
 	for (auto& d : deps)
 	{
@@ -96,9 +97,10 @@ static void _Reset_storage(T & deps)
 
 auto services_loader::reset(bool deps_only)->reset_object
 {
+
 	if (this->state == state_type::idle)
 	{
-		runtime_assert(std::ranges::count(this->load_before, nullptr) == this->load_before.size( ));
+		//runtime_assert(std::ranges::count(this->load_before, nullptr) == this->load_before.size( ));
 		return nullptr;
 	}
 

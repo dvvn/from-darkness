@@ -17,7 +17,7 @@ namespace cheat::csgo
 {
 	class C_BasePlayer;
 	class C_BaseAnimating;
-	class CAnimationLayer;
+	struct CAnimationLayer;
 	struct VarMapping_t;
 	class matrix3x4_t;
 }

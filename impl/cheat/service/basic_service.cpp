@@ -39,67 +39,21 @@ basic_service& basic_service::operator=(basic_service && other) noexcept
 	return *this;
 }
 
-size_t basic_service::deps_storage::add(value_type && val)
-{
-	runtime_assert(!this->contains(val->type( )), "Service already stored!");
-	this->push_back(std::move(val));
-	return this->size( ) - 1;
-}
-
-size_t basic_service::deps_storage::add(const value_type & val)
-{
-	runtime_assert(!this->contains(val->type( )), "Service already stored!");
-	this->push_back(val);
-	return this->size( ) - 1;
-}
-
-auto basic_service::deps_storage::find(const std::type_info & type) -> iterator
-{
-	const auto end = this->end( );
-	for (auto itr = this->begin( ); itr != end; ++itr)
-	{
-		auto& smart_ptr = *itr;
-		auto& val = *smart_ptr;
-		if (val.type( ) == type)
-			return itr;
-	}
-	return end;
-}
-
-auto basic_service::deps_storage::find(const std::type_info & type) const ->const_iterator
-{
-	return const_cast<deps_storage*>(this)->find(type);
-}
-
-bool  basic_service::deps_storage::contains(const std::type_info & type) const
-{
-	return this->find(type) != this->end( );
-}
-
-static void _Invoke_callback(const basic_service::callback_type & callback, basic_service * caller, basic_service::state_type result)
-{
-#ifndef _DEBUG
-	if (!callback)
-		return;
-#endif
-	std::invoke(*callback, caller, result);
-}
-
 auto basic_service::load_deps(const executor ex, const callback_type callback) noexcept-> task_type
 {
 	if (load_before.empty( ))
 		co_return true;
 
 	const auto error = std::make_shared<std::atomic_bool>(false);
-	const auto callback_wrapped = std::make_shared<callback_type::element_type>([=](basic_service* caller, state_type result)
+	const callback_type callback_wrapped = [=](basic_service* caller, state_type result)
 	{
-		_Invoke_callback(callback, caller, result);
+		callback(caller, result);
 
 		if (result != state_type::loaded_error)
 			return;
 		*error = true;
-	});
-	const auto start_wrapped = [=](value_type& srv)->task_type
+	};
+	const auto start_wrapped = [=](deps_storage::value_type& srv)->task_type
 	{
 		if (*error)
 		{
@@ -126,7 +80,7 @@ auto basic_service::load_this(const executor ex, const callback_type callback) n
 	co_await ex->schedule( );
 	const auto loaded = this->load( );
 	state = loaded ? state_type::loaded : state_type::loaded_error;
-	_Invoke_callback(callback, this, state);
+	callback(this, state);
 	co_return loaded;
 }
 
@@ -147,22 +101,20 @@ void basic_service::start(const executor ex, const callback_type callback) noexc
 
 void basic_service::start(const executor ex) noexcept
 {
-	static const auto default_callback =
+	static const callback_type default_callback
 #ifdef _DEBUG
-		std::make_shared<callback_type::element_type>([](basic_service* caller, basic_service::state_type result)
+		= [](basic_service* caller, basic_service::state_type result)
 	{
 		[[maybe_unused]]
 		uint8_t debugger_gap = 0;
-	})
-#else
-		callback_type( )
+	}
 #endif
-		;
+	;
 
 	this->start(ex, default_callback);
 }
 
 void basic_service::start( ) noexcept
 {
-	this->start(std::make_shared<executor::element_type>( ), std::make_shared<callback_type::element_type>(log_service_start));
+	this->start(executor( ), log_service_start);
 }

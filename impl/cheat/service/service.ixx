@@ -192,13 +192,9 @@ export namespace cheat
 
 	class services_cache_impl
 	{
-		using storage_type = basic_service::deps_storage;
-		using value_type = basic_service::value_type;
-
-		mutable std::recursive_mutex mtx_;
-		storage_type storage_;
-
 	public:
+		using deps_storage = basic_service::deps_storage;
+		using value_type = deps_storage::value_type;
 
 		template<typename T>
 		value_type try_access( )const
@@ -209,7 +205,7 @@ export namespace cheat
 		}
 
 		template<typename T>
-		std::conditional_t<std::ranges::random_access_range<storage_type>, value_type, value_type&> access( )
+		/*std::conditional_t<std::ranges::random_access_range<storage_type>, value_type, value_type&>*/value_type access( )
 		{
 			const auto lock = std::scoped_lock(mtx_);
 			auto item = storage_.find(typeid(T));
@@ -217,6 +213,7 @@ export namespace cheat
 		}
 
 		void store(value_type&& val) = delete;
+		[[deprecated]]
 		void store(const value_type& val)
 		{
 			const auto lock = std::scoped_lock(mtx_);
@@ -224,7 +221,12 @@ export namespace cheat
 				return;
 			storage_.add(val);
 		}
+
+	private:
+		mutable std::recursive_mutex mtx_;
+		deps_storage storage_;
 	};
+
 	using services_cache = nstd::one_instance<services_cache_impl>;
 
 	template <typename Holder, class Base = basic_service_deps_getter<Holder, false>>
@@ -236,7 +238,7 @@ export namespace cheat
 		template<typename T>
 		T* add(bool can_be_skipped = false)const
 		{
-			basic_service::value_type item;
+			services_cache_impl::value_type item;
 			if (!can_be_skipped)
 			{
 				item = services_cache::get( ).access<T>( );
