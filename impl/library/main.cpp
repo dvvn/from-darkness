@@ -52,7 +52,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 		deps.add<hooks::c_base_entity::estimate_abs_velocity>( );
 		deps.add<hooks::other::rta_holder>( );
 
-		loader.start_async(services_loader::async_detach( ));
+		loader.start();
 		break;
 	}
 	case DLL_PROCESS_DETACH:

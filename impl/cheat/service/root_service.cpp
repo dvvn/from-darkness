@@ -1,5 +1,5 @@
 module;
-#include "root_includes.h"
+#include "basic_includes.h"
 
 #include <dhooks/includes.h>
 #include <windows.h>
@@ -61,8 +61,7 @@ void services_loader::unload( )
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
 
-template<typename T>
-static void _Fill_storage(all_hooks_storage * storage, T & deps)
+static void _Fill_storage(all_hooks_storage * storage, basic_service::deps_storage& deps)
 {
 	for (auto& d : deps)
 	{

@@ -18,14 +18,6 @@ basic_service::basic_service(basic_service && other) noexcept
 	*this = std::move(other);
 }
 
-//template<typename T>
-//static void atomic_swap(std::atomic<T>&l, std::atomic<T>&r)
-//{
-//	T tmp = l;
-//	l = static_cast<T>(r);
-//	r = tmp;
-//}
-
 namespace std
 {
 	template<typename T>
@@ -84,25 +76,6 @@ bool  basic_service::deps_storage::contains(const std::type_info & type) const
 	return this->find(type) != this->end( );
 }
 
-struct wrapped_callback : basic_service::callback_type
-{
-	/*basic_service::callback_type prev_callback;
-	std::atomic<bool> error = false;
-
-	wrapped_callback(const basic_service::callback_type& cb) :prev_callback(cb)
-	{
-	}
-
-	void operator()(basic_service* caller, basic_service::state_type result) noexcept
-	{
-		std::invoke(*prev_callback, caller, result);
-
-		if (result != state_type::loaded_error)
-			return;
-		error = true;
-	}*/
-};
-
 static void _Invoke_callback(const basic_service::callback_type & callback, basic_service * caller, basic_service::state_type result)
 {
 #ifndef _DEBUG
@@ -117,8 +90,6 @@ auto basic_service::load_deps(const executor ex, const callback_type callback) n
 	if (load_before.empty( ))
 		co_return true;
 
-	static auto false_task = std::invoke([]( )->task_type { co_return false; });
-
 	const auto error = std::make_shared<std::atomic_bool>(false);
 	const auto callback_wrapped = std::make_shared<callback_type::element_type>([=](basic_service* caller, state_type result)
 	{
@@ -131,7 +102,10 @@ auto basic_service::load_deps(const executor ex, const callback_type callback) n
 	const auto start_wrapped = [=](value_type& srv)->task_type
 	{
 		if (*error)
+		{
+			static const auto false_task = std::invoke([]( )->task_type { co_return false; });
 			return false_task;
+		}
 
 		srv->start(ex, callback_wrapped);
 		return srv->start_result;
@@ -158,32 +132,37 @@ auto basic_service::load_this(const executor ex, const callback_type callback) n
 
 auto basic_service::start_impl(const executor ex, const callback_type callback) noexcept -> task_type
 {
-	this->construct( );
+	construct( );
 	co_return co_await load_deps(ex, callback) && co_await load_this(ex, callback);
 }
 
 void basic_service::start(const executor ex, const callback_type callback) noexcept
 {
-	if (state == state_type::idle)
-	{
-		state = state_type::started;
-		start_result = start_impl(ex, callback);
-	}
+	if (state != state_type::idle)
+		return;
+
+	state = state_type::started;
+	start_result = start_impl(ex, callback);
 }
 
 void basic_service::start(const executor ex) noexcept
 {
-	callback_type default_callback;
+	static const auto default_callback =
 #ifdef _DEBUG
-	default_callback = std::make_shared<callback_type::element_type>([](basic_service* caller, state_type result)
+		std::make_shared<callback_type::element_type>([](basic_service* caller, basic_service::state_type result)
 	{
+		[[maybe_unused]]
 		uint8_t debugger_gap = 0;
-	});
+	})
+#else
+		callback_type( )
 #endif
-	start(ex, std::move(default_callback));
+		;
+
+	this->start(ex, default_callback);
 }
 
 void basic_service::start( ) noexcept
 {
-	start(std::make_shared<executor::element_type>( ), std::make_shared<callback_type::element_type>(log_service_start));
+	this->start(std::make_shared<executor::element_type>( ), std::make_shared<callback_type::element_type>(log_service_start));
 }
