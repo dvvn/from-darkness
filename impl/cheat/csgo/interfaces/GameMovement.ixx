@@ -1,6 +1,6 @@
 export module cheat.csgo.interfaces.GameMovement;
 export import cheat.csgo.interfaces.Prediction;
-import cheat.csgo.interface_accesser;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -23,7 +23,7 @@ export namespace cheat::csgo
 		virtual void               SetupMovementBounds(CMoveData* pMove) = 0;
 	};
 
-	class CGameMovement : public IGameMovement, public interface_accesser<CGameMovement>
+	class CGameMovement : public IGameMovement, public nstd::one_instance<CGameMovement*>
 	{
 	public:
 		~CGameMovement( ) override = default;

@@ -5,6 +5,7 @@ module;
 export module cheat.csgo.interfaces.GlowEffect;
 export import cheat.csgo.math;
 export import cheat.csgo.tools;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -56,11 +57,9 @@ export namespace cheat::csgo
 		Color  color;
 	};
 
-	class CGlowObjectManager
+	class CGlowObjectManager :public nstd::one_instance<CGlowObjectManager*>
 	{
 	public:
-
-
 		CUtlVector<GlowObject_t>    glow_object_definitions;
 		int                         first_free_slot;
 		CUtlVector<GlowBoxObject_t> glow_box_definitions;

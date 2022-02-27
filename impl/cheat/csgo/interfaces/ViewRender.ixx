@@ -1,6 +1,7 @@
 #pragma once
 
 export module cheat.csgo.interfaces.ViewRender;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -37,7 +38,7 @@ export namespace cheat::csgo
 	class C_BaseViewModel;
 	class IMaterial;
 
-	class IViewRender
+	class IViewRender :public nstd::one_instance<IViewRender*>
 	{
 	public:
 		virtual void                Init( ) = 0;

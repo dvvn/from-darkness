@@ -92,7 +92,7 @@ struct interfaces_storage : std::vector<std::pair<std::string_view, instance_fn>
 		return std::invoke(found->second);
 	}
 };
-struct interfaces_storage_pretty : nstd::unordered_map<std::string_view, instance_fn>
+struct interfaces_storage_hashed : nstd::unordered_map<std::string_view, instance_fn>
 {
 	template<typename Fn>
 	auto call(const std::string_view name, const Fn callback)const
@@ -202,13 +202,13 @@ static auto _Find_interfaces_pretty(rtlib::info* target_module)
 		return drop_underline(str, str_size);
 	};
 
-	interfaces_storage_pretty storage;
+	interfaces_storage storage;
 	storage.reserve(temp_entry.size( ));
 
 	for (const auto [name, fn] : temp_entry)
 	{
 		const auto name_pretty = get_pretty_string(name);
-		storage.emplace(name_pretty.value_or(name), fn);
+		storage.emplace_back(name_pretty.value_or(name), fn);
 	}
 
 	return storage;
@@ -216,19 +216,22 @@ static auto _Find_interfaces_pretty(rtlib::info* target_module)
 
 struct interfaces_storage_any
 {
-	using value_type = std::variant<interfaces_storage, interfaces_storage_pretty>;
+	using value_type = std::variant<interfaces_storage, interfaces_storage_hashed>;
 	value_type storage_;
 
 public:
 
 	interfaces_storage_any( ) = default;
 
-	interfaces_storage_any(rtlib::info* info, bool pretty)
+	interfaces_storage_any(value_type&& storage)
+		:storage_(std::move(storage))
 	{
-		if (pretty)
-			storage_ = _Find_interfaces_pretty(info);
-		else
-			storage_ = _Find_interfaces(info);
+	}
+
+	interfaces_storage_any& operator=(value_type&& storage)
+	{
+		swap(storage);
+		return *this;
 	}
 
 	template<typename Fn>
@@ -242,6 +245,12 @@ public:
 
 	void swap(interfaces_storage_any& other)noexcept
 	{
+		swap(other.storage_);
+	}
+
+private:
+	void swap(value_type& other)noexcept
+	{
 		constexpr auto do_move = [](value_type& current, value_type& other)
 		{
 			using std::swap;
@@ -253,14 +262,22 @@ public:
 		};
 
 		value_type temp;
-		do_move(temp, other.storage_);
-		do_move(other.storage_, storage_);
+		do_move(temp, other);
+		do_move(other, storage_);
 		do_move(storage_, temp);
-		/*temp = std::move(other.storage_);
-		other = std::move(storage_);
-		storage_ = std::move(temp);*/
 	}
 };
+
+static interfaces_storage_any _Store_interfaces(rtlib::info* target_module, bool store_full_interface_names, bool store_interfaces_in_hashtable)
+{
+	interfaces_storage storage = std::invoke(store_full_interface_names ? _Find_interfaces : _Find_interfaces_pretty, target_module);
+	interfaces_storage_any out;
+	if (store_interfaces_in_hashtable)
+		out = nstd::container::append<interfaces_storage_hashed>(storage);
+	else
+		out = std::move(storage);
+	return out;
+}
 
 struct module_storage_data
 {
@@ -293,10 +310,10 @@ struct module_storage_data
 	//_String_tester<_Fake_mutex> vtables_tested;
 	interfaces_storage_any interfaces;
 
-	module_storage_data(const std::string_view name)
+	module_storage_data(const std::string_view name, bool store_full_interface_names, bool store_interfaces_in_hashtable)
 	{
 		info_ptr = _Get_module(name);
-		interfaces = {info_ptr,true};
+		interfaces = _Store_interfaces(info_ptr, store_full_interface_names, store_interfaces_in_hashtable);
 	}
 };
 
@@ -412,8 +429,9 @@ struct module_storage
 	module_storage_data storage;
 	data_extractor extractor;
 
-	module_storage(const std::string_view name)
-		:storage(name), extractor(std::addressof(storage))
+	template<class ...Args> //yes im lazy
+	module_storage(const Args...args)
+		:storage(args...), extractor(std::addressof(storage))
 	{
 	}
 };
@@ -424,13 +442,14 @@ class storage_getter
 	std::mutex mtx_;
 
 public:
-	data_extractor* get(const std::string_view name)
+	template<class ...Args>
+	data_extractor* get(const Args...args)
 	{
 		if (!storage_.has_value( ))
 		{
 			const auto lock = std::scoped_lock(mtx_);
 			if (!storage_.has_value( ))
-				storage_.emplace(name);
+				storage_.emplace(args...);
 		}
 		return std::addressof(storage_->extractor);
 	}
@@ -445,14 +464,9 @@ struct modules_database : std::array<storage_getter, modules_count>
 {
 };
 
-data_extractor* cheat::csgo_modules::get(const std::string_view name, size_t index)
-{
-	return nstd::one_instance<modules_database>::get( )[index].get(name);
-}
-
 data_extractor* game_module_base::get( ) const
 {
-	return csgo_modules::get(name, index);
+	return nstd::one_instance<modules_database>::get( )[index].get(name, store_full_interface_names, store_interfaces_in_hashtable);
 }
 
 data_extractor* game_module_base::operator->( ) const

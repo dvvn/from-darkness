@@ -4,12 +4,19 @@
 #include <nstd/format.h>
 
 module cheat.csgo.interfaces.ConVar;
+import cheat.csgo.modules;
 import cheat.console;
 import cheat.root_service;
 import dhooks;
 import nstd.mem.address;
 
-using namespace cheat::csgo;
+using namespace cheat;
+using namespace csgo;
+
+ICVar* nstd::one_instance_getter<ICVar*>::_Construct( )const
+{
+	return csgo_modules::vstdlib->find_game_interface("VEngineCvar");
+}
 
 template <typename T>
 static void _Set_helper(ConVar* ptr, size_t index, T value)
@@ -25,25 +32,46 @@ static T _Get_helper(const ConVar* ptr, size_t index)
 }
 
 template < >
-const char* ConVar::get( ) const { return _Get_helper<const char*>(this, 11); }
+const char* ConVar::get( ) const
+{
+	return _Get_helper<const char*>(this, 11);
+}
 
 template < >
-float ConVar::get( ) const { return _Get_helper<float>(this, 12); }
+float ConVar::get( ) const
+{
+	return _Get_helper<float>(this, 12);
+}
 
 template < >
-int ConVar::get( ) const { return _Get_helper<int>(this, 13); }
+int ConVar::get( ) const
+{
+	return _Get_helper<int>(this, 13);
+}
 
 template < >
-bool ConVar::get( ) const { return !!this->get<int>( ); }
+bool ConVar::get( ) const
+{
+	return !!this->get<int>( );
+}
 
 template < >
-void ConVar::set(const char* value) { _Set_helper(this, 14, value); }
+void ConVar::set(const char* value)
+{
+	_Set_helper(this, 14, value);
+}
 
 template < >
-void ConVar::set(float value) { _Set_helper(this, 15, value); }
+void ConVar::set(float value)
+{
+	_Set_helper(this, 15, value);
+}
 
 template < >
-void ConVar::set(int value) { _Set_helper(this, 16, value); }
+void ConVar::set(int value)
+{
+	_Set_helper(this, 16, value);
+}
 
 ConCommandBaseIterator ICVar::begin( )const
 {
@@ -56,9 +84,9 @@ ConCommandBaseIterator ICVar::end( )const
 	return nullptr;
 }
 
-ConVar* ICVar::FindVar(std::string_view name)const
+ConVar* ICVar::FindVar(const std::string_view name)const
 {
-	const auto compare = [&](const ConCommandBase& cv)
+	const auto compare = [=](const ConCommandBase& cv)
 	{
 		if (cv.IsCommand( ))
 			return false;
@@ -112,3 +140,4 @@ ConVar* ICVar::FindVar(std::string_view name)const
 
 	return target_cvar == invalid_cvar ? nullptr : static_cast<ConVar*>(target_cvar.get( ));
 }
+

@@ -3,9 +3,10 @@ module;
 module cheat.csgo.interfaces.GameMovement;
 import cheat.csgo.modules;
 
-using namespace cheat::csgo;
+using namespace cheat;
+using namespace csgo;
 
-CGameMovement* interface_getter<CGameMovement>::set( )const
+CGameMovement* nstd::one_instance_getter<CGameMovement*>::_Construct( )const
 {
 	return csgo_modules::client->find_game_interface("GameMovement");
 }

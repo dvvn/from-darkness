@@ -9,6 +9,7 @@ export import cheat.csgo.tools;
 export import cheat.csgo.interfaces.Studio;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.interfaces.ModelRender;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -421,7 +422,7 @@ export namespace cheat::csgo
 		int m_nCount;
 	};
 
-	class IStudioRender : public IAppSystem
+	class IStudioRender : public IAppSystem, public nstd::one_instance<IStudioRender*>
 	{
 	public:
 		/*void SetColorModulation(float const* arrColor)

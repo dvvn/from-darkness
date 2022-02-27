@@ -4,6 +4,7 @@ module;
 #include <cstddef>
 
 export module cheat.csgo.interfaces.WeaponSystem;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -251,7 +252,7 @@ export namespace cheat::csgo
 		}*/
 	};
 
-	class IWeaponSystem
+	class IWeaponSystem : public nstd::one_instance<IWeaponSystem*>
 	{
 	public:
 		virtual ~IWeaponSystem( ) = default;

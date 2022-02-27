@@ -5,6 +5,7 @@ module;
 
 module cheat.hooks.studio_render:draw_model;
 import cheat.players;
+import nstd.mem.address;
 
 using namespace cheat;
 using namespace csgo;
@@ -14,13 +15,13 @@ draw_model::draw_model( ) = default;
 
 void draw_model::construct( ) noexcept
 {
-	this->deps( ).add<csgo_interfaces>( );
 	this->deps( ).add<players_list>( );
 }
 
 bool draw_model::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29));
+	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29));
+	this->set_target_method(nstd::mem::basic_address(IStudioRender::get_ptr( )).deref<1>( )[29]);
 	return hook_base::load( );
 }
 

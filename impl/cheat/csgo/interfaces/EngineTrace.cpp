@@ -4,8 +4,10 @@
 #include <tuple>
 
 module cheat.csgo.interfaces.EngineTrace;
+import cheat.csgo.modules;
 
-using namespace cheat::csgo;
+using namespace cheat;
+using namespace csgo;
 
 bool CTraceFilterWorldOnly::ShouldHitEntity(IHandleEntity* /*pServerEntity*/, int /*contentsMask*/)
 {
@@ -114,4 +116,11 @@ bool CGameTrace::DidHit( ) const
 bool CGameTrace::IsVisible( ) const
 {
 	return fraction > 0.97f;
+}
+
+//-----
+
+IEngineTrace* nstd::one_instance_getter<IEngineTrace*>::_Construct( )const
+{
+	return csgo_modules::engine->find_game_interface("EngineTraceClient");
 }

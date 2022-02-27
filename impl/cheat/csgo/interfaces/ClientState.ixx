@@ -4,6 +4,7 @@ module;
 
 export module cheat.csgo.interfaces.ClientState;
 export import cheat.csgo.math;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -91,7 +92,7 @@ export namespace cheat::csgo
 	};
 
 	// Thanks soufiw 
-	class CClientState
+	class CClientState :public nstd::one_instance<CClientState*>
 	{
 	public:
 		void ForceFullUpdate( )

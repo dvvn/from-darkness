@@ -5,6 +5,7 @@ module;
 export module cheat.csgo.interfaces.ClientMode;
 export import cheat.csgo.interfaces.GameEvents;
 export import cheat.csgo.math;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -239,7 +240,7 @@ export namespace cheat::csgo
 		typedef unsigned long HCursor;
 	}
 
-	class ClientModeShared : public IClientMode, public /*CGameEventListener*/IGameEventListener2
+	class ClientModeShared : public IClientMode, public /*CGameEventListener*/IGameEventListener2, public nstd::one_instance<ClientModeShared*>
 	{
 		// IClientMode overrides.
 	public:

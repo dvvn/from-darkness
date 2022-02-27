@@ -3,6 +3,7 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.ModelInfoClient;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -86,8 +87,7 @@ export namespace cheat::csgo
 		virtual bool                         UsesStaticLighting(const model_t* model) const = 0;
 	};
 
-	class IVModelInfoClient : public IVModelInfo
+	class IVModelInfoClient : public IVModelInfo, public nstd::one_instance<IVModelInfoClient*>
 	{
-	public:
 	};
 }

@@ -6,6 +6,7 @@ module;
 export module cheat.csgo.interfaces.EngineTrace;
 export import cheat.csgo.interfaces.ClientClass;
 export import cheat.csgo.math;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -454,7 +455,7 @@ export namespace cheat::csgo
 		int            hitbox; // box hit by trace in studio
 	};
 
-	class IEngineTrace
+	class IEngineTrace :public nstd::one_instance<IEngineTrace*>
 	{
 	public:
 		virtual int  GetPointContents(const Vector& vecAbsPosition, int contentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) = 0;

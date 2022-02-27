@@ -1,6 +1,7 @@
 export module cheat.csgo.interfaces.EngineSound;
 export import cheat.csgo.tools;
 export import cheat.csgo.math;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -51,7 +52,7 @@ export namespace cheat::csgo
 	constexpr auto PITCH_LOW = 95;	    // other values are possible - 0-255, where 255 is very high
 	constexpr auto  PITCH_HIGH = 120;
 
-	class IEngineSound
+	class IEngineSound :public nstd::one_instance<IEngineSound*>
 	{
 	public:
 		// Precache a particular sample

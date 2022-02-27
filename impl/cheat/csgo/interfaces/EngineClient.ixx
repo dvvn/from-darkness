@@ -4,6 +4,7 @@ module;
 
 export module cheat.csgo.interfaces.EngineClient;
 export import cheat.csgo.interfaces.MaterialSystem;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -157,7 +158,7 @@ export namespace cheat::csgo
 	//#undef CopyFile
 	//#endif
 
-	class IVEngineClient
+	class IVEngineClient :public nstd::one_instance<IVEngineClient*>
 	{
 	public:
 		virtual int GetIntersectingSurfaces(const model_t* model, const Vector& vCenter, float radius, bool bOnlyVisibleSurfaces, SurfInfo* pInfos, int nMaxInfos) = 0;

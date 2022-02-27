@@ -3,6 +3,7 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.Physics;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -63,15 +64,13 @@ export namespace cheat::csgo
 		surfacegameprops_t     game;
 	};
 
-	class IPhysicsSurfaceProps
+	class IPhysicsSurfaceProps :public nstd::one_instance<IPhysicsSurfaceProps*>
 	{
 	public:
-		virtual ~IPhysicsSurfaceProps()
-		{
-		}
+		virtual ~IPhysicsSurfaceProps( ) = default;
 
 		virtual int            ParseSurfaceData(const char* pFilename, const char* pTextfile) = 0;
-		virtual int            SurfacePropCount() const = 0;
+		virtual int            SurfacePropCount( ) const = 0;
 		virtual int            GetSurfaceIndex(const char* pSurfacePropName) const = 0;
 		virtual void           GetPhysicsProperties(int surfaceDataIndex, float* density, float thickness, float friction, float elasticity) const = 0;
 		virtual surfacedata_t* GetSurfaceData(int surfaceDataIndex) = 0;

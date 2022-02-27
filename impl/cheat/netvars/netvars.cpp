@@ -33,16 +33,14 @@ netvars::~netvars( ) = default;
 void netvars::construct( ) noexcept
 {
 	impl_ = std::make_unique<impl>( );
-	this->deps( ).add<csgo_interfaces>( );
 	this->deps( ).add<console>( );
 }
 
 bool netvars::load( ) noexcept
 {
 	auto& storage = impl_->storage;
-	auto& interfaces = this->deps( ).get<csgo_interfaces>( );
 
-	iterate_client_class(storage, interfaces.client->GetAllClasses( ));
+	iterate_client_class(storage, IBaseClientDLL::get( ).GetAllClasses( ));
 
 	const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
 	iterate_datamap(storage, baseent->GetDataDescMap( ));
@@ -51,7 +49,7 @@ bool netvars::load( ) noexcept
 
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
 	auto* const cons = this->deps( ).try_get<console>( );
-	const auto log_result = log_netvars(cons, interfaces.engine->GetProductVersionString( ), storage);
+	const auto log_result = log_netvars(cons, IVEngineClient::get( ).GetProductVersionString( ), storage);
 	generate_classes(cons, log_result, storage, impl_->lazy);
 #endif
 	return true;

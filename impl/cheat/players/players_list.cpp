@@ -17,7 +17,6 @@ players_list::~players_list( ) = default;
 
 void players_list::construct( ) noexcept
 {
-	this->deps( ).add<csgo_interfaces>( );
 	this->deps( ).add<netvars>( );
 }
 
@@ -36,58 +35,52 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 	return fn(player, 0u, 0.f, duration, 0.f, use_mono_color);
 }
 
-static float _Lerp_time(const ICVar * cvars)
+static float _Lerp_time( )
 {
-	const auto lerp_amount = cvars->FindVar<"cl_interp">( )->get<float>( );
-	auto lerp_ratio = cvars->FindVar<"cl_interp_ratio">( )->get<float>( );
+	const auto lerp_amount = ICVar::get( ).FindVar<"cl_interp">( )->get<float>( );
+	auto lerp_ratio = ICVar::get( ).FindVar<"cl_interp_ratio">( )->get<float>( );
 
 	if (lerp_ratio == 0.0f)
 		lerp_ratio = 1.0f;
 
-	const auto min_ratio = cvars->FindVar<"sv_client_min_interp_ratio">( )->get<float>( );
+	const auto min_ratio = ICVar::get( ).FindVar<"sv_client_min_interp_ratio">( )->get<float>( );
 	if (min_ratio != -1.0f)
 	{
-		const auto max_ratio = cvars->FindVar<"sv_client_max_interp_ratio">( )->get<float>( );
+		const auto max_ratio = ICVar::get( ).FindVar<"sv_client_max_interp_ratio">( )->get<float>( );
 		lerp_ratio = std::clamp(lerp_ratio, min_ratio, max_ratio);
 	}
 
-	const auto update_rate = std::clamp(cvars->FindVar<"cl_updaterate">( )->get<float>( ), cvars->FindVar<"sv_minupdaterate">( )->get<float>( ), cvars->FindVar<"sv_maxupdaterate">( )->get<float>( ));
+	const auto update_rate = std::clamp(ICVar::get( ).FindVar<"cl_updaterate">( )->get<float>( ), ICVar::get( ).FindVar<"sv_minupdaterate">( )->get<float>( ), ICVar::get( ).FindVar<"sv_maxupdaterate">( )->get<float>( ));
 	return std::max(lerp_amount, lerp_ratio / update_rate);
 }
 
-static float _Correct_value(IVEngineClient * engine, const ICVar * cvars)
+static float _Correct_value( )
 {
-	const auto nci = engine->GetNetChannelInfo( );
+	const auto nci = IVEngineClient::get( ).GetNetChannelInfo( );
 	const auto latency = nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING);
-	const auto lerp = _Lerp_time(cvars);
-	const auto unlag_limit = cvars->FindVar<"sv_maxunlag">( )->get<float>( );
+	const auto lerp = _Lerp_time( );
+	const auto unlag_limit = ICVar::get( ).FindVar<"sv_maxunlag">( )->get<float>( );
 	return std::clamp(latency + lerp, 0.f, unlag_limit);
 }
 
 void players_list::update( )
 {
-	const auto& interfaces = this->deps( ).get<csgo_interfaces>( );
-
-	const auto globals = interfaces.global_vars.get( );
-	const auto max_clients = static_cast<size_t>(globals->max_clients);
+	const auto max_clients = static_cast<size_t>(CGlobalVarsBase::get( ).max_clients);
 	storage_.resize(max_clients);
 
-	const auto engine = interfaces.engine.get( );
-	const auto cvars = interfaces.cvars.get( );
 	const auto update_players =
 		[this,
-		ents_list = interfaces.entity_list.get( ),
 #ifdef _DEBUG
-		frametime = globals->frametime,
+		frametime = CGlobalVarsBase::get( ).frametime,
 #endif
-		curtime = globals->curtime,//todo: made it fixed
-		correct = _Correct_value(engine, cvars)
+		curtime = CGlobalVarsBase::get( ).curtime,//todo: made it fixed
+		correct = _Correct_value( )
 		]<typename Fn>(const size_t start, const Fn validator, const size_t limit)
 	{
 		for (auto i = start; std::invoke(validator, i, limit); ++i)
 		{
 			auto& entry = storage_[i];
-			const auto ent = static_cast<C_CSPlayer*>(ents_list->GetClientEntity(i));
+			const auto ent = static_cast<C_CSPlayer*>(IClientEntityList::get( ).GetClientEntity(i));
 			entry.update(ent, curtime, correct);
 #ifdef _DEBUG
 			if (!entry.team.ghost)
@@ -98,7 +91,7 @@ void players_list::update( )
 		}
 	};
 
-	const auto local_idx = engine->GetLocalPlayer( );
+	const auto local_idx = IVEngineClient::get( ).GetLocalPlayer( );
 
 	update_players(1, std::less( ), local_idx);
 	storage_[local_idx].update(nullptr, 0, 0);

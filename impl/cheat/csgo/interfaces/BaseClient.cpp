@@ -4,9 +4,10 @@ module cheat.csgo.interfaces.BaseClient;
 import cheat.csgo.modules;
 import dhooks;
 
-using namespace cheat::csgo;
+using namespace cheat;
+using namespace csgo;
 
-IBaseClientDLL* interface_getter<IBaseClientDLL>::set( )const
+IBaseClientDLL* nstd::one_instance_getter<IBaseClientDLL*>::_Construct( )const
 {
 	return csgo_modules::client->find_game_interface("VClient");
 }

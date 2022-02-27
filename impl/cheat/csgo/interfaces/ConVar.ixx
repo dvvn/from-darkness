@@ -6,6 +6,7 @@ export module cheat.csgo.interfaces.ConVar;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.tools;
 export import cheat.csgo.math;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -130,8 +131,8 @@ export namespace cheat::csgo
 		// Set flag
 		virtual void				AddFlags(int flags) = 0;
 
-			// Return name of cvar
-			virtual const char* GetName( ) const = 0;
+		// Return name of cvar
+		virtual const char* GetName( ) const = 0;
 
 		// Return help text for cvar
 		virtual const char* GetHelpText( ) const = 0;
@@ -182,7 +183,7 @@ export namespace cheat::csgo
 		//static IConCommandBaseAccessor* s_pAccessor;
 	};
 
-	
+
 
 	struct CVValue_t
 	{
@@ -268,7 +269,8 @@ export namespace cheat::csgo
 	//-----------------------------------------------------------------------------
 	// Abstract interface for ConVars
 	//-----------------------------------------------------------------------------
-	class ICVar : IAppSystem
+
+	class ICVar : IAppSystem, public nstd::one_instance<ICVar*>
 	{
 		virtual CVarDLLIdentifier_t	AllocateDLLIdentifier( ) = 0;
 		virtual void			RegisterConCommand(ConVar* pCommandBase, int iDefaultValue = 1) = 0;
@@ -296,7 +298,7 @@ export namespace cheat::csgo
 		ConCommandBaseIterator begin( )const;
 		ConCommandBaseIterator end( )const;
 
-		ConVar* FindVar(std::string_view name)const;
+		ConVar* FindVar(const std::string_view name)const;
 
 		template<nstd::chars_cache Cvar>
 		ConVar* FindVar( )const

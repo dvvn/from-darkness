@@ -1,8 +1,9 @@
 export module cheat.csgo.interfaces.GlobalVars;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
-	class CGlobalVarsBase
+	class CGlobalVarsBase :public nstd::one_instance<CGlobalVarsBase*>
 	{
 	public:
 		float realtime;                          // 0x0000

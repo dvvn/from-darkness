@@ -91,13 +91,14 @@ bool csgo_interfaces::load( ) noexcept
 		return true;
 	}
 
+#if 0
 	//client = csgo_modules::client->find_game_interface("VClient");
 	//entity_list = csgo_modules::client->find_game_interface("VClientEntityList");
 	//prediction = csgo_modules::client->find_game_interface("VClientPrediction");
 	//game_movement = csgo_modules::client->find_game_interface("GameMovement");
 
-	engine = csgo_modules::engine->find_game_interface("VEngineClient");
-	mdl_info = csgo_modules::engine->find_game_interface("VModelInfoClient");
+	//engine = csgo_modules::engine->find_game_interface("VEngineClient");
+	//mdl_info = csgo_modules::engine->find_game_interface("VModelInfoClient");
 	mdl_render = csgo_modules::engine->find_game_interface("VEngineModel");
 	render_view = csgo_modules::engine->find_game_interface("VEngineRenderView");
 	engine_trace = csgo_modules::engine->find_game_interface("EngineTraceClient");
@@ -105,7 +106,7 @@ bool csgo_interfaces::load( ) noexcept
 	game_events = csgo_modules::engine->find_game_interface("GAMEEVENTSMANAGER");
 	engine_sound = csgo_modules::engine->find_game_interface("IEngineSoundClient");
 
-	mdl_cache = csgo_modules::datacache->find_game_interface("MDLCache");
+	//mdl_cache = csgo_modules::datacache->find_game_interface("MDLCache");
 	material_system = csgo_modules::materialsystem->find_game_interface("VMaterialSystem");
 	cvars = csgo_modules::vstdlib->find_game_interface("VEngineCvar");
 	vgui_panel = csgo_modules::vgui2->find_game_interface("VGUI_Panel");
@@ -124,10 +125,10 @@ bool csgo_interfaces::load( ) noexcept
 	glow_mgr = csgo_modules::client->find_signature("0F 11 05 ? ? ? ? 83 C8 01").plus(3).deref<1>( );
 	view_render = csgo_modules::client->find_signature("A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10").plus(1).deref<1>( );
 	weapon_sys = csgo_modules::client->find_signature("8B 35 ? ? ? ? FF 10 0F B7 C0").plus(2).deref<1>( );
-	local_player = csgo_modules::client->find_signature("8B 0D ? ? ? ? 83 FF FF 74 07").plus(2).deref<1>( );
 
 	client_state = csgo_modules::engine->find_signature("A1 ? ? ? ? 8B 80 ? ? ? ? C3").plus(1).deref<2>( );
-
+#endif
+	local_player = csgo_modules::client->find_signature("8B 0D ? ? ? ? 83 FF FF 74 07").plus(2).deref<1>( );
 	d3d_device = csgo_modules::shaderapidx9->find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C").plus(1).deref<2>( );
 
 	return true;

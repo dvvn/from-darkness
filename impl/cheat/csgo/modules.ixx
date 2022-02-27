@@ -55,12 +55,10 @@ namespace cheat::csgo_modules
 		storage_type storage_;
 	};
 
-	/*export*/ data_extractor* get(const std::string_view name, size_t index);
-
 	export struct game_module_base
 	{
-		constexpr game_module_base(const std::string_view name, size_t index)
-			: name(name), index(index)
+		constexpr game_module_base(const std::string_view name, size_t index, bool store_full_interface_names = false, bool store_interfaces_in_hashtable = true)
+			: name(name), index(index), store_full_interface_names(store_full_interface_names), store_interfaces_in_hashtable(store_interfaces_in_hashtable)
 		{
 		}
 
@@ -69,10 +67,12 @@ namespace cheat::csgo_modules
 
 		std::string_view name;
 		size_t index;
+		bool store_full_interface_names;
+		bool store_interfaces_in_hashtable;
 	};
 
-#define CHEAT_GAME_MODULE(_NAME_)\
-	export inline constexpr game_module_base _NAME_ = {#_NAME_, __LINE__ - modules_count_hint}
+#define CHEAT_GAME_MODULE(_NAME_,...)\
+	export inline constexpr game_module_base _NAME_ = {#_NAME_, __LINE__ - modules_count_hint,__VA_ARGS__}
 
 	inline constexpr auto modules_count_hint = __LINE__ + 1;
 	CHEAT_GAME_MODULE(server);

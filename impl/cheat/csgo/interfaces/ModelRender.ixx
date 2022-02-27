@@ -4,6 +4,7 @@ module;
 
 export module cheat.csgo.interfaces.ModelRender;
 export import cheat.csgo.math;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -76,8 +77,6 @@ export namespace cheat::csgo
 		int body;
 		int hitboxset;
 		ModelInstanceHandle_t instance;
-
-		ModelRenderInfo_t( );
 	};
 
 	struct LightingQuery_t
@@ -92,7 +91,7 @@ export namespace cheat::csgo
 		IClientRenderable* m_pRenderable;
 	};
 
-	class IVModelRender
+	class IVModelRender:public nstd::one_instance<IVModelRender*>
 	{
 	public:
 		virtual int DrawModel(int flags, IClientRenderable* pRenderable, ModelInstanceHandle_t instance, int entity_index, const model_t* model, const Vector& origin,

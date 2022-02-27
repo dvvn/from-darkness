@@ -5,6 +5,7 @@ module;
 
 module cheat.hooks.client:frame_stage_notify;
 import cheat.players;
+import nstd.mem.address;
 
 using namespace cheat;
 using namespace csgo;
@@ -14,13 +15,13 @@ frame_stage_notify::frame_stage_notify( ) = default;
 
 void frame_stage_notify::construct( ) noexcept
 {
-	this->deps( ).add<csgo_interfaces>( );
 	this->deps( ).add<players_list>( );
 }
 
 bool frame_stage_notify::load( ) noexcept
 {
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client.vfunc(32));
+	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client.vfunc(32));
+	this->set_target_method(nstd::mem::basic_address(IBaseClientDLL::get_ptr( )).deref<1>( )[32]);
 	return hook_base::load( );
 }
 

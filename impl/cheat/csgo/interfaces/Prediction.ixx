@@ -6,7 +6,7 @@ export module cheat.csgo.interfaces.Prediction;
 export import cheat.csgo.interfaces.BaseHandle;
 export import cheat.csgo.math;
 export import cheat.csgo.tools;
-import cheat.csgo.interface_accesser;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -42,7 +42,7 @@ export namespace cheat::csgo
 
 	class C_BasePlayer;
 
-	class IPrediction :public interface_accesser<IPrediction>
+	class IPrediction :public nstd::one_instance<IPrediction*>
 	{
 		//std::byte pad0[0x4]; // 0x0000
 	public:

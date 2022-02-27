@@ -5,6 +5,7 @@ module;
 export module cheat.csgo.interfaces.MaterialSystem;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.math;
+import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -339,7 +340,7 @@ export namespace cheat::csgo
 		virtual int GetReferenceCount( ) const = 0;
 	};
 
-	class IMaterialSystem : public IAppSystem
+	class IMaterialSystem : public IAppSystem, public nstd::one_instance<IMaterialSystem*>
 	{
 	public:
 		virtual CreateInterfaceFn Init(const char* pShaderAPIDLL, IMaterialProxyFactory* pMaterialProxyFactory, CreateInterfaceFn fileSystemFactory,

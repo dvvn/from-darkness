@@ -1,12 +1,10 @@
-module;
-
-#include <cstring>
-
 module cheat.csgo.interfaces.ModelRender;
+import cheat.csgo.modules;
 
-using namespace cheat::csgo;
+using namespace cheat;
+using namespace csgo;
 
-ModelRenderInfo_t::ModelRenderInfo_t( )
+IVModelRender* nstd::one_instance_getter<IVModelRender*>::_Construct( )const
 {
-	std::memset(this, 0, sizeof(ModelRenderInfo_t));
+	return csgo_modules::engine->find_game_interface("VEngineModel");
 }
