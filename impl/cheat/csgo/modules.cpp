@@ -7,8 +7,10 @@ module;
 #include <nstd/unordered_set.h>
 #include <nstd/unordered_map.h>
 
+#include <filesystem>
+#include <condition_variable>
+
 module cheat.csgo.modules;
-import cheat.csgo.interfaces;
 import cheat.root_service;
 import cheat.console;
 import nstd.rtlib;
@@ -40,28 +42,124 @@ static console* _Get_console( )
 	return services_loader::get( ).deps( ).try_get<console>( );
 }
 
+class modules_accesser
+{
+	using mutex_type = std::recursive_mutex;
+	using lock_type = std::scoped_lock<mutex_type>;
+	lock_type lock_;
+
+	using mtx = nstd::one_instance<mutex_type, __LINE__>;
+
+public:
+	modules_accesser(/*bool lock = true*/)
+		:lock_(mtx::get( ))
+	{
+	}
+
+	//lock and unlock for conditional variable only
+
+	void lock( )noexcept
+	{
+		mtx::get( ).lock( );
+	}
+
+	void unlock( )noexcept
+	{
+		mtx::get( ).unlock( );
+	}
+
+	auto begin( )const
+	{
+		return rtlib::all_infos::get( ).begin( );
+	}
+
+	auto end( )const
+	{
+		return rtlib::all_infos::get( ).end( );
+	}
+
+	auto operator->( )const
+	{
+		return rtlib::all_infos::get_ptr( );
+	}
+};
+
+static void _Init_modules( )
+{
+	const modules_accesser modules;
+	runtime_assert(!modules->contains_locker( ) && modules->empty( ), "Modules storage already updated!");
+	modules->set_locker([](auto& unused) {return false; });
+	modules->update(false);
+	const auto& owner_path = modules->owner( ).work_dir.fixed;
+	const nstd::hashed_wstring str = const_cast<std::wstring&&>(
+		std::filesystem::path(owner_path.begin( ), owner_path.end( )).append(L"bin").append(L"serverbrowser.dll").native( ));
+
+	modules->set_locker([hash = str.hash( )](const rtlib::modules_storage_data& data)
+	{
+		for (const auto& m : data | std::views::reverse)
+		{
+			if (m.full_path.fixed.hash( ) == hash)
+				return true;
+		}
+		return false;
+	});
+}
+
+//thread-safe modules updater
 static rtlib::info* _Find_modue(const rtlib::info_string::fixed_type& str)
 {
-	for (rtlib::info& entry : rtlib::all_infos::get( ))
+	[[maybe_unused]]
+	static const uint8_t init = (_Init_modules( ), 0);
+
+	for (;;)
 	{
-		if (entry.name == str)
-			return std::addressof(entry);
+		for (auto& entry : modules_accesser( ))
+		{
+			if (entry.name == str)
+				return std::addressof(entry);
+		}
+
+		modules_accesser accesser;
+		if (accesser->locked( ))
+			return nullptr;
+
+		std::condition_variable_any cv;
+		cv.wait(accesser, []
+		{
+			return rtlib::all_infos::get( ).update(true);
+		});
 	}
-	return nullptr;
+}
+
+template <std::ranges::random_access_range Rng>
+static auto _Find_extension(const Rng& rng)
+{
+	using val_t = std::ranges::range_value_t<Rng>;
+	std::basic_string_view<val_t> out = {rng.begin( ),rng.end( )};
+
+	const auto offset = out.rfind(static_cast<val_t>('.'));
+	if (offset != out.npos)
+		out.remove_prefix(offset);
+	return out;
 }
 
 template <class Rng>
-static rtlib::info* _Get_module(const Rng& target_name)
+static auto _Get_module(const Rng& target_name)
 {
-	for (auto chr : target_name)
+	rtlib::info* ret;
+
+	const auto extension = _Find_extension(target_name);
+	if (!extension.empty( ))
 	{
-		if (chr == static_cast<decltype(chr)>('.'))
-			return _Find_modue(target_name);
+		ret = _Find_modue(target_name);
+	}
+	else
+	{
+		const auto wstr = nstd::container::append<std::wstring>(_Transform_wide(target_name), _Transform_wide(extension));
+		ret = _Find_modue(wstr);
 	}
 
-	using namespace std::string_view_literals;
-	const auto wstr = nstd::container::append<std::wstring>(_Transform_wide(target_name), L".dll"sv);
-	return _Find_modue(wstr);
+	return ret;
 }
 
 //not thread-safe

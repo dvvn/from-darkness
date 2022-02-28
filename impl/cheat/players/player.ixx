@@ -4,7 +4,7 @@ module;
 
 export module cheat.players:player;
 export import :tick_record;
-export import cheat.csgo.interfaces;
+export import cheat.csgo.interfaces.C_CSPlayer;
 
 export namespace cheat
 {

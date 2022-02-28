@@ -3,8 +3,9 @@ module;
 #include "cheat/hooks/base_includes.h"
 
 export module cheat.hooks.client_mode:create_move;
+import cheat.csgo.interfaces.ClientMode;
+
 import cheat.hooks.base;
-import cheat.csgo.interfaces;
 
 namespace cheat::hooks::client_mode
 {
@@ -15,7 +16,6 @@ namespace cheat::hooks::client_mode
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(float input_sample_time, csgo::CUserCmd* cmd) override;
 	};
 }

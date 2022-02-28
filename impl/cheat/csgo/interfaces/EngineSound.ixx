@@ -1,6 +1,6 @@
 export module cheat.csgo.interfaces.EngineSound;
-export import cheat.csgo.tools;
-export import cheat.csgo.math;
+export import cheat.csgo.tools.UtlVector;
+export import cheat.csgo.math.Vector;
 import nstd.one_instance;
 
 export namespace cheat::csgo

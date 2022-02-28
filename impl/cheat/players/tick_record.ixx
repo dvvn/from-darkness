@@ -5,7 +5,7 @@ module;
 
 export module cheat.players:tick_record;
 export import :shared_holder;
-export import cheat.csgo.interfaces;
+export import cheat.csgo.interfaces.C_BaseAnimating;
 
 export namespace cheat
 {

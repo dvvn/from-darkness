@@ -2,7 +2,7 @@ module;
 
 #include "array_view_includes.h"
 
-export module cheat.csgo.math:array_view;
+export module cheat.csgo.math.array_view;
 
 namespace rn = std::ranges;
 
@@ -171,7 +171,6 @@ export namespace cheat::csgo
 	template<typename T>
 	struct array_view_fill
 	{
-
 		constexpr array_view_fill(T val) :value(val) { }
 
 		constexpr array_view_fill operator-( )const
@@ -187,9 +186,9 @@ export namespace cheat::csgo
 	};
 
 	template<typename T>
-	_INLINE_VAR constexpr bool is_fill_var_v = false;
+	inline constexpr bool is_fill_var_v = false;
 	template<typename T>
-	_INLINE_VAR constexpr bool is_fill_var_v<array_view_fill<T>> = true;
+	inline constexpr bool is_fill_var_v<array_view_fill<T>> = true;
 
 #pragma warning(disable:4455)
 	constexpr auto operator"" _fill(long double val) { return array_view_fill(val); }
@@ -294,7 +293,7 @@ namespace cheat::csgo
 	using array_view_detect_type = std::remove_cvref_t<decltype(std::get<0>(_Flatten(_Get_first_value(std::declval<T>( )...))))>;
 
 	template<typename ...T>
-	_INLINE_VAR constexpr size_t array_view_detect_size = std::tuple_size_v<decltype(_Flatten(std::declval<T>( )...))>;
+	inline constexpr size_t array_view_detect_size = std::tuple_size_v<decltype(_Flatten(std::declval<T>( )...))>;
 
 	template<typename ...T>
 	constexpr auto array_view_make_default_value( )

@@ -4,11 +4,13 @@ module;
 
 export module cheat.csgo.interfaces.C_BaseEntity;
 export import cheat.csgo.interfaces.ClientEntity;
-export import cheat.csgo.interfaces.Recv;
-export import cheat.csgo.interfaces.DataMap;
-export import cheat.csgo.interfaces.VarMapping;
-export import cheat.csgo.math;
-export import cheat.csgo.tools;
+export import cheat.csgo.structs.Recv;
+export import cheat.csgo.structs.DataMap;
+export import cheat.csgo.structs.VarMapping;
+export import cheat.csgo.math.Vector;
+export import cheat.csgo.math.Qangle;
+export import cheat.csgo.math.Vmatrix;
+export import cheat.csgo.math.Quaternion;
 
 export namespace cheat::csgo
 {

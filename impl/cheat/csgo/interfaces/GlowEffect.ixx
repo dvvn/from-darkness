@@ -3,8 +3,10 @@ module;
 #include <array>
 
 export module cheat.csgo.interfaces.GlowEffect;
-export import cheat.csgo.math;
-export import cheat.csgo.tools;
+export import cheat.csgo.math.Vector;
+export import cheat.csgo.math.Qangle;
+export import cheat.csgo.math.Color;
+export import cheat.csgo.tools.UtlVector;
 import nstd.one_instance;
 
 export namespace cheat::csgo

@@ -16,7 +16,6 @@
 
 import cheat.root_service;
 import cheat.console;
-import cheat.csgo.interfaces;
 import cheat.gui;
 import cheat.hooks.winapi;
 import cheat.hooks.imgui;
@@ -26,9 +25,16 @@ import nstd.winapi.comptr;
 
 using nstd::winapi::comptr;
 
+#pragma pack(push, 1)
+struct d3d_device_holder : comptr<IDirect3DDevice9>
+{
+	char hint[4 + 2 * 3] = {1,0,0,3,0,0,3,0,0,7};
+};
+#pragma pack(pop)
+
 // Data
 static comptr<IDirect3D9> g_pD3D;
-static comptr<IDirect3DDevice9> g_pd3dDevice;
+static d3d_device_holder g_pd3dDevice;
 static D3DPRESENT_PARAMETERS g_d3dpp;
 
 // Forward declarations of helper functions
@@ -41,8 +47,6 @@ static void register_services( )
 	using namespace cheat;
 	auto deps = services_loader::get( ).deps( );
 	deps.add<console>( );
-	deps.add<csgo_interfaces>( )->prepare_for_gui_test(g_pd3dDevice);
-	deps.add<gui::menu>( );
 	using namespace hooks;
 	deps.add<winapi::wndproc>( );
 	deps.add<imgui::PushClipRect>( );
@@ -147,7 +151,7 @@ int main(int, char**)
 		// Handle loss of D3D9 device
 		if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel( ) == D3DERR_DEVICENOTRESET)
 			ResetDevice( );
-		}
+	}
 
 _RESET:
 
@@ -161,7 +165,7 @@ _RESET:
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
 	return 0;
-	}
+}
 
 // Helper functions
 

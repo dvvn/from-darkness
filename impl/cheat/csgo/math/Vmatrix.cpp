@@ -2,7 +2,7 @@
 
 #include "vector_base_includes.h"
 
-module cheat.csgo.math:Vmatrix;
+module cheat.csgo.math.Vmatrix;
 
 using namespace cheat::csgo;
 

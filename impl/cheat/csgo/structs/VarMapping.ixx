@@ -1,7 +1,7 @@
 module;
 
-export module cheat.csgo.interfaces.VarMapping;
-export import cheat.csgo.tools;
+export module cheat.csgo.structs.VarMapping;
+export import cheat.csgo.tools.UtlVector;
 
 export namespace cheat::csgo
 {

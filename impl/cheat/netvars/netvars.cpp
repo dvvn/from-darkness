@@ -11,9 +11,10 @@ import :data_dump;
 import :data_fill;
 import :data_handmade;
 
-import cheat.csgo.interfaces;
 import cheat.csgo.modules;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.C_BaseEntity;
+import cheat.csgo.interfaces.EngineClient;
+import cheat.csgo.interfaces.BaseClient;
 
 using namespace cheat;
 using namespace netvars_impl;

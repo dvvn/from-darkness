@@ -1,24 +1,18 @@
 module;
 
-#include "cheat/service/basic_includes.h"
-#include "cheat/netvars/storage_includes.h"
-
 #include <functional>
+#include <algorithm>
 
 module cheat.players:list;
-import cheat.netvars;
 import cheat.csgo.modules;
+import cheat.csgo.interfaces.ConVar;
+import cheat.csgo.interfaces.EngineClient;
+import cheat.csgo.interfaces.GlobalVars;
+import cheat.csgo.interfaces.ClientEntityList;
+import cheat.csgo.interfaces.C_CSPlayer;
 
 using namespace cheat;
 using namespace csgo;
-
-players_list::players_list( ) = default;
-players_list::~players_list( ) = default;
-
-void players_list::construct( ) noexcept
-{
-	this->deps( ).add<netvars>( );
-}
 
 static void* _Player_by_index_server(int client_index)
 {
@@ -66,7 +60,7 @@ static float _Correct_value( )
 void players_list::update( )
 {
 	const auto max_clients = static_cast<size_t>(CGlobalVarsBase::get( ).max_clients);
-	storage_.resize(max_clients);
+	this->resize(max_clients);
 
 	const auto update_players =
 		[this,
@@ -79,7 +73,7 @@ void players_list::update( )
 	{
 		for (auto i = start; std::invoke(validator, i, limit); ++i)
 		{
-			auto& entry = storage_[i];
+			auto& entry = this->at(i);
 			const auto ent = static_cast<C_CSPlayer*>(IClientEntityList::get( ).GetClientEntity(i));
 			entry.update(ent, curtime, correct);
 #ifdef _DEBUG
@@ -94,6 +88,6 @@ void players_list::update( )
 	const auto local_idx = IVEngineClient::get( ).GetLocalPlayer( );
 
 	update_players(1, std::less( ), local_idx);
-	storage_[local_idx].update(nullptr, 0, 0);
+	this->at(local_idx).update(nullptr, 0, 0);
 	update_players(local_idx + 1, std::less_equal( ), max_clients);
 }

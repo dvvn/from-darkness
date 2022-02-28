@@ -4,8 +4,8 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.EngineTrace;
-export import cheat.csgo.interfaces.ClientClass;
-export import cheat.csgo.math;
+export import cheat.csgo.structs.ClientClass;
+export import cheat.csgo.math.Vector;
 import nstd.one_instance;
 
 export namespace cheat::csgo

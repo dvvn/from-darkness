@@ -15,14 +15,9 @@ frame_stage_notify::frame_stage_notify( ) = default;
 
 void frame_stage_notify::construct( ) noexcept
 {
-	this->deps( ).add<players_list>( );
-}
-
-bool frame_stage_notify::load( ) noexcept
-{
 	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client.vfunc(32));
-	this->set_target_method(nstd::mem::basic_address(IBaseClientDLL::get_ptr( )).deref<1>( )[32]);
-	return hook_base::load( );
+	const nstd::mem::basic_address vtable_holder = IBaseClientDLL::get_ptr( );
+	this->set_target_method(vtable_holder.deref<1>( )[32]);
 }
 
 void frame_stage_notify::callback(ClientFrameStage_t stage)
@@ -34,7 +29,7 @@ void frame_stage_notify::callback(ClientFrameStage_t stage)
 	case FRAME_NET_UPDATE_START: break;
 	case FRAME_NET_UPDATE_POSTDATAUPDATE_START: break;
 	case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-		this->deps( ).get<players_list>( ).update( ); //todo: move to createmove
+		players_list::get( ).update( ); //todo: move to createmove
 		break;
 	case FRAME_NET_UPDATE_END: break;
 	case FRAME_RENDER_START: break;

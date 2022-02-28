@@ -2,8 +2,8 @@ module;
 
 #include "vector_base_includes.h"
 
-export module cheat.csgo.math:Qangle;
-export import :vector_base;
+export module cheat.csgo.math.Qangle;
+export import cheat.csgo.math.vector_base;
 
 export namespace cheat::csgo
 {

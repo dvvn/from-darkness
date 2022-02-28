@@ -2,7 +2,7 @@ module;
 #include <cstdint>
 #include <span>
 
-export module cheat.csgo.interfaces.DataMap;
+export module cheat.csgo.structs.DataMap;
 
 export namespace cheat::csgo
 {

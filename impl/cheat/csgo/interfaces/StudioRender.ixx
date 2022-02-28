@@ -5,10 +5,10 @@ module;
 #include <array>
 
 export module cheat.csgo.interfaces.StudioRender;
-export import cheat.csgo.tools;
 export import cheat.csgo.interfaces.Studio;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.interfaces.ModelRender;
+export import cheat.csgo.tools.UtlVector;
 import nstd.one_instance;
 
 export namespace cheat::csgo

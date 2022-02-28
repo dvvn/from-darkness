@@ -5,7 +5,6 @@ module;
 #include <nstd/enum_tools.h>
 
 module cheat.hooks.c_base_animating:standard_blending_rules;
-import cheat.netvars;
 import cheat.csgo.modules;
 
 using namespace cheat;
@@ -16,15 +15,9 @@ standard_blending_rules::standard_blending_rules( ) = default;
 
 void standard_blending_rules::construct( ) noexcept
 {
-	this->deps( ).add<netvars>( );
-}
-
-bool standard_blending_rules::load( ) noexcept
-{
-	const csgo_interface vtable = csgo_modules::client->find_vtable<C_BaseAnimating>( );
+	const nstd::mem::basic_address vtable_holder = csgo_modules::client->find_vtable<C_BaseAnimating>( );
 	const auto index = csgo_modules::client->find_signature("8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC").plus(11).deref<1>( ).divide(4);
-	this->set_target_method(vtable.vfunc(index.value));
-	return hook_base::load( );
+	this->set_target_method(vtable_holder.deref<1>( )[index.value]);
 }
 
 void standard_blending_rules::callback(CStudioHdr * hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)

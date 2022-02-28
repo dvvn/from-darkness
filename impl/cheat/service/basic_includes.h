@@ -2,6 +2,7 @@
 
 #include <nstd/runtime_assert.h>
 #include <nstd/ranges.h>
+#include <nstd/type_traits.h>
 
 #include <cppcoro/static_thread_pool.hpp>
 //#include <cppcoro/task.hpp>

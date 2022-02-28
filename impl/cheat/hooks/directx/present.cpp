@@ -8,8 +8,9 @@ module;
 #include <d3d9.h>
 
 module cheat.hooks.directx:present;
+import cheat.csgo.interfaces.Direct3DDevice9;
 import cheat.gui;
-import cheat.csgo.interfaces;
+import nstd.mem.address;
 
 using namespace cheat;
 using namespace gui;
@@ -19,14 +20,8 @@ present::present( ) = default;
 
 void present::construct( ) noexcept
 {
-	this->deps( ).add<csgo_interfaces>( );
-	this->deps( ).add<gui::menu>( );
-}
-
-bool present::load( ) noexcept
-{
-	this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(17));
-	return hook_base::load( );
+	const nstd::mem::basic_address vtable_holder = csgo::Direct3DDevice9::get_ptr( );
+	this->set_target_method(vtable_holder.deref<1>( )[17]);
 }
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)

@@ -15,14 +15,9 @@ draw_model::draw_model( ) = default;
 
 void draw_model::construct( ) noexcept
 {
-	this->deps( ).add<players_list>( );
-}
-
-bool draw_model::load( ) noexcept
-{
 	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29));
-	this->set_target_method(nstd::mem::basic_address(IStudioRender::get_ptr( )).deref<1>( )[29]);
-	return hook_base::load( );
+	const nstd::mem::basic_address vtable_holder = IStudioRender::get_ptr( );
+	this->set_target_method(vtable_holder.deref<1>( )[29]);
 }
 
 void draw_model::callback(DrawModelResults_t * results, const DrawModelInfo_t & info,

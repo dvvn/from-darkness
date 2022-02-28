@@ -2,8 +2,9 @@ module;
 
 #include <cstdint>
 
-export module cheat.csgo.interfaces.UserCmd;
-export import cheat.csgo.math;
+export module cheat.csgo.structs.UserCmd;
+export import cheat.csgo.math.Vector;
+export import cheat.csgo.math.Qangle;
 
 export namespace cheat::csgo
 {
@@ -106,5 +107,4 @@ export namespace cheat::csgo
 		CUserCmd cmd;
 		crc32_t  crc;
 	};
-
 }

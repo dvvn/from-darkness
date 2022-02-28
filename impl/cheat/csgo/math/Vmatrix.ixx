@@ -2,8 +2,8 @@ module;
 
 #include "vector_base_includes.h"
 
-export module cheat.csgo.math:Vmatrix;
-export import :Vector;
+export module cheat.csgo.math.Vmatrix;
+export import cheat.csgo.math.Vector;
 
 namespace cheat::csgo
 {

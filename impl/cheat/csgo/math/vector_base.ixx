@@ -2,8 +2,8 @@ module;
 
 #include "vector_base_includes.h"
 
-export module cheat.csgo.math:vector_base;
-export import :array_view;
+export module cheat.csgo.math.vector_base;
+export import cheat.csgo.math.array_view;
 
 namespace cheat::csgo
 {

@@ -4,7 +4,7 @@ module;
 
 export module cheat.hooks.c_csplayer:do_extra_bone_processing;
 import cheat.hooks.base;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.C_BaseAnimating;
 
 //namespace cheat::csgo
 //{
@@ -29,7 +29,6 @@ namespace cheat::hooks::c_csplayer
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(csgo::CStudioHdr* studio_hdr, csgo::Vector pos[], csgo::Quaternion q[], csgo::matrix3x4a_t bone_to_world[], csgo::CBoneBitList& bone_computed,
 					  csgo::CIKContext* ik_context) override;
 	};

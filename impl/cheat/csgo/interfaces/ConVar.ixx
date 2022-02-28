@@ -4,8 +4,8 @@ module;
 
 export module cheat.csgo.interfaces.ConVar;
 export import cheat.csgo.interfaces.AppSystem;
-export import cheat.csgo.tools;
-export import cheat.csgo.math;
+export import cheat.csgo.tools.UtlVector;
+export import cheat.csgo.math.Color;
 import nstd.one_instance;
 
 export namespace cheat::csgo

@@ -4,6 +4,8 @@ module;
 
 export module cheat.csgo.interfaces.EngineClient;
 export import cheat.csgo.interfaces.MaterialSystem;
+export import cheat.csgo.math.Qangle;
+export import cheat.csgo.math.Vmatrix;
 import nstd.one_instance;
 
 export namespace cheat::csgo

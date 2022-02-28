@@ -4,7 +4,7 @@ module;
 
 export module cheat.csgo.interfaces.ClientMode;
 export import cheat.csgo.interfaces.GameEvents;
-export import cheat.csgo.math;
+export import cheat.csgo.structs.UserCmd;
 import nstd.one_instance;
 
 export namespace cheat::csgo
@@ -119,7 +119,6 @@ export namespace cheat::csgo
 	}
 
 	enum ButtonCode_t;
-	class  CUserCmd;
 
 	class IClientMode
 	{

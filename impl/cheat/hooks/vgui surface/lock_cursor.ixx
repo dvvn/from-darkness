@@ -4,7 +4,7 @@ module;
 
 export module cheat.hooks.vgui_surface:lock_cursor;
 import cheat.hooks.base;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.VguiSurface;
 
 namespace cheat::hooks::vgui_surface
 {

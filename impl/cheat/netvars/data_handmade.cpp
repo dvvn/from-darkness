@@ -6,21 +6,22 @@
 #include <nstd/type name.h>
 
 module cheat.netvars:data_handmade;
+import cheat.csgo.interfaces.C_BaseAnimating;
 import :type_resolve;
 import :data_fill;
-import cheat.csgo.interfaces;
 import cheat.csgo.modules;
 import nstd.mem.address;
 import nstd.mem.backup;
+import cheat.tools.object_name;
 
-namespace cheat::csgo
-{
-	class C_BasePlayer;
-	class C_BaseAnimating;
-	struct CAnimationLayer;
-	struct VarMapping_t;
-	class matrix3x4_t;
-}
+//namespace cheat::csgo
+//{
+//	class C_BasePlayer;
+//	class C_BaseAnimating;
+//	struct CAnimationLayer;
+//	struct VarMapping_t;
+//	class matrix3x4_t;
+//}
 
 using namespace cheat;
 using namespace csgo;
@@ -33,7 +34,7 @@ template <typename T>
 static void _Load_class( )
 {
 	using namespace netvars_impl;
-	constexpr auto name = csgo_modules::CSGO_class_name<T>( );
+	constexpr auto name = tools::csgo_object_name<T>( );
 	auto [entry, added] = add_child_class_to_storage(*_Root_storage, name);
 	runtime_assert(added == false);
 	_Current_storage = std::addressof(*entry);

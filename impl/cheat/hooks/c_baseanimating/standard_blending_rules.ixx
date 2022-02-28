@@ -4,7 +4,7 @@ module;
 
 export module cheat.hooks.c_base_animating:standard_blending_rules;
 import cheat.hooks.base;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.C_BaseAnimating;
 
 //namespace cheat::csgo
 //{
@@ -23,7 +23,6 @@ namespace cheat::hooks::c_base_animating
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(csgo::CStudioHdr* hdr, csgo::Vector pos[], csgo::QuaternionAligned q[], float current_time, int bone_mask) override;
 	};
 }

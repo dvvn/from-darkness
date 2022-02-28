@@ -1,42 +1,11 @@
 module;
 
 #include "basic_includes.h"
-#include <nstd/type name.h>
 
 export module cheat.service;
 export import :basic;
 export import :tools;
-
-//constexpr auto _Fix_service_name(const std::string_view& name)
-//{
-//	auto str = nstd::drop_namespace(name, "cheat");
-//	constexpr std::string_view dummy = "_impl";
-//	if (str.ends_with(dummy))
-//		str.erase(str.end( ) - dummy.size( ), str.end( ));
-//	return str;
-//}
-
-template <typename T>
-_INLINE_VAR constexpr auto service_name = []
-{
-	constexpr auto raw = nstd::type_name<T>( );
-#if 1
-	constexpr auto buffer = nstd::drop_namespace(raw, "cheat");
-	if constexpr (buffer.ideal( ))
-		return buffer;
-	else
-		return buffer.make_ideal<buffer.str_size>( );
-#else
-	const auto raw_str = _Fix_service_name(raw);
-#if 1
-	constexpr auto buff_size = _Fix_service_name(raw).size( );
-	auto buff = nstd::string_to_buffer<buff_size>(raw_str);
-#else
-	auto buff = nstd::string_to_buffer<raw_str.size( )>(raw_str);
-#endif
-	return buff;
-#endif
-}();
+import cheat.tools.object_name;
 
 template<typename Ret, typename Arg1>
 struct function_info
@@ -265,7 +234,7 @@ export namespace cheat
 	{
 		std::string_view name( ) const final
 		{
-			return service_name<Holder>.view( );
+			return tools::object_name<Holder>( );
 		}
 		const std::type_info& type( ) const final
 		{

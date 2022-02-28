@@ -4,7 +4,7 @@ module;
 
 export module cheat.hooks.c_base_entity:estimate_abs_velocity;
 import cheat.hooks.base;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.C_BaseEntity;
 
 //namespace cheat::csgo
 //{
@@ -21,8 +21,6 @@ namespace cheat::hooks::c_base_entity
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(csgo::Vector& vel) override;
 	};
-
 }

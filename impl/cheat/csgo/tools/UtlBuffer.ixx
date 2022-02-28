@@ -1,5 +1,5 @@
-export module cheat.csgo.tools:UtlBuffer;
-export import :UtlMemory;
+export module cheat.csgo.tools.UtlBuffer;
+export import cheat.csgo.tools.UtlMemory;
 
 export namespace cheat::csgo
 {

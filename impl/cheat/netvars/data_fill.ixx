@@ -5,6 +5,7 @@ module;
 export module cheat.netvars:data_fill;
 export import :storage;
 export import :type_resolve;
+export import cheat.csgo.structs.ClientClass;
 
 export namespace cheat::netvars_impl
 {

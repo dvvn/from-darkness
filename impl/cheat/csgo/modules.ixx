@@ -4,31 +4,13 @@ module;
 #include <memory>
 
 export module cheat.csgo.modules;
+import cheat.tools.object_name;
 export import nstd.mem.address;
-
-template <typename T>
-inline constexpr auto CSGO_class_name_holder = []
-{
-	constexpr auto name = nstd::type_name<T>( );
-	constexpr std::string_view drop = "cheat::csgo";
-
-	constexpr auto buffer = nstd::drop_namespace(name, drop);
-	if constexpr (buffer.ideal( ))
-		return buffer;
-	else
-		return buffer.make_ideal<buffer.str_size>( );
-}();
 
 struct module_storage_data;
 
 namespace cheat::csgo_modules
 {
-	export template <typename T>
-		constexpr auto CSGO_class_name( )
-	{
-		return CSGO_class_name_holder<T>.view( );
-	}
-
 	export struct data_extractor
 	{
 		using storage_type = module_storage_data*;
@@ -44,7 +26,7 @@ namespace cheat::csgo_modules
 		template <typename Table>
 		Table* find_vtable( )
 		{
-			constexpr auto table_name = CSGO_class_name<Table>( );
+			constexpr auto table_name = tools::csgo_object_name<Table>( );
 			void* ptr = find_vtable(table_name);
 			return static_cast<Table*>(ptr);
 		}

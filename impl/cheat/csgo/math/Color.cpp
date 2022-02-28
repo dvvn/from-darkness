@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-module cheat.csgo.math:Color;
+module cheat.csgo.math.Color;
 
 using namespace cheat::csgo;
 

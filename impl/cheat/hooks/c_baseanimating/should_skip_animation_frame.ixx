@@ -4,7 +4,7 @@ module;
 
 export module cheat.hooks.c_base_animating:should_skip_animation_frame;
 import cheat.hooks.base;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.C_BaseAnimating;
 
 //namespace cheat::csgo
 //{

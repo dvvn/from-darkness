@@ -14,6 +14,12 @@
 #include <variant>
 
 module cheat.netvars:type_resolve;
+import cheat.csgo.math.Vector;
+import cheat.csgo.math.Qangle;
+import cheat.csgo.math.Color;
+import cheat.csgo.math.Vmatrix;
+import cheat.csgo.tools.UtlVector;
+import cheat.csgo.interfaces.BaseHandle;
 import nstd.text.actions;
 import nstd.container.wrapper;
 
@@ -37,7 +43,7 @@ string_or_view_holder::string_or_view_holder( )
 	str_.emplace<std::string_view>("");
 }
 
-string_or_view_holder::string_or_view_holder(const std::string_view& sv)
+string_or_view_holder::string_or_view_holder(const std::string_view sv)
 {
 	str_.emplace<std::string_view>(sv);
 }
@@ -49,33 +55,46 @@ string_or_view_holder::string_or_view_holder(std::string&& str)
 
 std::string& string_or_view_holder::str( )&
 {
-	return std::visit(overload([](std::string& str)-> std::string& { return str; }
-	, [](std::string_view&)-> std::string& { throw std::logic_error("Incorrect string type!"); }), str_);
+	return std::visit([]<class S>(S & ref)-> std::string&
+	{
+		if constexpr (std::same_as<S, std::string>)
+			return ref;
+		else
+			throw std::logic_error("Incorrect string type!");
+	}, str_);
 }
 
 std::string string_or_view_holder::str( )&&
 {
-	return std::visit(overload([](std::string&& str)-> std::string { return std::move(str); }
-	, [](std::string_view&& sv)-> std::string { return {sv.begin( ), sv.end( )}; }), std::move(str_));
+	return std::visit([]<class S>(S && ref)-> std::string
+	{
+		if constexpr (std::same_as<S, std::string>)
+			return std::move(ref);
+		else
+			return {ref.begin( ),ref.end( )};
+	}, std::move(str_));
 }
 
 std::string_view string_or_view_holder::view( )const&
 {
-	return std::visit(overload([]<typename T>(T && obj)-> std::string_view { return {obj.data( ), obj.size( )}; }), str_);
+	return std::visit(overload([]<class S>(const S & ref)-> std::string_view
+	{
+		return {ref.data( ), ref.size( )};
+	}), str_);
 }
 
-string_or_view_holder netvars_impl::type_std_array(const std::string_view& type, size_t size)
+string_or_view_holder netvars_impl::type_std_array(const std::string_view type, size_t size)
 {
 	runtime_assert(size != 0);
 	return std::format("{}<{}, {}>", type_name<std::array>( ), type, size);
 }
 
-string_or_view_holder netvars_impl::type_utlvector(const std::string_view& type)
+string_or_view_holder netvars_impl::type_utlvector(const std::string_view type)
 {
 	return std::format("{}<{}>", type_name<CUtlVector>( ), type);
 }
 
-string_or_view_holder netvars_impl::type_vec3(const std::string_view& name)
+string_or_view_holder netvars_impl::type_vec3(const std::string_view name)
 {
 	const auto is_qangle = [&]
 	{

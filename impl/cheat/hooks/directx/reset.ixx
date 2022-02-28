@@ -15,7 +15,6 @@ namespace cheat::hooks::directx
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(D3DPRESENT_PARAMETERS*) override;
 	};
 }

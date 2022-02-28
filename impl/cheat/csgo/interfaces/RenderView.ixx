@@ -4,7 +4,8 @@ module;
 #include <array>
 
 export module cheat.csgo.interfaces.RenderView;
-export import cheat.csgo.math;
+export import cheat.csgo.math.Vector;
+export import cheat.csgo.math.Qangle;
 import nstd.one_instance;
 
 export namespace cheat::csgo

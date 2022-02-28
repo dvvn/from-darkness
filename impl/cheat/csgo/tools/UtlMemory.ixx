@@ -1,4 +1,4 @@
-export module cheat.csgo.tools:UtlMemory;
+export module cheat.csgo.tools.UtlMemory;
 
 export namespace cheat::csgo
 {

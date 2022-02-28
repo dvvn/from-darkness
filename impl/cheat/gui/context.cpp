@@ -12,7 +12,7 @@ module;
 #include <d3d9.h>
 
 module cheat.gui:context;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.Direct3DDevice9;
 
 using namespace cheat;
 using namespace gui;
@@ -155,13 +155,11 @@ bool context::inactive( ) const
 
 void context::construct( ) noexcept
 {
-	this->deps( ).add<csgo_interfaces>( );
 }
 
 bool context::load( ) noexcept
 {
-	const auto d3d = this->deps( ).get<csgo_interfaces>( ).d3d_device.get( );
-
+	const auto d3d = csgo::Direct3DDevice9::get_ptr( );
 	effects::init(d3d);
 
 	IMGUI_CHECKVERSION( );

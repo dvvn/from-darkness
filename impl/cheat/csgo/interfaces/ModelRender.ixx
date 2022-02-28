@@ -3,7 +3,9 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.ModelRender;
-export import cheat.csgo.math;
+export import cheat.csgo.math.Vector;
+export import cheat.csgo.math.Qangle;
+export import cheat.csgo.math.Vmatrix;
 import nstd.one_instance;
 
 export namespace cheat::csgo

@@ -1,6 +1,6 @@
 
-export module cheat.csgo.tools:UtlVector;
-export import :UtlMemory;
+export module cheat.csgo.tools.UtlVector;
+export import cheat.csgo.tools.UtlMemory;
 
 export namespace cheat::csgo
 {

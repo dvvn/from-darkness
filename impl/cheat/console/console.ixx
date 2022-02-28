@@ -122,12 +122,16 @@ namespace cheat
 		size_t id( ) const override;
 	};
 
-	export template<typename Base = console, typename T, typename ...Args>
-		auto console_log(T* holder, Args&&...args)
+	export template<class T>
+		class console_create_notification
 	{
-		return holder->deps( ).try_call([&](Base* c)
+	public:
+		console_create_notification( )
 		{
-			c->log(std::forward<Args>(args)...);
-		});
-	}
+		}
+
+		virtual ~console_create_notification( )
+		{
+		}
+	};
 }

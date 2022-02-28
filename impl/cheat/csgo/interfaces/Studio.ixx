@@ -3,7 +3,9 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.Studio;
-export import cheat.csgo.math;
+export import cheat.csgo.math.Vector;
+export import cheat.csgo.math.Vmatrix;
+export import cheat.csgo.math.Quaternion;
 
 export namespace cheat::csgo
 {
@@ -38,8 +40,8 @@ export namespace cheat::csgo
 	};
 
 
-	_INLINE_VAR	constexpr auto MAX_NUM_LODS = 8;
-	_INLINE_VAR	constexpr auto  MAXSTUDIOBONES =	/*128*/256;	// total bones actually used
+	inline	constexpr auto MAX_NUM_LODS = 8;
+	inline	constexpr auto  MAXSTUDIOBONES =	/*128*/256;	// total bones actually used
 
 	enum bone_types
 	{

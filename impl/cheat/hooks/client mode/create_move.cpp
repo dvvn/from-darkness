@@ -4,6 +4,9 @@ module;
 
 module cheat.hooks.client_mode:create_move;
 import cheat.players;
+import nstd.mem.address;
+import cheat.csgo.interfaces.Prediction;
+import cheat.csgo.interfaces.EngineClient;
 
 using namespace cheat;
 using namespace csgo;
@@ -13,15 +16,10 @@ create_move::create_move( ) = default;
 
 void create_move::construct( ) noexcept
 {
-	this->addr1.emplace( );
-	this->deps( ).add<players_list>( );
-}
-
-bool create_move::load( ) noexcept
-{
 	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client_mode.vfunc(24));
-	this->set_target_method(nstd::mem::basic_address(ClientModeShared::get_ptr( )).deref<1>( )[24]);
-	return hook_base::load( );
+	const nstd::mem::basic_address vtable_holder = ClientModeShared::get_ptr( );
+	this->set_target_method(vtable_holder.deref<1>( )[24]);
+	this->addr1.emplace( );
 }
 
 void create_move::callback(float input_sample_time, CUserCmd * cmd)

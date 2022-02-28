@@ -14,7 +14,6 @@ namespace cheat::hooks::directx
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(const RECT* source_rect,
 					  const RECT* dest_rect,
 					  HWND dest_window_override,

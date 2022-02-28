@@ -1,4 +1,4 @@
-export module cheat.csgo.interfaces.ClientClass;
+export module cheat.csgo.structs.ClientClass;
 
 export namespace cheat::csgo
 {

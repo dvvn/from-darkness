@@ -1,7 +1,7 @@
 ﻿module;
 
 module cheat.csgo.interfaces.Input;
-import cheat.csgo.interfaces.UserCmd;
+import cheat.csgo.structs.UserCmd;
 import cheat.csgo.modules;
 
 using namespace cheat;

@@ -4,7 +4,7 @@ module;
 
 export module cheat.hooks.studio_render:draw_model;
 import cheat.hooks.base;
-import cheat.csgo.interfaces;
+import cheat.csgo.interfaces.StudioRender;
 
 //#include "cheat/hooks/base.h"
 //
@@ -31,7 +31,6 @@ namespace cheat::hooks::studio_render
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(csgo::DrawModelResults_t* results,
 					  const csgo::DrawModelInfo_t& info,
 					  csgo::matrix3x4_t* bone_to_world,
