@@ -14,18 +14,12 @@ wndproc::wndproc( ) = default;
 
 void wndproc::construct( ) noexcept
 {
-}
-
-bool wndproc::load( ) noexcept
-{
 	const auto hwnd = gui::context::get( ).hwnd;
 	unicode_ = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
 	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC);
 	this->set_target_method(reinterpret_cast<void*>(val));
-
-	return hook_base::load( );
 }
 
 // ReSharper disable once CppInconsistentNaming

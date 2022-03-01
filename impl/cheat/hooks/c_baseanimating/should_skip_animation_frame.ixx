@@ -20,7 +20,6 @@ namespace cheat::hooks::c_base_animating
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(/*float current_time*/) override;
 
 	private:

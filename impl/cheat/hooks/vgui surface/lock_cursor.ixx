@@ -15,7 +15,6 @@ namespace cheat::hooks::vgui_surface
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback( ) override;
 	};
 }

@@ -18,7 +18,6 @@ namespace cheat::hooks::winapi
 
 	protected:
 		void construct( ) noexcept override;
-		bool load( ) noexcept override;
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
 	private:
