@@ -18,10 +18,11 @@ module;
 
 #include <nstd/runtime_assert.h>
 
-module cheat.players:tick_record;
-import :player;
+module cheat.players.tick_record;
+import cheat.players.player;
 
 using namespace cheat;
+using namespace players;
 using namespace csgo;
 
 void tick_record::store_bones(C_BaseEntity* ent, const std::optional<float>& setup_curtime)
@@ -57,16 +58,16 @@ bool tick_record::is_valid(float curtime, float correct) const
 	return std::abs(correct - (curtime - sim_time)) < 0.2f;
 }
 
-tick_record::tick_record(const player& holder)
-{
-	/*C_BaseEntity* ent = holder.entptr;
-
-	this->origin = ent->m_vecOrigin( );
-	this->abs_origin = ent->m_vecAbsOrigin( );
-	this->rotation = ent->m_angRotation( );
-	this->abs_rotation = ent->m_angAbsRotation( );
-	this->mins = ent->m_vecMins( );
-	this->maxs = ent->m_vecMaxs( );
-	this->sim_time = *holder.simtime;
-	this->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));*/
-}
+//tick_record::tick_record(const player& holder)
+//{
+//	C_BaseEntity* ent = holder.entptr;
+//
+//	this->origin = ent->m_vecOrigin( );
+//	this->abs_origin = ent->m_vecAbsOrigin( );
+//	this->rotation = ent->m_angRotation( );
+//	this->abs_rotation = ent->m_angAbsRotation( );
+//	this->mins = ent->m_vecMins( );
+//	this->maxs = ent->m_vecMaxs( );
+//	this->sim_time = *holder.simtime;
+//	this->coordinate_frame = reinterpret_cast<matrix3x4_t&>(ent->m_rgflCoordinateFrame( ));
+//}

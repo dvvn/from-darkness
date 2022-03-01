@@ -2,22 +2,24 @@ module;
 
 #include "player_includes.h"
 
-export module cheat.players:player;
-export import :tick_record;
+export module cheat.players.player;
+export import cheat.players.tick_record;
 export import cheat.csgo.interfaces.C_CSPlayer;
 
-export namespace cheat
+export namespace cheat::players
 {
 	class player
 	{
 	public:
-		~player( );
 		player( ) = default;
 
 		player(const player& other) = delete;
 		player(player&& other) noexcept = default;
 		player& operator=(const player& other) = delete;
 		player& operator=(player&& other) noexcept = default;
+
+		//rewrite this shit
+#if 0
 
 		struct team_info
 		{
@@ -80,6 +82,8 @@ export namespace cheat
 		void reset_ticks( );
 		void update_animations(bool backup_layers);
 		tick_record& store_tick( );
+
+#endif
 	};
 
 	//using player_shared = detail::shared_holder<player>;

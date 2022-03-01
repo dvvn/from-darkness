@@ -3,11 +3,11 @@
 #include <string>
 #include <variant>
 
-export module cheat.netvars:type_resolve;
+export module cheat.netvars.type_resolve;
 export import cheat.csgo.structs.Recv;
 export import cheat.csgo.structs.DataMap;
 
-export namespace cheat::netvars_impl
+export namespace cheat::netvars
 {
 	struct string_or_view_holder
 	{

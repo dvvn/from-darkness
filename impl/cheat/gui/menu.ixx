@@ -1,28 +1,22 @@
 module;
 
-#include "widgets/absrtact_renderable.h"
 #include <windows.h>
-#include <memory>
 
 export module cheat.gui:menu;
-export import cheat.service;
 
-export namespace cheat::gui
+export namespace cheat::gui::menu
 {
 	/*namespace widgets
 	{
 		class tab_bar_with_pages;
 	}*/
 
-	struct menu final : dynamic_service<menu>, widgets::abstract_renderable
+	/*struct menu final : console::lifetime_notification<menu>, nstd::one_instance<menu>, widgets::abstract_renderable
 	{
 		menu( );
 		~menu( ) override;
 
-		bool render( ) override;
-		bool toggle(UINT msg, WPARAM wparam);
-		bool visible( )const;
-		bool updating( )const;
+
 
 	protected:
 		void construct( ) noexcept override;
@@ -31,5 +25,10 @@ export namespace cheat::gui
 	private:
 		struct impl;
 		std::unique_ptr<impl> impl_;
-	};
+	};*/
+
+	bool render( );
+	bool toggle(UINT msg, WPARAM wparam);
+	bool visible( );
+	bool updating( );
 }

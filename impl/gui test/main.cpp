@@ -46,7 +46,6 @@ static void register_services( )
 {
 	using namespace cheat;
 	auto deps = services_loader::get( ).deps( );
-	deps.add<console>( );
 	using namespace hooks;
 	deps.add<winapi::wndproc>( );
 	deps.add<imgui::PushClipRect>( );

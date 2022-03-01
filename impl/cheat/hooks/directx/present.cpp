@@ -29,13 +29,13 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	const auto d3d_device = this->get_object_instance( );
 
 #ifdef IMGUI_HAS_DOCK
-	runtime_assert(ImGui::GetIO( ).ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
+	runtime_assert(context::get( ).IO.ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
 #endif
 
 	ImGui_ImplDX9_NewFrame( );   //todo: erase. it only calls CreateDeviceObjects, what can be done after reset and init
 	ImGui_ImplWin32_NewFrame( ); //todo: call it from input (if do it move timers outside)
 
-	const auto& io = ImGui::GetIO( );
+	const auto& io = context::get( ).IO;
 	// Avoid rendering when minimized
 	if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
 		return;
@@ -44,7 +44,7 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 	effects::new_frame( );
 	{
 		[[maybe_unused]]
-		const auto render_result = this->deps( ).get<menu>( ).render( );
+		const auto render_result = menu::render( );
 #if !defined(IMGUI_DISABLE_DEMO_WINDOWS)
 		if (render_result)
 			ImGui::ShowDemoWindow( );

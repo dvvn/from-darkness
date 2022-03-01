@@ -1,12 +1,12 @@
 module;
 
-#include "cheat/console/includes.h"
-
 #include <nstd/rtlib/includes.h>
 #include <nstd/mem/block_includes.h>
 #include <nstd/unordered_set.h>
 #include <nstd/unordered_map.h>
+#include <nstd/format.h>
 
+#include <variant>
 #include <filesystem>
 #include <condition_variable>
 
@@ -35,11 +35,6 @@ template<typename ...Args>
 static constexpr auto _Wide(Args&&...args)
 {
 	return nstd::container::append<std::wstring>(_Transform_wide(std::span(args...)));
-}
-
-static console* _Get_console( )
-{
-	return services_loader::get( ).deps( ).try_get<console>( );
 }
 
 class modules_accesser
@@ -215,16 +210,15 @@ static auto _Find_interfaces(rtlib::info* target_module)
 
 	const auto log_fn = [=](rtlib::export_data* e, bool created)->void
 	{
-		const auto _Console = _Get_console( );
-		if (!_Console)
+		if (console::disabled( ))
 			return;
 
 		const std::wstring_view dllname = target_module->name.raw;
 		const auto wexport_name = _Wide(export_name);
 		if (created)
-			_Console->log(L"{} -> export \"{}\" at {:#X} found", dllname, wexport_name, e->addr.value);
+			console::log(L"{} -> export \"{}\" at {:#X} found", dllname, wexport_name, e->addr.value);
 		else if (!e)
-			_Console->log(L"{} -> export \"{}\" not found", dllname, wexport_name);
+			console::log(L"{} -> export \"{}\" not found", dllname, wexport_name);
 	};
 
 	const auto create_fn = target_module->exports( ).at(export_name, std::ref(log_fn)).addr;
@@ -424,18 +418,17 @@ address data_extractor::find_signature(const std::string_view sig)
 {
 	std::wstring_view log_name;
 	std::wstring log_sig;
-	const auto _Console = _Get_console( );
-	if (_Console)
+	if (!console::disabled( ))
 	{
 		log_name = storage_->info_ptr->name.raw;
 		log_sig = _Wide(sig);
 
 		if (storage_->sigs_tested(sig))
 		{
-			_Console->log(L"{} -> signature \"{}\": found before!", log_name, log_sig);
+			console::log(L"{} -> signature \"{}\": found before!", log_name, log_sig);
 			return nullptr;
 		}
-		_Console->log(L"{} -> signature \"{}\": searching...", log_name, log_sig);
+		console::log(L"{} -> signature \"{}\": searching...", log_name, log_sig);
 	};
 
 	//no cache inside
@@ -445,10 +438,10 @@ address data_extractor::find_signature(const std::string_view sig)
 	const auto bytes = make_signature(sig.begin( ), sig.end( ), signature_convert( ));
 	const auto ret = block.find_block(bytes);
 
-	if (_Console)
+	if (!console::disabled( ))
 	{
 		const auto postfix = ret.empty( ) ? L" NOT " : L" ";
-		_Console->log(L"{} -> signature \"{}\":{}found", log_name, log_sig, postfix);
+		console::log(L"{} -> signature \"{}\":{}found", log_name, log_sig, postfix);
 	};
 
 	return ret.data( );
@@ -462,8 +455,7 @@ void* data_extractor::find_vtable(const std::string_view class_name)
 		if (!created)
 			return;
 
-		const auto _Console = _Get_console( );
-		if (!_Console)
+		if (console::disabled( ))
 			return;
 
 		using namespace nstd::rtlib;
@@ -478,7 +470,7 @@ void* data_extractor::find_vtable(const std::string_view class_name)
 		else
 			module_name = storage_->info_ptr->full_path.raw;
 
-		_Console->log(L"{} -> vtable \"{}\" found", module_name, _Wide(class_name));
+		console::log(L"{} -> vtable \"{}\" found", module_name, _Wide(class_name));
 	});
 
 	return vt.addr;
@@ -501,14 +493,13 @@ address data_extractor::find_game_interface(const std::string_view ifc_name)
 	{
 		static_assert(std::is_trivially_copyable_v<Pair>, "Change pair type to reference!");
 
-		const auto _Console = _Get_console( );
-		if (!_Console)
+		if (console::disabled( ))
 			return;
 
-		_Console->log(L"{} -> interface \"{}\"{}: found"
-					  , storage_->info_ptr->name.raw
-					  , _Wide(ifc_name)
-					  , _Get_full_interface_name(found.first.data( ), ifc_name.size( )));
+		console::log(L"{} -> interface \"{}\"{}: found"
+					 , storage_->info_ptr->name.raw
+					 , _Wide(ifc_name)
+					 , _Get_full_interface_name(found.first.data( ), ifc_name.size( )));
 
 	};
 

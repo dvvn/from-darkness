@@ -7,7 +7,6 @@ module;
 
 module cheat.hooks.other:rta_holder;
 import :rta_blocker;
-import cheat.csgo.awaiter;
 
 using namespace cheat;
 using namespace hooks::other;
@@ -37,7 +36,6 @@ static bool _Init_tagets(H& holder, const Tpl& targets)
 
 void rta_holder::construct( )noexcept
 {
-	this->deps( ).add<csgo_awaiter>( );
 }
 
 bool rta_holder::load( )noexcept

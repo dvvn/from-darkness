@@ -110,20 +110,6 @@ std::optional<ImFontConfig> fonts_builder_proxy::default_font_config( )
 
 //-------------
 
-HWND context::hwnd( ) const
-{
-	return hwnd_;
-}
-
-ImGuiContext& context::access( )
-{
-	return ctx_;
-}
-
-fonts_builder_proxy context::fonts( )
-{
-	return std::addressof(fonts_);
-}
 
 context::~context( )
 {
@@ -140,27 +126,13 @@ context::~context( )
 
 	safe_call(ImGui_ImplWin32_Shutdown);
 	safe_call(ImGui_ImplDX9_Shutdown);
-	safe_call(std::bind_front(ImGui::Shutdown, std::addressof(ctx_)));
+	safe_call(std::bind_front(ImGui::Shutdown, this));
 }
 
 context::context( )
-	: ctx_(std::addressof(fonts_))
-{
-}
-
-bool context::inactive( ) const
-{
-	return (hwnd_ != GetForegroundWindow( ));
-}
-
-void context::construct( ) noexcept
-{
-}
-
-bool context::load( ) noexcept
+	: ImGuiContext(std::addressof(fonts))
 {
 	const auto d3d = csgo::Direct3DDevice9::get_ptr( );
-	effects::init(d3d);
 
 	IMGUI_CHECKVERSION( );
 	ImGui::SetAllocatorFunctions([](size_t size, void*)
@@ -171,12 +143,12 @@ bool context::load( ) noexcept
 		return operator delete(ptr);
 	});
 
-	ImGui::SetCurrentContext(std::addressof(ctx_));
-	ImGui::Initialize(std::addressof(ctx_));
+	ImGui::SetCurrentContext(this);
+	ImGui::Initialize(this);
 
 	//----------
 
-	hwnd_ = [&]
+	hwnd = [&]
 	{
 		auto creation_parameters = D3DDEVICE_CREATION_PARAMETERS( );
 
@@ -184,16 +156,12 @@ bool context::load( ) noexcept
 		runtime_assert(SUCCEEDED(result));
 		return creation_parameters.hFocusWindow;
 	}();
-	ImGui_ImplWin32_Init(hwnd_);
+
+	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX9_Init(d3d);
-
-	//-----------
-
-	auto& io = ctx_.IO;
 
 	const auto set_style = [&]
 	{
-		auto& style = ctx_.Style;
 #if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
 
 		/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;
@@ -203,23 +171,22 @@ bool context::load( ) noexcept
 		shadow_cfg.TexFalloffPower        = 4.8f ;
 		shadow_cfg.TexDistanceFieldOffset = 3.8f ;*/
 
-		style.WindowShadowSize = 30;
-		style.WindowShadowOffsetDist = 10;
-		style.Colors[ImGuiCol_WindowShadow] = /*ImColor(0, 0, 0, 255)*/style.Colors[ImGuiCol_WindowBg];
+		Style.WindowShadowSize = 30;
+		Style.WindowShadowOffsetDist = 10;
+		Style.Colors[ImGuiCol_WindowShadow] = /*ImColor(0, 0, 0, 255)*/Style.Colors[ImGuiCol_WindowBg];
 #endif
-
-		style.Colors[ImGuiCol_WindowBg].w = 0.7f;
-		style.Colors[ImGuiCol_PopupBg].w = 0.5f;
+		Style.Colors[ImGuiCol_WindowBg].w = 0.7f;
+		Style.Colors[ImGuiCol_PopupBg].w = 0.5f;
 	};
 
 	set_style( );
 
-	io.IniFilename = nullptr;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	IO.IniFilename = nullptr;
+	//IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-	io.FontDefault = [&]
+	IO.FontDefault = [&]
 	{
-		auto fnt = this->fonts( );
+		auto fnt = this->fonts_builder( );
 
 		auto font_cfg = fnt.default_font_config( );
 		font_cfg->SizePixels = 13;
@@ -230,7 +197,14 @@ bool context::load( ) noexcept
 		return fnt.add_default_font(std::move(font_cfg));
 #endif
 	}();
+}
 
+bool context::inactive( ) const
+{
+	return (hwnd != GetForegroundWindow( ));
+}
 
-	return true;
+fonts_builder_proxy context::fonts_builder( )
+{
+	return std::addressof(fonts);
 }

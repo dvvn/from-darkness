@@ -1,9 +1,9 @@
 ﻿module;
 #include <filesystem>
 
-export module cheat.netvars:lazy;
+export module cheat.netvars.lazy;
 
-export namespace cheat::netvars_impl::lazy
+export namespace cheat::netvars::lazy
 {
 	class file_writer final : public std::ostringstream
 	{

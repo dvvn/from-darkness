@@ -1,8 +1,5 @@
 ﻿module;
 
-#include "cheat/service/basic_includes.h"
-//#include "cheat/features/aimbot.h"
-
 #include "tools/cached_text.h"
 #include "widgets/window.h"
 
@@ -13,13 +10,14 @@
 module cheat.gui:menu;
 import :context;
 
-using namespace cheat::gui;
+using namespace cheat;
+using namespace gui;
 using namespace tools;
 using namespace widgets;
 
 using namespace std::chrono_literals;
 
-struct menu::impl
+struct menu_holder :console::lifetime_notification<menu_holder>
 {
 	WPARAM hotkey = VK_HOME;
 
@@ -91,6 +89,8 @@ struct menu::impl
 
 	void init_window( )
 	{
+		//this awful code must be rewritten
+
 		cached_text::label_type title_str;
 
 		const auto title_append = [&]<class ...T>(T&& ...texts)
@@ -148,9 +148,9 @@ struct menu::impl
 		w.title.set_label(std::move(title_str));
 		w.title.set_font(ImGui::GetDefaultFont( ) /*[]
 		{
-			auto font_cfg        = gui::fonts_builder_proxy::default_font_config( );
+			auto font_cfg        = fonts_builder_proxy::default_font_config( );
 			font_cfg->SizePixels = 25;
-			return gui::gui::context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\verdana.TTF)", std::move(font_cfg));
+			return context::get_ptr( )->fonts( ).add_font_from_ttf_file(R"(C:\Windows\Fonts\verdana.TTF)", std::move(font_cfg));
 		}( )*/);
 		w.show_anim.set_start(0);
 		auto& global_alpha = ImGui::GetStyle( ).Alpha;
@@ -163,90 +163,87 @@ struct menu::impl
 
 		//----------
 	}
-};
 
-menu::menu( ) = default;
-menu::~menu( ) = default;
-
-void menu::construct( ) noexcept
-{
-	impl_ = std::make_unique<impl>( );
-	this->deps( ).add<gui::context>( );
-	//this->deps( ).add(features::aimbot::get( ));
-}
-
-bool menu::load( ) noexcept
-{
+	menu_holder( )
+	{
 #if 0
-	renderer_.add_page([]
-					   {
-						   auto  rage_abstract = abstract_page( );
-						   auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
+		renderer_.add_page([]
+		{
+			auto  rage_abstract = abstract_page( );
+			auto& rage = *rage_abstract.init<horizontal_pages_renderer>("rage");
 
-						   using namespace features;
-						   rage.add_page(aimbot::get_ptr( ));
-						   rage.add_page(anti_aim::get_ptr( ));
+			using namespace features;
+			rage.add_page(aimbot::get_ptr( ));
+			rage.add_page(anti_aim::get_ptr( ));
 
-						   return rage_abstract;
-					   }());
-	renderer_.add_page({"settings", settings::get_ptr_shared( )});
+			return rage_abstract;
+		}());
+		renderer_.add_page({"settings", settings::get_ptr_shared( )});
 
 #if defined(_DEBUG)
-	renderer_.add_page([]
-					   {
-						   auto  debug_abstract = abstract_page( );
-						   auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
+		renderer_.add_page([]
+		{
+			auto  debug_abstract = abstract_page( );
+			auto& debug = *debug_abstract.init<vertical_pages_renderer>("DEBUG");
 
-						   debug.add_page([]
-										  {
-											  auto  debug_hooks_abstract = abstract_page( );
-											  auto& debug_hooks = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
+			debug.add_page([]
+			{
+				auto  debug_hooks_abstract = abstract_page( );
+				auto& debug_hooks = *debug_hooks_abstract.init<vertical_pages_renderer>("hooks");
 
-											  const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
-											  {
-												  basic_service* ptr_raw = ptr.get( );
+				const auto add_if_hookded = [&]<typename Tstr, typename Tptr>(Tstr && name, Tptr && ptr)
+				{
+					basic_service* ptr_raw = ptr.get( );
 
-												  switch (ptr_raw->state( ).value( ))
-												  {
-												  case service_state::waiting:
-												  case service_state::loading:
-												  case service_state::loaded:
-													  break;
-												  default:
-													  return;
-												  }
+					switch (ptr_raw->state( ).value( ))
+					{
+					case service_state::waiting:
+					case service_state::loading:
+					case service_state::loaded:
+						break;
+					default:
+						return;
+					}
 
-												  if (const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
-													  return;
+					if (const auto skipped = dynamic_cast<service_maybe_skipped*>(ptr_raw); skipped != nullptr && skipped->always_skipped( ))
+						return;
 
-												  debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
-											  };
-											  using namespace hooks;
-											  add_if_hookded("window proc", winapi::wndproc::get_ptr_shared( ));
-											  add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared( ));
+					debug_hooks.add_page({std::forward<Tstr>(name), std::forward<Tptr>(ptr)});
+				};
+				using namespace hooks;
+				add_if_hookded("window proc", winapi::wndproc::get_ptr_shared( ));
+				add_if_hookded("should skip animation frame", c_base_animating::should_skip_animation_frame::get_ptr_shared( ));
 
-											  return debug_hooks_abstract;
-										  }());
-						   debug.add_page(unused_page::get_ptr( ));
-						   debug.add_page(unused_page::get_ptr( ));
+				return debug_hooks_abstract;
+			}());
+			debug.add_page(unused_page::get_ptr( ));
+			debug.add_page(unused_page::get_ptr( ));
 
-						   return debug_abstract;
-					   }());
+			return debug_abstract;
+		}());
 #endif
-	renderer_.init( );
+		renderer_.init( );
 #endif
+		//TEMPORARY!! init context
+		(void)context::get( );
 
-	impl_->init_window( );
-	impl_->init_pages( );
+		init_window( );
+		init_pages( );
+	}
+};
 
-	return true;
+std::string_view console::lifetime_notification<menu_holder>::_Name( )const
+{
+	return "gui::menu";
 }
+
+using holder = nstd::one_instance<menu_holder>;
 
 bool menu::render( )
 {
-	auto& wnd = impl_->menu_window;
+	auto& wnd = holder::get( ).menu_window;
 
-	if (wnd.show_next_tick( ) && !wnd.visible( ) && this->deps( ).get<gui::context>( ).inactive( ))
+	if (wnd.show_next_tick( ) && !wnd.visible( ) && context::get( ).inactive( ))
 		return false;
 
 	const auto end = wnd( );
@@ -263,9 +260,9 @@ bool menu::render( )
 	//features::aimbot::get( )->render( );
 
 #if 0
-	if (this->begin(impl_->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
+	if (this->begin(holder::get( ).menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		impl_->tabs_pages.render( );
+		holder::get( ).tabs_pages.render( );
 		//-
 	}
 	this->end( );
@@ -276,7 +273,7 @@ bool menu::render( )
 
 bool menu::toggle(UINT msg, WPARAM wparam)
 {
-	if (wparam != impl_->hotkey)
+	if (wparam != holder::get( ).hotkey)
 		return false;
 
 	if (msg == WM_KEYDOWN)
@@ -286,21 +283,21 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 	}
 	if (msg == WM_KEYUP)
 	{
-		impl_->menu_window.toggle( );
+		holder::get( ).menu_window.toggle( );
 		return true;
 	}
 
 	return false;
 }
 
-bool menu::visible( ) const
+bool menu::visible( )
 {
-	return impl_->menu_window.visible( );
+	return holder::get( ).menu_window.visible( );
 }
 
-bool menu::updating( ) const
+bool menu::updating( )
 {
-	return impl_->menu_window.updating( );
+	return holder::get( ).menu_window.updating( );
 }
 
 #if 0

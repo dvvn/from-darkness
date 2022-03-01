@@ -1,7 +1,8 @@
 ﻿module;
 
-#include "cheat/console/includes.h"
 #include <nstd/format.h>
+
+#include <sstream>
 
 module cheat.csgo.interfaces.ConVar;
 import cheat.csgo.modules;
@@ -97,8 +98,7 @@ ConVar* ICVar::FindVar(const std::string_view name)const
 	const auto invalid_cvar = this->end( );
 
 	const auto target_cvar = std::find_if(first_cvar, invalid_cvar, compare);
-	const auto _Console = services_loader::get( ).deps( ).try_get<console>( );
-	if (_Console)
+	if (!console::disabled( ))
 	{
 		std::ostringstream msg;
 		msg << std::format("Cvar \"{}\"", name);
@@ -135,7 +135,7 @@ ConVar* ICVar::FindVar(const std::string_view name)const
 			msg << ' ';
 		}
 		msg << "found";
-		_Console->log(std::move(msg));
+		console::log(msg.view( ));
 	};
 
 	return target_cvar == invalid_cvar ? nullptr : static_cast<ConVar*>(target_cvar.get( ));

@@ -2,7 +2,7 @@ module;
 
 #include <memory>
 
-export module cheat.players:shared_holder;
+export module cheat.players.shared_holder;
 
 export namespace cheat
 {

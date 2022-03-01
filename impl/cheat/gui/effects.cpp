@@ -22,6 +22,7 @@ module;
 
 module cheat.gui:effects;
 import nstd.winapi.comptr;
+import cheat.csgo.interfaces.Direct3DDevice9;
 
 using namespace cheat;
 using namespace gui;
@@ -34,22 +35,17 @@ using BYTE = unsigned char;
 #define HRESULT_VALIDATE(fn, ...) fn
 #endif
 
+using cheat::csgo::Direct3DDevice9;
+
 #if _WIN32
 
 using nstd::winapi::comptr;
-
-static IDirect3DDevice9* _D3d_device;
-
-void effects::init(IDirect3DDevice9* renderer)
-{
-	_D3d_device = renderer;
-}
 
 [[nodiscard]]
 static auto _Create_texture(UINT width, UINT height) noexcept
 {
 	comptr<IDirect3DTexture9> texture;
-	HRESULT_VALIDATE(_D3d_device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr));
+	HRESULT_VALIDATE(Direct3DDevice9::get( ).CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, texture, nullptr));
 	return texture;
 }
 
@@ -57,7 +53,7 @@ static auto _Create_texture(UINT width, UINT height) noexcept
 static auto _Create_texture(UINT scale = 1) noexcept
 {
 	comptr<IDirect3DSurface9> back_buffer;
-	HRESULT_VALIDATE(_D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
+	HRESULT_VALIDATE(Direct3DDevice9::get( ).GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
 	D3DSURFACE_DESC desc;
 	HRESULT_VALIDATE(back_buffer->GetDesc(&desc));
 	return _Create_texture(desc.Width / scale, desc.Height / scale);
@@ -104,7 +100,7 @@ struct basic_shader_program : comptr<Shader>
 
 	basic_shader_program(const BYTE* shader_source_function)
 	{
-		HRESULT_VALIDATE(_D3d_device->CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).CreatePixelShader(reinterpret_cast<const DWORD*>(shader_source_function), *this));
 	}
 
 	basic_shader_program(const basic_shader_program& other) = delete;
@@ -116,9 +112,9 @@ struct basic_shader_program : comptr<Shader>
 	{
 #ifdef _WIN32
 
-		HRESULT_VALIDATE(_D3d_device->SetPixelShader(*this));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).SetPixelShader(*this));
 		std::array params = {uniform, 0.f, 0.f, 0.f};
-		HRESULT_VALIDATE(_D3d_device->SetPixelShaderConstantF(location, params.data( ), 1));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).SetPixelShaderConstantF(location, params.data( ), 1));
 #else
 		glUseProgram(program);
 		glUniform1f(location, uniform);
@@ -179,11 +175,11 @@ struct custom_texture : comptr<IDirect3DTexture9>
 	void prepare_buffer(const RECT* surface_pos = nullptr)
 	{
 		comptr<IDirect3DSurface9> back_buffer;
-		HRESULT_VALIDATE(_D3d_device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, back_buffer));
 		comptr<IDirect3DSurface9> surface;
 		HRESULT_VALIDATE(Get( )->GetSurfaceLevel(0, surface));
 
-		HRESULT_VALIDATE(_D3d_device->StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_NONE));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).StretchRect(back_buffer, surface_pos, surface, nullptr, D3DTEXF_NONE));
 	}
 
 	void set_as_target( ) const
@@ -191,7 +187,7 @@ struct custom_texture : comptr<IDirect3DTexture9>
 		comptr<IDirect3DSurface9> surface;
 		HRESULT_VALIDATE(Get( )->GetSurfaceLevel(0, surface));
 		//SetRenderTarget resets viewport!!!
-		HRESULT_VALIDATE(_D3d_device->SetRenderTarget(0, surface));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).SetRenderTarget(0, surface));
 	}
 };
 
@@ -316,26 +312,26 @@ protected:
 	void post_begin( )
 	{
 		comptr<IDirect3DSurface9> target;
-		HRESULT_VALIDATE(_D3d_device->GetRenderTarget(0, target));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).GetRenderTarget(0, target));
 		DWORD addessu;
-		HRESULT_VALIDATE(_D3d_device->GetSamplerState(0, D3DSAMP_ADDRESSU, &addessu));
-		HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).GetSamplerState(0, D3DSAMP_ADDRESSU, &addessu));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP));
 		DWORD addessv;
-		HRESULT_VALIDATE(_D3d_device->GetSamplerState(0, D3DSAMP_ADDRESSV, &addessv));
-		HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).GetSamplerState(0, D3DSAMP_ADDRESSV, &addessv));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP));
 		DWORD scissortest;
-		HRESULT_VALIDATE(_D3d_device->GetRenderState(D3DRS_SCISSORTESTENABLE, &scissortest));
-		HRESULT_VALIDATE(_D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).GetRenderState(D3DRS_SCISSORTESTENABLE, &scissortest));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE));
 		comptr<IDirect3DPixelShader9> shader;
-		HRESULT_VALIDATE(_D3d_device->GetPixelShader(shader));
+		HRESULT_VALIDATE(Direct3DDevice9::get( ).GetPixelShader(shader));
 
 		end_restore_ = [=]
 		{
-			HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSU, addessu));
-			HRESULT_VALIDATE(_D3d_device->SetSamplerState(0, D3DSAMP_ADDRESSV, addessv));
-			HRESULT_VALIDATE(_D3d_device->SetRenderState(D3DRS_SCISSORTESTENABLE, scissortest));
-			HRESULT_VALIDATE(_D3d_device->SetPixelShader(shader));
-			HRESULT_VALIDATE(_D3d_device->SetRenderTarget(0, target));
+			HRESULT_VALIDATE(Direct3DDevice9::get( ).SetSamplerState(0, D3DSAMP_ADDRESSU, addessu));
+			HRESULT_VALIDATE(Direct3DDevice9::get( ).SetSamplerState(0, D3DSAMP_ADDRESSV, addessv));
+			HRESULT_VALIDATE(Direct3DDevice9::get( ).SetRenderState(D3DRS_SCISSORTESTENABLE, scissortest));
+			HRESULT_VALIDATE(Direct3DDevice9::get( ).SetPixelShader(shader));
+			HRESULT_VALIDATE(Direct3DDevice9::get( ).SetRenderTarget(0, target));
 		};
 	}
 

@@ -9,7 +9,8 @@ module;
 
 export module cheat.gui:context;
 export import :effects;
-export import cheat.service;
+import cheat.console.lifetime_notification;
+import nstd.one_instance;
 
 export namespace cheat::gui
 {
@@ -38,26 +39,18 @@ export namespace cheat::gui
 		int known_fonts_ = 0;
 	};
 
-	struct context final : dynamic_service<context>
+	struct context final : ImGuiContext, console::lifetime_notification<context>, nstd::one_instance<context>
 	{
-		~context( ) override;
+		~context( );
 		context( );
 
 		//todo: set in wndproc
-		bool inactive( )const;
-		HWND hwnd( ) const;
-		ImGuiContext& access( );
+		bool inactive( ) const;
+		[[nodiscard]]
+		fonts_builder_proxy fonts_builder( );
 
-		fonts_builder_proxy fonts( );
-
-	protected:
-		void construct( ) noexcept override;
-		bool load( ) noexcept override;
-
-	private:
-		ImGuiContext ctx_;
-		ImFontAtlas fonts_;
+		ImFontAtlas fonts;
 		//todo: move outside
-		HWND hwnd_ = nullptr;
+		HWND hwnd = nullptr;
 	};
 }

@@ -1,137 +1,40 @@
 module;
 
-#include "includes.h"
+#include <string_view>
+//#include <sstream>
+
+#include <nstd/format.h>
 
 export module cheat.console;
-export import cheat.service;
 
-namespace cheat
+export namespace cheat::console
 {
-	struct string_packer
+	void mark_disabled( );
+	bool disabled( );
+
+	void log(const std::string_view str);
+	void log(const std::wstring_view str);
+	//void log(const std::ostringstream& str);
+	//void log(const std::wostringstream& str);
+
+	template<typename Fmt, typename Arg1, typename ...Args>
+	void log(Fmt&& fmt, Arg1&& arg1, Args&& ...args)
 	{
-		using value_type = std::variant<
-			std::string
-			, std::string_view
-			, std::wstring
-			, std::wstring_view
-			, std::ostringstream
-			, std::wostringstream>;
+		if (disabled( ))
+			return;
 
-		template<typename T>
-			requires(std::constructible_from<value_type, T> /*&& !std::same_as<std::remove_cv_t<T>, std::monostate>*/)
-		string_packer(T&& val) :packed(std::forward<T>(val))
+		const auto fmt_fixed = [&]( )->decltype(auto)
 		{
-		}
-
-		template<typename Chr>
-		string_packer(const Chr* cstr) : string_packer(std::basic_string_view<Chr>(cstr))
-		{
-		}
-
-		value_type packed;
-	};
-
-	class console_cache
-	{
-	public:
-		using value_type = std::function<void( )>;
-		console_cache( ) = default;
-
-		void write_all( )
-		{
-			std::ranges::for_each(cache_, &value_type::operator ());
-			cache_.clear( );
-		}
-
-		void store(value_type&& obj)
-		{
-			cache_.emplace_back(std::move(obj));
-		}
-
-		void lock( )
-		{
-			lock_.lock( );
-		}
-
-		void unlock( )
-		{
-			lock_.unlock( );
-		}
-
-	private:
-		std::recursive_mutex lock_;
-		std::vector<value_type> cache_;
-	};
-
-	export class console final :public dynamic_service<console>, nstd::rt_assert_handler
-	{
-	public:
-		console( );
-		~console( ) override;
-
-	private:
-		void write(string_packer&& str);
-		void write_line(string_packer&& str);
-		void write(char c);
-		void write(wchar_t c) = delete;
-
-	public:
-		template<bool NewLine = true, typename Fmt, typename ...T>
-		void log(Fmt&& fmt_str, T&& ...args)
-		{
-			if constexpr (sizeof...(T) > 0)
-			{
-				const auto fmt_fixed = [&]( )->decltype(auto)
-				{
 #ifdef FMT_VERSION
-					using val_t = std::ranges::range_value_t<Fmt>;
-					//fmt support compile time only for char today
-					if constexpr (std::is_same_v<val_t, char>)
-						return fmt::runtime(fmt_str);
-					else
-#endif
-						return std::forward<Fmt>(fmt_str);
-				};
-				auto str = std::format(fmt_fixed( ), std::forward<T>(args)...);
-				log<NewLine>(std::move(str));
-			}
+			using val_t = std::remove_cvref_t<decltype(fmt[0])>;
+			//fmt support compile time only for char today
+			if constexpr (std::is_same_v<val_t, char>)
+				return fmt::runtime(fmt);
 			else
-			{
-				if constexpr (NewLine)
-					write_line(std::forward<Fmt>(fmt_str));
-				else
-					write(std::forward<Fmt>(fmt_str));
-			}
-		}
+#endif
+				return std::forward<Fmt>(fmt);
+		};
 
-	protected:
-		void construct( ) noexcept override;
-		bool load( ) noexcept override;
-	private:
-		bool allocated_ = false;
-		HWND handle_ = nullptr;
-
-		console_cache cache_;
-
-		FILE* in_ = nullptr;
-		FILE* out_ = nullptr;
-		FILE* err_ = nullptr;
-
-		void handle(const char* expression, const char* message, const std::source_location& location) noexcept override;
-		void handle(const char* message, const std::source_location& location) noexcept override;
-		size_t id( ) const override;
-	};
-
-	export template<class T>
-		class console_create_notification
-	{
-	public:
-		console_create_notification( )
-		{
-		}
-
-		virtual ~console_create_notification( )
-		{
-		}
-	};
+		log(std::format(fmt_fixed( ), std::forward<Arg1>(arg1), std::forward<Args>(args)...));
+	}
 }

@@ -4,7 +4,6 @@
 
 #include <nstd/type name.h>
 #include <nstd/runtime_assert.h>
-#include <nstd/overload.h>
 #include <nstd/format.h>
 #include <nstd/ranges.h>
 
@@ -13,7 +12,7 @@
 #include <string>
 #include <variant>
 
-module cheat.netvars:type_resolve;
+module cheat.netvars.type_resolve;
 import cheat.csgo.math.Vector;
 import cheat.csgo.math.Qangle;
 import cheat.csgo.math.Color;
@@ -33,10 +32,9 @@ static auto _To_lower(const Rng& rng)
 }
 
 using nstd::type_name;
-using nstd::overload;
 using namespace cheat;
 using namespace csgo;
-using netvars_impl::string_or_view_holder;
+using netvars::string_or_view_holder;
 
 string_or_view_holder::string_or_view_holder( )
 {
@@ -77,24 +75,24 @@ std::string string_or_view_holder::str( )&&
 
 std::string_view string_or_view_holder::view( )const&
 {
-	return std::visit(overload([]<class S>(const S & ref)-> std::string_view
+	return std::visit([]<class S>(const S & ref)-> std::string_view
 	{
 		return {ref.data( ), ref.size( )};
-	}), str_);
+	}, str_);
 }
 
-string_or_view_holder netvars_impl::type_std_array(const std::string_view type, size_t size)
+string_or_view_holder netvars::type_std_array(const std::string_view type, size_t size)
 {
 	runtime_assert(size != 0);
 	return std::format("{}<{}, {}>", type_name<std::array>( ), type, size);
 }
 
-string_or_view_holder netvars_impl::type_utlvector(const std::string_view type)
+string_or_view_holder netvars::type_utlvector(const std::string_view type)
 {
 	return std::format("{}<{}>", type_name<CUtlVector>( ), type);
 }
 
-string_or_view_holder netvars_impl::type_vec3(const std::string_view name)
+string_or_view_holder netvars::type_vec3(const std::string_view name)
 {
 	const auto is_qangle = [&]
 	{
@@ -106,7 +104,7 @@ string_or_view_holder netvars_impl::type_vec3(const std::string_view name)
 	return std::isdigit(name[0]) || !is_qangle( ) ? type_name<Vector>( ) : type_name<QAngle>( );
 }
 
-string_or_view_holder netvars_impl::type_integer(std::string_view name)
+string_or_view_holder netvars::type_integer(std::string_view name)
 {
 	if (/*!std::isdigit(name[0]) &&*/ name.starts_with("m_"))
 	{
@@ -145,7 +143,7 @@ string_or_view_holder netvars_impl::type_integer(std::string_view name)
 
 //---
 
-string_or_view_holder netvars_impl::type_recv_prop(const RecvProp& prop)
+string_or_view_holder netvars::type_recv_prop(const RecvProp& prop)
 {
 	switch (prop.m_RecvType)
 	{
@@ -181,7 +179,7 @@ string_or_view_holder netvars_impl::type_recv_prop(const RecvProp& prop)
 	}
 }
 
-string_or_view_holder netvars_impl::type_datamap_field(const typedescription_t& field)
+string_or_view_holder netvars::type_datamap_field(const typedescription_t& field)
 {
 	switch (field.fieldType)
 	{

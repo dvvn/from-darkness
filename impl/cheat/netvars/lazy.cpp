@@ -3,9 +3,9 @@
 #include <fstream>
 #include <filesystem>
 
-module cheat.netvars:lazy;
+module cheat.netvars.lazy;
 
-using namespace cheat::netvars_impl::lazy;
+using namespace cheat::netvars::lazy;
 
 file_writer::~file_writer( )
 {

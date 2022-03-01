@@ -3,7 +3,7 @@ module;
 #include "cheat/service/basic_includes.h"
 
 module cheat.csgo.interfaces.C_BaseCombatCharacter;
-import cheat.netvars_getter;
+import cheat.netvars;
 import nstd.mem.address;
 
 using namespace cheat::csgo;

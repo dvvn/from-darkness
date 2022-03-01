@@ -13,7 +13,6 @@ lock_cursor::lock_cursor( ) = default;
 
 void lock_cursor::construct( ) noexcept
 {
-	this->deps( ).add<gui::menu>( );
 }
 
 bool lock_cursor::load( ) noexcept
@@ -26,7 +25,7 @@ bool lock_cursor::load( ) noexcept
 void lock_cursor::callback( )
 {
 	auto inst = this->get_object_instance( );
-	if (!inst->IsCursorVisible( ) && this->deps( ).get<gui::menu>( ).visible( ))
+	if (!inst->IsCursorVisible( ) && gui::menu::visible( ))
 	{
 		this->store_return_value( );
 		inst->UnlockCursor( );

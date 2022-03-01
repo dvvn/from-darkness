@@ -5,14 +5,14 @@
 #include <nstd/runtime_assert.h>
 #include <nstd/type name.h>
 
-module cheat.netvars:data_handmade;
+module cheat.netvars.data_handmade;
+import cheat.netvars.type_resolve;
+import cheat.netvars.data_fill;
 import cheat.csgo.interfaces.C_BaseAnimating;
-import :type_resolve;
-import :data_fill;
 import cheat.csgo.modules;
+import cheat.tools.object_name;
 import nstd.mem.address;
 import nstd.mem.backup;
-import cheat.tools.object_name;
 
 //namespace cheat::csgo
 //{
@@ -25,22 +25,20 @@ import cheat.tools.object_name;
 
 using namespace cheat;
 using namespace csgo;
-using netvars_impl::netvars_storage;
 
-static netvars_storage* _Root_storage = nullptr;
-static netvars_storage* _Current_storage = nullptr;
+static netvars::storage* _Root_storage = nullptr;
+static netvars::storage* _Current_storage = nullptr;
 
 template <typename T>
 static void _Load_class( )
 {
-	using namespace netvars_impl;
 	constexpr auto name = tools::csgo_object_name<T>( );
-	auto [entry, added] = add_child_class_to_storage(*_Root_storage, name);
+	auto [entry, added] = netvars::add_child_class_to_storage(*_Root_storage, name);
 	runtime_assert(added == false);
 	_Current_storage = std::addressof(*entry);
 }
 
-namespace cheat::netvars_impl
+namespace cheat::netvars
 {
 	template <typename Type, typename TypeProj = std::identity>
 	auto add_netvar_to_storage(const std::string_view name, int offset, [[maybe_unused]] TypeProj proj = {})
@@ -70,7 +68,7 @@ namespace cheat::netvars_impl
 	}
 }
 
-void netvars_impl::store_handmade_netvars(netvars_storage& root_tree)
+void netvars::store_handmade_netvars(storage& root_tree)
 {
 	using nstd::mem::backup;
 	const auto backups = std::make_tuple(backup(_Root_storage, std::addressof(root_tree)), backup(_Current_storage));

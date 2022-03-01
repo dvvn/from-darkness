@@ -2,10 +2,10 @@
 
 #include "storage_includes.h"
 
-export module cheat.netvars:data_handmade;
-export import :storage;
+export module cheat.netvars.data_handmade;
+export import cheat.netvars.storage;
 
-export namespace cheat::netvars_impl
+export namespace cheat::netvars
 {
-	void store_handmade_netvars(netvars_storage& root_tree);
+	void store_handmade_netvars(storage& root_tree);
 }

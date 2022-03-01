@@ -7,9 +7,6 @@
 #include <d3d9.h>
 
 import cheat.root_service;
-import cheat.console;
-import cheat.csgo.awaiter;
-import cheat.gui;
 import cheat.hooks.winapi;
 import cheat.hooks.vgui_surface;
 import cheat.hooks.studio_render;
@@ -35,9 +32,6 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 
 		auto deps = loader.deps( );
 		//deps.add<>();
-		deps.add<csgo_awaiter>( );
-		deps.add<console>( );
-		deps.add<gui::menu>( );
 		deps.add<hooks::winapi::wndproc>( );
 		deps.add<hooks::vgui_surface::lock_cursor>( );
 		deps.add<hooks::studio_render::draw_model>( );

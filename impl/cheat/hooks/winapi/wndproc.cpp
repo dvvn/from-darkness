@@ -14,14 +14,11 @@ wndproc::wndproc( ) = default;
 
 void wndproc::construct( ) noexcept
 {
-	this->deps( ).add<gui::menu>( );
 }
 
 bool wndproc::load( ) noexcept
 {
-	const auto hwnd = this->deps( ).get<gui::menu>( ).deps( ).get<gui::context>( ).hwnd( );
-	runtime_assert(hwnd != nullptr);
-
+	const auto hwnd = gui::context::get( ).hwnd;
 	unicode_ = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
 
@@ -36,8 +33,8 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam
 
 void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	auto& menu = this->deps( ).get<gui::menu>( );
-	auto& ctx = menu.deps( ).get<gui::context>( );
+	using namespace gui;
+	auto& ctx = context::get( );
 
 	enum class result : uint8_t
 	{
@@ -54,7 +51,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		if (!window_active)
 			return result::none;
 
-		const auto input_active = ctx.access( ).IO.WantTextInput;
+		const auto input_active = ctx.IO.WantTextInput;
 		if (!input_active)
 		{
 			const auto unload_wanted = wparam == VK_DELETE && msg == WM_KEYUP;
@@ -65,7 +62,7 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				services_loader::get( ).unload( );
 				return result::special;
 			}
-			if (menu.toggle(msg, wparam))
+			if (menu::toggle(msg, wparam))
 				return result::skipped;
 		}
 
@@ -94,10 +91,10 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			}
 		};
 
-		if (menu.updating( ))
+		if (menu::updating( ))
 			return can_skip_input(true) ? result::skipped : result::none;
 
-		if (menu.visible( ))
+		if (menu::visible( ))
 		{
 			if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 				return result::blocked;

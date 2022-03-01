@@ -3,19 +3,15 @@ module;
 #include <vector>
 #include <optional>
 
-export module cheat.players:tick_record;
-export import :shared_holder;
+export module cheat.players.tick_record;
+export import cheat.players.shared_holder;
 export import cheat.csgo.interfaces.C_BaseAnimating;
 
-export namespace cheat
+export namespace cheat::players
 {
-	class player;
-
 	struct tick_record
 	{
-		tick_record( ) = default;
-
-		tick_record(const player& holder);
+		//tick_record(const player& holder);
 		csgo::Vector origin, abs_origin;
 		csgo::QAngle rotation, abs_rotation;
 		csgo::Vector mins, maxs;

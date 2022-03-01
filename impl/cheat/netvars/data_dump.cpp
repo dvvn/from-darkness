@@ -2,37 +2,28 @@ module;
 
 #include "storage_includes.h"
 
-#include "cheat/console/includes.h"
-
-#include <nstd/mem/signature_includes.h>
+#include <nstd/mem/address_includes.h>
 #include <nstd/type name.h>
 #include <nstd/unistring.h>
 #include <nstd/checksum.h>
 #include <nstd/unordered_set.h>
 #include <nstd/enum_tools.h>
 #include <nstd/unordered_map.h>
+#include <nstd/format.h>
+#include <nstd/ranges.h>
 
 #include <fstream>
 #include <filesystem>
 
-module cheat.netvars:data_dump;
-//import nstd.mem;
+module cheat.netvars.data_dump;
+import cheat.console;
 import nstd.container.wrapper;
 import nstd.text.actions;
 import nstd.mem.address;
 
-namespace cheat
-{
-	class netvars;
-}
-
 using namespace cheat;
-using netvars_impl::netvars_storage;
 namespace fs = std::filesystem;
 
-#define CHEAT_NETVARS_LOG_FILE_INDENT 4
-#define CHEAT_NETVARS_LOG_FILE_FILLER ' '
-#define CHEAT_NETVARS_LOGS_DIR _CONCAT(VS_SolutionDir, \.dumps\netvars\)
 #define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\interfaces_custom\)
 #define CHEAT_CSGOSDK_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\)
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
@@ -70,40 +61,34 @@ static auto _Correct_game_version_string(const std::string_view game_version)
 	return game_version | std::views::transform(replace_dots);
 }
 
-bool netvars_impl::log_netvars(console* logger, const char* game_version, const netvars_storage& root_netvars_data)
+bool netvars::log_netvars(const char* game_version, const storage& root_netvars_data, const log_file_config& cfg)
 {
-	const fs::path dumps_dir = STRINGIZE_PATH(CHEAT_NETVARS_LOGS_DIR);
-
 	[[maybe_unused]]
-	const auto dirs_created = create_directories(dumps_dir);
+	const auto dirs_created = create_directories(cfg.dir);
 
-	const auto netvars_dump_file = dumps_dir / _To_wstring(_Correct_game_version_string(game_version), L".json");
+	const auto netvars_dump_file = cfg.dir / _To_wstring(_Correct_game_version_string(game_version), cfg.extension);
 
 	const auto file_exists = !dirs_created && exists(netvars_dump_file);
 	if (!file_exists)
 	{
-		auto file = std::ofstream(netvars_dump_file);
-		file << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
-		if (logger)
-			logger->log("Netvars dump done");
+		std::ofstream(netvars_dump_file) << std::setw(cfg.indent) << std::setfill(cfg.filler) << root_netvars_data;
+		console::log("Netvars dump done");
 		return true;
 	}
 
 	//------
 
 	std::ostringstream netvars_data_as_text;
-	netvars_data_as_text << std::setw(CHEAT_NETVARS_LOG_FILE_INDENT) << std::setfill(CHEAT_NETVARS_LOG_FILE_FILLER) << root_netvars_data;
+	netvars_data_as_text << std::setw(cfg.indent) << std::setfill(cfg.filler) << root_netvars_data;
 
 	if (nstd::checksum(netvars_dump_file) != nstd::checksum(netvars_data_as_text))
 	{
 		std::ofstream(netvars_dump_file) << netvars_data_as_text.view( );
-		if (logger)
-			logger->log("Netvars dump updated");
+		console::log("Netvars dump updated");
 		return true;
 	}
 
-	if (logger)
-		logger->log("Netvars dump skipped");
+	console::log("Netvars dump skipped");
 	return false;
 }
 
@@ -111,10 +96,10 @@ struct generated_file_data
 {
 	fs::path h_cached;
 	fs::path cpp_cached;
-	const netvars_storage::value_type* netvars;
+	const netvars::storage::value_type* netvars;
 };
 
-void netvars_impl::generate_classes(console* logger, bool recreate, netvars_storage& root_netvars_data, lazy::files_storage& lazy_storage)
+void netvars::generate_classes(bool recreate, storage& root_netvars_data, lazy::files_storage& lazy_storage)
 {
 	const fs::path generated_classes_dir = STRINGIZE_PATH(CHEAT_NETVARS_GENERATED_DIR);
 
@@ -129,7 +114,7 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 	constexpr std::wstring_view wgenerated_tag = _CRT_WIDE(_STRINGIZE(CHEAT_NETVARS_GENERATED_TAG));
 #endif
 
-	//nstd::mem::backup<netvars_storage> netvars_data_backup;
+	//nstd::mem::backup<storage> netvars_data_backup;
 
 	//files to be created from netvars classes
 	nstd::unordered_map<std::string, generated_file_data> files_to_generate;
@@ -221,8 +206,7 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 		{
 			if (not_generated == 0)
 			{
-				if (logger)
-					logger->log("Netvars classes are up-to-date.");
+				console::log("Netvars classes are up-to-date.");
 				return;
 			}
 
@@ -289,6 +273,7 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 			};
 			const auto write_fn_body = [&](std::basic_ostream<char>& stream)
 			{
+				using namespace nstd;
 				stream
 					<< "{\n"
 					<< '	'
@@ -298,12 +283,12 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 #else
 					<< "static const auto offset = "
 					//<< nstd::type_name<services_loader>( ) << "::get( ).deps( ).get<" << nstd::type_name<netvars>( ) << ">( ).at"
-					<< "cheat::get_netvar_offset"
+					<< "netvars::get_offset"
 					<< "(\"" << CLASS_NAME << "\", \"" << NETVAR_NAME << "\")"
 #endif
 					<< ";\n"
 					<< '	'
-					<< "return " << nstd::type_name<nstd::mem::basic_address>( ) << "(this) + offset;\n"
+					<< "return " << type_name<basic_address>( ) << "(this) + offset;\n"
 					<< "}\n\n";
 			};
 
@@ -322,10 +307,9 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 			lazy_storage.write.push_back(std::move(writer_h));
 		if (cpp)
 			lazy_storage.write.push_back(std::move(writer_cpp));
-
 	}
 
-	if (logger)
+	if (!console::disabled( ))
 	{
 		std::ostringstream msg;
 		msg << "Netvars classes generation done.";
@@ -341,6 +325,6 @@ void netvars_impl::generate_classes(console* logger, bool recreate, netvars_stor
 			msg << std::format(" Created {} files.", lazy_storage.write.size( ));
 		}
 
-		logger->log(std::move(msg));
+		console::log(msg.view( ));
 	}
 }

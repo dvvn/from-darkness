@@ -3,16 +3,24 @@ module;
 #include "storage_includes.h"
 //#include "cheat/console/includes.h"
 
-export module cheat.netvars:data_dump;
-export import :storage;
-export import :lazy;
-export import cheat.console;
+#include <nstd/core.h>
 
-export namespace cheat
+#include <filesystem>
+
+export module cheat.netvars.data_dump;
+export import cheat.netvars.storage;
+export import cheat.netvars.lazy;
+
+export namespace cheat::netvars
 {
-	namespace netvars_impl
+	struct log_file_config
 	{
-		bool log_netvars(console* logger, const char* game_version, const netvars_storage& root_netvars_data);
-		void generate_classes(console* logger, bool recreate, netvars_storage& root_netvars_data, lazy::files_storage& lazy_storage);
-	}
+		std::filesystem::path dir = NSTD_STRINGIZE_RAW_WIDE(NSTD_CONCAT(VS_SolutionDir, \.dumps\netvars\));
+		size_t indent = 4;
+		char filler = ' ';
+		std::wstring extension = L".json";
+	};
+
+	bool log_netvars(const char* game_version, const storage& root_netvars_data, const log_file_config& cfg = {});
+	void generate_classes(bool recreate, storage& root_netvars_data, lazy::files_storage& lazy_storage);
 }

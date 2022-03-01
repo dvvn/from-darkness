@@ -12,7 +12,7 @@ module;
 #include <optional>
 #include <algorithm>
 
-module cheat.netvars:data_fill;
+module cheat.netvars.data_fill;
 import nstd.container.wrapper;
 import nstd.text.actions;
 
@@ -45,7 +45,7 @@ static bool _Save_netvar_allowed(const std::string_view name)
 	});
 }
 
-bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const std::string_view name, int offset, [[maybe_unused]] string_or_view_holder&& type)
+bool netvars::add_netvar_to_storage(storage& root_storage, const std::string_view name, int offset, [[maybe_unused]] string_or_view_holder&& type)
 {
 	using namespace std::string_literals;
 	using namespace std::string_view_literals;
@@ -77,8 +77,7 @@ bool netvars_impl::add_netvar_to_storage(netvars_storage& root_storage, const st
 	return added;
 }
 
-
-auto netvars_impl::add_child_class_to_storage(netvars_storage& storage, const std::string_view name) -> add_child_t
+auto netvars::add_child_class_to_storage(storage& storage, const std::string_view name) -> add_child_t
 {
 	if (name[0] == 'C' && name[1] != '_')
 	{
@@ -136,7 +135,7 @@ static bool _Table_is_data_table(const RecvTable& table)
 	return _Strcmp_legacy<false>(table.m_pNetTableName, "DT_");
 };
 
-void netvars_impl::store_recv_props(netvars_storage& root_tree, netvars_storage& tree, const RecvTable* recv_table, int offset)
+void netvars::store_recv_props(storage& root_tree, storage& tree, const RecvTable* recv_table, int offset)
 {
 	// ReSharper disable once CppTooWideScopeInitStatement
 	const auto props = [&]
@@ -332,7 +331,7 @@ void netvars_impl::store_recv_props(netvars_storage& root_tree, netvars_storage&
 	}
 }
 
-void netvars_impl::iterate_client_class(netvars_storage& root_tree, ClientClass* root_class)
+void netvars::iterate_client_class(storage& root_tree, ClientClass* root_class)
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
@@ -350,7 +349,7 @@ void netvars_impl::iterate_client_class(netvars_storage& root_tree, ClientClass*
 	}
 }
 
-void netvars_impl::store_datamap_props(netvars_storage& tree, datamap_t* map)
+void netvars::store_datamap_props(storage& tree, datamap_t* map)
 {
 	// ReSharper disable once CppUseStructuredBinding
 	for (const auto& desc : map->data)
@@ -378,7 +377,7 @@ void netvars_impl::store_datamap_props(netvars_storage& tree, datamap_t* map)
 	}
 }
 
-void netvars_impl::iterate_datamap(netvars_storage& root_tree, datamap_t* root_map)
+void netvars::iterate_datamap(storage& root_tree, datamap_t* root_map)
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{

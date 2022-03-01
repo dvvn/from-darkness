@@ -1,6 +1,6 @@
 module cheat.csgo.interfaces.C_BaseCombatWeapon;
 
-import cheat.netvars_getter;
+import cheat.netvars;
 import nstd.mem.address;
 
 using namespace cheat::csgo;

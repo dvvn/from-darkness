@@ -5,10 +5,11 @@ module;
 #include <nstd/runtime_assert.h>
 #include <excpt.h>
 
-module cheat.players:player;
+module cheat.players.player;
 import nstd.mem.backup;
 
 using namespace cheat;
+using namespace players;
 using namespace csgo;
 
 #if 0
@@ -167,6 +168,7 @@ void player_shared_impl::update_ticks_window(float curtime)
 
 #endif
 
+#if 0
 player::~player( )
 {
 	/*if (!entptr || local)
@@ -464,3 +466,4 @@ void player::update_animations(bool backup_layers)
 
 	entptr->UpdateClientSideAnimation( );*/
 }
+#endif

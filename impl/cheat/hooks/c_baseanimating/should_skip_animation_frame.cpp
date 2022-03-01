@@ -1,10 +1,8 @@
 module;
 
 #include "cheat/hooks/base_includes.h"
-#include "cheat/netvars/includes.h"
 
 module cheat.hooks.c_base_animating:should_skip_animation_frame;
-import cheat.netvars;
 import cheat.csgo.modules;
 
 using namespace cheat;
@@ -15,7 +13,6 @@ should_skip_animation_frame::should_skip_animation_frame( ) = default;
 
 void should_skip_animation_frame::construct( ) noexcept
 {
-	this->deps( ).add<netvars>( );
 }
 
 bool should_skip_animation_frame::load( ) noexcept
