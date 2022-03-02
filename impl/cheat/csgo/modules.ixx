@@ -1,7 +1,7 @@
 module;
 
-#include <nstd/type name.h>
 #include <memory>
+#include <string_view>
 
 export module cheat.csgo.modules;
 import cheat.tools.object_name;

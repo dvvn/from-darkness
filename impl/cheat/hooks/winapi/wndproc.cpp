@@ -144,4 +144,3 @@ void wndproc::render( )
 	}
 }
 #endif
-

@@ -3,7 +3,6 @@ module;
 #include "storage_includes.h"
 
 #include <nstd/mem/address_includes.h>
-#include <nstd/type name.h>
 #include <nstd/unistring.h>
 #include <nstd/checksum.h>
 #include <nstd/unordered_set.h>
@@ -17,6 +16,7 @@ module;
 
 module cheat.netvars.data_dump;
 import cheat.console;
+import nstd.type_name;
 import nstd.container.wrapper;
 import nstd.text.actions;
 import nstd.mem.address;

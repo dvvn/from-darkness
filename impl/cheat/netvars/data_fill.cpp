@@ -1,10 +1,6 @@
 module;
 #include "storage_includes.h"
 
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-#include <nstd/type name.h>
-#endif
-
 #include <nstd/runtime_assert.h>
 #include <nstd/format.h>
 #include <nstd/ranges.h>
@@ -15,6 +11,7 @@ module;
 module cheat.netvars.data_fill;
 import nstd.container.wrapper;
 import nstd.text.actions;
+import nstd.type_name;
 
 namespace cheat::csgo
 {

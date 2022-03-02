@@ -3,7 +3,6 @@
 #include "storage_includes.h"
 
 #include <nstd/runtime_assert.h>
-#include <nstd/type name.h>
 
 module cheat.netvars.data_handmade;
 import cheat.netvars.type_resolve;
