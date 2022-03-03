@@ -49,8 +49,8 @@ static void _Gap(T&&... args)
 	GAP(TARGET_ARGS_PASS);\
 	return _ReturnAddress( );
 
-#define CALLBACK_FN(_TYPE_)\
-	void select_hook_holder_base<_TYPE_>::callback(TARGET_ARGS) { GAP(TARGET_ARGS_PASS); this->store_return_value(0);}
+#define CALLBACK_FN\
+	void callback(TARGET_ARGS) override { GAP(TARGET_ARGS_PASS); this->store_return_value(0);}
 
 #define FUNC_IMPL(_CALL_CVS_)\
 void* __##_CALL_CVS_ FUNC_NAME(_CALL_CVS_)(TARGET_ARGS) { FUNC_BODY; }
@@ -67,8 +67,8 @@ struct HOOK_NAME(STRUCT_NAME(_CALL_CVS_)) : select_hook_holder<decltype(&STRUCT_
 		GAP( );\
 		this->set_target_method(pointer_to_class_method(&STRUCT_NAME(_CALL_CVS_)::target_func));\
 	}\
-};\
-CALLBACK_FN(decltype(&STRUCT_NAME(_CALL_CVS_)::target_func))
+	CALLBACK_FN;\
+};
 
 #define PREPARE_FUNC(_CALL_CVS_)\
 static void* __##_CALL_CVS_ FUNC_NAME(_CALL_CVS_)(TARGET_ARGS)\
@@ -83,8 +83,8 @@ struct HOOK_NAME(FUNC_NAME(_CALL_CVS_)) : select_hook_holder<decltype(&FUNC_NAME
 		GAP( );\
 		this->set_target_method(&FUNC_NAME(_CALL_CVS_));\
 	}\
-};\
-CALLBACK_FN(decltype(&FUNC_NAME(_CALL_CVS_)))
+	CALLBACK_FN;\
+};
 
 #define PREPARE_DATA(_CALL_CVS_)\
 	PREPARE_STRUCT(_CALL_CVS_);\
