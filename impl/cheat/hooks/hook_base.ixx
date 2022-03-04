@@ -10,8 +10,8 @@ export namespace cheat::hooks
 {
 	//todo: template in hooks for return address
 
-	template<typename T, typename Fn, size_t UniqueIdx = 0>
-	struct hook_base : dynamic_service<T>, dhooks::select_hook_holder<Fn, UniqueIdx>
+	template<typename T, typename Fn, size_t InstanceIdx = 0>
+	struct hook_base : dynamic_service<T>, dhooks::select_hook_holder<Fn, InstanceIdx>
 	{
 	protected:
 		bool load( ) noexcept override
