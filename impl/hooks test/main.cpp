@@ -50,7 +50,7 @@ static void _Gap(T&&... args)
 	return _ReturnAddress( );
 
 #define CALLBACK_FN\
-	void callback(TARGET_ARGS) override { GAP(TARGET_ARGS_PASS); this->store_return_value(0);}
+	void callback(TARGET_ARGS) override { GAP(TARGET_ARGS_PASS); }
 
 #define FUNC_IMPL(_CALL_CVS_)\
 void* __##_CALL_CVS_ FUNC_NAME(_CALL_CVS_)(TARGET_ARGS) { FUNC_BODY; }
@@ -65,7 +65,7 @@ struct HOOK_NAME(STRUCT_NAME(_CALL_CVS_)) : select_hook_holder<decltype(&STRUCT_
 	HOOK_NAME(STRUCT_NAME(_CALL_CVS_))##( )\
 	{\
 		GAP( );\
-		this->set_target_method(pointer_to_class_method(&STRUCT_NAME(_CALL_CVS_)::target_func));\
+		this->set_target_method(&STRUCT_NAME(_CALL_CVS_)::target_func);\
 	}\
 	CALLBACK_FN;\
 };
