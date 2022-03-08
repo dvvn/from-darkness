@@ -18,7 +18,7 @@ void C_BaseAnimating::UpdateClientSideAnimation( )
 {
 	//224
 	static auto fn = csgo_modules::client->find_signature("55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36").get<decltype(&C_BaseAnimating::UpdateClientSideAnimation)>( );
-	dhooks::call_function(fn, this);
+	dhooks::invoke(fn, this);
 }
 
 void C_BaseAnimating::InvalidateBoneCache( )

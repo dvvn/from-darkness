@@ -12,10 +12,10 @@ using namespace cheat::csgo;
 
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {
-	return dhooks::call_function(&C_BaseEntity::GetDataDescMap, this, 15);
+	return dhooks::invoke(&C_BaseEntity::GetDataDescMap, static_cast<size_t>(15), this);
 }
 
 datamap_t* C_BaseEntity::GetPredictionDescMap( )
 {
-	return dhooks::call_function(&C_BaseEntity::GetPredictionDescMap, this, 17);
+	return dhooks::invoke(&C_BaseEntity::GetPredictionDescMap, static_cast<size_t>(17), this);
 }

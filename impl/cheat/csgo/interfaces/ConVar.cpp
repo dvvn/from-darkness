@@ -23,13 +23,13 @@ template <typename T>
 static void _Set_helper(ConVar* ptr, size_t index, T value)
 {
 	//return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
-	dhooks::call_function(&ConVar::set<T>, ptr, index, value);
+	dhooks::invoke(&ConVar::set<T>, index, ptr, value);
 }
 
 template <typename T>
 static T _Get_helper(const ConVar* ptr, size_t index)
 {
-	return dhooks::call_function(&ConVar::get<T>, ptr, index);
+	return dhooks::invoke(&ConVar::get<T>, index, ptr);
 }
 
 template < >
@@ -91,7 +91,7 @@ ConVar* ICVar::FindVar(const std::string_view name)const
 	{
 		if (cv.IsCommand( ))
 			return false;
-		return std::strncmp(cv.m_pszName, name.data( ), name.size( )) == 0;
+		return std::memcmp(cv.m_pszName, name.data( ), name.size( )) == 0;
 	};
 
 	const auto first_cvar = this->begin( );

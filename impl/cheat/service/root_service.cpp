@@ -14,6 +14,7 @@ using dhooks::hook_holder_data;
 services_loader::services_loader( ) = default;
 services_loader::~services_loader( ) = default;
 
+#if 0
 class all_hooks_storage :public services_loader::lazy_reset, basic_service::deps_storage
 {
 public:
@@ -32,6 +33,7 @@ public:
 			this->push_back(srv);
 	}
 };
+#endif
 
 struct unload_helper_data
 {
@@ -62,6 +64,7 @@ void services_loader::unload( )
 	CreateThread(nullptr, 0, _Unload_helper, data, 0, nullptr);
 }
 
+#if 0
 static void _Fill_storage(all_hooks_storage * storage, basic_service::deps_storage & deps)
 {
 	for (auto& d : deps)
@@ -94,30 +97,18 @@ static void _Reset_storage(T & deps)
 		}
 	}
 }
+#endif
 
 auto services_loader::reset(bool deps_only)->reset_object
 {
-
 	if (this->state == state_type::idle)
 	{
 		//runtime_assert(std::ranges::count(this->load_before, nullptr) == this->load_before.size( ));
 		return nullptr;
 	}
-
-	auto hooks = std::make_unique<all_hooks_storage>( );
-	_Fill_storage(hooks.get( ), this->load_before);
-
-	if (deps_only)
-	{
-		this->state = state_type::idle;
-		_Reset_storage(this->load_before);
-	}
-	else
-	{
-		this->_Reload( );
-	}
-
-	return hooks;
+	if(!deps_only)
+	this->_Recreate( );
+	return nullptr;
 }
 
 void services_loader::construct( ) noexcept
@@ -128,6 +119,6 @@ void services_loader::construct( ) noexcept
 bool services_loader::load( ) noexcept
 {
 	//this->deps( ).get<console>( ).log("Cheat fully loaded");
-	services_cache::_Reload( );
+	services_cache::_Recreate( );
 	return true;
 }

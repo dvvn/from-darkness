@@ -4,15 +4,13 @@ module;
 #include <windows.h>
 
 module cheat.hooks.winapi:wndproc;
+import cheat.hooks.loader;
 import cheat.gui;
-import cheat.root_service;
 
 using namespace cheat;
 using namespace hooks::winapi;
 
-wndproc::wndproc( ) = default;
-
-void wndproc::construct( ) noexcept
+wndproc::wndproc( )
 {
 	const auto hwnd = gui::context::get( ).hwnd;
 	unicode_ = IsWindowUnicode(hwnd);
@@ -20,6 +18,10 @@ void wndproc::construct( ) noexcept
 
 	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC);
 	this->set_target_method(reinterpret_cast<void*>(val));
+}
+
+void wndproc::construct( ) noexcept
+{
 }
 
 // ReSharper disable once CppInconsistentNaming
@@ -48,14 +50,16 @@ void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		const auto input_active = ctx.IO.WantTextInput;
 		if (!input_active)
 		{
+#if 0
 			const auto unload_wanted = wparam == VK_DELETE && msg == WM_KEYUP;
 			if (unload_wanted)
 			{
 				this->disable( );
 				this->store_return_value(TRUE);
-				services_loader::get( ).unload( );
+				cheat::unload( );
 				return result::special;
 			}
+#endif
 			if (menu::toggle(msg, wparam))
 				return result::skipped;
 		}

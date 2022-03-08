@@ -9,7 +9,7 @@ export import dhooks;
 
 namespace cheat::hooks::other
 {
-	export class rta_holder final : public dynamic_service<rta_holder>, public dhooks::hook_disabler_lazy //for unload
+	export class rta_holder final : public dynamic_service<rta_holder>
 	{
 		using storage_type = std::vector<std::unique_ptr<dhooks::hook_holder_data>>;
 		storage_type proxies_;
@@ -18,6 +18,6 @@ namespace cheat::hooks::other
 		bool load( ) noexcept override;
 
 	public:
-		void request_disable( ) override;
+		void request_disable( ) ;
 	};
 }

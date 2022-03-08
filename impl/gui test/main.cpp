@@ -14,9 +14,8 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-import cheat.root_service;
-import cheat.console;
-import cheat.gui;
+import cheat.hooks.loader;
+
 import cheat.hooks.winapi;
 import cheat.hooks.imgui;
 import cheat.hooks.directx;
@@ -45,12 +44,11 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 static void register_services( )
 {
 	using namespace cheat;
-	auto deps = services_loader::get( ).deps( );
 	using namespace hooks;
-	deps.add<winapi::wndproc>( );
-	deps.add<imgui::PushClipRect>( );
-	deps.add<directx::reset>( );
-	deps.add<directx::present>( );
+	loader::add<winapi::wndproc>( );
+	loader::add<imgui::PushClipRect>( );
+	loader::add<directx::reset>( );
+	loader::add<directx::present>( );
 }
 
 // Main code
@@ -77,10 +75,8 @@ int main(int, char**)
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-	auto& loader = services_loader::get( );
 
-	loader.start( );
-	if (!cppcoro::sync_wait(loader.start_result))
+	if (!cheat::hooks::loader::start( ))
 		goto _RESET;
 
 	// Setup Dear ImGui context
@@ -132,8 +128,8 @@ int main(int, char**)
 		}
 
 		//unload called
-		if (loader.state == services_loader::state_type::idle)
-			goto _RESET;
+		//if (loader.state == services_loader::state_type::idle)
+		//	goto _RESET;
 
 		g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
@@ -154,7 +150,7 @@ int main(int, char**)
 
 _RESET:
 
-	loader.reset(false);
+	cheat::hooks::loader::stop(true);
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

@@ -2,7 +2,6 @@
 
 //#include "cheat/service/includes.h"
 
-#include <nstd/type name.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/format.h>
 #include <nstd/ranges.h>
@@ -19,6 +18,7 @@ import cheat.csgo.math.Color;
 import cheat.csgo.math.Vmatrix;
 import cheat.csgo.tools.UtlVector;
 import cheat.csgo.interfaces.BaseHandle;
+import nstd.type_name;
 import nstd.text.actions;
 import nstd.container.wrapper;
 

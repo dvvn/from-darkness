@@ -14,13 +14,16 @@ using namespace cheat;
 using namespace gui;
 using namespace hooks::directx;
 
-reset::reset( ) = default;
-
-void reset::construct( ) noexcept
+reset::reset( )
 {
 	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).d3d_device.vfunc(16));
 	const nstd::mem::basic_address vtable_holder = csgo::Direct3DDevice9::get_ptr( );
 	this->set_target_method(vtable_holder.deref<1>( )[16]);
+}
+
+void reset::construct( ) noexcept
+{
+
 }
 
 void reset::callback(D3DPRESENT_PARAMETERS*)
