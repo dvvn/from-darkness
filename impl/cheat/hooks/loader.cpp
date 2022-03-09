@@ -77,6 +77,12 @@ public:
 		this->message("started");
 	}
 
+	void pause( )
+	{
+		pool->paused = true;
+		pool->wait_for_tasks( );
+	}
+
 	void finish( )
 	{
 		if (!pool)
@@ -129,6 +135,7 @@ void hooks::stop(bool force)
 	}
 	else
 	{
+		async_loader->pause( );
 		for (auto& h : *storage)
 			h->request_disable( );
 	}
