@@ -8,6 +8,7 @@ module;
 #include <functional>
 #include <future>
 #include <vector>
+#include <list>
 #include <string_view>
 
 module cheat.hooks.loader;
@@ -15,49 +16,35 @@ import cheat.console.lifetime_notification;
 import nstd.one_instance;
 import nstd.lazy_invoke;
 
-using namespace cheat::hooks;
-using cheat::console::lifetime_notification;
+using namespace cheat;
+using console::lifetime_notification;
 using namespace nstd;
 
-struct pending_storage_t : std::vector<hook_creator>, lifetime_notification<pending_storage_t>
+class storage_t :lifetime_notification<storage_t>
 {
-	pending_storage_t( ) = default;
-
-	auto unpack( )
-	{
-		return *this | std::views::transform([](hook_creator& creator)
-		{
-#ifdef _DEBUG
-			const nstd::lazy_invoke lazy = [&creator]
-			{
-				using std::swap;
-				hook_creator dummy;
-				swap(creator, dummy);
-			};
-#endif
-			return std::invoke(creator);
-		});
-	}
-};
-
-std::string_view lifetime_notification<pending_storage_t>::_Name( )const
-{
-	return "hooks::pending_storage";
-}
-
-#if 0
-void one_instance_obj<pending_storage_t>::_Recreate( )const
-{
-	auto& vec = **this;
-	vec.clear( );
-	vec.shrink_to_fit( );
-}
-#endif
-static one_instance_obj<pending_storage_t> pending_storage;
-
-struct storage_t :std::vector<stored_hook>, lifetime_notification<storage_t>
-{
+	std::list<stored_hook> storage_;
+public:
 	storage_t( ) = default;
+
+	auto write( )
+	{
+		return std::addressof(storage_.emplace_back( ));
+	}
+
+	void clear( )
+	{
+		storage_.clear( );
+	}
+
+	auto begin( )
+	{
+		return storage_.begin( );
+	}
+
+	auto end( )
+	{
+		return storage_.end( );
+	}
 };
 std::string_view lifetime_notification<storage_t>::_Name( )const
 {
@@ -65,85 +52,79 @@ std::string_view lifetime_notification<storage_t>::_Name( )const
 }
 static one_instance_obj<storage_t> storage;
 
-void register_hook(hook_creator&& creator)
+class async_loader_t : thread_pool, lifetime_notification<async_loader_t>
 {
-	runtime_assert(storage->empty( ));
-	pending_storage->push_back(std::move(creator));
-}
+	std::unique_ptr<thread_pool> pool;
 
-bool loader::start( )
-{
-	if (storage->empty( ))
+public:
+	async_loader_t( )
 	{
-		auto filler = pending_storage->unpack( );
-		storage->assign(filler.begin( ), filler.end( ));
+		pool = std::make_unique<thread_pool>( );
+		pool->sleep_duration = 0;
+		pool->paused = true;
+
 	}
 
-	for (auto& hook : *storage)
+	template<typename Fn>
+	void push_task(const Fn& fn)
 	{
-		if (!hook->hook( ) || !hook->enable( ))
-			return false;
+		pool->push_task(fn);
 	}
 
-	return true;
-}
+	void run( )
+	{
+		pool->paused = false;
+		this->message("started");
+	}
 
-struct async_loader_t :thread_pool, lifetime_notification<async_loader_t>
-{
-	async_loader_t( ) = default;
+	void finish( )
+	{
+		if (!pool)
+			return;
+		pool.reset( );
+		this->message("finished");
+	}
 };
 
 std::string_view lifetime_notification<async_loader_t>::_Name( )const
 {
-	return "hooks_multithread_loader";
+	return "hooks::multithread_loader";
 }
 
 static one_instance_obj<async_loader_t> async_loader;
 
-std::future<bool> loader::start_async( )
+static std::atomic<bool> load_error = false;
+
+void register_hook(hook_creator&& creator)
 {
-	const auto size = pending_storage->size( );
-	if (storage->empty( ))
-		storage->resize(size);
-
-	auto error = std::make_shared<std::atomic_bool>(false);
-	for (size_t i = 0; i < size; ++i)
+	async_loader->push_task([creator1 = std::move(creator), holder = storage->write( )]( )
 	{
-		async_loader->push_task([=]
+		if (load_error.load(std::memory_order_relaxed) == false)
 		{
-			if (error->load(std::memory_order_relaxed) == true)
-				return;
-
-			auto& from = pending_storage->data( )[i];
-			auto& to = storage->data( )[i];
-
-			auto hook = std::invoke(from);
-			if (!hook->hook( ) || !hook->enable( ))
-				error->store(true, std::memory_order_relaxed);
+			auto hook = std::invoke(creator1);
+			if (hook->hook( ) && hook->enable( ))
+				*holder = std::move(hook);
 			else
-				to = std::move(hook);
-		});
-	}
-
-	auto prom = std::make_shared<std::promise<bool>>( );
-	async_loader->push_task([=/*,call_later=nstd::lazy_invoke(pending_storage::get( ))*/]
-	{
-		prom->set_value(error->load(std::memory_order_relaxed) == false);
-		std::async(std::launch::async, [=]
-		{
-			pending_storage._Recreate( );
-			auto& pool = static_cast<thread_pool&>(*async_loader);
-			pool.~thread_pool( );
-		});
+				load_error.store(true, std::memory_order_relaxed);
+		}
 	});
-	return prom->get_future( );
 }
 
-void loader::stop(bool force)
+std::future<bool> hooks::start( )
+{
+	async_loader->run( );
+	return std::async(std::launch::async, []
+	{
+		async_loader->finish( );
+		return load_error.load(std::memory_order_relaxed) == false;
+	});
+}
+
+void hooks::stop(bool force)
 {
 	if (force)
 	{
-		pending_storage->clear( );
+		async_loader->finish( );
 		storage->clear( );
 	}
 	else

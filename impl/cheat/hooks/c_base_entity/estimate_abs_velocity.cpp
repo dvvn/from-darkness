@@ -1,8 +1,8 @@
 module;
 
-#include "cheat/hooks/base_includes.h"
-
 //#include <nstd/enum_tools.h>
+
+#include <string>
 
 module cheat.hooks.c_base_entity:estimate_abs_velocity;
 import cheat.csgo.modules;
@@ -11,16 +11,14 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::c_base_entity;
 
-estimate_abs_velocity::estimate_abs_velocity( ) = default;
-
-void estimate_abs_velocity::construct( ) noexcept
+estimate_abs_velocity::estimate_abs_velocity( )
 {
 	const nstd::mem::basic_address vtable = csgo_modules::client->find_vtable<C_BaseEntity>( );
 	const auto index = csgo_modules::client->find_signature("FF 90 ? ? 00 00 F3 0F 10 4C 24 18").plus(2).deref<1>( ).divide(4);
 	this->set_target_method(vtable.deref<1>( )[index.value]);
 }
 
-void estimate_abs_velocity::callback(Vector & vel)
+void estimate_abs_velocity::callback(Vector& vel)
 {
 #if 0
 	using namespace nstd::enum_operators;

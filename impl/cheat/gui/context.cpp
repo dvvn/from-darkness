@@ -1,7 +1,6 @@
 module;
 
-#include "cheat/service/basic_includes.h"
-
+#include <nstd/runtime_assert.h>
 #include <nstd/file/to_memory.h>
 #include <nstd/format.h>
 
@@ -10,6 +9,8 @@ module;
 #include <imgui_impl_win32.h>
 
 #include <d3d9.h>
+
+#include <functional>
 
 module cheat.gui:context;
 import cheat.csgo.interfaces.Direct3DDevice9;

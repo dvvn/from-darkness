@@ -1,12 +1,5 @@
-
-#include "cheat/hooks/base_includes.h"
-#include "cheat/netvars/includes.h"
-#include "cheat/players/player_includes.h"
-
 #include <nstd/runtime_assert.h>
 #include <nstd/winapi/comptr_includes.h>
-
-#include <cppcoro/sync_wait.hpp>
 
 #include <Windows.h>
 
@@ -45,10 +38,10 @@ static void register_services( )
 {
 	using namespace cheat;
 	using namespace hooks;
-	loader::add<winapi::wndproc>( );
-	loader::add<imgui::PushClipRect>( );
-	loader::add<directx::reset>( );
-	loader::add<directx::present>( );
+	add<winapi::wndproc>( );
+	add<imgui::PushClipRect>( );
+	add<directx::reset>( );
+	add<directx::present>( );
 }
 
 // Main code
@@ -76,7 +69,7 @@ int main(int, char**)
 	::UpdateWindow(hwnd);
 
 
-	if (!cheat::hooks::loader::start( ))
+	if (!cheat::hooks::start( ).get())
 		goto _RESET;
 
 	// Setup Dear ImGui context
@@ -150,7 +143,7 @@ int main(int, char**)
 
 _RESET:
 
-	cheat::hooks::loader::stop(true);
+	cheat::hooks::stop(true);
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

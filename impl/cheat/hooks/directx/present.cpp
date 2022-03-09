@@ -1,6 +1,6 @@
 module;
 
-#include "cheat/hooks/base_includes.h"
+#include <nstd/runtime_assert.h>
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -20,11 +20,6 @@ present::present( )
 {
 	const nstd::mem::basic_address vtable_holder = csgo::Direct3DDevice9::get_ptr( );
 	this->set_target_method(vtable_holder.deref<1>( )[17]);
-}
-
-void present::construct( ) noexcept
-{
-
 }
 
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)

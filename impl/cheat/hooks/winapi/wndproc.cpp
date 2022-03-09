@@ -1,10 +1,9 @@
 module;
 
-#include "cheat/hooks/base_includes.h"
 #include <windows.h>
+#include <functional>
 
 module cheat.hooks.winapi:wndproc;
-import cheat.hooks.loader;
 import cheat.gui;
 
 using namespace cheat;
@@ -15,13 +14,8 @@ wndproc::wndproc( )
 	const auto hwnd = gui::context::get( ).hwnd;
 	unicode_ = IsWindowUnicode(hwnd);
 	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
-
 	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC);
 	this->set_target_method(reinterpret_cast<void*>(val));
-}
-
-void wndproc::construct( ) noexcept
-{
 }
 
 // ReSharper disable once CppInconsistentNaming

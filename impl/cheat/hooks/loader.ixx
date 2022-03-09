@@ -12,7 +12,7 @@ using hook_creator = std::function<stored_hook( )>;
 
 void register_hook(hook_creator&& creator);
 
-export namespace cheat::hooks::loader
+export namespace cheat::hooks
 {
 	template<typename T>
 	void add( )
@@ -23,10 +23,8 @@ export namespace cheat::hooks::loader
 		});
 	}
 
-	bool start( );
-	std::future<bool> start_async( );
+	std::future<bool> start( );
 	void stop(bool force = false);
-
 
 	//todo: unload function (not there)
 }

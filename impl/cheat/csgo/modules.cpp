@@ -11,7 +11,6 @@ module;
 #include <condition_variable>
 
 module cheat.csgo.modules;
-import cheat.root_service;
 import cheat.console;
 import nstd.rtlib;
 import nstd.container.wrapper;

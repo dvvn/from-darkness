@@ -1,5 +1,4 @@
 module;
-#include "cheat/hooks/base_includes.h"
 
 #include <imgui_internal.h>
 
@@ -12,11 +11,6 @@ using namespace hooks::imgui;
 PushClipRect::PushClipRect( )
 {
 	this->set_target_method(ImGui::PushClipRect);
-}
-
-void PushClipRect::construct( ) noexcept
-{
-
 }
 
 void PushClipRect::callback(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect)

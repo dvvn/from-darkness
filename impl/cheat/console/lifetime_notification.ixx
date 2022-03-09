@@ -13,14 +13,20 @@ export namespace cheat::console
 	class lifetime_notification
 	{
 	protected:
+
+		void message(const std::string_view msg)const
+		{
+			console_log(_Name( ), msg);
+		}
+
 		lifetime_notification( )
 		{
-			console_log(_Name( ), "created");
+			message("created");
 		}
 
 		~lifetime_notification( )
 		{
-			console_log(_Name( ), "destroyed");
+			message("destroyed");
 		}
 
 	private:

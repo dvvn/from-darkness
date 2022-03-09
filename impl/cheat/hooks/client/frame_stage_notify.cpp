@@ -1,6 +1,5 @@
 module;
 
-#include "cheat/hooks/base_includes.h"
 #include "cheat/players/player_includes.h"
 
 module cheat.hooks.client:frame_stage_notify;
@@ -11,9 +10,7 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks::client;
 
-frame_stage_notify::frame_stage_notify( ) = default;
-
-void frame_stage_notify::construct( ) noexcept
+frame_stage_notify::frame_stage_notify( )
 {
 	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client.vfunc(32));
 	const nstd::mem::basic_address vtable_holder = IBaseClientDLL::get_ptr( );
