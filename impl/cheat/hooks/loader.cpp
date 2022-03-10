@@ -101,9 +101,7 @@ class simple_thread_pool :object_message<simple_thread_pool>
 		//this->message("{} started", id);
 		while (pos_ < storage_.size( ))
 		{
-			auto& func = storage_[pos_];
-			++pos_;
-			std::invoke(func);
+			std::invoke(storage_[pos_++]);
 		}
 		//this->message("{} finished", id);
 	}
@@ -116,8 +114,7 @@ public:
 
 	~simple_thread_pool( )
 	{
-		pos_ = std::numeric_limits<storage_type::size_type>::max( );
-		wait_for_threads( );
+		finish( );
 	}
 
 	template<typename T>
@@ -148,6 +145,12 @@ public:
 	{
 		swap_instant(threads_);
 		swap_instant(storage_);
+	}
+
+	void finish( )
+	{
+		pos_ = std::numeric_limits<storage_type::size_type>::max( );
+		wait_for_threads( );
 	}
 
 private:
@@ -182,21 +185,35 @@ void register_hook(hook_creator&& creator)
 
 std::future<bool> hooks::start( )
 {
-	async_loader->start( );
-	return std::async(std::launch::async, []
+	//console::log(debug_thread_id());
+	constexpr auto load = []
 	{
+		//console::log(debug_thread_id());
+		async_loader->start( );
 		async_loader->join( );
 		async_loader->destroy( );
 		return load_error == false;
-	});
+	};
+
+#if 1
+	auto prom = std::make_shared<std::promise<bool>>( );
+	std::thread([=]
+	{
+		prom->set_value(load( ));
+	}).detach( );
+	return prom->get_future( );
+#else
+	return std::async(std::launch::async, load);
+#endif
 }
 
 void hooks::stop(bool force)
 {
 	if (force)
 	{
+		async_loader->finish( );
 		async_loader->destroy( );
-		storage._Recreate( );
+		storage->clear( );
 	}
 	else
 	{
