@@ -9,7 +9,7 @@ module;
 
 export module cheat.gui:context;
 export import :effects;
-import cheat.console.lifetime_notification;
+import cheat.console.object_message;
 import nstd.one_instance;
 
 export namespace cheat::gui
@@ -39,7 +39,7 @@ export namespace cheat::gui
 		int known_fonts_ = 0;
 	};
 
-	struct context final : ImGuiContext, console::lifetime_notification<context>, nstd::one_instance<context>
+	struct context final : ImGuiContext, console::object_message<context>, nstd::one_instance<context>
 	{
 		~context( );
 		context( );

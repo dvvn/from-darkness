@@ -11,7 +11,7 @@ import cheat.netvars.data_dump;
 #endif
 import cheat.netvars.data_fill;
 import cheat.netvars.data_handmade;
-import cheat.console.lifetime_notification;
+import cheat.console.object_message;
 import cheat.csgo.modules;
 import cheat.csgo.interfaces.C_BaseEntity;
 import cheat.csgo.interfaces.EngineClient;
@@ -21,7 +21,7 @@ using namespace cheat;
 using namespace netvars;
 using namespace csgo;
 
-struct netvars_holder :console::lifetime_notification<netvars_holder>
+struct netvars_holder :console::object_message<netvars_holder>
 {
 	storage storage;
 #ifdef CHEAT_NETVARS_RESOLVE_TYPE
@@ -44,7 +44,7 @@ struct netvars_holder :console::lifetime_notification<netvars_holder>
 	}
 };
 
-std::string_view console::lifetime_notification<netvars_holder>::_Name( ) const
+std::string_view console::object_message<netvars_holder>::_Name( ) const
 {
 	return "netvars";
 }

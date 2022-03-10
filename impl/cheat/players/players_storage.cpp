@@ -11,7 +11,7 @@ import cheat.csgo.interfaces.EngineClient;
 import cheat.csgo.interfaces.GlobalVars;
 import cheat.csgo.interfaces.ClientEntityList;
 import cheat.csgo.interfaces.C_CSPlayer;
-import cheat.console.lifetime_notification;
+import cheat.console.object_message;
 import nstd.one_instance;
 
 using namespace cheat;
@@ -82,12 +82,12 @@ public:
 	using Base::resize;
 };
 
-struct players_storage : console::lifetime_notification<players_storage>, extended_vector<player>
+struct players_storage : console::object_message<players_storage>, extended_vector<player>
 {
 	players_storage( ) = default;
 };
 
-std::string_view console::lifetime_notification<players_storage>::_Name( ) const
+std::string_view console::object_message<players_storage>::_Name( ) const
 {
 	return "players";
 }

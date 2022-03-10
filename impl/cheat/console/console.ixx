@@ -1,9 +1,8 @@
 module;
 
+#include <nstd/format.h>
 #include <string_view>
 //#include <sstream>
-
-#include <nstd/format.h>
 
 export module cheat.console;
 

@@ -36,9 +36,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="$(SolutionDir)\deps\cppcoro\cppcoro.vcxproj">
-			<Project>{1E29EFC0-4C53-411D-8C85-2315885676E9}</Project>
-		</ProjectReference>
 		<ProjectReference Include="$(SolutionDir)\deps\imgui\imgui.vcxproj">
 			<Project>{DDAA17EC-019B-4B6C-80E0-DAD3DFC2C6C5}</Project>
 		</ProjectReference>

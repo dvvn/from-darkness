@@ -17,7 +17,7 @@ using namespace widgets;
 
 using namespace std::chrono_literals;
 
-struct menu_holder :console::lifetime_notification<menu_holder>
+struct menu_holder :console::object_message<menu_holder>
 {
 	WPARAM hotkey = VK_HOME;
 
@@ -232,7 +232,7 @@ struct menu_holder :console::lifetime_notification<menu_holder>
 	}
 };
 
-std::string_view console::lifetime_notification<menu_holder>::_Name( )const
+std::string_view console::object_message<menu_holder>::_Name( )const
 {
 	return "gui::menu";
 }
