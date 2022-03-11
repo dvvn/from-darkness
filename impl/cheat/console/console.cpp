@@ -53,53 +53,6 @@ static auto _Set_mode(int known_prev_mode, FILE* file, int mode)
 	return _Set_mode<Assert>(file, mode);
 }
 
-static auto _Get_time_str( )
-{
-	using namespace std::chrono;
-	using clock = system_clock;
-
-	const auto current_time_point = clock::now( );
-	const auto current_time = clock::to_time_t(current_time_point);
-	tm current_localtime;
-
-	localtime_s(&current_localtime, &current_time);
-
-	const auto current_time_since_epoch = current_time_point.time_since_epoch( );
-	const auto current_milliseconds = duration_cast<milliseconds>(current_time_since_epoch).count( ) % 1000;
-	const auto current_microseconds = duration_cast<microseconds>(current_time_since_epoch).count( ) % 1000;
-
-	return std::ostringstream( ) << std::setfill('0')
-		<< std::put_time(&current_localtime, "%T")
-		<< ' '
-		<< std::setw(3) << current_milliseconds
-		<< '.'
-		<< std::setw(3) << current_microseconds;
-}
-
-static auto _Prepare_message(const char* expression, const char* message, const std::source_location& location)
-{
-	std::ostringstream msg;
-
-	const auto append = [&]<typename Name, typename Value>(Name && name, Value && value, bool newline = true)
-	{
-		msg << name << ": " << value;
-		if (newline)
-			msg << '\n';
-	};
-
-	msg << "Assertion failed!\n\n";
-	append("File", location.file_name( ));
-	append("Line", location.line( ));
-	append("Column", location.column( ));
-	append("Function", location.function_name( ), false);
-	if (expression)
-		append("\n\nExpression", expression, false);
-	if (message)
-		msg << "\nMessage" << message;
-
-	return msg;
-}
-
 template <typename S, typename T>
 concept stream_possible = requires(S & stream, T val)
 {
@@ -199,48 +152,99 @@ static auto _Write_text = []<typename ...T>(const T & ...text)
 	_Write_text_ex(text...);
 };
 
+static auto _Prepare_assert_message(const char* expression, const char* message, const std::source_location& location)
+{
+	std::ostringstream msg;
+
+	const auto append = [&]<typename Name, typename Value>(Name && name, Value && value, bool newline = true)
+	{
+		msg << name << ": " << value;
+		if (newline)
+			msg << '\n';
+	};
+
+	msg << "Assertion failed!\n\n";
+	append("File", location.file_name( ));
+	append("Line", location.line( ));
+	append("Column", location.column( ));
+	append("Function", location.function_name( ), false);
+	if (expression)
+		append("\n\nExpression", expression, false);
+	if (message)
+		msg << "\nMessage" << message;
+
+	return msg;
+}
+
+static auto _Current_time_string( )
+{
+	using namespace std::chrono;
+	using clock = system_clock;
+
+	const auto current_time_point = clock::now( );
+	const auto current_time = clock::to_time_t(current_time_point);
+	tm current_localtime;
+
+	localtime_s(&current_localtime, std::addressof(current_time));
+
+	const auto current_time_since_epoch = current_time_point.time_since_epoch( );
+	const auto current_milliseconds = duration_cast<milliseconds>(current_time_since_epoch).count( ) % 1000;
+	const auto current_microseconds = duration_cast<microseconds>(current_time_since_epoch).count( ) % 1000;
+
+	return std::ostringstream( ) << std::setfill('0')
+		<< std::put_time(&current_localtime, "%T")
+		<< ' '
+		<< std::setw(3) << current_milliseconds
+		<< '.'
+		<< std::setw(3) << current_microseconds;
+}
+
 class console_controller : nstd::rt_assert_handler
 {
 	std::mutex mtx_;
 	//std::vector<packed_string_self> cache_;
 
-	FILE* in_ = nullptr;
-	FILE* out_ = nullptr;
-	FILE* err_ = nullptr;
+	FILE* in_;
+	FILE* out_;
+	FILE* err_;
 
-	HWND window_ = nullptr;
+	HWND window_;
+	bool running_;
 
 public:
 	~console_controller( )
 	{
-		runtime_assert_remove_handler(this->id( ));
-
-		if (window_)
-		{
-			FreeConsole( );
-			PostMessage(window_, WM_CLOSE, 0U, 0L);
-		}
-
-		if (in_)
-			fclose(in_);
-		if (out_)
-			fclose(out_);
-		if (err_)
-			fclose(err_);
+		if (!running_)
+			return;
+		stop( );
 	}
 
 	console_controller( )
 	{
-		auto window = GetConsoleWindow( );
-		const auto window_exists = window != nullptr;
+		start( );
+	}
 
-		if (!window_exists)
+	bool running( )const
+	{
+		return running_;
+	}
+
+	void start( )
+	{
+		runtime_assert(!running_, "Already started");
+		auto console_window = GetConsoleWindow( );
+		if (console_window != nullptr)
+		{
+			in_ = out_ = err_ = nullptr;
+			window_ = nullptr;
+		}
+		else
 		{
 			const auto window_created = AllocConsole( );
 			runtime_assert(window_created, "Unable to allocate the console!");
 
-			window = window_ = GetConsoleWindow( );
-			runtime_assert(window_ != nullptr, "Unable to get console window");
+			console_window = GetConsoleWindow( );
+			runtime_assert(console_window != nullptr, "Unable to get console window");
 
 			// ReSharper disable CppInconsistentNaming
 			// ReSharper disable CppEnforceCVQualifiersPlacement
@@ -259,23 +263,50 @@ public:
 			const auto& full_path = nstd::rtlib::all_infos::get( ).current( ).full_path.raw;
 			const auto window_title_set = SetConsoleTitleW(full_path.data( ));
 			runtime_assert(window_title_set, "Unable set console title");
+
+			window_ = console_window;
 		}
 
-		runtime_assert(IsWindowUnicode(window) == TRUE);
+		runtime_assert(IsWindowUnicode(console_window) == TRUE);
 		runtime_assert_add_handler(this);
 
 		write_line("Started");
+		running_ = true;
+	}
+
+	void stop( )
+	{
+		runtime_assert(running_, "Already stopped");
+		runtime_assert_remove_handler(this->id( ));
+
+		if (window_)
+		{
+			FreeConsole( );
+			PostMessage(window_, WM_CLOSE, 0U, 0L);
+		}
+		else
+		{
+			write_line("Stopped");
+		}
+
+		if (in_)
+			fclose(in_);
+		if (out_)
+			fclose(out_);
+		if (err_)
+			fclose(err_);
+		running_ = false;
 	}
 
 private:
 	void handle(const char* expression, const char* message, const std::source_location& location) noexcept
 	{
-		write_line(_Prepare_message(expression, message, location));
+		write_line(_Prepare_assert_message(expression, message, location));
 	}
 
 	void handle(const char* message, const std::source_location& location) noexcept
 	{
-		write_line(_Prepare_message(nullptr, message, location));
+		write_line(_Prepare_assert_message(nullptr, message, location));
 	}
 
 	size_t id( ) const
@@ -292,7 +323,7 @@ public:
 
 	void write_line(const packed_string& str)
 	{
-		const auto fn = [time = _Get_time_str( )]<typename T>(const T & obj)
+		const auto fn = [time = _Current_time_string( )]<typename T>(const T & obj)
 		{
 			_Write_text(time, " - ", obj, '\n');
 		};
@@ -301,25 +332,62 @@ public:
 	}
 };
 
-static bool _Console_enabled = true;
+enum class state :uint8_t
+{
+	unset, on, off
+};
+
+static state console_state = state::unset;
+static nstd::one_instance_obj<console_controller> controller;
 
 template<typename T>
 static void console_log(const T str)
 {
-	if (!_Console_enabled)
-		return;
-	auto& inst = nstd::one_instance<console_controller>::get( );
-	inst.write_line(str);
+	switch (console_state)
+	{
+	case state::unset:
+		runtime_assert("Unknown console state");
+		break;
+	case state::on:
+		controller->write_line(str);
+		break;
+	}
 }
 
-void console::mark_disabled( )
+void console::enable( )
 {
-	runtime_assert(_Console_enabled == true, "Console already disabled!");
+	switch (console_state)
+	{
+	case state::on:
+		runtime_assert("Console already enabled!");
+		break;
+	case state::off:
+		controller->start( );
+	case state::unset:
+		console_state = state::on;
+		break;
+	}
 }
 
-bool console::disabled( )
+void console::disable( )
 {
-	return !_Console_enabled;
+	switch (console_state)
+	{
+	case state::off:
+		runtime_assert("Console already disabled!");
+		break;
+	case state::on:
+		if (controller.initialized( ))
+			controller->stop( );
+	case state::unset:
+		console_state = state::off;
+		break;
+	}
+}
+
+bool /*console::*/active( )
+{
+	return console_state == state::on;
 }
 
 void console::log(const std::string_view str)
