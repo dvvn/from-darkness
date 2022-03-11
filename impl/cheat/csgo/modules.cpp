@@ -30,11 +30,10 @@ static decltype(auto) _Transform_wide(T&& rng)
 		return std::views::transform(std::forward<T>(rng), nstd::text::cast_all<wchar_t>);
 }
 
-template<typename ...Args>
-static constexpr auto _Wide(Args&&...args)
+static constexpr auto _Wide = []<typename ...Args>(Args&&...args)
 {
 	return nstd::container::append<std::wstring>(_Transform_wide(std::span(args...)));
-}
+};
 
 class modules_accesser
 {
@@ -205,11 +204,12 @@ struct interface_reg
 
 static auto _Find_interfaces(rtlib::info* target_module)
 {
+#if 0
 	constexpr std::string_view export_name = "CreateInterface";
 
 	const auto log_fn = [=](rtlib::export_data* e, bool created)->void
 	{
-		if (console::disabled( ))
+		if (!console::active( ))
 			return;
 
 		const std::wstring_view dllname = target_module->name.raw;
@@ -229,6 +229,9 @@ static auto _Find_interfaces(rtlib::info* target_module)
 		storage.emplace_back(r->name, r->create_fn);
 
 	return storage;
+#endif
+	runtime_assert("nstd::rtlib deprecated");
+	return interfaces_storage( );
 }
 
 static auto _Find_interfaces_pretty(rtlib::info* target_module)
@@ -415,9 +418,10 @@ data_extractor::data_extractor(storage_type storage)
 
 address data_extractor::find_signature(const std::string_view sig)
 {
+#if 0
 	std::wstring_view log_name;
 	std::wstring log_sig;
-	if (!console::disabled( ))
+	if (console::active( ))
 	{
 		log_name = storage_->info_ptr->name.raw;
 		log_sig = _Wide(sig);
@@ -437,24 +441,28 @@ address data_extractor::find_signature(const std::string_view sig)
 	const auto bytes = make_signature(sig.begin( ), sig.end( ), signature_convert( ));
 	const auto ret = block.find_block(bytes);
 
-	if (!console::disabled( ))
+	if (console::active( ))
 	{
 		const auto postfix = ret.empty( ) ? L" NOT " : L" ";
 		console::log(L"{} -> signature \"{}\":{}found", log_name, log_sig, postfix);
 	};
 
 	return ret.data( );
+#endif
+
+	runtime_assert("nstd::rtlib deprecated");
+	return nullptr;
 }
 
 void* data_extractor::find_vtable(const std::string_view class_name)
 {
+#if 0
 	auto& mgr = storage_->info_ptr->vtables( );
 	const auto vt = mgr.at(class_name, [=]<class C>(C*, bool created)
 	{
 		if (!created)
 			return;
-
-		if (console::disabled( ))
+		if (!console::active( ))
 			return;
 
 		using namespace nstd::rtlib;
@@ -473,6 +481,10 @@ void* data_extractor::find_vtable(const std::string_view class_name)
 	});
 
 	return vt.addr;
+#endif
+
+	runtime_assert("nstd::rtlib deprecated");
+	return 0;
 }
 
 static std::wstring _Get_full_interface_name(const char* begin, size_t known_size)
@@ -488,11 +500,12 @@ static std::wstring _Get_full_interface_name(const char* begin, size_t known_siz
 
 address data_extractor::find_game_interface(const std::string_view ifc_name)
 {
+#if 0
 	const auto callback = [=]<class Pair>(const Pair found)
 	{
 		static_assert(std::is_trivially_copyable_v<Pair>, "Change pair type to reference!");
 
-		if (console::disabled( ))
+		if (!console::active( ))
 			return;
 
 		console::log(L"{} -> interface \"{}\"{}: found"
@@ -503,6 +516,10 @@ address data_extractor::find_game_interface(const std::string_view ifc_name)
 	};
 
 	return storage_->interfaces.call(ifc_name, std::ref(callback));
+#endif
+
+	runtime_assert("nstd::rtlib deprecated");
+	return nullptr;
 }
 
 void data_extractor::clear_interfaces_cache( )
