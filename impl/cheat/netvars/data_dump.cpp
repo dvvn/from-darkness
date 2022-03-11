@@ -309,7 +309,7 @@ void netvars::generate_classes(bool recreate, storage& root_netvars_data, lazy::
 			lazy_storage.write.push_back(std::move(writer_cpp));
 	}
 
-	if (!console::disabled( ))
+	console::log([&]
 	{
 		std::ostringstream msg;
 		msg << "Netvars classes generation done.";
@@ -324,7 +324,7 @@ void netvars::generate_classes(bool recreate, storage& root_netvars_data, lazy::
 		{
 			msg << std::format(" Created {} files.", lazy_storage.write.size( ));
 		}
+		return std::move(msg).str( );
+	});
 
-		console::log(msg.view( ));
-	}
 }

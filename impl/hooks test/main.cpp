@@ -1,6 +1,4 @@
-
 #include <nstd/runtime_assert.h>
-#include <dhooks/includes.h>
 
 #include <Windows.h>
 #include <intrin.h>

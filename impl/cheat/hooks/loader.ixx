@@ -3,7 +3,7 @@ module;
 #include <functional>
 #include <future>
 
-export module cheat.hooks.loader;
+export module cheat.hooks:loader;
 import dhooks;
 
 using dhooks::hook_holder_data;

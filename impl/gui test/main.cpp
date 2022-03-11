@@ -1,4 +1,3 @@
-#include <nstd/runtime_assert.h>
 #include <nstd/winapi/comptr_includes.h>
 
 #include <Windows.h>
@@ -7,12 +6,10 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-import cheat.hooks.loader;
+#include <future>
 
-import cheat.hooks.winapi;
-import cheat.hooks.imgui;
-import cheat.hooks.directx;
-import cheat.hooks.winapi;
+import cheat.hooks;
+import cheat.console;
 import nstd.winapi.comptr;
 
 using nstd::winapi::comptr;
@@ -34,16 +31,6 @@ static bool CreateDeviceD3D(HWND hWnd);
 static void ResetDevice( );
 static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-static void register_services( )
-{
-	using namespace cheat;
-	using namespace hooks;
-	add<winapi::wndproc>( );
-	add<imgui::PushClipRect>( );
-	add<directx::reset>( );
-	add<directx::present>( );
-}
-
 // Main code
 int main(int, char**)
 {
@@ -62,14 +49,14 @@ int main(int, char**)
 		return 1;
 	}
 
-	register_services( );
+	console::enable( );
+	hooks::init_basic( );
 
 	// Show the window
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
 
-
-	if (!cheat::hooks::start( ).get())
+	if (!hooks::start( ).get( ))
 		goto _RESET;
 
 	// Setup Dear ImGui context
@@ -142,8 +129,7 @@ int main(int, char**)
 	}
 
 _RESET:
-
-	cheat::hooks::stop(true);
+	hooks::stop(true);
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

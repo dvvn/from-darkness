@@ -2,18 +2,15 @@ module;
 
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
-#include <nstd/deque.h>
 
 #include <functional>
 #include <future>
 #include <vector>
-#include <list>
-#include <queue>
-#include <string_view>
+#include <string>
 #include <sstream>
 #include <iomanip>
 
-module cheat.hooks.loader;
+module cheat.hooks:loader;
 import cheat.console.object_message;
 import nstd.one_instance;
 
@@ -55,14 +52,9 @@ static one_instance_obj<storage_t> storage;
 
 static auto debug_thread_id( )
 {
-	std::string id;
-	if (!console::disabled( ))
-	{
-		std::ostringstream s;
-		s << "thread 0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << std::this_thread::get_id( );
-		id = std::move(s).str( );
-	}
-	return id;
+	std::ostringstream s;
+	s << "thread 0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << std::this_thread::get_id( );
+	return std::move(s).str( );
 }
 
 template<class T>
@@ -86,12 +78,12 @@ class simple_thread_pool :object_message<simple_thread_pool>
 		size_t joinable = 0;
 		for (auto& thr : threads_)
 		{
-			if (!thr.joinable( ))
-				continue;
-			++joinable;
-			thr.join( );
+			if (thr.joinable( ))
+			{
+				++joinable;
+				thr.join( );
+			}
 		}
-
 		return joinable;
 	}
 
@@ -99,15 +91,17 @@ class simple_thread_pool :object_message<simple_thread_pool>
 	{
 		//const auto id = debug_thread_id( );
 		//this->message("{} started", id);
-		while (pos_ < storage_.size( ))
+		for (;;)
 		{
-			std::invoke(storage_[pos_++]);
+			auto current_pos = pos_++;
+			if (current_pos >= storage_.size( ))
+				break;
+			std::invoke(storage_[current_pos]);
 		}
 		//this->message("{} finished", id);
 	}
 
 public:
-	using storage_type = std::vector<std::function<void( )>>;
 	using thread_type = std::thread;
 
 	simple_thread_pool( ) = default;
@@ -131,8 +125,8 @@ public:
 		runtime_assert(threads_count > 0, "Incorrect threads count");
 		this->message("started");
 		threads_.reserve(threads_count);
-		for (size_t i = 0; i < threads_count; i++)
-			threads_.push_back(thread_type(&simple_thread_pool::worker, this));
+		while (threads_.size( ) != threads_count)
+			threads_.emplace_back(&simple_thread_pool::worker, this);
 	}
 
 	void join( )
@@ -141,20 +135,20 @@ public:
 			this->message("stopped");
 	}
 
+	void finish( )
+	{
+		pos_ = storage_.size( );
+		wait_for_threads( );
+	}
+
 	void destroy( )
 	{
 		swap_instant(threads_);
 		swap_instant(storage_);
 	}
 
-	void finish( )
-	{
-		pos_ = std::numeric_limits<storage_type::size_type>::max( );
-		wait_for_threads( );
-	}
-
 private:
-	storage_type storage_;
+	std::vector<std::function<void( )>> storage_;
 	std::atomic<size_t> pos_ = 0;
 	std::vector<thread_type> threads_;
 };

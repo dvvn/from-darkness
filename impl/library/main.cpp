@@ -1,43 +1,16 @@
-#include <nstd/runtime_assert.h>
-
 #include <Windows.h>
 #include <d3d9.h>
 
-import cheat.hooks.winapi;
-import cheat.hooks.vgui_surface;
-import cheat.hooks.studio_render;
-import cheat.hooks.imgui;
-import cheat.hooks.directx;
-import cheat.hooks.client_mode;
-import cheat.hooks.client;
-import cheat.hooks.c_csplayer;
-import cheat.hooks.c_base_animating;
-import cheat.hooks.c_base_entity;
-//import cheat.hooks.other;
+#include <future>
 
-import cheat.hooks.loader;
+import cheat.hooks;
 
 static DWORD WINAPI setup_hooks(LPVOID hModule)
 {
 	using namespace cheat;
-	using namespace hooks;
-	add<winapi::wndproc>( );
-	add<vgui_surface::lock_cursor>( );
-	add<studio_render::draw_model>( );
-	add<imgui::PushClipRect>( );
-	add<directx::present>( );
-	add<directx::reset>( );
-	add<client_mode::create_move>( );
-	add<client::frame_stage_notify>( );
-	add<c_csplayer::do_extra_bone_processing>( );
-	add<c_base_animating::should_skip_animation_frame>( );
-	add<c_base_animating::standard_blending_rules>( );
-	add<c_base_entity::estimate_abs_velocity>( );
-	//add<other::rta_holder>( );
-
-	if (start( ).get( ))
+	hooks::init_all( );
+	if (hooks::start( ).get( ))
 		return TRUE;
-
 	FreeLibraryAndExitThread(static_cast<HMODULE>(hModule), FALSE);
 }
 
