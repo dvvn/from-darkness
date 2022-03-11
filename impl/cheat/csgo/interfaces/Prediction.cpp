@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.Prediction;
 import cheat.csgo.modules;
 

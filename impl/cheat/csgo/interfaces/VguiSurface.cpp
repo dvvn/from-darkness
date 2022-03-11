@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.VguiSurface;
 import cheat.csgo.modules;
 

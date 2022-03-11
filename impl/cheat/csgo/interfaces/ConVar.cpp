@@ -97,7 +97,8 @@ ConVar* ICVar::FindVar(const std::string_view name)const
 	const auto invalid_cvar = this->end( );
 
 	const auto target_cvar = std::find_if(first_cvar, invalid_cvar, compare);
-	if (!console::disabled( ))
+
+	console::log([&]
 	{
 		std::ostringstream msg;
 		msg << std::format("Cvar \"{}\"", name);
@@ -134,8 +135,8 @@ ConVar* ICVar::FindVar(const std::string_view name)const
 			msg << ' ';
 		}
 		msg << "found";
-		console::log(msg.view( ));
-	};
+		return std::move(msg).str( );
+	});
 
 	return target_cvar == invalid_cvar ? nullptr : static_cast<ConVar*>(target_cvar.get( ));
 }

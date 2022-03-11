@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.EngineClient;
 import cheat.csgo.modules;
 

@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.RenderView;
 import cheat.csgo.modules;
 

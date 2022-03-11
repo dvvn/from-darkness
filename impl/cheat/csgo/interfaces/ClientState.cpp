@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.ClientState;
 import cheat.csgo.modules;
 

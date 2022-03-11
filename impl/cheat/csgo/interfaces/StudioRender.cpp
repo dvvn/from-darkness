@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.StudioRender;
 import cheat.csgo.modules;
 

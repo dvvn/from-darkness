@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.MaterialSystem;
 import cheat.csgo.modules;
 

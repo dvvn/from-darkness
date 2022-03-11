@@ -1,4 +1,6 @@
-﻿module cheat.csgo.interfaces.GlowEffect;
+﻿module;
+
+module cheat.csgo.interfaces.GlowEffect;
 import cheat.csgo.modules;
 
 using namespace cheat;

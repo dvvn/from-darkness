@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.ModelRender;
 import cheat.csgo.modules;
 

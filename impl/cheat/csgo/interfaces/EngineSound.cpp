@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.EngineSound;
 import cheat.csgo.modules;
 

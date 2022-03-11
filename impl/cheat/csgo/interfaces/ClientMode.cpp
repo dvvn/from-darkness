@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.ClientMode;
 import cheat.csgo.interfaces.BaseClient;
 import cheat.csgo.modules;
