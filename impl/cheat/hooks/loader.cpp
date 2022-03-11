@@ -6,6 +6,7 @@ module;
 #include <functional>
 #include <future>
 #include <vector>
+#include <list>
 #include <string>
 #include <sstream>
 #include <iomanip>

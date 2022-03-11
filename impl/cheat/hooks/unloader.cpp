@@ -10,7 +10,6 @@ import cheat.console;
 
 using namespace cheat;
 
-
 static HMODULE get_current_handle( )
 {
 	return 0;//todo
@@ -20,7 +19,7 @@ static DWORD WINAPI unload_impl(LPVOID)
 {
 	hooks::stop( );
 	Sleep(1000);
-	console::disable( );
+	console::disable( );//skip messages from destructors
 	FreeLibraryAndExitThread(get_current_handle( ), TRUE);
 }
 
