@@ -3,6 +3,7 @@
 #include <nstd/runtime_assert.h>
 
 module cheat.csgo.interfaces.BaseHandle;
+import cheat.csgo.interfaces.ClientEntityList;
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
@@ -77,13 +78,7 @@ int32_t CBaseHandle::ToInt( ) const
 
 IHandleEntity* CBaseHandle::Get( ) const
 {
-	//runtime_assert("temporary disabled, use direct entity_list call");
-	//return 0;
 	/*if (!IsValid( ))
 		return 0;*/
-
-		//i down want to store csgo_interfaces somewhere only for easy access
-	//return services_loader::get( ).deps( ).get<netvars>( ).deps( ).get<csgo_interfaces>( ).entity_list->GetClientEntityFromHandle(*this);
-	runtime_assert("WIP. Disabled.");
-	return nullptr;
+	return IClientEntityList::get( ).GetClientEntityFromHandle(*this);
 }

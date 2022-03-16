@@ -32,7 +32,7 @@ struct netvars_holder :console::object_message<netvars_holder>
 	{
 		iterate_client_class(storage, IBaseClientDLL::get( ).GetAllClasses( ));
 
-		const auto baseent = csgo_modules::client->find_vtable<C_BaseEntity>( );
+		const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
 		iterate_datamap(storage, baseent->GetDataDescMap( ));
 		iterate_datamap(storage, baseent->GetPredictionDescMap( ));
 		store_handmade_netvars(storage);

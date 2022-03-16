@@ -122,5 +122,5 @@ bool CGameTrace::IsVisible( ) const
 
 IEngineTrace* nstd::one_instance_getter<IEngineTrace*>::_Construct( )const
 {
-	return csgo_modules::engine->find_game_interface("EngineTraceClient");
+	return csgo_modules::engine.find_interface<"EngineTraceClient">( );
 }

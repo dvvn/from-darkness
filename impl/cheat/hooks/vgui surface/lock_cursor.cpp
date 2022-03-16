@@ -1,6 +1,5 @@
 module;
 
-
 module cheat.hooks.vgui_surface:lock_cursor;
 import cheat.gui;
 import nstd.mem.address;

@@ -6,5 +6,5 @@ using namespace csgo;
 
 IPhysicsSurfaceProps* nstd::one_instance_getter<IPhysicsSurfaceProps*>::_Construct( )const
 {
-	return csgo_modules::vphysics->find_game_interface("VPhysicsSurfaceProps");
+	return csgo_modules::vphysics.find_interface<"VPhysicsSurfaceProps">( );
 }

@@ -9,7 +9,7 @@ using namespace csgo;
 
 CInput* nstd::one_instance_getter<CInput*>::_Construct( )const
 {
-	return csgo_modules::client->find_signature("B9 ? ? ? ? F3 0F 11 04 24 FF 50 10").plus(1).deref<1>( );
+	return csgo_modules::client.find_signature<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">( ).plus(1).deref<1>( );
 }
 
 constexpr auto MULTIPLAYER_BACKUP = 150;

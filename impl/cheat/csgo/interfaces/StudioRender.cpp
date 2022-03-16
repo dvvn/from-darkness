@@ -8,5 +8,5 @@ using namespace csgo;
 
 IStudioRender* nstd::one_instance_getter<IStudioRender*>::_Construct( )const
 {
-	return csgo_modules::studiorender->find_game_interface("VStudioRender");
+	return csgo_modules::studiorender.find_interface<"VStudioRender">( );
 }

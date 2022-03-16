@@ -8,5 +8,5 @@ using namespace csgo;
 
 IEngineSound* nstd::one_instance_getter<IEngineSound*>::_Construct( )const
 {
-	return csgo_modules::engine->find_game_interface("IEngineSoundClient");
+	return csgo_modules::engine.find_interface<"IEngineSoundClient">( );
 }

@@ -26,16 +26,25 @@ auto format_impl(F&& fmt, Args&& ...args)
 	return std::format(fmt_fix(std::forward<F>(fmt)), std::forward<Args>(args)...);
 }
 
-template<typename T>
+template<typename T, typename Chr = char>
+concept formattable1 = requires
+{
+	{ std::formatter<T, Chr> }->std::default_initializable;
+};
+
+template<typename Chr, typename T>
 decltype(auto) unpack_invocable(T&& obj)
 {
 	using raw_t = std::remove_cvref_t<T>;
 
-	if constexpr (std::invocable<raw_t> && !std::destructible<std::formatter<raw_t>>)
-		return unpack_invocable(std::invoke(std::forward<T>(obj)));
+	if constexpr (std::invocable<raw_t> && !formattable1<raw_t, Chr>)
+		return unpack_invocable<Chr>(std::invoke(std::forward<T>(obj)));
 	else
 		return std::forward<T>(obj);
 }
+
+template<typename Arg, typename ...Args>
+using char_t = std::remove_cvref_t<decltype(std::declval<Arg>( )[0])>;
 
 bool active( );
 
@@ -63,6 +72,7 @@ export namespace cheat::console
 	{
 		if (!active( ))
 			return;
-		log(format_impl(unpack_invocable(std::forward<Args>(args))...));
+		using chr = char_t<Args...>;
+		log(format_impl(unpack_invocable<chr>(std::forward<Args>(args))...));
 	}
 }

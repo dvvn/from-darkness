@@ -1,7 +1,9 @@
 module;
 
-#include <nstd/rtlib/includes.h>
+#include <nstd/runtime_assert.h>
 #include <nstd/type_traits.h>
+
+#include <windows.h>
 
 #include <corecrt_io.h>
 #include <fcntl.h>
@@ -13,9 +15,12 @@ module;
 #include <iomanip>
 #include <string>
 #include <variant>
+#include <chrono>
+#include <mutex>
 
 module cheat.console;
-import nstd.rtlib;
+import nstd.mem.address;
+import nstd.winapi.modules;
 
 using namespace cheat;
 
@@ -260,8 +265,7 @@ public:
 			_Freopen(out_, "CONOUT$", "w", stdout);
 			_Freopen(err_, "CONOUT$", "w", stderr);
 
-			const auto& full_path = nstd::rtlib::all_infos::get( ).current( ).full_path.raw;
-			const auto window_title_set = SetConsoleTitleW(full_path.data( ));
+			const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module( )->FullDllName.Buffer);
 			runtime_assert(window_title_set, "Unable set console title");
 
 			window_ = console_window;

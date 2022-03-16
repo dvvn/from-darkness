@@ -1,7 +1,6 @@
 ﻿module;
 
 #include <nstd/format.h>
-
 #include <sstream>
 
 module cheat.csgo.interfaces.ConVar;
@@ -15,7 +14,7 @@ using namespace csgo;
 
 ICVar* nstd::one_instance_getter<ICVar*>::_Construct( )const
 {
-	return csgo_modules::vstdlib->find_game_interface("VEngineCvar");
+	return csgo_modules::vstdlib.find_interface<"VEngineCvar">( );
 }
 
 template <typename T>

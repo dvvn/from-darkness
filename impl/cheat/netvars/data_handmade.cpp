@@ -76,17 +76,17 @@ void netvars::store_handmade_netvars(storage& root_tree)
 	_Load_class<C_BaseEntity>( );
 	add_netvar_to_storage<VarMapping_t>("m_InterpVarMap", 0x24);
 	add_netvar_to_storage<matrix3x4_t>("m_BonesCache"
-									   , csgo_modules::client->find_signature("8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8").plus(9).deref<1>( ).minus(8u)
+									   , csgo_modules::client.find_signature<"8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8">( ).plus(9).deref<1>( ).minus(8u)
 									   , type_utlvector);
 
 	_Load_class<C_BaseAnimating>( );
 	add_netvar_to_storage<CAnimationLayer>("m_AnimOverlays"
-										   , csgo_modules::client->find_signature("8B 87 ? ? ? ? 83 79 04 00 8B").plus(2).deref<1>( ) //m_vecRagdollVelocity - 128
+										   , csgo_modules::client.find_signature<"8B 87 ? ? ? ? 83 79 04 00 8B">( ).plus(2).deref<1>( ) //m_vecRagdollVelocity - 128
 										   , type_utlvector);
 	add_netvar_to_storage<float>("m_flLastBoneSetupTime"
-								 , csgo_modules::client->find_signature("C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F").plus(2).deref<1>( )); //m_hLightingOrigin - 32
+								 , csgo_modules::client.find_signature<"C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F">( ).plus(2).deref<1>( )); //m_hLightingOrigin - 32
 	add_netvar_to_storage<int>("m_iMostRecentModelBoneCounter"
-							   , csgo_modules::client->find_signature("89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10").plus(2).deref<1>( )); //m_nForceBone + 4
+							   , csgo_modules::client.find_signature<"89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10">( ).plus(2).deref<1>( )); //m_nForceBone + 4
 
 	  //_Load_class<C_BasePlayer>( );
 }

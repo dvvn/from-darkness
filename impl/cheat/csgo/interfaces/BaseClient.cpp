@@ -9,7 +9,7 @@ using namespace csgo;
 
 IBaseClientDLL* nstd::one_instance_getter<IBaseClientDLL*>::_Construct( )const
 {
-	return csgo_modules::client->find_game_interface("VClient");
+	return csgo_modules::client.find_interface<"VClient">( );
 }
 
 bool IBaseClientDLL::DispatchUserMessage(int msg_type, int flags, int size, const void* msg)

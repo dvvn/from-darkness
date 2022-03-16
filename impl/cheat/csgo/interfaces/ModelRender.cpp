@@ -8,5 +8,5 @@ using namespace csgo;
 
 IVModelRender* nstd::one_instance_getter<IVModelRender*>::_Construct( )const
 {
-	return csgo_modules::engine->find_game_interface("VEngineModel");
+	return csgo_modules::engine.find_interface<"VEngineModel">( );
 }

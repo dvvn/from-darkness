@@ -1,3 +1,5 @@
+module;
+
 module cheat.csgo.interfaces.DebugOverlay;
 import cheat.csgo.modules;
 
@@ -6,5 +8,5 @@ using namespace csgo;
 
 IVDebugOverlay* nstd::one_instance_getter<IVDebugOverlay*>::_Construct( )const
 {
-	return csgo_modules::engine->find_game_interface("VDebugOverlay");
+	return csgo_modules::engine.find_interface<"VDebugOverlay">( );
 }

@@ -8,5 +8,5 @@ using namespace csgo;
 
 IMaterialSystem* nstd::one_instance_getter<IMaterialSystem*>::_Construct( )const
 {
-	return csgo_modules::materialsystem->find_game_interface("VMaterialSystem");
+	return csgo_modules::materialsystem.find_interface<"VMaterialSystem">( );
 }

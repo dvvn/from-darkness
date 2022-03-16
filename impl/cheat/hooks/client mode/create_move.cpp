@@ -1,6 +1,5 @@
 module;
 
-
 module cheat.hooks.client_mode:create_move;
 import cheat.players;
 import nstd.mem.address;

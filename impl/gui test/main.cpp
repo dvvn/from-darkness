@@ -14,17 +14,12 @@ import nstd.winapi.comptr;
 
 using nstd::winapi::comptr;
 
-#pragma pack(push, 1)
-struct d3d_device_holder : comptr<IDirect3DDevice9>
-{
-	char hint[4 + 2 * 3] = {1,0,0,3,0,0,3,0,0,7};
-};
-#pragma pack(pop)
-
 // Data
 static comptr<IDirect3D9> g_pD3D;
-static d3d_device_holder g_pd3dDevice;
+static comptr<IDirect3DDevice9> g_pd3dDevice;
 static D3DPRESENT_PARAMETERS g_d3dpp;
+
+IDirect3DDevice9* d3dDevice9_ptr;
 
 // Forward declarations of helper functions
 static bool CreateDeviceD3D(HWND hWnd);
@@ -48,6 +43,8 @@ int main(int, char**)
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
 		return 1;
 	}
+
+	d3dDevice9_ptr=g_pd3dDevice;
 
 	console::enable( );
 	hooks::init_basic( );

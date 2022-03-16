@@ -8,5 +8,5 @@ using namespace csgo;
 
 IPrediction* nstd::one_instance_getter<IPrediction*>::_Construct( )const
 {
-	return csgo_modules::client->find_game_interface("VClientPrediction");
+	return csgo_modules::client.find_interface<"VClientPrediction">( );
 }

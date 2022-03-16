@@ -12,8 +12,8 @@ using namespace hooks::c_csplayer;
 
 do_extra_bone_processing::do_extra_bone_processing( )
 {
-	const nstd::mem::basic_address vtable_holder = csgo_modules::client->find_vtable<C_CSPlayer>( );
-	const auto index = csgo_modules::client->find_signature("8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC").plus(11).deref<1>( ).divide(4);
+	const nstd::mem::basic_address vtable_holder = csgo_modules::client.find_vtable<C_CSPlayer>( );
+	const auto index = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8D 4F FC">( ).plus(11).deref<1>( ).divide(4);
 	this->set_target_method(vtable_holder.deref<1>( )[index.value]);
 }
 
