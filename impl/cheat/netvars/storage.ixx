@@ -1,9 +1,19 @@
 ﻿module;
 
-#include "storage_includes.h"
+//#include <nlohmann/json.hpp>
+//#include <nlohmann/ordered_map.hpp>
 
-export module cheat.netvars.storage;
+#include <nstd/core.h>
 
+#include <vector>
+#include <string>
+#include <sstream>
+
+export module cheat.netvars:storage;
+import :basic_storage;
+import cheat.csgo.structs.ClientClass;
+
+#if 0
 template <class Key, class Value, class IgnoredLess = std::less<Key>    //
 , class Allocator = std::allocator<std::pair<const Key, Value>> //
 , class Base = nlohmann::ordered_map<Key, Value, IgnoredLess, Allocator>
@@ -69,9 +79,54 @@ struct ordered_map_json : Base
 	iterator find(const _Char_type* key) = delete;
 	const_iterator find(const _Char_type* key) const = delete;
 };
+#endif
 
 export namespace cheat::netvars
 {
-	using storage = nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, ptrdiff_t, size_t, float>;
+	struct logs_data
+	{
+		~logs_data( );
+
+		std::wstring dir = NSTD_STRINGIZE_RAW_WIDE(NSTD_CONCAT(VS_SolutionDir, \.dumps\netvars\));
+
+		struct
+		{
+			std::wstring name;
+			std::wstring extension = L".json";
+		}file;
+
+		size_t indent = 4;
+		char filler = ' ';
+
+		std::ostringstream data;
+	};
+
+	struct classes_data
+	{
+		~classes_data( );
+
+		std::wstring dir = NSTD_STRINGIZE_RAW_WIDE(NSTD_CONCAT(VS_SolutionDir, \impl\cheat\csgo\interfaces_custom\));
+
+		struct file_info
+		{
+			std::wstring name;
+			std::ostringstream data;
+		};
+
+		std::vector<file_info> data;
+	};
+
+	class storage : public basic_storage
+	{
+	public:
+		void iterate_client_class(csgo::ClientClass* root_class);
+		void iterate_datamap(csgo::datamap_t* root_map);
+		void store_handmade_netvars( );
+
+		void log_netvars(logs_data& data);
+		void generate_classes(classes_data& data);
+	};
+
+	//using storage=nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, std::make_signed_t<size_t>, size_t, float>;
 	//using storage = nlohmann::json;
 }

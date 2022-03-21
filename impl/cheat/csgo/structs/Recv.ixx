@@ -71,7 +71,7 @@ export namespace cheat::csgo
 	class RecvProp
 	{
 	public:
-		char* m_pVarName;
+		const char* m_pVarName;
 		SendPropType m_RecvType;
 		int m_Flags;
 		int m_StringBufferSize;

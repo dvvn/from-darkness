@@ -1,30 +1,29 @@
 module;
 
-#include "storage_includes.h"
+#include <nstd/runtime_assert.h>
 
-#include <nstd/mem/address_includes.h>
-#include <nstd/unistring.h>
-#include <nstd/checksum.h>
-#include <nstd/unordered_set.h>
-#include <nstd/enum_tools.h>
-#include <nstd/unordered_map.h>
-#include <nstd/format.h>
-#include <nstd/ranges.h>
+#include <nlohmann/json.hpp>
+#include <nlohmann/ordered_map.hpp>
 
+//#include <nstd/format.h>
+//#include <nstd/ranges.h>
+
+#include <vector>
+#include <sstream>
 #include <fstream>
 #include <filesystem>
 
-module cheat.netvars.data_dump;
+module cheat.netvars:storage;
 import cheat.console;
-import nstd.type_name;
-import nstd.container.wrapper;
-import nstd.text.actions;
 import nstd.mem.address;
 
 using namespace cheat;
+using namespace netvars;
 namespace fs = std::filesystem;
 
-#define CHEAT_NETVARS_GENERATED_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\interfaces_custom\)
+#if 0
+
+#define CHEAT_NETVARS_GENERATED_DIR NSTD_STRINGIZE_RAW_WIDE(NSTD_CONCAT(VS_SolutionDir, \impl\cheat\csgo\interfaces_custom\))
 #define CHEAT_CSGOSDK_DIR _CONCAT(VS_SolutionDir, \impl\cheat\csgo\)
 #define CHEAT_NETVARS_GENERATED_HEADER_POSTFIX _h
 #define CHEAT_NETVARS_GENERATED_SOURCE_POSTFIX _cpp
@@ -327,4 +326,150 @@ void netvars::generate_classes(bool recreate, storage& root_netvars_data, lazy::
 		return std::move(msg).str( );
 	});
 
+}
+#endif
+
+logs_data::~logs_data( )
+{
+	//moved
+	if (dir.empty( ))
+		return;
+
+	const auto& path = reinterpret_cast<fs::path&>(dir);
+	fs::create_directory(path);
+
+	const auto& [file_name, file_ex] = file;
+	std::wstring full_path;
+	full_path.reserve(dir.size( ) + file_name.size( ) + file_ex.size( ));
+	full_path += dir;
+	full_path += file_name;
+	full_path += file_ex;
+
+	const auto file_new = data.view( );
+	auto file_stored = std::ifstream(full_path, std::ios::binary | std::ios::ate);
+	if (!file_stored.fail( ))
+	{
+		const auto size = static_cast<size_t>(file_stored.tellg( ));
+		if (file_new.size( ) == size)
+		{
+			auto buff = std::make_unique<char[]>(size);
+			if (file_stored.read(buff.get( ), size))
+			{
+				if (std::memcmp(buff.get( ), file_new.data( ), size) == 0)
+					return;
+			}
+		}
+		file_stored.close( );
+	}
+
+	std::ofstream(full_path) << file_new;
+}
+
+struct json_string :std::string
+{
+	template<typename ...Args>
+		requires(std::constructible_from<std::string, Args...>)
+	json_string(Args&&...args)
+		:std::string(std::forward<Args>(args)...)
+	{
+	}
+};
+
+void storage::log_netvars(logs_data& data)
+{
+	//single-file mode
+	using json_type = nlohmann::basic_json<nlohmann::ordered_map, std::vector, json_string, bool, std::make_signed_t<size_t>, size_t, float>;
+	json_type json;
+
+	for (const netvar_table& table : *this)
+	{
+		if (table.empty( ))
+			continue;
+
+		auto& entry = json[table.name( )];
+		for (const basic_netvar_info& info : table)
+		{
+			const auto name = info.name( );
+			const auto offset = info.offset( );
+			const auto type = info.type( );
+
+			entry["name"] = name;
+			entry["offset"] = offset;
+			if (!type.empty( ))
+				entry["type"] = type;
+		}
+	}
+
+	data.data << std::setw(data.indent) << std::setfill(data.filler) << std::move(json);
+}
+
+void storage::generate_classes(classes_data& data)
+{
+	data.data.reserve(this->size( ));
+
+	for (const netvar_table& table : *this)
+	{
+		if (table.empty( ))
+			continue;
+
+		classes_data::file_info h_info, cpp_info;
+		auto& h = h_info.data;
+		auto& cpp = cpp_info.data;
+
+		const std::string_view class_name = table.name( );
+
+		for (const basic_netvar_info& info : table)
+		{
+			auto netvar_type = info.type( );
+			if (netvar_type.empty( ))
+				continue;
+
+			const auto type_pointer = netvar_type.ends_with('*');
+			if (type_pointer)
+				netvar_type.remove_suffix(1);
+			const auto ret_char = type_pointer ? '*' : '&';
+
+			const std::string_view netvar_name = info.name( );
+
+			//---
+
+			const auto write_func_header = [=](std::basic_ostream<char>& stream, bool inside_class)
+			{
+				stream << netvar_type << ret_char << ' ';
+				if (!inside_class)
+					stream << class_name << "::";
+				stream << netvar_name << "( );\n";
+			};
+
+			write_func_header(h, true);
+
+			write_func_header(cpp, false);
+			cpp << "{\n"
+				<< '	'
+#ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
+				<< "constexpr auto offset = " << info.offset( )
+#else
+				<< "static const auto offset = netvars::get_offset" << "(\"" << class_name << "\", \"" << netvar_name << "\")"
+#endif
+				<< ";\n"
+				<< '	'
+				<< "return " << nstd::type_name<nstd::mem::basic_address>( ) << "(this) + offset;\n"
+				<< "}\n\n";
+		}
+
+		auto& h_name = h_info.name;
+		auto& cpp_name = cpp_info.name;
+
+		constexpr std::wstring_view h_postfix = L"_h";
+		h_name.reserve(class_name.size( ) + h_postfix.size( ));
+		constexpr std::wstring_view cpp_postfix = L"_cpp";
+		cpp_name.reserve(class_name.size( ) + cpp_postfix.size( ));
+
+		h_name = cpp_name = {class_name.begin( ),class_name.end( )};
+		h_name += h_postfix;
+		cpp_name += cpp_postfix;
+
+		data.data.push_back(std::move(h_info));
+		data.data.push_back(std::move(cpp_info));
+	}
 }

@@ -1,10 +1,6 @@
 ﻿module;
 
-//#include "cheat/service/includes.h"
-
 #include <nstd/runtime_assert.h>
-#include <nstd/format.h>
-#include <nstd/ranges.h>
 
 #include <array>
 #include <span>
@@ -12,6 +8,7 @@
 #include <variant>
 
 module cheat.netvars.type_resolve;
+import cheat.csgo.math.Quaternion;
 import cheat.csgo.math.Vector;
 import cheat.csgo.math.Qangle;
 import cheat.csgo.math.Color;
@@ -19,121 +16,96 @@ import cheat.csgo.math.Vmatrix;
 import cheat.csgo.tools.UtlVector;
 import cheat.csgo.interfaces.BaseHandle;
 import nstd.type_name;
-import nstd.text.actions;
-import nstd.container.wrapper;
-
-template<typename Rng>
-static auto _To_lower(const Rng& rng)
-{
-	std::basic_string<std::ranges::range_value_t<Rng>> out;
-	auto tmp = rng | std::views::transform(nstd::text::to_lower);
-	nstd::container::append(out, tmp);
-	return out;
-}
+import nstd.text.convert;
 
 using nstd::type_name;
 using namespace cheat;
 using namespace csgo;
-using netvars::string_or_view_holder;
 
-string_or_view_holder::string_or_view_holder( )
-{
-	str_.emplace<std::string_view>("");
-}
-
-string_or_view_holder::string_or_view_holder(const std::string_view sv)
-{
-	str_.emplace<std::string_view>(sv);
-}
-
-string_or_view_holder::string_or_view_holder(std::string&& str)
-{
-	str_.emplace<std::string>(std::move(str));
-}
-
-std::string& string_or_view_holder::str( )&
-{
-	return std::visit([]<class S>(S & ref)-> std::string&
-	{
-		if constexpr (std::same_as<S, std::string>)
-			return ref;
-		else
-			throw std::logic_error("Incorrect string type!");
-	}, str_);
-}
-
-std::string string_or_view_holder::str( )&&
-{
-	return std::visit([]<class S>(S && ref)-> std::string
-	{
-		if constexpr (std::same_as<S, std::string>)
-			return std::move(ref);
-		else
-			return {ref.begin( ),ref.end( )};
-	}, std::move(str_));
-}
-
-std::string_view string_or_view_holder::view( )const&
-{
-	return std::visit([]<class S>(const S & ref)-> std::string_view
-	{
-		return {ref.data( ), ref.size( )};
-	}, str_);
-}
-
-string_or_view_holder netvars::type_std_array(const std::string_view type, size_t size)
+string_or_view netvars::type_std_array(const std::string_view type, size_t size)
 {
 	runtime_assert(size != 0);
-	return std::format("{}<{}, {}>", type_name<std::array>( ), type, size);
+	std::string buff;
+	constexpr auto arr_name = type_name<std::array>( );
+	const auto arr_size = std::to_string(size);
+	buff.reserve(arr_name.size( ) + 1 + type.size( ) + 2 + arr_size.size( ) + 1);
+	buff += arr_name;
+	buff += '<';
+	buff += type;
+	buff += ", ";
+	buff += arr_size;
+	buff += '>';
+	return buff;
+	//return std::format("{}<{}, {}>", type_name<std::array>( ), type, size);
 }
 
-string_or_view_holder netvars::type_utlvector(const std::string_view type)
+string_or_view netvars::type_utlvector(const std::string_view type)
 {
-	return std::format("{}<{}>", type_name<CUtlVector>( ), type);
+	std::string buff;
+	constexpr auto arr_name = type_name<CUtlVector>( );
+	buff.reserve(arr_name.size( ) + 1 + type.size( ) + 1);
+	buff += arr_name;
+	buff += '<';
+	buff += type;
+	buff += '>';
+	return buff;
+	//return std::format("{}<{}>", type_name<CUtlVector>( ), type);
 }
 
-string_or_view_holder netvars::type_vec3(const std::string_view name)
+//m_xxxX***
+static std::string_view extract_prefix(const std::string_view type, const size_t prefix_size = 3)
 {
-	const auto is_qangle = [&]
+	const auto type_start = 2 + prefix_size;
+	if (type.size( ) > type_start && (type[0] == 'm' && type[1] == '_') && std::isupper(type[type_start]))
+		return type.substr(2, prefix_size);
+	return {};
+}
+
+string_or_view netvars::type_vec3(const std::string_view type)
+{
+	const auto vec3_qangle = [=]
 	{
-		if (name.starts_with("m_ang"))
+		if (std::isdigit(type[0]))
+			return false;
+		const auto prefix = extract_prefix(type);
+		if (prefix == "ang")
 			return true;
-		auto lstr = _To_lower(name);
-		return lstr.find("angles") != lstr.npos;
+		return nstd::text::to_lower(prefix.empty( ) ? type : type.substr(2)).contains("angles");
 	};
-	return std::isdigit(name[0]) || !is_qangle( ) ? type_name<Vector>( ) : type_name<QAngle>( );
+
+	return vec3_qangle( ) ? type_name<QAngle>( ) : type_name<Vector>( );
 }
 
-string_or_view_holder netvars::type_integer(std::string_view name)
+string_or_view netvars::type_integer(std::string_view type)
 {
-	if (/*!std::isdigit(name[0]) &&*/ name.starts_with("m_"))
+	if (/*!std::isdigit(type[0]) &&*/ type.starts_with("m_"))
 	{
-		name.remove_prefix(2);
+		type.remove_prefix(2);
 		const auto is_upper = [&](size_t i)
 		{
-			return name.size( ) > i && std::isupper(name[i]);
+			return type.size( ) > i && std::isupper(type[i]);
 		};
 		if (is_upper(1))
 		{
-			if (name.starts_with('b'))
+			if (type.starts_with('b'))
 				return type_name<bool>( );
-			if (name.starts_with('c'))
+			if (type.starts_with('c'))
 				return type_name<uint8_t>( );
-			if (name.starts_with('h'))
+			if (type.starts_with('h'))
 				return type_name<CBaseHandle>( );
 		}
 		else if (is_upper(2))
 		{
-			if (name.starts_with("un"))
+			if (type.starts_with("un"))
 				return type_name<uint32_t>( );
-			if (name.starts_with("ch"))
+			if (type.starts_with("ch"))
 				return type_name<uint8_t>( );
-			if (name.starts_with("fl") && _To_lower(name).find("time") != std::string::npos) //m_flSimulationTime int ???
+			if (type.starts_with("fl") && nstd::text::to_lower(type.substr(2)).contains("time")) //m_flSimulationTime int ???
 				return type_name<float>( );
 		}
 		else if (is_upper(3))
 		{
-			if (name.starts_with("clr"))
+			if (type.starts_with("clr"))
 				return type_name<Color>( ); //not sure
 		}
 	}
@@ -143,26 +115,26 @@ string_or_view_holder netvars::type_integer(std::string_view name)
 
 //---
 
-string_or_view_holder netvars::type_recv_prop(const RecvProp& prop)
+string_or_view netvars::type_recv_prop(const RecvProp* prop)
 {
-	switch (prop.m_RecvType)
+	switch (prop->m_RecvType)
 	{
 	case DPT_Int:
-		return type_integer(prop.m_pVarName);
+		return type_integer(prop->m_pVarName);
 	case DPT_Float:
 		return type_name<float>( );
 	case DPT_Vector:
-		return type_vec3(prop.m_pVarName);
+		return type_vec3(prop->m_pVarName);
 	case DPT_VectorXY:
 		return type_name<Vector2D>( ); //3d vector. z unused
 	case DPT_String:
 		return type_name<char*>( ); // char[X]
 	case DPT_Array:
 	{
-		const auto& prev_prop = *std::prev(std::addressof(prop));
-		runtime_assert(std::string_view(prev_prop.m_pVarName).ends_with("[0]"));
+		const auto prev_prop = std::prev(prop);
+		runtime_assert(std::string_view(prev_prop->m_pVarName).ends_with("[0]"));
 		const auto type = type_recv_prop(prev_prop);
-		return type_std_array(type.view( ), prop.m_nElements);
+		return type_std_array(type, prop->m_nElements);
 	}
 	case DPT_DataTable:
 	{
@@ -179,9 +151,9 @@ string_or_view_holder netvars::type_recv_prop(const RecvProp& prop)
 	}
 }
 
-string_or_view_holder netvars::type_datamap_field(const typedescription_t& field)
+string_or_view netvars::type_datamap_field(const typedescription_t* field)
 {
-	switch (field.fieldType)
+	switch (field->fieldType)
 	{
 	case FIELD_VOID:
 		return type_name<void*>( );
@@ -190,15 +162,11 @@ string_or_view_holder netvars::type_datamap_field(const typedescription_t& field
 	case FIELD_STRING:
 		return type_name<char*>( ); //std::string_t at real
 	case FIELD_VECTOR:
-		return type_vec3(field.fieldName);
+		return type_vec3(field->fieldName);
 	case FIELD_QUATERNION:
-	{
-		//return "Quaternion";
-		runtime_assert("Quaternion field detected");
-		return type_name<void*>( );
-	}
+		return type_name<Quaternion>( );
 	case FIELD_INTEGER:
-		return type_integer(field.fieldName);
+		return type_integer(field->fieldName);
 	case FIELD_BOOLEAN:
 		return type_name<bool>( );
 	case FIELD_SHORT:
@@ -268,5 +236,50 @@ string_or_view_holder netvars::type_datamap_field(const typedescription_t& field
 		runtime_assert("Unknown datamap field type");
 		return type_name<void*>( );
 	}
+	}
+}
+
+
+
+static std::string_view check_int_prefix(const std::string_view type)
+{
+	if (extract_prefix(type) == "uch")
+		return nstd::type_name<Color>( );
+	return {};
+}
+
+static std::string_view check_float_prefix(const std::string_view type)
+{
+	const auto prefix = extract_prefix(type);
+	if (prefix == "ang")
+		return nstd::type_name<QAngle>( );
+	if (prefix == "vec")
+		return nstd::type_name<Vector>( );
+	return {};
+}
+
+std::string_view netvars::type_array_prefix(const std::string_view type, const csgo::RecvProp* prop)
+{
+	switch (prop->m_RecvType)
+	{
+	case DPT_Int:
+		return check_int_prefix(type);
+	case DPT_Float:
+		return check_float_prefix(type);
+	default:
+		return {};
+	}
+}
+
+std::string_view netvars::type_array_prefix(const std::string_view type, const csgo::typedescription_t* field)
+{
+	switch (field->fieldType)
+	{
+	case FIELD_INTEGER:
+		return check_int_prefix(type);
+	case FIELD_FLOAT:
+		return check_float_prefix(type);
+	default:
+		return {};
 	}
 }

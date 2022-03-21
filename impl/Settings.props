@@ -18,7 +18,7 @@
 			</PreprocessorDefinitions>
 			<AdditionalIncludeDirectories>	
 				$(GitClonedProjects)\Naios\function2\include;
-				$(GitClonedProjects)\json\include;
+				$(GitClonedProjects)\nlohmann\json\include;
 				$(GitClonedProjects)\thread-pool;
 				$(SolutionDir)\impl;
 				%(AdditionalIncludeDirectories)

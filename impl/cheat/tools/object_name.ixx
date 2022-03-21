@@ -7,7 +7,7 @@ export import nstd.type_name;
 
 constexpr std::string_view drop_namespace_simple(const std::string_view str, const std::string_view drop)
 {
-	return str.substr(drop.size( ) + 2);
+	return str.starts_with(drop) ? str.substr(drop.size( ) + 2) : str;
 }
 
 export namespace cheat::inline tools
