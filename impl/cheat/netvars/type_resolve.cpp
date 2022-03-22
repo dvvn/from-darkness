@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-module cheat.netvars.type_resolve;
+module cheat.netvars:type_resolve;
 import cheat.csgo.math.Quaternion;
 import cheat.csgo.math.Vector;
 import cheat.csgo.math.Qangle;
@@ -22,7 +22,7 @@ using nstd::type_name;
 using namespace cheat;
 using namespace csgo;
 
-string_or_view netvars::type_std_array(const std::string_view type, size_t size)
+std::string netvars::type_std_array(const std::string_view type,const size_t size)
 {
 	runtime_assert(size != 0);
 	std::string buff;
@@ -39,7 +39,7 @@ string_or_view netvars::type_std_array(const std::string_view type, size_t size)
 	//return std::format("{}<{}, {}>", type_name<std::array>( ), type, size);
 }
 
-string_or_view netvars::type_utlvector(const std::string_view type)
+std::string netvars::type_utlvector(const std::string_view type)
 {
 	std::string buff;
 	constexpr auto arr_name = type_name<CUtlVector>( );
@@ -61,7 +61,7 @@ static std::string_view extract_prefix(const std::string_view type, const size_t
 	return {};
 }
 
-string_or_view netvars::type_vec3(const std::string_view type)
+std::string_view netvars::type_vec3(const std::string_view type)
 {
 	const auto vec3_qangle = [=]
 	{
@@ -76,7 +76,7 @@ string_or_view netvars::type_vec3(const std::string_view type)
 	return vec3_qangle( ) ? type_name<QAngle>( ) : type_name<Vector>( );
 }
 
-string_or_view netvars::type_integer(std::string_view type)
+std::string_view netvars::type_integer(std::string_view type)
 {
 	if (/*!std::isdigit(type[0]) &&*/ type.starts_with("m_"))
 	{
@@ -151,7 +151,7 @@ string_or_view netvars::type_recv_prop(const RecvProp* prop)
 	}
 }
 
-string_or_view netvars::type_datamap_field(const typedescription_t* field)
+std::string_view netvars::type_datamap_field(const typedescription_t* field)
 {
 	switch (field->fieldType)
 	{
@@ -160,7 +160,7 @@ string_or_view netvars::type_datamap_field(const typedescription_t* field)
 	case FIELD_FLOAT:
 		return type_name<float>( );
 	case FIELD_STRING:
-		return type_name<char*>( ); //std::string_t at real
+		return type_name<char*>( ); //string_t at real
 	case FIELD_VECTOR:
 		return type_vec3(field->fieldName);
 	case FIELD_QUATERNION:
@@ -238,8 +238,6 @@ string_or_view netvars::type_datamap_field(const typedescription_t* field)
 	}
 	}
 }
-
-
 
 static std::string_view check_int_prefix(const std::string_view type)
 {

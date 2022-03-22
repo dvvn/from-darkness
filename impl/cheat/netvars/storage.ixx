@@ -98,7 +98,7 @@ export namespace cheat::netvars
 		size_t indent = 4;
 		char filler = ' ';
 
-		std::ostringstream data;
+		std::ostringstream buff;
 	};
 
 	struct classes_data
@@ -110,10 +110,10 @@ export namespace cheat::netvars
 		struct file_info
 		{
 			std::wstring name;
-			std::ostringstream data;
+			std::ostringstream buff;
 		};
 
-		std::vector<file_info> data;
+		std::vector<file_info> files;
 	};
 
 	class storage : public basic_storage

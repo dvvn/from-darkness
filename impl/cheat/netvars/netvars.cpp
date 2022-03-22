@@ -29,10 +29,10 @@ static std::wstring to_wstring(const char* str, const bool reserve = false)
 	{
 		for (;;)
 		{
-			auto c = *str++;
+			const auto c = *str++;
 			if (c == '\0')
 				break;
-			out += c;
+			out += static_cast<wchar_t>(c);
 		}
 	}
 	return out;

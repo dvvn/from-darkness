@@ -10,7 +10,7 @@ module;
 #include <functional>
 
 module cheat.netvars:basic_storage;
-import cheat.netvars.type_resolve;
+import :type_resolve;
 
 using namespace cheat;
 using namespace netvars;
