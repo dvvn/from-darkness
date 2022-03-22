@@ -86,3 +86,7 @@ size_t netvars::get_offset(const std::string_view table, const std::string_view 
 	return holder->find(table)->find(item)->offset( );
 }
 
+void netvars::construct( )
+{
+	(void)*holder;
+}
