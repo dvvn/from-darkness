@@ -8,7 +8,7 @@ module;
 #include <algorithm>
 #include <variant>
 
-module cheat.netvars.storage;
+module cheat.netvars:storage;
 import nstd.text.convert;
 
 using namespace cheat;

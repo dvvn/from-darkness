@@ -21,12 +21,22 @@ static const char* _Netvar_name(const netvar_info_source source)
 	return std::visit(nstd::overload(&RecvProp::m_pVarName, &typedescription_t::fieldName), source);
 }
 
-static string_or_view _Netvar_type(const netvar_info_source source)
+template</*typename Ret,*/ typename T, typename Fn, typename ...Funcs>
+static decltype(auto) /*Ret*/ select_invoke(T arg, Fn fn, Funcs ...funcs)
 {
-	return std::visit(nstd::overload(type_recv_prop, type_datamap_field), source);
+	if constexpr (std::invocable<Fn, T>)
+		return std::invoke(fn, arg);
+	else
+		return select_invoke(arg, funcs...);
 }
 
-
+static string_or_view _Netvar_type(const netvar_info_source source)
+{
+	return std::visit([]<class T>(const T * ptr)->string_or_view
+	{
+		return select_invoke(ptr, type_recv_prop, type_datamap_field);
+	}, source);
+}
 
 template<typename T>
 static auto _Find_name(T&& data, const nstd::hashed_string_view name)->decltype(get_ptr(data[0]))
