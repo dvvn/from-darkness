@@ -172,7 +172,6 @@ namespace ImGui
 }
 
 #define ImDrawCallback ImGui::ImDrawCallback_custom
-#define IMGUI_DISABLE_DEFAULT_ALLOCATORS 1
 #define	IMGUI_USE_WCHAR32
 #define IMGUI_DEFINE_MATH_OPERATORS
 #define	IMGUI_DISABLE_OBSOLETE_FUNCTIONS
@@ -185,6 +184,10 @@ namespace ImGui
 #define IMGUI_USE_STB_SPRINTF
 #endif
 #define	ImDrawIdx size_t
+
+#ifdef _DEBUG
+#define IMGUI_DISABLE_DEFAULT_ALLOCATORS 1
+#endif
 
 struct IDirect3DTexture9;
 #define ImTextureID IDirect3DTexture9*

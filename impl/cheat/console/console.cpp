@@ -92,6 +92,12 @@ constexpr auto _Get_char_type( )
 		return T::value_type( );
 }
 
+#ifdef _MSC_VER
+using std::_Always_false;
+#else
+
+#endif
+
 #pragma warning(push)
 #pragma warning(disable: 4702 4459)
 
@@ -114,7 +120,7 @@ static auto _Write_text_ex(const T& text, const Next&...other)
 		else if constexpr (std::same_as<char_t, std::wofstream::char_type>)
 			std::wcout << text;
 		else
-			static_assert(false, __FUNCSIG__": Unsupported char type");
+			static_assert(_Always_false<char_t>, __FUNCSIG__": Unsupported char type");
 	}
 	else if constexpr (writable)
 	{
@@ -137,7 +143,7 @@ static auto _Write_text_ex(const T& text, const Next&...other)
 	}
 	else
 	{
-		static_assert(false, __FUNCSIG__": Unsupported string type");
+		static_assert(_Always_false<T>, __FUNCSIG__": Unsupported string type");
 	}
 
 	if constexpr (!universal)
@@ -161,7 +167,7 @@ static auto _Prepare_assert_message(const char* expression, const char* message,
 {
 	std::ostringstream msg;
 
-	const auto append = [&]<typename Name, typename Value>(Name && name, Value && value, bool newline = true)
+	const auto append = [&]<typename Name, typename Value>(const Name name,const Value value, bool newline = true)
 	{
 		msg << name << ": " << value;
 		if (newline)

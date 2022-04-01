@@ -1,8 +1,6 @@
 module;
 
 #include <nstd/runtime_assert.h>
-#include <nstd/file/to_memory.h>
-#include <nstd/format.h>
 
 #include <imgui_internal.h>
 #include <imgui_impl_dx9.h>
@@ -11,12 +9,31 @@ module;
 #include <d3d9.h>
 
 #include <functional>
+#include <filesystem>
+#include <fstream>
 
 module cheat.gui:context;
 import cheat.csgo.interfaces.Direct3DDevice9;
 
 using namespace cheat;
 using namespace gui;
+
+ImFontConfig fonts_builder_proxy::default_font_config( )
+{
+	ImFontConfig font_cfg;
+	//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+	static ImWchar ranges[] = {
+		0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
+		0
+	};
+	//font_cfg.OversampleH = 3;
+	//font_cfg.OversampleV = 1;
+	font_cfg.FontDataOwnedByAtlas = false;
+	font_cfg.PixelSnapH = false;
+	font_cfg.GlyphRanges = /*io.Fonts->GetGlyphRangesCyrillic( )*/ranges;
+
+	return font_cfg;
+}
 
 fonts_builder_proxy::fonts_builder_proxy(ImFontAtlas* atlas)
 	: atlas_(atlas), known_fonts_(atlas->ConfigData.size( ))
@@ -35,56 +52,88 @@ fonts_builder_proxy::~fonts_builder_proxy( )
 fonts_builder_proxy::fonts_builder_proxy(fonts_builder_proxy&& other) noexcept = default;
 fonts_builder_proxy& fonts_builder_proxy::operator=(fonts_builder_proxy && other) noexcept = default;
 
-ImFont* fonts_builder_proxy::add_default_font(std::optional<ImFontConfig> && cfg_opt)
+ImFont* fonts_builder_proxy::add_default_font(const ImFontConfig & cfg)
 {
-	if (!cfg_opt.has_value( ))
-		cfg_opt = default_font_config( );
-
-	return atlas_->AddFontDefault(std::addressof(*cfg_opt));
+	return atlas_->AddFontDefault(std::addressof(cfg));
 }
 
-ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path & path, std::optional<ImFontConfig> && cfg_opt)
+template<size_t N, typename ...T>
+static void append_to_buffer(char(&buffer)[N], const T ...names)
 {
-	if (!cfg_opt.has_value( ))
-		cfg_opt = default_font_config( );
+	size_t offset = 0;
+	const auto copy_impl = [&](const std::string_view name)
+	{
+		std::copy(name.begin( ), name.end( ), buffer + offset);
+		offset += name.size( );
+		runtime_assert(offset <= N, "Buffer too small!");
+	};
 
-	auto& cfg = *cfg_opt;
-	ImFont* out;
+	(copy_impl(names), ...);
+	buffer[offset] = '\0';
+}
+
+class memory_file_data
+{
+public:
+	uint8_t* begin( )const
+	{
+		return buff_.get( );
+	}
+	uint8_t* end( )const
+	{
+		return buff_.get( ) + size_;
+	}
+
+	size_t size( )const
+	{
+		return size_;
+	}
+
+	memory_file_data(const std::filesystem::path& source)
+	{
+		using namespace std;
+		auto infile = ifstream(source, ios::in | ios::binary | ios::ate);
+		size_ = static_cast<size_t>(infile.tellg( ));
+
+		infile.seekg(0, ios::beg);
+
+		buff_ = make_unique<uint8_t[]>(size_);
+		infile.read((char*)buff_.get( ), size_);
+		runtime_assert(!infile.bad( ));
+	}
+
+private:
+	std::unique_ptr<uint8_t[]>buff_;
+	size_t size_;
+};
+
+ImFont* fonts_builder_proxy::add_font_from_ttf_file(const std::filesystem::path & path, ImFontConfig && cfg)
+{
 	if (cfg.FontDataOwnedByAtlas)
 	{
 		const auto file = path.string( );
-		out = atlas_->AddFontFromFileTTF(file.c_str( ), cfg.SizePixels, std::addressof(cfg));
+		return atlas_->AddFontFromFileTTF(file.c_str( ), cfg.SizePixels, std::addressof(cfg));
 	}
-	else
+
+	if (cfg.Name[0] == '\0')
 	{
-		namespace rn = std::ranges;
-		const auto buffer = nstd::file::to_memory(path.native( ));
+		const auto font_size = static_cast<size_t>(cfg.SizePixels);
+		runtime_assert(cfg.SizePixels - static_cast<float>(font_size) == 0);
 
-		if (cfg.Name[0] == '\0')
-		{
-			const auto font_size = static_cast<size_t>(cfg.SizePixels);
-			runtime_assert(cfg.SizePixels - static_cast<float>(font_size) == 0);
-			const auto font_size_ex = font_size == 0 ? "?" : std::to_string(font_size);
-
-			auto font_info = std::format("{}, {}px", path.filename( ).string( ), font_size_ex);
-			runtime_assert(font_info.size( ) + 1 <= rn::size(cfg.Name));
-			rn::copy(font_info, cfg.Name);
-			cfg.Name[font_info.size( )] = '\0';
-		}
-
-		out = this->add_font_from_memory_ttf_file(buffer.begin( ), buffer.end( ), std::move(cfg_opt));
+		append_to_buffer(cfg.Name,
+						 path.filename( ).string( ),
+						 ", ",
+						 font_size == 0 ? "?" : std::to_string(font_size),
+						 "px");
 	}
 
-	return out;
+	const auto buffer = memory_file_data(path);
+	return this->add_font_from_memory_ttf_file(buffer.begin( ), buffer.end( ), std::move(cfg));
 }
 
-ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(uint8_t * buffer_start, uint8_t * buffer_end, std::optional<ImFontConfig> && cfg_opt)
+ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(uint8_t * buffer_start, uint8_t * buffer_end, ImFontConfig && cfg)
 {
 	runtime_assert(buffer_start < buffer_end);
-	if (!cfg_opt.has_value( ))
-		cfg_opt = default_font_config( );
-
-	auto& cfg = *cfg_opt;
 	runtime_assert(cfg.FontData == nullptr);
 	cfg.FontData = buffer_start;
 	cfg.FontDataSize = std::distance(buffer_start, buffer_end);
@@ -92,29 +141,11 @@ ImFont* fonts_builder_proxy::add_font_from_memory_ttf_file(uint8_t * buffer_star
 	return atlas_->AddFont(std::addressof(cfg));
 }
 
-std::optional<ImFontConfig> fonts_builder_proxy::default_font_config( )
-{
-	ImFontConfig font_cfg;
-	//font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
-	static ImWchar ranges[] = {
-		0x0020, IM_UNICODE_CODEPOINT_MAX, //almost language of utf8 range
-		0
-	};
-	//font_cfg.OversampleH = 3;
-	//font_cfg.OversampleV = 1;
-	font_cfg.FontDataOwnedByAtlas = false;
-	font_cfg.PixelSnapH = false;
-	font_cfg.GlyphRanges = /*io.Fonts->GetGlyphRangesCyrillic( )*/ranges;
-
-	return font_cfg;
-}
-
 //-------------
-
 
 context::~context( )
 {
-	constexpr auto safe_call = []<typename T>(T && fn)
+	constexpr auto safe_call = []<typename T>(T fn)
 	{
 		__try
 		{
@@ -127,7 +158,7 @@ context::~context( )
 
 	safe_call(ImGui_ImplWin32_Shutdown);
 	safe_call(ImGui_ImplDX9_Shutdown);
-	safe_call(std::bind_front(ImGui::Shutdown, this));
+	safe_call(ImGui::Shutdown);
 }
 
 context::context( )
@@ -136,6 +167,7 @@ context::context( )
 	const auto d3d = csgo::Direct3DDevice9::get_ptr( );
 
 	IMGUI_CHECKVERSION( );
+#ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
 	ImGui::SetAllocatorFunctions([](size_t size, void*)
 	{
 		return operator new(size);
@@ -143,9 +175,10 @@ context::context( )
 	{
 		return operator delete(ptr);
 	});
+#endif
 
 	ImGui::SetCurrentContext(this);
-	ImGui::Initialize(this);
+	ImGui::Initialize( );
 
 	//----------
 
@@ -161,26 +194,20 @@ context::context( )
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX9_Init(d3d);
 
-	const auto set_style = [&]
-	{
 #if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
+	/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;
 
-		/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;
+	shadow_cfg.TexCornerSize          = 16 ;
+	shadow_cfg.TexEdgeSize            = 1;
+	shadow_cfg.TexFalloffPower        = 4.8f ;
+	shadow_cfg.TexDistanceFieldOffset = 3.8f ;*/
 
-		shadow_cfg.TexCornerSize          = 16 ;
-		shadow_cfg.TexEdgeSize            = 1;
-		shadow_cfg.TexFalloffPower        = 4.8f ;
-		shadow_cfg.TexDistanceFieldOffset = 3.8f ;*/
-
-		Style.WindowShadowSize = 30;
-		Style.WindowShadowOffsetDist = 10;
-		Style.Colors[ImGuiCol_WindowShadow] = /*ImColor(0, 0, 0, 255)*/Style.Colors[ImGuiCol_WindowBg];
+	Style.WindowShadowSize = 30;
+	Style.WindowShadowOffsetDist = 10;
+	Style.Colors[ImGuiCol_WindowShadow] = /*ImColor(0, 0, 0, 255)*/Style.Colors[ImGuiCol_WindowBg];
 #endif
-		Style.Colors[ImGuiCol_WindowBg].w = 0.7f;
-		Style.Colors[ImGuiCol_PopupBg].w = 0.5f;
-	};
-
-	set_style( );
+	Style.Colors[ImGuiCol_WindowBg].w = 0.7f;
+	Style.Colors[ImGuiCol_PopupBg].w = 0.5f;
 
 	IO.IniFilename = nullptr;
 	//IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -190,12 +217,12 @@ context::context( )
 		auto fnt = this->fonts_builder( );
 
 		auto font_cfg = fnt.default_font_config( );
-		font_cfg->SizePixels = 13;
+		font_cfg.SizePixels = 13;
 
 #if /*!defined(_DEBUG)*/0
 		return fnt.add_font_from_ttf_file("C:\\Windows\\Fonts\\arial.ttf", std::move(font_cfg));
 #else
-		return fnt.add_default_font(std::move(font_cfg));
+		return fnt.add_default_font(font_cfg);
 #endif
 	}();
 }

@@ -3,6 +3,7 @@ module;
 #include <nstd/runtime_assert.h>
 
 #include <string>
+#include <sstream>
 
 module cheat.netvars;
 import :storage;
@@ -27,13 +28,9 @@ static std::wstring to_wstring(const char* str, const bool reserve = false)
 	}
 	else
 	{
-		for (;;)
-		{
-			const auto c = *str++;
-			if (c == '\0')
-				break;
+		for (auto c = str[0]; c != '\0'; c = *++str)
 			out += static_cast<wchar_t>(c);
-		}
+
 	}
 	return out;
 }

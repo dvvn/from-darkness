@@ -26,8 +26,9 @@ static_assert(sizeof(fs::path) == sizeof(std::wstring));
 template<typename T, typename ...Args>
 static T join_strings(const Args& ...args)
 {
+	const auto string_size = (args.size( ) + ...);
 	T out;
-	out.reserve((args.size( ) + ...));
+	out.reserve(string_size);
 	(out.append(args.begin( ), args.end( )), ...);
 	return out;
 }
@@ -42,7 +43,7 @@ static bool file_already_written(const fs::path& full_path, const std::string_vi
 	if (size != buffer.size( ))
 		return false;
 
-	auto buff = std::make_unique<char[]>(size);
+	const auto buff = std::make_unique<char[]>(size);
 	if (!file_stored.read(buff.get( ), size))
 		return false;
 

@@ -5,7 +5,6 @@ module;
 #include <windows.h>
 
 #include <filesystem>
-#include <optional>
 
 export module cheat.gui:context;
 export import :effects;
@@ -17,6 +16,9 @@ export namespace cheat::gui
 	class fonts_builder_proxy
 	{
 	public:
+
+		static ImFontConfig default_font_config( );
+
 		fonts_builder_proxy(ImFontAtlas* atlas);
 		~fonts_builder_proxy( );
 
@@ -28,11 +30,9 @@ export namespace cheat::gui
 
 		//todo: images loader
 
-		ImFont* add_default_font(std::optional<ImFontConfig>&& cfg_opt);
-		ImFont* add_font_from_ttf_file(const std::filesystem::path& path, std::optional<ImFontConfig>&& cfg_opt);
-		ImFont* add_font_from_memory_ttf_file(uint8_t* buffer_start, uint8_t* buffer_end, std::optional<ImFontConfig>&& cfg_opt);
-
-		static std::optional<ImFontConfig> default_font_config( );
+		ImFont* add_default_font(const ImFontConfig& cfg = default_font_config( ));
+		ImFont* add_font_from_ttf_file(const std::filesystem::path& path, ImFontConfig&& cfg = default_font_config( ));
+		ImFont* add_font_from_memory_ttf_file(uint8_t* buffer_start, uint8_t* buffer_end, ImFontConfig&& cfg = default_font_config( ));
 
 	private:
 		ImFontAtlas* atlas_ = nullptr;
