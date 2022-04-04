@@ -1,6 +1,6 @@
 module;
 
-export module cheat.hooks.c_base_animating:standard_blending_rules;
+export module cheat.hooks.c_base_animating.standard_blending_rules;
 import cheat.csgo.interfaces.C_BaseAnimating;
 import dhooks;
 
@@ -21,5 +21,10 @@ namespace cheat::hooks::c_base_animating
 
 	protected:
 		void callback(csgo::CStudioHdr* hdr, csgo::Vector pos[], csgo::QuaternionAligned q[], float current_time, int bone_mask) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

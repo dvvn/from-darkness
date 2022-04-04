@@ -1,7 +1,7 @@
 module;
 
 
-export module cheat.hooks.client_mode:create_move;
+export module cheat.hooks.client_mode.create_move;
 import cheat.csgo.interfaces.ClientMode;
 import dhooks;
 
@@ -14,5 +14,10 @@ namespace cheat::hooks::client_mode
 
 	protected:
 		void callback(float input_sample_time, csgo::CUserCmd* cmd) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

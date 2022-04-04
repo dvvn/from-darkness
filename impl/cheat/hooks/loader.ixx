@@ -6,8 +6,7 @@ module;
 export module cheat.hooks:loader;
 import dhooks;
 
-using dhooks::hook_holder_data;
-using stored_hook = std::unique_ptr<hook_holder_data>;
+using stored_hook = std::unique_ptr<dhooks::hook_holder_data>;
 using hook_creator = std::function<stored_hook( )>;
 
 void register_hook(hook_creator&& creator);
@@ -25,6 +24,4 @@ export namespace cheat::hooks
 
 	std::future<bool> start( );
 	void stop(bool force = false);
-
-	//todo: unload function (not there)
 }

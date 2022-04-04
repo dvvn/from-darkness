@@ -395,7 +395,7 @@ void console::disable( )
 	}
 }
 
-bool /*console::*/active( )
+bool console::active( )
 {
 	return console_state == state::on;
 }

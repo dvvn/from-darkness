@@ -1,7 +1,7 @@
 module;
 
 
-export module cheat.hooks.vgui_surface:lock_cursor;
+export module cheat.hooks.vgui_surface.lock_cursor;
 import cheat.csgo.interfaces.VguiSurface;
 import dhooks;
 
@@ -14,5 +14,10 @@ namespace cheat::hooks::vgui_surface
 
 	protected:
 		void callback( ) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

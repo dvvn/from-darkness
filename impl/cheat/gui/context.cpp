@@ -14,6 +14,7 @@ module;
 
 module cheat.gui:context;
 import cheat.csgo.interfaces.Direct3DDevice9;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace gui;
@@ -159,11 +160,15 @@ context::~context( )
 	safe_call(ImGui_ImplWin32_Shutdown);
 	safe_call(ImGui_ImplDX9_Shutdown);
 	safe_call(ImGui::Shutdown);
+
+	console::object_destroyed<context>( );
 }
 
 context::context( )
 	: ImGuiContext(std::addressof(fonts))
 {
+	console::object_created<context>( );
+
 	const auto d3d = csgo::Direct3DDevice9::get_ptr( );
 
 	IMGUI_CHECKVERSION( );

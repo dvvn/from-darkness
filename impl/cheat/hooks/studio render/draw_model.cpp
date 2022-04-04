@@ -1,10 +1,13 @@
 module;
 
+#include <cheat/hooks/console_log.h>
+
 //#include "cheat/players/player_includes.h"
 
-module cheat.hooks.studio_render:draw_model;
+module cheat.hooks.studio_render.draw_model;
 //import cheat.players;
 import nstd.mem.address;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace csgo;
@@ -16,6 +19,8 @@ draw_model::draw_model( )
 	const nstd::mem::basic_address vtable_holder = IStudioRender::get_ptr( );
 	this->set_target_method(vtable_holder.deref<1>( )[29]);
 }
+
+CHEAT_HOOKS_CONSOLE_LOG(draw_model);
 
 void draw_model::callback(DrawModelResults_t * results, const DrawModelInfo_t & info,
 						  matrix3x4_t * bone_to_world,

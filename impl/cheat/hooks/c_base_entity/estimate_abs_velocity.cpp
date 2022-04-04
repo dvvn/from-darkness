@@ -2,10 +2,12 @@ module;
 
 //#include <nstd/enum_tools.h>
 
+#include <cheat/hooks/console_log.h>
 #include <string>
 
-module cheat.hooks.c_base_entity:estimate_abs_velocity;
+module cheat.hooks.c_base_entity.estimate_abs_velocity;
 import cheat.csgo.modules;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace csgo;
@@ -17,6 +19,8 @@ estimate_abs_velocity::estimate_abs_velocity( )
 	const auto index = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).plus(2).deref<1>( ).divide(4);
 	this->set_target_method(vtable.deref<1>( )[index.value]);
 }
+
+CHEAT_HOOKS_CONSOLE_LOG(estimate_abs_velocity);
 
 void estimate_abs_velocity::callback(Vector& vel)
 {

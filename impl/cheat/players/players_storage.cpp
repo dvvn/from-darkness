@@ -82,33 +82,33 @@ public:
 	using Base::resize;
 };
 
-struct players_storage : console::object_message<players_storage>, extended_vector<player>
-{
-	players_storage( ) = default;
-};
-
-std::string_view console::object_message<players_storage>::_Name( ) const
+struct players_storage;
+std::string_view console::object_message_impl<players_storage>::get_name( ) const
 {
 	return "players";
 }
 
-using players_holder = nstd::one_instance<players_storage>;
+struct players_storage : console::object_message_auto<players_storage>, extended_vector<player>
+{
+	players_storage( ) = default;
+};
+
+static nstd::one_instance_obj<players_storage> players_holder;
 
 player* players::begin( )
 {
-	return players_holder::get( ).data( );
+	return players_holder->data( );
 }
 
 player* players::end( )
 {
-	auto& holder = players_holder::get( );
-	return holder.data( ) + holder.size( );
+	return begin( ) + players_holder->size( );
 }
 
 void players::update( )
 {
 	const auto max_clients = static_cast<size_t>(CGlobalVarsBase::get( ).max_clients);
-	players_holder::get( ).resize(max_clients);
+	players_holder->resize(max_clients);
 #if 0
 	const auto update_players =
 		[
@@ -122,7 +122,7 @@ void players::update( )
 
 		for (auto i = start; std::invoke(validator, i, limit); ++i)
 		{
-			auto& entry = players_holder::get( ).at(i);
+			auto& entry = players_holder->at(i);
 			const auto ent = static_cast<C_CSPlayer*>(IClientEntityList::get( ).GetClientEntity(i));
 			entry.update(ent, curtime, correct);
 #ifdef _DEBUG
@@ -138,7 +138,7 @@ void players::update( )
 	const auto local_idx = IVEngineClient::get( ).GetLocalPlayer( );
 
 	update_players(1, std::less( ), local_idx);
-	players_holder::get( ).at(local_idx).update(nullptr, 0, 0);
+	players_holder->at(local_idx).update(nullptr, 0, 0);
 	update_players(local_idx + 1, std::less_equal( ), max_clients);
 #endif
 }

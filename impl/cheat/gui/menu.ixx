@@ -27,6 +27,11 @@ export namespace cheat::gui::menu
 		std::unique_ptr<impl> impl_;
 	};*/
 
+	enum class state :UINT
+	{
+
+	};
+
 	bool render( );
 	bool toggle(UINT msg, WPARAM wparam);
 	bool visible( );

@@ -1,6 +1,6 @@
 module;
 
-export module cheat.hooks.client:frame_stage_notify;
+export module cheat.hooks.client.frame_stage_notify;
 import cheat.csgo.interfaces.BaseClient;
 import dhooks;
 
@@ -13,5 +13,10 @@ namespace cheat::hooks::client
 
 	protected:
 		void callback(csgo::ClientFrameStage_t stage) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

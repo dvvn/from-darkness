@@ -9,15 +9,20 @@
 
 module cheat.gui:menu;
 import :context;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace gui;
 using namespace tools;
 using namespace widgets;
 
-using namespace std::chrono_literals;
+struct menu_holder;
+std::string_view console::object_message_impl<menu_holder>::get_name( )const
+{
+	return "gui::menu";
+}
 
-struct menu_holder :console::object_message<menu_holder>
+struct menu_holder :console::object_message_auto<menu_holder>
 {
 	WPARAM hotkey = VK_HOME;
 
@@ -26,6 +31,8 @@ struct menu_holder :console::object_message<menu_holder>
 	void init_pages( )
 	{
 #if 0
+
+
 		tabs_pages.make_vertical( );
 		tabs_pages.make_size_static( );
 
@@ -91,6 +98,7 @@ struct menu_holder :console::object_message<menu_holder>
 	{
 		//this awful code must be rewritten
 
+		using namespace std::chrono_literals;
 		cached_text::label_type title_str;
 
 		const auto title_append = [&]<class ...T>(T&& ...texts)
@@ -232,16 +240,11 @@ struct menu_holder :console::object_message<menu_holder>
 	}
 };
 
-std::string_view console::object_message<menu_holder>::_Name( )const
-{
-	return "gui::menu";
-}
-
-using holder = nstd::one_instance<menu_holder>;
+static nstd::one_instance_obj<menu_holder> holder;
 
 bool menu::render( )
 {
-	auto& wnd = holder::get( ).menu_window;
+	auto& wnd = holder->menu_window;
 
 	if (wnd.show_next_tick( ) && !wnd.visible( ) && context::get( ).inactive( ))
 		return false;
@@ -260,9 +263,9 @@ bool menu::render( )
 	//features::aimbot::get( )->render( );
 
 #if 0
-	if (this->begin(holder::get( ).menu_title, ImGuiWindowFlags_AlwaysAutoResize))
+	if (this->begin(holder->menu_title, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		holder::get( ).tabs_pages.render( );
+		holder->tabs_pages.render( );
 		//-
 	}
 	this->end( );
@@ -273,7 +276,7 @@ bool menu::render( )
 
 bool menu::toggle(UINT msg, WPARAM wparam)
 {
-	if (wparam != holder::get( ).hotkey)
+	if (wparam != holder->hotkey)
 		return false;
 
 	if (msg == WM_KEYDOWN)
@@ -283,7 +286,7 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 	}
 	if (msg == WM_KEYUP)
 	{
-		holder::get( ).menu_window.toggle( );
+		holder->menu_window.toggle( );
 		return true;
 	}
 
@@ -292,12 +295,12 @@ bool menu::toggle(UINT msg, WPARAM wparam)
 
 bool menu::visible( )
 {
-	return holder::get( ).menu_window.visible( );
+	return holder->menu_window.visible( );
 }
 
 bool menu::updating( )
 {
-	return holder::get( ).menu_window.updating( );
+	return holder->menu_window.updating( );
 }
 
 #if 0

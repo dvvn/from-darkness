@@ -21,19 +21,10 @@ using namespace nstd::mem;
 template<typename Mod, typename T>
 static void _Console_log(const Mod module_name, const std::string_view object_type, const std::string_view object_name, T* object_ptr)
 {
-#if 0
-	const auto found_msg = [=]( )->std::string
+	cheat::console::log("{} -> {} \"{}\" {}", module_name, object_type, object_name, [=]
 	{
-		std::string ret;
-		if (!object_ptr)
-			return std::format("found at {:#X}", reinterpret_cast<uintptr_t>(object_ptr));
-		return "not found";
-	};
-	cheat::console::log("{} -> {} \"{}\" {}", std::ref(module_name), object_type, object_name, std::ref(found_msg));
-#else
-	const std::string_view found_msg = object_ptr ? "found at {:#X}" : "not found";
-	cheat::console::log("{} -> {} \"{}\" {}", module_name, object_type, object_name, found_msg, reinterpret_cast<uintptr_t>(object_ptr));
-#endif
+		return object_ptr ? std::format("found at {:#X}", reinterpret_cast<uintptr_t>(object_ptr)) : "not found";
+	});
 }
 
 void console_log(const std::string_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr)
@@ -110,6 +101,7 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const basic_address<v
 	interface_reg* const target_reg = _Find_interface(name, root_reg);
 	runtime_assert(target_reg != nullptr);
 	runtime_assert(_Find_interface(name, target_reg->next) == nullptr);
-	_Console_log(std::bind_front(_Get_module_name, ldr_entry), "interface", name, target_reg);
-	return std::invoke(target_reg->create_fn);
+	const auto ifc_addr = std::invoke(target_reg->create_fn);
+	_Console_log(std::bind_front(_Get_module_name, ldr_entry), "interface", name, ifc_addr);
+	return ifc_addr;
 }

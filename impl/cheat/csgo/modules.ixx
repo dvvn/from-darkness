@@ -42,7 +42,6 @@ struct logs_writer
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const std::string_view sig);
 void* find_interface_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const nstd::mem::basic_address<void> create_interface_fn, const std::string_view name);
 
-
 template<nstd::chars_cache Name>
 struct game_module
 {
@@ -69,8 +68,8 @@ struct game_module
 	T* find_vtable( ) const
 	{
 		static nstd::mem::basic_address<T> found = nstd::winapi::find_vtable_impl<logs_writer>(nstd::winapi::find_module<Name, logs_writer>( ),
-																Name.view( ),
-																cheat::tools::csgo_object_name<T>( ));
+																							   Name.view( ),
+																							   cheat::tools::csgo_object_name<T>( ));
 		return found.pointer;
 	}
 #endif
@@ -90,6 +89,14 @@ struct game_module
 																	find_export<void*, "CreateInterface">( ),
 																	IfcName.view( ));
 		return found;
+	}
+
+	//----
+
+	template<typename T>
+	void log_found_interface(T* ptr)const
+	{
+		console_log(Name.view( ), "interface", cheat::tools::csgo_object_name<T>( ), ptr);
 	}
 };
 

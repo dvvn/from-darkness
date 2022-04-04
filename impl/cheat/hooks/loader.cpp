@@ -16,14 +16,19 @@ import cheat.console.object_message;
 import nstd.one_instance;
 
 using namespace cheat;
-using console::object_message;
+using namespace console;
 using namespace nstd;
 
-class storage_t :object_message<storage_t>
+class hooks_storage;
+std::string_view object_message_impl<hooks_storage>::get_name( )const
+{
+	return "hooks::storage";
+}
+
+class hooks_storage :object_message_auto<hooks_storage>
 {
 	std::list<stored_hook> storage_;
 public:
-	storage_t( ) = default;
 
 	auto write( )
 	{
@@ -45,11 +50,8 @@ public:
 		return storage_.end( );
 	}
 };
-std::string_view object_message<storage_t>::_Name( )const
-{
-	return "hooks::storage";
-}
-static one_instance_obj<storage_t> storage;
+
+static one_instance_obj<hooks_storage> storage;
 
 static auto debug_thread_id( )
 {
@@ -66,7 +68,13 @@ static void swap_instant(T& from)
 	swap(from, to);
 }
 
-class simple_thread_pool :object_message<simple_thread_pool>
+class hooks_loader;
+std::string_view object_message_impl<hooks_loader>::get_name( ) const
+{
+	return "hooks::loader";
+}
+
+class hooks_loader :object_message_auto<hooks_loader>
 {
 	void _Already_started_assert( )const
 	{
@@ -105,9 +113,9 @@ class simple_thread_pool :object_message<simple_thread_pool>
 public:
 	using thread_type = std::thread;
 
-	simple_thread_pool( ) = default;
+	hooks_loader( ) = default;
 
-	~simple_thread_pool( )
+	~hooks_loader( )
 	{
 		finish( );
 	}
@@ -124,16 +132,16 @@ public:
 		_Already_started_assert( );
 		const auto threads_count = std::min(storage_.size( ), thread_type::hardware_concurrency( ));
 		runtime_assert(threads_count > 0, "Incorrect threads count");
-		this->message("started");
+		object_message<hooks_loader>("started");
 		threads_.reserve(threads_count);
 		while (threads_.size( ) != threads_count)
-			threads_.emplace_back(&simple_thread_pool::worker, this);
+			threads_.emplace_back(&hooks_loader::worker, this);
 	}
 
 	void join( )
 	{
 		if (wait_for_threads( ) > 0)
-			this->message("stopped");
+			object_message<hooks_loader>("stopped");
 	}
 
 	void finish( )
@@ -154,18 +162,13 @@ private:
 	std::vector<thread_type> threads_;
 };
 
-std::string_view object_message<simple_thread_pool>::_Name( )const
-{
-	return "hooks::multithread_loader";
-}
-
-static one_instance_obj<simple_thread_pool> async_loader;
+static one_instance_obj<hooks_loader> loader;
 
 static std::atomic<bool> load_error = false;
 
 void register_hook(hook_creator&& creator)
 {
-	async_loader->add([creator1 = std::move(creator), holder = storage->write( )]( )
+	loader->add([creator1 = std::move(creator), holder = storage->write( )]( )
 	{
 		if (load_error == false)
 		{
@@ -184,9 +187,9 @@ std::future<bool> hooks::start( )
 	constexpr auto load = []
 	{
 		//console::log(debug_thread_id());
-		async_loader->start( );
-		async_loader->join( );
-		async_loader->destroy( );
+		loader->start( );
+		loader->join( );
+		loader->destroy( );
 		return load_error == false;
 	};
 
@@ -206,13 +209,13 @@ void hooks::stop(bool force)
 {
 	if (force)
 	{
-		async_loader->finish( );
-		async_loader->destroy( );
+		loader->finish( );
+		loader->destroy( );
 		storage->clear( );
 	}
 	else
 	{
-		async_loader->join( );
+		loader->join( );
 		for (auto& h : *storage)
 			h->request_disable( );
 	}

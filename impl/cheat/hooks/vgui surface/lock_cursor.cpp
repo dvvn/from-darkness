@@ -1,8 +1,11 @@
 module;
 
-module cheat.hooks.vgui_surface:lock_cursor;
+#include <cheat/hooks/console_log.h>
+
+module cheat.hooks.vgui_surface.lock_cursor;
 import cheat.gui;
 import nstd.mem.address;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace hooks::vgui_surface;
@@ -12,6 +15,8 @@ lock_cursor::lock_cursor( )
 	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).vgui_surface.vfunc(67));
 	this->set_target_method(nstd::mem::basic_address(csgo::ISurface::get_ptr( )).deref<1>( )[67]);
 }
+
+CHEAT_HOOKS_CONSOLE_LOG(lock_cursor);
 
 void lock_cursor::callback( )
 {

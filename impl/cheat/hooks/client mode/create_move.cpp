@@ -1,10 +1,13 @@
 module;
 
-module cheat.hooks.client_mode:create_move;
+#include <cheat/hooks/console_log.h>
+
+module cheat.hooks.client_mode.create_move;
 import cheat.players;
 import nstd.mem.address;
 import cheat.csgo.interfaces.Prediction;
 import cheat.csgo.interfaces.EngineClient;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace csgo;
@@ -17,6 +20,8 @@ create_move::create_move( )
 	this->set_target_method(vtable_holder.deref<1>( )[24]);
 	//this->addr1.emplace( );
 }
+
+CHEAT_HOOKS_CONSOLE_LOG(create_move);
 
 void create_move::callback(float input_sample_time, CUserCmd* cmd)
 {

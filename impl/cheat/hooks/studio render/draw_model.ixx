@@ -1,7 +1,7 @@
 module;
 
 
-export module cheat.hooks.studio_render:draw_model;
+export module cheat.hooks.studio_render.draw_model;
 import cheat.csgo.interfaces.StudioRender;
 import dhooks;
 
@@ -34,5 +34,10 @@ namespace cheat::hooks::studio_render
 					  float* flex_delayed_weights,
 					  const csgo::Vector& model_origin,
 					  csgo::DrawModelFlags_t flags) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

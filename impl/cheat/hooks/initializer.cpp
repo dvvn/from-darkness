@@ -5,17 +5,19 @@ module;
 module cheat.hooks:initializer;
 import :loader;
 
-import cheat.hooks.winapi;
-import cheat.hooks.imgui;
-import cheat.hooks.directx;
+import cheat.hooks.winapi.wndproc;
+import cheat.hooks.imgui.PushClipRect;
+import cheat.hooks.directx.present;
+import cheat.hooks.directx.reset;
 
-import cheat.hooks.vgui_surface;
-import cheat.hooks.studio_render;
-import cheat.hooks.client_mode;
-import cheat.hooks.client;
-import cheat.hooks.c_csplayer;
-import cheat.hooks.c_base_animating;
-import cheat.hooks.c_base_entity;
+import cheat.hooks.vgui_surface.lock_cursor;
+import cheat.hooks.studio_render.draw_model;
+import cheat.hooks.client_mode.create_move;
+import cheat.hooks.client.frame_stage_notify;
+import cheat.hooks.c_csplayer.do_extra_bone_processing;
+import cheat.hooks.c_base_animating.should_skip_animation_frame;
+import cheat.hooks.c_base_animating.standard_blending_rules;
+import cheat.hooks.c_base_entity.estimate_abs_velocity;
 
 using namespace cheat;
 

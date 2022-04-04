@@ -1,6 +1,6 @@
 module;
 
-export module cheat.hooks.c_base_animating:should_skip_animation_frame;
+export module cheat.hooks.c_base_animating.should_skip_animation_frame;
 import cheat.csgo.interfaces.C_BaseAnimating;
 import dhooks;
 
@@ -20,6 +20,9 @@ namespace cheat::hooks::c_base_animating
 		void callback(/*float current_time*/) override;
 
 	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 		//bool override_return__ = false;
 		//bool override_return_to__ = false;
 	};

@@ -35,7 +35,13 @@ static std::wstring to_wstring(const char* str, const bool reserve = false)
 	return out;
 }
 
-class netvars_holder : public storage, console::object_message<netvars_holder>
+class netvars_holder;
+std::string_view console::object_message_impl<netvars_holder>::get_name( ) const
+{
+	return "netvars";
+}
+
+class netvars_holder : public storage, console::object_message_auto<netvars_holder>
 {
 #ifdef _DEBUG
 	logs_data logs;
@@ -60,11 +66,6 @@ public:
 #endif 
 	}
 };
-
-std::string_view console::object_message<netvars_holder>::_Name( ) const
-{
-	return "netvars";
-}
 
 static nstd::one_instance_obj<netvars_holder> holder;
 

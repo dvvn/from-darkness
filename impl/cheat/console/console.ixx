@@ -7,6 +7,17 @@ module;
 
 export module cheat.console;
 
+template<typename T>
+decltype(auto) copy_or_move(T&& arg)
+{
+	using val_t = std::remove_cvref_t<T>;
+	using arg_t = decltype(arg);
+	if constexpr (std::is_rvalue_reference_v<arg_t> || std::is_trivially_copyable_v<arg_t>)
+		return val_t(std::forward<T>(arg));
+	else
+		return std::forward<T>(arg);
+}
+
 template<typename F>
 decltype(auto) fmt_fix(F&& fmt)
 {
@@ -17,7 +28,7 @@ decltype(auto) fmt_fix(F&& fmt)
 		return fmt::runtime(fmt);
 	else
 #endif
-		return std::forward<F>(fmt);
+		return copy_or_move(fmt);
 }
 
 template<typename F, typename ...Args>
@@ -40,18 +51,17 @@ decltype(auto) unpack_invocable(T&& obj)
 	if constexpr (std::invocable<raw_t> && !formattable1<raw_t, Chr>)
 		return unpack_invocable<Chr>(std::invoke(std::forward<T>(obj)));
 	else
-		return std::forward<T>(obj);
+		return copy_or_move(std::forward<T>(obj));
 }
 
 template<typename Arg, typename ...Args>
 using char_t = std::remove_cvref_t<decltype(std::declval<Arg>( )[0])>;
 
-bool active( );
-
 export namespace cheat::console
 {
 	void enable( );
 	void disable( );
+	bool active( );
 
 	void log(const std::string_view str);
 	void log(const std::wstring_view str);

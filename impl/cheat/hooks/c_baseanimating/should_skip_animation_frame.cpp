@@ -1,7 +1,10 @@
 module;
 
-module cheat.hooks.c_base_animating:should_skip_animation_frame;
+#include <cheat/hooks/console_log.h>
+
+module cheat.hooks.c_base_animating.should_skip_animation_frame;
 import cheat.csgo.modules;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace csgo;
@@ -9,9 +12,11 @@ using namespace hooks::c_base_animating;
 
 should_skip_animation_frame::should_skip_animation_frame( ) 
 {
-	const auto addr = csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
+	void* addr = csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
 	this->set_target_method(addr);
 }
+
+CHEAT_HOOKS_CONSOLE_LOG(should_skip_animation_frame);
 
 void should_skip_animation_frame::callback(/*float current_time*/)
 {

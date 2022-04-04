@@ -2,7 +2,7 @@ module;
 
 #include <d3d9.h>
 
-export module cheat.hooks.directx:reset;
+export module cheat.hooks.directx.reset;
 import dhooks;
 
 namespace cheat::hooks::directx
@@ -14,5 +14,10 @@ namespace cheat::hooks::directx
 
 	protected:
 		void callback(D3DPRESENT_PARAMETERS*) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

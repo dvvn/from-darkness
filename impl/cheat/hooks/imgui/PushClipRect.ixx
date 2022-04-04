@@ -2,7 +2,7 @@ module;
 
 #include <imgui_internal.h>
 
-export module cheat.hooks.imgui:PushClipRect;
+export module cheat.hooks.imgui.PushClipRect;
 import dhooks;
 
 namespace cheat::hooks::imgui
@@ -14,5 +14,10 @@ namespace cheat::hooks::imgui
 
 	protected:
 		void callback(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

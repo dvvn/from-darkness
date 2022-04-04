@@ -2,7 +2,7 @@ module;
 
 #include <d3d9.h>
 
-export module cheat.hooks.directx:present;
+export module cheat.hooks.directx.present;
 import dhooks;
 
 namespace cheat::hooks::directx
@@ -17,5 +17,10 @@ namespace cheat::hooks::directx
 					  const RECT* dest_rect,
 					  HWND dest_window_override,
 					  const RGNDATA* dirty_region_parameters) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 }

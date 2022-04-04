@@ -1,5 +1,7 @@
 module;
 
+#include <cheat/hooks/console_log.h>
+
 #include <nstd/runtime_assert.h>
 
 #include <imgui_impl_dx9.h>
@@ -7,10 +9,11 @@ module;
 
 #include <d3d9.h>
 
-module cheat.hooks.directx:present;
+module cheat.hooks.directx.present;
 import cheat.csgo.interfaces.Direct3DDevice9;
 import cheat.gui;
 import nstd.mem.address;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace gui;
@@ -22,10 +25,10 @@ present::present( )
 	this->set_target_method(vtable_holder.deref<1>( )[17]);
 }
 
+CHEAT_HOOKS_CONSOLE_LOG(present);
+
 void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 {
-	const auto d3d_device = this->get_object_instance( );
-
 #ifdef IMGUI_HAS_DOCK
 	runtime_assert(context::get( ).IO.ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
 #endif
@@ -49,6 +52,8 @@ void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
 #endif
 	}
 	ImGui::EndFrame( );
+
+	const auto d3d_device = this->get_object_instance( );
 
 	[[maybe_unused]] const auto begin = d3d_device->BeginScene( );
 	runtime_assert(SUCCEEDED(begin));

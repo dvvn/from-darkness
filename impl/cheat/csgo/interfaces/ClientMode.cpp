@@ -11,5 +11,7 @@ using namespace csgo;
 ClientModeShared* nstd::one_instance_getter<ClientModeShared*>::_Construct( )const
 {
 	const nstd::basic_address addr = IBaseClientDLL::get_ptr( );
-	return addr.deref<1>( )[10].plus(5).deref<2>( );
+	ClientModeShared* const ret = addr.deref<1>( )[10].plus(5).deref<2>( );
+	csgo_modules::client.log_found_interface(ret);
+	return ret;
 }

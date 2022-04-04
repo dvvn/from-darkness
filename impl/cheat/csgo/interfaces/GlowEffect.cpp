@@ -8,7 +8,9 @@ using namespace csgo;
 
 CGlowObjectManager* nstd::one_instance_getter<CGlowObjectManager*>::_Construct( )const
 {
-	return csgo_modules::client.find_signature<"0F 11 05 ? ? ? ? 83 C8 01">().plus(3).deref<1>( );
+	CGlowObjectManager* const ret = csgo_modules::client.find_signature<"0F 11 05 ? ? ? ? 83 C8 01">( ).plus(3).deref<1>( );
+	csgo_modules::client.log_found_interface(ret);
+	return ret;
 }
 
 void GlowObject_t::Set(const Color& glow_color, GlowRenderStyles style)

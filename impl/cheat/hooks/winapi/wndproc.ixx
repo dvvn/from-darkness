@@ -2,7 +2,7 @@ module;
 
 #include <windows.h>
 
-export module cheat.hooks.winapi:wndproc;
+export module cheat.hooks.winapi.wndproc;
 import dhooks;
 
 namespace cheat::hooks::winapi
@@ -19,6 +19,10 @@ namespace cheat::hooks::winapi
 		void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 
 	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
+
 		def_wndproc_t default_wndproc_ = nullptr;
 
 		bool unicode_ = false;

@@ -1,7 +1,6 @@
 module;
 
-
-export module cheat.hooks.c_csplayer:do_extra_bone_processing;
+export module cheat.hooks.c_csplayer.do_extra_bone_processing;
 import cheat.csgo.interfaces.C_BaseAnimating;
 import dhooks;
 
@@ -27,6 +26,11 @@ namespace cheat::hooks::c_csplayer
 	protected:
 		void callback(csgo::CStudioHdr* studio_hdr, csgo::Vector pos[], csgo::Quaternion q[], csgo::matrix3x4a_t bone_to_world[], csgo::CBoneBitList& bone_computed,
 					  csgo::CIKContext* ik_context) override;
+
+	private:
+		bool hook( ) override;
+		bool enable( ) override;
+		bool disable( ) override;
 	};
 
 }

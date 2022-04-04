@@ -1,10 +1,13 @@
 module;
 
+#include <cheat/hooks/console_log.h>
+
 #include <nstd/enum_tools.h>
 #include <string>
 
-module cheat.hooks.c_base_animating:standard_blending_rules;
+module cheat.hooks.c_base_animating.standard_blending_rules;
 import cheat.csgo.modules;
+import cheat.console.object_message;
 
 using namespace cheat;
 using namespace csgo;
@@ -16,6 +19,8 @@ standard_blending_rules::standard_blending_rules( )
 	const auto index = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).plus(11).deref<1>( ).divide(4);
 	this->set_target_method(vtable_holder.deref<1>( )[index.value]);
 }
+
+CHEAT_HOOKS_CONSOLE_LOG(standard_blending_rules);
 
 void standard_blending_rules::callback(CStudioHdr* hdr, Vector pos[], QuaternionAligned q[], float current_time, int bone_mask)
 {
