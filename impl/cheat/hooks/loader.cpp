@@ -18,40 +18,7 @@ import nstd.one_instance;
 using namespace cheat;
 using namespace console;
 using namespace nstd;
-
-class hooks_storage;
-std::string_view object_message_impl<hooks_storage>::get_name( )const
-{
-	return "hooks::storage";
-}
-
-class hooks_storage :object_message_auto<hooks_storage>
-{
-	std::list<stored_hook> storage_;
-public:
-
-	auto write( )
-	{
-		return std::addressof(storage_.emplace_back( ));
-	}
-
-	void clear( )
-	{
-		storage_.clear( );
-	}
-
-	auto begin( )
-	{
-		return storage_.begin( );
-	}
-
-	auto end( )
-	{
-		return storage_.end( );
-	}
-};
-
-static one_instance_obj<hooks_storage> storage;
+using hooks::hook_data;
 
 static auto debug_thread_id( )
 {
@@ -82,30 +49,24 @@ class hooks_loader :object_message_auto<hooks_loader>
 		runtime_assert(threads_.empty( ), "Already started");
 	}
 
-	size_t wait_for_threads( )
-	{
-		size_t joinable = 0;
-		for (auto& thr : threads_)
-		{
-			if (thr.joinable( ))
-			{
-				++joinable;
-				thr.join( );
-			}
-		}
-		return joinable;
-	}
+	using error_t = std::shared_ptr<std::atomic<bool>>;
 
-	void worker( )
+	void worker(const error_t error)
 	{
 		//const auto id = debug_thread_id( );
 		//this->message("{} started", id);
 		for (;;)
 		{
-			auto current_pos = pos_++;
+			if (*error)
+				break;
+			const auto current_pos = pos_++;
 			if (current_pos >= storage_.size( ))
 				break;
-			std::invoke(storage_[current_pos]);
+			if (!storage_[current_pos].start( ))
+			{
+				*error = true;
+				break;
+			}
 		}
 		//this->message("{} finished", id);
 	}
@@ -120,65 +81,63 @@ public:
 		finish( );
 	}
 
-	template<typename T>
-	void add(T&& fn)
+	void add(hook_data data)
 	{
 		_Already_started_assert( );
-		storage_.emplace_back(std::forward<T>(fn));
+		storage_.push_back(data);
 	}
 
-	void start( )
+	error_t start( )
 	{
 		_Already_started_assert( );
 		const auto threads_count = std::min(storage_.size( ), thread_type::hardware_concurrency( ));
 		runtime_assert(threads_count > 0, "Incorrect threads count");
-		object_message<hooks_loader>("started");
+		this->message("started");
 		threads_.reserve(threads_count);
+		auto error = std::make_shared<error_t::element_type>( );
 		while (threads_.size( ) != threads_count)
-			threads_.emplace_back(&hooks_loader::worker, this);
+			threads_.emplace_back(&hooks_loader::worker, this, error);
+		return error;
 	}
 
-	void join( )
+	bool join( )
 	{
-		if (wait_for_threads( ) > 0)
-			object_message<hooks_loader>("stopped");
+		size_t joinable = 0;
+		for (auto& thr : threads_)
+		{
+			if (thr.joinable( ))
+			{
+				++joinable;
+				thr.join( );
+			}
+		}
+		if (joinable == 0)
+			return false;
+
+		this->message("stopped");
+		return true;
 	}
 
 	void finish( )
 	{
+		const auto last_pos = std::min<size_t>(pos_, storage_.size( ));
 		pos_ = storage_.size( );
-		wait_for_threads( );
-	}
-
-	void destroy( )
-	{
-		swap_instant(threads_);
-		swap_instant(storage_);
+		this->join( );
+		for (size_t i = 0; i < last_pos; ++i)
+			storage_[i].stop( );
 	}
 
 private:
-	std::vector<std::function<void( )>> storage_;
+	std::vector<hook_data> storage_;
 	std::atomic<size_t> pos_ = 0;
 	std::vector<thread_type> threads_;
 };
 
 static one_instance_obj<hooks_loader> loader;
 
-static std::atomic<bool> load_error = false;
-
-void register_hook(hook_creator&& creator)
+void hooks::add(hook_data data)
 {
-	loader->add([creator1 = std::move(creator), holder = storage->write( )]( )
-	{
-		if (load_error == false)
-		{
-			auto hook = std::invoke(creator1);
-			if (hook->hook( ) && hook->enable( ))
-				*holder = std::move(hook);
-			else
-				load_error = true;
-		}
-	});
+	loader->add(data);
 }
 
 std::future<bool> hooks::start( )
@@ -187,10 +146,9 @@ std::future<bool> hooks::start( )
 	constexpr auto load = []
 	{
 		//console::log(debug_thread_id());
-		loader->start( );
+		const auto error = loader->start( );
 		loader->join( );
-		loader->destroy( );
-		return load_error == false;
+		return *error == false;
 	};
 
 #if 1
@@ -205,18 +163,9 @@ std::future<bool> hooks::start( )
 #endif
 }
 
-void hooks::stop(bool force)
+void hooks::stop( )
 {
-	if (force)
-	{
-		loader->finish( );
-		loader->destroy( );
-		storage->clear( );
-	}
-	else
-	{
-		loader->join( );
-		for (auto& h : *storage)
-			h->request_disable( );
-	}
+	loader->finish( );
+	/*for (auto& h : *storage)
+		h->request_disable( );*/
 }

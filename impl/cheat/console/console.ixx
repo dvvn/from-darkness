@@ -7,6 +7,9 @@ module;
 
 export module cheat.console;
 
+template<typename Arg, typename ...Args>
+using char_t = std::remove_cvref_t<decltype(std::declval<Arg>( )[0])>;
+
 template<typename T>
 decltype(auto) copy_or_move(T&& arg)
 {
@@ -22,13 +25,12 @@ template<typename F>
 decltype(auto) fmt_fix(F&& fmt)
 {
 #ifdef FMT_VERSION
-	using val_t = std::remove_cvref_t<decltype(fmt[0])>;
 	//fmt support compile time only for char today
-	if constexpr (std::is_same_v<val_t, char>)
+	if constexpr (std::is_same_v<char_t<F>, char>)
 		return fmt::runtime(fmt);
 	else
 #endif
-		return copy_or_move(fmt);
+		return std::forward<F>(fmt);
 }
 
 template<typename F, typename ...Args>
@@ -53,9 +55,6 @@ decltype(auto) unpack_invocable(T&& obj)
 	else
 		return copy_or_move(std::forward<T>(obj));
 }
-
-template<typename Arg, typename ...Args>
-using char_t = std::remove_cvref_t<decltype(std::declval<Arg>( )[0])>;
 
 export namespace cheat::console
 {

@@ -1,46 +1,53 @@
 module;
 
-#include <cheat/hooks/console_log.h>
+#include <cheat/hooks/instance.h>
 
 module cheat.hooks.client_mode.create_move;
 import cheat.players;
-import nstd.mem.address;
 import cheat.csgo.interfaces.Prediction;
 import cheat.csgo.interfaces.EngineClient;
-import cheat.console.object_message;
+import cheat.csgo.interfaces.ClientMode;
+import cheat.hooks.base;
+import nstd.one_instance;
+import nstd.mem.address;
 
 using namespace cheat;
 using namespace csgo;
-using namespace hooks::client_mode;
+using namespace hooks;
 
-create_move::create_move( )
+using create_move_base = hooks::base<decltype(&IClientMode::CreateMove)>;
+struct create_move_impl :create_move_base
 {
-	//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client_mode.vfunc(24));
-	const nstd::mem::basic_address vtable_holder = ClientModeShared::get_ptr( );
-	this->set_target_method(vtable_holder.deref<1>( )[24]);
-	//this->addr1.emplace( );
-}
-
-CHEAT_HOOKS_CONSOLE_LOG(create_move);
-
-void create_move::callback(float input_sample_time, CUserCmd* cmd)
-{
-	const auto original_return = this->call_original_and_store_result(input_sample_time, cmd);
-
-	// is called from CInput::ExtraMouseSample
-	if (cmd->iCommandNumber == 0)
-		return;
-
-	this->store_return_value(false);
-
-	if (original_return == true)
+	create_move_impl( )
 	{
-		IPrediction::get( ).SetLocalViewAngles(cmd->angViewPoint);
-		IVEngineClient::get( ).SetViewAngles(cmd->angViewPoint);
+		//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).client_mode.vfunc(24));
+		const nstd::mem::basic_address vtable_holder = ClientModeShared::get_ptr( );
+		this->set_target_method(vtable_holder.deref<1>( )[24]);
+		//this->addr1.emplace( );
 	}
 
-	if (/*interfaces.client_state == nullptr ||*/ IVEngineClient::get( ).IsPlayingDemo( ))
-		return;
+	void callback(float input_sample_time, CUserCmd* cmd)
+	{
+		const auto original_return = this->call_original_and_store_result(input_sample_time, cmd);
 
-	//bool& send_packet = address(/*this->return_address( )*/*this->addr1).remove(4).deref(1).remove(0x1C).ref( );
-}
+		// is called from CInput::ExtraMouseSample
+		if (cmd->iCommandNumber == 0)
+			return;
+
+		this->store_return_value(false);
+
+		if (original_return == true)
+		{
+			IPrediction::get( ).SetLocalViewAngles(cmd->angViewPoint);
+			IVEngineClient::get( ).SetViewAngles(cmd->angViewPoint);
+		}
+
+		if (/*interfaces.client_state == nullptr ||*/ IVEngineClient::get( ).IsPlayingDemo( ))
+			return;
+
+		//bool& send_packet = address(/*this->return_address( )*/*this->addr1).remove(4).deref(1).remove(0x1C).ref( );
+	}
+
+};
+
+CHEAT_HOOK_INSTANCE(client_mode, create_move);

@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/hooks/console_log.h>
+#include <cheat/hooks/instance.h>
 
 #include <nstd/runtime_assert.h>
 
@@ -12,55 +12,61 @@ module;
 module cheat.hooks.directx.present;
 import cheat.csgo.interfaces.Direct3DDevice9;
 import cheat.gui;
+import cheat.hooks.base;
+import nstd.one_instance;
 import nstd.mem.address;
-import cheat.console.object_message;
 
 using namespace cheat;
 using namespace gui;
-using namespace hooks::directx;
+using namespace hooks;
 
-present::present( )
+using present_base = hooks::base<decltype(&IDirect3DDevice9::Present)>;
+struct present_impl :present_base
 {
-	const nstd::mem::basic_address vtable_holder = csgo::Direct3DDevice9::get_ptr( );
-	this->set_target_method(vtable_holder.deref<1>( )[17]);
-}
+	present_impl( )
+	{
+		const nstd::mem::basic_address vtable_holder = csgo::Direct3DDevice9::get_ptr( );
+		this->set_target_method(vtable_holder.deref<1>( )[17]);
+	}
 
-CHEAT_HOOKS_CONSOLE_LOG(present);
-
-void present::callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
-{
+	void callback(THIS_ CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*)
+	{
 #ifdef IMGUI_HAS_DOCK
-	runtime_assert(context::get( ).IO.ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
+		runtime_assert(context::get( ).IO.ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
 #endif
 
-	ImGui_ImplDX9_NewFrame( );   //todo: erase. it only calls CreateDeviceObjects, what can be done after reset and init
-	ImGui_ImplWin32_NewFrame( ); //todo: call it from input (if do it move timers outside)
+		ImGui_ImplDX9_NewFrame( );   //todo: erase. it only calls CreateDeviceObjects, what can be done after reset and init
+		ImGui_ImplWin32_NewFrame( ); //todo: call it from input (if do it move timers outside)
 
-	const auto& io = context::get( ).IO;
-	// Avoid rendering when minimized
-	if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
-		return;
+		const auto& io = context::get( ).IO;
+		// Avoid rendering when minimized
+		if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
+			return;
 
-	ImGui::NewFrame( );
-	effects::new_frame( );
-	{
-		[[maybe_unused]]
-		const auto render_result = menu::render( );
+		ImGui::NewFrame( );
+		effects::new_frame( );
+		{
+			[[maybe_unused]]
+			const auto render_result = menu::render( );
 #if !defined(IMGUI_DISABLE_DEMO_WINDOWS)
-		if (render_result)
-			ImGui::ShowDemoWindow( );
+			if (render_result)
+				ImGui::ShowDemoWindow( );
 #endif
-	}
-	ImGui::EndFrame( );
+		}
+		ImGui::EndFrame( );
 
-	const auto d3d_device = this->get_object_instance( );
+		const auto d3d_device = this->get_object_instance( );
 
-	[[maybe_unused]] const auto begin = d3d_device->BeginScene( );
-	runtime_assert(SUCCEEDED(begin));
-	{
-		ImGui::Render( );
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData( ));
+		[[maybe_unused]] const auto begin = d3d_device->BeginScene( );
+		runtime_assert(SUCCEEDED(begin));
+		{
+			ImGui::Render( );
+			ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData( ));
+		}
+		[[maybe_unused]] const auto end = d3d_device->EndScene( );
+		runtime_assert(SUCCEEDED(end));
 	}
-	[[maybe_unused]] const auto end = d3d_device->EndScene( );
-	runtime_assert(SUCCEEDED(end));
-}
+};
+
+CHEAT_HOOK_INSTANCE(directx, present);
+

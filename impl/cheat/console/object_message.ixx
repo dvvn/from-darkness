@@ -104,5 +104,11 @@ export namespace cheat::console
 		{
 			object_destroyed<T>( );
 		}
+
+		template<typename ...Args>
+		void message(Args&& ...args)const
+		{
+			object_message<T>(std::forward<Args>(args)...);
+		}
 	};
 }

@@ -5,19 +5,8 @@ module;
 export module cheat.hooks.directx.reset;
 import dhooks;
 
-namespace cheat::hooks::directx
+export namespace cheat::hooks::inline directx::reset
 {
-	export class reset final :public dhooks::select_hook_holder<decltype(&IDirect3DDevice9::Reset)>
-	{
-	public:
-		reset( );
-
-	protected:
-		void callback(D3DPRESENT_PARAMETERS*) override;
-
-	private:
-		bool hook( ) override;
-		bool enable( ) override;
-		bool disable( ) override;
-	};
+	bool start( );
+	bool stop( );
 }

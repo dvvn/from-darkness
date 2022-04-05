@@ -21,26 +21,29 @@ import cheat.hooks.c_base_entity.estimate_abs_velocity;
 
 using namespace cheat;
 
+#define ADD_HOOK(_SOURCE_)\
+	add({_SOURCE_::start,_SOURCE_::stop})
+
 void hooks::init_basic( )
 {
 	using namespace hooks;
-	add<winapi::wndproc>( );
-	add<imgui::PushClipRect>( );
-	add<directx::reset>( );
-	add<directx::present>( );
+	ADD_HOOK(winapi::wndproc);
+	ADD_HOOK(imgui::PushClipRect);
+	ADD_HOOK(directx::reset);
+	ADD_HOOK(directx::present);
 }
 
 void hooks::init_all( )
 {
 	init_basic( );
 	using namespace hooks;
-	add<vgui_surface::lock_cursor>( );
-	add<studio_render::draw_model>( );
-	add<client_mode::create_move>( );
-	add<client::frame_stage_notify>( );
-	add<c_csplayer::do_extra_bone_processing>( );
-	add<c_base_animating::should_skip_animation_frame>( );
-	add<c_base_animating::standard_blending_rules>( );
-	add<c_base_entity::estimate_abs_velocity>( );
-	//add<other::rta_holder>( );
+	ADD_HOOK(vgui_surface::lock_cursor);
+	ADD_HOOK(studio_render::draw_model);
+	ADD_HOOK(client_mode::create_move);
+	ADD_HOOK(client::frame_stage_notify);
+	ADD_HOOK(c_csplayer::do_extra_bone_processing);
+	ADD_HOOK(c_base_animating::should_skip_animation_frame);
+	ADD_HOOK(c_base_animating::standard_blending_rules);
+	ADD_HOOK(c_base_entity::estimate_abs_velocity);
+	//ADD_HOOK(other::rta_holder);
 }

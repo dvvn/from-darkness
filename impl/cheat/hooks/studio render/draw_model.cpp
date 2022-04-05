@@ -1,31 +1,33 @@
 module;
 
-#include <cheat/hooks/console_log.h>
-
-//#include "cheat/players/player_includes.h"
+#include <cheat/hooks/instance.h>
 
 module cheat.hooks.studio_render.draw_model;
-//import cheat.players;
+import cheat.csgo.interfaces.StudioRender;
+import cheat.hooks.base;
+import nstd.one_instance;
 import nstd.mem.address;
-import cheat.console.object_message;
 
 using namespace cheat;
 using namespace csgo;
-using namespace hooks::studio_render;
+using namespace hooks;
 
-draw_model::draw_model( ) 
+using draw_model_base = hooks::base<void(IStudioRender::*)(DrawModelResults_t*, const DrawModelInfo_t&, matrix3x4_t*, float*, float*, const Vector&, DrawModelFlags_t)>;
+struct draw_model_impl :draw_model_base
 {
-//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29));
-	const nstd::mem::basic_address vtable_holder = IStudioRender::get_ptr( );
-	this->set_target_method(vtable_holder.deref<1>( )[29]);
-}
+	draw_model_impl( )
+	{
+		//this->set_target_method(this->deps( ).get<csgo_interfaces>( ).studio_renderer.vfunc(29));
+		const nstd::mem::basic_address vtable_holder = IStudioRender::get_ptr( );
+		this->set_target_method(vtable_holder.deref<1>( )[29]);
+	}
 
-CHEAT_HOOKS_CONSOLE_LOG(draw_model);
+	void callback(DrawModelResults_t* results, const DrawModelInfo_t& info,
+				  matrix3x4_t* bone_to_world,
+				  float* flex_weights, float* flex_delayed_weights,
+				  const Vector& model_origin, DrawModelFlags_t flags)
+	{
+	}
+};
 
-void draw_model::callback(DrawModelResults_t * results, const DrawModelInfo_t & info,
-						  matrix3x4_t * bone_to_world,
-						  float* flex_weights, float* flex_delayed_weights,
-						  const Vector & model_origin, DrawModelFlags_t flags)
-{
-}
-
+CHEAT_HOOK_INSTANCE(studio_render, draw_model);

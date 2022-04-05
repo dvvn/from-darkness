@@ -1,112 +1,120 @@
 module;
 
-#include <cheat/hooks/console_log.h>
+#include <cheat/hooks/instance.h>
 
 module cheat.hooks.c_base_animating.should_skip_animation_frame;
 import cheat.csgo.modules;
-import cheat.console.object_message;
+import cheat.csgo.interfaces.C_BaseAnimating;
+import cheat.hooks.base;
+import nstd.one_instance;
 
 using namespace cheat;
 using namespace csgo;
-using namespace hooks::c_base_animating;
+using namespace hooks;
 
-should_skip_animation_frame::should_skip_animation_frame( ) 
+using should_skip_animation_frame_base = hooks::base<bool(C_BaseAnimating::*)()>;
+struct should_skip_animation_frame_impl :should_skip_animation_frame_base
 {
-	void* addr = csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
-	this->set_target_method(addr);
-}
-
-CHEAT_HOOKS_CONSOLE_LOG(should_skip_animation_frame);
-
-void should_skip_animation_frame::callback(/*float current_time*/)
-{
-#if 0
-	if (override_return__)
+	should_skip_animation_frame_impl( )
 	{
-		this->store_return_value(override_return_to__);
-		return;
+		void* addr = csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
+		this->set_target_method(addr);
 	}
 
-	constexpr auto is_player = [](IClientNetworkable* ent)
+	void callback(/*float current_time*/)
 	{
-		const auto client_class = ent->GetClientClass( );
-		return client_class->ClassID == ClassId::CCSPlayer;
-	};
+#if 0
+		if (override_return__)
+		{
+			this->store_return_value(override_return_to__);
+			return;
+		}
 
-	/*constexpr auto is_weapon = [](IClientNetworkable* ent)
+		constexpr auto is_player = [](IClientNetworkable* ent)
 		{
 			const auto client_class = ent->GetClientClass( );
-			const string_view name = client_class->pNetworkName;
-			return name.find("Weapon") != name.npos;
-		};*/
+			return client_class->ClassID == ClassId::CCSPlayer;
+		};
 
-	C_BaseAnimating* ent;
+		/*constexpr auto is_weapon = [](IClientNetworkable* ent)
+			{
+				const auto client_class = ent->GetClientClass( );
+				const string_view name = client_class->pNetworkName;
+				return name.find("Weapon") != name.npos;
+			};*/
 
-	if (const auto inst = this->get_object_instance( ); is_player(inst))
-	{
-		ent = inst;
-	}
-	else
-	{
-#if 0
-		//unreachable
+		C_BaseAnimating* ent;
 
-		CBaseHandle owner_handle;
-
-		if (is_weapon(inst))
+		if (const auto inst = this->get_object_instance( ); is_player(inst))
 		{
-			auto wpn = (C_BaseCombatWeapon*)inst;
-			owner_handle = wpn->m_hOwner( );
+			ent = inst;
 		}
 		else
 		{
-			owner_handle = inst->m_hOwnerEntity( );
+#if 0
+			//unreachable
+
+			CBaseHandle owner_handle;
+
+			if (is_weapon(inst))
+			{
+				auto wpn = (C_BaseCombatWeapon*)inst;
+				owner_handle = wpn->m_hOwner( );
+			}
+			else
+			{
+				owner_handle = inst->m_hOwnerEntity( );
+			}
+
+			if (!owner_handle.IsValid( ))
+				return;
+
+			const auto owner = static_cast<C_CSPlayer*>(owner_handle.Get( ));
+
+			if (!owner)
+				return;
+
+			if (!is_player(owner))
+				return;
+			if (csgo_interfaces::get_shared( )->local_player.get( ) == owner)
+				return;
+
+			ent = owner;
+#endif
+
+			return;
 		}
 
-		if (!owner_handle.IsValid( ))
-			return;
-
-		const auto owner = static_cast<C_CSPlayer*>(owner_handle.Get( ));
-
-		if (!owner)
-			return;
-
-		if (!is_player(owner))
-			return;
-		if (csgo_interfaces::get_shared( )->local_player.get( ) == owner)
-			return;
-
-		ent = owner;
+		const auto animate_this_frame = ent->m_bClientSideAnimation( );
+		const auto skip_this_frame = animate_this_frame == false;
+		this->store_return_value(skip_this_frame);
 #endif
-
-		return;
 	}
 
-	const auto animate_this_frame = ent->m_bClientSideAnimation( );
-	const auto skip_this_frame = animate_this_frame == false;
-	this->store_return_value(skip_this_frame);
-#endif
-}
-
 #if 0
-bool should_skip_animation_frame::render( )
-{
-	ImGui::Checkbox("override return", &override_return__);
-	if (!override_return__)
+	bool render( )
+	{
+		ImGui::Checkbox("override return", &override_return__);
+		if (!override_return__)
+			return true;
+
+		const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
+		(void)pop;
+
+		ImGui::SameLine( );
+		ImGui::Text(" to ");
+		ImGui::SameLine( );
+		if (ImGui::RadioButton("false ", override_return_to__ == false))
+			override_return_to__ = false;
+		ImGui::SameLine( );
+		if (ImGui::RadioButton("true", override_return_to__ == true))
+			override_return_to__ = true;
+
 		return true;
-
-	const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
-	(void)pop;
-
-	ImGui::SameLine( );
-	ImGui::Text(" to ");
-	ImGui::SameLine( );
-	if (ImGui::RadioButton("false ", override_return_to__ == false))
-		override_return_to__ = false;
-	ImGui::SameLine( );
-	if (ImGui::RadioButton("true", override_return_to__ == true))
-		override_return_to__ = true;
-
-	return true;
-}
+	}
 #endif
+};
+
+CHEAT_HOOK_INSTANCE(c_base_animating, should_skip_animation_frame);
+
+

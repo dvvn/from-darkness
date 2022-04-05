@@ -44,7 +44,7 @@ int main(int, char**)
 		return 1;
 	}
 
-	d3dDevice9_ptr=g_pd3dDevice;
+	d3dDevice9_ptr = g_pd3dDevice;
 
 	console::enable( );
 	hooks::init_basic( );
@@ -126,7 +126,7 @@ int main(int, char**)
 	}
 
 _RESET:
-	hooks::stop(true);
+	hooks::stop( );
 
 	/*ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

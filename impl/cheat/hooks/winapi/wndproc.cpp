@@ -1,149 +1,173 @@
 module;
 
-#include <cheat/hooks/console_log.h>
+#include <cheat/hooks/instance.h>
 
 #include <windows.h>
-#include <functional>
 
 module cheat.hooks.winapi.wndproc;
 import cheat.gui;
-import cheat.console.object_message;
+import cheat.hooks.base;
+import nstd.one_instance;
 
 using namespace cheat;
-using namespace hooks::winapi;
-
-wndproc::wndproc( )
-{
-	const auto hwnd = gui::context::get( ).hwnd;
-	unicode_ = IsWindowUnicode(hwnd);
-	default_wndproc_ = unicode_ ? DefWindowProcW : DefWindowProcA;
-	const auto val = std::invoke(unicode_ ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC);
-	this->set_target_method(reinterpret_cast<void*>(val));
-}
-
-CHEAT_HOOKS_CONSOLE_LOG(wndproc);
+using namespace hooks;
 
 // ReSharper disable once CppInconsistentNaming
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+using def_wndproc_t = decltype(DefWindowProc)*;
 
-void wndproc::callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+using wndproc_base = hooks::base<def_wndproc_t>;
+
+class wndproc_impl :public wndproc_base
 {
-	using namespace gui;
-	auto& ctx = context::get( );
+	def_wndproc_t default_wndproc_ = nullptr;
 
-	enum class result : uint8_t
+	/*bool unicode_ = false;
+	HWND hwnd_ = nullptr;
+
+	bool override_return_ = false;
+	LRESULT override_return_to_ = 1;*/
+
+public:
+	wndproc_impl( )
 	{
-		none
-		, blocked
-		, skipped
-		, special
-	};
-
-	// ReSharper disable once CppTooWideScopeInitStatement
-	const auto owerride_input = [&]
-	{
-		const auto window_active = !ctx.inactive( );
-		if (!window_active)
-			return result::none;
-
-		const auto input_active = ctx.IO.WantTextInput;
-		if (!input_active)
+		const auto hwnd = gui::context::get( ).hwnd;
+		const auto unicode = IsWindowUnicode(hwnd);
+		LONG wnd;
+		if (unicode)
 		{
-#if 0
-			const auto unload_wanted = wparam == VK_DELETE && msg == WM_KEYUP;
-			if (unload_wanted)
-			{
-				this->disable( );
-				this->store_return_value(TRUE);
-				cheat::unload( );
-				return result::special;
-			}
-#endif
-			if (menu::toggle(msg, wparam))
-				return result::skipped;
+			default_wndproc_ = DefWindowProcW;
+			wnd = GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
 		}
-
-		const auto can_skip_input = [&](bool manual_imgui_handler)
+		else
 		{
-			//todo: if skipped -> render last filled buffer
-			switch (msg)
-			{
-			case WM_KILLFOCUS:
-			case WM_SETFOCUS:
-				if (manual_imgui_handler)
-					ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
-			case WM_CLOSE:
-			case WM_DESTROY:
-			case WM_QUIT:
-			case WM_SYSCOMMAND:
-			case WM_MOVE:
-			case WM_SIZE:
-			case WM_FONTCHANGE:
-			case WM_ACTIVATE:
-			case WM_ACTIVATEAPP:
-			case WM_ENABLE:
-				return false;
-			default:
-				return true;
-			}
+			default_wndproc_ = DefWindowProcA;
+			wnd = GetWindowLongPtrA(hwnd, GWLP_WNDPROC);
+		}
+		this->set_target_method(reinterpret_cast<void*>(wnd));
+	}
+
+	void callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+	{
+		using namespace gui;
+		auto& ctx = context::get( );
+
+		enum class result : uint8_t
+		{
+			none
+			, blocked
+			, skipped
+			, special
 		};
 
-		if (menu::updating( ))
-			return can_skip_input(true) ? result::skipped : result::none;
-
-		if (menu::visible( ))
+		// ReSharper disable once CppTooWideScopeInitStatement
+		const auto owerride_input = [&]
 		{
-			if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
-				return result::blocked;
+			const auto window_active = !ctx.inactive( );
+			if (!window_active)
+				return result::none;
 
-			if (can_skip_input(false))
-				return result::skipped;
+			const auto input_active = ctx.IO.WantTextInput;
+			if (!input_active)
+			{
+#if 0
+				const auto unload_wanted = wparam == VK_DELETE && msg == WM_KEYUP;
+				if (unload_wanted)
+				{
+					this->disable( );
+					this->store_return_value(TRUE);
+					cheat::unload( );
+					return result::special;
+				}
+#endif
+				if (menu::toggle(msg, wparam))
+					return result::skipped;
+			}
+
+			const auto can_skip_input = [&](bool manual_imgui_handler)
+			{
+				//todo: if skipped -> render last filled buffer
+				switch (msg)
+				{
+				case WM_KILLFOCUS:
+				case WM_SETFOCUS:
+					if (manual_imgui_handler)
+						ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+				case WM_CLOSE:
+				case WM_DESTROY:
+				case WM_QUIT:
+				case WM_SYSCOMMAND:
+				case WM_MOVE:
+				case WM_SIZE:
+				case WM_FONTCHANGE:
+				case WM_ACTIVATE:
+				case WM_ACTIVATEAPP:
+				case WM_ENABLE:
+					return false;
+				default:
+					return true;
+				}
+			};
+
+			if (menu::updating( ))
+				return can_skip_input(true) ? result::skipped : result::none;
+
+			if (menu::visible( ))
+			{
+				if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+					return result::blocked;
+
+				if (can_skip_input(false))
+					return result::skipped;
+			}
+
+			return result::none;
+		};
+
+		switch (owerride_input( ))
+		{
+		case result::none:
+		{
+			/*if (override_return_)
+				this->store_return_value(override_return_to_);*/
+			break;
 		}
-
-		return result::none;
-	};
-
-	switch (owerride_input( ))
-	{
-	case result::none:
-	{
-		if (override_return_)
-			this->store_return_value(override_return_to_);
-		break;
+		case result::blocked:
+		{
+			this->store_return_value(TRUE);
+			break;
+		}
+		case result::skipped:
+		{
+			this->store_return_value(default_wndproc_(hwnd, msg, wparam, lparam));
+			break;
+		}
+		case result::special:
+		{
+		}
+		}
 	}
-	case result::blocked:
-	{
-		this->store_return_value(TRUE);
-		break;
-	}
-	case result::skipped:
-	{
-		this->store_return_value(default_wndproc_(hwnd, msg, wparam, lparam));
-		break;
-	}
-	case result::special:
-	{
-	}
-	}
-}
 
 #if 0
-void wndproc::render( )
-{
-	ImGui::Checkbox("override return", &override_return_);
-	if (override_return_)
+	void render( )
 	{
-		const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0.f);
-		(void)pop;
+		ImGui::Checkbox("override return", &override_return_);
+		if (override_return_)
+		{
+			const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0.f);
+			(void)pop;
 
-		ImGui::SameLine( );
-		ImGui::Text(" to ");
-		ImGui::SameLine( );
-		if (ImGui::RadioButton("0 ", override_return_to_ == 0))
-			override_return_to_ = 0;
-		ImGui::SameLine( );
-		if (ImGui::RadioButton("1", override_return_to_ == 1))
-			override_return_to_ = 1;
+			ImGui::SameLine( );
+			ImGui::Text(" to ");
+			ImGui::SameLine( );
+			if (ImGui::RadioButton("0 ", override_return_to_ == 0))
+				override_return_to_ = 0;
+			ImGui::SameLine( );
+			if (ImGui::RadioButton("1", override_return_to_ == 1))
+				override_return_to_ = 1;
+		}
 	}
-}
 #endif
+};
+
+CHEAT_HOOK_INSTANCE(winapi, wndproc);
