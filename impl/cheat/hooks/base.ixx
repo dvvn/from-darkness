@@ -3,7 +3,7 @@ module;
 #include <cstdint>
 
 export module cheat.hooks.base;
-import dhooks;
+import dhooks.wrapper;
 export import cheat.console.object_message;
 
 #define CHEAT_HOOKS_CONSOLE_LOG_FN(_FN_NAME_)\

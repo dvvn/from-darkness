@@ -2,7 +2,7 @@
 
 module cheat.csgo.interfaces.BaseClient;
 import cheat.csgo.modules;
-import dhooks;
+import dhooks.wrapper;
 
 using namespace cheat;
 using namespace csgo;

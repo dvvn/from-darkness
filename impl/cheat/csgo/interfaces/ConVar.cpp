@@ -6,7 +6,7 @@
 module cheat.csgo.interfaces.ConVar;
 import cheat.csgo.modules;
 import cheat.console;
-import dhooks;
+import dhooks.wrapper;
 import nstd.mem.address;
 
 using namespace cheat;

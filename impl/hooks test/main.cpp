@@ -6,7 +6,7 @@
 #include <array>
 #include <string_view>
 
-import dhooks;
+import dhooks.wrapper;
 
 using namespace dhooks;
 

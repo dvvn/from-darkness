@@ -1,7 +1,7 @@
 module cheat.csgo.interfaces.C_BaseEntity;
 
 import cheat.netvars;
-import dhooks;
+import dhooks.wrapper;
 import nstd.mem.address;
 
 using namespace cheat::csgo;

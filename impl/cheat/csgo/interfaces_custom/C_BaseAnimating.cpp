@@ -5,7 +5,7 @@ module;
 module cheat.csgo.interfaces.C_BaseAnimating;
 import cheat.csgo.modules;
 import cheat.netvars;
-import dhooks;
+import dhooks.wrapper;
 import nstd.mem.address;
 
 using namespace cheat::csgo;
