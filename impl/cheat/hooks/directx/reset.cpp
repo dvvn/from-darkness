@@ -15,24 +15,6 @@ import nstd.mem.address;
 using namespace cheat;
 using namespace hooks;
 
-#if 0
-using reset_base = hooks::base<decltype(&IDirect3DDevice9::Reset)>;
-struct reset_impl :reset_base
-{
-	reset_impl( )
-	{
-		const nstd::mem::basic_address vtable_holder = csgo::Direct3DDevice9::get_ptr( );
-		this->set_target_method(vtable_holder.deref<1>( )[16]);
-	}
-
-	void callback(D3DPRESENT_PARAMETERS*)
-	{
-		ImGui_ImplDX9_InvalidateDeviceObjects( );
-		effects::invalidate_objects( );
-	}
-};
-#endif
-
 CHEAT_HOOK_INSTANCE(directx, reset);
 
 static void* target( ) noexcept
@@ -52,7 +34,3 @@ struct replace
 };
 
 CHEAT_HOOK_INIT(directx, reset);
-
-
-
-

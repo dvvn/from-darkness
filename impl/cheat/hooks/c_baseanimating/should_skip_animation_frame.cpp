@@ -11,18 +11,19 @@ using namespace cheat;
 using namespace csgo;
 using namespace hooks;
 
-#if 0
-using should_skip_animation_frame_base = hooks::base<bool(C_BaseAnimating::*)()>;
-struct should_skip_animation_frame_impl :should_skip_animation_frame_base
-{
-	should_skip_animation_frame_impl( )
-	{
-		void* addr = csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
-		this->set_target_method(addr);
-	}
+CHEAT_HOOK_INSTANCE(c_base_animating, should_skip_animation_frame);
 
-	void callback(/*float current_time*/)
+static void* target( ) noexcept
+{
+	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
+}
+
+struct replace
+{
+	void fn(/*float current_time*/) noexcept
 	{
+		CHEAT_HOOK_CALL_ORIGINAL_MEMBER( );
+
 #if 0
 		if (override_return__)
 		{
@@ -89,45 +90,6 @@ struct should_skip_animation_frame_impl :should_skip_animation_frame_base
 		const auto skip_this_frame = animate_this_frame == false;
 		this->store_return_value(skip_this_frame);
 #endif
-	}
-
-#if 0
-	bool render( )
-	{
-		ImGui::Checkbox("override return", &override_return__);
-		if (!override_return__)
-			return true;
-
-		const auto pop = nstd::mem::backup(ImGui::GetStyle( ).ItemSpacing.x, 0);
-		(void)pop;
-
-		ImGui::SameLine( );
-		ImGui::Text(" to ");
-		ImGui::SameLine( );
-		if (ImGui::RadioButton("false ", override_return_to__ == false))
-			override_return_to__ = false;
-		ImGui::SameLine( );
-		if (ImGui::RadioButton("true", override_return_to__ == true))
-			override_return_to__ = true;
-
-		return true;
-	}
-#endif
-};
-#endif
-
-CHEAT_HOOK_INSTANCE(c_base_animating, should_skip_animation_frame);
-
-static void* target( ) noexcept
-{
-	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
-}
-
-struct replace
-{
-	void fn( )noexcept
-	{
-		CHEAT_HOOK_CALL_ORIGINAL_MEMBER( );
 	}
 };
 
