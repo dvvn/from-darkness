@@ -16,6 +16,6 @@ IBaseClientDLL* nstd::one_instance_getter<IBaseClientDLL*>::_Construct( )const
 bool IBaseClientDLL::DispatchUserMessage(int msg_type, int flags, int size, const void* msg)
 {
 	//return dhooks::invoke(&IBaseClientDLL::DispatchUserMessage, static_cast<size_t>(38), this, msg_type, flags, size, msg);
-	const auto fn = nstd::basic_address(this).deref<1>( )[38].get<decltype(&IBaseClientDLL::DispatchUserMessage)>( );
+	const decltype(&IBaseClientDLL::DispatchUserMessage) fn = nstd::basic_address(this).deref<1>( )[38];
 	return std::invoke(fn, this, msg_type, flags, size, msg);
 }

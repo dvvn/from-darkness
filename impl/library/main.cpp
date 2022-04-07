@@ -4,16 +4,24 @@
 #include <future>
 
 import cheat.hooks;
+import cheat.console;
 
 IDirect3DDevice9* d3dDevice9_ptr = nullptr;
 
 static DWORD WINAPI setup_hooks(LPVOID hModule)
 {
-	using namespace cheat::hooks;
-	init_all( );
-	if (start( ).get( ))
-		return TRUE;
-	FreeLibraryAndExitThread(static_cast<HMODULE>(hModule), FALSE);
+	const auto hmodule = static_cast<HMODULE>(hModule);
+	using namespace cheat;
+	console::enable( );
+	hooks::init_all( );
+	hooks::set_external_handle(hmodule);
+	if (!hooks::start( ).get( ))
+	{
+		hooks::stop( );
+		FreeLibraryAndExitThread(hmodule, FALSE);
+	}
+
+	return TRUE;
 }
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)

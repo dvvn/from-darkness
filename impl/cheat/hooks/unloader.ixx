@@ -4,6 +4,6 @@ export module cheat.hooks:unloader;
 
 export namespace cheat::hooks
 {
-	//for dll only
-	void unload( );
+	void set_external_handle(void* const hmodule) noexcept;
+	void unload( ) noexcept;
 }

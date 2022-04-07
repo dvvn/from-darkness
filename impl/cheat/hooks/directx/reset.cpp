@@ -19,7 +19,7 @@ CHEAT_HOOK_INSTANCE(directx, reset);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address vtable_holder = csgo::Direct3DDevice9::get_ptr( );
+	const nstd::mem::basic_address<void> vtable_holder = csgo::Direct3DDevice9::get_ptr( );
 	return vtable_holder.deref<1>( )[16];
 }
 

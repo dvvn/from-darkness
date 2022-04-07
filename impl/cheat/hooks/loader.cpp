@@ -106,6 +106,8 @@ public:
 
 	bool join( ) noexcept
 	{
+		if (threads_.empty( ))
+			return false;
 		size_t joinable = 0;
 		for (auto& thr : threads_)
 		{
@@ -115,6 +117,9 @@ public:
 				thr.join( );
 			}
 		}
+
+		swap_instant(threads_);
+
 		if (joinable == 0)
 			return false;
 
@@ -137,6 +142,9 @@ public:
 				--active_tmp;
 		}
 		active_ = active_tmp;
+
+		if (active_tmp == 0 && last_pos == storage_.size( ))
+			pos_ = 0;
 	}
 
 	bool active( ) const noexcept
@@ -184,8 +192,6 @@ std::future<bool> hooks::start( ) noexcept
 void hooks::stop( ) noexcept
 {
 	loader->finish( );
-	/*for (auto& h : *storage)
-		h->request_disable( );*/
 }
 
 bool hooks::active( ) noexcept

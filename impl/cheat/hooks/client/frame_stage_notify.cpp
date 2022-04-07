@@ -17,7 +17,7 @@ CHEAT_HOOK_INSTANCE(client, frame_stage_notify);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address vtable_holder = IBaseClientDLL::get_ptr( );
+	const nstd::mem::basic_address<void> vtable_holder = IBaseClientDLL::get_ptr( );
 	return vtable_holder.deref<1>( )[32];
 }
 

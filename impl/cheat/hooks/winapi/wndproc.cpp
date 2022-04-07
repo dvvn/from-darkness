@@ -82,7 +82,7 @@ struct replace
 			{
 				//disable( );
 				//this->store_return_value(TRUE);
-				hooks::stop( );
+				hooks::unload();
 				return override_info::special;
 			}
 #endif

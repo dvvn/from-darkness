@@ -16,13 +16,13 @@ using namespace cheat::csgo;
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {
 	const nstd::mem::basic_address vtable_holder = this;
-	const auto fn = vtable_holder.deref<1>( )[15].get<decltype(&C_BaseEntity::GetDataDescMap)>( );
+	const decltype(&C_BaseEntity::GetDataDescMap) fn = vtable_holder.deref<1>( )[15];
 	return std::invoke(fn, this);
 }
 
 datamap_t* C_BaseEntity::GetPredictionDescMap( )
 {
 	const nstd::mem::basic_address vtable_holder = this;
-	const auto fn = vtable_holder.deref<1>( )[17].get<decltype(&C_BaseEntity::GetPredictionDescMap)>( );
+	const decltype(&C_BaseEntity::GetPredictionDescMap) fn = vtable_holder.deref<1>( )[17];
 	return std::invoke(fn, this);
 }

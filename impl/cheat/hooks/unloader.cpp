@@ -1,7 +1,5 @@
 module;
 
-#include <nstd/runtime_assert.h>
-
 #include <Windows.h>
 
 module cheat.hooks:unloader;
@@ -10,22 +8,32 @@ import cheat.console;
 
 using namespace cheat;
 
-static HMODULE get_current_handle( )
+static HMODULE external_handle;
+
+void hooks::set_external_handle(void* const hmodule) noexcept
 {
-	return 0;//todo
+	external_handle = static_cast<HMODULE>(hmodule);
 }
 
-static DWORD WINAPI unload_impl(LPVOID)
+using hooks::stop;
+
+[[noreturn]]
+static DWORD WINAPI unload_delayed(LPVOID) noexcept
 {
-	hooks::stop( );
+	stop( );
 	Sleep(1000);
-	console::disable( );//skip messages from destructors
-	FreeLibraryAndExitThread(get_current_handle( ), TRUE);
+	FreeLibraryAndExitThread(external_handle, FALSE);
 }
 
-void hooks::unload( )
+void hooks::unload( ) noexcept
 {
-	const HANDLE hThread = CreateThread(NULL, 0, unload_impl, NULL, 0, NULL);
-	runtime_assert(hThread != nullptr);
-	CloseHandle(hThread);
+	if (!external_handle)
+	{
+		stop( );
+		PostQuitMessage(FALSE);
+	}
+	else
+	{
+		CreateThread(NULL, 0, unload_delayed, nullptr, 0, NULL);
+	}
 }

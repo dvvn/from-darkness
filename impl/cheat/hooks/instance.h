@@ -48,7 +48,7 @@ Fn _Get_original_method(T& entry)
 
 #define CHEAT_HOOK_PROCESS_FUNC_IMPL(_FN_NAME_)\
 	const auto _FN_NAME_##ed = hook_entry->_FN_NAME_( );\
-	console::object_message<hook_entry_t>(_FN_NAME_##ed ? #_FN_NAME_##"ed" : "not "#_FN_NAME_##"ed");
+	console::object_message<hook_entry_t>(_FN_NAME_##ed ? #_FN_NAME_##"d" : "not "#_FN_NAME_##"d");
 
 #define CHEAT_HOOK_PROCESS_FUNC(_FN_NAME_)\
 	CHEAT_HOOK_PROCESS_FUNC_IMPL(_FN_NAME_);\

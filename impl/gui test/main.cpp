@@ -135,7 +135,7 @@ _RESET:
 	::DestroyWindow(hwnd);
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
-	return 0;
+	return FALSE;
 }
 
 // Helper functions

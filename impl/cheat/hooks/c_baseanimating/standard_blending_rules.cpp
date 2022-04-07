@@ -17,7 +17,7 @@ CHEAT_HOOK_INSTANCE(c_base_animating, standard_blending_rules);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address vtable_holder = csgo_modules::client.find_vtable<C_BaseAnimating>( );
+	const nstd::mem::basic_address<void> vtable_holder = csgo_modules::client.find_vtable<C_BaseAnimating>( );
 	const auto index = csgo_modules::client.find_signature<"8D 94 ? ? ? ? ? 52 56 FF 90 ? ? ? ? 8B 47 FC">( ).plus(11).deref<1>( ).divide(4);
 	return vtable_holder.deref<1>( )[index.value];
 }

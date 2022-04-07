@@ -88,8 +88,11 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
 {
 	for (auto reg = first; reg != last; reg = reg->next)
 	{
-		if (std::memcmp(reg->name, name.data( ), name.size( )) == 0)
-			return reg;
+		if (std::memcmp(reg->name, name.data( ), name.size( )) != 0)
+			continue;
+		if (!std::isdigit(reg->name[name.size( )]))
+			continue;
+		return reg;
 	}
 
 	return nullptr;

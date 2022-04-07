@@ -26,7 +26,7 @@ static void _Set_helper(ConVar* ptr, size_t index, T value)
 	//return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
 	//dhooks::invoke(&ConVar::set<T>, index, ptr, value);
 
-	const auto fn = basic_address(ptr).deref<1>( )[index].get<decltype(&ConVar::set<T>)>( );
+	const decltype(&ConVar::set<T>) fn = basic_address(ptr).deref<1>( )[index];
 	std::invoke(fn, ptr, value);
 }
 
@@ -35,7 +35,7 @@ static T _Get_helper(const ConVar* ptr, size_t index)
 {
 	//return dhooks::invoke(&ConVar::get<T>, index, ptr);
 
-	const auto fn = basic_address(ptr).deref<1>( )[index].get<decltype(&ConVar::get<T>)>( );
+	const decltype(&ConVar::get<T>) fn = basic_address(ptr).deref<1>( )[index];
 	return std::invoke(fn, ptr);
 }
 

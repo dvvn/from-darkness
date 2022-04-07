@@ -18,7 +18,7 @@ CHEAT_HOOK_INSTANCE(client_mode, create_move);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address vtable_holder = ClientModeShared::get_ptr( );
+	const nstd::mem::basic_address<void> vtable_holder = ClientModeShared::get_ptr( );
 	return vtable_holder.deref<1>( )[24];
 }
 

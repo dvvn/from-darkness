@@ -17,7 +17,7 @@ CHEAT_HOOK_INSTANCE(c_base_entity, estimate_abs_velocity);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
+	const nstd::mem::basic_address<void> vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
 	const auto index = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).plus(2).deref<1>( ).divide(4);
 	return vtable.deref<1>( )[index.value];
 }
