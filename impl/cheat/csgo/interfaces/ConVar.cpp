@@ -1,16 +1,19 @@
 ﻿module;
 
 #include <nstd/format.h>
+
 #include <sstream>
+#include <functional>
 
 module cheat.csgo.interfaces.ConVar;
 import cheat.csgo.modules;
 import cheat.console;
-import dhooks.wrapper;
 import nstd.mem.address;
 
 using namespace cheat;
 using namespace csgo;
+
+using nstd::mem::basic_address;
 
 ICVar* nstd::one_instance_getter<ICVar*>::_Construct( )const
 {
@@ -21,13 +24,19 @@ template <typename T>
 static void _Set_helper(ConVar* ptr, size_t index, T value)
 {
 	//return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
-	dhooks::invoke(&ConVar::set<T>, index, ptr, value);
+	//dhooks::invoke(&ConVar::set<T>, index, ptr, value);
+
+	const auto fn = basic_address(ptr).deref<1>( )[index].get<decltype(&ConVar::set<T>)>( );
+	std::invoke(fn, ptr, value);
 }
 
 template <typename T>
 static T _Get_helper(const ConVar* ptr, size_t index)
 {
-	return dhooks::invoke(&ConVar::get<T>, index, ptr);
+	//return dhooks::invoke(&ConVar::get<T>, index, ptr);
+
+	const auto fn = basic_address(ptr).deref<1>( )[index].get<decltype(&ConVar::get<T>)>( );
+	return std::invoke(fn, ptr);
 }
 
 template < >
@@ -74,7 +83,6 @@ void ConVar::set(int value)
 
 ConCommandBaseIterator ICVar::begin( )const
 {
-	using namespace nstd::mem;
 	return basic_address(this).plus(0x30).deref<1>( ).get<ConCommandBase*>( );
 }
 

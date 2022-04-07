@@ -5,11 +5,13 @@
 
 import cheat.hooks;
 
+IDirect3DDevice9* d3dDevice9_ptr = nullptr;
+
 static DWORD WINAPI setup_hooks(LPVOID hModule)
 {
-	using namespace cheat;
-	hooks::init_all( );
-	if (hooks::start( ).get( ))
+	using namespace cheat::hooks;
+	init_all( );
+	if (start( ).get( ))
 		return TRUE;
 	FreeLibraryAndExitThread(static_cast<HMODULE>(hModule), FALSE);
 }
@@ -38,7 +40,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 	}
 	case DLL_PROCESS_DETACH:
 	{
-		cheat::hooks::stop(true);
+		cheat::hooks::stop( );
 		break;
 	}
 	}

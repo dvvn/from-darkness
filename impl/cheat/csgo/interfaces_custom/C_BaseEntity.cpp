@@ -1,7 +1,10 @@
+module;
+
+#include <functional>
+
 module cheat.csgo.interfaces.C_BaseEntity;
 
 import cheat.netvars;
-import dhooks.wrapper;
 import nstd.mem.address;
 
 using namespace cheat::csgo;
@@ -12,10 +15,14 @@ using namespace cheat::csgo;
 
 datamap_t* C_BaseEntity::GetDataDescMap( )
 {
-	return dhooks::invoke(&C_BaseEntity::GetDataDescMap, static_cast<size_t>(15), this);
+	const nstd::mem::basic_address vtable_holder = this;
+	const auto fn = vtable_holder.deref<1>( )[15].get<decltype(&C_BaseEntity::GetDataDescMap)>( );
+	return std::invoke(fn, this);
 }
 
 datamap_t* C_BaseEntity::GetPredictionDescMap( )
 {
-	return dhooks::invoke(&C_BaseEntity::GetPredictionDescMap, static_cast<size_t>(17), this);
+	const nstd::mem::basic_address vtable_holder = this;
+	const auto fn = vtable_holder.deref<1>( )[17].get<decltype(&C_BaseEntity::GetPredictionDescMap)>( );
+	return std::invoke(fn, this);
 }
