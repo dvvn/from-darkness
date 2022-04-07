@@ -1,10 +1,13 @@
 module;
 
-#include <cstdint>
+//#include <cstdint>
 
 export module cheat.hooks.base;
-import dhooks.wrapper;
 export import cheat.console.object_message;
+export import dhooks.entry;
+export import nstd.one_instance;
+#if 0
+import dhooks.wrapper;
 
 #define CHEAT_HOOKS_CONSOLE_LOG_FN(_FN_NAME_)\
 bool _FN_NAME_( ) final\
@@ -24,3 +27,4 @@ export namespace cheat::hooks
 		CHEAT_HOOKS_CONSOLE_LOG_FN(disable);
 	};
 }
+#endif

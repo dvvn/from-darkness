@@ -1,6 +1,5 @@
 module;
 
-#include <functional>
 #include <future>
 
 export module cheat.hooks:loader;
@@ -13,8 +12,10 @@ export namespace cheat::hooks
 		updater start, stop;
 	};
 
-	void add(hook_data data);
+	void add(hook_data data) noexcept;
 
-	std::future<bool> start( );
-	void stop();
+	std::future<bool> start( ) noexcept;
+	void stop( ) noexcept;
+
+	bool active( ) noexcept;
 }

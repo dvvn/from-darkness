@@ -43,7 +43,7 @@ std::string_view object_message_impl<hooks_loader>::get_name( ) const
 
 class hooks_loader :object_message_auto<hooks_loader>
 {
-	void _Already_started_assert( )const
+	void _Already_started_assert( ) const noexcept
 	{
 		runtime_assert(pos_ == 0, "Already started");
 		runtime_assert(threads_.empty( ), "Already started");
@@ -51,7 +51,7 @@ class hooks_loader :object_message_auto<hooks_loader>
 
 	using error_t = std::shared_ptr<std::atomic<bool>>;
 
-	void worker(const error_t error)
+	void worker(const error_t error) noexcept
 	{
 		//const auto id = debug_thread_id( );
 		//this->message("{} started", id);
@@ -62,7 +62,11 @@ class hooks_loader :object_message_auto<hooks_loader>
 			const auto current_pos = pos_++;
 			if (current_pos >= storage_.size( ))
 				break;
-			if (!storage_[current_pos].start( ))
+			if (storage_[current_pos].start( ))
+			{
+				++active_;
+			}
+			else
 			{
 				*error = true;
 				break;
@@ -81,13 +85,13 @@ public:
 		finish( );
 	}
 
-	void add(hook_data data)
+	void add(hook_data data) noexcept
 	{
 		_Already_started_assert( );
 		storage_.push_back(data);
 	}
 
-	error_t start( )
+	error_t start( ) noexcept
 	{
 		_Already_started_assert( );
 		const auto threads_count = std::min(storage_.size( ), thread_type::hardware_concurrency( ));
@@ -100,7 +104,7 @@ public:
 		return error;
 	}
 
-	bool join( )
+	bool join( ) noexcept
 	{
 		size_t joinable = 0;
 		for (auto& thr : threads_)
@@ -118,16 +122,30 @@ public:
 		return true;
 	}
 
-	void finish( )
+	void finish( ) noexcept
 	{
+		size_t active_tmp = active_;
+		if (active_tmp == 0)
+			return;
+
 		const auto last_pos = std::min<size_t>(pos_, storage_.size( ));
 		pos_ = storage_.size( );
 		this->join( );
 		for (size_t i = 0; i < last_pos; ++i)
-			storage_[i].stop( );
+		{
+			if (storage_[i].stop( ))
+				--active_tmp;
+		}
+		active_ = active_tmp;
+	}
+
+	bool active( ) const noexcept
+	{
+		return active_ > 0;
 	}
 
 private:
+	std::atomic<size_t> active_ = 0;
 	std::vector<hook_data> storage_;
 	std::atomic<size_t> pos_ = 0;
 	std::vector<thread_type> threads_;
@@ -135,12 +153,12 @@ private:
 
 static one_instance_obj<hooks_loader> loader;
 
-void hooks::add(hook_data data)
+void hooks::add(hook_data data) noexcept
 {
 	loader->add(data);
 }
 
-std::future<bool> hooks::start( )
+std::future<bool> hooks::start( ) noexcept
 {
 	//console::log(debug_thread_id());
 	constexpr auto load = []
@@ -163,9 +181,14 @@ std::future<bool> hooks::start( )
 #endif
 }
 
-void hooks::stop( )
+void hooks::stop( ) noexcept
 {
 	loader->finish( );
 	/*for (auto& h : *storage)
 		h->request_disable( );*/
+}
+
+bool hooks::active( ) noexcept
+{
+	return loader->active( );
 }

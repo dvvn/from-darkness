@@ -105,8 +105,8 @@ int main(int, char**)
 		}
 
 		//unload called
-		//if (loader.state == services_loader::state_type::idle)
-		//	goto _RESET;
+		if (!hooks::active( ))
+			goto _RESET;
 
 		g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);

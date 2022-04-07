@@ -8,12 +8,12 @@ module cheat.hooks.c_base_entity.estimate_abs_velocity;
 import cheat.csgo.modules;
 import cheat.csgo.interfaces.C_BaseEntity;
 import cheat.hooks.base;
-import nstd.one_instance;
 
 using namespace cheat;
 using namespace csgo;
 using namespace hooks;
 
+#if 0
 using estimate_abs_velocity_base = hooks::base<void(C_BaseEntity::*)(Vector&)>;
 struct estimate_abs_velocity_impl : estimate_abs_velocity_base
 {
@@ -44,4 +44,24 @@ struct estimate_abs_velocity_impl : estimate_abs_velocity_base
 	}
 };
 
-CHEAT_HOOK_INSTANCE(c_base_entity,estimate_abs_velocity);
+CHEAT_HOOK_INSTANCE(c_base_entity, estimate_abs_velocity);
+#endif
+
+CHEAT_HOOK_INSTANCE(c_base_entity, estimate_abs_velocity);
+
+static void* target( ) noexcept
+{
+	const nstd::mem::basic_address vtable = csgo_modules::client.find_vtable<C_BaseEntity>( );
+	const auto index = csgo_modules::client.find_signature<"FF 90 ? ? 00 00 F3 0F 10 4C 24 18">( ).plus(2).deref<1>( ).divide(4);
+	return vtable.deref<1>( )[index.value];
+}
+
+struct replace
+{
+	void fn(Vector& vel) noexcept
+	{
+		CHEAT_HOOK_CALL_ORIGINAL_MEMBER(vel);
+	}
+};
+
+CHEAT_HOOK_INIT(c_base_entity, estimate_abs_velocity);

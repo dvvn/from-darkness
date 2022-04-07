@@ -6,12 +6,12 @@ module cheat.hooks.c_base_animating.should_skip_animation_frame;
 import cheat.csgo.modules;
 import cheat.csgo.interfaces.C_BaseAnimating;
 import cheat.hooks.base;
-import nstd.one_instance;
 
 using namespace cheat;
 using namespace csgo;
 using namespace hooks;
 
+#if 0
 using should_skip_animation_frame_base = hooks::base<bool(C_BaseAnimating::*)()>;
 struct should_skip_animation_frame_impl :should_skip_animation_frame_base
 {
@@ -114,7 +114,22 @@ struct should_skip_animation_frame_impl :should_skip_animation_frame_base
 	}
 #endif
 };
+#endif
 
 CHEAT_HOOK_INSTANCE(c_base_animating, should_skip_animation_frame);
 
+static void* target( ) noexcept
+{
+	return csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( );
+}
+
+struct replace
+{
+	void fn( )noexcept
+	{
+		CHEAT_HOOK_CALL_ORIGINAL_MEMBER( );
+	}
+};
+
+CHEAT_HOOK_INIT(c_base_animating, should_skip_animation_frame);
 
