@@ -41,73 +41,101 @@ std::string_view object_message_impl<hooks_loader>::get_name( ) const
 	return "hooks::loader";
 }
 
+//#define WORKER_DATA_COUNT_THREADS
+
+struct hooks_worker_data
+{
+	std::atomic<bool> error = false;
+	std::atomic<size_t> pos = 0;
+#ifdef WORKER_DATA_COUNT_THREADS
+	std::atomic<size_t> threads;
+
+	hooks_worker_data(size_t threads_count)
+		:threads(threads_count)
+	{
+	}
+#endif
+};
+
 class hooks_loader :object_message_auto<hooks_loader>
 {
-	void _Already_started_assert( ) const noexcept
-	{
-		runtime_assert(pos_ == 0, "Already started");
-		runtime_assert(threads_.empty( ), "Already started");
-	}
+	using worker_data = std::shared_ptr<hooks_worker_data>;
 
-	using error_t = std::shared_ptr<std::atomic<bool>>;
-
-	void worker(const error_t error) noexcept
+	void worker(const worker_data data) noexcept
 	{
 		//const auto id = debug_thread_id( );
 		//this->message("{} started", id);
+
+		auto& [error
+			, pos
+#ifdef WORKER_DATA_COUNT_THREADS
+			, threads
+#endif
+		] = *data;
+
 		for (;;)
 		{
-			if (*error)
+			if (error)
 				break;
-			const auto current_pos = pos_++;
+			const auto current_pos = pos++;
 			if (current_pos >= storage_.size( ))
 				break;
-			if (storage_[current_pos].start( ))
+			if (!storage_[current_pos].start( ))
 			{
-				++active_;
-			}
-			else
-			{
-				*error = true;
+				error = true;
 				break;
 			}
 		}
+
+#ifdef WORKER_DATA_COUNT_THREADS
+		--threads;
+#endif
+
 		//this->message("{} finished", id);
 	}
 
 public:
+
 	using thread_type = std::thread;
 
 	hooks_loader( ) = default;
 
 	~hooks_loader( )
 	{
-		finish( );
+		stop( );
 	}
 
 	void add(hook_data data) noexcept
 	{
-		_Already_started_assert( );
+		runtime_assert(threads_.empty( ), "Already started");
 		storage_.push_back(data);
 	}
 
-	error_t start( ) noexcept
+	worker_data start( ) noexcept
 	{
-		_Already_started_assert( );
+		this->join( );
+
 		const auto threads_count = std::min(storage_.size( ), thread_type::hardware_concurrency( ));
 		runtime_assert(threads_count > 0, "Incorrect threads count");
+
 		this->message("started");
+
 		threads_.reserve(threads_count);
-		auto error = std::make_shared<error_t::element_type>( );
+		auto wdata = std::make_shared<hooks_worker_data>(
+#ifdef WORKER_DATA_COUNT_THREADS
+			threads_count
+#endif
+			);
 		while (threads_.size( ) != threads_count)
-			threads_.emplace_back(&hooks_loader::worker, this, error);
-		return error;
+			threads_.emplace_back(&hooks_loader::worker, this, wdata);
+		return wdata;
 	}
 
 	bool join( ) noexcept
 	{
 		if (threads_.empty( ))
 			return false;
+
 		size_t joinable = 0;
 		for (auto& thr : threads_)
 		{
@@ -127,35 +155,15 @@ public:
 		return true;
 	}
 
-	void finish( ) noexcept
+	void stop( ) noexcept
 	{
-		size_t active_tmp = active_;
-		if (active_tmp == 0)
-			return;
-
-		const auto last_pos = std::min<size_t>(pos_, storage_.size( ));
-		pos_ = storage_.size( );
-		this->join( );
-		for (size_t i = 0; i < last_pos; ++i)
-		{
-			if (storage_[i].stop( ))
-				--active_tmp;
-		}
-		active_ = active_tmp;
-
-		if (active_tmp == 0 && last_pos == storage_.size( ))
-			pos_ = 0;
-	}
-
-	bool active( ) const noexcept
-	{
-		return active_ > 0;
+		join( );
+		for (auto& entry : storage_)
+			entry.stop( );
 	}
 
 private:
-	std::atomic<size_t> active_ = 0;
 	std::vector<hook_data> storage_;
-	std::atomic<size_t> pos_ = 0;
 	std::vector<thread_type> threads_;
 };
 
@@ -166,35 +174,36 @@ void hooks::add(hook_data data) noexcept
 	loader->add(data);
 }
 
+static bool start_impl( ) noexcept
+{
+	//console::log(debug_thread_id());
+	const auto data = loader->start( );
+	loader->join( );
+	return data->error == false;
+}
+
 std::future<bool> hooks::start( ) noexcept
 {
 	//console::log(debug_thread_id());
-	constexpr auto load = []
-	{
-		//console::log(debug_thread_id());
-		const auto error = loader->start( );
-		loader->join( );
-		return *error == false;
-	};
 
 #if 1
 	auto prom = std::make_shared<std::promise<bool>>( );
 	std::thread([=]
 	{
-		prom->set_value(load( ));
+		prom->set_value(start_impl( ));
 	}).detach( );
 	return prom->get_future( );
 #else
-	return std::async(std::launch::async, load);
+	return std::async(std::launch::async, start_impl);
 #endif
 }
 
 void hooks::stop( ) noexcept
 {
-	loader->finish( );
+	loader->stop( );
 }
 
-bool hooks::active( ) noexcept
-{
-	return loader->active( );
-}
+//bool hooks::active( ) noexcept
+//{
+//	return loader->active( );
+//}

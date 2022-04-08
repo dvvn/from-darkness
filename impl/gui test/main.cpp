@@ -104,10 +104,6 @@ int main(int, char**)
 				goto _RESET;
 		}
 
-		//unload called
-		if (!hooks::active( ))
-			goto _RESET;
-
 		g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);

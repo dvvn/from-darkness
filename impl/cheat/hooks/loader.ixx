@@ -16,5 +16,4 @@ export namespace cheat::hooks
 
 	std::future<bool> start( ) noexcept;
 	void stop( ) noexcept;
-	bool active( ) noexcept;
 }
