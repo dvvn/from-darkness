@@ -46,7 +46,7 @@ export namespace cheat::console
 					hint.append(basic_hint.begin( ), basic_hint.end( ));
 					hint.append(strv);
 					return hint;
-				}, []
+				}, [&]
 				{
 					const auto name = this->get_name( );
 					if constexpr (std::same_as<char_t, char>)

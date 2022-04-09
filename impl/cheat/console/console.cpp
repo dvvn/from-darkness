@@ -21,6 +21,7 @@ module;
 module cheat.console;
 import nstd.mem.address;
 import nstd.winapi.modules;
+import nstd.one_instance;
 
 using namespace cheat;
 
@@ -29,7 +30,7 @@ using packed_string_t = std::variant<std::basic_string<Chr>..., std::basic_strin
 using packed_string = packed_string_t<char, wchar_t>;
 
 template <typename Chr, typename Tr>
-static FILE*& _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
+static FILE* _Get_file_buff(std::basic_ios<Chr, Tr>& stream) noexcept
 {
 	using fb = std::basic_filebuf<Chr, Tr>;
 
@@ -38,11 +39,11 @@ static FILE*& _Get_file_buff(std::basic_ios<Chr, Tr>& stream)
 	assert(real_buff != nullptr);
 	constexpr auto offset = sizeof(fb) - sizeof(void*) * 3;
 	//_Myfile
-	return nstd::mem::basic_address(real_buff) + offset;
+	return nstd::mem::basic_address(real_buff).plus(offset).deref<1>( );
 }
 
 template <bool Assert = true>
-static auto _Set_mode(FILE* file, int mode)
+static auto _Set_mode(FILE* file, int mode) noexcept
 {
 	const auto old_mode = _setmode(_fileno(file), mode);
 	if constexpr (Assert)
@@ -51,7 +52,7 @@ static auto _Set_mode(FILE* file, int mode)
 }
 
 template <bool Assert = true>
-static auto _Set_mode(int known_prev_mode, FILE* file, int mode)
+static auto _Set_mode(int known_prev_mode, FILE* file, int mode) noexcept
 {
 	if (known_prev_mode == mode)
 		return mode;
@@ -71,38 +72,47 @@ concept have_char_type = requires
 };
 
 template<typename T>
+concept have_value_type = requires
+{
+	typename T::value_type;
+};
+
+template<typename T>
 concept have_view_function = requires(T obj)
 {
 	obj.view( );
 };
 
 template<typename T>
-constexpr auto _Get_char_type( )
+concept have_array_access = requires(T obj)
 {
-	if constexpr (!std::is_class_v<T>)
-	{
-		if constexpr (std::is_pointer_v<T> || std::is_bounded_array_v<T>)
-			return std::remove_cvref_t<decltype(std::declval<T>( )[0])>( );
-		else
-			return T( );
-	}
-	else if constexpr (have_char_type<T>)
+	obj[0];
+};
+
+template<typename T>
+constexpr auto _Get_char_type(const T& sample = {}) noexcept
+{
+	if constexpr (have_char_type<T>)
 		return T::char_type( );
-	else
+	else if constexpr (have_value_type<T>)
 		return T::value_type( );
+	else if constexpr (have_array_access<T>)
+		return sample[0];
+	else if constexpr (!std::is_class_v<T>)
+		return sample;
 }
 
 #ifdef _MSC_VER
 using std::_Always_false;
 #else
-
+TODO
 #endif
 
 #pragma warning(push)
 #pragma warning(disable: 4702 4459)
 
 template< typename T, typename ...Next>
-static auto _Write_text_ex(const T& text, const Next&...other)
+static auto _Write_text_ex(const T& text, const Next&...other) noexcept
 {
 	FILE* file_out;
 	int new_mode;
@@ -114,7 +124,7 @@ static auto _Write_text_ex(const T& text, const Next&...other)
 
 	if constexpr (universal)
 	{
-		using char_t = decltype(_Get_char_type<T>( ));
+		using char_t = decltype(_Get_char_type(text));
 		if constexpr (std::same_as<char_t, std::ofstream::char_type>)
 			std::cout << text;
 		else if constexpr (std::same_as<char_t, std::wofstream::char_type>)
@@ -163,11 +173,11 @@ static auto _Write_text = []<typename ...T>(const T & ...text)
 	_Write_text_ex(text...);
 };
 
-static auto _Prepare_assert_message(const char* expression, const char* message, const std::source_location& location)
+static auto _Prepare_assert_message(const char* expression, const char* message, const std::source_location& location) noexcept
 {
 	std::ostringstream msg;
 
-	const auto append = [&]<typename Name, typename Value>(const Name name,const Value value, bool newline = true)
+	const auto append = [&]<typename Name, typename Value>(const Name name, const Value value, bool newline = true)
 	{
 		msg << name << ": " << value;
 		if (newline)
@@ -187,7 +197,7 @@ static auto _Prepare_assert_message(const char* expression, const char* message,
 	return msg;
 }
 
-static auto _Current_time_string( )
+static auto _Current_time_string( ) noexcept
 {
 	using namespace std::chrono;
 	using clock = system_clock;
@@ -235,12 +245,12 @@ public:
 		start( );
 	}
 
-	bool running( )const
+	bool running( ) const noexcept
 	{
 		return running_;
 	}
 
-	void start( )
+	void start( ) noexcept
 	{
 		runtime_assert(!running_, "Already started");
 		auto console_window = GetConsoleWindow( );
@@ -284,7 +294,7 @@ public:
 		running_ = true;
 	}
 
-	void stop( )
+	void stop( ) noexcept
 	{
 		runtime_assert(running_, "Already stopped");
 		runtime_assert_remove_handler(this->id( ));
@@ -319,19 +329,14 @@ private:
 		write_line(_Prepare_assert_message(nullptr, message, location));
 	}
 
-	size_t id( ) const
-	{
-		return reinterpret_cast<size_t>(this);
-	}
-
 public:
-	void write(const packed_string& str)
+	void write(packed_string&& str) noexcept
 	{
 		const auto lock = std::scoped_lock(mtx_);
 		std::visit(_Write_text, str);
 	}
 
-	void write_line(const packed_string& str)
+	void write_line(packed_string&& str) noexcept
 	{
 		const auto fn = [time = _Current_time_string( )]<typename T>(const T & obj)
 		{
@@ -351,7 +356,7 @@ static state console_state = state::unset;
 static nstd::one_instance_obj<console_controller> controller;
 
 template<typename T>
-static void console_log(const T str)
+static void _Log_impl(const T str) noexcept
 {
 	switch (console_state)
 	{
@@ -364,7 +369,22 @@ static void console_log(const T str)
 	}
 }
 
-void console::enable( )
+void _Log(const std::string_view str) noexcept
+{
+	_Log_impl(str);
+}
+
+void _Log(const std::wstring_view str) noexcept
+{
+	_Log_impl(str);
+}
+
+bool _Active( ) noexcept
+{
+	return console_state == state::on;
+}
+
+void console::enable( ) noexcept
 {
 	switch (console_state)
 	{
@@ -379,7 +399,7 @@ void console::enable( )
 	}
 }
 
-void console::disable( )
+void console::disable( ) noexcept
 {
 	switch (console_state)
 	{
@@ -395,27 +415,16 @@ void console::disable( )
 	}
 }
 
-bool console::active( )
+void console::log(const std::string_view str) noexcept
 {
-	return console_state == state::on;
+	if (!_Active( ))
+		return;
+	_Log(str);
 }
 
-void console::log(const std::string_view str)
+void console::log(const std::wstring_view str) noexcept
 {
-	console_log(str);
+	if (!_Active( ))
+		return;
+	_Log(str);
 }
-
-void console::log(const std::wstring_view str)
-{
-	console_log(str);
-}
-
-//void console::log(const std::ostringstream& str)
-//{
-//	console_log(str.view( ));
-//}
-//
-//void console::log(const std::wostringstream& str)
-//{
-//	console_log(str.view( ));
-//}

@@ -1,87 +1,91 @@
 module;
 
 #include <nstd/format.h>
+
 #include <string_view>
 #include <functional>
 //#include <sstream>
 
 export module cheat.console;
 
-template<typename Arg, typename ...Args>
-using char_t = std::remove_cvref_t<decltype(std::declval<Arg>( )[0])>;
-
 template<typename T>
-decltype(auto) copy_or_move(T&& arg)
-{
-	using val_t = std::remove_cvref_t<T>;
-	using arg_t = decltype(arg);
-	if constexpr (std::is_rvalue_reference_v<arg_t> || std::is_trivially_copyable_v<arg_t>)
-		return val_t(std::forward<T>(arg));
-	else
-		return std::forward<T>(arg);
-}
+using invoke_result_fmt = std::remove_cvref_t<decltype(std::invoke(std::declval<T>( )))>;
 
-template<typename F>
-decltype(auto) fmt_fix(F&& fmt)
+struct dummy_struct
 {
-#ifdef FMT_VERSION
-	//fmt support compile time only for char today
-	if constexpr (std::is_same_v<char_t<F>, char>)
-		return fmt::runtime(fmt);
-	else
-#endif
-		return std::forward<F>(fmt);
-}
-
-template<typename F, typename ...Args>
-auto format_impl(F&& fmt, Args&& ...args)
-{
-	return std::format(fmt_fix(std::forward<F>(fmt)), std::forward<Args>(args)...);
-}
-
-template<typename T, typename Chr = char>
-concept formattable1 = requires
-{
-	{ std::formatter<T, Chr> }->std::default_initializable;
+	void func( ) const
+	{
+	}
 };
 
-template<typename Chr, typename T>
-decltype(auto) unpack_invocable(T&& obj)
-{
-	using raw_t = std::remove_cvref_t<T>;
+template<typename T>
+inline constexpr bool is_trivial_object_v = std::is_trivially_copyable_v<T> && sizeof(T) <= sizeof(decltype(&dummy_struct::func));
 
-	if constexpr (std::invocable<raw_t> && !formattable1<raw_t, Chr>)
-		return unpack_invocable<Chr>(std::invoke(std::forward<T>(obj)));
-	else
-		return copy_or_move(std::forward<T>(obj));
+template<typename T, typename Base, typename Adaptor>
+class formatter_froxy : public Base
+{
+	[[no_unique_address]]
+	Adaptor adp_;
+
+public:
+	template<typename T1, class FormatContext>
+		requires(!is_trivial_object_v<T>)
+	auto format(T1&& obj, FormatContext& fc) const
+	{
+		return Base::format(adp_(std::forward<T1>(obj)), fc);
+	}
+
+	template<class FormatContext>
+		requires(is_trivial_object_v<T>)
+	auto format(T obj, FormatContext& fc) const
+	{
+		return Base::format(adp_(std::move(obj)), fc);
+	}
+};
+
+struct invoke_adaptor
+{
+	template<typename ...Ts>
+	decltype(auto) operator()(Ts&&...args) const
+	{
+		return std::invoke(std::forward<Ts>(args)...);
+	}
+};
+
+namespace std
+{
+	template<invocable T, typename CharT>
+	struct formatter<T, CharT> : formatter_froxy<T, formatter<invoke_result_fmt<T>, CharT>, invoke_adaptor>
+	{
+	};
 }
+
+void _Log(const std::string_view str) noexcept;
+void _Log(const std::wstring_view str) noexcept;
+bool _Active( ) noexcept;
 
 export namespace cheat::console
 {
-	void enable( );
-	void disable( );
-	bool active( );
+	void enable( ) noexcept;
+	void disable( ) noexcept;
 
-	void log(const std::string_view str);
-	void log(const std::wstring_view str);
-	//void log(const std::ostringstream& str);
-	//void log(const std::wostringstream& str);
+	void log(const std::string_view str) noexcept;
+	void log(const std::wstring_view str) noexcept;
 
 	template<std::invocable T>
-	void log(T fn)
+	void log(T&& fn) noexcept
 	{
-		if (!active( ))
+		if (!_Active( ))
 			return;
-		log(std::invoke(fn));
+		_Log(std::invoke(std::forward<T>(fn)));
 	}
 
 	template<typename ...Args>
 		requires(sizeof...(Args) >= 2)
-	void log(Args&& ...args)
+	void log(Args&& ...args) noexcept
 	{
-		if (!active( ))
+		if (!_Active( ))
 			return;
-		using chr = char_t<Args...>;
-		log(format_impl(unpack_invocable<chr>(std::forward<Args>(args))...));
+		_Log(std::format(std::forward<Args>(args)...));
 	}
 }

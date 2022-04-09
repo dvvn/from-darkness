@@ -18,7 +18,6 @@ import nstd.one_instance;
 using namespace cheat;
 using namespace console;
 using namespace nstd;
-using hooks::hook_data;
 
 static auto debug_thread_id( )
 {
@@ -26,6 +25,19 @@ static auto debug_thread_id( )
 	s << "thread 0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << std::this_thread::get_id( );
 	return std::move(s).str( );
 }
+
+class debug_thread_id_lazy
+{
+	std::string id_;
+
+public:
+	std::string_view operator()( )
+	{
+		if (id_.empty( ))
+			id_ = debug_thread_id( );
+		return id_;
+	}
+};
 
 template<class T>
 static void swap_instant(T& from)
@@ -42,6 +54,7 @@ std::string_view object_message_impl<hooks_loader>::get_name( ) const
 }
 
 //#define WORKER_DATA_COUNT_THREADS
+//#define WORKER_LOG_THREAD_ID
 
 struct hooks_worker_data
 {
@@ -56,6 +69,7 @@ struct hooks_worker_data
 	}
 #endif
 };
+using hooks::hook_data;
 
 class hooks_loader :object_message_auto<hooks_loader>
 {
@@ -63,9 +77,10 @@ class hooks_loader :object_message_auto<hooks_loader>
 
 	void worker(const worker_data data) noexcept
 	{
-		//const auto id = debug_thread_id( );
-		//this->message("{} started", id);
-
+#ifdef WORKER_LOG_THREAD_ID
+		debug_thread_id_lazy id;
+		this->message("{} started", id);
+#endif
 		auto& [error
 			, pos
 #ifdef WORKER_DATA_COUNT_THREADS
@@ -91,8 +106,10 @@ class hooks_loader :object_message_auto<hooks_loader>
 		--threads;
 #endif
 
-		//this->message("{} finished", id);
-	}
+#ifdef WORKER_LOG_THREAD_ID
+		this->message("{} finished", id);
+#endif
+		}
 
 public:
 
@@ -165,7 +182,7 @@ public:
 private:
 	std::vector<hook_data> storage_;
 	std::vector<thread_type> threads_;
-};
+	};
 
 static one_instance_obj<hooks_loader> loader;
 
@@ -191,8 +208,8 @@ std::future<bool> hooks::start( ) noexcept
 	std::thread([=]
 	{
 		prom->set_value(start_impl( ));
-	}).detach( );
-	return prom->get_future( );
+}).detach( );
+return prom->get_future( );
 #else
 	return std::async(std::launch::async, start_impl);
 #endif

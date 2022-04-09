@@ -5,8 +5,12 @@ module;
 module cheat.hooks:initializer;
 import :loader;
 
+//#define CHEAT_GUI_HAVE_EFFECTS
+
 import cheat.hooks.winapi.wndproc;
+#ifdef CHEAT_GUI_HAVE_EFFECTS
 import cheat.hooks.imgui.PushClipRect;
+#endif
 import cheat.hooks.directx.present;
 import cheat.hooks.directx.reset;
 
@@ -28,7 +32,9 @@ void hooks::init_basic( )
 {
 	using namespace hooks;
 	ADD_HOOK(winapi::wndproc);
+#ifdef CHEAT_GUI_HAVE_EFFECTS
 	ADD_HOOK(imgui::PushClipRect);
+#endif
 	ADD_HOOK(directx::reset);
 	ADD_HOOK(directx::present);
 }

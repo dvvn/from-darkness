@@ -37,8 +37,7 @@ void console_log(const std::function<std::string_view( )> module_name_getter, co
 	_Console_log(std::ref(module_name_getter), object_type, object_name, object_ptr.pointer);
 }
 
-//use _Console_log instead
-#define console_log
+#define console_log(...) static_assert(false,"console_log: use _Console_log instead")
 
 void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* entry, const std::string_view module_name) const
 {
@@ -52,12 +51,16 @@ void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::string_
 
 static std::string _Get_module_name(LDR_DATA_TABLE_ENTRY* ldr_entry)
 {
-	const std::basic_string_view<WCHAR> full_path = {ldr_entry->FullDllName.Buffer, ldr_entry->FullDllName.Length / sizeof(WCHAR)};
+	const std::basic_string_view full_path = {ldr_entry->FullDllName.Buffer, ldr_entry->FullDllName.Length / sizeof(WCHAR)};
 	const auto name_start = full_path.find_last_of('\\');
 	const auto wname = full_path.substr(name_start + 1);
 #pragma warning(push)
 #pragma warning(disable:4244)
-	return {wname.begin( ),wname.end( )};
+	std::string out;
+	out.reserve(wname.size( ));
+	//it internally call push_back because of incompatible (WCHAR) type
+	out.assign(wname.begin( ), wname.end( ));
+	return out;
 #pragma warning(pop)
 }
 
