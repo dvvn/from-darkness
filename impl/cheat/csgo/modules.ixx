@@ -1,6 +1,5 @@
 module;
 
-#include <nstd/chars cache.h>
 #include <nstd/format.h>
 
 #include <windows.h>
@@ -16,6 +15,7 @@ import nstd.winapi.exports;
 import nstd.winapi.sections;
 import nstd.winapi.vtables;
 export import nstd.mem.address;
+import nstd.text.chars_cache;
 
 using nstd::mem::basic_address;
 
@@ -49,17 +49,18 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::s
 void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name) noexcept;
 
 using cheat::tools::csgo_object_name;
+using nstd::text::chars_cache;
 
-template<nstd::chars_cache Name>
+template<chars_cache Name>
 struct game_module
 {
-	template<typename FnT, nstd::chars_cache Export>
+	template<typename FnT, chars_cache Export>
 	FnT find_export( ) const noexcept
 	{
 		return wp::find_export<FnT, Name, Export, logs_writer>( );
 	}
 
-	template<nstd::chars_cache Section>
+	template<chars_cache Section>
 	auto find_section( ) const noexcept
 	{
 		return wp::find_section<Name, Section, logs_writer>( );
@@ -74,7 +75,7 @@ struct game_module
 		return found.pointer;
 	}
 
-	template<nstd::chars_cache Sig>
+	template<chars_cache Sig>
 	auto find_signature( ) const noexcept
 	{
 		static const basic_address found = find_signature_impl(wp::find_module<Name, logs_writer>( ),
@@ -82,7 +83,7 @@ struct game_module
 		return found;
 	}
 
-	template<nstd::chars_cache IfcName>
+	template<chars_cache IfcName>
 	auto find_interface( ) const noexcept
 	{
 		static basic_address found = find_interface_impl(wp::find_module<Name, logs_writer>( ),
@@ -94,7 +95,7 @@ struct game_module
 	//----
 
 	template<typename T>
-	void log_found_interface(T* ptr) const noexcept
+	void log_found_interface(T* const ptr) const noexcept
 	{
 		console_log(Name.view( ), "interface", csgo_object_name<T>( ), ptr);
 	}

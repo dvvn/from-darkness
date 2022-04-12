@@ -168,18 +168,19 @@ void storage::generate_classes(classes_data& data) noexcept
 
 			write_func_header(h, true);
 
+			cpp << '\n';
 			write_func_header(cpp, false);
 			cpp << "{\n"
 				<< '	'
-#ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
-				<< "constexpr auto offset = " << info.offset( )
-#else
-				<< "static const auto offset = netvars::get_offset" << "(\"" << class_name << "\", \"" << netvar_name << "\")"
+				<< "return netvars::apply_offset"
+#ifndef CHEAT_NETVARS_LOG_STATIC_OFFSET
+				<< "<\"" << class_name << "\">, <\"" << netvar_name << "\">"
 #endif
-				<< ";\n"
-				<< '	'
-				<< "return " << nstd::type_name<nstd::mem::basic_address>( ) << "(this) + offset;\n"
-				<< "}\n\n";
+				<< "(this"
+#ifdef CHEAT_NETVARS_LOG_STATIC_OFFSET
+				<< ", " << info.offset( )
+#endif
+				<< ");\n}\n";
 		}
 
 		auto& h_name = h_info.name;

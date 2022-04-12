@@ -1,12 +1,13 @@
 module;
 
-#include <nstd/chars cache.h>
+#include <string_view>
 
 export module cheat.csgo.interfaces.ConVar;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.tools.UtlVector;
 export import cheat.csgo.math.Color;
 import nstd.one_instance;
+import nstd.text.chars_cache;
 
 export namespace cheat::csgo
 {
@@ -199,20 +200,20 @@ export namespace cheat::csgo
 	{
 	public:
 		template <typename T>
-		T get( ) const;
+		T get( ) const noexcept;
 		template <typename T>
-		void set(T value);
+		void set(T value) noexcept;
 
-#define CHEAT_CSGOSDK_CVAR_GSET(_TYPE_) \
+#define CVAR_GET_SET(_TYPE_) \
 		template < >\
-		_TYPE_ get( )const;\
+		_TYPE_ get( ) const noexcept;\
 		template < >\
-		void set(_TYPE_ value);
+		void set(_TYPE_ value) noexcept;
 
-		CHEAT_CSGOSDK_CVAR_GSET(const char*);
-		CHEAT_CSGOSDK_CVAR_GSET(float);
-		CHEAT_CSGOSDK_CVAR_GSET(int);
-		CHEAT_CSGOSDK_CVAR_GSET(bool);
+		CVAR_GET_SET(const char*);
+		CVAR_GET_SET(float);
+		CVAR_GET_SET(int);
+		CVAR_GET_SET(bool);
 
 		// This either points to "this" or it points to the original declaration of a ConVar.
 	// This allows ConVars to exist in separate modules, and they all use the first one to be declared.
@@ -246,21 +247,20 @@ export namespace cheat::csgo
 		using pointer = value_type*;
 		using reference = value_type&;
 
-		ConCommandBaseIterator(pointer ptr) :itr_(ptr) { }
+		ConCommandBaseIterator(pointer ptr);
 
-		pointer get( ) const { return itr_; }
+		pointer get( ) const noexcept;
 
-		reference operator*( ) const { return *itr_; }
-		pointer operator->( ) const { return itr_; }
+		reference operator*( ) const noexcept;
+		pointer operator->( ) const noexcept;
 
 		// Prefix increment
-		ConCommandBaseIterator& operator++( ) { itr_ = itr_->m_pNext; return *this; }
+		ConCommandBaseIterator& operator++( ) noexcept;
 
 		// Postfix increment
-		ConCommandBaseIterator operator++(difference_type) { ConCommandBaseIterator tmp = *this; ++(*this); return tmp; }
+		ConCommandBaseIterator operator++(difference_type) noexcept;
 
-		friend bool operator== (const ConCommandBaseIterator& a, const ConCommandBaseIterator& b) { return a.itr_ == b.itr_; };
-		friend bool operator!= (const ConCommandBaseIterator& a, const ConCommandBaseIterator& b) { return a.itr_ != b.itr_; };
+		bool operator==(const ConCommandBaseIterator& other) const noexcept;
 
 	private:
 		pointer itr_;
@@ -295,13 +295,13 @@ export namespace cheat::csgo
 
 	public:
 
-		ConCommandBaseIterator begin( )const;
-		ConCommandBaseIterator end( )const;
+		ConCommandBaseIterator begin( ) const noexcept;
+		ConCommandBaseIterator end( ) const noexcept;
 
-		ConVar* FindVar(const std::string_view name)const;
+		ConVar* FindVar(const std::string_view name) const noexcept;
 
-		template<nstd::chars_cache Cvar>
-		ConVar* FindVar( )const
+		template<nstd::text::chars_cache Cvar>
+		ConVar* FindVar( ) const noexcept
 		{
 			static auto cvar = FindVar(Cvar.view( ));
 			return cvar;

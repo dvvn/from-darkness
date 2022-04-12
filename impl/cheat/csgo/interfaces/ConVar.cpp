@@ -13,15 +13,54 @@ import nstd.mem.address;
 using namespace cheat;
 using namespace csgo;
 
+ConCommandBaseIterator::ConCommandBaseIterator(pointer ptr) 
+	:itr_(ptr)
+{
+}
+
+auto ConCommandBaseIterator::get( ) const noexcept-> pointer
+{
+	return itr_;
+}
+
+auto ConCommandBaseIterator::operator->( ) const noexcept -> pointer
+{
+	return itr_;
+}
+
+auto ConCommandBaseIterator::operator*( ) const noexcept -> reference
+{
+	return *itr_;
+}
+
+ConCommandBaseIterator& ConCommandBaseIterator::operator++( ) noexcept
+{
+	itr_ = itr_->m_pNext;
+	return *this;
+}
+
+ConCommandBaseIterator ConCommandBaseIterator::operator++(difference_type) noexcept
+{
+	ConCommandBaseIterator tmp = *this; ++(*this);
+	return tmp;
+}
+
+bool ConCommandBaseIterator::operator==(const ConCommandBaseIterator& other) const noexcept
+{
+	return itr_ == other.itr_;
+}
+
+//-------------
+
 using nstd::mem::basic_address;
 
-ICVar* nstd::one_instance_getter<ICVar*>::_Construct( )const
+ICVar* nstd::one_instance_getter<ICVar*>::_Construct( ) const
 {
 	return csgo_modules::vstdlib.find_interface<"VEngineCvar">( );
 }
 
 template <typename T>
-static void _Set_helper(ConVar* ptr, size_t index, T value)
+static void _Set_helper(ConVar* ptr, size_t index, T value) noexcept
 {
 	//return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
 	//dhooks::invoke(&ConVar::set<T>, index, ptr, value);
@@ -31,7 +70,7 @@ static void _Set_helper(ConVar* ptr, size_t index, T value)
 }
 
 template <typename T>
-static T _Get_helper(const ConVar* ptr, size_t index)
+static T _Get_helper(const ConVar* ptr, size_t index) noexcept
 {
 	//return dhooks::invoke(&ConVar::get<T>, index, ptr);
 
@@ -40,58 +79,58 @@ static T _Get_helper(const ConVar* ptr, size_t index)
 }
 
 template < >
-const char* ConVar::get( ) const
+const char* ConVar::get( ) const noexcept
 {
 	return _Get_helper<const char*>(this, 11);
 }
 
 template < >
-float ConVar::get( ) const
+float ConVar::get( ) const noexcept
 {
 	return _Get_helper<float>(this, 12);
 }
 
 template < >
-int ConVar::get( ) const
+int ConVar::get( ) const noexcept
 {
 	return _Get_helper<int>(this, 13);
 }
 
 template < >
-bool ConVar::get( ) const
+bool ConVar::get( ) const noexcept
 {
 	return !!this->get<int>( );
 }
 
 template < >
-void ConVar::set(const char* value)
+void ConVar::set(const char* value) noexcept
 {
 	_Set_helper(this, 14, value);
 }
 
 template < >
-void ConVar::set(float value)
+void ConVar::set(float value) noexcept
 {
 	_Set_helper(this, 15, value);
 }
 
 template < >
-void ConVar::set(int value)
+void ConVar::set(int value) noexcept
 {
 	_Set_helper(this, 16, value);
 }
 
-ConCommandBaseIterator ICVar::begin( )const
+ConCommandBaseIterator ICVar::begin( ) const noexcept
 {
 	return basic_address(this).plus(0x30).deref<1>( ).get<ConCommandBase*>( );
 }
 
-ConCommandBaseIterator ICVar::end( )const
+ConCommandBaseIterator ICVar::end( ) const noexcept
 {
 	return nullptr;
 }
 
-ConVar* ICVar::FindVar(const std::string_view name)const
+ConVar* ICVar::FindVar(const std::string_view name) const noexcept
 {
 	const auto compare = [=](const ConCommandBase& cv)
 	{
