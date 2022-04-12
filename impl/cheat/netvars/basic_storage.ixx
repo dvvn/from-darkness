@@ -130,7 +130,7 @@ namespace std
 }
 
 using netvar_info_source = std::variant<cheat::csgo::RecvProp*, cheat::csgo::typedescription_t*>;
-using string_or_view = nstd::text::string_or_view_holder;
+using nstd::text::string_or_view;
 
 class basic_netvar_info
 {

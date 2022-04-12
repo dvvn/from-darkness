@@ -47,10 +47,13 @@ static bool can_skip_netvar(const char* name)
 		if (c == '\0')
 			return false;
 	}
-
 }
 
-static bool can_skip_netvar(const nstd::text::string_view name)
+#ifndef __cpp_lib_string_contains
+#define contains(_X_) find(_X_) != static_cast<size_t>(-1)
+#endif
+
+static bool can_skip_netvar(const std::string_view name)
 {
 	return name.contains('.');
 }
@@ -183,7 +186,7 @@ static void parse_client_class(storage& root_tree, netvar_table& tree, csgo::Rec
 			const auto array_info = parse_prop_array(prop_name, {itr + 1,props_end}, tree);
 			if (array_info.size > 0)
 			{
-				tree.add(real_prop_offset, itr, array_info.size,array_info.name);
+				tree.add(real_prop_offset, itr, array_info.size, array_info.name);
 				itr += array_info.size - 1;
 			}
 		}
@@ -271,7 +274,7 @@ void storage::iterate_client_class(csgo::ClientClass* root_class)
 	}
 }
 
-static void parse_datamap(netvar_table& tree, csgo::datamap_t* map)
+static void parse_datamap(netvar_table& tree, const csgo::datamap_t* map)
 {
 	for (auto& desc : map->data)
 	{

@@ -61,6 +61,10 @@ static std::string_view extract_prefix(const std::string_view type, const size_t
 	return {};
 }
 
+#ifndef __cpp_lib_string_contains
+#define contains(_X_) find(_X_) != static_cast<size_t>(-1)
+#endif
+
 std::string_view netvars::type_vec3(const std::string_view type)
 {
 	const auto vec3_qangle = [=]

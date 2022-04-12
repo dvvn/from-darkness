@@ -25,7 +25,7 @@ struct logs_writer
 	void operator()(LDR_DATA_TABLE_ENTRY* entry, const std::string_view module_name) const;
 
 	template<typename Fn>
-	void operator()(const nstd::winapi::found_export<Fn> ex, const std::string_view module_name, const std::string_view export_name) const
+	void operator()(const wp::found_export<Fn> ex, const std::string_view module_name, const std::string_view export_name) const
 	{
 		console_log(module_name, "export", export_name, ex.unknown);
 	}
@@ -33,7 +33,7 @@ struct logs_writer
 	void operator()(IMAGE_SECTION_HEADER* const sec, const std::string_view module_name, const std::string_view section_name) const;
 
 	template<typename T>
-	void operator()(const nstd::winapi::found_vtable<T> vt, const std::string_view module_name, const std::string_view vtable_name) const
+	void operator()(const wp::found_vtable<T> vt, const std::string_view module_name, const std::string_view vtable_name) const
 	{
 		console_log(module_name, "vtable", vtable_name, vt.ptr);
 	}
@@ -42,32 +42,34 @@ struct logs_writer
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const std::string_view sig);
 void* find_interface_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const nstd::mem::basic_address<void> create_interface_fn, const std::string_view name);
 
+namespace wp = nstd::winapi;
+
 template<nstd::chars_cache Name>
 struct game_module
 {
 	template<typename Fn, nstd::chars_cache Export>
 	Fn find_export( ) const
 	{
-		return nstd::winapi::find_export<Fn, Name, Export, logs_writer>( );
+		return wp::find_export<Fn, Name, Export, logs_writer>( );
 	}
 
 	template<nstd::chars_cache Section>
 	auto find_section( ) const
 	{
-		return nstd::winapi::find_section<Name, Section, logs_writer>( );
+		return wp::find_section<Name, Section, logs_writer>( );
 	}
 
 #if 0
 	template<typename T, nstd::chars_cache Class>
 	T* find_vtable( ) const
 	{
-		return nstd::winapi::find_vtable<T, Name, Class, logs_writer>( );
+		return wp::find_vtable<T, Name, Class, logs_writer>( );
 	}
 #else
 	template<typename T>
 	T* find_vtable( ) const
 	{
-		static nstd::mem::basic_address<T> found = nstd::winapi::find_vtable_impl<logs_writer>(nstd::winapi::find_module<Name, logs_writer>( ),
+		static nstd::mem::basic_address<T> found = wp::find_vtable_impl<logs_writer>(wp::find_module<Name, logs_writer>( ),
 																							   Name.view( ),
 																							   cheat::tools::csgo_object_name<T>( ));
 		return found.pointer;
@@ -77,7 +79,7 @@ struct game_module
 	template<nstd::chars_cache Sig>
 	auto find_signature( )const
 	{
-		static nstd::mem::basic_address found = find_signature_impl(nstd::winapi::find_module<Name, logs_writer>( ),
+		static nstd::mem::basic_address found = find_signature_impl(wp::find_module<Name, logs_writer>( ),
 																	Sig.view( ));
 		return found;
 	}
@@ -85,7 +87,7 @@ struct game_module
 	template<nstd::chars_cache IfcName>
 	auto find_interface( ) const
 	{
-		static nstd::mem::basic_address found = find_interface_impl(nstd::winapi::find_module<Name, logs_writer>( ),
+		static nstd::mem::basic_address found = find_interface_impl(wp::find_module<Name, logs_writer>( ),
 																	find_export<void*, "CreateInterface">( ),
 																	IfcName.view( ));
 		return found;

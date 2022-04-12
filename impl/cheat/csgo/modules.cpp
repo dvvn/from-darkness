@@ -71,7 +71,7 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const std::string_
 	const basic_address<IMAGE_NT_HEADERS> nt = dos + dos->e_lfanew;
 
 	const block mem = {dos.get<uint8_t*>( ), nt->OptionalHeader.SizeOfImage};
-	const auto bytes = make_signature(sig.begin( ), sig.end( ), signature_convert( ));
+	const auto bytes = make_signature(sig.data( ), sig.size( ));
 	const auto ret = mem.find_block(bytes);
 
 	const auto result = ret.data( );

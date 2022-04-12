@@ -8,11 +8,11 @@ export import cheat.csgo.structs.Recv;
 export import cheat.csgo.structs.DataMap;
 import nstd.text.string_or_view;
 
-using string_or_view = nstd::text::string_or_view_holder;
+using string_or_view = nstd::text::string_or_view;
 
 export namespace cheat::netvars
 {
-	std::string type_std_array(const std::string_view type,const size_t size);
+	std::string type_std_array(const std::string_view type, const size_t size);
 	std::string type_utlvector(const std::string_view type);
 	std::string_view type_vec3(const std::string_view type);
 	std::string_view type_integer(std::string_view type);
