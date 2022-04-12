@@ -9,7 +9,7 @@ module;
 #include <variant>
 #include <functional>
 
-module cheat.netvars:basic_storage;
+module cheat.netvars.core:basic_storage;
 import :type_resolve;
 
 using namespace cheat;

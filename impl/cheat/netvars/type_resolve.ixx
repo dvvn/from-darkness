@@ -3,7 +3,7 @@
 #include <string>
 #include <variant>
 
-export module cheat.netvars:type_resolve;
+export module cheat.netvars.core:type_resolve;
 export import cheat.csgo.structs.Recv;
 export import cheat.csgo.structs.DataMap;
 import nstd.text.string_or_view;

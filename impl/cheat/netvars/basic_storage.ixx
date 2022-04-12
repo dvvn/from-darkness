@@ -5,7 +5,7 @@ module;
 #include <variant>
 #include <memory>
 
-export module cheat.netvars:basic_storage;
+export module cheat.netvars.core:basic_storage;
 export import cheat.csgo.structs.Recv;
 export import cheat.csgo.structs.DataMap;
 import cheat.tools.object_name;

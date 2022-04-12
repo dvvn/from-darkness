@@ -2,7 +2,7 @@
 
 #include <memory>
 
-module cheat.netvars:storage;
+module cheat.netvars.core:storage;
 import :type_resolve;
 import cheat.csgo.interfaces.C_BaseAnimating;
 import cheat.csgo.modules;

@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-module cheat.netvars:type_resolve;
+module cheat.netvars.core:type_resolve;
 import cheat.csgo.math.Quaternion;
 import cheat.csgo.math.Vector;
 import cheat.csgo.math.Qangle;

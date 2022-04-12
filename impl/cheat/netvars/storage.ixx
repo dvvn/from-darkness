@@ -9,7 +9,7 @@
 #include <string>
 #include <sstream>
 
-export module cheat.netvars:storage;
+export module cheat.netvars.core:storage;
 import :basic_storage;
 import cheat.csgo.structs.ClientClass;
 

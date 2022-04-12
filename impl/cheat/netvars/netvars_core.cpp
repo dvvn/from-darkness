@@ -5,7 +5,7 @@ module;
 #include <string>
 #include <sstream>
 
-module cheat.netvars:core;
+module cheat.netvars.core;
 import :storage;
 import cheat.console.object_message;
 import cheat.csgo.modules;

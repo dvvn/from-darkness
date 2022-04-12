@@ -13,7 +13,7 @@ module;
 #include <fstream>
 #include <filesystem>
 
-module cheat.netvars:storage;
+module cheat.netvars.core:storage;
 import cheat.console;
 import nstd.mem.address;
 
