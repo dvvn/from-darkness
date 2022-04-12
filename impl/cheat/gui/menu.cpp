@@ -12,18 +12,22 @@ import :context;
 import cheat.console.object_message;
 
 using namespace cheat;
+using namespace console;
 using namespace gui;
 using namespace tools;
 using namespace widgets;
 
 struct menu_holder;
-std::string_view console::object_message_impl<menu_holder>::get_name( )const
+std::string_view object_message_impl<menu_holder>::get_name( ) const noexcept
 {
 	return "gui::menu";
 }
 
-struct menu_holder :console::object_message_auto<menu_holder>
+class menu_holder
 {
+	object_message_auto<menu_holder> msg_;
+
+public:
 	WPARAM hotkey = VK_HOME;
 
 	window_wrapped menu_window;
@@ -232,9 +236,6 @@ struct menu_holder :console::object_message_auto<menu_holder>
 #endif
 		renderer_.init( );
 #endif
-		//TEMPORARY!! init context
-		(void)context::get( );
-
 		init_window( );
 		init_pages( );
 	}

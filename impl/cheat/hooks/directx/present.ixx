@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.directx.present;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline directx::present
+export module CHEAT_HOOK_MODULE(directx, present);
+
+export CHEAT_HOOK_NAMESPACE(directx, present)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

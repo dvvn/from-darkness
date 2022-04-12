@@ -1,5 +1,7 @@
 ﻿module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.Direct3DDevice9;
 import cheat.csgo.modules;
 
@@ -8,7 +10,7 @@ using namespace csgo;
 
 extern IDirect3DDevice9* d3dDevice9_ptr;
 
-IDirect3DDevice9* nstd::one_instance_getter<IDirect3DDevice9*>::_Construct( ) const
+CHEAT_CSGO_INTERFACE_INIT(IDirect3DDevice9)
 {
 	IDirect3DDevice9* ret;
 

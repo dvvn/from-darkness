@@ -1,5 +1,7 @@
 ﻿module;
 
+#include <cheat/csgo/interface.h>
+
 #include <limits>
 #include <tuple>
 
@@ -120,7 +122,7 @@ bool CGameTrace::IsVisible( ) const
 
 //-----
 
-IEngineTrace* nstd::one_instance_getter<IEngineTrace*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(IEngineTrace)
 {
 	return csgo_modules::engine.find_interface<"EngineTraceClient">( );
 }

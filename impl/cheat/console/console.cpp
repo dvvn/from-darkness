@@ -223,14 +223,13 @@ static auto _Current_time_string( ) noexcept
 class console_controller : nstd::rt_assert_handler
 {
 	std::mutex mtx_;
-	//std::vector<packed_string_self> cache_;
 
 	FILE* in_;
 	FILE* out_;
 	FILE* err_;
 
 	HWND window_;
-	bool running_;
+	bool running_ = false;
 
 public:
 	~console_controller( )
@@ -254,10 +253,10 @@ public:
 	{
 		runtime_assert(!running_, "Already started");
 		auto console_window = GetConsoleWindow( );
-		if (console_window != nullptr)
+		if (console_window)
 		{
-			in_ = out_ = err_ = nullptr;
 			window_ = nullptr;
+			in_ = out_ = err_ = nullptr;
 		}
 		else
 		{
@@ -271,7 +270,8 @@ public:
 			// ReSharper disable CppEnforceCVQualifiersPlacement
 			constexpr auto _Freopen = [](_Outptr_result_maybenull_ FILE*& _Stream, _In_z_ char const* _FileName, _In_z_ char const* _Mode, _Inout_ FILE* _OldStream)
 			{
-				[[maybe_unused]] const auto err = freopen_s(std::addressof(_Stream), _FileName, _Mode, _OldStream);
+				[[maybe_unused]]
+				const auto err = freopen_s(std::addressof(_Stream), _FileName, _Mode, _OldStream);
 				runtime_assert(err == NULL);
 			};
 			// ReSharper restore CppEnforceCVQualifiersPlacement
@@ -281,13 +281,13 @@ public:
 			_Freopen(out_, "CONOUT$", "w", stdout);
 			_Freopen(err_, "CONOUT$", "w", stderr);
 
-			const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module( )->FullDllName.Buffer);
+			const auto window_title_set = SetConsoleTitle(nstd::winapi::current_module( )->FullDllName.Buffer);
 			runtime_assert(window_title_set, "Unable set console title");
 
 			window_ = console_window;
 		}
 
-		runtime_assert(IsWindowUnicode(console_window) == TRUE);
+		//runtime_assert(IsWindowUnicode(console_window) == TRUE);
 		runtime_assert_add_handler(this);
 
 		write_line("Started");
@@ -309,12 +309,19 @@ public:
 			write_line("Stopped");
 		}
 
-		if (in_)
-			fclose(in_);
-		if (out_)
-			fclose(out_);
-		if (err_)
-			fclose(err_);
+		constexpr auto _Fclose = [](FILE*& f) noexcept
+		{
+			if (!f)
+				return;
+			fclose(f);
+			f = nullptr;
+		};
+
+
+		_Fclose(in_);
+		_Fclose(out_);
+		_Fclose(err_);
+
 		running_ = false;
 	}
 

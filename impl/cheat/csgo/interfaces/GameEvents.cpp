@@ -1,12 +1,14 @@
 module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.GameEvents;
 import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 
-IGameEventManager2* nstd::one_instance_getter<IGameEventManager2*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(IGameEventManager2)
 {
 	return csgo_modules::engine.find_interface<"GAMEEVENTSMANAGER">( );
 }

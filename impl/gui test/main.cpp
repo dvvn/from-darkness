@@ -21,16 +21,59 @@ static D3DPRESENT_PARAMETERS g_d3dpp;
 
 IDirect3DDevice9* d3dDevice9_ptr;
 
-// Forward declarations of helper functions
-static bool CreateDeviceD3D(HWND hWnd);
-static void ResetDevice( );
-static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+static bool CreateDeviceD3D(HWND hWnd) noexcept
+{
+	g_pD3D.Attach(Direct3DCreate9(D3D_SDK_VERSION));
+	if (!g_pD3D)
+		return false;
+
+	// Create the D3DDevice
+	ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
+	g_d3dpp.Windowed = TRUE;
+	g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+	g_d3dpp.EnableAutoDepthStencil = TRUE;
+	g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
+	g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE; // Present with vsync
+	//g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
+	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, g_pd3dDevice));
+}
+
+static void ResetDevice( ) noexcept
+{
+	//ImGui_ImplDX9_InvalidateDeviceObjects( );
+	const HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
+	IM_ASSERT(hr != D3DERR_INVALIDCALL);
+	//ImGui_ImplDX9_CreateDeviceObjects( );
+}
+
+// Win32 message handler
+static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
+{
+	switch (msg)
+	{
+	case WM_SIZE:
+		if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
+		{
+			g_d3dpp.BackBufferWidth = LOWORD(lParam);
+			g_d3dpp.BackBufferHeight = HIWORD(lParam);
+			ResetDevice( );
+		}
+		return FALSE;
+	case WM_SYSCOMMAND:
+		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+			return FALSE;
+		break;
+	case WM_DESTROY:
+		::PostQuitMessage(0);
+		return FALSE;
+	}
+	return ::DefWindowProc(hWnd, msg, wParam, lParam);
+}
 
 // Main code
 int main(int, char**)
 {
-	using namespace cheat;
-
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
 	const WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("ImGui Example"), nullptr};
@@ -41,11 +84,12 @@ int main(int, char**)
 	if (!CreateDeviceD3D(hwnd))
 	{
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
-		return 1;
+		return TRUE;
 	}
 
 	d3dDevice9_ptr = g_pd3dDevice;
 
+	using namespace cheat;
 	console::enable( );
 	hooks::init_basic( );
 
@@ -132,57 +176,4 @@ _RESET:
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
 	return FALSE;
-}
-
-// Helper functions
-
-bool CreateDeviceD3D(HWND hWnd)
-{
-	g_pD3D.Attach(Direct3DCreate9(D3D_SDK_VERSION));
-	if (!g_pD3D)
-		return false;
-
-	// Create the D3DDevice
-	ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
-	g_d3dpp.Windowed = TRUE;
-	g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
-	g_d3dpp.EnableAutoDepthStencil = TRUE;
-	g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-	g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE; // Present with vsync
-	//g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
-	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, g_pd3dDevice));
-}
-
-void ResetDevice( )
-{
-	//ImGui_ImplDX9_InvalidateDeviceObjects( );
-	const HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
-	if (hr == D3DERR_INVALIDCALL)
-		IM_ASSERT(0);
-	//ImGui_ImplDX9_CreateDeviceObjects( );
-}
-
-// Win32 message handler
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch (msg)
-	{
-	case WM_SIZE:
-		if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
-		{
-			g_d3dpp.BackBufferWidth = LOWORD(lParam);
-			g_d3dpp.BackBufferHeight = HIWORD(lParam);
-			ResetDevice( );
-		}
-		return 0;
-	case WM_SYSCOMMAND:
-		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
-			return 0;
-		break;
-	case WM_DESTROY:
-		::PostQuitMessage(0);
-		return 0;
-	}
-	return ::DefWindowProc(hWnd, msg, wParam, lParam);
 }

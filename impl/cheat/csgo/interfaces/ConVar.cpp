@@ -1,5 +1,7 @@
 ﻿module;
 
+#include <cheat/csgo/interface.h>
+
 #include <nstd/format.h>
 
 #include <sstream>
@@ -54,7 +56,7 @@ bool ConCommandBaseIterator::operator==(const ConCommandBaseIterator& other) con
 
 using nstd::mem::basic_address;
 
-ICVar* nstd::one_instance_getter<ICVar*>::_Construct( ) const
+CHEAT_CSGO_INTERFACE_INIT(ICVar)
 {
 	return csgo_modules::vstdlib.find_interface<"VEngineCvar">( );
 }

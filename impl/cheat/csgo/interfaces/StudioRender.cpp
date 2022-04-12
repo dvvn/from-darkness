@@ -1,12 +1,14 @@
 module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.StudioRender;
 import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 
-IStudioRender* nstd::one_instance_getter<IStudioRender*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(IStudioRender)
 {
 	return csgo_modules::studiorender.find_interface<"VStudioRender">( );
 }

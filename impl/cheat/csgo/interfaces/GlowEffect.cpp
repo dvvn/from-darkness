@@ -1,12 +1,14 @@
 ﻿module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.GlowEffect;
 import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 
-CGlowObjectManager* nstd::one_instance_getter<CGlowObjectManager*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(CGlowObjectManager)
 {
 	CGlowObjectManager* const ret = csgo_modules::client.find_signature<"0F 11 05 ? ? ? ? 83 C8 01">( ).plus(3).deref<1>( );
 	csgo_modules::client.log_found_interface(ret);

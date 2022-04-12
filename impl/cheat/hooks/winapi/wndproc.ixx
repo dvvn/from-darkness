@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.winapi.wndproc;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline winapi::wndproc
+export module CHEAT_HOOK_MODULE(winapi, wndproc);
+
+export CHEAT_HOOK_NAMESPACE(winapi, wndproc)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

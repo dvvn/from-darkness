@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.client.frame_stage_notify;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline client::frame_stage_notify
+export module CHEAT_HOOK_MODULE(client, frame_stage_notify);
+
+export CHEAT_HOOK_NAMESPACE(client, frame_stage_notify)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

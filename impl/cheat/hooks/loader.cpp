@@ -48,7 +48,7 @@ static void swap_instant(T& from)
 }
 
 class hooks_loader;
-std::string_view object_message_impl<hooks_loader>::get_name( ) const
+std::string_view object_message_impl<hooks_loader>::get_name( ) const noexcept
 {
 	return "hooks::loader";
 }
@@ -71,15 +71,18 @@ struct hooks_worker_data
 };
 using hooks::hook_data;
 
-class hooks_loader :object_message_auto<hooks_loader>
+class hooks_loader
 {
+	[[no_unique_address]]
+	object_message_auto<hooks_loader> msg_;
+
 	using worker_data = std::shared_ptr<hooks_worker_data>;
 
 	void worker(const worker_data data) noexcept
 	{
 #ifdef WORKER_LOG_THREAD_ID
 		debug_thread_id_lazy id;
-		this->message("{} started", id);
+		msg_("{} started", id);
 #endif
 		auto& [error
 			, pos
@@ -107,12 +110,11 @@ class hooks_loader :object_message_auto<hooks_loader>
 #endif
 
 #ifdef WORKER_LOG_THREAD_ID
-		this->message("{} finished", id);
+		msg_("{} finished", id);
 #endif
-		}
+	}
 
 public:
-
 	using thread_type = std::thread;
 
 	hooks_loader( ) = default;
@@ -135,7 +137,7 @@ public:
 		const auto threads_count = std::min(storage_.size( ), thread_type::hardware_concurrency( ));
 		runtime_assert(threads_count > 0, "Incorrect threads count");
 
-		this->message("started");
+		msg_("started");
 
 		threads_.reserve(threads_count);
 		auto wdata = std::make_shared<hooks_worker_data>(
@@ -168,13 +170,13 @@ public:
 		if (joinable == 0)
 			return false;
 
-		this->message("stopped");
+		msg_("stopped");
 		return true;
 	}
 
 	void stop( ) noexcept
 	{
-		join( );
+		this->join( );
 		for (auto& entry : storage_)
 			entry.stop( );
 	}
@@ -182,7 +184,7 @@ public:
 private:
 	std::vector<hook_data> storage_;
 	std::vector<thread_type> threads_;
-	};
+};
 
 static one_instance_obj<hooks_loader> loader;
 
@@ -208,8 +210,8 @@ std::future<bool> hooks::start( ) noexcept
 	std::thread([=]
 	{
 		prom->set_value(start_impl( ));
-}).detach( );
-return prom->get_future( );
+	}).detach( );
+	return prom->get_future( );
 #else
 	return std::async(std::launch::async, start_impl);
 #endif

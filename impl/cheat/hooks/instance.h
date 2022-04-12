@@ -5,25 +5,8 @@
 #include <functional>
 #include <string_view>
 
-//#define CHEAT_HOOK_NAME(_CLASS_,_TYPE_) \
-//std::string_view console::object_message_impl<_TYPE_##_base>::get_name( ) const\
-//{\
-//	return "hooks::"#_CLASS_##"::"#_TYPE_;\
-//}
-//#define CHEAT_HOOK_INSTANCE(_CLASS_,_TYPE_) \
-//CHEAT_HOOK_NAME(_CLASS_,_TYPE_);\
-//static nstd::one_instance_obj<_TYPE_##_impl> _TYPE_##_inst;\
-//bool _CLASS_::_TYPE_::start( )\
-//{\
-//	return _TYPE_##_inst->hook( ) && _TYPE_##_inst->enable( );\
-//}\
-//bool _CLASS_::_TYPE_::stop( )\
-//{\
-//	return _TYPE_##_inst->disable( );\
-//}
-
 template<typename Fn, typename T>
-Fn _Get_original_method(T& entry)
+Fn _Get_original_method(T& entry) noexcept
 {
 	Fn ret;
 	auto orig = entry.get_original_method( );
@@ -61,14 +44,14 @@ Fn _Get_original_method(T& entry)
 #define CHEAT_HOOK_INSTANCE(_CLASS_,_TYPE_) \
 struct hook_entry_##_CLASS_##_##_TYPE_ : dhooks::hook_entry {};\
 using hook_entry_t = hook_entry_##_CLASS_##_##_TYPE_;\
-std::string_view console::object_message_impl<hook_entry_t>::get_name( ) const\
+std::string_view console::object_message_impl<hook_entry_t>::get_name( ) const noexcept\
 {\
 	return "hooks::"#_CLASS_##"::"#_TYPE_;\
 }\
 static nstd::one_instance_obj<hook_entry_t> hook_entry;
 
 #define CHEAT_HOOK_INIT(_CLASS_,_TYPE_) \
-bool _CLASS_::_TYPE_::start( )\
+bool _CLASS_::_TYPE_::start( ) noexcept\
 {\
 	if(!hook_entry->created( ))\
 	{\
@@ -78,7 +61,7 @@ bool _CLASS_::_TYPE_::start( )\
 	}\
 	CHEAT_HOOK_PROCESS_FUNC_FINAL(enable);\
 }\
-bool _CLASS_::_TYPE_::stop( )\
+bool _CLASS_::_TYPE_::stop( ) noexcept\
 {\
 	if(!hook_entry.initialized())\
 	{\

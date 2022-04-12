@@ -1,12 +1,14 @@
 module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.Prediction;
 import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 
-IPrediction* nstd::one_instance_getter<IPrediction*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(IPrediction)
 {
 	return csgo_modules::client.find_interface<"VClientPrediction">( );
 }

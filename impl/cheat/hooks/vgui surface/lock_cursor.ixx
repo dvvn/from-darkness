@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.vgui_surface.lock_cursor;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline vgui_surface::lock_cursor
+export module CHEAT_HOOK_MODULE(vgui_surface, lock_cursor);
+
+export CHEAT_HOOK_NAMESPACE(vgui_surface, lock_cursor)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.client_mode.create_move;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline client_mode::create_move
+export module CHEAT_HOOK_MODULE(client_mode, create_move);
+
+export CHEAT_HOOK_NAMESPACE(client_mode, create_move)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

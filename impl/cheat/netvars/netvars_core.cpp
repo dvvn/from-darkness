@@ -37,7 +37,7 @@ static std::wstring to_wstring(const char* str, const bool reserve = false)
 }
 
 class netvars_holder;
-std::string_view object_message_impl<netvars_holder>::get_name( ) const
+std::string_view object_message_impl<netvars_holder>::get_name( ) const noexcept
 {
 	return "netvars";
 }

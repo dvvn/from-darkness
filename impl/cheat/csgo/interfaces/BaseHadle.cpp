@@ -1,5 +1,7 @@
 ﻿module;
 
+#include <cheat/csgo/interface.h>
+
 #include <nstd/runtime_assert.h>
 
 module cheat.csgo.interfaces.BaseHandle;

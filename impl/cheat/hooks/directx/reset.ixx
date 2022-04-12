@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.directx.reset;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline directx::reset
+export module CHEAT_HOOK_MODULE(directx, reset);
+
+export CHEAT_HOOK_NAMESPACE(directx, reset)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

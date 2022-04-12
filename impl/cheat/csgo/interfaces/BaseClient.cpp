@@ -1,5 +1,7 @@
 ﻿module;
 
+#include <cheat/csgo/interface.h>
+
 #include <functional>
 
 module cheat.csgo.interfaces.BaseClient;
@@ -8,7 +10,7 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-IBaseClientDLL* nstd::one_instance_getter<IBaseClientDLL*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(IBaseClientDLL)
 {
 	return csgo_modules::client.find_interface<"VClient">( );
 }

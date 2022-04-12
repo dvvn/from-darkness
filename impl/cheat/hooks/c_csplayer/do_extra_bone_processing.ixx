@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.c_csplayer.do_extra_bone_processing;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline c_csplayer::do_extra_bone_processing
+export module CHEAT_HOOK_MODULE(c_csplayer, do_extra_bone_processing);
+
+export CHEAT_HOOK_NAMESPACE(c_csplayer, do_extra_bone_processing)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

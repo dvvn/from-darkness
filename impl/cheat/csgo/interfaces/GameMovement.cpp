@@ -1,12 +1,14 @@
 module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.GameMovement;
 import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 
-CGameMovement* nstd::one_instance_getter<CGameMovement*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(CGameMovement)
 {
 	return csgo_modules::client.find_interface<"GameMovement">( );
 }

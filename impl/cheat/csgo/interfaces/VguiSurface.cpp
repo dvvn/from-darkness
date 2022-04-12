@@ -1,12 +1,14 @@
 module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.VguiSurface;
 import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 
-ISurface* nstd::one_instance_getter<ISurface*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(ISurface)
 {
 	return csgo_modules::vguimatsurface.find_interface<"VGUI_Surface">( );
 }

@@ -1,12 +1,14 @@
 module;
 
+#include <cheat/csgo/interface.h>
+
 module cheat.csgo.interfaces.EngineClient;
 import cheat.csgo.modules;
 
 using namespace cheat;
 using namespace csgo;
 
-IVEngineClient* nstd::one_instance_getter<IVEngineClient*>::_Construct( )const
+CHEAT_CSGO_INTERFACE_INIT(IVEngineClient)
 {
 	return csgo_modules::engine.find_interface<"VEngineClient">( );
 }

@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.studio_render.draw_model;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline studio_render::draw_model
+export module CHEAT_HOOK_MODULE(studio_render, draw_model);
+
+export CHEAT_HOOK_NAMESPACE(studio_render, draw_model)
 {
-		bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

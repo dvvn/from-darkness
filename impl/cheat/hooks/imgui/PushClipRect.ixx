@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.imgui.PushClipRect;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline imgui::PushClipRect
+export module CHEAT_HOOK_MODULE(imgui, PushClipRect);
+
+export CHEAT_HOOK_NAMESPACE(imgui, PushClipRect)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

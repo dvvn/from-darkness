@@ -1,9 +1,10 @@
 module;
 
-export module cheat.hooks.c_base_entity.estimate_abs_velocity;
+#include <cheat/hooks/instance_fwd.h>
 
-export namespace cheat::hooks::inline c_base_entity::estimate_abs_velocity
+export module CHEAT_HOOK_MODULE(c_base_entity, estimate_abs_velocity);
+
+export CHEAT_HOOK_NAMESPACE(c_base_entity, estimate_abs_velocity)
 {
-	bool start( );
-	bool stop( );
+	CHEAT_HOOK_INSTANCE_FWD;
 }

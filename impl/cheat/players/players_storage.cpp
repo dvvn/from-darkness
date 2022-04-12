@@ -17,6 +17,7 @@ import nstd.one_instance;
 using namespace cheat;
 using namespace players;
 using namespace csgo;
+using namespace console;
 
 static void* _Player_by_index_server(int client_index)
 {
@@ -82,15 +83,16 @@ public:
 	using Base::resize;
 };
 
-struct players_storage;
-std::string_view console::object_message_impl<players_storage>::get_name( ) const
+class players_storage;
+std::string_view object_message_impl<players_storage>::get_name( ) const noexcept
 {
 	return "players";
 }
 
-struct players_storage : console::object_message_auto<players_storage>, extended_vector<player>
+class players_storage : public extended_vector<player>
 {
-	players_storage( ) = default;
+	[[no_unique_address]]
+	object_message_auto<players_storage> msg_;
 };
 
 static nstd::one_instance_obj<players_storage> players_holder;
