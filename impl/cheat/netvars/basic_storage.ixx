@@ -15,27 +15,27 @@ import nstd.text.string_or_view;
 struct ref_getter
 {
 	template<typename T>
-	decltype(auto) operator()(const std::unique_ptr<T>& ptr) const
+	T& operator()(const std::unique_ptr<T>& ptr) const noexcept
 	{
 		return *ptr;
 	}
 
 	template<typename T>
-	T& operator()(T& ref) const
+	T& operator()(T& ref) const noexcept
 	{
 		return ref;
 	}
 };
 
 template<typename T>
-decltype(auto) get_ref(T& ref)
+decltype(auto) get_ref(T& ref) noexcept
 {
 	constexpr ref_getter getter;
-	return getter(ref);
+	return std::invoke(getter, ref);
 }
 
 template<typename T>
-auto get_ptr(T& ref)
+auto get_ptr(T& ref) noexcept
 {
 	return std::addressof(get_ref(ref));
 }
@@ -63,40 +63,40 @@ public:
 	{
 	}
 
-	auto operator->( ) const
+	auto operator->( ) const noexcept
 	{
 		return get_ptr(source_->data( )[index_]);
 	}
 
-	auto& operator*( ) const
+	auto& operator*( ) const noexcept
 	{
 		return get_ref(source_->data( )[index_]);
 	}
 
-	bool operator!( ) const
+	bool operator!( ) const noexcept
 	{
 		return source_ == nullptr;
 	}
 
-	explicit operator bool( ) const
+	explicit operator bool( ) const noexcept
 	{
 		return source_ != nullptr;
 	}
 
-	bool operator==(const safe_iterator other) const
+	bool operator==(const safe_iterator other) const noexcept
 	{
 		return source_ == other.source_ && index_ == other.index_;
 	}
 
 	// Prefix increment
-	safe_iterator& operator++( )
+	safe_iterator& operator++( ) noexcept
 	{
 		++index_;
 		return *this;
 	}
 
 	// Postfix increment
-	safe_iterator operator++(int)
+	safe_iterator operator++(int) noexcept
 	{
 		const auto tmp = *this;
 		++index_;
@@ -137,9 +137,9 @@ class basic_netvar_info
 public:
 	virtual ~basic_netvar_info( ) = default;
 
-	virtual size_t offset( ) const = 0;
-	virtual nstd::hashed_string_view name( ) const = 0;
-	virtual std::string_view type( ) const = 0;
+	virtual size_t offset( ) const  noexcept = 0;
+	virtual nstd::hashed_string_view name( ) const noexcept = 0;
+	virtual std::string_view type( ) const noexcept = 0;
 };
 
 class netvar_info final :public basic_netvar_info
@@ -147,9 +147,9 @@ class netvar_info final :public basic_netvar_info
 public:
 	netvar_info(const size_t offset, const netvar_info_source source, const size_t size = 0, const nstd::hashed_string_view name = {});
 
-	size_t offset( ) const;
-	nstd::hashed_string_view name( ) const;
-	std::string_view type( ) const;
+	size_t offset( ) const noexcept;
+	nstd::hashed_string_view name( ) const noexcept;
+	std::string_view type( ) const noexcept;
 
 private:
 	size_t offset_;
@@ -168,7 +168,7 @@ public:
 	{
 	}
 
-	size_t offset( ) const
+	size_t offset( ) const noexcept
 	{
 		if (std::holds_alternative<size_t>(getter_))
 			return std::get<0>(getter_);
@@ -178,12 +178,12 @@ public:
 		return offset;
 	}
 
-	nstd::hashed_string_view name( ) const
+	nstd::hashed_string_view name( ) const noexcept
 	{
 		return name_;
 	}
 
-	std::string_view type( ) const
+	std::string_view type( ) const noexcept
 	{
 		return type_;
 	}
@@ -199,9 +199,9 @@ class netvar_info_custom_constant final :public basic_netvar_info
 public:
 	netvar_info_custom_constant(const size_t offset, const nstd::hashed_string_view name = {}, string_or_view&& type = {});
 
-	size_t offset( ) const;
-	nstd::hashed_string_view name( ) const;
-	std::string_view type( ) const;
+	size_t offset( ) const noexcept;
+	nstd::hashed_string_view name( ) const noexcept;
+	std::string_view type( ) const noexcept;
 
 private:
 	size_t offset_;
@@ -211,44 +211,46 @@ private:
 
 class netvar_table
 {
-	void validate_item(const basic_netvar_info* info) const;
+	void validate_item(const basic_netvar_info* info) const noexcept;
 
 	template<typename T, typename ...Args>
-	const T* add_impl(Args&&...args)
+	const T* add_impl(Args&&...args) noexcept
 	{
 		auto uptr = std::make_unique<T>(std::forward<Args>(args)...);
 		const T* ret = uptr.get( );
 		data_.emplace_back(std::move(uptr));
+#ifdef _DEBUG
 		validate_item(ret);
+#endif
 		return ret;
 	}
 
 public:
-
 	using data_type = std::vector<std::unique_ptr<basic_netvar_info>>;
 	using iterator = safe_iterator<const data_type>;
 
 	netvar_table(nstd::hashed_string&& name);
 
-	nstd::hashed_string_view name( ) const;
-	const basic_netvar_info* find(const nstd::hashed_string_view name) const;
-	const netvar_info* add(const size_t offset, const netvar_info_source source, const size_t size = 0, const nstd::hashed_string_view name = {});
-	const netvar_info_custom_constant* add(const size_t offset, const nstd::hashed_string_view name, string_or_view&& type = {});
+	nstd::hashed_string_view name( ) const noexcept;
+
+	const basic_netvar_info* find(const nstd::hashed_string_view name) const noexcept;
+
+	const netvar_info* add(const size_t offset, const netvar_info_source source, const size_t size = 0, const nstd::hashed_string_view name = {}) noexcept;
+	const netvar_info_custom_constant* add(const size_t offset, const nstd::hashed_string_view name, string_or_view&& type = {}) noexcept;
 	template<std::invocable Fn>
-	auto add(Fn&& getter, const nstd::hashed_string_view name, string_or_view&& type = {})
+	auto add(Fn&& getter, const nstd::hashed_string_view name, string_or_view&& type = {}) noexcept
 	{
 		return add_impl<netvar_info_custom<std::remove_cvref_t<Fn>>>(std::forward<Fn>(getter), name, std::move(type));
 	}
-
 	template<typename Type, typename TypeProj = std::identity, typename From>
-	auto add(From&& from, const nstd::hashed_string_view name, TypeProj proj = {})
+	auto add(From&& from, const nstd::hashed_string_view name, TypeProj proj = {}) noexcept
 	{
 		return add(std::forward<From>(from), name, std::invoke(proj, cheat::tools::csgo_object_name<Type>( )));
 	}
 
-	iterator begin( ) const;
-	iterator end( ) const;
-	bool empty( ) const;
+	iterator begin( ) const noexcept;
+	iterator end( ) const noexcept;
+	bool empty( ) const noexcept;
 
 private:
 	nstd::hashed_string name_;
@@ -265,21 +267,23 @@ export namespace cheat::netvars
 		using const_iterator = safe_iterator<const data_type>;
 
 		[[deprecated]]
-		bool contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from = nullptr) const;
-		safe_iterator<const data_type> find(const nstd::hashed_string_view name) const;
-		iterator find(const nstd::hashed_string_view name);
-		iterator add(netvar_table&& table, const bool skip_find = false);
-		iterator add(nstd::hashed_string&& name, const bool skip_find = false);
+		bool contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from = nullptr) const noexcept;
+
+		const_iterator find(const nstd::hashed_string_view name) const noexcept;
+		iterator find(const nstd::hashed_string_view name) noexcept;
 		template<typename T>
-		auto find( )
+		auto find( ) noexcept
 		{
 			return this->find(tools::csgo_object_name<T>( ));
 		}
 
-		const_iterator begin( ) const;
-		const_iterator end( ) const;
-		bool empty( ) const;
-		size_t size( )const;
+		iterator add(netvar_table&& table, const bool skip_find = false) noexcept;
+		iterator add(nstd::hashed_string&& name, const bool skip_find = false) noexcept;
+
+		const_iterator begin( ) const noexcept;
+		const_iterator end( ) const noexcept;
+		bool empty( ) const noexcept;
+		size_t size( ) const noexcept;
 
 	private:
 		data_type data_;

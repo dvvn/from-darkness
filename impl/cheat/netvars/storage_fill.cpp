@@ -15,7 +15,7 @@ using namespace cheat;
 using namespace netvars;
 using namespace csgo;
 
-static std::string correct_class_name(const std::string_view name)
+static auto _Correct_class_name(const std::string_view name) noexcept
 {
 	std::string ret;
 
@@ -37,7 +37,7 @@ static std::string correct_class_name(const std::string_view name)
 	return ret;
 }
 
-static bool can_skip_netvar(const char* name)
+static bool _Can_skip_netvar(const char* name) noexcept
 {
 	for (;;)
 	{
@@ -53,23 +53,23 @@ static bool can_skip_netvar(const char* name)
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
 #endif
 
-static bool can_skip_netvar(const std::string_view name)
+static bool _Can_skip_netvar(const std::string_view name) noexcept
 {
 	return name.contains('.');
 }
 
-static bool _Table_is_array(const RecvTable& table)
+static bool _Table_is_array(const RecvTable& table) noexcept
 {
 	return /*!table.props.empty( ) &&*/ std::isdigit(table.props.back( ).m_pVarName[0]);
 };
 
-static bool _Table_is_data_table(const RecvTable& table)
+static bool _Table_is_data_table(const RecvTable& table) noexcept
 {
 	//DT_*****
 	return std::memcmp(table.m_pNetTableName, "DT_", 3) == 0 && table.m_pNetTableName[3] != '\0';
 };
 
-static std::pair<RecvProp*, RecvProp*> get_props_range(const RecvTable* recv_table)
+static auto _Get_props_range(const RecvTable* recv_table) noexcept
 {
 	constexpr auto is_base_class = [](const RecvProp* prop)
 	{
@@ -89,15 +89,15 @@ static std::pair<RecvProp*, RecvProp*> get_props_range(const RecvTable* recv_tab
 
 	const auto& raw_props = recv_table->props;
 
-	auto front = raw_props.data( );
-	auto back = front + raw_props.size( ) - 1;
+	RecvProp* front = raw_props.data( );
+	RecvProp* back = front + raw_props.size( ) - 1;
 
 	if (is_base_class(front))
 		++front;
 	if (is_length_proxy(back))
 		--back;
 
-	return {front, back + 1};
+	return std::make_pair(front, back + 1);
 }
 
 struct recv_prop_array_info
@@ -107,7 +107,7 @@ struct recv_prop_array_info
 };
 
 //other_props = {itr+1, end}
-static recv_prop_array_info parse_prop_array(const std::string_view first_prop_name, const std::span<const RecvProp> other_props, const netvar_table& tree)
+static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_name, const std::span<const RecvProp> other_props, const netvar_table& tree) noexcept
 {
 	if (!first_prop_name.ends_with("[0]"))
 		return {};
@@ -167,23 +167,23 @@ static recv_prop_array_info parse_prop_array(const std::string_view first_prop_n
 	return {real_prop_name,array_size};
 }
 
-static void parse_client_class(storage& root_tree, netvar_table& tree, csgo::RecvTable* recv_table, const size_t offset)
+static void _Parse_client_class(storage& root_tree, netvar_table& tree, RecvTable* const recv_table, const size_t offset) noexcept
 {
-	const auto [props_begin, props_end] = get_props_range(recv_table);
+	const auto [props_begin, props_end] = _Get_props_range(recv_table);
 
 	for (auto itr = props_begin; itr != props_end; ++itr)
 	{
 		const auto& prop = *itr;
 		runtime_assert(prop.m_pVarName != nullptr);
 		const std::string_view prop_name = prop.m_pVarName;
-		if (can_skip_netvar(prop_name))
+		if (_Can_skip_netvar(prop_name))
 			continue;
 
 		const auto real_prop_offset = offset + prop.m_Offset;
 
 		if (prop_name.rfind(']') != prop_name.npos)
 		{
-			const auto array_info = parse_prop_array(prop_name, {itr + 1,props_end}, tree);
+			const auto array_info = _Parse_prop_array(prop_name, {itr + 1,props_end}, tree);
 			if (array_info.size > 0)
 			{
 				tree.add(real_prop_offset, itr, array_info.size, array_info.name);
@@ -196,12 +196,12 @@ static void parse_client_class(storage& root_tree, netvar_table& tree, csgo::Rec
 		}
 		else if (prop.m_pDataTable && !prop.m_pDataTable->props.empty( ))
 		{
-			parse_client_class(root_tree, tree, prop.m_pDataTable, real_prop_offset);
+			_Parse_client_class(root_tree, tree, prop.m_pDataTable, real_prop_offset);
 		}
 
 		//			if (_Table_is_data_table(*child_table))
 		//			{
-		//				parse_client_class(root_tree, tree, child_table, real_prop_offset);
+		//				_Parse_client_class(root_tree, tree, child_table, real_prop_offset);
 		//			}
 		//			else if (_Table_is_array(*child_table))
 		//			{
@@ -255,7 +255,7 @@ static void parse_client_class(storage& root_tree, netvar_table& tree, csgo::Rec
 	}
 }
 
-void storage::iterate_client_class(csgo::ClientClass* root_class)
+void storage::iterate_client_class(ClientClass* root_class) noexcept
 {
 	for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
 	{
@@ -263,18 +263,18 @@ void storage::iterate_client_class(csgo::ClientClass* root_class)
 		if (!recv_table || recv_table->props.empty( ))
 			continue;
 
-		nstd::hashed_string class_name = correct_class_name(client_class->pNetworkName);
+		nstd::hashed_string class_name = _Correct_class_name(client_class->pNetworkName);
 		runtime_assert(!this->find(class_name));
 		const auto added = this->add(std::move(class_name), true);
 
-		parse_client_class(*this, *added, recv_table, 0);
+		_Parse_client_class(*this, *added, recv_table, 0);
 
 		/*if (added->empty( ))
 			this->erase(added.data( ));*/
 	}
 }
 
-static void parse_datamap(netvar_table& tree, const csgo::datamap_t* map)
+static void _Parse_datamap(netvar_table& tree, datamap_t* const map) noexcept
 {
 	for (auto& desc : map->data)
 	{
@@ -286,7 +286,7 @@ static void parse_datamap(netvar_table& tree, const csgo::datamap_t* map)
 		else if (desc.fieldName != nullptr)
 		{
 			const std::string_view name = desc.fieldName;
-			if (can_skip_netvar(name))
+			if (_Can_skip_netvar(name))
 				continue;
 			tree.add(static_cast<size_t>(desc.fieldOffset[TD_OFFSET_NORMAL]), std::addressof(desc), 0, name);
 			/*string_or_view_holder field_type;
@@ -298,17 +298,17 @@ static void parse_datamap(netvar_table& tree, const csgo::datamap_t* map)
 	}
 }
 
-void storage::iterate_datamap(csgo::datamap_t* root_map)
+void storage::iterate_datamap(datamap_t* const root_map) noexcept
 {
 	for (auto map = root_map; map != nullptr; map = map->baseMap)
 	{
 		if (map->data.empty( ))
 			continue;
 
-		nstd::hashed_string class_name = correct_class_name(map->dataClassName);
+		nstd::hashed_string class_name = _Correct_class_name(map->dataClassName);
 		const auto added = this->add(std::move(class_name));
 
-		parse_datamap(*added, map);
+		_Parse_datamap(*added, map);
 
 		/*if (added->empty( ))
 			this->erase(added.data( ));*/

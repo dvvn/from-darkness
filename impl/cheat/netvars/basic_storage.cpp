@@ -16,30 +16,30 @@ using namespace cheat;
 using namespace netvars;
 using namespace csgo;
 
-static const char* _Netvar_name(const netvar_info_source source)
+static const char* _Netvar_name(const netvar_info_source source) noexcept
 {
 	return std::visit(nstd::overload(&RecvProp::m_pVarName, &typedescription_t::fieldName), source);
 }
 
 template</*typename Ret,*/ typename T, typename Fn, typename ...Funcs>
-static decltype(auto) /*Ret*/ select_invoke(T arg, Fn fn, Funcs ...funcs)
+static decltype(auto) /*Ret*/ _Select_invoke(T arg, Fn fn, Funcs ...funcs) noexcept
 {
 	if constexpr (std::invocable<Fn, T>)
 		return std::invoke(fn, arg);
 	else
-		return select_invoke(arg, funcs...);
+		return _Select_invoke(arg, funcs...);
 }
 
-static string_or_view _Netvar_type(const netvar_info_source source)
+static string_or_view _Netvar_type(const netvar_info_source source) noexcept
 {
-	return std::visit([]<class T>(const T * ptr)->string_or_view
+	return std::visit([]<class T>(T* const ptr) noexcept -> string_or_view
 	{
-		return select_invoke(ptr, type_recv_prop, type_datamap_field);
+		return _Select_invoke(ptr, type_recv_prop, type_datamap_field);
 	}, source);
 }
 
 template<typename T>
-static auto _Find_name(T&& data, const nstd::hashed_string_view name)->decltype(get_ptr(data[0]))
+static auto _Find_name(T&& data, const nstd::hashed_string_view name) noexcept -> decltype(get_ptr(data[0]))
 {
 	for (auto& entry : data)
 	{
@@ -51,7 +51,7 @@ static auto _Find_name(T&& data, const nstd::hashed_string_view name)->decltype(
 }
 
 template<typename T>
-static safe_iterator<T> _Find_name_safe(T& data, const nstd::hashed_string_view name)
+static safe_iterator<T> _Find_name_safe(T& data, const nstd::hashed_string_view name) noexcept
 {
 	for (size_t i = 0; i < data.size( ); ++i)
 	{
@@ -68,7 +68,7 @@ netvar_info::netvar_info(const size_t offset, const netvar_info_source source, c
 {
 }
 
-size_t netvar_info::offset( ) const
+size_t netvar_info::offset( ) const noexcept
 {
 	return offset_;
 }
@@ -80,7 +80,7 @@ size_t netvar_info::offset( ) const
 //	return *inner_ptr;
 //}
 
-nstd::hashed_string_view netvar_info::name( ) const
+nstd::hashed_string_view netvar_info::name( ) const noexcept
 {
 	if (name_.empty( ))
 	{
@@ -100,7 +100,7 @@ nstd::hashed_string_view netvar_info::name( ) const
 	return name_;
 }
 
-std::string_view netvar_info::type( ) const
+std::string_view netvar_info::type( ) const noexcept
 {
 	const std::string_view type_strv = type_;
 	if (!type_strv.empty( ))
@@ -117,7 +117,7 @@ std::string_view netvar_info::type( ) const
 		std::string_view netvar_type;
 		if (size_ == 3)
 		{
-			netvar_type = std::visit([&]<class T>(const T * ptr)
+			netvar_type = std::visit([&]<class T>(T* const ptr)
 			{
 				return type_array_prefix(type, ptr);
 			}, source_);
@@ -140,27 +140,25 @@ netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, co
 {
 }
 
-size_t netvar_info_custom_constant::offset( ) const
+size_t netvar_info_custom_constant::offset( ) const noexcept
 {
 	return offset_;
 }
 
-nstd::hashed_string_view netvar_info_custom_constant::name( ) const
+nstd::hashed_string_view netvar_info_custom_constant::name( ) const noexcept
 {
 	return name_;
 }
 
-std::string_view netvar_info_custom_constant::type( ) const
+std::string_view netvar_info_custom_constant::type( ) const noexcept
 {
 	return type_;
 }
 
 //----
 
-void netvar_table::validate_item(const basic_netvar_info* info) const
+void netvar_table::validate_item(const basic_netvar_info* info) const noexcept
 {
-#ifdef _DEBUG
-
 	const auto name = info->name( );
 	runtime_assert(!name.empty( ), "Item name not set!");
 
@@ -186,7 +184,6 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
 		}
 
 	}
-#endif
 }
 
 netvar_table::netvar_table(nstd::hashed_string&& name)
@@ -194,44 +191,44 @@ netvar_table::netvar_table(nstd::hashed_string&& name)
 {
 }
 
-nstd::hashed_string_view netvar_table::name( ) const
+nstd::hashed_string_view netvar_table::name( ) const noexcept
 {
 	return name_;
 }
 
-const basic_netvar_info* netvar_table::find(const nstd::hashed_string_view name) const
+const basic_netvar_info* netvar_table::find(const nstd::hashed_string_view name) const noexcept
 {
 	return _Find_name(data_, name);
 }
 
-const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const nstd::hashed_string_view name)
+const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const nstd::hashed_string_view name) noexcept
 {
 	return add_impl<netvar_info>(offset, source, size, name);
 }
 
-const netvar_info_custom_constant* netvar_table::add(const size_t offset, const nstd::hashed_string_view name, string_or_view&& type)
+const netvar_info_custom_constant* netvar_table::add(const size_t offset, const nstd::hashed_string_view name, string_or_view&& type) noexcept
 {
 	return add_impl<netvar_info_custom_constant>(offset, name, std::move(type));
 }
 
-bool netvar_table::empty( ) const
+bool netvar_table::empty( ) const noexcept
 {
 	return data_.empty( );
 }
 
-auto netvar_table::begin( ) const->iterator
+auto netvar_table::begin( ) const noexcept -> iterator
 {
-	return {data_,0u};
+	return {data_, 0u};
 }
 
-auto netvar_table::end( ) const->iterator
+auto netvar_table::end( ) const noexcept -> iterator
 {
-	return {data_,data_.size( )};
+	return {data_, data_.size( )};
 }
 
 //----
 
-bool basic_storage::contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from) const
+bool basic_storage::contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from) const noexcept
 {
 	const auto begin = data_.data( );
 	const auto end = begin + data_.size( );
@@ -245,17 +242,17 @@ bool basic_storage::contains_duplicate(const nstd::hashed_string_view name, netv
 	return false;
 }
 
-auto basic_storage::find(const nstd::hashed_string_view name) const -> const_iterator
+auto basic_storage::find(const nstd::hashed_string_view name) const noexcept -> const_iterator
 {
 	return _Find_name_safe(data_, name);
 }
 
-auto basic_storage::find(const nstd::hashed_string_view name) -> iterator
+auto basic_storage::find(const nstd::hashed_string_view name) noexcept -> iterator
 {
 	return _Find_name_safe(data_, name);
 }
 
-auto basic_storage::add(netvar_table&& table, const bool skip_find) -> iterator
+auto basic_storage::add(netvar_table&& table, const bool skip_find) noexcept -> iterator
 {
 	if (!skip_find)
 	{
@@ -267,7 +264,7 @@ auto basic_storage::add(netvar_table&& table, const bool skip_find) -> iterator
 	return {data_,data_.size( ) - 1};
 }
 
-auto basic_storage::add(nstd::hashed_string&& name, const bool skip_find) -> iterator
+auto basic_storage::add(nstd::hashed_string&& name, const bool skip_find) noexcept -> iterator
 {
 	if (!skip_find)
 	{
@@ -276,25 +273,25 @@ auto basic_storage::add(nstd::hashed_string&& name, const bool skip_find) -> ite
 			return existing;
 	}
 	data_.emplace_back(std::move(name));
-	return {data_,data_.size( ) - 1};
+	return {data_, data_.size( ) - 1};
 }
 
-bool basic_storage::empty( ) const
+bool basic_storage::empty( ) const noexcept
 {
 	return data_.empty( );
 }
 
-auto basic_storage::begin( ) const->const_iterator
+auto basic_storage::begin( ) const noexcept -> const_iterator
 {
-	return {data_,0u};
+	return {data_, 0u};
 }
 
-auto basic_storage::end( ) const->const_iterator
+auto basic_storage::end( ) const noexcept -> const_iterator
 {
-	return {data_,data_.size( )};
+	return {data_, data_.size( )};
 }
 
-size_t basic_storage::size( ) const
+size_t basic_storage::size( ) const noexcept
 {
 	return data_.size( );
 }

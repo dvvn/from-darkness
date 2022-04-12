@@ -24,7 +24,7 @@ namespace fs = std::filesystem;
 static_assert(sizeof(fs::path) == sizeof(std::wstring));
 
 template<typename T, typename ...Args>
-static T join_strings(const Args& ...args)
+static T _Join_strings(const Args& ...args) noexcept
 {
 	const auto string_size = (args.size( ) + ...);
 	T out;
@@ -33,7 +33,7 @@ static T join_strings(const Args& ...args)
 	return out;
 }
 
-static bool file_already_written(const fs::path& full_path, const std::string_view buffer)
+static bool _File_already_written(const fs::path& full_path, const std::string_view buffer) noexcept
 {
 	auto file_stored = std::ifstream(full_path, std::ios::binary | std::ios::ate);
 	if (!file_stored)
@@ -56,10 +56,10 @@ logs_data::~logs_data( )
 	if (dir.empty( ))
 		return;
 
-	const fs::path full_path = join_strings<std::wstring>(dir, file.name, file.extension);
+	const fs::path full_path = _Join_strings<std::wstring>(dir, file.name, file.extension);
 	const auto new_file_data = buff.view( );
 
-	if (!fs::create_directory(reinterpret_cast<fs::path&>(dir)) && file_already_written(full_path, new_file_data))
+	if (!fs::create_directory(reinterpret_cast<fs::path&>(dir)) && _File_already_written(full_path, new_file_data))
 		return;
 
 	std::ofstream(full_path) << new_file_data;
@@ -74,7 +74,7 @@ classes_data::~classes_data( )
 	if (fs::create_directory(reinterpret_cast<fs::path&>(dir)) || fs::is_empty(reinterpret_cast<fs::path&>(dir)))
 	{
 		for (const auto& [name, buff] : files)
-			std::ofstream(join_strings<std::wstring>(dir, name)) << buff.view( );
+			std::ofstream(_Join_strings<std::wstring>(dir, name)) << buff.view( );
 		return;
 	}
 
@@ -83,8 +83,8 @@ classes_data::~classes_data( )
 	for (const auto& [name, buff] : files)
 	{
 		const auto new_file_data = buff.view( );
-		const fs::path current_file_path = join_strings<std::wstring>(dir, name);
-		if (file_already_written(current_file_path, new_file_data))
+		const fs::path current_file_path = _Join_strings<std::wstring>(dir, name);
+		if (_File_already_written(current_file_path, new_file_data))
 			continue;
 
 		std::ofstream(current_file_path) << new_file_data;
@@ -94,14 +94,13 @@ classes_data::~classes_data( )
 struct json_string :std::string
 {
 	template<typename ...Args>
-		requires(std::constructible_from<std::string, Args...>)
-	json_string(Args&&...args)
-		:std::string(std::forward<Args>(args)...)
+	json_string(Args&&...args) requires(std::constructible_from<std::string, decltype(args)...>)
+		: std::string(std::forward<Args>(args)...)
 	{
 	}
 };
 
-void storage::log_netvars(logs_data& data)
+void storage::log_netvars(logs_data& data) noexcept
 {
 	//single-file mode
 	using json_type = nlohmann::basic_json<nlohmann::ordered_map, std::vector, json_string, bool, std::make_signed_t<size_t>, size_t, float>;
@@ -129,7 +128,7 @@ void storage::log_netvars(logs_data& data)
 	data.buff << std::setw(data.indent) << std::setfill(data.filler) << std::move(json);
 }
 
-void storage::generate_classes(classes_data& data)
+void storage::generate_classes(classes_data& data) noexcept
 {
 	data.files.reserve(this->size( ));
 

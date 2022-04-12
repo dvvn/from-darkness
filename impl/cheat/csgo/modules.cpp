@@ -19,7 +19,7 @@ import nstd.mem.block;
 using namespace nstd::mem;
 
 template<typename Mod, typename T>
-static void _Console_log(const Mod module_name, const std::string_view object_type, const std::string_view object_name, T* object_ptr)
+static void _Console_log(const Mod module_name, const std::string_view object_type, const std::string_view object_name, T* object_ptr) noexcept
 {
 	cheat::console::log("{} -> {} \"{}\" {}", module_name, object_type, object_name, [=]
 	{
@@ -27,44 +27,41 @@ static void _Console_log(const Mod module_name, const std::string_view object_ty
 	});
 }
 
-void console_log(const std::string_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr)
+void console_log(const std::string_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept
 {
 	_Console_log(module_name, object_type, object_name, object_ptr.pointer);
 }
 
-void console_log(const std::function<std::string_view( )> module_name_getter, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr)
+void console_log(const module_name_getter_fn module_name_getter, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept
 {
 	_Console_log(std::ref(module_name_getter), object_type, object_name, object_ptr.pointer);
 }
 
 #define console_log(...) static_assert(false,"console_log: use _Console_log instead")
 
-void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* entry, const std::string_view module_name) const
+void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view module_name) const noexcept
 {
-	cheat::console::log("module \"{}\" found at {:#X}", module_name, reinterpret_cast<uintptr_t>(entry));
+	cheat::console::log("module \"{}\" found at {:#X}", module_name, reinterpret_cast<uintptr_t>(ldr_entry));
 }
 
-void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::string_view module_name, const std::string_view section_name) const
+void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::string_view module_name, const std::string_view section_name) const noexcept
 {
 	_Console_log(module_name, "section", section_name, sec);
 }
 
-static std::string _Get_module_name(LDR_DATA_TABLE_ENTRY* ldr_entry)
+static std::string _Get_module_name(LDR_DATA_TABLE_ENTRY* const ldr_entry) noexcept
 {
 	const std::basic_string_view full_path = {ldr_entry->FullDllName.Buffer, ldr_entry->FullDllName.Length / sizeof(WCHAR)};
 	const auto name_start = full_path.find_last_of('\\');
 	const auto wname = full_path.substr(name_start + 1);
-#pragma warning(push)
-#pragma warning(disable:4244)
 	std::string out;
 	out.reserve(wname.size( ));
-	//it internally call push_back because of incompatible (WCHAR) type
-	out.assign(wname.begin( ), wname.end( ));
+	for (const auto wchr : wname)
+		out.push_back(static_cast<char>(wchr));
 	return out;
-#pragma warning(pop)
 }
 
-uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const std::string_view sig)
+uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig) noexcept
 {
 	//base address
 	const basic_address<IMAGE_DOS_HEADER> dos = ldr_entry->DllBase;
@@ -87,7 +84,7 @@ struct interface_reg
 	interface_reg* next;
 };
 
-static interface_reg* _Find_interface(const std::string_view name, interface_reg* const first, const interface_reg* last = nullptr)
+static interface_reg* _Find_interface(const std::string_view name, interface_reg* const first, const interface_reg* last = nullptr) noexcept
 {
 	for (auto reg = first; reg != last; reg = reg->next)
 	{
@@ -101,7 +98,7 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
 	return nullptr;
 }
 
-void* find_interface_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name)
+void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name) noexcept
 {
 	interface_reg* const root_reg = create_interface_fn./*rel32*/jmp(0x5).plus(0x6).deref<2>( );
 	interface_reg* const target_reg = _Find_interface(name, root_reg);

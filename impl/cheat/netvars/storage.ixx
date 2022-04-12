@@ -119,12 +119,12 @@ export namespace cheat::netvars
 	class storage : public basic_storage
 	{
 	public:
-		void iterate_client_class(csgo::ClientClass* root_class);
-		void iterate_datamap(csgo::datamap_t* root_map);
-		void store_handmade_netvars( );
+		void iterate_client_class(csgo::ClientClass* const root_class) noexcept;
+		void iterate_datamap(csgo::datamap_t* const root_map) noexcept;
+		void store_handmade_netvars( ) noexcept;
 
-		void log_netvars(logs_data& data);
-		void generate_classes(classes_data& data);
+		void log_netvars(logs_data& data) noexcept;
+		void generate_classes(classes_data& data) noexcept;
 	};
 
 	//using storage=nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, std::make_signed_t<size_t>, size_t, float>;

@@ -17,89 +17,88 @@ import nstd.winapi.sections;
 import nstd.winapi.vtables;
 export import nstd.mem.address;
 
-void console_log(const std::string_view module_name, const std::string_view object_type, const std::string_view object_name, const nstd::mem::basic_address<void> object_ptr);
-void console_log(const std::function<std::string_view( )> module_name_getter, const std::string_view object_type, const std::string_view object_name, const nstd::mem::basic_address<void> object_ptr);
+using nstd::mem::basic_address;
+
+using module_name_getter_fn = std::function<std::string_view( )>;
+
+void console_log(const std::string_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept;
+void console_log(const module_name_getter_fn module_name_getter, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept;
+
+namespace wp = nstd::winapi;
 
 struct logs_writer
 {
-	void operator()(LDR_DATA_TABLE_ENTRY* entry, const std::string_view module_name) const;
+	void operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view module_name) const noexcept;
 
-	template<typename Fn>
-	void operator()(const wp::found_export<Fn> ex, const std::string_view module_name, const std::string_view export_name) const
+	template<typename FnT>
+	void operator()(const wp::found_export<FnT> ex, const std::string_view module_name, const std::string_view export_name) const noexcept
 	{
 		console_log(module_name, "export", export_name, ex.unknown);
 	}
 
-	void operator()(IMAGE_SECTION_HEADER* const sec, const std::string_view module_name, const std::string_view section_name) const;
+	void operator()(IMAGE_SECTION_HEADER* const sec, const std::string_view module_name, const std::string_view section_name) const noexcept;
 
 	template<typename T>
-	void operator()(const wp::found_vtable<T> vt, const std::string_view module_name, const std::string_view vtable_name) const
+	void operator()(const wp::found_vtable<T> vt, const std::string_view module_name, const std::string_view vtable_name) const noexcept
 	{
 		console_log(module_name, "vtable", vtable_name, vt.ptr);
 	}
 };
 
-uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const std::string_view sig);
-void* find_interface_impl(LDR_DATA_TABLE_ENTRY* ldr_entry, const nstd::mem::basic_address<void> create_interface_fn, const std::string_view name);
+uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig) noexcept;
+void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name) noexcept;
 
-namespace wp = nstd::winapi;
+using cheat::tools::csgo_object_name;
 
 template<nstd::chars_cache Name>
 struct game_module
 {
-	template<typename Fn, nstd::chars_cache Export>
-	Fn find_export( ) const
+	template<typename FnT, nstd::chars_cache Export>
+	FnT find_export( ) const noexcept
 	{
-		return wp::find_export<Fn, Name, Export, logs_writer>( );
+		return wp::find_export<FnT, Name, Export, logs_writer>( );
 	}
 
 	template<nstd::chars_cache Section>
-	auto find_section( ) const
+	auto find_section( ) const noexcept
 	{
 		return wp::find_section<Name, Section, logs_writer>( );
 	}
 
-#if 0
-	template<typename T, nstd::chars_cache Class>
-	T* find_vtable( ) const
-	{
-		return wp::find_vtable<T, Name, Class, logs_writer>( );
-	}
-#else
 	template<typename T>
-	T* find_vtable( ) const
+	T* find_vtable( ) const noexcept
 	{
-		static nstd::mem::basic_address<T> found = wp::find_vtable_impl<logs_writer>(wp::find_module<Name, logs_writer>( ),
-																							   Name.view( ),
-																							   cheat::tools::csgo_object_name<T>( ));
+		static const basic_address<T> found = wp::find_vtable<logs_writer>(wp::find_module<Name, logs_writer>( ),
+																		   Name.view( ),
+																		   csgo_object_name<T>( ));
 		return found.pointer;
 	}
-#endif
 
 	template<nstd::chars_cache Sig>
-	auto find_signature( )const
+	auto find_signature( ) const noexcept
 	{
-		static nstd::mem::basic_address found = find_signature_impl(wp::find_module<Name, logs_writer>( ),
-																	Sig.view( ));
+		static const basic_address found = find_signature_impl(wp::find_module<Name, logs_writer>( ),
+															   Sig.view( ));
 		return found;
 	}
 
 	template<nstd::chars_cache IfcName>
-	auto find_interface( ) const
+	auto find_interface( ) const noexcept
 	{
-		static nstd::mem::basic_address found = find_interface_impl(wp::find_module<Name, logs_writer>( ),
-																	find_export<void*, "CreateInterface">( ),
-																	IfcName.view( ));
+		static basic_address found = find_interface_impl(wp::find_module<Name, logs_writer>( ),
+														 this->find_export<void*, "CreateInterface">( ),
+														 IfcName.view( ));
 		return found;
 	}
 
 	//----
 
 	template<typename T>
-	void log_found_interface(T* ptr)const
+	void log_found_interface(T* ptr) const noexcept
 	{
-		console_log(Name.view( ), "interface", cheat::tools::csgo_object_name<T>( ), ptr);
+		console_log(Name.view( ), "interface", csgo_object_name<T>( ), ptr);
 	}
+
 };
 
 export namespace cheat::csgo_modules

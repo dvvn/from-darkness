@@ -3,9 +3,10 @@ module;
 #include <string_view>
 
 export module cheat.netvars;
+export import :core;
+import nstd.mem.address;
 
 namespace cheat::netvars
 {
-	size_t get_offset(const std::string_view table, const std::string_view item);
-	void construct( );
+	nstd::mem::basic_address<const void> apply_offset(const void* thisptr, const std::string_view table, const std::string_view item) noexcept;
 }
