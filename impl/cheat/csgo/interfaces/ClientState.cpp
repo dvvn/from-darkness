@@ -10,7 +10,5 @@ using namespace csgo;
 
 CHEAT_CSGO_INTERFACE_INIT(CClientState)
 {
-	CClientState* const ret = csgo_modules::engine.find_signature<"A1 ? ? ? ? 8B 80 ? ? ? ? C3">( ).plus(1).deref<2>( );
-	csgo_modules::client.log_found_interface(ret);
-	return ret;
+	return csgo_modules::engine.find_interface_sig<"A1 ? ? ? ? 8B 80 ? ? ? ? C3">( ).plus(1).deref<2>( );
 }

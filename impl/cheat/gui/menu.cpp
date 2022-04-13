@@ -17,7 +17,7 @@ using namespace gui;
 using namespace tools;
 using namespace widgets;
 
-struct menu_holder;
+class menu_holder;
 std::string_view object_message_impl<menu_holder>::get_name( ) const noexcept
 {
 	return "gui::menu";
@@ -25,6 +25,7 @@ std::string_view object_message_impl<menu_holder>::get_name( ) const noexcept
 
 class menu_holder
 {
+	[[no_unique_address]]
 	object_message_auto<menu_holder> msg_;
 
 public:

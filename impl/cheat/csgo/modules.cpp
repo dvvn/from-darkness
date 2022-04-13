@@ -32,10 +32,10 @@ void console_log(const std::string_view module_name, const std::string_view obje
 	_Console_log(module_name, object_type, object_name, object_ptr.pointer);
 }
 
-void console_log(const module_name_getter_fn module_name_getter, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept
-{
-	_Console_log(std::ref(module_name_getter), object_type, object_name, object_ptr.pointer);
-}
+//void console_log(const module_name_getter_fn module_name_getter, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept
+//{
+//	_Console_log(std::ref(module_name_getter), object_type, object_name, object_ptr.pointer);
+//}
 
 #define console_log(...) static_assert(false,"console_log: use _Console_log instead")
 
@@ -49,17 +49,7 @@ void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::string_
 	_Console_log(module_name, "section", section_name, sec);
 }
 
-static std::string _Get_module_name(LDR_DATA_TABLE_ENTRY* const ldr_entry) noexcept
-{
-	const std::basic_string_view full_path = {ldr_entry->FullDllName.Buffer, ldr_entry->FullDllName.Length / sizeof(WCHAR)};
-	const auto name_start = full_path.find_last_of('\\');
-	const auto wname = full_path.substr(name_start + 1);
-	std::string out;
-	out.reserve(wname.size( ));
-	for (const auto wchr : wname)
-		out.push_back(static_cast<char>(wchr));
-	return out;
-}
+using nstd::winapi::get_module_name;
 
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig) noexcept
 {
@@ -72,7 +62,7 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::s
 	const auto ret = mem.find_block(bytes);
 
 	const auto result = ret.data( );
-	_Console_log(std::bind_front(_Get_module_name, ldr_entry), "signature", sig, result);
+	_Console_log(std::bind_front(get_module_name, ldr_entry), "signature", sig, result);
 	return result;
 }
 
@@ -84,7 +74,7 @@ struct interface_reg
 	interface_reg* next;
 };
 
-static interface_reg* _Find_interface(const std::string_view name, interface_reg* const first, const interface_reg* last = nullptr) noexcept
+static interface_reg* _Find_interface(const std::string_view name, interface_reg* const first, interface_reg* const last = nullptr) noexcept
 {
 	for (auto reg = first; reg != last; reg = reg->next)
 	{
@@ -105,6 +95,18 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_add
 	runtime_assert(target_reg != nullptr);
 	runtime_assert(_Find_interface(name, target_reg->next) == nullptr);
 	const auto ifc_addr = std::invoke(target_reg->create_fn);
-	_Console_log(std::bind_front(_Get_module_name, ldr_entry), "interface", name, ifc_addr);
+	_Console_log(std::bind_front(get_module_name, ldr_entry), "interface", name, ifc_addr);
 	return ifc_addr;
+}
+
+//----
+
+std::string_view current_module::_Name( ) const noexcept
+{
+	return nstd::winapi::current_module( );
+}
+
+interface_finder<current_module> current_module::_Ifc_finder(const basic_address<void> addr) const noexcept
+{
+	return addr;
 }

@@ -10,9 +10,7 @@ using namespace csgo;
 
 CHEAT_CSGO_INTERFACE_INIT(CGlowObjectManager)
 {
-	CGlowObjectManager* const ret = csgo_modules::client.find_signature<"0F 11 05 ? ? ? ? 83 C8 01">( ).plus(3).deref<1>( );
-	csgo_modules::client.log_found_interface(ret);
-	return ret;
+	return csgo_modules::client.find_interface_sig<"0F 11 05 ? ? ? ? 83 C8 01">( ).plus(3).deref<1>( );
 }
 
 void GlowObject_t::Set(const Color& glow_color, GlowRenderStyles style)
