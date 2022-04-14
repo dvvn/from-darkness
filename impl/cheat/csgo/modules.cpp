@@ -112,7 +112,6 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
 	{
 		if (std::memcmp(reg->name, name.data( ), name.size( )) != 0)
 			continue;
-
 		const auto last_char = reg->name[name.size( )];
 		if (last_char == '\0' || std::isdigit(last_char))
 			return reg;
