@@ -109,15 +109,11 @@ TODO
 #endif
 
 #pragma warning(push)
-#pragma warning(disable: 4702 4459)
+#pragma warning(disable: 4702/*4459*/)
 
 template< typename T, typename ...Next>
 static auto _Write_text_ex(const T& text, const Next&...other) noexcept
 {
-	FILE* file_out;
-	int new_mode;
-	int prev_mode;
-
 	constexpr auto writable = stream_possible<std::ofstream, T>;
 	constexpr auto writable_wide = stream_possible<std::wofstream, T>;
 	constexpr auto universal = writable && writable_wide;
@@ -132,19 +128,29 @@ static auto _Write_text_ex(const T& text, const Next&...other) noexcept
 		else
 			static_assert(_Always_false<char_t>, __FUNCSIG__": Unsupported char type");
 	}
-	else if constexpr (writable)
+	else if constexpr (writable || writable_wide)
 	{
-		file_out = _Get_file_buff(std::cin);
-		new_mode = _O_TEXT;
-		prev_mode = _Set_mode(file_out, new_mode);
-		std::cout << text;
-	}
-	else if constexpr (writable_wide)
-	{
-		file_out = _Get_file_buff(std::wcin);
-		new_mode = _O_U16TEXT;
-		prev_mode = _Set_mode(file_out, new_mode);
-		std::wcout << text;
+		FILE* file_out;
+		int new_mode;
+		int prev_mode;
+
+		if constexpr (writable)
+		{
+			file_out = _Get_file_buff(std::cin);
+			new_mode = _O_TEXT;
+			prev_mode = _Set_mode(file_out, new_mode);
+			std::cout << text;
+		}
+		else if constexpr (writable_wide)
+		{
+			file_out = _Get_file_buff(std::wcin);
+			new_mode = _O_U16TEXT;
+			prev_mode = _Set_mode(file_out, new_mode);
+			std::wcout << text;
+		}
+
+		if (prev_mode != new_mode)
+			_Set_mode(/*stdout*/file_out, prev_mode);
 	}
 	else if constexpr (have_view_function<T>)
 	{
@@ -154,12 +160,6 @@ static auto _Write_text_ex(const T& text, const Next&...other) noexcept
 	else
 	{
 		static_assert(_Always_false<T>, __FUNCSIG__": Unsupported string type");
-	}
-
-	if constexpr (!universal)
-	{
-		if (prev_mode != new_mode)
-			_Set_mode(/*stdout*/file_out, prev_mode);
 	}
 
 	if constexpr (sizeof...(Next) > 0)
