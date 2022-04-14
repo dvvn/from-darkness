@@ -112,9 +112,10 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
 	{
 		if (std::memcmp(reg->name, name.data( ), name.size( )) != 0)
 			continue;
-		if (!std::isdigit(reg->name[name.size( )]))
-			continue;
-		return reg;
+
+		const auto last_char = reg->name[name.size( )];
+		if (last_char == '\0' || std::isdigit(last_char))
+			return reg;
 	}
 
 	return nullptr;
@@ -133,7 +134,7 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_add
 
 //----
 
-static auto _Current_module_name( )noexcept
+static auto _Current_module_name( ) noexcept
 {
 	const wp::module_info info = wp::current_module( );
 	return info.name( );
