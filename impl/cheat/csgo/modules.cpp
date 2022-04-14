@@ -3,9 +3,11 @@ module;
 #include <nstd/runtime_assert.h>
 #include <nstd/format.h>
 #include <nstd/ranges.h>
+#include <nstd/winapi/convert_string.h>
 
 #include <windows.h>
 #include <winternl.h>
+#include <tchar.h>
 
 #include <memory>
 #include <string>
@@ -15,41 +17,58 @@ module cheat.csgo.modules;
 import cheat.console;
 import nstd.mem.signature;
 import nstd.mem.block;
+import nstd.winapi.module_info;
 
 using namespace nstd::mem;
 
-template<typename Mod, typename T>
-static void _Console_log(const Mod module_name, const std::string_view object_type, const std::string_view object_name, T* object_ptr) noexcept
+namespace wp = nstd::winapi;
+using wp::_Strv;
+using wp::_Str;
+
+constexpr auto _To_wide_lazy = []<typename T>(const std::basic_string_view<T> str) noexcept
 {
-	cheat::console::log("{} -> {} \"{}\" {}", module_name, object_type, object_name, [=]
+	return _To_wide(str);
+};
+
+struct extract_module_name
+{
+	auto operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry)const noexcept
 	{
-		return object_ptr ? std::format("found at {:#X}", reinterpret_cast<uintptr_t>(object_ptr)) : "not found";
+		return wp::module_info(ldr_entry).name( );
+	}
+
+	template<typename T>
+	auto operator()(const std::basic_string_view<T> str) const noexcept
+	{
+		return _To_wide(str);
+	}
+};
+
+template<typename Mod, typename Obj, typename P>
+static void _Console_log(const Mod module_name, const std::string_view object_type, const std::basic_string_view<Obj> object_name, P* object_ptr) noexcept
+{
+	cheat::console::log(_T("{} -> {} \"{}\" {}"), std::bind_front(extract_module_name( ), module_name), std::bind_front(_To_wide_lazy, object_type), std::bind_front(_To_wide_lazy, object_name), [=]
+	{
+		return object_ptr ? std::format(_T("found at {:#X}"), reinterpret_cast<uintptr_t>(object_ptr)) : _T("not found");
 	});
 }
 
-void console_log(const std::string_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept
+void console_log(const _Strv module_name, const std::string_view object_type, const _Strv object_name, const basic_address<void> object_ptr) noexcept
 {
 	_Console_log(module_name, object_type, object_name, object_ptr.pointer);
 }
 
-//void console_log(const module_name_getter_fn module_name_getter, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept
-//{
-//	_Console_log(std::ref(module_name_getter), object_type, object_name, object_ptr.pointer);
-//}
-
 #define console_log(...) static_assert(false,"console_log: use _Console_log instead")
 
-void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view module_name) const noexcept
+void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const _Strv module_name) const noexcept
 {
-	cheat::console::log("module \"{}\" found at {:#X}", module_name, reinterpret_cast<uintptr_t>(ldr_entry));
+	cheat::console::log(_T("module \"{}\" found at {:#X}"), module_name, reinterpret_cast<uintptr_t>(ldr_entry));
 }
 
-void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::string_view module_name, const std::string_view section_name) const noexcept
+void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const _Strv module_name, const std::string_view section_name) const noexcept
 {
 	_Console_log(module_name, "section", section_name, sec);
 }
-
-using nstd::winapi::get_module_name;
 
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig) noexcept
 {
@@ -62,7 +81,7 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::s
 	const auto ret = mem.find_block(bytes);
 
 	const auto result = ret.data( );
-	_Console_log(std::bind_front(get_module_name, ldr_entry), "signature", sig, result);
+	_Console_log(ldr_entry, "signature", sig, result);
 	return result;
 }
 
@@ -95,15 +114,22 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_add
 	runtime_assert(target_reg != nullptr);
 	runtime_assert(_Find_interface(name, target_reg->next) == nullptr);
 	const auto ifc_addr = std::invoke(target_reg->create_fn);
-	_Console_log(std::bind_front(get_module_name, ldr_entry), "interface", name, ifc_addr);
+	_Console_log(ldr_entry, "interface", name, ifc_addr);
 	return ifc_addr;
 }
 
 //----
 
-std::string_view current_module::_Name( ) const noexcept
+static auto _Current_module_name( )noexcept
 {
-	return nstd::winapi::current_module( );
+	const wp::module_info info = wp::current_module( );
+	return info.name( );
+}
+
+_Strv current_module::_Name( ) const noexcept
+{
+	static auto name = _Current_module_name( );
+	return name;
 }
 
 interface_finder<current_module> current_module::_Ifc_finder(const basic_address<void> addr) const noexcept
