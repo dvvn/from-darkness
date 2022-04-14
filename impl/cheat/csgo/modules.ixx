@@ -17,7 +17,6 @@ import nstd.winapi.exports;
 import nstd.winapi.sections;
 import nstd.winapi.vtables;
 export import nstd.mem.address;
-import nstd.text.chars_cache;
 
 using nstd::mem::basic_address;
 namespace wp = nstd::winapi;

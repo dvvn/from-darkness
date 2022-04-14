@@ -10,6 +10,7 @@ module;
 
 export module cheat.tools.object_name;
 export import nstd.type_name;
+
 #ifdef _UNICODE
 template<size_t Size>
 class unicode_buffer

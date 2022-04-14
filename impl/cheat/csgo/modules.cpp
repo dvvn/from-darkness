@@ -20,14 +20,15 @@ import nstd.mem.block;
 import nstd.winapi.module_info;
 
 using namespace nstd::mem;
-
 namespace wp = nstd::winapi;
-using wp::_Strv;
-using wp::_Str;
 
-constexpr auto _To_wide_lazy = []<typename T>(const std::basic_string_view<T> str) noexcept
+struct to_wide_string
 {
-	return _To_wide(str);
+	template<typename T>
+	auto operator()(const std::basic_string_view<T> str) const noexcept
+	{
+		return _To_wide(str);
+	}
 };
 
 struct extract_module_name
@@ -44,13 +45,25 @@ struct extract_module_name
 	}
 };
 
-template<typename Mod, typename Obj, typename P>
-static void _Console_log(const Mod module_name, const std::string_view object_type, const std::basic_string_view<Obj> object_name, P* object_ptr) noexcept
+struct inform_found_pointer
 {
-	cheat::console::log(_T("{} -> {} \"{}\" {}"), std::bind_front(extract_module_name( ), module_name), std::bind_front(_To_wide_lazy, object_type), std::bind_front(_To_wide_lazy, object_name), [=]
+	template<typename P>
+	auto operator()(P* const object_ptr) const noexcept
 	{
 		return object_ptr ? std::format(_T("found at {:#X}"), reinterpret_cast<uintptr_t>(object_ptr)) : _T("not found");
-	});
+	}
+};
+
+template<typename Mod, typename Obj, typename P>
+static void _Console_log(const Mod module_name, const std::string_view object_type, const std::basic_string_view<Obj> object_name, P* const object_ptr) noexcept
+{
+	cheat::console::log(
+		_T("{} -> {} \"{}\" {}"),
+		std::bind_front(extract_module_name( ), module_name),
+		std::bind_front(to_wide_string( ), object_type),
+		std::bind_front(to_wide_string( ), object_name),
+		std::bind_front(inform_found_pointer( ), object_ptr)
+	);
 }
 
 void console_log(const _Strv module_name, const std::string_view object_type, const _Strv object_name, const basic_address<void> object_ptr) noexcept
