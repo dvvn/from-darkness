@@ -6,7 +6,6 @@ export module cheat.csgo.interfaces.ConVar;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.tools.UtlVector;
 export import cheat.csgo.math.Color;
-import nstd.one_instance;
 import nstd.text.chars_cache;
 
 export namespace cheat::csgo
@@ -184,8 +183,6 @@ export namespace cheat::csgo
 		//static IConCommandBaseAccessor* s_pAccessor;
 	};
 
-
-
 	struct CVValue_t
 	{
 		char* m_pszString;
@@ -238,39 +235,11 @@ export namespace cheat::csgo
 		int GetValueN();*/
 	}; //Size=0x0048*
 
-	class ConCommandBaseIterator
-	{
-	public:
-		using iterator_category = std::forward_iterator_tag;
-		using difference_type = std::ptrdiff_t;
-		using value_type = ConCommandBase;
-		using pointer = value_type*;
-		using reference = value_type&;
-
-		ConCommandBaseIterator(pointer ptr);
-
-		pointer get( ) const noexcept;
-
-		reference operator*( ) const noexcept;
-		pointer operator->( ) const noexcept;
-
-		// Prefix increment
-		ConCommandBaseIterator& operator++( ) noexcept;
-
-		// Postfix increment
-		ConCommandBaseIterator operator++(difference_type) noexcept;
-
-		bool operator==(const ConCommandBaseIterator& other) const noexcept;
-
-	private:
-		pointer itr_;
-	};
-
 	//-----------------------------------------------------------------------------
 	// Abstract interface for ConVars
 	//-----------------------------------------------------------------------------
 
-	class ICVar : IAppSystem, public nstd::one_instance<ICVar*>
+	class ICVar : IAppSystem
 	{
 		virtual CVarDLLIdentifier_t	AllocateDLLIdentifier( ) = 0;
 		virtual void			RegisterConCommand(ConVar* pCommandBase, int iDefaultValue = 1) = 0;
@@ -294,10 +263,6 @@ export namespace cheat::csgo
 		virtual void			RevertFlaggedConVars(int nFlag) = 0;
 
 	public:
-
-		ConCommandBaseIterator begin( ) const noexcept;
-		ConCommandBaseIterator end( ) const noexcept;
-
 		ConVar* FindVar(const std::string_view name) const noexcept;
 
 		template<nstd::text::chars_cache Cvar>

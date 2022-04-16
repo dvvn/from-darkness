@@ -18,7 +18,7 @@ CHEAT_HOOK_INSTANCE(client_mode, create_move);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address<void> vtable_holder = ClientModeShared::get_ptr( );
+	const nstd::mem::basic_address<void> vtable_holder = nstd::get_instance<ClientModeShared*>( );
 	return vtable_holder.deref<1>( )[24];
 }
 
@@ -34,11 +34,11 @@ struct replace
 
 		if (original_return == true)
 		{
-			IPrediction::get( ).SetLocalViewAngles(cmd->angViewPoint);
-			IVEngineClient::get( ).SetViewAngles(cmd->angViewPoint);
+			nstd::get_instance<IPrediction*>( )->SetLocalViewAngles(cmd->angViewPoint);
+			nstd::get_instance<IVEngineClient*>( )->SetViewAngles(cmd->angViewPoint);
 		}
 
-		if (/*interfaces.client_state == nullptr ||*/ IVEngineClient::get( ).IsPlayingDemo( ))
+		if (/*interfaces.client_state == nullptr ||*/ nstd::get_instance<IVEngineClient*>( )->IsPlayingDemo( ))
 			return original_return;
 
 		//bool& send_packet = address(/*this->return_address( )*/*this->addr1).remove(4).deref(1).remove(0x1C).ref( );

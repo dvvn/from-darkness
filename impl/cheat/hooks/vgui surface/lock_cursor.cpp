@@ -16,7 +16,7 @@ CHEAT_HOOK_INSTANCE(vgui_surface, lock_cursor);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address<void> vtable_holder = ISurface::get_ptr( );
+	const nstd::mem::basic_address<void> vtable_holder = nstd::get_instance<ISurface*>( );
 	return vtable_holder.deref<1>( )[67];
 }
 

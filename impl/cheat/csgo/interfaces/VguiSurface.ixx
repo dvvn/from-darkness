@@ -6,7 +6,6 @@ export module cheat.csgo.interfaces.VguiSurface;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.math.Vector;
 export import cheat.csgo.math.Color;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -82,7 +81,7 @@ export namespace cheat::csgo
 	//-----------------------------------------------------------------------------
 	// Purpose: Wraps contextless windows system functions
 	//-----------------------------------------------------------------------------
-	class ISurface : public IAppSystem,public nstd::one_instance<ISurface*>
+	class ISurface : public IAppSystem
 	{
 	public:
 		virtual void RunFrame() = 0;

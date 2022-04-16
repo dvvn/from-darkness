@@ -3,7 +3,6 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.GameEvents;
-import nstd.one_instance;
 
 //#ifdef CreateEvent
 //#undef CreateEvent
@@ -53,7 +52,7 @@ export namespace cheat::csgo
 		bool registered_for_events;
 	};
 
-	class IGameEventManager2 :public nstd::one_instance<IGameEventManager2*>
+	class IGameEventManager2
 	{
 	public:
 		virtual             ~IGameEventManager2( ) = default;

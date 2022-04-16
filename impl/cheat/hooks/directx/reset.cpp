@@ -6,7 +6,6 @@ module;
 #include <d3d9.h>
 
 module cheat.hooks.directx.reset;
-import cheat.csgo.interfaces.Direct3DDevice9;
 import cheat.gui;
 import cheat.hooks.base;
 import nstd.one_instance;
@@ -19,7 +18,7 @@ CHEAT_HOOK_INSTANCE(directx, reset);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address<void> vtable_holder = csgo::Direct3DDevice9::get_ptr( );
+	const nstd::mem::basic_address<void> vtable_holder = nstd::get_instance<IDirect3DDevice9*>( );
 	return vtable_holder.deref<1>( )[16];
 }
 

@@ -6,7 +6,6 @@ module;
 export module cheat.csgo.interfaces.RenderView;
 export import cheat.csgo.math.Vector;
 export import cheat.csgo.math.Qangle;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -159,7 +158,7 @@ export namespace cheat::csgo
 	constexpr auto MAX_AREA_STATE_BYTES = 32;
 	constexpr auto MAX_AREA_PORTAL_STATE_BYTES = 24;
 
-	class IVRenderView :public nstd::one_instance<IVRenderView*>
+	class IVRenderView
 	{
 		enum
 		{

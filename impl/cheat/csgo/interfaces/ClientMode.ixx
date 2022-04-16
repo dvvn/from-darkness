@@ -5,7 +5,6 @@ module;
 export module cheat.csgo.interfaces.ClientMode;
 export import cheat.csgo.interfaces.GameEvents;
 export import cheat.csgo.structs.UserCmd;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -111,7 +110,6 @@ export namespace cheat::csgo
 
 	namespace vgui
 	{
-
 		typedef unsigned int VPANEL;
 
 		class Panel;
@@ -239,7 +237,7 @@ export namespace cheat::csgo
 		typedef unsigned long HCursor;
 	}
 
-	class ClientModeShared : public IClientMode, public /*CGameEventListener*/IGameEventListener2, public nstd::one_instance<ClientModeShared*>
+	class ClientModeShared : public IClientMode, public /*CGameEventListener*/IGameEventListener2
 	{
 		// IClientMode overrides.
 	public:

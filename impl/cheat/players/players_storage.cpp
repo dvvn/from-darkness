@@ -36,29 +36,30 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 
 static float _Lerp_time( )
 {
-	const auto lerp_amount = ICVar::get( ).FindVar<"cl_interp">( )->get<float>( );
-	auto lerp_ratio = ICVar::get( ).FindVar<"cl_interp_ratio">( )->get<float>( );
+	auto& cvar_ifc = *nstd::get_instance<ICVar*>( );
+	const auto lerp_amount = cvar_ifc.FindVar<"cl_interp">( )->get<float>( );
+	auto lerp_ratio = cvar_ifc.FindVar<"cl_interp_ratio">( )->get<float>( );
 
 	if (lerp_ratio == 0.0f)
 		lerp_ratio = 1.0f;
 
-	const auto min_ratio = ICVar::get( ).FindVar<"sv_client_min_interp_ratio">( )->get<float>( );
+	const auto min_ratio = cvar_ifc.FindVar<"sv_client_min_interp_ratio">( )->get<float>( );
 	if (min_ratio != -1.0f)
 	{
-		const auto max_ratio = ICVar::get( ).FindVar<"sv_client_max_interp_ratio">( )->get<float>( );
+		const auto max_ratio = cvar_ifc.FindVar<"sv_client_max_interp_ratio">( )->get<float>( );
 		lerp_ratio = std::clamp(lerp_ratio, min_ratio, max_ratio);
 	}
 
-	const auto update_rate = std::clamp(ICVar::get( ).FindVar<"cl_updaterate">( )->get<float>( ), ICVar::get( ).FindVar<"sv_minupdaterate">( )->get<float>( ), ICVar::get( ).FindVar<"sv_maxupdaterate">( )->get<float>( ));
+	const auto update_rate = std::clamp(cvar_ifc.FindVar<"cl_updaterate">( )->get<float>( ), cvar_ifc.FindVar<"sv_minupdaterate">( )->get<float>( ), cvar_ifc.FindVar<"sv_maxupdaterate">( )->get<float>( ));
 	return std::max(lerp_amount, lerp_ratio / update_rate);
 }
 
 static float _Correct_value( )
 {
-	const auto nci = IVEngineClient::get( ).GetNetChannelInfo( );
+	const auto nci = nstd::get_instance<IVEngineClient*>( )->GetNetChannelInfo( );
 	const auto latency = nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING);
 	const auto lerp = _Lerp_time( );
-	const auto unlag_limit = ICVar::get( ).FindVar<"sv_maxunlag">( )->get<float>( );
+	const auto unlag_limit = nstd::get_instance<ICVar*>( )->FindVar<"sv_maxunlag">( )->get<float>( );
 	return std::clamp(latency + lerp, 0.f, unlag_limit);
 }
 
@@ -95,7 +96,7 @@ class players_storage : public extended_vector<player>
 	object_message_auto<players_storage> msg_;
 };
 
-static nstd::one_instance_obj<players_storage> players_holder;
+constexpr nstd::one_instance_obj<players_storage> players_holder;
 
 player* players::begin( )
 {
@@ -109,7 +110,7 @@ player* players::end( )
 
 void players::update( )
 {
-	const auto max_clients = static_cast<size_t>(CGlobalVarsBase::get( ).max_clients);
+	const auto max_clients = static_cast<size_t>(nstd::get_instance<CGlobalVarsBase*>( )->max_clients);
 	players_holder->resize(max_clients);
 #if 0
 	const auto update_players =

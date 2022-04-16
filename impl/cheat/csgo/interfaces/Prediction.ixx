@@ -7,7 +7,6 @@ export import cheat.csgo.interfaces.BaseHandle;
 export import cheat.csgo.math.Vector;
 export import cheat.csgo.math.Qangle;
 export import cheat.csgo.tools.UtlVector;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -43,7 +42,7 @@ export namespace cheat::csgo
 
 	class C_BasePlayer;
 
-	class IPrediction :public nstd::one_instance<IPrediction*>
+	class IPrediction
 	{
 		//std::byte pad0[0x4]; // 0x0000
 	public:

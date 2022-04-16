@@ -3,7 +3,6 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.DebugOverlay;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -12,7 +11,7 @@ export namespace cheat::csgo
 	class Vector;
 	class matrix3x4_t;
 
-	class IVDebugOverlay :public nstd::one_instance<IVDebugOverlay*>
+	class IVDebugOverlay
 	{
 	public:
 		virtual      ~IVDebugOverlay( ) = default;

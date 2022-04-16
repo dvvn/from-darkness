@@ -1,10 +1,9 @@
 
 export module cheat.csgo.interfaces.VguiPanel;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
-	class IVguiPanel :public nstd::one_instance<IVguiPanel*>
+	class IVguiPanel
 	{
 	public:
 #if 0

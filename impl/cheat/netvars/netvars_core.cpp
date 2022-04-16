@@ -12,13 +12,14 @@ import cheat.csgo.modules;
 import cheat.csgo.interfaces.C_BaseEntity;
 import cheat.csgo.interfaces.EngineClient;
 import cheat.csgo.interfaces.BaseClient;
+import nstd.one_instance;
 
 using namespace cheat;
 using namespace netvars;
 using namespace csgo;
 using namespace console;
 
-static std::wstring to_wstring(const char* str, const bool reserve = false)
+static std::wstring to_wstring(const char* str, const bool reserve = false) noexcept
 {
 	std::wstring out;
 	if (reserve)
@@ -52,7 +53,7 @@ class netvars_holder : public storage
 public:
 	netvars_holder( )
 	{
-		iterate_client_class(IBaseClientDLL::get( ).GetAllClasses( ));
+		iterate_client_class(nstd::get_instance<IBaseClientDLL*>( )->GetAllClasses( ));
 
 		const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
 		iterate_datamap(baseent->GetDataDescMap( ));
@@ -63,7 +64,7 @@ public:
 
 	void log( ) noexcept
 	{
-		logs_.file.name = to_wstring(IVEngineClient::get( ).GetProductVersionString( ));
+		logs_.file.name = to_wstring(nstd::get_instance<IVEngineClient*>( )->GetProductVersionString( ));
 		log_netvars(logs_);
 		generate_classes(classes_);
 	}

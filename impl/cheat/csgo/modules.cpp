@@ -47,10 +47,9 @@ struct extract_module_name
 
 struct inform_found_pointer
 {
-	template<typename P>
-	auto operator()(P* const object_ptr) const noexcept
+	wp::_Str operator()(const basic_address<void> object_ptr) const noexcept
 	{
-		return object_ptr ? std::format(_T("found at {:#X}"), reinterpret_cast<uintptr_t>(object_ptr)) : _T("not found");
+		return object_ptr ? std::format(_T("found at {:#X}"), object_ptr.value) : _T("not found");
 	}
 };
 
@@ -100,8 +99,7 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::s
 
 struct interface_reg
 {
-	using instance_fn = void* (*)();
-	instance_fn create_fn;
+	void* (*create_fn)();
 	const char* name;
 	interface_reg* next;
 };
@@ -133,15 +131,9 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_add
 
 //----
 
-static auto _Current_module_name( ) noexcept
-{
-	const wp::module_info info = wp::current_module( );
-	return info.name( );
-}
-
 _Strv current_module::_Name( ) const noexcept
 {
-	static auto name = _Current_module_name( );
+	static const auto name = wp::module_info(wp::current_module( )).name( );
 	return name;
 }
 

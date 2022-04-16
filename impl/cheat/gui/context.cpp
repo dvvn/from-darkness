@@ -13,7 +13,6 @@ module;
 #include <fstream>
 
 module cheat.gui:context;
-import cheat.csgo.interfaces.Direct3DDevice9;
 import cheat.console.object_message;
 
 using namespace cheat;
@@ -169,8 +168,6 @@ context::context( )
 {
 	console::object_created<context>( );
 
-	const auto d3d = csgo::Direct3DDevice9::get_ptr( );
-
 	IMGUI_CHECKVERSION( );
 #ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
 	ImGui::SetAllocatorFunctions([](size_t size, void*)
@@ -191,13 +188,13 @@ context::context( )
 	{
 		auto creation_parameters = D3DDEVICE_CREATION_PARAMETERS( );
 
-		[[maybe_unused]] const auto result = d3d->GetCreationParameters(&creation_parameters);
+		[[maybe_unused]] const auto result = nstd::get_instance<IDirect3DDevice9*>( )->GetCreationParameters(&creation_parameters);
 		runtime_assert(SUCCEEDED(result));
 		return creation_parameters.hFocusWindow;
 	}();
 
 	ImGui_ImplWin32_Init(hwnd);
-	ImGui_ImplDX9_Init(d3d);
+	ImGui_ImplDX9_Init(nstd::get_instance<IDirect3DDevice9*>( ));
 
 #if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
 	/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;

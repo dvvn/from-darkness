@@ -7,7 +7,6 @@ export import cheat.csgo.math.Vector;
 export import cheat.csgo.math.Qangle;
 export import cheat.csgo.math.Color;
 export import cheat.csgo.tools.UtlVector;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -59,7 +58,7 @@ export namespace cheat::csgo
 		Color  color;
 	};
 
-	class CGlowObjectManager :public nstd::one_instance<CGlowObjectManager*>
+	class CGlowObjectManager
 	{
 	public:
 		CUtlVector<GlowObject_t>    glow_object_definitions;

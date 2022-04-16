@@ -1,6 +1,5 @@
 export module cheat.csgo.interfaces.BaseClient;
 export import cheat.csgo.interfaces.AppSystem;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -28,7 +27,7 @@ export namespace cheat::csgo
 	class CGlobalVarsBase;
 	class ClientClass;
 
-	class IBaseClientDLL :public  nstd::one_instance<IBaseClientDLL*>
+	class IBaseClientDLL
 	{
 	public:
 		virtual int          Connect(CreateInterfaceFn appSystemFactory, CGlobalVarsBase* pGlobals) = 0;

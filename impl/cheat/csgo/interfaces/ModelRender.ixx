@@ -6,7 +6,6 @@ export module cheat.csgo.interfaces.ModelRender;
 export import cheat.csgo.math.Vector;
 export import cheat.csgo.math.Qangle;
 export import cheat.csgo.math.Vmatrix;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -93,7 +92,7 @@ export namespace cheat::csgo
 		IClientRenderable* m_pRenderable;
 	};
 
-	class IVModelRender:public nstd::one_instance<IVModelRender*>
+	class IVModelRender
 	{
 	public:
 		virtual int DrawModel(int flags, IClientRenderable* pRenderable, ModelInstanceHandle_t instance, int entity_index, const model_t* model, const Vector& origin,

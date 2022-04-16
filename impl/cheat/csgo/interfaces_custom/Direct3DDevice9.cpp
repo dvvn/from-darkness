@@ -1,12 +1,10 @@
-﻿module;
+﻿#include <cheat/csgo/interface.h>
 
-#include <cheat/csgo/interface.h>
+#include <d3d9.h>
 
-module cheat.csgo.interfaces.Direct3DDevice9;
 import cheat.csgo.modules;
 
 using namespace cheat;
-using namespace csgo;
 
 extern IDirect3DDevice9* d3dDevice9_ptr;
 

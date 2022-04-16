@@ -82,5 +82,5 @@ IHandleEntity* CBaseHandle::Get( ) const
 {
 	/*if (!IsValid( ))
 		return 0;*/
-	return IClientEntityList::get( ).GetClientEntityFromHandle(*this);
+	return nstd::get_instance<IClientEntityList*>( )->GetClientEntityFromHandle(*this);
 }

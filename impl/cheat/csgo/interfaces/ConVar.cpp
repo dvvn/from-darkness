@@ -1,10 +1,16 @@
-﻿module;
+﻿#define CHEAT_CHECK_WHOLE_CVAR_NAME
+module;
 
 #include <cheat/csgo/interface.h>
 
 #include <nstd/format.h>
+#ifndef CHEAT_CHECK_WHOLE_CVAR_NAME
+#include <nstd/runtime_assert.h>
+#endif
 
-#include <sstream>
+//#ifdef CHEAT_CHECK_WHOLE_CVAR_NAME
+//#include <sstream>
+//#endif
 #include <functional>
 
 module cheat.csgo.interfaces.ConVar;
@@ -15,51 +21,12 @@ import nstd.mem.address;
 using namespace cheat;
 using namespace csgo;
 
-ConCommandBaseIterator::ConCommandBaseIterator(pointer ptr) 
-	:itr_(ptr)
-{
-}
-
-auto ConCommandBaseIterator::get( ) const noexcept-> pointer
-{
-	return itr_;
-}
-
-auto ConCommandBaseIterator::operator->( ) const noexcept -> pointer
-{
-	return itr_;
-}
-
-auto ConCommandBaseIterator::operator*( ) const noexcept -> reference
-{
-	return *itr_;
-}
-
-ConCommandBaseIterator& ConCommandBaseIterator::operator++( ) noexcept
-{
-	itr_ = itr_->m_pNext;
-	return *this;
-}
-
-ConCommandBaseIterator ConCommandBaseIterator::operator++(difference_type) noexcept
-{
-	ConCommandBaseIterator tmp = *this; ++(*this);
-	return tmp;
-}
-
-bool ConCommandBaseIterator::operator==(const ConCommandBaseIterator& other) const noexcept
-{
-	return itr_ == other.itr_;
-}
-
-//-------------
-
-using nstd::mem::basic_address;
-
 CHEAT_CSGO_INTERFACE_INIT(ICVar)
 {
 	return csgo_modules::vstdlib.find_interface<"VEngineCvar">( );
 }
+
+using nstd::mem::basic_address;
 
 template <typename T>
 static void _Set_helper(ConVar* ptr, size_t index, T value) noexcept
@@ -122,70 +89,121 @@ void ConVar::set(int value) noexcept
 	_Set_helper(this, 16, value);
 }
 
-ConCommandBaseIterator ICVar::begin( ) const noexcept
+class ConCommandBaseIterator
 {
-	return basic_address(this).plus(0x30).deref<1>( ).get<ConCommandBase*>( );
-}
+public:
+	using iterator_category = std::forward_iterator_tag;
+	using difference_type = std::ptrdiff_t;
+	using value_type = ConCommandBase;
+	using pointer = value_type*;
+	using reference = value_type&;
 
-ConCommandBaseIterator ICVar::end( ) const noexcept
+	ConCommandBaseIterator(pointer ptr)
+		:itr_(ptr)
+	{
+	}
+
+	pointer get( ) const noexcept
+	{
+		return itr_;
+	}
+
+	pointer operator->( ) const noexcept
+	{
+		return itr_;
+	}
+
+	reference operator*( ) const noexcept
+	{
+		return *itr_;
+	}
+
+	// Prefix increment
+	ConCommandBaseIterator& operator++( ) noexcept
+	{
+		itr_ = itr_->m_pNext;
+		return *this;
+	}
+
+	// Postfix increment
+	ConCommandBaseIterator operator++(difference_type) noexcept
+	{
+		ConCommandBaseIterator tmp = *this; ++(*this);
+		return tmp;
+	}
+
+	bool operator==(const ConCommandBaseIterator& other) const noexcept
+	{
+		return itr_ == other.itr_;
+	}
+
+private:
+	pointer itr_;
+};
+
+static bool _Compare_cvars(const std::string_view name, const ConCommandBase& other) noexcept
 {
-	return nullptr;
+	if (other.IsCommand( ))
+		return false;
+	if (std::memcmp(other.m_pszName, name.data( ), name.size( )) != 0)
+		return false;
+#ifdef CHEAT_CHECK_WHOLE_CVAR_NAME
+	if (other.m_pszName[name.size( )] != '\0')
+		return false;
+#endif
+	return true;
 }
 
 ConVar* ICVar::FindVar(const std::string_view name) const noexcept
 {
-	const auto compare = [=](const ConCommandBase& cv)
+	const auto comparer = std::bind_front(_Compare_cvars, name);
+	const ConCommandBaseIterator first_cvar = basic_address(this).plus(0x30).deref<1>( ).get<ConCommandBase*>( );
+	const ConCommandBaseIterator invalid_cvar = nullptr;
+
+	const auto target_cvar = std::find_if(first_cvar, invalid_cvar, comparer);
+
+	if (target_cvar == invalid_cvar)
 	{
-		if (cv.IsCommand( ))
-			return false;
-		return std::memcmp(cv.m_pszName, name.data( ), name.size( )) == 0;
-	};
+		console::log("Cvar \"{}\" NOT found", name);
+		return nullptr;
+	}
 
-	const auto first_cvar = this->begin( );
-	const auto invalid_cvar = this->end( );
-
-	const auto target_cvar = std::find_if(first_cvar, invalid_cvar, compare);
-
-	console::log([&]
+#ifdef CHEAT_CHECK_WHOLE_CVAR_NAME
+	console::log("Cvar \"{}\" found", name);
+#else
+	runtime_assert(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
+	console::log([name]
 	{
 		std::ostringstream msg;
-		msg << std::format("Cvar \"{}\"", name);
-		if (target_cvar == invalid_cvar)
-		{
-			msg << " NOT ";
-		}
-		else
-		{
-			bool duplicate = false;
-			for (auto cv = std::next(target_cvar); cv != invalid_cvar; ++cv)
-			{
-				if (!compare(*cv))
-					continue;
-				if (!duplicate)
-				{
-					msg << std::format("(\"{}\"", cv->m_pszName);
-					duplicate = true;
-				}
-				else
-				{
-					msg << std::format(", \"{}\"", cv->m_pszName);
-				}
-			}
-			if (duplicate)
-				msg << ')';
 
-			//we already know how long a string can be
-			const auto known_end = target_cvar->m_pszName + name.size( );
-			//so only look for the zero character
-			const auto real_end = known_end + std::char_traits<char>::length(known_end);
-			if (known_end != real_end)
-				msg << std::format(" (full name: \"{}\")", std::string_view(target_cvar->m_pszName, real_end));
-			msg << ' ';
+		const auto write_msg = [&]<typename T>(T obj) noexcept
+		{
+			msg << obj;
+		};
+		const auto write_braces = [&]<typename T>(T obj)noexcept
+		{
+			msg << '"' << obj << '"';
+		};
+
+		write_msg("Cvar ");
+		write_braces(name);
+
+		//we already know how long a string can be
+		const auto known_end = target_cvar->m_pszName + name.size( );
+		//so only look for the zero character
+		const auto real_end = known_end + std::char_traits<char>::length(known_end);
+		if (known_end != real_end)
+		{
+			write_msg(" (full name: ");
+			write_braces(std::string_view(target_cvar->m_pszName, real_end));
+			write_msg(')');
 		}
-		msg << "found";
+		write_msg(" found");
+
 		return std::move(msg).str( );
 	});
+#endif
 
-	return target_cvar == invalid_cvar ? nullptr : static_cast<ConVar*>(target_cvar.get( ));
+	return static_cast<ConVar*>(target_cvar.get( ));
 }
 

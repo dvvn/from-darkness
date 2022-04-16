@@ -3,7 +3,6 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.Physics;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -64,7 +63,7 @@ export namespace cheat::csgo
 		surfacegameprops_t     game;
 	};
 
-	class IPhysicsSurfaceProps :public nstd::one_instance<IPhysicsSurfaceProps*>
+	class IPhysicsSurfaceProps
 	{
 	public:
 		virtual ~IPhysicsSurfaceProps( ) = default;

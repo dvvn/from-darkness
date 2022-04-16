@@ -6,7 +6,6 @@ export module cheat.csgo.interfaces.EngineClient;
 export import cheat.csgo.interfaces.MaterialSystem;
 export import cheat.csgo.math.Qangle;
 export import cheat.csgo.math.Vmatrix;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -160,7 +159,7 @@ export namespace cheat::csgo
 	//#undef CopyFile
 	//#endif
 
-	class IVEngineClient :public nstd::one_instance<IVEngineClient*>
+	class IVEngineClient
 	{
 	public:
 		virtual int GetIntersectingSurfaces(const model_t* model, const Vector& vCenter, float radius, bool bOnlyVisibleSurfaces, SurfInfo* pInfos, int nMaxInfos) = 0;

@@ -1,6 +1,5 @@
 export module cheat.csgo.interfaces.InputSystem;
 export import cheat.csgo.interfaces.AppSystem;
-import nstd.one_instance;
 
 #define JOYSTICK_BUTTON_INTERNAL( _joystick, _button ) ( JOYSTICK_FIRST_BUTTON + ((_joystick) * JOYSTICK_MAX_BUTTON_COUNT) + (_button) )
 #define JOYSTICK_POV_BUTTON_INTERNAL( _joystick, _button ) ( JOYSTICK_FIRST_POV_BUTTON + ((_joystick) * JOYSTICK_POV_BUTTON_COUNT) + (_button) )
@@ -235,7 +234,7 @@ export namespace cheat::csgo
 		// VAXIS NEGATIVE
 	};
 
-	class IInputSystem :public IAppSystem, public nstd::one_instance<IInputSystem*>
+	class IInputSystem :public IAppSystem
 	{
 	public:
 #if 0

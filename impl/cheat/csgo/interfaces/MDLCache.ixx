@@ -1,6 +1,5 @@
 export module cheat.csgo.interfaces.MDLCache;
 export import cheat.csgo.interfaces.AppSystem;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -47,7 +46,7 @@ export namespace cheat::csgo
 		virtual void OnDataUnloaded(MDLCacheDataType_t type, MDLHandle_t handle) = 0;
 	};
 
-	class IMDLCache : public IAppSystem, public nstd::one_instance<IMDLCache*>
+	class IMDLCache : public IAppSystem
 	{
 	public:
 		virtual void                SetCacheNotify(IMDLCacheNotify* pNotify) = 0;

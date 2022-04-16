@@ -6,7 +6,6 @@ module;
 export module cheat.csgo.interfaces.Input;
 export import cheat.csgo.math.Vector;
 export import cheat.csgo.math.Qangle;
-import nstd.one_instance;
 
 export namespace cheat::csgo
 {
@@ -15,7 +14,7 @@ export namespace cheat::csgo
 	class CUserCmd;
 	class CVerifiedUserCmd;
 
-	class CInput :public nstd::one_instance<CInput*>
+	class CInput
 	{
 	public:
 
