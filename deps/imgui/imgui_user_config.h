@@ -14,7 +14,7 @@ namespace ImGui
 		template <std::invocable<ImDrawList*, ImDrawCmd*> Fn>
 		ImDrawCallback_custom(Fn fn)
 		{
-			idx     = index::STATIC;
+			idx = index::STATIC;
 			static_ = fn;
 		}
 
@@ -35,9 +35,9 @@ namespace ImGui
 			requires(std::is_abstract_v<C>)
 		ImDrawCallback_custom(C* inst, size_t index)
 		{
-			auto num     = reinterpret_cast<uintptr_t>(inst);
+			auto num = reinterpret_cast<uintptr_t>(inst);
 			auto vtable0 = *reinterpret_cast<void**>(num);
-			auto vtable  = static_cast<void**>(vtable0);
+			auto vtable = static_cast<void**>(vtable0);
 
 			_Set_class_member(inst, vtable[index]);
 		}
@@ -62,12 +62,12 @@ namespace ImGui
 		{
 			switch (idx)
 			{
-				case index::STATIC:
-					return static_(parent_list, cmd);
-				case index::MEMBER:
-					return member_(parent_list, cmd);
-				default:
-					throw;
+			case index::STATIC:
+				return static_(parent_list, cmd);
+			case index::MEMBER:
+				return member_(parent_list, cmd);
+			default:
+				throw;
 			}
 		}
 
@@ -75,17 +75,17 @@ namespace ImGui
 		{
 			switch (idx)
 			{
-				case index::UNSET:
-					return true;
-				case index::STATIC:
-					return static_ == nullptr;
-				case index::MEMBER:
-					static auto empty_arr = ImDrawCallback_custom( ).dummy_;
-					return __builtin_memcmp(dummy_, empty_arr, _Dummy_size) == 0;
-				case index::RESET:
-					return false;
-				default:
-					throw;
+			case index::UNSET:
+				return true;
+			case index::STATIC:
+				return static_ == nullptr;
+			case index::MEMBER:
+				static auto empty_arr = ImDrawCallback_custom( ).dummy_;
+				return __builtin_memcmp(dummy_, empty_arr, _Dummy_size) == 0;
+			case index::RESET:
+				return false;
+			default:
+				throw;
 			}
 		}
 
@@ -96,15 +96,15 @@ namespace ImGui
 
 			switch (idx)
 			{
-				case index::STATIC:
-					return static_ == other.static_;
-				case index::MEMBER:
-					return __builtin_memcmp(dummy_, other.dummy_, _Dummy_size) == 0;
-				case index::RESET:
-				case index::UNSET:
-					return true;
-				default:
-					throw;
+			case index::STATIC:
+				return static_ == other.static_;
+			case index::MEMBER:
+				return __builtin_memcmp(dummy_, other.dummy_, _Dummy_size) == 0;
+			case index::RESET:
+			case index::UNSET:
+				return true;
+			default:
+				throw;
 			}
 		}
 
@@ -112,49 +112,46 @@ namespace ImGui
 		{
 			switch (idx)
 			{
-				case index::STATIC:
-				case index::MEMBER:
-					return true;
-				default:
-					return false;
+			case index::STATIC:
+			case index::MEMBER:
+				return true;
+			default:
+				return false;
 			}
 		}
 
 	private:
 		void _Fill_dummy( )
 		{
-			for (auto& d: dummy_)
+			for (auto& d : dummy_)
 				d = 0;
 		}
 
 		template <typename C, typename Fn>
 		void _Set_class_member(C inst, Fn fn)
 		{
-			idx                                      = index::MEMBER;
-			member_.instance                         = inst;
-			reinterpret_cast<void*&>(member_.member) = reinterpret_cast<void*&>(fn);
+			idx = index::MEMBER;
+			member_.instance = inst;
+			reinterpret_cast<void*&>(member_.fn) = reinterpret_cast<void*&>(fn);
 		}
 
 		struct class_member_unwrapped
 		{
-			using member_t = void(__fastcall*)(void*, void*, const ImDrawList*, const ImDrawCmd*);
-
+			struct _gap { };
 			void* instance;
-			member_t member;
+			void(__thiscall _gap::* fn)(const ImDrawList*, const ImDrawCmd*);
 
 			void operator()(const ImDrawList* parent_list, const ImDrawCmd* cmd) const
 			{
-				std::invoke(member, instance, nullptr, parent_list, cmd);
+				std::invoke(fn, reinterpret_cast<_gap*>(instance), parent_list, cmd);
 			}
 		};
-
-		using static_function = void(*)(const ImDrawList* parent_list, const ImDrawCmd* cmd);
 
 		static constexpr auto _Dummy_size = sizeof(class_member_unwrapped);
 
 		union
 		{
-			static_function static_;
+			void(*static_)(const ImDrawList* parent_list, const ImDrawCmd* cmd);
 			class_member_unwrapped member_;
 			uint8_t dummy_[_Dummy_size];
 		};
@@ -162,9 +159,9 @@ namespace ImGui
 		enum class index :uint8_t
 		{
 			UNSET
-		  , STATIC
-		  , MEMBER
-		  , RESET
+			, STATIC
+			, MEMBER
+			, RESET
 		};
 
 		index idx;
