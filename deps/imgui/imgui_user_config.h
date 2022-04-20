@@ -2,158 +2,77 @@
 #pragma once
 
 #include <concepts>
+#include <cstring>
+#include <cstddef>
+#include <exception>
 
 struct ImDrawCmd;
 struct ImDrawList;
 
 namespace ImGui
 {
+	template <class C>
+	auto _Get_virtual_func(const size_t idx, C* instance) noexcept
+	{
+		auto num = reinterpret_cast<uintptr_t>(instance);
+		auto vtable0 = *reinterpret_cast<void**>(num);
+		auto vtable = static_cast<void**>(vtable0);
+		return vtable[idx];
+	}
+
 	class ImDrawCallback_custom
 	{
-	public:
-		template <std::invocable<ImDrawList*, ImDrawCmd*> Fn>
-		ImDrawCallback_custom(Fn fn)
+		class class_member_unwrapped
 		{
-			idx = index::STATIC;
-			static_ = fn;
-		}
+			struct dummy_struct { };
 
-		template <typename C, std::invocable<C, ImDrawList*, ImDrawCmd*> Fn>
-		ImDrawCallback_custom(C inst, Fn fn)
-		{
-			_Set_class_member(inst, fn);
-		}
-
-		template <typename C>
-			requires(std::is_class_v<C>)
-		ImDrawCallback_custom(C inst)
-			: ImDrawCallback_custom(inst, &std::remove_cvref_t<C>::operator())
-		{
-		}
-
-		template <typename C>
-			requires(std::is_abstract_v<C>)
-		ImDrawCallback_custom(C* inst, size_t index)
-		{
-			auto num = reinterpret_cast<uintptr_t>(inst);
-			auto vtable0 = *reinterpret_cast<void**>(num);
-			auto vtable = static_cast<void**>(vtable0);
-
-			_Set_class_member(inst, vtable[index]);
-		}
-
-		ImDrawCallback_custom([[maybe_unused]] int i)
-		{
-#ifdef _DEBUG
-			if (i != -1)
-				throw;
-#endif
-			idx = index::RESET;
-			_Fill_dummy( );
-		}
-
-		ImDrawCallback_custom( )
-		{
-			idx = index::UNSET;
-			_Fill_dummy( );
-		}
-
-		void operator()(const ImDrawList* parent_list, const ImDrawCmd* cmd) const
-		{
-			switch (idx)
+			union
 			{
-			case index::STATIC:
-				return static_(parent_list, cmd);
-			case index::MEMBER:
-				return member_(parent_list, cmd);
-			default:
-				throw;
-			}
-		}
+				void(__thiscall dummy_struct::* fn_)(const ImDrawList*, const ImDrawCmd*);
+				void* fn_ptr_;
+			};
+			dummy_struct* inst_;
 
-		bool operator==(decltype(nullptr)) const
-		{
-			switch (idx)
+		public:
+			class_member_unwrapped( )
+				:fn_ptr_(nullptr), inst_(nullptr)
 			{
-			case index::UNSET:
-				return true;
-			case index::STATIC:
-				return static_ == nullptr;
-			case index::MEMBER:
-				static auto empty_arr = ImDrawCallback_custom( ).dummy_;
-				return __builtin_memcmp(dummy_, empty_arr, _Dummy_size) == 0;
-			case index::RESET:
-				return false;
-			default:
-				throw;
 			}
-		}
 
-		bool operator==(const ImDrawCallback_custom& other) const
-		{
-			if (idx != other.idx)
-				return false;
-
-			switch (idx)
+			template <class C>
+			class_member_unwrapped(void* fn, C* inst)
+				: fn_ptr_(fn), inst_(reinterpret_cast<dummy_struct*>(inst))
 			{
-			case index::STATIC:
-				return static_ == other.static_;
-			case index::MEMBER:
-				return __builtin_memcmp(dummy_, other.dummy_, _Dummy_size) == 0;
-			case index::RESET:
-			case index::UNSET:
-				return true;
-			default:
-				throw;
 			}
-		}
 
-		explicit operator bool( ) const
-		{
-			switch (idx)
+			template <class C, std::invocable<C*, ImDrawList*, ImDrawCmd*> Fn>
+			class_member_unwrapped(Fn fn, C* inst)
+				: class_member_unwrapped(reinterpret_cast<void*&>(fn), inst)
 			{
-			case index::STATIC:
-			case index::MEMBER:
-				return true;
-			default:
-				return false;
 			}
-		}
 
-	private:
-		void _Fill_dummy( )
-		{
-			for (auto& d : dummy_)
-				d = 0;
-		}
+			template <class C>
+			class_member_unwrapped(const size_t index, C* inst)
+				: class_member_unwrapped(_Get_virtual_func(index, inst), inst)
+			{
+				static_assert(std::is_abstract_v<C>);
+			}
 
-		template <typename C, typename Fn>
-		void _Set_class_member(C inst, Fn fn)
-		{
-			idx = index::MEMBER;
-			member_.instance = inst;
-			reinterpret_cast<void*&>(member_.fn) = reinterpret_cast<void*&>(fn);
-		}
-
-		struct class_member_unwrapped
-		{
-			struct _gap { };
-			void* instance;
-			void(__thiscall _gap::* fn)(const ImDrawList*, const ImDrawCmd*);
 
 			void operator()(const ImDrawList* parent_list, const ImDrawCmd* cmd) const
 			{
-				std::invoke(fn, reinterpret_cast<_gap*>(instance), parent_list, cmd);
+				std::invoke(fn_, inst_, parent_list, cmd);
 			}
-		};
 
-		static constexpr auto _Dummy_size = sizeof(class_member_unwrapped);
+			bool operator ==(nullptr_t) const noexcept
+			{
+				return fn_ptr_ == nullptr || inst_ == nullptr;
+			}
 
-		union
-		{
-			void(*static_)(const ImDrawList* parent_list, const ImDrawCmd* cmd);
-			class_member_unwrapped member_;
-			uint8_t dummy_[_Dummy_size];
+			bool operator ==(const class_member_unwrapped& other) const noexcept
+			{
+				return fn_ptr_ == other.fn_ptr_ && inst_ == other.inst_;
+			}
 		};
 
 		enum class index :uint8_t
@@ -164,26 +83,148 @@ namespace ImGui
 			, RESET
 		};
 
-		index idx;
+	public:
+		using static_func = void(*)(const ImDrawList* parent_list, const ImDrawCmd* cmd);
+
+		ImDrawCallback_custom(static_func fn)
+			:idx_(index::STATIC), static_(fn)
+		{
+		}
+
+		template <typename T, class C>
+		ImDrawCallback_custom(T fn_src, C* inst)
+			: idx_(index::MEMBER), member_(fn_src, inst)
+		{
+		}
+
+		ImDrawCallback_custom([[maybe_unused]] const int i)
+			:idx_(index::RESET)
+		{
+#ifdef _DEBUG
+			if (i != -1)
+				throw;
+#endif
+		}
+
+		ImDrawCallback_custom( )
+			:idx_(index::UNSET)
+		{
+		}
+
+		void operator()(const ImDrawList* parent_list, const ImDrawCmd* cmd) const
+		{
+			switch (idx_)
+			{
+			case index::STATIC:
+				return static_(parent_list, cmd);
+			case index::MEMBER:
+				return member_(parent_list, cmd);
+			default:
+				std::terminate( );
+			}
+		}
+
+		bool operator==(nullptr_t) const noexcept
+		{
+			switch (idx_)
+			{
+			case index::UNSET:
+				return true;
+			case index::STATIC:
+				return static_ == nullptr;
+			case index::MEMBER:
+				return member_ == nullptr;
+			case index::RESET:
+				return false;
+			default:
+				std::terminate( );
+			}
+		}
+
+		bool operator==(const ImDrawCallback_custom& other) const noexcept
+		{
+			if (idx_ != other.idx_)
+				return false;
+
+			switch (idx_)
+			{
+			case index::STATIC:
+				return static_ == other.static_;
+			case index::MEMBER:
+				return member_ == other.member_;
+			case index::RESET:
+			case index::UNSET:
+				return true;
+			default:
+				std::terminate( );
+			}
+		}
+
+		explicit operator bool( ) const
+		{
+			return idx_ == index::STATIC || idx_ == index::MEMBER;
+		}
+
+	private:
+		union
+		{
+			static_func static_;
+			class_member_unwrapped member_;
+		};
+
+		index idx_;
 	};
+
+	inline int _Custom_callback_memcmp(const ImGui::ImDrawCallback_custom* l, const ImGui::ImDrawCallback_custom* r, const size_t size) noexcept
+	{
+#ifdef _DEBUG
+		if (size != sizeof(ImGui::ImDrawCallback_custom))
+			std::terminate( );
+#endif
+		return *l == *r ? 0 : 1;
+	}
 }
 
+#define IMGUI_CUSTOM_CALLBACK_MEMCMP(_CONST_,_CONST1_)\
+inline int memcmp(_CONST_ ImGui::ImDrawCallback_custom* l, _CONST1_ ImGui::ImDrawCallback_custom* r, const size_t size) noexcept\
+{\
+	return ImGui::_Custom_callback_memcmp(l, r, size);\
+}
+
+IMGUI_CUSTOM_CALLBACK_MEMCMP(const, const);
+IMGUI_CUSTOM_CALLBACK_MEMCMP(const, );
+IMGUI_CUSTOM_CALLBACK_MEMCMP(, const);
+IMGUI_CUSTOM_CALLBACK_MEMCMP(, );
+
+#undef IMGUI_CUSTOM_CALLBACK_MEMCMP
+
+//------------------
+
+#define	ImDrawIdx uint32_t
 #define ImDrawCallback ImGui::ImDrawCallback_custom
 #define	IMGUI_USE_WCHAR32
 #define IMGUI_DEFINE_MATH_OPERATORS
 #define	IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#define IMGUI_DISABLE_OBSOLETE_KEYIO
 #define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+
 #if __has_include(<stb_truetype.h>) && __has_include(<stb_rect_pack.h>)
 #define	IMGUI_STB_TRUETYPE_FILENAME <stb_truetype.h>
 #define	IMGUI_STB_RECT_PACK_FILENAME <stb_rect_pack.h>
 #endif
+
 #if __has_include("stb_sprintf.h")
 #define IMGUI_USE_STB_SPRINTF
 #endif
-#define	ImDrawIdx size_t
+
+#include <intrin.h>
+#define IMGUI_ENABLE_SSE
 
 #ifdef _DEBUG
 #define IMGUI_DISABLE_DEFAULT_ALLOCATORS 1
+#else
+//#define IMGUI_DISABLE_DEMO_WINDOWS
+//#define IMGUI_DISABLE_METRICS_WINDOW
 #endif
 
 struct IDirect3DTexture9;
