@@ -2,6 +2,10 @@
 <Project ToolsVersion="4.0"
 		 xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+	<PropertyGroup Label="Globals">
+		<ImGuiDir>$(GitClonedProjects)\ocornut\imgui</ImGuiDir>
+	</PropertyGroup>
+
 	<ItemDefinitionGroup>
 		<ClCompile>
 			<PreprocessorDefinitions>
@@ -11,9 +15,9 @@
 			<AdditionalIncludeDirectories>
 				$(SolutionDir)\deps\imgui;
 				$(GitClonedProjects)\nothings\stb;
-				$(GitClonedProjects)\imgui;
-				$(GitClonedProjects)\imgui\backends;
-				$(GitClonedProjects)\imgui\misc\cpp;
+				$(ImGuiDir);
+				$(ImGuiDir)\backends;
+				$(ImGuiDir)\misc\cpp;
 				%(AdditionalIncludeDirectories)
 			</AdditionalIncludeDirectories>
 		</ClCompile>

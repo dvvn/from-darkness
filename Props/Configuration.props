@@ -10,7 +10,7 @@
 		<OutputDirRoot>$(SolutionDir).out\$(ProjectName)</OutputDirRoot>
 		<OutputDir>$(OutputDirRoot)\$(Configuration)</OutputDir>
 		<!--<OutPutDir>$(SolutionDir).out\$(ProjectName)\$(Platform)\$(Configuration)</OutPutDir>-->
-		<GitClonedProjects>$(HOMEDRIVE)\Programming\Projects\git</GitClonedProjects>
+		<GitClonedProjects>$(USERPROFILE)\Documents\repos</GitClonedProjects>
 	</PropertyGroup>
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
 	

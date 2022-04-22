@@ -30,10 +30,10 @@
 	</ImportGroup>
 
 	<ItemGroup>
-		<Natvis Include="$(GitClonedProjects)\imgui\misc\debuggers\*.natvis" />
-		<ClCompile Include="$(GitClonedProjects)\imgui\*.cpp" />
-		<ClCompile Include="$(GitClonedProjects)\imgui\misc\cpp\*.cpp" />
-		<ClCompile Include="$(GitClonedProjects)\imgui\backends\*dx9.cpp" />
-		<ClCompile Include="$(GitClonedProjects)\imgui\backends\*win32.cpp" />
+		<Natvis Include="$(ImGuiDir)\misc\debuggers\*.natvis" />
+		<ClCompile Include="$(ImGuiDir)\*.cpp" />
+		<ClCompile Include="$(ImGuiDir)\misc\cpp\*.cpp" />
+		<ClCompile Include="$(ImGuiDir)\backends\*dx9.cpp" />
+		<ClCompile Include="$(ImGuiDir)\backends\*win32.cpp" />
 	</ItemGroup>
 </Project>

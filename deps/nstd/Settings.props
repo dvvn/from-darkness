@@ -9,8 +9,8 @@
 				%(PreprocessorDefinitions)
 			</PreprocessorDefinitions>
 			<AdditionalIncludeDirectories>
-				$(GitClonedProjects)\veque\include;
-				$(GitClonedProjects)\robin-hood-hashing\src\include;
+				$(GitClonedProjects)\Shmoopty\veque\include;
+				$(GitClonedProjects)\martinus\robin-hood-hashing\src\include;
 				$(GitClonedProjects)\ww898\utf-cpp\include;
 				$(GitClonedProjects)\fmtlib\fmt\include;
 				$(GitClonedProjects)\ericniebler\range-v3\include\;

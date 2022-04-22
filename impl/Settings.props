@@ -16,10 +16,8 @@
 				CHEAT_HAVE_CONSOLE;
 				%(PreprocessorDefinitions)
 			</PreprocessorDefinitions>
-			<AdditionalIncludeDirectories>	
-				$(GitClonedProjects)\Naios\function2\include;
+			<AdditionalIncludeDirectories>
 				$(GitClonedProjects)\nlohmann\json\include;
-				$(GitClonedProjects)\thread-pool;
 				$(SolutionDir)\impl;
 				%(AdditionalIncludeDirectories)
 			</AdditionalIncludeDirectories>
@@ -33,7 +31,6 @@
 	</ItemDefinitionGroup>
 
 	<ImportGroup Label="PropertySheets">
-		<Import Project="$(SolutionDir)/deps/cppcoro/Settings.props"/>
 		<Import Project="$(SolutionDir)/deps/imgui/Settings.props"/>
 		<Import Project="$(SolutionDir)/deps/dhooks/Settings.props"/>
 	</ImportGroup>

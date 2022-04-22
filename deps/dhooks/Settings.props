@@ -6,7 +6,6 @@
 		<ClCompile>
 			<AdditionalIncludeDirectories>
 				$(GitClonedProjects)\dvvn\detour_hooks\impl;
-				$(GitClonedProjects)\danielkrupinski\x86RetSpoof;
 				%(AdditionalIncludeDirectories)
 			</AdditionalIncludeDirectories>
 		</ClCompile>
