@@ -3,7 +3,6 @@ module;
 #include <nstd/runtime_assert.h>
 #include <nstd/format.h>
 #include <nstd/ranges.h>
-#include <nstd/winapi/convert_string.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -18,30 +17,23 @@ import cheat.console;
 import nstd.mem.signature;
 import nstd.mem.block;
 import nstd.winapi.module_info;
+import nstd.text.convert;
 
 using namespace nstd::mem;
 namespace wp = nstd::winapi;
-
-struct to_wide_string
-{
-	template<typename T>
-	auto operator()(const std::basic_string_view<T> str) const noexcept
-	{
-		return _To_wide(str);
-	}
-};
+using nstd::text::convert_to;
 
 struct extract_module_name
 {
 	auto operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry)const noexcept
 	{
-		return wp::module_info(ldr_entry).name( );
+		return wp::module_info(ldr_entry).name();
 	}
 
 	template<typename T>
 	auto operator()(const std::basic_string_view<T> str) const noexcept
 	{
-		return _To_wide(str);
+		return convert_to<WCHAR>(str);
 	}
 };
 
@@ -58,10 +50,10 @@ static void _Console_log(const Mod module_name, const std::string_view object_ty
 {
 	cheat::console::log(
 		_T("{} -> {} \"{}\" {}"),
-		std::bind_front(extract_module_name( ), module_name),
-		std::bind_front(to_wide_string( ), object_type),
-		std::bind_front(to_wide_string( ), object_name),
-		std::bind_front(inform_found_pointer( ), object_ptr)
+		std::bind_front(extract_module_name(), module_name),
+		std::bind_front(convert_to<WCHAR>, object_type),
+		std::bind_front(convert_to<WCHAR>, object_name),
+		std::bind_front(inform_found_pointer(), object_ptr)
 	);
 }
 
@@ -88,11 +80,11 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::s
 	const basic_address<IMAGE_DOS_HEADER> dos = ldr_entry->DllBase;
 	const basic_address<IMAGE_NT_HEADERS> nt = dos + dos->e_lfanew;
 
-	const block mem = {dos.get<uint8_t*>( ), nt->OptionalHeader.SizeOfImage};
-	const auto bytes = make_signature(sig.data( ), sig.size( ));
+	const block mem = { dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage };
+	const auto bytes = make_signature(sig.data(), sig.size());
 	const auto ret = mem.find_block(bytes);
 
-	const auto result = ret.data( );
+	const auto result = ret.data();
 	_Console_log(ldr_entry, "signature", sig, result);
 	return result;
 }
@@ -108,9 +100,9 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
 {
 	for (auto reg = first; reg != last; reg = reg->next)
 	{
-		if (std::memcmp(reg->name, name.data( ), name.size( )) != 0)
+		if (std::memcmp(reg->name, name.data(), name.size()) != 0)
 			continue;
-		const auto last_char = reg->name[name.size( )];
+		const auto last_char = reg->name[name.size()];
 		if (last_char == '\0' || std::isdigit(last_char))
 			return reg;
 	}
@@ -120,7 +112,7 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
 
 void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name) noexcept
 {
-	interface_reg* const root_reg = create_interface_fn./*rel32*/jmp(0x5).plus(0x6).deref<2>( );
+	interface_reg* const root_reg = create_interface_fn./*rel32*/jmp(0x5).plus(0x6).deref<2>();
 	interface_reg* const target_reg = _Find_interface(name, root_reg);
 	runtime_assert(target_reg != nullptr);
 	runtime_assert(_Find_interface(name, target_reg->next) == nullptr);
@@ -131,9 +123,9 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_add
 
 //----
 
-_Strv current_module::_Name( ) const noexcept
+_Strv current_module::_Name() const noexcept
 {
-	static const auto name = wp::module_info(wp::current_module( )).name( );
+	static const auto name = wp::module_info(wp::current_module()).name();
 	return name;
 }
 
