@@ -20,24 +20,23 @@ export import nstd.mem.address;
 
 using nstd::mem::basic_address;
 namespace wp = nstd::winapi;
-using wp::_Strv;
 
-void console_log(const _Strv module_name, const std::string_view object_type, const _Strv object_name, const basic_address<void> object_ptr) noexcept;
+void console_log(const std::wstring_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept;
 
 struct logs_writer
 {
-	void operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const _Strv module_name) const noexcept;
+	void operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::wstring_view module_name) const noexcept;
 
 	template<typename FnT>
-	void operator()(const wp::found_export<FnT> ex, const _Strv module_name, const _Strv export_name) const noexcept
+	void operator()(const wp::found_export<FnT> ex, const std::wstring_view module_name, const std::string_view export_name) const noexcept
 	{
 		console_log(module_name, "export", export_name, ex.unknown);
 	}
 
-	void operator()(IMAGE_SECTION_HEADER* const sec, const _Strv module_name, const std::string_view section_name) const noexcept;
+	void operator()(IMAGE_SECTION_HEADER* const sec, const std::wstring_view module_name, const std::string_view section_name) const noexcept;
 
 	template<typename T>
-	void operator()(const wp::found_vtable<T> vt, const _Strv module_name, const _Strv vtable_name) const noexcept
+	void operator()(const wp::found_vtable<T> vt, const std::wstring_view module_name, const std::string_view vtable_name) const noexcept
 	{
 		console_log(module_name, "vtable", vtable_name, vt.ptr);
 	}
@@ -46,7 +45,7 @@ struct logs_writer
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig) noexcept;
 void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name) noexcept;
 
-using cheat::tools::csgo_object_name_uni;
+using cheat::tools::csgo_object_name;
 using nstd::text::chars_cache;
 
 template<class Gm>
@@ -66,7 +65,7 @@ public:
 	operator T* () const noexcept
 	{
 		T* const ptr = addr_;
-		console_log(game_module_._Name( ), "interface", csgo_object_name_uni<T>( ), ptr);
+		console_log(game_module_._Name( ), "interface", csgo_object_name<T>( ), ptr);
 		return ptr;
 	}
 
@@ -108,9 +107,9 @@ interface_finder(Gm)->interface_finder<Gm>;
 template<chars_cache Name>
 struct game_module
 {
-	constexpr _Strv _Name( ) const noexcept
+	constexpr std::wstring_view _Name( ) const noexcept
 	{
-		return Name.view( );
+		return Name;
 	}
 
 	interface_finder<game_module> _Ifc_finder(const basic_address<void> addr) const noexcept
@@ -137,7 +136,7 @@ struct game_module
 	{
 		static const auto found = wp::find_vtable<logs_writer>(wp::find_module<Name, logs_writer>( ),
 															   this->_Name( ),
-															   csgo_object_name_uni<T>( ));
+															   csgo_object_name<T>( ));
 		return static_cast<T*>(found);
 	}
 
@@ -145,7 +144,7 @@ struct game_module
 	basic_address<void> find_signature( ) const noexcept
 	{
 		static const auto found = find_signature_impl(wp::find_module<Name, logs_writer>( ),
-													  Sig.view( ));
+													  Sig);
 		return found;
 	}
 
@@ -154,7 +153,7 @@ struct game_module
 	{
 		static const auto found = find_interface_impl(wp::find_module<Name, logs_writer>( ),
 													  this->find_export<void*, "CreateInterface">( ),
-													  IfcName.view( ));
+													  IfcName);
 		return found;
 	}
 
@@ -168,7 +167,7 @@ struct game_module
 
 struct current_module
 {
-	_Strv _Name( ) const noexcept;
+	std::wstring_view _Name( ) const noexcept;
 	interface_finder<current_module> _Ifc_finder(const basic_address<void> addr) const noexcept;
 };
 

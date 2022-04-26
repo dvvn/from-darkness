@@ -21,11 +21,12 @@ import nstd.text.convert;
 
 using namespace nstd::mem;
 namespace wp = nstd::winapi;
-using nstd::text::convert_to;
 
-struct extract_module_name
+constexpr auto to_wide = nstd::text::convert_to<WCHAR>;
+
+struct
 {
-	auto operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry)const noexcept
+	auto operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry) const noexcept
 	{
 		return wp::module_info(ldr_entry).name();
 	}
@@ -33,43 +34,43 @@ struct extract_module_name
 	template<typename T>
 	auto operator()(const std::basic_string_view<T> str) const noexcept
 	{
-		return convert_to<WCHAR>(str);
+		return to_wide(str);
 	}
-};
+} constexpr extract_module_name;
 
-struct inform_found_pointer
+struct
 {
-	wp::_Str operator()(const basic_address<void> object_ptr) const noexcept
+	auto operator()(const basic_address<void> object_ptr) const noexcept
 	{
 		return object_ptr ? std::format(_T("found at {:#X}"), object_ptr.value) : _T("not found");
 	}
-};
+} constexpr inform_found_pointer;
 
-template<typename Mod, typename Obj, typename P>
-static void _Console_log(const Mod module_name, const std::string_view object_type, const std::basic_string_view<Obj> object_name, P* const object_ptr) noexcept
+template<typename Mod,  typename P>
+static void _Console_log(const Mod module_name, const std::string_view object_type, const std::string_view object_name, P* const object_ptr) noexcept
 {
 	cheat::console::log(
 		_T("{} -> {} \"{}\" {}"),
-		std::bind_front(extract_module_name(), module_name),
-		std::bind_front(convert_to<WCHAR>, object_type),
-		std::bind_front(convert_to<WCHAR>, object_name),
-		std::bind_front(inform_found_pointer(), object_ptr)
+		std::bind_front(extract_module_name, module_name),
+		std::bind_front(to_wide, object_type),
+		std::bind_front(to_wide, object_name),
+		std::bind_front(inform_found_pointer, object_ptr)
 	);
 }
 
-void console_log(const _Strv module_name, const std::string_view object_type, const _Strv object_name, const basic_address<void> object_ptr) noexcept
+void console_log(const std::wstring_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr) noexcept
 {
 	_Console_log(module_name, object_type, object_name, object_ptr.pointer);
 }
 
 #define console_log(...) static_assert(false,"console_log: use _Console_log instead")
 
-void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const _Strv module_name) const noexcept
+void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::wstring_view module_name) const noexcept
 {
 	cheat::console::log(_T("module \"{}\" found at {:#X}"), module_name, reinterpret_cast<uintptr_t>(ldr_entry));
 }
 
-void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const _Strv module_name, const std::string_view section_name) const noexcept
+void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::wstring_view module_name, const std::string_view section_name) const noexcept
 {
 	_Console_log(module_name, "section", section_name, sec);
 }
@@ -123,7 +124,7 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_add
 
 //----
 
-_Strv current_module::_Name() const noexcept
+std::wstring_view current_module::_Name() const noexcept
 {
 	static const auto name = wp::module_info(wp::current_module()).name();
 	return name;

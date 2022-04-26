@@ -268,7 +268,7 @@ export namespace cheat::csgo
 		template<nstd::text::chars_cache Cvar>
 		ConVar* FindVar( ) const noexcept
 		{
-			static auto cvar = FindVar(Cvar.view( ));
+			static const auto cvar = FindVar(Cvar);
 			return cvar;
 		}
 	};
