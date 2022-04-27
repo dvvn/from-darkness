@@ -46,8 +46,8 @@ export namespace cheat::csgo
 		char      pad_0x0020[0x90];   //0x0020
 		float     fov;                //0x00B0 
 		float     viewmodel_fov;      //0x00B4 
-		Vector    origin;             //0x00B8 
-		Vector    angles;             //0x00C4 
+		math::vector3    origin;             //0x00B8 
+		math::vector3    angles;             //0x00C4 
 		char      pad_0x00D0[0x7C];   //0x00D0
 
 	};//Size=0x014C
@@ -73,8 +73,8 @@ export namespace cheat::csgo
 		uint8_t   pad0[0x7C];
 		float       FOV;
 		float       ViewModelFOV;
-		Vector vecOrigin;
-		QAngle angView;
+		math::vector3 vecOrigin;
+		math::qangle angView;
 		float       NearZ;
 		float       FarZ;
 		float       NearViewmodelZ;
@@ -89,10 +89,10 @@ export namespace cheat::csgo
 		float       DoFQuality;
 		int         nMotionBlurMode;
 		float       ShutterTime;
-		Vector vecShutterOpenPosition;
-		QAngle vecShutterOpenAngles;
-		Vector vecShutterClosePosition;
-		QAngle vecShutterCloseAngles;
+		math::vector3 vecShutterOpenPosition;
+		math::qangle vecShutterOpenAngles;
+		math::vector3 vecShutterClosePosition;
+		math::qangle vecShutterCloseAngles;
 		float       OffCenterTop;
 		float       OffCenterBottom;
 		float       OffCenterLeft;

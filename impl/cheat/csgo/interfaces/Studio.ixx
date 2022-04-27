@@ -3,9 +3,8 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.Studio;
-export import cheat.csgo.math.Vector;
-export import cheat.csgo.math.Vmatrix;
-export import cheat.csgo.math.Quaternion;
+export import cheat.math.vector4;
+export import cheat.math.matrix3x4;
 
 export namespace cheat::csgo
 {
@@ -110,15 +109,15 @@ export namespace cheat::csgo
 		char* const pszName( ) const { return ((char*)this) + sznameindex; }
 		int         parent;
 		int         bonecontroller[6]; // bone controller index, -1 == none
-		Vector      pos;
-		Quaternion  quat;
+		math::vector3      pos;
+		math::quaternion  quat;
 		RadianEuler rot;
 		// compression scale
-		Vector posscale;
-		Vector rotscale;
+		math::vector3 posscale;
+		math::vector3 rotscale;
 
-		matrix3x4_t poseToBone;
-		Quaternion  qAlignment;
+		math::matrix3x4 poseToBone;
+		math::quaternion  qAlignment;
 		int         flags;
 		int         proctype;
 		int         procindex;
@@ -137,10 +136,6 @@ export namespace cheat::csgo
 		int surfacepropLookup;
 		int m_iPad01[7];
 
-		mstudiobone_t( )
-		{
-		}
-
 	private:
 		// No copy constructors allowed
 		mstudiobone_t(const mstudiobone_t& vOther);
@@ -150,8 +145,8 @@ export namespace cheat::csgo
 	{
 		int     bone;
 		int     group;
-		Vector  bbmin;
-		Vector  bbmax;
+		math::vector3  bbmin;
+		math::vector3  bbmax;
 		int     szhitboxnameindex;
 		int32_t m_iPad01[3];
 		float   m_flRadius;
@@ -191,8 +186,8 @@ export namespace cheat::csgo
 		__int32 nServerCount; //0x010C 
 		__int32 type;         //0x0110 
 		__int32 flags;        //0x0114 
-		Vector  vecMins;      //0x0118 
-		Vector  vecMaxs;      //0x0124 
+		math::vector3  vecMins;      //0x0118 
+		math::vector3  vecMaxs;      //0x0124 
 		float   radius;       //0x0130 
 		char    pad[0x1C];    //0x0134
 	};                        //Size=0x0150
@@ -205,12 +200,12 @@ export namespace cheat::csgo
 		long    checksum;            //0x0008 
 		char    szName[64];          //0x000C 
 		__int32 length;              //0x004C 
-		Vector  vecEyePos;           //0x0050 
-		Vector  vecIllumPos;         //0x005C 
-		Vector  vecHullMin;          //0x0068 
-		Vector  vecHullMax;          //0x0074 
-		Vector  vecBBMin;            //0x0080 
-		Vector  vecBBMax;            //0x008C 
+		math::vector3  vecEyePos;           //0x0050 
+		math::vector3  vecIllumPos;         //0x005C 
+		math::vector3  vecHullMin;          //0x0068 
+		math::vector3  vecHullMax;          //0x0074 
+		math::vector3  vecBBMin;            //0x0080 
+		math::vector3  vecBBMax;            //0x008C 
 		__int32 flags;               //0x0098 
 		__int32 numbones;            //0x009C 
 		__int32 boneindex;           //0x00A0 

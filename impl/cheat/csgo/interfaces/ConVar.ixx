@@ -5,7 +5,7 @@ module;
 export module cheat.csgo.interfaces.ConVar;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.tools.UtlVector;
-export import cheat.csgo.math.Color;
+export import cheat.math.color;
 import nstd.text.chars_cache;
 
 export namespace cheat::csgo
@@ -257,7 +257,7 @@ export namespace cheat::csgo
 		virtual void			CallGlobalChangeCallbacks(ConVar* pVar, const char* szOldString, float flOldValue) = 0;
 		virtual void			InstallConsoleDisplayFunc(void* pDisplayFunc) = 0;
 		virtual void			RemoveConsoleDisplayFunc(void* pDisplayFunc) = 0;
-		virtual void			ConsoleColorPrintf(const Color& color, const char* pFormat, ...) const = 0;
+		virtual void			ConsoleColorPrintf(const math::color& color, const char* pFormat, ...) const = 0;
 		virtual void			ConsolePrintf(const char* pFormat, ...) const = 0;
 		virtual void			ConsoleDPrintf(const char* pFormat, ...) const = 0;
 		virtual void			RevertFlaggedConVars(int nFlag) = 0;

@@ -7,10 +7,8 @@ export import cheat.csgo.interfaces.ClientEntity;
 export import cheat.csgo.structs.Recv;
 export import cheat.csgo.structs.DataMap;
 export import cheat.csgo.structs.VarMapping;
-export import cheat.csgo.math.Vector;
-export import cheat.csgo.math.Qangle;
-export import cheat.csgo.math.Vmatrix;
-export import cheat.csgo.math.Quaternion;
+export import cheat.math.qangle;
+export import cheat.math.view_matrix;
 
 export namespace cheat::csgo
 {

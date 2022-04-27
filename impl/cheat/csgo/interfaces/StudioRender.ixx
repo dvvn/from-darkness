@@ -9,6 +9,8 @@ export import cheat.csgo.interfaces.Studio;
 export import cheat.csgo.interfaces.AppSystem;
 export import cheat.csgo.interfaces.ModelRender;
 export import cheat.csgo.tools.UtlVector;
+export import cheat.math.view_matrix;
+export import cheat.math.vector2;
 
 export namespace cheat::csgo
 {
@@ -63,9 +65,9 @@ export namespace cheat::csgo
 	struct LightDesc_t
 	{
 		LightType_t m_Type;      //< xxx
-		Vector m_Color;     //< color+intensity 
-		Vector m_Position;  //< light source center position
-		Vector m_Direction; //< for SPOT, direction it is pointing
+		math::vector3 m_Color;     //< color+intensity 
+		math::vector3 m_Position;  //< light source center position
+		math::vector3 m_Direction; //< for SPOT, direction it is pointing
 		float m_Range;           //< distance range for light.0=infinite
 		float m_Falloff;         //< angular falloff exponent for spot lights
 		float m_Attenuation0;    //< constant distance falloff term
@@ -101,7 +103,7 @@ export namespace cheat::csgo
 		// constructors for various useful subtypes
 
 		// a point light with infinite range
-		LightDesc_t(const Vector& pos, const Vector& color)
+		LightDesc_t(const math::vector3& pos, const math::vector3& color)
 		{
 			InitPoint(pos, color);
 		}
@@ -114,15 +116,15 @@ export namespace cheat::csgo
 
 		/// a simple light. cone boundaries in radians. you pass a look_at point and the
 		/// direciton is derived from that.
-		LightDesc_t(const Vector& pos, const Vector& color, const Vector& point_at,
+		LightDesc_t(const math::vector3& pos, const math::vector3& color, const math::vector3& point_at,
 					float inner_cone_boundary, float outer_cone_boundary)
 		{
 			InitSpot(pos, color, point_at, inner_cone_boundary, outer_cone_boundary);
 		}
 
-		void InitPoint(const Vector& pos, const Vector& color);
-		void InitDirectional(const Vector& dir, const Vector& color);
-		void InitSpot(const Vector& pos, const Vector& color, const Vector& point_at,
+		void InitPoint(const math::vector3& pos, const math::vector3& color);
+		void InitDirectional(const math::vector3& dir, const math::vector3& color);
+		void InitSpot(const math::vector3& pos, const math::vector3& color, const math::vector3& point_at,
 					  float inner_cone_boundary, float outer_cone_boundary);
 
 		/// Given 4 points and 4 normals, ADD lighting from this light into "color".
@@ -141,7 +143,7 @@ export namespace cheat::csgo
 
 		/// given a direction relative to the light source position, is this ray within the
 			/// light cone (for spotlights..non spots consider all rays to be within their cone)
-		bool IsDirectionWithinLightCone(const Vector& rdir) const
+		bool IsDirectionWithinLightCone(const math::vector3& rdir) const
 		{
 			return ((m_Type != SPOT) || (rdir.Dot(m_Direction) >= m_PhiDot));
 		}
@@ -158,8 +160,8 @@ export namespace cheat::csgo
 
 	struct MaterialLightingState_t
 	{
-		Vector vecAmbientCube[6];
-		Vector vecLightingOrigin;
+		math::vector3 vecAmbientCube[6];
+		math::vector3 vecLightingOrigin;
 		int nLocalLightCount;
 		LightDesc_t localLightDesc[4];
 	};
@@ -249,8 +251,8 @@ export namespace cheat::csgo
 			m_flProjectionRotation = 0.0f;
 		}
 
-		Vector m_vecLightOrigin;
-		Quaternion m_quatOrientation;
+		math::vector3 m_vecLightOrigin;
+		math::quaternion m_quatOrientation;
 		float m_NearZ;
 		float m_FarZ;
 		float m_fHorizontalFOVDegrees;
@@ -318,7 +320,7 @@ export namespace cheat::csgo
 	{
 		IMaterial* m_pDebugMaterial;
 		FlashlightState_t m_FlashlightState;
-		VMatrix m_WorldToTexture;
+		math::view_matrix m_WorldToTexture;
 		ITexture* m_pFlashlightDepthTexture;
 	};
 
@@ -368,11 +370,11 @@ export namespace cheat::csgo
 
 	struct GetTriangles_Vertex_t
 	{
-		Vector m_Position;
-		Vector m_Normal;
-		Vector4D m_TangentS;
-		Vector2D m_TexCoord;
-		Vector4D m_BoneWeight;
+		math::vector3 m_Position;
+		math::vector3 m_Normal;
+		math::vector4 m_TangentS;
+		math::vector2 m_TexCoord;
+		math::vector4 m_BoneWeight;
 		int m_BoneIndex[4];
 		int m_NumBones;
 	};
@@ -387,7 +389,7 @@ export namespace cheat::csgo
 	struct GetTriangles_Output_t
 	{
 		CUtlVector<GetTriangles_MaterialBatch_t> m_MaterialBatches;
-		matrix3x4_t m_PoseToWorld[MAXSTUDIOBONES];
+		math::matrix3x4 m_PoseToWorld[MAXSTUDIOBONES];
 	};
 
 	struct StudioShadowArrayInstanceData_t
@@ -395,7 +397,7 @@ export namespace cheat::csgo
 		int m_nLOD;
 		int m_nBody;
 		int m_nSkin;
-		matrix3x4a_t* m_pPoseToWorld;
+		math::matrix3x4_aligned* m_pPoseToWorld;
 		float* m_pFlexWeights;
 		float* m_pDelayedFlexWeights;
 	};
@@ -410,7 +412,7 @@ export namespace cheat::csgo
 		ShaderStencilState_t* m_pStencilState;
 		ColorMeshInfo_t* m_pColorMeshInfo;
 		bool m_bColorMeshHasIndirectLightingOnly;
-		Vector4D m_DiffuseModulation;
+		math::vector4 m_DiffuseModulation;
 	};
 
 	struct StudioArrayData_t
@@ -457,20 +459,20 @@ export namespace cheat::csgo
 		virtual void RefreshStudioHdr(studiohdr_t* pStudioHdr, studiohwdata_t* pHardwareData) = 0;
 
 		// This is needed to do eyeglint and calculate the correct texcoords for the eyes.
-		virtual void SetEyeViewTarget(const studiohdr_t* pStudioHdr, int nBodyIndex, const Vector& worldPosition) = 0;
+		virtual void SetEyeViewTarget(const studiohdr_t* pStudioHdr, int nBodyIndex, const math::vector3& worldPosition) = 0;
 
 		// Methods related to lighting state
 		// NOTE: SetAmbientLightColors assumes that the arraysize is the same as 
 		// returned from GetNumAmbientLightSamples
 		virtual int GetNumAmbientLightSamples( ) = 0;
-		virtual const Vector* GetAmbientLightDirections( ) = 0;
-		virtual void SetAmbientLightColors(const Vector4D* pAmbientOnlyColors) = 0;
-		virtual void SetAmbientLightColors(const Vector* pAmbientOnlyColors) = 0;
+		virtual const math::vector3* GetAmbientLightDirections( ) = 0;
+		virtual void SetAmbientLightColors(const math::vector4* pAmbientOnlyColors) = 0;
+		virtual void SetAmbientLightColors(const math::vector3* pAmbientOnlyColors) = 0;
 		virtual void SetLocalLights(int numLights, const LightDesc_t* pLights) = 0;
 
 		// Sets information about the camera location + orientation
-		virtual void SetViewState(const Vector& viewOrigin, const Vector& viewRight,
-								  const Vector& viewUp, const Vector& viewPlaneNormal) = 0;
+		virtual void SetViewState(const math::vector3& viewOrigin, const math::vector3& viewRight,
+								  const math::vector3& viewUp, const math::vector3& viewPlaneNormal) = 0;
 
 		// LOD stuff
 		virtual int GetNumLODs(const studiohwdata_t& hardwareData) const = 0;
@@ -483,13 +485,13 @@ export namespace cheat::csgo
 
 		// Draws the model
 		virtual void DrawModel(DrawModelResults_t* pResults, const DrawModelInfo_t& info,
-							   matrix3x4_t* pBoneToWorld, float* pFlexWeights, float* pFlexDelayedWeights, const Vector& modelOrigin,
+							   math::matrix3x4* pBoneToWorld, float* pFlexWeights, float* pFlexDelayedWeights, const math::vector3& modelOrigin,
 							   DrawModelFlags_t flags = DrawModelFlags_t::DRAW_ENTIRE_MODEL) = 0;
 
 		// Methods related to static prop rendering
-		virtual void DrawModelStaticProp(const DrawModelInfo_t& drawInfo, const matrix3x4_t& modelToWorld, DrawModelFlags_t flags = DrawModelFlags_t::DRAW_ENTIRE_MODEL) = 0;
-		virtual void DrawStaticPropDecals(const DrawModelInfo_t& drawInfo, const matrix3x4_t& modelToWorld) = 0;
-		virtual void DrawStaticPropShadows(const DrawModelInfo_t& drawInfo, const matrix3x4_t& modelToWorld, int flags) = 0;
+		virtual void DrawModelStaticProp(const DrawModelInfo_t& drawInfo, const math::matrix3x4& modelToWorld, DrawModelFlags_t flags = DrawModelFlags_t::DRAW_ENTIRE_MODEL) = 0;
+		virtual void DrawStaticPropDecals(const DrawModelInfo_t& drawInfo, const math::matrix3x4& modelToWorld) = 0;
+		virtual void DrawStaticPropShadows(const DrawModelInfo_t& drawInfo, const math::matrix3x4& modelToWorld, int flags) = 0;
 
 		// Causes a material to be used instead of the materials the model was compiled with
 		virtual void ForcedMaterialOverride(IMaterial* newMaterial, OverrideType_t nOverrideType = OverrideType_t::NORMAL, int nMaterialIndex = -1) = 0;
@@ -501,21 +503,21 @@ export namespace cheat::csgo
 
 		// Add decals to a decal list by doing a planar projection along the ray
 		// The BoneToWorld matrices must be set before this is called
-		virtual void AddDecal(StudioDecalHandle_t handle, studiohdr_t* pStudioHdr, matrix3x4_t* pBoneToWorld,
-							  const Ray_t& ray, const Vector& decalUp, IMaterial* pDecalMaterial, float radius, int body, bool noPokethru = false,
+		virtual void AddDecal(StudioDecalHandle_t handle, studiohdr_t* pStudioHdr, math::matrix3x4* pBoneToWorld,
+							  const Ray_t& ray, const math::vector3& decalUp, IMaterial* pDecalMaterial, float radius, int body, bool noPokethru = false,
 							  int maxLODToDecal = /*ADDDECAL_TO_ALL_LODS*/-1, void* pvProxyUserData = nullptr, int nAdditionalDecalFlags = 0) = 0;
 
 		// Compute the lighting at a point and normal
-		virtual void ComputeLighting(const Vector* pAmbient, int lightCount,
-									 LightDesc_t* pLights, const Vector& pt, const Vector& normal, Vector& lighting) = 0;
+		virtual void ComputeLighting(const math::vector3* pAmbient, int lightCount,
+									 LightDesc_t* pLights, const math::vector3& pt, const math::vector3& normal, math::vector3& lighting) = 0;
 
 		// Compute the lighting at a point, constant directional component is passed
 		// as flDirectionalAmount
-		virtual void ComputeLightingConstDirectional(const Vector* pAmbient, int lightCount,
-													 LightDesc_t* pLights, const Vector& pt, const Vector& normal, Vector& lighting, float flDirectionalAmount) = 0;
+		virtual void ComputeLightingConstDirectional(const math::vector3* pAmbient, int lightCount,
+													 LightDesc_t* pLights, const math::vector3& pt, const math::vector3& normal, math::vector3& lighting, float flDirectionalAmount) = 0;
 
 		// Shadow state (affects the models as they are rendered)
-		virtual void AddShadow(IMaterial* pMaterial, void* pProxyData, FlashlightState_t* m_pFlashlightState = nullptr, VMatrix* pWorldToTexture = nullptr,
+		virtual void AddShadow(IMaterial* pMaterial, void* pProxyData, FlashlightState_t* m_pFlashlightState = nullptr, math::view_matrix* pWorldToTexture = nullptr,
 							   ITexture* pFlashlightDepthTexture = nullptr) = 0;
 		virtual void ClearAllShadows( ) = 0;
 
@@ -529,7 +531,7 @@ export namespace cheat::csgo
 		// 2) texture memory usage
 		// Get Triangles returns the LOD used
 		virtual void GetPerfStats(DrawModelResults_t* pResults, const DrawModelInfo_t& info, CUtlBuffer* pSpewBuf = nullptr) const = 0;
-		virtual void GetTriangles(const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, GetTriangles_Output_t& out) = 0;
+		virtual void GetTriangles(const DrawModelInfo_t& info, math::matrix3x4* pBoneToWorld, GetTriangles_Output_t& out) = 0;
 
 		// Returns materials used by a particular model
 		virtual int GetMaterialList(studiohdr_t* pStudioHdr, int count, IMaterial** ppMaterials) = 0;

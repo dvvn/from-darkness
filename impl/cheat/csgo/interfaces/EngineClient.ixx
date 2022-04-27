@@ -4,8 +4,9 @@ module;
 
 export module cheat.csgo.interfaces.EngineClient;
 export import cheat.csgo.interfaces.MaterialSystem;
-export import cheat.csgo.math.Qangle;
-export import cheat.csgo.math.Vmatrix;
+export import cheat.math.qangle;
+export import cheat.math.vector2;
+export import cheat.math.view_matrix;
 
 export namespace cheat::csgo
 {
@@ -138,9 +139,9 @@ export namespace cheat::csgo
 		virtual void SetTime(float time) = 0;                                                        // set game time
 		virtual void SetAngle(float angle) = 0;                                                      // set map orientation
 		virtual void SetFollowAngle(bool state) = 0;                                                 // if true, map rotates with spectators view
-		virtual void SetCenter(Vector2D& mappos) = 0;                                                // set map pos in center of panel
-		virtual void SetPlayerPositions(int index, const Vector& position, const QAngle& angle) = 0; // update player position
-		virtual Vector2D WorldToMap(Vector& worldpos) = 0;                                           // convert 3d world to 2d map pos
+		virtual void SetCenter(math::vector2& mappos) = 0;                                                // set map pos in center of panel
+		virtual void SetPlayerPositions(int index, const math::vector3& position, const math::qangle& angle) = 0; // update player position
+		virtual math::vector2 WorldToMap(math::vector3& worldpos) = 0;                                           // convert 3d world to 2d map pos
 
 		virtual bool IsVisible( ) = 0;                                     // true if MapOverview is visible
 		virtual void GetBounds(int& x, int& y, int& wide, int& tall) = 0; // get current pos & size
@@ -162,9 +163,9 @@ export namespace cheat::csgo
 	class IVEngineClient
 	{
 	public:
-		virtual int GetIntersectingSurfaces(const model_t* model, const Vector& vCenter, float radius, bool bOnlyVisibleSurfaces, SurfInfo* pInfos, int nMaxInfos) = 0;
-		virtual Vector GetLightForPoint(const Vector& pos, bool bClamp) = 0;
-		virtual IMaterial* TraceLineMaterialAndLighting(const Vector& start, const Vector& end, Vector& diffuseLightColor, Vector& baseColor) = 0;
+		virtual int GetIntersectingSurfaces(const model_t* model, const math::vector3& vCenter, float radius, bool bOnlyVisibleSurfaces, SurfInfo* pInfos, int nMaxInfos) = 0;
+		virtual math::vector3 GetLightForPoint(const math::vector3& pos, bool bClamp) = 0;
+		virtual IMaterial* TraceLineMaterialAndLighting(const math::vector3& start, const math::vector3& end, math::vector3& diffuseLightColor, math::vector3& baseColor) = 0;
 		virtual const char* ParseFile(const char* data, char* token, int maxlen) = 0;
 		virtual bool CopyFile(const char* source, const char* destination) = 0;
 		virtual void GetScreenSize(int& width, int& height) = 0;
@@ -180,8 +181,8 @@ export namespace cheat::csgo
 		virtual CSentence* GetSentence(CAudioSource* pAudioSource) = 0; // 15
 		virtual float GetSentenceLength(CAudioSource* pAudioSource) = 0;
 		virtual bool IsStreaming(CAudioSource* pAudioSource) const = 0;
-		virtual void GetViewAngles(QAngle& va) = 0;
-		virtual void SetViewAngles(QAngle& va) = 0;
+		virtual void GetViewAngles(math::qangle& va) = 0;
+		virtual void SetViewAngles(math::qangle& va) = 0;
 		virtual int GetMaxClients( ) = 0; // 20
 		virtual const char* Key_LookupBinding(const char* pBinding) = 0;
 		virtual const char* Key_BindingForKey(int& code) = 0;
@@ -194,13 +195,13 @@ export namespace cheat::csgo
 		virtual void HideLoadingPlaque( ) = 0;
 		virtual void Con_NPrintf(int pos, const char* fmt, ...) = 0; // 30
 		virtual void Con_NXPrintf(const struct con_nprint_s* info, const char* fmt, ...) = 0;
-		virtual int IsBoxVisible(const Vector& mins, const Vector& maxs) = 0;
-		virtual int IsBoxInViewCluster(const Vector& mins, const Vector& maxs) = 0;
-		virtual bool CullBox(const Vector& mins, const Vector& maxs) = 0;
+		virtual int IsBoxVisible(const math::vector3& mins, const math::vector3& maxs) = 0;
+		virtual int IsBoxInViewCluster(const math::vector3& mins, const math::vector3& maxs) = 0;
+		virtual bool CullBox(const math::vector3& mins, const math::vector3& maxs) = 0;
 		virtual void Sound_ExtraUpdate( ) = 0;
 		virtual const char* GetGameDirectory( ) = 0;
-		virtual const VMatrix& WorldToScreenMatrix( ) = 0;
-		virtual const VMatrix& WorldToViewMatrix( ) = 0;
+		virtual const math::view_matrix& WorldToScreenMatrix( ) = 0;
+		virtual const math::view_matrix& WorldToViewMatrix( ) = 0;
 		virtual int GameLumpVersion(int lumpId) const = 0;
 		virtual int GameLumpSize(int lumpId) const = 0; // 40
 		virtual bool LoadGameLump(int lumpId, void* pBuffer, int size) = 0;
@@ -208,8 +209,8 @@ export namespace cheat::csgo
 		virtual ISpatialQuery* GetBSPTreeQuery( ) = 0;
 		virtual void LinearToGamma(float* linear, float* gamma) = 0;
 		virtual float LightStyleValue(int style) = 0; // 45
-		virtual void ComputeDynamicLighting(const Vector& pt, const Vector* pNormal, Vector& color) = 0;
-		virtual void GetAmbientLightColor(Vector& color) = 0;
+		virtual void ComputeDynamicLighting(const math::vector3& pt, const math::vector3* pNormal, math::vector3& color) = 0;
+		virtual void GetAmbientLightColor(math::vector3& color) = 0;
 		virtual int GetDXSupportLevel( ) = 0;
 		virtual bool SupportsHDR( ) = 0;
 		virtual void Mat_Stub(IMaterialSystem* pMatSys) = 0; // 50
@@ -223,7 +224,7 @@ export namespace cheat::csgo
 		virtual void EngineStats_EndFrame( ) = 0;
 		virtual void FireEvents( ) = 0;
 		virtual int GetLeavesArea(unsigned short* pLeaves, int nLeaves) = 0;
-		virtual bool DoesBoxTouchAreaFrustum(const Vector& mins, const Vector& maxs, int iArea) = 0; // 60
+		virtual bool DoesBoxTouchAreaFrustum(const math::vector3& mins, const math::vector3& maxs, int iArea) = 0; // 60
 		virtual int GetFrustumList(Frustum_t** pList, int listMax) = 0;
 		virtual bool ShouldUseAreaFrustum(int i) = 0;
 		virtual void SetAudioState(const AudioState_t& state) = 0;
@@ -234,14 +235,14 @@ export namespace cheat::csgo
 		virtual int SentenceGroupIndexFromName(const char* pGroupName) = 0;
 		virtual const char* SentenceGroupNameFromIndex(int groupIndex) = 0;
 		virtual float SentenceLength(int sentenceIndex) = 0;
-		virtual void ComputeLighting(const Vector& pt, const Vector* pNormal, bool bClamp, Vector& color, Vector* pBoxColors = 0) = 0;
+		virtual void ComputeLighting(const math::vector3& pt, const math::vector3* pNormal, bool bClamp, math::vector3& color, math::vector3* pBoxColors = 0) = 0;
 		virtual void ActivateOccluder(int nOccluderIndex, bool bActive) = 0;
-		virtual bool IsOccluded(const Vector& vecAbsMins, const Vector& vecAbsMaxs) = 0; // 74
+		virtual bool IsOccluded(const math::vector3& vecAbsMins, const math::vector3& vecAbsMaxs) = 0; // 74
 		virtual int GetOcclusionViewId( ) = 0;
 		virtual void* SaveAllocMemory(size_t num, size_t size) = 0;
 		virtual void SaveFreeMemory(void* pSaveMem) = 0;
 		virtual INetChannelInfo* GetNetChannelInfo( ) = 0;
-		virtual void DebugDrawPhysCollide(const CPhysCollide* pCollide, IMaterial* pMaterial, const matrix3x4_t& transform, const uint8_t* color) = 0; //79
+		virtual void DebugDrawPhysCollide(const CPhysCollide* pCollide, IMaterial* pMaterial, const math::matrix3x4& transform, const uint8_t* color) = 0; //79
 		virtual void CheckPoint(const char* pName) = 0;                                                                                                // 80
 		virtual void DrawPortals( ) = 0;
 		virtual bool IsPlayingDemo( ) = 0;
@@ -260,7 +261,7 @@ export namespace cheat::csgo
 		virtual void GetMainMenuBackgroundName(char* dest, int destlen) = 0;
 		virtual void SetOcclusionParameters(const int /*OcclusionParams_t*/& params) = 0; // 96
 		virtual void GetUILanguage(char* dest, int destlen) = 0;
-		virtual int IsSkyboxVisibleFromPoint(const Vector& vecPoint) = 0;
+		virtual int IsSkyboxVisibleFromPoint(const math::vector3& vecPoint) = 0;
 		virtual const char* GetMapEntitiesString( ) = 0;
 		virtual bool IsInEditMode( ) = 0; // 100
 		virtual float GetScreenAspectRatio(int viewportWidth, int viewportHeight) = 0;
@@ -274,7 +275,7 @@ export namespace cheat::csgo
 		virtual bool MapHasHDRLighting( ) = 0;
 		virtual bool MapHasLightMapAlphaData( ) = 0;
 		virtual int GetAppID( ) = 0;
-		virtual Vector GetLightForPointFast(const Vector& pos, bool bClamp) = 0;
+		virtual math::vector3 GetLightForPointFast(const math::vector3& pos, bool bClamp) = 0;
 		virtual void ClientCmd_Unrestricted(const char*, int, bool) = 0;
 		virtual void ClientCmd_Unrestricted(const char* szCmdString) = 0; // 114
 		virtual void SetRestrictServerCommands(bool bRestrict) = 0;
@@ -307,7 +308,7 @@ export namespace cheat::csgo
 		virtual int FirstValidSplitScreenSlot( ) = 0;                 // -1 == invalid
 		virtual int NextValidSplitScreenSlot(int nPreviousSlot) = 0; // -1 == invalid
 		virtual ISPSharedMemory* GetSinglePlayerSharedMemorySpace(const char* szName, int ent_num = (1 << 11)) = 0;
-		virtual void ComputeLightingCube(const Vector& pt, bool bClamp, Vector* pBoxColors) = 0;
+		virtual void ComputeLightingCube(const math::vector3& pt, bool bClamp, math::vector3* pBoxColors) = 0;
 		virtual void RegisterDemoCustomDataCallback(const char* szCallbackSaveID, pfnDemoCustomDataCallback pCallback) = 0;
 		virtual void RecordDemoCustomData(pfnDemoCustomDataCallback pCallback, const void* pData, size_t iDataLength) = 0;
 		virtual void SetPitchScale(float flPitchScale) = 0;
@@ -339,9 +340,9 @@ export namespace cheat::csgo
 		virtual void ClearBugSubmissionCount( ) = 0;
 		virtual bool DoesLevelContainWater( ) const = 0;
 		virtual float GetServerSimulationFrameTime( ) const = 0;
-		virtual void SolidMoved(class IClientEntity* pSolidEnt, class ICollideable* pSolidCollide, const Vector* pPrevAbsOrigin, bool accurateBboxTriggerChecks) = 0;
+		virtual void SolidMoved(class IClientEntity* pSolidEnt, class ICollideable* pSolidCollide, const math::vector3* pPrevAbsOrigin, bool accurateBboxTriggerChecks) = 0;
 		virtual void TriggerMoved(class IClientEntity* pTriggerEnt, bool accurateBboxTriggerChecks) = 0;
-		virtual void ComputeLeavesConnected(const Vector& vecOrigin, int nCount, const int* pLeafIndices, bool* pIsConnected) = 0;
+		virtual void ComputeLeavesConnected(const math::vector3& vecOrigin, int nCount, const int* pLeafIndices, bool* pIsConnected) = 0;
 		virtual bool IsInCommentaryMode( ) = 0;
 		virtual void SetBlurFade(float amount) = 0;
 		virtual bool IsTransitioningToLoad( ) = 0;
@@ -351,11 +352,11 @@ export namespace cheat::csgo
 		virtual CSteamAPIContext* GetSteamAPIContext( ) = 0;
 		virtual void SubmitStatRecord(const char* szMapName, unsigned int uiBlobVersion, unsigned int uiBlobSize, const void* pvBlob) = 0;
 		virtual void ServerCmdKeyValues(KeyValues* pKeyValues) = 0; // 203
-		virtual void SpherePaintSurface(const model_t* model, const Vector& location, unsigned char chr, float fl1, float fl2) = 0;
+		virtual void SpherePaintSurface(const model_t* model, const math::vector3& location, unsigned char chr, float fl1, float fl2) = 0;
 		virtual bool HasPaintmap( ) = 0;
 		virtual void EnablePaintmapRender( ) = 0;
-		//virtual void                TracePaintSurface( const model_t *model, const Vector& position, float radius, CUtlVector<Color>& surfColors ) = 0;
-		virtual void SphereTracePaintSurface(const model_t* model, const Vector& position, const Vector& vec2, float radius
+		//virtual void                TracePaintSurface( const model_t *model, const math::vector3& position, float radius, CUtlVector<math::color>& surfColors ) = 0;
+		virtual void SphereTracePaintSurface(const model_t* model, const math::vector3& position, const math::vector3& vec2, float radius
 											 , /*CUtlVector<unsigned char, CUtlMemory<unsigned char, int>>*/ int& utilVecShit) = 0;
 		virtual void RemoveAllPaint( ) = 0;
 		virtual void PaintAllSurfaces(unsigned char uchr) = 0;

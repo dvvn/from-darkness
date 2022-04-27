@@ -3,7 +3,7 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.interfaces.ClientState;
-export import cheat.csgo.math.Qangle;
+export import cheat.math.qangle;
 
 export namespace cheat::csgo
 {
@@ -135,7 +135,7 @@ export namespace cheat::csgo
 		int nCommandAck;
 		int nSoundSequence;
 		char pad_4CCD[76];
-		QAngle viewangles;
+		math::qangle viewangles;
 		int pads[54];
 		CEventInfo* pEvents;
 	};

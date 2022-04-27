@@ -22,9 +22,9 @@ static void* target( ) noexcept
 struct replace
 {
 	void fn(DrawModelResults_t* results, const DrawModelInfo_t& info,
-			matrix3x4_t* bone_to_world,
+			math::matrix3x4* bone_to_world,
 			float* flex_weights, float* flex_delayed_weights,
-			const Vector& model_origin, DrawModelFlags_t flags) noexcept
+			const math::vector3& model_origin, DrawModelFlags_t flags) noexcept
 	{
 		CHEAT_HOOK_CALL_ORIGINAL_MEMBER(results, info, bone_to_world, flex_weights, flex_delayed_weights, model_origin, flags);
 	}

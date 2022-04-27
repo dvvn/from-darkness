@@ -3,9 +3,9 @@ module;
 #include <array>
 
 export module cheat.csgo.interfaces.GlowEffect;
-export import cheat.csgo.math.Vector;
-export import cheat.csgo.math.Qangle;
-export import cheat.csgo.math.Color;
+export import cheat.math.vector3;
+export import cheat.math.qangle;
+export import cheat.math.color;
 export import cheat.csgo.tools.UtlVector;
 
 export namespace cheat::csgo
@@ -26,7 +26,7 @@ export namespace cheat::csgo
 	struct GlowObject_t
 	{
 		// @note: styles not used cuz other styles doesnt have ignorez flag and needed to rebuild glow
-		void Set(const Color& glow_color, GlowRenderStyles style = RENDER_STYLE_DEFAULT);
+		void Set(const math::color& glow_color, GlowRenderStyles style = RENDER_STYLE_DEFAULT);
 		bool IsEmpty( ) const;
 
 		int                  next_free_slot;                 // 0x00
@@ -49,13 +49,13 @@ export namespace cheat::csgo
 
 	struct GlowBoxObject_t
 	{
-		Vector position;
-		QAngle orientation;
-		Vector mins;
-		Vector maxs;
+		math::vector3 position;
+		math::qangle orientation;
+		math::vector3 mins;
+		math::vector3 maxs;
 		float       birth_time_index;
 		float       termination_time_index;
-		Color  color;
+		math::color  color;
 	};
 
 	class CGlowObjectManager

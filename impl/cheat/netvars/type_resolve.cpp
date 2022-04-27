@@ -8,11 +8,10 @@
 #include <variant>
 
 module cheat.netvars.core:type_resolve;
-import cheat.csgo.math.Quaternion;
-import cheat.csgo.math.Vector;
-import cheat.csgo.math.Qangle;
-import cheat.csgo.math.Color;
-import cheat.csgo.math.Vmatrix;
+import cheat.math.color;
+import cheat.math.qangle;
+import cheat.math.view_matrix;
+import cheat.math.vector2;
 import cheat.csgo.tools.UtlVector;
 import cheat.csgo.interfaces.BaseHandle;
 import nstd.type_name;
@@ -77,7 +76,7 @@ std::string_view netvars::type_vec3(const std::string_view type) noexcept
 		return nstd::text::to_lower(prefix.empty( ) ? type : type.substr(2)).contains("angles");
 	};
 
-	return vec3_qangle( ) ? type_name<QAngle>( ) : type_name<Vector>( );
+	return vec3_qangle( ) ? type_name<math::qangle>( ) : type_name<math::vector3>( );
 }
 
 std::string_view netvars::type_integer(std::string_view type) noexcept
@@ -110,7 +109,7 @@ std::string_view netvars::type_integer(std::string_view type) noexcept
 		else if (is_upper(3))
 		{
 			if (type.starts_with("clr"))
-				return type_name<Color>( ); //not sure
+				return type_name<math::color>( ); //not sure
 		}
 	}
 
@@ -130,7 +129,7 @@ string_or_view netvars::type_recv_prop(RecvProp* const prop) noexcept
 	case DPT_Vector:
 		return type_vec3(prop->m_pVarName);
 	case DPT_VectorXY:
-		return type_name<Vector2D>( ); //3d vector. z unused
+		return type_name<math::vector2>( ); //3d vector. z unused
 	case DPT_String:
 		return type_name<char*>( ); // char[X]
 	case DPT_Array:
@@ -168,7 +167,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)  no
 	case FIELD_VECTOR:
 		return type_vec3(field->fieldName);
 	case FIELD_QUATERNION:
-		return type_name<Quaternion>( );
+		return type_name<math::quaternion>( );
 	case FIELD_INTEGER:
 		return type_integer(field->fieldName);
 	case FIELD_BOOLEAN:
@@ -178,7 +177,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)  no
 	case FIELD_CHARACTER:
 		return type_name<int8_t>( );
 	case FIELD_COLOR32:
-		return type_name<Color>( );
+		return type_name<math::color>( );
 	case FIELD_EMBEDDED:
 	{
 		runtime_assert("Embedded field detected");
@@ -200,7 +199,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)  no
 		return type_name<void*>( );
 	}
 	case FIELD_POSITION_VECTOR:
-		return type_name<Vector>( );
+		return type_name<math::vector3>( );
 	case FIELD_TIME:
 		return type_name<float>( );
 	case FIELD_TICK:
@@ -221,9 +220,9 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)  no
 	}
 	case FIELD_VMATRIX:
 	case FIELD_VMATRIX_WORLDSPACE:
-		return type_name<VMatrix>( );
+		return type_name<math::view_matrix>( );
 	case FIELD_MATRIX3X4_WORLDSPACE:
-		return type_name<matrix3x4_t>( );
+		return type_name<math::matrix3x4>( );
 	case FIELD_INTERVAL:
 	{
 		//return "interval_t";
@@ -234,7 +233,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)  no
 	case FIELD_MATERIALINDEX:
 		return type_name<int32_t>( );
 	case FIELD_VECTOR2D:
-		return type_name<Vector2D>( );
+		return type_name<math::vector2>( );
 	default:
 	{
 		runtime_assert("Unknown datamap field type");
@@ -246,7 +245,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)  no
 static std::string_view _Check_int_prefix(const std::string_view type) noexcept
 {
 	if (_Extract_prefix(type) == "uch")
-		return nstd::type_name<Color>( );
+		return nstd::type_name<math::color>( );
 	return {};
 }
 
@@ -254,9 +253,9 @@ static std::string_view _Check_float_prefix(const std::string_view type) noexcep
 {
 	const auto prefix = _Extract_prefix(type);
 	if (prefix == "ang")
-		return nstd::type_name<QAngle>( );
+		return nstd::type_name<math::qangle>( );
 	if (prefix == "vec")
-		return nstd::type_name<Vector>( );
+		return nstd::type_name<math::vector3>( );
 	return {};
 }
 

@@ -3,8 +3,8 @@ module;
 #include <cstdint>
 
 export module cheat.csgo.structs.UserCmd;
-export import cheat.csgo.math.Vector;
-export import cheat.csgo.math.Qangle;
+export import cheat.math.qangle;
+export import cheat.math.vector3;
 
 export namespace cheat::csgo
 {
@@ -80,8 +80,8 @@ export namespace cheat::csgo
 
 		int				iCommandNumber;		// 0x04
 		int				iTickCount;			// 0x08
-		QAngle			angViewPoint;		// 0x0C
-		Vector			vecAimDirection;	// 0x18
+		math::qangle	angViewPoint;		// 0x0C
+		math::vector3	vecAimDirection;	// 0x18
 		float			flForwardMove;		// 0x24
 		float			flSideMove;			// 0x28
 		float			flUpMove;			// 0x2C
@@ -93,8 +93,8 @@ export namespace cheat::csgo
 		short			sMouseDeltaX;		// 0x44
 		short			sMouseDeltaY;		// 0x46
 		bool			bHasBeenPredicted;	// 0x48
-		Vector			vecHeadAngles;		// 0x4C
-		Vector			vecHeadOffset;		// 0x58
+		math::vector3			vecHeadAngles;		// 0x4C
+		math::vector3			vecHeadOffset;		// 0x58
 	private:
 		uint8_t pad_0x4C[0x18]; // 0x4C Current sizeof( usercmd ) =  100  = 0x64
 	};

@@ -4,8 +4,8 @@ module;
 
 export module cheat.csgo.interfaces.Prediction;
 export import cheat.csgo.interfaces.BaseHandle;
-export import cheat.csgo.math.Vector;
-export import cheat.csgo.math.Qangle;
+export import cheat.math.vector3;
+export import cheat.math.qangle;
 export import cheat.csgo.tools.UtlVector;
 
 export namespace cheat::csgo
@@ -17,8 +17,8 @@ export namespace cheat::csgo
 		bool m_bGameCodeMovedPlayer : 1;
 		int         m_nPlayerHandle;    // edict index on server, client entity handle on client=
 		int         m_nImpulseCommand;  // Impulse command issued.
-		Vector m_vecViewAngles;    // Command view angles (local space)
-		Vector m_vecAbsViewAngles; // Command view angles (world space)
+		math::vector3 m_vecViewAngles;    // Command view angles (local space)
+		math::vector3 m_vecAbsViewAngles; // Command view angles (world space)
 		int         m_nButtons;         // Attack buttons.
 		int         m_nOldButtons;      // From host_client->oldbuttons;
 		float       m_flForwardMove;
@@ -26,18 +26,18 @@ export namespace cheat::csgo
 		float       m_flUpMove;
 		float       m_flMaxSpeed;
 		float       m_flClientMaxSpeed;
-		Vector m_vecVelocity; // edict::velocity        // Current movement direction.
-		Vector m_vecAngles;   // edict::angles
-		Vector m_vecOldAngles;
+		math::vector3 m_vecVelocity; // edict::velocity        // Current movement direction.
+		math::vector3 m_vecAngles;   // edict::angles
+		math::vector3 m_vecOldAngles;
 		float       m_outStepHeight; // how much you climbed this move
-		Vector m_outWishVel;    // This is where you tried 
-		Vector m_outJumpVel;    // This is your jump velocity
-		Vector m_vecConstraintCenter;
+		math::vector3 m_outWishVel;    // This is where you tried 
+		math::vector3 m_outJumpVel;    // This is your jump velocity
+		math::vector3 m_vecConstraintCenter;
 		float       m_flConstraintRadius;
 		float       m_flConstraintWidth;
 		float       m_flConstraintSpeedFactor;
 		float       m_flUnknown[5];
-		Vector m_vecAbsOrigin;
+		math::vector3 m_vecAbsOrigin;
 	};
 
 	class C_BasePlayer;
@@ -118,11 +118,11 @@ export namespace cheat::csgo
 		virtual void OnReceivedUncompressedPacket(void) = 0; //7
 
 		// The engine needs to be able to access a few predicted values
-		virtual void GetViewOrigin(Vector& org) = 0;      //8
-		virtual void SetViewOrigin(Vector& org) = 0;      //9
-		virtual void GetViewAngles(QAngle& ang) = 0;      //10
-		virtual void SetViewAngles(QAngle& ang) = 0;      //11
-		virtual void GetLocalViewAngles(QAngle& ang) = 0; //12
-		virtual void SetLocalViewAngles(QAngle& ang) = 0; //13
+		virtual void GetViewOrigin(math::vector3& org) = 0;      //8
+		virtual void SetViewOrigin(math::vector3& org) = 0;      //9
+		virtual void GetViewAngles(math::qangle& ang) = 0;      //10
+		virtual void SetViewAngles(math::qangle& ang) = 0;      //11
+		virtual void GetLocalViewAngles(math::qangle& ang) = 0; //12
+		virtual void SetLocalViewAngles(math::qangle& ang) = 0; //13
 	};
 }

@@ -24,7 +24,7 @@ static void* target( ) noexcept
 
 struct replace
 {
-	void fn(Vector& vel) noexcept
+	void fn(math::vector3& vel) noexcept
 	{
 		CHEAT_HOOK_CALL_ORIGINAL_MEMBER(vel);
 

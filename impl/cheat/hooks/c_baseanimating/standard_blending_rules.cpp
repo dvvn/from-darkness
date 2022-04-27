@@ -24,7 +24,7 @@ static void* target( ) noexcept
 
 struct replace
 {
-	void fn(CStudioHdr* hdr, Vector* pos, QuaternionAligned* q, float current_time, int bone_mask) noexcept
+	void fn(CStudioHdr* hdr, math::vector3* pos, QuaternionAligned* q, float current_time, int bone_mask) noexcept
 	{
 #if __has_include(<cheat/csgo/interfaces_custom/C_BaseAnimating_generated_h>)
 		const auto pl = reinterpret_cast<C_BaseAnimating*>(this);

@@ -22,7 +22,7 @@ static void* target( ) noexcept
 
 struct replace
 {
-	void fn(CStudioHdr* studio_hdr, Vector* pos, Quaternion* q, matrix3x4a_t* bone_to_world, CBoneBitList& bone_computed, CIKContext* ik_context) noexcept
+	void fn(CStudioHdr* studio_hdr, math::vector3* pos, math::quaternion* q, math::matrix3x4_aligned* bone_to_world, CBoneBitList& bone_computed, CIKContext* ik_context) noexcept
 	{
 		//nothing here
 	}

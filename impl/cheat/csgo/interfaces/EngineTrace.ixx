@@ -5,7 +5,8 @@ module;
 
 export module cheat.csgo.interfaces.EngineTrace;
 export import cheat.csgo.structs.ClientClass;
-export import cheat.csgo.math.Vector;
+export import cheat.math.vector4;
+export import cheat.math.matrix3x4;
 
 export namespace cheat::csgo
 {
@@ -124,7 +125,6 @@ export namespace cheat::csgo
 	class CPhysCollide;
 	struct virtualmeshlist_t;
 	class IHandleEntity;
-	class matrix3x4_t;
 
 	enum class TraceType
 	{
@@ -260,7 +260,7 @@ export namespace cheat::csgo
 		bool ShouldHitEntity(IHandleEntity* ent, int /*contentsMask*/) override
 		{
 			const auto found = this->find(ent, std::make_index_sequence<sizeof...(E)>( ));
-			if constexpr (Ignore)
+			if constexpr(Ignore)
 				return found;
 			else
 				return !found;
@@ -298,7 +298,7 @@ export namespace cheat::csgo
 		bool ShouldHitEntity(IHandleEntity* ent, int contents_mask) override
 		{
 			auto client_ent = static_cast<IClientEntity*>(ent);
-			if (client_ent->GetClientClass( )->ClassID != ClassId::CCSPlayer)
+			if(client_ent->GetClientClass( )->ClassID != ClassId::CCSPlayer)
 				return false;
 
 			return this->CTraceFilterPtr( )->ShouldHitEntity(ent, contents_mask);
@@ -344,7 +344,7 @@ export namespace cheat::csgo
 
 	struct BrushSideInfo_t
 	{
-		Vector4D  plane; // The plane of the brush side
+		math::vector4  plane; // The plane of the brush side
 		unsigned short bevel; // Bevel plane?
 		unsigned short thin;  // Thin?
 	};
@@ -364,8 +364,8 @@ export namespace cheat::csgo
 
 	struct cmodel_t
 	{
-		Vector mins, maxs;
-		Vector origin; // for sounds or lights
+		math::vector3 mins, maxs;
+		math::vector3 origin; // for sounds or lights
 		int         headnode;
 		vcollide_t  vcollisionData;
 	};
@@ -379,7 +379,7 @@ export namespace cheat::csgo
 
 	struct cplane_t
 	{
-		Vector normal;
+		math::vector3 normal;
 		float       dist;
 		uint8_t     type;     // for fast side tests
 		uint8_t     signbits; // signx + (signy<<1) + (signz<<1)
@@ -392,20 +392,20 @@ export namespace cheat::csgo
 	class Ray_t
 	{
 	public:
-		VectorAligned      m_Start;       // starting point, centered within the extents
-		VectorAligned      m_Delta;       // direction + length of the ray
-		VectorAligned      m_StartOffset; // Add this to m_Start to Get the actual ray start
-		VectorAligned      m_Extents;     // Describes an axis aligned box extruded along a ray
-		const matrix3x4_t* m_pWorldAxisTransform = nullptr;
+		math::vector3_aligned      m_Start;       // starting point, centered within the extents
+		math::vector3_aligned      m_Delta;       // direction + length of the ray
+		math::vector3_aligned      m_StartOffset; // Add this to m_Start to Get the actual ray start
+		math::vector3_aligned      m_Extents;     // Describes an axis aligned box extruded along a ray
+		const math::matrix3x4* m_pWorldAxisTransform = nullptr;
 		bool                    m_IsRay;   // are the extents zero?
 		bool                    m_IsSwept; // is delta != 0?
 
 		Ray_t( ) = default;
 
-		void Init(const Vector& start, const Vector& end);
-		void Init(const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs);
+		void Init(const math::vector3& start, const math::vector3& end);
+		void Init(const math::vector3& start, const math::vector3& end, const math::vector3& mins, const math::vector3& maxs);
 
-		Vector InvDelta( ) const;
+		//math::vector3 InvDelta( ) const;
 	};
 
 	class CBaseTrace
@@ -420,8 +420,8 @@ export namespace cheat::csgo
 		bool IsDispSurfaceProp2( );
 
 		// these members are aligned!!
-		Vector startpos; // start position
-		Vector endpos;   // final position
+		math::vector3 startpos; // start position
+		math::vector3 endpos;   // final position
 		cplane_t    plane;    // surface normal at impact
 
 		float fraction; // time completed, 1.0 = didn't hit anything
@@ -457,9 +457,9 @@ export namespace cheat::csgo
 	class IEngineTrace
 	{
 	public:
-		virtual int  GetPointContents(const Vector& vecAbsPosition, int contentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) = 0;
-		virtual int  GetPointContents_WorldOnly(const Vector& vecAbsPosition, int contentsMask = MASK_ALL) = 0;
-		virtual int  GetPointContents_Collideable(ICollideable* pCollide, const Vector& vecAbsPosition) = 0;
+		virtual int  GetPointContents(const math::vector3& vecAbsPosition, int contentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) = 0;
+		virtual int  GetPointContents_WorldOnly(const math::vector3& vecAbsPosition, int contentsMask = MASK_ALL) = 0;
+		virtual int  GetPointContents_Collideable(ICollideable* pCollide, const math::vector3& vecAbsPosition) = 0;
 		virtual void ClipRayToEntity(const Ray_t& ray, unsigned int fMask, IHandleEntity* pEnt, CGameTrace* pTrace) = 0;
 		virtual void ClipRayToCollideable(const Ray_t& ray, unsigned int fMask, ICollideable* pCollide, CGameTrace* pTrace) = 0;
 		virtual void TraceRay(const Ray_t& ray, unsigned int fMask, ITraceFilter* pTraceFilter, CGameTrace* pTrace) = 0;

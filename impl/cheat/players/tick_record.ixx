@@ -12,14 +12,14 @@ export namespace cheat::players
 	struct tick_record
 	{
 		//tick_record(const player& holder);
-		csgo::Vector origin, abs_origin;
-		csgo::QAngle rotation, abs_rotation;
-		csgo::Vector mins, maxs;
+		math::vector3 origin, abs_origin;
+		math::qangle rotation, abs_rotation;
+		math::vector3 mins, maxs;
 		float sim_time;
-		csgo::matrix3x4_t coordinate_frame;
+		math::matrix3x4 coordinate_frame;
 
 		void store_bones(csgo::C_BaseEntity* ent, const std::optional<float>& setup_curtime);
-		std::vector<csgo::matrix3x4_t> bones;
+		std::vector<math::matrix3x4> bones;
 
 		void store_animations(csgo::C_BaseAnimating* ent);
 		std::vector<csgo::CAnimationLayer> layers;

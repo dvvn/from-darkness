@@ -1,33 +1,13 @@
 module;
 
-#include "vector_base_includes.h"
+#include <cheat/math/internal/fwd.h>
+#include <cheat/math/internal/vec_fwd.h>
 
-export module cheat.csgo.math.Vector;
-export import cheat.csgo.math.vector_base;
+export module cheat.math.vector3;
 
-namespace cheat::csgo
+export namespace cheat::math
 {
-	template<typename Out, typename T, typename T1, size_t ...I>
-	constexpr Out _Vector_dot(const T& tpl, const T1& tpl2, std::index_sequence<I...> seq)
-	{
-		constexpr auto func = [](Out l, Out r) {return l * r; };
-		return (std::invoke(func, std::get<I>(tpl), std::get<I>(tpl2)) + ...);
-	}
-
-	template<typename T, typename T1, size_t ...I>
-	constexpr bool _Within_bbox(const T& t, const T1& min, const T1& max, std::index_sequence<I...> seq)
-	{
-		constexpr auto check = []<typename Q>(Q v, Q l, Q r)
-		{
-			return v >= l && v <= r;
-		};
-
-		return (std::invoke(check, std::get<I>(t), std::get<I>(min), std::get<I>(max)) && ...);
-	}
-}
-
-export namespace cheat::csgo
-{
+#if 0
 	template<size_t Size>
 	struct Vector_base;
 
@@ -97,7 +77,7 @@ export namespace cheat::csgo
 		//using Base::Base; compiler stuck here
 	};
 
-	class Vector2D :public Vector_base_impl<2>
+	class math::vector2 :public Vector_base_impl<2>
 	{
 	public:
 		using Vector_base_impl::Vector_base_impl;
@@ -106,12 +86,12 @@ export namespace cheat::csgo
 		using Vector_base_impl::y;
 	};
 
-	class Vector :public Vector_base_impl<3>
+	class math::vector3 :public Vector_base_impl<3>
 	{
 	public:
 		using Vector_base_impl::Vector_base_impl;
 
-		constexpr Vector Cross(const Vector& vecCross) const
+		constexpr math::vector3 Cross(const math::vector3& vecCross) const
 		{
 			auto& vect_A = *this;
 			auto& vect_B = vecCross;
@@ -124,7 +104,7 @@ export namespace cheat::csgo
 			};
 		}
 
-		constexpr float Dot(const Vector& other) const
+		constexpr float Dot(const math::vector3& other) const
 		{
 			/*float tmp = 0;
 			for (size_t i = 0; i < Vector_base_impl::size( ); ++i)
@@ -137,11 +117,11 @@ export namespace cheat::csgo
 		}
 	};
 
-	class alignas(16) VectorAligned : public Vector
+	class alignas(16) math::vector3_aligned : public math::vector3
 	{
 	public:
 		template<typename ...Args>
-		constexpr VectorAligned(Args&&...args) : Vector(args...)
+		constexpr math::vector3_aligned(Args&&...args) : math::vector3(args...)
 		{
 		}
 
@@ -149,13 +129,13 @@ export namespace cheat::csgo
 		std::array<uint8_t, sizeof(float)> pad_;
 	};
 
-	class Vector4D :public Vector_base_impl<4>
+	class math::vector4 :public Vector_base_impl<4>
 	{
 	public:
 		using Vector_base_impl::Vector_base_impl;
 
 		// check if a vector is within the box defined by two other vectors
-		constexpr bool WithinAABox(const Vector4D& boxmin, const Vector4D& boxmax)
+		constexpr bool WithinAABox(const math::vector4& boxmin, const math::vector4& boxmax)
 		{
 			const smart_tuple t = _Flatten(*this);
 			const auto min = _Flatten(boxmin);
@@ -182,4 +162,31 @@ export namespace cheat::csgo
 				_W( ) >= boxmin._W( ) && _W( ) <= boxmax._W( );*/
 		}
 	};
+
+	//-----
+
+#endif
+
+	struct vector3
+	{
+		float x, y, z;
+
+		vector3(float x, float y, float z);
+		vector3(float xyz);
+		vector3( );
+
+		CHEAT_MATH_OP_FWD(vector3);
+		CHEAT_MATH_VEC_FWD(vector3);
+
+		vector3 cross(const vector3& other) const noexcept;
+		float dot(const vector3& other) const noexcept;
+	};
+
+	struct alignas(16) vector3_aligned :vector3
+	{
+		vector3_aligned(const vector3& base = {});
+	};
+
+	
+
 }

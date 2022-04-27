@@ -13,9 +13,9 @@ CHEAT_CSGO_INTERFACE_INIT(CGlowObjectManager)
 	return csgo_modules::client.find_interface_sig<"0F 11 05 ? ? ? ? 83 C8 01">( ).plus(3).deref<1>( );
 }
 
-void GlowObject_t::Set(const Color& glow_color, GlowRenderStyles style)
+void GlowObject_t::Set(const math::color& glow_color, GlowRenderStyles style)
 {
-	this->color = {static_cast<float>(glow_color[0]), static_cast<float>(glow_color[1]), static_cast<float>(glow_color[2]), static_cast<float>(glow_color[3])};
+	this->color = {static_cast<float>(glow_color.r), static_cast<float>(glow_color.g), static_cast<float>(glow_color.b), static_cast<float>(glow_color.a)};
 	this->bloom_amount = 1.0f;
 	this->render_when_occluded = true;
 	this->render_when_unoccluded = false;

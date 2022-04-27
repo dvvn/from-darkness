@@ -4,7 +4,7 @@ module;
 
 export module cheat.csgo.interfaces.MaterialSystem;
 export import cheat.csgo.interfaces.AppSystem;
-export import cheat.csgo.math.Vector;
+export import cheat.math.vector3;
 
 export namespace cheat::csgo
 {
@@ -311,7 +311,7 @@ export namespace cheat::csgo
 		virtual void ColorModulate(float r, float g, float b) = 0;
 		virtual void SetMaterialVarFlag(MaterialVarFlags_t flag, bool on) = 0;
 		virtual bool GetMaterialVarFlag(MaterialVarFlags_t flag) const = 0;
-		virtual void GetReflectivity(Vector& reflect) = 0;
+		virtual void GetReflectivity(math::vector3& reflect) = 0;
 		virtual bool GetPropertyFlag(MaterialPropertyTypes_t type) = 0;
 		virtual bool IsTwoSided( ) = 0;
 		virtual void SetShader(const char* pShaderName) = 0;
