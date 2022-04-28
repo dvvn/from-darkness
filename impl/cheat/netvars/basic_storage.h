@@ -1,3 +1,0 @@
-#pragma once
-
-#define CHEAT_NETVARS_STORAGE_IDX_ITERATOR

@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/netvars/basic_storage.h>
+#include <nstd/private_vector.h>
 
 #include <vector>
 #include <string>
@@ -91,20 +91,7 @@ public:
 	std::string_view type( ) const noexcept;
 };
 
-template<typename T, class Base = std::vector<T>>
-struct private_vector :protected Base
-{
-	using Base::Base;
-
-	using Base::begin;
-	using Base::end;
-	using Base::empty;
-	using Base::size;
-
-	using Base::value_type;
-};
-
-class netvar_table : public private_vector<std::unique_ptr<basic_netvar_info>>
+class netvar_table : public nstd::private_vector<std::unique_ptr<basic_netvar_info>>
 {
 	void validate_item(const basic_netvar_info* info) const noexcept;
 
@@ -143,7 +130,7 @@ public:
 
 export namespace cheat::netvars
 {
-	class basic_storage :public private_vector<netvar_table>
+	class basic_storage :public nstd::private_vector<netvar_table>
 	{
 	public:
 		//[[deprecated]]

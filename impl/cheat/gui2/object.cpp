@@ -36,7 +36,7 @@ bool objects_storage::empty( ) const noexcept
 	return storage_.empty( );
 }
 
-auto objects_storage::add(element_type&& value) noexcept -> pointer
+auto objects_storage::add(value_type&& value) noexcept -> pointer
 {
 	const auto ptr = value.get( );
 	storage_.push_back(std::move(value));

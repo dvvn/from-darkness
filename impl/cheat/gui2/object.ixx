@@ -14,8 +14,8 @@ export namespace cheat::gui2
 	class objects_storage
 	{
 	public:
-		using element_type = std::unique_ptr<object>;
-		using storage_type = std::vector<element_type>;
+		using value_type = std::unique_ptr<object>;
+		using storage_type = std::vector<value_type>;
 		using pointer = object* const;
 
 		using iterator = storage_type::iterator;
@@ -29,7 +29,7 @@ export namespace cheat::gui2
 		size_t size( ) const noexcept;
 		bool empty( ) const noexcept;
 
-		pointer add(element_type&& value) noexcept;
+		pointer add(value_type&& value) noexcept;
 
 	private:
 		storage_type storage_;

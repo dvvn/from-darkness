@@ -1,12 +1,11 @@
 module;
 
-#include <cheat/netvars/basic_storage.h>
+#include <nstd/private_vector.h>
 
 #include <nstd/overload.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/ranges.h>
 
-#include <vector>
 #include <string>
 #include <variant>
 #include <functional>
