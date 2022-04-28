@@ -35,31 +35,38 @@ static T _Join_strings(const Args& ...args) noexcept
 
 static bool _File_already_written(const fs::path& full_path, const std::string_view buffer) noexcept
 {
-	auto file_stored = std::ifstream(full_path, std::ios::binary | std::ios::ate);
-	if (!file_stored)
+	std::ifstream file_stored(full_path, std::ios::binary | std::ios::ate);
+	if(!file_stored)
 		return false;
 
 	const auto size = static_cast<size_t>(file_stored.tellg( ));
-	if (size != buffer.size( ))
+	if(size != buffer.size( ))
 		return false;
 
-	const auto buff = std::make_unique<char[]>(size);
-	if (!file_stored.read(buff.get( ), size))
+#if 0
+	const auto buff = std::make_unique<char[ ]>(size);
+	if(!file_stored.read(buff.get( ), size))
 		return false;
-
 	return std::memcmp(buff.get( ), buffer.data( ), size) == 0;
+#else
+	using it_t = std::istream_iterator<char>;
+	return std::equal<it_t>(file_stored, {}, buffer.begin( ));
+#endif
 }
 
 logs_data::~logs_data( )
 {
 	//moved
-	if (dir.empty( ))
+	if(dir.empty( ))
+		return;
+
+	if(!fs::create_directory(reinterpret_cast<fs::path&>(dir)))
 		return;
 
 	const fs::path full_path = _Join_strings<std::wstring>(dir, file.name, file.extension);
 	const auto new_file_data = buff.view( );
 
-	if (!fs::create_directory(reinterpret_cast<fs::path&>(dir)) && _File_already_written(full_path, new_file_data))
+	if(_File_already_written(full_path, new_file_data))
 		return;
 
 	std::ofstream(full_path) << new_file_data;
@@ -68,23 +75,23 @@ logs_data::~logs_data( )
 classes_data::~classes_data( )
 {
 	//moved
-	if (dir.empty( ))
+	if(dir.empty( ))
 		return;
 
-	if (fs::create_directory(reinterpret_cast<fs::path&>(dir)) || fs::is_empty(reinterpret_cast<fs::path&>(dir)))
+	if(fs::create_directory(reinterpret_cast<fs::path&>(dir)) || fs::is_empty(reinterpret_cast<fs::path&>(dir)))
 	{
-		for (const auto& [name, buff] : files)
+		for(const auto& [name, buff] : files)
 			std::ofstream(_Join_strings<std::wstring>(dir, name)) << buff.view( );
 		return;
 	}
 
 	//directory already exist
 
-	for (const auto& [name, buff] : files)
+	for(const auto& [name, buff] : files)
 	{
 		const auto new_file_data = buff.view( );
 		const fs::path current_file_path = _Join_strings<std::wstring>(dir, name);
-		if (_File_already_written(current_file_path, new_file_data))
+		if(_File_already_written(current_file_path, new_file_data))
 			continue;
 
 		std::ofstream(current_file_path) << new_file_data;
@@ -100,41 +107,54 @@ struct json_string :std::string
 	}
 };
 
+template<class Json>
+static void to_json(Json& j, const basic_netvar_info& info) noexcept
+{
+	const std::string_view name = info.name( );
+	const auto offset = info.offset( );
+	const std::string_view type = info.type( );
+
+	j["name"] = name;
+	j["offset"] = offset;
+	if(!type.empty( ))
+		j["type"] = type;
+}
+
+template<class Json>
+static void to_json(Json& j, const netvar_table& table) noexcept
+{
+	for(const netvar_table::value_type& info : table)
+		j.emplace_back(*info);
+}
+
+//pointer to be 100% sure that this function is called instead of internal one
+template<class Json>
+static void to_json(Json& j, storage* const s) noexcept
+{
+	for(const netvar_table& table : *s)
+	{
+		if(table.empty( ))
+			continue;
+
+		j[table.name( )] = table;
+	}
+}
+
 void storage::log_netvars(logs_data& data) noexcept
 {
 	//single-file mode
+
 	using json_type = nlohmann::basic_json<nlohmann::ordered_map, std::vector, json_string, bool, std::make_signed_t<size_t>, size_t, float>;
-	json_type json;
-
-	for (const netvar_table& table : *this)
-	{
-		if (table.empty( ))
-			continue;
-
-		auto& entry = json[table.name( )];
-		for (const basic_netvar_info& info : table)
-		{
-			const auto name = info.name( );
-			const auto offset = info.offset( );
-			const auto type = info.type( );
-
-			entry["name"] = name;
-			entry["offset"] = offset;
-			if (!type.empty( ))
-				entry["type"] = type;
-		}
-	}
-
-	data.buff << std::setw(data.indent) << std::setfill(data.filler) << std::move(json);
+	data.buff << std::setw(data.indent) << std::setfill(data.filler) << json_type(this);
 }
 
 void storage::generate_classes(classes_data& data) noexcept
 {
 	data.files.reserve(this->size( ));
 
-	for (const netvar_table& table : *this)
+	for(const netvar_table& table : *this)
 	{
-		if (table.empty( ))
+		if(table.empty( ))
 			continue;
 
 		classes_data::file_info h_info, cpp_info;
@@ -143,25 +163,25 @@ void storage::generate_classes(classes_data& data) noexcept
 
 		const std::string_view class_name = table.name( );
 
-		for (const basic_netvar_info& info : table)
+		for(const netvar_table::value_type& info : table)
 		{
-			auto netvar_type = info.type( );
-			if (netvar_type.empty( ))
+			auto netvar_type = info->type( );
+			if(netvar_type.empty( ))
 				continue;
 
 			const auto type_pointer = netvar_type.ends_with('*');
-			if (type_pointer)
+			if(type_pointer)
 				netvar_type.remove_suffix(1);
 			const auto ret_char = type_pointer ? '*' : '&';
 
-			const std::string_view netvar_name = info.name( );
+			const std::string_view netvar_name = info->name( );
 
 			//---
 
 			const auto write_func_header = [=](std::basic_ostream<char>& stream, const bool inside_class)
 			{
 				stream << netvar_type << ret_char << ' ';
-				if (!inside_class)
+				if(!inside_class)
 					stream << class_name << "::";
 				stream << netvar_name << "( );\n";
 			};

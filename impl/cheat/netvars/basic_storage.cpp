@@ -1,5 +1,7 @@
 module;
 
+#include <cheat/netvars/basic_storage.h>
+
 #include <nstd/overload.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/ranges.h>
@@ -140,13 +142,13 @@ void netvar_table::validate_item(const basic_netvar_info* info) const noexcept
 	const auto name = info->name( );
 	runtime_assert(!name.empty( ), "Item name not set!");
 
-	if(storage_.empty( ))
+	if(this->empty( ))
 		return;
 
 	const auto offset = info->offset( );
 	const auto type = info->type( );
 
-	for(const element_type& item : storage_)
+	for(auto& item : *this)
 	{
 		if(item->name( ) == name)
 			runtime_assert("Item with given name already added!");
@@ -177,7 +179,7 @@ nstd::hashed_string_view netvar_table::name( ) const noexcept
 
 const basic_netvar_info* netvar_table::find(const nstd::hashed_string_view name) const noexcept
 {
-	for(const element_type& entry : storage_)
+	for(auto& entry : *this)
 	{
 		if(entry->name( ) == name)
 			return entry.get( );
@@ -195,27 +197,12 @@ const netvar_info_custom_constant* netvar_table::add(const size_t offset, const 
 	return add_impl<netvar_info_custom_constant>(offset, name, std::move(type));
 }
 
-bool netvar_table::empty( ) const noexcept
-{
-	return storage_.empty( );
-}
-
-auto netvar_table::begin( ) const noexcept -> iterator
-{
-	return {storage_,0u};
-}
-
-auto netvar_table::end( ) const noexcept -> iterator
-{
-	return {storage_,storage_.size( )};
-}
-
 //----
 
 //bool basic_storage::contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from) const noexcept
 //{
-//	const auto begin = storage_.data( );
-//	const auto end = begin + storage_.size( );
+//	const auto begin = this->data( );
+//	const auto end = begin + this->size( );
 //
 //	const auto pos = from ? from : begin;
 //	runtime_assert(std::distance(begin, pos) >= 0);
@@ -226,22 +213,23 @@ auto netvar_table::end( ) const noexcept -> iterator
 //	return false;
 //}
 
-auto basic_storage::find(const nstd::hashed_string_view name) const noexcept -> const_iterator
+auto basic_storage::find(const nstd::hashed_string_view name) const noexcept -> const netvar_table*
 {
 	return const_cast<basic_storage*>(this)->find(name);
 }
 
-auto basic_storage::find(const nstd::hashed_string_view name) noexcept -> iterator
+auto basic_storage::find(const nstd::hashed_string_view name) noexcept -> netvar_table*
 {
-	for(const netvar_table& entry : storage_)
+	for(netvar_table& entry : *this)
 	{
-		if(entry.name( ) == name)
-			return {storage_, std::addressof(entry)};
+		if(entry.name( ) != name)
+			continue;
+		return std::addressof(entry);
 	}
-	return {storage_, storage_.size( )};
+	return nullptr;
 }
 
-auto basic_storage::add(netvar_table&& table, const bool skip_find) noexcept -> iterator
+auto basic_storage::add(netvar_table&& table, const bool skip_find) noexcept -> netvar_table*
 {
 	if(!skip_find)
 	{
@@ -249,11 +237,11 @@ auto basic_storage::add(netvar_table&& table, const bool skip_find) noexcept -> 
 		if(existing)
 			return existing;
 	}
-	storage_.push_back(std::move(table));
-	return {storage_,storage_.size( ) - 1};
+	this->push_back(std::move(table));
+	return nullptr;
 }
 
-auto basic_storage::add(nstd::hashed_string&& name, const bool skip_find) noexcept -> iterator
+auto basic_storage::add(nstd::hashed_string&& name, const bool skip_find) noexcept -> netvar_table*
 {
 	if(!skip_find)
 	{
@@ -261,26 +249,6 @@ auto basic_storage::add(nstd::hashed_string&& name, const bool skip_find) noexce
 		if(existing)
 			return existing;
 	}
-	storage_.emplace_back(std::move(name));
-	return {storage_, storage_.size( ) - 1};
-}
-
-bool basic_storage::empty( ) const noexcept
-{
-	return storage_.empty( );
-}
-
-auto basic_storage::begin( ) const noexcept -> const_iterator
-{
-	return {storage_, 0u};
-}
-
-auto basic_storage::end( ) const noexcept -> const_iterator
-{
-	return {storage_, storage_.size( )};
-}
-
-size_t basic_storage::size( ) const noexcept
-{
-	return storage_.size( );
+	this->emplace_back(std::move(name));
+	return nullptr;
 }
