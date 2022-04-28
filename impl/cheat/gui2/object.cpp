@@ -8,22 +8,22 @@ using namespace cheat::gui2;
 
 auto objects_storage::begin( ) noexcept -> iterator
 {
-	return {storage_, 0u};
+	return storage_.begin( );
 }
 
 auto objects_storage::begin( ) const noexcept -> const_iterator
 {
-	return {storage_, 0u};
+	return storage_.begin( );
 }
 
 auto objects_storage::end( ) noexcept  -> iterator
 {
-	return {storage_, storage_.size( )};
+	return storage_.end( );
 }
 
 auto objects_storage::end( ) const noexcept -> const_iterator
 {
-	return {storage_, storage_.size( )};
+	return storage_.end( );
 }
 
 size_t objects_storage::size( ) const noexcept
@@ -61,7 +61,7 @@ bool object::handle_event(event* const ev) noexcept
 {
 	for(auto& child_obj : *this->child( ))
 	{
-		if(!child_obj.handle_event(ev))
+		if(!child_obj->handle_event(ev))
 			return false;
 	}
 

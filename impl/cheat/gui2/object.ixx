@@ -6,7 +6,6 @@ module;
 export module cheat.gui2.object;
 export import cheat.gui2.event;
 export import cheat.gui2.texture;
-import nstd.indexed_iterator;
 
 export namespace cheat::gui2
 {
@@ -18,8 +17,9 @@ export namespace cheat::gui2
 		using element_type = std::unique_ptr<object>;
 		using storage_type = std::vector<element_type>;
 		using pointer = object* const;
-		using iterator = nstd::indexed_iterator<storage_type>;
-		using const_iterator = nstd::indexed_iterator<const storage_type>;
+
+		using iterator = storage_type::iterator;
+		using const_iterator = storage_type::const_iterator;
 
 		iterator begin( ) noexcept;
 		iterator end( ) noexcept;
