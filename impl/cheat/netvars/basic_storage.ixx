@@ -11,123 +11,7 @@ export import cheat.csgo.structs.DataMap;
 import cheat.tools.object_name;
 import nstd.text.hashed_string;
 import nstd.text.string_or_view;
-
-struct ref_getter
-{
-	template<typename T>
-	T& operator()(const std::unique_ptr<T>& ptr) const noexcept
-	{
-		return *ptr;
-	}
-
-	template<typename T>
-	T& operator()(T& ref) const noexcept
-	{
-		return ref;
-	}
-};
-
-template<typename T>
-decltype(auto) get_ref(T& ref) noexcept
-{
-	constexpr ref_getter getter;
-	return std::invoke(getter, ref);
-}
-
-template<typename T>
-auto get_ptr(T& ref) noexcept
-{
-	return std::addressof(get_ref(ref));
-}
-
-template<typename T>
-class safe_iterator
-{
-public:
-	safe_iterator( ) = default;
-
-	safe_iterator(T& s, size_t off)
-		:source_(std::addressof(s)), index_(off)
-	{
-	}
-
-	safe_iterator(T& s, decltype(std::declval<T>( ).data( )) ptr)
-		:safe_iterator(s, std::distance(s.data( ), ptr))
-	{
-	}
-
-	template<typename T1 = T>
-		requires(std::assignable_from<T*, T1*>)
-	safe_iterator(const safe_iterator<T1> other)
-		: source_(other.source_), index_(other.index_)
-	{
-	}
-
-	auto operator->( ) const noexcept
-	{
-		return get_ptr(source_->data( )[index_]);
-	}
-
-	auto& operator*( ) const noexcept
-	{
-		return get_ref(source_->data( )[index_]);
-	}
-
-	bool operator!( ) const noexcept
-	{
-		return source_ == nullptr;
-	}
-
-	explicit operator bool( ) const noexcept
-	{
-		return source_ != nullptr;
-	}
-
-	bool operator==(const safe_iterator other) const noexcept
-	{
-		return source_ == other.source_ && index_ == other.index_;
-	}
-
-	// Prefix increment
-	safe_iterator& operator++( ) noexcept
-	{
-		++index_;
-		return *this;
-	}
-
-	// Postfix increment
-	safe_iterator operator++(int) noexcept
-	{
-		const auto tmp = *this;
-		++index_;
-		return tmp;
-	}
-
-private:
-	T* source_ = nullptr;
-	size_t index_ = static_cast<size_t>(-1);
-};
-
-namespace std
-{
-	template<typename T, typename T1>
-	auto distance(const T* ptr, const safe_iterator<T1> itr)
-	{
-		return std::distance(ptr, itr.data( ));
-	}
-
-	template<typename T, typename T1>
-	auto distance(const safe_iterator<T> itr, const T1* ptr)
-	{
-		return std::distance(itr.data( ), ptr);
-	}
-
-	template<typename T, typename T1>
-	auto distance(const safe_iterator<T> itr, const safe_iterator<T1> itr1)
-	{
-		return std::distance(itr.data( ), itr1.data( ));
-	}
-}
+import nstd.indexed_iterator;
 
 using netvar_info_source = std::variant<cheat::csgo::RecvProp*, cheat::csgo::typedescription_t*>;
 using nstd::text::string_or_view;
@@ -170,7 +54,7 @@ public:
 
 	size_t offset( ) const noexcept
 	{
-		if (std::holds_alternative<size_t>(getter_))
+		if(std::holds_alternative<size_t>(getter_))
 			return std::get<0>(getter_);
 
 		const auto offset = std::invoke(std::get<1>(getter_));
@@ -218,16 +102,15 @@ class netvar_table
 	{
 		auto uptr = std::make_unique<T>(std::forward<Args>(args)...);
 		const T* ret = uptr.get( );
-		data_.emplace_back(std::move(uptr));
-#ifdef _DEBUG
-		validate_item(ret);
-#endif
+		storage_.emplace_back(std::move(uptr));
+		this->validate_item(ret);
 		return ret;
 	}
 
 public:
-	using data_type = std::vector<std::unique_ptr<basic_netvar_info>>;
-	using iterator = safe_iterator<const data_type>;
+	using element_type = std::unique_ptr<basic_netvar_info>;
+	using storage_type = std::vector<element_type>;
+	using iterator = nstd::indexed_iterator<const storage_type>;
 
 	netvar_table(nstd::hashed_string&& name);
 
@@ -254,7 +137,7 @@ public:
 
 private:
 	nstd::hashed_string name_;
-	data_type data_;
+	storage_type storage_;
 };
 
 export namespace cheat::netvars
@@ -262,12 +145,12 @@ export namespace cheat::netvars
 	class basic_storage
 	{
 	public:
-		using data_type = std::vector<netvar_table>;
-		using iterator = safe_iterator<data_type>;
-		using const_iterator = safe_iterator<const data_type>;
+		using storage_type = std::vector<netvar_table>;
+		using iterator = nstd::indexed_iterator<storage_type>;
+		using const_iterator = nstd::indexed_iterator<const storage_type>;
 
-		[[deprecated]]
-		bool contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from = nullptr) const noexcept;
+		//[[deprecated]]
+		//bool contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from = nullptr) const noexcept;
 
 		const_iterator find(const nstd::hashed_string_view name) const noexcept;
 		iterator find(const nstd::hashed_string_view name) noexcept;
@@ -286,6 +169,6 @@ export namespace cheat::netvars
 		size_t size( ) const noexcept;
 
 	private:
-		data_type data_;
+		storage_type storage_;
 	};
 }
