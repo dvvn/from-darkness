@@ -23,7 +23,7 @@ bool texture_d3d9::begin( )
 	return SUCCEEDED(device_->BeginScene( ));
 }
 
-void texture_d3d9::run(objects_storage* const root_storage)
+void texture_d3d9::run(objects_storage<>* const root_storage)
 {
 	runtime_assert("Finish the function!");
 }

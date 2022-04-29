@@ -1,27 +1,21 @@
 module;
 
-#include <memory>
-
 export module cheat.gui2.texture;
 export import cheat.gui2.type_info;
+export import cheat.gui2.factory;
 
 export namespace cheat::gui2
 {
-	class texture : public virtual type_info
+	class texture : public virtual type_info, public unique_factory<texture>
 	{
 	public:
 		virtual ~texture( );
-		virtual void update( ) = 0;
+
+	protected:
+		virtual void update_texture( ) noexcept;
 	};
 
-	template<class T>
-	auto make_texture( ) noexcept
-	{
-		static_assert(std::is_convertible_v<T*, texture*>, __FUNCSIG__": incorrect type passed!");
-		return std::make_unique<T>( );
-	}
-
-	class texture_renderer
+	/*class texture_renderer
 	{
 	public:
 		using value_type = std::unique_ptr<texture>;
@@ -36,5 +30,5 @@ export namespace cheat::gui2
 
 	private:
 		value_type texture_;
-	};
+	};*/
 }

@@ -13,7 +13,7 @@ export namespace cheat::gui2
 		~texture_d3d9( ) override;
 		texture_d3d9(IDirect3DTexture9* const tex);
 
-		void update( ) override;
+		void update_texture( ) noexcept override;
 
 	private:
 		IDirect3DTexture9* texture_;

@@ -21,7 +21,7 @@ texture_d3d9::texture_d3d9(IDirect3DTexture9* const tex)
 	runtime_assert(tex != nullptr, "Unable to construct from null pointer!");
 }
 
-void texture_d3d9::update( )
+void texture_d3d9::update_texture( ) noexcept
 {
 	runtime_assert("Finish the function!");
 }

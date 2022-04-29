@@ -6,6 +6,18 @@ module cheat.gui2.object;
 
 using namespace cheat::gui2;
 
+texture* object::get_texture( ) noexcept
+{
+	return texture_.get( );
+}
+
+void object::set_texture(texture_type&& tex) noexcept
+{
+	texture_ = std::move(tex);
+}
+
+#if 0
+
 auto objects_storage::begin( ) noexcept -> iterator
 {
 	return storage_.begin( );
@@ -67,3 +79,5 @@ bool object::handle_event(event* const ev) noexcept
 
 	return true;
 }
+
+#endif

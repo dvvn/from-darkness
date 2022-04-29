@@ -9,45 +9,23 @@ export import cheat.gui2.texture;
 
 export namespace cheat::gui2
 {
-	class object;
-
-	class objects_storage
+	class object : public virtual type_info, public unique_factory<object>
 	{
 	public:
-		using value_type = std::unique_ptr<object>;
-		using storage_type = std::vector<value_type>;
-		using pointer = object* const;
+		using texture_type = unique_pointer<texture>;
 
-		using iterator = storage_type::iterator;
-		using const_iterator = storage_type::const_iterator;
+		virtual bool handle_event(event* const ev) noexcept = 0;
 
-		iterator begin( ) noexcept;
-		iterator end( ) noexcept;
-		const_iterator begin( ) const noexcept;
-		const_iterator end( ) const noexcept;
-
-		size_t size( ) const noexcept;
-		bool empty( ) const noexcept;
-
-		pointer add(value_type&& value) noexcept;
+		texture* get_texture( ) noexcept;
+		void set_texture(texture_type&& tex) noexcept;
 
 	private:
-		storage_type storage_;
+		texture_type texture_;
 	};
 
-	class child_storage
+	template<class T = object, class ValT = unique_pointer<T>>
+	class objects_storage :public std::vector<ValT, allocator_t<ValT>>
 	{
-	public:
-		objects_storage* const child( ) noexcept;
-		const objects_storage* const child( ) const noexcept;
-
-	private:
-		objects_storage storage_;
 	};
 
-	class object : public texture_renderer, public child_storage, public virtual type_info
-	{
-	public:
-		virtual bool handle_event(event* const ev) noexcept;
-	};
 }

@@ -16,7 +16,7 @@ export namespace cheat::gui2
 		texture_d3d9(pointer ptr);
 
 		bool begin( ) override;
-		void run(objects_storage* const root_storage) override;
+		void run(objects_storage<>* const root_storage) override;
 		bool end( ) override;
 
 	private:
