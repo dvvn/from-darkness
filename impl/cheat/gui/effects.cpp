@@ -9,7 +9,7 @@ module;
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/unordered_map.h>
-#include <nstd/winapi/comptr_includes.h>
+#include <nstd/winapi/comptr.h>
 
 #include <imgui_internal.h>
 
@@ -21,7 +21,6 @@ module;
 #include <functional>
 
 module cheat.gui:effects;
-import nstd.winapi.comptr;
 import nstd.one_instance;
 
 using namespace cheat;

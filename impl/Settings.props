@@ -33,6 +33,7 @@
 	<ImportGroup Label="PropertySheets">
 		<Import Project="$(SolutionDir)/deps/imgui/Settings.props"/>
 		<Import Project="$(SolutionDir)/deps/dhooks/Settings.props"/>
+		<Import Project="$(SolutionDir)/deps/RmlUi/Settings.props"/>
 	</ImportGroup>
 
 </Project>

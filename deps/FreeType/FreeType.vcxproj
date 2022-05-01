@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build"
+		 xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="Debug|Win32">
+			<Configuration>Debug</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|Win32">
+			<Configuration>Release</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+
+	<PropertyGroup Label="Globals">
+		<ProjectGuid>{C32CFCCC-90E1-47CB-9D4E-862D56B59D85}</ProjectGuid>
+	</PropertyGroup>
+	<Import Project="$(SolutionDir)/Props/Globals.props"/>
+
+	<PropertyGroup Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+	</PropertyGroup>
+
+	<ImportGroup Label="PropertySheets">
+		<Import Project="$(SolutionDir)/Props/Configuration.props"/>
+		<Import Project="$(SolutionDir)/deps/FreeType/Settings.props"/>
+		<Import Project="$(SolutionDir)/Props/Settings.props"/>
+	</ImportGroup>
+
+	<ItemDefinitionGroup>
+		<ClCompile>
+			<PreprocessorDefinitions>
+				_CRT_SECURE_NO_WARNINGS;
+				%(PreprocessorDefinitions)
+			</PreprocessorDefinitions>
+		</ClCompile>
+	</ItemDefinitionGroup>
+
+	<ItemGroup>
+		<ClCompile Include="$(FreeTypeDir)\src\autofit\autofit.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftbase.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftbbox.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftbdf.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftbitmap.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftcid.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftfstype.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftgasp.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftglyph.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftgxval.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftinit.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftmm.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftotval.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftpatent.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftpfr.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftstroke.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftsynth.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\fttype1.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\base\ftwinfnt.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\bdf\bdf.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\cache\ftcache.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\cff\cff.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\cid\type1cid.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\dlg\dlgwrap.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\gzip\ftgzip.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\lzw\ftlzw.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\pcf\pcf.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\pfr\pfr.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\psaux\psaux.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\pshinter\pshinter.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\psnames\psmodule.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\raster\raster.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\sfnt\sfnt.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\smooth\smooth.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\sdf\sdf.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\svg\svg.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\truetype\truetype.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\type1\type1.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\type42\type42.c" />
+		<ClCompile Include="$(FreeTypeDir)\src\winfonts\winfnt.c" />
+		<ClCompile Include="$(FreeTypeDir)\builds\windows\ftdebug.c">
+			<DisableLanguageExtensions>false</DisableLanguageExtensions>
+		</ClCompile>
+		<ClCompile Include="$(FreeTypeDir)\builds\windows\ftsystem.c">
+			<DisableLanguageExtensions>false</DisableLanguageExtensions>
+		</ClCompile>
+		<ResourceCompile Include="$(FreeTypeDir)\src\base\ftver.rc" />
+	</ItemGroup>
+</Project>

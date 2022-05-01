@@ -14,8 +14,8 @@
 	</ItemGroup>
 
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{D4B46FB7-85BB-4462-9275-134467FBF6D8}</ProjectGuid>
-		<RootNamespace>cheat</RootNamespace>
+		<ProjectGuid>{023073D7-9DC9-492F-B040-754073C9D648}</ProjectGuid>
+		<RootNamespace>Rml</RootNamespace>
 	</PropertyGroup>
 	<Import Project="$(SolutionDir)/Props/Globals.props"/>
 
@@ -25,29 +25,17 @@
 
 	<ImportGroup Label="PropertySheets">
 		<Import Project="$(SolutionDir)/Props/Configuration.props"/>
-		<Import Project="$(SolutionDir)/impl/Settings.props"/>
+		<Import Project="$(SolutionDir)/deps/RmlUi/Settings.props"/>
 		<Import Project="$(SolutionDir)/Props/Settings.props"/>
 	</ImportGroup>
 
 	<ItemGroup>
-		<ClCompile Include="$(SolutionDir)\impl\cheat\**\*.c*" />
-		<ClCompile Include="$(SolutionDir)\impl\cheat\**\*.i*" />
-		<ClInclude Include="$(SolutionDir)\impl\cheat\**\*.h*" />
+		<ClCompile Include="$(RmlUiDir)\Source\Debugger\*.cpp" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="$(SolutionDir)\deps\imgui\imgui.vcxproj">
-			<Project>{DDAA17EC-019B-4B6C-80E0-DAD3DFC2C6C5}</Project>
-		</ProjectReference>
-		<ProjectReference Include="$(SolutionDir)\deps\dhooks\dhooks.vcxproj">
-			<Project>{49A4F286-F925-4697-B0A8-1E3D6FB830F0}</Project>
-		</ProjectReference>
-		<ProjectReference Include="$(SolutionDir)\deps\nstd\nstd.vcxproj">
-			<Project>{6832F075-A85B-4F2B-91B6-6055A57B2BF8}</Project>
-		</ProjectReference>
 		<ProjectReference Include="$(SolutionDir)\deps\RmlUi\RmlUi.vcxproj">
 			<Project>{84790609-C688-4430-AEB0-F9E291832022}</Project>
 		</ProjectReference>
 	</ItemGroup>
-
 </Project>

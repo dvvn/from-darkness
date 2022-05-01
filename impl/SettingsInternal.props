@@ -19,6 +19,9 @@
 		<ProjectReference Include="$(SolutionDir)\deps\nstd\nstd.vcxproj">
 			<Project>{6832F075-A85B-4F2B-91B6-6055A57B2BF8}</Project>
 		</ProjectReference>
+		<ProjectReference Include="$(SolutionDir)\deps\RmlUi\RmlUi.Debugger.vcxproj">
+			<Project>{023073D7-9DC9-492F-B040-754073C9D648}</Project>
+		</ProjectReference>
 	</ItemGroup>
 
 </Project>
