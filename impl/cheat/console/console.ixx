@@ -19,7 +19,7 @@ struct dummy_struct
 };
 
 template<typename T>
-inline constexpr bool is_trivial_object_v = std::is_trivially_copyable_v<T> && sizeof(T) <= sizeof(decltype(&dummy_struct::func));
+constexpr bool is_trivial_object_v = std::is_trivially_copyable_v<T> && sizeof(T) <= sizeof(decltype(&dummy_struct::func));
 
 template<typename T, typename Base, typename Adaptor>
 class formatter_froxy : public Base
@@ -60,12 +60,14 @@ namespace std
 	};
 }
 
+//assert if console disabled
 void _Log(const std::string_view str) noexcept;
 void _Log(const std::wstring_view str) noexcept;
-bool _Active( ) noexcept;
 
 export namespace cheat::console
 {
+	bool active( ) noexcept;
+
 	void enable( ) noexcept;
 	void disable( ) noexcept;
 
@@ -75,7 +77,7 @@ export namespace cheat::console
 	template<std::invocable T>
 	void log(T&& fn) noexcept
 	{
-		if (!_Active( ))
+		if(!active( ))
 			return;
 		_Log(std::invoke(std::forward<T>(fn)));
 	}
@@ -84,7 +86,7 @@ export namespace cheat::console
 		requires(sizeof...(Args) >= 2)
 	void log(Args&& ...args) noexcept
 	{
-		if (!_Active( ))
+		if(!active( ))
 			return;
 		_Log(std::format(std::forward<Args>(args)...));
 	}

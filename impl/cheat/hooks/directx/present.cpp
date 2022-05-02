@@ -13,6 +13,7 @@ module cheat.hooks.directx.present;
 import cheat.gui;
 import cheat.hooks.base;
 import nstd.mem.address;
+import cheat.gui;
 
 using namespace cheat;
 using namespace hooks;
@@ -21,6 +22,9 @@ CHEAT_HOOK_INSTANCE(directx, present);
 
 static void* target( ) noexcept
 {
+	//todo: find better place for this, or remove init function
+	gui::init( );
+
 	const nstd::mem::basic_address<void> vtable_holder = nstd::get_instance<IDirect3DDevice9*>( );
 	return vtable_holder.deref<1>( )[17];
 }
@@ -31,16 +35,17 @@ struct replace
 	{
 		using namespace gui;
 
-//#ifdef IMGUI_HAS_DOCK
-//		runtime_assert(context::get( ).IO.ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
-//#endif
+#if 0
+		//#ifdef IMGUI_HAS_DOCK
+		//		runtime_assert(context::get( ).IO.ConfigFlags & ImGuiConfigFlags_DockingEnable, "docking and manual window title renderer are incompatible!");
+		//#endif
 
 		ImGui_ImplDX9_NewFrame( );   //todo: erase. it only calls CreateDeviceObjects, what can be done after reset and init
 		ImGui_ImplWin32_NewFrame( ); //todo: call it from input (if do it move timers outside)
 
 		const auto& io = context::get( ).IO;
 		// Avoid rendering when minimized
-		if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
+		if(io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
 			return CHEAT_HOOK_CALL_ORIGINAL_MEMBER(source_rect, desc_rect, dest_window_override, dirty_region);
 
 		ImGui::NewFrame( );
@@ -49,7 +54,7 @@ struct replace
 			[[maybe_unused]]
 			const auto render_result = menu::render( );
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-			if (render_result)
+			if(render_result)
 				ImGui::ShowDemoWindow( );
 #endif
 		}
@@ -66,6 +71,8 @@ struct replace
 		[[maybe_unused]] const auto end = d3d_device->EndScene( );
 		runtime_assert(SUCCEEDED(end));
 
+#endif
+		gui::render( );
 		return CHEAT_HOOK_CALL_ORIGINAL_MEMBER(source_rect, desc_rect, dest_window_override, dirty_region);
 	}
 };

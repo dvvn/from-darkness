@@ -7,6 +7,7 @@ module;
 module cheat.hooks.winapi.wndproc;
 import cheat.gui;
 import cheat.hooks.base;
+import cheat.gui.input;
 
 #define HOT_UNLOAD_SUPPORTED
 
@@ -32,7 +33,7 @@ struct wndproc_info_t
 	void update(const HWND hwnd = gui::context::get( ).hwnd)
 	{
 		const auto unicode = IsWindowUnicode(hwnd);
-		if (unicode)
+		if(unicode)
 		{
 			def = DefWindowProcW;
 			curr = (wndproc_t)GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
@@ -70,60 +71,60 @@ struct replace
 		auto& ctx = context::get( );
 
 		const auto window_active = !ctx.inactive( );
-		if (!window_active)
+		if(!window_active)
 			return override_info::none;
 
 		const auto input_active = ctx.IO.WantTextInput;
-		if (!input_active)
+		if(!input_active)
 		{
 #ifdef HOT_UNLOAD_SUPPORTED
 			const auto unload_wanted = wparam == VK_DELETE && msg == WM_KEYUP;
-			if (unload_wanted)
+			if(unload_wanted)
 			{
 				//disable( );
 				//this->store_return_value(TRUE);
-				hooks::unload();
+				hooks::unload( );
 				return override_info::special;
 			}
 #endif
-			if (menu::toggle(msg, wparam))
+			if(menu::toggle(msg, wparam))
 				return override_info::skipped;
 		}
 
 		const auto can_skip_input = [&](bool manual_imgui_handler)
 		{
 			//todo: if skipped -> render last filled buffer
-			switch (msg)
+			switch(msg)
 			{
-			case WM_KILLFOCUS:
-			case WM_SETFOCUS:
-				if (manual_imgui_handler)
-					ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
-			case WM_CLOSE:
-			case WM_DESTROY:
-			case WM_QUIT:
-			case WM_SYSCOMMAND:
-			case WM_MOVE:
-			case WM_SIZE:
-			case WM_FONTCHANGE:
-			case WM_ACTIVATE:
-			case WM_ACTIVATEAPP:
-			case WM_ENABLE:
-				return false;
-			default:
-				return true;
+				case WM_KILLFOCUS:
+				case WM_SETFOCUS:
+					if(manual_imgui_handler)
+						ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+				case WM_CLOSE:
+				case WM_DESTROY:
+				case WM_QUIT:
+				case WM_SYSCOMMAND:
+				case WM_MOVE:
+				case WM_SIZE:
+				case WM_FONTCHANGE:
+				case WM_ACTIVATE:
+				case WM_ACTIVATEAPP:
+				case WM_ENABLE:
+					return false;
+				default:
+					return true;
 			}
 		};
 
-		if (menu::updating( ))
+		if(menu::updating( ))
 			return can_skip_input(true) ? override_info::skipped : override_info::none;
 
-		if (menu::visible( ))
+		if(menu::visible( ))
 		{
-			if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+			if(ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
 				return override_info::blocked;
 
-			if (can_skip_input(false))
+			if(can_skip_input(false))
 				return override_info::skipped;
 		}
 
@@ -132,19 +133,26 @@ struct replace
 
 	static LRESULT WINAPI fn(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) noexcept
 	{
-		switch (override_input(hwnd, msg, wparam, lparam))
+#if 0
+		switch(override_input(hwnd, msg, wparam, lparam))
 		{
-		case override_info::none:
-			return CHEAT_HOOK_CALL_ORIGINAL_STATIC(hwnd, msg, wparam, lparam);
-		case override_info::blocked:
-			return TRUE;
-		case override_info::skipped:
-			return CHEAT_HOOK_CALL(wndproc_info->def, hwnd, msg, wparam, lparam);
+			case override_info::none:
+				return CHEAT_HOOK_CALL_ORIGINAL_STATIC(hwnd, msg, wparam, lparam);
+			case override_info::blocked:
+				return TRUE;
+			case override_info::skipped:
+				return CHEAT_HOOK_CALL(wndproc_info->def, hwnd, msg, wparam, lparam);
 #ifdef HOT_UNLOAD_SUPPORTED
-		case override_info::special:
-			return TRUE;
+			case override_info::special:
+				return TRUE;
 #endif
 		}
+#endif
+
+		if(gui::process_input(hwnd, msg, wparam, lparam).touched( ))
+			return CHEAT_HOOK_CALL(wndproc_info->def, hwnd, msg, wparam, lparam);
+
+		return CHEAT_HOOK_CALL_ORIGINAL_STATIC(hwnd, msg, wparam, lparam);
 	}
 };
 

@@ -46,7 +46,7 @@ template <bool Assert = true>
 static auto _Set_mode(FILE* file, int mode) noexcept
 {
 	const auto old_mode = _setmode(_fileno(file), mode);
-	if constexpr (Assert)
+	if constexpr(Assert)
 		assert(old_mode != -1 && "Unable to change mode");
 	return old_mode;
 }
@@ -54,7 +54,7 @@ static auto _Set_mode(FILE* file, int mode) noexcept
 template <bool Assert = true>
 static auto _Set_mode(int known_prev_mode, FILE* file, int mode) noexcept
 {
-	if (known_prev_mode == mode)
+	if(known_prev_mode == mode)
 		return mode;
 	return _Set_mode<Assert>(file, mode);
 }
@@ -92,13 +92,13 @@ concept have_array_access = requires(T obj)
 template<typename T>
 constexpr auto _Get_char_type(const T& sample = {}) noexcept
 {
-	if constexpr (have_char_type<T>)
+	if constexpr(have_char_type<T>)
 		return T::char_type( );
-	else if constexpr (have_value_type<T>)
+	else if constexpr(have_value_type<T>)
 		return T::value_type( );
-	else if constexpr (have_array_access<T>)
+	else if constexpr(have_array_access<T>)
 		return sample[0];
-	else if constexpr (!std::is_class_v<T>)
+	else if constexpr(!std::is_class_v<T>)
 		return sample;
 }
 
@@ -118,30 +118,30 @@ static auto _Write_text_ex(const T& text, const Next&...other) noexcept
 	constexpr auto writable_wide = stream_possible<std::wofstream, T>;
 	constexpr auto universal = writable && writable_wide;
 
-	if constexpr (universal)
+	if constexpr(universal)
 	{
 		using char_t = decltype(_Get_char_type(text));
-		if constexpr (std::same_as<char_t, std::ofstream::char_type>)
+		if constexpr(std::same_as<char_t, std::ofstream::char_type>)
 			std::cout << text;
-		else if constexpr (std::same_as<char_t, std::wofstream::char_type>)
+		else if constexpr(std::same_as<char_t, std::wofstream::char_type>)
 			std::wcout << text;
 		else
 			static_assert(_Always_false<char_t>, __FUNCSIG__": Unsupported char type");
 	}
-	else if constexpr (writable || writable_wide)
+	else if constexpr(writable || writable_wide)
 	{
 		FILE* file_out;
 		int new_mode;
 		int prev_mode;
 
-		if constexpr (writable)
+		if constexpr(writable)
 		{
 			file_out = _Get_file_buff(std::cin);
 			new_mode = _O_TEXT;
 			prev_mode = _Set_mode(file_out, new_mode);
 			std::cout << text;
 		}
-		else if constexpr (writable_wide)
+		else if constexpr(writable_wide)
 		{
 			file_out = _Get_file_buff(std::wcin);
 			new_mode = _O_U16TEXT;
@@ -149,10 +149,10 @@ static auto _Write_text_ex(const T& text, const Next&...other) noexcept
 			std::wcout << text;
 		}
 
-		if (prev_mode != new_mode)
+		if(prev_mode != new_mode)
 			_Set_mode(/*stdout*/file_out, prev_mode);
 	}
-	else if constexpr (have_view_function<T>)
+	else if constexpr(have_view_function<T>)
 	{
 		_Write_text_ex(text.view( ), other...);
 		return;
@@ -162,13 +162,13 @@ static auto _Write_text_ex(const T& text, const Next&...other) noexcept
 		static_assert(_Always_false<T>, __FUNCSIG__": Unsupported string type");
 	}
 
-	if constexpr (sizeof...(Next) > 0)
+	if constexpr(sizeof...(Next) > 0)
 		_Write_text_ex(other...);
 };
 
 #pragma warning(pop)
 
-static auto _Write_text = []<typename ...T>(const T & ...text)
+static auto _Write_text = [ ]<typename ...T>(const T & ...text)
 {
 	_Write_text_ex(text...);
 };
@@ -180,7 +180,7 @@ static auto _Prepare_assert_message(const char* expression, const char* message,
 	const auto append = [&]<typename Name, typename Value>(const Name name, const Value value, bool newline = true)
 	{
 		msg << name << ": " << value;
-		if (newline)
+		if(newline)
 			msg << '\n';
 	};
 
@@ -189,9 +189,9 @@ static auto _Prepare_assert_message(const char* expression, const char* message,
 	append("Line", location.line( ));
 	append("Column", location.column( ));
 	append("Function", location.function_name( ), false);
-	if (expression)
+	if(expression)
 		append("\n\nExpression", expression, false);
-	if (message)
+	if(message)
 		msg << "\nMessage" << message;
 
 	return msg;
@@ -234,7 +234,7 @@ class console_controller : nstd::rt_assert_handler
 public:
 	~console_controller( )
 	{
-		if (!running_)
+		if(!running_)
 			return;
 		stop( );
 	}
@@ -253,7 +253,7 @@ public:
 	{
 		runtime_assert(!running_, "Already started");
 		auto console_window = GetConsoleWindow( );
-		if (console_window)
+		if(console_window)
 		{
 			window_ = nullptr;
 			in_ = out_ = err_ = nullptr;
@@ -299,7 +299,7 @@ public:
 		runtime_assert(running_, "Already stopped");
 		runtime_assert_remove_handler(this->id( ));
 
-		if (window_)
+		if(window_)
 		{
 			FreeConsole( );
 			PostMessage(window_, WM_CLOSE, 0U, 0L);
@@ -311,7 +311,7 @@ public:
 
 		constexpr auto _Fclose = [](FILE*& f) noexcept
 		{
-			if (!f)
+			if(!f)
 				return;
 			fclose(f);
 			f = nullptr;
@@ -365,14 +365,17 @@ static nstd::one_instance_obj<console_controller> controller;
 template<typename T>
 static void _Log_impl(const T str) noexcept
 {
-	switch (console_state)
+	switch(console_state)
 	{
-	case state::unset:
-		runtime_assert("Unknown console state");
-		break;
-	case state::on:
-		controller->write_line(str);
-		break;
+		case state::unset:
+			runtime_assert("Unknown console state");
+			break;
+		case state::off:
+			runtime_assert("Console are disabled");
+			break;
+		case state::on:
+			controller->write_line(str);
+			break;
 	}
 }
 
@@ -386,52 +389,52 @@ void _Log(const std::wstring_view str) noexcept
 	_Log_impl(str);
 }
 
-bool _Active( ) noexcept
+bool console::active( ) noexcept
 {
 	return console_state == state::on;
 }
 
 void console::enable( ) noexcept
 {
-	switch (console_state)
+	switch(console_state)
 	{
-	case state::on:
-		runtime_assert("Console already enabled!");
-		break;
-	case state::off:
-		controller->start( );
-	case state::unset:
-		console_state = state::on;
-		break;
+		case state::on:
+			runtime_assert("Console already enabled!");
+			break;
+		case state::off:
+			controller->start( );
+		case state::unset:
+			console_state = state::on;
+			break;
 	}
 }
 
 void console::disable( ) noexcept
 {
-	switch (console_state)
+	switch(console_state)
 	{
-	case state::off:
-		runtime_assert("Console already disabled!");
-		break;
-	case state::on:
-		if (controller.initialized( ))
-			controller->stop( );
-	case state::unset:
-		console_state = state::off;
-		break;
+		case state::off:
+			runtime_assert("Console already disabled!");
+			break;
+		case state::on:
+			if(controller.initialized( ))
+				controller->stop( );
+		case state::unset:
+			console_state = state::off;
+			break;
 	}
 }
 
 void console::log(const std::string_view str) noexcept
 {
-	if (!_Active( ))
+	if(!active( ))
 		return;
 	_Log(str);
 }
 
 void console::log(const std::wstring_view str) noexcept
 {
-	if (!_Active( ))
+	if(!active( ))
 		return;
 	_Log(str);
 }
