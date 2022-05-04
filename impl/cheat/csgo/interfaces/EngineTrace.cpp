@@ -102,11 +102,26 @@ void Ray_t::Init(const math::vector3& start, const math::vector3& end, const mat
 
 //-----
 
-bool CBaseTrace::IsDispSurface( ) { return ((dispFlags & DISPSURF_FLAG_SURFACE) != 0); }
-bool CBaseTrace::IsDispSurfaceWalkable( ) { return ((dispFlags & DISPSURF_FLAG_WALKABLE) != 0); }
-bool CBaseTrace::IsDispSurfaceBuildable( ) { return ((dispFlags & DISPSURF_FLAG_BUILDABLE) != 0); }
-bool CBaseTrace::IsDispSurfaceProp1( ) { return ((dispFlags & DISPSURF_FLAG_SURFPROP1) != 0); }
-bool CBaseTrace::IsDispSurfaceProp2( ) { return ((dispFlags & DISPSURF_FLAG_SURFPROP2) != 0); }
+bool CBaseTrace::IsDispSurface( )
+{
+	return ((dispFlags & DISPSURF_FLAG_SURFACE) != 0);
+}
+bool CBaseTrace::IsDispSurfaceWalkable( )
+{
+	return ((dispFlags & DISPSURF_FLAG_WALKABLE) != 0);
+}
+bool CBaseTrace::IsDispSurfaceBuildable( )
+{
+	return ((dispFlags & DISPSURF_FLAG_BUILDABLE) != 0);
+}
+bool CBaseTrace::IsDispSurfaceProp1( )
+{
+	return ((dispFlags & DISPSURF_FLAG_SURFPROP1) != 0);
+}
+bool CBaseTrace::IsDispSurfaceProp2( )
+{
+	return ((dispFlags & DISPSURF_FLAG_SURFPROP2) != 0);
+}
 
 //-----
 
@@ -122,7 +137,4 @@ bool CGameTrace::IsVisible( ) const
 
 //-----
 
-CHEAT_CSGO_INTERFACE_INIT(IEngineTrace)
-{
-	return csgo_modules::engine.find_interface<"EngineTraceClient">( );
-}
+CHEAT_CSGO_INTERFACE_INIT(IEngineTrace, csgo_modules::engine.find_interface<"EngineTraceClient">( ));

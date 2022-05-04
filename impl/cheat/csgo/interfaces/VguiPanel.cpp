@@ -8,7 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IVguiPanel)
-{
-	return csgo_modules::vgui2.find_interface<"VGUI_Panel">( );
-}
+CHEAT_CSGO_INTERFACE_INIT(IVguiPanel, csgo_modules::vgui2.find_interface<"VGUI_Panel">( ));

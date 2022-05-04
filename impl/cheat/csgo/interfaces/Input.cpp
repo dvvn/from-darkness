@@ -9,10 +9,7 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(CInput)
-{
-	return csgo_modules::client.find_interface_sig<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">( ).plus(1).deref<1>( );
-}
+CHEAT_CSGO_INTERFACE_INIT(CInput, csgo_modules::client.find_interface_sig<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">( ).plus(1).deref<1>( ));
 
 constexpr auto MULTIPLAYER_BACKUP = 150;
 

@@ -1,14 +1,13 @@
 #pragma once
 
+#include <utility>
+
 import nstd.one_instance;
 
-#define CHEAT_CSGO_INTERFACE_INIT(_TYPE_)\
-_TYPE_* nstd::one_instance_getter<_TYPE_*>::_Construct( ) const noexcept
-
-//namespace cheat::csgo
-//{
-//	template<typename T>
-//	T get_interface( ) noexcept;
-//}
-//
-//#define CHEAT_CSGO_INTERFACE_INIT(_TYPE_) _TYPE_* get_interface<_TYPE_*>( ) noexcept
+#define CHEAT_CSGO_INTERFACE_INIT(_TYPE_,_IMPL_)\
+template<>\
+template<>\
+nstd::one_instance_getter<_TYPE_*>::one_instance_getter(const std::in_place_index_t<0>)\
+	: item_(_IMPL_)\
+{\
+}

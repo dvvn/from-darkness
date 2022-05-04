@@ -8,10 +8,7 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(CGlowObjectManager)
-{
-	return csgo_modules::client.find_interface_sig<"0F 11 05 ? ? ? ? 83 C8 01">( ).plus(3).deref<1>( );
-}
+CHEAT_CSGO_INTERFACE_INIT(CGlowObjectManager, csgo_modules::client.find_interface_sig<"0F 11 05 ? ? ? ? 83 C8 01">( ).plus(3).deref<1>( ));
 
 void GlowObject_t::Set(const math::color& glow_color, GlowRenderStyles style)
 {

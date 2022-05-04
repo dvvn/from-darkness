@@ -8,7 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(CClientState)
-{
-	return csgo_modules::engine.find_interface_sig<"A1 ? ? ? ? 8B 80 ? ? ? ? C3">( ).plus(1).deref<2>( );
-}
+CHEAT_CSGO_INTERFACE_INIT(CClientState, csgo_modules::engine.find_interface_sig<"A1 ? ? ? ? 8B 80 ? ? ? ? C3">( ).plus(1).deref<2>( ));

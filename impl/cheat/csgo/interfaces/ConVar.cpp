@@ -21,10 +21,7 @@ import nstd.mem.address;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(ICVar)
-{
-	return csgo_modules::vstdlib.find_interface<"VEngineCvar">( );
-}
+CHEAT_CSGO_INTERFACE_INIT(ICVar, csgo_modules::vstdlib.find_interface<"VEngineCvar">( ));
 
 using nstd::mem::basic_address;
 
@@ -143,12 +140,12 @@ private:
 
 static bool _Compare_cvars(const std::string_view name, const ConCommandBase& other) noexcept
 {
-	if (other.IsCommand( ))
+	if(other.IsCommand( ))
 		return false;
-	if (std::memcmp(other.m_pszName, name.data( ), name.size( )) != 0)
+	if(std::memcmp(other.m_pszName, name.data( ), name.size( )) != 0)
 		return false;
 #ifdef CHEAT_CHECK_WHOLE_CVAR_NAME
-	if (other.m_pszName[name.size( )] != '\0')
+	if(other.m_pszName[name.size( )] != '\0')
 		return false;
 #endif
 	return true;
@@ -162,7 +159,7 @@ ConVar* ICVar::FindVar(const std::string_view name) const noexcept
 
 	const auto target_cvar = std::find_if(first_cvar, invalid_cvar, comparer);
 
-	if (target_cvar == invalid_cvar)
+	if(target_cvar == invalid_cvar)
 	{
 		console::log("Cvar \"{}\" NOT found", name);
 		return nullptr;
@@ -192,7 +189,7 @@ ConVar* ICVar::FindVar(const std::string_view name) const noexcept
 		const auto known_end = target_cvar->m_pszName + name.size( );
 		//so only look for the zero character
 		const auto real_end = known_end + std::char_traits<char>::length(known_end);
-		if (known_end != real_end)
+		if(known_end != real_end)
 		{
 			write_msg(" (full name: ");
 			write_braces(std::string_view(target_cvar->m_pszName, real_end));

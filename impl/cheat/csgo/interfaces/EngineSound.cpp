@@ -8,7 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IEngineSound)
-{
-	return csgo_modules::engine.find_interface<"IEngineSoundClient">( );
-}
+CHEAT_CSGO_INTERFACE_INIT(IEngineSound, csgo_modules::engine.find_interface<"IEngineSoundClient">( ));

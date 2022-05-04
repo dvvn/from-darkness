@@ -8,7 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IInputSystem)
-{
-	return csgo_modules::inputsystem.find_interface<"InputSystemVersion">( );
-}
+CHEAT_CSGO_INTERFACE_INIT(IInputSystem, csgo_modules::inputsystem.find_interface<"InputSystemVersion">( ));

@@ -8,7 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IClientEntityList)
-{
-	return csgo_modules::client.find_interface<"VClientEntityList">( );
-}
+CHEAT_CSGO_INTERFACE_INIT(IClientEntityList, csgo_modules::client.find_interface<"VClientEntityList">( ));

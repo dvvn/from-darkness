@@ -8,7 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IVDebugOverlay)
-{
-	return csgo_modules::engine.find_interface<"VDebugOverlay">( );
-}
+CHEAT_CSGO_INTERFACE_INIT(IVDebugOverlay, csgo_modules::engine.find_interface<"VDebugOverlay">( ));
