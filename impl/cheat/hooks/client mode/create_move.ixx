@@ -1,10 +1,16 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(client_mode, create_move);
+export module cheat.hooks.client_mode.create_move;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(client_mode, create_move)
+export namespace cheat::hooks::client_mode
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class create_move : public virtual class_base
+	{
+	public:
+		std::string_view class_name( ) const noexcept final;
+		std::string_view function_name( ) const noexcept final;
+	};
 }

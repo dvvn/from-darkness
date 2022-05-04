@@ -1,10 +1,16 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(c_base_animating, standard_blending_rules);
+export module cheat.hooks.c_base_animating.standard_blending_rules;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(c_base_animating, standard_blending_rules)
+export namespace cheat::hooks::c_base_animating
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class standard_blending_rules : public virtual class_base
+	{
+	public:
+		std::string_view class_name( ) const noexcept final;
+		std::string_view function_name( ) const noexcept final;
+	};
 }

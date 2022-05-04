@@ -1,10 +1,16 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(studio_render, draw_model);
+export module cheat.hooks.studio_render.draw_model;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(studio_render, draw_model)
+export namespace cheat::hooks::studio_render
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class draw_model : public virtual class_base
+	{
+	public:
+		std::string_view class_name( ) const noexcept final;
+		std::string_view function_name( ) const noexcept final;
+	};
 }

@@ -1,10 +1,16 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(c_csplayer, do_extra_bone_processing);
+export module cheat.hooks.c_csplayer.do_extra_bone_processing;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(c_csplayer, do_extra_bone_processing)
+export namespace cheat::hooks::c_csplayer
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class do_extra_bone_processing : public virtual class_base
+	{
+	public:
+		std::string_view class_name( ) const noexcept final;
+		std::string_view function_name( ) const noexcept final;
+	};
 }

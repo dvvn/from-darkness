@@ -1,10 +1,16 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(directx, reset);
+export module cheat.hooks.directx.reset;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(directx, reset)
+export namespace cheat::hooks::directx
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class reset : public virtual class_base
+	{
+	public:
+		std::string_view class_name( ) const noexcept final;
+		std::string_view function_name( ) const noexcept final;
+	};
 }

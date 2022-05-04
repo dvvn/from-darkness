@@ -1,10 +1,16 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(vgui_surface, lock_cursor);
+export module cheat.hooks.vgui_surface.lock_cursor;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(vgui_surface, lock_cursor)
+export namespace cheat::hooks::vgui_surface
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class lock_cursor : public virtual class_base
+	{
+	public:
+		std::string_view class_name( ) const noexcept final;
+		std::string_view function_name( ) const noexcept final;
+	};
 }

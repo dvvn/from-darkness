@@ -1,10 +1,16 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(client, frame_stage_notify);
+export module cheat.hooks.client.frame_stage_notify;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(client, frame_stage_notify)
+export namespace cheat::hooks::client
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class frame_stage_notify : public virtual class_base
+	{
+	public:
+		std::string_view class_name( ) const noexcept final;
+		std::string_view function_name( ) const noexcept final;
+	};
 }

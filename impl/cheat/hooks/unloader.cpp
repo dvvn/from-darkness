@@ -2,9 +2,9 @@ module;
 
 #include <Windows.h>
 
-module cheat.hooks:unloader;
-import :loader;
-import cheat.console;
+module cheat.hooks.unloader;
+import cheat.hooks.loader;
+//import cheat.console;
 
 using namespace cheat;
 
@@ -15,21 +15,19 @@ void hooks::set_external_handle(void* const hmodule) noexcept
 	external_handle = static_cast<HMODULE>(hmodule);
 }
 
-using hooks::stop;
-
 [[noreturn]]
 static DWORD WINAPI unload_delayed(LPVOID) noexcept
 {
-	stop( );
+	hooks::stop( );
 	Sleep(1000);
 	FreeLibraryAndExitThread(external_handle, FALSE);
 }
 
 void hooks::unload( ) noexcept
 {
-	if (!external_handle)
+	if(!external_handle)
 	{
-		stop( );
+		hooks::stop( );
 		PostQuitMessage(FALSE);
 	}
 	else

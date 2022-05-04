@@ -11,13 +11,13 @@ module;
 #include <sstream>
 #include <iomanip>
 
-module cheat.hooks:loader;
-import cheat.console.object_message;
-import nstd.one_instance;
+module cheat.hooks.loader;
+//import cheat.console.object_message;
 
 using namespace cheat;
-using namespace console;
-using namespace nstd;
+//using namespace console;
+
+#if 0
 
 static auto debug_thread_id( ) noexcept
 {
@@ -69,7 +69,6 @@ struct hooks_worker_data
 	}
 #endif
 };
-using hooks::hook_data;
 
 class hooks_loader
 {
@@ -182,13 +181,13 @@ public:
 	}
 
 private:
-	std::vector<hook_data> storage_;
+	std::vector<hooks::base*> storage_;
 	std::vector<thread_type> threads_;
 };
 
 static instance_of_t<hooks_loader> loader;
 
-void hooks::add(hook_data data) noexcept
+void hooks::add(base* const base) noexcept
 {
 	loader->add(data);
 }
@@ -226,3 +225,74 @@ void hooks::stop( ) noexcept
 //{
 //	return loader->active( );
 //}
+#endif
+
+//-------------
+
+using namespace cheat;
+
+static std::vector<simple_info> _Hooks;
+static std::atomic<size_t> _Start_pos;
+static std::atomic<bool> _Start_error;
+using thread_type = std::thread;
+
+static void _Starter( ) noexcept
+{
+	for(;;)
+	{
+		if(_Start_error)
+			break;
+		const auto current_pos = _Start_pos++;
+		if(current_pos >= _Hooks.size( ))
+			break;
+		if(!_Hooks[current_pos].getter( )->enable( ))
+		{
+			_Start_error = true;
+			break;
+		}
+	}
+}
+
+void add_pending(simple_info&& hook) runtime_assert_noexcept
+{
+	runtime_assert(_Start_pos == 0, "Threads are busy");
+	_Hooks.push_back(std::move(hook));
+}
+
+std::future<bool> hooks::start( ) runtime_assert_noexcept
+{
+	const auto threads_count = std::min(_Hooks.size( ), thread_type::hardware_concurrency( ));
+	runtime_assert(threads_count > 0, "Incorrect threads count");
+
+	_Start_pos = 0;
+	_Start_error = false;
+
+	auto prom = std::make_shared<std::promise<bool>>( );
+	std::thread([=]
+	{
+		std::vector<thread_type> threads;
+		threads.reserve(threads_count);
+		while(threads.size( ) != threads_count)
+			threads.emplace_back(_Starter);
+		for(auto& t : threads)
+			t.join( );
+
+		prom->set_value(!_Start_error);
+		_Start_pos = 0;
+	}).detach( );
+
+	return prom->get_future( );
+}
+
+void hooks::stop( ) runtime_assert_noexcept
+{
+	runtime_assert(_Start_pos == 0, "Threads are busy");
+
+	for(auto& h : _Hooks)
+	{
+		if(!h.initialized( ))
+			continue;
+
+		h.getter( )->disable( );
+	}
+}

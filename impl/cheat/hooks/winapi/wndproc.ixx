@@ -1,10 +1,15 @@
 module;
 
-#include <cheat/hooks/instance_fwd.h>
+#include <string_view>
 
-export module CHEAT_HOOK_MODULE(winapi, wndproc);
+export module cheat.hooks.winapi.wndproc;
+export import cheat.hooks.base;
 
-export CHEAT_HOOK_NAMESPACE(winapi, wndproc)
+export namespace cheat::hooks::winapi
 {
-	CHEAT_HOOK_INSTANCE_FWD;
+	class wndproc : public virtual static_base
+	{
+	public:
+		std::string_view function_name( ) const noexcept final;
+	};
 }

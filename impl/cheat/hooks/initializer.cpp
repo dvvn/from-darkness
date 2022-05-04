@@ -1,9 +1,11 @@
 module;
 
+#include <nstd/runtime_assert_core.h>
+
 #include <functional>
 
-module cheat.hooks:initializer;
-import :loader;
+module cheat.hooks.initializer;
+import cheat.hooks.loader;
 
 //#define CHEAT_GUI_HAVE_EFFECTS
 
@@ -26,9 +28,9 @@ import cheat.hooks.c_base_entity.estimate_abs_velocity;
 using namespace cheat;
 
 #define ADD_HOOK(_SOURCE_)\
-	add({_SOURCE_::start,_SOURCE_::stop})
+	add<_SOURCE_>( )
 
-void hooks::init_basic( )
+void hooks::init_basic( ) runtime_assert_noexcept
 {
 	using namespace hooks;
 	ADD_HOOK(winapi::wndproc);
@@ -39,7 +41,7 @@ void hooks::init_basic( )
 	ADD_HOOK(directx::present);
 }
 
-void hooks::init_all( )
+void hooks::init_all( ) runtime_assert_noexcept
 {
 	init_basic( );
 	using namespace hooks;
