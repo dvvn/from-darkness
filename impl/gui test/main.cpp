@@ -159,13 +159,12 @@ _RESET:
 #include <nstd/core.h>
 #include <nstd/winapi/comptr.h>
 
-#include <DirectXMath.h>
 #include <d3d9.h>
-//#include <d3dx9.h>
 #include <tchar.h>
 #include <windows.h>
 
-#include <chrono>
+#include <cassert>
+#include <compare>
 
 import cheat.hooks;
 import cheat.console;
@@ -178,14 +177,32 @@ static D3DPRESENT_PARAMETERS g_d3dpp;
 
 IDirect3DDevice9* d3dDevice9_ptr;
 
+#define RESET_BACK_BUFFER_ON_RESIZE
+
 static bool CreateDeviceD3D(HWND hWnd) noexcept
 {
 	g_pD3D.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(!g_pD3D)
 		return false;
 
+#ifndef RESET_BACK_BUFFER_ON_RESIZE
+	RECT desktop;
+	// Get a handle to the desktop window
+	const HWND hDesktop = GetDesktopWindow( );
+	// Get the size of screen to the variable desktop
+	GetWindowRect(hDesktop, &desktop);
+	// The top left corner will have coordinates (0,0)
+	// and the bottom right corner will have coordinates
+	const int width = desktop.right - desktop.left;
+	const int height = desktop.bottom - desktop.top;
+#endif
+
 	// Create the D3DDevice
 	ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
+#ifndef RESET_BACK_BUFFER_ON_RESIZE
+	g_d3dpp.BackBufferHeight = height;
+	g_d3dpp.BackBufferWidth = width;
+#endif
 	g_d3dpp.Windowed = TRUE;
 	g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
@@ -196,6 +213,7 @@ static bool CreateDeviceD3D(HWND hWnd) noexcept
 	return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, g_pd3dDevice));
 }
 
+#if 0
 static void PresetD3D(HWND nativeWindow)
 {
 	RECT clientRect;
@@ -206,10 +224,10 @@ static void PresetD3D(HWND nativeWindow)
 	}
 
 	// Set up an orthographic projection.
-	auto projection = DirectX::XMMatrixOrthographicOffCenterLH(0, (FLOAT)clientRect.right+0.5f, (FLOAT)clientRect.bottom+0.5f, 0, -1, 1);
+	auto projection = DirectX::XMMatrixOrthographicOffCenterLH(0, (FLOAT)clientRect.right + 0.5f, (FLOAT)clientRect.bottom + 0.5f, 0, -1, 1);
 	auto identity = DirectX::XMMatrixIdentity( );
-	g_pd3dDevice->SetTransform(D3DTS_WORLD,  (D3DMATRIX*)&identity);
-	g_pd3dDevice->SetTransform(D3DTS_VIEW,  (D3DMATRIX*)&identity);
+	g_pd3dDevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&identity);
+	g_pd3dDevice->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&identity);
 	g_pd3dDevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&projection);
 
 
@@ -256,12 +274,13 @@ static void PresetD3D(HWND nativeWindow)
 	// Disable lighting for Rocket.
 	g_pd3dDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
 }
+#endif
 
 static void ResetDevice( ) noexcept
 {
 	//ImGui_ImplDX9_InvalidateDeviceObjects( );
 	const HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
-	//IM_ASSERT(hr != D3DERR_INVALIDCALL);
+	assert(hr != D3DERR_INVALIDCALL);
 	//ImGui_ImplDX9_CreateDeviceObjects( );
 }
 
@@ -273,23 +292,11 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_SIZE:
 			if(g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
 			{
+#ifdef RESET_BACK_BUFFER_ON_RESIZE
 				g_d3dpp.BackBufferWidth = LOWORD(lParam);
 				g_d3dpp.BackBufferHeight = HIWORD(lParam);
-				//ResetDevice( );
-
-				/*int width = LOWORD(lParam);;
-				int height = HIWORD(lParam);;
-
-				auto projection = DirectX::XMMatrixOrthographicOffCenterLH(0, (float)width, (float)height, 0, -1, 1);
-				g_pd3dDevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&projection);
-
-				auto ctx = Rml::GetContext(0);
-				if(ctx)
-					ctx->SetDimensions(Vector2i(width, height));*/
-					//Rml::GetContext(0)->ProcessProjectionChange( );
-					//((Context*)m_rocket_context)->ProcessViewChange();
-
-
+				ResetDevice( );
+#endif
 			}
 			return FALSE;
 		case WM_SYSCOMMAND:
@@ -307,9 +314,9 @@ int main(int, char**)
 {
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
-	const WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("ImGui Example"), nullptr};
+	const WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("GUI TEST"), nullptr};
 	::RegisterClassEx(&wc);
-	const HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("Dear ImGui DirectX9 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+	const HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("GUI TEST"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
 	if(!CreateDeviceD3D(hwnd))
@@ -327,7 +334,7 @@ int main(int, char**)
 	// Show the window
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
-	PresetD3D(hwnd);
+	//PresetD3D(hwnd);
 
 	if(!hooks::start( ).get( ))
 		return 0;
@@ -369,5 +376,4 @@ int main(int, char**)
 	}
 
 	return 0;
-
 }

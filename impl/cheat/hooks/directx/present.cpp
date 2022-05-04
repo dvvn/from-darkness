@@ -4,16 +4,16 @@ module;
 
 #include <nstd/runtime_assert.h>
 
-#include <imgui_impl_dx9.h>
-#include <imgui_impl_win32.h>
+//#include <imgui_impl_dx9.h>
+//#include <imgui_impl_win32.h>
 
 #include <d3d9.h>
 
 module cheat.hooks.directx.present;
-import cheat.gui;
+import cheat.gui.context;
 import cheat.hooks.base;
 import nstd.mem.address;
-import cheat.gui;
+import nstd.one_instance;
 
 using namespace cheat;
 using namespace hooks;
@@ -22,10 +22,7 @@ CHEAT_HOOK_INSTANCE(directx, present);
 
 static void* target( ) noexcept
 {
-	//todo: find better place for this, or remove init function
-	gui::init( );
-
-	const nstd::mem::basic_address<void> vtable_holder = nstd::get_instance<IDirect3DDevice9*>( );
+	const nstd::mem::basic_address<void> vtable_holder = &nstd::instance_of<IDirect3DDevice9*>;
 	return vtable_holder.deref<1>( )[17];
 }
 
@@ -72,7 +69,7 @@ struct replace
 		runtime_assert(SUCCEEDED(end));
 
 #endif
-		gui::render( );
+		nstd::instance_of<gui::context>->render( );
 		return CHEAT_HOOK_CALL_ORIGINAL_MEMBER(source_rect, desc_rect, dest_window_override, dirty_region);
 	}
 };

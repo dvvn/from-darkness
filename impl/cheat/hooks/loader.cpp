@@ -19,7 +19,7 @@ using namespace cheat;
 using namespace console;
 using namespace nstd;
 
-static auto debug_thread_id( )
+static auto debug_thread_id( ) noexcept
 {
 	std::ostringstream s;
 	s << "thread 0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << std::this_thread::get_id( );
@@ -31,9 +31,9 @@ class debug_thread_id_lazy
 	std::string id_;
 
 public:
-	std::string_view operator()( )
+	std::string_view operator()( ) noexcept
 	{
-		if (id_.empty( ))
+		if(id_.empty( ))
 			id_ = debug_thread_id( );
 		return id_;
 	}
@@ -91,14 +91,14 @@ class hooks_loader
 #endif
 		] = *data;
 
-		for (;;)
+		for(;;)
 		{
-			if (error)
+			if(error)
 				break;
 			const auto current_pos = pos++;
-			if (current_pos >= storage_.size( ))
+			if(current_pos >= storage_.size( ))
 				break;
-			if (!storage_[current_pos].start( ))
+			if(!storage_[current_pos].start( ))
 			{
 				error = true;
 				break;
@@ -145,20 +145,20 @@ public:
 			threads_count
 #endif
 			);
-		while (threads_.size( ) != threads_count)
+		while(threads_.size( ) != threads_count)
 			threads_.emplace_back(&hooks_loader::worker, this, wdata);
 		return wdata;
 	}
 
 	bool join( ) noexcept
 	{
-		if (threads_.empty( ))
+		if(threads_.empty( ))
 			return false;
 
 		size_t joinable = 0;
-		for (auto& thr : threads_)
+		for(auto& thr : threads_)
 		{
-			if (thr.joinable( ))
+			if(thr.joinable( ))
 			{
 				++joinable;
 				thr.join( );
@@ -167,7 +167,7 @@ public:
 
 		swap_instant(threads_);
 
-		if (joinable == 0)
+		if(joinable == 0)
 			return false;
 
 		msg_("stopped");
@@ -177,7 +177,7 @@ public:
 	void stop( ) noexcept
 	{
 		this->join( );
-		for (auto& entry : storage_)
+		for(auto& entry : storage_)
 			entry.stop( );
 	}
 
@@ -186,7 +186,7 @@ private:
 	std::vector<thread_type> threads_;
 };
 
-static one_instance_obj<hooks_loader> loader;
+static instance_of_t<hooks_loader> loader;
 
 void hooks::add(hook_data data) noexcept
 {

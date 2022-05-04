@@ -166,6 +166,7 @@ context::~context( )
 context::context( )
 	: ImGuiContext(std::addressof(fonts))
 {
+
 	console::object_created<context>( );
 
 	IMGUI_CHECKVERSION( );
@@ -188,13 +189,13 @@ context::context( )
 	{
 		auto creation_parameters = D3DDEVICE_CREATION_PARAMETERS( );
 
-		[[maybe_unused]] const auto result = nstd::get_instance<IDirect3DDevice9*>( )->GetCreationParameters(&creation_parameters);
+		[[maybe_unused]] const auto result = nstd::instance_of<IDirect3DDevice9*>->GetCreationParameters(&creation_parameters);
 		runtime_assert(SUCCEEDED(result));
 		return creation_parameters.hFocusWindow;
 	}();
 
 	ImGui_ImplWin32_Init(hwnd);
-	ImGui_ImplDX9_Init(nstd::get_instance<IDirect3DDevice9*>( ));
+	ImGui_ImplDX9_Init(&nstd::instance_of<IDirect3DDevice9*>);
 
 #if defined(IMGUI_HAS_SHADOWS) && IMGUI_HAS_SHADOWS == 1
 	/*auto& shadow_cfg = io.Fonts->ShadowTexConfig;

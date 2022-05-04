@@ -55,7 +55,7 @@ constexpr DWORD vertex_fvf = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;
 using namespace cheat::gui;
 using namespace Rml;
 
-constexpr nstd::one_instance_obj<IDirect3DDevice9*> g_pd3dDevice;
+constexpr nstd::instance_of_t<IDirect3DDevice9*> g_pd3dDevice;
 
 void render_interface::RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation)
 {
@@ -79,6 +79,7 @@ CompiledGeometryHandle render_interface::CompileGeometry(Vertex* vertices, int n
 {
 	// Construct a new RocketD3D9CompiledGeometry structure, which will be returned as the handle, and the buffers to
 	// store the geometry.
+
 	RocketD3D9CompiledGeometry* geometry = new RocketD3D9CompiledGeometry( );
 	g_pd3dDevice->CreateVertexBuffer(num_vertices * sizeof(RocketD3D9Vertex), D3DUSAGE_WRITEONLY, vertex_fvf, D3DPOOL_DEFAULT, &geometry->vertices, NULL);
 	g_pd3dDevice->CreateIndexBuffer(num_indices * sizeof(unsigned int), D3DUSAGE_WRITEONLY, D3DFMT_INDEX32, D3DPOOL_DEFAULT, &geometry->indices, NULL);
@@ -269,4 +270,90 @@ void render_interface::ReleaseTexture(TextureHandle texture_handle)
 void render_interface::SetTransform(const Matrix4f* transform)
 {
 	throw std::logic_error("The method or operation is not implemented.");
+}
+
+//------------
+
+struct d3d_matrix :DirectX::XMMATRIX
+{
+	d3d_matrix(const DirectX::XMMATRIX& mat)
+		:DirectX::XMMATRIX(mat)
+	{
+	}
+
+	operator const D3DMATRIX* () const noexcept
+	{
+		return reinterpret_cast<const D3DMATRIX*>(static_cast<const DirectX::XMMATRIX*>(this));
+	}
+
+	operator const D3DMATRIX( ) const noexcept
+	{
+		const D3DMATRIX* tmp = *this;
+		return *tmp;
+	}
+};
+
+static void _Setup_render(const Vector2i dimensions) noexcept
+{
+	/*float L = clientRect.left + 0.5f;
+	float R = clientRect.left + clientRect.right + 0.5f;
+	float T = clientRect.top + 0.5f;
+	float B = clientRect.bottom + clientRect.top + 0.5f;*/
+
+	// Set up an orthographic projection.
+	const d3d_matrix projection = DirectX::XMMatrixOrthographicOffCenterLH(0, dimensions.x + 0.5f, dimensions.y + 0.5f, 0, -1, 1);
+	const d3d_matrix identity = DirectX::XMMatrixIdentity( );
+	g_pd3dDevice->SetTransform(D3DTS_WORLD, identity);
+	g_pd3dDevice->SetTransform(D3DTS_VIEW, identity);
+	g_pd3dDevice->SetTransform(D3DTS_PROJECTION, projection);
+
+	// Switch to clockwise culling instead of counter-clockwise culling; Rocket generates counter-clockwise geometry,
+	// so you can either reverse the culling mode when Rocket is rendering, or reverse the indices in the render
+	// interface.
+	g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+
+	// Enable alpha-blending for Rocket.
+	g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	g_pd3dDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	g_pd3dDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+
+	// Set up the texture stage states for the diffuse texture.
+	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+	g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+	g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+
+	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+
+	// Disable lighting for Rocket.
+	g_pd3dDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+}
+
+void render_interface::RenderContext(Context* const ctx)
+{
+	// Update the context to reflect any changes resulting from input events, animations,
+	// modified and added elements, or changed data in data bindings.
+	ctx->Update( );
+
+	[[maybe_unused]]
+	const auto bg = g_pd3dDevice->BeginScene( );
+	RMLUI_ASSERT(bg == D3D_OK);
+
+	_Setup_render(ctx->GetDimensions( ));
+
+	// Render the user interface. All geometry and other rendering commands are now
+	// submitted through the render interface.
+	ctx->Render( );
+
+	[[maybe_unused]]
+	const auto ed = g_pd3dDevice->EndScene( );
+	RMLUI_ASSERT(ed == D3D_OK);
+}
+
+void render_interface::ReleaseTextures( )
+{
+	//Rml::ReleaseTextures(this);
+	Rml::ReleaseCompiledGeometry( );
 }

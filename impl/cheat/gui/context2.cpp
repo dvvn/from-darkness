@@ -1,29 +1,114 @@
-module;
+﻿module;
+
+#include <nstd/core.h>
 
 #include <RmlUi/Core.h>
+#ifdef _DEBUG
+#include <RmlUi/Debugger.h>
+#endif
 
+#include <d3d9.h>
 #include <windows.h>
 
-module cheat.gui.input;
-import nstd.text.convert;
-import nstd.one_instance;
+#include <memory>
 
-process_result::process_result(const result val)
+module cheat.gui.context;
+import cheat.gui.render_interface;
+import cheat.gui.system_interface;
+import nstd.one_instance;
+import nstd.text.convert;
+
+using namespace cheat::gui;
+using namespace Rml;
+
+input_result::input_result(const result val)
 	:result_(val)
 {
 }
 
-process_result::operator bool( ) const noexcept
+input_result::operator bool( ) const noexcept
 {
 	return result_ != result::skipped;
 }
 
-bool process_result::touched( ) const noexcept
+bool input_result::touched( ) const noexcept
 {
 	return result_ == result::interacted;
 }
 
-using namespace Rml;
+#define RML_ASSERT_DIR NSTD_CONCAT(RMLUI_DIR, \Samples\assets\)
+#define RML_SAMPLE(_S_) NSTD_CONCAT(NSTD_STRINGIZE_RAW(RML_ASSERT_DIR),_S_)
+
+context::context( )
+{
+	SetRenderInterface(&nstd::instance_of<render_interface>);
+	SetSystemInterface(&nstd::instance_of<system_interface>);
+
+	Initialise( );
+
+	//------
+
+	D3DDEVICE_CREATION_PARAMETERS params;
+	nstd::instance_of<IDirect3DDevice9*>->GetCreationParameters(std::addressof(params));
+	info_.window = params.hFocusWindow;
+	RECT rect;
+	/*GetWindowRect*/GetClientRect(params.hFocusWindow, std::addressof(rect));
+	const int width = rect.right - rect.left;
+	const int height = rect.bottom - rect.top;
+	ctx_ = CreateContext("main", {width, height});
+
+	//------
+
+#ifdef _DEBUG
+	Debugger::Initialise(ctx_);
+	Debugger::SetVisible(true);
+#endif
+
+	// Tell RmlUi to load the given fonts.
+	LoadFontFace(RML_SAMPLE("LatoLatin-Regular.ttf"));
+	// Fonts can be registered as fallback fonts, as in this case to display emojis.
+	LoadFontFace(RML_SAMPLE("NotoEmoji-Regular.ttf"), true);
+
+	LoadFontFace("C:/Windows/fonts/arial.ttf", true);
+
+	ctx_->LoadDocument(RML_SAMPLE("demo.rml"))->Show( );
+	ctx_->LoadDocument(RML_SAMPLE("window.rml"))->Show( );
+
+#if 0
+	// Replace and style some text in the loaded document.
+	Rml::Element* element = document->GetElementById("world");
+	element->SetInnerRML(reinterpret_cast<const char*>(u8"🌍"));
+	element->SetProperty("font-size", "1.5em");
+
+	// Set up data bindings to synchronize application data.
+	if(Rml::DataModelConstructor constructor = context->CreateDataModel("animals"))
+	{
+		constructor.Bind("show_text", &my_data.show_text);
+		constructor.Bind("animal", &my_data.animal);
+	}
+#endif
+}
+
+context::~context( )
+{
+	//RemoveContext(ctx_->GetName( ));
+	Shutdown( );
+}
+
+Context* context::operator->( ) const noexcept
+{
+	return ctx_;
+}
+
+const context_info& context::get_info( ) const noexcept
+{
+	return info_;
+}
+
+void context::render( )
+{
+	nstd::instance_of<render_interface>->RenderContext(ctx_);
+}
 
 constexpr auto key_identifier_map = []
 {
@@ -258,38 +343,37 @@ static int key_modifier( ) noexcept
 	return key_modifier_state;
 }
 
-using namespace cheat;
-
-process_result gui::process_input(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
+input_result context::input(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
-	//Context* context = GetContext(0);
-	auto context = nstd::get_instance<Context*>( );
+	RMLUI_ASSERT(info_.window == window);
+
+	using result = input_result;
 
 	switch(message)
 	{
 		case WM_LBUTTONDOWN:
 		{
-			const bool ret = context->ProcessMouseButtonDown(0, key_modifier( ));
+			const bool ret = ctx_->ProcessMouseButtonDown(0, key_modifier( ));
 			SetCapture(window);
-			return ret ? process_result::interacted:process_result::processed;
+			return ret ? result::interacted:result::processed;
 		}
 		case WM_LBUTTONUP:
 		{
 			ReleaseCapture( );
-			return context->ProcessMouseButtonUp(0, key_modifier( ))? process_result::interacted:process_result::processed;
+			return ctx_->ProcessMouseButtonUp(0, key_modifier( ))? result::interacted:result::processed;
 		}
 		case WM_RBUTTONDOWN:
-			return context->ProcessMouseButtonDown(1, key_modifier( )) ? process_result::interacted:process_result::processed;
+			return ctx_->ProcessMouseButtonDown(1, key_modifier( )) ? result::interacted:result::processed;
 		case WM_RBUTTONUP:
-			return context->ProcessMouseButtonUp(1, key_modifier( ))? process_result::interacted:process_result::processed;
+			return ctx_->ProcessMouseButtonUp(1, key_modifier( ))? result::interacted:result::processed;
 		case WM_MBUTTONDOWN:
-			return context->ProcessMouseButtonDown(2, key_modifier( )) ? process_result::interacted:process_result::processed;
+			return ctx_->ProcessMouseButtonDown(2, key_modifier( )) ? result::interacted:result::processed;
 		case WM_MBUTTONUP:
-			return context->ProcessMouseButtonUp(2, key_modifier( )) ? process_result::interacted:process_result::processed;
+			return ctx_->ProcessMouseButtonUp(2, key_modifier( )) ? result::interacted:result::processed;
 		case WM_MOUSEMOVE:
-			return context->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)), key_modifier( )) ? process_result::interacted:process_result::processed;
+			return ctx_->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)), key_modifier( )) ? result::interacted:result::processed;
 		case WM_MOUSEWHEEL:
-			return context->ProcessMouseWheel(static_cast<float>((short)HIWORD(w_param)) / static_cast<float>(-WHEEL_DELTA), key_modifier( )) ? process_result::interacted:process_result::processed;
+			return ctx_->ProcessMouseWheel(static_cast<float>((short)HIWORD(w_param)) / static_cast<float>(-WHEEL_DELTA), key_modifier( )) ? result::interacted:result::processed;
 		case WM_KEYDOWN:
 		{
 			Input::KeyIdentifier key_identifier = key_identifier_map[w_param];
@@ -302,53 +386,49 @@ process_result gui::process_input(HWND window, UINT message, WPARAM w_param, LPA
 			}
 			else if(key_identifier == Input::KI_0 && key_modifier_state & Input::KM_CTRL)
 			{
-				context->SetDensityIndependentPixelRatio(Shell::GetDensityIndependentPixelRatio( ));
+				ctx_->SetDensityIndependentPixelRatio(Shell::GetDensityIndependentPixelRatio( ));
 			}
 			else if(key_identifier == Input::KI_1 && key_modifier_state & Input::KM_CTRL)
 			{
-				context->SetDensityIndependentPixelRatio(1.f);
+				ctx_->SetDensityIndependentPixelRatio(1.f);
 			}
 			else if(key_identifier == Input::KI_OEM_MINUS && key_modifier_state & Input::KM_CTRL)
 			{
-				const float new_dp_ratio = Math::Max(context->GetDensityIndependentPixelRatio( ) / 1.2f, 0.5f);
-				context->SetDensityIndependentPixelRatio(new_dp_ratio);
+				const float new_dp_ratio = Math::Max(ctx_->GetDensityIndependentPixelRatio( ) / 1.2f, 0.5f);
+				ctx_->SetDensityIndependentPixelRatio(new_dp_ratio);
 			}
 			else if(key_identifier == Input::KI_OEM_PLUS && key_modifier_state & Input::KM_CTRL)
 			{
-				const float new_dp_ratio = Math::Min(context->GetDensityIndependentPixelRatio( ) * 1.2f, 2.5f);
-				context->SetDensityIndependentPixelRatio(new_dp_ratio);
+				const float new_dp_ratio = Math::Min(ctx_->GetDensityIndependentPixelRatio( ) * 1.2f, 2.5f);
+				ctx_->SetDensityIndependentPixelRatio(new_dp_ratio);
 			}
 			else
 #endif
 			{
-				// No global shortcuts detected, submit the key to the context.
-				if(context->ProcessKeyDown(key_identifier, key_modifier_state))
+				// No global shortcuts detected, submit the key to the ctx_.
+				if(ctx_->ProcessKeyDown(key_identifier, key_modifier_state))
 				{
 					// The key was not consumed, check for shortcuts that are of lower priority.
 					if(key_identifier == Input::KI_R && key_modifier_state & Input::KM_CTRL)
 					{
-						for(int i = 0; i < context->GetNumDocuments( ); i++)
+						for(int i = 0; i < ctx_->GetNumDocuments( ); i++)
 						{
-							ElementDocument* document = context->GetDocument(i);
-							const String& src = document->GetSourceURL( );
-							if(src.size( ) > 4 && src.substr(src.size( ) - 4) == ".rml")
-							{
+							ElementDocument* document = ctx_->GetDocument(i);
+							if(document->GetSourceURL( ).ends_with(".rml"))
 								document->ReloadStyleSheet( );
-							}
+
 						}
 					}
-					return process_result::interacted;
+					return result::interacted;
 				}
 			}
-			return process_result::processed;
+			return result::processed;
 		}
 		case WM_KEYUP:
-			context->ProcessKeyUp(key_identifier_map[w_param], key_modifier( ));
-			return process_result::interacted;
+			ctx_->ProcessKeyUp(key_identifier_map[w_param], key_modifier( ));
+			return result::interacted;
 		case WM_CHAR:
 		{
-			static wchar_t first_u16_code_unit = 0;
-
 			const wchar_t c = (wchar_t)w_param;
 			Character character = (Character)c;
 
@@ -356,15 +436,25 @@ process_result gui::process_input(HWND window, UINT message, WPARAM w_param, LPA
 			if(c >= 0xD800 && c < 0xDC00)
 			{
 				// First 16-bit code unit of a two-wide character.
-				first_u16_code_unit = c;
+				first_u16_code_unit_ = c;
 			}
 			else
 			{
-				if(c >= 0xDC00 && c < 0xE000 && first_u16_code_unit != 0)
+				// Second 16-bit code unit of a two-wide character.
+				if(c >= 0xDC00 && c < 0xE000 && first_u16_code_unit_ != 0)
 				{
-					// Second 16-bit code unit of a two-wide character.
-					String utf8 = /*ConvertToUTF8*/nstd::text::convert_to<char>(std::wstring{first_u16_code_unit, c});
+
+					wchar_t str[3];
+					str[0] = first_u16_code_unit_;
+					str[1] = c;
+					str[2] = 0;
+
+					using nstd::text::convert_to;
+					String utf8 = /*ConvertToUTF8*/convert_to<char>(std::wstring_view(str, 2));
 					character = StringUtilities::ToCharacter(utf8.data( ));
+					auto test = convert_to<char32_t>(utf8);
+					auto test0 = test[0];
+					DebugBreak( );
 				}
 				else if(c == '\r')
 				{
@@ -372,18 +462,31 @@ process_result gui::process_input(HWND window, UINT message, WPARAM w_param, LPA
 					character = (Character)'\n';
 				}
 
-				first_u16_code_unit = 0;
+				first_u16_code_unit_ = 0;
 
 				// Only send through printable characters.
 				if(((char32_t)character >= 32 || character == (Character)'\n') && character != (Character)127)
 				{
-					context->ProcessTextInput(character);
-					return process_result::interacted;
+					ctx_->ProcessTextInput(character);
+					return result::interacted;
 				}
 			}
-			return process_result::processed;
+			return result::processed;
+		}
+
+		//-------------
+
+		case WM_SIZE:
+		{
+			if(w_param == SIZE_MINIMIZED)
+				return result::skipped;
+			const int width = LOWORD(l_param);;
+			const int height = HIWORD(l_param);
+			ctx_->SetDimensions({width,height});
+			//nstd::instance_of<render_interface>->ReleaseTextures( );
+			return result::processed;
 		}
 		default:
-			return process_result::skipped;
+			return result::skipped;
 	}
 }

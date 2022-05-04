@@ -36,7 +36,7 @@ static void _Draw_server_hitboxes(int client_index, float duration, bool use_mon
 
 static float _Lerp_time( )
 {
-	auto& cvar_ifc = *nstd::get_instance<ICVar*>( );
+	auto& cvar_ifc = *nstd::instance_of<ICVar*>;
 	const auto lerp_amount = cvar_ifc.FindVar<"cl_interp">( )->get<float>( );
 	auto lerp_ratio = cvar_ifc.FindVar<"cl_interp_ratio">( )->get<float>( );
 
@@ -56,10 +56,10 @@ static float _Lerp_time( )
 
 static float _Correct_value( )
 {
-	const auto nci = nstd::get_instance<IVEngineClient*>( )->GetNetChannelInfo( );
+	const auto nci = nstd::instance_of<IVEngineClient*>->GetNetChannelInfo( );
 	const auto latency = nci->GetLatency(FLOW::INCOMING) + nci->GetLatency(FLOW::OUTGOING);
 	const auto lerp = _Lerp_time( );
-	const auto unlag_limit = nstd::get_instance<ICVar*>( )->FindVar<"sv_maxunlag">( )->get<float>( );
+	const auto unlag_limit = nstd::instance_of<ICVar*>->FindVar<"sv_maxunlag">( )->get<float>( );
 	return std::clamp(latency + lerp, 0.f, unlag_limit);
 }
 
@@ -96,7 +96,7 @@ class players_storage : public extended_vector<player>
 	object_message_auto<players_storage> msg_;
 };
 
-constexpr nstd::one_instance_obj<players_storage> players_holder;
+constexpr nstd::instance_of_t<players_storage> players_holder;
 
 player* players::begin( )
 {
@@ -110,7 +110,7 @@ player* players::end( )
 
 void players::update( )
 {
-	const auto max_clients = static_cast<size_t>(nstd::get_instance<CGlobalVarsBase*>( )->max_clients);
+	const auto max_clients = static_cast<size_t>(nstd::instance_of<CGlobalVarsBase*>->max_clients);
 	players_holder->resize(max_clients);
 #if 0
 	const auto update_players =

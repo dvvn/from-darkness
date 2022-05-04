@@ -33,9 +33,4 @@
 		<ClCompile Include="$(RmlUiDir)\Source\Debugger\*.cpp" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="$(SolutionDir)\deps\RmlUi\RmlUi.vcxproj">
-			<Project>{84790609-C688-4430-AEB0-F9E291832022}</Project>
-		</ProjectReference>
-	</ItemGroup>
 </Project>

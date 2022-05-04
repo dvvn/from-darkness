@@ -36,7 +36,7 @@ using BYTE = unsigned char;
 
 static auto& _D3d( ) noexcept
 {
-	return *nstd::get_instance<IDirect3DDevice9*>( );
+	return *nstd::instance_of<IDirect3DDevice9*>;
 }
 
 #if _WIN32

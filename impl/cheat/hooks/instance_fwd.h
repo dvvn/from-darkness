@@ -8,7 +8,7 @@
 #define CHEAT_HOOK_NAMESPACE(_CLASS_NAME_,_FN_NAME_) namespace cheat::hooks::inline _CLASS_NAME_::_FN_NAME_
 
 #define CHEAT_HOOK_INSTANCE_FWD_FULL(_CLASS_NAME_,_FN_NAME_)\
-namespace cheat::hooks::inline _CLASS_NAME_::_FN_NAME_\
+CHEAT_HOOK_NAMESPACE(_CLASS_NAME_,_FN_NAME_)\
 {\
 	CHEAT_HOOK_INSTANCE_FWD;\
 }

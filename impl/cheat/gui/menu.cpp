@@ -242,7 +242,7 @@ public:
 	}
 };
 
-static nstd::one_instance_obj<menu_holder> holder;
+static nstd::instance_of_t<menu_holder> holder;
 
 bool menu::render( )
 {

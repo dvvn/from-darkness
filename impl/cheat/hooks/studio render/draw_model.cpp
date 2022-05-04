@@ -15,7 +15,7 @@ CHEAT_HOOK_INSTANCE(studio_render, draw_model);
 
 static void* target( ) noexcept
 {
-	const nstd::mem::basic_address<void> vtable_holder = nstd::get_instance<IStudioRender*>( );
+	const nstd::mem::basic_address<void> vtable_holder = &nstd::instance_of<IStudioRender*>;
 	return vtable_holder.deref<1>( )[29];
 }
 

@@ -5,9 +5,9 @@ module;
 #include <windows.h>
 
 module cheat.hooks.winapi.wndproc;
-import cheat.gui;
 import cheat.hooks.base;
-import cheat.gui.input;
+import cheat.gui.context;
+import nstd.one_instance;
 
 #define HOT_UNLOAD_SUPPORTED
 
@@ -30,7 +30,7 @@ struct wndproc_info_t
 		update( );
 	}
 
-	void update(const HWND hwnd = gui::context::get( ).hwnd)
+	void update(const HWND hwnd = nstd::instance_of<gui::context>->get_info( ).window)
 	{
 		const auto unicode = IsWindowUnicode(hwnd);
 		if(unicode)
@@ -45,7 +45,7 @@ struct wndproc_info_t
 		}
 	}
 };
-static nstd::one_instance_obj<wndproc_info_t> wndproc_info;
+constexpr nstd::instance_of_t<wndproc_info_t> wndproc_info;
 
 static void* target( ) noexcept
 {
@@ -53,10 +53,11 @@ static void* target( ) noexcept
 }
 
 // ReSharper disable once CppInconsistentNaming
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+//extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 struct replace
 {
+#if 0
 	enum class override_info : uint8_t
 	{
 		none
@@ -130,6 +131,7 @@ struct replace
 
 		return override_info::none;
 	}
+#endif
 
 	static LRESULT WINAPI fn(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) noexcept
 	{
@@ -146,10 +148,9 @@ struct replace
 			case override_info::special:
 				return TRUE;
 #endif
-		}
+}
 #endif
-
-		if(gui::process_input(hwnd, msg, wparam, lparam).touched( ))
+		if(nstd::instance_of<gui::context>->input(hwnd, msg, wparam, lparam).touched( ))
 			return CHEAT_HOOK_CALL(wndproc_info->def, hwnd, msg, wparam, lparam);
 
 		return CHEAT_HOOK_CALL_ORIGINAL_STATIC(hwnd, msg, wparam, lparam);

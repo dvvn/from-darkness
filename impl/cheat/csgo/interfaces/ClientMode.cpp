@@ -11,5 +11,5 @@ using namespace csgo;
 
 CHEAT_CSGO_INTERFACE_INIT(ClientModeShared)
 {
-	return csgo_modules::client._Ifc_finder(nstd::get_instance<IBaseClientDLL*>( )).deref<1>( )[10].plus(5).deref<2>( );
+	return csgo_modules::client._Ifc_finder(&nstd::instance_of<IBaseClientDLL*>).deref<1>( )[10].plus(5).deref<2>( );
 }

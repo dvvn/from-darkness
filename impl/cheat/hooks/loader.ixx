@@ -1,6 +1,7 @@
 module;
 
 #include <future>
+#include <compare>
 
 export module cheat.hooks:loader;
 

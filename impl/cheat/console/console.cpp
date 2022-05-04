@@ -360,7 +360,7 @@ enum class state :uint8_t
 };
 
 static state console_state = state::unset;
-static nstd::one_instance_obj<console_controller> controller;
+static nstd::instance_of_t<console_controller> controller;
 
 template<typename T>
 static void _Log_impl(const T str) noexcept

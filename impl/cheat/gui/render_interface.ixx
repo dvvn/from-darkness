@@ -22,5 +22,9 @@ export namespace cheat::gui
 		void ReleaseTexture(TextureHandle texture) override;
 		void SetTransform(const Matrix4f* transform) override;
 
+		//-------------
+
+		void RenderContext(Context* const ctx);
+		void ReleaseTextures( );
 	};
 }

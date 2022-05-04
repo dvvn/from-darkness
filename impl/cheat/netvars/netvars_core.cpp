@@ -53,7 +53,7 @@ class netvars_holder : public storage
 public:
 	netvars_holder( )
 	{
-		iterate_client_class(nstd::get_instance<IBaseClientDLL*>( )->GetAllClasses( ));
+		iterate_client_class(nstd::instance_of<IBaseClientDLL*>->GetAllClasses( ));
 
 		const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
 		iterate_datamap(baseent->GetDataDescMap( ));
@@ -64,13 +64,13 @@ public:
 
 	void log( ) noexcept
 	{
-		logs_.file.name = to_wstring(nstd::get_instance<IVEngineClient*>( )->GetProductVersionString( ));
+		logs_.file.name = to_wstring(nstd::instance_of<IVEngineClient*>->GetProductVersionString( ));
 		log_netvars(logs_);
 		generate_classes(classes_);
 	}
 };
 
-static nstd::one_instance_obj<netvars_holder> holder;
+static nstd::instance_of_t<netvars_holder> holder;
 
 size_t netvars::get_offset(const std::string_view table, const std::string_view item) noexcept
 {

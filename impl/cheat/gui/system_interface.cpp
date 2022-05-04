@@ -25,12 +25,6 @@ double system_interface::GetElapsedTime( )
 
 using namespace Rml;
 
-#if 1
-#define LOG_STR(_TYPE_) \
-case Log::LT_##_TYPE_:  \
-	str = #_TYPE_;		\
-	break;
-
 template<>
 struct std::formatter<Log::Type, char> : formatter<std::string_view>
 {
@@ -40,21 +34,45 @@ struct std::formatter<Log::Type, char> : formatter<std::string_view>
 		std::string_view str;
 		switch(type)
 		{
-			LOG_STR(ALWAYS);
-			LOG_STR(ERROR);
-			LOG_STR(ASSERT);
-			LOG_STR(WARNING);
-			LOG_STR(INFO);
-			LOG_STR(DEBUG);
+			case Log::LT_ERROR:
+				str = "ERROR";
+				break;
+			case Log::LT_ASSERT:
+				str = "FATAL ERROR";
+				break;
+			case Log::LT_WARNING:
+				str = "WARNING";
+				break;
+			case Log::LT_ALWAYS:
+			case Log::LT_INFO:
+				str = "INFO";
+				break;
+			case Log::LT_DEBUG:
+				str = "DEBUG";
+				break;
 			default:
 				runtime_assert("Unknown log type detected");
+				str = "UNKNOWN";
+				break;
 		}
 
 		return formatter<std::string_view>::format(str, fc);
 	}
 };
 
-#endif
+template<typename ...Args>
+static void _Log(const std::string_view str, Args&& ...args) noexcept
+{
+	console::log("[RmlUi] {}", [&]
+	{
+		return std::format(str, std::forward<Args>(args)...);
+	});
+}
+
+static void _Log(const Log::Type logtype, const String& message)
+{
+	_Log("{}! {}", logtype, message);
+}
 
 bool system_interface::LogMessage(Log::Type logtype, const String& message)
 {
@@ -66,25 +84,21 @@ bool system_interface::LogMessage(Log::Type logtype, const String& message)
 			return SystemInterface::LogMessage(logtype, message);//otherwise call default logs handler
 		}
 		case Log::LT_ERROR:
-			console::log("[RmlUi][ERROR] {}", message);
+			_Log(logtype, message);
 			return false;
-		case Log::LT_ALWAYS:
-			if(!console::active( ))
-				return SystemInterface::LogMessage(logtype, message);
-			console::log("[RmlUi] {}", message);
-			return true;
-
 		case Log::LT_DEBUG:
 #ifndef _DEBUG
 			return true;
 #endif
+		case Log::LT_ALWAYS:
+			if(!console::active( ))
+				return SystemInterface::LogMessage(logtype, message);
 		case Log::LT_WARNING:
 		case Log::LT_INFO:
-			console::log("[RmlUi][{}] {}", logtype, message);
+			_Log(logtype, message);
 			return true;
 		default:
 			runtime_assert("Unknown log type detected");
 			return false;
-
 	}
 }

@@ -48,7 +48,7 @@ std::string_view console::object_message_impl<hook_entry_t>::get_name( ) const n
 {\
 	return "hooks::"#_CLASS_##"::"#_TYPE_;\
 }\
-static nstd::one_instance_obj<hook_entry_t> hook_entry;
+constexpr nstd::instance_of_t<hook_entry_t> hook_entry;
 
 #define CHEAT_HOOK_INIT(_CLASS_,_TYPE_) \
 bool _CLASS_::_TYPE_::start( ) noexcept\
