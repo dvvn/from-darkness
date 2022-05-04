@@ -1,55 +1,56 @@
 module;
 
-#include <imgui_internal.h>
+#include <RmlUi/Core/Context.h>
 
 #include <windows.h>
 
-#include <filesystem>
+export module cheat.gui.context;
 
-export module cheat.gui:context;
-export import :effects;
-import nstd.one_instance;
+using namespace Rml;
+
+class input_result
+{
+public:
+	enum result : uint8_t
+	{
+		skipped,
+		processed,
+		interacted
+	};
+
+	input_result(const result val);
+
+	operator bool( ) const noexcept;
+	bool touched( ) const noexcept;
+
+private:
+	result result_;
+};
+
+struct context_info
+{
+	HWND window = nullptr;
+};
 
 export namespace cheat::gui
 {
-	class fonts_builder_proxy
+	struct context : NonCopyMoveable
 	{
-	public:
+		context( );
+		~context( );
 
-		static ImFontConfig default_font_config( );
+		Context* operator->( ) const noexcept;
+		const context_info& get_info( ) const noexcept;
 
-		fonts_builder_proxy(ImFontAtlas* atlas);
-		~fonts_builder_proxy( );
-
-		fonts_builder_proxy(const fonts_builder_proxy& other) = delete;
-		fonts_builder_proxy& operator=(const fonts_builder_proxy& other) = delete;
-
-		fonts_builder_proxy(fonts_builder_proxy&& other) noexcept;
-		fonts_builder_proxy& operator=(fonts_builder_proxy&& other) noexcept;
-
-		//todo: images loader
-
-		ImFont* add_default_font(const ImFontConfig& cfg = default_font_config( ));
-		ImFont* add_font_from_ttf_file(const std::filesystem::path& path, ImFontConfig&& cfg = default_font_config( ));
-		ImFont* add_font_from_memory_ttf_file(uint8_t* buffer_start, uint8_t* buffer_end, ImFontConfig&& cfg = default_font_config( ));
+		input_result input(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
+		void render( );
 
 	private:
-		ImFontAtlas* atlas_ = nullptr;
-		int known_fonts_ = 0;
+		context_info info_;
+		Context* ctx_;
+		wchar_t first_u16_code_unit_ = 0;
 	};
 
-	struct context final : ImGuiContext, nstd::one_instance<context>
-	{
-		~context( );
-		context( );
+	
 
-		//todo: set in wndproc
-		bool inactive( ) const;
-		[[nodiscard]]
-		fonts_builder_proxy fonts_builder( );
-
-		ImFontAtlas fonts;
-		//todo: move outside
-		HWND hwnd = nullptr;
-	};
 }
