@@ -85,7 +85,7 @@ public:
 };
 
 class players_storage;
-std::string_view object_message_impl<players_storage>::get_name( ) const noexcept
+std::string_view object_message_impl<players_storage>::object_name( ) const noexcept
 {
 	return "players";
 }

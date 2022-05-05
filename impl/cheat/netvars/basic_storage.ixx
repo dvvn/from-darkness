@@ -124,7 +124,7 @@ public:
 	template<typename Type, typename TypeProj = std::identity, typename From>
 	auto add(From&& from, const nstd::hashed_string_view name, TypeProj proj = {}) noexcept
 	{
-		return add(std::forward<From>(from), name, std::invoke(proj, cheat::tools::csgo_object_name<Type>( )));
+		return add(std::forward<From>(from), name, std::invoke(proj, cheat::tools::csgo_object_name<Type>));
 	}
 };
 
@@ -141,7 +141,7 @@ export namespace cheat::netvars
 		template<typename T>
 		auto find( ) noexcept
 		{
-			return this->find(tools::csgo_object_name<T>( ));
+			return this->find(tools::csgo_object_name<T>);
 		}
 
 		netvar_table* add(netvar_table&& table, const bool skip_find = false) noexcept;

@@ -166,7 +166,7 @@ _RESET:
 #include <cassert>
 #include <compare>
 
-import cheat.hooks;
+import cheat.hooks.loader;
 import cheat.console;
 
 using nstd::winapi::comptr;
