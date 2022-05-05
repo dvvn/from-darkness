@@ -1,6 +1,7 @@
 module;
 
 #include <nstd/format.h>
+
 #include <string>
 
 export module cheat.console.object_message;
@@ -15,100 +16,44 @@ export namespace cheat::console
 		template<typename Str, typename ...Args>
 		void operator()(const Str& str, Args&&...args) const noexcept
 		{
-			using char_t = std::remove_cvref_t<decltype(str[0])>;
-
-			if constexpr (sizeof...(Args) == 0)
+			log([&]( ) noexcept
 			{
-				console::log([&]( ) noexcept
-				{
-					const auto name = this->get_name( );
-					const std::basic_string_view<char_t> strv = str;
+				const auto name = this->object_name( );
 
-					std::basic_string<char_t> buffer;
-					buffer.reserve(name.size( ) + 2 + strv.size( ));
-					buffer.append(name.begin( ), name.end( ));
-					buffer += ':';
-					buffer += ' ';
-					buffer.append(strv);
+				using char_t = std::remove_cvref_t<decltype(str[0])>;
+				const std::basic_string_view<char_t> strv = str;
+				std::basic_string<char_t> buffer;
 
-					return buffer;
-				});
-			}
-			else
-			{
-				console::log([&]( ) noexcept
-				{
-					const std::basic_string_view<char_t> strv = str;
-					constexpr std::string_view basic_hint = "{}: ";
+				buffer.reserve(name.size( ) + 2 + strv.size( ));
+				buffer.append(name.begin( ), name.end( ));
+				buffer += ':';
+				buffer += ' ';
+				buffer.append(strv);
 
-					std::basic_string<char_t> hint;
-					hint.reserve(basic_hint.size( ) + strv.size( ));
-					hint.append(basic_hint.begin( ), basic_hint.end( ));
-					hint.append(strv);
-					return hint;
-				}, [&]( ) noexcept
-				{
-					const auto name = this->get_name( );
-					if constexpr (std::same_as<char_t, char>)
-					{
-						return name;
-					}
-					else
-					{
-						std::basic_string<char_t> buffer;
-						buffer.reserve(name.size( ));
-						buffer.assign(name.begin( ), name.end( ));
-						return buffer;
-					}
-				}, std::forward<Args>(args)...);
-			}
+				return buffer;
+			}, std::forward<Args>(args)...);
 		}
 
-		std::string_view get_name( ) const noexcept
+		std::string_view object_name( ) const noexcept
 		{
-			return tools::object_name<T>( );
+			return cheat::tools::object_name<T>;
 		}
 	};
 
 	template<class T>
-	inline constexpr auto object_message = []<typename ...Args>(Args&&...args) noexcept
-	{
-		constexpr object_message_impl<T> impl;
-		impl(std::forward<Args>(args)...);
-	};
-
-#define OBJECT_MSG(_MSG_)\
-	template<class T>\
-	inline constexpr auto object_##_MSG_ = []( ) noexcept\
-	{\
-		object_message<T>(#_MSG_);\
-	};\
-
-	OBJECT_MSG(created);
-	OBJECT_MSG(destroyed);
-	OBJECT_MSG(found);
-	/*OBJECT_MSG(loaded);
-	OBJECT_MSG(hooked);
-	OBJECT_MSG(enabled);
-	OBJECT_MSG(disabled);*/
+	constexpr object_message_impl<T> object_message;
 
 	template<class T>
-	struct object_message_auto final
+	struct object_message_auto final : object_message_impl<T>
 	{
 		object_message_auto( )
 		{
-			object_created<T>( );
+			std::invoke(*this, "created");
 		}
 
 		~object_message_auto( )
 		{
-			object_destroyed<T>( );
-		}
-
-		template<typename ...Args>
-		void operator()(Args&& ...args) const noexcept
-		{
-			object_message<T>(std::forward<Args>(args)...);
+			std::invoke(*this, "destroyed");
 		}
 	};
 }

@@ -65,7 +65,7 @@ public:
 	operator T* () const noexcept
 	{
 		T* const ptr = addr_;
-		console_log(game_module_._Name( ), "interface", csgo_object_name<T>( ), ptr);
+		console_log(game_module_._Name( ), "interface", csgo_object_name<T>, ptr);
 		return ptr;
 	}
 
@@ -136,7 +136,7 @@ struct game_module
 	{
 		static const auto found = wp::find_vtable<logs_writer>(wp::find_module<Name, logs_writer>( ),
 															   this->_Name( ),
-															   csgo_object_name<T>( ));
+															   csgo_object_name<T>);
 		return static_cast<T*>(found);
 	}
 
