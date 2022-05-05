@@ -267,31 +267,34 @@ void render_interface::ReleaseTexture(TextureHandle texture_handle)
 	((LPDIRECT3DTEXTURE9)texture_handle)->Release( );
 }
 
-void render_interface::SetTransform(const Matrix4f* transform)
+static void _Transform_helper(const D3DTRANSFORMSTATETYPE state, const D3DMATRIX* const mat)noexcept
 {
-	throw std::logic_error("The method or operation is not implemented.");
+	g_pd3dDevice->SetTransform(state, mat);
 }
 
-//------------
-
-struct d3d_matrix :DirectX::XMMATRIX
+static void _Transform_helper(const D3DTRANSFORMSTATETYPE state, const DirectX::XMMATRIX& mat)noexcept
 {
-	d3d_matrix(const DirectX::XMMATRIX& mat)
-		:DirectX::XMMATRIX(mat)
-	{
-	}
+	_Transform_helper(state, (const D3DMATRIX*)std::addressof(mat));
+}
 
-	operator const D3DMATRIX* () const noexcept
-	{
-		return reinterpret_cast<const D3DMATRIX*>(static_cast<const DirectX::XMMATRIX*>(this));
-	}
+static void _Transform_helper(const D3DTRANSFORMSTATETYPE state, const ColumnMajorMatrix4f& mat)noexcept
+{
+	_Transform_helper(state, (const D3DMATRIX*)mat.data( ));
+}
 
-	operator const D3DMATRIX( ) const noexcept
-	{
-		const D3DMATRIX* tmp = *this;
-		return *tmp;
-	}
-};
+static void _Transform_helper(const D3DTRANSFORMSTATETYPE state, const RowMajorMatrix4f& mat)noexcept
+{
+	_Transform_helper(state, mat.Transpose( ));
+}
+
+void render_interface::SetTransform(const Matrix4f* transform)
+{
+	if(!transform)
+		_Transform_helper(D3DTS_VIEW, DirectX::XMMatrixIdentity( ));
+	else
+		_Transform_helper(D3DTS_VIEW, *transform);
+
+}
 
 static void _Setup_render(const Vector2i dimensions) noexcept
 {
@@ -301,11 +304,11 @@ static void _Setup_render(const Vector2i dimensions) noexcept
 	float B = clientRect.bottom + clientRect.top + 0.5f;*/
 
 	// Set up an orthographic projection.
-	const d3d_matrix projection = DirectX::XMMatrixOrthographicOffCenterLH(0, dimensions.x + 0.5f, dimensions.y + 0.5f, 0, -1, 1);
-	const d3d_matrix identity = DirectX::XMMatrixIdentity( );
-	g_pd3dDevice->SetTransform(D3DTS_WORLD, identity);
-	g_pd3dDevice->SetTransform(D3DTS_VIEW, identity);
-	g_pd3dDevice->SetTransform(D3DTS_PROJECTION, projection);
+	const auto projection = DirectX::XMMatrixOrthographicOffCenterLH(0, dimensions.x + 0.5f, dimensions.y + 0.5f, 0, -1, 1);
+	const auto identity = DirectX::XMMatrixIdentity( );
+	_Transform_helper(D3DTS_WORLD, identity);
+	_Transform_helper(D3DTS_VIEW, identity);
+	_Transform_helper(D3DTS_PROJECTION, projection);
 
 	// Switch to clockwise culling instead of counter-clockwise culling; Rocket generates counter-clockwise geometry,
 	// so you can either reverse the culling mode when Rocket is rendering, or reverse the indices in the render
