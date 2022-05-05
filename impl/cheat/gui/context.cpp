@@ -355,25 +355,25 @@ input_result context::input(HWND window, UINT message, WPARAM w_param, LPARAM l_
 		{
 			const bool ret = ctx_->ProcessMouseButtonDown(0, key_modifier( ));
 			SetCapture(window);
-			return ret ? result::interacted:result::processed;
+			return ret ? result::processed : result::interacted;
 		}
 		case WM_LBUTTONUP:
 		{
 			ReleaseCapture( );
-			return ctx_->ProcessMouseButtonUp(0, key_modifier( ))? result::interacted:result::processed;
+			return ctx_->ProcessMouseButtonUp(0, key_modifier( )) ? result::processed : result::interacted;
 		}
 		case WM_RBUTTONDOWN:
-			return ctx_->ProcessMouseButtonDown(1, key_modifier( )) ? result::interacted:result::processed;
+			return ctx_->ProcessMouseButtonDown(1, key_modifier( )) ? result::processed : result::interacted;
 		case WM_RBUTTONUP:
-			return ctx_->ProcessMouseButtonUp(1, key_modifier( ))? result::interacted:result::processed;
+			return ctx_->ProcessMouseButtonUp(1, key_modifier( )) ? result::processed : result::interacted;
 		case WM_MBUTTONDOWN:
-			return ctx_->ProcessMouseButtonDown(2, key_modifier( )) ? result::interacted:result::processed;
+			return ctx_->ProcessMouseButtonDown(2, key_modifier( )) ? result::processed : result::interacted;
 		case WM_MBUTTONUP:
-			return ctx_->ProcessMouseButtonUp(2, key_modifier( )) ? result::interacted:result::processed;
+			return ctx_->ProcessMouseButtonUp(2, key_modifier( )) ? result::processed : result::interacted;
 		case WM_MOUSEMOVE:
-			return ctx_->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)), key_modifier( )) ? result::interacted:result::processed;
+			return ctx_->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)), key_modifier( )) ? result::processed : result::interacted;
 		case WM_MOUSEWHEEL:
-			return ctx_->ProcessMouseWheel(static_cast<float>((short)HIWORD(w_param)) / static_cast<float>(-WHEEL_DELTA), key_modifier( )) ? result::interacted:result::processed;
+			return ctx_->ProcessMouseWheel(static_cast<float>((short)HIWORD(w_param)) / static_cast<float>(-WHEEL_DELTA), key_modifier( )) ? result::processed : result::interacted;
 		case WM_KEYDOWN:
 		{
 			Input::KeyIdentifier key_identifier = key_identifier_map[w_param];
@@ -403,30 +403,29 @@ input_result context::input(HWND window, UINT message, WPARAM w_param, LPARAM l_
 				ctx_->SetDensityIndependentPixelRatio(new_dp_ratio);
 			}
 			else
-#endif
 			{
-				// No global shortcuts detected, submit the key to the ctx_.
-				if(ctx_->ProcessKeyDown(key_identifier, key_modifier_state))
-				{
-					// The key was not consumed, check for shortcuts that are of lower priority.
-					if(key_identifier == Input::KI_R && key_modifier_state & Input::KM_CTRL)
-					{
-						for(int i = 0; i < ctx_->GetNumDocuments( ); i++)
-						{
-							ElementDocument* document = ctx_->GetDocument(i);
-							if(document->GetSourceURL( ).ends_with(".rml"))
-								document->ReloadStyleSheet( );
+			}
+#endif
 
-						}
-					}
-					return result::interacted;
+			// No global shortcuts detected, submit the key to the ctx_.
+			if(!ctx_->ProcessKeyDown(key_identifier, key_modifier_state))
+				return result::interacted;
+
+			// The key was not consumed, check for shortcuts that are of lower priority.
+			if(key_identifier == Input::KI_R && key_modifier_state & Input::KM_CTRL)
+			{
+				for(int i = 0; i < ctx_->GetNumDocuments( ); i++)
+				{
+					ElementDocument* document = ctx_->GetDocument(i);
+					if(document->GetSourceURL( ).ends_with(".rml"))
+						document->ReloadStyleSheet( );
+
 				}
 			}
 			return result::processed;
 		}
 		case WM_KEYUP:
-			ctx_->ProcessKeyUp(key_identifier_map[w_param], key_modifier( ));
-			return result::interacted;
+			return ctx_->ProcessKeyUp(key_identifier_map[w_param], key_modifier( )) ? result::processed : result::interacted;
 		case WM_CHAR:
 		{
 			const wchar_t c = (wchar_t)w_param;
@@ -467,8 +466,7 @@ input_result context::input(HWND window, UINT message, WPARAM w_param, LPARAM l_
 				// Only send through printable characters.
 				if(((char32_t)character >= 32 || character == (Character)'\n') && character != (Character)127)
 				{
-					ctx_->ProcessTextInput(character);
-					return result::interacted;
+					return ctx_->ProcessTextInput(character) ? result::processed : result::interacted;
 				}
 			}
 			return result::processed;
