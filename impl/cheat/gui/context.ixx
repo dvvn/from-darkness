@@ -50,7 +50,4 @@ export namespace cheat::gui
 		Context* ctx_;
 		wchar_t first_u16_code_unit_ = 0;
 	};
-
-	
-
 }

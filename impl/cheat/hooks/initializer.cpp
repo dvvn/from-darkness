@@ -7,12 +7,7 @@ module;
 module cheat.hooks.initializer;
 import cheat.hooks.loader;
 
-//#define CHEAT_GUI_HAVE_EFFECTS
-
 import cheat.hooks.winapi.wndproc;
-#ifdef CHEAT_GUI_HAVE_EFFECTS
-import cheat.hooks.imgui.PushClipRect;
-#endif
 import cheat.hooks.directx.present;
 import cheat.hooks.directx.reset;
 
@@ -34,9 +29,6 @@ void hooks::init_basic( ) runtime_assert_noexcept
 {
 	using namespace hooks;
 	ADD_HOOK(winapi::wndproc);
-#ifdef CHEAT_GUI_HAVE_EFFECTS
-	ADD_HOOK(imgui::PushClipRect);
-#endif
 	ADD_HOOK(directx::reset);
 	ADD_HOOK(directx::present);
 }
@@ -53,5 +45,4 @@ void hooks::init_all( ) runtime_assert_noexcept
 	ADD_HOOK(c_base_animating::should_skip_animation_frame);
 	ADD_HOOK(c_base_animating::standard_blending_rules);
 	ADD_HOOK(c_base_entity::estimate_abs_velocity);
-	//ADD_HOOK(other::rta_holder);
 }

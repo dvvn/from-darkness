@@ -7,9 +7,8 @@ export import cheat.hooks.base;
 
 export namespace cheat::hooks::winapi
 {
-	class wndproc : public virtual static_base
+	struct wndproc : static_base
 	{
-	public:
 		std::string_view function_name( ) const noexcept final;
 	};
 }
