@@ -1,58 +1,109 @@
+$GLOBAL_PATT = "GitClonedProjects"
+$PATH_DELIMNER = '\'
+
+function Get-RepoPath($str)
+{
+    $word1_end = $str.IndexOf($PATH_DELIMNER)
+    foreach($c in  @($PATH_DELIMNER, '<', ';'))
+    {
+        $word2_end = $str.IndexOf($c, $word1_end + 1)
+        if($word2_end -ne -1)
+        {
+            $str.Substring(0, $word2_end)
+            break
+        }
+    }    
+}
+
+function Add-Braces($obj)
+{
+    "($obj)"
+}
+
+function Add-XmlFront($obj)
+{
+    "<$obj>"
+}
+
+function Add-XmlBack($obj)
+{
+    "</$obj>"
+}
+
+function Make-Path($front, $back)
+{
+    $front + $PATH_DELIMNER + $back
+}
+
+function Make-Url([string]$site, [string]$str)
+{
+    "https://$site/" + $str.Replace($PATH_DELIMNER, '/')
+}
+
 function Get-Projects
 {
-    $patt = "(GitClonedProjects)"
-    $repos = Select-String -Path "deps/*/*" -Pattern $patt 
-    $projects = New-Object Collections.Generic.List[string]($repos.Length)
+    $path = "deps/*/*"
+    $patt = Add-Braces $GLOBAL_PATT
+    $repos = Select-String -Path $path -Pattern $patt    
 
     foreach($info in $repos)
     {
-        $str = $info.ToString()
-        $offset = $str.IndexOf($patt) + $patt.Length + 1
-        $arr = $str.Substring($offset) -split "\\"
-        $result =  $arr[0] + '\' + $arr[1]
-
-        foreach($c in @(';', '<'))
-        {
-            $idx = $result.IndexOf($c)
-            if($idx -ne -1)
-            {
-                $result = $result.Substring(0, $idx)
-            }        
-        }
-        $projects.Add($result)
+        $whole_str = $info.ToString()
+        $str_begin = $whole_str.IndexOf($patt) + $patt.Length + 1
+        Get-RepoPath $whole_str.Substring($str_begin)
     }
-    Write-Output $projects | select -Unique
 }
 
 function Get-ReposDir
 {
-    $prop = [xml](Get-Content "Props\Configuration.props")
-    foreach($obj in $prop.Project.PropertyGroup.GitClonedProjects)
-    {
-        if($obj -ne $null -and $obj.Length -ne 0)
-        {
-            Write-Output $obj
-        }
-    }
+    $path = "Props/Configuration.props"
+    $patt_front = Add-XmlFront $GLOBAL_PATT
+    $patt_back = Add-XmlBack $GLOBAL_PATT
+    $data = Select-String -Path $path -Pattern $patt_front
+
+    $str = $data.ToString()
+    $start_offset = $str.IndexOf($patt_front) + $patt_front.Length
+    $end_offset = $str.LastIndexOf($patt_back)
+    $size = $end_offset - $start_offset
+
+    $str.Substring($start_offset, $size)
 }
 
-$projects = Get-Projects
+$projects = Get-Projects | Get-Unique
 #echo $projects
 $repos_dir = Get-ReposDir
 #echo $repos_dir
 
+$errors = 0
+
 foreach($tmp in $projects)
 {
     $proj = $tmp.ToString()
-    $clone = "https://github.com/"+$proj.Replace('\','/')
-    $path = $repos_dir  +'\' + $proj      
-
-    git.exe clone $clone $path
-    git.exe pull $path
+    $clone = Make-Url "github.com" $proj
+    $path = Make-Path $repos_dir $proj      
+    
+    if(Test-Path $path)
+    {
+        $result = git.exe -C $path pull
+        if($errors -eq 0 -and $result -ne "Already up to date.")
+        {
+            $errors++
+        }
+        echo "Pulling '$proj'"
+        echo $result
+    }
+    else
+    {
+        git.exe clone $clone $path
+        $errors++
+    }   
 
     #echo $clone
     #echo $path
 }
 
-#pause
+if($errors -ne 0)
+{
+    pause
+}
 
