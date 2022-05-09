@@ -1,7 +1,5 @@
 module;
 
-#include <nstd/private_vector.h>
-
 #include <vector>
 #include <string>
 #include <variant>
@@ -16,6 +14,8 @@ import nstd.text.string_or_view;
 
 using netvar_info_source = std::variant<cheat::csgo::RecvProp*, cheat::csgo::typedescription_t*>;
 using nstd::text::string_or_view;
+using nstd::text::hashed_string_view;
+using nstd::text::hashed_string;
 
 class basic_netvar_info
 {
@@ -23,7 +23,7 @@ public:
 	virtual ~basic_netvar_info( ) = default;
 
 	virtual size_t offset( ) const  noexcept = 0;
-	virtual nstd::hashed_string_view name( ) const noexcept = 0;
+	virtual hashed_string_view name( ) const noexcept = 0;
 	virtual std::string_view type( ) const noexcept = 0;
 };
 
@@ -32,14 +32,14 @@ class netvar_info final :public basic_netvar_info
 	size_t offset_;
 	netvar_info_source source_;
 	size_t size_;//for arrays
-	mutable nstd::hashed_string_view name_;
+	mutable hashed_string_view name_;
 	mutable string_or_view type_;
 
 public:
-	netvar_info(const size_t offset, const netvar_info_source source, const size_t size = 0, const nstd::hashed_string_view name = {});
+	netvar_info(const size_t offset, const netvar_info_source source, const size_t size = 0, const hashed_string_view name = {});
 
 	size_t offset( ) const noexcept;
-	nstd::hashed_string_view name( ) const noexcept;
+	hashed_string_view name( ) const noexcept;
 	std::string_view type( ) const noexcept;
 };
 
@@ -47,11 +47,11 @@ template<typename Fn>
 class netvar_info_custom final :public basic_netvar_info
 {
 	mutable std::variant<size_t, Fn> getter_;
-	nstd::hashed_string_view name_;
+	hashed_string_view name_;
 	string_or_view type_;
 
 public:
-	netvar_info_custom(Fn&& getter, const nstd::hashed_string_view name = {}, string_or_view&& type = {})
+	netvar_info_custom(Fn&& getter, const hashed_string_view name = {}, string_or_view&& type = {})
 		:getter_(std::move(getter)), name_(name), type_(type)
 	{
 	}
@@ -66,7 +66,7 @@ public:
 		return offset;
 	}
 
-	nstd::hashed_string_view name( ) const noexcept
+	hashed_string_view name( ) const noexcept
 	{
 		return name_;
 	}
@@ -80,18 +80,18 @@ public:
 class netvar_info_custom_constant final :public basic_netvar_info
 {
 	size_t offset_;
-	nstd::hashed_string_view name_;
+	hashed_string_view name_;
 	string_or_view type_;
 
 public:
-	netvar_info_custom_constant(const size_t offset, const nstd::hashed_string_view name = {}, string_or_view&& type = {});
+	netvar_info_custom_constant(const size_t offset, const hashed_string_view name = {}, string_or_view&& type = {});
 
 	size_t offset( ) const noexcept;
-	nstd::hashed_string_view name( ) const noexcept;
+	hashed_string_view name( ) const noexcept;
 	std::string_view type( ) const noexcept;
 };
 
-class netvar_table : public nstd::private_vector<std::unique_ptr<basic_netvar_info>>
+class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
 {
 	void validate_item(const basic_netvar_info* info) const noexcept;
 
@@ -105,24 +105,24 @@ class netvar_table : public nstd::private_vector<std::unique_ptr<basic_netvar_in
 		return ret;
 	}
 
-	nstd::hashed_string name_;
+	hashed_string name_;
 
 public:
-	netvar_table(nstd::hashed_string&& name);
+	netvar_table(hashed_string&& name);
 
-	nstd::hashed_string_view name( ) const noexcept;
+	hashed_string_view name( ) const noexcept;
 
-	const basic_netvar_info* find(const nstd::hashed_string_view name) const noexcept;
+	const basic_netvar_info* find(const hashed_string_view name) const noexcept;
 
-	const netvar_info* add(const size_t offset, const netvar_info_source source, const size_t size = 0, const nstd::hashed_string_view name = {}) noexcept;
-	const netvar_info_custom_constant* add(const size_t offset, const nstd::hashed_string_view name, string_or_view&& type = {}) noexcept;
+	const netvar_info* add(const size_t offset, const netvar_info_source source, const size_t size = 0, const hashed_string_view name = {}) noexcept;
+	const netvar_info_custom_constant* add(const size_t offset, const hashed_string_view name, string_or_view&& type = {}) noexcept;
 	template<std::invocable Fn>
-	auto add(Fn&& getter, const nstd::hashed_string_view name, string_or_view&& type = {}) noexcept
+	auto add(Fn&& getter, const hashed_string_view name, string_or_view&& type = {}) noexcept
 	{
 		return add_impl<netvar_info_custom<std::remove_cvref_t<Fn>>>(std::forward<Fn>(getter), name, std::move(type));
 	}
 	template<typename Type, typename TypeProj = std::identity, typename From>
-	auto add(From&& from, const nstd::hashed_string_view name, TypeProj proj = {}) noexcept
+	auto add(From&& from, const hashed_string_view name, TypeProj proj = {}) noexcept
 	{
 		return add(std::forward<From>(from), name, std::invoke(proj, cheat::tools::csgo_object_name<Type>));
 	}
@@ -130,14 +130,10 @@ public:
 
 export namespace cheat::netvars
 {
-	class basic_storage :public nstd::private_vector<netvar_table>
+	struct basic_storage : std::vector<netvar_table>
 	{
-	public:
-		//[[deprecated]]
-		//bool contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from = nullptr) const noexcept;
-
-		const netvar_table* find(const nstd::hashed_string_view name) const noexcept;
-		netvar_table* find(const nstd::hashed_string_view name) noexcept;
+		const netvar_table* find(const hashed_string_view name) const noexcept;
+		netvar_table* find(const hashed_string_view name) noexcept;
 		template<typename T>
 		auto find( ) noexcept
 		{
@@ -145,6 +141,6 @@ export namespace cheat::netvars
 		}
 
 		netvar_table* add(netvar_table&& table, const bool skip_find = false) noexcept;
-		netvar_table* add(nstd::hashed_string&& name, const bool skip_find = false) noexcept;
+		netvar_table* add(hashed_string&& name, const bool skip_find = false) noexcept;
 	};
 }

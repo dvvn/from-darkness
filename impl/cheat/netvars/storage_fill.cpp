@@ -14,6 +14,7 @@ import nstd.text.convert;
 using namespace cheat;
 using namespace netvars;
 using namespace csgo;
+using namespace nstd::text;
 
 static auto _Correct_class_name(const std::string_view name) noexcept
 {
@@ -115,7 +116,7 @@ static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_
 	const std::string_view real_prop_name = first_prop_name.substr(0, first_prop_name.size( ) - 3);
 	runtime_assert(!real_prop_name.ends_with(']'));
 	if(tree.find(real_prop_name))//todo: debug break for type check!
-		return {real_prop_name,0};
+		return {real_prop_name, 0};
 
 	//todo: try extract size from length proxy
 	size_t array_size = 1;
@@ -135,34 +136,6 @@ static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_
 
 		++array_size;
 	}
-
-	/*string_or_view_holder netvar_type;
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-	if (array_size == 3 && (std::isupper(real_prop_name[5]) && real_prop_name.starts_with("m_")))
-	{
-		auto prefix = real_prop_name.substr(2, 3);
-		if (prop.m_RecvType == DPT_Float)
-		{
-			if (prefix == "ang")
-				netvar_type = nstd::type_name<QAngle>( );
-			else if (prefix == "vec")
-				netvar_type = nstd::type_name<Vector>( );
-		}
-		else if (prop.m_RecvType == DPT_Int)
-		{
-			if (prefix == "uch")
-				netvar_type = nstd::type_name<Color>( );
-		}
-	}
-
-	if (netvar_type.view( ).empty( ))
-	{
-		auto type = type_recv_prop(prop);
-		netvar_type = type_std_array(type.view( ), array_size);
-	}
-#endif
-	add_netvar_to_storage(tree, real_prop_name, real_prop_offset, std::move(netvar_type));
-	itr += *array_size - 1;*/
 
 	return {real_prop_name,array_size};
 }
@@ -198,60 +171,6 @@ static void _Parse_client_class(storage& root_tree, netvar_table& tree, RecvTabl
 		{
 			_Parse_client_class(root_tree, tree, prop.m_pDataTable, real_prop_offset);
 		}
-
-		//			if (_Table_is_data_table(*child_table))
-		//			{
-		//				_Parse_client_class(root_tree, tree, child_table, real_prop_offset);
-		//			}
-		//			else if (_Table_is_array(*child_table))
-		//			{
-		//				auto array_begin = child_props.begin( );
-		//				if (_Prop_is_length_proxy(*array_begin))
-		//				{
-		//					++array_begin;
-		//					runtime_assert(array_begin->m_pVarName[0] == '0');
-		//				}
-		//				runtime_assert(array_begin != child_props.end( ));
-		//
-		//#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		//				string_or_view_holder netvar_type;
-		//#endif
-		//				if (array_begin->m_RecvType != DPT_DataTable)
-		//				{
-		//#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		//					netvar_type = type_recv_prop(*array_begin);
-		//#endif
-		//				}
-		//				else
-		//				{
-		//					const std::string_view child_table_name = child_table->m_pNetTableName;
-		//					string_or_view_holder child_table_unique_name;
-		//					if (prop_name != child_table_name)
-		//						child_table_unique_name = child_table_name;
-		//					else
-		//						child_table_unique_name = std::format("{}_t", child_table_name);
-		//
-		//					auto [new_tree, added] = add_child_class_to_storage(root_tree, child_table_unique_name.view( ));
-		//					if (!added)
-		//						continue;
-		//#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		//					netvar_type = std::move(child_table_unique_name);
-		//#endif
-		//					store_recv_props(root_tree, (*new_tree), array_begin->m_pDataTable, /*real_prop_offset*/0);
-		//				}
-		//
-		//				string_or_view_holder netvar_type_array;
-		//#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-		//				const auto array_size = std::distance(array_begin, child_props.end( ));
-		//				netvar_type_array = type_std_array(netvar_type.view( ), array_size);
-		//#endif
-		//				add_netvar_to_storage(tree, prop_name, real_prop_offset, std::move(netvar_type_array));
-		//			}
-		//			else
-		//			{
-		//				runtime_assert("Unknown netvar type");
-		//			}
-
 	}
 }
 
@@ -263,7 +182,7 @@ void storage::iterate_client_class(ClientClass* root_class) noexcept
 		if(!recv_table || recv_table->props.empty( ))
 			continue;
 
-		nstd::hashed_string class_name = _Correct_class_name(client_class->pNetworkName);
+		hashed_string class_name = _Correct_class_name(client_class->pNetworkName);
 		runtime_assert(this->find(class_name));
 		const auto added = this->add(std::move(class_name), true);
 
@@ -289,11 +208,6 @@ static void _Parse_datamap(netvar_table& tree, datamap_t* const map) noexcept
 			if(_Can_skip_netvar(name))
 				continue;
 			tree.add(static_cast<size_t>(desc.fieldOffset[TD_OFFSET_NORMAL]), std::addressof(desc), 0, name);
-			/*string_or_view_holder field_type;
-#ifdef CHEAT_NETVARS_RESOLVE_TYPE
-			field_type = type_datamap_field(desc);
-#endif
-			add_netvar_to_storage(tree, field_name, offset, std::move(field_type));*/
 		}
 	}
 }
@@ -305,7 +219,7 @@ void storage::iterate_datamap(datamap_t* const root_map) noexcept
 		if(map->data.empty( ))
 			continue;
 
-		nstd::hashed_string class_name = _Correct_class_name(map->dataClassName);
+		hashed_string class_name = _Correct_class_name(map->dataClassName);
 		const auto added = this->add(std::move(class_name));
 
 		_Parse_datamap(*added, map);

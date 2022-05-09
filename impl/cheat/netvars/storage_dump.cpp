@@ -5,9 +5,6 @@ module;
 #include <nlohmann/json.hpp>
 #include <nlohmann/ordered_map.hpp>
 
-//#include <nstd/format.h>
-//#include <nstd/ranges.h>
-
 #include <vector>
 #include <sstream>
 #include <fstream>
@@ -17,11 +14,24 @@ module cheat.netvars.core:storage;
 import cheat.console;
 import nstd.mem.address;
 
+namespace std::filesystem
+{
+	static_assert(sizeof(path) == sizeof(std::wstring));
+
+	bool create_directory(const std::wstring& dir)
+	{
+		return create_directory(reinterpret_cast<const path&>(dir));
+	}
+
+	bool is_empty(const std::wstring& dir)
+	{
+		return is_empty(reinterpret_cast<const path&>(dir));
+	}
+}
+
 using namespace cheat;
 using namespace netvars;
 namespace fs = std::filesystem;
-
-static_assert(sizeof(fs::path) == sizeof(std::wstring));
 
 template<typename T, typename ...Args>
 static T _Join_strings(const Args& ...args) noexcept
@@ -60,7 +70,7 @@ logs_data::~logs_data( )
 	if(dir.empty( ))
 		return;
 
-	if(!fs::create_directory(reinterpret_cast<fs::path&>(dir)))
+	if(!fs::create_directory(dir))
 		return;
 
 	const fs::path full_path = _Join_strings<std::wstring>(dir, file.name, file.extension);
@@ -78,7 +88,7 @@ classes_data::~classes_data( )
 	if(dir.empty( ))
 		return;
 
-	if(fs::create_directory(reinterpret_cast<fs::path&>(dir)) || fs::is_empty(reinterpret_cast<fs::path&>(dir)))
+	if(fs::create_directory(dir) || fs::is_empty(dir))
 	{
 		for(const auto& [name, buff] : files)
 			std::ofstream(_Join_strings<std::wstring>(dir, name)) << buff.view( );
@@ -98,15 +108,6 @@ classes_data::~classes_data( )
 	}
 }
 
-struct json_string :std::string
-{
-	template<typename ...Args>
-	json_string(Args&&...args) requires(std::constructible_from<std::string, decltype(args)...>)
-		: std::string(std::forward<Args>(args)...)
-	{
-	}
-};
-
 template<class Json>
 static void to_json(Json& j, const basic_netvar_info& info) noexcept
 {
@@ -114,10 +115,11 @@ static void to_json(Json& j, const basic_netvar_info& info) noexcept
 	const auto offset = info.offset( );
 	const std::string_view type = info.type( );
 
-	j["name"] = name;
-	j["offset"] = offset;
+	using namespace std::string_view_literals;
+	j["name"sv] = name;
+	j["offset"sv] = offset;
 	if(!type.empty( ))
-		j["type"] = type;
+		j["type"sv] = type;
 }
 
 template<class Json>
@@ -140,11 +142,75 @@ static void to_json(Json& j, storage* const s) noexcept
 	}
 }
 
+template <class Key, class Value, class IgnoredLess = std::less<Key>    //
+, class Allocator = std::allocator<std::pair<const Key, Value>> //
+, class Base = nlohmann::ordered_map<Key, Value, IgnoredLess, Allocator>>
+	struct ordered_map_json : Base
+{
+	using typename Base::key_type;
+	using typename Base::mapped_type;
+
+	using typename Base::Container;
+
+	using typename Base::iterator;
+	using typename Base::const_iterator;
+	using typename Base::size_type;
+	using typename Base::value_type;
+
+	template <std::equality_comparable_with<Key> Key2, typename ...Args>
+		requires(std::constructible_from<Key, Key2>)
+	std::pair<iterator, bool> emplace(Key2&& key, Args&&...args)
+	{
+		auto found = this->find(key);
+		if(found != Base::end( ))
+			return {found, false};
+
+		if constexpr(sizeof...(Args) == 0)
+		{
+			static_assert(std::default_initializable<Value>, "Unable to construct empty mapped type");
+			Base::emplace_back(std::forward<Key2>(key), Value( ));
+		}
+		else
+		{
+			Base::emplace_back(std::forward<Key2>(key), std::forward<Args>(args)...);
+		}
+		return {std::prev(this->end( )), true};
+	}
+
+	template <std::equality_comparable_with<Key> Key2>
+	iterator find(const Key2& key) noexcept
+	{
+		auto begin = Base::begin( );
+		auto end = Base::end( );
+		for(auto itr = begin; itr != end; ++itr)
+		{
+			if(itr->first == key)
+				return itr;
+		}
+		return end;
+	}
+
+	template <std::equality_comparable_with<Key> Key2>
+	const_iterator find(const Key2& key) const noexcept
+	{
+		return const_cast<ordered_map_json*>(this)->find(key);
+	}
+
+	//----
+
+	using _Char_type = Key::value_type;
+
+	template<typename ...Args>
+	std::pair<iterator, bool> emplace(const _Char_type* key, Args&&...) = delete;
+	iterator find(const _Char_type* key) = delete;
+	const_iterator find(const _Char_type* key) const = delete;
+};
+
 void storage::log_netvars(logs_data& data) noexcept
 {
-	//single-file mode
+	//single json-file mode
 
-	using json_type = nlohmann::basic_json<nlohmann::ordered_map, std::vector, json_string, bool, std::make_signed_t<size_t>, size_t, float>;
+	using json_type = nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, std::make_signed_t<size_t>, size_t, float>;
 	data.buff << std::setw(data.indent) << std::setfill(data.filler) << json_type(this);
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nstd/core.h>
+#include <nstd/core_utils.h>
 
 #include <array>
 

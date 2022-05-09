@@ -1,7 +1,6 @@
 module;
 
 #include <nstd/runtime_assert.h>
-#include <nstd/type_traits.h>
 
 #include <windows.h>
 

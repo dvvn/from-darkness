@@ -3,7 +3,6 @@ module;
 #include <string_view>
 
 module cheat.hooks.client_mode.create_move;
-import cheat.players;
 import cheat.hooks.hook;
 import cheat.csgo.interfaces.Prediction;
 import cheat.csgo.interfaces.EngineClient;

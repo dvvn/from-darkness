@@ -1,6 +1,6 @@
 module;
 
-#include <nstd/type_traits.h>
+#include <nstd/core_utils.h>
 
 #include <string_view>
 
@@ -15,7 +15,7 @@ consteval std::string_view drop_type_namespace(const std::string_view drop) noex
 	return str.starts_with(drop) ? str.substr(drop.size( ) + 2) : str;
 }
 
-export namespace cheat::/*inline*/ tools
+export namespace cheat::tools
 {
 	template<typename T>
 	constexpr std::string_view object_name = drop_type_namespace<T>("cheat");

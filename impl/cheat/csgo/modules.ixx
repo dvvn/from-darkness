@@ -1,7 +1,7 @@
 module;
 
 #ifdef _UNICODE
-#include <nstd/core.h>
+#include <nstd/core_utils.h>
 #endif
 #include <nstd/format.h>
 
@@ -181,10 +181,10 @@ struct current_module
 
 export namespace cheat::csgo_modules
 {
-	inline constexpr current_module current;
+	constexpr current_module current;
 
 #define CHEAT_GAME_MODULE(_NAME_)\
-	inline constexpr game_module<DLL_NAME(_NAME_)> _NAME_;
+	constexpr game_module<DLL_NAME(_NAME_)> _NAME_;
 
 	CHEAT_GAME_MODULE(server);
 	CHEAT_GAME_MODULE(client);

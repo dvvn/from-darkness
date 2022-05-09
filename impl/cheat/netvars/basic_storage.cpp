@@ -1,7 +1,5 @@
 module;
 
-#include <nstd/private_vector.h>
-
 #include <nstd/overload.h>
 #include <nstd/runtime_assert.h>
 #include <nstd/ranges.h>
@@ -16,6 +14,10 @@ import :type_resolve;
 using namespace cheat;
 using namespace netvars;
 using namespace csgo;
+
+using nstd::text::string_or_view;
+using nstd::text::hashed_string_view;
+using nstd::text::hashed_string;
 
 static const char* _Netvar_name(const netvar_info_source source) noexcept
 {
@@ -41,7 +43,7 @@ static string_or_view _Netvar_type(const netvar_info_source source) noexcept
 
 //---
 
-netvar_info::netvar_info(const size_t offset, const netvar_info_source source, const size_t size, const nstd::hashed_string_view name)
+netvar_info::netvar_info(const size_t offset, const netvar_info_source source, const size_t size, const hashed_string_view name)
 	:offset_(offset), source_(source), size_(size), name_(name)
 {
 }
@@ -58,7 +60,7 @@ size_t netvar_info::offset( ) const noexcept
 //	return *inner_ptr;
 //}
 
-nstd::hashed_string_view netvar_info::name( ) const noexcept
+hashed_string_view netvar_info::name( ) const noexcept
 {
 	if(name_.empty( ))
 	{
@@ -113,7 +115,7 @@ std::string_view netvar_info::type( ) const noexcept
 
 //----
 
-netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, const nstd::hashed_string_view name, string_or_view&& type)
+netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, const hashed_string_view name, string_or_view&& type)
 	:offset_(offset), name_(name), type_(type)
 {
 }
@@ -123,7 +125,7 @@ size_t netvar_info_custom_constant::offset( ) const noexcept
 	return offset_;
 }
 
-nstd::hashed_string_view netvar_info_custom_constant::name( ) const noexcept
+hashed_string_view netvar_info_custom_constant::name( ) const noexcept
 {
 	return name_;
 }
@@ -166,17 +168,17 @@ void netvar_table::validate_item(const basic_netvar_info* info) const noexcept
 #endif
 }
 
-netvar_table::netvar_table(nstd::hashed_string&& name)
+netvar_table::netvar_table(hashed_string&& name)
 	:name_(std::move(name))
 {
 }
 
-nstd::hashed_string_view netvar_table::name( ) const noexcept
+hashed_string_view netvar_table::name( ) const noexcept
 {
 	return name_;
 }
 
-const basic_netvar_info* netvar_table::find(const nstd::hashed_string_view name) const noexcept
+const basic_netvar_info* netvar_table::find(const hashed_string_view name) const noexcept
 {
 	for(auto& entry : *this)
 	{
@@ -186,19 +188,19 @@ const basic_netvar_info* netvar_table::find(const nstd::hashed_string_view name)
 	return nullptr;
 }
 
-const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const nstd::hashed_string_view name) noexcept
+const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const hashed_string_view name) noexcept
 {
 	return add_impl<netvar_info>(offset, source, size, name);
 }
 
-const netvar_info_custom_constant* netvar_table::add(const size_t offset, const nstd::hashed_string_view name, string_or_view&& type) noexcept
+const netvar_info_custom_constant* netvar_table::add(const size_t offset, const hashed_string_view name, string_or_view&& type) noexcept
 {
 	return add_impl<netvar_info_custom_constant>(offset, name, std::move(type));
 }
 
 //----
 
-//bool basic_storage::contains_duplicate(const nstd::hashed_string_view name, netvar_table* const from) const noexcept
+//bool basic_storage::contains_duplicate(const hashed_string_view name, netvar_table* const from) const noexcept
 //{
 //	const auto begin = this->data( );
 //	const auto end = begin + this->size( );
@@ -212,12 +214,12 @@ const netvar_info_custom_constant* netvar_table::add(const size_t offset, const 
 //	return false;
 //}
 
-auto basic_storage::find(const nstd::hashed_string_view name) const noexcept -> const netvar_table*
+auto basic_storage::find(const hashed_string_view name) const noexcept -> const netvar_table*
 {
 	return const_cast<basic_storage*>(this)->find(name);
 }
 
-auto basic_storage::find(const nstd::hashed_string_view name) noexcept -> netvar_table*
+auto basic_storage::find(const hashed_string_view name) noexcept -> netvar_table*
 {
 	for(netvar_table& entry : *this)
 	{
@@ -240,7 +242,7 @@ auto basic_storage::add(netvar_table&& table, const bool skip_find) noexcept -> 
 	return nullptr;
 }
 
-auto basic_storage::add(nstd::hashed_string&& name, const bool skip_find) noexcept -> netvar_table*
+auto basic_storage::add(hashed_string&& name, const bool skip_find) noexcept -> netvar_table*
 {
 	if(!skip_find)
 	{
