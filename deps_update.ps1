@@ -40,17 +40,20 @@ function Make-Url([string]$site, [string]$str)
     "https://$site/" + $str.Replace($PATH_DELIMNER, '/')
 }
 
-function Get-Projects
+function Get-Projects([string[]]$data)
 {
-    $path = "deps/*/*"
-    $patt = Add-Braces $GLOBAL_PATT
-    $repos = Select-String -Path $path -Pattern $patt    
-
-    foreach($info in $repos)
+    #$path = "deps/*/*"
+    foreach($path in $data)
     {
-        $whole_str = $info.ToString()
-        $str_begin = $whole_str.IndexOf($patt) + $patt.Length + 1
-        Get-RepoPath $whole_str.Substring($str_begin)
+        $patt = Add-Braces $GLOBAL_PATT
+        $repos = Select-String -Path $path -Pattern $patt    
+
+        foreach($info in $repos)
+        {
+            $whole_str = $info.ToString()
+            $str_begin = $whole_str.IndexOf($patt) + $patt.Length + 1
+            Get-RepoPath $whole_str.Substring($str_begin)
+        }
     }
 }
 
@@ -69,7 +72,7 @@ function Get-ReposDir
     $str.Substring($start_offset, $size)
 }
 
-$projects = Get-Projects | Get-Unique
+$projects = (Get-Projects "deps/*/*", "impl/*.props") | Get-Unique
 #echo $projects
 $repos_dir = Get-ReposDir
 #echo $repos_dir
@@ -89,7 +92,7 @@ foreach($tmp in $projects)
         {
             $errors++
         }
-        echo "Pulling '$proj'"
+        echo "Pulling '$proj'..."
         echo $result
     }
     else
