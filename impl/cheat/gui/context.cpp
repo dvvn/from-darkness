@@ -144,7 +144,7 @@ context::context( )
 	ctx_->LoadDocument(RML_SAMPLE("assets", "demo.rml"))->Show( );
 	ctx_->LoadDocument(RML_SAMPLE("assets", "window.rml"))->Show( );
 
-	_Rml_demo_animation(ctx_);
+	//_Rml_demo_animation(ctx_);
 
 #if 0
 	// Replace and style some text in the loaded document.

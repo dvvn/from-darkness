@@ -36,9 +36,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="$(SolutionDir)\deps\imgui\imgui.vcxproj">
+		<!--ProjectReference Include="$(SolutionDir)\deps\imgui\imgui.vcxproj">
 			<Project>{DDAA17EC-019B-4B6C-80E0-DAD3DFC2C6C5}</Project>
-		</ProjectReference>
+		</ProjectReference-->
 		<ProjectReference Include="$(SolutionDir)\deps\dhooks\dhooks.vcxproj">
 			<Project>{49A4F286-F925-4697-B0A8-1E3D6FB830F0}</Project>
 		</ProjectReference>

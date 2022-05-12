@@ -33,7 +33,7 @@ struct string_accepter
 };
 
 template<typename T>
-constexpr bool is_trivial_object_v = std::is_trivially_copyable_v<T> && sizeof(T) <= sizeof(uintptr_t) * 4;//* 4 -> 32 or 64 bits limit
+constexpr bool is_trivial_object_v = std::is_trivially_copyable_v<T> && sizeof(T) <= sizeof(uintptr_t) * 4;//* 4 -> 16 or 32 bits limit
 
 template<typename To, typename From>
 decltype(auto) _Convert_to(From&& obj) noexcept
@@ -135,13 +135,21 @@ export namespace cheat::console
 		_Log(std::invoke(std::forward<T>(fn)));
 	}
 
-	template<typename Fmt, typename ...Args>
+	template<typename ...Args>
 		requires(sizeof...(Args) > 0)
-	void log(const Fmt& fmt, Args&& ...args) noexcept
+	void log(const std::wstring_view fmt, Args&& ...args) noexcept
 	{
 		if(!active( ))
 			return;
-		using char_t = std::remove_cvref_t<decltype(fmt[0])>;
-		_Log(std::format(fmt, _Convert_to<char_t>(std::forward<Args>(args))...));
+		_Log(std::vformat(fmt, std::make_wformat_args(_Convert_to<wchar_t>(std::forward<Args>(args))...)));
+	}
+
+	template<typename ...Args>
+		requires(sizeof...(Args) > 0)
+	void log(const std::string_view fmt, Args&& ...args) noexcept
+	{
+		if(!active( ))
+			return;
+		_Log(std::vformat(fmt, std::make_format_args(_Convert_to<char>(std::forward<Args>(args))...)));
 	}
 }

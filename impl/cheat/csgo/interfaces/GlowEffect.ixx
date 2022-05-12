@@ -12,8 +12,8 @@ export namespace cheat::csgo
 {
 	class C_BaseEntity;
 
-	static constexpr auto GLOW_END_OF_FREE_LIST = -1;
-	static constexpr auto GLOW_ENTRY_IN_USE = -2;
+	constexpr auto GLOW_END_OF_FREE_LIST = -1;
+	constexpr auto GLOW_ENTRY_IN_USE = -2;
 
 	enum GlowRenderStyles : int32_t
 	{

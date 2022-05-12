@@ -6,6 +6,7 @@
 
 module cheat.csgo.interfaces.BaseHandle;
 import cheat.csgo.interfaces.ClientEntityList;
+import cheat.csgo.interfaces.ClientEntity;
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
@@ -75,8 +76,6 @@ int32_t CBaseHandle::ToInt( ) const
 {
 	return (int32_t)m_Index;
 }
-
-//unable to import interfaces module here
 
 IHandleEntity* CBaseHandle::Get( ) const
 {

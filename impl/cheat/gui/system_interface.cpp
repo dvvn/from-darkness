@@ -65,7 +65,7 @@ static void _Log(const std::string_view str, Args&& ...args) noexcept
 {
 	console::log("[RmlUi] {}", [&]
 	{
-		return std::format(str, std::forward<Args>(args)...);
+		return std::vformat(str, std::make_format_args(std::forward<Args>(args)...));
 	});
 }
 
