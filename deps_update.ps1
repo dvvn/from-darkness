@@ -1,10 +1,9 @@
 $GLOBAL_PATT = "GitClonedProjects"
-$PATH_DELIMNER = '\'
 
 function Get-RepoPath($str)
 {
-    $word1_end = $str.IndexOf($PATH_DELIMNER)
-    foreach($c in  @($PATH_DELIMNER, '<', ';'))
+    $word1_end = $str.IndexOf('\')
+    foreach($c in  @('\', '<', ';'))
     {
         $word2_end = $str.IndexOf($c, $word1_end + 1)
         if($word2_end -ne -1)
@@ -30,28 +29,61 @@ function Add-XmlBack($obj)
     "</$obj>"
 }
 
-function Make-Path($front, $back)
+function Make-Url($site, $str)
 {
-    $front + $PATH_DELIMNER + $back
+    "https://$site/" + $str.Replace('\', '/')
 }
 
-function Make-Url([string]$site, [string]$str)
+function Count-Substring($str, $substr)
 {
-    "https://$site/" + $str.Replace($PATH_DELIMNER, '/')
+   $count = 0
+   $pos = 0
+   for(;;)
+   {
+        $pos = $str.IndexOf($substr, $pos)
+        if($pos -eq -1)
+        {
+            break
+        }
+        ++$count        
+        $pos += $substr.Length
+   }
+   $count
+}
+
+#multiline comments unsupported!
+function Inside-XmlComment($str)
+{
+    $open = Count-Substring $str "<!--"
+    $close = Count-Substring $str "-->"
+    $open -ne $close
+}
+
+function Get-Substring($str, $front, $back)
+{
+    $offset_start = $str.IndexOf($front) + $front.Length
+    $offset_end = $str.LastIndexOf($back)
+    $size = $offset_end - $offset_start
+
+    $str.Substring($start_offset, $size)
 }
 
 function Get-Projects([string[]]$data)
 {
-    #$path = "deps/*/*"
     foreach($path in $data)
     {
         $patt = Add-Braces $GLOBAL_PATT
-        $repos = Select-String -Path $path -Pattern $patt    
+        $repos = Select-String -Path $path -Pattern $patt
 
         foreach($info in $repos)
         {
             $whole_str = $info.ToString()
             $str_begin = $whole_str.IndexOf($patt) + $patt.Length + 1
+            $str_before = $whole_str.Substring(0, $str_begin)
+            if(Inside-XmlComment $str_before)
+            {
+                continue
+            }
             Get-RepoPath $whole_str.Substring($str_begin)
         }
     }
@@ -64,12 +96,7 @@ function Get-ReposDir
     $patt_back = Add-XmlBack $GLOBAL_PATT
     $data = Select-String -Path $path -Pattern $patt_front
 
-    $str = $data.ToString()
-    $start_offset = $str.IndexOf($patt_front) + $patt_front.Length
-    $end_offset = $str.LastIndexOf($patt_back)
-    $size = $end_offset - $start_offset
-
-    $str.Substring($start_offset, $size)
+    Get-Substring $data.ToString() $patt_front $patt_back
 }
 
 $projects = (Get-Projects "deps/*/*", "impl/*.props") | Get-Unique
@@ -77,35 +104,33 @@ $projects = (Get-Projects "deps/*/*", "impl/*.props") | Get-Unique
 $repos_dir = Get-ReposDir
 #echo $repos_dir
 
-$errors = 0
+$msg = 0
 
 foreach($tmp in $projects)
 {
     $proj = $tmp.ToString()
     $clone = Make-Url "github.com" $proj
-    $path = Make-Path $repos_dir $proj      
+    $path = Join-Path $repos_dir $proj      
     
-    if(Test-Path $path)
-    {
-        $result = git.exe -C $path pull
-        if($errors -eq 0 -and $result -ne "Already up to date.")
-        {
-            $errors++
-        }
-        echo "Pulling '$proj'..."
-        echo $result
-    }
-    else
+    if(-not (Test-Path $path))
     {
         git.exe clone $clone $path
-        $errors++
-    }   
+        $msg++
+    }
+    
+    $result = git.exe -C $path pull
+    if($msg -eq 0 -and $result -ne "Already up to date.")
+    {
+        $msg++
+    }
+    echo "Pulling '$proj'..."
+    echo $result      
 
     #echo $clone
     #echo $path
 }
 
-if($errors -ne 0)
+if($msg -ne 0)
 {
     pause
 }
