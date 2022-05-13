@@ -1,5 +1,7 @@
 module;
 
+#include <cheat/tools/interface.h>
+
 #include <nstd/runtime_assert.h>
 
 #include <string>
@@ -12,7 +14,6 @@ import cheat.csgo.modules;
 import cheat.csgo.interfaces.C_BaseEntity;
 import cheat.csgo.interfaces.EngineClient;
 import cheat.csgo.interfaces.BaseClient;
-import nstd.one_instance;
 
 using namespace cheat;
 using namespace netvars;
@@ -38,7 +39,7 @@ static std::wstring to_wstring(const char* str, const bool reserve = false) noex
 }
 
 class netvars_holder;
-std::string_view object_message_impl<netvars_holder>::object_name( ) const noexcept
+std::string_view object_message_impl<netvars_holder>::object_name() const noexcept
 {
 	return "netvars";
 }
@@ -51,26 +52,26 @@ class netvars_holder : public storage
 	object_message_auto<netvars_holder> msg_;
 
 public:
-	netvars_holder( )
+	netvars_holder()
 	{
-		iterate_client_class(nstd::instance_of<IBaseClientDLL*>->GetAllClasses( ));
+		iterate_client_class(nstd::instance_of<IBaseClientDLL*>->GetAllClasses());
 
-		const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>( );
-		iterate_datamap(baseent->GetDataDescMap( ));
-		iterate_datamap(baseent->GetPredictionDescMap( ));
+		const auto baseent = csgo_modules::client.find_vtable<C_BaseEntity>();
+		iterate_datamap(baseent->GetDataDescMap());
+		iterate_datamap(baseent->GetPredictionDescMap());
 
-		store_handmade_netvars( );
+		store_handmade_netvars();
 	}
 
-	void log( ) noexcept
+	void log() noexcept
 	{
-		logs_.file.name = to_wstring(nstd::instance_of<IVEngineClient*>->GetProductVersionString( ));
+		logs_.file.name = to_wstring(nstd::instance_of<IVEngineClient*>->GetProductVersionString());
 		log_netvars(logs_);
 		generate_classes(classes_);
 	}
 };
 
-static nstd::instance_of_t<netvars_holder> holder;
+constexpr auto holder = instance_of<netvars_holder>;
 
 size_t netvars::get_offset(const std::string_view table, const std::string_view item) noexcept
 {
@@ -84,10 +85,10 @@ size_t netvars::get_offset(const std::string_view table, const std::string_view 
 	using namespace std::string_view_literals;
 	return netvar_info->find("offset"sv)->get<int>( );*/
 
-	return holder->find(table)->find(item)->offset( );
+	return holder->find(table)->find(item)->offset();
 }
 
-void netvars::write_logs( ) noexcept
+void netvars::write_logs() noexcept
 {
-	holder->log( );
+	holder->log();
 }

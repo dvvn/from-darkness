@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/csgo/interface.h>
+#include <cheat/tools/interface.h>
 
 module cheat.csgo.interfaces.EngineClient;
 import cheat.csgo.modules;
@@ -8,4 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IVEngineClient, csgo_modules::engine.find_interface<"VEngineClient">( ));
+CHEAT_INTERFACE_IMPL(IVEngineClient, csgo_modules::engine.find_interface<"VEngineClient">( ));

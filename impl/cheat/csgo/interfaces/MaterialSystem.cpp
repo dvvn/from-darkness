@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/csgo/interface.h>
+#include <cheat/tools/interface.h>
 
 module cheat.csgo.interfaces.MaterialSystem;
 import cheat.csgo.modules;
@@ -8,4 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IMaterialSystem, csgo_modules::materialsystem.find_interface<"VMaterialSystem">( ));
+CHEAT_INTERFACE_IMPL(IMaterialSystem, csgo_modules::materialsystem.find_interface<"VMaterialSystem">( ));
