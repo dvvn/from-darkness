@@ -1,5 +1,7 @@
 module;
 
+#include <cheat/tools/interface.h>
+
 #include <nstd/runtime_assert.h>
 
 #include <windows.h>
@@ -20,7 +22,6 @@ module;
 module cheat.console;
 import nstd.mem.address;
 import nstd.winapi.modules;
-import nstd.one_instance;
 
 using namespace cheat;
 
@@ -359,7 +360,7 @@ enum class state :uint8_t
 };
 
 static state console_state = state::unset;
-static nstd::instance_of_t<console_controller> controller;
+static auto controller = instance_of<console_controller>;
 
 template<typename T>
 static void _Log_impl(const T str) noexcept

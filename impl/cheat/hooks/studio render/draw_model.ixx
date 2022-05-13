@@ -9,7 +9,6 @@ export namespace cheat::hooks::studio_render
 {
 	struct draw_model : class_base
 	{
-		std::string_view class_name( ) const noexcept final;
-		std::string_view function_name( ) const noexcept final;
+		std::string_view name( ) const noexcept final;
 	};
 }

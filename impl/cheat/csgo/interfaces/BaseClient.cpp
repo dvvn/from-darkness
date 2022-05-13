@@ -1,6 +1,6 @@
 ﻿module;
 
-#include <cheat/csgo/interface.h>
+#include <cheat/tools/interface.h>
 
 #include <functional>
 
@@ -10,7 +10,7 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IBaseClientDLL, csgo_modules::client.find_interface<"VClient">( ));
+CHEAT_INTERFACE_IMPL(IBaseClientDLL, csgo_modules::client.find_interface<"VClient">( ));
 
 bool IBaseClientDLL::DispatchUserMessage(int msg_type, int flags, int size, const void* msg)
 {

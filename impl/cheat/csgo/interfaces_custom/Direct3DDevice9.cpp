@@ -1,4 +1,4 @@
-﻿#include <cheat/csgo/interface.h>
+﻿#include <cheat/tools/interface.h>
 
 #include <d3d9.h>
 
@@ -18,4 +18,4 @@ static auto _Find_d3d( ) noexcept
 	return ret;
 }
 
-CHEAT_CSGO_INTERFACE_INIT(IDirect3DDevice9, _Find_d3d( ));
+CHEAT_INTERFACE_IMPL(IDirect3DDevice9, _Find_d3d( ));

@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/csgo/interface.h>
+#include <cheat/tools/interface.h>
 
 module cheat.csgo.interfaces.DebugOverlay;
 import cheat.csgo.modules;
@@ -8,4 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IVDebugOverlay, csgo_modules::engine.find_interface<"VDebugOverlay">( ));
+CHEAT_INTERFACE_IMPL(IVDebugOverlay, csgo_modules::engine.find_interface<"VDebugOverlay">( ));

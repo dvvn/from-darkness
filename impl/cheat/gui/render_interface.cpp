@@ -1,12 +1,13 @@
 module;
 
+#include <cheat/tools/interface.h>
+
 #include <RmlUi/Core.h>
 
 #include <d3d9.h>
 #include <DirectXMath.h>
 
 module cheat.gui.render_interface;
-import nstd.one_instance;
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
 #pragma pack(push, 1)
@@ -52,10 +53,11 @@ struct TGAHeader
 
 constexpr DWORD vertex_fvf = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;
 
-using namespace cheat::gui;
+using namespace cheat;
+using namespace gui;
 using namespace Rml;
 
-constexpr nstd::instance_of_t<IDirect3DDevice9*> g_pd3dDevice;
+constexpr auto g_pd3dDevice = instance_of<IDirect3DDevice9>;
 
 void render_interface::RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation)
 {

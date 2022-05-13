@@ -1,7 +1,7 @@
 ﻿#define CHEAT_CHECK_WHOLE_CVAR_NAME
 module;
 
-#include <cheat/csgo/interface.h>
+#include <cheat/tools/interface.h>
 
 #include <nstd/format.h>
 #ifndef CHEAT_CHECK_WHOLE_CVAR_NAME
@@ -21,7 +21,7 @@ import nstd.mem.address;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(ICVar, csgo_modules::vstdlib.find_interface<"VEngineCvar">( ));
+CHEAT_INTERFACE_IMPL(ICVar, csgo_modules::vstdlib.find_interface<"VEngineCvar">( ));
 
 using nstd::mem::basic_address;
 

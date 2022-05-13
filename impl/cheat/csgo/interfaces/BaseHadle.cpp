@@ -1,6 +1,6 @@
 ﻿module;
 
-#include <cheat/csgo/interface.h>
+#include <cheat/tools/interface.h>
 
 #include <nstd/runtime_assert.h>
 

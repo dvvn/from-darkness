@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/csgo/interface.h>
+#include <cheat/tools/interface.h>
 
 module cheat.csgo.interfaces.RenderView;
 import cheat.csgo.modules;
@@ -8,4 +8,4 @@ import cheat.csgo.modules;
 using namespace cheat;
 using namespace csgo;
 
-CHEAT_CSGO_INTERFACE_INIT(IVRenderView, csgo_modules::engine.find_interface<"VEngineRenderView">( ));
+CHEAT_INTERFACE_IMPL(IVRenderView, csgo_modules::engine.find_interface<"VEngineRenderView">( ));

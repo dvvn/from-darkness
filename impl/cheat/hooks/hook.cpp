@@ -16,12 +16,6 @@ hook::~hook( )
 	//hook::disable( );
 }
 
-void hook::init(entry_type&& entry)
-{
-	using std::swap;
-	swap(entry_, entry);
-}
-
 template<typename M>
 static void _Log(const hook* h, const M msg) noexcept
 {
@@ -71,6 +65,7 @@ void* hook::get_original_method( ) const runtime_assert_noexcept
 	return entry_.get_original_method( );
 }
 
+#if 0
 std::string hook::name( ) const noexcept
 {
 	std::string ret;
@@ -92,4 +87,5 @@ std::string hook::name( ) const noexcept
 	}
 	return ret;
 }
+#endif
 
