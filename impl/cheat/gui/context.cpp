@@ -1,6 +1,6 @@
 ﻿module;
 
-#include <cheat/tools/interface.h>
+#include <cheat/core/object.h>
 
 #include <nstd/core_utils.h>
 
@@ -95,8 +95,8 @@ static void _Rml_demo_animation(Context* ctx)
 
 context::context( )
 {
-    SetRenderInterface(&instance_of<render_interface>);
-    SetSystemInterface(&instance_of<system_interface>);
+    // SetRenderInterface(&instance_of<render_interface>);
+    // SetSystemInterface(&instance_of<system_interface>);
 
     Initialise( );
 

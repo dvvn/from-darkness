@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/tools/interface.h>
+#include <cheat/core/object.h>
 
 #include <RmlUi/Core.h>
 
@@ -57,7 +57,7 @@ using namespace cheat;
 using namespace gui;
 using namespace Rml;
 
-constexpr auto g_pd3dDevice = instance_of<IDirect3DDevice9>;
+CHEAT_OBJECT(g_pd3dDevice, IDirect3DDevice9);
 
 void render_interface::RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation)
 {
@@ -184,16 +184,16 @@ bool render_interface::LoadTexture(TextureHandle& texture_handle, Vector2i& text
 	memcpy(&header, buffer, sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
-	int image_size = header.width * header.height * 4; // We always make 32bit textures 
+    int image_size = header.width * header.height * 4; // We always make 32bit textures
 
-	if(header.dataType != 2)
-	{
-		Log::Message(Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
-		return false;
-	}
+    if (header.dataType != 2)
+    {
+        Log::Message(Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
+        return false;
+    }
 
-	// Ensure we have at least 3 colors
-	if(color_mode < 3)
+    // Ensure we have at least 3 colors
+    if(color_mode < 3)
 	{
 		Log::Message(Log::LT_ERROR, "Only 24 and 32bit textures are supported");
 		return false;

@@ -5,14 +5,14 @@ module;
 #include <nstd/runtime_assert.h>
 
 #include <concepts>
-#include <string>
 #include <functional>
+#include <string>
 
 export module cheat.hooks.hook;
 export import cheat.hooks.base;
 import dhooks.entry;
 
-enum class call_cvs :uint8_t
+enum class call_cvs : uint8_t
 {
     thiscall__,
     cdecl__,
@@ -21,25 +21,31 @@ enum class call_cvs :uint8_t
     vectorcall__
 };
 
-template<call_cvs, typename Ret, typename ...Args>
+template <call_cvs, typename Ret, typename... Args>
 struct tiny_helper;
 
-#define TINY_HELPER(_C_) \
-template<typename Ret, typename ...Args>\
-struct tiny_helper<call_cvs::_C_##__,Ret,Args...>\
-{\
-	Ret __##_C_ callback(Args...args) const noexcept\
-	{\
-		if constexpr(!std::is_void_v<Ret>)\
-			return *(Ret*)nullptr;\
-	}\
-};
+#define TINY_HELPER(_C_)                                                                                                                                                           \
+    template <typename Ret, typename... Args>                                                                                                                                      \
+    struct tiny_helper<call_cvs::_C_##__, Ret, Args...>                                                                                                                            \
+    {                                                                                                                                                                              \
+        Ret __##_C_ callback(Args... args) const noexcept                                                                                                                          \
+        {                                                                                                                                                                          \
+            if constexpr (!std::is_void_v<Ret>)                                                                                                                                    \
+                return *(Ret*)nullptr;                                                                                                                                             \
+        }                                                                                                                                                                          \
+    };
 
-#define TINY_SELECTOR(_C_) \
-template<typename Ret, class T, typename ...Args>\
-constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret(__##_C_ T::*fn)(Args...)) { return {}; }\
-template<typename Ret, class T, typename ...Args>\
-constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret(__##_C_ T::*fn)(Args...) const ) { return {}; }
+#define TINY_SELECTOR(_C_)                                                                                                                                                         \
+    template <typename Ret, class T, typename... Args>                                                                                                                             \
+    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...))                                                                           \
+    {                                                                                                                                                                              \
+        return {};                                                                                                                                                                 \
+    }                                                                                                                                                                              \
+    template <typename Ret, class T, typename... Args>                                                                                                                             \
+    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...) const)                                                                     \
+    {                                                                                                                                                                              \
+        return {};                                                                                                                                                                 \
+    }
 
 #define TINY_IMPL(_C_) TINY_HELPER(_C_) TINY_SELECTOR(_C_)
 
@@ -54,8 +60,8 @@ class function_getter
     void* fn_ptr_;
     uint8_t ptr_size_;
 
-public:
-    operator void* () const noexcept
+  public:
+    operator void*() const noexcept
     {
         return fn_ptr_;
     }
@@ -76,14 +82,14 @@ public:
         ptr_size_ = 0;
     }
 
-    template<typename Fn>
+    template <typename Fn>
     function_getter(Fn fn)
     {
         fn_ptr_ = reinterpret_cast<void*&>(fn);
         ptr_size_ = sizeof(fn);
     }
 
-    template<class C, class Fn = void*>
+    template <class C, class Fn = void*>
     function_getter(C* instance, const size_t index, Fn = {})
     {
         const auto vtable = *reinterpret_cast<void***>(instance);
@@ -96,7 +102,7 @@ export namespace cheat::hooks
 {
     class hook : public virtual base
     {
-    public:
+      public:
         using entry_type = dhooks::hook_entry;
 
         ~hook() override;
@@ -106,18 +112,18 @@ export namespace cheat::hooks
 
         void* get_original_method() const runtime_assert_noexcept;
 
-    protected:
-        void init(const function_getter target, const function_getter replace) runtime_assert_noexcept
-        {
-            entry_.set_target_method(target);
-            entry_.set_replace_method(replace);
-        }
+      protected:
+      void init(const function_getter target, const function_getter replace) runtime_assert_noexcept
+      {
+          entry_.set_target_method(target);
+          entry_.set_replace_method(replace);
+      }
 
-    private:
+      private:
         entry_type entry_;
     };
 
-    template<class Impl, class Inst = one_instance<Impl>>
+    template <class Impl, class Inst = one_instance<Impl>>
     struct hook_instance_static : Inst
     {
         constexpr hook_instance_static()
@@ -125,9 +131,9 @@ export namespace cheat::hooks
             static_assert(!std::is_member_function_pointer_v<decltype(&Impl::callback)> && std::derived_from<Impl, static_base>, "Incorrect function type passed");
         }
 
-    protected:
-        template< typename ...Args>
-        static decltype(auto) call_original(Args&&...args) runtime_assert_noexcept
+      protected:
+        template <typename... Args>
+        static decltype(auto) call_original(Args&&... args) runtime_assert_noexcept
         {
             auto fn = &Impl::callback;
             reinterpret_cast<void*&>(fn) = Inst::get().get_original_method();
@@ -135,7 +141,7 @@ export namespace cheat::hooks
         }
     };
 
-    template<class Impl, class Inst = one_instance<Impl>>
+    template <class Impl, class Inst = one_instance<Impl>>
     struct hook_instance_member : Inst
     {
         constexpr hook_instance_member()
@@ -143,9 +149,9 @@ export namespace cheat::hooks
             static_assert(std::is_member_function_pointer_v<decltype(&Impl::callback)> && std::derived_from<Impl, class_base>, "Incorrect function type passed");
         }
 
-    protected:
-        template< typename ...Args>
-        decltype(auto) call_original(Args&&...args) const runtime_assert_noexcept
+      protected:
+        template <typename... Args>
+        decltype(auto) call_original(Args&&... args) const runtime_assert_noexcept
         {
             const auto inst = Inst::get_ptr();
             runtime_assert(inst != this, "Function must be called from hooked method!");
@@ -160,7 +166,7 @@ export namespace cheat::hooks
             }
             else
             {
-                //avoid 'fat pointer' call
+                // avoid 'fat pointer' call
                 using trivial_inst = decltype(_Tiny_selector(def_callback));
                 auto tiny_callback = &trivial_inst::callback;
                 reinterpret_cast<void*&>(tiny_callback) = orig_fn;
@@ -173,4 +179,4 @@ export namespace cheat::hooks
     struct hook_instance :std::conditional_t<std::derived_from<Impl, class_base>, hook_instance_member<Impl>, hook_instance_static<Impl>>
     {
     };*/
-}
+} // namespace cheat::hooks

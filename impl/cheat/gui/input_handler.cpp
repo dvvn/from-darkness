@@ -2,26 +2,25 @@ module;
 
 #define NOMINMAX
 
-#include <cheat/tools/interface.h>
+#include <cheat/core/object.h>
 
 #include <nstd/runtime_assert.h>
 
 #include <RmlUi/Core.h>
 
-#include <windowsx.h>
 #include <windows.h>
+#include <windowsx.h>
 
 #include <functional>
-#include <string_view>
 #include <limits>
+#include <string_view>
 
 module cheat.gui.input_handler;
 import cheat.gui.context;
 import nstd.lazy_invoke;
 import nstd.text.convert;
 
-input_result::input_result(const result val)
-    :result_(val)
+input_result::input_result(const result val) : result_(val)
 {
 }
 
@@ -49,13 +48,11 @@ size_t input_result::return_value() const noexcept
     return static_cast<size_t>(ret_val_);
 }
 
-
 using namespace cheat;
 using namespace gui;
 using namespace Rml;
 
-constexpr auto key_identifier_map = []
-{
+constexpr auto key_identifier_map = [] {
     std::array<Input::KeyIdentifier, 256> kmap = {};
 
     // Assign individual values.
@@ -291,14 +288,13 @@ struct input_result_proxy : input_result
 {
     using input_result::input_result;
 
-    input_result_proxy(const bool rml_retval)
-        :input_result(rml_retval ? processed : interacted)
+    input_result_proxy(const bool rml_retval) : input_result(rml_retval ? processed : interacted)
     {
     }
 };
 
-template<typename T, typename ...Args>
-static auto _Make_string_buff(const T chr, const Args ...chars) noexcept
+template <typename T, typename... Args>
+static auto _Make_string_buff(const T chr, const Args... chars) noexcept
 {
     std::array<T, sizeof...(Args) + 2> buff;
     auto itr = buff.begin();
@@ -308,20 +304,19 @@ static auto _Make_string_buff(const T chr, const Args ...chars) noexcept
     return buff;
 }
 
-struct RmlString :String
+struct RmlString : String
 {
-    template<typename T>
-    RmlString(T&& obj)
-        :String(std::forward<T>(obj))
+    template <typename T>
+    RmlString(T&& obj) : String(std::forward<T>(obj))
     {
     }
 };
 
-template<typename ...Args>
-static RmlString _Make_rml_string(const Args ...chars) noexcept
+template <typename... Args>
+static RmlString _Make_rml_string(const Args... chars) noexcept
 {
     const auto buff = _Make_string_buff(chars...);
-    const std::basic_string_view strv = { buff.data(), buff.size() - 1 };
+    const std::basic_string_view strv = {buff.data(), buff.size() - 1};
     return nstd::text::convert_to<char>(strv);
 }
 
@@ -329,9 +324,8 @@ class input_helper
 {
     Context* ctx_;
 
-public:
-    input_helper(Context* const ctx)
-        :ctx_(ctx)
+  public:
+    input_helper(Context* const ctx) : ctx_(ctx)
     {
     }
 
@@ -426,7 +420,6 @@ public:
                 ElementDocument* document = ctx_->GetDocument(i);
                 if (document->GetSourceURL().ends_with(".rml"))
                     document->ReloadStyleSheet();
-
             }
         }
         return input_result::processed;
@@ -461,10 +454,9 @@ public:
         case '\n':
         case '\r':
             return ctx_->ProcessTextInput(_Make_rml_string('\n'));
-        case last_byte_char://delete character
+        case last_byte_char: // delete character
             return input_result::processed;
-        default:
-        {
+        default: {
             if (wch < first_valid_chr)
                 return input_result::processed;
             String str;
@@ -473,12 +465,11 @@ public:
             else
                 str = _Make_rml_string(wch);
             return ctx_->ProcessTextInput(str);
-
         }
         }
     }
 
-    input_result resize(const  WPARAM w_param, const LPARAM l_param) noexcept
+    input_result resize(const WPARAM w_param, const LPARAM l_param) noexcept
     {
         if (w_param == SIZE_MINIMIZED)
             return input_result::skipped;
@@ -486,12 +477,12 @@ public:
         const int height = HIWORD(l_param);*/
         const auto width = GET_X_LPARAM(l_param);
         const auto height = GET_Y_LPARAM(l_param);
-        ctx_->SetDimensions({ width,height });
+        ctx_->SetDimensions({width, height});
         return input_result::processed;
     }
 };
 
-template<size_t Instance>
+template <size_t Instance>
 class input_handler_impl final : public input_handler
 {
     char16_t first_u16_code_unit_ = 0;
@@ -501,7 +492,7 @@ class input_handler_impl final : public input_handler
         return static_cast<Context*>(*instance_of<context, Instance>);
     }
 
-public:
+  public:
     input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) override
     {
         switch (message)
@@ -536,4 +527,4 @@ public:
     }
 };
 
-CHEAT_INTERFACE_IMPL(input_handler, &instance_of<input_handler_impl<0>>)
+CHEAT_OBJECT_IMPL(input_handler, /* &instance_of<input_handler_impl<0>> */ nullptr)
