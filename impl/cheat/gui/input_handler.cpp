@@ -18,7 +18,7 @@ module;
 module cheat.gui.input_handler;
 import cheat.gui.context;
 import nstd.lazy_invoke;
-import nstd.text.convert;
+import nstd.text.convert.unicode;
 
 input_result::input_result(const result val) : result_(val)
 {

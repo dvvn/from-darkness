@@ -28,15 +28,17 @@ project(fdx_core) #universal stuff
 file(GLOB FDX_CORE_FILES ${FDX_CORE_DIR}/*.ixx ${FDX_CORE_DIR}/*.cpp)
 add_library(fdx_core ${FDX_CORE_FILES})
 add_library(fdx::core ALIAS fdx_core)
-target_include_directories(fdx_core PRIVATE ${FDX_CORE_DIR} PUBLIC ${FDX_DIR})
-link_library(PUBLIC nstd::nstd)
+target_include_directories(fdx_core PUBLIC ${FDX_DIR})
+link_library(PUBLIC nstd::core)
 
 project(fdx_logger) #-------
 
-file(GLOB FDX_LOGGER_FILES ${FDX_LOGGER_DIR}/*)
+file(GLOB FDX_LOGGER_FILES ${FDX_LOGGER_DIR}/*.ixx ${FDX_LOGGER_DIR}/*.cpp)
 add_library(fdx_logger ${FDX_LOGGER_FILES})
 add_library(fdx::logger ALIAS fdx_logger)
 link_library(PUBLIC fdx::core)
+link_library(PRIVATE nstd::text)
+link_library(PRIVATE nstd::format)
 
 project(fdx_gui) #-------
 
@@ -45,7 +47,7 @@ file(GLOB_RECURSE FDX_GUI_FILES ${FDX_GUI_DIR}/*) #no headers here
 add_library(fdx_gui ${FDX_GUI_FILES})
 add_library(fdx::gui ALIAS fdx_gui)
 target_include_directories(fdx_gui PRIVATE ${FDX_DIR} INTERFACE ${FDX_GUI_DIR})
-link_library(PUBLIC fdx::core)
+link_library(PUBLIC fdx::logger)
 
 FetchContent_Declare(hazzbuzz GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz.git GIT_TAG 4.2.1)
 FetchContent_MakeAvailable(hazzbuzz)

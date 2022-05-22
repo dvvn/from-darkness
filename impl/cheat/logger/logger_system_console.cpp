@@ -1,4 +1,4 @@
-
+module;
 #if 0
 
 #include <cheat/tools/interface.h>
@@ -350,13 +350,13 @@ void console::log(const std::wstring_view str) noexcept
 
 #endif
 
-module cheat.logger.system_console;
-
-#include <cheat/tools/interface.h>
+#include <cheat/core/object.h>
 
 #include <nstd/runtime_assert.h>
 
-#include <windows>
+#include <Windows.h>
+#include <fcntl.h>
+#include <io.h>
 
 #include <cassert>
 #include <chrono>
@@ -364,6 +364,8 @@ module cheat.logger.system_console;
 #include <mutex>
 #include <string>
 #include <time.h>
+
+module cheat.logger.system_console;
 
 class stream_descriptor
 {
@@ -489,7 +491,7 @@ class file_stream
     {
     }
 
-    file_stream(FILE* const old_stream, _In_z_ char const* file_name, _In_z_ char const* mode) : redirected_(true)
+    file_stream(_In_z_ char const* file_name, _In_z_ char const* mode, FILE* const old_stream) : redirected_(true)
     {
         redirected_ = true;
         [[maybe_unused]] const auto err = freopen_s(&stream_, file_name, mode, old_stream);
@@ -516,23 +518,9 @@ class file_stream
     }
 };
 
-class time_buff final : std::streambuf
+class time_buff final
 {
     std::string buff_;
-
-    int_type overflow(int_type c) override
-    {
-        if (c != EOF)
-            buff_.push_back(c);
-
-        return c;
-    }
-
-    std::streamsize xsputn(const char* s, std::streamsize n) override
-    {
-        buff_.append(s, static_cast<std::string::size_type>(n));
-        return n;
-    }
 
   public:
     template <size_t S = std::char_traits<char>::length("XX:XX:XX:XXX")>
@@ -557,7 +545,9 @@ class time_buff final : std::streambuf
         const auto current_microseconds = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
 
         buff_.reserve(this->max_size());
-        *static_cast<std::streambuf*>(this) << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
+        std::ostringstream sbuff(std::move(buff_));
+        sbuff << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
+        buff_ = std::move(sbuff).str();
     }
 
     operator std::string_view() const noexcept
@@ -577,10 +567,12 @@ class reader
     file_stream stream_;
 
   public:
+    reader() = default;
+
     reader(file_stream&& stream) : stream_(std::move(stream))
     {
     }
-}
+};
 
 class writer
 {
@@ -596,9 +588,31 @@ class writer
         assert(written == text.size());
     }
 
+    template <typename C, typename Ch>
+    void write_nolock(const std::basic_string<C, Ch>& text) noexcept
+    {
+        write_nolock(std::basic_string_view<C, Ch>(text));
+    }
+
+    template <typename C, size_t S>
+    void write_nolock(const C (&text)[S]) noexcept
+    {
+        const auto text_size = text[S] == 0 ? S - 1 : S;
+        write_nolock(std::basic_string_view<C>(text, text + text_size));
+    }
+
   public:
+    writer() = default;
+
     writer(file_stream&& stream) : stream_(std::move(stream)), changer_(stream_)
     {
+    }
+
+    writer& operator=(file_stream&& stream) noexcept
+    {
+        stream_ = std::move(stream);
+        changer_ = static_cast<FILE*>(stream_);
+        return *this;
     }
 
     template <typename C, typename Ch>
@@ -617,12 +631,12 @@ class writer
         }
 
         const std::scoped_lock lock(mtx_);
-        changer_(_O_TEXT);
+        changer_.set<C>();
         write_nolock(time);
         if constexpr (!can_reuse_buff)
         {
             constexpr C dash[3] = {' ', '-', ' '};
-            write_nolock<C>({dash, 3});
+            write_nolock(dash);
         }
         write_nolock(text);
     }
@@ -634,7 +648,7 @@ class logger_system_console : public logger
 {
     std::mutex mtx_;
 
-    FILE* in_;
+    reader in_;
     writer out_;
     writer err_;
 
@@ -657,6 +671,11 @@ class logger_system_console : public logger
         logger_system_console::disable();
     }
 
+    logger_system_console()
+    {
+        logger_system_console::enable();
+    }
+
     bool active() const noexcept override
     {
         return running_;
@@ -669,9 +688,9 @@ class logger_system_console : public logger
         if (console_window)
         {
             window_ = nullptr;
-            in_ = stdin;
-            out_ = stdout;
-            err_ = stderr;
+            in_ = file_stream(stdin);
+            out_ = file_stream(stdout);
+            err_ = file_stream(stderr);
         }
         else
         {
@@ -681,9 +700,9 @@ class logger_system_console : public logger
             window_ = GetConsoleWindow();
             runtime_assert(window_ != nullptr, "Unable to get the console window");
 
-            in_ = {"CONIN$", "r", stdin};
-            out_ = {"CONOUT$", "w", stdout};
-            err_ = {"CONOUT$", "w", stderr};
+            in_ = file_stream("CONIN$", "r", stdin);
+            out_ = file_stream("CONOUT$", "w", stdout);
+            err_ = file_stream("CONOUT$", "w", stderr);
 
             // const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module()->FullDllName.Buffer);
             // runtime_assert(window_title_set, "Unable set console title");
@@ -692,7 +711,7 @@ class logger_system_console : public logger
         // runtime_assert(IsWindowUnicode(console_window) == TRUE);
         // runtime_assert_add_handler(this);
 
-        write_line("Started");
+        logger_system_console::log_impl("Started");
         running_ = true;
     }
 
@@ -708,11 +727,11 @@ class logger_system_console : public logger
         }
         else
         {
-            write_line("Stopped");
+            logger_system_console::log_impl("Stopped");
         }
 
         running_ = false;
     }
 };
 
-CHEAT_OBJECT_IMPL(logger, logger_system_console);
+CHEAT_OBJECT_IMPL(logger, instance_of<logger_system_console>);

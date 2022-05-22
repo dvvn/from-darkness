@@ -1,13 +1,13 @@
 module;
 
-#include <format.h>
+#include <nstd/format.h>
 
 #include <functional>
 #include <string_view>
 //#include <sstream>
 
 export module cheat.logger;
-import nstd.text.convert;
+import nstd.text.convert.unicode;
 
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
@@ -112,7 +112,7 @@ class logger
     {
         if (!active())
             return;
-        log_impl(std::vformat(fmt, std::make_wformat_args(_Prepare_fmt_arg<wchar_t>(std::forward<Args>(args))...)));
+        log_impl(nstd::vformat(fmt, nstd::make_wformat_args(_Prepare_fmt_arg<wchar_t>(std::forward<Args>(args))...)));
     }
 
     template <typename... Args>
@@ -120,13 +120,13 @@ class logger
     {
         if (!active())
             return;
-        log_impl(std::vformat(fmt, std::make_format_args(_Prepare_fmt_arg<char>(std::forward<Args>(args))...)));
+        log_impl(nstd::vformat(fmt, nstd::make_format_args(_Prepare_fmt_arg<char>(std::forward<Args>(args))...)));
     }
-}
+};
 
 export namespace cheat
 {
-    using logger;
+    using ::logger;
 }
 
 module :private;

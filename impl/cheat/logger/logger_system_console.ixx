@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/core/interface.h>
+#include <cheat/core/object.h>
 
 export module cheat.logger.system_console;
 import cheat.logger;
