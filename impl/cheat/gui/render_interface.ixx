@@ -1,30 +1,23 @@
 module;
 
+#include <cheat/core/object.h>
+
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/RenderInterface.h>
 
 export module cheat.gui.render_interface;
 
-using namespace Rml;
+using _Ctx_ptr = Rml::Context*;
+using _Render_ifc = Rml::RenderInterface;
+
+struct custom_render_interface : _Render_ifc
+{
+    virtual void Init(void* const renderer = nullptr) = 0;
+    void ReleaseTextures();
+    virtual void RenderContext(_Ctx_ptr const ctx) = 0;
+};
 
 export namespace cheat::gui
 {
-	class render_interface final : public RenderInterface
-	{
-	public:
-		void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation) override;
-		CompiledGeometryHandle CompileGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture) override;
-		void RenderCompiledGeometry(CompiledGeometryHandle geometry, const Vector2f& translation) override;
-		void ReleaseCompiledGeometry(CompiledGeometryHandle geometry) override;
-		void EnableScissorRegion(bool enable) override;
-		void SetScissorRegion(int x, int y, int width, int height) override;
-		bool LoadTexture(TextureHandle& texture_handle, Vector2i& texture_dimensions, const String& source) override;
-		bool GenerateTexture(TextureHandle& texture_handle, const byte* source, const Vector2i& source_dimensions) override;
-		void ReleaseTexture(TextureHandle texture) override;
-		void SetTransform(const Matrix4f* transform) override;
-
-		//-------------
-
-		void RenderContext(Context* const ctx);
-		void ReleaseTextures( );
-	};
+    CHEAT_OBJECT(render_interface, custom_render_interface);
 }

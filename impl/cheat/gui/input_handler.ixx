@@ -1,5 +1,7 @@
 module;
 
+#include <cheat/core/object.h>
+
 #include <RmlUi/Core/Context.h>
 
 #include <windows.h>
@@ -31,11 +33,16 @@ private:
     static constexpr auto unset_ = static_cast<uint8_t>(-1);
 };
 
+using _Ctx_ptr = Rml::Context*;
+
+struct basic_input_handler
+{
+    virtual ~basic_input_handler() = default;
+    virtual void init(_Ctx_ptr const ctx) = 0;
+    virtual input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) = 0;
+};
+
 export namespace cheat::gui
 {
-    struct input_handler
-    {
-        virtual ~input_handler( ) = default;
-        virtual input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) = 0;
-    };
+    CHEAT_OBJECT(input_handler, basic_input_handler);
 }

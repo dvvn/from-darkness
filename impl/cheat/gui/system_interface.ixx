@@ -1,25 +1,14 @@
 module;
 
-#include <RmlUi/Core/SystemInterface.h>
+#include <cheat/core/object.h>
 
-#include <chrono>
+#include <RmlUi/Core/SystemInterface.h>
 
 export module cheat.gui.system_interface;
 
-using namespace Rml;
+using _Sys_ifc = Rml::SystemInterface;
 
 export namespace cheat::gui
 {
-	class system_interface final : public SystemInterface
-	{
-		using clock = std::chrono::high_resolution_clock;
-		using out_duration = std::chrono::duration<double>;
-		clock::time_point start_time_;
-
-	public:
-		system_interface( );
-
-		double GetElapsedTime( ) override;
-		bool LogMessage(Log::Type logtype, const String& message) override;
-	};
+    CHEAT_OBJECT(system_interface, _Sys_ifc);
 }

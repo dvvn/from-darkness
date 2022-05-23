@@ -1,22 +1,14 @@
 module;
 
+#include <cheat/core/object.h>
+
 #include <RmlUi/Core/Context.h>
 
 export module cheat.gui.context;
 
-using namespace Rml;
+using _Ctx_ptr = Rml::Context*;
 
 export namespace cheat::gui
 {
-    struct context : NonCopyMoveable
-    {
-        context( );
-        ~context( );
-
-        Context* operator->( ) const noexcept;
-        operator Context* ()const noexcept;
-
-    private:
-        Context* ctx_;
-    };
+    CHEAT_OBJECT(context, _Ctx_ptr);
 }

@@ -4,7 +4,8 @@
 
 #include <nstd/core_utils.h>
 
-#include <RmlUi/Core.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/ElementDocument.h>
 #ifdef _DEBUG
 #include <RmlUi/Debugger.h>
 #endif
@@ -14,15 +15,12 @@
 module cheat.gui.context;
 import cheat.gui.render_interface;
 import cheat.gui.system_interface;
-import cheat.tools.window_info;
-
-using namespace cheat;
-using namespace gui;
-using namespace Rml;
+import cheat.application_info;
 
 #define RML_SAMPLES NSTD_CONCAT(RMLUI_DIR, \Samples\)
-#define RML_SAMPLE(_DIR_,_S_) NSTD_STRINGIZE_RAW(RML_SAMPLES)##_DIR_##"\\"##_S_
+#define RML_SAMPLE(_DIR_, _S_) NSTD_STRINGIZE_RAW(RML_SAMPLES)##_DIR_##"\\"##_S_
 
+#if 0
 static void _Rml_demo_animation(Context* ctx)
 {
     auto document = ctx->LoadDocument(RML_SAMPLE("basic\\animation\\data", "animation.rml"));
@@ -89,38 +87,56 @@ static void _Rml_demo_animation(Context* ctx)
         el->Animate("left", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{Tween::Cubic, Tween::InOut});
     }
 
-    document->Show( );
+    document->Show();
+}
+#endif
 
+class gui_context
+{
+    _Ctx_ptr ctx_;
+
+  public:
+    ~gui_context();
+    gui_context();
+
+    _Ctx_ptr get() const noexcept;
+};
+
+CHEAT_OBJECT(_Gui_context, gui_context);
+CHEAT_OBJECT_IMPL(_Ctx_ptr, _Gui_context->get());
+
+gui_context::~gui_context()
+{
+    Rml::Shutdown();
 }
 
-context::context( )
+gui_context::gui_context()
 {
-    // SetRenderInterface(&instance_of<render_interface>);
-    // SetSystemInterface(&instance_of<system_interface>);
+    // Rml::SetRenderInterface(&instance_of<render_interface> 0);
+    // Rml::SetSystemInterface(&instance_of<system_interface>);
 
-    Initialise( );
-
-    //------
-
-    const auto [width, height] = std::pair<int, int>(tools::window_size( ));
-    ctx_ = CreateContext("main", {width, height});
+    Rml::Initialise();
 
     //------
 
+    const auto size = cheat::app_info->size.client();
+    ctx_ = Rml::CreateContext("main", {size.width(), size.height()});
+
+    //------
 #ifdef _DEBUG
-    Debugger::Initialise(ctx_);
-    Debugger::SetVisible(true);
+    Rml::Debugger::Initialise(ctx_);
+    Rml::Debugger::SetVisible(true);
 #endif
 
     // Tell RmlUi to load the given fonts.
-    LoadFontFace(RML_SAMPLE("assets", "LatoLatin-Regular.ttf"));
+    Rml::LoadFontFace(RML_SAMPLE("assets", "LatoLatin-Regular.ttf"));
     // Fonts can be registered as fallback fonts, as in this case to display emojis.
-    LoadFontFace(RML_SAMPLE("assets", "NotoEmoji-Regular.ttf"), true);
+    Rml::LoadFontFace(RML_SAMPLE("assets", "NotoEmoji-Regular.ttf"), true);
 
-    LoadFontFace("C:/Windows/fonts/arial.ttf", true);
+    Rml::LoadFontFace("C:/Windows/fonts/arial.ttf", true);
 
-    ctx_->LoadDocument(RML_SAMPLE("assets", "demo.rml"))->Show( );
-    ctx_->LoadDocument(RML_SAMPLE("assets", "window.rml"))->Show( );
+    ctx_->LoadDocument(RML_SAMPLE("assets", "demo.rml"))->Show();
+    ctx_->LoadDocument(RML_SAMPLE("assets", "window.rml"))->Show();
 
     //_Rml_demo_animation(ctx_);
 
@@ -139,18 +155,7 @@ context::context( )
 #endif
 }
 
-context::~context( )
-{
-    //RemoveContext(ctx_->GetName( ));
-    Shutdown( );
-}
-
-Context* context::operator->( ) const noexcept
-{
-    return ctx_;
-}
-
-context::operator Context* () const noexcept
+_Ctx_ptr gui_context::get() const noexcept
 {
     return ctx_;
 }

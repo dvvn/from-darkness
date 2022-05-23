@@ -414,6 +414,7 @@ class stream_mode_changer
     }
 
     stream_mode_changer() = default;
+
     stream_mode_changer(FILE* const stream) : descriptor_(stream)
     {
     }
@@ -505,6 +506,7 @@ class file_stream
         *this = other;
         other.stream_ = nullptr;
     }
+
     file_stream& operator=(file_stream&& other)
     {
         using std::swap;
@@ -660,6 +662,7 @@ class logger_system_console : public logger
     {
         out_(str);
     }
+
     void log_impl(const std::wstring_view str) noexcept override
     {
         out_(str);
@@ -734,4 +737,4 @@ class logger_system_console : public logger
     }
 };
 
-CHEAT_OBJECT_IMPL(logger, instance_of<logger_system_console>);
+CHEAT_OBJECT_BIND(logger, logger_system_console);
