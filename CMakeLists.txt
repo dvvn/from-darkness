@@ -19,9 +19,10 @@ endmacro()
 
 set(FDX_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
 set(FDX_WORK_DIR ${FDX_DIR}/cheat)
+set(FDX_CORE_DIR ${FDX_WORK_DIR}/core)
 set(FDX_GUI_DIR ${FDX_WORK_DIR}/gui)
 set(FDX_LOGGER_DIR ${FDX_WORK_DIR}/logger)
-set(FDX_CORE_DIR ${FDX_WORK_DIR}/core)
+set(FDX_HOOKS_DIR ${FDX_WORK_DIR}/hooks)
 
 project(fdx_core) #universal stuff
 
@@ -42,11 +43,10 @@ link_library(PRIVATE nstd::format)
 
 project(fdx_gui) #-------
 
-file(GLOB_RECURSE FDX_GUI_FILES ${FDX_GUI_DIR}/*) #no headers here
+file(GLOB FDX_GUI_FILES ${FDX_GUI_DIR}/*) #no headers here
 
 add_library(fdx_gui ${FDX_GUI_FILES})
 add_library(fdx::gui ALIAS fdx_gui)
-target_include_directories(fdx_gui PRIVATE ${FDX_DIR} INTERFACE ${FDX_GUI_DIR})
 link_library(PUBLIC fdx::logger)
 
 FetchContent_Declare(hazzbuzz GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz.git GIT_TAG 4.2.1)
@@ -55,7 +55,7 @@ FetchContent_MakeAvailable(hazzbuzz)
 FetchContent_Declare(freetype GIT_REPOSITORY https://github.com/freetype/freetype.git)
 set(DISABLE_FORCE_DEBUG_POSTFIX on)
 FetchContent_MakeAvailable(freetype)
-set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}${CMAKE_LINK_LIBRARY_SUFFIX})
 get_target_property(FREETYPE_INCLUDE_DIRS freetype INTERFACE_INCLUDE_DIRECTORIES)
 
 FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
@@ -63,6 +63,18 @@ FetchContent_MakeAvailable(rml)
 link_library(PRIVATE RmlCore)
 link_library(PRIVATE RmlDebugger)
 add_compile_definitions(fdx_gui PRIVATE RMLUI_STATIC_LIB)
+
+project(fdx_hooks_core) #----------
+
+file(GLOB FDX_HOOKS_CORE_FILES ${FDX_HOOKS_DIR}/core/*) #no headers here
+
+add_library(fdx_hooks_core ${FDX_HOOKS_CORE_FILES})
+add_library(fdx::hooks::core ALIAS fdx_hooks_core)
+link_library(PRIVATE fdx::logger)
+
+FetchContent_Declare(dhooks GIT_REPOSITORY https://github.com/dvvn/detour_hooks.git)
+FetchContent_MakeAvailable(dhooks)
+link_library(PRIVATE dhooks)
 
 project(fdx)
 
@@ -83,7 +95,3 @@ link_library(PRIVATE nlohmann_json::nlohmann_json)
 FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
 FetchContent_MakeAvailable(robin_hood)
 link_library(PRIVATE robin_hood::robin_hood)
-
-FetchContent_Declare(dhooks GIT_REPOSITORY https://github.com/dvvn/detour_hooks.git)
-FetchContent_MakeAvailable(dhooks)
-link_library(PRIVATE dhooks)

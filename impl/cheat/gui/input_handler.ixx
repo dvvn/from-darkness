@@ -34,6 +34,7 @@ private:
 };
 
 using _Ctx_ptr = Rml::Context*;
+constexpr size_t _Input_idx = 0;
 
 struct basic_input_handler
 {
@@ -44,5 +45,5 @@ struct basic_input_handler
 
 export namespace cheat::gui
 {
-    CHEAT_OBJECT(input_handler, basic_input_handler);
+    CHEAT_OBJECT(input_handler, basic_input_handler,_Input_idx);
 }

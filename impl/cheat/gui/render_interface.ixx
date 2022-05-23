@@ -9,6 +9,7 @@ export module cheat.gui.render_interface;
 
 using _Ctx_ptr = Rml::Context*;
 using _Render_ifc = Rml::RenderInterface;
+constexpr size_t _Render_idx = 0;
 
 struct custom_render_interface : _Render_ifc
 {
@@ -19,5 +20,5 @@ struct custom_render_interface : _Render_ifc
 
 export namespace cheat::gui
 {
-    CHEAT_OBJECT(render_interface, custom_render_interface);
+    CHEAT_OBJECT(render_interface, custom_render_interface,_Render_idx);
 }

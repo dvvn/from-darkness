@@ -378,7 +378,8 @@ class stream_descriptor
 
     stream_descriptor() = default;
 
-    stream_descriptor(FILE* const stream) : descriptor_(_fileno(stream))
+    stream_descriptor(FILE* const stream)
+        : descriptor_(_fileno(stream))
     {
         // If stdout or stderr is not associated with an output stream (for example, in a Windows application without a console window),
         // the file descriptor returned is -2. In previous versions, the file descriptor returned was -1
@@ -415,7 +416,8 @@ class stream_mode_changer
 
     stream_mode_changer() = default;
 
-    stream_mode_changer(FILE* const stream) : descriptor_(stream)
+    stream_mode_changer(FILE* const stream)
+        : descriptor_(stream)
     {
     }
 
@@ -484,15 +486,19 @@ class file_stream
         fclose(stream_);
     }
 
-    file_stream() : stream_(nullptr)
+    file_stream()
+        : stream_(nullptr)
     {
     }
 
-    file_stream(FILE* const stream) : stream_(stream), redirected_(false)
+    file_stream(FILE* const stream)
+        : stream_(stream)
+        , redirected_(false)
     {
     }
 
-    file_stream(_In_z_ char const* file_name, _In_z_ char const* mode, FILE* const old_stream) : redirected_(true)
+    file_stream(_In_z_ char const* file_name, _In_z_ char const* mode, FILE* const old_stream)
+        : redirected_(true)
     {
         redirected_ = true;
         [[maybe_unused]] const auto err = freopen_s(&stream_, file_name, mode, old_stream);
@@ -571,7 +577,8 @@ class reader
   public:
     reader() = default;
 
-    reader(file_stream&& stream) : stream_(std::move(stream))
+    reader(file_stream&& stream)
+        : stream_(std::move(stream))
     {
     }
 };
@@ -606,7 +613,9 @@ class writer
   public:
     writer() = default;
 
-    writer(file_stream&& stream) : stream_(std::move(stream)), changer_(stream_)
+    writer(file_stream&& stream)
+        : stream_(std::move(stream))
+        , changer_(stream_)
     {
     }
 
@@ -676,7 +685,7 @@ class logger_system_console : public logger
 
     logger_system_console()
     {
-        logger_system_console::enable();
+        // logger_system_console::enable();
     }
 
     bool active() const noexcept override
@@ -737,4 +746,4 @@ class logger_system_console : public logger
     }
 };
 
-CHEAT_OBJECT_BIND(logger, logger_system_console);
+CHEAT_OBJECT_BIND(logger, _Sys_logger_idx, logger_system_console, _Sys_logger_idx);

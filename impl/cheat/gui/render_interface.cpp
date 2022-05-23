@@ -70,7 +70,7 @@ namespace Rml
 
 using Rml::RenderInterfaceD3d9;
 
-CHEAT_OBJECT_BIND(custom_render_interface, RenderInterfaceD3d9);
+CHEAT_OBJECT_BIND(custom_render_interface, _Render_idx, RenderInterfaceD3d9, _Render_idx);
 
 void RenderInterfaceD3d9::Init(void* const d3d)
 {

@@ -83,6 +83,21 @@ decltype(auto) _Prepare_fmt_arg(Arg&& arg)
     return _Convert_to<CharT>(_To_string_view(std::forward<Arg>(arg)));
 }
 
+template <typename CharT, typename... Args>
+auto _Make_fmt_args(Args&&... args)
+{
+    if constexpr (std::same_as<CharT, char>)
+        return nstd::make_format_args(_Prepare_fmt_arg<char>(std::forward<Args>(args))...);
+    else if constexpr (std::same_as<CharT, wchar_t>)
+        return nstd::make_wformat_args(_Prepare_fmt_arg<wchar_t>(std::forward<Args>(args))...);
+}
+
+template <typename CharT, typename Tr, typename... Args>
+auto _Vformat(const std::basic_string_view<CharT, Tr> fmt, Args&&... args)
+{
+    return nstd::vformat(fmt, _Make_fmt_args<CharT>(std::forward<Args>(args)...));
+}
+
 class logger
 {
   protected:
@@ -107,20 +122,13 @@ class logger
         log_impl(std::invoke(std::forward<T>(fn)));
     }
 
-    template <typename... Args>
-    requires(sizeof...(Args) > 0) void log(const std::wstring_view fmt, Args&&... args) noexcept
-    {
-        if (!active())
-            return;
-        log_impl(nstd::vformat(fmt, nstd::make_wformat_args(_Prepare_fmt_arg<wchar_t>(std::forward<Args>(args))...)));
-    }
+    template <typename Arg1, typename... Args>
 
-    template <typename... Args>
-    requires(sizeof...(Args) > 0) void log(const std::string_view fmt, Args&&... args) noexcept
+    requires(sizeof...(Args) > 0) void log(const Arg1& fmt, Args&&... args) noexcept
     {
         if (!active())
             return;
-        log_impl(nstd::vformat(fmt, nstd::make_format_args(_Prepare_fmt_arg<char>(std::forward<Args>(args))...)));
+        log_impl(_Vformat(std::basic_string_view(fmt), std::forward<Args>(args)...));
     }
 };
 
@@ -137,6 +145,7 @@ void logger::log(const std::string_view str) noexcept
         return;
     log_impl(str);
 }
+
 void logger::log(const std::wstring_view str) noexcept
 {
     if (!active())

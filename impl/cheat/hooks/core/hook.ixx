@@ -1,7 +1,5 @@
 module;
 
-#include <cheat/tools/interface.h>
-
 #include <nstd/runtime_assert.h>
 
 #include <concepts>
@@ -24,27 +22,27 @@ enum class call_cvs : uint8_t
 template <call_cvs, typename Ret, typename... Args>
 struct tiny_helper;
 
-#define TINY_HELPER(_C_)                                                                                                                                                           \
-    template <typename Ret, typename... Args>                                                                                                                                      \
-    struct tiny_helper<call_cvs::_C_##__, Ret, Args...>                                                                                                                            \
-    {                                                                                                                                                                              \
-        Ret __##_C_ callback(Args... args) const noexcept                                                                                                                          \
-        {                                                                                                                                                                          \
-            if constexpr (!std::is_void_v<Ret>)                                                                                                                                    \
-                return *(Ret*)nullptr;                                                                                                                                             \
-        }                                                                                                                                                                          \
+#define TINY_HELPER(_C_)                                  \
+    template <typename Ret, typename... Args>             \
+    struct tiny_helper<call_cvs::_C_##__, Ret, Args...>   \
+    {                                                     \
+        Ret __##_C_ callback(Args... args) const noexcept \
+        {                                                 \
+            if constexpr (!std::is_void_v<Ret>)           \
+                return *(Ret*)nullptr;                    \
+        }                                                 \
     };
 
-#define TINY_SELECTOR(_C_)                                                                                                                                                         \
-    template <typename Ret, class T, typename... Args>                                                                                                                             \
-    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...))                                                                           \
-    {                                                                                                                                                                              \
-        return {};                                                                                                                                                                 \
-    }                                                                                                                                                                              \
-    template <typename Ret, class T, typename... Args>                                                                                                                             \
-    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...) const)                                                                     \
-    {                                                                                                                                                                              \
-        return {};                                                                                                                                                                 \
+#define TINY_SELECTOR(_C_)                                                                                     \
+    template <typename Ret, class T, typename... Args>                                                         \
+    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...))       \
+    {                                                                                                          \
+        return {};                                                                                             \
+    }                                                                                                          \
+    template <typename Ret, class T, typename... Args>                                                         \
+    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...) const) \
+    {                                                                                                          \
+        return {};                                                                                             \
     }
 
 #define TINY_IMPL(_C_) TINY_HELPER(_C_) TINY_SELECTOR(_C_)
@@ -113,11 +111,11 @@ export namespace cheat::hooks
         void* get_original_method() const runtime_assert_noexcept;
 
       protected:
-      void init(const function_getter target, const function_getter replace) runtime_assert_noexcept
-      {
-          entry_.set_target_method(target);
-          entry_.set_replace_method(replace);
-      }
+        void init(const function_getter target, const function_getter replace) runtime_assert_noexcept
+        {
+            entry_.set_target_method(target);
+            entry_.set_replace_method(replace);
+        }
 
       private:
         entry_type entry_;

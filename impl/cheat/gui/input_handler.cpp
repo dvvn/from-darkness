@@ -72,7 +72,7 @@ class input_handler final : public basic_input_handler
     input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) override;
 };
 
-CHEAT_OBJECT_BIND(basic_input_handler, input_handler);
+CHEAT_OBJECT_BIND(basic_input_handler, _Input_idx, input_handler, _Input_idx);
 
 input_helper input_handler::input() const noexcept
 {

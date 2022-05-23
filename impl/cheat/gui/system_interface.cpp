@@ -27,7 +27,7 @@ class system_interface final : public _Sys_ifc
     bool LogMessage(Rml_log logtype, const Rml::String& message) override;
 };
 
-CHEAT_OBJECT_BIND(_Sys_ifc, system_interface);
+CHEAT_OBJECT_BIND(_Sys_ifc, _Sys_idx, system_interface, _Sys_idx);
 
 system_interface::system_interface()
     : start_time_(clock::now())
@@ -70,7 +70,7 @@ bool system_interface::LogMessage(Rml_log logtype, const Rml::String& message)
         return true;
 #endif
     case Rml_log::LT_ALWAYS:
-        if (!cheat::logger_system_console.initialized() || !cheat::logger_system_console->active())
+        if (!cheat::logger_system_console->active())
             return _Sys_ifc::LogMessage(logtype, message);
     case Rml_log::LT_WARNING:
     case Rml_log::LT_INFO:

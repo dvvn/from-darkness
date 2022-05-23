@@ -102,8 +102,8 @@ class gui_context
     _Ctx_ptr get() const noexcept;
 };
 
-CHEAT_OBJECT(_Gui_context, gui_context);
-CHEAT_OBJECT_IMPL(_Ctx_ptr, _Gui_context->get());
+CHEAT_OBJECT(_Gui_context, gui_context, _Ctx_idx);
+CHEAT_OBJECT_IMPL(_Ctx_ptr, _Gui_context->get(), _Ctx_idx);
 
 gui_context::~gui_context()
 {
@@ -119,7 +119,7 @@ gui_context::gui_context()
 
     //------
 
-    const auto size = cheat::app_info->size.client();
+    const auto size = cheat::app_info->window.size.client();
     ctx_ = Rml::CreateContext("main", {size.width(), size.height()});
 
     //------

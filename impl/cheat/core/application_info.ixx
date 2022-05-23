@@ -12,18 +12,18 @@ struct rect_ex : RECT
     LONG height() const noexcept;
 };
 
-struct window_handle
+struct window_hwnd
 {
-    HWND handle;
+    HWND window_handle;
 };
 
-struct window_size : window_handle
+struct window_size : window_hwnd
 {
     rect_ex full() const noexcept;
     rect_ex client() const noexcept;
 };
 
-struct wndproc_ctrl : window_handle
+struct wndproc_ctrl : window_hwnd
 {
     WNDPROC def() const noexcept;
     WNDPROC curr() const noexcept;
@@ -39,14 +39,16 @@ struct application_info
         HWND handle;
         window_size size;
         wndproc_ctrl proc;
-    };
+    } window;
 
-    application_info(const HWND h);
+    HMODULE module_handle;
 
-    bool unicode() const noexcept;
+    application_info(const HWND window_handle, const HMODULE module_handle);
 };
+
+constexpr size_t _App_info_idx = 0;
 
 export namespace cheat
 {
-    CHEAT_OBJECT(app_info, application_info);
+    CHEAT_OBJECT(app_info, application_info, _App_info_idx);
 }
