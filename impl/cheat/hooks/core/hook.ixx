@@ -121,7 +121,7 @@ export namespace cheat::hooks
         entry_type entry_;
     };
 
-    template <class Impl, class Inst = one_instance<Impl>>
+    template <class Impl, class Inst = nstd::one_instance<Impl>>
     struct hook_instance_static : Inst
     {
         constexpr hook_instance_static()
@@ -139,7 +139,7 @@ export namespace cheat::hooks
         }
     };
 
-    template <class Impl, class Inst = one_instance<Impl>>
+    template <class Impl, class Inst = nstd::one_instance<Impl>>
     struct hook_instance_member : Inst
     {
         constexpr hook_instance_member()

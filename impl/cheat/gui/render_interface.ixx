@@ -20,5 +20,5 @@ struct custom_render_interface : _Render_ifc
 
 export namespace cheat::gui
 {
-    CHEAT_OBJECT(render_interface, custom_render_interface,_Render_idx);
+    CHEAT_OBJECT(render_interface, custom_render_interface, _Render_idx);
 }

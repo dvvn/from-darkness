@@ -382,6 +382,11 @@ static RmlString _Make_rml_string(const Args... chars) noexcept
     return nstd::text::convert_to<char>(strv);
 }
 
+input_helper::input_helper(_Ctx_ptr const ctx)
+    : ctx_(ctx)
+{
+}
+
 input_result_proxy input_helper::l_button_down(const HWND window) noexcept
 {
     const nstd::lazy_invoke lazy = std::bind_front(SetCapture, window);

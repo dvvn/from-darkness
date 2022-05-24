@@ -22,24 +22,27 @@ void custom_render_interface::ReleaseTextures()
 
 struct DECLSPEC_NOVTABLE d3d_device_wrapped : IDirect3DDevice9
 {
+
+    d3d_device_wrapped() = delete;
+
     /* COM_DECLSPEC_NOTHROW HRESULT SetTransform(const D3DTRANSFORMSTATETYPE state, const D3DMATRIX* const mat)
     {
-       return IDirect3DDevice9::SetTransform(state, mat);
+        return reinterpret_cast<IDirect3DDevice9*>(this)->SetTransform(state, mat);
     } */
 
     COM_DECLSPEC_NOTHROW HRESULT SetTransform(const D3DTRANSFORMSTATETYPE state, const DirectX::XMMATRIX& mat)
     {
-        return IDirect3DDevice9::SetTransform(state, (const D3DMATRIX*)std::addressof(mat));
+        return reinterpret_cast<IDirect3DDevice9*>(this)->SetTransform(state, (const D3DMATRIX*)std::addressof(mat));
     }
 
     COM_DECLSPEC_NOTHROW HRESULT SetTransform(const D3DTRANSFORMSTATETYPE state, const Rml::ColumnMajorMatrix4f& mat)
     {
-        return IDirect3DDevice9::SetTransform(state, (const D3DMATRIX*)mat.data());
+        return reinterpret_cast<IDirect3DDevice9*>(this)->SetTransform(state, (const D3DMATRIX*)mat.data());
     }
 
     COM_DECLSPEC_NOTHROW HRESULT SetTransform(const D3DTRANSFORMSTATETYPE state, const Rml::RowMajorMatrix4f& mat)
     {
-        return SetTransform(state, mat.Transpose());
+        return this->SetTransform(state, mat.Transpose());
     }
 };
 

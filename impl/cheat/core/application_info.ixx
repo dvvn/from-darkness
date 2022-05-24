@@ -44,6 +44,10 @@ struct application_info
     HMODULE module_handle;
 
     application_info(const HWND window_handle, const HMODULE module_handle);
+
+#ifdef _DEBUG
+    application_info() = default;
+#endif
 };
 
 constexpr size_t _App_info_idx = 0;

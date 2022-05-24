@@ -7,7 +7,7 @@ module;
 //#include <sstream>
 
 export module cheat.logger;
-import nstd.text.convert.unicode;
+export import nstd.text.convert.unicode;
 
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;

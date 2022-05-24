@@ -20,4 +20,4 @@ struct initializer_basic final : hooks_initializer
     }
 };
 
-CHEAT_OBJECT_BIND(hooks_initializer, initializer_basic, _Basic_hooks_init)
+CHEAT_OBJECT_BIND(hooks_initializer, _Basic_hooks_init, initializer_basic, _Basic_hooks_init)

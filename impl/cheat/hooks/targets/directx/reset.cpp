@@ -13,15 +13,16 @@ using namespace directx;
 
 CHEAT_HOOK(reset, member)
 {
-    reset_impl( )
+    using dummy = void;
+
+    reset_impl()
     {
-        init({&instance_of<IDirect3DDevice9>, 16, &IDirect3DDevice9::Reset}, &reset_impl::callback);
+        // init({&instance_of<IDirect3DDevice9>, 16, &IDirect3DDevice9::Reset}, &reset_impl::callback);
     }
 
-    [[noreturn]]
     void WINAPI callback(D3DPRESENT_PARAMETERS * params) const noexcept
     {
-        instance_of<gui::render_interface>->ReleaseTextures( );
+        gui::render_interface->ReleaseTextures();
         call_original(params);
     }
 };

@@ -7,8 +7,8 @@ export import cheat.hooks.base;
 
 export namespace cheat::hooks::directx
 {
-	struct present : class_base
-	{
-		std::string_view name( ) const noexcept final;
-	};
-}
+    struct present : class_base
+    {
+        std::string_view name() const noexcept final;
+    };
+} // namespace cheat::hooks::directx
