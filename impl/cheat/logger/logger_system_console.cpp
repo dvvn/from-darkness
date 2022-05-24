@@ -361,6 +361,7 @@ void console::log(const std::wstring_view str) noexcept
 #include <cassert>
 #include <chrono>
 #include <cstdio>
+#include <iostream>
 #include <mutex>
 #include <string>
 #include <time.h>
@@ -405,6 +406,7 @@ class stream_mode_changer
         return prev_mode;
     }
 
+    stream_mode_changer(const stream_mode_changer&) = default;
     stream_mode_changer& operator=(const stream_mode_changer&) = default;
 
   public:
@@ -421,8 +423,6 @@ class stream_mode_changer
     {
     }
 
-    stream_mode_changer(const stream_mode_changer&) = delete;
-
     stream_mode_changer(stream_mode_changer&& other) noexcept
     {
         *this = other;
@@ -431,35 +431,43 @@ class stream_mode_changer
 
     stream_mode_changer& operator=(stream_mode_changer&& other) noexcept
     {
-        using std::swap;
-        swap(*this, other);
+        const auto copy = *this;
+        *this = other;
+        other = copy;
         return *this;
     }
 
-    void set(const int mode) noexcept
+    bool set(const int mode) noexcept
     {
         // also may be done by 'fwide'
         if (curr_mode_ == mode)
-            return;
+            return false;
         const auto prev_mode = set_mode_impl(mode);
         curr_mode_ = mode;
         if (prev_mode_ == -1)
             prev_mode_ = prev_mode;
+        return true;
     }
 
     template <typename C>
-    void set() noexcept;
+    bool set() noexcept;
 
     template <>
-    void set<char>() noexcept
+    bool set<char>() noexcept
     {
-        set(_O_TEXT);
+        return set(_O_TEXT);
     }
 
     template <>
-    void set<wchar_t>() noexcept
+    bool set<wchar_t>() noexcept
     {
-        set(_O_U16TEXT);
+        return set(_O_U16TEXT);
+    }
+
+    template <>
+    bool set<char8_t>() noexcept
+    {
+        return set(_O_U8TEXT);
     }
 
     stream_mode_changer release() noexcept
@@ -476,6 +484,7 @@ class file_stream
     FILE* stream_;
     bool redirected_;
 
+    file_stream(const file_stream&) = default;
     file_stream& operator=(const file_stream&) = default;
 
   public:
@@ -505,8 +514,6 @@ class file_stream
         assert(err == NULL);
     }
 
-    file_stream(const file_stream&) = delete;
-
     file_stream(file_stream&& other) noexcept
     {
         *this = other;
@@ -515,8 +522,9 @@ class file_stream
 
     file_stream& operator=(file_stream&& other)
     {
-        using std::swap;
-        swap(*this, other);
+        const auto copy = *this;
+        *this = other;
+        other = copy;
         return *this;
     }
 
@@ -531,7 +539,7 @@ class time_buff final
     std::string buff_;
 
   public:
-    template <size_t S = std::char_traits<char>::length("XX:XX:XX:XXX")>
+    template <size_t S = std::char_traits<char>::length("01:13:03 224.095")>
     constexpr size_t max_size() const noexcept
     {
         return S;
@@ -589,12 +597,26 @@ class writer
     stream_mode_changer changer_;
     std::mutex mtx_;
 
-    template <typename C, typename Ch = std::char_traits<C>>
-    void write_nolock(const std::basic_string_view<C, Ch> text) noexcept
+    template <typename Ch>
+    void write_nolock(const std::basic_string_view<char, Ch> text) noexcept
     {
-        changer_.set<C>();
-        [[maybe_unused]] const auto written = _fwrite_nolock(text.data(), sizeof(C), text.size(), stream_);
+        changer_.set<char>();
+        [[maybe_unused]] const auto written = _fwrite_nolock(text.data(), 1, text.size(), stream_);
         assert(written == text.size());
+    }
+
+    template <typename Ch>
+    void write_nolock(const std::basic_string_view<wchar_t, Ch> text) noexcept
+    {
+        // changer_.set<wchar_t>();
+        //  for (const auto chr : text)
+        //  {
+        //      [[maybe_unused]] const auto ok = _putwc_nolock(chr, stream_);
+        //      runtime_assert(ok != WEOF, errno == EILSEQ ? "Encoding error in fputwc." : "I/O error in fputwc.");
+        //  }
+
+        // idk how to made it works, here is temp gap
+        write_nolock(nstd::text::convert_to<char>(text));
     }
 
     template <typename C, typename Ch>
@@ -606,7 +628,8 @@ class writer
     template <typename C, size_t S>
     void write_nolock(const C (&text)[S]) noexcept
     {
-        const auto text_size = text[S] == 0 ? S - 1 : S;
+        const auto null_terminated = text[S - 1] == static_cast<C>(0);
+        const auto text_size = null_terminated ? S - 1 : S;
         write_nolock(std::basic_string_view<C>(text, text + text_size));
     }
 
@@ -642,11 +665,10 @@ class writer
         }
 
         const std::scoped_lock lock(mtx_);
-        changer_.set<C>();
         write_nolock(time);
         if constexpr (!can_reuse_buff)
         {
-            constexpr C dash[3] = {' ', '-', ' '};
+            constexpr char dash[] = {' ', '-', ' ', 0};
             write_nolock(dash);
         }
         write_nolock(text);
@@ -700,9 +722,10 @@ class logger_system_console : public logger
         if (console_window)
         {
             window_ = nullptr;
-            in_ = file_stream(stdin);
+
+            /* in_ = file_stream(stdin);
             out_ = file_stream(stdout);
-            err_ = file_stream(stderr);
+            err_ = file_stream(stderr); */
         }
         else
         {
@@ -712,15 +735,19 @@ class logger_system_console : public logger
             window_ = GetConsoleWindow();
             runtime_assert(window_ != nullptr, "Unable to get the console window");
 
-            in_ = file_stream("CONIN$", "r", stdin);
+            /* in_ = file_stream("CONIN$", "r", stdin);
             out_ = file_stream("CONOUT$", "w", stdout);
-            err_ = file_stream("CONOUT$", "w", stderr);
+            err_ = file_stream("CONOUT$", "w", stderr); */
 
             // const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module()->FullDllName.Buffer);
             // runtime_assert(window_title_set, "Unable set console title");
         }
 
-        // runtime_assert(IsWindowUnicode(console_window) == TRUE);
+        in_ = file_stream("CONIN$", "r", stdin);
+        out_ = file_stream("CONOUT$", "w", stdout);
+        err_ = file_stream("CONOUT$", "w", stderr);
+
+        runtime_assert(IsWindowUnicode(console_window) == TRUE);
         // runtime_assert_add_handler(this);
 
         logger_system_console::log_impl("Started");
