@@ -616,7 +616,9 @@ class writer
         //  }
 
         // idk how to made it works, here is temp gap
-        write_nolock(nstd::text::convert_to<char>(text));
+        const auto u8text = nstd::text::convert_to<char>(text);
+        runtime_assert(u8text.size() == text.size(), "Unicode not supported");
+        write_nolock(u8text);
     }
 
     template <typename C, typename Ch>

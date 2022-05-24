@@ -163,8 +163,7 @@ int main(int, char**)
 
     using namespace cheat;
     logger_system_console->enable();
-    logger_system_console->log("hello");
-    logger_system_console->log(L"Пошёл на хуй");
+
     // hooks::init_basic();
 
     // PresetD3D(hwnd);
