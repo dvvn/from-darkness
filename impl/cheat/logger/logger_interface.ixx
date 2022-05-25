@@ -6,7 +6,7 @@ module;
 #include <string_view>
 //#include <sstream>
 
-export module cheat.logger_interface;
+export module cheat.logger;
 export import nstd.text.convert.unicode;
 
 template <typename S>

@@ -2,7 +2,7 @@ module;
 
 #include <string_view>
 
-module cheat.logger_interface;
+module cheat.logger;
 
 void logger::log(const std::string_view str)
 {
