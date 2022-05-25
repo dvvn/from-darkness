@@ -43,9 +43,9 @@ auto _Correct_result(V val)
 /*
 example:
 
-CHEAT_OBJECT(name, type)
+CHEAT_OBJECT(name, type, 1337)
 
-CHEAT_OBJECT_BIND(type, real_type)
+CHEAT_OBJECT_BIND(type, 1337/name, real_type, ...)
 or
-CHEAT_OBJECT_IMPL(type, get_type())
+CHEAT_OBJECT_IMPL(type, 1337/name, get_real_type())
 */
