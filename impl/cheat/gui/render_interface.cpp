@@ -22,7 +22,6 @@ void custom_render_interface::ReleaseTextures()
 
 struct DECLSPEC_NOVTABLE d3d_device_wrapped : IDirect3DDevice9
 {
-
     d3d_device_wrapped() = delete;
 
     /* COM_DECLSPEC_NOTHROW HRESULT SetTransform(const D3DTRANSFORMSTATETYPE state, const D3DMATRIX* const mat)
@@ -46,8 +45,6 @@ struct DECLSPEC_NOVTABLE d3d_device_wrapped : IDirect3DDevice9
     }
 };
 
-using _D3d_ptr = IDirect3DDevice9*;
-
 namespace Rml
 {
     class RenderInterfaceD3d9 final : public custom_render_interface
@@ -56,7 +53,7 @@ namespace Rml
 
       public:
         void Init(void* const d3d) override;
-        void RenderContext(_Ctx_ptr const ctx) override;
+        void RenderContext(Context* const ctx) override;
 
         void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation) override;
         CompiledGeometryHandle CompileGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture) override;
@@ -73,7 +70,7 @@ namespace Rml
 
 using Rml::RenderInterfaceD3d9;
 
-CHEAT_OBJECT_BIND(custom_render_interface, _Render_idx, RenderInterfaceD3d9, _Render_idx);
+CHEAT_OBJECT_BIND(custom_render_interface, render_interface, RenderInterfaceD3d9);
 
 void RenderInterfaceD3d9::Init(void* const d3d)
 {

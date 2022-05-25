@@ -9,6 +9,6 @@ export namespace cheat::hooks::vgui_surface
 {
 	struct lock_cursor : class_base
 	{
-		std::string_view name( ) const noexcept final;
-	};
+        std::string_view name() const final;
+    };
 }

@@ -6,10 +6,10 @@ module;
 
 export module cheat.gui.system_interface;
 
-using _Sys_ifc = Rml::SystemInterface;
-constexpr size_t _Sys_idx = 0;
+using system_interface_base = Rml::SystemInterface;
+CHEAT_OBJECT(system_interface, system_interface_base);
 
 export namespace cheat::gui
 {
-    CHEAT_OBJECT(system_interface, _Sys_ifc, _Sys_idx);
+    using ::system_interface;
 }

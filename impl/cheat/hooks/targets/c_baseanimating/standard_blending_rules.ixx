@@ -9,6 +9,6 @@ export namespace cheat::hooks::c_base_animating
 {
 	struct standard_blending_rules : class_base
 	{
-		std::string_view name( ) const noexcept final;
-	};
+        std::string_view name() const final;
+    };
 }

@@ -18,8 +18,8 @@ export namespace cheat::math
 		CHEAT_MATH_OP_FWD(vector4);
 		CHEAT_MATH_VEC_FWD(vector4);
 
-		bool within_aa_box(const vector4& boxmin, const vector4& boxmax) const noexcept;
-	};
+        bool within_aa_box(const vector4& boxmin, const vector4& boxmax) const;
+    };
 
 	using quaternion = vector4;
 }

@@ -17,7 +17,7 @@ CHEAT_HOOK(lock_cursor, member)
         this->init({&nstd::instance_of<ISurface*>, 67}, &lock_cursor_impl::callback);
     }
 
-    void callback( ) const noexcept
+    void callback() const
     {
         /*auto thisptr = reinterpret_cast<ISurface*>(this);
         if(!thisptr->IsCursorVisible( ) && gui::menu::visible( ))

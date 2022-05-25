@@ -33,8 +33,8 @@ using namespace cheat;
 using namespace netvars;
 namespace fs = std::filesystem;
 
-template<typename T, typename ...Args>
-static T _Join_strings(const Args& ...args) noexcept
+template <typename T, typename... Args>
+static T _Join_strings(const Args&... args)
 {
 	const auto string_size = (args.size() + ...);
 	T out;
@@ -43,7 +43,7 @@ static T _Join_strings(const Args& ...args) noexcept
 	return out;
 }
 
-static bool _File_already_written(const fs::path& full_path, const std::string_view buffer) noexcept
+static bool _File_already_written(const fs::path& full_path, const std::string_view buffer)
 {
 	std::ifstream file_stored(full_path, std::ios::binary | std::ios::ate);
 	if (!file_stored)
@@ -153,11 +153,11 @@ public:
 			Base::emplace_back(std::move(key_adapted), std::forward<Args>(args)...);
 		}
 		return { std::prev(Base::end()), true };
-	}
+    }
 
-	template <std::equality_comparable_with<Key> Key2>
-	iterator find(const Key2& key) noexcept
-	{
+    template <std::equality_comparable_with<Key> Key2>
+    iterator find(const Key2& key)
+    {
 		const auto key_adapted = proxy_(key);
 		const auto begin = Base::begin();
 		const auto end = Base::end();
@@ -167,11 +167,11 @@ public:
 				return itr;
 		}
 		return end;
-	}
+    }
 
-	template <std::equality_comparable_with<Key> Key2>
-	const_iterator find(const Key2& key) const noexcept
-	{
+    template <std::equality_comparable_with<Key> Key2>
+    const_iterator find(const Key2& key) const
+    {
 		return const_cast<ordered_map_json*>(this)->find(key);
 	}
 };
@@ -191,13 +191,13 @@ struct json_wrapper : Base
 template<>
 struct ordered_map_json_key_proxy<std::string>
 {
-	std::string&& operator()(std::string&& str) const noexcept
-	{
+    std::string&& operator()(std::string&& str) const
+    {
 		return std::move(str);
-	}
+    }
 
-	std::string_view operator()(const std::string_view str) const noexcept
-	{
+    std::string_view operator()(const std::string_view str) const
+    {
 		return str;
 	}
 
@@ -207,7 +207,7 @@ struct ordered_map_json_key_proxy<std::string>
 	}
 };
 
-void storage::log_netvars(logs_data& data) noexcept
+void storage::log_netvars(logs_data& data)
 {
 	json_wrapper<nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, std::make_signed_t<size_t>, size_t, float>> j_root;
 
@@ -236,7 +236,7 @@ void storage::log_netvars(logs_data& data) noexcept
 	data.buff << std::setw(data.indent) << std::setfill(data.filler) << j_root;
 }
 
-void storage::generate_classes(classes_data& data) noexcept
+void storage::generate_classes(classes_data& data)
 {
 	data.files.reserve(this->size());
 

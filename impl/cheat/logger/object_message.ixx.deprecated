@@ -14,9 +14,9 @@ export namespace cheat::console
 	struct object_message_impl
 	{
 		template<typename Str, typename ...Args>
-		void operator()(const Str& str, Args&&...args) const noexcept
+		void operator()(const Str& str, Args&&...args) const
 		{
-			log([&]( ) noexcept
+			log([&]( )
 			{
 				const auto name = this->object_name( );
 
@@ -34,7 +34,7 @@ export namespace cheat::console
 			}, std::forward<Args>(args)...);
 		}
 
-		std::string_view object_name( ) const noexcept
+		std::string_view object_name( ) const
 		{
 			return cheat::tools::object_name<T>;
 		}

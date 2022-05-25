@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/hooks/hook.h>
+#include <cheat/hooks/impl.h>
 
 #include <d3d9.h>
 
@@ -11,20 +11,15 @@ using namespace cheat;
 using namespace hooks;
 using namespace directx;
 
-CHEAT_HOOK(reset, member)
+CHEAT_HOOK_BODY(reset, member, void WINAPI, D3DPRESENT_PARAMETERS* params);
+
+CHEAT_HOOK_INIT(reset)
 {
-    using dummy = void;
+    // init({&instance_of<IDirect3DDevice9>, 16, &IDirect3DDevice9::Reset}, &reset_impl::callback);
+}
 
-    reset_impl()
-    {
-        // init({&instance_of<IDirect3DDevice9>, 16, &IDirect3DDevice9::Reset}, &reset_impl::callback);
-    }
-
-    void WINAPI callback(D3DPRESENT_PARAMETERS * params) const noexcept
-    {
-        gui::render_interface->ReleaseTextures();
-        call_original(params);
-    }
-};
-
-CHEAT_HOOK_IMPL(reset);
+CHEAT_HOOK_CALLBACK(reset, void WINAPI, D3DPRESENT_PARAMETERS* params)
+{
+    gui::render_interface->ReleaseTextures();
+    call_original(params);
+}

@@ -78,8 +78,8 @@ export namespace cheat::csgo
 		FCVAR_SERVER_CANNOT_QUERY = (1 << 29),
 		// if this is set, then the server is not allowed to query this cvar's value (via iserverpluginhelpers::startquerycvarvalue).
 		FCVAR_CLIENTCMD_CAN_EXECUTE = (1 << 30),
-		// ivengineclient::clientcmd is allowed to execute this command. 
-		FCVAR_MATERIAL_THREAD_MASK = (FCVAR_RELOAD_MATERIALS | FCVAR_RELOAD_TEXTURES | FCVAR_MATERIAL_SYSTEM_THREAD)
+        // ivengineclient::clientcmd is allowed to execute this command.
+        FCVAR_MATERIAL_THREAD_MASK = (FCVAR_RELOAD_MATERIALS | FCVAR_RELOAD_TEXTURES | FCVAR_MATERIAL_SYSTEM_THREAD)
 	};
 
 	//-----------------------------------------------------------------------------
@@ -174,13 +174,13 @@ export namespace cheat::csgo
 		int							m_nFlags;
 
 	protected:
-		// ConVars add themselves to this list for the executable. 
-		// Then ConVar_Register runs through  all the console variables 
-		// and registers them into a global list stored in vstdlib.dll
-		//static ConCommandBase* s_pConCommandBases;
+      // ConVars add themselves to this list for the executable.
+      // Then ConVar_Register runs through  all the console variables
+      // and registers them into a global list stored in vstdlib.dll
+      // static ConCommandBase* s_pConCommandBases;
 
-		// ConVars in this executable use this 'global' to access values.
-		//static IConCommandBaseAccessor* s_pAccessor;
+      // ConVars in this executable use this 'global' to access values.
+      // static IConCommandBaseAccessor* s_pAccessor;
 	};
 
 	struct CVValue_t
@@ -196,18 +196,18 @@ export namespace cheat::csgo
 	class ConVar : public ConCommandBase, public IConVar
 	{
 	public:
-		template <typename T>
-		T get( ) const noexcept;
-		template <typename T>
-		void set(T value) noexcept;
+      template <typename T>
+      T get() const;
+      template <typename T>
+      void set(T value);
 
 #define CVAR_GET_SET(_TYPE_) \
-		template < >\
-		_TYPE_ get( ) const noexcept;\
-		template < >\
-		void set(_TYPE_ value) noexcept;
+    template <>              \
+    _TYPE_ get() const;      \
+    template <>              \
+    void set(_TYPE_ value);
 
-		CVAR_GET_SET(const char*);
+        CVAR_GET_SET(const char*);
 		CVAR_GET_SET(float);
 		CVAR_GET_SET(int);
 		CVAR_GET_SET(bool);
@@ -263,13 +263,13 @@ export namespace cheat::csgo
 		virtual void			RevertFlaggedConVars(int nFlag) = 0;
 
 	public:
-		ConVar* FindVar(const std::string_view name) const noexcept;
+      ConVar* FindVar(const std::string_view name) const;
 
-		template<nstd::text::chars_cache Cvar>
-		ConVar* FindVar( ) const noexcept
-		{
-			static const auto cvar = FindVar(Cvar);
-			return cvar;
+      template <nstd::text::chars_cache Cvar>
+      ConVar* FindVar() const
+      {
+          static const auto cvar = FindVar(Cvar);
+          return cvar;
 		}
 	};
 }

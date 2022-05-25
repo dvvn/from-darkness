@@ -17,7 +17,7 @@ CHEAT_HOOK(frame_stage_notify, member)
         this->init({&instance_of<IBaseClientDLL>, 32}, &frame_stage_notify_impl::callback);
     }
 
-    void callback(ClientFrameStage_t stage) const noexcept
+    void callback(ClientFrameStage_t stage) const
     {
         switch(stage)
         {

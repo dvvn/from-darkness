@@ -48,11 +48,11 @@ export namespace cheat::netvars
 	class storage : public basic_storage
 	{
 	public:
-		void iterate_client_class(csgo::ClientClass* const root_class) noexcept;
-		void iterate_datamap(csgo::datamap_t* const root_map) noexcept;
-		void store_handmade_netvars( ) noexcept;
+      void iterate_client_class(csgo::ClientClass* const root_class);
+      void iterate_datamap(csgo::datamap_t* const root_map);
+      void store_handmade_netvars();
 
-		void log_netvars(logs_data& data) noexcept;
-		void generate_classes(classes_data& data) noexcept;
-	};
+      void log_netvars(logs_data& data);
+      void generate_classes(classes_data& data);
+    };
 }

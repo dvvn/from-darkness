@@ -17,7 +17,7 @@ using namespace csgo;
 	return csgo_modules::_MODULE_NAME_.find_signature<_SIG_>( ).##__VA_ARGS__;\
 }
 
-void storage::store_handmade_netvars( ) noexcept
+void storage::store_handmade_netvars()
 {
 	const auto baseent = this->find<C_BaseEntity>( );
 	baseent->add<VarMapping_t>(0x24, "m_InterpVarMap");

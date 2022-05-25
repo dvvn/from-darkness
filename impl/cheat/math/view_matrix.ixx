@@ -18,6 +18,6 @@ export namespace cheat::math
 		CHEAT_MATH_OP_FWD(view_matrix);
 		CHEAT_MATH_MATRIX_FWD(view_matrix, vector4);
 
-		operator const matrix3x4& () const noexcept;
-	};
+        operator const matrix3x4&() const;
+    };
 }

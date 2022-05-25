@@ -3,11 +3,11 @@ module;
 #include <cheat/core/object.h>
 
 export module cheat.logger.system_console;
-import cheat.logger;
+import cheat.logger_interface;
 
-constexpr size_t _Sys_logger_idx = 0;
+CHEAT_OBJECT(logger_system_console, cheat::logger);
 
 export namespace cheat
 {
-    CHEAT_OBJECT(logger_system_console, logger, _Sys_logger_idx);
+    using ::logger_system_console;
 }

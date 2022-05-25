@@ -6,33 +6,19 @@ export module cheat.hooks.base;
 
 export namespace cheat::hooks
 {
-    class base
+    struct base
     {
-    public:
-        virtual ~base( ) = default;
+        virtual ~base() = default;
 
-        virtual bool enable( ) = 0;
-        virtual bool disable( ) = 0;
+        virtual bool enable() = 0;
+        virtual bool disable() = 0;
 
-        virtual bool is_static( ) const noexcept = 0;
-        virtual std::string_view name( ) const noexcept = 0;
+        virtual bool is_static() const = 0;
+        virtual std::string_view name() const = 0;
+
+        virtual bool initialized() const = 0;
+        virtual bool active() const = 0;
+
+        virtual void init() = 0;
     };
-
-    class class_base : public virtual base
-    {
-    public:
-        bool is_static( ) const noexcept final
-        {
-            return false;
-        }
-    };
-
-    class static_base : public virtual base
-    {
-    public:
-        bool is_static( ) const noexcept final
-        {
-            return true;
-        }
-    };
-}
+} // namespace cheat::hooks

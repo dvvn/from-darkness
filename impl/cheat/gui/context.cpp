@@ -91,19 +91,21 @@ static void _Rml_demo_animation(Context* ctx)
 }
 #endif
 
+using Rml::Context;
+
 class gui_context
 {
-    _Ctx_ptr ctx_;
+    Context* ctx_;
 
   public:
     ~gui_context();
     gui_context();
 
-    _Ctx_ptr get() const noexcept;
+    Context* get() const;
 };
 
-CHEAT_OBJECT(_Gui_context, gui_context, _Ctx_idx);
-CHEAT_OBJECT_IMPL(_Ctx_ptr, _Gui_context->get(), _Ctx_idx);
+CHEAT_OBJECT(real_gui_context, gui_context);
+CHEAT_OBJECT_IMPL(Context*, context, real_gui_context->get());
 
 gui_context::~gui_context()
 {
@@ -155,7 +157,7 @@ gui_context::gui_context()
 #endif
 }
 
-_Ctx_ptr gui_context::get() const noexcept
+Context* gui_context::get() const
 {
     return ctx_;
 }

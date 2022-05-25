@@ -21,7 +21,7 @@ CHEAT_HOOK(standard_blending_rules, member)
         this->init({vtable_holder, index}, &standard_blending_rules_impl::callback);
     }
 
-    void callback(CStudioHdr * hdr, math::vector3 * pos, QuaternionAligned * q, float current_time, int bone_mask) const noexcept
+    void callback(CStudioHdr* hdr, math::vector3* pos, QuaternionAligned* q, float current_time, int bone_mask) const
     {
 #if __has_include(<cheat/csgo/interfaces_custom/C_BaseAnimating_generated_h>) && 0
         const auto pl = reinterpret_cast<C_BaseAnimating*>(this);

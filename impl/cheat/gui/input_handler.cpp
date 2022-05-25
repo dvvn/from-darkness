@@ -30,62 +30,64 @@ struct input_result_proxy : input_result
     }
 };
 
+using Rml::Context;
+
 class input_helper
 {
-    _Ctx_ptr ctx_;
+    Context* ctx_;
 
   public:
-    input_helper(_Ctx_ptr const ctx);
+    input_helper(Context* const ctx);
 
-    input_result_proxy l_button_down(const HWND window) noexcept;
+    input_result_proxy l_button_down(const HWND window);
 
-    input_result_proxy l_button_up() noexcept;
+    input_result_proxy l_button_up();
 
-    input_result_proxy r_button_down() noexcept;
+    input_result_proxy r_button_down();
 
-    input_result_proxy r_button_up() noexcept;
+    input_result_proxy r_button_up();
 
-    input_result_proxy m_button_down() noexcept;
+    input_result_proxy m_button_down();
 
-    input_result_proxy m_button_up() noexcept;
+    input_result_proxy m_button_up();
 
-    input_result_proxy mouse_move(const LPARAM l_param) noexcept;
+    input_result_proxy mouse_move(const LPARAM l_param);
 
-    input_result_proxy mouse_wheel(const WPARAM w_param) noexcept;
+    input_result_proxy mouse_wheel(const WPARAM w_param);
 
-    input_result key_down(const WPARAM w_param) noexcept;
-    input_result_proxy key_up(const WPARAM w_param) noexcept;
+    input_result key_down(const WPARAM w_param);
+    input_result_proxy key_up(const WPARAM w_param);
 
-    input_result_proxy on_character(const WPARAM w_param, char16_t& first_code_unit) noexcept;
-    input_result resize(const WPARAM w_param, const LPARAM l_param) noexcept;
+    input_result_proxy on_character(const WPARAM w_param, char16_t& first_code_unit);
+    input_result resize(const WPARAM w_param, const LPARAM l_param);
 };
 
-class input_handler final : public basic_input_handler
+class input_handler_impl final : public basic_input_handler
 {
-    _Ctx_ptr ctx_ = nullptr;
+    Context* ctx_ = nullptr;
     char16_t first_u16_code_unit_ = 0;
 
-    input_helper input() const noexcept;
+    input_helper input() const;
 
   public:
-    void init(_Ctx_ptr const ctx) override;
+    void init(Context* const ctx) override;
     input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) override;
 };
 
-CHEAT_OBJECT_BIND(basic_input_handler, _Input_idx, input_handler, _Input_idx);
+CHEAT_OBJECT_BIND(basic_input_handler, input_handler, input_handler_impl);
 
-input_helper input_handler::input() const noexcept
+input_helper input_handler_impl::input() const
 {
     return ctx_;
 }
 
-void input_handler::init(_Ctx_ptr const ctx)
+void input_handler_impl::init(Context* const ctx)
 {
     runtime_assert(ctx_ && !ctx);
     ctx_ = ctx;
 }
 
-input_result input_handler::operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
+input_result input_handler_impl::operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
     switch (message)
     {
@@ -321,7 +323,7 @@ constexpr auto key_identifier_map = [] {
     return kmap;
 }();
 
-static int key_modifier() noexcept
+static int key_modifier()
 {
     int key_modifier_state = 0;
 
@@ -355,7 +357,7 @@ static int key_modifier() noexcept
 }
 
 template <typename T, typename... Args>
-static auto _Make_string_buff(const T chr, const Args... chars) noexcept
+static auto _Make_string_buff(const T chr, const Args... chars)
 {
     std::array<T, sizeof...(Args) + 2> buff;
     auto itr = buff.begin();
@@ -375,65 +377,65 @@ struct RmlString : String
 };
 
 template <typename... Args>
-static RmlString _Make_rml_string(const Args... chars) noexcept
+static RmlString _Make_rml_string(const Args... chars)
 {
     const auto buff = _Make_string_buff(chars...);
     const std::basic_string_view strv = {buff.data(), buff.size() - 1};
     return nstd::text::convert_to<char>(strv);
 }
 
-input_helper::input_helper(_Ctx_ptr const ctx)
+input_helper::input_helper(Context* const ctx)
     : ctx_(ctx)
 {
 }
 
-input_result_proxy input_helper::l_button_down(const HWND window) noexcept
+input_result_proxy input_helper::l_button_down(const HWND window)
 {
     const nstd::lazy_invoke lazy = std::bind_front(SetCapture, window);
     return ctx_->ProcessMouseButtonDown(0, key_modifier());
 }
 
-input_result_proxy input_helper::l_button_up() noexcept
+input_result_proxy input_helper::l_button_up()
 {
     ReleaseCapture();
     return ctx_->ProcessMouseButtonUp(0, key_modifier());
 }
 
-input_result_proxy input_helper::r_button_down() noexcept
+input_result_proxy input_helper::r_button_down()
 {
     return ctx_->ProcessMouseButtonDown(1, key_modifier());
 }
 
-input_result_proxy input_helper::r_button_up() noexcept
+input_result_proxy input_helper::r_button_up()
 {
     return ctx_->ProcessMouseButtonUp(1, key_modifier());
 }
 
-input_result_proxy input_helper::m_button_down() noexcept
+input_result_proxy input_helper::m_button_down()
 {
     return ctx_->ProcessMouseButtonDown(2, key_modifier());
 }
 
-input_result_proxy input_helper::m_button_up() noexcept
+input_result_proxy input_helper::m_button_up()
 {
     return ctx_->ProcessMouseButtonUp(2, key_modifier());
 }
 
-input_result_proxy input_helper::mouse_move(const LPARAM l_param) noexcept
+input_result_proxy input_helper::mouse_move(const LPARAM l_param)
 {
     const auto x = GET_X_LPARAM(l_param);
     const auto y = GET_Y_LPARAM(l_param);
     return ctx_->ProcessMouseMove(x, y, key_modifier());
 }
 
-input_result_proxy input_helper::mouse_wheel(const WPARAM w_param) noexcept
+input_result_proxy input_helper::mouse_wheel(const WPARAM w_param)
 {
     const auto delta = GET_WHEEL_DELTA_WPARAM(w_param);
     const auto state = GET_KEYSTATE_WPARAM(w_param);
     return ctx_->ProcessMouseWheel(delta, state);
 }
 
-input_result input_helper::key_down(const WPARAM w_param) noexcept
+input_result input_helper::key_down(const WPARAM w_param)
 {
     const auto key_identifier = key_identifier_map[w_param];
     const int key_modifier_state = key_modifier();
@@ -483,12 +485,12 @@ input_result input_helper::key_down(const WPARAM w_param) noexcept
     return input_result::processed;
 }
 
-input_result_proxy input_helper::key_up(const WPARAM w_param) noexcept
+input_result_proxy input_helper::key_up(const WPARAM w_param)
 {
     return ctx_->ProcessKeyUp(key_identifier_map[w_param], key_modifier());
 }
 
-input_result_proxy input_helper::on_character(const WPARAM w_param, char16_t& first_code_unit) noexcept
+input_result_proxy input_helper::on_character(const WPARAM w_param, char16_t& first_code_unit)
 {
     const auto wch = static_cast<char16_t>(w_param);
 
@@ -527,7 +529,7 @@ input_result_proxy input_helper::on_character(const WPARAM w_param, char16_t& fi
     }
 }
 
-input_result input_helper::resize(const WPARAM w_param, const LPARAM l_param) noexcept
+input_result input_helper::resize(const WPARAM w_param, const LPARAM l_param)
 {
     if (w_param == SIZE_MINIMIZED)
         return input_result::skipped;
@@ -546,24 +548,24 @@ input_result::input_result(const result val)
 {
 }
 
-input_result::operator bool() const noexcept
+input_result::operator bool() const
 {
     return result_ != result::skipped;
 }
 
-bool input_result::touched() const noexcept
+bool input_result::touched() const
 {
     return result_ == result::interacted;
 }
 
-input_result& input_result::set_return_value(const uint8_t ret_val) noexcept
+input_result& input_result::set_return_value(const uint8_t ret_val)
 {
     runtime_assert(ret_val_ == unset_, "Already set!");
     ret_val_ = ret_val;
     return *this;
 }
 
-size_t input_result::return_value() const noexcept
+size_t input_result::return_value() const
 {
     runtime_assert(touched(), "Unable to return untouched result!");
     runtime_assert(ret_val_ == 1 || ret_val_ == 0, "Incorrect value!");

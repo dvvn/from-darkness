@@ -6,11 +6,13 @@ module;
 
 #include <functional>
 #include <future>
+#include <span>
 #include <thread>
 #include <vector>
 
 module cheat.hooks.loader;
 
+#if 0
 template <typename T>
 class simple_span
 {
@@ -26,29 +28,29 @@ class simple_span
     {
     }
 
-    size_t size() const noexcept
+    size_t size() const
     {
         return size_;
     }
 
-    T& operator[](size_t idx) const noexcept
+    T& operator[](size_t idx) const
     {
         return ptr_[idx];
     }
 
-    T* begin() const noexcept
+    T* begin() const
     {
         return ptr_;
     }
 
-    T* end() const noexcept
+    T* end() const
     {
         return ptr_ + size_;
     }
 };
+#endif
 
 class thread : std::thread
-
 {
   public:
     using std::thread::hardware_concurrency;
@@ -69,14 +71,14 @@ class thread : std::thread
 struct starter_data
 {
     std::atomic<uint8_t> pos;
-    simple_span<basic_instance_info> hooks;
+    std::span<hook_base*> hooks;
     std::stop_source stop;
 };
 
 class hooks_loader final : public basic_hooks_loader
 {
     thread main_thread_;
-    std::vector<instance_info_ptr> hooks_;
+    std::vector<hook_base*> hooks_;
 
     static void main_thread_impl(starter_data* sdata)
     {
@@ -87,7 +89,10 @@ class hooks_loader final : public basic_hooks_loader
             const auto current_pos = sdata->pos++;
             if (current_pos >= sdata->hooks.size())
                 break;
-            if (!sdata->hooks[current_pos]->enable())
+            auto& hook = sdata->hooks[current_pos];
+            if (!hook->initialized())
+                hook->init();
+            if (!hook->enable())
                 sdata->stop.request_stop();
         }
     }
@@ -95,10 +100,10 @@ class hooks_loader final : public basic_hooks_loader
   public:
     std::future<bool> start() override;
     void stop() override;
-    void add(instance_info_ptr&& info) override;
+    void add(hook_base* const hook) override;
 };
 
-CHEAT_OBJECT_BIND(basic_hooks_loader, _Loader_idx, hooks_loader, _Loader_idx);
+CHEAT_OBJECT_BIND(basic_hooks_loader, loader, hooks_loader);
 
 std::future<bool> hooks_loader::start()
 {
@@ -106,8 +111,7 @@ std::future<bool> hooks_loader::start()
     runtime_assert(threads_count > 0, "Incorrect threads count");
 
     auto sdata = std::make_shared<starter_data>();
-    static_assert(sizeof(instance_info_ptr) == sizeof(basic_instance_info*));
-    sdata->hooks = {(basic_instance_info*)hooks_.data(), hooks_.size()};
+    sdata->hooks = hooks_;
     auto prom = std::make_shared<std::promise<bool>>();
 
     main_thread_ = [=] {
@@ -134,11 +138,11 @@ void hooks_loader::stop()
         if (!h->initialized())
             continue;
 
-        h->get()->disable();
+        h->disable();
     }
 }
 
-void hooks_loader::add(instance_info_ptr&& info)
+void hooks_loader::add(hook_base* const hook)
 {
-    hooks_.push_back(std::move(info));
+    hooks_.push_back(hook);
 }

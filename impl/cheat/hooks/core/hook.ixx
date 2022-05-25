@@ -22,15 +22,15 @@ enum class call_cvs : uint8_t
 template <call_cvs, typename Ret, typename... Args>
 struct tiny_helper;
 
-#define TINY_HELPER(_C_)                                  \
-    template <typename Ret, typename... Args>             \
-    struct tiny_helper<call_cvs::_C_##__, Ret, Args...>   \
-    {                                                     \
-        Ret __##_C_ callback(Args... args) const noexcept \
-        {                                                 \
-            if constexpr (!std::is_void_v<Ret>)           \
-                return *(Ret*)nullptr;                    \
-        }                                                 \
+#define TINY_HELPER(_C_)                                \
+    template <typename Ret, typename... Args>           \
+    struct tiny_helper<call_cvs::_C_##__, Ret, Args...> \
+    {                                                   \
+        Ret __##_C_ callback(Args... args) const        \
+        {                                               \
+            if constexpr (!std::is_void_v<Ret>)         \
+                return *(Ret*)nullptr;                  \
+        }                                               \
     };
 
 #define TINY_SELECTOR(_C_)                                                                                     \
@@ -59,17 +59,17 @@ class function_getter
     uint8_t ptr_size_;
 
   public:
-    operator void*() const noexcept
+    operator void*() const
     {
         return fn_ptr_;
     }
 
-    uint8_t size() const noexcept
+    uint8_t size() const
     {
         return ptr_size_;
     }
 
-    void* get() const noexcept
+    void* get() const
     {
         return fn_ptr_;
     }
@@ -98,20 +98,22 @@ class function_getter
 
 export namespace cheat::hooks
 {
-    class hook : public virtual base
+    struct hook : base
     {
-      public:
         using entry_type = dhooks::hook_entry;
 
         ~hook() override;
 
-        bool enable() runtime_assert_noexcept override;
-        bool disable() runtime_assert_noexcept override;
+        bool enable() final;
+        bool disable() final;
 
-        void* get_original_method() const runtime_assert_noexcept;
+        bool initialized() const final;
+        bool active() const final;
+
+        void* get_original_method() const;
 
       protected:
-        void init(const function_getter target, const function_getter replace) runtime_assert_noexcept
+        void init(const function_getter target, const function_getter replace)
         {
             entry_.set_target_method(target);
             entry_.set_replace_method(replace);
@@ -126,12 +128,12 @@ export namespace cheat::hooks
     {
         constexpr hook_instance_static()
         {
-            static_assert(!std::is_member_function_pointer_v<decltype(&Impl::callback)> && std::derived_from<Impl, static_base>, "Incorrect function type passed");
+            static_assert(!std::is_member_function_pointer_v<decltype(&Impl::callback)>, "Incorrect function type passed");
         }
 
       protected:
         template <typename... Args>
-        static decltype(auto) call_original(Args&&... args) runtime_assert_noexcept
+        static decltype(auto) call_original(Args&&... args)
         {
             auto fn = &Impl::callback;
             reinterpret_cast<void*&>(fn) = Inst::get().get_original_method();
@@ -144,12 +146,12 @@ export namespace cheat::hooks
     {
         constexpr hook_instance_member()
         {
-            static_assert(std::is_member_function_pointer_v<decltype(&Impl::callback)> && std::derived_from<Impl, class_base>, "Incorrect function type passed");
+            static_assert(std::is_member_function_pointer_v<decltype(&Impl::callback)>, "Incorrect function type passed");
         }
 
       protected:
         template <typename... Args>
-        decltype(auto) call_original(Args&&... args) const runtime_assert_noexcept
+        decltype(auto) call_original(Args&&... args) const
         {
             const auto inst = Inst::get_ptr();
             runtime_assert(inst != this, "Function must be called from hooked method!");

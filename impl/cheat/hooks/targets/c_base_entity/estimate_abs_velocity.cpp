@@ -21,7 +21,7 @@ CHEAT_HOOK(estimate_abs_velocity, member)
         this->init({vtable,index}, &estimate_abs_velocity_impl::callback);
     }
 
-    void callback( ) const noexcept
+    void callback() const
     {
         call_original( );
 

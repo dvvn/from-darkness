@@ -9,6 +9,6 @@ export namespace cheat::hooks::c_csplayer
 {
 	struct do_extra_bone_processing : class_base
 	{
-		std::string_view name( ) const noexcept final;
-	};
+        std::string_view name() const final;
+    };
 }

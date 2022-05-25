@@ -19,7 +19,7 @@ CHEAT_HOOK(create_move, member)
         this->init({&instance_of<ClientModeShared>, 24}, &create_move_impl::callback);
     }
 
-    bool callback(float input_sample_time, CUserCmd * cmd) const noexcept
+    bool callback(float input_sample_time, CUserCmd* cmd) const
     {
         const auto original_return = call_original(input_sample_time, cmd);
 

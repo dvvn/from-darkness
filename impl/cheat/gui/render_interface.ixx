@@ -7,18 +7,19 @@ module;
 
 export module cheat.gui.render_interface;
 
-using _Ctx_ptr = Rml::Context*;
-using _Render_ifc = Rml::RenderInterface;
-constexpr size_t _Render_idx = 0;
+using gui_context = Rml::Context*;
+using render_interface_base = Rml::RenderInterface;
 
-struct custom_render_interface : _Render_ifc
+struct custom_render_interface : render_interface_base
 {
     virtual void Init(void* const renderer = nullptr) = 0;
     void ReleaseTextures();
-    virtual void RenderContext(_Ctx_ptr const ctx) = 0;
+    virtual void RenderContext(gui_context const ctx) = 0;
 };
+
+CHEAT_OBJECT(render_interface, custom_render_interface);
 
 export namespace cheat::gui
 {
-    CHEAT_OBJECT(render_interface, custom_render_interface, _Render_idx);
+    using ::render_interface;
 }

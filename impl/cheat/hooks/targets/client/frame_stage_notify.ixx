@@ -9,6 +9,6 @@ export namespace cheat::hooks::client
 {
 	struct frame_stage_notify : class_base
 	{
-		std::string_view name( ) const noexcept final;
-	};
+        std::string_view name() const final;
+    };
 }

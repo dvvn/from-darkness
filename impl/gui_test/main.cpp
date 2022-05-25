@@ -5,8 +5,11 @@
 #include <tchar.h>
 #include <windows.h>
 
+#include <compare>
+
 import cheat.hooks.loader;
 import cheat.logger.system_console;
+import cheat.application_info;
 
 using nstd::winapi::comptr;
 
@@ -162,14 +165,14 @@ int main(int, char**)
     ::UpdateWindow(hwnd);
 
     using namespace cheat;
+    app_info.construct(hwnd);
     logger_system_console->enable();
-
-    // hooks::init_basic();
+    hooks::loader->fill<CHEAT_HOOK_IDS>();
 
     // PresetD3D(hwnd);
 
-    /* if (!hooks::start().get())
-        return TRUE; */
+    if (!hooks::loader->start().get())
+        return TRUE;
 
     //----------------
 

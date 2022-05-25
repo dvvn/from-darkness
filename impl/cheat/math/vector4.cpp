@@ -27,7 +27,7 @@ CHEAT_MATH_ARRAY_INIT(vector4, float, 4);
 CHEAT_MATH_OP(vector4);
 CHEAT_MATH_VEC(vector4);
 
-bool vector4::within_aa_box(const vector4& boxmin, const vector4& boxmax) const noexcept
+bool vector4::within_aa_box(const vector4& boxmin, const vector4& boxmax) const
 {
 	return
 		(x >= boxmin.x) && (x <= boxmax.x) &&

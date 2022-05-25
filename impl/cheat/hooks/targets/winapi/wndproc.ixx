@@ -1,14 +1,10 @@
 module;
 
-#include <string_view>
+#include <cheat/hooks/interface.h>
 
 export module cheat.hooks.winapi.wndproc;
-export import cheat.hooks.base;
 
-export namespace cheat::hooks::winapi
+namespace cheat::hooks::winapi
 {
-    struct wndproc : static_base
-    {
-        std::string_view name() const noexcept final;
-    };
-} // namespace cheat::hooks::winapi
+    CHEAT_HOOK(wndproc, 0);
+}

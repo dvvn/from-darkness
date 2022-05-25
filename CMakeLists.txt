@@ -17,7 +17,39 @@ set(FDX_HOOKS_TARGETS_DIR ${FDX_HOOKS_DIR}/targets)
 macro(link_library vis name)
   target_link_libraries(${PROJECT_NAME} ${vis} ${name})
   target_include_directories(${PROJECT_NAME} ${vis} ${name})
-  message("${name} installed for ${PROJECT_NAME} as ${vis}")
+  message(STATUS "${name} installed for ${PROJECT_NAME} as ${vis}")
+endmacro()
+
+macro(write_hook_ids)
+  set(FDX_HOOK_IDS "")
+
+  get_target_property(LIBS ${PROJECT_NAME} LINK_LIBRARIES)
+
+  foreach(lib ${LIBS})
+    if(NOT TARGET ${lib})
+      continue()
+    endif()
+
+    unset(SRCS)
+    get_target_property(SRCS ${lib} SOURCES)
+
+    foreach(src ${SRCS})
+      if(NOT ${src} MATCHES ".ixx$")
+        continue()
+      endif()
+      # string(find ${src} ${FDX_HOOKS_TARGETS_DIR} starts)
+      # if(NOT ${starts} EQUAL 0)
+      #   continue()
+      # endif()
+      file(READ ${src} text) #"CHEAT_HOOK\(\w+, (\d+)\)"
+      string(REGEX MATCH "CHEAT_HOOK\(.*([0-9]+)\)" found ${text})
+      #message(-----${src}----${found}-----${CMAKE_MATCH_2}-----)
+      list(APPEND FDX_HOOK_IDS ${CMAKE_MATCH_2})
+    endforeach()
+  endforeach()
+  message(STATUS "ids for ${PROJECT_NAME}: ${FDX_HOOK_IDS}")
+  string(REPLACE ";" "," FDX_HOOK_IDS_STR "${FDX_HOOK_IDS}")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE CHEAT_HOOK_IDS=${FDX_HOOK_IDS_STR})
 endmacro()
 
 macro(create_hook_library name)
@@ -51,7 +83,7 @@ link_library(PUBLIC nstd::core)
 
 project(fdx_logger) #-------
 
-file(GLOB FDX_LOGGER_FILES ${FDX_LOGGER_DIR}/*.ixx ${FDX_LOGGER_DIR}/*.cpp)
+file(GLOB_RECURSE FDX_LOGGER_FILES ${FDX_LOGGER_DIR}/*.ixx ${FDX_LOGGER_DIR}/*.cpp)
 add_library(${PROJECT_NAME} ${FDX_LOGGER_FILES})
 add_library(fdx::logger ALIAS ${PROJECT_NAME})
 link_library(PUBLIC fdx::core)
@@ -109,12 +141,17 @@ link_library(PUBLIC fdx::gui)
 # link_library(PRIVATE fdx::hooks::core)
 # link_library(PRIVATE fdx::gui)
 
+macro(set_hooks_count)
+  #CHEAT_HOOKS_COUNT
+endmacro()
+
 project(fdx_gui_test) #----------
 
-add_executable(fdx_gui_test ${FDX_DIR}/gui_test/main.cpp ${FDX_HOOKS_DIR}/initializer_basic.cpp)
+add_executable(fdx_gui_test ${FDX_DIR}/gui_test/main.cpp)
 link_library(PRIVATE fdx::hooks::winapi)
 link_library(PRIVATE fdx::hooks::directx)
 target_link_libraries(${PROJECT_NAME} PRIVATE d3d9.lib)
+write_hook_ids()
 
 # project(fdx)
 

@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/hooks/hook.h>
+#include <cheat/hooks/impl.h>
 
 #include <windows.h>
 
@@ -14,25 +14,21 @@ using namespace cheat;
 using namespace hooks;
 using namespace winapi;
 
-CHEAT_HOOK(wndproc, static)
-{
-    wndproc_impl()
-    {
-        const auto proc = app_info->window.proc;
-        def_ = proc.def();
-        this->init(proc.curr(), &callback);
-    }
-
-    static LRESULT WINAPI callback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) noexcept
-    {
+#define ARGS_T HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 #define ARGS hwnd, msg, wparam, lparam
-        const auto input_result = std::invoke(*gui::input_handler, ARGS);
-        const auto block_input = input_result.touched();
-        return block_input ? get().def_(ARGS) : call_original(ARGS);
-    }
 
-  private:
-    WNDPROC def_;
-};
+CHEAT_HOOK_BODY(wndproc, static, LRESULT WINAPI, ARGS_T);
 
-CHEAT_HOOK_IMPL(wndproc);
+CHEAT_HOOK_INIT(wndproc)
+{
+    const auto proc = app_info->window.proc;
+    // def_ = proc.def();
+    hook::init(proc.curr(), &callback);
+}
+
+CHEAT_HOOK_CALLBACK(wndproc, LRESULT WINAPI, ARGS_T)
+{
+    const auto input_result = std::invoke(*gui::input_handler, ARGS);
+    const auto block_input = input_result.touched();
+    return block_input ? std::invoke(app_info->window.proc.def(), ARGS) : call_original(ARGS);
+}

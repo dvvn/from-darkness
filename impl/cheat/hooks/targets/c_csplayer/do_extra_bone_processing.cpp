@@ -21,11 +21,10 @@ CHEAT_HOOK(do_extra_bone_processing, member)
         this->init({vtable_holder, index}, &do_extra_bone_processing_impl::callback);
     }
 
-    void callback(CStudioHdr * studio_hdr, math::vector3 * pos, math::quaternion * q, math::matrix3x4_aligned * bone_to_world, CBoneBitList & bone_computed, CIKContext * ik_context) const noexcept
+    void callback(CStudioHdr* studio_hdr, math::vector3* pos, math::quaternion* q, math::matrix3x4_aligned* bone_to_world, CBoneBitList& bone_computed, CIKContext* ik_context) const
     {
         //---
     }
 };
 
 CHEAT_HOOK_IMPL(do_extra_bone_processing)
-

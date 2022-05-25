@@ -26,7 +26,7 @@ CHEAT_INTERFACE_IMPL(ICVar, csgo_modules::vstdlib.find_interface<"VEngineCvar">(
 using nstd::mem::basic_address;
 
 template <typename T>
-static void _Set_helper(ConVar* ptr, size_t index, T value) noexcept
+static void _Set_helper(ConVar* ptr, size_t index, T value)
 {
 	//return dhooks::_Call_function(static_cast<void(ConVar::*)(T)>(&ConVar::set), ptr, index, value);
 	//dhooks::invoke(&ConVar::set<T>, index, ptr, value);
@@ -36,7 +36,7 @@ static void _Set_helper(ConVar* ptr, size_t index, T value) noexcept
 }
 
 template <typename T>
-static T _Get_helper(const ConVar* ptr, size_t index) noexcept
+static T _Get_helper(const ConVar* ptr, size_t index)
 {
 	//return dhooks::invoke(&ConVar::get<T>, index, ptr);
 
@@ -44,44 +44,44 @@ static T _Get_helper(const ConVar* ptr, size_t index) noexcept
 	return std::invoke(fn, ptr);
 }
 
-template < >
-const char* ConVar::get( ) const noexcept
+template <>
+const char* ConVar::get() const
 {
 	return _Get_helper<const char*>(this, 11);
 }
 
-template < >
-float ConVar::get( ) const noexcept
+template <>
+float ConVar::get() const
 {
 	return _Get_helper<float>(this, 12);
 }
 
-template < >
-int ConVar::get( ) const noexcept
+template <>
+int ConVar::get() const
 {
 	return _Get_helper<int>(this, 13);
 }
 
-template < >
-bool ConVar::get( ) const noexcept
+template <>
+bool ConVar::get() const
 {
 	return !!this->get<int>( );
 }
 
-template < >
-void ConVar::set(const char* value) noexcept
+template <>
+void ConVar::set(const char* value)
 {
 	_Set_helper(this, 14, value);
 }
 
-template < >
-void ConVar::set(float value) noexcept
+template <>
+void ConVar::set(float value)
 {
 	_Set_helper(this, 15, value);
 }
 
-template < >
-void ConVar::set(int value) noexcept
+template <>
+void ConVar::set(int value)
 {
 	_Set_helper(this, 16, value);
 }
@@ -98,39 +98,39 @@ public:
 	ConCommandBaseIterator(pointer ptr)
 		:itr_(ptr)
 	{
-	}
+    }
 
-	pointer get( ) const noexcept
-	{
+    pointer get() const
+    {
 		return itr_;
-	}
+    }
 
-	pointer operator->( ) const noexcept
-	{
+    pointer operator->() const
+    {
 		return itr_;
-	}
+    }
 
-	reference operator*( ) const noexcept
-	{
+    reference operator*() const
+    {
 		return *itr_;
 	}
 
 	// Prefix increment
-	ConCommandBaseIterator& operator++( ) noexcept
-	{
+    ConCommandBaseIterator& operator++()
+    {
 		itr_ = itr_->m_pNext;
 		return *this;
 	}
 
 	// Postfix increment
-	ConCommandBaseIterator operator++(difference_type) noexcept
-	{
+    ConCommandBaseIterator operator++(difference_type)
+    {
 		ConCommandBaseIterator tmp = *this; ++(*this);
 		return tmp;
-	}
+    }
 
-	bool operator==(const ConCommandBaseIterator& other) const noexcept
-	{
+    bool operator==(const ConCommandBaseIterator& other) const
+    {
 		return itr_ == other.itr_;
 	}
 
@@ -138,7 +138,7 @@ private:
 	pointer itr_;
 };
 
-static bool _Compare_cvars(const std::string_view name, const ConCommandBase& other) noexcept
+static bool _Compare_cvars(const std::string_view name, const ConCommandBase& other)
 {
 	if(other.IsCommand( ))
 		return false;
@@ -151,7 +151,7 @@ static bool _Compare_cvars(const std::string_view name, const ConCommandBase& ot
 	return true;
 }
 
-ConVar* ICVar::FindVar(const std::string_view name) const noexcept
+ConVar* ICVar::FindVar(const std::string_view name) const
 {
 	const auto comparer = std::bind_front(_Compare_cvars, name);
 	const ConCommandBaseIterator first_cvar = basic_address(this).plus(0x30).deref<1>( ).get<ConCommandBase*>( );
@@ -173,11 +173,10 @@ ConVar* ICVar::FindVar(const std::string_view name) const noexcept
 	{
 		std::ostringstream msg;
 
-		const auto write_msg = [&]<typename T>(T obj) noexcept
-		{
+        const auto write_msg = [&]<typename T>(T obj) {
 			msg << obj;
-		};
-		const auto write_braces = [&]<typename T>(T obj)noexcept
+        };
+        const auto write_braces = [&]<typename T>(T obj)noexcept
 		{
 			msg << '"' << obj << '"';
 		};
@@ -203,4 +202,3 @@ ConVar* ICVar::FindVar(const std::string_view name) const noexcept
 
 	return static_cast<ConVar*>(target_cvar.get( ));
 }
-

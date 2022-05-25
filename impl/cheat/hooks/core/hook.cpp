@@ -18,21 +18,21 @@ hook::~hook()
 }
 
 template <typename M>
-static void _Log(const hook* h, const M& msg) noexcept
+static void _Log(const hook* h, const M& msg)
 {
     cheat::logger_system_console->log("{}: {}", std::bind_front(&hook::name, h), msg);
 }
 
-bool hook::enable() runtime_assert_noexcept
+bool hook::enable()
 {
-    if (!entry_.create() && !entry_.created())
+    if (!entry_.created() && !entry_.create())
     {
         _Log(this, "created error!");
         return false;
     }
     if (!entry_.enable())
     {
-        _Log(this, [this]() noexcept -> std::string_view {
+        _Log(this, [this] {
             return entry_.enabled() ? "already hooked" : "enable error!";
         });
         return false;
@@ -41,10 +41,10 @@ bool hook::enable() runtime_assert_noexcept
     return true;
 }
 
-bool hook::disable() runtime_assert_noexcept
+bool hook::disable()
 {
     const auto ok = entry_.disable();
-    _Log(this, [ok, this]() noexcept -> std::string_view {
+    _Log(this, [ok, this] {
         if (ok)
             return "unhooked";
         if (!entry_.enabled())
@@ -56,13 +56,23 @@ bool hook::disable() runtime_assert_noexcept
     return ok;
 }
 
-void* hook::get_original_method() const runtime_assert_noexcept
+bool hook::initialized() const
+{
+    return entry_.get_target_method() && entry_.get_replace_method();
+}
+
+bool hook::active() const
+{
+    return entry_.enabled();
+}
+
+void* hook::get_original_method() const
 {
     return entry_.get_original_method();
 }
 
 #if 0
-std::string hook::name( ) const noexcept
+std::string hook::name( ) const
 {
 	std::string ret;
 	if(this->is_static( ))

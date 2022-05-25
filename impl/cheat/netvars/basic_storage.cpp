@@ -19,13 +19,13 @@ using nstd::text::string_or_view;
 using nstd::text::hashed_string_view;
 using nstd::text::hashed_string;
 
-static const char* _Netvar_name(const netvar_info_source source) noexcept
+static const char* _Netvar_name(const netvar_info_source source)
 {
 	return std::visit(nstd::overload(&RecvProp::m_pVarName, &typedescription_t::fieldName), source);
 }
 
-template</*typename Ret,*/ typename T, typename Fn, typename ...Funcs>
-static decltype(auto) /*Ret*/ _Select_invoke(T arg, Fn fn, Funcs ...funcs) noexcept
+template </*typename Ret,*/ typename T, typename Fn, typename... Funcs>
+static decltype(auto) /*Ret*/ _Select_invoke(T arg, Fn fn, Funcs... funcs)
 {
 	if constexpr(std::invocable<Fn, T>)
 		return std::invoke(fn, arg);
@@ -33,12 +33,13 @@ static decltype(auto) /*Ret*/ _Select_invoke(T arg, Fn fn, Funcs ...funcs) noexc
 		return _Select_invoke(arg, funcs...);
 }
 
-static string_or_view _Netvar_type(const netvar_info_source source) noexcept
+static string_or_view _Netvar_type(const netvar_info_source source)
 {
-	return std::visit([ ]<class T>(T* const ptr) noexcept -> string_or_view
-	{
-		return _Select_invoke(ptr, type_recv_prop, type_datamap_field);
-	}, source);
+    return std::visit(
+        []<class T>(T* const ptr) -> string_or_view {
+            return _Select_invoke(ptr, type_recv_prop, type_datamap_field);
+        },
+        source);
 }
 
 //---
@@ -48,7 +49,7 @@ netvar_info::netvar_info(const size_t offset, const netvar_info_source source, c
 {
 }
 
-size_t netvar_info::offset( ) const noexcept
+size_t netvar_info::offset() const
 {
 	return offset_;
 }
@@ -60,7 +61,7 @@ size_t netvar_info::offset( ) const noexcept
 //	return *inner_ptr;
 //}
 
-hashed_string_view netvar_info::name( ) const noexcept
+hashed_string_view netvar_info::name() const
 {
 	if(name_.empty( ))
 	{
@@ -80,7 +81,7 @@ hashed_string_view netvar_info::name( ) const noexcept
 	return name_;
 }
 
-std::string_view netvar_info::type( ) const noexcept
+std::string_view netvar_info::type() const
 {
 	const std::string_view type_strv = type_;
 	if(!type_strv.empty( ))
@@ -120,24 +121,24 @@ netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, co
 {
 }
 
-size_t netvar_info_custom_constant::offset( ) const noexcept
+size_t netvar_info_custom_constant::offset() const
 {
 	return offset_;
 }
 
-hashed_string_view netvar_info_custom_constant::name( ) const noexcept
+hashed_string_view netvar_info_custom_constant::name() const
 {
 	return name_;
 }
 
-std::string_view netvar_info_custom_constant::type( ) const noexcept
+std::string_view netvar_info_custom_constant::type() const
 {
 	return type_;
 }
 
 //----
 
-void netvar_table::validate_item(const basic_netvar_info* info) const noexcept
+void netvar_table::validate_item(const basic_netvar_info* info) const
 {
 #ifdef _DEBUG
 	const auto name = info->name( );
@@ -173,12 +174,12 @@ netvar_table::netvar_table(hashed_string&& name)
 {
 }
 
-hashed_string_view netvar_table::name( ) const noexcept
+hashed_string_view netvar_table::name() const
 {
 	return name_;
 }
 
-const basic_netvar_info* netvar_table::find(const hashed_string_view name) const noexcept
+const basic_netvar_info* netvar_table::find(const hashed_string_view name) const
 {
 	for(auto& entry : *this)
 	{
@@ -188,19 +189,19 @@ const basic_netvar_info* netvar_table::find(const hashed_string_view name) const
 	return nullptr;
 }
 
-const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const hashed_string_view name) noexcept
+const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const hashed_string_view name)
 {
 	return add_impl<netvar_info>(offset, source, size, name);
 }
 
-const netvar_info_custom_constant* netvar_table::add(const size_t offset, const hashed_string_view name, string_or_view&& type) noexcept
+const netvar_info_custom_constant* netvar_table::add(const size_t offset, const hashed_string_view name, string_or_view&& type)
 {
 	return add_impl<netvar_info_custom_constant>(offset, name, std::move(type));
 }
 
 //----
 
-//bool basic_storage::contains_duplicate(const hashed_string_view name, netvar_table* const from) const noexcept
+// bool basic_storage::contains_duplicate(const hashed_string_view name, netvar_table* const from) const
 //{
 //	const auto begin = this->data( );
 //	const auto end = begin + this->size( );
@@ -212,14 +213,14 @@ const netvar_info_custom_constant* netvar_table::add(const size_t offset, const 
 //	if(found1)
 //		return _Find_name(std::span(found1 + 1, end), name);
 //	return false;
-//}
+// }
 
-auto basic_storage::find(const hashed_string_view name) const noexcept -> const netvar_table*
+auto basic_storage::find(const hashed_string_view name) const -> const netvar_table*
 {
 	return const_cast<basic_storage*>(this)->find(name);
 }
 
-auto basic_storage::find(const hashed_string_view name) noexcept -> netvar_table*
+auto basic_storage::find(const hashed_string_view name) -> netvar_table*
 {
 	for(netvar_table& entry : *this)
 	{
@@ -230,7 +231,7 @@ auto basic_storage::find(const hashed_string_view name) noexcept -> netvar_table
 	return nullptr;
 }
 
-auto basic_storage::add(netvar_table&& table, const bool skip_find) noexcept -> netvar_table*
+auto basic_storage::add(netvar_table&& table, const bool skip_find) -> netvar_table*
 {
 	if(!skip_find)
 	{
@@ -242,7 +243,7 @@ auto basic_storage::add(netvar_table&& table, const bool skip_find) noexcept -> 
 	return nullptr;
 }
 
-auto basic_storage::add(hashed_string&& name, const bool skip_find) noexcept -> netvar_table*
+auto basic_storage::add(hashed_string&& name, const bool skip_find) -> netvar_table*
 {
 	if(!skip_find)
 	{

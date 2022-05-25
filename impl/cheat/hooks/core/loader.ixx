@@ -2,39 +2,19 @@ module;
 
 #include <cheat/core/object.h>
 
+#include <array>
 #include <future>
 
 export module cheat.hooks.loader;
 import cheat.hooks.base;
 
-struct basic_instance_info
-{
-    virtual ~basic_instance_info() = default;
+using hook_base = cheat::hooks::base;
 
-    virtual cheat::hooks::base* get() const noexcept = 0;
-    virtual bool initialized() const noexcept = 0;
-
-    cheat::hooks::base* operator->() const noexcept
-    {
-        return get();
-    }
-};
-
-template <class HookInterface>
-struct instance_info final : basic_instance_info
-{
-    cheat::hooks::base* get() const noexcept override
-    {
-        return &CHEAT_OBJECT_GET(HookInterface, 0);
-    }
-
-    bool initialized() const noexcept override
-    {
-        return CHEAT_OBJECT_GET(HookInterface, 0).initialized();
-    }
-};
-
-using instance_info_ptr = std::unique_ptr<basic_instance_info>;
+// // count added because std::is_constructible/destructible always true on any index
+// // must by set in makefile
+// #ifndef CHEAT_HOOKS_COUNT
+// #define CHEAT_HOOKS_COUNT 1024 // huge value to break build
+// #endif
 
 struct basic_hooks_loader
 {
@@ -42,18 +22,20 @@ struct basic_hooks_loader
 
     virtual std::future<bool> start() = 0;
     virtual void stop() = 0;
-    virtual void add(instance_info_ptr&& info) = 0;
 
-    template <class HookInterface>
-    void add()
+    template <size_t... I>
+    void fill(const std::index_sequence<I...> = {})
     {
-        add(std::make_unique<instance_info<HookInterface>>());
+        (add(&CHEAT_OBJECT_GET(hook_base, I)), ...);
     }
+
+  protected:
+    virtual void add(hook_base* const hook) = 0;
 };
 
-constexpr size_t _Loader_idx = 0;
+CHEAT_OBJECT(loader, basic_hooks_loader);
 
 export namespace cheat::hooks
 {
-    CHEAT_OBJECT(loader, basic_hooks_loader, _Loader_idx);
+    using ::loader;
 }

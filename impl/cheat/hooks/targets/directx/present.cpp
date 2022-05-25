@@ -1,6 +1,6 @@
 module;
 
-#include <cheat/hooks/hook.h>
+#include <cheat/hooks/impl.h>
 
 #include <d3d9.h>
 
@@ -12,21 +12,18 @@ using namespace cheat;
 using namespace hooks;
 using namespace directx;
 
-CHEAT_HOOK(present, member)
+#define ARGS_T THIS_ CONST RECT *source_rect, CONST RECT *desc_rect, HWND dest_window_override, CONST RGNDATA *dirty_region
+
+CHEAT_HOOK_BODY(present, member, HRESULT WINAPI, ARGS_T);
+
+CHEAT_HOOK_INIT(present)
 {
-    using dummy = void;
+    // this->init({&instance_of<IDirect3DDevice9>, 17, &IDirect3DDevice9::Present}, &present_impl::callback);
+}
 
-    present_impl( )
-    {
-        // this->init({&instance_of<IDirect3DDevice9>, 17, &IDirect3DDevice9::Present}, &present_impl::callback);
-    }
-
-    HRESULT WINAPI callback(THIS_ CONST RECT * source_rect, CONST RECT * desc_rect, HWND dest_window_override, CONST RGNDATA * dirty_region) const noexcept
-    {
-        using namespace gui;
-        render_interface->RenderContext(&context);
-        return call_original(source_rect, desc_rect, dest_window_override, dirty_region);
-    }
-};
-
-CHEAT_HOOK_IMPL(present);
+CHEAT_HOOK_CALLBACK(present, HRESULT WINAPI, ARGS_T)
+{
+    using namespace gui;
+    render_interface->RenderContext(&context);
+    return call_original(source_rect, desc_rect, dest_window_override, dirty_region);
+}

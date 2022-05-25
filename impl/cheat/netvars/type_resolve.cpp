@@ -21,7 +21,7 @@ using nstd::type_name;
 using namespace cheat;
 using namespace csgo;
 
-std::string netvars::type_std_array(const std::string_view type,const size_t size) noexcept
+std::string netvars::type_std_array(const std::string_view type, const size_t size)
 {
 	runtime_assert(size != 0);
 	std::string buff;
@@ -38,7 +38,7 @@ std::string netvars::type_std_array(const std::string_view type,const size_t siz
 	//return std::format("{}<{}, {}>", type_name<std::array>( ), type, size);
 }
 
-std::string netvars::type_utlvector(const std::string_view type) noexcept
+std::string netvars::type_utlvector(const std::string_view type)
 {
 	std::string buff;
 	constexpr auto arr_name = type_name<CUtlVector>( );
@@ -52,7 +52,7 @@ std::string netvars::type_utlvector(const std::string_view type) noexcept
 }
 
 //m_xxxX***
-static std::string_view _Extract_prefix(const std::string_view type, const size_t prefix_size = 3) noexcept
+static std::string_view _Extract_prefix(const std::string_view type, const size_t prefix_size = 3)
 {
 	const auto type_start = 2 + prefix_size;
 	if (type.size( ) > type_start && (type[0] == 'm' && type[1] == '_') && std::isupper(type[type_start]))
@@ -64,7 +64,7 @@ static std::string_view _Extract_prefix(const std::string_view type, const size_
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
 #endif
 
-std::string_view netvars::type_vec3(const std::string_view type) noexcept
+std::string_view netvars::type_vec3(const std::string_view type)
 {
 	const auto vec3_qangle = [=]
 	{
@@ -79,7 +79,7 @@ std::string_view netvars::type_vec3(const std::string_view type) noexcept
 	return vec3_qangle( ) ? type_name<math::qangle>( ) : type_name<math::vector3>( );
 }
 
-std::string_view netvars::type_integer(std::string_view type) noexcept
+std::string_view netvars::type_integer(std::string_view type)
 {
 	if (/*!std::isdigit(type[0]) &&*/ type.starts_with("m_"))
 	{
@@ -118,7 +118,7 @@ std::string_view netvars::type_integer(std::string_view type) noexcept
 
 //---
 
-string_or_view netvars::type_recv_prop(RecvProp* const prop) noexcept
+string_or_view netvars::type_recv_prop(RecvProp* const prop)
 {
 	switch (prop->m_RecvType)
 	{
@@ -154,7 +154,7 @@ string_or_view netvars::type_recv_prop(RecvProp* const prop) noexcept
 	}
 }
 
-std::string_view netvars::type_datamap_field(typedescription_t* const field)  noexcept
+std::string_view netvars::type_datamap_field(typedescription_t* const field)
 {
 	switch (field->fieldType)
 	{
@@ -242,14 +242,14 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)  no
 	}
 }
 
-static std::string_view _Check_int_prefix(const std::string_view type) noexcept
+static std::string_view _Check_int_prefix(const std::string_view type)
 {
 	if (_Extract_prefix(type) == "uch")
 		return nstd::type_name<math::color>( );
 	return {};
 }
 
-static std::string_view _Check_float_prefix(const std::string_view type) noexcept
+static std::string_view _Check_float_prefix(const std::string_view type)
 {
 	const auto prefix = _Extract_prefix(type);
 	if (prefix == "ang")
@@ -259,7 +259,7 @@ static std::string_view _Check_float_prefix(const std::string_view type) noexcep
 	return {};
 }
 
-std::string_view netvars::type_array_prefix(const std::string_view type, csgo::RecvProp* const prop) noexcept
+std::string_view netvars::type_array_prefix(const std::string_view type, csgo::RecvProp* const prop)
 {
 	switch (prop->m_RecvType)
 	{
@@ -272,7 +272,7 @@ std::string_view netvars::type_array_prefix(const std::string_view type, csgo::R
 	}
 }
 
-std::string_view netvars::type_array_prefix(const std::string_view type, csgo::typedescription_t* const field) noexcept
+std::string_view netvars::type_array_prefix(const std::string_view type, csgo::typedescription_t* const field)
 {
 	switch (field->fieldType)
 	{

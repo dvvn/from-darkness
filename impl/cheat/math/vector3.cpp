@@ -27,7 +27,7 @@ CHEAT_MATH_ARRAY_INIT(vector3, float, 3);
 CHEAT_MATH_OP(vector3);
 CHEAT_MATH_VEC(vector3);
 
-vector3 vector3::cross(const vector3& other) const noexcept
+vector3 vector3::cross(const vector3& other) const
 {
 	/*auto& vect_A = CHEAT_MATH_AS_ARRAY(*this);
 	auto& vect_B = CHEAT_MATH_AS_ARRAY(other);
@@ -47,7 +47,7 @@ vector3 vector3::cross(const vector3& other) const noexcept
 	};
 }
 
-float vector3::dot(const vector3& other) const noexcept
+float vector3::dot(const vector3& other) const
 {
 	return {x * other.x + y * other.y + z * other.z};
 }

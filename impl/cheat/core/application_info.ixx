@@ -8,8 +8,8 @@ export module cheat.application_info;
 
 struct rect_ex : RECT
 {
-    LONG width() const noexcept;
-    LONG height() const noexcept;
+    LONG width() const;
+    LONG height() const;
 };
 
 struct window_hwnd
@@ -19,15 +19,15 @@ struct window_hwnd
 
 struct window_size : window_hwnd
 {
-    rect_ex full() const noexcept;
-    rect_ex client() const noexcept;
+    rect_ex full() const;
+    rect_ex client() const;
 };
 
 struct wndproc_ctrl : window_hwnd
 {
-    WNDPROC def() const noexcept;
-    WNDPROC curr() const noexcept;
-    WNDPROC set(const WNDPROC proc) noexcept;
+    WNDPROC def() const;
+    WNDPROC curr() const;
+    WNDPROC set(const WNDPROC proc);
 };
 
 //----
@@ -43,16 +43,12 @@ struct application_info
 
     HMODULE module_handle;
 
-    application_info(const HWND window_handle, const HMODULE module_handle);
-
-#ifdef _DEBUG
-    application_info() = default;
-#endif
+    // for one_instance
+    application_info();
+    application_info(const HWND window_handle, const HMODULE module_handle = nullptr);
 };
-
-constexpr size_t _App_info_idx = 0;
 
 export namespace cheat
 {
-    CHEAT_OBJECT(app_info, application_info, _App_info_idx);
+    CHEAT_OBJECT(app_info, application_info);
 }

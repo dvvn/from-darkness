@@ -18,7 +18,7 @@ CHEAT_HOOK(should_skip_animation_frame, member)
         init(csgo_modules::client.find_signature<"57 8B F9 8B 07 8B 80 ? ? ? ? FF D0 84 C0 75 02">( ), &should_skip_animation_frame_impl::callback);
     }
 
-    void callback( ) const noexcept
+    void callback() const
     {
         call_original( );
     }

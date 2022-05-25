@@ -9,16 +9,15 @@ import cheat.application_info;
 // import cheat.console;
 
 using namespace cheat;
-using hooks::loader;
 
 [[noreturn]] static DWORD WINAPI unload_delayed(LPVOID)
 {
-    loader->stop();
+    hooks::loader->stop();
     Sleep(1000);
     FreeLibraryAndExitThread(app_info->module_handle, FALSE);
 }
 
-void hooks::unload() noexcept
+void hooks::unload()
 {
     if (app_info->module_handle == GetModuleHandle(nullptr))
     {

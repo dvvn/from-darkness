@@ -178,15 +178,12 @@ export namespace cheat::math
 		CHEAT_MATH_OP_FWD(vector3);
 		CHEAT_MATH_VEC_FWD(vector3);
 
-		vector3 cross(const vector3& other) const noexcept;
-		float dot(const vector3& other) const noexcept;
-	};
+        vector3 cross(const vector3& other) const;
+        float dot(const vector3& other) const;
+    };
 
 	struct alignas(16) vector3_aligned :vector3
 	{
 		vector3_aligned(const vector3& base = {});
 	};
-
-	
-
 }

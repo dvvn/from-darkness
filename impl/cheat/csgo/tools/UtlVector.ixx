@@ -85,7 +85,7 @@ public:
     void Purge(); // Memory deallocation
                   // Purges the list and calls delete on each element in it.
     void PurgeAndDeleteElements();
-    // Compacts the vector to the number of elements actually in use 
+    // Compacts the vector to the number of elements actually in use
     void Compact();
     // Set the size by which it grows when it needs to allocate more memory.
     void SetGrowSize(int size) { m_Memory.SetGrowSize(size); }
@@ -500,7 +500,7 @@ int CUtlVector<T, A>::AddVectorToTail(CUtlVector const &src)
     int nSrcCount = src.Count();
     EnsureCapacity(base + nSrcCount);
 
-    // Copy the elements.	
+    // Copy the elements.
     m_Size += nSrcCount;
     for(int i = 0; i < nSrcCount; i++) {
         CopyConstruct(&Element(base + i), src[i]);
@@ -767,29 +767,29 @@ public:
 		using size_type = int;
 
 		CUtlVector(const CUtlVector& other)                = delete;
-		CUtlVector(CUtlVector&& other) noexcept            = delete;
-		CUtlVector& operator=(const CUtlVector& other)     = delete;
-		CUtlVector& operator=(CUtlVector&& other) noexcept = delete;
+        CUtlVector(CUtlVector&& other) = delete;
+        CUtlVector& operator=(const CUtlVector& other) = delete;
+        CUtlVector& operator=(CUtlVector&& other) = delete;
 
-		CUtlVector( ) = delete;
+        CUtlVector() = delete;
 
-		T* begin( ) noexcept
-		{
+        T* begin()
+        {
 			return memory_.data( );
-		}
+        }
 
-		T* end( ) noexcept
-		{
+        T* end()
+        {
 			return memory_.data( ) + size_;
-		}
+        }
 
-		const T* begin( ) const noexcept
-		{
+        const T* begin() const
+        {
 			return memory_.data( );
-		}
+        }
 
-		const T* end( ) const noexcept
-		{
+        const T* end() const
+        {
 			return memory_.data( ) + size_;
 		}
 
