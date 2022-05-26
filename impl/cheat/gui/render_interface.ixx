@@ -12,14 +12,15 @@ using render_interface_base = Rml::RenderInterface;
 
 struct custom_render_interface : render_interface_base
 {
-    virtual void Init(void* const renderer = nullptr) = 0;
     void ReleaseTextures();
     virtual void RenderContext(gui_context const ctx) = 0;
 };
 
 CHEAT_OBJECT(render_interface, custom_render_interface);
+CHEAT_OBJECT(render_interface_raw, render_interface_base);
 
 export namespace cheat::gui
 {
     using ::render_interface;
+    using ::render_interface_raw;
 }

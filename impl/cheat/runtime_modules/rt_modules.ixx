@@ -6,7 +6,7 @@ module;
 #include <memory>
 #include <string>
 
-export module cheat.csgo.modules;
+export module cheat.rt_modules;
 import cheat.tools.object_name;
 import nstd.text.chars_cache; //already imported, compiler bug
 import nstd.winapi.exports;
@@ -18,6 +18,7 @@ using nstd::mem::basic_address;
 namespace wp = nstd::winapi;
 
 void console_log(const std::wstring_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr);
+
 struct logs_writer
 {
     void operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::wstring_view module_name) const;
@@ -46,11 +47,13 @@ using nstd::text::chars_cache;
 template <class Gm>
 class interface_finder
 {
-    [[no_unique_address]] Gm game_module_;
+    [[no_unique_address]] Gm rt_module_;
     basic_address<void> addr_;
 
   public:
-    interface_finder(const basic_address<void> addr, Gm&& gm = {}) : addr_(addr), game_module_(std::move(gm))
+    interface_finder(const basic_address<void> addr, Gm&& gm = {})
+        : addr_(addr)
+        , rt_module_(std::move(gm))
     {
     }
 
@@ -58,7 +61,7 @@ class interface_finder
     operator T*() const
     {
         T* const ptr = addr_;
-        console_log(game_module_._Name(), "interface", csgo_object_name<T>, ptr);
+        console_log(rt_module_._Name(), "interface", csgo_object_name<T>, ptr);
         return ptr;
     }
 
@@ -104,19 +107,19 @@ template <class Gm>
 interface_finder(Gm) -> interface_finder<Gm>;
 
 template <chars_cache Name>
-struct game_module
+struct rt_module
 {
     constexpr std::wstring_view _Name() const
     {
         return Name;
     }
 
-    interface_finder<game_module> _Ifc_finder(const basic_address<void> addr) const
+    interface_finder<rt_module> _Ifc_finder(const basic_address<void> addr) const
     {
-		return addr;
-	}
+        return addr;
+    }
 
-	//---
+    //---
 
     template <typename FnT, chars_cache Export>
     FnT find_export() const
@@ -165,23 +168,22 @@ struct current_module
 };
 
 #define DLL_NAME(_NAME_) L#_NAME_ ".dll"
+#define CHEAT_GAME_MODULE(_NAME_) constexpr rt_module<DLL_NAME(_NAME_)> _NAME_;
 
-export namespace cheat::csgo_modules
+export namespace cheat::runtime_modules
 {
-	constexpr current_module current;
-
-#define CHEAT_GAME_MODULE(_NAME_) constexpr game_module<DLL_NAME(_NAME_)> _NAME_;
+    constexpr current_module current;
 
     CHEAT_GAME_MODULE(server);
     CHEAT_GAME_MODULE(client);
     CHEAT_GAME_MODULE(engine);
-	CHEAT_GAME_MODULE(datacache);
-	CHEAT_GAME_MODULE(materialsystem);
-	CHEAT_GAME_MODULE(vstdlib);
-	CHEAT_GAME_MODULE(vgui2);
-	CHEAT_GAME_MODULE(vguimatsurface);
-	CHEAT_GAME_MODULE(vphysics);
-	CHEAT_GAME_MODULE(inputsystem);
-	CHEAT_GAME_MODULE(studiorender);
-	CHEAT_GAME_MODULE(shaderapidx9);
-}
+    CHEAT_GAME_MODULE(datacache);
+    CHEAT_GAME_MODULE(materialsystem);
+    CHEAT_GAME_MODULE(vstdlib);
+    CHEAT_GAME_MODULE(vgui2);
+    CHEAT_GAME_MODULE(vguimatsurface);
+    CHEAT_GAME_MODULE(vphysics);
+    CHEAT_GAME_MODULE(inputsystem);
+    CHEAT_GAME_MODULE(studiorender);
+    CHEAT_GAME_MODULE(shaderapidx9);
+} // namespace cheat::runtime_modules

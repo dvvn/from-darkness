@@ -15,7 +15,7 @@ CHEAT_HOOK_BODY(reset, member, void WINAPI, D3DPRESENT_PARAMETERS* params);
 
 CHEAT_HOOK_INIT(reset)
 {
-    // init({&instance_of<IDirect3DDevice9>, 16, &IDirect3DDevice9::Reset}, &reset_impl::callback);
+    hook::init({&CHEAT_OBJECT_GET(IDirect3DDevice9), 16, &IDirect3DDevice9::Reset}, &reset_impl::callback);
 }
 
 CHEAT_HOOK_CALLBACK(reset, void WINAPI, D3DPRESENT_PARAMETERS* params)

@@ -1,7 +1,6 @@
 module;
 
 #include <nstd/format.h>
-#include <nstd/runtime_assert_core.h>
 
 #include <functional>
 #include <string>

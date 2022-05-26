@@ -36,7 +36,6 @@ public:
 struct basic_input_handler
 {
     virtual ~basic_input_handler() = default;
-    virtual void init(Rml::Context* const ctx) = 0;
     virtual input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) = 0;
 };
 

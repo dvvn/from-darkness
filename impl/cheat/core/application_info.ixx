@@ -43,8 +43,6 @@ struct application_info
 
     HMODULE module_handle;
 
-    // for one_instance
-    application_info();
     application_info(const HWND window_handle, const HMODULE module_handle = nullptr);
 };
 

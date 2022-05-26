@@ -6,6 +6,8 @@
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/SystemInterface.h>
 #ifdef _DEBUG
 #include <RmlUi/Debugger.h>
 #endif
@@ -13,12 +15,12 @@
 #include <memory>
 
 module cheat.gui.context;
-import cheat.gui.render_interface;
-import cheat.gui.system_interface;
 import cheat.application_info;
 
-#define RML_SAMPLES NSTD_CONCAT(RMLUI_DIR, \Samples\)
-#define RML_SAMPLE(_DIR_, _S_) NSTD_STRINGIZE_RAW(RML_SAMPLES)##_DIR_##"\\"##_S_
+// clang-format off
+#define RML_SAMPLES NSTD_CONCAT(RMLUI_DIR, /Samples/)
+#define RML_SAMPLE(_DIR_, _S_) NSTD_STRINGIZE_RAW(RML_SAMPLES)_DIR_"/"_S_
+// clang-format on
 
 #if 0
 static void _Rml_demo_animation(Context* ctx)
@@ -101,11 +103,10 @@ class gui_context
     ~gui_context();
     gui_context();
 
-    Context* get() const;
+    Context* operator&() const;
 };
 
-CHEAT_OBJECT(real_gui_context, gui_context);
-CHEAT_OBJECT_IMPL(Context*, context, real_gui_context->get());
+CHEAT_OBJECT_BIND(Context*, context, gui_context);
 
 gui_context::~gui_context()
 {
@@ -114,8 +115,8 @@ gui_context::~gui_context()
 
 gui_context::gui_context()
 {
-    // Rml::SetRenderInterface(&instance_of<render_interface> 0);
-    // Rml::SetSystemInterface(&instance_of<system_interface>);
+    Rml::SetRenderInterface(&CHEAT_OBJECT_GET(Rml::RenderInterface));
+    Rml::SetSystemInterface(&CHEAT_OBJECT_GET(Rml::SystemInterface));
 
     Rml::Initialise();
 
@@ -157,7 +158,7 @@ gui_context::gui_context()
 #endif
 }
 
-Context* gui_context::get() const
+Context* gui_context::operator&() const
 {
     return ctx_;
 }

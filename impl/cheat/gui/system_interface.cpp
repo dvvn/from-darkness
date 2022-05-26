@@ -46,12 +46,15 @@ using cheat::logger_system_console;
 template <typename... Args>
 static void _Log(const std::string_view str, Args&&... args)
 {
-    logger_system_console->log("[RmlUi] {}", [&] {
-        if constexpr (sizeof...(Args) == 0)
-            return str;
-        else
-            return nstd::vformat(str, nstd::make_format_args(std::forward<Args>(args)...));
-    });
+    if (!logger_system_console->active())
+        return;
+
+    constexpr std::string_view prefix = "[RmlUi] ";
+    std::string buff;
+    buff.reserve(prefix.size() + str.size());
+    buff += prefix;
+    buff += str;
+    logger_system_console->log(buff, std::forward<Args>(args)...);
 }
 
 static void _Log(const Rml_log logtype, const Rml::String& message)

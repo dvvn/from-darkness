@@ -10,6 +10,7 @@
 import cheat.hooks.loader;
 import cheat.logger.system_console;
 import cheat.application_info;
+import cheat.d3d_device9;
 
 using nstd::winapi::comptr;
 
@@ -165,6 +166,7 @@ int main(int, char**)
     ::UpdateWindow(hwnd);
 
     using namespace cheat;
+    d3d_device9.construct(g_pd3dDevice);
     app_info.construct(hwnd);
     logger_system_console->enable();
     hooks::loader->fill<CHEAT_HOOK_IDS>();
@@ -185,7 +187,7 @@ int main(int, char**)
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
-                return FALSE;
+                goto _STOP;
         }
 
         g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
@@ -195,5 +197,7 @@ int main(int, char**)
             ResetDevice();
     }
 
+_STOP:
+    hooks::loader->stop();
     return FALSE;
 }

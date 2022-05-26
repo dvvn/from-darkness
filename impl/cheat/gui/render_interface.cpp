@@ -16,7 +16,6 @@ module cheat.gui.render_interface;
 
 void custom_render_interface::ReleaseTextures()
 {
-    // Rml::ReleaseTextures(this);
     Rml::ReleaseCompiledGeometry();
 }
 
@@ -52,7 +51,8 @@ namespace Rml
         d3d_device_wrapped* d3d_;
 
       public:
-        void Init(void* const d3d) override;
+        ~RenderInterfaceD3d9();
+        RenderInterfaceD3d9();
         void RenderContext(Context* const ctx) override;
 
         void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation) override;
@@ -71,10 +71,17 @@ namespace Rml
 using Rml::RenderInterfaceD3d9;
 
 CHEAT_OBJECT_BIND(custom_render_interface, render_interface, RenderInterfaceD3d9);
+CHEAT_OBJECT_IMPL(render_interface_base, render_interface_raw, render_interface);
 
-void RenderInterfaceD3d9::Init(void* const d3d)
+RenderInterfaceD3d9::~RenderInterfaceD3d9()
 {
-    runtime_assert(d3d != nullptr, "Not implemented");
+    // basically unwanted, added because we init objects in random order
+    Rml::ReleaseTextures(this);
+}
+
+RenderInterfaceD3d9::RenderInterfaceD3d9()
+{
+    const auto d3d = &CHEAT_OBJECT_GET(IDirect3DDevice9);
     d3d_ = reinterpret_cast<d3d_device_wrapped*>(d3d);
 }
 

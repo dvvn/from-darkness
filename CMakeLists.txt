@@ -11,8 +11,12 @@ set(FDX_WORK_DIR ${FDX_DIR}/cheat)
 set(FDX_CORE_DIR ${FDX_WORK_DIR}/core)
 set(FDX_GUI_DIR ${FDX_WORK_DIR}/gui)
 set(FDX_LOGGER_DIR ${FDX_WORK_DIR}/logger)
+set(FDX_RT_MODULES_DIR ${FDX_WORK_DIR}/runtime_modules)
+set(FDX_EXTERNAL_INTERFACES_DIR ${FDX_WORK_DIR}/external_interfaces)
 set(FDX_HOOKS_DIR ${FDX_WORK_DIR}/hooks)
 set(FDX_HOOKS_TARGETS_DIR ${FDX_HOOKS_DIR}/targets)
+
+#-------------------
 
 macro(link_library vis name)
   target_link_libraries(${PROJECT_NAME} ${vis} ${name})
@@ -64,6 +68,18 @@ macro(create_hook_library name)
   link_library(PRIVATE fdx::hooks::core)
 endmacro()
 
+macro(create_external_interface_library name)
+  project(fdx_external_interface_${name})
+
+  unset(_FILES)
+  file(GLOB _FILES ${FDX_EXTERNAL_INTERFACES_DIR}/${name}/*)
+
+  add_library(${PROJECT_NAME} ${_FILES})
+  add_library(fdx::external_interface::${name} ALIAS ${PROJECT_NAME})
+
+  link_library(PRIVATE fdx::rt_modules)
+endmacro()
+
 #-------------------
 
 include(FetchContent)
@@ -81,22 +97,16 @@ add_library(fdx::core ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} PUBLIC ${FDX_DIR})
 link_library(PUBLIC nstd::core)
 
-project(fdx_logger) #-------
+project(fdx_logger) #-------------------
 
 file(GLOB_RECURSE FDX_LOGGER_FILES ${FDX_LOGGER_DIR}/*.ixx ${FDX_LOGGER_DIR}/*.cpp)
 add_library(${PROJECT_NAME} ${FDX_LOGGER_FILES})
 add_library(fdx::logger ALIAS ${PROJECT_NAME})
 link_library(PUBLIC fdx::core)
-link_library(PRIVATE nstd::text)
-link_library(PRIVATE nstd::format)
+link_library(PUBLIC nstd::text)
+link_library(PUBLIC nstd::format)
 
-project(fdx_gui) #-------
-
-file(GLOB FDX_GUI_FILES ${FDX_GUI_DIR}/*) #no headers here
-
-add_library(${PROJECT_NAME} ${FDX_GUI_FILES})
-add_library(fdx::gui ALIAS ${PROJECT_NAME})
-link_library(PUBLIC fdx::logger)
+project(fdx_gui) #-------------------
 
 FetchContent_Declare(hazzbuzz GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz.git GIT_TAG 4.2.1)
 FetchContent_MakeAvailable(hazzbuzz)
@@ -109,23 +119,37 @@ get_target_property(FREETYPE_INCLUDE_DIRS freetype INTERFACE_INCLUDE_DIRECTORIES
 
 FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
 FetchContent_MakeAvailable(rml)
+
+file(GLOB FDX_GUI_FILES ${FDX_GUI_DIR}/*) #no headers here
+
+add_library(${PROJECT_NAME} ${FDX_GUI_FILES})
+add_library(fdx::gui ALIAS ${PROJECT_NAME})
+link_library(PUBLIC fdx::logger)
 link_library(PRIVATE RmlCore)
 link_library(PRIVATE RmlDebugger)
-add_compile_definitions(${PROJECT_NAME} PRIVATE RMLUI_STATIC_LIB)
+add_compile_definitions(${PROJECT_NAME} PRIVATE RMLUI_STATIC_LIB PRIVATE RMLUI_DIR=${rml_SOURCE_DIR})
 
-project(fdx_hooks_core) #----------
+project(fdx_rt_modules) #-------------------
+
+file(GLOB FDX_RT_MODULES_FILES ${FDX_RT_MODULES_DIR}/*) #no headers here
+add_library(${PROJECT_NAME} ${FDX_RT_MODULES_FILES})
+add_library(fdx::rt_modules ALIAS ${PROJECT_NAME})
+link_library(PUBLIC fdx::logger)
+link_library(PUBLIC nstd::winapi)
+
+project(fdx_hooks_core) #-------------------
+
+FetchContent_Declare(dhooks GIT_REPOSITORY https://github.com/dvvn/detour_hooks.git)
+FetchContent_MakeAvailable(dhooks)
 
 file(GLOB FDX_HOOKS_CORE_FILES ${FDX_HOOKS_DIR}/core/*) #no headers here
 
 add_library(${PROJECT_NAME} ${FDX_HOOKS_CORE_FILES})
 add_library(fdx::hooks::core ALIAS ${PROJECT_NAME})
 link_library(PUBLIC fdx::logger)
-
-FetchContent_Declare(dhooks GIT_REPOSITORY https://github.com/dvvn/detour_hooks.git)
-FetchContent_MakeAvailable(dhooks)
 link_library(PRIVATE dhooks)
 
-#----------------
+#-------------------
 
 create_hook_library(winapi)
 link_library(PUBLIC fdx::gui)
@@ -133,24 +157,19 @@ link_library(PUBLIC fdx::gui)
 create_hook_library(directx)
 link_library(PUBLIC fdx::gui)
 
-# project(fdx_gui_impl) #----------
+#-------------------
 
-# file(GLOB_RESCUE FDX_GUI_HOOKS_FILES ${FDX_HOOKS_TARGETS_DIR}/winapi/*.ixx ${FDX_CORE_DIR}/*.cpp)
+create_external_interface_library(d3d9)
+target_link_libraries(${PROJECT_NAME} PUBLIC d3d9.lib)
 
-# add_library(fdx_gui_test ${FDX_DIR}/gui_test/main.cpp ${FDX_HOOKS_DIR}/initializer_basic.cpp)
-# link_library(PRIVATE fdx::hooks::core)
-# link_library(PRIVATE fdx::gui)
+#-------------------
 
-macro(set_hooks_count)
-  #CHEAT_HOOKS_COUNT
-endmacro()
-
-project(fdx_gui_test) #----------
+project(fdx_gui_test) #-------------------
 
 add_executable(fdx_gui_test ${FDX_DIR}/gui_test/main.cpp)
 link_library(PRIVATE fdx::hooks::winapi)
 link_library(PRIVATE fdx::hooks::directx)
-target_link_libraries(${PROJECT_NAME} PRIVATE d3d9.lib)
+link_library(PUBLIC fdx::external_interface::d3d9)
 write_hook_ids()
 
 # project(fdx)

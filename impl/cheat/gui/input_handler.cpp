@@ -16,7 +16,6 @@ module;
 #include <string_view>
 
 module cheat.gui.input_handler;
-import cheat.gui.context;
 import nstd.lazy_invoke;
 import nstd.text.convert.unicode;
 
@@ -40,24 +39,15 @@ class input_helper
     input_helper(Context* const ctx);
 
     input_result_proxy l_button_down(const HWND window);
-
     input_result_proxy l_button_up();
-
     input_result_proxy r_button_down();
-
     input_result_proxy r_button_up();
-
     input_result_proxy m_button_down();
-
     input_result_proxy m_button_up();
-
     input_result_proxy mouse_move(const LPARAM l_param);
-
     input_result_proxy mouse_wheel(const WPARAM w_param);
-
     input_result key_down(const WPARAM w_param);
     input_result_proxy key_up(const WPARAM w_param);
-
     input_result_proxy on_character(const WPARAM w_param, char16_t& first_code_unit);
     input_result resize(const WPARAM w_param, const LPARAM l_param);
 };
@@ -70,7 +60,7 @@ class input_handler_impl final : public basic_input_handler
     input_helper input() const;
 
   public:
-    void init(Context* const ctx) override;
+    input_handler_impl();
     input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) override;
 };
 
@@ -81,10 +71,9 @@ input_helper input_handler_impl::input() const
     return ctx_;
 }
 
-void input_handler_impl::init(Context* const ctx)
+input_handler_impl::input_handler_impl()
+    : ctx_(&CHEAT_OBJECT_GET(Rml::Context*))
 {
-    runtime_assert(ctx_ && !ctx);
-    ctx_ = ctx;
 }
 
 input_result input_handler_impl::operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param)

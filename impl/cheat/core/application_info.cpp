@@ -61,11 +61,6 @@ WNDPROC wndproc_ctrl::set(const WNDPROC proc)
 
 //----------
 
-application_info::application_info()
-{
-    runtime_assert("Wrong constructor called");
-}
-
 application_info::application_info(const HWND window_handle, const HMODULE module_handle)
     : module_handle(module_handle ? module_handle : (IsWindowUnicode(window_handle) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr)))
 {

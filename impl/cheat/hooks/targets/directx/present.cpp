@@ -18,7 +18,7 @@ CHEAT_HOOK_BODY(present, member, HRESULT WINAPI, ARGS_T);
 
 CHEAT_HOOK_INIT(present)
 {
-    // this->init({&instance_of<IDirect3DDevice9>, 17, &IDirect3DDevice9::Present}, &present_impl::callback);
+    hook::init({&CHEAT_OBJECT_GET(IDirect3DDevice9), 17, &IDirect3DDevice9::Present}, &present_impl::callback);
 }
 
 CHEAT_HOOK_CALLBACK(present, HRESULT WINAPI, ARGS_T)

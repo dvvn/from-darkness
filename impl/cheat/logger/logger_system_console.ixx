@@ -3,7 +3,7 @@ module;
 #include <cheat/core/object.h>
 
 export module cheat.logger.system_console;
-import cheat.logger_interface;
+import cheat.logger;
 
 CHEAT_OBJECT(logger_system_console, cheat::logger);
 

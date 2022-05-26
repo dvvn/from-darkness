@@ -16,13 +16,20 @@ auto _Object_type_impl()
 template <typename T>
 using _Object_type = typename decltype(_Object_type_impl<T>())::type;
 
+template <class T>
+concept _Dereferenceable = std::is_reference_v<decltype(*std::declval<T>())>;
+
 template <typename T, typename V>
-auto _Correct_result(V val)
+decltype(auto) _Correct_result(V&& val)
 {
-    if constexpr (std::constructible_from<T, V>)
-        return std::move(val);
-    else if constexpr (std::is_pointer_v<T>)
+    using val_t = decltype(val);
+    using raw_t = std::remove_cvref_t<V>;
+    if constexpr (std::constructible_from<T, val_t>)
+        return T(std::forward<V>(val));
+    else if constexpr (std::constructible_from<T, decltype(&val)>)
         return &val;
+    else if constexpr (_Dereferenceable<val_t> && std::is_class_v<raw_t>) // V is one_instance_t
+        return _Correct_result<T>(*val);
 }
 
 #define CHEAT_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, _IMPL_)                                                             \
