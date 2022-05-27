@@ -53,6 +53,8 @@ namespace Rml
       public:
         ~RenderInterfaceD3d9();
         RenderInterfaceD3d9();
+
+        void SetupRender(Context* const ctx);
         void RenderContext(Context* const ctx) override;
 
         void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation) override;
@@ -71,7 +73,7 @@ namespace Rml
 using Rml::RenderInterfaceD3d9;
 
 CHEAT_OBJECT_BIND(custom_render_interface, render_interface, RenderInterfaceD3d9);
-CHEAT_OBJECT_IMPL(render_interface_base, render_interface_raw, render_interface);
+CHEAT_OBJECT_BIND(render_interface_base, render_interface_raw, RenderInterfaceD3d9);
 
 RenderInterfaceD3d9::~RenderInterfaceD3d9()
 {
@@ -85,42 +87,43 @@ RenderInterfaceD3d9::RenderInterfaceD3d9()
     d3d_ = reinterpret_cast<d3d_device_wrapped*>(d3d);
 }
 
-static COM_DECLSPEC_NOTHROW void _Setup_render(d3d_device_wrapped* const d3d, const Rml::Vector2i dimensions)
+void RenderInterfaceD3d9::SetupRender(Context* const ctx)
 {
     /*float L = clientRect.left + 0.5f;
     float R = clientRect.left + clientRect.right + 0.5f;
     float T = clientRect.top + 0.5f;
     float B = clientRect.bottom + clientRect.top + 0.5f;*/
 
+    const auto dimensions = ctx->GetDimensions();
     // Set up an orthographic projection.
     const auto projection = DirectX::XMMatrixOrthographicOffCenterLH(0, dimensions.x + 0.5f, dimensions.y + 0.5f, 0, -1, 1);
     const auto identity = DirectX::XMMatrixIdentity();
-    d3d->SetTransform(D3DTS_WORLD, identity);
-    d3d->SetTransform(D3DTS_VIEW, identity);
-    d3d->SetTransform(D3DTS_PROJECTION, projection);
+    d3d_->SetTransform(D3DTS_WORLD, identity);
+    d3d_->SetTransform(D3DTS_VIEW, identity);
+    d3d_->SetTransform(D3DTS_PROJECTION, projection);
 
     // Switch to clockwise culling instead of counter-clockwise culling; Rocket generates counter-clockwise geometry,
     // so you can either reverse the culling mode when Rocket is rendering, or reverse the indices in the render
     // interface.
-    d3d->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+    d3d_->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 
     // Enable alpha-blending for Rocket.
-    d3d->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-    d3d->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-    d3d->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    d3d_->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+    d3d_->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    d3d_->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
     // Set up the texture stage states for the diffuse texture.
-    d3d->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-    d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-    d3d->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-    d3d->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-    d3d->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+    d3d_->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+    d3d_->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+    d3d_->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+    d3d_->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+    d3d_->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
 
-    d3d->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-    d3d->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+    d3d_->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+    d3d_->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
     // Disable lighting for Rocket.
-    d3d->SetRenderState(D3DRS_LIGHTING, FALSE);
+    d3d_->SetRenderState(D3DRS_LIGHTING, FALSE);
 }
 
 void RenderInterfaceD3d9::RenderContext(Context* const ctx)
@@ -132,8 +135,7 @@ void RenderInterfaceD3d9::RenderContext(Context* const ctx)
     [[maybe_unused]] const auto bg = d3d_->BeginScene();
     RMLUI_ASSERT(bg == D3D_OK);
 
-    _Setup_render(d3d_, ctx->GetDimensions());
-
+    this->SetupRender(ctx);
     // Render the user interface. All geometry and other rendering commands are now
     // submitted through the render interface.
     ctx->Render();

@@ -7,13 +7,12 @@ module;
 
 export module cheat.gui.render_interface;
 
-using gui_context = Rml::Context*;
 using render_interface_base = Rml::RenderInterface;
 
 struct custom_render_interface : render_interface_base
 {
     void ReleaseTextures();
-    virtual void RenderContext(gui_context const ctx) = 0;
+    virtual void RenderContext(Rml::Context* const ctx) = 0;
 };
 
 CHEAT_OBJECT(render_interface, custom_render_interface);
