@@ -93,20 +93,18 @@ static void _Rml_demo_animation(Context* ctx)
 }
 #endif
 
-using Rml::Context;
-
 class gui_context
 {
-    Context* ctx_;
+    Rml::Context* ctx_;
 
   public:
     ~gui_context();
     gui_context();
 
-    Context* operator&() const;
+    Rml::Context* operator&() const;
 };
 
-CHEAT_OBJECT_BIND(Context*, context, gui_context);
+CHEAT_OBJECT_BIND(Rml::Context*, context, gui_context);
 
 gui_context::~gui_context()
 {
@@ -158,7 +156,7 @@ gui_context::gui_context()
 #endif
 }
 
-Context* gui_context::operator&() const
+Rml::Context* gui_context::operator&() const
 {
     return ctx_;
 }

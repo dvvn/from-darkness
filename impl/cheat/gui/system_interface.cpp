@@ -14,7 +14,7 @@ import cheat.logger.system_console;
 
 using Rml_log = Rml::Log::Type;
 
-class system_interface_impl final : public system_interface_base
+class system_interface_impl final : public Rml::SystemInterface
 {
     using clock = std::chrono::high_resolution_clock;
     using out_duration = std::chrono::duration<double>;
@@ -27,7 +27,7 @@ class system_interface_impl final : public system_interface_base
     bool LogMessage(Rml_log logtype, const Rml::String& message) override;
 };
 
-CHEAT_OBJECT_BIND(system_interface_base, system_interface, system_interface_impl);
+CHEAT_OBJECT_BIND(Rml::SystemInterface, system_interface, system_interface_impl);
 
 system_interface_impl::system_interface_impl()
     : start_time_(clock::now())
@@ -71,7 +71,7 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
     {
     case Rml_log::LT_ASSERT: {
         runtime_assert(message.c_str());                            // it calls std::terminate if defined
-        return system_interface_base::LogMessage(logtype, message); // otherwise call default logs handler
+        return Rml::SystemInterface::LogMessage(logtype, message);  // otherwise call default logs handler
     }
     case Rml_log::LT_ERROR:
         _Log(logtype, message);
@@ -82,7 +82,7 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
 #endif
     case Rml_log::LT_ALWAYS:
         if (!logger_system_console->active())
-            return system_interface_base::LogMessage(logtype, message);
+            return Rml::SystemInterface::LogMessage(logtype, message);
     case Rml_log::LT_WARNING:
     case Rml_log::LT_INFO:
         _Log(logtype, message);

@@ -19,9 +19,9 @@ void custom_render_interface::ReleaseTextures()
     Rml::ReleaseCompiledGeometry();
 }
 
-struct DECLSPEC_NOVTABLE d3d_device_wrapped : IDirect3DDevice9
+struct DECLSPEC_NOVTABLE d3d_device9_wrapped : IDirect3DDevice9
 {
-    d3d_device_wrapped() = delete;
+    d3d_device9_wrapped() = delete;
 
     /* COM_DECLSPEC_NOTHROW HRESULT SetTransform(const D3DTRANSFORMSTATETYPE state, const D3DMATRIX* const mat)
     {
@@ -48,7 +48,7 @@ namespace Rml
 {
     class RenderInterfaceD3d9 final : public custom_render_interface
     {
-        d3d_device_wrapped* d3d_;
+        d3d_device9_wrapped* d3d_;
 
       public:
         ~RenderInterfaceD3d9();
@@ -73,7 +73,7 @@ namespace Rml
 using Rml::RenderInterfaceD3d9;
 
 CHEAT_OBJECT_BIND(custom_render_interface, render_interface, RenderInterfaceD3d9);
-CHEAT_OBJECT_BIND(render_interface_base, render_interface_raw, RenderInterfaceD3d9);
+CHEAT_OBJECT_BIND(Rml::RenderInterface, render_interface_raw, RenderInterfaceD3d9);
 
 RenderInterfaceD3d9::~RenderInterfaceD3d9()
 {
@@ -84,7 +84,7 @@ RenderInterfaceD3d9::~RenderInterfaceD3d9()
 RenderInterfaceD3d9::RenderInterfaceD3d9()
 {
     const auto d3d = &CHEAT_OBJECT_GET(IDirect3DDevice9);
-    d3d_ = reinterpret_cast<d3d_device_wrapped*>(d3d);
+    d3d_ = reinterpret_cast<d3d_device9_wrapped*>(d3d);
 }
 
 void RenderInterfaceD3d9::SetupRender(Context* const ctx)

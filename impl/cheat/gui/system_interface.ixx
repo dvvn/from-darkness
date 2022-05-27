@@ -6,8 +6,7 @@ module;
 
 export module cheat.gui.system_interface;
 
-using system_interface_base = Rml::SystemInterface;
-CHEAT_OBJECT(system_interface, system_interface_base);
+CHEAT_OBJECT(system_interface, Rml::SystemInterface);
 
 export namespace cheat::gui
 {
