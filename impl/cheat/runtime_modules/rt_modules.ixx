@@ -41,7 +41,6 @@ struct logs_writer
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig);
 void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name);
 
-using cheat::tools::csgo_object_name;
 using nstd::text::chars_cache;
 
 template <class Gm>
@@ -61,7 +60,7 @@ class interface_finder
     operator T*() const
     {
         T* const ptr = addr_;
-        console_log(rt_module_._Name(), "interface", csgo_object_name<T>, ptr);
+        console_log(rt_module_._Name(), "interface", cheat::object_name<T>, ptr);
         return ptr;
     }
 
@@ -136,7 +135,7 @@ struct rt_module
     template <typename T>
     T* find_vtable() const
     {
-        static const auto found = wp::find_vtable<logs_writer>(wp::find_module<Name, logs_writer>(), this->_Name(), csgo_object_name<T>);
+        static const auto found = wp::find_vtable<logs_writer>(wp::find_module<Name, logs_writer>(), this->_Name(), cheat::object_name<T>);
         return static_cast<T*>(found);
     }
 

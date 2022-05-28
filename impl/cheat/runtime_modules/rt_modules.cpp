@@ -4,7 +4,6 @@ module;
 #include <nstd/ranges.h>
 #include <nstd/runtime_assert.h>
 
-#include <tchar.h>
 #include <windows.h>
 #include <winternl.h>
 
@@ -40,14 +39,14 @@ struct
 {
     auto operator()(const basic_address<void> object_ptr) const
     {
-        return object_ptr ? nstd::format(_T("found at {:#X}"), object_ptr.value) : _T("not found");
+        return object_ptr ? nstd::format("found at {:#X}", object_ptr.value) : "not found";
     }
 } constexpr inform_found_pointer;
 
 template <typename Mod, typename ObjT, typename ObjN, typename P>
 static void _Console_log(const Mod module_name, const ObjT& object_type, const ObjN& object_name, P* const object_ptr)
 {
-    cheat::logger_system_console->log(_T("{} -> {} \"{}\" {}"), std::bind_front(extract_module_name, module_name), object_type, object_name, std::bind_front(inform_found_pointer, object_ptr));
+    cheat::logger_system_console->log(L"{} -> {} \"{}\" {}", std::bind_front(extract_module_name, module_name), object_type, object_name, std::bind_front(inform_found_pointer, object_ptr));
 }
 
 void console_log(const std::wstring_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr)
@@ -59,12 +58,12 @@ void console_log(const std::wstring_view module_name, const std::string_view obj
 
 void logs_writer::operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::wstring_view module_name) const
 {
-    cheat::logger_system_console->log(_T("module \"{}\" found at {:#X}"), module_name, reinterpret_cast<uintptr_t>(ldr_entry));
+    cheat::logger_system_console->log(L"module \"{}\" found at {:#X}", module_name, reinterpret_cast<uintptr_t>(ldr_entry));
 }
 
 void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::wstring_view module_name, const std::string_view section_name) const
 {
-    _Console_log(module_name, _T("section"), section_name, sec);
+    _Console_log(module_name, "section", section_name, sec);
 }
 
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig)
@@ -78,7 +77,7 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::s
     const auto ret = mem.find_block(bytes);
 
     const auto result = ret.data();
-    _Console_log(ldr_entry, _T("signature"), sig, result);
+    _Console_log(ldr_entry, "signature", sig, result);
     return result;
 }
 
@@ -110,7 +109,7 @@ void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_add
     runtime_assert(target_reg != nullptr);
     runtime_assert(_Find_interface(name, target_reg->next) == nullptr);
     const auto ifc_addr = std::invoke(target_reg->create_fn);
-    _Console_log(ldr_entry, _T("interface"), name, ifc_addr);
+    _Console_log(ldr_entry, "interface", name, ifc_addr);
     return ifc_addr;
 }
 

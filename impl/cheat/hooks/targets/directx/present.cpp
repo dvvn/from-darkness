@@ -8,13 +8,9 @@ module cheat.hooks.directx.present;
 import cheat.gui.context;
 import cheat.gui.render_interface;
 
-using namespace cheat;
-using namespace hooks;
-using namespace directx;
-
 #define ARGS_T THIS_ CONST RECT *source_rect, CONST RECT *desc_rect, HWND dest_window_override, CONST RGNDATA *dirty_region
 
-CHEAT_HOOK_BODY(present, member, HRESULT WINAPI, ARGS_T);
+CHEAT_HOOK_BODY(directx, present, member, HRESULT WINAPI, ARGS_T);
 
 CHEAT_HOOK_INIT(present)
 {

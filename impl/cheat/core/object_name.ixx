@@ -14,11 +14,11 @@ consteval std::string_view drop_type_namespace(const std::string_view drop)
     return {str.data() + offset_l, str.data() + offset_r};
 }
 
-export namespace cheat::tools
+export namespace cheat
 {
     template <typename T>
     constexpr std::string_view object_name = drop_type_namespace<T>("cheat");
 
-    template <typename T>
-    constexpr std::string_view csgo_object_name = drop_type_namespace<T>("cheat::csgo");
-} // namespace cheat::tools
+    /* template <typename T>
+    constexpr std::string_view csgo_object_name = drop_type_namespace<T>("cheat::csgo"); */
+} // namespace cheat

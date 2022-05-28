@@ -7,11 +7,7 @@ module;
 module cheat.hooks.directx.reset;
 import cheat.gui.render_interface;
 
-using namespace cheat;
-using namespace hooks;
-using namespace directx;
-
-CHEAT_HOOK_BODY(reset, member, void WINAPI, D3DPRESENT_PARAMETERS* params);
+CHEAT_HOOK_BODY(directx, reset, member, void WINAPI, D3DPRESENT_PARAMETERS* params);
 
 CHEAT_HOOK_INIT(reset)
 {

@@ -10,14 +10,10 @@ import cheat.application_info;
 
 //#define HOT_UNLOAD_SUPPORTED
 
-using namespace cheat;
-using namespace hooks;
-using namespace winapi;
-
 #define ARGS_T HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam
 #define ARGS hwnd, msg, wparam, lparam
 
-CHEAT_HOOK_BODY(wndproc, static, LRESULT WINAPI, ARGS_T);
+CHEAT_HOOK_BODY(winapi, wndproc, static, LRESULT WINAPI, ARGS_T);
 
 CHEAT_HOOK_INIT(wndproc)
 {

@@ -30,8 +30,6 @@ struct wndproc_ctrl : window_hwnd
     WNDPROC set(const WNDPROC proc);
 };
 
-//----
-
 struct application_info
 {
     union
