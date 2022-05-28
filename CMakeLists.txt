@@ -8,36 +8,87 @@ endif()
 
 set(FDX_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
 set(FDX_WORK_DIR ${FDX_DIR}/cheat)
-set(FDX_CORE_DIR ${FDX_WORK_DIR}/core)
-set(FDX_GUI_DIR ${FDX_WORK_DIR}/gui)
-set(FDX_LOGGER_DIR ${FDX_WORK_DIR}/logger)
-set(FDX_RT_MODULES_DIR ${FDX_WORK_DIR}/runtime_modules)
-set(FDX_EXTERNAL_INTERFACES_DIR ${FDX_WORK_DIR}/external_interfaces)
 set(FDX_HOOKS_DIR ${FDX_WORK_DIR}/hooks)
-set(FDX_HOOKS_TARGETS_DIR ${FDX_HOOKS_DIR}/targets)
 
 #-------------------
 
 macro(link_library vis name)
   target_link_libraries(${PROJECT_NAME} ${vis} ${name})
   target_include_directories(${PROJECT_NAME} ${vis} ${name})
-  message(STATUS "${name} installed for ${PROJECT_NAME} as ${vis}")
+  message(STATUS "${PROJECT_NAME}: installed ${name} (${vis})")
+endmacro()
+
+macro(setup_project dir)
+  set(extra_args ${ARGN})
+  list(LENGTH extra_args extra_count)
+
+  unset(name)
+  unset(type)
+
+  if(extra_count GREATER 0)
+    list(GET extra_args 0 name)
+  endif()
+  if(extra_count GREATER 1)
+    list(GET extra_args 1 type)
+  endif()
+
+  if(NOT DEFINED name)
+    get_filename_component(name ${dir} NAME)
+    project(fdx_${name})
+  else()
+    string(REPLACE "::" "_" name_correct ${name})
+    project(fdx_${name_correct})
+  endif()
+
+  file(GLOB_RECURSE _FILES ${dir}/*.ixx ${dir}/*.cpp)
+
+  if(type STREQUAL "EXECUTABLE")
+    add_executable(${PROJECT_NAME} ${_FILES})
+  else()
+    if(NOT DEFINED type)
+      add_library(${PROJECT_NAME} ${_FILES})
+    else()
+      add_library(${PROJECT_NAME} ${type} ${_FILES})
+    endif()
+    add_library(fdx::${name} ALIAS ${PROJECT_NAME})
+  endif()
+
+  get_target_property(target_type ${PROJECT_NAME} TYPE)
+  message(STATUS "${PROJECT_NAME}: created (${target_type})")
+endmacro()
+
+macro(setup_hook name)
+  setup_project(${FDX_HOOKS_DIR}/targets/${name} hooks::${name})
+  link_library(PRIVATE fdx::hooks::core)
+endmacro()
+
+macro(link_hook vis name)
+  link_library(${vis} fdx::hooks::${name})
+endmacro()
+
+macro(link_external_interface vis name)
+  link_library(${vis} fdx::external_ifc::${name})
+endmacro()
+
+macro(setup_external_interface name)
+  setup_project(${FDX_WORK_DIR}/external_interfaces/${name} external_ifc::${name})
+  link_library(PRIVATE fdx::rt_modules)
 endmacro()
 
 macro(write_hook_ids)
-  set(FDX_HOOK_IDS "")
+  set(ids_list "")
 
-  get_target_property(LIBS ${PROJECT_NAME} LINK_LIBRARIES)
+  get_target_property(libs_list ${PROJECT_NAME} LINK_LIBRARIES)
 
-  foreach(lib ${LIBS})
+  foreach(lib ${libs_list})
     if(NOT TARGET ${lib})
       continue()
     endif()
 
-    unset(SRCS)
-    get_target_property(SRCS ${lib} SOURCES)
+    unset(sources_list)
+    get_target_property(sources_list ${lib} SOURCES)
 
-    foreach(src ${SRCS})
+    foreach(src ${sources_list})
       if(NOT ${src} MATCHES ".ixx$")
         continue()
       endif()
@@ -48,36 +99,13 @@ macro(write_hook_ids)
       file(READ ${src} text) #"CHEAT_HOOK\(\w+, (\d+)\)"
       string(REGEX MATCH "CHEAT_HOOK\(.*([0-9]+)\)" found ${text})
       #message(-----${src}----${found}-----${CMAKE_MATCH_2}-----)
-      list(APPEND FDX_HOOK_IDS ${CMAKE_MATCH_2})
+      list(APPEND ids_list ${CMAKE_MATCH_2})
     endforeach()
   endforeach()
-  message(STATUS "ids for ${PROJECT_NAME}: ${FDX_HOOK_IDS}")
-  string(REPLACE ";" "," FDX_HOOK_IDS_STR "${FDX_HOOK_IDS}")
-  target_compile_definitions(${PROJECT_NAME} PRIVATE CHEAT_HOOK_IDS=${FDX_HOOK_IDS_STR})
-endmacro()
 
-macro(create_hook_library name)
-  project(fdx_hooks_${name})
-
-  unset(_FILES)
-  file(GLOB _FILES ${FDX_HOOKS_TARGETS_DIR}/${name}/*)
-
-  add_library(${PROJECT_NAME} ${_FILES})
-  add_library(fdx::hooks::${name} ALIAS ${PROJECT_NAME})
-
-  link_library(PRIVATE fdx::hooks::core)
-endmacro()
-
-macro(create_external_interface_library name)
-  project(fdx_external_interface_${name})
-
-  unset(_FILES)
-  file(GLOB _FILES ${FDX_EXTERNAL_INTERFACES_DIR}/${name}/*)
-
-  add_library(${PROJECT_NAME} ${_FILES})
-  add_library(fdx::external_interface::${name} ALIAS ${PROJECT_NAME})
-
-  link_library(PRIVATE fdx::rt_modules)
+  message(STATUS "ids for ${PROJECT_NAME}: ${ids_list}")
+  string(REPLACE ";" "," ids_str "${ids_list}")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE CHEAT_HOOK_IDS=${ids_str})
 endmacro()
 
 #-------------------
@@ -89,24 +117,20 @@ FetchContent_MakeAvailable(nstd)
 
 #-------------------
 
-project(fdx_core) #universal stuff
-
-file(GLOB FDX_CORE_FILES ${FDX_CORE_DIR}/*.ixx ${FDX_CORE_DIR}/*.cpp)
-add_library(${PROJECT_NAME} ${FDX_CORE_FILES})
-add_library(fdx::core ALIAS ${PROJECT_NAME})
+setup_project(${FDX_WORK_DIR}/core)
 target_include_directories(${PROJECT_NAME} PUBLIC ${FDX_DIR})
 link_library(PUBLIC nstd::core)
 
-project(fdx_logger) #-------------------
+#-------------------
 
-file(GLOB_RECURSE FDX_LOGGER_FILES ${FDX_LOGGER_DIR}/*.ixx ${FDX_LOGGER_DIR}/*.cpp)
-add_library(${PROJECT_NAME} ${FDX_LOGGER_FILES})
-add_library(fdx::logger ALIAS ${PROJECT_NAME})
+setup_project(${FDX_WORK_DIR}/logger)
 link_library(PUBLIC fdx::core)
 link_library(PUBLIC nstd::text)
 link_library(PUBLIC nstd::format)
 
-project(fdx_gui) #-------------------
+#-------------------
+
+setup_project(${FDX_WORK_DIR}/gui)
 
 FetchContent_Declare(hazzbuzz GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz.git GIT_TAG 4.2.1)
 FetchContent_MakeAvailable(hazzbuzz)
@@ -120,64 +144,54 @@ get_target_property(FREETYPE_INCLUDE_DIRS freetype INTERFACE_INCLUDE_DIRECTORIES
 FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
 FetchContent_MakeAvailable(rml)
 
-file(GLOB FDX_GUI_FILES ${FDX_GUI_DIR}/*) #no headers here
-
-add_library(${PROJECT_NAME} ${FDX_GUI_FILES})
-add_library(fdx::gui ALIAS ${PROJECT_NAME})
 link_library(PUBLIC fdx::logger)
 link_library(PRIVATE RmlCore)
 link_library(PRIVATE RmlDebugger)
 add_compile_definitions(${PROJECT_NAME} PRIVATE RMLUI_STATIC_LIB PRIVATE RMLUI_DIR=${rml_SOURCE_DIR})
 
-project(fdx_rt_modules) #-------------------
+#-------------------
 
-file(GLOB FDX_RT_MODULES_FILES ${FDX_RT_MODULES_DIR}/*) #no headers here
-add_library(${PROJECT_NAME} ${FDX_RT_MODULES_FILES})
-add_library(fdx::rt_modules ALIAS ${PROJECT_NAME})
+setup_project(${FDX_WORK_DIR}/runtime_modules rt_modules)
 link_library(PUBLIC fdx::logger)
 link_library(PUBLIC nstd::winapi)
 
-project(fdx_hooks_core) #-------------------
+#-------------------
 
+setup_project(${FDX_HOOKS_DIR}/core hooks::core)
 FetchContent_Declare(dhooks GIT_REPOSITORY https://github.com/dvvn/detour_hooks.git)
 FetchContent_MakeAvailable(dhooks)
-
-file(GLOB FDX_HOOKS_CORE_FILES ${FDX_HOOKS_DIR}/core/*) #no headers here
-
-add_library(${PROJECT_NAME} ${FDX_HOOKS_CORE_FILES})
-add_library(fdx::hooks::core ALIAS ${PROJECT_NAME})
 link_library(PUBLIC fdx::logger)
 link_library(PRIVATE dhooks)
 
 #-------------------
 
-create_hook_library(winapi)
-link_library(PUBLIC fdx::gui)
+# file(GLOB FDX_HOOKS_LIST ${FDX_HOOKS_DIR}/targets/*/)
+# foreach(dir ${FDX_HOOKS_LIST})
+#   get_filename_component(hook_name ${dir} NAME)
+#   setup_project(${dir} hooks::${hook_name})
+#   link_library(PRIVATE fdx::hooks::core)
+# endforeach()
 
-create_hook_library(directx)
+setup_hook(winapi)
 link_library(PUBLIC fdx::gui)
 
 #-------------------
 
-create_external_interface_library(d3d9)
+setup_hook(directx)
+link_library(PUBLIC fdx::gui)
+
+#-------------------
+
+setup_external_interface(d3d9)
 target_link_libraries(${PROJECT_NAME} PUBLIC d3d9.lib)
 
 #-------------------
 
-project(fdx_gui_test) #-------------------
-
-add_executable(fdx_gui_test ${FDX_DIR}/gui_test/main.cpp)
-link_library(PRIVATE fdx::hooks::winapi)
-link_library(PRIVATE fdx::hooks::directx)
-link_library(PUBLIC fdx::external_interface::d3d9)
+setup_project(${FDX_DIR}/gui_test gui_test EXECUTABLE)
+link_hook(PRIVATE winapi)
+link_hook(PRIVATE directx)
+link_external_interface(PUBLIC d3d9)
 write_hook_ids()
-
-# project(fdx)
-
-# file(GLOB_RECURSE FDX_FILES ${FDX_WORK_DIR}/*.cpp ${FDX_WORK_DIR}/*.ixx ${FDX_WORK_DIR}/*.h)
-
-# add_library(fdx ${FDX_FILES})
-# target_include_directories(fdx PUBLIC ${FDX_DIR})
 
 # FetchContent_Declare(veque GIT_REPOSITORY https://github.com/Shmoopty/veque.git)
 # FetchContent_Populate(veque) #no cmakelist inside
