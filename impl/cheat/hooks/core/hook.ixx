@@ -1,5 +1,7 @@
 module;
 
+#include <cheat/core/object.h>
+
 #include <nstd/runtime_assert.h>
 
 #include <concepts>
@@ -55,8 +57,8 @@ TINY_IMPL(vectorcall);
 
 class function_getter
 {
-    void* fn_ptr_;
-    uint8_t ptr_size_;
+    void* fn_ptr_ = nullptr;
+    uint8_t ptr_size_ = 0;
 
   public:
     operator void*() const
@@ -74,11 +76,7 @@ class function_getter
         return fn_ptr_;
     }
 
-    function_getter()
-    {
-        fn_ptr_ = nullptr;
-        ptr_size_ = 0;
-    }
+    function_getter() = default;
 
     template <typename Fn>
     function_getter(Fn fn)
@@ -96,87 +94,93 @@ class function_getter
     }
 };
 
+struct hook : cheat::hooks::base
+{
+    ~hook() override;
+    hook();
+
+    bool enable() final;
+    bool disable() final;
+
+    bool initialized() const final;
+    bool active() const final;
+
+    void* get_original_method() const;
+
+  protected:
+    void init(const function_getter target, const function_getter replace);
+
+  private:
+    dhooks::hook_entry entry_;
+};
+
+template <class Impl>
+concept have_callback_method = requires
+{
+    &Impl::callback;
+};
+
+template <class Impl>
+concept have_static_callback_method = have_callback_method<Impl> && std::is_pointer_v<decltype(&Impl::callback)> && std::is_function_v<decltype(Impl::callback)>;
+
+template <class Impl>
+concept have_member_callback_method = have_callback_method<Impl> && std::is_member_function_pointer_v<decltype(&Impl::callback)>;
+
+template <class Impl>
+struct hook_instance_static
+{
+    constexpr hook_instance_static()
+    {
+        static_assert(have_static_callback_method<Impl>, "Incorrect function type passed");
+    }
+
+  protected:
+    template <typename... Args>
+    static decltype(auto) call_original(Args&&... args)
+    {
+        auto fn = &Impl::callback;
+        reinterpret_cast<void*&>(fn) = CHEAT_OBJECT_GET(Impl)->get_original_method();
+        return std::invoke(fn, std::forward<Args>(args)...);
+    }
+};
+
+template <class Impl>
+struct hook_instance_member
+{
+    constexpr hook_instance_member()
+    {
+        static_assert(have_member_callback_method<Impl>, "Incorrect function type passed");
+    }
+
+  protected:
+    template <typename... Args>
+    decltype(auto) call_original(Args&&... args) const
+    {
+        const auto inst = &CHEAT_OBJECT_GET(Impl);
+        const auto thisptr = static_cast<const Impl*>(this);
+        runtime_assert(inst != thisptr, "Function must be called from hooked method!");
+        const auto orig_fn = inst->get_original_method();
+
+        auto def_callback = &Impl::callback;
+        if constexpr (sizeof(decltype(def_callback)) == sizeof(void*))
+        {
+            reinterpret_cast<void*&>(def_callback) = orig_fn;
+            return std::invoke(def_callback, thisptr, std::forward<Args>(args)...);
+        }
+        else
+        {
+            // avoid 'fat pointer' call
+            using trivial_inst = decltype(_Tiny_selector(def_callback));
+            auto tiny_callback = &trivial_inst::callback;
+            reinterpret_cast<void*&>(tiny_callback) = orig_fn;
+            return std::invoke(tiny_callback, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
+        }
+    }
+};
+
 export namespace cheat::hooks
 {
-    struct hook : base
-    {
-        using entry_type = dhooks::hook_entry;
-
-        ~hook() override;
-
-        bool enable() final;
-        bool disable() final;
-
-        bool initialized() const final;
-        bool active() const final;
-
-        void* get_original_method() const;
-
-      protected:
-        void init(const function_getter target, const function_getter replace)
-        {
-            entry_.set_target_method(target);
-            entry_.set_replace_method(replace);
-        }
-
-      private:
-        entry_type entry_;
-    };
-
-    template <class Impl, class Inst = nstd::one_instance<Impl>>
-    struct hook_instance_static : Inst
-    {
-        constexpr hook_instance_static()
-        {
-            static_assert(!std::is_member_function_pointer_v<decltype(&Impl::callback)>, "Incorrect function type passed");
-        }
-
-      protected:
-        template <typename... Args>
-        static decltype(auto) call_original(Args&&... args)
-        {
-            auto fn = &Impl::callback;
-            reinterpret_cast<void*&>(fn) = Inst::get().get_original_method();
-            return std::invoke(fn, std::forward<Args>(args)...);
-        }
-    };
-
-    template <class Impl, class Inst = nstd::one_instance<Impl>>
-    struct hook_instance_member : Inst
-    {
-        constexpr hook_instance_member()
-        {
-            static_assert(std::is_member_function_pointer_v<decltype(&Impl::callback)>, "Incorrect function type passed");
-        }
-
-      protected:
-        template <typename... Args>
-        decltype(auto) call_original(Args&&... args) const
-        {
-            const auto inst = Inst::get_ptr();
-            runtime_assert(inst != this, "Function must be called from hooked method!");
-            const auto thisptr = static_cast<const Impl*>(this);
-            const auto orig_fn = inst->get_original_method();
-
-            auto def_callback = &Impl::callback;
-            if constexpr (sizeof(decltype(def_callback)) == sizeof(void*))
-            {
-                reinterpret_cast<void*&>(def_callback) = orig_fn;
-                return std::invoke(def_callback, thisptr, std::forward<Args>(args)...);
-            }
-            else
-            {
-                // avoid 'fat pointer' call
-                using trivial_inst = decltype(_Tiny_selector(def_callback));
-                auto tiny_callback = &trivial_inst::callback;
-                reinterpret_cast<void*&>(tiny_callback) = orig_fn;
-                return std::invoke(tiny_callback, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
-            }
-        }
-    };
-
-    /*template<class Impl>
-    struct hook_instance :std::conditional_t<std::derived_from<Impl, class_base>, hook_instance_member<Impl>, hook_instance_static<Impl>>
-    {
-    };*/
+    using ::hook;
+    using ::hook_instance_member;
+    using ::hook_instance_static;
 } // namespace cheat::hooks

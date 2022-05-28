@@ -8,12 +8,15 @@ module;
 module cheat.hooks.hook;
 import cheat.logger.system_console;
 
-using namespace cheat::hooks;
-
 hook::~hook()
 {
     // purecall here
     // hook::disable( );
+}
+
+hook::hook()
+{
+    entry_ = dhooks::create_hook_entry();
 }
 
 template <typename M>
@@ -24,15 +27,15 @@ static void _Log(const hook* h, const M& msg)
 
 bool hook::enable()
 {
-    if (!entry_.created() && !entry_.create())
+    if (!entry_->created() && !entry_->create())
     {
         _Log(this, "created error!");
         return false;
     }
-    if (!entry_.enable())
+    if (!entry_->enable())
     {
         _Log(this, [this] {
-            return entry_.enabled() ? "already hooked" : "enable error!";
+            return entry_->enabled() ? "already hooked" : "enable error!";
         });
         return false;
     }
@@ -42,13 +45,13 @@ bool hook::enable()
 
 bool hook::disable()
 {
-    const auto ok = entry_.disable();
+    const auto ok = entry_->disable();
     _Log(this, [ok, this] {
         if (ok)
             return "unhooked";
-        if (!entry_.enabled())
+        if (!entry_->enabled())
             return "already unhooked";
-        if (entry_.created())
+        if (entry_->created())
             return "unhook error!";
         return "not created!";
     });
@@ -57,17 +60,23 @@ bool hook::disable()
 
 bool hook::initialized() const
 {
-    return entry_.get_target_method() && entry_.get_replace_method();
+    return entry_->get_target_method() && entry_->get_replace_method();
 }
 
 bool hook::active() const
 {
-    return entry_.enabled();
+    return entry_->enabled();
 }
 
 void* hook::get_original_method() const
 {
-    return entry_.get_original_method();
+    return entry_->get_original_method();
+}
+
+void hook::init(const function_getter target, const function_getter replace)
+{
+    entry_->set_target_method(target);
+    entry_->set_replace_method(replace);
 }
 
 #if 0
