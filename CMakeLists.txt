@@ -15,7 +15,7 @@ set(FDX_HOOKS_DIR ${FDX_WORK_DIR}/hooks)
 macro(link_library vis name)
   target_link_libraries(${PROJECT_NAME} ${vis} ${name})
   target_include_directories(${PROJECT_NAME} ${vis} ${name})
-  message(STATUS "${PROJECT_NAME}: installed ${name} (${vis})")
+  message(STATUS "${PROJECT_NAME}: ${name} installed (${vis})")
 endmacro()
 
 macro(setup_project dir)
@@ -131,20 +131,26 @@ link_library(PUBLIC nstd::format)
 #-------------------
 
 setup_project(${FDX_WORK_DIR}/gui)
+link_library(PUBLIC fdx::logger)
 
-FetchContent_Declare(hazzbuzz GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz.git GIT_TAG 4.2.1)
-FetchContent_MakeAvailable(hazzbuzz)
+#FetchContent_Declare(HarfBuzz GIT_REPOSITORY https://github.com/HarfBuzz/HarfBuzz.git GIT_TAG 4.2.1)
+#FetchContent_MakeAvailable(HarfBuzz)
 
 FetchContent_Declare(freetype GIT_REPOSITORY https://github.com/freetype/freetype.git)
 set(DISABLE_FORCE_DEBUG_POSTFIX on)
+set(FT_DISABLE_ZLIB on)
+set(FT_DISABLE_BZIP2 on)
+set(FT_DISABLE_PNG on)
+set(FT_DISABLE_HARFBUZZ on)
+set(FT_DISABLE_BROTLI on)
 FetchContent_MakeAvailable(freetype)
 set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}${CMAKE_LINK_LIBRARY_SUFFIX})
 get_target_property(FREETYPE_INCLUDE_DIRS freetype INTERFACE_INCLUDE_DIRECTORIES)
+link_library(INTERFACE freetype) #unused, added to build it force
 
 FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
 FetchContent_MakeAvailable(rml)
 
-link_library(PUBLIC fdx::logger)
 link_library(PRIVATE RmlCore)
 link_library(PRIVATE RmlDebugger)
 add_compile_definitions(${PROJECT_NAME} PRIVATE RMLUI_STATIC_LIB PRIVATE RMLUI_DIR=${rml_SOURCE_DIR})
