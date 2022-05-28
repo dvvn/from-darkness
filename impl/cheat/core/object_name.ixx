@@ -8,7 +8,7 @@ export import nstd.type_name;
 template <typename T>
 consteval std::string_view drop_type_namespace(const std::string_view drop)
 {
-    constexpr std::string_view str = nstd::type_name<T>();
+    const std::string_view str = nstd::type_name<T>();
     const size_t offset_l = !str.starts_with(drop) ? 0 : drop.size() + 2;
     const size_t offset_r = !std::is_pointer_v<T> ? str.size() : str.find('*');
     return {str.data() + offset_l, str.data() + offset_r};
