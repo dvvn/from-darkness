@@ -166,7 +166,7 @@ struct current_module
     interface_finder<current_module> _Ifc_finder(const basic_address<void> addr) const;
 };
 
-#define DLL_NAME(_NAME_) L#_NAME_ ".dll"
+#define DLL_NAME(_NAME_)          L#_NAME_ ".dll"
 #define CHEAT_GAME_MODULE(_NAME_) constexpr rt_module<DLL_NAME(_NAME_)> _NAME_;
 
 export namespace cheat::runtime_modules

@@ -21,32 +21,38 @@ import nstd.winapi.helpers;
 using namespace nstd::mem;
 namespace wp = nstd::winapi;
 
-struct
+struct extract_module_name
 {
     auto operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry) const
     {
         return wp::module_info(ldr_entry).name();
     }
 
-    template <typename T>
-    auto operator()(const std::basic_string_view<T> str) const
+    template <typename... Ts>
+    auto operator()(const std::basic_string_view<Ts...> str) const
     {
         return str;
     }
-} constexpr extract_module_name;
+};
 
-struct
+struct inform_found_pointer
 {
     auto operator()(const basic_address<void> object_ptr) const
     {
         return object_ptr ? nstd::format("found at {:#X}", object_ptr.value) : "not found";
     }
-} constexpr inform_found_pointer;
+};
+
+template <class C, typename... Args>
+static auto _Bind_front(Args&&... args)
+{
+    return std::bind_front(C(), std::forward<Args>(args)...);
+}
 
 template <typename Mod, typename ObjT, typename ObjN, typename P>
 static void _Console_log(const Mod module_name, const ObjT& object_type, const ObjN& object_name, P* const object_ptr)
 {
-    cheat::logger_system_console->log(L"{} -> {} \"{}\" {}", std::bind_front(extract_module_name, module_name), object_type, object_name, std::bind_front(inform_found_pointer, object_ptr));
+    cheat::logger_system_console->log(L"{} -> {} \"{}\" {}", _Bind_front<extract_module_name>(module_name), object_type, object_name, _Bind_front<inform_found_pointer>(object_ptr));
 }
 
 void console_log(const std::wstring_view module_name, const std::string_view object_type, const std::string_view object_name, const basic_address<void> object_ptr)
@@ -68,13 +74,11 @@ void logs_writer::operator()(IMAGE_SECTION_HEADER* const sec, const std::wstring
 
 uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig)
 {
-    // base address
-    const basic_address<IMAGE_DOS_HEADER> dos = ldr_entry->DllBase;
-    const basic_address<IMAGE_NT_HEADERS> nt = dos + dos->e_lfanew;
+    const auto [dos, nt] = wp::dos_nt(ldr_entry);
 
-    const block mem = {dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage};
+    const block mem  = {dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage};
     const auto bytes = unknown_signature(sig.data(), sig.size());
-    const auto ret = mem.find_block(bytes);
+    const auto ret   = mem.find_block(bytes);
 
     const auto result = ret.data();
     _Console_log(ldr_entry, "signature", sig, result);
@@ -104,7 +108,7 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
 
 void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name)
 {
-    interface_reg* const root_reg = create_interface_fn./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
+    interface_reg* const root_reg   = create_interface_fn./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
     interface_reg* const target_reg = _Find_interface(name, root_reg);
     runtime_assert(target_reg != nullptr);
     runtime_assert(_Find_interface(name, target_reg->next) == nullptr);

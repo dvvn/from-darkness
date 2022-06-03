@@ -12,13 +12,16 @@
 #include <RmlUi/Debugger.h>
 #endif
 
+#include <shlobj_core.h>
+
 #include <memory>
+#include <span>
 
 module cheat.gui.context;
 import cheat.application_info;
 
 // clang-format off
-#define RML_SAMPLES NSTD_CONCAT(RMLUI_DIR, /Samples/)
+#define RML_SAMPLES            NSTD_CONCAT(RMLUI_DIR, /Samples/)
 #define RML_SAMPLE(_DIR_, _S_) NSTD_STRINGIZE_RAW(RML_SAMPLES)_DIR_"/"_S_
 // clang-format on
 
@@ -111,6 +114,71 @@ gui_context::~gui_context()
     Rml::Shutdown();
 }
 
+static auto _Create_context()
+{
+    const auto size = cheat::app_info->window.size.client();
+    return Rml::CreateContext("main", {size.width(), size.height()});
+}
+
+#undef small
+
+class font_path_data
+{
+    bool small_;
+
+    union
+    {
+        char buff_[std::size("C:\\Windows\\Fonts") - 1];
+        std::vector<char> buff1_;
+    };
+
+  public:
+    ~font_path_data()
+    {
+        if (small_)
+            return;
+        std::destroy_at(&buff_);
+    }
+
+    font_path_data(const char* path)
+    {
+        const auto size = std::char_traits<char>::length(path);
+
+        small_ = size <= std::size(buff_);
+        if (small_)
+            std::copy(path, path + size, buff_);
+        else
+            buff1_.assign(path, path + size);
+    }
+
+    const char* begin() const
+    {
+        return small_ ? buff_ : buff1_.data();
+    }
+
+    const char* end() const
+    {
+        return small_ ? (buff_ + std::size(buff_)) : (buff1_.data() + buff1_.size());
+    }
+};
+
+static auto _Get_system_font(const std::string_view name)
+{
+    static const auto font_path = []() -> font_path_data {
+        char tmp[MAX_PATH];
+        if (!SHGetSpecialFolderPathA(NULL, tmp, CSIDL_FONTS, FALSE))
+            tmp[0] = '\0';
+        return tmp;
+    }();
+    const std::span font_path_view = font_path;
+    std::string out;
+    out.reserve(font_path_view.size() + 1 + name.size());
+    out.append(font_path_view.begin(), font_path_view.end());
+    out += '\\';
+    out.append(name);
+    return out;
+}
+
 gui_context::gui_context()
 {
     Rml::SetRenderInterface(&CHEAT_OBJECT_GET(Rml::RenderInterface));
@@ -120,8 +188,7 @@ gui_context::gui_context()
 
     //------
 
-    const auto size = cheat::app_info->window.size.client();
-    ctx_ = Rml::CreateContext("main", {size.width(), size.height()});
+    ctx_ = _Create_context();
 
     //------
 #ifdef _DEBUG
@@ -134,7 +201,7 @@ gui_context::gui_context()
     // Fonts can be registered as fallback fonts, as in this case to display emojis.
     Rml::LoadFontFace(RML_SAMPLE("assets", "NotoEmoji-Regular.ttf"), true);
 
-    Rml::LoadFontFace("C:/Windows/fonts/arial.ttf", true);
+    Rml::LoadFontFace(_Get_system_font("arial.ttf"), true);
 
     ctx_->LoadDocument(RML_SAMPLE("assets", "demo.rml"))->Show();
     ctx_->LoadDocument(RML_SAMPLE("assets", "window.rml"))->Show();

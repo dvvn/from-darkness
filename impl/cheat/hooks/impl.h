@@ -2,9 +2,9 @@
 
 #include <cheat/core/object.h>
 
-#include <nstd/runtime_assert.h>
-
 #include <array>
+#include <limits>
+#include <source_location>
 #include <string_view>
 
 import cheat.hook;
@@ -21,48 +21,17 @@ concept have_find_method = requires
     T::find("hello");
 };
 
-template <class E = void>
-constexpr bool _Extractor_validate(const std::string_view file_name, size_t start = 0, size_t end = 0)
+constexpr size_t _Extract_hook_index(const std::string_view file_name)
 {
-    if (start * end == 0 && start != end)
-    {
-        if (!std::is_constant_evaluated())
-            runtime_assert("Incorrect start and end!");
-        return false;
-    }
-    if constexpr (have_find_method<E>)
-    {
-        if (start == 0)
-        {
-            const auto [start1, end1] = E::find(file_name);
-            start = start1;
-            end = end1;
-        }
-    }
-#ifdef _DEBUG
-    if (!std::is_constant_evaluated())
-    {
-        runtime_assert(start != file_name.npos);
-        runtime_assert(end != file_name.npos);
-        runtime_assert(start < end);
-    }
-    else
-#endif
-    {
-        if (start == file_name.npos)
-            return false;
-        if (end == file_name.npos)
-            return false;
-        if (start >= end)
-            return false;
-    }
-    return true;
-}
+    auto start = file_name.rfind('_');
+    if (start == file_name.npos)
+        return std::numeric_limits<size_t>::infinity();
+    ++start;
 
-class hook_index_extractor
-{
-    static constexpr size_t char_to_num(const char chr)
-    {
+    const auto end = file_name.find('.', start);
+    if (end == file_name.npos)
+        return std::numeric_limits<size_t>::infinity();
+    constexpr auto char_to_num = [](const char chr) -> size_t {
         switch (chr)
         {
         case '0':
@@ -84,44 +53,20 @@ class hook_index_extractor
         case '9':
             return 9;
         default:
-            runtime_assert_unreachable("Incorrect character");
+            return std::numeric_limits<size_t>::infinity();
         }
-    }
+    };
 
-    size_t index_ = 0;
-
-  public:
-    static constexpr auto find(const std::string_view file_name)
-    {
-        auto start = file_name.rfind('_');
-        if (start != file_name.npos)
-            ++start;
-        const auto end = file_name.find('.', start);
-        return std::pair(start, end);
-    }
-
-    constexpr hook_index_extractor(const std::string_view file_name, const bool validate = true)
-    {
-        const auto [start, end] = find(file_name);
-        if (validate && !_Extractor_validate(file_name, start, end))
-            index_ = file_name.npos;
-        else
-        {
-            const auto size = end - start;
-            for (const auto chr : file_name.substr(start, size))
-                index_ = char_to_num(chr) + index_ * 10;
-        }
-    }
-
-    constexpr operator size_t() const
-    {
-        return index_;
-    }
-};
+    size_t index    = 0;
+    const auto size = end - start;
+    for (const auto chr : file_name.substr(start, size))
+        index = char_to_num(chr) + index * 10;
+    return index;
+}
 
 constexpr auto _Corrent_path(const std::string_view path)
 {
-    // std::source_location::current().file_name() contains '\' and '/' in same time
+    // std::source_location::current().file_name() contains '\' and '/' in the same time
     std::string buff;
     buff.reserve(path.size());
     for (const auto c : path)
@@ -129,67 +74,41 @@ constexpr auto _Corrent_path(const std::string_view path)
     return buff;
 }
 
-struct hook_name_extractor : std::string_view
+constexpr std::string_view _Extract_hook_name(const std::string_view file_name)
 {
-    static constexpr auto find(const std::string_view file_name)
-    {
-        auto start = _Corrent_path(file_name).rfind('/');
-        if (start != file_name.npos)
-            ++start;
-        const auto end = file_name.find('_', start);
-        return std::pair(start, end);
-    }
+    auto start = _Corrent_path(file_name).rfind('/');
+    if (start == file_name.npos)
+        return {nullptr, 0u};
+    ++start;
+    const auto end = file_name.find('_', start);
+    if (end == file_name.npos)
+        return {nullptr, 0u};
+    const auto size = end - start;
+    return file_name.substr(start, size);
+}
 
-    static constexpr std::string_view get(const std::string_view file_name, const bool validate)
-    {
-        const auto [start, end] = find(file_name);
-        if (validate && !_Extractor_validate(file_name, start, end))
-            return {nullptr, 0u};
-        const auto size = end - start;
-        return file_name.substr(start, size);
-    }
-
-    constexpr hook_name_extractor(const std::string_view file_or_name, const bool custom, const bool validate = true)
-        : std::string_view(custom ? file_or_name : get(file_or_name, validate))
-    {
-    }
-};
-
-struct hook_group_name_extractor : std::string_view
+constexpr std::string_view _Extract_hook_group_name(const std::string_view file_name)
 {
-    static constexpr auto find(const std::string_view file_name)
-    {
-        const auto file_name_correct = _Corrent_path(file_name);
-        const auto end = file_name_correct.rfind('/');
-        auto start = file_name_correct.substr(0, end).rfind('/');
-        if (start != file_name.npos)
-            ++start;
-        return std::pair(start, end);
-    }
-
-    static constexpr std::string_view get(const std::string_view file_name, const bool validate)
-    {
-        const auto [start, end] = find(file_name);
-        if (validate && !_Extractor_validate(file_name, start, end))
-            return {nullptr, 0u};
-        const auto size = end - start;
-        return file_name.substr(start, size);
-    }
-
-    constexpr hook_group_name_extractor(const std::string_view file_or_name, const bool custom, const bool validate = true)
-        : std::string_view(custom ? file_or_name : get(file_or_name, validate))
-    {
-    }
-};
+    const auto file_name_correct = _Corrent_path(file_name);
+    const auto end               = file_name_correct.rfind('/');
+    if (end == file_name_correct.npos)
+        return {nullptr, 0u};
+    auto start = file_name_correct.substr(0, end).rfind('/');
+    if (start == file_name.npos)
+        return {nullptr, 0u};
+    ++start;
+    const auto size = end - start;
+    return file_name.substr(start, size);
+}
 
 template <size_t BuffSize>
-constexpr auto _Hook_name(const std::string_view name, const std::string_view group)
+constexpr auto _Hook_name_buff(const std::string_view name, const std::string_view group)
 {
-    std::array<char, BuffSize + 2 + 1> buff;
+    std::array<char, BuffSize + 2 + 1> buff{};
 
-    const auto buff_group_bg = buff.begin();
+    const auto buff_group_bg     = buff.begin();
     const auto buff_namespace_bg = buff_group_bg + group.size();
-    const auto buff_name_bg = buff_namespace_bg + 2;
+    const auto buff_name_bg      = buff_namespace_bg + 2;
 
     std::copy(group.begin(), group.end(), buff_group_bg);
     std::fill_n(buff_namespace_bg, 2, ':');
@@ -198,12 +117,19 @@ constexpr auto _Hook_name(const std::string_view name, const std::string_view gr
     return buff;
 }
 
-#define CHEAT_HOOK_NAME(_HOOK_NAME_)                                \
-    [] {                                                            \
-        constexpr hook_name_extractor name(_HOOK_NAME_, true);      \
-        constexpr hook_group_name_extractor group(__FILE__, false); \
-        return _Hook_name<name.size() + group.size()>(name, group); \
-    }
+/* #define _Hook_name(_HOOK_NAME_)                                             \
+    [] {                                                                       \
+        constexpr std::string_view name = _HOOK_NAME_;                         \
+        constexpr std::string_view group = _Extract_hook_group_name(__FILE__); \
+        return _Hook_name_buff<name.size() + group.size()>(name, group);       \
+    }() */
+
+template <size_t S>
+constexpr auto _Hook_name(const char (&name)[S])
+{
+    constexpr std::string_view group = _Extract_hook_group_name(std::source_location::current().file_name());
+    return _Hook_name_buff<S - 1 + group.size()>(name, group);
+}
 
 #define FN_member
 #define FN_static static
@@ -220,7 +146,7 @@ constexpr auto _Hook_name(const std::string_view name, const std::string_view gr
         }                                                                                                    \
         std::string_view name() const override                                                               \
         {                                                                                                    \
-            static constexpr auto debug_name = CHEAT_HOOK_NAME(#_HOOK_NAME_)();                              \
+            static constexpr auto debug_name = _Hook_name(#_HOOK_NAME_);                                     \
             return {debug_name.data(), debug_name.size() - 1};                                               \
         }                                                                                                    \
         void init() override                                                                                 \
@@ -229,5 +155,5 @@ constexpr auto _Hook_name(const std::string_view name, const std::string_view gr
         }                                                                                                    \
         FN_##_FN_TYPE_ _FN_RET_ callback(__VA_ARGS__);                                                       \
     };                                                                                                       \
-    CHEAT_OBJECT_BIND(cheat::hook_base, hook_index_extractor(__FILE__), _HOOK_NAME_##_impl);                 \
+    CHEAT_OBJECT_BIND(cheat::hook_base, _Extract_hook_index(__FILE__), _HOOK_NAME_##_impl);                  \
     _FN_RET_ _HOOK_NAME_##_impl::callback(__VA_ARGS__)
