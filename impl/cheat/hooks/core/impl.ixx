@@ -8,8 +8,8 @@ module;
 #include <functional>
 #include <string>
 
-export module cheat.hooks.hook;
-export import cheat.hooks.base;
+export module cheat.hook;
+export import cheat.hook_base;
 import dhooks.entry;
 
 enum class call_cvs : uint8_t
@@ -94,7 +94,7 @@ class function_getter
     }
 };
 
-struct hook : cheat::hooks::base
+struct hook : cheat::hook_base
 {
     ~hook() override;
     hook();
@@ -178,9 +178,10 @@ struct hook_instance_member
     }
 };
 
-export namespace cheat::hooks
+export namespace cheat
 {
-    using ::hook;
+    using ::function_getter;
+    using hook_impl = ::hook;
     using ::hook_instance_member;
     using ::hook_instance_static;
-} // namespace cheat::hooks
+} // namespace cheat

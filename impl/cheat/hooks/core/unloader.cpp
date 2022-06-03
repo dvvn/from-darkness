@@ -2,26 +2,27 @@ module;
 
 #include <Windows.h>
 
-module cheat.hooks.unloader;
-import cheat.hooks.loader;
+module cheat.unloader;
+import cheat.hooks_loader;
 import cheat.application_info;
 
 // import cheat.console;
 
-using namespace cheat;
-
-[[noreturn]] static DWORD WINAPI unload_delayed(LPVOID)
+namespace cheat
 {
-    hooks::loader->stop();
-    Sleep(1000);
-    FreeLibraryAndExitThread(app_info->module_handle, FALSE);
-}
+    [[noreturn]] static DWORD WINAPI unload_delayed(LPVOID)
+    {
+        hooks_loader->stop();
+        Sleep(1000);
+        FreeLibraryAndExitThread(app_info->module_handle, FALSE);
+    }
+} // namespace cheat
 
-void hooks::unload()
+void cheat::unload()
 {
     if (app_info->module_handle == GetModuleHandle(nullptr))
     {
-        loader->stop();
+        hooks_loader->stop();
         PostQuitMessage(FALSE);
     }
     else

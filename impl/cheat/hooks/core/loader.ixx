@@ -5,16 +5,16 @@ module;
 #include <array>
 #include <future>
 
-export module cheat.hooks.loader;
-import cheat.hooks.base;
-
-using hook_base = cheat::hooks::base;
+export module cheat.hooks_loader;
+import cheat.hook_base;
 
 // // count added because std::is_constructible/destructible always true on any index
 // // must by set in makefile
 // #ifndef CHEAT_HOOKS_COUNT
 // #define CHEAT_HOOKS_COUNT 1024 // huge value to break build
 // #endif
+
+using hook_base = cheat::hook_base;
 
 struct basic_hooks_loader
 {
@@ -35,7 +35,7 @@ struct basic_hooks_loader
 
 CHEAT_OBJECT(loader, basic_hooks_loader);
 
-export namespace cheat::hooks
+export namespace cheat
 {
-    using ::loader;
+    constexpr auto hooks_loader = ::loader;
 }

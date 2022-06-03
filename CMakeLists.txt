@@ -12,10 +12,19 @@ set(FDX_HOOKS_DIR ${FDX_WORK_DIR}/hooks)
 
 #-------------------
 
+macro(project_message msg)
+  message(STATUS "${PROJECT_NAME}: ${msg}")
+endmacro()
+
 macro(link_library vis name)
   target_link_libraries(${PROJECT_NAME} ${vis} ${name})
   target_include_directories(${PROJECT_NAME} ${vis} ${name})
-  message(STATUS "${PROJECT_NAME}: ${name} installed (${vis})")
+
+  get_target_property(real_project_name ${name} ALIASED_TARGET)
+  if(real_project_name STREQUAL "real_project_name-NOTFOUND")
+    set(real_project_name ${name})
+  endif()
+  project_message("${real_project_name} installed (${vis})")
 endmacro()
 
 macro(setup_project dir)
@@ -54,7 +63,7 @@ macro(setup_project dir)
   endif()
 
   get_target_property(target_type ${PROJECT_NAME} TYPE)
-  message(STATUS "${PROJECT_NAME}: created (${target_type})")
+  project_message("created (${target_type})")
 endmacro()
 
 macro(setup_hook name)
@@ -89,21 +98,14 @@ macro(write_hook_ids)
     get_target_property(sources_list ${lib} SOURCES)
 
     foreach(src ${sources_list})
-      if(NOT ${src} MATCHES ".ixx$")
-        continue()
+      string(REGEX MATCH ".*_([0-9]+)\.cpp" found ${src})
+      if(found)
+        list(APPEND ids_list ${CMAKE_MATCH_1})
       endif()
-      # string(find ${src} ${FDX_HOOKS_TARGETS_DIR} starts)
-      # if(NOT ${starts} EQUAL 0)
-      #   continue()
-      # endif()
-      file(READ ${src} text) #"CHEAT_HOOK\(\w+, (\d+)\)"
-      string(REGEX MATCH "CHEAT_HOOK\(.*([0-9]+)\)" found ${text})
-      #message(-----${src}----${found}-----${CMAKE_MATCH_2}-----)
-      list(APPEND ids_list ${CMAKE_MATCH_2})
     endforeach()
   endforeach()
 
-  message(STATUS "ids for ${PROJECT_NAME}: ${ids_list}")
+  project_message("hooked ids - ${ids_list}")
   string(REPLACE ";" "," ids_str "${ids_list}")
   target_compile_definitions(${PROJECT_NAME} PRIVATE CHEAT_HOOK_IDS=${ids_str})
 endmacro()

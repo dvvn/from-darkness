@@ -10,7 +10,7 @@ module;
 #include <thread>
 #include <vector>
 
-module cheat.hooks.loader;
+module cheat.hooks_loader;
 
 #if 0
 template <typename T>

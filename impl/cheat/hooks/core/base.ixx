@@ -2,13 +2,13 @@ module;
 
 #include <string_view>
 
-export module cheat.hooks.base;
+export module cheat.hook_base;
 
-export namespace cheat::hooks
+export namespace cheat
 {
-    struct base
+    struct hook_base
     {
-        virtual ~base() = default;
+        virtual ~hook_base() = default;
 
         virtual bool enable() = 0;
         virtual bool disable() = 0;
@@ -21,4 +21,4 @@ export namespace cheat::hooks
 
         virtual void init() = 0;
     };
-} // namespace cheat::hooks
+} // namespace cheat

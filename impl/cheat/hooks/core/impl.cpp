@@ -5,7 +5,7 @@ module;
 #include <functional>
 #include <string>
 
-module cheat.hooks.hook;
+module cheat.hook;
 import cheat.logger.system_console;
 
 hook::~hook()

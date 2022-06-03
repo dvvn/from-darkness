@@ -1,8 +1,8 @@
 module;
 
-export module cheat.hooks.unloader;
+export module cheat.unloader;
 
-export namespace cheat::hooks
+export namespace cheat
 {
     void unload();
 }

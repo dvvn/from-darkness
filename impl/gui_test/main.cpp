@@ -7,7 +7,7 @@
 
 #include <compare>
 
-import cheat.hooks.loader;
+import cheat.hooks_loader;
 import cheat.logger.system_console;
 import cheat.application_info;
 import cheat.d3d_device9;
@@ -169,11 +169,11 @@ int main(int, char**)
     d3d_device9.construct(g_pd3dDevice);
     app_info.construct(hwnd);
     logger_system_console->enable();
-    hooks::loader->fill<CHEAT_HOOK_IDS>();
+    hooks_loader->fill<CHEAT_HOOK_IDS>();
 
     // PresetD3D(hwnd);
 
-    if (!hooks::loader->start().get())
+    if (!hooks_loader->start().get())
         return TRUE;
 
     //----------------
@@ -198,6 +198,6 @@ int main(int, char**)
     }
 
 _STOP:
-    hooks::loader->stop();
+    hooks_loader->stop();
     return FALSE;
 }
