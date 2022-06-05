@@ -7,10 +7,10 @@
 
 #include <compare>
 
-import cheat.hooks_loader;
-import cheat.logger.system_console;
-import cheat.application_info;
-import cheat.d3d_device9;
+import fds.hooks_loader;
+import fds.logger.system_console;
+import fds.application_info;
+import fds.d3d_device9;
 
 using nstd::winapi::comptr;
 
@@ -165,11 +165,11 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    using namespace cheat;
+    using namespace fds;
     d3d_device9.construct(g_pd3dDevice);
     app_info.construct(hwnd);
     logger_system_console->enable();
-    hooks_loader->fill<CHEAT_HOOK_IDS>();
+    hooks_loader->fill<FDS_HOOK_IDS>();
 
     // PresetD3D(hwnd);
 

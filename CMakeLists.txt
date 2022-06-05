@@ -21,7 +21,7 @@ endmacro()
 macro(link_library vis name)
   target_link_libraries(${PROJECT_NAME} ${vis} ${name})
   target_include_directories(${PROJECT_NAME} ${vis} ${name})
-  target_compile_definitions(${PROJECT_NAME} ${vis} ${name})
+  #target_compile_definitions(${PROJECT_NAME} ${vis} ${name})
 
   get_target_property(real_project_name ${name} ALIASED_TARGET)
   if(real_project_name STREQUAL "real_project_name-NOTFOUND")
