@@ -1,6 +1,7 @@
 module;
 
 #include <fds/runtime_modules/notification_fwd.h>
+#include <fds/runtime_modules/run_once.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -27,6 +28,7 @@ T* find_vtable()
     static_assert(std::is_class_v<T>, "Unable to get the class name");
 
     static const auto found = [] {
+        FDS_RTM_RUN_ONCE(Module);
         constexpr auto class_name = get_type_name<T>();
         const auto     ldr_entry  = fds::find_library<Module>();
         const auto     ptr        = find_vtable(ldr_entry, class_name, false);
