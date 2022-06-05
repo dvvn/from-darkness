@@ -132,9 +132,16 @@ link_library(PUBLIC nstd::core)
 
 #-------------------
 
-setup_project(${_WORK_DIR}/logger)
+setup_project(${_WORK_DIR}/text)
+FetchContent_Declare(utf8_conv1 GIT_REPOSITORY https://github.com/ww898/utf-cpp.git)
+FetchContent_Populate(utf8_conv1) #no cmakelist inside
+target_include_directories(${PROJECT_NAME} PRIVATE ${utf8_conv1_SOURCE_DIR}/include)
 link_partition(PUBLIC core)
-link_library(PUBLIC nstd::text)
+
+#-------------------
+
+setup_project(${_WORK_DIR}/logger)
+link_partition(PUBLIC text)
 link_library(PUBLIC nstd::format)
 
 #-------------------
@@ -166,9 +173,15 @@ add_compile_definitions(${PROJECT_NAME} PRIVATE RMLUI_STATIC_LIB PRIVATE RMLUI_D
 
 #-------------------
 
+setup_project(${_WORK_DIR}/mem)
+link_partition(PUBLIC core)
+
+#-------------------
+
 setup_project(${_WORK_DIR}/runtime_modules rt_modules)
+link_partition(PUBLIC mem)
 link_partition(PUBLIC logger)
-link_library(PUBLIC nstd::winapi)
+#link_library(PUBLIC nstd::winapi)
 
 #-------------------
 

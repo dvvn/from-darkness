@@ -2,7 +2,7 @@ module;
 
 #include <fds/core/object.h>
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <d3d9.h>
 

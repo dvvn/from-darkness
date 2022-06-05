@@ -1,6 +1,6 @@
 module;
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <nlohmann/json.hpp>
 #include <nlohmann/ordered_map.hpp>

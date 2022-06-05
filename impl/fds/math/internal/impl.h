@@ -1,22 +1,22 @@
 #pragma once
 
-#include <nstd/core_utils.h>
+#include <fds/core/utility.h>
 
 #include <array>
 
-#define STD_ARRAY_OP(_OP_)                                                                \
-    template <typename T, size_t S>                                                       \
-    auto& NSTD_CONCAT(operator, _OP_##=)(std::array<T, S> & l, const std::array<T, S>& r) \
-    {                                                                                     \
-        for (size_t i = 0; i < S; ++i)                                                    \
-            l[i] _OP_## = r[i];                                                           \
-        return l;                                                                         \
-    }                                                                                     \
-    template <typename T, size_t S>                                                       \
-    auto NSTD_CONCAT(operator, _OP_)(std::array<T, S> l, const std::array<T, S>& r)       \
-    {                                                                                     \
-        l _OP_## = r;                                                                     \
-        return l;                                                                         \
+#define STD_ARRAY_OP(_OP_)                                                               \
+    template <typename T, size_t S>                                                      \
+    auto& FDS_CONCAT(operator, _OP_##=)(std::array<T, S> & l, const std::array<T, S>& r) \
+    {                                                                                    \
+        for (size_t i = 0; i < S; ++i)                                                   \
+            l[i] _OP_## = r[i];                                                          \
+        return l;                                                                        \
+    }                                                                                    \
+    template <typename T, size_t S>                                                      \
+    auto FDS_CONCAT(operator, _OP_)(std::array<T, S> l, const std::array<T, S>& r)       \
+    {                                                                                    \
+        l _OP_## = r;                                                                    \
+        return l;                                                                        \
     }
 
 namespace std
@@ -40,12 +40,12 @@ auto& _As_array(T& obj)
 
 #define FDS_MATH_AS_ARRAY(_CLASS_NAME_, _OBJ_) _As_array<_CLASS_NAME_##_arr>(_OBJ_)
 
-#define FDS_MATH_OP_EQ_IMPL(_CLASS_NAME_, _RET_, _OP_)                               \
-    _RET_ _CLASS_NAME_::NSTD_CONCAT(operator, _OP_)(const _CLASS_NAME_& other) const \
-    {                                                                                \
-        auto& buff_this  = FDS_MATH_AS_ARRAY(_CLASS_NAME_, *this);                   \
-        auto& buff_other = FDS_MATH_AS_ARRAY(_CLASS_NAME_, other);                   \
-        return buff_this _OP_ buff_other;                                            \
+#define FDS_MATH_OP_EQ_IMPL(_CLASS_NAME_, _RET_, _OP_)                              \
+    _RET_ _CLASS_NAME_::FDS_CONCAT(operator, _OP_)(const _CLASS_NAME_& other) const \
+    {                                                                               \
+        auto& buff_this  = FDS_MATH_AS_ARRAY(_CLASS_NAME_, *this);                  \
+        auto& buff_other = FDS_MATH_AS_ARRAY(_CLASS_NAME_, other);                  \
+        return buff_this _OP_ buff_other;                                           \
     }
 
 #ifndef __cpp_lib_three_way_comparison
@@ -62,20 +62,20 @@ auto& _As_array(T& obj)
     FDS_MATH_OP_EQ_IMPL(_CLASS_NAME_, std::partial_ordering, <=>);
 #endif
 
-#define FDS_MATH_OP_IMPL(_CLASS_NAME_, _OP_)                                                \
-    _CLASS_NAME_ _CLASS_NAME_::NSTD_CONCAT(operator, _OP_)(const _CLASS_NAME_& other) const \
-    {                                                                                       \
-        auto& buff_this  = FDS_MATH_AS_ARRAY(_CLASS_NAME_, *this);                          \
-        auto& buff_other = FDS_MATH_AS_ARRAY(_CLASS_NAME_, other);                          \
-        auto tmp         = buff_this _OP_ buff_other;                                       \
-        return reinterpret_cast<_CLASS_NAME_&&>(tmp);                                       \
-    }                                                                                       \
-    _CLASS_NAME_& _CLASS_NAME_::NSTD_CONCAT(operator, _OP_##=)(const _CLASS_NAME_& other)   \
-    {                                                                                       \
-        auto& buff_this  = FDS_MATH_AS_ARRAY(_CLASS_NAME_, *this);                          \
-        auto& buff_other = FDS_MATH_AS_ARRAY(_CLASS_NAME_, other);                          \
-        buff_this _OP_## = buff_other;                                                      \
-        return *this;                                                                       \
+#define FDS_MATH_OP_IMPL(_CLASS_NAME_, _OP_)                                               \
+    _CLASS_NAME_ _CLASS_NAME_::FDS_CONCAT(operator, _OP_)(const _CLASS_NAME_& other) const \
+    {                                                                                      \
+        auto& buff_this  = FDS_MATH_AS_ARRAY(_CLASS_NAME_, *this);                         \
+        auto& buff_other = FDS_MATH_AS_ARRAY(_CLASS_NAME_, other);                         \
+        auto tmp         = buff_this _OP_ buff_other;                                      \
+        return reinterpret_cast<_CLASS_NAME_&&>(tmp);                                      \
+    }                                                                                      \
+    _CLASS_NAME_& _CLASS_NAME_::FDS_CONCAT(operator, _OP_##=)(const _CLASS_NAME_& other)   \
+    {                                                                                      \
+        auto& buff_this  = FDS_MATH_AS_ARRAY(_CLASS_NAME_, *this);                         \
+        auto& buff_other = FDS_MATH_AS_ARRAY(_CLASS_NAME_, other);                         \
+        buff_this _OP_## = buff_other;                                                     \
+        return *this;                                                                      \
     }
 
 #define FDS_MATH_OP(_CLASS_NAME_)     \

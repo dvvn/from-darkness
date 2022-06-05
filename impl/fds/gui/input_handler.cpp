@@ -4,7 +4,7 @@ module;
 
 #include <fds/core/object.h>
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <RmlUi/Core.h>
 
@@ -16,8 +16,8 @@ module;
 #include <string_view>
 
 module fds.gui.input_handler;
-import nstd.lazy_invoke;
-import nstd.text.convert.unicode;
+import fds.lazy_invoke;
+import fds.convert_to;
 
 struct input_result_proxy : input_result
 {
@@ -370,7 +370,7 @@ static RmlString _Make_rml_string(const Args... chars)
 {
     const auto buff                   = _Make_string_buff(chars...);
     const std::basic_string_view strv = {buff.data(), buff.size() - 1};
-    return nstd::text::convert_to<char>(strv);
+    return fds::convert_to<char>(strv);
 }
 
 input_helper::input_helper(Context* const ctx)
@@ -380,7 +380,7 @@ input_helper::input_helper(Context* const ctx)
 
 input_result_proxy input_helper::l_button_down(const HWND window)
 {
-    const nstd::lazy_invoke lazy = std::bind_front(SetCapture, window);
+    const fds::lazy_invoke lazy = std::bind_front(SetCapture, window);
     return ctx_->ProcessMouseButtonDown(0, key_modifier());
 }
 
@@ -490,7 +490,7 @@ input_result_proxy input_helper::on_character(const WPARAM w_param, char16_t& fi
     }
     if (IS_HIGH_SURROGATE(w_param))
     {
-        runtime_assert(IS_LOW_SURROGATE(first_code_unit));
+        fds_assert(IS_LOW_SURROGATE(first_code_unit));
         return ctx_->ProcessTextInput(_Make_rml_string(first_code_unit, wch));
     }
 
@@ -549,14 +549,14 @@ bool input_result::touched() const
 
 input_result& input_result::set_return_value(const uint8_t ret_val)
 {
-    runtime_assert(ret_val_ == unset_, "Already set!");
+    fds_assert(ret_val_ == unset_, "Already set!");
     ret_val_ = ret_val;
     return *this;
 }
 
 size_t input_result::return_value() const
 {
-    runtime_assert(touched(), "Unable to return untouched result!");
-    runtime_assert(ret_val_ == 1 || ret_val_ == 0, "Incorrect value!");
+    fds_assert(touched(), "Unable to return untouched result!");
+    fds_assert(ret_val_ == 1 || ret_val_ == 0, "Incorrect value!");
     return static_cast<size_t>(ret_val_);
 }

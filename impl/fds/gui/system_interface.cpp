@@ -2,8 +2,8 @@ module;
 
 #include <fds/core/object.h>
 
+#include <fds/core/assert.h>
 #include <nstd/format.h>
-#include <nstd/runtime_assert.h>
 
 #include <RmlUi/Core/SystemInterface.h>
 
@@ -70,7 +70,7 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
     switch (logtype)
     {
     case Rml_log::LT_ASSERT: {
-        runtime_assert(message.c_str());                           // it calls std::terminate if defined
+        fds_assert(message.c_str());                               // it calls std::terminate if defined
         return Rml::SystemInterface::LogMessage(logtype, message); // otherwise call default logs handler
     }
     case Rml_log::LT_ERROR:
@@ -88,7 +88,7 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
         _Log(logtype, message);
         return true;
     default:
-        runtime_assert_unreachable("Unknown log type detected");
+        fds_assert_unreachable("Unknown log type detected");
     }
 }
 
@@ -118,7 +118,7 @@ struct nstd::formatter<Rml_log, char> : formatter<std::string_view>
             str = "DEBUG";
             break;
         default:
-            runtime_assert_unreachable("Unknown log type detected");
+            fds_assert_unreachable("Unknown log type detected");
         }
 
         return formatter<std::string_view>::format(str, fc);

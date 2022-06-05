@@ -1,6 +1,6 @@
 module;
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <functional>
 
@@ -31,6 +31,6 @@ void C_BaseAnimating::InvalidateBoneCache()
     time    = -FLT_MAX;
     counter = -1;
 #else
-    runtime_assert("Not implemented");
+    fds_assert("Not implemented");
 #endif
 }

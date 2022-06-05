@@ -1,8 +1,8 @@
 module;
 
+#include <fds/core/assert.h>
 #include <nstd/format.h>
 #include <nstd/ranges.h>
-#include <nstd/runtime_assert.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -12,7 +12,7 @@ module;
 #include <string>
 
 module fds.rt_modules;
-import fds.logger.system_console;
+/* import fds.logger.system_console;
 import nstd.mem.signature;
 import nstd.mem.block;
 import nstd.winapi.module_info;
@@ -83,43 +83,11 @@ uint8_t* find_signature_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::s
     const auto result = ret.data();
     _Console_log(ldr_entry, "signature", sig, result);
     return result;
-}
-
-struct interface_reg
-{
-    void* (*create_fn)();
-    const char* name;
-    interface_reg* next;
-};
-
-static interface_reg* _Find_interface(const std::string_view name, interface_reg* const first, interface_reg* const last = nullptr)
-{
-    for (auto reg = first; reg != last; reg = reg->next)
-    {
-        if (std::memcmp(reg->name, name.data(), name.size()) != 0)
-            continue;
-        const auto last_char = reg->name[name.size()];
-        if (last_char == '\0' || std::isdigit(last_char))
-            return reg;
-    }
-
-    return nullptr;
-}
-
-void* find_interface_impl(LDR_DATA_TABLE_ENTRY* const ldr_entry, const basic_address<void> create_interface_fn, const std::string_view name)
-{
-    interface_reg* const root_reg   = create_interface_fn./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
-    interface_reg* const target_reg = _Find_interface(name, root_reg);
-    runtime_assert(target_reg != nullptr);
-    runtime_assert(_Find_interface(name, target_reg->next) == nullptr);
-    const auto ifc_addr = std::invoke(target_reg->create_fn);
-    _Console_log(ldr_entry, "interface", name, ifc_addr);
-    return ifc_addr;
-}
+} */
 
 //----
 
-std::wstring_view current_module::_Name() const
+/* std::wstring_view current_module::_Name() const
 {
     static const auto name = wp::module_info(wp::current_module()).name();
     return name;
@@ -129,3 +97,4 @@ interface_finder<current_module> current_module::_Ifc_finder(const basic_address
 {
     return addr;
 }
+ */

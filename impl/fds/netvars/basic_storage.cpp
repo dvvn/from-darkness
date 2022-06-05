@@ -1,8 +1,8 @@
 module;
 
+#include <fds/core/assert.h>
 #include <nstd/overload.h>
 #include <nstd/ranges.h>
-#include <nstd/runtime_assert.h>
 
 #include <functional>
 #include <string>
@@ -75,9 +75,9 @@ hashed_string_view netvar_info::name() const
         else
         {
             std::string_view name = _Netvar_name(source_);
-            runtime_assert(name.ends_with("[0]"));
+            fds_assert(name.ends_with("[0]"));
             name.remove_suffix(3);
-            runtime_assert(name.rfind(']') == name.npos);
+            fds_assert(name.rfind(']') == name.npos);
             name_ = name;
         }
     }
@@ -147,7 +147,7 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
 {
 #ifdef _DEBUG
     const auto name = info->name();
-    runtime_assert(!name.empty(), "Item name not set!");
+    fds_assert(!name.empty(), "Item name not set!");
 
     if (this->empty())
         return;
@@ -158,13 +158,13 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
     for (auto& item : *this)
     {
         if (item->name() == name)
-            runtime_assert("Item with given name already added!");
+            fds_assert("Item with given name already added!");
 
         if (item->offset() == offset)
         {
             const auto type_curr = item->type();
             if (type_curr.empty() || type.empty() || type == type_curr)
-                runtime_assert("Item with given offset and type already added!");
+                fds_assert("Item with given offset and type already added!");
             // othervise skip this offset manually
         }
     }
@@ -212,7 +212,7 @@ const netvar_info_custom_constant* netvar_table::add(const size_t offset, const 
 //	const auto end = begin + this->size( );
 //
 //	const auto pos = from ? from : begin;
-//	runtime_assert(std::distance(begin, pos) >= 0);
+//	fds_assert(std::distance(begin, pos) >= 0);
 //
 //	const auto found1 = _Find_name(std::span(pos, end), name);
 //	if(found1)

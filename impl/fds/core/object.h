@@ -2,7 +2,7 @@
 
 #include <utility>
 
-import nstd.one_instance;
+import fds.one_instance;
 
 template <typename T>
 auto _Object_type_impl()
@@ -32,20 +32,22 @@ decltype(auto) _Correct_result(V&& val)
         return _Correct_result<T>(*val);
 }
 
-#define FDS_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, _IMPL_)                                                               \
-    template <>                                                                                                      \
-    template <>                                                                                                      \
-    nstd::one_instance_getter<_Object_type<_OBJ_TYPE_>>::one_instance_getter(const std::in_place_index_t<_OBJ_IDX_>) \
-        : item_(_Correct_result<_Object_type<_OBJ_TYPE_>>(_IMPL_))                                                   \
-    {                                                                                                                \
+#define FDS_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, _IMPL_)                                                              \
+    template <>                                                                                                     \
+    template <>                                                                                                     \
+    fds::one_instance_getter<_Object_type<_OBJ_TYPE_>>::one_instance_getter(const std::in_place_index_t<_OBJ_IDX_>) \
+        : item_(_Correct_result<_Object_type<_OBJ_TYPE_>>(_IMPL_))                                                  \
+    {                                                                                                               \
     }
 
-#define FDS_OBJECT_GET(_OBJ_TYPE_, /* _OBJ_IDX_ */...) nstd::instance_of<_Object_type<_OBJ_TYPE_>, ##__VA_ARGS__>
+#define FDS_OBJECT_GET(_OBJ_TYPE_, ...) fds::instance_of<_Object_type<_OBJ_TYPE_>, /* _OBJ_IDX_ */##__VA_ARGS__>
 
-#define FDS_OBJECT_BIND(_OBJ_TYPE_, _OBJ_IDX_, _TARGET_TYPE_, /* _TARGET_IDX_ */...) FDS_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, FDS_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__))
-#define FDS_OBJECT_BIND_SIMPLE(_OBJ_TYPE_, _TARGET_TYPE_)                            FDS_OBJECT_BIND(_OBJ_TYPE_, 0, _TARGET_TYPE_, 0)
+#define FDS_OBJECT_BIND(_OBJ_TYPE_, _OBJ_IDX_, _TARGET_TYPE_, ...) FDS_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, FDS_OBJECT_GET(_TARGET_TYPE_, /* _TARGET_IDX_ */ __VA_ARGS__))
+#define FDS_OBJECT_BIND_SIMPLE(_OBJ_TYPE_, _TARGET_TYPE_)          FDS_OBJECT_BIND(_OBJ_TYPE_, 0, _TARGET_TYPE_, 0)
+#define FDS_OBJECT_BIND_AUTO(_OBJ_NAME_, _TARGET_NAME_)            FDS_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
+#define FDS_OBJECT_BIND_AUTO2(_OBJ_NAME_, _TARGET_TYPE_, ...)      FDS_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, /* _TARGET_IDX_ */ __VA_ARGS__)
 
-#define FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, /* _OBJ_IDX_ */...) constexpr auto _OBJ_NAME_ = FDS_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__);
+#define FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FDS_OBJECT_GET(_OBJ_TYPE_, /* _OBJ_IDX_ */ __VA_ARGS__);
 
 /*
 example:

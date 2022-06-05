@@ -1,6 +1,6 @@
 ﻿module;
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <array>
 #include <span>
@@ -23,7 +23,7 @@ using namespace csgo;
 
 std::string netvars::type_std_array(const std::string_view type, const size_t size)
 {
-    runtime_assert(size != 0);
+    fds_assert(size != 0);
     std::string buff;
     constexpr auto arr_name = type_name<std::array>();
     const auto arr_size     = std::to_string(size);
@@ -132,18 +132,18 @@ string_or_view netvars::type_recv_prop(RecvProp* const prop)
         return type_name<char*>(); // char[X]
     case DPT_Array: {
         const auto prev_prop = std::prev(prop);
-        runtime_assert(std::string_view(prev_prop->m_pVarName).ends_with("[0]"));
+        fds_assert(std::string_view(prev_prop->m_pVarName).ends_with("[0]"));
         const auto type = type_recv_prop(prev_prop);
         return type_std_array(type, prop->m_nElements);
     }
     case DPT_DataTable: {
-        runtime_assert("Data table type must be manually resolved!");
+        fds_assert("Data table type must be manually resolved!");
         return type_name<void*>();
     }
     case DPT_Int64:
         return type_name<int64_t>();
     default: {
-        runtime_assert("Unknown recv prop type");
+        fds_assert("Unknown recv prop type");
         return type_name<void*>();
     }
     }
@@ -174,11 +174,11 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)
     case FIELD_COLOR32:
         return type_name<math::color>();
     case FIELD_EMBEDDED: {
-        runtime_assert("Embedded field detected");
+        fds_assert("Embedded field detected");
         return type_name<void*>();
     }
     case FIELD_CUSTOM: {
-        runtime_assert("Custom field detected");
+        fds_assert("Custom field detected");
         return type_name<void*>();
     }
     case FIELD_CLASSPTR:
@@ -187,7 +187,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)
         return type_name<CBaseHandle>();
     case FIELD_EDICT: {
         // return "edict_t*";
-        runtime_assert("Edict field detected");
+        fds_assert("Edict field detected");
         return type_name<void*>();
     }
     case FIELD_POSITION_VECTOR:
@@ -201,11 +201,11 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)
         return type_name<char*>(); // string_t at real
     case FIELD_INPUT: {
         // return "CMultiInputVar";
-        runtime_assert("Inputvar field detected");
+        fds_assert("Inputvar field detected");
         return type_name<void*>();
     }
     case FIELD_FUNCTION: {
-        runtime_assert("Function detected");
+        fds_assert("Function detected");
         return type_name<void*>();
     }
     case FIELD_VMATRIX:
@@ -215,7 +215,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)
         return type_name<math::matrix3x4>();
     case FIELD_INTERVAL: {
         // return "interval_t";
-        runtime_assert("Interval field detected");
+        fds_assert("Interval field detected");
         return type_name<void*>();
     }
     case FIELD_MODELINDEX:
@@ -224,7 +224,7 @@ std::string_view netvars::type_datamap_field(typedescription_t* const field)
     case FIELD_VECTOR2D:
         return type_name<math::vector2>();
     default: {
-        runtime_assert("Unknown datamap field type");
+        fds_assert("Unknown datamap field type");
         return type_name<void*>();
     }
     }

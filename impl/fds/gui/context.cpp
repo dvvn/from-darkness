@@ -2,7 +2,7 @@
 
 #include <fds/core/object.h>
 
-#include <nstd/core_utils.h>
+#include <fds/core/utility.h>
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -21,8 +21,8 @@ module fds.gui.context;
 import fds.application_info;
 
 // clang-format off
-#define RML_SAMPLES            NSTD_CONCAT(RMLUI_DIR, /Samples/)
-#define RML_SAMPLE(_DIR_, _S_) NSTD_STRINGIZE_RAW(RML_SAMPLES)_DIR_"/"_S_
+#define RML_SAMPLES            FDS_CONCAT(RMLUI_DIR, /Samples/)
+#define RML_SAMPLE(_DIR_, _S_) FDS_STRINGIZE_RAW(RML_SAMPLES)_DIR_"/"_S_
 // clang-format on
 
 #if 0

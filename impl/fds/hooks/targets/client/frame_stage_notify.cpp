@@ -35,7 +35,7 @@ void callback(ClientFrameStage_t stage) const
     case FRAME_RENDER_END:
         break;
     default:
-        // runtime_assert("Unknown frame stage detectetd!");
+        // fds_assert("Unknown frame stage detectetd!");
         break;
     }
 

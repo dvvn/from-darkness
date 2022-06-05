@@ -7,7 +7,7 @@ module;
 //#include <sstream>
 
 export module fds.logger;
-export import nstd.text.convert.unicode;
+export import fds.convert_to;
 
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
@@ -57,7 +57,7 @@ template <typename CharT, typename T>
 decltype(auto) _Prepare_fmt_arg(T&& arg)
 {
     if constexpr (can_be_string<T>)
-        return nstd::text::convert_to<CharT>(to_string_view(std::forward<T>(arg)));
+        return fds::convert_to<CharT>(to_string_view(std::forward<T>(arg)));
     else if constexpr (std::invocable<T>)
         return _Prepare_fmt_arg<CharT>(std::invoke(arg));
     else

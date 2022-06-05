@@ -2,7 +2,7 @@ module;
 
 #include <fds/tools/interface.h>
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <sstream>
 #include <string>
@@ -77,9 +77,9 @@ size_t netvars::get_offset(const std::string_view table, const std::string_view 
     /*const auto& storage = nstd::one_instance<netvars_holder>::get( ).storage;
 
     const auto target_class = find(table);
-    runtime_assert(target_class != end( ));
+    fds_assert(target_class != end( ));
     const auto netvar_info = target_class->find(item);
-    runtime_assert(netvar_info != target_class->end( ));
+    fds_assert(netvar_info != target_class->end( ));
 
     using namespace std::string_view_literals;
     return netvar_info->find("offset"sv)->get<int>( );*/

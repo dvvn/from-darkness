@@ -2,7 +2,7 @@
 
 #include <fds/tools/interface.h>
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 module fds.csgo.interfaces.BaseHandle;
 import fds.csgo.interfaces.ClientEntityList;
@@ -48,8 +48,8 @@ CBaseHandle::CBaseHandle(IHandleEntity* pHandleObj)
 
 CBaseHandle::CBaseHandle(int iEntry, int iSerialNumber)
 {
-    runtime_assert(iEntry >= 0 && (iEntry & ENT_ENTRY_MASK) == iEntry);
-    runtime_assert(iSerialNumber >= 0 && iSerialNumber < (1 << NUM_SERIAL_NUM_BITS));
+    fds_assert(iEntry >= 0 && (iEntry & ENT_ENTRY_MASK) == iEntry);
+    fds_assert(iSerialNumber >= 0 && iSerialNumber < (1 << NUM_SERIAL_NUM_BITS));
     m_Index = iEntry | (iSerialNumber << /*NUM_ENT_ENTRY_BITS*/ NUM_SERIAL_NUM_SHIFT_BITS);
 }
 

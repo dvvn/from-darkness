@@ -1,0 +1,30 @@
+module;
+
+#include <windows.h>
+#include <winternl.h>
+
+#include <string_view>
+
+export module fds.rt_modules:library_info;
+
+struct library_info
+{
+    using pointer   = const LDR_DATA_TABLE_ENTRY*;
+    using reference = const LDR_DATA_TABLE_ENTRY&;
+
+    library_info(pointer const entry);
+
+    pointer   operator->() const;
+    reference operator*() const;
+
+    std::wstring_view path() const;
+    std::wstring_view name() const;
+
+  private:
+    pointer entry_;
+};
+
+export namespace fds
+{
+    using ::library_info;
+}

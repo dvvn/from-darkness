@@ -1,7 +1,7 @@
 module;
 #include <fds/core/object.h>
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <Windows.h>
 #include <fcntl.h>
@@ -226,7 +226,7 @@ class time_buff final
     }
 };
 
-#define putc_assert(_RESULT_) runtime_assert(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
+#define putc_assert(_RESULT_) fds_assert(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
 
 // gap. unused
 class reader
@@ -270,12 +270,12 @@ class writer
         //  for (const auto chr : text)
         //  {
         //      [[maybe_unused]] const auto ok = _putwc_nolock(chr, stream_);
-        //      runtime_assert(ok != WEOF, errno == EILSEQ ? "Encoding error in fputwc." : "I/O error in fputwc.");
+        //      fds_assert(ok != WEOF, errno == EILSEQ ? "Encoding error in fputwc." : "I/O error in fputwc.");
         //  }
 
         // idk how to made it works, here is temp gap
-        const auto u8text = nstd::text::convert_to<char>(text);
-        runtime_assert(u8text.size() == text.size(), "Unicode not supported");
+        const auto u8text = fds::convert_to<char>(text);
+        fds_assert(u8text.size() == text.size(), "Unicode not supported");
         write_nolock(u8text);
     }
 
@@ -378,7 +378,7 @@ class logger_system_console_impl : public logger
 
     void enable() override
     {
-        runtime_assert(!running_, "Already started");
+        fds_assert(!running_, "Already started");
         auto console_window = GetConsoleWindow();
         if (console_window)
         {
@@ -391,25 +391,25 @@ class logger_system_console_impl : public logger
         else
         {
             const auto console_allocated = AllocConsole();
-            runtime_assert(console_allocated, "Unable to allocate the console!");
+            fds_assert(console_allocated, "Unable to allocate the console!");
 
             window_ = GetConsoleWindow();
-            runtime_assert(window_ != nullptr, "Unable to get the console window");
+            fds_assert(window_ != nullptr, "Unable to get the console window");
 
             /* in_ = file_stream("CONIN$", "r", stdin);
             out_ = file_stream("CONOUT$", "w", stdout);
             err_ = file_stream("CONOUT$", "w", stderr); */
 
             // const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module()->FullDllName.Buffer);
-            // runtime_assert(window_title_set, "Unable set console title");
+            // fds_assert(window_title_set, "Unable set console title");
         }
 
         in_  = file_stream("CONIN$", "r", stdin);
         out_ = file_stream("CONOUT$", "w", stdout);
         err_ = file_stream("CONOUT$", "w", stderr);
 
-        runtime_assert(IsWindowUnicode(console_window) == TRUE);
-        // runtime_assert_add_handler(this);
+        fds_assert(IsWindowUnicode(console_window) == TRUE);
+        // fds_assert_add_handler(this);
 
         logger_system_console_impl::log_impl("Started");
         running_ = true;
@@ -417,8 +417,8 @@ class logger_system_console_impl : public logger
 
     void disable() override
     {
-        runtime_assert(running_, "Already stopped");
-        // runtime_assert_remove_handler(this->id());
+        fds_assert(running_, "Already stopped");
+        // fds_assert_remove_handler(this->id());
 
         if (window_)
         {

@@ -2,7 +2,7 @@ module;
 
 #include <fds/core/object.h>
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <functional>
 #include <future>
@@ -108,7 +108,7 @@ FDS_OBJECT_BIND(basic_hooks_loader, loader, hooks_loader);
 std::future<bool> hooks_loader::start()
 {
     const auto threads_count = std::min(hooks_.size(), thread::hardware_concurrency());
-    runtime_assert(threads_count > 0, "Incorrect threads count");
+    fds_assert(threads_count > 0, "Incorrect threads count");
 
     auto sdata   = std::make_shared<starter_data>();
     sdata->hooks = hooks_;

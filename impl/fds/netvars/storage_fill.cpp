@@ -1,8 +1,8 @@
 module;
 
+#include <fds/core/assert.h>
 #include <nstd/format.h>
 #include <nstd/ranges.h>
-#include <nstd/runtime_assert.h>
 
 #include <algorithm>
 #include <cctype>
@@ -22,7 +22,7 @@ static auto _Correct_class_name(const std::string_view name)
 
     if (name[0] == 'C' && name[1] != '_')
     {
-        runtime_assert(std::isalnum(name[1]));
+        fds_assert(std::isalnum(name[1]));
         // internal csgo classes looks like C_***
         // same classes in shared code look like C***
         ret.reserve(2 + name.size() - 1);
@@ -31,7 +31,7 @@ static auto _Correct_class_name(const std::string_view name)
     }
     else
     {
-        runtime_assert(!name.starts_with("DT_"));
+        fds_assert(!name.starts_with("DT_"));
         ret.assign(name);
     }
 
@@ -111,7 +111,7 @@ static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_
         return {};
 
     const std::string_view real_prop_name = first_prop_name.substr(0, first_prop_name.size() - 3);
-    runtime_assert(!real_prop_name.ends_with(']'));
+    fds_assert(!real_prop_name.ends_with(']'));
     if (tree.find(real_prop_name)) // todo: debug break for type check!
         return {real_prop_name, 0};
 
@@ -144,7 +144,7 @@ static void _Parse_client_class(storage& root_tree, netvar_table& tree, RecvTabl
     for (auto itr = props_begin; itr != props_end; ++itr)
     {
         const auto& prop = *itr;
-        runtime_assert(prop.m_pVarName != nullptr);
+        fds_assert(prop.m_pVarName != nullptr);
         const std::string_view prop_name = prop.m_pVarName;
         if (_Can_skip_netvar(prop_name))
             continue;
@@ -180,7 +180,7 @@ void storage::iterate_client_class(ClientClass* root_class)
             continue;
 
         hashed_string class_name = _Correct_class_name(client_class->pNetworkName);
-        runtime_assert(this->find(class_name));
+        fds_assert(this->find(class_name));
         const auto added = this->add(std::move(class_name), true);
 
         _Parse_client_class(*this, *added, recv_table, 0);
@@ -197,7 +197,7 @@ static void _Parse_datamap(netvar_table& tree, datamap_t* const map)
         if (desc.fieldType == FIELD_EMBEDDED)
         {
             if (desc.TypeDescription != nullptr)
-                runtime_assert("Embedded datamap detected");
+                fds_assert("Embedded datamap detected");
         }
         else if (desc.fieldName != nullptr)
         {

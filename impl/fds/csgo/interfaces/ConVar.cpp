@@ -5,7 +5,7 @@ module;
 
 #include <nstd/format.h>
 #ifndef FDS_CHECK_WHOLE_CVAR_NAME
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 #endif
 
 //#ifdef FDS_CHECK_WHOLE_CVAR_NAME
@@ -169,7 +169,7 @@ ConVar* ICVar::FindVar(const std::string_view name) const
 #ifdef FDS_CHECK_WHOLE_CVAR_NAME
     console::log("Cvar \"{}\" found", name);
 #else
-    runtime_assert(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
+    fds_assert(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
     console::log([name] {
         std::ostringstream msg;
 

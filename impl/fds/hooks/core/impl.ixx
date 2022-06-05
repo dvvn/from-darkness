@@ -2,7 +2,7 @@ module;
 
 #include <fds/core/object.h>
 
-#include <nstd/runtime_assert.h>
+#include <fds/core/assert.h>
 
 #include <concepts>
 #include <functional>
@@ -158,7 +158,7 @@ struct hook_instance_member
     {
         const auto inst    = &FDS_OBJECT_GET(Impl);
         const auto thisptr = static_cast<const Impl*>(this);
-        runtime_assert(inst != thisptr, "Function must be called from hooked method!");
+        fds_assert(inst != thisptr, "Function must be called from hooked method!");
         const auto orig_fn = inst->get_original_method();
 
         auto def_callback = &Impl::callback;

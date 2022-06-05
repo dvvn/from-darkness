@@ -1,6 +1,6 @@
 ﻿module;
 
-#include <nstd/core_utils.h>
+#include <fds/core/utility.h>
 
 #include <sstream>
 #include <string>
@@ -16,7 +16,7 @@ export namespace fds::netvars
     {
         ~logs_data();
 
-        std::wstring dir = NSTD_STRINGIZE_RAW_WIDE(NSTD_CONCAT(VS_SolutionDir, \.dumps\netvars\));
+        std::wstring dir = FDS_STRINGIZE_RAW_WIDE(FDS_CONCAT(VS_SolutionDir, \.dumps\netvars\));
 
         struct
         {
@@ -34,7 +34,7 @@ export namespace fds::netvars
     {
         ~classes_data();
 
-        std::wstring dir = NSTD_STRINGIZE_RAW_WIDE(NSTD_CONCAT(VS_SolutionDir, \impl\fds\csgo\interfaces_custom\));
+        std::wstring dir = FDS_STRINGIZE_RAW_WIDE(FDS_CONCAT(VS_SolutionDir, \impl\fds\csgo\interfaces_custom\));
 
         struct file_info
         {
