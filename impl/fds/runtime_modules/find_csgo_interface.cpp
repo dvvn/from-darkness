@@ -6,18 +6,18 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
+#include <cctype>
 #include <string_view>
 
 module fds.rt_modules:find_csgo_interface;
 import fds.address;
 
-#if 0
 FDS_RTM_NOTIFICATION_IMPL(on_csgo_interface_found);
 
 struct interface_reg
 {
     void* (*create_fn)();
-    const char*    name;
+    const char* name;
     interface_reg* next;
 };
 
@@ -35,9 +35,10 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
     return nullptr;
 }
 
-void* find_csgo_interface(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify = true)
+void* find_csgo_interface(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
-    const auto create_interface = fds::find_export(ldr_entry, "CreateInterface", notify);
+    using namespace fds;
+    const auto create_interface = find_export(ldr_entry, "CreateInterface"_cch, notify);
     const auto ifc_addr         = find_csgo_interface(create_interface, name, false);
     if (notify)
         std::invoke(on_csgo_interface_found, ldr_entry, name, ifc_addr);
@@ -46,14 +47,15 @@ void* find_csgo_interface(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::stri
 
 void* find_csgo_interface(const void* create_interface_fn, const std::string_view name, const bool notify)
 {
-    const fds::basic_address addr       = create_interface_fn;
-    interface_reg* const     root_reg   = addr./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
-    interface_reg* const     target_reg = _Find_interface(name, root_reg);
+    using ifc_reg_ptr = interface_reg* const;
+    using namespace fds;
+    const basic_address addr = create_interface_fn;
+    ifc_reg_ptr root_reg     = addr./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
+    ifc_reg_ptr target_reg   = _Find_interface(name, root_reg);
     fds_assert(target_reg != nullptr);
     fds_assert(_Find_interface(name, target_reg->next) == nullptr);
     const auto ifc_addr = std::invoke(target_reg->create_fn);
     if (notify)
-        std::invoke(on_csgo_interface_found, "unknown", name, ifc_addr);
+        std::invoke(on_csgo_interface_found, L"unknown"_cch, name, ifc_addr);
     return ifc_addr;
 }
-#endif

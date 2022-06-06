@@ -1,0 +1,26 @@
+﻿---
+BasedOnStyle: Microsoft
+AlignConsecutiveAssignments: AcrossComments #Consecutive
+AlignConsecutiveMacros: AcrossComments
+AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
+#AlignConsecutiveDeclarations: AcrossComments
+AlignEscapedNewlines: Left
+PointerAlignment: Left
+FixNamespaceComments: true
+NamespaceIndentation: All
+BreakConstructorInitializers: BeforeComma
+#BreakBeforeBraces: Allman
+SeparateDefinitionBlocks: Always
+AllowShortLambdasOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
+PenaltyBreakAssignment: 100
+PenaltyBreakBeforeFirstCallParameter: 40
+PenaltyBreakFirstLessLess: 50
+PenaltyBreakOpenParenthesis: 60
+ColumnLimit: 1800
+BraceWrapping:
+  AfterUnion: true
+  BeforeWhile: true
+  BeforeLambdaBody: false
+#RequiresClausePosition: OwnLine
+...

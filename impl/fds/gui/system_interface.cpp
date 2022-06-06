@@ -1,13 +1,12 @@
 module;
 
-#include <fds/core/object.h>
-
 #include <fds/core/assert.h>
-#include <nstd/format.h>
+#include <fds/core/object.h>
 
 #include <RmlUi/Core/SystemInterface.h>
 
 #include <chrono>
+#include <format>
 
 module fds.gui.system_interface;
 import fds.logger.system_console;
@@ -49,7 +48,7 @@ static void _Log(const std::string_view str, Args&&... args)
     if (!logger_system_console->active())
         return;
 
-    constexpr std::string_view prefix = "[RmlUi] ";
+    constinit std::string_view prefix = "[RmlUi] ";
     std::string buff;
     buff.reserve(prefix.size() + str.size());
     buff += prefix;
@@ -93,7 +92,7 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
 }
 
 template <>
-struct nstd::formatter<Rml_log, char> : formatter<std::string_view>
+struct std::formatter<Rml_log, char> : formatter<std::string_view>
 {
     template <class FormatContext>
     auto format(const Rml_log type, FormatContext& fc) const

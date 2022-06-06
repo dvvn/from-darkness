@@ -30,8 +30,8 @@ T* find_vtable()
     static const auto found = [] {
         FDS_RTM_RUN_ONCE(Module);
         constexpr auto class_name = get_type_name<T>();
-        const auto     ldr_entry  = fds::find_library<Module>();
-        const auto     ptr        = find_vtable(ldr_entry, class_name, false);
+        const auto ldr_entry      = fds::find_library<Module>();
+        const auto ptr            = find_vtable(ldr_entry, class_name, false);
         std::invoke(on_vtable_found, Module, class_name, ptr);
         return ptr;
     }();

@@ -1,7 +1,5 @@
 module;
 
-#include <nstd/format.h>
-
 #include <functional>
 #include <string>
 

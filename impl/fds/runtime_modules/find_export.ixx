@@ -15,7 +15,8 @@ import fds.type_name;
 template <typename FnT>
 constexpr std::string_view get_type_name()
 {
-    return std::is_function_v<FnT> ? fds::type_name<FnT>() : "unknown";
+    using namespace fds;
+    return std::is_function_v<FnT> ? type_name<FnT>() : "unknown"_cch;
 }
 
 FDS_RTM_NOTIFICATION(on_export_found, packed_library_name, std::string_view /*export name*/, void* /*export ptr*/, std::string_view /*export type*/);

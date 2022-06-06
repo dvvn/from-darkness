@@ -1,10 +1,8 @@
 module;
 
-#include <nstd/format.h>
-
+#include <format>
 #include <functional>
 #include <string_view>
-//#include <sstream>
 
 export module fds.logger;
 export import fds.convert_to;
@@ -68,15 +66,15 @@ template <typename CharT, typename... Args>
 auto _Make_fmt_args(Args&&... args)
 {
     if constexpr (std::same_as<CharT, char>)
-        return nstd::make_format_args(_Prepare_fmt_arg<char>(args)...);
+        return std::make_format_args(_Prepare_fmt_arg<char>(args)...);
     else if constexpr (std::same_as<CharT, wchar_t>)
-        return nstd::make_wformat_args(_Prepare_fmt_arg<wchar_t>(args)...);
+        return std::make_wformat_args(_Prepare_fmt_arg<wchar_t>(args)...);
 }
 
 template <typename CharT, typename Tr, typename... Args>
 auto _Vformat(const std::basic_string_view<CharT, Tr> fmt, Args&&... args)
 {
-    return nstd::vformat(fmt, _Make_fmt_args<CharT>(std::forward<Args>(args)...));
+    return std::vformat(fmt, _Make_fmt_args<CharT>(std::forward<Args>(args)...));
 }
 
 class logger
