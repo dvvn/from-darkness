@@ -143,7 +143,7 @@ struct template_info
 constexpr bool template_comparer(const template_info left, const template_info right)
 {
 #if 1
-    // every __FUNCSIG__ have own pointer, if the are same - strings are same
+    // every __FUNCSIG__ have own pointer, if they are same - strings are same
     if (left.name == right.name)
         return true;
     // we know the strings are different, tempalte part can't be found
