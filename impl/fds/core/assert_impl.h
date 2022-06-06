@@ -5,7 +5,7 @@
 #include <memory>
 #include <source_location>
 
-namespace nstd
+namespace fds
 {
     struct _declspec(novtable) rt_assert_handler
     {
@@ -30,13 +30,13 @@ namespace nstd
 
     [[noreturn]] void _Rt_assert_invoke(const char* expression, const char* message = nullptr, const std::source_location& location = std::source_location::current());
 
-} // namespace nstd
+} // namespace fds
 
-#define fds_assert_call(_EXPRESSION_OR_MESSAGE_, ...)                                       \
-    {                                                                                       \
-        if (nstd::_Rt_assert_can_invoke(_EXPRESSION_OR_MESSAGE_))                           \
-            nstd::_Rt_assert_invoke(FDS_STRINGIZE(_EXPRESSION_OR_MESSAGE_), ##__VA_ARGS__); \
+#define fds_assert_call(_EXPRESSION_OR_MESSAGE_, ...)                                      \
+    {                                                                                      \
+        if (fds::_Rt_assert_can_invoke(_EXPRESSION_OR_MESSAGE_))                           \
+            fds::_Rt_assert_invoke(FDS_STRINGIZE(_EXPRESSION_OR_MESSAGE_), ##__VA_ARGS__); \
     }
 
-#define fds_assert_add_handler_impl(_HANDLER_)    nstd::_Rt_assert_add(_HANDLER_)
-#define fds_assert_remove_handler_impl(_HANDLER_) nstd::_Rt_assert_remove(_HANDLER_)
+#define fds_assert_add_handler_impl(_HANDLER_)    fds::_Rt_assert_add(_HANDLER_)
+#define fds_assert_remove_handler_impl(_HANDLER_) fds::_Rt_assert_remove(_HANDLER_)

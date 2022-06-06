@@ -11,5 +11,5 @@
 #define fds_assert(...)                (void)0
 #define fds_assert_add_handler(...)    (void)0
 #define fds_assert_remove_handler(...) (void)0
-#define fds_assert_unreachable(...)    nstd::unreachable()
+#define fds_assert_unreachable(...)    fds::unreachable()
 #endif

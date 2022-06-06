@@ -1,4 +1,5 @@
 #include <fds/core/assert_impl.h>
+#include <fds/core/object.h>
 
 #ifdef _DEBUG
 #include <stdexcept>
@@ -9,8 +10,6 @@
 #include <vector>
 #undef NDEBUG
 #include <cassert>
-
-import nstd.one_instance;
 
 template <typename C, typename Arg1, typename... Args>
 static auto _Build_string(const Arg1& arg, const Args&... args)
@@ -102,7 +101,7 @@ static void _Assert(const char* expression, const char* message, const std::sour
 #endif
 }
 
-using nstd::rt_assert_handler;
+using fds::rt_assert_handler;
 
 struct rt_assert_handler_default final : rt_assert_handler
 {
@@ -170,23 +169,20 @@ class rt_assert_data
     rt_assert_data() = default;
 };
 
-namespace nstd
+FDS_OBJECT(_Rt, rt_assert_data);
+
+void fds::_Rt_assert_add(rt_assert_handler* const handler)
 {
-    constexpr auto _Rt = instance_of<rt_assert_data>;
+    _Rt->add(handler);
+}
 
-    void _Rt_assert_add(rt_assert_handler* const handler)
-    {
-        _Rt->add(handler);
-    }
+void fds::_Rt_assert_remove(rt_assert_handler* const handler)
+{
+    _Rt->remove(handler);
+}
 
-    void _Rt_assert_remove(rt_assert_handler* const handler)
-    {
-        _Rt->remove(handler);
-    }
-
-    void _Rt_assert_invoke(const char* expression, const char* message, const std::source_location& location)
-    {
-        _Rt->handle(expression, message, location);
-        std::terminate();
-    }
-} // namespace nstd
+void fds::_Rt_assert_invoke(const char* expression, const char* message, const std::source_location& location)
+{
+    _Rt->handle(expression, message, location);
+    std::terminate();
+}
