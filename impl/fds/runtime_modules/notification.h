@@ -54,7 +54,7 @@ struct rtm_notification final : basic_rtm_notification<Args...>
         }
     }
 
-    void operator()(const Args... args) const override
+    void operator()(Args... args) const override
     {
         if (extended_)
         {

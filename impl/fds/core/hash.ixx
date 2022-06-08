@@ -1,6 +1,8 @@
 module;
 
-#include <constexpr-xxh3.h>
+//#include <constexpr-xxh3.h>
+#include <xxh32.hpp>
+#include <xxh64.hpp>
 
 #include <array>
 #include <bit>
@@ -10,25 +12,33 @@ module;
 export module fds.hash;
 import fds.chars_cache;
 
-namespace xxh3 = constexpr_xxh3;
-
 template <typename T>
 struct hash
 {
     template <class Alloc = std::allocator<char>>
     constexpr auto operator()(const T* input, const size_t len, const Alloc& = {}) const
     {
+#if 0
         using namespace constexpr_xxh3;
         if constexpr (ByteType<T>)
         {
+
             // return XXH3_64bits_const(input, len);
             return XXH3_64bits_internal(input, len, 0, kSecret, sizeof(kSecret), [](const auto input, const auto len, const auto /*seed*/, const auto secret, const auto secret_size) {
                 return hashLong_64b_internal(input, len, secret, secret_size);
             });
         }
         else
+#endif
+
+        using xxh = std::conditional_t<std::same_as<size_t, uint32_t>, xxh32, xxh64>;
+
+        if constexpr (std::convertible_to<const T*, const char*>)
         {
-            using char_alloc = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
+            return xxh::hash(input, len, 0);
+        }
+        else
+        {
             constexpr hash<char> char_hash;
             const auto bytes_count = sizeof(T) * len;
 
@@ -39,6 +49,8 @@ struct hash
             }
             else
             {
+                using char_alloc = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
+
                 // direct bit_cast like reinterpret_cast doesn't work
 #if 0
                 using buff_t = std::vector<char, char_alloc>;
@@ -87,7 +99,7 @@ struct hash<std::basic_string<C, Tr, Alloc>> : hash<std::basic_string_view<C, Tr
     }
 };
 
-template <typename C, class Tr>
+template <typename C, class Tr = std::char_traits<C>>
 constexpr auto _Hash_strv(const std::basic_string_view<C, Tr> str)
 {
     const hash<std::basic_string_view<C, Tr>> h;
@@ -105,8 +117,21 @@ static_assert(u"test"_hash == "t\0e\0s\0t\0"_hash);
 static_assert(U"test"_hash == u"t\0e\0s\0t\0"_hash);
 static_assert(U"ab"_hash == "a\0\0\0b\0\0\0"_hash);
 
+template <typename C, size_t S>
+consteval size_t calc_hash(const C (&str)[S])
+{
+    return _Hash_strv<C>({str, str + S - 1});
+}
+
+static_assert("test"_hash == calc_hash("test"));
+
 export namespace fds
 {
+    using ::calc_hash;
     using ::hash;
-    using ::operator"" _hash;
+
+    inline namespace literals
+    {
+        using ::operator"" _hash;
+    }
 } // namespace fds

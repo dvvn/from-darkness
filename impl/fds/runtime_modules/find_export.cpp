@@ -98,6 +98,6 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
     }
 
     if (notify)
-        std::invoke(on_export_found, ldr_entry, name, export_ptr, get_type_name<void*>());
+        std::invoke(on_export_found, ldr_entry, name, export_ptr);
     return export_ptr;
 }

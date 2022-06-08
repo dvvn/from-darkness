@@ -10,7 +10,9 @@ module;
 #include <string_view>
 
 module fds.rt_modules:find_csgo_interface;
+import :find_export;
 import fds.address;
+import fds.chars_cache;
 
 FDS_RTM_NOTIFICATION_IMPL(on_csgo_interface_found);
 
@@ -56,6 +58,9 @@ void* find_csgo_interface(const void* create_interface_fn, const std::string_vie
     fds_assert(_Find_interface(name, target_reg->next) == nullptr);
     const auto ifc_addr = std::invoke(target_reg->create_fn);
     if (notify)
-        std::invoke(on_csgo_interface_found, L"unknown"_cch, name, ifc_addr);
+    {
+        // todo: find ldr_entry here
+        std::invoke(on_csgo_interface_found, nullptr, name, ifc_addr);
+    }
     return ifc_addr;
 }

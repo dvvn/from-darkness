@@ -6,37 +6,15 @@
 #endif
 #include <algorithm>
 #include <mutex>
+#include <numeric>
 #include <variant>
 #include <vector>
 #undef NDEBUG
 #include <cassert>
 
-template <typename C, typename Arg1, typename... Args>
-static auto _Build_string(const Arg1& arg, const Args&... args)
-{
-    using char_t                                = std::remove_cvref_t<decltype(arg[0])>;
-    const std::basic_string_view<char_t> arg_sv = arg;
-    if constexpr (sizeof...(Args) == 0 && std::is_same_v<char_t, C>)
-    {
-        return arg_sv;
-    }
-    else
-    {
-        return std::apply(
-            []<typename... S>(const S&... strings) {
-                std::basic_string<C> buff;
-                buff.reserve((strings.size() + ...));
-                (buff.append(strings.begin(), strings.end()), ...);
-                return buff;
-            },
-            std::make_tuple(arg_sv, std::basic_string_view(args)...));
-    }
-}
-
 template <typename C>
-class msg_packed
+struct msg_packed
 {
-  public:
     using string_type      = std::basic_string<C>;
     using string_view_type = std::basic_string_view<C>;
     using pointer_type     = const C*;
@@ -57,8 +35,7 @@ class msg_packed
     msg_packed(const T* ptr)
     {
         static_assert(sizeof(T) < sizeof(C));
-        const std::basic_string_view tmp = ptr;
-        data_.emplace<string_type>(tmp.begin(), tmp.end());
+        data_.emplace<string_type>(ptr, ptr + std::char_traits<T>::length(ptr));
     }
 
     operator pointer_type() const
@@ -80,14 +57,55 @@ class msg_packed
 template <typename C>
 msg_packed(const C*) -> msg_packed<C>;
 
-template <typename C>
-static msg_packed<C> _Assert_msg(const char* expression, const char* message)
+template <typename C, typename... Args>
+static auto _Join(Args... args)
 {
+    constexpr auto sized = []<typename T>(const T& obj) {
+        if constexpr (std::is_class_v<T>)
+            return std::pair(obj.data(), obj.size());
+        else if constexpr (std::is_pointer_v<T>)
+            return std::pair(obj, std::char_traits<std::remove_pointer_t<T>>::length(obj));
+        else
+            return std::pair(obj, 1);
+    };
+
+    constexpr auto append = []<class Buff, typename T, typename S>(Buff& buff, const std::pair<T, S> obj) {
+        auto [src, size] = obj;
+        if constexpr (std::is_pointer_v<T>)
+        {
+            buff.append(src, src + size);
+        }
+        else
+        {
+            do
+                buff += src;
+            while (--size > 0);
+        }
+    };
+
+    return std::apply(
+        [](auto... pairs) {
+            std::basic_string<C> buff;
+            buff.reserve((pairs.second + ...));
+            (append(buff, pairs), ...);
+            return buff;
+        },
+        std::tuple(sized(args)...));
+}
+
+template <typename C>
+static auto _Assert_msg(const char* expression, const char* message)
+{
+    msg_packed<C> out;
+
     if (!expression)
-        return message;
-    if (!message)
-        return expression;
-    return _Build_string<C>(message, "( ", expression, ")");
+        out = message;
+    else if (!message)
+        out = expression;
+    else
+        out = _Join<C>(expression, "( ", message, ')');
+
+    return out;
 }
 
 static void _Assert(const char* expression, const char* message, const std::source_location& location)

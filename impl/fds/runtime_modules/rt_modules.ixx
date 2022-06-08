@@ -8,12 +8,14 @@ module;
 
 export module fds.rt_modules;
 // import fds.chars_cache; //already imported, compiler bug
-import :find_csgo_interface;
+import :find_library;
+import :find_export;
 import :find_section;
 import :find_vtable;
 import :find_signature;
+import :find_csgo_interface;
 export import fds.address;
-import fds.type_name;
+export import fds.type_name;
 
 using fds::basic_address;
 
@@ -53,7 +55,7 @@ class interface_finder
     operator T*() const
     {
         T* const ptr = addr_;
-        std::invoke(fds::on_csgo_interface_found, rt_module_._Name(), fds::type_name<T>(), ptr);
+        std::invoke(fds::on_csgo_interface_found, rt_module_.data(), fds::type_name<T>(), ptr);
         return ptr;
     }
 
@@ -103,11 +105,6 @@ namespace fds
     template <chars_cache Name>
     struct rt_module
     {
-        constexpr std::wstring_view _Name() const
-        {
-            return Name;
-        }
-
         interface_finder<rt_module> _Ifc_finder(const basic_address<void> addr) const
         {
             return addr;
@@ -115,16 +112,31 @@ namespace fds
 
         //---
 
+        auto data() const
+        {
+            static const auto found = fds::find_library(Name);
+            return found;
+        }
+
+        template <chars_cache ExpName>
+        basic_address<void> find_export() const
+        {
+            static const auto found = fds::find_export(this->data(), ExpName);
+            return found;
+        }
+
         template <chars_cache Interface>
         basic_address<void> find_interface() const
         {
-            return fds::find_csgo_interface<Name, Interface>();
+            static const auto found = fds::find_csgo_interface(this->find_export<"CreateInterface">(), Interface);
+            return found;
         }
 
         template <chars_cache Sig>
         basic_address<void> find_signature() const
         {
-            return fds::find_signature<Name, Sig>();
+            static const auto found = fds::find_signature(this->data(), Sig);
+            return found;
         }
 
         template <chars_cache Sig>
@@ -136,7 +148,8 @@ namespace fds
         template <typename T>
         T* find_vtable() const
         {
-            return fds::find_vtable<Name, T>();
+            const auto found = fds::find_vtable(this->data(), fds::type_name<T>());
+            return static_cast<T*>(found);
         }
     };
 } // namespace fds

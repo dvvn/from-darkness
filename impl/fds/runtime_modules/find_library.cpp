@@ -12,6 +12,7 @@ module;
 module fds.rt_modules:find_library;
 import :library_info;
 import :helpers;
+import fds.chars_cache;
 
 FDS_RTM_NOTIFICATION_IMPL(on_library_found);
 
@@ -74,8 +75,8 @@ class partial_invoke
         using tpl_t = decltype(tpl);
 
         constexpr std::make_index_sequence<sizeof...(Args)> seq_def;
-        constexpr auto                                      seq          = _Get_valid_seq<tpl_t>(seq_def);
-        constexpr auto                                      seq_reversed = _Get_valid_seq_reversed<tpl_t>(seq_def);
+        constexpr auto seq          = _Get_valid_seq<tpl_t>(seq_def);
+        constexpr auto seq_reversed = _Get_valid_seq_reversed<tpl_t>(seq_def);
 
         return this->apply(tpl, seq, seq_reversed);
     }
@@ -105,9 +106,9 @@ template <typename Fn>
 static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
 {
     const partial_invoke invoker = std::move(comparer);
-    const auto           ldr     = _Get_ldr();
+    const auto ldr               = _Get_ldr();
     // get module linked list.
-    const auto           list    = std::addressof(ldr->InMemoryOrderModuleList);
+    const auto list              = &ldr->InMemoryOrderModuleList;
     // iterate linked list.
     for (auto it = list->Flink; it != list; it = it->Flink)
     {
@@ -126,11 +127,15 @@ static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
     return nullptr;
 }
 
-static auto _Find_library(const std::wstring_view name, const bool check_whole_path)
+#ifndef __cpp_lib_string_contains
+#define contains(_X_) find(_X_) != std::wstring_view::npos
+#endif
+
+LDR_DATA_TABLE_ENTRY* find_library(const std::wstring_view name, const bool notify)
 {
     LDR_DATA_TABLE_ENTRY* result;
 
-    if (check_whole_path)
+    /* if (name.contains(':'))
     {
         std::vector<wchar_t> name_correct_buff;
         name_correct_buff.reserve(name.size());
@@ -142,75 +147,43 @@ static auto _Find_library(const std::wstring_view name, const bool check_whole_p
             return info.path() == name_correct;
         });
     }
-    else
+    else */
     {
         result = _Find_library([=](const fds::library_info info) {
             return info.name() == name;
         });
     }
 
-    std::invoke(on_library_found, name, result);
+    if (notify)
+        std::invoke(on_library_found, name, result);
     return result;
-}
-
-LDR_DATA_TABLE_ENTRY* find_library_impl(const std::wstring_view name, const bool check_whole_path)
-{
-    return _Find_library(name, check_whole_path);
 }
 
 static DECLSPEC_NOINLINE HMODULE _Get_current_module_handle()
 {
-    MEMORY_BASIC_INFORMATION    info;
-    constexpr SIZE_T            info_size = sizeof(MEMORY_BASIC_INFORMATION);
+    MEMORY_BASIC_INFORMATION info;
+    constexpr SIZE_T info_size      = sizeof(MEMORY_BASIC_INFORMATION);
     // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] const auto len       = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, std::addressof(info), info_size);
+    [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
     fds_assert(len == info_size, "Wrong size");
     return static_cast<HMODULE>(info.AllocationBase);
 }
 
-LDR_DATA_TABLE_ENTRY* find_current_library()
+LDR_DATA_TABLE_ENTRY* find_current_library(const bool notify)
 {
-    static const auto ret = [] {
+    static const auto ret = [=] {
         const auto base_address = static_cast<void*>(_Get_current_module_handle());
         const auto ldr_entry    = _Find_library([=](IMAGE_DOS_HEADER* const dos) {
             return base_address == static_cast<void*>(dos);
         });
 
-        const auto name = ldr_entry ? fds::library_info(ldr_entry).name() : L"current";
-        std::invoke(on_library_found, name, ldr_entry);
+        if (notify)
+        {
+            using namespace fds;
+            std::invoke(on_library_found, L"current"_cch, ldr_entry);
+        }
+
         return ldr_entry;
     }();
     return ret;
-}
-
-//-------------
-
-packed_library_name::packed_library_name(const std::wstring_view name)
-{
-    name_ = name;
-    idx_  = 0;
-}
-
-packed_library_name::packed_library_name(const LDR_DATA_TABLE_ENTRY* ldr_entry)
-{
-    ldr_entry_ = ldr_entry;
-    idx_       = 1;
-}
-
-std::wstring_view packed_library_name::unpack() const
-{
-    switch (idx_)
-    {
-    case 0:
-        return name_;
-    case 1:
-        return fds::library_info(ldr_entry_).name();
-    default:
-        fds_assert_unreachable("wrong index");
-    }
-}
-
-packed_library_name::operator std::wstring_view() const
-{
-    return unpack();
 }

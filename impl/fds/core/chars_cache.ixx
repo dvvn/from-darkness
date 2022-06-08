@@ -11,7 +11,7 @@ struct simple_chars_cache
 
     constexpr simple_chars_cache(const Chr* str_source)
     {
-        std::char_traits<Chr>::copy(_Data, str_source, Size);
+        std::copy_n(str_source, Size, _Data);
     }
 
     constexpr std::basic_string_view<Chr> view() const
@@ -55,14 +55,8 @@ constexpr auto operator==(const Str& left, const simple_chars_cache<Chr, Size>& 
     return right == left;
 } */
 
-template <simple_chars_cache Cache>
-consteval auto operator"" _cchs()
-{
-    return Cache;
-}
-
 template <chars_cache Cache>
-consteval auto operator"" _cch()
+consteval auto& operator"" _cch()
 {
     return Cache;
 }
@@ -71,8 +65,12 @@ export namespace fds
 {
     using ::chars_cache;
     using ::simple_chars_cache;
+
+    inline namespace literals
+    {
+        using ::operator"" _cch;
+    }
+
     // using ::operator==;
-    using ::operator"" _cch;
-    using ::operator"" _cchs;
 
 } // namespace fds
