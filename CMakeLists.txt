@@ -65,6 +65,10 @@ macro(setup_project dir)
     add_library(${_PROJECT_PREFIX}::${name} ALIAS ${PROJECT_NAME})
   endif()
 
+  if(MSVC)
+    target_compile_options(${PROJECT_NAME} PUBLIC /Zc:preprocessor PUBLIC /Zc:__cplusplus)
+  endif()
+
   get_target_property(target_type ${PROJECT_NAME} TYPE)
   project_message("created (${target_type})")
 endmacro()
@@ -125,7 +129,6 @@ FetchContent_Declare(nstd GIT_REPOSITORY https://github.com/dvvn/nstd.git)
 FetchContent_MakeAvailable(nstd)
 
 #-------------------
-
 
 setup_project(${_WORK_DIR}/core)
 target_include_directories(${PROJECT_NAME} PUBLIC ${_IMPL_DIR})

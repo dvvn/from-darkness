@@ -4,6 +4,8 @@ AlignConsecutiveAssignments: AcrossComments #Consecutive
 AlignConsecutiveMacros: AcrossComments
 AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
 #AlignConsecutiveDeclarations: AcrossComments
+Cpp11BracedListStyle: false
+AlignArrayOfStructures: Left
 AlignEscapedNewlines: Left
 PointerAlignment: Left
 FixNamespaceComments: true
@@ -11,13 +13,16 @@ NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
 #BreakBeforeBraces: Allman
 SeparateDefinitionBlocks: Always
+#BinPackArguments: false
+BinPackParameters: false
 AllowShortLambdasOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: Yes
+AllowAllParametersOfDeclarationOnNextLine: false
 PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 40
 PenaltyBreakFirstLessLess: 50
 PenaltyBreakOpenParenthesis: 60
-ColumnLimit: 1800
+ColumnLimit: 180
 BraceWrapping:
   AfterUnion: true
   BeforeWhile: true

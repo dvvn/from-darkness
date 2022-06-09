@@ -47,7 +47,7 @@ decltype(auto) _Extract_obj_t(V&& val)
 #define FDS_OBJECT_BIND_AUTO(_OBJ_NAME_, _TARGET_NAME_)            FDS_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
 #define FDS_OBJECT_BIND_AUTO2(_OBJ_NAME_, _TARGET_TYPE_, ...)      FDS_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, /* _TARGET_IDX_ */ __VA_ARGS__)
 
-#define FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FDS_OBJECT_GET(_OBJ_TYPE_, /* _OBJ_IDX_ */ __VA_ARGS__);
+#define FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FDS_OBJECT_GET(_OBJ_TYPE_, /* _OBJ_IDX_ */##__VA_ARGS__);
 
 /*
 example:

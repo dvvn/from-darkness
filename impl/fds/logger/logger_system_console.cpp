@@ -363,7 +363,8 @@ class logger_system_console_impl : public logger
   public:
     ~logger_system_console_impl() override
     {
-        logger_system_console_impl::disable();
+	if(running_)
+	    logger_system_console_impl::disable();
     }
 
     logger_system_console_impl()

@@ -7,7 +7,7 @@ module;
 #include <span>
 
 module fds.mem_block;
-import fds.mem_protect;
+//import fds.mem_protect;
 
 mem_block::mem_block(const _Base span)
     : _Base(span)
