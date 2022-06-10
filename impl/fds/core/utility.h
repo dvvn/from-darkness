@@ -16,14 +16,14 @@
 #define FDS_STRINGIZE(x)  FDS_STRINGIZEX(x)
 #endif
 
-#ifdef _CRT_WIDE
+/* #ifdef _CRT_WIDE
 #define FDS_STRINGIZE_WIDE _CRT_WIDE
 #else
 #define FDS_STRINGIZE_WIDE(x) FDS_CONCAT(L, FDS_STRINGIZE(x))
 #endif
 
 #define FDS_STRINGIZE_RAW(x)      FDS_CONCAT(R, FDS_STRINGIZE(##(x)##))
-#define FDS_STRINGIZE_RAW_WIDE(x) FDS_CONCAT(L, FDS_STRINGIZE_RAW(x))
+#define FDS_STRINGIZE_RAW_WIDE(x) FDS_CONCAT(L, FDS_STRINGIZE_RAW(x)) */
 
 namespace fds
 {

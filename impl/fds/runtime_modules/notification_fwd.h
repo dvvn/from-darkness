@@ -29,4 +29,6 @@ namespace std
     }
 } // namespace std
 
-#define FDS_RTM_NOTIFICATION(_NAME_, ...) FDS_OBJECT(_NAME_, basic_rtm_notification<__VA_ARGS__>, fds::calc_hash(#_NAME_))
+#define FDS_RTM_NOTIFICATION(_NAME_, ...)                   \
+    using _NAME_##_t = basic_rtm_notification<__VA_ARGS__>; \
+    FDS_OBJECT(_NAME_, _NAME_##_t, fds::calc_hash(#_NAME_))

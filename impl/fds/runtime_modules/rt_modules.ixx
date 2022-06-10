@@ -128,7 +128,7 @@ namespace fds
         template <chars_cache Interface>
         basic_address<void> find_interface() const
         {
-            static const auto found = fds::find_csgo_interface(this->find_export<"CreateInterface">(), Interface);
+            static const auto found = fds::find_csgo_interface(this->find_export<"CreateInterface">(), Interface, this->data());
             return found;
         }
 
@@ -160,8 +160,10 @@ struct current_module
     interface_finder<current_module> _Ifc_finder(const basic_address<void> addr) const;
 };
 
-#define DLL_NAME(_NAME_)    L#_NAME_ ".dll"
+// clang-format off
+#define DLL_NAME(_NAME_)    L""#_NAME_".dll"
 #define GAME_MODULE(_NAME_) constexpr rt_module<DLL_NAME(_NAME_)> _NAME_;
+// clang-format on
 
 #define EXPORT_PROXY(_NAME_) using fds::on_##_NAME_##_found
 

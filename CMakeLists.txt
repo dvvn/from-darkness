@@ -6,6 +6,11 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_DEBUG_POSTFIX _d)
 endif()
 
+#if(MSVC) idk, not defined
+  add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
+  add_compile_definitions(MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
+#endif()
+
 set(_PROJECT_PREFIX fds)
 string(TOUPPER ${_PROJECT_PREFIX} _PROJECT_PREFIX_UPPER)
 set(_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
@@ -65,9 +70,10 @@ macro(setup_project dir)
     add_library(${_PROJECT_PREFIX}::${name} ALIAS ${PROJECT_NAME})
   endif()
 
-  if(MSVC)
-    target_compile_options(${PROJECT_NAME} PUBLIC /Zc:preprocessor PUBLIC /Zc:__cplusplus)
-  endif()
+  # if(MSVC)
+  #   target_compile_options(${PROJECT_NAME} PUBLIC /Zc:preprocessor PUBLIC /Zc:__cplusplus)
+  #   target_compile_definitions(${PROJECT_NAME} PUBLIC MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
+  # endif()
 
   get_target_property(target_type ${PROJECT_NAME} TYPE)
   project_message("created (${target_type})")
@@ -125,8 +131,8 @@ endmacro()
 
 include(FetchContent)
 
-FetchContent_Declare(nstd GIT_REPOSITORY https://github.com/dvvn/nstd.git)
-FetchContent_MakeAvailable(nstd)
+#FetchContent_Declare(nstd GIT_REPOSITORY https://github.com/dvvn/nstd.git)
+#FetchContent_MakeAvailable(nstd)
 
 #-------------------
 
@@ -153,7 +159,7 @@ link_partition(PUBLIC core)
 
 setup_project(${_WORK_DIR}/logger)
 link_partition(PUBLIC text)
-link_library(PUBLIC nstd::format)
+#link_library(PUBLIC nstd::format)
 
 #-------------------
 
@@ -244,3 +250,5 @@ write_hook_ids()
 # FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
 # FetchContent_MakeAvailable(robin_hood)
 # link_library(PRIVATE robin_hood::robin_hood)
+
+message(-------------------------------------${CMAKE_CXX_FLAGS})

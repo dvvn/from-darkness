@@ -12,7 +12,7 @@ module;
 module fds.rt_modules:find_csgo_interface;
 import :find_export;
 import fds.address;
-import fds.chars_cache;
+//import fds.chars_cache;
 
 FDS_RTM_NOTIFICATION_IMPL(on_csgo_interface_found);
 
@@ -37,30 +37,31 @@ static interface_reg* _Find_interface(const std::string_view name, interface_reg
     return nullptr;
 }
 
-void* find_csgo_interface(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
+/* void* find_csgo_interface(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
     using namespace fds;
     const auto create_interface = find_export(ldr_entry, "CreateInterface"_cch, notify);
-    const auto ifc_addr         = find_csgo_interface(create_interface, name, false);
+    const auto ifc_addr         = find_csgo_interface(create_interface, name, nullptr);
     if (notify)
         std::invoke(on_csgo_interface_found, ldr_entry, name, ifc_addr);
     return ifc_addr;
-}
+} */
 
-void* find_csgo_interface(const void* create_interface_fn, const std::string_view name, const bool notify)
+using fds::basic_address;
+
+static void* _Find_interface(const basic_address<interface_reg> create_interface_fn, const std::string_view name)
 {
-    using ifc_reg_ptr = interface_reg* const;
-    using namespace fds;
-    const basic_address addr = create_interface_fn;
-    ifc_reg_ptr root_reg     = addr./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
-    ifc_reg_ptr target_reg   = _Find_interface(name, root_reg);
+    const auto root_reg   = create_interface_fn./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
+    const auto target_reg = _Find_interface(name, root_reg);
     fds_assert(target_reg != nullptr);
     fds_assert(_Find_interface(name, target_reg->next) == nullptr);
-    const auto ifc_addr = std::invoke(target_reg->create_fn);
-    if (notify)
-    {
-        // todo: find ldr_entry here
-        std::invoke(on_csgo_interface_found, nullptr, name, ifc_addr);
-    }
+    return std::invoke(target_reg->create_fn);
+}
+
+void* find_csgo_interface(const void* create_interface_fn, const std::string_view name, LDR_DATA_TABLE_ENTRY* const ldr_entry_for_notification)
+{
+    const auto ifc_addr = _Find_interface(create_interface_fn, name);
+    if (ldr_entry_for_notification)
+        std::invoke(on_csgo_interface_found, ldr_entry_for_notification, name, ifc_addr);
     return ifc_addr;
 }

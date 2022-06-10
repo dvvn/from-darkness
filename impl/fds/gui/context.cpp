@@ -20,10 +20,14 @@
 module fds.gui.context;
 import fds.application_info;
 
+#pragma warning(push)
+#pragma warning(disable : 5103)
 // clang-format off
-#define RML_SAMPLES            FDS_CONCAT(RMLUI_DIR, /Samples/)
-#define RML_SAMPLE(_DIR_, _S_) FDS_STRINGIZE_RAW(RML_SAMPLES)_DIR_"/"_S_
+#define RML_SAMPLE(_DIR_, _S_) FDS_STRINGIZE(RMLUI_DIR/Samples/)##_DIR_##"/"##_S_
 // clang-format on
+#pragma warning(pop)
+
+constexpr auto a = RML_SAMPLE("test", "fuck.txt");
 
 #if 0
 static void _Rml_demo_animation(Context* ctx)
