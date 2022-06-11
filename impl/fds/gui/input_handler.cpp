@@ -490,7 +490,7 @@ input_result_proxy input_helper::on_character(const WPARAM w_param, char16_t& fi
     }
     if (IS_HIGH_SURROGATE(w_param))
     {
-        fds_assert(IS_LOW_SURROGATE(first_code_unit));
+        FDS_ASSERT(IS_LOW_SURROGATE(first_code_unit));
         return ctx_->ProcessTextInput(_Make_rml_string(first_code_unit, wch));
     }
 
@@ -549,14 +549,14 @@ bool input_result::touched() const
 
 input_result& input_result::set_return_value(const uint8_t ret_val)
 {
-    fds_assert(ret_val_ == unset_, "Already set!");
+    FDS_ASSERT(ret_val_ == unset_, "Already set!");
     ret_val_ = ret_val;
     return *this;
 }
 
 size_t input_result::return_value() const
 {
-    fds_assert(touched(), "Unable to return untouched result!");
-    fds_assert(ret_val_ == 1 || ret_val_ == 0, "Incorrect value!");
+    FDS_ASSERT(touched(), "Unable to return untouched result!");
+    FDS_ASSERT(ret_val_ == 1 || ret_val_ == 0, "Incorrect value!");
     return static_cast<size_t>(ret_val_);
 }

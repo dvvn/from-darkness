@@ -1,6 +1,6 @@
 module;
 
-#include <fds/runtime_modules/notification.h>
+#include <fds/core/event.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -10,7 +10,7 @@ module;
 module fds.rt_modules:find_section;
 import :helpers;
 
-FDS_RTM_NOTIFICATION_IMPL(on_section_found);
+FDS_EVENT_BIND(on_section_found);
 
 IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {

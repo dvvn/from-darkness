@@ -48,8 +48,8 @@ CBaseHandle::CBaseHandle(IHandleEntity* pHandleObj)
 
 CBaseHandle::CBaseHandle(int iEntry, int iSerialNumber)
 {
-    fds_assert(iEntry >= 0 && (iEntry & ENT_ENTRY_MASK) == iEntry);
-    fds_assert(iSerialNumber >= 0 && iSerialNumber < (1 << NUM_SERIAL_NUM_BITS));
+    FDS_ASSERT(iEntry >= 0 && (iEntry & ENT_ENTRY_MASK) == iEntry);
+    FDS_ASSERT(iSerialNumber >= 0 && iSerialNumber < (1 << NUM_SERIAL_NUM_BITS));
     m_Index = iEntry | (iSerialNumber << /*NUM_ENT_ENTRY_BITS*/ NUM_SERIAL_NUM_SHIFT_BITS);
 }
 

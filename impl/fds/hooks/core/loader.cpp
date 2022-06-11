@@ -108,7 +108,7 @@ FDS_OBJECT_BIND(basic_hooks_loader, loader, hooks_loader);
 std::future<bool> hooks_loader::start()
 {
     const auto threads_count = std::min(hooks_.size(), thread::hardware_concurrency());
-    fds_assert(threads_count > 0, "Incorrect threads count");
+    FDS_ASSERT(threads_count > 0, "Incorrect threads count");
 
     auto sdata   = std::make_shared<starter_data>();
     sdata->hooks = hooks_;

@@ -77,9 +77,9 @@ size_t netvars::get_offset(const std::string_view table, const std::string_view 
     /*const auto& storage = nstd::one_instance<netvars_holder>::get( ).storage;
 
     const auto target_class = find(table);
-    fds_assert(target_class != end( ));
+    FDS_ASSERT(target_class != end( ));
     const auto netvar_info = target_class->find(item);
-    fds_assert(netvar_info != target_class->end( ));
+    FDS_ASSERT(netvar_info != target_class->end( ));
 
     using namespace std::string_view_literals;
     return netvar_info->find("offset"sv)->get<int>( );*/

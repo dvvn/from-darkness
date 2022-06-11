@@ -169,7 +169,7 @@ ConVar* ICVar::FindVar(const std::string_view name) const
 #ifdef FDS_CHECK_WHOLE_CVAR_NAME
     console::log("Cvar \"{}\" found", name);
 #else
-    fds_assert(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
+    FDS_ASSERT(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
     console::log([name] {
         std::ostringstream msg;
 

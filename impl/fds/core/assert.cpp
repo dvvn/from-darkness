@@ -1,16 +1,34 @@
-#include <fds/core/assert_impl.h>
-#include <fds/core/object.h>
+module;
 
-#ifdef _DEBUG
-#include <stdexcept>
-#endif
-#include <algorithm>
-#include <mutex>
-#include <numeric>
+#include <fds/core/event.h>
+
+#include <functional>
+#include <source_location>
+#include <string>
 #include <variant>
-#include <vector>
+
+module fds.assert;
+
 #undef NDEBUG
-#include <cassert>
+#include <assert.h>
+
+using real_assert_handler = fds::event<const assert_data&>;
+
+struct assert_handler_impl : real_assert_handler
+{
+    assert_handler_impl()
+    {
+        real_assert_handler::append(std::bind_front(&assert_data::system_assert));
+    }
+
+    void invoke(const assert_data& data) const override
+    {
+        real_assert_handler::invoke(data);
+        std::terminate();
+    }
+};
+
+FDS_EVENT_BIND(assert_handler, assert_handler_impl);
 
 template <typename C>
 struct msg_packed
@@ -18,6 +36,8 @@ struct msg_packed
     using string_type      = std::basic_string<C>;
     using string_view_type = std::basic_string_view<C>;
     using pointer_type     = const C*;
+
+    using value_type = std::variant<string_type, string_view_type, pointer_type>;
 
     msg_packed() = default;
 
@@ -50,8 +70,20 @@ struct msg_packed
             data_);
     }
 
+    string_view_type view() const
+    {
+        const auto str = std::visit(
+            [](const auto& obj) -> string_view_type {
+                return obj;
+            },
+            data_);
+        if (std::holds_alternative<pointer_type>(data_))
+            const_cast<value_type&>(data_).emplace<string_view_type>(str);
+        return str;
+    }
+
   private:
-    std::variant<string_type, string_view_type, pointer_type> data_;
+    value_type data_;
 };
 
 template <typename C>
@@ -65,6 +97,8 @@ static auto _Join(Args... args)
             return std::pair(obj.data(), obj.size());
         else if constexpr (std::is_pointer_v<T>)
             return std::pair(obj, std::char_traits<std::remove_pointer_t<T>>::length(obj));
+        else if constexpr (std::is_bounded_array_v<T>)
+            return std::pair(static_cast<std::decay_t<T>>(obj), std::size(obj) - 1);
         else
             return std::pair(obj, 1);
     };
@@ -93,6 +127,22 @@ static auto _Join(Args... args)
         std::tuple(sized(args)...));
 }
 
+std::string assert_data::build_message() const
+{
+    const auto part1 = _Join<char>("Assertion falied!", '\n',            /**/
+                                   "File: ", location.file_name(), '\n', /**/
+                                   "Line: ", std::to_string(location.line()), "\n\n");
+    msg_packed<char> part2;
+    if (expression && message)
+        part2 = _Join<char>("Expression: ", expression, '\n\n', message);
+    else if (expression)
+        part2 = _Join<char>("Expression: ", expression);
+    else if (message)
+        part2 = message;
+
+    return _Join<char>(part1, part2.view());
+}
+
 template <typename C>
 static auto _Assert_msg(const char* expression, const char* message)
 {
@@ -108,99 +158,13 @@ static auto _Assert_msg(const char* expression, const char* message)
     return out;
 }
 
-static void _Assert(const char* expression, const char* message, const std::source_location& location)
+void assert_data::system_assert() const
 {
 #if defined(_MSC_VER)
     _wassert(_Assert_msg<wchar_t>(expression, message), msg_packed<wchar_t>(location.file_name()), location.line());
 #elif defined(__GNUC__)
     __assert_fail(_Assert_msg<char>(expression, message), location.file_name(), location.line(), location.function_name());
 #else
-    TODO
+#error not implemented
 #endif
-}
-
-using fds::rt_assert_handler;
-
-struct rt_assert_handler_default final : rt_assert_handler
-{
-    void handle(const char* expression, const char* message, const std::source_location& location) override
-    {
-        _Assert(expression, message, location);
-    }
-
-    void handle(const char* message, const std::source_location& location) override
-    {
-        _Assert(nullptr, message, location);
-    }
-};
-
-class rt_assert_data
-{
-    std::mutex mtx_;
-    std::vector<rt_assert_handler*> storage_;
-
-  public:
-    template <bool Lock = true>
-    void add(rt_assert_handler* const handler)
-    {
-        if constexpr (Lock)
-            mtx_.lock();
-
-#ifdef _DEBUG
-        if (!storage_.empty())
-        {
-            for (const auto& el : storage_)
-            {
-                if (el == handler)
-                    throw std::logic_error("Handler already added!");
-            }
-        }
-#endif
-        storage_.push_back(handler);
-
-        if constexpr (Lock)
-            mtx_.unlock();
-    }
-
-    void remove(rt_assert_handler* const handler)
-    {
-        const auto lock = std::scoped_lock(mtx_);
-        const auto end  = storage_.end();
-        for (auto itr = storage_.begin(); itr != end; ++itr)
-        {
-            if (handler == *itr)
-            {
-                storage_.erase(itr);
-                break;
-            }
-        }
-    }
-
-    template <typename... Args>
-    void handle(const Args&... args)
-    {
-        const auto lock = std::scoped_lock(mtx_);
-        for (const auto& el : storage_)
-            el->handle(args...);
-    }
-
-    rt_assert_data() = default;
-};
-
-FDS_OBJECT(_Rt, rt_assert_data);
-
-void fds::_Rt_assert_add(rt_assert_handler* const handler)
-{
-    _Rt->add(handler);
-}
-
-void fds::_Rt_assert_remove(rt_assert_handler* const handler)
-{
-    _Rt->remove(handler);
-}
-
-void fds::_Rt_assert_invoke(const char* expression, const char* message, const std::source_location& location)
-{
-    _Rt->handle(expression, message, location);
-    std::terminate();
 }

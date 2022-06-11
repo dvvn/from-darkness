@@ -1,7 +1,7 @@
 module;
 
 #include <fds/core/assert.h>
-#include <fds/runtime_modules/notification.h>
+#include <fds/core/event.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -13,7 +13,7 @@ module fds.rt_modules:find_export;
 import :helpers;
 import fds.address;
 
-FDS_RTM_NOTIFICATION_IMPL(on_export_found);
+FDS_EVENT_BIND(on_export_found);
 
 void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
@@ -22,7 +22,7 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
 
     // get export data directory.
     const auto& data_dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-    fds_assert(data_dir.VirtualAddress, "Current module doesn't have the virtual address!");
+    FDS_ASSERT(data_dir.VirtualAddress, "Current module doesn't have the virtual address!");
 
     // get export export_dir.
     const fds::basic_address<IMAGE_EXPORT_DIRECTORY> export_dir = dos + data_dir.VirtualAddress;
@@ -59,7 +59,7 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
             break;
         }
 
-        fds_assert_unreachable("Forwarded export detected");
+        FDS_ASSERT_UNREACHABLE("Forwarded export detected");
 #if 0
 		// get forwarder string.
 		const std::string_view fwd_str = export_ptr.get<const char*>( );

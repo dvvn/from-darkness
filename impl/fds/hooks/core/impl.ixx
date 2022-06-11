@@ -158,7 +158,7 @@ struct hook_instance_member
     {
         const auto inst    = &FDS_OBJECT_GET(Impl);
         const auto thisptr = static_cast<const Impl*>(this);
-        fds_assert(inst != thisptr, "Function must be called from hooked method!");
+        FDS_ASSERT(inst != thisptr, "Function must be called from hooked method!");
         const auto orig_fn = inst->get_original_method();
 
         auto def_callback = &Impl::callback;

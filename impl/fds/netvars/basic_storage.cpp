@@ -75,9 +75,9 @@ hashed_string_view netvar_info::name() const
         else
         {
             std::string_view name = _Netvar_name(source_);
-            fds_assert(name.ends_with("[0]"));
+            FDS_ASSERT(name.ends_with("[0]"));
             name.remove_suffix(3);
-            fds_assert(name.rfind(']') == name.npos);
+            FDS_ASSERT(name.rfind(']') == name.npos);
             name_ = name;
         }
     }
@@ -147,7 +147,7 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
 {
 #ifdef _DEBUG
     const auto name = info->name();
-    fds_assert(!name.empty(), "Item name not set!");
+    FDS_ASSERT(!name.empty(), "Item name not set!");
 
     if (this->empty())
         return;
@@ -158,13 +158,13 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
     for (auto& item : *this)
     {
         if (item->name() == name)
-            fds_assert("Item with given name already added!");
+            FDS_ASSERT("Item with given name already added!");
 
         if (item->offset() == offset)
         {
             const auto type_curr = item->type();
             if (type_curr.empty() || type.empty() || type == type_curr)
-                fds_assert("Item with given offset and type already added!");
+                FDS_ASSERT("Item with given offset and type already added!");
             // othervise skip this offset manually
         }
     }
@@ -212,7 +212,7 @@ const netvar_info_custom_constant* netvar_table::add(const size_t offset, const 
 //	const auto end = begin + this->size( );
 //
 //	const auto pos = from ? from : begin;
-//	fds_assert(std::distance(begin, pos) >= 0);
+//	FDS_ASSERT(std::distance(begin, pos) >= 0);
 //
 //	const auto found1 = _Find_name(std::span(pos, end), name);
 //	if(found1)

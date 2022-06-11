@@ -1,7 +1,7 @@
 module;
 
 #include <fds/core/assert.h>
-#include <fds/runtime_modules/notification.h>
+#include <fds/core/event.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -17,7 +17,7 @@ import fds.mem_block;
 using fds::basic_address;
 using block = fds::mem_block;
 
-FDS_RTM_NOTIFICATION_IMPL(on_vtable_found);
+FDS_EVENT_BIND(on_vtable_found);
 
 // block = {dos + header->VirtualAddress, header->SizeOfRawData}
 
@@ -117,7 +117,7 @@ void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
     const block bytes        = {dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage};
     const block target_block = bytes.find_block({real_name.data(), real_name.size()});
     // class descriptor
-    fds_assert(!target_block.empty());
+    FDS_ASSERT(!target_block.empty());
 
     // get rtti type descriptor
     basic_address<void> type_descriptor = target_block.data();
@@ -131,6 +131,6 @@ void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
     if (notify)
         std::invoke(on_vtable_found, ldr_entry, name, result);
     else
-        fds_assert(result != nullptr);
+        FDS_ASSERT(result != nullptr);
     return result;
 }

@@ -1,7 +1,7 @@
 module;
 
 #include <fds/core/assert.h>
-#include <fds/runtime_modules/notification.h>
+#include <fds/core/event.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -14,7 +14,7 @@ import :library_info;
 import :helpers;
 import fds.chars_cache;
 
-FDS_RTM_NOTIFICATION_IMPL(on_library_found);
+FDS_EVENT_BIND(on_library_found);
 
 template <typename Fn>
 class partial_invoke
@@ -93,11 +93,11 @@ static auto _Get_ldr()
     const auto mem =
 #if defined(_M_X64) || defined(__x86_64__)
         NtCurrentTeb();
-    fds_assert(mem != nullptr, "Teb not found");
+    FDS_ASSERT(mem != nullptr, "Teb not found");
     return mem->ProcessEnvironmentBlock->Ldr;
 #else
         reinterpret_cast<PEB*>(__readfsdword(0x30));
-    fds_assert(mem != nullptr, "Peb not found");
+    FDS_ASSERT(mem != nullptr, "Peb not found");
     return mem->Ldr;
 #endif
 }
@@ -165,7 +165,7 @@ static DECLSPEC_NOINLINE HMODULE _Get_current_module_handle()
     constexpr SIZE_T info_size      = sizeof(MEMORY_BASIC_INFORMATION);
     // todo: is this is dll, try to load this function from inside
     [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
-    fds_assert(len == info_size, "Wrong size");
+    FDS_ASSERT(len == info_size, "Wrong size");
     return static_cast<HMODULE>(info.AllocationBase);
 }
 

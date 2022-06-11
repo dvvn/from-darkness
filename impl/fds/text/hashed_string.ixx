@@ -78,7 +78,7 @@ struct hashed_string_wrapper : Base
         if (std::is_constant_evaluated())
             throw std::logic_error("Incorrect hash passed");
         else
-            fds_assert("Incorrect hash passed");
+            FDS_ASSERT("Incorrect hash passed");
 #endif
     }
 

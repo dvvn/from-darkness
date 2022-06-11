@@ -7,7 +7,6 @@ module;
 #include <string>
 
 export module fds.rt_modules;
-// import fds.chars_cache; //already imported, compiler bug
 import :find_library;
 import :find_export;
 import :find_section;
@@ -16,6 +15,7 @@ import :find_signature;
 import :find_csgo_interface;
 export import fds.address;
 export import fds.type_name;
+import fds.chars_cache;
 
 using fds::basic_address;
 

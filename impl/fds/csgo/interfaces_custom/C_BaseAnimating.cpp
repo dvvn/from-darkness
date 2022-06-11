@@ -31,6 +31,6 @@ void C_BaseAnimating::InvalidateBoneCache()
     time    = -FLT_MAX;
     counter = -1;
 #else
-    fds_assert("Not implemented");
+    FDS_ASSERT("Not implemented");
 #endif
 }

@@ -69,7 +69,7 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
     switch (logtype)
     {
     case Rml_log::LT_ASSERT: {
-        fds_assert(message.c_str());                               // it calls std::terminate if defined
+        FDS_ASSERT(message.c_str());                               // it calls std::terminate if defined
         return Rml::SystemInterface::LogMessage(logtype, message); // otherwise call default logs handler
     }
     case Rml_log::LT_ERROR:
@@ -87,7 +87,7 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
         _Log(logtype, message);
         return true;
     default:
-        fds_assert_unreachable("Unknown log type detected");
+        FDS_ASSERT_UNREACHABLE("Unknown log type detected");
     }
 }
 
@@ -117,7 +117,7 @@ struct std::formatter<Rml_log, char> : formatter<std::string_view>
             str = "DEBUG";
             break;
         default:
-            fds_assert_unreachable("Unknown log type detected");
+            FDS_ASSERT_UNREACHABLE("Unknown log type detected");
         }
 
         return formatter<std::string_view>::format(str, fc);

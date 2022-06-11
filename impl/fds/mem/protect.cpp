@@ -1,7 +1,7 @@
 module;
 
 #if 0
-#include <nstd/fds_assert.h>
+#include <nstd/FDS_ASSERT.h>
 #endif
 #include <Windows.h>
 
@@ -67,12 +67,12 @@ static DWORD _Set_flags(const LPVOID addr, const SIZE_T size, const DWORD new_fl
 #if 0
 	const nstd::mem::block block = {static_cast<uint8_t*>(addr),size};
 	const auto old_flags = block.get_flags( );
-	fds_assert(old_flags != 0);
+	FDS_ASSERT(old_flags != 0);
 	DWORD old_flags2 = 0;
 	//does not work
 	if (VirtualProtect(addr, size, old_flags | new_flags, std::addressof(old_flags2)))
 	{
-		fds_assert(old_flags == old_flags2);
+		FDS_ASSERT(old_flags == old_flags2);
 		return old_flags;
 	}
 #else

@@ -57,7 +57,7 @@ using known_bytes_external = abstract_storage<std::span<const uint8_t>, known_by
 template <typename T>
 static void _Store_bytes_to(const uint8_t* begin, const uint8_t* end, std::unique_ptr<known_bytes>& data)
 {
-    fds_assert(data == nullptr);
+    FDS_ASSERT(data == nullptr);
     data = std::make_unique<T>(T::buffer_type(begin, end));
 }
 
@@ -147,7 +147,7 @@ class unknown_bytes_writer
   public:
     void move_to(std::unique_ptr<unknown_bytes>& data)
     {
-        fds_assert(data == nullptr);
+        FDS_ASSERT(data == nullptr);
         if (!target_.empty())
             dump_impl();
         data = std::make_unique<unknown_bytes_impl>(std::move(source_));
@@ -204,7 +204,7 @@ class unknown_bytes_writer
             case 'F':
                 return 0xF;
             default:
-                fds_assert_unreachable("Unsupported character");
+                FDS_ASSERT_UNREACHABLE("Unsupported character");
             }
         };
 
@@ -217,7 +217,7 @@ class unknown_bytes_writer
             target_.push_back(to_num(rng[0]) * 16 + to_num(rng[1]));
             break;
         default:
-            fds_assert_unreachable("Incorrect string validation!");
+            FDS_ASSERT_UNREACHABLE("Incorrect string validation!");
         }
     }
 
@@ -299,7 +299,7 @@ static bool _Validate_signature(const std::string_view rng)
 static auto _Text_to_bytes(const char* begin, const char* end)
 {
     const std::string_view text_src = {begin, end};
-    fds_assert(_Validate_signature(text_src));
+    FDS_ASSERT(_Validate_signature(text_src));
 
     unknown_bytes_writer writer;
 

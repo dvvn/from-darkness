@@ -3,6 +3,7 @@
 #include <string>
 
 import fds.one_instance;
+import fds.hash;
 
 template <typename T>
 auto _Object_type_impl()
@@ -48,7 +49,7 @@ decltype(auto) _Extract_obj_t(V&& val)
 #define FDS_OBJECT_BIND_AUTO2(_OBJ_NAME_, _TARGET_TYPE_, ...)      FDS_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, __VA_ARGS__ /* target index */)
 
 #define FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FDS_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__ /* object index */);
-
+#define FDS_UNIQUE_OBJECT(_OBJ_NAME_, _OBJ_TYPE_) FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, fds::calc_hash(#_OBJ_NAME_));
 /*
 example:
 
