@@ -28,10 +28,10 @@ struct simple_chars_cache
 template <typename Chr, size_t Size>
 simple_chars_cache(const Chr (&arr)[Size]) -> simple_chars_cache<Chr, Size>;
 
-#ifdef _DEBUG
+/* #ifdef _DEBUG */ #if 1
 
-template <typename Chr, size_t Size>
-struct chars_cache : simple_chars_cache<Chr, Size>
+    template <typename Chr, size_t Size>
+    struct chars_cache : simple_chars_cache <Chr, Size>
 {
     using simple_chars_cache<Chr, Size>::simple_chars_cache;
 };

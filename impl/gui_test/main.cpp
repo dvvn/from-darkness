@@ -123,7 +123,7 @@ static void ResetDevice() noexcept
     // runtime_assert(hr != D3DERR_INVALIDCALL);
 }
 
-static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
     switch (msg)
     {
@@ -167,7 +167,8 @@ int main(int, char**)
 
     using namespace fds;
     d3d_device9.construct(g_pd3dDevice);
-    app_info.construct(hwnd);
+    app_info.construct(hwnd, IsWindowUnicode(hwnd) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr));
+    auto& a = *app_info;
     logger_system_console->enable();
     hooks_loader->fill<FDS_HOOK_IDS>();
 

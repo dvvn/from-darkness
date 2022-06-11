@@ -215,7 +215,7 @@ class one_instance
 {
     using t_getter = one_instance_getter<T>;
 
-    static auto& _Buff()
+    static __declspec(noinline) auto& _Buff()
     {
         static std::optional<t_getter> buff;
         return buff;

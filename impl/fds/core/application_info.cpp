@@ -46,23 +46,26 @@ rect_ex window_size::client() const
 
 WNDPROC wndproc_ctrl::def() const
 {
-    return _UNI(DefWindowProc);
+    const auto ret = _UNI(DefWindowProc);
+    return ret;
 }
 
 WNDPROC wndproc_ctrl::curr() const
 {
-    return reinterpret_cast<WNDPROC>(_UNI_FN(GetWindowLongPtr, window_handle, GWLP_WNDPROC));
+    const auto ret = _UNI_FN(GetWindowLongPtr, window_handle, GWLP_WNDPROC);
+    return reinterpret_cast<WNDPROC>(ret);
 }
 
 WNDPROC wndproc_ctrl::set(const WNDPROC proc)
 {
-    return reinterpret_cast<WNDPROC>(_UNI_FN(SetWindowLong, window_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(proc)));
+    const auto ret = _UNI_FN(SetWindowLong, window_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(proc));
+    return reinterpret_cast<WNDPROC>(ret);
 }
 
 //----------
 
 application_info::application_info(const HWND window_handle, const HMODULE module_handle)
-    : module_handle(module_handle ? module_handle : (IsWindowUnicode(window_handle) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr)))
+    : module_handle(module_handle /* ? module_handle : (IsWindowUnicode(window_handle) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr)) */)
 {
-    window.handle = window_handle;
+    this->window.handle = window_handle;
 }
