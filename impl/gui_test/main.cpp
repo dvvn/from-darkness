@@ -11,7 +11,6 @@ import fds.hooks_loader;
 import fds.logger.system_console;
 import fds.application_info;
 import fds.d3d_device9;
-import fds.assert;
 
 using nstd::winapi::comptr;
 
@@ -176,8 +175,6 @@ int main(int, char**)
 
     if (!hooks_loader->start().get())
         return TRUE;
-
-    std::invoke(fds::assert_handler, fds::assert_data("test"));
 
     //----------------
 

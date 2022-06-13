@@ -54,39 +54,36 @@ class fake_vector
 
     fake_vector& operator=(const fake_vector& other)
     {
-        if constexpr (std::is_class_v<T>)
+        static_assert(std::is_copy_assignable_v<T>);
+        if constexpr (std::is_trivially_copy_assignable_v<T> && std::is_trivially_destructible_v<T>)
         {
-            static_assert(std::is_copy_assignable_v<T>);
-            if constexpr (!std::is_trivially_copy_assignable_v<T>)
-            {
-                std::destroy_at(this);
-                for (size_t i = 0; i < other.size_; ++i)
-                    push_back(other[i]);
-                return *this;
-            }
+            std::copy(other.begin(), other.end(), begin());
+            size_ = other.size_;
         }
-
-        std::copy_n(other.begin(), other.size_, begin());
-        size_ = other.size_;
+        else
+        {
+            std::destroy_at(this);
+            for (size_t i = 0; i < other.size_; ++i)
+                push_back(other[i]);
+        }
         return *this;
     }
 
     fake_vector& operator=(fake_vector&& other)
     {
-        if constexpr (std::is_class_v<T>)
+        static_assert(std::is_move_assignable_v<T>);
+        if constexpr (!std::is_class_v<T>)
         {
-            static_assert(std::is_move_assignable_v<T>);
-            if constexpr (!std::is_trivially_move_assignable_v<T>)
-            {
-                std::destroy_at(this);
-                for (size_t i = 0; i < other.size_; ++i)
-                    push_back(std::move(other[i]));
-                return *this;
-            }
+            *this = other;
+        }
+        else
+        {
+            std::destroy_at(this);
+            for (size_t i = 0; i < other.size_; ++i)
+                push_back(std::move(other[i]));
         }
 
-        // memcpy
-        return *this = other;
+        return *this;
     }
 
     //------------
@@ -183,16 +180,16 @@ class buffered_vector
             std::get<real_vec>(data_).push_back(std::move(other));
             return;
         }
-        auto& fake_ = std::get<fake_vec>(data_);
-        if (fake_.free_space() > 0)
+        auto& fake = std::get<fake_vec>(data_);
+        if (fake.free_space() > 0)
         {
-            fake_.push_back(std::move(other));
+            fake.push_back(std::move(other));
         }
         else
         {
             real_vec real;
-            real.reserve(fake_.size() + 1);
-            real.assign(std::move_iterator(fake_.begin()), std::move_iterator(fake_.end()));
+            real.reserve(fake.size() + 1);
+            real.assign(std::move_iterator(fake.begin()), std::move_iterator(fake.end()));
             real.push_back(std::move(other));
             data_.emplace<real_vec>(std::move(real));
         }
