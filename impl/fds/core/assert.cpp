@@ -1,6 +1,6 @@
 module;
 
-#include <fds/core/event.h>
+#include <fds/core/callback_impl.h>
 
 #include <functional>
 #include <source_location>
@@ -12,7 +12,7 @@ module fds.assert;
 #undef NDEBUG
 #include <assert.h>
 
-using real_assert_handler = fds::event<const assert_data&>;
+using real_assert_handler = fds::callback_ex<2, const assert_data&>;
 
 struct assert_handler_impl : real_assert_handler
 {
@@ -28,7 +28,7 @@ struct assert_handler_impl : real_assert_handler
     }
 };
 
-FDS_EVENT_BIND(assert_handler, assert_handler_impl);
+FDS_CALLBACK_BIND(assert_handler, assert_handler_impl);
 
 template <typename C>
 struct msg_packed

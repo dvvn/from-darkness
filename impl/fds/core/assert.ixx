@@ -1,6 +1,6 @@
 module;
 
-#include <fds/core/event_fwd.h>
+#include <fds/core/callback.h>
 
 #include <source_location>
 #include <string>
@@ -24,7 +24,7 @@ struct assert_data
     void system_assert() const;
 };
 
-FDS_EVENT_FWD(assert_handler, const assert_data&);
+FDS_CALLBACK(assert_handler, const assert_data&);
 
 constexpr bool can_invoke_assert_handler(const char*)
 {

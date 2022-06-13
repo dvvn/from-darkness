@@ -103,7 +103,7 @@ class hooks_loader final : public basic_hooks_loader
     void add(hook_base* const hook) override;
 };
 
-FDS_OBJECT_BIND(basic_hooks_loader, loader, hooks_loader);
+FDS_OBJECT_BIND_AUTO2(loader, hooks_loader);
 
 std::future<bool> hooks_loader::start()
 {

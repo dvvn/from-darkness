@@ -1,7 +1,7 @@
 module;
 
 #include <fds/core/assert.h>
-#include <fds/core/event.h>
+#include <fds/core/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -14,7 +14,7 @@ import :library_info;
 import :helpers;
 import fds.chars_cache;
 
-FDS_EVENT_BIND(on_library_found);
+FDS_CALLBACK_BIND(on_library_found);
 
 template <typename Fn>
 class partial_invoke

@@ -1,7 +1,7 @@
 module;
 
 #include <fds/core/assert.h>
-#include <fds/core/event.h>
+#include <fds/core/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -17,7 +17,7 @@ import fds.mem_block;
 using fds::basic_address;
 using block = fds::mem_block;
 
-FDS_EVENT_BIND(on_vtable_found);
+FDS_CALLBACK_BIND(on_vtable_found);
 
 // block = {dos + header->VirtualAddress, header->SizeOfRawData}
 

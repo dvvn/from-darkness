@@ -1,7 +1,7 @@
 module;
 
 #include <fds/core/assert.h>
-#include <fds/core/event.h>
+#include <fds/core/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -12,10 +12,9 @@ module;
 module fds.rt_modules:find_csgo_interface;
 // import :find_export;
 import fds.address;
-import fds.event;
 //import fds.chars_cache;
 
-FDS_EVENT_BIND(on_csgo_interface_found);
+FDS_CALLBACK_BIND(on_csgo_interface_found);
 
 struct interface_reg
 {

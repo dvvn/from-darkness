@@ -2,16 +2,19 @@ module;
 
 #include <functional>
 
-export module fds.event.abstract;
+export module fds.callback;
+
+// template <typename T>
+// using callback_arg_t = std::conditional_t<std::is_reference_v<T>, T, std::add_lvalue_reference_t<T>>;
 
 template <typename... Args>
-struct abstract_event
+struct abstract_callback
 {
     using callback_type = std::function<void(Args...)>;
 
-    virtual ~abstract_event() = default;
+    virtual ~abstract_callback() = default;
 
-    virtual void append(const callback_type& callback) = 0;
+    virtual void append(callback_type&& callback) = 0;
 
     void operator+=(const callback_type& callback)
     {
@@ -30,5 +33,5 @@ struct abstract_event
 
 export namespace fds
 {
-    using ::abstract_event;
+    using ::abstract_callback;
 }

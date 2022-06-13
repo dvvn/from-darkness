@@ -1,6 +1,6 @@
 module;
 
-#include <fds/core/event_fwd.h>
+#include <fds/core/callback.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -10,7 +10,7 @@ module;
 export module fds.rt_modules:find_vtable;
 // import fds.type_name;
 
-FDS_EVENT_FWD(on_vtable_found, const LDR_DATA_TABLE_ENTRY* /* library name */, std::string_view /*vtable name*/, void* /*vtable ptr*/);
+FDS_CALLBACK(on_vtable_found, const LDR_DATA_TABLE_ENTRY* /* library name */, std::string_view /*vtable name*/, void* /*vtable ptr*/);
 
 void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify = true);
 

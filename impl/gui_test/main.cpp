@@ -11,6 +11,7 @@ import fds.hooks_loader;
 import fds.logger.system_console;
 import fds.application_info;
 import fds.d3d_device9;
+import fds.assert;
 
 using nstd::winapi::comptr;
 
@@ -168,7 +169,6 @@ int main(int, char**)
     using namespace fds;
     d3d_device9.construct(g_pd3dDevice);
     app_info.construct(hwnd, IsWindowUnicode(hwnd) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr));
-    auto& a = *app_info;
     logger_system_console->enable();
     hooks_loader->fill<FDS_HOOK_IDS>();
 
@@ -176,6 +176,8 @@ int main(int, char**)
 
     if (!hooks_loader->start().get())
         return TRUE;
+
+    std::invoke(fds::assert_handler, fds::assert_data("test"));
 
     //----------------
 
