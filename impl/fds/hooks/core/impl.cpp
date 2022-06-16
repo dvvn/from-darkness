@@ -4,7 +4,7 @@ module;
 #include <string>
 
 module fds.hook;
-import fds.logger.system_console;
+import fds.logger;
 
 hook::~hook()
 {
@@ -20,7 +20,7 @@ hook::hook()
 template <typename M>
 static void _Log(const hook* h, const M& msg)
 {
-    fds::logger_system_console->log("{}: {}", std::bind_front(&hook::name, h), msg);
+    fds::logger("{}: {}", std::bind_front(&hook::name, h), msg);
 }
 
 bool hook::enable()

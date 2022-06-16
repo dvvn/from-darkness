@@ -332,7 +332,7 @@ export namespace fds
 
 export namespace std
 {
-    export template <class T, size_t Instance, typename... Args>
+    template <class T, size_t Instance, typename... Args>
     decltype(auto) invoke(const instance_of_t<T, Instance> inst, Args&&... args)
     {
         return invoke(*inst, std::forward<Args>(args)...);

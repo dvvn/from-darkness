@@ -9,7 +9,7 @@ module;
 #include <format>
 
 module fds.gui.system_interface;
-import fds.logger.system_console;
+import fds.logger;
 
 using Rml_log = Rml::Log::Type;
 
@@ -26,7 +26,7 @@ class system_interface_impl final : public Rml::SystemInterface
     bool LogMessage(Rml_log logtype, const Rml::String& message) override;
 };
 
-FDS_OBJECT_BIND(Rml::SystemInterface, system_interface, system_interface_impl);
+FDS_OBJECT_BIND_TYPE(system_interface, system_interface_impl);
 
 system_interface_impl::system_interface_impl()
     : start_time_(clock::now())
@@ -40,28 +40,25 @@ double system_interface_impl::GetElapsedTime()
     return duration_cast<out_duration>(diff).count();
 }
 
-using fds::logger_system_console;
-
 template <typename... Args>
-static void _Log(const std::string_view str, Args&&... args)
+static bool _Log(const std::string_view str, Args&&... args)
 {
-    if (!logger_system_console->active())
-        return;
-
-    constinit std::string_view prefix = "[RmlUi] ";
-    std::string buff;
-    buff.reserve(prefix.size() + str.size());
-    buff += prefix;
-    buff += str;
-    logger_system_console->log(buff, std::forward<Args>(args)...);
+    return fds::logger(
+        [&] {
+            constinit std::string_view prefix = "[RmlUi] ";
+            std::string buff;
+            buff.reserve(prefix.size() + str.size());
+            buff += prefix;
+            buff += str;
+            return buff;
+        },
+        std::forward<Args>(args)...);
 }
 
-static void _Log(const Rml_log logtype, const Rml::String& message)
+static bool _Log(const Rml_log logtype, const Rml::String& message)
 {
-    if (logtype == Rml_log::LT_ALWAYS)
-        _Log(message);
-    else
-        _Log("({}) {}", logtype, message);
+    FDS_ASSERT(logtype != Rml_log::LT_ALWAYS);
+    return _Log("({}) {}", logtype, message);
 }
 
 bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& message)
@@ -80,8 +77,9 @@ bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& messa
         return true;
 #endif
     case Rml_log::LT_ALWAYS:
-        if (!logger_system_console->active())
-            return Rml::SystemInterface::LogMessage(logtype, message);
+        if (_Log(message))
+            return true;
+        return Rml::SystemInterface::LogMessage(logtype, message);
     case Rml_log::LT_WARNING:
     case Rml_log::LT_INFO:
         _Log(logtype, message);

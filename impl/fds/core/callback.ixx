@@ -16,9 +16,9 @@ struct abstract_callback
 
     virtual void append(callback_type&& callback) = 0;
 
-    void operator+=(const callback_type& callback)
+    void operator+=(callback_type&& callback)
     {
-        append(callback);
+        append(std::move(callback));
     }
 
     virtual void invoke(Args... args) const = 0;

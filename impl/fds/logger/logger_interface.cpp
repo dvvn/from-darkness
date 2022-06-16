@@ -1,19 +1,10 @@
 module;
 
+#include <fds/core/callback_impl.h>
+
 #include <string_view>
 
 module fds.logger;
 
-void logger::log(const std::string_view str)
-{
-    if (!active())
-        return;
-    log_impl(str);
-}
-
-void logger::log(const std::wstring_view str)
-{
-    if (!active())
-        return;
-    log_impl(str);
-}
+FDS_CALLBACK_BIND(logger_narrow);
+FDS_CALLBACK_BIND(logger_wide);

@@ -23,13 +23,8 @@ class fake_vector
     {
         if constexpr (!std::is_trivially_destructible_v<T>)
         {
-            for (;;)
-            {
-                const auto idx = size_--;
-                if (idx == 0)
-                    break;
-                std::destroy_at(&view_[idx]);
-            }
+            while (size_ > 0)
+                std::destroy_at(&view_[--size_]);
         }
         else
         {

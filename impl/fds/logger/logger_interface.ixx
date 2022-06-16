@@ -1,5 +1,8 @@
 module;
 
+#include <fds/core/callback.h>
+
+#include <concepts>
 #include <format>
 #include <functional>
 #include <string_view>
@@ -10,107 +13,190 @@ export import fds.convert_to;
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
 
-struct to_string_view_t
-{
-    template <typename... Ts>
-    auto operator()(const std::basic_string_view<Ts...> str) const
-    {
-        return str;
-    }
-
-    template <typename C, typename Tr, class A>
-    auto operator()(const std::basic_string<C, Tr, A>& str) const
-    {
-        return std::basic_string_view<C, Tr>(str.begin(), str.end());
-    }
-
-    template <typename... Ts>
-    auto operator()(std::basic_string<Ts...>&& str) const
-    {
-        return std::move(str);
-    }
-
-    template <typename C>
-    auto operator()(const C* str) const
-    {
-        return std::basic_string_view<C>(str);
-    }
-
-    // template <typename C, size_t S>
-    // auto operator()(const C (&str)[S]) const
-    // {
-    //     return std::basic_string_view<C>(str);
-    // }
-};
-
-constexpr to_string_view_t to_string_view;
-
 template <typename T>
-concept can_be_string = requires(T obj)
+concept can_be_string = requires(const T& obj)
 {
-    to_string_view(obj);
+    std::basic_string_view(obj);
 };
 
 template <typename CharT, typename T>
-decltype(auto) _Prepare_fmt_arg(T&& arg)
+decltype(auto) _Prepare_fmt_arg(const T& arg)
 {
+    constexpr auto cvt = fds::convert_to<CharT>;
     if constexpr (can_be_string<T>)
-        return fds::convert_to<CharT>(to_string_view(std::forward<T>(arg)));
+    {
+        return cvt(std::basic_string_view(arg));
+    }
     else if constexpr (std::invocable<T>)
-        return _Prepare_fmt_arg<CharT>(std::invoke(arg));
+    {
+        auto tmp    = std::invoke(arg);
+        using tmp_t = decltype(tmp);
+        if constexpr (can_be_string<tmp_t> && !std::same_as<CharT, get_char_t<tmp_t>>)
+            return cvt(tmp);
+        else
+            return tmp;
+    }
     else
-        return std::forward<T>(arg);
+    {
+        return arg;
+    }
 }
 
 template <typename CharT, typename... Args>
-auto _Make_fmt_args(Args&&... args)
+auto _Make_fmt_args(const Args&... args)
 {
     if constexpr (std::same_as<CharT, char>)
-        return std::make_format_args(_Prepare_fmt_arg<char>(args)...);
+        return std::make_format_args(args...);
     else if constexpr (std::same_as<CharT, wchar_t>)
-        return std::make_wformat_args(_Prepare_fmt_arg<wchar_t>(args)...);
+        return std::make_wformat_args(args...);
 }
 
-template <typename CharT, typename Tr, typename... Args>
-auto _Vformat(const std::basic_string_view<CharT, Tr> fmt, Args&&... args)
+FDS_CALLBACK(logger_narrow, std::string_view);
+FDS_CALLBACK(logger_wide, std::wstring_view);
+
+template <typename L>
+bool _Logger_empty(const L logger)
 {
-    return std::vformat(fmt, _Make_fmt_args<CharT>(std::forward<Args>(args)...));
+    return !logger.initialized() || logger->empty();
 }
 
-class logger
+template <typename Fn, typename T>
+Fn _Wrap_callback(T&& obj)
 {
-  protected:
-    virtual void log_impl(const std::string_view str)  = 0;
-    virtual void log_impl(const std::wstring_view str) = 0;
+    using obj_t = decltype(obj);
+    if constexpr (std::copyable<obj_t> && std::constructible_from<Fn, obj_t>)
+        return std::forward<T>(obj);
+    else if constexpr (std::is_lvalue_reference_v<obj_t>)
+        return [&](const auto msg) {
+            return std::invoke(obj, msg);
+        };
+}
+
+// std::invocable from concepts ignore self overloads!
+template <class _FTy, class... _ArgTys>
+concept invocable = requires(_FTy&& _Fn, _ArgTys&&... _Args)
+{
+    std::invoke(static_cast<_FTy&&>(_Fn), static_cast<_ArgTys&&>(_Args)...);
+};
+
+class logger_wrapped
+{
+    void _Log(const std::string_view msg) const
+    {
+        std::invoke(logger_narrow, msg);
+    }
+
+    void _Log_inversed(const std::string_view msg) const
+    {
+        const std::wstring wide_str(msg.begin(), msg.end());
+        _Log(wide_str);
+    }
+
+    void _Log(const std::wstring_view msg) const
+    {
+        std::invoke(logger_wide, msg);
+    }
+
+    bool _Log_inversed(const std::wstring_view msg) const
+    {
+        std::string str;
+        str.reserve(msg.size());
+        for (const auto wchr : msg)
+        {
+            const auto chr = static_cast<char>(wchr);
+            if (static_cast<wchar_t>(chr) != wchr)
+                return false;
+            str += chr;
+        }
+        _Log(str);
+        return true;
+    }
 
   public:
-    virtual ~logger() = default;
+    template <typename Fn>
+    void append(Fn&& callback) const
+    {
+        constexpr bool can_narrow = invocable<Fn, std::string_view>;
+        constexpr bool can_wide   = invocable<Fn, std::wstring_view>;
 
-    virtual bool active() const = 0;
-    virtual void enable()       = 0;
-    virtual void disable()      = 0;
+        using narrow_fn = callbacks::logger_narrow::callback_type;
+        using wide_fn   = callbacks::logger_wide::callback_type;
 
-    void log(const std::string_view str);
-    void log(const std::wstring_view str);
+        if constexpr (can_narrow && can_wide)
+        {
+            logger_narrow->append(_Wrap_callback<narrow_fn>(callback));
+            logger_wide->append(_Wrap_callback<wide_fn>(callback));
+        }
+        else if constexpr (can_narrow)
+            logger_narrow->append(_Wrap_callback<narrow_fn>(std::forward<Fn>(callback)));
+        else if constexpr (can_wide)
+            logger_wide->append(_Wrap_callback<wide_fn>(std::forward<Fn>(callback)));
+        else
+            static_assert(std::_Always_false<Fn>);
+    }
+
+    bool active() const
+    {
+        return !_Logger_empty(logger_narrow) || !_Logger_empty(logger_wide);
+    }
+
+    bool operator()(const std::string_view msg) const
+    {
+        if (!_Logger_empty(logger_narrow))
+        {
+            _Log(msg);
+            return true;
+        }
+        if (!_Logger_empty(logger_wide))
+        {
+            _Log_inversed(msg);
+            return true;
+        }
+        return false;
+    }
+
+    bool operator()(const std::wstring_view msg) const
+    {
+        if (!_Logger_empty(logger_wide))
+        {
+            _Log(msg);
+            return true;
+        }
+        return !_Logger_empty(logger_narrow) && _Log_inversed(msg);
+    }
 
     template <std::invocable T>
-    void log(T&& fn)
+    bool operator()(T&& fn) const
     {
-        if (!active())
-            return;
-        log_impl(std::invoke(std::forward<T>(fn)));
+        if (_Logger_empty(logger_narrow) && _Logger_empty(logger_wide))
+            return false;
+        const auto msg = std::invoke(fn);
+        return std::invoke(*this, msg);
     }
 
     template <typename Arg1, typename... Args>
-    void log(Arg1&& fmt, Args&&... args) requires(sizeof...(Args) > 0)
+    bool operator()(Arg1&& fmt, Args&&... args) const requires(sizeof...(Args) > 0)
     {
-        if (!active())
-            return;
-        log_impl(_Vformat(to_string_view(fmt), std::forward<Args>(args)...));
+        if (_Logger_empty(logger_narrow) && _Logger_empty(logger_wide))
+            return false;
+
+        if constexpr (std::invocable<Arg1>)
+        {
+            const auto fmt_str = std::invoke((fmt));
+            using char_t       = get_char_t<decltype(fmt_str)>;
+            const auto msg     = std::vformat(fmt_str, _Make_fmt_args<char_t>(_Prepare_fmt_arg<char_t>(args)...));
+            return std::invoke(*this, msg);
+        }
+        else
+        {
+            using char_t   = get_char_t<decltype(fmt)>;
+            const auto msg = std::vformat(fmt, _Make_fmt_args<char_t>(_Prepare_fmt_arg<char_t>(args)...));
+            return std::invoke(*this, msg);
+        }
     }
 };
 
 export namespace fds
 {
-    using ::logger;
+    constexpr logger_wrapped logger;
 }

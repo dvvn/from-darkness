@@ -8,9 +8,11 @@
 #include <compare>
 
 import fds.hooks_loader;
+import fds.logger;
 import fds.logger.system_console;
 import fds.application_info;
 import fds.d3d_device9;
+import fds.assert;
 
 using nstd::winapi::comptr;
 
@@ -168,7 +170,7 @@ int main(int, char**)
     using namespace fds;
     d3d_device9.construct(g_pd3dDevice);
     app_info.construct(hwnd, IsWindowUnicode(hwnd) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr));
-    logger_system_console->enable();
+    logger.append(system_console_writer);
     hooks_loader->fill<FDS_HOOK_IDS>();
 
     // PresetD3D(hwnd);

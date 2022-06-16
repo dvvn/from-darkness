@@ -1,7 +1,6 @@
 module;
-#include <fds/core/object.h>
-
 #include <fds/core/assert.h>
+#include <fds/core/object.h>
 
 #include <Windows.h>
 #include <fcntl.h>
@@ -16,6 +15,7 @@ module;
 #include <time.h>
 
 module fds.logger.system_console;
+import fds.convert_to;
 
 class stream_descriptor
 {
@@ -309,8 +309,8 @@ class writer
         return *this;
     }
 
-    template <typename C, typename Ch>
-    void operator()(const std::basic_string_view<C, Ch> text)
+    template <typename C, typename Ch, class Locker>
+    void operator()(const std::basic_string_view<C, Ch> text, const Locker locker)
     {
         time_buff buff;
         std::string time = std::move(buff);
@@ -324,11 +324,11 @@ class writer
             time += ' ';
         }
 
-        const std::scoped_lock lock(mtx_);
+        const auto lock = locker(mtx_);
         write_nolock(time);
         if constexpr (!can_reuse_buff)
         {
-            constexpr char dash[] = {' ', '-', ' ', 0};
+            constexpr char dash[] = { ' ', '-', ' ', 0 };
             write_nolock(dash);
         }
         write_nolock(text);
@@ -336,89 +336,35 @@ class writer
     }
 };
 
-using fds::logger;
+constexpr auto real_locker = []<class Mtx>(Mtx& mtx) {
+    return std::scoped_lock(mtx);
+};
 
-class logger_system_console_impl : public logger
+constexpr auto fake_locker = []<class Mtx>(Mtx&) {
+    return std::false_type();
+};
+
+class console_writer_impl : public console_writer
 {
-    std::mutex mtx_;
-
     reader in_;
     writer out_;
     writer err_;
 
-    HWND window_;
-    bool running_ = false;
-
-  protected:
-    void log_impl(const std::string_view str) override
-    {
-        out_(str);
-    }
-
-    void log_impl(const std::wstring_view str) override
-    {
-        out_(str);
-    }
+    HWND window_ = nullptr;
 
   public:
-    ~logger_system_console_impl() override
+    void operator()(const std::string_view str) override
     {
-	if(running_)
-	    logger_system_console_impl::disable();
+        out_(str, real_locker);
     }
 
-    logger_system_console_impl()
+    void operator()(const std::wstring_view wstr) override
     {
-        // logger_system_console_impl::enable();
+        out_(wstr, real_locker);
     }
 
-    bool active() const override
+    ~console_writer_impl() override
     {
-        return running_;
-    }
-
-    void enable() override
-    {
-        FDS_ASSERT(!running_, "Already started");
-        auto console_window = GetConsoleWindow();
-        if (console_window)
-        {
-            window_ = nullptr;
-
-            /* in_ = file_stream(stdin);
-            out_ = file_stream(stdout);
-            err_ = file_stream(stderr); */
-        }
-        else
-        {
-            const auto console_allocated = AllocConsole();
-            FDS_ASSERT(console_allocated, "Unable to allocate the console!");
-
-            window_ = GetConsoleWindow();
-            FDS_ASSERT(window_ != nullptr, "Unable to get the console window");
-
-            /* in_ = file_stream("CONIN$", "r", stdin);
-            out_ = file_stream("CONOUT$", "w", stdout);
-            err_ = file_stream("CONOUT$", "w", stderr); */
-
-            // const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module()->FullDllName.Buffer);
-            // FDS_ASSERT(window_title_set, "Unable set console title");
-        }
-
-        in_  = file_stream("CONIN$", "r", stdin);
-        out_ = file_stream("CONOUT$", "w", stdout);
-        err_ = file_stream("CONOUT$", "w", stderr);
-
-        FDS_ASSERT(IsWindowUnicode(console_window) == TRUE);
-        // fds_assert_add_handler(this);
-
-        logger_system_console_impl::log_impl("Started");
-        running_ = true;
-    }
-
-    void disable() override
-    {
-        FDS_ASSERT(running_, "Already stopped");
         // fds_assert_remove_handler(this->id());
 
         if (window_)
@@ -428,11 +374,40 @@ class logger_system_console_impl : public logger
         }
         else
         {
-            logger_system_console_impl::log_impl("Stopped");
+            out_(std::string_view("Stopped"), fake_locker);
+        }
+    }
+
+    console_writer_impl()
+    {
+        auto console_window = GetConsoleWindow();
+        if (!console_window)
+        {
+            const auto console_allocated = AllocConsole();
+            FDS_ASSERT(console_allocated, "Unable to allocate the console!");
+
+            console_window = GetConsoleWindow();
+            FDS_ASSERT(console_window, "Unable to get the console window");
+
+            /* in_ = file_stream("CONIN$", "r", stdin);
+            out_ = file_stream("CONOUT$", "w", stdout);
+            err_ = file_stream("CONOUT$", "w", stderr); */
+
+            // const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module()->FullDllName.Buffer);
+            // FDS_ASSERT(window_title_set, "Unable set console title");
+
+            window_ = console_window;
         }
 
-        running_ = false;
+        in_  = file_stream("CONIN$", "r", stdin);
+        out_ = file_stream("CONOUT$", "w", stdout);
+        err_ = file_stream("CONOUT$", "w", stderr);
+
+        FDS_ASSERT(IsWindowUnicode(console_window) == TRUE);
+        // fds_assert_add_handler(this);
+
+        out_(std::string_view("Started"), fake_locker);
     }
 };
 
-FDS_OBJECT_BIND(logger, logger_system_console, logger_system_console_impl);
+FDS_OBJECT_BIND_TYPE(system_console_writer, console_writer_impl);

@@ -44,9 +44,8 @@ decltype(auto) _Extract_obj_t(V&& val)
 #define FDS_OBJECT_GET(_OBJ_TYPE_, ...) fds::instance_of<_Object_t<_OBJ_TYPE_> __VA_OPT__(, ) __VA_ARGS__ /* object index */>
 
 #define FDS_OBJECT_BIND(_OBJ_TYPE_, _OBJ_IDX_, _TARGET_TYPE_, ...) FDS_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, FDS_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__ /* target index */))
-#define FDS_OBJECT_BIND_SIMPLE(_OBJ_TYPE_, _TARGET_TYPE_)          FDS_OBJECT_BIND(_OBJ_TYPE_, 0, _TARGET_TYPE_, 0)
-#define FDS_OBJECT_BIND_AUTO(_OBJ_NAME_, _TARGET_NAME_)            FDS_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
-#define FDS_OBJECT_BIND_AUTO2(_OBJ_NAME_, _TARGET_TYPE_, ...)      FDS_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, __VA_ARGS__ /* target index */)
+#define FDS_OBJECT_BIND_NAME(_OBJ_NAME_, _TARGET_NAME_)            FDS_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
+#define FDS_OBJECT_BIND_TYPE(_OBJ_NAME_, _TARGET_TYPE_, ...)       FDS_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, __VA_ARGS__ /* target index */)
 
 #define FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FDS_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__ /* object index */);
 #define FDS_UNIQUE_OBJECT(_OBJ_NAME_, _OBJ_TYPE_) FDS_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, fds::calc_hash(#_OBJ_NAME_));
