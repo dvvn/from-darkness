@@ -1,5 +1,5 @@
 ﻿//#include <nstd/runtime_assert.h>
-#include <fds/comptr.h>
+#include <fd/comptr.h>
 
 #include <d3d9.h>
 #include <tchar.h>
@@ -7,12 +7,12 @@
 
 #include <compare>
 
-import fds.hooks_loader;
-import fds.logger;
-import fds.logger.system_console;
-import fds.application_info;
-import fds.d3d_device9;
-import fds.assert;
+import fd.hooks_loader;
+import fd.logger;
+import fd.logger.system_console;
+import fd.application_info;
+import fd.d3d_device9;
+import fd.assert;
 
 using nstd::winapi::comptr;
 
@@ -167,15 +167,12 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    using namespace fds;
+    using namespace fd;
     d3d_device9.construct(g_pd3dDevice);
     app_info.construct(hwnd, IsWindowUnicode(hwnd) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr));
     logger.append(system_console_writer);
-    hooks_loader->fill<FDS_HOOK_IDS>();
-
     // PresetD3D(hwnd);
-
-    if (!hooks_loader->start().get())
+    if (!hooks_loader->load_all())
         return TRUE;
 
     //----------------
@@ -200,6 +197,6 @@ int main(int, char**)
     }
 
 _STOP:
-    hooks_loader->stop();
+    hooks_loader->disable_all();
     return FALSE;
 }
