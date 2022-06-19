@@ -10,6 +10,7 @@ module;
 export module fd.hashed_string;
 import fd.lazy_invoke;
 import fd.type_name;
+import fd.hash;
 
 #define COMMA ,
 
@@ -51,7 +52,7 @@ decltype(auto) this_or_iterator(T* thisptr, const Q& proxy_result)
 
 #define WRAP_THIS_OR_ITERATOR(_NAME_) WRAP(decltype(auto), _NAME_, decltype(auto) result =, return this_or_iterator<Base>(this COMMA result))
 
-template <class Base, template <typename> class Hasher = std::hash>
+template <class Base, template <typename> class Hasher = fd::hash>
 struct hashed_string_wrapper : Base
 {
     using hash_type      = /*decltype(std::invoke(std::declval<Hasher>( ), std::declval<Base>( )))*/ size_t;
@@ -190,7 +191,7 @@ constexpr bool operator!=(const H1& left, const H2& right)
 }
 
 template <typename Chr,
-          template <typename> class Hasher = std::hash,
+          template <typename> class Hasher = fd::hash,
           class Traits                     = std::char_traits<Chr>,
           class Base                       = hashed_string_wrapper<std::basic_string_view<Chr, Traits>, Hasher>>
 struct basic_hashed_string_view : Base
@@ -208,8 +209,11 @@ struct basic_hashed_string_view : Base
 #endif
 };
 
+template <typename Chr>
+basic_hashed_string_view(const Chr*) -> basic_hashed_string_view<Chr>;
+
 template <typename Chr,
-          template <typename> class Hasher = std::hash,
+          template <typename> class Hasher = fd::hash,
           class Traits                     = std::char_traits<Chr>,
           class Allocator                  = std::allocator<Chr>,
           class Base                       = hashed_string_wrapper<std::basic_string<Chr, Traits, Allocator>, Hasher>>
@@ -237,6 +241,9 @@ struct basic_hashed_string : Base
     using Base::swap;
 };
 
+template <typename Chr>
+basic_hashed_string(const Chr*) -> basic_hashed_string<Chr>;
+
 #define DECLARE_IMPL(_TYPE_, _PREFIX_, _POSTFIX_) using hashed_##_PREFIX_##string##_POSTFIX_ = basic_hashed_string##_POSTFIX_##<_TYPE_>;
 #define DECLARE(_TYPE_, _PREFIX_)    \
     DECLARE_IMPL(_TYPE_, _PREFIX_, ) \
@@ -257,32 +264,4 @@ export namespace fd
     DECLARE(wchar_t, w);
     DECLARE(char16_t, u16);
     DECLARE(char32_t, u32);
-
-#if 0
-#define OPERATOR_SIMPLE_HEAD template <class Base, template <typename> class Hasher, class Wrapper = hashed_string_wrapper<Base, Hasher>, typename HashType = Wrapper::hash_type>
-
-#define OPERATOR_IMPL(_CHECK_, _RET_, _OP_)                                                                                     \
-    template <class Base, template <typename> class Hasher, class Base2, template <typename> class Hasher2>                     \
-    constexpr _RET_ operator _OP_(const hashed_string_wrapper<Base, Hasher>& l, const hashed_string_wrapper<Base2, Hasher2>& r) \
-    {                                                                                                                           \
-        static_assert(std::equality_comparable_with<Base, Base2>, __FUNCSIG__ ": Base classes must be equality comparable!");   \
-        static_assert(fd::same_template<Hasher, Hasher2>(), __FUNCSIG__ ": Hash functions must be have same base!");            \
-        return l.hash() _OP_ r.hash();                                                                                          \
-    }                                                                                                                           \
-    OPERATOR_SIMPLE_HEAD                                                                                                        \
-    constexpr _RET_ operator _OP_(const Wrapper& l, const HashType hash)                                                        \
-    {                                                                                                                           \
-        return l.hash() _OP_ hash;                                                                                              \
-    }                                                                                                                           \
-    OPERATOR_SIMPLE_HEAD                                                                                                        \
-    constexpr _RET_ operator _OP_(const HashType hash, const Wrapper& r)                                                        \
-    {                                                                                                                           \
-        return hash _OP_ r.hash();                                                                                              \
-    }
-
-#define OPERATOR(_OP_) OPERATOR_IMPL(std::equality_comparable_with, bool, _OP_);
-
-    OPERATOR(==);
-    OPERATOR(!=);
-#endif
 } // namespace fd
