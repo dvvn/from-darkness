@@ -12,8 +12,6 @@ import fd.lazy_invoke;
 import fd.type_name;
 import fd.hash;
 
-#define COMMA ,
-
 #define CALL_ORIGINAL(_NAME_) Base::_NAME_(std::forward<Args>(args)...)
 
 #define WRAP(_RET_, _NAME_, _PROXY_, ...)  \
@@ -50,7 +48,7 @@ decltype(auto) this_or_iterator(T* thisptr, const Q& proxy_result)
     }
 }
 
-#define WRAP_THIS_OR_ITERATOR(_NAME_) WRAP(decltype(auto), _NAME_, decltype(auto) result =, return this_or_iterator<Base>(this COMMA result))
+#define WRAP_THIS_OR_ITERATOR(_NAME_) WRAP(decltype(auto), _NAME_, decltype(auto) result =, return this_or_iterator<Base>(this, result))
 
 template <class Base, template <typename> class Hasher = fd::hash>
 struct hashed_string_wrapper : Base
@@ -58,8 +56,6 @@ struct hashed_string_wrapper : Base
     using hash_type      = /*decltype(std::invoke(std::declval<Hasher>( ), std::declval<Base>( )))*/ size_t;
     using hash_func_type = Hasher<Base>;
     using string_type    = Base;
-
-    static_assert(std::is_empty_v<hash_func_type>, "Hasher class must be empty");
 
   private:
     [[no_unique_address]] hash_func_type hasher_;
