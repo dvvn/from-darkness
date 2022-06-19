@@ -13,33 +13,6 @@ import fd.logger;
 
 using Rml_log = Rml::Log::Type;
 
-class system_interface_impl final : public Rml::SystemInterface
-{
-    using clock        = std::chrono::high_resolution_clock;
-    using out_duration = std::chrono::duration<double>;
-    clock::time_point start_time_;
-
-  public:
-    system_interface_impl();
-
-    double GetElapsedTime() override;
-    bool LogMessage(Rml_log logtype, const Rml::String& message) override;
-};
-
-FD_OBJECT_BIND_TYPE(system_interface, system_interface_impl);
-
-system_interface_impl::system_interface_impl()
-    : start_time_(clock::now())
-{
-}
-
-double system_interface_impl::GetElapsedTime()
-{
-    const auto now  = clock::now();
-    const auto diff = now - start_time_;
-    return duration_cast<out_duration>(diff).count();
-}
-
 template <typename... Args>
 static bool _Log(const std::string_view str, Args&&... args)
 {
@@ -61,33 +34,58 @@ static bool _Log(const Rml_log logtype, const Rml::String& message)
     return _Log("({}) {}", logtype, message);
 }
 
-bool system_interface_impl::LogMessage(Rml_log logtype, const Rml::String& message)
+class system_interface_impl final : public Rml::SystemInterface
 {
-    switch (logtype)
+    using clock        = std::chrono::high_resolution_clock;
+    using out_duration = std::chrono::duration<double>;
+    clock::time_point start_time_;
+
+  public:
+    system_interface_impl()
+        : start_time_(clock::now())
     {
-    case Rml_log::LT_ASSERT: {
-        FD_ASSERT(message.c_str());                                // it calls std::terminate if defined
-        return Rml::SystemInterface::LogMessage(logtype, message); // otherwise call default logs handler
     }
-    case Rml_log::LT_ERROR:
-        _Log(logtype, message);
-        return false;
-    case Rml_log::LT_DEBUG:
+
+    double GetElapsedTime() override
+    {
+        const auto now  = clock::now();
+        const auto diff = now - start_time_;
+        return duration_cast<out_duration>(diff).count();
+    }
+
+    bool LogMessage(Rml_log logtype, const Rml::String& message) override
+    {
+        switch (logtype)
+        {
+        case Rml_log::LT_ASSERT: {
+            FD_ASSERT(message.c_str());                                // it calls std::terminate if defined
+            return Rml::SystemInterface::LogMessage(logtype, message); // otherwise call default logs handler
+        }
+        case Rml_log::LT_ERROR:
+            _Log(logtype, message);
+            return false;
+        case Rml_log::LT_DEBUG:
 #ifndef _DEBUG
-        return true;
-#endif
-    case Rml_log::LT_ALWAYS:
-        if (_Log(message))
             return true;
-        return Rml::SystemInterface::LogMessage(logtype, message);
-    case Rml_log::LT_WARNING:
-    case Rml_log::LT_INFO:
-        _Log(logtype, message);
-        return true;
-    default:
-        FD_ASSERT_UNREACHABLE("Unknown log type detected");
+#endif
+        case Rml_log::LT_ALWAYS:
+            if (_Log(message))
+                return true;
+            return Rml::SystemInterface::LogMessage(logtype, message);
+        case Rml_log::LT_WARNING:
+        case Rml_log::LT_INFO:
+            _Log(logtype, message);
+            return true;
+        default:
+            FD_ASSERT_UNREACHABLE("Unknown log type detected");
+        }
     }
-}
+
+    void SetMouseCursor(const Rml::String& cursor_name) override
+    {
+        char dummy = 0;
+    }
+};
 
 template <>
 struct std::formatter<Rml_log, char> : formatter<std::string_view>
@@ -121,3 +119,5 @@ struct std::formatter<Rml_log, char> : formatter<std::string_view>
         return formatter<std::string_view>::format(str, fc);
     }
 };
+
+FD_OBJECT_BIND_TYPE(system_interface, system_interface_impl);

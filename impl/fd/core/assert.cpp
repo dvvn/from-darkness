@@ -13,13 +13,9 @@ module fd.assert;
 #include <assert.h>
 
 using real_assert_handler = fd::callback_ex<2, const assert_data&>;
-
 struct assert_handler_impl : real_assert_handler
 {
-    assert_handler_impl()
-    {
-        real_assert_handler::append(std::bind_front(&assert_data::system_assert));
-    }
+    assert_handler_impl();
 
     void invoke(const assert_data& data) const override
     {
@@ -158,13 +154,16 @@ static auto _Assert_msg(const char* expression, const char* message)
     return out;
 }
 
-void assert_data::system_assert() const
+assert_handler_impl::assert_handler_impl()
 {
+    real_assert_handler::append([](const assert_data& data) {
+        const auto [expression, message, location] = data;
 #if defined(_MSC_VER)
-    _wassert(_Assert_msg<wchar_t>(expression, message), msg_packed<wchar_t>(location.file_name()), location.line());
+        _wassert(_Assert_msg<wchar_t>(expression, message), msg_packed<wchar_t>(location.file_name()), location.line());
 #elif defined(__GNUC__)
-    __assert_fail(_Assert_msg<char>(expression, message), location.file_name(), location.line(), location.function_name());
+        __assert_fail(_Assert_msg<char>(expression, message), location.file_name(), location.line(), location.function_name());
 #else
 #error not implemented
 #endif
+    });
 }

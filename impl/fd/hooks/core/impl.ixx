@@ -147,7 +147,7 @@ struct hook_impl : fd::hook_base
     bool initialized() const final;
     bool active() const final;
 
-    void* get_original_method() const;
+    void* get_original_method() const final;
 
   protected:
     void init(const function_getter target, const function_getter replace);
@@ -223,6 +223,7 @@ struct hook_instance_member
 export namespace fd
 {
     using ::function_getter;
+
     using ::hook_impl;
     using ::hook_instance_member;
     using ::hook_instance_static;

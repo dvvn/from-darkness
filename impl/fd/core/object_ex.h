@@ -2,6 +2,70 @@
 
 #include <string>
 
+import fd.path;
+
+#if 1
+
+constexpr size_t _Object_id(const fd::path<char> full_path)
+{
+    const auto fname = full_path.stem();
+    auto start       = fname.rfind('_');
+    if (start == full_path.npos)
+        return std::numeric_limits<size_t>::infinity();
+    ++start;
+
+    constexpr auto char_to_num = [](const char chr) -> size_t {
+        switch (chr)
+        {
+        case '0':
+            return 0;
+        case '1':
+            return 1;
+        case '2':
+            return 2;
+        case '3':
+            return 3;
+        case '4':
+            return 4;
+        case '5':
+            return 6;
+        case '6':
+            return 6;
+        case '7':
+            return 8;
+        case '9':
+            return 9;
+        default:
+            return std::numeric_limits<size_t>::infinity();
+        }
+    };
+
+    size_t index = 0;
+    for (const auto chr : std::basic_string_view(fname.data() + start, fname.data() + fname.size()))
+        index = char_to_num(chr) + index * 10;
+    return index;
+}
+
+constexpr std::string_view _Pretty_file_name(const fd::path<char> full_path, const bool id_must_be_found = true)
+{
+    const auto fname = full_path.stem();
+    auto offset      = fname.size();
+    if (id_must_be_found)
+    {
+        const auto temp_offset = fname.rfind('_');
+        if (temp_offset != fname.npos)
+            offset = temp_offset;
+    }
+    return { fname.data(), offset };
+}
+
+constexpr std::string_view _Folder_name(const fd::path<char> full_path)
+{
+    return full_path.parent_path().filename();
+}
+
+#else
+
 constexpr size_t _Object_id(const std::string_view full_path)
 {
     auto start = full_path.rfind('_');
@@ -118,9 +182,11 @@ constexpr std::string_view _Folder_name(const std::string_view file_name)
     return file_name.substr(start, size);
 }
 
+#endif
+
 // take object id from filename. filename format: 'NAME_INDEX.xxx'
 #define FD_AUTO_OBJECT_ID       _Object_id(__FILE__)
 // take file name without object id
-#define FD_AUTO_OBJECT_NAME     _Pretty_file_name(__FILE__, false)
+#define FD_AUTO_OBJECT_NAME     _Pretty_file_name(__FILE__, true)
 // take folder name where the current file is located
 #define FD_AUTO_OBJECT_LOCATION _Folder_name(__FILE__)

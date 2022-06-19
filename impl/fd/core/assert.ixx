@@ -21,7 +21,6 @@ struct assert_data
     }
 
     std::string build_message() const;
-    void system_assert() const;
 };
 
 FD_CALLBACK(assert_handler, const assert_data&);
