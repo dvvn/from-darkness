@@ -169,16 +169,16 @@ concept _Hashed_string_wrapped = requires(const H h)
 };
 
 template <class H, class H2>
-concept _Hashed_string_compatible = std::equality_comparable_with<H::string_type, H2::string_type>;
+concept _Hashed_string_comparable = std::equality_comparable_with<H::string_type, H2::string_type>;
 
 template <class H, class H2>
-concept _Hashed_string_native_compatible = fd::same_template<H::hash_func_type, H2::hash_func_type>();
+concept _Hashed_string_native_comparable = fd::same_template<H::hash_func_type, H2::hash_func_type>();
 
 template <_Hashed_string_wrapped H1, _Hashed_string_wrapped H2>
 constexpr bool operator==(const H1& left, const H2& right)
 {
-    static_assert(_Hashed_string_compatible<H1, H2>, "Incompatible string type!");
-    if constexpr (_Hashed_string_native_compatible<H1, H2>)
+    static_assert(_Hashed_string_comparable<H1, H2>, "Incomparable string type!");
+    if constexpr (_Hashed_string_native_comparable<H1, H2>)
         return left.hash() == right.hash();
     else
         return std::equal(left.begin(), left.end(), right.begin(), right.end());
