@@ -26,7 +26,7 @@ static void unload_app()
 
 bool basic_hooks_loader::load_all()
 {
-    return load<FD_HOOK_IDS>();
+    return load<FD_KNOWN_HOOKS>();
 }
 
 class hooks_loader_impl : public basic_hooks_loader

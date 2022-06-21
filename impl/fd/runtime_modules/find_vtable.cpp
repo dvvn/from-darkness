@@ -120,7 +120,7 @@ void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
     FD_ASSERT(!target_block.empty());
 
     // get rtti type descriptor
-    basic_address<void> type_descriptor = target_block.data();
+    auto type_descriptor = reinterpret_cast<uintptr_t>(target_block.data());
     // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the string
     type_descriptor -= sizeof(uintptr_t) * 2;
 

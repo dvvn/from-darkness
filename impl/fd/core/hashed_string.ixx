@@ -165,7 +165,7 @@ concept _Hashed_string_wrapped = requires(const H h)
 };
 
 template <class H, class H2>
-concept _Hashed_string_comparable = std::equality_comparable_with<H::string_type, H2::string_type>;
+concept _Hashed_string_comparable = std::equality_comparable_with<typename H::string_type, typename H2::string_type>;
 
 template <class H, class H2>
 concept _Hashed_string_native_comparable = fd::same_template<H::hash_func_type, H2::hash_func_type>();

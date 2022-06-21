@@ -8,39 +8,38 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 # if(MSVC) idk, not defined
-add_compile_options(/Zc:preprocessor /Zc:__cplusplus /MP)
+add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
+add_compile_options(/wd5103)
+add_compile_options(/MP)
 add_compile_definitions(NOMINMAX MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
 # endif()
 
-set(_PROJECT_NAME fd)
-string(TOUPPER ${_PROJECT_NAME} _PROJECT_NAME_UPPER)
-set(_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
-set(_WORK_DIR ${_IMPL_DIR}/${_PROJECT_NAME})
+set(_PROJ_PREFIX fd)
+string(TOUPPER ${_PROJ_PREFIX} _PROJ_NAME_UPPER)
+set(_PROJ_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
+set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_PREFIX})
 
 include(FetchContent)
 
-project(${_PROJECT_NAME})
+project(${_PROJ_PREFIX})
 
-file(GLOB_RECURSE _PROJECT_FILES ${_WORK_DIR}/*.ixx ${_WORK_DIR}/*.cpp)
-list(FILTER _PROJECT_FILES EXCLUDE REGEX "/\\.+")
+file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.ixx ${_PROJ_WORK_DIR}/*.cpp)
+list(FILTER _PROJ_FILES EXCLUDE REGEX "/\\.+")
 
-add_library(${PROJECT_NAME} STATIC ${_PROJECT_FILES})
+add_library(${PROJECT_NAME} STATIC ${_PROJ_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${_PROJ_IMPL_DIR})
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${_PROJ_NAME_UPPER}_ROOT_DIR=${CMAKE_CURRENT_LIST_DIR} PRIVATE ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${_IMPL_DIR})
-
-set(_HOOK_IDS "")
-foreach(src ${_PROJECT_FILES})
+set(_PROJ_KNOWN_HOOKS "")
+foreach(src ${_PROJ_FILES})
   string(REGEX MATCH ".*_([0-9]+)\\.cpp" found ${src})
   if(found)
-    list(APPEND _HOOK_IDS ${CMAKE_MATCH_1})
+    list(APPEND _PROJ_KNOWN_HOOKS ${CMAKE_MATCH_1})
   endif()
 endforeach()
-message(STATUS "hooked ids - ${_HOOK_IDS}")
-string(REPLACE ";" "," _HOOK_IDS_FIXED "${_HOOK_IDS}")
-target_compile_definitions(${PROJECT_NAME} PRIVATE ${_PROJECT_NAME_UPPER}_HOOK_IDS=${_HOOK_IDS_FIXED})
-
-# FetchContent_Declare(nstd GIT_REPOSITORY https://github.com/dvvn/nstd.git)
-# FetchContent_MakeAvailable(nstd)
+message(STATUS "hooked ids - ${_PROJ_KNOWN_HOOKS}")
+string(REPLACE ";" "," _PROJ_KNOWN_HOOKS_FIXED "${_PROJ_KNOWN_HOOKS}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${_PROJ_NAME_UPPER}_KNOWN_HOOKS=${_PROJ_KNOWN_HOOKS_FIXED})
 
 # FetchContent_Declare(eventcpp GIT_REPOSITORY https://github.com/wqking/eventpp.git)
 # FetchContent_Populate(eventcpp)
@@ -55,9 +54,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${xxhct_SOURCE_DIR}/)
 # FetchContent_MakeAvailable(xxh)
 # link_library(PRIVATE xxHash::xxhash)
 
-FetchContent_Declare(utf8_conv1 GIT_REPOSITORY https://github.com/ww898/utf-cpp.git)
-FetchContent_Populate(utf8_conv1)
-target_include_directories(${PROJECT_NAME} PRIVATE ${utf8_conv1_SOURCE_DIR}/include)
+FetchContent_Declare(utf8_conv GIT_REPOSITORY https://github.com/ww898/utf-cpp.git)
+FetchContent_Populate(utf8_conv)
+target_include_directories(${PROJECT_NAME} PRIVATE ${utf8_conv_SOURCE_DIR}/include)
 
 # FetchContent_Declare(HarfBuzz GIT_REPOSITORY https://github.com/HarfBuzz/HarfBuzz.git GIT_TAG 4.2.1)
 # FetchContent_MakeAvailable(HarfBuzz)
@@ -82,23 +81,25 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE RMLUI_STATIC_LIB PRIVATE RMLU
 
 target_link_libraries(${PROJECT_NAME} PUBLIC d3d9.lib)
 
+FetchContent_Declare(veque GIT_REPOSITORY https://github.com/Shmoopty/veque.git)
+FetchContent_Populate(veque) #no cmakelist inside
+target_include_directories(${PROJECT_NAME} PRIVATE ${veque_SOURCE_DIR}/include)
+
+FetchContent_Declare(json GIT_REPOSITORY https://github.com/nlohmann/json.git)
+set(JSON_MultipleHeaders on)
+set(JSON_DisableEnumSerialization on)
+FetchContent_MakeAvailable(json)
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+#target_include_directories(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+
+FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
+FetchContent_MakeAvailable(robin_hood)
+target_include_directories(${PROJECT_NAME} PRIVATE robin_hood::robin_hood)
+
 # -------------------
 
-project(${_PROJECT_NAME}_gui_test)
+project(${_PROJ_PREFIX}_gui_test)
 
-add_executable(${PROJECT_NAME} ${_IMPL_DIR}/gui_test/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJECT_NAME})
-target_include_directories(${PROJECT_NAME} PRIVATE ${_PROJECT_NAME})
-
-# FetchContent_Declare(veque GIT_REPOSITORY https://github.com/Shmoopty/veque.git)
-# FetchContent_Populate(veque) #no cmakelist inside
-# target_include_directories(fds PRIVATE ${veque_SOURCE_DIR}/include)
-
-# FetchContent_Declare(json GIT_REPOSITORY https://github.com/nlohmann/json.git)
-# set(JSON_MultipleHeaders on)
-# FetchContent_MakeAvailable(json)
-# link_library(PRIVATE nlohmann_json::nlohmann_json)
-
-# FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
-# FetchContent_MakeAvailable(robin_hood)
-# link_library(PRIVATE robin_hood::robin_hood)
+add_executable(${PROJECT_NAME} ${_PROJ_IMPL_DIR}/gui_test/main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJ_PREFIX})
+target_include_directories(${PROJECT_NAME} PRIVATE ${_PROJ_PREFIX})

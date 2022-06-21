@@ -54,7 +54,6 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
         const auto temp_export_ptr = dos + funcs[ords[i]];
         if (temp_export_ptr < export_dir || temp_export_ptr >= export_dir + data_dir.Size)
         {
-
             export_ptr = temp_export_ptr;
             break;
         }

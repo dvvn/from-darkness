@@ -1,6 +1,6 @@
 module;
 
-#include <fd/core/utility.h>
+#include <compare>
 
 export module fd.address;
 
@@ -76,7 +76,7 @@ export namespace fd
 
         union
         {
-            uintptr_t    value;
+            uintptr_t value;
             pointer_type pointer;
         };
 
@@ -123,41 +123,100 @@ export namespace fd
 
         //----
 
-#define ADDR_EQ_OP(_OP_)                                    \
-    template <constructible_from<basic_address> Q>          \
-    auto FD_CONCAT(operator, _OP_)(const Q other) const    \
-    {                                                       \
-        return this->value _OP_ basic_address(other).value; \
-    }
+        /* #define ADDR_EQ_OP(_OP_)                                    \
+            template <constructible_from<basic_address> Q>          \
+            auto FD_CONCAT(operator, _OP_)(const Q other) const     \
+            {                                                       \
+                return this->value _OP_ basic_address(other).value; \
+            }
 
-#define ADDR_MATH_OP(_OP_, _NAME_)                                                                     \
-    template <constructible_from<basic_address> Q>                                                     \
-    basic_address& FD_CONCAT(operator, FD_CONCAT(_OP_, =))(const Q other)                            \
-    {                                                                                                  \
-        static_assert(!std::is_class_v<value_type>, __FUNCSIG__ ": unable to change the class type!"); \
-        this->value FD_CONCAT(_OP_, =) basic_address<void>(other).value;                              \
-        return *this;                                                                                  \
-    }                                                                                                  \
-    template <constructible_from<basic_address> Q>                                                     \
-    basic_address<safe_out_type> FD_CONCAT(operator, _OP_)(const Q other) const                       \
-    {                                                                                                  \
-        return this->value _OP_ basic_address<void>(other).value;                                      \
-    }                                                                                                  \
-    template <constructible_from<basic_address> Q>                                                     \
-    basic_address<safe_out_type> _NAME_(const Q other) const                                           \
-    {                                                                                                  \
-        return this->value _OP_ basic_address<void>(other).value;                                      \
-    }
+        #define ADDR_MATH_OP(_OP_, _NAME_)                                                                     \
+            template <constructible_from<basic_address> Q>                                                     \
+            basic_address& FD_CONCAT(operator, _OP_, =)(const Q other)                                         \
+            {                                                                                                  \
+                static_assert(!std::is_class_v<value_type>, __FUNCSIG__ ": unable to change the class type!"); \
+                this->value FD_CONCAT(_OP_, =)_Void_addr(other).value;                               \
+                return *this;                                                                                  \
+            }                                                                                                  \
+            template <constructible_from<basic_address> Q>                                                     \
+            _Safe_addr FD_CONCAT(operator, _OP_)(const Q other) const                        \
+            {                                                                                                  \
+                return this->value _OP__Void_addr(other).value;                                      \
+            }                                                                                                  \
+            template <constructible_from<basic_address> Q>                                                     \
+            _Safe_addr _NAME_(const Q other) const                                           \
+            {                                                                                                  \
+                return this->value _OP__Void_addr(other).value;                                      \
+            }
 
-        ADDR_EQ_OP(<=>);
-        ADDR_EQ_OP(==);
+                ADDR_EQ_OP(<=>);
+                ADDR_EQ_OP(==);
 
-        ADDR_MATH_OP(+, plus);
-        ADDR_MATH_OP(-, minus);
-        ADDR_MATH_OP(*, multiply);
-        ADDR_MATH_OP(/, divide);
+                ADDR_MATH_OP(+, plus);
+                ADDR_MATH_OP(-, minus);
+                ADDR_MATH_OP(*, multiply);
+                ADDR_MATH_OP(/, divide); */
 
         //----
+
+        using _Void_addr = basic_address<const void>;
+        using _Safe_addr = basic_address<safe_out_type>;
+
+        template <typename T>
+        auto operator<=>(const T other) const requires(std::constructible_from<_Void_addr, T>)
+        {
+            return this->value <=> other.value;
+        }
+
+        template <typename T>
+        bool operator==(const T other) const requires(std::constructible_from<_Void_addr, T>)
+        {
+            return this->value == _Void_addr(other).value;
+        }
+
+        template <typename T>
+        _Safe_addr operator+(const T other) const requires(std::constructible_from<_Void_addr, T>)
+        {
+            return this->value + _Void_addr(other).value;
+        }
+
+        _Safe_addr plus(const _Void_addr other) const
+        {
+            return this->value + other.value;
+        }
+
+        template <typename T>
+        _Safe_addr operator-(const T other) const requires(std::constructible_from<_Void_addr, T>)
+        {
+            return this->value - _Void_addr(other).value;
+        }
+
+        _Safe_addr minus(const _Void_addr other) const
+        {
+            return this->value - other.value;
+        }
+
+        template <typename T>
+        _Safe_addr operator*(const T other) const requires(std::constructible_from<_Void_addr, T>)
+        {
+            return this->value * _Void_addr(other).value;
+        }
+
+        _Safe_addr multiply(const _Void_addr other) const
+        {
+            return this->value * other.value;
+        }
+
+        template <typename T>
+        _Safe_addr operator/(const T other) const requires(std::constructible_from<_Void_addr, T>)
+        {
+            return this->value / _Void_addr(other).value;
+        }
+
+        _Safe_addr divide(const _Void_addr other) const
+        {
+            return this->value / other.value;
+        }
 
         auto operator[](const ptrdiff_t index) const
         {
@@ -174,8 +233,7 @@ export namespace fd
         //----
 
         template <typename Q>
-
-        requires(std::is_reference_v<Q>) operator Q() const
+        operator Q() const requires(std::is_reference_v<Q>)
         {
             using ref_t = std::remove_reference_t<Q>;
             static_assert(!std::is_class_v<ref_t> || std::convertible_to<value_type, ref_t>);
@@ -183,8 +241,7 @@ export namespace fd
         }
 
         template <typename Q>
-
-        requires(std::is_pointer_v<Q> || std::is_member_function_pointer_v<Q> || std::is_function_v<Q>) operator Q() const
+        operator Q() const requires(std::is_pointer_v<Q> || std::is_member_function_pointer_v<Q> || std::is_function_v<Q>)
         {
             if constexpr (std::is_pointer_v<Q>)
                 static_assert(std::constructible_from<basic_address, Q>, __FUNCSIG__ ": unable to convert to pointer!");
@@ -194,10 +251,8 @@ export namespace fd
         }
 
         template <typename Q>
-
-        requires(std::is_integral_v<Q>)
         /*explicit*/
-        operator Q() const
+        operator Q() const requires(std::is_integral_v<Q>)
         {
             return static_cast<Q>(this->value);
         }
@@ -219,7 +274,7 @@ export namespace fd
 
         //----
 
-        basic_address<safe_out_type> jmp(const ptrdiff_t offset) const
+        _Safe_addr jmp(const ptrdiff_t offset) const
         {
             // Example:
             // E9 ? ? ? ?
@@ -228,7 +283,7 @@ export namespace fd
             // Since the relative JMP is based on the next instruction after the basic_address it has to be skipped
 
             // Base address is the address that follows JMP ( 0xE9 ) instruction
-            basic_address<void> base = this->value + offset;
+            _Void_addr base = this->value + offset;
 
             // Store the displacement
             // Note: Displacement address can be signed
@@ -237,10 +292,10 @@ export namespace fd
             // The JMP is based on the instruction after the basic_address
             // so the basic_address size has to be added
             // Note: This is always 4 bytes, regardless of architecture
-            base += sizeof(uint32_t);
+            base.value += sizeof(uint32_t);
 
             // Now finally do the JMP by adding the function basic_address
-            base += displacement;
+            base.value += displacement;
 
             return base;
         }

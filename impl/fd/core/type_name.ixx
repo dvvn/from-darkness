@@ -287,10 +287,19 @@ export namespace fd
         return extract_holder(type_name_holder_partial<T>);
     }
 
+    // for std::array
+    template <template <typename, size_t> class T>
+    constexpr std::string_view type_name()
+    {
+        constexpr auto full_name = type_name<T<int, 1>>();
+        constexpr size_t offset  = full_name.find('<');
+        return full_name.substr(0, offset);
+    }
+
     static_assert(type_name<int>() == "int");
     static_assert(type_name<std::char_traits>() == "std::char_traits");
     static_assert(type_name<std::char_traits<char>>() == "std::char_traits<char>");
-    // static_assert(type_name<std::array>() == "std::array");
+    static_assert(type_name<std::array>() == "std::array");
     static_assert(type_name<std::exception>() == "std::exception");
 
     // static_assert(type_name<std::false_type>( ) == "std::integral_constant<bool, false>"); everything is correct but assert fails
