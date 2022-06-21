@@ -209,7 +209,7 @@ struct ordered_map_json_key_proxy<std::string>
 
 void storage::log_netvars(logs_data& data)
 {
-    json_wrapper<nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, std::make_signed_t<size_t>, size_t, float>> j_root;
+    json_wrapper<nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, intptr_t, uintptr_t, float>> j_root;
 
     for (const netvar_table& table : *this)
     {
@@ -225,7 +225,6 @@ void storage::log_netvars(logs_data& data)
             const auto offset           = info->offset();
             const std::string_view type = info->type();
 
-            using namespace std::string_view_literals;
             j_table["name"]   = name;
             j_table["offset"] = offset;
             if (!type.empty())
@@ -257,10 +256,16 @@ void storage::generate_classes(classes_data& data)
             if (netvar_type.empty())
                 continue;
 
-            const auto type_pointer = netvar_type.ends_with('*');
-            if (type_pointer)
+            char ret_char;
+            if (netvar_type.ends_with('*')) // type have pointer
+            {
                 netvar_type.remove_suffix(1);
-            const auto ret_char = type_pointer ? '*' : '&';
+                ret_char = '*';
+            }
+            else
+            {
+                ret_char = '&';
+            }
 
             const std::string_view netvar_name = info->name();
 
