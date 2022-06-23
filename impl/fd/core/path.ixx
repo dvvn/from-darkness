@@ -201,10 +201,11 @@ class filename : public std::basic_string_view<C>
 };
 
 template <typename C>
-struct path : std::basic_string_view<C>
+class path : public std::basic_string_view<C>
 {
     using _View = std::basic_string_view<C>;
 
+  public:
     using _View::_View;
 
     constexpr _View root_name() const
@@ -297,6 +298,5 @@ path(const std::basic_string<C, std::char_traits<C>, Al>&) -> path<C>; */
 
 export namespace fd
 {
-    using ::filename;
     using ::path;
-} // namespace fd
+}

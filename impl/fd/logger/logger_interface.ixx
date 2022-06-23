@@ -60,18 +60,6 @@ bool _Logger_empty(const L logger)
     return !logger.initialized() || logger->empty();
 }
 
-template <typename Fn, typename T>
-Fn _Wrap_callback(T&& obj)
-{
-    using obj_t = decltype(obj);
-    if constexpr (std::copyable<obj_t> && std::constructible_from<Fn, obj_t>)
-        return std::forward<T>(obj);
-    else if constexpr (std::is_lvalue_reference_v<obj_t>)
-        return [&](const auto msg) {
-            return std::invoke(obj, msg);
-        };
-}
-
 // std::invocable from concepts ignore self overloads!
 template <class _FTy, class... _ArgTys>
 concept invocable = requires(_FTy&& _Fn, _ArgTys&&... _Args)
@@ -119,18 +107,15 @@ class logger_wrapped
         constexpr bool can_narrow = invocable<Fn, std::string_view>;
         constexpr bool can_wide   = invocable<Fn, std::wstring_view>;
 
-        using narrow_fn = callbacks::logger_narrow::callback_type;
-        using wide_fn   = callbacks::logger_wide::callback_type;
-
         if constexpr (can_narrow && can_wide)
         {
-            logger_narrow->append(_Wrap_callback<narrow_fn>(callback));
-            logger_wide->append(_Wrap_callback<wide_fn>(callback));
+            logger_narrow->append(callback);
+            logger_wide->append(callback);
         }
         else if constexpr (can_narrow)
-            logger_narrow->append(_Wrap_callback<narrow_fn>(std::forward<Fn>(callback)));
+            logger_narrow->append(std::forward<Fn>(callback));
         else if constexpr (can_wide)
-            logger_wide->append(_Wrap_callback<wide_fn>(std::forward<Fn>(callback)));
+            logger_wide->append(std::forward<Fn>(callback));
         else
             static_assert(std::_Always_false<Fn>);
     }

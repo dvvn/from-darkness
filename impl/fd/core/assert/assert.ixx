@@ -13,7 +13,7 @@ struct assert_data
     const char* message;
     std::source_location location;
 
-    constexpr assert_data(const char* expr, const char* msg = nullptr, const std::source_location& loc = std::source_location::current())
+    constexpr assert_data(const char* expr, const char* msg = nullptr, const std::source_location loc = std::source_location::current())
         : expression(expr)
         , message(msg)
         , location(loc)

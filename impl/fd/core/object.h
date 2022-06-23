@@ -41,13 +41,13 @@ decltype(auto) _Extract_obj_t(V&& val)
     {                                                                                                            \
     }
 
-#define FD_OBJECT_GET(_OBJ_TYPE_, ...) fd::instance_of<_Object_t<_OBJ_TYPE_> __VA_OPT__(, ) __VA_ARGS__ /* object index */>
+#define FD_OBJECT_GET(_OBJ_TYPE_, /* object index */...) fd::instance_of<_Object_t<_OBJ_TYPE_> __VA_OPT__(, ) __VA_ARGS__>
 
-#define FD_OBJECT_BIND(_OBJ_TYPE_, _OBJ_IDX_, _TARGET_TYPE_, ...) FD_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__ /* target index */))
-#define FD_OBJECT_BIND_NAME(_OBJ_NAME_, _TARGET_NAME_)            FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
-#define FD_OBJECT_BIND_TYPE(_OBJ_NAME_, _TARGET_TYPE_, ...)       FD_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, __VA_ARGS__ /* target index */)
+#define FD_OBJECT_BIND(_OBJ_TYPE_, _OBJ_IDX_, _TARGET_TYPE_, /* target index */...) FD_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__))
+#define FD_OBJECT_BIND_NAME(_OBJ_NAME_, _TARGET_NAME_)                              FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
+#define FD_OBJECT_BIND_TYPE(_OBJ_NAME_, _TARGET_TYPE_, /* target index */...)       FD_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, __VA_ARGS__)
 
-#define FD_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FD_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__ /* object index */);
+#define FD_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, /* object index */...) constexpr auto _OBJ_NAME_ = FD_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__);
 #define FD_UNIQUE_OBJECT(_OBJ_NAME_, _OBJ_TYPE_) FD_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, /* fd::calc_hash(#_OBJ_NAME_) */ fd::calc_hash(__FILE__) + __COUNTER__);
 /*
 example:

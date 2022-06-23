@@ -323,7 +323,6 @@ class instance_of_t
 
 export namespace fd
 {
-    // using ::one_instance;
     using ::one_instance_getter;
 
     template <typename T, size_t Instance = 0>

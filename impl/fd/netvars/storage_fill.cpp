@@ -9,7 +9,7 @@ module;
 #include <variant>
 
 module fd.netvars.core:storage;
-import fd.convert_to_lower;
+import fd.lower_upper;
 
 using namespace fd;
 using namespace netvars;

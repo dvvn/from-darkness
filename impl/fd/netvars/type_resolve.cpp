@@ -16,7 +16,7 @@ import fd.csgo.tools.UtlVector;
 import fd.csgo.interfaces.BaseHandle;
 import fd.type_name;
 import fd.convert_to;
-import fd.convert_to_lower;
+import fd.lower_upper;
 
 using namespace fd;
 using namespace csgo;
@@ -103,7 +103,7 @@ std::string_view netvars::type_integer(std::string_view type)
                 return type_name<uint32_t>();
             if (type.starts_with("ch"))
                 return type_name<uint8_t>();
-            if (type.starts_with("fl") && to_lower(type.substr(2)).contains("time")) // m_flSimulationTime int ???
+            if (type.starts_with("fl") && to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) // m_flSimulationTime int ???
                 return type_name<float>();
         }
         else if (is_upper(3))

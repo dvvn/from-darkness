@@ -233,9 +233,11 @@ class callback_ex : public fd::abstract_callback<Args...>
 {
     using _Base = fd::abstract_callback<Args...>;
 
+  public:
     using typename _Base::callback_type;
     using storage_type = buffered_vector<callback_type, BuffSize>;
 
+  private:
     storage_type data_;
 
   public:

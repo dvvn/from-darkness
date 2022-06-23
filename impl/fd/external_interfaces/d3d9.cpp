@@ -1,7 +1,6 @@
 module;
 
 #include <fd/core/object.h>
-
 #include <fd/core/assert.h>
 
 #include <d3d9.h>
