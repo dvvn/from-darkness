@@ -110,6 +110,9 @@ static block _Section_to_rng(const basic_address<IMAGE_DOS_HEADER> dos, IMAGE_SE
 
 void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
+    if (!ldr_entry)
+        return nullptr;
+
     const auto [dos, nt] = dos_nt(ldr_entry);
 
     const auto real_name = _Make_vtable_name(name);

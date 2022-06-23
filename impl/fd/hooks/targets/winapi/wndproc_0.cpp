@@ -12,7 +12,7 @@ using namespace fd;
 
 #define ARGS hwnd, msg, wparam, lparam
 
-FD_HOOK(app_info->window.proc.curr(), wndproc, static, LRESULT WINAPI, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+FD_HOOK(app_info->window.proc.curr(), static, LRESULT WINAPI, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
     const auto input_result = std::invoke(gui::input_handler, ARGS);
     const auto block_input  = input_result.touched();

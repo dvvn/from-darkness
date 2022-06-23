@@ -4,13 +4,15 @@
 
 import fd.gui.render_interface;
 
-static fd::function_getter _Get_present()
+using namespace fd;
+
+static function_getter _Get_target()
 {
-    return {&FD_OBJECT_GET(IDirect3DDevice9), 16, &IDirect3DDevice9::Present};
+    return { &FD_OBJECT_GET(IDirect3DDevice9), 16 };
 }
 
-FD_HOOK(_Get_present(), reset, member, void WINAPI, D3DPRESENT_PARAMETERS* params)
+FD_HOOK(_Get_target(), member, void WINAPI, D3DPRESENT_PARAMETERS* params)
 {
-    fd::gui::render_interface->ReleaseTextures();
+    gui::render_interface->ReleaseTextures();
     call_original(params);
 }

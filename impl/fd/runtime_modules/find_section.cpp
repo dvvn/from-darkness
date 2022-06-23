@@ -14,6 +14,9 @@ FD_CALLBACK_BIND(on_section_found);
 
 IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
+    if (!ldr_entry)
+        return nullptr;
+
     const auto [dos, nt] = fd::dos_nt(ldr_entry);
 
     const auto number_of_sections  = nt->FileHeader.NumberOfSections;

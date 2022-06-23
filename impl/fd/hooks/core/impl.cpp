@@ -11,6 +11,8 @@ module fd.hook;
 import fd.logger;
 import fd.mem_block;
 
+#pragma region hde
+
 // hde - header ------------------------
 
 #define F_MODRM         0x00000001
@@ -515,7 +517,7 @@ disasm_done:
     return (unsigned int)hs->len;
 }
 
-//------------------
+#pragma endregion
 
 #pragma pack(push, 1)
 
@@ -563,7 +565,7 @@ struct JCC_REL
     uint32_t operand; // Relative destination address
 };
 
-// 64bit indirect absolute conditional jumps that x64 lacks.
+// 64-bit indirect absolute conditional jumps that x64 lacks.
 struct JCC_ABS
 {
     uint8_t opcode; // 7* 0E:         J** +16
@@ -879,7 +881,7 @@ bool hook_entry::create()
         if (old_pos < sizeof(JMP_REL_SHORT) && !fd::mem_block(target_ptr + old_pos, sizeof(JMP_REL_SHORT) - old_pos).code_padding())
             return false;
 
-        const fd::mem_block target_rel = { target_ptr - sizeof(JMP_REL), sizeof(JMP_REL) };
+        const fd::mem_block target_rel(target_ptr - sizeof(JMP_REL), sizeof(JMP_REL));
 
         // Can we place the long jump above the function?
         if (!target_rel.executable())

@@ -172,7 +172,7 @@ int main(int, char**)
     app_info.construct(hwnd, IsWindowUnicode(hwnd) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr));
     logger.append(system_console_writer);
     // PresetD3D(hwnd);
-    if (!hooks_loader->load_all())
+    if (!hooks_loader->load<0, 1, 2>())
         return TRUE;
 
     //----------------
@@ -197,6 +197,6 @@ int main(int, char**)
     }
 
 _STOP:
-    hooks_loader->disable_all();
+    hooks_loader->disable();
     return FALSE;
 }

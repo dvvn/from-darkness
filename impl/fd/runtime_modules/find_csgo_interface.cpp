@@ -56,6 +56,9 @@ struct interface_reg
 
 void* find_csgo_interface(const void* create_interface_fn, const std::string_view name, LDR_DATA_TABLE_ENTRY* const ldr_entry_for_notification)
 {
+    if (!create_interface_fn)
+        return nullptr;
+
     using reg_ptr = const interface_reg*;
     using fd::basic_address;
     const reg_ptr root_reg = basic_address(create_interface_fn)./*rel32*/ jmp(0x5).plus(0x6).deref<2>();

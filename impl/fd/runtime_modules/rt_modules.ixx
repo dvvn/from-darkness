@@ -100,6 +100,13 @@ class interface_finder
 template <class Gm>
 interface_finder(Gm) -> interface_finder<Gm>;
 
+// todo: store chars_cache in type_name
+template <class T>
+constexpr auto cache_type_name = [] {
+    constexpr auto name = fd::type_name<T>();
+    return fd::chars_cache<char, name.size() + 1>(name.data(), name.size());
+}();
+
 namespace fd
 {
     template <chars_cache Name>
@@ -145,11 +152,18 @@ namespace fd
             return _Ifc_finder(this->find_signature<Sig>());
         }
 
+        template <chars_cache Name>
+        void* find_vtable() const
+        {
+            static const auto found = fd::find_vtable(this->data(), Name);
+            return found;
+        }
+
         template <typename T>
         T* find_vtable() const
         {
-            const auto found = fd::find_vtable(this->data(), fd::type_name<T>());
-            return static_cast<T*>(found);
+            static_assert(std::is_class_v<T> /* is_abstract_v */);
+            return static_cast<T*>(find_vtable<cache_type_name<T>>());
         }
     };
 } // namespace fd

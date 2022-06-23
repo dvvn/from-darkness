@@ -10,23 +10,18 @@ module;
 module fd.hooks_loader;
 import fd.application_info;
 
-[[noreturn]] static DWORD WINAPI unload_delayed(LPVOID)
+[[noreturn]] static DWORD WINAPI _Unload_delayed(LPVOID)
 {
     Sleep(1000);
     FreeLibraryAndExitThread(fd::app_info->module_handle, FALSE);
 }
 
-static void unload_app()
+static void _Unload_app()
 {
     if (fd::app_info->module_handle == GetModuleHandle(nullptr))
         PostQuitMessage(FALSE);
     else
-        CreateThread(NULL, 0, unload_delayed, nullptr, 0, NULL);
-}
-
-bool basic_hooks_loader::load_all()
-{
-    return load<FD_KNOWN_HOOKS>();
+        CreateThread(NULL, 0, _Unload_delayed, nullptr, 0, NULL);
 }
 
 class hooks_loader_impl : public basic_hooks_loader
@@ -39,7 +34,7 @@ class hooks_loader_impl : public basic_hooks_loader
         hooks_loader_impl::disable_all();
     } */
 
-    void disable_all() override
+    void disable() override
     {
         for (auto h : hooks_)
             h->disable();
@@ -47,27 +42,34 @@ class hooks_loader_impl : public basic_hooks_loader
 
     void unload() override
     {
-        disable_all();
-        unload_app();
+        disable();
+        _Unload_app();
     }
 
   protected:
-    void load() override
+    bool init(const bool stop_on_error) override
     {
+        bool ok = true;
+
         for (auto h : hooks_)
         {
             if (h->active())
-                return;
+                continue;
             if (!h->initialized())
                 h->init();
-            if (!h->enable())
-                throw;
+            if (h->enable())
+                continue;
+            ok = false;
+            if (stop_on_error)
+                break;
         }
+
+        return ok;
     }
 
     void store(hook_base* const hook) override
     {
-        for (auto h : hooks_)
+        for (const auto h : hooks_)
         {
             if (h == hook)
                 return;

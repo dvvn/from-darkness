@@ -24,19 +24,28 @@ constexpr auto _Hook_name_buff(const std::string_view name, const std::string_vi
     const auto buff_namespace_bg = buff_group_bg + group.size();
     const auto buff_name_bg      = buff_namespace_bg + 2;
 
-    std::copy(group.begin(), group.end(), buff_group_bg);
+    constexpr auto write = []<typename It, typename It2>(It begin, const It end, It2 dest) {
+        do
+        {
+            const auto chr = *begin++;
+            *dest++        = chr == '_' ? ' ' : chr;
+        }
+        while (begin != end);
+    };
+
+    /* std::copy */ write(group.begin(), group.end(), buff_group_bg);
     std::fill_n(buff_namespace_bg, 2, ':');
-    std::copy(name.begin(), name.end(), buff_name_bg);
+    /* std::copy */ write(name.begin(), name.end(), buff_name_bg);
     buff.back() = '\0';
     return buff;
 }
 
-#define _Hook_name(_HOOK_NAME_)                                          \
+#define _Hook_name                                                       \
     [] {                                                                 \
         constexpr std::string_view name  = FD_AUTO_OBJECT_NAME;          \
         constexpr std::string_view group = FD_AUTO_OBJECT_LOCATION;      \
         return _Hook_name_buff<name.size() + group.size()>(name, group); \
-    }()
+    }
 
 /* template <size_t S>
 constexpr auto _Hook_name(const char (&name)[S])
@@ -51,23 +60,28 @@ constexpr auto _Hook_name(const char (&name)[S])
 #define IS_STATIC_member false
 #define IS_STATIC_static true
 
-#define FD_HOOK(_TARGET_FN_, _HOOK_NAME_, _FN_TYPE_, _FN_RET_, ...)                                    \
-    struct _HOOK_NAME_##_impl final : fd::hook_impl, fd::hook_instance_##_FN_TYPE_<_HOOK_NAME_##_impl> \
-    {                                                                                                  \
-        bool is_static() const override                                                                \
-        {                                                                                              \
-            return IS_STATIC_##_FN_TYPE_;                                                              \
-        }                                                                                              \
-        std::string_view name() const override                                                         \
-        {                                                                                              \
-            static constexpr auto debug_name = _Hook_name(#_HOOK_NAME_);                               \
-            return { debug_name.data(), debug_name.size() - 1 };                                       \
-        }                                                                                              \
-        void init() override                                                                           \
-        {                                                                                              \
-            hook_impl::init(_TARGET_FN_, &_HOOK_NAME_##_impl::callback);                               \
-        }                                                                                              \
-        FN_##_FN_TYPE_ _FN_RET_ callback(__VA_ARGS__);                                                 \
-    };                                                                                                 \
-    FD_OBJECT_BIND(fd::hook_base, FD_AUTO_OBJECT_ID, _HOOK_NAME_##_impl);                              \
-    _FN_RET_ _HOOK_NAME_##_impl::callback(__VA_ARGS__)
+#define _FD_HOOK(_TARGET_FN_, _HOOK_NAME_, _FN_TYPE_, _FN_RET_, ...)                                  \
+    constexpr auto _hook_index = /* FD_UNIQUE_INDEX */ FD_AUTO_OBJECT_ID;                             \
+    template <size_t Index>                                                                           \
+    struct _HOOK_NAME_ final : fd::hook_impl, fd::hook_instance_##_FN_TYPE_<_HOOK_NAME_<_hook_index>> \
+    {                                                                                                 \
+        bool is_static() const override                                                               \
+        {                                                                                             \
+            return IS_STATIC_##_FN_TYPE_;                                                             \
+        }                                                                                             \
+        std::string_view name() const override                                                        \
+        {                                                                                             \
+            static constexpr auto hook_name = _Hook_name();                                           \
+            return { hook_name.data(), hook_name.size() - 1 };                                        \
+        }                                                                                             \
+        void init() override                                                                          \
+        {                                                                                             \
+            hook_impl::init(_TARGET_FN_, &_HOOK_NAME_::callback);                                     \
+        }                                                                                             \
+        FN_##_FN_TYPE_ _FN_RET_ callback(__VA_ARGS__);                                                \
+    };                                                                                                \
+    FD_OBJECT_BIND(fd::hook_base, /* FD_AUTO_OBJECT_ID */ _hook_index, _HOOK_NAME_<_hook_index>);     \
+    template <size_t Index>                                                                           \
+    _FN_RET_ _HOOK_NAME_<Index>::callback(__VA_ARGS__)
+
+#define FD_HOOK(_TARGET_FN_, _FN_TYPE_, _FN_RET_, ...) _FD_HOOK(_TARGET_FN_, _fd_hook, _FN_TYPE_, _FN_RET_, __VA_ARGS__)

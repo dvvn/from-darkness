@@ -9,6 +9,7 @@ module fd.rt_modules:helpers;
 
 dos_nt::dos_nt(LDR_DATA_TABLE_ENTRY* const ldr_entry)
 {
+    FD_ASSERT(ldr_entry != nullptr);
     dos = ldr_entry->DllBase;
     // check for invalid DOS / DOS signature.
     FD_ASSERT(dos && dos->e_magic == IMAGE_DOS_SIGNATURE /* 'MZ' */);

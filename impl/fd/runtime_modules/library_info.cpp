@@ -12,6 +12,7 @@ module fd.rt_modules:library_info;
 library_info::library_info(pointer const entry)
     : entry_(entry)
 {
+    FD_ASSERT(entry != nullptr);
 }
 
 auto library_info::operator->() const -> pointer

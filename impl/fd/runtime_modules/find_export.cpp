@@ -17,6 +17,8 @@ FD_CALLBACK_BIND(on_export_found);
 
 void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
+    if (!ldr_entry)
+        return nullptr;
     // base address
     const auto [dos, nt] = fd::dos_nt(ldr_entry);
 

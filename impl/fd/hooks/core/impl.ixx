@@ -55,10 +55,14 @@ TINY_IMPL(fastcall);
 TINY_IMPL(stdcall);
 TINY_IMPL(vectorcall);
 
+//#define FUNCTION_GETTER_HAVE_PTR_SIZE
+
 class function_getter
 {
     void* fn_ptr_     = nullptr;
+#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
     uint8_t ptr_size_ = 0;
+#endif
 
   public:
     operator void*() const
@@ -66,10 +70,13 @@ class function_getter
         return fn_ptr_;
     }
 
+#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
+
     uint8_t size() const
     {
         return ptr_size_;
     }
+#endif
 
     void* get() const
     {
@@ -82,15 +89,21 @@ class function_getter
     function_getter(Fn fn)
     {
         fn_ptr_   = reinterpret_cast<void*&>(fn);
+#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
         ptr_size_ = sizeof(fn);
+#endif
     }
 
     template <class C, class Fn = void*>
     function_getter(C* instance, const size_t index, Fn = {})
     {
+        if (!instance)
+            return;
         const auto vtable = *reinterpret_cast<void***>(instance);
         fn_ptr_           = vtable[index];
+#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
         ptr_size_         = sizeof(Fn);
+#endif
     }
 };
 
@@ -168,7 +181,7 @@ concept have_static_callback_method = have_callback_method<Impl> && std::is_poin
 template <class Impl>
 concept have_member_callback_method = have_callback_method<Impl> && std::is_member_function_pointer_v<decltype(&Impl::callback)>;
 
-template <class Impl>
+template <class Impl, size_t Index = 0>
 struct hook_instance_static
 {
     constexpr hook_instance_static()
@@ -181,12 +194,12 @@ struct hook_instance_static
     static decltype(auto) call_original(Args&&... args)
     {
         auto fn                      = &Impl::callback;
-        reinterpret_cast<void*&>(fn) = FD_OBJECT_GET(Impl)->get_original_method();
+        reinterpret_cast<void*&>(fn) = FD_OBJECT_GET(Impl, Index)->get_original_method();
         return std::invoke(fn, std::forward<Args>(args)...);
     }
 };
 
-template <class Impl>
+template <class Impl, size_t Index = 0>
 struct hook_instance_member
 {
     constexpr hook_instance_member()
@@ -198,7 +211,7 @@ struct hook_instance_member
     template <typename... Args>
     decltype(auto) call_original(Args&&... args) const
     {
-        const auto inst    = &FD_OBJECT_GET(Impl);
+        const auto inst    = &FD_OBJECT_GET(Impl, Index);
         const auto thisptr = static_cast<const Impl*>(this);
         FD_ASSERT(inst != thisptr, "Function must be called from hooked method!");
         const auto orig_fn = inst->get_original_method();
