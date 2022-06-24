@@ -34,8 +34,8 @@ struct input_result
 
 struct basic_input_handler
 {
-    virtual ~basic_input_handler()                                                             = default;
-    virtual input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) = 0;
+    virtual ~basic_input_handler()                                                                                     = default;
+    virtual input_result operator()(const HWND window, const UINT message, const WPARAM w_param, const LPARAM l_param) = 0;
 };
 
 FD_OBJECT(input_handler, basic_input_handler);

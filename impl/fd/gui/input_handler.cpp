@@ -500,7 +500,7 @@ class input_handler_impl final : public basic_input_handler
         _Init_keys();
     }
 
-    input_result operator()(HWND window, UINT message, WPARAM w_param, LPARAM l_param) override
+    input_result operator()(const HWND window, const UINT message, const WPARAM w_param, const LPARAM l_param) override
     {
         switch (message)
         {
