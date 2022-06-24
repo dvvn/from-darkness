@@ -12,14 +12,17 @@ module fd.assert;
 #undef NDEBUG
 #include <assert.h>
 
-using real_assert_handler = fd::callback_ex<2, const assert_data&>;
-struct assert_handler_impl : real_assert_handler
+using assert_callback          = fd::callback<const assert_data&>;
+using assert_callback_ex       = fd::callback_ex<1, const assert_data&>;
+using selected_assert_callback = std::conditional_t<(assert_callback::known_buffer_size() > 1), assert_callback, assert_callback_ex>;
+
+struct assert_handler_impl : selected_assert_callback
 {
     assert_handler_impl();
 
     void invoke(const assert_data& data) const override
     {
-        real_assert_handler::invoke(data);
+        selected_assert_callback::invoke(data);
         std::terminate();
     }
 };
@@ -156,7 +159,7 @@ static auto _Assert_msg(const char* expression, const char* message)
 
 assert_handler_impl::assert_handler_impl()
 {
-    real_assert_handler::append([](const assert_data& data) {
+    selected_assert_callback::append([](const assert_data& data) {
         const auto [expression, message, location] = data;
 #if defined(_MSC_VER)
         _wassert(_Assert_msg<wchar_t>(expression, message), msg_packed<wchar_t>(location.file_name()), location.line());

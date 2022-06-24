@@ -1,4 +1,5 @@
 module;
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <functional>
@@ -110,9 +111,9 @@ class fake_vector
 
     //-----------------
 
-    size_t free_space() const
+    static constexpr size_t capacity()
     {
-        return BuffSize - size_;
+        return BuffSize;
     }
 
     size_t size() const
@@ -151,21 +152,25 @@ class fake_vector
     }
 };
 
-template <typename T, size_t BuffSize = 1>
+template <typename T, size_t ExtraBuffSize = 0>
 class buffered_vector
 {
     using value_type = T;
 
-    using fake_vec = fake_vector<value_type, BuffSize>;
     using real_vec = std::vector<value_type>;
+    using fake_vec = fake_vector<value_type, std::max<size_t>(1, (sizeof(real_vec) - sizeof(size_t)) / sizeof(value_type) + ExtraBuffSize)>;
 
-    std::variant<fake_vec, real_vec> data_;
+    std::variant<real_vec, fake_vec> data_;
 
   public:
+    static constexpr size_t known_buffer_size()
+    {
+        return fake_vec::capacity();
+    }
+
     buffered_vector()
         : data_(std::in_place_type<fake_vec>)
     {
-        static_assert(BuffSize > 0);
     }
 
     void push_back(value_type&& other)
@@ -176,7 +181,7 @@ class buffered_vector
             return;
         }
         auto& fake = std::get<fake_vec>(data_);
-        if (fake.free_space() > 0)
+        if (fake.capacity() - fake.size() > 0)
         {
             fake.push_back(std::move(other));
         }
@@ -228,19 +233,24 @@ class buffered_vector
     }
 };
 
-template <size_t BuffSize, typename... Args>
+template <size_t ExtraBuffSize, typename... Args>
 class callback_ex : public fd::abstract_callback<Args...>
 {
     using _Base = fd::abstract_callback<Args...>;
 
   public:
     using typename _Base::callback_type;
-    using storage_type = buffered_vector<callback_type, BuffSize>;
+    using storage_type = buffered_vector<callback_type, ExtraBuffSize>;
 
   private:
     storage_type data_;
 
   public:
+    static constexpr size_t known_buffer_size()
+    {
+        return storage_type::known_buffer_size();
+    }
+
     void append(callback_type&& callback) override
     {
         data_.push_back(std::move(callback));
@@ -259,7 +269,7 @@ class callback_ex : public fd::abstract_callback<Args...>
 };
 
 template <typename... Args>
-using callback = callback_ex<1, Args...>;
+using callback = callback_ex<0, Args...>;
 
 export namespace fd
 {
