@@ -8,9 +8,8 @@ module;
 
 export module fd.gui.input_handler;
 
-class input_result
+struct input_result
 {
-  public:
     enum result : uint8_t
     {
         skipped,

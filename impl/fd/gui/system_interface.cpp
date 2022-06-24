@@ -87,6 +87,8 @@ class system_interface_impl final : public Rml::SystemInterface
     }
 };
 
+FD_OBJECT_BIND_TYPE(system_interface, system_interface_impl);
+
 template <>
 struct std::formatter<Rml_log, char> : formatter<std::string_view>
 {
@@ -119,5 +121,3 @@ struct std::formatter<Rml_log, char> : formatter<std::string_view>
         return formatter<std::string_view>::format(str, fc);
     }
 };
-
-FD_OBJECT_BIND_TYPE(system_interface, system_interface_impl);

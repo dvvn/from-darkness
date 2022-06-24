@@ -72,8 +72,8 @@ namespace Rml
 
 using Rml::RenderInterfaceD3d9;
 
-FD_OBJECT_BIND(custom_render_interface, render_interface, RenderInterfaceD3d9);
-FD_OBJECT_BIND(Rml::RenderInterface, render_interface_raw, RenderInterfaceD3d9);
+FD_OBJECT_BIND_TYPE(render_interface, RenderInterfaceD3d9);
+FD_OBJECT_BIND_TYPE(render_interface_raw, RenderInterfaceD3d9);
 
 RenderInterfaceD3d9::~RenderInterfaceD3d9()
 {

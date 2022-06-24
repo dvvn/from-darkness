@@ -1,7 +1,6 @@
 ﻿module;
 
 #include <fd/core/object.h>
-
 #include <fd/core/utility.h>
 
 #include <RmlUi/Core/Context.h>
@@ -20,14 +19,9 @@
 module fd.gui.context;
 import fd.application_info;
 
-#pragma warning(push)
-#pragma warning(disable : 5103)
-// clang-format off
-#define RML_SAMPLE(_DIR_, _S_) FD_STRINGIZE(RMLUI_DIR/Samples/)##_DIR_##"/"##_S_
-// clang-format on
-#pragma warning(pop)
+#define RML_SAMPLE(_DIR_, _S_) FD_CONCAT(FD_STRINGIZE(RMLUI_DIR), "/Samples/", _DIR_, "/", _S_)
 
-constexpr auto a = RML_SAMPLE("test", "fuck.txt");
+#undef small
 
 #if 0
 static void _Rml_demo_animation(Context* ctx)
@@ -100,32 +94,6 @@ static void _Rml_demo_animation(Context* ctx)
 }
 #endif
 
-class gui_context
-{
-    Rml::Context* ctx_;
-
-  public:
-    ~gui_context();
-    gui_context();
-
-    Rml::Context* operator&() const;
-};
-
-FD_OBJECT_BIND(Rml::Context*, context, gui_context);
-
-gui_context::~gui_context()
-{
-    Rml::Shutdown();
-}
-
-static auto _Create_context()
-{
-    const auto size = fd::app_info->window.size.client();
-    return Rml::CreateContext("main", { size.width(), size.height() });
-}
-
-#undef small
-
 class font_path_data
 {
     bool small_;
@@ -183,51 +151,63 @@ static auto _Get_system_font(const std::string_view name)
     return out;
 }
 
-gui_context::gui_context()
+class gui_context
 {
-    Rml::SetRenderInterface(&FD_OBJECT_GET(Rml::RenderInterface));
-    Rml::SetSystemInterface(&FD_OBJECT_GET(Rml::SystemInterface));
+    Rml::Context* ctx_;
 
-    Rml::Initialise();
-
-    //------
-
-    ctx_ = _Create_context();
-
-    //------
-#ifdef _DEBUG
-    Rml::Debugger::Initialise(ctx_);
-    Rml::Debugger::SetVisible(true);
-#endif
-
-    // Tell RmlUi to load the given fonts.
-    Rml::LoadFontFace(RML_SAMPLE("assets", "LatoLatin-Regular.ttf"));
-    // Fonts can be registered as fallback fonts, as in this case to display emojis.
-    Rml::LoadFontFace(RML_SAMPLE("assets", "NotoEmoji-Regular.ttf"), true);
-
-    Rml::LoadFontFace(_Get_system_font("arial.ttf"), true);
-
-    ctx_->LoadDocument(RML_SAMPLE("assets", "demo.rml"))->Show();
-    ctx_->LoadDocument(RML_SAMPLE("assets", "window.rml"))->Show();
-
-    //_Rml_demo_animation(ctx_);
-
-#if 0
-    // Replace and style some text in the loaded document.
-    Rml::Element* element = document->GetElementById("world");
-    element->SetInnerRML(reinterpret_cast<const char*>(u8"🌍"));
-    element->SetProperty("font-size", "1.5em");
-
-    // Set up data bindings to synchronize application data.
-    if(Rml::DataModelConstructor constructor = context->CreateDataModel("animals"))
+  public:
+    Rml::Context* operator&() const
     {
-        constructor.Bind("show_text", &my_data.show_text);
-        constructor.Bind("animal", &my_data.animal);
+        return ctx_;
     }
-#endif
-}
 
-Rml::Context* gui_context::operator&() const
-{
-    return ctx_;
-}
+    ~gui_context()
+    {
+        Rml::Shutdown();
+    }
+
+    gui_context()
+    {
+        Rml::SetRenderInterface(&FD_OBJECT_GET(Rml::RenderInterface));
+        Rml::SetSystemInterface(&FD_OBJECT_GET(Rml::SystemInterface));
+
+        Rml::Initialise();
+
+        //------
+
+        const auto window_size = fd::app_info->window.size.client();
+        ctx_                   = Rml::CreateContext("main", { window_size.width(), window_size.height() });
+
+        //------
+#ifdef _DEBUG
+        Rml::Debugger::Initialise(ctx_);
+        Rml::Debugger::SetVisible(true);
+#endif
+
+        // Tell RmlUi to load the given fonts.
+        Rml::LoadFontFace(RML_SAMPLE("assets", "LatoLatin-Regular.ttf"));
+        // Fonts can be registered as fallback fonts, as in this case to display emojis.
+        Rml::LoadFontFace(RML_SAMPLE("assets", "NotoEmoji-Regular.ttf"), true);
+
+        Rml::LoadFontFace(_Get_system_font("arial.ttf"), true);
+
+        ctx_->LoadDocument(RML_SAMPLE("assets", "demo.rml"))->Show();
+        ctx_->LoadDocument(RML_SAMPLE("assets", "window.rml"))->Show();
+
+        //_Rml_demo_animation(ctx_);
+
+        /* // Replace and style some text in the loaded document.
+        Rml::Element* element = document->GetElementById("world");
+        element->SetInnerRML(reinterpret_cast<const char*>(u8"🌍"));
+        element->SetProperty("font-size", "1.5em");
+
+        // Set up data bindings to synchronize application data.
+        if(Rml::DataModelConstructor constructor = context->CreateDataModel("animals"))
+        {
+            constructor.Bind("show_text", &my_data.show_text);
+            constructor.Bind("animal", &my_data.animal);
+        } */
+    }
+};
+
+FD_OBJECT_BIND_TYPE(context, gui_context);

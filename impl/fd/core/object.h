@@ -34,28 +34,18 @@ decltype(auto) _Extract_obj_t(V&& val)
 }
 
 #define FD_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, _IMPL_)                                                           \
-    template <>                                                                                                  \
-    template <>                                                                                                  \
+    template <>                                                                                                 \
+    template <>                                                                                                 \
     fd::one_instance_getter<_Object_t<_OBJ_TYPE_>>::one_instance_getter(const std::in_place_index_t<_OBJ_IDX_>) \
-        : item_(_Extract_obj_t<_Object_t<_OBJ_TYPE_>>(_IMPL_))                                                   \
-    {                                                                                                            \
+        : item_(_Extract_obj_t<_Object_t<_OBJ_TYPE_>>(_IMPL_))                                                  \
+    {                                                                                                           \
     }
 
 #define FD_OBJECT_GET(_OBJ_TYPE_, /* object index */...) fd::instance_of<_Object_t<_OBJ_TYPE_> __VA_OPT__(, ) __VA_ARGS__>
 
-#define FD_OBJECT_BIND(_OBJ_TYPE_, _OBJ_IDX_, _TARGET_TYPE_, /* target index */...) FD_OBJECT_IMPL(_OBJ_TYPE_, _OBJ_IDX_, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__))
-#define FD_OBJECT_BIND_NAME(_OBJ_NAME_, _TARGET_NAME_)                              FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
-#define FD_OBJECT_BIND_TYPE(_OBJ_NAME_, _TARGET_TYPE_, /* target index */...)       FD_OBJECT_BIND(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_TYPE_, __VA_ARGS__)
+#define FD_OBJECT_BIND_NAME(_OBJ_NAME_, _TARGET_NAME_)      FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_NAME_)
+#define FD_OBJECT_BIND_TYPE(_OBJ_NAME_, _TARGET_TYPE_, ...) FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__))
 
 #define FD_UNIQUE_INDEX (fd::calc_hash(__FILE__) + __COUNTER__)
 
-#define FD_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, /* object index */...) constexpr auto _OBJ_NAME_ = FD_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__);
-/*
-example:
-
-FD_OBJECT(name, type, 1337)
-
-FD_OBJECT_BIND(type, 1337/name, real_type, ...)
-or
-FD_OBJECT_IMPL(type, 1337/name, get_real_type())
-*/
+#define FD_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FD_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__);
