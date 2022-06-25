@@ -20,113 +20,141 @@ constexpr decltype(auto) type_name_raw()
     return __FUNCSIG__;
 }
 
-class type_name_getter
+struct type_name_clamped : std::string_view
 {
-    struct type_name_string : std::string
+    constexpr type_name_clamped(const std::string_view raw_name)
+        : std::string_view(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'))
     {
-        constexpr size_t mark_zeros(const std::string_view substr)
-        {
-            const auto substr_size = substr.size();
-            size_t found           = 0;
-            size_t pos             = 0;
-            for (;;)
-            {
-                pos = this->find(substr, pos);
-                if (pos == this->npos)
-                    break;
-                ++found;
-                std::fill_n(this->data() + pos, substr_size, '\0');
-                pos += substr_size;
-            }
-            return found * substr_size;
-        }
+    }
+};
 
-        constexpr size_t mark_zeros(const char chr)
-        {
-            size_t found = 0;
-            for (auto& c : *this)
-            {
-                if (c != chr)
-                    continue;
-                ++found;
-                c = '\0';
-            }
-            return found;
-        }
-
-        constexpr size_t remove_bad_spaces()
-        {
-            size_t found   = 0;
-            bool skip_next = false;
-            for (auto& c : *this)
-            {
-                switch (c)
-                {
-                case ',': {
-                    skip_next = true;
-                    break;
-                }
-                case ' ': {
-                    if (skip_next)
-                        break;
-                    c = '\0';
-                    ++found;
-                }
-                default: {
-                    skip_next = false;
-                    break;
-                }
-                }
-            }
-
-            return found;
-        }
-
-        constexpr bool erase_zeros()
-        {
-            std::string temp;
-            for (const auto chr : *this)
-            {
-                if (chr == '\0')
-                    continue;
-                temp += chr;
-            }
-            if (temp.empty())
-                return false;
-            this->assign(std::move(temp));
-            return true;
-        }
-    };
-
-    std::string buffer_;
-
-  public:
-    constexpr type_name_getter(const std::string_view raw_name, const bool is_object)
-        : buffer_()
+struct type_name_string : std::string
+{
+    constexpr size_t mark_zeros(const std::string_view substr)
     {
-        const auto start = raw_name.find('<') + 1;
-        const auto end   = raw_name.rfind('>');
-        type_name_string name;
-        name.assign(raw_name.data() + start, raw_name.data() + end);
-
-        if (is_object)
+        const auto substr_size = substr.size();
+        size_t found           = 0;
+        size_t pos             = 0;
+        for (;;)
         {
-            size_t zeros = 0;
-            zeros += name.mark_zeros("struct");
-            zeros += name.mark_zeros("class");
-            zeros += name.mark_zeros("enum");
-            zeros += name.mark_zeros("union");
-            zeros += name.remove_bad_spaces();
-            if (zeros > 0)
-                name.erase_zeros();
+            pos = this->find(substr, pos);
+            if (pos == this->npos)
+                break;
+            ++found;
+            std::fill_n(this->data() + pos, substr_size, '\0');
+            pos += substr_size;
         }
-
-        buffer_.assign(static_cast<std::string&&>(name));
+        return found * substr_size;
     }
 
-    constexpr const std::string* operator->() const
+    constexpr size_t mark_zeros(const char chr)
     {
-        return &buffer_;
+        size_t found = 0;
+        for (auto& c : *this)
+        {
+            if (c != chr)
+                continue;
+            ++found;
+            c = '\0';
+        }
+        return found;
+    }
+
+    constexpr size_t remove_bad_spaces()
+    {
+        size_t found   = 0;
+        bool skip_next = false;
+        for (auto& c : *this)
+        {
+            switch (c)
+            {
+            case ',': {
+                skip_next = true;
+                break;
+            }
+            case ' ': {
+                if (skip_next)
+                    break;
+                c = '\0';
+                ++found;
+            }
+            default: {
+                skip_next = false;
+                break;
+            }
+            }
+        }
+
+        return found;
+    }
+
+    constexpr bool erase_zeros(const bool not_sure)
+    {
+        std::string temp;
+        if (!not_sure)
+            temp.reserve(this->size());
+        for (const auto chr : *this)
+        {
+            if (chr == '\0')
+                continue;
+            temp += chr;
+        }
+        if (temp.empty())
+        {
+            if (!not_sure)
+                (void)temp.at(temp.size()); // throw a error
+            return false;
+        }
+        this->assign(std::move(temp));
+        return true;
+    }
+
+    //------
+
+    template <typename... Args>
+    constexpr bool smart_erase(const Args... args)
+    {
+        const auto zeros = (this->mark_zeros(args) + ...) + this->remove_bad_spaces();
+        if (zeros == 0)
+            return false;
+        this->erase_zeros(false);
+        return true;
+    }
+};
+
+template <size_t Size>
+class type_name_getter
+{
+    char buffer_[Size];
+    size_t size_;
+
+  public:
+    constexpr type_name_getter(const std::string_view clamped_name, const bool is_object)
+        : buffer_()
+    {
+        if (!is_object)
+        {
+            std::copy(clamped_name.begin(), clamped_name.end(), buffer_);
+            size_ = clamped_name.size();
+        }
+        else
+        {
+            type_name_string name;
+            name.assign(clamped_name.begin(), clamped_name.end());
+            name.smart_erase("struct", "class", "enum", "union");
+            std::copy(name.begin(), name.end(), buffer_);
+            size_ = name.size();
+        }
+    }
+
+    constexpr const char* data() const
+    {
+        return buffer_;
+    }
+
+    constexpr size_t size() const
+    {
+        return size_;
     }
 };
 
@@ -135,24 +163,24 @@ constexpr bool class_or_union_v = std::is_class_v<T> || std::is_union_v<T>;
 
 template <typename T>
 constexpr auto type_name_holder = [] {
-    constexpr std::string_view raw_name = type_name_raw<T>();
-    constexpr auto is_object            = class_or_union_v<T> || std::is_enum_v<T>;
-    constexpr auto size                 = type_name_getter(raw_name, is_object)->size();
-    return fd::chars_cache<char, size + 1>(type_name_getter(raw_name, is_object)->data(), size);
+    constexpr type_name_clamped name(type_name_raw<T>());
+    constexpr type_name_getter<name.size()> getter(name, class_or_union_v<T> || std::is_enum_v<T>);
+    return fd::chars_cache<char, getter.size() + 1>(getter.data(), getter.size());
 }();
 
 template <template <typename...> class T>
 constexpr auto type_name_holder_partial = [] {
-    constexpr std::string_view raw_name = type_name_raw<T>();
-    constexpr auto size                 = type_name_getter(raw_name, true)->size();
-    return fd::chars_cache<char, size + 1>(type_name_getter(raw_name, true)->data(), size);
+    constexpr type_name_clamped name(type_name_raw<T>());
+    constexpr type_name_getter<name.size()> getter(name, true);
+    return fd::chars_cache<char, getter.size() + 1>(getter.data(), getter.size());
 }();
 
 template <template <typename, size_t> class T>
 constexpr auto type_name_holder_partial2 = [] {
-    constexpr std::string_view raw_name = type_name_raw<T<int, 1>>();
-    constexpr auto size                 = type_name_getter(raw_name, true)->find('<');
-    return fd::chars_cache<char, size + 1>(type_name_getter(raw_name, true)->data(), size);
+    constexpr type_name_clamped name(type_name_raw<T<int, 1>>());
+    constexpr type_name_getter<name.size()> getter(name, true);
+    constexpr size_t size = std::string_view(getter.data(), getter.size()).find('<');
+    return fd::chars_cache<char, size + 1>(getter.data(), size);
 }();
 
 class template_comparer
