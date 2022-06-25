@@ -3,23 +3,44 @@ module;
 #include <array>
 #include <cassert>
 #include <functional>
+#include <limits>
 #include <variant>
 
 export module fd.callback.impl;
 export import fd.callback;
 
-template <typename T, size_t BuffSize>
+template <size_t S>
+constexpr auto _Smallest_size_type()
+{
+    if constexpr (S <= std::numeric_limits<uint8_t>::max())
+        return uint8_t();
+    else if constexpr (S <= std::numeric_limits<uint16_t>::max())
+        return uint16_t();
+    else if constexpr (S <= std::numeric_limits<uint32_t>::max())
+        return uint32_t();
+    else
+        return uint64_t();
+}
+
+template <typename T, size_t ExtraBuffSize>
 class fake_vector
 {
+    using size_type = decltype(_Smallest_size_type<sizeof(std::vector<T>) + sizeof(ExtraBuffSize) * sizeof(T)>());
+
     union
     {
         uint8_t dummy_;
-        std::array<T, BuffSize> view_;
+        std::array<T, std::max<size_t>(1, (sizeof(std::vector<T>) - sizeof(size_type)) / sizeof(T) + ExtraBuffSize)> view_;
     };
 
-    size_t size_;
+    size_type size_;
 
   public:
+    void mark_empty()
+    {
+        size_ = 0;
+    }
+
     ~fake_vector()
     {
         if constexpr (!std::is_trivially_destructible_v<T>)
@@ -113,7 +134,7 @@ class fake_vector
 
     static constexpr size_t capacity()
     {
-        return BuffSize;
+        return sizeof(view_) / sizeof(T);
     }
 
     size_t size() const
@@ -128,7 +149,7 @@ class fake_vector
 
     const T* begin() const
     {
-        return view_.data();
+        return const_cast<fake_vector*>(this)->begin();
     }
 
     T* end()
@@ -138,7 +159,7 @@ class fake_vector
 
     const T* end() const
     {
-        return view_.data() + size_;
+        return const_cast<fake_vector*>(this)->end();
     }
 
     T& operator[](const size_t idx)
@@ -158,7 +179,7 @@ class buffered_vector
     using value_type = T;
 
     using real_vec = std::vector<value_type>;
-    using fake_vec = fake_vector<value_type, std::max<size_t>(1, (sizeof(real_vec) - sizeof(size_t)) / sizeof(value_type) + ExtraBuffSize)>;
+    using fake_vec = fake_vector<value_type, ExtraBuffSize>;
 
     std::variant<real_vec, fake_vec> data_;
 
@@ -190,6 +211,7 @@ class buffered_vector
             real_vec real;
             real.reserve(fake.size() + 1);
             real.assign(std::move_iterator(fake.begin()), std::move_iterator(fake.end()));
+            fake.mark_empty();
             real.push_back(std::move(other));
             data_.emplace<real_vec>(std::move(real));
         }
