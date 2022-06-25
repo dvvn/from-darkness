@@ -9,16 +9,34 @@ struct simple_chars_cache
 {
     Chr _Data[Size];
 
-    constexpr simple_chars_cache(const Chr* str_source, const size_t size = Size)
+    using value_type = Chr;
+    using pointer    = const Chr*;
+
+    constexpr simple_chars_cache(pointer str_source, const size_t string_size = Size)
     {
-        std::copy_n(str_source, size, _Data);
-        if (size < Size)
-            std::fill_n(_Data + size, Size - size, static_cast<Chr>(0));
+        std::copy_n(str_source, string_size, _Data);
+        if (string_size < Size)
+            std::fill(_Data + string_size, _Data + Size, static_cast<Chr>(0));
+    }
+
+    constexpr size_t size() const
+    {
+        return Size - 1;
+    }
+
+    constexpr pointer begin() const
+    {
+        return _Data;
+    }
+
+    constexpr pointer end() const
+    {
+        return begin() + size();
     }
 
     constexpr std::basic_string_view<Chr> view() const
     {
-        return {_Data, Size - 1};
+        return { begin(), size() };
     }
 
     constexpr operator std::basic_string_view<Chr>() const
