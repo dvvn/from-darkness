@@ -11,20 +11,10 @@ concept string_viewable = requires(const T& val)
 };
 
 template <typename Key, typename Value, class IgnoredLess = void, class Allocator = std::allocator<std::pair</* const  */ Key, Value>>>
-struct fake_map : std::vector<typename Allocator::value_type, Allocator>
+class fake_map : public std::vector<typename Allocator::value_type, Allocator>
 {
     using _Base = std::vector<typename Allocator::value_type, Allocator>;
 
-    using key_type       = Key;
-    using mapped_type    = Value;
-    using iterator       = typename _Base::iterator;
-    using const_iterator = typename _Base::const_iterator;
-    using size_type      = typename _Base::size_type;
-    using value_type     = typename _Base::value_type;
-
-    using _Base::_Base;
-
-  private:
     using _Base::operator[];
     using _Base::at;
     using _Base::emplace_back;
@@ -60,6 +50,15 @@ struct fake_map : std::vector<typename Allocator::value_type, Allocator>
     }
 
   public:
+    using key_type       = Key;
+    using mapped_type    = Value;
+    using iterator       = typename _Base::iterator;
+    using const_iterator = typename _Base::const_iterator;
+    using size_type      = typename _Base::size_type;
+    using value_type     = typename _Base::value_type;
+
+    using _Base::_Base;
+
     template <std::equality_comparable_with<Key> Key2>
     iterator find(const Key2& key)
     {
