@@ -2,9 +2,6 @@ module;
 
 #include <fd/core/assert.h>
 
-#include <nlohmann/json.hpp>
-#include <nlohmann/ordered_map.hpp>
-
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -13,6 +10,7 @@ module;
 module fd.netvars.core:storage;
 import fd.logger;
 import fd.address;
+import fd.json;
 
 namespace std::filesystem
 {
@@ -108,116 +106,31 @@ classes_data::~classes_data()
     }
 }
 
-template <typename Key, typename Key2>
-concept equality_comparable_constructible = std::equality_comparable_with<Key, Key2> && std::constructible_from<Key, Key2>;
-
-template <class Key>
-struct ordered_map_json_key_proxy;
-
-template <class Key,
-          class Value,
-          class IgnoredLess = std::less<Key>,
-          class Allocator   = std::allocator<std::pair<const Key, Value>>,
-          class Base        = nlohmann::ordered_map<Key, Value, IgnoredLess, Allocator>>
-class ordered_map_json : public Base
+template <class J>
+concept json_support_string_view = requires(J& js, const std::string_view test)
 {
-    [[no_unique_address]] ordered_map_json_key_proxy<Key> proxy_;
-
-  public:
-    using typename Base::key_type;
-    using typename Base::mapped_type;
-
-    using typename Base::Container;
-
-    using typename Base::const_iterator;
-    using typename Base::iterator;
-    using typename Base::size_type;
-    using typename Base::value_type;
-
-    template <equality_comparable_constructible<Key> Key2, typename... Args>
-    std::pair<iterator, bool> emplace(Key2&& key, Args&&... args)
-    {
-        auto key_adapted = proxy_(std::forward<Key2>(key));
-
-        auto found = this->find(key_adapted);
-        if (found != Base::end())
-            return { found, false };
-
-        if constexpr (sizeof...(Args) == 0)
-        {
-            static_assert(std::default_initializable<Value>, "Unable to construct empty mapped type");
-            Base::emplace_back(std::move(key_adapted), Value());
-        }
-        else
-        {
-            Base::emplace_back(std::move(key_adapted), std::forward<Args>(args)...);
-        }
-        return { std::prev(Base::end()), true };
-    }
-
-    template <std::equality_comparable_with<Key> Key2>
-    iterator find(const Key2& key)
-    {
-        const auto key_adapted = proxy_(key);
-        const auto begin       = Base::begin();
-        const auto end         = Base::end();
-        for (auto itr = begin; itr != end; ++itr)
-        {
-            if (itr->first == key_adapted)
-                return itr;
-        }
-        return end;
-    }
-
-    template <std::equality_comparable_with<Key> Key2>
-    const_iterator find(const Key2& key) const
-    {
-        return const_cast<ordered_map_json*>(this)->find(key);
-    }
+    js[test];
 };
 
-template <class Base>
-struct json_wrapper : Base
+template <class J>
+static auto& _Json_append(J& js, const std::string_view str)
 {
-#if NLOHMANN_JSON_VERSION_MAJOR <= 3 && NLOHMANN_JSON_VERSION_MINOR < 11
-    // string view because it anyway copy later
-    auto& operator[](const std::string_view key)
-    {
-        return static_cast<Base*>(this)->operator[](Base::string_t(key.begin(), key.end()));
-    }
-#endif
-};
-
-template <>
-struct ordered_map_json_key_proxy<std::string>
-{
-    std::string&& operator()(std::string&& str) const
-    {
-        return std::move(str);
-    }
-
-    std::string_view operator()(const std::string_view str) const
-    {
-        return str;
-    }
-
-    std::string_view operator()(const char* str) const
-    {
-        return str;
-    }
-};
+    if constexpr (json_support_string_view<J>)
+        return js[str];
+    else
+        return js[std::string(str)];
+}
 
 void storage::log_netvars(logs_data& data)
 {
-    json_wrapper<nlohmann::basic_json<ordered_map_json, std::vector, std::string, bool, intptr_t, uintptr_t, float>> j_root;
+    json_unsorted j_root;
 
     for (const netvar_table& table : *this)
     {
         if (table.empty())
             continue;
 
-        const std::string_view table_name = table.name();
-        auto& j_table                     = j_root[table_name];
+        auto& j_table = _Json_append(j_root, table.name());
 
         for (const netvar_table::value_type& info : table)
         {
@@ -225,10 +138,30 @@ void storage::log_netvars(logs_data& data)
             const auto offset           = info->offset();
             const std::string_view type = info->type();
 
-            j_table["name"]   = name;
-            j_table["offset"] = offset;
+            if (type.empty())
+            {
+                j_table.push_back({
+                    {"name",    std::string(name)},
+                    { "offset", offset           }
+                });
+            }
+            else
+            {
+                j_table.push_back({
+                    {"name",    std::string(name)},
+                    { "offset", offset           },
+                    { "type",   std::string(type)}
+                });
+            }
+
+            /*
+            json_unsorted entry;
+            _Json_append(entry, "name")   = std::string(name);
+            _Json_append(entry, "offset") = offset;
             if (!type.empty())
-                j_table["type"] = type;
+                _Json_append(entry, "type") = std::string(type);
+
+            j_table.push_back(std::move(entry)); */
         }
     }
 
