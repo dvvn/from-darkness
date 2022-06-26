@@ -10,7 +10,7 @@ concept string_viewable = requires(const T& val)
     std::basic_string_view(val);
 };
 
-template <typename Key, typename Value, class IgnoredLess = void, class Allocator = std::allocator<std::pair<const Key, Value>>>
+template <typename Key, typename Value, class IgnoredLess = void, class Allocator = std::allocator<std::pair</* const  */ Key, Value>>>
 struct fake_map : std::vector<typename Allocator::value_type, Allocator>
 {
     using _Base = std::vector<typename Allocator::value_type, Allocator>;
@@ -152,14 +152,13 @@ export namespace nlohmann
     {
         using ::nlohmann::detail::json_sax_dom_callback_parser;
     }
-
 } // namespace nlohmann
 
 template <typename... T>
 using adl_serializer = ::nlohmann::adl_serializer<T...>;
 
 template <template <typename... Args> class ObjectType>
-using _Json = nlohmann::basic_json<ObjectType, std::vector, std::string, bool, intptr_t, uintptr_t, float, std::allocator, adl_serializer, std::vector<std::uint8_t>>;
+using _Json = nlohmann::basic_json<ObjectType, std::vector, std::string, bool, intptr_t, uintptr_t, float, std::allocator, adl_serializer>;
 
 export namespace fd
 {
