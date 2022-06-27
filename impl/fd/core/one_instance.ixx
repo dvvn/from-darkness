@@ -127,8 +127,8 @@ struct one_instance_getter
     using reference  = value_type&;
     using pointer    = value_type*;
 
-    template <size_t Instance, typename... Args>
-    one_instance_getter(const std::in_place_index_t<Instance>, Args&&... args) requires(std::constructible_from<T, decltype(args)...>)
+    template <typename... Args>
+    one_instance_getter(Args&&... args) requires(std::constructible_from<value_type, decltype(args)...>)
         : item_(std::forward<Args>(args)...)
     {
     }
@@ -194,6 +194,11 @@ class one_instance_getter<T*>
     template <size_t Instance>
     one_instance_getter(const std::in_place_index_t<Instance>);
 
+    one_instance_getter(const element_type item)
+        : item_(item)
+    {
+    }
+
     reference ref() const
     {
         return *_Lowest_pointer(item_);
@@ -208,7 +213,12 @@ class one_instance_getter<T*>
     element_type item_;
 };
 
-constexpr uint8_t time_offsets[] = {0, 3, 6};
+constexpr size_t _Magic_number(const size_t value)
+{
+    const size_t time_offsets[] = { 0, 3, 6 };
+    const size_t src            = time_offsets[value % 3];
+    return __TIME__[src] ^ __TIME__[7]; // XX:XX:XX 01 2 34 5 67
+}
 
 template <typename T, size_t Instance = 0>
 class one_instance
@@ -224,19 +234,20 @@ class one_instance
     template <typename... Args>
     static auto& _Construct(Args&&... args)
     {
-        return _Buff().emplace(std::in_place_index<Instance>, std::forward<Args>(args)...);
+        if constexpr (sizeof...(Args) > 0 || !std::constructible_from<t_getter, std::in_place_index_t<Instance>>)
+            return _Buff().emplace(std::forward<Args>(args)...);
+        else
+            return _Buff().emplace(std::in_place_index<Instance>);
     }
 
     static auto& _Get()
     {
-        // WARNING: one_instance_getter<T*> always true (but fails later) because partial initialization not known at compile time (always true, but fails later)
-        if constexpr (std::constructible_from<t_getter, std::in_place_index_t<Instance>>)
+        if constexpr (std::default_initializable<t_getter> || std::constructible_from<t_getter, std::in_place_index_t<Instance>>)
         {
             static const auto once = [] {
                 if (!initialized())
                     _Construct();
-                constexpr size_t src = time_offsets[Instance % 3];
-                return __TIME__[src] ^ __TIME__[7]; // XX:XX:XX 01 2 34 5 67
+                return _Magic_number(Instance);
             }();
         }
         return *_Buff();
