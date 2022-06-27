@@ -136,12 +136,6 @@ export namespace fd::netvars
         const netvar_table* find(const fd::hashed_string_view name) const;
         netvar_table* find(const fd::hashed_string_view name);
 
-        template <typename T>
-        auto find()
-        {
-            return this->find("todo");
-        }
-
         netvar_table* add(netvar_table&& table, const bool skip_find = false);
         netvar_table* add(fd::hashed_string&& name, const bool skip_find = false);
     };

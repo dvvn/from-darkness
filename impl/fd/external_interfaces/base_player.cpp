@@ -1,6 +1,6 @@
 module;
 
-module fd.csgo.interfaces.C_BasePlayer;
+module fd.base_player;
 import fd.netvars;
 
 using namespace fd::csgo;

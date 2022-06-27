@@ -11,8 +11,8 @@ import fd.hooks_loader;
 import fd.logger;
 import fd.logger.system_console;
 import fd.application_info;
-import fd.d3d_device9;
 import fd.assert;
+import fd.d3d9;
 
 using nstd::winapi::comptr;
 
@@ -162,23 +162,20 @@ int main(int, char**)
         return TRUE;
     }
 
-    // d3dDevice9_ptr = g_pd3dDevice;
-
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
     using namespace fd;
     d3d_device9.construct(g_pd3dDevice);
-    app_info.construct(hwnd, IsWindowUnicode(hwnd) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr));
-    logger.append(system_console_writer);
+    app_info.construct(hwnd);
+    logger->append(system_console_writer);
     // PresetD3D(hwnd);
     if (!hooks_loader->load<0, 1, 2>())
         return TRUE;
 
     //----------------
 
-    bool exit_application = false;
-    while (!exit_application)
+    for (;;)
     {
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))

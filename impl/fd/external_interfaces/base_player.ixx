@@ -4,10 +4,10 @@ module;
 #include <limits>
 #include <type_traits>
 
-export module fd.csgo.interfaces.C_BasePlayer;
-export import fd.csgo.interfaces.C_BaseCombatCharacter;
+export module fd.base_player;
+export import fd.base_combat_character;
 
-export namespace fd::csgo
+struct base_player : fd::base_combat_character
 {
     enum class m_lifeState_t : int32_t
     {
@@ -24,11 +24,12 @@ export namespace fd::csgo
         BROKEN = std::numeric_limits<std::underlying_type_t<m_lifeState_t>>::max()
     };
 
-    class C_BasePlayer : public C_BaseCombatCharacter
-    {
-      public:
 #if __has_include("C_BasePlayer_generated_h")
 #include "C_BasePlayer_generated_h"
 #endif
-    };
-} // namespace fd::csgo
+};
+
+export namespace fd
+{
+    using ::base_player;
+}

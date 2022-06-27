@@ -10,6 +10,8 @@ module;
 export module fd.logger;
 export import fd.convert_to;
 
+FD_OBJECT_EXPORTS;
+
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
 
@@ -100,6 +102,13 @@ class logger_wrapped
         return true;
     }
 
+    template <typename T, typename... Args>
+    auto _Format(const T& fmt, const Args... args) const
+    {
+        using char_t = get_char_t<T>;
+        return std::vformat(fmt, _Make_fmt_args<char_t>(_Prepare_fmt_arg<char_t>(args)...));
+    }
+
   public:
     template <typename Fn>
     void append(Fn&& callback) const
@@ -151,37 +160,27 @@ class logger_wrapped
     }
 
     template <std::invocable T>
-    bool operator()(T&& fn) const
+    bool operator()(T fn) const
     {
         if (_Logger_empty(logger_narrow) && _Logger_empty(logger_wide))
             return false;
-        const auto msg = std::invoke(fn);
-        return std::invoke(*this, msg);
+        return std::invoke(*this, std::invoke(fn));
     }
 
     template <typename Arg1, typename... Args>
-    bool operator()(Arg1&& fmt, Args&&... args) const requires(sizeof...(Args) > 0)
+    bool operator()(const Arg1& fmt, const Args&... args) const requires(sizeof...(Args) > 0)
     {
         if (_Logger_empty(logger_narrow) && _Logger_empty(logger_wide))
             return false;
 
         if constexpr (std::invocable<Arg1>)
-        {
-            const auto fmt_str = std::invoke((fmt));
-            using char_t       = get_char_t<decltype(fmt_str)>;
-            const auto msg     = std::vformat(fmt_str, _Make_fmt_args<char_t>(_Prepare_fmt_arg<char_t>(args)...));
-            return std::invoke(*this, msg);
-        }
+            return std::invoke(*this, _Format(std::invoke(fmt), args...));
         else
-        {
-            using char_t   = get_char_t<decltype(fmt)>;
-            const auto msg = std::vformat(fmt, _Make_fmt_args<char_t>(_Prepare_fmt_arg<char_t>(args)...));
-            return std::invoke(*this, msg);
-        }
+            return std::invoke(*this, _Format(fmt, args...));
     }
 };
 
 export namespace fd
 {
-    constexpr logger_wrapped logger;
+    FD_OBJECT(logger, logger_wrapped);
 }

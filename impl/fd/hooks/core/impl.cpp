@@ -1051,7 +1051,7 @@ hook_impl::hook_impl() = default;
 template <typename M>
 static void _Log(const hook_impl* h, const M& msg)
 {
-    fd::logger("{}: {}", std::bind_front(&hook_impl::name, h), msg);
+    std::invoke(fd::logger, "{}: {}", std::bind_front(&hook_impl::name, h), msg);
 }
 
 bool hook_impl::enable()

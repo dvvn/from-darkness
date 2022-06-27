@@ -29,11 +29,11 @@ struct VarMapping_t;
 
 void storage::store_handmade_netvars()
 {
-    const auto baseent = this->find<C_BaseEntity>();
+    const auto baseent = this->find("C_BaseEntity");
     baseent->add<VarMapping_t>(0x24, "m_InterpVarMap");
     baseent->add<math::matrix3x4>(SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", plus(9).deref<1>().minus(8)), "m_BonesCache", type_utlvector);
 
-    const auto baseanim = this->find<C_BaseAnimating>();
+    const auto baseanim = this->find("C_BaseAnimating");
     // m_vecRagdollVelocity - 128
     baseanim->add<CAnimationLayer>(SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", plus(2).deref<1>()), "m_AnimOverlays", type_utlvector);
     // m_hLightingOrigin - 32

@@ -50,7 +50,8 @@ class object_logger
     template <typename Str, typename... Args>
     void operator()(const Str& str, Args&&... args) const
     {
-        fd::logger(
+        std::invoke(
+            fd::logger,
             [&] {
                 using char_t = std::remove_cvref_t<decltype(str[0])>;
 

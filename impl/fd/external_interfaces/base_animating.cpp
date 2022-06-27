@@ -4,24 +4,22 @@ module;
 
 #include <functional>
 
-module fd.csgo.interfaces.C_BaseAnimating;
+module fd.base_animating;
 import fd.rt_modules;
 import fd.netvars;
-
-using namespace fd::csgo;
 
 #if __has_include("C_BaseAnimating_generated_cpp")
 #include "C_BaseAnimating_generated_cpp"
 #endif
 
-void C_BaseAnimating::UpdateClientSideAnimation()
+void base_animating::UpdateClientSideAnimation()
 {
     // 224
-    static decltype(&C_BaseAnimating::UpdateClientSideAnimation) fn = runtime_modules::client.find_signature<"55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36">();
+    const decltype(&base_animating::UpdateClientSideAnimation) fn = fd::runtime_modules::client.find_signature<"55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36">();
     std::invoke(fn, this);
 }
 
-void C_BaseAnimating::InvalidateBoneCache()
+void base_animating::InvalidateBoneCache()
 {
 #if __has_include("C_BaseAnimating_generated_cpp")
     auto& time    = m_flLastBoneSetupTime();

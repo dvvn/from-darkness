@@ -16,7 +16,8 @@ using Rml_log = Rml::Log::Type;
 template <typename... Args>
 static bool _Log(const std::string_view str, Args&&... args)
 {
-    return fd::logger(
+    return std::invoke(
+        fd::logger,
         [&] {
             constinit std::string_view prefix = "[RmlUi] ";
             std::string buff;
