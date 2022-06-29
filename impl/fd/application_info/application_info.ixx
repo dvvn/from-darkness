@@ -37,8 +37,6 @@ union window_info
     wndproc_ctrl proc;
 };
 
-window_info* get_window_info(const HWND window_handle);
-
 struct application_info
 {
     window_info window;
@@ -50,5 +48,4 @@ struct application_info
 export namespace fd
 {
     FD_OBJECT(app_info, application_info);
-    using ::get_window_info;
-} // namespace fd
+}

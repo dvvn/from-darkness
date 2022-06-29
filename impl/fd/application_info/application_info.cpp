@@ -44,7 +44,7 @@ rect_ex window_size::client() const
 
 WNDPROC wndproc_ctrl::def() const
 {
-    const auto ret = _UNI(DefWindowProc, );
+    const auto ret = _UNI(DefWindowProc);
     return ret;
 }
 
@@ -58,13 +58,6 @@ WNDPROC wndproc_ctrl::set(const WNDPROC proc)
 {
     const auto ret = _UNI_FN(SetWindowLong, window_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(proc));
     return reinterpret_cast<WNDPROC>(ret);
-}
-
-//----------
-
-window_info* get_window_info(const HWND window_handle)
-{
-    FD_ASSERT_UNREACHABLE("Not implemented");
 }
 
 //----------
