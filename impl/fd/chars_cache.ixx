@@ -12,7 +12,14 @@ struct simple_chars_cache
     using value_type = Chr;
     using pointer    = const Chr*;
 
+    constexpr simple_chars_cache() = default;
+
     constexpr simple_chars_cache(pointer str_source, const size_t string_size = Size)
+    {
+        assign(str_source, string_size);
+    }
+
+    constexpr void assign(pointer str_source, const size_t string_size = Size)
     {
         std::copy_n(str_source, string_size, _Data);
         if (string_size < Size)
@@ -22,6 +29,11 @@ struct simple_chars_cache
     constexpr size_t size() const
     {
         return Size - 1;
+    }
+
+    constexpr pointer data() const
+    {
+        return _Data;
     }
 
     constexpr pointer begin() const

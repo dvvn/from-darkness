@@ -6,6 +6,7 @@ module;
 #include <fcntl.h>
 #include <io.h>
 
+#include <array>
 #include <cassert>
 #include <chrono>
 #include <cstdio>
@@ -14,8 +15,9 @@ module;
 #include <string>
 #include <time.h>
 
-module fd.logger.system_console;
+module fd.system_console;
 import fd.convert_to;
+import fd.chars_cache;
 
 class stream_descriptor
 {
@@ -183,19 +185,20 @@ class file_stream
     }
 };
 
-class time_buff final
+class time_buffer
 {
-    std::string buff_;
+    static constexpr size_t _Buff_size = std::char_traits<char>::length("01:13:03 224.095");
+
+    char buff_[_Buff_size];
+    char space1_ = ' ';
+    char dash_   = '-';
+    char space2_ = ' ';
 
   public:
-    template <size_t S = std::char_traits<char>::length("01:13:03 224.095")>
-    constexpr size_t max_size() const
+    time_buffer()
     {
-        return S;
-    }
+        static_assert(sizeof(time_buffer) == _Buff_size + 3);
 
-    time_buff()
-    {
         using namespace std::chrono;
         using clock = system_clock;
 
@@ -209,20 +212,21 @@ class time_buff final
         const auto current_milliseconds     = duration_cast<milliseconds>(current_time_since_epoch).count() % 1000;
         const auto current_microseconds     = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
 
-        buff_.reserve(this->max_size());
-        std::ostringstream sbuff(std::move(buff_));
-        sbuff << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
-        buff_ = std::move(sbuff).str();
+        std::ostringstream ss;
+        ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
+        const auto str = ss.view();
+        FD_ASSERT(str.size() == _Buff_size);
+        std::copy(str.begin(), str.end(), buff_);
     }
 
-    operator std::string_view() const
+    const char* data() const
     {
         return buff_;
     }
 
-    operator std::string() &&
+    size_t size() const
     {
-        return buff_;
+        return _Buff_size + 3;
     }
 };
 
@@ -248,12 +252,30 @@ class writer
     stream_mode_changer changer_;
     std::mutex mtx_;
 
-    template <typename Ch>
-    void write_nolock(const std::basic_string_view<char, Ch> text)
+    void write_nolock(const char* ptr, const size_t size)
     {
         changer_.set<char>();
-        [[maybe_unused]] const auto written = _fwrite_nolock(text.data(), 1, text.size(), stream_);
-        assert(written == text.size());
+        [[maybe_unused]] const auto written = _fwrite_nolock(ptr, 1, size, stream_);
+        assert(written == size);
+    }
+
+    void write_nolock(const wchar_t* ptr, const size_t size)
+    {
+// changer_.set<wchar_t>();
+//  for (const auto chr : text)
+//  {
+//      [[maybe_unused]] const auto ok = _putwc_nolock(chr, stream_);
+//      FD_ASSERT(ok != WEOF, errno == EILSEQ ? "Encoding error in fputwc." : "I/O error in fputwc.");
+//  }
+
+// idk how to made it works, here is temp gap
+#ifdef _DEBUG
+        const auto tmp = fd::convert_to<char>(std::wstring_view(ptr, size));
+        FD_ASSERT(tmp.size() == size, "Unicode not supported");
+#else
+        const std::string tmp(ptr, ptr + size);
+#endif
+        write_nolock(tmp);
     }
 
     void write_nolock(const char chr)
@@ -263,34 +285,31 @@ class writer
         putc_assert(ok);
     }
 
-    template <typename Ch>
-    void write_nolock(const std::basic_string_view<wchar_t, Ch> text)
+    template <typename C, typename Ch>
+    void write_nolock(const std::basic_string_view<C, Ch> text)
     {
-        // changer_.set<wchar_t>();
-        //  for (const auto chr : text)
-        //  {
-        //      [[maybe_unused]] const auto ok = _putwc_nolock(chr, stream_);
-        //      FD_ASSERT(ok != WEOF, errno == EILSEQ ? "Encoding error in fputwc." : "I/O error in fputwc.");
-        //  }
-
-        // idk how to made it works, here is temp gap
-        const auto u8text = fd::convert_to<char>(text);
-        FD_ASSERT(u8text.size() == text.size(), "Unicode not supported");
-        write_nolock(u8text);
+        write_nolock(text.data(), text.size());
     }
 
     template <typename C, typename Ch>
     void write_nolock(const std::basic_string<C, Ch>& text)
     {
-        write_nolock(std::basic_string_view<C, Ch>(text));
+        write_nolock(text.data(), text.size());
     }
 
     template <typename C, size_t S>
-    void write_nolock(const C (&text)[S])
+    void write_nolock(const C (&text)[S], uint8_t null_terminated = 2)
     {
-        const auto null_terminated = text[S - 1] == static_cast<C>(0);
-        const auto text_size       = null_terminated ? S - 1 : S;
-        write_nolock(std::basic_string_view<C>(text, text + text_size));
+        if (null_terminated > 1)
+            null_terminated = text[S - 1] == static_cast<C>(0);
+        const auto text_size = null_terminated ? S - 1 : S;
+        write_nolock(static_cast<const C*>(text), text_size);
+    }
+
+    template <typename C, size_t S>
+    void write_nolock(const std::array<C, S>& arr)
+    {
+        write_nolock(arr.data(), arr.size());
     }
 
   public:
@@ -309,28 +328,13 @@ class writer
         return *this;
     }
 
-    template <typename C, typename Ch, class Locker>
-    void operator()(const std::basic_string_view<C, Ch> text, const Locker locker)
+    template <typename T, class Locker>
+    void operator()(const T& text, const Locker locker)
     {
-        time_buff buff;
-        std::string time = std::move(buff);
-        assert(time.size() == buff.max_size());
-
-        constexpr bool can_reuse_buff = std::string().capacity() - buff.max_size() > 3;
-        if constexpr (can_reuse_buff)
-        {
-            time += ' ';
-            time += '-';
-            time += ' ';
-        }
+        const time_buffer time;
 
         const auto lock = locker(mtx_);
-        write_nolock(time);
-        if constexpr (!can_reuse_buff)
-        {
-            constexpr char dash[] = { ' ', '-', ' ', 0 };
-            write_nolock(dash);
-        }
+        write_nolock(time.data(), time.size());
         write_nolock(text);
         write_nolock('\n');
     }
@@ -374,7 +378,7 @@ class console_writer_impl : public console_writer
         }
         else
         {
-            out_(std::string_view("Stopped"), fake_locker);
+            out_("Stopped", fake_locker);
         }
     }
 
@@ -406,7 +410,7 @@ class console_writer_impl : public console_writer
         FD_ASSERT(IsWindowUnicode(console_window) == TRUE);
         // fds_assert_add_handler(this);
 
-        out_(std::string_view("Started"), fake_locker);
+        out_("Started", fake_locker);
     }
 };
 

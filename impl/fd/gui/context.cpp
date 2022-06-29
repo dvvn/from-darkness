@@ -94,14 +94,15 @@ static void _Rml_demo_animation(Context* ctx)
 }
 #endif
 
+template <typename T>
 class font_path_data
 {
     bool small_;
 
     union
     {
-        char buff_[std::size("C:\\Windows\\Fonts") - 1];
-        std::vector<char> buff1_;
+        T buff_[std::size("C:\\Windows\\Fonts") - 1];
+        std::vector<T> buff1_;
     };
 
   public:
@@ -112,9 +113,9 @@ class font_path_data
         std::destroy_at(&buff_);
     }
 
-    font_path_data(const char* path)
+    font_path_data(const T* path)
     {
-        const auto size = std::char_traits<char>::length(path);
+        const auto size = std::char_traits<T>::length(path);
 
         small_ = size <= std::size(buff_);
         if (small_)
@@ -123,24 +124,27 @@ class font_path_data
             buff1_.assign(path, path + size);
     }
 
-    const char* begin() const
+    const T* begin() const
     {
         return small_ ? buff_ : buff1_.data();
     }
 
-    const char* end() const
+    const T* end() const
     {
         return small_ ? (buff_ + std::size(buff_)) : (buff1_.data() + buff1_.size());
     }
 };
 
+template <typename T>
+font_path_data(const T*) -> font_path_data<T>;
+
 static auto _Get_system_font(const std::string_view name)
 {
-    static const auto font_path = []() -> font_path_data {
+    static const auto font_path = [] {
         char tmp[MAX_PATH];
         if (!SHGetSpecialFolderPathA(NULL, tmp, CSIDL_FONTS, FALSE))
             tmp[0] = '\0';
-        return tmp;
+        return font_path_data(tmp);
     }();
     const std::span font_path_view = font_path;
     std::string out;

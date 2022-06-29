@@ -2,7 +2,7 @@ module;
 
 #include <fd/object.h>
 
-export module fd.logger.system_console;
+export module fd.system_console;
 
 struct console_writer
 {

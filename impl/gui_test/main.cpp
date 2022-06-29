@@ -6,11 +6,9 @@
 #include <tchar.h>
 #include <windows.h>
 
-#include <compare>
-
 import fd.hooks_loader;
 import fd.logger;
-import fd.logger.system_console;
+import fd.system_console;
 import fd.application_info;
 import fd.assert;
 
@@ -152,7 +150,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexce
 
 int main(int, char**)
 {
-    const WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("GUI TEST"), nullptr};
+    const auto hmodule  = GetModuleHandle(nullptr);
+    const WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, hmodule, nullptr, nullptr, nullptr, nullptr, _T("GUI TEST"), nullptr };
     ::RegisterClassEx(&wc);
     const HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("GUI TEST"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
@@ -167,7 +166,7 @@ int main(int, char**)
 
     using namespace fd;
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
-    app_info.construct(hwnd);
+    app_info.construct(hwnd, hmodule);
     logger->append(system_console_writer);
     // PresetD3D(hwnd);
 
