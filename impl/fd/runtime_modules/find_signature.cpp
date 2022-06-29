@@ -1,7 +1,6 @@
 module;
 
 #include <fd/assert.h>
-#include <fd/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -11,8 +10,7 @@ module;
 module fd.rt_modules:find_signature;
 import :helpers;
 import fd.mem_block;
-
-FD_CALLBACK_BIND(on_signature_found);
+import fd.logger;
 
 uint8_t* find_signature(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig, const bool notify)
 {
@@ -26,6 +24,6 @@ uint8_t* find_signature(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string
 
     const auto result = mem.find_block(bytes).data();
     if (notify)
-        std::invoke(on_signature_found, ldr_entry, sig, result);
+        std::invoke(fd::logger, "Signature found! (WIP)"); // on_signature_found, ldr_entry, sig, result
     return result;
 }

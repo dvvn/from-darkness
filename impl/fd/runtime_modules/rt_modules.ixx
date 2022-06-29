@@ -42,7 +42,7 @@ template <class Gm>
 class interface_finder
 {
     [[no_unique_address]] Gm rt_module_;
-    basic_address<void>      addr_;
+    basic_address<void> addr_;
 
   public:
     interface_finder(const basic_address<void> addr, Gm&& gm = {})
@@ -170,7 +170,7 @@ namespace fd
 
 struct current_module
 {
-    std::wstring_view                _Name() const;
+    std::wstring_view _Name() const;
     interface_finder<current_module> _Ifc_finder(const basic_address<void> addr) const;
 };
 
@@ -181,20 +181,8 @@ struct current_module
 
 #define EXPORT_PROXY(_NAME_) using fd::on_##_NAME_##_found
 
-namespace export_proxy
-{
-    EXPORT_PROXY(csgo_interface);
-    EXPORT_PROXY(export);
-    EXPORT_PROXY(library);
-    EXPORT_PROXY(section);
-    EXPORT_PROXY(signature);
-    EXPORT_PROXY(vtable);
-} // namespace export_proxy
-
 export namespace fd
 {
-    using namespace export_proxy;
-
     namespace runtime_modules
     {
         constexpr current_module current;

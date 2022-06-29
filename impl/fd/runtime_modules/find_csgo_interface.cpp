@@ -1,7 +1,6 @@
 module;
 
 #include <fd/assert.h>
-#include <fd/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -12,9 +11,13 @@ module;
 module fd.rt_modules:find_csgo_interface;
 // import :find_export;
 import fd.address;
-//import fd.chars_cache;
+import fd.logger;
 
-FD_CALLBACK_BIND(on_csgo_interface_found);
+void on_csgo_interface_found(const LDR_DATA_TABLE_ENTRY* library_name, std::string_view interface_name, const void* interface_ptr)
+{
+    FD_ASSERT(library_name != nullptr);
+    std::invoke(fd::logger, "Interface found! (WIP)");
+}
 
 struct interface_reg
 {

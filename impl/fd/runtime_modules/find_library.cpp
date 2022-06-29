@@ -1,7 +1,6 @@
 module;
 
 #include <fd/assert.h>
-#include <fd/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -13,8 +12,12 @@ module fd.rt_modules:find_library;
 import :library_info;
 import :helpers;
 import fd.chars_cache;
+import fd.logger;
 
-FD_CALLBACK_BIND(on_library_found);
+static void on_library_found(std::wstring_view, LDR_DATA_TABLE_ENTRY*)
+{
+    std::invoke(fd::logger, "Library found! (WIP)");
+}
 
 template <typename Fn>
 class partial_invoke

@@ -36,7 +36,7 @@ export namespace fd
 
         backup(T& from)
         {
-            backup_.emplace(std::addressof(from), from);
+            backup_.emplace(&from, from);
         }
 
         template <typename T1>

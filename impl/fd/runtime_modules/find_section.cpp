@@ -1,7 +1,5 @@
 module;
 
-#include <fd/callback_impl.h>
-
 #include <windows.h>
 #include <winternl.h>
 
@@ -9,8 +7,7 @@ module;
 
 module fd.rt_modules:find_section;
 import :helpers;
-
-FD_CALLBACK_BIND(on_section_found);
+import fd.logger;
 
 IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
@@ -36,7 +33,7 @@ IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const 
     }
 
     if (notify)
-        std::invoke(on_section_found, ldr_entry, name, found_header);
+        std::invoke(fd::logger, "Section found! (WIP)"); // on_section_found, ldr_entry, name, found_header
 
     return found_header;
 }

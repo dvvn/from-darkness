@@ -1,7 +1,6 @@
 module;
 
 #include <fd/assert.h>
-#include <fd/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -12,8 +11,7 @@ module;
 module fd.rt_modules:find_export;
 import :helpers;
 import fd.address;
-
-FD_CALLBACK_BIND(on_export_found);
+import fd.logger;
 
 void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
@@ -99,6 +97,6 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
     }
 
     if (notify)
-        std::invoke(on_export_found, ldr_entry, name, export_ptr);
+        std::invoke(fd::logger, "export found (WIP)"); // ldr_entry, name, export_ptr
     return export_ptr;
 }

@@ -1,7 +1,6 @@
 module;
 
 #include <fd/assert.h>
-#include <fd/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -13,11 +12,10 @@ import :find_section;
 import :helpers;
 import fd.address;
 import fd.mem_block;
+import fd.logger;
 
 using fd::basic_address;
 using block = fd::mem_block;
-
-FD_CALLBACK_BIND(on_vtable_found);
 
 // block = {dos + header->VirtualAddress, header->SizeOfRawData}
 
@@ -132,7 +130,7 @@ void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
 
     const auto result = _Load_vtable(_Section_to_rng(dos, dot_rdata), _Section_to_rng(dos, dot_text), type_descriptor);
     if (notify)
-        std::invoke(on_vtable_found, ldr_entry, name, result);
+        std::invoke(fd::logger, "Vtable found! (WIP)"); // on_vtable_found, ldr_entry, name, result
     else
         FD_ASSERT(result != nullptr);
     return result;
