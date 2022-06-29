@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/core/utility.h>
+#include <fd/utility.h>
 
 #include <array>
 

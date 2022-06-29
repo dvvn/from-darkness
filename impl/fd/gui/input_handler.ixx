@@ -1,6 +1,6 @@
 module;
 
-#include <fd/core/object.h>
+#include <fd/object.h>
 
 #include <RmlUi/Core/Context.h>
 

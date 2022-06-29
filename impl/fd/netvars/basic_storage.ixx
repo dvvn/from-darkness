@@ -6,13 +6,13 @@ module;
 #include <vector>
 
 export module fd.netvars.core:basic_storage;
-export import fd.csgo.structs.Recv;
-export import fd.csgo.structs.DataMap;
+export import fd.valve.recv_table;
+export import fd.valve.data_map;
 import fd.type_name;
 import fd.hashed_string;
 import fd.string_or_view;
 
-using netvar_info_source = std::variant<fd::csgo::RecvProp*, fd::csgo::typedescription_t*>;
+using netvar_info_source = std::variant<fd::valve::recv_prop*, fd::valve::data_map_description*>;
 
 class basic_netvar_info
 {

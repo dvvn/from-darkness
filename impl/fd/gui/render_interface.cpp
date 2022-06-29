@@ -1,8 +1,8 @@
 module;
 
-#include <fd/core/object.h>
+#include <fd/object.h>
 
-#include <fd/core/assert.h>
+#include <fd/assert.h>
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>

@@ -1,6 +1,6 @@
 ﻿module;
 
-#include <fd/core/assert.h>
+#include <fd/assert.h>
 
 #include <array>
 #include <span>
@@ -12,16 +12,16 @@ import fd.math.color;
 import fd.math.qangle;
 import fd.math.view_matrix;
 import fd.math.vector2;
-import fd.csgo.tools.UtlVector;
-import fd.csgo.interfaces.BaseHandle;
+import fd.valve.vector;
+import fd.valve.base_handle;
 import fd.type_name;
 import fd.convert_to;
 import fd.lower_upper;
 
 using namespace fd;
-using namespace csgo;
+using namespace fd::valve;
 
-class C_BaseEntity;
+class base_entity;
 
 std::string netvars::type_std_array(const std::string_view type, const size_t size)
 {
@@ -43,14 +43,14 @@ std::string netvars::type_std_array(const std::string_view type, const size_t si
 std::string netvars::type_utlvector(const std::string_view type)
 {
     std::string buff;
-    constexpr auto arr_name = type_name<CUtlVector>();
+    constexpr auto arr_name = type_name<valve::vector>();
     buff.reserve(arr_name.size() + 1 + type.size() + 1);
     buff += arr_name;
     buff += '<';
     buff += type;
     buff += '>';
     return buff;
-    // return std::format("{}<{}>", type_name<CUtlVector>( ), type);
+    // return std::format("{}<{}>", type_name<valve_vector>( ), type);
 }
 
 // m_xxxX***
@@ -95,7 +95,7 @@ std::string_view netvars::type_integer(std::string_view type)
             if (type.starts_with('c'))
                 return type_name<uint8_t>();
             if (type.starts_with('h'))
-                return type_name<CBaseHandle>();
+                return type_name<base_handle>();
         }
         else if (is_upper(2))
         {
@@ -103,7 +103,7 @@ std::string_view netvars::type_integer(std::string_view type)
                 return type_name<uint32_t>();
             if (type.starts_with("ch"))
                 return type_name<uint8_t>();
-            if (type.starts_with("fl") && to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) // m_flSimulationTime int ???
+            if (type.starts_with("fl") && to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
                 return type_name<float>();
         }
         else if (is_upper(3))
@@ -118,116 +118,118 @@ std::string_view netvars::type_integer(std::string_view type)
 
 //---
 
-auto netvars::type_recv_prop(const RecvProp* const prop) -> string_or_view
+string_or_view netvars::type_recv_prop(const recv_prop* const prop)
 {
-    switch (prop->m_RecvType)
+    using pt = recv_prop_type;
+
+    switch (prop->type)
     {
-    case DPT_Int:
-        return type_integer(prop->m_pVarName);
-    case DPT_Float:
+    case pt::DPT_Int:
+        return type_integer(prop->name);
+    case pt::DPT_Float:
         return type_name<float>();
-    case DPT_Vector:
-        return type_vec3(prop->m_pVarName);
-    case DPT_VectorXY:
+    case pt::DPT_Vector:
+        return type_vec3(prop->name);
+    case pt::DPT_VectorXY:
         return type_name<math::vector2>(); // 3d vector. z unused
-    case DPT_String:
+    case pt::DPT_String:
         return type_name<char*>(); // char[X]
-    case DPT_Array: {
+    case pt::DPT_Array: {
         const auto prev_prop = std::prev(prop);
-        FD_ASSERT(std::string_view(prev_prop->m_pVarName).ends_with("[0]"));
+        FD_ASSERT(std::string_view(prev_prop->name).ends_with("[0]"));
         const auto type = type_recv_prop(prev_prop);
-        return type_std_array(type, prop->m_nElements);
+        return type_std_array(type, prop->elements_count);
     }
-    case DPT_DataTable: {
+    case pt::DPT_DataTable: {
         FD_ASSERT("Data table type must be manually resolved!");
         return type_name<void*>();
     }
-    case DPT_Int64:
+    case pt::DPT_Int64:
         return type_name<int64_t>();
     default: {
-        FD_ASSERT("Unknown recv prop type");
-        return type_name<void*>();
+        FD_ASSERT_UNREACHABLE("Unknown recv prop type");
     }
     }
 }
 
-std::string_view netvars::type_datamap_field(const typedescription_t* const field)
+std::string_view netvars::type_datamap_field(const data_map_description* const field)
 {
-    switch (field->fieldType)
+    using ft = data_map_description_type;
+
+    switch (field->type)
     {
-    case FIELD_VOID:
+    case ft::FIELD_VOID:
         return type_name<void*>();
-    case FIELD_FLOAT:
+    case ft::FIELD_FLOAT:
         return type_name<float>();
-    case FIELD_STRING:
+    case ft::FIELD_STRING:
         return type_name<char*>(); // string_t at real
-    case FIELD_VECTOR:
-        return type_vec3(field->fieldName);
-    case FIELD_QUATERNION:
+    case ft::FIELD_VECTOR:
+        return type_vec3(field->name);
+    case ft::FIELD_QUATERNION:
         return type_name<math::quaternion>();
-    case FIELD_INTEGER:
-        return type_integer(field->fieldName);
-    case FIELD_BOOLEAN:
+    case ft::FIELD_INTEGER:
+        return type_integer(field->name);
+    case ft::FIELD_BOOLEAN:
         return type_name<bool>();
-    case FIELD_SHORT:
+    case ft::FIELD_SHORT:
         return type_name<int16_t>();
-    case FIELD_CHARACTER:
+    case ft::FIELD_CHARACTER:
         return type_name<int8_t>();
-    case FIELD_COLOR32:
+    case ft::FIELD_COLOR32:
         return type_name<math::color>();
-    case FIELD_EMBEDDED: {
+    case ft::FIELD_EMBEDDED: {
         FD_ASSERT("Embedded field detected");
         return type_name<void*>();
     }
-    case FIELD_CUSTOM: {
+    case ft::FIELD_CUSTOM: {
         FD_ASSERT("Custom field detected");
         return type_name<void*>();
     }
-    case FIELD_CLASSPTR:
-        return type_name<C_BaseEntity*>();
-    case FIELD_EHANDLE:
-        return type_name<CBaseHandle>();
-    case FIELD_EDICT: {
+    case ft::FIELD_CLASSPTR:
+        return type_name<base_entity*>();
+    case ft::FIELD_EHANDLE:
+        return type_name<base_handle>();
+    case ft::FIELD_EDICT: {
         // return "edict_t*";
         FD_ASSERT("Edict field detected");
         return type_name<void*>();
     }
-    case FIELD_POSITION_VECTOR:
+    case ft::FIELD_POSITION_VECTOR:
         return type_name<math::vector3>();
-    case FIELD_TIME:
+    case ft::FIELD_TIME:
         return type_name<float>();
-    case FIELD_TICK:
+    case ft::FIELD_TICK:
         return type_name<int32_t>();
-    case FIELD_MODELNAME:
-    case FIELD_SOUNDNAME:
+    case ft::FIELD_MODELNAME:
+    case ft::FIELD_SOUNDNAME:
         return type_name<char*>(); // string_t at real
-    case FIELD_INPUT: {
+    case ft::FIELD_INPUT: {
         // return "CMultiInputVar";
         FD_ASSERT("Inputvar field detected");
         return type_name<void*>();
     }
-    case FIELD_FUNCTION: {
+    case ft::FIELD_FUNCTION: {
         FD_ASSERT("Function detected");
         return type_name<void*>();
     }
-    case FIELD_VMATRIX:
-    case FIELD_VMATRIX_WORLDSPACE:
+    case ft::FIELD_VMATRIX:
+    case ft::FIELD_VMATRIX_WORLDSPACE:
         return type_name<math::view_matrix>();
-    case FIELD_MATRIX3X4_WORLDSPACE:
+    case ft::FIELD_MATRIX3X4_WORLDSPACE:
         return type_name<math::matrix3x4>();
-    case FIELD_INTERVAL: {
+    case ft::FIELD_INTERVAL: {
         // return "interval_t";
         FD_ASSERT("Interval field detected");
         return type_name<void*>();
     }
-    case FIELD_MODELINDEX:
-    case FIELD_MATERIALINDEX:
+    case ft::FIELD_MODELINDEX:
+    case ft::FIELD_MATERIALINDEX:
         return type_name<int32_t>();
-    case FIELD_VECTOR2D:
+    case ft::FIELD_VECTOR2D:
         return type_name<math::vector2>();
     default: {
-        FD_ASSERT("Unknown datamap field type");
-        return type_name<void*>();
+        FD_ASSERT_UNREACHABLE("Unknown datamap field type");
     }
     }
 }
@@ -249,26 +251,30 @@ static std::string_view _Check_float_prefix(const std::string_view type)
     return {};
 }
 
-std::string_view netvars::type_array_prefix(const std::string_view type, csgo::RecvProp* const prop)
+std::string_view netvars::type_array_prefix(const std::string_view type, recv_prop* const prop)
 {
-    switch (prop->m_RecvType)
+    using pt = recv_prop_type;
+
+    switch (prop->type)
     {
-    case DPT_Int:
+    case pt::DPT_Int:
         return _Check_int_prefix(type);
-    case DPT_Float:
+    case pt::DPT_Float:
         return _Check_float_prefix(type);
     default:
         return {};
     }
 }
 
-std::string_view netvars::type_array_prefix(const std::string_view type, csgo::typedescription_t* const field)
+std::string_view netvars::type_array_prefix(const std::string_view type, data_map_description* const field)
 {
-    switch (field->fieldType)
+    using ft = data_map_description_type;
+
+    switch (field->type)
     {
-    case FIELD_INTEGER:
+    case ft::FIELD_INTEGER:
         return _Check_int_prefix(type);
-    case FIELD_FLOAT:
+    case ft::FIELD_FLOAT:
         return _Check_float_prefix(type);
     default:
         return {};

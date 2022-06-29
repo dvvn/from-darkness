@@ -1,6 +1,6 @@
 module;
 
-#include <fd/core/assert.h>
+#include <fd/assert.h>
 
 #include <functional>
 #include <ranges>
@@ -11,37 +11,28 @@ module fd.netvars.core:basic_storage;
 import :type_resolve;
 
 using namespace fd;
+using namespace valve;
 using namespace netvars;
-using namespace csgo;
 
 static const char* _Netvar_name(const netvar_info_source source)
 {
-    struct netvar_name_getter
-    {
-        const char* operator()(const RecvProp* const rp) const
-        {
-            return rp->m_pVarName;
-        }
-
-        const char* operator()(const typedescription_t* const td) const
-        {
-            return td->fieldName;
-        }
-    };
-
-    return std::visit(netvar_name_getter(), source);
+    return std::visit(
+        []<class T>(const T* src) {
+            return std::invoke(&T::name, src);
+        },
+        source);
 }
 
 static string_or_view _Netvar_type(const netvar_info_source source)
 {
     struct netvar_type_getter
     {
-        string_or_view operator()(const RecvProp* const rp) const
+        string_or_view operator()(const recv_prop* const rp) const
         {
             return type_recv_prop(rp);
         }
 
-        string_or_view operator()(const typedescription_t* const td) const
+        string_or_view operator()(const data_map_description* const td) const
         {
             return type_datamap_field(td);
         }
@@ -214,7 +205,7 @@ const netvar_info_custom_constant* netvar_table::add(const size_t offset, const 
 
 //----
 
-// bool basic_storage::contains_duplicate(const fd::hashed_string_view name, netvar_table* const from) const
+// bool asic_storage::contains_duplicate(const fd::hashed_string_view name, netvar_table* const from) const
 //{
 //	const auto begin = this->data( );
 //	const auto end = begin + this->size( );

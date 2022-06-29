@@ -1,7 +1,7 @@
 module;
 
-#include <fd/core/assert.h>
-#include <fd/core/object.h>
+#include <fd/assert.h>
+#include <fd/object.h>
 
 #include <sstream>
 #include <string>
@@ -10,13 +10,13 @@ module fd.netvars.core;
 import :storage;
 import fd.object_logger;
 import fd.rt_modules;
-import fd.csgo.interfaces.C_BaseEntity;
-import fd.csgo.interfaces.EngineClient;
-import fd.csgo.interfaces.BaseClient;
+import fd.valve.base_entity;
+import fd.valve.engine_client;
+import fd.valve.base_client;
 
 using namespace fd;
+using namespace valve;
 using namespace netvars;
-using namespace csgo;
 
 static std::wstring to_wstring(const char* str, const bool reserve = false)
 {
@@ -44,9 +44,9 @@ class netvars_holder : public storage
   public:
     netvars_holder()
     {
-        iterate_client_class(FD_OBJECT_GET(IBaseClientDLL)->GetAllClasses());
+        iterate_client_class(FD_OBJECT_GET(base_client)->GetAllClasses());
 
-        const auto baseent = runtime_modules::client.find_vtable<C_BaseEntity>();
+        const auto baseent = runtime_modules::client.find_vtable<base_entity>();
         iterate_datamap(baseent->GetDataDescMap());
         iterate_datamap(baseent->GetPredictionDescMap());
 
@@ -55,7 +55,7 @@ class netvars_holder : public storage
 
     void log()
     {
-        logs_.file.name = to_wstring(FD_OBJECT_GET(IVEngineClient)->GetProductVersionString());
+        logs_.file.name = to_wstring(FD_OBJECT_GET(engine_client)->GetProductVersionString());
         log_netvars(logs_);
         generate_classes(classes_);
     }

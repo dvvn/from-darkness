@@ -1,7 +1,7 @@
 #pragma once
 
-#include <fd/core/object.h>
-#include <fd/core/object_ex.h>
+#include <fd/object.h>
+#include <fd/object_ex.h>
 
 #include <array>
 #include <limits>

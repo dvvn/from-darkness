@@ -1,6 +1,6 @@
 module;
 
-#include <fd/core/assert.h>
+#include <fd/assert.h>
 
 //#include <format>
 #include <algorithm>
@@ -13,7 +13,6 @@ import fd.lower_upper;
 
 using namespace fd;
 using namespace netvars;
-using namespace csgo;
 
 static auto _Correct_class_name(const std::string_view name)
 {
@@ -58,36 +57,38 @@ static bool _Can_skip_netvar(const std::string_view name)
     return name.contains('.');
 }
 
-static bool _Table_is_array(const RecvTable& table)
+using namespace fd::valve;
+
+static bool _Table_is_array(const recv_table& table)
 {
-    return /*!table.props.empty( ) &&*/ std::isdigit(table.props.back().m_pVarName[0]);
+    return /*!table.props.empty( ) &&*/ std::isdigit(table.props.back().name[0]);
 };
 
-static bool _Table_is_data_table(const RecvTable& table)
+static bool _Table_is_data_table(const recv_table& table)
 {
     // DT_*****
-    return std::memcmp(table.m_pNetTableName, "DT_", 3) == 0 && table.m_pNetTableName[3] != '\0';
+    return std::memcmp(table.name, "DT_", 3) == 0 && table.name[3] != '\0';
 };
 
-static auto _Get_props_range(const RecvTable* recv_table)
+static auto _Get_props_range(const recv_table* recv_table)
 {
-    constexpr auto is_base_class = [](const RecvProp* prop) {
+    constexpr auto is_base_class = [](const recv_prop* prop) {
         constexpr std::string_view str = "baseclass";
-        return std::memcmp(prop->m_pVarName, str.data(), str.size()) == 0 && prop->m_pVarName[str.size()] == '\0';
+        return std::memcmp(prop->name, str.data(), str.size()) == 0 && prop->name[str.size()] == '\0';
     };
 
-    constexpr auto is_length_proxy = [](const RecvProp* prop) {
-        if (prop->m_ArrayLengthProxy)
+    constexpr auto is_length_proxy = [](const recv_prop* prop) {
+        if (prop->array_length_proxy)
             return true;
 
-        const auto lstr = fd::to_lower(prop->m_pVarName);
+        const auto lstr = fd::to_lower(prop->name);
         return lstr.contains("length") && lstr.contains("proxy");
     };
 
     const auto& raw_props = recv_table->props;
 
-    RecvProp* front = raw_props.data();
-    RecvProp* back  = front + raw_props.size() - 1;
+    recv_prop* front = raw_props.data();
+    recv_prop* back  = front + raw_props.size() - 1;
 
     if (is_base_class(front))
         ++front;
@@ -104,7 +105,7 @@ struct recv_prop_array_info
 };
 
 // other_props = {itr+1, end}
-static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_name, const std::span<const RecvProp> other_props, const netvar_table& tree)
+static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_name, const std::span<const recv_prop> other_props, const netvar_table& tree)
 {
     if (!first_prop_name.ends_with("[0]"))
         return {};
@@ -119,15 +120,15 @@ static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_
 
     for (const auto& prop : other_props)
     {
-        if (prop.m_RecvType != prop.m_RecvType) // todo: check is name still same after this (because previously we store this name without array braces)
+        if (prop.type != prop.type) // todo: check is name still same after this (because previously we store this name without array braces)
             break;
 
         // name.starts_with(real_prop_name)
-        if (std::memcmp(prop.m_pVarName, real_prop_name.data(), real_prop_name.size()) != 0)
+        if (std::memcmp(prop.name, real_prop_name.data(), real_prop_name.size()) != 0)
             break;
 
         // name.size() == real_prop_name.size()
-        if (prop.m_pVarName[real_prop_name.size()] != '\0')
+        if (prop.name[real_prop_name.size()] != '\0')
             break;
 
         ++array_size;
@@ -136,19 +137,19 @@ static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_
     return { real_prop_name, array_size };
 }
 
-static void _Parse_client_class(storage& root_tree, netvar_table& tree, RecvTable* const recv_table, const size_t offset)
+static void _Parse_client_class(storage& root_tree, netvar_table& tree, recv_table* const recv_table, const size_t offset)
 {
     const auto [props_begin, props_end] = _Get_props_range(recv_table);
 
     for (auto itr = props_begin; itr != props_end; ++itr)
     {
         const auto& prop = *itr;
-        FD_ASSERT(prop.m_pVarName != nullptr);
-        const std::string_view prop_name = prop.m_pVarName;
+        FD_ASSERT(prop.name != nullptr);
+        const std::string_view prop_name = prop.name;
         if (_Can_skip_netvar(prop_name))
             continue;
 
-        const auto real_prop_offset = offset + prop.m_Offset;
+        const auto real_prop_offset = offset + prop.offset;
 
         if (prop_name.rfind(']') != prop_name.npos)
         {
@@ -159,41 +160,41 @@ static void _Parse_client_class(storage& root_tree, netvar_table& tree, RecvTabl
                 itr += array_info.size - 1;
             }
         }
-        else if (prop.m_RecvType != DPT_DataTable)
+        else if (prop.type != DPT_DataTable)
         {
             tree.add(real_prop_offset, itr, 0, prop_name);
         }
-        else if (prop.m_pDataTable && !prop.m_pDataTable->props.empty())
+        else if (prop.data_table && !prop.data_table->props.empty())
         {
-            _Parse_client_class(root_tree, tree, prop.m_pDataTable, real_prop_offset);
+            _Parse_client_class(root_tree, tree, prop.data_table, real_prop_offset);
         }
     }
 }
 
-void storage::iterate_client_class(ClientClass* root_class)
+void storage::iterate_client_class(client_class* root_class)
 {
-    for (auto client_class = root_class; client_class != nullptr; client_class = client_class->pNext)
+    for (auto client_class = root_class; client_class != nullptr; client_class = client_class->next)
     {
-        const auto recv_table = client_class->pRecvTable;
-        if (!recv_table || recv_table->props.empty())
+        const auto rtable = client_class->table;
+        if (!rtable || rtable->props.empty())
             continue;
 
-        hashed_string class_name = _Correct_class_name(client_class->pNetworkName);
+        hashed_string class_name = _Correct_class_name(client_class->name);
         FD_ASSERT(this->find(class_name));
         const auto added = this->add(std::move(class_name), true);
 
-        _Parse_client_class(*this, *added, recv_table, 0);
+        _Parse_client_class(*this, *added, rtable, 0);
 
         /*if (added->empty( ))
             this->erase(added.data( ));*/
     }
 }
 
-static void _Parse_datamap(netvar_table& tree, datamap_t* const map)
+static void _Parse_datamap(netvar_table& tree, data_map* const map)
 {
-    for (auto& desc : map->data)
+    /* for (auto& desc : map->data)
     {
-        if (desc.fieldType == FIELD_EMBEDDED)
+        if (desc.type == FIELD_EMBEDDED)
         {
             if (desc.TypeDescription != nullptr)
                 FD_ASSERT("Embedded datamap detected");
@@ -205,17 +206,17 @@ static void _Parse_datamap(netvar_table& tree, datamap_t* const map)
                 continue;
             tree.add(static_cast<size_t>(desc.fieldOffset[TD_OFFSET_NORMAL]), std::addressof(desc), 0, name);
         }
-    }
+    } */
 }
 
-void storage::iterate_datamap(datamap_t* const root_map)
+void storage::iterate_datamap(data_map* const root_map)
 {
-    for (auto map = root_map; map != nullptr; map = map->baseMap)
+    for (auto map = root_map; map != nullptr; map = map->base)
     {
         if (map->data.empty())
             continue;
 
-        hashed_string class_name = _Correct_class_name(map->dataClassName);
+        hashed_string class_name = _Correct_class_name(map->name);
         const auto added         = this->add(std::move(class_name));
 
         _Parse_datamap(*added, map);

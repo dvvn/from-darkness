@@ -1,7 +1,7 @@
 module;
 
-#include <fd/core/assert.h>
-#include <fd/core/callback_impl.h>
+#include <fd/assert.h>
+#include <fd/callback_impl.h>
 
 #include <windows.h>
 #include <winternl.h>

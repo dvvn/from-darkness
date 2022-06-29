@@ -1,6 +1,6 @@
 module;
 
-#include <fd/core/assert.h>
+#include <fd/assert.h>
 
 #include <filesystem>
 #include <fstream>

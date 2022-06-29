@@ -1,7 +1,7 @@
 module;
 
-#include <fd/core/assert.h>
-#include <fd/core/object.h>
+#include <fd/assert.h>
+#include <fd/object.h>
 
 #include <RmlUi/Core/SystemInterface.h>
 

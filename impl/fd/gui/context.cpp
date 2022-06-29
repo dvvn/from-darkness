@@ -1,7 +1,7 @@
 ﻿module;
 
-#include <fd/core/object.h>
-#include <fd/core/utility.h>
+#include <fd/object.h>
+#include <fd/utility.h>
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>

@@ -4,7 +4,7 @@
 
 #include <concepts>
 
-namespace nstd::winapi
+namespace fd
 {
     template <typename T>
     class comptr : public Microsoft::WRL::ComPtr<T>
@@ -16,7 +16,7 @@ namespace nstd::winapi
         using _Base::operator=;
 
         // it calls unwanted addref method
-        comptr(T* ptr) = delete;
+        comptr(T* ptr)            = delete;
         comptr& operator=(T* ptr) = delete;
 
         template <typename T1>
@@ -50,4 +50,4 @@ namespace nstd::winapi
             return !_Base::Get();
         }
     };
-} // namespace nstd::winapi
+} // namespace fd

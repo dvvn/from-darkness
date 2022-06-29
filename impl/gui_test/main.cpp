@@ -1,5 +1,6 @@
 ﻿//#include <nstd/runtime_assert.h>
 #include <fd/comptr.h>
+#include <fd/object.h>
 
 #include <d3d9.h>
 #include <tchar.h>
@@ -12,9 +13,8 @@ import fd.logger;
 import fd.logger.system_console;
 import fd.application_info;
 import fd.assert;
-import fd.d3d9;
 
-using nstd::winapi::comptr;
+using fd::comptr;
 
 static comptr<IDirect3D9> g_pD3D;
 static comptr<IDirect3DDevice9> g_pd3dDevice;
@@ -166,10 +166,11 @@ int main(int, char**)
     ::UpdateWindow(hwnd);
 
     using namespace fd;
-    d3d_device9.construct(g_pd3dDevice);
+    FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
     app_info.construct(hwnd);
     logger->append(system_console_writer);
     // PresetD3D(hwnd);
+
     if (!hooks_loader->load<0, 1, 2>())
         return TRUE;
 

@@ -1,6 +1,6 @@
 ﻿module;
 
-#include <fd/core/utility.h>
+#include <fd/utility.h>
 
 #include <sstream>
 #include <string>
@@ -8,7 +8,9 @@
 
 export module fd.netvars.core:storage;
 import :basic_storage;
-import fd.csgo.structs.ClientClass;
+import fd.valve.client_class;
+
+using namespace fd::valve;
 
 export namespace fd::netvars
 {
@@ -47,8 +49,8 @@ export namespace fd::netvars
 
     struct storage : basic_storage
     {
-        void iterate_client_class(csgo::ClientClass* const root_class);
-        void iterate_datamap(csgo::datamap_t* const root_map);
+        void iterate_client_class(client_class* const root_class);
+        void iterate_datamap(data_map* const root_map);
         void store_handmade_netvars();
 
         void log_netvars(logs_data& data);

@@ -1,6 +1,6 @@
 module;
-#include <fd/core/assert.h>
-#include <fd/core/object.h>
+#include <fd/assert.h>
+#include <fd/object.h>
 
 #include <Windows.h>
 #include <fcntl.h>

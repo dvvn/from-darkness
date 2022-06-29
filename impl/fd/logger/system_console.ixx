@@ -1,6 +1,6 @@
 module;
 
-#include <fd/core/object.h>
+#include <fd/object.h>
 
 export module fd.logger.system_console;
 
