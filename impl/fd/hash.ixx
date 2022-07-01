@@ -1,16 +1,21 @@
 module;
 
+#include <fd/utility.h>
+
 //#include <constexpr-xxh3.h>
 #include <xxh32.hpp>
 #include <xxh64.hpp>
 
 #include <array>
 #include <bit>
+#include <source_location>
 #include <string>
 //#include <vector>
 
 export module fd.hash;
 import fd.chars_cache;
+
+using xxh = std::conditional_t<std::same_as<size_t, uint32_t>, xxh32, xxh64>;
 
 template <typename T>
 struct hash
@@ -30,9 +35,6 @@ struct hash
         }
         else
 #endif
-
-        using xxh = std::conditional_t<std::same_as<size_t, uint32_t>, xxh32, xxh64>;
-
         if constexpr (std::convertible_to<const T*, const char*>)
         {
             return xxh::hash(input, len, 0);
@@ -118,17 +120,25 @@ static_assert(U"test"_hash == u"t\0e\0s\0t\0"_hash);
 static_assert(U"ab"_hash == "a\0\0\0b\0\0\0"_hash);
 
 template <typename C, size_t S>
-consteval size_t calc_hash(const C (&str)[S])
+constexpr size_t calc_hash(const C (&str)[S])
 {
     return _Hash_strv<C>({str, str + S - 1});
 }
 
 static_assert("test"_hash == calc_hash("test"));
 
+constexpr size_t unique_hash(const std::source_location sl = std::source_location::current())
+{
+    const auto skip                    = std::size(FD_STRINGIZE(FD_WORK_DIR)) - 1;
+    const std::basic_string_view fname = sl.file_name() + skip;
+    return _Hash_strv(fname);
+}
+
 export namespace fd
 {
     using ::calc_hash;
     using ::hash;
+    using ::unique_hash;
 
     inline namespace literals
     {

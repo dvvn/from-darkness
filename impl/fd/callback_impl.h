@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/callback/internal.h>
+#include <fd/callback_internal.h>
 
 import fd.callback.impl;
 
@@ -23,4 +23,4 @@ using _Rewrap_callback_t = decltype(_Rewrap_callback(std::declval<T>()));
                         _FIRST_ARG(__VA_ARGS__ __VA_OPT__(, ) decltype(_Rewrap_callback(*_NAME_))), /**/ \
                         _FIRST_ARG(__VA_OPT__(0, ) _NAME_))
 
-#define FD_CALLBACK(_NAME_, ...) FD_CALLBACK_SELECTOR(fd::callback, _NAME_, __VA_ARGS__)
+#define FD_CALLBACK(_NAME_, ...) _FD_CALLBACK_SELECTOR(fd::callback, _NAME_, __VA_ARGS__)

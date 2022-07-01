@@ -5,8 +5,6 @@
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/RenderInterface.h>
-#include <RmlUi/Core/SystemInterface.h>
 #ifdef _DEBUG
 #include <RmlUi/Debugger.h>
 #endif
@@ -17,6 +15,9 @@
 #include <span>
 
 module fd.gui.context;
+import fd.gui.render_interface;
+// import fd.gui.file_interface;
+import fd.gui.system_interface;
 import fd.application_info;
 
 #define RML_SAMPLE(_DIR_, _S_) FD_CONCAT(FD_STRINGIZE(RMLUI_DIR), "/Samples/", _DIR_, "/", _S_)
@@ -172,8 +173,9 @@ class gui_context
 
     gui_context()
     {
-        Rml::SetRenderInterface(&FD_OBJECT_GET(Rml::RenderInterface));
-        Rml::SetSystemInterface(&FD_OBJECT_GET(Rml::SystemInterface));
+        Rml::SetRenderInterface(&fd::gui::render_interface);
+        Rml::SetSystemInterface(&fd::gui::system_interface);
+        // Rml::SetFileInterface(&fd::gui::file_interface);
 
         Rml::Initialise();
 

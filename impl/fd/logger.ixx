@@ -10,8 +10,6 @@ module;
 export module fd.logger;
 export import fd.convert_to;
 
-FD_OBJECT_EXPORTS;
-
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
 
@@ -180,7 +178,20 @@ class logger_wrapped
     }
 };
 
+FD_OBJECT(logger, logger_wrapped);
+
 export namespace fd
 {
-    FD_OBJECT(logger, logger_wrapped);
+    using ::logger;
 }
+
+export namespace std
+{
+    template <typename... Args>
+    void invoke(decltype(logger) l, const Args&... args)
+    {
+        if (!l.initialized())
+            return;
+        invoke(*l, args...);
+    }
+} // namespace std

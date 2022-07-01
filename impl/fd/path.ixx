@@ -7,6 +7,8 @@ export module fd.path;
 
 // copypasted from std::filesystem
 
+#pragma region copypasted
+
 constexpr auto _Is_slash = []<typename C>(const C chr) {
     return chr == static_cast<C>('\\') || chr == static_cast<C>('/');
 };
@@ -154,6 +156,36 @@ constexpr const C* _Find_extension(const C* const fname, const C* const ads)
     return ads;
 }
 
+#pragma endregion
+
+template <typename C>
+class extension : public std::basic_string_view<C>
+{
+    using _View = std::basic_string_view<C>;
+
+  public:
+    using _View::_View;
+
+    constexpr bool is_header() const
+    {
+        switch (_View::operator[](1))
+        {
+        case static_cast<C>('h'): //.h**
+#if __cplusplus >= 202002L
+        case static_cast<C>('i'): //.i**
+#endif
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    constexpr bool is_source() const
+    {
+        return _View::operator[](1) == static_cast<C>('c');
+    }
+};
+
 template <typename C>
 class filename : public std::basic_string_view<C>
 {
@@ -192,7 +224,7 @@ class filename : public std::basic_string_view<C>
         return { fname, static_cast<size_t>(ext - fname) };
     }
 
-    constexpr _View extension() const
+    constexpr ::extension<C> extension() const
     {
         // attempt to parse text_ as a path and return the extension if it exists; otherwise, an empty view
         const auto [fname, ads, ext] = _Ext();
@@ -261,7 +293,8 @@ class path : public std::basic_string_view<C>
         }
 
         while (rel_path != last && _Is_slash(last[-1]))
-        { // handle case 1 by removing trailing slashes
+        {
+            // handle case 1 by removing trailing slashes
             --last;
         }
 
@@ -277,12 +310,12 @@ class path : public std::basic_string_view<C>
         return { _View(fname, static_cast<size_t>(last - fname)), true };
     }
 
-    constexpr _View stem() const
+    constexpr auto stem() const
     {
         return ::filename<C>(*this, false).stem();
     }
 
-    constexpr _View extension() const
+    constexpr auto extension() const
     {
         return ::filename<C>(*this, false).extension();
     }
@@ -291,7 +324,7 @@ class path : public std::basic_string_view<C>
 template <typename C>
 path(const C*) -> path<C>;
 template <typename C>
-path(const std::basic_string_view<C>&) -> path<C>;
+path(const std::basic_string_view<C>) -> path<C>;
 
 /* template <typename C, class Al>
 path(const std::basic_string<C, std::char_traits<C>, Al>&) -> path<C>; */
