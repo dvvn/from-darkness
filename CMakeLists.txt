@@ -7,6 +7,10 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_DEBUG_POSTFIX _d)
 endif()
 
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 20)
+endif()
+
 # if(MSVC) idk, not defined
 add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
 add_compile_options(/wd5103)
@@ -62,11 +66,19 @@ set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_PREFIX})
 project(imgui) # -------------------
 
 file(GLOB _IMGUI_FILES ${_IMGUI_SRC}/*.cpp)
-list(APPEND _IMGUI_FILES ${_IMGUI_SRC}/backends/imgui_impl_win32.cpp ${_IMGUI_SRC}/backends/imgui_impl_dx9.cpp)
+list(APPEND _IMGUI_FILES ${_IMGUI_SRC}/misc/freetype/imgui_freetype.cpp ${_IMGUI_SRC}/backends/imgui_impl_win32.cpp ${_IMGUI_SRC}/backends/imgui_impl_dx9.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${_IMGUI_FILES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${_IMGUI_SRC} PUBLIC ${_IMGUI_SRC}/backends)
+target_include_directories(${PROJECT_NAME} PUBLIC ${_IMGUI_SRC} PUBLIC ${_IMGUI_SRC}/misc/freetype PUBLIC ${_IMGUI_SRC}/backends)
 target_link_libraries(${PROJECT_NAME} PRIVATE freetype)
+target_compile_definitions(
+  ${PROJECT_NAME}
+  PUBLIC IMGUI_ENABLE_FREETYPE
+  PUBLIC IMGUI_USE_WCHAR32
+  PUBLIC IMGUI_DEFINE_MATH_OPERATORS
+  PUBLIC IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+  PUBLIC IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+  PUBLIC ImDrawIdx=size_t)
 
 project(${_PROJ_PREFIX}) # -------------------
 
