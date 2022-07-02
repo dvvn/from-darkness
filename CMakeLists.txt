@@ -102,16 +102,14 @@ target_include_directories(
   PUBLIC ${_PROJ_IMPL_DIR}
   PRIVATE ${xxhct_SOURCE_DIR}
   PRIVATE ${utf8_conv_SOURCE_DIR}/include
-  PRIVATE ${veque_SOURCE_DIR}/include
-  PRIVATE nlohmann_json::nlohmann_json
-  PRIVATE robin_hood::robin_hood
-  PRIVATE RmlCore)
+  PRIVATE ${veque_SOURCE_DIR}/include)
 
 target_link_libraries(
   ${PROJECT_NAME}
   PUBLIC d3d9.lib
+  PRIVATE nlohmann_json::nlohmann_json
+  PRIVATE robin_hood::robin_hood
   PRIVATE imgui
-  PRIVATE freetype
   PRIVATE RmlCore
   PRIVATE RmlDebugger)
 
