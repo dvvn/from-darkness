@@ -28,8 +28,13 @@ set(FT_DISABLE_PNG on)
 set(FT_DISABLE_HARFBUZZ on)
 set(FT_DISABLE_BROTLI on)
 FetchContent_MakeAvailable(freetype)
-set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}${CMAKE_LINK_LIBRARY_SUFFIX})
+
+set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}.lib)
 get_target_property(FREETYPE_INCLUDE_DIRS freetype INTERFACE_INCLUDE_DIRECTORIES)
+FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
+FetchContent_MakeAvailable(rml)
+unset(FREETYPE_LIBRARY)
+unset(FREETYPE_INCLUDE_DIRS)
 
 FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui.git)
 FetchContent_Populate(imgui)
@@ -51,10 +56,6 @@ FetchContent_MakeAvailable(json)
 
 FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
 FetchContent_MakeAvailable(robin_hood)
-
-#add_compile_definitions(RMLUI_NO_FILE_INTERFACE_DEFAULT)
-FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
-FetchContent_MakeAvailable(rml)
 
 # -------------------
 
@@ -127,4 +128,3 @@ project(${_PROJ_PREFIX}_gui_test)
 
 add_executable(${PROJECT_NAME} ${_PROJ_IMPL_DIR}/gui_test/main.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJ_PREFIX})
-target_include_directories(${PROJECT_NAME} PRIVATE ${_PROJ_PREFIX})
