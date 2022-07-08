@@ -12,10 +12,7 @@ module fd.assert;
 #undef NDEBUG
 #include <assert.h>
 
-using assert_callback          = fd::callback<const assert_data&>;
-using assert_callback_ex       = fd::callback_ex<1, const assert_data&>;
-using selected_assert_callback = std::conditional_t<(assert_callback::known_buffer_size() > 1), assert_callback, assert_callback_ex>;
-
+using selected_assert_callback = fd::callback<const assert_data&>;
 struct assert_handler_impl : selected_assert_callback
 {
     assert_handler_impl();
