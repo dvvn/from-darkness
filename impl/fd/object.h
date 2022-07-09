@@ -43,6 +43,8 @@ decltype(auto) _Extract_obj_t(V&& val)
 
 #define FD_OBJECT_GET(_OBJ_TYPE_, /* object index */...) fd::instance_of<_Object_t<_OBJ_TYPE_> __VA_OPT__(, ) __VA_ARGS__>
 
+#define FD_OBJECT_ATTACH(_OBJ_TYPE_, _TARGET_TYPE_, ...) FD_OBJECT_IMPL(_OBJ_TYPE_, 0, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__))
+
 #define FD_OBJECT_BIND(_OBJ_NAME_, _TARGET_)                FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, _TARGET_)
 #define FD_OBJECT_BIND_TYPE(_OBJ_NAME_, _TARGET_TYPE_, ...) FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::element_type, _OBJ_NAME_, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__))
 

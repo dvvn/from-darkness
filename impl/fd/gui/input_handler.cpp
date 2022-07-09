@@ -1,4 +1,3 @@
-module;
 
 #include <fd/assert.h>
 #include <fd/object.h>
@@ -13,42 +12,15 @@ module;
 #include <span>
 #include <string_view>
 
-module fd.gui.input_handler;
+import fd.gui.basic_input_handler;
 import fd.lazy_invoke;
 import fd.convert_to;
 
 using namespace Rml;
 
-input_result::input_result(const result val)
-    : result_(val)
-{
-}
-
-input_result::operator bool() const
-{
-    return result_ != result::skipped;
-}
-
-bool input_result::touched() const
-{
-    return result_ == result::interacted;
-}
-
-input_result& input_result::set_return_value(const uint8_t ret_val)
-{
-    FD_ASSERT(ret_val_ == unset_, "Already set!");
-    ret_val_ = ret_val;
-    return *this;
-}
-
-size_t input_result::return_value() const
-{
-    FD_ASSERT(touched(), "Unable to return untouched result!");
-    FD_ASSERT(ret_val_ == 1 || ret_val_ == 0, "Incorrect value!");
-    return static_cast<size_t>(ret_val_);
-}
-
 //---------------
+
+using fd::gui::input_result;
 
 struct input_result_proxy : input_result
 {
@@ -82,7 +54,6 @@ struct RmlString : String
 
 class input_helper
 {
-
 #ifdef _DEBUG
     std::span<const Input::KeyIdentifier, 256>
 #else
@@ -286,7 +257,7 @@ class input_helper
 
 //-----------
 
-class input_handler_impl final : public basic_input_handler
+class input_handler_impl final : public fd::gui::basic_input_handler
 {
     std::array<Input::KeyIdentifier, 256> keys_map_;
     Context* ctx_                 = nullptr;
@@ -505,33 +476,33 @@ class input_handler_impl final : public basic_input_handler
         switch (message)
         {
         case WM_LBUTTONDOWN:
-            return input().l_button_down(window).set_return_value(0);
+            return input().l_button_down(window) /*.set_return_value(0)*/;
         case WM_LBUTTONUP:
-            return input().l_button_up().set_return_value(0);
+            return input().l_button_up() /*.set_return_value(0)*/;
         case WM_RBUTTONDOWN:
-            return input().r_button_down().set_return_value(0);
+            return input().r_button_down() /*.set_return_value(0)*/;
         case WM_RBUTTONUP:
-            return input().r_button_up().set_return_value(0);
+            return input().r_button_up() /*.set_return_value(0)*/;
         case WM_MBUTTONDOWN:
-            return input().m_button_down().set_return_value(0);
+            return input().m_button_down() /*.set_return_value(0)*/;
         case WM_MBUTTONUP:
-            return input().m_button_up().set_return_value(0);
+            return input().m_button_up() /*.set_return_value(0)*/;
         case WM_MOUSEMOVE:
-            return input().mouse_move(l_param).set_return_value(0);
+            return input().mouse_move(l_param) /*.set_return_value(0)*/;
         case WM_MOUSEWHEEL:
-            return input().mouse_wheel(w_param).set_return_value(0);
+            return input().mouse_wheel(w_param) /*.set_return_value(0)*/;
         case WM_KEYDOWN:
-            return input().key_down(w_param).set_return_value(0);
+            return input().key_down(w_param) /*.set_return_value(0)*/;
         case WM_KEYUP:
-            return input().key_up(w_param).set_return_value(0);
+            return input().key_up(w_param) /*.set_return_value(0)*/;
         case WM_CHAR:
-            return input().on_character(w_param, first_u16_code_unit_).set_return_value(0);
+            return input().on_character(w_param, first_u16_code_unit_) /*.set_return_value(0)*/;
         case WM_SIZE:
-            return input().resize(w_param, l_param).set_return_value(0);
+            return input().resize(w_param, l_param) /*.set_return_value(0)*/;
         default:
             return input_result::skipped;
         }
     }
 };
 
-FD_OBJECT_BIND_TYPE(input_handler, input_handler_impl);
+FD_OBJECT_BIND_TYPE(fd::gui::input_handler, input_handler_impl);

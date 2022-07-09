@@ -1,8 +1,6 @@
-module;
-
-#include <fd/object.h>
 
 #include <fd/assert.h>
+#include <fd/object.h>
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
@@ -12,12 +10,7 @@ module;
 #include <DirectXMath.h>
 #include <d3d9.h>
 
-module fd.gui.render_interface;
-
-void custom_render_interface::ReleaseTextures()
-{
-    Rml::ReleaseCompiledGeometry();
-}
+import fd.gui.basic_render_interface;
 
 struct DECLSPEC_NOVTABLE d3d_device9_wrapped : IDirect3DDevice9
 {
@@ -46,16 +39,16 @@ struct DECLSPEC_NOVTABLE d3d_device9_wrapped : IDirect3DDevice9
 
 namespace Rml
 {
-    class RenderInterfaceD3d9 final : public custom_render_interface
+    struct RenderInterfaceD3d9 final : fd::gui::basic_render_interface, RenderInterface
     {
-        d3d_device9_wrapped* d3d_;
-
-      public:
-        ~RenderInterfaceD3d9();
+        ~RenderInterfaceD3d9() override;
         RenderInterfaceD3d9();
 
+        bool skip_frame() const override;
+        void release_textures() override;
+        bool operator()() override;
+
         void SetupRender(Context* const ctx);
-        void RenderContext(Context* const ctx) override;
 
         void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation) override;
         CompiledGeometryHandle CompileGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture) override;
@@ -67,13 +60,16 @@ namespace Rml
         bool GenerateTexture(TextureHandle& texture_handle, const byte* source, const Vector2i& source_dimensions) override;
         void ReleaseTexture(TextureHandle texture) override;
         void SetTransform(const Matrix4f* transform) override;
+
+      private:
+        d3d_device9_wrapped* d3d_;
     };
 } // namespace Rml
 
 using Rml::RenderInterfaceD3d9;
 
-FD_OBJECT_BIND_TYPE(render_interface, RenderInterfaceD3d9);
-FD_OBJECT_BIND_TYPE(render_interface_raw, RenderInterfaceD3d9);
+FD_OBJECT_BIND_TYPE(fd::gui::render_interface, RenderInterfaceD3d9);
+FD_OBJECT_ATTACH(Rml::RenderInterface, RenderInterfaceD3d9);
 
 RenderInterfaceD3d9::~RenderInterfaceD3d9()
 {
@@ -85,6 +81,48 @@ RenderInterfaceD3d9::RenderInterfaceD3d9()
 {
     const auto d3d = &FD_OBJECT_GET(IDirect3DDevice9);
     d3d_           = reinterpret_cast<d3d_device9_wrapped*>(d3d);
+}
+
+bool RenderInterfaceD3d9::skip_frame() const
+{
+    // todo
+    return false;
+}
+
+void RenderInterfaceD3d9::release_textures()
+{
+    Rml::ReleaseCompiledGeometry();
+}
+
+bool RenderInterfaceD3d9::operator()()
+{
+    // not best way to doing this
+    const auto ctx = &FD_OBJECT_GET(Context*);
+
+    // Update the context to reflect any changes resulting from input events, animations,
+    // modified and added elements, or changed data in data bindings.
+    ctx->Update();
+
+    const auto bg = d3d_->BeginScene();
+    RMLUI_ASSERT(bg == D3D_OK);
+#ifndef RMLUI_DEBUG
+    if (bg != D3D_OK)
+        return false;
+#endif
+
+    this->SetupRender(ctx);
+    // Render the user interface. All geometry and other rendering commands are now
+    // submitted through the render interface.
+    ctx->Render();
+
+    const auto ed = d3d_->EndScene();
+    RMLUI_ASSERT(ed == D3D_OK);
+#ifndef RMLUI_DEBUG
+    if (ed != D3D_OK)
+        return false;
+#endif
+
+    return true;
 }
 
 void RenderInterfaceD3d9::SetupRender(Context* const ctx)
@@ -124,24 +162,6 @@ void RenderInterfaceD3d9::SetupRender(Context* const ctx)
 
     // Disable lighting for Rocket.
     d3d_->SetRenderState(D3DRS_LIGHTING, FALSE);
-}
-
-void RenderInterfaceD3d9::RenderContext(Context* const ctx)
-{
-    // Update the context to reflect any changes resulting from input events, animations,
-    // modified and added elements, or changed data in data bindings.
-    ctx->Update();
-
-    [[maybe_unused]] const auto bg = d3d_->BeginScene();
-    RMLUI_ASSERT(bg == D3D_OK);
-
-    this->SetupRender(ctx);
-    // Render the user interface. All geometry and other rendering commands are now
-    // submitted through the render interface.
-    ctx->Render();
-
-    [[maybe_unused]] const auto ed = d3d_->EndScene();
-    RMLUI_ASSERT(ed == D3D_OK);
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file

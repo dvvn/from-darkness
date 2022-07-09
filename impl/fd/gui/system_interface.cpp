@@ -1,4 +1,3 @@
-module;
 
 #include <fd/assert.h>
 #include <fd/object.h>
@@ -8,7 +7,6 @@ module;
 #include <chrono>
 #include <format>
 
-module fd.gui.system_interface;
 import fd.logger;
 
 using Rml_log = Rml::Log::Type;
@@ -88,7 +86,7 @@ class system_interface_impl final : public Rml::SystemInterface
     }
 };
 
-FD_OBJECT_BIND_TYPE(system_interface, system_interface_impl);
+FD_OBJECT_ATTACH(Rml::SystemInterface, system_interface_impl);
 
 template <>
 struct std::formatter<Rml_log, char> : formatter<std::string_view>

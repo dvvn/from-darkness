@@ -2,7 +2,7 @@
 
 #include <d3d9.h>
 
-import fd.gui.render_interface;
+import fd.gui.basic_render_interface;
 
 using namespace fd;
 
@@ -13,6 +13,6 @@ static function_getter _Get_target()
 
 FD_HOOK(_Get_target(), member, void WINAPI, D3DPRESENT_PARAMETERS* params)
 {
-    gui::render_interface->ReleaseTextures();
+    gui::render_interface->release_textures();
     call_original(params);
 }

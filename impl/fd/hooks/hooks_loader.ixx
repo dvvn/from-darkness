@@ -8,15 +8,13 @@ module;
 export module fd.hooks_loader;
 import fd.hook_base;
 
+#ifdef FD_KNOWN_HOOKS
 constexpr bool know_hook(const size_t i)
 {
-#ifdef FD_KNOWN_HOOKS
     const std::array known = { FD_KNOWN_HOOKS };
     return std::find(known.begin(), known.end(), i) != known.end();
-#else
-    return true;
-#endif
 }
+#endif
 
 template <size_t... I>
 constexpr bool is_unique(const std::index_sequence<I...>)
@@ -41,7 +39,9 @@ struct basic_hooks_loader
     bool load(const bool stop_on_error = true, const std::index_sequence<I...> seq = {})
     {
         static_assert(is_unique(seq));
+#ifdef FD_KNOWN_HOOKS
         static_assert((know_hook(I) && ...));
+#endif
         (store(&FD_OBJECT_GET(hook_base, I)), ...);
         return init(stop_on_error);
     }
@@ -53,11 +53,11 @@ struct basic_hooks_loader
 #endif
 
     virtual void disable() = 0;
-    virtual void unload() = 0;
+    virtual void unload()  = 0;
 
   protected:
     virtual bool init(const bool stop_on_error) = 0;
-    virtual void store(hook_base* const hook) = 0;
+    virtual void store(hook_base* const hook)   = 0;
 };
 
 FD_OBJECT(hooks_loader, basic_hooks_loader);
