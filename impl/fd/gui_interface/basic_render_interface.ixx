@@ -10,7 +10,6 @@ export namespace fd::gui
     {
         virtual ~basic_render_interface() = default;
 
-        virtual bool skip_frame() const = 0;
         virtual void release_textures() = 0;
         virtual bool operator()()       = 0;
     };

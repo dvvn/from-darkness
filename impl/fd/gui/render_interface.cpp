@@ -44,7 +44,6 @@ namespace Rml
         ~RenderInterfaceD3d9() override;
         RenderInterfaceD3d9();
 
-        bool skip_frame() const override;
         void release_textures() override;
         bool operator()() override;
 
@@ -81,12 +80,6 @@ RenderInterfaceD3d9::RenderInterfaceD3d9()
 {
     const auto d3d = &FD_OBJECT_GET(IDirect3DDevice9);
     d3d_           = reinterpret_cast<d3d_device9_wrapped*>(d3d);
-}
-
-bool RenderInterfaceD3d9::skip_frame() const
-{
-    // todo
-    return false;
 }
 
 void RenderInterfaceD3d9::release_textures()
