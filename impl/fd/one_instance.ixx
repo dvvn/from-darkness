@@ -1,62 +1,47 @@
 module;
 
-#include <fd/utility.h>
-
+#include <concepts>
 #include <functional>
 #include <memory>
-#include <optional>
-#include <stdexcept>
+#include <utility>
 
 export module fd.one_instance;
 
-template <typename PtrT>
+template <typename T>
 constexpr size_t _Pointers_count()
 {
-    if constexpr (std::is_pointer_v<PtrT>)
-        return _Pointers_count<std::remove_pointer_t<PtrT>>() + 1;
+    if constexpr (std::is_pointer_v<T>)
+        return 1 + _Pointers_count<std::remove_pointer_t<T>>();
     else
         return 0;
 }
 
 template <typename T>
-auto _Lowest_pointer(T* ptr)
+constexpr size_t pointers_count_v = _Pointers_count<T>();
+
+template <typename T, size_t StopOn = 0>
+decltype(auto) _Deref(T* ptr, const std::in_place_index_t<StopOn> stop_on = std::in_place_index<StopOn>)
 {
-    constexpr auto count = _Pointers_count<T*>();
-    if constexpr (count == 1)
+    constexpr auto ptrsc = pointers_count_v<T*>;
+    if constexpr (ptrsc <= StopOn)
         return ptr;
-    else if constexpr (count == 2)
+    else if constexpr (ptrsc == 1)
         return *ptr;
-    else if constexpr (count == 3)
-        return **ptr;
-    else if constexpr (count == 4)
-        return ***ptr;
-    else if constexpr (count == 5)
-        return ****ptr;
-    // otherwise check your code, having so many pointers is not normal
+    else
+        return _Deref(*ptr, stop_on);
 }
 
 template <typename T>
-bool _Nullptr_check(T* ptr)
+bool _Null(T* ptr)
 {
-    if (ptr == nullptr)
+    if (!ptr)
         return true;
 
-    constexpr auto limit = _Pointers_count<T>();
-    if constexpr (limit > 0)
-    {
-        auto check = (void**)*ptr;
-        auto num   = limit;
-        for (;;)
-        {
-            if (check == nullptr)
-                return true;
-            if (--num == 0)
-                break;
-            check = (void**)*check;
-        }
-    }
-
-    return false;
+    constexpr auto ptrsc = pointers_count_v<T*>;
+    if constexpr (ptrsc > 1)
+        return _Null(*ptr);
+    else
+        return false;
 }
 
 template <typename T>
@@ -65,6 +50,11 @@ class pointer_wrapper
     T ptr_;
 
   public:
+    T _Get() const
+    {
+        return ptr_;
+    }
+
     pointer_wrapper(T ptr)
         : ptr_(ptr)
     {
@@ -79,56 +69,72 @@ class pointer_wrapper
     {
         return *ptr_;
     }
+
+    explicit operator bool() const
+    {
+        return ptr_ != nullptr;
+    }
 };
 
 template <typename T>
 class pointer_wrapper<T**>
 {
-    T** ptr_;
+    using value_type = T**;
 
-    bool is_null() const
-    {
-        return _Nullptr_check(ptr_);
-    }
-
-    auto get() const
-    {
-        return _Lowest_pointer(ptr_);
-    }
+    value_type ptr_;
 
   public:
-    pointer_wrapper(T** ptr)
+    value_type _Get() const
+    {
+        return ptr_;
+    }
+
+    pointer_wrapper(value_type ptr)
         : ptr_(ptr)
     {
     }
 
     auto operator->() const
     {
-        return get();
+        return _Deref(ptr_, std::in_place_index<1>);
     }
 
     auto& operator*() const
     {
-        return *get();
+        return _Deref(ptr_);
     }
 
     explicit operator bool() const
     {
-        return !is_null();
+        return !_Null(ptr_);
     }
 };
 
-//--------
+template <typename T>
+bool operator==(const pointer_wrapper<T> w, std::nullptr_t)
+{
+    return !w;
+}
 
 template <typename T>
-struct one_instance_getter
+bool operator!=(const pointer_wrapper<T> w, std::nullptr_t np)
+{
+    return !(w == np);
+}
+
+template <typename T>
+struct instance_of_getter
 {
     using value_type = T;
     using reference  = value_type&;
     using pointer    = value_type*;
 
+  private:
+    value_type item_;
+
+  public:
     template <typename... Args>
-    one_instance_getter(Args&&... args) requires(std::constructible_from<value_type, decltype(args)...>)
+    instance_of_getter(Args&&... args) requires(std::constructible_from<value_type, decltype(args)...>)
         : item_(std::forward<Args>(args)...)
     {
     }
@@ -140,16 +146,13 @@ struct one_instance_getter
 
     pointer ptr()
     {
-        return std::addressof(item_);
+        return &item_;
     }
-
-  private:
-    value_type item_;
 };
 
 #if 0
 template <typename T, typename D>
-class one_instance_getter<std::unique_ptr<T, D>>
+class instance_of_getter<std::unique_ptr<T, D>>
 {
   public:
     using value_type = std::unique_ptr<T, D>;
@@ -161,7 +164,7 @@ class one_instance_getter<std::unique_ptr<T, D>>
     using reference = std::remove_pointer_t<pointer>;
 
     template <size_t Instance, typename... Args>
-    one_instance_getter(const std::in_place_index_t<Instance>, Args&&... args)
+    instance_of_getter(const std::in_place_index_t<Instance>, Args&&... args)
         : item_(std::make_unique<T>(std::forward<Args>(args)...))
     {
     }
@@ -182,35 +185,142 @@ class one_instance_getter<std::unique_ptr<T, D>>
 #endif
 
 template <typename T>
-class one_instance_getter<T*>
+struct instance_of_getter<T*>
 {
-  public:
-    using element_type = T*;
-    using value_type   = fd::remove_all_pointers_t<element_type>;
-    using reference    = value_type&;
-    using real_pointer = value_type*;
-    using pointer      = std::conditional_t<std::is_pointer_v<T>, pointer_wrapper<element_type>, real_pointer>;
+    using value_type = T*;
+    using pointer    = std::conditional_t<std::is_pointer_v<T>, pointer_wrapper<value_type>, value_type>;
+    using reference  = decltype(*std::declval<pointer>());
 
-    template <size_t Instance>
-    one_instance_getter(const std::in_place_index_t<Instance>);
+  private:
+    value_type item_;
 
-    one_instance_getter(const element_type item)
-        : item_(item)
+    template <typename Q>
+    void _Construct(Q item)
     {
+        if constexpr (std::convertible_to<Q, value_type>)
+            item_ = static_cast<value_type>(item);
+        else if constexpr (std::convertible_to<decltype(&*item), value_type>)
+            _Construct(&*item);
+        else if constexpr (std::convertible_to<decltype(&item), value_type>)
+            _Construct(&item);
+        else
+            static_assert(std::_Always_false<Q>, "Unknown item type!");
+    }
+
+  public:
+    template <size_t Instance>
+    instance_of_getter(const std::in_place_index_t<Instance>);
+
+    instance_of_getter(const value_type item)
+    {
+        _Construct(item);
+    }
+
+    instance_of_getter(std::nullptr_t np)
+    {
+        _Construct(np);
     }
 
     reference ref() const
     {
-        return *_Lowest_pointer(item_);
+        return *ptr();
     }
 
     pointer ptr() const
     {
         return item_;
     }
+};
 
-  private:
-    element_type item_;
+template <typename T>
+bool operator==(const instance_of_getter<T*> getter, std::nullptr_t)
+{
+    return getter.ptr() == nullptr;
+}
+
+template <typename T>
+bool operator!=(const instance_of_getter<T*> getter, std::nullptr_t)
+{
+    return !(getter == nullptr);
+}
+
+template <typename T>
+constexpr bool nullptr_support = std::constructible_from<T, std::nullptr_t>&& std::equality_comparable_with<T, std::nullptr_t>;
+
+template <typename T>
+constexpr bool nullptr_support<instance_of_getter<T*>> = true;
+
+template <typename T>
+class simple_optional
+{
+    union
+    {
+        uint8_t dummy_;
+        T item_;
+    };
+
+    [[no_unique_address]] std::conditional_t<nullptr_support<T>, std::false_type, bool> created_;
+
+    bool _Created() const
+    {
+        if constexpr (nullptr_support<T>)
+            return item_ != nullptr;
+        else
+            return created_;
+    }
+
+    void _Destroy_if_created()
+    {
+        if constexpr (std::is_class_v<T>)
+        {
+            if (_Created())
+                std::destroy_at(&item_);
+        }
+    }
+
+    void _Init_default()
+    {
+        if constexpr (nullptr_support<T>)
+            std::construct_at(&item_, nullptr);
+        else
+            created_ = false;
+    }
+
+    void _Mark_created()
+    {
+        if constexpr (!nullptr_support<T>)
+            created_ = true;
+    }
+
+  public:
+    simple_optional()
+    {
+        _Init_default();
+    }
+
+    ~simple_optional()
+    {
+        _Destroy_if_created();
+    }
+
+    template <typename... Args>
+    T& emplace(Args&&... args)
+    {
+        _Destroy_if_created();
+        std::construct_at(&item_, std::forward<Args>(args)...);
+        _Mark_created();
+        return item_;
+    }
+
+    bool has_value() const
+    {
+        return _Created();
+    }
+
+    T& operator*()
+    {
+        return item_;
+    }
 };
 
 constexpr size_t _Magic_number(const size_t value)
@@ -220,15 +330,21 @@ constexpr size_t _Magic_number(const size_t value)
     return __TIME__[src] ^ __TIME__[7]; // XX:XX:XX 01 2 34 5 67
 }
 
-template <typename T, size_t Instance = 0>
-class one_instance
+template <typename T, size_t Instance>
+class instance_of_impl
 {
-    using t_getter = one_instance_getter<T>;
+    using t_getter = instance_of_getter<T>;
 
     static __declspec(noinline) auto& _Buff()
     {
-        static std::optional<t_getter> buff;
+        // static std::optional<t_getter> buff;
+        static simple_optional<t_getter> buff;
         return buff;
+    }
+
+    static bool _Initialized()
+    {
+        return _Buff().has_value();
     }
 
     template <typename... Args>
@@ -245,7 +361,7 @@ class one_instance
         if constexpr (std::default_initializable<t_getter> || std::constructible_from<t_getter, std::in_place_index_t<Instance>>)
         {
             static const auto once = [] {
-                if (!initialized())
+                if (!_Initialized())
                     _Construct();
                 return _Magic_number(Instance);
             }();
@@ -254,75 +370,32 @@ class one_instance
     }
 
   public:
-    constexpr one_instance()                                     = default;
-    constexpr one_instance(const one_instance& other)            = delete;
-    constexpr one_instance& operator=(const one_instance& other) = delete;
-    constexpr one_instance(one_instance&& other)                 = delete;
-    constexpr one_instance& operator=(one_instance&& other)      = delete;
+    using value_type = T;
 
-    static bool initialized()
+    bool initialized() const
     {
-        return _Buff().has_value();
+        return _Initialized();
     }
 
-    static auto& get()
+    auto& operator*() const
     {
         return _Get().ref();
     }
 
-    static auto get_ptr()
+    auto operator->() const
+    {
+        return _Get().ptr();
+    }
+
+    auto operator&() const
     {
         return _Get().ptr();
     }
 
     template <typename... Args>
-    static auto& construct(Args&&... args)
-    {
-        _Construct(std::forward<Args>(args)...);
-        return get();
-    }
-};
-
-template <typename T, size_t Instance>
-class instance_of_t
-{
-    using _Base = one_instance<T, Instance>;
-
-  public:
-    /*constexpr instance_of_t( ) = default;
-    constexpr instance_of_t(const instance_of_t& other) = delete;
-    constexpr instance_of_t& operator=(const instance_of_t& other) = delete;
-    constexpr instance_of_t(instance_of_t&& other) = delete;
-    constexpr instance_of_t& operator=(instance_of_t&& other) = delete;*/
-
-    using element_type = T;
-    using reference    = decltype(_Base::get());
-    using pointer      = decltype(_Base::get_ptr());
-
-    bool initialized() const
-    {
-        return _Base::initialized();
-    }
-
-    auto& operator*() const
-    {
-        return _Base::get();
-    }
-
-    auto operator->() const
-    {
-        return _Base::get_ptr();
-    }
-
-    auto operator&() const
-    {
-        return _Base::get_ptr();
-    }
-
-    template <typename... Args>
     auto& construct(Args&&... args) const
     {
-        return _Base::construct(std::forward<Args>(args)...);
+        return _Construct(std::forward<Args>(args)...).ref();
     }
 
     template <std::same_as<size_t> T> // fake explicit
@@ -330,20 +403,38 @@ class instance_of_t
     {
         return Instance;
     }
+
+    explicit operator bool() const
+    {
+        if (!_Initialized())
+            return false;
+        if constexpr (std::is_pointer_v<value_type>)
+        {
+            if (_Get() == nullptr)
+                return false;
+        }
+        return true;
+    }
 };
 
 export namespace fd
 {
-    using ::one_instance_getter;
+    using ::instance_of_getter;
+
+    /* template <typename T, size_t Instance>
+    bool operator==(const instance_of_impl<T*, Instance> inst, std::nullptr_t)
+    {
+        return inst.initialized() && inst.ptr() == nullptr;
+    } */
 
     template <typename T, size_t Instance = 0>
-    constexpr instance_of_t</* std::conditional_t<std::is_abstract_v<T>, T*, T> */ T, Instance> instance_of;
+    constexpr instance_of_impl<T, Instance> instance_of;
 } // namespace fd
 
 export namespace std
 {
     template <class T, size_t Instance, typename... Args>
-    decltype(auto) invoke(const instance_of_t<T, Instance> inst, Args&&... args)
+    decltype(auto) invoke(const instance_of_impl<T, Instance> inst, Args&&... args)
     {
         return invoke(*inst, std::forward<Args>(args)...);
     }
