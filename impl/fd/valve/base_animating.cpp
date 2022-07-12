@@ -6,7 +6,6 @@ module;
 
 module fd.valve.base_animating;
 import fd.rt_modules;
-import fd.netvars;
 
 #if __has_include("C_BaseAnimating_generated_cpp")
 #include "C_BaseAnimating_generated_cpp"

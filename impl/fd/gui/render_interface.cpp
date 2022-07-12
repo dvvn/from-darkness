@@ -2,10 +2,7 @@
 #include <fd/assert.h>
 #include <fd/object.h>
 
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/FileInterface.h>
-#include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core.h>
 
 #include <DirectXMath.h>
 #include <d3d9.h>

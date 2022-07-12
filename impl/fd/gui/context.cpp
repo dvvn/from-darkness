@@ -216,4 +216,3 @@ class gui_context
 };
 
 FD_OBJECT_BIND_TYPE(context, gui_context);
-// FD_OBJECT_IMPL(Rml::Context*, 0, FD_OBJECT_GET(gui_context));

@@ -63,7 +63,7 @@ struct hashed_string_wrapper : Base
 
     constexpr hash_type _Get_hash() const
     {
-        return std::invoke(hasher_, *static_cast<const Base*>(this));
+        return hasher_(*static_cast<const Base*>(this));
     }
 
     constexpr void _Calc_hash()

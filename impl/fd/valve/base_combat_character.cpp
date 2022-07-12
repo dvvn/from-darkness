@@ -3,7 +3,6 @@ module;
 #include <fd/assert.h>
 
 module fd.valve.base_combat_character;
-import fd.netvars;
 
 #if __has_include("C_BaseCombatCharacter_generated_cpp")
 #include "C_BaseCombatCharacter_generated_cpp"

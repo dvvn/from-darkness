@@ -5,6 +5,8 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_DEBUG_POSTFIX _d)
+  set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+  #set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_DEBUG_MODE 1)
 endif()
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
@@ -86,7 +88,184 @@ target_compile_definitions(
   PUBLIC IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
   PUBLIC ImDrawIdx=size_t)
 
+# -------------------
+
+function(get_files _path)
+  set(_list "")
+
+  foreach(_item ${_path})
+    if(IS_DIRECTORY ${_item})
+      file(GLOB_RECURSE _files_tmp ${_item}/*.ixx ${_item}/*.cpp)
+      list(APPEND _list ${_files_tmp})
+    else()
+      list(APPEND _list ${_item})
+    endif()
+  endforeach()
+  list(FILTER _list EXCLUDE REGEX "/\_+")
+  #message(DEBUG "Files found in ${_path}: ${_list}")
+  set(_FILES ${_list} PARENT_SCOPE)
+endfunction()
+
+function(target_include_directory _target _type _dir)
+  target_include_directories(${_target} ${_type} ${_dir})
+  message(DEBUG "${_target}: directory ${_dir} included (${_type})")
+endfunction()
+
+function(target_link_library _target _type _lib)
+  target_link_libraries(${_target} ${_type} ${_lib})
+  message(DEBUG "${_target}: library ${_lib} linked (${_type})")
+endfunction()
+
+function(target_compile_definition _target _type _def)
+  target_compile_definitions(${_target} ${_type} ${_def})
+  message(DEBUG "${_target}: macro ${_def} added (${_type})")
+endfunction()
+
+function(project_part)
+  cmake_parse_arguments(PART "" "NAME;TYPE" "FILES;INCLUDE;LINK;DEFINE" ${ARGN})
+
+  if(NOT PART_NAME)
+    message(FATAL_ERROR "Name not set!")
+  else()
+    set(_name ${PART_NAME})
+  endif()
+
+  #---------------
+
+  if(NOT PART_FILES)
+    set(PART_FILES ${_PROJ_WORK_DIR}/${_name})
+  endif()
+
+  get_files(${PART_FILES})
+  list(LENGTH _FILES _files_count)
+  if(_files_count EQUAL 0)
+    if(PART_TYPE AND NOT PART_TYPE STREQUAL "INTERFACE")
+      message(FATAL_ERROR "Incorrect TYPE!")
+    else()
+      set(_type INTERFACE)
+    endif()
+  else()
+    if(PART_TYPE)
+      set(_type ${PART_TYPE})
+    else()
+      set(_type STATIC)
+    endif()
+  endif()
+
+  set(_target ${_PROJ_PREFIX}_${_name})
+  if(_type STREQUAL "EXECUTABLE")
+    add_executable(${_target} ${_FILES})
+    set(_link_type_root PRIVATE)
+  else()
+    add_library(${_target} ${_type} ${_FILES})
+    if(_type STREQUAL "INTERFACE")
+      set(_link_type_root ${_type})
+    else()
+      set(_link_type_root PUBLIC)
+    endif()
+  endif()
+
+  #---------------
+
+  if(PART_INCLUDE)
+    set(_include_type ${_link_type_root})
+
+    foreach(_item ${PART_INCLUDE})
+      if(EXISTS ${_item})
+        target_include_directory(${_target} ${_include_type} ${_item})
+      elseif(_item MATCHES "PRIVATE|PUBLIC|INTERFACE")
+        set(_include_type ${_item})
+      else()
+        set(_own_dir ${_PROJ_WORK_DIR}/${_item})
+        if(NOT EXISTS ${_own_dir})
+          message(FATAL_ERROR "Directory ${_item} not found!")
+        endif()
+        target_include_directory(${_target} ${_include_type} ${_own_dir})
+      endif()
+    endforeach()
+  endif()
+
+  #---------------
+
+  if(PART_LINK)
+    set(_link_type ${_link_type_root})
+
+    foreach(_lib ${PART_LINK})
+      if(_lib MATCHES "PRIVATE|PUBLIC|INTERFACE")
+        set(_link_type ${_lib})
+      else()
+        set(_self_target ${_PROJ_PREFIX}_${_lib})
+        set(_external_target ${_lib}::${_lib})
+        if(TARGET ${_self_target})
+          target_link_library(${_target} ${_link_type} ${_self_target})
+        elseif(TARGET ${_external_target})
+          target_link_library(${_target} ${_link_type} ${_external_target})
+        elseif(TARGET ${_lib} OR ${_lib} MATCHES ".*\.+")
+          target_link_library(${_target} ${_link_type} ${_lib})
+        else()
+          message(FATAL_ERROR "Library ${_lib} not found!")
+        endif()
+      endif()
+    endforeach()
+  endif()
+
+  #---------------
+
+  if(PART_DEFINE)
+    set(_def_type ${_link_type_root})
+
+    foreach(_def ${PART_DEFINE})
+      if(_def MATCHES "PRIVATE|PUBLIC|INTERFACE")
+        set(_def_type ${_def})
+      else()
+        target_compile_definition(${_target} ${_def_type} ${_def})
+      endif()
+    endforeach()
+  endif()
+
+endfunction()
+
 project(${_PROJ_PREFIX}) # -------------------
+
+project_part(NAME json LINK nlohmann_json)
+project_part(NAME math INCLUDE ${_PROJ_IMPL_DIR})
+
+project_part(NAME convert_to INCLUDE ${utf8_conv_SOURCE_DIR}/include)
+project_part(NAME hash INCLUDE ${xxhct_SOURCE_DIR})
+project_part(
+  NAME
+  stable
+  LINK
+  hash
+  convert_to
+  INCLUDE
+  ${_PROJ_IMPL_DIR})
+
+project_part(NAME logger LINK stable)
+project_part(NAME mem LINK stable)
+project_part(NAME runtime_modules LINK mem logger)
+project_part(NAME valve LINK runtime_modules math)
+project_part(NAME netvars LINK valve json)
+project_part(NAME gui_interface LINK stable)
+project_part(
+  NAME
+  gui
+  LINK
+  gui_interface
+  logger
+  d3d9.lib
+  RmlCore
+  RmlDebugger
+  DEFINE
+  RMLUI_STATIC_LIB
+  RMLUI_DIR=${rml_SOURCE_DIR})
+project_part(NAME hooks LINK gui valve)
+
+project_part(NAME gui_test TYPE EXECUTABLE FILES ${_PROJ_IMPL_DIR}/gui_test/main.cpp LINK hooks)
+
+
+#[[
+#-----------------
 
 file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.ixx ${_PROJ_WORK_DIR}/*.cpp)
 list(FILTER _PROJ_FILES EXCLUDE REGEX "/\_+")
@@ -132,4 +311,4 @@ target_compile_definitions(
 project(${_PROJ_PREFIX}_gui_test)
 
 add_executable(${PROJECT_NAME} ${_PROJ_IMPL_DIR}/gui_test/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJ_PREFIX})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJ_PREFIX}) ]]
