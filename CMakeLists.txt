@@ -90,10 +90,10 @@ target_compile_definitions(
 
 # -------------------
 
-function(get_files _path)
+function(get_files _files)
   set(_list "")
 
-  foreach(_item ${_path})
+  foreach(_item ${_files})
     if(IS_DIRECTORY ${_item})
       file(GLOB_RECURSE _files_tmp ${_item}/*.ixx ${_item}/*.cpp)
       list(APPEND _list ${_files_tmp})
@@ -102,7 +102,7 @@ function(get_files _path)
     endif()
   endforeach()
   list(FILTER _list EXCLUDE REGEX "/\_+")
-  #message(DEBUG "Files found in ${_path}: ${_list}")
+  #message(DEBUG "Files found in ${_files}: ${_list}")
   set(_FILES ${_list} PARENT_SCOPE)
 endfunction()
 
@@ -126,14 +126,22 @@ function(project_part)
 
   if(NOT PART_NAME)
     message(FATAL_ERROR "Name not set!")
-  else()
-    set(_name ${PART_NAME})
   endif()
+  set(_name ${PART_NAME})
 
   #---------------
 
   if(NOT PART_FILES)
-    set(PART_FILES ${_PROJ_WORK_DIR}/${_name})
+    set(_dir0 ${_PROJ_IMPL_DIR}/${_name})
+    set(_dir1 ${_PROJ_WORK_DIR}/${_name})
+    if(EXISTS ${_dir0})
+      set(PART_FILES ${_dir0})
+    elseif(EXISTS ${_dir1})
+      set(PART_FILES ${_dir1})
+    else()
+      message(FATAL_ERROR "Unable to resolve project directory")
+    endif()
+    message(DEBUG "${_name}: found ${PART_FILES} directory")
   endif()
 
   get_files(${PART_FILES})
@@ -141,9 +149,8 @@ function(project_part)
   if(_files_count EQUAL 0)
     if(PART_TYPE AND NOT PART_TYPE STREQUAL "INTERFACE")
       message(FATAL_ERROR "Incorrect TYPE!")
-    else()
-      set(_type INTERFACE)
     endif()
+    set(_type INTERFACE)
   else()
     if(PART_TYPE)
       set(_type ${PART_TYPE})
@@ -261,8 +268,7 @@ project_part(
   RMLUI_DIR=${rml_SOURCE_DIR})
 project_part(NAME hooks LINK gui valve)
 
-project_part(NAME gui_test TYPE EXECUTABLE FILES ${_PROJ_IMPL_DIR}/gui_test/main.cpp LINK hooks)
-
+project_part(NAME gui_test TYPE EXECUTABLE LINK hooks)
 
 #[[
 #-----------------
