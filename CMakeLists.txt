@@ -66,10 +66,10 @@ FetchContent_MakeAvailable(robin_hood)
 
 # -------------------
 
-set(_PROJ_PREFIX fd)
-string(TOUPPER ${_PROJ_PREFIX} _PROJ_NAME_UPPER)
+set(_PROJ_NAME fd)
+string(TOUPPER ${_PROJ_NAME} _PROJ_NAME_UPPER)
 set(_PROJ_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
-set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_PREFIX})
+set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
 
 project(imgui) # -------------------
 
@@ -152,7 +152,7 @@ function(project_part)
     endif()
   endif()
 
-  set(_target ${_PROJ_PREFIX}_${_name})
+  set(_target ${_PROJ_NAME}_${_name})
   if(_type STREQUAL "EXECUTABLE")
     add_executable(${_target} ${_FILES})
     set(_link_type_root PRIVATE)
@@ -194,7 +194,7 @@ function(project_part)
       if(_lib MATCHES "PRIVATE|PUBLIC|INTERFACE")
         set(_link_type ${_lib})
       else()
-        set(_self_target ${_PROJ_PREFIX}_${_lib})
+        set(_self_target ${_PROJ_NAME}_${_lib})
         set(_external_target ${_lib}::${_lib})
         if(TARGET ${_self_target})
           target_link_library(${_target} ${_link_type} ${_self_target})
@@ -225,7 +225,7 @@ function(project_part)
 
 endfunction()
 
-project(${_PROJ_PREFIX}) # -------------------
+project(${_PROJ_NAME}) # -------------------
 
 project_part(NAME json LINK nlohmann_json)
 project_part(NAME math INCLUDE ${_PROJ_IMPL_DIR})
@@ -308,7 +308,7 @@ target_compile_definitions(
 
 # -------------------
 
-project(${_PROJ_PREFIX}_gui_test)
+project(${_PROJ_NAME}_gui_test)
 
 add_executable(${PROJECT_NAME} ${_PROJ_IMPL_DIR}/gui_test/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJ_PREFIX}) ]]
+target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJ_NAME}) ]]
