@@ -85,6 +85,7 @@ target_compile_definitions(
   PUBLIC IMGUI_USE_WCHAR32
   PUBLIC IMGUI_DEFINE_MATH_OPERATORS
   PUBLIC IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+  PUBLIC IMGUI_DISABLE_OBSOLETE_KEYIO
   PUBLIC IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
   PUBLIC ImDrawIdx=size_t)
 
@@ -257,11 +258,13 @@ project_part(
   gui_interface
   logger
   d3d9.lib
-  RmlCore
+  imgui
+  #[[ RmlCore
   RmlDebugger
   DEFINE
   RMLUI_STATIC_LIB
-  RMLUI_DIR=${rml_SOURCE_DIR})
+  RMLUI_DIR=${rml_SOURCE_DIR} ]]
+)
 project_part(NAME hooks LINK gui valve)
 
 project_part(NAME gui_test TYPE EXECUTABLE LINK hooks)

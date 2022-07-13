@@ -16,5 +16,12 @@ FD_HOOK(app_info->window.proc.curr(), static, LRESULT WINAPI, HWND hwnd, UINT ms
 {
     const auto input_result = std::invoke(gui::input_handler, ARGS);
     const auto block_input  = input_result.touched();
-    return block_input ? std::invoke(app_info->window.proc.def(), ARGS) : call_original(ARGS);
+    LRESULT ret;
+    if (!block_input)
+        ret = call_original(ARGS);
+    else if (input_result.have_return_value())
+        ret = input_result.return_value();
+    else
+        ret = std::invoke(app_info->window.proc.def(), ARGS);
+    return ret;
 }

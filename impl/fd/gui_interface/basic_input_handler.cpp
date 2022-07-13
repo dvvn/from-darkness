@@ -35,6 +35,11 @@ input_result_ex::input_result_ex(const result_type val, const return_value_type 
     set_return_value_impl(ret_val);
 }
 
+bool input_result_ex::have_return_value() const
+{
+    return ret_val_set_;
+}
+
 input_result_ex& input_result_ex::set_return_value(const return_value_type ret_val)
 {
     FD_ASSERT(!ret_val_set_, "Already set!");
