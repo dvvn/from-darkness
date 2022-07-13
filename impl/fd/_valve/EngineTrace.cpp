@@ -140,4 +140,4 @@ bool CGameTrace::IsVisible() const
 
 //-----
 
-FD_OBJECT_IMPL(IEngineTrace, 0, fd::runtime_modules::engine.find_interface<"EngineTraceClient">());
+FD_OBJECT_IMPL(IEngineTrace, fd::rt_modules::engine.find_interface<"EngineTraceClient">());

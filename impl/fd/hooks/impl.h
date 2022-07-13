@@ -80,7 +80,7 @@ constexpr auto _Hook_name(const char (&name)[S])
         }                                                                                             \
         FN_##_FN_TYPE_ _FN_RET_ callback(__VA_ARGS__);                                                \
     };                                                                                                \
-    FD_OBJECT_IMPL(fd::hook_base, _hook_index, FD_OBJECT_GET(_HOOK_NAME_<_hook_index>));              \
+    FD_OBJECT_IMPL(fd::hook_base, FD_OBJECT_GET(_HOOK_NAME_<_hook_index>), _hook_index);              \
     template <size_t Index>                                                                           \
     _FN_RET_ _HOOK_NAME_<Index>::callback(__VA_ARGS__)
 

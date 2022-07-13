@@ -7,4 +7,4 @@ import fd.rt_modules;
 
 using namespace fd;
 
-FD_OBJECT_IMPL(IStudioRender, 0, fd::runtime_modules::studiorender.find_interface<"VStudioRender">());
+FD_OBJECT_IMPL(IStudioRender, fd::rt_modules::studiorender.find_interface<"VStudioRender">());

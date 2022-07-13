@@ -4,6 +4,7 @@ module;
 #include <xxh32.hpp>
 #include <xxh64.hpp>
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <source_location>
@@ -88,7 +89,7 @@ struct hash<std::basic_string_view<C, Tr>> : protected hash<C>
 template <typename C, class Tr, class Alloc>
 struct hash<std::basic_string<C, Tr, Alloc>> : hash<std::basic_string_view<C, Tr>>
 {
-    constexpr size_t operator()(const std::basic_string<C, Tr>& str) const
+    constexpr size_t operator()(const std::basic_string<C, Tr, Alloc>& str) const
     {
         return _Hash_bytes(str.data(), str.size(), str.get_allocator());
     }
@@ -99,9 +100,9 @@ struct trivial_chars_cache
 {
     Chr arr[Size];
 
-    constexpr trivial_chars_cache(const Chr* str_source, const size_t string_size = Size)
+    constexpr trivial_chars_cache(const Chr* str_source)
     {
-        std::copy_n(str_source, string_size, arr);
+        std::copy_n(str_source, Size, arr);
     }
 };
 
@@ -127,13 +128,12 @@ constexpr size_t calc_hash(const C (&str)[S])
 
 static_assert("test"_hash == calc_hash("test"));
 
-#define STR0(x) #x
-#define STR(x)  STR0(x)
-
 constexpr size_t unique_hash(const std::source_location sl = std::source_location::current())
 {
     auto fname = sl.file_name();
 #ifdef FD_WORK_DIR
+#define STR0(x) #x
+#define STR(x)  STR0(x)
     fname += std::size(STR(FD_WORK_DIR)) - 1;
 #endif
     return _Hash_bytes(fname, std::char_traits<char>::length(fname));

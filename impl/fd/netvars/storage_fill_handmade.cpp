@@ -21,9 +21,9 @@ class base_entity;
 struct CAnimationLayer;
 struct VarMapping_t;
 
-#define SIG(_MODULE_NAME_, _SIG_, ...)                                               \
-    [] {                                                                             \
-        return runtime_modules::_MODULE_NAME_.find_signature<_SIG_>().##__VA_ARGS__; \
+#define SIG(_MODULE_NAME_, _SIG_, ...)                                          \
+    [] {                                                                        \
+        return rt_modules::_MODULE_NAME_.find_signature<_SIG_>().##__VA_ARGS__; \
     }
 
 void storage::store_handmade_netvars()

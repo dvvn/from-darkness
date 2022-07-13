@@ -100,13 +100,6 @@ class interface_finder
 template <class Gm>
 interface_finder(Gm) -> interface_finder<Gm>;
 
-// todo: store chars_cache in type_name
-template <class T>
-constexpr auto cache_type_name = [] {
-    constexpr auto name = fd::type_name<T>();
-    return fd::chars_cache<char, name.size() + 1>(name.data(), name.size());
-}();
-
 namespace fd
 {
     template <chars_cache Name>
@@ -163,7 +156,7 @@ namespace fd
         T* find_vtable() const
         {
             static_assert(std::is_class_v<T> /* is_abstract_v */);
-            return static_cast<T*>(find_vtable<cache_type_name<T>>());
+            return static_cast<T*>(find_vtable<type_name_holder<T>>());
         }
     };
 } // namespace fd
@@ -177,27 +170,23 @@ struct current_module
 // clang-format off
 #define DLL_NAME(_NAME_)    L""#_NAME_".dll"
 #define GAME_MODULE(_NAME_) constexpr rt_module<DLL_NAME(_NAME_)> _NAME_;
+
 // clang-format on
 
-#define EXPORT_PROXY(_NAME_) using fd::on_##_NAME_##_found
-
-export namespace fd
+export namespace fd::rt_modules
 {
-    namespace runtime_modules
-    {
-        constexpr current_module current;
+    constexpr current_module current;
 
-        GAME_MODULE(server);
-        GAME_MODULE(client);
-        GAME_MODULE(engine);
-        GAME_MODULE(datacache);
-        GAME_MODULE(materialsystem);
-        GAME_MODULE(vstdlib);
-        GAME_MODULE(vgui2);
-        GAME_MODULE(vguimatsurface);
-        GAME_MODULE(vphysics);
-        GAME_MODULE(inputsystem);
-        GAME_MODULE(studiorender);
-        GAME_MODULE(shaderapidx9);
-    } // namespace runtime_modules
-} // namespace fd
+    GAME_MODULE(server);
+    GAME_MODULE(client);
+    GAME_MODULE(engine);
+    GAME_MODULE(datacache);
+    GAME_MODULE(materialsystem);
+    GAME_MODULE(vstdlib);
+    GAME_MODULE(vgui2);
+    GAME_MODULE(vguimatsurface);
+    GAME_MODULE(vphysics);
+    GAME_MODULE(inputsystem);
+    GAME_MODULE(studiorender);
+    GAME_MODULE(shaderapidx9);
+} // namespace fd::rt_modules

@@ -18,7 +18,7 @@ import fd.address;
 
 using namespace fd::valve;
 
-FD_OBJECT_IMPL(con_var_system, 0, fd::runtime_modules::vstdlib.find_interface<"VEngineCvar">());
+FD_OBJECT_IMPL(con_var_system, fd::rt_modules::vstdlib.find_interface<"VEngineCvar">());
 
 using fd::basic_address;
 

@@ -7,4 +7,4 @@ import fd.rt_modules;
 
 using namespace fd;
 
-FD_OBJECT_IMPL(IVModelRender, 0, fd::runtime_modules::engine.find_interface<"VEngineModel">());
+FD_OBJECT_IMPL(IVModelRender, fd::rt_modules::engine.find_interface<"VEngineModel">());

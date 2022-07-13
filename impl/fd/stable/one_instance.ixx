@@ -150,40 +150,6 @@ struct instance_of_getter
     }
 };
 
-#if 0
-template <typename T, typename D>
-class instance_of_getter<std::unique_ptr<T, D>>
-{
-  public:
-    using value_type = std::unique_ptr<T, D>;
-
-    using element_type = T;
-    using deleter_type = D;
-
-    using pointer = value_type::pointer;
-    using reference = std::remove_pointer_t<pointer>;
-
-    template <size_t Instance, typename... Args>
-    instance_of_getter(const std::in_place_index_t<Instance>, Args&&... args)
-        : item_(std::make_unique<T>(std::forward<Args>(args)...))
-    {
-    }
-
-    reference ref()
-    {
-        return *item_;
-    }
-
-    pointer ptr()
-    {
-        return item_.get();
-    }
-
-  private:
-    value_type item_;
-};
-#endif
-
 template <typename T>
 struct instance_of_getter<T*>
 {

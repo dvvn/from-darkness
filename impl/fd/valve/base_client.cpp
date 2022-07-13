@@ -7,7 +7,7 @@
 module fd.valve.base_client;
 import fd.rt_modules;
 
-FD_OBJECT_IMPL(base_client, 0, fd::runtime_modules::client.find_interface<"VClient">());
+FD_OBJECT_IMPL(base_client, fd::rt_modules::client.find_interface<"VClient">());
 
 bool base_client::DispatchUserMessage(int msg_type, int flags, int size, const void* msg)
 {
