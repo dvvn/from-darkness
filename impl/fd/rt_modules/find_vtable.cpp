@@ -10,6 +10,7 @@ module;
 module fd.rt_modules:find_vtable;
 import :find_section;
 import :helpers;
+import :library_info;
 import fd.address;
 import fd.mem_block;
 import fd.logger;
@@ -130,7 +131,7 @@ void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
 
     const auto result = _Load_vtable(_Section_to_rng(dos, dot_rdata), _Section_to_rng(dos, dot_text), type_descriptor);
     if (notify)
-        std::invoke(fd::logger, "Vtable found! (WIP)"); // on_vtable_found, ldr_entry, name, result
+        fd::library_info(ldr_entry).log("vtable", name, result);
     else
         FD_ASSERT(result != nullptr);
     return result;

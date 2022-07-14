@@ -14,10 +14,9 @@ import :helpers;
 import fd.chars_cache;
 import fd.logger;
 
-static void on_library_found(std::wstring_view, LDR_DATA_TABLE_ENTRY*)
-{
-    std::invoke(fd::logger, "Library found! (WIP)");
-}
+constexpr auto on_library_found = [](const auto library_name, const LDR_DATA_TABLE_ENTRY* entry) {
+    std::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
+};
 
 template <typename Fn>
 class partial_invoke
@@ -183,7 +182,12 @@ LDR_DATA_TABLE_ENTRY* find_current_library(const bool notify)
         if (notify)
         {
             using namespace fd;
-            std::invoke(on_library_found, L"current"_cch, ldr_entry);
+            std::invoke(
+                on_library_found,
+                [=] {
+                    return fd::library_info(ldr_entry).name();
+                },
+                ldr_entry);
         }
 
         return ldr_entry;

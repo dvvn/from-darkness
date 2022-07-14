@@ -7,7 +7,7 @@ module;
 
 module fd.rt_modules:find_section;
 import :helpers;
-import fd.logger;
+import :library_info;
 
 IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
@@ -33,7 +33,6 @@ IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const 
     }
 
     if (notify)
-        std::invoke(fd::logger, "Section found! (WIP)"); // on_section_found, ldr_entry, name, found_header
-
+        fd::library_info(ldr_entry).log("section", name, found_header);
     return found_header;
 }

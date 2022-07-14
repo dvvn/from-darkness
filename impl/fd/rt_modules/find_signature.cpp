@@ -9,8 +9,8 @@ module;
 
 module fd.rt_modules:find_signature;
 import :helpers;
+import :library_info;
 import fd.mem_block;
-import fd.logger;
 
 uint8_t* find_signature(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig, const bool notify)
 {
@@ -24,6 +24,6 @@ uint8_t* find_signature(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string
 
     const auto result = mem.find_block(bytes).data();
     if (notify)
-        std::invoke(fd::logger, "Signature found! (WIP)"); // on_signature_found, ldr_entry, sig, result
+        fd::library_info(ldr_entry).log("signature", sig, result);
     return result;
 }

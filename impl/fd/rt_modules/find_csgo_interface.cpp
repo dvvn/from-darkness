@@ -5,18 +5,16 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <cctype>
 #include <string_view>
 
 module fd.rt_modules:find_csgo_interface;
-// import :find_export;
+import :library_info;
 import fd.address;
-import fd.logger;
+import fd.ctype;
 
 void on_csgo_interface_found(const LDR_DATA_TABLE_ENTRY* library_name, std::string_view interface_name, const void* interface_ptr)
 {
-    FD_ASSERT(library_name != nullptr);
-    std::invoke(fd::logger, "Interface found! (WIP)");
+    fd::library_info(library_name).log("interface", interface_name, interface_ptr);
 }
 
 struct interface_reg
@@ -36,7 +34,7 @@ struct interface_reg
             const auto last_char = reg->name[interface_name.size()];
             if (last_char != '\0')
             {
-                if (!std::isdigit(last_char))
+                if (!fd::is_digit(last_char))
                     continue;
                 FD_ASSERT(!reg->next || !reg->next->find(interface_name));
             }

@@ -51,9 +51,10 @@ struct to_char_impl
     }
 
     template <typename C>
-    auto operator()(const C* from) const
+    auto operator()(const C from) const requires(std::is_pointer_v<C>) // fix to allow previous overload
     {
-        return utf_conv<To>(from, from + std::char_traits<C>::length(from));
+        const auto to = from + std::char_traits<std::remove_pointer_t<C>>::length(from);
+        return utf_conv<To>(from, to);
     }
 };
 

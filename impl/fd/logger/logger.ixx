@@ -10,46 +10,67 @@ module;
 export module fd.logger;
 export import fd.to_char;
 
+template <typename T>
+concept have_array_access = requires(const T& obj)
+{
+    obj[0];
+};
+
+struct dummy
+{
+};
+
 template <typename S>
-using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
+auto _Get_char_t()
+{
+    if constexpr (have_array_access<S>)
+        return std::remove_cvref_t<decltype(std::declval<S>()[0])>();
+    else
+        return dummy();
+}
+
+template <typename S>
+using get_char_t = decltype(_Get_char_t<S>());
+
+// template <typename T>
+// concept correct_char_traits = !std::same_as<decltype(std::declval<T>())::int_type, unsigned long>;
+
+// clang-format off
+constexpr void _Char_acceptor(const char){}
+constexpr void _Char_acceptor(const wchar_t){}
+constexpr void _Char_acceptor(const char8_t){}
+constexpr void _Char_acceptor(const char16_t){}
+constexpr void _Char_acceptor(const char32_t){}
+
+// clang-format on
 
 template <typename T>
 concept can_be_string = requires(const T& obj)
 {
+    // {
     std::basic_string_view(obj);
+    _Char_acceptor(obj[0]);
+    // } -> correct_char_traits;
 };
 
-template <typename CharT, class T>
-auto correct_string(T&& str)
+template <typename T>
+decltype(auto) _Forward_or_move(T&& obj)
 {
-    using str_char_t = get_char_t<T>;
-    if constexpr (std::same_as<str_char_t, CharT>)
-        return std::forward<T>(str);
+    if constexpr (std::is_rvalue_reference_v<decltype(obj)>)
+        return std::remove_cvref_t<T>(std::forward<T>(obj));
     else
-        return fd::to_char<CharT>(str);
+        return std::forward<T>(obj);
 }
 
-template <typename CharT, typename T>
-decltype(auto) _Prepare_fmt_arg(const T& arg)
+template <typename CharT = void, typename T>
+decltype(auto) _Correct_obj(T&& obj)
 {
-    constexpr auto cvt = fd::to_char<CharT>;
-    if constexpr (can_be_string<T>)
-    {
-        return correct_string<CharT>(arg);
-    }
-    else if constexpr (std::invocable<T>)
-    {
-        auto tmp    = std::invoke(arg);
-        using tmp_t = decltype(tmp);
-        if constexpr (can_be_string<tmp_t>)
-            return correct_string<CharT>(std::move(tmp));
-        else
-            return tmp;
-    }
+    if constexpr (std::invocable<T>)
+        return _Correct_obj<CharT>(std::invoke(obj));
+    else if constexpr (!can_be_string<T> || std::same_as<get_char_t<T>, CharT> || std::is_void_v<CharT>)
+        return _Forward_or_move(std::forward<T>(obj));
     else
-    {
-        return arg;
-    }
+        return fd::to_char<CharT>(obj);
 }
 
 template <typename CharT, typename... Args>
@@ -108,13 +129,6 @@ class logger_wrapped
         }
         _Log(str);
         return true;
-    }
-
-    template <typename T, typename... Args>
-    auto _Format(const T& fmt, const Args&... args) const
-    {
-        using char_t = get_char_t<T>;
-        return std::vformat(fmt, _Make_fmt_args<char_t>(_Prepare_fmt_arg<char_t>(args)...));
     }
 
   public:
@@ -181,10 +195,10 @@ class logger_wrapped
         if (_Logger_empty(logger_narrow) && _Logger_empty(logger_wide))
             return false;
 
-        if constexpr (std::invocable<Arg1>)
-            return std::invoke(*this, _Format(std::invoke(fmt), args...));
-        else
-            return std::invoke(*this, _Format(fmt, args...));
+        const auto fmt_fixed = _Correct_obj(fmt);
+        using char_t         = get_char_t<decltype(fmt_fixed)>;
+        const auto message   = std::vformat(fmt_fixed, _Make_fmt_args<char_t>(_Correct_obj<char_t>(args)...));
+        return std::invoke(*this, message);
     }
 };
 
@@ -204,4 +218,9 @@ export namespace std
             return;
         invoke(*l, args...);
     }
+
+    using ::std::format;
+    using ::std::formatter;
+    using ::std::make_format_args;
+    using ::std::vformat;
 } // namespace std

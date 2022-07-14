@@ -19,25 +19,6 @@ import fd.chars_cache;
 
 using fd::basic_address;
 
-/* struct logs_writer
-{
-    void operator()(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::wstring_view module_name) const;
-
-    template <typename FnT>
-    void operator()(const found_export<FnT> ex, const std::wstring_view module_name, const std::string_view export_name) const
-    {
-        console_log(module_name, "export", export_name, ex.pointer);
-    }
-
-    void operator()(IMAGE_SECTION_HEADER* const sec, const std::wstring_view module_name, const std::string_view section_name) const;
-
-    template <typename T>
-    void operator()(const found_vtable<T> vt, const std::wstring_view module_name, const std::string_view vtable_name) const
-    {
-        console_log(module_name, "vtable", vtable_name, vt.ptr);
-    }
-}; */
-
 template <class Gm>
 class interface_finder
 {
@@ -167,6 +148,8 @@ struct current_module
 {
     std::wstring_view _Name() const;
     interface_finder<current_module> _Ifc_finder(const basic_address<void> addr) const;
+
+    LDR_DATA_TABLE_ENTRY* operator->() const;
 };
 
 // clang-format off
@@ -175,20 +158,24 @@ struct current_module
 
 // clang-format on
 
-export namespace fd::rt_modules
+export namespace fd
 {
-    constexpr current_module current;
+    namespace rt_modules
+    {
+        constexpr current_module current;
 
-    GAME_MODULE(server);
-    GAME_MODULE(client);
-    GAME_MODULE(engine);
-    GAME_MODULE(datacache);
-    GAME_MODULE(materialsystem);
-    GAME_MODULE(vstdlib);
-    GAME_MODULE(vgui2);
-    GAME_MODULE(vguimatsurface);
-    GAME_MODULE(vphysics);
-    GAME_MODULE(inputsystem);
-    GAME_MODULE(studiorender);
-    GAME_MODULE(shaderapidx9);
-} // namespace fd::rt_modules
+        GAME_MODULE(server);
+        GAME_MODULE(client);
+        GAME_MODULE(engine);
+        GAME_MODULE(datacache);
+        GAME_MODULE(materialsystem);
+        GAME_MODULE(vstdlib);
+        GAME_MODULE(vgui2);
+        GAME_MODULE(vguimatsurface);
+        GAME_MODULE(vphysics);
+        GAME_MODULE(inputsystem);
+        GAME_MODULE(studiorender);
+        GAME_MODULE(shaderapidx9);
+    } // namespace rt_modules
+
+} // namespace fd

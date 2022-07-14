@@ -14,11 +14,13 @@ struct library_info
 
     library_info(pointer const entry);
 
-    pointer   operator->() const;
+    pointer operator->() const;
     reference operator*() const;
 
     std::wstring_view path() const;
     std::wstring_view name() const;
+
+    void log(const std::string_view object_type, const std::string_view object, const void* addr) const;
 
   private:
     pointer entry_;

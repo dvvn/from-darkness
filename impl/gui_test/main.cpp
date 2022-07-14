@@ -11,6 +11,7 @@ import fd.logger;
 import fd.system_console;
 import fd.application_info;
 import fd.assert;
+import fd.rt_modules;
 
 static fd::comptr<IDirect3D9> g_pD3D;
 static fd::comptr<IDirect3DDevice9> g_pd3dDevice;
@@ -51,69 +52,6 @@ static bool CreateDeviceD3D(HWND hWnd)
     // g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
     return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, g_pd3dDevice));
 }
-
-#if 0
-static void PresetD3D(HWND nativeWindow)
-{
-	RECT clientRect;
-	if(!GetClientRect(nativeWindow, &clientRect))
-	{
-		// if we can't lookup the client rect, abort, something is seriously wrong
-		std::terminate( );
-	}
-
-	// Set up an orthographic projection.
-	auto projection = DirectX::XMMatrixOrthographicOffCenterLH(0, (FLOAT)clientRect.right + 0.5f, (FLOAT)clientRect.bottom + 0.5f, 0, -1, 1);
-	auto identity = DirectX::XMMatrixIdentity( );
-	g_pd3dDevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&identity);
-	g_pd3dDevice->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&identity);
-	g_pd3dDevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&projection);
-
-
-	/*{
-		float L = clientRect.left + 0.5f;
-		float R = clientRect.left + clientRect.right + 0.5f;
-		float T = clientRect.top + 0.5f;
-		float B = clientRect.bottom + clientRect.top + 0.5f;
-		D3DMATRIX mat_identity = {{ { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f } }};
-		D3DMATRIX mat_projection =
-		{{ {
-			2.0f / (R - L),   0.0f,         0.0f,  0.0f,
-			0.0f,         2.0f / (T - B),   0.0f,  0.0f,
-			0.0f,         0.0f,         0.5f,  0.0f,
-			(L + R) / (L - R),  (T + B) / (B - T),  0.5f,  1.0f
-		} }};
-		g_pd3dDevice->SetTransform(D3DTS_WORLD, &mat_identity);
-		g_pd3dDevice->SetTransform(D3DTS_VIEW, &mat_identity);
-		g_pd3dDevice->SetTransform(D3DTS_PROJECTION, &mat_projection);
-	}*/
-
-	//-----
-
-	// Switch to clockwise culling instead of counter-clockwise culling; Rocket generates counter-clockwise geometry,
-	// so you can either reverse the culling mode when Rocket is rendering, or reverse the indices in the render
-	// interface.
-	g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
-
-	// Enable alpha-blending for Rocket.
-	g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	g_pd3dDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	g_pd3dDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-
-	// Set up the texture stage states for the diffuse texture.
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-	g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	g_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-
-	// Disable lighting for Rocket.
-	g_pd3dDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
-}
-#endif
 
 static void ResetDevice()
 {
@@ -165,7 +103,8 @@ int main(int, char**)
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
     fd::app_info.construct(hwnd, hmodule);
     fd::logger->append(fd::system_console_writer);
-    // PresetD3D(hwnd);
+
+    const auto a = fd::rt_modules::current.operator->();
 
     if (!fd::hooks_loader->load<0, 1, 2>())
         return TRUE;

@@ -10,8 +10,8 @@ module;
 
 module fd.rt_modules:find_export;
 import :helpers;
+import :library_info;
 import fd.address;
-import fd.logger;
 
 void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
 {
@@ -97,6 +97,7 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
     }
 
     if (notify)
-        std::invoke(fd::logger, "export found (WIP)"); // ldr_entry, name, export_ptr
+        fd::library_info(ldr_entry).log("export", name, export_ptr);
+
     return export_ptr;
 }
