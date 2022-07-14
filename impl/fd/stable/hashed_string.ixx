@@ -9,8 +9,8 @@ module;
 
 export module fd.hashed_string;
 import fd.lazy_invoke;
-import fd.type_name;
-import fd.hash;
+export import fd.type_name;
+export import fd.hash;
 
 #define CALL_ORIGINAL(_NAME_) Base::_NAME_(std::forward<Args>(args)...)
 
@@ -50,8 +50,12 @@ decltype(auto) this_or_iterator(T* thisptr, const Q& proxy_result)
 
 #define WRAP_THIS_OR_ITERATOR(_NAME_) WRAP(decltype(auto), _NAME_, decltype(auto) result =, return this_or_iterator<Base>(this, result))
 
+struct hashed_string_tag
+{
+};
+
 template <class Base, template <typename> class Hasher = fd::hash>
-struct hashed_string_wrapper : Base
+struct hashed_string_wrapper : Base, hashed_string_tag
 {
     using hash_type      = /*decltype(std::invoke(std::declval<Hasher>( ), std::declval<Base>( )))*/ size_t;
     using hash_func_type = Hasher<Base>;
@@ -158,11 +162,7 @@ struct hashed_string_wrapper : Base
 };
 
 template <class H>
-concept _Hashed_string_wrapped = requires(const H h)
-{
-    h.hash_function();
-    h.hash();
-};
+concept _Hashed_string_wrapped = std::derived_from<H, hashed_string_tag>;
 
 template <class H, class H2>
 concept _Hashed_string_comparable = std::equality_comparable_with<typename H::string_type, typename H2::string_type>;
@@ -184,6 +184,18 @@ template <_Hashed_string_wrapped H1, _Hashed_string_wrapped H2>
 constexpr bool operator!=(const H1& left, const H2& right)
 {
     return !(left == right);
+}
+
+template <_Hashed_string_wrapped H1>
+constexpr bool operator==(const H1& left, const typename H1::hash_type hash_val)
+{
+    return left.hash() == hash_val;
+}
+
+template <_Hashed_string_wrapped H1>
+constexpr bool operator!=(const H1& left, const typename H1::hash_type hash_val)
+{
+    return !(left == hash_val);
 }
 
 template <typename Chr,

@@ -110,9 +110,12 @@ template <typename Chr, size_t Size>
 trivial_chars_cache(const Chr (&arr)[Size]) -> trivial_chars_cache<Chr, Size>;
 
 template <trivial_chars_cache Cache>
+constexpr size_t hash_value = _Hash_bytes(Cache.arr, std::size(Cache.arr) - 1);
+
+template <trivial_chars_cache Cache>
 consteval size_t operator"" _hash()
 {
-    return _Hash_bytes(Cache.arr, std::size(Cache.arr) - 1);
+    return hash_value<Cache>;
 }
 
 static_assert("test"_hash == u8"test"_hash);

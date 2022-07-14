@@ -15,7 +15,7 @@ import fd.math.view_matrix;
 import fd.math.vector2;
 import fd.valve.vector;
 import fd.valve.base_handle;
-import fd.type_name;
+import fd.hashed_string;
 import fd.to_char;
 import fd.ctype;
 
@@ -61,10 +61,10 @@ std::string netvars::type_utlvector(const std::string_view type)
 }
 
 // m_xxxX***
-static std::string_view _Extract_prefix(const std::string_view type, const size_t prefix_size = 3)
+static fd::hashed_string_view _Extract_prefix(const std::string_view type, const size_t prefix_size = 3)
 {
     const auto type_start = 2 + prefix_size;
-    if (type.size() > type_start && (type[0] == 'm' && type[1] == '_') && std::isupper(type[type_start]))
+    if (type.size() > type_start && (type[0] == 'm' && type[1] == '_') && fd::is_upper(type[type_start]))
         return type.substr(2, prefix_size);
     return {};
 }
@@ -76,12 +76,12 @@ static std::string_view _Extract_prefix(const std::string_view type, const size_
 std::string_view netvars::type_vec3(const std::string_view type)
 {
     const auto vec3_qangle = [=] {
-        if (std::isdigit(type[0]))
+        if (fd::is_digit(type[0]))
             return false;
         const auto prefix = _Extract_prefix(type);
-        if (prefix == "ang")
+        if (prefix == "ang"_hash)
             return true;
-        return to_lower(prefix.empty() ? type : type.substr(2)).contains("angles");
+        return fd::to_lower(prefix.empty() ? type : type.substr(2)).contains("angles");
     };
 
     return vec3_qangle() ? type_name<math::qangle>() : type_name<math::vector3>();
@@ -89,11 +89,11 @@ std::string_view netvars::type_vec3(const std::string_view type)
 
 std::string_view netvars::type_integer(std::string_view type)
 {
-    if (/*!std::isdigit(type[0]) &&*/ type.starts_with("m_"))
+    if (/*!fd::is_digit(type[0]) &&*/ type.starts_with("m_"))
     {
         type.remove_prefix(2);
         const auto is_upper = [&](size_t i) {
-            return type.size() > i && std::isupper(type[i]);
+            return type.size() > i && fd::is_upper(type[i]);
         };
         if (is_upper(1))
         {
@@ -110,7 +110,7 @@ std::string_view netvars::type_integer(std::string_view type)
                 return type_name<uint32_t>();
             if (type.starts_with("ch"))
                 return type_name<uint8_t>();
-            if (type.starts_with("fl") && to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
+            if (type.starts_with("fl") && fd::to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
                 return type_name<float>();
         }
         else if (is_upper(3))
@@ -243,19 +243,28 @@ std::string_view netvars::type_datamap_field(const data_map_description* const f
 
 static std::string_view _Check_int_prefix(const std::string_view type)
 {
-    if (_Extract_prefix(type) == "uch")
+    if (_Extract_prefix(type) == "uch"_hash)
         return type_name<math::color>();
     return {};
 }
 
 static std::string_view _Check_float_prefix(const std::string_view type)
 {
-    const auto prefix = _Extract_prefix(type);
+    /* const auto prefix = _Extract_prefix(type);
     if (prefix == "ang")
         return type_name<math::qangle>();
     if (prefix == "vec")
         return type_name<math::vector3>();
-    return {};
+    return {}; */
+    switch (_Extract_prefix(type).hash())
+    {
+    case "ang"_hash:
+        return type_name<math::qangle>();
+    case "vec"_hash:
+        return type_name<math::vector3>();
+    default:
+        return {};
+    }
 }
 
 std::string_view netvars::type_array_prefix(const std::string_view type, recv_prop* const prop)
