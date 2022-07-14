@@ -119,7 +119,7 @@ struct ConCommandBaseIterator
     }
 
     // Postfix increment
-    ConCommandBaseIterator operator++(difference_type)
+    ConCommandBaseIterator operator++(int)
     {
         ConCommandBaseIterator tmp = *this;
         ++(*this);

@@ -15,7 +15,7 @@ endif()
 
 include(ProcessorCount)
 ProcessorCount(_CPUS)
-message("cpu count: ${_CPUS}")
+message(DEBUG "cpu count: ${_CPUS}")
 
 # if(MSVC) idk, not defined
 add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
