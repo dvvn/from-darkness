@@ -3,6 +3,7 @@
 #include <fd/assert.h>
 
 #include <array>
+#include <format>
 #include <span>
 #include <string>
 #include <variant>
@@ -26,9 +27,12 @@ class base_entity;
 std::string netvars::type_std_array(const std::string_view type, const size_t size)
 {
     FD_ASSERT(size != 0);
-    std::string buff;
     constexpr auto arr_name = type_name<std::array>();
-    const auto arr_size     = std::to_string(size);
+#ifdef __cpp_lib_format
+    return std::format("{}<{}, {}>", arr_name, type, size);
+#else
+    std::string buff;
+    const auto arr_size = std::to_string(size);
     buff.reserve(arr_name.size() + 1 + type.size() + 2 + arr_size.size() + 1);
     buff += arr_name;
     buff += '<';
@@ -37,20 +41,23 @@ std::string netvars::type_std_array(const std::string_view type, const size_t si
     buff += arr_size;
     buff += '>';
     return buff;
-    // return std::format("{}<{}, {}>", type_name<std::array>( ), type, size);
+#endif
 }
 
 std::string netvars::type_utlvector(const std::string_view type)
 {
-    std::string buff;
     constexpr auto arr_name = type_name<valve::vector>();
+#ifdef __cpp_lib_format
+    return std::format("{}<{}>", arr_name, type);
+#else
+    std::string buff;
     buff.reserve(arr_name.size() + 1 + type.size() + 1);
     buff += arr_name;
     buff += '<';
     buff += type;
     buff += '>';
     return buff;
-    // return std::format("{}<{}>", type_name<valve_vector>( ), type);
+#endif
 }
 
 // m_xxxX***
