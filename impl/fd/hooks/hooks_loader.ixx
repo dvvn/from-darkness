@@ -17,9 +17,9 @@ constexpr bool know_hook(const size_t i)
 #endif
 
 template <size_t... I>
-constexpr bool is_unique(const std::index_sequence<I...>)
+constexpr bool is_unique(const std::index_sequence<I...> seq)
 {
-    if constexpr (sizeof...(I) == 1)
+    if constexpr (seq.size() == 1)
         return true;
     else
     {
@@ -36,7 +36,7 @@ struct basic_hooks_loader
     virtual ~basic_hooks_loader() = default;
 
     template <size_t... I>
-    bool load(const bool stop_on_error = true, const std::index_sequence<I...> seq = {})
+    bool load(const bool stop_on_error = true, const std::index_sequence<I...> seq = {}) requires(seq.size() > 0)
     {
         static_assert(is_unique(seq));
 #ifdef FD_KNOWN_HOOKS
