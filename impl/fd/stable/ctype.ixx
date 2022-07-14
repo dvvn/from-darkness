@@ -42,21 +42,29 @@ class ctype_to
     {
         if constexpr (std::is_class_v<T>)
         {
-            std::basic_string buff(get_allocator(item));
+            using val_t    = std::iter_value_t<T>;
+            using traits_t = std::char_traits<val_t>;
+            using alloc_t  = decltype(get_allocator(item));
+            std::basic_string<val_t, traits_t, alloc_t> buff(get_allocator(item));
             buff.reserve(item.size());
             for (const auto chr : item)
                 buff += std::invoke(adaptor_, chr);
             return buff;
         }
-        else if (std::is_pointer_v<T>)
+        else if constexpr (std::is_pointer_v<T>)
         {
-            using val_t = std::remove_pointer_t<T>;
+            using val_t = std::iter_value_t<T>;
             std::basic_string<val_t> buff;
-            for (auto chr = *item; chr != static_cast<val_t>('\0'); chr = *++item)
+            for (auto ptr = item;;)
+            {
+                auto chr = *ptr++;
+                if (chr == static_cast<val_t>('\0'))
+                    break;
                 buff += std::invoke(adaptor_, chr);
+            }
             return buff;
         }
-        else if (std::is_bounded_array_v<T>)
+        else if constexpr (std::is_bounded_array_v<T>)
         {
             const auto size  = std::size(item) - 1;
             const auto begin = item;
@@ -164,11 +172,11 @@ class ctype_is
         {
             return process(std::basic_string_view(item), mode);
         }
-        else if (std::is_pointer_v<T>)
+        else if constexpr (std::is_pointer_v<T>)
         {
             return process(item, mode);
         }
-        else if (std::is_bounded_array_v<T>)
+        else if constexpr (std::is_bounded_array_v<T>)
         {
             return process(std::basic_string_view(item, std::size(item) - 1), mode);
         }

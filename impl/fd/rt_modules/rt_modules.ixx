@@ -152,12 +152,14 @@ namespace fd
             return found;
         }
 
+#if 0
         template <typename T>
         T* find_vtable() const
         {
             static_assert(std::is_class_v<T> /* is_abstract_v */);
             return static_cast<T*>(find_vtable<type_name_holder<T>>());
         }
+#endif
     };
 } // namespace fd
 

@@ -4,12 +4,11 @@ module;
 
 //#include <format>
 #include <algorithm>
-#include <cctype>
 #include <ranges>
 #include <variant>
 
 module fd.netvars.core:storage;
-import fd.lower_upper;
+import fd.ctype;
 
 using namespace fd;
 using namespace netvars;
@@ -20,7 +19,7 @@ static auto _Correct_class_name(const std::string_view name)
 
     if (name[0] == 'C' && name[1] != '_')
     {
-        FD_ASSERT(std::isalnum(name[1]));
+        FD_ASSERT(fd::is_alnum(name[1]));
         // internal csgo classes looks like C_***
         // same classes in shared code look like C***
         ret.reserve(2 + name.size() - 1);
@@ -61,7 +60,7 @@ using namespace fd::valve;
 
 static bool _Table_is_array(const recv_table& table)
 {
-    return /*!table.props.empty( ) &&*/ std::isdigit(table.props.back().name[0]);
+    return /*!table.props.empty( ) &&*/ fd::is_digit(table.props.back().name[0]);
 };
 
 static bool _Table_is_data_table(const recv_table& table)

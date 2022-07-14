@@ -15,8 +15,8 @@ import fd.math.vector2;
 import fd.valve.vector;
 import fd.valve.base_handle;
 import fd.type_name;
-import fd.convert_to;
-import fd.lower_upper;
+import fd.to_char;
+import fd.ctype;
 
 using namespace fd;
 using namespace fd::valve;

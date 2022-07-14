@@ -46,7 +46,7 @@ class netvars_holder : public storage
     {
         iterate_client_class(FD_OBJECT_GET(base_client)->GetAllClasses());
 
-        const auto baseent = rt_modules::client.find_vtable<base_entity>();
+        const auto baseent = static_cast<base_entity*>(rt_modules::client.find_vtable<"C_BaseEntity">());
         iterate_datamap(baseent->GetDataDescMap());
         iterate_datamap(baseent->GetPredictionDescMap());
 
