@@ -12,15 +12,13 @@ import fd.system_console;
 import fd.application_info;
 import fd.assert;
 
-using fd::comptr;
-
-static comptr<IDirect3D9> g_pD3D;
-static comptr<IDirect3DDevice9> g_pd3dDevice;
+static fd::comptr<IDirect3D9> g_pD3D;
+static fd::comptr<IDirect3DDevice9> g_pd3dDevice;
 static D3DPRESENT_PARAMETERS g_d3dpp;
 
 #define RESET_BACK_BUFFER_ON_RESIZE
 
-static bool CreateDeviceD3D(HWND hWnd) noexcept
+static bool CreateDeviceD3D(HWND hWnd)
 {
     g_pD3D.Attach(Direct3DCreate9(D3D_SDK_VERSION));
     if (!g_pD3D)
@@ -117,13 +115,13 @@ static void PresetD3D(HWND nativeWindow)
 }
 #endif
 
-static void ResetDevice() noexcept
+static void ResetDevice()
 {
     const HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
     // runtime_assert(hr != D3DERR_INVALIDCALL);
 }
 
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -164,13 +162,12 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    using namespace fd;
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
-    app_info.construct(hwnd, hmodule);
-    logger->append(system_console_writer);
+    fd::app_info.construct(hwnd, hmodule);
+    fd::logger->append(fd::system_console_writer);
     // PresetD3D(hwnd);
 
-    if (!hooks_loader->load<0, 1, 2>())
+    if (!fd::hooks_loader->load())
         return TRUE;
 
     //----------------
@@ -194,6 +191,6 @@ int main(int, char**)
     }
 
 _STOP:
-    hooks_loader->disable();
+    fd::hooks_loader->disable();
     return FALSE;
 }

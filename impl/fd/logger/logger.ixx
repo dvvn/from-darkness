@@ -8,7 +8,7 @@ module;
 #include <string_view>
 
 export module fd.logger;
-export import fd.convert_to;
+export import fd.to_char;
 
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
@@ -19,20 +19,30 @@ concept can_be_string = requires(const T& obj)
     std::basic_string_view(obj);
 };
 
+template <typename CharT, class T>
+auto correct_string(T&& str)
+{
+    using str_char_t = get_char_t<T>;
+    if constexpr (std::same_as<str_char_t, CharT>)
+        return std::forward<T>(str);
+    else
+        return fd::to_char<CharT>(str);
+}
+
 template <typename CharT, typename T>
 decltype(auto) _Prepare_fmt_arg(const T& arg)
 {
-    constexpr auto cvt = fd::convert_to<CharT>;
+    constexpr auto cvt = fd::to_char<CharT>;
     if constexpr (can_be_string<T>)
     {
-        return cvt(std::basic_string_view(arg));
+        return correct_string<CharT>(arg);
     }
     else if constexpr (std::invocable<T>)
     {
         auto tmp    = std::invoke(arg);
         using tmp_t = decltype(tmp);
-        if constexpr (can_be_string<tmp_t> && !std::same_as<CharT, get_char_t<tmp_t>>)
-            return cvt(tmp);
+        if constexpr (can_be_string<tmp_t>)
+            return correct_string<CharT>(std::move(tmp));
         else
             return tmp;
     }
@@ -101,7 +111,7 @@ class logger_wrapped
     }
 
     template <typename T, typename... Args>
-    auto _Format(const T& fmt, const Args... args) const
+    auto _Format(const T& fmt, const Args&... args) const
     {
         using char_t = get_char_t<T>;
         return std::vformat(fmt, _Make_fmt_args<char_t>(_Prepare_fmt_arg<char_t>(args)...));

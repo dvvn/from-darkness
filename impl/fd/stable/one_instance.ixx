@@ -3,6 +3,7 @@ module;
 #include <concepts>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <utility>
 
 export module fd.one_instance;
@@ -210,85 +211,6 @@ bool operator!=(const instance_of_getter<T*> getter, std::nullptr_t)
     return !(getter == nullptr);
 }
 
-template <typename T>
-constexpr bool nullptr_support = std::constructible_from<T, std::nullptr_t>&& std::equality_comparable_with<T, std::nullptr_t>;
-
-template <typename T>
-constexpr bool nullptr_support<instance_of_getter<T*>> = true;
-
-template <typename T>
-class simple_optional
-{
-    union
-    {
-        uint8_t dummy_;
-        T item_;
-    };
-
-    [[no_unique_address]] std::conditional_t<nullptr_support<T>, std::false_type, bool> created_;
-
-    bool _Created() const
-    {
-        if constexpr (nullptr_support<T>)
-            return item_ != nullptr;
-        else
-            return created_;
-    }
-
-    void _Destroy_if_created()
-    {
-        if constexpr (std::is_class_v<T>)
-        {
-            if (_Created())
-                std::destroy_at(&item_);
-        }
-    }
-
-    void _Init_default()
-    {
-        if constexpr (nullptr_support<T>)
-            std::construct_at(&item_, nullptr);
-        else
-            created_ = false;
-    }
-
-    void _Mark_created()
-    {
-        if constexpr (!nullptr_support<T>)
-            created_ = true;
-    }
-
-  public:
-    simple_optional()
-    {
-        _Init_default();
-    }
-
-    ~simple_optional()
-    {
-        _Destroy_if_created();
-    }
-
-    template <typename... Args>
-    T& emplace(Args&&... args)
-    {
-        _Destroy_if_created();
-        std::construct_at(&item_, std::forward<Args>(args)...);
-        _Mark_created();
-        return item_;
-    }
-
-    bool has_value() const
-    {
-        return _Created();
-    }
-
-    T& operator*()
-    {
-        return item_;
-    }
-};
-
 constexpr size_t _Magic_number(const size_t value)
 {
     const size_t time_offsets[] = { 0, 3, 6 };
@@ -303,8 +225,7 @@ class instance_of_impl
 
     static __declspec(noinline) auto& _Buff()
     {
-        // static std::optional<t_getter> buff;
-        static simple_optional<t_getter> buff;
+        static std::optional<t_getter> buff;
         return buff;
     }
 

@@ -106,13 +106,13 @@ function(target_compile_definition _target _type _def)
   message(DEBUG "${_target}: macro ${_def} added (${_type})")
 endfunction()
 
-function(project_part)
-  cmake_parse_arguments(PART "" "NAME;TYPE" "FILES;INCLUDE;LINK;DEFINE" ${ARGN})
+function(project_part _name)
+  cmake_parse_arguments(PART "" "TYPE" "FILES;INCLUDE;LINK;DEFINE" ${ARGN})
 
-  if(NOT PART_NAME)
+  #[[ if(NOT PART_NAME)
     message(FATAL_ERROR "Name not set!")
   endif()
-  set(_name ${PART_NAME})
+  set(_name ${PART_NAME}) ]]
 
   #---------------
 
@@ -231,43 +231,26 @@ endfunction()
 
 project(${_PROJ_NAME}) # -------------------
 
-project_part(NAME json LINK nlohmann_json)
-project_part(NAME math INCLUDE ${_PROJ_IMPL_DIR})
-
-project_part(NAME convert_to INCLUDE ${utf8_conv_SOURCE_DIR}/include)
-project_part(NAME hash INCLUDE ${xxhct_SOURCE_DIR})
 project_part(
-  NAME
   stable
   LINK
-  hash
-  convert_to
+  nlohmann_json
   INCLUDE
-  ${_PROJ_IMPL_DIR})
+  ${_PROJ_IMPL_DIR}
+  ${utf8_conv_SOURCE_DIR}/include
+  ${xxhct_SOURCE_DIR})
 
-project_part(NAME logger LINK stable)
-project_part(NAME mem LINK stable)
-project_part(NAME rt_modules LINK mem logger)
-project_part(NAME valve LINK rt_modules math)
-project_part(NAME netvars LINK valve json)
-project_part(NAME gui_interface LINK stable)
-project_part(
-  NAME
-  gui
-  LINK
-  gui_interface
-  logger
-  d3d9.lib
-  imgui
-  #[[ RmlCore
-  RmlDebugger
-  DEFINE
-  RMLUI_STATIC_LIB
-  RMLUI_DIR=${rml_SOURCE_DIR} ]]
-)
-project_part(NAME hooks LINK gui valve)
+project_part(logger LINK stable)
+project_part(mem LINK stable)
+project_part(rt_modules LINK mem logger)
+project_part(math INCLUDE ${_PROJ_IMPL_DIR})
+project_part(valve LINK rt_modules math)
+project_part(netvars LINK valve json)
+project_part(gui_interface LINK stable)
+project_part(gui LINK gui_interface logger d3d9.lib imgui) #[[ RmlCore  RmlDebugger  DEFINE  RMLUI_STATIC_LIB  RMLUI_DIR=${rml_SOURCE_DIR} ]]
+project_part(hooks LINK gui valve)
 
-project_part(NAME gui_test TYPE EXECUTABLE LINK hooks)
+project_part(gui_test TYPE EXECUTABLE LINK hooks)
 
 #[[
 #-----------------

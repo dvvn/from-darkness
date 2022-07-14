@@ -16,7 +16,9 @@ module;
 #include <time.h>
 
 module fd.system_console;
-import fd.convert_to;
+#ifdef _DEBUG
+import fd.to_char;
+#endif
 import fd.chars_cache;
 
 class stream_descriptor
@@ -270,7 +272,7 @@ class writer
 
 // idk how to made it works, here is temp gap
 #ifdef _DEBUG
-        const auto tmp = fd::convert_to<char>(std::wstring_view(ptr, size));
+        const auto tmp = fd::to_char<char>(std::wstring_view(ptr, size));
         FD_ASSERT(tmp.size() == size, "Unicode not supported");
 #else
         const std::string tmp(ptr, ptr + size);
