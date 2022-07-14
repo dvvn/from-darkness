@@ -36,12 +36,12 @@ set(FT_DISABLE_HARFBUZZ on)
 set(FT_DISABLE_BROTLI on)
 FetchContent_MakeAvailable(freetype)
 
-set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}.lib)
+#[[ set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}.lib)
 get_target_property(FREETYPE_INCLUDE_DIRS freetype INTERFACE_INCLUDE_DIRECTORIES)
 FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
 FetchContent_MakeAvailable(rml)
 unset(FREETYPE_LIBRARY)
-unset(FREETYPE_INCLUDE_DIRS)
+unset(FREETYPE_INCLUDE_DIRS) ]]
 
 FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui.git)
 FetchContent_Populate(imgui)

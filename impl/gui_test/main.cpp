@@ -167,7 +167,7 @@ int main(int, char**)
     fd::logger->append(fd::system_console_writer);
     // PresetD3D(hwnd);
 
-    if (!fd::hooks_loader->load())
+    if (!fd::hooks_loader->load<0, 1, 2>())
         return TRUE;
 
     //----------------
