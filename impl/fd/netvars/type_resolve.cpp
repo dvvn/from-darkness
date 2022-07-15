@@ -5,7 +5,6 @@
 #include <array>
 #include <format>
 #include <span>
-#include <string>
 #include <variant>
 
 module fd.netvars.core:type_resolve;
@@ -24,15 +23,15 @@ using namespace fd::valve;
 
 class base_entity;
 
-std::string netvars::type_std_array(const std::string_view type, const size_t size)
+fd::string netvars::type_std_array(const fd::string_view type, const size_t size)
 {
     FD_ASSERT(size != 0);
     constexpr auto arr_name = type_name<std::array>();
 #ifdef __cpp_lib_format
     return std::format("{}<{}, {}>", arr_name, type, size);
 #else
-    std::string buff;
-    const auto arr_size = std::to_string(size);
+    fd::string buff;
+    const auto arr_size = fd::to_string(size);
     buff.reserve(arr_name.size() + 1 + type.size() + 2 + arr_size.size() + 1);
     buff += arr_name;
     buff += '<';
@@ -44,13 +43,13 @@ std::string netvars::type_std_array(const std::string_view type, const size_t si
 #endif
 }
 
-std::string netvars::type_utlvector(const std::string_view type)
+fd::string netvars::type_utlvector(const fd::string_view type)
 {
     constexpr auto arr_name = type_name<valve::vector>();
 #ifdef __cpp_lib_format
     return std::format("{}<{}>", arr_name, type);
 #else
-    std::string buff;
+    fd::string buff;
     buff.reserve(arr_name.size() + 1 + type.size() + 1);
     buff += arr_name;
     buff += '<';
@@ -61,7 +60,7 @@ std::string netvars::type_utlvector(const std::string_view type)
 }
 
 // m_xxxX***
-static fd::hashed_string_view _Extract_prefix(const std::string_view type, const size_t prefix_size = 3)
+static fd::hashed_string_view _Extract_prefix(const fd::string_view type, const size_t prefix_size = 3)
 {
     const auto type_start = 2 + prefix_size;
     if (type.size() > type_start && (type[0] == 'm' && type[1] == '_') && fd::is_upper(type[type_start]))
@@ -73,7 +72,7 @@ static fd::hashed_string_view _Extract_prefix(const std::string_view type, const
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
 #endif
 
-std::string_view netvars::type_vec3(const std::string_view type)
+fd::string_view netvars::type_vec3(const fd::string_view type)
 {
     const auto vec3_qangle = [=] {
         if (fd::is_digit(type[0]))
@@ -87,7 +86,7 @@ std::string_view netvars::type_vec3(const std::string_view type)
     return vec3_qangle() ? type_name<math::qangle>() : type_name<math::vector3>();
 }
 
-std::string_view netvars::type_integer(std::string_view type)
+fd::string_view netvars::type_integer(fd::string_view type)
 {
     if (/*!fd::is_digit(type[0]) &&*/ type.starts_with("m_"))
     {
@@ -143,7 +142,7 @@ string_or_view netvars::type_recv_prop(const recv_prop* const prop)
         return type_name<char*>(); // char[X]
     case pt::DPT_Array: {
         const auto prev_prop = std::prev(prop);
-        FD_ASSERT(std::string_view(prev_prop->name).ends_with("[0]"));
+        FD_ASSERT(fd::string_view(prev_prop->name).ends_with("[0]"));
         const auto type = type_recv_prop(prev_prop);
         return type_std_array(type, prop->elements_count);
     }
@@ -159,7 +158,7 @@ string_or_view netvars::type_recv_prop(const recv_prop* const prop)
     }
 }
 
-std::string_view netvars::type_datamap_field(const data_map_description* const field)
+fd::string_view netvars::type_datamap_field(const data_map_description* const field)
 {
     using ft = data_map_description_type;
 
@@ -241,14 +240,14 @@ std::string_view netvars::type_datamap_field(const data_map_description* const f
     }
 }
 
-static std::string_view _Check_int_prefix(const std::string_view type)
+static fd::string_view _Check_int_prefix(const fd::string_view type)
 {
     if (_Extract_prefix(type) == "uch"_hash)
         return type_name<math::color>();
     return {};
 }
 
-static std::string_view _Check_float_prefix(const std::string_view type)
+static fd::string_view _Check_float_prefix(const fd::string_view type)
 {
     /* const auto prefix = _Extract_prefix(type);
     if (prefix == "ang")
@@ -267,7 +266,7 @@ static std::string_view _Check_float_prefix(const std::string_view type)
     }
 }
 
-std::string_view netvars::type_array_prefix(const std::string_view type, recv_prop* const prop)
+fd::string_view netvars::type_array_prefix(const fd::string_view type, recv_prop* const prop)
 {
     using pt = recv_prop_type;
 
@@ -282,7 +281,7 @@ std::string_view netvars::type_array_prefix(const std::string_view type, recv_pr
     }
 }
 
-std::string_view netvars::type_array_prefix(const std::string_view type, data_map_description* const field)
+fd::string_view netvars::type_array_prefix(const fd::string_view type, data_map_description* const field)
 {
     using ft = data_map_description_type;
 

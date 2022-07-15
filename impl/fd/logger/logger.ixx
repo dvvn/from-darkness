@@ -5,7 +5,6 @@ module;
 #include <concepts>
 #include <format>
 #include <functional>
-#include <string_view>
 
 export module fd.logger;
 export import fd.to_char;
@@ -41,16 +40,12 @@ constexpr void _Char_acceptor(const wchar_t){}
 constexpr void _Char_acceptor(const char8_t){}
 constexpr void _Char_acceptor(const char16_t){}
 constexpr void _Char_acceptor(const char32_t){}
-
 // clang-format on
 
 template <typename T>
 concept can_be_string = requires(const T& obj)
 {
-    // {
-    std::basic_string_view(obj);
     _Char_acceptor(obj[0]);
-    // } -> correct_char_traits;
 };
 
 template <typename T>
@@ -67,7 +62,7 @@ decltype(auto) _Correct_obj(T&& obj)
 {
     if constexpr (std::invocable<T>)
         return _Correct_obj<CharT>(std::invoke(obj));
-    else if constexpr (!can_be_string<T> || std::same_as<get_char_t<T>, CharT> || std::is_void_v<CharT>)
+    else if constexpr (std::is_same_v<get_char_t<T>, CharT> || std::is_void_v<CharT> || !can_be_string<T>)
         return _Forward_or_move(std::forward<T>(obj));
     else
         return fd::to_char<CharT>(obj);
@@ -76,14 +71,14 @@ decltype(auto) _Correct_obj(T&& obj)
 template <typename CharT, typename... Args>
 auto _Make_fmt_args(const Args&... args)
 {
-    if constexpr (std::same_as<CharT, char>)
+    if constexpr (std::is_same_v<CharT, char>)
         return std::make_format_args(args...);
-    else if constexpr (std::same_as<CharT, wchar_t>)
+    else if constexpr (std::is_same_v<CharT, wchar_t>)
         return std::make_wformat_args(args...);
 }
 
-FD_CALLBACK(logger_narrow, std::string_view);
-FD_CALLBACK(logger_wide, std::wstring_view);
+FD_CALLBACK(logger_narrow, fd::string_view);
+FD_CALLBACK(logger_wide, fd::wstring_view);
 
 template <typename L>
 bool _Logger_empty(const L logger)
@@ -100,25 +95,25 @@ concept invocable = requires(_FTy&& _Fn, _ArgTys&&... _Args)
 
 class logger_wrapped
 {
-    void _Log(const std::string_view msg) const
+    void _Log(const fd::string_view msg) const
     {
         std::invoke(logger_narrow, msg);
     }
 
-    void _Log_inversed(const std::string_view msg) const
+    void _Log_inversed(const fd::string_view msg) const
     {
-        const std::wstring wide_str(msg.begin(), msg.end());
+        const fd::wstring wide_str(msg.begin(), msg.end());
         _Log(wide_str);
     }
 
-    void _Log(const std::wstring_view msg) const
+    void _Log(const fd::wstring_view msg) const
     {
         std::invoke(logger_wide, msg);
     }
 
-    bool _Log_inversed(const std::wstring_view msg) const
+    bool _Log_inversed(const fd::wstring_view msg) const
     {
-        std::string str;
+        fd::string str;
         str.reserve(msg.size());
         for (const auto wchr : msg)
         {
@@ -135,8 +130,8 @@ class logger_wrapped
     template <typename Fn>
     void append(Fn&& callback) const
     {
-        constexpr bool can_narrow = invocable<Fn, std::string_view>;
-        constexpr bool can_wide   = invocable<Fn, std::wstring_view>;
+        constexpr bool can_narrow = invocable<Fn, fd::string_view>;
+        constexpr bool can_wide   = invocable<Fn, fd::wstring_view>;
 
         if constexpr (can_narrow && can_wide)
         {
@@ -156,7 +151,7 @@ class logger_wrapped
         return !_Logger_empty(logger_narrow) || !_Logger_empty(logger_wide);
     }
 
-    bool operator()(const std::string_view msg) const
+    bool operator()(const fd::string_view msg) const
     {
         if (!_Logger_empty(logger_narrow))
         {
@@ -171,7 +166,7 @@ class logger_wrapped
         return false;
     }
 
-    bool operator()(const std::wstring_view msg) const
+    bool operator()(const fd::wstring_view msg) const
     {
         if (!_Logger_empty(logger_wide))
         {

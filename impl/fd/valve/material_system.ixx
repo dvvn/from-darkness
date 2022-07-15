@@ -1,10 +1,9 @@
 module;
 
-#include <string_view>
-
 export module fd.valve.material_system;
 export import fd.valve.app_system;
 export import fd.math.vector3;
+export import fd.string;
 
 using namespace fd::valve;
 using namespace fd::math;
@@ -16,34 +15,34 @@ namespace texture_group
 {
 
     // These are given to FindMaterial to reference the texture groups that Show up on the
-    constexpr std::string_view LIGHTMAP                    = "Lightmaps";
-    constexpr std::string_view WORLD                       = "World textures";
-    constexpr std::string_view MODEL                       = "Model textures";
-    constexpr std::string_view VGUI                        = "VGUI textures";
-    constexpr std::string_view PARTICLE                    = "Particle textures";
-    constexpr std::string_view DECAL                       = "Decal textures";
-    constexpr std::string_view SKYBOX                      = "SkyBox textures";
-    constexpr std::string_view CLIENT_EFFECTS              = "ClientEffect textures";
-    constexpr std::string_view OTHER                       = "Other textures";
-    constexpr std::string_view PRECACHED                   = "Precached";
-    constexpr std::string_view CUBE_MAP                    = "CubeMap textures";
-    constexpr std::string_view RENDER_TARGET               = "RenderTargets";
-    constexpr std::string_view UNACCOUNTED                 = "Unaccounted textures";
-    // constexpr std::string_view STATIC_VERTEX_BUFFER	=	  "Static Vertex";
-    constexpr std::string_view STATIC_INDEX_BUFFER         = "Static Indices";
-    constexpr std::string_view STATIC_VERTEX_BUFFER_DISP   = "Displacement Verts";
-    constexpr std::string_view STATIC_VERTEX_BUFFER_COLOR  = "Lighting Verts";
-    constexpr std::string_view STATIC_VERTEX_BUFFER_WORLD  = "World Verts";
-    constexpr std::string_view STATIC_VERTEX_BUFFER_MODELS = "Model Verts";
-    constexpr std::string_view STATIC_VERTEX_BUFFER_OTHER  = "Other Verts";
-    constexpr std::string_view DYNAMIC_INDEX_BUFFER        = "Dynamic Indices";
-    constexpr std::string_view DYNAMIC_VERTEX_BUFFER       = "Dynamic Verts";
-    constexpr std::string_view DEPTH_BUFFER                = "DepthBuffer";
-    constexpr std::string_view VIEW_MODEL                  = "ViewModel";
-    constexpr std::string_view PIXEL_SHADERS               = "Pixel Shaders";
-    constexpr std::string_view VERTEX_SHADERS              = "Vertex Shaders";
-    constexpr std::string_view RENDER_TARGET_SURFACE       = "RenderTarget Surfaces";
-    constexpr std::string_view MORPH_TARGETS               = "Morph Targets";
+    constexpr fd::string_view LIGHTMAP                    = "Lightmaps";
+    constexpr fd::string_view WORLD                       = "World textures";
+    constexpr fd::string_view MODEL                       = "Model textures";
+    constexpr fd::string_view VGUI                        = "VGUI textures";
+    constexpr fd::string_view PARTICLE                    = "Particle textures";
+    constexpr fd::string_view DECAL                       = "Decal textures";
+    constexpr fd::string_view SKYBOX                      = "SkyBox textures";
+    constexpr fd::string_view CLIENT_EFFECTS              = "ClientEffect textures";
+    constexpr fd::string_view OTHER                       = "Other textures";
+    constexpr fd::string_view PRECACHED                   = "Precached";
+    constexpr fd::string_view CUBE_MAP                    = "CubeMap textures";
+    constexpr fd::string_view RENDER_TARGET               = "RenderTargets";
+    constexpr fd::string_view UNACCOUNTED                 = "Unaccounted textures";
+    // constexpr fd::string_view STATIC_VERTEX_BUFFER	=	  "Static Vertex";
+    constexpr fd::string_view STATIC_INDEX_BUFFER         = "Static Indices";
+    constexpr fd::string_view STATIC_VERTEX_BUFFER_DISP   = "Displacement Verts";
+    constexpr fd::string_view STATIC_VERTEX_BUFFER_COLOR  = "Lighting Verts";
+    constexpr fd::string_view STATIC_VERTEX_BUFFER_WORLD  = "World Verts";
+    constexpr fd::string_view STATIC_VERTEX_BUFFER_MODELS = "Model Verts";
+    constexpr fd::string_view STATIC_VERTEX_BUFFER_OTHER  = "Other Verts";
+    constexpr fd::string_view DYNAMIC_INDEX_BUFFER        = "Dynamic Indices";
+    constexpr fd::string_view DYNAMIC_VERTEX_BUFFER       = "Dynamic Verts";
+    constexpr fd::string_view DEPTH_BUFFER                = "DepthBuffer";
+    constexpr fd::string_view VIEW_MODEL                  = "ViewModel";
+    constexpr fd::string_view PIXEL_SHADERS               = "Pixel Shaders";
+    constexpr fd::string_view VERTEX_SHADERS              = "Vertex Shaders";
+    constexpr fd::string_view RENDER_TARGET_SURFACE       = "RenderTarget Surfaces";
+    constexpr fd::string_view MORPH_TARGETS               = "Morph Targets";
 
 } // namespace texture_group
 

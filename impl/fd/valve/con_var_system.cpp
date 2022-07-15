@@ -135,7 +135,7 @@ struct ConCommandBaseIterator
     pointer itr_;
 };
 
-static bool _Compare_cvars(const std::string_view name, const ConCommandBase& other)
+static bool _Compare_cvars(const fd::string_view name, const ConCommandBase& other)
 {
     if (other.IsCommand())
         return false;
@@ -148,7 +148,7 @@ static bool _Compare_cvars(const std::string_view name, const ConCommandBase& ot
     return true;
 }
 
-con_var* con_var_system::FindVar(const std::string_view name) const
+con_var* con_var_system::FindVar(const fd::string_view name) const
 {
     const auto comparer                       = std::bind_front(_Compare_cvars, name);
     const ConCommandBaseIterator first_cvar   = basic_address(this).plus(0x30).deref<1>().get<ConCommandBase*>();
@@ -186,7 +186,7 @@ con_var* con_var_system::FindVar(const std::string_view name) const
         if (known_end != real_end)
         {
             write_msg(" (full name: ");
-            write_braces(std::string_view(target_cvar->name, real_end));
+            write_braces(fd::string_view(target_cvar->name, real_end));
             write_msg(')');
         }
         write_msg(" found");

@@ -6,14 +6,14 @@ module;
 #include <winternl.h>
 
 #include <functional>
-#include <string_view>
 
 module fd.rt_modules:find_export;
 import :helpers;
 import :library_info;
 import fd.address;
+import fd.string;
 
-void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
+void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify)
 {
     if (!ldr_entry)
         return nullptr;
@@ -61,16 +61,16 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view 
         FD_ASSERT_UNREACHABLE("Forwarded export detected");
 #if 0
 		// get forwarder string.
-		const std::string_view fwd_str = export_ptr.get<const char*>( );
+		const fd::string_view fwd_str = export_ptr.get<const char*>( );
 
 		// forwarders have a period as the delimiter.
 		const auto delim = fwd_str.find_last_of('.');
 		if(delim == fwd_str.npos)
 			continue;
 
-		using namespace std::string_view_literals;
+		using namespace fd::string_view_literals;
 		// get forwarder mod name.
-		const info_string::fixed_type fwd_module_str = nstd::append<std::wstring>(fwd_str.substr(0, delim), L".dll"sv);
+		const info_string::fixed_type fwd_module_str = nstd::append<fd::wstring>(fwd_str.substr(0, delim), L".dll"sv);
 
 		// get real export ptr ( recursively ).
 		const auto target_module = std::ranges::find_if(*all_modules, [&](const info& i)

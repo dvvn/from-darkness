@@ -5,10 +5,10 @@ module;
 #include <memory>
 #include <ranges>
 #include <span>
-#include <string_view>
 #include <vector>
 
 module fd.signature;
+import fd.string;
 
 template <class Rng, class T>
 struct abstract_storage : T
@@ -101,7 +101,7 @@ struct unknown_bytes_data_dynamic
     operator unknown_bytes_data() &&
     {
         unknown_bytes_data out;
-        static_assert(std::same_as<decltype(skip_), decltype(out.skip)>);
+        static_assert(std::is_same_v<decltype(skip_), decltype(out.skip)>);
         out.buff = std::make_unique<known_bytes_internal>(std::move(buff_));
         out.skip = skip_;
         return out;
@@ -153,7 +153,7 @@ class unknown_bytes_writer
         data = std::make_unique<unknown_bytes_impl>(std::move(source_));
     }
 
-    void write(const std::string_view rng)
+    void write(const fd::string_view rng)
     {
         // write previous part
         if (target_.can_skip())
@@ -227,7 +227,7 @@ class unknown_bytes_writer
     }
 };
 
-static bool _Validate_signature(const std::string_view rng)
+static bool _Validate_signature(const fd::string_view rng)
 {
     if (rng.starts_with('?'))
         return false;
@@ -298,12 +298,12 @@ static bool _Validate_signature(const std::string_view rng)
 
 static auto _Text_to_bytes(const char* begin, const char* end)
 {
-    const std::string_view text_src = { begin, end };
+    const fd::string_view text_src = { begin, end };
     FD_ASSERT(_Validate_signature(text_src));
 
     unknown_bytes_writer writer;
 
-    constexpr auto unwrap_shit = []<class T>(T rng) -> std::string_view {
+    constexpr auto unwrap_shit = []<class T>(T rng) -> fd::string_view {
         const auto raw_begin = std::addressof(*rng.begin());
         const size_t size    = std::ranges::distance(rng);
         return { raw_begin, size };
@@ -327,7 +327,7 @@ known_signature::known_signature(const uint8_t* begin, const size_t mem_size)
     _Store_bytes_to<known_bytes_external>(begin, begin + mem_size, *this);
 }
 
-unknown_signature::unknown_signature(const std::string_view str)
+unknown_signature::unknown_signature(const fd::string_view str)
 {
     _Text_to_bytes(str.data(), str.data() + str.size()).move_to(*this);
 }

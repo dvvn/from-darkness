@@ -2,9 +2,9 @@ module;
 
 #include <memory>
 #include <span>
-#include <string_view>
 
 export module fd.signature;
+export import fd.string;
 
 /* class known_bytes
 {
@@ -91,7 +91,7 @@ struct known_signature : std::unique_ptr<known_bytes>
 
 struct unknown_signature : std::unique_ptr<unknown_bytes>
 {
-    unknown_signature(const std::string_view str);
+    unknown_signature(const fd::string_view str);
     unknown_signature(const char* begin, const size_t mem_size);
 };
 

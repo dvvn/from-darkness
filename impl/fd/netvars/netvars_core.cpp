@@ -4,7 +4,6 @@ module;
 #include <fd/object.h>
 
 #include <sstream>
-#include <string>
 
 module fd.netvars.core;
 import :storage;
@@ -18,9 +17,9 @@ using namespace fd;
 using namespace valve;
 using namespace netvars;
 
-static std::wstring to_wstring(const char* str, const bool reserve = false)
+static fd::wstring to_wstring(const char* str, const bool reserve = false)
 {
-    std::wstring out;
+    fd::wstring out;
     if (reserve)
     {
         const auto size = std::char_traits<char>::length(str);
@@ -63,7 +62,7 @@ class netvars_holder : public storage
 
 FD_OBJECT(holder, netvars_holder);
 
-size_t netvars::get_offset(const std::string_view table, const std::string_view item)
+size_t netvars::get_offset(const fd::string_view table, const fd::string_view item)
 {
     /*const auto& storage = nstd::one_instance<netvars_holder>::get( ).storage;
 
@@ -72,7 +71,7 @@ size_t netvars::get_offset(const std::string_view table, const std::string_view 
     const auto netvar_info = target_class->find(item);
     FD_ASSERT(netvar_info != target_class->end( ));
 
-    using namespace std::string_view_literals;
+    using namespace fd::string_view_literals;
     return netvar_info->find("offset"sv)->get<int>( );*/
 
     return holder->find(table)->find(item)->offset();

@@ -1,8 +1,9 @@
 module;
 
-#include <string_view>
+#include <algorithm>
 
 export module fd.chars_cache;
+export import fd.string;
 
 template <typename Chr, size_t Size>
 struct simple_chars_cache
@@ -46,12 +47,12 @@ struct simple_chars_cache
         return begin() + size();
     }
 
-    constexpr std::basic_string_view<Chr> view() const
+    constexpr fd::basic_string_view<Chr> view() const
     {
         return { begin(), size() };
     }
 
-    constexpr operator std::basic_string_view<Chr>() const
+    constexpr operator fd::basic_string_view<Chr>() const
     {
         return view();
     }
@@ -75,13 +76,13 @@ chars_cache(const Chr (&arr)[Size]) -> chars_cache<Chr, Size>;
 #error xoring not implemented
 #endif
 
-/* template <typename Chr, size_t Size, std::convertible_to<std::basic_string_view<Chr>> Str>
+/* template <typename Chr, size_t Size, std::convertible_to<fd::basic_string_view<Chr>> Str>
 constexpr auto operator==(const simple_chars_cache<Chr, Size>& left, const Str& right)
 {
     return left.view() == right;
 }
 
-template <typename Chr, size_t Size, std::convertible_to<std::basic_string_view<Chr>> Str>
+template <typename Chr, size_t Size, std::convertible_to<fd::basic_string_view<Chr>> Str>
 constexpr auto operator==(const Str& left, const simple_chars_cache<Chr, Size>& right)
 {
     return right == left;

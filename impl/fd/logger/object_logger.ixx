@@ -2,18 +2,17 @@ module;
 
 #include <functional>
 #include <source_location>
-#include <string>
 
 export module fd.object_logger;
-import fd.type_name;
+export import fd.type_name;
 import fd.logger;
 
 class object_logger
 {
-    std::string_view object_name_;
+    fd::string_view object_name_;
 
   public:
-    object_logger(const std::string_view object_name)
+    object_logger(const fd::string_view object_name)
         : object_name_(object_name)
     {
         std::invoke(*this, "created");
@@ -22,11 +21,11 @@ class object_logger
     object_logger(const std::source_location location = std::source_location::current())
     {
         //??? obj<??>::obj(
-        const std::string_view owner = location.function_name();
+        const fd::string_view owner  = location.function_name();
         const auto end               = owner.rfind('(');
         const auto start             = owner.substr(0, end).rfind(':') + 1;
 
-        const std::string_view fn_name = owner.substr(start, end);
+        const fd::string_view fn_name  = owner.substr(start, end);
         const auto real_start          = owner.find(fn_name);
         object_name_                   = owner.substr(real_start, end);
     }
@@ -42,7 +41,7 @@ class object_logger
         std::invoke(*this, "destroyed");
     }
 
-    /* std::string_view object_name() const
+    /* fd::string_view object_name() const
   {
       return object_name_;
   } */
@@ -55,8 +54,8 @@ class object_logger
             [&] {
                 using char_t = std::remove_cvref_t<decltype(str[0])>;
 
-                const std::basic_string_view<char_t> strv = str;
-                std::basic_string<char_t> buffer;
+                const fd::basic_string_view<char_t> strv = str;
+                fd::basic_string<char_t> buffer;
 
                 buffer.reserve(object_name_.size() + 2 + strv.size());
                 buffer.append(object_name_.begin(), object_name_.end());

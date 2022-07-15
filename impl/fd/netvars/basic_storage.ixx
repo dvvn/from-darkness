@@ -1,7 +1,6 @@
 module;
 
 #include <memory>
-#include <string>
 #include <variant>
 #include <vector>
 
@@ -21,7 +20,7 @@ class basic_netvar_info
 
     virtual size_t offset() const               = 0;
     virtual fd::hashed_string_view name() const = 0;
-    virtual std::string_view type() const       = 0;
+    virtual fd::string_view type() const        = 0;
 };
 
 class netvar_info final : public basic_netvar_info
@@ -37,7 +36,7 @@ class netvar_info final : public basic_netvar_info
 
     size_t offset() const;
     fd::hashed_string_view name() const;
-    std::string_view type() const;
+    fd::string_view type() const;
 };
 
 template <typename Fn>
@@ -70,7 +69,7 @@ class netvar_info_custom final : public basic_netvar_info
         return name_;
     }
 
-    std::string_view type() const
+    fd::string_view type() const
     {
         return type_;
     }
@@ -87,7 +86,7 @@ class netvar_info_custom_constant final : public basic_netvar_info
 
     size_t offset() const;
     fd::hashed_string_view name() const;
-    std::string_view type() const;
+    fd::string_view type() const;
 };
 
 class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>

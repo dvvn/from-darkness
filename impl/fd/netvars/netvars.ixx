@@ -1,7 +1,5 @@
 module;
 
-#include <string_view>
-
 export module fd.netvars;
 export import fd.netvars.core;
 import fd.address;

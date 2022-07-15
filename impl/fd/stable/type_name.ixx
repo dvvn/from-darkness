@@ -3,10 +3,10 @@ module;
 
 #include <algorithm>
 #include <array>
-#include <string>
 
 export module fd.type_name;
 export import fd.chars_cache;
+export import fd.string;
 
 template <typename T>
 constexpr decltype(auto) type_name_raw()
@@ -20,17 +20,17 @@ constexpr decltype(auto) type_name_raw()
     return __FUNCSIG__;
 }
 
-struct type_name_clamped : std::string_view
+struct type_name_clamped : fd::string_view
 {
-    constexpr type_name_clamped(const std::string_view raw_name)
-        : std::string_view(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'))
+    constexpr type_name_clamped(const fd::string_view raw_name)
+        : fd::string_view(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'))
     {
     }
 };
 
-struct type_name_string : std::string
+struct type_name_string : fd::string
 {
-    constexpr size_t mark_zeros(const std::string_view substr)
+    constexpr size_t mark_zeros(const fd::string_view substr)
     {
         const auto substr_size = substr.size();
         size_t found           = 0;
@@ -90,7 +90,7 @@ struct type_name_string : std::string
 
     constexpr bool erase_zeros(const bool not_sure)
     {
-        std::string temp;
+        fd::string temp;
         if (!not_sure)
             temp.reserve(this->size());
         for (const auto chr : *this)
@@ -129,7 +129,7 @@ class type_name_getter
     size_t size_;
 
   public:
-    constexpr type_name_getter(const std::string_view clamped_name, const bool is_object)
+    constexpr type_name_getter(const fd::string_view clamped_name, const bool is_object)
         : buffer_()
     {
         if (!is_object)
@@ -179,7 +179,7 @@ template <template <typename, size_t> class T>
 constexpr auto type_name_holder_partial2 = [] {
     constexpr type_name_clamped name(type_name_raw<T<int, 1>>());
     constexpr type_name_getter<name.size()> getter(name, true);
-    constexpr size_t size = std::string_view(getter.data(), getter.size()).find('<');
+    constexpr size_t size = fd::string_view(getter.data(), getter.size()).find('<');
     return fd::chars_cache<char, size + 1>(getter.data(), size);
 }();
 
@@ -279,20 +279,20 @@ class template_comparer
 export namespace fd
 {
     template <class T>
-    constexpr std::string_view type_name()
+    constexpr fd::string_view type_name()
     {
         return type_name_holder<T>;
     }
 
     template <template <typename...> class T>
-    constexpr std::string_view type_name()
+    constexpr fd::string_view type_name()
     {
         return type_name_holder_partial<T>;
     }
 
     // for std::array
     template <template <typename, size_t> class T>
-    constexpr std::string_view type_name()
+    constexpr fd::string_view type_name()
     {
         return type_name_holder_partial2<T>;
     }
@@ -307,13 +307,13 @@ export namespace fd
 
     //------------
 
-    /* constexpr std::string drop_namespace(const std::string_view str, const std::string_view drop)
+    /* constexpr fd::string drop_namespace(const fd::string_view str, const fd::string_view drop)
     {
         if (drop.ends_with("::"))
             return erase_substring(str, drop);
 
         const size_t add = drop.ends_with(':') ? 1 : 2;
-        std::string  drop_fixed;
+        fd::string  drop_fixed;
         drop_fixed.reserve(drop.size() + add);
         drop_fixed.assign(drop.begin(), drop.end());
         drop_fixed.resize(drop.size() + add, ':');

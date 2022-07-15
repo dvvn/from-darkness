@@ -1,14 +1,12 @@
 module;
 
-#include <string_view>
-
 #include <windows.h>
 #include <winternl.h>
 
 module fd.rt_modules;
 import :library_info;
 
-std::wstring_view current_module::_Name() const
+fd::wstring_view current_module::_Name() const
 {
     return fd::library_info(fd::find_current_library()).name();
 }

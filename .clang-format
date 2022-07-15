@@ -13,7 +13,7 @@ NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
 #BreakBeforeBraces: Allman
 SeparateDefinitionBlocks: Always
-#BinPackArguments: false
+BinPackArguments: false
 BinPackParameters: false
 AllowShortLambdasOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: Yes

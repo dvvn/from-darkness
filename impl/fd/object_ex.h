@@ -65,14 +65,12 @@ constexpr std::string_view _Folder_name(const fd::path<char> full_path)
 }
 
 #else
-
 constexpr size_t _Object_id(const std::string_view full_path)
 {
     auto start = full_path.rfind('_');
     if (start == full_path.npos)
         return std::numeric_limits<size_t>::infinity();
     ++start;
-
     const auto end = full_path.find('.', start);
     if (end == full_path.npos)
         return std::numeric_limits<size_t>::infinity();
@@ -101,7 +99,6 @@ constexpr size_t _Object_id(const std::string_view full_path)
             return std::numeric_limits<size_t>::infinity();
         }
     };
-
     size_t index    = 0;
     const auto size = end - start;
     for (const auto chr : full_path.substr(start, size))
@@ -151,7 +148,6 @@ constexpr std::string_view _Pretty_file_name(const std::string_view full_path, c
         return { nullptr, 0u };
     ++start;
     const auto end = _File_name_end(full_path);
-
     std::string_view file_name(full_path.begin() + start, full_path.begin() + end);
     const auto object_id = _Skip_object_id(file_name);
     if (object_id == file_name.npos)
@@ -164,7 +160,6 @@ constexpr std::string_view _Pretty_file_name(const std::string_view full_path, c
         if (file_name.ends_with('_'))
             file_name.remove_suffix(1);
     }
-
     return file_name;
 }
 
@@ -181,7 +176,6 @@ constexpr std::string_view _Folder_name(const std::string_view file_name)
     const auto size = end - start;
     return file_name.substr(start, size);
 }
-
 #endif
 
 // take object id from filename. filename format: 'NAME_INDEX.xxx'

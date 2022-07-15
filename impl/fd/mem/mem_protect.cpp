@@ -7,9 +7,9 @@ module;
 
 #include <memory>
 #include <optional>
-#include <string_view>
 
 module fd.mem_protect;
+import fd.string;
 
 #if 0
 import nstd.mem.block;
@@ -56,7 +56,7 @@ class last_error_string
         buffer   = msg;
     }
 
-    std::string_view view() const
+    fd::string_view view() const
     {
         return {buffer.get(), msg_size};
     }

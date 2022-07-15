@@ -5,14 +5,12 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <string_view>
-
 module fd.rt_modules:find_csgo_interface;
 import :library_info;
 import fd.address;
 import fd.ctype;
 
-void on_csgo_interface_found(const LDR_DATA_TABLE_ENTRY* library_name, std::string_view interface_name, const void* interface_ptr)
+void on_csgo_interface_found(const LDR_DATA_TABLE_ENTRY* library_name, fd::string_view interface_name, const void* interface_ptr)
 {
     fd::library_info(library_name).log("interface", interface_name, interface_ptr);
 }
@@ -25,11 +23,12 @@ struct interface_reg
 
     //--------------
 
-    const interface_reg* find(const std::string_view interface_name) const
+    const interface_reg* find(const fd::string_view interface_name) const
     {
         for (auto reg = this; reg != nullptr; reg = reg->next)
         {
-            if (std::memcmp(reg->name, interface_name.data(), interface_name.size()) != 0)
+            DebugBreak(); // see how equal operator works
+            if (!interface_name.starts_with(reg->name))
                 continue;
             const auto last_char = reg->name[interface_name.size()];
             if (last_char != '\0')
@@ -45,7 +44,7 @@ struct interface_reg
     }
 };
 
-/* void* find_csgo_interface(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
+/* void* find_csgo_interface(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify)
 {
     using namespace fd;
     const auto create_interface = find_export(ldr_entry, "CreateInterface"_cch, notify);
@@ -55,7 +54,7 @@ struct interface_reg
     return ifc_addr;
 } */
 
-void* find_csgo_interface(const void* create_interface_fn, const std::string_view name, LDR_DATA_TABLE_ENTRY* const ldr_entry_for_notification)
+void* find_csgo_interface(const void* create_interface_fn, const fd::string_view name, LDR_DATA_TABLE_ENTRY* const ldr_entry_for_notification)
 {
     if (!create_interface_fn)
         return nullptr;

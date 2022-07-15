@@ -29,7 +29,7 @@ struct abstract_callback
     virtual void append(callback_type&& callback) = 0;
 
     template <typename Fn>
-    void append(Fn&& callback) requires(!std::same_as<decltype(callback), callback_type&&>)
+    void append(Fn&& callback) requires(!std::is_same_v<decltype(callback), callback_type&&>)
     {
         append(_Wrap_callback<callback_type>(std::forward<Fn>(callback)));
     }

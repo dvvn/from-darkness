@@ -3,7 +3,6 @@
 #include <fd/utility.h>
 
 #include <sstream>
-#include <string>
 #include <vector>
 
 export module fd.netvars.core:storage;
@@ -18,12 +17,12 @@ export namespace fd::netvars
     {
         ~logs_data();
 
-        std::wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars");
+        fd::wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars");
 
         struct
         {
-            std::wstring name;
-            std::wstring extension = L".json";
+            fd::wstring name;
+            fd::wstring extension = L".json";
         } file;
 
         size_t indent = 4;
@@ -36,11 +35,11 @@ export namespace fd::netvars
     {
         ~classes_data();
 
-        std::wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/external_interfaces");
+        fd::wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/external_interfaces");
 
         struct file_info
         {
-            std::wstring name;
+            fd::wstring name;
             std::ostringstream buff;
         };
 

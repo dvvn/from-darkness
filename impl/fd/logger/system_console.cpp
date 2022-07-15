@@ -12,7 +12,6 @@ module;
 #include <cstdio>
 #include <iostream>
 #include <mutex>
-#include <string>
 #include <time.h>
 
 module fd.system_console;
@@ -272,10 +271,10 @@ class writer
 
 // idk how to made it works, here is temp gap
 #ifdef _DEBUG
-        const auto tmp = fd::to_char<char>(std::wstring_view(ptr, size));
+        const auto tmp = fd::to_char<char>(fd::wstring_view(ptr, size));
         FD_ASSERT(tmp.size() == size, "Unicode not supported");
 #else
-        const std::string tmp(ptr, ptr + size);
+        const fd::string tmp(ptr, ptr + size);
 #endif
         write_nolock(tmp);
     }
@@ -287,14 +286,14 @@ class writer
         putc_assert(ok);
     }
 
-    template <typename C, typename Ch>
-    void write_nolock(const std::basic_string_view<C, Ch> text)
+    template <typename C>
+    void write_nolock(const fd::basic_string_view<C> text)
     {
         write_nolock(text.data(), text.size());
     }
 
-    template <typename C, typename Ch>
-    void write_nolock(const std::basic_string<C, Ch>& text)
+    template <typename C>
+    void write_nolock(const fd::basic_string<C>& text)
     {
         write_nolock(text.data(), text.size());
     }
@@ -359,12 +358,12 @@ class console_writer_impl : public console_writer
     HWND window_ = nullptr;
 
   public:
-    void operator()(const std::string_view str) override
+    void operator()(const fd::string_view str) override
     {
         out_(str, real_locker);
     }
 
-    void operator()(const std::wstring_view wstr) override
+    void operator()(const fd::wstring_view wstr) override
     {
         out_(wstr, real_locker);
     }

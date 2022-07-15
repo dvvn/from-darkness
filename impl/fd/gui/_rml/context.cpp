@@ -138,7 +138,7 @@ class font_path_data
 template <typename T>
 font_path_data(const T*) -> font_path_data<T>;
 
-static auto _Get_system_font(const std::string_view name)
+static auto _Get_system_font(const fd::string_view name)
 {
     static const auto font_path = [] {
         char tmp[MAX_PATH];
@@ -147,7 +147,7 @@ static auto _Get_system_font(const std::string_view name)
         return font_path_data(tmp);
     }();
     const std::span font_path_view = font_path;
-    std::string out;
+    fd::string out;
     out.reserve(font_path_view.size() + 1 + name.size());
     out.append(font_path_view.begin(), font_path_view.end());
     out += '\\';

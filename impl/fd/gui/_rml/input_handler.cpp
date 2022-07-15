@@ -10,11 +10,11 @@
 #include <functional>
 #include <limits>
 #include <span>
-#include <string_view>
 
 import fd.gui.basic_input_handler;
 import fd.lazy_invoke;
 import fd.convert_to;
+import fd.string;
 
 using namespace Rml;
 
@@ -47,7 +47,7 @@ struct RmlString : String
         ((*itr++ = chars), ...);
         *itr = 0;
 
-        const std::basic_string_view strv = { buff.data(), buff.size() - 1 };
+        const fd::basic_string_view strv = { buff.data(), buff.size() - 1 };
         this->assign(fd::convert_to<char>(strv));
     }
 };

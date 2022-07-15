@@ -14,14 +14,14 @@ import fd.json;
 
 namespace std::filesystem
 {
-    static_assert(sizeof(path) == sizeof(std::wstring));
+    static_assert(sizeof(path) == sizeof(fd::wstring));
 
-    bool create_directory(const std::wstring& dir)
+    bool create_directory(const fd::wstring& dir)
     {
         return create_directory(reinterpret_cast<const path&>(dir));
     }
 
-    bool is_empty(const std::wstring& dir)
+    bool is_empty(const fd::wstring& dir)
     {
         return is_empty(reinterpret_cast<const path&>(dir));
     }
@@ -41,7 +41,7 @@ static T _Join_strings(const Args&... args)
     return out;
 }
 
-static bool _File_already_written(const fs::path& full_path, const std::string_view buffer)
+static bool _File_already_written(const fs::path& full_path, const fd::string_view buffer)
 {
     std::ifstream file_stored(full_path, std::ios::binary | std::ios::ate);
     if (!file_stored)
@@ -71,7 +71,7 @@ logs_data::~logs_data()
     if (!fs::create_directory(dir))
         return;
 
-    const fs::path full_path = _Join_strings<std::wstring>(dir, file.name, file.extension);
+    const fs::path full_path = _Join_strings<fd::wstring>(dir, file.name, file.extension);
     const auto new_file_data = buff.view();
 
     if (_File_already_written(full_path, new_file_data))
@@ -89,7 +89,7 @@ classes_data::~classes_data()
     if (fs::create_directory(dir) || fs::is_empty(dir))
     {
         for (const auto& [name, buff] : files)
-            std::ofstream(_Join_strings<std::wstring>(dir, name)) << buff.view();
+            std::ofstream(_Join_strings<fd::wstring>(dir, name)) << buff.view();
         return;
     }
 
@@ -98,7 +98,7 @@ classes_data::~classes_data()
     for (const auto& [name, buff] : files)
     {
         const auto new_file_data         = buff.view();
-        const fs::path current_file_path = _Join_strings<std::wstring>(dir, name);
+        const fs::path current_file_path = _Join_strings<fd::wstring>(dir, name);
         if (_File_already_written(current_file_path, new_file_data))
             continue;
 
@@ -107,18 +107,18 @@ classes_data::~classes_data()
 }
 
 template <class J>
-concept json_support_string_view = requires(J& js, const std::string_view test)
+concept json_support_string_view = requires(J& js, const fd::string_view test)
 {
     js[test];
 };
 
 template <class J>
-static auto& _Json_append(J& js, const std::string_view str)
+static auto& _Json_append(J& js, const fd::string_view str)
 {
     if constexpr (json_support_string_view<J>)
         return js[str];
     else
-        return js[std::string(str)];
+        return js[fd::string(str)];
 }
 
 void storage::log_netvars(logs_data& data)
@@ -134,32 +134,32 @@ void storage::log_netvars(logs_data& data)
 
         for (const netvar_table::value_type& info : table)
         {
-            const std::string_view name = info->name();
+            const fd::string_view name = info->name();
             const auto offset           = info->offset();
-            const std::string_view type = info->type();
+            const fd::string_view type = info->type();
 
             if (type.empty())
             {
                 j_table.push_back({
-                    {"name",    std::string(name)},
+                    {"name",    fd::string(name)},
                     { "offset", offset           }
                 });
             }
             else
             {
                 j_table.push_back({
-                    {"name",    std::string(name)},
+                    {"name",    fd::string(name)},
                     { "offset", offset           },
-                    { "type",   std::string(type)}
+                    { "type",   fd::string(type)}
                 });
             }
 
             /*
             json_unsorted entry;
-            _Json_append(entry, "name")   = std::string(name);
+            _Json_append(entry, "name")   = fd::string(name);
             _Json_append(entry, "offset") = offset;
             if (!type.empty())
-                _Json_append(entry, "type") = std::string(type);
+                _Json_append(entry, "type") = fd::string(type);
 
             j_table.push_back(std::move(entry)); */
         }
@@ -181,7 +181,7 @@ void storage::generate_classes(classes_data& data)
         auto& h   = h_info.buff;
         auto& cpp = cpp_info.buff;
 
-        const std::string_view class_name = table.name();
+        const fd::string_view class_name = table.name();
 
         for (const netvar_table::value_type& info : table)
         {
@@ -200,7 +200,7 @@ void storage::generate_classes(classes_data& data)
                 ret_char = '&';
             }
 
-            const std::string_view netvar_name = info->name();
+            const fd::string_view netvar_name = info->name();
 
             //---
 
@@ -230,9 +230,9 @@ void storage::generate_classes(classes_data& data)
         auto& h_name   = h_info.name;
         auto& cpp_name = cpp_info.name;
 
-        constexpr std::wstring_view h_postfix = L"_h";
+        constexpr fd::wstring_view h_postfix = L"_h";
         h_name.reserve(class_name.size() + h_postfix.size());
-        constexpr std::wstring_view cpp_postfix = L"_cpp";
+        constexpr fd::wstring_view cpp_postfix = L"_cpp";
         cpp_name.reserve(class_name.size() + cpp_postfix.size());
 
         h_name = cpp_name = { class_name.begin(), class_name.end() };

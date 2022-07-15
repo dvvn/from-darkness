@@ -5,7 +5,6 @@ module;
 
 #include <algorithm>
 #include <concepts>
-#include <string>
 
 export module fd.hashed_string;
 import fd.lazy_invoke;
@@ -36,7 +35,7 @@ export import fd.hash;
 template <class Base, typename T, typename Q>
 decltype(auto) this_or_iterator(T* thisptr, const Q& proxy_result)
 {
-    if constexpr (std::same_as<Q, Base>)
+    if constexpr (std::is_same_v<Q, Base>)
     {
         // return *this instead of *Base
         return *thisptr;
@@ -95,7 +94,7 @@ struct hashed_string_wrapper : Base, hashed_string_tag
             using val1_t = decltype(std::declval<Base>()[0]);
             using val2_t = decltype(std::declval<Base2>()[0]);
 
-            if constexpr (std::same_as<val1_t, val2_t>)
+            if constexpr (std::is_same_v<val1_t, val2_t>)
                 hash_ = holder.hash_;
             else
                 _Write_hash(holder.hash_);
@@ -198,10 +197,7 @@ constexpr bool operator!=(const H1& left, const typename H1::hash_type hash_val)
     return !(left == hash_val);
 }
 
-template <typename Chr,
-          template <typename> class Hasher = fd::hash,
-          class Traits                     = std::char_traits<Chr>,
-          class Base                       = hashed_string_wrapper<std::basic_string_view<Chr, Traits>, Hasher>>
+template <typename Chr, template <typename> class Hasher = fd::hash, class Base = hashed_string_wrapper<fd::basic_string_view<Chr>, Hasher>>
 struct basic_hashed_string_view : Base
 {
     using Base::Base;
@@ -220,11 +216,7 @@ struct basic_hashed_string_view : Base
 template <typename Chr>
 basic_hashed_string_view(const Chr*) -> basic_hashed_string_view<Chr>;
 
-template <typename Chr,
-          template <typename> class Hasher = fd::hash,
-          class Traits                     = std::char_traits<Chr>,
-          class Allocator                  = std::allocator<Chr>,
-          class Base                       = hashed_string_wrapper<std::basic_string<Chr, Traits, Allocator>, Hasher>>
+template <typename Chr, template <typename> class Hasher = fd::hash, class Base = hashed_string_wrapper<fd::basic_string<Chr>, Hasher>>
 struct basic_hashed_string : Base
 {
     using Base::Base;

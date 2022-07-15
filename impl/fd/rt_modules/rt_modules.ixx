@@ -4,7 +4,6 @@ module;
 #include <winternl.h>
 
 #include <memory>
-#include <string>
 
 export module fd.rt_modules;
 import :find_library;
@@ -146,7 +145,7 @@ namespace fd
 
 struct current_module
 {
-    std::wstring_view _Name() const;
+    fd::wstring_view _Name() const;
     interface_finder<current_module> _Ifc_finder(const basic_address<void> addr) const;
 
     LDR_DATA_TABLE_ENTRY* operator->() const;

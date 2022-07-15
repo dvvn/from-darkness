@@ -13,9 +13,9 @@ import fd.ctype;
 using namespace fd;
 using namespace netvars;
 
-static auto _Correct_class_name(const std::string_view name)
+static auto _Correct_class_name(const fd::string_view name)
 {
-    std::string ret;
+    fd::string ret;
 
     if (name[0] == 'C' && name[1] != '_')
     {
@@ -51,7 +51,7 @@ static bool _Can_skip_netvar(const char* name)
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
 #endif
 
-static bool _Can_skip_netvar(const std::string_view name)
+static bool _Can_skip_netvar(const fd::string_view name)
 {
     return name.contains('.');
 }
@@ -72,7 +72,7 @@ static bool _Table_is_data_table(const recv_table& table)
 static auto _Get_props_range(const recv_table* recv_table)
 {
     constexpr auto is_base_class = [](const recv_prop* prop) {
-        constexpr std::string_view str = "baseclass";
+        constexpr fd::string_view str = "baseclass";
         return std::memcmp(prop->name, str.data(), str.size()) == 0 && prop->name[str.size()] == '\0';
     };
 
@@ -99,17 +99,17 @@ static auto _Get_props_range(const recv_table* recv_table)
 
 struct recv_prop_array_info
 {
-    std::string_view name;
+    fd::string_view name;
     size_t size = 0;
 };
 
 // other_props = {itr+1, end}
-static recv_prop_array_info _Parse_prop_array(const std::string_view first_prop_name, const std::span<const recv_prop> other_props, const netvar_table& tree)
+static recv_prop_array_info _Parse_prop_array(const fd::string_view first_prop_name, const std::span<const recv_prop> other_props, const netvar_table& tree)
 {
     if (!first_prop_name.ends_with("[0]"))
         return {};
 
-    const std::string_view real_prop_name = first_prop_name.substr(0, first_prop_name.size() - 3);
+    const fd::string_view real_prop_name = first_prop_name.substr(0, first_prop_name.size() - 3);
     FD_ASSERT(!real_prop_name.ends_with(']'));
     if (tree.find(real_prop_name)) // todo: debug break for type check!
         return { real_prop_name, 0 };
@@ -144,7 +144,7 @@ static void _Parse_client_class(storage& root_tree, netvar_table& tree, recv_tab
     {
         const auto& prop = *itr;
         FD_ASSERT(prop.name != nullptr);
-        const std::string_view prop_name = prop.name;
+        const fd::string_view prop_name = prop.name;
         if (_Can_skip_netvar(prop_name))
             continue;
 
@@ -200,7 +200,7 @@ static void _Parse_datamap(netvar_table& tree, data_map* const map)
         }
         else if (desc.fieldName != nullptr)
         {
-            const std::string_view name = desc.fieldName;
+            const fd::string_view name = desc.fieldName;
             if (_Can_skip_netvar(name))
                 continue;
             tree.add(static_cast<size_t>(desc.fieldOffset[TD_OFFSET_NORMAL]), std::addressof(desc), 0, name);

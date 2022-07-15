@@ -5,7 +5,6 @@ module;
 
 #include <concepts>
 #include <functional>
-#include <string>
 #include <vector>
 
 export module fd.hook;

@@ -12,13 +12,13 @@ import fd.logger;
 using Rml_log = Rml::Log::Type;
 
 template <typename... Args>
-static bool _Log(const std::string_view str, Args&&... args)
+static bool _Log(const fd::string_view str, Args&&... args)
 {
     return std::invoke(
         fd::logger,
         [&] {
-            constinit std::string_view prefix = "[RmlUi] ";
-            std::string buff;
+            constinit fd::string_view prefix = "[RmlUi] ";
+            fd::string buff;
             buff.reserve(prefix.size() + str.size());
             buff += prefix;
             buff += str;
@@ -89,12 +89,12 @@ class system_interface_impl final : public Rml::SystemInterface
 FD_OBJECT_ATTACH(Rml::SystemInterface, system_interface_impl);
 
 template <>
-struct std::formatter<Rml_log, char> : formatter<std::string_view>
+struct std::formatter<Rml_log, char> : formatter<fd::string_view>
 {
     template <class FormatContext>
     auto format(const Rml_log type, FormatContext& fc) const
     {
-        std::string_view str;
+        fd::string_view str;
         switch (type)
         {
         case Rml_log::LT_ERROR:
@@ -117,6 +117,6 @@ struct std::formatter<Rml_log, char> : formatter<std::string_view>
             FD_ASSERT_UNREACHABLE("Unknown log type detected");
         }
 
-        return formatter<std::string_view>::format(str, fc);
+        return formatter<fd::string_view>::format(str, fc);
     }
 };

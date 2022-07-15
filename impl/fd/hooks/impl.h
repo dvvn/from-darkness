@@ -16,7 +16,7 @@ import fd.hook;
 #define IS_STATIC_static true
 
 template <size_t BuffSize>
-constexpr auto _Hook_name_buff(const std::string_view name, const std::string_view group)
+consteval auto _Hook_name_buff(const fd::string_view name, const fd::string_view group)
 {
     std::array<char, BuffSize + 2 + 1> buff{};
 
@@ -42,15 +42,15 @@ constexpr auto _Hook_name_buff(const std::string_view name, const std::string_vi
 
 #define _Hook_name                                                       \
     [] {                                                                 \
-        constexpr std::string_view name  = FD_AUTO_OBJECT_NAME;          \
-        constexpr std::string_view group = FD_AUTO_OBJECT_LOCATION;      \
+        constexpr fd::string_view name  = FD_AUTO_OBJECT_NAME;           \
+        constexpr fd::string_view group = FD_AUTO_OBJECT_LOCATION;       \
         return _Hook_name_buff<name.size() + group.size()>(name, group); \
     }
 
 /* template <size_t S>
 constexpr auto _Hook_name(const char (&name)[S])
 {
-    constexpr std::string_view group = _Folder_name(std::source_location::current().file_name());
+    constexpr fd::string_view group = _Folder_name(std::source_location::current().file_name());
     return _Hook_name_buff<S - 1 + group.size()>(name, group);
 } */
 
@@ -69,7 +69,7 @@ constexpr auto _Hook_name(const char (&name)[S])
         {                                                                                             \
             return IS_STATIC_##_FN_TYPE_;                                                             \
         }                                                                                             \
-        std::string_view name() const override                                                        \
+        fd::string_view name() const override                                                         \
         {                                                                                             \
             static constexpr auto hook_name = _Hook_name();                                           \
             return { hook_name.data(), hook_name.size() - 1 };                                        \

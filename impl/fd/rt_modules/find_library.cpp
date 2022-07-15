@@ -6,7 +6,6 @@ module;
 #include <winternl.h>
 
 #include <functional>
-#include <string_view>
 
 module fd.rt_modules:find_library;
 import :library_info;
@@ -15,7 +14,7 @@ import fd.chars_cache;
 import fd.logger;
 
 constexpr auto on_library_found = [](const auto library_name, const LDR_DATA_TABLE_ENTRY* entry) {
-    std::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
+    // std::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
 };
 
 template <typename Fn>
@@ -52,8 +51,8 @@ class partial_invoke
     template <class Tpl, class SeqFwd, class SeqBack>
     auto apply(Tpl& tpl, const SeqFwd seq_fwd, const SeqBack seq_back) const
     {
-        constexpr auto fwd_ok = !std::same_as<SeqFwd, std::false_type>;
-        constexpr auto bk_ok  = !std::same_as<SeqBack, std::false_type>;
+        constexpr auto fwd_ok = !std::is_same_v<SeqFwd, std::false_type>;
+        constexpr auto bk_ok  = !std::is_same_v<SeqBack, std::false_type>;
 
         static_assert((fwd_ok || bk_ok) && !(fwd_ok && bk_ok), "Unable to choice the sequence!");
 
@@ -129,11 +128,7 @@ static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
     return nullptr;
 }
 
-#ifndef __cpp_lib_string_contains
-#define contains(_X_) find(_X_) != std::wstring_view::npos
-#endif
-
-LDR_DATA_TABLE_ENTRY* find_library(const std::wstring_view name, const bool notify)
+LDR_DATA_TABLE_ENTRY* find_library(const fd::wstring_view name, const bool notify)
 {
     LDR_DATA_TABLE_ENTRY* result;
 
@@ -144,7 +139,7 @@ LDR_DATA_TABLE_ENTRY* find_library(const std::wstring_view name, const bool noti
         for (const auto chr : name)
             name_correct_buff.push_back(chr == '/' ? '\\' : chr);
 
-        const std::wstring_view name_correct(name_correct_buff.begin(), name_correct_buff.end());
+        const fd::wstring_view name_correct(name_correct_buff.begin(), name_correct_buff.end());
         result = _Find_library([=](const fd::library_info info) {
             return info.path() == name_correct;
         });

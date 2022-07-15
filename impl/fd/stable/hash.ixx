@@ -7,26 +7,21 @@ module;
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <concepts>
 #include <source_location>
-#include <string>
 //#include <vector>
 
 export module fd.hash;
+export import fd.string;
 
 constexpr size_t _Hash_bytes(const char* input, const size_t len)
 {
-    using xxh = std::conditional_t<std::same_as<size_t, uint32_t>, xxh32, xxh64>;
+    using xxh = std::conditional_t<sizeof(size_t) == 4, xxh32, xxh64>;
     return xxh::hash(input, len, 0);
 }
 
-template <class Alloc>
-constexpr size_t _Hash_bytes(const char* input, const size_t len, const Alloc&)
-{
-    return _Hash_bytes(input, len);
-}
-
-template <typename T, class Alloc = std::allocator<T>>
-constexpr size_t _Hash_bytes(const T* input, const size_t len, const Alloc& = {}) requires(sizeof(T) > 1)
+template <typename T>
+constexpr size_t _Hash_bytes(const T* input, const size_t len) requires(sizeof(T) > 1)
 {
     const auto bytes_count = sizeof(T) * len;
 
@@ -37,7 +32,7 @@ constexpr size_t _Hash_bytes(const T* input, const size_t len, const Alloc& = {}
     }
     else
     {
-        using char_alloc = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
+        using char_alloc = std::allocator<char>;
 
         // direct bit_cast like reinterpret_cast doesn't work
 #if 0
@@ -70,28 +65,27 @@ constexpr size_t _Hash_bytes(const T* input, const size_t len, const Alloc& = {}
 template <typename T>
 struct hash
 {
-    template <class Alloc>
-    constexpr size_t operator()(const T* input, const size_t len, const Alloc& a) const
+    constexpr size_t operator()(const T* input, const size_t len) const
     {
-        return _Hash_bytes(input, len, a);
+        return _Hash_bytes(input, len);
     };
 };
 
-template <typename C, class Tr>
-struct hash<std::basic_string_view<C, Tr>> : protected hash<C>
+template <typename C>
+struct hash<fd::basic_string_view<C>> : protected hash<C>
 {
-    constexpr size_t operator()(const std::basic_string_view<C, Tr> str) const
+    constexpr size_t operator()(const fd::basic_string_view<C> str) const
     {
         return _Hash_bytes(str.data(), str.size());
     }
 };
 
-template <typename C, class Tr, class Alloc>
-struct hash<std::basic_string<C, Tr, Alloc>> : hash<std::basic_string_view<C, Tr>>
+template <typename C>
+struct hash<fd::basic_string<C>> : hash<fd::basic_string_view<C>>
 {
-    constexpr size_t operator()(const std::basic_string<C, Tr, Alloc>& str) const
+    constexpr size_t operator()(const fd::basic_string<C>& str) const
     {
-        return _Hash_bytes(str.data(), str.size(), str.get_allocator());
+        return _Hash_bytes(str.data(), str.size());
     }
 };
 
@@ -139,7 +133,7 @@ constexpr size_t unique_hash(const std::source_location sl = std::source_locatio
 #define STR(x)  STR0(x)
     fname += std::size(STR(FD_WORK_DIR)) - 1;
 #endif
-    return _Hash_bytes(fname, std::char_traits<char>::length(fname));
+    return _Hash_bytes(fname, fd::basic_string_view(fname).size());
 }
 
 export namespace fd

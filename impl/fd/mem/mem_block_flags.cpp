@@ -59,7 +59,7 @@ static bool _Flags_iterator(std::span<uint8_t> mblock, Fn func = {})
         }
         else
         {
-            static_assert(std::same_as<bool, ret_t>);
+            static_assert(std::is_same_v<bool, ret_t>);
             // flags check isn't passed!
             if (!std::invoke(func, info.flags()))
                 return false;

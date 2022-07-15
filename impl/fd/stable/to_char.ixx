@@ -3,6 +3,7 @@ module;
 #include <ww898/utf_converters.hpp>
 
 export module fd.to_char;
+export import fd.string;
 
 using ww898::utf::detail::utf_selector;
 
@@ -12,14 +13,13 @@ struct utf_selector<char8_t> final
     using type = utf8;
 };
 
-template <typename To, typename It, class Alloc = std::allocator<To>>
-auto utf_conv(It&& bg, It&& ed, const Alloc = {})
+template <typename To, typename It>
+auto utf_conv(It&& bg, It&& ed)
 {
     using from = std::remove_cvref_t<decltype(*bg)>;
     static_assert(!std::is_same_v<from, To>);
 
-    using alloc = typename std::allocator_traits<Alloc>::template rebind_alloc<To>;
-    std::basic_string<To, std::char_traits<To>, alloc> buff;
+    fd::basic_string<To> buff;
 
     using namespace ww898::utf;
     using sfrom = utf_selector_t<from>;
@@ -32,16 +32,16 @@ auto utf_conv(It&& bg, It&& ed, const Alloc = {})
 template <typename To>
 struct to_char_impl
 {
-    template <typename... S>
-    auto operator()(const std::basic_string_view<S...> from) const
+    template <typename C>
+    auto operator()(const fd::basic_string_view<C> from) const
     {
         return utf_conv<To>(from.begin(), from.end());
     }
 
-    template <typename... S>
-    auto operator()(const std::basic_string<S...>& from) const
+    template <typename C>
+    auto operator()(const fd::basic_string<C>& from) const
     {
-        return utf_conv<To>(from.begin(), from.end(), from.get_allocator());
+        return utf_conv<To>(from.begin(), from.end());
     }
 
     template <typename C, size_t S>
@@ -53,13 +53,14 @@ struct to_char_impl
     template <typename C>
     auto operator()(const C from) const requires(std::is_pointer_v<C>) // fix to allow previous overload
     {
-        const auto to = from + std::char_traits<std::remove_pointer_t<C>>::length(from);
+        const auto size = fd::basic_string_view(from).size();
+        const auto to   = from + size;
         return utf_conv<To>(from, to);
     }
 };
 
 template <typename To>
-constexpr std::nullptr_t to_char;
+constexpr auto to_char = nullptr;
 
 #define TO_CHAR(_T_) \
     template <>      \

@@ -1,18 +1,18 @@
 module;
 
-#include <string>
 #include <variant>
 
 export module fd.string_or_view;
+export import fd.string;
 
 template <typename T>
 size_t small_string_size()
 {
 #ifdef __cpp_lib_constexpr_string
-    constinit auto val = std::basic_string<T>().capacity();
+    constinit auto val = fd::basic_string<T>().capacity();
     return val;
 #else
-    static const std::basic_string<T> dummy;
+    static constfd::basic_string<T> dummy;
     return dummy.capacity();
 #endif
 }
@@ -21,8 +21,8 @@ template <typename T>
 struct basic_string_or_view
 {
     using value_type  = T;
-    using string_type = std::basic_string<T>;
-    using view_type   = std::basic_string_view<T>;
+    using string_type = fd::basic_string<T>;
+    using view_type   = fd::basic_string_view<T>;
 
   private:
     std::variant<string_type, view_type> str_;

@@ -5,8 +5,6 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <string_view>
-
 module fd.rt_modules:find_vtable;
 import :find_section;
 import :helpers;
@@ -16,42 +14,42 @@ import fd.mem_block;
 import fd.logger;
 
 using fd::basic_address;
-using block = fd::mem_block;
+using mblock = fd::mem_block;
 
-// block = {dos + header->VirtualAddress, header->SizeOfRawData}
+// mblock = {dos + header->VirtualAddress, header->SizeOfRawData}
 
 // template<typename T>
-// static block _Address_to_rng(const basic_address<T> addr)
+// static mblock _Address_to_rng(const basic_address<T> addr)
 //{
 //	return {addr.get<uint8_t*>( ), sizeof(uintptr_t)};
 // }
 
 template <typename T>
-block _Make_mem_block(basic_address<T>&& addr) = delete;
+mblock _Make_mem_block(basic_address<T>&& addr) = delete;
 
 template <typename T>
-static block _Make_mem_block(const basic_address<T>& addr)
+static mblock _Make_mem_block(const basic_address<T>& addr)
 {
     // return {addr.get<uint8_t*>( ), sizeof(uintptr_t)};
     return {(uint8_t*)&addr, sizeof(uintptr_t)};
 }
 
 // todo: add x64 support
-static uint8_t* _Load_vtable(const block dot_rdata, const block dot_text, const basic_address<void> type_descriptor)
+static uint8_t* _Load_vtable(const mblock dot_rdata, const mblock dot_text, const basic_address<void> type_descriptor)
 {
     auto       from   = dot_rdata;
     const auto search = _Make_mem_block(type_descriptor);
 
     for (;;)
     {
-        auto block = from.find_block(search);
-        if (block.empty())
+        auto mblock = from.find_block(search);
+        if (mblock.empty())
             break;
-        from = from.shift_to(block.data() + block.size());
+        from = from.shift_to(mblock.data() + mblock.size());
 
         //-------------
 
-        const basic_address<void> xr = block.data();
+        const basic_address<void> xr = mblock.data();
 
         // so if it's 0 it means it's the class we need, and not some class it inherits from
         if (const uintptr_t vtable_offset = xr.minus(sizeof(uintptr_t) * 2).deref<1>(); vtable_offset != 0)
@@ -87,37 +85,23 @@ static uint8_t* _Load_vtable(const block dot_rdata, const block dot_text, const 
     return nullptr;
 }
 
-static auto _Make_vtable_name(const std::string_view name)
-{
-    constexpr std::string_view prefix = ".?AV";
-    constexpr std::string_view suffix = "@@";
-
-    std::basic_string<uint8_t> buff;
-    buff.reserve(prefix.size() + name.size() + suffix.size());
-    buff.append(prefix.begin(), prefix.end());
-    buff.append(name.begin(), name.end());
-    buff.append(suffix.begin(), suffix.end());
-    return buff;
-}
-
-static block _Section_to_rng(const basic_address<IMAGE_DOS_HEADER> dos, IMAGE_SECTION_HEADER* const section)
+static mblock _Section_to_rng(const basic_address<IMAGE_DOS_HEADER> dos, IMAGE_SECTION_HEADER* const section)
 {
     uint8_t* const ptr = dos + section->VirtualAddress;
     return {ptr, section->SizeOfRawData};
 }
 
-
-void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
+void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify)
 {
     if (!ldr_entry)
         return nullptr;
 
     const auto [dos, nt] = dos_nt(ldr_entry);
 
-    const auto real_name = _Make_vtable_name(name);
+    const auto real_name = fd::make_string(".?AV", name, "@@");
 
-    const block bytes        = {dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage};
-    const block target_block = bytes.find_block({real_name.data(), real_name.size()});
+    const mblock bytes        = { dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage };
+    const mblock target_block = bytes.find_block(mblock(real_name.data(), real_name.size()));
     // class descriptor
     FD_ASSERT(!target_block.empty());
 

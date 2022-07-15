@@ -3,9 +3,9 @@ module;
 #include <fd/callback.h>
 
 #include <source_location>
-#include <string>
 
 export module fd.assert;
+export import fd.string;
 
 struct assert_data
 {
@@ -20,7 +20,7 @@ struct assert_data
     {
     }
 
-    std::string build_message() const;
+    fd::string build_message() const;
 };
 
 FD_CALLBACK(assert_handler, const assert_data&);

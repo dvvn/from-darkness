@@ -3,18 +3,19 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <string_view>
-
 module fd.rt_modules:find_section;
 import :helpers;
 import :library_info;
+import fd.string;
 
-IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view name, const bool notify)
+using namespace fd;
+
+IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_view name, const bool notify)
 {
     if (!ldr_entry)
         return nullptr;
 
-    const auto [dos, nt] = fd::dos_nt(ldr_entry);
+    const auto [dos, nt] = dos_nt(ldr_entry);
 
     const auto number_of_sections  = nt->FileHeader.NumberOfSections;
     const auto first_header        = IMAGE_FIRST_SECTION(nt);
@@ -24,15 +25,14 @@ IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const 
 
     for (auto header = first_header; header != last_section_header; ++header)
     {
-        if (std::memcmp(header->Name, name.data(), name.size()) != 0)
-            continue;
-        if (header->Name[name.size()] != '\0')
-            continue;
-        found_header = header;
-        break;
+        if (reinterpret_cast<const char*>(header->Name) == name)
+        {
+            found_header = header;
+            break;
+        }
     }
 
     if (notify)
-        fd::library_info(ldr_entry).log("section", name, found_header);
+        library_info(ldr_entry).log("section", name, found_header);
     return found_header;
 }

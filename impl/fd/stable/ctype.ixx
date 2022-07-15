@@ -4,24 +4,9 @@ module;
 
 #include <algorithm>
 #include <functional>
-#include <string>
 
 export module fd.ctype;
-
-template <typename T>
-concept have_allocator = requires(const T& s)
-{
-    s.get_allocator();
-};
-
-template <typename T>
-auto get_allocator(const T& s)
-{
-    if constexpr (have_allocator<T>)
-        return s.get_allocator();
-    else
-        return std::allocator<std::iter_value_t<T>>();
-}
+export import fd.string;
 
 template <class A>
 class ctype_to
@@ -42,10 +27,7 @@ class ctype_to
     {
         if constexpr (std::is_class_v<T>)
         {
-            using val_t    = std::iter_value_t<T>;
-            using traits_t = std::char_traits<val_t>;
-            using alloc_t  = decltype(get_allocator(item));
-            std::basic_string<val_t, traits_t, alloc_t> buff(get_allocator(item));
+            fd::basic_string<std::iter_value_t<T>> buff;
             buff.reserve(item.size());
             for (const auto chr : item)
                 buff += std::invoke(adaptor_, chr);
@@ -54,7 +36,7 @@ class ctype_to
         else if constexpr (std::is_pointer_v<T>)
         {
             using val_t = std::iter_value_t<T>;
-            std::basic_string<val_t> buff;
+            fd::basic_string<val_t> buff;
             for (auto ptr = item;;)
             {
                 auto chr = *ptr++;
@@ -69,7 +51,7 @@ class ctype_to
             const auto size  = std::size(item) - 1;
             const auto begin = item;
             const auto end   = item + size;
-            std::basic_string<std::iter_value_t<T>> buff;
+            fd::basic_string<std::iter_value_t<T>> buff;
             buff.reserve(size);
             for (auto itr = begin; itr != end; ++itr)
                 buff += std::invoke(adaptor_, *itr);
@@ -127,8 +109,8 @@ class ctype_is
         return true;
     }
 
-    template <typename... S>
-    bool process(const std::basic_string_view<S...> strv, const is_any_t) const
+    template <typename C>
+    bool process(const fd::basic_string_view<C> strv, const is_any_t) const
     {
         for (const auto chr : strv)
         {
@@ -138,8 +120,8 @@ class ctype_is
         return false;
     }
 
-    template <typename... S>
-    bool process(const std::basic_string_view<S...> strv, const is_all_t) const
+    template <typename C>
+    bool process(const fd::basic_string_view<C> strv, const is_all_t) const
     {
         for (const auto chr : strv)
         {
@@ -170,7 +152,7 @@ class ctype_is
     {
         if constexpr (std::is_class_v<T>)
         {
-            return process(std::basic_string_view(item), mode);
+            return process(fd::basic_string_view(item), mode);
         }
         else if constexpr (std::is_pointer_v<T>)
         {
@@ -178,7 +160,7 @@ class ctype_is
         }
         else if constexpr (std::is_bounded_array_v<T>)
         {
-            return process(std::basic_string_view(item, std::size(item) - 1), mode);
+            return process(fd::basic_string_view(item, std::size(item) - 1), mode);
         }
         else
         {

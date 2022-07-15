@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <type_traits>
 
 import fd.one_instance;
 import fd.hash;

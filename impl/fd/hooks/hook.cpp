@@ -5,7 +5,6 @@ module;
 #include <Windows.h>
 
 #include <functional>
-#include <string>
 
 module fd.hook;
 import fd.logger;
@@ -1107,27 +1106,3 @@ void hook_impl::init(const function_getter target, const function_getter replace
     entry_.set_target_method(target);
     entry_.set_replace_method(replace);
 }
-
-#if 0
-std::string hook_impl::name( ) const
-{
-	std::string ret;
-	if(this->is_static( ))
-	{
-		const auto fn_name = dynamic_cast<const static_base*>(this)->function_name( );
-		ret = {fn_name.begin( ),fn_name.end( )};
-	}
-	else
-	{
-		const auto base = dynamic_cast<const class_base*>(this);
-		const auto class_name = base->class_name( );
-		const auto fn_name = base->function_name( );
-		ret.reserve(class_name.size( ) + 2 + fn_name.size( ));
-		ret += class_name;
-		ret += ':';
-		ret += ':';
-		ret += fn_name;
-	}
-	return ret;
-}
-#endif

@@ -1,7 +1,5 @@
 module;
 
-#include <string_view>
-
 export module fd.valve.con_var;
 export import fd.valve.app_system;
 export import fd.valve.vector;
@@ -264,7 +262,7 @@ class con_var_system : app_system
     virtual void RevertFlaggedConVars(int nFlag)                                                     = 0;
 
   public:
-    con_var* FindVar(const std::string_view name) const;
+    con_var* FindVar(const fd::string_view name) const;
 
     template <chars_cache Cvar>
     con_var* FindVar() const

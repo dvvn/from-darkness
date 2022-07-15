@@ -5,14 +5,12 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <string_view>
-
 module fd.rt_modules:find_signature;
 import :helpers;
 import :library_info;
 import fd.mem_block;
 
-uint8_t* find_signature(LDR_DATA_TABLE_ENTRY* const ldr_entry, const std::string_view sig, const bool notify)
+uint8_t* find_signature(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view sig, const bool notify)
 {
     if (!ldr_entry)
         return nullptr;

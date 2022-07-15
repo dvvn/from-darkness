@@ -4,11 +4,11 @@ module;
 
 #include <functional>
 #include <ranges>
-#include <string>
 #include <variant>
 
 module fd.netvars.core:basic_storage;
 import :type_resolve;
+import fd.string;
 
 using namespace fd;
 using namespace valve;
@@ -73,7 +73,7 @@ fd::hashed_string_view netvar_info::name() const
         }
         else
         {
-            std::string_view name = _Netvar_name(source_);
+            fd::string_view name = _Netvar_name(source_);
             FD_ASSERT(name.ends_with("[0]"));
             name.remove_suffix(3);
             FD_ASSERT(name.rfind(']') == name.npos);
@@ -83,9 +83,9 @@ fd::hashed_string_view netvar_info::name() const
     return name_;
 }
 
-std::string_view netvar_info::type() const
+fd::string_view netvar_info::type() const
 {
-    const std::string_view type_strv = type_;
+    const fd::string_view type_strv = type_;
     if (!type_strv.empty())
         return type_strv;
 
@@ -97,7 +97,7 @@ std::string_view netvar_info::type() const
     }
     else
     {
-        std::string_view netvar_type;
+        fd::string_view netvar_type;
         if (size_ == 3)
         {
             netvar_type = std::visit(
@@ -135,7 +135,7 @@ fd::hashed_string_view netvar_info_custom_constant::name() const
     return name_;
 }
 
-std::string_view netvar_info_custom_constant::type() const
+fd::string_view netvar_info_custom_constant::type() const
 {
     return type_;
 }

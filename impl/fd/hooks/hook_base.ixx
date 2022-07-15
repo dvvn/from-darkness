@@ -1,8 +1,7 @@
 module;
 
-#include <string_view>
-
 export module fd.hook_base;
+export import fd.string;
 
 struct hook_base
 {
@@ -12,7 +11,7 @@ struct hook_base
     virtual bool disable() = 0;
 
     virtual bool is_static() const        = 0;
-    virtual std::string_view name() const = 0;
+    virtual fd::string_view name() const  = 0;
 
     virtual bool initialized() const = 0;
     virtual bool active() const      = 0;

@@ -3,9 +3,8 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <string_view>
-
 export module fd.rt_modules:library_info;
+export import fd.string;
 
 struct library_info
 {
@@ -17,10 +16,10 @@ struct library_info
     pointer operator->() const;
     reference operator*() const;
 
-    std::wstring_view path() const;
-    std::wstring_view name() const;
+    fd::wstring_view path() const;
+    fd::wstring_view name() const;
 
-    void log(const std::string_view object_type, const std::string_view object, const void* addr) const;
+    void log(const fd::string_view object_type, const fd::string_view object, const void* addr) const;
 
   private:
     pointer entry_;

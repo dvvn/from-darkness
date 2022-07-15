@@ -29,7 +29,7 @@ constexpr bool _Has_drive_letter_prefix(const C* const first, const C* const las
 template <typename C>
 constexpr const C* _Find_root_name_end(const C* const first, const C* const last)
 {
-    // attempt to parse [first, last) as a path and return the end of root-name if it exists; otherwise, first
+    // attempt to parse [first, last) as a path_impl and return the end of root-name if it exists; otherwise, first
 
     // This is the place in the generic grammar where library implementations have the most freedom.
     // Below are example Windows paths, and what we've decided to do with them:
@@ -38,19 +38,19 @@ constexpr const C* _Find_root_name_end(const C* const first, const C* const last
     // * \RootRelative
     //   We parse no root-name, and \ as root-directory
     // * \\server\share
-    //   We parse \\server as root-name, \ as root-directory, and share as the first element in relative-path.
+    //   We parse \\server as root-name, \ as root-directory, and share as the first element in relative-path_impl.
     //   Technically, Windows considers all of \\server\share the logical "root", but for purposes
-    //   of decomposition we want those split, so that path(R"(\\server\share)").replace_filename("other_share")
+    //   of decomposition we want those split, so that path_impl(R"(\\server\share)").replace_filename("other_share")
     //   is \\server\other_share
     // * \\?\device
     // * \??\device
     // * \\.\device
     //   CreateFile appears to treat these as the same thing; we will set the first three characters as root-name
     //   and the first \ as root-directory. Support for these prefixes varies by particular Windows version, but
-    //   for the purposes of path decomposition we don't need to worry about that.
+    //   for the purposes of path_impl decomposition we don't need to worry about that.
     // * \\?\UNC\server\share
     //   MSDN explicitly documents the \\?\UNC syntax as a special case. What actually happens is that the device
-    //   Mup, or "Multiple UNC provider", owns the path \\?\UNC in the NT namespace, and is responsible for the
+    //   Mup, or "Multiple UNC provider", owns the path_impl \\?\UNC in the NT namespace, and is responsible for the
     //   network file access. When the user says \\server\share, CreateFile translates that into
     //   \\?\UNC\server\share to get the remote server access behavior. Because NT treats this like any other
     //   device, we have chosen to treat this as the \\?\ case above.
@@ -92,14 +92,14 @@ constexpr const C* _Find_root_name_end(const C* const first, const C* const last
 template <typename C>
 constexpr const C* _Find_relative_path(const C* const first, const C* const last)
 {
-    // attempt to parse [first, last) as a path and return the start of relative-path
+    // attempt to parse [first, last) as a path_impl and return the start of relative-path_impl
     return std::find_if_not(_Find_root_name_end(first, last), last, _Is_slash);
 }
 
 template <typename C>
 constexpr const C* _Find_filename(const C* const first, const C* last)
 {
-    // attempt to parse [first, last) as a path and return the start of filename if it exists; otherwise, last
+    // attempt to parse [first, last) as a path_impl and return the start of filename if it exists; otherwise, last
     const auto rel_path = _Find_relative_path(first, last);
     while (rel_path != last && !_Is_slash(last[-1]))
     {
@@ -116,14 +116,14 @@ constexpr const C* _Find_extension(const C* const fname, const C* const ads)
     auto ext = ads;
     if (fname == ext)
     {
-        // empty path
+        // empty path_impl
         return ads;
     }
 
     --ext;
     if (fname == ext)
     {
-        // path is length 1 and either dot, or has no dots; either way, extension() is empty
+        // path_impl is length 1 and either dot, or has no dots; either way, extension() is empty
         return ads;
     }
 
@@ -166,7 +166,7 @@ class extension : public std::basic_string_view<C>
   public:
     using _View::_View;
 
-    constexpr bool is_header() const
+    /* constexpr bool is_header() const
     {
         switch (_View::operator[](1))
         {
@@ -183,7 +183,7 @@ class extension : public std::basic_string_view<C>
     constexpr bool is_source() const
     {
         return _View::operator[](1) == static_cast<C>('c');
-    }
+    } */
 };
 
 template <typename C>
@@ -210,8 +210,9 @@ class filename : public std::basic_string_view<C>
     }
 
   public:
-    constexpr filename(const _View text, const bool trimmed)
-        : _View(text)
+    template <typename... Ts>
+    constexpr filename(const bool trimmed, const Ts... args)
+        : _View(args...)
     {
         trimmed_ = trimmed;
     }
@@ -219,30 +220,37 @@ class filename : public std::basic_string_view<C>
     // stripped of its extension
     constexpr _View stem() const
     {
-        // attempt to parse text_ as a path and return the stem if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the stem if it exists; otherwise, an empty view
         const auto [fname, ads, ext] = _Ext();
         return { fname, static_cast<size_t>(ext - fname) };
     }
 
     constexpr ::extension<C> extension() const
     {
-        // attempt to parse text_ as a path and return the extension if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the extension if it exists; otherwise, an empty view
         const auto [fname, ads, ext] = _Ext();
         return { ext, static_cast<size_t>(ads - ext) };
     }
 };
 
+template <typename T, typename... Ts>
+filename(bool, const T, Ts...) -> filename<std::iter_value_t<T>>;
+
 template <typename C>
-class path : public std::basic_string_view<C>
+class path_impl : public std::basic_string_view<C>
 {
     using _View = std::basic_string_view<C>;
 
   public:
-    using _View::_View;
+    template <typename... Args>
+    constexpr path_impl(const Args&... args)
+        : _View(args...)
+    {
+    }
 
     constexpr _View root_name() const
     {
-        // attempt to parse text_ as a path and return the root-name if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the root-name if it exists; otherwise, an empty view
         const auto first = _View::data();
         const auto last  = first + _View::size();
         return { first, static_cast<size_t>(_Find_root_name_end(first, last) - first) };
@@ -250,7 +258,7 @@ class path : public std::basic_string_view<C>
 
     constexpr _View root_directory() const
     {
-        // attempt to parse text_ as a path and return the root-directory if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the root-directory if it exists; otherwise, an empty view
         const auto first         = _View::data();
         const auto last          = first + _View::size();
         const auto root_name_end = _Find_root_name_end(first, last);
@@ -260,31 +268,31 @@ class path : public std::basic_string_view<C>
 
     constexpr _View root_path() const
     {
-        // attempt to parse text_ as a path and return the root-path if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the root-path_impl if it exists; otherwise, an empty view
         const auto first = _View::data();
         const auto last  = first + _View::size();
         return { first, static_cast<size_t>(_Find_relative_path(first, last) - first) };
     };
 
-    constexpr path relative_path() const
+    constexpr path_impl relative_path() const
     {
-        // attempt to parse text_ as a path and return the relative-path if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the relative-path_impl if it exists; otherwise, an empty view
         const auto first    = _View::data();
         const auto last     = first + _View::size();
         const auto rel_path = _Find_relative_path(first, last);
-        return _View(rel_path, static_cast<size_t>(last - rel_path));
+        return { rel_path, static_cast<size_t>(last - rel_path) };
     }
 
-    constexpr path parent_path() const
+    constexpr path_impl parent_path() const
     {
-        // attempt to parse text_ as a path and return the parent_path if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the parent_path if it exists; otherwise, an empty view
         const auto first    = _View::data();
         auto last           = first + _View::size();
         const auto rel_path = _Find_relative_path(first, last);
-        // case 1: relative-path ends in a directory-separator, remove the separator to remove "magic empty path"
+        // case 1: relative-path_impl ends in a directory-separator, remove the separator to remove "magic empty path_impl"
         //  for example: R"(/cat/dog/\//\)"
-        // case 2: relative-path doesn't end in a directory-separator, remove the filename and last directory-separator
-        //  to prevent creation of a "magic empty path"
+        // case 2: relative-path_impl doesn't end in a directory-separator, remove the filename and last directory-separator
+        //  to prevent creation of a "magic empty path_impl"
         //  for example: "/cat/dog"
         while (rel_path != last && !_Is_slash(last[-1]))
         {
@@ -303,31 +311,50 @@ class path : public std::basic_string_view<C>
 
     constexpr filename<C> filename() const
     {
-        // attempt to parse text_ as a path and return the filename if it exists; otherwise, an empty view
+        // attempt to parse text_ as a path_impl and return the filename if it exists; otherwise, an empty view
         const auto first = _View::data();
         const auto last  = first + _View::size();
         const auto fname = _Find_filename(first, last);
-        return { _View(fname, static_cast<size_t>(last - fname)), true };
+        return { true, fname, static_cast<size_t>(last - fname) };
     }
 
     constexpr auto stem() const
     {
-        return ::filename<C>(*this, false).stem();
+        return ::filename(false, _View::data(), _View::size()).stem();
     }
 
     constexpr auto extension() const
     {
-        return ::filename<C>(*this, false).extension();
+        return ::filename(false, _View::data(), _View::size()).extension();
     }
 };
 
 template <typename C>
-path(const C*) -> path<C>;
-template <typename C>
-path(const std::basic_string_view<C>) -> path<C>;
+struct path;
 
+template <typename C>
+path(const C*) -> path<C>;
+template <typename C, typename Tr>
+path(const std::basic_string_view<C, Tr>) -> path<C>;
 /* template <typename C, class Al>
 path(const std::basic_string<C, std::char_traits<C>, Al>&) -> path<C>; */
+
+#define PATH_IMPL(_T_)                      \
+    template <>                             \
+    struct path<_T_> : path_impl<_T_>       \
+    {                                       \
+        template <typename... Args>         \
+        constexpr path(const Args&... args) \
+            : path_impl<_T_>(args...)       \
+        {                                   \
+        }                                   \
+    };
+
+PATH_IMPL(char);
+PATH_IMPL(wchar_t);
+PATH_IMPL(char8_t);
+PATH_IMPL(char16_t);
+PATH_IMPL(char32_t);
 
 export namespace fd
 {
