@@ -16,29 +16,27 @@ using namespace netvars;
 
 static const char* _Netvar_name(const netvar_info_source source)
 {
-    return std::visit(
-        []<class T>(const T* src) {
-            return std::invoke(&T::name, src);
-        },
-        source);
+    return std::invoke(source, [](auto src) {
+        return src->name;
+    });
 }
 
 static string _Netvar_type(const netvar_info_source source)
 {
-    struct netvar_type_getter
+    struct
     {
-        string operator()(const recv_prop* const rp) const
+        string operator()(const recv_prop* rp) const
         {
             return type_recv_prop(rp);
         }
 
-        string operator()(const data_map_description* const td) const
+        string operator()(const data_map_description* td) const
         {
             return type_datamap_field(td);
         }
-    };
+    } type_getter;
 
-    return std::visit(netvar_type_getter(), source);
+    return std::invoke(source, type_getter);
 }
 
 //---
@@ -85,30 +83,27 @@ fd::hashed_string_view netvar_info::name() const
 
 fd::string_view netvar_info::type() const
 {
-    const fd::string_view type_strv = type_;
-    if (!type_strv.empty())
-        return type_strv;
+    if (!type_.empty())
+        return type_;
 
-    auto type = _Netvar_type(source_);
+    auto tmp_type = _Netvar_type(source_);
 
     if (size_ <= 1)
     {
-        type_ = std::move(type);
+        type_ = std::move(tmp_type);
     }
     else
     {
         fd::string_view netvar_type;
         if (size_ == 3)
         {
-            netvar_type = std::visit(
-                [&]<class T>(T* const ptr) {
-                    return type_array_prefix(type, ptr);
-                },
-                source_);
+            netvar_type = std::invoke(source_, [&](auto ptr) {
+                return type_array_prefix(tmp_type, ptr);
+            });
         }
 
         if (netvar_type.empty())
-            type_ = type_std_array(type, size_);
+            type_ = type_std_array(tmp_type, size_);
         else
             type_ = netvar_type;
     }
@@ -121,7 +116,7 @@ fd::string_view netvar_info::type() const
 netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, const fd::hashed_string_view name, string&& type)
     : offset_(offset)
     , name_(name)
-    , type_(type)
+    , type_(std::move(type))
 {
 }
 

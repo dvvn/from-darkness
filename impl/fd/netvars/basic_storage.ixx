@@ -1,7 +1,8 @@
 module;
 
+#include <fd/utility.h>
+
 #include <memory>
-#include <variant>
 #include <vector>
 
 export module fd.netvars.core:basic_storage;
@@ -9,7 +10,48 @@ export import fd.valve.recv_table;
 export import fd.valve.data_map;
 import fd.type_name;
 
-using netvar_info_source = std::variant<fd::valve::recv_prop*, fd::valve::data_map_description*>;
+class netvar_info_source
+{
+    using _Recv = fd::valve::recv_prop* const;
+    using _Dmap = fd::valve::data_map_description* const;
+
+    union
+    {
+        _Recv recv_;
+        _Dmap dmap_;
+    };
+
+    uint8_t mode_;
+
+  public:
+    netvar_info_source(const _Recv recv)
+        : recv_(recv)
+        , mode_(1)
+    {
+    }
+
+    netvar_info_source(const _Dmap dmap)
+        : dmap_(dmap)
+        , mode_(2)
+    {
+    }
+
+    template <typename Fn>
+    decltype(auto) operator()(Fn fn) const
+    {
+        switch (mode_)
+        {
+        case 1:
+            if constexpr (std::invocable<Fn, _Recv>)
+                return std::invoke(fn, recv_);
+        case 2:
+            if constexpr (std::invocable<Fn, _Dmap>)
+                return std::invoke(fn, dmap_);
+        default:
+            fd::unreachable();
+        }
+    }
+};
 
 class basic_netvar_info
 {
@@ -38,28 +80,66 @@ class netvar_info final : public basic_netvar_info
 };
 
 template <typename Fn>
+union offset_getter
+{
+    Fn fn_;
+    size_t offset_;
+
+  public:
+    offset_getter(Fn&& fn)
+        : fn_(std::move(fn))
+    {
+    }
+
+    void destroy()
+    {
+        if constexpr (std::is_class_v<Fn>)
+            std::destroy_at(&fn_);
+    }
+
+    void set()
+    {
+        const auto value = std::invoke(fn_);
+        destroy();
+        offset_ = value;
+    }
+
+    size_t get() const
+    {
+        return offset_;
+    }
+};
+
+template <typename Fn>
 class netvar_info_custom final : public basic_netvar_info
 {
-    mutable std::variant<size_t, Fn> getter_;
+    mutable offset_getter<Fn> getter_;
+    mutable bool have_offset_ = false;
     fd::hashed_string_view name_;
     fd::string type_;
 
   public:
+    ~netvar_info_custom()
+    {
+        if (!have_offset_)
+            getter_.destroy();
+    }
+
     netvar_info_custom(Fn&& getter, const fd::hashed_string_view name = {}, fd::string&& type = {})
         : getter_(std::move(getter))
         , name_(name)
-        , type_(type)
+        , type_(std::move(type))
     {
     }
 
     size_t offset() const
     {
-        if (std::holds_alternative<size_t>(getter_))
-            return std::get<0>(getter_);
-
-        const auto offset = std::invoke(std::get<1>(getter_));
-        getter_           = offset;
-        return offset;
+        if (!have_offset_)
+        {
+            getter_.set();
+            have_offset_ = true;
+        }
+        return getter_.get();
     }
 
     fd::hashed_string_view name() const
@@ -114,15 +194,15 @@ class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
     const netvar_info_custom_constant* add(const size_t offset, const fd::hashed_string_view name, fd::string&& type = {});
 
     template <std::invocable Fn>
-    auto add(Fn&& getter, const fd::hashed_string_view name, fd::string&& type = {})
+    auto add(Fn&& offset_getter, const fd::hashed_string_view name, fd::string&& type = {})
     {
-        return add_impl<netvar_info_custom<std::remove_cvref_t<Fn>>>(std::forward<Fn>(getter), name, std::move(type));
+        return add_impl<netvar_info_custom<std::remove_cvref_t<Fn>>>(std::forward<Fn>(offset_getter), name, std::move(type));
     }
 
     template <typename Type, typename TypeProj = std::identity, typename From>
     auto add(From&& from, const fd::hashed_string_view name, TypeProj proj = {})
     {
-        return add(std::forward<From>(from), name, std::invoke(proj, /* fd::tools::csgo_object_name<Type> */ "todo"));
+        return add(std::forward<From>(from), name, std::invoke(proj, fd::type_name<Type>()));
     }
 };
 
