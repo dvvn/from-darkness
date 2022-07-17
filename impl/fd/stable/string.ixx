@@ -1,27 +1,13 @@
 module;
 
-#include <concepts>
+#include <fd/utility.h>
+
 #include <string>
 #include <tuple>
 #include <utility>
 
 export module fd.string;
-
-// proxy class to force templates prebuild
-template <typename C>
-struct basic_string;
-template <typename C>
-struct basic_string_view;
-
-template <typename C>
-basic_string(const C*) -> basic_string<C>;
-template <typename C>
-basic_string(const basic_string_view<C>) -> basic_string<C>;
-
-template <typename C>
-basic_string_view(const C*) -> basic_string_view<C>;
-template <typename C>
-basic_string_view(const basic_string<C>&) -> basic_string_view<C>;
+export import fd.hash;
 
 struct check_null_chr_t
 {
@@ -29,151 +15,144 @@ struct check_null_chr_t
 
 constexpr check_null_chr_t check_null_chr;
 
-template <class Tr, typename C>
+template <typename C>
 constexpr bool _Ptr_equal(const C* ptr1, const C* ptr2, const size_t count)
 {
-    constexpr Tr traits;
-    return traits.compare(ptr1, ptr2, count) == 0;
+    return std::char_traits<C>::compare(ptr1, ptr2, count) == 0;
 }
 
-template <class Tr, typename C>
+template <typename C>
 constexpr bool _Ptr_equal(const C* my_ptr, const C* unk_ptr, const size_t count, const check_null_chr_t)
 {
-    return _Ptr_equal<Tr>(my_ptr, unk_ptr, count) && unk_ptr[count] == static_cast<C>('\0');
+    return _Ptr_equal(my_ptr, unk_ptr, count) && unk_ptr[count] == static_cast<C>('\0');
 }
 
-template <typename C>
-constexpr bool operator==(const basic_string_view<C> left, const basic_string_view<C> right)
+//-----
+
+template <typename T>
+concept is_iterator = requires(T it)
 {
-    const auto lsize = left.size();
-    return lsize == right.size() && _Ptr_equal<std::char_traits<C>>(left.data(), right.data(), lsize);
-}
+    *it;
+    ++it;
+};
 
-template <typename C>
-constexpr bool operator!=(const basic_string_view<C> left, const basic_string_view<C> right)
+template <typename Fn, typename T>
+constexpr decltype(auto) _Iter_this_void(Fn fn, T* thisptr)
 {
-    return !(left == right);
+    using ret_val = decltype(std::invoke(fn));
+    if constexpr (std::is_void_v<ret_val>)
+    {
+        std::invoke(fn);
+    }
+    else
+    {
+        decltype(auto) tmp = std::invoke(fn);
+        if constexpr (is_iterator<ret_val> || !std::is_class_v<std::remove_reference_t<ret_val>>)
+            return tmp;
+        else if constexpr (std::is_lvalue_reference_v<ret_val>)
+            return *thisptr;
+        else
+            return std::remove_const_t<T>(std::forward<decltype(tmp)>(tmp));
+    }
 }
 
-template <typename C>
-constexpr bool operator==(const basic_string_view<C> left, const C* right)
-{
-    return _Ptr_equal<std::char_traits<C>>(left.data(), right, left.size(), check_null_chr);
-}
+#define _PROXY_INNER
+#define _PROXY_INNERconst
 
-template <typename C>
-constexpr bool operator!=(const basic_string_view<C> left, const C* right)
-{
-    return !(left == right);
-}
-
-template <typename C>
-constexpr bool operator==(const C* left, const basic_string_view<C> right)
-{
-    return (right == left);
-}
-
-template <typename C>
-constexpr bool operator!=(const C* left, const basic_string_view<C> right)
-{
-    return !(left == right);
-}
-
-//----
-
-#define _CONTAINS_FN                                                                      \
-    template <class Tr>                                                                   \
-    constexpr bool contains(const std::basic_string_view<value_type> strv) const noexcept \
-    {                                                                                     \
-        return _Base::find(strv) != _Base::npos;                                          \
-    }                                                                                     \
-    constexpr bool contains(const value_type chr) const noexcept                          \
-    {                                                                                     \
-        return _Base::find(chr) != _Base::npos;                                           \
-    }                                                                                     \
-    constexpr bool contains(const value_type* cstr) const                                 \
-    {                                                                                     \
-        return _Base::find(cstr) != _Base::npos;                                          \
+#define _PROXY_IMPL(_FN_, _CONST_)                             \
+    template <typename... Args>                                \
+    constexpr decltype(auto) _FN_(Args&&... args) _CONST_      \
+    {                                                          \
+        _PROXY_INNER##_CONST_;                                 \
+        return _Iter_this_void(                                \
+            [&]() -> decltype(auto) {                          \
+                return str_._FN_(std::forward<Args>(args)...); \
+            },                                                 \
+            this);                                             \
     }
 
-template <typename It, typename T>
-It _Iter_or_this(It it, T*)
-{
-    return it;
-}
+#define _PROXY(_FN_)       _PROXY_IMPL(_FN_, )
+#define _PROXY_CONST(_FN_) _PROXY_IMPL(_FN_, const)
+#define _PROXY_ALL(_FN_)   _PROXY(_FN_) _PROXY_CONST(_FN_)
 
-template <typename S, typename T>
-T& _Iter_or_this(S&, T* thisptr)
-{
-    return *thisptr;
-}
-
-#define _WRAP(_FN_)             \
-    template <typename... Args> \
-    constexpr decltype(auto) _FN_(Args&&... args)
-
-#define _WRAP_ITER(_FN_)                                                      \
-    _WRAP(_FN_)                                                               \
-    {                                                                         \
-        return _Iter_or_this(_Base::_FN_(std::forward<Args>(args)...), this); \
-    }
-#define _WRAP_THIS(_FN_)                          \
-    _WRAP(_FN_)                                   \
-    {                                             \
-        _Base::_FN_(std::forward<Args>(args)...); \
-        return *this;                             \
+#define _CONTAINS_SPECIAL                                                                \
+    constexpr bool contains(const basic_string_view<value_type> strv) const              \
+    {                                                                                    \
+        _PROXY_INNERconst;                                                               \
+        return str_.find(std::basic_string_view(strv.data(), strv.size())) != str_.npos; \
     }
 
-#define _WRAP_VIEW      \
-    _WRAP_THIS(substr); \
-    /**/
+#define _FIND_SPECIAL                                                                                    \
+    constexpr size_type find(const basic_string_view<value_type> strv, const size_type offset = 0) const \
+    {                                                                                                    \
+        _PROXY_INNERconst;                                                                               \
+        return str_.find(std::basic_string_view(strv.data(), strv.size()), offset);                      \
+    }
 
-#define _WRAP_STR           \
-    _WRAP_ITER(insert);     \
-    _WRAP_ITER(erase);      \
-    _WRAP_THIS(append);     \
-    _WRAP_THIS(operator+=); \
-    _WRAP_THIS(replace);    \
-    _WRAP_THIS(substr);
+#define _APPEND_SPECIAL                                              \
+    constexpr auto& append(const basic_string_view<value_type> strv) \
+    {                                                                \
+        _PROXY_INNER;                                                \
+        str_.append(strv.data(), strv.size());                       \
+        return *this;                                                \
+    }
 
-#if defined(__cpp_lib_string_contains) || 1
-#define WRAP_basic_string_view
-#define WRAP_basic_string
+#define _ASSIGN_SPECIAL                                              \
+    constexpr auto& assign(basic_string&& str)                       \
+    {                                                                \
+        _PROXY_INNER;                                                \
+        str_.assign(std::move(str.str_));                            \
+        return *this;                                                \
+    }                                                                \
+    constexpr auto& assign(const basic_string_view<value_type> strv) \
+    {                                                                \
+        _PROXY_INNER;                                                \
+        str_.assign(strv.data(), strv.size());                       \
+        return *this;                                                \
+    }
+
+#define _PLUS_ASSIGN_SPECIAL                                             \
+    constexpr auto& operator+=(const basic_string_view<value_type> strv) \
+    {                                                                    \
+        return this->append(strv);                                       \
+    }
+
+#ifdef __cpp_lib_string_contains
+#define _CONTAINS_FN       \
+    _PROXY_CONST(contains) \
+    _CONTAINS_SPECIAL
 #else
-#define WRAP_basic_string_view \
-    _CONTAINS_FN               \
-    _WRAP_VIEW
-#define WRAP_basic_string \
-    _CONTAINS_FN          \
-    _WRAP_STR
+#define _CONTAINS_FN                                             \
+    constexpr bool contains(const value_type chr) const noexcept \
+    {                                                            \
+        _PROXY_INNERconst;                                       \
+        return str_.find(chr) != str_.npos;                      \
+    }                                                            \
+    constexpr bool contains(const value_type* cstr) const        \
+    {                                                            \
+        _PROXY_INNERconst;                                       \
+        return str_.find(cstr) != str_.npos;                     \
+    }                                                            \
+    _CONTAINS_SPECIAL
 #endif
 
-//----
+#define _PROXY_VIEW                                                                                                                           \
+    FOR_EACH(_PROXY_CONST, begin, end, operator[], at, front, back, data, size, max_size, empty, substr, starts_with, ends_with, find, rfind) \
+    FOR_EACH(_PROXY, remove_prefix, remove_suffix)                                                                                            \
+    _FIND_SPECIAL _CONTAINS_FN
 
-#define _PROVIDE(_C_, _NAME_)                                                                        \
-    template <>                                                                                      \
-    struct _NAME_<_C_> : std::_NAME_<_C_>                                                            \
-    {                                                                                                \
-        using _Base = std::_NAME_<_C_>;                                                              \
-        template <typename... Args>                                                                  \
-        constexpr _NAME_(Args&&... args) requires(std::constructible_from<_Base, decltype(args)...>) \
-            : _Base(std::forward<Args>(args)...)                                                     \
-        {                                                                                            \
-        }                                                                                            \
-        using _Base::value_type;                                                                     \
-        using _Base::size_type;                                                                      \
-        WRAP_##_NAME_;                                                                               \
-    };
+#define _PROXY_STR                                                                                                                                                     \
+    FOR_EACH(_PROXY_CONST, get_allocator, empty, size, max_size, capacity, find, rfind)                                                                                \
+    FOR_EACH(_PROXY, operator=, assign, reserve, shrink_to_fit, clear, insert, erase, push_back, pop_back, append, operator+=, starts_with, ends_with, substr, resize) \
+    FOR_EACH(_PROXY_ALL, at, operator[], front, back, data, c_str, begin, end)                                                                                         \
+    _FIND_SPECIAL _CONTAINS_FN _APPEND_SPECIAL _ASSIGN_SPECIAL _PLUS_ASSIGN_SPECIAL
 
-#define _ALL_TYPES(_FN_, ...)    \
-    _FN_(char, __VA_ARGS__);     \
-    _FN_(wchar_t, __VA_ARGS__);  \
-    _FN_(char8_t, __VA_ARGS__);  \
-    _FN_(char16_t, __VA_ARGS__); \
-    _FN_(char32_t, __VA_ARGS__);
-
-_ALL_TYPES(_PROVIDE, basic_string);
-_ALL_TYPES(_PROVIDE, basic_string_view);
+#define _ALL_TYPES(_FN_, ...)      \
+    _FN_(char, ##__VA_ARGS__);     \
+    _FN_(wchar_t, ##__VA_ARGS__);  \
+    _FN_(char8_t, ##__VA_ARGS__);  \
+    _FN_(char16_t, ##__VA_ARGS__); \
+    _FN_(char32_t, ##__VA_ARGS__);
 
 #define PREFIX_char
 #define PREFIX_wchar_t  w
@@ -185,7 +164,110 @@ _ALL_TYPES(_PROVIDE, basic_string_view);
 #define _ADD_PREFIX1(_PREFIX_, _NAME_) _ADD_PREFIX0(_PREFIX_, _NAME_)
 #define _ADD_PREFIX(_C_, _NAME_)       _ADD_PREFIX1(PREFIX_##_C_, _NAME_)
 
-#define _USE(_C_, _NAME_) using _ADD_PREFIX(_C_, _NAME_) = basic_##_NAME_<_C_>;
+#define _USING(_C_, _NAME_) using _ADD_PREFIX(_C_, _NAME_) = basic_##_NAME_<_C_>;
+
+#define _PROVIDE_BASIC(_BASE_) \
+    using _Base = _BASE_;      \
+    _Base str_;
+
+#define _PROVIDE_EX
+#define _CONSTRUCT_INNER
+
+#define _REUSE(_NAME_) using _NAME_ = typename _Base::_NAME_;
+
+#define _FWD_USINGS                                                                                                                                                             \
+    FOR_EACH(                                                                                                                                                                   \
+        _REUSE, value_type, pointer, const_pointer, reference, const_reference, const_iterator, iterator, const_reverse_iterator, reverse_iterator, size_type, difference_type) \
+    static constexpr size_type npos = _Base::npos;
+
+#define _PROVIDE(_C_, _NAME_, _BASE_, _PROXY_)                                                                                                     \
+    template <>                                                                                                                                    \
+    class _NAME_<_C_>                                                                                                                              \
+    {                                                                                                                                              \
+        _PROVIDE_BASIC(_BASE_<_C_>);                                                                                                               \
+        _PROVIDE_EX;                                                                                                                               \
+                                                                                                                                                   \
+      public:                                                                                                                                      \
+        _FWD_USINGS;                                                                                                                               \
+        constexpr _NAME_() /* requires(std::default_initializable<_Base>)  */                                                                      \
+        {                                                                                                                                          \
+            _CONSTRUCT_INNER;                                                                                                                      \
+        }                                                                                                                                          \
+        constexpr _NAME_(const _Base& str) /* requires(std::copyable<Base>)*/                                                                      \
+            : str_(str)                                                                                                                            \
+        {                                                                                                                                          \
+            _CONSTRUCT_INNER;                                                                                                                      \
+        }                                                                                                                                          \
+        constexpr _NAME_(_Base&& str) /* requires(std::movable<Base>)*/                                                                            \
+            : str_(std::move(str))                                                                                                                 \
+        {                                                                                                                                          \
+            _CONSTRUCT_INNER;                                                                                                                      \
+        }                                                                                                                                          \
+        template <class It, class End>                                                                                                             \
+        constexpr _NAME_(It first, End last) requires(std::constructible_from<_Base, It, End>)                                                     \
+            : str_(first, last)                                                                                                                    \
+        {                                                                                                                                          \
+            _CONSTRUCT_INNER;                                                                                                                      \
+        }                                                                                                                                          \
+        template <class T>                                                                                                                         \
+        constexpr _NAME_(const T& other) requires(std::is_class_v<T> && !std::same_as<T, _Base> && std::same_as<std::iter_value_t<T>, value_type>) \
+            : str_(other.data(), other.size())                                                                                                     \
+        {                                                                                                                                          \
+            _CONSTRUCT_INNER;                                                                                                                      \
+        }                                                                                                                                          \
+        template <class T>                                                                                                                         \
+        constexpr _NAME_(const T* other) requires(std::same_as<T, value_type>)                                                                     \
+            : str_(other)                                                                                                                          \
+        {                                                                                                                                          \
+            _CONSTRUCT_INNER;                                                                                                                      \
+        }                                                                                                                                          \
+        _PROXY_;                                                                                                                                   \
+    };
+
+//--------------------
+
+#pragma warning(disable : 4005)
+
+template <typename C>
+struct basic_string_view;
+template <typename C>
+struct basic_string;
+
+template <typename C>
+basic_string(const C*) -> basic_string<C>;
+template <typename C>
+basic_string(const basic_string_view<C>) -> basic_string<C>;
+
+template <typename C>
+basic_string_view(const C*) -> basic_string_view<C>;
+template <typename C>
+basic_string_view(const basic_string<C>&) -> basic_string_view<C>;
+template <typename C>
+basic_string_view(basic_string<C>&&) -> basic_string_view<void>;
+
+_ALL_TYPES(_PROVIDE, basic_string_view, std::basic_string_view, _PROXY_VIEW);
+_ALL_TYPES(_PROVIDE, basic_string, std::basic_string, _PROXY_STR);
+
+template <typename C>
+constexpr bool operator==(const basic_string_view<C> left, const basic_string_view<C> right)
+{
+    const auto lsize = left.size();
+    return lsize == right.size() && _Ptr_equal(left.data(), right.data(), lsize);
+}
+
+template <typename C>
+constexpr bool operator==(const basic_string_view<C> left, const C* right)
+{
+    return _Ptr_equal(left.data(), right, left.size(), check_null_chr);
+}
+
+template <typename C>
+constexpr bool operator==(const C* left, const basic_string_view<C> right)
+{
+    return (right == left);
+}
+
+//--------------------
 
 class string_builder
 {
@@ -370,17 +452,81 @@ class to_string_impl
     constexpr void operator()(const T val) const = delete; // not implemented
 };
 
+//---
+
+template <typename Chr, size_t Size>
+struct trivial_chars_cache
+{
+    Chr arr[Size];
+
+    constexpr trivial_chars_cache(const Chr* str_source)
+    {
+        std::copy_n(str_source, Size, arr);
+    }
+};
+
+namespace fd
+{
+    template <typename Chr, size_t Size>
+    struct hash<trivial_chars_cache<Chr, Size>>
+    {
+        constexpr size_t operator()(const trivial_chars_cache<Chr, Size>& str) const
+        {
+            return _Hash_bytes(str.arr, Size - 1);
+        }
+    };
+
+    export template <typename C>
+    struct hash<basic_string_view<C>>
+    {
+        constexpr size_t operator()(const basic_string_view<C> str) const
+        {
+            return _Hash_bytes(str.data(), str.size());
+        }
+    };
+
+    export template <typename C>
+    struct hash<basic_string<C>> : hash<basic_string_view<C>>
+    {
+        constexpr size_t operator()(const basic_string<C>& str) const
+        {
+            return _Hash_bytes(str.data(), str.size());
+        }
+    };
+} // namespace fd
+
+template <typename Chr, size_t Size>
+trivial_chars_cache(const Chr (&arr)[Size]) -> trivial_chars_cache<Chr, Size>;
+
+template <trivial_chars_cache Cache>
+consteval size_t operator"" _hash()
+{
+    return fd::_Hash_bytes(Cache.arr, std::size(Cache.arr) - 1);
+}
+
+static_assert("test"_hash == u8"test"_hash);
+static_assert(u"test"_hash == "t\0e\0s\0t\0"_hash);
+static_assert(U"test"_hash == u"t\0e\0s\0t\0"_hash);
+static_assert(U"ab"_hash == "a\0\0\0b\0\0\0"_hash);
+
 export namespace fd
 {
-    _ALL_TYPES(_USE, string);
-    _ALL_TYPES(_USE, string_view);
+    _ALL_TYPES(_USING, string);
+    _ALL_TYPES(_USING, string_view);
 
     using ::basic_string;
     using ::basic_string_view;
 
     using ::operator==;
-    using ::operator!=;
 
     constexpr string_builder make_string;
     constexpr to_string_impl to_string;
+
+    //----
+
+    inline namespace literals
+    {
+        using ::operator"" _hash;
+    }
+
 } // namespace fd

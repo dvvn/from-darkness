@@ -47,12 +47,14 @@ struct simple_chars_cache
         return begin() + size();
     }
 
-    constexpr fd::basic_string_view<Chr> view() const
+    using _View = fd::basic_string_view<Chr>;
+
+    constexpr _View view() const
     {
         return { begin(), size() };
     }
 
-    constexpr operator fd::basic_string_view<Chr>() const
+    constexpr operator _View() const
     {
         return view();
     }
@@ -61,10 +63,9 @@ struct simple_chars_cache
 template <typename Chr, size_t Size>
 simple_chars_cache(const Chr (&arr)[Size]) -> simple_chars_cache<Chr, Size>;
 
-/* #ifdef _DEBUG */ #if 1
-
-    template <typename Chr, size_t Size>
-    struct chars_cache : simple_chars_cache <Chr, Size>
+#if 1
+template <typename Chr, size_t Size>
+struct chars_cache : simple_chars_cache<Chr, Size>
 {
     using simple_chars_cache<Chr, Size>::simple_chars_cache;
 };

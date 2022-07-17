@@ -9,11 +9,10 @@ module;
 #include <optional>
 
 module fd.mem_protect;
-import fd.string;
 
 #if 0
 import nstd.mem.block;
-#endif
+
 
 struct local_free
 {
@@ -62,6 +61,8 @@ class last_error_string
     }
 };
 
+#endif
+
 static DWORD _Set_flags(const LPVOID addr, const SIZE_T size, const DWORD new_flags)
 {
 #if 0
@@ -81,9 +82,9 @@ static DWORD _Set_flags(const LPVOID addr, const SIZE_T size, const DWORD new_fl
         return old_flags;
 #endif
 
-#ifdef _DEBUG
-    [[maybe_unused]] const last_error_string error;
-#endif
+    /* #ifdef _DEBUG
+        [[maybe_unused]] const last_error_string error;
+    #endif */
 
     return 0;
 }

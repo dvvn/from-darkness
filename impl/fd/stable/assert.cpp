@@ -13,6 +13,7 @@ module;
 module fd.assert;
 //--
 
+#pragma warning(disable : 5244)
 #if !defined(NDEBUG)
 #include <assert.h>
 #else

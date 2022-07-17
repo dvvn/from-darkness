@@ -22,9 +22,7 @@ static auto _Correct_class_name(const fd::string_view name)
         FD_ASSERT(fd::is_alnum(name[1]));
         // internal csgo classes looks like C_***
         // same classes in shared code look like C***
-        ret.reserve(2 + name.size() - 1);
-        ret += "C_";
-        ret += name.substr(1);
+        ret = fd::make_string("C_", name.substr(1));
     }
     else
     {

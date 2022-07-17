@@ -147,6 +147,7 @@ LDR_DATA_TABLE_ENTRY* find_library(const fd::wstring_view name, const bool notif
     else */
     {
         result = _Find_library([=](const fd::library_info info) {
+            using namespace fd;
             return info.name() == name;
         });
     }

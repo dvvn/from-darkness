@@ -36,7 +36,7 @@ fd::wstring_view library_info::name() const
 {
     const auto full_path = this->path();
 #if 1
-    return fd::path(full_path).filename();
+    return fd::path<wchar_t>(full_path).filename();
 #else
     const auto name_start = full_path.rfind('\\');
     FD_ASSERT(name_start != full_path.npos, "Unable to get the module name");

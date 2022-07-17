@@ -40,6 +40,7 @@ constexpr void _Char_acceptor(const wchar_t){}
 constexpr void _Char_acceptor(const char8_t){}
 constexpr void _Char_acceptor(const char16_t){}
 constexpr void _Char_acceptor(const char32_t){}
+
 // clang-format on
 
 template <typename T>
@@ -192,8 +193,9 @@ class logger_wrapped
 
         const auto fmt_fixed = _Correct_obj(fmt);
         using char_t         = get_char_t<decltype(fmt_fixed)>;
-        const auto message   = std::vformat(fmt_fixed, _Make_fmt_args<char_t>(_Correct_obj<char_t>(args)...));
-        return std::invoke(*this, message);
+        fd::basic_string<char_t> buff;
+        std::vformat_to(std::back_inserter(buff), fmt_fixed, _Make_fmt_args<char_t>(_Correct_obj<char_t>(args)...));
+        return std::invoke(*this, buff);
     }
 };
 
@@ -218,4 +220,25 @@ export namespace std
     using ::std::formatter;
     using ::std::make_format_args;
     using ::std::vformat;
+
+} // namespace std
+
+namespace std
+{
+    template <typename C>
+    struct formatter<fd::basic_string_view<C>, C> : formatter<std::basic_string_view<C>, C>
+    {
+        template <class FormatContext>
+        auto format(const fd::basic_string_view<C> str, FormatContext& fc) const
+        {
+            const std::basic_string_view<C> tmp(str.data(), str.size());
+            constexpr formatter<std::basic_string_view<C>, C> f;
+            return f.format(tmp, fc);
+        }
+    };
+
+    template <typename C>
+    struct formatter<fd::basic_string<C>, C> : formatter<fd::basic_string_view<C>, C>
+    {
+    };
 } // namespace std

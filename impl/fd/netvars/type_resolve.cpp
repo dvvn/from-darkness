@@ -3,7 +3,6 @@
 #include <fd/assert.h>
 
 #include <array>
-#include <format>
 #include <span>
 #include <variant>
 
@@ -27,35 +26,20 @@ fd::string netvars::type_std_array(const fd::string_view type, const size_t size
 {
     FD_ASSERT(size != 0);
     constexpr auto arr_name = type_name<std::array>();
-#ifdef __cpp_lib_format
-    return std::format("{}<{}, {}>", arr_name, type, size);
+#if defined(__cpp_lib_format) && 0
+    return std::format("{}<{}, {}>", arr_name, type, size); // formatter not imported
 #else
-    fd::string buff;
-    const auto arr_size = fd::to_string(size);
-    buff.reserve(arr_name.size() + 1 + type.size() + 2 + arr_size.size() + 1);
-    buff += arr_name;
-    buff += '<';
-    buff += type;
-    buff += ", ";
-    buff += arr_size;
-    buff += '>';
-    return buff;
+    return fd::make_string(arr_name, '<', type, ", ", size, '>');
 #endif
 }
 
 fd::string netvars::type_utlvector(const fd::string_view type)
 {
     constexpr auto arr_name = type_name<valve::vector>();
-#ifdef __cpp_lib_format
-    return std::format("{}<{}>", arr_name, type);
+#if defined(__cpp_lib_format) && 0
+    return std::format("{}<{}>", arr_name, type); // formatter not imported
 #else
-    fd::string buff;
-    buff.reserve(arr_name.size() + 1 + type.size() + 1);
-    buff += arr_name;
-    buff += '<';
-    buff += type;
-    buff += '>';
-    return buff;
+    return fd::make_string(arr_name, '<', type, '>');
 #endif
 }
 
@@ -68,9 +52,9 @@ static fd::hashed_string_view _Extract_prefix(const fd::string_view type, const 
     return {};
 }
 
-#ifndef __cpp_lib_string_contains
+/* #ifndef __cpp_lib_string_contains
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
-#endif
+#endif */
 
 fd::string_view netvars::type_vec3(const fd::string_view type)
 {

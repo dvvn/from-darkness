@@ -71,6 +71,10 @@ logs_data::~logs_data()
     if (!fs::create_directory(dir))
         return;
 
+    FD_ASSERT("REWRITE THIS SHIT");
+
+#if 0
+
     const fs::path full_path = _Join_strings<fd::wstring>(dir, file.name, file.extension);
     const auto new_file_data = buff.view();
 
@@ -78,6 +82,8 @@ logs_data::~logs_data()
         return;
 
     std::ofstream(full_path) << new_file_data;
+
+#endif
 }
 
 classes_data::~classes_data()
@@ -86,6 +92,9 @@ classes_data::~classes_data()
     if (dir.empty())
         return;
 
+    FD_ASSERT("REWRITE THIS SHIT");
+
+#if 0
     if (fs::create_directory(dir) || fs::is_empty(dir))
     {
         for (const auto& [name, buff] : files)
@@ -104,6 +113,7 @@ classes_data::~classes_data()
 
         std::ofstream(current_file_path) << new_file_data;
     }
+#endif
 }
 
 template <class J>
@@ -118,7 +128,7 @@ static auto& _Json_append(J& js, const fd::string_view str)
     if constexpr (json_support_string_view<J>)
         return js[str];
     else
-        return js[fd::string(str)];
+        return js[/* fd::string(str) */ str.data()];
 }
 
 void storage::log_netvars(logs_data& data)
@@ -170,6 +180,8 @@ void storage::log_netvars(logs_data& data)
 
 void storage::generate_classes(classes_data& data)
 {
+    FD_ASSERT("REWRITE THIS SHIT");
+#if 0
     data.files.reserve(this->size());
 
     for (const netvar_table& table : *this)
@@ -242,4 +254,5 @@ void storage::generate_classes(classes_data& data)
         data.files.push_back(std::move(h_info));
         data.files.push_back(std::move(cpp_info));
     }
+#endif
 }

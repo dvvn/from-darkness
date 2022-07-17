@@ -1,9 +1,9 @@
 module;
 
 #include <algorithm>
-#include <string_view>
 
 export module fd.path;
+export import fd.string;
 
 // copypasted from std::filesystem
 
@@ -159,9 +159,9 @@ constexpr const C* _Find_extension(const C* const fname, const C* const ads)
 #pragma endregion
 
 template <typename C>
-class extension : public std::basic_string_view<C>
+class extension : public fd::basic_string_view<C>
 {
-    using _View = std::basic_string_view<C>;
+    using _View = fd::basic_string_view<C>;
 
   public:
     using _View::_View;
@@ -187,9 +187,9 @@ class extension : public std::basic_string_view<C>
 };
 
 template <typename C>
-class filename : public std::basic_string_view<C>
+class filename : public fd::basic_string_view<C>
 {
-    using _View = std::basic_string_view<C>;
+    using _View = fd::basic_string_view<C>;
 
     bool trimmed_;
 
@@ -237,9 +237,9 @@ template <typename T, typename... Ts>
 filename(bool, const T, Ts...) -> filename<std::iter_value_t<T>>;
 
 template <typename C>
-class path_impl : public std::basic_string_view<C>
+class path_impl : public fd::basic_string_view<C>
 {
-    using _View = std::basic_string_view<C>;
+    using _View = fd::basic_string_view<C>;
 
   public:
     template <typename... Args>
@@ -334,10 +334,10 @@ struct path;
 
 template <typename C>
 path(const C*) -> path<C>;
-template <typename C, typename Tr>
-path(const std::basic_string_view<C, Tr>) -> path<C>;
+template <typename C>
+path(const fd::basic_string_view<C>) -> path<C>;
 /* template <typename C, class Al>
-path(const std::basic_string<C, std::char_traits<C>, Al>&) -> path<C>; */
+path(const fd::basic_string<C, std::char_traits<C>, Al>&) -> path<C>; */
 
 #define PATH_IMPL(_T_)                      \
     template <>                             \

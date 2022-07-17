@@ -1,8 +1,11 @@
 #pragma once
 
+#include <limits>
+// added to prevent compiler bugd
 #include <string>
 
 import fd.path;
+import fd.string;
 
 #if 1
 
@@ -41,12 +44,12 @@ constexpr size_t _Object_id(const fd::path<char> full_path)
     };
 
     size_t index = 0;
-    for (const auto chr : std::basic_string_view(fname.data() + start, fname.data() + fname.size()))
+    for (const auto chr : fd::string_view(fname.data() + start, fname.data() + fname.size()))
         index = char_to_num(chr) + index * 10;
     return index;
 }
 
-constexpr std::string_view _Pretty_file_name(const fd::path<char> full_path, const bool id_must_be_found = true)
+constexpr fd::string_view _Pretty_file_name(const fd::path<char> full_path, const bool id_must_be_found = true)
 {
     const auto fname = full_path.stem();
     auto offset      = fname.size();
@@ -59,13 +62,13 @@ constexpr std::string_view _Pretty_file_name(const fd::path<char> full_path, con
     return { fname.data(), offset };
 }
 
-constexpr std::string_view _Folder_name(const fd::path<char> full_path)
+constexpr fd::string_view _Folder_name(const fd::path<char> full_path)
 {
     return full_path.parent_path().filename();
 }
 
 #else
-constexpr size_t _Object_id(const std::string_view full_path)
+constexpr size_t _Object_id(const fd::string_view full_path)
 {
     auto start = full_path.rfind('_');
     if (start == full_path.npos)
@@ -106,17 +109,17 @@ constexpr size_t _Object_id(const std::string_view full_path)
     return index;
 }
 
-constexpr auto _Corrent_path(const std::string_view path)
+constexpr auto _Corrent_path(const fd::string_view path)
 {
     // std::source_location::current().file_name() contains '\' and '/' in the same time
-    std::string buff;
+    fd::string buff;
     buff.reserve(path.size());
     for (const auto c : path)
         buff += (c == '\\' ? '/' : c);
     return buff;
 }
 
-constexpr auto _File_name_end(const std::string_view full_path)
+constexpr auto _File_name_end(const fd::string_view full_path)
 {
     const auto end = full_path.rfind('.');
     if (end != full_path.npos)
@@ -125,7 +128,7 @@ constexpr auto _File_name_end(const std::string_view full_path)
     return full_path.size();
 }
 
-constexpr auto _Skip_object_id(const std::string_view file_name)
+constexpr auto _Skip_object_id(const fd::string_view file_name)
 {
     size_t offset  = 0;
     const auto end = file_name.rend();
@@ -141,14 +144,14 @@ constexpr auto _Skip_object_id(const std::string_view file_name)
     return offset;
 }
 
-constexpr std::string_view _Pretty_file_name(const std::string_view full_path, const bool id_must_be_found = true)
+constexpr fd::string_view _Pretty_file_name(const fd::string_view full_path, const bool id_must_be_found = true)
 {
     auto start = _Corrent_path(full_path).rfind('/');
     if (start == full_path.npos)
         return { nullptr, 0u };
     ++start;
     const auto end = _File_name_end(full_path);
-    std::string_view file_name(full_path.begin() + start, full_path.begin() + end);
+    fd::string_view file_name(full_path.begin() + start, full_path.begin() + end);
     const auto object_id = _Skip_object_id(file_name);
     if (object_id == file_name.npos)
     {
@@ -163,7 +166,7 @@ constexpr std::string_view _Pretty_file_name(const std::string_view full_path, c
     return file_name;
 }
 
-constexpr std::string_view _Folder_name(const std::string_view file_name)
+constexpr fd::string_view _Folder_name(const fd::string_view file_name)
 {
     const auto file_name_correct = _Corrent_path(file_name);
     const auto end               = file_name_correct.rfind('/');

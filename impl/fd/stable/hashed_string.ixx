@@ -172,7 +172,7 @@ concept _Hashed_string_native_comparable = fd::same_template<H::hash_func_type, 
 template <_Hashed_string_wrapped H1, _Hashed_string_wrapped H2>
 constexpr bool operator==(const H1& left, const H2& right)
 {
-    static_assert(_Hashed_string_comparable<H1, H2>, "Incomparable string type!");
+    // static_assert(_Hashed_string_comparable<H1, H2>, "Incomparable string type!");
     if constexpr (_Hashed_string_native_comparable<H1, H2>)
         return left.hash() == right.hash();
     else
@@ -208,9 +208,9 @@ struct basic_hashed_string_view : Base
     WRAP_VOID(remove_suffix);
 
   private:
-#if __cplusplus > 201703L
-    using Base::swap;
-#endif
+    /* #if __cplusplus > 201703L
+        using Base::swap;
+    #endif */
 };
 
 template <typename Chr>
@@ -231,14 +231,14 @@ struct basic_hashed_string : Base
     WRAP_VOID(pop_back);
     WRAP_THIS(append);
     WRAP_THIS(operator+=);
-    WRAP_THIS(replace);
+    // WRAP_THIS(replace);
     WRAP_VOID(resize);
 #ifdef __cpp_lib_string_resize_and_overwrite
     WRAP_VOID(resize_and_overwrite);
 #endif
-
-  private:
-    using Base::swap;
+    /*
+      private:
+        using Base::swap; */
 };
 
 template <typename Chr>
