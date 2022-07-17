@@ -4,7 +4,6 @@
 
 #include <array>
 #include <span>
-#include <variant>
 
 module fd.netvars.core:type_resolve;
 import fd.math.color;
@@ -13,9 +12,10 @@ import fd.math.view_matrix;
 import fd.math.vector2;
 import fd.valve.vector;
 import fd.valve.base_handle;
-import fd.hashed_string;
 import fd.to_char;
 import fd.ctype;
+import fd.type_name;
+import fd.format;
 
 using namespace fd;
 using namespace fd::valve;
@@ -108,7 +108,7 @@ fd::string_view netvars::type_integer(fd::string_view type)
 
 //---
 
-string_or_view netvars::type_recv_prop(const recv_prop* const prop)
+string netvars::type_recv_prop(const recv_prop* const prop)
 {
     using pt = recv_prop_type;
 

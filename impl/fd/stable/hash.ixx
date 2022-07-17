@@ -25,7 +25,6 @@ constexpr size_t ct_strlen(const char* p)
 
 export namespace fd
 {
-
     constexpr size_t _Hash_bytes(const char* input, const size_t len)
     {
         using xxh = std::conditional_t<sizeof(size_t) == 4, xxh32, xxh64>;
@@ -33,7 +32,7 @@ export namespace fd
     }
 
     template <typename T>
-    constexpr size_t _Hash_bytes(const T* input, const size_t len) requires(sizeof(T) > 1)
+    constexpr size_t _Hash_bytes(const T* input, const size_t len) requires(!std::same_as<char, T>)
     {
         const auto bytes_count = sizeof(T) * len;
 
@@ -92,6 +91,11 @@ export namespace fd
         constexpr size_t operator()(const T* input, const size_t len) const
         {
             return _Hash_bytes(input, len);
+        };
+
+        constexpr size_t operator()(const T input) const requires(!std::is_class_v<T> /* && !std::is_union_v<T> */)
+        {
+            return _Hash_bytes(&input, 1);
         };
     };
 } // namespace fd

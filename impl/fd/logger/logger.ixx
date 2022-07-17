@@ -3,11 +3,11 @@ module;
 #include <fd/callback.h>
 
 #include <concepts>
-#include <format>
 #include <functional>
 
 export module fd.logger;
 export import fd.to_char;
+export import fd.format;
 
 template <typename T>
 concept have_array_access = requires(const T& obj)
@@ -67,15 +67,6 @@ decltype(auto) _Correct_obj(T&& obj)
         return _Forward_or_move(std::forward<T>(obj));
     else
         return fd::to_char<CharT>(obj);
-}
-
-template <typename CharT, typename... Args>
-auto _Make_fmt_args(const Args&... args)
-{
-    if constexpr (std::is_same_v<CharT, char>)
-        return std::make_format_args(args...);
-    else if constexpr (std::is_same_v<CharT, wchar_t>)
-        return std::make_wformat_args(args...);
 }
 
 FD_CALLBACK(logger_narrow, fd::string_view);
@@ -193,52 +184,21 @@ class logger_wrapped
 
         const auto fmt_fixed = _Correct_obj(fmt);
         using char_t         = get_char_t<decltype(fmt_fixed)>;
-        fd::basic_string<char_t> buff;
-        std::vformat_to(std::back_inserter(buff), fmt_fixed, _Make_fmt_args<char_t>(_Correct_obj<char_t>(args)...));
+        const auto buff      = fd::format(fmt_fixed, _Correct_obj<char_t>(args)...);
         return std::invoke(*this, buff);
     }
 };
 
-FD_OBJECT(logger, logger_wrapped);
-
 export namespace fd
 {
-    using ::logger;
+    constexpr logger_wrapped logger;
 }
 
-export namespace std
+/* export namespace std
 {
     template <typename... Args>
-    void invoke(decltype(logger) l, const Args&... args)
+    void invoke(const logger_wrapped l, const Args&... args)
     {
-        if (!l.initialized())
-            return;
-        invoke(*l, args...);
+        l(args...);
     }
-
-    using ::std::format;
-    using ::std::formatter;
-    using ::std::make_format_args;
-    using ::std::vformat;
-
-} // namespace std
-
-namespace std
-{
-    template <typename C>
-    struct formatter<fd::basic_string_view<C>, C> : formatter<std::basic_string_view<C>, C>
-    {
-        template <class FormatContext>
-        auto format(const fd::basic_string_view<C> str, FormatContext& fc) const
-        {
-            const std::basic_string_view<C> tmp(str.data(), str.size());
-            constexpr formatter<std::basic_string_view<C>, C> f;
-            return f.format(tmp, fc);
-        }
-    };
-
-    template <typename C>
-    struct formatter<fd::basic_string<C>, C> : formatter<fd::basic_string_view<C>, C>
-    {
-    };
-} // namespace std
+} */

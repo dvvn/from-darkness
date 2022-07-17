@@ -35,14 +35,14 @@ struct known_bytes
 
     virtual pointer begin() const = 0;
     virtual pointer end() const   = 0;
-    virtual size_t  size() const  = 0;
+    virtual size_t size() const   = 0;
 };
 
 struct unknown_bytes_data
 {
     std::unique_ptr<known_bytes> buff;
     // unknown bytes after buffer
-    uint16_t                     skip = 0;
+    uint16_t skip = 0;
     //?? ?? ? AA 11 22 BB ?? ?? ? CC 11 0F
     //[  1  ] [         2       ] [  3  ]
     // 1) buff(empty), skip==3
@@ -78,10 +78,10 @@ struct unknown_bytes
 
     virtual pointer begin() const = 0;
     virtual pointer end() const   = 0;
-    virtual size_t  size() const  = 0;
+    virtual size_t size() const   = 0;
 
     const value_type& operator[](const size_t index) const;
-    size_t            bytes_count() const;
+    size_t bytes_count() const;
 };
 
 struct known_signature : std::unique_ptr<known_bytes>

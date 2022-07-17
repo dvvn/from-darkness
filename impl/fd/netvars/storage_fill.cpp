@@ -5,10 +5,10 @@ module;
 //#include <format>
 #include <algorithm>
 #include <ranges>
-#include <variant>
 
 module fd.netvars.core:storage;
 import fd.ctype;
+import fd.format;
 
 using namespace fd;
 using namespace netvars;

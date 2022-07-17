@@ -11,6 +11,7 @@ module;
 
 //
 module fd.assert;
+import fd.format;
 //--
 
 #pragma warning(disable : 5244)

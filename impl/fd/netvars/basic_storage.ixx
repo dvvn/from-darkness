@@ -8,8 +8,6 @@ export module fd.netvars.core:basic_storage;
 export import fd.valve.recv_table;
 export import fd.valve.data_map;
 import fd.type_name;
-import fd.hashed_string;
-import fd.string_or_view;
 
 using netvar_info_source = std::variant<fd::valve::recv_prop*, fd::valve::data_map_description*>;
 
@@ -29,7 +27,7 @@ class netvar_info final : public basic_netvar_info
     netvar_info_source source_;
     size_t size_; // for arrays
     mutable fd::hashed_string_view name_;
-    mutable fd::string_or_view type_;
+    mutable fd::string type_;
 
   public:
     netvar_info(const size_t offset, const netvar_info_source source, const size_t size = 0, const fd::hashed_string_view name = {});
@@ -44,10 +42,10 @@ class netvar_info_custom final : public basic_netvar_info
 {
     mutable std::variant<size_t, Fn> getter_;
     fd::hashed_string_view name_;
-    fd::string_or_view type_;
+    fd::string type_;
 
   public:
-    netvar_info_custom(Fn&& getter, const fd::hashed_string_view name = {}, fd::string_or_view&& type = {})
+    netvar_info_custom(Fn&& getter, const fd::hashed_string_view name = {}, fd::string&& type = {})
         : getter_(std::move(getter))
         , name_(name)
         , type_(type)
@@ -79,10 +77,10 @@ class netvar_info_custom_constant final : public basic_netvar_info
 {
     size_t offset_;
     fd::hashed_string_view name_;
-    fd::string_or_view type_;
+    fd::string type_;
 
   public:
-    netvar_info_custom_constant(const size_t offset, const fd::hashed_string_view name = {}, fd::string_or_view&& type = {});
+    netvar_info_custom_constant(const size_t offset, const fd::hashed_string_view name = {}, fd::string&& type = {});
 
     size_t offset() const;
     fd::hashed_string_view name() const;
@@ -113,10 +111,10 @@ class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
     const basic_netvar_info* find(const fd::hashed_string_view name) const;
 
     const netvar_info* add(const size_t offset, const netvar_info_source source, const size_t size = 0, const fd::hashed_string_view name = {});
-    const netvar_info_custom_constant* add(const size_t offset, const fd::hashed_string_view name, fd::string_or_view&& type = {});
+    const netvar_info_custom_constant* add(const size_t offset, const fd::hashed_string_view name, fd::string&& type = {});
 
     template <std::invocable Fn>
-    auto add(Fn&& getter, const fd::hashed_string_view name, fd::string_or_view&& type = {})
+    auto add(Fn&& getter, const fd::hashed_string_view name, fd::string&& type = {})
     {
         return add_impl<netvar_info_custom<std::remove_cvref_t<Fn>>>(std::forward<Fn>(getter), name, std::move(type));
     }

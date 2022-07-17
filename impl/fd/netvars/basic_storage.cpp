@@ -23,16 +23,16 @@ static const char* _Netvar_name(const netvar_info_source source)
         source);
 }
 
-static string_or_view _Netvar_type(const netvar_info_source source)
+static string _Netvar_type(const netvar_info_source source)
 {
     struct netvar_type_getter
     {
-        string_or_view operator()(const recv_prop* const rp) const
+        string operator()(const recv_prop* const rp) const
         {
             return type_recv_prop(rp);
         }
 
-        string_or_view operator()(const data_map_description* const td) const
+        string operator()(const data_map_description* const td) const
         {
             return type_datamap_field(td);
         }
@@ -118,7 +118,7 @@ fd::string_view netvar_info::type() const
 
 //----
 
-netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, const fd::hashed_string_view name, string_or_view&& type)
+netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, const fd::hashed_string_view name, string&& type)
     : offset_(offset)
     , name_(name)
     , type_(type)
@@ -198,7 +198,7 @@ const netvar_info* netvar_table::add(const size_t offset, const netvar_info_sour
     return add_impl<netvar_info>(offset, source, size, name);
 }
 
-const netvar_info_custom_constant* netvar_table::add(const size_t offset, const fd::hashed_string_view name, string_or_view&& type)
+const netvar_info_custom_constant* netvar_table::add(const size_t offset, const fd::hashed_string_view name, string&& type)
 {
     return add_impl<netvar_info_custom_constant>(offset, name, std::move(type));
 }

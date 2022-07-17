@@ -102,7 +102,7 @@ int main(int, char**)
 
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
     fd::app_info.construct(hwnd, hmodule);
-    fd::logger->append(fd::system_console_writer);
+    fd::logger.append(fd::system_console_writer);
 
     const auto a = fd::rt_modules::current.operator->();
 
