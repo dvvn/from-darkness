@@ -8,6 +8,7 @@
 #include <d3d9.h>
 
 import fd.gui.basic_render_interface;
+import fd.gui.menu;
 
 using namespace fd::gui;
 
@@ -33,6 +34,7 @@ struct render_interface_impl final : basic_render_interface
 #ifdef _DEBUG
             ImGui::ShowDemoWindow();
 #endif
+            std::invoke(menu);
         }
         ImGui::EndFrame();
 

@@ -5,21 +5,6 @@ module;
 export module fd.gui.widgets;
 export import fd.string;
 
-struct widget
-{
-    virtual ~widget() = default;
-};
-
-struct widget_position
-{
-    // WIP
-};
-
-struct widgets_builder
-{
-    // virtual ~widgets_builder() = default;
-};
-
 class window
 {
     uint8_t visible_;
@@ -30,6 +15,14 @@ class window
     window(const window&) = delete;
 
     explicit operator bool() const;
+
+    template <typename Fn, typename... Args>
+    window(const fd::string_view name, Fn fn, Args&&... args)
+        : window(name)
+    {
+        if (*this)
+            std::invoke(fn, std::forward<Args>(args)...);
+    }
 };
 
 class child_window
@@ -46,10 +39,12 @@ class child_window
 
 bool check_box(const fd::string_view name, bool& value);
 
-export namespace fd::gui
+//------
+
+export namespace fd::gui::inline widgets
 {
     using ::child_window;
     using ::window;
 
     using ::check_box;
-} // namespace fd::gui
+} // namespace fd::gui::inline widgets
