@@ -13,6 +13,8 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 20)
 endif()
 
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+
 include(ProcessorCount)
 ProcessorCount(_CPUS)
 message(DEBUG "cpu count: ${_CPUS}")

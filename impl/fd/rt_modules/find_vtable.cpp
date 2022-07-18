@@ -85,7 +85,7 @@ static uint8_t* _Load_vtable(const mblock dot_rdata, const mblock dot_text, cons
     return nullptr;
 }
 
-static mblock _Section_to_rng(const basic_address<IMAGE_DOS_HEADER> dos, IMAGE_SECTION_HEADER* const section)
+static mblock _Section_to_rng(const basic_address<IMAGE_DOS_HEADER> dos, const IMAGE_SECTION_HEADER* section)
 {
     uint8_t* const ptr = dos + section->VirtualAddress;
     return {ptr, section->SizeOfRawData};

@@ -15,6 +15,6 @@ import fd.assert;
         fd::unreachable();                                           \
     }
 #else
-#define FD_ASSERT(...)             (void)0
-#define FD_ASSERT_UNREACHABLE(...) fd::unreachable()
+#define FD_ASSERT(...)             (void)0;
+#define FD_ASSERT_UNREACHABLE(...) fd::unreachable();
 #endif

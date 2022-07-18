@@ -10,6 +10,8 @@ export module fd.string;
 export import fd.hash;
 import fd.lazy_invoke;
 
+#pragma warning(disable : 4005)
+
 struct check_null_chr_t
 {
 };
@@ -236,8 +238,6 @@ constexpr decltype(auto) _Item_this_void(Fn fn, T* thisptr)
 
 //--------------------
 
-#pragma warning(disable : 4005)
-
 template <typename C>
 struct basic_string_view;
 template <typename C>
@@ -258,6 +258,14 @@ basic_string_view(basic_string<C>&&) -> basic_string_view<void>;
 _ALL_TYPES(_PROVIDE, basic_string_view, std::basic_string_view, _EMPTY, _EMPTY, _PROXY_VIEW);
 _ALL_TYPES(_PROVIDE, basic_string, std::basic_string, _EMPTY, _EMPTY, _PROXY_STR);
 
+#define _EQUAL_OPERATOR(_L_, _R_) \
+    operator!=(_L_, _R_)          \
+    {                             \
+        return !(left == right);  \
+    }                             \
+    template <typename C>         \
+    constexpr bool operator==(_L_, _R_)
+
 template <typename C>
 constexpr bool operator==(const basic_string_view<C> left, const basic_string_view<C> right)
 {
@@ -273,6 +281,21 @@ constexpr bool operator==(const basic_string_view<C> left, const C* right)
 
 template <typename C>
 constexpr bool operator==(const C* left, const basic_string_view<C> right)
+{
+    return right == left;
+}
+
+//----
+
+template <typename C>
+constexpr bool operator==(const basic_string<C>& left, const basic_string_view<C> right)
+{
+    const auto lsize = left.size();
+    return lsize == right.size() && _Ptr_equal(left.data(), right.data(), lsize);
+}
+
+template <typename C>
+constexpr bool operator==(const basic_string_view<C> left, const basic_string<C>& right)
 {
     return right == left;
 }
@@ -337,6 +360,19 @@ template <typename C>
 constexpr bool operator==(const basic_hashed_string_view<C> left, const basic_hashed_string_view<C> right)
 {
     return left.hash() == right.hash();
+}
+
+template <typename C>
+constexpr bool operator==(const basic_hashed_string_view<C> left, const basic_string_view<C> right)
+{
+    const auto lsize = left.size();
+    return lsize == right.size() && _Ptr_equal(left.data(), right.data(), lsize);
+}
+
+template <typename C>
+constexpr bool operator==(const basic_string_view<C> left, const basic_hashed_string_view<C> right)
+{
+    return right == left;
 }
 
 template <typename C>
