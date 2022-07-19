@@ -3,7 +3,6 @@
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
-#include <imgui_internal.h>
 
 #include <d3d9.h>
 
@@ -31,9 +30,6 @@ struct render_interface_impl final : basic_render_interface
 
         ImGui::NewFrame();
         {
-#ifdef _DEBUG
-            ImGui::ShowDemoWindow();
-#endif
             std::invoke(menu);
         }
         ImGui::EndFrame();

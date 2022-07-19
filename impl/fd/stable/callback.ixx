@@ -19,38 +19,59 @@ Fn _Wrap_callback(T&& obj)
         };
 }
 
+struct callback_info
+{
+    virtual ~callback_info() = default;
+
+    virtual size_t size() const = 0;
+
+    virtual bool empty() const
+    {
+        return size() == 0;
+    }
+};
+
 template <typename... Args>
-struct abstract_callback
+struct abstract_callback : callback_info
 {
     using callback_type = std::function<void(Args...)>;
 
-    virtual ~abstract_callback() = default;
-
     virtual void append(callback_type&& callback) = 0;
+    virtual void invoke(Args... args) const       = 0;
 
     template <typename Fn>
     void append(Fn&& callback) requires(!std::is_same_v<decltype(callback), callback_type&&>)
     {
         append(_Wrap_callback<callback_type>(std::forward<Fn>(callback)));
     }
+};
 
-    template <typename Fn>
-    void operator+=(Fn&& callback)
-    {
-        append(std::forward<Fn>(callback));
-    }
+template <class C>
+struct abstract_callback_custom : callback_info
+{
+    using callback_type = C;
 
-    virtual void invoke(Args... args) const = 0;
-
-    void operator()(Args... args) const
-    {
-        invoke(args...);
-    }
-
-    virtual bool empty() const = 0;
+    virtual void append(callback_type&& callback) = 0;
+    virtual void invoke()                         = 0;
 };
 
 export namespace fd
 {
     using ::abstract_callback;
-}
+    using ::abstract_callback_custom;
+} // namespace fd
+
+export namespace std
+{
+    template <typename... Args>
+    void invoke(const abstract_callback<Args...>& cb, std::type_identity_t<Args>... args)
+    {
+        cb.invoke(static_cast<Args>(args)...);
+    }
+
+    template <typename C>
+    void invoke(abstract_callback_custom<C>& cb)
+    {
+        cb.invoke();
+    }
+} // namespace std

@@ -23,19 +23,18 @@ import fd.format;
 #define NDEBUG
 #endif
 
-using selected_assert_callback = fd::callback<const assert_data&>;
+using assert_handler_base = FD_CALLBACK_TYPE(assert_handler, 1);
 
-struct assert_handler_impl : selected_assert_callback
+struct assert_handler_impl final : assert_handler_base
 {
     assert_handler_impl();
 
     void invoke(const assert_data& data) const override
     {
-        selected_assert_callback::invoke(data);
+        assert_handler_base::invoke(data);
         std::terminate();
     }
 };
-
 FD_CALLBACK_BIND(assert_handler, assert_handler_impl);
 
 fd::string assert_data::build_message() const
@@ -66,10 +65,10 @@ static auto _Assert_msg(const B builder, const char* expression, const char* mes
 
 assert_handler_impl::assert_handler_impl()
 {
-    selected_assert_callback::append([](const assert_data& data) {
+    assert_handler_base::append([](const assert_data& data) {
         const auto [expression, message, location] = data;
 #if defined(_MSC_VER)
-        auto builder = std::bind_front(fd::make_string, std::in_place_type<wchar_t>);
+        constexpr auto builder = std::bind_front(fd::make_string, std::in_place_type<wchar_t>);
         _wassert(_Assert_msg(builder, expression, message).c_str(), builder(location.file_name()).c_str(), location.line());
 #elif defined(__GNUC__)
         constexpr auto builder = std::bind_front(fd::make_string, std::in_place_type<char>);

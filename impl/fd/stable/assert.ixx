@@ -44,6 +44,9 @@ export namespace fd
 
 export namespace std
 {
-    // for one_instance
-    using ::std::invoke;
+    // unwanted, compiler stuck without it
+    void invoke(decltype(assert_handler) ah, const assert_data data)
+    {
+        invoke(*ah, data);
+    }
 } // namespace std

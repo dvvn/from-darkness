@@ -21,7 +21,7 @@ message(DEBUG "cpu count: ${_CPUS}")
 
 # if(MSVC) idk, not defined
 add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
-add_compile_options(/wd5103 /wd4291)
+add_compile_options(/wd5103 /wd4291 /wd4250)
 add_compile_options(/MP${_CPUS})
 add_compile_options(/permissive-)
 add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)

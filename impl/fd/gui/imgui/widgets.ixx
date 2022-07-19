@@ -12,17 +12,10 @@ class window
   public:
     ~window();
     window(const fd::string_view name);
+    window(const fd::string_view name, bool& open);
     window(const window&) = delete;
 
     explicit operator bool() const;
-
-    template <typename Fn, typename... Args>
-    window(const fd::string_view name, Fn fn, Args&&... args)
-        : window(name)
-    {
-        if (*this)
-            std::invoke(fn, std::forward<Args>(args)...);
-    }
 };
 
 class child_window

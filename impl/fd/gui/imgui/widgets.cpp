@@ -104,6 +104,12 @@ window::window(const string_view name)
     visible_ = ImGui::Begin(IM_STR(name));
 }
 
+window::window(const string_view name, bool& open)
+{
+    PROTECT_WND_BEGIN();
+    visible_ = ImGui::Begin(IM_STR(name), &open);
+}
+
 window::operator bool() const
 {
     return visible_ == 1;

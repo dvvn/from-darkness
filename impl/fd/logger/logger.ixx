@@ -72,6 +72,19 @@ decltype(auto) _Correct_obj(T&& obj)
 FD_CALLBACK(logger_narrow, fd::string_view);
 FD_CALLBACK(logger_wide, fd::wstring_view);
 
+namespace std
+{
+    void invoke(decltype(logger_narrow) l, const fd::string_view str)
+    {
+        invoke(*l, str);
+    }
+
+    void invoke(decltype(logger_wide) l, const fd::wstring_view wstr)
+    {
+        invoke(*l, wstr);
+    }
+} // namespace std
+
 template <typename L>
 bool _Logger_empty(const L logger)
 {
@@ -201,4 +214,4 @@ export namespace fd
     {
         l(args...);
     }
-} */
+} // namespace std */
