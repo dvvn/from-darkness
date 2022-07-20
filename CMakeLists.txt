@@ -66,7 +66,7 @@ FetchContent_MakeAvailable(json)
 FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
 FetchContent_MakeAvailable(robin_hood)
 
-FetchContent_Declare(function2 GIT_REPOSITORY https://github.com/Naios/function2.git)
+FetchContent_Declare(function2 GIT_REPOSITORY #[[ https://github.com/Naios/function2.git ]] https://github.com/dvvn/function2.git)
 FetchContent_MakeAvailable(function2)
 
 FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt.git)
