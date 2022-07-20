@@ -45,92 +45,6 @@ class stream_descriptor
     }
 };
 
-class stream_mode_changer
-{
-    stream_descriptor descriptor_;
-    int prev_mode_ = -1, curr_mode_ = -1;
-
-    int set_mode_impl(const int mode) const
-    {
-        // If you write data to a file stream, explicitly flush the code by using fflush before you use _setmode to change the mode
-        const auto prev_mode = _setmode(descriptor_, mode);
-        assert(prev_mode != -1 && "Unable to change mode");
-        return prev_mode;
-    }
-
-    stream_mode_changer(const stream_mode_changer&)            = default;
-    stream_mode_changer& operator=(const stream_mode_changer&) = default;
-
-  public:
-    ~stream_mode_changer()
-    {
-        if (prev_mode_ != -1)
-            set_mode_impl(prev_mode_);
-    }
-
-    stream_mode_changer() = default;
-
-    stream_mode_changer(FILE* const stream)
-        : descriptor_(stream)
-    {
-    }
-
-    stream_mode_changer(stream_mode_changer&& other)
-    {
-        *this            = other;
-        other.prev_mode_ = -1;
-    }
-
-    stream_mode_changer& operator=(stream_mode_changer&& other)
-    {
-        const auto copy = *this;
-        *this           = other;
-        other           = copy;
-        return *this;
-    }
-
-    bool set(const int mode)
-    {
-        // also may be done by 'fwide'
-        if (curr_mode_ == mode)
-            return false;
-        const auto prev_mode = set_mode_impl(mode);
-        curr_mode_           = mode;
-        if (prev_mode_ == -1)
-            prev_mode_ = prev_mode;
-        return true;
-    }
-
-    template <typename C>
-    bool set();
-
-    template <>
-    bool set<char>()
-    {
-        return set(_O_TEXT);
-    }
-
-    template <>
-    bool set<wchar_t>()
-    {
-        return set(_O_U16TEXT);
-    }
-
-    template <>
-    bool set<char8_t>()
-    {
-        return set(_O_U8TEXT);
-    }
-
-    stream_mode_changer release()
-    {
-        stream_mode_changer ret;
-        using std::swap;
-        swap(ret, *this);
-        return ret;
-    }
-};
-
 class file_stream
 {
     FILE* stream_;
@@ -250,71 +164,7 @@ class reader
 class writer
 {
     file_stream stream_;
-    stream_mode_changer changer_;
     std::mutex mtx_;
-
-#if 0
-    void write_nolock(const char* ptr, const size_t size)
-    {
-        changer_.set<char>();
-        [[maybe_unused]] const auto written = _fwrite_nolock(ptr, 1, size, stream_);
-        assert(written == size);
-    }
-
-    void write_nolock(const wchar_t* ptr, const size_t size)
-    {
-// changer_.set<wchar_t>();
-//  for (const auto chr : text)
-//  {
-//      [[maybe_unused]] const auto ok = _putwc_nolock(chr, stream_);
-//      FD_ASSERT(ok != WEOF, errno == EILSEQ ? "Encoding error in fputwc." : "I/O error in fputwc.");
-//  }
-
-// idk how to made it works, here is temp gap
-#ifdef _DEBUG
-        const auto tmp = fd::to_char<char>(fd::wstring_view(ptr, size));
-        FD_ASSERT(tmp.size() == size, "Unicode not supported");
-#else
-        const fd::string tmp(ptr, ptr + size);
-#endif
-        write_nolock(tmp);
-    }
-
-    void write_nolock(const char chr)
-    {
-        changer_.set<char>();
-        [[maybe_unused]] const auto ok = _putc_nolock(chr, stream_);
-        putc_assert(ok);
-    }
-
-    template <typename C>
-    void write_nolock(const fd::basic_string_view<C> text)
-    {
-        write_nolock(text.data(), text.size());
-    }
-
-    template <typename C>
-    void write_nolock(const fd::basic_string<C>& text)
-    {
-        write_nolock(text.data(), text.size());
-    }
-
-    template <typename C, size_t S>
-    void write_nolock(const C (&text)[S], uint8_t null_terminated = 2)
-    {
-        if (null_terminated > 1)
-            null_terminated = text[S - 1] == static_cast<C>(0);
-        const auto text_size = null_terminated ? S - 1 : S;
-        write_nolock(static_cast<const C*>(text), text_size);
-    }
-
-    template <typename C, size_t S>
-    void write_nolock(const std::array<C, S>& arr)
-    {
-        write_nolock(arr.data(), arr.size());
-    }
-
-#endif
 
     void write_impl()
     {
@@ -325,9 +175,9 @@ class writer
         // [[maybe_unused]] const auto ok = std::fputws(ptr, stream_);
         // putc_assert(ok);
 
-        FILE* f = stream_;
+        FILE* const f = stream_;
 #ifdef _WIN32
-        auto fd = _fileno(f);
+        const auto fd = _fileno(f);
         if (_isatty(fd))
         {
             DWORD written;
@@ -353,14 +203,12 @@ class writer
 
     writer(file_stream&& stream)
         : stream_(std::move(stream))
-        , changer_(stream_)
     {
     }
 
     writer& operator=(file_stream&& stream)
     {
-        stream_  = std::move(stream);
-        changer_ = static_cast<FILE*>(stream_);
+        stream_ = std::move(stream);
         return *this;
     }
 
