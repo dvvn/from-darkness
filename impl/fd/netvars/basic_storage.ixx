@@ -9,6 +9,7 @@ export module fd.netvars.core:basic_storage;
 export import fd.valve.recv_table;
 export import fd.valve.data_map;
 import fd.type_name;
+export import fd.functional;
 
 class netvar_info_source
 {
