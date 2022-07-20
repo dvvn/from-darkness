@@ -253,6 +253,7 @@ class writer
     stream_mode_changer changer_;
     std::mutex mtx_;
 
+#if 0
     void write_nolock(const char* ptr, const size_t size)
     {
         changer_.set<char>();
@@ -313,6 +314,40 @@ class writer
         write_nolock(arr.data(), arr.size());
     }
 
+#endif
+
+    void write_impl()
+    {
+    }
+
+    void write(const wchar_t* ptr, const size_t size)
+    {
+        // [[maybe_unused]] const auto ok = std::fputws(ptr, stream_);
+        // putc_assert(ok);
+
+        FILE* f = stream_;
+#ifdef _WIN32
+        auto fd = _fileno(f);
+        if (_isatty(fd))
+        {
+            DWORD written;
+            if (WriteConsoleW(reinterpret_cast<void*>(_get_osfhandle(fd)), ptr, static_cast<DWORD>(size), &written, nullptr))
+                return;
+
+            // Fallback to fwrite on failure. It can happen if the output has been
+            // redirected to NUL.
+        }
+#endif
+        _fwrite_nolock(ptr, sizeof(wchar_t), size, f);
+    }
+
+    void write(const char* ptr, const size_t size)
+    {
+        /* const auto wstr = fd::to_char<wchar_t>(fd::string_view(ptr, size));
+         write(wstr.data(), wstr.size()); */
+        _fwrite_nolock(ptr, sizeof(char), size, stream_);
+    }
+
   public:
     writer() = default;
 
@@ -329,15 +364,21 @@ class writer
         return *this;
     }
 
-    template <typename T, class Locker>
-    void operator()(const T& text, const Locker locker)
+    template <typename C, class Locker>
+    void operator()(const fd::basic_string_view<C> text, const Locker locker)
     {
         const time_buffer time;
 
         const auto lock = locker(mtx_);
-        write_nolock(time.data(), time.size());
-        write_nolock(text);
-        write_nolock('\n');
+        write(time.data(), time.size());
+        write(text.data(), text.size());
+        write("\n", 1);
+    }
+
+    template <typename C, class Locker>
+    void operator()(const C* text, const Locker locker)
+    {
+        fd::invoke(*this, fd::string_view(text), locker);
     }
 };
 
