@@ -14,7 +14,7 @@ using namespace fd;
 
 FD_HOOK(app_info->window.proc.curr(), static, LRESULT WINAPI, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-    const auto input_result = std::invoke(gui::input_handler, ARGS);
+    const auto input_result = fd::invoke(gui::input_handler, ARGS);
     const auto block_input  = input_result.touched();
     LRESULT ret;
     if (!block_input)
@@ -22,6 +22,6 @@ FD_HOOK(app_info->window.proc.curr(), static, LRESULT WINAPI, HWND hwnd, UINT ms
     else if (input_result.have_return_value())
         ret = input_result.return_value();
     else
-        ret = std::invoke(app_info->window.proc.def(), ARGS);
+        ret = fd::invoke(app_info->window.proc.def(), ARGS);
     return ret;
 }

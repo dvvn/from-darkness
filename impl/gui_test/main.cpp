@@ -104,8 +104,6 @@ int main(int, char**)
     fd::app_info.construct(hwnd, hmodule);
     fd::logger.append(fd::system_console_writer);
 
-    const auto a = fd::rt_modules::current.operator->();
-
     if (!fd::hooks_loader->load<0, 1, 2>())
         return TRUE;
 

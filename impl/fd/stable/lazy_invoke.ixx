@@ -1,30 +1,24 @@
 module;
 
-#include <functional>
 #include <optional>
 
 export module fd.lazy_invoke;
-
-namespace std
-{
-    template <typename Fn>
-    decltype(auto) invoke(const optional<Fn>& fn)
-    {
-        return invoke(*fn);
-    }
-
-    template <typename Fn>
-    decltype(auto) invoke(optional<Fn>& fn)
-    {
-        return invoke(*fn);
-    }
-} // namespace std
+export import fd.functional;
 
 template <typename Fn>
 concept func_maybe_null = requires(const Fn fn)
 {
     !fn;
 };
+
+namespace fd
+{
+    template <typename Fn>
+    constexpr void invoke(std::optional<Fn>& fn)
+    {
+        invoke(*fn);
+    }
+} // namespace fd
 
 template <typename Fn>
 struct lazy_invoke
@@ -40,7 +34,7 @@ struct lazy_invoke
     {
         if (!fn_)
             return;
-        std::invoke(fn_);
+        fd::invoke(fn_);
     }
 
     template <typename Fn1>

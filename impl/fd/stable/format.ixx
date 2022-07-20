@@ -1,21 +1,31 @@
 module;
 
+#if 0
 #include <format>
+#else
+#include <fmt/format.h>
+#include <fmt/xchar.h>
+#endif
 
 export module fd.format;
 export import fd.string;
 
-namespace std
+#ifdef FMT_VERSION
+#define _FMT fmt
+#else
+#define _FMT std
+#endif
+
+namespace _FMT
 {
     template <typename C>
-    struct formatter<fd::basic_string_view<C>, C> : formatter<std::basic_string_view<C>, C>
+    struct formatter<fd::basic_string_view<C>, C> : formatter<basic_string_view<C>, C>
     {
         template <class FormatContext>
         auto format(const fd::basic_string_view<C> str, FormatContext& fc) const
         {
-            const std::basic_string_view<C> tmp(str.data(), str.size());
-            constexpr formatter<std::basic_string_view<C>, C> f;
-            return f.format(tmp, fc);
+            const basic_string_view<C> tmp(str.data(), str.size());
+            return formatter<basic_string_view<C>, C>::format(tmp, fc);
         }
     };
 
@@ -219,7 +229,7 @@ struct format_impl<char>
     {
         const std::string_view fmt_1(fmt.data(), fmt.size());
         fd::string buff;
-        std::vformat_to(std::back_inserter(buff), fmt_1, std::make_format_args(args...));
+        _FMT::vformat_to(std::back_inserter(buff), fmt_1, _FMT::make_format_args(args...));
         return buff;
     }
 };
@@ -232,7 +242,7 @@ struct format_impl<wchar_t>
     {
         const std::wstring_view fmt_1(fmt.data(), fmt.size());
         fd::wstring buff;
-        std::vformat_to(std::back_inserter(buff), fmt_1, std::make_wformat_args(args...));
+        _FMT::vformat_to(std::back_inserter(buff), fmt_1, _FMT::make_wformat_args(args...));
         return buff;
     }
 };

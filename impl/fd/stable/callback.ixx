@@ -1,8 +1,10 @@
 module;
 
-#include <functional>
+#include <concepts>
 
 export module fd.callback;
+import fd.functional;
+import fd.one_instance;
 
 template <typename Fn, typename T>
 Fn _Wrap_callback(T&& obj)
@@ -11,11 +13,8 @@ Fn _Wrap_callback(T&& obj)
     if constexpr (std::copyable<obj_t> && std::constructible_from<Fn, obj_t>)
         return std::forward<T>(obj);
     else if constexpr (std::is_lvalue_reference_v<obj_t>)
-        return [&]<typename... Args>(Args... args) {
-            if constexpr (std::invocable<obj_t, Args...>)
-                return std::invoke(obj, args...);
-            else
-                return std::invoke(*obj, args...); // hack for one_instance
+        return [&]<typename... Args>(Args&&... args) {
+            return fd::invoke(obj, std::forward<Args>(args)...);
         };
 }
 
@@ -34,10 +33,10 @@ struct callback_info
 template <typename... Args>
 struct abstract_callback : callback_info
 {
-    using callback_type = std::function<void(Args...)>;
+    using callback_type = fd::function<void(Args...)>;
 
     virtual void append(callback_type&& callback) = 0;
-    virtual void invoke(Args... args) const       = 0;
+    virtual void operator()(Args... args) const   = 0;
 
     template <typename Fn>
     void append(Fn&& callback) requires(!std::is_same_v<decltype(callback), callback_type&&>)
@@ -52,7 +51,7 @@ struct abstract_callback_custom : callback_info
     using callback_type = C;
 
     virtual void append(callback_type&& callback) = 0;
-    virtual void invoke()                         = 0;
+    virtual void operator()()                     = 0;
 };
 
 export namespace fd
@@ -60,18 +59,3 @@ export namespace fd
     using ::abstract_callback;
     using ::abstract_callback_custom;
 } // namespace fd
-
-export namespace std
-{
-    template <typename... Args>
-    void invoke(const abstract_callback<Args...>& cb, std::type_identity_t<Args>... args)
-    {
-        cb.invoke(static_cast<Args>(args)...);
-    }
-
-    template <typename C>
-    void invoke(abstract_callback_custom<C>& cb)
-    {
-        cb.invoke();
-    }
-} // namespace std

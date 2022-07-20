@@ -1,12 +1,12 @@
 module;
 
 #include <concepts>
-#include <functional>
 #include <memory>
 #include <optional>
 #include <utility>
 
 export module fd.one_instance;
+import fd.functional;
 
 template <typename T>
 constexpr size_t _Pointers_count()
@@ -118,12 +118,6 @@ bool operator==(const pointer_wrapper<T> w, std::nullptr_t)
 }
 
 template <typename T>
-bool operator!=(const pointer_wrapper<T> w, std::nullptr_t np)
-{
-    return !(w == np);
-}
-
-template <typename T>
 struct instance_of_getter
 {
     using value_type = T;
@@ -203,12 +197,6 @@ template <typename T>
 bool operator==(const instance_of_getter<T*> getter, std::nullptr_t)
 {
     return getter.ptr() == nullptr;
-}
-
-template <typename T>
-bool operator!=(const instance_of_getter<T*> getter, std::nullptr_t)
-{
-    return !(getter == nullptr);
 }
 
 constexpr size_t _Magic_number(const size_t value)
@@ -304,8 +292,24 @@ class instance_of_impl
     }
 };
 
+template <class T, size_t Instance, typename... Args>
+decltype(auto) invoke(const instance_of_impl<T, Instance> inst, Args&&... args)
+{
+    return fd::invoke(*inst, std::forward<Args>(args)...);
+}
+
+using fd::invoke;
+
 export namespace fd
 {
+    using ::invoke;
+
+    template <typename T, typename... Args>
+    concept invocable = requires(T&& obj, Args&&... args) // override previous concept
+    {
+        invoke(std::forward<T>(obj), std::forward<Args>(args)...);
+    };
+
     using ::instance_of_getter;
 
     /* template <typename T, size_t Instance>
@@ -317,12 +321,3 @@ export namespace fd
     template <typename T, size_t Instance = 0>
     constexpr instance_of_impl<T, Instance> instance_of;
 } // namespace fd
-
-export namespace std
-{
-    template <class T, size_t Instance, typename... Args>
-    decltype(auto) invoke(const instance_of_impl<T, Instance> inst, Args&&... args)
-    {
-        return invoke(*inst, std::forward<Args>(args)...);
-    }
-} // namespace std

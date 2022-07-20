@@ -4,7 +4,7 @@ module;
 
 #include <Windows.h>
 
-#include <functional>
+#include <algorithm>
 
 module fd.hook;
 import fd.logger;
@@ -699,7 +699,7 @@ bool hook_entry::create()
                         return estimate_size % delim;
                     return 0;
                 }( );*/
-                trampoline_.insert(std::next(trampoline_.begin(), new_pos + copy_size), size_diff /*+ pad*/, -1);
+                trampoline_.insert(trampoline_.begin() + new_pos + copy_size, size_diff /*+ pad*/, -1);
 
                 new_inst = reinterpret_cast<ULONG_PTR>(trampoline_.data()) + new_pos;
             }
@@ -1048,9 +1048,9 @@ hook_impl::~hook_impl()
 hook_impl::hook_impl() = default;
 
 template <typename M>
-static void _Log(const hook_impl* h, const M& msg)
+static void _Log(const hook_impl* h, const M msg)
 {
-    std::invoke(fd::logger, "{}: {}", std::bind_front(&hook_impl::name, h), msg);
+    fd::invoke(fd::logger, "{}: {}", fd::bind_front(&hook_impl::name, h), msg);
 }
 
 bool hook_impl::enable()

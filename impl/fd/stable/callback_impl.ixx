@@ -1,7 +1,7 @@
 module;
 
-#include <functional>
 #include <limits>
+#include <type_traits>
 
 export module fd.callback.impl;
 export import fd.callback;
@@ -25,10 +25,10 @@ class callback_ex : virtual public fd::abstract_callback<Args...>
         storage_.push_back(std::move(callback));
     }
 
-    void invoke(Args... args) const override
+    void operator()(Args... args) const override
     {
         for (auto& fn : storage_)
-            std::invoke(fn, args...);
+            fd::invoke((callback_type&)fn, args...);
     }
 
     bool empty() const final
@@ -81,24 +81,9 @@ using callback_custom = callback_ex_custom<0, C>;
 
 export namespace fd
 {
+
     using ::callback;
     using ::callback_custom;
     using ::callback_ex;
     using ::callback_ex_custom;
 } // namespace fd
-
-export namespace std
-{
-    template <size_t ExtraBuffSize, typename... Args>
-    void invoke(const callback_ex<ExtraBuffSize, Args...>& cb, Args... args)
-    {
-        cb.invoke(args...);
-    }
-
-    template <size_t ExtraBuffSize, class C>
-    void invoke(callback_ex_custom<ExtraBuffSize, C>& cb)
-    {
-        cb.invoke();
-    }
-
-} // namespace std

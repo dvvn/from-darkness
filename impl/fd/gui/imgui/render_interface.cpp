@@ -30,7 +30,7 @@ struct render_interface_impl final : basic_render_interface
 
         ImGui::NewFrame();
         {
-            std::invoke(menu);
+            fd::invoke(menu);
         }
         ImGui::EndFrame();
 

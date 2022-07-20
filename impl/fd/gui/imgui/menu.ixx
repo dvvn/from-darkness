@@ -17,15 +17,13 @@ struct basic_menu : virtual abstract_callback_custom<std::unique_ptr<obj::basic_
 
 FD_OBJECT(menu, basic_menu);
 
-export namespace fd::gui
+export namespace fd
 {
-    using ::menu;
-}
-
-export namespace std
-{
-    void invoke(decltype(menu) m)
+    namespace gui
     {
-        invoke(*m);
+        using ::menu;
     }
-} // namespace std
+
+    using ::fd::invoke; // from callback, object
+
+} // namespace fd

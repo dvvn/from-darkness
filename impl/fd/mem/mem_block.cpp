@@ -1,7 +1,5 @@
 module;
 
-#include <fd/assert.h>
-
 #include <algorithm>
 #include <ranges>
 #include <span>

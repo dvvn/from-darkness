@@ -15,6 +15,7 @@ import :find_csgo_interface;
 export import fd.address;
 export import fd.type_name;
 import fd.chars_cache;
+import fd.functional;
 
 using fd::basic_address;
 
@@ -35,7 +36,7 @@ class interface_finder
     operator T*() const
     {
         T* const ptr = addr_;
-        std::invoke(fd::on_csgo_interface_found, rt_module_.data(), fd::type_name<T>(), ptr);
+        fd::invoke(fd::on_csgo_interface_found, rt_module_.data(), fd::type_name<T>(), ptr);
         return ptr;
     }
 

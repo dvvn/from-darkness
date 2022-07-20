@@ -40,13 +40,6 @@ export namespace fd
     using ::assert_data;
     using ::assert_handler;
     using ::can_invoke_assert_handler;
-} // namespace fd
 
-export namespace std
-{
-    // unwanted, compiler stuck without it
-    void invoke(decltype(assert_handler) ah, const assert_data data)
-    {
-        invoke(*ah, data);
-    }
-} // namespace std
+    using ::fd::invoke;
+} // namespace fd

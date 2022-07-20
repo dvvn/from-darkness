@@ -5,7 +5,7 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <functional>
+#include <tuple>
 
 module fd.rt_modules:find_library;
 import :library_info;
@@ -14,7 +14,7 @@ import fd.chars_cache;
 import fd.logger;
 
 constexpr auto on_library_found = [](const auto library_name, const LDR_DATA_TABLE_ENTRY* entry) {
-    // std::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
+    // fd::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
 };
 
 template <typename Fn>
@@ -45,7 +45,7 @@ class partial_invoke
     template <class Tpl, size_t... I>
     auto apply(Tpl& tpl, const std::index_sequence<I...>) const
     {
-        return std::invoke(fn_, std::get<I>(tpl)...);
+        return fn_(std::get<I>(tpl)...);
     }
 
     template <class Tpl, class SeqFwd, class SeqBack>
@@ -153,7 +153,7 @@ LDR_DATA_TABLE_ENTRY* find_library(const fd::wstring_view name, const bool notif
     }
 
     if (notify)
-        std::invoke(on_library_found, name, result);
+        fd::invoke(on_library_found, name, result);
     return result;
 }
 
@@ -178,7 +178,7 @@ LDR_DATA_TABLE_ENTRY* find_current_library(const bool notify)
         if (notify)
         {
             using namespace fd;
-            std::invoke(
+            fd::invoke(
                 on_library_found,
                 [=] {
                     return fd::library_info(ldr_entry).name();

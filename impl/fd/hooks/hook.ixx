@@ -4,7 +4,6 @@ module;
 #include <fd/object.h>
 
 #include <concepts>
-#include <functional>
 #include <vector>
 
 export module fd.hook;
@@ -194,7 +193,7 @@ struct hook_instance_static
     {
         auto fn                      = &Impl::callback;
         reinterpret_cast<void*&>(fn) = FD_OBJECT_GET(Impl, Index)->get_original_method();
-        return std::invoke(fn, std::forward<Args>(args)...);
+        return fd::invoke(fn, std::forward<Args>(args)...);
     }
 };
 
@@ -219,7 +218,7 @@ struct hook_instance_member
         if constexpr (sizeof(decltype(def_callback)) == sizeof(void*))
         {
             reinterpret_cast<void*&>(def_callback) = orig_fn;
-            return std::invoke(def_callback, thisptr, std::forward<Args>(args)...);
+            return fd::invoke(def_callback, thisptr, std::forward<Args>(args)...);
         }
         else
         {
@@ -227,7 +226,7 @@ struct hook_instance_member
             using trivial_inst                      = decltype(_Tiny_selector(def_callback));
             auto tiny_callback                      = &trivial_inst::callback;
             reinterpret_cast<void*&>(tiny_callback) = orig_fn;
-            return std::invoke(tiny_callback, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
+            return fd::invoke(tiny_callback, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
         }
     }
 };

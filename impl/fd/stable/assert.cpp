@@ -2,16 +2,18 @@ module;
 
 #include <fd/callback_impl.h>
 
+#include <exception>
+
 /* #if !defined(NDEBUG)
 #include <assert.h>
 #endif */
 
-#include <functional>
 #include <source_location>
 
 //
 module fd.assert;
 import fd.format;
+
 //--
 
 #pragma warning(disable : 5244)
@@ -29,9 +31,9 @@ struct assert_handler_impl final : assert_handler_base
 {
     assert_handler_impl();
 
-    void invoke(const assert_data& data) const override
+    void operator()(const assert_data& data) const override
     {
-        assert_handler_base::invoke(data);
+        assert_handler_base::operator()(data);
         std::terminate();
     }
 };
@@ -65,10 +67,12 @@ static auto _Assert_msg(const B builder, const char* expression, const char* mes
 
 assert_handler_impl::assert_handler_impl()
 {
-    assert_handler_base::append([](const assert_data& data) {
+    /* assert_handler_base::append([](const assert_data& data) {
         const auto [expression, message, location] = data;
 #if defined(_MSC_VER)
-        constexpr auto builder = std::bind_front(fd::make_string, std::in_place_type<wchar_t>);
+        constexpr auto builder = [](auto... args) {
+            fd::make_string(std::in_place_type<wchar_t>, args...);
+        };
         _wassert(_Assert_msg(builder, expression, message).c_str(), builder(location.file_name()).c_str(), location.line());
 #elif defined(__GNUC__)
         constexpr auto builder = std::bind_front(fd::make_string, std::in_place_type<char>);
@@ -76,5 +80,5 @@ assert_handler_impl::assert_handler_impl()
 #else
 #error not implemented
 #endif
-    });
+    }); */
 }

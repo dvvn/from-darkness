@@ -7,7 +7,6 @@
 #include <windows.h>
 #include <windowsx.h>
 
-#include <functional>
 #include <limits>
 #include <span>
 

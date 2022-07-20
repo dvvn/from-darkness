@@ -106,7 +106,7 @@ class menu_impl final : public menu_base, public basic_menu, public obj::window
         menu_base::append(std::move(callback));
     }
 
-    virtual void invoke() override
+    virtual void operator()() override
     {
         // todo: don't lock if much time passed from start
         const std::scoped_lock lock(mtx_);

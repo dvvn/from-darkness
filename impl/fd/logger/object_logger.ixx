@@ -1,11 +1,12 @@
 module;
 
-#include <functional>
 #include <source_location>
+#include <utility>
 
 export module fd.object_logger;
 export import fd.type_name;
 import fd.logger;
+import fd.functional;
 
 class object_logger
 {
@@ -15,7 +16,7 @@ class object_logger
     object_logger(const fd::string_view object_name)
         : object_name_(object_name)
     {
-        std::invoke(*this, "created");
+        fd::invoke(*this, "created");
     }
 
     object_logger(const std::source_location location = std::source_location::current())
@@ -38,7 +39,7 @@ class object_logger
 
     ~object_logger()
     {
-        std::invoke(*this, "destroyed");
+        fd::invoke(*this, "destroyed");
     }
 
     /* fd::string_view object_name() const
@@ -49,7 +50,7 @@ class object_logger
     template <typename Str, typename... Args>
     void operator()(const Str& str, Args&&... args) const
     {
-        std::invoke(
+        fd::invoke(
             fd::logger,
             [&] {
                 using char_t = std::remove_cvref_t<decltype(str[0])>;

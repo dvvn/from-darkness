@@ -66,6 +66,12 @@ FetchContent_MakeAvailable(json)
 FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
 FetchContent_MakeAvailable(robin_hood)
 
+FetchContent_Declare(function2 GIT_REPOSITORY https://github.com/Naios/function2.git)
+FetchContent_MakeAvailable(function2)
+
+FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt.git)
+FetchContent_MakeAvailable(fmt)
+
 # -------------------
 
 set(_PROJ_NAME fd)
@@ -237,6 +243,8 @@ project_part(
   stable
   LINK
   nlohmann_json
+  function2
+  fmt
   INCLUDE
   ${_PROJ_IMPL_DIR}
   ${utf8_conv_SOURCE_DIR}/include

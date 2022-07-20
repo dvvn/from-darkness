@@ -5,27 +5,27 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
-#include <functional>
-
 module fd.rt_modules:find_export;
 import :helpers;
 import :library_info;
 import fd.address;
 import fd.string;
 
-void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify)
+using namespace fd;
+
+void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_view name, const bool notify)
 {
     if (!ldr_entry)
         return nullptr;
     // base address
-    const auto [dos, nt] = fd::dos_nt(ldr_entry);
+    const auto [dos, nt] = dos_nt(ldr_entry);
 
     // get export data directory.
     const auto& data_dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
     FD_ASSERT(data_dir.VirtualAddress, "Current module doesn't have the virtual address!");
 
     // get export export_dir.
-    const fd::basic_address<IMAGE_EXPORT_DIRECTORY> export_dir = dos + data_dir.VirtualAddress;
+    const basic_address<IMAGE_EXPORT_DIRECTORY> export_dir = dos + data_dir.VirtualAddress;
 
     // names / funcs / ordinals ( all of these are RVAs ).
     uint32_t* const names = dos + export_dir->AddressOfNames;
@@ -40,15 +40,12 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view n
         const char* export_name = dos + names[i];
         if (!export_name)
             continue;
-        if (std::memcmp(export_name, name.data(), name.size()) != 0)
+        if (export_name != name)
             continue;
-        if (export_name[name.size()] != '\0')
-            continue;
-
         /*
-         if (export_addr.cast<uintptr_t>() >= reinterpret_cast<uintptr_t>(export_directory)
-            && export_addr.cast<uintptr_t>() < reinterpret_cast<uintptr_t>(export_directory) + data_directory->Size)
-         */
+   if (export_addr.cast<uintptr_t>() >= reinterpret_cast<uintptr_t>(export_directory)
+      && export_addr.cast<uintptr_t>() < reinterpret_cast<uintptr_t>(export_directory) + data_directory->Size)
+   */
 
         // if (export_ptr < export_dir || export_ptr >= memory_block(export_dir, data_dir.Size).addr( ))
         const auto temp_export_ptr = dos + funcs[ords[i]];
@@ -61,16 +58,16 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view n
         FD_ASSERT_UNREACHABLE("Forwarded export detected");
 #if 0
 		// get forwarder string.
-		const fd::string_view fwd_str = export_ptr.get<const char*>( );
+		const string_view fwd_str = export_ptr.get<const char*>( );
 
 		// forwarders have a period as the delimiter.
 		const auto delim = fwd_str.find_last_of('.');
 		if(delim == fwd_str.npos)
 			continue;
 
-		using namespace fd::string_view_literals;
+		using namespace string_view_literals;
 		// get forwarder mod name.
-		const info_string::fixed_type fwd_module_str = nstd::append<fd::wstring>(fwd_str.substr(0, delim), L".dll"sv);
+		const info_string::fixed_type fwd_module_str = nstd::append<wstring>(fwd_str.substr(0, delim), L".dll"sv);
 
 		// get real export ptr ( recursively ).
 		const auto target_module = std::ranges::find_if(*all_modules, [&](const info& i)
@@ -97,7 +94,7 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view n
     }
 
     if (notify)
-        fd::library_info(ldr_entry).log("export", name, export_ptr);
+        library_info(ldr_entry).log("export", name, export_ptr);
 
     return export_ptr;
 }

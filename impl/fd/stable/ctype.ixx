@@ -3,10 +3,10 @@ module;
 #include "ctype.h"
 
 #include <algorithm>
-#include <functional>
 
 export module fd.ctype;
 export import fd.string;
+import fd.functional;
 
 template <class A>
 class ctype_to
@@ -30,7 +30,7 @@ class ctype_to
             fd::basic_string<std::iter_value_t<T>> buff;
             buff.reserve(item.size());
             for (const auto chr : item)
-                buff += std::invoke(adaptor_, chr);
+                buff += fd::invoke(adaptor_, chr);
             return buff;
         }
         else if constexpr (std::is_pointer_v<T>)
@@ -42,7 +42,7 @@ class ctype_to
                 auto chr = *ptr++;
                 if (chr == static_cast<val_t>('\0'))
                     break;
-                buff += std::invoke(adaptor_, chr);
+                buff += fd::invoke(adaptor_, chr);
             }
             return buff;
         }
@@ -54,12 +54,12 @@ class ctype_to
             fd::basic_string<std::iter_value_t<T>> buff;
             buff.reserve(size);
             for (auto itr = begin; itr != end; ++itr)
-                buff += std::invoke(adaptor_, *itr);
+                buff += fd::invoke(adaptor_, *itr);
             return buff;
         }
         else
         {
-            return std::invoke(adaptor_, item);
+            return fd::invoke(adaptor_, item);
         }
     }
 };
@@ -84,7 +84,7 @@ class ctype_is
     bool process(const T chr) const
     {
         static_assert(!std::is_class_v<T>);
-        return std::invoke(adaptor_, chr);
+        return fd::invoke(adaptor_, chr);
     }
 
     template <typename T>

@@ -6,6 +6,7 @@ module;
 #include <stdexcept>
 
 module fd.mem_block;
+import fd.functional;
 
 // ReSharper disable once CppInconsistentNaming
 class MEMORY_BASIC_INFORMATION_UPDATER : protected MEMORY_BASIC_INFORMATION
@@ -55,13 +56,13 @@ static bool _Flags_iterator(std::span<uint8_t> mblock, Fn func = {})
         using ret_t = std::invoke_result_t<Fn, DWORD>;
         if constexpr (std::is_void_v<ret_t>)
         {
-            std::invoke(func, info.flags());
+            fd::invoke(func, info.flags());
         }
         else
         {
             static_assert(std::is_same_v<bool, ret_t>);
             // flags check isn't passed!
-            if (!std::invoke(func, info.flags()))
+            if (!fd::invoke(func, info.flags()))
                 return false;
         }
         // found good result

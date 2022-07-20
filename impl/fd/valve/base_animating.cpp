@@ -2,8 +2,6 @@ module;
 
 #include <fd/assert.h>
 
-#include <functional>
-
 module fd.valve.base_animating;
 import fd.rt_modules;
 
@@ -15,7 +13,7 @@ void base_animating::UpdateClientSideAnimation()
 {
     // 224
     const decltype(&base_animating::UpdateClientSideAnimation) fn = fd::rt_modules::client.find_signature<"55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36">();
-    std::invoke(fn, this);
+    fd::invoke(fn, this);
 }
 
 void base_animating::InvalidateBoneCache()

@@ -70,7 +70,7 @@ static auto _Correct_module_handle(const HWND hwnd)
 application_info::application_info(const HWND window_handle, const HMODULE module_handle)
     : module_handle(module_handle ? module_handle : _UNI_FN(GetModuleHandle, nullptr))
 {
-    FD_ASSERT(window_handle != nullptr);
-    FD_ASSERT(this->module_handle != nullptr);
+    // FD_ASSERT(window_handle != nullptr);
+    // FD_ASSERT(this->module_handle != nullptr);
     this->window.handle = window_handle;
 }

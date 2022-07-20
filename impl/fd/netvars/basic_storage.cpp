@@ -2,7 +2,6 @@ module;
 
 #include <fd/assert.h>
 
-#include <functional>
 #include <ranges>
 #include <variant>
 
@@ -16,7 +15,7 @@ using namespace netvars;
 
 static const char* _Netvar_name(const netvar_info_source source)
 {
-    return std::invoke(source, [](auto src) {
+    return fd::invoke(source, [](auto src) {
         return src->name;
     });
 }
@@ -36,7 +35,7 @@ static string _Netvar_type(const netvar_info_source source)
         }
     } type_getter;
 
-    return std::invoke(source, type_getter);
+    return fd::invoke(source, type_getter);
 }
 
 //---
@@ -97,7 +96,7 @@ fd::string_view netvar_info::type() const
         fd::string_view netvar_type;
         if (size_ == 3)
         {
-            netvar_type = std::invoke(source_, [&](auto ptr) {
+            netvar_type = fd::invoke(source_, [&](auto ptr) {
                 return type_array_prefix(tmp_type, ptr);
             });
         }

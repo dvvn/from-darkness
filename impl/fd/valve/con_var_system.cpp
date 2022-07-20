@@ -6,21 +6,17 @@ module;
 #include <fd/assert.h>
 #endif
 
-//#ifdef FD_CHECK_WHOLE_CVAR_NAME
-//#include <sstream>
-//#endif
-#include <functional>
+#include <algorithm>
 
 module fd.valve.con_var;
 import fd.rt_modules;
 import fd.logger;
 import fd.address;
 
-using namespace fd::valve;
+using namespace fd;
+using namespace valve;
 
-FD_OBJECT_IMPL(con_var_system, fd::rt_modules::vstdlib.find_interface<"VEngineCvar">());
-
-using fd::basic_address;
+FD_OBJECT_IMPL(con_var_system, rt_modules::vstdlib.find_interface<"VEngineCvar">());
 
 template <typename T>
 static void _Set_helper(con_var* ptr, size_t index, T value)
@@ -29,7 +25,7 @@ static void _Set_helper(con_var* ptr, size_t index, T value)
     // dhooks::invoke(&con_var::set<T>, index, ptr, value);
 
     const decltype(&con_var::set<T>) fn = basic_address(ptr).deref<1>()[index];
-    std::invoke(fn, ptr, value);
+    invoke(fn, ptr, value);
 }
 
 template <typename T>
@@ -38,7 +34,7 @@ static T _Get_helper(const con_var* ptr, size_t index)
     // return dhooks::invoke(&con_var::get<T>, index, ptr);
 
     const decltype(&con_var::get<T>) fn = basic_address(ptr).deref<1>()[index];
-    return std::invoke(fn, ptr);
+    return invoke(fn, ptr);
 }
 
 template <>
@@ -135,22 +131,22 @@ struct ConCommandBaseIterator
     pointer itr_;
 };
 
-static bool _Compare_cvars(const fd::string_view name, const ConCommandBase& other)
+static bool _Compare_cvars(const string_view name, const ConCommandBase& other)
 {
     if (other.IsCommand())
         return false;
-    if (std::memcmp(other.name, name.data(), name.size()) != 0)
-        return false;
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
-    if (other.name[name.size()] != '\0')
-        return false;
+    if (other.name != name)
+#else
+    if (std::memcmp(other.name, name.data(), name.size()) != 0) // starts_with?
 #endif
+        return false;
     return true;
 }
 
-con_var* con_var_system::FindVar(const fd::string_view name) const
+con_var* con_var_system::FindVar(const string_view name) const
 {
-    const auto comparer                       = std::bind_front(_Compare_cvars, name);
+    const auto comparer                       = fd::bind_front(_Compare_cvars, name);
     const ConCommandBaseIterator first_cvar   = basic_address(this).plus(0x30).deref<1>().get<ConCommandBase*>();
     const ConCommandBaseIterator invalid_cvar = nullptr;
 
@@ -158,15 +154,15 @@ con_var* con_var_system::FindVar(const fd::string_view name) const
 
     if (target_cvar == invalid_cvar)
     {
-        std::invoke(fd::logger, "Cvar \"{}\" NOT found", name);
+        // invoke(logger, "Cvar \"{}\" NOT found", name);
         return nullptr;
     }
 
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
-    std::invoke(fd::logger, "Cvar \"{}\" found", name);
+    // invoke(logger, "Cvar \"{}\" found", name);
 #else
     FD_ASSERT(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
-    fd::logger([name] {
+    logger([name] {
         std::ostringstream msg;
 
         const auto write_msg = [&]<typename T>(T obj) {
@@ -186,7 +182,7 @@ con_var* con_var_system::FindVar(const fd::string_view name) const
         if (known_end != real_end)
         {
             write_msg(" (full name: ");
-            write_braces(fd::string_view(target_cvar->name, real_end));
+            write_braces(string_view(target_cvar->name, real_end));
             write_msg(')');
         }
         write_msg(" found");

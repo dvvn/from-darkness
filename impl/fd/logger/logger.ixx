@@ -3,11 +3,12 @@ module;
 #include <fd/callback.h>
 
 #include <concepts>
-#include <functional>
 
 export module fd.logger;
 export import fd.to_char;
 export import fd.format;
+
+using fd::invocable;
 
 template <typename T>
 concept have_array_access = requires(const T& obj)
@@ -61,8 +62,8 @@ decltype(auto) _Forward_or_move(T&& obj)
 template <typename CharT = void, typename T>
 decltype(auto) _Correct_obj(T&& obj)
 {
-    if constexpr (std::invocable<T>)
-        return _Correct_obj<CharT>(std::invoke(obj));
+    if constexpr (invocable<T>)
+        return _Correct_obj<CharT>(fd::invoke(obj));
     else if constexpr (std::is_same_v<get_char_t<T>, CharT> || std::is_void_v<CharT> || !can_be_string<T>)
         return _Forward_or_move(std::forward<T>(obj));
     else
@@ -72,37 +73,24 @@ decltype(auto) _Correct_obj(T&& obj)
 FD_CALLBACK(logger_narrow, fd::string_view);
 FD_CALLBACK(logger_wide, fd::wstring_view);
 
-namespace std
-{
-    void invoke(decltype(logger_narrow) l, const fd::string_view str)
-    {
-        invoke(*l, str);
-    }
-
-    void invoke(decltype(logger_wide) l, const fd::wstring_view wstr)
-    {
-        invoke(*l, wstr);
-    }
-} // namespace std
-
 template <typename L>
 bool _Logger_empty(const L logger)
 {
     return !logger.initialized() || logger->empty();
 }
 
-// std::invocable from concepts ignore self overloads!
-template <class _FTy, class... _ArgTys>
+// invocable from concepts ignore self overloads!
+/* template <class _FTy, class... _ArgTys>
 concept invocable = requires(_FTy&& _Fn, _ArgTys&&... _Args)
 {
-    std::invoke(static_cast<_FTy&&>(_Fn), static_cast<_ArgTys&&>(_Args)...);
+    fd::invoke(static_cast<_FTy&&>(_Fn), static_cast<_ArgTys&&>(_Args)...);
 };
-
+ */
 class logger_wrapped
 {
     void _Log(const fd::string_view msg) const
     {
-        std::invoke(logger_narrow, msg);
+        fd::invoke(logger_narrow, msg);
     }
 
     void _Log_inversed(const fd::string_view msg) const
@@ -113,7 +101,7 @@ class logger_wrapped
 
     void _Log(const fd::wstring_view msg) const
     {
-        std::invoke(logger_wide, msg);
+        fd::invoke(logger_wide, msg);
     }
 
     bool _Log_inversed(const fd::wstring_view msg) const
@@ -181,12 +169,12 @@ class logger_wrapped
         return !_Logger_empty(logger_narrow) && _Log_inversed(msg);
     }
 
-    template <std::invocable T>
+    template <invocable T>
     bool operator()(T fn) const
     {
         if (_Logger_empty(logger_narrow) && _Logger_empty(logger_wide))
             return false;
-        return std::invoke(*this, std::invoke(fn));
+        return fd::invoke(*this, fd::invoke(fn));
     }
 
     template <typename Arg1, typename... Args>
@@ -198,7 +186,7 @@ class logger_wrapped
         const auto fmt_fixed = _Correct_obj(fmt);
         using char_t         = get_char_t<decltype(fmt_fixed)>;
         const auto buff      = fd::format(fmt_fixed, _Correct_obj<char_t>(args)...);
-        return std::invoke(*this, buff);
+        return fd::invoke(*this, buff);
     }
 };
 
@@ -206,12 +194,3 @@ export namespace fd
 {
     constexpr logger_wrapped logger;
 }
-
-/* export namespace std
-{
-    template <typename... Args>
-    void invoke(const logger_wrapped l, const Args&... args)
-    {
-        l(args...);
-    }
-} // namespace std */

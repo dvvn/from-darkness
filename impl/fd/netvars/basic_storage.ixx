@@ -43,10 +43,10 @@ class netvar_info_source
         {
         case 1:
             if constexpr (std::invocable<Fn, _Recv>)
-                return std::invoke(fn, recv_);
+                return fd::invoke(fn, recv_);
         case 2:
             if constexpr (std::invocable<Fn, _Dmap>)
-                return std::invoke(fn, dmap_);
+                return fd::invoke(fn, dmap_);
         default:
             fd::unreachable();
         }
@@ -99,7 +99,7 @@ union offset_getter
 
     void set()
     {
-        const auto value = std::invoke(fn_);
+        const auto value = fd::invoke(fn_);
         destroy();
         offset_ = value;
     }
@@ -202,7 +202,7 @@ class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
     template <typename Type, typename TypeProj = std::identity, typename From>
     auto add(From&& from, const fd::hashed_string_view name, TypeProj proj = {})
     {
-        return add(std::forward<From>(from), name, std::invoke(proj, fd::type_name<Type>()));
+        return add(std::forward<From>(from), name, fd::invoke(proj, fd::type_name<Type>()));
     }
 };
 
