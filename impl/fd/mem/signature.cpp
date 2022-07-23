@@ -2,230 +2,13 @@ module;
 
 #include <fd/assert.h>
 
+#include <algorithm>
 #include <memory>
 #include <ranges>
 #include <span>
 #include <vector>
 
 module fd.signature;
-import fd.string;
-
-template <class Rng, class T>
-struct abstract_storage : T
-{
-    using buffer_type = Rng;
-
-    abstract_storage() = default;
-
-    abstract_storage(buffer_type&& buffer)
-        : buffer_(std::move(buffer))
-    {
-    }
-
-    T::pointer begin() const final
-    {
-        return buffer_.data();
-    }
-
-    T::pointer end() const final
-    {
-        return buffer_.data() + buffer_.size();
-    }
-
-    size_t size() const final
-    {
-        return buffer_.size();
-    }
-
-    buffer_type* get()
-    {
-        return &buffer_;
-    }
-
-    const buffer_type* get() const
-    {
-        return &buffer_;
-    }
-
-  private:
-    buffer_type buffer_;
-};
-
-using known_bytes_internal = abstract_storage<std::vector<uint8_t>, known_bytes>;
-using known_bytes_external = abstract_storage<std::span<const uint8_t>, known_bytes>;
-
-template <typename T>
-static void _Store_bytes_to(const uint8_t* begin, const uint8_t* end, std::unique_ptr<known_bytes>& data)
-{
-    FD_ASSERT(data == nullptr);
-    data = std::make_unique<T>(T::buffer_type(begin, end));
-}
-
-//---------------
-
-auto unknown_bytes::operator[](const size_t index) const -> const value_type&
-{
-    return *(begin() + index);
-}
-
-size_t unknown_bytes::bytes_count() const
-{
-    size_t ret = 0;
-    for (auto& [buff, skip] : *this)
-    {
-        ret += buff->size();
-        ret += skip;
-    }
-
-    return ret;
-}
-
-struct unknown_bytes_impl : abstract_storage<std::vector<unknown_bytes_data>, unknown_bytes>
-{
-    void push_back(value_type&& val) final
-    {
-        this->get()->push_back(std::move(val));
-    }
-};
-
-//---------------
-
-struct unknown_bytes_data_dynamic
-{
-    known_bytes_internal buff_;
-    uint16_t skip_ = 0;
-
-  public:
-    unknown_bytes_data_dynamic() = default;
-
-    operator unknown_bytes_data() &&
-    {
-        unknown_bytes_data out;
-        static_assert(std::is_same_v<decltype(skip_), decltype(out.skip)>);
-        out.buff = std::make_unique<known_bytes_internal>(std::move(buff_));
-        out.skip = skip_;
-        return out;
-    }
-
-    void reset()
-    {
-        buff_.get()->clear();
-        skip_ = 0;
-    }
-
-    bool can_skip() const
-    {
-        return skip_ > 0;
-    }
-
-    void skip(const uint8_t step = 1)
-    {
-        skip_ += step;
-    }
-
-    bool empty() const
-    {
-        return buff_.get()->empty() && skip_ == 0;
-    }
-
-    void push_back(const uint8_t byte)
-    {
-        buff_.get()->push_back(byte);
-    }
-};
-
-class unknown_bytes_writer
-{
-    unknown_bytes_impl source_;
-    unknown_bytes_data_dynamic target_;
-
-    void dump_impl()
-    {
-        source_.push_back(std::move(target_));
-    }
-
-  public:
-    void move_to(std::unique_ptr<unknown_bytes>& data)
-    {
-        FD_ASSERT(data == nullptr);
-        if (!target_.empty())
-            dump_impl();
-        data = std::make_unique<unknown_bytes_impl>(std::move(source_));
-    }
-
-    void write(const fd::string_view rng)
-    {
-        // write previous part
-        if (target_.can_skip())
-        {
-            dump_impl();
-            target_.reset();
-        }
-
-        constexpr auto to_num = []<typename T>(T chr) -> uint8_t {
-            switch (chr)
-            {
-            case '0':
-                return 0x0;
-            case '1':
-                return 0x1;
-            case '2':
-                return 0x2;
-            case '3':
-                return 0x3;
-            case '4':
-                return 0x4;
-            case '5':
-                return 0x5;
-            case '6':
-                return 0x6;
-            case '7':
-                return 0x7;
-            case '8':
-                return 0x8;
-            case '9':
-                return 0x9;
-            case 'a':
-            case 'A':
-                return 0xA;
-            case 'b':
-            case 'B':
-                return 0xB;
-            case 'c':
-            case 'C':
-                return 0xC;
-            case 'd':
-            case 'D':
-                return 0xD;
-            case 'e':
-            case 'E':
-                return 0xE;
-            case 'f':
-            case 'F':
-                return 0xF;
-            default:
-                FD_ASSERT_UNREACHABLE("Unsupported character");
-            }
-        };
-
-        switch (rng.size())
-        {
-        case 1:
-            target_.push_back(to_num(rng[0]));
-            break;
-        case 2:
-            target_.push_back(to_num(rng[0]) * 16 + to_num(rng[1]));
-            break;
-        default:
-            FD_ASSERT_UNREACHABLE("Incorrect string validation!");
-        }
-    }
-
-    void skip()
-    {
-        target_.skip();
-    }
-};
 
 static bool _Validate_signature(const fd::string_view rng)
 {
@@ -296,14 +79,159 @@ static bool _Validate_signature(const fd::string_view rng)
     return true;
 }
 
-static auto _Text_to_bytes(const char* begin, const char* end)
+static pointer _Find_block_memchr(const size_t rng_size, const size_t limit, const pointer start0, const pointer start2)
 {
-    const fd::string_view text_src = { begin, end };
-    FD_ASSERT(_Validate_signature(text_src));
+    size_t offset = 0;
+    do
+    {
+        const auto start1 = static_cast<pointer>(std::memchr(start0 + offset, start2[0], limit - offset));
+        if (!start1)
+            break;
 
-    unknown_bytes_writer writer;
+        if (std::memcmp(start1, start2, rng_size) == 0)
+            return start1;
 
-    constexpr auto unwrap_shit = []<class T>(T rng) -> fd::string_view {
+        offset = std::distance(start0, start1) + 1;
+    }
+    while (offset <= limit);
+
+    return nullptr;
+}
+
+// 10-100x slower than memchr version (debug)
+static pointer _Find_block_memcmp(const size_t rng_size, const size_t limit, const pointer start0, const pointer start2)
+{
+    for (size_t offset = 0; offset < limit; ++offset)
+    {
+        const auto start1 = start0 + offset;
+        if (std::memcmp(start1, start2, rng_size) == 0)
+            return start1;
+    }
+
+    return nullptr;
+}
+
+//-----
+
+using mem_block = std::span<const uint8_t>;
+
+static mem_block _Find_block_handmade(const mem_block from, const mem_block other)
+{
+    const auto rng_size = other.size();
+    const auto limit    = from.size() - rng_size;
+
+    const auto start0 = from.data();
+    const auto start2 = other.data();
+
+    if (rng_size == 1)
+    {
+        const auto found = std::memchr(start0, *start2, limit);
+        if (found)
+            return { static_cast<pointer>(found), 1 };
+    }
+    else
+    {
+        const auto ptr = _Find_block_memchr(rng_size, limit, start0, start2);
+        if (ptr)
+            return { ptr, rng_size };
+    }
+
+    return {};
+}
+
+// 2x slower than iters version (debug)
+static mem_block _Find_block_ranges(const mem_block from, const mem_block other)
+{
+    const auto found = std::ranges::search(from, other);
+    if (!found.empty())
+        return { found.data(), found.size() };
+    return {};
+}
+
+// 3x slower than handmade verison (debug)
+static mem_block _Find_block_iters(const mem_block from, const mem_block other)
+{
+    const auto found = std::search(from.begin(), from.end(), other.begin(), other.end());
+    if (found != from.end())
+        return { &*found, other.size() };
+    return {};
+}
+
+//-----
+
+struct bytes_range
+{
+    std::vector<uint8_t> part;
+    uint8_t skip = 0;
+};
+
+struct unknown_bytes_range : std::vector<bytes_range>
+{
+    size_t bytes_count() const
+    {
+        size_t ret = 0;
+        for (auto& [part, skip] : *this)
+        {
+            ret += part.size();
+            ret += skip;
+        }
+
+        return ret;
+    }
+};
+
+static auto _Text_to_bytes(const fd::string_view text_src)
+{
+    unknown_bytes_range bytes;
+    bytes.emplace_back();
+
+    constexpr auto to_num = [](const auto chr) -> uint8_t {
+        switch (chr)
+        {
+        case '0':
+            return 0x0;
+        case '1':
+            return 0x1;
+        case '2':
+            return 0x2;
+        case '3':
+            return 0x3;
+        case '4':
+            return 0x4;
+        case '5':
+            return 0x5;
+        case '6':
+            return 0x6;
+        case '7':
+            return 0x7;
+        case '8':
+            return 0x8;
+        case '9':
+            return 0x9;
+        case 'a':
+        case 'A':
+            return 0xA;
+        case 'b':
+        case 'B':
+            return 0xB;
+        case 'c':
+        case 'C':
+            return 0xC;
+        case 'd':
+        case 'D':
+            return 0xD;
+        case 'e':
+        case 'E':
+            return 0xE;
+        case 'f':
+        case 'F':
+            return 0xF;
+        default:
+            FD_ASSERT_UNREACHABLE("Unsupported character");
+        }
+    };
+
+    constexpr auto unwrap_shit = [](auto rng) -> fd::string_view {
         const auto raw_begin = std::addressof(*rng.begin());
         const size_t size    = std::ranges::distance(rng);
         return { raw_begin, size };
@@ -312,27 +240,141 @@ static auto _Text_to_bytes(const char* begin, const char* end)
     for (const auto b : std::views::split(text_src, ' ') | std::views::transform(unwrap_shit))
     {
         if (b[0] == '?')
-            writer.skip();
+        {
+            ++bytes.back().skip;
+        }
         else
-            writer.write(b);
+        {
+            // write previous part
+            if (bytes.back().skip > 0)
+                bytes.emplace_back();
+
+            switch (b.size())
+            {
+            case 1:
+                bytes.back().part.push_back(to_num(b[0]));
+                break;
+            case 2:
+                bytes.back().part.push_back(to_num(b[0]) * 16 + to_num(b[1]));
+                break;
+            default:
+                FD_ASSERT_UNREACHABLE("Incorrect string validation!");
+            }
+        }
     }
 
-    return writer;
+    return bytes;
 }
 
-//----
-
-known_signature::known_signature(const uint8_t* begin, const size_t mem_size)
+//~5x slower than modern version (debug)
+static mem_block _Find_unk_block(const mem_block from, const unknown_bytes_range& unkbytes)
 {
-    _Store_bytes_to<known_bytes_external>(begin, begin + mem_size, *this);
+    const auto _last_pos = from.data() + from.size() - unkbytes.bytes_count();
+    for (auto _pos = from.data(); _pos <= _last_pos;)
+    {
+        auto inner_pos = _pos;
+        for (const auto& [part, skip] : unkbytes)
+        {
+            for (const auto chr : part)
+            {
+                if (chr != *inner_pos++)
+                    goto _NO_RETURN;
+            }
+            inner_pos += skip;
+        }
+
+        return { _pos, inner_pos };
+
+    _NO_RETURN:
+        if (inner_pos == _pos)
+            ++_pos;
+        else
+            _pos = inner_pos;
+    }
+
+    return {};
 }
 
-unknown_signature::unknown_signature(const fd::string_view str)
+static mem_block _Find_unk_block_modern(const mem_block from, const unknown_bytes_range& unkbytes)
 {
-    _Text_to_bytes(str.data(), str.data() + str.size()).move_to(*this);
+    const auto unkbytes_count = unkbytes.bytes_count();
+    if (from.size() < unkbytes_count)
+        return {};
+
+    const auto unkbytes_0 = unkbytes.begin();
+    const mem_block unkbytes_first_block(unkbytes_0->part.data(), unkbytes_0->part.size());
+    const auto unkbytes_first_skip = unkbytes_0->skip;
+
+    if (unkbytes.size() == 1)
+    {
+        const auto found = _Find_block_handmade(from, unkbytes_first_block);
+        if (!found.empty() && unkbytes_first_skip > 0)
+        {
+            /* const auto mem_after = from.shift_to(found.data() + found.size());
+            if (mem_after.size() < unkbytes_first_skip)
+                return {}; */
+            const auto mem_after = std::distance(found.data() + found.size(), from.data() + from.size());
+            if (mem_after < unkbytes_first_skip)
+                return {};
+        }
+        return found;
+    }
+    else
+    {
+        const std::span unkbytes_except_first(unkbytes_0 + 1, unkbytes.end());
+
+        auto current_pos             = from.data();
+        const auto last_pos          = current_pos + from.size();
+        const auto last_readable_pos = last_pos - unkbytes_count;
+
+        do
+        {
+            const mem_block found0 = _Find_block_handmade({ current_pos, last_pos }, unkbytes_first_block);
+            if (found0.empty())
+                break;
+
+            current_pos  = found0.data() + found0.size();
+            auto tmp_pos = current_pos + unkbytes_first_skip;
+
+            bool found = true;
+            for (const auto& [part, skip] : unkbytes_except_first)
+            {
+                const auto buff_size = part.size();
+                if (std::memcmp(tmp_pos, part.data(), buff_size) != 0)
+                {
+                    found = false;
+                    break;
+                }
+
+                current_pos = tmp_pos + buff_size;
+                tmp_pos     = current_pos + skip;
+            }
+
+            if (found)
+                return { found0.data(), unkbytes_count };
+        }
+        while (current_pos <= last_readable_pos);
+
+        return {};
+    }
 }
 
-unknown_signature::unknown_signature(const char* begin, const size_t mem_size)
+//-----
+
+pointer signature_finder::operator()(const fd::string_view sig, const bool raw) const
 {
-    _Text_to_bytes(begin, begin + mem_size).move_to(*this);
+    if (raw)
+        return _Find_block_handmade({ from, to }, { (pointer)sig.data(), sig.size() }).data();
+
+    FD_ASSERT(_Validate_signature(sig));
+    const auto bytes = _Text_to_bytes(sig);
+
+    //-----------------
+
+    return _Find_unk_block_modern({ from, to }, bytes).data();
+}
+
+pointer signature_finder::operator()(pointer begin, const size_t mem_size) const
+{
+    return _Find_block_handmade({ from, to }, { begin, mem_size }).data();
 }

@@ -3,8 +3,6 @@ module;
 #include <span>
 
 export module fd.mem_block;
-export import fd.signature;
-
 using DWORD = unsigned long;
 
 class mem_block : public std::span<uint8_t>
@@ -29,9 +27,6 @@ class mem_block : public std::span<uint8_t>
     }
 
     explicit mem_block(const _Base span);
-
-    mem_block find_block(const mem_block other) const;
-    mem_block find_block(const fd::unknown_signature& unkbytes) const;
 
     /*template <class StorageType>
     mem_block find_block(const signature_known_bytes<StorageType>& rng) const

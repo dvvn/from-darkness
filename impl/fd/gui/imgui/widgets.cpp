@@ -27,7 +27,7 @@ static const char* IM_STR(const string_view str)
         return bg;
 
     static string buff;
-    if (buff != str)
+    if (!fd::operator==(buff, str))
         buff.assign(bg, size);
     return buff.data();
 }

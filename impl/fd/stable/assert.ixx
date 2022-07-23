@@ -5,7 +5,6 @@ module;
 #include <source_location>
 
 export module fd.assert;
-export import fd.string;
 
 struct assert_data
 {
@@ -19,8 +18,6 @@ struct assert_data
         , location(loc)
     {
     }
-
-    fd::string build_message() const;
 };
 
 FD_CALLBACK(assert_handler, const assert_data&);

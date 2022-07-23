@@ -7,6 +7,8 @@ module;
 #include <fmt/xchar.h>
 #endif
 
+#include <tuple>
+
 export module fd.format;
 export import fd.string;
 
@@ -16,7 +18,7 @@ export import fd.string;
 #define _FMT std
 #endif
 
-namespace _FMT
+/* namespace _FMT
 {
     template <typename C>
     struct formatter<fd::basic_string_view<C>, C> : formatter<basic_string_view<C>, C>
@@ -33,7 +35,7 @@ namespace _FMT
     struct formatter<fd::basic_string<C>, C> : formatter<fd::basic_string_view<C>, C>
     {
     };
-} // namespace std
+} // namespace _FMT */
 
 class string_builder
 {
@@ -41,6 +43,15 @@ class string_builder
     static constexpr auto get_array_ptr(const T* ptr)
     {
         return ptr;
+    }
+
+    template <typename T>
+    static constexpr auto get_container_begin(const T& cont)
+    {
+        if constexpr (std::random_access_iterator<T>)
+            return cont.data();
+        else
+            return cont.begin();
     }
 
     template <typename T>
@@ -53,7 +64,7 @@ class string_builder
     static constexpr auto extract_size(const T& obj)
     {
         if constexpr (std::is_class_v<T>)
-            return std::pair(obj.data(), obj.size());
+            return std::pair(get_container_begin(obj), obj.size());
         else if constexpr (std::is_pointer_v<T>)
             return std::pair(obj, get_length(obj));
         else if constexpr (std::is_bounded_array_v<T>)
@@ -66,7 +77,7 @@ class string_builder
     static constexpr void append_to(Buff& buff, const std::pair<T, S> obj)
     {
         auto [src, size] = obj;
-        if constexpr (std::is_pointer_v<T>)
+        if constexpr (std::is_pointer_v<T> || std::is_class_v<T>)
         {
             buff.append(src, src + size);
         }
@@ -218,42 +229,43 @@ class to_string_impl
     constexpr void operator()(const T val) const = delete; // not implemented
 };
 
-template <typename T>
-struct format_impl;
-
-template <>
-struct format_impl<char>
+class format_impl
 {
+    template <typename C, typename... Args>
+    static auto make_format_args(const Args&... args)
+    {
+        if constexpr (std::same_as<C, char>)
+            return _FMT::make_format_args(args...);
+        else if constexpr (std::same_as<C, wchar_t>)
+            return _FMT::make_wformat_args(args...);
+    }
+
+    template <typename C, typename... Args>
+    static auto impl(const fd::basic_string_view<C> fmt, const Args&... args)
+    {
+        static_assert(sizeof...(Args) > 0);
+        fd::basic_string<C> buff;
+        _FMT::vformat_to(std::back_inserter(buff), fmt, make_format_args<C>(args...));
+        return buff;
+    }
+
+  public:
     template <typename... Args>
     auto operator()(const fd::string_view fmt, const Args&... args) const
     {
-        const std::string_view fmt_1(fmt.data(), fmt.size());
-        fd::string buff;
-        _FMT::vformat_to(std::back_inserter(buff), fmt_1, _FMT::make_format_args(args...));
-        return buff;
+        return impl(fmt, args...);
     }
-};
 
-template <>
-struct format_impl<wchar_t>
-{
     template <typename... Args>
     auto operator()(const fd::wstring_view fmt, const Args&... args) const
     {
-        const std::wstring_view fmt_1(fmt.data(), fmt.size());
-        fd::wstring buff;
-        _FMT::vformat_to(std::back_inserter(buff), fmt_1, _FMT::make_wformat_args(args...));
-        return buff;
+        return impl(fmt, args...);
     }
-};
-
-struct format_all : format_impl<char>, format_impl<wchar_t>
-{
 };
 
 export namespace fd
 {
     constexpr string_builder make_string;
     constexpr to_string_impl to_string;
-    constexpr format_all format;
+    constexpr format_impl format;
 } // namespace fd

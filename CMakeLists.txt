@@ -255,7 +255,7 @@ project_part(mem LINK stable)
 project_part(rt_modules LINK mem logger)
 project_part(math INCLUDE ${_PROJ_IMPL_DIR})
 project_part(valve LINK rt_modules math)
-project_part(netvars LINK valve json)
+#project_part(netvars LINK valve json) must be rewritten
 project_part(gui_interface LINK stable)
 project_part(gui LINK gui_interface logger d3d9.lib imgui) #[[ RmlCore  RmlDebugger  DEFINE  RMLUI_STATIC_LIB  RMLUI_DIR=${rml_SOURCE_DIR} ]]
 project_part(hooks LINK gui valve)

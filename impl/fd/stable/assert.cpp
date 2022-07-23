@@ -13,6 +13,7 @@ module;
 //
 module fd.assert;
 import fd.format;
+import fd.functional;
 
 //--
 
@@ -37,8 +38,10 @@ struct assert_handler_impl final : assert_handler_base
         std::terminate();
     }
 };
+
 FD_CALLBACK_BIND(assert_handler, assert_handler_impl);
 
+#if 0
 fd::string assert_data::build_message() const
 {
 #define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", location.file_name(), '\n', /**/ "Line: ", fd::to_string(location.line()), "\n\n"
@@ -53,6 +56,7 @@ fd::string assert_data::build_message() const
 
     return fd::make_string(FIRST_PART);
 }
+#endif
 
 template <typename B>
 static auto _Assert_msg(const B builder, const char* expression, const char* message)
@@ -67,18 +71,16 @@ static auto _Assert_msg(const B builder, const char* expression, const char* mes
 
 assert_handler_impl::assert_handler_impl()
 {
-    /* assert_handler_base::append([](const assert_data& data) {
+    assert_handler_base::append([](const assert_data& data) {
         const auto [expression, message, location] = data;
 #if defined(_MSC_VER)
-        constexpr auto builder = [](auto... args) {
-            fd::make_string(std::in_place_type<wchar_t>, args...);
-        };
+        constexpr auto builder = fd::bind_front(fd::make_string, std::in_place_type<wchar_t>);
         _wassert(_Assert_msg(builder, expression, message).c_str(), builder(location.file_name()).c_str(), location.line());
 #elif defined(__GNUC__)
-        constexpr auto builder = std::bind_front(fd::make_string, std::in_place_type<char>);
+        constexpr auto builder = fd::bind_front(fd::make_string, std::in_place_type<char>);
         __assert_fail(_Assert_msg(builder, expression, message).c_str(), location.file_name(), location.line(), location.function_name());
 #else
 #error not implemented
 #endif
-    }); */
+    });
 }

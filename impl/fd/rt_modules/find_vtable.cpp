@@ -10,11 +10,12 @@ import :find_section;
 import :helpers;
 import :library_info;
 import fd.address;
-import fd.mem_block;
 import fd.logger;
 
 using fd::basic_address;
 using mblock = fd::mem_block;
+
+#if 0
 
 // mblock = {dos + header->VirtualAddress, header->SizeOfRawData}
 
@@ -91,12 +92,14 @@ static mblock _Section_to_rng(const basic_address<IMAGE_DOS_HEADER> dos, const I
     return {ptr, section->SizeOfRawData};
 }
 
+#endif
+
 void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify)
 {
-    if (!ldr_entry)
-        return nullptr;
+    // if (!ldr_entry)
+    return nullptr;
 
-    const auto [dos, nt] = dos_nt(ldr_entry);
+    /* const auto [dos, nt] = dos_nt(ldr_entry);
 
     const auto real_name = fd::make_string(".?AV", name, "@@");
 
@@ -118,5 +121,5 @@ void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view n
         fd::library_info(ldr_entry).log("vtable", name, result);
     else
         FD_ASSERT(result != nullptr);
-    return result;
+    return result; */
 }
