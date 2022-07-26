@@ -95,7 +95,7 @@ namespace fd
 
         auto data() const
         {
-            static const auto found = fd::find_library(Name);
+            static const auto found = find_library(Name);
             return found;
         }
 
@@ -142,15 +142,44 @@ namespace fd
         }
 #endif
     };
+
+    struct current_module
+    {
+        wstring_view _Name() const;
+
+        LDR_DATA_TABLE_ENTRY* operator->() const;
+        LDR_DATA_TABLE_ENTRY* data() const;
+
+        template <chars_cache ExpName>
+        basic_address<void> find_export() const
+        {
+            static const auto found = fd::find_export(this->data(), ExpName);
+            return found;
+        }
+
+        template <chars_cache Sig>
+        basic_address<void> find_signature() const
+        {
+            static const auto found = fd::find_signature(this->data(), Sig);
+            return found;
+        }
+
+        template <chars_cache Name>
+        void* find_vtable() const
+        {
+            static const auto found = fd::find_vtable(this->data(), Name);
+            return found;
+        }
+
+        template <class T>
+        T* find_vtable() const
+        {
+            static const auto found = fd::find_vtable<T>(this->data());
+            return found;
+        }
+    };
+
 } // namespace fd
-
-struct current_module
-{
-    fd::wstring_view _Name() const;
-    interface_finder<current_module> _Ifc_finder(const basic_address<void> addr) const;
-
-    LDR_DATA_TABLE_ENTRY* operator->() const;
-};
 
 // clang-format off
 #define DLL_NAME(_NAME_)    L""#_NAME_".dll"

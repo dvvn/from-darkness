@@ -14,7 +14,7 @@ import fd.chars_cache;
 import fd.logger;
 
 constexpr auto on_library_found = [](const auto library_name, const LDR_DATA_TABLE_ENTRY* entry) {
-    // fd::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
+    fd::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
 };
 
 template <typename Fn>

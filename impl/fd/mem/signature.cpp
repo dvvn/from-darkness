@@ -3,158 +3,38 @@ module;
 #include <fd/assert.h>
 
 #include <algorithm>
-#include <memory>
 #include <ranges>
-#include <span>
 #include <vector>
 
 module fd.signature;
 
-static bool _Validate_signature(const fd::string_view rng)
+static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const pointer end2)
 {
-    if (rng.starts_with('?'))
-        return false;
-    if (rng.starts_with(' '))
-        return false;
-    if (rng.ends_with(' '))
-        return false;
+    const auto block_size = std::distance(start0, end0);
+    const auto rng_size   = std::distance(start2, end2);
+    const auto limit      = block_size - rng_size;
 
-    uint8_t qmarks  = 0;
-    uint8_t spaces  = 0;
-    uint8_t counter = 0;
-    for (const auto c : rng)
+    if (rng_size == 1)
+        return std::memchr(start0, *start2, limit);
+
+    for (size_t offset = 0; offset <= limit;)
     {
-        switch (c)
-        {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-        case 'a':
-        case 'b':
-        case 'c':
-        case 'd':
-        case 'e':
-        case 'f':
-        case 'A':
-        case 'B':
-        case 'C':
-        case 'D':
-        case 'E':
-        case 'F': {
-            if (qmarks > 0)
-                return false;
-            ++counter;
-            if (counter > 2)
-                return false;
-            qmarks = spaces = 0;
-            break;
-        }
-        case '?': {
-            ++qmarks;
-            if (qmarks > 2)
-                return false;
-            counter = spaces = 0;
-            break;
-        }
-        case ' ': {
-            ++spaces;
-            if (spaces > 1)
-                return false;
-            counter = qmarks = 0;
-            break;
-        }
-        default: {
-            return false;
-        }
-        }
-    }
-
-    return true;
-}
-
-static pointer _Find_block_memchr(const size_t rng_size, const size_t limit, const pointer start0, const pointer start2)
-{
-    size_t offset = 0;
-    do
-    {
-        const auto start1 = static_cast<pointer>(std::memchr(start0 + offset, start2[0], limit - offset));
+        const auto start1 = std::memchr(start0 + offset, start2[0], limit - offset);
         if (!start1)
             break;
 
         if (std::memcmp(start1, start2, rng_size) == 0)
             return start1;
 
-        offset = std::distance(start0, start1) + 1;
-    }
-    while (offset <= limit);
-
-    return nullptr;
-}
-
-// 10-100x slower than memchr version (debug)
-static pointer _Find_block_memcmp(const size_t rng_size, const size_t limit, const pointer start0, const pointer start2)
-{
-    for (size_t offset = 0; offset < limit; ++offset)
-    {
-        const auto start1 = start0 + offset;
-        if (std::memcmp(start1, start2, rng_size) == 0)
-            return start1;
+        offset = std::distance(start0, static_cast<pointer>(start1)) + 1;
     }
 
     return nullptr;
 }
 
-//-----
-
-using mem_block = std::span<const uint8_t>;
-
-static mem_block _Find_block_handmade(const mem_block from, const mem_block other)
+static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const size_t mem_size)
 {
-    const auto rng_size = other.size();
-    const auto limit    = from.size() - rng_size;
-
-    const auto start0 = from.data();
-    const auto start2 = other.data();
-
-    if (rng_size == 1)
-    {
-        const auto found = std::memchr(start0, *start2, limit);
-        if (found)
-            return { static_cast<pointer>(found), 1 };
-    }
-    else
-    {
-        const auto ptr = _Find_block_memchr(rng_size, limit, start0, start2);
-        if (ptr)
-            return { ptr, rng_size };
-    }
-
-    return {};
-}
-
-// 2x slower than iters version (debug)
-static mem_block _Find_block_ranges(const mem_block from, const mem_block other)
-{
-    const auto found = std::ranges::search(from, other);
-    if (!found.empty())
-        return { found.data(), found.size() };
-    return {};
-}
-
-// 3x slower than handmade verison (debug)
-static mem_block _Find_block_iters(const mem_block from, const mem_block other)
-{
-    const auto found = std::search(from.begin(), from.end(), other.begin(), other.end());
-    if (found != from.end())
-        return { &*found, other.size() };
-    return {};
+    return _Find_block(start0, end0, start2, start2 + mem_size);
 }
 
 //-----
@@ -175,10 +55,88 @@ struct unknown_bytes_range : std::vector<bytes_range>
             ret += part.size();
             ret += skip;
         }
-
         return ret;
     }
 };
+
+static const void* _Find_unk_block(const pointer begin, const pointer end, const unknown_bytes_range& unkbytes)
+{
+#ifdef _DEBUG
+    const auto unkbytes_count = unkbytes.bytes_count();
+    const auto mem_size       = std::distance(begin, end);
+    FD_ASSERT(mem_size >= unkbytes_count);
+#endif
+
+    const auto unkbytes_begin = unkbytes.data();
+    const auto unkpart0_size  = unkbytes_begin->part.size();
+    const auto unkpart0_begin = unkbytes_begin->part.data();
+    const auto unkpart0_skip  = unkbytes_begin->skip;
+
+    if (unkbytes.size() == 1)
+    {
+        const auto part0_found = _Find_block(begin, end, unkpart0_begin, unkpart0_size);
+        if (!part0_found)
+            return nullptr;
+        if (unkpart0_skip > 0)
+        {
+            const auto mem_after = std::distance(static_cast<pointer>(part0_found) + unkpart0_size, end);
+            if (mem_after < unkpart0_skip)
+                return nullptr;
+        }
+        return part0_found;
+    }
+
+#ifndef _DEBUG
+    const auto unkbytes_count = unkbytes.bytes_count();
+    const auto mem_size       = std::distance(begin, end);
+#endif
+
+    const auto unkbytes1         = unkbytes_begin + 1;
+    const auto unkbytes_end      = unkbytes_begin + unkbytes.size();
+    const auto last_readable_pos = mem_size - unkbytes_count;
+
+    for (size_t pos = 0; pos <= last_readable_pos;)
+    {
+        const auto part0_found = _Find_block(begin + pos, end, unkpart0_begin, unkpart0_size);
+        if (!part0_found)
+            break;
+
+        auto temp_begin = (pointer)part0_found + unkpart0_size + unkpart0_skip;
+        auto found      = true;
+        for (auto unkbytes_itr = unkbytes1; unkbytes_itr != unkbytes_end; ++unkbytes_itr)
+        {
+            const auto& [part, skip] = *unkbytes_itr;
+            const auto part_size     = part.size();
+
+            const auto part_valid = std::memcmp(temp_begin, part.data(), part_size) == 0;
+            if (!part_valid)
+            {
+                found = false;
+                break;
+            }
+            temp_begin += part_size + skip;
+        }
+
+        if (!found)
+        {
+            pos = std::distance(begin, temp_begin) + 1;
+            continue;
+        }
+
+        const auto unkbytes_last_skip = unkbytes.back().skip;
+        if (unkbytes_last_skip > 0)
+        {
+            const auto mem_after = std::distance(static_cast<pointer>(part0_found) + unkbytes_count, end);
+            if (mem_after < unkbytes_last_skip)
+                break;
+        }
+        return part0_found;
+    }
+
+    return nullptr;
+}
+
+//-----
 
 static auto _Text_to_bytes(const fd::string_view text_src)
 {
@@ -241,140 +199,42 @@ static auto _Text_to_bytes(const fd::string_view text_src)
     {
         if (b[0] == '?')
         {
+            FD_ASSERT(b.size() == 1 || b.size() == 2 && b[1] == '?');
             ++bytes.back().skip;
+            continue;
         }
-        else
-        {
-            // write previous part
-            if (bytes.back().skip > 0)
-                bytes.emplace_back();
 
-            switch (b.size())
-            {
-            case 1:
-                bytes.back().part.push_back(to_num(b[0]));
-                break;
-            case 2:
-                bytes.back().part.push_back(to_num(b[0]) * 16 + to_num(b[1]));
-                break;
-            default:
-                FD_ASSERT_UNREACHABLE("Incorrect string validation!");
-            }
+        // take new part
+        if (bytes.back().skip > 0)
+            bytes.emplace_back();
+
+        const auto num_left = to_num(b[0]);
+        if (b.size() == 1)
+        {
+            bytes.back().part.push_back(num_left);
+            continue;
         }
+        FD_ASSERT(b.size() == 2);
+        const auto num_right = to_num(b[1]);
+        const auto num       = num_left * 16 + num_right;
+        bytes.back().part.push_back(num);
     }
 
     return bytes;
 }
 
-//~5x slower than modern version (debug)
-static mem_block _Find_unk_block(const mem_block from, const unknown_bytes_range& unkbytes)
+void* signature_finder::operator()(const fd::string_view sig, const bool raw) const
 {
-    const auto _last_pos = from.data() + from.size() - unkbytes.bytes_count();
-    for (auto _pos = from.data(); _pos <= _last_pos;)
-    {
-        auto inner_pos = _pos;
-        for (const auto& [part, skip] : unkbytes)
-        {
-            for (const auto chr : part)
-            {
-                if (chr != *inner_pos++)
-                    goto _NO_RETURN;
-            }
-            inner_pos += skip;
-        }
+    const void* ret;
 
-        return { _pos, inner_pos };
-
-    _NO_RETURN:
-        if (inner_pos == _pos)
-            ++_pos;
-        else
-            _pos = inner_pos;
-    }
-
-    return {};
-}
-
-static mem_block _Find_unk_block_modern(const mem_block from, const unknown_bytes_range& unkbytes)
-{
-    const auto unkbytes_count = unkbytes.bytes_count();
-    if (from.size() < unkbytes_count)
-        return {};
-
-    const auto unkbytes_0 = unkbytes.begin();
-    const mem_block unkbytes_first_block(unkbytes_0->part.data(), unkbytes_0->part.size());
-    const auto unkbytes_first_skip = unkbytes_0->skip;
-
-    if (unkbytes.size() == 1)
-    {
-        const auto found = _Find_block_handmade(from, unkbytes_first_block);
-        if (!found.empty() && unkbytes_first_skip > 0)
-        {
-            /* const auto mem_after = from.shift_to(found.data() + found.size());
-            if (mem_after.size() < unkbytes_first_skip)
-                return {}; */
-            const auto mem_after = std::distance(found.data() + found.size(), from.data() + from.size());
-            if (mem_after < unkbytes_first_skip)
-                return {};
-        }
-        return found;
-    }
-    else
-    {
-        const std::span unkbytes_except_first(unkbytes_0 + 1, unkbytes.end());
-
-        auto current_pos             = from.data();
-        const auto last_pos          = current_pos + from.size();
-        const auto last_readable_pos = last_pos - unkbytes_count;
-
-        do
-        {
-            const mem_block found0 = _Find_block_handmade({ current_pos, last_pos }, unkbytes_first_block);
-            if (found0.empty())
-                break;
-
-            current_pos  = found0.data() + found0.size();
-            auto tmp_pos = current_pos + unkbytes_first_skip;
-
-            bool found = true;
-            for (const auto& [part, skip] : unkbytes_except_first)
-            {
-                const auto buff_size = part.size();
-                if (std::memcmp(tmp_pos, part.data(), buff_size) != 0)
-                {
-                    found = false;
-                    break;
-                }
-
-                current_pos = tmp_pos + buff_size;
-                tmp_pos     = current_pos + skip;
-            }
-
-            if (found)
-                return { found0.data(), unkbytes_count };
-        }
-        while (current_pos <= last_readable_pos);
-
-        return {};
-    }
-}
-
-//-----
-
-pointer signature_finder::operator()(const fd::string_view sig, const bool raw) const
-{
     if (raw)
-        return _Find_block_handmade({ from, to }, { (pointer)sig.data(), sig.size() }).data();
-
-    FD_ASSERT(_Validate_signature(sig));
-    const auto bytes = _Text_to_bytes(sig);
-
-    //-----------------
-
-    return _Find_unk_block_modern({ from, to }, bytes).data();
+        ret = _Find_block(from, to, (pointer)sig.data(), sig.size());
+    else
+        ret = _Find_unk_block(from, to, _Text_to_bytes(sig));
+    return const_cast<void*>(ret);
 }
 
-pointer signature_finder::operator()(pointer begin, const size_t mem_size) const
+void* signature_finder::operator()(const pointer begin, const size_t mem_size) const
 {
-    return _Find_block_handmade({ from, to }, { begin, mem_size }).data();
+    return const_cast<void*>(_Find_block(from, to, begin, mem_size));
 }

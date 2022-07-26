@@ -23,8 +23,8 @@ struct signature_finder
     {
     }
 
-    pointer operator()(const fd::string_view sig, const bool raw = false) const;
-    pointer operator()(pointer begin, const size_t mem_size) const;
+    void* operator()(const fd::string_view sig, const bool raw = false) const;
+    void* operator()(const pointer begin, const size_t mem_size) const;
 };
 
 export namespace fd

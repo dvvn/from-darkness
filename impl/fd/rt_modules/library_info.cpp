@@ -44,7 +44,6 @@ fd::wstring_view library_info::name() const
 
 void library_info::log(const fd::string_view object_type, const fd::string_view object, const void* addr) const
 {
-    // fd::invoke(
-    //     fd::logger, L"{} -> {} '{}' {}! ({:#X})", fd::bind_front(&library_info::name, this), object_type, object, addr ? "found" : "not found",
-    //     reinterpret_cast<uintptr_t>(addr));
+    fd::invoke(
+        fd::logger, L"{} -> {} '{}' {}! ({:#X})", fd::bind_front(&library_info::name, this), object_type, object, addr ? "found" : "not found", reinterpret_cast<uintptr_t>(addr));
 }
