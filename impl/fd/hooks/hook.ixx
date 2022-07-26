@@ -238,4 +238,7 @@ export namespace fd
     using ::hook_impl;
     using ::hook_instance_member;
     using ::hook_instance_static;
+
+    template <size_t Index>
+    struct hook_impl_unique;
 } // namespace fd

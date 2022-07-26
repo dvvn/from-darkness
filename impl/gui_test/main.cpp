@@ -1,4 +1,4 @@
-﻿//#include <nstd/runtime_assert.h>
+﻿#include <fd/assert.h>
 #include <fd/comptr.h>
 #include <fd/object.h>
 
@@ -10,7 +10,6 @@ import fd.hooks_loader;
 import fd.logger;
 import fd.system_console;
 import fd.application_info;
-import fd.assert;
 import fd.rt_modules;
 
 static fd::comptr<IDirect3D9> g_pD3D;
@@ -56,7 +55,7 @@ static bool CreateDeviceD3D(HWND hWnd)
 static void ResetDevice()
 {
     const HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
-    // runtime_assert(hr != D3DERR_INVALIDCALL);
+    FD_ASSERT(hr != D3DERR_INVALIDCALL);
 }
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

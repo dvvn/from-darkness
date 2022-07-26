@@ -1,27 +1,19 @@
 #include <Windows.h>
 #include <d3d9.h>
 
-#include <future>
+#include <thread>
 
-import cheat.hooks;
-import cheat.console;
+import fd.hooks_loader;
+import fd.logger;
+import fd.system_console;
+import fd.application_info;
 
 IDirect3DDevice9* d3dDevice9_ptr = nullptr;
 
-static DWORD WINAPI setup_hooks(LPVOID hModule)
+static void _Init(std::stop_token stop)
 {
-	const auto hmodule = static_cast<HMODULE>(hModule);
-	using namespace cheat;
-	console::enable( );
-	hooks::init_all( );
-	hooks::set_external_handle(hmodule);
-	if (!hooks::start( ).get( ))
-	{
-		hooks::stop( );
-		FreeLibraryAndExitThread(hmodule, FALSE);
-	}
-
-	return TRUE;
+    fd::app_info.construct(hwnd, hmodule);
+    fd::logger.append(fd::system_console_writer);
 }
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
@@ -48,12 +40,10 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReser
 	}
 	case DLL_PROCESS_DETACH:
 	{
-		cheat::hooks::stop( );
-		break;
-	}
-	}
+        fd::hooks_loader->disable();
+        break;
+    }
+    }
 
 	return TRUE;
 }
-
-

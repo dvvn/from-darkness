@@ -87,7 +87,7 @@ static void* _Find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_vi
     const auto [dos, nt] = dos_nt(ldr_entry);
 
     void* rtti_class_name = nullptr;
-    const signature_finder ldr_sig_finder(dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage);
+    const signature_finder whole_module_finder(dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage);
 
     constexpr auto class_prefix  = 'V';
     constexpr auto struct_prefix = 'U';
@@ -102,12 +102,12 @@ static void* _Find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_vi
         if (str_prefix == '?')
         {
             const auto real_name_unk = make_string(bytes_prefix, " ? ", _Bytes_to_sig(name.data(), name.size()), ' ', bytes_postfix);
-            rtti_class_name          = ldr_sig_finder(real_name_unk);
+            rtti_class_name          = whole_module_finder(real_name_unk);
         }
         else
         {
             const auto real_name = make_string(raw_prefix, str_prefix, name, raw_postfix);
-            rtti_class_name      = ldr_sig_finder(real_name, true);
+            rtti_class_name      = whole_module_finder(real_name, true);
         }
         return rtti_class_name != nullptr;
     };
@@ -130,13 +130,17 @@ static void* _Find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_vi
     case TYPE_CLASS: {
         if (do_find(class_prefix))
             goto _FOUND;
+        break;
     }
     case TYPE_STRUCT: {
         if (do_find(struct_prefix))
             goto _FOUND;
+        break;
     }
     case TYPE_NATIVE: {
-        rtti_class_name = (void*)name.data();
+        const auto ptr = (const uint8_t*)name.data();
+        FD_ASSERT(ptr >= whole_module_finder.from && ptr <= whole_module_finder.to - name.size(), "Selected wrong module!");
+        rtti_class_name = (void*)ptr;
         goto _FOUND;
     }
     };

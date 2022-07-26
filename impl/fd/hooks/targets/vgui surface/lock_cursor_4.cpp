@@ -11,7 +11,7 @@ static function_getter _Get_target()
     return { &FD_OBJECT_GET(vgui_surface), 67 };
 }
 
-FD_HOOK(_Get_target(), member, void)
+FD_HOOK_VTABLE(vgui_surface, 67, void)
 {
     /*auto thisptr = reinterpret_cast<surface*>(this);
     if(!thisptr->IsCursorVisible( ) && gui::menu::visible( ))

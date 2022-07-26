@@ -97,6 +97,12 @@ consteval auto& operator"" _cch()
 
 export namespace fd
 {
+    template <chars_cache C>
+    constexpr auto& chars_cache_buff = C;
+
+    template <simple_chars_cache C>
+    constexpr auto& simple_chars_cache_buff = C;
+
     using ::chars_cache;
     using ::simple_chars_cache;
 

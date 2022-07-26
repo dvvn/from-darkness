@@ -66,7 +66,7 @@ static auto _Assert_msg(const B builder, const char* expression, const char* mes
     if (!message)
         return builder(expression);
 
-    return builder(expression, "( ", message, ')');
+    return builder(expression, " (", message, ')');
 }
 
 assert_handler_impl::assert_handler_impl()

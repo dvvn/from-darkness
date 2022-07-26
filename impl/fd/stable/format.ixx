@@ -46,15 +46,6 @@ class string_builder
     }
 
     template <typename T>
-    static constexpr auto get_container_begin(const T& cont)
-    {
-        if constexpr (std::random_access_iterator<T>)
-            return cont.data();
-        else
-            return cont.begin();
-    }
-
-    template <typename T>
     static constexpr size_t get_length(const T* ptr)
     {
         return std::char_traits<T>::length(ptr);
@@ -64,7 +55,7 @@ class string_builder
     static constexpr auto extract_size(const T& obj)
     {
         if constexpr (std::is_class_v<T>)
-            return std::pair(get_container_begin(obj), obj.size());
+            return std::pair(obj.begin(), obj.size());
         else if constexpr (std::is_pointer_v<T>)
             return std::pair(obj, get_length(obj));
         else if constexpr (std::is_bounded_array_v<T>)
@@ -72,6 +63,17 @@ class string_builder
         else
             return std::pair(obj, 1);
     };
+
+    template <typename T>
+    static constexpr auto get_char_type(const T& obj)
+    {
+        if constexpr (std::is_pointer_v<T> || std::is_bounded_array_v<T>)
+            return std::iter_value_t<T>();
+        else if constexpr (std::is_class_v<T>)
+            return std::remove_cvref_t<decltype(*obj.begin())>();
+        else
+            return T();
+    }
 
     template <class Buff, typename T, typename S>
     static constexpr void append_to(Buff& buff, const std::pair<T, S> obj)
@@ -89,15 +91,6 @@ class string_builder
             while (--size > 0);
         }
     };
-
-    template <typename T>
-    static constexpr auto get_char_type(const T&)
-    {
-        if constexpr (std::is_class_v<T> || std::is_pointer_v<T> || std::is_bounded_array_v<T>)
-            return std::iter_value_t<T>();
-        else
-            return T();
-    }
 
     template <typename C, typename... Args>
     static constexpr auto get(const Args&... args)

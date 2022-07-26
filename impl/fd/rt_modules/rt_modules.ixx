@@ -1,5 +1,7 @@
 module;
 
+#include <fd/utility.h>
+
 #include <windows.h>
 #include <winternl.h>
 
@@ -133,14 +135,12 @@ namespace fd
             return found;
         }
 
-#if 0
-        template <typename T>
+        template <class T>
         T* find_vtable() const
         {
-            static_assert(std::is_class_v<T> /* is_abstract_v */);
-            return static_cast<T*>(find_vtable<type_name_holder<T>>());
+            static const auto found = fd::find_vtable<T>(this->data());
+            return found;
         }
-#endif
     };
 
     struct current_module
@@ -193,18 +193,8 @@ export namespace fd
     {
         constexpr current_module current;
 
-        GAME_MODULE(server);
-        GAME_MODULE(client);
-        GAME_MODULE(engine);
-        GAME_MODULE(datacache);
-        GAME_MODULE(materialsystem);
-        GAME_MODULE(vstdlib);
-        GAME_MODULE(vgui2);
-        GAME_MODULE(vguimatsurface);
-        GAME_MODULE(vphysics);
-        GAME_MODULE(inputsystem);
-        GAME_MODULE(studiorender);
-        GAME_MODULE(shaderapidx9);
+        FOR_EACH(GAME_MODULE, server, client, engine, datacache, materialsystem, vstdlib, vgui2, vguimatsurface, vphysics, inputsystem, studiorender, shaderapidx9, d3d9);
+
     } // namespace rt_modules
 
 } // namespace fd
