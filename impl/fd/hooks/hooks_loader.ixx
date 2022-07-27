@@ -8,49 +8,24 @@ module;
 export module fd.hooks_loader;
 import fd.hook_base;
 
-#ifdef FD_KNOWN_HOOKS
-constexpr bool know_hook(const size_t i)
-{
-    const std::array known = { FD_KNOWN_HOOKS };
-    return std::find(known.begin(), known.end(), i) != known.end();
-}
-#endif
+using hook_base = fd::hook_base;
 
-template <size_t... I>
-constexpr bool is_unique(const std::index_sequence<I...> seq)
+template <class T>
+hook_base* _Get_hook_base(T* ptr)
 {
-    if constexpr (seq.size() == 1)
-        return true;
-    else
-    {
-        std::array tmp = { I... };
-        std::sort(tmp.begin(), tmp.end());
-        return std::adjacent_find(tmp.begin(), tmp.end()) == tmp.end();
-    }
+    return reinterpret_cast<hook_base*>(ptr);
 }
 
 struct basic_hooks_loader
 {
-    using hook_base = fd::hook_base;
-
     virtual ~basic_hooks_loader() = default;
 
-    template <size_t... I>
-    bool load(const bool stop_on_error = true, const std::index_sequence<I...> seq = {}) requires(seq.size() > 0)
-    {
-        static_assert(is_unique(seq));
-#ifdef FD_KNOWN_HOOKS
-        static_assert((know_hook(I) && ...));
-#endif
-        (store(&FD_OBJECT_GET(hook_base, I)), ...);
-        return init(stop_on_error);
-    }
-#ifdef FD_KNOWN_HOOKS
+    template <class... C>
     bool load(const bool stop_on_error = true)
     {
-        return load<FD_KNOWN_HOOKS>(stop_on_error);
+        (store(_Get_hook_base(&FD_OBJECT_GET(C*))), ...);
+        return init(stop_on_error);
     }
-#endif
 
     virtual void disable() = 0;
     virtual void unload()  = 0;

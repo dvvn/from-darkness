@@ -3,46 +3,55 @@ module;
 #include "ctype.h"
 
 #include <algorithm>
+#include <array>
+#include <limits>
 
 export module fd.ctype;
 export import fd.string;
 import fd.functional;
 
-template <class A>
+template <class ArT, class AcT>
 class ctype_to
 {
-    A adaptor_;
+    [[no_unique_address]] ArT adaptor_rt_;
+    [[no_unique_address]] AcT adaptor_ct_;
 
-  public:
-    template <typename A0>
-    constexpr ctype_to(A0&& adaptor)
-        : adaptor_(std::forward<A0>(adaptor))
+    template <typename T>
+    constexpr bool process(const T chr) const
     {
+        static_assert(!std::is_class_v<T>);
+        if constexpr (fd::invocable<AcT, T>)
+        {
+            if (std::is_constant_evaluated())
+                return fd::invoke(adaptor_ct_, chr);
+        }
+        return fd::invoke(adaptor_rt_, chr);
     }
 
+  public:
     constexpr ctype_to() = default;
 
     template <typename T>
-    auto operator()(const T& item) const
+    constexpr auto operator()(const T& item) const
     {
         if constexpr (std::is_class_v<T>)
         {
             fd::basic_string<std::iter_value_t<T>> buff;
             buff.reserve(item.size());
             for (const auto chr : item)
-                buff += fd::invoke(adaptor_, chr);
+                buff += process(chr);
             return buff;
         }
         else if constexpr (std::is_pointer_v<T>)
         {
             using val_t = std::iter_value_t<T>;
             fd::basic_string<val_t> buff;
-            for (auto ptr = item;;)
+            for (auto ptr = item;; ++ptr)
             {
-                auto chr = *ptr++;
+                const auto chr = *ptr;
                 if (chr == static_cast<val_t>('\0'))
                     break;
-                buff += fd::invoke(adaptor_, chr);
+                buff += process(chr);
             }
             return buff;
         }
@@ -54,18 +63,18 @@ class ctype_to
             fd::basic_string<std::iter_value_t<T>> buff;
             buff.reserve(size);
             for (auto itr = begin; itr != end; ++itr)
-                buff += fd::invoke(adaptor_, *itr);
+                buff += process(*itr);
             return buff;
         }
         else
         {
-            return fd::invoke(adaptor_, item);
+            return process(item);
         }
     }
 };
 
-template <class A>
-ctype_to(A&&) -> ctype_to<std::remove_cvref_t<A>>;
+/* template <class A>
+ctype_to(A&&) -> ctype_to<std::remove_cvref_t<A>>; */
 
 struct is_any_t
 {
@@ -75,20 +84,26 @@ struct is_all_t
 {
 };
 
-template <class A>
+template <class ArT, class AcT>
 class ctype_is
 {
-    A adaptor_;
+    [[no_unique_address]] ArT adaptor_rt_;
+    [[no_unique_address]] AcT adaptor_ct_;
 
     template <typename T>
-    bool process(const T chr) const
+    constexpr bool process(const T chr) const
     {
         static_assert(!std::is_class_v<T>);
-        return fd::invoke(adaptor_, chr);
+        if constexpr (fd::invocable<AcT, T>)
+        {
+            if (std::is_constant_evaluated())
+                return fd::invoke(adaptor_ct_, chr);
+        }
+        return fd::invoke(adaptor_rt_, chr);
     }
 
     template <typename T>
-    bool process(const T* ptr, const is_any_t) const
+    constexpr bool process(const T* ptr, const is_any_t) const
     {
         for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
         {
@@ -99,7 +114,7 @@ class ctype_is
     }
 
     template <typename T>
-    bool process(const T* ptr, const is_all_t) const
+    constexpr bool process(const T* ptr, const is_all_t) const
     {
         for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
         {
@@ -110,7 +125,7 @@ class ctype_is
     }
 
     template <typename C>
-    bool process(const fd::basic_string_view<C> strv, const is_any_t) const
+    constexpr bool process(const fd::basic_string_view<C> strv, const is_any_t) const
     {
         for (const auto chr : strv)
         {
@@ -121,7 +136,7 @@ class ctype_is
     }
 
     template <typename C>
-    bool process(const fd::basic_string_view<C> strv, const is_all_t) const
+    constexpr bool process(const fd::basic_string_view<C> strv, const is_all_t) const
     {
         for (const auto chr : strv)
         {
@@ -132,23 +147,17 @@ class ctype_is
     }
 
     template <typename T>
-    bool process(const T obj, const void*) const
+    constexpr bool process(const T obj, const void*) const
     {
         // default
         return process(obj, is_all_t());
     }
 
   public:
-    template <typename A0>
-    constexpr ctype_is(A0&& adaptor)
-        : adaptor_(std::forward<A0>(adaptor))
-    {
-    }
-
     constexpr ctype_is() = default;
 
     template <typename T, class M = void*>
-    auto operator()(const T& item, const M mode = {}) const
+    constexpr auto operator()(const T& item, const M mode = {}) const
     {
         if constexpr (std::is_class_v<T>)
         {
@@ -170,21 +179,106 @@ class ctype_is
     }
 };
 
-template <class A>
-ctype_is(A&&) -> ctype_is<std::remove_cvref_t<A>>;
+/* template <class A>
+ctype_is(A&&) -> ctype_is<std::remove_cvref_t<A>>; */
 
-CTYPE_IFC(to, lower);
-CTYPE_IFC(to, upper);
-CTYPE_IFC(is, alnum);
-CTYPE_IFC(is, lower);
-CTYPE_IFC(is, upper);
-CTYPE_IFC(is, digit);
-CTYPE_IFC(is, xdigit);
-CTYPE_IFC(is, cntrl);
-CTYPE_IFC(is, graph);
-CTYPE_IFC(is, space);
-CTYPE_IFC(is, print);
-CTYPE_IFC(is, punct);
+template <char From, char To>
+consteval auto _Make_chars_range()
+{
+    static_assert(From < To);
+    std::array<char, To - From + 1> buff;
+    for (size_t i = 0; i < buff.size(); ++i)
+        buff[i] = static_cast<char>(From + i);
+    return buff;
+}
+
+constexpr auto upper_chars  = _Make_chars_range<'A', 'Z'>();
+constexpr auto lower_chars  = _Make_chars_range<'a', 'z'>();
+constexpr auto number_chars = _Make_chars_range<'0', '9'>();
+
+template <typename T>
+constexpr char _Get_char_safe(const T chr)
+{
+    if constexpr (std::same_as<T, wchar_t>)
+    {
+        const auto c  = static_cast<char>(chr);
+        const auto wc = static_cast<wchar_t>(c);
+        if (wc != chr)
+            throw;
+    }
+    return static_cast<char>(chr);
+}
+
+CTYPE_IFC(to, lower)
+{
+    const auto c   = _Get_char_safe(chr);
+    const auto bg  = upper_chars.begin();
+    const auto end = upper_chars.end();
+    const auto pos = std::find(bg, end, c);
+    return pos == end ? c : lower_chars[std::distance(bg, pos)];
+}
+
+CTYPE_IFC(to, upper)
+{
+    const auto c   = _Get_char_safe(chr);
+    const auto bg  = lower_chars.begin();
+    const auto end = lower_chars.end();
+    const auto pos = std::find(bg, end, c);
+    return pos == end ? c : upper_chars[std::distance(bg, pos)];
+}
+
+CTYPE_IFC(is, alnum)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, lower)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, upper)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, digit)
+{
+    const auto c   = _Get_char_safe(chr);
+    const auto bg  = number_chars.begin();
+    const auto end = number_chars.end();
+    return std::find(bg, end, c) != end;
+}
+
+CTYPE_IFC(is, xdigit)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, cntrl)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, graph)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, space)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, print)
+{
+    throw; // WIP
+}
+
+CTYPE_IFC(is, punct)
+{
+    throw; // WIP
+}
 
 export namespace fd
 {

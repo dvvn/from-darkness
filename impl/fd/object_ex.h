@@ -1,11 +1,11 @@
 #pragma once
 
 #include <limits>
-// added to prevent compiler bugd
+// added to prevent compiler bugs
 #include <string>
 
 import fd.path;
-import fd.string;
+import fd.ctype;
 
 #if 1
 
@@ -51,15 +51,16 @@ constexpr size_t _Object_id(const fd::path<char> full_path)
 
 constexpr fd::string_view _Pretty_file_name(const fd::path<char> full_path, const bool id_must_be_found = true)
 {
-    const auto fname = full_path.stem();
-    auto offset      = fname.size();
+    auto fname = full_path.stem();
     if (id_must_be_found)
     {
-        const auto temp_offset = fname.rfind('_');
-        if (temp_offset != fname.npos)
-            offset = temp_offset;
+        const auto orig_size = fname.size();
+        while (fd::is_digit(fname.back()))
+            fname.remove_suffix(1);
+        if (orig_size > fname.size() && fname.ends_with('_'))
+            fname.remove_suffix(1);
     }
-    return { fname.data(), offset };
+    return fname;
 }
 
 constexpr fd::string_view _Folder_name(const fd::path<char> full_path)

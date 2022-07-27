@@ -8,10 +8,16 @@ import fd.hash;
 template <typename T>
 auto _Object_type_impl()
 {
+    constexpr std::type_identity<T*> ptr_t;
+    constexpr std::type_identity<T> direct_t;
+
+    /*  if constexpr (!std::is_default_constructible_v<T>) // incomplete class
+         return ptr_t;
+     else  */
     if constexpr (std::is_abstract_v<T>)
-        return std::type_identity<T*>();
+        return ptr_t;
     else
-        return std::type_identity<T>();
+        return direct_t;
 }
 
 template <typename T>
@@ -28,7 +34,8 @@ constexpr size_t _Object_idx = I;
         _Construct(_IMPL_);                                                                                                  \
     }
 
-#define FD_OBJECT_GET(_OBJ_TYPE_, /* object index */...) fd::instance_of<_Object_t<_OBJ_TYPE_>, _Object_idx<__VA_ARGS__>>
+#define FD_OBJECT_GET_EX(_OBJ_TYPE_, /* object index */...) fd::instance_of<_OBJ_TYPE_, _Object_idx<__VA_ARGS__>>
+#define FD_OBJECT_GET(_OBJ_TYPE_, ...)                      FD_OBJECT_GET_EX(_Object_t<_OBJ_TYPE_>, __VA_ARGS__)
 
 #define FD_OBJECT_ATTACH(_OBJ_TYPE_, _TARGET_TYPE_, ...) FD_OBJECT_IMPL(_OBJ_TYPE_, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__))
 

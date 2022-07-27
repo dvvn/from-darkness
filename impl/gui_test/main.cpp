@@ -1,15 +1,12 @@
-﻿#include <fd/assert.h>
+﻿
+#include <fd/assert.h>
 #include <fd/comptr.h>
-#include <fd/object.h>
+
+#include <fd_init.h>
 
 #include <d3d9.h>
 #include <tchar.h>
-#include <windows.h>
 
-import fd.hooks_loader;
-import fd.logger;
-import fd.system_console;
-import fd.application_info;
 import fd.rt_modules;
 
 static fd::comptr<IDirect3D9> g_pD3D;
@@ -32,7 +29,7 @@ static bool CreateDeviceD3D(HWND hWnd)
     GetWindowRect(hDesktop, &desktop);
     // The top left corner will have coordinates (0,0)
     // and the bottom right corner will have coordinates
-    const int width = desktop.right - desktop.left;
+    const int width  = desktop.right - desktop.left;
     const int height = desktop.bottom - desktop.top;
 #endif
 
@@ -40,14 +37,14 @@ static bool CreateDeviceD3D(HWND hWnd)
     ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
 #ifndef RESET_BACK_BUFFER_ON_RESIZE
     g_d3dpp.BackBufferHeight = height;
-    g_d3dpp.BackBufferWidth = width;
+    g_d3dpp.BackBufferWidth  = width;
 #endif
-    g_d3dpp.Windowed = TRUE;
-    g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+    g_d3dpp.Windowed               = TRUE;
+    g_d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
+    g_d3dpp.BackBufferFormat       = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
     g_d3dpp.EnableAutoDepthStencil = TRUE;
     g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-    g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE; // Present with vsync
+    g_d3dpp.PresentationInterval   = D3DPRESENT_INTERVAL_ONE; // Present with vsync
     // g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
     return SUCCEEDED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, g_pd3dDevice));
 }
@@ -66,7 +63,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (g_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
         {
 #ifdef RESET_BACK_BUFFER_ON_RESIZE
-            g_d3dpp.BackBufferWidth = LOWORD(lParam);
+            g_d3dpp.BackBufferWidth  = LOWORD(lParam);
             g_d3dpp.BackBufferHeight = HIWORD(lParam);
             ResetDevice();
 #endif
@@ -100,10 +97,7 @@ int main(int, char**)
     ::UpdateWindow(hwnd);
 
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
-    fd::app_info.construct(hwnd, hmodule);
-    fd::logger.append(fd::system_console_writer);
-
-    if (!fd::hooks_loader->load<0, 1, 2>())
+    if (!fd::init(hwnd, hmodule))
         return TRUE;
 
     //----------------

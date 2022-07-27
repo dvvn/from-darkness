@@ -6,7 +6,6 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_DEBUG_POSTFIX _d)
   set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
-  #set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_DEBUG_MODE 1)
 endif()
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
@@ -261,52 +260,3 @@ project_part(gui LINK gui_interface logger d3d9.lib imgui) #[[ RmlCore  RmlDebug
 project_part(hooks LINK gui valve)
 
 project_part(gui_test TYPE EXECUTABLE LINK hooks)
-
-#[[
-#-----------------
-
-file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.ixx ${_PROJ_WORK_DIR}/*.cpp)
-list(FILTER _PROJ_FILES EXCLUDE REGEX "/\_+")
-
-add_library(${PROJECT_NAME} STATIC ${_PROJ_FILES})
-
-set(_PROJ_KNOWN_HOOKS "")
-foreach(src ${_PROJ_FILES})
-  string(REGEX MATCH ".*_([0-9]+)\\.cpp" found ${src})
-  if(found)
-    list(APPEND _PROJ_KNOWN_HOOKS ${CMAKE_MATCH_1})
-  endif()
-endforeach()
-message(STATUS "hooked ids - ${_PROJ_KNOWN_HOOKS}")
-string(REPLACE ";" "," _PROJ_KNOWN_HOOKS_FIXED "${_PROJ_KNOWN_HOOKS}")
-
-target_include_directories(
-  ${PROJECT_NAME}
-  PUBLIC ${_PROJ_IMPL_DIR}
-  PRIVATE ${xxhct_SOURCE_DIR}
-  PRIVATE ${utf8_conv_SOURCE_DIR}/include
-  PRIVATE ${veque_SOURCE_DIR}/include)
-
-target_link_libraries(
-  ${PROJECT_NAME}
-  PUBLIC d3d9.lib
-  PRIVATE nlohmann_json::nlohmann_json
-  PRIVATE robin_hood::robin_hood
-  PRIVATE imgui
-  PRIVATE RmlCore
-  PRIVATE RmlDebugger)
-
-target_compile_definitions(
-  ${PROJECT_NAME}
-  PRIVATE ${_PROJ_NAME_UPPER}_ROOT_DIR=${CMAKE_CURRENT_LIST_DIR}
-  PRIVATE ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
-  PRIVATE ${_PROJ_NAME_UPPER}_KNOWN_HOOKS=${_PROJ_KNOWN_HOOKS_FIXED}
-  PRIVATE RMLUI_STATIC_LIB
-  PRIVATE RMLUI_DIR=${rml_SOURCE_DIR})
-
-# -------------------
-
-project(${_PROJ_NAME}_gui_test)
-
-add_executable(${PROJECT_NAME} ${_PROJ_IMPL_DIR}/gui_test/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${_PROJ_NAME}) ]]

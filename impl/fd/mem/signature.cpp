@@ -10,8 +10,8 @@ module fd.signature;
 
 static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const pointer end2)
 {
-    const auto block_size = std::distance(start0, end0);
-    const auto rng_size   = std::distance(start2, end2);
+    const size_t block_size = std::distance(start0, end0);
+    const size_t rng_size   = std::distance(start2, end2);
     const auto limit      = block_size - rng_size;
 
     if (rng_size == 1)
@@ -63,7 +63,7 @@ static const void* _Find_unk_block(const pointer begin, const pointer end, const
 {
 #ifdef _DEBUG
     const auto unkbytes_count = unkbytes.bytes_count();
-    const auto mem_size       = std::distance(begin, end);
+    const size_t mem_size     = std::distance(begin, end);
     FD_ASSERT(mem_size >= unkbytes_count);
 #endif
 
@@ -88,7 +88,7 @@ static const void* _Find_unk_block(const pointer begin, const pointer end, const
 
 #ifndef _DEBUG
     const auto unkbytes_count = unkbytes.bytes_count();
-    const auto mem_size       = std::distance(begin, end);
+    const size_t mem_size     = std::distance(begin, end);
 #endif
 
     const auto unkbytes1         = unkbytes_begin + 1;
