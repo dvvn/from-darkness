@@ -13,6 +13,9 @@ using hook_base = fd::hook_base;
 template <class T>
 hook_base* _Get_hook_base(T* ptr)
 {
+    // UNSAFE
+    //  ok in debug mode
+    // ??? in release mode
     return reinterpret_cast<hook_base*>(ptr);
 }
 
