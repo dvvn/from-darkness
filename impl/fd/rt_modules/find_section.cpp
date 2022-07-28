@@ -4,7 +4,6 @@ module;
 #include <winternl.h>
 
 module fd.rt_modules:find_section;
-import :helpers;
 import :library_info;
 import fd.string;
 
@@ -15,19 +14,13 @@ IMAGE_SECTION_HEADER* find_section(LDR_DATA_TABLE_ENTRY* const ldr_entry, const 
     if (!ldr_entry)
         return nullptr;
 
-    const auto [dos, nt] = dos_nt(ldr_entry);
-
-    const auto number_of_sections  = nt->FileHeader.NumberOfSections;
-    const auto first_header        = IMAGE_FIRST_SECTION(nt);
-    const auto last_section_header = first_header + number_of_sections;
-
     IMAGE_SECTION_HEADER* found_header = nullptr;
 
-    for (auto header = first_header; header != last_section_header; ++header)
+    for (auto& header : dos_nt(ldr_entry).sections())
     {
-        if (reinterpret_cast<const char*>(header->Name) == name)
+        if (reinterpret_cast<const char*>(header.Name) == name)
         {
-            found_header = header;
+            found_header = &header;
             break;
         }
     }

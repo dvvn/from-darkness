@@ -9,7 +9,7 @@ import fd.ctype;
 
 #if 1
 
-constexpr size_t _Object_id(const fd::path<char> full_path)
+[[deprecated]] constexpr size_t _Object_id(const fd::path<char> full_path)
 {
     const auto fname = full_path.stem();
     auto start       = fname.rfind('_');
@@ -49,10 +49,10 @@ constexpr size_t _Object_id(const fd::path<char> full_path)
     return index;
 }
 
-constexpr fd::string_view _Pretty_file_name(const fd::path<char> full_path, const bool id_must_be_found = true)
+constexpr fd::string_view _Pretty_file_name(const fd::path<char> full_path, const bool skip_id = true)
 {
     auto fname = full_path.stem();
-    if (id_must_be_found)
+    if (skip_id)
     {
         const auto orig_size = fname.size();
         while (fd::is_digit(fname.back()))
@@ -185,6 +185,6 @@ constexpr fd::string_view _Folder_name(const fd::string_view file_name)
 // take object id from filename. filename format: 'NAME_INDEX.xxx'
 #define FD_AUTO_OBJECT_ID       _Object_id(__FILE__)
 // take file name without object id
-#define FD_AUTO_OBJECT_NAME     _Pretty_file_name(__FILE__, true)
+#define FD_AUTO_OBJECT_NAME     _Pretty_file_name(__FILE__)
 // take folder name where the current file is located
 #define FD_AUTO_OBJECT_LOCATION _Folder_name(__FILE__)

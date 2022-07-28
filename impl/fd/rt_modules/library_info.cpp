@@ -5,9 +5,44 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
+#include <span>
+
 module fd.rt_modules:library_info;
 import fd.logger;
 import fd.path;
+
+void dos_nt::_Construct(const LDR_DATA_TABLE_ENTRY* const ldr_entry)
+{
+    FD_ASSERT(ldr_entry != nullptr);
+    dos = (IMAGE_DOS_HEADER*)ldr_entry->DllBase;
+    // check for invalid DOS / DOS signature.
+    FD_ASSERT(dos && dos->e_magic == IMAGE_DOS_SIGNATURE /* 'MZ' */);
+    nt = map<IMAGE_NT_HEADERS>(dos->e_lfanew);
+    // check for invalid NT / NT signature.
+    FD_ASSERT(nt && nt->Signature == IMAGE_NT_SIGNATURE /* 'PE\0\0' */);
+}
+
+dos_nt::dos_nt(const LDR_DATA_TABLE_ENTRY* const ldr_entry)
+{
+    _Construct(ldr_entry);
+}
+
+dos_nt::dos_nt(const library_info info)
+{
+    _Construct(std::addressof(*info));
+}
+
+std::span<uint8_t> dos_nt::read() const
+{
+    return { (uint8_t*)dos, nt->OptionalHeader.SizeOfImage };
+}
+
+std::span<IMAGE_SECTION_HEADER> dos_nt::sections() const
+{
+    return { IMAGE_FIRST_SECTION(nt), nt->FileHeader.NumberOfSections };
+}
+
+//---------
 
 library_info::library_info(pointer const entry)
     : entry_(entry)
@@ -44,6 +79,11 @@ fd::wstring_view library_info::name() const
 
 void library_info::log(const fd::string_view object_type, const fd::string_view object, const void* addr) const
 {
-    fd::invoke(
-        fd::logger, L"{} -> {} '{}' {}! ({:#X})", fd::bind_front(&library_info::name, this), object_type, object, addr ? "found" : "not found", reinterpret_cast<uintptr_t>(addr));
+    fd::invoke(fd::logger,
+               L"{} -> {} '{}' {}! ({:#X})",
+               fd::bind_front(&library_info::name, this),
+               object_type,
+               object,
+               addr ? L"found" : L"not found",
+               reinterpret_cast<uintptr_t>(addr));
 }

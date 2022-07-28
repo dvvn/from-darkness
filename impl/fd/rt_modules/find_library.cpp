@@ -9,85 +9,12 @@ module;
 
 module fd.rt_modules:find_library;
 import :library_info;
-import :helpers;
 import fd.chars_cache;
 import fd.logger;
 
 constexpr auto on_library_found = [](const auto library_name, const LDR_DATA_TABLE_ENTRY* entry) {
     fd::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
 };
-
-template <typename Fn>
-class partial_invoke
-{
-    template <class Tpl, size_t... I>
-    static constexpr auto _Get_valid_seq(const std::index_sequence<I...> seq)
-    {
-        if constexpr (std::invocable<Fn, std::tuple_element_t<I, Tpl>...>)
-            return seq;
-        else if constexpr (seq.size() > 0)
-            return _Get_valid_seq<Tpl>(std::make_index_sequence<seq.size() - 1>());
-        else
-            return std::false_type();
-    }
-
-    template <class Tpl, size_t I1 = -1, size_t... I>
-    static constexpr auto _Get_valid_seq_reversed(const std::index_sequence<I1, I...> seq = {})
-    {
-        if constexpr (I1 == -1)
-            return std::false_type();
-        else if constexpr (std::invocable<Fn, std::tuple_element_t<I1, Tpl>, std::tuple_element_t<I, Tpl>...>)
-            return seq;
-        else
-            return _Get_valid_seq_reversed<Tpl, I...>();
-    }
-
-    template <class Tpl, size_t... I>
-    auto apply(Tpl& tpl, const std::index_sequence<I...>) const
-    {
-        return fn_(std::get<I>(tpl)...);
-    }
-
-    template <class Tpl, class SeqFwd, class SeqBack>
-    auto apply(Tpl& tpl, const SeqFwd seq_fwd, const SeqBack seq_back) const
-    {
-        constexpr auto fwd_ok = !std::is_same_v<SeqFwd, std::false_type>;
-        constexpr auto bk_ok  = !std::is_same_v<SeqBack, std::false_type>;
-
-        static_assert((fwd_ok || bk_ok) && !(fwd_ok && bk_ok), "Unable to choice the sequence!");
-
-        if constexpr (fwd_ok)
-            return this->apply<Tpl>(tpl, seq_fwd);
-        else
-            return this->apply<Tpl>(tpl, seq_back);
-    }
-
-  public:
-    template <typename FnRef>
-    partial_invoke(FnRef&& fn)
-        : fn_(std::forward<FnRef>(fn))
-    {
-    }
-
-    template <typename... Args>
-    auto operator()(Args&&... args) const
-    {
-        auto tpl    = std::forward_as_tuple(std::forward<Args>(args)...);
-        using tpl_t = decltype(tpl);
-
-        constexpr std::make_index_sequence<sizeof...(Args)> seq_def;
-        constexpr auto seq          = _Get_valid_seq<tpl_t>(seq_def);
-        constexpr auto seq_reversed = _Get_valid_seq_reversed<tpl_t>(seq_def);
-
-        return this->apply(tpl, seq, seq_reversed);
-    }
-
-  private:
-    Fn fn_;
-};
-
-template <typename Fn>
-partial_invoke(Fn&&) -> partial_invoke<std::remove_cvref_t<Fn>>;
 
 static auto _Get_ldr()
 {
@@ -106,10 +33,9 @@ static auto _Get_ldr()
 template <typename Fn>
 static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
 {
-    const partial_invoke invoker = std::move(comparer);
-    const auto ldr               = _Get_ldr();
+    const auto ldr  = _Get_ldr();
     // get module linked list.
-    const auto list              = &ldr->InMemoryOrderModuleList;
+    const auto list = &ldr->InMemoryOrderModuleList;
     // iterate linked list.
     for (auto it = list->Flink; it != list; it = it->Flink)
     {
@@ -119,7 +45,7 @@ static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
             continue;
 
         const auto [dos, nt] = fd::dos_nt(ldr_entry);
-        if (!invoker(ldr_entry, nt, dos))
+        if (!comparer(ldr_entry, dos, nt))
             continue;
 
         return ldr_entry;
@@ -140,13 +66,13 @@ LDR_DATA_TABLE_ENTRY* find_library(const fd::wstring_view name, const bool notif
             name_correct_buff.push_back(chr == '/' ? '\\' : chr);
 
         const fd::wstring_view name_correct(name_correct_buff.begin(), name_correct_buff.end());
-        result = _Find_library([=](const fd::library_info info) {
+        result = _Find_library([=](const fd::library_info info, void*, void*) {
             return info.path() == name_correct;
         });
     }
     else */
     {
-        result = _Find_library([=](const fd::library_info info) {
+        result = _Find_library([=](const fd::library_info info, void*, void*) {
             using namespace fd;
             return info.name() == name;
         });
@@ -171,7 +97,7 @@ LDR_DATA_TABLE_ENTRY* find_current_library(const bool notify)
 {
     static const auto ret = [=] {
         const auto base_address = static_cast<void*>(_Get_current_module_handle());
-        const auto ldr_entry    = _Find_library([=](IMAGE_DOS_HEADER* const dos) {
+        const auto ldr_entry    = _Find_library([=](void*, IMAGE_DOS_HEADER* const dos, void*) {
             return base_address == static_cast<void*>(dos);
         });
 

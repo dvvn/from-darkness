@@ -9,9 +9,7 @@ module;
 
 module fd.rt_modules:find_vtable;
 import :find_section;
-import :helpers;
 import :library_info;
-import fd.address;
 import fd.logger;
 import fd.signature;
 import fd.functional;
@@ -22,6 +20,7 @@ using namespace fd;
 template <typename Fn>
 static auto _Get_cross_references(signature_finder finder, const uintptr_t addr, Fn callback)
 {
+    bool stop        = false;
     auto& [from, to] = finder;
     do
     {
@@ -31,7 +30,6 @@ static auto _Get_cross_references(signature_finder finder, const uintptr_t addr,
         if (!xref)
             break;
 
-        bool stop = false;
         callback(reinterpret_cast<uintptr_t>(xref), stop);
         if (stop)
             break;
@@ -63,8 +61,8 @@ static constexpr auto _Bytes_to_sig(const T* bytes, const size_t size)
         const uint8_t curr_byte = bytes[n];
 
         // manually convert byte to chars
-        pattern[i]      = hex_digits[((curr_byte & 0xF0) >> 4)];
-        pattern[i + 1U] = hex_digits[(curr_byte & 0x0F)];
+        pattern[i]     = hex_digits[((curr_byte & 0xF0) >> 4)];
+        pattern[i + 1] = hex_digits[(curr_byte & 0x0F)];
     }
 
     return pattern;
@@ -84,70 +82,45 @@ static void* _Find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_vi
     if (!ldr_entry)
         return nullptr;
 
-    const auto [dos, nt] = dos_nt(ldr_entry);
+    const dos_nt dnt(ldr_entry);
+    const auto memory_span = dnt.read();
+    const signature_finder whole_module_finder(memory_span.data(), memory_span.size());
 
-    void* rtti_class_name = nullptr;
-    const signature_finder whole_module_finder(dos.get<uint8_t*>(), nt->OptionalHeader.SizeOfImage);
+    constexpr chars_cache raw_prefix  = ".?A";
+    constexpr chars_cache raw_postfix = "@@";
 
-    constexpr auto class_prefix  = 'V';
-    constexpr auto struct_prefix = 'U';
+    void* rtti_class_name;
 
-    const auto do_find = [&](const auto str_prefix) {
-        constexpr chars_cache raw_prefix  = ".?A";
-        constexpr chars_cache raw_postfix = "@@";
-
+    if (type == TYPE_UNKNOWN)
+    {
         constexpr auto bytes_prefix  = _Bytes_to_sig<raw_prefix>();
+        const auto bytes_name        = _Bytes_to_sig(name.data(), name.size());
         constexpr auto bytes_postfix = _Bytes_to_sig<raw_postfix>();
 
-        if (str_prefix == '?')
-        {
-            const auto real_name_unk = make_string(bytes_prefix, " ? ", _Bytes_to_sig(name.data(), name.size()), ' ', bytes_postfix);
-            rtti_class_name          = whole_module_finder(real_name_unk);
-        }
-        else
-        {
-            const auto real_name = make_string(raw_prefix, str_prefix, name, raw_postfix);
-            rtti_class_name      = whole_module_finder(real_name, true);
-        }
-        return rtti_class_name != nullptr;
-    };
-
-    switch (type)
+        const auto real_name_unk = make_string(bytes_prefix, " ? ", bytes_name, ' ', bytes_postfix);
+        rtti_class_name          = whole_module_finder(real_name_unk);
+    }
+    else if (type == TYPE_NATIVE)
     {
-    case TYPE_UNKNOWN: {
-#if 1
-        // still not perfect but better than double scan
-        if (do_find('?'))
-            goto _FOUND;
-#else
-        if (do_find(class_prefix))
-            goto _FOUND;
-        if (do_find(struct_prefix))
-            goto _FOUND;
-#endif
-        break;
-    }
-    case TYPE_CLASS: {
-        if (do_find(class_prefix))
-            goto _FOUND;
-        break;
-    }
-    case TYPE_STRUCT: {
-        if (do_find(struct_prefix))
-            goto _FOUND;
-        break;
-    }
-    case TYPE_NATIVE: {
         const auto ptr = (const uint8_t*)name.data();
         FD_ASSERT(ptr >= whole_module_finder.from && ptr <= whole_module_finder.to - name.size(), "Selected wrong module!");
         rtti_class_name = (void*)ptr;
-        goto _FOUND;
     }
-    };
+    else
+    {
+        char str_prefix;
+        if (type == TYPE_CLASS)
+            str_prefix = 'V';
+        else if (type == TYPE_STRUCT)
+            str_prefix = 'U';
+        else
+            FD_ASSERT_UNREACHABLE("Unknown type");
+
+        const auto real_name = make_string(raw_prefix, str_prefix, name, raw_postfix);
+        rtti_class_name      = whole_module_finder(real_name, true);
+    }
 
     FD_ASSERT(rtti_class_name != nullptr);
-
-_FOUND:
 
     // get rtti type descriptor
     auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_class_name);
@@ -157,8 +130,8 @@ _FOUND:
     const auto dot_rdata = find_section(ldr_entry, ".rdata");
     const auto dot_text  = find_section(ldr_entry, ".text");
 
-    const signature_finder dot_rdata_finder(dos + dot_rdata->VirtualAddress, dot_rdata->SizeOfRawData);
-    const signature_finder dot_text_finder(dos + dot_text->VirtualAddress, dot_text->SizeOfRawData);
+    const signature_finder dot_rdata_finder(dnt.map(dot_rdata->VirtualAddress), dot_rdata->SizeOfRawData);
+    const signature_finder dot_text_finder(dnt.map(dot_text->VirtualAddress), dot_text->SizeOfRawData);
 
     void* vtable_ptr = nullptr;
     _Get_cross_references(dot_rdata_finder, type_descriptor, [&](const uintptr_t xref, bool& stop) {

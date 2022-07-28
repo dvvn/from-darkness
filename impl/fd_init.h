@@ -9,9 +9,9 @@ import fd.logger;
 import fd.system_console;
 import fd.application_info;
 
-struct wndproc;
-struct IDirect3DDevice9_present;
-struct IDirect3DDevice9_reset;
+struct hk_wndproc;
+struct hk_IDirect3DDevice9_present;
+struct hk_IDirect3DDevice9_reset;
 
 namespace fd
 {
@@ -19,6 +19,6 @@ namespace fd
     {
         app_info.construct(hwnd, hmodule);
         logger.append(system_console_writer);
-        return hooks_loader->load<wndproc, IDirect3DDevice9_present, IDirect3DDevice9_reset>();
+        return hooks_loader->load<hk_wndproc, hk_IDirect3DDevice9_present, hk_IDirect3DDevice9_reset>();
     }
 } // namespace fd

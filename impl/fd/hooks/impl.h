@@ -59,17 +59,19 @@ namespace fd
 #define IS_STATIC_member false
 #define IS_STATIC_static true
 
-#define FD_HOOK_HEAD(_NAME_, _FN_TYPE_)                                \
-    struct _NAME_ final : hook_impl, hook_instance_##_FN_TYPE_<_NAME_> \
-    {                                                                  \
-        using _This = _NAME_;                                          \
-        bool is_static() const override                                \
-        {                                                              \
-            return IS_STATIC_##_FN_TYPE_;                              \
-        }                                                              \
-        string_view name() const override                              \
-        {                                                              \
-            return chars_cache_buff<_Hook_name()>;                     \
+#define _HOOK_NAME(_N_) hk_##_N_
+
+#define FD_HOOK_HEAD(_NAME_, _FN_TYPE_)                                                        \
+    struct _HOOK_NAME(_NAME_) final : hook_impl, hook_instance_##_FN_TYPE_<_HOOK_NAME(_NAME_)> \
+    {                                                                                          \
+        using _This = _HOOK_NAME(_NAME_);                                                      \
+        bool is_static() const override                                                        \
+        {                                                                                      \
+            return IS_STATIC_##_FN_TYPE_;                                                      \
+        }                                                                                      \
+        string_view name() const override                                                      \
+        {                                                                                      \
+            return chars_cache_buff<_Hook_name()>;                                             \
         }
 
 #define FD_HOOK_INIT()                                        \
@@ -86,7 +88,7 @@ namespace fd
 #define FD_HOOK_TAIL(_NAME_) \
     }                        \
     ;                        \
-    /* FD_OBJECT_IMPL(hook_base, FD_OBJECT_GET(_NAME_), _INDEX_); */ FD_OBJECT_ATTACH(_NAME_*, _NAME_);
+    /* FD_OBJECT_IMPL(hook_base, FD_OBJECT_GET(_NAME_), _INDEX_); */ FD_OBJECT_ATTACH(_HOOK_NAME(_NAME_)*, _HOOK_NAME(_NAME_));
 
 //---
 
@@ -98,7 +100,7 @@ namespace fd
     }                                                                       \
     FD_HOOK_CALLBACK(_FN_TYPE_, _FN_RET_, __VA_ARGS__);                     \
     FD_HOOK_TAIL(_NAME_);                                                   \
-    _FN_RET_ _NAME_::callback(__VA_ARGS__)
+    _FN_RET_ _HOOK_NAME(_NAME_)::callback(__VA_ARGS__)
 
 #define FD_HOOK_VTABLE(_IFC_NAME_, _FN_NAME_, _INDEX_, _FN_RET_, ...) \
     FD_HOOK_HEAD(_IFC_NAME_##_##_FN_NAME_, member)                    \
@@ -108,14 +110,14 @@ namespace fd
     }                                                                 \
     FD_HOOK_CALLBACK(member, _FN_RET_, __VA_ARGS__);                  \
     FD_HOOK_TAIL(_IFC_NAME_##_##_FN_NAME_);                           \
-    _FN_RET_ _IFC_NAME_##_##_FN_NAME_::callback(__VA_ARGS__)
+    _FN_RET_ _HOOK_NAME(_IFC_NAME_##_##_FN_NAME_)::callback(__VA_ARGS__)
 
-#define FD_HOOK(_NAME_, _TARGET_FN_, _FN_TYPE_, _FN_RET_, ...) \
-    FD_HOOK_HEAD(_NAME_, _FN_TYPE_)                            \
-    void init() override                                       \
-    {                                                          \
-        hook_impl::init(_TARGET_FN_, &_NAME_::callback);       \
-    }                                                          \
-    FD_HOOK_CALLBACK(_FN_TYPE_, _FN_RET_, __VA_ARGS__);        \
-    FD_HOOK_TAIL(_NAME_);                                      \
-    _FN_RET_ _NAME_::callback(__VA_ARGS__)
+#define FD_HOOK(_NAME_, _TARGET_FN_, _FN_TYPE_, _FN_RET_, ...)       \
+    FD_HOOK_HEAD(_NAME_, _FN_TYPE_)                                  \
+    void init() override                                             \
+    {                                                                \
+        hook_impl::init(_TARGET_FN_, &_HOOK_NAME(_NAME_)::callback); \
+    }                                                                \
+    FD_HOOK_CALLBACK(_FN_TYPE_, _FN_RET_, __VA_ARGS__);              \
+    FD_HOOK_TAIL(_NAME_);                                            \
+    _FN_RET_ _HOOK_NAME(_NAME_)::callback(__VA_ARGS__)

@@ -69,6 +69,7 @@ FetchContent_Declare(function2 GIT_REPOSITORY #[[ https://github.com/Naios/funct
 FetchContent_MakeAvailable(function2)
 
 FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt.git)
+set(FMT_DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 FetchContent_MakeAvailable(fmt)
 
 # -------------------
@@ -78,16 +79,16 @@ string(TOUPPER ${_PROJ_NAME} _PROJ_NAME_UPPER)
 set(_PROJ_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
 set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
 
-project(imgui) # -------------------
+project(${_PROJ_NAME})# -------------------
 
 file(GLOB _IMGUI_FILES ${_IMGUI_SRC}/*.cpp)
 list(APPEND _IMGUI_FILES ${_IMGUI_SRC}/misc/freetype/imgui_freetype.cpp ${_IMGUI_SRC}/backends/imgui_impl_win32.cpp ${_IMGUI_SRC}/backends/imgui_impl_dx9.cpp)
 
-add_library(${PROJECT_NAME} STATIC ${_IMGUI_FILES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${_IMGUI_SRC} PUBLIC ${_IMGUI_SRC}/misc/freetype PUBLIC ${_IMGUI_SRC}/backends)
-target_link_libraries(${PROJECT_NAME} PRIVATE freetype)
+add_library(imgui STATIC ${_IMGUI_FILES})
+target_include_directories(imgui PUBLIC ${_IMGUI_SRC} PUBLIC ${_IMGUI_SRC}/misc/freetype PUBLIC ${_IMGUI_SRC}/backends)
+target_link_libraries(imgui PRIVATE freetype)
 target_compile_definitions(
-  ${PROJECT_NAME}
+  imgui
   PUBLIC IMGUI_ENABLE_FREETYPE
   PUBLIC IMGUI_USE_WCHAR32
   PUBLIC IMGUI_DEFINE_MATH_OPERATORS
@@ -236,7 +237,7 @@ function(project_part _name)
 
 endfunction()
 
-project(${_PROJ_NAME}) # -------------------
+# -------------------
 
 project_part(
   stable

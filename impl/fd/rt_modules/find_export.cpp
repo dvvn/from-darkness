@@ -6,7 +6,6 @@ module;
 #include <winternl.h>
 
 module fd.rt_modules:find_export;
-import :helpers;
 import :library_info;
 import fd.address;
 import fd.string;
@@ -15,13 +14,15 @@ using namespace fd;
 
 void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_view name, const bool notify)
 {
+    FD_ASSERT_UNREACHABLE("Not implemented");
+#if 0
     if (!ldr_entry)
         return nullptr;
     // base address
-    const auto [dos, nt] = dos_nt(ldr_entry);
+    const dos_nt dnt(ldr_entry);
 
     // get export data directory.
-    const auto& data_dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    const auto& data_dir = dnt.nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
     FD_ASSERT(data_dir.VirtualAddress, "Current module doesn't have the virtual address!");
 
     // get export export_dir.
@@ -97,4 +98,5 @@ void* find_export(LDR_DATA_TABLE_ENTRY* const ldr_entry, const string_view name,
         library_info(ldr_entry).log("export", name, export_ptr);
 
     return export_ptr;
+#endif
 }
