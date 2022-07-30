@@ -2,157 +2,137 @@ module;
 
 #include <fd/utility.h>
 
-#include <fd/rt_modules/winapi_fwd.h>
-
 #include <memory>
+#include <utility>
 
 export module fd.rt_modules;
-import :find_library;
-import :find_export;
-import :find_section;
-import :find_vtable;
-import :find_signature;
-import :find_csgo_interface;
 export import fd.address;
 export import fd.type_name;
+import :library_info;
 import fd.chars_cache;
 
 using fd::basic_address;
+using fd::chars_cache;
+using fd::library_info;
 
 struct only_true
 {
     only_true(const bool val);
 };
 
-void on_class_found(const LDR_DATA_TABLE_ENTRY* entry, const fd::string_view raw_name, const void* addr);
-
-namespace fd
+struct any_module_base
 {
-    export using ::on_class_found;
+    virtual ~any_module_base() = default;
 
-    struct any_module_base
+    virtual const library_info& data() const = 0;
+    virtual bool loaded() const              = 0;
+
+    const library_info* operator->() const;
+    const library_info& operator*() const;
+};
+
+template <size_t UniqueNum>
+struct any_module : any_module_base
+{
+    template <chars_cache ExpName>
+    void* find_export() const
     {
-        virtual ~any_module_base() = default;
+        static const auto found = this->data().find_export(ExpName);
+        return found;
+    }
 
-        virtual LDR_DATA_TABLE_ENTRY* data() const = 0;
-        virtual bool loaded() const                = 0;
-
-        LDR_DATA_TABLE_ENTRY* operator->() const
-        {
-            return data();
-        }
-
-        LDR_DATA_TABLE_ENTRY& operator*() const
-        {
-            return *data();
-        }
-
-        void log(const fd::string_view object_name, const void* addr) const;
-    };
-
-    template <size_t UniqueNum>
-    struct any_module : any_module_base
+    template <chars_cache Sig>
+    basic_address<void> find_signature() const
     {
-        template <chars_cache ExpName>
-        basic_address<void> find_export() const
-        {
-            static const auto found = fd::find_export(this->data(), ExpName);
-            return found;
-        }
-
-        template <chars_cache Sig>
-        basic_address<void> find_signature() const
-        {
-            static const auto found = fd::find_signature(this->data(), Sig);
-            return found;
-        }
-
-        template <chars_cache Name>
-        void* find_vtable() const
-        {
-            static const auto found = fd::find_vtable(this->data(), Name);
-            return found;
-        }
-
-        template <class T>
-        T* find_vtable() const
-        {
-            static const auto found = fd::find_vtable<T>(this->data());
-            return found;
-        }
-    };
+        static const auto found = this->data().find_signature(Sig);
+        return found;
+    }
 
     template <chars_cache Name>
-    class rt_module final : public any_module<_Hash_object(Name)>
+    void* find_vtable() const
     {
-        static LDR_DATA_TABLE_ENTRY*& _Data()
-        {
-            static LDR_DATA_TABLE_ENTRY* val = nullptr;
-            return val;
-        }
+        static const auto found = this->data().find_vtable(Name);
+        return found;
+    }
 
-        static bool _Loaded(const bool log_error)
-        {
-            auto& ptr = _Data();
-            if (!ptr)
-            {
-                ptr = find_library(Name, false);
-                if (ptr || log_error)
-                    on_library_found(Name, ptr);
-            }
-            return ptr != nullptr;
-        }
-
-      public:
-        LDR_DATA_TABLE_ENTRY* data() const override
-        {
-            static const only_true dummy = _Loaded(true);
-            (void)dummy;
-            return _Data();
-        }
-
-        bool loaded() const override
-        {
-            return _Loaded(false);
-        }
-
-        template <chars_cache Interface>
-        basic_address<void> find_interface() const
-        {
-            static const auto found = fd::find_csgo_interface(this->find_export<"CreateInterface">(), Interface, this->data());
-            return found;
-        }
-    };
-
-    struct current_module final : any_module<0>
+    template <class T>
+    T* find_vtable() const
     {
-        LDR_DATA_TABLE_ENTRY* data() const override;
-        bool loaded() const override;
-    };
+        static const auto found = this->data().find_vtable<T>();
+        return found;
+    }
+};
+
+union library_info_lazy
+{
+    void* dummy = nullptr;
+    library_info info;
+};
+
+template <chars_cache Name>
+class rt_module final : public any_module<fd::_Hash_object(Name)>
+{
+    static auto& _Data()
+    {
+        static library_info_lazy val;
+        return val;
+    }
+
+    static bool _Loaded()
+    {
+        auto& info = _Data().info;
+        if (!info.get())
+            std::construct_at(&info, Name);
+        return info.get();
+    }
+
+  public:
+    const library_info& data() const override
+    {
+        static const only_true dummy = _Loaded();
+        (void)dummy;
+        return _Data().info;
+    }
+
+    bool loaded() const override
+    {
+        return _Loaded();
+    }
+
+    template <chars_cache Interface>
+    basic_address<void> find_interface() const
+    {
+        static const auto found = this->data().find_csgo_interface(this->find_export<"CreateInterface">(), Interface);
+        return found;
+    }
+};
+
+struct current_module final : any_module<0>
+{
+    const library_info& data() const override;
+    bool loaded() const override;
+};
 
 #define DLL_NAME(_NAME_)    L"" #_NAME_ ".dll"
 #define GAME_MODULE(_NAME_) constexpr rt_module<DLL_NAME(_NAME_)> _NAME_;
 
-    export namespace rt_modules
-    {
-        constexpr current_module current;
+export namespace fd::rt_modules
+{
+    constexpr current_module current;
 
-        FOR_EACH(GAME_MODULE,
-                 server,
-                 client,
-                 engine,
-                 datacache,
-                 materialsystem,
-                 vstdlib,
-                 vgui2,
-                 vguimatsurface,
-                 vphysics,
-                 inputsystem,
-                 studiorender,
-                 shaderapidx9,
-                 d3d9,
-                 serverbrowser);
-
-    } // namespace rt_modules
-
-} // namespace fd
+    FOR_EACH(GAME_MODULE,
+             server,
+             client,
+             engine,
+             datacache,
+             materialsystem,
+             vstdlib,
+             vgui2,
+             vguimatsurface,
+             vphysics,
+             inputsystem,
+             studiorender,
+             shaderapidx9,
+             d3d9,
+             serverbrowser);
+} // namespace fd::rt_modules

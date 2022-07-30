@@ -44,10 +44,14 @@ PREPARE_HOOKS(_Store_csgo_hooks, vgui_surface_lock_cursor);
 
 namespace fd
 {
-    inline bool init(const HWND hwnd, const HMODULE hmodule, const bool gui_only)
+    inline void init(const HWND hwnd, const HMODULE hmodule)
     {
-        app_info.construct(hwnd, hmodule);
         logger.append(system_console_writer);
+        app_info.construct(hwnd, hmodule);
+    }
+
+    inline bool init_hooks(const bool gui_only)
+    {
         auto& loader = *hooks_loader;
         _Store_basic_hooks(loader);
         if (!gui_only)

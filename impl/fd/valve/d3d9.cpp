@@ -14,7 +14,7 @@ static auto _Init()
     // @xref: "HandleLateCreation"
     const void* addr       = shaderapidx9.find_signature<"A1 ? ? ? ? 50 8B 08 FF 51 0C">();
     const auto target_addr = **reinterpret_cast<IDirect3DDevice9***>((uintptr_t)addr + 0x1);
-    on_class_found(shaderapidx9.data(), type_name_raw<IDirect3DDevice9>(), target_addr);
+    shaderapidx9->log_class_info(type_name_raw<IDirect3DDevice9>(), target_addr);
     return target_addr;
 }
 

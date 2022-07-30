@@ -14,17 +14,19 @@ static void _Load_fn(const std::stop_token stop, const HMODULE hModule, const LP
     const auto hmodule      = static_cast<HMODULE>(lpReserved);
     const auto loading_fail = bind_front(FreeLibraryAndExitThread, hmodule, EXIT_FAILURE);
 
-    while (!fd::rt_modules::serverbrowser.loaded())
+    while (!rt_modules::serverbrowser.loaded())
     {
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1s);
 
         if (stop.stop_requested())
-            fd::invoke(loading_fail);
+            invoke(loading_fail);
     }
 
-    if (!fd::init(nullptr, hmodule, false))
-        fd::invoke(loading_fail);
+    init(nullptr, hmodule);
+
+    if (!init_hooks(false))
+        invoke(loading_fail);
 }
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)

@@ -8,10 +8,17 @@
 #include <tchar.h>
 
 import fd.rt_modules;
+import fd.lazy_invoke;
 
-static fd::comptr<IDirect3D9> g_pD3D;
-static fd::comptr<IDirect3DDevice9> g_pd3dDevice;
+using namespace fd;
+
+static comptr<IDirect3D9> g_pD3D;
+static comptr<IDirect3DDevice9> g_pd3dDevice;
 static D3DPRESENT_PARAMETERS g_d3dpp;
+
+static void _FD_d3d_init()
+{
+}
 
 #define RESET_BACK_BUFFER_ON_RESIZE
 
@@ -96,8 +103,11 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
+    init(hwnd, hmodule);
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
-    if (!fd::init(hwnd, hmodule, true))
+    rt_modules::current->log_class_info(type_name_raw<IDirect3DDevice9>(), g_pd3dDevice.Get());
+
+    if (!init_hooks(true))
         return TRUE;
 
     //----------------
@@ -121,6 +131,6 @@ int main(int, char**)
     }
 
 _STOP:
-    fd::hooks_loader->disable();
+    hooks_loader.destroy();
     return FALSE;
 }

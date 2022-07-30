@@ -37,27 +37,68 @@ class dos_nt
     }
 };
 
+template <class T>
+constexpr auto simple_type_name()
+{
+    return __FUNCSIG__;
+}
+
+#ifndef __cpp_lib_string_contains
+#define contains(x) find(x) != static_cast<size_t>(-1)
+#endif
+
 struct library_info
 {
     using pointer   = const LDR_DATA_TABLE_ENTRY*;
     using reference = const LDR_DATA_TABLE_ENTRY&;
 
-    library_info(pointer const entry);
+  private:
+    pointer entry_;
 
+  public:
+    library_info(pointer const entry);
+    library_info(const fd::wstring_view name, const bool notify = true);
+    library_info(IMAGE_DOS_HEADER* const base_address, const bool notify = true);
+
+    pointer get() const;
     pointer operator->() const;
     reference operator*() const;
 
     fd::wstring_view path() const;
     fd::wstring_view name() const;
 
-    void log(const fd::string_view object_type, const fd::string_view object, const void* addr) const;
+    void log_class_info(const fd::string_view raw_name, const void* addr) const;
 
-  private:
-    pointer entry_;
+    void* find_export(const fd::string_view name, const bool notify = true) const;
+    IMAGE_SECTION_HEADER* find_section(const fd::string_view name, const bool notify = true) const;
+    void* find_signature(const fd::string_view sig, const bool notify = true) const;
+
+    [[deprecated]] void* find_vtable_class(const fd::string_view name, const bool notify = true) const;
+    [[deprecated]] void* find_vtable_struct(const fd::string_view name, const bool notify = true) const;
+    void* find_vtable(const fd::string_view name, const bool notify = true) const;
+    void* find_vtable(decltype(typeid(int)) info, const bool notify = true) const;
+
+    template <class T>
+    T* find_vtable(const bool notify = true) const
+    {
+        constexpr fd::string_view raw_name = simple_type_name<T>();
+        // full name with 'class' or 'struct' prefix, namespace and templates
+        constexpr fd::string_view name(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'));
+
+        void* ptr;
+        if constexpr (name.contains('>') || name.contains(':')) // namespaces and templates currently unsupported
+            ptr = find_vtable(typeid(T), notify);
+        else
+            ptr = find_vtable(name, notify);
+        return static_cast<T*>(ptr);
+    }
+
+    void* find_csgo_interface(const fd::string_view name, const bool notify = true) const;
+    void* find_csgo_interface(const void* create_interface_fn, const fd::string_view name, const bool notify = true) const;
 };
 
 export namespace fd
 {
     using ::dos_nt;
     using ::library_info;
-}
+} // namespace fd
