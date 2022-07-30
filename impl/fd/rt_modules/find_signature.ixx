@@ -1,9 +1,8 @@
 module;
 
-#include <cstdint>
+#include <fd/rt_modules/winapi_fwd.h>
 
-#include <windows.h>
-#include <winternl.h>
+#include <cstdint>
 
 export module fd.rt_modules:find_signature;
 export import fd.string;

@@ -22,7 +22,7 @@ static fd::wstring to_wstring(const char* str, const bool reserve = false)
     fd::wstring out;
     if (reserve)
     {
-        const auto size = std::char_traits<char>::length(str);
+        const auto size = str_len(str);
         out.reserve(size);
         out.append(str, str + size);
     }

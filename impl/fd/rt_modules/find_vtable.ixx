@@ -1,19 +1,14 @@
 module;
 
-#include <windows.h>
-#include <winternl.h>
-
-#include <type_traits>
+#include <fd/rt_modules/winapi_fwd.h>
 
 export module fd.rt_modules:find_vtable;
 export import fd.string;
 
-using type_info_t = decltype(typeid(int));
-
 void* find_vtable_class(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify = true);
 void* find_vtable_struct(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify = true);
 void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, const fd::string_view name, const bool notify = true);
-void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, type_info_t info, const bool notify = true);
+void* find_vtable(LDR_DATA_TABLE_ENTRY* const ldr_entry, decltype(typeid(int)) info, const bool notify = true);
 
 template <class T>
 constexpr auto simple_type_name()

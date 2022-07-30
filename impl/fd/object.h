@@ -42,6 +42,6 @@ constexpr size_t _Object_idx = I;
 #define FD_OBJECT_BIND(_OBJ_NAME_, _TARGET_)                FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::value_type, _TARGET_, _OBJ_NAME_)
 #define FD_OBJECT_BIND_TYPE(_OBJ_NAME_, _TARGET_TYPE_, ...) FD_OBJECT_IMPL(decltype(_OBJ_NAME_)::value_type, FD_OBJECT_GET(_TARGET_TYPE_, __VA_ARGS__), _OBJ_NAME_)
 
-#define FD_UNIQUE_INDEX (/* fd::calc_hash(__FILE__) */ fd::unique_hash() + __COUNTER__)
+#define FD_UNIQUE_INDEX (fd::unique_hash(__FILE__) + __COUNTER__)
 
 #define FD_OBJECT(_OBJ_NAME_, _OBJ_TYPE_, ...) constexpr auto _OBJ_NAME_ = FD_OBJECT_GET(_OBJ_TYPE_, __VA_ARGS__);

@@ -261,3 +261,4 @@ project_part(gui LINK gui_interface logger d3d9.lib imgui) #[[ RmlCore  RmlDebug
 project_part(hooks LINK gui valve)
 
 project_part(gui_test TYPE EXECUTABLE LINK hooks)
+project_part(library TYPE SHARED LINK hooks)

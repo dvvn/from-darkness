@@ -21,7 +21,4 @@ export namespace fd
         virtual void* get_original_method() const = 0;
         virtual void init()                       = 0;
     };
-
-    template <size_t Index>
-    struct hook_impl_unique;
 } // namespace fd

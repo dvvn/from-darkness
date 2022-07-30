@@ -103,7 +103,7 @@ class file_stream
 
 class time_buffer
 {
-    static constexpr size_t _Buff_size = std::char_traits<char>::length("01:13:03 224.095");
+    static constexpr size_t _Buff_size = fd::str_len("01:13:03 224.095");
 
     char buff_[_Buff_size];
     char space1_ = ' ';

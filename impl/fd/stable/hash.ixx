@@ -7,7 +7,6 @@ module;
 #include <bit>
 #include <concepts>
 #include <memory>
-#include <source_location>
 
 export module fd.hash;
 
@@ -73,6 +72,21 @@ export namespace fd
         }
     }
 
+#ifdef FD_WORK_DIR
+#define STR0(x)   #x
+#define STR(x)    STR0(x)
+#define SIZE_SKIP std::size(STR(FD_WORK_DIR)) - 1
+#else
+#define SIZE_SKIP 0
+#endif
+
+#if 1
+    template <typename T, size_t S>
+    constexpr size_t unique_hash(const T (&file_name)[S])
+    {
+        return _Hash_bytes(file_name + SIZE_SKIP, S - SIZE_SKIP - 1);
+    }
+#else
     constexpr size_t unique_hash(const std::source_location sl = std::source_location::current())
     {
         auto fname = sl.file_name();
@@ -81,21 +95,17 @@ export namespace fd
 #define STR(x)  STR0(x)
         fname += std::size(STR(FD_WORK_DIR)) - 1;
 #endif
-
-        return _Hash_bytes(fname, ct_strlen(fname));
+        return _Hash_bytes(fname + SIZE_SKIP, ct_strlen(fname) - SIZE_SKIP);
     }
+#endif
 
     template <typename T>
-    struct hash
-    {
-        constexpr size_t operator()(const T* input, const size_t len) const
-        {
-            return _Hash_bytes(input, len);
-        };
+    struct hash;
 
-        constexpr size_t operator()(const T input) const requires(!std::is_class_v<T> /* && !std::is_union_v<T> */)
-        {
-            return _Hash_bytes(&input, 1);
-        };
-    };
+    template <typename T>
+    constexpr size_t _Hash_object(const T& obj)
+    {
+        hash<T> h;
+        return h(obj);
+    }
 } // namespace fd

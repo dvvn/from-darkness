@@ -178,7 +178,7 @@ con_var* con_var_system::FindVar(const string_view name) const
         // we already know how long a string can be
         const auto known_end = target_cvar->name + name.size();
         // so only look for the zero character
-        const auto real_end  = known_end + std::char_traits<char>::length(known_end);
+        const auto real_end  = known_end + fd::str_len(known_end);
         if (known_end != real_end)
         {
             write_msg(" (full name: ");

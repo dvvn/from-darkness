@@ -2,18 +2,17 @@ module;
 
 #include <fd/assert.h>
 
-#include <windows.h>
-#include <winternl.h>
-
-#include <tuple>
+#include <fd/rt_modules/winapi.h>
 
 module fd.rt_modules:find_library;
 import :library_info;
 import fd.chars_cache;
 import fd.logger;
 
-constexpr auto on_library_found = [](const auto library_name, const LDR_DATA_TABLE_ENTRY* entry) {
-    fd::invoke(fd::logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
+using namespace fd;
+
+constexpr auto _On_library_found = [](const auto library_name, const LDR_DATA_TABLE_ENTRY* entry) {
+    invoke(logger, L"{} -> found! ({:#X})", library_name, reinterpret_cast<uintptr_t>(entry));
 };
 
 static auto _Get_ldr()
@@ -44,7 +43,7 @@ static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
         if (!ldr_entry)
             continue;
 
-        const auto [dos, nt] = fd::dos_nt(ldr_entry);
+        const auto [dos, nt] = dos_nt(ldr_entry);
         if (!comparer(ldr_entry, dos, nt))
             continue;
 
@@ -54,7 +53,7 @@ static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
     return nullptr;
 }
 
-LDR_DATA_TABLE_ENTRY* find_library(const fd::wstring_view name, const bool notify)
+LDR_DATA_TABLE_ENTRY* find_library(const wstring_view name, const bool notify)
 {
     LDR_DATA_TABLE_ENTRY* result;
 
@@ -65,21 +64,20 @@ LDR_DATA_TABLE_ENTRY* find_library(const fd::wstring_view name, const bool notif
         for (const auto chr : name)
             name_correct_buff.push_back(chr == '/' ? '\\' : chr);
 
-        const fd::wstring_view name_correct(name_correct_buff.begin(), name_correct_buff.end());
-        result = _Find_library([=](const fd::library_info info, void*, void*) {
+        const wstring_view name_correct(name_correct_buff.begin(), name_correct_buff.end());
+        result = _Find_library([=](const library_info info, void*, void*) {
             return info.path() == name_correct;
         });
     }
     else */
     {
-        result = _Find_library([=](const fd::library_info info, void*, void*) {
-            using namespace fd;
+        result = _Find_library([=](const library_info info, void*, void*) {
             return info.name() == name;
         });
     }
 
     if (notify)
-        fd::invoke(on_library_found, name, result);
+        invoke(_On_library_found, name, result);
     return result;
 }
 
@@ -102,17 +100,14 @@ LDR_DATA_TABLE_ENTRY* find_current_library(const bool notify)
         });
 
         if (notify)
-        {
-            using namespace fd;
-            fd::invoke(
-                on_library_found,
-                [=] {
-                    return fd::library_info(ldr_entry).name();
-                },
-                ldr_entry);
-        }
+            invoke(_On_library_found, bind_front(&library_info::name, library_info(ldr_entry)), ldr_entry);
 
         return ldr_entry;
     }();
     return ret;
+}
+
+void on_library_found(const fd::wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
+{
+    _On_library_found(name, entry);
 }

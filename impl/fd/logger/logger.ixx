@@ -32,9 +32,6 @@ auto _Get_char_t()
 template <typename S>
 using get_char_t = decltype(_Get_char_t<S>());
 
-// template <typename T>
-// concept correct_char_traits = !std::same_as<decltype(std::declval<T>())::int_type, unsigned long>;
-
 // clang-format off
 constexpr void _Char_acceptor(const char){}
 constexpr void _Char_acceptor(const wchar_t){}

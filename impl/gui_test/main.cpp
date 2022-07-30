@@ -97,7 +97,7 @@ int main(int, char**)
     ::UpdateWindow(hwnd);
 
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
-    if (!fd::init(hwnd, hmodule))
+    if (!fd::init(hwnd, hmodule, true))
         return TRUE;
 
     //----------------

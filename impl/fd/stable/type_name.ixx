@@ -9,13 +9,13 @@ export import fd.chars_cache;
 export import fd.string;
 
 template <typename T>
-constexpr decltype(auto) type_name_raw()
+constexpr decltype(auto) _Raw_name()
 {
     return __FUNCSIG__;
 }
 
 template <template <typename...> class T>
-constexpr decltype(auto) type_name_raw()
+constexpr decltype(auto) _Raw_name()
 {
     return __FUNCSIG__;
 }
@@ -163,21 +163,21 @@ constexpr bool class_or_union_v = std::is_class_v<T> || std::is_union_v<T>;
 
 template <typename T>
 constexpr auto type_name_holder = [] {
-    constexpr type_name_clamped name(type_name_raw<T>());
+    constexpr type_name_clamped name(_Raw_name<T>());
     constexpr type_name_getter<name.size()> getter(name, class_or_union_v<T> || std::is_enum_v<T>);
     return fd::chars_cache<char, getter.size() + 1>(getter.data(), getter.size());
 }();
 
 template <template <typename...> class T>
 constexpr auto type_name_holder_partial = [] {
-    constexpr type_name_clamped name(type_name_raw<T>());
+    constexpr type_name_clamped name(_Raw_name<T>());
     constexpr type_name_getter<name.size()> getter(name, true);
     return fd::chars_cache<char, getter.size() + 1>(getter.data(), getter.size());
 }();
 
 template <template <typename, size_t> class T>
 constexpr auto type_name_holder_partial2 = [] {
-    constexpr type_name_clamped name(type_name_raw<T<int, 1>>());
+    constexpr type_name_clamped name(_Raw_name<T<int, 1>>());
     constexpr type_name_getter<name.size()> getter(name, true);
     constexpr size_t size = fd::string_view(getter.data(), getter.size()).find('<');
     return fd::chars_cache<char, size + 1>(getter.data(), size);
@@ -297,6 +297,31 @@ export namespace fd
         return type_name_holder_partial2<T>;
     }
 
+#define _BUFF_STRING(_S_)                                                                   \
+    []() -> fd::string_view {                                                               \
+        constexpr auto str = _S_;                                                           \
+        return chars_cache_buff<chars_cache<char, str.size() + 1>(str.data(), str.size())>; \
+    }()
+
+    template <class T>
+    constexpr fd::string_view type_name_raw()
+    {
+        return _BUFF_STRING(type_name_clamped(_Raw_name<T>()));
+    }
+
+    template <template <typename...> class T>
+    constexpr fd::string_view type_name_raw()
+    {
+        return _BUFF_STRING(type_name_clamped(_Raw_name<T>()));
+    }
+
+    // for std::array
+    template <template <typename, size_t> class T>
+    constexpr fd::string_view type_name_raw()
+    {
+        return _BUFF_STRING(type_name_clamped(_Raw_name<T<int, 1>>()));
+    }
+
     static_assert(type_name<int>() == "int");
     static_assert(type_name<std::char_traits>() == "std::char_traits");
     static_assert(type_name<std::char_traits<char>>() == "std::char_traits<char>");
@@ -330,7 +355,7 @@ export namespace fd
     constexpr bool same_template()
     {
         static_assert(class_or_union_v<T1>, "same_template works only with classes!");
-        return template_comparer({ type_name_raw<T1>(), false }, { type_name_raw<T2>(), true });
+        return template_comparer({ _Raw_name<T1>(), false }, { _Raw_name<T2>(), true });
     }
 
     template <template <typename...> class T1, class T2>
@@ -342,14 +367,14 @@ export namespace fd
     template <template <typename...> class T1, template <typename...> class T2>
     constexpr bool same_template()
     {
-        return template_comparer({ type_name_raw<T1>(), true }, { type_name_raw<T2>(), true });
+        return template_comparer({ _Raw_name<T1>(), true }, { _Raw_name<T2>(), true });
     }
 
     template <class T1, class T2>
     constexpr bool same_template()
     {
         static_assert(class_or_union_v<T1> && class_or_union_v<T2>, "same_template works only with classes!");
-        return template_comparer({ type_name_raw<T1>(), false }, { type_name_raw<T2>(), false });
+        return template_comparer({ _Raw_name<T1>(), false }, { _Raw_name<T2>(), false });
     }
 
     // static_assert(same_template<std::array<int, 2>, std::array>());

@@ -174,6 +174,28 @@ export namespace fd
     template <simple_chars_cache C>
     constexpr auto& simple_chars_cache_buff = C;
 
+    template <typename C, size_t Size>
+    struct hash<chars_cache<C, Size>>
+    {
+        constexpr size_t operator()(const chars_cache<C, Size>& str) const
+        {
+#if 1
+            return _Hash_bytes(str.data(), str.size());
+#else
+#error xoring not implemented
+#endif
+        }
+    };
+
+    template <typename C, size_t Size>
+    struct hash<simple_chars_cache<C, Size>>
+    {
+        constexpr size_t operator()(const simple_chars_cache<C, Size>& str) const
+        {
+            return _Hash_bytes(str.data(), str.size());
+        }
+    };
+
     using ::chars_cache;
     using ::simple_chars_cache;
 

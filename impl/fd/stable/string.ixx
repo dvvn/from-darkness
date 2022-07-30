@@ -5,7 +5,7 @@ module;
 #include <string>
 
 export module fd.string;
-import fd.hash;
+export import fd.hash;
 
 #define _ALL_TYPES(_FN_, ...)      \
     _FN_(char, ##__VA_ARGS__);     \
@@ -131,19 +131,11 @@ constexpr bool operator==(const C* left, const basic_string<C>& right)
 
 export namespace fd
 {
-    _ALL_TYPES(_USING, string);
-    _ALL_TYPES(_USING, string_view);
-
-    using ::basic_string;
-    using ::basic_string_view;
-
-    /* _ALL_TYPES(_USING, hashed_string);
-    _ALL_TYPES(_USING, hashed_string_view);
-
-    using ::basic_hashed_string;
-    using ::basic_hashed_string_view; */
-
-    using ::operator==;
+    template <typename T>
+    constexpr size_t str_len(const T* ptr)
+    {
+        return std::char_traits<T>::length(ptr);
+    }
 
     template <typename C>
     struct hash<basic_string_view<C>>
@@ -176,5 +168,19 @@ export namespace fd
         static_assert(U"test"_hash == u"t\0e\0s\0t\0"_hash);
         static_assert(U"ab"_hash == "a\0\0\0b\0\0\0"_hash);
     } // namespace literals
+
+    _ALL_TYPES(_USING, string);
+    _ALL_TYPES(_USING, string_view);
+
+    using ::basic_string;
+    using ::basic_string_view;
+
+    /* _ALL_TYPES(_USING, hashed_string);
+    _ALL_TYPES(_USING, hashed_string_view);
+
+    using ::basic_hashed_string;
+    using ::basic_hashed_string_view; */
+
+    using ::operator==;
 
 } // namespace fd

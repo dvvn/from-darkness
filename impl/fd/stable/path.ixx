@@ -336,8 +336,6 @@ template <typename C>
 path(const C*) -> path<C>;
 template <typename C>
 path(const fd::basic_string_view<C>) -> path<C>;
-/* template <typename C, class Al>
-path(const fd::basic_string<C, std::char_traits<C>, Al>&) -> path<C>; */
 
 #define PATH_IMPL(_T_)                      \
     template <>                             \

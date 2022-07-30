@@ -1,7 +1,6 @@
 module;
 
-#include <windows.h>
-#include <winternl.h>
+#include <fd/rt_modules/winapi.h>
 
 #include <span>
 

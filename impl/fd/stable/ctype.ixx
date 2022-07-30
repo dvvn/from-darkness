@@ -5,6 +5,8 @@ module;
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <ranges>
+#include <span>
 
 export module fd.ctype;
 export import fd.string;
@@ -16,18 +18,6 @@ class ctype_to
     [[no_unique_address]] ArT adaptor_rt_;
     [[no_unique_address]] AcT adaptor_ct_;
 
-    template <typename T>
-    constexpr bool process(const T chr) const
-    {
-        static_assert(!std::is_class_v<T>);
-        if constexpr (fd::invocable<AcT, T>)
-        {
-            if (std::is_constant_evaluated())
-                return fd::invoke(adaptor_ct_, chr);
-        }
-        return fd::invoke(adaptor_rt_, chr);
-    }
-
   public:
     constexpr ctype_to() = default;
 
@@ -38,38 +28,37 @@ class ctype_to
         {
             fd::basic_string<std::iter_value_t<T>> buff;
             buff.reserve(item.size());
-            for (const auto chr : item)
-                buff += process(chr);
-            return buff;
-        }
-        else if constexpr (std::is_pointer_v<T>)
-        {
-            using val_t = std::iter_value_t<T>;
-            fd::basic_string<val_t> buff;
-            for (auto ptr = item;; ++ptr)
-            {
-                const auto chr = *ptr;
-                if (chr == static_cast<val_t>('\0'))
-                    break;
-                buff += process(chr);
-            }
-            return buff;
-        }
-        else if constexpr (std::is_bounded_array_v<T>)
-        {
-            const auto size  = std::size(item) - 1;
-            const auto begin = item;
-            const auto end   = item + size;
-            fd::basic_string<std::iter_value_t<T>> buff;
-            buff.reserve(size);
-            for (auto itr = begin; itr != end; ++itr)
-                buff += process(*itr);
+            for (auto c : item)
+                buff += fd::invoke(*this, c);
             return buff;
         }
         else
         {
-            return process(item);
+            if constexpr (fd::invocable<AcT, T>)
+            {
+                if (std::is_constant_evaluated())
+                    return fd::invoke(adaptor_ct_, item);
+            }
+            return fd::invoke(adaptor_rt_, item);
         }
+    }
+
+    template <typename T>
+    constexpr auto operator()(const T* item) const
+    {
+        return fd::invoke(*this, std::span(item, fd::str_len(item)));
+    }
+
+    template <typename T>
+    constexpr auto operator()(const T from, const size_t size) const
+    {
+        return fd::invoke(*this, std::span(from, size));
+    }
+
+    template <typename T>
+    constexpr auto operator()(const T from, const T to) const
+    {
+        return fd::invoke(*this, std::span(from, to));
     }
 };
 
@@ -90,92 +79,90 @@ class ctype_is
     [[no_unique_address]] ArT adaptor_rt_;
     [[no_unique_address]] AcT adaptor_ct_;
 
-    template <typename T>
-    constexpr bool process(const T chr) const
-    {
-        static_assert(!std::is_class_v<T>);
-        if constexpr (fd::invocable<AcT, T>)
-        {
-            if (std::is_constant_evaluated())
-                return fd::invoke(adaptor_ct_, chr);
-        }
-        return fd::invoke(adaptor_rt_, chr);
-    }
-
-    template <typename T>
-    constexpr bool process(const T* ptr, const is_any_t) const
-    {
-        for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
-        {
-            if (process(chr))
-                return true;
-        }
-        return false;
-    }
-
-    template <typename T>
-    constexpr bool process(const T* ptr, const is_all_t) const
-    {
-        for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
-        {
-            if (!process(chr))
-                return false;
-        }
-        return true;
-    }
-
-    template <typename C>
-    constexpr bool process(const fd::basic_string_view<C> strv, const is_any_t) const
-    {
-        for (const auto chr : strv)
-        {
-            if (process(chr))
-                return true;
-        }
-        return false;
-    }
-
-    template <typename C>
-    constexpr bool process(const fd::basic_string_view<C> strv, const is_all_t) const
-    {
-        for (const auto chr : strv)
-        {
-            if (!process(chr))
-                return false;
-        }
-        return true;
-    }
-
-    template <typename T>
-    constexpr bool process(const T obj, const void*) const
-    {
-        // default
-        return process(obj, is_all_t());
-    }
-
   public:
     constexpr ctype_is() = default;
 
-    template <typename T, class M = void*>
-    constexpr auto operator()(const T& item, const M mode = {}) const
+    using default_mode_t = is_all_t;
+
+    template <typename T>
+    constexpr bool operator()(const T& item) const
     {
         if constexpr (std::is_class_v<T>)
         {
-            return process(fd::basic_string_view(item), mode);
-        }
-        else if constexpr (std::is_pointer_v<T>)
-        {
-            return process(item, mode);
-        }
-        else if constexpr (std::is_bounded_array_v<T>)
-        {
-            return process(fd::basic_string_view(item, std::size(item) - 1), mode);
+            // run default mode (rng)
+            return fd::invoke(*this, item, default_mode_t());
         }
         else
         {
-            static_assert(std::is_same_v<M, void*>);
-            return process(item);
+            if constexpr (fd::invocable<AcT, T>)
+            {
+                if (std::is_constant_evaluated())
+                    return fd::invoke(adaptor_ct_, item);
+            }
+            return fd::invoke(adaptor_rt_, item);
         }
+    }
+
+    template <class T>
+    constexpr bool operator()(const T& rng, const is_any_t) const
+    {
+        for (auto c : rng)
+        {
+            if (fd::invoke(*this, c))
+                return true;
+        }
+        return false;
+    }
+
+    template <class T>
+    constexpr bool operator()(const T& rng, const is_all_t) const
+    {
+        for (auto c : rng)
+        {
+            if (!fd::invoke(*this, c))
+                return false;
+        }
+        return true;
+    }
+
+    template <typename T>
+    constexpr bool operator()(const T* ptr, const is_any_t) const
+    {
+        for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
+        {
+            if (fd::invoke(*this, chr))
+                return true;
+        }
+        return false;
+    }
+
+    template <typename T>
+    constexpr bool operator()(const T* ptr, const is_all_t) const
+    {
+        for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
+        {
+            if (!fd::invoke(*this, chr))
+                return false;
+        }
+        return true;
+    }
+
+    template <typename T>
+    constexpr bool operator()(const T* ptr)
+    {
+        return fd::invoke(*this, ptr, default_mode_t());
+    }
+
+    template <typename T, class Mode = default_mode_t>
+    constexpr bool operator()(const T from, const size_t size, const Mode mode = {}) const
+    {
+        return fd::invoke(*this, std::span(from, size), mode);
+    }
+
+    template <typename T, class Mode = default_mode_t>
+    constexpr bool operator()(const T from, const T to, const Mode mode = {}) const
+    {
+        return fd::invoke(*this, std::span(from, to), mode);
     }
 };
 

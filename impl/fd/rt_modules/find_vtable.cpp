@@ -2,8 +2,7 @@ module;
 
 #include <fd/assert.h>
 
-#include <windows.h>
-#include <winternl.h>
+#include <fd/rt_modules/winapi.h>
 
 #include <typeinfo>
 

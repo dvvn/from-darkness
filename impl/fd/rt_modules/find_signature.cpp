@@ -2,8 +2,7 @@ module;
 
 #include <fd/assert.h>
 
-#include <windows.h>
-#include <winternl.h>
+#include <fd/rt_modules/winapi_fwd.h>
 
 module fd.rt_modules:find_signature;
 import :library_info;

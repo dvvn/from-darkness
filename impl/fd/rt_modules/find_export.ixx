@@ -1,7 +1,6 @@
 module;
 
-#include <windows.h>
-#include <winternl.h>
+#include <fd/rt_modules/winapi_fwd.h>
 
 export module fd.rt_modules:find_export;
 export import fd.string;

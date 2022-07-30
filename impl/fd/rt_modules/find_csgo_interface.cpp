@@ -1,19 +1,15 @@
 module;
 
+#include <cstring>
+
 #include <fd/assert.h>
 
-#include <windows.h>
-#include <winternl.h>
+#include <fd/rt_modules/winapi_fwd.h>
 
 module fd.rt_modules:find_csgo_interface;
 import :library_info;
 import fd.address;
 import fd.ctype;
-
-void on_csgo_interface_found(const LDR_DATA_TABLE_ENTRY* library_name, fd::string_view interface_name, const void* interface_ptr)
-{
-    fd::library_info(library_name).log("interface", interface_name, interface_ptr);
-}
 
 struct interface_reg
 {
@@ -27,15 +23,22 @@ struct interface_reg
     {
         for (auto reg = this; reg != nullptr; reg = reg->next)
         {
-            DebugBreak(); // see how equal operator works
-            if (!interface_name.starts_with(reg->name))
+            const auto name_size = interface_name.size();
+            if (std::memcmp(interface_name.data(), reg->name, name_size) != 0)
                 continue;
             const auto last_char = reg->name[interface_name.size()];
-            if (last_char != '\0')
+            if (last_char != '\0') // partially comared
             {
-                if (!fd::is_digit(last_char))
+                if (!fd::is_digit(last_char)) // must be looks like IfcName001
                     continue;
-                FD_ASSERT(!reg->next || !reg->next->find(interface_name));
+#ifdef _DEBUG
+                const auto idx_start = reg->name + name_size;
+                const auto idx_size  = fd::str_len(idx_start);
+                if (idx_size > 1)
+                    FD_ASSERT(fd::is_digit(idx_start + 1, idx_start + idx_size));
+                if (reg->next)
+                    FD_ASSERT(!reg->next->find(interface_name));
+#endif
             }
             return reg;
         }
@@ -66,6 +69,7 @@ void* find_csgo_interface(const void* create_interface_fn, const fd::string_view
     FD_ASSERT(target_reg != nullptr);
     const auto ifc_addr = fd::invoke(target_reg->create_fn);
     if (ldr_entry_for_notification)
-        on_csgo_interface_found(ldr_entry_for_notification, name, ifc_addr);
+        fd::library_info(ldr_entry_for_notification).log("csgo interface", name, ifc_addr);
+
     return ifc_addr;
 }

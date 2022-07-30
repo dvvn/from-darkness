@@ -3,10 +3,9 @@
 #include <fd/object.h>
 
 module fd.valve.input;
-import fd.valve.user_cmd;
 import fd.rt_modules;
 
-FD_OBJECT_IMPL(input*, fd::rt_modules::client.find_interface_sig<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">().plus(1).deref<1>());
+// FD_OBJECT_IMPL(input*, fd::rt_modules::client.find_interface_sig<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10">().plus(1).deref<1>());
 
 constexpr auto MULTIPLAYER_BACKUP = 150;
 

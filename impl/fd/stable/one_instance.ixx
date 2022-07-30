@@ -273,6 +273,11 @@ class instance_of_impl
         return _Construct(std::forward<Args>(args)...).ref();
     }
 
+    void destroy() const
+    {
+        _Buff().reset();
+    }
+
     template <std::same_as<size_t> T> // fake explicit
     consteval operator T() const
     {

@@ -46,18 +46,12 @@ class string_builder
     }
 
     template <typename T>
-    static constexpr size_t get_length(const T* ptr)
-    {
-        return std::char_traits<T>::length(ptr);
-    }
-
-    template <typename T>
     static constexpr auto extract_size(const T& obj)
     {
         if constexpr (std::is_class_v<T>)
             return std::pair(obj.begin(), obj.size());
         else if constexpr (std::is_pointer_v<T>)
-            return std::pair(obj, get_length(obj));
+            return std::pair(obj, fd::str_len(obj));
         else if constexpr (std::is_bounded_array_v<T>)
             return std::pair(get_array_ptr(obj), std::size(obj) - 1);
         else
