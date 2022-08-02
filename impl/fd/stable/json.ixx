@@ -144,6 +144,7 @@ class fake_map : public std::vector<typename Allocator::value_type, Allocator>
     }
 };
 
+#if 0
 // hack
 export namespace nlohmann
 {
@@ -152,6 +153,7 @@ export namespace nlohmann
         using ::nlohmann::detail::json_sax_dom_callback_parser;
     }
 } // namespace nlohmann
+#endif
 
 template <typename... T>
 using adl_serializer = ::nlohmann::adl_serializer<T...>;

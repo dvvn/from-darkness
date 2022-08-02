@@ -43,7 +43,7 @@ struct gui_context
         // ImGui::StyleColorsLight();
 
         // Setup Platform/Renderer backends
-        ImGui_ImplWin32_Init(fd::app_info->window.handle);
+        ImGui_ImplWin32_Init(fd::app_info->root_window.handle);
         ImGui_ImplDX9_Init(&FD_OBJECT_GET(IDirect3DDevice9));
     }
 };

@@ -248,6 +248,7 @@ project_part(
   INCLUDE
   ${_PROJ_IMPL_DIR}
   ${utf8_conv_SOURCE_DIR}/include
+  ${veque_SOURCE_DIR}/include
   ${xxhct_SOURCE_DIR})
 
 project_part(logger LINK stable)

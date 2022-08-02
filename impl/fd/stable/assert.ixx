@@ -20,7 +20,10 @@ struct assert_data
     }
 };
 
-FD_CALLBACK(assert_handler, const assert_data&);
+FD_CALLBACK(assert_handler, bool, const assert_data&);
+
+// using assert_handler_t = fd::abstract_callback<bool, const assert_data&>;
+// FD_OBJECT(assert_handler, assert_handler_t)
 
 constexpr bool can_invoke_assert_handler(const char*)
 {

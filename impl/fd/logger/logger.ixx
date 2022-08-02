@@ -67,8 +67,8 @@ decltype(auto) _Correct_obj(T&& obj)
         return fd::to_char<CharT>(obj);
 }
 
-FD_CALLBACK(logger_narrow, fd::string_view);
-FD_CALLBACK(logger_wide, fd::wstring_view);
+FD_CALLBACK(logger_narrow, void,fd::string_view);
+FD_CALLBACK(logger_wide,void, fd::wstring_view);
 
 template <typename L>
 bool _Logger_empty(const L logger)
@@ -125,13 +125,13 @@ class logger_wrapped
 
         if constexpr (can_narrow && can_wide)
         {
-            logger_narrow->append(callback);
-            logger_wide->append(callback);
+            logger_narrow->push_back(callback);
+            logger_wide->push_back(callback);
         }
         else if constexpr (can_narrow)
-            logger_narrow->append(std::forward<Fn>(callback));
+            logger_narrow->push_back(std::forward<Fn>(callback));
         else if constexpr (can_wide)
-            logger_wide->append(std::forward<Fn>(callback));
+            logger_wide->push_back(std::forward<Fn>(callback));
         else
             static_assert(std::_Always_false<Fn>);
     }

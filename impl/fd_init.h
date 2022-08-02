@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fd/assert.h>
 #include <fd/object.h>
 #include <fd/utility.h>
 
@@ -48,6 +49,7 @@ namespace fd
     {
         logger.append(system_console_writer);
         app_info.construct(hwnd, hmodule);
+        FD_ASSERT("FUCK!");
     }
 
     inline bool init_hooks(const bool gui_only)

@@ -39,7 +39,7 @@ union window_info
 
 struct application_info
 {
-    window_info window;
+    window_info root_window;
     HMODULE module_handle;
 
     application_info(const HWND window_handle, const HMODULE module_handle = nullptr);

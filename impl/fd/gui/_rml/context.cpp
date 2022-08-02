@@ -180,7 +180,7 @@ class gui_context
 
         //------
 
-        const auto window_size = fd::app_info->window.size.client();
+        const auto window_size = fd::app_info->root_window.size.client();
         ctx_                   = Rml::CreateContext("main", { window_size.width(), window_size.height() });
 
         //------

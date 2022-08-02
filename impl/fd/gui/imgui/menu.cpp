@@ -1,10 +1,10 @@
 module;
 
-#include <fd/callback_impl.h>
-
 #include <imgui_internal.h>
 
 #include <mutex>
+
+#include <fd/callback_impl.h>
 
 module fd.gui.menu;
 import fd.gui.widgets;
@@ -67,16 +67,7 @@ struct debug_window final : obj::window
 
 #endif
 
-constexpr size_t _Extra_buffer_size()
-{
-    size_t size = 0;
-#ifdef HAVE_DEBUG_WINDOW
-    ++size;
-#endif
-    return size;
-}
-
-using menu_base = FD_CALLBACK_TYPE(menu, _Extra_buffer_size());
+using menu_base = FD_CALLBACK_TYPE(menu);
 
 class menu_impl final : public menu_base, public basic_menu, public obj::window
 {
@@ -91,7 +82,7 @@ class menu_impl final : public menu_base, public basic_menu, public obj::window
         , obj::window(true)
     {
 #ifdef HAVE_DEBUG_WINDOW
-        menu_base::append(std::make_unique<debug_window>());
+        menu_base::push_back(std::make_unique<debug_window>());
 #endif
     }
 
@@ -100,10 +91,16 @@ class menu_impl final : public menu_base, public basic_menu, public obj::window
         return "THE GUI";
     }
 
-    virtual void append(callback_type&& callback) override
+    virtual void push_front(callback_type&& callback) override
     {
         const std::scoped_lock lock(mtx_);
-        menu_base::append(std::move(callback));
+        menu_base::push_front(std::move(callback));
+    }
+
+    virtual void push_back(callback_type&& callback) override
+    {
+        const std::scoped_lock lock(mtx_);
+        menu_base::push_back(std::move(callback));
     }
 
     virtual void operator()() override

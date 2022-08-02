@@ -30,32 +30,46 @@ struct callback_info
     }
 };
 
-template <typename... Args>
-struct abstract_callback : callback_info
-{
-    using callback_type = fd::function<void(Args...)>;
-
-    virtual void append(callback_type&& callback) = 0;
-    virtual void operator()(Args... args) const   = 0;
-
-    template <typename Fn>
-    void append(Fn&& callback) requires(!std::is_same_v<decltype(callback), callback_type&&>)
-    {
-        append(_Wrap_callback<callback_type>(std::forward<Fn>(callback)));
-    }
-};
-
-template <class C>
-struct abstract_callback_custom : callback_info
+template <typename C>
+struct basic_abstract_callback : callback_info
 {
     using callback_type = C;
 
-    virtual void append(callback_type&& callback) = 0;
-    virtual void operator()()                     = 0;
+    virtual void push_back(callback_type&& callback)  = 0;
+    virtual void push_front(callback_type&& callback) = 0;
+
+    template <typename Fn>
+    void push_back(Fn&& callback) requires(!std::is_same_v<decltype(callback), callback_type&&>)
+    {
+        push_back(_Wrap_callback<callback_type>(std::forward<Fn>(callback)));
+    }
+
+    template <typename Fn>
+    void push_front(Fn&& callback) requires(!std::is_same_v<decltype(callback), callback_type&&>)
+    {
+        push_front(_Wrap_callback<callback_type>(std::forward<Fn>(callback)));
+    }
+};
+
+template <typename Ret, typename... Args>
+struct abstract_callback : basic_abstract_callback<fd::function<Ret(Args...)>>
+{
+    using callback_type = fd::function<Ret(Args...)>;
+
+    virtual void operator()(Args... args) = 0;
+};
+
+template <class C>
+struct abstract_callback_custom : basic_abstract_callback<C>
+{
+    using callback_type = C;
+
+    virtual void operator()() = 0;
 };
 
 export namespace fd
 {
     using ::abstract_callback;
     using ::abstract_callback_custom;
+
 } // namespace fd

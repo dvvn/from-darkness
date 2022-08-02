@@ -34,12 +34,17 @@ rect_ex window_size::client() const
 
 //-----------
 
+#ifndef UNICODE
 #undef DefWindowProc
 #undef GetWindowLongPtr
 #undef SetWindowLong
 #undef GetModuleHandle
 
-#define _UNI(_FN_, ...)    IsWindowUnicode(window_handle) ? _FN_##W##__VA_ARGS__ : _FN_##A##__VA_ARGS__
+#define _UNI(_FN_, ...) IsWindowUnicode(window_handle) ? _FN_##W##__VA_ARGS__ : _FN_##A##__VA_ARGS__
+
+#else
+#define _UNI(_FN_, ...) _FN_(__VA_ARGS__)
+#endif
 #define _UNI_FN(_FN_, ...) _UNI(_FN_, (__VA_ARGS__))
 
 WNDPROC wndproc_ctrl::def() const
@@ -72,5 +77,5 @@ application_info::application_info(const HWND window_handle, const HMODULE modul
 {
     // FD_ASSERT(window_handle != nullptr);
     // FD_ASSERT(this->module_handle != nullptr);
-    this->window.handle = window_handle;
+    this->root_window.handle = window_handle;
 }

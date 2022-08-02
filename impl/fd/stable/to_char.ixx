@@ -13,18 +13,22 @@ struct utf_selector<char8_t> final
     using type = utf8;
 };
 
-template <typename To, typename It>
-auto utf_conv(It&& bg, It&& ed)
-{
-    using from = std::remove_cvref_t<decltype(*bg)>;
-    static_assert(!std::is_same_v<from, To>);
+using namespace fd;
 
-    fd::basic_string<To> buff;
+template <typename To, typename It>
+auto utf_conv(It bg, It ed)
+{
+    using from = std::iter_value_t<It>;
+    static_assert(!std::same_as<from, To>);
+
+    basic_string<To> buff;
+
+    // std::random_access_iterator false on string::begin wrappers etc
+    if constexpr (std::same_as<typename std::iterator_traits<It>::iterator_category, std::random_access_iterator_tag>)
+        buff.reserve(std::distance(bg, ed));
 
     using namespace ww898::utf;
-    using sfrom = utf_selector_t<from>;
-    using sto   = utf_selector_t<To>;
-    conv<sfrom, sto>(std::forward<It>(bg), std::forward<It>(ed), std::back_inserter(buff));
+    conv<utf_selector_t<from>, utf_selector_t<To>>(bg, ed, std::back_inserter(buff));
 
     return buff;
 }
@@ -33,13 +37,13 @@ template <typename To>
 struct to_char_impl
 {
     template <typename C>
-    auto operator()(const fd::basic_string_view<C> from) const
+    auto operator()(const basic_string_view<C> from) const
     {
         return utf_conv<To>(from.begin(), from.end());
     }
 
     template <typename C>
-    auto operator()(const fd::basic_string<C>& from) const
+    auto operator()(const basic_string<C>& from) const
     {
         return utf_conv<To>(from.begin(), from.end());
     }
@@ -53,7 +57,7 @@ struct to_char_impl
     template <typename C>
     auto operator()(const C from) const requires(std::is_pointer_v<C>) // fix to allow previous overload
     {
-        const auto size = fd::basic_string_view(from).size();
+        const auto size = basic_string_view(from).size();
         const auto to   = from + size;
         return utf_conv<To>(from, to);
     }
