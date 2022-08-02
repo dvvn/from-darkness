@@ -10,7 +10,7 @@ template <typename Fn, typename T>
 Fn _Wrap_callback(T&& obj)
 {
     using obj_t = decltype(obj);
-    if constexpr (std::copyable<obj_t> && std::constructible_from<Fn, obj_t>)
+    if constexpr (/* std::copyable<obj_t> && */ std::constructible_from<Fn, obj_t>)
         return std::forward<T>(obj);
     else if constexpr (std::is_lvalue_reference_v<obj_t>)
         return [&]<typename... Args>(Args&&... args) {

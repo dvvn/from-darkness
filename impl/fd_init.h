@@ -48,8 +48,10 @@ namespace fd
     inline void init(const HWND hwnd, const HMODULE hmodule)
     {
         logger.append(system_console_writer);
+        assert_handler->push_back([](const assert_data& data) {
+            invoke(logger, data.build_message());
+        });
         app_info.construct(hwnd, hmodule);
-        FD_ASSERT("FUCK!");
     }
 
     inline bool init_hooks(const bool gui_only)
@@ -58,7 +60,7 @@ namespace fd
         _Store_basic_hooks(loader);
         if (!gui_only)
             _Store_csgo_hooks(loader);
-        return loader.init();
+        return loader.enable();
     }
 
 } // namespace fd

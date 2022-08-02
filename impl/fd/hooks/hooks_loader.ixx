@@ -15,9 +15,7 @@ struct basic_hooks_loader
     virtual ~basic_hooks_loader() = default;
 
     virtual void disable() = 0;
-    virtual void unload()  = 0;
-
-    virtual bool init(const bool stop_on_error = true) = 0;
+    virtual bool enable(const bool stop_on_error = true) = 0;
     virtual void store(hook_base* const hook)   = 0;
 };
 

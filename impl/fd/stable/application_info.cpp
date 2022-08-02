@@ -45,7 +45,7 @@ rect_ex window_size::client() const
 #else
 #define _UNI(_FN_, ...) _FN_(__VA_ARGS__)
 #endif
-#define _UNI_FN(_FN_, ...) _UNI(_FN_, (__VA_ARGS__))
+#define _UNI_FN(_FN_, ...) (_UNI(_FN_, (__VA_ARGS__)))
 
 WNDPROC wndproc_ctrl::def() const
 {
@@ -67,15 +67,28 @@ WNDPROC wndproc_ctrl::set(const WNDPROC proc)
 
 //----------
 
-static auto _Correct_module_handle(const HWND hwnd)
-{
-    return IsWindowUnicode(hwnd) ? GetModuleHandleW(nullptr) : GetModuleHandleA(nullptr);
-}
-
 application_info::application_info(const HWND window_handle, const HMODULE module_handle)
     : module_handle(module_handle ? module_handle : _UNI_FN(GetModuleHandle, nullptr))
 {
     // FD_ASSERT(window_handle != nullptr);
-    // FD_ASSERT(this->module_handle != nullptr);
+    FD_ASSERT(this->module_handle != nullptr);
     this->root_window.handle = window_handle;
+}
+
+/* [[noreturn]] static DWORD WINAPI _Unload_delayed(LPVOID)
+{
+    Sleep(1000);
+    FreeLibraryAndExitThread(fd::app_info->module_handle, FALSE);
+} */
+
+void application_info::unload() const
+{
+#ifndef UNICODE
+    const auto window_handle = root_window.handle;
+#endif
+
+    if (module_handle == _UNI_FN(GetModuleHandle, nullptr))
+        PostQuitMessage(FALSE);
+    else
+        FreeLibrary(module_handle);
 }

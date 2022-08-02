@@ -3,26 +3,10 @@ module;
 #include <fd/assert.h>
 #include <fd/object.h>
 
-#include <Windows.h>
-
 #include <vector>
 
 module fd.hooks_loader;
 import fd.application_info;
-
-[[noreturn]] static DWORD WINAPI _Unload_delayed(LPVOID)
-{
-    Sleep(1000);
-    FreeLibraryAndExitThread(fd::app_info->module_handle, FALSE);
-}
-
-static void _Unload_app()
-{
-    if (fd::app_info->module_handle == GetModuleHandle(nullptr))
-        PostQuitMessage(FALSE);
-    else
-        CreateThread(NULL, 0, _Unload_delayed, nullptr, 0, NULL);
-}
 
 class hooks_loader_impl : public basic_hooks_loader
 {
@@ -40,14 +24,7 @@ class hooks_loader_impl : public basic_hooks_loader
             h->disable();
     }
 
-    void unload() override
-    {
-        disable();
-        _Unload_app();
-    }
-
-  protected:
-    bool init(const bool stop_on_error) override
+    bool enable(const bool stop_on_error) override
     {
         bool ok = true;
 

@@ -43,6 +43,8 @@ struct application_info
     HMODULE module_handle;
 
     application_info(const HWND window_handle, const HMODULE module_handle = nullptr);
+
+    void unload() const;
 };
 
 export namespace fd
