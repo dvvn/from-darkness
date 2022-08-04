@@ -45,6 +45,12 @@ constexpr auto simple_type_name()
     return __FUNCSIG__;
 }
 
+constexpr string_view correct_simple_type_name(const string_view raw_name)
+{
+    // full name with 'class' or 'struct' prefix, namespace and templates
+    return { raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>') };
+}
+
 #ifndef __cpp_lib_string_contains
 #define contains(x) find(x) != static_cast<size_t>(-1)
 #endif
@@ -74,7 +80,8 @@ struct library_info
     template <class T>
     void log_class_info(const void* addr) const
     {
-        log_class_info(simple_type_name<T>(), addr);
+        constexpr auto name = correct_simple_type_name(simple_type_name<T>());
+        log_class_info(name, addr);
     }
 
     void* find_export(const string_view name, const bool notify = true) const;
@@ -89,10 +96,7 @@ struct library_info
     template <class T>
     T* find_vtable(const bool notify = true) const
     {
-        constexpr string_view raw_name = simple_type_name<T>();
-        // full name with 'class' or 'struct' prefix, namespace and templates
-        constexpr string_view name(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'));
-
+        constexpr auto name = correct_simple_type_name(simple_type_name<T>());
         void* ptr;
         if constexpr (name.contains('>') || name.contains(':')) // namespaces and templates currently unsupported
             ptr = find_vtable(typeid(T), notify);
