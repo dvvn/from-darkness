@@ -2,13 +2,13 @@
 #include <fd/assert.h>
 #include <fd/comptr.h>
 
+#define FD_GUI_TEST
 #include <fd_init.h>
 
 #include <d3d9.h>
 #include <tchar.h>
 
 import fd.lazy_invoke;
-import fd.rt_modules;
 
 using namespace fd;
 
@@ -99,11 +99,7 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    fd::init(hwnd, hmodule);
-    FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
-    fd::rt_modules::current->log_class_info<IDirect3DDevice9>(g_pd3dDevice.Get());
-
-    if (!fd::init_hooks(true))
+    if (!fd::init(hwnd, hmodule, g_pd3dDevice.Get()))
         return TRUE;
 
     const fd::lazy_invoke destroy_helper(fd::destroy);

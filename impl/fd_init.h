@@ -1,15 +1,25 @@
 #pragma once
 
-#include <fd/assert.h>
 #include <fd/object.h>
 #include <fd/utility.h>
+
+#ifndef FD_GUI_TEST
+#include <thread>
+#endif
 
 #include <Windows.h>
 
 import fd.hooks_loader;
+import fd.application_data;
+import fd.rt_modules;
+#ifdef _DEBUG
+import fd.assert;
 import fd.logger;
 import fd.system_console;
-import fd.application_data;
+#endif
+#ifndef FD_GUI_TEST
+import fd.async;
+#endif
 
 namespace fd
 {
@@ -40,31 +50,71 @@ void _Store_hook(L& loader)
         FOR_EACH(_STORE_HOOK, __VA_ARGS__); \
     }
 
-PREPARE_HOOKS(_Store_basic_hooks, wndproc, IDirect3DDevice9_present, IDirect3DDevice9_reset);
-PREPARE_HOOKS(_Store_csgo_hooks, vgui_surface_lock_cursor);
+#ifdef FD_GUI_TEST
+struct IDirect3DDevice9;
+#define CSGO_HOOKS
+#else
+#define CSGO_HOOKS , vgui_surface_lock_cursor
+#endif
+
+PREPARE_HOOKS(_Store_hooks, wndproc, IDirect3DDevice9_present, IDirect3DDevice9_reset CSGO_HOOKS);
 
 namespace fd
 {
-    inline void init(const HWND hwnd, const HMODULE hmodule)
+    inline void _Init(const HWND hwnd, const HMODULE hmodule)
     {
+#if defined(_DEBUG) || defined(FD_GUI_TEST)
         logger.append(system_console_writer);
         assert_handler->push_back([](const assert_data& data) {
             invoke(logger, data.build_message());
         });
+#endif
         app_info.construct(hwnd, hmodule);
     }
 
-    inline bool init_hooks(const bool gui_only)
+    inline bool _Init_hooks()
     {
-        auto& loader = *hooks_loader;
-        _Store_basic_hooks(loader);
-        if (!gui_only)
-            _Store_csgo_hooks(loader);
-        return loader.enable();
+        _Store_hooks(*hooks_loader);
+        return hooks_loader->enable();
     }
 
+#ifdef FD_GUI_TEST
+    inline bool init(const HWND hwnd, const HMODULE hmodule, IDirect3DDevice9* d3d_created)
+    {
+        _Init(hwnd, hmodule);
+        FD_OBJECT_GET(IDirect3DDevice9*).construct(d3d_created);
+        rt_modules::current->log_class_info<IDirect3DDevice9>(d3d_created);
+        return _Init_hooks();
+    }
+#else
+    inline bool _Wait_for_game(const stop_token& stop)
+    {
+        for (;;)
+        {
+            if (stop.stop_requested())
+                return false;
+            if (rt_modules::serverbrowser.loaded())
+                return true;
+
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(1s);
+        }
+    }
+
+    inline void init(const HWND hwnd, const HMODULE hmodule)
+    {
+        async->operator()([=](const stop_token& stop) {
+            _Init(hwnd, hmodule);
+            if (!_Wait_for_game(stop) || !_Init_hooks())
+                app_info->unload();
+        });
+    }
+#endif
     inline void destroy()
     {
+#ifndef FD_GUI_TEST
+        async.destroy();
+#endif
         hooks_loader.destroy();
     }
 
