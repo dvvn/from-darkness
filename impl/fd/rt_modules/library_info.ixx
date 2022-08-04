@@ -7,6 +7,8 @@ module;
 export module fd.rt_modules:library_info;
 export import fd.string;
 
+using namespace fd;
+
 struct library_info;
 
 class dos_nt
@@ -57,33 +59,39 @@ struct library_info
 
   public:
     library_info(pointer const entry);
-    library_info(const fd::wstring_view name, const bool notify = true);
+    library_info(const wstring_view name, const bool notify = true);
     library_info(IMAGE_DOS_HEADER* const base_address, const bool notify = true);
 
     pointer get() const;
     pointer operator->() const;
     reference operator*() const;
 
-    fd::wstring_view path() const;
-    fd::wstring_view name() const;
+    wstring_view path() const;
+    wstring_view name() const;
 
-    void log_class_info(const fd::string_view raw_name, const void* addr) const;
+    void log_class_info(const string_view raw_name, const void* addr) const;
 
-    void* find_export(const fd::string_view name, const bool notify = true) const;
-    IMAGE_SECTION_HEADER* find_section(const fd::string_view name, const bool notify = true) const;
-    void* find_signature(const fd::string_view sig, const bool notify = true) const;
+    template <class T>
+    void log_class_info(const void* addr) const
+    {
+        log_class_info(simple_type_name<T>(), addr);
+    }
 
-    [[deprecated]] void* find_vtable_class(const fd::string_view name, const bool notify = true) const;
-    [[deprecated]] void* find_vtable_struct(const fd::string_view name, const bool notify = true) const;
-    void* find_vtable(const fd::string_view name, const bool notify = true) const;
+    void* find_export(const string_view name, const bool notify = true) const;
+    IMAGE_SECTION_HEADER* find_section(const string_view name, const bool notify = true) const;
+    void* find_signature(const string_view sig, const bool notify = true) const;
+
+    [[deprecated]] void* find_vtable_class(const string_view name, const bool notify = true) const;
+    [[deprecated]] void* find_vtable_struct(const string_view name, const bool notify = true) const;
+    void* find_vtable(const string_view name, const bool notify = true) const;
     void* find_vtable(decltype(typeid(int)) info, const bool notify = true) const;
 
     template <class T>
     T* find_vtable(const bool notify = true) const
     {
-        constexpr fd::string_view raw_name = simple_type_name<T>();
+        constexpr string_view raw_name = simple_type_name<T>();
         // full name with 'class' or 'struct' prefix, namespace and templates
-        constexpr fd::string_view name(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'));
+        constexpr string_view name(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'));
 
         void* ptr;
         if constexpr (name.contains('>') || name.contains(':')) // namespaces and templates currently unsupported
@@ -93,8 +101,8 @@ struct library_info
         return static_cast<T*>(ptr);
     }
 
-    void* find_csgo_interface(const fd::string_view name, const bool notify = true) const;
-    void* find_csgo_interface(const void* create_interface_fn, const fd::string_view name, const bool notify = true) const;
+    void* find_csgo_interface(const string_view name, const bool notify = true) const;
+    void* find_csgo_interface(const void* create_interface_fn, const string_view name, const bool notify = true) const;
 };
 
 export namespace fd

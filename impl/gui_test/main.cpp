@@ -8,16 +8,13 @@
 #include <tchar.h>
 
 import fd.lazy_invoke;
+import fd.rt_modules;
 
 using namespace fd;
 
 static fd::comptr<IDirect3D9> g_pD3D;
 static fd::comptr<IDirect3DDevice9> g_pd3dDevice;
 static D3DPRESENT_PARAMETERS g_d3dpp;
-
-static void _FD_d3d_init()
-{
-}
 
 #define RESET_BACK_BUFFER_ON_RESIZE
 
@@ -104,6 +101,7 @@ int main(int, char**)
 
     fd::init(hwnd, hmodule);
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
+    fd::rt_modules::current->log_class_info<IDirect3DDevice9>(g_pd3dDevice.Get());
 
     if (!fd::init_hooks(true))
         return TRUE;
