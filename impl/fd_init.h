@@ -9,7 +9,7 @@
 import fd.hooks_loader;
 import fd.logger;
 import fd.system_console;
-import fd.application_info;
+import fd.application_data;
 
 namespace fd
 {
@@ -61,6 +61,11 @@ namespace fd
         if (!gui_only)
             _Store_csgo_hooks(loader);
         return loader.enable();
+    }
+
+    inline void destroy()
+    {
+        hooks_loader.destroy();
     }
 
 } // namespace fd

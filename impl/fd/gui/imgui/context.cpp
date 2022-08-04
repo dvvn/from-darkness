@@ -8,7 +8,7 @@
 
 #include <d3d9.h>
 
-import fd.application_info;
+import fd.application_data;
 
 struct gui_context
 {

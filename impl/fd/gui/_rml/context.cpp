@@ -17,7 +17,7 @@
 #include <span>
 
 module fd.gui.context;
-import fd.application_info;
+import fd.application_data;
 
 #define RML_SAMPLE(_DIR_, _S_) FD_CONCAT(FD_STRINGIZE(RMLUI_DIR), "/Samples/", _DIR_, "/", _S_)
 

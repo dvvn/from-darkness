@@ -4,7 +4,7 @@
 #include <windows.h>
 
 import fd.gui.basic_input_handler;
-import fd.application_info;
+import fd.application_data;
 
 //#define HOT_UNLOAD_SUPPORTED
 

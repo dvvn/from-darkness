@@ -4,7 +4,7 @@ module;
 
 #include <windows.h>
 
-export module fd.application_info;
+export module fd.application_data;
 
 struct rect_ex : RECT
 {
@@ -37,17 +37,17 @@ union window_info
     wndproc_ctrl proc;
 };
 
-struct application_info
+struct application_data
 {
     window_info root_window;
     HMODULE module_handle;
 
-    application_info(const HWND window_handle, const HMODULE module_handle = nullptr);
+    application_data(const HWND window_handle, const HMODULE module_handle = nullptr);
 
     void unload() const;
 };
 
 export namespace fd
 {
-    FD_OBJECT(app_info, application_info);
+    FD_OBJECT(app_info, application_data);
 }

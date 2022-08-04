@@ -7,13 +7,12 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-import fd.rt_modules;
 import fd.lazy_invoke;
 
 using namespace fd;
 
-static comptr<IDirect3D9> g_pD3D;
-static comptr<IDirect3DDevice9> g_pd3dDevice;
+static fd::comptr<IDirect3D9> g_pD3D;
+static fd::comptr<IDirect3DDevice9> g_pd3dDevice;
 static D3DPRESENT_PARAMETERS g_d3dpp;
 
 static void _FD_d3d_init()
@@ -103,14 +102,13 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    init(hwnd, hmodule);
+    fd::init(hwnd, hmodule);
     FD_OBJECT_GET(IDirect3DDevice9).construct(g_pd3dDevice);
-    rt_modules::current->log_class_info(type_name_raw<IDirect3DDevice9>(), g_pd3dDevice.Get());
 
-    if (!init_hooks(true))
+    if (!fd::init_hooks(true))
         return TRUE;
 
-    //----------------
+    const fd::lazy_invoke destroy_helper(fd::destroy);
 
     for (;;)
     {
@@ -120,7 +118,7 @@ int main(int, char**)
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
-                goto _STOP;
+                return FALSE;
         }
 
         g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
@@ -129,8 +127,4 @@ int main(int, char**)
         if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
             ResetDevice();
     }
-
-_STOP:
-    hooks_loader.destroy();
-    return FALSE;
 }

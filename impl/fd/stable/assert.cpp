@@ -10,7 +10,7 @@ module;
 module fd.assert;
 import fd.format;
 import fd.to_char;
-import fd.application_info;
+import fd.application_data;
 
 using namespace fd;
 
