@@ -393,7 +393,7 @@ void pattern_scanner_known::update(void* last_pos)
 
 //-----
 
-auto xrefs_finder::operator()(const uintptr_t& addr) const -> iterator
+auto xrefs_scanner::operator()(const uintptr_t& addr) const -> iterator
 {
     return {
         this, {*this, addr}

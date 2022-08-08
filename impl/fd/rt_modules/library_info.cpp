@@ -412,8 +412,8 @@ static void* _Find_vtable(const library_info info, const string_view name, const
     const auto dot_rdata = info.find_section(".rdata");
     const auto dot_text  = info.find_section(".text");
 
-    const xrefs_finder dot_rdata_finder(dnt.map(dot_rdata->VirtualAddress), dot_rdata->SizeOfRawData);
-    const xrefs_finder dot_text_finder(dnt.map(dot_text->VirtualAddress), dot_text->SizeOfRawData);
+    const xrefs_scanner dot_rdata_finder(dnt.map(dot_rdata->VirtualAddress), dot_rdata->SizeOfRawData);
+    const xrefs_scanner dot_text_finder(dnt.map(dot_text->VirtualAddress), dot_text->SizeOfRawData);
 
     void* vtable_ptr = nullptr;
 

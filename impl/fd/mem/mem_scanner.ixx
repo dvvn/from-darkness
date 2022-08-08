@@ -246,7 +246,7 @@ struct pattern_scanner : private memory_range
     known_iterator operator()(const pointer begin, const size_t mem_size) const;
 };
 
-struct xrefs_finder : private memory_range
+struct xrefs_scanner : private memory_range
 {
     using memory_range::memory_range;
 
@@ -258,7 +258,7 @@ struct xrefs_finder : private memory_range
 export namespace fd
 {
     using ::pattern_scanner;
-    using ::xrefs_finder;
+    using ::xrefs_scanner;
 
     constexpr raw_pattern_t raw_pattern;
 } // namespace fd
