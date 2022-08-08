@@ -79,11 +79,22 @@ namespace fd
     }
 
 #ifdef FD_GUI_TEST
+    namespace a::b::c
+    {
+        template <int a, class>
+        struct fuck
+        {
+            virtual ~fuck() = default;
+        };
+    } // namespace a::b::c
+
     inline bool init(const HWND hwnd, const HMODULE hmodule, IDirect3DDevice9* d3d_created)
     {
+        a::b::c::fuck<1, int> f;
         _Init(hwnd, hmodule);
         FD_OBJECT_GET(IDirect3DDevice9*).construct(d3d_created);
         rt_modules::current->log_class_info<IDirect3DDevice9>(d3d_created);
+        rt_modules::current->find_vtable<decltype(f)>();
         return _Init_hooks();
     }
 #else

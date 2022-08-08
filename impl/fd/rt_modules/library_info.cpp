@@ -4,6 +4,7 @@ module;
 
 #include <fd/rt_modules/winapi.h>
 
+#include <memory>
 #include <span>
 #include <typeinfo>
 
@@ -108,7 +109,7 @@ library_info::library_info(IMAGE_DOS_HEADER* const base_address, const bool noti
     if (notify)
     {
         const auto get_name = [=] {
-            return entry_ ? this->name() : L"unknown name";
+            return this->entry_ ? this->name() : L"unknown name";
         };
         invoke(logger,
                L"{:#X} ({}) -> {}! ({:#X})",
@@ -290,7 +291,7 @@ void* library_info::find_signature(const string_view sig, const bool notify) con
 {
     const auto memory_span = dos_nt(entry_).read();
     const pattern_scanner finder(memory_span.data(), memory_span.size());
-    const auto result = finder(sig);
+    const auto result = finder(sig).front();
     if (notify)
         _Object_found(this, L"signature", sig, result);
     return result;
@@ -334,6 +335,30 @@ static consteval auto _Bytes_to_sig()
     return buff;
 }
 
+typedef void*(__cdecl* allocation_function)(size_t);
+typedef void(__cdecl* free_function)(void*);
+extern "C" char* __cdecl __unDName(char* outputString,
+                                   const char* name,
+                                   int maxStringLength, // Note, COMMA is leading following optional arguments
+                                   allocation_function pAlloc,
+                                   free_function pFree,
+                                   uint16_t disableFlags);
+
+static string _Demangle_symbol(const char* mangled_name)
+{
+    constexpr allocation_function alloc = [](size_t size) {
+        return static_cast<void*>(new char[size]);
+    };
+    constexpr free_function free_f = [](void* p) {
+        auto chr = static_cast<char*>(p);
+        delete[] chr;
+    };
+
+    const std::unique_ptr<char> name(__unDName(nullptr, mangled_name + 1, 0, alloc, free_f, 0x2800 /*UNDNAME_32_BIT_DECODE | UNDNAME_TYPE_ONLY*/));
+
+    return name.get();
+}
+
 static void* _Find_vtable(const library_info info, const string_view name, const obj_type type, const bool notify)
 {
     const dos_nt dnt(info);
@@ -342,6 +367,9 @@ static void* _Find_vtable(const library_info info, const string_view name, const
 
     constexpr chars_cache raw_prefix  = ".?A";
     constexpr chars_cache raw_postfix = "@@";
+
+    constexpr auto class_prefix  = 'V';
+    constexpr auto struct_prefix = 'U';
 
     void* rtti_class_name;
 
@@ -352,7 +380,7 @@ static void* _Find_vtable(const library_info info, const string_view name, const
         constexpr auto bytes_postfix = _Bytes_to_sig<raw_postfix>();
 
         const auto real_name_unk = make_string(bytes_prefix, " ? ", bytes_name, ' ', bytes_postfix);
-        rtti_class_name          = whole_module_finder(real_name_unk);
+        rtti_class_name          = whole_module_finder(real_name_unk).front();
     }
     else if (type == TYPE_NATIVE)
     {
@@ -364,14 +392,14 @@ static void* _Find_vtable(const library_info info, const string_view name, const
     {
         char str_prefix;
         if (type == TYPE_CLASS)
-            str_prefix = 'V';
+            str_prefix = class_prefix;
         else if (type == TYPE_STRUCT)
-            str_prefix = 'U';
+            str_prefix = struct_prefix;
         else
             FD_ASSERT_UNREACHABLE("Unknown type");
 
         const auto real_name = make_string(raw_prefix, str_prefix, name, raw_postfix);
-        rtti_class_name      = whole_module_finder(real_name, true);
+        rtti_class_name      = whole_module_finder(real_name, raw_pattern).front();
     }
 
     FD_ASSERT(rtti_class_name != nullptr); //------------------------------
@@ -388,23 +416,60 @@ static void* _Find_vtable(const library_info info, const string_view name, const
     const xrefs_finder dot_text_finder(dnt.map(dot_text->VirtualAddress), dot_text->SizeOfRawData);
 
     void* vtable_ptr = nullptr;
-    dot_rdata_finder(type_descriptor, [&](const uintptr_t xref, size_t, bool& stop) {
+
+    for (const auto xref : dot_rdata_finder(type_descriptor))
+    {
         // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
         const auto vtable_offset = *reinterpret_cast<uint32_t*>(xref - 0x8);
         if (vtable_offset != 0)
-            return;
+            continue;
 
         const auto object_locator = xref - 0xC;
-        const auto vtable_address = dot_rdata_finder(object_locator) + 0x4;
+        const auto vtable_address = dot_rdata_finder(object_locator).front() + 0x4;
 
         // check is valid offset
-        if (vtable_address > sizeof(uintptr_t))
-            vtable_ptr = (void*)dot_text_finder(vtable_address);
+        FD_ASSERT(vtable_address > sizeof(uintptr_t));
+        vtable_ptr = (void*)dot_text_finder(vtable_address).front();
+        break;
+    }
 
-        stop = true;
-    });
     if (notify)
-        _Object_found(&info, L"vtable", name, vtable_ptr);
+    {
+#ifndef __cpp_lib_string_contains
+#define contains(x) find(x) != static_cast<size_t>(-1)
+#endif
+
+        const auto demagle_type = [=]() -> string_view {
+            const auto prefix = reinterpret_cast<const char*>(rtti_class_name)[raw_prefix.size()];
+            if (prefix == class_prefix)
+                return "class";
+            else if (prefix == struct_prefix)
+                return "struct";
+            else
+                FD_ASSERT_UNREACHABLE("Unknown prefix!");
+        };
+
+        const auto demagle_name = [=]() -> string {
+            string buff;
+            if (name.contains('@'))
+                buff = _Demangle_symbol(reinterpret_cast<const char*>(rtti_class_name));
+            else if (name.contains(' '))
+                buff = name;
+            else
+                return { name.data(), name.size() };
+
+            return buff.substr(buff.find(' ') + 1);
+        };
+
+        invoke(logger,
+               L"{} -> {} {} '{}' {}! ({:#X})",
+               bind_front(&library_info::name, &info),
+               L"vtable for",
+               demagle_type,
+               demagle_name,
+               vtable_ptr ? L"found" : L"not found",
+               reinterpret_cast<uintptr_t>(vtable_ptr));
+    }
 
     return vtable_ptr;
 }
@@ -417,6 +482,11 @@ void* library_info::find_vtable_class(const string_view name, const bool notify)
 void* library_info::find_vtable_struct(const string_view name, const bool notify) const
 {
     return _Find_vtable(entry_, name, TYPE_STRUCT, notify);
+}
+
+void* library_info::find_vtable_unknown(const string_view name, const bool notify) const
+{
+    return _Find_vtable(entry_, name, TYPE_UNKNOWN, notify);
 }
 
 void* library_info::find_vtable(const string_view name, const bool notify) const
