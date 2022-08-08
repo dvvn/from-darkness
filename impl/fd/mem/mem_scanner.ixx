@@ -52,7 +52,7 @@ constexpr auto cast_helper_proj = [](void* ptr) {
     return reinterpret_cast<To>(ptr);
 };
 
-struct memory_scanner : memory_range
+struct pattern_scanner : memory_range
 {
     using memory_range::memory_range;
 
@@ -117,13 +117,13 @@ struct xrefs_finder : memory_range
     template <typename Fn>
     void operator()(const uintptr_t addr, Fn callback) const
     {
-        const memory_scanner scanner(from_, to_);
+        const pattern_scanner scanner(from_, to_);
         scanner((pointer)&addr, sizeof(uintptr_t), callback, cast_helper_proj<uintptr_t>);
     }
 };
 
 export namespace fd
 {
-    using ::memory_scanner;
+    using ::pattern_scanner;
     using ::xrefs_finder;
 } // namespace fd

@@ -227,7 +227,7 @@ static void _Text_to_bytes(unknown_bytes_range& bytes, const fd::string_view tex
     }
 }
 
-void* memory_scanner::operator()(const fd::string_view sig, const bool raw) const
+void* pattern_scanner::operator()(const fd::string_view sig, const bool raw) const
 {
     const void* ret;
 
@@ -244,7 +244,7 @@ void* memory_scanner::operator()(const fd::string_view sig, const bool raw) cons
     return const_cast<void*>(ret);
 }
 
-void* memory_scanner::operator()(const pointer begin, const size_t mem_size) const
+void* pattern_scanner::operator()(const pointer begin, const size_t mem_size) const
 {
     return const_cast<void*>(_Find_block(from_, to_, begin, mem_size));
 }

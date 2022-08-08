@@ -289,7 +289,7 @@ IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const b
 void* library_info::find_signature(const string_view sig, const bool notify) const
 {
     const auto memory_span = dos_nt(entry_).read();
-    const memory_scanner finder(memory_span.data(), memory_span.size());
+    const pattern_scanner finder(memory_span.data(), memory_span.size());
     const auto result = finder(sig);
     if (notify)
         _Object_found(this, L"signature", sig, result);
@@ -338,7 +338,7 @@ static void* _Find_vtable(const library_info info, const string_view name, const
 {
     const dos_nt dnt(info);
     const auto memory_span = dnt.read();
-    const memory_scanner whole_module_finder(memory_span.data(), memory_span.size());
+    const pattern_scanner whole_module_finder(memory_span.data(), memory_span.size());
 
     constexpr chars_cache raw_prefix  = ".?A";
     constexpr chars_cache raw_postfix = "@@";
