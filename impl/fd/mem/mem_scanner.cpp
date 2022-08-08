@@ -238,36 +238,50 @@ static void _Text_to_bytes(unknown_bytes_range& bytes, const fd::string_view tex
         }
     };
 
-    constexpr auto unwrap_shit = [](auto rng) -> fd::string_view {
-        const auto raw_begin = std::addressof(*rng.begin());
-        const size_t size    = std::ranges::distance(rng);
-        return { raw_begin, size };
+    const auto skip_byte = [&] {
+        ++bytes.back().skip;
     };
 
-    for (const auto b : std::views::split(text_src, ' ') | std::views::transform(unwrap_shit))
+    const auto store_byte = [&](const uint8_t num) {
+        auto& back = bytes.back();
+        auto& rng  = back.skip > 0 ? bytes.emplace_back() : back;
+        rng.part.push_back(num);
+    };
+
+    for (const auto rng : text_src | std::views::split(' '))
     {
-        if (b[0] == '?')
-        {
-            FD_ASSERT(b.size() == 1 || b.size() == 2 && b[1] == '?');
-            ++bytes.back().skip;
-            continue;
-        }
+        const auto raw_begin = std::addressof(*rng.begin());
+        const size_t size    = std::ranges::distance(rng);
 
-        // take new part
-        if (bytes.back().skip > 0)
-            bytes.emplace_back();
-
-        const auto num_left = to_num(b[0]);
-        if (b.size() == 1)
+        switch (size)
         {
-            bytes.back().part.push_back(num_left);
-            continue;
+        case 1: {
+            const auto value = *raw_begin;
+            if (value == '?')
+                skip_byte();
+            else
+                store_byte(to_num(value));
+            break;
         }
-        FD_ASSERT(b.size() == 2);
-        const auto num_right = to_num(b[1]);
-        const auto num       = num_left * 16 + num_right;
-        bytes.back().part.push_back(num);
-    }
+        case 2: {
+            const auto value1 = raw_begin[0];
+            const auto value2 = raw_begin[1];
+            if (value1 == '?' || value2 == '?')
+            {
+                FD_ASSERT(value1 == value2);
+                skip_byte();
+            }
+            else
+            {
+                store_byte(to_num(value1) * 16 * to_num(value2));
+            }
+            break;
+        }
+        default: {
+            FD_ASSERT_UNREACHABLE("Uncorrect part!");
+        }
+        };
+    };
 }
 
 //-----
