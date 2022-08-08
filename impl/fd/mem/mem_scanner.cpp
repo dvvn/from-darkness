@@ -8,11 +8,9 @@ module;
 
 module fd.mem_scanner;
 
-static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const pointer end2)
+static const void* _Find_block(const pointer start0, const size_t block_size, const pointer start2, const size_t rng_size)
 {
-    const size_t block_size = std::distance(start0, end0);
-    const size_t rng_size   = std::distance(start2, end2);
-    const auto limit        = block_size - rng_size;
+    const auto limit = block_size - rng_size;
 
     if (rng_size == 1)
         return std::memchr(start0, *start2, limit);
@@ -32,9 +30,19 @@ static const void* _Find_block(const pointer start0, const pointer end0, const p
     return nullptr;
 }
 
-static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const size_t mem_size)
+static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const pointer end2)
 {
-    return _Find_block(start0, end0, start2, start2 + mem_size);
+    return _Find_block(start0, std::distance(start0, end0), start2, std::distance(start2, end2));
+}
+
+static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const size_t rng_size)
+{
+    return _Find_block(start0, std::distance(start0, end0), start2, rng_size);
+}
+
+static const void* _Find_block(const pointer start0, const size_t block_size, const pointer start2, const pointer end2)
+{
+    return _Find_block(start0, block_size, start2, std::distance(start2, end2));
 }
 
 //-----
@@ -59,6 +67,14 @@ struct unknown_bytes_range : std::vector<bytes_range>
     }
 };
 
+static bool _Have_mem_after(const size_t skip, const void* begin, const size_t offset, const pointer end)
+{
+    if (skip == 0)
+        return true;
+    const size_t mem_after = std::distance(static_cast<pointer>(begin) + offset, end);
+    return mem_after >= skip;
+}
+
 static const void* _Find_unk_block(const pointer begin, const pointer end, const unknown_bytes_range& unkbytes)
 {
 #ifdef _DEBUG
@@ -77,12 +93,8 @@ static const void* _Find_unk_block(const pointer begin, const pointer end, const
         const auto part0_found = _Find_block(begin, end, unkpart0_begin, unkpart0_size);
         if (!part0_found)
             return nullptr;
-        if (unkpart0_skip > 0)
-        {
-            const auto mem_after = std::distance(static_cast<pointer>(part0_found) + unkpart0_size, end);
-            if (mem_after < unkpart0_skip)
-                return nullptr;
-        }
+        if (!_Have_mem_after(unkpart0_skip, part0_found, unkpart0_size, end))
+            return nullptr;
         return part0_found;
     }
 
@@ -101,7 +113,7 @@ static const void* _Find_unk_block(const pointer begin, const pointer end, const
         if (!part0_found)
             break;
 
-        auto temp_begin = (pointer)part0_found + unkpart0_size + unkpart0_skip;
+        auto temp_begin = static_cast<pointer>(part0_found) + unkpart0_size + unkpart0_skip;
         auto found      = true;
         for (auto unkbytes_itr = unkbytes1; unkbytes_itr != unkbytes_end; ++unkbytes_itr)
         {
@@ -117,20 +129,14 @@ static const void* _Find_unk_block(const pointer begin, const pointer end, const
             temp_begin += part_size + skip;
         }
 
-        if (!found)
+        if (found)
         {
-            pos = std::distance(begin, temp_begin) + 1;
-            continue;
-        }
-
-        const auto unkbytes_last_skip = unkbytes.back().skip;
-        if (unkbytes_last_skip > 0)
-        {
-            const auto mem_after = std::distance(static_cast<pointer>(part0_found) + unkbytes_count, end);
-            if (mem_after < unkbytes_last_skip)
+            if (!_Have_mem_after(unkbytes.back().skip, part0_found, unkbytes_count, end))
                 break;
+
+            return part0_found;
         }
-        return part0_found;
+        pos = std::distance(begin, temp_begin) + 1;
     }
 
     return nullptr;
