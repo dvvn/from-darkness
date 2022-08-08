@@ -3,6 +3,7 @@ module;
 #include <fd/assert.h>
 
 #include <algorithm>
+#include <limits>
 #include <ranges>
 #include <vector>
 
@@ -47,15 +48,46 @@ static const void* _Find_block(const pointer start0, const size_t block_size, co
 
 //-----
 
+memory_range::memory_range(pointer from, pointer to)
+    : from_(from)
+    , to_(to)
+{
+    FD_ASSERT(from_ < to_);
+}
+
+memory_range::memory_range(pointer from, const size_t size)
+    : from_(from)
+    , to_(from + size)
+{
+    FD_ASSERT(from_ < to_);
+}
+
+void memory_range::update(pointer curr, const size_t offset)
+{
+    const auto new_from = curr + offset;
+    FD_ASSERT(new_from > from_);
+    FD_ASSERT(new_from <= to_ - offset);
+    from_ = new_from;
+}
+
+void memory_range::update(void* curr, const size_t offset)
+{
+    update(static_cast<pointer>(curr), offset);
+}
+
+//-----
+
 struct bytes_range
 {
     std::vector<uint8_t> part;
     uint8_t skip = 0;
 };
 
-struct unknown_bytes_range : std::vector<bytes_range>
+class unknown_bytes_range : public std::vector<bytes_range>
 {
-    size_t bytes_count() const
+    mutable size_t bytes_count_cached_ = 0;
+
+    size_t bytes_count_impl() const
     {
         size_t ret = 0;
         for (auto& [part, skip] : *this)
@@ -64,6 +96,17 @@ struct unknown_bytes_range : std::vector<bytes_range>
             ret += skip;
         }
         return ret;
+    }
+
+  public:
+    size_t bytes_count() const
+    {
+        if (bytes_count_cached_ == 0)
+            bytes_count_cached_ = bytes_count_impl();
+        else
+            FD_ASSERT(bytes_count_cached_ == bytes_count_impl());
+
+        return bytes_count_cached_;
     }
 };
 
@@ -227,54 +270,132 @@ static void _Text_to_bytes(unknown_bytes_range& bytes, const fd::string_view tex
     }
 }
 
-void* pattern_scanner::operator()(const fd::string_view sig, const bool raw) const
-{
-    const void* ret;
+//-----
 
-    if (raw)
-    {
-        ret = _Find_block(from_, to_, (pointer)sig.data(), sig.size());
-    }
-    else
-    {
-        unknown_bytes_range bytes;
-        _Text_to_bytes(bytes, sig);
-        ret = _Find_unk_block(from_, to_, bytes);
-    }
-    return const_cast<void*>(ret);
+auto pattern_scanner::operator()(const fd::string_view sig) const -> unknown_iterator
+{
+    return {
+        this, {*this, sig}
+    };
 }
 
-void* pattern_scanner::operator()(const pointer begin, const size_t mem_size) const
+auto pattern_scanner::operator()(const fd::string_view sig, const raw_pattern_t) const -> known_iterator
 {
-    return const_cast<void*>(_Find_block(from_, to_, begin, mem_size));
+    return {
+        this, {*this, reinterpret_cast<pointer>(sig.data()), sig.size()}
+    };
+}
+
+auto pattern_scanner::operator()(const pointer begin, const size_t mem_size) const -> known_iterator
+{
+    return {
+        this, {*this, begin, mem_size}
+    };
 }
 
 //-----
 
-unknown_bytes_wrapped::unknown_bytes_wrapped(const fd::string_view sig)
+struct unknown_bytes_range_shared_data
 {
-    auto bytes_ = new unknown_bytes_range();
+    unknown_bytes_range rng;
+    size_t uses;
+};
+
+unknown_bytes_range_shared::unknown_bytes_range_shared()
+{
+    auto buff = new unknown_bytes_range_shared_data();
+    bytes_    = &buff->rng;
+    uses_     = &buff->uses;
+    FD_ASSERT((void*)buff == (void*)bytes_);
+}
+
+unknown_bytes_range_shared::~unknown_bytes_range_shared()
+{
+    if (--*uses_ == 0)
+        delete reinterpret_cast<unknown_bytes_range_shared_data*>(bytes_);
+}
+
+unknown_bytes_range_shared::unknown_bytes_range_shared(const unknown_bytes_range_shared& other)
+{
+    *this = other;
+}
+
+unknown_bytes_range_shared& unknown_bytes_range_shared::operator=(const unknown_bytes_range_shared& other)
+{
+    bytes_ = other.bytes_;
+    uses_  = other.uses_;
+    ++uses_;
+    return *this;
+}
+
+unknown_bytes_range* unknown_bytes_range_shared::operator->() const
+{
+    return bytes_;
+}
+
+unknown_bytes_range& unknown_bytes_range_shared::operator*() const
+{
+    return *bytes_;
+}
+
+pattern_scanner_unknown::pattern_scanner_unknown(const memory_range mem_rng, const fd::string_view sig)
+    : mem_rng_(mem_rng)
+    , bytes_()
+{
     _Text_to_bytes(*bytes_, sig);
 }
 
-unknown_bytes_wrapped::~unknown_bytes_wrapped()
+void* pattern_scanner_unknown::operator()() const
 {
-    delete bytes_;
+    return const_cast<void*>(_Find_unk_block(mem_rng_.from_, mem_rng_.to_, *bytes_));
 }
 
-size_t unknown_bytes_wrapped::count() const
+void pattern_scanner_unknown::update(void* last_pos)
 {
-    return bytes_->bytes_count();
-}
-
-void* unknown_bytes_wrapped::find_in(const pointer begin, const pointer end) const
-{
-    return const_cast<void*>(_Find_unk_block(begin, end, *bytes_));
+    mem_rng_.update(last_pos);
 }
 
 //-----
 
-uintptr_t xrefs_finder::operator()(const uintptr_t addr) const
+xrefs_finder_impl::xrefs_finder_impl(const memory_range mem_rng, const uintptr_t& addr)
+    : mem_rng_(mem_rng)
+    , xref_(reinterpret_cast<pointer>(&addr))
 {
-    return reinterpret_cast<uintptr_t>(_Find_block(from_, to_, (pointer)&addr, sizeof(uintptr_t)));
+}
+
+void* xrefs_finder_impl::operator()() const
+{
+    return const_cast<void*>(_Find_block(mem_rng_.from_, mem_rng_.to_, xref_, sizeof(uintptr_t)));
+}
+
+void xrefs_finder_impl::update(void* last_pos)
+{
+    mem_rng_.update(last_pos);
+}
+
+//-----
+
+pattern_scanner_known::pattern_scanner_known(const memory_range mem_rng, const pointer begin, const size_t mem_size)
+    : mem_rng_(mem_rng)
+    , search_rng_(begin, mem_size)
+{
+}
+
+void* pattern_scanner_known::operator()() const
+{
+    return const_cast<void*>(_Find_block(mem_rng_.from_, mem_rng_.to_, search_rng_.from_, search_rng_.to_));
+}
+
+void pattern_scanner_known::update(void* last_pos)
+{
+    mem_rng_.update(last_pos);
+}
+
+//-----
+
+auto xrefs_finder::operator()(const uintptr_t& addr) const -> iterator
+{
+    return {
+        this, {*this, addr}
+    };
 }
