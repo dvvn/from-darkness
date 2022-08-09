@@ -49,4 +49,6 @@ export namespace fd
     using ::task;
 
     using ::thread_sleep;
+    using boolean_flag = custom_atomic_bool; // uselles, added for compatibility
+
 } // namespace fd
