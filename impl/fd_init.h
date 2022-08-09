@@ -50,6 +50,8 @@ void _Store_hook(L& loader)
 struct IDirect3DDevice9;
 #define CSGO_HOOKS
 #else
+// todo: remove when compiler fix errors
+struct custom_atomic_bool;
 #define CSGO_HOOKS , vgui_surface_lock_cursor
 #endif
 
@@ -83,8 +85,7 @@ namespace fd
         return _Init_hooks();
     }
 #else
-    template <class T>
-    inline bool _Wait_for_game(const T& run)
+    inline bool _Wait_for_game(const boolean_flag& run)
     {
         for (;;)
         {
@@ -99,9 +100,9 @@ namespace fd
 
     inline void init(const HWND hwnd, const HMODULE hmodule)
     {
-        invoke(async, [=](const auto& stop) {
+        invoke(async, [=](const boolean_flag& run) {
             _Init(hwnd, hmodule);
-            if (!_Wait_for_game(stop) || !_Init_hooks())
+            if (!_Wait_for_game(run) || !_Init_hooks())
                 app_info->unload();
         });
     }
