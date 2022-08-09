@@ -3,10 +3,6 @@
 #include <fd/object.h>
 #include <fd/utility.h>
 
-#ifndef FD_GUI_TEST
-#include <thread>
-#endif
-
 #include <Windows.h>
 
 import fd.hooks_loader;
@@ -87,23 +83,23 @@ namespace fd
         return _Init_hooks();
     }
 #else
-    inline bool _Wait_for_game(const stop_token& stop)
+    template <class T>
+    inline bool _Wait_for_game(const T& run)
     {
         for (;;)
         {
-            if (stop.stop_requested())
+            if (!run)
                 return false;
             if (rt_modules::serverbrowser.loaded())
                 return true;
 
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(1s);
+            thread_sleep(100);
         }
     }
 
     inline void init(const HWND hwnd, const HMODULE hmodule)
     {
-        async->operator()([=](const stop_token& stop) {
+        invoke(async, [=](const auto& stop) {
             _Init(hwnd, hmodule);
             if (!_Wait_for_game(stop) || !_Init_hooks())
                 app_info->unload();

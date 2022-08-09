@@ -14,6 +14,7 @@ module;
 #include <veque.hpp>
 
 module fd.async;
+import fd.lazy_invoke;
 
 custom_atomic_bool::custom_atomic_bool(const bool value)
     : value_(value)
@@ -63,8 +64,28 @@ class custom_thread
 
         if (WaitForSingleObjectEx(handle_, INFINITE, FALSE) == WAIT_FAILED)
             FD_ASSERT_UNREACHABLE("Unable to join the thread!");
+
+        id_ = 0;
+    }
+
+    DWORD get_id() const
+    {
+        return id_;
+    }
+
+    // must be called at the end of thread
+    void _Destroy()
+    {
+        CloseHandle(handle_);
+        handle_ = nullptr;
+        id_     = 0;
     }
 };
+
+bool operator==(const custom_thread& left, const DWORD right)
+{
+    return left.get_id() == right;
+}
 
 template <class T>
 struct threads_storage
@@ -159,26 +180,33 @@ class mutex_locker
 
 class thread_pool_impl final : public basic_thread_pool
 {
-    using tasks_storage = veque::veque<std::variant<function_type, function_type_ex>>;
+    using task_type     = std::variant<function_type, function_type_ex>;
+    using tasks_storage = veque::veque<task_type>;
 
     threads_storage<custom_thread> threads_;
+    custom_mutex threads_mtx_;
     tasks_storage tasks_;
-    custom_mutex mtx_;
+    custom_mutex tasks_mtx_;
     custom_atomic_bool stop_ = false;
 
     static DWORD __stdcall worker(void* impl) noexcept
     {
-        auto& pool = *static_cast<thread_pool_impl*>(impl);
+        const auto pool = static_cast<thread_pool_impl*>(impl);
+
+        const fd::lazy_invoke destroyer = [=] {
+            const mutex_locker locker(pool->threads_mtx_);
+            std::find(pool->threads_.begin(), pool->threads_.end(), GetCurrentThreadId())->_Destroy();
+        };
 
         for (;;)
         {
-            if (pool.stop_)
+            if (pool->stop_)
                 break;
-            mutex_locker locker(pool.mtx_);
-            if (pool.tasks_.empty())
+            mutex_locker locker(pool->tasks_mtx_);
+            if (pool->tasks_.empty())
                 break;
-            auto task = std::move(pool.tasks_.back());
-            pool.tasks_.pop_back();
+            auto task = std::move(pool->tasks_.back());
+            pool->tasks_.pop_back();
             locker.release();
 
             std::visit(
@@ -186,34 +214,38 @@ class thread_pool_impl final : public basic_thread_pool
                     if constexpr (std::same_as<Fn, function_type>)
                         fn();
                     else if constexpr (std::same_as<Fn, function_type_ex>)
-                        fn(pool.stop_);
+                        fn(pool->stop_);
                     else
                         static_assert(std::_Always_false<Fn>);
                 },
                 task);
         }
 
-        return 0;
+        return EXIT_SUCCESS;
     }
 
-    void spawn_thread()
+    void store_task_impl(task_type&& t)
     {
+        const mutex_locker locker(tasks_mtx_);
+        tasks_.emplace_back(std::move(t));
+    }
+
+    void spawn_thread_impl()
+    {
+        const mutex_locker locker(threads_mtx_);
         const auto end      = threads_.end();
-        const auto finished = std::find_if(threads_.begin(), end, [](const auto& t) {
-            return !t.joinable();
-        });
+        const auto finished = std::find_if_not(threads_.begin(), end, fd::bind_front(&custom_thread::joinable));
         if (finished == end)
             return;
-        std::destroy_at(finished);
+        // std::destroy_at(finished);
         std::construct_at(finished, worker, this);
     }
 
     template <class Fn>
     void store_task(Fn& func) noexcept
     {
-        const mutex_locker locker(mtx_);
-        tasks_.emplace_back(std::move(func));
-        spawn_thread();
+        store_task_impl(std::move(func));
+        spawn_thread_impl();
     }
 
   public:
@@ -222,6 +254,12 @@ class thread_pool_impl final : public basic_thread_pool
     ~thread_pool_impl()
     {
         stop_ = true;
+    }
+
+    bool contains_thread(const DWORD id) const
+    {
+        const auto end = threads_.end();
+        return std::find(threads_.begin(), end, id) != end;
     }
 
     void wait() override
@@ -255,5 +293,16 @@ class thread_pool_impl final : public basic_thread_pool
         FD_ASSERT_UNREACHABLE("Not implemented");
     }
 };
+
+void thread_sleep(const size_t ms)
+{
+#ifdef _DEBUG
+    const auto tid = GetCurrentThreadId();
+    if (!FD_OBJECT_GET(thread_pool_impl)->contains_thread(tid))
+        FD_ASSERT("Unable to pause non-owning thread");
+#endif
+
+    Sleep(ms);
+}
 
 FD_OBJECT_BIND_TYPE(async, thread_pool_impl);
