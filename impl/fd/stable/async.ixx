@@ -2,16 +2,24 @@ module;
 
 #include <fd/object.h>
 
-#include <stop_token>
-
 export module fd.async;
 export import fd.functional;
 
+class custom_atomic_bool
+{
+    char value_;
+
+  public:
+    custom_atomic_bool(const bool value);
+
+    operator bool() const;
+    custom_atomic_bool& operator=(const bool value);
+};
+
 using fd::function;
-using std::stop_token;
 
 using function_type    = function<void()>;
-using function_type_ex = function<void(const stop_token&)>;
+using function_type_ex = function<void(const custom_atomic_bool&)>;
 
 using task = void*; // WIP
 
@@ -36,6 +44,5 @@ FD_OBJECT(async, basic_thread_pool);
 export namespace fd
 {
     using ::async;
-    using ::stop_token;
     using ::task;
 } // namespace fd

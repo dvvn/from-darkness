@@ -79,7 +79,6 @@ namespace fd
     }
 
 #ifdef FD_GUI_TEST
-
     inline bool init(const HWND hwnd, const HMODULE hmodule, IDirect3DDevice9* const d3d_created)
     {
         _Init(hwnd, hmodule);

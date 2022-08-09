@@ -79,7 +79,7 @@ string(TOUPPER ${_PROJ_NAME} _PROJ_NAME_UPPER)
 set(_PROJ_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
 set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
 
-project(${_PROJ_NAME})# -------------------
+project(${_PROJ_NAME}) # -------------------
 
 file(GLOB _IMGUI_FILES ${_IMGUI_SRC}/*.cpp)
 list(APPEND _IMGUI_FILES ${_IMGUI_SRC}/misc/freetype/imgui_freetype.cpp ${_IMGUI_SRC}/backends/imgui_impl_win32.cpp ${_IMGUI_SRC}/backends/imgui_impl_dx9.cpp)
@@ -114,7 +114,7 @@ function(target_compile_definition _target _type _def)
   message(DEBUG "${_target}: macro ${_def} added (${_type})")
 endfunction()
 
-function(project_part _name)
+function(add_subproject _name)
   cmake_parse_arguments(PART "" "TYPE" "FILES;INCLUDE;LINK;DEFINE" ${ARGN})
 
   #[[ if(NOT PART_NAME)
@@ -125,31 +125,24 @@ function(project_part _name)
   #---------------
 
   if(NOT PART_FILES)
-    set(_dir0 ${_PROJ_IMPL_DIR}/${_name})
-    set(_dir1 ${_PROJ_WORK_DIR}/${_name})
-    if(EXISTS ${_dir0})
-      set(PART_FILES ${_dir0})
-    elseif(EXISTS ${_dir1})
-      set(PART_FILES ${_dir1})
-    else()
-      message(FATAL_ERROR "${_name}: unable to resolve project directory")
-    endif()
-    message(DEBUG "${_name}: found ${PART_FILES} directory")
+    set(_search_dir ${_PROJ_IMPL_DIR}/*/${_name})
+    set(_search_dir2 ${_PROJ_IMPL_DIR}/${_name})
+    file(GLOB_RECURSE _files ${_search_dir}/*.ixx ${_search_dir}/*.cpp ${_search_dir2}/*.ixx ${_search_dir2}/*.cpp)
+    #message(DEBUG "${_name}: files found - ${_files}")
+  else()
+    foreach(_item ${PART_FILES})
+      if(IS_DIRECTORY ${_item})
+        file(GLOB_RECURSE _files_tmp ${_item}/*.ixx ${_item}/*.cpp)
+        list(APPEND _files ${_files_tmp})
+      elseif(EXISTS ${_item})
+        list(APPEND _files ${_item})
+      else() #maybe it contains regex (find better way to check)
+        file(GLOB_RECURSE _files_tmp ${_item})
+        list(APPEND _files ${_files_tmp})
+      endif()
+    endforeach()
   endif()
-
-  foreach(_item ${PART_FILES})
-    if(IS_DIRECTORY ${_item})
-      file(GLOB_RECURSE _files_tmp ${_item}/*.ixx ${_item}/*.cpp)
-      list(APPEND _files ${_files_tmp})
-    elseif(EXISTS ${_item})
-      list(APPEND _files ${_item})
-    else() #maybe it contains regex (find better way to check)
-      file(GLOB_RECURSE _files_tmp ${_item})
-      list(APPEND _files ${_files_tmp})
-    endif()
-  endforeach()
   list(FILTER _files EXCLUDE REGEX "/\_+")
-  #message(DEBUG "Files found in ${_files}: ${_files}")
   list(LENGTH _files _files_count)
   if(_files_count EQUAL 0)
     if(PART_TYPE AND NOT PART_TYPE STREQUAL "INTERFACE")
@@ -239,7 +232,7 @@ endfunction()
 
 # -------------------
 
-project_part(
+add_subproject(
   stable
   LINK
   nlohmann_json
@@ -251,15 +244,15 @@ project_part(
   ${veque_SOURCE_DIR}/include
   ${xxhct_SOURCE_DIR})
 
-project_part(logger LINK stable)
-project_part(mem LINK stable)
-project_part(rt_modules LINK mem logger)
-project_part(math INCLUDE ${_PROJ_IMPL_DIR})
-project_part(valve LINK rt_modules math)
-#project_part(netvars LINK valve json) must be rewritten
-project_part(gui_interface LINK stable)
-project_part(gui LINK gui_interface logger d3d9.lib imgui) #[[ RmlCore  RmlDebugger  DEFINE  RMLUI_STATIC_LIB  RMLUI_DIR=${rml_SOURCE_DIR} ]]
-project_part(hooks LINK gui valve)
+add_subproject(logger LINK stable)
+add_subproject(mem LINK stable)
+add_subproject(rt_modules LINK mem logger)
+add_subproject(math INCLUDE ${_PROJ_IMPL_DIR})
+add_subproject(valve LINK rt_modules math)
+#add_subproject(netvars LINK valve json) must be rewritten
+add_subproject(gui_interface LINK stable)
+add_subproject(gui LINK gui_interface logger d3d9.lib imgui) #[[ RmlCore  RmlDebugger  DEFINE  RMLUI_STATIC_LIB  RMLUI_DIR=${rml_SOURCE_DIR} ]]
+add_subproject(hooks LINK gui valve)
 
-project_part(gui_test TYPE EXECUTABLE LINK hooks)
-project_part(library TYPE SHARED LINK hooks)
+add_subproject(gui_test TYPE EXECUTABLE LINK hooks)
+add_subproject(library TYPE SHARED LINK hooks)

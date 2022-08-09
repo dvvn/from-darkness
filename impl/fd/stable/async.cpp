@@ -5,83 +5,228 @@ module;
 
 #include <algorithm>
 #include <array>
-#include <mutex>
-#include <thread>
+#include <memory>
 #include <variant>
 #include <vector>
+
+#include <Windows.h>
 
 #include <veque.hpp>
 
 module fd.async;
 
-struct thread_pool_impl final : basic_thread_pool
+custom_atomic_bool::custom_atomic_bool(const bool value)
+    : value_(value)
 {
-    using thread_type = std::jthread;
-    using mutex_type  = std::mutex;
+}
+
+custom_atomic_bool::operator bool() const
+{
+    return static_cast<bool>(InterlockedOr8((volatile char*)(&value_), 0));
+}
+
+custom_atomic_bool& custom_atomic_bool::operator=(const bool value)
+{
+    InterlockedExchange8((volatile char*)(&value_), static_cast<char>(value));
+    return *this;
+}
+
+class custom_thread
+{
+    HANDLE handle_ = INVALID_HANDLE_VALUE;
+    DWORD id_      = 0;
+
+  public:
+    ~custom_thread()
+    {
+        join(); // or force stop
+        if (handle_ && handle_ != INVALID_HANDLE_VALUE)
+            CloseHandle(handle_);
+    }
+
+    constexpr custom_thread() = default;
+
+    custom_thread(void* worker, void* arg)
+    {
+        handle_ = CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(worker), arg, 0, &id_);
+    }
+
+    bool joinable() const
+    {
+        return id_ != 0;
+    }
+
+    void join()
+    {
+        if (!joinable())
+            return;
+
+        if (WaitForSingleObjectEx(handle_, INFINITE, FALSE) == WAIT_FAILED)
+            FD_ASSERT_UNREACHABLE("Unable to join the thread!");
+    }
+};
+
+template <class T>
+struct threads_storage
+{
+    using size_type = uint8_t;
 
   private:
-    std::vector<thread_type> storage_;
-    veque::veque<std::variant<function_type, function_type_ex>> tasks_;
-    mutex_type mtx_;
+    std::unique_ptr<T[]> threads_;
+    size_type count_;
 
-    void worker(const std::stop_token& stop)
+  public:
+    threads_storage()
     {
-        while (!tasks_.empty() && !stop.stop_requested())
-        {
-            mtx_.lock();
-            auto task = std::move(tasks_.back());
-            tasks_.pop_back();
-            mtx_.unlock();
+        SYSTEM_INFO info;
+        GetNativeSystemInfo(&info);
+        FD_ASSERT(info.dwNumberOfProcessors <= std::numeric_limits<size_type>::max())
+        count_ = static_cast<size_type>(info.dwNumberOfProcessors);
+        std::construct_at(&threads_, new T[count_]);
+    }
 
-            switch (task.index())
-            {
-            case 0:
-                fd::invoke(std::get<0>(task));
-                break;
-            case 1:
-                fd::invoke(std::get<1>(task), stop);
-                break;
-            default:
-                throw;
-            };
+    T* begin() const
+    {
+        return threads_.get();
+    }
+
+    T* end() const
+    {
+        return threads_.get() + count_;
+    }
+
+    size_type size() const
+    {
+        return count_;
+    }
+};
+
+class custom_mutex
+{
+    CRITICAL_SECTION cs_;
+
+  public:
+    custom_mutex()
+    {
+        InitializeCriticalSection(&cs_);
+    }
+
+    ~custom_mutex()
+    {
+        DeleteCriticalSection(&cs_);
+    }
+
+    void lock() noexcept
+    {
+        EnterCriticalSection(&cs_);
+    }
+
+    void unlock() noexcept
+    {
+        LeaveCriticalSection(&cs_);
+    }
+};
+
+template <class M>
+class mutex_locker
+{
+    M* mtx_;
+
+  public:
+    mutex_locker(const mutex_locker&) = delete;
+
+    mutex_locker(M& mtx)
+        : mtx_(&mtx)
+    {
+        mtx_->lock();
+    }
+
+    ~mutex_locker()
+    {
+        if (mtx_)
+            mtx_->unlock();
+    }
+
+    void release()
+    {
+        if (mtx_)
+        {
+            mtx_->unlock();
+            mtx_ = nullptr;
         }
+    }
+};
+
+class thread_pool_impl final : public basic_thread_pool
+{
+    using tasks_storage = veque::veque<std::variant<function_type, function_type_ex>>;
+
+    threads_storage<custom_thread> threads_;
+    tasks_storage tasks_;
+    custom_mutex mtx_;
+    custom_atomic_bool stop_ = false;
+
+    static DWORD __stdcall worker(void* impl) noexcept
+    {
+        auto& pool = *static_cast<thread_pool_impl*>(impl);
+
+        for (;;)
+        {
+            if (pool.stop_)
+                break;
+            mutex_locker locker(pool.mtx_);
+            if (pool.tasks_.empty())
+                break;
+            auto task = std::move(pool.tasks_.back());
+            pool.tasks_.pop_back();
+            locker.release();
+
+            std::visit(
+                [&]<class Fn>(Fn& fn) {
+                    if constexpr (std::same_as<Fn, function_type>)
+                        fn();
+                    else if constexpr (std::same_as<Fn, function_type_ex>)
+                        fn(pool.stop_);
+                    else
+                        static_assert(std::_Always_false<Fn>);
+                },
+                task);
+        }
+
+        return 0;
     }
 
     void spawn_thread()
     {
-        const auto end      = storage_.end();
-        const auto finished = std::find_if(storage_.begin(), end, [](const thread_type& t) {
+        const auto end      = threads_.end();
+        const auto finished = std::find_if(threads_.begin(), end, [](const auto& t) {
             return !t.joinable();
         });
         if (finished == end)
             return;
-        const auto thr = std::addressof(*finished);
-        if constexpr (!std::is_trivially_destructible_v<thread_type>)
-            std::destroy_at(thr);
-        std::construct_at(thr, [this](const std::stop_token stop) {
-            this->worker(stop);
-        });
+        std::destroy_at(finished);
+        std::construct_at(finished, worker, this);
     }
 
     template <class Fn>
-    void store_task(Fn& func)
+    void store_task(Fn& func) noexcept
     {
-        const std::scoped_lock lock(mtx_);
+        const mutex_locker locker(mtx_);
         tasks_.emplace_back(std::move(func));
         spawn_thread();
     }
 
   public:
-    thread_pool_impl()
+    thread_pool_impl() = default;
+
+    ~thread_pool_impl()
     {
-        const auto limit = thread_type::hardware_concurrency();
-        FD_ASSERT(limit > 0);
-        storage_.resize(limit);
+        stop_ = true;
     }
 
     void wait() override
     {
-        for (auto& t : storage_)
+        for (auto& t : threads_)
         {
             if (t.joinable())
                 t.join();
