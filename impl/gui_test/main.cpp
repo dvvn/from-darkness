@@ -9,7 +9,6 @@
 #include <tchar.h>
 
 import fd.lazy_invoke;
-import fd.async;
 
 using namespace fd;
 

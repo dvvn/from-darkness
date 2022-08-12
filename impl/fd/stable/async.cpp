@@ -107,42 +107,37 @@ class thread_pool_impl final : public basic_thread_pool
 
     static DWORD __stdcall worker(void* impl) noexcept
     {
-        const auto pool = static_cast<thread_pool_impl*>(impl);
-        const auto id   = GetCurrentThreadId();
+        const auto pool        = static_cast<thread_pool_impl*>(impl);
+        const auto this_thread = std::find_if(pool->threads_.begin(), pool->threads_.end(), [this_id = GetCurrentThreadId()](const auto& d) {
+            return d.id == this_id;
+        });
 
-        for (;;)
+        while (!pool->stop_)
         {
-            if (pool->stop_)
-                break;
-            mutex_locker locker(pool->tasks_mtx_);
+            pool->tasks_mtx_.lock();
             if (pool->tasks_.empty())
             {
-                for (auto& t : pool->threads_)
-                {
-                    if (t.id == id && t.paused)
-                    {
-                        SuspendThread(t.h);
-                        t.paused = true;
-                        break;
-                    }
-                }
-                continue;
+                pool->tasks_mtx_.unlock();
+                if (!this_thread->paused)
+                    SuspendThread(this_thread->h);
             }
+            else
+            {
+                auto task = std::move(pool->tasks_.back());
+                pool->tasks_.pop_back();
+                pool->tasks_mtx_.unlock();
 
-            auto task = std::move(pool->tasks_.back());
-            pool->tasks_.pop_back();
-            locker.release();
-
-            std::visit(
-                [&]<class Fn>(Fn& fn) {
-                    if constexpr (std::same_as<Fn, function_type>)
-                        fn();
-                    else if constexpr (std::same_as<Fn, function_type_ex>)
-                        fn(pool->stop_);
-                    else
-                        static_assert(std::_Always_false<Fn>);
-                },
-                task);
+                std::visit(
+                    [=]<class Fn>(Fn& fn) {
+                        if constexpr (std::same_as<Fn, function_type>)
+                            fn();
+                        else if constexpr (std::same_as<Fn, function_type_ex>)
+                            fn(pool->stop_);
+                        else
+                            static_assert(std::_Always_false<Fn>);
+                    },
+                    task);
+            }
         }
 
         return EXIT_SUCCESS;
@@ -162,7 +157,7 @@ class thread_pool_impl final : public basic_thread_pool
 
         const auto tasks_in_queue   = tasks_.size() - 1;
         const size_t active_threads = std::distance(threads_begin, paused_thread);
-        if (tasks_in_queue <= active_threads)
+        if (tasks_in_queue < active_threads)
             return;
 
         ResumeThread(paused_thread->h);
