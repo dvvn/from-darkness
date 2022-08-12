@@ -22,6 +22,8 @@ import fd.chars_cache;
 import fd.format;
 import fd.mutex;
 
+using namespace fd;
+
 class file_stream
 {
     FILE* stream_;
@@ -54,7 +56,7 @@ class file_stream
     {
         redirected_                     = true;
         [[maybe_unused]] const auto err = freopen_s(&stream_, file_name, mode, old_stream);
-        assert(err == NULL);
+        FD_ASSERT(err == NULL);
     }
 
     file_stream(file_stream&& other)
@@ -65,9 +67,9 @@ class file_stream
 
     file_stream& operator=(file_stream&& other)
     {
-        const auto copy = *this;
+        const auto old  = *this;
         *this           = other;
-        other           = copy;
+        other           = old;
         return *this;
     }
 
@@ -77,54 +79,29 @@ class file_stream
     }
 };
 
-class time_buffer
+static string _Get_current_time()
 {
-    static constexpr size_t _Buff_size = fd::str_len("01:13:03 224.095");
-
-    char buff_[_Buff_size];
-    char space1_ = ' ';
-    char dash_   = '-';
-    char space2_ = ' ';
-
-  public:
-    time_buffer()
-    {
-        static_assert(sizeof(time_buffer) == _Buff_size + 3);
-
-        using namespace std::chrono;
-        using clock = system_clock;
+    using namespace std::chrono;
+    using clock = system_clock;
 
 #if 1
-        const auto str = fd::format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
+    return format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
 #else
-        const auto current_time_point = clock::now();
-        const auto current_time       = clock::to_time_t(current_time_point);
-        tm current_localtime;
+    const auto current_time_point = clock::now();
+    const auto current_time       = clock::to_time_t(current_time_point);
+    tm current_localtime;
 
-        localtime_s(&current_localtime, std::addressof(current_time));
+    localtime_s(&current_localtime, std::addressof(current_time));
 
-        const auto current_time_since_epoch = current_time_point.time_since_epoch();
-        const auto current_milliseconds     = duration_cast<milliseconds>(current_time_since_epoch).count() % 1000;
-        const auto current_microseconds     = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
+    const auto current_time_since_epoch = current_time_point.time_since_epoch();
+    const auto current_milliseconds     = duration_cast<milliseconds>(current_time_since_epoch).count() % 1000;
+    const auto current_microseconds     = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
 
-        std::ostringstream ss;
-        ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
-        const auto str = ss.view();
+    std::ostringstream ss;
+    ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
+    return std::move(ss).str();
 #endif
-        FD_ASSERT(str.size() == _Buff_size);
-        std::copy(str.begin(), str.end(), buff_);
-    }
-
-    const char* data() const
-    {
-        return buff_;
-    }
-
-    size_t size() const
-    {
-        return _Buff_size + 3;
-    }
-};
+}
 
 #define putc_assert(_RESULT_) FD_ASSERT(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
 
@@ -145,7 +122,7 @@ class reader
 class writer
 {
     file_stream stream_;
-    fd::mutex mtx_;
+    mutex mtx_;
 
     void write(const wchar_t* ptr, const size_t size)
     {
@@ -170,7 +147,7 @@ class writer
 
     void write(const char* ptr, const size_t size)
     {
-        /* const auto wstr = fd::to_char<wchar_t>(fd::string_view(ptr, size));
+        /* const auto wstr = to_char<wchar_t>(string_view(ptr, size));
          write(wstr.data(), wstr.size()); */
         _fwrite_nolock(ptr, sizeof(char), size, stream_);
     }
@@ -190,12 +167,13 @@ class writer
     }
 
     template <typename C, class Locker>
-    void operator()(const fd::basic_string_view<C> text, const Locker locker)
+    void operator()(const basic_string_view<C> text, const Locker locker)
     {
-        const time_buffer time;
+        const auto time = _Get_current_time();
 
         const auto lock = locker(mtx_);
         write(time.data(), time.size());
+        write(" - ", 3);
         write(text.data(), text.size());
         write("\n", 1);
     }
@@ -203,16 +181,16 @@ class writer
     template <typename C, class Locker>
     void operator()(const C* text, const Locker locker)
     {
-        fd::invoke(*this, fd::string_view(text), locker);
+        invoke(*this, basic_string_view(text), locker);
     }
 };
 
-constexpr auto real_locker = []<class Mtx>(Mtx& mtx) {
-    return fd::lock_guard(mtx);
+constexpr auto real_locker = [](auto& mtx) {
+    return lock_guard(mtx);
 };
 
-constexpr auto fake_locker = []<class Mtx>(Mtx&) {
-    return std::false_type();
+constexpr auto fake_locker = [](auto&) {
+    return nullptr;
 };
 
 class console_writer_impl : public console_writer
@@ -224,12 +202,12 @@ class console_writer_impl : public console_writer
     HWND window_ = nullptr;
 
   public:
-    void operator()(const fd::string_view str) override
+    void operator()(const string_view str) override
     {
         out_(str, real_locker);
     }
 
-    void operator()(const fd::wstring_view wstr) override
+    void operator()(const wstring_view wstr) override
     {
         out_(wstr, real_locker);
     }
@@ -260,22 +238,22 @@ class console_writer_impl : public console_writer
             console_window = GetConsoleWindow();
             FD_ASSERT(console_window, "Unable to get the console window");
 
-            /* in_ = file_stream("CONIN$", "r", stdin);
-            out_ = file_stream("CONOUT$", "w", stdout);
-            err_ = file_stream("CONOUT$", "w", stderr); */
-
             // const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module()->FullDllName.Buffer);
             // FD_ASSERT(window_title_set, "Unable set console title");
 
             window_ = console_window;
         }
 
-        in_  = file_stream("CONIN$", "r", stdin);
-        out_ = file_stream("CONOUT$", "w", stdout);
-        err_ = file_stream("CONOUT$", "w", stderr);
+        constexpr auto construct_helper = [](auto& obj, auto... args) {
+            std::destroy_at(&obj);
+            std::construct_at(&obj, file_stream(args...));
+        };
+
+        construct_helper(in_, "CONIN$", "r", stdin);
+        construct_helper(out_, "CONOUT$", "w", stdout);
+        construct_helper(err_, "CONOUT$", "w", stderr);
 
         FD_ASSERT(IsWindowUnicode(console_window) == TRUE);
-        // fds_assert_add_handler(this);
 
         out_("Started", fake_locker);
     }
