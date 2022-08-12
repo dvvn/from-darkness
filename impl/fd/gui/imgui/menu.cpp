@@ -1,13 +1,13 @@
 module;
 
-#include <imgui_internal.h>
-
-#include <mutex>
-
+#include <fd/assert.h>
 #include <fd/callback_impl.h>
+
+#include <imgui_internal.h>
 
 module fd.gui.menu;
 import fd.gui.widgets;
+import fd.mutex;
 
 using namespace fd;
 namespace obj = gui::objects;
@@ -18,7 +18,7 @@ namespace wid = gui::widgets;
 
 struct debug_window final : obj::window
 {
-    fd::string_view title() const override
+    string_view title() const override
     {
         return "Dear ImGui Demo";
     }
@@ -61,7 +61,7 @@ struct debug_window final : obj::window
   protected:
     void callback() override
     {
-        std::terminate();
+        FD_ASSERT_UNREACHABLE("Unused");
     }
 };
 
@@ -71,42 +71,40 @@ using menu_base = FD_CALLBACK_TYPE(menu);
 
 class menu_impl final : public menu_base, public basic_menu, public obj::window
 {
-    std::mutex mtx_;
+    mutex mtx_;
 
   public:
     using menu_base::callback_type;
 
     menu_impl()
-        : menu_base()
-        , basic_menu()
-        , obj::window(true)
+        : obj::window(true)
     {
 #ifdef HAVE_DEBUG_WINDOW
-        menu_base::push_back(std::make_unique<debug_window>());
+        menu_base::push_back(new debug_window());
 #endif
     }
 
-    fd::string_view title() const override
+    string_view title() const override
     {
         return "THE GUI";
     }
 
     virtual void push_front(callback_type&& callback) override
     {
-        const std::scoped_lock lock(mtx_);
+        const lock_guard lock(mtx_);
         menu_base::push_front(std::move(callback));
     }
 
     virtual void push_back(callback_type&& callback) override
     {
-        const std::scoped_lock lock(mtx_);
+        const lock_guard lock(mtx_);
         menu_base::push_back(std::move(callback));
     }
 
     virtual void operator()() override
     {
         // todo: don't lock if much time passed from start
-        const std::scoped_lock lock(mtx_);
+        const lock_guard lock(mtx_);
         this->render();
         if (this->shown() /* && !this->collapsed() */)
         {

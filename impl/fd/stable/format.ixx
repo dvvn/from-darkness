@@ -3,6 +3,7 @@ module;
 #if 0
 #include <format>
 #else
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/xchar.h>
 #endif
@@ -81,7 +82,7 @@ class string_builder
         {
             using val_t = Buff::value_type;
             do
-                buff += static_cast<val_t>(src);
+                buff.push_back(static_cast<val_t>(src));
             while (--size > 0);
         }
     };

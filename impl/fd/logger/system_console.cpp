@@ -12,7 +12,6 @@ module;
 #include <chrono>
 #include <cstdio>
 #include <iostream>
-#include <mutex>
 #include <time.h>
 
 module fd.system_console;
@@ -20,31 +19,8 @@ module fd.system_console;
 import fd.to_char;
 #endif
 import fd.chars_cache;
-
-class stream_descriptor
-{
-    int descriptor_;
-
-  public:
-    ~stream_descriptor()
-    {
-    }
-
-    stream_descriptor() = default;
-
-    stream_descriptor(FILE* const stream)
-        : descriptor_(_fileno(stream))
-    {
-        // If stdout or stderr is not associated with an output stream (for example, in a Windows application without a console window),
-        // the file descriptor returned is -2. In previous versions, the file descriptor returned was -1
-        assert(descriptor_ >= 0);
-    }
-
-    operator int() const
-    {
-        return descriptor_;
-    }
-};
+import fd.format;
+import fd.mutex;
 
 class file_stream
 {
@@ -59,7 +35,7 @@ class file_stream
     {
         if (!redirected_ || !stream_)
             return;
-        fclose(stream_);
+        _fclose_nolock(stream_);
     }
 
     file_stream()
@@ -118,6 +94,9 @@ class time_buffer
         using namespace std::chrono;
         using clock = system_clock;
 
+#if 1
+        const auto str = fd::format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
+#else
         const auto current_time_point = clock::now();
         const auto current_time       = clock::to_time_t(current_time_point);
         tm current_localtime;
@@ -131,6 +110,7 @@ class time_buffer
         std::ostringstream ss;
         ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
         const auto str = ss.view();
+#endif
         FD_ASSERT(str.size() == _Buff_size);
         std::copy(str.begin(), str.end(), buff_);
     }
@@ -165,11 +145,7 @@ class reader
 class writer
 {
     file_stream stream_;
-    std::mutex mtx_;
-
-    void write_impl()
-    {
-    }
+    fd::mutex mtx_;
 
     void write(const wchar_t* ptr, const size_t size)
     {
@@ -232,7 +208,7 @@ class writer
 };
 
 constexpr auto real_locker = []<class Mtx>(Mtx& mtx) {
-    return std::scoped_lock(mtx);
+    return fd::lock_guard(mtx);
 };
 
 constexpr auto fake_locker = []<class Mtx>(Mtx&) {

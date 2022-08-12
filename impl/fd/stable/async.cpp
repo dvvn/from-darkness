@@ -14,6 +14,7 @@ module;
 
 module fd.async;
 import fd.lazy_invoke;
+import fd.mutex;
 
 custom_atomic_bool::custom_atomic_bool(const bool value)
     : value_(value)
@@ -31,62 +32,6 @@ custom_atomic_bool& custom_atomic_bool::operator=(const bool value)
     return *this;
 }
 
-class custom_mutex
-{
-    CRITICAL_SECTION cs_;
-
-  public:
-    custom_mutex()
-    {
-        InitializeCriticalSection(&cs_);
-    }
-
-    ~custom_mutex()
-    {
-        DeleteCriticalSection(&cs_);
-    }
-
-    void lock() noexcept
-    {
-        EnterCriticalSection(&cs_);
-    }
-
-    void unlock() noexcept
-    {
-        LeaveCriticalSection(&cs_);
-    }
-};
-
-template <class M>
-class mutex_locker
-{
-    M* mtx_;
-
-  public:
-    mutex_locker(const mutex_locker&) = delete;
-
-    mutex_locker(M& mtx)
-        : mtx_(&mtx)
-    {
-        mtx_->lock();
-    }
-
-    ~mutex_locker()
-    {
-        if (mtx_)
-            mtx_->unlock();
-    }
-
-    void release()
-    {
-        if (mtx_)
-        {
-            mtx_->unlock();
-            mtx_ = nullptr;
-        }
-    }
-};
-
 class thread_pool_impl final : public basic_thread_pool
 {
     struct thread_data
@@ -101,7 +46,7 @@ class thread_pool_impl final : public basic_thread_pool
     using task_type = std::variant<function_type, function_type_ex>;
 
     veque::veque<task_type> tasks_;
-    custom_mutex tasks_mtx_;
+    fd::mutex tasks_mtx_;
 
     custom_atomic_bool stop_ = false;
 
@@ -146,7 +91,7 @@ class thread_pool_impl final : public basic_thread_pool
     template <class Fn>
     void store_func(Fn& func) noexcept
     {
-        const mutex_locker locker(tasks_mtx_);
+        const fd::lock_guard locker(tasks_mtx_);
         tasks_.emplace_front(std::move(func));
 
         const auto threads_begin = threads_.begin();
