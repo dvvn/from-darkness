@@ -214,8 +214,6 @@ class console_writer_impl : public console_writer
 
     ~console_writer_impl() override
     {
-        // fds_assert_remove_handler(this->id());
-
         if (window_)
         {
             FreeConsole();

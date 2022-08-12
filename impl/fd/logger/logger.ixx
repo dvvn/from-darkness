@@ -76,13 +76,6 @@ bool _Logger_empty(const L logger)
     return !logger.initialized() || logger->empty();
 }
 
-// invocable from concepts ignore self overloads!
-/* template <class _FTy, class... _ArgTys>
-concept invocable = requires(_FTy&& _Fn, _ArgTys&&... _Args)
-{
-    fd::invoke(static_cast<_FTy&&>(_Fn), static_cast<_ArgTys&&>(_Args)...);
-};
- */
 class logger_wrapped
 {
     void _Log(const fd::string_view msg) const
@@ -189,5 +182,6 @@ class logger_wrapped
 
 export namespace fd
 {
-    constexpr logger_wrapped logger;
+    using ::fd::invoke;
+    FD_OBJECT(logger, logger_wrapped);
 }

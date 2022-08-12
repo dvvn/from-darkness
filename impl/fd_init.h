@@ -62,9 +62,11 @@ namespace fd
     inline void _Init(const HWND hwnd, const HMODULE hmodule)
     {
 #if defined(_DEBUG) || defined(FD_GUI_TEST)
-        logger.append(system_console_writer);
+        logger->append([](const auto str) {
+            invoke(system_console_writer, str);
+        });
         assert_handler->push_back([](const assert_data& data) {
-            invoke(logger, data.build_message());
+            invoke(system_console_writer, data.build_message());
         });
 #endif
         app_info.construct(hwnd, hmodule);

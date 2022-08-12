@@ -325,4 +325,6 @@ export namespace fd
 
     template <typename T, size_t Instance = 0>
     constexpr instance_of_impl<T, Instance> instance_of;
+
+    using ::instance_of_impl;
 } // namespace fd
