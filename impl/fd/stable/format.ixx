@@ -217,7 +217,7 @@ class to_string_impl
     constexpr void operator()(const T val) const = delete; // not implemented
 };
 
-class format_impl
+class format_to_impl
 {
     template <typename C, typename... Args>
     static auto make_format_args(const Args&... args)
@@ -228,12 +228,36 @@ class format_impl
             return _FMT::make_wformat_args(args...);
     }
 
-    template <typename C, typename... Args>
-    static auto impl(const fd::basic_string_view<C> fmt, const Args&... args)
+    template <typename Out, class S, typename... Args>
+    static auto impl(Out out, const S fmt, const Args&... args)
     {
         static_assert(sizeof...(Args) > 0);
-        fd::basic_string<C> buff;
-        _FMT::vformat_to(std::back_inserter(buff), fmt, make_format_args<C>(args...));
+        _FMT::vformat_to(out, fmt, make_format_args<typename S::value_type>(args...));
+    }
+
+  public:
+    template <typename Out, typename... Args>
+    auto operator()(Out out, const fd::string_view fmt, const Args&... args) const
+    {
+        return impl(out, fmt, args...);
+    }
+
+    template <typename Out, typename... Args>
+    auto operator()(Out out, const fd::wstring_view fmt, const Args&... args) const
+    {
+        return impl(out, fmt, args...);
+    }
+};
+
+class format_impl
+{
+    [[no_unique_address]] format_to_impl format_to_;
+
+    template <typename S, typename... Args>
+    auto impl(const S fmt, const Args&... args) const
+    {
+        fd::basic_string<typename S::value_type> buff;
+        format_to_(std::back_inserter(buff), fmt, args...);
         return buff;
     }
 
@@ -255,5 +279,7 @@ export namespace fd
 {
     constexpr string_builder make_string;
     constexpr to_string_impl to_string;
+
+    constexpr format_to_impl format_to;
     constexpr format_impl format;
 } // namespace fd
