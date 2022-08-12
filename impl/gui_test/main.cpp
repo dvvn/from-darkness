@@ -12,8 +12,8 @@ import fd.lazy_invoke;
 
 using namespace fd;
 
-static fd::comptr<IDirect3D9> g_pD3D;
-static fd::comptr<IDirect3DDevice9> g_pd3dDevice;
+static comptr<IDirect3D9> g_pD3D;
+static comptr<IDirect3DDevice9> g_pd3dDevice;
 static D3DPRESENT_PARAMETERS g_d3dpp;
 
 #define RESET_BACK_BUFFER_ON_RESIZE
@@ -99,10 +99,10 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    if (!fd::init(hwnd, hmodule, g_pd3dDevice.Get()))
+    if (!init(hwnd, hmodule, g_pd3dDevice.Get()))
         return TRUE;
 
-    const fd::lazy_invoke destroy_helper(fd::destroy);
+    const lazy_invoke destroy_helper(destroy);
 
     for (;;)
     {
