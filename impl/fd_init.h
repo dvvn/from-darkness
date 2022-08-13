@@ -8,14 +8,10 @@
 import fd.hooks_loader;
 import fd.application_data;
 import fd.rt_modules;
-#ifdef _DEBUG
 import fd.assert;
 import fd.logger;
 import fd.system_console;
-#endif
-#ifndef FD_GUI_TEST
 import fd.async;
-#endif
 
 namespace fd
 {
@@ -65,6 +61,8 @@ namespace fd
         logger->append([](const auto str) {
             invoke(system_console_writer, str);
         });
+#endif
+#ifdef _DEBUG
         assert_handler->push_back([](const assert_data& data) {
             invoke(system_console_writer, data.build_message());
         });
@@ -111,9 +109,7 @@ namespace fd
 #endif
     inline void destroy()
     {
-#ifndef FD_GUI_TEST
         async.destroy();
-#endif
         hooks_loader.destroy();
     }
 
