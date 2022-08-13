@@ -5,7 +5,7 @@ export import fd.netvars.core;
 import fd.address;
 import fd.chars_cache;
 
-using _Address = fd::basic_address<const void>;
+using _Address = fd::address<const void>;
 
 export namespace fd::netvars
 {

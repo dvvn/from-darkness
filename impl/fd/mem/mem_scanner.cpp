@@ -9,12 +9,12 @@ module;
 
 module fd.mem_scanner;
 
-static const void* _Find_block(const pointer start0, const size_t block_size, const pointer start2, const size_t rng_size)
+static void* _Find_block(const pointer start0, const size_t block_size, const pointer start2, const size_t rng_size)
 {
     const auto limit = block_size - rng_size;
 
     if (rng_size == 1)
-        return std::memchr(start0, *start2, limit);
+        return const_cast<void*>(std::memchr(start0, *start2, limit));
 
     for (size_t offset = 0; offset <= limit;)
     {
@@ -23,7 +23,7 @@ static const void* _Find_block(const pointer start0, const size_t block_size, co
             break;
 
         if (std::memcmp(start1, start2, rng_size) == 0)
-            return start1;
+            return const_cast<void*>(start1);
 
         offset = std::distance(start0, static_cast<pointer>(start1)) + 1;
     }
@@ -31,17 +31,17 @@ static const void* _Find_block(const pointer start0, const size_t block_size, co
     return nullptr;
 }
 
-static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const pointer end2)
+static auto _Find_block(const pointer start0, const pointer end0, const pointer start2, const pointer end2)
 {
     return _Find_block(start0, std::distance(start0, end0), start2, std::distance(start2, end2));
 }
 
-static const void* _Find_block(const pointer start0, const pointer end0, const pointer start2, const size_t rng_size)
+static auto _Find_block(const pointer start0, const pointer end0, const pointer start2, const size_t rng_size)
 {
     return _Find_block(start0, std::distance(start0, end0), start2, rng_size);
 }
 
-static const void* _Find_block(const pointer start0, const size_t block_size, const pointer start2, const pointer end2)
+static auto _Find_block(const pointer start0, const size_t block_size, const pointer start2, const pointer end2)
 {
     return _Find_block(start0, block_size, start2, std::distance(start2, end2));
 }
@@ -118,7 +118,7 @@ static bool _Have_mem_after(const size_t skip, const void* begin, const size_t o
     return mem_after >= skip;
 }
 
-static const void* _Find_unk_block(const pointer begin, const pointer end, const unknown_bytes_range& unkbytes)
+static void* _Find_unk_block(const pointer begin, const pointer end, const unknown_bytes_range& unkbytes)
 {
 #ifdef _DEBUG
     const auto unkbytes_count = unkbytes.bytes_count();
@@ -176,9 +176,9 @@ static const void* _Find_unk_block(const pointer begin, const pointer end, const
         {
             if (!_Have_mem_after(unkbytes.back().skip, part0_found, unkbytes_count, end))
                 break;
-
             return part0_found;
         }
+
         pos = std::distance(begin, temp_begin) + 1;
     }
 
@@ -361,7 +361,7 @@ pattern_scanner_unknown::pattern_scanner_unknown(const memory_range mem_rng, con
 
 void* pattern_scanner_unknown::operator()() const
 {
-    return const_cast<void*>(_Find_unk_block(mem_rng_.from_, mem_rng_.to_, *bytes_));
+    return _Find_unk_block(mem_rng_.from_, mem_rng_.to_, *bytes_);
 }
 
 void pattern_scanner_unknown::update(void* last_pos)
@@ -377,9 +377,15 @@ xrefs_finder_impl::xrefs_finder_impl(const memory_range mem_rng, const uintptr_t
 {
 }
 
+xrefs_finder_impl::xrefs_finder_impl(const memory_range mem_rng, const void* addr)
+    : mem_rng_(mem_rng)
+    , xref_(reinterpret_cast<pointer>(&addr))
+{
+}
+
 void* xrefs_finder_impl::operator()() const
 {
-    return const_cast<void*>(_Find_block(mem_rng_.from_, mem_rng_.to_, xref_, sizeof(uintptr_t)));
+    return _Find_block(mem_rng_.from_, mem_rng_.to_, xref_, sizeof(uintptr_t));
 }
 
 void xrefs_finder_impl::update(void* last_pos)
@@ -397,19 +403,10 @@ pattern_scanner_known::pattern_scanner_known(const memory_range mem_rng, const p
 
 void* pattern_scanner_known::operator()() const
 {
-    return const_cast<void*>(_Find_block(mem_rng_.from_, mem_rng_.to_, search_rng_.from_, search_rng_.to_));
+    return _Find_block(mem_rng_.from_, mem_rng_.to_, search_rng_.from_, search_rng_.to_);
 }
 
 void pattern_scanner_known::update(void* last_pos)
 {
     mem_rng_.update(last_pos);
-}
-
-//-----
-
-auto xrefs_scanner::operator()(const uintptr_t& addr) const -> iterator
-{
-    return {
-        this, {*this, addr}
-    };
 }

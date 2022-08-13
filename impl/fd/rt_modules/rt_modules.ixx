@@ -11,7 +11,7 @@ export import fd.type_name;
 import :library_info;
 import fd.chars_cache;
 
-using fd::basic_address;
+using fd::address;
 using fd::chars_cache;
 using fd::library_info;
 
@@ -42,7 +42,7 @@ struct any_module : any_module_base
     }
 
     template <chars_cache Sig>
-    basic_address<void> find_signature() const
+    address<void> find_signature() const
     {
         static const auto found = this->data().find_signature(Sig);
         return found;
@@ -100,7 +100,7 @@ class rt_module final : public any_module<fd::_Hash_object(Name)>
     }
 
     template <chars_cache Interface>
-    basic_address<void> find_interface() const
+    address<void> find_interface() const
     {
         static const auto found = this->data().find_csgo_interface(this->find_export<"CreateInterface">(), Interface);
         return found;

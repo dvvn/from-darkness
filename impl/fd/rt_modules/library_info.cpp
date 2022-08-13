@@ -14,7 +14,6 @@ import fd.path;
 import fd.mem_scanner;
 import fd.chars_cache;
 import fd.ctype;
-import fd.address; //todo : remove
 
 using namespace fd;
 
@@ -52,7 +51,7 @@ std::span<IMAGE_SECTION_HEADER> dos_nt::sections() const
 //---------
 
 template <typename Fn>
-static LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
+static const LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
 {
     const auto mem =
 #if defined(_M_X64) || defined(__x86_64__)
@@ -191,11 +190,11 @@ void* library_info::find_export(const string_view name, const bool notify) const
     const dos_nt dnt(ldr_entry);
 
     // get export data directory.
-    const auto& data_dir = dnt.nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    const auto& data_dir = dnt_.nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
     FD_ASSERT(data_dir.VirtualAddress, "Current module doesn't have the virtual address!");
 
     // get export export_dir.
-    const basic_address<IMAGE_EXPORT_DIRECTORY> export_dir = dos + data_dir.VirtualAddress;
+    const address<IMAGE_EXPORT_DIRECTORY> export_dir = dos + data_dir.VirtualAddress;
 
     // names / funcs / ordinals ( all of these are RVAs ).
     uint32_t* const names = dos + export_dir->AddressOfNames;
@@ -297,12 +296,12 @@ void* library_info::find_signature(const string_view sig, const bool notify) con
     return result;
 }
 
-enum obj_type : uint8_t
+enum class obj_type : uint8_t
 {
-    TYPE_UNKNOWN,
-    TYPE_CLASS,
-    TYPE_STRUCT,
-    TYPE_NATIVE
+    UNKNOWN,
+    CLASS,
+    STRUCT,
+    NATIVE
 };
 
 template <typename T>
@@ -359,88 +358,102 @@ static string _Demangle_symbol(const char* mangled_name)
     return name.get();
 }
 
-static void* _Find_vtable(const library_info info, const string_view name, const obj_type type, const bool notify)
+class vtable_finder
 {
-    const dos_nt dnt(info);
-    const auto memory_span = dnt.read();
-    const pattern_scanner whole_module_finder(memory_span.data(), memory_span.size());
+    static constexpr chars_cache raw_prefix  = ".?A";
+    static constexpr chars_cache raw_postfix = "@@";
 
-    constexpr chars_cache raw_prefix  = ".?A";
-    constexpr chars_cache raw_postfix = "@@";
+    static constexpr auto class_prefix  = 'V';
+    static constexpr auto struct_prefix = 'U';
 
-    constexpr auto class_prefix  = 'V';
-    constexpr auto struct_prefix = 'U';
+    library_info info_;
+    dos_nt dnt_;
 
-    void* rtti_class_name;
-
-    if (type == TYPE_UNKNOWN)
+  public:
+    vtable_finder(const library_info info)
+        : info_(info)
+        , dnt_(info)
     {
-        constexpr auto bytes_prefix  = _Bytes_to_sig<raw_prefix>();
-        const auto bytes_name        = _Bytes_to_sig(name.data(), name.size());
-        constexpr auto bytes_postfix = _Bytes_to_sig<raw_postfix>();
-
-        const auto real_name_unk = make_string(bytes_prefix, " ? ", bytes_name, ' ', bytes_postfix);
-        rtti_class_name          = whole_module_finder(real_name_unk).front();
     }
-    else if (type == TYPE_NATIVE)
+
+    const char* find_type_descriptor(const string_view name, const obj_type type) const
     {
-        const auto ptr  = (const uint8_t*)name.data();
-        // FD_ASSERT(ptr >= whole_module_finder.from && ptr <= whole_module_finder.to - name.size(), "Selected wrong module!");
-        rtti_class_name = (void*)ptr;
-    }
-    else
-    {
-        char str_prefix;
-        if (type == TYPE_CLASS)
-            str_prefix = class_prefix;
-        else if (type == TYPE_STRUCT)
-            str_prefix = struct_prefix;
+        const auto memory_span = dnt_.read();
+        const pattern_scanner whole_module_finder(memory_span.data(), memory_span.size());
+
+        const void* rtti_class_name;
+
+        if (type == obj_type::UNKNOWN)
+        {
+            constexpr auto bytes_prefix  = _Bytes_to_sig<raw_prefix>();
+            const auto bytes_name        = _Bytes_to_sig(name.data(), name.size());
+            constexpr auto bytes_postfix = _Bytes_to_sig<raw_postfix>();
+
+            const auto real_name_unk = make_string(bytes_prefix, " ? ", bytes_name, ' ', bytes_postfix);
+            rtti_class_name          = whole_module_finder(real_name_unk).front();
+        }
+        else if (type == obj_type::NATIVE)
+        {
+            // const auto ptr  = (const uint8_t*)name.data();
+            // FD_ASSERT(ptr >= whole_module_finder.from && ptr <= whole_module_finder.to - name.size(), "Selected wrong module!");
+            rtti_class_name = name.data();
+        }
         else
-            FD_ASSERT_UNREACHABLE("Unknown type");
+        {
+            char str_prefix;
+            if (type == obj_type::CLASS)
+                str_prefix = class_prefix;
+            else if (type == obj_type::STRUCT)
+                str_prefix = struct_prefix;
+            else
+                FD_ASSERT_UNREACHABLE("Unknown type");
 
-        const auto real_name = make_string(raw_prefix, str_prefix, name, raw_postfix);
-        rtti_class_name      = whole_module_finder(real_name, raw_pattern).front();
+            const auto real_name = make_string(raw_prefix, str_prefix, name, raw_postfix);
+            rtti_class_name      = whole_module_finder(real_name, raw_pattern).front();
+        }
+
+        return static_cast<const char*>(rtti_class_name);
     }
 
-    FD_ASSERT(rtti_class_name != nullptr); //------------------------------
-
-    // get rtti type descriptor
-    auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_class_name);
-    // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the string
-    type_descriptor -= sizeof(uintptr_t) * 2;
-
-    const auto dot_rdata = info.find_section(".rdata");
-    const auto dot_text  = info.find_section(".text");
-
-    const xrefs_scanner dot_rdata_finder(dnt.map(dot_rdata->VirtualAddress), dot_rdata->SizeOfRawData);
-    const xrefs_scanner dot_text_finder(dnt.map(dot_text->VirtualAddress), dot_text->SizeOfRawData);
-
-    void* vtable_ptr = nullptr;
-
-    for (const auto xref : dot_rdata_finder(type_descriptor))
+    void* operator()(const void* rtti_class_name) const
     {
-        // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
-        const auto vtable_offset = *reinterpret_cast<uint32_t*>(xref - 0x8);
-        if (vtable_offset != 0)
-            continue;
+        // get rtti type descriptor
+        auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_class_name);
+        // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the string
+        type_descriptor -= sizeof(uintptr_t) * 2;
 
-        const auto object_locator = xref - 0xC;
-        const auto vtable_address = dot_rdata_finder(object_locator).front() + 0x4;
+        const auto dot_rdata = info_.find_section(".rdata");
+        const auto dot_text  = info_.find_section(".text");
 
-        // check is valid offset
-        FD_ASSERT(vtable_address > sizeof(uintptr_t));
-        vtable_ptr = (void*)dot_text_finder(vtable_address).front();
-        break;
+        const xrefs_scanner dot_rdata_finder(dnt_.map(dot_rdata->VirtualAddress), dot_rdata->SizeOfRawData);
+        const xrefs_scanner dot_text_finder(dnt_.map(dot_text->VirtualAddress), dot_text->SizeOfRawData);
+
+        for (const auto xref : dot_rdata_finder(type_descriptor))
+        {
+            const auto val           = reinterpret_cast<uint32_t>(xref);
+            // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
+            const auto vtable_offset = *reinterpret_cast<uint32_t*>(val - 0x8);
+            if (vtable_offset != 0)
+                continue;
+
+            const auto object_locator = val - 0xC;
+            const auto vtable_address = reinterpret_cast<uintptr_t>(dot_rdata_finder(object_locator).front()) + 0x4;
+
+            // check is valid offset
+            FD_ASSERT(vtable_address > sizeof(uintptr_t));
+            return dot_text_finder(vtable_address).front();
+        }
+        return nullptr;
     }
 
-    if (notify)
+    void notify(const string_view name, const char* type_descriptor, const void* vtable_ptr) const
     {
 #ifndef __cpp_lib_string_contains
 #define contains(x) find(x) != static_cast<size_t>(-1)
 #endif
 
         const auto demagle_type = [=]() -> string_view {
-            const auto prefix = reinterpret_cast<const char*>(rtti_class_name)[raw_prefix.size()];
+            const auto prefix = type_descriptor[raw_prefix.size()];
             if (prefix == class_prefix)
                 return "class";
             else if (prefix == struct_prefix)
@@ -452,7 +465,7 @@ static void* _Find_vtable(const library_info info, const string_view name, const
         const auto demagle_name = [=]() -> string {
             string buff;
             if (name.contains('@'))
-                buff = _Demangle_symbol(reinterpret_cast<const char*>(rtti_class_name));
+                buff = _Demangle_symbol(type_descriptor);
             else if (name.contains(' '))
                 buff = name;
             else
@@ -463,56 +476,61 @@ static void* _Find_vtable(const library_info info, const string_view name, const
 
         invoke(logger,
                L"{} -> {} {} '{}' {}! ({:#X})",
-               bind_front(&library_info::name, &info),
+               bind_front(&library_info::name, &info_),
                L"vtable for",
                demagle_type,
                demagle_name,
                vtable_ptr ? L"found" : L"not found",
                reinterpret_cast<uintptr_t>(vtable_ptr));
     }
+};
 
+static void* _Find_vtable(const library_info info, const string_view name, const obj_type type, const bool notify)
+{
+    const vtable_finder finder(info);
+
+    const auto rtti_class_name = finder.find_type_descriptor(name, type);
+    FD_ASSERT(rtti_class_name != nullptr);
+    const auto vtable_ptr = finder(rtti_class_name);
+    if (notify)
+        finder.notify(name, rtti_class_name, vtable_ptr);
     return vtable_ptr;
 }
 
 void* library_info::find_vtable_class(const string_view name, const bool notify) const
 {
-    return _Find_vtable(entry_, name, TYPE_CLASS, notify);
+    return _Find_vtable(entry_, name, obj_type::CLASS, notify);
 }
 
 void* library_info::find_vtable_struct(const string_view name, const bool notify) const
 {
-    return _Find_vtable(entry_, name, TYPE_STRUCT, notify);
+    return _Find_vtable(entry_, name, obj_type::STRUCT, notify);
 }
 
 void* library_info::find_vtable_unknown(const string_view name, const bool notify) const
 {
-    return _Find_vtable(entry_, name, TYPE_UNKNOWN, notify);
+    return _Find_vtable(entry_, name, obj_type::UNKNOWN, notify);
 }
 
-void* library_info::find_vtable(const string_view name, const bool notify) const
+/* void* library_info::find_vtable(const string_view name, const bool notify) const
 {
     const auto do_find = bind_back(bind_front(_Find_vtable, entry_), notify);
 
     constexpr string_view class_prefix = "class ";
     if (name.starts_with(class_prefix))
-        return do_find(name.substr(class_prefix.size()), TYPE_CLASS);
+        return do_find(name.substr(class_prefix.size()), obj_type::CLASS);
 
     constexpr string_view struct_prefix = "struct ";
     if (name.starts_with(struct_prefix))
-        return do_find(name.substr(struct_prefix.size()), TYPE_STRUCT);
+        return do_find(name.substr(struct_prefix.size()), obj_type::STRUCT);
 
-    return do_find(name, TYPE_UNKNOWN);
-}
+    return do_find(name, obj_type::UNKNOWN);
+} */
 
 void* library_info::find_vtable(const std::type_info& info, const bool notify) const
 {
     const auto raw_name = info.raw_name();
-    string_view name;
-    if (notify)
-        name = raw_name;
-    else
-        name = { raw_name, 0 };
-    return _Find_vtable(entry_, name, TYPE_NATIVE, notify);
+    return _Find_vtable(entry_, { raw_name, notify ? str_len(raw_name) : 0 }, obj_type::NATIVE, notify);
 }
 
 struct interface_reg
@@ -561,8 +579,12 @@ void* library_info::find_csgo_interface(const void* create_interface_fn, const s
     if (!create_interface_fn)
         return nullptr;
 
-    const interface_reg* root_reg = basic_address(create_interface_fn)./*rel32*/ jmp(0x5).plus(0x6).deref<2>();
-    const auto target_reg         = root_reg->find(name);
+    const auto relative_fn  = reinterpret_cast<uintptr_t>(create_interface_fn) + 0x5;
+    const auto displacement = *reinterpret_cast<int32_t*>(relative_fn);
+    const auto jmp          = relative_fn + sizeof(uint32_t) + displacement;
+
+    const auto root_reg   = **reinterpret_cast<interface_reg***>(jmp + 0x6);
+    const auto target_reg = root_reg->find(name);
     FD_ASSERT(target_reg != nullptr);
     const auto ifc_addr = invoke(target_reg->create_fn);
 

@@ -13,14 +13,14 @@ using namespace valve;
 
 data_map* base_entity::GetDataDescMap()
 {
-    const basic_address vtable_holder               = this;
+    const address vtable_holder                     = this;
     const decltype(&base_entity::GetDataDescMap) fn = vtable_holder.deref<1>()[15];
     return fd::invoke(fn, this);
 }
 
 data_map* base_entity::GetPredictionDescMap()
 {
-    const basic_address vtable_holder                     = this;
+    const address vtable_holder                           = this;
     const decltype(&base_entity::GetPredictionDescMap) fn = vtable_holder.deref<1>()[17];
     return fd::invoke(fn, this);
 }

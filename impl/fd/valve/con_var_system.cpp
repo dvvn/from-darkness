@@ -24,7 +24,7 @@ static void _Set_helper(con_var* ptr, size_t index, T value)
     // return dhooks::_Call_function(static_cast<void(con_var::*)(T)>(&con_var::set), ptr, index, value);
     // dhooks::invoke(&con_var::set<T>, index, ptr, value);
 
-    const decltype(&con_var::set<T>) fn = basic_address(ptr).deref<1>()[index];
+    const decltype(&con_var::set<T>) fn = address(ptr).deref<1>()[index];
     invoke(fn, ptr, value);
 }
 
@@ -33,7 +33,7 @@ static T _Get_helper(const con_var* ptr, size_t index)
 {
     // return dhooks::invoke(&con_var::get<T>, index, ptr);
 
-    const decltype(&con_var::get<T>) fn = basic_address(ptr).deref<1>()[index];
+    const decltype(&con_var::get<T>) fn = address(ptr).deref<1>()[index];
     return invoke(fn, ptr);
 }
 
@@ -147,7 +147,7 @@ static bool _Compare_cvars(const string_view name, const ConCommandBase& other)
 con_var* con_var_system::FindVar(const string_view name) const
 {
     const auto comparer                       = fd::bind_front(_Compare_cvars, name);
-    const ConCommandBaseIterator first_cvar   = basic_address(this).plus(0x30).deref<1>().get<ConCommandBase*>();
+    const ConCommandBaseIterator first_cvar   = address(this).plus(0x30).deref<1>().get<ConCommandBase*>();
     const ConCommandBaseIterator invalid_cvar = nullptr;
 
     const auto target_cvar = std::find_if(first_cvar, invalid_cvar, comparer);

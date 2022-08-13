@@ -68,7 +68,7 @@ constexpr size_t _Array_step() noexcept
 export namespace fd
 {
     template <typename T>
-    struct basic_address
+    struct address
     {
         using value_type    = /*std::remove_const_t<T>*/ T;
         using pointer_type  = std::add_pointer_t<T>;
@@ -80,32 +80,32 @@ export namespace fd
             pointer_type pointer;
         };
 
-        basic_address()
+        address()
             : pointer(nullptr)
         {
         }
 
-        basic_address(std::nullptr_t)
+        address(std::nullptr_t)
             : value(0)
         {
         }
 
         template <std::integral Q>
-        basic_address(const Q val)
+        address(const Q val)
             : value(static_cast<uintptr_t>(val))
         {
         }
 
         template <typename Q>
-        basic_address(Q* ptr)
+        address(Q* ptr)
             : pointer(_Force_cast<pointer_type>(ptr))
         {
             static_assert(!std::is_class_v<value_type> || std::convertible_to<pointer_type, Q*>, __FUNCSIG__ ": unable to construct from pointer!");
         }
 
         template <typename Q>
-        basic_address(const basic_address<Q> other)
-            : basic_address(other.pointer)
+        address(const address<Q> other)
+            : address(other.pointer)
         {
         }
 
@@ -124,26 +124,26 @@ export namespace fd
         //----
 
         /* #define ADDR_EQ_OP(_OP_)                                    \
-            template <constructible_from<basic_address> Q>          \
+            template <constructible_from<address> Q>          \
             auto FD_CONCAT(operator, _OP_)(const Q other) const     \
             {                                                       \
-                return this->value _OP_ basic_address(other).value; \
+                return this->value _OP_ address(other).value; \
             }
 
         #define ADDR_MATH_OP(_OP_, _NAME_)                                                                     \
-            template <constructible_from<basic_address> Q>                                                     \
-            basic_address& FD_CONCAT(operator, _OP_, =)(const Q other)                                         \
+            template <constructible_from<address> Q>                                                     \
+            address& FD_CONCAT(operator, _OP_, =)(const Q other)                                         \
             {                                                                                                  \
                 static_assert(!std::is_class_v<value_type>, __FUNCSIG__ ": unable to change the class type!"); \
                 this->value FD_CONCAT(_OP_, =)_Void_addr(other).value;                               \
                 return *this;                                                                                  \
             }                                                                                                  \
-            template <constructible_from<basic_address> Q>                                                     \
+            template <constructible_from<address> Q>                                                     \
             _Safe_addr FD_CONCAT(operator, _OP_)(const Q other) const                        \
             {                                                                                                  \
                 return this->value _OP__Void_addr(other).value;                                      \
             }                                                                                                  \
-            template <constructible_from<basic_address> Q>                                                     \
+            template <constructible_from<address> Q>                                                     \
             _Safe_addr _NAME_(const Q other) const                                           \
             {                                                                                                  \
                 return this->value _OP__Void_addr(other).value;                                      \
@@ -159,8 +159,8 @@ export namespace fd
 
         //----
 
-        using _Void_addr = basic_address<const void>;
-        using _Safe_addr = basic_address<safe_out_type>;
+        using _Void_addr = address<const void>;
+        using _Safe_addr = address<safe_out_type>;
 
         template <typename T>
         auto operator<=>(const T other) const requires(std::constructible_from<_Void_addr, T>)
@@ -244,7 +244,7 @@ export namespace fd
         operator Q() const requires(std::is_pointer_v<Q> || std::is_member_function_pointer_v<Q> || std::is_function_v<Q>)
         {
             if constexpr (std::is_pointer_v<Q>)
-                static_assert(std::constructible_from<basic_address, Q>, __FUNCSIG__ ": unable to convert to pointer!");
+                static_assert(std::constructible_from<address, Q>, __FUNCSIG__ ": unable to convert to pointer!");
             else
                 static_assert(!std::is_class_v<value_type>, __FUNCSIG__ ": unable to convert to function pointer!");
             return _Force_cast<Q>(this->value);
@@ -263,7 +263,7 @@ export namespace fd
         auto deref() const
         {
             const auto ptr = _Deref<Count>(this->pointer);
-            return basic_address<decltype(ptr)>(ptr);
+            return address<decltype(ptr)>(ptr);
         }
 
         template <typename Q>
@@ -280,7 +280,7 @@ export namespace fd
             // E9 ? ? ? ?
             // The offset has to skip the E9 (JMP) instruction
             // Then deref the address coming after that to get to the function
-            // Since the relative JMP is based on the next instruction after the basic_address it has to be skipped
+            // Since the relative JMP is based on the next instruction after the address it has to be skipped
 
             // Base address is the address that follows JMP ( 0xE9 ) instruction
             _Void_addr base = this->value + offset;
@@ -289,12 +289,12 @@ export namespace fd
             // Note: Displacement address can be signed
             int32_t displacement = base.deref<1>();
 
-            // The JMP is based on the instruction after the basic_address
-            // so the basic_address size has to be added
+            // The JMP is based on the instruction after the address
+            // so the address size has to be added
             // Note: This is always 4 bytes, regardless of architecture
             base.value += sizeof(uint32_t);
 
-            // Now finally do the JMP by adding the function basic_address
+            // Now finally do the JMP by adding the function address
             base.value += displacement;
 
             return base;
@@ -302,5 +302,5 @@ export namespace fd
     };
 
     template <typename T>
-    basic_address(T*) -> basic_address<T>;
+    address(T*) -> address<T>;
 } // namespace fd

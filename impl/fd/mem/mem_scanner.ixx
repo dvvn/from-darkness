@@ -16,6 +16,7 @@ struct memory_range
 
     memory_range(pointer from, pointer to);
     memory_range(pointer from, const size_t size);
+
     void update(pointer curr, const size_t offset = 0);
     void update(void* curr, const size_t offset = 0);
 };
@@ -68,68 +69,27 @@ class xrefs_finder_impl
 
   public:
     xrefs_finder_impl(const memory_range mem_rng, const uintptr_t& addr);
+    xrefs_finder_impl(const memory_range mem_rng, const void* addr);
 
     void* operator()() const;
     void update(void* last_pos);
 };
 
-struct dummy_proj
-{
-    void* operator()(void* ptr) const
-    {
-        return ptr;
-    }
-};
-
-template <typename T>
-struct reinterpret_cast_proj
-{
-    T operator()(void* ptr) const
-    {
-        return reinterpret_cast<T>(ptr);
-    }
-};
-
-template <typename M, class Proj = dummy_proj>
-struct memory_iterator;
+template <typename M>
+class memory_iterator_end;
 
 template <typename M>
-class memory_iterator_end
-{
-#ifdef _DEBUG
-    const void* creator_;
-#endif
-
-  public:
-    template <class Proj>
-    memory_iterator_end([[maybe_unused]] const memory_iterator<M, Proj>* itr)
-    {
-#ifdef _DEBUG
-        creator_ = itr->creator_;
-#endif
-    }
-
-    template <class Proj>
-    bool operator==(const memory_iterator<M, Proj>& itr) const
-    {
-        FD_ASSERT(creator_ == itr.creator_);
-        return !itr.current_;
-    }
-};
-
-template <typename M, class Proj>
 struct memory_iterator
 {
     using iterator_category = std::forward_iterator_tag;
     using difference_type   = size_t;
-    using value_type        = std::invoke_result_t<Proj, void*>;
+    using value_type        = void*;
 
     friend class memory_iterator_end<M>;
 
   private:
     M mem_rng_;
     void* current_;
-    [[no_unique_address]] Proj proj_;
 #ifdef _DEBUG
     const void* creator_;
 #endif
@@ -141,16 +101,29 @@ struct memory_iterator
     }
 
   public:
-    memory_iterator([[maybe_unused]] const void* creator, M mem_rng, void* current = nullptr, Proj proj = {})
+    memory_iterator([[maybe_unused]] const void* creator, M mem_rng, void* current = nullptr)
         : mem_rng_(mem_rng)
-        , current_(current)
-        , proj_(proj)
-    {
+        , current_(current ? current : mem_rng())
 #ifdef _DEBUG
-        creator_ = creator;
+        , creator_(creator)
 #endif
-        current_ = current ? current : mem_rng_();
+    {
     }
+
+    /* template <typename Proj2>
+    memory_iterator<M, std::remove_cvref_t<Proj2>> as(Proj2&& proj) const
+    {
+        return {
+#ifdef _DEBUG
+            creator_,
+#else
+            this,
+#endif
+            mem_rng_,
+            current_,
+            std::forward<Proj2>(proj)
+        };
+    } */
 
     memory_iterator& operator++()
     {
@@ -167,7 +140,7 @@ struct memory_iterator
 
     value_type operator*() const
     {
-        return proj_(current_);
+        return current_;
     }
 
     bool operator==(const memory_iterator& other) const
@@ -175,29 +148,39 @@ struct memory_iterator
         FD_ASSERT(creator_ == other.creator_);
         return current_ == other.current_;
     }
+};
 
-    template <class Proj2>
-    memory_iterator<M, Proj2> rebind_proj(Proj2 proj = {}) const
-    {
-        static_assert(!std::is_same_v<Proj, Proj2>);
-        return {
+template <typename M>
+class memory_iterator_end
+{
 #ifdef _DEBUG
-            creator_,
-#else
-            nullptr,
+    const void* creator_;
 #endif
-            mem_rng_,
-            current_,
-            proj
-        };
+
+    using _Itr = memory_iterator<M>;
+
+  public:
+    memory_iterator_end([[maybe_unused]] const _Itr* itr)
+    {
+#ifdef _DEBUG
+        creator_ = itr->creator_;
+#endif
+    }
+
+    bool operator==(const _Itr& itr) const
+    {
+        FD_ASSERT(creator_ == itr.creator_);
+        return !itr.current_;
     }
 };
 
-template <typename M, class Proj = dummy_proj>
-class memory_iterator_proxy : memory_iterator<M, Proj>
+template <typename M>
+class memory_iterator_proxy : memory_iterator<M>
 {
-    using _Base = memory_iterator<M, Proj>;
-    using _End  = memory_iterator_end<M>;
+    using _Base = memory_iterator<M>;
+
+    using _Begin = _Base;
+    using _End   = memory_iterator_end<M>;
 
   public:
     using _Base::_Base;
@@ -208,7 +191,7 @@ class memory_iterator_proxy : memory_iterator<M, Proj>
 
     // using _Base::operator*;
 
-    _Base begin() const
+    _Begin begin() const
     {
         return *this;
     }
@@ -221,12 +204,6 @@ class memory_iterator_proxy : memory_iterator<M, Proj>
     value_type front() const
     {
         return _Base::operator*();
-    }
-
-    template <class Proj2>
-    memory_iterator_proxy<M, Proj2> rebind_proj(Proj2 proj = {}) const
-    {
-        return _Base::rebind_proj(proj);
     }
 };
 
@@ -250,9 +227,15 @@ struct xrefs_scanner : private memory_range
 {
     using memory_range::memory_range;
 
-    using iterator = memory_iterator_proxy<xrefs_finder_impl, reinterpret_cast_proj<uintptr_t>>;
+    using iterator = memory_iterator_proxy<xrefs_finder_impl>;
 
-    iterator operator()(const uintptr_t& addr) const;
+    template <typename T>
+    iterator operator()(const T& addr) const
+    {
+        return {
+            this, {*this, addr}
+        };
+    }
 };
 
 export namespace fd
