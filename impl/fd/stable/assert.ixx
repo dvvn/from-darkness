@@ -43,6 +43,4 @@ export namespace fd
     using ::assert_data;
     using ::assert_handler;
     using ::can_invoke_assert_handler;
-
-    using ::fd::invoke;
 } // namespace fd

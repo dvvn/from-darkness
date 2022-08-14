@@ -6,7 +6,7 @@ module;
 #include <utility>
 
 export module fd.one_instance;
-import fd.functional;
+import fd.functional.invoke;
 
 template <typename T>
 constexpr size_t _Pointers_count()
@@ -114,7 +114,7 @@ class pointer_wrapper<T**>
 template <typename T>
 bool operator==(const pointer_wrapper<T> w, std::nullptr_t)
 {
-    return !w;
+    return static_cast<bool>(w);
 }
 
 template <typename T>
@@ -182,22 +182,21 @@ struct instance_of_getter<T*>
         _Construct(np);
     }
 
+    pointer ptr() const
+    {
+        return item_;
+    }
+
     reference ref() const
     {
         return *ptr();
     }
 
-    pointer ptr() const
+    explicit operator bool() const
     {
-        return item_;
+        return static_cast<bool>(ptr());
     }
 };
-
-template <typename T>
-bool operator==(const instance_of_getter<T*> getter, std::nullptr_t)
-{
-    return getter.ptr() == nullptr;
-}
 
 constexpr size_t _Magic_number(const size_t value)
 {
@@ -207,7 +206,7 @@ constexpr size_t _Magic_number(const size_t value)
 }
 
 template <typename T, size_t Instance>
-class instance_of_impl
+class basic_instance_of_impl
 {
     using t_getter = instance_of_getter<T>;
 
@@ -290,41 +289,25 @@ class instance_of_impl
             return false;
         if constexpr (std::is_pointer_v<value_type>)
         {
-            if (_Get() == nullptr)
+            if (!_Get())
                 return false;
         }
         return true;
     }
+
+    template <typename... Args>
+    decltype(auto) operator()(Args&&... args) const
+    {
+        return fd::invoke(_Get().ref(), std::forward<Args>(args)...);
+    }
 };
-
-template <class T, size_t Instance, typename... Args>
-decltype(auto) invoke(const instance_of_impl<T, Instance> inst, Args&&... args)
-{
-    return fd::invoke(*inst, std::forward<Args>(args)...);
-}
-
-using fd::invoke;
 
 export namespace fd
 {
-    using ::invoke;
-
-    template <typename T, typename... Args>
-    concept invocable = requires(T&& obj, Args&&... args) // override previous concept
-    {
-        invoke(std::forward<T>(obj), std::forward<Args>(args)...);
-    };
-
     using ::instance_of_getter;
 
-    /* template <typename T, size_t Instance>
-    bool operator==(const instance_of_impl<T*, Instance> inst, std::nullptr_t)
-    {
-        return inst.initialized() && inst.ptr() == nullptr;
-    } */
-
     template <typename T, size_t Instance = 0>
-    constexpr instance_of_impl<T, Instance> instance_of;
+    constexpr basic_instance_of_impl<T, Instance> instance_of;
 
-    using ::instance_of_impl;
+    using ::basic_instance_of_impl;
 } // namespace fd

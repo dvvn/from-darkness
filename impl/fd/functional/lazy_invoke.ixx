@@ -2,8 +2,8 @@ module;
 
 #include <optional>
 
-export module fd.lazy_invoke;
-export import fd.functional;
+export module fd.functional.lazy_invoke;
+import fd.functional.invoke;
 
 template <typename Fn>
 concept func_maybe_null = requires(const Fn fn)
@@ -25,7 +25,7 @@ struct lazy_invoke
 {
     using value_type0 = std::conditional_t<func_maybe_null<Fn>, Fn, std::optional<Fn>>;
     using value_type  = std::conditional_t<std::is_class_v<value_type0>, value_type0, std::add_pointer_t<value_type0>>;
-    using func_type  = Fn;
+    using func_type   = Fn;
 
   private:
     value_type fn_;
@@ -53,6 +53,7 @@ struct lazy_invoke
     {
         using std::swap;
         swap(fn_, other.fn_);
+        return *this;
     }
 };
 

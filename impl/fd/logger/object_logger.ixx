@@ -6,7 +6,6 @@ module;
 export module fd.object_logger;
 export import fd.type_name;
 import fd.logger;
-import fd.functional;
 
 class object_logger
 {

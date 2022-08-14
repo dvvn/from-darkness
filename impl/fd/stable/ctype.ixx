@@ -10,7 +10,7 @@ module;
 
 export module fd.ctype;
 export import fd.string;
-import fd.functional;
+import fd.functional.invoke;
 
 template <class ArT, class AcT>
 class ctype_to

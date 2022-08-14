@@ -12,6 +12,7 @@ module fd.valve.con_var;
 import fd.rt_modules;
 import fd.logger;
 import fd.address;
+import fd.functional.bind;
 
 using namespace fd;
 using namespace valve;

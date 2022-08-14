@@ -1,8 +1,11 @@
+
+
 module;
 
 #include <fd/assert.h>
 
-#include <fd/rt_modules/winapi.h>
+#include <windows.h>
+#include <winternl.h>
 
 module fd.rt_modules;
 
@@ -11,7 +14,7 @@ only_true::only_true(const bool val)
     FD_ASSERT(val == true);
 }
 
-using namespace fd;
+using fd::library_info;
 
 const library_info* any_module_base::operator->() const
 {

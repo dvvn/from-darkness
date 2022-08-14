@@ -9,6 +9,7 @@ module;
 module fd.hook;
 import fd.logger;
 import fd.mem_block;
+import fd.functional.bind;
 
 #pragma region hde
 

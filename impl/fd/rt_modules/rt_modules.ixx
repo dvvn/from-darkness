@@ -6,12 +6,11 @@ module;
 #include <utility>
 
 export module fd.rt_modules;
-export import fd.address;
 export import fd.type_name;
 import :library_info;
 import fd.chars_cache;
+import fd.ctype;
 
-using fd::address;
 using fd::chars_cache;
 using fd::library_info;
 
@@ -35,32 +34,38 @@ template <size_t UniqueNum>
 struct any_module : any_module_base
 {
     template <chars_cache ExpName>
-    void* find_export() const
+    auto find_export() const
     {
         static const auto found = this->data().find_export(ExpName);
         return found;
     }
 
     template <chars_cache Sig>
-    address<void> find_signature() const
+    auto find_signature() const
     {
         static const auto found = this->data().find_signature(Sig);
         return found;
     }
 
     template <chars_cache Name>
-    void* find_vtable() const
+    auto find_vtable() const
     {
         static const auto found = this->data().find_vtable(Name);
         return found;
     }
 
     template <class T>
-    T* find_vtable() const
+    auto find_vtable() const
     {
         static const auto found = this->data().find_vtable<T>();
         return found;
     }
+};
+
+struct current_module final : any_module<0>
+{
+    const library_info& data() const override;
+    bool loaded() const override;
 };
 
 union library_info_lazy
@@ -69,8 +74,25 @@ union library_info_lazy
     library_info info;
 };
 
-template <chars_cache Name>
-class rt_module final : public any_module<fd::_Hash_object(Name)>
+class magic_cast
+{
+    void* ptr_;
+
+  public:
+    magic_cast(void* ptr)
+        : ptr_(ptr)
+    {
+    }
+
+    template <typename Q>
+    operator Q*() const // requires(std::is_pointer_v<Q> || std::is_member_function_pointer_v<Q> || std::is_function_v<Q>)
+    {
+        return static_cast<Q*>(ptr_);
+    }
+};
+
+template <chars_cache Name, size_t Idx>
+class rt_module final : public any_module<Idx /* fd::_Hash_bytes(Name.data(), Name.size()) */>
 {
     static auto& _Data()
     {
@@ -100,21 +122,23 @@ class rt_module final : public any_module<fd::_Hash_object(Name)>
     }
 
     template <chars_cache Interface>
-    address<void> find_interface() const
+    magic_cast find_interface() const
     {
         static const auto found = this->data().find_csgo_interface(this->find_export<"CreateInterface">(), Interface);
         return found;
     }
 };
 
-struct current_module final : any_module<0>
+template <size_t S>
+constexpr auto _To_lower_buff(const wchar_t (&name)[S])
 {
-    const library_info& data() const override;
-    bool loaded() const override;
-};
+    chars_cache buff = name;
+    fd::to_lower(name);
+    return buff;
+}
 
 #define DLL_NAME(_NAME_)    L"" #_NAME_ ".dll"
-#define GAME_MODULE(_NAME_) constexpr rt_module<DLL_NAME(_NAME_)> _NAME_;
+#define GAME_MODULE(_NAME_) constexpr rt_module<_To_lower_buff(DLL_NAME(_NAME_)), __COUNTER__ + 1> _NAME_;
 
 export namespace fd::rt_modules
 {
@@ -124,15 +148,16 @@ export namespace fd::rt_modules
              server,
              client,
              engine,
-             datacache,
-             materialsystem,
+             dataCache,
+             materialSystem,
              vstdlib,
              vgui2,
-             vguimatsurface,
+             vguiMatSurface,
              vphysics,
-             inputsystem,
-             studiorender,
-             shaderapidx9,
+             inputSystem,
+             studioRender,
+             shaderApiDx9,
              d3d9,
-             serverbrowser);
+             serverBrowser /*                */
+    );
 } // namespace fd::rt_modules

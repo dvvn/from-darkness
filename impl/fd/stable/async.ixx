@@ -3,7 +3,7 @@ module;
 #include <fd/object.h>
 
 export module fd.async;
-export import fd.functional;
+export import fd.functional.fn;
 
 class custom_atomic_bool
 {

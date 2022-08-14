@@ -13,7 +13,8 @@ module;
 #include <veque.hpp>
 
 module fd.async;
-import fd.lazy_invoke;
+import fd.functional.lazy_invoke;
+import fd.functional.bind;
 import fd.mutex;
 
 custom_atomic_bool::custom_atomic_bool(const bool value)

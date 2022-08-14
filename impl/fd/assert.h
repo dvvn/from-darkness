@@ -4,6 +4,8 @@
 
 #ifdef _DEBUG
 import fd.assert;
+import fd.functional.invoke;
+
 #define FD_ASSERT(_EXPRESSION_OR_MESSAGE_, /*message for expression*/...)                                          \
     {                                                                                                              \
         if (fd::can_invoke_assert_handler(_EXPRESSION_OR_MESSAGE_))                                                \

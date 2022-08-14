@@ -1,6 +1,6 @@
 module;
 
-#if 0
+#if 1
 #include <format>
 #else
 #include <fmt/chrono.h>
@@ -17,6 +17,12 @@ export import fd.string;
 #define _FMT fmt
 #else
 #define _FMT std
+
+// compiler stuck without it
+export namespace std::inline literals::inline string_view_literals
+{
+    using ::std::string_view_literals::operator"" sv;
+}
 #endif
 
 /* namespace _FMT

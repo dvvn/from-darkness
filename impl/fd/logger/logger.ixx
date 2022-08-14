@@ -7,6 +7,7 @@ module;
 export module fd.logger;
 export import fd.to_char;
 export import fd.format;
+import fd.functional.invoke;
 
 using fd::invocable;
 

@@ -128,6 +128,7 @@ function(add_subproject _name)
     set(_search_dir ${_PROJ_IMPL_DIR}/*/${_name})
     set(_search_dir2 ${_PROJ_IMPL_DIR}/${_name})
     file(GLOB_RECURSE _files ${_search_dir}/*.ixx ${_search_dir}/*.cpp ${_search_dir2}/*.ixx ${_search_dir2}/*.cpp)
+    #TODO: check are only one root dir exsists
     #message(DEBUG "${_name}: files found - ${_files}")
   else()
     foreach(_item ${PART_FILES})
@@ -232,11 +233,13 @@ endfunction()
 
 # -------------------
 
+add_subproject(functional LINK function2)
+
 add_subproject(
   stable
   LINK
   nlohmann_json
-  function2
+  functional
   fmt
   INCLUDE
   ${_PROJ_IMPL_DIR}

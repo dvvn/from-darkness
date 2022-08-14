@@ -12,6 +12,9 @@ export module fd.hash;
 
 constexpr size_t ct_strlen(const char* p)
 {
+#if 1
+    return __builtin_strlen(p);
+#else
     // to avoid string include
     size_t len = 0;
     do
@@ -20,6 +23,7 @@ constexpr size_t ct_strlen(const char* p)
     }
     while (*++p != '\0');
     return len;
+#endif
 }
 
 export namespace fd
@@ -46,16 +50,16 @@ export namespace fd
 
             // direct bit_cast like reinterpret_cast doesn't work
 #if 0
-        using buff_t = std::vector<char, char_alloc>;
-        buff_t buff;
-        buff.reserve(bytes_count);
-        for (size_t i = 0; i < len; ++i)
-        {
-            const auto tmp = std::bit_cast<std::array<char, sizeof(T)>>(input[i]);
-            for (const auto c : tmp)
-                buff.push_back(c);
-        }
-        return _Hash_bytes(buff.data(), buff.size());
+            using buff_t = std::vector<char, char_alloc>;
+            buff_t buff;
+            buff.reserve(bytes_count);
+            for (size_t i = 0; i < len; ++i)
+            {
+                const auto tmp = std::bit_cast<std::array<char, sizeof(T)>>(input[i]);
+                for (const auto c : tmp)
+                    buff.push_back(c);
+            }
+            return _Hash_bytes(buff.data(), buff.size());
 #else
             char_alloc alloc;
             const auto buff = alloc.allocate(bytes_count);

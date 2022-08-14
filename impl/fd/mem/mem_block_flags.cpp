@@ -6,7 +6,7 @@ module;
 #include <stdexcept>
 
 module fd.mem_block;
-import fd.functional;
+import fd.functional.invoke;
 
 // ReSharper disable once CppInconsistentNaming
 class MEMORY_BASIC_INFORMATION_UPDATER : protected MEMORY_BASIC_INFORMATION

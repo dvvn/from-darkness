@@ -84,23 +84,25 @@ static string _Get_current_time()
     using namespace std::chrono;
     using clock = system_clock;
 
-#if 1
-    return format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
-#else
-    const auto current_time_point = clock::now();
-    const auto current_time       = clock::to_time_t(current_time_point);
-    tm current_localtime;
+    /* #if 1
+        return format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
+    #else
+        const auto current_time_point = clock::now();
+        const auto current_time       = clock::to_time_t(current_time_point);
+        tm current_localtime;
 
-    localtime_s(&current_localtime, std::addressof(current_time));
+        localtime_s(&current_localtime, std::addressof(current_time));
 
-    const auto current_time_since_epoch = current_time_point.time_since_epoch();
-    const auto current_milliseconds     = duration_cast<milliseconds>(current_time_since_epoch).count() % 1000;
-    const auto current_microseconds     = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
+        const auto current_time_since_epoch = current_time_point.time_since_epoch();
+        const auto current_milliseconds     = duration_cast<milliseconds>(current_time_since_epoch).count() % 1000;
+        const auto current_microseconds     = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
 
-    std::ostringstream ss;
-    ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
-    return std::move(ss).str();
-#endif
+        std::ostringstream ss;
+        ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
+        return std::move(ss).str();
+    #endif */
+
+    return "";
 }
 
 #define putc_assert(_RESULT_) FD_ASSERT(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")

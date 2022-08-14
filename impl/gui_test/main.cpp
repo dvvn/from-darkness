@@ -8,7 +8,7 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-import fd.lazy_invoke;
+import fd.functional.lazy_invoke;
 
 using namespace fd;
 

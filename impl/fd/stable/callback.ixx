@@ -3,7 +3,7 @@ module;
 #include <concepts>
 
 export module fd.callback;
-import fd.functional;
+export import fd.functional.fn;
 
 /*import fd.one_instance;
 

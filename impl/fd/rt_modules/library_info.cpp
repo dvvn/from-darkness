@@ -2,9 +2,9 @@ module;
 
 #include <fd/assert.h>
 
-#include <fd/rt_modules/winapi.h>
+#include <windows.h>
+#include <winternl.h>
 
-#include <memory>
 #include <span>
 #include <typeinfo>
 
@@ -14,6 +14,8 @@ import fd.path;
 import fd.mem_scanner;
 import fd.chars_cache;
 import fd.ctype;
+import fd.memory;
+import fd.functional.bind;
 
 using namespace fd;
 
@@ -110,12 +112,7 @@ library_info::library_info(IMAGE_DOS_HEADER* const base_address, const bool noti
         const auto get_name = [=] {
             return this->entry_ ? this->name() : L"unknown name";
         };
-        invoke(logger,
-               L"{:#X} ({}) -> {}! ({:#X})",
-               reinterpret_cast<uintptr_t>(base_address),
-               get_name,
-               entry_ ? L"found" : L"not found",
-               reinterpret_cast<uintptr_t>(entry_) /*    */);
+        invoke(logger, L"{:#X} ({}) -> {}! ({:#X})", reinterpret_cast<uintptr_t>(base_address), get_name, entry_ ? L"found" : L"not found", reinterpret_cast<uintptr_t>(entry_));
     }
     else
         FD_ASSERT(entry_ != nullptr);
@@ -141,11 +138,11 @@ wstring_view library_info::path() const
     return { entry_->FullDllName.Buffer, entry_->FullDllName.Length / sizeof(WCHAR) };
 }
 
-wstring_view library_info::name() const
+// to resilve 'path' word conflicts
+static auto _Path_filename(const wstring_view full_path)
 {
-    const auto full_path = this->path();
 #if 1
-    return fd::path<wchar_t>(full_path).filename();
+    return path<wchar_t>(full_path).filename();
 #else
     const auto name_start = full_path.rfind('\\');
     FD_ASSERT(name_start != full_path.npos, "Unable to get the module name");
@@ -153,17 +150,16 @@ wstring_view library_info::name() const
 #endif
 }
 
+wstring_view library_info::name() const
+{
+    return _Path_filename(this->path());
+}
+
 constexpr auto _Object_found = [](const library_info* info, const auto object_type, const auto object, const void* addr) {
-    invoke(logger,
-           L"{} -> {} '{}' {}! ({:#X})",
-           bind_front(&library_info::name, info),
-           object_type,
-           object,
-           addr ? L"found" : L"not found",
-           reinterpret_cast<uintptr_t>(addr) /*            */);
+    invoke(logger, L"{} -> {} '{}' {}! ({:#X})", bind_front(&library_info::name, info), object_type, object, addr ? L"found" : L"not found", reinterpret_cast<uintptr_t>(addr));
 };
 
-void library_info::log_class_info(const fd::string_view raw_name, const void* addr) const
+void library_info::log_class_info(const string_view raw_name, const void* addr) const
 {
     const auto name_begin   = raw_name.find(' '); // class or struct
     const auto notification = bind_back(bind_front(_Object_found, this), addr);
@@ -182,45 +178,41 @@ void library_info::log_class_info(const fd::string_view raw_name, const void* ad
 
 void* library_info::find_export(const string_view name, const bool notify) const
 {
-    FD_ASSERT_UNREACHABLE("Not implemented");
-#if 0
-    if (!ldr_entry)
+    if (!entry_)
         return nullptr;
     // base address
-    const dos_nt dnt(ldr_entry);
+    const dos_nt dnt(entry_);
 
     // get export data directory.
-    const auto& data_dir = dnt_.nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    const auto& data_dir = dnt.nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
     FD_ASSERT(data_dir.VirtualAddress, "Current module doesn't have the virtual address!");
 
     // get export export_dir.
-    const address<IMAGE_EXPORT_DIRECTORY> export_dir = dos + data_dir.VirtualAddress;
+    const auto export_dir = dnt.map<const IMAGE_EXPORT_DIRECTORY>(data_dir.VirtualAddress);
+
+    const auto export_dir_min = reinterpret_cast<const uint8_t*>(export_dir);
+    const auto export_dir_max = export_dir_min + data_dir.Size;
 
     // names / funcs / ordinals ( all of these are RVAs ).
-    uint32_t* const names = dos + export_dir->AddressOfNames;
-    uint32_t* const funcs = dos + export_dir->AddressOfFunctions;
-    uint16_t* const ords  = dos + export_dir->AddressOfNameOrdinals;
+    const auto names = dnt.map<const uint32_t>(export_dir->AddressOfNames);
+    const auto funcs = dnt.map<const uint32_t>(export_dir->AddressOfFunctions);
+    const auto ords  = dnt.map<const uint16_t>(export_dir->AddressOfNameOrdinals);
 
     void* export_ptr = nullptr;
 
     // iterate names array.
     for (size_t i = 0; i < export_dir->NumberOfNames; ++i)
     {
-        const char* export_name = dos + names[i];
+        const auto export_name = dnt.map<const char>(names[i]);
         if (!export_name)
             continue;
         if (export_name != name)
             continue;
-        /*
-   if (export_addr.cast<uintptr_t>() >= reinterpret_cast<uintptr_t>(export_directory)
-      && export_addr.cast<uintptr_t>() < reinterpret_cast<uintptr_t>(export_directory) + data_directory->Size)
-   */
 
-        // if (export_ptr < export_dir || export_ptr >= memory_block(export_dir, data_dir.Size).addr( ))
-        const auto temp_export_ptr = dos + funcs[ords[i]];
-        if (temp_export_ptr < export_dir || temp_export_ptr >= export_dir + data_dir.Size)
+        const auto temp_export_ptr = dnt.map<uint8_t>(funcs[ords[i]]);
+        if (temp_export_ptr < export_dir_min || temp_export_ptr >= export_dir_max)
         {
-            export_ptr = temp_export_ptr;
+            export_ptr = reinterpret_cast<void*>(temp_export_ptr);
             break;
         }
 
@@ -263,10 +255,9 @@ void* library_info::find_export(const string_view name, const bool notify) const
     }
 
     if (notify)
-        library_info(ldr_entry).log("export", name, export_ptr);
+        _Object_found(this, L"export", name, export_ptr);
 
     return export_ptr;
-#endif
 }
 
 IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const bool notify) const
@@ -336,12 +327,7 @@ static consteval auto _Bytes_to_sig()
 
 typedef void*(__cdecl* allocation_function)(size_t);
 typedef void(__cdecl* free_function)(void*);
-extern "C" char* __cdecl __unDName(char* outputString,
-                                   const char* name,
-                                   int maxStringLength, // Note, COMMA is leading following optional arguments
-                                   allocation_function pAlloc,
-                                   free_function pFree,
-                                   uint16_t disableFlags);
+extern "C" char* __cdecl __unDName(char* outputString, const char* name, int maxStringLength, allocation_function pAlloc, free_function pFree, uint16_t disableFlags);
 
 static string _Demangle_symbol(const char* mangled_name)
 {
@@ -353,18 +339,17 @@ static string _Demangle_symbol(const char* mangled_name)
         delete[] chr;
     };
 
-    const std::unique_ptr<char> name(__unDName(nullptr, mangled_name + 1, 0, alloc, free_f, 0x2800 /*UNDNAME_32_BIT_DECODE | UNDNAME_TYPE_ONLY*/));
-
+    const unique_ptr name = __unDName(nullptr, mangled_name + 1, 0, alloc, free_f, 0x2800 /*UNDNAME_32_BIT_DECODE | UNDNAME_TYPE_ONLY*/);
     return name.get();
 }
 
 class vtable_finder
 {
-    static constexpr chars_cache raw_prefix  = ".?A";
-    static constexpr chars_cache raw_postfix = "@@";
+    static constexpr chars_cache raw_prefix_  = ".?A";
+    static constexpr chars_cache raw_postfix_ = "@@";
 
-    static constexpr auto class_prefix  = 'V';
-    static constexpr auto struct_prefix = 'U';
+    static constexpr auto class_prefix_  = 'V';
+    static constexpr auto struct_prefix_ = 'U';
 
     library_info info_;
     dos_nt dnt_;
@@ -385,9 +370,9 @@ class vtable_finder
 
         if (type == obj_type::UNKNOWN)
         {
-            constexpr auto bytes_prefix  = _Bytes_to_sig<raw_prefix>();
+            constexpr auto bytes_prefix  = _Bytes_to_sig<raw_prefix_>();
             const auto bytes_name        = _Bytes_to_sig(name.data(), name.size());
-            constexpr auto bytes_postfix = _Bytes_to_sig<raw_postfix>();
+            constexpr auto bytes_postfix = _Bytes_to_sig<raw_postfix_>();
 
             const auto real_name_unk = make_string(bytes_prefix, " ? ", bytes_name, ' ', bytes_postfix);
             rtti_class_name          = whole_module_finder(real_name_unk).front();
@@ -402,13 +387,13 @@ class vtable_finder
         {
             char str_prefix;
             if (type == obj_type::CLASS)
-                str_prefix = class_prefix;
+                str_prefix = class_prefix_;
             else if (type == obj_type::STRUCT)
-                str_prefix = struct_prefix;
+                str_prefix = struct_prefix_;
             else
                 FD_ASSERT_UNREACHABLE("Unknown type");
 
-            const auto real_name = make_string(raw_prefix, str_prefix, name, raw_postfix);
+            const auto real_name = make_string(raw_prefix_, str_prefix, name, raw_postfix_);
             rtti_class_name      = whole_module_finder(real_name, raw_pattern).front();
         }
 
@@ -453,10 +438,10 @@ class vtable_finder
 #endif
 
         const auto demagle_type = [=]() -> string_view {
-            const auto prefix = type_descriptor[raw_prefix.size()];
-            if (prefix == class_prefix)
+            const auto prefix = type_descriptor[raw_prefix_.size()];
+            if (prefix == class_prefix_)
                 return "class";
-            else if (prefix == struct_prefix)
+            else if (prefix == struct_prefix_)
                 return "struct";
             else
                 FD_ASSERT_UNREACHABLE("Unknown prefix!");
@@ -516,13 +501,13 @@ void* library_info::find_vtable_unknown(const string_view name, const bool notif
 {
     const auto do_find = bind_back(bind_front(_Find_vtable, entry_), notify);
 
-    constexpr string_view class_prefix = "class ";
-    if (name.starts_with(class_prefix))
-        return do_find(name.substr(class_prefix.size()), obj_type::CLASS);
+    constexpr string_view class_prefix_ = "class ";
+    if (name.starts_with(class_prefix_))
+        return do_find(name.substr(class_prefix_.size()), obj_type::CLASS);
 
-    constexpr string_view struct_prefix = "struct ";
-    if (name.starts_with(struct_prefix))
-        return do_find(name.substr(struct_prefix.size()), obj_type::STRUCT);
+    constexpr string_view struct_prefix_ = "struct ";
+    if (name.starts_with(struct_prefix_))
+        return do_find(name.substr(struct_prefix_.size()), obj_type::STRUCT);
 
     return do_find(name, obj_type::UNKNOWN);
 } */
