@@ -5,6 +5,7 @@
 
 import fd.gui.basic_input_handler;
 import fd.application_data;
+import fd.functional.invoke;
 
 //#define HOT_UNLOAD_SUPPORTED
 
@@ -14,7 +15,7 @@ using namespace fd;
 
 FD_HOOK(wndproc, app_info->root_window.proc.curr(), static, LRESULT WINAPI, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-    const auto input_result = fd::invoke(gui::input_handler, ARGS);
+    const auto input_result = invoke(gui::input_handler, ARGS);
     const auto block_input  = input_result.touched();
     LRESULT ret;
     if (!block_input)
@@ -22,6 +23,6 @@ FD_HOOK(wndproc, app_info->root_window.proc.curr(), static, LRESULT WINAPI, HWND
     else if (input_result.have_return_value())
         ret = input_result.return_value();
     else
-        ret = fd::invoke(app_info->root_window.proc.def(), ARGS);
+        ret = invoke(app_info->root_window.proc.def(), ARGS);
     return ret;
 }

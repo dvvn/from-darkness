@@ -592,39 +592,160 @@ void* library_info::find_vtable(const std::type_info& info, const bool notify) c
     return _Find_vtable(entry_, { raw_name, notify ? str_len(raw_name) : 0 }, obj_type::NATIVE, notify);
 }
 
-struct interface_reg
+#undef ERROR
+
+class interface_reg
 {
     void* (*create_fn)();
-    const char* name;
-    const interface_reg* next;
+    const char* name_;
+    const interface_reg* next_;
 
-    //--------------
-
-    const interface_reg* find(const string_view interface_name) const
+  public:
+    class iterator
     {
-        for (auto reg = this; reg != nullptr; reg = reg->next)
+        const interface_reg* current_;
+
+      public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = size_t;
+
+        constexpr iterator(const interface_reg* reg)
+            : current_(reg)
         {
-            const auto name_size = interface_name.size();
-            if (std::memcmp(interface_name.data(), reg->name, name_size) != 0)
-                continue;
-            const auto last_char = reg->name[interface_name.size()];
-            if (last_char != '\0') // partially comared
-            {
-                if (!is_digit(last_char)) // must be looks like IfcName001
-                    continue;
-#ifdef _DEBUG
-                const auto idx_start = reg->name + name_size;
-                const auto idx_size  = str_len(idx_start);
-                if (idx_size > 1)
-                    FD_ASSERT(is_digit(idx_start + 1, idx_start + idx_size));
-                if (reg->next)
-                    FD_ASSERT(!reg->next->find(interface_name));
-#endif
-            }
-            return reg;
         }
 
-        return nullptr;
+        iterator& operator++()
+        {
+            current_ = current_->next_;
+            return *this;
+        }
+
+        iterator operator++(int)
+        {
+            auto tmp = *this;
+            operator++();
+            return tmp;
+        }
+
+        const interface_reg& operator*() const
+        {
+            return *current_;
+        }
+
+        bool operator==(const iterator&) const = default;
+    };
+
+    class range
+    {
+        const interface_reg* root_;
+
+      public:
+        range(const void* create_interface_fn)
+        {
+            const auto relative_fn  = reinterpret_cast<uintptr_t>(create_interface_fn) + 0x5;
+            const auto displacement = *reinterpret_cast<int32_t*>(relative_fn);
+            const auto jmp          = relative_fn + sizeof(displacement) + displacement;
+
+            root_ = **reinterpret_cast<interface_reg***>(jmp + 0x6);
+        }
+
+        range(const interface_reg* current)
+            : root_(current)
+        {
+        }
+
+        iterator begin() const
+        {
+            return root_;
+        }
+
+        iterator end() const
+        {
+            return nullptr;
+        }
+    };
+
+    struct equal
+    {
+        enum value_type : uint8_t
+        {
+            FULL,
+            PARTIAL,
+            ERROR
+        };
+
+      private:
+        value_type result_;
+
+      public:
+        equal(const value_type result)
+            : result_(result)
+        {
+        }
+
+        operator value_type() const
+        {
+            return result_;
+        }
+
+        explicit operator bool() const
+        {
+            return result_ != ERROR;
+        }
+
+        bool operator==(const value_type val) const
+        {
+            return result_ == val;
+        };
+    };
+
+    interface_reg()                     = delete;
+    interface_reg(const interface_reg&) = delete;
+
+    equal operator==(const string_view interface_name) const
+    {
+        const auto name_size = interface_name.size();
+        if (std::memcmp(this->name_, interface_name.data(), name_size) == 0)
+        {
+            const auto last_char = this->name_[interface_name.size()];
+            if (last_char == '\0') // partially comared
+                return equal::FULL;
+            if (is_digit(last_char)) // partial name must be looks like IfcName001
+                return equal::PARTIAL;
+        }
+        return equal::ERROR;
+    }
+
+    auto operator()() const
+    {
+        return invoke(create_fn);
+    }
+
+    auto name_size(const string_view known_part = {}) const
+    {
+#ifdef _DEBUG
+        if (!known_part.empty() && std::memcmp(this->name_, known_part.data(), known_part.size()) == 0)
+            FD_ASSERT("Incorrect known part");
+#endif
+
+        const auto idx_start = this->name_ + known_part.size();
+        const auto idx_size  = str_len(idx_start);
+        return known_part.size() + idx_size;
+    }
+
+    auto name() const
+    {
+        return name_;
+    }
+
+    auto operator+(size_t offset) const
+    {
+        auto src = this;
+        do
+            src = src->next_;
+        while (--offset);
+
+        return src;
     }
 };
 
@@ -638,17 +759,44 @@ void* library_info::find_csgo_interface(const void* create_interface_fn, const s
     if (!create_interface_fn)
         return nullptr;
 
-    const auto relative_fn  = reinterpret_cast<uintptr_t>(create_interface_fn) + 0x5;
-    const auto displacement = *reinterpret_cast<int32_t*>(relative_fn);
-    const auto jmp          = relative_fn + sizeof(uint32_t) + displacement;
+    string_view log_name;
+    void* ifc_addr = nullptr;
 
-    const auto root_reg   = **reinterpret_cast<interface_reg***>(jmp + 0x6);
-    const auto target_reg = root_reg->find(name);
-    FD_ASSERT(target_reg != nullptr);
-    const auto ifc_addr = invoke(target_reg->create_fn);
+    for (auto& reg : interface_reg::range(create_interface_fn))
+    {
+        const auto result = reg == name;
+        if (!result)
+            continue;
+
+#ifndef _DEBUG
+        if (notify)
+#endif
+            if (result == interface_reg::equal::PARTIAL)
+            {
+                const auto whole_name_size = reg.name_size(name);
+#ifdef _DEBUG
+                if (!is_digit(reg.name() + name.size(), reg.name() + whole_name_size))
+                    FD_ASSERT("Incorrect given interface name");
+                const auto next_reg = reg + 1;
+                if (next_reg)
+                {
+                    for (auto& reg1 : interface_reg::range(next_reg))
+                    {
+                        if (reg1 == name)
+                            FD_ASSERT("Duplicate interface name detected");
+                    }
+                }
+                if (notify)
+#endif
+                    log_name = { reg.name(), whole_name_size };
+            }
+
+        ifc_addr = invoke(reg);
+        break;
+    }
 
     if (notify)
-        _Object_found(this, L"csgo interface", target_reg->name, ifc_addr);
+        _Object_found(this, L"csgo interface", log_name.empty() ? name : log_name, ifc_addr);
 
     return ifc_addr;
 }

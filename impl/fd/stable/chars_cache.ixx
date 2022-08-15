@@ -12,7 +12,7 @@ class append_helper
     T pos_;
 
   public:
-    constexpr append_helper(T pos)
+    constexpr append_helper(const T pos)
         : pos_(pos)
     {
     }
@@ -71,16 +71,15 @@ struct simple_chars_cache
         std::copy_n(str_source, string_size, _Data);
         if (string_size < Size)
         {
-            // std::fill(_Data + string_size, _Data + Size, static_cast<Chr>(0));
-            _Data[string_size] = 0;
+            std::fill(_Data + string_size, _Data + Size, static_cast<Chr>(0));
+            //_Data[string_size] = 0;
         }
     }
 
     template <typename... Args>
     constexpr auto append(Args&&... args)
     {
-        append_helper<pointer> helper(_Data);
-        return helper.append(args...);
+        return append_helper(_Data).append(args...);
     }
 
     constexpr const_pointer data() const

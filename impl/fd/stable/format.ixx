@@ -52,6 +52,7 @@ class string_builder
         return ptr;
     }
 
+  public:
     template <typename T>
     static constexpr auto extract_size(const T& obj)
     {
@@ -65,6 +66,37 @@ class string_builder
             return std::pair(obj, 1);
     };
 
+    template <class Itr, typename T, typename S>
+    static constexpr void append_to(Itr buff, const std::pair<T, S>& obj)
+    {
+        auto [src, size] = obj;
+        if constexpr (std::is_pointer_v<T> || std::is_class_v<T>)
+            std::copy_n(src, size, buff);
+        else
+        {
+            do
+                *buff++ = src;
+            while (--size > 0);
+        }
+    };
+
+    template <typename C, typename... Args>
+    static constexpr auto write_string(const Args&... args)
+    {
+        fd::basic_string<C> buff;
+        std::apply(
+            [&buff](const auto&... pairs) {
+                const auto length = (pairs.second + ...);
+                buff.reserve(length);
+                (append_to(std::back_inserter(buff), pairs), ...);
+            },
+            std::tuple(extract_size(args)...));
+        return buff;
+    }
+};
+
+class string_maker
+{
     template <typename T>
     static constexpr auto get_char_type(const T& obj)
     {
@@ -76,60 +108,19 @@ class string_builder
             return T();
     }
 
-    template <class Buff, typename T, typename S>
-    static constexpr void append_to(Buff& buff, const std::pair<T, S> obj)
-    {
-        auto [src, size] = obj;
-        if constexpr (std::is_pointer_v<T> || std::is_class_v<T>)
-        {
-            buff.append(src, src + size);
-        }
-        else
-        {
-            using val_t = Buff::value_type;
-            do
-                buff.push_back(static_cast<val_t>(src));
-            while (--size > 0);
-        }
-    };
-
-    template <typename C, typename... Args>
-    static constexpr auto get(const Args&... args)
-    {
-        fd::basic_string<C> buff;
-        if constexpr (sizeof...(Args) == 1)
-        {
-            const auto pair = extract_size(args...);
-            append_to(buff, pair);
-        }
-        else
-        {
-            std::apply(
-                [&buff](auto... pairs) {
-                    {
-                        const auto length = (pairs.second + ...);
-                        buff.reserve(length);
-                    }
-                    (append_to(buff, pairs), ...);
-                },
-                std::tuple(extract_size(args)...));
-        }
-        return buff;
-    }
-
   public:
     template <typename A, typename... Args>
     constexpr auto operator()(const A& arg1, const Args&... args) const
     {
         static_assert(!std::is_empty_v<A>); // hack to test second overload
         using char_t = decltype(get_char_type(arg1));
-        return get<char_t>(arg1, args...);
+        return string_builder::write_string<char_t>(arg1, args...);
     }
 
     template <typename C, typename... Args>
     constexpr auto operator()(const std::in_place_type_t<C>, const Args&... args) const
     {
-        return get<C>(args...);
+        return string_builder::write_string<C>(args...);
     }
 };
 
@@ -283,7 +274,7 @@ class format_impl
 
 export namespace fd
 {
-    constexpr string_builder make_string;
+    constexpr string_maker make_string;
     constexpr to_string_impl to_string;
 
     constexpr format_to_impl format_to;
