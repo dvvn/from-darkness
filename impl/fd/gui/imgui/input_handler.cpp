@@ -26,7 +26,7 @@ struct input_handler_impl final : basic_input_handler
         const auto size_after = ctx.InputEventsQueue.size();
 
         if (size_before != size_after)
-            return { result_t::interacted, FALSE };
+            return { result_t::interacted /* , FALSE */ };
 
         return result_t::skipped;
     }

@@ -173,7 +173,7 @@ struct hook_instance_member
         decltype(&Impl::callback) orig_fn;
         reinterpret_cast<void*&>(orig_fn) = inst->get_original_method();
 
-        return fd::invoke_member(orig_fn, thisptr, std::forward<Args>(args)...);
+        return fd::invoke(orig_fn, thisptr, std::forward<Args>(args)...);
     }
 };
 
