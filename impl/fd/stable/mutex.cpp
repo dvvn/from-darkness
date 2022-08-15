@@ -18,7 +18,14 @@ mutex_data* basic_mutex::data() const
 basic_mutex::basic_mutex()
     : data_(new mutex_data)
 {
-    InitializeCriticalSection(data_.get());
+    constexpr DWORD flags = RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+#ifdef _DEBUG
+                            RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO
+#else
+                            RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO
+#endif
+        ;
+    InitializeCriticalSectionEx(data_.get(), 0, flags);
 }
 
 basic_mutex::~basic_mutex()

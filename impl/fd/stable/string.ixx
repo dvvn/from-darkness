@@ -57,9 +57,7 @@ using std::basic_string_view;
 
 struct check_null_chr_t
 {
-};
-
-constexpr check_null_chr_t check_null_chr;
+} constexpr check_null_chr;
 
 template <typename C>
 constexpr bool _Ptr_equal(const C* ptr1, const C* ptr2, const size_t count)
@@ -175,12 +173,19 @@ export namespace fd
     using ::basic_string;
     using ::basic_string_view;
 
-    /* _ALL_TYPES(_USING, hashed_string);
-    _ALL_TYPES(_USING, hashed_string_view);
-
-    using ::basic_hashed_string;
-    using ::basic_hashed_string_view; */
-
     using ::operator==;
+
+    inline namespace literals
+    {
+        inline namespace string_view_literals
+        {
+            using std::string_view_literals::operator""sv;
+        }
+
+        inline namespace string_literals
+        {
+            using std::string_literals::operator""s;
+        }
+    } // namespace literals
 
 } // namespace fd

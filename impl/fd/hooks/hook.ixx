@@ -10,54 +10,11 @@ export module fd.hook;
 export import fd.hook_base;
 import fd.mem_protect;
 
-enum class call_cvs : uint8_t
-{
-    thiscall__,
-    cdecl__,
-    fastcall__,
-    stdcall__,
-    vectorcall__
-};
-
-template <call_cvs, typename Ret, typename... Args>
-struct tiny_helper;
-
-#define TINY_HELPER(_C_)                                \
-    template <typename Ret, typename... Args>           \
-    struct tiny_helper<call_cvs::_C_##__, Ret, Args...> \
-    {                                                   \
-        Ret __##_C_ callback(Args... args) const        \
-        {                                               \
-            if constexpr (!std::is_void_v<Ret>)         \
-                return *(Ret*)nullptr;                  \
-        }                                               \
-    };
-
-#define TINY_SELECTOR(_C_)                                                                                     \
-    template <typename Ret, class T, typename... Args>                                                         \
-    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...))       \
-    {                                                                                                          \
-        return {};                                                                                             \
-    }                                                                                                          \
-    template <typename Ret, class T, typename... Args>                                                         \
-    constexpr tiny_helper<call_cvs::_C_##__, Ret, Args...> _Tiny_selector(Ret (__##_C_ T::*fn)(Args...) const) \
-    {                                                                                                          \
-        return {};                                                                                             \
-    }
-
-#define TINY_IMPL(_C_) TINY_HELPER(_C_) TINY_SELECTOR(_C_)
-
-TINY_IMPL(thiscall);
-TINY_IMPL(cdecl);
-TINY_IMPL(fastcall);
-TINY_IMPL(stdcall);
-TINY_IMPL(vectorcall);
-
 //#define FUNCTION_GETTER_HAVE_PTR_SIZE
 
 class function_getter
 {
-    void* fn_ptr_     = nullptr;
+    void* fn_ptr_ = nullptr;
 #ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
     uint8_t ptr_size_ = 0;
 #endif
@@ -86,7 +43,7 @@ class function_getter
     template <typename Fn>
     function_getter(Fn fn)
     {
-        fn_ptr_   = reinterpret_cast<void*&>(fn);
+        fn_ptr_ = reinterpret_cast<void*&>(fn);
 #ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
         ptr_size_ = sizeof(fn);
 #endif
@@ -100,7 +57,7 @@ class function_getter
         const auto vtable = *reinterpret_cast<void***>(instance);
         fn_ptr_           = vtable[index];
 #ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
-        ptr_size_         = sizeof(Fn);
+        ptr_size_ = sizeof(Fn);
 #endif
     }
 };
@@ -212,22 +169,11 @@ struct hook_instance_member
         const auto inst    = &FD_OBJECT_GET(Impl, Index);
         const auto thisptr = static_cast<const Impl*>(this);
         FD_ASSERT(inst != thisptr, "Function must be called from hooked method!");
-        const auto orig_fn = inst->get_original_method();
 
-        auto def_callback = &Impl::callback;
-        if constexpr (sizeof(decltype(def_callback)) == sizeof(void*))
-        {
-            reinterpret_cast<void*&>(def_callback) = orig_fn;
-            return fd::invoke(def_callback, thisptr, std::forward<Args>(args)...);
-        }
-        else
-        {
-            // avoid 'fat pointer' call
-            using trivial_inst                      = decltype(_Tiny_selector(def_callback));
-            auto tiny_callback                      = &trivial_inst::callback;
-            reinterpret_cast<void*&>(tiny_callback) = orig_fn;
-            return fd::invoke(tiny_callback, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
-        }
+        decltype(&Impl::callback) orig_fn;
+        reinterpret_cast<void*&>(orig_fn) = inst->get_original_method();
+
+        return fd::invoke_member(orig_fn, thisptr, std::forward<Args>(args)...);
     }
 };
 

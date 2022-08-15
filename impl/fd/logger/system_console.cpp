@@ -67,9 +67,9 @@ class file_stream
 
     file_stream& operator=(file_stream&& other)
     {
-        const auto old  = *this;
-        *this           = other;
-        other           = old;
+        const auto old = *this;
+        *this          = other;
+        other          = old;
         return *this;
     }
 
@@ -84,28 +84,31 @@ static string _Get_current_time()
     using namespace std::chrono;
     using clock = system_clock;
 
-    /* #if 1
-        return format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
-    #else
-        const auto current_time_point = clock::now();
-        const auto current_time       = clock::to_time_t(current_time_point);
-        tm current_localtime;
+#if 1
+    return format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
+#else
+    const auto current_time_point = clock::now();
+    const auto current_time       = clock::to_time_t(current_time_point);
+    tm current_localtime;
 
-        localtime_s(&current_localtime, std::addressof(current_time));
+    localtime_s(&current_localtime, std::addressof(current_time));
 
-        const auto current_time_since_epoch = current_time_point.time_since_epoch();
-        const auto current_milliseconds     = duration_cast<milliseconds>(current_time_since_epoch).count() % 1000;
-        const auto current_microseconds     = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
+    const auto current_time_since_epoch = current_time_point.time_since_epoch();
+    const auto current_milliseconds     = duration_cast<milliseconds>(current_time_since_epoch).count() % 1000;
+    const auto current_microseconds     = duration_cast<microseconds>(current_time_since_epoch).count() % 1000;
 
-        std::ostringstream ss;
-        ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
-        return std::move(ss).str();
-    #endif */
-
-    return "";
+    std::ostringstream ss;
+    ss << std::setfill('0') << std::put_time(&current_localtime, "%T") << ' ' << std::setw(3) << current_milliseconds << '.' << std::setw(3) << current_microseconds;
+    return std::move(ss).str();
+#endif
 }
 
 #define putc_assert(_RESULT_) FD_ASSERT(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
+
+struct no_lock_t
+{
+
+} constexpr no_lock;
 
 // gap. unused
 class reader
@@ -131,20 +134,19 @@ class writer
         // [[maybe_unused]] const auto ok = std::fputws(ptr, stream_);
         // putc_assert(ok);
 
-        FILE* const f = stream_;
 #ifdef _WIN32
-        const auto fd = _fileno(f);
-        if (_isatty(fd))
+        const auto h = _fileno(stream_);
+        if (_isatty(h))
         {
             DWORD written;
-            if (WriteConsoleW(reinterpret_cast<void*>(_get_osfhandle(fd)), ptr, static_cast<DWORD>(size), &written, nullptr))
+            if (WriteConsoleW(reinterpret_cast<void*>(_get_osfhandle(h)), ptr, static_cast<DWORD>(size), &written, nullptr))
                 return;
 
             // Fallback to fwrite on failure. It can happen if the output has been
             // redirected to NUL.
         }
 #endif
-        _fwrite_nolock(ptr, sizeof(wchar_t), size, f);
+        _fwrite_nolock(ptr, sizeof(wchar_t), size, stream_);
     }
 
     void write(const char* ptr, const size_t size)
@@ -152,6 +154,15 @@ class writer
         /* const auto wstr = to_char<wchar_t>(string_view(ptr, size));
          write(wstr.data(), wstr.size()); */
         _fwrite_nolock(ptr, sizeof(char), size, stream_);
+    }
+
+    template <class T, class S>
+    void write_impl(const T& time, const S text)
+    {
+        write(time.data(), time.size());
+        write(" - ", 3);
+        write(text.data(), text.size());
+        write("\n", 1);
     }
 
   public:
@@ -168,31 +179,19 @@ class writer
         return *this;
     }
 
-    template <typename C, class Locker>
-    void operator()(const basic_string_view<C> text, const Locker locker)
+    template <typename S>
+    void operator()(const S text, const no_lock_t)
+    {
+        write_impl(_Get_current_time(), text);
+    }
+
+    template <typename S>
+    void operator()(const S text)
     {
         const auto time = _Get_current_time();
-
-        const auto lock = locker(mtx_);
-        write(time.data(), time.size());
-        write(" - ", 3);
-        write(text.data(), text.size());
-        write("\n", 1);
+        const lock_guard lock(mtx_);
+        write_impl(time, text);
     }
-
-    template <typename C, class Locker>
-    void operator()(const C* text, const Locker locker)
-    {
-        invoke(*this, basic_string_view(text), locker);
-    }
-};
-
-constexpr auto real_locker = [](auto& mtx) {
-    return lock_guard(mtx);
-};
-
-constexpr auto fake_locker = [](auto&) {
-    return nullptr;
 };
 
 class console_writer_impl : public console_writer
@@ -206,12 +205,12 @@ class console_writer_impl : public console_writer
   public:
     void operator()(const string_view str) override
     {
-        out_(str, real_locker);
+        out_(str);
     }
 
     void operator()(const wstring_view wstr) override
     {
-        out_(wstr, real_locker);
+        out_(wstr);
     }
 
     ~console_writer_impl() override
@@ -223,7 +222,7 @@ class console_writer_impl : public console_writer
         }
         else
         {
-            out_("Stopped", fake_locker);
+            out_("Stopped"sv, no_lock);
         }
     }
 
@@ -255,7 +254,7 @@ class console_writer_impl : public console_writer
 
         FD_ASSERT(IsWindowUnicode(console_window) == TRUE);
 
-        out_("Started", fake_locker);
+        out_("Started"sv, no_lock);
     }
 };
 
