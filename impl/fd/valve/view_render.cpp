@@ -5,4 +5,12 @@ module;
 module fd.valve.view_render;
 import fd.rt_modules;
 
-// FD_OBJECT_IMPL(view_render, fd::rt_modules::client.find_interface_sig<"A1 ? ? ? ? B9 ? ? ? ? C7 05 ? ? ? ? ? ? ? ? FF 10">().plus(1).deref<1>());
+FD_OBJECT_IMPL_HEAD(view_render)
+{
+    using fd::rt_modules::client;
+    const auto ptr  = client.find_signature<"8B 0D ? ? ? ? FF 75 0C 8B 45 08">();
+    const auto ptr2 = reinterpret_cast<uintptr_t>(ptr) + 0x2;
+    const auto vr   = **reinterpret_cast<view_render***>(ptr2);
+    client->log_class_info("class IViewRender", vr);
+    _Construct(vr);
+}

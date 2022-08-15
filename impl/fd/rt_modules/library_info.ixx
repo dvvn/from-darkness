@@ -163,7 +163,7 @@ struct library_info
     void log_class_info(const string_view raw_name, const void* addr) const;
 
     template <class T>
-    void log_class_info(const void* addr) const
+    void log_class_info(const T* addr) const
     {
         constexpr correct_type_name name(simple_type_name<T>());
         log_class_info(name, addr);

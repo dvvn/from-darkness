@@ -1,7 +1,6 @@
 module;
 
 module fd.valve.base_entity;
-import fd.address;
 import fd.functional.invoke;
 
 #if __has_include("C_BaseEntity_generated_cpp")
@@ -13,14 +12,10 @@ using namespace valve;
 
 data_map* base_entity::GetDataDescMap()
 {
-    const address vtable_holder                     = this;
-    const decltype(&base_entity::GetDataDescMap) fn = vtable_holder.deref<1>()[15];
-    return fd::invoke(fn, this);
+    return invoke_vfunc(&base_entity::GetDataDescMap, 15, this);
 }
 
 data_map* base_entity::GetPredictionDescMap()
 {
-    const address vtable_holder                           = this;
-    const decltype(&base_entity::GetPredictionDescMap) fn = vtable_holder.deref<1>()[17];
-    return fd::invoke(fn, this);
+    return invoke_vfunc(&base_entity::GetPredictionDescMap, 17, this);
 }

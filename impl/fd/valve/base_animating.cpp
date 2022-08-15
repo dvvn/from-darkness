@@ -14,7 +14,7 @@ void base_animating::UpdateClientSideAnimation()
 {
     // 224
     auto fn = fd::rt_modules::client.find_signature<"55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36">();
-    fd::invoke((decltype(&base_animating::UpdateClientSideAnimation)&)fn, this);
+    fd::invoke_member((decltype(&base_animating::UpdateClientSideAnimation)&)fn, this);
 }
 
 void base_animating::InvalidateBoneCache()

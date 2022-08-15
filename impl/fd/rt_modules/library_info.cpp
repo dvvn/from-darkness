@@ -156,7 +156,13 @@ wstring_view library_info::name() const
 }
 
 constexpr auto _Object_found = [](const library_info* info, const auto object_type, const auto object, const void* addr) {
-    invoke(logger, L"{} -> {} '{}' {}! ({:#X})", bind_front(&library_info::name, info), object_type, object, addr ? L"found" : L"not found", reinterpret_cast<uintptr_t>(addr));
+    invoke(logger,
+           L"{} -> {} '{}' {}! ({:#X})",
+           bind_front(&library_info::name, info),
+           object_type,
+           object,
+           addr ? L"found" : L"not found",
+           reinterpret_cast<uintptr_t>(addr) /*----*/);
 };
 
 void library_info::log_class_info(const string_view raw_name, const void* addr) const
@@ -170,8 +176,9 @@ void library_info::log_class_info(const string_view raw_name, const void* addr) 
     else
     {
         const auto object_type = raw_name.substr(0, name_begin);
-        const auto object      = raw_name.substr(name_begin + 1);
-
+        FD_ASSERT(!object_type.empty(), "Wrong object type");
+        const auto object = raw_name.substr(name_begin + 1);
+        FD_ASSERT(!object.empty(), "Wrong object name");
         invoke(notification, object_type, object);
     }
 }

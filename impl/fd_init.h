@@ -81,7 +81,7 @@ namespace fd
     {
         _Init(hwnd, hmodule);
         FD_OBJECT_GET(IDirect3DDevice9*).construct(d3d_created);
-        rt_modules::current->log_class_info<IDirect3DDevice9>(d3d_created);
+        rt_modules::current->log_class_info(d3d_created);
         return _Init_hooks();
     }
 #else
@@ -91,7 +91,7 @@ namespace fd
         {
             if (!run)
                 return false;
-            if (rt_modules::serverbrowser.loaded())
+            if (rt_modules::serverBrowser.loaded())
                 return true;
 
             thread_sleep(100);

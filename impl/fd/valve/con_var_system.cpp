@@ -155,12 +155,12 @@ con_var* con_var_system::FindVar(const string_view name) const
 
     if (target_cvar == invalid_cvar)
     {
-        // invoke(logger, "Cvar \"{}\" NOT found", name);
+        invoke(logger, "Cvar '{}' NOT found", name);
         return nullptr;
     }
 
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
-    // invoke(logger, "Cvar \"{}\" found", name);
+    invoke(logger, "Cvar '{}' found", name);
 #else
     FD_ASSERT(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
     logger([name] {

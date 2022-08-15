@@ -10,20 +10,18 @@ namespace fd::valve
     struct base_client;
 }
 
-using namespace fd;
-using namespace valve;
-
-static auto _Init()
+FD_OBJECT_IMPL_HEAD(global_vars_base*)
 {
+    using namespace fd;
+    using namespace valve;
+
     // const void* addr       = rt_modules::client.find_signature<"A1 ? ? ? ? 5E 8B 40 10">();
     // const auto target_addr = **reinterpret_cast<global_vars_base***>((uintptr_t)addr + 0x1);
 
     // get it from CHLClient::HudUpdate
     //@xref: "(time_int)", "(time_float)"
-    const auto vtable      = *reinterpret_cast<void***>(&FD_OBJECT_GET(base_client*));
-    const auto target_addr = **reinterpret_cast<global_vars_base***>((uintptr_t)vtable[11] + 0xA);
+    const auto vtable      = *reinterpret_cast<uintptr_t**>(&FD_OBJECT_GET(base_client*));
+    const auto target_addr = **reinterpret_cast<global_vars_base***>(vtable[11] + 0xA);
     rt_modules::client->log_class_info("class IGlobalVarsBase", target_addr);
-    return target_addr;
+    _Construct(target_addr);
 }
-
-FD_OBJECT_IMPL(global_vars_base*, _Init());

@@ -10,8 +10,5 @@ FD_OBJECT_IMPL(base_client, fd::rt_modules::client.find_interface<"VClient">());
 
 bool base_client::DispatchUserMessage(int msg_type, int flags, int size, const void* msg)
 {
-    // return dhooks::invoke(&base_client::DispatchUserMessage, static_cast<size_t>(38), this, msg_type, flags, size, msg);
-    auto vtable = *reinterpret_cast<void***>(this);
-    auto fn     = vtable[38];
-    return fd::invoke((decltype(&base_client::DispatchUserMessage)&)fn, this, msg_type, flags, size, msg);
+    return fd::invoke_vfunc(&base_client::DispatchUserMessage, 38, this, msg_type, flags, size, msg);
 }
