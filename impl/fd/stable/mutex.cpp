@@ -47,7 +47,7 @@ void basic_mutex::unlock() noexcept
 
 void mutex::lock() noexcept
 {
-    if (data()->RecursionCount >= 1)
-        std::abort();
     basic_mutex::lock();
+    if (data()->RecursionCount > 1)
+        std::abort();
 }
