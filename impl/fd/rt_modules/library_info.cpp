@@ -52,37 +52,104 @@ std::span<IMAGE_SECTION_HEADER> dos_nt::sections() const
 
 //---------
 
-template <typename Fn>
-static const LDR_DATA_TABLE_ENTRY* _Find_library(Fn comparer)
+class LIST_ENTRY_iterator
 {
-    const auto mem =
-#if defined(_M_X64) || defined(__x86_64__)
-        NtCurrentTeb();
-    FD_ASSERT(mem != nullptr, "Teb not found");
-    const auto ldr = mem->ProcessEnvironmentBlock->Ldr;
-#else
-        reinterpret_cast<PEB*>(__readfsdword(0x30));
-    FD_ASSERT(mem != nullptr, "Peb not found");
-    const auto ldr        = mem->Ldr;
-#endif
-    // get module linked list.
-    const auto list = &ldr->InMemoryOrderModuleList;
-    // iterate linked list.
-    for (auto it = list->Flink; it != list; it = it->Flink)
+    LIST_ENTRY* current_;
+
+  public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using difference_type   = size_t;
+    using value_type        = LIST_ENTRY;
+    using pointer           = value_type*;
+    using reference         = value_type&;
+
+    LIST_ENTRY_iterator(LIST_ENTRY* current)
+        : current_(current)
     {
-        // get current entry.
-        const auto ldr_entry = CONTAINING_RECORD(it, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
-        if (!ldr_entry)
-            continue;
-
-        const auto [dos, nt] = dos_nt(ldr_entry);
-        if (!comparer(ldr_entry, dos, nt))
-            continue;
-
-        return ldr_entry;
     }
 
+    LIST_ENTRY_iterator& operator++()
+    {
+        current_ = current_->Flink;
+        return *this;
+    }
+
+    LIST_ENTRY_iterator operator++(int)
+    {
+        auto tmp = *this;
+        operator++();
+        return tmp;
+    }
+
+    LIST_ENTRY_iterator& operator--()
+    {
+        current_ = current_->Blink;
+        return *this;
+    }
+
+    LIST_ENTRY_iterator operator--(int)
+    {
+        auto tmp = *this;
+        operator--();
+        return tmp;
+    }
+
+    LIST_ENTRY& operator*() const
+    {
+        return *current_;
+    }
+
+    bool operator==(const LIST_ENTRY_iterator& other) const = default;
+};
+
+class LIST_ENTRY_range
+{
+    LIST_ENTRY* root_;
+
+  public:
+    LIST_ENTRY_range()
+    {
+        const auto mem =
+#if defined(_M_X64) || defined(__x86_64__)
+            NtCurrentTeb();
+        FD_ASSERT(mem != nullptr, "Teb not found");
+        const auto ldr = mem->ProcessEnvironmentBlock->Ldr;
+#else
+            reinterpret_cast<PEB*>(__readfsdword(0x30));
+        FD_ASSERT(mem != nullptr, "Peb not found");
+        const auto ldr = mem->Ldr;
+#endif
+        // get module linked list.
+        root_ = &ldr->InMemoryOrderModuleList;
+    }
+
+    LIST_ENTRY_iterator begin() const
+    {
+        return root_->Flink;
+    }
+
+    LIST_ENTRY_iterator end() const
+    {
+        return root_;
+    }
+};
+
+template <typename T, typename Fn>
+T* LIST_ENTRY_finder(Fn fn)
+{
+    for (auto& list : LIST_ENTRY_range())
+    {
+        auto item = CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
+        if (invoke(fn, item))
+            return item;
+    }
     return nullptr;
+}
+
+template <typename Fn>
+auto LDR_ENTRY_finder(Fn fn)
+{
+    return LIST_ENTRY_finder<LDR_DATA_TABLE_ENTRY>(fn);
 }
 
 library_info::library_info(pointer const entry)
@@ -92,7 +159,7 @@ library_info::library_info(pointer const entry)
 }
 
 library_info::library_info(const wstring_view name, const bool notify)
-    : entry_(_Find_library([=](const library_info info, void*, void*) {
+    : entry_(LDR_ENTRY_finder([=](const library_info info) {
         return info.name() == name;
     }))
 {
@@ -103,8 +170,8 @@ library_info::library_info(const wstring_view name, const bool notify)
 }
 
 library_info::library_info(IMAGE_DOS_HEADER* const base_address, const bool notify)
-    : entry_(_Find_library([=](void*, IMAGE_DOS_HEADER* const dos, void*) {
-        return base_address == dos;
+    : entry_(LDR_ENTRY_finder([=](const dos_nt dnt) {
+        return base_address == dnt.dos;
     }))
 {
     if (notify)
