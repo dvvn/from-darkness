@@ -5,7 +5,6 @@
 
 import fd.gui.basic_input_handler;
 import fd.application_data;
-import fd.functional.bind;
 
 //#define HOT_UNLOAD_SUPPORTED
 
