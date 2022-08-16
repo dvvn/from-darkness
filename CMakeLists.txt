@@ -233,7 +233,7 @@ endfunction()
 
 # -------------------
 
-add_subproject(functional LINK function2)
+add_subproject(functional LINK function2 INCLUDE ${_PROJ_IMPL_DIR})
 
 add_subproject(
   stable

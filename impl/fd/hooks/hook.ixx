@@ -136,6 +136,23 @@ concept have_static_callback_method = have_callback_method<Impl> && std::is_poin
 template <class Impl>
 concept have_member_callback_method = have_callback_method<Impl> && std::is_member_function_pointer_v<decltype(&Impl::callback)>;
 
+template <class Impl, size_t Index>
+auto _Get_original_method()
+{
+    using callback_t = decltype(&Impl::callback);
+
+    union
+    {
+        callback_t fn;
+        const void* ptr;
+    } adaptor;
+
+    if constexpr (sizeof(callback_t) > sizeof(void*))
+        adaptor.fn = nullptr; // override 'fat' pointer if exists
+    adaptor.ptr = FD_OBJECT_GET(Impl, Index)->get_original_method();
+    return adaptor.fn;
+}
+
 template <class Impl, size_t Index = 0>
 struct hook_instance_static
 {
@@ -148,9 +165,7 @@ struct hook_instance_static
     template <typename... Args>
     static decltype(auto) call_original(Args&&... args)
     {
-        auto fn                      = &Impl::callback;
-        reinterpret_cast<void*&>(fn) = FD_OBJECT_GET(Impl, Index)->get_original_method();
-        return fd::invoke(fn, std::forward<Args>(args)...);
+        return fd::invoke(_Get_original_method<Impl, Index>(), std::forward<Args>(args)...);
     }
 };
 
@@ -166,14 +181,9 @@ struct hook_instance_member
     template <typename... Args>
     decltype(auto) call_original(Args&&... args) const
     {
-        const auto inst    = &FD_OBJECT_GET(Impl, Index);
         const auto thisptr = static_cast<const Impl*>(this);
-        FD_ASSERT(inst != thisptr, "Function must be called from hooked method!");
-
-        decltype(&Impl::callback) orig_fn;
-        reinterpret_cast<void*&>(orig_fn) = inst->get_original_method();
-
-        return fd::invoke(orig_fn, thisptr, std::forward<Args>(args)...);
+        FD_ASSERT((&FD_OBJECT_GET(Impl, Index) != thisptr), "Function must be called from hooked method!");
+        return fd::invoke(_Get_original_method<Impl, Index>(), thisptr, std::forward<Args>(args)...);
     }
 };
 

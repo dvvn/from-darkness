@@ -8,7 +8,6 @@
 
 import fd.hook;
 import fd.chars_cache;
-import fd.format;
 
 #define FN_member
 #define FN_static static
