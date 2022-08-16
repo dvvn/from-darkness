@@ -724,7 +724,7 @@ class interface_reg
     auto name_size(const string_view known_part = {}) const
     {
 #ifdef _DEBUG
-        if (!known_part.empty() && std::memcmp(this->name_, known_part.data(), known_part.size()) == 0)
+        if (!known_part.empty() && std::memcmp(this->name_, known_part.data(), known_part.size()) != 0)
             FD_ASSERT("Incorrect known part");
 #endif
 
