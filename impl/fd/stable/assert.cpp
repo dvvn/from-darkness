@@ -8,8 +8,8 @@ module;
 #include <source_location>
 
 module fd.assert;
-import fd.format;
-import fd.to_char;
+import fd.string.make;
+import fd.utf_convert;
 import fd.application_data;
 import fd.mutex;
 
@@ -32,7 +32,7 @@ static auto _Build_message(const assert_data& data, T... extra)
     else
         msg = make_string(FIRST_PART, extra...);
 
-    return to_char<wchar_t>(msg);
+    return utf_convert<wchar_t>(msg);
 }
 
 template <typename B>

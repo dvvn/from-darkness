@@ -12,7 +12,7 @@ import fd.math.view_matrix;
 import fd.math.vector2;
 import fd.valve.vector;
 import fd.valve.base_handle;
-import fd.to_char;
+import fd.utf_convert;
 import fd.ctype;
 import fd.type_name;
 import fd.format;

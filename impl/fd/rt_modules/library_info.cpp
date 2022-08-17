@@ -16,6 +16,7 @@ import fd.chars_cache;
 import fd.ctype;
 import fd.memory;
 import fd.functional.bind;
+import fd.string.make;
 
 using namespace fd;
 

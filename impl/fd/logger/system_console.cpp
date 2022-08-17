@@ -16,7 +16,7 @@ module;
 
 module fd.system_console;
 #ifdef _DEBUG
-import fd.to_char;
+import fd.utf_convert;
 #endif
 import fd.chars_cache;
 import fd.format;
@@ -151,7 +151,7 @@ class writer
 
     void write(const char* ptr, const size_t size)
     {
-        /* const auto wstr = to_char<wchar_t>(string_view(ptr, size));
+        /* const auto wstr = utf_convert<wchar_t>(string_view(ptr, size));
          write(wstr.data(), wstr.size()); */
         _fwrite_nolock(ptr, sizeof(char), size, stream_);
     }

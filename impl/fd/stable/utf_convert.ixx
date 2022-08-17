@@ -2,7 +2,7 @@ module;
 
 #include <ww898/utf_converters.hpp>
 
-export module fd.to_char;
+export module fd.utf_convert;
 export import fd.string;
 
 using ww898::utf::detail::utf_selector;
@@ -57,18 +57,18 @@ struct to_char_impl
     template <typename C>
     auto operator()(const C from) const requires(std::is_pointer_v<C>) // fix to allow previous overload
     {
-        const auto size = basic_string_view(from).size();
+        const auto size = str_len(from);
         const auto to   = from + size;
         return utf_conv<To>(from, to);
     }
 };
 
 template <typename To>
-constexpr auto to_char = nullptr;
+constexpr auto utf_convert = nullptr;
 
 #define TO_CHAR(_T_) \
     template <>      \
-    constexpr to_char_impl<_T_> to_char<_T_>;
+    constexpr to_char_impl<_T_> utf_convert<_T_>;
 
 TO_CHAR(char);
 TO_CHAR(char8_t);
@@ -78,5 +78,5 @@ TO_CHAR(char32_t);
 
 export namespace fd
 {
-    using ::to_char;
+    using ::utf_convert;
 }

@@ -5,7 +5,7 @@ module;
 #include <concepts>
 
 export module fd.logger;
-export import fd.to_char;
+export import fd.utf_convert;
 export import fd.format;
 import fd.functional.invoke;
 
@@ -65,7 +65,7 @@ decltype(auto) _Correct_obj(T&& obj)
     else if constexpr (std::is_same_v<get_char_t<T>, CharT> || std::is_void_v<CharT> || !can_be_string<T>)
         return _Forward_or_move(std::forward<T>(obj));
     else
-        return fd::to_char<CharT>(obj);
+        return fd::utf_convert<CharT>(obj);
 }
 
 FD_CALLBACK(logger_narrow, void,fd::string_view);
