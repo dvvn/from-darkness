@@ -119,7 +119,7 @@ function(add_subproject _name)
           message(FATAL_ERROR "files filter already set!")
         endif() ]]
         string(REPLACE "FILTER=" "" _files_filter ${_item})
-        message(DEBUG "filter set to ${_files_filter}")
+        #message(DEBUG "filter set to \"${_files_filter}\"")
       elseif(IS_DIRECTORY ${_item})
         #message(DEBUG "found directory: ${_item}")
         file(GLOB_RECURSE _files_tmp ${_item}/*.ixx ${_item}/*.cpp)
@@ -129,6 +129,7 @@ function(add_subproject _name)
       else() #maybe it contains regex (TODO: find better way to check)
         file(GLOB_RECURSE _files_tmp ${_item})
         list(APPEND _files ${_files_tmp})
+        #message(DEBUG "files found for ${_item}: ${_files_tmp}")
       endif()
 
       if(DEFINED _files_tmp)
@@ -261,19 +262,23 @@ endfunction()
 
 set(_DEFAULT_FILES_FILTER "/\_+")
 
-file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
-list(APPEND _IMGUI_FILES ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp)
+file(GLOB _IMGUI_CORE_FILES ${imgui_SOURCE_DIR}/*.cpp)
 
 add_subproject(
   imgui
   LINK
+  PRIVATE
   freetype
   INCLUDE
   ${imgui_SOURCE_DIR}
-  ${imgui_SOURCE_DIR}/misc/freetype
   ${imgui_SOURCE_DIR}/backends
+  PRIVATE
+  ${imgui_SOURCE_DIR}/misc/freetype
   FILES
-  ${_IMGUI_FILES}
+  ${_IMGUI_CORE_FILES}
+  ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
   DEFINE
   IMGUI_ENABLE_FREETYPE
   IMGUI_USE_WCHAR32
