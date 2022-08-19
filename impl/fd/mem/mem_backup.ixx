@@ -6,17 +6,37 @@ export module fd.mem_backup;
 
 export namespace fd
 {
-    template <std::copyable T>
-    class backup
+    template <typename T>
+    struct backup
     {
+        using value_type = T;
+        using pointer    = T*;
+        using reference  = const T&;
+
+      private:
         struct value_stored
         {
-            T* owner;
-            T  value;
+            value_type value;
+            pointer owner;
         };
 
+        std::optional<value_stored> backup_;
+
+        void _Restore()
+        {
+            auto& b = *backup_;
+            using std::swap;
+            swap(*b.owner, b.value);
+        }
+
       public:
-        using value_type = T;
+        ~backup()
+        {
+            if (has_value())
+            {
+                _Restore();
+            }
+        }
 
         backup(const backup& other)            = delete;
         backup& operator=(const backup& other) = delete;
@@ -28,7 +48,8 @@ export namespace fd
 
         backup& operator=(backup&& other)
         {
-            std::swap(backup_, other.backup_);
+            using std::swap;
+            swap(backup_, other.backup_);
             return *this;
         }
 
@@ -36,40 +57,26 @@ export namespace fd
 
         backup(T& from)
         {
-            backup_.emplace(&from, from);
+            backup_.emplace(from, &from);
         }
 
-        template <typename T1>
-        backup(T& from, T1&& owerride)
+        /* template <typename T1>
+        backup(T& from, T1&& owerride) //use std::exchange
             : backup(from)
         {
             from = T(std::forward<T1>(owerride));
-        }
+        } */
 
         const T& get() const
         {
             return backup_->value;
         }
 
-      private:
-        void restore_impl()
-        {
-            auto& b = *backup_;
-            std::swap(*b.owner, b.value);
-        }
-
-      public:
-        ~backup()
-        {
-            if (has_value())
-                restore_impl();
-        }
-
         void restore()
         {
             if (has_value())
             {
-                restore_impl();
+                _Restore();
                 reset();
             }
         }
@@ -83,8 +90,6 @@ export namespace fd
         {
             return backup_.has_value();
         }
-
-      private:
-        std::optional<value_stored> backup_;
     };
+
 } // namespace fd

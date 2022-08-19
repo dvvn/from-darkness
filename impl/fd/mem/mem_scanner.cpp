@@ -77,6 +77,13 @@ void memory_range::update(void* curr, const size_t offset)
 
 //-----
 
+void _Bad_creator_assert()
+{
+    FD_ASSERT("Incorrect creator detected");
+}
+
+//-----
+
 struct bytes_range
 {
     std::vector<uint8_t> part;

@@ -1,14 +1,16 @@
 module;
 
 #include <fd/assert.h>
+#include <fd/utility.h>
 
 #include <Windows.h>
 
 #include <algorithm>
+#include <array>
 
 module fd.hook;
 import fd.logger;
-import fd.mem_block;
+import fd.mem_info;
 import fd.functional.bind;
 
 #pragma region hde
@@ -590,28 +592,77 @@ hook_entry::~hook_entry()
 hook_entry::hook_entry(hook_entry&& other)            = default;
 hook_entry& hook_entry::operator=(hook_entry&& other) = default;
 
-template <typename T>
-static fd::mem_block _To_mem_block(T* ptr)
+static bool _Is_executable(void* buff, const size_t size = sizeof(void*))
 {
-    return { reinterpret_cast<uint8_t*>(ptr), std::max(sizeof(uintptr_t), sizeof(T)) };
+    return fd::mem_executable(buff, size);
 }
 
-static fd::mem_block _To_mem_block(void* ptr)
+static bool _Have_flags(void* buff, const size_t size, const size_t flags)
 {
-    return { reinterpret_cast<uint8_t*>(ptr), sizeof(uintptr_t) };
+    return fd::mem_have_flags(buff, size, flags);
 }
 
-template <typename T>
-static fd::mem_block _To_mem_block(T& rng)
+template <uint8_t Num, size_t... I>
+constexpr auto _Make_bytes_array(const std::index_sequence<I...> seq)
 {
-    return { reinterpret_cast<uint8_t*>(rng.data()), rng.size() * sizeof(T::value_type) };
+    return std::array{ static_cast<uint8_t>(I - I + Num)... };
 }
 
-// template<class T>
-// static bool _Have_flags(T && obj, DWORD flags)
-//{
-//	return _To_mem_block(obj).have_flags(flags);
-// }
+template <uint8_t Num, typename T>
+static bool _Compare_as(const void* buff)
+{
+    constexpr auto cmp = _Make_bytes_array<Num>(std::make_index_sequence<sizeof(T)>());
+    return *static_cast<const T*>(buff) == *reinterpret_cast<const T*>(cmp.data());
+}
+
+template <uint8_t Byte, bool Even = false>
+static bool _Is_code_padding(const uint8_t* buff, size_t size)
+{
+    if constexpr (!Even)
+    {
+        if (size % 2)
+        {
+            if (buff[size - 1] != Byte)
+                return false;
+            --size;
+        }
+    }
+
+    switch (size)
+    {
+    case sizeof(uint8_t): {
+        return *buff == Byte;
+    }
+    case sizeof(uint16_t): {
+        return _Compare_as<Byte, uint16_t>(buff);
+    }
+    case sizeof(uint32_t): {
+        return _Compare_as<Byte, uint32_t>(buff);
+    }
+    case sizeof(uint64_t): {
+        return _Compare_as<Byte, uint64_t>(buff);
+    }
+    default: {
+        const auto half = size / 2;
+        return _Is_code_padding<Byte, true>(buff, half) && _Is_code_padding<Byte, true>(buff + half, half);
+    }
+    }
+}
+
+static bool _Is_code_padding(const uint8_t* buff, const size_t size)
+{
+    switch (buff[0])
+    {
+    case 0x00:
+        return _Is_code_padding<0x00>(buff + 1, size - 1);
+    case 0x90:
+        return _Is_code_padding<0x90>(buff + 1, size - 1);
+    case 0xCC:
+        return _Is_code_padding<0xCC>(buff + 1, size - 1);
+    default:
+        return false;
+    }
+}
 
 bool hook_entry::create()
 {
@@ -624,9 +675,9 @@ bool hook_entry::create()
     if (target_ == detour_)
         return /*hook_status::ERROR_UNSUPPORTED_FUNCTION*/ 0;
 
-    if (!_To_mem_block(target_).executable())
+    if (!_Is_executable(target_))
         return /*hook_status::ERROR_NOT_EXECUTABLE*/ 0;
-    if (!_To_mem_block(detour_).executable())
+    if (!_Is_executable(detour_))
         return /*hook_status::ERROR_NOT_EXECUTABLE*/ 0;
 
 #if 0 // x64
@@ -660,8 +711,9 @@ bool hook_entry::create()
         0x00000000 // Relative destination address
     };
     JCC_REL jcc = {
-        0x0F, 0x80, // 0F8* xxxxxxxx: J** +6+xxxxxxxx
-        0x00000000  // Relative destination address
+        0x0F,
+        0x80,      // 0F8* xxxxxxxx: J** +6+xxxxxxxx
+        0x00000000 // Relative destination address
     };
 #endif
 
@@ -875,18 +927,16 @@ bool hook_entry::create()
     const auto target_ptr = static_cast<uint8_t*>(target_);
 
     // Is there enough place for a long jump?
-    if (old_pos < sizeof(JMP_REL) && !fd::mem_block(target_ptr + old_pos, sizeof(JMP_REL) - old_pos).code_padding())
+    if (old_pos < sizeof(JMP_REL) && !_Is_code_padding(target_ptr + old_pos, sizeof(JMP_REL) - old_pos))
     {
         // Is there enough place for a short jump?
-        if (old_pos < sizeof(JMP_REL_SHORT) && !fd::mem_block(target_ptr + old_pos, sizeof(JMP_REL_SHORT) - old_pos).code_padding())
+        if (old_pos < sizeof(JMP_REL_SHORT) && !_Is_code_padding(target_ptr + old_pos, sizeof(JMP_REL_SHORT) - old_pos))
             return false;
-
-        const fd::mem_block target_rel(target_ptr - sizeof(JMP_REL), sizeof(JMP_REL));
 
         // Can we place the long jump above the function?
-        if (!target_rel.executable())
+        if (!_Is_executable(target_ptr - sizeof(JMP_REL), sizeof(JMP_REL)))
             return false;
-        if (!target_rel.code_padding())
+        if (!_Is_code_padding(target_ptr - sizeof(JMP_REL), sizeof(JMP_REL)))
             return false;
 
         patch_above_ = true;
@@ -903,10 +953,10 @@ bool hook_entry::create()
 #endif
 
     // correct trampoline memory access
-    if (!fd::mem_block(trampoline_.data(), trampoline_.size()).have_flags(PAGE_EXECUTE_READWRITE))
+    if (!_Have_flags(trampoline_.data(), trampoline_.size(), PAGE_EXECUTE_READWRITE))
     {
         FD_ASSERT(!trampoline_protection_.has_value(), "Trampoline memory protection already fixed");
-        trampoline_protection_ = { trampoline_.data(), trampoline_.size(), PAGE_EXECUTE_READWRITE };
+        std::construct_at(&trampoline_protection_, trampoline_.data(), trampoline_.size(), PAGE_EXECUTE_READWRITE);
         FD_ASSERT(trampoline_protection_.has_value(), "Unable to fix trampoline memory protection");
     }
 
@@ -930,45 +980,51 @@ bool hook_entry::enabled() const
     return enabled_;
 }
 
-class prepared_memory_block : public fd::mem_block
+class mem_patch_helper
 {
     fd::mem_protect protect_;
+    uint8_t* target_;
+    size_t target_size_;
 
   public:
-    ~prepared_memory_block()
+    ~mem_patch_helper()
     {
-        if (this->empty())
-            return;
-
         protect_.restore();
-        FlushInstructionCache(GetCurrentProcess(), this->data(), this->size());
+        FlushInstructionCache(GetCurrentProcess(), target_, target_size_);
     }
 
-    prepared_memory_block(const prepared_memory_block&) = delete;
+    mem_patch_helper(const mem_patch_helper&) = delete;
 
-    prepared_memory_block(void* target, bool patch_above)
+    mem_patch_helper(void* const target, const bool patch_above)
     {
         FD_ASSERT(target != nullptr);
 
-        auto target_ptr      = static_cast<uint8_t*>(target);
-        auto target_ptr_size = sizeof(JMP_REL);
+        target_      = static_cast<uint8_t*>(target);
+        target_size_ = sizeof(JMP_REL);
 
         if (patch_above)
         {
-            target_ptr -= sizeof(JMP_REL);
-            target_ptr_size += sizeof(JMP_REL_SHORT);
+            target_ -= sizeof(JMP_REL);
+            target_size_ += sizeof(JMP_REL_SHORT);
         }
-
-        *static_cast<fd::mem_block*>(this) = { target_ptr, target_ptr_size };
 
         // todo: wait if not readable
-        //-----
 
-        if (!this->have_flags(PAGE_EXECUTE_READWRITE))
+        if (!_Have_flags(target_, target_size_, PAGE_EXECUTE_READWRITE))
         {
-            protect_ = { target_ptr, target_ptr_size, PAGE_EXECUTE_READWRITE };
+            std::construct_at(&protect_, target_, target_size_, PAGE_EXECUTE_READWRITE);
             FD_ASSERT(protect_.has_value());
         }
+    }
+
+    uint8_t* data() const
+    {
+        return target_;
+    }
+
+    size_t size() const
+    {
+        return target_size_;
     }
 };
 
@@ -976,9 +1032,7 @@ bool hook_entry::enable()
 {
     if (enabled_)
         return false;
-    const prepared_memory_block block(target_, patch_above_);
-    if (block.empty())
-        return false;
+    const mem_patch_helper block(target_, patch_above_);
 
     const auto jmp_rel = reinterpret_cast<JMP_REL*>(block.data());
     jmp_rel->opcode    = 0xE9;
@@ -998,10 +1052,7 @@ bool hook_entry::disable()
 {
     if (!enabled_)
         return false;
-    const prepared_memory_block mem(target_, patch_above_);
-    if (mem.empty())
-        return false;
-
+    const mem_patch_helper mem(target_, patch_above_);
     std::copy(target_backup_.begin(), target_backup_.end(), mem.data());
     enabled_ = false;
     return true;

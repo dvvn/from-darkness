@@ -1,7 +1,5 @@
 module;
 
-#include <fd/assert.h>
-
 #include <iterator>
 #include <type_traits>
 
@@ -75,6 +73,8 @@ class xrefs_finder_impl
     void update(void* last_pos);
 };
 
+void _Bad_creator_assert();
+
 template <typename M>
 class memory_iterator_end;
 
@@ -145,7 +145,10 @@ struct memory_iterator
 
     bool operator==(const memory_iterator& other) const
     {
-        FD_ASSERT(creator_ == other.creator_);
+#ifdef _DEBUG
+        if (creator_ != other.creator_)
+            _Bad_creator_assert();
+#endif
         return current_ == other.current_;
     }
 };
@@ -169,7 +172,10 @@ class memory_iterator_end
 
     bool operator==(const _Itr& itr) const
     {
-        FD_ASSERT(creator_ == itr.creator_);
+#ifdef _DEBUG
+        if (creator_ != itr.creator_)
+            _Bad_creator_assert();
+#endif
         return !itr.current_;
     }
 };

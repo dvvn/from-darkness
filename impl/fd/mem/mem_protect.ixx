@@ -1,27 +1,33 @@
 module;
 
-#include <windows.h>
-
+#include <limits.h>
 #include <optional>
 
 export module fd.mem_protect;
 
-class mem_protect
+struct mem_protect
 {
-  public:
+#ifdef _WIN32
+    using size_type = uint32_t;
+#else
+#pragma error not implemented
+#endif
+
+  private:
     struct data
     {
-        LPVOID addr;
-        SIZE_T size;
-        DWORD  flags;
+        void* addr;
+        size_t size;
+        size_t flags;
 
-        DWORD set() const;
+        size_t set() const;
     };
 
-    using value_type = std::optional<data>;
+    std::optional<data> info_;
 
+  public:
     mem_protect();
-    mem_protect(const LPVOID addr, const SIZE_T size, const DWORD new_flags);
+    mem_protect(const void* addr, const size_t size, const size_type new_flags);
     mem_protect(mem_protect&& other);
     ~mem_protect();
 
@@ -31,9 +37,6 @@ class mem_protect
 
     bool restore();
     bool has_value() const;
-
-  private:
-    value_type info_;
 };
 
 export namespace fd

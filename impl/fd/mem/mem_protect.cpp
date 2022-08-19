@@ -63,7 +63,7 @@ class last_error_string
 
 #endif
 
-static DWORD _Set_flags(const LPVOID addr, const SIZE_T size, const DWORD new_flags)
+static DWORD _Set_flags(const LPVOID addr, const size_t size, const DWORD new_flags)
 {
 #if 0
 	const nstd::mem::block block = {static_cast<uint8_t*>(addr),size};
@@ -96,7 +96,7 @@ DWORD mem_protect::data::set() const
 
 mem_protect::mem_protect() = default;
 
-mem_protect::mem_protect(const LPVOID addr, const SIZE_T size, const DWORD new_flags)
+mem_protect::mem_protect(const void* addr, const size_t size, const size_type new_flags)
 {
     const auto old_flags = _Set_flags(addr, size, new_flags);
     if (old_flags != 0)
@@ -110,9 +110,8 @@ mem_protect::mem_protect(mem_protect&& other)
 
 mem_protect::~mem_protect()
 {
-    if (!info_.has_value())
-        return;
-    info_->set();
+    if (info_.has_value())
+        info_->set();
 }
 
 mem_protect& mem_protect::operator=(mem_protect&& other)
