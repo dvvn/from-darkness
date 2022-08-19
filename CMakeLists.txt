@@ -8,11 +8,11 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 endif()
 
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20)
-endif()
-
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED on)
 
 set(_PROJ_NAME fd)
 string(TOUPPER ${_PROJ_NAME} _PROJ_NAME_UPPER)
@@ -28,8 +28,7 @@ message(DEBUG "cpu count: ${_CPUS}")
 # if(MSVC) idk, not defined
 add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
 add_compile_options(/wd5103 /wd4291 /wd4250)
-add_compile_options(/MP${_CPUS} /permissive- /EHsc)
-add_compile_options()
+add_compile_options(/MP${_CPUS} /EHsc)
 add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
 # endif()
 
@@ -181,17 +180,19 @@ function(add_subproject _name)
       set(_type STATIC)
     endif()
   endif()
+
   if(_add_prefix_to_name)
     set(_target ${_PROJ_NAME}_${_name})
   else()
     set(_target ${_name})
   endif()
+
   if(_type STREQUAL "EXECUTABLE")
     add_executable(${_target} ${_files})
     set(_link_type_root PRIVATE)
   else()
     add_library(${_target} ${_type} ${_files})
-    if(_type STREQUAL "INTERFACE")
+    if(_type STREQUAL "INTERFACE") #ifcSearchDir
       set(_link_type_root ${_type})
     else()
       set(_link_type_root PUBLIC)
