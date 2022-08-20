@@ -89,6 +89,11 @@ class rewrapped_namespaces
         }
     }
 
+    constexpr string_view name() const
+    {
+        return name_;
+    }
+
     constexpr bool is_class() const
     {
         return prefix_ == "class";
@@ -179,7 +184,7 @@ struct library_info
     void* find_vtable_unknown(const string_view name, const bool notify) const;
 
   public:
-    // void* find_vtable(const string_view name, const bool notify = true) const;
+    void* find_vtable(const string_view name, const bool notify = true) const;
     void* find_vtable(const std::type_info& info, const bool notify = true) const;
 
     template <class T>

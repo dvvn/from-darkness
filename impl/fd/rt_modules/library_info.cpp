@@ -572,20 +572,21 @@ void* library_info::find_vtable_unknown(const string_view name, const bool notif
     return _Find_vtable(entry_, name, obj_type::UNKNOWN, notify);
 }
 
-/* void* library_info::find_vtable(const string_view name, const bool notify) const
+void* library_info::find_vtable(const string_view name, const bool notify) const
 {
-    const auto do_find = bind_back(bind_front(_Find_vtable, entry_), notify);
+    /* const auto do_find = bind_back(bind_front(_Find_vtable, entry_), notify);
 
-    constexpr string_view class_prefix_ = "class ";
-    if (name.starts_with(class_prefix_))
-        return do_find(name.substr(class_prefix_.size()), obj_type::CLASS);
+     constexpr string_view class_prefix_ = "class ";
+     if (name.starts_with(class_prefix_))
+         return do_find(name.substr(class_prefix_.size()), obj_type::CLASS);
 
-    constexpr string_view struct_prefix_ = "struct ";
-    if (name.starts_with(struct_prefix_))
-        return do_find(name.substr(struct_prefix_.size()), obj_type::STRUCT);
+     constexpr string_view struct_prefix_ = "struct ";
+     if (name.starts_with(struct_prefix_))
+         return do_find(name.substr(struct_prefix_.size()), obj_type::STRUCT); */
 
-    return do_find(name, obj_type::UNKNOWN);
-} */
+    const rewrapped_namespaces helper(name);
+    return _Find_vtable(entry_, helper.name(), helper.is_class() ? obj_type::CLASS : helper.is_struct() ? obj_type::STRUCT : obj_type::UNKNOWN, notify);
+}
 
 void* library_info::find_vtable(const std::type_info& info, const bool notify) const
 {
