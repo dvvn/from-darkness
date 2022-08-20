@@ -22,6 +22,11 @@ struct basic_unique_ptr
     [[no_unique_address]] deleter_type del_;
 
   private:
+    constexpr void _Reset(const std::nullptr_t)
+    {
+        ptr_ = nullptr;
+    }
+
     constexpr void _Reset(const pointer new_ptr)
     {
         del_(ptr_);

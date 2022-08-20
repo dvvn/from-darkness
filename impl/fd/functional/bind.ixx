@@ -49,24 +49,11 @@ struct _Bind_helper
     template <typename Fn, typename... Args>
     constexpr auto operator()(Fn&& fn, Args&&... args) const
     {
-        return [fn_stored         = std::forward<Fn>(fn),
-                bound_args_stored = std::forward_as_tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto) {
+        return [fn_stored = std::forward<Fn>(fn), bound_args_stored = std::tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto) {
             if constexpr (sizeof...(Args) == 0)
-            {
                 return fd::invoke(fn_stored, std::forward<CallArgs>(call_args)...);
-            }
             else
-            {
                 return bind_caller<Mode>::call(fn_stored, bound_args_stored, std::forward<CallArgs>(call_args)...);
-                /* return std::apply(
-                    [&](auto&... bound_args) -> decltype(auto) {
-                        if constexpr (Mode == bind_mode::front)
-                            return fd::invoke(fn_stored, std::forward<CallArgs>(call_args)..., bound_args...);
-                        else if constexpr (Mode == bind_mode::back)
-                            return fd::invoke(fn_stored, bound_args..., std::forward<CallArgs>(call_args)...);
-                    },
-                    bound_args_stored); */
-            }
         };
     }
 };

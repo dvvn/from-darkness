@@ -14,7 +14,7 @@ module;
 #include <iostream>
 #include <time.h>
 
-module fd.system_console;
+module fd.system.console;
 #ifdef _DEBUG
 import fd.utf_convert;
 #endif

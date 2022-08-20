@@ -10,7 +10,7 @@ import fd.application_data;
 import fd.rt_modules;
 import fd.assert;
 import fd.logger;
-import fd.system_console;
+import fd.system.console;
 import fd.async;
 
 namespace fd

@@ -104,4 +104,6 @@ export namespace fd
 {
     constexpr format_to_impl format_to;
     constexpr format_impl format;
+
+    using _FMT::formatter;
 } // namespace fd

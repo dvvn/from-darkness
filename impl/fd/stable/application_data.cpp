@@ -34,7 +34,7 @@ rect_ex window_size::client() const
 
 //-----------
 
-#ifndef UNICODE
+#if !defined(UNICODE) || defined(_DLL)
 #undef DefWindowProc
 #undef GetWindowLongPtr
 #undef SetWindowLong

@@ -1,38 +1,33 @@
 module;
 
-#include <limits.h>
-#include <optional>
+#include <cstdint>
 
 export module fd.mem_protect;
 
 struct mem_protect
 {
+
 #ifdef _WIN32
-    using size_type = uint32_t;
+    using size_type = unsigned long;
 #else
 #pragma error not implemented
 #endif
 
   private:
-    struct data
-    {
-        void* addr;
-        size_t size;
-        size_t flags;
+    void* addr_;
+    size_t size_;
+    size_type old_flags_;
 
-        size_t set() const;
-    };
-
-    std::optional<data> info_;
+    mem_protect(const mem_protect& other);
+    mem_protect& operator=(const mem_protect&);
 
   public:
-    mem_protect();
-    mem_protect(const void* addr, const size_t size, const size_type new_flags);
-    mem_protect(mem_protect&& other);
     ~mem_protect();
 
-    mem_protect(const mem_protect&)            = delete;
-    mem_protect& operator=(const mem_protect&) = delete;
+    mem_protect();
+    mem_protect(void* addr, const size_t size, const size_type new_flags);
+
+    mem_protect(mem_protect&& other);
     mem_protect& operator=(mem_protect&& other);
 
     bool restore();

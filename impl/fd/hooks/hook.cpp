@@ -980,22 +980,22 @@ bool hook_entry::enabled() const
     return enabled_;
 }
 
-class mem_patch_helper
+class instructions_updater
 {
     fd::mem_protect protect_;
     uint8_t* target_;
     size_t target_size_;
 
   public:
-    ~mem_patch_helper()
+    ~instructions_updater()
     {
         protect_.restore();
         FlushInstructionCache(GetCurrentProcess(), target_, target_size_);
     }
 
-    mem_patch_helper(const mem_patch_helper&) = delete;
+    instructions_updater(const instructions_updater&) = delete;
 
-    mem_patch_helper(void* const target, const bool patch_above)
+    instructions_updater(void* const target, const bool patch_above)
     {
         FD_ASSERT(target != nullptr);
 
@@ -1032,7 +1032,7 @@ bool hook_entry::enable()
 {
     if (enabled_)
         return false;
-    const mem_patch_helper block(target_, patch_above_);
+    const instructions_updater block(target_, patch_above_);
 
     const auto jmp_rel = reinterpret_cast<JMP_REL*>(block.data());
     jmp_rel->opcode    = 0xE9;
@@ -1041,7 +1041,7 @@ bool hook_entry::enable()
     {
         const auto short_jmp = static_cast<JMP_REL_SHORT*>(target_);
         short_jmp->opcode    = 0xEB;
-        short_jmp->operand   = static_cast<UINT8>(0 - (sizeof(JMP_REL_SHORT) + sizeof(JMP_REL)));
+        short_jmp->operand   = static_cast<UINT8>(0 - static_cast<intptr_t>(block.size()));
     }
 
     enabled_ = true;
@@ -1052,7 +1052,7 @@ bool hook_entry::disable()
 {
     if (!enabled_)
         return false;
-    const mem_patch_helper mem(target_, patch_above_);
+    const instructions_updater mem(target_, patch_above_);
     std::copy(target_backup_.begin(), target_backup_.end(), mem.data());
     enabled_ = false;
     return true;

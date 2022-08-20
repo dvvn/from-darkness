@@ -7,31 +7,9 @@ module;
 export module fd.logger;
 export import fd.utf_convert;
 export import fd.format;
-import fd.functional.invoke;
+export import fd.functional.invoke;
 
-using fd::invocable;
-
-template <typename T>
-concept have_array_access = requires(const T& obj)
-{
-    obj[0];
-};
-
-struct dummy
-{
-};
-
-template <typename S>
-auto _Get_char_t()
-{
-    if constexpr (have_array_access<S>)
-        return std::remove_cvref_t<decltype(std::declval<S>()[0])>();
-    else
-        return dummy();
-}
-
-template <typename S>
-using get_char_t = decltype(_Get_char_t<S>());
+using namespace fd;
 
 // clang-format off
 constexpr void _Char_acceptor(const char){}
@@ -48,6 +26,9 @@ concept can_be_string = requires(const T& obj)
     _Char_acceptor(obj[0]);
 };
 
+template <typename S>
+using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
+
 template <typename T>
 decltype(auto) _Forward_or_move(T&& obj)
 {
@@ -61,15 +42,17 @@ template <typename CharT = void, typename T>
 decltype(auto) _Correct_obj(T&& obj)
 {
     if constexpr (invocable<T>)
-        return _Correct_obj<CharT>(fd::invoke(obj));
-    else if constexpr (std::is_same_v<get_char_t<T>, CharT> || std::is_void_v<CharT> || !can_be_string<T>)
+        return _Correct_obj<CharT>(invoke(obj));
+    else if constexpr (std::is_void_v<CharT> || !can_be_string<T>)
+        return _Forward_or_move(std::forward<T>(obj));
+    else if constexpr (std::is_same_v<get_char_t<T>, CharT>)
         return _Forward_or_move(std::forward<T>(obj));
     else
-        return fd::utf_convert<CharT>(obj);
+        return utf_convert<CharT>(obj);
 }
 
-FD_CALLBACK(logger_narrow, void,fd::string_view);
-FD_CALLBACK(logger_wide,void, fd::wstring_view);
+FD_CALLBACK(logger_narrow, void, string_view);
+FD_CALLBACK(logger_wide, void, wstring_view);
 
 template <typename L>
 bool _Logger_empty(const L logger)
@@ -79,25 +62,25 @@ bool _Logger_empty(const L logger)
 
 class logger_wrapped
 {
-    void _Log(const fd::string_view msg) const
+    void _Log(const string_view msg) const
     {
-        fd::invoke(logger_narrow, msg);
+        invoke(logger_narrow, msg);
     }
 
-    void _Log_inversed(const fd::string_view msg) const
+    void _Log_inversed(const string_view msg) const
     {
-        const fd::wstring wide_str(msg.begin(), msg.end());
+        const wstring wide_str(msg.begin(), msg.end());
         _Log(wide_str);
     }
 
-    void _Log(const fd::wstring_view msg) const
+    void _Log(const wstring_view msg) const
     {
-        fd::invoke(logger_wide, msg);
+        invoke(logger_wide, msg);
     }
 
-    bool _Log_inversed(const fd::wstring_view msg) const
+    bool _Log_inversed(const wstring_view msg) const
     {
-        fd::string str;
+        string str;
         str.reserve(msg.size());
         for (const auto wchr : msg)
         {
@@ -114,8 +97,8 @@ class logger_wrapped
     template <typename Fn>
     void append(Fn&& callback) const
     {
-        constexpr bool can_narrow = invocable<Fn, fd::string_view>;
-        constexpr bool can_wide   = invocable<Fn, fd::wstring_view>;
+        constexpr bool can_narrow = invocable<Fn, string_view>;
+        constexpr bool can_wide   = invocable<Fn, wstring_view>;
 
         if constexpr (can_narrow && can_wide)
         {
@@ -135,7 +118,7 @@ class logger_wrapped
         return !_Logger_empty(logger_narrow) || !_Logger_empty(logger_wide);
     }
 
-    bool operator()(const fd::string_view msg) const
+    bool operator()(const string_view msg) const
     {
         if (!_Logger_empty(logger_narrow))
         {
@@ -150,7 +133,7 @@ class logger_wrapped
         return false;
     }
 
-    bool operator()(const fd::wstring_view msg) const
+    bool operator()(const wstring_view msg) const
     {
         if (!_Logger_empty(logger_wide))
         {
@@ -165,7 +148,7 @@ class logger_wrapped
     {
         if (_Logger_empty(logger_narrow) && _Logger_empty(logger_wide))
             return false;
-        return fd::invoke(*this, fd::invoke(fn));
+        return invoke(*this, invoke(fn));
     }
 
     template <typename Arg1, typename... Args>
@@ -176,13 +159,12 @@ class logger_wrapped
 
         const auto fmt_fixed = _Correct_obj(fmt);
         using char_t         = get_char_t<decltype(fmt_fixed)>;
-        const auto buff      = fd::format(fmt_fixed, _Correct_obj<char_t>(args)...);
-        return fd::invoke(*this, buff);
+        const auto buff      = format(fmt_fixed, _Correct_obj<char_t>(args)...);
+        return invoke(*this, buff);
     }
 };
 
 export namespace fd
 {
-    using ::fd::invoke;
     FD_OBJECT(logger, logger_wrapped);
-}
+} // namespace fd

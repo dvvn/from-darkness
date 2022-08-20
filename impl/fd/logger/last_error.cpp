@@ -8,6 +8,11 @@ module fd.system.last_error;
 
 using namespace fd;
 
+last_error::last_error()
+{
+    id_ = GetLastError();
+}
+
 template <typename T>
 static auto _Format_message(const DWORD id)
 {
