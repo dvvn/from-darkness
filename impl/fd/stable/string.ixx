@@ -2,6 +2,9 @@ module;
 
 #include <fd/utility.h>
 
+#include <tuple>
+
+#define explicit
 #include <string>
 
 export module fd.string;
@@ -127,6 +130,45 @@ constexpr bool operator==(const C* left, const basic_string<C>& right)
     return right == left;
 }
 
+template <typename T>
+class hashed_string_view
+{
+    const T* ptr_;
+    size_t size_;
+    size_t hash_;
+
+  public:
+    constexpr hashed_string_view(const T* ptr, const size_t size)
+        : ptr_(ptr)
+        , size_(size)
+        , hash_(fd::_Hash_bytes(ptr, size))
+    {
+    }
+
+    constexpr operator size_t const()
+    {
+        return hash_;
+    }
+
+    constexpr bool operator==(const hashed_string_view& other) const
+    {
+        return hash_ == other.hash_;
+    }
+
+    constexpr bool operator==(const basic_string_view<T> other) const
+    {
+        return size_ == other.size() && _Ptr_equal(ptr_, other.data(), size_);
+    }
+
+    constexpr bool operator==(const basic_string<T>& other) const
+    {
+        return size_ == other.size() && _Ptr_equal(ptr_, other.data(), size_);
+    }
+};
+
+template <typename T>
+hashed_string_view(const T*, const size_t) -> hashed_string_view<T>;
+
 export namespace fd
 {
     template <typename T>
@@ -156,9 +198,9 @@ export namespace fd
     inline namespace literals
     {
         template <trivial_chars_cache Cache>
-        consteval size_t operator"" _hash()
+        consteval auto operator"" _hash() -> decltype(hashed_string_view(Cache.begin(), 1))
         {
-            return _Hash_bytes(Cache.begin(), Cache.size());
+            return { Cache.begin(), Cache.size() };
         }
 
         static_assert("test"_hash == u8"test"_hash);

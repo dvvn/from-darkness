@@ -17,12 +17,12 @@ export namespace fd::netvars
     {
         ~logs_data();
 
-        fd::wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars");
+        wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars");
 
         struct
         {
-            fd::wstring name;
-            fd::wstring extension = L".json";
+            wstring name;
+            wstring extension = L".json";
         } file;
 
         size_t indent = 4;
@@ -35,11 +35,11 @@ export namespace fd::netvars
     {
         ~classes_data();
 
-        fd::wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/external_interfaces");
+        wstring dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/external_interfaces");
 
         struct file_info
         {
-            fd::wstring name;
+            wstring name;
             std::ostringstream buff;
         };
 

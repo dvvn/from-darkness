@@ -8,7 +8,7 @@ module;
 
 module fd.netvars.core:storage;
 import fd.ctype;
-import fd.format;
+import fd.string.make;
 
 using namespace fd;
 using namespace netvars;

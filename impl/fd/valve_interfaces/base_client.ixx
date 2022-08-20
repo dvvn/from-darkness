@@ -2,8 +2,6 @@ export module fd.valve.base_client;
 export import fd.valve.app_system;
 export import fd.valve.client_class;
 
-using namespace fd::valve;
-
 /* // Used by RenderView
 enum RenderViewInfo_t
 {
@@ -13,7 +11,7 @@ enum RenderViewInfo_t
     RENDERVIEW_SUPPRESSMONITORRENDERING = (1 << 2),
 }; */
 
-class global_vars_base;
+using namespace fd::valve;
 
 struct base_client
 {
@@ -29,15 +27,15 @@ struct base_client
         FRAME_RENDER_END,
     };
 
-    virtual int Connect(create_interface_fn app_system_factory, global_vars_base* globals) = 0;
-    virtual int Disconnect()                                                               = 0;
-    virtual int Init(create_interface_fn app_system_factory, global_vars_base* globals)    = 0;
-    virtual void PostInit()                                                                = 0;
-    virtual void Shutdown()                                                                = 0;
-    virtual void LevelInitPreEntity(const char* map_name)                                  = 0;
-    virtual void LevelInitPostEntity()                                                     = 0;
-    virtual void LevelShutdown()                                                           = 0;
-    virtual client_class* GetAllClasses()                                                  = 0;
+    virtual int Connect(create_interface_fn app_system_factory, /* global_vars_base */ void* globals) = 0;
+    virtual int Disconnect()                                                                          = 0;
+    virtual int Init(create_interface_fn app_system_factory, /* global_vars_base */ void* globals)    = 0;
+    virtual void PostInit()                                                                           = 0;
+    virtual void Shutdown()                                                                           = 0;
+    virtual void LevelInitPreEntity(const char* map_name)                                             = 0;
+    virtual void LevelInitPostEntity()                                                                = 0;
+    virtual void LevelShutdown()                                                                      = 0;
+    virtual client_class* GetAllClasses()                                                             = 0;
 
     // Notification that we're moving into another stage during the frame.
     // void FrameStageNotify(ClientFrameStage_t stage);
@@ -49,4 +47,4 @@ struct base_client
 export namespace fd::valve
 {
     using ::base_client;
-}
+} // namespace fd::valve

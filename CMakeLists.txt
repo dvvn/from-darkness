@@ -307,8 +307,9 @@ add_subproject(logger LINK stable)
 add_subproject(mem LINK stable)
 add_subproject(rt_modules LINK mem logger)
 add_subproject(math INCLUDE ${_PROJ_IMPL_DIR})
-add_subproject(valve LINK rt_modules math)
-#add_subproject(netvars LINK valve json) must be rewritten
+add_subproject(valve_interfaces LINK rt_modules math)
+add_subproject(netvars LINK valve_interfaces) #must be rewritten
+add_subproject(valve_custom LINK netvars)
 add_subproject(gui_interface LINK stable)
 add_subproject(
   gui
@@ -319,7 +320,7 @@ add_subproject(
   imgui
   FILES
   FILTER=${_DEFAULT_FILES_FILTER}) #[[ RmlCore  RmlDebugger  DEFINE  RMLUI_STATIC_LIB  RMLUI_DIR=${rml_SOURCE_DIR} ]]
-add_subproject(hooks LINK gui valve)
+add_subproject(hooks LINK gui valve_custom)
 
 add_subproject(gui_test TYPE EXECUTABLE LINK hooks)
 add_subproject(library TYPE SHARED LINK hooks)

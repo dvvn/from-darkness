@@ -146,7 +146,7 @@ class fake_map : public std::vector<typename Allocator::value_type, Allocator>
 
 #if 0
 // hack
-export namespace nlohmann
+export namespace nlohmann::detail
 {
     namespace detail
     {
@@ -155,14 +155,22 @@ export namespace nlohmann
 } // namespace nlohmann
 #endif
 
-template <typename... T>
-using adl_serializer = ::nlohmann::adl_serializer<T...>;
+export NLOHMANN_JSON_NAMESPACE_BEGIN
 
-template <template <typename... Args> class ObjectType>
-using _Json = nlohmann::basic_json<ObjectType, std::vector, std::string, bool, intptr_t, uintptr_t, float, std::allocator, adl_serializer>;
+    namespace detail
+{
+    using ::NLOHMANN_JSON_NAMESPACE::detail::json_sax_dom_callback_parser;
+}
+NLOHMANN_JSON_NAMESPACE_END
 
 export namespace fd
 {
+    template <typename... T>
+    using adl_serializer = ::nlohmann::adl_serializer<T...>;
+
+    template <template <typename... Args> class ObjectType>
+    using _Json = nlohmann::basic_json<ObjectType, std::vector, std::string, bool, intptr_t, uintptr_t, float, std::allocator, adl_serializer>;
+
     using json          = _Json<std::map>;
-    using json_unsorted = _Json<fake_map>;
+    using json_unsorted = _Json<std::map>;
 } // namespace fd

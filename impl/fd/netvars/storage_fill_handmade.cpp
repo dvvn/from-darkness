@@ -10,7 +10,6 @@ import fd.valve.animation_layer;
 import fd.valve.var_map;
 import fd.math.matrix3x4;
 import fd.rt_modules;
-import fd.address;
 
 #define _ADD_DOT(_X_) ._X_
 
@@ -21,6 +20,7 @@ import fd.address;
 
 void fd::netvars::storage::store_handmade_netvars()
 {
+#if 0
     using namespace math;
     using namespace valve;
 
@@ -35,4 +35,5 @@ void fd::netvars::storage::store_handmade_netvars()
     baseanim->add<float>(SIG(client, "C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F", plus(2), deref<1>()), "m_flLastBoneSetupTime");
     // ForceBone + 4
     baseanim->add<int>(SIG(client, "89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10", plus(2), deref<1>()), "m_iMostRecentModelBoneCounter");
+#endif
 }

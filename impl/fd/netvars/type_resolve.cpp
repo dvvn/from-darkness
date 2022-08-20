@@ -15,39 +15,45 @@ import fd.valve.base_handle;
 import fd.utf_convert;
 import fd.ctype;
 import fd.type_name;
-import fd.format;
+import fd.string.make;
+
+namespace fd::valve
+{
+    class base_entity;
+}
 
 using namespace fd;
-using namespace fd::valve;
+using namespace valve;
 
-class base_entity;
+using hashed_string_view = string_view;
+using hashed_string      = string;
 
-fd::string netvars::type_std_array(const fd::string_view type, const size_t size)
+string netvars::type_std_array(const string_view type, const size_t size)
 {
     FD_ASSERT(size != 0);
     constexpr auto arr_name = type_name<std::array>();
 #if defined(__cpp_lib_format) && 0
     return std::format("{}<{}, {}>", arr_name, type, size); // formatter not imported
 #else
-    return fd::make_string(arr_name, '<', type, ", ", size, '>');
+    return make_string(arr_name, '<', type, ", ", size, '>');
 #endif
 }
 
-fd::string netvars::type_utlvector(const fd::string_view type)
+string netvars::type_utlvector(const string_view type)
 {
     constexpr auto arr_name = type_name<valve::vector>();
 #if defined(__cpp_lib_format) && 0
     return std::format("{}<{}>", arr_name, type); // formatter not imported
 #else
-    return fd::make_string(arr_name, '<', type, '>');
+    return make_string(arr_name, '<', type, '>');
 #endif
 }
 
 // m_xxxX***
-static fd::hashed_string_view _Extract_prefix(const fd::string_view type, const size_t prefix_size = 3)
+static hashed_string_view _Extract_prefix(const string_view type, const size_t prefix_size = 3)
 {
     const auto type_start = 2 + prefix_size;
-    if (type.size() > type_start && (type[0] == 'm' && type[1] == '_') && fd::is_upper(type[type_start]))
+    if (type.size() > type_start && (type[0] == 'm' && type[1] == '_') && is_upper(type[type_start]))
         return type.substr(2, prefix_size);
     return {};
 }
@@ -56,23 +62,23 @@ static fd::hashed_string_view _Extract_prefix(const fd::string_view type, const 
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
 #endif */
 
-fd::string_view netvars::type_vec3(const fd::string_view type)
+string_view netvars::type_vec3(const string_view type)
 {
     const auto vec3_qangle = [=] {
-        if (fd::is_digit(type[0]))
+        if (is_digit(type[0]))
             return false;
         const auto prefix = _Extract_prefix(type);
         if (prefix == "ang"_hash)
             return true;
-        return fd::to_lower(prefix.empty() ? type : type.substr(2)).contains("angles");
+        return to_lower(prefix.empty() ? type : type.substr(2)).contains("angles");
     };
 
     return vec3_qangle() ? type_name<math::qangle>() : type_name<math::vector3>();
 }
 
-fd::string_view netvars::type_integer(fd::string_view type)
+string_view netvars::type_integer(string_view type)
 {
-    if (/*!fd::is_digit(type[0]) &&*/ type.starts_with("m_"))
+    if (/*!is_digit(type[0]) &&*/ type.starts_with("m_"))
     {
         type.remove_prefix(2);
         const auto is_upper = [&](size_t i) {
@@ -93,7 +99,7 @@ fd::string_view netvars::type_integer(fd::string_view type)
                 return type_name<uint32_t>();
             if (type.starts_with("ch"))
                 return type_name<uint8_t>();
-            if (type.starts_with("fl") && fd::to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
+            if (type.starts_with("fl") && to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
                 return type_name<float>();
         }
         else if (is_upper(3))
@@ -126,7 +132,7 @@ string netvars::type_recv_prop(const recv_prop* const prop)
         return type_name<char*>(); // char[X]
     case pt::DPT_Array: {
         const auto prev_prop = std::prev(prop);
-        FD_ASSERT(fd::string_view(prev_prop->name).ends_with("[0]"));
+        FD_ASSERT(string_view(prev_prop->name).ends_with("[0]"));
         const auto type = type_recv_prop(prev_prop);
         return type_std_array(type, prop->elements_count);
     }
@@ -142,7 +148,7 @@ string netvars::type_recv_prop(const recv_prop* const prop)
     }
 }
 
-fd::string_view netvars::type_datamap_field(const data_map_description* const field)
+string_view netvars::type_datamap_field(const data_map_description* const field)
 {
     using ft = data_map_description_type;
 
@@ -224,14 +230,14 @@ fd::string_view netvars::type_datamap_field(const data_map_description* const fi
     }
 }
 
-static fd::string_view _Check_int_prefix(const fd::string_view type)
+static string_view _Check_int_prefix(const string_view type)
 {
     if (_Extract_prefix(type) == "uch"_hash)
         return type_name<math::color>();
     return {};
 }
 
-static fd::string_view _Check_float_prefix(const fd::string_view type)
+static string_view _Check_float_prefix(const string_view type)
 {
     /* const auto prefix = _Extract_prefix(type);
     if (prefix == "ang")
@@ -239,7 +245,8 @@ static fd::string_view _Check_float_prefix(const fd::string_view type)
     if (prefix == "vec")
         return type_name<math::vector3>();
     return {}; */
-    switch (_Extract_prefix(type).hash())
+
+    switch (_Hash_object(_Extract_prefix(type).substr(3)))
     {
     case "ang"_hash:
         return type_name<math::qangle>();
@@ -250,7 +257,7 @@ static fd::string_view _Check_float_prefix(const fd::string_view type)
     }
 }
 
-fd::string_view netvars::type_array_prefix(const fd::string_view type, recv_prop* const prop)
+string_view netvars::type_array_prefix(const string_view type, recv_prop* const prop)
 {
     using pt = recv_prop_type;
 
@@ -265,7 +272,7 @@ fd::string_view netvars::type_array_prefix(const fd::string_view type, recv_prop
     }
 }
 
-fd::string_view netvars::type_array_prefix(const fd::string_view type, data_map_description* const field)
+string_view netvars::type_array_prefix(const string_view type, data_map_description* const field)
 {
     using ft = data_map_description_type;
 

@@ -256,5 +256,8 @@ struct weapon_system
 
 export namespace fd::valve
 {
+    using ::item_definition_index;
+    using ::weapon_type;
+
     using ::weapon_system;
-}
+} // namespace fd::valve

@@ -238,7 +238,7 @@ struct con_var : ConCommandBase, IConVar
 // Abstract interface for ConVars
 //-----------------------------------------------------------------------------
 
-class con_var_system : app_system
+struct con_var_system : public app_system
 {
     virtual CVarDLLIdentifier_t AllocateDLLIdentifier()                                              = 0;
     virtual void RegisterConCommand(con_var* pCommandBase, int iDefaultValue = 1)                    = 0;
@@ -274,5 +274,6 @@ class con_var_system : app_system
 
 export namespace fd::valve
 {
+    using ::con_var;
     using ::con_var_system;
-}
+} // namespace fd::valve

@@ -9,15 +9,15 @@ using namespace fd::valve;
 
 export namespace fd::netvars
 {
-    fd::string type_std_array(const fd::string_view type, const size_t size);
-    fd::string type_utlvector(const fd::string_view type);
-    fd::string_view type_vec3(const fd::string_view type);
-    fd::string_view type_integer(fd::string_view type);
+    string type_std_array(const string_view type, const size_t size);
+    string type_utlvector(const string_view type);
+    string_view type_vec3(const string_view type);
+    string_view type_integer(string_view type);
 
     string type_recv_prop(const recv_prop* const prop);
-    fd::string_view type_datamap_field(const data_map_description* const field);
+    string_view type_datamap_field(const data_map_description* const field);
 
     // m_***
-    fd::string_view type_array_prefix(const fd::string_view type, recv_prop* const prop);
-    fd::string_view type_array_prefix(const fd::string_view type, data_map_description* const field);
+    string_view type_array_prefix(const string_view type, recv_prop* const prop);
+    string_view type_array_prefix(const string_view type, data_map_description* const field);
 } // namespace fd::netvars

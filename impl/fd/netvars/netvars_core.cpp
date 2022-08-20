@@ -9,7 +9,7 @@ module fd.netvars.core;
 import :storage;
 import fd.object_logger;
 import fd.rt_modules;
-import fd.valve.base_entity;
+// import fd.valve.base_entity;
 import fd.valve.engine_client;
 import fd.valve.base_client;
 
@@ -43,11 +43,11 @@ class netvars_holder : public storage
   public:
     netvars_holder()
     {
-        iterate_client_class(FD_OBJECT_GET(base_client)->GetAllClasses());
+        /* iterate_client_class(FD_OBJECT_GET(base_client)->GetAllClasses());
 
         const auto baseent = static_cast<base_entity*>(rt_modules::client.find_vtable<"C_BaseEntity">());
         iterate_datamap(baseent->GetDataDescMap());
-        iterate_datamap(baseent->GetPredictionDescMap());
+        iterate_datamap(baseent->GetPredictionDescMap()); */
 
         store_handmade_netvars();
     }

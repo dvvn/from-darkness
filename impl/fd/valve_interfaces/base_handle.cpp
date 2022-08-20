@@ -79,5 +79,5 @@ handle_entity* base_handle::Get() const
 {
     /*if (!IsValid( ))
         return 0;*/
-    return FD_OBJECT_GET(client_entity_list)->GetClientEntityFromHandle(*this);
+    return FD_OBJECT_GET(client_entity_list*)->GetClientEntityFromHandle(*this);
 }

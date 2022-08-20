@@ -15,7 +15,7 @@ using namespace netvars;
 
 static const char* _Netvar_name(const netvar_info_source source)
 {
-    return fd::invoke(source, [](auto src) {
+    return invoke(source, [](auto src) {
         return src->name;
     });
 }
@@ -31,16 +31,17 @@ static string _Netvar_type(const netvar_info_source source)
 
         string operator()(const data_map_description* td) const
         {
-            return type_datamap_field(td);
+            const auto tmp = type_datamap_field(td);
+            return { tmp.begin(), tmp.end() };
         }
     } type_getter;
 
-    return fd::invoke(source, type_getter);
+    return invoke(source, type_getter);
 }
 
 //---
 
-netvar_info::netvar_info(const size_t offset, const netvar_info_source source, const size_t size, const fd::hashed_string_view name)
+netvar_info::netvar_info(const size_t offset, const netvar_info_source source, const size_t size, const hashed_string_view name)
     : offset_(offset)
     , source_(source)
     , size_(size)
@@ -60,7 +61,7 @@ size_t netvar_info::offset() const
 //	return *inner_ptr;
 // }
 
-fd::hashed_string_view netvar_info::name() const
+hashed_string_view netvar_info::name() const
 {
     if (name_.empty())
     {
@@ -70,7 +71,7 @@ fd::hashed_string_view netvar_info::name() const
         }
         else
         {
-            fd::string_view name = _Netvar_name(source_);
+            string_view name = _Netvar_name(source_);
             FD_ASSERT(name.ends_with("[0]"));
             name.remove_suffix(3);
             FD_ASSERT(name.rfind(']') == name.npos);
@@ -80,7 +81,7 @@ fd::hashed_string_view netvar_info::name() const
     return name_;
 }
 
-fd::string_view netvar_info::type() const
+string_view netvar_info::type() const
 {
     if (!type_.empty())
         return type_;
@@ -93,10 +94,10 @@ fd::string_view netvar_info::type() const
     }
     else
     {
-        fd::string_view netvar_type;
+        string_view netvar_type;
         if (size_ == 3)
         {
-            netvar_type = fd::invoke(source_, [&](auto ptr) {
+            netvar_type = invoke(source_, [&](auto ptr) {
                 return type_array_prefix(tmp_type, ptr);
             });
         }
@@ -112,7 +113,7 @@ fd::string_view netvar_info::type() const
 
 //----
 
-netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, const fd::hashed_string_view name, string&& type)
+netvar_info_custom_constant::netvar_info_custom_constant(const size_t offset, const hashed_string_view name, string&& type)
     : offset_(offset)
     , name_(name)
     , type_(std::move(type))
@@ -124,12 +125,12 @@ size_t netvar_info_custom_constant::offset() const
     return offset_;
 }
 
-fd::hashed_string_view netvar_info_custom_constant::name() const
+hashed_string_view netvar_info_custom_constant::name() const
 {
     return name_;
 }
 
-fd::string_view netvar_info_custom_constant::type() const
+string_view netvar_info_custom_constant::type() const
 {
     return type_;
 }
@@ -167,17 +168,17 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
 #endif
 }
 
-netvar_table::netvar_table(fd::hashed_string&& name)
+netvar_table::netvar_table(hashed_string&& name)
     : name_(std::move(name))
 {
 }
 
-fd::hashed_string_view netvar_table::name() const
+hashed_string_view netvar_table::name() const
 {
     return name_;
 }
 
-const basic_netvar_info* netvar_table::find(const fd::hashed_string_view name) const
+const basic_netvar_info* netvar_table::find(const hashed_string_view name) const
 {
     for (auto& entry : *this)
     {
@@ -187,19 +188,19 @@ const basic_netvar_info* netvar_table::find(const fd::hashed_string_view name) c
     return nullptr;
 }
 
-const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const fd::hashed_string_view name)
+const netvar_info* netvar_table::add(const size_t offset, const netvar_info_source source, const size_t size, const hashed_string_view name)
 {
     return add_impl<netvar_info>(offset, source, size, name);
 }
 
-const netvar_info_custom_constant* netvar_table::add(const size_t offset, const fd::hashed_string_view name, string&& type)
+const netvar_info_custom_constant* netvar_table::add(const size_t offset, const hashed_string_view name, string&& type)
 {
     return add_impl<netvar_info_custom_constant>(offset, name, std::move(type));
 }
 
 //----
 
-// bool asic_storage::contains_duplicate(const fd::hashed_string_view name, netvar_table* const from) const
+// bool asic_storage::contains_duplicate(const hashed_string_view name, netvar_table* const from) const
 //{
 //	const auto begin = this->data( );
 //	const auto end = begin + this->size( );
@@ -213,12 +214,12 @@ const netvar_info_custom_constant* netvar_table::add(const size_t offset, const 
 //	return false;
 // }
 
-auto basic_storage::find(const fd::hashed_string_view name) const -> const netvar_table*
+auto basic_storage::find(const hashed_string_view name) const -> const netvar_table*
 {
     return const_cast<basic_storage*>(this)->find(name);
 }
 
-auto basic_storage::find(const fd::hashed_string_view name) -> netvar_table*
+auto basic_storage::find(const hashed_string_view name) -> netvar_table*
 {
     for (netvar_table& entry : *this)
     {
@@ -241,7 +242,7 @@ auto basic_storage::add(netvar_table&& table, const bool skip_find) -> netvar_ta
     return nullptr;
 }
 
-auto basic_storage::add(fd::hashed_string&& name, const bool skip_find) -> netvar_table*
+auto basic_storage::add(hashed_string&& name, const bool skip_find) -> netvar_table*
 {
     if (!skip_find)
     {
