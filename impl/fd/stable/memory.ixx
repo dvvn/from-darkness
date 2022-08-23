@@ -179,7 +179,7 @@ concept is_complete = requires
 }; */
 
 template <typename T>
-struct basic_shared_ptr_data
+struct ptr_data
 {
     virtual T* get()       = 0;
     virtual void destroy() = 0;
@@ -188,29 +188,48 @@ struct basic_shared_ptr_data
 template <typename S>
 class ref_counter
 {
-    S counter_ = 0;
+    S counter_;
 
   public:
-    using size_type = std::remove_cvref_t<decltype(++std::declval<S>())>;
+    ref_counter()
+        : counter_(0)
+    {
+    }
 
     ref_counter(const ref_counter&)            = delete;
     ref_counter& operator=(const ref_counter&) = delete;
 
-    size_type operator++() override
+    auto operator++()
     {
         return ++counter_;
     }
 
-    size_type operator--() override
+    auto operator--()
     {
         return --counter_;
     }
 
-    size_type use_count() const override
+    auto use_count() const
     {
-        return counter_;
+        decltype(const_cast<ref_counter*>(this)->operator++()) ret = counter_;
+        return ret;
     }
 };
+
+template <typename T>
+void destroy_at(T* ptr)
+{
+    if constexpr (std::is_class_v<T> || std::is_union_v<T>)
+        std::destroy_at(ptr);
+}
+
+template <typename T>
+void destroy_at(T& ref)
+{
+    destroy_at(&ref);
+}
+
+using std::construct_at;
 
 template <typename T, typename S>
 struct basic_shared_ptr
@@ -218,12 +237,18 @@ struct basic_shared_ptr
     _USINGS;
 
   private:
-    struct _Data : basic_shared_ptr_data<T>, ref_counter<S>
+    struct _Data : ptr_data<T>, ref_counter<S>
     {
     };
 
   protected:
     _Data* data_;
+
+    void _Construct(_Data* data)
+    {
+        ++(*data);
+        data_ = data;
+    }
 
   public:
     ~basic_shared_ptr()
@@ -238,8 +263,13 @@ struct basic_shared_ptr
         data_->destroy();
     }
 
+    basic_shared_ptr()
+        : data_(nullptr)
+    {
+    }
+
     template <typename T1, typename D = default_delete<T1>, typename A = std::allocator<uint8_t>>
-    basic_shared_ptr(T1* ptr, D deleter, A allocator)
+    basic_shared_ptr(T1* ptr, D deleter = {}, A allocator = {})
     {
         struct _External_data : _Data
         {
@@ -251,10 +281,10 @@ struct basic_shared_ptr
             {
                 if (ptr)
                     deleter(ptr);
-                std::destroy_at(deleter);
-                auto alloc = std::move(alloc);
-                std::destroy_at(static_cast<_Data*>(this));
-                alloc.deallocate(this, sizeof(_External_data));
+                destroy_at(deleter);
+                auto a = std::move(alloc);
+                destroy_at(static_cast<_Data*>(this));
+                a.deallocate(reinterpret_cast<uint8_t*>(this), sizeof(_External_data));
             }
 
             pointer get() override
@@ -264,16 +294,16 @@ struct basic_shared_ptr
         };
 
         auto data = reinterpret_cast<_External_data*>(allocator.allocate(sizeof(_External_data)));
-        std::construct_at(data);
+        construct_at(data);
         data->ptr = ptr;
-        std::construct_at(&data->deleter, deleter);
-        std::construct_at(&data->alloc, allocator);
+        construct_at(&data->deleter, deleter);
+        construct_at(&data->alloc, allocator);
 
-        data_ = data;
+        _Construct(data);
     }
 
     template <typename T1, typename A = std::allocator<uint8_t>>
-    basic_shared_ptr(T1&& value, A allocator)
+    basic_shared_ptr(T1&& value, A allocator = {})
     {
         struct _Innter_data : _Data
         {
@@ -282,10 +312,10 @@ struct basic_shared_ptr
 
             void destroy() override
             {
-                std::destroy_at(&value);
-                auto alloc = std::move(alloc);
-                std::destroy_at(static_cast<_Data*>(this));
-                alloc.deallocate(this, sizeof(_Innter_data));
+                destroy_at(value);
+                auto a = std::move(alloc);
+                destroy_at(static_cast<_Data*>(this));
+                a.deallocate(reinterpret_cast<uint8_t*>(this), sizeof(_Innter_data));
             }
 
             pointer get() override
@@ -295,25 +325,23 @@ struct basic_shared_ptr
         };
 
         auto data = reinterpret_cast<_Innter_data*>(allocator.allocate(sizeof(_Innter_data)));
-        std::construct_at(data);
-        std::construct_at(&data->value, std::forward<T1>(value));
-        std::construct_at(&data->alloc, allocator);
+        construct_at(data);
+        construct_at(&data->value, std::forward<T1>(value));
+        construct_at(&data->alloc, allocator);
 
-        data_ = data;
+        _Construct(data);
+    }
+
+    basic_shared_ptr(basic_shared_ptr&& other)
+    {
+        data_ = std::exchange(other.data_, nullptr);
     }
 
     basic_shared_ptr(const basic_shared_ptr& other)
     {
         if (!other.data_)
             return;
-
-        data_ = other.data_;
-        ++(*data_);
-    }
-
-    basic_shared_ptr(basic_shared_ptr&& other)
-    {
-        data_ = std::exchange(other.data_, nullptr);
+        _Construct(other.data_);
     }
 };
 
@@ -341,6 +369,8 @@ class shared_ptr : public basic_shared_ptr<T, S>
 
 template <typename T>
 shared_ptr(T*) -> shared_ptr<T>;
+template <typename T>
+shared_ptr(T&&) -> shared_ptr<std::remove_cvref_t<T>>;
 
 template <typename T, typename S>
 class shared_ptr<T[], S> : public basic_shared_ptr<T, S>
