@@ -2,9 +2,6 @@ module;
 
 #include <fd/object.h>
 
-#include <algorithm>
-#include <array>
-
 export module fd.hooks_loader;
 import fd.hook_base;
 

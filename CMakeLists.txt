@@ -77,6 +77,12 @@ FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt.git)
 set(FMT_DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 FetchContent_MakeAvailable(fmt)
 
+FetchContent_Declare(subhook GIT_REPOSITORY https://github.com/Zeex/subhook.git)
+set(SUBHOOK_STATIC on)
+set(SUBHOOK_INSTALL off)
+set(SUBHOOK_TESTS off)
+FetchContent_MakeAvailable(subhook)
+
 # -------------------
 
 function(target_include_directory _target _type _dir)
@@ -320,7 +326,7 @@ add_subproject(
   imgui
   FILES
   FILTER=${_DEFAULT_FILES_FILTER}) #[[ RmlCore  RmlDebugger  DEFINE  RMLUI_STATIC_LIB  RMLUI_DIR=${rml_SOURCE_DIR} ]]
-add_subproject(hooks LINK gui valve_custom)
+add_subproject(hooks LINK subhook gui valve_custom)
 
 add_subproject(gui_test TYPE EXECUTABLE LINK hooks)
 add_subproject(library TYPE SHARED LINK hooks)
