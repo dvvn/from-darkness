@@ -314,7 +314,16 @@ add_subproject(mem LINK stable)
 add_subproject(rt_modules LINK mem logger)
 add_subproject(math INCLUDE ${_PROJ_IMPL_DIR})
 add_subproject(valve_interfaces LINK rt_modules math)
-add_subproject(netvars LINK valve_interfaces) #must be rewritten
+add_subproject(
+  netvars
+  LINK
+  valve_interfaces
+  FILES
+  FILTER=${_DEFAULT_FILES_FILTER}
+  DEFINE
+  PRIVATE
+  ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
+  ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR})
 add_subproject(valve_custom LINK netvars)
 add_subproject(gui_interface LINK stable)
 add_subproject(

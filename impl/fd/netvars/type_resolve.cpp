@@ -5,7 +5,7 @@
 #include <array>
 #include <span>
 
-module fd.netvars.core:type_resolve;
+module fd.netvars.type_resolve;
 import fd.math.color;
 import fd.math.qangle;
 import fd.math.view_matrix;
@@ -114,7 +114,7 @@ string_view netvars::type_integer(string_view type)
 
 //---
 
-string netvars::type_recv_prop(const recv_prop* const prop)
+string netvars::type_recv_prop(const recv_prop* prop)
 {
     using pt = recv_prop_type;
 
@@ -148,7 +148,7 @@ string netvars::type_recv_prop(const recv_prop* const prop)
     }
 }
 
-string_view netvars::type_datamap_field(const data_map_description* const field)
+string_view netvars::type_datamap_field(const data_map_description* field)
 {
     using ft = data_map_description_type;
 
@@ -257,7 +257,7 @@ static string_view _Check_float_prefix(const string_view type)
     }
 }
 
-string_view netvars::type_array_prefix(const string_view type, recv_prop* const prop)
+string_view netvars::type_array_prefix(const string_view type, const recv_prop* prop)
 {
     using pt = recv_prop_type;
 
@@ -272,7 +272,7 @@ string_view netvars::type_array_prefix(const string_view type, recv_prop* const 
     }
 }
 
-string_view netvars::type_array_prefix(const string_view type, data_map_description* const field)
+string_view netvars::type_array_prefix(const string_view type, const data_map_description* field)
 {
     using ft = data_map_description_type;
 
