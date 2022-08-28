@@ -3,13 +3,18 @@ module;
 #include <fd/assert.h>
 #include <fd/utility.h>
 
+#include <iomanip>
+#include <sstream>
 #include <vector>
 
 module fd.netvars.storage;
 import fd.netvars.table;
+import fd.netvars.type_resolve;
 import fd.ctype;
 import fd.string.make;
 import fd.functional.fn;
+import fd.json;
+import fd.format;
 
 using namespace fd;
 using namespace valve;
@@ -73,6 +78,8 @@ static bool _Can_skip_netvar(const string_view name)
     return name.contains('.');
 }
 
+//#define MERGE_DATA_TABLES
+
 class datatable_parser
 {
 #ifdef MERGE_DATA_TABLES
@@ -129,13 +136,12 @@ class datatable_parser
         // todo: try extract size from length proxy
         size_t array_size = 1;
 
-        for (auto itr = array_start; itr != array_end; ++itr)
+        for (auto prop = array_start; prop != array_end; ++prop)
         {
-            auto& prop = *itr;
-            if (prop.type != prop.type) // todo: check is name still same after this (because previously we store this name without array braces)
+            if (array_start->type != prop->type) // todo: check is name still same after this (because previously we store this name without array braces)
                 break;
 #if 1
-            if (real_prop_name != prop.name)
+            if (real_prop_name != prop->name)
                 break;
 #else
             // name.starts_with(real_prop_name)
@@ -233,7 +239,20 @@ class datatable_parser
     }
 };
 
-//#define MERGE_DATA_TABLES
+template <class J>
+concept json_support_string_view = requires(J& js, const string_view test)
+{
+    js[test];
+};
+
+template <class J>
+static auto& _Json_append(J& js, const string_view str)
+{
+    if constexpr (json_support_string_view<J>)
+        return js[str];
+    else
+        return js[/* string(str) */ str.data()];
+}
 
 class storage_impl : public storage
 {
@@ -329,14 +348,133 @@ class storage_impl : public storage
 
     void store_handmade_netvars() override
     {
+#if 0
+        const auto baseent = this->find("C_BaseEntity");
+        baseent->add<var_map>(0x24, "m_InterpVarMap");
+        baseent->add<matrix3x4>(SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", plus(9), deref<1>(), minus(8)), "m_BonesCache", type_utlvector);
+
+        const auto baseanim = this->find("C_BaseAnimating");
+        // m_vecRagdollVelocity - 128
+        baseanim->add<animation_layer>(SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", plus(2), deref<1>()), "m_AnimOverlays", type_utlvector);
+        // m_hLightingOrigin - 32
+        baseanim->add<float>(SIG(client, "C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F", plus(2), deref<1>()), "m_flLastBoneSetupTime");
+        // ForceBone + 4
+        baseanim->add<int>(SIG(client, "89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10", plus(2), deref<1>()), "m_iMostRecentModelBoneCounter");
+#endif
     }
 
     void log_netvars(logs_data& data) override
     {
+        json_unsorted j_root;
+
+        for (const auto& table : data_)
+        {
+            if (table.empty())
+                continue;
+
+            auto& j_table = _Json_append(j_root, table.name());
+
+            for (const auto& info : table)
+            {
+                string name(info->name());
+                const auto offset      = info->offset();
+                const string_view type = info->type();
+
+                if (type.empty())
+                {
+                    j_table.push_back({
+                        {"name",    std::move(name)},
+                        { "offset", offset         }
+                    });
+                }
+                else
+                {
+                    j_table.push_back({
+                        {"name",    std::move(name)},
+                        { "offset", offset         },
+                        { "type",   string(type)   }
+                    });
+                }
+
+                /*
+                json_unsorted entry;
+                _Json_append(entry, "name")   = string(name);
+                _Json_append(entry, "offset") = offset;
+                if (!type.empty())
+                    _Json_append(entry, "type") = string(type);
+
+                j_table.push_back(std::move(entry)); */
+            }
+        }
+
+        data.buff << std::setw(data.indent) << std::setfill(data.filler) << j_root;
     }
 
     void generate_classes(classes_data& data) override
     {
+        data.files.reserve(data_.size() * 2);
+
+        for (const auto& table : data_)
+        {
+            if (table.empty())
+                continue;
+
+            using file_info = classes_data::file_info;
+
+            file_info h_info, cpp_info;
+            auto& h   = h_info.buff;
+            auto& cpp = cpp_info.buff;
+
+            const string_view class_name = table.name();
+
+            for (const auto& info : table)
+            {
+                auto netvar_type = info->type();
+                if (netvar_type.empty())
+                    continue;
+
+                char ret_char;
+                if (netvar_type.ends_with('*')) // type have pointer
+                {
+                    netvar_type.remove_suffix(1);
+                    ret_char = '*';
+                }
+                else
+                {
+                    ret_char = '&';
+                }
+
+                const string_view netvar_name = info->name();
+
+                //----
+
+                constexpr string_view get_netvar_offset_fn = "FD_OBJECT_GET(basic_netvars_storage)->get_netvar_offset";
+                constexpr string_view empty_string         = "{}";
+
+                h << netvar_type << ret_char << ' ' << netvar_name << "();";
+                cpp << netvar_type << ret_char << ' ' << class_name << "::" << netvar_name << "()\n";
+                cpp << "{\t";
+                cpp << "static const auto offset = " << get_netvar_offset_fn << '('
+#ifdef MERGE_DATA_TABLES
+                    << class_name << ", " << empty_string
+#else
+                    << empty_string << ", " << class_name
+#endif
+                    << ", " << netvar_name << ");\n\t";
+                cpp << "const auto addr = reinterpret_cast<uintptr_t>(this) + offset;";
+                cpp << "return ";
+                if (ret_char == '&')
+                    cpp << '*';
+                cpp << "reinterpret_cast<" << netvar_type << "*>(addr);";
+                cpp << "}\n\n";
+            }
+
+            h_info.name   = make_string(std::in_place_type<wchar_t>, class_name, "_h");
+            cpp_info.name = make_string(std::in_place_type<wchar_t>, class_name, "_cpp");
+
+            data.files.push_back(std::move(h_info));
+            data.files.push_back(std::move(cpp_info));
+        }
     }
 
     size_t get_netvar_offset(const string_view class_name, const string_view table_name, const string_view name) const override

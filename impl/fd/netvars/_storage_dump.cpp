@@ -116,66 +116,8 @@ classes_data::~classes_data()
 #endif
 }
 
-template <class J>
-concept json_support_string_view = requires(J& js, const fd::string_view test)
-{
-    js[test];
-};
-
-template <class J>
-static auto& _Json_append(J& js, const fd::string_view str)
-{
-    if constexpr (json_support_string_view<J>)
-        return js[str];
-    else
-        return js[/* fd::string(str) */ str.data()];
-}
-
 void storage::log_netvars(logs_data& data)
 {
-    json_unsorted j_root;
-
-    for (const netvar_table& table : *this)
-    {
-        if (table.empty())
-            continue;
-
-        auto& j_table = _Json_append(j_root, table.name());
-
-        for (const netvar_table::value_type& info : table)
-        {
-            const fd::string_view name = info->name();
-            const auto offset           = info->offset();
-            const fd::string_view type = info->type();
-
-            if (type.empty())
-            {
-                j_table.push_back({
-                    {"name",    fd::string(name)},
-                    { "offset", offset           }
-                });
-            }
-            else
-            {
-                j_table.push_back({
-                    {"name",    fd::string(name)},
-                    { "offset", offset           },
-                    { "type",   fd::string(type)}
-                });
-            }
-
-            /*
-            json_unsorted entry;
-            _Json_append(entry, "name")   = fd::string(name);
-            _Json_append(entry, "offset") = offset;
-            if (!type.empty())
-                _Json_append(entry, "type") = fd::string(type);
-
-            j_table.push_back(std::move(entry)); */
-        }
-    }
-
-    data.buff << std::setw(data.indent) << std::setfill(data.filler) << j_root;
 }
 
 void storage::generate_classes(classes_data& data)

@@ -53,14 +53,18 @@ string netvars::type_utlvector(const string_view type)
 static hashed_string_view _Extract_prefix(const string_view type, const size_t prefix_size = 3)
 {
     const auto type_start = 2 + prefix_size;
-    if (type.size() > type_start && (type[0] == 'm' && type[1] == '_') && is_upper(type[type_start]))
-        return type.substr(2, prefix_size);
-    return {};
+    if (type.size() <= type_start)
+        return {};
+    if (/* type.substr(0, 2) != "m_" */ type[0] != 'm' || type[1] != '_')
+        return {};
+    if (!is_upper(type[type_start]))
+        return {};
+    return type.substr(2, prefix_size);
 }
 
-/* #ifndef __cpp_lib_string_contains
+#ifndef __cpp_lib_string_contains
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
-#endif */
+#endif
 
 string_view netvars::type_vec3(const string_view type)
 {
@@ -81,10 +85,10 @@ string_view netvars::type_integer(string_view type)
     if (/*!is_digit(type[0]) &&*/ type.starts_with("m_"))
     {
         type.remove_prefix(2);
-        const auto is_upper = [&](size_t i) {
-            return type.size() > i && fd::is_upper(type[i]);
+        const auto check_upper = [&](const size_t i) {
+            return type.size() > i && is_upper(type[i]);
         };
-        if (is_upper(1))
+        if (check_upper(1))
         {
             if (type.starts_with('b'))
                 return type_name<bool>();
@@ -93,16 +97,16 @@ string_view netvars::type_integer(string_view type)
             if (type.starts_with('h'))
                 return type_name<base_handle>();
         }
-        else if (is_upper(2))
+        else if (check_upper(2))
         {
             if (type.starts_with("un"))
                 return type_name<uint32_t>();
             if (type.starts_with("ch"))
                 return type_name<uint8_t>();
-            if (type.starts_with("fl") && to_lower(type.substr(2)).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
+            if (type.starts_with("fl") && /* to_lower */ type.substr(2).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
                 return type_name<float>();
         }
-        else if (is_upper(3))
+        else if (check_upper(3))
         {
             if (type.starts_with("clr"))
                 return type_name<math::color>(); // not sure
@@ -131,14 +135,18 @@ string netvars::type_recv_prop(const recv_prop* prop)
     case pt::DPT_String:
         return type_name<char*>(); // char[X]
     case pt::DPT_Array: {
-        const auto prev_prop = std::prev(prop);
+        const auto prev_prop = prop - 1;
         FD_ASSERT(string_view(prev_prop->name).ends_with("[0]"));
         const auto type = type_recv_prop(prev_prop);
         return type_std_array(type, prop->elements_count);
     }
     case pt::DPT_DataTable: {
+#if 1
+        return prop->name;
+#else
         FD_ASSERT("Data table type must be manually resolved!");
         return type_name<void*>();
+#endif
     }
     case pt::DPT_Int64:
         return type_name<int64_t>();
@@ -174,23 +182,16 @@ string_view netvars::type_datamap_field(const data_map_description* field)
         return type_name<int8_t>();
     case ft::FIELD_COLOR32:
         return type_name<math::color>();
-    case ft::FIELD_EMBEDDED: {
-        FD_ASSERT("Embedded field detected");
-        return type_name<void*>();
-    }
-    case ft::FIELD_CUSTOM: {
-        FD_ASSERT("Custom field detected");
-        return type_name<void*>();
-    }
+    case ft::FIELD_EMBEDDED:
+        FD_ASSERT_UNREACHABLE("Embedded field detected");
+    case ft::FIELD_CUSTOM:
+        FD_ASSERT_UNREACHABLE("Custom field detected");
     case ft::FIELD_CLASSPTR:
         return type_name<base_entity*>();
     case ft::FIELD_EHANDLE:
         return type_name<base_handle>();
-    case ft::FIELD_EDICT: {
-        // return "edict_t*";
-        FD_ASSERT("Edict field detected");
-        return type_name<void*>();
-    }
+    case ft::FIELD_EDICT:
+        FD_ASSERT_UNREACHABLE("Edict field detected"); //  "edict_t*"
     case ft::FIELD_POSITION_VECTOR:
         return type_name<math::vector3>();
     case ft::FIELD_TIME:
@@ -200,33 +201,24 @@ string_view netvars::type_datamap_field(const data_map_description* field)
     case ft::FIELD_MODELNAME:
     case ft::FIELD_SOUNDNAME:
         return type_name<char*>(); // string_t at real
-    case ft::FIELD_INPUT: {
-        // return "CMultiInputVar";
-        FD_ASSERT("Inputvar field detected");
-        return type_name<void*>();
-    }
-    case ft::FIELD_FUNCTION: {
-        FD_ASSERT("Function detected");
-        return type_name<void*>();
-    }
+    case ft::FIELD_INPUT:
+        FD_ASSERT_UNREACHABLE("Inputvar field detected"); //  "CMultiInputVar"
+    case ft::FIELD_FUNCTION:
+        FD_ASSERT_UNREACHABLE("Function detected");
     case ft::FIELD_VMATRIX:
     case ft::FIELD_VMATRIX_WORLDSPACE:
         return type_name<math::view_matrix>();
     case ft::FIELD_MATRIX3X4_WORLDSPACE:
         return type_name<math::matrix3x4>();
-    case ft::FIELD_INTERVAL: {
-        // return "interval_t";
-        FD_ASSERT("Interval field detected");
-        return type_name<void*>();
-    }
+    case ft::FIELD_INTERVAL:
+        FD_ASSERT_UNREACHABLE("Interval field detected"); // "interval_t"
     case ft::FIELD_MODELINDEX:
     case ft::FIELD_MATERIALINDEX:
         return type_name<int32_t>();
     case ft::FIELD_VECTOR2D:
         return type_name<math::vector2>();
-    default: {
+    default:
         FD_ASSERT_UNREACHABLE("Unknown datamap field type");
-    }
     }
 }
 
