@@ -62,60 +62,6 @@ static bool _File_already_written(const fs::path& full_path, const fd::string_vi
 #endif
 }
 
-logs_data::~logs_data()
-{
-    // moved
-    if (dir.empty())
-        return;
-
-    if (!fs::create_directory(dir))
-        return;
-
-    FD_ASSERT("REWRITE THIS SHIT");
-
-#if 0
-
-    const fs::path full_path = _Join_strings<fd::wstring>(dir, file.name, file.extension);
-    const auto new_file_data = buff.view();
-
-    if (_File_already_written(full_path, new_file_data))
-        return;
-
-    std::ofstream(full_path) << new_file_data;
-
-#endif
-}
-
-classes_data::~classes_data()
-{
-    // moved
-    if (dir.empty())
-        return;
-
-    FD_ASSERT("REWRITE THIS SHIT");
-
-#if 0
-    if (fs::create_directory(dir) || fs::is_empty(dir))
-    {
-        for (const auto& [name, buff] : files)
-            std::ofstream(_Join_strings<fd::wstring>(dir, name)) << buff.view();
-        return;
-    }
-
-    // directory already exist
-
-    for (const auto& [name, buff] : files)
-    {
-        const auto new_file_data         = buff.view();
-        const fs::path current_file_path = _Join_strings<fd::wstring>(dir, name);
-        if (_File_already_written(current_file_path, new_file_data))
-            continue;
-
-        std::ofstream(current_file_path) << new_file_data;
-    }
-#endif
-}
-
 void storage::log_netvars(logs_data& data)
 {
 }

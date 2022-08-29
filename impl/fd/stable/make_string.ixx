@@ -26,15 +26,24 @@ class string_builder
         else if constexpr (std::is_bounded_array_v<T>)
             return std::pair(get_array_ptr(obj), std::size(obj) - 1);
         else
-            return std::pair(obj, 1);
+            return std::pair(obj, static_cast<uint8_t>(1));
     };
 
     template <class Itr, typename T, typename S>
     static constexpr void append_to(Itr buff, const std::pair<T, S>& obj)
     {
         auto [src, size] = obj;
+        if (size == 0)
+            return;
+
         if constexpr (std::is_pointer_v<T> || std::is_class_v<T>)
+        {
             std::copy_n(src, size, buff);
+        }
+        else if (size == 1)
+        {
+            *buff++ = src;
+        }
         else
         {
             do
@@ -49,7 +58,7 @@ class string_builder
         fd::basic_string<C> buff;
         std::apply(
             [&buff](const auto&... pairs) {
-                const auto length = (pairs.second + ...);
+                const auto length = (static_cast<size_t>(pairs.second) + ...);
                 buff.reserve(length);
                 (append_to(std::back_inserter(buff), pairs), ...);
             },

@@ -1,8 +1,12 @@
 module;
 
 #include <fd/assert.h>
+#include <fd/object.h>
 #include <fd/utility.h>
 
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -13,8 +17,34 @@ import fd.netvars.type_resolve;
 import fd.ctype;
 import fd.string.make;
 import fd.functional.fn;
+import fd.functional.bind;
 import fd.json;
-import fd.format;
+import fd.logger;
+//---
+import fd.rt_modules;
+// import fd.valve.base_entity;
+import fd.valve.engine_client;
+import fd.valve.base_client;
+
+namespace std::filesystem
+{
+    static_assert(sizeof(path) == sizeof(fd::wstring));
+
+    bool create_directory(const fd::wstring& dir)
+    {
+        return create_directory(reinterpret_cast<const path&>(dir));
+    }
+
+    bool is_empty(const fd::wstring& dir)
+    {
+        return is_empty(reinterpret_cast<const path&>(dir));
+    }
+
+    constexpr auto preferred_separator               = path::preferred_separator;
+    constexpr path::value_type unpreferred_separator = preferred_separator == '\\' ? '/' : '\\';
+} // namespace std::filesystem
+
+namespace fs = std::filesystem;
 
 using namespace fd;
 using namespace valve;
@@ -22,14 +52,76 @@ using namespace valve;
 using hashed_string_view = string_view;
 using hashed_string      = string;
 
+template <typename T>
+static bool _File_already_written(const T& full_path, const std::span<const char> buffer)
+{
+    std::ifstream file_stored(full_path, std::ios::binary | std::ios::ate);
+    if (!file_stored)
+        return false;
+
+    const auto size = static_cast<size_t>(file_stored.tellg());
+    if (size != buffer.size())
+        return false;
+
+#if 0
+	const unique_ptr<char[]> buff = new char[size];
+	if (!file_stored.read(buff.get(), size))
+		return false;
+	return std::memcmp(buff.get(), buffer.data(), size) == 0;
+#else
+    using it_t = std::istream_iterator<char>;
+    return std::equal<it_t>(file_stored, {}, buffer.begin());
+#endif
+}
+
+static void _Correct_path(wstring& path)
+{
+    std::replace(path.begin(), path.end(), fs::unpreferred_separator, fs::preferred_separator);
+    if (!path.ends_with(fs::preferred_separator))
+        path.push_back(fs::preferred_separator);
+}
+
+[[nodiscard]] static wstring _Correct_path(const wstring_view path)
+{
+    auto size = path.size();
+    if (!path.ends_with(fs::preferred_separator) && !path.ends_with(fs::unpreferred_separator))
+        ++size;
+
+    wstring buff;
+    buff.reserve(size);
+
+    for (auto c : path)
+        buff.push_back(c == fs::unpreferred_separator ? fs::preferred_separator : c);
+    if (!path.ends_with(fs::preferred_separator))
+        buff.push_back(fs::preferred_separator);
+
+    return buff;
+}
+#ifdef FD_ROOT_DIR
+constexpr wstring_view default_logs_data_dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars");
+#endif
+
 logs_data::logs_data()
 {
 #ifdef FD_ROOT_DIR
-    dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars");
+    dir = default_logs_data_dir;
 #endif
     file.extension = L".json";
     indent         = 4;
     filler         = ' ';
+}
+
+logs_data::~logs_data()
+{
+    if (dir.empty())
+        return;
+    _Correct_path(dir);
+    if (!fs::create_directory(dir))
+        return;
+    const auto full_path = make_string(dir, file.name, file.extension);
+    if (_File_already_written(full_path, buff))
+        return;
+    std::ofstream(full_path).write(buff.data(), buff.size());
 }
 
 classes_data::classes_data()
@@ -37,6 +129,21 @@ classes_data::classes_data()
 #ifdef FD_WORK_DIR
     dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom");
 #endif
+}
+
+classes_data::~classes_data()
+{
+    if (dir.empty())
+        return;
+    _Correct_path(dir);
+    const auto file_is_empty = fs::create_directory(dir) || fs::is_empty(dir);
+    for (const auto& [name, buff] : files)
+    {
+        const auto current_file_path = make_string(dir, name);
+        if (!file_is_empty && _File_already_written(current_file_path, buff))
+            continue;
+        std::ofstream(current_file_path).write(buff.data(), buff.size());
+    }
 }
 
 //----
@@ -79,6 +186,7 @@ static bool _Can_skip_netvar(const string_view name)
 }
 
 //#define MERGE_DATA_TABLES
+//#define GENERATE_STRUCT_MEMBERS
 
 class datatable_parser
 {
@@ -187,19 +295,18 @@ class datatable_parser
     }
 
   public:
+    datatable_parser
 #ifdef MERGE_DATA_TABLES
-    datatable_parser(netvar_table* root_table, const size_t offset = 0)
+        (netvar_table* root_table, const size_t offset = 0)
         : offset(offset)
         , nvtable(root_table)
-    {
-    }
 #else
-    datatable_parser(const store_fn& callback, netvar_table* current_table = nullptr)
+        (const store_fn& callback, netvar_table* current_table = nullptr)
         : store_data_table(callback)
         , nvtable(current_table)
+#endif
     {
     }
-#endif
 
     void operator()(const recv_table* dtable) const
     {
@@ -239,24 +346,68 @@ class datatable_parser
     }
 };
 
-template <class J>
-concept json_support_string_view = requires(J& js, const string_view test)
+template <class J, typename T>
+concept json_can_access = requires(J& js, const T& test)
 {
     js[test];
 };
 
-template <class J>
-static auto& _Json_append(J& js, const string_view str)
+template <class J, typename T>
+static auto& _Json_append(J& js, const T& str)
 {
-    if constexpr (json_support_string_view<J>)
+    if constexpr (json_can_access<J, T>)
         return js[str];
     else
-        return js[/* string(str) */ str.data()];
+    {
+        const auto null_terminated = *(str.data() + str.size()) == '\0';
+        using json_string          = typename J::string_t;
+        return null_terminated ? js[str.data()] : js[json_string(str.begin(), str.end())];
+    }
 }
 
-class storage_impl : public storage
+static void _Stream_to(std::ostringstream&& stream, string& to)
+{
+    to = std::move(stream).str();
+}
+
+static void _Stream_to(const std::ostringstream& stream, std::vector<char>& to)
+{
+    const auto str = stream.view();
+    to.assign(str.begin(), str.end());
+}
+
+template <class T>
+static T _Stream_to(std::ostringstream&& stream)
+{
+    T to;
+    _Stream_to(std::move(stream), to);
+    return to;
+}
+
+class storage_impl : public netvars_storage
 {
     std::vector<netvar_table> data_;
+    std::vector<size_t> sort_requested_;
+
+    // std::once_flag_ init_flag_;
+
+    void request_sort(const netvar_table* table)
+    {
+        const auto idx = std::distance<const netvar_table*>(data_.data(), table);
+        sort_requested_.push_back(idx);
+    }
+
+    auto sort()
+    {
+        const auto sort_end = std::unique(sort_requested_.begin(), sort_requested_.end());
+        std::for_each(sort_requested_.begin(), sort_end, [&](const size_t idx) {
+            auto& t = data_[idx];
+            std::sort(t.begin(), t.end(), [](auto& l, auto& r) {
+                return l->offset() < r->offset();
+            });
+        });
+        sort_requested_.clear();
+    }
 
     netvar_table* find(const hashed_string_view name)
     {
@@ -274,17 +425,19 @@ class storage_impl : public storage
     }
 
     template <class S>
-    auto add(S&& name)
+    netvar_table* add(S&& name, const bool root = true)
     {
 #ifdef MERGE_DATA_TABLES
-        FD_ASSERT(!find(name), "Duplicate detected");
+        FD_ASSERT(!this->find(name), "Duplicate detected");
 #endif
-        return &data_.emplace_back(hashed_string(std::forward<S>(name)));
+        return &data_.emplace_back(hashed_string(std::forward<S>(name)), root);
     };
 
   public:
-    void iterate_client_class(const client_class* root_class) override
+    void iterate_client_class(const client_class* root_class, const string_view debug_name) override
     {
+        FD_ASSERT(data_.empty(), "Iterate recv tables first!");
+
         for (auto cclass = root_class; cclass != nullptr; cclass = cclass->next)
         {
             auto rtable = cclass->table;
@@ -295,65 +448,83 @@ class storage_impl : public storage
 #ifdef MERGE_DATA_TABLES
                 this->add(_Correct_class_name(client_class->name))
 #else
-                [&](const char* table_name) -> netvar_table* {
-                    const hashed_string_view name1 = table_name;
-                    return this->find(name1) ? nullptr : this->add(name1);
+                [&](const hashed_string_view table_name) {
+                    return this->add(table_name, false);
                 }
 #endif
             );
-
             invoke(parser, rtable);
         }
+
+        invoke(logger, "netvars - {} data tables stored", debug_name.empty() ? root_class->name : debug_name);
     }
 
-    void iterate_datamap(const data_map* root_map) override
+    void iterate_datamap(const data_map* root_map, const string_view debug_name) override
     {
+        FD_ASSERT(!data_.empty(), "Iterate datamap after recv tables!");
+
         for (auto map = root_map; map != nullptr; map = map->base)
         {
             if (map->data.empty())
                 continue;
-
+            hashed_string class_name =
 #ifdef MERGE_DATA_TABLES
-            hashed_string class_name = _Correct_class_name(map->name);
+                _Correct_class_name(map->name);
 #else
-            const string_view class_name0 = map->name;
-            const auto class_name1        = class_name0.substr(class_name0.find('_'));
-            hashed_string class_name      = make_string("DT_", class_name1);
+                [&] {
+                    const string_view class_name0 = map->name;
+                    const auto class_name1        = class_name0.substr(class_name0.find('_'));
+                    return make_string("DT_", class_name1);
+                }();
 #endif
             auto table = this->find(class_name);
+            bool table_added;
             if (!table)
-                table = this->add(std::move(class_name));
+            {
+                table       = this->add(std::move(class_name), true);
+                table_added = true;
+            }
+            else
+            {
+                this->request_sort(table);
+                table_added = false;
+            }
 
             for (auto& desc : map->data)
             {
                 if (desc.type == FIELD_EMBEDDED)
                 {
                     if (desc.description != nullptr)
-                        FD_ASSERT("Embedded datamap detected");
+                        FD_ASSERT_UNREACHABLE("Embedded datamap detected");
                 }
                 else if (desc.name != nullptr)
                 {
-                    const string_view name = desc.name;
-                    if (_Can_skip_netvar(name))
+                    if (_Can_skip_netvar(desc.name))
                         continue;
-                    if (table->find(name)) // todo: check & correct type
+                    const hashed_string_view name = desc.name;
+                    if (!table_added && table->find(name)) // todo: check & correct type
                         continue;
-
                     // fieldOffset[TD_OFFSET_NORMAL], array replaced with two varaibles
                     table->add(static_cast<size_t>(desc.offset), &desc, 0, name);
                 }
             }
         }
+
+        invoke(logger, "netvars - {} data maps stored", debug_name.empty() ? root_map->name : debug_name);
     }
 
     void store_handmade_netvars() override
     {
+        FD_ASSERT(!data_.empty(), "Write handmade netvars after iterating game's data!");
+
 #if 0
         const auto baseent = this->find("C_BaseEntity");
+        this->request_sort(baseent);
         baseent->add<var_map>(0x24, "m_InterpVarMap");
         baseent->add<matrix3x4>(SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", plus(9), deref<1>(), minus(8)), "m_BonesCache", type_utlvector);
 
         const auto baseanim = this->find("C_BaseAnimating");
+        this->request_sort(baseanim);
         // m_vecRagdollVelocity - 128
         baseanim->add<animation_layer>(SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", plus(2), deref<1>()), "m_AnimOverlays", type_utlvector);
         // m_hLightingOrigin - 32
@@ -361,11 +532,18 @@ class storage_impl : public storage
         // ForceBone + 4
         baseanim->add<int>(SIG(client, "89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10", plus(2), deref<1>()), "m_iMostRecentModelBoneCounter");
 #endif
+
+        invoke(logger, "netvars - handmade netvars stored");
     }
+
+    //------
 
     void log_netvars(logs_data& data) override
     {
+        this->sort();
+
         json_unsorted j_root;
+        using json_string = typename json_unsorted::string_t;
 
         for (const auto& table : data_)
         {
@@ -376,7 +554,7 @@ class storage_impl : public storage
 
             for (const auto& info : table)
             {
-                string name(info->name());
+                json_string name(info->name());
                 const auto offset      = info->offset();
                 const string_view type = info->type();
 
@@ -390,28 +568,35 @@ class storage_impl : public storage
                 else
                 {
                     j_table.push_back({
-                        {"name",    std::move(name)},
-                        { "offset", offset         },
-                        { "type",   string(type)   }
+                        {"name",    std::move(name)  },
+                        { "offset", offset           },
+                        { "type",   json_string(type)}
                     });
                 }
-
-                /*
-                json_unsorted entry;
-                _Json_append(entry, "name")   = string(name);
-                _Json_append(entry, "offset") = offset;
-                if (!type.empty())
-                    _Json_append(entry, "type") = string(type);
-
-                j_table.push_back(std::move(entry)); */
             }
         }
 
-        data.buff << std::setw(data.indent) << std::setfill(data.filler) << j_root;
+        std::ostringstream tmp_buff;
+        tmp_buff << std::setw(data.indent) << std::setfill(data.filler) << j_root;
+        _Stream_to(std::move(tmp_buff), data.buff);
+
+        invoke(logger, "netvars - logs will be written to {}", [&] {
+            wstring_view dir = data.dir;
+#ifdef FD_ROOT_DIR
+            if (dir.starts_with(default_logs_data_dir))
+                dir.remove_prefix(default_logs_data_dir.size());
+#endif
+            return make_string(_Correct_path(dir), data.file.name, data.file.extension);
+        });
     }
 
     void generate_classes(classes_data& data) override
     {
+        this->sort();
+
+#ifdef GENERATE_STRUCT_MEMBERS
+#error "not implemented"
+#else
         data.files.reserve(data_.size() * 2);
 
         for (const auto& table : data_)
@@ -419,73 +604,107 @@ class storage_impl : public storage
             if (table.empty())
                 continue;
 
-            using file_info = classes_data::file_info;
-
-            file_info h_info, cpp_info;
-            auto& h   = h_info.buff;
-            auto& cpp = cpp_info.buff;
+            std::ostringstream h, cpp;
 
             const string_view class_name = table.name();
 
             for (const auto& info : table)
             {
-                auto netvar_type = info->type();
-                if (netvar_type.empty())
+                auto netvar_type_raw = info->type();
+                if (netvar_type_raw.empty())
                     continue;
 
-                char ret_char;
-                if (netvar_type.ends_with('*')) // type have pointer
-                {
-                    netvar_type.remove_suffix(1);
-                    ret_char = '*';
-                }
-                else
-                {
-                    ret_char = '&';
-                }
+                const auto netvar_type_pointer = netvar_type_raw.ends_with('*');
+
+                const auto netvar_type_decayed = netvar_type_pointer ? netvar_type_raw.substr(0, netvar_type_raw.size() - 1) : netvar_type_raw;
+                const auto netvar_type_out     = make_string(netvar_type_decayed, netvar_type_pointer ? '*' : '&');
+                const auto netvar_type_cast    = make_string(netvar_type_pointer ? "" : "*", "reinterpret_cast<", netvar_type_decayed, "*>");
 
                 const string_view netvar_name = info->name();
 
-                //----
+                constexpr string_view offset_getter_fn = "FD_OBJECT_GET(basic_netvars_storage)->get_netvar_offset";
+                constexpr string_view default_class    = "{}";
+                constexpr string_view args_separator   = ", ";
 
-                constexpr string_view get_netvar_offset_fn = "FD_OBJECT_GET(basic_netvars_storage)->get_netvar_offset";
-                constexpr string_view empty_string         = "{}";
-
-                h << netvar_type << ret_char << ' ' << netvar_name << "();";
-                cpp << netvar_type << ret_char << ' ' << class_name << "::" << netvar_name << "()\n";
-                cpp << "{\t";
-                cpp << "static const auto offset = " << get_netvar_offset_fn << '('
+                h << netvar_type_out << ' ' << netvar_name << "();";
+                cpp << netvar_type_out << ' ' << class_name << "::" << netvar_name << "()\n"
+                    << '{'
+                    /*.......*/
+                    << "\tstatic const auto offset = " << offset_getter_fn /*----*/
+                    << '(' <<
 #ifdef MERGE_DATA_TABLES
-                    << class_name << ", " << empty_string
+                    class_name << args_separator << default_class
 #else
-                    << empty_string << ", " << class_name
+                    default_class << args_separator << class_name
 #endif
-                    << ", " << netvar_name << ");\n\t";
-                cpp << "const auto addr = reinterpret_cast<uintptr_t>(this) + offset;";
-                cpp << "return ";
-                if (ret_char == '&')
-                    cpp << '*';
-                cpp << "reinterpret_cast<" << netvar_type << "*>(addr);";
-                cpp << "}\n\n";
+                    << args_separator << netvar_name /*----*/
+                    << ");\n"
+                    << "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + offset;\n"
+                    << "\treturn " << netvar_type_cast << "(addr);\n"
+                    << "}\n\n";
             }
 
-            h_info.name   = make_string(std::in_place_type<wchar_t>, class_name, "_h");
-            cpp_info.name = make_string(std::in_place_type<wchar_t>, class_name, "_cpp");
+            const auto make_file_name = bind_front(make_string, std::in_place_type<wchar_t>, class_name);
+            using buff_type           = classes_data::file_info::second_type;
+            data.files.emplace_back(make_file_name("_h"), _Stream_to<buff_type>(std::move(h)));
+            data.files.emplace_back(make_file_name("_cpp"), _Stream_to<buff_type>(std::move(cpp)));
 
-            data.files.push_back(std::move(h_info));
-            data.files.push_back(std::move(cpp_info));
+            // todo: if !MERGE_DATA_TABLES include wanted files!
         }
+#endif
+
+        invoke(logger, "netvars - {} classes generated", data.files.size());
     }
 
-    size_t get_netvar_offset(const string_view class_name, const string_view table_name, const string_view name) const override
+    //-------
+
+    void init_default()
     {
-#ifdef MERGE_DATA_TABLES
-        FD_ASSERT(table_name.empty());
-        const auto table = this->find(class_name);
-#else
-        FD_ASSERT(class_name.empty());
-        const auto table = this->find(table_name);
+        // run default initialization
+
+        this->iterate_client_class(FD_OBJECT_GET(base_client)->GetAllClasses(), "All");
+
+        using datamap_fn = data_map*(__thiscall*)(void*);
+
+        const auto baseent        = rt_modules::client.find_vtable<"C_BaseEntity">();
+        const auto baseent_vtable = *reinterpret_cast<datamap_fn**>(baseent);
+        this->iterate_datamap(invoke(baseent_vtable[15], baseent), "DataDescMap");
+        this->iterate_datamap(invoke(baseent_vtable[17], baseent), "PredictionDescMap");
+
+        this->store_handmade_netvars();
+#ifdef _DEBUG
+        const string_view product_version = FD_OBJECT_GET(engine_client)->GetProductVersionString();
+        auto& logs                        = *FD_OBJECT_GET(logs_data);
+        logs.file.name.assign(product_version.begin(), product_version.end());
+        this->log_netvars(logs);
+
+        auto& classes = *FD_OBJECT_GET(classes_data);
+        this->generate_classes(classes);
 #endif
-        return table->find(name)->offset();
+    }
+
+    void finish()
+    {
+        sort_requested_.clear();
+        sort_requested_.shrink_to_fit();
+
+        invoke(logger, "netvars - {} classes stored", data_.size());
+    }
+
+    size_t get_netvar_offset(const string_view class_name, const string_view name) const override
+    {
+        // ideally it is better to use std::call_once instead of static
+        static const auto once = [&] {
+            auto tthis = const_cast<storage_impl*>(this);
+            if (data_.empty())
+                tthis->init_default();
+            tthis->finish();
+            return true;
+        }();
+
+        return this->find(class_name)->find(name)->offset();
     }
 };
+
+FD_OBJECT_ATTACH(netvars_storage, storage_impl);
+FD_OBJECT_ATTACH(basic_netvars_storage, storage_impl);

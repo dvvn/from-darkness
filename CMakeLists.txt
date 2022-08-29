@@ -320,6 +320,8 @@ add_subproject(
   valve_interfaces
   FILES
   FILTER=${_DEFAULT_FILES_FILTER}
+ #[[  ${_PROJ_IMPL_DIR}/netvars
+  ${_PROJ_IMPL_DIR}/valve_custom/base_entity.ixx ]]
   DEFINE
   PRIVATE
   ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}

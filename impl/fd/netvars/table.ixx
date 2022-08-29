@@ -29,17 +29,16 @@ using unique_ptr_ex = unique_ptr<T, void (*)(void*)>;
 class netvar_table : public std::vector<unique_ptr_ex<basic_netvar_info>>
 {
     hashed_string name_;
+    bool root_;
 
   protected:
     void validate_item(const basic_netvar_info* info) const;
 
   public:
-    netvar_table(hashed_string&& name);
-    netvar_table() = default;
-
-    void construct(hashed_string&& name);
+    netvar_table(hashed_string&& name, const bool root);
 
     hashed_string_view name() const;
+    bool root() const;
     const basic_netvar_info* find(const hashed_string_view name) const;
 
     template <typename... Args>
