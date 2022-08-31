@@ -7,7 +7,7 @@ module;
 
 export module fd.rt_modules;
 export import fd.type_name;
-import :library_info;
+export import :library_info;
 import fd.chars_cache;
 import fd.ctype;
 

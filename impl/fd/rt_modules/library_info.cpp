@@ -10,7 +10,7 @@ module;
 
 module fd.rt_modules:library_info;
 import fd.logger;
-import fd.path;
+import fd.filesystem.path;
 import fd.mem_scanner;
 import fd.chars_cache;
 import fd.ctype;
@@ -186,6 +186,16 @@ library_info::library_info(IMAGE_DOS_HEADER* const base_address, const bool noti
         FD_ASSERT(entry_ != nullptr);
 }
 
+bool library_info::is_root() const
+{
+    size_t offset = 0;
+    LDR_ENTRY_finder([&](const LDR_DATA_TABLE_ENTRY* entry) {
+        ++offset;
+        return entry_ == entry;
+    });
+    return offset == 1;
+}
+
 auto library_info::get() const -> pointer
 {
     return entry_;
@@ -210,7 +220,7 @@ wstring_view library_info::path() const
 static auto _Path_filename(const wstring_view full_path)
 {
 #if 1
-    return path<wchar_t>(full_path).filename();
+    return fs::basic_path(full_path).filename();
 #else
     const auto name_start = full_path.rfind('\\');
     FD_ASSERT(name_start != full_path.npos, "Unable to get the module name");

@@ -158,6 +158,8 @@ struct library_info
     library_info(const wstring_view name, const bool notify = true);
     library_info(IMAGE_DOS_HEADER* const base_address, const bool notify = true);
 
+    bool is_root() const;
+
     pointer get() const;
     pointer operator->() const;
     reference operator*() const;

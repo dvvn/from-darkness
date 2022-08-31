@@ -93,13 +93,8 @@ export namespace fd
 #else
     constexpr size_t unique_hash(const std::source_location sl = std::source_location::current())
     {
-        auto fname = sl.file_name();
-#ifdef FD_WORK_DIR
-#define STR0(x) #x
-#define STR(x)  STR0(x)
-        fname += std::size(STR(FD_WORK_DIR)) - 1;
-#endif
-        return _Hash_bytes(fname + SIZE_SKIP, ct_strlen(fname) - SIZE_SKIP);
+        auto fname = sl.file_name() + SIZE_SKIP;
+        return _Hash_bytes(fname, ct_strlen(fname));
     }
 #endif
 

@@ -4,12 +4,12 @@
 // added to prevent compiler bugs
 #include <string>
 
-import fd.path;
+import fd.filesystem.path;
 import fd.ctype;
 
 #if 1
 
-[[deprecated]] constexpr size_t _Object_id(const fd::path<char> full_path)
+[[deprecated]] constexpr size_t _Object_id(const fd::fs::path_view<char> full_path)
 {
     const auto fname = full_path.stem();
     auto start       = fname.rfind('_');
@@ -49,7 +49,7 @@ import fd.ctype;
     return index;
 }
 
-constexpr fd::string_view _Pretty_file_name(const fd::path<char> full_path, const bool skip_id = true)
+constexpr fd::string_view _Pretty_file_name(const fd::fs::path_view<char> full_path, const bool skip_id = true)
 {
     auto fname = full_path.stem();
     if (skip_id)
@@ -63,7 +63,7 @@ constexpr fd::string_view _Pretty_file_name(const fd::path<char> full_path, cons
     return fname;
 }
 
-constexpr fd::string_view _Folder_name(const fd::path<char> full_path)
+constexpr fd::string_view _Folder_name(const fd::fs::path_view<char> full_path)
 {
     return full_path.parent_path().filename();
 }

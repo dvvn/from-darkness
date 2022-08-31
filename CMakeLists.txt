@@ -295,49 +295,31 @@ add_subproject(
   IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
   ImDrawIdx=size_t)
 
-add_subproject(functional LINK function2 INCLUDE ${_PROJ_IMPL_DIR})
-
 add_subproject(
-  stable
+  impl
   LINK
+  function2
+  robin_hood
   nlohmann_json
-  functional
+  subhook
   fmt
-  INCLUDE
-  ${_PROJ_IMPL_DIR}
-  ${utf8_conv_SOURCE_DIR}/include
-  ${veque_SOURCE_DIR}/include
-  ${xxhct_SOURCE_DIR})
-
-add_subproject(logger LINK stable)
-add_subproject(mem LINK stable)
-add_subproject(rt_modules LINK mem logger)
-add_subproject(math INCLUDE ${_PROJ_IMPL_DIR})
-add_subproject(valve_interfaces LINK rt_modules math)
-add_subproject(
-  netvars
-  LINK
-  valve_interfaces
-  FILES
-  FILTER=${_DEFAULT_FILES_FILTER}
- #[[  ${_PROJ_IMPL_DIR}/netvars
-  ${_PROJ_IMPL_DIR}/valve_custom/base_entity.ixx ]]
-  DEFINE
-  PRIVATE
-  ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
-  ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR})
-add_subproject(valve_custom LINK netvars)
-add_subproject(gui_interface LINK stable)
-add_subproject(
-  gui
-  LINK
-  gui_interface
-  logger
   d3d9.lib
   imgui
+  #[[ RmlCore
+  RmlDebugger ]]
+  INCLUDE
+  ${_PROJ_IMPL_DIR}
+  ${xxhct_SOURCE_DIR}
+  ${utf8_conv_SOURCE_DIR}/include
+  ${veque_SOURCE_DIR}/include
   FILES
-  FILTER=${_DEFAULT_FILES_FILTER}) #[[ RmlCore  RmlDebugger  DEFINE  RMLUI_STATIC_LIB  RMLUI_DIR=${rml_SOURCE_DIR} ]]
-add_subproject(hooks LINK subhook gui valve_custom)
+  FILTER=${_DEFAULT_FILES_FILTER}
+  ${_PROJ_WORK_DIR}
+  DEFINE
+  #[[ RMLUI_STATIC_LIB
+  RMLUI_DIR=${rml_SOURCE_DIR} ]]
+  ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
+  ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR})
 
-add_subproject(gui_test TYPE EXECUTABLE LINK hooks)
-add_subproject(library TYPE SHARED LINK hooks)
+add_subproject(gui_test TYPE EXECUTABLE LINK impl)
+add_subproject(library TYPE SHARED LINK impl)

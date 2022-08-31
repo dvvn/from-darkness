@@ -71,9 +71,8 @@ export namespace fd
     template <typename Fn, class C, typename... Args>
     decltype(auto) invoke(Fn, const size_t index, C* thisptr, Args&&... args)
     {
-        using cast_t = std::conditional_t<std::is_const_v<C>, const void, void>;
-        auto vtable  = *reinterpret_cast<cast_t***>(thisptr);
-        auto vfunc   = vtable[index];
+        auto vtable = *(void***)thisptr;
+        auto vfunc  = vtable[index];
         return invoke(reinterpret_cast<Fn&>(vfunc), thisptr, std::forward<Args>(args)...);
     }
 

@@ -1,6 +1,6 @@
 module;
 
-#include <fd/callback_impl.h>
+#include <fd/callback/impl.h>
 
 #include <Windows.h>
 
@@ -10,7 +10,6 @@ module;
 module fd.assert;
 import fd.string.make;
 import fd.utf_convert;
-import fd.application_data;
 import fd.mutex;
 
 using namespace fd;
@@ -61,7 +60,7 @@ static void _Default_assert_handler(const assert_data& data)
 #ifdef WINAPI_FAMILY
 #if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     const auto msg       = _Build_message(data, "\n\nWould you like to interrupt execution?");
-    const auto terminate = MessageBoxW(app_info->root_window.handle, msg.c_str(), L"Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL) != IDNO;
+    const auto terminate = MessageBoxW(nullptr, msg.data(), L"Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL) != IDNO;
     if (terminate)
         std::terminate(); // todo: unload by own function instead of terminate
 #else

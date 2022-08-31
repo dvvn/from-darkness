@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/stable/callback_internal.h>
+#include <fd/callback/internal.h>
 
 import fd.callback;
 

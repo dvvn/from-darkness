@@ -5,7 +5,6 @@ module;
 #include <fd/utility.h>
 
 #include <algorithm>
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -20,12 +19,14 @@ import fd.functional.fn;
 import fd.functional.bind;
 import fd.json;
 import fd.logger;
+import fd.filesystem;
 //---
 import fd.rt_modules;
 // import fd.valve.base_entity;
 import fd.valve.engine_client;
 import fd.valve.base_client;
 
+#if 0
 namespace std::filesystem
 {
     static_assert(sizeof(path) == sizeof(fd::wstring));
@@ -45,6 +46,7 @@ namespace std::filesystem
 } // namespace std::filesystem
 
 namespace fs = std::filesystem;
+#endif
 
 using namespace fd;
 using namespace valve;
@@ -55,7 +57,10 @@ using hashed_string      = string;
 template <typename T>
 static bool _File_already_written(const T& full_path, const std::span<const char> buffer)
 {
-    std::ifstream file_stored(full_path, std::ios::binary | std::ios::ate);
+    std::ifstream file_stored;
+    file_stored.rdbuf()->pubsetbuf(nullptr, 0); // disable buffering
+    file_stored.open(full_path, std::ios::binary | std::ios::ate);
+
     if (!file_stored)
         return false;
 
@@ -74,6 +79,7 @@ static bool _File_already_written(const T& full_path, const std::span<const char
 #endif
 }
 
+#if 0
 static void _Correct_path(wstring& path)
 {
     std::replace(path.begin(), path.end(), fs::unpreferred_separator, fs::preferred_separator);
@@ -97,8 +103,19 @@ static void _Correct_path(wstring& path)
 
     return buff;
 }
+#endif
+
+static void _Write_to_file(const wstring& path, const std::span<const char> buff)
+{
+    // std::ofstream(full_path).write(buff.data(), buff.size());
+    FILE* f;
+    _wfopen_s(&f, path.data(), L"w");
+    _fwrite_nolock(buff.data(), 1, buff.size(), f);
+    _fclose_nolock(f);
+}
+
 #ifdef FD_ROOT_DIR
-constexpr wstring_view default_logs_data_dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars");
+constexpr basic_string_view default_logs_data_dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
 #endif
 
 logs_data::logs_data()
@@ -115,19 +132,23 @@ logs_data::~logs_data()
 {
     if (dir.empty())
         return;
-    _Correct_path(dir);
-    if (!fs::create_directory(dir))
+    //_Correct_path(dir);
+    if (!fs::create_directories(dir))
         return;
     const auto full_path = make_string(dir, file.name, file.extension);
     if (_File_already_written(full_path, buff))
         return;
-    std::ofstream(full_path).write(buff.data(), buff.size());
+    _Write_to_file(full_path, buff);
 }
+
+#ifdef FD_WORK_DIR
+constexpr basic_string_view default_classes_dump_dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
+#endif
 
 classes_data::classes_data()
 {
 #ifdef FD_WORK_DIR
-    dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom");
+    dir = default_classes_dump_dir;
 #endif
 }
 
@@ -135,14 +156,14 @@ classes_data::~classes_data()
 {
     if (dir.empty())
         return;
-    _Correct_path(dir);
-    const auto file_is_empty = fs::create_directory(dir) || fs::is_empty(dir);
+    //_Correct_path(dir);
+    const auto file_is_empty = fs::create_directories(dir) || fs::directory_empty(dir);
     for (const auto& [name, buff] : files)
     {
         const auto current_file_path = make_string(dir, name);
         if (!file_is_empty && _File_already_written(current_file_path, buff))
             continue;
-        std::ofstream(current_file_path).write(buff.data(), buff.size());
+        _Write_to_file(current_file_path, buff);
     }
 }
 
@@ -586,7 +607,7 @@ class storage_impl : public netvars_storage
             if (dir.starts_with(default_logs_data_dir))
                 dir.remove_prefix(default_logs_data_dir.size());
 #endif
-            return make_string(_Correct_path(dir), data.file.name, data.file.extension);
+            return make_string(/* _Correct_path */ (dir), data.file.name, data.file.extension);
         });
     }
 
@@ -653,7 +674,14 @@ class storage_impl : public netvars_storage
         }
 #endif
 
-        invoke(logger, "netvars - {} classes generated", data.files.size());
+        invoke(logger, "netvars - {} classes written to {}", data.files.size(), [&] {
+            wstring_view dir = data.dir;
+#ifdef FD_WORK_DIR
+            if (dir.starts_with(default_classes_dump_dir))
+                dir.remove_prefix(default_classes_dump_dir.size());
+#endif
+            return /* _Correct_path */ (dir);
+        });
     }
 
     //-------
