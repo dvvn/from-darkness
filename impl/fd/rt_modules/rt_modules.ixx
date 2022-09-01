@@ -6,25 +6,22 @@ module;
 #include <utility>
 
 export module fd.rt_modules;
-export import fd.type_name;
 export import :library_info;
 import fd.chars_cache;
 import fd.ctype;
 
 using fd::chars_cache;
 using fd::library_info;
+using fd::wstring_view;
 
-struct only_true
-{
-    only_true(const bool val);
-};
+bool _Wait_for_library(const wstring_view name);
 
 struct any_module_base
 {
     virtual ~any_module_base() = default;
 
     virtual const library_info& data() const = 0;
-    virtual bool loaded() const              = 0;
+    virtual bool wait() const                = 0;
 
     const library_info* operator->() const;
     const library_info& operator*() const;
@@ -65,18 +62,16 @@ struct any_module : any_module_base
 struct current_module final : any_module<0>
 {
     const library_info& data() const override;
-    bool loaded() const override;
-};
-
-union library_info_lazy
-{
-    void* dummy = nullptr;
-    library_info info;
+    bool wait() const override;
 };
 
 class magic_cast
 {
-    void* ptr_;
+    union
+    {
+        void* ptr_;
+        uintptr_t addr_;
+    };
 
   public:
     magic_cast(void* ptr)
@@ -84,47 +79,101 @@ class magic_cast
     {
     }
 
+    magic_cast(const uintptr_t addr)
+        : addr_(addr)
+    {
+    }
+
     template <typename Q>
     operator Q*() const // requires(std::is_pointer_v<Q> || std::is_member_function_pointer_v<Q> || std::is_function_v<Q>)
     {
-        return static_cast<Q*>(ptr_);
+        return reinterpret_cast<Q*>(addr_);
     }
 };
 
-template <chars_cache Name, size_t Idx>
-class rt_module final : public any_module<Idx /* fd::_Hash_bytes(Name.data(), Name.size()) */>
+auto _Correct_signature(void* root_addr, const size_t add, size_t deref)
 {
-    static auto& _Data()
+    auto addr = reinterpret_cast<uintptr_t>(root_addr) + add;
+    do
     {
-        static library_info_lazy val;
-        return val;
+        const auto new_addr = *reinterpret_cast<void**>(addr);
+        addr                = reinterpret_cast<uintptr_t>(new_addr);
     }
+    while (deref-- > 0);
+    return reinterpret_cast<void*>(addr);
+}
 
-    static bool _Loaded()
-    {
-        auto& info = _Data().info;
-        if (!info.get())
-            std::construct_at(&info, Name);
-        return info.get();
-    }
-
-  public:
+template <chars_cache Name, size_t Idx>
+struct rt_module final : any_module<Idx /* fd::_Hash_bytes(Name.data(), Name.size()) */>
+{
     const library_info& data() const override
     {
-        static const only_true dummy = _Loaded();
-        (void)dummy;
-        return _Data().info;
+        static library_info info = [this] {
+#ifdef _DEBUG
+            if (!_Wait_for_library(Name))
+            {
+                // handle error and unload!
+            }
+#endif
+            return Name.view();
+        }();
+
+        return info;
     }
 
-    bool loaded() const override
+    bool wait() const override
     {
-        return _Loaded();
+        return _Wait_for_library(Name);
     }
 
     template <chars_cache Interface>
     magic_cast find_interface() const
     {
         static const auto found = this->data().find_csgo_interface(this->find_export<"CreateInterface">(), Interface);
+        return found;
+    }
+
+  private:
+    template <chars_cache Sig, size_t Add, size_t Deref>
+    auto _Find_interface_sig() const
+    {
+        static const auto found = _Correct_signature(this->find_signature<Sig>(), Add, Deref);
+        return found;
+    }
+
+  public:
+    template <chars_cache Sig, size_t Add, size_t Deref, class T>
+    auto find_interface_sig() const
+    {
+        static const auto found = [this] {
+            const magic_cast addr =
+#ifdef _DEBUG
+                _Find_interface_sig<Sig, Add, Deref>()
+#else
+                _Correct_signature(this->find_signature<Sig>(), Add, Deref)
+#endif
+                ;
+            T* result = addr;
+            this->data().log_class_info(result);
+            return result;
+        }();
+        return found;
+    }
+
+    template <chars_cache Sig, size_t Add, size_t Deref, chars_cache DebugName>
+    magic_cast find_interface_sig() const
+    {
+        static const auto found = [this] {
+            const auto addr =
+#ifdef _DEBUG
+                _Find_interface_sig<Sig, Add, Deref>()
+#else
+                _Correct_signature(this->find_signature<Sig>(), Add, Deref)
+#endif
+                ;
+            this->data().log_class_info(DebugName, addr);
+            return addr;
+        }();
         return found;
     }
 };

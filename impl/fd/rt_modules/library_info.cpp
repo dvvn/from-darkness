@@ -196,6 +196,11 @@ bool library_info::is_root() const
     return offset == 1;
 }
 
+bool library_info::unload() const
+{
+    return FreeLibrary(reinterpret_cast<HMODULE>(entry_->DllBase));
+}
+
 auto library_info::get() const -> pointer
 {
     return entry_;
@@ -245,11 +250,17 @@ constexpr auto _Object_found = [](const library_info* info, const auto object_ty
 
 void library_info::log_class_info(const string_view raw_name, const void* addr) const
 {
-    const auto name_begin   = raw_name.find(' '); // class or struct
-    const auto notification = bind_back(bind_front(_Object_found, this), addr);
+    if (!logger->active())
+        return;
+
+    const auto _Object_found_ex = [&](const auto object_type, const auto object) {
+        _Object_found(this, object_type, object, addr);
+    };
+
+    const auto name_begin = raw_name.find(' '); // class or struct
     if (name_begin == raw_name.npos)
     {
-        invoke(notification, L"object", raw_name);
+        _Object_found_ex(L"object", raw_name);
     }
     else
     {
@@ -257,7 +268,7 @@ void library_info::log_class_info(const string_view raw_name, const void* addr) 
         FD_ASSERT(!object_type.empty(), "Wrong object type");
         const auto object = raw_name.substr(name_begin + 1);
         FD_ASSERT(!object.empty(), "Wrong object name");
-        invoke(notification, object_type, object);
+        _Object_found_ex(object_type, object);
     }
 }
 

@@ -159,6 +159,7 @@ struct library_info
     library_info(IMAGE_DOS_HEADER* const base_address, const bool notify = true);
 
     bool is_root() const;
+    bool unload() const;
 
     pointer get() const;
     pointer operator->() const;

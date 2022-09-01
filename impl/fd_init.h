@@ -6,7 +6,6 @@
 #include <Windows.h>
 
 import fd.hooks_loader;
-import fd.application_data;
 import fd.rt_modules;
 import fd.assert;
 import fd.logger;
@@ -55,7 +54,7 @@ PREPARE_HOOKS(_Store_hooks, wndproc, IDirect3DDevice9_present, IDirect3DDevice9_
 
 namespace fd
 {
-    inline void _Init(const HWND hwnd, const HMODULE hmodule)
+    inline bool fd_init_core()
     {
 #if defined(_DEBUG) || defined(FD_GUI_TEST)
         logger->append([](const auto str) {
@@ -67,47 +66,16 @@ namespace fd
             invoke(system_console_writer, data.build_message());
         });
 #endif
-        app_info.construct(hwnd, hmodule);
+        return true;
     }
 
-    inline bool _Init_hooks()
+    inline bool fd_init_hooks()
     {
         _Store_hooks(*hooks_loader);
         return hooks_loader->enable();
     }
 
-#ifdef FD_GUI_TEST
-    inline bool init(const HWND hwnd, const HMODULE hmodule, IDirect3DDevice9* const d3d_created)
-    {
-        _Init(hwnd, hmodule);
-        FD_OBJECT_GET(IDirect3DDevice9*).construct(d3d_created);
-        rt_modules::current->log_class_info(d3d_created);
-        return _Init_hooks();
-    }
-#else
-    inline bool _Wait_for_game(const boolean_flag& run)
-    {
-        for (;;)
-        {
-            if (!run)
-                return false;
-            if (rt_modules::serverBrowser.loaded())
-                return true;
-
-            thread_sleep(100);
-        }
-    }
-
-    inline void init(const HWND hwnd, const HMODULE hmodule)
-    {
-        invoke(async, [=](const boolean_flag& run) {
-            _Init(hwnd, hmodule);
-            if (!_Wait_for_game(run) || !_Init_hooks())
-                app_info->unload();
-        });
-    }
-#endif
-    inline void destroy()
+    inline void fd_destroy()
     {
         async.destroy();
         hooks_loader.destroy();

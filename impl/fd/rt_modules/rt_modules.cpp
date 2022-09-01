@@ -1,5 +1,3 @@
-
-
 module;
 
 #include <fd/assert.h>
@@ -9,12 +7,12 @@ module;
 
 module fd.rt_modules;
 
-only_true::only_true(const bool val)
-{
-    FD_ASSERT(val == true);
-}
+using namespace fd;
 
-using fd::library_info;
+bool _Wait_for_library(const wstring_view name)
+{
+    FD_ASSERT_UNREACHABLE("Not implemented");
+}
 
 const library_info* any_module_base::operator->() const
 {
@@ -42,7 +40,7 @@ const library_info& current_module::data() const
     return current;
 }
 
-bool current_module::loaded() const
+bool current_module::wait() const
 {
     return true;
 }

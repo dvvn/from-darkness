@@ -6,7 +6,6 @@ module;
 #include <vector>
 
 module fd.hooks_loader;
-import fd.application_data;
 
 class hooks_loader_impl : public basic_hooks_loader
 {

@@ -9,6 +9,7 @@
 #include <tchar.h>
 
 import fd.functional.lazy_invoke;
+import fd.functional.bind;
 
 using namespace fd;
 
@@ -58,7 +59,7 @@ static void ResetDevice()
     FD_ASSERT(hr != D3DERR_INVALIDCALL);
 }
 
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -90,19 +91,25 @@ int main(int, char**)
     ::RegisterClassEx(&wc);
     const HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("GUI TEST"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
+    const lazy_invoke _unreg_helper(bind_front(::UnregisterClass, wc.lpszClassName, wc.hInstance));
+    const lazy_invoke _hwnd_killer(bind_front(::DestroyWindow, hwnd));
+
     if (!CreateDeviceD3D(hwnd))
-    {
-        ::UnregisterClass(wc.lpszClassName, wc.hInstance);
         return TRUE;
-    }
 
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    if (!init(hwnd, hmodule, g_pd3dDevice.Get()))
+    if (!fd_init_core())
         return TRUE;
 
-    const lazy_invoke destroy_helper(destroy);
+    FD_OBJECT_GET(IDirect3DDevice9*).construct(g_pd3dDevice.Get());
+    rt_modules::current->log_class_info(g_pd3dDevice.Get());
+
+    if (!fd_init_hooks())
+        return TRUE;
+
+    const lazy_invoke _destroy_helper(fd_destroy);
 
     for (;;)
     {
