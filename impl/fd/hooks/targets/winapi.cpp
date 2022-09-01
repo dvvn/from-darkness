@@ -10,8 +10,6 @@ import fd.rt_modules;
 
 using namespace fd;
 
-#define ARGS hwnd, msg, wparam, lparam
-
 static BOOL CALLBACK _Wnd_Callback(HWND hwnd, LPARAM lparam)
 {
     if (!IsWindowVisible(hwnd))
@@ -47,6 +45,8 @@ static auto _Find_window()
 
     return reinterpret_cast<WNDPROC>(wp);
 }
+
+#define ARGS hwnd, msg, wparam, lparam
 
 FD_HOOK(wndproc, _Find_window(), static, LRESULT WINAPI, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
