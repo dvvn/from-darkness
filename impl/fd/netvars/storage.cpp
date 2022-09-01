@@ -123,6 +123,7 @@ logs_data::logs_data()
 #ifdef FD_ROOT_DIR
     dir = default_logs_data_dir;
 #endif
+    make_string.write(file.name, FD_OBJECT_GET(valve::engine_client)->GetProductVersionString());
     file.extension = L".json";
     indent         = 4;
     filler         = ' ';
@@ -643,32 +644,27 @@ class storage_impl : public netvars_storage
 
                 const string_view netvar_name = info->name();
 
-                constexpr string_view offset_getter_fn = "FD_OBJECT_GET(basic_netvars_storage)->get_netvar_offset";
-                constexpr string_view default_class    = "{}";
-                constexpr string_view args_separator   = ", ";
+                constexpr auto offset_getter_fn = "FD_OBJECT_GET(basic_netvars_storage)->get_netvar_offset"sv;
+                constexpr auto args_separator   = ", "sv;
 
-                h << netvar_type_out << ' ' << netvar_name << "();";
+                h << netvar_type_out << ' ' << netvar_name << "();\n";
                 cpp << netvar_type_out << ' ' << class_name << "::" << netvar_name << "()\n"
                     << '{'
                     /*.......*/
-                    << "\tstatic const auto offset = " << offset_getter_fn /*----*/
-                    << '(' <<
-#ifdef MERGE_DATA_TABLES
-                    class_name << args_separator << default_class
-#else
-                    default_class << args_separator << class_name
-#endif
-                    << args_separator << netvar_name /*----*/
-                    << ");\n"
+                    << "\tstatic const auto offset = " << offset_getter_fn << '(' << class_name << ", " << netvar_name << ");\n"
                     << "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + offset;\n"
                     << "\treturn " << netvar_type_cast << "(addr);\n"
                     << "}\n\n";
             }
 
-            const auto make_file_name = bind_front(make_string, std::in_place_type<wchar_t>, class_name);
-            using buff_type           = classes_data::file_info::second_type;
-            data.files.emplace_back(make_file_name("_h"), _Stream_to<buff_type>(std::move(h)));
-            data.files.emplace_back(make_file_name("_cpp"), _Stream_to<buff_type>(std::move(cpp)));
+            const auto store_file = [&](const string_view extension, std::ostringstream& buff) {
+                auto& [file_name, file_data] = data.files.emplace_back();
+                make_string.write(file_name, class_name, extension);
+                _Stream_to(std::move(buff), file_data);
+            };
+
+            store_file("_h", h);
+            store_file("_cpp", cpp);
 
             // todo: if !MERGE_DATA_TABLES include wanted files!
         }
