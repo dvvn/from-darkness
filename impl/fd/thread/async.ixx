@@ -39,8 +39,6 @@ struct basic_thread_pool
     virtual task operator()(function_type_ex func, const lazy_tag_t) = 0;
 };
 
-void thread_sleep(const size_t ms);
-
 FD_OBJECT(async, basic_thread_pool);
 
 export namespace fd
@@ -48,7 +46,5 @@ export namespace fd
     using ::async;
     using ::task;
 
-    using ::thread_sleep;
     using boolean_flag = custom_atomic_bool; // uselles, added for compatibility
-
 } // namespace fd

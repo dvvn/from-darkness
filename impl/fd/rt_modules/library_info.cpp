@@ -153,6 +153,13 @@ auto LDR_ENTRY_finder(Fn fn)
     return LIST_ENTRY_finder<LDR_DATA_TABLE_ENTRY>(fn);
 }
 
+bool library_info::exists(const wstring_view name)
+{
+    return LDR_ENTRY_finder([=](const library_info info) {
+        return info.name() == name;
+    });
+}
+
 library_info::library_info(pointer const entry)
     : entry_(entry)
 {
@@ -177,7 +184,7 @@ library_info::library_info(IMAGE_DOS_HEADER* const base_address, const bool noti
 {
     if (notify)
     {
-        const auto get_name = [=] {
+        const auto get_name = [this] {
             return this->entry_ ? this->name() : L"unknown name";
         };
         invoke(logger, L"{:#X} ({}) -> {}! ({:#X})", reinterpret_cast<uintptr_t>(base_address), get_name, entry_ ? L"found" : L"not found", reinterpret_cast<uintptr_t>(entry_));

@@ -8,6 +8,8 @@
 #include <d3d9.h>
 #include <tchar.h>
 
+#pragma comment(lib, "d3d9.lib")
+
 import fd.functional.lazy_invoke;
 import fd.functional.bind;
 

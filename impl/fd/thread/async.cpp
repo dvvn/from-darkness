@@ -17,6 +17,8 @@ import fd.functional.lazy_invoke;
 import fd.functional.bind;
 import fd.mutex;
 
+using namespace fd;
+
 custom_atomic_bool::custom_atomic_bool(const bool value)
     : value_(value)
 {
@@ -47,7 +49,7 @@ class thread_pool_impl final : public basic_thread_pool
     using task_type = std::variant<function_type, function_type_ex>;
 
     veque::veque<task_type> tasks_;
-    fd::mutex tasks_mtx_;
+    mutex tasks_mtx_;
 
     custom_atomic_bool stop_ = false;
 
@@ -92,12 +94,12 @@ class thread_pool_impl final : public basic_thread_pool
     template <class Fn>
     void store_func(Fn& func) noexcept
     {
-        const fd::lock_guard locker(tasks_mtx_);
+        const lock_guard locker(tasks_mtx_);
         tasks_.emplace_front(std::move(func));
 
         const auto threads_begin = threads_.begin();
         const auto threads_end   = threads_.end();
-        const auto paused_thread = std::find_if(threads_begin, threads_end, fd::bind_front(&thread_data::paused));
+        const auto paused_thread = std::find_if(threads_begin, threads_end, bind_front(&thread_data::paused));
         if (paused_thread == threads_end)
             return;
 
@@ -180,7 +182,7 @@ class thread_pool_impl final : public basic_thread_pool
     }
 };
 
-void thread_sleep(const size_t ms)
+/* void thread_sleep(const size_t ms)
 {
 #ifdef _DEBUG
     const auto tid = GetCurrentThreadId();
@@ -189,6 +191,6 @@ void thread_sleep(const size_t ms)
 #endif
 
     Sleep(ms);
-}
+} */
 
 FD_OBJECT_BIND_TYPE(async, thread_pool_impl);

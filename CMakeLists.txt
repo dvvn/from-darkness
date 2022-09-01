@@ -303,7 +303,6 @@ add_subproject(
   nlohmann_json
   subhook
   fmt
-  d3d9.lib
   imgui
   #[[ RmlCore
   RmlDebugger ]]

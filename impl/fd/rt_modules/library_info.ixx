@@ -154,6 +154,8 @@ struct library_info
     pointer entry_;
 
   public:
+    static bool exists(const wstring_view name);
+
     library_info(pointer const entry);
     library_info(const wstring_view name, const bool notify = true);
     library_info(IMAGE_DOS_HEADER* const base_address, const bool notify = true);

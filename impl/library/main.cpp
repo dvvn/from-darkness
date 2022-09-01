@@ -14,18 +14,21 @@ struct unload_handler
     }
 };
 
+static void _Async_impl()
+{
+    unload_handler unload;
+    if (!fd_init_core())
+        return;
+    if (!rt_modules::serverBrowser.wait())
+        return;
+    if (!fd_init_hooks())
+        return;
+    unload.ignore = true;
+}
+
 static void fd_init_async()
 {
-    invoke(async, [] {
-        unload_handler unload;
-        if (!fd_init_core())
-            return;
-        if (!rt_modules::serverBrowser.wait())
-            return;
-        if (!fd_init_hooks())
-            return;
-        unload.ignore = true;
-    });
+    invoke(async, _Async_impl);
 }
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
