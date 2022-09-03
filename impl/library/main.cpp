@@ -28,7 +28,7 @@ static void _Async_impl()
 
 static void fd_init_async()
 {
-    invoke(async, _Async_impl);
+    invoke(async, _Async_impl, async_tags::simple);
 }
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)

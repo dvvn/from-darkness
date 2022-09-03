@@ -6,8 +6,8 @@ module;
 export module fd.mutex;
 
 #ifdef _WIN32
-constexpr size_t mutex_size           = 40;
-constexpr size_t recursive_mutex_size = 40;
+constexpr size_t mutex_size           = 24;
+constexpr size_t recursive_mutex_size = 24;
 #else
 #endif
 

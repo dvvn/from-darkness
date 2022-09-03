@@ -6,11 +6,10 @@ module;
 
 module fd.mutex;
 
-constexpr auto aa = sizeof(CRITICAL_SECTION);
-
 template <typename T>
 static auto _Get_crt_section(T& data)
 {
+    static_assert(sizeof(T) == sizeof(CRITICAL_SECTION));
     return reinterpret_cast<CRITICAL_SECTION*>(&data);
 }
 
