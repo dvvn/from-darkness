@@ -3,37 +3,139 @@ module;
 #include <fd/assert.h>
 #include <fd/object.h>
 
-#include <algorithm>
-#include <array>
-#include <variant>
-#include <vector>
+#include <veque.hpp>
 
 #include <Windows.h>
 
-#include <veque.hpp>
+#include <algorithm>
+#include <array>
+#include <list>
+#include <variant>
+#include <vector>
 
 module fd.async;
-import fd.functional.lazy_invoke;
 import fd.functional.bind;
 import fd.mutex;
+import fd.semaphore;
 
 using namespace fd;
 
-custom_atomic_bool::custom_atomic_bool(const bool value)
-    : value_(value)
+struct finished_task_data : basic_task_data
 {
+    finished_task_data() = default;
+
+    void on_start() override
+    {
+    }
+
+    void on_wait() override
+    {
+    }
+};
+
+class task_data : public basic_task_data
+{
+    function_type fn;
+    semaphore sm;
+
+  public:
+    task_data(function_type&& fn)
+        : fn(std::move(fn))
+        , sm(1, 1)
+    {
+    }
+
+    void on_start() override
+    {
+        invoke(fn);
+        sm.release();
+    }
+
+    void on_wait() override
+    {
+        sm.acquire();
+    }
+};
+
+struct manual_task_data : basic_task_data
+{
+    function_type fn;
+    semaphore sm;
+
+    manual_task_data()
+        : sm(0, 1)
+    {
+    }
+
+    void on_start() override
+    {
+        sm.acquire();
+        invoke(fn);
+    }
+
+    void on_wait() override
+    {
+        sm.acquire();
+    }
+};
+
+basic_task_data* task::_Data() const
+{
+    return data_.get();
 }
 
-custom_atomic_bool::operator bool() const
+void task::start()
 {
-    return static_cast<bool>(InterlockedOr8((volatile char*)(&value_), 0));
+    data_->on_start();
 }
 
-custom_atomic_bool& custom_atomic_bool::operator=(const bool value)
+void task::wait()
 {
-    InterlockedExchange8((volatile char*)(&value_), static_cast<char>(value));
-    return *this;
+    data_->on_wait();
 }
+
+template <template <typename...> class T, typename... Args>
+class safe_storage
+{
+    using storage_type = T<Args...>;
+    using mutex_type   = mutex;
+
+    storage_type storage_;
+    mutex_type mtx_;
+
+    class getter : public lock_guard<mutex_type>
+    {
+        storage_type* s_;
+
+      public:
+        getter(safe_storage* ptr)
+            : lock_guard<mutex_type>(ptr->mtx_)
+        {
+            s_ = ptr->storage_;
+        }
+
+        storage_type* operator->() const
+        {
+            return s_;
+        }
+    };
+
+  public:
+    storage_type* get_unsafe()
+    {
+        return &storage_;
+    }
+
+    getter get()
+    {
+        return this;
+    }
+
+    getter operator->()
+    {
+        return this;
+    }
+};
 
 class thread_pool_impl final : public basic_thread_pool
 {
@@ -42,30 +144,37 @@ class thread_pool_impl final : public basic_thread_pool
         HANDLE h;
         DWORD id;
         bool paused;
+
+        bool operator==(const DWORD id) const
+        {
+            return this->id == id;
+        }
+
+        void destroy()
+        {
+            CloseHandle(h);
+            paused = true;
+        }
     };
 
     std::vector<thread_data> threads_;
 
-    using task_type = std::variant<function_type, function_type_ex>;
+    using task_type = function_type /* std::variant<function_type, function_type_ex> */;
 
-    veque::veque<task_type> tasks_;
-    mutex tasks_mtx_;
-
-    custom_atomic_bool stop_ = false;
+    /*std::list*/ veque::veque<task_type> tasks_;
+    recursive_mutex mtx_;
 
     static DWORD __stdcall worker(void* impl) noexcept
     {
         const auto pool        = static_cast<thread_pool_impl*>(impl);
-        const auto this_thread = std::find_if(pool->threads_.begin(), pool->threads_.end(), [this_id = GetCurrentThreadId()](const auto& d) {
-            return d.id == this_id;
-        });
+        const auto this_thread = std::find(pool->threads_.begin(), pool->threads_.end(), GetCurrentThreadId());
 
-        while (!pool->stop_)
+        for (;;)
         {
-            pool->tasks_mtx_.lock();
+            pool->mtx_.lock();
             if (pool->tasks_.empty())
             {
-                pool->tasks_mtx_.unlock();
+                pool->mtx_.unlock();
                 if (!this_thread->paused)
                     SuspendThread(this_thread->h);
             }
@@ -73,9 +182,12 @@ class thread_pool_impl final : public basic_thread_pool
             {
                 auto task = std::move(pool->tasks_.back());
                 pool->tasks_.pop_back();
-                pool->tasks_mtx_.unlock();
+                pool->mtx_.unlock();
 
-                std::visit(
+                try
+                {
+                    invoke(task);
+                    /* std::visit(
                     [=]<class Fn>(Fn& fn) {
                         if constexpr (std::same_as<Fn, function_type>)
                             fn();
@@ -84,32 +196,54 @@ class thread_pool_impl final : public basic_thread_pool
                         else
                             static_assert(std::_Always_false<Fn>);
                     },
-                    task);
+                    task); */
+                }
+                catch (...)
+                {
+                    this_thread->destroy();
+                    break;
+                }
             }
         }
 
-        return EXIT_SUCCESS;
+        return TRUE;
     }
 
-    template <class Fn>
-    void store_func(Fn& func) noexcept
+    bool store_func(function_type&& func) noexcept
     {
-        const lock_guard locker(tasks_mtx_);
+        const lock_guard guard(mtx_);
+
+        if (threads_.empty())
+            return false;
+
         tasks_.emplace_front(std::move(func));
 
         const auto threads_begin = threads_.begin();
         const auto threads_end   = threads_.end();
-        const auto paused_thread = std::find_if(threads_begin, threads_end, bind_front(&thread_data::paused));
+        auto paused_thread       = std::find_if(threads_begin, threads_end, bind_front(&thread_data::paused));
         if (paused_thread == threads_end)
-            return;
+            return true;
 
         const auto tasks_in_queue   = tasks_.size() - 1;
         const size_t active_threads = std::distance(threads_begin, paused_thread);
         if (tasks_in_queue < active_threads)
-            return;
+            return true;
 
-        ResumeThread(paused_thread->h);
-        paused_thread->paused = false;
+        for (; paused_thread != threads_end; ++paused_thread)
+        {
+            if (ResumeThread(paused_thread->h))
+            {
+                paused_thread->paused = false;
+                return true;
+            }
+        }
+        if (active_threads == 0)
+        {
+            tasks_.pop_front();
+            return false;
+        }
+
+        return true;
     }
 
   public:
@@ -128,7 +262,8 @@ class thread_pool_impl final : public basic_thread_pool
 
     ~thread_pool_impl()
     {
-        stop_ = true;
+        this->wait();
+
         for (auto& t : threads_)
         {
             if (t.paused)
@@ -137,48 +272,59 @@ class thread_pool_impl final : public basic_thread_pool
                 FD_ASSERT_UNREACHABLE("Unable to join the thread!");
             CloseHandle(t.h);
         }
+
+        threads_.clear();
     }
 
     bool contains_thread(const DWORD id) const
     {
-        for (auto& t : threads_)
-        {
-            if (t.id == id)
-                return true;
-        }
-        return false;
+        const auto end = threads_.end();
+        return std::find(threads_.begin(), end, id) != end;
     }
 
     void wait() override
     {
-        /* for (auto& t : threads_)
-        {
-            if (t.joinable())
-                t.join();
-        } */
-        FD_ASSERT_UNREACHABLE("Not implemented");
+        const lock_guard guard(mtx_);
+
+        semaphore sem(1, 1);
+        const auto stored = this->store_func([&] {
+            sem.release();
+        });
+        if (stored)
+            sem.acquire();
+    }
+
+    bool operator()(function_type func, const simple_tag_t) override
+    {
+        return this->store_func(std::move(func));
     }
 
     task operator()(function_type func) override
     {
-        store_func(func);
-        return {};
-    }
+        task t(task_data(std::move(func)));
 
-    task operator()(function_type_ex func) override
-    {
-        store_func(func);
-        return {};
+        const auto stored = this->store_func([=]() mutable {
+            t.start();
+        });
+        if (stored)
+            return t;
+        return finished_task_data();
     }
 
     task operator()(function_type func, const lazy_tag_t) override
     {
-        FD_ASSERT_UNREACHABLE("Not implemented");
-    }
+        auto t = task(manual_task_data());
 
-    task operator()(function_type_ex func, const lazy_tag_t) override
-    {
-        FD_ASSERT_UNREACHABLE("Not implemented");
+        auto data = static_cast<manual_task_data*>(t._Data());
+        data->fn  = [=, fn = std::move(func)]() mutable {
+            const auto stored = this->store_func([&] {
+                invoke(fn);
+                data->sm.release();
+            });
+            if (!stored)
+                data->sm.release();
+        };
+        return t;
     }
 };
 

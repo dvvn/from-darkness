@@ -6,48 +6,63 @@ module;
 
 module fd.mutex;
 
-struct mutex_data : CRITICAL_SECTION
-{
-};
+constexpr auto aa = sizeof(CRITICAL_SECTION);
 
-mutex_data* basic_mutex::data() const
+template <typename T>
+static auto _Get_crt_section(T& data)
 {
-    return data_.get();
+    return reinterpret_cast<CRITICAL_SECTION*>(&data);
 }
 
-basic_mutex::basic_mutex()
-    : data_(new mutex_data)
-{
-    constexpr DWORD flags = RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
+static constexpr DWORD _Crt_section_init_flags = RTL_CRITICAL_SECTION_FLAG_DYNAMIC_SPIN |
 #ifdef _DEBUG
-                            RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO
+                                                 RTL_CRITICAL_SECTION_FLAG_FORCE_DEBUG_INFO
 #else
-                            RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO
+                                                 RTL_CRITICAL_SECTION_FLAG_NO_DEBUG_INFO
 #endif
-        ;
-    InitializeCriticalSectionEx(data_.get(), 0, flags);
+    ;
+
+mutex::mutex()
+{
+    InitializeCriticalSectionEx(_Get_crt_section(buff_), 0, _Crt_section_init_flags);
 }
 
-basic_mutex::~basic_mutex()
+mutex::~mutex()
 {
-    DeleteCriticalSection(data_.get());
+    DeleteCriticalSection(_Get_crt_section(buff_));
 }
 
-void basic_mutex::lock() noexcept
+void mutex::lock() noexcept
 {
-    EnterCriticalSection(data_.get());
+    auto data = _Get_crt_section(buff_);
+    EnterCriticalSection(data);
+    if (data->RecursionCount > 1)
+        std::abort();
 }
 
-void basic_mutex::unlock() noexcept
+void mutex::unlock() noexcept
 {
-    LeaveCriticalSection(data_.get());
+    LeaveCriticalSection(_Get_crt_section(buff_));
 }
 
 //----
 
-void mutex::lock() noexcept
+recursive_mutex::recursive_mutex()
 {
-    basic_mutex::lock();
-    if (data()->RecursionCount > 1)
-        std::abort();
+    InitializeCriticalSectionEx(_Get_crt_section(buff_), 0, _Crt_section_init_flags);
+}
+
+recursive_mutex::~recursive_mutex()
+{
+    DeleteCriticalSection(_Get_crt_section(buff_));
+}
+
+void recursive_mutex::lock() noexcept
+{
+    EnterCriticalSection(_Get_crt_section(buff_));
+}
+
+void recursive_mutex::unlock() noexcept
+{
+    LeaveCriticalSection(_Get_crt_section(buff_));
 }

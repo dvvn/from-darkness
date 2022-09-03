@@ -4,24 +4,40 @@ module;
 
 export module fd.async;
 export import fd.functional.fn;
+export import fd.memory;
 
-class custom_atomic_bool
+using namespace fd;
+
+using function_type = function<void()>;
+
+struct basic_task_data
 {
-    char value_;
+    virtual ~basic_task_data() = default;
 
-  public:
-    custom_atomic_bool(const bool value);
-
-    operator bool() const;
-    custom_atomic_bool& operator=(const bool value);
+    virtual void on_start() = 0;
+    virtual void on_wait()  = 0;
 };
 
-using fd::function;
+class task
+{
+    shared_ptr<basic_task_data> data_;
 
-using function_type    = function<void()>;
-using function_type_ex = function<void(const custom_atomic_bool&)>;
+  public:
+    template <class... T>
+    task(T&&... args)
+        : data_(std::forward<T>(args)...)
+    {
+    }
 
-using task = void*; // WIP
+    basic_task_data* _Data() const;
+
+    void start();
+    void wait();
+};
+
+struct simple_tag_t
+{
+};
 
 struct lazy_tag_t
 {
@@ -33,10 +49,9 @@ struct basic_thread_pool
 
     virtual void wait() = 0;
 
-    virtual task operator()(function_type func)                      = 0;
-    virtual task operator()(function_type_ex func)                   = 0;
-    virtual task operator()(function_type func, const lazy_tag_t)    = 0;
-    virtual task operator()(function_type_ex func, const lazy_tag_t) = 0;
+    virtual bool operator()(function_type func, const simple_tag_t) = 0;
+    virtual task operator()(function_type func)                     = 0;
+    virtual task operator()(function_type func, const lazy_tag_t)   = 0;
 };
 
 FD_OBJECT(async, basic_thread_pool);
@@ -45,6 +60,4 @@ export namespace fd
 {
     using ::async;
     using ::task;
-
-    using boolean_flag = custom_atomic_bool; // uselles, added for compatibility
 } // namespace fd

@@ -271,65 +271,73 @@ struct basic_shared_ptr
     template <typename T1, typename D = default_delete<T1>, typename A = std::allocator<uint8_t>>
     basic_shared_ptr(T1* ptr, D deleter = {}, A allocator = {})
     {
-        struct _External_data : _Data
+        class _External_data : public _Data
         {
-            T1* ptr;
-            [[no_unique_address]] D deleter;
-            [[no_unique_address]] A alloc;
+            T1* ptr_;
+            [[no_unique_address]] D deleter_;
+            [[no_unique_address]] A alloc_;
+
+          public:
+            _External_data(T1* ptr, D& deleter, A& allocator)
+                : ptr_(ptr)
+                , deleter_(std::move(deleter))
+                , alloc_(std::move(allocator))
+            {
+            }
 
             void destroy() override
             {
-                if (ptr)
-                    deleter(ptr);
-                destroy_at(deleter);
-                auto a = std::move(alloc);
+                if (ptr_)
+                    deleter_(ptr_);
+                destroy_at(deleter_);
+                auto a = std::move(alloc_);
                 destroy_at(static_cast<_Data*>(this));
                 a.deallocate(reinterpret_cast<uint8_t*>(this), sizeof(_External_data));
             }
 
             pointer get() override
             {
-                return ptr;
+                return ptr_;
             }
         };
 
         auto data = reinterpret_cast<_External_data*>(allocator.allocate(sizeof(_External_data)));
-        construct_at(data);
-        data->ptr = ptr;
-        construct_at(&data->deleter, deleter);
-        construct_at(&data->alloc, allocator);
-
-        _Construct(data);
+        construct_at(data, ptr, deleter, allocator);
+        this->_Construct(data);
     }
 
     template <typename T1, typename A = std::allocator<uint8_t>>
     basic_shared_ptr(T1&& value, A allocator = {})
     {
-        struct _Innter_data : _Data
+        class _Innter_data : public _Data
         {
-            std::remove_cvref_t<T1> value;
-            [[no_unique_address]] A alloc;
+            std::remove_cvref_t<T1> value_;
+            [[no_unique_address]] A alloc_;
+
+          public:
+            _Innter_data(T1&& value, A& allocator)
+                : value_(std::forward<T1>(value))
+                , alloc_(std::move(allocator))
+            {
+            }
 
             void destroy() override
             {
-                destroy_at(value);
-                auto a = std::move(alloc);
+                destroy_at(value_);
+                auto a = std::move(alloc_);
                 destroy_at(static_cast<_Data*>(this));
                 a.deallocate(reinterpret_cast<uint8_t*>(this), sizeof(_Innter_data));
             }
 
             pointer get() override
             {
-                return &value;
+                return &value_;
             }
         };
 
         auto data = reinterpret_cast<_Innter_data*>(allocator.allocate(sizeof(_Innter_data)));
-        construct_at(data);
-        construct_at(&data->value, std::forward<T1>(value));
-        construct_at(&data->alloc, allocator);
-
-        _Construct(data);
+        construct_at(data, std::forward<T1>(value), allocator);
+        this->_Construct(data);
     }
 
     basic_shared_ptr(basic_shared_ptr&& other)
@@ -342,6 +350,11 @@ struct basic_shared_ptr
         if (!other.data_)
             return;
         _Construct(other.data_);
+    }
+
+    constexpr pointer get() const
+    {
+        return data_->get();
     }
 };
 

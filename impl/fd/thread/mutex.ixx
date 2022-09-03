@@ -1,35 +1,49 @@
 module;
 
-#include <Windows.h>
+#include <cstddef>
+#include <cstdint>
 
 export module fd.mutex;
-import fd.memory;
 
-struct mutex_data;
+#ifdef _WIN32
+constexpr size_t mutex_size           = 40;
+constexpr size_t recursive_mutex_size = 40;
+#else
+#endif
 
-class basic_mutex
+struct basic_mutex
 {
-  private:
-    fd::unique_ptr<mutex_data> data_;
+    virtual ~basic_mutex() = default;
 
-  protected:
-    mutex_data* data() const;
+    basic_mutex()                   = default;
+    basic_mutex(const basic_mutex&) = delete;
+
+    virtual void lock() noexcept   = 0;
+    virtual void unlock() noexcept = 0;
+};
+
+class mutex final : public basic_mutex
+{
+    uint8_t buff_[mutex_size];
 
   public:
-    basic_mutex();
-    virtual ~basic_mutex();
+    ~mutex() override;
+    mutex();
 
-    virtual void lock() noexcept;
-    virtual void unlock() noexcept;
+    void lock() noexcept;
+    void unlock() noexcept;
 };
 
-struct recursive_mutex final : basic_mutex
+class recursive_mutex final : public basic_mutex
 {
-};
+    uint8_t buff_[recursive_mutex_size];
 
-struct mutex final : basic_mutex
-{
-    void lock() noexcept override;
+  public:
+    ~recursive_mutex() override;
+    recursive_mutex();
+
+    void lock() noexcept;
+    void unlock() noexcept;
 };
 
 template <class M>

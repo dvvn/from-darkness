@@ -295,6 +295,8 @@ add_subproject(
   IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
   ImDrawIdx=size_t)
 
+math(EXPR _SYS_BITS_COUNT "${CMAKE_SIZEOF_VOID_P}*8")
+
 add_subproject(
   impl
   LINK
@@ -318,7 +320,8 @@ add_subproject(
   #[[ RMLUI_STATIC_LIB
   RMLUI_DIR=${rml_SOURCE_DIR} ]]
   ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
-  ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR})
+  ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR}
+  ${_PROJ_NAME_UPPER}_X${_SYS_BITS_COUNT})
 
 add_subproject(gui_test TYPE EXECUTABLE LINK impl)
 add_subproject(library TYPE SHARED LINK impl)
