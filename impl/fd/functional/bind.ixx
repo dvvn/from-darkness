@@ -1,10 +1,13 @@
 module;
 
 #include <functional>
+#include <limits>
 #include <tuple>
 
 export module fd.functional.bind;
 export import fd.functional.invoke;
+
+using fd::invoke;
 
 enum class bind_mode : uint8_t
 {
@@ -23,7 +26,7 @@ struct bind_caller<bind_mode::front>
     {
         return std::apply(
             [&](auto&... bound_args) -> decltype(auto) {
-                return fd::invoke(fn, bound_args..., std::forward<Args>(call_args)...);
+                return invoke(fn, bound_args..., std::forward<Args>(call_args)...);
             },
             bound_args_stored);
     }
@@ -37,7 +40,7 @@ struct bind_caller<bind_mode::back>
     {
         return std::apply(
             [&](auto&... bound_args) -> decltype(auto) {
-                return fd::invoke(fn, std::forward<Args>(call_args)..., bound_args...);
+                return invoke(fn, std::forward<Args>(call_args)..., bound_args...);
             },
             bound_args_stored);
     }
@@ -51,12 +54,44 @@ struct _Bind_helper
     {
         return [fn_stored = std::forward<Fn>(fn), bound_args_stored = std::tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto) {
             if constexpr (sizeof...(Args) == 0)
-                return fd::invoke(fn_stored, std::forward<CallArgs>(call_args)...);
+                return invoke(fn_stored, std::forward<CallArgs>(call_args)...);
             else
                 return bind_caller<Mode>::call(fn_stored, bound_args_stored, std::forward<CallArgs>(call_args)...);
         };
     }
 };
+
+constexpr auto _Inverse_value = []<typename T>(const T value) {
+    return value ^ std::numeric_limits<T>::max();
+};
+
+template <typename Fn>
+class inverse_result
+{
+    Fn fn_;
+
+  public:
+    template <typename Fn0>
+    constexpr inverse_result(Fn0&& fn)
+        : fn_(std::forward<Fn0>(fn))
+    {
+    }
+
+    template <typename... Args>
+    constexpr auto operator()(Args&&... args) const
+    {
+        return _Inverse_value(invoke(fn_, std::forward<Args>(args)...));
+    }
+
+    template <typename... Args>
+    constexpr auto operator()(Args&&... args)
+    {
+        return _Inverse_value(invoke(fn_, std::forward<Args>(args)...));
+    }
+};
+
+template <typename Fn>
+inverse_result(Fn&&) -> inverse_result<std::remove_cvref_t<Fn>>;
 
 export namespace fd
 {
@@ -71,4 +106,6 @@ export namespace fd
 #else
     constexpr _Bind_helper<bind_mode::back> bind_back;
 #endif
+
+    using ::inverse_result;
 } // namespace fd

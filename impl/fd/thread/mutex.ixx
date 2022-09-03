@@ -3,20 +3,18 @@ module;
 #include <cstddef>
 #include <cstdint>
 
-export module fd.mutex;
+#include <Windows.h>
 
-#ifdef _WIN32
-constexpr size_t mutex_size           = 24;
-constexpr size_t recursive_mutex_size = 24;
-#else
-#endif
+export module fd.mutex;
 
 struct basic_mutex
 {
     virtual ~basic_mutex() = default;
 
-    basic_mutex()                   = default;
-    basic_mutex(const basic_mutex&) = delete;
+    basic_mutex() = default;
+
+    basic_mutex(const basic_mutex&)            = delete;
+    basic_mutex& operator=(const basic_mutex&) = delete;
 
     virtual void lock() noexcept   = 0;
     virtual void unlock() noexcept = 0;
@@ -24,7 +22,7 @@ struct basic_mutex
 
 class mutex final : public basic_mutex
 {
-    uint8_t buff_[mutex_size];
+    CRITICAL_SECTION sec_;
 
   public:
     ~mutex() override;
@@ -36,7 +34,7 @@ class mutex final : public basic_mutex
 
 class recursive_mutex final : public basic_mutex
 {
-    uint8_t buff_[recursive_mutex_size];
+    CRITICAL_SECTION sec_;
 
   public:
     ~recursive_mutex() override;

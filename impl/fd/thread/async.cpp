@@ -15,6 +15,7 @@ module;
 
 module fd.async;
 import fd.functional.bind;
+import fd.functional.lazy_invoke;
 import fd.mutex;
 import fd.semaphore;
 
@@ -138,28 +139,86 @@ class safe_storage
     }
 };
 
+class thread_data
+{
+    HANDLE handle_;
+    DWORD id_;
+    bool paused_;
+
+    thread_data(const thread_data&)            = default;
+    thread_data& operator=(const thread_data&) = default;
+
+  public:
+    thread_data(void* fn, void* fn_owner)
+    {
+        handle_ = CreateThread(nullptr, 0, static_cast<LPTHREAD_START_ROUTINE>(fn), fn_owner, CREATE_SUSPENDED, &id_);
+        paused_ = true;
+    }
+
+    ~thread_data()
+    {
+        if (handle_)
+        {
+            TerminateThread(handle_, EXIT_SUCCESS);
+            CloseHandle(handle_);
+        }
+    }
+
+    thread_data(thread_data&& other)
+    {
+        *this         = other;
+        other.handle_ = nullptr;
+    }
+
+    thread_data& operator=(thread_data&& other)
+    {
+        auto tmp = other;
+        other    = *this;
+        *this    = tmp;
+        return *this;
+    }
+
+    bool operator==(const DWORD id) const
+    {
+        return this->id_ == id;
+    }
+
+    bool operator==(const thread_data& other) const
+    {
+        return this->id_ == other.id_;
+    }
+
+    bool pause()
+    {
+        FD_ASSERT(!paused_);
+        paused_ = true;
+        return SuspendThread(handle_);
+    }
+
+    bool paused() const
+    {
+        return paused_;
+    }
+
+    bool resume()
+    {
+        FD_ASSERT(paused_);
+        const auto ok = ResumeThread(handle_);
+        paused_       = false;
+        return ok;
+    }
+};
+
 class thread_pool_impl final : public basic_thread_pool
 {
-    struct thread_data
-    {
-        HANDLE h;
-        DWORD id;
-        bool paused;
-
-        bool operator==(const DWORD id) const
-        {
-            return this->id == id;
-        }
-    };
-
     std::vector<thread_data> threads_;
 
     using task_type = function_type /* std::variant<function_type, function_type_ex> */;
 
     /*std::list*/ veque::veque<task_type> tasks_;
-    recursive_mutex mtx_;
+    mutable recursive_mutex mtx_;
 
-    static DWORD __stdcall worker(void* impl) noexcept
+    static DWORD WINAPI worker(void* impl) noexcept
     {
         const auto pool        = static_cast<thread_pool_impl*>(impl);
         const auto this_thread = std::find(pool->threads_.begin(), pool->threads_.end(), GetCurrentThreadId());
@@ -170,9 +229,9 @@ class thread_pool_impl final : public basic_thread_pool
             if (pool->tasks_.empty())
             {
                 pool->mtx_.unlock();
-                FD_ASSERT(!this_thread->paused);
-                this_thread->paused = true;
-                SuspendThread(this_thread->h);
+
+                if (!this_thread->pause())
+                    return FALSE;
             }
             else
             {
@@ -196,6 +255,8 @@ class thread_pool_impl final : public basic_thread_pool
                 }
                 catch (...)
                 {
+                    // todo: any external exception -> false
+                    // sfecial 'interrupt' exception -> true
                     return TRUE;
                 }
             }
@@ -206,38 +267,31 @@ class thread_pool_impl final : public basic_thread_pool
     {
         const lock_guard guard(mtx_);
 
-#ifdef _DEBUG
         if (threads_.empty())
             return false;
-#endif
 
-        tasks_.emplace_front(std::move(func));
+        const size_t active_threads = std::count_if(threads_.begin(), threads_.end(), bind_front(inverse_result(&thread_data::paused)));
 
-        const auto threads_begin = threads_.begin();
-        const auto threads_end   = threads_.end();
-        auto paused_thread       = std::find_if(threads_begin, threads_end, bind_front(&thread_data::paused));
-        if (paused_thread == threads_end)
-            return true;
-
-        const auto tasks_in_queue   = tasks_.size() - 1;
-        const size_t active_threads = std::distance(threads_begin, paused_thread);
-        if (tasks_in_queue < active_threads)
-            return true;
+        lazy_invoke store_func = [&] {
+            tasks_.emplace_front(std::move(func));
+        };
 
         if (resume_threads)
         {
-            for (; paused_thread != threads_end; ++paused_thread)
+            const auto tasks_in_queue = tasks_.size();
+            if (tasks_in_queue < active_threads)
+                return true;
+            if (active_threads == threads_.size())
+                return true;
+            for (auto& t : threads_)
             {
-                if (ResumeThread(paused_thread->h))
-                {
-                    paused_thread->paused = false;
+                if (t.paused() && t.resume())
                     return true;
-                }
             }
         }
         if (active_threads == 0)
         {
-            tasks_.pop_front();
+            store_func.reset();
             return false;
         }
 
@@ -250,12 +304,9 @@ class thread_pool_impl final : public basic_thread_pool
         SYSTEM_INFO info;
         GetNativeSystemInfo(&info);
         // FD_ASSERT(info.dwNumberOfProcessors <= std::numeric_limits<uint8_t>::max());
-        threads_.resize(info.dwNumberOfProcessors);
-        for (auto& t : threads_)
-        {
-            t.h      = CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(worker), this, CREATE_SUSPENDED, &t.id);
-            t.paused = true;
-        }
+        threads_.reserve(info.dwNumberOfProcessors);
+        while (threads_.size() != info.dwNumberOfProcessors)
+            threads_.emplace_back(worker, this);
     }
 
     ~thread_pool_impl()
@@ -263,23 +314,15 @@ class thread_pool_impl final : public basic_thread_pool
         if (!tasks_.empty())
             this->wait();
 
-#ifdef _DEBIG
-        const lock_guard guard(mtx_);
-#endif
-
-        for (auto& t : threads_)
-        {
-            TerminateThread(t.h, EXIT_SUCCESS);
-            CloseHandle(t.h);
-        }
-
 #ifdef _DEBUG
+        const lock_guard guard(mtx_);
         threads_.clear();
 #endif
     }
 
     bool contains_thread(const DWORD id) const
     {
+        const lock_guard guard(mtx_);
         const auto end = threads_.end();
         return std::find(threads_.begin(), end, id) != end;
     }

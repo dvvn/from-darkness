@@ -9,6 +9,7 @@ template <typename Fn>
 concept func_maybe_null = requires(const Fn fn)
 {
     !fn;
+    static_cast<bool>(fn);
 };
 
 namespace fd
@@ -54,6 +55,14 @@ struct lazy_invoke
         using std::swap;
         swap(fn_, other.fn_);
         return *this;
+    }
+
+    constexpr void reset()
+    {
+        if constexpr (func_maybe_null<Fn>)
+            fn_ = nullptr;
+        else
+            fn_.reset();
     }
 };
 

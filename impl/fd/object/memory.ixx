@@ -273,6 +273,7 @@ struct basic_shared_ptr
     {
         class _External_data : public _Data
         {
+            // or use unique_ptr here, buf i prefer this
             T1* ptr_;
             [[no_unique_address]] D deleter_;
             [[no_unique_address]] A alloc_;

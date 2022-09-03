@@ -113,6 +113,8 @@ int main(int, char**)
 
     const lazy_invoke _destroy_helper(fd_destroy);
 
+    auto test = invoke(async, [] {});
+
     for (;;)
     {
         MSG msg;
