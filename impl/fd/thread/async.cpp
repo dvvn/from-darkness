@@ -41,7 +41,7 @@ class task_data : public basic_task_data
   public:
     task_data(function_type&& fn)
         : fn(std::move(fn))
-        , sm(1, 1)
+        , sm(0, 1)
     {
     }
 
@@ -63,7 +63,7 @@ struct manual_task_data : basic_task_data
     semaphore sm;
 
     manual_task_data()
-        : sm(0, 1)
+        : sm(1, 1)
     {
     }
 
@@ -71,6 +71,7 @@ struct manual_task_data : basic_task_data
     {
         sm.acquire();
         invoke(fn);
+        // call release manually from fn
     }
 
     void on_wait() override
@@ -286,7 +287,7 @@ class thread_pool_impl final : public basic_thread_pool
     {
         const lock_guard guard(mtx_);
 
-        semaphore sem(1, 1);
+        semaphore sem(0, 1);
         const auto stored = this->store_func([&] {
             sem.release();
         });

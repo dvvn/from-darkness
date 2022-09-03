@@ -6,6 +6,7 @@ module;
 
 module fd.rt_modules;
 import fd.filesystem.path;
+import fd.semaphore;
 
 using namespace fd;
 
@@ -22,13 +23,8 @@ static DECLSPEC_NOINLINE HMODULE _Get_current_module_handle()
 struct callback_data_t
 {
     wstring_view name;
-    HANDLE semaphore = CreateSemaphore(0, 0, 1, nullptr);
-    bool found       = false;
-
-    ~callback_data_t()
-    {
-        CloseHandle(semaphore);
-    }
+    semaphore sem = { 0, 1 };
+    bool found    = false;
 };
 
 static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
@@ -51,7 +47,7 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
         data->found = true;
     }
 
-    ReleaseSemaphore(data->semaphore, 1, 0);
+    data->sem.release();
 }
 
 bool _Wait_for_library(const wstring_view name)
@@ -67,7 +63,7 @@ bool _Wait_for_library(const wstring_view name)
     void* cookie;
     if (LdrRegisterDllNotification_fn(0, _On_new_library, &cb_data, &cookie) != STATUS_SUCCESS)
         return false;
-    if (WaitForSingleObject(cb_data.semaphore, INFINITE) == WAIT_FAILED)
+    if (!cb_data.sem.acquire())
         return false;
     if (LdrUnregisterDllNotification_fn(cookie) != STATUS_SUCCESS)
         return false;

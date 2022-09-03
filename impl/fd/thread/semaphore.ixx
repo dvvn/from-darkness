@@ -26,8 +26,10 @@ struct semaphore
     semaphore(semaphore&& other);
     semaphore& operator=(semaphore&& other);
 
+    // ++count
     void release(const size_type count = 1);
-    void acquire();
+    // --1
+    bool acquire();
 };
 
 export namespace fd

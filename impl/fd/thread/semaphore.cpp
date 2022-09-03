@@ -39,7 +39,7 @@ void semaphore::release(const size_type count)
     ReleaseSemaphore(handle_, count, nullptr);
 }
 
-void semaphore::acquire()
+bool semaphore::acquire()
 {
-    WaitForSingleObject(handle_, INFINITE);
+    return WaitForSingleObject(handle_, INFINITE) != WAIT_FAILED;
 }
