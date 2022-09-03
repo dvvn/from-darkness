@@ -59,5 +59,11 @@ FD_OBJECT(async, basic_thread_pool);
 export namespace fd
 {
     using ::async;
-    using ::task;
+    using async_task = task;
+
+    namespace async_tags
+    {
+        constexpr simple_tag_t simple;
+        constexpr lazy_tag_t lazy;
+    } // namespace async_tags
 } // namespace fd

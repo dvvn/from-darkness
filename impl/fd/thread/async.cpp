@@ -150,12 +150,6 @@ class thread_pool_impl final : public basic_thread_pool
         {
             return this->id == id;
         }
-
-        void destroy()
-        {
-            CloseHandle(h);
-            paused = true;
-        }
     };
 
     std::vector<thread_data> threads_;
@@ -176,8 +170,9 @@ class thread_pool_impl final : public basic_thread_pool
             if (pool->tasks_.empty())
             {
                 pool->mtx_.unlock();
-                if (!this_thread->paused)
-                    SuspendThread(this_thread->h);
+                FD_ASSERT(!this_thread->paused);
+                this_thread->paused = true;
+                SuspendThread(this_thread->h);
             }
             else
             {
@@ -201,21 +196,20 @@ class thread_pool_impl final : public basic_thread_pool
                 }
                 catch (...)
                 {
-                    this_thread->destroy();
-                    break;
+                    return TRUE;
                 }
             }
         }
-
-        return TRUE;
     }
 
-    bool store_func(function_type&& func) noexcept
+    bool store_func(function_type&& func, const bool resume_threads = true) noexcept
     {
         const lock_guard guard(mtx_);
 
+#ifdef _DEBUG
         if (threads_.empty())
             return false;
+#endif
 
         tasks_.emplace_front(std::move(func));
 
@@ -230,12 +224,15 @@ class thread_pool_impl final : public basic_thread_pool
         if (tasks_in_queue < active_threads)
             return true;
 
-        for (; paused_thread != threads_end; ++paused_thread)
+        if (resume_threads)
         {
-            if (ResumeThread(paused_thread->h))
+            for (; paused_thread != threads_end; ++paused_thread)
             {
-                paused_thread->paused = false;
-                return true;
+                if (ResumeThread(paused_thread->h))
+                {
+                    paused_thread->paused = false;
+                    return true;
+                }
             }
         }
         if (active_threads == 0)
@@ -263,18 +260,22 @@ class thread_pool_impl final : public basic_thread_pool
 
     ~thread_pool_impl()
     {
-        this->wait();
+        if (!tasks_.empty())
+            this->wait();
+
+#ifdef _DEBIG
+        const lock_guard guard(mtx_);
+#endif
 
         for (auto& t : threads_)
         {
-            if (t.paused)
-                TerminateThread(t.h, EXIT_SUCCESS);
-            else if (WaitForSingleObjectEx(t.h, INFINITE, FALSE) == WAIT_FAILED)
-                FD_ASSERT_UNREACHABLE("Unable to join the thread!");
+            TerminateThread(t.h, EXIT_SUCCESS);
             CloseHandle(t.h);
         }
 
+#ifdef _DEBUG
         threads_.clear();
+#endif
     }
 
     bool contains_thread(const DWORD id) const
@@ -285,8 +286,7 @@ class thread_pool_impl final : public basic_thread_pool
 
     void wait() override
     {
-        const lock_guard guard(mtx_);
-
+        //"simple" version of task
         semaphore sem(0, 1);
         const auto stored = this->store_func([&] {
             sem.release();

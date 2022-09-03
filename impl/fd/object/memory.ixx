@@ -371,12 +371,12 @@ class shared_ptr : public basic_shared_ptr<T, S>
 
     reference operator*() const
     {
-        return *_Base::data_->get();
+        return *_Base::get();
     }
 
     pointer operator->() const
     {
-        return _Base::data_->get();
+        return _Base::get();
     }
 };
 
@@ -398,7 +398,7 @@ class shared_ptr<T[], S> : public basic_shared_ptr<T, S>
 
     reference operator[](const size_t idx) const
     {
-        return _Base::data_->get()[idx];
+        return _Base::get()[idx];
     }
 };
 
