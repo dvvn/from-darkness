@@ -5,7 +5,7 @@ module;
 export module fd.gui.menu;
 export import fd.gui.objects;
 export import fd.callback;
-import fd.memory;
+import fd.smart_ptr;
 
 using namespace fd;
 namespace obj = gui::objects;

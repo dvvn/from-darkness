@@ -64,15 +64,14 @@ struct manual_task_data : basic_task_data
     semaphore sm;
 
     manual_task_data()
-        : sm(1, 1)
+        : sm(0, 1)
     {
     }
 
     void on_start() override
     {
-        sm.acquire();
-        invoke(fn);
-        // call release manually from fn
+        invoke(fn); // call release manually from fn
+        // call release manually from fn // call release manually from fn
     }
 
     void on_wait() override

@@ -4,7 +4,7 @@ module;
 
 export module fd.async;
 export import fd.functional.fn;
-export import fd.memory;
+export import fd.smart_ptr;
 
 using namespace fd;
 

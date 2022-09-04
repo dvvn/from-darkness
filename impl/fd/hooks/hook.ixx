@@ -8,7 +8,7 @@ module;
 
 export module fd.hook;
 export import fd.hook_base;
-import fd.memory;
+import fd.smart_ptr;
 
 //#define FUNCTION_GETTER_HAVE_PTR_SIZE
 
