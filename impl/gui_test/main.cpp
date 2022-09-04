@@ -113,13 +113,6 @@ int main(int, char**)
 
     const lazy_invoke _destroy_helper(fd_destroy);
 
-    auto test = invoke(async, [] {});
-
-    shared_ptr sh = 228;
-    weak_ptr w    = sh;
-    sh.reset();
-    w.reset();
-
     for (;;)
     {
         MSG msg;
