@@ -25,11 +25,11 @@ struct finished_task_data : basic_task_data
 {
     finished_task_data() = default;
 
-    void on_start() override
+    void start() override
     {
     }
 
-    void on_wait() override
+    void wait() override
     {
     }
 };
@@ -46,13 +46,13 @@ class task_data : public basic_task_data
     {
     }
 
-    void on_start() override
+    void start() override
     {
         invoke(fn);
         sm.release();
     }
 
-    void on_wait() override
+    void wait() override
     {
         sm.acquire();
     }
@@ -68,32 +68,17 @@ struct manual_task_data : basic_task_data
     {
     }
 
-    void on_start() override
+    void start() override
     {
         invoke(fn); // call release manually from fn
         // call release manually from fn // call release manually from fn
     }
 
-    void on_wait() override
+    void wait() override
     {
         sm.acquire();
     }
 };
-
-basic_task_data* task::_Data() const
-{
-    return data_.get();
-}
-
-void task::start()
-{
-    data_->on_start();
-}
-
-void task::wait()
-{
-    data_->on_wait();
-}
 
 template <template <typename...> class T, typename... Args>
 class safe_storage
@@ -347,7 +332,7 @@ class thread_pool_impl final : public basic_thread_pool
         task t(task_data(std::move(func)));
 
         const auto stored = this->store_func([=]() mutable {
-            t.start();
+            t->start();
         });
         if (stored)
             return t;
@@ -358,7 +343,7 @@ class thread_pool_impl final : public basic_thread_pool
     {
         auto t = task(manual_task_data());
 
-        auto data = static_cast<manual_task_data*>(t._Data());
+        auto data = static_cast<manual_task_data*>(t.get());
         data->fn  = [=, fn = std::move(func)]() mutable {
             const auto stored = this->store_func([&] {
                 invoke(fn);

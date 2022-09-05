@@ -14,7 +14,7 @@ import fd.filesystem.path;
 import fd.mem_scanner;
 import fd.chars_cache;
 import fd.ctype;
-import fd.smart_ptr;
+import fd.smart_ptr.unique;
 import fd.functional.bind;
 import fd.string.make;
 

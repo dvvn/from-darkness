@@ -7,7 +7,7 @@ module;
 
 export module fd.netvars.table;
 export import fd.netvars.info;
-export import fd.smart_ptr;
+export import fd.smart_ptr.unique;
 
 using namespace fd;
 

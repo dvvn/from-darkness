@@ -1,5 +1,3 @@
-
-
 #include <fd/object.h>
 
 #include <imgui_impl_dx9.h>

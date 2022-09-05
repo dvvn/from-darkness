@@ -323,5 +323,5 @@ add_subproject(
   ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR}
   ${_PROJ_NAME_UPPER}_X${_SYS_BITS_COUNT})
 
-add_subproject(gui_test TYPE EXECUTABLE LINK impl)
+add_subproject(gui_test TYPE EXECUTABLE LINK impl d3d9.lib)
 add_subproject(library TYPE SHARED LINK impl)

@@ -688,7 +688,7 @@ class storage_impl : public netvars_storage
 
         this->iterate_client_class(FD_OBJECT_GET(base_client)->GetAllClasses(), "All");
 
-        using datamap_fn = data_map*(__thiscall*)(void*);
+        using datamap_fn = data_map*(__thiscall*)(const void*);
 
         const auto baseent        = rt_modules::client.find_vtable<"C_BaseEntity">();
         const auto baseent_vtable = *reinterpret_cast<datamap_fn**>(baseent);
@@ -697,13 +697,8 @@ class storage_impl : public netvars_storage
 
         this->store_handmade_netvars();
 #ifdef _DEBUG
-        const string_view product_version = FD_OBJECT_GET(engine_client)->GetProductVersionString();
-        auto& logs                        = *FD_OBJECT_GET(logs_data);
-        logs.file.name.assign(product_version.begin(), product_version.end());
-        this->log_netvars(logs);
-
-        auto& classes = *FD_OBJECT_GET(classes_data);
-        this->generate_classes(classes);
+        this->log_netvars(*FD_OBJECT_GET(logs_data));
+        this->generate_classes(*FD_OBJECT_GET(classes_data));
 #endif
     }
 

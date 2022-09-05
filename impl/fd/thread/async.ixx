@@ -4,7 +4,7 @@ module;
 
 export module fd.async;
 export import fd.functional.fn;
-export import fd.smart_ptr;
+export import fd.smart_ptr.shared;
 
 using namespace fd;
 
@@ -14,26 +14,11 @@ struct basic_task_data
 {
     virtual ~basic_task_data() = default;
 
-    virtual void on_start() = 0;
-    virtual void on_wait()  = 0;
+    virtual void start() = 0;
+    virtual void wait()  = 0;
 };
 
-class task
-{
-    shared_ptr<basic_task_data> data_;
-
-  public:
-    template <class... T>
-    task(T&&... args)
-        : data_(std::forward<T>(args)...)
-    {
-    }
-
-    basic_task_data* _Data() const;
-
-    void start();
-    void wait();
-};
+using task = shared_ptr<basic_task_data>;
 
 struct simple_tag_t
 {

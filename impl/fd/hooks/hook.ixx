@@ -8,7 +8,7 @@ module;
 
 export module fd.hook;
 export import fd.hook_base;
-import fd.smart_ptr;
+import fd.smart_ptr.unique;
 
 //#define FUNCTION_GETTER_HAVE_PTR_SIZE
 
@@ -99,23 +99,6 @@ concept have_static_callback_method = have_callback_method<Impl> && std::is_poin
 template <class Impl>
 concept have_member_callback_method = have_callback_method<Impl> && std::is_member_function_pointer_v<decltype(&Impl::callback)>;
 
-template <class Impl, size_t Index>
-auto _Get_original_method()
-{
-    using callback_t = decltype(&Impl::callback);
-
-    union
-    {
-        callback_t fn;
-        const void* ptr;
-    } adaptor;
-
-    if constexpr (sizeof(callback_t) > sizeof(void*))
-        adaptor.fn = nullptr; // override 'fat' pointer if exists
-    adaptor.ptr = FD_OBJECT_GET(Impl, Index)->get_original_method();
-    return adaptor.fn;
-}
-
 export namespace fd
 {
     template <class Impl, size_t Index = 0>
@@ -130,7 +113,7 @@ export namespace fd
         template <typename... Args>
         static decltype(auto) call_original(Args&&... args)
         {
-            return invoke(_Get_original_method<Impl, Index>(), std::forward<Args>(args)...);
+            return invoke(&Impl::callback, FD_OBJECT_GET(Impl, Index)->get_original_method(), std::forward<Args>(args)...);
         }
     };
 
@@ -147,8 +130,9 @@ export namespace fd
         decltype(auto) call_original(Args&&... args) const
         {
             const auto thisptr = static_cast<const Impl*>(this);
-            FD_ASSERT((&FD_OBJECT_GET(Impl, Index) != thisptr), "Function must be called from hooked method!");
-            return invoke(_Get_original_method<Impl, Index>(), thisptr, std::forward<Args>(args)...);
+            const auto impl    = &FD_OBJECT_GET(Impl, Index);
+            FD_ASSERT(impl != thisptr, "Function must be called from hooked method!");
+            return invoke(&Impl::callback, impl->get_original_method(), const_cast<Impl*>(thisptr), std::forward<Args>(args)...);
         }
     };
 } // namespace fd

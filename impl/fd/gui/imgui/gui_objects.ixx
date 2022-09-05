@@ -6,6 +6,8 @@ export module fd.gui.objects;
 export import fd.string;
 import fd.callback.impl;
 
+using fd::string_view;
+
 struct basic_object
 {
     virtual ~basic_object() = default;
@@ -16,11 +18,11 @@ struct basic_object
 
 struct basic_window : basic_object
 {
-    virtual fd::string_view title() const = 0;
-    virtual bool shown() const            = 0;
-    virtual bool collapsed() const        = 0;
-    virtual void show()                   = 0;
-    virtual void hide()                   = 0;
+    virtual string_view title() const = 0;
+    virtual bool shown() const        = 0;
+    virtual bool collapsed() const    = 0;
+    virtual void show()               = 0;
+    virtual void hide()               = 0;
     virtual void toggle();
 };
 

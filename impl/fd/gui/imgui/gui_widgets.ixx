@@ -5,14 +5,16 @@ module;
 export module fd.gui.widgets;
 export import fd.string;
 
+using fd::string_view;
+
 class window
 {
     uint8_t visible_;
 
   public:
     ~window();
-    window(const fd::string_view name);
-    window(const fd::string_view name, bool& open);
+    window(const string_view name);
+    window(const string_view name, bool& open);
     window(const window&) = delete;
 
     explicit operator bool() const;
@@ -24,13 +26,13 @@ class child_window
 
   public:
     ~child_window();
-    child_window(const fd::string_view name, const bool inner = false);
+    child_window(const string_view name, const bool inner = false);
     child_window(const child_window&) = delete;
 
     explicit operator bool() const;
 };
 
-bool check_box(const fd::string_view name, bool& value);
+bool check_box(const string_view name, bool& value);
 
 //------
 

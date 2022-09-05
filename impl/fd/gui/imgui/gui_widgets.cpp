@@ -3,9 +3,9 @@ module;
 #include <fd/assert.h>
 #include <fd/object.h>
 
-#include <memory>
-
 #include <imgui_internal.h>
+
+#include <memory> //destroy_at
 
 module fd.gui.widgets;
 
@@ -27,7 +27,7 @@ static const char* IM_STR(const string_view str)
         return bg;
 
     static string buff;
-    if (!fd::operator==(buff, str))
+    if (/* !fd::operator==(buff, str) */ buff != str)
         buff.assign(bg, size);
     return buff.data();
 }

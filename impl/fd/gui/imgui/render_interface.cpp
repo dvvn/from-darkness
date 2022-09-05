@@ -9,7 +9,8 @@
 import fd.gui.basic_render_interface;
 import fd.gui.menu;
 
-using namespace fd::gui;
+using namespace fd;
+using namespace gui;
 
 struct render_interface_impl final : basic_render_interface
 {
@@ -28,7 +29,7 @@ struct render_interface_impl final : basic_render_interface
         auto d3d = &FD_OBJECT_GET(IDirect3DDevice9);
 
         static const auto once = [=] {
-            (void)*FD_OBJECT_GET(ImGuiContext*);
+            FD_OBJECT_GET(ImGuiContext*).construct();
             return ImGui_ImplDX9_Init(d3d);
         }();
 
@@ -40,7 +41,7 @@ struct render_interface_impl final : basic_render_interface
 
         ImGui::NewFrame();
         {
-            fd::invoke(menu);
+            invoke(menu);
         }
         ImGui::EndFrame();
 

@@ -3,28 +3,7 @@ module;
 #include <memory>
 #include <utility>
 
-export module fd.smart_ptr;
-
-template <typename T>
-struct default_delete
-{
-    constexpr void operator()(T* ptr) const
-    {
-        delete ptr;
-    }
-};
-
-template <typename T>
-struct default_delete<T[]>
-{
-    constexpr void operator()(T* ptr) const
-    {
-        delete[] ptr;
-    }
-};
-
-template <typename T, typename D = default_delete<T>>
-struct unique_ptr;
+export module fd.smart_ptr.shared;
 
 template <typename T, typename S = size_t>
 struct weak_ptr;
@@ -32,120 +11,39 @@ struct weak_ptr;
 template <typename T, typename S = size_t>
 struct shared_ptr;
 
-template <typename T, typename D>
-struct unique_ptr
-{
-    using element_type = std::remove_extent_t<T>;
-    using pointer      = element_type*;
-    using reference    = element_type&;
-    using deleter_type = D;
-
-  private:
-    pointer ptr_;
-    [[no_unique_address]] deleter_type del_;
-
-    bool _Destroy()
-    {
-        const auto ok = static_cast<bool>(ptr_);
-        if (ok)
-            del_(ptr_);
-        return ok;
-    }
-
-  public:
-    constexpr ~unique_ptr()
-    {
-        this->_Destroy();
-    }
-
-    template <typename D1 = D>
-    constexpr unique_ptr(const pointer ptr = nullptr, D1&& del = {})
-        : ptr_(ptr)
-        , del_(std::forward<D1>(del))
-    {
-    }
-
-    constexpr unique_ptr(const unique_ptr&)            = delete;
-    constexpr unique_ptr& operator=(const unique_ptr&) = delete;
-
-    constexpr unique_ptr(unique_ptr&& other)
-    {
-        ptr_ = other.release();
-        del_ = std::move(other.del_);
-    }
-
-    constexpr unique_ptr& operator=(unique_ptr&& other)
-    {
-        using std::swap;
-        swap(ptr_, other.ptr_);
-        swap(del_, other.del_);
-        return *this;
-    }
-
-    constexpr unique_ptr& operator=(const pointer ptr)
-    {
-        this->_Destroy();
-        ptr_ = ptr;
-        return *this;
-    }
-
-    //----
-
-    constexpr pointer release()
-    {
-        return std::exchange(ptr_, nullptr);
-    }
-
-    constexpr void reset()
-    {
-        this->_Destroy();
-        ptr_ = nullptr;
-    }
-
-    // swap
-
-    constexpr pointer get() const
-    {
-        return ptr_;
-    }
-
-    // get_deleter
-
-    constexpr explicit operator bool() const
-    {
-        return ptr_;
-    }
-
-    constexpr reference operator*() const requires(!std::is_unbounded_array_v<T>)
-    {
-        return *ptr_;
-    }
-
-    constexpr pointer operator->() const requires(!std::is_unbounded_array_v<T>)
-    {
-        return ptr_;
-    }
-
-    constexpr reference operator[](const size_t idx) const requires(std::is_unbounded_array_v<T>)
-    {
-        return ptr_[idx];
-    }
-};
-
-template <typename T>
-unique_ptr(T*) -> unique_ptr<T>;
-
-template <typename T, typename D>
-unique_ptr(T*, D&&) -> unique_ptr<T, std::remove_cvref_t<D>>;
-
 /* template <typename T>
 concept is_complete = requires
 {
     sizeof(T)
 }; */
 
+template <class T>
+void destroy_class(T& obj)
+{
+    if constexpr (std::is_class_v<T> || std::is_union_v<T>)
+        std::destroy_at(&obj);
+}
+
+template <typename T, class Alloc, typename... Args>
+T* make_ptr(Alloc& allocator, Args&&... args)
+{
+    static_assert(sizeof(Alloc::value_type) == 1);
+    auto ptr = reinterpret_cast<T*>(allocator.allocate(sizeof(T)));
+    std::construct_at(ptr, std::forward<Args>(args)..., allocator);
+    return ptr;
+}
+
+template <class Alloc, typename T>
+void deallocate_helper(Alloc& allocator, T* ptr)
+{
+    static_assert(sizeof(Alloc::value_type) == 1);
+    auto alloc = std::move(allocator);
+    // destroy_class(allocator);
+    allocator.deallocate(reinterpret_cast<uint8_t*>(ptr), sizeof(T));
+}
+
 template <typename T>
-struct basic_shared_controller
+struct basic_controller
 {
     virtual T* get()           = 0;
     virtual void destroy()     = 0;
@@ -153,9 +51,13 @@ struct basic_shared_controller
 };
 
 template <typename S>
-class ref_counter
+class ref_counter final
 {
-    S counter_;
+    union
+    {
+        uint8_t gap_;
+        S counter_;
+    };
 
   public:
     using size_type = decltype([] {
@@ -181,38 +83,34 @@ class ref_counter
         return --counter_;
     }
 
-    size_type count() const
+    size_type load() const
     {
         return counter_;
     }
+
+    void _Destroy()
+    {
+        destroy_class(counter_);
+    }
 };
 
-template <typename T, class Alloc, typename... Args>
-T* make_ptr(Alloc&& allocator, Args&&... args)
-{
-    auto ptr = reinterpret_cast<T*>(allocator.allocate(sizeof(T)));
-    std::construct_at(ptr, std::forward<Args>(args)..., std::forward<Alloc>(allocator));
-    return ptr;
-}
-
-template <typename Base, class Alloc, typename T>
-void destroy_ptr(Alloc allocator, T* ptr)
-{
-    std::destroy_at(static_cast<Base*>(ptr));
-    allocator.deallocate(reinterpret_cast<uint8_t*>(ptr), sizeof(T));
-}
-
 template <typename T, typename S>
-struct shared_controller : basic_shared_controller<T>
+struct controller : basic_controller<T>
 {
     ref_counter<S> strong, weak;
+
+    void _Cleanup()
+    {
+        strong._Destroy();
+        weak._Destroy();
+    }
 
     void _Destroy_strong()
     {
         if (--strong > 0)
             return;
         this->destroy();
-        if (weak.count() == 0)
+        if (weak.load() == 0)
             this->delete_self();
     }
 
@@ -220,22 +118,22 @@ struct shared_controller : basic_shared_controller<T>
     {
         if (--weak > 0)
             return;
-        if (strong.count() == 0)
+        if (strong.load() == 0)
             this->delete_self();
     }
 };
 
-enum class shared_type : uint8_t
+enum class data_type : uint8_t
 {
     strong,
     weak
 };
 
-template <shared_type Type>
-struct shared_updater;
+template <data_type Type>
+struct updater;
 
 template <>
-struct shared_updater<shared_type::strong>
+struct updater<data_type::strong>
 {
     template <class D>
     static void construct(D*& data, D* new_data)
@@ -258,13 +156,13 @@ struct shared_updater<shared_type::strong>
 };
 
 template <>
-struct shared_updater<shared_type::weak>
+struct updater<data_type::weak>
 {
     template <class D>
     static void construct(D*& data, D* new_data)
     {
 #ifdef _DEBUG
-        if (!new_data || new_data->strong.count() == 0)
+        if (!new_data || new_data->strong.load() == 0)
             throw std::bad_weak_ptr();
 #endif
         ++new_data->weak;
@@ -279,53 +177,52 @@ struct shared_updater<shared_type::weak>
     }
 };
 
-struct shared_unpacker
+struct unpacker
 {
     template <class H>
-    auto operator()(const H& owner) const
+    static auto get(const H& owner)
     {
         return owner.ctrl_;
     }
 };
 
-template <typename T, typename S, shared_type Type>
-struct shared_owner
+template <typename T, typename S, data_type Type>
+struct data_owner
 {
     using element_type = std::remove_extent_t<T>;
     using pointer      = element_type*;
     using reference    = element_type&;
 
   private:
-    using _Controller = shared_controller<element_type, S>;
+    using _Controller = controller<element_type, S>;
 
-    friend struct shared_unpacker;
+    friend struct unpacker;
 
     _Controller* ctrl_;
-    [[no_unique_address]] shared_unpacker unpacker_;
 
   public:
-    shared_owner()
+    data_owner()
         : ctrl_(nullptr)
     {
     }
 
     void _Construct(_Controller* new_data)
     {
-        shared_updater<Type>::construct(ctrl_, new_data);
+        updater<Type>::construct(ctrl_, new_data);
     }
 
-    template <shared_type Type2>
-    void _Construct(const shared_owner<T, S, Type2>& holder)
+    template <data_type Type2>
+    void _Construct(const data_owner<T, S, Type2>& holder)
     {
-        _Construct(unpacker_(holder));
+        _Construct(unpacker::get(holder));
     }
 
     void _Destroy()
     {
-        shared_updater<Type>::destroy(ctrl_);
+        updater<Type>::destroy(ctrl_);
     }
 
-    void _Swap(shared_owner& from)
+    void _Swap(data_owner& from)
     {
         using std::swap;
         swap(ctrl_, from.ctrl_);
@@ -368,12 +265,12 @@ struct shared_owner
 
     typename ref_counter<S>::size_type use_count() const
     {
-        return !ctrl_ ? 0 : ctrl_->strong.count();
+        return ctrl_ ? ctrl_->strong.load() : 0;
     }
 };
 
 template <typename T, typename S>
-struct weak_ptr : shared_owner<T, S, shared_type::weak>
+struct weak_ptr : data_owner<T, S, data_type::weak>
 {
     using element_type = std::remove_extent_t<T>;
     using shared_type  = shared_ptr<T, S>;
@@ -429,7 +326,7 @@ struct weak_ptr : shared_owner<T, S, shared_type::weak>
 };
 
 template <typename T, typename S>
-struct shared_ptr : shared_owner<T, S, shared_type::strong>
+struct shared_ptr : data_owner<T, S, data_type::strong>
 {
     using element_type = std::remove_extent_t<T>;
     using pointer      = element_type*;
@@ -437,7 +334,7 @@ struct shared_ptr : shared_owner<T, S, shared_type::strong>
     using weak_type = weak_ptr<T, S>;
 
   private:
-    using _Controller = shared_controller<T, S>;
+    using _Controller = controller<T, S>;
 
   public:
     ~shared_ptr()
@@ -447,29 +344,48 @@ struct shared_ptr : shared_owner<T, S, shared_type::strong>
 
     shared_ptr() = default;
 
+    shared_ptr(shared_ptr&& other)
+    {
+        this->_Swap(other);
+    }
+
+    shared_ptr(const shared_ptr& other)
+    {
+        this->_Construct(other);
+    }
+
     template <typename T1, typename D = default_delete<T1>, typename A = std::allocator<uint8_t>>
     shared_ptr(T1* ptr, D deleter = {}, A allocator = {})
     {
         class _External_data : public _Controller
         {
-            unique_ptr<T1, D> ptr_;
+            // unique_ptr<T1, D> ptr_;
+            T1* ptr_;
+            [[no_unique_address]] D deleter_;
             [[no_unique_address]] A alloc_;
 
           public:
+            ~_External_data() = delete;
+
             _External_data(T1* ptr, D& deleter, A& allocator)
-                : ptr_(ptr, std::move(deleter))
+                : ptr_(ptr)
+                , deleter_(std::move(deleter))
                 , alloc_(std::move(allocator))
             {
             }
 
             void destroy() override
             {
-                std::destroy_at(&ptr_);
+                // std::destroy_at(&data_.ptr);
+                if (ptr_)
+                    deleter_(ptr_);
+                destroy_class(deleter_);
             }
 
             void delete_self() override
             {
-                destroy_ptr<_Controller>(std::move(alloc_), this);
+                this->_Cleanup();
+                deallocate_helper(alloc_, this);
             }
 
             pointer get() override
@@ -482,16 +398,16 @@ struct shared_ptr : shared_owner<T, S, shared_type::strong>
     }
 
     template <typename T1, typename A = std::allocator<uint8_t>>
-    shared_ptr(T1&& value, A allocator = {})
+    shared_ptr(T1&& value, A allocator = {}) requires(std::convertible_to<std::add_pointer_t<T1>, pointer>)
     {
         class _Innter_data : public _Controller
         {
-            using value_type = std::remove_cvref_t<T1>;
-
-            value_type value_;
+            std::remove_cvref_t<T1> value_;
             [[no_unique_address]] A alloc_;
 
           public:
+            ~_Innter_data() = delete;
+
             _Innter_data(T1&& value, A& allocator)
                 : value_(std::forward<T1>(value))
                 , alloc_(std::move(allocator))
@@ -500,13 +416,13 @@ struct shared_ptr : shared_owner<T, S, shared_type::strong>
 
             void destroy() override
             {
-                if constexpr (std::is_class_v<value_type> || std::is_union_v<value_type>)
-                    std::destroy_at(&value_);
+                destroy_class(value_);
             }
 
             void delete_self() override
             {
-                destroy_ptr<_Controller>(std::move(alloc_), this);
+                this->_Cleanup();
+                deallocate_helper(alloc_, this);
             }
 
             pointer get() override
@@ -516,16 +432,6 @@ struct shared_ptr : shared_owner<T, S, shared_type::strong>
         };
 
         this->_Construct(make_ptr<_Innter_data>(allocator, std::forward<T1>(value)));
-    }
-
-    shared_ptr(shared_ptr&& other)
-    {
-        this->_Swap(other);
-    }
-
-    shared_ptr(const shared_ptr& other)
-    {
-        this->_Construct(other);
     }
 
     shared_ptr& operator=(const shared_ptr& other)
@@ -560,6 +466,8 @@ template <typename T>
 shared_ptr(T*) -> shared_ptr<T>;
 template <typename T>
 shared_ptr(T&&) -> shared_ptr<std::remove_cvref_t<T>>;
+template <typename... Ts>
+shared_ptr(const shared_ptr<Ts...>&) -> shared_ptr<Ts...>;
 
 template <typename T, typename S>
 weak_ptr(const shared_ptr<T, S>&) -> weak_ptr<T, S>;
@@ -568,9 +476,6 @@ shared_ptr(const weak_ptr<T, S>&) -> shared_ptr<T, S>;
 
 export namespace fd
 {
-    using ::default_delete;
-
     using ::shared_ptr;
-    using ::unique_ptr;
     using ::weak_ptr;
 } // namespace fd
