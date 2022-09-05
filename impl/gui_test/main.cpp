@@ -1,5 +1,4 @@
-﻿
-#include <fd/assert.h>
+﻿#include <fd/assert.h>
 #include <fd/comptr.h>
 
 #define FD_GUI_TEST
@@ -8,7 +7,7 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-#pragma comment(lib, "d3d9.lib")
+#include <atomic>
 
 import fd.functional.lazy_invoke;
 import fd.functional.bind;
