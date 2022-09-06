@@ -7,6 +7,7 @@ module;
 module fd.rt_modules;
 import fd.filesystem.path;
 import fd.semaphore;
+import fd.string.make;
 
 using namespace fd;
 
@@ -14,7 +15,7 @@ struct callback_data_t
 {
     wstring_view name;
     semaphore sem = { 0, 1 };
-    bool found    = false;
+    library_info found;
 };
 
 static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
@@ -25,7 +26,6 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
     {
         if (NotificationData->Unloaded.DllBase != (*rt_modules::current)->DllBase)
             return;
-        data->found = false;
     }
     else
     {
@@ -34,29 +34,30 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
 
         if (!target_name.ends_with(data->name))
             return;
-        data->found = true;
+        data->found = static_cast<IMAGE_DOS_HEADER*>(NotificationData->Loaded.DllBase);
     }
 
     data->sem.release();
 }
 
-bool _Wait_for_library(const wstring_view name)
+library_info _Wait_for_library(const wstring_view name)
 {
-    if (library_info::exists(name))
-        return true;
+    const auto existing = library_info::find(name);
 
-    static library_info ntdll(L"ntdll.dll");
-    static auto LdrRegisterDllNotification_fn   = (LdrRegisterDllNotification)ntdll.find_export("LdrRegisterDllNotification");
-    static auto LdrUnregisterDllNotification_fn = (LdrUnregisterDllNotification)ntdll.find_export("LdrUnregisterDllNotification");
+    if (existing)
+        return existing;
+
+    static auto LdrRegisterDllNotification_fn   = (LdrRegisterDllNotification)rt_modules::ntDll->find_export("LdrRegisterDllNotification");
+    static auto LdrUnregisterDllNotification_fn = (LdrUnregisterDllNotification)rt_modules::ntDll->find_export("LdrUnregisterDllNotification");
 
     callback_data_t cb_data = { name };
     void* cookie;
     if (LdrRegisterDllNotification_fn(0, _On_new_library, &cb_data, &cookie) != STATUS_SUCCESS)
-        return false;
+        return {};
     if (!cb_data.sem.acquire())
-        return false;
+        return {};
     if (LdrUnregisterDllNotification_fn(cookie) != STATUS_SUCCESS)
-        return false;
+        return {};
     return cb_data.found;
 }
 
@@ -89,4 +90,50 @@ const library_info& current_module::data() const
 bool current_module::wait() const
 {
     return true;
+}
+
+//----
+
+unknown_module::unknown_module(const wstring_view name, const bool exact, const string_view extension)
+{
+    if (exact)
+        name_ = name;
+    else
+        name_ = make_string(to_lower(name), extension);
+
+    info_ = library_info::find(name_);
+}
+
+unknown_module::unknown_module(unknown_module&& other)
+{
+    *this = std::move(other);
+}
+
+unknown_module& unknown_module::operator=(unknown_module&& other)
+{
+    using std::swap;
+    swap(name_, other.name_);
+    swap(info_, other.info_);
+    return *this;
+}
+
+const library_info& unknown_module::data() const
+{
+    if (!info_)
+    {
+#ifdef _DEBUG
+        const auto lib = _Wait_for_library(name_);
+        FD_ASSERT(static_cast<bool>(lib));
+        info_ = lib;
+#else
+        info_ = name_;
+#endif
+    }
+
+    return info_;
+}
+
+bool unknown_module::wait() const
+{
+    return info_ || _Wait_for_library(name_);
 }

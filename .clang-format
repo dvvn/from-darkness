@@ -27,5 +27,6 @@ BraceWrapping:
   AfterUnion: true
   BeforeWhile: true
   BeforeLambdaBody: false
-#RequiresClausePosition: OwnLine
+RequiresClausePosition: WithPreceding
+KeepEmptyLinesAtTheStartOfBlocks: false
 ...

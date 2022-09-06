@@ -12,6 +12,8 @@ export module fd.ctype;
 export import fd.string;
 import fd.functional.invoke;
 
+using namespace fd;
+
 template <class ArT, class AcT>
 class ctype_to
 {
@@ -26,39 +28,39 @@ class ctype_to
     {
         if constexpr (std::is_class_v<T>)
         {
-            fd::basic_string<std::iter_value_t<T>> buff;
+            basic_string<std::iter_value_t<T>> buff;
             buff.reserve(item.size());
             for (auto c : item)
-                buff += fd::invoke(*this, c);
+                buff += invoke(*this, c);
             return buff;
         }
         else
         {
-            if constexpr (fd::invocable<AcT, T>)
+            if constexpr (invocable<AcT, T>)
             {
                 if (std::is_constant_evaluated())
-                    return fd::invoke(adaptor_ct_, item);
+                    return invoke(adaptor_ct_, item);
             }
-            return fd::invoke(adaptor_rt_, item);
+            return invoke(adaptor_rt_, item);
         }
     }
 
     template <typename T>
     constexpr auto operator()(const T* item) const
     {
-        return fd::invoke(*this, std::span(item, fd::str_len(item)));
+        return invoke(*this, std::span(item, str_len(item)));
     }
 
     template <typename T>
     constexpr auto operator()(const T from, const size_t size) const
     {
-        return fd::invoke(*this, std::span(from, size));
+        return invoke(*this, std::span(from, size));
     }
 
     template <typename T>
     constexpr auto operator()(const T from, const T to) const
     {
-        return fd::invoke(*this, std::span(from, to));
+        return invoke(*this, std::span(from, to));
     }
 };
 
@@ -90,16 +92,16 @@ class ctype_is
         if constexpr (std::is_class_v<T>)
         {
             // run default mode (rng)
-            return fd::invoke(*this, item, default_mode_t());
+            return invoke(*this, item, default_mode_t());
         }
         else
         {
-            if constexpr (fd::invocable<AcT, T>)
+            if constexpr (invocable<AcT, T>)
             {
                 if (std::is_constant_evaluated())
-                    return fd::invoke(adaptor_ct_, item);
+                    return invoke(adaptor_ct_, item);
             }
-            return fd::invoke(adaptor_rt_, item);
+            return invoke(adaptor_rt_, item);
         }
     }
 
@@ -108,7 +110,7 @@ class ctype_is
     {
         for (auto c : rng)
         {
-            if (fd::invoke(*this, c))
+            if (invoke(*this, c))
                 return true;
         }
         return false;
@@ -119,7 +121,7 @@ class ctype_is
     {
         for (auto c : rng)
         {
-            if (!fd::invoke(*this, c))
+            if (!invoke(*this, c))
                 return false;
         }
         return true;
@@ -130,7 +132,7 @@ class ctype_is
     {
         for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
         {
-            if (fd::invoke(*this, chr))
+            if (invoke(*this, chr))
                 return true;
         }
         return false;
@@ -141,7 +143,7 @@ class ctype_is
     {
         for (auto chr = *ptr; chr != static_cast<T>('\0'); chr = *++ptr)
         {
-            if (!fd::invoke(*this, chr))
+            if (!invoke(*this, chr))
                 return false;
         }
         return true;
@@ -150,19 +152,19 @@ class ctype_is
     template <typename T>
     constexpr bool operator()(const T* ptr)
     {
-        return fd::invoke(*this, ptr, default_mode_t());
+        return invoke(*this, ptr, default_mode_t());
     }
 
     template <typename T, class Mode = default_mode_t>
     constexpr bool operator()(const T from, const size_t size, const Mode mode = {}) const
     {
-        return fd::invoke(*this, std::span(from, size), mode);
+        return invoke(*this, std::span(from, size), mode);
     }
 
     template <typename T, class Mode = default_mode_t>
     constexpr bool operator()(const T from, const T to, const Mode mode = {}) const
     {
-        return fd::invoke(*this, std::span(from, to), mode);
+        return invoke(*this, std::span(from, to), mode);
     }
 };
 

@@ -1,10 +1,11 @@
 module;
 
 #include <algorithm>
-#include <ranges>
 
 export module fd.chars_cache;
 export import fd.string;
+
+#if 0
 
 template <typename T>
 class append_helper
@@ -44,6 +45,8 @@ class append_helper
 #endif
 };
 
+#endif
+
 template <typename Chr, size_t Size>
 struct simple_chars_cache
 {
@@ -63,17 +66,18 @@ struct simple_chars_cache
 
     constexpr simple_chars_cache(const_pointer str_source, const size_t string_size = Size)
     {
-        assign(str_source, string_size);
+        // assign(str_source, string_size);
+        std::copy_n(str_source, string_size, _Data);
+        std::fill(_Data + string_size, _Data + Size, static_cast<Chr>(0));
+        //_Data[string_size] = 0;
     }
 
+#if 0
     constexpr void assign(const_pointer str_source, const size_t string_size = Size)
     {
         std::copy_n(str_source, string_size, _Data);
-        if (string_size < Size)
-        {
-            std::fill(_Data + string_size, _Data + Size, static_cast<Chr>(0));
-            //_Data[string_size] = 0;
-        }
+        std::fill(_Data + string_size, _Data + Size, static_cast<Chr>(0));
+        //_Data[string_size] = 0;
     }
 
     template <typename... Args>
@@ -81,6 +85,7 @@ struct simple_chars_cache
     {
         return append_helper(_Data).append(args...);
     }
+#endif
 
     constexpr const_pointer data() const
     {

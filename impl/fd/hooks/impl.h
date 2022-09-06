@@ -4,7 +4,7 @@
 #include <fd/object_ex.h>
 
 #include <ranges>
-//#include <source_location>
+// #include <source_location>
 
 import fd.hook;
 import fd.chars_cache;
@@ -22,9 +22,14 @@ import fd.chars_cache;
 
 namespace fd
 {
-    constexpr auto _Underline_to_space(const char chr)
+    constexpr char _Underline_to_space(const char chr)
     {
         return chr == '_' ? ' ' : chr;
+    }
+
+    constexpr char _Nothing(const char chr)
+    {
+        return chr;
     }
 
 #if 0
@@ -58,16 +63,33 @@ namespace fd
 #define _HOOK_AUTO_NAME       FD_AUTO_OBJECT_NAME
 #endif
 
-#define _Hook_name(_GROUP_, _SPLIT_, _NAME_, ...)                                                                        \
-    [] {                                                                                                                 \
-        constexpr auto group        = _NON_EMPTY(#_GROUP_, _HOOK_AUTO_GROUP_NAME);                                       \
-        constexpr string_view split = _SPLIT_;                                                                           \
-        constexpr auto name         = _NON_EMPTY(#_NAME_, _HOOK_AUTO_NAME);                                              \
-        constexpr auto buff_size    = group.size() + split.size() + name.size();                                         \
-        chars_cache<char, buff_size + 1> buff;                                                                           \
-        using std::views::transform;                                                                                     \
-        buff.append(group | transform(_Underline_to_space)).append(split).append(name | transform(_Underline_to_space)); \
-        return buff;                                                                                                     \
+    constexpr void _Write_hook_name(char* dst, const string_view group, const string_view split, const string_view name)
+    {
+#if 0
+        using std::views::transform;
+        buff.append(group | transform(_Underline_to_space)).append(split).append(name | transform(_Underline_to_space));
+#else
+
+        const auto write = [&](const string_view str, auto fn) {
+            for (auto c : str)
+                *dst++ = fn(c);
+        };
+
+        write(group, _Underline_to_space);
+        write(split, _Nothing);
+        write(name, _Underline_to_space);
+
+#endif
+    }
+
+#define _Hook_name(_GROUP_, _SPLIT_, _NAME_, ...)                                  \
+    [] {                                                                           \
+        constexpr auto group        = _NON_EMPTY(#_GROUP_, _HOOK_AUTO_GROUP_NAME); \
+        constexpr string_view split = _SPLIT_;                                     \
+        constexpr auto name         = _NON_EMPTY(#_NAME_, _HOOK_AUTO_NAME);        \
+        chars_cache<char, group.size() + split.size() + name.size() + 1> buff;     \
+        _Write_hook_name(buff.begin(), group, split, name);                        \
+        return buff;                                                               \
     }()
 
 #endif

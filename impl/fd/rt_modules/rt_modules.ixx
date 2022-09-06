@@ -10,11 +10,9 @@ export import :library_info;
 import fd.chars_cache;
 import fd.ctype;
 
-using fd::chars_cache;
-using fd::library_info;
-using fd::wstring_view;
+using namespace fd;
 
-bool _Wait_for_library(const wstring_view name);
+library_info _Wait_for_library(const wstring_view name);
 
 struct any_module_base
 {
@@ -59,7 +57,7 @@ struct any_module : any_module_base
     }
 };
 
-struct current_module final : any_module<0>
+struct current_module final : any_module<-1>
 {
     const library_info& data() const override;
     bool wait() const override;
@@ -103,27 +101,69 @@ auto _Correct_signature(void* root_addr, const size_t add, size_t deref)
     return reinterpret_cast<void*>(addr);
 }
 
+class unknown_module : public any_module_base
+{
+    wstring name_;
+    mutable library_info info_;
+
+  public:
+    unknown_module(const wstring_view name, const bool exact = false, const string_view extension = ".dll");
+
+    unknown_module(const unknown_module&)            = delete;
+    unknown_module& operator=(const unknown_module&) = delete;
+
+    unknown_module(unknown_module&& other);
+    unknown_module& operator=(unknown_module&& other);
+
+    const library_info& data() const override;
+    bool wait() const override;
+
+    //---
+
+    template <chars_cache ExpName>
+    auto find_export() const
+    {
+        return this->data().find_export(ExpName);
+    }
+
+    template <chars_cache Sig>
+    auto find_signature() const
+    {
+        return this->data().find_signature(Sig);
+    }
+
+    template <chars_cache Name>
+    auto find_vtable() const
+    {
+        return this->data().find_vtable(Name);
+    }
+
+    template <class T>
+    auto find_vtable() const
+    {
+        return this->data().find_vtable<T>();
+    }
+};
+
 template <chars_cache Name, size_t Idx>
-struct rt_module final : any_module<Idx /* fd::_Hash_bytes(Name.data(), Name.size()) */>
+struct known_module final : any_module<Idx /* fd::_Hash_bytes(Name.data(), Name.size()) */>
 {
     const library_info& data() const override
     {
-        static library_info info = [this] {
+        static library_info info =
 #ifdef _DEBUG
-            if (!_Wait_for_library(Name))
-            {
-                // handle error and unload!
-            }
+            _Wait_for_library(Name)
+#else
+            Name.view()
 #endif
-            return Name.view();
-        }();
+            ;
 
         return info;
     }
 
     bool wait() const override
     {
-        return _Wait_for_library(Name);
+        return static_cast<bool>(_Wait_for_library(Name));
     }
 
     template <chars_cache Interface>
@@ -181,19 +221,30 @@ struct rt_module final : any_module<Idx /* fd::_Hash_bytes(Name.data(), Name.siz
 template <size_t S>
 constexpr auto _To_lower_buff(const wchar_t (&name)[S])
 {
-    chars_cache buff = name;
-    fd::to_lower(name);
+    chars_cache<wchar_t, S + 4> buff;
+    auto itr = buff.begin();
+    for (auto c : name)
+        *itr++ = to_lower(c);
+    std::copy_n(L".dll", 4, itr);
     return buff;
 }
 
-#define DLL_NAME(_NAME_)    L"" #_NAME_ ".dll"
-#define GAME_MODULE(_NAME_) constexpr rt_module<_To_lower_buff(DLL_NAME(_NAME_)), __COUNTER__ + 1> _NAME_;
+#define DLL_NAME(_NAME_)        L"" #_NAME_ /* ".dll" */
+#define EXTERNAL_MODULE(_NAME_) constexpr known_module<_To_lower_buff(DLL_NAME(_NAME_)), __COUNTER__ + 1> _NAME_;
 
 export namespace fd::rt_modules
 {
     constexpr current_module current;
 
-    FOR_EACH(GAME_MODULE,
+    using get = unknown_module;
+
+    FOR_EACH(EXTERNAL_MODULE,
+             // system modules
+             d3d9,
+             ntDll);
+
+    FOR_EACH(EXTERNAL_MODULE,
+             // game modules
              server,
              client,
              engine,
@@ -206,7 +257,5 @@ export namespace fd::rt_modules
              inputSystem,
              studioRender,
              shaderApiDx9,
-             d3d9,
-             serverBrowser /*                */
-    );
+             serverBrowser);
 } // namespace fd::rt_modules

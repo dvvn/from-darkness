@@ -7,7 +7,7 @@ struct semaphore
 {
     using size_type =
 #ifdef _WIN32
-        long
+        unsigned long
 #else
 
 #endif

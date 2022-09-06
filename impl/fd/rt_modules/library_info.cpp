@@ -5,6 +5,7 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
+#include <array>
 #include <span>
 #include <typeinfo>
 
@@ -14,13 +15,13 @@ import fd.filesystem.path;
 import fd.mem_scanner;
 import fd.chars_cache;
 import fd.ctype;
-import fd.smart_ptr.unique;
 import fd.functional.bind;
 import fd.string.make;
+import fd.demangle_symbol;
 
 using namespace fd;
 
-void dos_nt::_Construct(const LDR_DATA_TABLE_ENTRY* const ldr_entry)
+void dos_nt::_Construct(const LDR_DATA_TABLE_ENTRY* ldr_entry)
 {
     FD_ASSERT(ldr_entry != nullptr);
     dos = (IMAGE_DOS_HEADER*)ldr_entry->DllBase;
@@ -31,7 +32,7 @@ void dos_nt::_Construct(const LDR_DATA_TABLE_ENTRY* const ldr_entry)
     FD_ASSERT(nt && nt->Signature == IMAGE_NT_SIGNATURE /* 'PE\0\0' */);
 }
 
-dos_nt::dos_nt(const LDR_DATA_TABLE_ENTRY* const ldr_entry)
+dos_nt::dos_nt(const LDR_DATA_TABLE_ENTRY* ldr_entry)
 {
     _Construct(ldr_entry);
 }
@@ -135,12 +136,27 @@ class LIST_ENTRY_range
     }
 };
 
+namespace std
+{
+    template <typename T>
+    T* get(LIST_ENTRY& list)
+    {
+        return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
+    }
+
+    template <typename T>
+    const T* get(const LIST_ENTRY& list)
+    {
+        return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
+    }
+} // namespace std
+
 template <typename T, typename Fn>
-T* LIST_ENTRY_finder(Fn fn)
+static T* LIST_ENTRY_finder(Fn fn)
 {
     for (auto& list : LIST_ENTRY_range())
     {
-        auto item = CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
+        auto item = std::get<T>(list);
         if (invoke(fn, item))
             return item;
     }
@@ -148,19 +164,194 @@ T* LIST_ENTRY_finder(Fn fn)
 }
 
 template <typename Fn>
-auto LDR_ENTRY_finder(Fn fn)
+static auto LDR_ENTRY_finder(Fn fn)
 {
     return LIST_ENTRY_finder<LDR_DATA_TABLE_ENTRY>(fn);
 }
 
-bool library_info::exists(const wstring_view name)
+static wstring_view _Library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
 {
-    return LDR_ENTRY_finder([=](const library_info info) {
-        return info.name() == name;
-    });
+    return { entry->FullDllName.Buffer, entry->FullDllName.Length / sizeof(WCHAR) };
 }
 
-library_info::library_info(pointer const entry)
+static wstring_view _Library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
+{
+    const auto full_path = _Library_info_path(entry);
+#if 1
+    return fs::basic_path(full_path).filename();
+#else
+    const auto name_start = full_path.rfind('\\');
+    FD_ASSERT(name_start != full_path.npos, "Unable to get the module name");
+    return full_path.substr(name_start + 1);
+#endif
+}
+
+static wstring_view _Found_or_not(const void* ptr)
+{
+    return ptr ? L"found" : L"not found";
+}
+
+static void _Log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
+{
+    invoke(logger,
+           //
+           L"{} -> {}! ({:#X})",
+           name,
+           bind_front(_Found_or_not, entry),
+           reinterpret_cast<uintptr_t>(entry));
+}
+
+static void _Log_found_entry(const IMAGE_DOS_HEADER* base_address, const LDR_DATA_TABLE_ENTRY* entry)
+{
+    const auto get_name = [=] {
+        return entry ? _Library_info_name(entry) : L"unknown name";
+    };
+    invoke(logger,
+           //
+           L"{:#X} ({}) -> {}! ({:#X})",
+           reinterpret_cast<uintptr_t>(base_address),
+           get_name,
+           bind_front(_Found_or_not, entry),
+           reinterpret_cast<uintptr_t>(entry));
+}
+
+constexpr auto _Log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const auto object_type, const auto object, const void* addr) {
+    invoke(logger,
+           //
+           L"{} -> {} '{}' {}! ({:#X})",
+           bind_front(_Library_info_name, entry),
+           object_type,
+           object,
+           bind_front(_Found_or_not, addr),
+           reinterpret_cast<uintptr_t>(addr));
+};
+
+static void _Log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view raw_name, const void* addr)
+{
+    if (!logger->active())
+        return;
+
+    const auto _Log_found_object_ex = [&](const auto object_type, const auto object) {
+        _Log_found_object(entry, object_type, object, addr);
+    };
+
+    const auto name_begin = raw_name.find(' '); // class or struct
+    if (name_begin == raw_name.npos)
+    {
+        _Log_found_object_ex(L"object", raw_name);
+    }
+    else
+    {
+        const auto object_type = raw_name.substr(0, name_begin);
+        FD_ASSERT(!object_type.empty(), "Wrong object type");
+        const auto object = raw_name.substr(name_begin + 1);
+        FD_ASSERT(!object.empty(), "Wrong object name");
+        _Log_found_object_ex(object_type, object);
+    }
+}
+
+template <typename T>
+constexpr auto _Bytes_to_sig(const T* bytes, const size_t size)
+{
+    constexpr auto hex_digits = "0123456789ABCDEF";
+    const auto hex_length     = (size << 1) + size;
+
+    // construct pre-reserved string filled with spaces
+    string pattern(hex_length - 1, ' ');
+
+    for (size_t i = 0, n = 0; i < hex_length; ++n, i += 3)
+    {
+        const uint8_t curr_byte = bytes[n];
+
+        // manually convert byte to chars
+        pattern[i]     = hex_digits[((curr_byte & 0xF0) >> 4)];
+        pattern[i + 1] = hex_digits[(curr_byte & 0x0F)];
+    }
+
+    return pattern;
+}
+
+template <chars_cache Str>
+consteval auto _Bytes_to_sig()
+{
+    constexpr auto size = (Str.size() << 1) + Str.size(); //_Bytes_to_sig(Str.data(), Str.size()).size();
+    const auto tmp      = _Bytes_to_sig(Str.data(), Str.size());
+    std::array<char, size> buff{};
+    std::copy(tmp.begin(), tmp.end(), buff.begin());
+    return buff;
+}
+
+struct rtti_info
+{
+    static constexpr chars_cache raw_prefix  = ".?A";
+    static constexpr chars_cache raw_postfix = "@@";
+
+    static constexpr auto raw_prefix_bytes  = _Bytes_to_sig<raw_prefix>();
+    static constexpr auto raw_postfix_bytes = _Bytes_to_sig<raw_postfix>();
+
+    static constexpr auto class_prefix  = 'V';
+    static constexpr auto struct_prefix = 'U';
+};
+
+static void _Log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_view name, const char* type_descriptor, const void* vtable_ptr)
+{
+#ifndef __cpp_lib_string_contains
+#define contains(x) find(x) != static_cast<size_t>(-1)
+#endif
+
+    const auto demagle_type = [=]() -> string_view {
+        const auto prefix = type_descriptor[rtti_info::raw_prefix.size()];
+        if (prefix == rtti_info::class_prefix)
+            return "class";
+        else if (prefix == rtti_info::struct_prefix)
+            return "struct";
+        else
+            FD_ASSERT_UNREACHABLE("Unknown prefix!");
+    };
+
+    const auto demagle_name = [=]() -> string {
+        string buff;
+        if (name.contains('@'))
+            buff = demangle_symbol(type_descriptor);
+        else if (name.contains(' '))
+            buff = name;
+        else
+            return { name.data(), name.size() };
+
+        return buff.substr(buff.find(' ') + 1);
+    };
+
+    invoke(logger,
+           L"{} -> {} {} '{}' {}! ({:#X})",
+           bind_front(_Library_info_name, entry),
+           L"vtable for",
+           demagle_type,
+           demagle_name,
+           bind_front(_Found_or_not, vtable_ptr),
+           reinterpret_cast<uintptr_t>(vtable_ptr));
+}
+
+library_info library_info::find(const wstring_view name, const bool notify)
+{
+    const auto entry = LDR_ENTRY_finder([=](const library_info info) {
+        return info.name() == name;
+    });
+#ifdef _DEBUG
+    if (!entry)
+        return {}; // prevent assert
+    else
+#endif
+        if (notify && entry)
+        _Log_found_entry(name, entry);
+    return entry;
+}
+
+/* library_info::library_info()
+    : entry_(nullptr)
+{
+} */
+
+library_info::library_info(pointer entry)
     : entry_(entry)
 {
     FD_ASSERT(entry_ != nullptr);
@@ -172,35 +363,36 @@ library_info::library_info(const wstring_view name, const bool notify)
     }))
 {
     if (notify)
-        invoke(logger, L"{} -> {}! ({:#X})", name, entry_ ? L"found" : L"not found", reinterpret_cast<uintptr_t>(entry_));
+        _Log_found_entry(name, entry_);
     else
         FD_ASSERT(entry_ != nullptr);
 }
 
-library_info::library_info(IMAGE_DOS_HEADER* const base_address, const bool notify)
+library_info::library_info(const IMAGE_DOS_HEADER* base_address, const bool notify)
     : entry_(LDR_ENTRY_finder([=](const dos_nt dnt) {
         return base_address == dnt.dos;
     }))
 {
     if (notify)
-    {
-        const auto get_name = [this] {
-            return this->entry_ ? this->name() : L"unknown name";
-        };
-        invoke(logger, L"{:#X} ({}) -> {}! ({:#X})", reinterpret_cast<uintptr_t>(base_address), get_name, entry_ ? L"found" : L"not found", reinterpret_cast<uintptr_t>(entry_));
-    }
+        _Log_found_entry(base_address, entry_);
     else
         FD_ASSERT(entry_ != nullptr);
 }
 
 bool library_info::is_root() const
 {
-    size_t offset = 0;
+    /* bool first;
     LDR_ENTRY_finder([&](const LDR_DATA_TABLE_ENTRY* entry) {
-        ++offset;
-        return entry_ == entry;
+        first = entry_ == entry;
+        return true;
     });
-    return offset == 1;
+    return first; */
+    for (const auto& list : LIST_ENTRY_range())
+    {
+        auto entry = std::get<LDR_DATA_TABLE_ENTRY>(list);
+        return entry_ == entry;
+    }
+    return false;
 }
 
 bool library_info::unload() const
@@ -223,60 +415,24 @@ auto library_info::operator*() const -> reference
     return *entry_;
 }
 
-wstring_view library_info::path() const
+library_info::operator bool() const
 {
-    return { entry_->FullDllName.Buffer, entry_->FullDllName.Length / sizeof(WCHAR) };
+    return static_cast<bool>(entry_);
 }
 
-// to resilve 'path' word conflicts
-static auto _Path_filename(const wstring_view full_path)
+wstring_view library_info::path() const
 {
-#if 1
-    return fs::basic_path(full_path).filename();
-#else
-    const auto name_start = full_path.rfind('\\');
-    FD_ASSERT(name_start != full_path.npos, "Unable to get the module name");
-    return full_path.substr(name_start + 1);
-#endif
+    return _Library_info_path(entry_);
 }
 
 wstring_view library_info::name() const
 {
-    return _Path_filename(this->path());
+    return _Library_info_name(entry_);
 }
-
-constexpr auto _Object_found = [](const library_info* info, const auto object_type, const auto object, const void* addr) {
-    invoke(logger,
-           L"{} -> {} '{}' {}! ({:#X})",
-           bind_front(&library_info::name, info),
-           object_type,
-           object,
-           addr ? L"found" : L"not found",
-           reinterpret_cast<uintptr_t>(addr) /*----*/);
-};
 
 void library_info::log_class_info(const string_view raw_name, const void* addr) const
 {
-    if (!logger->active())
-        return;
-
-    const auto _Object_found_ex = [&](const auto object_type, const auto object) {
-        _Object_found(this, object_type, object, addr);
-    };
-
-    const auto name_begin = raw_name.find(' '); // class or struct
-    if (name_begin == raw_name.npos)
-    {
-        _Object_found_ex(L"object", raw_name);
-    }
-    else
-    {
-        const auto object_type = raw_name.substr(0, name_begin);
-        FD_ASSERT(!object_type.empty(), "Wrong object type");
-        const auto object = raw_name.substr(name_begin + 1);
-        FD_ASSERT(!object.empty(), "Wrong object name");
-        _Object_found_ex(object_type, object);
-    }
+    _Log_address_found(entry_, raw_name, addr);
 }
 
 void* library_info::find_export(const string_view name, const bool notify) const
@@ -358,7 +514,7 @@ void* library_info::find_export(const string_view name, const bool notify) const
     }
 
     if (notify)
-        _Object_found(this, L"export", name, export_ptr);
+        _Log_found_object(entry_, L"export", name, export_ptr);
 
     return export_ptr;
 }
@@ -376,7 +532,7 @@ IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const b
         }
     }
     if (notify)
-        _Object_found(this, L"section", name, found_header);
+        _Log_found_object(entry_, L"section", name, found_header);
     return found_header;
 }
 
@@ -386,7 +542,7 @@ void* library_info::find_signature(const string_view sig, const bool notify) con
     const pattern_scanner finder(memory_span.data(), memory_span.size());
     const auto result = finder(sig).front();
     if (notify)
-        _Object_found(this, L"signature", sig, result);
+        _Log_found_object(entry_, L"signature", sig, result);
     return result;
 }
 
@@ -398,62 +554,8 @@ enum class obj_type : uint8_t
     NATIVE
 };
 
-template <typename T>
-static constexpr auto _Bytes_to_sig(const T* bytes, const size_t size)
-{
-    constexpr auto hex_digits = "0123456789ABCDEF";
-    const auto hex_length     = (size << 1) + size;
-
-    // construct pre-reserved string filled with spaces
-    string pattern(hex_length - 1, ' ');
-
-    for (size_t i = 0, n = 0; i < hex_length; ++n, i += 3)
-    {
-        const uint8_t curr_byte = bytes[n];
-
-        // manually convert byte to chars
-        pattern[i]     = hex_digits[((curr_byte & 0xF0) >> 4)];
-        pattern[i + 1] = hex_digits[(curr_byte & 0x0F)];
-    }
-
-    return pattern;
-}
-
-template <chars_cache Str>
-static consteval auto _Bytes_to_sig()
-{
-    constexpr auto size = (Str.size() << 1) + Str.size(); //_Bytes_to_sig(Str.data(), Str.size()).size();
-    const auto tmp      = _Bytes_to_sig(Str.data(), Str.size());
-    chars_cache<char, size /* + 1 */> buff(tmp.data());
-    return buff;
-}
-
-typedef void*(__cdecl* allocation_function)(size_t);
-typedef void(__cdecl* free_function)(void*);
-extern "C" char* __cdecl __unDName(char* outputString, const char* name, int maxStringLength, allocation_function pAlloc, free_function pFree, uint16_t disableFlags);
-
-static string _Demangle_symbol(const char* mangled_name)
-{
-    constexpr allocation_function alloc = [](size_t size) {
-        return static_cast<void*>(new char[size]);
-    };
-    constexpr free_function free_f = [](void* p) {
-        auto chr = static_cast<char*>(p);
-        delete[] chr;
-    };
-
-    const unique_ptr name = __unDName(nullptr, mangled_name + 1, 0, alloc, free_f, 0x2800 /*UNDNAME_32_BIT_DECODE | UNDNAME_TYPE_ONLY*/);
-    return name.get();
-}
-
 class vtable_finder
 {
-    static constexpr chars_cache raw_prefix_  = ".?A";
-    static constexpr chars_cache raw_postfix_ = "@@";
-
-    static constexpr auto class_prefix_  = 'V';
-    static constexpr auto struct_prefix_ = 'U';
-
     library_info info_;
     dos_nt dnt_;
 
@@ -473,11 +575,9 @@ class vtable_finder
 
         if (type == obj_type::UNKNOWN)
         {
-            constexpr auto bytes_prefix  = _Bytes_to_sig<raw_prefix_>();
-            const auto bytes_name        = _Bytes_to_sig(name.data(), name.size());
-            constexpr auto bytes_postfix = _Bytes_to_sig<raw_postfix_>();
+            const auto bytes_name = _Bytes_to_sig(name.data(), name.size());
 
-            const auto real_name_unk = make_string(bytes_prefix, " ? ", bytes_name, ' ', bytes_postfix);
+            const auto real_name_unk = make_string(rtti_info::raw_prefix_bytes, " ? ", bytes_name, ' ', rtti_info::raw_postfix_bytes);
             rtti_class_name          = whole_module_finder(real_name_unk).front();
         }
         else if (type == obj_type::NATIVE)
@@ -490,13 +590,13 @@ class vtable_finder
         {
             char str_prefix;
             if (type == obj_type::CLASS)
-                str_prefix = class_prefix_;
+                str_prefix = rtti_info::class_prefix;
             else if (type == obj_type::STRUCT)
-                str_prefix = struct_prefix_;
+                str_prefix = rtti_info::struct_prefix;
             else
                 FD_ASSERT_UNREACHABLE("Unknown type");
 
-            const auto real_name = make_string(raw_prefix_, str_prefix, name, raw_postfix_);
+            const auto real_name = make_string(rtti_info::raw_prefix, str_prefix, name, rtti_info::raw_postfix);
             rtti_class_name      = whole_module_finder(real_name, raw_pattern).front();
         }
 
@@ -533,44 +633,6 @@ class vtable_finder
         }
         return nullptr;
     }
-
-    void notify(const string_view name, const char* type_descriptor, const void* vtable_ptr) const
-    {
-#ifndef __cpp_lib_string_contains
-#define contains(x) find(x) != static_cast<size_t>(-1)
-#endif
-
-        const auto demagle_type = [=]() -> string_view {
-            const auto prefix = type_descriptor[raw_prefix_.size()];
-            if (prefix == class_prefix_)
-                return "class";
-            else if (prefix == struct_prefix_)
-                return "struct";
-            else
-                FD_ASSERT_UNREACHABLE("Unknown prefix!");
-        };
-
-        const auto demagle_name = [=]() -> string {
-            string buff;
-            if (name.contains('@'))
-                buff = _Demangle_symbol(type_descriptor);
-            else if (name.contains(' '))
-                buff = name;
-            else
-                return { name.data(), name.size() };
-
-            return buff.substr(buff.find(' ') + 1);
-        };
-
-        invoke(logger,
-               L"{} -> {} {} '{}' {}! ({:#X})",
-               bind_front(&library_info::name, &info_),
-               L"vtable for",
-               demagle_type,
-               demagle_name,
-               vtable_ptr ? L"found" : L"not found",
-               reinterpret_cast<uintptr_t>(vtable_ptr));
-    }
 };
 
 static void* _Find_vtable(const library_info info, const string_view name, const obj_type type, const bool notify)
@@ -581,7 +643,8 @@ static void* _Find_vtable(const library_info info, const string_view name, const
     FD_ASSERT(rtti_class_name != nullptr);
     const auto vtable_ptr = finder(rtti_class_name);
     if (notify)
-        finder.notify(name, rtti_class_name, vtable_ptr);
+        _Log_found_vtable(info.get(), name, rtti_class_name, vtable_ptr);
+
     return vtable_ptr;
 }
 
@@ -602,15 +665,15 @@ void* library_info::find_vtable_unknown(const string_view name, const bool notif
 
 void* library_info::find_vtable(const string_view name, const bool notify) const
 {
-    /* const auto do_find = bind_back(bind_front(_Find_vtable, entry_), notify);
+    /* auto do_find = bind_back(bind_front(_Find_vtable, entry_), notify);
 
-     constexpr string_view class_prefix_ = "class ";
-     if (name.starts_with(class_prefix_))
-         return do_find(name.substr(class_prefix_.size()), obj_type::CLASS);
+     constexpr string_view class_prefix = "class ";
+     if (name.starts_with(class_prefix))
+         return do_find(name.substr(class_prefix.size()), obj_type::CLASS);
 
-     constexpr string_view struct_prefix_ = "struct ";
-     if (name.starts_with(struct_prefix_))
-         return do_find(name.substr(struct_prefix_.size()), obj_type::STRUCT); */
+     constexpr string_view struct_prefix = "struct ";
+     if (name.starts_with(struct_prefix))
+         return do_find(name.substr(struct_prefix.size()), obj_type::STRUCT); */
 
     const rewrapped_namespaces helper(name);
     return _Find_vtable(entry_, helper.name(), helper.is_class() ? obj_type::CLASS : helper.is_struct() ? obj_type::STRUCT : obj_type::UNKNOWN, notify);
@@ -826,7 +889,7 @@ void* library_info::find_csgo_interface(const void* create_interface_fn, const s
     }
 
     if (notify)
-        _Object_found(this, L"csgo interface", log_name.empty() ? name : log_name, ifc_addr);
+        _Log_found_object(entry_, L"csgo interface", log_name.empty() ? name : log_name, ifc_addr);
 
     return ifc_addr;
 }

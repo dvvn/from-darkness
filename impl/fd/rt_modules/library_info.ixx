@@ -15,14 +15,14 @@ struct library_info;
 
 class dos_nt
 {
-    void _Construct(const LDR_DATA_TABLE_ENTRY* const ldr_entry);
+    void _Construct(const LDR_DATA_TABLE_ENTRY* ldr_entry);
 
   public:
     // base address
     IMAGE_DOS_HEADER* dos;
     IMAGE_NT_HEADERS* nt;
 
-    dos_nt(const LDR_DATA_TABLE_ENTRY* const ldr_entry);
+    dos_nt(const LDR_DATA_TABLE_ENTRY* ldr_entry);
     explicit dos_nt(const library_info info);
 
     std::span<uint8_t> read() const;
@@ -154,11 +154,16 @@ struct library_info
     pointer entry_;
 
   public:
-    static bool exists(const wstring_view name);
+    static library_info find(const wstring_view name, const bool notify = true);
 
-    library_info(pointer const entry);
+    constexpr library_info()
+        : entry_(nullptr)
+    {
+    }
+
+    library_info(pointer entry);
     library_info(const wstring_view name, const bool notify = true);
-    library_info(IMAGE_DOS_HEADER* const base_address, const bool notify = true);
+    library_info(const IMAGE_DOS_HEADER* base_address, const bool notify = true);
 
     bool is_root() const;
     bool unload() const;
@@ -166,6 +171,8 @@ struct library_info
     pointer get() const;
     pointer operator->() const;
     reference operator*() const;
+
+    explicit operator bool() const;
 
     wstring_view path() const;
     wstring_view name() const;

@@ -20,22 +20,19 @@ namespace fd
         comptr& operator=(T* ptr) = delete;
 
         template <typename T1>
-
-        requires(std::derived_from<T, T1>) operator T1*() const
+        operator T1*() const requires(std::derived_from<T, T1>)
         {
             return _Base::Get();
         }
 
         template <typename T1>
-
-        requires(std::derived_from<T, T1>) operator T1**()
+        operator T1**() requires(std::derived_from<T, T1>)
         {
             return _Base::ReleaseAndGetAddressOf();
         }
 
         template <typename T1>
-
-        requires(std::derived_from<T, T1>) operator T1* const*() const
+        operator T1* const*() const requires(std::derived_from<T, T1>)
         {
             return _Base::GetAddressOf();
         }
@@ -45,9 +42,9 @@ namespace fd
             return !!_Base::Get();
         }
 
-        bool operator!() const
+        /* bool operator!() const
         {
             return !_Base::Get();
-        }
+        } */
     };
 } // namespace fd

@@ -6,7 +6,7 @@
 import fd.gui.basic_input_handler;
 import fd.rt_modules;
 
-//#define HOT_UNLOAD_SUPPORTED
+// #define HOT_UNLOAD_SUPPORTED
 
 using namespace fd;
 
@@ -38,10 +38,10 @@ static auto _Find_window()
 {
     LONG_PTR wp;
 
-    if (!rt_modules::current->is_root())
-        wp = GetWindowLongPtrA(FindWindowA("Valve001", nullptr), GWLP_WNDPROC);
-    else
+    if (rt_modules::current->is_root())
         EnumWindows(_Wnd_Callback, reinterpret_cast<LPARAM>(&wp));
+    else
+        wp = GetWindowLongPtrA(FindWindowA("Valve001", nullptr), GWLP_WNDPROC);
 
     return reinterpret_cast<WNDPROC>(wp);
 }
