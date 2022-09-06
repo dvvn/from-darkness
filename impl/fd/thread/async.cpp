@@ -9,7 +9,7 @@ module;
 
 #include <algorithm>
 #include <array>
-#include <list>
+#include <deque>
 #include <variant>
 #include <vector>
 
@@ -21,20 +21,7 @@ import fd.semaphore;
 
 using namespace fd;
 
-struct finished_task_data : basic_task_data
-{
-    finished_task_data() = default;
-
-    void start() override
-    {
-    }
-
-    void wait() override
-    {
-    }
-};
-
-class task_data : public basic_task_data
+class task_data : public basic_task
 {
     function_type fn;
     semaphore sm;
@@ -58,7 +45,7 @@ class task_data : public basic_task_data
     }
 };
 
-struct manual_task_data : basic_task_data
+struct manual_task_data : basic_task
 {
     function_type fn;
     semaphore sm;
@@ -71,7 +58,6 @@ struct manual_task_data : basic_task_data
     void start() override
     {
         invoke(fn); // call release manually from fn
-        // call release manually from fn // call release manually from fn
     }
 
     void wait() override
@@ -80,6 +66,8 @@ struct manual_task_data : basic_task_data
     }
 };
 
+#if 0
+//unused
 template <template <typename...> class T, typename... Args>
 class safe_storage
 {
@@ -122,6 +110,7 @@ class safe_storage
         return this;
     }
 };
+#endif
 
 class thread_data
 {
@@ -193,13 +182,19 @@ class thread_data
     }
 };
 
-class thread_pool_impl final : public basic_thread_pool
+class thread_pool_impl final : public async
 {
     std::vector<thread_data> threads_;
 
     using task_type = function_type /* std::variant<function_type, function_type_ex> */;
 
-    /*std::list*/ veque::veque<task_type> tasks_;
+#ifdef VEQUE_HEADER_GUARD
+    veque::veque
+#else
+    std::deque
+#endif
+        <task_type>
+            tasks_;
     mutable recursive_mutex mtx_;
 
     static DWORD WINAPI worker(void* impl) noexcept
@@ -329,19 +324,19 @@ class thread_pool_impl final : public basic_thread_pool
 
     task operator()(function_type func) override
     {
-        task t(task_data(std::move(func)));
+        task t = task_data(std::move(func));
 
-        const auto stored = this->store_func([=]() mutable {
+        const auto stored = this->store_func([=] {
             t->start();
         });
         if (stored)
             return t;
-        return finished_task_data();
+        return finished_task();
     }
 
     task operator()(function_type func, const lazy_tag_t) override
     {
-        auto t = task(manual_task_data());
+        task t = manual_task_data();
 
         auto data = static_cast<manual_task_data*>(t.get());
         data->fn  = [=, fn = std::move(func)]() mutable {
@@ -367,4 +362,4 @@ class thread_pool_impl final : public basic_thread_pool
     Sleep(ms);
 } */
 
-FD_OBJECT_BIND_TYPE(async, thread_pool_impl);
+FD_OBJECT_ATTACH(async, thread_pool_impl);

@@ -1,24 +1,12 @@
 module;
 
-#include <fd/object.h>
-
 export module fd.async;
+export import fd.task;
 export import fd.functional.fn;
-export import fd.smart_ptr.shared;
 
 using namespace fd;
 
 using function_type = function<void()>;
-
-struct basic_task_data
-{
-    virtual ~basic_task_data() = default;
-
-    virtual void start() = 0;
-    virtual void wait()  = 0;
-};
-
-using task = shared_ptr<basic_task_data>;
 
 struct simple_tag_t
 {
@@ -28,9 +16,9 @@ struct lazy_tag_t
 {
 };
 
-struct basic_thread_pool
+struct async
 {
-    virtual ~basic_thread_pool() = default;
+    virtual ~async() = default;
 
     virtual void wait() = 0;
 
@@ -39,12 +27,9 @@ struct basic_thread_pool
     virtual task operator()(function_type func, const lazy_tag_t)   = 0;
 };
 
-FD_OBJECT(async, basic_thread_pool);
-
 export namespace fd
 {
     using ::async;
-    using async_task = task;
 
     namespace async_tags
     {

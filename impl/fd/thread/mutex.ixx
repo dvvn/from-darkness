@@ -6,6 +6,7 @@ module;
 #include <Windows.h>
 
 export module fd.mutex;
+export import fd.lock_guard;
 
 struct basic_mutex
 {
@@ -44,36 +45,8 @@ class recursive_mutex final : public basic_mutex
     void unlock() noexcept;
 };
 
-template <class M>
-class lock_guard
-{
-    M* mtx_;
-
-  public:
-    lock_guard(const lock_guard&) = delete;
-
-    lock_guard(M& mtx)
-        : mtx_(&mtx)
-    {
-        mtx_->lock();
-    }
-
-    ~lock_guard()
-    {
-        if (mtx_)
-            mtx_->unlock();
-    }
-
-    void release()
-    {
-        mtx_->unlock();
-        mtx_ = nullptr;
-    }
-};
-
 export namespace fd
 {
-    using ::lock_guard;
     using ::mutex;
     using ::recursive_mutex;
 } // namespace fd

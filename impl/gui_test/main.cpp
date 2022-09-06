@@ -7,12 +7,12 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-#include <atomic>
-
 import fd.functional.lazy_invoke;
 import fd.functional.bind;
 
 using namespace fd;
+
+PREPARE_HOOKS(fd_init_hooks, wndproc, IDirect3DDevice9_present, IDirect3DDevice9_reset);
 
 static comptr<IDirect3D9> g_pD3D;
 static comptr<IDirect3DDevice9> g_pd3dDevice;

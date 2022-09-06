@@ -1,34 +1,33 @@
 #include <fd_init.h>
 
+#include <windows.h>
+
+import fd.functional.lazy_invoke;
+
 using namespace fd;
 
-struct unload_handler
-{
-    bool ignore = false;
+PREPARE_HOOKS(fd_init_hooks, wndproc, IDirect3DDevice9_present, IDirect3DDevice9_reset, vgui_surface_lock_cursor);
 
-    ~unload_handler()
-    {
-        if (ignore)
-            return;
-        rt_modules::current->unload();
-    }
-};
+static auto _Unload()
+{
+    rt_modules::current->unload();
+}
 
 static void _Async_impl()
 {
-    unload_handler unload;
+    lazy_invoke unload_handler(_Unload);
     if (!fd_init_core())
         return;
     if (!rt_modules::serverBrowser.wait())
         return;
     if (!fd_init_hooks())
         return;
-    unload.ignore = true;
+    unload_handler.reset();
 }
 
 static void fd_init_async()
 {
-    invoke(async, _Async_impl, async_tags::simple);
+    invoke(FD_OBJECT_GET(async), _Async_impl, async_tags::simple);
 }
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)

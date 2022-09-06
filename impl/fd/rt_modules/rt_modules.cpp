@@ -10,16 +10,6 @@ import fd.semaphore;
 
 using namespace fd;
 
-static DECLSPEC_NOINLINE HMODULE _Get_current_module_handle()
-{
-    MEMORY_BASIC_INFORMATION info;
-    constexpr size_t info_size      = sizeof(MEMORY_BASIC_INFORMATION);
-    // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
-    FD_ASSERT(len == info_size, "Wrong size");
-    return static_cast<HMODULE>(info.AllocationBase);
-}
-
 struct callback_data_t
 {
     wstring_view name;
@@ -33,7 +23,7 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
 
     if (NotificationReason == LDR_DLL_NOTIFICATION_REASON_UNLOADED)
     {
-        if (NotificationData->Unloaded.DllBase != _Get_current_module_handle())
+        if (NotificationData->Unloaded.DllBase != (*rt_modules::current)->DllBase)
             return;
         data->found = false;
     }
@@ -80,9 +70,19 @@ const library_info& any_module_base::operator*() const
     return data();
 }
 
+static DECLSPEC_NOINLINE PVOID _Get_current_module_handle()
+{
+    MEMORY_BASIC_INFORMATION info;
+    constexpr size_t info_size      = sizeof(MEMORY_BASIC_INFORMATION);
+    // todo: is this is dll, try to load this function from inside
+    [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
+    FD_ASSERT(len == info_size, "Wrong size");
+    return info.AllocationBase;
+}
+
 const library_info& current_module::data() const
 {
-    static const library_info current((IMAGE_DOS_HEADER*)_Get_current_module_handle());
+    static const library_info current(static_cast<IMAGE_DOS_HEADER*>(_Get_current_module_handle()));
     return current;
 }
 

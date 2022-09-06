@@ -1,22 +1,30 @@
 module;
 
-//#include <veque.hpp>
+#include <limits>
+#include <veque.hpp>
 
 #include <deque>
-#include <limits>
-#include <type_traits>
 
 export module fd.callback.impl;
 export import fd.callback;
 
+using namespace fd;
+
 template <typename Ret, typename... Args>
-class basic_callback : virtual public fd::abstract_callback<Ret, Args...>
+class basic_callback : virtual public abstract_callback<Ret, Args...>
 {
-    using _Base = fd::abstract_callback<Ret, Args...>;
+    using _Base = abstract_callback<Ret, Args...>;
 
   public:
     using typename _Base::callback_type;
-    using storage_type = std::deque<callback_type>;
+
+    using storage_type =
+#ifdef VEQUE_HEADER_GUARD
+        veque::veque
+#else
+        std::deque
+#endif
+        <callback_type>;
 
   protected:
     storage_type storage_;
@@ -54,7 +62,7 @@ struct callback<void, Args...> : basic_callback<void, Args...>
     void operator()(Args... args) override
     {
         for (auto& fn : this->storage_)
-            fd::invoke(fn, args...);
+            invoke(fn, args...);
     }
 };
 
@@ -65,16 +73,16 @@ struct callback<bool, Args...> : basic_callback<bool, Args...>
     {
         for (auto& fn : this->storage_)
         {
-            if (!fd::invoke(fn, args...))
+            if (!invoke(fn, args...))
                 break;
         }
     }
 };
 
 template <class C>
-class callback_custom : virtual public fd::abstract_callback_custom<C>
+class callback_custom : virtual public abstract_callback_custom<C>
 {
-    using _Base = fd::abstract_callback_custom<C>;
+    using _Base = abstract_callback_custom<C>;
 
   public:
     using callback_type = typename _Base::callback_type;

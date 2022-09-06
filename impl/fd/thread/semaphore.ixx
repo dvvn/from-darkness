@@ -1,6 +1,7 @@
 module;
 
 export module fd.semaphore;
+import fd.lock_guard;
 
 struct semaphore
 {
@@ -34,5 +35,19 @@ struct semaphore
 
 export namespace fd
 {
+    template <>
+    class lock_guard<semaphore>
+    {
+        semaphore* sem_;
+
+      public:
+        ~lock_guard();
+
+        lock_guard(const lock_guard&) = delete;
+        lock_guard(semaphore& sem);
+
+        void release();
+    };
+
     using ::semaphore;
 } // namespace fd

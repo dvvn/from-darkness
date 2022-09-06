@@ -59,7 +59,7 @@ FetchContent_Populate(xxhct)
 FetchContent_Declare(utf8_conv GIT_REPOSITORY https://github.com/ww898/utf-cpp.git)
 FetchContent_Populate(utf8_conv)
 
-FetchContent_Declare(veque GIT_REPOSITORY https://github.com/Shmoopty/veque.git)
+FetchContent_Declare(veque GIT_REPOSITORY #[[ https://github.com/Shmoopty/veque.git ]] https://github.com/dvvn/veque.git)
 FetchContent_Populate(veque)
 
 FetchContent_Declare(json GIT_REPOSITORY https://github.com/nlohmann/json.git)

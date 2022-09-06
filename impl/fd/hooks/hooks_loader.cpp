@@ -7,7 +7,9 @@ module;
 
 module fd.hooks_loader;
 
-class hooks_loader_impl : public basic_hooks_loader
+using namespace fd;
+
+class hooks_loader_impl : public hooks_loader
 {
     std::vector<hook_base*> hooks_;
 
@@ -55,4 +57,4 @@ class hooks_loader_impl : public basic_hooks_loader
     }
 };
 
-FD_OBJECT_BIND_TYPE(hooks_loader, hooks_loader_impl);
+FD_OBJECT_ATTACH(hooks_loader, hooks_loader_impl);
