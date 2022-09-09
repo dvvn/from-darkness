@@ -119,7 +119,7 @@ target_link_libraries(
   fmt::fmt
   imgui
   d3d9.lib)
-target_include_directories(gui_test ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include)
-target_compile_definitions(gui_test ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
+target_include_directories(gui_test PRIVATE ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include)
+target_compile_definitions(gui_test PRIVATE ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
 
 #add_subproject(library TYPE SHARED LINK impl)
