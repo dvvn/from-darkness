@@ -21,10 +21,7 @@ constexpr void _Char_acceptor(const char32_t){}
 // clang-format on
 
 template <typename T>
-concept can_be_string = requires(const T& obj)
-{
-    _Char_acceptor(obj[0]);
-};
+concept can_be_string = requires(const T& obj) { _Char_acceptor(obj[0]); };
 
 template <typename S>
 using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;

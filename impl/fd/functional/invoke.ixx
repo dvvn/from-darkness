@@ -106,4 +106,7 @@ export namespace fd
         invoke(std::forward<Args>(args)...);
     };
 
+    template <typename... Args>
+    using invoke_result = decltype(invoke(std::declval<Args>()...));
+
 } // namespace fd

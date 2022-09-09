@@ -7,4 +7,4 @@ import fd.rt_modules;
 
 using namespace fd;
 
-FD_OBJECT_IMPL(IVDebugOverlay, fd::rt_modules::engine.find_interface<"VDebugOverlay">());
+FD_OBJECT_ATTACH_EX(IVDebugOverlay, fd::rt_modules::engine_fn(.find_interface<"VDebugOverlay">());

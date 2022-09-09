@@ -7,4 +7,4 @@ import fd.rt_modules;
 
 using namespace fd;
 
-FD_OBJECT_IMPL(IVguiPanel*, fd::rt_modules::vgui2.find_interface<"VGUI_Panel">());
+FD_OBJECT_ATTACH_EX(IVguiPanel*, fd::rt_modules::vgui2_fn().find_interface<"VGUI_Panel">());

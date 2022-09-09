@@ -6,9 +6,11 @@ module fd.valve.base_client;
 import fd.rt_modules;
 import fd.functional.invoke;
 
-FD_OBJECT_IMPL(base_client, fd::rt_modules::client.find_interface<"VClient">());
+using namespace fd;
+
+FD_OBJECT_ATTACH_EX(base_client, rt_modules::client_fn().find_interface<"VClient">());
 
 bool base_client::DispatchUserMessage(int msg_type, int flags, int size, const void* msg)
 {
-    return fd::invoke(&base_client::DispatchUserMessage, 38, this, msg_type, flags, size, msg);
+    return invoke(&base_client::DispatchUserMessage, 38, this, msg_type, flags, size, msg);
 }

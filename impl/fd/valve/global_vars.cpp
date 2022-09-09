@@ -10,7 +10,7 @@ namespace fd::valve
     struct base_client;
 }
 
-FD_OBJECT_IMPL_HEAD(global_vars_base*)
+FD_OBJECT_ATTACH_MANUAL(global_vars_base*)
 {
     using namespace fd;
     using namespace valve;
@@ -23,5 +23,5 @@ FD_OBJECT_IMPL_HEAD(global_vars_base*)
     const auto vtable      = *reinterpret_cast<uintptr_t**>(&FD_OBJECT_GET(base_client*));
     const auto target_addr = **reinterpret_cast<global_vars_base***>(vtable[11] + 0xA);
     rt_modules::client->log_class_info("class IGlobalVarsBase", target_addr);
-    _Construct(target_addr);
+    return target_addr;
 }

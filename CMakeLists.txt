@@ -85,243 +85,41 @@ FetchContent_MakeAvailable(subhook)
 
 # -------------------
 
-function(target_include_directory _target _type _dir)
-  target_include_directories(${_target} ${_type} ${_dir})
-  message(DEBUG "${_target}: directory \"${_dir}\" included (${_type})")
-endfunction()
-
-function(target_link_library _target _type _lib)
-  target_link_libraries(${_target} ${_type} ${_lib})
-  message(DEBUG "${_target}: library \"${_lib}\" linked (${_type})")
-endfunction()
-
-function(target_compile_definition _target _type _def)
-  target_compile_definitions(${_target} ${_type} ${_def})
-  message(DEBUG "${_target}: macro \"${_def}\" added (${_type})")
-endfunction()
-
-function(add_subproject _name)
-  cmake_parse_arguments(PART "" "TYPE" "FILES;INCLUDE;LINK;DEFINE" ${ARGN})
-
-  #[[ if(NOT PART_NAME)
-    set(_name ${PART_NAME})
-  else()
-    message(FATAL_ERROR "Name not set!")
-  endif() ]]
-
-  set(_VIS_MODES "PRIVATE|PUBLIC|INTERFACE")
-
-  #---------------
-
-  if(NOT PART_FILES)
-    set(_find_default_files true)
-  else()
-    #message(DEBUG "parsed files: ${PART_FILES}")
-    foreach(_item ${PART_FILES})
-      if(_item MATCHES "FILTER=*")
-        # multiple filters allowed
-        #[[ if(DEFINED _files_filter)
-          message(FATAL_ERROR "files filter already set!")
-        endif() ]]
-        string(REPLACE "FILTER=" "" _files_filter ${_item})
-        #message(DEBUG "filter set to \"${_files_filter}\"")
-      elseif(IS_DIRECTORY ${_item})
-        #message(DEBUG "found directory: ${_item}")
-        file(GLOB_RECURSE _files_tmp ${_item}/*.ixx ${_item}/*.cpp)
-      elseif(EXISTS ${_item})
-        list(APPEND _files_tmp ${_item})
-        #message(DEBUG "found file: ${_item}")
-      else() #maybe it contains regex (TODO: find better way to check)
-        file(GLOB_RECURSE _files_tmp ${_item})
-        list(APPEND _files ${_files_tmp})
-        #message(DEBUG "files found for ${_item}: ${_files_tmp}")
-      endif()
-
-      if(DEFINED _files_tmp)
-        if(DEFINED _files_filter)
-          list(FILTER _files_tmp EXCLUDE REGEX ${_files_filter})
-        endif()
-        list(APPEND _files ${_files_tmp})
-        unset(_files_tmp)
-      endif()
-    endforeach()
-
-    list(LENGTH PART_FILES _items_count)
-    if(_items_count EQUAL 1 AND DEFINED _files_filter) #the only filter detected
-      set(_find_default_files true)
-    else()
-      set(_find_default_files false)
-    endif()
-    #message(DEBUG "find default files set to '${_find_default_files}', items count: ${_items_count}, filter: ${_files_filter}")
-  endif()
-
-  set(_add_prefix_to_name true)
-  if(_find_default_files)
-    set(_search_dir ${_PROJ_IMPL_DIR}/*/${_name})
-    set(_search_dir2 ${_PROJ_IMPL_DIR}/${_name})
-    file(GLOB_RECURSE _files ${_search_dir}/*.ixx ${_search_dir}/*.cpp ${_search_dir2}/*.ixx ${_search_dir2}/*.cpp)
-    #TODO: check are only one root dir exsists
-    if(DEFINED _files_filter)
-      list(FILTER _files EXCLUDE REGEX ${_files_filter})
-    endif()
-  else()
-    foreach(_file ${_files})
-      if(_add_prefix_to_name AND NOT ${_file} MATCHES ${_PROJ_IMPL_DIR}/*)
-        set(_add_prefix_to_name false)
-      endif()
-    endforeach()
-  endif()
-
-  #message(DEBUG "files found: ${_files} (default: ${_find_default_files})")
-  list(LENGTH _files _files_count)
-  if(_files_count EQUAL 0)
-    if(PART_TYPE AND NOT PART_TYPE STREQUAL "INTERFACE")
-      message(FATAL_ERROR "Incorrect TYPE!")
-    endif()
-    set(_type INTERFACE)
-  else()
-    if(PART_TYPE)
-      set(_type ${PART_TYPE})
-    else()
-      set(_type STATIC)
-    endif()
-  endif()
-
-  if(_add_prefix_to_name)
-    set(_target ${_PROJ_NAME}_${_name})
-  else()
-    set(_target ${_name})
-  endif()
-
-  if(_type STREQUAL "EXECUTABLE")
-    add_executable(${_target} ${_files})
-    set(_link_type_root PRIVATE)
-  else()
-    add_library(${_target} ${_type} ${_files})
-    if(_type STREQUAL "INTERFACE") #ifcSearchDir
-      set(_link_type_root ${_type})
-    else()
-      set(_link_type_root PUBLIC)
-    endif()
-  endif()
-
-  #---------------
-
-  if(PART_INCLUDE)
-    set(_include_type ${_link_type_root})
-
-    foreach(_item ${PART_INCLUDE})
-      if(EXISTS ${_item})
-        target_include_directory(${_target} ${_include_type} ${_item})
-      elseif(_item MATCHES ${_VIS_MODES})
-        set(_include_type ${_item})
-      else()
-        set(_own_dir ${_PROJ_WORK_DIR}/${_item})
-        if(NOT EXISTS ${_own_dir})
-          message(FATAL_ERROR "Directory ${_item} not found!")
-        endif()
-        target_include_directory(${_target} ${_include_type} ${_own_dir})
-      endif()
-    endforeach()
-  endif()
-
-  #---------------
-
-  if(PART_LINK)
-    set(_link_type ${_link_type_root})
-
-    foreach(_lib ${PART_LINK})
-      if(_lib MATCHES ${_VIS_MODES})
-        set(_link_type ${_lib})
-      else()
-        set(_self_target ${_PROJ_NAME}_${_lib})
-        set(_external_target ${_lib}::${_lib})
-        if(TARGET ${_self_target})
-          target_link_library(${_target} ${_link_type} ${_self_target})
-        elseif(TARGET ${_external_target})
-          target_link_library(${_target} ${_link_type} ${_external_target})
-        elseif(TARGET ${_lib} OR ${_lib} MATCHES ".*\.+")
-          target_link_library(${_target} ${_link_type} ${_lib})
-        else()
-          message(FATAL_ERROR "Library ${_lib} not found!")
-        endif()
-      endif()
-    endforeach()
-  endif()
-
-  #---------------
-
-  if(PART_DEFINE)
-    set(_def_type ${_link_type_root})
-
-    foreach(_def ${PART_DEFINE})
-      if(_def MATCHES ${_VIS_MODES})
-        set(_def_type ${_def})
-      else()
-        target_compile_definition(${_target} ${_def_type} ${_def})
-      endif()
-    endforeach()
-  endif()
-
-endfunction()
-
-# -------------------
-
 set(_DEFAULT_FILES_FILTER "/\_+")
 
 file(GLOB _IMGUI_CORE_FILES ${imgui_SOURCE_DIR}/*.cpp)
 
-add_subproject(
+add_library(imgui STATIC ${_IMGUI_CORE_FILES} ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
+                         ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp)
+
+target_link_libraries(imgui PRIVATE freetype)
+target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+target_compile_definitions(
   imgui
-  LINK
-  PRIVATE
-  freetype
-  INCLUDE
-  ${imgui_SOURCE_DIR}
-  ${imgui_SOURCE_DIR}/backends
-  PRIVATE
-  ${imgui_SOURCE_DIR}/misc/freetype
-  FILES
-  ${_IMGUI_CORE_FILES}
-  ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp
-  ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-  ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
-  DEFINE
-  IMGUI_ENABLE_FREETYPE
-  IMGUI_USE_WCHAR32
-  IMGUI_DEFINE_MATH_OPERATORS
-  IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-  IMGUI_DISABLE_OBSOLETE_KEYIO
-  IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-  ImDrawIdx=size_t)
+  PUBLIC IMGUI_ENABLE_FREETYPE
+         IMGUI_USE_WCHAR32
+         IMGUI_DEFINE_MATH_OPERATORS
+         IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+         IMGUI_DISABLE_OBSOLETE_KEYIO
+         IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+         ImDrawIdx=size_t)
 
-math(EXPR _SYS_BITS_COUNT "${CMAKE_SIZEOF_VOID_P}*8")
+file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp ${_PROJ_WORK_DIR}/*.ixx)
+list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
 
-add_subproject(
-  impl
-  LINK
-  function2
-  robin_hood
-  nlohmann_json
-  subhook
-  fmt
+#-------
+
+add_executable(gui_test ${_PROJ_FILES} ${_PROJ_IMPL_DIR}/gui_test/main.cpp)
+target_link_libraries(
+  gui_test
+  function2::function2
+  robin_hood::robin_hood
+  nlohmann_json::nlohmann_json
+  subhook::subhook
+  fmt::fmt
   imgui
-  #[[ RmlCore
-  RmlDebugger ]]
-  INCLUDE
-  ${_PROJ_IMPL_DIR}
-  ${xxhct_SOURCE_DIR}
-  ${utf8_conv_SOURCE_DIR}/include
-  ${veque_SOURCE_DIR}/include
-  FILES
-  FILTER=${_DEFAULT_FILES_FILTER}
-  ${_PROJ_WORK_DIR}
-  DEFINE
-  #[[ RMLUI_STATIC_LIB
-  RMLUI_DIR=${rml_SOURCE_DIR} ]]
-  ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
-  ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR}
-  ${_PROJ_NAME_UPPER}_X${_SYS_BITS_COUNT})
+  d3d9.lib)
+target_include_directories(gui_test ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include)
+target_compile_definitions(gui_test ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
 
-add_subproject(gui_test TYPE EXECUTABLE LINK impl d3d9.lib)
-add_subproject(library TYPE SHARED LINK impl)
+#add_subproject(library TYPE SHARED LINK impl)

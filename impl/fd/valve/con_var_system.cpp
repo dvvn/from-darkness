@@ -16,7 +16,7 @@ import fd.functional.bind;
 using namespace fd;
 using namespace valve;
 
-FD_OBJECT_IMPL(con_var_system, rt_modules::vstdlib.find_interface<"VEngineCvar">());
+FD_OBJECT_ATTACH_EX(con_var_system, rt_modules::vstdlib_fn().find_interface<"VEngineCvar">());
 
 template <typename T>
 static void _Set_helper(con_var* ptr, size_t index, T value)

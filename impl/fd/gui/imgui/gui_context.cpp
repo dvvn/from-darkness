@@ -7,28 +7,25 @@
 
 struct gui_context
 {
-    ImGuiContext ctx_;
-    ImFontAtlas atlas_;
-
-  public:
-    ImGuiContext* operator&()
-    {
-        return &ctx_;
-    }
+    ImGuiContext ctx;
+    ImFontAtlas atlas;
 
     ~gui_context()
     {
         ImGui::Shutdown();
     }
 
+    gui_context(const gui_context&)            = delete;
+    gui_context& operator=(const gui_context&) = delete;
+
     gui_context()
-        : ctx_(&atlas_)
+        : ctx(&atlas)
     {
         IMGUI_CHECKVERSION();
-        ImGui::SetCurrentContext(&ctx_);
+        ImGui::SetCurrentContext(&ctx);
         ImGui::Initialize();
-        ctx_.SettingsHandlers.clear(); // remove default ini handler
-        ctx_.IO.IniFilename = nullptr; //
+        ctx.SettingsHandlers.clear(); // remove default ini handler
+        ctx.IO.IniFilename = nullptr; //
 
         // ctx_.IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 
@@ -38,4 +35,4 @@ struct gui_context
     }
 };
 
-FD_OBJECT_ATTACH(ImGuiContext*, gui_context);
+FD_OBJECT_ATTACH_EX(ImGuiContext*, std::addressof(FD_OBJECT_GET(gui_context)->ctx));

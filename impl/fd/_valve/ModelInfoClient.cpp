@@ -7,4 +7,4 @@ import fd.rt_modules;
 
 using namespace fd;
 
-FD_OBJECT_IMPL(IVModelInfoClient, fd::rt_modules::engine.find_interface<"VModelInfoClient">());
+FD_OBJECT_ATTACH_EX(IVModelInfoClient, fd::rt_modules::engine_fn().find_interface<"VModelInfoClient">());

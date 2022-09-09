@@ -1,48 +1,43 @@
 module;
 
 #include <concepts>
-//#include <memory>
 #include <optional>
-#include <utility>
 
 export module fd.one_instance;
 import fd.functional.invoke;
 
+using namespace fd;
+
 template <typename T>
-constexpr size_t _Pointers_count()
+constexpr size_t pointers_count = 0;
+
+template <typename T>
+constexpr size_t pointers_count<T*> = 1;
+
+template <typename T>
+constexpr size_t pointers_count<T**> = pointers_count<T*> + 1;
+
+template <size_t LastLevel = 0, typename T, size_t Level = pointers_count<T*>>
+decltype(auto) _Deref(T* ptr)
 {
-    if constexpr (std::is_pointer_v<T>)
-        return 1 + _Pointers_count<std::remove_pointer_t<T>>();
+    if constexpr (std::is_pointer_v<T> && LastLevel != Level)
+        return _Deref<LastLevel, std::remove_pointer_t<T>, Level - 1>(*ptr);
     else
-        return 0;
-}
-
-template <typename T>
-constexpr size_t pointers_count_v = _Pointers_count<T>();
-
-template <typename T, size_t StopOn = 0>
-decltype(auto) _Deref(T* ptr, const std::in_place_index_t<StopOn> stop_on = std::in_place_index<StopOn>)
-{
-    constexpr auto ptrsc = pointers_count_v<T*>;
-    if constexpr (ptrsc <= StopOn)
-        return ptr;
-    else if constexpr (ptrsc == 1)
         return *ptr;
-    else
-        return _Deref(*ptr, stop_on);
 }
 
 template <typename T>
 bool _Null(T* ptr)
 {
-    if (!ptr)
-        return true;
-
-    constexpr auto ptrsc = pointers_count_v<T*>;
-    if constexpr (ptrsc > 1)
-        return _Null(*ptr);
+    if constexpr (std::is_pointer_v<T>)
+    {
+        const auto next_ptr = *ptr;
+        return !next_ptr || _Null(next_ptr);
+    }
     else
-        return false;
+    {
+        return !ptr;
+    }
 }
 
 template <typename T>
@@ -97,7 +92,7 @@ class pointer_wrapper<T**>
 
     auto operator->() const
     {
-        return _Deref(ptr_, std::in_place_index<1>);
+        return _Deref<1>(ptr_);
     }
 
     auto& operator*() const
@@ -117,7 +112,7 @@ bool operator==(const pointer_wrapper<T> w, std::nullptr_t)
     return static_cast<bool>(w);
 }
 
-template <typename T>
+template <typename T, size_t Instance>
 struct instance_of_getter
 {
     using value_type = T;
@@ -129,7 +124,7 @@ struct instance_of_getter
 
   public:
     template <typename... Args>
-    instance_of_getter(Args&&... args) requires(std::constructible_from<value_type, decltype(args)...>)
+    instance_of_getter(Args&&... args) requires(std::constructible_from<value_type, Args && ...>)
         : item_(std::forward<Args>(args)...)
     {
     }
@@ -145,8 +140,8 @@ struct instance_of_getter
     }
 };
 
-template <typename T>
-struct instance_of_getter<T*>
+template <typename T, size_t Instance>
+struct instance_of_getter<T*, Instance>
 {
     using value_type = T*;
     using pointer    = std::conditional_t<std::is_pointer_v<T>, pointer_wrapper<value_type>, value_type>;
@@ -155,31 +150,10 @@ struct instance_of_getter<T*>
   private:
     value_type item_;
 
-    template <typename Q>
-    void _Construct(Q item)
-    {
-        if constexpr (std::convertible_to<Q, value_type>)
-            item_ = static_cast<value_type>(item);
-        else if constexpr (std::convertible_to<decltype(&*item), value_type>)
-            _Construct(&*item);
-        else if constexpr (std::convertible_to<decltype(&item), value_type>)
-            _Construct(&item);
-        else
-            static_assert(std::_Always_false<Q>, "Unknown item type!");
-    }
-
   public:
-    template <size_t Instance>
-    instance_of_getter(const std::in_place_index_t<Instance>);
-
-    instance_of_getter(const value_type item)
+    instance_of_getter(value_type item)
+        : item_(item)
     {
-        _Construct(item);
-    }
-
-    instance_of_getter(std::nullptr_t np)
-    {
-        _Construct(np);
     }
 
     pointer ptr() const
@@ -205,15 +179,46 @@ constexpr size_t _Magic_number(const size_t value)
     return __TIME__[src] ^ __TIME__[7]; // XX:XX:XX 01 2 34 5 67
 }
 
-template <typename T, size_t Instance>
-class basic_instance_of_impl
+template <typename T>
+struct basic_construct_helper
 {
-    using t_getter = instance_of_getter<T>;
+    virtual ~basic_construct_helper() = default;
+    virtual T get()                   = 0;
+};
 
-    static __declspec(noinline) auto& _Buff()
+template <typename Fn, typename T>
+class construct_helper : public basic_construct_helper<T>
+{
+    Fn fn_;
+
+  public:
+    template <typename Fn1>
+    construct_helper(Fn1&& fn)
+        : fn_(std::forward<Fn1>(fn))
+    {
+    }
+
+    T get() override
+    {
+        return invoke(fn_);
+    }
+};
+
+template <typename T, size_t Instance>
+class instance_of_impl
+{
+    using t_getter = instance_of_getter<T, Instance>;
+
+    static /* __declspec(noinline) */ auto& _Buff()
     {
         static std::optional<t_getter> buff;
         return buff;
+    }
+
+    static auto& _Lazy_constructor()
+    {
+        static basic_construct_helper<T>* fn;
+        return fn;
     }
 
     static bool _Initialized()
@@ -222,24 +227,28 @@ class basic_instance_of_impl
     }
 
     template <typename... Args>
-    static auto& _Construct(Args&&... args)
+    static decltype(auto) _Construct(Args&&... args)
     {
-        if constexpr (sizeof...(Args) > 0 || !std::constructible_from<t_getter, std::in_place_index_t<Instance>>)
+        if constexpr (sizeof...(Args) == 0 && std::constructible_from<t_getter, T>)
+        {
+            auto lazy = _Lazy_constructor();
+            if (lazy)
+                return _Buff().emplace(lazy->get());
+        }
+
+        if constexpr (std::constructible_from<t_getter, Args&&...>)
             return _Buff().emplace(std::forward<Args>(args)...);
-        else
-            return _Buff().emplace(std::in_place_index<Instance>);
+
+        return *_Buff(); // return empty object to force error
     }
 
     static auto& _Get()
     {
-        if constexpr (std::default_initializable<t_getter> || std::constructible_from<t_getter, std::in_place_index_t<Instance>>)
-        {
-            static const auto once = [] {
-                if (!_Initialized())
-                    _Construct();
-                return _Magic_number(Instance);
-            }();
-        }
+        static const auto once = [] {
+            if (!_Initialized())
+                _Construct();
+            return _Magic_number(Instance);
+        }();
         return *_Buff();
     }
 
@@ -267,9 +276,19 @@ class basic_instance_of_impl
     }
 
     template <typename... Args>
-    auto& construct(Args&&... args) const
+    decltype(auto) construct(Args&&... args) const
     {
         return _Construct(std::forward<Args>(args)...).ref();
+    }
+
+    template <typename Fn>
+    size_t construct_lazy(Fn&& fn) const
+    {
+        static_assert(std::convertible_to<decltype(fn()), T>);
+        static construct_helper<std::remove_cvref_t<Fn>, T> helper(std::forward<Fn>(fn));
+        auto& lazy = _Lazy_constructor();
+        lazy       = static_cast<basic_construct_helper<T>*>(&helper);
+        return _Magic_number(Instance);
     }
 
     void destroy() const
@@ -285,7 +304,7 @@ class basic_instance_of_impl
 
     explicit operator bool() const
     {
-        if (!_Initialized())
+        if (_Initialized())
             return false;
         if constexpr (std::is_pointer_v<value_type>)
         {
@@ -298,16 +317,41 @@ class basic_instance_of_impl
     template <typename... Args>
     decltype(auto) operator()(Args&&... args) const
     {
-        return fd::invoke(_Get().ref(), std::forward<Args>(args)...);
+        return invoke(_Get().ref(), std::forward<Args>(args)...);
     }
 };
 
+template <typename T>
+concept complete_type = requires { sizeof(T); };
+
+using std::type_identity;
+
+template <typename T>
+constexpr auto _Object_type()
+{
+    if constexpr (!complete_type<T>)
+        return type_identity<T*>();
+    else if constexpr (std::is_abstract_v<T>)
+        return type_identity<T*>();
+    else
+        return type_identity<T>();
+}
+
+template <typename T>
+using _Object_type_t = typename decltype(_Object_type<T>())::type;
+
 export namespace fd
 {
+    using ::complete_type;
+    using ::type_identity;
+
     using ::instance_of_getter;
+    using ::instance_of_impl;
 
     template <typename T, size_t Instance = 0>
-    constexpr basic_instance_of_impl<T, Instance> instance_of;
+    constexpr instance_of_impl<_Object_type_t<T>, Instance> instance_of;
 
-    using ::basic_instance_of_impl;
+    template <typename T, size_t Instance>
+    constexpr instance_of_impl<T, Instance> instance_of<type_identity<T>, Instance>;
+
 } // namespace fd

@@ -11,12 +11,6 @@ struct weak_ptr;
 template <typename T, typename S = size_t>
 struct shared_ptr;
 
-/* template <typename T>
-concept is_complete = requires
-{
-    sizeof(T)
-}; */
-
 template <class T>
 void destroy_class(T& obj)
 {

@@ -10,7 +10,7 @@ namespace fd::valve
     struct base_client;
 }
 
-FD_OBJECT_IMPL_HEAD(client_mode_shared)
+FD_OBJECT_ATTACH_MANUAL(client_mode_shared)
 {
     using namespace fd::valve;
     using fd::rt_modules::client;
@@ -19,5 +19,5 @@ FD_OBJECT_IMPL_HEAD(client_mode_shared)
     const auto ptr    = vtable[10] + 0x5; // get it from CHLClient::HudProcessInput
     const auto cm     = **reinterpret_cast<client_mode_shared***>(ptr);
     client->log_class_info("class IClientModeShared", cm);
-    _Construct(cm);
+    return cm;
 }

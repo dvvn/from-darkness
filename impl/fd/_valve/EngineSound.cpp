@@ -7,4 +7,4 @@ import fd.rt_modules;
 
 using namespace fd;
 
-FD_OBJECT_IMPL(IEngineSound, fd::rt_modules::engine.find_interface<"IEngineSoundClient">());
+FD_OBJECT_ATTACH_EX(IEngineSound, fd::rt_modules::engine_fn(.find_interface<"IEngineSoundClient">());

@@ -7,7 +7,7 @@ import fd.rt_modules;
 
 using namespace fd;
 
-FD_OBJECT_IMPL(CGlowObjectManager*, fd::rt_modules::client.find_interface_sig<"0F 11 05 ? ? ? ? 83 C8 01">().plus(3).deref<1>());
+FD_OBJECT_ATTACH_EX(CGlowObjectManager*, fd::rt_modules::client_fn().find_interface_sig<"0F 11 05 ? ? ? ? 83 C8 01">().plus(3).deref<1>());
 
 void GlowObject_t::Set(const math::color& glow_color, GlowRenderStyles style)
 {

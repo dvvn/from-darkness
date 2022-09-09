@@ -135,7 +135,7 @@ namespace fd
 #define FD_HOOK_TAIL(_NAME_) \
     }                        \
     ;                        \
-    /* FD_OBJECT_IMPL(hook_base, FD_OBJECT_GET(_NAME_), _INDEX_); */ FD_OBJECT_ATTACH(_HOOK_NAME(_NAME_)*, _HOOK_NAME(_NAME_));
+    /* FD_OBJECT_ATTACH_EX(hook_base, FD_OBJECT_GET(_NAME_), _INDEX_); */ FD_OBJECT_ATTACH(_HOOK_NAME(_NAME_)*, _HOOK_NAME(_NAME_));
 
 //---
 

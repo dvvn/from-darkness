@@ -9,7 +9,7 @@ using namespace fd::valve;
 
 // or address of some indexed input function in chlclient class
 // (like IN_ActivateMouse, IN_DeactivateMouse, IN_Accumulate, IN_ClearStates) + 0x1 (jmp to m_pInput)
-FD_OBJECT_IMPL(input*, (fd::rt_modules::client.find_interface_sig<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10", 0x1, 1, "class IInput">()));
+FD_OBJECT_ATTACH_EX(input*, fd::rt_modules::client_fn().find_interface_sig<"B9 ? ? ? ? F3 0F 11 04 24 FF 50 10", 0x1, 1, "class IInput">());
 
 constexpr auto MULTIPLAYER_BACKUP = 150;
 

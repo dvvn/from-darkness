@@ -23,6 +23,8 @@ struct assert_data
     fd::wstring build_message() const;
 };
 
+// constexpr auto assert_handler = fd::instance_of<fd::abstract_callback<void, const assert_data&>, 1337>;
+
 FD_CALLBACK(assert_handler, void, const assert_data&);
 
 // using assert_handler_t = fd::abstract_callback<bool, const assert_data&>;

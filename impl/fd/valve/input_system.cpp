@@ -7,4 +7,4 @@ import fd.rt_modules;
 
 using namespace fd::valve;
 
-FD_OBJECT_IMPL(input_system, fd::rt_modules::inputSystem.find_interface<"InputSystemVersion">());
+FD_OBJECT_ATTACH_EX(input_system, fd::rt_modules::inputSystem_fn().find_interface<"InputSystemVersion">());

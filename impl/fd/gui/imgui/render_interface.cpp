@@ -29,7 +29,7 @@ struct render_interface_impl final : basic_render_interface
         auto d3d = &FD_OBJECT_GET(IDirect3DDevice9);
 
         static const auto once = [=] {
-            FD_OBJECT_GET(ImGuiContext*).construct();
+            (void)*FD_OBJECT_GET(ImGuiContext*);
             return ImGui_ImplDX9_Init(d3d);
         }();
 

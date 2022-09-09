@@ -229,8 +229,13 @@ constexpr auto _To_lower_buff(const wchar_t (&name)[S])
     return buff;
 }
 
-#define DLL_NAME(_NAME_)        L"" #_NAME_ /* ".dll" */
-#define EXTERNAL_MODULE(_NAME_) constexpr known_module<_To_lower_buff(DLL_NAME(_NAME_)), __COUNTER__ + 1> _NAME_;
+#define DLL_NAME(_NAME_) L"" #_NAME_ /* ".dll" */
+#define EXTERNAL_MODULE(_NAME_)                                                       \
+    constexpr known_module<_To_lower_buff(DLL_NAME(_NAME_)), __COUNTER__ + 1> _NAME_; \
+    constexpr auto& _NAME_##_fn()                                                     \
+    {                                                                                 \
+        return _NAME_;                                                                \
+    }
 
 export namespace fd::rt_modules
 {
