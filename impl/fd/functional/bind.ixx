@@ -18,6 +18,7 @@ enum class bind_mode : uint8_t
 template <bind_mode Mode>
 struct bind_caller;
 
+#ifndef __cpp_lib_bind_front
 template <>
 struct bind_caller<bind_mode::front>
 {
@@ -31,7 +32,9 @@ struct bind_caller<bind_mode::front>
             bound_args_stored);
     }
 };
+#endif
 
+#ifndef __cpp_lib_bind_back
 template <>
 struct bind_caller<bind_mode::back>
 {
@@ -45,6 +48,7 @@ struct bind_caller<bind_mode::back>
             bound_args_stored);
     }
 };
+#endif
 
 template <bind_mode Mode>
 struct _Bind_helper
@@ -61,38 +65,6 @@ struct _Bind_helper
     }
 };
 
-constexpr auto _Inverse_value = []<typename T>(const T value) {
-    return value ^ std::numeric_limits<T>::max();
-};
-
-template <typename Fn>
-class inverse_result
-{
-    Fn fn_;
-
-  public:
-    template <typename Fn0>
-    constexpr inverse_result(Fn0&& fn)
-        : fn_(std::forward<Fn0>(fn))
-    {
-    }
-
-    template <typename... Args>
-    constexpr auto operator()(Args&&... args) const
-    {
-        return _Inverse_value(invoke(fn_, std::forward<Args>(args)...));
-    }
-
-    template <typename... Args>
-    constexpr auto operator()(Args&&... args)
-    {
-        return _Inverse_value(invoke(fn_, std::forward<Args>(args)...));
-    }
-};
-
-template <typename Fn>
-inverse_result(Fn&&) -> inverse_result<std::remove_cvref_t<Fn>>;
-
 export namespace fd
 {
 #ifdef __cpp_lib_bind_front
@@ -107,5 +79,4 @@ export namespace fd
     constexpr _Bind_helper<bind_mode::back> bind_back;
 #endif
 
-    using ::inverse_result;
 } // namespace fd

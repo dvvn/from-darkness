@@ -6,36 +6,10 @@ module;
 
 module fd.netvars.info;
 import fd.netvars.type_resolve;
+import fd.functional.overload;
 
 using namespace fd;
 using namespace valve;
-
-static const char* _Netvar_name(const netvar_info_source source)
-{
-    return std::visit(
-        [](auto src) {
-            return src->name;
-        },
-        source);
-}
-
-static string _Netvar_type(const netvar_info_source source)
-{
-    struct
-    {
-        string operator()(const recv_prop* rp) const
-        {
-            return netvars::type_recv_prop(rp);
-        }
-
-        string operator()(const data_map_description* td) const
-        {
-            return netvars::type_datamap_field(td);
-        }
-    } type_getter;
-
-    return std::visit(type_getter, source);
-}
 
 //---
 
@@ -63,7 +37,11 @@ hashed_string_view netvar_info::name() const
 {
     if (name_.empty())
     {
-        string_view name = _Netvar_name(source_);
+        constexpr auto name_getter = [](auto src) -> string_view {
+            return src->name;
+        };
+
+        auto name = std::visit(name_getter, source_);
         if (size_ > 0)
         {
             FD_ASSERT(name.ends_with("[0]"));
@@ -79,29 +57,26 @@ string_view netvar_info::type() const
 {
     if (type_.empty())
     {
-        auto tmp_type = _Netvar_type(source_);
+        constexpr auto type_getter = overload(netvars::type_recv_prop, netvars::type_datamap_field);
 
-        if (size_ <= 1)
-        {
-            type_ = std::move(tmp_type);
-        }
-        else
-        {
-            string_view netvar_type;
-            if (size_ == 3)
-            {
-                netvar_type = std::visit(
-                    [&](auto ptr) {
-                        return netvars::type_array_prefix(tmp_type, ptr);
-                    },
-                    source_);
-            }
+        std::visit(
+            [&](auto val) {
+                auto tmp_type = invoke(type_getter, val);
+                if (size_ <= 1)
+                {
+                    type_ = std::move(tmp_type);
+                    return;
+                }
+                if (size_ == 3)
+                {
+                    type_ = netvars::type_array_prefix(tmp_type, val);
+                    if (!type_.empty())
+                        return;
+                }
 
-            if (netvar_type.empty())
                 type_ = netvars::type_std_array(tmp_type, size_);
-            else
-                type_ = netvar_type;
-        }
+            },
+            source_);
     }
     return type_;
 }
