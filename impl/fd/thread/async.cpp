@@ -112,42 +112,71 @@ class safe_storage
 };
 #endif
 
-class thread_data
+class basic_thread_data
 {
     HANDLE handle_;
-    DWORD id_;
-    bool paused_;
 
-    thread_data(const thread_data&)            = default;
-    thread_data& operator=(const thread_data&) = default;
+    friend class thread_data;
 
   public:
-    thread_data(void* fn, void* fn_owner)
+    basic_thread_data(HANDLE handle = INVALID_HANDLE_VALUE)
+        : handle_(handle)
     {
-        handle_ = CreateThread(nullptr, 0, static_cast<LPTHREAD_START_ROUTINE>(fn), fn_owner, CREATE_SUSPENDED, &id_);
-        paused_ = true;
     }
 
+    explicit operator bool() const
+    {
+        return handle_ && handle_ != INVALID_HANDLE_VALUE;
+    }
+
+    bool pause()
+    {
+        return SuspendThread(handle_);
+    }
+
+    bool resume()
+    {
+        return ResumeThread(handle_);
+    }
+};
+
+class thread_data : public basic_thread_data
+{
+    DWORD id_;
+
+    basic_thread_data* _Base()
+    {
+        return this;
+    }
+
+  public:
     ~thread_data()
     {
-        if (handle_)
+        auto& base = *_Base();
+        if (base)
         {
-            TerminateThread(handle_, EXIT_SUCCESS);
-            CloseHandle(handle_);
+            TerminateThread(base.handle_, EXIT_SUCCESS);
+            CloseHandle(base.handle_);
         }
     }
 
-    thread_data(thread_data&& other)
+    thread_data(void* fn, void* fn_params, const bool suspend)
+        : basic_thread_data(CreateThread(nullptr, 0, static_cast<LPTHREAD_START_ROUTINE>(fn), fn_params, suspend ? CREATE_SUSPENDED : 0, &id_))
     {
-        *this         = other;
-        other.handle_ = nullptr;
+    }
+
+    thread_data(thread_data&& other)
+        : basic_thread_data(other)
+    {
+        *_Base() = INVALID_HANDLE_VALUE;
+        id_      = other.id_;
     }
 
     thread_data& operator=(thread_data&& other)
     {
-        auto tmp = other;
-        other    = *this;
-        *this    = tmp;
+        using std::swap;
+        swap(*_Base(), *other._Base());
+        swap(id_, other.id_);
         return *this;
     }
 
@@ -160,96 +189,97 @@ class thread_data
     {
         return this->id_ == other.id_;
     }
-
-    bool pause()
-    {
-        FD_ASSERT(!paused_);
-        paused_ = true;
-        return SuspendThread(handle_);
-    }
-
-    bool paused() const
-    {
-        return paused_;
-    }
-
-    bool resume()
-    {
-        FD_ASSERT(paused_);
-        const auto ok = ResumeThread(handle_);
-        paused_       = false;
-        return ok;
-    }
 };
 
 class thread_pool_impl final : public async
 {
-    std::vector<thread_data> threads_;
+    using threads_storage = std::vector<thread_data>;
 
     using task_type = function_type /* std::variant<function_type, function_type_ex> */;
-
+    using tasks_storage =
 #ifdef VEQUE_HEADER_GUARD
-    veque::veque
+        veque::veque
 #else
-    std::deque
+        std::deque
 #endif
-        <task_type>
-            tasks_;
-    mutable recursive_mutex mtx_;
+        <task_type>;
+    using mutex_type = recursive_mutex;
 
-    static DWORD WINAPI worker(void* impl) noexcept
+    //---
+
+    threads_storage threads_;
+    tasks_storage tasks_;
+    mutable mutex_type mtx_;
+
+    bool _Worker() noexcept
     {
-        const auto pool        = static_cast<thread_pool_impl*>(impl);
-        const auto this_thread = std::find(pool->threads_.begin(), pool->threads_.end(), GetCurrentThreadId());
+        basic_thread_data this_thread;
 
-        for (;;)
-        {
-            pool->mtx_.lock();
-            if (pool->tasks_.empty())
+        const auto callback = [&]() -> uint8_t {
+            if (tasks_.empty())
             {
-                pool->mtx_.unlock();
-
-                if (!this_thread->pause())
-                    return FALSE;
+                mtx_.unlock();
+                if (!this_thread.pause())
+                    return 0;
             }
             else
             {
-                auto task = std::move(pool->tasks_.back());
-                pool->tasks_.pop_back();
-                pool->mtx_.unlock();
+                auto task = std::move(tasks_.back());
+                tasks_.pop_back();
+                mtx_.unlock();
 
                 try
                 {
                     invoke(task);
-                    /* std::visit(
-                    [=]<class Fn>(Fn& fn) {
-                        if constexpr (std::same_as<Fn, function_type>)
-                            fn();
-                        else if constexpr (std::same_as<Fn, function_type_ex>)
-                            fn(pool->stop_);
-                        else
-                            static_assert(std::_Always_false<Fn>);
-                    },
-                    task); */
                 }
                 catch (...)
                 {
                     // todo: any external exception -> false
-                    // sfecial 'interrupt' exception -> true
-                    return TRUE;
+                    // special 'interrupt' exception -> true
+                    return 1;
                 }
             }
+
+            return 2;
+        };
+
+        mtx_.lock();
+        this_thread = *std::find(threads_.begin(), threads_.end(), GetCurrentThreadId());
+
+        auto run = invoke(callback);
+        while (run == 2)
+        {
+            mtx_.lock();
+            run = invoke(callback);
         }
+
+        if (!run)
+            std::abort();
+
+        return TRUE;
+    }
+
+    static DWORD WINAPI worker(void* impl)
+    {
+        const auto pool = static_cast<thread_pool_impl*>(impl);
+        return pool->_Worker();
+    }
+
+    bool spawn_thread(const bool suspended)
+    {
+        thread_data data = { worker, this, suspended };
+        if (!data)
+            return false;
+        threads_.push_back(std::move(data));
+        return true;
     }
 
     bool store_func(function_type&& func, const bool resume_threads = true) noexcept
     {
-        const lock_guard guard(mtx_);
+        const lock_guard guard = mtx_;
 
-        if (threads_.empty())
+        if (!resume_threads && threads_.empty())
             return false;
-
-        const size_t active_threads = std::count_if(threads_.begin(), threads_.end(), bind_front(inverse_result(&thread_data::paused)));
 
         lazy_invoke store_func = [&] {
             tasks_.emplace_front(std::move(func));
@@ -257,22 +287,22 @@ class thread_pool_impl final : public async
 
         if (resume_threads)
         {
-            const auto tasks_in_queue = tasks_.size();
-            if (tasks_in_queue < active_threads)
-                return true;
-            if (active_threads == threads_.size())
-                return true;
             for (auto& t : threads_)
             {
-                if (t.paused() && t.resume())
+                if (t.resume())
                     return true;
             }
+
+            if (tasks_.size() < threads_.size())
+                return true;
+            if (!this->spawn_thread(false))
+            {
+                store_func.reset();
+                return false;
+            }
         }
-        if (active_threads == 0)
-        {
-            store_func.reset();
-            return false;
-        }
+
+        // ELSE:  check are threads valid
 
         return true;
     }
@@ -284,8 +314,6 @@ class thread_pool_impl final : public async
         GetNativeSystemInfo(&info);
         // FD_ASSERT(info.dwNumberOfProcessors <= std::numeric_limits<uint8_t>::max());
         threads_.reserve(info.dwNumberOfProcessors);
-        while (threads_.size() != info.dwNumberOfProcessors)
-            threads_.emplace_back(worker, this);
     }
 
     ~thread_pool_impl()
@@ -294,22 +322,15 @@ class thread_pool_impl final : public async
             this->wait();
 
 #ifdef _DEBUG
-        const lock_guard guard(mtx_);
+        const lock_guard guard = mtx_;
         threads_.clear();
 #endif
-    }
-
-    bool contains_thread(const DWORD id) const
-    {
-        const lock_guard guard(mtx_);
-        const auto end = threads_.end();
-        return std::find(threads_.begin(), end, id) != end;
     }
 
     void wait() override
     {
         //"simple" version of task
-        semaphore sem(0, 1);
+        semaphore sem     = { 0, 1 };
         const auto stored = this->store_func([&] {
             sem.release();
         });
