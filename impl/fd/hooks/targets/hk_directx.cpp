@@ -97,6 +97,8 @@ d3d9_reset::~d3d9_reset()
 d3d9_reset::d3d9_reset(IDirect3DDevice9* inst)
 {
     this->init({ inst, 16 }, &d3d9_reset::callback);
+    if (!_Render_interface)
+        _Render_interface = inst;
     _D3d9_reset = this;
 }
 
@@ -131,7 +133,8 @@ d3d9_present::~d3d9_present()
 d3d9_present::d3d9_present(IDirect3DDevice9* inst)
 {
     this->init({ inst, 17 }, &d3d9_present::callback);
-    _Render_interface = inst;
+    if (!_Render_interface)
+        _Render_interface = inst;
     _D3d9_present     = this;
 }
 

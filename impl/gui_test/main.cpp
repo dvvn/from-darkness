@@ -134,8 +134,6 @@ int main(int, char**)
     /* if (!fd_init_hooks())
         return TRUE; */
 
-    hooks_loader->clear();
-
     // const lazy_invoke _destroy_helper(fd_destroy);
 
     for (;;)
