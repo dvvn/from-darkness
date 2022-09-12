@@ -1,18 +1,24 @@
 ﻿#include <fd/assert.h>
 #include <fd/comptr.h>
 
-#define FD_GUI_TEST
-#include <fd_init.h>
-
 #include <d3d9.h>
 #include <tchar.h>
+
+#include <vector>
 
 import fd.functional.lazy_invoke;
 import fd.functional.bind;
 
-using namespace fd;
+import fd.logger;
+import fd.system.console;
+import fd.gui.context;
 
-PREPARE_HOOKS(fd_init_hooks, wndproc, IDirect3DDevice9_present, IDirect3DDevice9_reset);
+import fd.hooks.directx;
+import fd.hooks.winapi;
+
+import fd.hooks.loader;
+
+using namespace fd;
 
 static comptr<IDirect3D9> g_pD3D;
 static comptr<IDirect3DDevice9> g_pd3dDevice;
@@ -101,16 +107,36 @@ int main(int, char**)
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
-    if (!fd_init_core())
+    /* if (!fd_init_core())
+        return TRUE; */
+
+    logger->append([](const auto str) {
+        invoke(system_console_writer, str);
+    });
+    assert_handler->push_back([](const assert_data& data) {
+        invoke(system_console_writer, data.build_message());
+    });
+
+    // FD_OBJECT_GET(IDirect3DDevice9*).construct(g_pd3dDevice.Get());
+    // rt_modules::current->log_class_info(g_pd3dDevice.Get());
+
+    hooks::loader_impl<std::vector> hooks_loader;
+    hooks::loader = &hooks_loader;
+
+    gui::init_context();
+
+    hooks_loader.store(hooks::d3d9_reset(g_pd3dDevice));
+    hooks_loader.store(hooks::d3d9_present(g_pd3dDevice));
+    hooks_loader.store(hooks::wndproc(hmodule));
+
+    if (!hooks_loader.enable())
         return TRUE;
+    /* if (!fd_init_hooks())
+        return TRUE; */
 
-    FD_OBJECT_GET(IDirect3DDevice9*).construct(g_pd3dDevice.Get());
-    rt_modules::current->log_class_info(g_pd3dDevice.Get());
+    hooks_loader->clear();
 
-    if (!fd_init_hooks())
-        return TRUE;
-
-    const lazy_invoke _destroy_helper(fd_destroy);
+    // const lazy_invoke _destroy_helper(fd_destroy);
 
     for (;;)
     {

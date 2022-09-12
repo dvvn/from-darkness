@@ -1,16 +1,12 @@
 module;
 
-#include <fd/assert.h>
-#include <fd/object.h>
-
 #include <concepts>
-#include <vector>
 
-export module fd.hook;
-export import fd.hook_base;
+export module fd.hooks.impl;
+export import fd.hooks.base;
 import fd.smart_ptr.unique;
 
-//#define FUNCTION_GETTER_HAVE_PTR_SIZE
+// #define FUNCTION_GETTER_HAVE_PTR_SIZE
 
 class hook_entry;
 
@@ -65,33 +61,39 @@ export namespace fd
         }
     };
 
-    struct hook_impl : hook_base
+    namespace hooks
     {
-        ~hook_impl() override;
-        hook_impl();
+        class impl : public base
+        {
+            unique_ptr<hook_entry> entry_;
 
-        bool enable() final;
-        bool disable() final;
+          protected:
+            void init(const function_getter target, const function_getter replace);
 
-        bool initialized() const final;
-        bool active() const final;
+          public:
+            ~impl() override;
+            impl();
 
-        void* get_original_method() const final;
+            impl(impl&&);
 
-      protected:
-        void init(const function_getter target, const function_getter replace);
+            bool enable() final;
+            bool disable() final;
 
-      private:
-        unique_ptr<hook_entry> entry_;
-    };
+            bool initialized() const final;
+            bool active() const final;
+
+            void* get_original_method() const final;
+
+            explicit operator bool() const;
+        };
+    } // namespace hooks
 
 } // namespace fd
 
+#if 0
+
 template <class Impl>
-concept have_callback_method = requires
-{
-    &Impl::callback;
-};
+concept have_callback_method = requires { &Impl::callback; };
 
 template <class Impl>
 concept have_static_callback_method = have_callback_method<Impl> && std::is_pointer_v<decltype(&Impl::callback)> && std::is_function_v<decltype(Impl::callback)>;
@@ -136,3 +138,5 @@ export namespace fd
         }
     };
 } // namespace fd
+
+#endif

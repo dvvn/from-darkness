@@ -5,11 +5,12 @@ module;
 
 #include <subhook.h>
 
-module fd.hook;
+module fd.hooks.impl;
 import fd.logger;
 import fd.functional.bind;
 
 using namespace fd;
+using namespace hooks;
 
 class hook_entry
 {
@@ -18,14 +19,16 @@ class hook_entry
   public:
     ~hook_entry()
     {
-        if (hook_)
-            subhook_free(hook_);
+        if (!hook_)
+            return;
+        subhook_remove(hook_); // must be done before, added for safety
+        subhook_free(hook_);
     }
 
     bool create(void* target, void* replace)
     {
         FD_ASSERT(hook_ == nullptr);
-        hook_ = subhook_new(target, replace, (subhook_flags_t)subhook::HookNoFlags);
+        hook_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
         return hook_ != nullptr;
     }
 
@@ -65,24 +68,30 @@ class hook_entry
     }
 };
 
-hook_impl::~hook_impl()
+#if 0
+impl::~impl()
 {
     // purecall here
-    // hook_impl::disable( );
+    // impl::disable( );
 }
+#else
+impl::~impl() = default;
+#endif
 
-hook_impl::hook_impl()
+impl::impl()
 {
     entry_ = new hook_entry();
 }
 
+impl::impl(impl&&) = default;
+
 template <typename M>
-static void _Log(const hook_impl* h, const M msg)
+static void _Log(const impl* h, const M msg)
 {
-    invoke(logger, "{}: {}", bind_front(&hook_impl::name, h), msg);
+    invoke(logger, "{}: {}", bind_front(&impl::name, h), msg);
 }
 
-bool hook_impl::enable()
+bool impl::enable()
 {
     if (!entry_->created())
     {
@@ -100,7 +109,7 @@ bool hook_impl::enable()
     return true;
 }
 
-bool hook_impl::disable()
+bool impl::disable()
 {
     const auto ok = entry_->disable();
     _Log(this, [ok, this] {
@@ -115,25 +124,30 @@ bool hook_impl::disable()
     return ok;
 }
 
-bool hook_impl::initialized() const
+bool impl::initialized() const
 {
     return entry_->created();
 }
 
-bool hook_impl::active() const
+bool impl::active() const
 {
     return entry_->enabled();
 }
 
-void* hook_impl::get_original_method() const
+void* impl::get_original_method() const
 {
     return entry_->get_original_method();
 }
 
-void hook_impl::init(const function_getter target, const function_getter replace)
+void impl::init(const function_getter target, const function_getter replace)
 {
     if (!entry_->create(target, replace))
     {
         _Log(this, "creating error!");
     }
+}
+
+impl::operator bool() const
+{
+    return static_cast<bool>(entry_);
 }

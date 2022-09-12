@@ -1,38 +1,68 @@
-#include <fd/object.h>
+module;
 
-#include <imgui_impl_dx9.h>
+#include <imgui.h>
 #include <imgui_internal.h>
 
-#include <d3d9.h>
+#include <optional>
 
-struct gui_context
+module fd.gui.context;
+
+class gui_context
 {
-    ImGuiContext ctx;
-    ImFontAtlas atlas;
+    ImGuiContext context_;
+    ImFontAtlas font_atlas_;
 
+    bool active_;
+    ImGuiContext* old_context_;
+
+  public:
     ~gui_context()
     {
-        ImGui::Shutdown();
+        if (active_)
+            ImGui::Shutdown();
+        ImGui::SetCurrentContext(old_context_);
     }
 
     gui_context(const gui_context&)            = delete;
     gui_context& operator=(const gui_context&) = delete;
 
     gui_context()
-        : ctx(&atlas)
+        : context_(&font_atlas_)
     {
         IMGUI_CHECKVERSION();
-        ImGui::SetCurrentContext(&ctx);
+        old_context_ = ImGui::GetCurrentContext();
+        ImGui::SetCurrentContext(&context_);
         ImGui::Initialize();
-        ctx.SettingsHandlers.clear(); // remove default ini handler
-        ctx.IO.IniFilename = nullptr; //
+        context_.SettingsHandlers.clear(); // remove default ini handler
+        context_.IO.IniFilename = nullptr; //
 
         // ctx_.IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
         // ImGui::StyleColorsLight();
+
+        active_ = true;
+    }
+
+    void reset()
+    {
+        if (!active_)
+            return;
+        ImGui::Shutdown();
+        active_ = false;
     }
 };
 
-FD_OBJECT_ATTACH_EX(ImGuiContext*, std::addressof(FD_OBJECT_GET(gui_context)->ctx));
+static std::optional<gui_context> _Context;
+
+void init_context()
+{
+    _Context.emplace();
+}
+
+void destroy_context()
+{
+    if (_Context)
+        _Context->reset();
+}

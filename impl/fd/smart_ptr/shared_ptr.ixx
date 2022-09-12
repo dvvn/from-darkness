@@ -1,6 +1,7 @@
 module;
 
 #include <memory>
+#include <typeinfo>
 #include <utility>
 
 export module fd.smart_ptr.shared;
@@ -36,10 +37,14 @@ void deallocate_helper(Alloc& allocator, T* ptr)
     allocator.deallocate(reinterpret_cast<uint8_t*>(ptr), sizeof(T));
 }
 
+using type_info_ref = const std::type_info&;
+
 template <typename T>
 struct basic_controller
 {
-    virtual T* get()           = 0;
+    virtual T* get() const             = 0;
+    virtual type_info_ref type() const = 0;
+
     virtual void destroy()     = 0;
     virtual void delete_self() = 0;
 };
@@ -230,11 +235,6 @@ struct data_owner
         ctrl_ = nullptr;
     }
 
-    pointer get() const
-    {
-        return ctrl_->get();
-    }
-
     // get_deleter
 
     explicit operator bool() const
@@ -242,24 +242,20 @@ struct data_owner
         return ctrl_;
     }
 
-    reference operator*() const requires(!std::is_unbounded_array_v<T>)
-    {
-        return *this->get();
-    }
-
-    pointer operator->() const requires(!std::is_unbounded_array_v<T>)
-    {
-        return this->get();
-    }
-
-    reference operator[](const size_t idx) const requires(std::is_unbounded_array_v<T>)
-    {
-        return this->get()[idx];
-    }
-
     typename ref_counter<S>::size_type use_count() const
     {
         return ctrl_ ? ctrl_->strong.load() : 0;
+    }
+
+    type_info_ref type() const
+    {
+        if constexpr (Type == data_type::weak)
+        {
+            if (!ctrl_)
+                throw std::bad_typeid();
+        }
+
+        return ctrl_->type();
     }
 };
 
@@ -324,6 +320,7 @@ struct shared_ptr : data_owner<T, S, data_type::strong>
 {
     using element_type = std::remove_extent_t<T>;
     using pointer      = element_type*;
+    using reference    = element_type&;
 
     using weak_type = weak_ptr<T, S>;
 
@@ -368,6 +365,16 @@ struct shared_ptr : data_owner<T, S, data_type::strong>
             {
             }
 
+            pointer get() const override
+            {
+                return ptr_;
+            }
+
+            type_info_ref type() const override
+            {
+                return typeid(T);
+            }
+
             void destroy() override
             {
                 // std::destroy_at(&data_.ptr);
@@ -381,11 +388,6 @@ struct shared_ptr : data_owner<T, S, data_type::strong>
                 this->_Cleanup();
                 deallocate_helper(alloc_, this);
             }
-
-            pointer get() override
-            {
-                return ptr_;
-            }
         };
 
         this->_Construct(make_ptr<_External_data>(allocator, ptr, deleter));
@@ -396,7 +398,8 @@ struct shared_ptr : data_owner<T, S, data_type::strong>
     {
         class _Innter_data : public _Controller
         {
-            std::remove_cvref_t<T1> value_;
+            using value_type = std::remove_cvref_t<T1>;
+            value_type value_;
             [[no_unique_address]] A alloc_;
 
           public:
@@ -408,6 +411,16 @@ struct shared_ptr : data_owner<T, S, data_type::strong>
             {
             }
 
+            pointer get() const override
+            {
+                return const_cast<value_type*>(&value_);
+            }
+
+            type_info_ref type() const override
+            {
+                return typeid(value_type);
+            }
+
             void destroy() override
             {
                 destroy_class(value_);
@@ -417,11 +430,6 @@ struct shared_ptr : data_owner<T, S, data_type::strong>
             {
                 this->_Cleanup();
                 deallocate_helper(alloc_, this);
-            }
-
-            pointer get() override
-            {
-                return &value_;
             }
         };
 
@@ -439,6 +447,26 @@ struct shared_ptr : data_owner<T, S, data_type::strong>
     {
         this->_Swap(other);
         return *this;
+    }
+
+    pointer get() const
+    {
+        return unpacker::get(*this)->get();
+    }
+
+    reference operator*() const requires(!std::is_unbounded_array_v<T>)
+    {
+        return *this->get();
+    }
+
+    pointer operator->() const requires(!std::is_unbounded_array_v<T>)
+    {
+        return this->get();
+    }
+
+    reference operator[](const size_t idx) const requires(std::is_unbounded_array_v<T>)
+    {
+        return this->get()[idx];
     }
 };
 
