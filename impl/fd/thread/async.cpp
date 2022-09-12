@@ -185,10 +185,10 @@ class thread_data : public basic_thread_data
         return this->id_ == id;
     }
 
-    bool operator==(const thread_data& other) const
+    /* bool operator==(const thread_data& other) const
     {
         return this->id_ == other.id_;
-    }
+    } */
 };
 
 class thread_pool_impl final : public async
@@ -265,44 +265,32 @@ class thread_pool_impl final : public async
         return pool->_Worker();
     }
 
-    bool spawn_thread(const bool suspended)
-    {
-        thread_data data = { worker, this, suspended };
-        if (!data)
-            return false;
-        threads_.push_back(std::move(data));
-        return true;
-    }
-
     bool store_func(function_type&& func, const bool resume_threads = true) noexcept
     {
         const lock_guard guard = mtx_;
 
-        if (!resume_threads && threads_.empty())
-            return false;
-
-        lazy_invoke store_func = [&] {
-            tasks_.emplace_front(std::move(func));
-        };
-
         if (resume_threads)
         {
-            for (auto& t : threads_)
+            const auto resumed_thread = std::find_if(threads_.begin(), threads_.end(), bind_front(&thread_data::resume));
+            if (resumed_thread == threads_.end())
             {
-                if (t.resume())
-                    return true;
-            }
+                if (tasks_.size() >= threads_.size())
+                {
+                    thread_data data = { worker, this, false };
+                    if (!data)
+                        return false;
+                    threads_.push_back(std::move(data));
+                }
 
-            if (tasks_.size() < threads_.size())
-                return true;
-            if (!this->spawn_thread(false))
-            {
-                store_func.reset();
-                return false;
+                // todo:  check are threads valid
             }
         }
+        else if (threads_.empty())
+        {
+            return false;
+        }
 
-        // ELSE:  check are threads valid
+        tasks_.emplace_front(std::move(func));
 
         return true;
     }
