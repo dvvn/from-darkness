@@ -91,20 +91,20 @@ class menu_impl final : public menu_base, public basic_menu, public obj::window
 
     virtual void push_front(callback_type&& callback) override
     {
-        const lock_guard lock(mtx_);
+        const lock_guard lock = mtx_;
         menu_base::push_front(std::move(callback));
     }
 
     virtual void push_back(callback_type&& callback) override
     {
-        const lock_guard lock(mtx_);
+        const lock_guard lock = mtx_;
         menu_base::push_back(std::move(callback));
     }
 
     virtual void operator()() override
     {
         // todo: don't lock if much time passed from start
-        const lock_guard lock(mtx_);
+        const lock_guard lock = mtx_;
         this->render();
         if (this->shown() /* && !this->collapsed() */)
         {
