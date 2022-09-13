@@ -1,48 +1,37 @@
 module;
 
-#include <fd/callback.h>
+#include <utility>
 
-#include <source_location>
+export module fd.assert.impl;
+export import fd.assert;
+export import fd.string;
+import fd.callback;
+import fd.mutex;
 
-export module fd.assert;
-import fd.string;
+using namespace fd;
 
-struct assert_data
+class default_assert_handler : public assert_handler_t
 {
-    const char* expression;
-    const char* message;
-    std::source_location location;
+    callback_simple<const assert_data&> data_;
+    mutable mutex mtx_;
 
-    constexpr assert_data(const char* expr, const char* msg = nullptr, const std::source_location loc = std::source_location::current())
-        : expression(expr)
-        , message(msg)
-        , location(loc)
+  public:
+    default_assert_handler();
+
+    template <typename Fn>
+    void add(Fn&& fn)
     {
+        const lock_guard guard = mtx_;
+        data_.emplace_back(std::forward<Fn>(fn));
     }
 
-    fd::wstring build_message() const;
+    void operator()(const assert_data& adata) const override;
 };
 
-// constexpr auto assert_handler = fd::instance_of<fd::abstract_callback<void, const assert_data&>, 1337>;
-
-FD_CALLBACK(assert_handler, void, const assert_data&);
-
-// using assert_handler_t = fd::abstract_callback<bool, const assert_data&>;
-// FD_OBJECT(assert_handler, assert_handler_t)
-
-constexpr bool can_invoke_assert_handler(const char*)
-{
-    return true;
-}
-
-constexpr bool can_invoke_assert_handler(const bool expr_result)
-{
-    return expr_result == false;
-}
+wstring parse_assert_message(const assert_data& adata);
 
 export namespace fd
 {
-    using ::assert_data;
-    using ::assert_handler;
-    using ::can_invoke_assert_handler;
+    using ::default_assert_handler;
+    using ::parse_assert_message;
 } // namespace fd

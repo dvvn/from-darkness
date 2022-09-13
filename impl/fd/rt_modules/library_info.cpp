@@ -228,7 +228,7 @@ constexpr auto _Log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const a
 
 static void _Log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view raw_name, const void* addr)
 {
-    if (!logger->active())
+    if (!logger)
         return;
 
     const auto _Log_found_object_ex = [&](const auto object_type, const auto object) {

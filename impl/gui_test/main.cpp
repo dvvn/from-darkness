@@ -9,7 +9,8 @@
 import fd.functional.lazy_invoke;
 import fd.functional.bind;
 
-import fd.logger;
+import fd.logger.impl;
+import fd.assert.impl;
 import fd.system.console;
 import fd.gui.context;
 
@@ -110,11 +111,18 @@ int main(int, char**)
     /* if (!fd_init_core())
         return TRUE; */
 
-    logger->append([](const auto str) {
-        invoke(system_console_writer, str);
-    });
-    assert_handler->push_back([](const assert_data& data) {
-        invoke(system_console_writer, data.build_message());
+    default_logs_handler logs_callback;
+    logger = &logs_callback;
+
+    logs_callback.add(system_console_writer);
+
+    //---
+
+    default_assert_handler assert_callback;
+    assert_handler = &assert_callback;
+
+    assert_callback.add([](const assert_data& data) {
+        invoke(system_console_writer, parse_assert_message(data));
     });
 
     // FD_OBJECT_GET(IDirect3DDevice9*).construct(g_pd3dDevice.Get());

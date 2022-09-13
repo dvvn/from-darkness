@@ -4,7 +4,6 @@ module;
 
 export module fd.gui.objects;
 export import fd.string;
-import fd.callback.impl;
 
 using fd::string_view;
 

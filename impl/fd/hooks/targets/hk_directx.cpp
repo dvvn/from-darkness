@@ -9,7 +9,7 @@ module;
 
 module fd.hooks.directx;
 import fd.functional.invoke;
-import fd.gui.menu;
+// import fd.gui.menu;
 
 using namespace fd;
 using namespace hooks;
@@ -58,7 +58,8 @@ struct render_interface
 
         ImGui::NewFrame();
         {
-            invoke(gui::menu);
+            // invoke(gui::menu);
+            ImGui::ShowDemoWindow();
         }
         ImGui::EndFrame();
 

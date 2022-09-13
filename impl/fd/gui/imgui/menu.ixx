@@ -1,3 +1,4 @@
+#if 0
 module;
 
 #include <fd/object.h>
@@ -20,3 +21,4 @@ export namespace fd::gui
 {
     using ::menu;
 } // namespace fd::gui
+#endif

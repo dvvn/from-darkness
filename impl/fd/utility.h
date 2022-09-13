@@ -80,7 +80,7 @@ namespace fd
 #else
     [[noreturn]] inline void unreachable()
     {
-        std::abort();
+        std::terminate();
     }
 #endif
 } // namespace fd

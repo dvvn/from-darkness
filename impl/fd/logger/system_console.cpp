@@ -15,9 +15,6 @@ module;
 #include <time.h>
 
 module fd.system.console;
-#ifdef _DEBUG
-import fd.utf_convert;
-#endif
 import fd.chars_cache;
 import fd.format;
 import fd.mutex;

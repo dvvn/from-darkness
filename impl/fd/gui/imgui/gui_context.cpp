@@ -11,8 +11,11 @@ class gui_context
 {
     ImGuiContext context_;
     ImFontAtlas font_atlas_;
-
     bool active_;
+
+    ImGuiMemAllocFunc old_allocator_;
+    ImGuiMemFreeFunc old_deleter_;
+    void* old_user_data_;
     ImGuiContext* old_context_;
 
   public:
@@ -20,6 +23,7 @@ class gui_context
     {
         if (active_)
             ImGui::Shutdown();
+        ImGui::SetAllocatorFunctions(old_allocator_, old_deleter_, old_user_data_);
         ImGui::SetCurrentContext(old_context_);
     }
 
@@ -31,6 +35,15 @@ class gui_context
     {
         IMGUI_CHECKVERSION();
         old_context_ = ImGui::GetCurrentContext();
+        ImGui::GetAllocatorFunctions(&old_allocator_, &old_deleter_, &old_user_data_);
+        ImGui::SetAllocatorFunctions(
+            [](const size_t size, void*) -> void* {
+                return new uint8_t[size];
+            },
+            [](void* buff, void*) {
+                auto correct_buff = static_cast<uint8_t*>(buff);
+                delete[] correct_buff;
+            });
         ImGui::SetCurrentContext(&context_);
         ImGui::Initialize();
         context_.SettingsHandlers.clear(); // remove default ini handler

@@ -1,3 +1,4 @@
+#if 0
 module;
 
 #include <fd/assert.h>
@@ -129,3 +130,4 @@ class menu_impl final : public menu_base, public basic_menu, public obj::window
 };
 
 FD_OBJECT_BIND_TYPE(menu, menu_impl);
+#endif

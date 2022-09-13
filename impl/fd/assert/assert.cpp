@@ -1,16 +1,13 @@
 module;
 
-#include <fd/callback/impl.h>
-
 #include <Windows.h>
 
 #include <exception>
 #include <source_location>
 
-module fd.assert;
+module fd.assert.impl;
 import fd.string.make;
-import fd.utf_convert;
-import fd.mutex;
+import fd.string.utf;
 
 using namespace fd;
 
@@ -20,7 +17,7 @@ static auto _Build_message(const assert_data& data, T... extra)
 #define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", location.file_name(), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
 #define EXPR       "Expression: ", expression
     const auto [expression, message, location] = data;
-    string msg;
+    utf_string<wchar_t> msg;
 
     if (expression && message)
         msg = make_string(FIRST_PART, EXPR, "\n\n", message, extra...);
@@ -31,27 +28,7 @@ static auto _Build_message(const assert_data& data, T... extra)
     else
         msg = make_string(FIRST_PART, extra...);
 
-    return utf_convert<wchar_t>(msg);
-}
-
-template <typename B>
-static auto _Assert_msg(const B builder, const char* expression, const char* message)
-{
-    if (!expression)
-        return builder(message);
-    if (!message)
-        return builder(expression);
-
-    return builder(expression, " (", message, ')');
-}
-
-using assert_handler_base = FD_CALLBACK_TYPE(assert_handler);
-
-template <typename It>
-static auto _Swap_with_next(It it)
-{
-    using std::swap;
-    swap(*it, *(it + 1));
+    return msg;
 }
 
 static void _Default_assert_handler(const assert_data& data)
@@ -72,57 +49,18 @@ static void _Default_assert_handler(const assert_data& data)
 #endif
 }
 
-//#define MANUAL_ASSERT_LOCK
-
-class assert_handler_impl final : public assert_handler_base
+default_assert_handler::default_assert_handler()
 {
-    mutex mtx_;
+    data_.push_back(_Default_assert_handler);
+}
 
-  public:
-    using assert_handler_base::callback_type;
-
-    assert_handler_impl()
-    {
-#ifdef MANUAL_ASSERT_LOCK
-        assert_handler_base::push_front([this](auto&) {
-            mtx_.lock();
-        });
-
-        assert_handler_base::push_back([this](auto& data) {
-            _Default_assert_handler(data);
-            mtx_.unlock();
-        });
-#else
-        assert_handler_base::push_back(_Default_assert_handler);
-#endif
-    }
-
-#ifdef MANUAL_ASSERT_LOCK
-    void push_front(callback_type&& callback) override
-    {
-        assert_handler_base::push_front(std::move(callback));
-        // mutex locker must be first
-        _Swap_with_next(this->storage_.begin());
-    }
-#else
-    void operator()(const assert_data& data) override
-    {
-        const lock_guard l(mtx_);
-        invoke(*static_cast<assert_handler_base*>(this), data);
-    }
-#endif
-
-    void push_back(callback_type&& callback) override
-    {
-        assert_handler_base::push_back(std::move(callback));
-        // messagebox handler must be last
-        _Swap_with_next(this->storage_.rbegin());
-    }
-};
-
-FD_CALLBACK_BIND(assert_handler, assert_handler_impl);
-
-wstring assert_data::build_message() const
+void default_assert_handler::operator()(const assert_data& adata) const
 {
-    return _Build_message(*this);
+    const lock_guard guard = mtx_;
+    invoke(data_, adata);
+}
+
+wstring parse_assert_message(const assert_data& adata)
+{
+    return _Build_message(adata);
 }

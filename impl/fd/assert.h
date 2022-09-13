@@ -4,12 +4,10 @@
 
 #ifdef _DEBUG
 import fd.assert;
-import fd.functional.invoke;
 
-#define FD_ASSERT(_EXPRESSION_OR_MESSAGE_, /*message for expression*/...)                                          \
-    {                                                                                                              \
-        if (fd::can_invoke_assert_handler(_EXPRESSION_OR_MESSAGE_))                                                \
-            fd::invoke(fd::assert_handler, fd::assert_data(FD_STRINGIZE(_EXPRESSION_OR_MESSAGE_), ##__VA_ARGS__)); \
+#define FD_ASSERT(_EXPRESSION_OR_MESSAGE_, /*message for expression*/...)                                                               \
+    {                                                                                                                                   \
+        fd::invoke(fd::assert_handler, fd::assert_data(FD_STRINGIZE(_EXPRESSION_OR_MESSAGE_), ##__VA_ARGS__), _EXPRESSION_OR_MESSAGE_); \
     }
 #define FD_ASSERT_UNREACHABLE(_MESSAGE_)                            \
     {                                                               \
