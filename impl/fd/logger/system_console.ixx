@@ -1,21 +1,101 @@
 module;
 
-#include <fd/object.h>
+#include <Windows.h>
+
+#include <cstdint>
+#include <cstdio>
 
 export module fd.system.console;
 export import fd.string;
+import fd.mutex;
 
-struct console_writer
+using namespace fd;
+
+class file_stream
 {
-    virtual ~console_writer() = default;
+    FILE* stream_;
+    bool redirected_;
 
-    virtual void operator()(const fd::string_view str)   = 0;
-    virtual void operator()(const fd::wstring_view wstr) = 0;
+    file_stream(const file_stream&)            = default;
+    file_stream& operator=(const file_stream&) = default;
+
+  public:
+    ~file_stream();
+    file_stream();
+    file_stream(FILE* stream);
+    file_stream(const char* file_name, const char* mode, FILE* old_stream);
+    file_stream(file_stream&& other);
+    file_stream& operator=(file_stream&& other);
+    operator void*() const;
+    operator FILE*() const;
 };
 
-FD_OBJECT(system_console_writer, console_writer);
+// gap. unused
+class reader
+{
+    file_stream stream_;
+
+  public:
+    reader();
+    reader& operator=(file_stream&& stream);
+};
+
+class writer
+{
+    file_stream stream_;
+
+  public:
+    writer();
+    writer(file_stream&& stream);
+    writer& operator=(file_stream&& stream);
+
+    void write(const wchar_t* ptr, const size_t size);
+    void write(const char* ptr, const size_t size);
+};
+
+class logs_writer : writer
+{
+    mutex mtx_;
+
+    using writer::write;
+
+    template <class T, class S>
+    void write_impl(const T& time, const S text)
+    {
+        write(time.data(), time.size());
+        write(" - ", 3);
+        write(text.data(), text.size());
+        write("\n", 1);
+    }
+
+  public:
+    using writer::writer;
+    using writer::operator=;
+
+    void write_unsafe(const string_view text);
+    void write_unsafe(const wstring_view text);
+
+    void write(const string_view text);
+    void write(const wstring_view text);
+};
+
+class system_console
+{
+    reader in_;
+    logs_writer out_;
+    logs_writer err_;
+
+    HWND window_ = nullptr;
+
+  public:
+    ~system_console();
+    system_console();
+
+    void write(const string_view str);
+    void write(const wstring_view wstr);
+};
 
 export namespace fd
 {
-    using ::system_console_writer;
+    using ::system_console;
 }

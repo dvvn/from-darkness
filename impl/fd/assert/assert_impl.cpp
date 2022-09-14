@@ -1,5 +1,9 @@
 module;
 
+#ifdef FD_ROOT_DIR
+#include <fd/utility.h>
+#endif
+
 #include <Windows.h>
 
 #include <exception>
@@ -11,10 +15,23 @@ import fd.string.utf;
 
 using namespace fd;
 
+static auto _Correct_file_name(const string_view full_path)
+{
+#ifdef FD_ROOT_DIR
+    constexpr string_view root_dir = FD_STRINGIZE(FD_ROOT_DIR);
+    if (full_path.starts_with(root_dir))
+    {
+        constexpr auto offset = root_dir.back() == '\\' || root_dir.back() == '/' ? 0 : 1;
+        return full_path.substr(root_dir.size() + offset);
+    }
+#endif
+    return full_path;
+}
+
 template <typename... T>
 static auto _Build_message(const assert_data& data, T... extra)
 {
-#define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", location.file_name(), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
+#define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", _Correct_file_name(location.file_name()), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
 #define EXPR       "Expression: ", expression
     const auto [expression, message, location] = data;
     utf_string<wchar_t> msg;
@@ -51,16 +68,16 @@ static void _Default_assert_handler(const assert_data& data)
 
 default_assert_handler::default_assert_handler()
 {
-    data_.push_back(_Default_assert_handler);
+    data_.emplace_back(_Default_assert_handler);
 }
 
-void default_assert_handler::operator()(const assert_data& adata) const
+void default_assert_handler::operator()(const assert_data& adata) const noexcept
 {
     const lock_guard guard = mtx_;
     invoke(data_, adata);
 }
 
-wstring parse_assert_message(const assert_data& adata)
+assert_data_parsed ::assert_data_parsed(const assert_data& adata)
+    : wstring(_Build_message(adata))
 {
-    return _Build_message(adata);
 }

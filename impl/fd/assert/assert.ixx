@@ -1,37 +1,51 @@
 module;
 
-#include <utility>
+#include <source_location>
 
-export module fd.assert.impl;
-export import fd.assert;
-export import fd.string;
-import fd.callback;
-import fd.mutex;
+export module fd.assert;
+export import fd.functional.invoke;
 
-using namespace fd;
-
-class default_assert_handler : public assert_handler_t
+struct assert_data
 {
-    callback_simple<const assert_data&> data_;
-    mutable mutex mtx_;
+    const char* expression;
+    const char* message;
+    std::source_location location;
 
-  public:
-    default_assert_handler();
-
-    template <typename Fn>
-    void add(Fn&& fn)
+    constexpr assert_data(const char* expr, const char* msg = nullptr, const std::source_location loc = std::source_location::current())
+        : expression(expr)
+        , message(msg)
+        , location(loc)
     {
-        const lock_guard guard = mtx_;
-        data_.emplace_back(std::forward<Fn>(fn));
     }
-
-    void operator()(const assert_data& adata) const override;
 };
 
-wstring parse_assert_message(const assert_data& adata);
+struct basic_assert_handler
+{
+    virtual ~basic_assert_handler()                            = default;
+    virtual void operator()(const assert_data&) const noexcept = 0;
+};
 
 export namespace fd
 {
-    using ::default_assert_handler;
-    using ::parse_assert_message;
+    using ::assert_data;
+    using ::basic_assert_handler;
+
+    constexpr void invoke(basic_assert_handler* handler, const assert_data& data, const char*)
+    {
+        invoke(*handler, data);
+    }
+
+    constexpr void invoke(basic_assert_handler* handler, const assert_data& data, const bool expr_result)
+    {
+        if (!expr_result)
+            invoke(*handler, data);
+    }
+
+    [[noreturn]] void invoke(basic_assert_handler* handler, const assert_data& data, invocable auto fn)
+    {
+        invoke(*handler, data);
+        invoke(fn); // unreachable
+    }
+
+    basic_assert_handler* assert_handler;
 } // namespace fd

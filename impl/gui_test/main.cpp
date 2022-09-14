@@ -16,10 +16,15 @@ import fd.gui.context;
 
 import fd.hooks.directx;
 import fd.hooks.winapi;
-
 import fd.hooks.loader;
 
 using namespace fd;
+
+#ifdef _DEBUG
+constexpr DWORD _D3DERR_INVALIDCALL = D3DERR_INVALIDCALL;
+#undef D3DERR_INVALIDCALL
+constexpr auto D3DERR_INVALIDCALL = _D3DERR_INVALIDCALL;
+#endif
 
 static comptr<IDirect3D9> g_pD3D;
 static comptr<IDirect3DDevice9> g_pd3dDevice;
@@ -94,6 +99,9 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 int main(int, char**)
 {
+    default_assert_handler assert_callback;
+    assert_handler = &assert_callback;
+
     const auto hmodule  = GetModuleHandle(nullptr);
     const WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, hmodule, nullptr, nullptr, nullptr, nullptr, _T("GUI TEST"), nullptr };
     ::RegisterClassEx(&wc);
@@ -111,18 +119,17 @@ int main(int, char**)
     /* if (!fd_init_core())
         return TRUE; */
 
+    system_console sys_console;
+
     default_logs_handler logs_callback;
     logger = &logs_callback;
 
-    logs_callback.add(system_console_writer);
+    logs_callback.add([&](auto msg) {
+        sys_console.write(msg);
+    });
 
-    //---
-
-    default_assert_handler assert_callback;
-    assert_handler = &assert_callback;
-
-    assert_callback.add([](const assert_data& data) {
-        invoke(system_console_writer, parse_assert_message(data));
+    assert_callback.add([&](const assert_data_parsed data_parsed) {
+        sys_console.write(data_parsed);
     });
 
     // FD_OBJECT_GET(IDirect3DDevice9*).construct(g_pd3dDevice.Get());

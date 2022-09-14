@@ -222,7 +222,7 @@ class template_comparer
                 if (*pos == c)
                     return pos;
             }
-            fd::unreachable();
+            return nullptr;
         };
 
         // skip XXXXtype_name_raw
