@@ -5,6 +5,7 @@ module;
 #include <windows.h>
 #include <winternl.h>
 
+#include <algorithm>
 #include <array>
 #include <span>
 #include <typeinfo>
@@ -14,7 +15,7 @@ import fd.logger;
 import fd.filesystem.path;
 import fd.mem_scanner;
 import fd.chars_cache;
-import fd.ctype;
+import fd.string.info;
 import fd.functional.bind;
 import fd.string.make;
 import fd.demangle_symbol;
@@ -868,7 +869,7 @@ void* library_info::find_csgo_interface(const void* create_interface_fn, const s
             {
                 const auto whole_name_size = reg.name_size(name);
 #ifdef _DEBUG
-                if (!is_digit(reg.name() + name.size(), reg.name() + whole_name_size))
+                if (!std::all_of(reg.name() + name.size(), reg.name() + whole_name_size, is_digit))
                     FD_ASSERT("Incorrect given interface name");
                 const auto next_reg = reg + 1;
                 if (next_reg)

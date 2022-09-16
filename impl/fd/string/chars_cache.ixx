@@ -178,6 +178,8 @@ export namespace fd
     template <simple_chars_cache C>
     constexpr auto& simple_chars_cache_buff = C;
 
+#if 0
+
     template <typename C, size_t Size>
     struct hash<chars_cache<C, Size>>
     {
@@ -199,6 +201,8 @@ export namespace fd
             return _Hash_bytes(str.data(), str.size());
         }
     };
+
+#endif
 
     using ::chars_cache;
     using ::simple_chars_cache;

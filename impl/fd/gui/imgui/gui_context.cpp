@@ -7,35 +7,49 @@ module;
 
 module fd.gui.context;
 
+class imgui_backup
+{
+    ImGuiMemAllocFunc allocator_;
+    ImGuiMemFreeFunc deleter_;
+    void* user_data_;
+    ImGuiContext* context_;
+
+  public:
+    ~imgui_backup()
+    {
+        ImGui::SetAllocatorFunctions(allocator_, deleter_, user_data_);
+        ImGui::SetCurrentContext(context_);
+    }
+
+    imgui_backup()
+    {
+        context_ = ImGui::GetCurrentContext();
+        ImGui::GetAllocatorFunctions(&allocator_, &deleter_, &user_data_);
+    }
+
+    imgui_backup(const imgui_backup&)            = delete;
+    imgui_backup& operator=(const imgui_backup&) = delete;
+};
+
 class gui_context
 {
+    imgui_backup backup_;
     ImGuiContext context_;
     ImFontAtlas font_atlas_;
     bool active_;
-
-    ImGuiMemAllocFunc old_allocator_;
-    ImGuiMemFreeFunc old_deleter_;
-    void* old_user_data_;
-    ImGuiContext* old_context_;
 
   public:
     ~gui_context()
     {
         if (active_)
             ImGui::Shutdown();
-        ImGui::SetAllocatorFunctions(old_allocator_, old_deleter_, old_user_data_);
-        ImGui::SetCurrentContext(old_context_);
     }
-
-    gui_context(const gui_context&)            = delete;
-    gui_context& operator=(const gui_context&) = delete;
 
     gui_context()
         : context_(&font_atlas_)
     {
         IMGUI_CHECKVERSION();
-        old_context_ = ImGui::GetCurrentContext();
-        ImGui::GetAllocatorFunctions(&old_allocator_, &old_deleter_, &old_user_data_);
+
         ImGui::SetAllocatorFunctions(
             [](const size_t size, void*) -> void* {
                 return new uint8_t[size];
@@ -45,7 +59,9 @@ class gui_context
                 delete[] correct_buff;
             });
         ImGui::SetCurrentContext(&context_);
+
         ImGui::Initialize();
+
         context_.SettingsHandlers.clear(); // remove default ini handler
         context_.IO.IniFilename = nullptr; //
 
@@ -60,10 +76,11 @@ class gui_context
 
     void reset()
     {
-        if (!active_)
-            return;
-        ImGui::Shutdown();
-        active_ = false;
+        if (active_)
+        {
+            ImGui::Shutdown();
+            active_ = false;
+        }
     }
 };
 

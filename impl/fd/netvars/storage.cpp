@@ -13,7 +13,7 @@ module;
 module fd.netvars.storage;
 import fd.netvars.table;
 import fd.netvars.type_resolve;
-import fd.ctype;
+import fd.string.info;
 import fd.string.make;
 import fd.functional.fn;
 import fd.functional.bind;
@@ -298,8 +298,10 @@ class datatable_parser
         constexpr auto is_length_proxy = [](const recv_prop* prop) {
             if (prop->array_length_proxy)
                 return true;
-
-            const auto lstr = to_lower(prop->name);
+            const auto buff_size = str_len(prop->name);
+            string lstr;
+            lstr.reserve(buff_size);
+            std::transform(prop->name, prop->name + buff_size, std::back_insert_iterator(lstr), to_lower);
             return lstr.contains("length") && lstr.contains("proxy");
         };
 

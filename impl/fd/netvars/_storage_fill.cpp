@@ -7,7 +7,7 @@ module;
 #include <ranges>
 
 module fd.netvars.core:storage;
-import fd.ctype;
+import fd.string.info;
 import fd.string.make;
 
 using namespace fd;

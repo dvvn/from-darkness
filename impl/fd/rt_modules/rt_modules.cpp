@@ -4,6 +4,9 @@ module;
 
 #include "dll_notification.h"
 
+#include <iterator>
+#include <ranges>
+
 module fd.rt_modules;
 import fd.filesystem.path;
 import fd.semaphore;
@@ -99,7 +102,7 @@ unknown_module::unknown_module(const wstring_view name, const bool exact, const 
     if (exact)
         name_ = name;
     else
-        name_ = make_string(to_lower(name), extension);
+        name_ = make_string(name | std::views::transform(to_lower), extension | std::views::transform(to_lower));
 
     info_ = library_info::find(name_);
 }

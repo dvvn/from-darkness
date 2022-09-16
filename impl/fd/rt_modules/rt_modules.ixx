@@ -8,7 +8,7 @@ module;
 export module fd.rt_modules;
 export import :library_info;
 import fd.chars_cache;
-import fd.ctype;
+import fd.string.info;
 
 using namespace fd;
 

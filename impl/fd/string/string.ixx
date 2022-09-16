@@ -8,8 +8,6 @@ module;
 #include <string>
 
 export module fd.string;
-export import fd.hash;
-
 #define _ALL_TYPES(_FN_, ...)      \
     _FN_(char, ##__VA_ARGS__);     \
     _FN_(wchar_t, ##__VA_ARGS__);  \
@@ -30,30 +28,6 @@ export import fd.hash;
 #define _EMPTY
 
 #define _USING(_C_, _NAME_) using _ADD_PREFIX(_C_, _NAME_) = basic_##_NAME_<_C_>;
-
-template <typename Chr, size_t Size>
-struct trivial_chars_cache
-{
-    Chr arr[Size];
-
-    constexpr trivial_chars_cache(const Chr* str_source)
-    {
-        std::copy_n(str_source, Size, arr);
-    }
-
-    constexpr const Chr* begin() const
-    {
-        return arr;
-    }
-
-    constexpr size_t size() const
-    {
-        return Size - 1;
-    }
-};
-
-template <typename Chr, size_t Size>
-trivial_chars_cache(const Chr (&arr)[Size]) -> trivial_chars_cache<Chr, Size>;
 
 using std::basic_string;
 using std::basic_string_view;
@@ -130,45 +104,6 @@ constexpr bool operator==(const C* left, const basic_string<C>& right)
     return right == left;
 }
 
-template <typename T>
-class hashed_string_view
-{
-    const T* ptr_;
-    size_t size_;
-    size_t hash_;
-
-  public:
-    constexpr hashed_string_view(const T* ptr, const size_t size)
-        : ptr_(ptr)
-        , size_(size)
-        , hash_(fd::_Hash_bytes(ptr, size))
-    {
-    }
-
-    constexpr operator size_t const()
-    {
-        return hash_;
-    }
-
-    constexpr bool operator==(const hashed_string_view& other) const
-    {
-        return hash_ == other.hash_;
-    }
-
-    constexpr bool operator==(const basic_string_view<T> other) const
-    {
-        return size_ == other.size() && _Ptr_equal(ptr_, other.data(), size_);
-    }
-
-    constexpr bool operator==(const basic_string<T>& other) const
-    {
-        return size_ == other.size() && _Ptr_equal(ptr_, other.data(), size_);
-    }
-};
-
-template <typename T>
-hashed_string_view(const T*, const size_t) -> hashed_string_view<T>;
-
 export namespace fd
 {
     template <typename T>
@@ -176,38 +111,6 @@ export namespace fd
     {
         return std::char_traits<T>::length(ptr);
     }
-
-    template <typename C>
-    struct hash<basic_string_view<C>>
-    {
-        constexpr size_t operator()(const basic_string_view<C> str) const
-        {
-            return _Hash_bytes(str.data(), str.size());
-        }
-    };
-
-    template <typename C>
-    struct hash<basic_string<C>> : hash<basic_string_view<C>>
-    {
-        constexpr size_t operator()(const basic_string<C>& str) const
-        {
-            return _Hash_bytes(str.data(), str.size());
-        }
-    };
-
-    inline namespace literals
-    {
-        template <trivial_chars_cache Cache>
-        consteval auto operator"" _hash() -> decltype(hashed_string_view(Cache.begin(), 1))
-        {
-            return { Cache.begin(), Cache.size() };
-        }
-
-        static_assert("test"_hash == u8"test"_hash);
-        static_assert(u"test"_hash == "t\0e\0s\0t\0"_hash);
-        static_assert(U"test"_hash == u"t\0e\0s\0t\0"_hash);
-        static_assert(U"ab"_hash == "a\0\0\0b\0\0\0"_hash);
-    } // namespace literals
 
     _ALL_TYPES(_USING, string);
     _ALL_TYPES(_USING, string_view);

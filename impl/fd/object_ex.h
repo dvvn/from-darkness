@@ -5,7 +5,7 @@
 #include <string>
 
 import fd.filesystem.path;
-import fd.ctype;
+import fd.string.info;
 
 #if 1
 

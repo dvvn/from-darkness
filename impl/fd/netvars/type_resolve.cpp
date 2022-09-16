@@ -12,7 +12,7 @@ import fd.math.view_matrix;
 import fd.math.vector2;
 import fd.valve.vector;
 import fd.valve.base_handle;
-import fd.ctype;
+import fd.string.info;
 import fd.type_name;
 import fd.string.make;
 
@@ -71,9 +71,14 @@ string_view netvars::type_vec3(const string_view type)
         if (is_digit(type[0]))
             return false;
         const auto prefix = _Extract_prefix(type);
-        if (prefix == "ang"_hash)
+        if (prefix == "ang")
             return true;
-        return to_lower(prefix.empty() ? type : type.substr(2)).contains("angles");
+        const auto type_fixed = prefix.empty() ? type : type.substr(2);
+        const auto ang        = type_fixed.find("ngles");
+        if (ang == type_fixed.npos || ang == 0)
+            return false;
+        const auto chr = type_fixed[ang - 1];
+        return chr == 'a' || chr == 'A';
     };
 
     return vec3_qangle() ? type_name<math::qangle>() : type_name<math::vector3>();
@@ -223,21 +228,22 @@ string_view netvars::type_datamap_field(const data_map_description* field)
 
 static string_view _Check_int_prefix(const string_view type)
 {
-    if (_Extract_prefix(type) == "uch"_hash)
+    if (_Extract_prefix(type) == "uch")
         return type_name<math::color>();
     return {};
 }
 
 static string_view _Check_float_prefix(const string_view type)
 {
-    /* const auto prefix = _Extract_prefix(type);
+#if 1
+    const auto prefix = _Extract_prefix(type);
     if (prefix == "ang")
         return type_name<math::qangle>();
     if (prefix == "vec")
         return type_name<math::vector3>();
-    return {}; */
-
-    switch (_Hash_object(_Extract_prefix(type).substr(3)))
+    return {};
+#else
+    switch (_Extract_prefix(type).substr(3))
     {
     case "ang"_hash:
         return type_name<math::qangle>();
@@ -246,6 +252,7 @@ static string_view _Check_float_prefix(const string_view type)
     default:
         return {};
     }
+#endif
 }
 
 string_view netvars::type_array_prefix(const string_view type, const recv_prop* prop)
