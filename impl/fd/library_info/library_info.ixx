@@ -6,7 +6,7 @@ module;
 #include <span>
 #include <typeinfo>
 
-export module fd.rt_modules:library_info;
+export module fd.library_info;
 export import fd.string;
 
 using namespace fd;
@@ -155,12 +155,9 @@ struct library_info
 
   public:
     static library_info find(const wstring_view name, const bool notify = true);
+    static library_info find_wait(const wstring_view name, const bool notify = true); // todo: delay or cancel
 
-    constexpr library_info()
-        : entry_(nullptr)
-    {
-    }
-
+    library_info();
     library_info(pointer entry);
     library_info(const wstring_view name, const bool notify = true);
     library_info(const IMAGE_DOS_HEADER* base_address, const bool notify = true);
@@ -202,7 +199,7 @@ struct library_info
     template <class T>
     T* find_vtable(const bool notify = true) const
     {
-        constexpr correct_type_name name(simple_type_name<T>());
+        constexpr correct_type_name name = simple_type_name<T>();
         void* ptr;
         if constexpr (name.contains('<')) // templates currently unsupported
         {
@@ -210,9 +207,9 @@ struct library_info
         }
         else if constexpr (name.contains(':'))
         {
-            constexpr rewrapped_namespaces corr_name(name);
-            constexpr auto size = corr_name.calc_size();
-            constexpr auto ret  = corr_name.get<size>();
+            constexpr rewrapped_namespaces corr_name = name;
+            constexpr auto size                      = corr_name.calc_size();
+            constexpr auto ret                       = corr_name.get<size>();
             constexpr string_view result(ret.buff, size);
             // const string_view test = typeid(T).raw_name();
             if constexpr (corr_name.is_class())
@@ -231,13 +228,42 @@ struct library_info
         }
         return static_cast<T*>(ptr);
     }
+};
 
-    void* find_csgo_interface(const string_view name, const bool notify = true) const;
-    void* find_csgo_interface(const void* create_interface_fn, const string_view name, const bool notify = true) const;
+struct csgo_library_info : library_info
+{
+    using library_info::library_info;
+
+    void* find_interface(const string_view name, const bool notify = true) const;
+    void* find_interface(const void* create_interface_fn, const string_view name, const bool notify = true) const;
+};
+
+struct current_library_info : library_info
+{
+    current_library_info();
 };
 
 export namespace fd
 {
     using ::dos_nt;
+
+    using ::csgo_library_info;
+    using ::current_library_info;
     using ::library_info;
 } // namespace fd
+
+/*
+server,
+client,
+engine,
+dataCache,
+materialSystem,
+vstdlib,
+vgui2,
+vguiMatSurface,
+vphysics,
+inputSystem,
+studioRender,
+shaderApiDx9,
+serverBrowser
+*/

@@ -13,11 +13,11 @@ using namespace fd;
 
 string demangle_symbol(const char* mangled_name)
 {
-    constexpr allocation_function alloc = [](size_t size) {
-        return static_cast<void*>(new char[size]);
+    constexpr allocation_function alloc = [](size_t size) -> void* {
+        return new uint8_t[size];
     };
     constexpr free_function free_f = [](void* p) {
-        auto chr = static_cast<char*>(p);
+        auto chr = static_cast<uint8_t*>(p);
         delete[] chr;
     };
 

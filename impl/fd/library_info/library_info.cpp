@@ -2,6 +2,8 @@ module;
 
 #include <fd/assert.h>
 
+#include "dll_notification.h"
+
 #include <windows.h>
 #include <winternl.h>
 
@@ -10,15 +12,15 @@ module;
 #include <span>
 #include <typeinfo>
 
-module fd.rt_modules:library_info;
+module fd.library_info;
 import fd.logger;
 import fd.filesystem.path;
 import fd.mem_scanner;
-import fd.chars_cache;
 import fd.string.info;
 import fd.functional.bind;
 import fd.string.make;
 import fd.demangle_symbol;
+import fd.semaphore;
 
 using namespace fd;
 
@@ -272,23 +274,30 @@ constexpr auto _Bytes_to_sig(const T* bytes, const size_t size)
     return pattern;
 }
 
-template <chars_cache Str>
-consteval auto _Bytes_to_sig()
+template <size_t S>
+constexpr auto _Bytes_to_sig(const std::array<char, S>& str)
 {
-    constexpr auto size = (Str.size() << 1) + Str.size(); //_Bytes_to_sig(Str.data(), Str.size()).size();
-    const auto tmp      = _Bytes_to_sig(Str.data(), Str.size());
+    constexpr auto str_size = S - 1;
+    constexpr auto size     = (str_size << 1) + str_size;
+    const auto tmp          = _Bytes_to_sig(str.data(), str_size);
     std::array<char, size> buff{};
     std::copy(tmp.begin(), tmp.end(), buff.begin());
     return buff;
 }
 
+namespace std
+{
+    template <size_t S>
+    array(const char (&)[S]) -> array<char, S>;
+}
+
 struct rtti_info
 {
-    static constexpr chars_cache raw_prefix  = ".?A";
-    static constexpr chars_cache raw_postfix = "@@";
+    static constexpr std::array raw_prefix  = { ".?A" };
+    static constexpr std::array raw_postfix = { "@@" };
 
-    static constexpr auto raw_prefix_bytes  = _Bytes_to_sig<raw_prefix>();
-    static constexpr auto raw_postfix_bytes = _Bytes_to_sig<raw_postfix>();
+    static constexpr auto raw_prefix_bytes  = _Bytes_to_sig(raw_prefix);
+    static constexpr auto raw_postfix_bytes = _Bytes_to_sig(raw_prefix);
 
     static constexpr auto class_prefix  = 'V';
     static constexpr auto struct_prefix = 'U';
@@ -347,10 +356,71 @@ library_info library_info::find(const wstring_view name, const bool notify)
     return entry;
 }
 
-/* library_info::library_info()
+struct callback_data_t
+{
+    wstring_view name;
+    semaphore sem = { 0, 1 };
+    library_info found;
+};
+
+static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
+{
+    const auto data = static_cast<callback_data_t*>(Context);
+
+    current_library_info current;
+
+    if (NotificationReason == LDR_DLL_NOTIFICATION_REASON_UNLOADED)
+    {
+        if (NotificationData->Unloaded.DllBase != current->DllBase)
+            return;
+    }
+    else
+    {
+        const auto& full_name = *NotificationData->Loaded.FullDllName;
+        const wstring_view target_name(full_name.Buffer, full_name.Length / sizeof(WCHAR));
+
+        if (!target_name.ends_with(data->name))
+            return;
+        data->found = static_cast<IMAGE_DOS_HEADER*>(NotificationData->Loaded.DllBase);
+    }
+
+    data->sem.release();
+}
+
+static auto _Wait_prepare(const bool notify)
+{
+    const library_info ntdll = { L"ntdll.dll", notify };
+
+    const auto reg   = static_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
+    const auto unreg = static_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
+
+    return std::pair(reg, unreg);
+}
+
+library_info library_info::find_wait(const wstring_view name, const bool notify)
+{
+    const auto lib = library_info::find(name);
+    if (lib)
+        return lib;
+
+    static auto fn = _Wait_prepare(notify);
+
+    callback_data_t cb_data = { name };
+    void* cookie;
+    if (fn.first(0, _On_new_library, &cb_data, &cookie) != STATUS_SUCCESS)
+        return {};
+    if (!cb_data.sem.acquire())
+        return {};
+    if (fn.second(cookie) != STATUS_SUCCESS)
+        return {};
+
+    return cb_data.found;
+}
+
+library_info::library_info()
     : entry_(nullptr)
 {
-} */
+}
 
 library_info::library_info(pointer entry)
     : entry_(entry)
@@ -389,10 +459,8 @@ bool library_info::is_root() const
     });
     return first; */
     for (const auto& list : LIST_ENTRY_range())
-    {
-        auto entry = std::get<LDR_DATA_TABLE_ENTRY>(list);
-        return entry_ == entry;
-    }
+        return entry_ == std::get<LDR_DATA_TABLE_ENTRY>(list);
+
     return false;
 }
 
@@ -843,12 +911,12 @@ class interface_reg
     }
 };
 
-void* library_info::find_csgo_interface(const string_view name, const bool notify) const
+void* csgo_library_info::find_interface(const string_view name, const bool notify) const
 {
-    return find_csgo_interface(find_export("CreateInterface"), name, notify);
+    return find_interface(find_export("CreateInterface"), name, notify);
 }
 
-void* library_info::find_csgo_interface(const void* create_interface_fn, const string_view name, const bool notify) const
+void* csgo_library_info::find_interface(const void* create_interface_fn, const string_view name, const bool notify) const
 {
     if (!create_interface_fn)
         return nullptr;
@@ -890,7 +958,22 @@ void* library_info::find_csgo_interface(const void* create_interface_fn, const s
     }
 
     if (notify)
-        _Log_found_object(entry_, L"csgo interface", log_name.empty() ? name : log_name, ifc_addr);
+        _Log_found_object(this->get(), L"csgo interface", log_name.empty() ? name : log_name, ifc_addr);
 
     return ifc_addr;
+}
+
+static DECLSPEC_NOINLINE PVOID _Get_current_module_handle()
+{
+    MEMORY_BASIC_INFORMATION info;
+    constexpr size_t info_size      = sizeof(MEMORY_BASIC_INFORMATION);
+    // todo: is this is dll, try to load this function from inside
+    [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
+    FD_ASSERT(len == info_size, "Wrong size");
+    return info.AllocationBase;
+}
+
+current_library_info::current_library_info()
+    : library_info(static_cast<IMAGE_DOS_HEADER*>(_Get_current_module_handle()))
+{
 }

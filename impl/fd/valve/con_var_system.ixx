@@ -238,7 +238,7 @@ struct con_var : ConCommandBase, IConVar
 // Abstract interface for ConVars
 //-----------------------------------------------------------------------------
 
-struct con_var_system : public app_system
+struct con_var_system : app_system
 {
     virtual CVarDLLIdentifier_t AllocateDLLIdentifier()                                              = 0;
     virtual void RegisterConCommand(con_var* pCommandBase, int iDefaultValue = 1)                    = 0;
@@ -261,15 +261,7 @@ struct con_var_system : public app_system
     virtual void ConsoleDPrintf(const char* pFormat, ...) const                                      = 0;
     virtual void RevertFlaggedConVars(int nFlag)                                                     = 0;
 
-  public:
     con_var* FindVar(const fd::string_view name) const;
-
-    template <chars_cache Cvar>
-    con_var* FindVar() const
-    {
-        static const auto cvar = FindVar(Cvar);
-        return cvar;
-    }
 };
 
 export namespace fd::valve

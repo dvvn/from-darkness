@@ -21,7 +21,6 @@ import fd.json;
 import fd.logger;
 import fd.filesystem;
 //---
-import fd.rt_modules;
 // import fd.valve.base_entity;
 import fd.valve.engine_client;
 import fd.valve.base_client;
@@ -207,8 +206,8 @@ static bool _Can_skip_netvar(const string_view name)
     return name.contains('.');
 }
 
-//#define MERGE_DATA_TABLES
-//#define GENERATE_STRUCT_MEMBERS
+// #define MERGE_DATA_TABLES
+// #define GENERATE_STRUCT_MEMBERS
 
 class datatable_parser
 {
@@ -371,10 +370,7 @@ class datatable_parser
 };
 
 template <class J, typename T>
-concept json_can_access = requires(J& js, const T& test)
-{
-    js[test];
-};
+concept json_can_access = requires(J& js, const T& test) { js[test]; };
 
 template <class J, typename T>
 static auto& _Json_append(J& js, const T& str)
@@ -686,6 +682,10 @@ class storage_impl : public netvars_storage
 
     void init_default()
     {
+#if 1
+        FD_ASSERT_UNREACHABLE("WIP");
+#else
+
         // run default initialization
 
         this->iterate_client_class(FD_OBJECT_GET(base_client)->GetAllClasses(), "All");
@@ -701,6 +701,7 @@ class storage_impl : public netvars_storage
 #ifdef _DEBUG
         this->log_netvars(*FD_OBJECT_GET(logs_data));
         this->generate_classes(*FD_OBJECT_GET(classes_data));
+#endif
 #endif
     }
 
