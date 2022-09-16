@@ -399,7 +399,7 @@ static auto _Wait_prepare(const bool notify)
 
 library_info library_info::find_wait(const wstring_view name, const bool notify)
 {
-    const auto lib = library_info::find(name);
+    const auto lib = library_info::find(name, notify);
     if (lib)
         return lib;
 
@@ -866,8 +866,8 @@ class interface_reg
 
     equal operator==(const string_view interface_name) const
     {
-        const auto name_size = interface_name.size();
-        if (std::memcmp(this->name_, interface_name.data(), name_size) == 0)
+        const auto ifc_name_size = interface_name.size();
+        if (std::memcmp(this->name_, interface_name.data(), ifc_name_size) == 0)
         {
             const auto last_char = this->name_[interface_name.size()];
             if (last_char == '\0') // partially comared
