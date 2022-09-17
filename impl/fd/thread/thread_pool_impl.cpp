@@ -275,12 +275,12 @@ void thread_pool::wait()
         sem.acquire();
 }
 
-bool thread_pool::operator()(function_type func, const simple_tag_t)
+bool thread_pool::add_simple(function_type func)
 {
     return this->store_func(std::move(func));
 }
 
-auto thread_pool::operator()(function_type func) -> task_type
+auto thread_pool::add(function_type func) -> task_type
 {
     task_type t       = lockable_task(std::move(func));
     const auto stored = this->store_func([=] {
@@ -291,7 +291,7 @@ auto thread_pool::operator()(function_type func) -> task_type
     return t;
 }
 
-auto thread_pool::operator()(function_type func, const lazy_tag_t) -> task_type
+auto thread_pool::add_lazy(function_type func) -> task_type
 {
     auto new_func = [this, fn = std::move(func)](semaphore& sem) mutable {
         const auto stored = this->store_func([&] {
