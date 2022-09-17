@@ -24,9 +24,6 @@ namespace fd::valve
 using namespace fd;
 using namespace valve;
 
-using hashed_string_view = string_view;
-using hashed_string      = string;
-
 string netvars::type_std_array(const string_view type, const size_t size)
 {
     FD_ASSERT(size != 0);
@@ -49,7 +46,7 @@ string netvars::type_utlvector(const string_view type)
 }
 
 // m_xxxX***
-static hashed_string_view _Extract_prefix(const string_view type, const size_t prefix_size = 3)
+static string_view _Extract_prefix(const string_view type, const size_t prefix_size = 3)
 {
     const auto type_start = 2 + prefix_size;
     if (type.size() <= type_start)

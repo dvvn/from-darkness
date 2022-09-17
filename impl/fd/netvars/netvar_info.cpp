@@ -11,9 +11,7 @@ import fd.functional.overload;
 using namespace fd;
 using namespace valve;
 
-//---
-
-netvar_info::netvar_info(const size_t offset, const netvar_info_source source, const size_t size, const hashed_string_view name)
+netvar_info::netvar_info(const size_t offset, const netvar_info_source source, const size_t size, const string_view name)
     : offset_(offset)
     , source_(source)
     , size_(size)
@@ -33,7 +31,7 @@ size_t netvar_info::offset() const
 //	return *inner_ptr;
 // }
 
-hashed_string_view netvar_info::name() const
+string_view netvar_info::name() const
 {
     if (name_.empty())
     {
@@ -83,7 +81,7 @@ string_view netvar_info::type() const
 
 //----
 
-netvar_info_instant::netvar_info_instant(const size_t offset, const hashed_string_view name, string&& type)
+netvar_info_instant::netvar_info_instant(const size_t offset, const string_view name, string&& type)
     : offset_(offset)
     , name_(name)
     , type_(std::move(type))
@@ -95,7 +93,7 @@ size_t netvar_info_instant::offset() const
     return offset_;
 }
 
-hashed_string_view netvar_info_instant::name() const
+string_view netvar_info_instant::name() const
 {
     return name_;
 }

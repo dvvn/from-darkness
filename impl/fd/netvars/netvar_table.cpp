@@ -34,14 +34,14 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
     }
 }
 
-netvar_table::netvar_table(hashed_string&& name, const bool root)
+netvar_table::netvar_table(string&& name, const bool root)
     : name_(std::move(name))
     , root_(root)
 {
     FD_ASSERT(!name_.empty(), "Incorrect name");
 }
 
-hashed_string_view netvar_table::name() const
+string_view netvar_table::name() const
 {
     return name_;
 }
@@ -51,7 +51,7 @@ bool netvar_table::root() const
     return root_;
 }
 
-const basic_netvar_info* netvar_table::find(const hashed_string_view name) const
+const basic_netvar_info* netvar_table::find(const string_view name) const
 {
     FD_ASSERT(!name.empty());
 
@@ -70,7 +70,7 @@ const basic_netvar_info* netvar_table::find(const hashed_string_view name) const
     return std::holds_alternative<netvar_table_multi>(inner_);
 }
 
-netvar_table_multi& netvar_table_multi::inner(hashed_string&& name)
+netvar_table_multi& netvar_table_multi::inner(string&& name)
 {
     FD_ASSERT(!have_inner());
     auto& inner = inner_.emplace<netvar_table_multi>();

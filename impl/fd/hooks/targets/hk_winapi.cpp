@@ -138,7 +138,14 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
-    if (ImGui_ImplWin32_WndProcHandler(window, message, w_param, l_param))
-        return 1;
-    return invoke(&wndproc::callback, _Wndproc->get_original_method(), window, message, w_param, l_param);
+    const auto ctx         = ImGui::GetCurrentContext();
+    const auto size_before = ctx->InputEventsQueue.size();
+
+#define ARGS window, message, w_param, l_param
+
+    if (ImGui_ImplWin32_WndProcHandler(ARGS))
+        return TRUE;
+    const auto size_after = ctx->InputEventsQueue.size();
+
+    return size_before == size_after ? invoke(&wndproc::callback, _Wndproc->get_original_method(), ARGS) : invoke(DefWindowProc, ARGS);
 }

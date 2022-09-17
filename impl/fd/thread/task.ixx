@@ -1,17 +1,15 @@
 module;
 
 export module fd.task;
-export import fd.smart_ptr.shared;
 
-struct basic_task
+struct task
 {
-    virtual ~basic_task() = default;
-
+    virtual ~task()      = default;
     virtual void start() = 0;
     virtual void wait()  = 0;
 };
 
-struct basic_finished_task final : basic_task
+struct finished_task : task
 {
     void start() override;
     void wait() override;
@@ -19,12 +17,6 @@ struct basic_finished_task final : basic_task
 
 export namespace fd
 {
-    using ::basic_task;
-    using task = shared_ptr<basic_task>;
-
-    struct finished_task : task
-    {
-        finished_task();
-    };
-
+    using ::finished_task;
+    using ::task;
 } // namespace fd

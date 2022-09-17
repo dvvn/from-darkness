@@ -11,9 +11,6 @@ export import fd.smart_ptr.unique;
 
 using namespace fd;
 
-using hashed_string_view = string_view;
-using hashed_string      = string;
-
 template <class T>
 auto make_deleter(T*)
 {
@@ -28,18 +25,18 @@ using unique_ptr_ex = unique_ptr<T, void (*)(void*)>;
 
 class netvar_table : public std::vector<unique_ptr_ex<basic_netvar_info>>
 {
-    hashed_string name_;
+    string name_;
     bool root_;
 
   protected:
     void validate_item(const basic_netvar_info* info) const;
 
   public:
-    netvar_table(hashed_string&& name, const bool root);
+    netvar_table(string&& name, const bool root);
 
-    hashed_string_view name() const;
+    string_view name() const;
     bool root() const;
-    const basic_netvar_info* find(const hashed_string_view name) const;
+    const basic_netvar_info* find(const string_view name) const;
 
     template <typename... Args>
     const auto* add(Args&&... args)
@@ -63,7 +60,7 @@ class netvar_table_multi : public netvar_table
 
   public:
     bool have_inner() const;
-    netvar_table_multi& inner(hashed_string&& name);
+    netvar_table_multi& inner(string&& name);
     netvar_table_multi& inner();
     const netvar_table_multi& inner() const;
 }; */
