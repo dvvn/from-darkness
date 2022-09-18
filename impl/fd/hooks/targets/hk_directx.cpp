@@ -14,21 +14,6 @@ import fd.functional.invoke;
 using namespace fd;
 using namespace hooks;
 
-#if 0
-
-FD_HOOK_VTABLE(IDirect3DDevice9, reset, 16, void WINAPI, D3DPRESENT_PARAMETERS* params)
-{
-    gui::_Render_interface->release_textures();
-    call_original(params);
-}
-
-FD_HOOK_VTABLE(IDirect3DDevice9, present, 17, HRESULT WINAPI, THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region)
-{
-    invoke(gui::_Render_interface);
-    return call_original(source_rect, desc_rect, dest_window_override, dirty_region);
-}
-#endif
-
 struct render_interface
 {
     ~render_interface()
@@ -92,7 +77,7 @@ d3d9_reset::~d3d9_reset()
 {
     // added for logging only
     if (*this)
-        impl::disable();
+        this->disable();
 }
 
 d3d9_reset::d3d9_reset(IDirect3DDevice9* inst)
@@ -114,6 +99,14 @@ string_view d3d9_reset::name() const
     return "IDirect3DDevice9::Reset";
 }
 
+bool d3d9_reset::disable()
+{
+    const auto ok = impl::disable();
+    if (ok)
+        _Render_interface.reset();
+    return ok;
+}
+
 void WINAPI d3d9_reset::callback(D3DPRESENT_PARAMETERS* params)
 {
     _Render_interface->release_textures();
@@ -128,7 +121,7 @@ d3d9_present::~d3d9_present()
 {
     // added for logging only
     if (*this)
-        impl::disable();
+        this->disable();
 }
 
 d3d9_present::d3d9_present(IDirect3DDevice9* inst)
@@ -136,7 +129,7 @@ d3d9_present::d3d9_present(IDirect3DDevice9* inst)
     this->init({ inst, 17 }, &d3d9_present::callback);
     if (!_Render_interface)
         _Render_interface = inst;
-    _D3d9_present     = this;
+    _D3d9_present = this;
 }
 
 d3d9_present::d3d9_present(d3d9_present&& other)
@@ -148,6 +141,14 @@ d3d9_present::d3d9_present(d3d9_present&& other)
 string_view d3d9_present::name() const
 {
     return "IDirect3DDevice9::Present";
+}
+
+bool d3d9_present::disable()
+{
+    const auto ok = impl::disable();
+    if (ok)
+        _Render_interface.reset();
+    return ok;
 }
 
 HRESULT WINAPI d3d9_present::callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region)

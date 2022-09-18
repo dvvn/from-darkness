@@ -78,9 +78,9 @@ class thread_pool final : public basic_thread_pool
     ~thread_pool();
 
     void wait() override;
-    bool operator()(function_type func, const simple_tag_t) override;
-    task_type operator()(function_type func) override;
-    task_type operator()(function_type func, const lazy_tag_t) override;
+    bool add_simple(function_type func) override;
+    task_type add(function_type func) override;
+    task_type add_lazy(function_type func) override;
 };
 
 export namespace fd

@@ -107,9 +107,9 @@ constexpr bool operator==(const C* left, const basic_string<C>& right)
 export namespace fd
 {
     template <typename T>
-    constexpr size_t str_len(const T* ptr)
+    constexpr size_t str_len(const T* str)
     {
-        return std::char_traits<T>::length(ptr);
+        return std::char_traits<T>::length(str);
     }
 
     _ALL_TYPES(_USING, string);

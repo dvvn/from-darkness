@@ -5,10 +5,7 @@ module;
 export module fd.json;
 
 template <typename T>
-concept string_viewable = requires(const T& val)
-{
-    std::basic_string_view(val);
-};
+concept string_viewable = requires(const T& val) { std::basic_string_view(val); };
 
 template <typename Key, typename Value, class IgnoredLess = void, class Allocator = std::allocator<std::pair</* const  */ Key, Value>>>
 class fake_map : public std::vector<typename Allocator::value_type, Allocator>

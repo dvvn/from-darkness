@@ -15,38 +15,6 @@ import fd.functional.bind;
 using namespace fd;
 using namespace hooks;
 
-#if 0
-
-static auto _Find_window()
-{
-    LONG_PTR wp;
-
-    if (rt_modules::current->is_root())
-        EnumWindows(_Wnd_Callback, reinterpret_cast<LPARAM>(&wp));
-    else
-        wp = GetWindowLongPtrA(FindWindowA("Valve001", nullptr), GWLP_WNDPROC);
-
-    return reinterpret_cast<WNDPROC>(wp);
-}
-
-#define ARGS hwnd, msg, wparam, lparam
-
-FD_HOOK(wndproc, _Find_window(), static, LRESULT WINAPI, HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-    const auto input_result = invoke(gui::input_handler, ARGS);
-    const auto block_input  = input_result.touched();
-    LRESULT ret;
-    if (!block_input)
-        ret = call_original(ARGS);
-    else if (input_result.have_return_value())
-        ret = input_result.return_value();
-    else
-        ret = invoke(DefWindowProcW, ARGS);
-    return ret;
-}
-
-#endif
-
 struct callback_data
 {
     HMODULE handle;

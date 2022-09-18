@@ -1,64 +1,10 @@
 module;
 
-#include <algorithm>
+#include <cstdint>
 
 export module fd.string.hash;
-export import fd.string;
+export import fd.chars_cache;
 export import fd.hash;
-
-using namespace fd;
-
-template <typename Chr, size_t Size>
-struct trivial_chars_cache
-{
-    Chr arr[Size];
-
-    constexpr trivial_chars_cache(const Chr* str_source)
-    {
-        std::copy_n(str_source, Size, arr);
-    }
-
-    constexpr const Chr* begin() const
-    {
-        return arr;
-    }
-
-    constexpr size_t size() const
-    {
-        return Size - 1;
-    }
-};
-
-template <typename Chr, size_t Size>
-trivial_chars_cache(const Chr (&arr)[Size]) -> trivial_chars_cache<Chr, Size>;
-
-template <typename T>
-class hashed_string_view : public basic_string_view<T>
-{
-    size_t hash_;
-
-  public:
-    using value_type = T;
-
-    constexpr hashed_string_view(const T* ptr, const size_t size)
-        : basic_string_view<T>(ptr, size)
-    {
-        hash_ = _Hash_bytes(ptr, size);
-    }
-
-    constexpr operator size_t const()
-    {
-        return hash_;
-    }
-
-    constexpr bool operator==(const hashed_string_view& other) const
-    {
-        return hash_ == other.hash_;
-    }
-};
-
-template <typename T>
-hashed_string_view(const T*, const size_t) -> hashed_string_view<T>;
 
 export namespace fd
 {
@@ -82,10 +28,36 @@ export namespace fd
 
     inline namespace literals
     {
-        template <trivial_chars_cache Cache>
-        consteval auto operator"" _hash() -> hashed_string_view<typename std::remove_const_t<decltype(Cache)>::value_type>
+        template <chars_cache Cache>
+        consteval size_t operator"" _hash()
         {
-            return { Cache.begin(), Cache.size() };
+            return _Hash_bytes(Cache.data(), Cache.size());
         }
     } // namespace literals
+
+#if 0
+#ifdef FD_WORK_DIR
+#define STR0(x)   #x
+#define STR(x)    STR0(x)
+#define SIZE_SKIP std::size(STR(FD_WORK_DIR)) - 1
+#else
+#define SIZE_SKIP 0
+#endif
+
+#if 1
+    template <typename T, size_t S>
+    constexpr size_t unique_hash(const T (&file_name)[S])
+    {
+        return _Hash_bytes(file_name + SIZE_SKIP, S - SIZE_SKIP - 1);
+    }
+#else
+    constexpr size_t unique_hash(const std::source_location sl = std::source_location::current())
+    {
+        auto fname = sl.file_name() + SIZE_SKIP;
+        return _Hash_bytes(fname, str_len(fname));
+    }
+#endif
+
+#endif
+
 } // namespace fd

@@ -58,7 +58,7 @@ static bool _File_already_written(const T& full_path, const std::span<const char
     if (!file_stored)
         return false;
 
-    const size_t size = file_stored.tellg();
+    const auto size = file_stored.tellg();
     if (size != buffer.size())
         return false;
 
@@ -108,16 +108,12 @@ static void _Write_to_file(const wstring& path, const std::span<const char> buff
     _fclose_nolock(f);
 }
 
-#ifdef FD_ROOT_DIR
-constexpr basic_string_view default_logs_data_dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
-#endif
-
 netvars_log::netvars_log()
 {
 #ifdef FD_ROOT_DIR
-    dir = default_logs_data_dir;
+    dir = FD_CONCAT(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
 #endif
-    // make_string.write(file.name, engine->GetProductVersionString());
+    // write_string(file.name, engine->GetProductVersionString());
     file.extension = L".json";
     indent         = 4;
     filler         = ' ';
@@ -136,17 +132,6 @@ netvars_log::~netvars_log()
     _Write_to_file(full_path, buff);
 }
 
-#ifdef FD_WORK_DIR
-constexpr basic_string_view default_classes_dump_dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
-#endif
-
-netvars_classes::netvars_classes()
-{
-#ifdef FD_WORK_DIR
-    dir = default_classes_dump_dir;
-#endif
-}
-
 netvars_classes::~netvars_classes()
 {
     if (dir.empty())
@@ -160,6 +145,13 @@ netvars_classes::~netvars_classes()
             continue;
         _Write_to_file(current_file_path, buff);
     }
+}
+
+netvars_classes::netvars_classes()
+{
+#ifdef FD_WORK_DIR
+    dir = FD_CONCAT(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
+#endif
 }
 
 //----
@@ -365,30 +357,30 @@ class datatable_parser
 };
 
 template <class J, typename T>
-concept json_can_access = requires(J& js, const T& test) { js[test]; };
+concept can_append = requires(J& js, const T& test) { js[test]; };
 
 template <class J, typename T>
-static auto& _Json_append(J& js, const T& str)
+static auto& _Append(J& js, const T& str)
 {
-    if constexpr (json_can_access<J, T>)
+    if constexpr (can_append<J, T>)
         return js[str];
     else
     {
-        const auto null_terminated = *(str.data() + str.size()) == '\0';
-        using json_string          = typename J::string_t;
-        return null_terminated ? js[str.data()] : js[json_string(str.begin(), str.end())];
+        const auto null_terminated = str.data()[str.size()] == '\0';
+        return null_terminated ? js[str.data()] : js[typename J::string_t(str.begin(), str.end())];
     }
 }
 
-static void _Stream_to(std::ostringstream&& stream, string& to)
+template <typename T>
+static void _Stream_to(std::ostringstream&& stream, T& to)
 {
-    to = std::move(stream).str();
-}
-
-static void _Stream_to(const std::ostringstream& stream, std::vector<char>& to)
-{
-    const auto str = stream.view();
-    to.assign(str.begin(), str.end());
+    if constexpr (std::assignable_from<T, std::string>)
+        to = std::move(stream).str();
+    else
+    {
+        const auto str = stream.view();
+        to.assign(str.begin(), str.end());
+    }
 }
 
 template <class T>
@@ -462,7 +454,7 @@ const netvar_table* netvars_storage::find(const string_view name) const
     return _Find_name(data_, name);
 }
 
-constexpr auto _Try_debug_name = [](auto* root, auto debug_name) -> string_view {
+constexpr auto _Override_name = [](auto* root, auto debug_name) -> string_view {
     return debug_name.empty() ? root->name : debug_name;
 };
 
@@ -476,7 +468,7 @@ void netvars_storage::iterate_client_class(const client_class* root_class, const
         if (!rtable || rtable->props.empty())
             continue;
 
-        const datatable_parser parser(
+        const datatable_parser parser = {
 #ifdef MERGE_DATA_TABLES
             this->add(_Correct_class_name(client_class->name))
 #else
@@ -484,11 +476,11 @@ void netvars_storage::iterate_client_class(const client_class* root_class, const
                 return this->add(table_name, false);
             }
 #endif
-        );
+        };
         invoke(parser, rtable);
     }
 
-    invoke(logger, "netvars - {} data tables stored", bind_front(_Try_debug_name, root_class, debug_name));
+    invoke(logger, "netvars - {} data tables stored", bind_front(_Override_name, root_class, debug_name));
 }
 
 void netvars_storage::iterate_datamap(const data_map* root_map, const string_view debug_name)
@@ -542,7 +534,7 @@ void netvars_storage::iterate_datamap(const data_map* root_map, const string_vie
         }
     }
 
-    invoke(logger, "netvars - {} data maps stored", bind_front(_Try_debug_name, root_map, debug_name));
+    invoke(logger, "netvars - {} data maps stored", bind_front(_Override_name, root_map, debug_name));
 }
 #if 0
 void netvars_storage::store_handmade_netvars()
@@ -567,8 +559,26 @@ void netvars_storage::store_handmade_netvars()
 
 //------
 
+static auto _Drop_default_path(wstring_view buff, const wstring_view prefix)
+{
+    if (buff.starts_with(prefix))
+    {
+        auto prefix_size = prefix.size();
+        const auto chr   = buff[prefix_size];
+        if (chr == '\\' || chr == '/')
+            ++prefix_size;
+        buff.remove_prefix(prefix_size);
+    }
+
+    return buff;
+}
+
 void netvars_storage::log_netvars(netvars_log& data)
 {
+    FD_ASSERT(!data.dir.empty());
+    FD_ASSERT(!data.file.name.empty());
+    FD_ASSERT(!data.file.extension.empty());
+
     this->sort();
 
     json_unsorted j_root;
@@ -579,7 +589,7 @@ void netvars_storage::log_netvars(netvars_log& data)
         if (table.empty())
             continue;
 
-        auto& j_table = _Json_append(j_root, table.name());
+        auto& j_table = _Append(j_root, table.name());
 
         for (const auto& info : table)
         {
@@ -610,17 +620,14 @@ void netvars_storage::log_netvars(netvars_log& data)
     _Stream_to(std::move(tmp_buff), data.buff);
 
     invoke(logger, "netvars - logs will be written to {}", [&] {
-        wstring_view dir = data.dir;
-#ifdef FD_ROOT_DIR
-        if (dir.starts_with(default_logs_data_dir))
-            dir.remove_prefix(default_logs_data_dir.size());
-#endif
-        return make_string(/* _Correct_path */ (dir), data.file.name, data.file.extension);
+        return make_string(/* _Correct_path */ (_Drop_default_path(data.dir, netvars_log().dir)), data.file.name, data.file.extension);
     });
 }
 
 void netvars_storage::generate_classes(netvars_classes& data)
 {
+    FD_ASSERT(!data.dir.empty());
+
     this->sort();
 
 #ifdef GENERATE_STRUCT_MEMBERS
@@ -651,8 +658,8 @@ void netvars_storage::generate_classes(netvars_classes& data)
 
             const string_view netvar_name = info->name();
 
-            constexpr auto offset_getter_fn = "FD_OBJECT_GET(basic_netvars_storage)->get_offset"sv;
-            constexpr auto args_separator   = ", "sv;
+            constexpr string_view offset_getter_fn = "netvars_storage->get_offset";
+            constexpr string_view args_separator   = ", ";
 
             h << netvar_type_out << ' ' << netvar_name << "();\n";
             cpp << netvar_type_out << ' ' << class_name << "::" << netvar_name << "()\n"
@@ -664,9 +671,9 @@ void netvars_storage::generate_classes(netvars_classes& data)
                 << "}\n\n";
         }
 
-        const auto store_file = [&](const string_view extension, std::ostringstream& buff) {
+        const auto store_file = [&](const auto extension, std::ostringstream& buff) {
             auto& [file_name, file_data] = data.files.emplace_back();
-            make_string.write(file_name, class_name, extension);
+            write_string(file_name, class_name, extension);
             _Stream_to(std::move(buff), file_data);
         };
 
@@ -678,12 +685,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
 #endif
 
     invoke(logger, "netvars - {} classes written to {}", data.files.size(), [&] {
-        wstring_view dir = data.dir;
-#ifdef FD_WORK_DIR
-        if (dir.starts_with(default_classes_dump_dir))
-            dir.remove_prefix(default_classes_dump_dir.size());
-#endif
-        return /* _Correct_path */ (dir);
+        return /* _Correct_path */ (_Drop_default_path(data.dir, netvars_classes().dir));
     });
 }
 

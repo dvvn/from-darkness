@@ -16,6 +16,8 @@ export namespace fd::hooks
 
         string_view name() const override;
 
+        bool disable() override;
+
       private:
         void WINAPI callback(D3DPRESENT_PARAMETERS* params);
     };
@@ -28,6 +30,8 @@ export namespace fd::hooks
         d3d9_present(d3d9_present&& other);
 
         string_view name() const override;
+
+        bool disable() override;
 
       private:
         HRESULT WINAPI callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region);

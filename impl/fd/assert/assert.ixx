@@ -5,30 +5,28 @@ module;
 export module fd.assert;
 export import fd.functional.invoke;
 
-struct assert_data
-{
-    const char* expression;
-    const char* message;
-    std::source_location location;
-
-    constexpr assert_data(const char* expr, const char* msg = nullptr, const std::source_location loc = std::source_location::current())
-        : expression(expr)
-        , message(msg)
-        , location(loc)
-    {
-    }
-};
-
-struct basic_assert_handler
-{
-    virtual ~basic_assert_handler()                            = default;
-    virtual void operator()(const assert_data&) const noexcept = 0;
-};
-
 export namespace fd
 {
-    using ::assert_data;
-    using ::basic_assert_handler;
+
+    struct assert_data
+    {
+        const char* expression;
+        const char* message;
+        std::source_location location;
+
+        constexpr assert_data(const char* expr, const char* msg = nullptr, const std::source_location loc = std::source_location::current())
+            : expression(expr)
+            , message(msg)
+            , location(loc)
+        {
+        }
+    };
+
+    struct basic_assert_handler
+    {
+        virtual ~basic_assert_handler()                            = default;
+        virtual void operator()(const assert_data&) const noexcept = 0;
+    };
 
     constexpr void invoke(basic_assert_handler* handler, const assert_data& data, const char*)
     {

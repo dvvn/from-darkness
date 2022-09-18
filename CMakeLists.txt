@@ -110,7 +110,9 @@ list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
 
 #-------
 
-add_executable(gui_test ${_PROJ_FILES} ${_PROJ_IMPL_DIR}/gui_test/main.cpp)
+file(GLOB_RECURSE _GUI_TEST_FILES ${_PROJ_IMPL_DIR}/gui_test/*.cpp ${_PROJ_IMPL_DIR}/gui_test/*.ixx)
+
+add_executable(gui_test ${_PROJ_FILES} ${_GUI_TEST_FILES})
 target_link_libraries(
   gui_test
   function2::function2

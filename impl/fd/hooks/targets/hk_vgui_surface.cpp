@@ -9,15 +9,6 @@ import fd.functional.invoke;
 using namespace fd;
 using namespace hooks;
 
-/* FD_HOOK_VTABLE(vgui_surface, lock_cursor, 67, void)
-{
-    auto thisptr = reinterpret_cast<vgui_surface*>(this);
-    if (!thisptr->IsCursorVisible() && gui::menu->shown())
-        thisptr->UnlockCursor();
-    else
-        call_original();
-} */
-
 static lock_cursor* _Lock_cursor;
 
 lock_cursor::~lock_cursor()

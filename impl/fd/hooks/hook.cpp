@@ -9,81 +9,42 @@ module fd.hooks.impl;
 import fd.logger;
 import fd.functional.bind;
 
+#define _SUBHOOK_WRAP(_FN_)                                 \
+    static auto subhook_##_FN_(void* ptr)                   \
+    {                                                       \
+        return subhook_##_FN_(static_cast<subhook_t>(ptr)); \
+    }
+
+_SUBHOOK_WRAP(free);
+_SUBHOOK_WRAP(install);
+_SUBHOOK_WRAP(remove);
+_SUBHOOK_WRAP(is_installed);
+_SUBHOOK_WRAP(get_trampoline);
+_SUBHOOK_WRAP(get_src);
+_SUBHOOK_WRAP(get_dst);
+
+#undef _SUBHOOK_WRAP
+
 using namespace fd;
 using namespace hooks;
 
-class hook_entry
-{
-    subhook_t hook_;
-
-  public:
-    ~hook_entry()
-    {
-        if (!hook_)
-            return;
-        subhook_remove(hook_); // must be done before, added for safety
-        subhook_free(hook_);
-    }
-
-    bool create(void* target, void* replace)
-    {
-        FD_ASSERT(hook_ == nullptr);
-        hook_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
-        return hook_ != nullptr;
-    }
-
-    bool created() const
-    {
-        return hook_ != nullptr;
-    }
-
-    bool enabled() const
-    {
-        return !!subhook_is_installed(hook_);
-    }
-
-    bool enable()
-    {
-        return subhook_install(hook_) == 0;
-    }
-
-    bool disable()
-    {
-        return subhook_remove(hook_) == 0;
-    }
-
-    void* get_original_method() const
-    {
-        return subhook_get_trampoline(hook_);
-    }
-
-    void* get_target_method() const
-    {
-        return subhook_get_src(hook_);
-    }
-
-    void* get_replace_method() const
-    {
-        return subhook_get_dst(hook_);
-    }
-};
-
-#if 0
 impl::~impl()
 {
-    // purecall here
-    // impl::disable( );
+    if (!entry_)
+        return;
+    subhook_remove(entry_); // must be done before, added for safety
+    subhook_free(entry_);
 }
-#else
-impl::~impl() = default;
-#endif
 
 impl::impl()
+    : entry_(nullptr)
 {
-    entry_ = new hook_entry();
 }
 
-impl::impl(impl&&) = default;
+impl::impl(impl&& other)
+    : entry_(std::exchange(other.entry_, nullptr))
+{
+}
 
 template <typename M>
 static void _Log(const impl* h, const M msg)
@@ -93,61 +54,68 @@ static void _Log(const impl* h, const M msg)
 
 bool impl::enable()
 {
-    if (!entry_->created())
-    {
-        _Log(this, "not created!");
-        return false;
-    }
-    if (!entry_->enable())
-    {
-        _Log(this, [this] {
-            return entry_->enabled() ? "already hooked" : "enable error!";
-        });
-        return false;
-    }
-    _Log(this, "hooked");
-    return true;
+    const auto ok = subhook_install(entry_) == 0;
+    _Log(this, [=] {
+        if (ok)
+            return "hooked";
+        if (!entry_)
+            return "not created";
+        if (this->active())
+            return "already hooked";
+        return "enable error!";
+    });
+    return ok;
 }
 
 bool impl::disable()
 {
-    const auto ok = entry_->disable();
-    _Log(this, [ok, this] {
+    const auto ok = subhook_remove(entry_) == 0;
+    _Log(this, [=] {
         if (ok)
             return "unhooked";
-        if (!entry_->enabled())
+        if (!entry_)
+            return "not created";
+        if (!this->active())
             return "already unhooked";
-        if (entry_->created())
-            return "unhook error!";
-        return "not created!";
+        return "unhook error!";
     });
     return ok;
 }
 
 bool impl::initialized() const
 {
-    return entry_->created();
+    return static_cast<bool>(entry_);
 }
 
 bool impl::active() const
 {
-    return entry_->enabled();
+    return !!subhook_is_installed(entry_);
 }
 
 void* impl::get_original_method() const
 {
-    return entry_->get_original_method();
+    return subhook_get_trampoline(entry_);
 }
+
+/* void* impl::get_target_method() const
+{
+    return subhook_get_src(entry_);
+}
+
+void* impl::get_replace_method() const
+{
+    return subhook_get_dst(entry_);
+} */
 
 void impl::init(const function_getter target, const function_getter replace)
 {
-    if (!entry_->create(target, replace))
-    {
+    FD_ASSERT(entry_ == nullptr);
+    entry_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
+    if (!entry_)
         _Log(this, "creating error!");
-    }
 }
 
 impl::operator bool() const
 {
-    return static_cast<bool>(entry_);
+    return this->initialized();
 }

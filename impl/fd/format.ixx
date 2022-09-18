@@ -82,7 +82,7 @@ class format_impl
     auto impl(const S fmt, const Args&... args) const
     {
         fd::basic_string<typename S::value_type> buff;
-        format_to_(std::back_inserter(buff), fmt, args...);
+        format_to_(std::back_insert_iterator(buff), fmt, args...);
         return buff;
     }
 

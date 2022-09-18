@@ -10,6 +10,7 @@ module fd.netvars.table;
 using namespace fd;
 using namespace valve;
 
+#ifdef _DEBUG
 void netvar_table::validate_item(const basic_netvar_info* info) const
 {
     if (this->empty())
@@ -33,6 +34,7 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
         }
     }
 }
+#endif
 
 netvar_table::netvar_table(string&& name, const bool root)
     : name_(std::move(name))

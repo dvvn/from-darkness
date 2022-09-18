@@ -11,25 +11,15 @@ export import fd.smart_ptr.unique;
 
 using namespace fd;
 
-template <class T>
-auto make_deleter(T*)
-{
-    return [](void* vptr) {
-        constexpr default_delete<T> del;
-        del(static_cast<T*>(vptr));
-    };
-}
-
-template <class T>
-using unique_ptr_ex = unique_ptr<T, void (*)(void*)>;
-
-class netvar_table : public std::vector<unique_ptr_ex<basic_netvar_info>>
+class netvar_table : public std::vector<unique_ptr<basic_netvar_info>>
 {
     string name_;
     bool root_;
 
   protected:
+#ifdef _DEBUG
     void validate_item(const basic_netvar_info* info) const;
+#endif
 
   public:
     netvar_table(string&& name, const bool root);
@@ -45,7 +35,7 @@ class netvar_table : public std::vector<unique_ptr_ex<basic_netvar_info>>
 #ifdef _DEBUG
         validate_item(ptr);
 #endif
-        this->emplace_back(ptr, make_deleter(ptr));
+        this->emplace_back(ptr /* , make_deleter(ptr) */);
         return ptr;
     }
 };
