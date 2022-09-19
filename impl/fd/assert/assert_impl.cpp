@@ -35,7 +35,7 @@ static auto _Build_message(const assert_data& data, T... extra)
 #define EXPR       "Expression: ", expression
     const auto [expression, message, location] = data;
     utf_string<wchar_t> msg;
-
+    
     if (expression && message)
         msg = make_string(FIRST_PART, EXPR, "\n\n", message, extra...);
     else if (expression)

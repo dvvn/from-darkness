@@ -25,14 +25,25 @@ include(ProcessorCount)
 ProcessorCount(_CPUS)
 message(DEBUG "cpu count: ${_CPUS}")
 
-# if(MSVC) idk, not defined
-add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
-add_compile_options(/wd5103 /wd4291 /wd4250)
-add_compile_options(/MP${_CPUS} /EHsc)
-add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
-# endif()
+if(MSVC)
+  add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
+  add_compile_options(/wd5103 /wd4291 /wd4250)
+  add_compile_options(/MP${_CPUS} /EHsc)
+  add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
+endif()
 
 include(FetchContent)
+set(FETCHCONTENT_QUIET off)
+set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps)
+
+execute_process(COMMAND ping www.google.com ERROR_QUIET RESULT_VARIABLE NO_CONNECTION)
+
+if(NO_CONNECTION GREATER 0)
+  set(FETCHCONTENT_FULLY_DISCONNECTED ON)
+  message(WARNING "FetchContent: offline mode")
+else()
+  set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
+endif()
 
 FetchContent_Declare(freetype GIT_REPOSITORY https://github.com/freetype/freetype.git)
 set(DISABLE_FORCE_DEBUG_POSTFIX on)

@@ -7,7 +7,6 @@ export import fd.functional.invoke;
 
 export namespace fd
 {
-
     struct assert_data
     {
         const char* expression;
