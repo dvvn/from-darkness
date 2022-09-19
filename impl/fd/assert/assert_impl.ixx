@@ -32,5 +32,4 @@ export namespace fd
     {
         assert_data_parsed(const assert_data& adata);
     };
-
 } // namespace fd

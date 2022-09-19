@@ -8,12 +8,10 @@ module fd.filesystem;
 import fd.functional.invoke;
 
 using namespace fd;
+using namespace fs;
 
 template <class T>
-concept have_fn_operator = requires
-{
-    T::operator();
-};
+concept have_fn_operator = requires { T::operator(); };
 
 struct invocable_gap
 {
@@ -156,21 +154,52 @@ struct tagged_fn<funcs::file_empty>
 #undef error
 
 template <typename... Args>
-auto invoke(bool& error, const funcs tag, Args... args)
+static auto invoke_fn(const funcs tag, Args... args)
 {
-    const auto result = [&] {
-        switch (tag)
-        {
-            INVOKE(dir_create);
-            // INVOKE(file_create);
-            INVOKE(is_directory);
-            INVOKE(is_file);
-            INVOKE(dir_empty);
-            INVOKE(file_empty);
-        default:
-            FD_ASSERT_UNREACHABLE("Incorrect tag");
-        }
-    }();
+    switch (tag)
+    {
+        INVOKE(dir_create);
+        // INVOKE(file_create);
+        INVOKE(is_directory);
+        INVOKE(is_file);
+        INVOKE(dir_empty);
+        INVOKE(file_empty);
+    default:
+        FD_ASSERT_UNREACHABLE("Incorrect tag");
+    };
+}
+
+bool basic_function_selector::operator()(const char8_t* str) const
+{
+    return invoke_fn(fn_tag_, str);
+}
+
+bool basic_function_selector::operator()(const char* str) const
+{
+    return invoke_fn(fn_tag_, str);
+}
+
+bool basic_function_selector::operator()(const wchar_t* str) const
+{
+    return invoke_fn(fn_tag_, str);
+}
+
+bool basic_function_selector::operator()(const char16_t* str) const
+{
+    return invoke_fn(fn_tag_, str);
+}
+
+bool basic_function_selector::operator()(const char32_t* str) const
+{
+    return invoke_fn(fn_tag_, str);
+}
+
+//----
+
+template <typename... Args>
+static auto invoke_fn(bool& error, const funcs tag, Args... args)
+{
+    const auto result = invoke_fn(tag, args...);
     if (result)
         error = false;
     else
@@ -178,29 +207,35 @@ auto invoke(bool& error, const funcs tag, Args... args)
     return result;
 }
 
+function_selector::function_selector(const funcs tag)
+    : fn_tag_(tag)
+    , error_(false)
+{
+}
+
 bool function_selector::operator()(const char8_t* str)
 {
-    return invoke(error_, fn_tag_, str);
+    return invoke_fn(error_, fn_tag_, str);
 }
 
 bool function_selector::operator()(const char* str)
 {
-    return invoke(error_, fn_tag_, str);
+    return invoke_fn(error_, fn_tag_, str);
 }
 
 bool function_selector::operator()(const wchar_t* str)
 {
-    return invoke(error_, fn_tag_, str);
+    return invoke_fn(error_, fn_tag_, str);
 }
 
 bool function_selector::operator()(const char16_t* str)
 {
-    return invoke(error_, fn_tag_, str);
+    return invoke_fn(error_, fn_tag_, str);
 }
 
 bool function_selector::operator()(const char32_t* str)
 {
-    return invoke(error_, fn_tag_, str);
+    return invoke_fn(error_, fn_tag_, str);
 }
 
 function_selector::operator bool() const

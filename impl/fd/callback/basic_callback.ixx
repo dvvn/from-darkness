@@ -20,13 +20,13 @@ namespace fd
         template <typename... Args>
         void operator()(Args&&... args)
         {
-            _Invoke_callback(static_cast<Buff<Fn>*>(this), std::forward<Args>(args)...);
+            _Invoke_callback<Buff<Fn>>(this, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
         void operator()(Args&&... args) const
         {
-            _Invoke_callback(static_cast<const Buff<Fn>*>(this), std::forward<Args>(args)...);
+            _Invoke_callback<const Buff<Fn>>(this, std::forward<Args>(args)...);
         }
     };
 } // namespace fd
