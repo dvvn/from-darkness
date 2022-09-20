@@ -36,9 +36,9 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET off)
 set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps)
 
-execute_process(COMMAND ping www.google.com ERROR_QUIET RESULT_VARIABLE NO_CONNECTION)
+ execute_process(COMMAND nslookup google.com ERROR_QUIET RESULT_VARIABLE NO_CONNECTION)
 
-if(NO_CONNECTION GREATER 0)
+if(NOT NO_CONNECTION EQUAL 0)
   set(FETCHCONTENT_FULLY_DISCONNECTED ON)
   message(WARNING "FetchContent: offline mode")
 else()
@@ -98,23 +98,19 @@ FetchContent_MakeAvailable(subhook)
 
 set(_DEFAULT_FILES_FILTER "/\_+")
 
-file(GLOB _IMGUI_CORE_FILES ${imgui_SOURCE_DIR}/*.cpp)
+file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
+list(APPEND _IMGUI_FILES ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp)
+if(MSVC)
+  list(APPEND _IMGUI_FILES ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp)
+else()
 
-add_library(imgui STATIC ${_IMGUI_CORE_FILES} ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-                         ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp)
+endif()
+
+add_library(imgui STATIC ${_IMGUI_FILES})
 
 target_link_libraries(imgui PRIVATE freetype)
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
-target_compile_definitions(
-  imgui
-  PUBLIC IMGUI_ENABLE_FREETYPE
-         IMGUI_USE_WCHAR32
-         IMGUI_DEFINE_MATH_OPERATORS
-         IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-         IMGUI_DISABLE_OBSOLETE_KEYIO
-         IMGUI_DISABLE_DEFAULT_ALLOCATORS
-         IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-         ImDrawIdx=size_t)
+target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="${_PROJ_WORK_DIR}/gui/config.h")
 
 file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp ${_PROJ_WORK_DIR}/*.ixx)
 list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
@@ -134,6 +130,6 @@ target_link_libraries(
   imgui
   d3d9.lib)
 target_include_directories(gui_test PRIVATE ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include)
-target_compile_definitions(gui_test PRIVATE ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
+target_compile_definitions(gui_test PRIVATE ${_PROJ_NAME_UPPER}_GUI_TEST ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
 
 #add_subproject(library TYPE SHARED LINK impl)

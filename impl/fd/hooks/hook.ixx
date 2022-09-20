@@ -1,7 +1,6 @@
 module;
 
-#include <imgui.h>
-#include <imgui_internal.h>
+#include <cstdint>
 
 export module fd.hooks.impl;
 export import fd.hooks.base;
