@@ -36,15 +36,6 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET off)
 set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps)
 
- execute_process(COMMAND nslookup google.com ERROR_QUIET RESULT_VARIABLE NO_CONNECTION)
-
-if(NOT NO_CONNECTION EQUAL 0)
-  set(FETCHCONTENT_FULLY_DISCONNECTED ON)
-  message(WARNING "FetchContent: offline mode")
-else()
-  set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
-endif()
-
 FetchContent_Declare(freetype GIT_REPOSITORY https://github.com/freetype/freetype.git)
 set(DISABLE_FORCE_DEBUG_POSTFIX on)
 set(FT_DISABLE_ZLIB on)
@@ -105,31 +96,26 @@ if(MSVC)
 else()
 
 endif()
-
 add_library(imgui STATIC ${_IMGUI_FILES})
-
 target_link_libraries(imgui PRIVATE freetype)
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="${_PROJ_WORK_DIR}/gui/config.h")
 
-file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp ${_PROJ_WORK_DIR}/*.ixx)
-list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
-
 #-------
 
+file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp ${_PROJ_WORK_DIR}/*.ixx)
+list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
+add_library(impl STATIC ${_PROJ_FILES})
+target_link_libraries(impl PUBLIC function2::function2 robin_hood::robin_hood nlohmann_json::nlohmann_json subhook::subhook fmt::fmt imgui)
+target_include_directories(impl PUBLIC ${_PROJ_IMPL_DIR} PRIVATE ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include)
+target_compile_definitions(impl PUBLIC ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
+
 file(GLOB_RECURSE _GUI_TEST_FILES ${_PROJ_IMPL_DIR}/gui_test/*.cpp ${_PROJ_IMPL_DIR}/gui_test/*.ixx)
+add_executable(gui_test ${_GUI_TEST_FILES})
+target_link_libraries(gui_test impl d3d9.lib)
+target_compile_definitions(gui_test PRIVATE ${_PROJ_NAME_UPPER}_GUI_TEST)
 
-add_executable(gui_test ${_PROJ_FILES} ${_GUI_TEST_FILES})
-target_link_libraries(
-  gui_test
-  function2::function2
-  robin_hood::robin_hood
-  nlohmann_json::nlohmann_json
-  subhook::subhook
-  fmt::fmt
-  imgui
-  d3d9.lib)
-target_include_directories(gui_test PRIVATE ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include)
-target_compile_definitions(gui_test PRIVATE ${_PROJ_NAME_UPPER}_GUI_TEST ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
-
-#add_subproject(library TYPE SHARED LINK impl)
+file(GLOB_RECURSE _LIBRARY_FILES ${_PROJ_IMPL_DIR}/library/*.cpp ${_PROJ_IMPL_DIR}/library/*.ixx)
+add_library(library SHARED ${_LIBRARY_FILES})
+target_link_libraries(library impl)
+target_compile_definitions(library PRIVATE ${_PROJ_NAME_UPPER}_LIBRARY)

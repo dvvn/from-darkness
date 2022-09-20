@@ -111,7 +111,7 @@ backend_data::backend_data()
     ::UpdateWindow(hwnd);
 }
 
-BOOL backend_data::run()
+void backend_data::run()
 {
     FD_ASSERT(d3d != nullptr);
 
@@ -123,7 +123,7 @@ BOOL backend_data::run()
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
-                return FALSE;
+                return ;
         }
 
         d3d->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);

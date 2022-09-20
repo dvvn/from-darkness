@@ -13,53 +13,6 @@ import fd.functional.bind;
 using namespace fd;
 
 #if 0
-class task_data : public basic_task
-{
-    function_type fn;
-    semaphore sm;
-
-  public:
-    task_data(function_type&& fn)
-        : fn(std::move(fn))
-        , sm(0, 1)
-    {
-    }
-
-    void start() override
-    {
-        invoke(fn);
-        sm.release();
-    }
-
-    void wait() override
-    {
-        sm.acquire();
-    }
-};
-
-struct manual_task_data : basic_task
-{
-    function_type fn;
-    semaphore sm;
-
-    manual_task_data()
-        : sm(0, 1)
-    {
-    }
-
-    void start() override
-    {
-        invoke(fn); // call release manually from fn
-    }
-
-    void wait() override
-    {
-        sm.acquire();
-    }
-};
-#endif
-
-#if 0
 //unused
 template <template <typename...> class T, typename... Args>
 class safe_storage

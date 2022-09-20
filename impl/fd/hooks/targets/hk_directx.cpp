@@ -9,7 +9,7 @@ module;
 
 module fd.hooks.directx;
 import fd.functional.invoke;
-// import fd.gui.menu;
+import fd.library_info;
 
 using namespace fd;
 using namespace hooks;
@@ -18,8 +18,8 @@ struct render_interface
 {
     ~render_interface()
     {
-        // if (ImGui::GetCurrentContext() && ImGui::GetIO().BackendRendererUserData)
-        ImGui_ImplDX9_Shutdown();
+        if (library_info::_Find(L"d3d9.dll")) // todo: find better way
+            ImGui_ImplDX9_Shutdown();
     }
 
     render_interface(IDirect3DDevice9* inst)

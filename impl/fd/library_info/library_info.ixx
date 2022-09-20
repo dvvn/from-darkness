@@ -172,12 +172,11 @@ namespace fd
         pointer entry_;
 
       public:
-        static library_info find(const wstring_view name, const bool notify = true);
-        static library_info find_wait(const wstring_view name, const bool notify = true); // todo: delay or cancel
+        static library_info _Find(const wstring_view name, const bool notify = true);
 
         library_info();
         library_info(pointer entry);
-        library_info(const wstring_view name, const bool notify = true);
+        library_info(const wstring_view name, const bool wait, const bool notify = true); // todo: delay or cancel
         library_info(const IMAGE_DOS_HEADER* base_address, const bool notify = true);
 
         bool is_root() const;
@@ -258,7 +257,9 @@ namespace fd
 
     struct current_library_info : library_info
     {
-        current_library_info();
+        current_library_info(const bool notify=true);
     };
+
+    export HMODULE current_library_handle;
 
 } // namespace fd

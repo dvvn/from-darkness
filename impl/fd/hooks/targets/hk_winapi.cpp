@@ -1,5 +1,7 @@
 module;
 
+#include <fd/assert.h>
+
 #include <imgui_impl_win32.h>
 #include <imgui_internal.h>
 
@@ -29,20 +31,35 @@ static BOOL CALLBACK _Wnd_Callback(HWND hwnd, LPARAM lparam)
 
     const auto data = reinterpret_cast<callback_data*>(lparam);
 
-    TCHAR name[MAX_PATH];
-    GetClassName(hwnd, name, MAX_PATH);
-    WNDCLASSEX wc;
-    if (!GetClassInfoEx(data->handle, name, &wc))
+    WNDPROC wp = nullptr;
+
+    if (IsWindowUnicode(hwnd))
+    {
+        wchar_t name[MAX_PATH];
+        GetClassNameW(hwnd, name, MAX_PATH);
+        WNDCLASSEXW wc;
+        if (GetClassInfoExW(data->handle, name, &wc))
+            wp = wc.lpfnWndProc;
+    }
+    else
+    {
+        char name[MAX_PATH];
+        GetClassNameA(hwnd, name, MAX_PATH);
+        WNDCLASSEX wc;
+        if (GetClassInfoExA(data->handle, name, &wc))
+            wp = wc.lpfnWndProc;
+    }
+    if (!wp)
         return TRUE;
 
-    data->wndproc = wc.lpfnWndProc;
+    data->wndproc = wp;
     data->hwnd    = hwnd;
     return FALSE;
 }
 
 struct window_info
 {
-    void* wndproc;
+    WNDPROC wndproc;
     HWND hwnd;
 };
 
@@ -55,33 +72,61 @@ static window_info _Find_wndproc(HMODULE handle)
     return { data.wndproc, data.hwnd };
 }
 
-static window_info _Find_wndproc(PTCHAR name) //"Valve001"
+//"Valve001"
+
+static WNDPROC _Get_wndproc(const HWND hwnd)
 {
-    const auto hwnd = FindWindow(name, nullptr);
-    const auto lptr = GetWindowLongPtr(hwnd, GWLP_WNDPROC);
-    return { reinterpret_cast<void*>(lptr), hwnd };
+    const auto lptr = invoke(IsWindowUnicode(hwnd) ? GetWindowLongPtrW : GetWindowLongPtrA, hwnd, GWLP_WNDPROC);
+    return reinterpret_cast<WNDPROC>(lptr);
+}
+
+static window_info _Find_wndproc(const char* name)
+{
+    const auto hwnd = FindWindowA(name, nullptr);
+    return { _Get_wndproc(hwnd), hwnd };
+}
+
+static window_info _Find_wndproc(const wchar_t* name)
+{
+    const auto hwnd = FindWindowW(name, nullptr);
+    return { _Get_wndproc(hwnd), hwnd };
 }
 
 static wndproc* _Wndproc;
 
-template <typename Fn, typename T>
-static void _Init(wndproc* self, Fn init_fn, T arg)
+template <typename Fn, typename T, typename H>
+static void _Init(wndproc* self, Fn init_fn, T arg, WNDPROC& def_wp, H&& h)
 {
     const auto [wndproc, hwnd] = _Find_wndproc(arg);
-    invoke(init_fn, self, wndproc);
     if (!ImGui_ImplWin32_Init(hwnd))
         std::terminate();
     _Wndproc = self;
+    def_wp   = IsWindowUnicode(hwnd) ? DefWindowProcW : DefWindowProcA;
+    h        = hwnd;
+    invoke(init_fn, self, wndproc);
 }
+
+#ifdef _DEBUG
+#define HWND_ARG this->hwnd_
+#else
+#define HWND_ARG static_cast<HWND>(nullptr)
+#endif
+
+#define INIT(_ARG_) _Init(this, bind_back(&wndproc::init, &wndproc::callback), _ARG_, this->def_, HWND_ARG)
 
 wndproc::wndproc(HMODULE handle)
 {
-    _Init(this, bind_back(&wndproc::init, &wndproc::callback), handle);
+    INIT(handle);
 }
 
-wndproc::wndproc(PTCHAR name)
+wndproc::wndproc(const char* name)
 {
-    _Init(this, bind_back(&wndproc::init, &wndproc::callback), name);
+    INIT(name);
+}
+
+wndproc::wndproc(const wchar_t* name)
+{
+    INIT(name);
 }
 
 wndproc::~wndproc()
@@ -94,7 +139,8 @@ wndproc::~wndproc()
 wndproc::wndproc(wndproc&& other)
     : impl(std::move(other))
 {
-    _Wndproc = this;
+    *static_cast<wndproc_data*>(this) = other;
+    _Wndproc                          = this;
 }
 
 string_view wndproc::name() const
@@ -106,6 +152,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
+    FD_ASSERT(window == _Wndproc-> hwnd_);
     const auto ctx         = ImGui::GetCurrentContext();
     const auto size_before = ctx->InputEventsQueue.size();
 
@@ -115,5 +162,5 @@ LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPAR
         return TRUE;
     const auto size_after = ctx->InputEventsQueue.size();
 
-    return size_before == size_after ? invoke(&wndproc::callback, _Wndproc->get_original_method(), ARGS) : invoke(DefWindowProc, ARGS);
+    return size_before == size_after ? invoke(&wndproc::callback, _Wndproc->get_original_method(), ARGS) : invoke(_Wndproc->def_, ARGS);
 }

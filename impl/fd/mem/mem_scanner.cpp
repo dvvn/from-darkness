@@ -280,7 +280,7 @@ static void _Text_to_bytes(unknown_bytes_range& bytes, const fd::string_view tex
             }
             else
             {
-                store_byte(to_num(value1) * 16 * to_num(value2));
+                store_byte(to_num(value1) * 16 + to_num(value2));
             }
             break;
         }

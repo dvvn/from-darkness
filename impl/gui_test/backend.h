@@ -18,6 +18,6 @@ namespace fd
 
         backend_data(const backend_data&) = delete;
 
-        BOOL run();
+        void run();
     };
 } // namespace fd

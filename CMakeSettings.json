@@ -11,6 +11,19 @@
       "installRoot": "${projectDir}\\.out\\install\\${name}",
       "intelliSenseMode": "windows-msvc-x86",
       "name": "x86-Debug"
+    },
+    {
+      "name": "x86-Release",
+      "generator": "Visual Studio 17 2022",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\.out\\build\\${name}",
+      "installRoot": "${projectDir}\\.out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "intelliSenseMode": "windows-msvc-x86",
+      "variables": []
     }
   ]
 }

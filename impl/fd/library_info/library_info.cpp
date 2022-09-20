@@ -172,9 +172,14 @@ static auto LDR_ENTRY_finder(Fn fn)
     return LIST_ENTRY_finder<LDR_DATA_TABLE_ENTRY>(fn);
 }
 
+static wstring_view _To_string_view(const UNICODE_STRING& ustr)
+{
+    return { ustr.Buffer, ustr.Length / sizeof(WCHAR) };
+}
+
 static wstring_view _Library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
 {
-    return { entry->FullDllName.Buffer, entry->FullDllName.Length / sizeof(WCHAR) };
+    return _To_string_view(entry->FullDllName);
 }
 
 static wstring_view _Library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
@@ -341,7 +346,7 @@ static void _Log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
            reinterpret_cast<uintptr_t>(vtable_ptr));
 }
 
-library_info library_info::find(const wstring_view name, const bool notify)
+library_info library_info::_Find(const wstring_view name, const bool notify)
 {
     const auto entry = LDR_ENTRY_finder([=](const library_info info) {
         return info.name() == name;
@@ -360,28 +365,29 @@ struct callback_data_t
 {
     wstring_view name;
     semaphore sem = { 0, 1 };
-    library_info found;
+    PVOID found;
 };
 
 static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
 {
     const auto data = static_cast<callback_data_t*>(Context);
 
-    current_library_info current;
-
     if (NotificationReason == LDR_DLL_NOTIFICATION_REASON_UNLOADED)
     {
-        if (NotificationData->Unloaded.DllBase != current->DllBase)
+        if (NotificationData->Unloaded.DllBase != current_library_info(false)->DllBase)
             return;
     }
     else
     {
-        const auto& full_name = *NotificationData->Loaded.FullDllName;
-        const wstring_view target_name(full_name.Buffer, full_name.Length / sizeof(WCHAR));
-
+#if 0
+        const auto target_name = _To_string_view(*NotificationData->Loaded.FullDllName);
         if (!target_name.ends_with(data->name))
+              return;
+#else
+        if (_To_string_view(*NotificationData->Loaded.BaseDllName) != data->name)
             return;
-        data->found = static_cast<IMAGE_DOS_HEADER*>(NotificationData->Loaded.DllBase);
+#endif
+        data->found = NotificationData->Loaded.DllBase;
     }
 
     data->sem.release();
@@ -389,32 +395,12 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
 
 static auto _Wait_prepare(const bool notify)
 {
-    const library_info ntdll = { L"ntdll.dll", notify };
+    const library_info ntdll = { L"ntdll.dll", false, notify };
 
     const auto reg   = static_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
     const auto unreg = static_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
 
     return std::pair(reg, unreg);
-}
-
-library_info library_info::find_wait(const wstring_view name, const bool notify)
-{
-    const auto lib = library_info::find(name, notify);
-    if (lib)
-        return lib;
-
-    static auto fn = _Wait_prepare(notify);
-
-    callback_data_t cb_data = { name };
-    void* cookie;
-    if (fn.first(0, _On_new_library, &cb_data, &cookie) != STATUS_SUCCESS)
-        return {};
-    if (!cb_data.sem.acquire())
-        return {};
-    if (fn.second(cookie) != STATUS_SUCCESS)
-        return {};
-
-    return cb_data.found;
 }
 
 library_info::library_info()
@@ -428,11 +414,26 @@ library_info::library_info(pointer entry)
     FD_ASSERT(entry_ != nullptr);
 }
 
-library_info::library_info(const wstring_view name, const bool notify)
-    : entry_(LDR_ENTRY_finder([=](const library_info info) {
-        return info.name() == name;
-    }))
+library_info::library_info(const wstring_view name, const bool wait, const bool notify)
 {
+    entry_ = LDR_ENTRY_finder([=](const library_info info) {
+        return info.name() == name;
+    });
+
+    if (!entry_ && wait)
+    {
+        static const auto [reg_fn, unreg_fn] = _Wait_prepare(notify);
+
+        callback_data_t cb_data = { name };
+        void* cookie;
+        if (reg_fn(0, _On_new_library, &cb_data, &cookie) == STATUS_SUCCESS && cb_data.sem.acquire() && unreg_fn(cookie) == STATUS_SUCCESS)
+        {
+            entry_ = LDR_ENTRY_finder([base_address = cb_data.found](const dos_nt dnt) {
+                return base_address == dnt.dos;
+            });
+        }
+    }
+
     if (notify)
         _Log_found_entry(name, entry_);
     else
@@ -965,15 +966,19 @@ void* csgo_library_info::find_interface(const void* create_interface_fn, const s
 
 static DECLSPEC_NOINLINE PVOID _Get_current_module_handle()
 {
-    MEMORY_BASIC_INFORMATION info;
-    constexpr size_t info_size      = sizeof(MEMORY_BASIC_INFORMATION);
-    // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
-    FD_ASSERT(len == info_size, "Wrong size");
-    return info.AllocationBase;
+    if (!current_library_handle)
+    {
+        MEMORY_BASIC_INFORMATION info;
+        constexpr SIZE_T info_size      = sizeof(MEMORY_BASIC_INFORMATION);
+        // todo: is this is dll, try to load this function from inside
+        [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
+        FD_ASSERT(len == info_size, "Wrong size");
+        current_library_handle = static_cast<HINSTANCE>(info.AllocationBase);
+    }
+    return current_library_handle;
 }
 
-current_library_info::current_library_info()
-    : library_info(static_cast<IMAGE_DOS_HEADER*>(_Get_current_module_handle()))
+current_library_info::current_library_info(const bool notify)
+    : library_info(static_cast<IMAGE_DOS_HEADER*>(_Get_current_module_handle()), notify)
 {
 }
