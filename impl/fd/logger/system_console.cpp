@@ -16,6 +16,8 @@ module;
 module fd.system.console;
 import fd.format;
 
+
+
 using namespace fd;
 
 file_stream::~file_stream()
@@ -93,15 +95,25 @@ static string _Get_current_time()
 
 #define putc_assert(_RESULT_) FD_ASSERT(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
 
-reader::reader() = default;
+file_stream_reader::file_stream_reader() = default;
 
-reader& reader::operator=(file_stream&& stream)
+file_stream_reader& file_stream_reader::operator=(file_stream&& stream)
 {
     stream_ = std::move(stream);
     return *this;
 }
 
-void writer::write(const wchar_t* ptr, const size_t size)
+void fd::file_stream_writer::lock() noexcept
+{
+    mtx_.lock();
+}
+
+void fd::file_stream_writer::unlock() noexcept
+{
+    mtx_.unlock();
+}
+
+void file_stream_writer::write_nolock(const wchar_t* ptr, const size_t size)
 {
     // [[maybe_unused]] const auto ok = std::fputws(ptr, stream_);
     // putc_assert(ok);
@@ -121,48 +133,36 @@ void writer::write(const wchar_t* ptr, const size_t size)
     _fwrite_nolock(ptr, sizeof(wchar_t), size, stream_);
 }
 
-void writer::write(const char* ptr, const size_t size)
+void file_stream_writer::write_nolock(const char* ptr, const size_t size)
 {
     /* const auto wstr = utf_convert<wchar_t>(string_view(ptr, size));
      write(wstr.data(), wstr.size()); */
     _fwrite_nolock(ptr, sizeof(char), size, stream_);
 }
 
-writer::writer() = default;
+void file_stream_writer::write(const wchar_t* ptr, const size_t size)
+{
+    const lock_guard guard = mtx_;
+    write_nolock(ptr, size);
+}
 
-writer::writer(file_stream&& stream)
+void file_stream_writer::write(const char* ptr, const size_t size)
+{
+    const lock_guard guard = mtx_;
+    write_nolock(ptr, size);
+}
+
+file_stream_writer::file_stream_writer() = default;
+
+file_stream_writer::file_stream_writer(file_stream&& stream)
     : stream_(std::move(stream))
 {
 }
 
-writer& writer::operator=(file_stream&& stream)
+file_stream_writer& file_stream_writer::operator=(file_stream&& stream)
 {
     stream_ = std::move(stream);
     return *this;
-}
-
-void logs_writer::write_unsafe(const string_view text)
-{
-    write_impl(_Get_current_time(), text);
-}
-
-void logs_writer::write_unsafe(const wstring_view text)
-{
-    write_impl(_Get_current_time(), text);
-}
-
-void logs_writer::write(const string_view text)
-{
-    const auto time        = _Get_current_time();
-    const lock_guard guard = mtx_;
-    write_impl(time, text);
-}
-
-void logs_writer::write(const wstring_view text)
-{
-    const auto time        = _Get_current_time();
-    const lock_guard guard = mtx_;
-    write_impl(time, text);
 }
 
 system_console::~system_console()
@@ -174,7 +174,7 @@ system_console::~system_console()
     }
     else
     {
-        out_.write_unsafe("Stopped");
+        write_nolock("Stopped");
     }
 }
 
@@ -206,15 +206,52 @@ system_console::system_console()
 
     FD_ASSERT(IsWindowUnicode(console_window) == TRUE);
 
-    out_.write_unsafe("Started");
+    write_nolock("Started");
+}
+
+template <class M, class T = string>
+static void _Write_log_line_nolock(file_stream_writer& w, const M& msg, const T& time = _Get_current_time())
+{
+#if 0
+    w.write_nolock(time.data(), time.size());
+    w.write_nolock(" - ", 3);
+#else
+    w.write_nolock("[", 1);
+    w.write_nolock(time.data(), time.size());
+    w.write_nolock("] ", 2);
+#endif
+    w.write_nolock(msg.data(), msg.size());
+#ifdef _WIN32
+    w.write_nolock("\n\r", 2);
+#else
+    w.write_nolock("\n", 1);
+#endif
+}
+
+template <class M>
+static void _Write_log_line(file_stream_writer& w, const M& msg)
+{
+    const auto time        = _Get_current_time();
+    const lock_guard guard = w;
+    _Write_log_line_nolock(w, msg, time);
+}
+
+void system_console::write_nolock(const string_view str)
+{
+    _Write_log_line_nolock(out_, str);
+}
+
+void system_console::write_nolock(const wstring_view wstr)
+{
+    _Write_log_line_nolock(out_, wstr);
 }
 
 void system_console::write(const string_view str)
 {
-    out_.write(str);
+    _Write_log_line(out_, str);
 }
 
 void system_console::write(const wstring_view wstr)
 {
-    out_.write(wstr);
+    _Write_log_line(out_, wstr);
 }

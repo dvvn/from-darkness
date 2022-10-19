@@ -31,59 +31,40 @@ namespace fd
     };
 
     // gap. unused
-    class reader
+    class file_stream_reader
     {
         file_stream stream_;
 
       public:
-        reader();
-        reader& operator=(file_stream&& stream);
+        file_stream_reader();
+        file_stream_reader& operator=(file_stream&& stream);
     };
 
-    class writer
+    class file_stream_writer : public basic_mutex
     {
         file_stream stream_;
+        mutex mtx_;
 
       public:
-        writer();
-        writer(file_stream&& stream);
-        writer& operator=(file_stream&& stream);
+        file_stream_writer();
+        file_stream_writer(file_stream&& stream);
+        file_stream_writer& operator=(file_stream&& stream);
+
+        void lock() noexcept final;
+        void unlock() noexcept final;
+
+        void write_nolock(const wchar_t* ptr, const size_t size);
+        void write_nolock(const char* ptr, const size_t size);
 
         void write(const wchar_t* ptr, const size_t size);
         void write(const char* ptr, const size_t size);
     };
 
-    class logs_writer : writer
-    {
-        mutex mtx_;
-
-        using writer::write;
-
-        template <class T, class S>
-        void write_impl(const T& time, const S text)
-        {
-            write(time.data(), time.size());
-            write(" - ", 3);
-            write(text.data(), text.size());
-            write("\n", 1);
-        }
-
-      public:
-        using writer::writer;
-        using writer::operator=;
-
-        void write_unsafe(const string_view text);
-        void write_unsafe(const wstring_view text);
-
-        void write(const string_view text);
-        void write(const wstring_view text);
-    };
-
     export class system_console
     {
-        reader in_;
-        logs_writer out_;
-        logs_writer err_;
+        file_stream_reader in_;
+        file_stream_writer out_;
+        file_stream_writer err_;
 
         HWND window_ = nullptr;
 
@@ -91,7 +72,11 @@ namespace fd
         ~system_console();
         system_console();
 
+        void write_nolock(const string_view str);
+        void write_nolock(const wstring_view wstr);
+
         void write(const string_view str);
         void write(const wstring_view wstr);
     };
+
 } // namespace fd

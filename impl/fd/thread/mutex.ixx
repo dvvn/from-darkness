@@ -8,7 +8,7 @@ module;
 export module fd.mutex;
 export import fd.lock_guard;
 
-struct basic_mutex
+export struct basic_mutex
 {
     virtual ~basic_mutex() = default;
 

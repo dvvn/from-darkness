@@ -29,11 +29,15 @@
 
 #define FD_CONCAT(...) FOR_EACH(_FD_UNPACK, __VA_ARGS__)
 
+#if 0
+#define FD_STRINGIZE(x) #x
+#else
 #ifdef _STRINGIZE
 #define FD_STRINGIZE _STRINGIZE
 #else
 #define FD_STRINGIZEX(x) #x
 #define FD_STRINGIZE(x)  FD_STRINGIZEX(x)
+#endif
 #endif
 
 /* #ifdef _CRT_WIDE

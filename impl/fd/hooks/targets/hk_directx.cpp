@@ -14,11 +14,18 @@ import fd.library_info;
 using namespace fd;
 using namespace hooks;
 
+#define D3D_VALIDATE(_X_)         \
+    if (_X_ != D3D_OK)            \
+    {                             \
+        IM_ASSERT(_X_ == D3D_OK); \
+        return false;             \
+    }
+
 struct render_interface
 {
     ~render_interface()
     {
-        if (library_info::_Find(L"d3d9.dll")) // todo: find better way
+        if (library_info::_Find(L"d3d9.dll", false)) // todo: find a better way
             ImGui_ImplDX9_Shutdown();
     }
 
@@ -33,7 +40,7 @@ struct render_interface
         ImGui_ImplDX9_InvalidateDeviceObjects();
     }
 
-    bool render(IDirect3DDevice9* inst)
+    void render(IDirect3DDevice9* inst)
     {
         // Start the Dear ImGui frame
         ImGui_ImplDX9_NewFrame();
@@ -48,24 +55,14 @@ struct render_interface
         }
         ImGui::EndFrame();
 
-        const auto bg = inst->BeginScene();
+        [[maybe_unused]] const auto bg = inst->BeginScene();
         IM_ASSERT(bg == D3D_OK);
-#ifdef NDEBUG
-        if (bg != D3D_OK)
-            return false;
-#endif
         {
             ImGui::Render();
             ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
         }
-        const auto ed = inst->EndScene();
+        [[maybe_unused]] const auto ed = inst->EndScene();
         IM_ASSERT(ed == D3D_OK);
-#ifdef NDEBUG
-        if (ed != D3D_OK)
-            return false;
-#endif
-
-        return true;
     }
 };
 
@@ -153,7 +150,6 @@ bool d3d9_present::disable()
 
 HRESULT WINAPI d3d9_present::callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region)
 {
-    if (!_Render_interface->render(reinterpret_cast<IDirect3DDevice9*>(this)))
-        std::terminate();
+    _Render_interface->render(reinterpret_cast<IDirect3DDevice9*>(this));
     return invoke(&d3d9_present::callback, _D3d9_present->get_original_method(), this, source_rect, desc_rect, dest_window_override, dirty_region);
 }

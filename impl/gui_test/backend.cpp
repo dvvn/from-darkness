@@ -6,13 +6,6 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-// for readable assert
-#ifdef _DEBUG
-constexpr DWORD _D3DERR_INVALIDCALL = D3DERR_INVALIDCALL;
-#undef D3DERR_INVALIDCALL
-constexpr auto D3DERR_INVALIDCALL = _D3DERR_INVALIDCALL;
-#endif
-
 using namespace fd;
 
 static comptr<IDirect3D9> g_pD3D;

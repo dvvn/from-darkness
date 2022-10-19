@@ -152,7 +152,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
-    FD_ASSERT(window == _Wndproc-> hwnd_);
+    FD_ASSERT(window == _Wndproc->hwnd_);
     const auto ctx         = ImGui::GetCurrentContext();
     const auto size_before = ctx->InputEventsQueue.size();
 
