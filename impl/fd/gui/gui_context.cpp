@@ -35,7 +35,7 @@ context::~context()
 #endif
 }
 
-context::context()
+context::context(const bool store_settings)
     : context_(&font_atlas_)
 {
 #ifdef _DEBUG
@@ -56,8 +56,11 @@ context::context()
 
     ImGui::Initialize();
 
-    context_.SettingsHandlers.clear(); // remove default ini handler
-    context_.IO.IniFilename = nullptr; //
+    if (!store_settings)
+    {
+        context_.SettingsHandlers.clear();
+        context_.IO.IniFilename = nullptr;
+    }
 
     // ctx_.IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 

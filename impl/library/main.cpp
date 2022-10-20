@@ -64,7 +64,7 @@ static DWORD WINAPI _Loader(void*) noexcept
 
     add_to_safe_list(_Handle, nullptr);
 
-    const gui::context gui_ctx;
+    const gui::context gui_ctx = { false };
     gui::menu_impl menu_ctx;
     gui::menu = &menu_ctx;
 

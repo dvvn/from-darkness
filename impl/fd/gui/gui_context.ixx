@@ -33,6 +33,9 @@ namespace fd::gui
 
       public:
         ~context();
-        context();
+        context(const bool store_settings);
+
+        context(const context&)            = delete;
+        context& operator=(const context&) = delete;
     };
 } // namespace fd::gui
