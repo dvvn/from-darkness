@@ -10,6 +10,7 @@ module;
 module fd.hooks.directx;
 import fd.functional.invoke;
 import fd.library_info;
+import fd.gui.menu;
 
 using namespace fd;
 using namespace hooks;
@@ -25,7 +26,7 @@ struct render_interface
 {
     ~render_interface()
     {
-        if (library_info::_Find(L"d3d9.dll", false)) // todo: find a better way
+        if (library_info::_Find(L"d3d9.dll", false))
             ImGui_ImplDX9_Shutdown();
     }
 
@@ -50,8 +51,10 @@ struct render_interface
 
         ImGui::NewFrame();
         {
-            // invoke(gui::menu);
+            gui::menu->render();
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
             ImGui::ShowDemoWindow();
+#endif
         }
         ImGui::EndFrame();
 

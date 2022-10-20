@@ -14,6 +14,10 @@
 #define IMGUI_DISABLE_SSE
 #define IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS
 
+#ifndef _DEBUG
+#define IMGUI_DISABLE_DEMO_WINDOWS
+#endif
+
 #ifdef IMGUI_USE_WCHAR32
 #include <cstdint>
 #define ImDrawIdx uint32_t

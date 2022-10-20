@@ -7,6 +7,7 @@ import fd.assert.impl;
 import fd.system.console;
 
 import fd.gui.context;
+import fd.gui.menu.impl;
 
 import fd.hooks.directx;
 import fd.hooks.winapi;
@@ -36,7 +37,9 @@ int main(int, char**)
     });
 
     const gui::context gui_ctx;
-
+    gui::menu_impl menu_ctx;
+    gui::menu = &menu_ctx;
+    
     hooks::holder all_hooks = { hooks::d3d9_reset(backend.d3d), hooks::d3d9_present(backend.d3d), hooks::wndproc(backend.handle) };
 
     return all_hooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;

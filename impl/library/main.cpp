@@ -11,6 +11,7 @@ import fd.system.console;
 #endif
 
 import fd.gui.context;
+import fd.gui.menu.impl;
 
 import fd.hooks.directx;
 import fd.hooks.winapi;
@@ -64,6 +65,8 @@ static DWORD WINAPI _Loader(void*) noexcept
     add_to_safe_list(_Handle, nullptr);
 
     const gui::context gui_ctx;
+    gui::menu_impl menu_ctx;
+    gui::menu = &menu_ctx;
 
     const auto d3d_ifc = [] {
         const library_info lib = { L"shaderapidx9.dll", true };

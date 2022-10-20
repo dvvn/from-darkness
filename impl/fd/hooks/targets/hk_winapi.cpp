@@ -11,6 +11,9 @@ module;
 
 module fd.hooks.winapi;
 import fd.functional.bind;
+#ifdef IMGUI_DISABLE_DEMO_WINDOWS
+import fd.gui.menu;
+#endif
 
 // #define HOT_UNLOAD_SUPPORTED
 
@@ -152,15 +155,21 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
+#define ARGS window, message, w_param, l_param
+
     FD_ASSERT(window == _Wndproc->hwnd_);
+
+#ifdef IMGUI_DISABLE_DEMO_WINDOWS
+    if (!gui::menu->visuble())
+        return invoke(&wndproc::callback, _Wndproc->get_original_method(), ARGS);
+#endif
+
     const auto ctx         = ImGui::GetCurrentContext();
     const auto size_before = ctx->InputEventsQueue.size();
 
-#define ARGS window, message, w_param, l_param
-
     if (ImGui_ImplWin32_WndProcHandler(ARGS))
         return TRUE;
-    const auto size_after = ctx->InputEventsQueue.size();
 
+    const auto size_after = ctx->InputEventsQueue.size();
     return size_before == size_after ? invoke(&wndproc::callback, _Wndproc->get_original_method(), ARGS) : invoke(_Wndproc->def_, ARGS);
 }
