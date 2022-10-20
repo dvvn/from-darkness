@@ -33,7 +33,7 @@ static DWORD WINAPI _Loader(void*) noexcept
         _T_id = 0;
     };
 
-    std::set_terminate([] {
+    const auto std_terminate = std::set_terminate([] {
         TerminateThread(_T_Handle, EXIT_FAILURE);
         FreeLibrary(_Handle);
     });
@@ -53,8 +53,8 @@ static DWORD WINAPI _Loader(void*) noexcept
         sys_console.write(msg);
     });
 
-    assert_callback.add([&](const assert_data_parsed data_parsed) {
-        sys_console.write(data_parsed);
+    assert_callback.add([&](auto& adata) {
+        sys_console.write(parse_assert_data(adata));
     });
 #endif
 
@@ -71,20 +71,24 @@ static DWORD WINAPI _Loader(void*) noexcept
         return **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
     }();
 
-    std::tuple all_hooks = { hooks::d3d9_reset(d3d_ifc), hooks::d3d9_present(d3d_ifc), hooks::wndproc("Valve001") };
+    hooks::holder all_hooks = { hooks::d3d9_reset(d3d_ifc), hooks::d3d9_present(d3d_ifc), hooks::wndproc("Valve001") };
 
-    if (!load_hooks(all_hooks))
+    if (!all_hooks.enable())
         FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
-
-    (void)library_info(L"serverbrowser.dll", true); // wait until game loaded. TODO: finder better way
 
     std::set_terminate([] {
         if (ResumeThread(_T_Handle) == -1)
             std::abort();
     });
 
+    // if (!library_info::_Wait(L"serverbrowser.dll"))
+    //   FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
+
     if (SuspendThread(_T_Handle) == -1)
         FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
+
+    if (!all_hooks.disable())
+        std::abort();
 
     return EXIT_SUCCESS;
 }

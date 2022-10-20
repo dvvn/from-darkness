@@ -45,9 +45,14 @@ dos_nt::dos_nt(const library_info info)
     _Construct(info.get());
 }
 
+PVOID dos_nt::base() const
+{
+    return dos;
+}
+
 std::span<uint8_t> dos_nt::read() const
 {
-    return { (uint8_t*)dos, nt->OptionalHeader.SizeOfImage };
+    return { (uint8_t*)base(), nt->OptionalHeader.SizeOfImage };
 }
 
 std::span<IMAGE_SECTION_HEADER> dos_nt::sections() const
@@ -382,7 +387,7 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
 #if 0
         const auto target_name = _To_string_view(*NotificationData->Loaded.FullDllName);
         if (!target_name.ends_with(data->name))
-              return;
+            return;
 #else
         if (_To_string_view(*NotificationData->Loaded.BaseDllName) != data->name)
             return;
@@ -401,6 +406,21 @@ static auto _Wait_prepare(const bool notify)
     const auto unreg = static_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
 
     return std::pair(reg, unreg);
+}
+
+PVOID library_info::_Wait(const wstring_view name, const bool notify)
+{
+    static const auto [reg_fn, unreg_fn] = _Wait_prepare(notify);
+
+    callback_data_t cb_data = { name };
+    void* cookie;
+    if (reg_fn(0, _On_new_library, &cb_data, &cookie) != STATUS_SUCCESS)
+        return nullptr;
+    if (!cb_data.sem.acquire())
+        return nullptr;
+    if (unreg_fn(cookie) != STATUS_SUCCESS)
+        return nullptr;
+    return cb_data.found;
 }
 
 library_info::library_info()
@@ -422,14 +442,11 @@ library_info::library_info(const wstring_view name, const bool wait, const bool 
 
     if (!entry_ && wait)
     {
-        static const auto [reg_fn, unreg_fn] = _Wait_prepare(notify);
-
-        callback_data_t cb_data = { name };
-        void* cookie;
-        if (reg_fn(0, _On_new_library, &cb_data, &cookie) == STATUS_SUCCESS && cb_data.sem.acquire() && unreg_fn(cookie) == STATUS_SUCCESS)
+        const auto base_address = _Wait(name, notify);
+        if (base_address)
         {
-            entry_ = LDR_ENTRY_finder([base_address = cb_data.found](const dos_nt dnt) {
-                return base_address == dnt.dos;
+            entry_ = LDR_ENTRY_finder([=](const dos_nt dnt) {
+                return base_address == dnt.base();
             });
         }
     }
@@ -442,7 +459,7 @@ library_info::library_info(const wstring_view name, const bool wait, const bool 
 
 library_info::library_info(const IMAGE_DOS_HEADER* base_address, const bool notify)
     : entry_(LDR_ENTRY_finder([=](const dos_nt dnt) {
-        return base_address == dnt.dos;
+        return base_address == dnt.base();
     }))
 {
     if (notify)

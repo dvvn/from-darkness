@@ -31,13 +31,13 @@ int main(int, char**)
         sys_console.write(msg);
     });
 
-    assert_callback.add([&](const assert_data_parsed data_parsed) {
-        sys_console.write(data_parsed);
+    assert_callback.add([&](auto& adata) {
+        sys_console.write(parse_assert_data(adata));
     });
 
     const gui::context gui_ctx;
 
-    std::tuple all_hooks = { hooks::d3d9_reset(backend.d3d), hooks::d3d9_present(backend.d3d), hooks::wndproc(backend.handle) };
+    hooks::holder all_hooks = { hooks::d3d9_reset(backend.d3d), hooks::d3d9_present(backend.d3d), hooks::wndproc(backend.handle) };
 
-    return !load_hooks(all_hooks) ? EXIT_FAILURE : (backend.run(), EXIT_SUCCESS);
+    return all_hooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;
 }

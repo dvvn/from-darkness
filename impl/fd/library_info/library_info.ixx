@@ -43,6 +43,8 @@ namespace fd
         dos_nt(const LDR_DATA_TABLE_ENTRY* ldr_entry);
         explicit dos_nt(const library_info info);
 
+        PVOID base() const;
+
         std::span<uint8_t> read() const;
         std::span<IMAGE_SECTION_HEADER> sections() const;
 
@@ -173,6 +175,7 @@ namespace fd
 
       public:
         static library_info _Find(const wstring_view name, const bool notify = true);
+        static PVOID _Wait(const wstring_view name, const bool notify = true);
 
         library_info();
         library_info(pointer entry);
@@ -257,7 +260,7 @@ namespace fd
 
     struct current_library_info : library_info
     {
-        current_library_info(const bool notify=true);
+        current_library_info(const bool notify = true);
     };
 
     export HMODULE current_library_handle;

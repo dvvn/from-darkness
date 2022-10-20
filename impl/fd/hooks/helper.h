@@ -2,17 +2,27 @@
 
 #include <tuple>
 
-namespace fd
+namespace fd::hooks
 {
     template <typename... H>
-    bool load_hooks(std::tuple<H...>& hooks)
+    class holder
     {
-        return (std::get<H>(hooks).enable() && ...);
-    }
+        std::tuple<H...> hooks_;
 
-    template <typename... H>
-    bool disable_hooks(std::tuple<H...>& hooks)
-    {
-        return (std::get<H>(hooks).disable() && ...);
-    }
-} // namespace fd
+      public:
+        holder(H&&... hooks)
+            : hooks_(std::move(hooks)...)
+        {
+        }
+
+        bool enable()
+        {
+            return (std::get<H>(hooks_).enable() && ...);
+        }
+
+        bool disable()
+        {
+            return (std::get<H>(hooks_).disable() && ...);
+        }
+    };
+} // namespace fd::hooks
