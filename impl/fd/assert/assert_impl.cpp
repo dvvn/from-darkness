@@ -35,7 +35,7 @@ static auto _Build_message(const assert_data& data, T... extra)
 #define EXPR       "Expression: ", expression
     const auto [expression, message, location] = data;
     utf_string<wchar_t> msg;
-    
+
     if (expression && message)
         msg = make_string(FIRST_PART, EXPR, "\n\n", message, extra...);
     else if (expression)
@@ -77,7 +77,9 @@ void default_assert_handler::operator()(const assert_data& adata) const noexcept
     invoke(data_, adata);
 }
 
-assert_data_parsed ::assert_data_parsed(const assert_data& adata)
-    : wstring(_Build_message(adata))
+wstring parse_assert_data_impl::operator()(const assert_data& adata) const
 {
+    return _Build_message(adata);
 }
+
+

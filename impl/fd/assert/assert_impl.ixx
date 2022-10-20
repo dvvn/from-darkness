@@ -8,9 +8,9 @@ export import fd.string;
 import fd.callback;
 import fd.mutex;
 
-export namespace fd
+namespace fd
 {
-    class default_assert_handler : public basic_assert_handler
+    export class default_assert_handler : public basic_assert_handler
     {
         callback_simple<const assert_data&> data_;
         mutable mutex mtx_;
@@ -28,8 +28,10 @@ export namespace fd
         void operator()(const assert_data& adata) const noexcept override;
     };
 
-    struct assert_data_parsed : wstring
+    struct parse_assert_data_impl
     {
-        assert_data_parsed(const assert_data& adata);
+        wstring operator()(const assert_data& adata) const;
     };
+
+    export constexpr parse_assert_data_impl parse_assert_data;
 } // namespace fd
