@@ -124,7 +124,7 @@ netvars_log::~netvars_log()
     if (dir.empty())
         return;
     //_Correct_path(dir);
-    if (!fs::create_directories(dir))
+    if (!fs::directory.create(dir))
         return;
     const auto full_path = make_string(dir, file.name, file.extension);
     if (_File_already_written(full_path, buff))
@@ -137,7 +137,7 @@ netvars_classes::~netvars_classes()
     if (dir.empty())
         return;
     //_Correct_path(dir);
-    const auto file_is_empty = fs::create_directories(dir) || fs::directory_empty(dir);
+    const auto file_is_empty = fs::directory.create(dir) || fs::directory.empty(dir);
     for (const auto& [name, buff] : files)
     {
         const auto current_file_path = make_string(dir, name);
