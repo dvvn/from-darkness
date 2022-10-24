@@ -6,7 +6,6 @@ export module fd.gui.context;
 
 namespace fd::gui
 {
-#if 0
     class imgui_backup
     {
         ImGuiMemAllocFunc allocator_;
@@ -21,13 +20,10 @@ namespace fd::gui
         imgui_backup(const imgui_backup&)            = delete;
         imgui_backup& operator=(const imgui_backup&) = delete;
     };
-#endif
 
     export class context
     {
-#if 0
         imgui_backup backup_;
-#endif
         ImGuiContext context_;
         ImFontAtlas font_atlas_;
 
@@ -35,7 +31,7 @@ namespace fd::gui
         ~context();
         context(const bool store_settings);
 
-        context(const context&)            = delete;
-        context& operator=(const context&) = delete;
+        /*context(const context&)            = delete;
+        context& operator=(const context&) = delete;*/
     };
 } // namespace fd::gui

@@ -8,7 +8,6 @@ module fd.gui.context;
 
 using namespace fd::gui;
 
-#if 0
 imgui_backup::~imgui_backup()
 {
     ImGui::SetAllocatorFunctions(allocator_, deleter_, user_data_);
@@ -20,7 +19,6 @@ imgui_backup::imgui_backup()
     context_ = ImGui::GetCurrentContext();
     ImGui::GetAllocatorFunctions(&allocator_, &deleter_, &user_data_);
 }
-#endif
 
 #ifdef _DEBUG
 static context* ctx_;
@@ -49,33 +47,18 @@ context::context(const bool store_settings)
             return new uint8_t[size];
         },
         [](void* buff, void*) {
-            auto correct_buff = static_cast<uint8_t*>(buff);
+            const auto correct_buff = static_cast<uint8_t*>(buff);
             delete[] correct_buff;
         });
     ImGui::SetCurrentContext(&context_);
-
     ImGui::Initialize();
-
     if (!store_settings)
     {
         context_.SettingsHandlers.clear();
         context_.IO.IniFilename = nullptr;
     }
-
     // ctx_.IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     // ImGui::StyleColorsLight();
-
-    // active_ = true;
 }
-
-/* void context::reset()
-{
-    if (active_)
-    {
-        ImGui::Shutdown();
-        active_ = false;
-    }
-} */
