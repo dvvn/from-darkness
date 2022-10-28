@@ -26,16 +26,22 @@ namespace fd::gui
 
     export class context_impl : public basic_context
     {
-        using backend_type = IDirect3DDevice9*;
+      public:
+        using backend_type   = IDirect3DDevice9*;
+        using window_id_type = HWND;
 
+      private:
         imgui_backup backup_;
         ImGuiContext context_;
         ImFontAtlas font_atlas_;
+#ifdef _DEBUG
         backend_type backend_;
+        window_id_type window_id_;
+#endif
 
       public:
         ~context_impl() override;
-        context_impl(const backend_type backend, const bool store_settings);
+        context_impl(const backend_type backend, const window_id_type window_id, const bool store_settings);
 
         /*context(const context&)            = delete;
         context& operator=(const context&) = delete;*/
@@ -43,5 +49,6 @@ namespace fd::gui
         void release_textures() override;
         bool begin_frame() override;
         void end_frame() override;
+        char process_keys(void* data) override;
     };
 } // namespace fd::gui

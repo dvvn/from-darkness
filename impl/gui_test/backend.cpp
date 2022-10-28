@@ -83,17 +83,17 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 backend_data::~backend_data()
 {
-    ::UnregisterClass(name, handle);
+    ::UnregisterClass(info.lpszClassName, info.hInstance);
     ::DestroyWindow(hwnd);
 }
 
 backend_data::backend_data()
 {
-    name                = _T("GUI TEST");
-    handle              = GetModuleHandle(nullptr);
-    const WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr };
-    ::RegisterClassEx(&wc);
-    hwnd = ::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+    constexpr auto name = _T("GUI TEST");
+    const auto handle   = GetModuleHandle(nullptr);
+    info                = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr };
+    ::RegisterClassEx(&info);
+    hwnd = ::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, handle, NULL);
 
     if (!CreateDeviceD3D(hwnd))
         return;
@@ -116,7 +116,7 @@ void backend_data::run()
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
-                return ;
+                return;
         }
 
         d3d->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);

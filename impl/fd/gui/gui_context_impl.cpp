@@ -48,14 +48,15 @@ static void _Disable_ini(ImGuiContext* ctx = ImGui::GetCurrentContext())
     ctx->IO.IniFilename = nullptr;
 }
 
-context_impl::context_impl(const backend_type backend, const bool store_settings)
+context_impl::context_impl(const backend_type backend, const window_id_type window_id, const bool store_settings)
     : context_(&font_atlas_)
-    , backend_(backend)
 {
 #ifdef _DEBUG
     FD_ASSERT(ctx_ == nullptr, "GUI context_impl aleady set!");
     IMGUI_CHECKVERSION();
-    ctx_ = this;
+    ctx_       = this;
+    backend_   = backend;
+    window_id_ = window_id;
 #endif
 
     ImGui::SetAllocatorFunctions(
@@ -69,6 +70,8 @@ context_impl::context_impl(const backend_type backend, const bool store_settings
     ImGui::SetCurrentContext(&context_);
     ImGui::Initialize();
     if (!ImGui_ImplDX9_Init(backend))
+        std::terminate();
+    if (!ImGui_ImplWin32_Init(window_id))
         std::terminate();
     if (!store_settings)
         _Disable_ini(&context_);
@@ -108,4 +111,27 @@ void context_impl::end_frame()
     }
     [[maybe_unused]] const auto ed = backend_->EndScene();
     IM_ASSERT(ed == D3D_OK);
+}
+
+struct keys_data
+{
+    HWND window;
+    UINT message;
+    WPARAM w_param;
+    LPARAM l_param;
+};
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
+
+char context_impl::process_keys(void* data)
+{
+    const auto [wnd, msg, wp, lp] = *static_cast<keys_data*>(data);
+
+    const auto size_before = context_.InputEventsQueue.size();
+
+    if (ImGui_ImplWin32_WndProcHandler(wnd, msg, wp, lp))
+        return TRUE;
+
+    const auto size_after = context_.InputEventsQueue.size();
+    return size_before == size_after ? FALSE : CHAR_MAX;
 }

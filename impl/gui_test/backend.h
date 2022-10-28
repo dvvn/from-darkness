@@ -8,8 +8,7 @@ namespace fd
 {
     struct backend_data
     {
-        HMODULE handle;
-        LPCTSTR name;
+        WNDCLASSEX info;
         HWND hwnd;
         IDirect3DDevice9* d3d;
 

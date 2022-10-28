@@ -7,26 +7,30 @@ import fd.hooks.impl;
 
 namespace fd::hooks
 {
-    struct wndproc_data
+
+    export class wndproc : public impl
     {
         WNDPROC def_;
 #ifdef _DEBUG
         HWND hwnd_;
 #endif
-    };
-
-    export struct wndproc : impl, private wndproc_data
-    {
+      public:
         ~wndproc() override;
 
-        wndproc(HMODULE handle);
-        wndproc(const char* name);
-        wndproc(const wchar_t* name);
+        wndproc(HWND id, WNDPROC target);
         wndproc(wndproc&& other);
 
         string_view name() const override;
 
       private:
-        static LRESULT WINAPI callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
+        struct wndproc_data
+        {
+            HWND window;
+            UINT message;
+            WPARAM w_param;
+            LPARAM l_param;
+        };
+
+        static LRESULT WINAPI callback(wndproc_data data);
     };
 } // namespace fd::hooks

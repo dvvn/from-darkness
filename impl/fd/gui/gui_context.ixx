@@ -8,6 +8,7 @@ export namespace fd::gui
         virtual void release_textures()        = 0;
         virtual bool begin_frame()             = 0;
         virtual void end_frame() = 0;
+        virtual char process_keys(void* data) = 0;
     };
 
     basic_context* context;
