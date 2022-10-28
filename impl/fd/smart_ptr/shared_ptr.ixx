@@ -21,35 +21,20 @@ namespace fd
             std::destroy_at(&obj);
     }
 
-    template <typename T, class Alloc, typename... Args>
-    T* make_ptr(Alloc& allocator, Args&&... args)
-    {
-        static_assert(sizeof(Alloc::value_type) == 1);
-        auto ptr = reinterpret_cast<T*>(allocator.allocate(sizeof(T)));
-        std::construct_at(ptr, std::forward<Args>(args)..., allocator);
-        return ptr;
-    }
-
-    template <class Alloc, typename T>
-    void deallocate_helper(Alloc& allocator, T* ptr)
-    {
-        static_assert(sizeof(Alloc::value_type) == 1);
-        auto alloc = std::move(allocator);
-        // destroy_class(allocator);
-        allocator.deallocate(reinterpret_cast<uint8_t*>(ptr), sizeof(T));
-    }
-
     using type_info_ref = const std::type_info&;
 
     template <typename T>
     struct basic_controller
     {
+        virtual ~basic_controller() = default;
+
         virtual T* get() const             = 0;
         virtual type_info_ref type() const = 0;
 
-        virtual void destroy()     = 0;
-        virtual void delete_self() = 0;
+        virtual void destroy() = 0;
     };
+
+    constexpr auto aa = std::is_trivially_destructible_v<int>;
 
     template <typename S>
     class ref_counter final
@@ -60,14 +45,28 @@ namespace fd
             S counter_;
         };
 
+        [[no_unique_address]] std::conditional_t<std::is_trivially_destructible_v<S>, std::false_type, bool> destroyed_;
+
       public:
         using size_type = decltype([] {
             S dummy_;
             return dummy_++;
         }());
 
+        ~ref_counter()
+        {
+            if constexpr (!std::is_trivially_destructible_v<S>)
+            {
+                if (!destroyed_)
+                {
+                    destroy_class(counter_);
+                    destroyed_ = true;
+                }
+            }
+        }
+
         ref_counter()
-            : counter_(0)
+            : counter_(0u)
         {
         }
 
@@ -100,19 +99,13 @@ namespace fd
     {
         ref_counter<S> strong, weak;
 
-        void _Cleanup()
-        {
-            strong._Destroy();
-            weak._Destroy();
-        }
-
         void _Destroy_strong()
         {
             if (--strong > 0)
                 return;
             this->destroy();
             if (weak.load() == 0)
-                this->delete_self();
+                delete this;
         }
 
         void _Destroy_weak()
@@ -120,7 +113,7 @@ namespace fd
             if (--weak > 0)
                 return;
             if (strong.load() == 0)
-                this->delete_self();
+                delete this;
         }
     };
 
@@ -143,7 +136,6 @@ namespace fd
             if (!new_data)
                 throw std::bad_alloc();
 #endif
-
             ++new_data->strong;
             data = new_data;
         }
@@ -347,23 +339,19 @@ namespace fd
             this->_Construct(other);
         }
 
-        template <typename T1, typename D = default_delete<T1>, typename A = std::allocator<uint8_t>>
-        shared_ptr(T1* ptr, D deleter = {}, A allocator = {})
+        template <typename T1, typename D = default_delete<T1>>
+        shared_ptr(T1* ptr, D deleter = {})
         {
             class _External_data : public _Controller
             {
                 // unique_ptr<T1, D> ptr_;
                 T1* ptr_;
                 [[no_unique_address]] D deleter_;
-                [[no_unique_address]] A alloc_;
 
               public:
-                ~_External_data() = delete;
-
-                _External_data(T1* ptr, D& deleter, A& allocator)
+                _External_data(T1* ptr, D& deleter)
                     : ptr_(ptr)
                     , deleter_(std::move(deleter))
-                    , alloc_(std::move(allocator))
                 {
                 }
 
@@ -384,33 +372,24 @@ namespace fd
                         deleter_(ptr_);
                     destroy_class(deleter_);
                 }
-
-                void delete_self() override
-                {
-                    this->_Cleanup();
-                    deallocate_helper(alloc_, this);
-                }
             };
 
-            this->_Construct(make_ptr<_External_data>(allocator, ptr, deleter));
+            this->_Construct(new _External_data(ptr, deleter));
         }
 
-        template <typename T1, typename A = std::allocator<uint8_t>>
-        shared_ptr(T1&& value, A allocator = {}) requires(std::convertible_to<std::add_pointer_t<T1>, pointer>)
+        template <typename T1>
+        shared_ptr(T1&& value)
         {
             class _Innter_data : public _Controller
             {
                 using value_type = std::remove_cvref_t<T1>;
                 value_type value_;
-                [[no_unique_address]] A alloc_;
 
               public:
-                ~_Innter_data() = delete;
-
-                _Innter_data(T1&& value, A& allocator)
+                _Innter_data(T1&& value)
                     : value_(std::forward<T1>(value))
-                    , alloc_(std::move(allocator))
                 {
+                    static_assert(std::convertible_to<std::add_pointer_t<value_type>, pointer>);
                 }
 
                 pointer get() const override
@@ -427,15 +406,9 @@ namespace fd
                 {
                     destroy_class(value_);
                 }
-
-                void delete_self() override
-                {
-                    this->_Cleanup();
-                    deallocate_helper(alloc_, this);
-                }
             };
 
-            this->_Construct(make_ptr<_Innter_data>(allocator, std::forward<T1>(value)));
+            this->_Construct(new _Innter_data(std::forward<T1>(value)));
         }
 
         shared_ptr& operator=(const shared_ptr& other)
@@ -466,7 +439,7 @@ namespace fd
             return this->get();
         }
 
-        reference operator[](const size_t idx) const requires(std::is_unbounded_array_v<T>)
+        reference operator[](const size_t idx) const requires(std::is_unbounded_array_v<T>) 
         {
             return this->get()[idx];
         }
