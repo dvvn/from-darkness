@@ -1,37 +1,14 @@
-module;
-
-#include <imgui_internal.h>
-
 export module fd.gui.context;
 
-namespace fd::gui
+export namespace fd::gui
 {
-    class imgui_backup
+    struct basic_context
     {
-        ImGuiMemAllocFunc allocator_;
-        ImGuiMemFreeFunc deleter_;
-        void* user_data_;
-        ImGuiContext* context_;
-
-      public:
-        ~imgui_backup();
-        imgui_backup();
-
-        imgui_backup(const imgui_backup&)            = delete;
-        imgui_backup& operator=(const imgui_backup&) = delete;
+        virtual ~basic_context()               = default;
+        virtual void release_textures()        = 0;
+        virtual bool begin_frame()             = 0;
+        virtual void end_frame() = 0;
     };
 
-    export class context
-    {
-        imgui_backup backup_;
-        ImGuiContext context_;
-        ImFontAtlas font_atlas_;
-
-      public:
-        ~context();
-        context(const bool store_settings);
-
-        /*context(const context&)            = delete;
-        context& operator=(const context&) = delete;*/
-    };
+    basic_context* context;
 } // namespace fd::gui

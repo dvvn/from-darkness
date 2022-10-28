@@ -24,8 +24,8 @@
 #endif
 
 #if defined(_WIN32) && defined(_DEBUG)
-struct IDirect3DDevice9;
-#define ImTextureID IDirect3DDevice9*
+struct IDirect3DTexture9;
+#define ImTextureID IDirect3DTexture9*
 #endif
 
 #ifdef IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS

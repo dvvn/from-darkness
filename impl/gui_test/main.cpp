@@ -6,7 +6,7 @@ import fd.logger.impl;
 import fd.assert.impl;
 import fd.system.console;
 
-import fd.gui.context;
+import fd.gui.context.impl;
 import fd.gui.menu.impl;
 
 import fd.hooks.directx;
@@ -36,11 +36,13 @@ int main(int, char**)
         sys_console.write(parse_assert_data(adata));
     });
 
-    const gui::context gui_ctx = { true };
+    gui::context_impl gui_ctx = { backend.d3d, true };
+    gui::context              = &gui_ctx;
+
     gui::menu_impl menu_ctx;
     gui::menu = &menu_ctx;
 
-    hooks::holder all_hooks = { hooks::d3d9_reset(backend.d3d), hooks::d3d9_present(backend.d3d), hooks::wndproc(backend.handle) };
+    hooks::holder all_hooks = { hooks::d3d9_reset({ backend.d3d, 16 }), hooks::d3d9_present({ backend.d3d, 17 }), hooks::wndproc(backend.handle) };
 
     return all_hooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;
 }
