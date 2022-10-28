@@ -2,8 +2,11 @@ module;
 
 #include <fd/assert.h>
 
-#include <imgui_impl_win32.h>
+#ifdef IMGUI_USER_CONFIG
+#include IMGUI_USER_CONFIG
+#else
 #include <imgui_internal.h>
+#endif
 
 #include <windows.h>
 

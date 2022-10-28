@@ -1,13 +1,11 @@
 module;
 
-#include <imgui_impl_dx9.h>
-#include <imgui_impl_win32.h>
+#include <imgui.h>
 
 #include <d3d9.h>
 
 module fd.hooks.directx;
 import fd.functional.invoke;
-import fd.library_info;
 import fd.gui.menu;
 import fd.gui.context;
 
