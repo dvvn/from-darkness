@@ -18,9 +18,15 @@ lock_cursor::lock_cursor(function_getter target)
 
 void lock_cursor::callback()
 {
-    auto thisptr = reinterpret_cast<valve::vgui_surface*>(this);
-    if (!thisptr->IsCursorVisible() && gui::menu->visible())
-        thisptr->UnlockCursor();
-    else
-        call_original();
+    if (gui::menu->visible())
+    {
+        const auto thisptr = reinterpret_cast<valve::vgui_surface*>(this);
+        if (!thisptr->IsCursorVisible())
+        {
+            thisptr->UnlockCursor();
+            return;
+        }
+    }
+
+    call_original();
 }
