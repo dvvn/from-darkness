@@ -14,7 +14,7 @@ namespace fd::hooks
         HWND hwnd_;
 #endif
       public:
-        wndproc(HWND id, WNDPROC target);
+        wndproc(HWND id, function_getter target);
 
         static LRESULT WINAPI callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param) noexcept;
     };

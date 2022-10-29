@@ -21,7 +21,7 @@ import fd.gui.menu;
 using namespace fd;
 using namespace hooks;
 
-wndproc::wndproc(HWND hwnd, WNDPROC target)
+wndproc::wndproc(HWND hwnd, function_getter target)
     : impl("WinAPI.WndProc")
     , instance(target)
 {

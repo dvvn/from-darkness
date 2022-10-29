@@ -1,5 +1,6 @@
 #include <fd/hooks/helper.h>
 
+#include <d3d9.h>
 #include <windows.h>
 
 #include <exception>
@@ -10,7 +11,7 @@ import fd.assert.impl;
 import fd.system.console;
 #endif
 
-import fd.gui.context;
+import fd.gui.context.impl;
 import fd.gui.menu.impl;
 
 import fd.hooks.directx;
@@ -24,8 +25,6 @@ static HMODULE _Handle;
 static HANDLE _T_Handle;
 static DWORD _T_id = 0;
 
-struct IDirect3DDevice9;
-
 using namespace fd;
 
 static DWORD WINAPI _Loader(void*) noexcept
@@ -34,10 +33,13 @@ static DWORD WINAPI _Loader(void*) noexcept
         _T_id = 0;
     };
 
-    const auto std_terminate = std::set_terminate([] {
-        TerminateThread(_T_Handle, EXIT_FAILURE);
-        FreeLibrary(_Handle);
-    });
+    constexpr auto _Fail = [] {
+        // TerminateThread(_T_Handle, EXIT_FAILURE);
+        // FreeLibrary(_Handle);
+        FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
+    };
+
+    const auto std_terminate = std::set_terminate(_Fail);
 
     current_library_handle = _Handle;
 
@@ -64,31 +66,40 @@ static DWORD WINAPI _Loader(void*) noexcept
 
     add_to_safe_list(_Handle, nullptr);
 
-    const gui::context gui_ctx = { false };
-    gui::menu_impl menu_ctx;
-    gui::menu = &menu_ctx;
-
     const auto d3d_ifc = [] {
         const library_info lib = { L"shaderapidx9.dll", true };
         const auto addr        = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
     }();
 
-    hooks::holder all_hooks = { hooks::d3d9_reset(d3d_ifc), hooks::d3d9_present(d3d_ifc), hooks::wndproc("Valve001") };
+    const auto hwnd = [=] {
+        D3DDEVICE_CREATION_PARAMETERS d3d_params;
+        if (FAILED(d3d_ifc->GetCreationParameters(&d3d_params)))
+            _Fail();
+        return d3d_params.hFocusWindow;
+    }();
+
+    gui::context_impl gui_ctx = { d3d_ifc, hwnd, true };
+    gui::context              = &gui_ctx;
+
+    gui::menu_impl menu_ctx;
+    gui::menu = &menu_ctx;
+
+    hooks::holder all_hooks = { hooks::d3d9_reset({ d3d_ifc, 16 }), hooks::d3d9_present({ d3d_ifc, 17 }), hooks::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)) };
 
     if (!all_hooks.enable())
-        FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
+        _Fail();
 
     std::set_terminate([] {
         if (ResumeThread(_T_Handle) == -1)
             std::abort();
     });
 
-    // if (!library_info::_Wait(L"serverbrowser.dll"))
-    //   FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
+    /*if (!library_info::_Wait(L"serverbrowser.dll"))
+        _Fail();*/
 
     if (SuspendThread(_T_Handle) == -1)
-        FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
+        _Fail();
 
     if (!all_hooks.disable())
         std::abort();
