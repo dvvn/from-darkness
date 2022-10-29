@@ -5,12 +5,10 @@ import fd.hooks.impl;
 
 export namespace fd::hooks
 {
-    struct lock_cursor : impl
+    struct lock_cursor : impl, instance<lock_cursor>
     {
         lock_cursor(function_getter target);
-        lock_cursor(lock_cursor&& other);
 
-      private:
         void callback();
     };
 } // namespace fd::hooks

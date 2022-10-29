@@ -21,45 +21,36 @@ import fd.gui.menu;
 using namespace fd;
 using namespace hooks;
 
-static wndproc* _Wndproc;
-
 wndproc::wndproc(HWND hwnd, WNDPROC target)
     : impl("WinAPI.WndProc")
+    , instance(target)
 {
-    this->init(target, &wndproc::callback);
     this->def_ = IsWindowUnicode(hwnd) ? DefWindowProcW : DefWindowProcA;
 #ifdef _DEBUG
     this->hwnd_ = hwnd;
 #endif
-    _Wndproc = this;
 }
 
-wndproc::wndproc(wndproc&& other)
-    : impl(std::move(other))
+LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
-    def_ = other.def_;
-#ifdef _DEBUG
-    hwnd_ = other.hwnd_;
-#endif
-    _Wndproc = this;
-}
+    FD_ASSERT(window == self->hwnd_);
 
-LRESULT WINAPI wndproc::callback(wndproc_args args)
-{
-    FD_ASSERT(args.window == _Wndproc->hwnd_);
+#define ARGS window, message, w_param, l_param
 
 #ifdef IMGUI_DISABLE_DEMO_WINDOWS
     if (!gui::menu->visible())
-        return invoke(&wndproc::callback, _Wndproc->get_original_method(), args);
+        return call_original(ARGS);
 #endif
+
+    std::pair args = { std::pair(window, message), std::pair(w_param, l_param) };
 
     switch (gui::context->process_keys(&args))
     {
     case TRUE:
         return TRUE;
     case FALSE:
-        return invoke(&wndproc::callback, _Wndproc->get_original_method(), args);
+        return call_original(ARGS);
     default:
-        return invoke(&wndproc::callback, static_cast<void*>(_Wndproc->def_), args);
+        return self->def_(ARGS);
     }
 }

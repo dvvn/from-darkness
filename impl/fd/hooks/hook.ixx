@@ -1,9 +1,10 @@
 module;
 
-#include <cstdint>
+#include <type_traits>
 
 export module fd.hooks.impl;
 export import fd.hooks.base;
+export import fd.functional.invoke;
 
 // #define FUNCTION_GETTER_HAVE_PTR_SIZE
 
@@ -65,9 +66,6 @@ export namespace fd
             void* entry_;
             string_view name_;
 
-          protected:
-            void init(const function_getter target, const function_getter replace);
-
           public:
             ~impl() override;
             impl(const string_view name = {});
@@ -85,8 +83,46 @@ export namespace fd
 
             void* get_original_method() const override;
 
+            void init(const function_getter target, const function_getter replace);
+
             explicit operator bool() const;
         };
+
+        template <class T>
+        struct instance
+        {
+          protected:
+            inline static T* self;
+
+            template <typename... Args>
+            decltype(auto) call_original(Args&&... args)
+            {
+                return invoke(&T::callback, self->get_original_method(), static_cast<T*>(this), std::forward<Args>(args)...);
+            }
+
+            template <typename... Args>
+            static decltype(auto) call_original(Args&&... args) requires(!std::is_member_function_pointer_v<decltype(&T::callback)>)
+            {
+                return invoke(&T::callback, self->get_original_method(), std::forward<Args>(args)...);
+            }
+
+          public:
+            instance(function_getter target)
+            {
+                self = static_cast<T*>(this);
+                self->init(target, &T::callback);
+            }
+
+            instance(const instance&)            = delete;
+            instance& operator=(const instance&) = delete;
+            instance& operator=(instance&&)      = delete;
+
+            instance(instance&&)
+            {
+                self = static_cast<T*>(this);
+            }
+        };
+
     } // namespace hooks
 
 } // namespace fd

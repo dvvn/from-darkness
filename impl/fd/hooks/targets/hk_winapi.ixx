@@ -7,8 +7,7 @@ import fd.hooks.impl;
 
 namespace fd::hooks
 {
-
-    export class wndproc : public impl
+    export class wndproc : public impl, public instance<wndproc>
     {
         WNDPROC def_;
 #ifdef _DEBUG
@@ -16,17 +15,7 @@ namespace fd::hooks
 #endif
       public:
         wndproc(HWND id, WNDPROC target);
-        wndproc(wndproc&& other);
 
-      private:
-        struct wndproc_args
-        {
-            HWND window;
-            UINT message;
-            WPARAM w_param;
-            LPARAM l_param;
-        };
-
-        static LRESULT WINAPI callback(wndproc_args args);
+        static LRESULT WINAPI callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
     };
 } // namespace fd::hooks
