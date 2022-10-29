@@ -17,7 +17,7 @@ d3d9_reset::d3d9_reset(function_getter target)
 {
 }
 
-void WINAPI d3d9_reset::callback(D3DPRESENT_PARAMETERS* params)
+void WINAPI d3d9_reset::callback(D3DPRESENT_PARAMETERS* params) noexcept
 {
     gui::context->release_textures();
     call_original(params);
@@ -31,7 +31,7 @@ d3d9_present::d3d9_present(function_getter target)
 {
 }
 
-HRESULT WINAPI d3d9_present::callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region)
+HRESULT WINAPI d3d9_present::callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region) noexcept
 {
     if (gui::context->begin_frame())
     {

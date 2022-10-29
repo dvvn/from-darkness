@@ -9,6 +9,6 @@ export namespace fd::hooks
     {
         lock_cursor(function_getter target);
 
-        void callback();
+        void callback() noexcept;
     };
 } // namespace fd::hooks

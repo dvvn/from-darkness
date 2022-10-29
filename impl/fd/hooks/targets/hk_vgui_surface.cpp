@@ -16,7 +16,7 @@ lock_cursor::lock_cursor(function_getter target)
     // this->init({ surface, 67 }, &lock_cursor::callback);
 }
 
-void lock_cursor::callback()
+void lock_cursor::callback() noexcept
 {
     if (gui::menu->visible())
     {

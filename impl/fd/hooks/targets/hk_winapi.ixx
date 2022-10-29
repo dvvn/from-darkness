@@ -16,6 +16,6 @@ namespace fd::hooks
       public:
         wndproc(HWND id, WNDPROC target);
 
-        static LRESULT WINAPI callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
+        static LRESULT WINAPI callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param) noexcept;
     };
 } // namespace fd::hooks

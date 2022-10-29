@@ -31,7 +31,7 @@ wndproc::wndproc(HWND hwnd, WNDPROC target)
 #endif
 }
 
-LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
+LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPARAM l_param) noexcept
 {
     FD_ASSERT(window == self->hwnd_);
 
