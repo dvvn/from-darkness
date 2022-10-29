@@ -22,6 +22,14 @@ export namespace fd::hooks
         d3d9_present(d3d9_present&& other);
 
       private:
-        HRESULT WINAPI callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region);
+        struct present_args
+        {
+            CONST RECT* source_rect;
+            CONST RECT* desc_rect;
+            HWND dest_window_override;
+            CONST RGNDATA* dirty_region;
+        };
+
+        HRESULT WINAPI callback(present_args args);
     };
 } // namespace fd::hooks

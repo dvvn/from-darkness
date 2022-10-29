@@ -44,22 +44,22 @@ wndproc::wndproc(wndproc&& other)
     _Wndproc = this;
 }
 
-LRESULT WINAPI wndproc::callback(wndproc_data data)
+LRESULT WINAPI wndproc::callback(wndproc_args args)
 {
-    FD_ASSERT(data.window == _Wndproc->hwnd_);
+    FD_ASSERT(args.window == _Wndproc->hwnd_);
 
 #ifdef IMGUI_DISABLE_DEMO_WINDOWS
     if (!gui::menu->visible())
-        return invoke(&wndproc::callback, _Wndproc->get_original_method(), data);
+        return invoke(&wndproc::callback, _Wndproc->get_original_method(), args);
 #endif
 
-    switch (gui::context->process_keys(&data))
+    switch (gui::context->process_keys(&args))
     {
     case TRUE:
         return TRUE;
     case FALSE:
-        return invoke(&wndproc::callback, _Wndproc->get_original_method(), data);
+        return invoke(&wndproc::callback, _Wndproc->get_original_method(), args);
     default:
-        return invoke(&wndproc::callback, static_cast<void*>(_Wndproc->def_), data);
+        return invoke(&wndproc::callback, static_cast<void*>(_Wndproc->def_), args);
     }
 }

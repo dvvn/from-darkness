@@ -50,7 +50,7 @@ d3d9_present::d3d9_present(d3d9_present&& other)
     _D3d9_present = this;
 }
 
-HRESULT WINAPI d3d9_present::callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region)
+HRESULT WINAPI d3d9_present::callback(present_args args)
 {
     if (gui::context->begin_frame())
     {
@@ -61,5 +61,5 @@ HRESULT WINAPI d3d9_present::callback(THIS_ CONST RECT* source_rect, CONST RECT*
         //---
         gui::context->end_frame();
     }
-    return invoke(&d3d9_present::callback, _D3d9_present->get_original_method(), this, source_rect, desc_rect, dest_window_override, dirty_region);
+    return invoke(&d3d9_present::callback, _D3d9_present->get_original_method(), this, args);
 }

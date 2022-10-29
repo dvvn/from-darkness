@@ -19,7 +19,7 @@ namespace fd::hooks
         wndproc(wndproc&& other);
 
       private:
-        struct wndproc_data
+        struct wndproc_args
         {
             HWND window;
             UINT message;
@@ -27,6 +27,6 @@ namespace fd::hooks
             LPARAM l_param;
         };
 
-        static LRESULT WINAPI callback(wndproc_data data);
+        static LRESULT WINAPI callback(wndproc_args args);
     };
 } // namespace fd::hooks
