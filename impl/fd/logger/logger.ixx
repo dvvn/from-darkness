@@ -95,9 +95,9 @@ export namespace fd
     {
         if (!l)
             return;
-        const auto fmt_fixed = _Correct_obj(fmt);
-        using char_t         = get_char_t<decltype(fmt_fixed)>;
-        const auto buff      = format(fmt_fixed, _Correct_obj<char_t>(args)...);
+        decltype(auto) fmt_fixed = _Correct_obj(fmt);
+        using char_t             = get_char_t<decltype(fmt_fixed)>;
+        const auto buff          = format(fmt_fixed, _Correct_obj<char_t>(args)...);
         return invoke(*l, buff);
     }
 

@@ -24,6 +24,7 @@ using namespace hooks;
 static wndproc* _Wndproc;
 
 wndproc::wndproc(HWND hwnd, WNDPROC target)
+    : impl("WinAPI.WndProc")
 {
     this->init(target, &wndproc::callback);
     this->def_ = IsWindowUnicode(hwnd) ? DefWindowProcW : DefWindowProcA;
@@ -31,13 +32,6 @@ wndproc::wndproc(HWND hwnd, WNDPROC target)
     this->hwnd_ = hwnd;
 #endif
     _Wndproc = this;
-}
-
-wndproc::~wndproc()
-{
-    // added for logging only
-    if (*this)
-        impl::disable();
 }
 
 wndproc::wndproc(wndproc&& other)
@@ -48,11 +42,6 @@ wndproc::wndproc(wndproc&& other)
     hwnd_ = other.hwnd_;
 #endif
     _Wndproc = this;
-}
-
-string_view wndproc::name() const
-{
-    return "WinAPI.WndProc";
 }
 
 LRESULT WINAPI wndproc::callback(wndproc_data data)

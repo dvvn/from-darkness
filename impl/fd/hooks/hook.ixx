@@ -63,19 +63,22 @@ export namespace fd
         class impl : public base
         {
             void* entry_;
+            string_view name_;
 
           protected:
             void init(const function_getter target, const function_getter replace);
 
           public:
             ~impl() override;
-            impl();
+            impl(const string_view name = {});
 
             impl(const impl&) = delete;
             impl(impl&& other);
 
             bool enable() override;
             bool disable() override;
+
+            string_view name() const override;
 
             bool initialized() const override;
             bool active() const override;

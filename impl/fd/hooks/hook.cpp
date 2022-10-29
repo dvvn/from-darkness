@@ -32,17 +32,20 @@ impl::~impl()
 {
     if (!entry_)
         return;
-    subhook_remove(entry_); // must be done before, added for safety
+    if (!disable())
+        return;
     subhook_free(entry_);
 }
 
-impl::impl()
+impl::impl(const string_view name)
     : entry_(nullptr)
+    , name_(name)
 {
 }
 
 impl::impl(impl&& other)
     : entry_(std::exchange(other.entry_, nullptr))
+    , name_(std::move(other.name_))
 {
 }
 
@@ -60,7 +63,7 @@ bool impl::enable()
             return "hooked";
         if (!entry_)
             return "not created";
-        if (this->active())
+        if (active())
             return "already hooked";
         return "enable error!";
     });
@@ -75,11 +78,16 @@ bool impl::disable()
             return "unhooked";
         if (!entry_)
             return "not created";
-        if (!this->active())
+        if (!active())
             return "already unhooked";
         return "unhook error!";
     });
     return ok;
+}
+
+string_view impl::name() const
+{
+    return name_;
 }
 
 bool impl::initialized() const
@@ -117,5 +125,5 @@ void impl::init(const function_getter target, const function_getter replace)
 
 impl::operator bool() const
 {
-    return this->initialized();
+    return initialized();
 }

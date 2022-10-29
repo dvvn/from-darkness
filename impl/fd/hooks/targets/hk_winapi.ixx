@@ -15,12 +15,8 @@ namespace fd::hooks
         HWND hwnd_;
 #endif
       public:
-        ~wndproc() override;
-
         wndproc(HWND id, WNDPROC target);
         wndproc(wndproc&& other);
-
-        string_view name() const override;
 
       private:
         struct wndproc_data
