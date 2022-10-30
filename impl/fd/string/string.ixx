@@ -57,7 +57,18 @@ constexpr bool _Str_equal(const R& left, const L& right)
 template <typename C>
 constexpr bool operator==(const basic_string_view<C> left, const basic_string_view<C> right)
 {
-    return _Str_equal(left, right);
+    // return _Str_equal(left, right);
+    const auto size = left.size();
+    if (size != right.size())
+        return false;
+
+    const auto ld = left.data();
+    const auto rd = right.data();
+
+    if (ld == rd)
+        return true;
+
+    return _Ptr_equal(ld, rd, size);
 }
 
 template <typename C>

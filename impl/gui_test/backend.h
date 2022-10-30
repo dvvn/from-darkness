@@ -8,9 +8,9 @@ namespace fd
 {
     struct backend_data
     {
-        WNDCLASSEX info;
-        HWND hwnd;
         IDirect3DDevice9* d3d;
+        HWND hwnd;
+        WNDCLASSEX info;
 
         ~backend_data();
         backend_data();

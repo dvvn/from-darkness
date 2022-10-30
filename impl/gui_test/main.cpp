@@ -1,5 +1,7 @@
 ﻿#include "backend.h"
 
+#include <imgui.h>
+
 #include <fd/hooks/helper.h>
 
 import fd.logger.impl;
@@ -36,11 +38,23 @@ int main(int, char**)
         sys_console.write(parse_assert_data(adata));
     });
 
-    gui::context_impl gui_ctx = { backend.d3d, backend.hwnd, true };
+    gui::context_impl gui_ctx = { &backend, true };
     gui::context              = &gui_ctx;
 
     gui::menu_impl menu_ctx;
     gui::menu = &menu_ctx;
+
+    gui::tab_bar test_tab_bar = { "test" };
+    gui::tab test_tab         = { "test2" };
+    test_tab.store([] {
+        ImGui::Text("Hello");
+    });
+
+    test_tab_bar.store(test_tab);
+    menu_ctx.store(test_tab_bar);
+    gui_ctx.store([&] {
+        menu_ctx.render();
+    });
 
     hooks::holder all_hooks = { hooks::d3d9_reset({ backend.d3d, 16 }), hooks::d3d9_present({ backend.d3d, 17 }), hooks::wndproc(backend.hwnd, backend.info.lpfnWndProc) };
 

@@ -12,9 +12,7 @@ module;
 
 module fd.hooks.winapi;
 import fd.gui.context;
-#ifdef IMGUI_DISABLE_DEMO_WINDOWS
-import fd.gui.menu;
-#endif
+// import fd.gui.menu;
 
 // #define HOT_UNLOAD_SUPPORTED
 
@@ -37,10 +35,10 @@ LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPAR
 
 #define ARGS window, message, w_param, l_param
 
-#ifdef IMGUI_DISABLE_DEMO_WINDOWS
-    if (!gui::menu->visible())
-        return call_original(ARGS);
-#endif
+    // #ifdef IMGUI_DISABLE_DEMO_WINDOWS
+    //     if (!gui::menu->visible())
+    //         return call_original(ARGS);
+    // #endif
 
     std::pair args = { std::pair(window, message), std::pair(w_param, l_param) };
 

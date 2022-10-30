@@ -1,7 +1,5 @@
 module;
 
-#include <imgui.h>
-
 #include <d3d9.h>
 
 module fd.hooks.directx;
@@ -33,14 +31,6 @@ d3d9_present::d3d9_present(function_getter target)
 
 HRESULT WINAPI d3d9_present::callback(THIS_ CONST RECT* source_rect, CONST RECT* desc_rect, HWND dest_window_override, CONST RGNDATA* dirty_region) noexcept
 {
-    if (gui::context->begin_frame())
-    {
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
-        ImGui::ShowDemoWindow();
-#endif
-        gui::menu->render();
-        //---
-        gui::context->end_frame();
-    }
+    gui::context->render(this);
     return call_original(source_rect, desc_rect, dest_window_override, dirty_region);
 }
