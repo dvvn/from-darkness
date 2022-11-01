@@ -324,7 +324,7 @@ bool context_impl::create_hotkey(void* source, hotkey_mode mode, callback_type c
     hk->mode     = mode;
     hk->callback = std::move(callback);
 
-    // todo: check for duplicates
+    FD_ASSERT(!find_hotkey(source, mode));
 
     if (fill_keys)
     {
