@@ -79,7 +79,8 @@ static DWORD WINAPI _Loader(void*) noexcept
         return d3d_params.hFocusWindow;
     }();
 
-    gui::context_impl gui_ctx = { d3d_ifc, hwnd, true };
+    std::pair gui_data        = { d3d_ifc, hwnd };
+    gui::context_impl gui_ctx = { &gui_data, false };
     gui::context              = &gui_ctx;
 
     gui::menu_impl menu_ctx;

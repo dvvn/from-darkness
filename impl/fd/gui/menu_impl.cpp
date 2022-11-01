@@ -44,8 +44,13 @@ bool tab::render() const
 
 void tab::render_data() const
 {
-    for (auto& fn : data_)
+    for (auto& fn : callbacks_)
         fn();
+}
+
+void tab::store(callback_type callback)
+{
+    callbacks_.emplace_back(std::move(callback));
 }
 
 //-------
@@ -69,8 +74,8 @@ void tab_bar::render() const
     if (!ImGui::BeginTabBarEx(tab_bar, tab_bar_bb, flags | ImGuiTabBarFlags_IsFocused))
         return;
 
-    const tab* active_tab = nullptr;
-    for (const auto t : data_)
+    tab* active_tab = nullptr;
+    for (const auto t : tabs_)
     {
         if (t->render())
             active_tab = t;
@@ -82,9 +87,9 @@ void tab_bar::render() const
     ImGui::EndTabBar();
 }
 
-void tab_bar::store_callback(const tab& new_tab)
+void tab_bar::store(tab& new_tab)
 {
-    data_.emplace_back(&new_tab);
+    tabs_.emplace_back(&new_tab);
 }
 
 //-------
@@ -126,7 +131,7 @@ void menu_impl::render()
 
     if (ImGui::Begin("Unnamed", &visible, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
     {
-        for (const auto tb : data_)
+        for (const auto tb : tab_bars_)
             tb->render();
     }
     ImGui::End();
@@ -134,7 +139,7 @@ void menu_impl::render()
     next_visible_ = visible_ = visible;
 }
 
-void menu_impl::store_callback(const tab_bar& new_tab_bar)
+void menu_impl::store(tab_bar& new_tab_bar)
 {
-    data_.emplace_back(&new_tab_bar);
+    tab_bars_.emplace_back(&new_tab_bar);
 }

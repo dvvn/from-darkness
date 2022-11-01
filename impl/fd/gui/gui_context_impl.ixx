@@ -27,31 +27,21 @@ namespace fd::gui
         imgui_backup& operator=(const imgui_backup&) = delete;
     };
 
-    struct keys_pack : std::vector<ImGuiKey>
-    {
-        void sort();
-        // must be ordered!!!
-        bool operator==(const keys_pack& other) const;
-    };
+    using keys_pack = std::vector<ImGuiKey>;
 
     using callback_type = function_view<void() const>;
 
-    enum hokey_mode
+    export enum hotkey_mode
     {
         press,
         held,
-        any
+        // any
     };
 
     struct hotkey
     {
-        union
-        {
-            uintptr_t used;
-            void* source;
-        };
-
-        hokey_mode mode;
+        void* source;
+        hotkey_mode mode;
         callback_type callback;
         keys_pack keys;
     };
@@ -67,6 +57,8 @@ namespace fd::gui
 
         void fire_hotkeys();
         bool can_process_keys() const;
+        hotkey* find_hotkey(void* source, hotkey_mode mode);
+        hotkey* find_unused_hotkey();
 
       public:
         ~context_impl() override;
@@ -79,10 +71,12 @@ namespace fd::gui
         void render(void* data) override;
         char process_keys(void* data) override;
 
-        void store_callback(callback_type callback);
+        void store(callback_type callback);
 
-        bool create_hotkey(void* source, hokey_mode mode, callback_type callback);
-        void remove_hotkey(void* source, hokey_mode mode);
+        // todo: remove fill_keys
+        bool create_hotkey(void* source, hotkey_mode mode, callback_type callback, const bool fill_keys);
+        bool update_hotkey(void* source, hotkey_mode mode, const bool allow_override);
+        bool remove_hotkey(void* source, hotkey_mode mode);
 
         bool minimized() const;
     };

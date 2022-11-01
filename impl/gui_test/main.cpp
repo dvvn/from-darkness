@@ -4,6 +4,8 @@
 
 #include <fd/hooks/helper.h>
 
+import fd.functional.bind;
+
 import fd.logger.impl;
 import fd.assert.impl;
 import fd.system.console;
@@ -38,7 +40,7 @@ int main(int, char**)
         sys_console.write(parse_assert_data(adata));
     });
 
-    gui::context_impl gui_ctx = { &backend, true };
+    gui::context_impl gui_ctx = { &backend, false };
     gui::context              = &gui_ctx;
 
     gui::menu_impl menu_ctx;
@@ -46,15 +48,11 @@ int main(int, char**)
 
     gui::tab_bar test_tab_bar = { "test" };
     gui::tab test_tab         = { "test2" };
-    test_tab.store([] {
-        ImGui::Text("Hello");
-    });
+    test_tab.store(bind_front(ImGui::Text, "Hello"));
 
     test_tab_bar.store(test_tab);
     menu_ctx.store(test_tab_bar);
-    gui_ctx.store([&] {
-        menu_ctx.render();
-    });
+    gui_ctx.store(bind_front(&gui::menu_impl::render, &menu_ctx));
 
     hooks::holder all_hooks = { hooks::d3d9_reset({ backend.d3d, 16 }), hooks::d3d9_present({ backend.d3d, 17 }), hooks::wndproc(backend.hwnd, backend.info.lpfnWndProc) };
 

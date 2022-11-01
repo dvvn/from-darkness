@@ -9,10 +9,13 @@ import fd.functional.fn;
 
 export namespace fd::gui
 {
+
     class tab
     {
+        using callback_type = function_view<void() const>;
+
         string_view name_;
-        std::vector<function_view<void() const>> data_;
+        std::vector<callback_type> callbacks_;
 
       public:
         tab(const string_view name);
@@ -20,23 +23,20 @@ export namespace fd::gui
         bool render() const;
         void render_data() const;
 
-        template <typename Fn>
-        void store_callback(Fn&& fn)
-        {
-            data_.emplace_back(std::forward<Fn>(fn));
-        }
+        void store(callback_type callback);
     };
 
     class tab_bar
     {
         string_view name_;
-        std::vector<const tab*> data_;
+        std::vector<tab*> tabs_;
 
       public:
         tab_bar(const string_view name);
 
         void render() const;
-        void store_callback(const tab& new_tab);
+
+        void store(tab& new_tab);
     };
 
     class menu_impl : public basic_menu
@@ -44,7 +44,7 @@ export namespace fd::gui
         bool visible_;
         bool next_visible_;
 
-        std::vector<const tab_bar*> data_;
+        std::vector<tab_bar*> tab_bars_;
 
       public:
         menu_impl();
@@ -57,6 +57,6 @@ export namespace fd::gui
 
         void render() override;
 
-        void store_callback(const tab_bar& new_tab_bar);
+        void store(tab_bar& new_tab_bar);
     };
 } // namespace fd::gui
