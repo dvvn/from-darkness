@@ -82,7 +82,7 @@ void tab_bar::render() const
     ImGui::EndTabBar();
 }
 
-void tab_bar::store(const tab& new_tab)
+void tab_bar::store_callback(const tab& new_tab)
 {
     data_.emplace_back(&new_tab);
 }
@@ -134,7 +134,7 @@ void menu_impl::render()
     next_visible_ = visible_ = visible;
 }
 
-void menu_impl::store(const tab_bar& new_tab_bar)
+void menu_impl::store_callback(const tab_bar& new_tab_bar)
 {
     data_.emplace_back(&new_tab_bar);
 }

@@ -16,6 +16,7 @@
 
 #ifndef _DEBUG
 #define IMGUI_DISABLE_DEMO_WINDOWS
+#define IMGUI_DISABLE_DEBUG_TOOLS
 #endif
 
 #ifdef IMGUI_USE_WCHAR32

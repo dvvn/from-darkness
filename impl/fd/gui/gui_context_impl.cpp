@@ -10,12 +10,16 @@ module;
 
 #include <algorithm>
 #include <exception>
+#include <span>
 #include <vector>
 
 module fd.gui.context.impl;
 import fd.library_info;
+import fd.functional.lazy_invoke;
+import fd.functional.bind;
 
-using namespace fd::gui;
+using namespace fd;
+using namespace gui;
 
 imgui_backup::~imgui_backup()
 {
@@ -45,6 +49,92 @@ bool keys_pack::operator==(const keys_pack& other) const
 }
 
 //--------
+
+constexpr auto _Fill_keys = [](auto fn, keys_pack& keys) {
+    if (!keys.empty())
+        return;
+
+    using key_t = std::underlying_type_t<ImGuiKey>;
+
+    constexpr auto key_first = ImGuiKey_NamedKey_BEGIN;
+    constexpr auto key_last  = ImGuiKey_NamedKey_END;
+
+    for (auto key = key_first; key < key_last; ++reinterpret_cast<key_t&>(key))
+    {
+        if (fn(key))
+            keys.push_back(key);
+    }
+};
+
+struct pressed_keys_pack : keys_pack
+{
+    pressed_keys_pack(const bool instant_fill = false)
+    {
+        if (instant_fill)
+            fill();
+    }
+
+    void fill()
+    {
+        _Fill_keys(bind_back(ImGui::IsKeyPressed, false), *this);
+    }
+};
+
+struct held_keys_pack : keys_pack
+{
+    held_keys_pack(const bool instant_fill = false)
+    {
+        if (instant_fill)
+            fill();
+    }
+
+    void fill()
+    {
+        _Fill_keys(ImGui::IsKeyDown, *this);
+    }
+};
+
+#define UNKNOWN_HK_MODE FD_ASSERT_UNREACHABLE("Unknown hotkey mode!")
+
+void context_impl::fire_hotkeys()
+{
+    if (!focused_ || hotkeys_.empty())
+        return;
+    if (context_.InputEventsTrail.empty())
+        return;
+
+    pressed_keys_pack pressed;
+    held_keys_pack held;
+
+    for (auto& hk : hotkeys_)
+    {
+        if (!hk.used)
+            continue;
+        switch (hk.mode)
+        {
+        case hokey_mode::press: {
+            pressed.fill();
+            if (hk.keys == pressed)
+                hk.callback();
+            break;
+        }
+        case hokey_mode::held: {
+            held.fill();
+            if (hk.keys == held)
+                hk.callback();
+            break;
+        }
+        default: {
+            UNKNOWN_HK_MODE;
+        }
+        }
+    }
+}
+
+bool context_impl::can_process_keys() const
+{
+    return true;
+}
 
 context_impl::~context_impl()
 {
@@ -97,7 +187,7 @@ context_impl::context_impl(void* data, const bool store_settings)
         std::terminate();
 
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-    store([] {
+    store_callback([] {
         ImGui::ShowDemoWindow();
     });
 #endif
@@ -110,29 +200,36 @@ void context_impl::release_textures()
 
 void context_impl::render(void* data)
 {
-    const auto d3d = static_cast<IDirect3DDevice9*>(data);
+    auto can_render = false;
 
-    // Start the Dear ImGui frame
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
-
-    // todo: return if minimized
-
     ImGui::NewFrame();
+    if (!minimized())
     {
-        for (auto& fn : data_)
-            fn();
+        fire_hotkeys();
+        can_render = !callbacks_.empty();
+        if (can_render)
+        {
+            for (auto& fn : callbacks_)
+                fn();
+        }
     }
     ImGui::EndFrame();
 
-    [[maybe_unused]] const auto bg = d3d->BeginScene();
-    IM_ASSERT(bg == D3D_OK);
+    if (can_render)
     {
-        ImGui::Render();
-        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+        const auto d3d = static_cast<IDirect3DDevice9*>(data);
+
+        [[maybe_unused]] const auto bg = d3d->BeginScene();
+        IM_ASSERT(bg == D3D_OK);
+        {
+            ImGui::Render();
+            ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+        }
+        [[maybe_unused]] const auto ed = d3d->EndScene();
+        IM_ASSERT(ed == D3D_OK);
     }
-    [[maybe_unused]] const auto ed = d3d->EndScene();
-    IM_ASSERT(ed == D3D_OK);
 }
 
 struct keys_data
@@ -145,30 +242,50 @@ struct keys_data
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
 
-// global array to prevent reallocation
-static keys_pack _Tmp_keys;
-
 char context_impl::process_keys(void* data)
 {
+    constexpr char ret_instant = TRUE;
+    constexpr char ret_native  = FALSE;
+    constexpr char ret_default = CHAR_MAX;
+
+    if (!can_process_keys())
+        return ret_native;
+
     const auto [wnd, msg, wp, lp] = *static_cast<keys_data*>(data);
 
-    const auto& events      = context_.InputEventsQueue;
-    const auto size_before  = events.size();
-    const bool done         = ImGui_ImplWin32_WndProcHandler(wnd, msg, wp, lp);
-    const auto size_after   = events.size();
-    const auto events_added = size_after - size_before;
+    const auto& events           = context_.InputEventsQueue;
+    const auto old_events_count  = events.size();
+    const bool instant           = ImGui_ImplWin32_WndProcHandler(wnd, msg, wp, lp);
+    const std::span events_added = { events.begin() + old_events_count, events.end() };
 
-    if (events_added == 0)
-        return done;
+    // update focus
+    switch (msg)
+    {
+    case WM_SETFOCUS: {
+        focused_ = true;
+        break;
+    }
+    case WM_KILLFOCUS: {
+        focused_ = false;
+        break;
+    }
+    }
 
-    const auto ret = done ? TRUE : CHAR_MAX;
+    if (context_.IO.AppFocusLost)
+    {
+        FD_ASSERT(!instant);
+        return ret_native;
+    }
+    if (instant)
+        return ret_instant;
+    return !focused_ || events_added.empty() ? ret_native : ret_default;
 
+#if 0
     if (hotkeys_.empty())
         return ret;
 
     _Tmp_keys.clear();
 
-    const auto events_ed = events.end();
     for (auto itr = events_ed - events_added; itr != events_ed; ++itr)
     {
         ImGuiKey key;
@@ -202,26 +319,72 @@ char context_impl::process_keys(void* data)
     }
 
     return ret;
+#endif
 }
 
-void context_impl::store_hotkey(hotkey&& hk, const bool sort_keys)
+void context_impl::store_callback(callback_type callback)
 {
-    FD_ASSERT(!hk.keys.empty());
-    FD_ASSERT(std::all_of(hk.keys.begin(), hk.keys.end(), ImGui::IsNamedKeyOrModKey));
-    if (sort_keys)
-    {
-        hk.keys.sort();
-        hk.keys.shrink_to_fit();
-    }
+    callbacks_.emplace_back(std::move(callback));
+}
+
+bool context_impl::create_hotkey(void* source, hokey_mode mode, callback_type callback)
+{
+    hotkey* hk;
 
     for (auto& old_hk : hotkeys_)
     {
         if (!old_hk.used)
         {
-            old_hk = std::move(hk);
-            return;
+            hk = &old_hk;
+            break;
         }
     }
 
-    hotkeys_.emplace_back(std::move(hk));
+    if (!hk)
+        hk = &hotkeys_.emplace_back();
+
+    hk->source   = source;
+    hk->mode     = mode;
+    hk->callback = callback;
+
+    switch (mode)
+    {
+    case press:
+        hk->keys = pressed_keys_pack(true);
+        break;
+    case held:
+        hk->keys = held_keys_pack(true);
+        break;
+    default:
+        UNKNOWN_HK_MODE;
+    }
+
+    // todo: check is already added
+
+    if (hk->keys.empty())
+        hk->used = false;
+
+    return hk->used;
+}
+
+void context_impl::remove_hotkey(void* source, hokey_mode mode)
+{
+    FD_ASSERT(source != nullptr);
+
+    for (auto& hk : hotkeys_)
+    {
+        if (hk.source != source)
+            continue;
+        if (mode != any)
+        {
+            if (hk.mode != mode)
+                continue;
+        }
+        hk.used = false;
+    }
+}
+
+bool context_impl::minimized() const
+{
+    return context_.IO.DisplaySize.x * context_.IO.DisplaySize.y <= 0;
 }

@@ -21,7 +21,7 @@ export namespace fd::gui
         void render_data() const;
 
         template <typename Fn>
-        void store(Fn&& fn)
+        void store_callback(Fn&& fn)
         {
             data_.emplace_back(std::forward<Fn>(fn));
         }
@@ -36,7 +36,7 @@ export namespace fd::gui
         tab_bar(const string_view name);
 
         void render() const;
-        void store(const tab& new_tab);
+        void store_callback(const tab& new_tab);
     };
 
     class menu_impl : public basic_menu
@@ -57,6 +57,6 @@ export namespace fd::gui
 
         void render() override;
 
-        void store(const tab_bar& new_tab_bar);
+        void store_callback(const tab_bar& new_tab_bar);
     };
 } // namespace fd::gui

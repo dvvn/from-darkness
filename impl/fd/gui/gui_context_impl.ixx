@@ -34,6 +34,15 @@ namespace fd::gui
         bool operator==(const keys_pack& other) const;
     };
 
+    using callback_type = function_view<void() const>;
+
+    enum hokey_mode
+    {
+        press,
+        held,
+        any
+    };
+
     struct hotkey
     {
         union
@@ -42,11 +51,9 @@ namespace fd::gui
             void* source;
         };
 
-        int mode; // press/hold etc OR toggle/press
+        hokey_mode mode;
+        callback_type callback;
         keys_pack keys;
-        bool instant; // if true do call from wndproc
-        function_view<void() const> func;
-        bool active = false;
     };
 
     export class context_impl : public basic_context
@@ -54,8 +61,12 @@ namespace fd::gui
         imgui_backup backup_;
         ImGuiContext context_;
         ImFontAtlas font_atlas_;
-        std::vector<function_view<void() const>> data_;
+        std::vector<callback_type> callbacks_;
         std::vector<hotkey> hotkeys_;
+        bool focused_;
+
+        void fire_hotkeys();
+        bool can_process_keys() const;
 
       public:
         ~context_impl() override;
@@ -68,15 +79,11 @@ namespace fd::gui
         void render(void* data) override;
         char process_keys(void* data) override;
 
-        template <typename Fn>
-        void store(Fn&& fn)
-        {
-            data_.emplace_back(std::forward<Fn>(fn));
-        }
+        void store_callback(callback_type callback);
 
-        void store_hotkey(hotkey&& hk, const bool sort_keys = true);
-        void remove_hotkey(void* source);
-        void remove_hotkey(const keys_pack& keys);
-        void remove_hotkey(void* source, const keys_pack& keys);
+        bool create_hotkey(void* source, hokey_mode mode, callback_type callback);
+        void remove_hotkey(void* source, hokey_mode mode);
+
+        bool minimized() const;
     };
 } // namespace fd::gui
