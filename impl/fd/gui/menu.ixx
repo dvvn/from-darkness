@@ -14,7 +14,7 @@ export namespace fd::gui
         virtual void hide() = 0;
         virtual void toggle();
 
-        virtual void render() = 0;
+        virtual bool render() = 0;
     };
 
     basic_menu* menu;

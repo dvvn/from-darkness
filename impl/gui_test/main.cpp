@@ -52,7 +52,9 @@ int main(int, char**)
 
     test_tab_bar.store(test_tab);
     menu_ctx.store(test_tab_bar);
-    gui_ctx.store(bind_front(&gui::menu_impl::render, &menu_ctx));
+    gui_ctx.store([&] {
+        return menu_ctx.render() ? gui::render_result::visible_input : gui::render_result::skipped;
+    });
 
     hooks::holder all_hooks = { hooks::d3d9_reset({ backend.d3d, 16 }), hooks::d3d9_present({ backend.d3d, 17 }), hooks::wndproc(backend.hwnd, backend.info.lpfnWndProc) };
 

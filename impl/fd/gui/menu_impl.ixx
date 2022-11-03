@@ -55,7 +55,7 @@ export namespace fd::gui
         void hide() override;
         void toggle() override;
 
-        void render() override;
+        bool render() override;
 
         void store(tab_bar& new_tab_bar);
     };

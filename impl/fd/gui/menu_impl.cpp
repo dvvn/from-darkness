@@ -119,12 +119,12 @@ void menu_impl::toggle()
     next_visible_ = !visible_;
 }
 
-void menu_impl::render()
+bool menu_impl::render()
 {
     if (!next_visible_)
     {
         visible_ = false;
-        return;
+        return false;
     }
 
     auto visible = true;
@@ -136,7 +136,7 @@ void menu_impl::render()
     }
     ImGui::End();
 
-    next_visible_ = visible_ = visible;
+    return next_visible_ = visible_ = visible;
 }
 
 void menu_impl::store(tab_bar& new_tab_bar)
