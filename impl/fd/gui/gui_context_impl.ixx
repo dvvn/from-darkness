@@ -29,15 +29,7 @@ namespace fd::gui
 
     using keys_pack = std::vector<ImGuiKey>;
 
-    export enum render_result
-    {
-        skipped       = 0,
-        visible       = 1 << 0,
-        input         = 1 << 1,
-        visible_input = visible | input
-    };
-
-    using callback_type = function_view<render_result() const>;
+    using callback_type = function_view<void() const>;
 
     export enum hotkey_mode
     {
@@ -103,8 +95,6 @@ namespace fd::gui
         bool update_hotkey(hotkey_source source, hotkey_mode mode, const bool allow_override);
         bool remove_hotkey(hotkey_source source, hotkey_mode mode);
         bool contains_hotkey(hotkey_source source, hotkey_mode mode) const;
-
-        bool minimized() const;
     };
 
 } // namespace fd::gui

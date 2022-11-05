@@ -202,7 +202,9 @@ hotkey* hotkeys_storage::create(hotkey_source source, hotkey_mode mode, callback
     FD_ASSERT(static_cast<bool>(callback));
 
     auto hk = find_unused();
-    if (!hk)
+    if (hk)
+        hk->keys.clear();
+    else
         hk = &storage_.emplace_back();
 
     hk->source   = source;
@@ -295,7 +297,6 @@ context_impl::context_impl(void* data, const bool store_settings)
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
     store([] {
         ImGui::ShowDemoWindow();
-        return render_result::visible_input;
     });
 #endif
 }
@@ -305,43 +306,42 @@ void context_impl::release_textures()
     ImGui_ImplDX9_InvalidateDeviceObjects();
 }
 
+#ifdef _DEBUG
+#define D3D_VALIDATE(_X_) FD_ASSERT(_X_ == D3D_OK)
+#else
+#define D3D_VALIDATE(_X_) _X_
+#endif
+
 void context_impl::render(void* data)
 {
-    render_result result = skipped;
-
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
-    if (!minimized())
-    {
-        for (auto& fn : callbacks_)
-        {
-            using render_result_native = std::underlying_type_t<render_result>;
-            reinterpret_cast<render_result_native&>(result) |= fn();
-        }
-        if (!(result & input))
-        {
-#ifdef _DEBUG
-            // todo: track fallback window
+
+#ifndef IMGUI_HAS_VIEWPORT
+    const auto display_size = context_.IO.DisplaySize;
+    const auto minimized    = display_size.x <= 0 || display_size.y <= 0;
+    if (minimized)
+        return ImGui::EndFrame();
 #endif
-            fire_hotkeys();
-        }
-    }
-    ImGui::EndFrame();
 
-    if (result & visible)
-    {
-        const auto d3d = static_cast<IDirect3DDevice9*>(data);
+    for (auto& fn : callbacks_)
+        invoke(fn);
 
-        [[maybe_unused]] const auto bg = d3d->BeginScene();
-        IM_ASSERT(bg == D3D_OK);
-        {
-            ImGui::Render();
-            ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-        }
-        [[maybe_unused]] const auto ed = d3d->EndScene();
-        IM_ASSERT(ed == D3D_OK);
-    }
+    const std::span root_windows   = context_.WindowsFocusOrder;
+    const auto have_visible_window = std::any_of(root_windows.begin(), root_windows.end(), [](auto wnd) {
+        return wnd->Active || wnd->Collapsed;
+    });
+
+    if (!have_visible_window)
+        fire_hotkeys();
+
+    const auto d3d = static_cast<IDirect3DDevice9*>(data);
+
+    D3D_VALIDATE(d3d->BeginScene());
+    ImGui::Render();
+    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+    D3D_VALIDATE(d3d->EndScene());
 }
 
 struct keys_data
@@ -420,19 +420,12 @@ bool context_impl::update_hotkey(hotkey_source source, hotkey_mode mode, const b
 bool context_impl::remove_hotkey(hotkey_source source, hotkey_mode mode)
 {
     auto hk = hotkeys_.find(source, mode);
-    if (!hk || !hk->source)
-        return false;
-
-    hk->source = 0;
-    return true;
+    if (hk)
+        hk->source = 0;
+    return hk;
 }
 
 bool context_impl::contains_hotkey(hotkey_source source, hotkey_mode mode) const
 {
     return hotkeys_.contains(source, mode);
-}
-
-bool context_impl::minimized() const
-{
-    return context_.IO.DisplaySize.x * context_.IO.DisplaySize.y <= 0;
 }
