@@ -107,4 +107,13 @@ namespace fd
     export template <typename... Args>
     using invoke_result = decltype(invoke(std::declval<Args>()...));
 
+    export struct invoker
+    {
+        template <typename... Args>
+        constexpr decltype(auto) operator()(Args&&... args) const
+        {
+            return invoke(std::forward<Args>(args)...);
+        }
+    };
+
 } // namespace fd

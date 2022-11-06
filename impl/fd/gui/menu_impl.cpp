@@ -4,6 +4,8 @@ module;
 
 #include <imgui_internal.h>
 
+#include <algorithm>
+
 module fd.gui.menu.impl;
 
 using namespace fd;
@@ -44,8 +46,7 @@ bool tab::render() const
 
 void tab::render_data() const
 {
-    for (auto& fn : callbacks_)
-        fn();
+    std::ranges::for_each(callbacks_, invoker());
 }
 
 void tab::store(callback_type callback)
@@ -74,15 +75,9 @@ void tab_bar::render() const
     if (!ImGui::BeginTabBarEx(tab_bar, tab_bar_bb, flags | ImGuiTabBarFlags_IsFocused))
         return;
 
-    tab* active_tab = nullptr;
-    for (const auto t : tabs_)
-    {
-        if (t->render())
-            active_tab = t;
-    }
-
-    FD_ASSERT(active_tab != nullptr);
-    active_tab->render_data();
+    auto active_tab = std::ranges::find_if(tabs_, &tab::render);
+    std::ranges::for_each(active_tab + 1, tabs_.end(), &tab::render);
+    (*active_tab)->render_data();
 
     ImGui::EndTabBar();
 }
@@ -131,8 +126,7 @@ bool menu_impl::render()
 
     if (ImGui::Begin("Unnamed", &visible, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
     {
-        for (const auto tb : tab_bars_)
-            tb->render();
+        std::ranges::for_each(tab_bars_, &tab_bar::render);
     }
     ImGui::End();
 

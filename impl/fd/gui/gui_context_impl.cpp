@@ -9,14 +9,11 @@ module;
 #include <d3d9.h>
 
 #include <algorithm>
-#include <exception>
 #include <span>
 #include <vector>
 
 module fd.gui.context.impl;
 import fd.library_info;
-import fd.functional.lazy_invoke;
-import fd.functional.bind;
 
 using namespace fd;
 using namespace gui;
@@ -107,7 +104,7 @@ bool hotkey::update(const bool allow_override)
         return false;
     if (!allow_override && !keys.empty())
     {
-        if (!std::includes(curr_keys.begin(), curr_keys.end(), keys.begin(), keys.end()))
+        if (!std::ranges::includes(curr_keys, keys))
             return false;
     }
     keys = std::move(curr_keys);
@@ -116,53 +113,54 @@ bool hotkey::update(const bool allow_override)
 
 //-------
 
-#define VALIDATE_HK_SOURCE FD_ASSERT(static_cast<bool>(source))
-
-static auto _Find_hotkey(auto& storage, hotkey_source source, hotkey_mode mode)
+class hotkey_comparer
 {
-    const auto bg = storage.begin();
-    const auto ed = storage.end();
-    auto hk_itr   = std::find_if(bg, ed, [=](auto& hk) {
-        return hk.source == source && hk.mode == mode;
-    });
+    hotkey_source source_;
+    hotkey_mode mode_;
 
-    return hk_itr == ed ? nullptr : &*hk_itr;
+  public:
+    hotkey_comparer(hotkey_source source, hotkey_mode mode)
+        : source_(source)
+        , mode_(mode)
+    {
+        FD_ASSERT(static_cast<bool>(source));
+    }
+
+    bool operator()(const hotkey& hk) const
+    {
+        return hk.source == source_ && hk.mode == mode_;
+    }
+};
+
+template <typename It>
+static auto _Extract_ptr(It itr, It last_itr) // decltype(&*std::declval<It>())
+{
+    return itr == last_itr ? nullptr : &*itr;
 }
 
 auto hotkeys_storage::find(hotkey_source source, hotkey_mode mode) -> pointer
 {
-    VALIDATE_HK_SOURCE;
-
-    return _Find_hotkey(storage_, source, mode);
+    const auto itr = std::ranges::find_if(storage_, hotkey_comparer(source, mode));
+    return _Extract_ptr(itr, storage_.end());
 }
 
 auto hotkeys_storage::find(hotkey_source source, hotkey_mode mode) const -> const_pointer
 {
-    VALIDATE_HK_SOURCE;
-
-    return _Find_hotkey(storage_, source, mode);
+    const auto itr = std::ranges::find_if(storage_, hotkey_comparer(source, mode));
+    return _Extract_ptr(itr, storage_.end());
 }
 
 bool hotkeys_storage::contains(hotkey_source source, hotkey_mode mode) const
 {
-    VALIDATE_HK_SOURCE;
-
-    for (auto& hk : storage_)
-    {
-        if (hk.source == source && hk.mode == mode)
-            return true;
-    }
-    return false;
+    return std::ranges::any_of(storage_, hotkey_comparer(source, mode));
 }
 
 auto hotkeys_storage::find_unused() -> pointer
 {
-    for (auto& hk : storage_)
-    {
-        if (!hk.source)
-            return &hk;
-    }
-    return nullptr;
+    const auto itr = std::ranges::find_if(storage_, [](auto& hk) {
+        return !hk.source;
+    });
+    return _Extract_ptr(itr, storage_.end());
 }
 
 void hotkeys_storage::fire()
@@ -170,30 +168,34 @@ void hotkeys_storage::fire()
     if (storage_.empty())
         return;
 
-    pressed_keys_pack pressed;
-    held_keys_pack held;
+    constexpr auto _Fire = [](auto& hk, auto& buff) {
+        /*if (!hk.source)
+            return;*/
+        if (!buff.fill())
+            return;
+        if (hk.keys != buff)
+            return;
+        hk.callback();
+    };
 
-    for (auto& hk : storage_)
-    {
+    std::ranges::for_each(storage_, [pressed = pressed_keys_pack(), held = held_keys_pack()](auto& hk) mutable {
         if (!hk.source)
-            continue;
+            return;
         switch (hk.mode)
         {
         case hotkey_mode::press: {
-            if (pressed.fill() && hk.keys == pressed)
-                hk.callback();
+            _Fire(hk, pressed);
             break;
         }
         case hotkey_mode::held: {
-            if (held.fill() && hk.keys == held)
-                hk.callback();
+            _Fire(hk, held);
             break;
         }
         default: {
             UNKNOWN_HK_MODE;
         }
         }
-    }
+    });
 }
 
 hotkey* hotkeys_storage::create(hotkey_source source, hotkey_mode mode, callback_type callback)
@@ -264,6 +266,7 @@ context_impl::context_impl(void* data, const bool store_settings)
     : context_(&font_atlas_)
 {
     IMGUI_CHECKVERSION();
+#ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
     ImGui::SetAllocatorFunctions(
         [](const size_t size, void*) -> void* {
             return new uint8_t[size];
@@ -272,7 +275,9 @@ context_impl::context_impl(void* data, const bool store_settings)
             const auto correct_buff = static_cast<uint8_t*>(buff);
             delete[] correct_buff;
         });
+#endif
     ImGui::SetCurrentContext(&context_);
+
     ImGui::Initialize();
 
 #ifndef _DEBUG
@@ -325,11 +330,9 @@ void context_impl::render(void* data)
         return ImGui::EndFrame();
 #endif
 
-    for (auto& fn : callbacks_)
-        invoke(fn);
+    std::ranges::for_each(callbacks_, invoker());
 
-    const std::span root_windows   = context_.WindowsFocusOrder;
-    const auto have_visible_window = std::any_of(root_windows.begin(), root_windows.end(), [](auto wnd) {
+    const auto have_visible_window = std::ranges::any_of(context_.WindowsFocusOrder, [](auto wnd) {
         return wnd->Active || wnd->Collapsed;
     });
 
