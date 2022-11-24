@@ -2,9 +2,14 @@ module;
 
 #include <fd/assert.h>
 
+#include <atomic_queue/atomic_queue.h>
+
 #include <Windows.h>
 
 #include <algorithm>
+#include <mutex>
+#include <optional>
+#include <ranges>
 
 module fd.thread_pool.impl;
 import fd.task.impl;
@@ -121,23 +126,28 @@ bool thread_data::operator==(const DWORD id) const
 
 //---
 
+using optional_mtx_lock = std::optional<std::scoped_lock<std::mutex>>;
+
 bool thread_pool::worker_impl()
 {
-    basic_thread_data this_thread;
+#ifdef _DEBUG
+    optional_mtx_lock guard(threads_mtx_);
+#else
+    threads_mtx_.lock();
+#endif
+    // range version doesnt work
+    basic_thread_data this_thread = *std::find(threads_.begin(), threads_.end(), GetCurrentThreadId());
+#ifdef _DEBUG
+    guard.reset();
+#else
+    threads_mtx_.unlock();
+#endif
 
-    const auto callback = [&]() -> uint8_t {
-        if (funcs_.empty())
+    for (;;)
+    {
+        function_type task;
+        while (funcs_.try_pop(task))
         {
-            mtx_.unlock();
-            if (!this_thread.pause())
-                return 0;
-        }
-        else
-        {
-            auto task = std::move(funcs_.back());
-            funcs_.pop_back();
-            mtx_.unlock();
-
             try
             {
                 invoke(task);
@@ -146,41 +156,28 @@ bool thread_pool::worker_impl()
             {
                 // todo: any external exception -> false
                 // special 'interrupt' exception -> true
-                return 1;
+                return FALSE;
             }
         }
 
-        return 2;
-    };
-
-    mtx_.lock();
-    this_thread = *std::find(threads_.begin(), threads_.end(), GetCurrentThreadId());
-
-    auto run = invoke(callback);
-    while (run == 2)
-    {
-        mtx_.lock();
-        run = invoke(callback);
+        if (!this_thread.pause())
+            std::terminate();
     }
-
-    if (!run)
-        std::abort();
 
     return TRUE;
 }
 
 bool thread_pool::store_func(function_type&& func, const bool resume_threads) noexcept
 {
-    const lock_guard guard = mtx_;
-
+    optional_mtx_lock guard(threads_mtx_);
     if (resume_threads)
     {
-        const auto resumed_thread = std::find_if(threads_.begin(), threads_.end(), bind_front(&thread_data::resume));
-        if (resumed_thread == threads_.end())
+        const auto resumed_thread = std::ranges::any_of(threads_, bind_front(&thread_data::resume));
+        if (!resumed_thread)
         {
-            if (funcs_.size() >= threads_.size()) // spawn new thread
+            if (funcs_.was_size() >= threads_.size()) // spawn new thread
             {
-                thread_data data = { worker, this, false };
+                thread_data data(worker, this, false);
                 if (!data)
                     return false;
                 threads_.push_back(std::move(data));
@@ -193,9 +190,9 @@ bool thread_pool::store_func(function_type&& func, const bool resume_threads) no
     {
         return false;
     }
+    guard.reset();
 
-    funcs_.emplace_front(std::move(func));
-    return true;
+    return funcs_.try_push(std::move(func));
 }
 
 thread_pool::thread_pool()
@@ -208,11 +205,10 @@ thread_pool::thread_pool()
 
 thread_pool::~thread_pool()
 {
-    if (!funcs_.empty())
+    if (!funcs_.was_empty())
         this->wait();
 
 #ifdef _DEBUG
-    const lock_guard guard = mtx_;
     threads_.clear();
 #endif
 }
@@ -220,7 +216,7 @@ thread_pool::~thread_pool()
 void thread_pool::wait()
 {
     //"simple" version of task
-    semaphore sem     = { 0, 1 };
+    semaphore sem(0, 1);
     const auto stored = this->store_func([&] {
         sem.release();
     });
@@ -235,12 +231,12 @@ bool thread_pool::add_simple(function_type func)
 
 auto thread_pool::add(function_type func) -> task_type
 {
-    task_type t       = lockable_task(std::move(func));
+    task_type t(lockable_task(std::move(func)));
     const auto stored = this->store_func([=] {
         t->start();
     });
     if (!stored)
-        t = finished_task();
+        return finished_task();
     return t;
 }
 
