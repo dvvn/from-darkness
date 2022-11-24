@@ -8,6 +8,8 @@ module;
 module fd.mem_info;
 import fd.functional.bind;
 
+using namespace fd;
+
 static std::optional<MEMORY_BASIC_INFORMATION> _Update(void* address)
 {
     constexpr size_t class_size = sizeof(MEMORY_BASIC_INFORMATION);
@@ -16,7 +18,7 @@ static std::optional<MEMORY_BASIC_INFORMATION> _Update(void* address)
     if (VirtualQuery(address, &info, class_size) == class_size)
         return info;
 
-    return std::nullopt;
+    return {};
 }
 
 static_assert(sizeof(mem_info) == sizeof(size_t) + sizeof(size_type) * 2);
@@ -41,7 +43,7 @@ bool mem_info::update(void* address)
     return info.has_value();
 }
 
-constexpr auto _Memory_info_looper = [](void* address, size_t limit, const auto& fn) {
+constexpr auto _Memory_info_looper = [](void* address, size_t limit, auto&& fn) {
     for (;;)
     {
         auto info = _Update(address);
@@ -50,7 +52,7 @@ constexpr auto _Memory_info_looper = [](void* address, size_t limit, const auto&
         if (info->State != MEM_COMMIT)
             return false;
         const auto& my_info = reinterpret_cast<mem_info&>(info->RegionSize);
-        if (!fd::invoke(fn, my_info))
+        if (!invoke(fn, my_info))
             return false;
 
         auto& pos = reinterpret_cast<uint8_t*&>(address);
@@ -71,14 +73,14 @@ constexpr auto _Memory_info_looper = [](void* address, size_t limit, const auto&
 
 static auto _Have_flags(const size_type flags)
 {
-    return fd::bind_back(_Memory_info_looper, [flags](const mem_info& info) {
+    return bind_back(_Memory_info_looper, [flags](const mem_info& info) {
         return !!(info.flags & flags);
     });
 }
 
 static auto _Dont_have_flags(const size_type flags)
 {
-    return fd::bind_back(_Memory_info_looper, [flags](const mem_info& info) {
+    return bind_back(_Memory_info_looper, [flags](const mem_info& info) {
         return !(info.flags & flags);
     });
 }
@@ -89,10 +91,10 @@ constexpr size_type _Page_execute_flags = PAGE_EXECUTE | PAGE_EXECUTE_READ | PAG
 
 bool mem_executable(void* address, const size_t size)
 {
-    return fd::invoke(_Have_flags(_Page_execute_flags), address, size);
+    return invoke(_Have_flags(_Page_execute_flags), address, size);
 }
 
 bool mem_have_flags(void* address, const size_t size, const size_type flags)
 {
-    return fd::invoke(_Have_flags(flags), address, size);
+    return invoke(_Have_flags(flags), address, size);
 }

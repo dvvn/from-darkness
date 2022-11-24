@@ -58,12 +58,12 @@ namespace fd
     concept tiny_pointer = sizeof(Fn) == sizeof(void*);
 
     template <typename T>
-    concept void_ptr = std::same_as<T, void*>;
+    concept void_pointer = std::is_pointer_v<T> && std::is_void_v<std::remove_pointer_t<T>>;
 
     export using std::invoke;
 
-    export template <fat_pointer Fn, typename... Args>
-    decltype(auto) invoke(Fn fn, void_ptr auto actual_fn, auto* thisptr, Args&&... args)
+    export template <fat_pointer Fn, void_pointer ActFn, typename... Args>
+    decltype(auto) invoke(Fn fn, ActFn actual_fn, auto* thisptr, Args&&... args)
     {
         using trivial_inst = decltype(_Tiny_selector(fn));
 
@@ -71,7 +71,7 @@ namespace fd
         {
             decltype(&trivial_inst::callback) tiny;
             Fn hint;
-            void* raw;
+            ActFn raw;
         } adaptor;
 
         adaptor.hint = fn;
@@ -80,13 +80,13 @@ namespace fd
         return invoke(adaptor.tiny, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
     }
 
-    export template <tiny_pointer Fn, typename... Args>
-    decltype(auto) invoke(Fn fn, void_ptr auto actual_fn, Args&&... args) requires(sizeof...(Args) > 0 || !std::invocable<Fn, void*>)
+    export template <tiny_pointer Fn, void_pointer ActFn, typename... Args>
+    decltype(auto) invoke(Fn fn, ActFn actual_fn, Args&&... args) requires(!std::invocable < Fn, ActFn, Args && ... > && std::invocable < Fn &&, Args && ... >)
     {
         union
         {
             Fn fake;
-            void* raw;
+            ActFn raw;
         } adaptor;
 
         adaptor.raw = actual_fn;
