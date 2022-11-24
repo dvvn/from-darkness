@@ -40,14 +40,14 @@ int main(int, char**)
         sys_console.write(parse_assert_data(adata));
     });
 
-    gui::context_impl gui_ctx = { &backend, false };
-    gui::context              = &gui_ctx;
+    gui::context_impl gui_ctx(&backend, false);
+    gui::context = &gui_ctx;
 
     gui::menu_impl menu_ctx;
     gui::menu = &menu_ctx;
 
-    gui::tab_bar test_tab_bar = { "test" };
-    gui::tab test_tab         = { "test2" };
+    gui::tab_bar test_tab_bar("test");
+    gui::tab test_tab("test2");
     test_tab.store(bind_front(ImGui::Text, "Hello"));
 
     test_tab_bar.store(test_tab);
@@ -56,7 +56,7 @@ int main(int, char**)
         menu_ctx.render();
     });
 
-    hooks::holder all_hooks = { hooks::d3d9_reset({ backend.d3d, 16 }), hooks::d3d9_present({ backend.d3d, 17 }), hooks::wndproc(backend.hwnd, backend.info.lpfnWndProc) };
+    hooks::holder all_hooks(hooks::d3d9_reset({ backend.d3d, 16 }), hooks::d3d9_present({ backend.d3d, 17 }), hooks::wndproc(backend.hwnd, backend.info.lpfnWndProc));
 
     return all_hooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;
 }

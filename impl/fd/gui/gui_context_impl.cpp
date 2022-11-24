@@ -368,10 +368,10 @@ char context_impl::process_keys(void* data)
 
     const auto [wnd, msg, wp, lp] = *static_cast<keys_data*>(data);
 
-    const auto& events           = context_.InputEventsQueue;
-    const auto old_events_count  = events.size();
-    const bool instant           = ImGui_ImplWin32_WndProcHandler(wnd, msg, wp, lp);
-    const std::span events_added = { events.begin() + old_events_count, events.end() };
+    const auto& events          = context_.InputEventsQueue;
+    const auto old_events_count = events.size();
+    const bool instant          = ImGui_ImplWin32_WndProcHandler(wnd, msg, wp, lp);
+    const std::span events_added(events.begin() + old_events_count, events.end());
 
     // update focus
     switch (msg)

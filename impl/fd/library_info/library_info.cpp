@@ -400,7 +400,7 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
 
 static auto _Wait_prepare(const bool notify)
 {
-    const library_info ntdll = { L"ntdll.dll", false, notify };
+    const library_info ntdll(L"ntdll.dll", false, notify);
 
     const auto reg   = static_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
     const auto unreg = static_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
@@ -412,7 +412,7 @@ PVOID library_info::_Wait(const wstring_view name, const bool notify)
 {
     static const auto [reg_fn, unreg_fn] = _Wait_prepare(notify);
 
-    callback_data_t cb_data = { name };
+    callback_data_t cb_data(name);
     void* cookie;
     if (reg_fn(0, _On_new_library, &cb_data, &cookie) != STATUS_SUCCESS)
         return nullptr;

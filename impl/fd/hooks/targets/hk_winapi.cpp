@@ -40,7 +40,7 @@ LRESULT WINAPI wndproc::callback(HWND window, UINT message, WPARAM w_param, LPAR
     //         return call_original(ARGS);
     // #endif
 
-    std::pair args = { std::pair(window, message), std::pair(w_param, l_param) };
+    std::pair args(std::pair(window, message), std::pair(w_param, l_param));
 
     switch (gui::context->process_keys(&args))
     {

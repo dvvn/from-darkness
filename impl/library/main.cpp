@@ -61,14 +61,14 @@ static DWORD WINAPI _Loader(void*) noexcept
     });
 #endif
 
-    const library_info client_lib = { L"client.dll", true };
-    const auto add_to_safe_list   = static_cast<void(__fastcall*)(HMODULE, void*)>(client_lib.find_signature("56 8B 71 3C B8"));
+    const library_info client_lib(L"client.dll", true);
+    const auto add_to_safe_list = static_cast<void(__fastcall*)(HMODULE, void*)>(client_lib.find_signature("56 8B 71 3C B8"));
 
     add_to_safe_list(_Handle, nullptr);
 
     const auto d3d_ifc = [] {
-        const library_info lib = { L"shaderapidx9.dll", true };
-        const auto addr        = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        const library_info lib(L"shaderapidx9.dll", true);
+        const auto addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
     }();
 
@@ -79,14 +79,14 @@ static DWORD WINAPI _Loader(void*) noexcept
         return d3d_params.hFocusWindow;
     }();
 
-    std::pair gui_data        = { d3d_ifc, hwnd };
-    gui::context_impl gui_ctx = { &gui_data, false };
-    gui::context              = &gui_ctx;
+    std::pair gui_data(d3d_ifc, hwnd);
+    gui::context_impl gui_ctx(&gui_data, false);
+    gui::context = &gui_ctx;
 
     gui::menu_impl menu_ctx;
     gui::menu = &menu_ctx;
 
-    hooks::holder all_hooks = { hooks::d3d9_reset({ d3d_ifc, 16 }), hooks::d3d9_present({ d3d_ifc, 17 }), hooks::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)) };
+    hooks::holder all_hooks(hooks::d3d9_reset({ d3d_ifc, 16 }), hooks::d3d9_present({ d3d_ifc, 17 }), hooks::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)));
 
     if (!all_hooks.enable())
         _Fail();

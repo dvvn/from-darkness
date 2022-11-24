@@ -63,15 +63,15 @@ tab_bar::tab_bar(const string_view name)
 
 void tab_bar::render() const
 {
-    auto& g                 = *GImGui;
-    const auto window       = g.CurrentWindow;
+    auto& g            = *GImGui;
+    const auto window  = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
-    const auto id           = window->GetID(name_.data(), name_.data() + name_.size());
-    const auto tab_bar      = g.TabBars.GetOrAddByKey(id);
-    const ImRect tab_bar_bb = { window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2 };
-    tab_bar->ID             = id;
-    constexpr auto flags    = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
+    const auto id      = window->GetID(name_.data(), name_.data() + name_.size());
+    const auto tab_bar = g.TabBars.GetOrAddByKey(id);
+    const ImRect tab_bar_bb(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
+    tab_bar->ID          = id;
+    constexpr auto flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
     if (!ImGui::BeginTabBarEx(tab_bar, tab_bar_bb, flags | ImGuiTabBarFlags_IsFocused))
         return;
 
