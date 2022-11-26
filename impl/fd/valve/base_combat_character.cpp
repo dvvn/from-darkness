@@ -1,14 +1,12 @@
-module;
-
 #include <fd/assert.h>
-
-module fd.valve.base_combat_character;
+#include <fd/valve/base_combat_character.h>
 
 #if __has_include("C_BaseCombatCharacter_generated_cpp")
 #include "C_BaseCombatCharacter_generated_cpp"
 #endif
 
-using namespace fd::valve;
+using namespace fd;
+using namespace valve;
 
 base_combat_weapon* base_combat_character::active_weapon()
 {

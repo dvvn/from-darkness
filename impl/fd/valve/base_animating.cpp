@@ -1,13 +1,13 @@
-module;
-
 #include <fd/assert.h>
-
-module fd.valve.base_animating;
-import fd.functional.invoke;
+#include <fd/functional.h>
+#include <fd/valve/base_animating.h>
 
 #if __has_include("C_BaseAnimating_generated_cpp")
 #include "C_BaseAnimating_generated_cpp"
 #endif
+
+using namespace fd;
+using namespace valve;
 
 void base_animating::UpdateClientSideAnimation()
 {

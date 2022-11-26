@@ -1,7 +1,5 @@
-module;
-
-module fd.valve.base_entity;
-import fd.functional.invoke;
+#include <fd/functional.h>
+#include <fd/valve/base_entity.h>
 
 #if __has_include("C_BaseEntity_generated_cpp")
 #include "C_BaseEntity_generated_cpp"

@@ -1,20 +1,16 @@
-﻿#define FD_CHECK_WHOLE_CVAR_NAME
-module;
-
-#ifndef FD_CHECK_WHOLE_CVAR_NAME
-#include <fd/assert.h>
-#endif
+﻿#include <fd/assert.h>
+#include <fd/functional.h>
+#include <fd/logger.h>
+#include <fd/valve/con_var_system.h>
 
 #include <algorithm>
-
-module fd.valve.con_var;
-import fd.logger;
-import fd.functional.bind;
 
 using namespace fd;
 using namespace valve;
 
-// FD_OBJECT_ATTACH_EX(con_var_system, rt_modules::vstdlib_fn().find_interface<"VEngineCvar">());
+#define FD_CHECK_WHOLE_CVAR_NAME
+
+#if 0
 
 template <typename T>
 static void _Set_helper(con_var* ptr, size_t index, T value)
@@ -70,6 +66,8 @@ void con_var::set(int value)
     _Set_helper(this, 16, value);
 }
 
+#endif
+
 struct ConCommandBaseIterator
 {
     using iterator_category = std::forward_iterator_tag;
@@ -78,7 +76,7 @@ struct ConCommandBaseIterator
     using pointer           = value_type*;
     using reference         = value_type&;
 
-    ConCommandBaseIterator(pointer ptr)
+    ConCommandBaseIterator(pointer ptr = nullptr)
         : itr_(ptr)
     {
     }
@@ -122,24 +120,22 @@ struct ConCommandBaseIterator
     pointer itr_;
 };
 
-static bool _Compare_cvars(const string_view name, const ConCommandBase& other)
+static bool _Compare_cvars(const char* name, const size_t size, const ConCommandBase& other)
 {
-    if (other.IsCommand())
-        return false;
+    return other.IsCommand() &&
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
-    if (other.name != name)
+           other.name == string_view(name, size)
 #else
-    if (std::memcmp(other.name, name.data(), name.size()) != 0) // starts_with?
+           std::memcmp(other.name, name, size) == 0
 #endif
-        return false;
-    return true;
+        ;
 }
 
-con_var* con_var_system::FindVar(const string_view name) const
+con_var* con_var_system::FindVar(const char* name, const size_t size) const
 {
-    const auto comparer                       = fd::bind_front(_Compare_cvars, name);
-    const ConCommandBaseIterator first_cvar   = *reinterpret_cast<ConCommandBase**>(reinterpret_cast<uintptr_t>(this) + 0x30);
-    const ConCommandBaseIterator invalid_cvar = nullptr;
+    const auto comparer = bind_front(_Compare_cvars, name, size);
+    const ConCommandBaseIterator first_cvar(*reinterpret_cast<ConCommandBase**>(reinterpret_cast<uintptr_t>(this) + 0x30));
+    const ConCommandBaseIterator invalid_cvar;
 
     const auto target_cvar = std::find_if(first_cvar, invalid_cvar, comparer);
 
@@ -169,7 +165,7 @@ con_var* con_var_system::FindVar(const string_view name) const
         // we already know how long a string can be
         const auto known_end = target_cvar->name + name.size();
         // so only look for the zero character
-        const auto real_end  = known_end + fd::str_len(known_end);
+        const auto real_end  = known_end + str_len(known_end);
         if (known_end != real_end)
         {
             write_msg(" (full name: ");

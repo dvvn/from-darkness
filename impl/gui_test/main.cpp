@@ -1,20 +1,15 @@
 ﻿#include "backend.h"
 
+#include <fd/assert_impl.h>
+#include <fd/functional.h>
+#include <fd/gui/context_impl.h>
+#include <fd/gui/menu_impl.h>
+#include <fd/hooked/hk_directx.h>
+#include <fd/hooked/hk_winapi.h>
+#include <fd/logger_impl.h>
+#include <fd/system_console.h>
+
 #include <imgui.h>
-
-#include <fd/hooks/helper.h>
-
-import fd.functional.bind;
-
-import fd.logger.impl;
-import fd.assert.impl;
-import fd.system.console;
-
-import fd.gui.context.impl;
-import fd.gui.menu.impl;
-
-import fd.hooks.directx;
-import fd.hooks.winapi;
 
 using namespace fd;
 
@@ -56,7 +51,7 @@ int main(int, char**)
         menu_ctx.render();
     });
 
-    hooks::holder all_hooks(hooks::d3d9_reset({ backend.d3d, 16 }), hooks::d3d9_present({ backend.d3d, 17 }), hooks::wndproc(backend.hwnd, backend.info.lpfnWndProc));
+    hook_holder all_hooks(hooked::d3d9_reset({ backend.d3d, 16 }), hooked::d3d9_present({ backend.d3d, 17 }), hooked::wndproc(backend.hwnd, backend.info.lpfnWndProc));
 
     return all_hooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;
 }

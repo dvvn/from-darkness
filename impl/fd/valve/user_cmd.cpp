@@ -1,8 +1,8 @@
-module;
+#include <fd/valve/user_cmd.h>
 
 #include <cstring>
 
-module fd.valve.user_cmd;
+using namespace fd::valve;
 
 user_cmd::user_cmd()
 {

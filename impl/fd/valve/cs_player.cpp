@@ -1,12 +1,9 @@
-module;
-
 #include <fd/assert.h>
-
-module fd.valve.cs_player;
+#include <fd/valve/cs_player.h>
 
 #if __has_include("C_CSPlayer_generated_cpp")
-import fd.netvars;
-using C_CSPlayer = cs_player;
+//import fd.netvars;
+//using C_CSPlayer = cs_player;
 #include "C_CSPlayer_generated_cpp"
 #endif
 

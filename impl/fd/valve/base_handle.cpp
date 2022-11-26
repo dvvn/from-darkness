@@ -1,11 +1,10 @@
-﻿module;
+﻿#include <fd/assert.h>
+#include <fd/valve/base_handle.h>
+#include <fd/valve/client_entity.h>
+#include <fd/valve/client_entity_list.h>
 
-#include <fd/assert.h>
-
-module fd.valve.base_handle;
-import fd.valve.client_entity;
-
-using namespace fd::valve;
+using namespace fd;
+using namespace valve;
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
@@ -74,10 +73,15 @@ int32_t base_handle::ToInt() const
     return (int32_t)m_Index;
 }
 
+namespace fd::valve
+{
+    extern client_entity_list* entity_list;
+}
+
 handle_entity* base_handle::Get() const
 {
     /*if (!IsValid( ))
         return 0;*/
-    // return FD_OBJECT_GET(client_entity_list*)->GetClientEntityFromHandle(*this);
-    FD_ASSERT_UNREACHABLE("Not implemented");
+    return entity_list->GetClientEntityFromHandle(*this);
+    // FD_ASSERT_UNREACHABLE("Not implemented");
 }

@@ -1,12 +1,9 @@
-module;
-
 #include <fd/assert.h>
+#include <fd/gui/menu_impl.h>
 
 #include <imgui_internal.h>
 
 #include <algorithm>
-
-module fd.gui.menu.impl;
 
 using namespace fd;
 using namespace gui;
@@ -70,12 +67,13 @@ void tab_bar::render() const
     const auto id      = window->GetID(name_.data(), name_.data() + name_.size());
     const auto tab_bar = g.TabBars.GetOrAddByKey(id);
     const ImRect tab_bar_bb(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
-    tab_bar->ID          = id;
-    constexpr auto flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
-    if (!ImGui::BeginTabBarEx(tab_bar, tab_bar_bb, flags | ImGuiTabBarFlags_IsFocused))
+    tab_bar->ID                  = id;
+    constexpr auto default_flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
+    constexpr auto extra_flags   = ImGuiTabBarFlags_IsFocused;
+    if (!ImGui::BeginTabBarEx(tab_bar, tab_bar_bb, default_flags | extra_flags))
         return;
 
-    auto active_tab = std::ranges::find_if(tabs_, &tab::render);
+    const auto active_tab = std::ranges::find_if(tabs_, &tab::render);
     std::ranges::for_each(active_tab + 1, tabs_.end(), &tab::render);
     (*active_tab)->render_data();
 

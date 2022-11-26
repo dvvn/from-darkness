@@ -1,15 +1,16 @@
-module;
+#include <fd/gui/menu.h>
 
-module fd.gui.menu;
-
-using namespace fd::gui;
-
-basic_menu::~basic_menu() = default;
-
-void basic_menu::toggle()
+namespace fd::gui
 {
-    if (visible())
-        hide();
-    else
-        show();
-}
+    basic_menu::~basic_menu() = default;
+
+    void basic_menu::toggle()
+    {
+        if (visible())
+            hide();
+        else
+            show();
+    }
+
+    basic_menu* menu;
+} // namespace fd::gui

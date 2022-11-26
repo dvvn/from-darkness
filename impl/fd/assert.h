@@ -11,8 +11,8 @@
 #endif
 
 #ifdef _DEBUG
+#include <fd/assert_base.h>
 #include <fd/utility.h>
-import fd.assert;
 
 #define FD_ASSERT(_EXPRESSION_OR_MESSAGE_, /*message for expression*/...) \
     /**/                                                                  \

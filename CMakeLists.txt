@@ -110,7 +110,7 @@ file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp ${_PROJ_WORK_DIR}/*.ixx)
 list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
 add_library(impl STATIC ${_PROJ_FILES})
 target_link_libraries(impl PUBLIC function2::function2 robin_hood::robin_hood nlohmann_json::nlohmann_json subhook::subhook fmt::fmt imgui)
-target_include_directories(impl PUBLIC ${_PROJ_IMPL_DIR} PRIVATE ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include ${atomic_queue_SOURCE_DIR}/include)
+target_include_directories(impl PUBLIC ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${utf8_conv_SOURCE_DIR}/include ${veque_SOURCE_DIR}/include ${atomic_queue_SOURCE_DIR}/include)
 target_compile_definitions(impl PUBLIC ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
 
 file(GLOB_RECURSE _GUI_TEST_FILES ${_PROJ_IMPL_DIR}/gui_test/*.cpp ${_PROJ_IMPL_DIR}/gui_test/*.ixx)

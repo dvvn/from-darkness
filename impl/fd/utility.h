@@ -19,15 +19,15 @@
 #define FOR_EACH_AGAIN() FOR_EACH_HELPER
 // clang-format on
 
-/* #ifdef _CONCAT
-#define _FD_CONCAT _CONCAT
+#ifdef _CONCAT
+#define FD_CONCAT _CONCAT
 #else
 #define _FD_CONCATX(x, y) x##y
-#define _FD_CONCAT(x, y)  _FD_CONCATX(x, y)
-#endif */
+#define FD_CONCAT(x, y)   _FD_CONCATX(x, y)
+#endif
 #define _FD_UNPACK(x) x
 
-#define FD_CONCAT(...) FOR_EACH(_FD_UNPACK, __VA_ARGS__)
+#define FD_CONCAT_EX(...) FOR_EACH(_FD_UNPACK, __VA_ARGS__)
 
 #if 0
 #define FD_STRINGIZE(x) #x
