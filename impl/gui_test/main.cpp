@@ -4,6 +4,7 @@
 #include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
+#include <fd/hook_holder.h>
 #include <fd/hooked/hk_directx.h>
 #include <fd/hooked/hk_winapi.h>
 #include <fd/logger_impl.h>

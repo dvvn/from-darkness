@@ -3,8 +3,6 @@
 #include <fd/functional.h>
 #include <fd/hook.h>
 
-#include <tuple>
-
 // #define FUNCTION_GETTER_HAVE_PTR_SIZE
 
 namespace fd
@@ -117,28 +115,6 @@ namespace fd
         hook_instance(hook_instance&&)
         {
             self = static_cast<T*>(this);
-        }
-    };
-
-    template <typename... H>
-    class hook_holder
-    {
-        std::tuple<H...> hooks_;
-
-      public:
-        hook_holder(H&&... hooks)
-            : hooks_(std::move(hooks)...)
-        {
-        }
-
-        bool enable()
-        {
-            return (std::get<H>(hooks_).enable() && ...);
-        }
-
-        bool disable()
-        {
-            return (std::get<H>(hooks_).disable() && ...);
         }
     };
 } // namespace fd

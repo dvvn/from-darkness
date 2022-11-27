@@ -1,24 +1,22 @@
-#include <fd/hooks/helper.h>
-
 #include <d3d9.h>
 #include <windows.h>
 
 #include <exception>
 
 #ifdef _DEBUG
-import fd.logger.impl;
-import fd.assert.impl;
-import fd.system.console;
+#include <fd/assert_impl.h>
+#include <fd/logger_impl.h>
+#include <fd/system_console.h>
 #endif
 
-import fd.gui.context.impl;
-import fd.gui.menu.impl;
-
-import fd.hooks.directx;
-import fd.hooks.winapi;
-
-import fd.library_info;
-import fd.functional.lazy_invoke;
+#include <fd/functional.h>
+#include <fd/gui/context_impl.h>
+#include <fd/gui/menu_impl.h>
+#include <fd/hook_holder.h>
+#include <fd/hooked/hk_directx.h>
+#include <fd/hooked/hk_vgui_surface.h>
+#include <fd/hooked/hk_winapi.h>
+#include <fd/library_info.h>
 
 static HMODULE _Handle;
 
@@ -86,7 +84,10 @@ static DWORD WINAPI _Loader(void*) noexcept
     gui::menu_impl menu_ctx;
     gui::menu = &menu_ctx;
 
-    hooks::holder all_hooks(hooks::d3d9_reset({ d3d_ifc, 16 }), hooks::d3d9_present({ d3d_ifc, 17 }), hooks::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)));
+    hook_holder all_hooks(hooked::d3d9_reset({ d3d_ifc, 16 }),
+                          hooked::d3d9_present({ d3d_ifc, 17 }),
+                          hooked::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)),
+                          hooked::lock_cursor({ (void*)0, 67 }));
 
     if (!all_hooks.enable())
         _Fail();
