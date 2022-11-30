@@ -119,7 +119,7 @@ netvars_log::~netvars_log()
     if (dir.empty())
         return;
     //_Correct_path(dir);
-    if (!fs::directory.create(dir))
+    if (!fs::Directory.create(dir))
         return;
     const auto full_path = make_string(dir, file.name, file.extension);
     if (_File_already_written(full_path, buff))
@@ -132,7 +132,7 @@ netvars_classes::~netvars_classes()
     if (dir.empty())
         return;
     //_Correct_path(dir);
-    const auto file_is_empty = fs::directory.create(dir) || fs::directory.empty(dir);
+    const auto file_is_empty = fs::Directory.create(dir) || fs::Directory.empty(dir);
     for (const auto& [name, buff] : files)
     {
         const auto current_file_path = make_string(dir, name);
@@ -475,7 +475,7 @@ void netvars_storage::iterate_client_class(const client_class* root_class, const
         invoke(parser, rtable);
     }
 
-    invoke(logger, "netvars - {} data tables stored", bind_front(_Override_name, root_class, debug_name));
+    invoke(Logger, "netvars - {} data tables stored", bind_front(_Override_name, root_class, debug_name));
 }
 
 void netvars_storage::iterate_datamap(const data_map* root_map, const string_view debug_name)
@@ -529,7 +529,7 @@ void netvars_storage::iterate_datamap(const data_map* root_map, const string_vie
         }
     }
 
-    invoke(logger, "netvars - {} data maps stored", bind_front(_Override_name, root_map, debug_name));
+    invoke(Logger, "netvars - {} data maps stored", bind_front(_Override_name, root_map, debug_name));
 }
 #if 0
 void netvars_storage::store_handmade_netvars()
@@ -614,7 +614,7 @@ void netvars_storage::log_netvars(netvars_log& data)
     tmp_buff << std::setw(data.indent) << std::setfill(data.filler) << j_root;
     _Stream_to(std::move(tmp_buff), data.buff);
 
-    invoke(logger, "netvars - logs will be written to {}", [&] {
+    invoke(Logger, "netvars - logs will be written to {}", [&] {
         return make_string(/* _Correct_path */ (_Drop_default_path(data.dir, netvars_log().dir)), data.file.name, data.file.extension);
     });
 }
@@ -679,7 +679,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
     }
 #endif
 
-    invoke(logger, "netvars - {} classes written to {}", data.files.size(), [&] {
+    invoke(Logger, "netvars - {} classes written to {}", data.files.size(), [&] {
         return /* _Correct_path */ (_Drop_default_path(data.dir, netvars_classes().dir));
     });
 }
@@ -713,7 +713,7 @@ void netvars_storage::finish()
     sort_requested_.clear();
     sort_requested_.shrink_to_fit();
 
-    invoke(logger, "netvars - {} classes stored", data_.size());
+    invoke(Logger, "netvars - {} classes stored", data_.size());
 }
 
 size_t netvars_storage::get_offset(const string_view class_name, const string_view name) const

@@ -5,8 +5,6 @@
 
 #include <imgui_internal.h>
 
-#include <d3d9.h>
-
 #include <vector>
 
 namespace fd::gui
@@ -15,7 +13,7 @@ namespace fd::gui
     {
         ImGuiMemAllocFunc allocator_;
         ImGuiMemFreeFunc deleter_;
-        void* user_data_;
+        void* userData_;
         ImGuiContext* context_;
 
       public:
@@ -46,7 +44,7 @@ namespace fd::gui
         callback_type callback;
         keys_pack keys;
 
-        bool update(const bool allow_override);
+        bool update(bool allowOverride);
     };
 
     class hotkeys_storage
@@ -65,11 +63,11 @@ namespace fd::gui
         hotkey* create(hotkey_source source, hotkey_mode mode, callback_type callback);
     };
 
-    class context_impl : public basic_context
+    class context_impl final : public basic_context
     {
         imgui_backup backup_;
         ImGuiContext context_;
-        ImFontAtlas font_atlas_;
+        ImFontAtlas fontAtlas_;
         std::vector<callback_type> callbacks_;
         hotkeys_storage hotkeys_;
         bool focused_;
@@ -79,7 +77,7 @@ namespace fd::gui
 
       public:
         ~context_impl() override;
-        context_impl(void* data, const bool store_settings);
+        context_impl(void* data, bool storeSettings);
 
         /*context(const context&)            = delete;
         context& operator=(const context&) = delete;*/
@@ -90,8 +88,8 @@ namespace fd::gui
 
         void store(callback_type callback);
 
-        bool create_hotkey(hotkey_source source, hotkey_mode mode, callback_type callback, const bool update = false);
-        bool update_hotkey(hotkey_source source, hotkey_mode mode, const bool allow_override);
+        bool create_hotkey(hotkey_source source, hotkey_mode mode, callback_type callback, bool update = false);
+        bool update_hotkey(hotkey_source source, hotkey_mode mode, bool allowOverride);
         bool remove_hotkey(hotkey_source source, hotkey_mode mode);
         bool contains_hotkey(hotkey_source source, hotkey_mode mode) const;
     };

@@ -8,37 +8,36 @@
 
 namespace fd
 {
-    struct _Char_acceptor
+    template <typename T, typename... Args>
+    static constexpr bool _has_type()
     {
-        constexpr _Char_acceptor(const char)
-        {
-        }
-
-        constexpr _Char_acceptor(const wchar_t)
-        {
-        }
-
-        constexpr _Char_acceptor(const char8_t)
-        {
-        }
-
-        constexpr _Char_acceptor(const char16_t)
-        {
-        }
-
-        constexpr _Char_acceptor(const char32_t)
-        {
-        }
-    };
+        return (std::same_as<T, Args> || ...);
+    }
 
     template <typename T>
-    concept can_be_string = requires(const T& obj) { _Char_acceptor(obj[0]); };
+    concept is_character = _has_type<std::remove_cvref_t<T>,
+                                     char
+#ifdef __cpp_lib_char8_t
+                                     ,
+                                     char8_t
+#endif
+                                     ,
+                                     wchar_t,
+                                     char16_t,
+                                     char32_t>();
+
+    template <typename T>
+    concept can_be_string = requires(const T& obj) {
+                                {
+                                    obj[0]
+                                    } -> is_character;
+                            };
 
     template <typename S>
     using get_char_t = std::remove_cvref_t<decltype(std::declval<S>()[0])>;
 
     template <typename T>
-    decltype(auto) _Forward_or_move(T&& obj)
+    static decltype(auto) _forward_or_move(T&& obj)
     {
         if constexpr (std::is_rvalue_reference_v<decltype(obj)>)
             return std::remove_cvref_t<T>(std::forward<T>(obj));
@@ -47,14 +46,14 @@ namespace fd
     }
 
     template <typename CharT = void, typename T>
-    decltype(auto) _Correct_obj(T&& obj)
+    static decltype(auto) _correct_obj(T&& obj)
     {
         if constexpr (invocable<T>)
-            return _Correct_obj<CharT>(invoke(obj));
+            return _correct_obj<CharT>(invoke(obj));
         else if constexpr (std::is_void_v<CharT> || !can_be_string<T>)
-            return _Forward_or_move(std::forward<T>(obj));
+            return _forward_or_move(std::forward<T>(obj));
         else if constexpr (std::is_same_v<get_char_t<T>, CharT>)
-            return _Forward_or_move(std::forward<T>(obj));
+            return _forward_or_move(std::forward<T>(obj));
         else
             return utf_string<CharT>(obj);
     }
@@ -63,9 +62,9 @@ namespace fd
 
     struct basic_logs_handler
     {
-        virtual ~basic_logs_handler()                         = default;
-        virtual void operator()(const string_view msg) const  = 0;
-        virtual void operator()(const wstring_view msg) const = 0;
+        virtual ~basic_logs_handler()                   = default;
+        virtual void operator()(string_view msg) const  = 0;
+        virtual void operator()(wstring_view msg) const = 0;
     };
 
     inline void invoke(basic_logs_handler* l, const string_view msg)
@@ -82,7 +81,7 @@ namespace fd
         invoke(*l, msg);
     }
 
-    inline void invoke(basic_logs_handler* l, invocable auto fn)
+    void invoke(basic_logs_handler* l, invocable auto fn)
     {
         if (!l)
             return;
@@ -94,11 +93,11 @@ namespace fd
     {
         if (!l)
             return;
-        decltype(auto) fmt_fixed = _Correct_obj(fmt);
-        using char_t             = get_char_t<decltype(fmt_fixed)>;
-        const auto buff          = format(fmt_fixed, _Correct_obj<char_t>(args)...);
+        decltype(auto) fmtFixed = _correct_obj(fmt);
+        using char_t            = get_char_t<decltype(fmtFixed)>;
+        const auto buff         = fd::format(fmtFixed, _correct_obj<char_t>(args)...);
         return invoke(*l, buff);
     }
 
-    extern basic_logs_handler* logger;
+    extern basic_logs_handler* Logger;
 } // namespace fd

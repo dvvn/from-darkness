@@ -1,4 +1,3 @@
-
 #include <fd/assert.h>
 #include <fd/hook_impl.h>
 #include <fd/logger.h>
@@ -14,6 +13,7 @@
 
 #undef free
 
+// ReSharper disable All
 _SUBHOOK_WRAP(free);
 _SUBHOOK_WRAP(install);
 _SUBHOOK_WRAP(remove);
@@ -21,6 +21,7 @@ _SUBHOOK_WRAP(is_installed);
 _SUBHOOK_WRAP(get_trampoline);
 _SUBHOOK_WRAP(get_src);
 _SUBHOOK_WRAP(get_dst);
+// ReSharper restore All
 
 #undef _SUBHOOK_WRAP
 
@@ -30,7 +31,7 @@ hook_impl::~hook_impl()
 {
     if (!entry_)
         return;
-    if (!disable())
+    if (!hook_impl::disable())
         return;
     subhook_free(entry_);
 }
@@ -41,22 +42,22 @@ hook_impl::hook_impl(const string_view name)
 {
 }
 
-hook_impl::hook_impl(hook_impl&& other)
+hook_impl::hook_impl(hook_impl&& other) noexcept
     : entry_(std::exchange(other.entry_, nullptr))
     , name_(std::move(other.name_))
 {
 }
 
 template <typename M>
-static void _Log(const hook_impl* h, const M msg)
+static void _log(const hook_impl* h, const M msg)
 {
-    invoke(logger, "{}: {}", bind_front(&hook_impl::name, h), msg);
+    invoke(Logger, "{}: {}", bind_front(&hook_impl::name, h), msg);
 }
 
 bool hook_impl::enable()
 {
     const auto ok = subhook_install(entry_) == 0;
-    _Log(this, [=] {
+    _log(this, [=] {
         if (ok)
             return "hooked";
         if (!entry_)
@@ -71,7 +72,7 @@ bool hook_impl::enable()
 bool hook_impl::disable()
 {
     const auto ok = subhook_remove(entry_) == 0;
-    _Log(this, [=] {
+    _log(this, [=] {
         if (ok)
             return "unhooked";
         if (!entry_)
@@ -118,7 +119,7 @@ void hook_impl::init(const function_getter target, const function_getter replace
     FD_ASSERT(entry_ == nullptr);
     entry_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
     if (!entry_)
-        _Log(this, "creating error!");
+        _log(this, "creating error!");
 }
 
 hook_impl::operator bool() const

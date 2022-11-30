@@ -16,7 +16,7 @@ static bool _Is_null_terminated(const T str)
     return raw[str.size()] == '\0';
 }
 
-static bool _Is_directory(const DWORD attr)
+[[maybe_unused]] static bool _Is_directory(const DWORD attr)
 {
     return attr != INVALID_FILE_ATTRIBUTES && attr & FILE_ATTRIBUTE_DIRECTORY;
 }
@@ -34,7 +34,7 @@ static bool _Is_short_path(const T str)
 }
 
 template <class T>
-constexpr bool _Is_wstring(const basic_string_view<T>)
+static constexpr bool _Is_wstring(const basic_string_view<T>)
 {
     return std::same_as<T, wchar_t>;
 }
@@ -48,11 +48,11 @@ constexpr bool _Is_wstring(const basic_string_view<T>)
 
 bool directory_impl::operator()(const string_view dir) const
 {
-    const auto short_path = _Is_short_path(dir);
+    const auto shortPath = _Is_short_path(dir);
 #ifdef PathIsDirectory
-    return short_path ? PathIsDirectoryA(FIX_C_STR(dir)) : PathIsDirectoryW(FIX_LONG_PATH(dir));
+    return shortPath ? PathIsDirectoryA(FIX_C_STR(dir)) : PathIsDirectoryW(FIX_LONG_PATH(dir));
 #else
-    const auto attr = short_path ? GetFileAttributesA(FIX_C_STR(dir)) : GetFileAttributesW(FIX_LONG_PATH(dir));
+    const auto attr = shortPath ? GetFileAttributesA(FIX_C_STR(dir)) : GetFileAttributesW(FIX_LONG_PATH(dir));
     return _Is_directory(attr);
 #endif
 }
@@ -66,6 +66,7 @@ bool directory_impl::operator()(const wstring_view dir) const
 #endif
 }
 
+// ReSharper disable CppMemberFunctionMayBeStatic
 bool directory_impl::create(const string_view dir) const
 {
     return _Is_short_path(dir) ? CreateDirectoryA(FIX_C_STR(dir), nullptr) : CreateDirectoryW(FIX_LONG_PATH(dir), nullptr);
@@ -93,6 +94,8 @@ bool directory_impl::empty(const wstring_view dir) const
 
 #endif
 }
+
+// ReSharper restore CppMemberFunctionMayBeStatic
 
 //-----
 

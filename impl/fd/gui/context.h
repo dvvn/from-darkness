@@ -10,5 +10,5 @@ namespace fd::gui
         virtual char process_keys(void* data) = 0;
     };
 
-    extern basic_context* context;
+    extern basic_context* Context;
 } // namespace fd::gui

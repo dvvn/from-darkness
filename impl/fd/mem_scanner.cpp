@@ -8,11 +8,11 @@
 
 using namespace fd;
 
-static void* _Find_block(const uint8_t* start0, const size_t block_size, const uint8_t* start2, const size_t rng_size)
+static void* _find_block(const uint8_t* start0, const size_t blockSize, const uint8_t* start2, const size_t rngSize)
 {
-    const auto limit = block_size - rng_size;
+    const auto limit = blockSize - rngSize;
 
-    if (rng_size == 1)
+    if (rngSize == 1)
         return const_cast<void*>(std::memchr(start0, *start2, limit));
 
     for (size_t offset = 0; offset <= limit;)
@@ -21,7 +21,7 @@ static void* _Find_block(const uint8_t* start0, const size_t block_size, const u
         if (!start1)
             break;
 
-        if (std::memcmp(start1, start2, rng_size) == 0)
+        if (std::memcmp(start1, start2, rngSize) == 0)
             return const_cast<void*>(start1);
 
         offset = std::distance(start0, static_cast<const uint8_t*>(start1)) + 1;
@@ -30,46 +30,46 @@ static void* _Find_block(const uint8_t* start0, const size_t block_size, const u
     return nullptr;
 }
 
-static auto _Find_block(const uint8_t* start0, const uint8_t* end0, const uint8_t* start2, const uint8_t* end2)
+static auto _find_block(const uint8_t* start0, const uint8_t* end0, const uint8_t* start2, const uint8_t* end2)
 {
-    return _Find_block(start0, std::distance(start0, end0), start2, std::distance(start2, end2));
+    return _find_block(start0, std::distance(start0, end0), start2, std::distance(start2, end2));
 }
 
-static auto _Find_block(const uint8_t* start0, const uint8_t* end0, const uint8_t* start2, const size_t rng_size)
+static auto _find_block(const uint8_t* start0, const uint8_t* end0, const uint8_t* start2, const size_t rngSize)
 {
-    return _Find_block(start0, std::distance(start0, end0), start2, rng_size);
+    return _find_block(start0, std::distance(start0, end0), start2, rngSize);
 }
 
-static auto _Find_block(const uint8_t* start0, const size_t block_size, const uint8_t* start2, const uint8_t* end2)
+[[maybe_unused]] static auto _find_block(const uint8_t* start0, const size_t blockSize, const uint8_t* start2, const uint8_t* end2)
 {
-    return _Find_block(start0, block_size, start2, std::distance(start2, end2));
+    return _find_block(start0, blockSize, start2, std::distance(start2, end2));
 }
 
 //-----
 
 memory_range::memory_range(const uint8_t* from, const uint8_t* to)
-    : from_(from)
-    , to_(to)
+    : from(from)
+    , to(to)
 {
-    FD_ASSERT(from_ < to_);
+    FD_ASSERT(from < to);
 }
 
 memory_range::memory_range(const uint8_t* from, const size_t size)
-    : from_(from)
-    , to_(from + size)
+    : from(from)
+    , to(from + size)
 {
-    FD_ASSERT(from_ < to_);
+    FD_ASSERT(from < to);
 }
 
 void memory_range::update(const uint8_t* curr, const size_t offset)
 {
-    const auto new_from = curr + offset;
-    FD_ASSERT(new_from > from_);
-    FD_ASSERT(new_from <= to_ - offset);
-    from_ = new_from;
+    const auto newFrom = curr + offset;
+    FD_ASSERT(newFrom > from);
+    FD_ASSERT(newFrom <= to - offset);
+    from = newFrom;
 }
 
-void memory_range::update(void* curr, const size_t offset)
+void memory_range::update(const void* curr, const size_t offset)
 {
     update(static_cast<const uint8_t*>(curr), offset);
 }
@@ -84,7 +84,7 @@ struct bytes_range
 
 class fd::unknown_bytes_range : public std::vector<bytes_range>
 {
-    mutable size_t bytes_count_cached_ = 0;
+    mutable size_t bytesCount_ = 0;
 
     size_t bytes_count_impl() const
     {
@@ -100,66 +100,66 @@ class fd::unknown_bytes_range : public std::vector<bytes_range>
   public:
     size_t bytes_count() const
     {
-        if (bytes_count_cached_ == 0)
-            bytes_count_cached_ = bytes_count_impl();
+        if (bytesCount_ == 0)
+            bytesCount_ = bytes_count_impl();
         else
-            FD_ASSERT(bytes_count_cached_ == bytes_count_impl());
+            FD_ASSERT(bytesCount_ == bytes_count_impl());
 
-        return bytes_count_cached_;
+        return bytesCount_;
     }
 };
 
-static bool _Have_mem_after(const size_t skip, const void* begin, const size_t offset, const uint8_t* end)
+static bool _have_mem_after(const size_t skip, const void* begin, const size_t offset, const uint8_t* end)
 {
     if (skip == 0)
         return true;
-    const size_t mem_after = std::distance(static_cast<const uint8_t*>(begin) + offset, end);
-    return mem_after >= skip;
+    const size_t memAfter = std::distance(static_cast<const uint8_t*>(begin) + offset, end);
+    return memAfter >= skip;
 }
 
-static void* _Find_unk_block(const uint8_t* begin, const uint8_t* end, const unknown_bytes_range& unkbytes)
+static void* _find_unk_block(const uint8_t* begin, const uint8_t* end, const unknown_bytes_range& unkBytes)
 {
 #ifdef _DEBUG
-    const auto unkbytes_count = unkbytes.bytes_count();
-    const size_t mem_size     = std::distance(begin, end);
-    FD_ASSERT(mem_size >= unkbytes_count);
+    const auto unkBytesCount = unkBytes.bytes_count();
+    const size_t memSize     = std::distance(begin, end);
+    FD_ASSERT(memSize >= unkBytesCount);
 #endif
 
-    const auto unkbytes_begin = unkbytes.data();
-    const auto unkpart0_size  = unkbytes_begin->part.size();
-    const auto unkpart0_begin = unkbytes_begin->part.data();
-    const auto unkpart0_skip  = unkbytes_begin->skip;
+    const auto unkBytes_begin = unkBytes.data();
+    const auto unkPart0_size  = unkBytes_begin->part.size();
+    const auto unkPart0_begin = unkBytes_begin->part.data();
+    const auto unkPart0_skip  = unkBytes_begin->skip;
 
-    if (unkbytes.size() == 1)
+    if (unkBytes.size() == 1)
     {
-        const auto part0_found = _Find_block(begin, end, unkpart0_begin, unkpart0_size);
+        const auto part0_found = _find_block(begin, end, unkPart0_begin, unkPart0_size);
         if (!part0_found)
             return nullptr;
-        if (!_Have_mem_after(unkpart0_skip, part0_found, unkpart0_size, end))
+        if (!_have_mem_after(unkPart0_skip, part0_found, unkPart0_size, end))
             return nullptr;
         return part0_found;
     }
 
 #ifndef _DEBUG
-    const auto unkbytes_count = unkbytes.bytes_count();
-    const size_t mem_size     = std::distance(begin, end);
+    const auto unkBytes_count = unkBytes.bytes_count();
+    const size_t memSize      = std::distance(begin, end);
 #endif
 
-    const auto unkbytes1         = unkbytes_begin + 1;
-    const auto unkbytes_end      = unkbytes_begin + unkbytes.size();
-    const auto last_readable_pos = mem_size - unkbytes_count;
+    const auto unkBytes1       = unkBytes_begin + 1;
+    const auto unkBytes_end    = unkBytes_begin + unkBytes.size();
+    const auto lastReadablePos = memSize - unkBytesCount;
 
-    for (size_t pos = 0; pos <= last_readable_pos;)
+    for (size_t pos = 0; pos <= lastReadablePos;)
     {
-        const auto part0_found = _Find_block(begin + pos, end, unkpart0_begin, unkpart0_size);
+        const auto part0_found = _find_block(begin + pos, end, unkPart0_begin, unkPart0_size);
         if (!part0_found)
             break;
 
-        auto temp_begin = static_cast<const uint8_t*>(part0_found) + unkpart0_size + unkpart0_skip;
+        auto temp_begin = static_cast<const uint8_t*>(part0_found) + unkPart0_size + unkPart0_skip;
         auto found      = true;
-        for (auto unkbytes_itr = unkbytes1; unkbytes_itr != unkbytes_end; ++unkbytes_itr)
+        for (auto unkBytes_itr = unkBytes1; unkBytes_itr != unkBytes_end; ++unkBytes_itr)
         {
-            const auto& [part, skip] = *unkbytes_itr;
+            const auto& [part, skip] = *unkBytes_itr;
             const auto part_size     = part.size();
 
             const auto part_valid = std::memcmp(temp_begin, part.data(), part_size) == 0;
@@ -173,7 +173,7 @@ static void* _Find_unk_block(const uint8_t* begin, const uint8_t* end, const unk
 
         if (found)
         {
-            if (!_Have_mem_after(unkbytes.back().skip, part0_found, unkbytes_count, end))
+            if (!_have_mem_after(unkBytes.back().skip, part0_found, unkBytesCount, end))
                 break;
             return part0_found;
         }
@@ -186,12 +186,14 @@ static void* _Find_unk_block(const uint8_t* begin, const uint8_t* end, const unk
 
 //-----
 
-static void _Text_to_bytes(unknown_bytes_range& bytes, const string_view text_src)
+static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc)
 {
     FD_ASSERT(bytes.empty());
     bytes.emplace_back();
 
-    constexpr auto to_num = [](const auto chr) -> uint8_t {
+    // ReSharper disable once CppInconsistentNaming
+    constexpr auto _to_num = [](const auto chr) -> uint8_t
+    {
         switch (chr)
         {
         case '0':
@@ -236,47 +238,52 @@ static void _Text_to_bytes(unknown_bytes_range& bytes, const string_view text_sr
             FD_ASSERT_UNREACHABLE("Unsupported character");
         }
     };
-
-    const auto skip_byte = [&] {
+    // ReSharper disable once CppInconsistentNaming
+    const auto _skip_byte = [&]
+    {
         ++bytes.back().skip;
     };
-
-    const auto store_byte = [&](const uint8_t num) {
+    // ReSharper disable once CppInconsistentNaming
+    const auto _store_byte = [&](const uint8_t num)
+    {
         auto& back = bytes.back();
         auto& rng  = back.skip > 0 ? bytes.emplace_back() : back;
         rng.part.push_back(num);
     };
 
-    for (const auto rng : text_src | std::views::split(' '))
+    for (const auto rng : textSrc | std::views::split(' '))
     {
-        const auto raw_begin = std::addressof(*rng.begin());
-        const size_t size    = std::ranges::distance(rng);
+        const auto rawBegin = std::addressof(*rng.begin());
+        const size_t size   = std::ranges::distance(rng);
 
         switch (size)
         {
-        case 1: {
-            const auto value = *raw_begin;
+        case 1:
+        {
+            const auto value = *rawBegin;
             if (value == '?')
-                skip_byte();
+                _skip_byte();
             else
-                store_byte(to_num(value));
+                _store_byte(_to_num(value));
             break;
         }
-        case 2: {
-            const auto value1 = raw_begin[0];
-            const auto value2 = raw_begin[1];
+        case 2:
+        {
+            const auto value1 = rawBegin[0];
+            const auto value2 = rawBegin[1];
             if (value1 == '?')
             {
                 FD_ASSERT(value2 == '?');
-                skip_byte();
+                _skip_byte();
             }
             else
             {
-                store_byte(to_num(value1) * 16 + to_num(value2));
+                _store_byte(_to_num(value1) * 16 + _to_num(value2));
             }
             break;
         }
-        default: {
+        default:
+        {
             FD_ASSERT_UNREACHABLE("Uncorrect part!");
         }
         };
@@ -285,6 +292,22 @@ static void _Text_to_bytes(unknown_bytes_range& bytes, const string_view text_sr
 
 //-----
 
+auto pattern_scanner_raw::operator()(const string_view sig) const -> iterator
+{
+    return {
+        this, {*this, reinterpret_cast<const uint8_t*>(sig.data()), sig.size()}
+    };
+}
+
+auto pattern_scanner_raw::operator()(const uint8_t* begin, const size_t memSize) const -> iterator
+{
+    return {
+        this, {*this, begin, memSize}
+    };
+}
+
+//-------------
+
 auto pattern_scanner::operator()(const string_view sig) const -> unknown_iterator
 {
     return {
@@ -292,18 +315,16 @@ auto pattern_scanner::operator()(const string_view sig) const -> unknown_iterato
     };
 }
 
-auto pattern_scanner::operator()(const string_view sig, const raw_pattern_t) const -> known_iterator
+auto pattern_scanner::operator()(const uint8_t* begin, const size_t memSize) const -> known_iterator
 {
     return {
-        this, {*this, reinterpret_cast<const uint8_t*>(sig.data()), sig.size()}
+        this, {*this, begin, memSize}
     };
 }
 
-auto pattern_scanner::operator()(const uint8_t* begin, const size_t mem_size) const -> known_iterator
+pattern_scanner_raw pattern_scanner::raw() const
 {
-    return {
-        this, {*this, begin, mem_size}
-    };
+    return { from, to };
 }
 
 //-----
@@ -316,10 +337,12 @@ struct unknown_bytes_range_shared_data
 
 unknown_bytes_range_shared::unknown_bytes_range_shared()
 {
-    auto buff = new unknown_bytes_range_shared_data();
-    bytes_    = &buff->rng;
-    uses_     = &buff->uses;
+    const auto buff = new unknown_bytes_range_shared_data();
+    bytes_          = &buff->rng;
+    uses_           = &buff->uses;
+    // ReSharper disable CppCStyleCast
     FD_ASSERT((void*)buff == (void*)bytes_);
+    // ReSharper restore CppCStyleCast
 }
 
 unknown_bytes_range_shared::~unknown_bytes_range_shared()
@@ -351,73 +374,72 @@ unknown_bytes_range& unknown_bytes_range_shared::operator*() const
     return *bytes_;
 }
 
-pattern_scanner_unknown::pattern_scanner_unknown(const memory_range mem_rng, const string_view sig)
-    : mem_rng_(mem_rng)
-    , bytes_()
+pattern_scanner_unknown::pattern_scanner_unknown(const memory_range memRng, const string_view sig)
+    : memRng_(memRng)
 {
-    _Text_to_bytes(*bytes_, sig);
+    _text_to_bytes(*bytes_, sig);
 }
 
 void* pattern_scanner_unknown::operator()() const
 {
-    return _Find_unk_block(mem_rng_.from_, mem_rng_.to_, *bytes_);
+    return _find_unk_block(memRng_.from, memRng_.to, *bytes_);
 }
 
-void pattern_scanner_unknown::update(void* last_pos)
+void pattern_scanner_unknown::update(const void* lastPos)
 {
-    mem_rng_.update(last_pos);
+    memRng_.update(lastPos);
 }
 
 //-----
 
-xrefs_finder_impl::xrefs_finder_impl(const memory_range mem_rng, const uintptr_t& addr)
-    : mem_rng_(mem_rng)
+xrefs_finder_impl::xrefs_finder_impl(const memory_range memRng, const uintptr_t& addr)
+    : memRng_(memRng)
     , xref_(reinterpret_cast<const uint8_t*>(&addr))
 {
 }
 
-xrefs_finder_impl::xrefs_finder_impl(const memory_range mem_rng, const void* addr)
-    : mem_rng_(mem_rng)
+xrefs_finder_impl::xrefs_finder_impl(const memory_range memRng, const void* addr)
+    : memRng_(memRng)
     , xref_(reinterpret_cast<const uint8_t*>(&addr))
 {
 }
 
 void* xrefs_finder_impl::operator()() const
 {
-    return _Find_block(mem_rng_.from_, mem_rng_.to_, xref_, sizeof(uintptr_t));
+    return _find_block(memRng_.from, memRng_.to, xref_, sizeof(uintptr_t));
 }
 
-void xrefs_finder_impl::update(void* last_pos)
+void xrefs_finder_impl::update(const void* lastPos)
 {
-    mem_rng_.update(last_pos);
+    memRng_.update(lastPos);
 }
 
 //-----
 
-void _Debug_creator::validate(const void* other) const
+void memory_iterator_dbg_creator::validate(const void* other) const
 {
     FD_ASSERT(ptr_ == other);
 }
 
-void _Debug_creator::validate(const _Debug_creator other) const
+void memory_iterator_dbg_creator::validate(const memory_iterator_dbg_creator other) const
 {
     FD_ASSERT(ptr_ == other.ptr_);
 }
 
 //-----
 
-pattern_scanner_known::pattern_scanner_known(const memory_range mem_rng, const uint8_t* begin, const size_t mem_size)
-    : mem_rng_(mem_rng)
-    , search_rng_(begin, mem_size)
+pattern_scanner_known::pattern_scanner_known(const memory_range memRng, const uint8_t* begin, const size_t memSize)
+    : memRng_(memRng)
+    , searchRng_(begin, memSize)
 {
 }
 
 void* pattern_scanner_known::operator()() const
 {
-    return _Find_block(mem_rng_.from_, mem_rng_.to_, search_rng_.from_, search_rng_.to_);
+    return _find_block(memRng_.from, memRng_.to, searchRng_.from, searchRng_.to);
 }
 
-void pattern_scanner_known::update(void* last_pos)
+void pattern_scanner_known::update(void* lastPos)
 {
-    mem_rng_.update(last_pos);
+    memRng_.update(lastPos);
 }

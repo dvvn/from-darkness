@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <limits>
+#include <stdexcept>
 #include <tuple>
 
 namespace fd
@@ -27,7 +28,8 @@ namespace fd
         constexpr decltype(auto) operator()(Fn&& fn, Args&&... args) const
         {
             return [_Fn   = std::forward<Fn>(fn), //
-                    _Args = std::tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto) {
+                    _Args = std::tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto)
+            {
                 if constexpr (sizeof...(Args) == 0)
                     return invoke(_Fn, std::forward<CallArgs>(call_args)...);
                 else
@@ -47,7 +49,8 @@ namespace fd
         static constexpr decltype(auto) call(Fn& fn, Tpl& args, Args&&... call_args)
         {
             return std::apply(
-                [&](auto&... bound_args) -> decltype(auto) {
+                [&](auto&... bound_args) -> decltype(auto)
+                {
                     return invoke(fn, bound_args..., std::forward<Args>(call_args)...);
                 },
                 args);
@@ -67,7 +70,8 @@ namespace fd
         static constexpr decltype(auto) call(Fn& fn, Tpl& args, Args&&... call_args)
         {
             return std::apply(
-                [&](auto&... bound_args) -> decltype(auto) {
+                [&](auto&... bound_args) -> decltype(auto)
+                {
                     return invoke(fn, std::forward<Args>(call_args)..., bound_args...);
                 },
                 args);
@@ -81,12 +85,14 @@ namespace fd
 
     enum class _Call_cvs : uint8_t
     {
+        // ReSharper disable CppInconsistentNaming
         default__,
         thiscall__,
         cdecl__,
         fastcall__,
         stdcall__,
         vectorcall__,
+        // ReSharper restore CppInconsistentNaming
     };
 
     template <_Call_cvs, typename Ret, typename... Args>
@@ -136,7 +142,7 @@ namespace fd
     using std::invoke;
 
     template <fat_pointer Fn, void_pointer ActFn, typename... Args>
-    decltype(auto) invoke(Fn fn, ActFn actual_fn, auto* thisptr, Args&&... args)
+    decltype(auto) invoke(Fn fn, ActFn actualFn, auto* thisptr, Args&&... args)
     {
         using trivial_inst = decltype(_Tiny_selector(fn));
 
@@ -148,13 +154,13 @@ namespace fd
         } adaptor;
 
         adaptor.hint = fn;
-        adaptor.raw  = actual_fn;
+        adaptor.raw  = actualFn;
 
         return invoke(adaptor.tiny, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
     }
 
     template <tiny_pointer Fn, void_pointer ActFn, typename... Args>
-    decltype(auto) invoke(Fn fn, ActFn actual_fn, Args&&... args) requires(!std::invocable<Fn, ActFn, Args && ...> && std::invocable<Fn &&, Args && ...>)
+    decltype(auto) invoke(Fn fn, ActFn actualFn, Args&&... args) requires(!std::invocable<Fn, ActFn, Args && ...> && std::invocable<Fn &&, Args && ...>)
     {
         union
         {
@@ -162,7 +168,7 @@ namespace fd
             ActFn raw;
         } adaptor;
 
-        adaptor.raw = actual_fn;
+        adaptor.raw = actualFn;
         return invoke(adaptor.fake, std::forward<Args>(args)...);
     }
 
@@ -180,13 +186,9 @@ namespace fd
     template <typename... Args>
     using invoke_result = decltype(invoke(std::declval<Args>()...));
 
-    struct invoker
+    constexpr auto Invoker = []<typename... Args>(Args&&... args) -> decltype(auto)
     {
-        template <typename... Args>
-        constexpr decltype(auto) operator()(Args&&... args) const
-        {
-            return invoke(std::forward<Args>(args)...);
-        }
+        return invoke(std::forward<Args>(args)...);
     };
 
     //--------------
@@ -269,5 +271,4 @@ namespace fd
 
     using fu2::detail::overloading::overload;
     using fu2::detail::overloading::overload_impl;
-
 } // namespace fd

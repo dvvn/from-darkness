@@ -9,7 +9,7 @@ namespace fd
 {
     class function_getter
     {
-        void* fn_ptr_ = nullptr;
+        void* fnPtr_ = nullptr;
 #ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
         uint8_t ptr_size_ = 0;
 #endif
@@ -17,7 +17,7 @@ namespace fd
       public:
         operator void*() const
         {
-            return fn_ptr_;
+            return fnPtr_;
         }
 
 #ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
@@ -29,7 +29,7 @@ namespace fd
 
         void* get() const
         {
-            return fn_ptr_;
+            return fnPtr_;
         }
 
         function_getter() = default;
@@ -37,19 +37,19 @@ namespace fd
         template <typename Fn>
         function_getter(Fn fn)
         {
-            fn_ptr_ = reinterpret_cast<void*&>(fn);
+            fnPtr_ = reinterpret_cast<void*&>(fn);
 #ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
             ptr_size_ = sizeof(fn);
 #endif
         }
 
         template <class C, class Fn = void*>
-        function_getter(C* hook_instance, const size_t index, Fn = {})
+        function_getter(C* hookInstance, const size_t index, Fn = {})
         {
-            if (!hook_instance)
+            if (!hookInstance)
                 return;
-            const auto vtable = *reinterpret_cast<void***>(hook_instance);
-            fn_ptr_           = vtable[index];
+            const auto vtable = *reinterpret_cast<void***>(hookInstance);
+            fnPtr_           = vtable[index];
 #ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
             ptr_size_ = sizeof(Fn);
 #endif
@@ -63,10 +63,10 @@ namespace fd
 
       public:
         ~hook_impl() override;
-        hook_impl(const string_view name = {});
+        hook_impl(string_view name = {});
 
         hook_impl(const hook_impl&) = delete;
-        hook_impl(hook_impl&& other);
+        hook_impl(hook_impl&& other) noexcept;
 
         bool enable() override;
         bool disable() override;
@@ -78,7 +78,7 @@ namespace fd
 
         void* get_original_method() const override;
 
-        void init(const function_getter target, const function_getter replace);
+        void init(function_getter target, function_getter replace);
 
         explicit operator bool() const;
     };
@@ -112,7 +112,7 @@ namespace fd
         hook_instance& operator=(const hook_instance&) = delete;
         hook_instance& operator=(hook_instance&&)      = delete;
 
-        hook_instance(hook_instance&&)
+        hook_instance(hook_instance&&) noexcept
         {
             self = static_cast<T*>(this);
         }

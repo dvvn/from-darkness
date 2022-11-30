@@ -39,16 +39,16 @@ static DWORD WINAPI _Loader(void*) noexcept
 
     const auto std_terminate = std::set_terminate(_Fail);
 
-    current_library_handle = _Handle;
+    CurrentLibraryHandle = _Handle;
 
 #ifdef _DEBUG
     default_assert_handler assert_callback;
-    assert_handler = &assert_callback;
+    AssertHandler = &assert_callback;
 
     system_console sys_console;
 
     default_logs_handler logs_callback;
-    logger = &logs_callback;
+    Logger = &logs_callback;
 
     logs_callback.add([&](auto msg) {
         sys_console.write(msg);
@@ -79,10 +79,10 @@ static DWORD WINAPI _Loader(void*) noexcept
 
     std::pair gui_data(d3d_ifc, hwnd);
     gui::context_impl gui_ctx(&gui_data, false);
-    gui::context = &gui_ctx;
+    gui::Context = &gui_ctx;
 
     gui::menu_impl menu_ctx;
-    gui::menu = &menu_ctx;
+    gui::Menu = &menu_ctx;
 
     hook_holder all_hooks(hooked::d3d9_reset({ d3d_ifc, 16 }),
                           hooked::d3d9_present({ d3d_ifc, 17 }),

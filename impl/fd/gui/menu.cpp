@@ -12,5 +12,5 @@ namespace fd::gui
             show();
     }
 
-    basic_menu* menu;
+    basic_menu* Menu;
 } // namespace fd::gui

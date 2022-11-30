@@ -6,7 +6,7 @@
 
 namespace fd
 {
-    class default_logs_handler : public basic_logs_handler
+    class default_logs_handler final : public basic_logs_handler
     {
         using function_type = function_view<void(string_view) const, void(wstring_view) const>;
         std::vector<function_type> data_;

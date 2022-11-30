@@ -32,15 +32,15 @@ namespace fd
 
     class dos_nt
     {
-        void _Construct(const LDR_DATA_TABLE_ENTRY* ldr_entry);
+        void construct(const LDR_DATA_TABLE_ENTRY* ldrEntry);
 
       public:
         // base address
         IMAGE_DOS_HEADER* dos;
         IMAGE_NT_HEADERS* nt;
 
-        dos_nt(const LDR_DATA_TABLE_ENTRY* ldr_entry);
-        explicit dos_nt(const library_info info);
+        dos_nt(const LDR_DATA_TABLE_ENTRY* ldrEntry);
+        explicit dos_nt(library_info info);
 
         PVOID base() const;
 
@@ -50,36 +50,43 @@ namespace fd
         template <typename T = uint8_t, typename Q>
         T* map(Q obj) const
         {
-            const auto dos_addr = reinterpret_cast<uintptr_t>(dos);
+            const auto dosAddr = reinterpret_cast<uintptr_t>(dos);
             uintptr_t offset;
             if constexpr (std::is_pointer_v<Q>)
                 offset = reinterpret_cast<uintptr_t>(obj);
             else
                 offset = static_cast<uintptr_t>(obj);
-            return reinterpret_cast<T*>(dos_addr + offset);
+            return reinterpret_cast<T*>(dosAddr + offset);
         }
     };
 
     template <class T>
-    constexpr auto simple_type_name()
+    static constexpr auto _simple_type_name()
     {
         return __FUNCSIG__;
     }
 
     struct correct_type_name : string_view
     {
-        constexpr correct_type_name(const string_view raw_name)
-            : string_view(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>')) // full name with 'class' or 'struct' prefix, namespace and templates
+        constexpr correct_type_name(const string_view rawName)
+            : string_view(rawName.data() + rawName.find('<') + 1, rawName.data() + rawName.rfind('>')) // full name with 'class' or 'struct' prefix, namespace and templates
         {
         }
+
+#ifndef __cpp_lib_string_contains
+        constexpr bool contains(const char chr) const
+        {
+            return find(chr) != npos;
+        }
+#endif
     };
 
     class rewrapped_namespaces
     {
         struct simulate_info
         {
-            size_t size      = 0;
-            bool have_prefix = false;
+            size_t size     = 0;
+            bool havePrefix = false;
         };
 
         template <size_t S>
@@ -92,15 +99,15 @@ namespace fd
         string_view name_;
 
       public:
-        constexpr rewrapped_namespaces(const string_view corrected_name)
+        constexpr rewrapped_namespaces(const string_view correctedName)
         {
-            const auto space_pos = corrected_name.find(' ');
-            if (space_pos == corrected_name.npos)
-                name_ = corrected_name;
+            const auto spacePos = correctedName.find(' ');
+            if (spacePos == correctedName.npos)
+                name_ = correctedName;
             else
             {
-                prefix_ = corrected_name.substr(0, space_pos);
-                name_   = corrected_name.substr(space_pos + 1);
+                prefix_ = correctedName.substr(0, spacePos);
+                name_   = correctedName.substr(spacePos + 1);
             }
         }
 
@@ -121,10 +128,12 @@ namespace fd
 
         constexpr size_t calc_size() const
         {
-            const auto namespaces_chars = std::count(name_.begin(), name_.end(), ':');
-            const size_t prefix_size    = 0 /*prefix_.size()*/;
-            const size_t postfix_size   = 0 /*2*/;
-            return prefix_size + name_.size() - namespaces_chars / 2 + postfix_size;
+            const auto namespacesChars = std::ranges::count(name_, ':');
+            // ReSharper disable CppVariableCanBeMadeConstexpr
+            const size_t prefixSize    = 0 /*prefix_.size()*/;
+            const size_t postfixSize   = 0 /*2*/;
+            // ReSharper restore CppVariableCanBeMadeConstexpr
+            return prefixSize + name_.size() - namespacesChars / 2 + postfixSize;
         }
 
         template <size_t S>
@@ -140,20 +149,20 @@ namespace fd
                 std::copy_n(itr, space_pos, ret.buff);
                 itr += space_pos;
             } */
-            char* buff_end = ret.buff + S;
+            char* buffEnd  = ret.buff + S;
             // create postfix
             /* *--buff_end = '@';
              *--buff_end = '@'; */
             const auto end = name_.data() + name_.size();
             for (;;)
             {
-                const auto word_end  = std::find(itr, end, ':');
-                const auto word_size = std::distance(itr, word_end);
-                std::copy_n(itr, word_size, buff_end -= word_size);
-                if (word_end == end)
+                const auto wordEnd  = std::find(itr, end, ':');
+                const auto wordSize = std::distance(itr, wordEnd);
+                std::copy_n(itr, wordSize, buffEnd -= wordSize);
+                if (wordEnd == end)
                     break;
-                *--buff_end = '@';
-                itr += word_size + 2;
+                *--buffEnd = '@';
+                itr += wordSize + 2;
             }
 
             return ret;
@@ -169,13 +178,15 @@ namespace fd
         pointer entry_;
 
       public:
-        static library_info _Find(const wstring_view name, const bool notify = true);
-        static PVOID _Wait(const wstring_view name, const bool notify = true);
+        // ReSharper disable CppInconsistentNaming
+        static library_info _Find(wstring_view name, bool notify = true);
+        static PVOID _Wait(wstring_view name, bool notify = true);
+        // ReSharper restore CppInconsistentNaming
 
         library_info();
         library_info(pointer entry);
-        library_info(const wstring_view name, const bool wait, const bool notify = true); // todo: delay or cancel
-        library_info(const IMAGE_DOS_HEADER* base_address, const bool notify = true);
+        library_info(wstring_view name, bool wait, bool notify = true); // todo: delay or cancel
+        library_info(const IMAGE_DOS_HEADER* baseAddress, bool notify = true);
 
         bool is_root() const;
         bool unload() const;
@@ -189,32 +200,32 @@ namespace fd
         wstring_view path() const;
         wstring_view name() const;
 
-        void log_class_info(const string_view raw_name, const void* addr) const;
+        void log_class_info(string_view rawName, const void* addr) const;
 
         template <class T>
         void log_class_info(const T* addr) const
         {
-            constexpr correct_type_name name(simple_type_name<T>());
+            constexpr correct_type_name name(_simple_type_name<T>());
             log_class_info(name, addr);
         }
 
-        void* find_export(const string_view name, const bool notify = true) const;
-        IMAGE_SECTION_HEADER* find_section(const string_view name, const bool notify = true) const;
-        void* find_signature(const string_view sig, const bool notify = true) const;
+        void* find_export(string_view name, bool notify = true) const;
+        IMAGE_SECTION_HEADER* find_section(string_view name, bool notify = true) const;
+        void* find_signature(string_view sig, bool notify = true) const;
 
       private:
-        void* find_vtable_class(const string_view name, const bool notify) const;
-        void* find_vtable_struct(const string_view name, const bool notify) const;
-        void* find_vtable_unknown(const string_view name, const bool notify) const;
+        void* find_vtable_class(string_view name, bool notify) const;
+        void* find_vtable_struct(string_view name, bool notify) const;
+        void* find_vtable_unknown(string_view name, bool notify) const;
 
       public:
-        void* find_vtable(const string_view name, const bool notify = true) const;
-        void* find_vtable(const std::type_info& info, const bool notify = true) const;
+        void* find_vtable(string_view name, bool notify = true) const;
+        void* find_vtable(const std::type_info& info, bool notify = true) const;
 
         template <class T>
         T* find_vtable(const bool notify = true) const
         {
-            constexpr correct_type_name name = simple_type_name<T>();
+            constexpr correct_type_name name(_simple_type_name<T>());
             void* ptr;
             if constexpr (name.contains('<')) // templates currently unsupported
             {
@@ -222,14 +233,14 @@ namespace fd
             }
             else if constexpr (name.contains(':'))
             {
-                constexpr rewrapped_namespaces corr_name = name;
-                constexpr auto size                      = corr_name.calc_size();
-                constexpr auto ret                       = corr_name.get<size>();
+                constexpr rewrapped_namespaces corrName(name);
+                constexpr auto size = corrName.calc_size();
+                constexpr auto ret  = corrName.get<size>();
                 constexpr string_view result(ret.buff, size);
                 // const string_view test = typeid(T).raw_name();
-                if constexpr (corr_name.is_class())
+                if constexpr (corrName.is_class())
                     ptr = find_vtable_class(result, notify);
-                else if constexpr (corr_name.is_struct())
+                else if constexpr (corrName.is_struct())
                     ptr = find_vtable_struct(result, notify);
                 else
                 {
@@ -249,15 +260,14 @@ namespace fd
     {
         using library_info::library_info;
 
-        void* find_interface(const string_view name, const bool notify = true) const;
-        void* find_interface(const void* create_interface_fn, const string_view name, const bool notify = true) const;
+        void* find_interface(string_view name, bool notify = true) const;
+        void* find_interface(const void* createInterfaceFn, string_view name, bool notify = true) const;
     };
 
     struct current_library_info : library_info
     {
-        current_library_info(const bool notify = true);
+        current_library_info(bool notify = true);
     };
 
-   extern HMODULE current_library_handle;
-
+    extern HMODULE CurrentLibraryHandle;
 } // namespace fd

@@ -9,20 +9,21 @@ namespace fd
     {
         union
         {
+            // ReSharper disable once CppInconsistentNaming
             std::tuple<H...> hooks_;
         };
 
         using seq_t = std::index_sequence_for<H...>;
 
         template <size_t... I>
-        bool _Enable(const std::index_sequence<I...>)
+        bool enable_impl(const std::index_sequence<I...>)
         {
             // call directly
             return (std::get<I>(hooks_).enable() && ...);
         }
 
         template <size_t... I>
-        bool _Disable(const std::index_sequence<I...> seq)
+        bool disable_impl(const std::index_sequence<I...> seq)
         {
             // reverse the call
             constexpr auto last = seq.size() - 1;
@@ -42,12 +43,12 @@ namespace fd
 
         bool enable()
         {
-            return _Enable(seq_t());
+            return enable_impl(seq_t());
         }
 
         bool disable()
         {
-            return _Disable(seq_t());
+            return disable_impl(seq_t());
         }
     };
 } // namespace fd

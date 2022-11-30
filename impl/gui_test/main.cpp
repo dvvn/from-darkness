@@ -21,12 +21,12 @@ int main(int, char**)
         return EXIT_FAILURE;
 
     default_assert_handler assert_callback;
-    assert_handler = &assert_callback;
+    AssertHandler = &assert_callback;
 
     system_console sys_console;
 
     default_logs_handler logs_callback;
-    logger = &logs_callback;
+    Logger = &logs_callback;
 
     logs_callback.add([&](auto msg) {
         sys_console.write(msg);
@@ -37,10 +37,10 @@ int main(int, char**)
     });
 
     gui::context_impl gui_ctx(&backend, false);
-    gui::context = &gui_ctx;
+    gui::Context = &gui_ctx;
 
     gui::menu_impl menu_ctx;
-    gui::menu = &menu_ctx;
+    gui::Menu = &menu_ctx;
 
     gui::tab_bar test_tab_bar("test");
     gui::tab test_tab("test2");

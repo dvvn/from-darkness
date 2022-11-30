@@ -2,36 +2,35 @@
 
 #include <Windows.h>
 
-#include <memory>
-#include <optional>
-
 using namespace fd;
 
-static bool _Set_flags(LPVOID addr, const size_t size, const DWORD new_flags, DWORD& old_flags)
+static bool _set_flags(const LPVOID addr, const size_t size, const DWORD newFlags, DWORD& oldFlags)
 {
-    return VirtualProtect(addr, size, new_flags, &old_flags);
+    return VirtualProtect(addr, size, newFlags, &oldFlags);
 }
 
-static bool _Set_flags(LPVOID addr, const size_t size, const DWORD new_flags)
+static bool _set_flags(const LPVOID addr, const size_t size, const DWORD newFlags)
 {
     DWORD unused;
-    return _Set_flags(addr, size, new_flags, unused);
+    return _set_flags(addr, size, newFlags, unused);
 }
 
 mem_protect::~mem_protect()
 {
     if (has_value())
-        _Set_flags(addr_, size_, old_flags_);
+        _set_flags(addr_, size_, oldFlags_);
 }
 
 mem_protect::mem_protect()
-    : old_flags_(0)
+    : addr_(nullptr)
+    , size_(0)
+    , oldFlags_(0)
 {
 }
 
-mem_protect::mem_protect(void* addr, const size_t size, const size_type new_flags)
+mem_protect::mem_protect(void* addr, const size_t size, const size_type newFlags)
 {
-    if (_Set_flags(addr, size, new_flags, old_flags_))
+    if (_set_flags(addr, size, newFlags, oldFlags_))
     {
         addr_ = addr;
         size_ = size;
@@ -41,17 +40,17 @@ mem_protect::mem_protect(void* addr, const size_t size, const size_type new_flag
 mem_protect::mem_protect(const mem_protect& other)            = default;
 mem_protect& mem_protect::operator=(const mem_protect& other) = default;
 
-mem_protect::mem_protect(mem_protect&& other)
+mem_protect::mem_protect(mem_protect&& other) noexcept
 {
-    *this            = other;
-    other.old_flags_ = 0;
+    *this           = other;
+    other.oldFlags_ = 0;
 }
 
-mem_protect& mem_protect::operator=(mem_protect&& other)
+mem_protect& mem_protect::operator=(mem_protect&& other) noexcept
 {
-    auto old = *this;
-    *this    = other;
-    other    = old;
+    const auto old = *this;
+    *this          = other;
+    other          = old;
     return *this;
 }
 
@@ -59,13 +58,13 @@ bool mem_protect::restore()
 {
     if (!has_value())
         return false;
-    if (!_Set_flags(addr_, size_, old_flags_))
+    if (!_set_flags(addr_, size_, oldFlags_))
         return false;
-    old_flags_ = 0;
+    oldFlags_ = 0;
     return true;
 }
 
 bool mem_protect::has_value() const
 {
-    return old_flags_ != 0;
+    return oldFlags_ != 0;
 }

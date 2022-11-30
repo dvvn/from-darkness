@@ -15,7 +15,7 @@ namespace fd
       private:
         void* addr_;
         size_t size_;
-        size_type old_flags_;
+        size_type oldFlags_;
 
         mem_protect(const mem_protect& other);
         mem_protect& operator=(const mem_protect&);
@@ -24,10 +24,10 @@ namespace fd
         ~mem_protect();
 
         mem_protect();
-        mem_protect(void* addr, const size_t size, const size_type new_flags);
+        mem_protect(void* addr, size_t size, size_type newFlags);
 
-        mem_protect(mem_protect&& other);
-        mem_protect& operator=(mem_protect&& other);
+        mem_protect(mem_protect&& other) noexcept;
+        mem_protect& operator=(mem_protect&& other) noexcept;
 
         bool restore();
         bool has_value() const;

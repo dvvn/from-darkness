@@ -16,7 +16,7 @@ namespace fd::gui
         std::vector<callback_type> callbacks_;
 
       public:
-        tab(const string_view name);
+        tab(string_view name);
 
         bool render() const;
         void render_data() const;
@@ -30,14 +30,14 @@ namespace fd::gui
         std::vector<tab*> tabs_;
 
       public:
-        tab_bar(const string_view name);
+        tab_bar(string_view name);
 
         void render() const;
 
-        void store(tab& new_tab);
+        void store(tab& newTab);
     };
 
-    class menu_impl : public basic_menu
+    class menu_impl final : public basic_menu
     {
         bool visible_;
         bool next_visible_;
@@ -55,6 +55,6 @@ namespace fd::gui
 
         bool render() override;
 
-        void store(tab_bar& new_tab_bar);
+        void store(tab_bar& newTabBar);
     };
 } // namespace fd::gui

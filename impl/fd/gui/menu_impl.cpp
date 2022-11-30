@@ -8,7 +8,7 @@
 using namespace fd;
 using namespace gui;
 
-static auto _Im_str(const string_view strv)
+static auto _im_str(const string_view strv)
 {
 #ifndef IMGUI_HAS_STRV
     const auto data = strv.data();
@@ -19,14 +19,17 @@ static auto _Im_str(const string_view strv)
 #endif
 }
 
+// ReSharper disable CppInconsistentNaming
 namespace ImGui
 {
     static bool BeginTabItem(const string_view label)
     {
-        return BeginTabItem(_Im_str(label), nullptr);
+        return BeginTabItem(_im_str(label), nullptr);
     }
 
 } // namespace ImGui
+
+// ReSharper restore CppInconsistentNaming
 
 tab::tab(const string_view name)
     : name_(name)
@@ -43,7 +46,7 @@ bool tab::render() const
 
 void tab::render_data() const
 {
-    std::ranges::for_each(callbacks_, invoker());
+    (void)std::ranges::for_each(callbacks_, Invoker);
 }
 
 void tab::store(callback_type callback)
@@ -60,35 +63,36 @@ tab_bar::tab_bar(const string_view name)
 
 void tab_bar::render() const
 {
-    auto& g            = *GImGui;
-    const auto window  = g.CurrentWindow;
+    auto& g           = *GImGui;
+    const auto window = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
-    const auto id      = window->GetID(name_.data(), name_.data() + name_.size());
-    const auto tab_bar = g.TabBars.GetOrAddByKey(id);
-    const ImRect tab_bar_bb(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
-    tab_bar->ID                  = id;
-    constexpr auto default_flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
-    constexpr auto extra_flags   = ImGuiTabBarFlags_IsFocused;
-    if (!ImGui::BeginTabBarEx(tab_bar, tab_bar_bb, default_flags | extra_flags))
+    const auto id     = window->GetID(name_.data(), name_.data() + name_.size());
+    const auto tabBar = g.TabBars.GetOrAddByKey(id);
+    const ImRect tabBarBB(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
+    tabBar->ID                  = id;
+    constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
+    constexpr auto extraFlags   = ImGuiTabBarFlags_IsFocused;
+    if (!ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags))
         return;
 
-    const auto active_tab = std::ranges::find_if(tabs_, &tab::render);
-    std::ranges::for_each(active_tab + 1, tabs_.end(), &tab::render);
-    (*active_tab)->render_data();
+    const auto activeTab = std::ranges::find_if(tabs_, &tab::render);
+    (void)std::ranges::for_each(activeTab + 1, tabs_.end(), &tab::render);
+    (*activeTab)->render_data();
 
     ImGui::EndTabBar();
 }
 
-void tab_bar::store(tab& new_tab)
+void tab_bar::store(tab& newTab)
 {
-    tabs_.emplace_back(&new_tab);
+    tabs_.emplace_back(&newTab);
 }
 
 //-------
 
 menu_impl::menu_impl()
     : visible_(false)
+    , next_visible_(false)
 {
 }
 
@@ -131,7 +135,7 @@ bool menu_impl::render()
     return next_visible_ = visible_ = visible;
 }
 
-void menu_impl::store(tab_bar& new_tab_bar)
+void menu_impl::store(tab_bar& newTabBar)
 {
-    tab_bars_.emplace_back(&new_tab_bar);
+    tab_bars_.emplace_back(&newTabBar);
 }

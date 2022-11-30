@@ -53,7 +53,7 @@ class safe_storage
 };
 #endif
 
-basic_thread_data::basic_thread_data(HANDLE handle)
+basic_thread_data::basic_thread_data(const HANDLE handle)
     : handle_(handle)
 {
 }
@@ -63,6 +63,7 @@ basic_thread_data::operator bool() const
     return handle_ && handle_ != INVALID_HANDLE_VALUE;
 }
 
+// ReSharper disable CppMemberFunctionMayBeConst
 bool basic_thread_data::pause()
 {
     return SuspendThread(handle_);
@@ -82,6 +83,8 @@ void basic_thread_data::terminate()
     CloseHandle(handle_);
 }
 
+// ReSharper restore CppMemberFunctionMayBeConst
+
 //---
 
 thread_data::~thread_data()
@@ -89,19 +92,20 @@ thread_data::~thread_data()
     this->terminate();
 }
 
-thread_data::thread_data(void* fn, void* fn_params, const bool suspend)
-    : basic_thread_data(CreateThread(nullptr, 0, static_cast<LPTHREAD_START_ROUTINE>(fn), fn_params, suspend ? CREATE_SUSPENDED : 0, &id_))
+// ReSharper disable once CppPossiblyUninitializedMember
+thread_data::thread_data(void* fn, void* fnParams, const bool suspend)
+    : basic_thread_data(CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(fn), fnParams, suspend ? CREATE_SUSPENDED : 0, &id_))
 {
 }
 
-thread_data::thread_data(thread_data&& other)
+thread_data::thread_data(thread_data&& other) noexcept
     : basic_thread_data(other)
 {
     static_cast<basic_thread_data&>(other) = INVALID_HANDLE_VALUE;
     id_                                    = other.id_;
 }
 
-thread_data& thread_data::operator=(thread_data&& other)
+thread_data& thread_data::operator=(thread_data&& other) noexcept
 {
     using std::swap;
     swap<basic_thread_data>(*this, other);
@@ -116,21 +120,21 @@ bool thread_data::operator==(const DWORD id) const
 
 //---
 
-using optional_mtx_lock = std::optional<std::scoped_lock<std::mutex>>;
+using optional_mtx_lock = std::optional<std::lock_guard<std::mutex>>;
 
 bool thread_pool::worker_impl()
 {
 #ifdef _DEBUG
-    optional_mtx_lock guard(threads_mtx_);
+    optional_mtx_lock guard(threadsMtx_);
 #else
-    threads_mtx_.lock();
+    threadsMtx_.lock();
 #endif
     // range version doesnt work
-    basic_thread_data this_thread = *std::find(threads_.begin(), threads_.end(), GetCurrentThreadId());
+    basic_thread_data thisThread(*std::find(threads_.begin(), threads_.end(), GetCurrentThreadId()));
 #ifdef _DEBUG
     guard.reset();
 #else
-    threads_mtx_.unlock();
+    threadsMtx_.unlock();
 #endif
 
     for (;;)
@@ -150,37 +154,40 @@ bool thread_pool::worker_impl()
             }
         }
 
-        if (!this_thread.pause())
+        if (!thisThread.pause())
             std::terminate();
     }
 
+    // ReSharper disable once CppUnreachableCode
     return TRUE;
 }
 
-bool thread_pool::store_func(function_type&& func, const bool resume_threads) noexcept
+bool thread_pool::store_func(function_type&& func, const bool resumeThreads) noexcept
 {
-    optional_mtx_lock guard(threads_mtx_);
-    if (resume_threads)
+    optional_mtx_lock guard(threadsMtx_);
+    auto resetGuard = true;
+    if (!resumeThreads)
     {
-        const auto resumed_thread = std::ranges::any_of(threads_, bind_front(&thread_data::resume));
-        if (!resumed_thread)
+        if (threads_.empty())
+            return false;
+    }
+    else
+    {
+        const auto resumedThread = std::ranges::any_of(threads_, bind_front(&thread_data::resume));
+        if (!resumedThread && funcs_.was_size() >= threads_.size())
         {
-            if (funcs_.was_size() >= threads_.size()) // spawn new thread
-            {
-                thread_data data(worker, this, false);
-                if (!data)
-                    return false;
-                threads_.push_back(std::move(data));
-            }
-
-            // todo: (ELSE) check are threads valid
+            // spawn new thread
+            thread_data data(reinterpret_cast<void*>(worker), this, false);
+            if (!data)
+                return false;
+            threads_.push_back(std::move(data));
+            // wait until thread find it own from the loop
+            resetGuard = false;
         }
     }
-    else if (threads_.empty())
-    {
-        return false;
-    }
-    guard.reset();
+
+    if (resetGuard)
+        guard.reset();
 
     return funcs_.try_push(std::move(func));
 }
@@ -189,7 +196,7 @@ thread_pool::thread_pool()
 {
     SYSTEM_INFO info;
     GetNativeSystemInfo(&info);
-    // FD_ASSERT(info.dwNumberOfProcessors <= std::numeric_limits<uint8_t>::max());
+    FD_ASSERT(info.dwNumberOfProcessors > 0);
     threads_.reserve(info.dwNumberOfProcessors);
 }
 
@@ -206,7 +213,7 @@ thread_pool::~thread_pool()
 void thread_pool::wait()
 {
     //"simple" version of task
-    std::binary_semaphore sem(0);
+    std::binary_semaphore sem(1);
     const auto stored = this->store_func([&] {
         sem.release();
     });
@@ -218,6 +225,8 @@ bool thread_pool::add_simple(function_type func)
 {
     return this->store_func(std::move(func));
 }
+
+// ReSharper disable CppSmartPointerVsMakeFunction
 
 auto thread_pool::add(function_type func) -> task_type
 {
@@ -232,7 +241,7 @@ auto thread_pool::add(function_type func) -> task_type
 
 auto thread_pool::add_lazy(function_type func) -> task_type
 {
-    auto new_func = [this, fn = std::move(func)](auto& sem) mutable {
+    auto newFunc = [this, fn = std::move(func)](auto& sem) mutable {
         const auto stored = this->store_func([&] {
             invoke(fn);
             sem.release();
@@ -241,9 +250,14 @@ auto thread_pool::add_lazy(function_type func) -> task_type
             sem.release();
     };
 
-    return task_type(new lockable_task(std::move(new_func)));
+    return task_type(new lockable_task(std::move(newFunc)));
 }
+
+// ReSharper restore CppSmartPointerVsMakeFunction
 
 //------------------
 
-basic_thread_pool* thread_pool;
+namespace fd
+{
+    basic_thread_pool* ThreadPool;
+}

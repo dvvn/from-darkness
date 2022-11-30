@@ -4,5 +4,5 @@
 
 namespace fd
 {
-    string demangle_symbol(const char* mangled_name);
+    string demangle_symbol(const char* mangledName);
 }

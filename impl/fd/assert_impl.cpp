@@ -15,42 +15,51 @@
 
 using namespace fd;
 
-static auto _Correct_file_name(const string_view full_path)
+static auto _Correct_file_name(const string_view fullPath)
 {
 #ifdef FD_ROOT_DIR
-    constexpr string_view root_dir = FD_STRINGIZE(FD_ROOT_DIR);
-    if (full_path.starts_with(root_dir))
-    {
-        constexpr auto offset = root_dir.back() == '\\' || root_dir.back() == '/' ? 0 : 1;
-        return full_path.substr(root_dir.size() + offset);
-    }
+    // ReSharper disable once CppInconsistentNaming
+    constexpr auto is_slash = [](const char chr) {
+        switch (chr)
+        {
+        case '\\':
+        case '/':
+            return true;
+        default:
+            return false;
+        };
+    };
+
+    constexpr string_view rootDir0 = FD_STRINGIZE(FD_ROOT_DIR);
+    constexpr string_view rootDir1 = FD_CONCAT(FD_STRINGIZE(FD_ROOT_DIR), "/");
+    constexpr auto rootDir         = is_slash(rootDir0.back()) ? rootDir0 : rootDir1;
+
+    if (std::ranges::equal(rootDir, fullPath, [](auto l, auto r) {
+            return l == r || is_slash(l) && is_slash(r);
+        }))
+        return fullPath.substr(rootDir.size());
 #endif
-    return full_path;
+    return fullPath;
 }
 
 template <typename... T>
-static auto _Build_message(const assert_data& data, T... extra)
+static utf_string<wchar_t> _Build_message(const assert_data& data, T... extra)
 {
 #define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", _Correct_file_name(location.file_name()), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
 #define EXPR       "Expression: ", expression
     const auto [expression, message, location] = data;
-    utf_string<wchar_t> msg;
 
     if (expression && message)
-        msg = make_string(FIRST_PART, EXPR, "\n\n", message, extra...);
-    else if (expression)
-        msg = make_string(FIRST_PART, EXPR, extra...);
-    else if (message)
-        msg = make_string(FIRST_PART, message, extra...);
-    else
-        msg = make_string(FIRST_PART, extra...);
-
-    return msg;
+        return make_string(FIRST_PART, EXPR, "\n\n", message, extra...);
+    if (expression)
+        return make_string(FIRST_PART, EXPR, extra...);
+    if (message)
+        return make_string(FIRST_PART, message, extra...);
+    return make_string(FIRST_PART, extra...);
 }
 
 static void _Default_assert_handler(const assert_data& data)
 {
-    const auto [expression, message, location] = data;
 #ifdef WINAPI_FAMILY
 #if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
     const auto msg       = _Build_message(data, "\n\nWould you like to interrupt execution?");
@@ -71,20 +80,24 @@ default_assert_handler::default_assert_handler()
     data_.emplace_back(_Default_assert_handler);
 }
 
+void default_assert_handler::add(function_type fn)
+{
+    const std::lock_guard guard(mtx_);
+    data_.emplace_back(std::move(fn));
+}
+
 void default_assert_handler::operator()(const assert_data& adata) const noexcept
 {
     const std::lock_guard guard(mtx_);
-    std::ranges::for_each(data_, bind_back(invoker(), adata));
+    std::ranges::for_each(data_, bind_back(Invoker, adata));
 }
-
-wstring parse_assert_data_impl::operator()(const assert_data& adata) const
-{
-    return _Build_message(adata);
-}
-
-//--------------
 
 namespace fd
 {
-    basic_assert_handler* assert_handler;
-}
+    wstring parse_assert_data(const assert_data& adata)
+    {
+        return _Build_message(adata);
+    }
+
+    basic_assert_handler* AssertHandler;
+} // namespace fd

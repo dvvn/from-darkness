@@ -6,14 +6,14 @@
 
 namespace fd::hooked
 {
-    struct d3d9_reset : hook_impl, hook_instance<d3d9_reset>
+    struct d3d9_reset final : hook_impl, hook_instance<d3d9_reset>
     {
         d3d9_reset(function_getter target);
 
         void WINAPI callback(D3DPRESENT_PARAMETERS* params) noexcept;
     };
 
-    struct d3d9_present : hook_impl, hook_instance<d3d9_present>
+    struct d3d9_present final : hook_impl, hook_instance<d3d9_present>
     {
         d3d9_present(function_getter target);
 

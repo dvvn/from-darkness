@@ -4,14 +4,11 @@
 
 #include <ww898/utf_converters.hpp>
 
-namespace ww898::utf::detail
+template <>
+struct ww898::utf::detail::utf_selector<char8_t> final
 {
-    template <>
-    struct utf_selector<char8_t> final
-    {
-        using type = utf8;
-    };
-} // namespace ww898::utf::detail
+    using type = utf8;
+}; // namespace ww898::utf::detail
 
 namespace fd
 {

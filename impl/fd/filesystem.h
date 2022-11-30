@@ -9,25 +9,26 @@ namespace fd::fs
     // copypasted from std::filesystem
 #pragma region copypasted
 
-    constexpr auto _Is_slash = []<typename C>(const C chr) {
+    // ReSharper disable once CppInconsistentNaming
+    static constexpr auto _Is_slash = [](const auto chr) {
         return chr == '\\' || chr == '/';
     };
 
     template <typename Itr>
-    constexpr bool _Is_drive_prefix(Itr first)
+    static constexpr bool _Is_drive_prefix(Itr first)
     {
         return /* first[1] */ *++first == ':';
     }
 
     template <typename Itr>
-    constexpr bool _Has_drive_letter_prefix(const Itr first, const Itr last)
+    static constexpr bool _Has_drive_letter_prefix(const Itr first, const Itr last)
     {
         // test if [first, last) has a prefix of the form X:
         return std::distance(first, last) >= 2 && _Is_drive_prefix(first);
     }
 
     template <typename Itr>
-    constexpr auto _Unwrap_iter(const Itr itr)
+    static constexpr auto _Unwrap_iter(const Itr itr)
     {
 #ifdef _MSC_VER
         if constexpr (std::_Unwrappable_v<Itr>)
@@ -40,7 +41,7 @@ namespace fd::fs
     }
 
     template <typename Itr>
-    constexpr Itr _Find_root_name_end(const Itr first, const Itr last)
+    static constexpr Itr _Find_root_name_end(const Itr first, const Itr last)
     {
         if constexpr (std::is_class_v<Itr>)
         {
@@ -96,8 +97,8 @@ namespace fd::fs
 
         // $ means anything other than a slash, including potentially the end of the input
         if (diff >= 4 && _Is_slash(first[3]) && (diff == 4 || !_Is_slash(first[4])) // \xx\$
-            && ((_Is_slash(first[1]) && (first[2] == '?' || first[2] == '.'))       // \\?\$ or \\.\$
-                || (first[1] == '?' && first[2] == '?')))                           // \??\$
+            && (_Is_slash(first[1]) && (first[2] == '?' || first[2] == '.')         // \\?\$ or \\.\$
+                || first[1] == '?' && first[2] == '?'))                             // \??\$
         {
             return first + 3;
         }
@@ -112,31 +113,29 @@ namespace fd::fs
     }
 
     template <typename Itr>
-    constexpr Itr _Find_relative_path(const Itr first, const Itr last)
+    static constexpr Itr _Find_relative_path(const Itr first, const Itr last)
     {
         // attempt to parse [first, last) as a path and return the start of relative-path
         return std::find_if_not(_Find_root_name_end(first, last), last, _Is_slash);
     }
 
     template <typename Itr>
-    constexpr Itr _Find_filename(const Itr first, Itr last)
+    static constexpr Itr _Find_filename(const Itr first, Itr last)
     {
         // attempt to parse [first, last) as a path and return the start of filename if it exists; otherwise, last
-        const auto rel_path = _Find_relative_path(first, last);
-        for (;;) // while (rel_path != last && !_Is_slash(last[-1]))
+
+        for (const auto relPath = _Find_relative_path(first, last); relPath != last;) // while (relPath != last && !_Is_slash(last[-1]))
         {
-            if (rel_path == last)
+            auto backItr = last - 1;
+            if (_Is_slash(*backItr))
                 break;
-            auto back_itr = last - 1;
-            if (_Is_slash(*back_itr))
-                break;
-            last = std::move(back_itr);
+            last = std::move(backItr);
         }
         return last;
     }
 
     template <typename Itr>
-    constexpr Itr _Find_extension(const Itr fname, const Itr ads)
+    static constexpr Itr _Find_extension(const Itr fname, const Itr ads)
     {
         // find dividing point between stem and extension in a generic format filename consisting of [fname, ads)
         auto ext = ads;
@@ -155,9 +154,9 @@ namespace fd::fs
 
         if (*ext == '.')
         {
-            const auto ext_prev = ext - 1;
+            const auto extPrev = ext - 1;
             // we might have found the end of stem
-            if (fname == ext_prev && *ext_prev == '.')
+            if (fname == extPrev && *extPrev == '.')
             {
                 // dotdot special case
                 return ads;
@@ -194,7 +193,7 @@ namespace fd::fs
     template <typename C, template <typename...> class S>
     class filename : public S<C>
     {
-        using _Str = S<C>;
+        using str_t = S<C>;
 
         bool trimmed_;
 
@@ -206,8 +205,8 @@ namespace fd::fs
 
         constexpr ext_data _Ext() const
         {
-            const auto first = _Str::data();
-            const auto last  = first + _Str::size();
+            const auto first = str_t::data();
+            const auto last  = first + str_t::size();
             const auto fname = trimmed_ ? first : _Find_filename(first, last);
             const auto ads   = std::find(fname, last, ':'); // strip alternate data streams in intra-filename decomposition
             const auto ext   = _Find_extension(fname, ads);
@@ -217,13 +216,13 @@ namespace fd::fs
       public:
         template <typename... Ts>
         constexpr filename(const bool trimmed, const Ts... args)
-            : _Str(args...)
+            : str_t(args...)
         {
             trimmed_ = trimmed;
         }
 
         // stripped of its extension
-        constexpr _Str stem() const
+        constexpr str_t stem() const
         {
             // attempt to parse text_ as a path and return the stem if it exists; otherwise, an empty view
             const auto [fname, ads, ext] = _Ext();
@@ -241,68 +240,68 @@ namespace fd::fs
     template <typename C, template <typename...> class S>
     class basic_path : public S<C>
     {
-        using _Str = S<C>;
+        using str_t = S<C>;
 
       public:
         template <typename... Args>
         constexpr basic_path(Args&&... args)
-            : _Str(std::forward<Args>(args)...)
+            : str_t(std::forward<Args>(args)...)
         {
         }
 
-        constexpr _Str root_name() const
+        constexpr str_t root_name() const
         {
             // attempt to parse text_ as a basic_path and return the root-name if it exists; otherwise, an empty view
-            const auto first = _Str::data();
-            const auto last  = first + _Str::size();
+            const auto first = str_t::data();
+            const auto last  = first + str_t::size();
             return { first, _Find_root_name_end(first, last) };
         }
 
-        constexpr _Str root_directory() const
+        constexpr str_t root_directory() const
         {
             // attempt to parse text_ as a basic_path and return the root-directory if it exists; otherwise, an empty view
-            const auto first         = _Str::data();
-            const auto last          = first + _Str::size();
-            const auto root_name_end = _Find_root_name_end(first, last);
-            const auto rel_path      = std::find_if_not(root_name_end, last, _Is_slash);
-            return { root_name_end, rel_path };
+            const auto first       = str_t::data();
+            const auto last        = first + str_t::size();
+            const auto rootNameEnd = _Find_root_name_end(first, last);
+            const auto relPath     = std::find_if_not(rootNameEnd, last, _Is_slash);
+            return { rootNameEnd, relPath };
         }
 
-        constexpr _Str root_path() const
+        constexpr str_t root_path() const
         {
             // attempt to parse text_ as a basic_path and return the root-basic_path if it exists; otherwise, an empty view
-            const auto first = _Str::data();
-            const auto last  = first + _Str::size();
+            const auto first = str_t::data();
+            const auto last  = first + str_t::size();
             return { first, _Find_relative_path(first, last) };
         };
 
         constexpr basic_path relative_path() const
         {
             // attempt to parse text_ as a basic_path and return the relative-basic_path if it exists; otherwise, an empty view
-            const auto first    = _Str::data();
-            const auto last     = first + _Str::size();
-            const auto rel_path = _Find_relative_path(first, last);
-            return { rel_path, last };
+            const auto first   = str_t::data();
+            const auto last    = first + str_t::size();
+            const auto relPath = _Find_relative_path(first, last);
+            return { relPath, last };
         }
 
         constexpr basic_path parent_path() const
         {
             // attempt to parse text_ as a basic_path and return the parent_path if it exists; otherwise, an empty view
-            const auto first    = _Str::data();
-            auto last           = first + _Str::size();
-            const auto rel_path = _Find_relative_path(first, last);
+            const auto first   = str_t::data();
+            auto last          = first + str_t::size();
+            const auto relPath = _Find_relative_path(first, last);
             // case 1: relative-basic_path ends in a directory-separator, remove the separator to remove "magic empty basic_path"
             //  for example: R"(/cat/dog/\//\)"
             // case 2: relative-basic_path doesn't end in a directory-separator, remove the filename and last directory-separator
             //  to prevent creation of a "magic empty basic_path"
             //  for example: "/cat/dog"
-            while (rel_path != last && !_Is_slash(last[-1]))
+            while (relPath != last && !_Is_slash(last[-1]))
             {
                 // handle case 2 by removing trailing filename, puts us into case 1
                 --last;
             }
 
-            while (rel_path != last && _Is_slash(last[-1]))
+            while (relPath != last && _Is_slash(last[-1]))
             {
                 // handle case 1 by removing trailing slashes
                 --last;
@@ -314,25 +313,25 @@ namespace fd::fs
       private:
         constexpr filename<C, basic_string_view> filename_view() const
         {
-            return { false, _Str::data(), _Str::size() };
+            return { false, str_t::data(), str_t::size() };
         }
 
       public:
         constexpr filename<C, S> filename() const
         {
             // attempt to parse text_ as a basic_path and return the filename if it exists; otherwise, an empty view
-            const auto first = _Str::data();
-            const auto last  = first + _Str::size();
+            const auto first = str_t::data();
+            const auto last  = first + str_t::size();
             const auto fname = _Find_filename(first, last);
             return { true, fname, last };
         }
 
-        constexpr _Str stem() const
+        constexpr str_t stem() const
         {
             return filename_view().stem();
         }
 
-        constexpr _Str extension() const
+        constexpr str_t extension() const
         {
             return filename_view().extension();
         }
@@ -347,7 +346,7 @@ namespace fd::fs
     template <typename C>
     basic_path(const C*) -> basic_path<C, basic_string_view>;
     template <typename C>
-    basic_path(const basic_string_view<C>) -> basic_path<C, basic_string_view>;
+    basic_path(basic_string_view<C>) -> basic_path<C, basic_string_view>;
     template <typename C>
     basic_path(const basic_string<C>&) -> basic_path<C, basic_string_view>;
     template <typename C>
@@ -357,23 +356,23 @@ namespace fd::fs
 
     struct directory_impl
     {
-        bool operator()(const wstring_view dir) const;
-        bool operator()(const string_view dir) const;
+        bool operator()(wstring_view dir) const;
+        bool operator()(string_view dir) const;
 
-        bool create(const wstring_view dir) const;
-        bool create(const string_view dir) const;
+        bool create(wstring_view dir) const;
+        bool create(string_view dir) const;
 
-        bool empty(const wstring_view dir) const;
-        bool empty(const string_view dir) const;
+        bool empty(wstring_view dir) const;
+        bool empty(string_view dir) const;
     };
 
-    constexpr directory_impl directory;
+    constexpr directory_impl Directory;
 
     struct file_impl
     {
-        bool operator()(const wstring_view dir) const;
-        bool operator()(const string_view dir) const;
+        bool operator()(wstring_view dir) const;
+        bool operator()(string_view dir) const;
     };
 
-    constexpr file_impl file;
+    constexpr file_impl File;
 } // namespace fd::fs

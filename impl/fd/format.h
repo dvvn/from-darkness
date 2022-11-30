@@ -2,7 +2,7 @@
 
 #include <fd/string.h>
 
-#if __has_include(<fmt/format.h>) //&& defined(_MSC_VER) && _MSC_VER <= 1932
+#if __has_include(<fmt/format.h>)
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/xchar.h>
@@ -37,66 +37,54 @@
 
 namespace fd
 {
-    class format_to_impl
+    template <typename C, typename... Args>
+    static auto _make_format_args(const Args&... args)
     {
-        template <typename C, typename... Args>
-        static auto make_format_args(const Args&... args)
-        {
-            if constexpr (std::same_as<C, char>)
-                return _FMT::make_format_args(args...);
-            else if constexpr (std::same_as<C, wchar_t>)
-                return _FMT::make_wformat_args(args...);
-        }
+        if constexpr (std::same_as<C, char>)
+            return _FMT::make_format_args(args...);
+        else if constexpr (std::same_as<C, wchar_t>)
+            return _FMT::make_wformat_args(args...);
+    }
 
-        template <typename Out, class S, typename... Args>
-        static auto impl(Out out, const S fmt, const Args&... args)
-        {
-            static_assert(sizeof...(Args) > 0);
-            _FMT::vformat_to(out, fmt, make_format_args<typename S::value_type>(args...));
-        }
-
-      public:
-        template <typename Out, typename... Args>
-        auto operator()(Out out, const string_view fmt, const Args&... args) const
-        {
-            return impl(out, fmt, args...);
-        }
-
-        template <typename Out, typename... Args>
-        auto operator()(Out out, const wstring_view fmt, const Args&... args) const
-        {
-            return impl(out, fmt, args...);
-        }
-    };
-
-    class format_impl
+    template <typename Out, class C, typename... Args>
+    static auto _format_to(Out out, const basic_string_view<C> fmt, const Args&... args)
     {
-        [[no_unique_address]] format_to_impl format_to_;
+        static_assert(sizeof...(Args) > 0);
+        _FMT::vformat_to(out, fmt, _make_format_args<C>(args...));
+    }
 
-        template <typename S, typename... Args>
-        auto impl(const S fmt, const Args&... args) const
-        {
-            basic_string<typename S::value_type> buff;
-            format_to_(std::back_insert_iterator(buff), fmt, args...);
-            return buff;
-        }
+    template <typename Out, typename... Args>
+    auto format_to(Out out, const string_view fmt, const Args&... args)
+    {
+        return _format_to(out, fmt, args...);
+    }
 
-      public:
-        template <typename... Args>
-        auto operator()(const string_view fmt, const Args&... args) const
-        {
-            return impl(fmt, args...);
-        }
+    template <typename Out, typename... Args>
+    auto format_to(Out out, const wstring_view fmt, const Args&... args)
+    {
+        return _format_to(out, fmt, args...);
+    }
 
-        template <typename... Args>
-        auto operator()(const wstring_view fmt, const Args&... args) const
-        {
-            return impl(fmt, args...);
-        }
-    };
+    template <typename C, typename... Args>
+    static auto _format(const basic_string_view<C> fmt, const Args&... args)
+    {
+        basic_string<C> buff;
+        _format_to(std::back_insert_iterator(buff), fmt, args...);
+        return buff;
+    }
 
-    constexpr format_to_impl format_to;
-    constexpr format_impl format;
+    template <typename... Args>
+    auto format(const string_view fmt, const Args&... args)
+    {
+        return _format(fmt, args...);
+    }
+
+    template <typename... Args>
+    auto format(const wstring_view fmt, const Args&... args)
+    {
+        return _format(fmt, args...);
+    }
 
     using _FMT::formatter;
+#undef _FMT
 } // namespace fd

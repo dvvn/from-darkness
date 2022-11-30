@@ -12,7 +12,7 @@
 
 namespace fd
 {
-    struct finished_task : task
+    struct finished_task final : task
     {
         void start() override
         {
@@ -24,7 +24,7 @@ namespace fd
     };
 
     template <typename Fn>
-    class lockable_task : public task
+    class lockable_task final : public task
     {
         Fn fn_;
         std::binary_semaphore sem_;
@@ -43,6 +43,7 @@ namespace fd
             if constexpr (invocable<Fn>)
             {
                 invoke(fn_);
+                // ReSharper disable once CppUnreachableCode
                 sem_.release();
             }
             else
@@ -58,7 +59,7 @@ namespace fd
     };
 
     template <typename Fn>
-    lockable_task(Fn&&, const bool = true) -> lockable_task<std::decay_t<Fn>>;
+    lockable_task(Fn&&, bool = true) -> lockable_task<std::decay_t<Fn>>;
 
     class basic_thread_data
     {
@@ -79,11 +80,14 @@ namespace fd
 
       public:
         ~thread_data();
-        thread_data(void* fn, void* fn_params, const bool suspend);
-        thread_data(thread_data&& other);
+        thread_data(void* fn, void* fnParams, bool suspend);
+        thread_data(thread_data&& other) noexcept;
 
-        thread_data& operator=(thread_data&& other);
-        bool operator==(const DWORD id) const;
+        thread_data(const thread_data& other)            = delete;
+        thread_data& operator=(const thread_data& other) = delete;
+
+        thread_data& operator=(thread_data&& other) noexcept;
+        bool operator==(DWORD id) const;
     };
 
     class thread_pool final : public basic_thread_pool
@@ -91,7 +95,7 @@ namespace fd
         // using basic_thread_pool::function_type;
 
         std::vector<thread_data> threads_;
-        std::mutex threads_mtx_;
+        std::mutex threadsMtx_;
 
         atomic_queue::AtomicQueue2<function_type, 1024 * 1024 / sizeof(function_type)> funcs_;
 
@@ -101,11 +105,11 @@ namespace fd
         }
 
         bool worker_impl();
-        bool store_func(function_type&& func, const bool resume_threads = true) noexcept;
+        bool store_func(function_type&& func, bool resumeThreads = true) noexcept;
 
       public:
         thread_pool();
-        ~thread_pool();
+        ~thread_pool() override;
 
         void wait() override;
         bool add_simple(function_type func) override;

@@ -31,9 +31,9 @@ namespace fd
         invoke(*handler, data);
     }
 
-    constexpr void invoke(basic_assert_handler* handler, const assert_data& data, const bool expr_result)
+    constexpr void invoke(basic_assert_handler* handler, const assert_data& data, const bool exprResult)
     {
-        if (!expr_result)
+        if (!exprResult)
             invoke(*handler, data);
     }
 
@@ -43,5 +43,5 @@ namespace fd
         invoke(fn); // unreachable
     }
 
-    extern basic_assert_handler* assert_handler;
+    extern basic_assert_handler* AssertHandler;
 } // namespace fd

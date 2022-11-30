@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <winternl.h>
 
+// ReSharper disable All
 // clang-format off
 
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000L)

@@ -16,7 +16,7 @@ lock_cursor::lock_cursor(function_getter target)
 
 void lock_cursor::callback() noexcept
 {
-    if (gui::menu->visible())
+    if (gui::Menu->visible())
     {
         const auto thisptr = reinterpret_cast<valve::gui::surface*>(this);
         if (!thisptr->IsCursorVisible())

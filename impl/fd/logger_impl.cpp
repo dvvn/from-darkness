@@ -19,15 +19,15 @@ namespace fd
     {
         if (data_.empty())
             return;
-        std::ranges::for_each(data_, bind_back(invoker(), msg));
+        std::ranges::for_each(data_, bind_back(Invoker, msg));
     }
 
     void default_logs_handler::operator()(const wstring_view msg) const
     {
         if (data_.empty())
             return;
-        std::ranges::for_each(data_, bind_back(invoker(), msg));
+        std::ranges::for_each(data_, bind_back(Invoker, msg));
     }
 
-    basic_logs_handler* logger;
+    basic_logs_handler* Logger;
 } // namespace fd

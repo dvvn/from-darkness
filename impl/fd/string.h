@@ -1,3 +1,4 @@
+// ReSharper disable CppUserDefinedLiteralSuffixDoesNotStartWithUnderscore
 #pragma once
 
 #include <fd/hash.h>
@@ -32,19 +33,19 @@ namespace fd
     } constexpr check_null_chr;
 
     template <typename C>
-    constexpr bool _Ptr_equal(const C* ptr1, const C* ptr2, const size_t count)
+    static constexpr bool _Ptr_equal(const C* ptr1, const C* ptr2, const size_t count)
     {
         return std::char_traits<C>::compare(ptr1, ptr2, count) == 0;
     }
 
     template <typename C>
-    constexpr bool _Ptr_equal(const C* my_ptr, const C* unk_ptr, const size_t count, const check_null_chr_t)
+    static constexpr bool _Ptr_equal(const C* myPtr, const C* unkPtr, const size_t count, const check_null_chr_t)
     {
-        return _Ptr_equal(my_ptr, unk_ptr, count) && unk_ptr[count] == static_cast<C>('\0');
+        return _Ptr_equal(myPtr, unkPtr, count) && unkPtr[count] == static_cast<C>('\0');
     }
 
     template <class R, class L>
-    constexpr bool _Str_equal(const R& left, const L& right)
+    static constexpr bool _Str_equal(const R& left, const L& right)
     {
         return left.size() == right.size() && _Ptr_equal(left.data(), right.data(), left.size());
     }
@@ -119,39 +120,40 @@ namespace fd
     template <typename Chr, size_t Size>
     struct chars_cache
     {
-        Chr _Data[Size];
+        Chr chars_buff[Size];
 
         using value_type    = Chr;
         using pointer       = Chr*;
         using const_pointer = const Chr*;
 
-        using _View = basic_string_view<Chr>;
+        using strv_t = basic_string_view<Chr>;
 
         constexpr chars_cache()
-            : _Data()
+            : chars_buff()
         {
 #ifndef _DEBUG
-            _Data[Size - 1] = 0;
+            chars_buff[Size - 1] = 0;
 #endif
         }
 
-        constexpr chars_cache(const_pointer str_source, const size_t string_size = Size)
+        constexpr chars_cache(const_pointer strSource, const size_t strSize = Size)
         {
-            std::copy_n(str_source, string_size, _Data);
-            std::fill(_Data + string_size, _Data + Size, static_cast<Chr>(0));
-            //_Data[string_size] = 0;
+            std::copy_n(strSource, strSize, chars_buff);
+            std::fill(chars_buff + strSize, chars_buff + Size, static_cast<Chr>(0));
+            // chars_buff[strSize] = 0;
         }
 
         constexpr const_pointer data() const
         {
-            return _Data;
+            return chars_buff;
         }
 
         constexpr pointer data()
         {
-            return _Data;
+            return chars_buff;
         }
 
+        // ReSharper disable once CppMemberFunctionMayBeStatic
         constexpr size_t size() const
         {
             return Size - 1;
@@ -159,30 +161,30 @@ namespace fd
 
         constexpr const_pointer begin() const
         {
-            return _Data;
+            return chars_buff;
         }
 
         constexpr const_pointer end() const
         {
-            return _Data + size();
+            return chars_buff + size();
         }
 
         constexpr pointer begin()
         {
-            return _Data;
+            return chars_buff;
         }
 
         constexpr pointer end()
         {
-            return _Data + size();
+            return chars_buff + size();
         }
 
-        constexpr _View view() const
+        constexpr strv_t view() const
         {
             return { begin(), size() };
         }
 
-        constexpr operator _View() const
+        constexpr operator strv_t() const
         {
             return view();
         }
@@ -212,7 +214,7 @@ namespace fd
     {
         constexpr size_t operator()(const basic_string_view<C> str) const
         {
-            return _Hash_bytes(str.data(), str.size());
+            return hash_bytes(str.data(), str.size());
         }
     };
 
@@ -221,7 +223,7 @@ namespace fd
     {
         constexpr size_t operator()(const basic_string<C>& str) const
         {
-            return _Hash_bytes(str.data(), str.size());
+            return hash_bytes(str.data(), str.size());
         }
     };
 
@@ -230,7 +232,7 @@ namespace fd
         template <chars_cache Cache>
         consteval size_t operator"" _hash()
         {
-            return _Hash_bytes(Cache.data(), Cache.size());
+            return hash_bytes(Cache.data(), Cache.size());
         }
     } // namespace literals
 
@@ -289,18 +291,18 @@ namespace fd
             if (size == 0)
                 return;
 
-            using itr_t             = std::remove_cvref_t<Itr>;
-            constexpr auto can_copy = std::is_pointer_v<T> || std::is_class_v<T> /* std::input_iterator<itr_t> */;
+            using itr_t            = std::remove_cvref_t<Itr>;
+            constexpr auto canCopy = std::is_pointer_v<T> || std::is_class_v<T> /* std::input_iterator<itr_t> */;
             if constexpr (std::input_or_output_iterator<itr_t>)
             {
-                if constexpr (can_copy)
+                if constexpr (canCopy)
                     std::copy_n(src, size, buff);
                 else
                     std::fill_n(buff, size, src);
             }
             else
             {
-                if constexpr (can_copy)
+                if constexpr (canCopy)
                     buff.append(src, src + size);
                 else
                     std::fill_n(std::back_insert_iterator(buff), size, src);
@@ -313,6 +315,7 @@ namespace fd
         {
             if constexpr (can_reserve<T&&>)
             {
+                // ReSharper disable once CppInconsistentNaming
                 const auto append_to_ex = [&](const auto&... p) {
                     const auto length = (static_cast<size_t>(p.second) + ...);
                     buff.reserve(length);
@@ -323,6 +326,7 @@ namespace fd
             }
             else
             {
+                // ReSharper disable once CppInconsistentNaming
                 const auto append_to_ex = [&](const auto& p) {
                     append_to(buff, p);
                     buff += p.second;
@@ -338,7 +342,7 @@ namespace fd
         template <typename T, typename... Args>
         constexpr auto operator()(const T& arg1, const Args&... args) const
         {
-            using char_type = extract_value<T>::type;
+            using char_type = typename extract_value<T>::type;
             basic_string<char_type> buff;
             constexpr write_string_impl write;
             write(buff, arg1, args...);
@@ -352,7 +356,9 @@ namespace fd
     template <typename C>
     class to_string_impl
     {
-        using _String = basic_string<C>;
+        using string_t = basic_string<C>;
+
+        // ReSharper disable All
 
         template <class _UTy>
         static constexpr C* _UIntegral_to_buff(C* _RNext, _UTy _UVal)
@@ -393,10 +399,10 @@ namespace fd
         }
 
         template <typename _Ty>
-        static constexpr _String _Integral_to_string(const _Ty _Val)
+        static constexpr string_t _Integral_to_string(const _Ty _Val)
         {
             // convert _Val to string
-            static_assert(is_integral_v<_Ty>, "_Ty must be integral");
+            static_assert(std::is_integral_v<_Ty>, "_Ty must be integral");
             using _UTy = std::make_unsigned_t<_Ty>;
             C _Buff[21]; // can hold -2^63 and 2^64 - 1, plus NUL
             const auto _Buff_end = std::end(_Buff);
@@ -417,7 +423,7 @@ namespace fd
 
         // TRANSITION, CUDA - warning: pointless comparison of unsigned integer with zero
         template <class _Ty>
-        static constexpr _String _UIntegral_to_string(const _Ty _Val)
+        static constexpr string_t _UIntegral_to_string(const _Ty _Val)
         {
             // convert _Val to string
             static_assert(std::is_integral_v<_Ty>, "_Ty must be integral");
@@ -428,40 +434,42 @@ namespace fd
             return { _RNext, _Buff_end };
         }
 
+        // ReSharper restore All
+
       public:
-        constexpr _String operator()(const int32_t val) const
+        constexpr string_t operator()(const int32_t val) const
         {
             return _Integral_to_string(val);
         }
 
-        constexpr _String operator()(const uint32_t val) const
+        constexpr string_t operator()(const uint32_t val) const
         {
             return _UIntegral_to_string(val);
         }
 
-        constexpr _String operator()(const long val) const
+        constexpr string_t operator()(const long val) const
         {
             return _Integral_to_string(val);
         }
 
-        constexpr _String operator()(const unsigned long val) const
+        constexpr string_t operator()(const unsigned long val) const
         {
             return _UIntegral_to_string(val);
         }
 
-        constexpr _String operator()(const int64_t val) const
+        constexpr string_t operator()(const int64_t val) const
         {
             return _Integral_to_string(val);
         }
 
-        constexpr _String operator()(const uint64_t val) const
+        constexpr string_t operator()(const uint64_t val) const
         {
             return _UIntegral_to_string(val);
         }
 
-        constexpr _String operator()(const float val) const       = delete;
-        constexpr _String operator()(const double val) const      = delete;
-        constexpr _String operator()(const long double val) const = delete;
+        constexpr string_t operator()(float val) const       = delete;
+        constexpr string_t operator()(double val) const      = delete;
+        constexpr string_t operator()(long double val) const = delete;
     };
 
     constexpr to_string_impl<char> to_string;

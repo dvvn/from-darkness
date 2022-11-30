@@ -8,13 +8,13 @@ namespace fd
 {
     struct memory_range
     {
-        const uint8_t *from_, *to_;
+        const uint8_t *from, *to;
 
         memory_range(const uint8_t* from, const uint8_t* to);
-        memory_range(const uint8_t* from, const size_t size);
+        memory_range(const uint8_t* from, size_t size);
 
-        void update(const uint8_t* curr, const size_t offset = 0);
-        void update(void* curr, const size_t offset = 0);
+        void update(const uint8_t* curr, size_t offset = 0);
+        void update(const void* curr, size_t offset = 0);
     };
 
     class unknown_bytes_range;
@@ -37,52 +37,52 @@ namespace fd
 
     class pattern_scanner_unknown
     {
-        memory_range mem_rng_;
+        memory_range memRng_;
         unknown_bytes_range_shared bytes_;
 
       public:
-        pattern_scanner_unknown(const memory_range mem_rng, const fd::string_view sig);
+        pattern_scanner_unknown(memory_range memRng, string_view sig);
 
         void* operator()() const;
-        void update(void* last_pos);
+        void update(const void* lastPos);
     };
 
     class pattern_scanner_known
     {
-        memory_range mem_rng_, search_rng_;
+        memory_range memRng_, searchRng_;
 
       public:
-        pattern_scanner_known(const memory_range mem_rng, const uint8_t* begin, const size_t mem_size);
+        pattern_scanner_known(memory_range memRng, const uint8_t* begin, size_t memSize);
 
         void* operator()() const;
-        void update(void* last_pos);
+        void update(void* lastPos);
     };
 
     class xrefs_finder_impl
     {
-        memory_range mem_rng_;
+        memory_range memRng_;
         const uint8_t* xref_;
 
       public:
-        xrefs_finder_impl(const memory_range mem_rng, const uintptr_t& addr);
-        xrefs_finder_impl(const memory_range mem_rng, const void* addr);
+        xrefs_finder_impl(memory_range memRng, const uintptr_t& addr);
+        xrefs_finder_impl(memory_range memRng, const void* addr);
 
         void* operator()() const;
-        void update(void* last_pos);
+        void update(const void* lastPos);
     };
 
-    class _Debug_creator
+    class memory_iterator_dbg_creator
     {
         const void* ptr_;
 
       public:
-        _Debug_creator(const void* ptr)
+        memory_iterator_dbg_creator(const void* ptr)
             : ptr_(ptr)
         {
         }
 
         void validate(const void* other) const;
-        void validate(const _Debug_creator other) const;
+        void validate(memory_iterator_dbg_creator other) const;
     };
 
     template <typename M>
@@ -98,20 +98,20 @@ namespace fd
         friend class memory_iterator_end<M>;
 
       private:
-        M mem_rng_;
+        M memRng_;
         void* current_;
-        _Debug_creator creator_;
+        memory_iterator_dbg_creator creator_;
 
         void _Get_next()
         {
-            mem_rng_.update(current_);
-            current_ = mem_rng_();
+            memRng_.update(current_);
+            current_ = memRng_();
         }
 
       public:
-        memory_iterator(const void* creator, M mem_rng, void* current = nullptr)
-            : mem_rng_(mem_rng)
-            , current_(current ? current : mem_rng())
+        memory_iterator(const void* creator, M memRng, void* current = nullptr)
+            : memRng_(memRng)
+            , current_(current ? current : memRng())
             , creator_(creator)
 
         {
@@ -126,7 +126,7 @@ namespace fd
     #else
                 this,
     #endif
-                mem_rng_,
+                memRng_,
                 current_,
                 std::forward<Proj2>(proj)
             };
@@ -160,17 +160,17 @@ namespace fd
     template <typename M>
     class memory_iterator_end
     {
-        _Debug_creator creator_;
+        memory_iterator_dbg_creator creator_;
 
-        using _Itr = memory_iterator<M>;
+        using iter_type = memory_iterator<M>;
 
       public:
-        memory_iterator_end([[maybe_unused]] const _Itr* itr)
+        memory_iterator_end(const iter_type* itr)
             : creator_(itr->creator_)
         {
         }
 
-        bool operator==(const _Itr& itr) const
+        bool operator==(const iter_type& itr) const
         {
             creator_.validate(itr.creator_);
             return !itr.current_;
@@ -180,40 +180,48 @@ namespace fd
     template <typename M>
     class memory_iterator_proxy : memory_iterator<M>
     {
-        using _Base = memory_iterator<M>;
+        using base_type = memory_iterator<M>;
 
-        using _Begin = _Base;
-        using _End   = memory_iterator_end<M>;
+        using begin_type = base_type;
+        using end_type   = memory_iterator_end<M>;
 
       public:
-        using _Base::_Base;
+        using base_type::base_type;
 
-        using _Base::difference_type;
-        using _Base::iterator_category;
-        using _Base::value_type;
+        using base_type::difference_type;
+        using base_type::iterator_category;
+        using base_type::value_type;
 
-        // using _Base::operator*;
+        using base_type::operator*;
 
-        _Begin begin() const
+        // for algorithm's only
+        begin_type begin() const
         {
             return *this;
         }
 
-        _End end() const
+        // for algorithm's only
+        end_type end() const
         {
             return this;
         }
 
-        value_type front() const
+        /*value_type front() const
         {
-            return _Base::operator*();
-        }
+            return base_type::operator*();
+        }*/
     };
 
     //--------------
 
-    struct raw_pattern_t
+    struct pattern_scanner_raw : private memory_range
     {
+        using memory_range::memory_range;
+
+        using iterator = memory_iterator_proxy<pattern_scanner_known>;
+
+        iterator operator()(string_view sig) const;
+        iterator operator()(const uint8_t* begin, size_t memSize) const;
     };
 
     struct pattern_scanner : private memory_range
@@ -223,9 +231,10 @@ namespace fd
         using unknown_iterator = memory_iterator_proxy<pattern_scanner_unknown>;
         using known_iterator   = memory_iterator_proxy<pattern_scanner_known>;
 
-        unknown_iterator operator()(const fd::string_view sig) const;
-        known_iterator operator()(const fd::string_view sig, const raw_pattern_t) const;
-        known_iterator operator()(const uint8_t* begin, const size_t mem_size) const;
+        unknown_iterator operator()(string_view sig) const;
+        known_iterator operator()(const uint8_t* begin, size_t memSize) const;
+
+        pattern_scanner_raw raw() const;
     };
 
     struct xrefs_scanner : private memory_range
@@ -242,6 +251,4 @@ namespace fd
             };
         }
     };
-
-    constexpr raw_pattern_t raw_pattern;
 } // namespace fd

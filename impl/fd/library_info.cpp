@@ -15,25 +15,25 @@
 
 using namespace fd;
 
-void dos_nt::_Construct(const LDR_DATA_TABLE_ENTRY* ldr_entry)
+void dos_nt::construct(const LDR_DATA_TABLE_ENTRY* ldrEntry)
 {
-    FD_ASSERT(ldr_entry != nullptr);
-    dos = (IMAGE_DOS_HEADER*)ldr_entry->DllBase;
+    FD_ASSERT(ldrEntry != nullptr);
+    dos = static_cast<IMAGE_DOS_HEADER*>(ldrEntry->DllBase);
     // check for invalid DOS / DOS signature.
     FD_ASSERT(dos && dos->e_magic == IMAGE_DOS_SIGNATURE /* 'MZ' */);
-    nt = map<IMAGE_NT_HEADERS>(dos->e_lfanew);
+    nt = this->map<IMAGE_NT_HEADERS>(dos->e_lfanew);
     // check for invalid NT / NT signature.
     FD_ASSERT(nt && nt->Signature == IMAGE_NT_SIGNATURE /* 'PE\0\0' */);
 }
 
-dos_nt::dos_nt(const LDR_DATA_TABLE_ENTRY* ldr_entry)
+dos_nt::dos_nt(const LDR_DATA_TABLE_ENTRY* ldrEntry)
 {
-    _Construct(ldr_entry);
+    construct(ldrEntry);
 }
 
 dos_nt::dos_nt(const library_info info)
 {
-    _Construct(info.get());
+    construct(info.get());
 }
 
 PVOID dos_nt::base() const
@@ -43,7 +43,7 @@ PVOID dos_nt::base() const
 
 std::span<uint8_t> dos_nt::read() const
 {
-    return { (uint8_t*)base(), nt->OptionalHeader.SizeOfImage };
+    return { static_cast<uint8_t*>(base()), nt->OptionalHeader.SizeOfImage };
 }
 
 std::span<IMAGE_SECTION_HEADER> dos_nt::sections() const
@@ -53,6 +53,7 @@ std::span<IMAGE_SECTION_HEADER> dos_nt::sections() const
 
 //---------
 
+// ReSharper disable once CppInconsistentNaming
 class LIST_ENTRY_iterator
 {
     LIST_ENTRY* current_;
@@ -77,7 +78,7 @@ class LIST_ENTRY_iterator
 
     LIST_ENTRY_iterator operator++(int)
     {
-        auto tmp = *this;
+        const auto tmp = *this;
         operator++();
         return tmp;
     }
@@ -90,7 +91,7 @@ class LIST_ENTRY_iterator
 
     LIST_ENTRY_iterator operator--(int)
     {
-        auto tmp = *this;
+        const auto tmp = *this;
         operator--();
         return tmp;
     }
@@ -103,6 +104,7 @@ class LIST_ENTRY_iterator
     bool operator==(const LIST_ENTRY_iterator& other) const = default;
 };
 
+// ReSharper disable once CppInconsistentNaming
 class LIST_ENTRY_range
 {
     LIST_ENTRY* root_;
@@ -150,6 +152,8 @@ namespace std
     }
 } // namespace std
 
+// ReSharper disable All
+
 template <typename T, typename Fn>
 static T* LIST_ENTRY_finder(Fn fn)
 {
@@ -168,162 +172,167 @@ static auto LDR_ENTRY_finder(Fn fn)
     return LIST_ENTRY_finder<LDR_DATA_TABLE_ENTRY>(fn);
 }
 
-static wstring_view _To_string_view(const UNICODE_STRING& ustr)
+// ReSharper restore All
+
+static wstring_view _to_string_view(const UNICODE_STRING& ustr)
 {
     return { ustr.Buffer, ustr.Length / sizeof(WCHAR) };
 }
 
-static wstring_view _Library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
+static wstring_view _library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
 {
-    return _To_string_view(entry->FullDllName);
+    return _to_string_view(entry->FullDllName);
 }
 
-static wstring_view _Library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
+static wstring_view _library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
 {
-    const auto full_path = _Library_info_path(entry);
+    const auto fullPath = _library_info_path(entry);
 #if 1
-    return fs::basic_path(full_path).filename();
+    // ReSharper disable once CppPossiblyUnintendedObjectSlicing
+    return fs::basic_path(fullPath).filename();
 #else
-    const auto name_start = full_path.rfind('\\');
-    FD_ASSERT(name_start != full_path.npos, "Unable to get the module name");
-    return full_path.substr(name_start + 1);
+    const auto name_start = fullPath.rfind('\\');
+    FD_ASSERT(name_start != fullPath.npos, "Unable to get the module name");
+    return fullPath.substr(name_start + 1);
 #endif
 }
 
-static wstring_view _Found_or_not(const void* ptr)
+static wstring_view _found_or_not(const void* ptr)
 {
     return ptr ? L"found" : L"not found";
 }
 
-static void _Log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
+static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
 {
-    invoke(logger,
+    invoke(Logger,
            //
            L"{} -> {}! ({:#X})",
            name,
-           bind_front(_Found_or_not, entry),
+           bind_front(_found_or_not, entry),
            reinterpret_cast<uintptr_t>(entry));
 }
 
-static void _Log_found_entry(const IMAGE_DOS_HEADER* base_address, const LDR_DATA_TABLE_ENTRY* entry)
+static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA_TABLE_ENTRY* entry)
 {
-    const auto get_name = [=] {
-        return entry ? _Library_info_name(entry) : L"unknown name";
+    const auto getName = [=]
+    {
+        return entry ? _library_info_name(entry) : L"unknown name";
     };
-    invoke(logger,
+    invoke(Logger,
            //
            L"{:#X} ({}) -> {}! ({:#X})",
-           reinterpret_cast<uintptr_t>(base_address),
-           get_name,
-           bind_front(_Found_or_not, entry),
+           reinterpret_cast<uintptr_t>(baseAddress),
+           getName,
+           bind_front(_found_or_not, entry),
            reinterpret_cast<uintptr_t>(entry));
 }
 
-constexpr auto _Log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const auto object_type, const auto object, const void* addr) {
-    invoke(logger,
+// ReSharper disable once CppInconsistentNaming
+static constexpr auto _log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr)
+{
+    invoke(Logger,
            //
            L"{} -> {} '{}' {}! ({:#X})",
-           bind_front(_Library_info_name, entry),
-           object_type,
+           bind_front(_library_info_name, entry),
+           objectType,
            object,
-           bind_front(_Found_or_not, addr),
+           bind_front(_found_or_not, addr),
            reinterpret_cast<uintptr_t>(addr));
 };
 
-static void _Log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view raw_name, const void* addr)
+static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view rawName, const void* addr)
 {
-    if (!logger)
+    if (!Logger)
         return;
 
-    const auto _Log_found_object_ex = [&](const auto object_type, const auto object) {
-        _Log_found_object(entry, object_type, object, addr);
+    // ReSharper disable once CppInconsistentNaming
+    const auto _log_found_object_ex = [&](const auto objectType, const auto object)
+    {
+        _log_found_object(entry, objectType, object, addr);
     };
 
-    const auto name_begin = raw_name.find(' '); // class or struct
-    if (name_begin == raw_name.npos)
+    const auto nameBegin = rawName.find(' '); // class or struct
+    if (nameBegin == rawName.npos)
     {
-        _Log_found_object_ex(L"object", raw_name);
+        _log_found_object_ex(L"object", rawName);
     }
     else
     {
-        const auto object_type = raw_name.substr(0, name_begin);
-        FD_ASSERT(!object_type.empty(), "Wrong object type");
-        const auto object = raw_name.substr(name_begin + 1);
+        const auto objectType = rawName.substr(0, nameBegin);
+        FD_ASSERT(!objectType.empty(), "Wrong object type");
+        const auto object = rawName.substr(nameBegin + 1);
         FD_ASSERT(!object.empty(), "Wrong object name");
-        _Log_found_object_ex(object_type, object);
+        _log_found_object_ex(objectType, object);
     }
 }
 
 template <typename T>
-constexpr auto _Bytes_to_sig(const T* bytes, const size_t size)
+static constexpr auto _bytes_to_sig(const T* bytes, const size_t size)
 {
-    constexpr auto hex_digits = "0123456789ABCDEF";
-    const auto hex_length     = (size << 1) + size;
+    constexpr auto hexDigits = "0123456789ABCDEF";
+    const auto hexLength     = /*(size << 1) + size*/ size * 3;
 
     // construct pre-reserved string filled with spaces
-    string pattern(hex_length - 1, ' ');
+    string pattern(hexLength - 1, ' ');
 
-    for (size_t i = 0, n = 0; i < hex_length; ++n, i += 3)
+    for (size_t i = 0, n = 0; i < hexLength; ++n, i += 3)
     {
-        const uint8_t curr_byte = bytes[n];
+        const uint8_t currByte = bytes[n];
 
         // manually convert byte to chars
-        pattern[i]     = hex_digits[((curr_byte & 0xF0) >> 4)];
-        pattern[i + 1] = hex_digits[(curr_byte & 0x0F)];
+        pattern[i]     = hexDigits[((currByte & 0xF0) >> 4)];
+        pattern[i + 1] = hexDigits[(currByte & 0x0F)];
     }
 
     return pattern;
 }
 
 template <size_t S>
-constexpr auto _Bytes_to_sig(const std::array<char, S>& str)
+using chars_array = std::array<char, S>;
+
+template <size_t S>
+static constexpr auto _bytes_to_sig(const chars_array<S>& str)
 {
-    constexpr auto str_size = S - 1;
-    constexpr auto size     = (str_size << 1) + str_size;
-    const auto tmp          = _Bytes_to_sig(str.data(), str_size);
-    std::array<char, size> buff{};
-    std::copy(tmp.begin(), tmp.end(), buff.begin());
+    const auto tmp = _bytes_to_sig(str.data(), str.size());
+    chars_array<S * 3> buff{};
+    std::ranges::copy(tmp, buff.begin());
     return buff;
 }
 
-namespace std
+static constexpr struct
 {
-    template <size_t S>
-    array(const char (&)[S]) -> array<char, S>;
-}
+    chars_array<3> rawPrefix  = { '.', '?', 'A' };
+    chars_array<2> rawPostfix = { '@', '@' };
 
-struct rtti_info
-{
-    static constexpr std::array raw_prefix  = { ".?A" };
-    static constexpr std::array raw_postfix = { "@@" };
+    chars_array<3 * 3> rawPrefixBytes  = _bytes_to_sig(rawPrefix);
+    chars_array<2 * 3> rawPostfixBytes = _bytes_to_sig(rawPostfix);
 
-    static constexpr auto raw_prefix_bytes  = _Bytes_to_sig(raw_prefix);
-    static constexpr auto raw_postfix_bytes = _Bytes_to_sig(raw_prefix);
+    char classPrefix  = 'V';
+    char structPrefix = 'U';
+} _RttiInfo;
 
-    static constexpr auto class_prefix  = 'V';
-    static constexpr auto struct_prefix = 'U';
-};
-
-static void _Log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_view name, const char* type_descriptor, const void* vtable_ptr)
+static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_view name, const char* typeDescriptor, const void* vtablePtr)
 {
 #ifndef __cpp_lib_string_contains
 #define contains(x) find(x) != static_cast<size_t>(-1)
 #endif
 
-    const auto demagle_type = [=]() -> string_view {
-        const auto prefix = type_descriptor[rtti_info::raw_prefix.size()];
-        if (prefix == rtti_info::class_prefix)
+    const auto demagleType = [=]() -> string_view
+    {
+        const auto prefix = typeDescriptor[_RttiInfo.rawPrefix.size()];
+        if (prefix == _RttiInfo.classPrefix)
             return "class";
-        else if (prefix == rtti_info::struct_prefix)
+        else if (prefix == _RttiInfo.structPrefix)
             return "struct";
         else
             FD_ASSERT_UNREACHABLE("Unknown prefix!");
     };
 
-    const auto demagle_name = [=]() -> string {
+    const auto demagleName = [=]() -> string
+    {
         string buff;
         if (name.contains('@'))
-            buff = demangle_symbol(type_descriptor);
+            buff = demangle_symbol(typeDescriptor);
         else if (name.contains(' '))
             buff = name;
         else
@@ -332,28 +341,32 @@ static void _Log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
         return buff.substr(buff.find(' ') + 1);
     };
 
-    invoke(logger,
+    invoke(Logger,
            L"{} -> {} {} '{}' {}! ({:#X})",
-           bind_front(_Library_info_name, entry),
+           bind_front(_library_info_name, entry),
            L"vtable for",
-           demagle_type,
-           demagle_name,
-           bind_front(_Found_or_not, vtable_ptr),
-           reinterpret_cast<uintptr_t>(vtable_ptr));
+           demagleType,
+           demagleName,
+           bind_front(_found_or_not, vtablePtr),
+           reinterpret_cast<uintptr_t>(vtablePtr));
 }
 
 library_info library_info::_Find(const wstring_view name, const bool notify)
 {
-    const auto entry = LDR_ENTRY_finder([=](const library_info info) {
-        return info.name() == name;
-    });
+    const auto entry = LDR_ENTRY_finder(
+        [=](const library_info info)
+        {
+            return info.name() == name;
+        });
 #ifdef _DEBUG
     if (!entry)
         return {}; // prevent assert
-    else
+    if (notify)
+        _log_found_entry(name, entry);
+#else
+    if (notify && entry)
+        _log_found_entry(name, entry);
 #endif
-        if (notify && entry)
-        _Log_found_entry(name, entry);
     return entry;
 }
 
@@ -363,20 +376,21 @@ struct callback_data_t
     std::binary_semaphore sem;
     PVOID found;
 
-    callback_data_t(wstring_view name)
+    callback_data_t(const wstring_view name)
         : name(name)
         , sem(0)
+        , found(nullptr)
     {
     }
 };
 
-static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
+static void CALLBACK _on_new_library(const ULONG notificationReason, const PCLDR_DLL_NOTIFICATION_DATA notificationData, const PVOID context)
 {
-    const auto data = static_cast<callback_data_t*>(Context);
+    const auto data = static_cast<callback_data_t*>(context);
 
-    if (NotificationReason == LDR_DLL_NOTIFICATION_REASON_UNLOADED)
+    if (notificationReason == LDR_DLL_NOTIFICATION_REASON_UNLOADED)
     {
-        if (NotificationData->Unloaded.DllBase != current_library_info(false)->DllBase)
+        if (notificationData->Unloaded.DllBase != current_library_info(false)->DllBase)
             return;
     }
     else
@@ -386,16 +400,16 @@ static void CALLBACK _On_new_library(ULONG NotificationReason, PCLDR_DLL_NOTIFIC
         if (!target_name.ends_with(data->name))
             return;
 #else
-        if (_To_string_view(*NotificationData->Loaded.BaseDllName) != data->name)
+        if (_to_string_view(*notificationData->Loaded.BaseDllName) != data->name)
             return;
 #endif
-        data->found = NotificationData->Loaded.DllBase;
+        data->found = notificationData->Loaded.DllBase;
     }
 
     data->sem.release();
 }
 
-static auto _Wait_prepare(const bool notify)
+static auto _wait_prepare(const bool notify)
 {
     const library_info ntdll(L"ntdll.dll", false, notify);
 
@@ -407,16 +421,16 @@ static auto _Wait_prepare(const bool notify)
 
 PVOID library_info::_Wait(const wstring_view name, const bool notify)
 {
-    static const auto [reg_fn, unreg_fn] = _Wait_prepare(notify);
+    static const auto [reg_fn, unreg_fn] = _wait_prepare(notify);
 
-    callback_data_t cb_data(name);
+    callback_data_t cbData(name);
     void* cookie;
-    if (reg_fn(0, _On_new_library, &cb_data, &cookie) != STATUS_SUCCESS)
+    if (reg_fn(0, _on_new_library, &cbData, &cookie) != STATUS_SUCCESS)
         return nullptr;
-    cb_data.sem.acquire();
+    cbData.sem.acquire();
     if (unreg_fn(cookie) != STATUS_SUCCESS)
         return nullptr;
-    return cb_data.found;
+    return cbData.found;
 }
 
 library_info::library_info()
@@ -432,34 +446,40 @@ library_info::library_info(pointer entry)
 
 library_info::library_info(const wstring_view name, const bool wait, const bool notify)
 {
-    entry_ = LDR_ENTRY_finder([=](const library_info info) {
-        return info.name() == name;
-    });
+    entry_ = LDR_ENTRY_finder(
+        [=](const library_info info)
+        {
+            return info.name() == name;
+        });
 
     if (!entry_ && wait)
     {
-        const auto base_address = _Wait(name, notify);
-        if (base_address)
+        const auto baseAddress = _Wait(name, notify);
+        if (baseAddress)
         {
-            entry_ = LDR_ENTRY_finder([=](const dos_nt dnt) {
-                return base_address == dnt.base();
-            });
+            entry_ = LDR_ENTRY_finder(
+                [=](const dos_nt dnt)
+                {
+                    return baseAddress == dnt.base();
+                });
         }
     }
 
     if (notify)
-        _Log_found_entry(name, entry_);
+        _log_found_entry(name, entry_);
     else
         FD_ASSERT(entry_ != nullptr);
 }
 
-library_info::library_info(const IMAGE_DOS_HEADER* base_address, const bool notify)
-    : entry_(LDR_ENTRY_finder([=](const dos_nt dnt) {
-        return base_address == dnt.base();
-    }))
+library_info::library_info(const IMAGE_DOS_HEADER* baseAddress, const bool notify)
+    : entry_(LDR_ENTRY_finder(
+          [=](const dos_nt dnt)
+          {
+              return baseAddress == dnt.base();
+          }))
 {
     if (notify)
-        _Log_found_entry(base_address, entry_);
+        _log_found_entry(baseAddress, entry_);
     else
         FD_ASSERT(entry_ != nullptr);
 }
@@ -480,7 +500,7 @@ bool library_info::is_root() const
 
 bool library_info::unload() const
 {
-    return FreeLibrary(reinterpret_cast<HMODULE>(entry_->DllBase));
+    return FreeLibrary(static_cast<HMODULE>(entry_->DllBase));
 }
 
 auto library_info::get() const -> pointer
@@ -505,17 +525,17 @@ library_info::operator bool() const
 
 wstring_view library_info::path() const
 {
-    return _Library_info_path(entry_);
+    return _library_info_path(entry_);
 }
 
 wstring_view library_info::name() const
 {
-    return _Library_info_name(entry_);
+    return _library_info_name(entry_);
 }
 
-void library_info::log_class_info(const string_view raw_name, const void* addr) const
+void library_info::log_class_info(const string_view rawName, const void* addr) const
 {
-    _Log_address_found(entry_, raw_name, addr);
+    _log_address_found(entry_, rawName, addr);
 }
 
 void* library_info::find_export(const string_view name, const bool notify) const
@@ -526,35 +546,35 @@ void* library_info::find_export(const string_view name, const bool notify) const
     const dos_nt dnt(entry_);
 
     // get export data directory.
-    const auto& data_dir = dnt.nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-    FD_ASSERT(data_dir.VirtualAddress, "Current module doesn't have the virtual address!");
+    const auto& dataDir = dnt.nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    FD_ASSERT(dataDir.VirtualAddress, "Current module doesn't have the virtual address!");
 
     // get export export_dir.
-    const auto export_dir = dnt.map<const IMAGE_EXPORT_DIRECTORY>(data_dir.VirtualAddress);
+    const auto exportDir = dnt.map<const IMAGE_EXPORT_DIRECTORY>(dataDir.VirtualAddress);
 
-    const auto export_dir_min = reinterpret_cast<const uint8_t*>(export_dir);
-    const auto export_dir_max = export_dir_min + data_dir.Size;
+    const auto exportDirMin = reinterpret_cast<const uint8_t*>(exportDir);
+    const auto exportDirMax = exportDirMin + dataDir.Size;
 
     // names / funcs / ordinals ( all of these are RVAs ).
-    const auto names = dnt.map<const uint32_t>(export_dir->AddressOfNames);
-    const auto funcs = dnt.map<const uint32_t>(export_dir->AddressOfFunctions);
-    const auto ords  = dnt.map<const uint16_t>(export_dir->AddressOfNameOrdinals);
+    const auto names = dnt.map<const uint32_t>(exportDir->AddressOfNames);
+    const auto funcs = dnt.map<const uint32_t>(exportDir->AddressOfFunctions);
+    const auto ords  = dnt.map<const uint16_t>(exportDir->AddressOfNameOrdinals);
 
-    void* export_ptr = nullptr;
+    void* exportPtr = nullptr;
 
     // iterate names array.
-    for (size_t i = 0; i < export_dir->NumberOfNames; ++i)
+    for (size_t i = 0; i < exportDir->NumberOfNames; ++i)
     {
-        const auto export_name = dnt.map<const char>(names[i]);
-        if (!export_name)
+        const auto exportName = dnt.map<const char>(names[i]);
+        if (!exportName)
             continue;
-        if (export_name != name)
+        if (exportName != name)
             continue;
 
-        const auto temp_export_ptr = dnt.map<uint8_t>(funcs[ords[i]]);
-        if (temp_export_ptr < export_dir_min || temp_export_ptr >= export_dir_max)
+        const auto exportPtrTemp = dnt.map<uint8_t>(funcs[ords[i]]);
+        if (exportPtrTemp < exportDirMin || exportPtrTemp >= exportDirMax)
         {
-            export_ptr = reinterpret_cast<void*>(temp_export_ptr);
+            exportPtr = reinterpret_cast<void*>(exportPtrTemp);
             break;
         }
 
@@ -597,44 +617,46 @@ void* library_info::find_export(const string_view name, const bool notify) const
     }
 
     if (notify)
-        _Log_found_object(entry_, L"export", name, export_ptr);
+        _log_found_object(entry_, L"export", name, exportPtr);
 
-    return export_ptr;
+    return exportPtr;
 }
 
 IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const bool notify) const
 {
-    IMAGE_SECTION_HEADER* found_header = nullptr;
+    IMAGE_SECTION_HEADER* headerFound = nullptr;
 
     for (auto& header : dos_nt(entry_).sections())
     {
         if (reinterpret_cast<const char*>(header.Name) == name)
         {
-            found_header = &header;
+            headerFound = &header;
             break;
         }
     }
     if (notify)
-        _Log_found_object(entry_, L"section", name, found_header);
-    return found_header;
+        _log_found_object(entry_, L"section", name, headerFound);
+    return headerFound;
 }
 
 void* library_info::find_signature(const string_view sig, const bool notify) const
 {
-    const auto memory_span = dos_nt(entry_).read();
-    const pattern_scanner finder(memory_span.data(), memory_span.size());
-    const auto result = finder(sig).front();
+    const auto memorySpan = dos_nt(entry_).read();
+    const pattern_scanner finder(memorySpan.data(), memorySpan.size());
+    const auto result = *finder(sig);
     if (notify)
-        _Log_found_object(entry_, L"signature", sig, result);
+        _log_found_object(entry_, L"signature", sig, result);
     return result;
 }
 
 enum class obj_type : uint8_t
 {
+    // ReSharper disable CppInconsistentNaming
     UNKNOWN,
     CLASS,
     STRUCT,
     NATIVE
+    // ReSharper restore CppInconsistentNaming
 };
 
 class vtable_finder
@@ -651,99 +673,98 @@ class vtable_finder
 
     const char* find_type_descriptor(const string_view name, const obj_type type) const
     {
-        const auto memory_span = dnt_.read();
-        const pattern_scanner whole_module_finder(memory_span.data(), memory_span.size());
+        const auto memorySpan = dnt_.read();
+        const pattern_scanner wholeModuleFinder(memorySpan.data(), memorySpan.size());
 
-        const void* rtti_class_name;
+        const void* rttiClassName;
 
         if (type == obj_type::UNKNOWN)
         {
-            const auto bytes_name = _Bytes_to_sig(name.data(), name.size());
-
-            const auto real_name_unk = make_string(rtti_info::raw_prefix_bytes, " ? ", bytes_name, ' ', rtti_info::raw_postfix_bytes);
-            rtti_class_name          = whole_module_finder(real_name_unk).front();
+            const auto bytesName   = _bytes_to_sig(name.data(), name.size());
+            const auto realNameUnk = make_string(_RttiInfo.rawPrefixBytes, " ? ", bytesName, ' ', _RttiInfo.rawPostfixBytes);
+            rttiClassName          = *invoke(wholeModuleFinder, realNameUnk);
         }
         else if (type == obj_type::NATIVE)
         {
             // const auto ptr  = (const uint8_t*)name.data();
             // FD_ASSERT(ptr >= whole_module_finder.from && ptr <= whole_module_finder.to - name.size(), "Selected wrong module!");
-            rtti_class_name = name.data();
+            rttiClassName = name.data();
         }
         else
         {
-            char str_prefix;
+            char strPrefix;
             if (type == obj_type::CLASS)
-                str_prefix = rtti_info::class_prefix;
+                strPrefix = _RttiInfo.classPrefix;
             else if (type == obj_type::STRUCT)
-                str_prefix = rtti_info::struct_prefix;
+                strPrefix = _RttiInfo.structPrefix;
             else
                 FD_ASSERT_UNREACHABLE("Unknown type");
 
-            const auto real_name = make_string(rtti_info::raw_prefix, str_prefix, name, rtti_info::raw_postfix);
-            rtti_class_name      = whole_module_finder(real_name, raw_pattern).front();
+            const auto realName = make_string(_RttiInfo.rawPrefix, strPrefix, name, _RttiInfo.rawPostfix);
+            rttiClassName       = *invoke(wholeModuleFinder.raw(), realName);
         }
 
-        return static_cast<const char*>(rtti_class_name);
+        return static_cast<const char*>(rttiClassName);
     }
 
-    void* operator()(const void* rtti_class_name) const
+    void* operator()(const void* rttiClassName) const
     {
         // get rtti type descriptor
-        auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_class_name);
+        auto typeDescriptor = reinterpret_cast<uintptr_t>(rttiClassName);
         // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the string
-        type_descriptor -= sizeof(uintptr_t) * 2;
+        typeDescriptor -= sizeof(uintptr_t) * 2;
 
-        const auto dot_rdata = info_.find_section(".rdata");
-        const auto dot_text  = info_.find_section(".text");
+        const auto dotRdata = info_.find_section(".rdata");
+        const auto dotText  = info_.find_section(".text");
 
-        const xrefs_scanner dot_rdata_finder(dnt_.map(dot_rdata->VirtualAddress), dot_rdata->SizeOfRawData);
-        const xrefs_scanner dot_text_finder(dnt_.map(dot_text->VirtualAddress), dot_text->SizeOfRawData);
+        const xrefs_scanner dotRdataFinder(dnt_.map(dotRdata->VirtualAddress), dotRdata->SizeOfRawData);
+        const xrefs_scanner dotTextFinder(dnt_.map(dotText->VirtualAddress), dotText->SizeOfRawData);
 
-        for (const auto xref : dot_rdata_finder(type_descriptor))
+        for (const auto xref : invoke(dotRdataFinder, typeDescriptor))
         {
-            const auto val           = reinterpret_cast<uint32_t>(xref);
+            const auto val          = reinterpret_cast<uint32_t>(xref);
             // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
-            const auto vtable_offset = *reinterpret_cast<uint32_t*>(val - 0x8);
-            if (vtable_offset != 0)
+            const auto vtableOffset = *reinterpret_cast<uint32_t*>(val - 0x8);
+            if (vtableOffset != 0)
                 continue;
 
-            const auto object_locator = val - 0xC;
-            const auto vtable_address = reinterpret_cast<uintptr_t>(dot_rdata_finder(object_locator).front()) + 0x4;
+            const auto objectLocator = val - 0xC;
+            const auto vtableAddress = reinterpret_cast<uintptr_t>(*invoke(dotRdataFinder, objectLocator)) + 0x4;
 
             // check is valid offset
-            FD_ASSERT(vtable_address > sizeof(uintptr_t));
-            return dot_text_finder(vtable_address).front();
+            FD_ASSERT(vtableAddress > sizeof(uintptr_t));
+            return *invoke(dotTextFinder, vtableAddress);
         }
         return nullptr;
     }
 };
 
-static void* _Find_vtable(const library_info info, const string_view name, const obj_type type, const bool notify)
+static void* _find_vtable(const library_info info, const string_view name, const obj_type type, const bool notify)
 {
-    const vtable_finder finder(info);
+    const vtable_finder vtableFinder(info);
 
-    const auto rtti_class_name = finder.find_type_descriptor(name, type);
-    FD_ASSERT(rtti_class_name != nullptr);
-    const auto vtable_ptr = finder(rtti_class_name);
+    const auto rttiClassName = vtableFinder.find_type_descriptor(name, type);
+    FD_ASSERT(rttiClassName != nullptr);
+    const auto vtablePtr = invoke(vtableFinder, rttiClassName);
     if (notify)
-        _Log_found_vtable(info.get(), name, rtti_class_name, vtable_ptr);
+        _log_found_vtable(info.get(), name, rttiClassName, vtablePtr);
 
-    return vtable_ptr;
+    return vtablePtr;
 }
 
 void* library_info::find_vtable_class(const string_view name, const bool notify) const
 {
-    return _Find_vtable(entry_, name, obj_type::CLASS, notify);
+    return _find_vtable(entry_, name, obj_type::CLASS, notify);
 }
 
 void* library_info::find_vtable_struct(const string_view name, const bool notify) const
 {
-    return _Find_vtable(entry_, name, obj_type::STRUCT, notify);
+    return _find_vtable(entry_, name, obj_type::STRUCT, notify);
 }
 
 void* library_info::find_vtable_unknown(const string_view name, const bool notify) const
 {
-    return _Find_vtable(entry_, name, obj_type::UNKNOWN, notify);
+    return _find_vtable(entry_, name, obj_type::UNKNOWN, notify);
 }
 
 void* library_info::find_vtable(const string_view name, const bool notify) const
@@ -759,20 +780,20 @@ void* library_info::find_vtable(const string_view name, const bool notify) const
          return do_find(name.substr(struct_prefix.size()), obj_type::STRUCT); */
 
     const rewrapped_namespaces helper(name);
-    return _Find_vtable(entry_, helper.name(), helper.is_class() ? obj_type::CLASS : helper.is_struct() ? obj_type::STRUCT : obj_type::UNKNOWN, notify);
+    return _find_vtable(entry_, helper.name(), helper.is_class() ? obj_type::CLASS : helper.is_struct() ? obj_type::STRUCT : obj_type::UNKNOWN, notify);
 }
 
 void* library_info::find_vtable(const std::type_info& info, const bool notify) const
 {
-    const auto raw_name = info.raw_name();
-    return _Find_vtable(entry_, { raw_name, notify ? str_len(raw_name) : 0 }, obj_type::NATIVE, notify);
+    const auto rawName = info.raw_name();
+    return _find_vtable(entry_, { rawName, notify ? str_len(rawName) : 0 }, obj_type::NATIVE, notify);
 }
 
 #undef ERROR
 
 class interface_reg
 {
-    void* (*create_fn)();
+    void* (*createFn_)();
     const char* name_;
     const interface_reg* next_;
 
@@ -798,7 +819,7 @@ class interface_reg
 
         iterator operator++(int)
         {
-            auto tmp = *this;
+            const auto tmp = *this;
             operator++();
             return tmp;
         }
@@ -816,11 +837,11 @@ class interface_reg
         const interface_reg* root_;
 
       public:
-        range(const void* create_interface_fn)
+        range(const void* createInterfaceFn)
         {
-            const auto relative_fn  = reinterpret_cast<uintptr_t>(create_interface_fn) + 0x5;
-            const auto displacement = *reinterpret_cast<int32_t*>(relative_fn);
-            const auto jmp          = relative_fn + sizeof(displacement) + displacement;
+            const auto relativeFn   = reinterpret_cast<uintptr_t>(createInterfaceFn) + 0x5;
+            const auto displacement = *reinterpret_cast<int32_t*>(relativeFn);
+            const auto jmp          = relativeFn + sizeof(int32_t) + displacement;
 
             root_ = **reinterpret_cast<interface_reg***>(jmp + 0x6);
         }
@@ -835,6 +856,7 @@ class interface_reg
             return root_;
         }
 
+        // ReSharper disable once CppMemberFunctionMayBeStatic
         iterator end() const
         {
             return nullptr;
@@ -845,9 +867,11 @@ class interface_reg
     {
         enum value_type : uint8_t
         {
+            // ReSharper disable CppInconsistentNaming
             FULL,
             PARTIAL,
             ERROR
+            // ReSharper restore CppInconsistentNaming
         };
 
       private:
@@ -878,15 +902,15 @@ class interface_reg
     interface_reg()                     = delete;
     interface_reg(const interface_reg&) = delete;
 
-    equal operator==(const string_view interface_name) const
+    equal operator==(const string_view ifcName) const
     {
-        const auto ifc_name_size = interface_name.size();
-        if (std::memcmp(this->name_, interface_name.data(), ifc_name_size) == 0)
+        const auto ifcNameSize = ifcName.size();
+        if (std::memcmp(this->name_, ifcName.data(), ifcNameSize) == 0)
         {
-            const auto last_char = this->name_[interface_name.size()];
-            if (last_char == '\0') // partially comared
+            const auto lastChar = this->name_[ifcName.size()];
+            if (lastChar == '\0') // partially comared
                 return equal::FULL;
-            if (is_digit(last_char)) // partial name must be looks like IfcName001
+            if (is_digit(lastChar)) // partial name must be looks like IfcName001
                 return equal::PARTIAL;
         }
         return equal::ERROR;
@@ -894,19 +918,19 @@ class interface_reg
 
     auto operator()() const
     {
-        return invoke(create_fn);
+        return invoke(createFn_);
     }
 
-    auto name_size(const string_view known_part = {}) const
+    auto name_size(const string_view knownPart = {}) const
     {
 #ifdef _DEBUG
-        if (!known_part.empty() && std::memcmp(this->name_, known_part.data(), known_part.size()) != 0)
+        if (!knownPart.empty() && std::memcmp(this->name_, knownPart.data(), knownPart.size()) != 0)
             FD_ASSERT("Incorrect known part");
 #endif
 
-        const auto idx_start = this->name_ + known_part.size();
-        const auto idx_size  = str_len(idx_start);
-        return known_part.size() + idx_size;
+        const auto idxStart = this->name_ + knownPart.size();
+        const auto idxSize  = str_len(idxStart);
+        return knownPart.size() + idxSize;
     }
 
     auto name() const
@@ -920,7 +944,6 @@ class interface_reg
         do
             src = src->next_;
         while (--offset);
-
         return src;
     }
 };
@@ -930,15 +953,15 @@ void* csgo_library_info::find_interface(const string_view name, const bool notif
     return find_interface(find_export("CreateInterface"), name, notify);
 }
 
-void* csgo_library_info::find_interface(const void* create_interface_fn, const string_view name, const bool notify) const
+void* csgo_library_info::find_interface(const void* createInterfaceFn, const string_view name, const bool notify) const
 {
-    if (!create_interface_fn)
+    if (!createInterfaceFn)
         return nullptr;
 
-    string_view log_name;
-    void* ifc_addr = nullptr;
+    string_view logName;
+    void* ifcAddr = nullptr;
 
-    for (auto& reg : interface_reg::range(create_interface_fn))
+    for (auto& reg : interface_reg::range(createInterfaceFn))
     {
         const auto result = reg == name;
         if (!result)
@@ -949,14 +972,14 @@ void* csgo_library_info::find_interface(const void* create_interface_fn, const s
 #endif
             if (result == interface_reg::equal::PARTIAL)
             {
-                const auto whole_name_size = reg.name_size(name);
+                const auto wholeNameSize = reg.name_size(name);
 #ifdef _DEBUG
-                if (!std::all_of(reg.name() + name.size(), reg.name() + whole_name_size, is_digit))
+                if (!std::all_of(reg.name() + name.size(), reg.name() + wholeNameSize, is_digit))
                     FD_ASSERT("Incorrect given interface name");
-                const auto next_reg = reg + 1;
-                if (next_reg)
+                const auto nextReg = reg + 1;
+                if (nextReg)
                 {
-                    for (auto& reg1 : interface_reg::range(next_reg))
+                    for (auto& reg1 : interface_reg::range(nextReg))
                     {
                         if (reg1 == name)
                             FD_ASSERT("Duplicate interface name detected");
@@ -964,35 +987,35 @@ void* csgo_library_info::find_interface(const void* create_interface_fn, const s
                 }
                 if (notify)
 #endif
-                    log_name = { reg.name(), whole_name_size };
+                    logName = { reg.name(), wholeNameSize };
             }
 
-        ifc_addr = invoke(reg);
+        ifcAddr = invoke(reg);
         break;
     }
 
     if (notify)
-        _Log_found_object(this->get(), L"csgo interface", log_name.empty() ? name : log_name, ifc_addr);
+        _log_found_object(this->get(), L"csgo interface", logName.empty() ? name : logName, ifcAddr);
 
-    return ifc_addr;
+    return ifcAddr;
 }
 
-static DECLSPEC_NOINLINE PVOID _Get_current_module_handle()
+static DECLSPEC_NOINLINE PVOID _get_current_module_handle()
 {
-    if (!current_library_handle)
+    if (!CurrentLibraryHandle)
     {
         MEMORY_BASIC_INFORMATION info;
-        constexpr SIZE_T info_size      = sizeof(MEMORY_BASIC_INFORMATION);
+        constexpr SIZE_T infoSize       = sizeof(MEMORY_BASIC_INFORMATION);
         // todo: is this is dll, try to load this function from inside
-        [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _Get_current_module_handle, &info, info_size);
-        FD_ASSERT(len == info_size, "Wrong size");
-        current_library_handle = static_cast<HINSTANCE>(info.AllocationBase);
+        [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _get_current_module_handle, &info, infoSize);
+        FD_ASSERT(len == infoSize, "Wrong size");
+        CurrentLibraryHandle = static_cast<HINSTANCE>(info.AllocationBase);
     }
-    return current_library_handle;
+    return CurrentLibraryHandle;
 }
 
 current_library_info::current_library_info(const bool notify)
-    : library_info(static_cast<IMAGE_DOS_HEADER*>(_Get_current_module_handle()), notify)
+    : library_info(static_cast<IMAGE_DOS_HEADER*>(_get_current_module_handle()), notify)
 {
 }
 
@@ -1000,5 +1023,5 @@ current_library_info::current_library_info(const bool notify)
 
 namespace fd
 {
-    HMODULE current_library_handle;
+    HMODULE CurrentLibraryHandle;
 }
