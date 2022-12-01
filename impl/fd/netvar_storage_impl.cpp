@@ -6,6 +6,7 @@
 #include <fd/netvar_storage_impl.h>
 #include <fd/netvar_type_resolve.h>
 #include <fd/string_info.h>
+// ReSharper disable once CppUnusedIncludeDirective
 #include <fd/utility.h>
 
 #include <algorithm>
@@ -44,16 +45,16 @@ using namespace fd;
 using namespace valve;
 
 template <typename T>
-static bool _File_already_written(const T& full_path, const std::span<const char> buffer)
+static bool _file_already_written(const T& fullPath, const std::span<const char> buffer)
 {
-    std::ifstream file_stored;
-    file_stored.rdbuf()->pubsetbuf(nullptr, 0); // disable buffering
-    file_stored.open(full_path, std::ios::binary | std::ios::ate);
+    std::ifstream fileStored;
+    fileStored.rdbuf()->pubsetbuf(nullptr, 0); // disable buffering
+    fileStored.open(fullPath, std::ios::binary | std::ios::ate);
 
-    if (!file_stored)
+    if (!fileStored)
         return false;
 
-    const auto size = file_stored.tellg();
+    const auto size = fileStored.tellg();
     if (size != buffer.size())
         return false;
 
@@ -64,7 +65,7 @@ static bool _File_already_written(const T& full_path, const std::span<const char
 	return std::memcmp(buff.get(), buffer.data(), size) == 0;
 #else
     using it_t = std::istream_iterator<char>;
-    return std::equal<it_t>(file_stored, {}, buffer.begin());
+    return std::equal<it_t>(fileStored, {}, buffer.begin());
 #endif
 }
 
@@ -94,7 +95,7 @@ static void _Correct_path(wstring& path)
 }
 #endif
 
-static void _Write_to_file(const wstring& path, const std::span<const char> buff)
+static void _write_to_file(const wstring& path, const std::span<const char> buff)
 {
     // std::ofstream(full_path).write(buff.data(), buff.size());
     FILE* f;
@@ -105,7 +106,7 @@ static void _Write_to_file(const wstring& path, const std::span<const char> buff
 
 netvars_log::netvars_log()
 {
-#ifdef FD_ROOT_DIR
+#if defined(FD_ROOT_DIR) && !defined(__RESHARPER__)
     dir = FD_CONCAT_EX(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
 #endif
     // write_string(file.name, engine->GetProductVersionString());
@@ -121,10 +122,10 @@ netvars_log::~netvars_log()
     //_Correct_path(dir);
     if (!fs::Directory.create(dir))
         return;
-    const auto full_path = make_string(dir, file.name, file.extension);
-    if (_File_already_written(full_path, buff))
+    const auto fullPath = make_string(dir, file.name, file.extension);
+    if (_file_already_written(fullPath, buff))
         return;
-    _Write_to_file(full_path, buff);
+    _write_to_file(fullPath, buff);
 }
 
 netvars_classes::~netvars_classes()
@@ -132,26 +133,26 @@ netvars_classes::~netvars_classes()
     if (dir.empty())
         return;
     //_Correct_path(dir);
-    const auto file_is_empty = fs::Directory.create(dir) || fs::Directory.empty(dir);
+    const auto fileIsEmpty = fs::Directory.create(dir) || fs::Directory.empty(dir);
     for (const auto& [name, buff] : files)
     {
-        const auto current_file_path = make_string(dir, name);
-        if (!file_is_empty && _File_already_written(current_file_path, buff))
+        const auto filePath = make_string(dir, name);
+        if (!fileIsEmpty && _file_already_written(filePath, buff))
             continue;
-        _Write_to_file(current_file_path, buff);
+        _write_to_file(filePath, buff);
     }
 }
 
 netvars_classes::netvars_classes()
 {
-#ifdef FD_WORK_DIR
+#if defined(FD_WORK_DIR) && !defined(__RESHARPER__)
     dir = FD_CONCAT_EX(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
 #endif
 }
 
 //----
 
-static string _Correct_class_name(const string_view name)
+[[maybe_unused]] static string _correct_class_name(const string_view name)
 {
     if (name[0] == 'C' && name[1] != '_')
     {
@@ -167,7 +168,7 @@ static string _Correct_class_name(const string_view name)
     }
 }
 
-static bool _Can_skip_netvar(const char* name)
+static bool _can_skip_netvar(const char* name)
 {
     for (;;)
     {
@@ -183,7 +184,7 @@ static bool _Can_skip_netvar(const char* name)
 #define contains(_X_) find(_X_) != static_cast<size_t>(-1)
 #endif
 
-static bool _Can_skip_netvar(const string_view name)
+static bool _can_skip_netvar(const string_view name)
 {
     return name.contains('.');
 }
@@ -191,41 +192,60 @@ static bool _Can_skip_netvar(const string_view name)
 // #define MERGE_DATA_TABLES
 // #define GENERATE_STRUCT_MEMBERS
 
+static auto _is_base_class(const recv_prop* prop)
+{
+    constexpr string_view str = "baseclass";
+    // return std::memcmp(prop->name, str.data(), str.size()) == 0 && prop->name[str.size()] == '\0';
+    return prop->name == str;
+};
+
+static auto _is_length_proxy(const recv_prop* prop)
+{
+    if (prop->array_length_proxy)
+        return true;
+    const auto buffSize = str_len(prop->name);
+    string lstr;
+    lstr.reserve(buffSize);
+    std::transform(prop->name, prop->name + buffSize, std::back_insert_iterator(lstr), to_lower);
+    return lstr.contains("length") && lstr.contains("proxy");
+};
+
 class datatable_parser
 {
 #ifdef MERGE_DATA_TABLES
     size_t offset = 0;
 #else
     using store_fn = function_view<netvar_table*(const char*) const>;
-    store_fn store_data_table;
+    store_fn storeDataTable_;
 #endif
-    netvar_table* nvtable;
+    netvar_table* netvarTable_;
 
-    size_t get_offset(const size_t prop_offset) const
+    // ReSharper disable once CppMemberFunctionMayBeStatic
+    size_t get_offset(const size_t propOffset) const
     {
         return
 #ifdef MERGE_DATA_TABLES
-            offset + prop_offset
+            offset + propOffset
 #else
-            prop_offset
+            propOffset
 #endif
             ;
     }
 
-    datatable_parser get_next(const char* name, const size_t prop_offset) const
+    datatable_parser get_next(const char* name, const size_t propOffset) const
     {
         return {
 #ifdef MERGE_DATA_TABLES
-            nvtable, offset + prop_offset
+            netvarTable_, offset + propOffset
 #else
-            store_data_table, invoke(store_data_table, name)
+            storeDataTable_, invoke(storeDataTable_, name)
 #endif
         };
     }
 
     operator bool() const
     {
-        return nvtable != nullptr;
+        return netvarTable_ != nullptr;
     }
 
     struct array_info
@@ -234,25 +254,25 @@ class datatable_parser
         size_t size = 0;
     };
 
-    array_info parse_array(const string_view first_prop_name, const recv_prop* array_start, const recv_prop* array_end) const
+    array_info parse_array(const string_view firstPropName, const recv_prop* arrayStart, const recv_prop* arrayEnd) const
     {
-        if (!first_prop_name.ends_with("[0]"))
+        if (!firstPropName.ends_with("[0]"))
             return {};
 
-        const auto real_prop_name = first_prop_name.substr(0, first_prop_name.size() - 3);
-        FD_ASSERT(!real_prop_name.ends_with(']'));
-        if (nvtable->find(real_prop_name)) // todo: debug break for type check!
-            return { real_prop_name, 0 };
+        const auto realPropName = firstPropName.substr(0, firstPropName.size() - 3);
+        FD_ASSERT(!realPropName.ends_with(']'));
+        if (netvarTable_->find(realPropName)) // todo: debug break for type check!
+            return { realPropName, 0 };
 
         // todo: try extract size from length proxy
-        size_t array_size = 1;
+        size_t arraySize = 1;
 
-        for (auto prop = array_start; prop != array_end; ++prop)
+        for (auto prop = arrayStart; prop != arrayEnd; ++prop)
         {
-            if (array_start->type != prop->type) // todo: check is name still same after this (because previously we store this name without array braces)
+            if (arrayStart->type != prop->type) // todo: check is name still same after this (because previously we store this name without array braces)
                 break;
 #if 1
-            if (real_prop_name != prop->name)
+            if (realPropName != prop->name)
                 break;
 #else
             // name.starts_with(real_prop_name)
@@ -262,38 +282,22 @@ class datatable_parser
             if (prop.name[real_prop_name.size()] != '\0')
                 break;
 #endif
-            ++array_size;
+            ++arraySize;
         }
 
-        return { real_prop_name, array_size };
+        return { realPropName, arraySize };
     }
 
-    static auto get_props_range(const recv_table* recv_table)
+    static auto get_props_range(const recv_table* recvTable)
     {
-        constexpr auto is_base_class = [](const recv_prop* prop) {
-            constexpr string_view str = "baseclass";
-            // return std::memcmp(prop->name, str.data(), str.size()) == 0 && prop->name[str.size()] == '\0';
-            return prop->name == str;
-        };
+        const auto& rawProps = recvTable->props;
 
-        constexpr auto is_length_proxy = [](const recv_prop* prop) {
-            if (prop->array_length_proxy)
-                return true;
-            const auto buff_size = str_len(prop->name);
-            string lstr;
-            lstr.reserve(buff_size);
-            std::transform(prop->name, prop->name + buff_size, std::back_insert_iterator(lstr), to_lower);
-            return lstr.contains("length") && lstr.contains("proxy");
-        };
+        auto front = &rawProps.front();
+        auto back  = &rawProps.back();
 
-        const auto& raw_props = recv_table->props;
-
-        auto front = &raw_props.front();
-        auto back  = &raw_props.back();
-
-        if (is_base_class(front))
+        if (_is_base_class(front))
             ++front;
-        if (is_length_proxy(back))
+        if (_is_length_proxy(back))
             --back;
 
         return std::pair(front, back + 1);
@@ -302,41 +306,41 @@ class datatable_parser
   public:
     datatable_parser
 #ifdef MERGE_DATA_TABLES
-        (netvar_table* root_table, const size_t offset = 0)
+        (netvar_table* rootTable, const size_t offset = 0)
         : offset(offset)
-        , nvtable(root_table)
+        , netvarTable_(rootTable)
 #else
-        (const store_fn& callback, netvar_table* current_table = nullptr)
-        : store_data_table(callback)
-        , nvtable(current_table)
+        (const store_fn& callback, netvar_table* currentTable = nullptr)
+        : storeDataTable_(callback)
+        , netvarTable_(currentTable)
 #endif
     {
     }
 
-    void operator()(const recv_table* dtable) const
+    void operator()(const recv_table* dataTable) const
     {
-        const auto [props_begin, props_end] = get_props_range(dtable);
+        const auto [props_begin, props_end] = get_props_range(dataTable);
         for (auto itr = props_begin; itr != props_end; ++itr)
         {
             const auto& prop = *itr;
             FD_ASSERT(prop.name != nullptr);
-            const string_view prop_name = prop.name;
-            if (_Can_skip_netvar(prop_name))
+            const string_view propName(prop.name);
+            if (_can_skip_netvar(propName))
                 continue;
 
-            if (prop_name.rfind(']') != prop_name.npos)
+            if (propName.rfind(']') != propName.npos)
             {
                 FD_ASSERT(prop.type != DPT_DataTable, "Array DataTable detected!");
-                const auto array_info = parse_array(prop_name, itr + 1, props_end);
-                if (array_info.size > 0)
+                const auto arrayInfo = parse_array(propName, itr + 1, props_end);
+                if (arrayInfo.size > 0)
                 {
-                    nvtable->add(get_offset(prop.offset), itr, array_info.size, array_info.name);
-                    itr += array_info.size - 1;
+                    netvarTable_->add(get_offset(prop.offset), itr, arrayInfo.size, arrayInfo.name);
+                    itr += arrayInfo.size - 1;
                 }
             }
             else if (prop.type != DPT_DataTable)
             {
-                nvtable->add(get_offset(prop.offset), itr, 0, prop_name);
+                netvarTable_->add(get_offset(prop.offset), itr, 0, propName);
             }
             else if (prop.data_table && !prop.data_table->props.empty())
             {
@@ -352,22 +356,22 @@ class datatable_parser
 };
 
 template <class J, typename T>
-concept can_append = requires(J& js, const T& test) { js[test]; };
+concept can_assign = requires(J& js, const T& test) { js[test]; };
 
 template <class J, typename T>
-static auto& _Append(J& js, const T& str)
+static auto& _append(J& js, const T& str)
 {
-    if constexpr (can_append<J, T>)
+    if constexpr (can_assign<J, T>)
         return js[str];
     else
     {
-        const auto null_terminated = str.data()[str.size()] == '\0';
-        return null_terminated ? js[str.data()] : js[typename J::string_t(str.begin(), str.end())];
+        const auto nullTerminated = str.data()[str.size()] == '\0';
+        return nullTerminated ? js[str.data()] : js[typename J::string_t(str.begin(), str.end())];
     }
 }
 
 template <typename T>
-static void _Stream_to(std::ostringstream&& stream, T& to)
+static void _stream_to(std::ostringstream&& stream, T& to)
 {
     if constexpr (std::assignable_from<T, std::string>)
         to = std::move(stream).str();
@@ -379,29 +383,30 @@ static void _Stream_to(std::ostringstream&& stream, T& to)
 }
 
 template <class T>
-static T _Stream_to(std::ostringstream&& stream)
+static T _stream_to(std::ostringstream&& stream)
 {
     T to;
-    _Stream_to(std::move(stream), to);
+    _stream_to(std::move(stream), to);
     return to;
 }
 
 void netvars_storage::request_sort(const netvar_table* table)
 {
     const auto idx = std::distance<const netvar_table*>(data_.data(), table);
-    sort_requested_.push_back(idx);
+    sortRequested_.push_back(idx);
 }
 
 void netvars_storage::sort()
 {
-    const auto sort_end = std::unique(sort_requested_.begin(), sort_requested_.end());
-    std::for_each(sort_requested_.begin(), sort_end, [&](const size_t idx) {
+    // ReSharper disable once CppUseRangeAlgorithm
+    const auto sortEnd = std::unique(sortRequested_.begin(), sortRequested_.end());
+    std::for_each(sortRequested_.begin(), sortEnd, [&](const size_t idx) {
         auto& t = data_[idx];
-        std::sort(t.begin(), t.end(), [](auto& l, auto& r) {
+        std::ranges::sort(t, [](auto& l, auto& r) {
             return l->offset() < r->offset();
         });
     });
-    sort_requested_.clear();
+    sortRequested_.clear();
 }
 
 netvar_table* netvars_storage::add(string&& name, const bool root)
@@ -424,89 +429,84 @@ netvars_storage::netvars_storage()
 {
 #ifdef _DEBUG
     // to force assert in get_offset
-    sort_requested_.reserve(1);
+    sortRequested_.reserve(1);
 #endif
 }
 
 template <class T>
-static auto _Find_name(T& rng, const string_view name)
+static auto _find_name(T& rng, const string_view name)
 {
-    const auto bg    = rng.begin();
-    const auto ed    = rng.end();
-    const auto found = std::find_if(bg, ed, [=](auto& item) {
-        return item.name() == name;
-    });
-    return found == ed ? nullptr : &*found;
+    const auto found = std::ranges::find(rng, name, &std::remove_const_t<T>::value_type::name);
+    return found == rng.end() ? nullptr : &*found;
 }
 
 netvar_table* netvars_storage::find(const string_view name)
 {
-    return _Find_name(data_, name);
+    return _find_name(data_, name);
 }
 
 const netvar_table* netvars_storage::find(const string_view name) const
 {
-    return _Find_name(data_, name);
+    return _find_name(data_, name);
 }
 
-constexpr auto _Override_name = [](auto* root, auto debug_name) -> string_view {
-    return debug_name.empty() ? root->name : debug_name;
+static constexpr auto _OverrideName = [](auto* root, auto debugName) -> string_view {
+    return debugName.empty() ? root->name : debugName;
 };
 
-void netvars_storage::iterate_client_class(const client_class* root_class, const string_view debug_name)
+void netvars_storage::iterate_client_class(const client_class* rootClass, const string_view debugName)
 {
     FD_ASSERT(data_.empty(), "Iterate recv tables first!");
 
-    for (auto cclass = root_class; cclass != nullptr; cclass = cclass->next)
-    {
-        auto rtable = cclass->table;
-        if (!rtable || rtable->props.empty())
-            continue;
+    constexpr auto skipBadTable = [](auto& clientClass) {
+        return clientClass.table && !clientClass.table->props.empty();
+    };
 
+    std::ranges::for_each(client_class_range(rootClass) | std::views::filter(skipBadTable), [this](auto& clientClass) {
         const datatable_parser parser = {
 #ifdef MERGE_DATA_TABLES
-            this->add(_Correct_class_name(client_class->name))
+            this->add(_correct_class_name(clientClass.name))
 #else
-            [&](const string_view table_name) {
-                return this->add(table_name, false);
+            [&](const string_view tableName) {
+                return this->add(tableName, false);
             }
 #endif
         };
-        invoke(parser, rtable);
-    }
+        invoke(parser, clientClass.table);
+    });
 
-    invoke(Logger, "netvars - {} data tables stored", bind_front(_Override_name, root_class, debug_name));
+    invoke(Logger, "netvars - {} data tables stored", bind_front(_OverrideName, rootClass, debugName));
 }
 
-void netvars_storage::iterate_datamap(const data_map* root_map, const string_view debug_name)
+void netvars_storage::iterate_datamap(const data_map* rootMap, const string_view debugName)
 {
     FD_ASSERT(!data_.empty(), "Iterate datamap after recv tables!");
 
-    for (auto map = root_map; map != nullptr; map = map->base)
+    for (auto map = rootMap; map != nullptr; map = map->base)
     {
         if (map->data.empty())
             continue;
-        string class_name =
+        auto className =
 #ifdef MERGE_DATA_TABLES
-            _Correct_class_name(map->name);
+            _correct_class_name(map->name);
 #else
             [&] {
-                const string_view class_name0 = map->name;
-                const auto class_name1        = class_name0.substr(class_name0.find('_'));
-                return make_string("DT_", class_name1);
+                const string_view className0(map->name);
+                const auto className1 = className0.substr(className0.find('_'));
+                return make_string("DT_", className1);
             }();
 #endif
-        auto table = this->find(class_name);
-        bool table_added;
+        auto table = this->find(className);
+        bool tableAdded;
         if (!table)
         {
-            table       = this->add(std::move(class_name), true);
-            table_added = true;
+            table      = this->add(std::move(className), true);
+            tableAdded = true;
         }
         else
         {
             this->request_sort(table);
-            table_added = false;
+            tableAdded = false;
         }
 
         for (auto& desc : map->data)
@@ -518,10 +518,10 @@ void netvars_storage::iterate_datamap(const data_map* root_map, const string_vie
             }
             else if (desc.name != nullptr)
             {
-                if (_Can_skip_netvar(desc.name))
+                if (_can_skip_netvar(desc.name))
                     continue;
                 const string_view name = desc.name;
-                if (!table_added && table->find(name)) // todo: check & correct type
+                if (!tableAdded && table->find(name)) // todo: check & correct type
                     continue;
                 // fieldOffset[TD_OFFSET_NORMAL], array replaced with two varaibles
                 table->add(static_cast<size_t>(desc.offset), &desc, 0, name);
@@ -529,7 +529,7 @@ void netvars_storage::iterate_datamap(const data_map* root_map, const string_vie
         }
     }
 
-    invoke(Logger, "netvars - {} data maps stored", bind_front(_Override_name, root_map, debug_name));
+    invoke(Logger, "netvars - {} data maps stored", bind_front(_OverrideName, rootMap, debugName));
 }
 #if 0
 void netvars_storage::store_handmade_netvars()
@@ -554,19 +554,23 @@ void netvars_storage::store_handmade_netvars()
 
 //------
 
-static auto _Drop_default_path(wstring_view buff, const wstring_view prefix)
+static auto _drop_default_path(wstring_view buff, const wstring_view prefix)
 {
     if (buff.starts_with(prefix))
     {
-        auto prefix_size = prefix.size();
-        const auto chr   = buff[prefix_size];
+        auto prefixSize = prefix.size();
+        const auto chr  = buff[prefixSize];
         if (chr == '\\' || chr == '/')
-            ++prefix_size;
-        buff.remove_prefix(prefix_size);
+            ++prefixSize;
+        buff.remove_prefix(prefixSize);
     }
 
     return buff;
 }
+
+static constexpr auto _skipEmpty = [](auto& rng) {
+    return !rng.empty();
+};
 
 void netvars_storage::log_netvars(netvars_log& data)
 {
@@ -576,48 +580,64 @@ void netvars_storage::log_netvars(netvars_log& data)
 
     this->sort();
 
-    json_unsorted j_root;
-    using json_string = typename json_unsorted::string_t;
+    json_unsorted jsRoot;
+    using json_string = json_unsorted::string_t;
 
-    for (const auto& table : data_)
-    {
-        if (table.empty())
-            continue;
+    constexpr auto unpackTable = [](auto& info) {
+        const auto nativeName = info->name();
+        return std::tuple(json_string(nativeName.begin(), nativeName.end()), info->offset(), info->type());
+    };
 
-        auto& j_table = _Append(j_root, table.name());
-
-        for (const auto& info : table)
+    constexpr auto storeTable = [](auto args, json_unsorted& buff) {
+        auto& [name, offset, type] = args;
+        if (type.empty())
         {
-            json_string name(info->name());
-            const auto offset      = info->offset();
-            const string_view type = info->type();
-
-            if (type.empty())
-            {
-                j_table.push_back({
-                    {"name",    std::move(name)},
-                    { "offset", offset         }
-                });
-            }
-            else
-            {
-                j_table.push_back({
-                    {"name",    std::move(name)  },
-                    { "offset", offset           },
-                    { "type",   json_string(type)}
-                });
-            }
+            buff.push_back({
+                {"name",    std::move(name)},
+                { "offset", offset         }
+            });
         }
-    }
+        else
+        {
+            buff.push_back({
+                { "name", std::move(name) },
+                { "offset", offset },
+                { "type", json_string(type.begin(), type.end()) }
+            });
+        }
+    };
 
-    std::ostringstream tmp_buff;
-    tmp_buff << std::setw(data.indent) << std::setfill(data.filler) << j_root;
-    _Stream_to(std::move(tmp_buff), data.buff);
+    std::ranges::for_each(data_ | std::views::filter(_skipEmpty), [&jsRoot](auto& table) {
+        std::ranges::for_each(table | std::views::transform(unpackTable), bind_back(storeTable, std::ref(_append(jsRoot, table.name()))));
+    });
+
+    _stream_to(std::ostringstream() << std::setw(data.indent) << std::setfill(data.filler) << jsRoot, data.buff);
 
     invoke(Logger, "netvars - logs will be written to {}", [&] {
-        return make_string(/* _Correct_path */ (_Drop_default_path(data.dir, netvars_log().dir)), data.file.name, data.file.extension);
+        return make_string(/* _Correct_path */ (_drop_default_path(data.dir, netvars_log().dir)), data.file.name, data.file.extension);
     });
 }
+
+struct generate_info
+{
+    string_view name;
+    string typeOut;
+    string typeCast;
+
+    generate_info(const basic_netvar_info* info)
+    {
+        const auto typeRaw = info->type();
+        if (typeRaw.empty())
+            return;
+
+        const auto isPointer   = typeRaw.ends_with('*');
+        const auto typeDecayed = isPointer ? typeRaw.substr(0, typeRaw.size() - 1) : typeRaw;
+
+        typeOut  = make_string(typeDecayed, isPointer ? '*' : '&');
+        typeCast = make_string(isPointer ? "" : "*", "reinterpret_cast<", typeDecayed, "*>");
+        name     = info->name();
+    }
+};
 
 void netvars_storage::generate_classes(netvars_classes& data)
 {
@@ -630,57 +650,79 @@ void netvars_storage::generate_classes(netvars_classes& data)
 #else
     data.files.reserve(data_.size() * 2);
 
-    for (const auto& table : data_)
-    {
-        if (table.empty())
-            continue;
+    constexpr auto reqType = [](auto& i) {
+        return !i->type().empty();
+    };
 
-        std::ostringstream h, cpp;
+    constexpr auto genInfo = [](auto& i) -> generate_info {
+        return i.get();
+    };
 
-        const string_view class_name = table.name();
-
-        for (const auto& info : table)
-        {
-            auto netvar_type_raw = info->type();
-            if (netvar_type_raw.empty())
-                continue;
-
-            const auto netvar_type_pointer = netvar_type_raw.ends_with('*');
-
-            const auto netvar_type_decayed = netvar_type_pointer ? netvar_type_raw.substr(0, netvar_type_raw.size() - 1) : netvar_type_raw;
-            const auto netvar_type_out     = make_string(netvar_type_decayed, netvar_type_pointer ? '*' : '&');
-            const auto netvar_type_cast    = make_string(netvar_type_pointer ? "" : "*", "reinterpret_cast<", netvar_type_decayed, "*>");
-
-            const string_view netvar_name = info->name();
-
-            constexpr string_view offset_getter_fn = "netvars_storage->get_offset";
-            constexpr string_view args_separator   = ", ";
-
-            h << netvar_type_out << ' ' << netvar_name << "();\n";
-            cpp << netvar_type_out << ' ' << class_name << "::" << netvar_name << "()\n"
-                << '{'
-                /*.......*/
-                << "\tstatic const auto offset = " << offset_getter_fn << '(' << class_name << ", " << netvar_name << ");\n"
-                << "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + offset;\n"
-                << "\treturn " << netvar_type_cast << "(addr);\n"
-                << "}\n\n";
-        }
-
-        const auto store_file = [&](const auto extension, std::ostringstream& buff) {
-            auto& [file_name, file_data] = data.files.emplace_back();
-            write_string(file_name, class_name, extension);
-            _Stream_to(std::move(buff), file_data);
+    std::ranges::for_each(data_ | std::views::filter(_skipEmpty), [&](auto& rawTable) {
+        auto validTable  = rawTable | std::views::filter(reqType) | std::views::transform(genInfo);
+        const auto table = [t = std::vector(validTable.begin(), validTable.end())](auto fn) {
+            std::ranges::for_each(t, fn);
         };
 
-        store_file("_h", h);
-        store_file("_cpp", cpp);
+        const auto className = rawTable.name();
+
+        std::vector<char> source;
+        {
+            const auto offsetsClass = make_string(className, "_offsets");
+
+            // clang-format off
+            write_string(source,
+                         "#ifndef FD_ASSERT\n#define FD_ASSERT(...) #endif\n", //
+                         "static struct\n{\n");
+            // clang-format on
+            table([&](auto& i) {
+                write_string(source, "\tsize_t ", i.name, " = -1;\n");
+            });
+            write_string(source, "\n\tvoid init()\n\t{\n");
+            table([&](auto& i) {
+                // clang-format off
+                write_string(source, 
+                             "\t\tFD_ASSERT(", i.name, " == -1, already set!);\n",
+                             "\t\t", i.name, " = Netvars->get_offset(", className, ", ", i.name, ");\n");
+                // clang-format on
+            });
+            write_string(source, "} ", offsetsClass, ";\n\n");
+            table([&](auto& i) {
+                // clang-format off
+                write_string(source,
+                             i.typeOut, ' ', className, "::", i.name, "()\n",
+                             "{\n",
+                             "\tFD_ASSERT(", offsetsClass, '.', i.name, " != -1, not set!);\n",
+                             "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + ", offsetsClass, '.', i.name, ";\n",
+                             "\treturn ", i.typeCast, "(addr);\n",
+                             "}\n");
+                // clang-format on
+            });
+        }
+
+        std::vector<char> header;
+        {
+            table([&](auto& i) {
+                write_string(header, i.typeOut, ' ', i.name, "();\n");
+            });
+        }
+
+        // ReSharper disable once CppInconsistentNaming
+        const auto store_file = [&](const auto extension, std::vector<char>& buff) {
+            auto& [fileName, fileData] = data.files.emplace_back();
+            write_string(fileName, className, extension);
+            fileData = std::move(buff);
+        };
+
+        store_file("_h", header);
+        store_file("_cpp", source);
 
         // todo: if !MERGE_DATA_TABLES include wanted files!
-    }
+    });
 #endif
 
     invoke(Logger, "netvars - {} classes written to {}", data.files.size(), [&] {
-        return /* _Correct_path */ (_Drop_default_path(data.dir, netvars_classes().dir));
+        return /* _Correct_path */ (_drop_default_path(data.dir, netvars_classes().dir));
     });
 }
 
@@ -710,13 +752,13 @@ void netvars_storage::init_default()
 
 void netvars_storage::finish()
 {
-    sort_requested_.clear();
-    sort_requested_.shrink_to_fit();
+    sortRequested_.clear();
+    sortRequested_.shrink_to_fit();
 
     invoke(Logger, "netvars - {} classes stored", data_.size());
 }
 
-size_t netvars_storage::get_offset(const string_view class_name, const string_view name) const
+size_t netvars_storage::get_offset(const string_view className, const string_view name) const
 {
 #if 0
     // ideally it is better to use std::call_once instead of static
@@ -728,13 +770,13 @@ size_t netvars_storage::get_offset(const string_view class_name, const string_vi
         return true;
     }();
 #endif
-    FD_ASSERT(sort_requested_.capacity() == 0, "finish not called!");
-    return this->find(class_name)->find(name)->offset();
+    FD_ASSERT(sortRequested_.capacity() == 0, "finish not called!");
+    return this->find(className)->find(name)->offset();
 }
 
 //----------
 
 namespace fd
 {
-    basic_netvars_storage* netvars_storage;
+    basic_netvars_storage* Netvars;
 }

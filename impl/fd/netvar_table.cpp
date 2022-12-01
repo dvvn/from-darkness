@@ -22,8 +22,8 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
 
         if (item->offset() == offset)
         {
-            const auto type_curr = item->type();
-            if (type_curr.empty() || type.empty() || type == type_curr)
+            const auto currType = item->type();
+            if (currType.empty() || type.empty() || type == currType)
                 FD_ASSERT("Item with given offset and type already added!");
             // othervise skip this offset manually
         }
@@ -32,7 +32,7 @@ void netvar_table::validate_item(const basic_netvar_info* info) const
 
 netvar_table::netvar_table(string&& name, const bool root)
     : name_(std::move(name))
-    , root_(root)
+    , isRoot_(root)
 {
     FD_ASSERT(!name_.empty(), "Incorrect name");
 }
@@ -44,7 +44,7 @@ string_view netvar_table::name() const
 
 bool netvar_table::root() const
 {
-    return root_;
+    return isRoot_;
 }
 
 const basic_netvar_info* netvar_table::find(const string_view name) const

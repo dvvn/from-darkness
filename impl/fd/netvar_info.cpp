@@ -29,11 +29,11 @@ string_view netvar_info::name() const
 {
     if (name_.empty())
     {
-        constexpr auto name_getter = [](auto src) -> string_view {
+        constexpr auto nameGetter = [](auto src) -> string_view {
             return src->name;
         };
 
-        auto name = std::visit(name_getter, source_);
+        auto name = std::visit(nameGetter, source_);
         if (size_ > 0)
         {
             FD_ASSERT(name.ends_with("[0]"));
@@ -49,24 +49,25 @@ string_view netvar_info::type() const
 {
     if (type_.empty())
     {
-        constexpr auto type_getter = overload(type_recv_prop, type_datamap_field);
+        constexpr auto typeGetter = overload(type_recv_prop, type_datamap_field);
 
         std::visit(
             [&](auto val) {
-                auto tmp_type = invoke(type_getter, val);
+                auto tmpType = invoke(typeGetter, val);
+                // ReSharper disable once CppUnreachableCode
                 if (size_ <= 1)
                 {
-                    type_ = std::move(tmp_type);
+                    type_ = std::move(tmpType);
                     return;
                 }
                 if (size_ == 3)
                 {
-                    type_ = type_array_prefix(tmp_type, val);
+                    type_ = type_array_prefix(tmpType, val);
                     if (!type_.empty())
                         return;
                 }
 
-                type_ = type_std_array(tmp_type, size_);
+                type_ = type_std_array(tmpType, size_);
             },
             source_);
     }

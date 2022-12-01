@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fd/netvar_info.h>
-#include <fd/utility.h>
 
 #include <memory>
 #include <vector>
@@ -11,17 +10,17 @@ namespace fd
     class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
     {
         string name_;
-        bool root_;
+        bool isRoot_;
 
       protected:
         void validate_item(const basic_netvar_info* info) const;
 
       public:
-        netvar_table(string&& name, const bool root);
+        netvar_table(string&& name, bool root);
 
         string_view name() const;
         bool root() const;
-        const basic_netvar_info* find(const string_view name) const;
+        const basic_netvar_info* find(string_view name) const;
 
         template <typename... Args>
         const auto* add(Args&&... args)

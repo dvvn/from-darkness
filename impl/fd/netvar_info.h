@@ -30,11 +30,11 @@ namespace fd
         mutable string type_;
 
       public:
-        netvar_info(const size_t offset, const netvar_info_source source, const size_t size = 0, const string_view name = {});
+        netvar_info(size_t offset, netvar_info_source source, size_t size = 0, string_view name = {});
 
-        size_t offset() const;
-        string_view name() const;
-        string_view type() const;
+        size_t offset() const override;
+        string_view name() const override;
+        string_view type() const override;
     };
 
     template <typename Fn>
@@ -52,23 +52,24 @@ namespace fd
         {
         }
 
-        size_t offset() const
+        size_t offset() const override
         {
             if (std::holds_alternative<Fn>(getter_))
             {
                 const auto offset = invoke(std::get<Fn>(getter_));
+                // ReSharper disable once CppUnreachableCode
                 return getter_.emplace(offset);
             }
 
             return std::get<size_t>(getter_);
         }
 
-        string_view name() const
+        string_view name() const override
         {
             return name_;
         }
 
-        string_view type() const
+        string_view type() const override
         {
             return type_;
         }
@@ -84,11 +85,11 @@ namespace fd
         string type_;
 
       public:
-        netvar_info_instant(const size_t offset, const string_view name = {}, string&& type = {});
+        netvar_info_instant(size_t offset, string_view name = {}, string&& type = {});
 
-        size_t offset() const;
-        string_view name() const;
-        string_view type() const;
+        size_t offset() const override;
+        string_view name() const override;
+        string_view type() const override;
     };
 
 #define _NETVAR_CHECK(_CLASS_) std::constructible_from<_CLASS_, Arg1&&, Args&&...>

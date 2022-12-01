@@ -47,28 +47,28 @@ namespace fd
     class netvars_storage : public basic_netvars_storage
     {
         std::vector<netvar_table> data_;
-        std::vector<size_t> sort_requested_;
+        std::vector<size_t> sortRequested_;
         // std::once_flag_ init_flag_;
 
         void request_sort(const netvar_table* table);
         void sort();
 
-        netvar_table* add(string&& name, const bool root = true);
-        netvar_table* add(const string_view name, const bool root = true);
+        netvar_table* add(string&& name, bool root = true);
+        netvar_table* add(string_view name, bool root = true);
 
       public:
         netvars_storage();
 
-        netvar_table* find(const string_view name);
-        const netvar_table* find(const string_view name) const;
+        netvar_table* find(string_view name);
+        const netvar_table* find(string_view name) const;
 
-        void iterate_client_class(const valve::client_class* root_class, const string_view debug_name = {});
-        void iterate_datamap(const valve::data_map* root_map, const string_view debug_name = {});
+        void iterate_client_class(const valve::client_class* rootClass, string_view debugName = {});
+        void iterate_datamap(const valve::data_map* rootMap, string_view debugName = {});
         [[deprecated("Do it manually")]] void store_handmade_netvars();
         void log_netvars(netvars_log& data);
         void generate_classes(netvars_classes& data);
 
         void finish();
-        size_t get_offset(const string_view class_name, const string_view name) const override;
+        size_t get_offset(string_view className, string_view name) const override;
     };
 } // namespace fd

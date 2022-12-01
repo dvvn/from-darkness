@@ -306,4 +306,69 @@ namespace fd::valve
         client_class* next;
         known_ids id;
     };
+
+    class client_class_iterator
+    {
+        const client_class* ptr_;
+
+      public:
+#ifdef __cpp_lib_concepts
+        using iterator_concept = std::contiguous_iterator_tag;
+#endif
+        using iterator_category = std::forward_iterator_tag;
+        using value_type        = const client_class;
+        using difference_type   = ptrdiff_t;
+        using pointer           = const client_class*;
+        using reference         = value_type&;
+
+        client_class_iterator(const client_class* ptr = nullptr)
+            : ptr_(ptr)
+        {
+        }
+
+        const client_class& operator*() const
+        {
+            return *ptr_;
+        }
+
+        client_class_iterator& operator++()
+        {
+            ptr_ = ptr_->next;
+            return *this;
+        }
+
+        client_class_iterator operator++(int)
+        {
+            auto ret = *this;
+            operator++();
+            return ret;
+        }
+
+        bool operator==(const client_class_iterator&) const = default;
+    };
+
+    class client_class_range
+    {
+        const client_class* start_;
+
+      public:
+        using value_type      = const client_class&;
+        using difference_type = ptrdiff_t;
+
+        client_class_range(const client_class* start = nullptr)
+            : start_(start)
+        {
+        }
+
+        client_class_iterator begin() const
+        {
+            return start_;
+        }
+
+        client_class_iterator end() const
+        {
+            return nullptr;
+        }
+    };
+
 } // namespace fd::valve

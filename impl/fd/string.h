@@ -269,6 +269,9 @@ namespace fd
     template <typename T>
     concept can_reserve = requires(T obj) { obj.reserve(1234); };
 
+    template <typename T, typename... Args>
+    concept can_append = requires(T val, Args... args) { val.append(std::forward<Args>(args)...); };
+
     class write_string_impl
     {
         template <typename T>
@@ -302,10 +305,12 @@ namespace fd
             }
             else
             {
-                if constexpr (canCopy)
+                if constexpr (!canCopy)
+                    std::fill_n(std::back_insert_iterator(buff), size, src);
+                else if constexpr (can_append<Itr&, T, T>)
                     buff.append(src, src + size);
                 else
-                    std::fill_n(std::back_insert_iterator(buff), size, src);
+                    buff.insert(buff.end(), src, src + size);
             }
         }
 

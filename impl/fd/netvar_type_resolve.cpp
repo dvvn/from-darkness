@@ -3,6 +3,7 @@
 #include <fd/string_info.h>
 #include <fd/type_name.h>
 
+// ReSharper disable CppUnusedIncludeDirective
 #include <fd/valve/base_entity.h>
 #include <fd/valve/base_handle.h>
 #include <fd/valve/color.h>
@@ -18,36 +19,36 @@ using namespace fd;
 using namespace valve;
 
 // m_xxxX***
-static string_view _Extract_prefix(const string_view type, const size_t prefix_size = 3)
+static string_view _extract_prefix(const string_view type, const size_t prefixSize = 3)
 {
-    const auto type_start = 2 + prefix_size;
-    if (type.size() <= type_start)
+    const auto typeStart = 2 + prefixSize;
+    if (type.size() <= typeStart)
         return {};
-    if (/* type.substr(0, 2) != "m_" */ type[0] != 'm' || type[1] != '_')
+    if (/* type.substr(0, 2) != "m_" */ !(type[0] == 'm' && type[1] == '_'))
         return {};
-    if (!is_upper(type[type_start]))
+    if (!is_upper(type[typeStart]))
         return {};
-    return type.substr(2, prefix_size);
+    return type.substr(2, prefixSize);
 }
 
-static string_view _Check_int_prefix(const string_view type)
+static string_view _check_int_prefix(const string_view type)
 {
-    if (_Extract_prefix(type) == "uch")
+    if (_extract_prefix(type) == "uch")
         return type_name<color>();
     return {};
 }
 
-static string_view _Check_float_prefix(const string_view type)
+static string_view _check_float_prefix(const string_view type)
 {
 #if 1
-    const auto prefix = _Extract_prefix(type);
+    const auto prefix = _extract_prefix(type);
     if (prefix == "ang")
         return type_name<qangle>();
     if (prefix == "vec")
         return type_name<vector3>();
     return {};
 #else
-    switch (_Extract_prefix(type).substr(3))
+    switch (_extract_prefix(type).substr(3))
     {
     case "ang"_hash:
         return type_name<qangle>();
@@ -72,7 +73,7 @@ struct unexpl_string : string
     }
 };
 
-unexpl_string _Type_recv_prop(const recv_prop* prop)
+static unexpl_string _type_recv_prop(const recv_prop* prop)
 {
     using pt = recv_prop_type;
 
@@ -89,9 +90,9 @@ unexpl_string _Type_recv_prop(const recv_prop* prop)
     case pt::DPT_String:
         return type_name<char*>(); // char[X]
     case pt::DPT_Array: {
-        const auto prev_prop = prop - 1;
-        FD_ASSERT(string_view(prev_prop->name).ends_with("[0]"));
-        const auto type = type_recv_prop(prev_prop);
+        const auto prevProp = prop - 1;
+        FD_ASSERT(string_view(prevProp->name).ends_with("[0]"));
+        const auto type = type_recv_prop(prevProp);
         return type_std_array(type, prop->elements_count);
     }
     case pt::DPT_DataTable: {
@@ -115,41 +116,41 @@ namespace fd
     string type_std_array(const string_view type, const size_t size)
     {
         FD_ASSERT(size != 0);
-        constexpr auto arr_name = type_name<std::array>();
+        constexpr auto arrName = /*type_name<std::array>()*/ "std::array";
 #if defined(__cpp_lib_format) && 0
         return std::format("{}<{}, {}>", arr_name, type, size); // formatter not imported
 #else
-        return make_string(arr_name, '<', type, ", ", size, '>');
+        return make_string(arrName, '<', type, ", ", size, '>');
 #endif
     }
 
     string type_utlvector(const string_view type)
     {
-        constexpr auto arr_name = type_name<valve::vector>();
+        constexpr auto arrName = /*type_name<valve::vector>()*/ "valve::vector";
 #if defined(__cpp_lib_format) && 0
         return std::format("{}<{}>", arr_name, type); // formatter not imported
 #else
-        return make_string(arr_name, '<', type, '>');
+        return make_string(arrName, '<', type, '>');
 #endif
     }
 
     string_view type_vec3(const string_view type)
     {
-        const auto vec3_qangle = [=] {
+        const auto vec3Qangle = [=] {
             if (is_digit(type[0]))
                 return false;
-            const auto prefix = _Extract_prefix(type);
+            const auto prefix = _extract_prefix(type);
             if (prefix == "ang")
                 return true;
-            const auto type_fixed = prefix.empty() ? type : type.substr(2);
-            const auto ang        = type_fixed.find("ngles");
-            if (ang == type_fixed.npos || ang == 0)
+            const auto typeFixed = prefix.empty() ? type : type.substr(2);
+            const auto ang       = typeFixed.find("ngles");
+            if (ang == typeFixed.npos || ang == 0)
                 return false;
-            const auto chr = type_fixed[ang - 1];
+            const auto chr = typeFixed[ang - 1];
             return chr == 'a' || chr == 'A';
-        };
+        }();
 
-        return vec3_qangle() ? type_name<qangle>() : type_name<vector3>();
+        return vec3Qangle ? type_name<qangle>() : type_name<vector3>();
     }
 
     string_view type_integer(string_view type)
@@ -157,10 +158,10 @@ namespace fd
         if (/*!is_digit(type[0]) &&*/ type.starts_with("m_"))
         {
             type.remove_prefix(2);
-            const auto check_upper = [&](const size_t i) {
+            const auto checkUpper = [&](const size_t i) {
                 return type.size() > i && is_upper(type[i]);
             };
-            if (check_upper(1))
+            if (checkUpper(1))
             {
                 if (type.starts_with('b'))
                     return type_name<bool>();
@@ -169,7 +170,7 @@ namespace fd
                 if (type.starts_with('h'))
                     return type_name<base_handle>();
             }
-            else if (check_upper(2))
+            else if (checkUpper(2))
             {
                 if (type.starts_with("un"))
                     return type_name<uint32_t>();
@@ -178,7 +179,7 @@ namespace fd
                 if (type.starts_with("fl") && /* to_lower */ type.substr(2).ends_with("Time") /* contains("time") */) //  SimulationTime int ???
                     return type_name<float>();
             }
-            else if (check_upper(3))
+            else if (checkUpper(3))
             {
                 if (type.starts_with("clr"))
                     return type_name<color>(); // not sure
@@ -192,7 +193,7 @@ namespace fd
 
     string type_recv_prop(const recv_prop* prop)
     {
-        return _Type_recv_prop(prop);
+        return _type_recv_prop(prop);
     }
 
     string_view type_datamap_field(const data_map_description* field)
@@ -268,9 +269,9 @@ namespace fd
         switch (prop->type)
         {
         case pt::DPT_Int:
-            return _Check_int_prefix(type);
+            return _check_int_prefix(type);
         case pt::DPT_Float:
-            return _Check_float_prefix(type);
+            return _check_float_prefix(type);
         default:
             return {};
         }
@@ -283,9 +284,9 @@ namespace fd
         switch (field->type)
         {
         case ft::FIELD_INTEGER:
-            return _Check_int_prefix(type);
+            return _check_int_prefix(type);
         case ft::FIELD_FLOAT:
-            return _Check_float_prefix(type);
+            return _check_float_prefix(type);
         default:
             return {};
         }
