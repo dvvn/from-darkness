@@ -92,7 +92,7 @@ void tab_bar::store(tab& newTab)
 
 menu_impl::menu_impl()
     : visible_(false)
-    , next_visible_(false)
+    , next_visible_(true)
 {
 }
 
