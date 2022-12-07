@@ -95,7 +95,7 @@ static void _Correct_path(wstring& path)
 }
 #endif
 
-static void _write_to_file(const wstring& path, const std::span<const char> buff)
+static void _write_to_file(const wstring_view path, const std::span<const char> buff)
 {
     // std::ofstream(full_path).write(buff.data(), buff.size());
     FILE* f;
@@ -120,7 +120,7 @@ netvars_log::~netvars_log()
     if (dir.empty())
         return;
     //_Correct_path(dir);
-    if (!fs::Directory.create(dir))
+    if (!fs::Directory.create(dir, false))
         return;
     const auto fullPath = make_string(dir, file.name, file.extension);
     if (_file_already_written(fullPath, buff))
@@ -132,15 +132,32 @@ netvars_classes::~netvars_classes()
 {
     if (dir.empty())
         return;
+
     //_Correct_path(dir);
-    const auto fileIsEmpty = fs::Directory.create(dir) || fs::Directory.empty(dir);
-    for (const auto& [name, buff] : files)
+
+    struct path_info
     {
-        const auto filePath = make_string(dir, name);
-        if (!fileIsEmpty && _file_already_written(filePath, buff))
-            continue;
-        _write_to_file(filePath, buff);
-    }
+        wstring path;
+        std::span<const char> buff;
+    };
+
+    const auto buildPath = [&](const file_info& info) -> path_info {
+        return { make_string(dir, info.name), info.data };
+    };
+
+    const auto skipWritten = [&](const path_info& p) {
+        return _file_already_written(p.path, p.buff);
+    };
+
+    const auto writeBuffer = [&](const path_info& p) {
+        _write_to_file(p.path, p.buff);
+    };
+
+    const auto dirIsEmpty = fs::Directory.create(dir, false) || fs::Directory.empty(dir);
+    if (dirIsEmpty)
+        std::ranges::for_each(files, writeBuffer, buildPath);
+    else
+        std::ranges::for_each(files | std::views::transform(buildPath) | std::views::filter(skipWritten), writeBuffer);
 }
 
 netvars_classes::netvars_classes()
@@ -203,10 +220,10 @@ static auto _is_length_proxy(const recv_prop* prop)
 {
     if (prop->array_length_proxy)
         return true;
-    const auto buffSize = str_len(prop->name);
+    const string_view propName(prop->name);
     string lstr;
-    lstr.reserve(buffSize);
-    std::transform(prop->name, prop->name + buffSize, std::back_insert_iterator(lstr), to_lower);
+    lstr.reserve(propName.size());
+    std::ranges::transform(propName, std::back_insert_iterator(lstr), to_lower);
     return lstr.contains("length") && lstr.contains("proxy");
 };
 
@@ -359,14 +376,14 @@ template <class J, typename T>
 concept can_assign = requires(J& js, const T& test) { js[test]; };
 
 template <class J, typename T>
-static auto& _append(J& js, const T& str)
+static auto _append(J& js, const T& str)
 {
     if constexpr (can_assign<J, T>)
-        return js[str];
+        return &js[str];
     else
     {
         const auto nullTerminated = str.data()[str.size()] == '\0';
-        return nullTerminated ? js[str.data()] : js[typename J::string_t(str.begin(), str.end())];
+        return nullTerminated ? &js[str.data()] : &js[typename J::string_t(str.begin(), str.end())];
     }
 }
 
@@ -568,8 +585,26 @@ static auto _drop_default_path(wstring_view buff, const wstring_view prefix)
     return buff;
 }
 
-static constexpr auto _skipEmpty = [](auto& rng) {
+static constexpr auto _SkipEmpty = [](auto& rng) {
     return !rng.empty();
+};
+
+template <class S>
+struct simple_netvar_info
+{
+    S name;
+    size_t offset;
+    S type;
+
+    simple_netvar_info(const basic_netvar_info& info)
+    {
+        const auto nativeName = info.name();
+        const auto nativeType = info.type();
+
+        name   = { nativeName.begin(), nativeName.end() };
+        offset = info.offset();
+        type   = { nativeType.begin(), nativeType.end() };
+    }
 };
 
 void netvars_storage::log_netvars(netvars_log& data)
@@ -583,38 +618,36 @@ void netvars_storage::log_netvars(netvars_log& data)
     json_unsorted jsRoot;
     using json_string = json_unsorted::string_t;
 
-    constexpr auto unpackTable = [](auto& info) {
-        const auto nativeName = info->name();
-        return std::tuple(json_string(nativeName.begin(), nativeName.end()), info->offset(), info->type());
+    constexpr auto unpackTable = [](auto& info) -> simple_netvar_info<json_string> {
+        return *info;
     };
 
-    constexpr auto storeTable = [](auto args, json_unsorted& buff) {
-        auto& [name, offset, type] = args;
-        if (type.empty())
+    constexpr auto storeTable = [](auto info, auto* buff) {
+        if (info.type.empty())
         {
-            buff.push_back({
-                {"name",    std::move(name)},
-                { "offset", offset         }
+            buff->push_back({
+                {"name",    std::move(info.name)},
+                { "offset", info.offset         }
             });
         }
         else
         {
-            buff.push_back({
-                { "name", std::move(name) },
-                { "offset", offset },
-                { "type", json_string(type.begin(), type.end()) }
+            buff->push_back({
+                {"name",    std::move(info.name)},
+                { "offset", info.offset         },
+                { "type",   std::move(info.type)}
             });
         }
     };
 
-    std::ranges::for_each(data_ | std::views::filter(_skipEmpty), [&jsRoot](auto& table) {
-        std::ranges::for_each(table | std::views::transform(unpackTable), bind_back(storeTable, std::ref(_append(jsRoot, table.name()))));
+    std::ranges::for_each(data_ | std::views::filter(_SkipEmpty), [&jsRoot](auto& table) {
+        std::ranges::for_each(table, bind_back(storeTable, _append(jsRoot, table.name())), unpackTable);
     });
 
     _stream_to(std::ostringstream() << std::setw(data.indent) << std::setfill(data.filler) << jsRoot, data.buff);
 
     invoke(Logger, "netvars - logs will be written to {}", [&] {
-        return make_string(/* _Correct_path */ (_drop_default_path(data.dir, netvars_log().dir)), data.file.name, data.file.extension);
+        return make_string(_drop_default_path(data.dir, netvars_log().dir), data.file.name, data.file.extension);
     });
 }
 
@@ -658,28 +691,30 @@ void netvars_storage::generate_classes(netvars_classes& data)
         return i.get();
     };
 
-    std::ranges::for_each(data_ | std::views::filter(_skipEmpty), [&](auto& rawTable) {
-        auto validTable  = rawTable | std::views::filter(reqType) | std::views::transform(genInfo);
-        const auto table = [t = std::vector(validTable.begin(), validTable.end())](auto fn) {
-            std::ranges::for_each(t, fn);
-        };
+    // reuse the memory
+    std::vector<char> source, header;
+
+    std::ranges::for_each(data_ | std::views::filter(_SkipEmpty), [&](auto& rawTable) {
+        auto validTable = rawTable | std::views::filter(reqType) | std::views::transform(genInfo);
+        const std::vector table(validTable.begin(), validTable.end());
 
         const auto className = rawTable.name();
 
-        std::vector<char> source;
+        source.clear();
         {
             const auto offsetsClass = make_string(className, "_offsets");
 
             // clang-format off
             write_string(source,
-                         "#ifndef FD_ASSERT\n#define FD_ASSERT(...) #endif\n", //
+                         "// clang-format off\n",
+                         "#ifndef FD_ASSERT\n#define FD_ASSERT(...) #endif\n\n", //
                          "static struct\n{\n");
             // clang-format on
-            table([&](auto& i) {
+            std::ranges::for_each(table, [&](auto& i) {
                 write_string(source, "\tsize_t ", i.name, " = -1;\n");
             });
             write_string(source, "\n\tvoid init()\n\t{\n");
-            table([&](auto& i) {
+            std::ranges::for_each(table, [&](auto& i) {
                 // clang-format off
                 write_string(source, 
                              "\t\tFD_ASSERT(", i.name, " == -1, already set!);\n",
@@ -687,7 +722,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
                 // clang-format on
             });
             write_string(source, "} ", offsetsClass, ";\n\n");
-            table([&](auto& i) {
+            std::ranges::for_each(table, [&](auto& i) {
                 // clang-format off
                 write_string(source,
                              i.typeOut, ' ', className, "::", i.name, "()\n",
@@ -700,18 +735,22 @@ void netvars_storage::generate_classes(netvars_classes& data)
             });
         }
 
-        std::vector<char> header;
+        header.clear();
         {
-            table([&](auto& i) {
-                write_string(header, i.typeOut, ' ', i.name, "();\n");
+            std::ranges::for_each(table, [&](auto& i) {
+                // clang-format off
+                write_string(header,
+                             "// clang-format off\n\n",
+                              i.typeOut, ' ', i.name, "();\n");
+                // clang-format on
             });
         }
 
         // ReSharper disable once CppInconsistentNaming
-        const auto store_file = [&](const auto extension, std::vector<char>& buff) {
+        const auto store_file = [&](const string_view extension, const std::span<const char>& buff) {
             auto& [fileName, fileData] = data.files.emplace_back();
             write_string(fileName, className, extension);
-            fileData = std::move(buff);
+            fileData.assign(buff.begin(), buff.end());
         };
 
         store_file("_h", header);
@@ -722,7 +761,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
 #endif
 
     invoke(Logger, "netvars - {} classes written to {}", data.files.size(), [&] {
-        return /* _Correct_path */ (_drop_default_path(data.dir, netvars_classes().dir));
+        return /* _Correct_path */ _drop_default_path(data.dir, netvars_classes().dir);
     });
 }
 
