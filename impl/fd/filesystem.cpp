@@ -1,53 +1,262 @@
+// ReSharper disable CppRedundantQualifier
+// ReSharper disable CppMemberFunctionMayBeStatic
+
 #include <fd/assert.h>
 #include <fd/filesystem.h>
 
-#include <Shlwapi.h>
 #include <Windows.h>
+#include <winternl.h>
 
-#pragma comment(lib, "Shlwapi.lib")
+#include <ranges>
+
+#pragma comment(lib, "Ntdll.lib")
 
 using namespace fd;
 using namespace fs;
 
-template <class T>
-static bool _Is_null_terminated(const T str)
+class win_string
 {
-    const auto raw = str.data();
-    return raw[str.size()] == '\0';
+    wstring buff_;
+
+  public:
+    win_string() = default;
+
+    template <class T>
+    win_string(const T str)
+    {
+        assign(str);
+    }
+
+    template <class T>
+    void assign(const T str, const bool isNative = false)
+    {
+        if (!buff_.empty())
+            buff_.clear();
+
+        if (str.starts_with('\\'))
+        {
+            buff_.reserve(str.size());
+        }
+        else
+        {
+            buff_.reserve(4 + str.size());
+            buff_.append(L"\\??\\", 4);
+        }
+
+        if (isNative)
+        {
+            buff_.append(str.begin(), str.end());
+        }
+        else
+        {
+            const auto doPush = [&](auto ch) {
+                buff_.push_back(ch);
+            };
+            constexpr auto fixSeperator = [](auto ch) -> wchar_t {
+                return ch == '/' ? '\\' : ch;
+            };
+            std::ranges::for_each(str, doPush, fixSeperator);
+        }
+    }
+
+    bool empty() const
+    {
+        return buff_.empty();
+    }
+
+    wchar_t* data()
+    {
+        return buff_.data();
+    }
+
+    size_t size() const
+    {
+        return buff_.size();
+    }
+};
+
+// ReSharper disable once CppInconsistentNaming
+static void swap(UNICODE_STRING& l, UNICODE_STRING& r) noexcept
+{
+    std::swap(l.Length, r.Length);
+    std::swap(l.MaximumLength, r.MaximumLength);
 }
 
-[[maybe_unused]] static bool _Is_directory(const DWORD attr)
+class win_object_attributes
 {
-    return attr != INVALID_FILE_ATTRIBUTES && attr & FILE_ATTRIBUTE_DIRECTORY;
+    win_string nameBuffer_;
+    UNICODE_STRING name_;
+    OBJECT_ATTRIBUTES attr_;
+
+    void init_base(const ULONG attributes)
+    {
+        attr_.Length                   = sizeof(OBJECT_ATTRIBUTES);
+        attr_.RootDirectory            = nullptr;
+        attr_.ObjectName               = &name_;
+        attr_.Attributes               = attributes;
+        attr_.SecurityDescriptor       = nullptr;
+        attr_.SecurityQualityOfService = nullptr;
+        static_assert(offsetof(OBJECT_ATTRIBUTES, SecurityQualityOfService) + sizeof(void*) == sizeof(OBJECT_ATTRIBUTES));
+    }
+
+    void fix_name()
+    {
+        if (!nameBuffer_.empty())
+            name_.Buffer = nameBuffer_.data();
+        attr_.ObjectName = &name_;
+    }
+
+    void kill_name()
+    {
+        name_.Buffer     = nullptr;
+        attr_.ObjectName = nullptr;
+    }
+
+    template <class S>
+    void init_name(const S str)
+    {
+        auto isNative = false;
+
+        if constexpr (std::same_as<typename S::value_type, wchar_t>)
+        {
+            isNative = !str.contains(L'/');
+            if (str[0] == '\\' && isNative)
+            {
+                name_.Buffer        = const_cast<wchar_t*>(str.data());
+                name_.MaximumLength = name_.Length = str.size() * sizeof(wchar_t);
+                return;
+            }
+        }
+
+        nameBuffer_.assign(str, isNative);
+        name_.Buffer        = nameBuffer_.data();
+        name_.Length        = nameBuffer_.size() * sizeof(wchar_t);
+        name_.MaximumLength = name_.Length + sizeof(wchar_t);
+    }
+
+  public:
+    win_object_attributes(const win_object_attributes& other) = delete;
+
+    win_object_attributes(win_object_attributes&& other) noexcept
+        : nameBuffer_(std::move(other.nameBuffer_))
+        , name_(std::move(other.name_))
+        , attr_(std::move(other.attr_))
+    {
+        fix_name();
+        other.kill_name();
+    }
+
+    win_object_attributes& operator=(const win_object_attributes& other) = delete;
+
+    win_object_attributes& operator=(win_object_attributes&& other) noexcept
+    {
+        using std::swap;
+        swap(attr_, other.attr_);
+        swap(nameBuffer_, other.nameBuffer_);
+        swap(name_, other.name_);
+        fix_name();
+        other.fix_name();
+        return *this;
+    }
+
+    win_object_attributes(const string_view path, const ULONG attributes = 0)
+    {
+        init_name(path);
+        init_base(attributes);
+    }
+
+    win_object_attributes(const wstring_view path, const ULONG attributes = 0)
+    {
+        init_name(path);
+        init_base(attributes);
+    }
+
+    OBJECT_ATTRIBUTES* operator&()
+    {
+        return &attr_;
+    }
+};
+
+class nt_handle
+{
+    HANDLE h_;
+
+  public:
+    nt_handle(HANDLE h = INVALID_HANDLE_VALUE)
+        : h_(h)
+    {
+    }
+
+    ~nt_handle()
+    {
+        if (h_ && h_ != INVALID_HANDLE_VALUE)
+            NtClose(h_);
+    }
+
+    nt_handle(const nt_handle& other) = delete;
+
+    nt_handle(nt_handle&& other) noexcept
+        : h_(std::exchange(other.h_, INVALID_HANDLE_VALUE))
+    {
+    }
+
+    nt_handle& operator=(nt_handle&& other) noexcept
+    {
+        using std::swap;
+        swap(h_, other.h_);
+        return *this;
+    }
+
+    operator HANDLE() const
+    {
+        return h_;
+    }
+
+    PHANDLE operator&()
+    {
+        return &h_;
+    }
+};
+
+static ULONG _file_open_flags(const bool isFile)
+{
+    return (isFile ? FILE_NON_DIRECTORY_FILE : FILE_DIRECTORY_FILE) | FILE_SYNCHRONOUS_IO_NONALERT;
 }
 
-template <class T>
-static bool _Is_nt_string(const T str)
+template <class P>
+static bool _path_exists(const P path, const bool isFile)
 {
-    return str[0] == '\\' && str[1] == '?';
+    nt_handle h;
+    win_object_attributes attr(path, OBJ_CASE_INSENSITIVE);
+    IO_STATUS_BLOCK statusBlock;
+    constexpr ACCESS_MASK desiredAccess = FILE_READ_ATTRIBUTES | SYNCHRONIZE;
+    const auto options                  = _file_open_flags(isFile);
+    const auto status                   = NtOpenFile(&h, desiredAccess, &attr, &statusBlock, FILE_SHARE_READ, options);
+    return NT_SUCCESS(status);
 }
 
-template <class T>
-static bool _Is_short_path(const T str)
+static constexpr ACCESS_MASK _FileOnlyAccessFlags = FILE_READ_DATA | FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_EXECUTE;
+
+template <class P>
+static bool _path_create(const P path, const bool isFile, const bool override)
 {
-    return str.size() < MAX_PATH;
+    nt_handle h;
+    win_object_attributes attr(path, OBJ_CASE_INSENSITIVE);
+    IO_STATUS_BLOCK statusBlock;
+    ACCESS_MASK desiredAccess = FILE_GENERIC_WRITE;
+    if (!isFile)
+        desiredAccess &= ~_FileOnlyAccessFlags;
+    const ULONG disposition = override ? FILE_SUPERSEDE : FILE_CREATE;
+    const auto options      = _file_open_flags(isFile) | FILE_RANDOM_ACCESS;
+    const auto status       = NtCreateFile(&h, desiredAccess, &attr, &statusBlock, nullptr, FILE_ATTRIBUTE_NORMAL, 0, disposition, options, nullptr, 0);
+    return NT_SUCCESS(status);
 }
-
-template <class T>
-static constexpr bool _Is_wstring(const basic_string_view<T>)
-{
-    return std::same_as<T, wchar_t>;
-}
-
-#define _FIX_LONG_PATH(_PATH_) make_string(L"\\?", _PATH_).data()
-#define _FIX_WIDE(_PATH_)      (_Is_wstring(_PATH_) ? reinterpret_cast<const wchar_t*>(_PATH_.data()) : wstring(_PATH_.begin(), _PATH_.end()).data())
-
-#define FIX_C_STR(_STR_)      (_Is_null_terminated(_STR_) ? _STR_.data() : basic_string(_STR_.begin(), _STR_.end()).data())
-#define FIX_LONG_PATH(_PATH_) (_Is_nt_string(_PATH_) ? _FIX_WIDE(_PATH_) : _FIX_LONG_PATH(_PATH_))
-#define FIX_C_PATH(_PATH_)    (_Is_nt_string(_PATH_) || _Is_short_path(_PATH_) ? FIX_C_STR(_PATH_) : _FIX_LONG_PATH(_PATH_))
 
 bool directory_impl::operator()(const string_view dir) const
 {
+#if 1
+    return _path_exists(dir, false);
+#else
     const auto shortPath = _Is_short_path(dir);
 #ifdef PathIsDirectory
     return shortPath ? PathIsDirectoryA(FIX_C_STR(dir)) : PathIsDirectoryW(FIX_LONG_PATH(dir));
@@ -55,58 +264,60 @@ bool directory_impl::operator()(const string_view dir) const
     const auto attr = shortPath ? GetFileAttributesA(FIX_C_STR(dir)) : GetFileAttributesW(FIX_LONG_PATH(dir));
     return _Is_directory(attr);
 #endif
+#endif
 }
 
 bool directory_impl::operator()(const wstring_view dir) const
 {
+#if 1
+    return _path_exists(dir, false);
+#else
 #ifdef PathIsDirectory
     return PathIsDirectoryW(FIX_C_PATH(dir));
 #else
     return _Is_directory(GetFileAttributesW(FIX_C_PATH(dir)));
 #endif
+#endif
 }
 
-// ReSharper disable CppMemberFunctionMayBeStatic
-bool directory_impl::create(const string_view dir) const
+bool directory_impl::create(const string_view dir, const bool override) const
 {
-    return _Is_short_path(dir) ? CreateDirectoryA(FIX_C_STR(dir), nullptr) : CreateDirectoryW(FIX_LONG_PATH(dir), nullptr);
+    return _path_create(dir, false, override);
 }
 
-bool directory_impl::create(const wstring_view dir) const
+bool directory_impl::create(const wstring_view dir, const bool override) const
 {
-    return CreateDirectoryW(FIX_C_PATH(dir), nullptr);
+    return _path_create(dir, false, override);
 }
 
 bool directory_impl::empty(const string_view dir) const
 {
-#ifdef PathIsDirectoryEmpty
-    return _Is_short_path(dir) ? PathIsDirectoryEmptyA(FIX_C_STR(dir)) : PathIsDirectoryEmptyW(FIX_LONG_PATH(dir));
-#else
-
-#endif
+    FD_ASSERT_UNREACHABLE("Not implemented");
 }
 
 bool directory_impl::empty(const wstring_view dir) const
 {
-#ifdef PathIsDirectoryEmpty
-    return PathIsDirectoryEmptyW(FIX_C_PATH(dir));
-#else
-
-#endif
+    FD_ASSERT_UNREACHABLE("Not implemented");
 }
-
-// ReSharper restore CppMemberFunctionMayBeStatic
 
 //-----
 
 bool file_impl::operator()(const string_view dir) const
 {
-    const auto attr = _Is_short_path(dir) ? GetFileAttributesA(FIX_C_STR(dir)) : GetFileAttributesW(FIX_LONG_PATH(dir));
-    return attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY);
+    return _path_exists(dir, true);
+}
+
+bool file_impl::create(const wstring_view dir, const bool override) const
+{
+    return _path_create(dir, true, override);
+}
+
+bool file_impl::create(const string_view dir, const bool override) const
+{
+    return _path_create(dir, true, override);
 }
 
 bool file_impl::operator()(const wstring_view dir) const
 {
-    const auto attr = GetFileAttributesW(FIX_C_PATH(dir));
-    return attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY);
+    return _path_exists(dir, true);
 }

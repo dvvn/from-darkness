@@ -359,8 +359,8 @@ namespace fd::fs
         bool operator()(wstring_view dir) const;
         bool operator()(string_view dir) const;
 
-        bool create(wstring_view dir) const;
-        bool create(string_view dir) const;
+        bool create(wstring_view dir, bool override) const;
+        bool create(string_view dir, bool override) const;
 
         bool empty(wstring_view dir) const;
         bool empty(string_view dir) const;
@@ -372,6 +372,9 @@ namespace fd::fs
     {
         bool operator()(wstring_view dir) const;
         bool operator()(string_view dir) const;
+
+        bool create(wstring_view dir, bool override) const; // WIP
+        bool create(string_view dir, bool override) const;  // WIP
     };
 
     constexpr file_impl File;
