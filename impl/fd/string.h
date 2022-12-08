@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <iterator>
 #include <string>
-#include <tuple>
 
 namespace fd
 {
@@ -28,32 +27,32 @@ namespace fd
     using std::u32string;
     using std::u32string_view;
 
-    struct check_null_chr_t
+    static constexpr struct
     {
-    } constexpr check_null_chr;
+    } _CheckNullChr;
 
     template <typename C>
-    static constexpr bool _Ptr_equal(const C* ptr1, const C* ptr2, const size_t count)
+    static constexpr bool _ptr_equal(const C* ptr1, const C* ptr2, const size_t count)
     {
         return std::char_traits<C>::compare(ptr1, ptr2, count) == 0;
     }
 
     template <typename C>
-    static constexpr bool _Ptr_equal(const C* myPtr, const C* unkPtr, const size_t count, const check_null_chr_t)
+    static constexpr bool _ptr_equal(const C* myPtr, const C* unkPtr, const size_t count, decltype(_CheckNullChr))
     {
-        return _Ptr_equal(myPtr, unkPtr, count) && unkPtr[count] == static_cast<C>('\0');
+        return _ptr_equal(myPtr, unkPtr, count) && unkPtr[count] == static_cast<C>('\0');
     }
 
     template <class R, class L>
-    static constexpr bool _Str_equal(const R& left, const L& right)
+    static constexpr bool _str_equal(const R& left, const L& right)
     {
-        return left.size() == right.size() && _Ptr_equal(left.data(), right.data(), left.size());
+        return left.size() == right.size() && _ptr_equal(left.data(), right.data(), left.size());
     }
 
     template <typename C>
     constexpr bool operator==(const basic_string_view<C> left, const basic_string_view<C> right)
     {
-        // return _Str_equal(left, right);
+        // return _str_equal(left, right);
         const auto size = left.size();
         if (size != right.size())
             return false;
@@ -64,25 +63,25 @@ namespace fd
         if (ld == rd)
             return true;
 
-        return _Ptr_equal(ld, rd, size);
+        return _ptr_equal(ld, rd, size);
     }
 
     template <typename C>
     constexpr bool operator==(const basic_string_view<C> left, const basic_string<C>& right)
     {
-        return _Str_equal(left, right);
+        return _str_equal(left, right);
     }
 
     template <typename C>
     constexpr bool operator==(const basic_string<C>& left, const basic_string_view<C> right)
     {
-        return _Str_equal(left, right);
+        return _str_equal(left, right);
     }
 
     template <typename C>
     constexpr bool operator==(const basic_string_view<C> left, const C* right)
     {
-        return _Ptr_equal(left.data(), right, left.size(), check_null_chr);
+        return _ptr_equal(left.data(), right, left.size(), _CheckNullChr);
     }
 
     template <typename C>
@@ -96,13 +95,13 @@ namespace fd
     template <typename C>
     constexpr bool operator==(const basic_string<C>& left, const basic_string<C>& right)
     {
-        return left.size() == right.size() && _Ptr_equal(left.data(), right.data(), left.size());
+        return left.size() == right.size() && _ptr_equal(left.data(), right.data(), left.size());
     }
 
     template <typename C>
     constexpr bool operator==(const basic_string<C>& left, const C* right)
     {
-        return _Ptr_equal(left.data(), right, left.size(), check_null_chr);
+        return _ptr_equal(left.data(), right, left.size(), _CheckNullChr);
     }
 
     template <typename C>
@@ -117,10 +116,13 @@ namespace fd
         return std::char_traits<T>::length(str);
     }
 
+    template <bool NullTerminated, typename Chr, size_t Size>
+    struct chars_cache;
+
     template <typename Chr, size_t Size>
-    struct chars_cache
+    struct chars_cache<false, Chr, Size>
     {
-        Chr chars_buff[Size];
+        Chr charsBuff[Size];
 
         using value_type    = Chr;
         using pointer       = Chr*;
@@ -128,55 +130,49 @@ namespace fd
 
         using strv_t = basic_string_view<Chr>;
 
-        constexpr chars_cache()
-            : chars_buff()
+        constexpr chars_cache(const_pointer strSource)
         {
-#ifndef _DEBUG
-            chars_buff[Size - 1] = 0;
+            std::ranges::copy_n(strSource, Size, charsBuff);
+#ifdef _DEBUG
+            if (!_ptr_equal(strSource, charsBuff, Size))
+                std::terminate();
 #endif
-        }
-
-        constexpr chars_cache(const_pointer strSource, const size_t strSize = Size)
-        {
-            std::copy_n(strSource, strSize, chars_buff);
-            std::fill(chars_buff + strSize, chars_buff + Size, static_cast<Chr>(0));
-            // chars_buff[strSize] = 0;
         }
 
         constexpr const_pointer data() const
         {
-            return chars_buff;
+            return charsBuff;
         }
 
         constexpr pointer data()
         {
-            return chars_buff;
+            return charsBuff;
         }
 
         // ReSharper disable once CppMemberFunctionMayBeStatic
         constexpr size_t size() const
         {
-            return Size - 1;
+            return Size;
         }
 
         constexpr const_pointer begin() const
         {
-            return chars_buff;
+            return charsBuff;
         }
 
         constexpr const_pointer end() const
         {
-            return chars_buff + size();
+            return charsBuff + size();
         }
 
         constexpr pointer begin()
         {
-            return chars_buff;
+            return charsBuff;
         }
 
         constexpr pointer end()
         {
-            return chars_buff + size();
+            return charsBuff + size();
         }
 
         constexpr strv_t view() const
@@ -191,23 +187,103 @@ namespace fd
     };
 
     template <typename Chr, size_t Size>
-    chars_cache(const Chr (&arr)[Size]) -> chars_cache<Chr, Size>;
-
-    inline namespace literals
+    struct chars_cache<true, Chr, Size>
     {
+        Chr charsBuff[Size];
 
-        inline namespace string_view_literals
+        using value_type    = Chr;
+        using pointer       = Chr*;
+        using const_pointer = const Chr*;
+
+        using strv_t = basic_string_view<Chr>;
+
+        constexpr chars_cache()
+            : charsBuff()
         {
-            using std::string_view_literals::operator""sv;
+#ifndef _DEBUG
+            chars_buff[Size - 1] = 0;
+#endif
         }
 
-        inline namespace string_literals
+        constexpr chars_cache(const_pointer strSource, const size_t strSize = Size)
         {
-            using std::string_literals::operator""s;
+            std::copy_n(strSource, strSize, charsBuff);
+            std::fill(charsBuff + strSize, charsBuff + Size, static_cast<Chr>(0));
         }
-    } // namespace literals
 
-    //--------------
+        constexpr const_pointer data() const
+        {
+            return charsBuff;
+        }
+
+        constexpr pointer data()
+        {
+            return charsBuff;
+        }
+
+        // ReSharper disable once CppMemberFunctionMayBeStatic
+        constexpr size_t size() const
+        {
+            return Size - 1;
+        }
+
+        constexpr const_pointer begin() const
+        {
+            return charsBuff;
+        }
+
+        constexpr const_pointer end() const
+        {
+            return charsBuff + size();
+        }
+
+        constexpr pointer begin()
+        {
+            return charsBuff;
+        }
+
+        constexpr pointer end()
+        {
+            return charsBuff + size();
+        }
+
+        constexpr strv_t view() const
+        {
+            return { begin(), size() };
+        }
+
+        constexpr operator strv_t() const
+        {
+            return view();
+        }
+    };
+
+    template <bool NullTerminated, typename Chr, size_t Size>
+    constexpr bool operator==(const chars_cache<NullTerminated, Chr, Size>& left, const basic_string_view<Chr> right)
+    {
+        return left.view() == right;
+    }
+
+    template <bool NullTerminated, typename Chr, size_t Size>
+    constexpr bool operator==(const chars_cache<NullTerminated, Chr, Size>& left, const Chr* right)
+    {
+        return left.view() == right;
+    }
+
+    template <bool NullTerminated, typename Chr, size_t Size>
+    constexpr bool operator==(const basic_string_view<Chr> left, const chars_cache<NullTerminated, Chr, Size> right)
+    {
+        return left == right.view();
+    }
+
+    template <bool NullTerminated, typename Chr, size_t Size>
+    constexpr bool operator==(const Chr* left, const chars_cache<NullTerminated, Chr, Size> right)
+    {
+        return left == right.view();
+    }
+
+    template <typename Chr, size_t Size>
+    chars_cache(const Chr (&arr)[Size]) -> chars_cache<true, Chr, Size>;
 
     template <typename C>
     struct hash<basic_string_view<C>>
@@ -234,19 +310,19 @@ namespace fd
         {
             return hash_bytes(Cache.data(), Cache.size());
         }
+
+        inline namespace string_view_literals
+        {
+            using std::string_view_literals::operator""sv;
+        }
+
+        inline namespace string_literals
+        {
+            using std::string_literals::operator""s;
+        }
     } // namespace literals
 
     //--------------
-
-    /*  template <typename T>
-   using get_char_t = decltype([] {
-       if constexpr (std::is_pointer_v<T> || std::is_bounded_array_v<T>)
-           return std::iter_value_t<T>();
-       else if constexpr (std::is_class_v<T>)
-           return decltype(*std::declval<T>().begin())();
-       else
-           return T();
-   })(); */
 
     template <typename T>
     concept can_iter_value = requires { typename std::iter_value_t<T>; };
@@ -355,7 +431,9 @@ namespace fd
         }
     };
 
+    // ReSharper disable once CppInconsistentNaming
     constexpr write_string_impl write_string;
+    // ReSharper disable once CppInconsistentNaming
     constexpr make_string_impl make_string;
 
     template <typename C>
@@ -477,14 +555,16 @@ namespace fd
         constexpr string_t operator()(long double val) const = delete;
     };
 
+    // ReSharper disable once CppInconsistentNaming
     constexpr to_string_impl<char> to_string;
+    // ReSharper disable once CppInconsistentNaming
     constexpr to_string_impl<wchar_t> to_wstring;
 
     inline namespace literals
     {
         inline namespace string_literals
         {
-            constexpr string operator"" s(unsigned long long num)
+            constexpr string operator"" s(const unsigned long long num)
             {
                 return to_string(num);
             }

@@ -1,50 +1,45 @@
 #pragma once
 
 #include <fd/string.h>
-#include <fd/utility.h>
 
 #include <algorithm>
-#include <array>
 
 namespace fd
 {
     template <typename T>
-    constexpr decltype(auto) _Raw_name()
+    static constexpr decltype(auto) _raw_type_name()
     {
         return __FUNCSIG__;
     }
 
     template <template <typename...> class T>
-    constexpr decltype(auto) _Raw_name()
+    static constexpr decltype(auto) _raw_type_name()
     {
         return __FUNCSIG__;
     }
 
-    struct type_name_clamped : fd::string_view
+    static constexpr string_view _clamp_raw_type_name(const string_view rawName)
     {
-        constexpr type_name_clamped(const fd::string_view raw_name)
-            : fd::string_view(raw_name.data() + raw_name.find('<') + 1, raw_name.data() + raw_name.rfind('>'))
-        {
-        }
-    };
+        return { rawName.data() + rawName.find('<') + 1, rawName.data() + rawName.rfind('>') };
+    }
 
-    struct type_name_string : fd::string
+    struct type_name_builder : string
     {
-        constexpr size_t mark_zeros(const fd::string_view substr)
+        constexpr size_t mark_zeros(const string_view substr)
         {
-            const auto substr_size = substr.size();
-            size_t found           = 0;
-            size_t pos             = 0;
+            const auto substrSize = substr.size();
+            size_t found          = 0;
+            size_t pos            = 0;
             for (;;)
             {
                 pos = this->find(substr, pos);
                 if (pos == this->npos)
                     break;
                 ++found;
-                std::fill_n(this->data() + pos, substr_size, '\0');
-                pos += substr_size;
+                std::fill_n(this->data() + pos, substrSize, '\0');
+                pos += substrSize;
             }
-            return found * substr_size;
+            return found * substrSize;
         }
 
         constexpr size_t mark_zeros(const char chr)
@@ -62,24 +57,24 @@ namespace fd
 
         constexpr size_t remove_bad_spaces()
         {
-            size_t found   = 0;
-            bool skip_next = false;
+            size_t found  = 0;
+            auto skipNext = false;
             for (auto& c : *this)
             {
                 switch (c)
                 {
                 case ',': {
-                    skip_next = true;
+                    skipNext = true;
                     break;
                 }
                 case ' ': {
-                    if (skip_next)
+                    if (skipNext)
                         break;
                     c = '\0';
                     ++found;
                 }
                 default: {
-                    skip_next = false;
+                    skipNext = false;
                     break;
                 }
                 }
@@ -88,10 +83,10 @@ namespace fd
             return found;
         }
 
-        constexpr bool erase_zeros(const bool not_sure)
+        constexpr bool erase_zeros(const bool notSure)
         {
-            fd::string temp;
-            if (!not_sure)
+            string temp;
+            if (!notSure)
                 temp.reserve(this->size());
             for (const auto chr : *this)
             {
@@ -101,7 +96,7 @@ namespace fd
             }
             if (temp.empty())
             {
-                if (!not_sure)
+                if (!notSure)
                     (void)temp.at(temp.size()); // throw a error
                 return false;
             }
@@ -115,10 +110,7 @@ namespace fd
         constexpr bool smart_erase(const Args... args)
         {
             const auto zeros = (this->mark_zeros(args) + ...) + this->remove_bad_spaces();
-            if (zeros == 0)
-                return false;
-            this->erase_zeros(false);
-            return true;
+            return zeros > 0 && this->erase_zeros(false);
         }
     };
 
@@ -127,22 +119,24 @@ namespace fd
     {
         char buffer_[Size];
         size_t size_;
+        bool native_;
 
       public:
-        constexpr type_name_getter(const fd::string_view clamped_name, const bool is_object)
+        constexpr type_name_getter(const string_view clampedName, const bool isObject)
             : buffer_()
         {
-            if (!is_object)
+            if (!isObject)
             {
-                std::copy(clamped_name.begin(), clamped_name.end(), buffer_);
-                size_ = clamped_name.size();
+                std::ranges::copy(clampedName, buffer_);
+                size_   = clampedName.size();
+                native_ = true;
             }
             else
             {
-                type_name_string name;
-                name.assign(clamped_name.begin(), clamped_name.end());
-                name.smart_erase("struct", "class", "enum", "union");
-                std::copy(name.begin(), name.end(), buffer_);
+                type_name_builder name;
+                name.assign(clampedName);
+                native_ = !name.smart_erase("struct", "class", "enum", "union");
+                std::ranges::copy(name, buffer_);
                 size_ = name.size();
             }
         }
@@ -156,206 +150,158 @@ namespace fd
         {
             return size_;
         }
+
+        constexpr bool native() const
+        {
+            return native_;
+        }
+
+        constexpr size_t find(const char chr) const
+        {
+            return std::distance<const char*>(buffer_, std::char_traits<char>::find(buffer_, size_, chr));
+        }
     };
 
     template <typename T>
-    constexpr bool class_or_union_v = std::is_class_v<T> || std::is_union_v<T>;
+    static constexpr bool _IsClassOrUnion = std::is_class_v<T> || std::is_union_v<T>;
 
     template <typename T>
-    constexpr auto type_name_holder = [] {
-        constexpr type_name_clamped name(_Raw_name<T>());
-        constexpr type_name_getter<name.size()> getter(name, class_or_union_v<T> || std::is_enum_v<T>);
-        return fd::chars_cache<char, getter.size() + 1>(getter.data(), getter.size());
-    }();
-
-    template <template <typename...> class T>
-    constexpr auto type_name_holder_partial = [] {
-        constexpr type_name_clamped name(_Raw_name<T>());
-        constexpr type_name_getter<name.size()> getter(name, true);
-        return fd::chars_cache<char, getter.size() + 1>(getter.data(), getter.size());
-    }();
-
-    template <template <typename, size_t> class T>
-    constexpr auto type_name_holder_partial2 = [] {
-        constexpr type_name_clamped name(_Raw_name<T<int, 1>>());
-        constexpr type_name_getter<name.size()> getter(name, true);
-        constexpr size_t size = fd::string_view(getter.data(), getter.size()).find('<');
-        return fd::chars_cache<char, size + 1>(getter.data(), size);
-    }();
-
-    class template_comparer
+    constexpr auto type_name()
     {
-        struct template_info
+        constexpr auto name = _clamp_raw_type_name(_raw_type_name<T>());
+        if constexpr (_IsClassOrUnion<T> || std::is_enum_v<T>)
         {
-            const char* name;
-            bool partial;
-        };
-
-        template_info left_, right_;
-
-      public:
-        constexpr template_comparer(const template_info left, const template_info right)
-            : left_(left)
-            , right_(right)
-        {
-        }
-
-        constexpr operator bool() const
-        {
-#if 1
-            // every __FUNCSIG__ have own pointer, if they are same - strings are same
-            if (left_.name == right_.name)
-                return true;
-            // we know the strings are different, tempalte part can't be found
-            if (left_.partial == right_.partial)
-                return false;
-
-            using char_traits = std::char_traits<char>;
-
-            constexpr auto find_existing_char = [](const char* ptr, const char c) {
-                return char_traits::find(ptr, static_cast<size_t>(-1), c);
-            };
-            constexpr auto find_last_existing_char = [](const char* ptr, const char c) -> const char* {
-                const auto end = ptr + char_traits::length(ptr);
-                for (auto pos = end - 1; pos >= ptr; --pos)
-                {
-                    if (*pos == c)
-                        return pos;
-                }
-                return nullptr;
-            };
-
-            // skip XXXXtype_name_raw
-            const auto offset = std::distance(left_.name, find_existing_char(left_.name, '<')) + 1;
-
-            const auto l_str = left_.name + offset;
-            const auto r_str = right_.name + offset;
-
-            const char *partial_str, *full_str;
-            if (left_.partial)
-            {
-                partial_str = l_str;
-                full_str    = r_str;
-            }
+            constexpr type_name_getter<name.size()> getter(name, true);
+            if constexpr (getter.native())
+                return name;
             else
-            {
-                partial_str = r_str;
-                full_str    = l_str;
-            }
-            // find end of partial tempalte
-            const auto limit = std::distance(partial_str, find_last_existing_char(partial_str, '>'));
-            if (char_traits::compare(l_str, r_str, limit) != 0)
-                return false;
-            // check are full template same as given part
-            return full_str[limit] == '<';
-
-#else
-            if (left == right)
-                return true;
-            // skip XXXXtype_name_raw
-            do
-                ++left;
-            while (*right++ != '<');
-
-            for (;;)
-            {
-                auto l = *left++;
-                auto r = *right++;
-
-                if (l != r)
-                {
-                    return l == '>' || r == '>'     // partial template _Class
-                           || l == '<' || r == '<'; // full template _Class<XXX>;
-                }
-                if (l == '\0')
-                    return false;
-                if (l == '<' || l == '>')
-                    return true;
-            }
-#endif
+                return chars_cache<false, char, getter.size()>(getter.data());
         }
+        else
+        {
+            return name;
+        }
+    }
+
+    template <template <typename...> class T>
+    constexpr auto type_name()
+    {
+        constexpr auto name = _clamp_raw_type_name(_raw_type_name<T>());
+        constexpr type_name_getter<name.size()> getter(name, true);
+        if constexpr (getter.native())
+            return name;
+        else
+            return chars_cache<false, char, getter.size()>(getter.data());
     };
 
-    //------------------
-
-    template <class T>
-    constexpr fd::string_view type_name()
-    {
-        return type_name_holder<T>;
-    }
-
-    template <template <typename...> class T>
-    constexpr fd::string_view type_name()
-    {
-        return type_name_holder_partial<T>;
-    }
-
     // for std::array
     template <template <typename, size_t> class T>
-    constexpr fd::string_view type_name()
+    constexpr auto type_name()
     {
-        return type_name_holder_partial2<T>;
-    }
-
-#define _BUFF_STRING(_S_)                                                                   \
-    []() -> fd::string_view {                                                               \
-        constexpr auto str = _S_;                                                           \
-        return chars_cache_buff<chars_cache<char, str.size() + 1>(str.data(), str.size())>; \
-    }()
-
-    template <class T>
-    constexpr fd::string_view type_name_raw()
-    {
-        return _BUFF_STRING(type_name_clamped(_Raw_name<T>()));
-    }
-
-    template <template <typename...> class T>
-    constexpr fd::string_view type_name_raw()
-    {
-        return _BUFF_STRING(type_name_clamped(_Raw_name<T>()));
-    }
-
-    // for std::array
-    template <template <typename, size_t> class T>
-    constexpr fd::string_view type_name_raw()
-    {
-        return _BUFF_STRING(type_name_clamped(_Raw_name<T<int, 1>>()));
+        constexpr auto name = _clamp_raw_type_name(_raw_type_name<T<int, 1>>());
+        constexpr type_name_getter<name.size()> getter(name, true);
+        if constexpr (getter.native())
+            return string_view(name.data(), name.find('<'));
+        else
+            return chars_cache<false, char, getter.find('<')>(getter.data());
     }
 
     static_assert(type_name<int>() == "int");
+    static_assert(type_name<int32_t>() == type_name<int>());
     static_assert(type_name<std::char_traits>() == "std::char_traits");
     static_assert(type_name<std::char_traits<char>>() == "std::char_traits<char>");
     static_assert(type_name<std::array>() == "std::array");
+    static_assert(type_name<std::array<int, 1>>() == "std::array<int,1>");
     static_assert(type_name<std::exception>() == "std::exception");
 
-    // static_assert(type_name<std::false_type>( ) == "std::integral_constant<bool, false>"); everything is correct but assert fails
+    //------------------
 
-    //------------
-
-    /* constexpr fd::string drop_namespace(const fd::string_view str, const fd::string_view drop)
+    struct template_info
     {
-        if (drop.ends_with("::"))
-            return erase_substring(str, drop);
+        const char* name;
+        bool partial;
+    };
 
-        const size_t add = drop.ends_with(':') ? 1 : 2;
-        fd::string  drop_fixed;
-        drop_fixed.reserve(drop.size() + add);
-        drop_fixed.assign(drop.begin(), drop.end());
-        drop_fixed.resize(drop.size() + add, ':');
-        return erase_substring(str, drop_fixed);
+    static constexpr bool _same_template(const template_info infoL, const template_info infoR)
+    {
+#if 1
+        // every __FUNCSIG__ have own pointer, if they are same - strings are same
+        if (infoL.name == infoR.name)
+            return true;
+        // we know the strings are different, tempalte part can't be found
+        if (infoL.partial == infoR.partial)
+            return false;
+
+        using char_traits = std::char_traits<char>;
+
+        constexpr auto find_existing_char = [](const char* ptr, const char c) {
+            return char_traits::find(ptr, static_cast<size_t>(-1), c);
+        };
+        constexpr auto find_last_existing_char = [](const char* ptr, const char c) -> const char* {
+            const auto end = ptr + char_traits::length(ptr);
+            for (auto pos = end - 1; pos >= ptr; --pos)
+            {
+                if (*pos == c)
+                    return pos;
+            }
+            return nullptr;
+        };
+
+        // skip XXXXtype_name_raw
+        const auto offset = std::distance(infoL.name, find_existing_char(infoL.name, '<')) + 1;
+
+        const auto l_str = infoL.name + offset;
+        const auto r_str = infoR.name + offset;
+
+        const char *partial_str, *full_str;
+        if (infoL.partial)
+        {
+            partial_str = l_str;
+            full_str    = r_str;
+        }
+        else
+        {
+            partial_str = r_str;
+            full_str    = l_str;
+        }
+        // find end of partial tempalte
+        const auto limit = std::distance(partial_str, find_last_existing_char(partial_str, '>'));
+        if (char_traits::compare(l_str, r_str, limit) != 0)
+            return false;
+        // check are full template same as given part
+        return full_str[limit] == '<';
+
+#else
+        if (left == right)
+            return true;
+        // skip XXXXtype_name_raw
+        do
+            ++left;
+        while (*right++ != '<');
+
+        for (;;)
+        {
+            auto l = *left++;
+            auto r = *right++;
+
+            if (l != r)
+            {
+                return l == '>' || r == '>'     // partial template _Class
+                       || l == '<' || r == '<'; // full template _Class<XXX>;
+            }
+            if (l == '\0')
+                return false;
+            if (l == '<' || l == '>')
+                return true;
+        }
+#endif
     }
-
-    static_assert(drop_namespace("test::test::string", "test") == "string");
-    static_assert(drop_namespace("test::test2::string", "test2") == "test::string");
-    static_assert(drop_namespace("test::test2::test::string", "test") == "test2::string"); */
-
-    //------------
 
     template <class T1, template <typename...> class T2>
     constexpr bool same_template()
     {
-        static_assert(class_or_union_v<T1>, "same_template works only with classes!");
-        return template_comparer({ _Raw_name<T1>(), false }, { _Raw_name<T2>(), true });
+        static_assert(_IsClassOrUnion<T1>, "same_template works only with classes!");
+        return _same_template({ _raw_type_name<T1>(), false }, { _raw_type_name<T2>(), true });
     }
 
     template <template <typename...> class T1, class T2>
@@ -367,14 +313,14 @@ namespace fd
     template <template <typename...> class T1, template <typename...> class T2>
     constexpr bool same_template()
     {
-        return template_comparer({ _Raw_name<T1>(), true }, { _Raw_name<T2>(), true });
+        return _same_template({ _raw_type_name<T1>(), true }, { _raw_type_name<T2>(), true });
     }
 
     template <class T1, class T2>
     constexpr bool same_template()
     {
-        static_assert(class_or_union_v<T1> && class_or_union_v<T2>, "same_template works only with classes!");
-        return template_comparer({ _Raw_name<T1>(), false }, { _Raw_name<T2>(), false });
+        static_assert(_IsClassOrUnion<T1> && _IsClassOrUnion<T2>, "same_template works only with classes!");
+        return _same_template({ _raw_type_name<T1>(), false }, { _raw_type_name<T2>(), false });
     }
 
     // static_assert(same_template<std::array<int, 2>, std::array>());

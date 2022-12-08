@@ -109,7 +109,7 @@ static DWORD WINAPI _loader(void*) noexcept
 }
 
 // ReSharper disable once CppInconsistentNaming
-extern "C" BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID reserved)
+extern "C" BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID reserved)
 {
     // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
     switch (reason)

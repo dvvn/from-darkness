@@ -150,7 +150,12 @@ namespace fd
             return chr == 'a' || chr == 'A';
         }();
 
-        return vec3Qangle ? type_name<qangle>() : type_name<vector3>();
+        string_view out;
+        if (vec3Qangle)
+            out = type_name<qangle>();
+        else
+            out = type_name<vector3>();
+        return out;
     }
 
     string_view type_integer(string_view type)
