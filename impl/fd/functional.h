@@ -28,8 +28,7 @@ namespace fd
         constexpr decltype(auto) operator()(Fn&& fn, Args&&... args) const
         {
             return [_Fn   = std::forward<Fn>(fn), //
-                    _Args = std::tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto)
-            {
+                    _Args = std::tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto) {
                 if constexpr (sizeof...(Args) == 0)
                     return invoke(_Fn, std::forward<CallArgs>(call_args)...);
                 else
@@ -49,8 +48,7 @@ namespace fd
         static constexpr decltype(auto) call(Fn& fn, Tpl& args, Args&&... call_args)
         {
             return std::apply(
-                [&](auto&... bound_args) -> decltype(auto)
-                {
+                [&](auto&... bound_args) -> decltype(auto) {
                     return invoke(fn, bound_args..., std::forward<Args>(call_args)...);
                 },
                 args);
@@ -70,8 +68,7 @@ namespace fd
         static constexpr decltype(auto) call(Fn& fn, Tpl& args, Args&&... call_args)
         {
             return std::apply(
-                [&](auto&... bound_args) -> decltype(auto)
-                {
+                [&](auto&... bound_args) -> decltype(auto) {
                     return invoke(fn, std::forward<Args>(call_args)..., bound_args...);
                 },
                 args);
@@ -122,8 +119,10 @@ namespace fd
 #define _CALL_CVS(_C_) _CALL_CVS_IMPL(FD_CONCAT(_C_, __), FD_CONCAT(__, _C_))
 
 #ifdef _WIN32
+#ifndef __RESHARPER__
 #undef cdecl
     FOR_EACH(_CALL_CVS, thiscall, cdecl, fastcall, stdcall, vectorcall);
+#endif
 #else
     _CALL_CVS(default, );
 #endif
@@ -175,7 +174,15 @@ namespace fd
     template <typename Fn, typename... Args>
     decltype(auto) invoke(Fn fn, const std::integral auto index, auto* thisptr, Args&&... args)
     {
-        auto vtable = *(void***)thisptr;
+        union
+        {
+            Fn hint;
+            void*** vtablePtr;
+        } adaptor;
+
+        adaptor.hint = fn;
+
+        auto vtable = *adaptor.vtablePtr;
         auto vfunc  = vtable[index];
         return invoke(fn, vfunc, thisptr, std::forward<Args>(args)...);
     }
@@ -186,8 +193,7 @@ namespace fd
     template <typename... Args>
     using invoke_result = decltype(invoke(std::declval<Args>()...));
 
-    constexpr auto Invoker = []<typename... Args>(Args&&... args) -> decltype(auto)
-    {
+    constexpr auto Invoker = []<typename... Args>(Args&&... args) -> decltype(auto) {
         return invoke(std::forward<Args>(args)...);
     };
 
@@ -195,7 +201,7 @@ namespace fd
 
     template <typename T>
     concept can_be_null = requires(T obj) {
-                              !obj;
+                              static_cast<bool>(obj);
                               obj = nullptr;
                           };
 

@@ -69,8 +69,8 @@ void tab_bar::render() const
         return;*/
     const auto id     = window->GetID(name_.data(), name_.data() + name_.size());
     const auto tabBar = g.TabBars.GetOrAddByKey(id);
+    tabBar->ID        = id;
     const ImRect tabBarBB(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
-    tabBar->ID                  = id;
     constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
     constexpr auto extraFlags   = ImGuiTabBarFlags_IsFocused;
     if (!ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags))
@@ -78,7 +78,7 @@ void tab_bar::render() const
 
     const auto activeTab = std::ranges::find_if(tabs_, &tab::render);
     (void)std::ranges::for_each(activeTab + 1, tabs_.end(), &tab::render);
-    (*activeTab)->render_data();
+    invoke(&tab::render_data, *activeTab);
 
     ImGui::EndTabBar();
 }
