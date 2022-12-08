@@ -3,29 +3,17 @@
 #include <fd/functional.h>
 #include <fd/hook.h>
 
-// #define FUNCTION_GETTER_HAVE_PTR_SIZE
-
 namespace fd
 {
     class function_getter
     {
         void* fnPtr_ = nullptr;
-#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
-        uint8_t ptr_size_ = 0;
-#endif
 
       public:
         operator void*() const
         {
             return fnPtr_;
         }
-
-#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
-        uint8_t size() const
-        {
-            return ptr_size_;
-        }
-#endif
 
         void* get() const
         {
@@ -34,26 +22,46 @@ namespace fd
 
         function_getter() = default;
 
-        template <typename Fn>
-        function_getter(Fn fn)
+        function_getter(void* ptr)
+            : fnPtr_(ptr)
         {
-            fnPtr_ = reinterpret_cast<void*&>(fn);
-#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
-            ptr_size_ = sizeof(fn);
-#endif
         }
 
-        template <class C, class Fn = void*>
-        function_getter(C* hookInstance, const size_t index, Fn = {})
+        template <class T>
+        function_getter(T& ptr) requires(std::is_class_v<T> && !std::derived_from<T, function_getter>)
+            : fnPtr_(static_cast<void*>(ptr))
+        {
+        }
+
+        template <class T>
+        function_getter(T obj) requires(std::is_member_function_pointer_v<T>)
+            : fnPtr_(reinterpret_cast<void*&>(obj))
+        {
+        }
+
+        function_getter(const ptrdiff_t addr)
+            : fnPtr_(reinterpret_cast<void*>(addr))
+        {
+        }
+
+#ifndef _MSC_VER
+        template <class T>
+        function_getter(T obj) requires(std::is_function_v<T>)
+            : fnPtr_(reinterpret_cast<void*>(obj))
+        {
+        }
+#endif
+
+        function_getter(const function_getter hookInstance, const size_t index)
         {
             if (!hookInstance)
                 return;
-            const auto vtable = *reinterpret_cast<void***>(hookInstance);
-            fnPtr_           = vtable[index];
-#ifdef FUNCTION_GETTER_HAVE_PTR_SIZE
-            ptr_size_ = sizeof(Fn);
-#endif
+            const auto vtable = *static_cast<void***>(hookInstance.get());
+            fnPtr_            = vtable[index];
         }
+
+        function_getter(const function_getter& other)            = default;
+        function_getter& operator=(const function_getter& other) = default;
     };
 
     class hook_impl : public hook

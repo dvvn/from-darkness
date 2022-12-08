@@ -36,7 +36,8 @@ int main(int, char**)
         sysConsole.write(parse_assert_data(adata));
     });
 
-    gui::context_impl guiCtx(&backend, false);
+    std::pair<void*, HWND> guiCtxInit(backend.d3d, backend.hwnd);
+    gui::context_impl guiCtx(&guiCtxInit, false);
     gui::Context = &guiCtx;
 
     gui::menu_impl menuCtx;
