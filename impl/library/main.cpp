@@ -1,8 +1,3 @@
-#include <d3d9.h>
-#include <windows.h>
-
-#include <exception>
-
 #ifdef _DEBUG
 #include <fd/assert_impl.h>
 #include <fd/logger_impl.h>
@@ -18,110 +13,116 @@
 #include <fd/hooked/hk_winapi.h>
 #include <fd/library_info.h>
 
-static HMODULE _Handle;
+#include <d3d9.h>
+#include <windows.h>
 
-static HANDLE _T_Handle;
-static DWORD _T_id = 0;
+static HMODULE _ModuleHandle;
+
+static HANDLE _ThreadHandle;
+static DWORD _ThreadId = 0;
 
 using namespace fd;
 
-static DWORD WINAPI _Loader(void*) noexcept
+static void _fail()
 {
-    const lazy_invoke reset_id_helper = [] {
-        _T_id = 0;
-    };
+    // TerminateThread(_ThreadHandle, EXIT_FAILURE);
+    // FreeLibrary(ModuleHandle);
+    FreeLibraryAndExitThread(_ModuleHandle, EXIT_FAILURE);
+};
 
-    constexpr auto _Fail = [] {
-        // TerminateThread(_T_Handle, EXIT_FAILURE);
-        // FreeLibrary(_Handle);
-        FreeLibraryAndExitThread(_Handle, EXIT_FAILURE);
-    };
-
-    const auto std_terminate = std::set_terminate(_Fail);
-
-    CurrentLibraryHandle = _Handle;
-
-#ifdef _DEBUG
-    default_assert_handler assert_callback;
-    AssertHandler = &assert_callback;
-
-    system_console sys_console;
-
-    default_logs_handler logs_callback;
-    Logger = &logs_callback;
-
-    logs_callback.add([&](auto msg) {
-        sys_console.write(msg);
+static DWORD WINAPI _loader(void*) noexcept
+{
+    const lazy_invoke resetThreadId([] {
+        _ThreadId = 0;
     });
 
-    assert_callback.add([&](auto& adata) {
-        sys_console.write(parse_assert_data(adata));
+    [[maybe_unused]] const auto stdTerminate = std::set_terminate(_fail);
+
+    CurrentLibraryHandle = _ModuleHandle;
+
+#ifdef _DEBUG
+    default_assert_handler assertCallback;
+    AssertHandler = &assertCallback;
+
+    system_console sysConsole;
+
+    default_logs_handler logsCallback;
+    Logger = &logsCallback;
+
+    logsCallback.add([&](auto msg) {
+        sysConsole.write(msg);
+    });
+
+    assertCallback.add([&](auto& adata) {
+        sysConsole.write(parse_assert_data(adata));
     });
 #endif
 
-    const library_info client_lib(L"client.dll", true);
-    const auto add_to_safe_list = static_cast<void(__fastcall*)(HMODULE, void*)>(client_lib.find_signature("56 8B 71 3C B8"));
+    const library_info clientLib(L"client.dll", true);
+    const auto addToSafeList = static_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
 
-    add_to_safe_list(_Handle, nullptr);
+    invoke(addToSafeList, _ModuleHandle, nullptr);
 
-    const auto d3d_ifc = [] {
+    const auto d3dIfc = [] {
         const library_info lib(L"shaderapidx9.dll", true);
         const auto addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
     }();
 
     const auto hwnd = [=] {
-        D3DDEVICE_CREATION_PARAMETERS d3d_params;
-        if (FAILED(d3d_ifc->GetCreationParameters(&d3d_params)))
-            _Fail();
-        return d3d_params.hFocusWindow;
+        D3DDEVICE_CREATION_PARAMETERS d3dParams;
+        if (FAILED(d3dIfc->GetCreationParameters(&d3dParams)))
+            _fail();
+        return d3dParams.hFocusWindow;
     }();
 
-    std::pair gui_data(d3d_ifc, hwnd);
-    gui::context_impl gui_ctx(&gui_data, false);
-    gui::Context = &gui_ctx;
+    std::pair guiData(d3dIfc, hwnd);
+    gui::context_impl guiCtx(&guiData, false);
+    gui::Context = &guiCtx;
 
-    gui::menu_impl menu_ctx;
-    gui::Menu = &menu_ctx;
+    gui::menu_impl menuCtx;
+    gui::Menu = &menuCtx;
 
-    hook_holder all_hooks(hooked::d3d9_reset({ d3d_ifc, 16 }),
-                          hooked::d3d9_present({ d3d_ifc, 17 }),
-                          hooked::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)),
-                          hooked::lock_cursor({ (void*)0, 67 }));
+    hook_holder allHooks(hooked::d3d9_reset({ d3dIfc, 16 }),
+                         hooked::d3d9_present({ d3dIfc, 17 }),
+                         hooked::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)),
+                         hooked::lock_cursor({ (void*)0, 67 }));
 
-    if (!all_hooks.enable())
-        _Fail();
+    if (!allHooks.enable())
+        _fail();
 
     std::set_terminate([] {
-        if (ResumeThread(_T_Handle) == -1)
+        if (ResumeThread(_ThreadHandle) == -1)
             std::abort();
     });
 
     /*if (!library_info::_Wait(L"serverbrowser.dll"))
         _Fail();*/
 
-    if (SuspendThread(_T_Handle) == -1)
-        _Fail();
+    if (SuspendThread(_ThreadHandle) == -1)
+        _fail();
 
-    if (!all_hooks.disable())
+    if (!allHooks.disable())
         std::abort();
 
     return EXIT_SUCCESS;
 }
 
-extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
+// ReSharper disable once CppInconsistentNaming
+extern "C" BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID reserved)
 {
-    switch (dwReason)
+    // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
+    switch (reason)
     {
     case DLL_PROCESS_ATTACH: {
-        _Handle   = hModule;
-        _T_Handle = CreateThread(nullptr, 0, _Loader, nullptr, 0, &_T_id);
-        if (!_T_id)
+        _ModuleHandle = moduleHandle;
+        _ThreadHandle = CreateThread(nullptr, 0, _loader, nullptr, 0, &_ThreadId);
+        if (!_ThreadId)
             return FALSE;
         break;
     }
     case DLL_PROCESS_DETACH: {
-        if (_T_id && !CloseHandle(_T_Handle))
+        if (_ThreadId && !CloseHandle(_ThreadHandle))
             return FALSE;
         break;
     }

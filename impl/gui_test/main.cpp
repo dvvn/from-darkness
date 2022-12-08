@@ -20,39 +20,39 @@ int main(int, char**)
     if (!backend.d3d)
         return EXIT_FAILURE;
 
-    default_assert_handler assert_callback;
-    AssertHandler = &assert_callback;
+    default_assert_handler assertCallback;
+    AssertHandler = &assertCallback;
 
-    system_console sys_console;
+    system_console sysConsole;
 
-    default_logs_handler logs_callback;
-    Logger = &logs_callback;
+    default_logs_handler logsCallback;
+    Logger = &logsCallback;
 
-    logs_callback.add([&](auto msg) {
-        sys_console.write(msg);
+    logsCallback.add([&](auto msg) {
+        sysConsole.write(msg);
     });
 
-    assert_callback.add([&](auto& adata) {
-        sys_console.write(parse_assert_data(adata));
+    assertCallback.add([&](auto& adata) {
+        sysConsole.write(parse_assert_data(adata));
     });
 
-    gui::context_impl gui_ctx(&backend, false);
-    gui::Context = &gui_ctx;
+    gui::context_impl guiCtx(&backend, false);
+    gui::Context = &guiCtx;
 
-    gui::menu_impl menu_ctx;
-    gui::Menu = &menu_ctx;
+    gui::menu_impl menuCtx;
+    gui::Menu = &menuCtx;
 
-    gui::tab_bar test_tab_bar("test");
-    gui::tab test_tab("test2");
-    test_tab.store(bind_front(ImGui::Text, "Hello"));
+    gui::tab_bar testTabBar("test");
+    gui::tab testTab("test2");
+    testTab.store(bind_front(ImGui::Text, "Hello"));
 
-    test_tab_bar.store(test_tab);
-    menu_ctx.store(test_tab_bar);
-    gui_ctx.store([&] {
-        menu_ctx.render();
+    testTabBar.store(testTab);
+    menuCtx.store(testTabBar);
+    guiCtx.store([&] {
+        menuCtx.render();
     });
 
-    hook_holder all_hooks(hooked::d3d9_reset({ backend.d3d, 16 }), hooked::d3d9_present({ backend.d3d, 17 }), hooked::wndproc(backend.hwnd, backend.info.lpfnWndProc));
+    hook_holder allHooks(hooked::d3d9_reset({ backend.d3d, 16 }), hooked::d3d9_present({ backend.d3d, 17 }), hooked::wndproc(backend.hwnd, backend.info.lpfnWndProc));
 
-    return all_hooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;
+    return allHooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;
 }
