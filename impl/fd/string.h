@@ -2,6 +2,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <iterator>
 #include <string>
 
@@ -116,7 +117,6 @@ namespace fd
 
     inline namespace literals
     {
-
         inline namespace string_view_literals
         {
             using std::string_view_literals::operator""sv;
@@ -242,108 +242,125 @@ namespace fd
     // ReSharper disable once CppInconsistentNaming
     constexpr make_string_impl make_string;
 
-    template <typename C>
-    class to_string_impl
+    // https://github.com/tcsullivan/constexpr-to-string
+
+    template <typename C, typename T>
+    static constexpr basic_string<C> _to_string(const T num, const uint8_t base)
     {
-        using string_t = basic_string<C>;
+        constexpr auto digits = std::to_array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+#ifdef _DEBUG
+        if (base <= 1 || base >= digits.size())
+            std::terminate();
+#endif
+        if (num == 0)
+            return {};
 
-        // ReSharper disable All
+        basic_string<C> buff;
 
-        template <class _UTy>
-        static constexpr C* _UIntegral_to_buff(C* _RNext, _UTy _UVal)
+        size_t len = (num > 0 ? 0 : 1);
+        for (auto n = num; n; ++len, n /= base)
         {
-            // format _UVal into buffer *ending at* _RNext
-            static_assert(std::is_unsigned_v<_UTy>, "_UTy must be unsigned");
+        }
+        buff.resize(len);
 
-#ifdef _WIN64
-            auto _UVal_trunc = _UVal;
-#else
-            constexpr bool _Big_uty = sizeof(_UTy) > 4;
-            if constexpr (_Big_uty)
+        auto ptr = buff.data() + len;
+        for (auto n = num; n; n /= base)
+            *--ptr = digits[(num < 0 ? -1 : 1) * (n % base)];
+        if (num < 0)
+            *--ptr = '-';
+
+        return buff;
+    }
+
+    template <typename C>
+    static constexpr basic_string<C> _to_string(long double value, const bool trim, const uint8_t prec)
+    {
+#pragma warning(disable : 4244)
+        int64_t whole = value;
+        value -= whole;
+        for (size_t i = 0; i < prec; i++)
+            value *= 10;
+        int64_t frac = value;
+
+        //---------
+
+        size_t len = 1;
+        if (whole <= 0)
+            len++;
+        for (auto n = whole; n; len++, n /= 10)
+        {
+        }
+        if (frac == 0 || (whole == 0 && frac < 0))
+            len++;
+        for (auto n = frac; n; len++, n /= 10)
+        {
+        }
+
+        basic_string<C> buff;
+        buff.resize(len);
+        auto ptr = buff.data() + len;
+
+        const auto append = [&ptr](const auto num) {
+            if (num == 0)
             {
-                // For 64-bit numbers, work in chunks to avoid 64-bit divisions.
-                while (_UVal > 0xFFFFFFFFU)
+                *--ptr = '0';
+            }
+            else
+            {
+                for (auto n = num; n != 0; n /= 10)
+                    *--ptr = (num < 0 ? -1 : 1) * (n % 10) + '0';
+            }
+        };
+
+        append(frac);
+        *--ptr = '.';
+        append(whole);
+        if (frac < 0 || whole < 0)
+            *--ptr = '-';
+
+        if (trim)
+        {
+            size_t offset = 0;
+            for (auto itr = buff.rbegin(); itr != buff.rend(); ++itr)
+            {
+                if (*itr != '0')
                 {
-                    auto _UVal_chunk = static_cast<unsigned long>(_UVal % 1000000000);
-                    _UVal /= 1000000000;
-
-                    for (uint8_t _Idx = 0; _Idx != 9; ++_Idx)
-                    {
-                        *--_RNext = static_cast<C>('0' + _UVal_chunk % 10);
-                        _UVal_chunk /= 10;
-                    }
+                    if (offset > 0)
+                        buff.resize(buff.size() - offset);
+                    break;
                 }
+                ++offset;
             }
-
-            auto _UVal_trunc = static_cast<unsigned long>(_UVal);
-#endif // _WIN64
-
-            do
-            {
-                *--_RNext = static_cast<C>('0' + _UVal_trunc % 10);
-                _UVal_trunc /= 10;
-            }
-            while (_UVal_trunc != 0);
-            return _RNext;
         }
+        return buff;
+    }
 
-        template <typename _Ty>
-        static constexpr string_t _Integral_to_string(const _Ty _Val)
-        {
-            // convert _Val to string
-            static_assert(std::is_integral_v<_Ty>, "_Ty must be integral");
-            using _UTy = std::make_unsigned_t<_Ty>;
-            C _Buff[21]; // can hold -2^63 and 2^64 - 1, plus NUL
-            const auto _Buff_end = std::end(_Buff);
-            auto _RNext          = _Buff_end;
-            const auto _UVal     = static_cast<_UTy>(_Val);
-            if (_Val < 0)
-            {
-                _RNext    = _UIntegral_to_buff(_RNext, 0 - _UVal);
-                *--_RNext = '-';
-            }
-            else
-            {
-                _RNext = _UIntegral_to_buff(_RNext, _UVal);
-            }
+    constexpr auto to_string(const std::integral auto num, const uint8_t base = 10)
+    {
+        return _to_string<char>(num, base);
+    }
 
-            return { _RNext, _Buff_end };
-        }
+    constexpr auto to_wstring(const std::integral auto num, const uint8_t base = 10)
+    {
+        return _to_string<wchar_t>(num, base);
+    }
 
-        // TRANSITION, CUDA - warning: pointless comparison of unsigned integer with zero
-        template <class _Ty>
-        static constexpr string_t _UIntegral_to_string(const _Ty _Val)
-        {
-            // convert _Val to string
-            static_assert(std::is_integral_v<_Ty>, "_Ty must be integral");
-            static_assert(std::is_unsigned_v<_Ty>, "_Ty must be unsigned");
-            C _Buff[21]; // can hold 2^64 - 1, plus NUL
-            const auto _Buff_end = std::end(_Buff);
-            const auto _RNext    = _UIntegral_to_buff(_Buff_end, _Val);
-            return { _RNext, _Buff_end };
-        }
+    constexpr auto to_string(const std::floating_point auto num, const bool trim = false, const uint8_t prec = 5)
+    {
+        return _to_string<char>(num, trim, prec);
+    }
 
-        // ReSharper restore All
+    template <typename T>
+    constexpr auto to_wstring(const std::floating_point auto num, const bool trim = false, const uint8_t prec = 5)
+    {
+        return _to_string<wchar_t>(num, trim, prec);
+    }
 
-      public:
-        template <std::integral T>
-        constexpr string_t operator()(const T val) const
-        {
-            if constexpr (std::is_unsigned_v<T>)
-                return _UIntegral_to_string(val);
-            else
-                return _Integral_to_string(val);
-        }
-
-        constexpr string_t operator()(float val) const       = delete;
-        constexpr string_t operator()(double val) const      = delete;
-        constexpr string_t operator()(long double val) const = delete;
-    };
-
-    // ReSharper disable once CppInconsistentNaming
-    constexpr to_string_impl<char> to_string;
-    // ReSharper disable once CppInconsistentNaming
-    constexpr to_string_impl<wchar_t> to_wstring;
+    static_assert(to_string(1234u) == "1234");
+    static_assert(to_string(-1234) == "-1234");
+    static_assert(to_string(1.234, false, 5) == "1.23400");
+    static_assert(to_string(1.234, true) == "1.234");
+    static_assert(to_string(-1.23456) == "-1.23456");
 
     inline namespace literals
     {
@@ -354,10 +371,10 @@ namespace fd
                 return to_string(num);
             }
 
-            /* constexpr string operator"" s(long double num)
+            constexpr string operator"" s(const long double num)
             {
                 return to_string(num);
-            } */
+            }
         } // namespace string_literals
     }     // namespace literals
 
