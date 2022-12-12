@@ -1,7 +1,7 @@
 #pragma once
 
+#include <fd/chars_cache.h>
 #include <fd/functional.h>
-#include <fd/string.h>
 
 #include <algorithm>
 #include <ranges>

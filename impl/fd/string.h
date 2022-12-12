@@ -1,8 +1,6 @@
 // ReSharper disable CppUserDefinedLiteralSuffixDoesNotStartWithUnderscore
 #pragma once
 
-#include <fd/hash.h>
-
 #include <algorithm>
 #include <iterator>
 #include <string>
@@ -116,200 +114,8 @@ namespace fd
         return std::char_traits<T>::length(str);
     }
 
-    template <bool NullTerminated, typename Chr, size_t Size>
-    struct chars_cache;
-
-    template <typename Chr, size_t Size>
-    struct chars_cache<false, Chr, Size>
-    {
-        Chr charsBuff[Size];
-
-        using value_type    = Chr;
-        using pointer       = Chr*;
-        using const_pointer = const Chr*;
-
-        using strv_t = basic_string_view<Chr>;
-
-        constexpr chars_cache(const_pointer strSource)
-        {
-            std::ranges::copy_n(strSource, Size, charsBuff);
-#ifdef _DEBUG
-            if (!_ptr_equal(strSource, charsBuff, Size))
-                std::terminate();
-#endif
-        }
-
-        constexpr const_pointer data() const
-        {
-            return charsBuff;
-        }
-
-        constexpr pointer data()
-        {
-            return charsBuff;
-        }
-
-        // ReSharper disable once CppMemberFunctionMayBeStatic
-        constexpr size_t size() const
-        {
-            return Size;
-        }
-
-        constexpr const_pointer begin() const
-        {
-            return charsBuff;
-        }
-
-        constexpr const_pointer end() const
-        {
-            return charsBuff + size();
-        }
-
-        constexpr pointer begin()
-        {
-            return charsBuff;
-        }
-
-        constexpr pointer end()
-        {
-            return charsBuff + size();
-        }
-
-        constexpr strv_t view() const
-        {
-            return { begin(), size() };
-        }
-
-        constexpr operator strv_t() const
-        {
-            return view();
-        }
-    };
-
-    template <typename Chr, size_t Size>
-    struct chars_cache<true, Chr, Size>
-    {
-        Chr charsBuff[Size];
-
-        using value_type    = Chr;
-        using pointer       = Chr*;
-        using const_pointer = const Chr*;
-
-        using strv_t = basic_string_view<Chr>;
-
-        constexpr chars_cache()
-            : charsBuff()
-        {
-#ifndef _DEBUG
-            chars_buff[Size - 1] = 0;
-#endif
-        }
-
-        constexpr chars_cache(const_pointer strSource, const size_t strSize = Size)
-        {
-            std::copy_n(strSource, strSize, charsBuff);
-            std::fill(charsBuff + strSize, charsBuff + Size, static_cast<Chr>(0));
-        }
-
-        constexpr const_pointer data() const
-        {
-            return charsBuff;
-        }
-
-        constexpr pointer data()
-        {
-            return charsBuff;
-        }
-
-        // ReSharper disable once CppMemberFunctionMayBeStatic
-        constexpr size_t size() const
-        {
-            return Size - 1;
-        }
-
-        constexpr const_pointer begin() const
-        {
-            return charsBuff;
-        }
-
-        constexpr const_pointer end() const
-        {
-            return charsBuff + size();
-        }
-
-        constexpr pointer begin()
-        {
-            return charsBuff;
-        }
-
-        constexpr pointer end()
-        {
-            return charsBuff + size();
-        }
-
-        constexpr strv_t view() const
-        {
-            return { begin(), size() };
-        }
-
-        constexpr operator strv_t() const
-        {
-            return view();
-        }
-    };
-
-    template <bool NullTerminated, typename Chr, size_t Size>
-    constexpr bool operator==(const chars_cache<NullTerminated, Chr, Size>& left, const basic_string_view<Chr> right)
-    {
-        return left.view() == right;
-    }
-
-    template <bool NullTerminated, typename Chr, size_t Size>
-    constexpr bool operator==(const chars_cache<NullTerminated, Chr, Size>& left, const Chr* right)
-    {
-        return left.view() == right;
-    }
-
-    template <bool NullTerminated, typename Chr, size_t Size>
-    constexpr bool operator==(const basic_string_view<Chr> left, const chars_cache<NullTerminated, Chr, Size> right)
-    {
-        return left == right.view();
-    }
-
-    template <bool NullTerminated, typename Chr, size_t Size>
-    constexpr bool operator==(const Chr* left, const chars_cache<NullTerminated, Chr, Size> right)
-    {
-        return left == right.view();
-    }
-
-    template <typename Chr, size_t Size>
-    chars_cache(const Chr (&arr)[Size]) -> chars_cache<true, Chr, Size>;
-
-    template <typename C>
-    struct hash<basic_string_view<C>>
-    {
-        constexpr size_t operator()(const basic_string_view<C> str) const
-        {
-            return hash_bytes(str.data(), str.size());
-        }
-    };
-
-    template <typename C>
-    struct hash<basic_string<C>> : hash<basic_string_view<C>>
-    {
-        constexpr size_t operator()(const basic_string<C>& str) const
-        {
-            return hash_bytes(str.data(), str.size());
-        }
-    };
-
     inline namespace literals
     {
-        template <chars_cache Cache>
-        consteval size_t operator"" _hash()
-        {
-            return hash_bytes(Cache.data(), Cache.size());
-        }
 
         inline namespace string_view_literals
         {
@@ -520,34 +326,13 @@ namespace fd
         // ReSharper restore All
 
       public:
-        constexpr string_t operator()(const int32_t val) const
+        template <std::integral T>
+        constexpr string_t operator()(const T val) const
         {
-            return _Integral_to_string(val);
-        }
-
-        constexpr string_t operator()(const uint32_t val) const
-        {
-            return _UIntegral_to_string(val);
-        }
-
-        constexpr string_t operator()(const long val) const
-        {
-            return _Integral_to_string(val);
-        }
-
-        constexpr string_t operator()(const unsigned long val) const
-        {
-            return _UIntegral_to_string(val);
-        }
-
-        constexpr string_t operator()(const int64_t val) const
-        {
-            return _Integral_to_string(val);
-        }
-
-        constexpr string_t operator()(const uint64_t val) const
-        {
-            return _UIntegral_to_string(val);
+            if constexpr (std::is_unsigned_v<T>)
+                return _UIntegral_to_string(val);
+            else
+                return _Integral_to_string(val);
         }
 
         constexpr string_t operator()(float val) const       = delete;
