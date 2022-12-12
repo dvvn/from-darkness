@@ -118,13 +118,30 @@ namespace fd
     template <typename T>
     static constexpr bool _IsClassOrUnion = std::is_class_v<T> || std::is_union_v<T>;
 
-    template <typename T>
+    /*template <typename T>
     struct remove_all_pointers : std::conditional_t<std::is_pointer_v<T>, remove_all_pointers<std::remove_pointer_t<T>>, std::type_identity<T>>
+    {
+    };*/
+
+    template <typename T, bool V = std::is_pointer_v<T>>
+    struct remove_all_pointers;
+
+    template <typename T>
+    struct remove_all_pointers<T, false>
+    {
+        using type = T;
+    };
+
+    template <typename T>
+    struct remove_all_pointers<T, true> : remove_all_pointers<std::remove_pointer_t<T>>
     {
     };
 
     template <typename T>
-    using raw_type_t = typename remove_all_pointers<std::decay_t<T>>::type;
+    using remove_all_pointers_t = typename remove_all_pointers<T>::type;
+
+    template <typename T>
+    using raw_type_t = remove_all_pointers_t<std::decay_t<T>>;
 
     template <typename T>
     constexpr auto type_name()
@@ -196,21 +213,25 @@ namespace fd
 
         using char_traits = std::char_traits<char>;
 
-        constexpr auto find_existing_char = [](const char* ptr, const char c) {
+        constexpr auto findFirstChar = [](const char* ptr, const char c) {
             return char_traits::find(ptr, static_cast<size_t>(-1), c);
         };
-        constexpr auto find_last_existing_char = [](const char* ptr, const char c) -> const char* {
-            const auto end = ptr + char_traits::length(ptr);
-            for (auto pos = end - 1; pos >= ptr; --pos)
+        constexpr auto findLastChar = [](const char* ptr, const char c) {
+            const char* out = nullptr;
+            for (; *ptr != '\0'; ++ptr)
             {
-                if (*pos == c)
-                    return pos;
+                if (*ptr == c)
+                    out = ptr;
             }
-            return nullptr;
+            return out;
         };
-
+        constexpr auto getOffset = [](auto fn, const char* ptr, const char c) -> size_t {
+            const auto found = invoke(fn, ptr, c);
+            // ReSharper disable once CppUnreachableCode
+            return std::distance(ptr, found);
+        };
         // skip XXXXtype_name_raw
-        const auto offset = std::distance(infoL.name, find_existing_char(infoL.name, '<')) + 1;
+        const auto offset = invoke(getOffset, findFirstChar, infoL.name, '<') + 1;
 
         const auto strL = infoL.name + offset;
         const auto strR = infoR.name + offset;
@@ -227,8 +248,8 @@ namespace fd
             strFull    = strL;
         }
         // find end of partial tempalte
-        const auto limit = std::distance(strPartial, find_last_existing_char(strPartial, '>'));
-        if (char_traits::compare(strL, strR, limit) != 0)
+        const auto limit = invoke(getOffset, findLastChar, strPartial, '>');
+        if (char_traits::compare(strPartial, strFull, limit) != 0)
             return false;
         // check are full template same as given part
         return strFull[limit] == '<';
