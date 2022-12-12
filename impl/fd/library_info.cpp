@@ -214,8 +214,7 @@ static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY
 
 static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA_TABLE_ENTRY* entry)
 {
-    const auto getName = [=]
-    {
+    const auto getName = [=] {
         return entry ? _library_info_name(entry) : L"unknown name";
     };
     invoke(Logger,
@@ -228,8 +227,7 @@ static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA
 }
 
 // ReSharper disable once CppInconsistentNaming
-static constexpr auto _log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr)
-{
+static constexpr auto _log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr) {
     invoke(Logger,
            //
            L"{} -> {} '{}' {}! ({:#X})",
@@ -246,8 +244,7 @@ static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_v
         return;
 
     // ReSharper disable once CppInconsistentNaming
-    const auto _log_found_object_ex = [&](const auto objectType, const auto object)
-    {
+    const auto _log_found_object_ex = [&](const auto objectType, const auto object) {
         _log_found_object(entry, objectType, object, addr);
     };
 
@@ -317,8 +314,7 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
 #define contains(x) find(x) != static_cast<size_t>(-1)
 #endif
 
-    const auto demagleType = [=]() -> string_view
-    {
+    const auto demagleType = [=]() -> string_view {
         const auto prefix = typeDescriptor[_RttiInfo.rawPrefix.size()];
         if (prefix == _RttiInfo.classPrefix)
             return "class";
@@ -328,8 +324,7 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
             FD_ASSERT_UNREACHABLE("Unknown prefix!");
     };
 
-    const auto demagleName = [=]() -> string
-    {
+    const auto demagleName = [=]() -> string {
         string buff;
         if (name.contains('@'))
             buff = demangle_symbol(typeDescriptor);
@@ -353,11 +348,9 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
 
 library_info library_info::_Find(const wstring_view name, const bool notify)
 {
-    const auto entry = LDR_ENTRY_finder(
-        [=](const library_info info)
-        {
-            return info.name() == name;
-        });
+    const auto entry = LDR_ENTRY_finder([=](const library_info info) {
+        return info.name() == name;
+    });
 #ifdef _DEBUG
     if (!entry)
         return {}; // prevent assert
@@ -413,8 +406,8 @@ static auto _wait_prepare(const bool notify)
 {
     const library_info ntdll(L"ntdll.dll", false, notify);
 
-    const auto reg   = static_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
-    const auto unreg = static_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
+    const auto reg   = reinterpret_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
+    const auto unreg = reinterpret_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
 
     return std::pair(reg, unreg);
 }
@@ -446,22 +439,18 @@ library_info::library_info(pointer entry)
 
 library_info::library_info(const wstring_view name, const bool wait, const bool notify)
 {
-    entry_ = LDR_ENTRY_finder(
-        [=](const library_info info)
-        {
-            return info.name() == name;
-        });
+    entry_ = LDR_ENTRY_finder([=](const library_info info) {
+        return info.name() == name;
+    });
 
     if (!entry_ && wait)
     {
         const auto baseAddress = _Wait(name, notify);
         if (baseAddress)
         {
-            entry_ = LDR_ENTRY_finder(
-                [=](const dos_nt dnt)
-                {
-                    return baseAddress == dnt.base();
-                });
+            entry_ = LDR_ENTRY_finder([=](const dos_nt dnt) {
+                return baseAddress == dnt.base();
+            });
         }
     }
 
@@ -472,11 +461,9 @@ library_info::library_info(const wstring_view name, const bool wait, const bool 
 }
 
 library_info::library_info(const IMAGE_DOS_HEADER* baseAddress, const bool notify)
-    : entry_(LDR_ENTRY_finder(
-          [=](const dos_nt dnt)
-          {
-              return baseAddress == dnt.base();
-          }))
+    : entry_(LDR_ENTRY_finder([=](const dos_nt dnt) {
+        return baseAddress == dnt.base();
+    }))
 {
     if (notify)
         _log_found_entry(baseAddress, entry_);

@@ -1,8 +1,6 @@
 #include <fd/assert.h>
 #include <fd/mem_scanner.h>
 
-#include <algorithm>
-#include <limits>
 #include <ranges>
 #include <vector>
 
@@ -192,8 +190,7 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
     bytes.emplace_back();
 
     // ReSharper disable once CppInconsistentNaming
-    constexpr auto _to_num = [](const auto chr) -> uint8_t
-    {
+    constexpr auto _to_num = [](const auto chr) -> uint8_t {
         switch (chr)
         {
         case '0':
@@ -239,13 +236,11 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
         }
     };
     // ReSharper disable once CppInconsistentNaming
-    const auto _skip_byte = [&]
-    {
+    const auto _skip_byte = [&] {
         ++bytes.back().skip;
     };
     // ReSharper disable once CppInconsistentNaming
-    const auto _store_byte = [&](const uint8_t num)
-    {
+    const auto _store_byte = [&](const uint8_t num) {
         auto& back = bytes.back();
         auto& rng  = back.skip > 0 ? bytes.emplace_back() : back;
         rng.part.push_back(num);
@@ -258,8 +253,7 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
 
         switch (size)
         {
-        case 1:
-        {
+        case 1: {
             const auto value = *rawBegin;
             if (value == '?')
                 _skip_byte();
@@ -267,8 +261,7 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
                 _store_byte(_to_num(value));
             break;
         }
-        case 2:
-        {
+        case 2: {
             const auto value1 = rawBegin[0];
             const auto value2 = rawBegin[1];
             if (value1 == '?')
@@ -282,8 +275,7 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
             }
             break;
         }
-        default:
-        {
+        default: {
             FD_ASSERT_UNREACHABLE("Uncorrect part!");
         }
         };
@@ -360,7 +352,7 @@ unknown_bytes_range_shared& unknown_bytes_range_shared::operator=(const unknown_
 {
     bytes_ = other.bytes_;
     uses_  = other.uses_;
-    ++uses_;
+    ++*uses_;
     return *this;
 }
 
@@ -398,7 +390,7 @@ xrefs_finder_impl::xrefs_finder_impl(const memory_range memRng, const uintptr_t&
 {
 }
 
-xrefs_finder_impl::xrefs_finder_impl(const memory_range memRng, const void* addr)
+xrefs_finder_impl::xrefs_finder_impl(const memory_range memRng, const void*& addr)
     : memRng_(memRng)
     , xref_(reinterpret_cast<const uint8_t*>(&addr))
 {
@@ -439,7 +431,7 @@ void* pattern_scanner_known::operator()() const
     return _find_block(memRng_.from, memRng_.to, searchRng_.from, searchRng_.to);
 }
 
-void pattern_scanner_known::update(void* lastPos)
+void pattern_scanner_known::update(const void* lastPos)
 {
     memRng_.update(lastPos);
 }

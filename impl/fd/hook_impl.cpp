@@ -44,7 +44,7 @@ hook_impl::hook_impl(const string_view name)
 
 hook_impl::hook_impl(hook_impl&& other) noexcept
     : entry_(std::exchange(other.entry_, nullptr))
-    , name_(std::move(other.name_))
+    , name_(other.name_)
 {
 }
 
@@ -57,7 +57,7 @@ static void _log(const hook_impl* h, const M msg)
 bool hook_impl::enable()
 {
     const auto ok = subhook_install(entry_) == 0;
-    _log(this, [=] {
+    _log(this, [this] {
         if (ok)
             return "hooked";
         if (!entry_)
@@ -72,7 +72,7 @@ bool hook_impl::enable()
 bool hook_impl::disable()
 {
     const auto ok = subhook_remove(entry_) == 0;
-    _log(this, [=] {
+    _log(this, [this] {
         if (ok)
             return "unhooked";
         if (!entry_)

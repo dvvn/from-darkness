@@ -4,13 +4,10 @@
 
 #include <fcntl.h>
 #include <io.h>
-#include <time.h>
 
 #include <array>
-#include <cassert>
 #include <chrono>
 #include <cstdio>
-#include <iostream>
 
 using namespace fd;
 
@@ -32,10 +29,10 @@ file_stream::file_stream(FILE* stream)
 {
 }
 
-file_stream::file_stream(const char* file_name, const char* mode, FILE* old_stream)
+file_stream::file_stream(const char* fileName, const char* mode, FILE* oldStream)
     : redirected_(true)
 {
-    [[maybe_unused]] const auto err = freopen_s(&stream_, file_name, mode, old_stream);
+    [[maybe_unused]] const auto err = freopen_s(&stream_, fileName, mode, oldStream);
     FD_ASSERT(err == NULL);
 }
 
@@ -63,7 +60,7 @@ file_stream::operator FILE*() const
     return stream_;
 }
 
-static string _Get_current_time()
+static string _get_current_time()
 {
     using namespace std::chrono;
     using clock = system_clock;
@@ -87,7 +84,7 @@ static string _Get_current_time()
 #endif
 }
 
-#define putc_assert(_RESULT_) FD_ASSERT(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
+#define PUTC_ASSERT(_RESULT_) FD_ASSERT(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
 
 file_stream_reader::file_stream_reader() = default;
 
@@ -97,6 +94,7 @@ file_stream_reader& file_stream_reader::operator=(file_stream&& stream)
     return *this;
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void file_stream_writer::write_nolock(const wchar_t* ptr, const size_t size)
 {
     // [[maybe_unused]] const auto ok = std::fputws(ptr, stream_);
@@ -117,6 +115,7 @@ void file_stream_writer::write_nolock(const wchar_t* ptr, const size_t size)
     _fwrite_nolock(ptr, sizeof(wchar_t), size, stream_);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void file_stream_writer::write_nolock(const char* ptr, const size_t size)
 {
     /* const auto wstr = utf_convert<wchar_t>(string_view(ptr, size));
@@ -164,19 +163,19 @@ system_console::~system_console()
 
 system_console::system_console()
 {
-    auto console_window = GetConsoleWindow();
-    if (!console_window)
+    auto consoleWindow = GetConsoleWindow();
+    if (!consoleWindow)
     {
-        const auto console_allocated = AllocConsole();
-        FD_ASSERT(console_allocated, "Unable to allocate the console!");
+        const auto consoleAllocated = AllocConsole();
+        FD_ASSERT(consoleAllocated, "Unable to allocate the console!");
 
-        console_window = GetConsoleWindow();
-        FD_ASSERT(console_window, "Unable to get the console window");
+        consoleWindow = GetConsoleWindow();
+        FD_ASSERT(consoleWindow, "Unable to get the console window");
 
         // const auto window_title_set = SetConsoleTitleW(nstd::winapi::current_module()->FullDllName.Buffer);
         // FD_ASSERT(window_title_set, "Unable set console title");
 
-        window_ = console_window;
+        window_ = consoleWindow;
     }
 
     /* constexpr auto construct_helper = [](auto& obj, auto... args) {
@@ -188,13 +187,13 @@ system_console::system_console()
     out_ = file_stream("CONOUT$", "w", stdout);
     err_ = file_stream("CONOUT$", "w", stderr);
 
-    FD_ASSERT(IsWindowUnicode(console_window) == TRUE);
+    FD_ASSERT(IsWindowUnicode(consoleWindow) == TRUE);
 
     write_nolock("Started");
 }
 
 template <class M, class T = string>
-static void _Write_log_line_nolock(file_stream_writer& w, const M& msg, const T& time = _Get_current_time())
+static void _write_log_line_nolock(file_stream_writer& w, const M& msg, const T& time = _get_current_time())
 {
 #if 0
     w.write_nolock(time.data(), time.size());
@@ -213,29 +212,29 @@ static void _Write_log_line_nolock(file_stream_writer& w, const M& msg, const T&
 }
 
 template <class M>
-static void _Write_log_line(file_stream_writer& w, const M& msg)
+static void _write_log_line(file_stream_writer& w, const M& msg)
 {
-    const auto time = _Get_current_time();
+    const auto time = _get_current_time();
     const std::lock_guard guard(w);
-    _Write_log_line_nolock(w, msg, time);
+    _write_log_line_nolock(w, msg, time);
 }
 
 void system_console::write_nolock(const string_view str)
 {
-    _Write_log_line_nolock(out_, str);
+    _write_log_line_nolock(out_, str);
 }
 
 void system_console::write_nolock(const wstring_view wstr)
 {
-    _Write_log_line_nolock(out_, wstr);
+    _write_log_line_nolock(out_, wstr);
 }
 
 void system_console::write(const string_view str)
 {
-    _Write_log_line(out_, str);
+    _write_log_line(out_, str);
 }
 
 void system_console::write(const wstring_view wstr)
 {
-    _Write_log_line(out_, wstr);
+    _write_log_line(out_, wstr);
 }

@@ -1,8 +1,6 @@
 #include <fd/assert.h>
 #include <fd/netvar_table.h>
 
-#include <ranges>
-
 using namespace fd;
 using namespace valve;
 

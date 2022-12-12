@@ -55,7 +55,7 @@ namespace fd
         pattern_scanner_known(memory_range memRng, const uint8_t* begin, size_t memSize);
 
         void* operator()() const;
-        void update(void* lastPos);
+        void update(const void* lastPos);
     };
 
     class xrefs_finder_impl
@@ -65,7 +65,7 @@ namespace fd
 
       public:
         xrefs_finder_impl(memory_range memRng, const uintptr_t& addr);
-        xrefs_finder_impl(memory_range memRng, const void* addr);
+        xrefs_finder_impl(memory_range memRng, const void*& addr);
 
         void* operator()() const;
         void update(const void* lastPos);

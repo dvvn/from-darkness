@@ -6,18 +6,11 @@
 #include <fd/netvar_storage_impl.h>
 #include <fd/netvar_type_resolve.h>
 #include <fd/string_info.h>
-// ReSharper disable once CppUnusedIncludeDirective
-#include <fd/utility.h>
 
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-
-//---
-// import fd.valve.base_entity;
-// import fd.valve.engine_client;
-// import fd.valve.base_client;
 
 #if 0
 namespace std::filesystem

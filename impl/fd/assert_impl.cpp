@@ -2,20 +2,15 @@
 #include <fd/functional.h>
 #include <fd/utf_string.h>
 
-#ifdef FD_ROOT_DIR
-#include <fd/utility.h>
-#endif
-
 #include <Windows.h>
 
 #include <algorithm>
-#include <exception>
 #include <mutex>
 #include <source_location>
 
 using namespace fd;
 
-static auto _Correct_file_name(const string_view fullPath)
+static auto _correct_file_name(const string_view fullPath)
 {
 #ifdef FD_ROOT_DIR
     // ReSharper disable once CppInconsistentNaming
@@ -43,9 +38,9 @@ static auto _Correct_file_name(const string_view fullPath)
 }
 
 template <typename... T>
-static utf_string<wchar_t> _Build_message(const assert_data& data, T... extra)
+static utf_string<wchar_t> _build_message(const assert_data& data, T... extra)
 {
-#define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", _Correct_file_name(location.file_name()), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
+#define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", _correct_file_name(location.file_name()), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
 #define EXPR       "Expression: ", expression
     const auto [expression, message, location] = data;
 
@@ -58,11 +53,11 @@ static utf_string<wchar_t> _Build_message(const assert_data& data, T... extra)
     return make_string(FIRST_PART, extra...);
 }
 
-static void _Default_assert_handler(const assert_data& data)
+static void _default_assert_handler(const assert_data& data)
 {
 #ifdef WINAPI_FAMILY
 #if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-    const auto msg       = _Build_message(data, "\n\nWould you like to interrupt execution?");
+    const auto msg       = _build_message(data, "\n\nWould you like to interrupt execution?");
     const auto terminate = MessageBoxW(nullptr, msg.data(), L"Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL) != IDNO;
     if (terminate)
         std::terminate(); // todo: unload by own function instead of terminate
@@ -77,7 +72,7 @@ static void _Default_assert_handler(const assert_data& data)
 
 default_assert_handler::default_assert_handler()
 {
-    data_.emplace_back(_Default_assert_handler);
+    data_.emplace_back(_default_assert_handler);
 }
 
 void default_assert_handler::add(function_type fn)
@@ -96,7 +91,7 @@ namespace fd
 {
     wstring parse_assert_data(const assert_data& adata)
     {
-        return _Build_message(adata);
+        return _build_message(adata);
     }
 
     basic_assert_handler* AssertHandler;

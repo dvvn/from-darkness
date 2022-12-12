@@ -20,7 +20,7 @@ namespace fd
         ~file_stream();
         file_stream();
         file_stream(FILE* stream);
-        file_stream(const char* file_name, const char* mode, FILE* old_stream);
+        file_stream(const char* file_name, const char* mode, FILE* oldStream);
         file_stream(file_stream&& other);
         file_stream& operator=(file_stream&& other);
         operator void*() const;
