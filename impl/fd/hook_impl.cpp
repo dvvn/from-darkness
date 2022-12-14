@@ -1,7 +1,6 @@
 #include <fd/assert.h>
 #include <fd/hook_impl.h>
 #include <fd/logger.h>
-#include <fd/utility.h>
 
 #include <subhook.h>
 
@@ -48,16 +47,12 @@ hook_impl::hook_impl(hook_impl&& other) noexcept
 {
 }
 
-template <typename M>
-static void _log(const hook_impl* h, const M msg)
-{
-    invoke(Logger, "{}: {}", bind_front(&hook_impl::name, h), msg);
-}
+#define LOG_HOOK(...) invoke(Logger, "{}: {}", bind_front(&hook_impl::name, this), __VA_ARGS__)
 
 bool hook_impl::enable()
 {
     const auto ok = subhook_install(entry_) == 0;
-    _log(this, [this] {
+    LOG_HOOK([=] {
         if (ok)
             return "hooked";
         if (!entry_)
@@ -72,7 +67,7 @@ bool hook_impl::enable()
 bool hook_impl::disable()
 {
     const auto ok = subhook_remove(entry_) == 0;
-    _log(this, [this] {
+    LOG_HOOK([=] {
         if (ok)
             return "unhooked";
         if (!entry_)
@@ -119,10 +114,22 @@ void hook_impl::init(const function_getter target, const function_getter replace
     FD_ASSERT(entry_ == nullptr);
     entry_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
     if (!entry_)
-        _log(this, "creating error!");
+        LOG_HOOK("creating error!");
 }
 
 hook_impl::operator bool() const
 {
     return initialized();
+}
+
+//----
+
+hook_callback_ret_wrapper<void>::operator bool&()
+{
+    return value_;
+}
+
+hook_callback_ret_wrapper<void>::operator bool() const
+{
+    return value_;
 }

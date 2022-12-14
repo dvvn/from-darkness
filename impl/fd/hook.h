@@ -15,7 +15,5 @@ namespace fd
 
         virtual bool initialized() const = 0;
         virtual bool active() const      = 0;
-
-        virtual void* get_original_method() const = 0;
     };
 } // namespace fd

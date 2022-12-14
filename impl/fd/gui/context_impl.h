@@ -5,6 +5,8 @@
 
 #include <imgui_internal.h>
 
+#include <Windows.h>
+
 #include <vector>
 
 namespace fd::gui
@@ -85,7 +87,8 @@ namespace fd::gui
         void release_textures() override;
         void render(void* data) override;
         char process_keys(void* data) override;
-
+        char process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+        
         void store(callback_type callback);
 
         bool create_hotkey(hotkey_source source, hotkey_mode mode, callback_type callback, bool update = false);

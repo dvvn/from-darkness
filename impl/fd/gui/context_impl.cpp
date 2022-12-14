@@ -36,7 +36,7 @@ class keys_pack_ex : public keys_pack
     keys_pack_ex(const bool instantFill = false, Fn fn = {})
         : fn_(fn)
     {
-        if(instantFill)
+        if (instantFill)
             fill();
     }
 
@@ -326,7 +326,7 @@ void context_impl::render(void* data)
 
 #ifndef IMGUI_HAS_VIEWPORT
     const auto displaySize = context_.IO.DisplaySize;
-    const auto minimized    = displaySize.x <= 0 || displaySize.y <= 0;
+    const auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
     if (minimized)
         return ImGui::EndFrame();
 #endif
@@ -361,6 +361,12 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 char context_impl::process_keys(void* data)
 {
+    const auto kd = static_cast<keys_data*>(data);
+    return process_keys(kd->window, kd->message, kd->wParam, kd->lParam);
+}
+
+char context_impl::process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+{
     constexpr char retInstant = TRUE;
     constexpr char retNative  = FALSE;
     constexpr auto retDefault = std::numeric_limits<char>::max();
@@ -368,16 +374,14 @@ char context_impl::process_keys(void* data)
     if (!can_process_keys())
         return retNative;
 
-    const auto [wnd, msg, wp, lp] = *static_cast<keys_data*>(data);
-
     const auto& events        = context_.InputEventsQueue;
     const auto oldEventsCount = events.size();
-    const bool instant        = ImGui_ImplWin32_WndProcHandler(wnd, msg, wp, lp);
+    const bool instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam);
     const std::span eventsAdded(events.begin() + oldEventsCount, events.end());
 
     // update focus
     // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
-    switch (msg)
+    switch (message)
     {
     case WM_SETFOCUS: {
         focused_ = true;
@@ -404,7 +408,7 @@ void context_impl::store(callback_type callback)
     callbacks_.emplace_back(std::move(callback));
 }
 
-bool context_impl::create_hotkey(const hotkey_source source,const hotkey_mode mode,const callback_type callback, const bool update)
+bool context_impl::create_hotkey(const hotkey_source source, const hotkey_mode mode, const callback_type callback, const bool update)
 {
     const auto hk = hotkeys_.create(source, mode, callback);
     if (update)

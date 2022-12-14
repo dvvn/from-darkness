@@ -1,13 +1,15 @@
 #pragma once
 
+#include <fd/call_cvs.h>
 #include <fd/utility.h>
 
 #include <function2/function2.hpp>
 
 #include <functional>
-#include <limits>
 #include <stdexcept>
+#if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
 #include <tuple>
+#endif
 
 namespace fd
 {
@@ -80,54 +82,41 @@ namespace fd
 
     //-------------
 
-    enum class _Call_cvs : uint8_t
-    {
-        // ReSharper disable CppInconsistentNaming
-        default__,
-        thiscall__,
-        cdecl__,
-        fastcall__,
-        stdcall__,
-        vectorcall__,
-        // ReSharper restore CppInconsistentNaming
-    };
-
-    template <_Call_cvs, typename Ret, typename... Args>
+    template <call_cvs, typename Ret, typename... Args>
     struct _Tiny_fn;
 
-#define _CALL_CVS_IMPL(_ENUM_, _CCVS_)                                                                     \
-    template <typename Ret, typename... Args>                                                              \
-    struct _Tiny_fn<_Call_cvs::_ENUM_, Ret, Args...>                                                       \
-    {                                                                                                      \
-        Ret _CCVS_ callback(Args... args) const                                                            \
-        {                                                                                                  \
-            if constexpr (!std::is_void_v<Ret>)                                                            \
-                return *(Ret*)nullptr;                                                                     \
-        }                                                                                                  \
-    };                                                                                                     \
-    template <typename Ret, class T, typename... Args>                                                     \
-    constexpr _Tiny_fn<_Call_cvs::_ENUM_, Ret, Args...> _Tiny_selector(Ret (_CCVS_ T::*fn)(Args...))       \
-    {                                                                                                      \
-        return {};                                                                                         \
-    }                                                                                                      \
-    template <typename Ret, class T, typename... Args>                                                     \
-    constexpr _Tiny_fn<_Call_cvs::_ENUM_, Ret, Args...> _Tiny_selector(Ret (_CCVS_ T::*fn)(Args...) const) \
-    {                                                                                                      \
-        return {};                                                                                         \
+#define TINY_FN_IMPL(_ENUM_, _CCVS_)                                                                      \
+    template <typename Ret, typename... Args>                                                             \
+    struct _Tiny_fn<call_cvs::_ENUM_, Ret, Args...>                                                       \
+    {                                                                                                     \
+        Ret _CCVS_ callback(Args... args) const                                                           \
+        {                                                                                                 \
+            std::unreachable();                                                                           \
+        }                                                                                                 \
+    };                                                                                                    \
+    template <typename Ret, class T, typename... Args>                                                    \
+    constexpr _Tiny_fn<call_cvs::_ENUM_, Ret, Args...> _Tiny_selector(Ret (_CCVS_ T::*fn)(Args...))       \
+    {                                                                                                     \
+        return {};                                                                                        \
+    }                                                                                                     \
+    template <typename Ret, class T, typename... Args>                                                    \
+    constexpr _Tiny_fn<call_cvs::_ENUM_, Ret, Args...> _Tiny_selector(Ret (_CCVS_ T::*fn)(Args...) const) \
+    {                                                                                                     \
+        return {};                                                                                        \
     }
 
-#define _CALL_CVS(_C_) _CALL_CVS_IMPL(FD_CONCAT(_C_, __), FD_CONCAT(__, _C_))
+#define TINY_FN(_C_) TINY_FN_IMPL(_C_##_, __##_C_)
 
 #ifdef _WIN32
 #ifndef __RESHARPER__
-#undef cdecl
-    FOR_EACH(_CALL_CVS, thiscall, cdecl, fastcall, stdcall, vectorcall);
+    FOR_EACH(TINY_FN, thiscall, cdecl, fastcall, stdcall, vectorcall);
 #endif
 #else
-    _CALL_CVS(default, );
+#error "not implemented"
 #endif
 
-#undef _CALL_CVS
+#undef TINY_FN
+#undef TINY_FN_IMPL
 
     template <typename Fn>
     concept fat_pointer = sizeof(Fn) > sizeof(void*);

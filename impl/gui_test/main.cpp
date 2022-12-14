@@ -53,7 +53,25 @@ int main(int, char**)
         menuCtx.render();
     });
 
-    hook_holder allHooks(hooked::d3d9_reset({ backend.d3d, 16 }), hooked::d3d9_present({ backend.d3d, 17 }), hooked::wndproc(backend.hwnd, backend.info.lpfnWndProc));
+    hook_callback<LRESULT, call_cvs::stdcall_, void, HWND, UINT, WPARAM, LPARAM> hookedWndProc(backend.info.lpfnWndProc, "WinAPI.WndProc");
+    hookedWndProc.add([&](auto&, auto& ret, bool, auto... args) -> void {
+        const auto val = guiCtx.process_keys(args...);
+        if (val == TRUE)
+            ret.emplace(TRUE);
+        else if (val != FALSE)
+            ret.emplace(DefWindowProc(args...));
+    });
 
-    return allHooks.enable() ? (backend.run(), EXIT_SUCCESS) : EXIT_FAILURE;
+    hook_callback<void, call_cvs::stdcall_, IDirect3DDevice9, D3DPRESENT_PARAMETERS*> hookedDirectx9Reset({ backend.d3d, 16 }, "IDirect3DDevice9::Reset");
+    hookedDirectx9Reset.add([&](auto&&...) {
+        guiCtx.release_textures();
+    });
+
+    hook_callback<HRESULT, call_cvs::stdcall_, IDirect3DDevice9, CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*> hookedDirectx9Present({ backend.d3d, 17 },
+                                                                                                                                       "IDirect3DDevice9::Present");
+    hookedDirectx9Present.add([&](auto&, auto&, bool, auto thisPtr, auto...) {
+        guiCtx.render(thisPtr);
+    });
+
+    return !hookedWndProc.enable() || !hookedDirectx9Reset.enable() || !hookedDirectx9Present.enable() ? EXIT_FAILURE : (backend.run(), EXIT_SUCCESS);
 }
