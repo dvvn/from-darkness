@@ -26,19 +26,46 @@ _SUBHOOK_WRAP(get_dst);
 
 using namespace fd;
 
-hook_impl::~hook_impl()
+template <typename T>
+static void _log(auto* hook, T msg)
 {
-    if (!entry_)
+    if (!Logger)
         return;
-    if (!hook_impl::disable())
+    auto hookName = hook->name();
+    if (hookName.empty())
         return;
-    subhook_free(entry_);
+    if constexpr (invocable<T>)
+        invoke(*Logger, make_string(hookName, ": ", invoke(msg)));
+    else
+        invoke(*Logger, make_string(hookName, ": ", msg));
 }
 
-hook_impl::hook_impl(const string_view name)
-    : entry_(nullptr)
-    , name_(name)
+hook_impl::hook_impl()
+    : inUse_(false)
+    , entry_(nullptr)
 {
+    if (HookGlobalCallback)
+        HookGlobalCallback->construct(this);
+}
+
+hook_impl::~hook_impl()
+{
+    if (!inUse_)
+    {
+        _log(this, "never used!");
+        return;
+    }
+
+    if (!hook_impl::initialized())
+        return;
+    if (hook_impl::active())
+    {
+        const auto ok = subhook_remove(entry_) == 0;
+        _log(this, ok ? "unhooked" : "unhook error!");
+        if (HookGlobalCallback)
+            HookGlobalCallback->destroy(this, ok);
+    }
+    subhook_free(entry_);
 }
 
 hook_impl::hook_impl(hook_impl&& other) noexcept
@@ -47,30 +74,29 @@ hook_impl::hook_impl(hook_impl&& other) noexcept
 {
 }
 
-#define LOG_HOOK(...) invoke(Logger, "{}: {}", bind_front(&hook_impl::name, this), __VA_ARGS__)
-
 bool hook_impl::enable()
 {
     const auto ok = subhook_install(entry_) == 0;
-    LOG_HOOK([=] {
+    _log(this, [=] {
         if (ok)
             return "hooked";
-        if (!entry_)
+        if (!initialized())
             return "not created";
         if (active())
             return "already hooked";
         return "enable error!";
     });
+    inUse_ = true;
     return ok;
 }
 
 bool hook_impl::disable()
 {
     const auto ok = subhook_remove(entry_) == 0;
-    LOG_HOOK([=] {
+    _log(this, [=] {
         if (ok)
             return "unhooked";
-        if (!entry_)
+        if (!initialized())
             return "not created";
         if (!active())
             return "already unhooked";
@@ -82,6 +108,11 @@ bool hook_impl::disable()
 string_view hook_impl::name() const
 {
     return name_;
+}
+
+void hook_impl::set_name(const string_view name)
+{
+    name_ = name;
 }
 
 bool hook_impl::initialized() const
@@ -114,7 +145,7 @@ void hook_impl::init(const function_getter target, const function_getter replace
     FD_ASSERT(entry_ == nullptr);
     entry_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
     if (!entry_)
-        LOG_HOOK("creating error!");
+        _log(this, "init error!");
 }
 
 hook_impl::operator bool() const
@@ -124,12 +155,17 @@ hook_impl::operator bool() const
 
 //----
 
-hook_callback_ret_wrapper<void>::operator bool&()
+hook_callback_ret_wrapper<void>::operator bool() const
 {
     return value_;
 }
 
-hook_callback_ret_wrapper<void>::operator bool() const
+void hook_callback_ret_wrapper<void>::emplace()
 {
-    return value_;
+    value_ = true;
+}
+
+namespace fd
+{
+    hook_global_callback* HookGlobalCallback;
 }

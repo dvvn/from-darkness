@@ -7,11 +7,10 @@
 #include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
-#include <fd/hook_holder.h>
-#include <fd/hooked/hk_directx.h>
-#include <fd/hooked/hk_vgui_surface.h>
-#include <fd/hooked/hk_winapi.h>
+#include <fd/hook_impl.h>
 #include <fd/library_info.h>
+
+#include <fd/valve/gui/surface.h>
 
 #include <d3d9.h>
 #include <windows.h>
@@ -23,20 +22,49 @@ static DWORD _ThreadId = 0;
 
 using namespace fd;
 
+class hooks_storage final : public hook_global_callback
+{
+    std::vector<basic_hook*> hooks_;
+
+    void construct(basic_hook* caller) override
+    {
+        hooks_.push_back(caller);
+    }
+
+    void destroy(const basic_hook* caller, const bool unhooked) override
+    {
+        if (!unhooked)
+            std::abort();
+        // std::ranges stuck here
+        *std::find(hooks_.begin(), hooks_.end(), caller) = nullptr;
+    }
+
+  public:
+    ~hooks_storage() override
+    {
+        if (!hooks_.empty())
+            std::abort();
+    }
+
+    bool enable() const
+    {
+        return std::ranges::all_of(hooks_, &basic_hook::enable);
+    }
+};
+
 static void _fail()
 {
     // TerminateThread(_ThreadHandle, EXIT_FAILURE);
     // FreeLibrary(ModuleHandle);
     FreeLibraryAndExitThread(_ModuleHandle, EXIT_FAILURE);
-};
+}
 
 static DWORD WINAPI _loader(void*) noexcept
 {
-    const lazy_invoke resetThreadId([] {
+    const lazy_invoke onReturn([stdTerminate = std::set_terminate(_fail)] {
         _ThreadId = 0;
+        std::set_terminate(stdTerminate);
     });
-
-    [[maybe_unused]] const auto stdTerminate = std::set_terminate(_fail);
 
     CurrentLibraryHandle = _ModuleHandle;
 
@@ -59,7 +87,7 @@ static DWORD WINAPI _loader(void*) noexcept
 #endif
 
     const library_info clientLib(L"client.dll", true);
-    const auto addToSafeList = static_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
+    const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
 
     invoke(addToSafeList, _ModuleHandle, nullptr);
 
@@ -83,10 +111,52 @@ static DWORD WINAPI _loader(void*) noexcept
     gui::menu_impl menuCtx;
     gui::Menu = &menuCtx;
 
-    hook_holder allHooks(hooked::d3d9_reset({ d3dIfc, 16 }),
-                         hooked::d3d9_present({ d3dIfc, 17 }),
-                         hooked::wndproc(hwnd, GetWindowLongPtrW(hwnd, GWLP_WNDPROC)),
-                         hooked::lock_cursor({ (void*)0, 67 }));
+    hooks_storage allHooks;
+    HookGlobalCallback = &allHooks;
+
+    hook_callback_t<WNDPROC> hkWndProc(GetWindowLongPtrW(hwnd, GWLP_WNDPROC));
+    hkWndProc.set_name("WinAPI.WndProc");
+#ifdef _DEBUG
+    hkWndProc.add([&assertCallback, hwnd, data = assert_data(nullptr, "Incorrect HWND!", std::source_location::current(__LINE__, 0, __FILE__, "hkWndProc"))](
+                      auto&, auto&, bool& interrupt, const HWND currHwnd, auto...) {
+        if (currHwnd == hwnd)
+            return;
+        invoke(assertCallback, data);
+        interrupt = true;
+    });
+#endif
+    hkWndProc.add([&](auto&, auto& ret, bool& interrupt, auto... args) {
+        const auto val = guiCtx.process_keys(args...);
+        if (val == TRUE)
+            ret.emplace(TRUE);
+        else if (val == FALSE)
+            interrupt = true;
+    });
+    hkWndProc.add([&](auto&, auto& ret, bool, auto... args) {
+        ret.emplace(DefWindowProc(args...));
+    });
+
+    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, { d3dIfc, 16 });
+    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
+    hkDirectx9Reset.add([&](auto&&...) {
+        guiCtx.release_textures();
+    });
+
+    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, { d3dIfc, 17 });
+    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
+    hkDirectx9Present.add([&](auto&, auto&, bool, auto thisPtr, auto...) {
+        guiCtx.render(thisPtr);
+    });
+
+    hook_callback hkVguiLockCursor(&valve::gui::surface::LockCursor, { (void*)0, 67 });
+    hkVguiLockCursor.set_name("VGUI.ISurface::LockCursor");
+    hkVguiLockCursor.add([&](auto&, auto& ret, bool, auto thisPtr) {
+        if (menuCtx.visible() && !thisPtr->IsCursorVisible())
+        {
+            thisPtr->UnlockCursor();
+            ret.emplace();
+        }
+    });
 
     if (!allHooks.enable())
         _fail();
@@ -102,8 +172,7 @@ static DWORD WINAPI _loader(void*) noexcept
     if (SuspendThread(_ThreadHandle) == -1)
         _fail();
 
-    if (!allHooks.disable())
-        std::abort();
+    // disable all hooks before return
 
     return EXIT_SUCCESS;
 }

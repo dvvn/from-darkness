@@ -4,15 +4,35 @@
 #include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
-#include <fd/hook_holder.h>
-#include <fd/hooked/hk_directx.h>
-#include <fd/hooked/hk_winapi.h>
+#include <fd/hook_impl.h>
 #include <fd/logger_impl.h>
 #include <fd/system_console.h>
 
 #include <imgui.h>
 
 using namespace fd;
+
+class hooks_storage final : public hook_global_callback
+{
+    std::vector<basic_hook*> hooks_;
+
+    void construct(basic_hook* caller) override
+    {
+        hooks_.push_back(caller);
+    }
+
+    void destroy(const basic_hook* caller, bool unhooked) override
+    {
+        // std::ranges stuck here
+        *std::find(hooks_.begin(), hooks_.end(), caller) = nullptr;
+    }
+
+  public:
+    bool enable() const
+    {
+        return std::ranges::all_of(hooks_, &basic_hook::enable);
+    }
+};
 
 int main(int, char**)
 {
@@ -53,25 +73,39 @@ int main(int, char**)
         menuCtx.render();
     });
 
-    hook_callback<LRESULT, call_cvs::stdcall_, void, HWND, UINT, WPARAM, LPARAM> hookedWndProc(backend.info.lpfnWndProc, "WinAPI.WndProc");
-    hookedWndProc.add([&](auto&, auto& ret, bool, auto... args) -> void {
+    hooks_storage allHooks;
+    HookGlobalCallback = &allHooks;
+
+    hook_callback hkWndProc(backend.info.lpfnWndProc);
+    hkWndProc.set_name("WinAPI.WndProc");
+    hkWndProc.add([&](auto&, auto& ret, bool& interrupt, auto... args) {
         const auto val = guiCtx.process_keys(args...);
         if (val == TRUE)
             ret.emplace(TRUE);
-        else if (val != FALSE)
-            ret.emplace(DefWindowProc(args...));
+        else if (val == FALSE)
+            interrupt = true;
+    });
+    hkWndProc.add([&](auto&, auto& ret, bool, auto... args) {
+        ret.emplace(DefWindowProc(args...));
     });
 
-    hook_callback<void, call_cvs::stdcall_, IDirect3DDevice9, D3DPRESENT_PARAMETERS*> hookedDirectx9Reset({ backend.d3d, 16 }, "IDirect3DDevice9::Reset");
-    hookedDirectx9Reset.add([&](auto&&...) {
+    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, { backend.d3d, 16 });
+    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
+    hkDirectx9Reset.add([&](auto&&...) {
         guiCtx.release_textures();
     });
 
-    hook_callback<HRESULT, call_cvs::stdcall_, IDirect3DDevice9, CONST RECT*, CONST RECT*, HWND, CONST RGNDATA*> hookedDirectx9Present({ backend.d3d, 17 },
-                                                                                                                                       "IDirect3DDevice9::Present");
-    hookedDirectx9Present.add([&](auto&, auto&, bool, auto thisPtr, auto...) {
+    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, { backend.d3d, 17 });
+    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
+    hkDirectx9Present.add([&](auto&, auto&, bool, auto thisPtr, auto...) {
         guiCtx.render(thisPtr);
     });
 
-    return !hookedWndProc.enable() || !hookedDirectx9Reset.enable() || !hookedDirectx9Present.enable() ? EXIT_FAILURE : (backend.run(), EXIT_SUCCESS);
+    if (allHooks.enable())
+    {
+        backend.run();
+        return EXIT_SUCCESS;
+    }
+
+    return EXIT_FAILURE;
 }
