@@ -37,7 +37,7 @@ namespace fd::gui
         void store(tab& newTab);
     };
 
-    class menu_impl final : public basic_menu
+    class menu final : public basic_menu
     {
         bool visible_;
         bool next_visible_;
@@ -45,7 +45,7 @@ namespace fd::gui
         std::vector<tab_bar*> tab_bars_;
 
       public:
-        menu_impl();
+        menu();
 
         bool visible() const override;
 

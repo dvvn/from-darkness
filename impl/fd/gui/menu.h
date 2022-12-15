@@ -14,6 +14,4 @@ namespace fd::gui
 
         virtual bool render() = 0;
     };
-
-    extern basic_menu* Menu;
 } // namespace fd::gui

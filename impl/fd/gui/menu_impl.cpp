@@ -90,33 +90,33 @@ void tab_bar::store(tab& newTab)
 
 //-------
 
-menu_impl::menu_impl()
+menu::menu()
     : visible_(false)
     , next_visible_(true)
 {
 }
 
-bool menu_impl::visible() const
+bool menu::visible() const
 {
     return visible_;
 }
 
-void menu_impl::show()
+void menu::show()
 {
     next_visible_ = true;
 }
 
-void menu_impl::hide()
+void menu::hide()
 {
     next_visible_ = false;
 }
 
-void menu_impl::toggle()
+void menu::toggle()
 {
     next_visible_ = !visible_;
 }
 
-bool menu_impl::render()
+bool menu::render()
 {
     if (!next_visible_)
     {
@@ -135,7 +135,7 @@ bool menu_impl::render()
     return next_visible_ = visible_ = visible;
 }
 
-void menu_impl::store(tab_bar& newTabBar)
+void menu::store(tab_bar& newTabBar)
 {
     tab_bars_.emplace_back(&newTabBar);
 }

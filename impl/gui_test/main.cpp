@@ -56,22 +56,18 @@ int main(int, char**)
         sysConsole.write(parse_assert_data(adata));
     });
 
-    std::pair<void*, HWND> guiCtxInit(backend.d3d, backend.hwnd);
-    gui::context_impl guiCtx(&guiCtxInit, false);
-    gui::Context = &guiCtx;
-
-    gui::menu_impl menuCtx;
-    gui::Menu = &menuCtx;
+    gui::menu menu;
+    gui::context guiCtx(backend.d3d, backend.hwnd, false);
+    guiCtx.store([&] {
+        menu.render();
+    });
 
     gui::tab_bar testTabBar("test");
     gui::tab testTab("test2");
     testTab.store(bind_front(ImGui::Text, "Hello"));
 
     testTabBar.store(testTab);
-    menuCtx.store(testTabBar);
-    guiCtx.store([&] {
-        menuCtx.render();
-    });
+    menu.store(testTabBar);
 
     hooks_storage allHooks;
     HookGlobalCallback = &allHooks;

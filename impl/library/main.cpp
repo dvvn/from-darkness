@@ -104,12 +104,11 @@ static DWORD WINAPI _loader(void*) noexcept
         return d3dParams.hFocusWindow;
     }();
 
-    std::pair guiData(d3dIfc, hwnd);
-    gui::context_impl guiCtx(&guiData, false);
-    gui::Context = &guiCtx;
-
-    gui::menu_impl menuCtx;
-    gui::Menu = &menuCtx;
+    gui::menu menu;
+    gui::context guiCtx(d3dIfc, hwnd, false);
+    guiCtx.store([&] {
+        menu.render();
+    });
 
     hooks_storage allHooks;
     HookGlobalCallback = &allHooks;
@@ -151,7 +150,7 @@ static DWORD WINAPI _loader(void*) noexcept
     hook_callback hkVguiLockCursor(&valve::gui::surface::LockCursor, { (void*)0, 67 });
     hkVguiLockCursor.set_name("VGUI.ISurface::LockCursor");
     hkVguiLockCursor.add([&](auto&, auto& ret, bool, auto thisPtr) {
-        if (menuCtx.visible() && !thisPtr->IsCursorVisible())
+        if (menu.visible() && !thisPtr->IsCursorVisible())
         {
             thisPtr->UnlockCursor();
             ret.emplace();

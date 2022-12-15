@@ -6,6 +6,7 @@
 #include <imgui_internal.h>
 
 #include <Windows.h>
+#include <d3d9.h>
 
 #include <vector>
 
@@ -65,7 +66,7 @@ namespace fd::gui
         hotkey* create(hotkey_source source, hotkey_mode mode, callback_type callback);
     };
 
-    class context_impl final : public basic_context
+    class context final : public basic_context
     {
         imgui_backup backup_;
         ImGuiContext context_;
@@ -78,17 +79,18 @@ namespace fd::gui
         bool can_process_keys() const;
 
       public:
-        ~context_impl() override;
-        context_impl(void* data, bool storeSettings);
+        ~context() override;
+        context(IDirect3DDevice9* d3d, HWND hwnd, bool storeSettings);
 
         /*context(const context&)            = delete;
         context& operator=(const context&) = delete;*/
 
         void release_textures() override;
         void render(void* data) override;
+        void render(IDirect3DDevice9* thsPtr);
         char process_keys(void* data) override;
         char process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
-        
+
         void store(callback_type callback);
 
         bool create_hotkey(hotkey_source source, hotkey_mode mode, callback_type callback, bool update = false);
