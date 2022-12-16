@@ -1,3 +1,4 @@
+// ReSharper disable CppInconsistentNaming
 #pragma once
 
 #define IMGUI_DISABLE_INCLUDE_IMCONFIG_H
@@ -14,7 +15,7 @@
 #define IMGUI_DISABLE_SSE
 #define IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS
 
-#ifndef _DEBUG
+#if !defined(_DEBUG) && !defined(_DEBUG_RELEASE)
 #define IMGUI_DISABLE_DEMO_WINDOWS
 #define IMGUI_DISABLE_DEBUG_TOOLS
 #endif
@@ -24,7 +25,7 @@
 #define ImDrawIdx uint32_t
 #endif
 
-#if defined(_WIN32) && defined(_DEBUG)
+#if defined(_WIN32) && (defined(_DEBUG) || defined(_DEBUG_RELEASE))
 struct IDirect3DTexture9;
 #define ImTextureID IDirect3DTexture9*
 #endif
@@ -45,10 +46,7 @@ struct IDirect3DTexture9;
 #define ImLog   std::log
 #define ImAbs   std::abs
 
-template <class _Ty>
-concept _Floating_point = std::is_floating_point_v<_Ty>;
-
-template <_Floating_point T>
+template <std::floating_point T>
 T ImSign(T x)
 {
     if (x < 0)
@@ -58,7 +56,7 @@ T ImSign(T x)
     return 0;
 }
 
-template <_Floating_point T>
+template <std::floating_point T>
 T ImRsqrt(T x)
 {
     return 1 / ImSqrt(x);

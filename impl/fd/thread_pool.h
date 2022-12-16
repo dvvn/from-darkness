@@ -26,6 +26,4 @@ namespace fd
         virtual task_type add(function_type func)      = 0;
         virtual task_type add_lazy(function_type func) = 0;
     };
-
-   extern basic_thread_pool* ThreadPool;
 } // namespace fd

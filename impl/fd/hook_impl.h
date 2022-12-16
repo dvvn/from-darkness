@@ -149,9 +149,9 @@ namespace fd
     template <class Ret, typename... Args>
     struct basic_hook_callback : hook_impl
     {
-        using original_wrapped  = function_view<Ret(Args...) const>;
+        using original_wrapped  = function<Ret(Args...) const>;
         using ret_wrapped       = hook_callback_ret_wrapper<Ret>;
-        using function_type     = function_view<void(const original_wrapped&, ret_wrapped&, bool&, Args...) const>;
+        using function_type     = function<void(const original_wrapped&, ret_wrapped&, bool&, Args...) const>;
         using callbacks_storage = std::vector<function_type>;
 
       protected:

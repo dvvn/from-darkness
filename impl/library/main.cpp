@@ -109,6 +109,12 @@ static DWORD WINAPI _loader(void*) noexcept
     guiCtx.store([&] {
         menu.render();
     });
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
+    guiCtx.store([&] {
+        if (menu.visible())
+            ImGui::ShowDemoWindow();
+    });
+#endif
 
     hooks_storage allHooks;
     HookGlobalCallback = &allHooks;

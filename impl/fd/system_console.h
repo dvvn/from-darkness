@@ -10,8 +10,8 @@ namespace fd
 {
     class file_stream
     {
-        FILE* stream_;
         bool redirected_;
+        FILE* stream_;
 
         file_stream(const file_stream&)            = default;
         file_stream& operator=(const file_stream&) = default;
@@ -28,36 +28,39 @@ namespace fd
     };
 
     // gap. unused
-    class file_stream_reader
+    class console_reader
     {
         file_stream stream_;
 
       public:
-        file_stream_reader();
-        file_stream_reader& operator=(file_stream&& stream);
+        console_reader();
+        void set(file_stream&& stream);
     };
 
-    class file_stream_writer : public std::mutex
+    class console_writer
     {
         file_stream stream_;
+        std::mutex mtx_;
 
       public:
-        file_stream_writer();
-        file_stream_writer(file_stream&& stream);
-        file_stream_writer& operator=(file_stream&& stream);
+        console_writer();
+        void set(file_stream&& stream);
 
         void write_nolock(const wchar_t* ptr, const size_t size);
         void write_nolock(const char* ptr, const size_t size);
 
         void write(const wchar_t* ptr, const size_t size);
         void write(const char* ptr, const size_t size);
+
+        void lock();
+        void unlock();
     };
 
     class system_console
     {
-        file_stream_reader in_;
-        file_stream_writer out_;
-        file_stream_writer err_;
+        console_reader in_;
+        console_writer out_;
+        console_writer err_;
 
         HWND window_ = nullptr;
 

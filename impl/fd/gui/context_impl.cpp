@@ -8,6 +8,7 @@
 #include <d3d9.h>
 
 #include <algorithm>
+#include <ranges>
 #include <span>
 
 using namespace fd;
@@ -64,7 +65,8 @@ struct pressed_filler
 {
     bool operator()(const ImGuiKey key) const
     {
-        return ImGui::IsKeyPressed(key, false);
+        return ImGui::IsKeyReleased(key);
+        // return ImGui::IsKeyPressed(key, false);
     }
 };
 
@@ -117,7 +119,7 @@ class hotkey_comparer
     hotkey_mode mode_;
 
   public:
-    hotkey_comparer(hotkey_source source, hotkey_mode mode)
+    hotkey_comparer(const hotkey_source source, const hotkey_mode mode)
         : source_(source)
         , mode_(mode)
     {
@@ -131,7 +133,7 @@ class hotkey_comparer
 };
 
 template <typename It>
-static auto _extract_ptr(It itr, It lastItr) // decltype(&*std::declval<It>())
+static auto _extract_ptr(It itr, It lastItr) // -> decltype(&*std::declval<It>())
 {
     return itr == lastItr ? nullptr : &*itr;
 }
@@ -142,13 +144,13 @@ auto hotkeys_storage::find(const hotkey_source source, const hotkey_mode mode) -
     return _extract_ptr(itr, storage_.end());
 }
 
-auto hotkeys_storage::find(hotkey_source source, hotkey_mode mode) const -> const_pointer
+auto hotkeys_storage::find(const hotkey_source source, const hotkey_mode mode) const -> const_pointer
 {
     const auto itr = std::ranges::find_if(storage_, hotkey_comparer(source, mode));
     return _extract_ptr(itr, storage_.end());
 }
 
-bool hotkeys_storage::contains(hotkey_source source, hotkey_mode mode) const
+bool hotkeys_storage::contains(const hotkey_source source, const hotkey_mode mode) const
 {
     return std::ranges::any_of(storage_, hotkey_comparer(source, mode));
 }
@@ -161,12 +163,12 @@ auto hotkeys_storage::find_unused() -> pointer
     return _extract_ptr(itr, storage_.end());
 }
 
-void hotkeys_storage::fire()
+void hotkeys_storage::fire(const hotkey_access access)
 {
     if (storage_.empty())
         return;
 
-    constexpr auto fire = [](auto& hk, auto& buff) {
+    constexpr auto fire = [](hotkey& hk, auto& buff) {
         /*if (!hk.source)
             return;*/
         if (!buff.fill())
@@ -176,7 +178,7 @@ void hotkeys_storage::fire()
         invoke(hk.callback);
     };
 
-    std::ranges::for_each(storage_, [pressed = pressed_keys_pack(), held = held_keys_pack()](auto& hk) mutable {
+    const auto selectModeFire = [pressed = pressed_keys_pack(), held = held_keys_pack()](auto& hk) mutable {
         if (!hk.source)
             return;
         // ReSharper disable CppUnreachableCode
@@ -195,42 +197,38 @@ void hotkeys_storage::fire()
         }
         }
         // ReSharper restore CppUnreachableCode
-    });
+    };
+
+    if (access == hotkey_access::any)
+        std::ranges::for_each(storage_, selectModeFire);
+    else
+        std::ranges::for_each(storage_ | std::views::filter([=](auto& hk) {
+                                  return hk.access & access;
+                              }),
+                              selectModeFire);
 }
 
-hotkey* hotkeys_storage::create(hotkey_source source, hotkey_mode mode, callback_type callback)
+void hotkeys_storage::create(hotkey&& hk)
 {
-    FD_ASSERT(!contains(source, mode));
-    FD_ASSERT(static_cast<bool>(callback));
+    FD_ASSERT(!contains(hk.source, hk.mode));
+    FD_ASSERT(static_cast<bool>(hk.callback));
 
-    auto hk = find_unused();
-    if (hk)
-        hk->keys.clear();
-    else
-        hk = &storage_.emplace_back();
+    auto hkNew = find_unused();
+    if (!hkNew)
+        hkNew = &storage_.emplace_back();
 
-    hk->source   = source;
-    hk->mode     = mode;
-    hk->callback = std::move(callback);
-
-    return hk;
+    *hkNew = std::move(hk);
 }
 
 //-------
 
-void context::fire_hotkeys()
+void context::fire_hotkeys(const hotkey_access access)
 {
     if (!focused_)
         return;
     if (context_.InputEventsTrail.empty())
         return;
-#ifdef _DEBUG
-    ImGui::SetCurrentContext(nullptr);
-#endif
-    hotkeys_.fire();
-#ifdef _DEBUG
-    ImGui::SetCurrentContext(&context_);
-#endif
+    hotkeys_.fire(access);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
@@ -257,7 +255,7 @@ static void _disable_ini_settings(ImGuiContext* ctx = ImGui::GetCurrentContext()
     ctx->IO.IniFilename = nullptr;
 }
 
-context::context(IDirect3DDevice9* d3d, HWND hwnd, const bool storeSettings)
+context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSettings)
     : context_(&fontAtlas_)
 {
     IMGUI_CHECKVERSION();
@@ -293,11 +291,11 @@ context::context(IDirect3DDevice9* d3d, HWND hwnd, const bool storeSettings)
     if (!ImGui_ImplWin32_Init(hwnd))
         std::terminate();
 
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
-    store([] {
-        ImGui::ShowDemoWindow();
-    });
-#endif
+    // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
+    //     store([] {
+    //         ImGui::ShowDemoWindow();
+    //     });
+    // #endif
 }
 
 void context::release_textures()
@@ -335,8 +333,7 @@ void context::render(IDirect3DDevice9* thisPtr)
         return wnd->Active || wnd->Collapsed;
     });
 
-    if (!haveVisibleWindow)
-        fire_hotkeys();
+    fire_hotkeys(haveVisibleWindow ? hotkey_access::foreground : hotkey_access::background);
 
     D3D_VALIDATE(thisPtr->BeginScene());
     ImGui::Render();
@@ -361,7 +358,7 @@ char context::process_keys(void* data)
     return process_keys(kd->window, kd->message, kd->wParam, kd->lParam);
 }
 
-char context::process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+char context::process_keys(const HWND window, const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
     constexpr char retInstant = TRUE;
     constexpr char retNative  = FALSE;
@@ -404,18 +401,21 @@ void context::store(callback_type callback)
     callbacks_.emplace_back(std::move(callback));
 }
 
-bool context::create_hotkey(const hotkey_source source, const hotkey_mode mode, const callback_type callback, const bool update)
+bool context::create_hotkey(hotkey&& hk, const bool update)
 {
-    const auto hk = hotkeys_.create(source, mode, callback);
     if (update)
     {
         FD_ASSERT(focused_);
-        return hk->update(true);
+        if (hk.keys.empty())
+            hk.update(true);
+        else if (!hk.update(false))
+            return false;
     }
+    hotkeys_.create(std::move(hk));
     return true;
 }
 
-bool context::update_hotkey(hotkey_source source, hotkey_mode mode, const bool allowOverride)
+bool context::update_hotkey(const hotkey_source source, const hotkey_mode mode, const bool allowOverride)
 {
     if (!focused_)
         return false;
@@ -423,7 +423,7 @@ bool context::update_hotkey(hotkey_source source, hotkey_mode mode, const bool a
     return hk && hk->update(allowOverride);
 }
 
-bool context::remove_hotkey(hotkey_source source, hotkey_mode mode)
+bool context::remove_hotkey(const hotkey_source source, const hotkey_mode mode)
 {
     const auto hk = hotkeys_.find(source, mode);
     if (hk)
@@ -431,7 +431,7 @@ bool context::remove_hotkey(hotkey_source source, hotkey_mode mode)
     return hk;
 }
 
-bool context::contains_hotkey(hotkey_source source, hotkey_mode mode) const
+bool context::contains_hotkey(const hotkey_source source, const hotkey_mode mode) const
 {
     return hotkeys_.contains(source, mode);
 }

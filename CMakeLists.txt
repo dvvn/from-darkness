@@ -3,10 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(BUILD_SHARED_LIBS off) 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(CMAKE_DEBUG_POSTFIX _d)
-  set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
-endif()
+
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
@@ -19,7 +16,7 @@ string(TOUPPER ${_PROJ_NAME} _PROJ_NAME_UPPER)
 set(_PROJ_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
 set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
 
-project(${_PROJ_NAME})
+project(${_PROJ_NAME} CXX)
 
 include(ProcessorCount)
 ProcessorCount(_CPUS)
@@ -30,6 +27,15 @@ if(MSVC)
   add_compile_options(/wd5103 /wd4291 /wd4250)
   add_compile_options(/MP${_CPUS} /EHsc)
   add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
+endif()
+
+if(CMAKE_CONFIGURATION_TYPES MATCHES Debug)
+  set(CMAKE_DEBUG_POSTFIX _d)
+  set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+endif()
+
+if(CMAKE_CONFIGURATION_TYPES MATCHES RelWithDebInfo)
+	add_compile_definitions(_DEBUG_RELEASE)
 endif()
 
 include(FetchContent)

@@ -118,9 +118,9 @@ static bool _have_mem_after(const size_t skip, const void* begin, const size_t o
 static void* _find_unk_block(const uint8_t* begin, const uint8_t* end, const unknown_bytes_range& unkBytes)
 {
 #ifdef _DEBUG
-    const auto unkBytesCount = unkBytes.bytes_count();
+    const auto unkBytes_count = unkBytes.bytes_count();
     const size_t memSize     = std::distance(begin, end);
-    FD_ASSERT(memSize >= unkBytesCount);
+    FD_ASSERT(memSize >= unkBytes_count);
 #endif
 
     const auto unkBytes_begin = unkBytes.data();
@@ -145,7 +145,7 @@ static void* _find_unk_block(const uint8_t* begin, const uint8_t* end, const unk
 
     const auto unkBytes1       = unkBytes_begin + 1;
     const auto unkBytes_end    = unkBytes_begin + unkBytes.size();
-    const auto lastReadablePos = memSize - unkBytesCount;
+    const auto lastReadablePos = memSize - unkBytes_count;
 
     for (size_t pos = 0; pos <= lastReadablePos;)
     {
@@ -171,7 +171,7 @@ static void* _find_unk_block(const uint8_t* begin, const uint8_t* end, const unk
 
         if (found)
         {
-            if (!_have_mem_after(unkBytes.back().skip, part0_found, unkBytesCount, end))
+            if (!_have_mem_after(unkBytes.back().skip, part0_found, unkBytes_count, end))
                 break;
             return part0_found;
         }
@@ -184,67 +184,91 @@ static void* _find_unk_block(const uint8_t* begin, const uint8_t* end, const unk
 
 //-----
 
+static constexpr uint8_t _to_num(const char chr)
+{
+    switch (chr)
+    {
+    case '0':
+        return 0x0;
+    case '1':
+        return 0x1;
+    case '2':
+        return 0x2;
+    case '3':
+        return 0x3;
+    case '4':
+        return 0x4;
+    case '5':
+        return 0x5;
+    case '6':
+        return 0x6;
+    case '7':
+        return 0x7;
+    case '8':
+        return 0x8;
+    case '9':
+        return 0x9;
+    case 'a':
+    case 'A':
+        return 0xA;
+    case 'b':
+    case 'B':
+        return 0xB;
+    case 'c':
+    case 'C':
+        return 0xC;
+    case 'd':
+    case 'D':
+        return 0xD;
+    case 'e':
+    case 'E':
+        return 0xE;
+    case 'f':
+    case 'F':
+        return 0xF;
+    default:
+        FD_ASSERT_UNREACHABLE("Unsupported character");
+    }
+};
+
+class unknown_bytes_range_updater
+{
+    unknown_bytes_range* bytes_;
+
+  public:
+    unknown_bytes_range_updater(unknown_bytes_range& bytes)
+        : bytes_(&bytes)
+    {
+        FD_ASSERT(bytes.empty());
+        bytes.emplace_back();
+    }
+
+    void store_byte(const uint8_t num) const
+    {
+        auto& back = bytes_->back();
+        auto& rng  = back.skip > 0 ? bytes_->emplace_back() : back;
+        rng.part.push_back(num);
+    }
+
+    void store_byte(const std::same_as<char> auto chrNum) const
+    {
+        store_byte(_to_num(chrNum));
+    }
+
+    void store_byte(const char part1, const char part2) const
+    {
+        store_byte(_to_num(part1) * 16 + _to_num(part2));
+    }
+
+    void skip_byte() const
+    {
+        ++bytes_->back().skip;
+    }
+};
+
 static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc)
 {
-    FD_ASSERT(bytes.empty());
-    bytes.emplace_back();
-
-    // ReSharper disable once CppInconsistentNaming
-    constexpr auto _to_num = [](const auto chr) -> uint8_t {
-        switch (chr)
-        {
-        case '0':
-            return 0x0;
-        case '1':
-            return 0x1;
-        case '2':
-            return 0x2;
-        case '3':
-            return 0x3;
-        case '4':
-            return 0x4;
-        case '5':
-            return 0x5;
-        case '6':
-            return 0x6;
-        case '7':
-            return 0x7;
-        case '8':
-            return 0x8;
-        case '9':
-            return 0x9;
-        case 'a':
-        case 'A':
-            return 0xA;
-        case 'b':
-        case 'B':
-            return 0xB;
-        case 'c':
-        case 'C':
-            return 0xC;
-        case 'd':
-        case 'D':
-            return 0xD;
-        case 'e':
-        case 'E':
-            return 0xE;
-        case 'f':
-        case 'F':
-            return 0xF;
-        default:
-            FD_ASSERT_UNREACHABLE("Unsupported character");
-        }
-    };
-    // ReSharper disable once CppInconsistentNaming
-    const auto _skip_byte = [&] {
-        ++bytes.back().skip;
-    };
-    // ReSharper disable once CppInconsistentNaming
-    const auto _store_byte = [&](const uint8_t num) {
-        auto& back = bytes.back();
-        auto& rng  = back.skip > 0 ? bytes.emplace_back() : back;
-        rng.part.push_back(num);
-    };
+    const unknown_bytes_range_updater updater(bytes);
 
     for (const auto rng : textSrc | std::views::split(' '))
     {
@@ -256,9 +280,9 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
         case 1: {
             const auto value = *rawBegin;
             if (value == '?')
-                _skip_byte();
+                updater.skip_byte();
             else
-                _store_byte(_to_num(value));
+                updater.store_byte(value);
             break;
         }
         case 2: {
@@ -267,19 +291,19 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
             if (value1 == '?')
             {
                 FD_ASSERT(value2 == '?');
-                _skip_byte();
+                updater.skip_byte();
             }
             else
             {
-                _store_byte(_to_num(value1) * 16 + _to_num(value2));
+                updater.store_byte(value1, value2);
             }
             break;
         }
         default: {
             FD_ASSERT_UNREACHABLE("Uncorrect part!");
         }
-        };
-    };
+        }
+    }
 }
 
 //-----

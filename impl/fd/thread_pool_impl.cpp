@@ -254,10 +254,3 @@ auto thread_pool::add_lazy(function_type func) -> task_type
 }
 
 // ReSharper restore CppSmartPointerVsMakeFunction
-
-//------------------
-
-namespace fd
-{
-    basic_thread_pool* ThreadPool;
-}

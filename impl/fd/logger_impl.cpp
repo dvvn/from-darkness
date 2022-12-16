@@ -17,15 +17,19 @@ namespace fd
 
     void default_logs_handler::operator()(const string_view msg) const
     {
+#ifdef _DEBUG
         if (data_.empty())
             return;
+#endif
         std::ranges::for_each(data_, bind_back(Invoker, msg));
     }
 
     void default_logs_handler::operator()(const wstring_view msg) const
     {
+#ifdef _DEBUG
         if (data_.empty())
             return;
+#endif
         std::ranges::for_each(data_, bind_back(Invoker, msg));
     }
 

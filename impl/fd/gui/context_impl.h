@@ -29,22 +29,29 @@ namespace fd::gui
 
     using keys_pack = std::vector<ImGuiKey>;
 
-    using callback_type = function_view<void() const>;
+    using callback_type = function<void() const>;
 
     enum hotkey_mode
     {
         press,
         held,
-        // any
     };
 
     using hotkey_source = uint8_t;
+
+    enum hotkey_access
+    {
+        foreground = 1 << 0, // when any window visible
+        background = 1 << 1, // when all windows invisible
+        any        = foreground | background
+    };
 
     struct hotkey
     {
         hotkey_source source;
         hotkey_mode mode;
         callback_type callback;
+        hotkey_access access;
         keys_pack keys;
 
         bool update(bool allowOverride);
@@ -62,8 +69,8 @@ namespace fd::gui
         const_pointer find(hotkey_source source, hotkey_mode mode) const;
         bool contains(hotkey_source source, hotkey_mode mode) const;
         pointer find_unused();
-        void fire();
-        hotkey* create(hotkey_source source, hotkey_mode mode, callback_type callback);
+        void fire(hotkey_access access);
+        void create(hotkey&& hk);
     };
 
     class context final : public basic_context
@@ -75,7 +82,8 @@ namespace fd::gui
         hotkeys_storage hotkeys_;
         bool focused_;
 
-        void fire_hotkeys();
+        // todo: fore from wndproc
+        void fire_hotkeys(hotkey_access access);
         bool can_process_keys() const;
 
       public:
@@ -93,7 +101,7 @@ namespace fd::gui
 
         void store(callback_type callback);
 
-        bool create_hotkey(hotkey_source source, hotkey_mode mode, callback_type callback, bool update = false);
+        bool create_hotkey(hotkey&& hk, bool update = false);
         bool update_hotkey(hotkey_source source, hotkey_mode mode, bool allowOverride);
         bool remove_hotkey(hotkey_source source, hotkey_mode mode);
         bool contains_hotkey(hotkey_source source, hotkey_mode mode) const;

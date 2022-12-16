@@ -40,8 +40,10 @@ int main(int, char**)
     if (!backend.d3d)
         return EXIT_FAILURE;
 
+#ifdef _DEBUG
     default_assert_handler assertCallback;
     AssertHandler = &assertCallback;
+#endif
 
     system_console sysConsole;
 
@@ -52,15 +54,33 @@ int main(int, char**)
         sysConsole.write(msg);
     });
 
+#ifdef _DEBUG
     assertCallback.add([&](auto& adata) {
         sysConsole.write(parse_assert_data(adata));
     });
+#endif
 
     gui::menu menu;
     gui::context guiCtx(backend.d3d, backend.hwnd, false);
+    guiCtx.create_hotkey({ __LINE__, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, { ImGuiKey_End } });
     guiCtx.store([&] {
         menu.render();
     });
+
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
+    bool imGuiDemoToggle = true;
+    guiCtx.create_hotkey({ __LINE__,
+                           gui::hotkey_mode::press,
+                           [&] {
+                               imGuiDemoToggle = !imGuiDemoToggle;
+                           },
+                           gui::hotkey_access::any,
+                           { ImGuiKey::ImGuiKey_Home } });
+    guiCtx.store([&] {
+        if (imGuiDemoToggle)
+            ImGui::ShowDemoWindow();
+    });
+#endif
 
     gui::tab_bar testTabBar("test");
     gui::tab testTab("test2");

@@ -19,13 +19,14 @@ file_stream::~file_stream()
 }
 
 file_stream::file_stream()
-    : stream_(nullptr)
+    : redirected_(false)
+    , stream_(nullptr)
 {
 }
 
 file_stream::file_stream(FILE* stream)
-    : stream_(stream)
-    , redirected_(false)
+    : redirected_(false)
+    , stream_(stream)
 {
 }
 
@@ -86,16 +87,15 @@ static string _get_current_time()
 
 #define PUTC_ASSERT(_RESULT_) FD_ASSERT(_RESULT_ != WEOF, errno == EILSEQ ? "Encoding error in putc." : "I/O error in putc.")
 
-file_stream_reader::file_stream_reader() = default;
+console_reader::console_reader() = default;
 
-file_stream_reader& file_stream_reader::operator=(file_stream&& stream)
+void console_reader::set(file_stream&& stream)
 {
     stream_ = std::move(stream);
-    return *this;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void file_stream_writer::write_nolock(const wchar_t* ptr, const size_t size)
+void console_writer::write_nolock(const wchar_t* ptr, const size_t size)
 {
     // [[maybe_unused]] const auto ok = std::fputws(ptr, stream_);
     // putc_assert(ok);
@@ -105,6 +105,7 @@ void file_stream_writer::write_nolock(const wchar_t* ptr, const size_t size)
     if (_isatty(h))
     {
         DWORD written;
+        // ReSharper disable once CppRedundantCastExpression
         if (WriteConsoleW(reinterpret_cast<void*>(_get_osfhandle(h)), ptr, static_cast<DWORD>(size), &written, nullptr))
             return;
 
@@ -116,36 +117,40 @@ void file_stream_writer::write_nolock(const wchar_t* ptr, const size_t size)
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void file_stream_writer::write_nolock(const char* ptr, const size_t size)
+void console_writer::write_nolock(const char* ptr, const size_t size)
 {
     /* const auto wstr = utf_convert<wchar_t>(string_view(ptr, size));
      write(wstr.data(), wstr.size()); */
     _fwrite_nolock(ptr, sizeof(char), size, stream_);
 }
 
-void file_stream_writer::write(const wchar_t* ptr, const size_t size)
+void console_writer::write(const wchar_t* ptr, const size_t size)
 {
-    const std::lock_guard guard(*this);
+    const std::lock_guard guard(mtx_);
     write_nolock(ptr, size);
 }
 
-void file_stream_writer::write(const char* ptr, const size_t size)
+void console_writer::write(const char* ptr, const size_t size)
 {
-    const std::lock_guard guard(*this);
+    const std::lock_guard guard(mtx_);
     write_nolock(ptr, size);
 }
 
-file_stream_writer::file_stream_writer() = default;
-
-file_stream_writer::file_stream_writer(file_stream&& stream)
-    : stream_(std::move(stream))
+void console_writer::lock()
 {
+    mtx_.lock();
 }
 
-file_stream_writer& file_stream_writer::operator=(file_stream&& stream)
+void console_writer::unlock()
+{
+    mtx_.unlock();
+}
+
+console_writer::console_writer() = default;
+
+void console_writer::set(file_stream&& stream)
 {
     stream_ = std::move(stream);
-    return *this;
 }
 
 system_console::~system_console()
@@ -183,9 +188,9 @@ system_console::system_console()
         std::construct_at(&obj, file_stream(args...));
     }; */
 
-    in_  = file_stream("CONIN$", "r", stdin);
-    out_ = file_stream("CONOUT$", "w", stdout);
-    err_ = file_stream("CONOUT$", "w", stderr);
+    in_.set({ "CONIN$", "r", stdin });
+    out_.set({ "CONOUT$", "w", stdout });
+    err_.set({ "CONOUT$", "w", stderr });
 
     FD_ASSERT(IsWindowUnicode(consoleWindow) == TRUE);
 
@@ -193,7 +198,7 @@ system_console::system_console()
 }
 
 template <class M, class T = string>
-static void _write_log_line_nolock(file_stream_writer& w, const M& msg, const T& time = _get_current_time())
+static void _write_log_line_nolock(console_writer& w, const M& msg, const T& time = _get_current_time())
 {
 #if 0
     w.write_nolock(time.data(), time.size());
@@ -212,7 +217,7 @@ static void _write_log_line_nolock(file_stream_writer& w, const M& msg, const T&
 }
 
 template <class M>
-static void _write_log_line(file_stream_writer& w, const M& msg)
+static void _write_log_line(console_writer& w, const M& msg)
 {
     const auto time = _get_current_time();
     const std::lock_guard guard(w);

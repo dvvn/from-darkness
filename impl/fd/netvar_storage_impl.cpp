@@ -225,7 +225,7 @@ class datatable_parser
 #ifdef MERGE_DATA_TABLES
     size_t offset = 0;
 #else
-    using store_fn = function_view<netvar_table*(const char*) const>;
+    using store_fn = function<netvar_table*(const char*) const>;
     store_fn storeDataTable_;
 #endif
     netvar_table* netvarTable_;

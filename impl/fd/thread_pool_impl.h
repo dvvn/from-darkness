@@ -97,7 +97,7 @@ namespace fd
         std::vector<thread_data> threads_;
         std::mutex threadsMtx_;
 
-        atomic_queue::AtomicQueue2<function_type, 1024 * 1024 / sizeof(function_type)> funcs_;
+        atomic_queue::AtomicQueue2<function_type, 128 * 128 / sizeof(function_type)> funcs_;
 
         static DWORD WINAPI worker(void* impl) noexcept
         {

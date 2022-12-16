@@ -10,7 +10,7 @@ namespace fd::gui
 {
     class tab
     {
-        using callback_type = function_view<void() const>;
+        using callback_type = function<void() const>;
 
         string_view name_;
         std::vector<callback_type> callbacks_;

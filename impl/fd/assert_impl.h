@@ -10,7 +10,7 @@ namespace fd
 {
     class default_assert_handler final : public basic_assert_handler
     {
-        using function_type = function_view<void(const assert_data&) const>;
+        using function_type = function<void(const assert_data&) const>;
 
         std::vector<function_type> data_;
         mutable std::mutex mtx_;
