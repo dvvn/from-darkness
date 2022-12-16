@@ -94,15 +94,20 @@ int main(int, char**)
 
     hook_callback hkWndProc(backend.info.lpfnWndProc);
     hkWndProc.set_name("WinAPI.WndProc");
-    hkWndProc.add([&](auto&, auto& ret, bool& interrupt, auto... args) {
-        const auto val = guiCtx.process_keys(args...);
-        if (val == TRUE)
-            ret.emplace(TRUE);
-        else if (val == FALSE)
-            interrupt = true;
-    });
     hkWndProc.add([&](auto&, auto& ret, bool, auto... args) {
-        ret.emplace(DefWindowProc(args...));
+        switch (guiCtx.process_keys(args...))
+        {
+        case gui::process_keys_result::instant:
+            ret.emplace(TRUE);
+            break;
+        case gui::process_keys_result::native:
+            return;
+        case gui::process_keys_result::def:
+            ret.emplace(DefWindowProc(args...));
+            break;
+        default:
+            std::unreachable();
+        }
     });
 
     hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, { backend.d3d, 16 });

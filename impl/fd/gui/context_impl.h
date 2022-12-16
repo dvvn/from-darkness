@@ -96,8 +96,8 @@ namespace fd::gui
         void release_textures() override;
         void render(void* data) override;
         void render(IDirect3DDevice9* thsPtr);
-        char process_keys(void* data) override;
-        char process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+        process_keys_result process_keys(void* data) override;
+        process_keys_result process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
         void store(callback_type callback);
 

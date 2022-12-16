@@ -68,10 +68,7 @@ static DWORD WINAPI _loader(void*) noexcept
 
     CurrentLibraryHandle = _ModuleHandle;
 
-#ifdef _DEBUG
-    default_assert_handler assertCallback;
-    AssertHandler = &assertCallback;
-
+#if defined(_DEBUG) || defined(_RELEASE_DEBUG)
     system_console sysConsole;
 
     default_logs_handler logsCallback;
@@ -80,6 +77,10 @@ static DWORD WINAPI _loader(void*) noexcept
     logsCallback.add([&](auto msg) {
         sysConsole.write(msg);
     });
+#endif
+#ifdef _DEBUG
+    default_assert_handler assertCallback;
+    AssertHandler = &assertCallback;
 
     assertCallback.add([&](auto& adata) {
         sysConsole.write(parse_assert_data(adata));
@@ -131,14 +132,19 @@ static DWORD WINAPI _loader(void*) noexcept
     });
 #endif
     hkWndProc.add([&](auto&, auto& ret, bool& interrupt, auto... args) {
-        const auto val = guiCtx.process_keys(args...);
-        if (val == TRUE)
+        switch (guiCtx.process_keys(args...))
+        {
+        case gui::process_keys_result::instant:
             ret.emplace(TRUE);
-        else if (val == FALSE)
-            interrupt = true;
-    });
-    hkWndProc.add([&](auto&, auto& ret, bool, auto... args) {
-        ret.emplace(DefWindowProc(args...));
+            break;
+        case gui::process_keys_result::native:
+            return;
+        case gui::process_keys_result::def:
+            ret.emplace(DefWindowProc(args...));
+            break;
+        default:
+            std::unreachable();
+        }
     });
 
     hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, { d3dIfc, 16 });

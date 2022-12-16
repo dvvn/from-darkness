@@ -352,20 +352,20 @@ struct keys_data
 // ReSharper disable once CppInconsistentNaming
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
-char context::process_keys(void* data)
+process_keys_result context::process_keys(void* data)
 {
     const auto kd = static_cast<keys_data*>(data);
     return process_keys(kd->window, kd->message, kd->wParam, kd->lParam);
 }
 
-char context::process_keys(const HWND window, const UINT message, const WPARAM wParam, const LPARAM lParam)
+process_keys_result context::process_keys(const HWND window, const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
-    constexpr char retInstant = TRUE;
-    constexpr char retNative  = FALSE;
-    constexpr auto retDefault = std::numeric_limits<char>::max();
+    // constexpr char retInstant = TRUE;
+    // constexpr char retNative  = FALSE;
+    // constexpr auto retDefault = std::numeric_limits<char>::max();
 
     if (!can_process_keys())
-        return retNative;
+        return process_keys_result::native;
 
     const auto& events        = context_.InputEventsQueue;
     const auto oldEventsCount = events.size();
@@ -386,14 +386,19 @@ char context::process_keys(const HWND window, const UINT message, const WPARAM w
     }
     }
 
+    process_keys_result ret;
     if (context_.IO.AppFocusLost)
     {
         FD_ASSERT(!instant);
-        return retNative;
+        ret = process_keys_result::native;
     }
-    if (instant)
-        return retInstant;
-    return !focused_ || eventsAdded.empty() ? retNative : retDefault;
+    else if (instant)
+        ret = process_keys_result::instant;
+    else if (!focused_ || eventsAdded.empty())
+        ret = process_keys_result::native;
+    else
+        ret = process_keys_result::def;
+    return ret;
 }
 
 void context::store(callback_type callback)
