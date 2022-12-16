@@ -10,6 +10,8 @@
 
 #include <imgui.h>
 
+#include <ranges>
+
 using namespace fd;
 
 class hooks_storage final : public hook_global_callback
@@ -31,6 +33,11 @@ class hooks_storage final : public hook_global_callback
     bool enable() const
     {
         return std::ranges::all_of(hooks_, &basic_hook::enable);
+    }
+
+    bool disable() const
+    {
+        return std::ranges::all_of(hooks_ | std::views::reverse, &basic_hook::disable);
     }
 };
 
@@ -62,23 +69,25 @@ int main(int, char**)
 
     gui::menu menu;
     gui::context guiCtx(backend.d3d, backend.hwnd, false);
-    guiCtx.create_hotkey({ __LINE__, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, { ImGuiKey_End } });
+    guiCtx.create_hotkey({ menu.hotkeys.unload,
+                           gui::hotkey_mode::press,
+                           [] {
+                               invoke(std::get_terminate());
+                           },
+                           gui::hotkey_access::any,
+                           { ImGuiKey_End } });
+    guiCtx.create_hotkey({ menu.hotkeys.toggle, 
+                           gui::hotkey_mode::press,
+                           bind_front(&gui::menu::toggle, &menu),
+                           gui::hotkey_access::any,
+                           { ImGuiKey_S,ImGuiKey_A } });
     guiCtx.store([&] {
-        menu.render();
+        menu.render(&guiCtx);
     });
 
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-    bool imGuiDemoToggle = true;
-    guiCtx.create_hotkey({ __LINE__,
-                           gui::hotkey_mode::press,
-                           [&] {
-                               imGuiDemoToggle = !imGuiDemoToggle;
-                           },
-                           gui::hotkey_access::any,
-                           { ImGuiKey::ImGuiKey_Home } });
-    guiCtx.store([&] {
-        if (imGuiDemoToggle)
-            ImGui::ShowDemoWindow();
+    guiCtx.store([] {
+        ImGui::ShowDemoWindow();
     });
 #endif
 
@@ -124,6 +133,11 @@ int main(int, char**)
 
     if (allHooks.enable())
     {
+        std::set_terminate([] {
+            PostQuitMessage(EXIT_SUCCESS);
+            std::set_terminate(nullptr);
+        });
+
         backend.run();
         return EXIT_SUCCESS;
     }

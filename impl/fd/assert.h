@@ -7,7 +7,7 @@
 #define _FD_UNREACHABLE std::unreachable
 #else
 #include <exception>
-#define _FD_UNREACHABLE std::terminate
+#define _FD_UNREACHABLE std::abort
 #endif
 
 #ifdef _DEBUG

@@ -60,7 +60,7 @@ static void _default_assert_handler(const assert_data& data)
     const auto msg       = _build_message(data, "\n\nWould you like to interrupt execution?");
     const auto terminate = MessageBoxW(nullptr, msg.data(), L"Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL) != IDNO;
     if (terminate)
-        std::terminate(); // todo: unload by own function instead of terminate
+        invoke(std::get_terminate());
 #else
 #pragma error not implemented
 #endif

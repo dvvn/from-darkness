@@ -155,7 +155,10 @@ bool thread_pool::worker_impl()
         }
 
         if (!thisThread.pause())
-            std::terminate();
+        {
+            invoke(std::get_terminate());
+            return FALSE;
+        }
     }
 
     // ReSharper disable once CppUnreachableCode

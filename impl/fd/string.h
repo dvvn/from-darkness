@@ -250,7 +250,10 @@ namespace fd
         constexpr auto digits = std::to_array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 #ifdef _DEBUG
         if (base <= 1 || base >= digits.size())
-            std::terminate();
+        {
+            std::invoke(std::get_terminate());
+            return {};
+        }
 #endif
         if (num == 0)
             return {};

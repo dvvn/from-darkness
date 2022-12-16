@@ -1,4 +1,5 @@
 #pragma once
+#include <fd/gui/context.h>
 
 namespace fd::gui
 {
@@ -12,6 +13,6 @@ namespace fd::gui
         virtual void hide() = 0;
         virtual void toggle();
 
-        virtual bool render() = 0;
+        virtual bool render(basic_context* ctx) = 0;
     };
 } // namespace fd::gui

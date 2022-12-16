@@ -23,7 +23,7 @@ namespace fd
             std::copy_n(strSource, Size, charsBuff);
 #ifdef _DEBUG
             if (!std::equal(strSource, charsBuff, Size))
-                std::terminate();
+                invoke(std::get_terminate());
 #endif
         }
 
@@ -94,7 +94,11 @@ namespace fd
         {
 #ifdef _DEBUG
             if (Size < strSize)
-                std::terminate();
+            {
+                invoke(std::get_terminate());
+                charsCount = 0;
+                return;
+            }
 #endif
             std::copy_n(strSource, strSize, charsBuff);
             charsCount = strSize;

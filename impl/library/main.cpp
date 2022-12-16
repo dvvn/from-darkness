@@ -52,18 +52,22 @@ class hooks_storage final : public hook_global_callback
     }
 };
 
-static void _fail()
+static void _exit_fail()
 {
     // TerminateThread(_ThreadHandle, EXIT_FAILURE);
     // FreeLibrary(ModuleHandle);
     FreeLibraryAndExitThread(_ModuleHandle, EXIT_FAILURE);
 }
 
+[[noreturn]] static void _exit_success()
+{
+    FreeLibraryAndExitThread(_ModuleHandle, EXIT_SUCCESS);
+}
+
 static DWORD WINAPI _loader(void*) noexcept
 {
-    const lazy_invoke onReturn([stdTerminate = std::set_terminate(_fail)] {
+    const lazy_invoke onReturn([std::set_terminate(_exit_fail)] {
         _ThreadId = 0;
-        std::set_terminate(stdTerminate);
     });
 
     CurrentLibraryHandle = _ModuleHandle;
@@ -101,7 +105,7 @@ static DWORD WINAPI _loader(void*) noexcept
     const auto hwnd = [=] {
         D3DDEVICE_CREATION_PARAMETERS d3dParams;
         if (FAILED(d3dIfc->GetCreationParameters(&d3dParams)))
-            _fail();
+            _exit_fail();
         return d3dParams.hFocusWindow;
     }();
 
@@ -140,7 +144,7 @@ static DWORD WINAPI _loader(void*) noexcept
         case gui::process_keys_result::native:
             return;
         case gui::process_keys_result::def:
-            ret.emplace(DefWindowProc(args...));
+            ret.emplace(DefWindowProcW(args...));
             break;
         default:
             std::unreachable();
@@ -170,7 +174,7 @@ static DWORD WINAPI _loader(void*) noexcept
     });
 
     if (!allHooks.enable())
-        _fail();
+        _exit_fail();
 
     std::set_terminate([] {
         if (ResumeThread(_ThreadHandle) == -1)
@@ -181,11 +185,11 @@ static DWORD WINAPI _loader(void*) noexcept
         _Fail();*/
 
     if (SuspendThread(_ThreadHandle) == -1)
-        _fail();
+        _exit_fail();
 
     // disable all hooks before return
 
-    return EXIT_SUCCESS;
+    _exit_success();
 }
 
 // ReSharper disable once CppInconsistentNaming

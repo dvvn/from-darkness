@@ -21,7 +21,7 @@ namespace fd::gui
         bool render() const;
         void render_data() const;
 
-        void store(callback_type callback);
+        void store(callback_type&& callback);
     };
 
     class tab_bar
@@ -45,6 +45,12 @@ namespace fd::gui
         std::vector<tab_bar*> tab_bars_;
 
       public:
+        static constexpr struct
+        {
+            hotkey_source unload = __LINE__;
+            hotkey_source toggle = __LINE__;
+        } hotkeys;
+
         menu();
 
         bool visible() const override;
@@ -53,7 +59,7 @@ namespace fd::gui
         void hide() override;
         void toggle() override;
 
-        bool render() override;
+        bool render(basic_context* ctx) override;
 
         void store(tab_bar& newTabBar);
     };

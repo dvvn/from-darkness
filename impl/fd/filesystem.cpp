@@ -52,10 +52,10 @@ class win_string
             const auto doPush = [&](auto ch) {
                 buff_.push_back(ch);
             };
-            constexpr auto fixSeperator = [](auto ch) -> wchar_t {
+            constexpr auto fixSeparator = [](auto ch) -> wchar_t {
                 return ch == '/' ? '\\' : ch;
             };
-            std::ranges::for_each(str, doPush, fixSeperator);
+            std::ranges::for_each(str, doPush, fixSeparator);
         }
     }
 
