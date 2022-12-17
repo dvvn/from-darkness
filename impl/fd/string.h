@@ -205,7 +205,7 @@ namespace fd
                 // ReSharper disable once CppInconsistentNaming
                 const auto append_to_ex = [&](const auto&... p) {
                     const auto length = (static_cast<size_t>(p.second) + ...);
-                    buff.reserve(length);
+                    buff.reserve(buff.size() + length);
                     (append_to(buff, p), ...);
                 };
 

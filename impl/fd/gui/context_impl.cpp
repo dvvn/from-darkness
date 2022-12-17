@@ -41,9 +41,11 @@ void keys_pack::update_name()
 {
     if (empty())
     {
-        name_ = "UNSET";
+        name_ = "(UNSET)";
         return;
     }
+
+    name_.clear();
 
     auto names = *this | std::views::transform(ImGui::GetKeyName);
     write_string(name_, '(');

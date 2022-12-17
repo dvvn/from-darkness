@@ -1,6 +1,7 @@
 // ReSharper disable CppRedundantQualifier
 // ReSharper disable CppMemberFunctionMayBeStatic
 
+// ReSharper disable CppClangTidyReadabilityConvertMemberFunctionsToStatic
 #include <fd/assert.h>
 #include <fd/filesystem.h>
 
@@ -45,7 +46,7 @@ class win_string
 
         if (isNative)
         {
-            buff_.append(str.begin(), str.end());
+            buff_.append_range(str);
         }
         else
         {
@@ -90,11 +91,11 @@ class win_object_attributes
 
     void init_base(const ULONG attributes)
     {
-        attr_.Length                   = sizeof(OBJECT_ATTRIBUTES);
-        attr_.RootDirectory            = nullptr;
-        attr_.ObjectName               = &name_;
-        attr_.Attributes               = attributes;
-        attr_.SecurityDescriptor       = nullptr;
+        attr_.Length = sizeof(OBJECT_ATTRIBUTES);
+        attr_.RootDirectory = nullptr;
+        attr_.ObjectName = &name_;
+        attr_.Attributes = attributes;
+        attr_.SecurityDescriptor = nullptr;
         attr_.SecurityQualityOfService = nullptr;
         static_assert(offsetof(OBJECT_ATTRIBUTES, SecurityQualityOfService) + sizeof(void*) == sizeof(OBJECT_ATTRIBUTES));
     }
@@ -108,7 +109,7 @@ class win_object_attributes
 
     void kill_name()
     {
-        name_.Buffer     = nullptr;
+        name_.Buffer = nullptr;
         attr_.ObjectName = nullptr;
     }
 
@@ -122,31 +123,30 @@ class win_object_attributes
             isNative = !str.contains(L'/');
             if (str[0] == '\\' && isNative)
             {
-                name_.Buffer        = const_cast<wchar_t*>(str.data());
-                name_.MaximumLength = name_.Length = str.size() * sizeof(wchar_t);
+                name_.Buffer = const_cast<wchar_t*>(str.data());
+                name_.MaximumLength = name_.Length = static_cast<USHORT>(str.size() * sizeof(wchar_t));
                 return;
             }
         }
 
         nameBuffer_.assign(str, isNative);
-        name_.Buffer        = nameBuffer_.data();
-        name_.Length        = nameBuffer_.size() * sizeof(wchar_t);
+        name_.Buffer = nameBuffer_.data();
+        name_.Length = static_cast<USHORT>(nameBuffer_.size() * sizeof(wchar_t));
         name_.MaximumLength = name_.Length + sizeof(wchar_t);
     }
 
   public:
     win_object_attributes(const win_object_attributes& other) = delete;
+    win_object_attributes& operator=(const win_object_attributes& other) = delete;
 
     win_object_attributes(win_object_attributes&& other) noexcept
         : nameBuffer_(std::move(other.nameBuffer_))
-        , name_(std::move(other.name_))
-        , attr_(std::move(other.attr_))
+        , name_(other.name_)
+        , attr_(other.attr_)
     {
         fix_name();
         other.kill_name();
     }
-
-    win_object_attributes& operator=(const win_object_attributes& other) = delete;
 
     win_object_attributes& operator=(win_object_attributes&& other) noexcept
     {
@@ -159,13 +159,13 @@ class win_object_attributes
         return *this;
     }
 
-    win_object_attributes(const string_view path, const ULONG attributes = 0)
+    win_object_attributes(const string_view path, const ULONG attributes = 0) // NOLINT(hicpp-member-init)
     {
         init_name(path);
         init_base(attributes);
     }
 
-    win_object_attributes(const wstring_view path, const ULONG attributes = 0)
+    win_object_attributes(const wstring_view path, const ULONG attributes = 0) // NOLINT(hicpp-member-init)
     {
         init_name(path);
         init_base(attributes);
@@ -189,11 +189,12 @@ class nt_handle
 
     ~nt_handle()
     {
-        if (h_ && h_ != INVALID_HANDLE_VALUE)
+        if (h_ != nullptr && h_ != INVALID_HANDLE_VALUE)
             NtClose(h_);
     }
 
     nt_handle(const nt_handle& other) = delete;
+    nt_handle& operator=(const nt_handle& other) = delete;
 
     nt_handle(nt_handle&& other) noexcept
         : h_(std::exchange(other.h_, INVALID_HANDLE_VALUE))
@@ -230,8 +231,8 @@ static bool _path_exists(const P path, const bool isFile)
     win_object_attributes attr(path, OBJ_CASE_INSENSITIVE);
     IO_STATUS_BLOCK statusBlock;
     constexpr ACCESS_MASK desiredAccess = FILE_READ_ATTRIBUTES | SYNCHRONIZE;
-    const auto options                  = _file_open_flags(isFile);
-    const auto status                   = NtOpenFile(&h, desiredAccess, &attr, &statusBlock, FILE_SHARE_READ, options);
+    const auto options = _file_open_flags(isFile);
+    const auto status = NtOpenFile(&h, desiredAccess, &attr, &statusBlock, FILE_SHARE_READ, options);
     return NT_SUCCESS(status);
 }
 
@@ -247,8 +248,8 @@ static bool _path_create(const P path, const bool isFile, const bool override)
     if (!isFile)
         desiredAccess &= ~_FileOnlyAccessFlags;
     const ULONG disposition = override ? FILE_SUPERSEDE : FILE_CREATE;
-    const auto options      = _file_open_flags(isFile) | FILE_RANDOM_ACCESS;
-    const auto status       = NtCreateFile(&h, desiredAccess, &attr, &statusBlock, nullptr, FILE_ATTRIBUTE_NORMAL, 0, disposition, options, nullptr, 0);
+    const auto options = _file_open_flags(isFile) | FILE_RANDOM_ACCESS;
+    const auto status = NtCreateFile(&h, desiredAccess, &attr, &statusBlock, nullptr, FILE_ATTRIBUTE_NORMAL, 0, disposition, options, nullptr, 0);
     return NT_SUCCESS(status);
 }
 
@@ -269,15 +270,7 @@ bool directory_impl::operator()(const string_view dir) const
 
 bool directory_impl::operator()(const wstring_view dir) const
 {
-#if 1
     return _path_exists(dir, false);
-#else
-#ifdef PathIsDirectory
-    return PathIsDirectoryW(FIX_C_PATH(dir));
-#else
-    return _Is_directory(GetFileAttributesW(FIX_C_PATH(dir)));
-#endif
-#endif
 }
 
 bool directory_impl::create(const string_view dir, const bool override) const
@@ -290,12 +283,12 @@ bool directory_impl::create(const wstring_view dir, const bool override) const
     return _path_create(dir, false, override);
 }
 
-bool directory_impl::empty(const string_view dir) const
+bool directory_impl::empty(const string_view /*dir*/) const
 {
     FD_ASSERT_UNREACHABLE("Not implemented");
 }
 
-bool directory_impl::empty(const wstring_view dir) const
+bool directory_impl::empty(const wstring_view /*dir*/) const
 {
     FD_ASSERT_UNREACHABLE("Not implemented");
 }
