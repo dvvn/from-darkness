@@ -15,16 +15,15 @@ namespace fd
     }
 
     template <typename T>
-    concept is_character = _has_type<std::remove_cvref_t<T>,
-                                     char
+    concept is_character = _has_type<
+        std::remove_cvref_t<T>,
+        char,
 #ifdef __cpp_lib_char8_t
-                                     ,
-                                     char8_t
+        char8_t,
 #endif
-                                     ,
-                                     wchar_t,
-                                     char16_t,
-                                     char32_t>();
+        wchar_t,
+        char16_t,
+        char32_t>();
 
     template <typename T>
     concept can_be_string = requires(const T& obj) {
@@ -62,7 +61,8 @@ namespace fd
 
     struct basic_logs_handler
     {
-        virtual ~basic_logs_handler()                   = default;
+        virtual ~basic_logs_handler() = default;
+
         virtual void operator()(string_view msg) const  = 0;
         virtual void operator()(wstring_view msg) const = 0;
     };

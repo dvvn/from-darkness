@@ -169,6 +169,9 @@ namespace fd
         }
     };
 
+    library_info find_library(wstring_view name, bool notify = true);
+    PVOID wait_for_library(wstring_view name);
+
     struct library_info
     {
         using pointer   = const LDR_DATA_TABLE_ENTRY*;
@@ -178,11 +181,6 @@ namespace fd
         pointer entry_;
 
       public:
-        // ReSharper disable CppInconsistentNaming
-        static library_info _Find(wstring_view name, bool notify = true);
-        static PVOID _Wait(wstring_view name, bool notify = true);
-        // ReSharper restore CppInconsistentNaming
-
         library_info();
         library_info(pointer entry);
         library_info(wstring_view name, bool wait, bool notify = true); // todo: delay or cancel

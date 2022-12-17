@@ -111,7 +111,7 @@ namespace fd::gui
 
         void release_textures() override;
         void render(void* data) override;
-        void render(IDirect3DDevice9* thsPtr);
+        void render(IDirect3DDevice9* thisPtr);
         process_keys_result process_keys(void* data) override;
         process_keys_result process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 

@@ -66,9 +66,10 @@ static void _exit_fail()
 
 static DWORD WINAPI _loader(void*) noexcept
 {
-    const lazy_invoke onReturn([std::set_terminate(_exit_fail)] {
+    const lazy_invoke onReturn([] {
         _ThreadId = 0;
     });
+    std::set_terminate(_exit_fail);
 
     CurrentLibraryHandle = _ModuleHandle;
 
@@ -112,7 +113,7 @@ static DWORD WINAPI _loader(void*) noexcept
     gui::menu menu;
     gui::context guiCtx(d3dIfc, hwnd, false);
     guiCtx.store([&] {
-        menu.render();
+        menu.render(&guiCtx);
     });
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
     guiCtx.store([&] {

@@ -76,11 +76,9 @@ int main(int, char**)
                            },
                            gui::hotkey_access::any,
                            { ImGuiKey_End } });
-    guiCtx.create_hotkey({ menu.hotkeys.toggle, 
-                           gui::hotkey_mode::press,
-                           bind_front(&gui::menu::toggle, &menu),
-                           gui::hotkey_access::any,
-                           { ImGuiKey_S,ImGuiKey_A } });
+    guiCtx.create_hotkey({
+        menu.hotkeys.toggle, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, {ImGuiKey_S, ImGuiKey_A}
+    });
     guiCtx.store([&] {
         menu.render(&guiCtx);
     });

@@ -8,13 +8,15 @@
 #include <d3d9.h>
 
 #include <algorithm>
-#include <fd/logger.h>
 #include <numeric>
 #include <ranges>
 #include <span>
 
 using namespace fd;
 using namespace gui;
+
+// workaround, because imgui have poor muliple keys handling
+#define WORKAROUND_MULTIPLE_KEYS
 
 imgui_backup::~imgui_backup()
 {
@@ -44,10 +46,11 @@ void keys_pack::update_name()
     }
 
     auto names = *this | std::views::transform(ImGui::GetKeyName);
+    write_string(name_, '(');
     std::ranges::for_each(names.begin(), names.end() - 1, [&](auto val) {
         write_string(name_, val, '+');
     });
-    write_string(name_, names.back());
+    write_string(name_, names.back(), ')');
 }
 
 //--------
@@ -56,6 +59,7 @@ template <typename Fn>
 class keys_pack_ex : public basic_keys_pack
 {
     [[no_unique_address]] Fn fn_;
+    bool filled_ = false;
 
   public:
     keys_pack_ex(const bool instantFill = false, Fn fn = {})
@@ -67,7 +71,7 @@ class keys_pack_ex : public basic_keys_pack
 
     bool fill()
     {
-        if (empty())
+        if (!filled_)
         {
             using key_t = std::underlying_type_t<ImGuiKey>;
 
@@ -77,11 +81,22 @@ class keys_pack_ex : public basic_keys_pack
             for (auto key = keyFirst; key < keyLast; ++reinterpret_cast<key_t&>(key))
             {
                 if (fn_(key))
-                    push_back(key);
+                    basic_keys_pack::push_back(key);
             }
+            filled_ = true;
         }
 
         return !empty();
+    }
+
+    void clear()
+    {
+#ifdef _DEBUG
+        if (!filled_)
+            return;
+#endif
+        filled_ = false;
+        basic_keys_pack::clear();
     }
 };
 
@@ -94,8 +109,6 @@ struct pressed_filler
     }
 };
 
-using pressed_keys_pack = keys_pack_ex<pressed_filler>;
-
 struct held_filler
 {
     bool operator()(const ImGuiKey key) const
@@ -104,7 +117,8 @@ struct held_filler
     }
 };
 
-using held_keys_pack = keys_pack_ex<held_filler>;
+static keys_pack_ex<pressed_filler> _KeysPressed;
+static keys_pack_ex<held_filler> _KeysHeld;
 
 #define UNKNOWN_HK_MODE FD_ASSERT_UNREACHABLE("Unknown hotkey mode!")
 
@@ -115,28 +129,31 @@ hotkey::hotkey(hotkey_data&& data)
 
 bool hotkey::update(const bool allowOverride)
 {
-    // ReSharper disable CppPossiblyUnintendedObjectSlicing
-    basic_keys_pack currKeys;
-    switch (hotkey_data::mode /*keys.size() <= 1 ? mode : held*/)
-    {
-    case press:
-        currKeys = pressed_keys_pack(true);
-        break;
-    case held:
-        currKeys = held_keys_pack(true);
-        break;
-    default:
-        UNKNOWN_HK_MODE;
-    }
-    // ReSharper restore CppPossiblyUnintendedObjectSlicing
+#ifdef WORKAROUND_MULTIPLE_KEYS
+    _KeysHeld.fill();
+    const auto& currKeys = _KeysHeld;
+#else
+    const auto& currKeys = [=]() -> basic_keys_pack& {
+        switch (hotkey_data::mode)
+        {
+        case press:
+            _KeysPressed.fill();
+            return _KeysPressed;
+        case held:
+            _KeysHeld.fill();
+            return _KeysHeld;
+        default:
+            UNKNOWN_HK_MODE;
+        }
+    }();
+#endif
+
     if (currKeys.empty())
         return false;
-    if (!allowOverride && !keys.empty())
-    {
-        if (!std::ranges::includes(currKeys, keys))
-            return false;
-    }
-    keys = std::move(currKeys);
+    if (!allowOverride && !keys.empty() && !std::ranges::includes(currKeys, keys))
+        return false;
+
+    keys = currKeys;
     keys.update_name();
     return true;
 }
@@ -238,38 +255,38 @@ void hotkeys_storage::fire(const hotkey_access access)
         invoke(hk.callback);
     };
 
-    const auto selectModeFire = [pressed = pressed_keys_pack(), held = held_keys_pack()](hotkey_data& hk) mutable {
+    const auto selectMode = [](hotkey_data& hk) mutable {
         if (!hk.source)
             return;
-        // workaround, because imgui have poor muliple keys handling
+#ifdef WORKAROUND_MULTIPLE_KEYS
         if (hk.keys.size() >= 2)
-            return invoke(doCall, hk, held);
-
-        // ReSharper disable CppUnreachableCode
+            return invoke(doCall, hk, _KeysHeld);
+#endif
         switch (hk.mode)
         {
         case hotkey_mode::press: {
-            invoke(doCall, hk, pressed);
+            invoke(doCall, hk, _KeysPressed);
             break;
         }
         case hotkey_mode::held: {
-            invoke(doCall, hk, held);
+            invoke(doCall, hk, _KeysHeld);
             break;
         }
         default: {
             UNKNOWN_HK_MODE;
         }
         }
-        // ReSharper restore CppUnreachableCode
     };
 
     if (access == hotkey_access::any)
-        std::ranges::for_each(storage_, selectModeFire);
+        std::ranges::for_each(storage_, selectMode);
     else
-        std::ranges::for_each(storage_ | std::views::filter([=](const hotkey_data& hk) {
-                                  return hk.access & access;
-                              }),
-                              selectModeFire);
+        std::ranges::for_each(
+            storage_ | std::views::filter([=](const hotkey_data& hk) {
+                return hk.access & access;
+            }),
+            selectMode
+        );
 }
 
 void hotkeys_storage::create(hotkey&& hkTmp)
@@ -313,7 +330,7 @@ basic_hotkey* context::find_basic_hotkey(hotkey_source source, hotkey_mode mode)
 
 context::~context()
 {
-    if (library_info::_Find(L"d3d9.dll", false))
+    if (find_library(L"d3d9.dll", false))
         ImGui_ImplDX9_Shutdown();
 
     ImGui::Shutdown();
@@ -342,7 +359,8 @@ context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSetting
         [](void* buff, void*) {
             const auto correctBuff = static_cast<uint8_t*>(buff);
             delete[] correctBuff;
-        });
+        }
+    );
 #endif
     ImGui::SetCurrentContext(&context_);
 
@@ -392,25 +410,31 @@ void context::render(IDirect3DDevice9* thisPtr)
 {
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
 
 #ifndef IMGUI_HAS_VIEWPORT
+    // sets in win32 impl
     const auto displaySize = context_.IO.DisplaySize;
     const auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
     if (minimized)
-        return ImGui::EndFrame();
+        return;
 #endif
 
-    std::ranges::for_each(callbacks_, Invoker);
+    ImGui::NewFrame();
+    {
+        _KeysHeld.clear();
+        _KeysPressed.clear();
 
-    const auto haveVisibleWindow = std::ranges::any_of(context_.WindowsFocusOrder, [](auto wnd) {
-        return wnd->Active || wnd->Collapsed;
-    });
+        std::ranges::for_each(callbacks_, Invoker);
 
-    fire_hotkeys(haveVisibleWindow ? hotkey_access::foreground : hotkey_access::background);
+        const auto haveVisibleWindow = std::ranges::any_of(context_.WindowsFocusOrder, [](auto wnd) {
+            return wnd->Active || wnd->Collapsed;
+        });
+
+        fire_hotkeys(haveVisibleWindow ? hotkey_access::foreground : hotkey_access::background);
+    }
+    ImGui::Render();
 
     D3D_VALIDATE(thisPtr->BeginScene());
-    ImGui::Render();
     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
     D3D_VALIDATE(thisPtr->EndScene());
 }

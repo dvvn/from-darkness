@@ -12,6 +12,8 @@ FixNamespaceComments: true
 NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
 #BreakBeforeBraces: Allman
+AlignAfterOpenBracket: BlockIndent
+#AllowShortLambdasOnASingleLine: Inline
 SeparateDefinitionBlocks: Always
 BinPackArguments: false
 BinPackParameters: false

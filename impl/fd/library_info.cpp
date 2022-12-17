@@ -96,9 +96,14 @@ class LIST_ENTRY_iterator
         return tmp;
     }
 
-    LIST_ENTRY& operator*() const
+    reference operator*() const
     {
         return *current_;
+    }
+
+    pointer operator->() const
+    {
+        return current_;
     }
 
     bool operator==(const LIST_ENTRY_iterator& other) const = default;
@@ -139,17 +144,20 @@ class LIST_ENTRY_range
 
 namespace std
 {
+    // ReSharper disable CppInconsistentNaming
     template <typename T>
-    T* get(LIST_ENTRY& list)
+    static T* get(LIST_ENTRY& list)
     {
         return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
     }
 
     template <typename T>
-    const T* get(const LIST_ENTRY& list)
+    static const T* get(const LIST_ENTRY& list)
     {
         return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
     }
+
+    // ReSharper restore CppInconsistentNaming
 } // namespace std
 
 // ReSharper disable All
@@ -204,12 +212,13 @@ static wstring_view _found_or_not(const void* ptr)
 
 static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
 {
-    invoke(Logger,
-           //
-           L"{} -> {}! ({:#X})",
-           name,
-           bind_front(_found_or_not, entry),
-           reinterpret_cast<uintptr_t>(entry));
+    invoke( //
+        Logger,
+        L"{} -> {}! ({:#X})",
+        name,
+        bind_front(_found_or_not, entry),
+        reinterpret_cast<uintptr_t>(entry)
+    );
 }
 
 static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA_TABLE_ENTRY* entry)
@@ -217,25 +226,27 @@ static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA
     const auto getName = [=] {
         return entry ? _library_info_name(entry) : L"unknown name";
     };
-    invoke(Logger,
-           //
-           L"{:#X} ({}) -> {}! ({:#X})",
-           reinterpret_cast<uintptr_t>(baseAddress),
-           getName,
-           bind_front(_found_or_not, entry),
-           reinterpret_cast<uintptr_t>(entry));
+    invoke( //
+        Logger,
+        L"{:#X} ({}) -> {}! ({:#X})",
+        reinterpret_cast<uintptr_t>(baseAddress),
+        getName,
+        bind_front(_found_or_not, entry),
+        reinterpret_cast<uintptr_t>(entry)
+    );
 }
 
 // ReSharper disable once CppInconsistentNaming
 static constexpr auto _log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr) {
-    invoke(Logger,
-           //
-           L"{} -> {} '{}' {}! ({:#X})",
-           bind_front(_library_info_name, entry),
-           objectType,
-           object,
-           bind_front(_found_or_not, addr),
-           reinterpret_cast<uintptr_t>(addr));
+    invoke( //
+        Logger,
+        L"{} -> {} '{}' {}! ({:#X})",
+        bind_front(_library_info_name, entry),
+        objectType,
+        object,
+        bind_front(_found_or_not, addr),
+        reinterpret_cast<uintptr_t>(addr)
+    );
 };
 
 static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view rawName, const void* addr)
@@ -336,29 +347,28 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
         return buff.substr(buff.find(' ') + 1);
     };
 
-    invoke(Logger,
-           L"{} -> {} {} '{}' {}! ({:#X})",
-           bind_front(_library_info_name, entry),
-           L"vtable for",
-           demagleType,
-           demagleName,
-           bind_front(_found_or_not, vtablePtr),
-           reinterpret_cast<uintptr_t>(vtablePtr));
+    invoke(
+        Logger,
+        L"{} -> {} {} '{}' {}! ({:#X})",
+        bind_front(_library_info_name, entry),
+        L"vtable for",
+        demagleType,
+        demagleName,
+        bind_front(_found_or_not, vtablePtr),
+        reinterpret_cast<uintptr_t>(vtablePtr)
+    );
 }
 
-library_info library_info::_Find(const wstring_view name, const bool notify)
+library_info fd::find_library(wstring_view name, bool notify)
 {
     const auto entry = LDR_ENTRY_finder([=](const library_info info) {
         return info.name() == name;
     });
+    if (notify /*&& entry*/)
+        _log_found_entry(name, entry);
 #ifdef _DEBUG
     if (!entry)
         return {}; // prevent assert
-    if (notify)
-        _log_found_entry(name, entry);
-#else
-    if (notify && entry)
-        _log_found_entry(name, entry);
 #endif
     return entry;
 }
@@ -371,7 +381,7 @@ struct callback_data_t
 
     callback_data_t(const wstring_view name)
         : name(name)
-        , sem(0)
+        , sem(1)
         , found(nullptr)
     {
     }
@@ -412,16 +422,16 @@ static auto _wait_prepare(const bool notify)
     return std::pair(reg, unreg);
 }
 
-PVOID library_info::_Wait(const wstring_view name, const bool notify)
+PVOID fd::wait_for_library(const wstring_view name)
 {
-    static const auto [reg_fn, unreg_fn] = _wait_prepare(notify);
+    static const auto [reg_fn, unreg_fn] = _wait_prepare(false);
 
     callback_data_t cbData(name);
     void* cookie;
-    if (reg_fn(0, _on_new_library, &cbData, &cookie) != STATUS_SUCCESS)
+    if (!NT_SUCCESS(reg_fn(0, _on_new_library, &cbData, &cookie)))
         return nullptr;
     cbData.sem.acquire();
-    if (unreg_fn(cookie) != STATUS_SUCCESS)
+    if (!NT_SUCCESS(unreg_fn(cookie)))
         return nullptr;
     return cbData.found;
 }
@@ -431,7 +441,7 @@ library_info::library_info()
 {
 }
 
-library_info::library_info(pointer entry)
+library_info::library_info(const pointer entry)
     : entry_(entry)
 {
     FD_ASSERT(entry_ != nullptr);
@@ -445,7 +455,7 @@ library_info::library_info(const wstring_view name, const bool wait, const bool 
 
     if (!entry_ && wait)
     {
-        const auto baseAddress = _Wait(name, notify);
+        const auto baseAddress = wait_for_library(name);
         if (baseAddress)
         {
             entry_ = LDR_ENTRY_finder([=](const dos_nt dnt) {
@@ -479,10 +489,8 @@ bool library_info::is_root() const
         return true;
     });
     return first; */
-    for (const auto& list : LIST_ENTRY_range())
-        return entry_ == std::get<LDR_DATA_TABLE_ENTRY>(list);
 
-    return false;
+    return entry_ == std::get<LDR_DATA_TABLE_ENTRY>(*LIST_ENTRY_range().begin());
 }
 
 bool library_info::unload() const
