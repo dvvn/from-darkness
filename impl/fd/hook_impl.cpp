@@ -4,6 +4,8 @@
 
 #include <subhook.h>
 
+#include <atomic>
+
 #define _SUBHOOK_WRAP(_FN_)                                 \
     static auto subhook_##_FN_(void* ptr)                   \
     {                                                       \
@@ -40,12 +42,20 @@ static void _log(auto* hook, T msg)
         invoke(*Logger, make_string(hookName, ": ", msg));
 }
 
+static std::atomic<hook_global_callback*> _HookCallback(nullptr);
+
+void fd::set_hook_callback(hook_global_callback* callback)
+{
+    _HookCallback.store(callback, std::memory_order::relaxed);
+}
+
 hook_impl::hook_impl()
     : inUse_(false)
     , entry_(nullptr)
 {
-    if (HookGlobalCallback != nullptr)
-        HookGlobalCallback->construct(this);
+    const auto cb = _HookCallback.load(std::memory_order::relaxed);
+    if (cb != nullptr)
+        cb->construct(this);
 }
 
 hook_impl::~hook_impl()
@@ -62,8 +72,9 @@ hook_impl::~hook_impl()
     {
         const auto ok = subhook_remove(entry_) == 0;
         _log(this, ok ? "unhooked" : "unhook error!");
-        if (HookGlobalCallback != nullptr)
-            HookGlobalCallback->destroy(this, ok);
+        const auto cb = _HookCallback.load(std::memory_order::relaxed);
+        if (cb != nullptr)
+            cb->destroy(this, ok);
     }
     subhook_free(entry_);
 }
@@ -164,9 +175,4 @@ hook_callback_ret_wrapper<void>::operator bool() const
 void hook_callback_ret_wrapper<void>::emplace()
 {
     value_ = true;
-}
-
-namespace fd
-{
-    hook_global_callback* HookGlobalCallback;
 }

@@ -60,10 +60,10 @@ namespace fd
             if (!hookInstance)
                 return;
             const auto vtable = *static_cast<void***>(hookInstance.get());
-            fnPtr_            = vtable[index];
+            fnPtr_ = vtable[index];
         }
 
-        function_getter(const function_getter& other)            = default;
+        function_getter(const function_getter& other) = default;
         function_getter& operator=(const function_getter& other) = default;
     };
 
@@ -71,11 +71,11 @@ namespace fd
     {
         virtual ~hook_global_callback() = default;
 
-        virtual void construct(basic_hook* caller)                    = 0;
+        virtual void construct(basic_hook* caller) = 0;
         virtual void destroy(const basic_hook* caller, bool unhooked) = 0;
     };
 
-    extern hook_global_callback* HookGlobalCallback;
+    void set_hook_callback(hook_global_callback* callback);
 
     class hook_impl : public basic_hook
     {
@@ -149,9 +149,9 @@ namespace fd
     template <class Ret, typename... Args>
     struct basic_hook_callback : hook_impl
     {
-        using original_wrapped  = function<Ret(Args...) const>;
-        using ret_wrapped       = hook_callback_ret_wrapper<Ret>;
-        using function_type     = function<void(const original_wrapped&, ret_wrapped&, bool&, Args...) const>;
+        using original_wrapped = function<Ret(Args...) const>;
+        using ret_wrapped = hook_callback_ret_wrapper<Ret>;
+        using function_type = function<void(const original_wrapped&, ret_wrapped&, bool&, Args...) const>;
         using callbacks_storage = std::vector<function_type>;
 
       protected:
@@ -160,7 +160,7 @@ namespace fd
       public:
         basic_hook_callback() = default;
 
-        basic_hook_callback(const basic_hook_callback&)            = delete;
+        basic_hook_callback(const basic_hook_callback&) = delete;
         basic_hook_callback& operator=(const basic_hook_callback&) = delete;
 
         void add(function_type fn)
@@ -186,7 +186,8 @@ namespace fd
                 self_->callbacks.begin(),                                                                                  \
                 self_->callbacks.end(),                                                                                    \
                 reinterpret_cast<Class*>(this),                                                                            \
-                std::forward<Args>(args)...);                                                                              \
+                std::forward<Args>(args)...                                                                                \
+            );                                                                                                             \
         }                                                                                                                  \
         void construct(void* target)                                                                                       \
         {                                                                                                                  \
@@ -209,37 +210,39 @@ namespace fd
     template <class Ret, class Class, typename... Args>                                                                    \
     hook_callback(Ret (__##_CCVS_ Class::*)(Args...), function_getter) -> hook_callback<Ret, call_cvs::_CCVS_##_, Class, Args...>;
 
-#define FD_HOOK_CALLBACK(_CCVS_)                                                                                                   \
-    template <class Ret, typename... Args>                                                                                         \
-    class hook_callback<Ret, call_cvs::_CCVS_##_, void, Args...> : public basic_hook_callback<Ret, Args...>                        \
-    {                                                                                                                              \
-        inline static hook_callback* self_;                                                                                        \
-        static Ret __##_CCVS_ proxy(Args... args)                                                                                  \
-        {                                                                                                                          \
-            return _hook_callback<Ret>(bind_front(Invoker, &hook_callback::proxy, self_->get_original_method()), /*-------------*/ \
-                                       self_->callbacks.begin(),                                                                   \
-                                       self_->callbacks.end(),                                                                     \
-                                       std::forward<Args>(args)...);                                                               \
-        }                                                                                                                          \
-        void construct(void* target)                                                                                               \
-        {                                                                                                                          \
-            self_ = this;                                                                                                          \
-            this->init(target, &hook_callback::proxy);                                                                             \
-        }                                                                                                                          \
-                                                                                                                                   \
-      public:                                                                                                                      \
-        hook_callback(function_getter target)                                                                                      \
-        {                                                                                                                          \
-            construct(target);                                                                                                     \
-        }                                                                                                                          \
-        hook_callback(Ret(__##_CCVS_*)(Args...), function_getter target)                                                           \
-        {                                                                                                                          \
-            construct(target);                                                                                                     \
-        }                                                                                                                          \
-    };                                                                                                                             \
-    template <class Ret, typename... Args>                                                                                         \
-    hook_callback(Ret(__##_CCVS_*)(Args...)) -> hook_callback<Ret, call_cvs::_CCVS_##_, void, Args...>;                            \
-    template <class Ret, typename... Args>                                                                                         \
+#define FD_HOOK_CALLBACK(_CCVS_)                                                                            \
+    template <class Ret, typename... Args>                                                                  \
+    class hook_callback<Ret, call_cvs::_CCVS_##_, void, Args...> : public basic_hook_callback<Ret, Args...> \
+    {                                                                                                       \
+        inline static hook_callback* self_;                                                                 \
+        static Ret __##_CCVS_ proxy(Args... args)                                                           \
+        {                                                                                                   \
+            return _hook_callback<Ret>(                                                                     \
+                bind_front(Invoker, &hook_callback::proxy, self_->get_original_method()), /*-------------*/ \
+                self_->callbacks.begin(),                                                                   \
+                self_->callbacks.end(),                                                                     \
+                std::forward<Args>(args)...                                                                 \
+            );                                                                                              \
+        }                                                                                                   \
+        void construct(void* target)                                                                        \
+        {                                                                                                   \
+            self_ = this;                                                                                   \
+            this->init(target, &hook_callback::proxy);                                                      \
+        }                                                                                                   \
+                                                                                                            \
+      public:                                                                                               \
+        hook_callback(function_getter target)                                                               \
+        {                                                                                                   \
+            construct(target);                                                                              \
+        }                                                                                                   \
+        hook_callback(Ret(__##_CCVS_*)(Args...), function_getter target)                                    \
+        {                                                                                                   \
+            construct(target);                                                                              \
+        }                                                                                                   \
+    };                                                                                                      \
+    template <class Ret, typename... Args>                                                                  \
+    hook_callback(Ret(__##_CCVS_*)(Args...)) -> hook_callback<Ret, call_cvs::_CCVS_##_, void, Args...>;     \
+    template <class Ret, typename... Args>                                                                  \
     hook_callback(Ret(__##_CCVS_*)(Args...), function_getter) -> hook_callback<Ret, call_cvs::_CCVS_##_, void, Args...>;
 
 #define FD_HOOK_CALLBACK_ANY(_CCVS_) \

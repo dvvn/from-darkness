@@ -123,7 +123,7 @@ static DWORD WINAPI _loader(void*) noexcept
 #endif
 
     hooks_storage allHooks;
-    HookGlobalCallback = &allHooks;
+    set_hook_callback(&allHooks);
 
     hook_callback_t<WNDPROC> hkWndProc(GetWindowLongPtrW(hwnd, GWLP_WNDPROC));
     hkWndProc.set_name("WinAPI.WndProc");
@@ -193,20 +193,19 @@ static DWORD WINAPI _loader(void*) noexcept
 }
 
 // ReSharper disable once CppInconsistentNaming
-extern "C" BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID reserved)
+extern "C" BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID /*reserved*/)
 {
-    // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
     switch (reason)
     {
     case DLL_PROCESS_ATTACH: {
         _ModuleHandle = moduleHandle;
         _ThreadHandle = CreateThread(nullptr, 0, _loader, nullptr, 0, &_ThreadId);
-        if (!_ThreadId)
+        if (_ThreadId == 0u)
             return FALSE;
         break;
     }
     case DLL_PROCESS_DETACH: {
-        if (_ThreadId && !CloseHandle(_ThreadHandle))
+        if (_ThreadId != 0u && CloseHandle(_ThreadHandle) == 0)
             return FALSE;
         break;
     }

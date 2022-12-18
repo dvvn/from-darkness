@@ -617,16 +617,10 @@ void* library_info::find_export(const string_view name, const bool notify) const
 
 IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const bool notify) const
 {
-    IMAGE_SECTION_HEADER* headerFound = nullptr;
-
-    for (auto& header : dos_nt(entry_).sections())
-    {
-        if (reinterpret_cast<const char*>(header.Name) == name)
-        {
-            headerFound = &header;
-            break;
-        }
-    }
+    const auto sections = dos_nt(entry_).sections();
+    const auto headerFound = std::ranges::find(sections.data(), sections.data() + sections.size(), name, [](auto& header) {
+        return reinterpret_cast<const char*>(header.Name);
+    });
     if (notify)
         _log_found_object(entry_, L"section", name, headerFound);
     return headerFound;
@@ -636,7 +630,7 @@ void* library_info::find_signature(const string_view sig, const bool notify) con
 {
     const auto memorySpan = dos_nt(entry_).read();
     const pattern_scanner finder(memorySpan.data(), memorySpan.size());
-    const auto result = *finder(sig);
+    const auto result = *invoke(finder, sig);
     if (notify)
         _log_found_object(entry_, L"signature", sig, result);
     return result;

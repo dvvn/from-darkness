@@ -89,7 +89,7 @@ int main(int, char**)
     menu.store(testTabBar);
 
     hooks_storage allHooks;
-    HookGlobalCallback = &allHooks;
+    set_hook_callback(&allHooks);
 
     hook_callback hkWndProc(backend.info.lpfnWndProc);
     hkWndProc.set_name("WinAPI.WndProc");
