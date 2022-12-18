@@ -34,7 +34,7 @@ class hooks_storage final : public hook_global_callback
     void destroy(const basic_hook* caller, const bool unhooked) override
     {
         if (!unhooked)
-            std::abort();
+            suspend();
         // std::ranges stuck here
         *std::find(hooks_.begin(), hooks_.end(), caller) = nullptr;
     }
@@ -43,7 +43,7 @@ class hooks_storage final : public hook_global_callback
     ~hooks_storage() override
     {
         if (!hooks_.empty())
-            std::abort();
+            suspend();
     }
 
     bool enable() const
@@ -69,7 +69,7 @@ static DWORD WINAPI _loader(void*) noexcept
     const lazy_invoke onReturn([] {
         _ThreadId = 0;
     });
-    std::set_terminate(_exit_fail);
+    set_unload(_exit_fail);
 
     CurrentLibraryHandle = _ModuleHandle;
 
@@ -128,15 +128,14 @@ static DWORD WINAPI _loader(void*) noexcept
     hook_callback_t<WNDPROC> hkWndProc(GetWindowLongPtrW(hwnd, GWLP_WNDPROC));
     hkWndProc.set_name("WinAPI.WndProc");
 #ifdef _DEBUG
-    hkWndProc.add([&assertCallback, hwnd, data = assert_data(nullptr, "Incorrect HWND!", std::source_location::current(__LINE__, 0, __FILE__, "hkWndProc"))](
-                      auto&, auto&, bool& interrupt, const HWND currHwnd, auto...) {
+    hkWndProc.add([&assertCallback, hwnd](auto&, auto&, bool& interrupt, const HWND currHwnd, auto...) {
         if (currHwnd == hwnd)
             return;
-        invoke(assertCallback, data);
+        invoke(assertCallback, assert_data(nullptr, "Incorrect HWND!"));
         interrupt = true;
     });
 #endif
-    hkWndProc.add([&](auto&, auto& ret, bool& interrupt, auto... args) {
+    hkWndProc.add([&](auto&, auto& ret, bool, auto... args) {
         switch (guiCtx.process_keys(args...))
         {
         case gui::process_keys_result::instant:
@@ -148,7 +147,7 @@ static DWORD WINAPI _loader(void*) noexcept
             ret.emplace(DefWindowProcW(args...));
             break;
         default:
-            std::unreachable();
+            unreachable();
         }
     });
 
@@ -177,9 +176,9 @@ static DWORD WINAPI _loader(void*) noexcept
     if (!allHooks.enable())
         _exit_fail();
 
-    std::set_terminate([] {
+    set_unload([] {
         if (ResumeThread(_ThreadHandle) == -1)
-            std::abort();
+            suspend();
     });
 
     /*if (!library_info::_Wait(L"serverbrowser.dll"))

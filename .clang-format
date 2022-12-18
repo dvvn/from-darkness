@@ -13,11 +13,10 @@ NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
 #BreakBeforeBraces: Allman
 AlignAfterOpenBracket: BlockIndent
-#AllowShortLambdasOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: Empty
 SeparateDefinitionBlocks: Always
 BinPackArguments: false
 BinPackParameters: false
-AllowShortLambdasOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: Yes
 AllowAllParametersOfDeclarationOnNextLine: false
 PenaltyBreakAssignment: 100

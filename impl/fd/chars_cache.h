@@ -1,6 +1,9 @@
 #pragma once
 
 #include <fd/string.h>
+#ifdef _DEBUG
+#include <fd/exception.h>
+#endif
 
 #include <algorithm>
 
@@ -14,8 +17,8 @@ namespace fd
     {
         Chr charsBuff[Size];
 
-        using value_type    = Chr;
-        using pointer       = Chr*;
+        using value_type = Chr;
+        using pointer = Chr*;
         using const_pointer = const Chr*;
 
         constexpr chars_cache(const_pointer strSource)
@@ -23,7 +26,7 @@ namespace fd
             std::copy_n(strSource, Size, charsBuff);
 #ifdef _DEBUG
             if (!std::equal(strSource, charsBuff, Size))
-                invoke(std::get_terminate());
+                abort();
 #endif
         }
 
@@ -80,8 +83,8 @@ namespace fd
         Chr charsBuff[Size];
         size_t charsCount;
 
-        using value_type    = Chr;
-        using pointer       = Chr*;
+        using value_type = Chr;
+        using pointer = Chr*;
         using const_pointer = const Chr*;
 
         constexpr chars_cache()
@@ -95,7 +98,7 @@ namespace fd
 #ifdef _DEBUG
             if (Size < strSize)
             {
-                invoke(std::get_terminate());
+                unload();
                 charsCount = 0;
                 return;
             }

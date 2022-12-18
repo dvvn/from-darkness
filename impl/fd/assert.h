@@ -1,18 +1,9 @@
 #pragma once
 
-#include <type_traits>
-
-#ifdef __cpp_lib_unreachable
-#include <utility>
-#define _FD_UNREACHABLE std::unreachable
-#else
-#include <exception>
-#define _FD_UNREACHABLE std::abort
-#endif
+#include <fd/exception.h>
 
 #ifdef _DEBUG
 #include <fd/assert_handler.h>
-#include <fd/utility.h>
 
 #define FD_ASSERT(_EXPRESSION_OR_MESSAGE_, /*message for expression*/...) \
     /**/                                                                  \
@@ -20,8 +11,8 @@
 
 #define FD_ASSERT_UNREACHABLE(_MESSAGE_) \
     /**/                                 \
-    invoke(AssertHandler, assert_data(_MESSAGE_), _FD_UNREACHABLE);
+    invoke(AssertHandler, assert_data(_MESSAGE_), unreachable);
 #else
-#define FD_ASSERT(...)             (void)0;
-#define FD_ASSERT_UNREACHABLE(...) _FD_UNREACHABLE();
+#define FD_ASSERT(...) (void)0;
+#define FD_ASSERT_UNREACHABLE(...) unreachable();
 #endif

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fd/exception.h>
+
 #include <xxh32.hpp>
 #include <xxh64.hpp>
 
@@ -9,8 +11,6 @@
 #include <memory>
 #ifdef __cpp_lib_bit_cast
 #include <bit>
-#else
-#include <vector>
 #endif
 
 namespace fd
@@ -27,40 +27,36 @@ namespace fd
         {
             const auto bytesCount = sizeof(T) * len;
 
-            // ReSharper disable CppUnreachableCode
             if (!std::is_constant_evaluated())
             {
                 const auto buff = reinterpret_cast<const char*>(input);
                 return hash_bytes(buff, bytesCount);
             }
-            // ReSharper restore CppUnreachableCode
 
-            using char_alloc = std::allocator<char>;
-
-            // direct bit_cast like reinterpret_cast doesn't work
-#ifdef __cpp_lib_bit_cast
-            char_alloc alloc;
-            const auto buff = alloc.allocate(bytesCount);
+#ifndef __cpp_lib_bit_cast
+            abort();
+#else
+#ifdef __cpp_lib_constexpr_dynamic_alloc
+            const auto buff = new char[bytesCount];
+#else
+            if (bytesCount >= 2048)
+            {
+                terminate();
+                return 0;
+            }
+            char buff[2048];
+#endif
             for (size_t i = 0; i < len; ++i)
             {
-                const auto tmp  = std::bit_cast<std::array<char, sizeof(T)>>(input[i]);
+                const auto tmp = std::bit_cast<std::array<char, sizeof(T)>>(input[i]);
                 const auto desc = buff + i * tmp.size();
                 std::ranges::copy(tmp, desc);
             }
             const auto result = hash_bytes(buff, bytesCount);
-            alloc.deallocate(buff, bytesCount);
+#ifdef __cpp_lib_constexpr_dynamic_alloc
+            delete buff[];
+#endif
             return result;
-#else
-            using buff_t = std::vector<char, char_alloc>;
-            buff_t buff;
-            buff.reserve(bytes_count);
-            for (size_t i = 0; i < len; ++i)
-            {
-                const auto tmp = std::bit_cast<std::array<char, sizeof(T)>>(input[i]);
-                for (const auto c : tmp)
-                    buff.push_back(c);
-            }
-            return hash_bytes(buff.data(), buff.size());
 #endif
         }
     }

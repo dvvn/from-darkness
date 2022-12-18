@@ -1,7 +1,3 @@
-// ReSharper disable CppRedundantQualifier
-// ReSharper disable CppMemberFunctionMayBeStatic
-
-// ReSharper disable CppClangTidyReadabilityConvertMemberFunctionsToStatic
 #include <fd/assert.h>
 #include <fd/filesystem.h>
 

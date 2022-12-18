@@ -1,6 +1,10 @@
 // ReSharper disable CppUserDefinedLiteralSuffixDoesNotStartWithUnderscore
 #pragma once
 
+#ifdef _DEBUG
+#include <fd/exception.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <iterator>
@@ -250,10 +254,7 @@ namespace fd
         constexpr auto digits = std::to_array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 #ifdef _DEBUG
         if (base <= 1 || base >= digits.size())
-        {
-            std::invoke(std::get_terminate());
-            return {};
-        }
+        abort();
 #endif
         if (num == 0)
             return {};

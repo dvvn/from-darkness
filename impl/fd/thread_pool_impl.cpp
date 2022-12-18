@@ -1,4 +1,5 @@
 #include <fd/assert.h>
+#include <fd/exception.h>
 #include <fd/thread_pool_impl.h>
 
 #include <algorithm>
@@ -60,18 +61,18 @@ basic_thread_data::basic_thread_data(const HANDLE handle)
 
 basic_thread_data::operator bool() const
 {
-    return handle_ && handle_ != INVALID_HANDLE_VALUE;
+    return handle_ != nullptr && handle_ != INVALID_HANDLE_VALUE;
 }
 
 // ReSharper disable CppMemberFunctionMayBeConst
 bool basic_thread_data::pause()
 {
-    return SuspendThread(handle_);
+    return SuspendThread(handle_) != 0u;
 }
 
 bool basic_thread_data::resume()
 {
-    return ResumeThread(handle_);
+    return ResumeThread(handle_) != 0u;
 }
 
 void basic_thread_data::terminate()
@@ -100,9 +101,9 @@ thread_data::thread_data(void* fn, void* fnParams, const bool suspend)
 
 thread_data::thread_data(thread_data&& other) noexcept
     : basic_thread_data(other)
+    , id_(other.id_)
 {
     static_cast<basic_thread_data&>(other) = INVALID_HANDLE_VALUE;
-    id_                                    = other.id_;
 }
 
 thread_data& thread_data::operator=(thread_data&& other) noexcept
@@ -156,7 +157,7 @@ bool thread_pool::worker_impl()
 
         if (!thisThread.pause())
         {
-            invoke(std::get_terminate());
+            unload();
             return FALSE;
         }
     }
@@ -183,8 +184,8 @@ bool thread_pool::store_func(function_type&& func, const bool resumeThreads) noe
             thread_data data(reinterpret_cast<void*>(worker), this, false);
             if (!data)
                 return false;
-            threads_.push_back(std::move(data));
-            // wait until thread find it own from the loop
+            threads_.emplace_back(std::move(data));
+            // wait until thread find itself from the loop
             resetGuard = false;
         }
     }
@@ -229,8 +230,6 @@ bool thread_pool::add_simple(function_type func)
     return this->store_func(std::move(func));
 }
 
-// ReSharper disable CppSmartPointerVsMakeFunction
-
 auto thread_pool::add(function_type func) -> task_type
 {
     task_type t(new lockable_task(std::move(func)));
@@ -255,5 +254,3 @@ auto thread_pool::add_lazy(function_type func) -> task_type
 
     return task_type(new lockable_task(std::move(newFunc)));
 }
-
-// ReSharper restore CppSmartPointerVsMakeFunction

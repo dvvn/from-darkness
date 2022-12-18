@@ -44,7 +44,7 @@ hook_impl::hook_impl()
     : inUse_(false)
     , entry_(nullptr)
 {
-    if (HookGlobalCallback)
+    if (HookGlobalCallback != nullptr)
         HookGlobalCallback->construct(this);
 }
 
@@ -62,14 +62,15 @@ hook_impl::~hook_impl()
     {
         const auto ok = subhook_remove(entry_) == 0;
         _log(this, ok ? "unhooked" : "unhook error!");
-        if (HookGlobalCallback)
+        if (HookGlobalCallback != nullptr)
             HookGlobalCallback->destroy(this, ok);
     }
     subhook_free(entry_);
 }
 
 hook_impl::hook_impl(hook_impl&& other) noexcept
-    : entry_(std::exchange(other.entry_, nullptr))
+    : inUse_(false)
+    , entry_(std::exchange(other.entry_, nullptr))
     , name_(other.name_)
 {
 }
@@ -122,7 +123,7 @@ bool hook_impl::initialized() const
 
 bool hook_impl::active() const
 {
-    return !!subhook_is_installed(entry_);
+    return subhook_is_installed(entry_) != 0;
 }
 
 void* hook_impl::get_original_method() const
@@ -144,7 +145,7 @@ void hook_impl::init(const function_getter target, const function_getter replace
 {
     FD_ASSERT(entry_ == nullptr);
     entry_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
-    if (!entry_)
+    if (entry_ == nullptr)
         _log(this, "init error!");
 }
 

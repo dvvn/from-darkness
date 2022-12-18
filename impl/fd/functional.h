@@ -2,6 +2,7 @@
 
 #include <fd/call_cvs.h>
 #include <fd/utility.h>
+#include <fd/exception.h>
 
 #include <function2/function2.hpp>
 
@@ -91,7 +92,7 @@ namespace fd
     {                                                                                                     \
         Ret _CCVS_ callback(Args... args) const                                                           \
         {                                                                                                 \
-            std::unreachable();                                                                           \
+            unreachable();                                                                           \
         }                                                                                                 \
     };                                                                                                    \
     template <typename Ret, class T, typename... Args>                                                    \

@@ -1,4 +1,5 @@
 #include <fd/assert.h>
+#include <fd/exception.h>
 #include <fd/gui/context_impl.h>
 #include <fd/library_info.h>
 
@@ -25,8 +26,8 @@ imgui_backup::~imgui_backup()
 }
 
 imgui_backup::imgui_backup()
+    : context_(ImGui::GetCurrentContext())
 {
-    context_ = ImGui::GetCurrentContext();
     ImGui::GetAllocatorFunctions(&allocator_, &deleter_, &userData_);
 }
 
@@ -78,7 +79,7 @@ class keys_pack_ex : public basic_keys_pack
             using key_t = std::underlying_type_t<ImGuiKey>;
 
             constexpr auto keyFirst = ImGuiKey_NamedKey_BEGIN;
-            constexpr auto keyLast  = ImGuiKey_NamedKey_END;
+            constexpr auto keyLast = ImGuiKey_NamedKey_END;
 
             for (auto key = keyFirst; key < keyLast; ++reinterpret_cast<key_t&>(key))
             {
@@ -237,7 +238,7 @@ bool hotkeys_storage::contains(const hotkey_data& other) const
 auto hotkeys_storage::find_unused() -> pointer
 {
     const auto itr = std::ranges::find_if(storage_, [](const hotkey_data& hk) {
-        return !hk.source;
+        return hk.source == 0u;
     });
     return _extract_ptr(itr, storage_.end());
 }
@@ -258,7 +259,7 @@ void hotkeys_storage::fire(const hotkey_access access)
     };
 
     const auto selectMode = [](hotkey_data& hk) mutable {
-        if (!hk.source)
+        if (hk.source == 0u)
             return;
 #ifdef WORKAROUND_MULTIPLE_KEYS
         if (hk.keys.size() >= 2)
@@ -298,7 +299,7 @@ void hotkeys_storage::create(hotkey&& hkTmp)
     FD_ASSERT(static_cast<bool>(hkData.callback));
 
     auto hkNew = find_unused();
-    if (!hkNew)
+    if (hkNew == nullptr)
         hkNew = &storage_.emplace_back();
 
     *hkNew = std::move(hkTmp);
@@ -315,9 +316,9 @@ void context::fire_hotkeys(const hotkey_access access)
     hotkeys_.fire(access);
 }
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
 bool context::can_process_keys() const
 {
+    (void)this;
     // are all windows closed?
     // are any overlay visible?
     // are any hotkey exists?
@@ -334,8 +335,9 @@ context::~context()
 {
     if (find_library(L"d3d9.dll", false))
         ImGui_ImplDX9_Shutdown();
-
     ImGui::Shutdown();
+    std::destroy_at(&_KeysHeld);
+    std::destroy_at(&_KeysPressed);
 }
 
 static void _disable_ini_settings(ImGuiContext* ctx = ImGui::GetCurrentContext())
@@ -354,13 +356,12 @@ context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSetting
 {
     IMGUI_CHECKVERSION();
 #ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
-    ImGui::SetAllocatorFunctions(
+    ImGui::SetAllocatorFunctions( //
         [](const size_t size, void*) -> void* {
             return new uint8_t[size];
         },
         [](void* buff, void*) {
-            const auto correctBuff = static_cast<uint8_t*>(buff);
-            delete[] correctBuff;
+            delete[] static_cast<uint8_t*>(buff);
         }
     );
 #endif
@@ -383,7 +384,7 @@ context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSetting
     //---
 
     if (!ImGui_ImplDX9_Init(d3d) || !ImGui_ImplWin32_Init(hwnd))
-        invoke(std::get_terminate());
+        unload();
 
     // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
     //     store([] {
@@ -416,7 +417,7 @@ void context::render(IDirect3DDevice9* thisPtr)
 #ifndef IMGUI_HAS_VIEWPORT
     // sets in win32 impl
     const auto displaySize = context_.IO.DisplaySize;
-    const auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
+    const auto minimized = displaySize.x <= 0 || displaySize.y <= 0;
     if (minimized)
         return;
 #endif
@@ -426,7 +427,9 @@ void context::render(IDirect3DDevice9* thisPtr)
         _KeysHeld.clear();
         _KeysPressed.clear();
 
+#ifndef __RESHARPER__
         std::ranges::for_each(callbacks_, Invoker);
+#endif
 
         const auto haveVisibleWindow = std::ranges::any_of(context_.WindowsFocusOrder, [](auto wnd) {
             return wnd->Active || wnd->Collapsed;
@@ -463,13 +466,12 @@ process_keys_result context::process_keys(const HWND window, const UINT message,
     if (!can_process_keys())
         return process_keys_result::native;
 
-    const auto& events        = context_.InputEventsQueue;
+    const auto& events = context_.InputEventsQueue;
     const auto oldEventsCount = events.size();
-    const bool instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam);
+    const auto instant = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
     const std::span eventsAdded(events.begin() + oldEventsCount, events.end());
 
     // update focus
-    // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
     switch (message)
     {
     case WM_SETFOCUS: {
@@ -526,15 +528,15 @@ bool context::update_hotkey(const hotkey_source source, const hotkey_mode mode, 
     if (!focused_)
         return false;
     const auto hk = hotkeys_.find(source, mode);
-    return hk && hk->update(allowOverride);
+    return hk != nullptr && hk->update(allowOverride);
 }
 
 bool context::remove_hotkey(const hotkey_source source, const hotkey_mode mode)
 {
     hotkey_data* hk = hotkeys_.find(source, mode);
-    if (hk)
+    if (hk != nullptr)
         hk->source = 0;
-    return hk;
+    return hk != nullptr;
 }
 
 const hotkey* context::find_hotkey(const hotkey_source source, const hotkey_mode mode) const

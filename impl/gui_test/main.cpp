@@ -69,16 +69,8 @@ int main(int, char**)
 
     gui::menu menu;
     gui::context guiCtx(backend.d3d, backend.hwnd, false);
-    guiCtx.create_hotkey({ menu.hotkeys.unload,
-                           gui::hotkey_mode::press,
-                           [] {
-                               invoke(std::get_terminate());
-                           },
-                           gui::hotkey_access::any,
-                           { ImGuiKey_End } });
-    guiCtx.create_hotkey({
-        menu.hotkeys.toggle, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, {ImGuiKey_S, ImGuiKey_A}
-    });
+    guiCtx.create_hotkey({ menu.hotkeys.unload, gui::hotkey_mode::press, unload, gui::hotkey_access::any, { ImGuiKey_End } });
+    guiCtx.create_hotkey({ menu.hotkeys.toggle, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, { ImGuiKey_S } });
     guiCtx.store([&] {
         menu.render(&guiCtx);
     });
@@ -113,7 +105,7 @@ int main(int, char**)
             ret.emplace(DefWindowProc(args...));
             break;
         default:
-            std::unreachable();
+            unreachable();
         }
     });
 
@@ -131,9 +123,9 @@ int main(int, char**)
 
     if (allHooks.enable())
     {
-        std::set_terminate([] {
+        set_unload([] {
             PostQuitMessage(EXIT_SUCCESS);
-            std::set_terminate(nullptr);
+            set_unload(nullptr);
         });
 
         backend.run();

@@ -17,6 +17,7 @@ namespace fd
 
       public:
         default_assert_handler();
+        
         void add(function_type fn);
         void operator()(const assert_data& adata) const noexcept override;
     };
