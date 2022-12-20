@@ -1,6 +1,6 @@
 ﻿---
 BasedOnStyle: Microsoft
-AlignConsecutiveAssignments: AcrossComments #Consecutive
+#AlignConsecutiveAssignments: AcrossComments #Consecutive
 AlignConsecutiveMacros: AcrossComments
 AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
 AlignConsecutiveDeclarations: AcrossComments

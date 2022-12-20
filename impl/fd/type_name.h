@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fd/chars_cache.h>
-#include <fd/functional.h>
 
 #include <algorithm>
 #include <ranges>
@@ -28,7 +27,7 @@ namespace fd
     template <size_t BuffSize>
     struct clamped_type_name
     {
-        char buff[BuffSize];
+        char   buff[BuffSize];
         size_t strSize;
         size_t nativeOffset;
 
@@ -165,7 +164,7 @@ namespace fd
     template <template <typename...> class T>
     constexpr auto type_name()
     {
-        constexpr auto rawName = _clamp_raw_type_name(_raw_type_name<T>());
+        constexpr auto                              rawName = _clamp_raw_type_name(_raw_type_name<T>());
         constexpr clamped_type_name<rawName.size()> clampedName(rawName);
         if constexpr (clampedName.native())
             return clampedName.view(rawName);
@@ -177,7 +176,7 @@ namespace fd
     template <template <typename, size_t> class T>
     constexpr auto type_name()
     {
-        constexpr auto rawName = _clamp_raw_type_name(_raw_type_name<T<int, 1>>());
+        constexpr auto                              rawName = _clamp_raw_type_name(_raw_type_name<T<int, 1>>());
         constexpr clamped_type_name<rawName.size()> clampedName(rawName);
         if constexpr (clampedName.native())
             return clampedName.view_before(rawName, '<');
@@ -185,6 +184,7 @@ namespace fd
             return clampedName.template clone<clampedName.find('<')>();
     }
 
+#ifdef _DEBUG
     static_assert(type_name<int>() == "int");
     static_assert(type_name<int32_t>() == type_name<int>());
     static_assert(type_name<std::char_traits>() == "std::char_traits");
@@ -193,13 +193,36 @@ namespace fd
     static_assert(type_name<std::array<int, 1>>() == "std::array<int,1>");
     static_assert(type_name<std::exception>() == "std::exception");
     static_assert(type_name<const std::exception>() == "const std::exception");
+#endif
 
     //------------------
 
     struct template_info
     {
         const char* name;
-        bool partial;
+        bool        partial;
+    };
+
+    static constexpr auto _find_first_char(const char* ptr, const char c)
+    {
+        return std::char_traits<char>::find(ptr, static_cast<size_t>(-1), c);
+    };
+
+    static constexpr auto _find_last_char(const char* ptr, const char c)
+    {
+        const char* out = nullptr;
+        for (; *ptr != '\0'; ++ptr)
+        {
+            if (*ptr == c)
+                out = ptr;
+        }
+        return out;
+    };
+
+    static constexpr size_t _get_offset_for(auto fn, const char* ptr, const char c)
+    {
+        const auto found = fn(ptr, c);
+        return std::distance(ptr, found);
     };
 
     static constexpr bool _same_template(const template_info infoL, const template_info infoR)
@@ -211,45 +234,17 @@ namespace fd
         if (infoL.partial == infoR.partial)
             return false;
 
-        using char_traits = std::char_traits<char>;
+        const auto [strPartial, strFull] = [&] {
+            // skip XXXXtype_name_raw
+            const auto offset = _get_offset_for(_find_first_char, infoL.name, '<') + 1;
+            const auto strL   = infoL.name + offset;
+            const auto strR   = infoR.name + offset;
+            return infoL.partial ? std::pair(strL, strR) : std::pair(strR, strL);
+        }();
 
-        constexpr auto findFirstChar = [](const char* ptr, const char c) {
-            return char_traits::find(ptr, static_cast<size_t>(-1), c);
-        };
-        constexpr auto findLastChar = [](const char* ptr, const char c) {
-            const char* out = nullptr;
-            for (; *ptr != '\0'; ++ptr)
-            {
-                if (*ptr == c)
-                    out = ptr;
-            }
-            return out;
-        };
-        constexpr auto getOffset = [](auto fn, const char* ptr, const char c) -> size_t {
-            const auto found = invoke(fn, ptr, c);
-            // ReSharper disable once CppUnreachableCode
-            return std::distance(ptr, found);
-        };
-        // skip XXXXtype_name_raw
-        const auto offset = invoke(getOffset, findFirstChar, infoL.name, '<') + 1;
-
-        const auto strL = infoL.name + offset;
-        const auto strR = infoR.name + offset;
-
-        const char *strPartial, *strFull;
-        if (infoL.partial)
-        {
-            strPartial = strL;
-            strFull    = strR;
-        }
-        else
-        {
-            strPartial = strR;
-            strFull    = strL;
-        }
         // find end of partial tempalte
-        const auto limit = invoke(getOffset, findLastChar, strPartial, '>');
-        if (char_traits::compare(strPartial, strFull, limit) != 0)
+        const auto limit = _get_offset_for(_find_last_char, strPartial, '>');
+        if (!_ptr_equal(strPartial, strFull, limit))
             return false;
         // check are full template same as given part
         return strFull[limit] == '<';
@@ -284,8 +279,10 @@ namespace fd
         return _same_template({ _raw_type_name<raw_t1>(), false }, { _raw_type_name<raw_t2>(), false });
     }
 
+#ifdef _DEBUG
     // static_assert(same_template<std::array<int, 2>, std::array>());
     // static_assert(!same_template<std::array<int, 2>, std::array<int, 3>>());
     static_assert(same_template<std::char_traits, std::char_traits<char>>());
     static_assert(!same_template<std::char_traits<int>, std::char_traits<char>>());
+#endif
 } // namespace fd

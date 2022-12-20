@@ -70,7 +70,9 @@ int main(int, char**)
     gui::context guiCtx(backend.d3d, backend.hwnd);
     gui::menu    menu(&guiCtx);
     guiCtx.create_hotkey({ menu.hotkeys.unload, gui::hotkey_mode::press, unload, gui::hotkey_access::any, { ImGuiKey_End } });
-    guiCtx.create_hotkey({ menu.hotkeys.toggle, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, { ImGuiKey_S } });
+    guiCtx.create_hotkey({
+        menu.hotkeys.toggle, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, {ImGuiKey_S, ImGuiKey_F}
+    });
     guiCtx.store([&] {
         menu.render();
     });

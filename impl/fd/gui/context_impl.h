@@ -23,7 +23,7 @@ namespace fd::gui
         ~imgui_backup();
         imgui_backup();
 
-        imgui_backup(const imgui_backup&)            = delete;
+        imgui_backup(const imgui_backup&) = delete;
         imgui_backup& operator=(const imgui_backup&) = delete;
     };
 
@@ -35,9 +35,7 @@ namespace fd::gui
 
       public:
         keys_pack() = default;
-
-        using basic_keys_pack::basic_keys_pack;
-        using basic_keys_pack::operator=;
+        keys_pack(std::initializer_list<value_type> list);
 
         string_view name() const;
         void        update_name();
@@ -75,7 +73,7 @@ namespace fd::gui
         std::vector<hotkey> storage_;
 
       public:
-        using pointer       = hotkey*;
+        using pointer = hotkey*;
         using const_pointer = const hotkey*;
 
         pointer       find(hotkey_source source, hotkey_mode mode);
@@ -84,7 +82,7 @@ namespace fd::gui
         bool          contains(const hotkey_data& other) const;
         pointer       find_unused();
         void          fire(hotkey_access access);
-        pointer       create(hotkey&& hkTmp);
+        pointer       create(hotkey&& hk);
         bool          erase(hotkey_source source, hotkey_mode mode);
     };
 

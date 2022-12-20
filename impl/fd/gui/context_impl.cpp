@@ -3,6 +3,8 @@
 #include <fd/gui/context_impl.h>
 #include <fd/library_info.h>
 
+#include <fd/mem_scanner.h>
+
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
@@ -33,10 +35,68 @@ imgui_backup::imgui_backup()
 
 //--------
 
+keys_pack::keys_pack(const std::initializer_list<value_type> list)
+    : basic_keys_pack(list)
+{
+}
+
 string_view keys_pack::name() const
 {
     return name_;
 }
+
+static ImGuiKey& operator++(ImGuiKey& key)
+{
+    ++reinterpret_cast<std::underlying_type_t<ImGuiKey>&>(key);
+    return key;
+}
+
+static ImGuiKey operator++(ImGuiKey& key, int)
+{
+    const auto oldKey = key;
+    ++key;
+    return oldKey;
+}
+
+static ImGuiKey operator+(const ImGuiKey l, const ImGuiKey r)
+{
+    return static_cast<ImGuiKey>(static_cast<std::underlying_type_t<ImGuiKey>>(l) + r);
+}
+
+static class : std::array<string_view, ImGuiKey_NamedKey_COUNT>
+{
+    string_view keys_[ImGuiKey_NamedKey_COUNT];
+
+  public:
+    string_view operator()(const ImGuiKey key) const
+    {
+        return keys_[key - ImGuiKey_NamedKey_BEGIN];
+    }
+
+    void fill()
+    {
+        const auto firstKey = ImGui::GetKeyName(ImGuiKey_NamedKey_BEGIN);
+        const auto rng = dos_nt(current_library_info()).read();
+        const auto namesBuff = *invoke(xrefs_scanner(rng.data(), rng.size()), reinterpret_cast<uintptr_t>(firstKey));
+
+        keys_[0] = firstKey;
+
+        auto keyOffset = static_cast<ImGuiKey>(1);
+
+        if (namesBuff)
+        {
+            for (size_t i = keyOffset; i < ImGuiKey_NamedKey_COUNT; ++i)
+                keys_[i] = static_cast<const char**>(namesBuff)[i];
+        }
+        else
+        {
+            std::ranges::for_each(std::begin(keys_) + keyOffset, std::end(keys_), [&](string_view& str) {
+                str = ImGui::GetKeyName(ImGuiKey_NamedKey_BEGIN + keyOffset++);
+            });
+        }
+    }
+
+} _KeyNames;
 
 void keys_pack::update_name()
 {
@@ -48,12 +108,24 @@ void keys_pack::update_name()
 
     name_.clear();
 
-    auto names = *this | std::views::transform(ImGui::GetKeyName);
-    write_string(name_, '(');
+    auto names = *this | std::views::transform(/*ImGui::GetKeyName*/ _KeyNames);
+    auto sizes = names | std::views::transform(&string_view::size);
+
+    constexpr auto decorationsBefore = 1; //'('
+    constexpr auto decorationsInside = 1; //'+'
+    constexpr auto decorationsAfter = 1;  //')'
+
+    const auto decorationsCount = decorationsBefore + (size() - 1) * decorationsInside + decorationsAfter;
+    const auto charsCount = std::accumulate(sizes.begin(), sizes.end(), static_cast<size_t>(0));
+    name_.reserve(decorationsCount + charsCount);
+
+    name_ += '(';
     std::ranges::for_each(names.begin(), names.end() - 1, [&](auto val) {
-        write_string(name_, val, '+');
+        name_.append_range(val);
+        name_ += '+';
     });
-    write_string(name_, names.back(), ')');
+    name_.append_range(names.back());
+    name_ += ')';
 }
 
 //--------
@@ -76,14 +148,9 @@ class keys_pack_ex : public basic_keys_pack
     {
         if (!filled_)
         {
-            using key_t = std::underlying_type_t<ImGuiKey>;
-
-            constexpr auto keyFirst = ImGuiKey_NamedKey_BEGIN;
-            constexpr auto keyLast  = ImGuiKey_NamedKey_END;
-
-            for (auto key = keyFirst; key < keyLast; ++reinterpret_cast<key_t&>(key))
+            for (auto key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key)
             {
-                if (fn_(key))
+                if (invoke(fn_, key))
                     basic_keys_pack::push_back(key);
             }
             filled_ = true;
@@ -124,7 +191,7 @@ struct held_filler
 static keys_pack_ex<pressed_filler> _KeysPressed;
 static keys_pack_ex<held_filler>    _KeysHeld;
 #ifdef _DEBUG
-static bool  _Dummy         = false;
+static bool  _Dummy = false;
 static bool& _HotkeysActive = _Dummy;
 #endif
 
@@ -167,7 +234,7 @@ bool hotkey::update(const bool allowOverride)
     if (!allowOverride && !keys.empty() && !std::ranges::includes(currKeys, keys))
         return false;
 
-    keys = currKeys;
+    keys.assign_range(currKeys);
     keys.update_name();
     return true;
 }
@@ -304,35 +371,38 @@ void hotkeys_storage::fire(const hotkey_access access)
     else
         std::ranges::for_each(
             storage_ | std::views::filter([=](const hotkey_data& hk) {
-                return hk.access & access;
+                return (hk.access & access) != 0;
             }),
             selectMode
         );
 }
 
-auto hotkeys_storage::create(hotkey&& hkTmp) -> pointer
+auto hotkeys_storage::create(hotkey&& hk) -> pointer
 {
-    auto& hkData = static_cast<hotkey_data&>(hkTmp);
-    FD_ASSERT(!contains(hkTmp));
-    FD_ASSERT(!!hkData.callback);
+    auto& hotkeyData = static_cast<hotkey_data&>(hk);
+    FD_ASSERT(!contains(hk));
+    FD_ASSERT(!!hotkeyData.callback);
 
-    auto hkNew = find_unused();
-    if (hkNew == nullptr)
-        hkNew = &storage_.emplace_back();
+    std::ranges::sort(hotkeyData.keys);
+    hotkeyData.keys.update_name();
 
-    std::ranges::sort(hkData.keys);
-    *hkNew = std::move(hkTmp);
-    return hkNew;
+    const auto unusedHotkey = find_unused();
+    if (unusedHotkey != nullptr)
+    {
+        *unusedHotkey = std::move(hk);
+        return unusedHotkey;
+    }
+    return &storage_.emplace_back(std::move(hk));
 }
 
-bool hotkeys_storage::erase(hotkey_source source, hotkey_mode mode)
+bool hotkeys_storage::erase(const hotkey_source source, const hotkey_mode mode)
 {
 #ifdef _DEBUG
     if (storage_.empty())
         return false;
 #endif
 
-    const auto itr   = std::ranges::find_if(storage_, hotkey_comparer(source, mode));
+    const auto itr = std::ranges::find_if(storage_, hotkey_comparer(source, mode));
     const auto found = itr != storage_.end();
     if (found)
         itr->mark_unused();
@@ -341,7 +411,7 @@ bool hotkeys_storage::erase(hotkey_source source, hotkey_mode mode)
 
 //-------
 
-basic_hotkey* context::find_basic_hotkey(hotkey_source source, hotkey_mode mode)
+basic_hotkey* context::find_basic_hotkey(const hotkey_source source, const hotkey_mode mode)
 {
     return hotkeys_.find(source, mode);
 }
@@ -386,8 +456,8 @@ context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSetting
     );
 #endif
     ImGui::SetCurrentContext(&context_);
-
     ImGui::Initialize();
+    _KeyNames.fill();
 
 #ifndef _DEBUG
     // todo: disable fallback window
@@ -403,14 +473,9 @@ context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSetting
 
     //---
 
+    // move to main
     if (!ImGui_ImplDX9_Init(d3d) || !ImGui_ImplWin32_Init(hwnd))
         unload();
-
-    // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-    //     store([] {
-    //         ImGui::ShowDemoWindow();
-    //     });
-    // #endif
 }
 
 void context::release_textures()
@@ -419,8 +484,10 @@ void context::release_textures()
 }
 
 #ifdef _DEBUG
+// ReSharper disable once CppInconsistentNaming
 #define D3D_VALIDATE(_X_) FD_ASSERT(_X_ == D3D_OK)
 #else
+// ReSharper disable once CppInconsistentNaming
 #define D3D_VALIDATE(_X_) _X_
 #endif
 
@@ -437,7 +504,7 @@ void context::render(IDirect3DDevice9* thisPtr)
 #ifndef IMGUI_HAS_VIEWPORT
     // sets in win32 impl
     const auto displaySize = context_.IO.DisplaySize;
-    const auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
+    const auto minimized = displaySize.x <= 0 || displaySize.y <= 0;
     if (minimized)
         return;
 #endif
@@ -465,7 +532,6 @@ void context::render(IDirect3DDevice9* thisPtr)
             hotkeys_.fire(haveVisibleWindow ? hotkey_access::foreground : hotkey_access::background);
         }
     }
-
     ImGui::Render();
 
     D3D_VALIDATE(thisPtr->BeginScene());
@@ -497,9 +563,9 @@ process_keys_result context::process_keys(const HWND window, const UINT message,
         return process_keys_result::native;
 #endif
 
-    const auto&     events         = context_.InputEventsQueue;
+    const auto&     events = context_.InputEventsQueue;
     const auto      oldEventsCount = events.size();
-    const auto      instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
+    const auto      instant = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
     const std::span eventsAdded(events.begin() + oldEventsCount, events.end());
 
     // update focus
@@ -515,19 +581,13 @@ process_keys_result context::process_keys(const HWND window, const UINT message,
     }
     }
 
-    process_keys_result ret;
     if (context_.IO.AppFocusLost)
-    {
-        FD_ASSERT(!instant);
-        ret = process_keys_result::native;
-    }
-    else if (instant)
-        ret = process_keys_result::instant;
-    else if (!focused_ || eventsAdded.empty())
-        ret = process_keys_result::native;
-    else
-        ret = process_keys_result::def;
-    return ret;
+        return process_keys_result::native;
+    if (instant)
+        return process_keys_result::instant;
+    if (!focused_ || eventsAdded.empty())
+        return process_keys_result::native;
+    return process_keys_result::def;
 }
 
 void context::store(callback_type&& callback)
@@ -545,12 +605,12 @@ hotkey* context::find_hotkey(const hotkey_source source, const hotkey_mode mode)
     return hotkeys_.find(source, mode);
 }
 
-bool context::erase_hotkey(hotkey_source source, hotkey_mode mode)
+bool context::erase_hotkey(const hotkey_source source, const hotkey_mode mode)
 {
     return hotkeys_.erase(source, mode);
 }
 
-bool context::update_hotkey(hotkey_source source, hotkey_mode mode, bool allowOverride)
+bool context::update_hotkey(const hotkey_source source, const hotkey_mode mode, const bool allowOverride)
 {
     if (!hotkeysActive_)
         return false;

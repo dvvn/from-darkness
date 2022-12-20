@@ -43,30 +43,23 @@ namespace fd
     template <typename C>
     static constexpr bool _ptr_equal(const C* myPtr, const C* unkPtr, const size_t count, decltype(_CheckNullChr))
     {
-        return _ptr_equal(myPtr, unkPtr, count) && unkPtr[count] == static_cast<C>('\0');
+        if (std::is_constant_evaluated())
+            return _ptr_equal(myPtr, unkPtr, count) && unkPtr[count] == static_cast<C>('\0');
+
+        // unsafe (TESTING)
+        return unkPtr[count] == static_cast<C>('\0') && _ptr_equal(myPtr, unkPtr, count);
     }
 
     template <class R, class L>
     static constexpr bool _str_equal(const R& left, const L& right)
     {
-        return left.size() == right.size() && _ptr_equal(left.data(), right.data(), left.size());
+        return left.size() == right.size() && (/*left.data() == right.data() ||*/ _ptr_equal(left.data(), right.data(), left.size()));
     }
 
     template <typename C>
     constexpr bool operator==(const basic_string_view<C> left, const basic_string_view<C> right)
     {
-        // return _str_equal(left, right);
-        const auto size = left.size();
-        if (size != right.size())
-            return false;
-
-        const auto ld = left.data();
-        const auto rd = right.data();
-
-        if (ld == rd)
-            return true;
-
-        return _ptr_equal(ld, rd, size);
+        return _str_equal(left, right);
     }
 
     template <typename C>
@@ -90,15 +83,13 @@ namespace fd
     template <typename C>
     constexpr bool operator==(const C* left, const basic_string_view<C> right)
     {
-        return right == left;
+        return _ptr_equal(left, right.data(), right.size(), _CheckNullChr);
     }
-
-    //---
 
     template <typename C>
     constexpr bool operator==(const basic_string<C>& left, const basic_string<C>& right)
     {
-        return left.size() == right.size() && _ptr_equal(left.data(), right.data(), left.size());
+        return _str_equal(left, right);
     }
 
     template <typename C>
@@ -110,7 +101,7 @@ namespace fd
     template <typename C>
     constexpr bool operator==(const C* left, const basic_string<C>& right)
     {
-        return right == left;
+        return _ptr_equal(left, right.data(), right.size(), _CheckNullChr);
     }
 
     template <typename T>
@@ -153,108 +144,116 @@ namespace fd
     };
 
     template <typename T>
-    concept can_reserve = requires(T obj) { obj.reserve(1234); };
+    concept can_reserve = requires(T obj) { obj.reserve(2u); };
 
     template <typename T, typename... Args>
     concept can_append = requires(T val, Args... args) { val.append(std::forward<Args>(args)...); };
 
-    class write_string_impl
+    template <typename T, size_t S>
+    static constexpr size_t _str_len(const T (&obj)[S])
     {
-        template <typename T>
-        static constexpr auto extract_size(const T& obj)
+        return *(obj + S) == 0 ? S - 1 : S;
+    }
+
+    template <typename T>
+    static constexpr auto _extract_size(const T& obj)
+    {
+        if constexpr (std::is_class_v<T>)
+            return std::pair(obj.begin(), obj.size());
+        else if constexpr (std::is_pointer_v<T>)
+            return std::pair(obj, str_len(obj));
+        else if constexpr (std::is_bounded_array_v<T>)
+            return std::pair(&obj[0], _str_len(obj));
+        else
+            return std::pair(obj, static_cast<size_t>(1));
+    }
+
+    template <class Itr, typename T, typename S>
+    static constexpr void _append_to(Itr& buff, const std::pair<T, S>& obj)
+    {
+        auto [src, size] = obj;
+        if (size == 0)
+            return;
+
+        using itr_t            = std::remove_cvref_t<Itr>;
+        constexpr auto canCopy = std::is_pointer_v<T> || std::is_class_v<T> /* std::input_iterator<itr_t> */;
+        if constexpr (std::input_or_output_iterator<itr_t>)
         {
-            if constexpr (std::is_class_v<T>)
-                return std::pair(obj.begin(), obj.size());
-            else if constexpr (std::is_pointer_v<T>)
-                return std::pair(obj, str_len(obj));
-            else if constexpr (std::is_bounded_array_v<T>)
-                return std::pair(&obj[0], std::size(obj) - 1);
+            if constexpr (canCopy)
+                std::copy_n(src, size, buff);
             else
-                return std::pair(obj, static_cast<uint8_t>(1));
+                std::fill_n(buff, size, src);
+        }
+        else
+        {
+            if constexpr (!canCopy)
+                std::fill_n(std::back_insert_iterator(buff), size, src);
+            else if constexpr (can_append<Itr&, T, T>)
+                buff.append(src, src + size);
+            else
+                buff.insert(buff.end(), src, src + size);
+        }
+    }
+
+    template <bool Reserve, typename... Args>
+    constexpr void write_string(can_reserve auto& buff, const Args&... args)
+    {
+        if constexpr (Reserve)
+        {
+            if (buff.empty())
+            {
+                return [&](auto... p) {
+                    const auto length = (p.second + ...);
+                    buff.reserve(length);
+                    (_append_to(buff, p), ...);
+                }(_extract_size(args)...);
+            }
         }
 
-        template <class Itr, typename T, typename S>
-        static constexpr void append_to(Itr& buff, const std::pair<T, S>& obj)
-        {
-            auto [src, size] = obj;
-            if (size == 0)
-                return;
+        [&](auto... p) {
+            (_append_to(buff, p), ...);
+        }(_extract_size(args)...);
+    }
 
-            using itr_t            = std::remove_cvref_t<Itr>;
-            constexpr auto canCopy = std::is_pointer_v<T> || std::is_class_v<T> /* std::input_iterator<itr_t> */;
-            if constexpr (std::input_or_output_iterator<itr_t>)
-            {
-                if constexpr (canCopy)
-                    std::copy_n(src, size, buff);
-                else
-                    std::fill_n(buff, size, src);
-            }
-            else
-            {
-                if constexpr (!canCopy)
-                    std::fill_n(std::back_insert_iterator(buff), size, src);
-                else if constexpr (can_append<Itr&, T, T>)
-                    buff.append(src, src + size);
-                else
-                    buff.insert(buff.end(), src, src + size);
-            }
+    template <typename T, typename... Args>
+    constexpr void write_string(T&& buff, const Args&... args)
+    {
+        if constexpr (can_reserve<T&&>)
+        {
+            static_assert(!std::is_rvalue_reference_v<T&&>);
+            return write_string<true>(buff, args...);
         }
-
-      public:
-        template <typename T, typename... Args>
-        constexpr void operator()(T&& buff, const Args&... args) const
+        else
         {
-            if constexpr (can_reserve<T&&>)
-            {
-                // ReSharper disable once CppInconsistentNaming
-                const auto append_to_ex = [&](const auto&... p) {
-                    const auto length = (static_cast<size_t>(p.second) + ...);
-                    buff.reserve(buff.size() + length);
-                    (append_to(buff, p), ...);
-                };
-
-                append_to_ex(extract_size(args)...);
-            }
-            else
-            {
-                // ReSharper disable once CppInconsistentNaming
-                const auto append_to_ex = [&](const auto& p) {
-                    append_to(buff, p);
+            static_assert(std::forward_iterator<T>);
+            (
+                [&](auto p) {
+                    _append_to(buff, p);
                     buff += p.second;
-                };
-
-                (append_to_ex(extract_size(args)), ...);
-            }
+                }(_extract_size(args)),
+                ...
+            );
         }
-    };
+    }
 
-    struct make_string_impl
+    template <typename T, typename... Args>
+    constexpr auto make_string(const T& arg1, const Args&... args)
     {
-        template <typename T, typename... Args>
-        constexpr auto operator()(const T& arg1, const Args&... args) const
-        {
-            using char_type = typename extract_value<T>::type;
-            basic_string<char_type> buff;
-            constexpr write_string_impl write;
-            write(buff, arg1, args...);
-            return buff;
-        }
-    };
-
-    // ReSharper disable once CppInconsistentNaming
-    constexpr write_string_impl write_string;
-    // ReSharper disable once CppInconsistentNaming
-    constexpr make_string_impl make_string;
+        using char_type = typename extract_value<T>::type;
+        basic_string<char_type> buff;
+        write_string(buff, arg1, args...);
+        return buff;
+    }
 
     // https://github.com/tcsullivan/constexpr-to-string
+    static constexpr auto _Digits = std::to_array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
     template <typename C, typename T>
     static constexpr basic_string<C> _to_string(const T num, const uint8_t base)
     {
-        constexpr auto digits = std::to_array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 #ifdef _DEBUG
-        if (base <= 1 || base >= digits.size())
-        abort();
+        if (base <= 1 || base >= _Digits.size())
+            abort();
 #endif
         if (num == 0)
             return {};
@@ -269,7 +268,7 @@ namespace fd
 
         auto ptr = buff.data() + len;
         for (auto n = num; n; n /= base)
-            *--ptr = digits[(num < 0 ? -1 : 1) * (n % base)];
+            *--ptr = _Digits[(num < 0 ? -1 : 1) * (n % base)];
         if (num < 0)
             *--ptr = '-';
 
@@ -359,12 +358,13 @@ namespace fd
     {
         return _to_string<wchar_t>(num, trim, prec);
     }
-
+#ifdef _DEBUG
     static_assert(to_string(1234u) == "1234");
     static_assert(to_string(-1234) == "-1234");
     static_assert(to_string(1.234, false, 5) == "1.23400");
     static_assert(to_string(1.234, true) == "1.234");
     static_assert(to_string(-1.23456) == "-1.23456");
+#endif
 
     inline namespace literals
     {
