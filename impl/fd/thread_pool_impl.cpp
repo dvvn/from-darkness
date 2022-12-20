@@ -169,25 +169,21 @@ bool thread_pool::worker_impl()
 bool thread_pool::store_func(function_type&& func, const bool resumeThreads) noexcept
 {
     optional_mtx_lock guard(threadsMtx_);
-    auto resetGuard = true;
+    auto              resetGuard = true;
     if (!resumeThreads)
     {
         if (threads_.empty())
             return false;
     }
-    else
+    else if (funcs_.was_size() >= threads_.size() && !std::ranges::any_of(threads_, bind_front(&thread_data::resume)))
     {
-        const auto resumedThread = std::ranges::any_of(threads_, bind_front(&thread_data::resume));
-        if (!resumedThread && funcs_.was_size() >= threads_.size())
-        {
-            // spawn new thread
-            thread_data data(reinterpret_cast<void*>(worker), this, false);
-            if (!data)
-                return false;
-            threads_.emplace_back(std::move(data));
-            // wait until thread find itself from the loop
-            resetGuard = false;
-        }
+        // spawn new thread
+        thread_data data(reinterpret_cast<void*>(worker), this, false);
+        if (!data)
+            return false;
+        threads_.emplace_back(std::move(data));
+        // wait until thread find itself from the loop
+        resetGuard = false;
     }
 
     if (resetGuard)
@@ -218,21 +214,21 @@ void thread_pool::wait()
 {
     //"simple" version of task
     std::binary_semaphore sem(1);
-    const auto stored = this->store_func([&] {
+    const auto            stored = this->store_func([&] {
         sem.release();
     });
     if (stored)
         sem.acquire();
 }
 
-bool thread_pool::add_simple(function_type func)
+bool thread_pool::add_simple(function_type&& func)
 {
     return this->store_func(std::move(func));
 }
 
-auto thread_pool::add(function_type func) -> task_type
+auto thread_pool::add(function_type&& func) -> task_type
 {
-    task_type t(new lockable_task(std::move(func)));
+    task_type  t(new lockable_task(std::move(func)));
     const auto stored = this->store_func([=] {
         t->start();
     });
@@ -241,7 +237,7 @@ auto thread_pool::add(function_type func) -> task_type
     return t;
 }
 
-auto thread_pool::add_lazy(function_type func) -> task_type
+auto thread_pool::add_lazy(function_type&& func) -> task_type
 {
     auto newFunc = [this, fn = std::move(func)](auto& sem) mutable {
         const auto stored = this->store_func([&] {

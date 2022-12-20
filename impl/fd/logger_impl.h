@@ -13,7 +13,9 @@ namespace fd
 
       public:
         explicit operator bool() const;
-        void add(function_type fn);
+
+        void add(function_type&& fn);
+
         void operator()(string_view msg) const override;
         void operator()(wstring_view msg) const override;
     };

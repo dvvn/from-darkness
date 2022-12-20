@@ -67,12 +67,12 @@ int main(int, char**)
     });
 #endif
 
-    gui::menu menu;
-    gui::context guiCtx(backend.d3d, backend.hwnd, false);
+    gui::context guiCtx(backend.d3d, backend.hwnd);
+    gui::menu    menu(&guiCtx);
     guiCtx.create_hotkey({ menu.hotkeys.unload, gui::hotkey_mode::press, unload, gui::hotkey_access::any, { ImGuiKey_End } });
     guiCtx.create_hotkey({ menu.hotkeys.toggle, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, { ImGuiKey_S } });
     guiCtx.store([&] {
-        menu.render(&guiCtx);
+        menu.render();
     });
 
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
@@ -82,7 +82,7 @@ int main(int, char**)
 #endif
 
     gui::tab_bar testTabBar("test");
-    gui::tab testTab("test2");
+    gui::tab     testTab("test2");
     testTab.store(bind_front(ImGui::Text, "Hello"));
 
     testTabBar.store(testTab);

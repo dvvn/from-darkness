@@ -10,7 +10,7 @@ namespace fd
         return data_.empty();
     }
 
-    void default_logs_handler::add(function_type fn)
+    void default_logs_handler::add(function_type&& fn)
     {
         data_.emplace_back(std::move(fn));
     }

@@ -18,7 +18,7 @@
 static HMODULE _ModuleHandle;
 
 static HANDLE _ThreadHandle;
-static DWORD _ThreadId = 0;
+static DWORD  _ThreadId = 0;
 
 using namespace fd;
 
@@ -93,13 +93,13 @@ static DWORD WINAPI _loader(void*) noexcept
 #endif
 
     const library_info clientLib(L"client.dll", true);
-    const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
+    const auto         addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
 
     invoke(addToSafeList, _ModuleHandle, nullptr);
 
     const auto d3dIfc = [] {
         const library_info lib(L"shaderapidx9.dll", true);
-        const auto addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        const auto         addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
     }();
 
@@ -110,10 +110,10 @@ static DWORD WINAPI _loader(void*) noexcept
         return d3dParams.hFocusWindow;
     }();
 
-    gui::menu menu;
-    gui::context guiCtx(d3dIfc, hwnd, false);
+    gui::context guiCtx(d3dIfc, hwnd);
+    gui::menu    menu(&guiCtx);
     guiCtx.store([&] {
-        menu.render(&guiCtx);
+        menu.render();
     });
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
     guiCtx.store([&] {

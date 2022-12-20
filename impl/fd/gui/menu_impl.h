@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fd/functional.h>
+#include <fd/gui/context.h>
 #include <fd/gui/menu.h>
 #include <fd/string.h>
 
@@ -12,7 +13,7 @@ namespace fd::gui
     {
         using callback_type = function<void() const>;
 
-        string_view name_;
+        string_view                name_;
         std::vector<callback_type> callbacks_;
 
       public:
@@ -26,7 +27,7 @@ namespace fd::gui
 
     class tab_bar
     {
-        string_view name_;
+        string_view       name_;
         std::vector<tab*> tabs_;
 
       public:
@@ -40,9 +41,11 @@ namespace fd::gui
     class menu final : public basic_menu
     {
         bool visible_;
-        bool next_visible_;
+        bool visibleNext_;
 
-        std::vector<tab_bar*> tab_bars_;
+        std::vector<tab_bar*> tabBars_;
+
+        basic_context* ctx_;
 
       public:
         static constexpr struct
@@ -51,7 +54,7 @@ namespace fd::gui
             hotkey_source toggle = __LINE__;
         } hotkeys;
 
-        menu();
+        menu(basic_context* ctx);
 
         bool visible() const override;
 
@@ -59,7 +62,7 @@ namespace fd::gui
         void hide() override;
         void toggle() override;
 
-        bool render(basic_context* ctx) override;
+        bool render() override;
 
         void store(tab_bar& newTabBar);
     };

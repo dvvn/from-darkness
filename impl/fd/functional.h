@@ -1,8 +1,8 @@
 #pragma once
 
 #include <fd/call_cvs.h>
-#include <fd/utility.h>
 #include <fd/exception.h>
+#include <fd/utility.h>
 
 #include <function2/function2.hpp>
 
@@ -54,7 +54,8 @@ namespace fd
                 [&](auto&... bound_args) -> decltype(auto) {
                     return invoke(fn, bound_args..., std::forward<Args>(call_args)...);
                 },
-                args);
+                args
+            );
         }
     };
 
@@ -74,7 +75,8 @@ namespace fd
                 [&](auto&... bound_args) -> decltype(auto) {
                     return invoke(fn, std::forward<Args>(call_args)..., bound_args...);
                 },
-                args);
+                args
+            );
         }
     };
 
@@ -92,7 +94,7 @@ namespace fd
     {                                                                                                     \
         Ret _CCVS_ callback(Args... args) const                                                           \
         {                                                                                                 \
-            unreachable();                                                                           \
+            unreachable();                                                                                \
         }                                                                                                 \
     };                                                                                                    \
     template <typename Ret, class T, typename... Args>                                                    \
@@ -138,8 +140,8 @@ namespace fd
         union
         {
             decltype(&trivial_inst::callback) tiny;
-            Fn hint;
-            ActFn raw;
+            Fn                                hint;
+            ActFn                             raw;
         } adaptor;
 
         adaptor.hint = fn;
@@ -153,7 +155,7 @@ namespace fd
     {
         union
         {
-            Fn fake;
+            Fn    fake;
             ActFn raw;
         } adaptor;
 
@@ -166,7 +168,7 @@ namespace fd
     {
         union
         {
-            Fn hint;
+            Fn      hint;
             void*** vtablePtr;
         } adaptor;
 
@@ -183,9 +185,14 @@ namespace fd
     template <typename... Args>
     using invoke_result = decltype(invoke(std::declval<Args>()...));
 
-    constexpr auto Invoker = []<typename... Args>(Args&&... args) -> decltype(auto) {
-        return invoke(std::forward<Args>(args)...);
-    };
+    constexpr struct
+    {
+        template <typename... Args>
+        constexpr decltype(auto) operator()(Args&&... args) const
+        {
+            return invoke(std::forward<Args>(args)...);
+        }
+    } Invoker;
 
     //--------------
 
@@ -206,9 +213,8 @@ namespace fd
         friend struct lazy_invoke<Fn>;
 
       public:
-        template <typename Fn1>
-        constexpr lazy_invoke_base(Fn1&& fn)
-            : fn_(std::forward<Fn1>(fn))
+        constexpr lazy_invoke_base(Fn fn)
+            : fn_(std::move(fn))
         {
         }
 

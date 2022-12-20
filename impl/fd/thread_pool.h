@@ -22,8 +22,8 @@ namespace fd
 
         virtual void wait() = 0;
 
-        virtual bool add_simple(function_type func)    = 0;
-        virtual task_type add(function_type func)      = 0;
-        virtual task_type add_lazy(function_type func) = 0;
+        virtual bool      add_simple(function_type&& func) = 0;
+        virtual task_type add(function_type&& func)        = 0;
+        virtual task_type add_lazy(function_type&& func)   = 0;
     };
 } // namespace fd

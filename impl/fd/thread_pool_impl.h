@@ -26,7 +26,7 @@ namespace fd
     template <typename Fn>
     class lockable_task final : public task
     {
-        Fn fn_;
+        Fn                    fn_;
         std::binary_semaphore sem_;
 
       public:
@@ -87,7 +87,7 @@ namespace fd
         thread_data& operator=(const thread_data& other) = delete;
 
         thread_data& operator=(thread_data&& other) noexcept;
-        bool operator==(DWORD id) const;
+        bool         operator==(DWORD id) const;
     };
 
     class thread_pool final : public basic_thread_pool
@@ -95,7 +95,7 @@ namespace fd
         // using basic_thread_pool::function_type;
 
         std::vector<thread_data> threads_;
-        std::mutex threadsMtx_;
+        std::mutex               threadsMtx_;
 
         atomic_queue::AtomicQueue2<function_type, 128 * 128 / sizeof(function_type)> funcs_;
 
@@ -112,8 +112,9 @@ namespace fd
         ~thread_pool() override;
 
         void wait() override;
-        bool add_simple(function_type func) override;
-        task_type add(function_type func) override;
-        task_type add_lazy(function_type func) override;
+
+        bool      add_simple(function_type&& func) override;
+        task_type add(function_type&& func) override;
+        task_type add_lazy(function_type&& func) override;
     };
 } // namespace fd

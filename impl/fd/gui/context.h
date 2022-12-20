@@ -17,7 +17,7 @@ namespace fd::gui
         held,
     };
 
-    using hotkey_source = uint8_t;
+    using hotkey_source = size_t;
 
     enum hotkey_access
     {
@@ -30,19 +30,19 @@ namespace fd::gui
     {
         virtual ~basic_hotkey() = default;
 
-        virtual hotkey_source source() const = 0;
-        virtual hotkey_mode mode() const     = 0;
-        virtual hotkey_access access() const = 0;
-        virtual string_view name() const     = 0;
-        virtual void callback() const        = 0;
+        virtual hotkey_source source() const   = 0;
+        virtual hotkey_mode   mode() const     = 0;
+        virtual hotkey_access access() const   = 0;
+        virtual string_view   name() const     = 0;
+        virtual void          callback() const = 0;
     };
 
     struct basic_context
     {
         virtual ~basic_context() = default;
 
-        virtual void release_textures()                      = 0;
-        virtual void render(void* data)                      = 0;
+        virtual void                release_textures()       = 0;
+        virtual void                render(void* data)       = 0;
         virtual process_keys_result process_keys(void* data) = 0;
 
         virtual basic_hotkey* find_basic_hotkey(hotkey_source source, hotkey_mode mode) = 0;

@@ -13,12 +13,12 @@ namespace fd
         using function_type = function<void(const assert_data&) const>;
 
         std::vector<function_type> data_;
-        mutable std::mutex mtx_;
+        mutable std::mutex         mtx_;
 
       public:
         default_assert_handler();
-        
-        void add(function_type fn);
+
+        void add(function_type&& fn);
         void operator()(const assert_data& adata) const noexcept override;
     };
 

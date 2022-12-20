@@ -60,10 +60,10 @@ namespace fd
             if (!hookInstance)
                 return;
             const auto vtable = *static_cast<void***>(hookInstance.get());
-            fnPtr_ = vtable[index];
+            fnPtr_            = vtable[index];
         }
 
-        function_getter(const function_getter& other) = default;
+        function_getter(const function_getter& other)            = default;
         function_getter& operator=(const function_getter& other) = default;
     };
 
@@ -71,7 +71,7 @@ namespace fd
     {
         virtual ~hook_global_callback() = default;
 
-        virtual void construct(basic_hook* caller) = 0;
+        virtual void construct(basic_hook* caller)                    = 0;
         virtual void destroy(const basic_hook* caller, bool unhooked) = 0;
     };
 
@@ -79,8 +79,8 @@ namespace fd
 
     class hook_impl : public basic_hook
     {
-        bool inUse_;
-        void* entry_;
+        bool        inUse_;
+        void*       entry_;
         string_view name_;
 
       public:
@@ -94,13 +94,13 @@ namespace fd
         bool disable() override;
 
         string_view name() const override;
-        void set_name(string_view name);
+        void        set_name(string_view name);
 
         bool initialized() const override;
         bool active() const override;
 
         void* get_original_method() const;
-        void init(function_getter target, function_getter replace);
+        void  init(function_getter target, function_getter replace);
 
         explicit operator bool() const;
     };
@@ -117,7 +117,7 @@ namespace fd
         bool value_ = false;
 
       public:
-        operator bool() const;
+             operator bool() const;
         void emplace();
     };
 
@@ -127,7 +127,7 @@ namespace fd
         // ReSharper disable CppUnreachableCode
 
         hook_callback_ret_wrapper<Ret> ret;
-        auto interrupt = false;
+        auto                           interrupt = false;
         do
         {
             invoke(*firstFn, original, ret, interrupt, std::forward<Args>(args)...);
@@ -149,9 +149,9 @@ namespace fd
     template <class Ret, typename... Args>
     struct basic_hook_callback : hook_impl
     {
-        using original_wrapped = function<Ret(Args...) const>;
-        using ret_wrapped = hook_callback_ret_wrapper<Ret>;
-        using function_type = function<void(const original_wrapped&, ret_wrapped&, bool&, Args...) const>;
+        using original_wrapped  = function<Ret(Args...) const>;
+        using ret_wrapped       = hook_callback_ret_wrapper<Ret>;
+        using function_type     = function<void(const original_wrapped&, ret_wrapped&, bool&, Args...) const>;
         using callbacks_storage = std::vector<function_type>;
 
       protected:
@@ -160,10 +160,10 @@ namespace fd
       public:
         basic_hook_callback() = default;
 
-        basic_hook_callback(const basic_hook_callback&) = delete;
+        basic_hook_callback(const basic_hook_callback&)            = delete;
         basic_hook_callback& operator=(const basic_hook_callback&) = delete;
 
-        void add(function_type fn)
+        void add(function_type&& fn)
         {
             callbacks.emplace_back(std::move(fn));
         }
