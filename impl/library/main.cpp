@@ -71,7 +71,7 @@ static DWORD WINAPI _loader(void*) noexcept
     });
     set_unload(_exit_fail);
 
-    CurrentLibraryHandle = _ModuleHandle;
+    set_current_module_handle(_ModuleHandle);
 
 #if defined(_DEBUG) || defined(_RELEASE_DEBUG)
     system_console sysConsole;

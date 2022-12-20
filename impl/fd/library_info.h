@@ -267,5 +267,5 @@ namespace fd
         current_library_info(bool notify = true);
     };
 
-    extern HMODULE CurrentLibraryHandle;
+    void set_current_module_handle(HMODULE handle);
 } // namespace fd

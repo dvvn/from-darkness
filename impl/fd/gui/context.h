@@ -13,6 +13,7 @@ namespace fd::gui
 
     enum hotkey_mode
     {
+        unset,
         press,
         held,
     };
@@ -23,17 +24,17 @@ namespace fd::gui
     {
         foreground = 1 << 0, // when any window visible
         background = 1 << 1, // when all windows invisible
-        any        = foreground | background
+        any = foreground | background
     };
 
     struct basic_hotkey
     {
         virtual ~basic_hotkey() = default;
 
-        virtual hotkey_source source() const   = 0;
-        virtual hotkey_mode   mode() const     = 0;
-        virtual hotkey_access access() const   = 0;
-        virtual string_view   name() const     = 0;
+        virtual hotkey_source source() const = 0;
+        virtual hotkey_mode   mode() const = 0;
+        virtual hotkey_access access() const = 0;
+        virtual string_view   name() const = 0;
         virtual void          callback() const = 0;
     };
 
@@ -41,8 +42,8 @@ namespace fd::gui
     {
         virtual ~basic_context() = default;
 
-        virtual void                release_textures()       = 0;
-        virtual void                render(void* data)       = 0;
+        virtual void                release_textures() = 0;
+        virtual void                render(void* data) = 0;
         virtual process_keys_result process_keys(void* data) = 0;
 
         virtual basic_hotkey* find_basic_hotkey(hotkey_source source, hotkey_mode mode) = 0;

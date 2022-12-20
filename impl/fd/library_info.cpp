@@ -80,7 +80,7 @@ class LIST_ENTRY_iterator
     LIST_ENTRY_iterator operator++(int)
     {
         const auto tmp = *this;
-        operator++();
+                   operator++();
         return tmp;
     }
 
@@ -93,7 +93,7 @@ class LIST_ENTRY_iterator
     LIST_ENTRY_iterator operator--(int)
     {
         const auto tmp = *this;
-        operator--();
+                   operator--();
         return tmp;
     }
 
@@ -278,7 +278,7 @@ template <typename T>
 static constexpr auto _bytes_to_sig(const T* bytes, const size_t size)
 {
     constexpr auto hexDigits = "0123456789ABCDEF";
-    const auto hexLength = /*(size << 1) + size*/ size * 3;
+    const auto     hexLength = /*(size << 1) + size*/ size * 3;
 
     // construct pre-reserved string filled with spaces
     string pattern(hexLength - 1, ' ');
@@ -301,7 +301,7 @@ using chars_array = std::array<char, S>;
 template <size_t S>
 static constexpr auto _bytes_to_sig(const chars_array<S>& str)
 {
-    const auto tmp = _bytes_to_sig(str.data(), str.size());
+    const auto         tmp = _bytes_to_sig(str.data(), str.size());
     chars_array<S * 3> buff{};
     std::ranges::copy(tmp, buff.begin());
     return buff;
@@ -374,9 +374,9 @@ library_info fd::find_library(wstring_view name, bool notify)
 
 struct callback_data_t
 {
-    wstring_view name;
+    wstring_view          name;
     std::binary_semaphore sem;
-    PVOID found;
+    PVOID                 found;
 
     callback_data_t(const wstring_view name)
         : name(name)
@@ -426,7 +426,7 @@ PVOID fd::wait_for_library(const wstring_view name)
     static const auto [reg_fn, unreg_fn] = _wait_prepare(false);
 
     callback_data_t cbData(name);
-    void* cookie;
+    void*           cookie;
     if (!NT_SUCCESS(reg_fn(0, _on_new_library, &cbData, &cookie)))
         return nullptr;
     cbData.sem.acquire();
@@ -628,9 +628,9 @@ IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const b
 
 void* library_info::find_signature(const string_view sig, const bool notify) const
 {
-    const auto memorySpan = dos_nt(entry_).read();
+    const auto            memorySpan = dos_nt(entry_).read();
     const pattern_scanner finder(memorySpan.data(), memorySpan.size());
-    const auto result = *invoke(finder, sig);
+    const auto            result = *invoke(finder, sig);
     if (notify)
         _log_found_object(entry_, L"signature", sig, result);
     return result;
@@ -649,7 +649,7 @@ enum class obj_type : uint8_t
 class vtable_finder
 {
     library_info info_;
-    dos_nt dnt_;
+    dos_nt       dnt_;
 
   public:
     vtable_finder(const library_info info)
@@ -660,7 +660,7 @@ class vtable_finder
 
     const char* find_type_descriptor(const string_view name, const obj_type type) const
     {
-        const auto memorySpan = dnt_.read();
+        const auto            memorySpan = dnt_.read();
         const pattern_scanner wholeModuleFinder(memorySpan.data(), memorySpan.size());
 
         const void* rttiClassName;
@@ -781,7 +781,7 @@ void* library_info::find_vtable(const std::type_info& info, const bool notify) c
 class interface_reg
 {
     void* (*createFn_)();
-    const char* name_;
+    const char*          name_;
     const interface_reg* next_;
 
   public:
@@ -807,7 +807,7 @@ class interface_reg
         iterator operator++(int)
         {
             const auto tmp = *this;
-            operator++();
+                       operator++();
             return tmp;
         }
 
@@ -946,7 +946,7 @@ void* csgo_library_info::find_interface(const void* createInterfaceFn, const str
         return nullptr;
 
     string_view logName;
-    void* ifcAddr = nullptr;
+    void*       ifcAddr = nullptr;
 
     for (auto& reg : interface_reg::range(createInterfaceFn))
     {
@@ -987,28 +987,43 @@ void* csgo_library_info::find_interface(const void* createInterfaceFn, const str
     return ifcAddr;
 }
 
-static DECLSPEC_NOINLINE PVOID _get_current_module_handle()
+static std::atomic<PVOID> _CurrentModuleHandle(nullptr);
+static std::mutex         _CurrentModuleHandleMtx;
+
+static DECLSPEC_NOINLINE PVOID _self_module_handle_impl()
 {
-    if (CurrentLibraryHandle == nullptr)
+    MEMORY_BASIC_INFORMATION    info;
+    constexpr SIZE_T            infoSize = sizeof(MEMORY_BASIC_INFORMATION);
+    // todo: is this is dll, try to load this function from inside
+    [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _self_module_handle_impl, &info, infoSize);
+    FD_ASSERT(len == infoSize, "Wrong size");
+    return static_cast<HINSTANCE>(info.AllocationBase);
+}
+
+static PVOID _self_module_handle() noexcept
+{
+    auto handle = _CurrentModuleHandle.load(std::memory_order::relaxed);
+    if (handle == nullptr)
     {
-        MEMORY_BASIC_INFORMATION info;
-        constexpr SIZE_T infoSize = sizeof(MEMORY_BASIC_INFORMATION);
-        // todo: is this is dll, try to load this function from inside
-        [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _get_current_module_handle, &info, infoSize);
-        FD_ASSERT(len == infoSize, "Wrong size");
-        CurrentLibraryHandle = static_cast<HINSTANCE>(info.AllocationBase);
+        const std::lock_guard guard(_CurrentModuleHandleMtx);
+        handle = _CurrentModuleHandle.load(std::memory_order::relaxed);
+        if (handle == nullptr)
+        {
+            handle = _self_module_handle_impl();
+            _CurrentModuleHandle.store(handle, std::memory_order::relaxed);
+        }
     }
-    return CurrentLibraryHandle;
+    return handle;
 }
 
 current_library_info::current_library_info(const bool notify)
-    : library_info(static_cast<IMAGE_DOS_HEADER*>(_get_current_module_handle()), notify)
+    : library_info(static_cast<IMAGE_DOS_HEADER*>(_self_module_handle()), notify)
 {
 }
 
-//----------
-
-namespace fd
+void fd::set_current_module_handle(const HMODULE handle)
 {
-    HMODULE CurrentLibraryHandle;
+    FD_ASSERT(handle == _self_module_handle_impl());
+    FD_ASSERT(_CurrentModuleHandle == nullptr);
+    _CurrentModuleHandle.store(handle, std::memory_order::relaxed);
 }

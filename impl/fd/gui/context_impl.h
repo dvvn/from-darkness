@@ -71,16 +71,19 @@ namespace fd::gui
     class hotkeys_storage
     {
         std::vector<hotkey> storage_;
+        hotkey_mode         globalMode_; // same mode for all used keys
+        size_t              validCount_;
 
       public:
         using pointer = hotkey*;
         using const_pointer = const hotkey*;
 
+        hotkeys_storage();
+
         pointer       find(hotkey_source source, hotkey_mode mode);
         const_pointer find(hotkey_source source, hotkey_mode mode) const;
         bool          contains(hotkey_source source, hotkey_mode mode) const;
         bool          contains(const hotkey_data& other) const;
-        pointer       find_unused();
         void          fire(hotkey_access access);
         pointer       create(hotkey&& hk);
         bool          erase(hotkey_source source, hotkey_mode mode);
@@ -95,7 +98,8 @@ namespace fd::gui
         ImFontAtlas  fontAtlas_;
 
         std::vector<callback_type> callbacks_;
-        hotkeys_storage            hotkeys_;
+
+        hotkeys_storage hotkeys_;
 
         bool focused_;
         bool hotkeysActive_;
