@@ -4,8 +4,6 @@
 
 #include <subhook.h>
 
-#include <atomic>
-
 #define _SUBHOOK_WRAP(_FN_)                                 \
     static auto subhook_##_FN_(void* ptr)                   \
     {                                                       \
@@ -22,6 +20,12 @@ _SUBHOOK_WRAP(is_installed);
 _SUBHOOK_WRAP(get_trampoline);
 _SUBHOOK_WRAP(get_src);
 _SUBHOOK_WRAP(get_dst);
+
+static void* subhook_new(void* target, void* replace)
+{
+    return subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
+}
+
 // ReSharper restore All
 
 #undef _SUBHOOK_WRAP
@@ -42,20 +46,46 @@ static void _log(auto* hook, T msg)
         invoke(*Logger, make_string(hookName, ": ", msg));
 }
 
-static std::atomic<hook_global_callback*> _HookCallback(nullptr);
-
-void fd::set_hook_callback(hook_global_callback* callback)
+#if 0
+static class : public hook_global_callback
 {
-    _HookCallback.store(callback, std::memory_order::relaxed);
+    std::mutex            mtx_;
+    hook_global_callback* cb_ = nullptr;
+
+  public:
+    void store(hook_global_callback* ptr)
+    {
+        const std::lock_guard lock(mtx_);
+        cb_ = ptr;
+    }
+
+    void construct(basic_hook* caller) override
+    {
+        const std::lock_guard lock(mtx_);
+        if (cb_)
+            cb_->construct(caller);
+    }
+
+    void destroy(const basic_hook* caller, bool unhooked) override
+    {
+        const std::lock_guard lock(mtx_);
+        if (cb_)
+            cb_->destroy(caller, unhooked);
+    }
+
+} _HookCallback;
+
+void hook_global_callback::set(hook_global_callback* callback)
+{
+    _HookCallback.store(callback);
 }
+#endif
 
 hook_impl::hook_impl()
     : inUse_(false)
     , entry_(nullptr)
 {
-    const auto cb = _HookCallback.load(std::memory_order::relaxed);
-    if (cb != nullptr)
-        cb->construct(this);
+    //_HookCallback.construct(this);
 }
 
 hook_impl::~hook_impl()
@@ -72,9 +102,7 @@ hook_impl::~hook_impl()
     {
         const auto ok = subhook_remove(entry_) == 0;
         _log(this, ok ? "unhooked" : "unhook error!");
-        const auto cb = _HookCallback.load(std::memory_order::relaxed);
-        if (cb != nullptr)
-            cb->destroy(this, ok);
+        // _HookCallback.destroy(this, ok);
     }
     subhook_free(entry_);
 }
@@ -152,10 +180,10 @@ void* hook_impl::get_replace_method() const
     return subhook_get_dst(entry_);
 } */
 
-void hook_impl::init(const function_getter target, const function_getter replace)
+void hook_impl::init(void* target, void* replace)
 {
     FD_ASSERT(entry_ == nullptr);
-    entry_ = subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
+    entry_ = subhook_new(target, replace);
     if (entry_ == nullptr)
         _log(this, "init error!");
 }
@@ -163,16 +191,4 @@ void hook_impl::init(const function_getter target, const function_getter replace
 hook_impl::operator bool() const
 {
     return initialized();
-}
-
-//----
-
-hook_callback_ret_wrapper<void>::operator bool() const
-{
-    return value_;
-}
-
-void hook_callback_ret_wrapper<void>::emplace()
-{
-    value_ = true;
 }

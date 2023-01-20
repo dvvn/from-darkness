@@ -7,7 +7,8 @@
 #include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
-#include <fd/hook_impl.h>
+#include <fd/hook_callback.h>
+#include <fd/hook_storage.h>
 #include <fd/library_info.h>
 
 #include <fd/valve/gui/surface.h>
@@ -21,36 +22,6 @@ static HANDLE _ThreadHandle;
 static DWORD  _ThreadId = 0;
 
 using namespace fd;
-
-class hooks_storage final : public hook_global_callback
-{
-    std::vector<basic_hook*> hooks_;
-
-    void construct(basic_hook* caller) override
-    {
-        hooks_.push_back(caller);
-    }
-
-    void destroy(const basic_hook* caller, const bool unhooked) override
-    {
-        if (!unhooked)
-            suspend();
-        // std::ranges stuck here
-        *std::find(hooks_.begin(), hooks_.end(), caller) = nullptr;
-    }
-
-  public:
-    ~hooks_storage() override
-    {
-        if (!hooks_.empty())
-            suspend();
-    }
-
-    bool enable() const
-    {
-        return std::ranges::all_of(hooks_, &basic_hook::enable);
-    }
-};
 
 static void _exit_fail()
 {
@@ -123,55 +94,51 @@ static DWORD WINAPI _loader(void*) noexcept
 #endif
 
     hooks_storage allHooks;
-    set_hook_callback(&allHooks);
 
-    hook_callback_t<WNDPROC> hkWndProc(GetWindowLongPtrW(hwnd, GWLP_WNDPROC));
-    hkWndProc.set_name("WinAPI.WndProc");
+    hook_callback hkWndProc(DefWindowProcW, decay_fn(GetWindowLongPtrW(hwnd, GWLP_WNDPROC)), [&](auto orig, HWND currHwnd, auto... args) -> LRESULT {
 #ifdef _DEBUG
-    hkWndProc.add([&assertCallback, hwnd](auto&, auto&, bool& interrupt, const HWND currHwnd, auto...) {
-        if (currHwnd == hwnd)
-            return;
-        invoke(assertCallback, assert_data(nullptr, "Incorrect HWND!"));
-        interrupt = true;
-    });
+        if (currHwnd != hwnd)
+            assertCallback({ "Unknown HWND detected!" });
 #endif
-    hkWndProc.add([&](auto&, auto& ret, bool, auto... args) {
-        switch (guiCtx.process_keys(args...))
+        switch (guiCtx.process_keys(hwnd, args...))
         {
         case gui::process_keys_result::instant:
-            ret.emplace(TRUE);
-            break;
+            return TRUE;
         case gui::process_keys_result::native:
-            return;
+            return orig(hwnd, args...);
         case gui::process_keys_result::def:
-            ret.emplace(DefWindowProcW(args...));
-            break;
+            return DefWindowProcW(hwnd, args...);
         default:
             unreachable();
         }
     });
+    hkWndProc.set_name("WinAPI.WndProc");
+    allHooks.store(hkWndProc);
 
-    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, { d3dIfc, 16 });
-    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
-    hkDirectx9Reset.add([&](auto&&...) {
+    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, decay_fn(d3dIfc, 16), [&](auto orig, auto, auto... args) {
         guiCtx.release_textures();
+        return orig(args...);
     });
+    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
+    allHooks.store(hkDirectx9Reset);
 
-    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, { d3dIfc, 17 });
-    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
-    hkDirectx9Present.add([&](auto&, auto&, bool, auto thisPtr, auto...) {
+    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, decay_fn(d3dIfc, 17), [&](auto orig, auto thisPtr, auto... args) {
         guiCtx.render(thisPtr);
+        return orig(args...);
     });
+    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
+    allHooks.store(hkDirectx9Present);
 
-    hook_callback hkVguiLockCursor(&valve::gui::surface::LockCursor, { (void*)0, 67 });
-    hkVguiLockCursor.set_name("VGUI.ISurface::LockCursor");
-    hkVguiLockCursor.add([&](auto&, auto& ret, bool, auto thisPtr) {
+    hook_callback hkVguiLockCursor(&valve::gui::surface::LockCursor, decay_fn((void*)nullptr, 67), [&](auto orig, auto thisPtr) {
         if (menu.visible() && !thisPtr->IsCursorVisible())
         {
             thisPtr->UnlockCursor();
-            ret.emplace();
+            return;
         }
+        orig();
     });
+    hkVguiLockCursor.set_name("VGUI.ISurface::LockCursor");
+    allHooks.store(hkVguiLockCursor);
 
     if (!allHooks.enable())
         _exit_fail();
@@ -187,7 +154,8 @@ static DWORD WINAPI _loader(void*) noexcept
     if (SuspendThread(_ThreadHandle) == -1)
         _exit_fail();
 
-    // disable all hooks before return
+    if (!allHooks.disable())
+        _exit_fail();
 
     _exit_success();
 }

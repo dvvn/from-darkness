@@ -48,11 +48,13 @@ namespace fd::gui
         basic_context* ctx_;
 
       public:
+#ifdef FD_HAVE_HOTKEY
         static constexpr struct
         {
-            hotkey_source unload = __LINE__;
-            hotkey_source toggle = __LINE__;
+            hotkey_source unload = this + __LINE__;
+            hotkey_source toggle = this + __LINE__;
         } hotkeys;
+#endif
 
         menu(basic_context* ctx);
 

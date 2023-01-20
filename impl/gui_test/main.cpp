@@ -4,42 +4,14 @@
 #include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
-#include <fd/hook_impl.h>
+#include <fd/hook_callback.h>
+#include <fd/hook_storage.h>
 #include <fd/logger_impl.h>
 #include <fd/system_console.h>
 
 #include <imgui.h>
 
-#include <ranges>
-
 using namespace fd;
-
-class hooks_storage final : public hook_global_callback
-{
-    std::vector<basic_hook*> hooks_;
-
-    void construct(basic_hook* caller) override
-    {
-        hooks_.push_back(caller);
-    }
-
-    void destroy(const basic_hook* caller, bool unhooked) override
-    {
-        // std::ranges stuck here
-        *std::find(hooks_.begin(), hooks_.end(), caller) = nullptr;
-    }
-
-  public:
-    bool enable() const
-    {
-        return std::ranges::all_of(hooks_, &basic_hook::enable);
-    }
-
-    bool disable() const
-    {
-        return std::ranges::all_of(hooks_ | std::views::reverse, &basic_hook::disable);
-    }
-};
 
 int main(int, char**)
 {
@@ -69,10 +41,7 @@ int main(int, char**)
 
     gui::context guiCtx(backend.d3d, backend.hwnd);
     gui::menu    menu(&guiCtx);
-    guiCtx.create_hotkey({ menu.hotkeys.unload, gui::hotkey_mode::press, unload, gui::hotkey_access::any, { ImGuiKey_End } });
-    guiCtx.create_hotkey({
-        menu.hotkeys.toggle, gui::hotkey_mode::press, bind_front(&gui::menu::toggle, &menu), gui::hotkey_access::any, {ImGuiKey_S, ImGuiKey_F}
-    });
+
     guiCtx.store([&] {
         menu.render();
     });
@@ -91,37 +60,36 @@ int main(int, char**)
     menu.store(testTabBar);
 
     hooks_storage allHooks;
-    set_hook_callback(&allHooks);
 
-    hook_callback hkWndProc(backend.info.lpfnWndProc);
-    hkWndProc.set_name("WinAPI.WndProc");
-    hkWndProc.add([&](auto&, auto& ret, bool, auto... args) {
+    hook_callback hkWndProc(backend.info.lpfnWndProc, [&](auto orig, auto... args) -> LRESULT {
         switch (guiCtx.process_keys(args...))
         {
         case gui::process_keys_result::instant:
-            ret.emplace(TRUE);
-            break;
+            return TRUE;
         case gui::process_keys_result::native:
-            return;
+            return orig(args...);
         case gui::process_keys_result::def:
-            ret.emplace(DefWindowProc(args...));
-            break;
+            return DefWindowProc(args...);
         default:
             unreachable();
         }
     });
+    hkWndProc.set_name("WinAPI.WndProc");
+    allHooks.store(hkWndProc);
 
-    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, { backend.d3d, 16 });
-    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
-    hkDirectx9Reset.add([&](auto&&...) {
+    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, decay_fn(backend.d3d, 16), [&](auto orig, auto, auto... args) {
         guiCtx.release_textures();
+        return orig(args...);
     });
+    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
+    allHooks.store(hkDirectx9Reset);
 
-    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, { backend.d3d, 17 });
-    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
-    hkDirectx9Present.add([&](auto&, auto&, bool, auto thisPtr, auto...) {
+    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, decay_fn(backend.d3d, 17), [&](auto orig, auto thisPtr, auto... args) {
         guiCtx.render(thisPtr);
+        return orig(args...);
     });
+    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
+    allHooks.store(hkDirectx9Present);
 
     if (allHooks.enable())
     {

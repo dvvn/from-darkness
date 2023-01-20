@@ -69,16 +69,16 @@ tab_bar::tab_bar(const string_view name)
 
 void tab_bar::render() const
 {
-    auto&      g      = *GImGui;
+    auto&      g = *GImGui;
     const auto window = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
-    const auto id     = window->GetID(name_.data(), name_.data() + name_.size());
+    const auto id = window->GetID(name_.data(), name_.data() + name_.size());
     const auto tabBar = g.TabBars.GetOrAddByKey(id);
-    tabBar->ID        = id;
+    tabBar->ID = id;
     const ImRect   tabBarBB(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
     constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
-    constexpr auto extraFlags   = ImGuiTabBarFlags_IsFocused;
+    constexpr auto extraFlags = ImGuiTabBarFlags_IsFocused;
 
     if (ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags))
     {
@@ -140,13 +140,7 @@ bool menu::render()
         {
             if (ImGui::BeginMenu("File"))
             {
-                const auto unloadHk = ctx_->find_basic_hotkey(hotkeys.unload, hotkey_mode::press);
-                if (ImGui::MenuItem("Quit", _im_str(unloadHk->name())))
-                    unloadHk->callback();
-
-                //----
-
-                // ImGui::TextUnformatted("off");
+                ImGui::TextUnformatted("test");
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();

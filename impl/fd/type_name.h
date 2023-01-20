@@ -19,9 +19,14 @@ namespace fd
         return __FUNCSIG__;
     }
 
-    static constexpr string_view _clamp_raw_type_name(const string_view rawName)
+    template <size_t S>
+    static constexpr string_view _clamp_raw_type_name(const char (&rawName)[S])
     {
-        return { rawName.data() + rawName.find('<') + 1, rawName.data() + rawName.rfind('>') };
+        auto charsCount = std::size(rawName);
+        if (*std::rbegin(rawName) == '\0')
+            --charsCount;
+        const string_view name(rawName, charsCount);
+        return { rawName + name.find('<') + 1, rawName + name.rfind('>') };
     }
 
     template <size_t BuffSize>
@@ -82,8 +87,8 @@ namespace fd
             std::ranges::for_each(badWords, bind_front(removeBadWords, tmpBuff));
 
             const auto buffEnd = std::ranges::copy(tmpBuff | std::views::filter(skipNull), buff).out;
-            strSize            = std::distance(buff, buffEnd);
-            nativeOffset       = rawName.find(buff, 0u, strSize);
+            strSize = std::distance(buff, buffEnd);
+            nativeOffset = rawName.find(buff, 0u, strSize);
         }
 
         constexpr bool native() const
@@ -146,7 +151,7 @@ namespace fd
     constexpr auto type_name()
     {
         constexpr auto rawName = _clamp_raw_type_name(_raw_type_name<T>());
-        using raw_t            = raw_type_t<T>;
+        using raw_t = raw_type_t<T>;
         if constexpr (_IsClassOrUnion<raw_t> || std::is_enum_v<raw_t>)
         {
             constexpr clamped_type_name<rawName.size()> clampedName(rawName);
@@ -237,8 +242,8 @@ namespace fd
         const auto [strPartial, strFull] = [&] {
             // skip XXXXtype_name_raw
             const auto offset = _get_offset_for(_find_first_char, infoL.name, '<') + 1;
-            const auto strL   = infoL.name + offset;
-            const auto strR   = infoR.name + offset;
+            const auto strL = infoL.name + offset;
+            const auto strR = infoR.name + offset;
             return infoL.partial ? std::pair(strL, strR) : std::pair(strR, strL);
         }();
 

@@ -2,12 +2,14 @@
 
 #include <fd/functional.h>
 #include <fd/gui/context.h>
+#include <fd/unordered_map.h>
 
 #include <imgui_internal.h>
 
 #include <Windows.h>
 #include <d3d9.h>
 
+#include <span>
 #include <vector>
 
 namespace fd::gui
@@ -27,9 +29,11 @@ namespace fd::gui
         imgui_backup& operator=(const imgui_backup&) = delete;
     };
 
-    using basic_keys_pack = std::vector<ImGuiKey>;
+#ifdef FD_HAVE_HOTKEY
 
-    class keys_pack : public basic_keys_pack
+    using keys_pack_view = std::span<const ImGuiKey>;
+
+    class keys_pack : public std::vector<ImGuiKey>
     {
         string name_;
 
@@ -41,53 +45,126 @@ namespace fd::gui
         void        update_name();
     };
 
-    using callback_type = function<void() const>;
+    using hotkey_callback = function<void() const>;
+
+    template <class K>
+    struct basic_hotkey_info
+    {
+        hotkey_mode mode;
+        K           keys;
+
+        basic_hotkey_info() = default;
+
+        template <typename K2 = K>
+        basic_hotkey_info(const basic_hotkey_info<K2>& other)
+            : mode(other.mode)
+            , keys(other.keys)
+        {
+        }
+
+        basic_hotkey_info(basic_hotkey_info&& other)
+            : mode(std::move(other.mode))
+            , keys(std::move(other.keys))
+        {
+        }
+
+        template <class K2 = K>
+        bool operator==(const basic_hotkey_info<K2>& other) const
+        {
+            return mode == other.mode && keys == other.keys;
+        }
+    };
+
+    template <class K>
+    struct basic_hotkey_info_ex : basic_hotkey_info<K>
+    {
+        hotkey_access access;
+
+        basic_hotkey_info_ex() = default;
+
+        template <typename K2 = K>
+        basic_hotkey_info_ex(const basic_hotkey_info_ex<K2>& other)
+            : basic_hotkey_info<K>(other)
+            , access(other.access)
+        {
+        }
+
+        template <typename K2 = K>
+        basic_hotkey_info_ex(basic_hotkey_info_ex<K2>&& other)
+            : basic_hotkey_info<K>(std::move(other))
+            , access(std::move(other.access))
+        {
+        }
+
+        basic_hotkey_info_ex(hotkey_mode mode, K keys, hotkey_access access)
+            : basic_hotkey_info<K>{ mode, keys }
+            , access(access)
+        {
+        }
+
+        template <class K2 = K>
+        bool operator==(const basic_hotkey_info_ex<K2>& other) const
+        {
+            if (access == other.access || access == any || other.access == any)
+                return basic_hotkey_info<K>::operator==(other);
+            return false;
+        }
+    };
+
+    struct hotkey_info : basic_hotkey_info_ex<keys_pack>
+    {
+        using basic_hotkey_info_ex::basic_hotkey_info_ex;
+
+        bool update(bool allowOverride);
+    };
+
+    struct hotkey_info_view : basic_hotkey_info_ex<keys_pack_view>
+    {
+        using basic_hotkey_info_ex::basic_hotkey_info_ex;
+    };
 
     struct hotkey_data
     {
-        hotkey_source source;
-        hotkey_mode   mode;
-        callback_type callback;
-        hotkey_access access;
-        keys_pack     keys;
+        hotkey_callback callback;
+        // reserved
     };
 
-    struct hotkey : hotkey_data, basic_hotkey
+    class hotkey : public basic_hotkey
     {
-        hotkey() = default;
-        hotkey(hotkey_data&& data);
+        using value_type = std::pair<hotkey_info, hotkey_data>;
 
-        bool update(bool allowOverride);
-        void mark_unused();
-
-      private:
-        hotkey_source source() const override;
-        hotkey_mode   mode() const override;
-        hotkey_access access() const override;
-        string_view   name() const override;
-        void          callback() const override;
-    };
-
-    class hotkeys_storage
-    {
-        std::vector<hotkey> storage_;
-        hotkey_mode         globalMode_; // same mode for all used keys
-        size_t              validCount_;
+        std::vector<value_type> storage_;
+        string                  mergedName_;
 
       public:
-        using pointer = hotkey*;
-        using const_pointer = const hotkey*;
+        hotkey_data& operator[](hotkey_info&& info);
+        void         store(hotkey_info&& info, hotkey_data&& data);
 
-        hotkeys_storage();
+        const hotkey_data& operator[](const hotkey_info_view& info) const;
+        bool               contains(const hotkey_info_view& info) const;
 
-        pointer       find(hotkey_source source, hotkey_mode mode);
-        const_pointer find(hotkey_source source, hotkey_mode mode) const;
-        bool          contains(hotkey_source source, hotkey_mode mode) const;
-        bool          contains(const hotkey_data& other) const;
-        void          fire(hotkey_access access);
-        pointer       create(hotkey&& hk);
-        bool          erase(hotkey_source source, hotkey_mode mode);
+        bool update(bool allowOverride);
+        bool update(hotkey_mode mode, bool allowOverride);
+        void update_name();
+
+        void fire(hotkey_access access);
+
+        //---
+
+        string_view name() const override;
+        void        callback() const override;
     };
+
+    struct hotkeys_storage : unordered_map<hotkey_source, hotkey>
+    {
+        void fire(hotkey_access access);
+    };
+
+#endif
+
+    using context_callback = function<void() const>;
+    using context_callbacks = std::vector<context_callback>;
+    using context_callbacks_view = std::span<std::conditional_t<invocable<const context_callback>, const context_callback, context_callback>>;
 
     class context final : public basic_context
     {
@@ -97,14 +174,14 @@ namespace fd::gui
         ImGuiContext context_;
         ImFontAtlas  fontAtlas_;
 
-        std::vector<callback_type> callbacks_;
+        std::vector<context_callback> callbacks_;
 
+#ifdef FD_HAVE_HOTKEY
         hotkeys_storage hotkeys_;
+        bool            hotkeysActive_;
+#endif
 
         bool focused_;
-        bool hotkeysActive_;
-
-        basic_hotkey* find_basic_hotkey(hotkey_source source, hotkey_mode mode) override;
 
       public:
         ~context() override;
@@ -117,11 +194,14 @@ namespace fd::gui
         process_keys_result process_keys(void* data) override;
         process_keys_result process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
-        void store(callback_type&& callback);
+        void store(context_callback&& callback);
 
-        hotkey* create_hotkey(hotkey_data&& hk);
-        hotkey* find_hotkey(hotkey_source source, hotkey_mode mode);
-        bool    erase_hotkey(hotkey_source source, hotkey_mode mode);
-        bool    update_hotkey(hotkey_source source, hotkey_mode mode, bool allowOverride);
+#ifdef FD_HAVE_HOTKEY
+        void          create_hotkey(hotkey_source source, hotkey_info&& info, hotkey_data&& data);
+        hotkey&       get_hotkey(hotkey_source source);
+        // bool    erase_hotkey(hotkey_source source, hotkey_mode mode);
+        bool          update_hotkey(hotkey_source source, hotkey_mode mode, bool allowOverride);
+        basic_hotkey* find_hotkey(hotkey_source source) override;
+#endif
     };
 } // namespace fd::gui

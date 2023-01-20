@@ -33,10 +33,10 @@ imgui_backup::imgui_backup()
     ImGui::GetAllocatorFunctions(&allocator_, &deleter_, &userData_);
 }
 
-//--------
+#if 0
 
 keys_pack::keys_pack(const std::initializer_list<value_type> list)
-    : basic_keys_pack(list)
+    : std::vector<value_type>(list)
 {
 }
 
@@ -127,10 +127,8 @@ void keys_pack::update_name()
     name_ += ')';
 }
 
-//--------
-
 template <typename Fn>
-class keys_pack_ex : public basic_keys_pack
+class keys_pack_ex : public keys_pack
 {
     [[no_unique_address]] Fn fn_;
     bool                     filled_ = false;
@@ -150,7 +148,7 @@ class keys_pack_ex : public basic_keys_pack
             for (auto key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key)
             {
                 if (invoke(fn_, key))
-                    basic_keys_pack::push_back(key);
+                    keys_pack::push_back(key);
             }
             filled_ = true;
         }
@@ -165,7 +163,7 @@ class keys_pack_ex : public basic_keys_pack
             return;
 #endif
         filled_ = false;
-        basic_keys_pack::clear();
+        keys_pack::clear();
     }
 };
 
@@ -196,22 +194,40 @@ static bool& _HotkeysActive = _Dummy;
 
 #define UNKNOWN_HK_MODE FD_ASSERT_UNREACHABLE("Unknown hotkey mode!")
 
-hotkey::hotkey(hotkey_data&& data)
-    : hotkey_data(std::move(data))
+template <class I>
+class hotkey_info_comparer
 {
-}
+    const I& iView_;
 
-bool hotkey::update(const bool allowOverride)
+  public:
+    hotkey_info_comparer(const I& info)
+        : iView_(info)
+    {
+    }
+
+    template <class I1>
+    bool operator()(const I1& info) const
+    {
+        return (info == iView_);
+    }
+
+    template <class I1, typename X>
+    bool operator()(const std::pair<I1, X>& data) const
+    {
+        return (data.first == iView_);
+    }
+};
+
+bool hotkey_info::update(bool allowOverride)
 {
-    FD_ASSERT(_HotkeysActive);
 #ifdef WORKAROUND_MULTIPLE_KEYS
 #ifndef UPDATE_KEYS_GLOBALLY
     _KeysHeld.fill();
 #endif
-    const basic_keys_pack& currKeys = _KeysHeld;
+    const keys_pack& currKeys = _KeysHeld;
 #else
-    const auto& currKeys = [=]() -> basic_keys_pack& {
-        switch (hotkey_data::mode)
+    const auto& currKeys = [=]() -> keys_pack& {
+        switch (mode)
         {
         case press:
 #ifndef UPDATE_KEYS_GLOBALLY
@@ -230,6 +246,7 @@ bool hotkey::update(const bool allowOverride)
 #endif
     if (currKeys.empty())
         return false;
+
     if (!allowOverride && !keys.empty() && !std::ranges::includes(currKeys, keys))
         return false;
 
@@ -238,130 +255,123 @@ bool hotkey::update(const bool allowOverride)
     return true;
 }
 
-void hotkey::mark_unused()
+hotkey_data& hotkey::operator[](hotkey_info&& info)
 {
-    hotkey_data::source = 0u;
-    hotkey_data::mode = unset;
-}
-
-hotkey_source hotkey::source() const
-{
-    return hotkey_data::source;
-}
-
-hotkey_mode hotkey::mode() const
-{
-    return hotkey_data::mode;
-}
-
-hotkey_access hotkey::access() const
-{
-    return hotkey_data::access;
-}
-
-string_view hotkey::name() const
-{
-    return hotkey_data::keys.name();
-}
-
-void hotkey::callback() const
-{
-    invoke(hotkey_data::callback);
-}
-
-//-------
-
-class hotkey_comparer
-{
-    hotkey_source source_;
-    hotkey_mode   mode_;
-
-  public:
-    hotkey_comparer(const hotkey_source source, const hotkey_mode mode)
-        : source_(source)
-        , mode_(mode)
+    /*std::ranges::sort(info.keys);
+    auto itr = std::ranges::find_if(storage_, hotkey_info_comparer(info));
+    if (itr == storage_.end())
     {
-        FD_ASSERT(static_cast<bool>(source));
+        info.keys.update_name();
+        itr = storage_.emplace(storage_.end(), std::move(info), hotkey_data());
+    }
+    return itr->second;*/
+    return *(hotkey_data*)nullptr;
+}
+
+void hotkey::store(hotkey_info&& info, hotkey_data&& data)
+{
+    FD_ASSERT(!!data.callback);
+    std::ranges::sort(info.keys);
+    FD_ASSERT(!contains(info));
+    info.keys.update_name();
+    storage_.emplace_back(std::move(info), std::move(data));
+}
+
+const hotkey_data& hotkey::operator[](const hotkey_info_view& info) const
+{
+    return std::ranges::find_if(storage_, hotkey_info_comparer(info))->second;
+}
+
+bool hotkey::contains(const hotkey_info_view& info) const
+{
+    return std::ranges::any_of(storage_, hotkey_info_comparer(info));
+}
+
+bool hotkey::update(const bool allowOverride)
+{
+    FD_ASSERT(_HotkeysActive);
+    const auto updated = std::ranges::count_if(storage_ | std::views::keys, bind_back(&hotkey_info::update, allowOverride)) > 0;
+    update_name();
+    return updated;
+}
+
+bool hotkey::update(hotkey_mode mode, bool allowOverride)
+{
+    FD_ASSERT(_HotkeysActive);
+    const auto filterFn = [=](const hotkey_info& info) {
+        return info.mode == mode;
+    };
+    const auto updated = std::ranges::count_if(storage_ | std::views::keys | std::views::filter(filterFn), bind_back(&hotkey_info::update, allowOverride)) > 0;
+    update_name();
+    return updated;
+}
+
+static std::vector<string_view> _HotkeyNameBuff;
+
+static auto _skip_empty_keys(const hotkey_info& info)
+{
+    return !info.keys.empty();
+}
+
+void hotkey::update_name()
+{
+    constexpr auto getName = [](const hotkey_info& info) {
+        return info.keys.name();
+    };
+
+    _HotkeyNameBuff.assign_range(storage_ | std::views::keys | std::views::filter(_skip_empty_keys) | std::views::transform(getName));
+    if (_HotkeyNameBuff.empty())
+    {
+        mergedName_ = "(UNSET)";
+        return;
     }
 
-    bool operator()(const hotkey_data& hk) const
-    {
-        return hk.source == source_ && hk.mode == mode_;
-    }
-};
+    auto sizes = _HotkeyNameBuff | std::views::transform(&string_view::size);
 
-template <typename It>
-static auto _extract_ptr(It itr, It lastItr) // -> decltype(&*std::declval<It>())
-{
-    return itr == lastItr ? nullptr : &*itr;
+    const auto delimnersCount = (_HotkeyNameBuff.size() - 1) * 2;
+    const auto charsCount = std::accumulate(sizes.begin(), sizes.end(), static_cast<size_t>(0));
+    mergedName_.reserve(delimnersCount + charsCount);
+
+    std::ranges::for_each(_HotkeyNameBuff.begin(), _HotkeyNameBuff.end() - 1, [&](auto val) {
+        mergedName_.append_range(val);
+        mergedName_.append(", ", 2);
+    });
+    mergedName_.append_range(_HotkeyNameBuff.back());
 }
 
-hotkeys_storage::hotkeys_storage()
-    : globalMode_(unset)
-    , validCount_(0)
+void hotkey::fire(hotkey_access access)
 {
-}
-
-auto hotkeys_storage::find(const hotkey_source source, const hotkey_mode mode) -> pointer
-{
-    const auto bg = storage_.begin();
-    const auto ed = bg + validCount_;
-    const auto itr = globalMode_ == mode ? std::ranges::find(bg, ed, source, &hotkey_data::source) : std::ranges::find_if(bg, ed, hotkey_comparer(source, mode));
-    return _extract_ptr(itr, ed);
-}
-
-auto hotkeys_storage::find(const hotkey_source source, const hotkey_mode mode) const -> const_pointer
-{
-    const auto bg = storage_.begin();
-    const auto ed = bg + validCount_;
-    const auto itr = globalMode_ == mode ? std::ranges::find(bg, ed, source, &hotkey_data::source) : std::ranges::find_if(bg, ed, hotkey_comparer(source, mode));
-    return _extract_ptr(itr, ed);
-}
-
-bool hotkeys_storage::contains(const hotkey_source source, const hotkey_mode mode) const
-{
-    const auto bg = storage_.begin();
-    const auto ed = bg + validCount_;
-    return globalMode_ == mode ? std::ranges::contains(bg, ed, source, &hotkey_data::source) : std::ranges::any_of(bg, ed, hotkey_comparer(source, mode));
-}
-
-bool hotkeys_storage::contains(const hotkey_data& other) const
-{
-    return contains(other.source, other.mode);
-}
-
-void hotkeys_storage::fire(const hotkey_access access)
-{
+#ifdef _DEBUG
     if (storage_.empty())
         return;
+#endif
 
-    constexpr auto doCall = [](hotkey_data& hk, auto& buff) {
-/*if (!hk.source)
-    return;*/
+    constexpr auto doCall = [](auto& keys, auto& callback, auto& buff) {
+
 #ifndef UPDATE_KEYS_GLOBALLY
         if (!buff.fill())
             return;
 #endif
-        if (hk.keys != buff)
+        if (keys != buff)
             return;
-        invoke(hk.callback);
+        invoke(callback);
     };
 
-    const auto selectMode = [](hotkey_data& hk) {
-        if (hk.source == 0u)
-            return;
+    const auto selectMode = [](auto& val) {
+        auto& hk = (val).first;
+        auto& data = (val).second;
 #ifdef WORKAROUND_MULTIPLE_KEYS
         if (hk.keys.size() >= 2)
-            return invoke(doCall, hk, _KeysHeld);
+            return invoke(doCall, (hk.keys), (data.callback), _KeysHeld);
 #endif
         switch (hk.mode)
         {
         case hotkey_mode::press: {
-            invoke(doCall, hk, _KeysPressed);
+            invoke(doCall, (hk.keys), (data.callback), _KeysPressed);
             break;
         }
         case hotkey_mode::held: {
-            invoke(doCall, hk, _KeysHeld);
+            invoke(doCall, (hk.keys), (data.callback), _KeysHeld);
             break;
         }
         default: {
@@ -370,81 +380,46 @@ void hotkeys_storage::fire(const hotkey_access access)
         }
     };
 
-    const auto bg = storage_.begin();
-    const auto ed = bg + validCount_;
-
     if (access == hotkey_access::any)
-        (void)std::ranges::for_each(bg, ed, selectMode);
+        (void)std::ranges::for_each(storage_, selectMode);
     else
         std::ranges::for_each(
-            std::ranges::subrange(bg, ed) | std::views::filter([=](const hotkey_data& hk) {
-                return (hk.access & access) != 0;
+            storage_ | std::views::filter([=](auto& hk) {
+                return (hk.first.access & access) != 0;
             }),
             selectMode
         );
 }
 
-auto hotkeys_storage::create(hotkey&& hk) -> pointer
+string_view hotkey::name() const
 {
-    FD_ASSERT(!contains(hk));
-    auto& hotkeyData = static_cast<hotkey_data&>(hk);
-    FD_ASSERT(!!hotkeyData.callback);
-
-    std::ranges::sort(hotkeyData.keys);
-    hotkeyData.keys.update_name();
-
-    if (storage_.empty())
-        globalMode_ = hotkeyData.mode;
-    else if (globalMode_ != unset && globalMode_ != hotkeyData.mode)
-        globalMode_ = unset;
-
-    const auto validCount = validCount_++;
-    return validCount == storage_.size() ? &storage_.emplace_back(std::move(hk))    // add new element
-                                         : &(storage_[validCount] = std::move(hk)); // override first invalid element
+    return mergedName_;
 }
 
-bool hotkeys_storage::erase(const hotkey_source source, const hotkey_mode mode)
+void hotkey::callback() const
+{
+    for (auto& [info, data] : storage_)
+    {
+        if (_skip_empty_keys(info))
+            continue;
+        invoke(data.callback);
+    }
+}
+
+void hotkeys_storage::fire(const hotkey_access access)
 {
 #ifdef _DEBUG
-    if (storage_.empty())
-        return false;
+    if (empty())
+        return;
 #endif
-    const auto bg = storage_.begin();
-    const auto ed = bg + validCount_;
-    const auto itr = globalMode_ == mode ? std::ranges::find(bg, ed, source, &hotkey_data::source) : std::ranges::find_if(bg, ed, hotkey_comparer(source, mode));
-    const auto found = itr != ed;
-    if (found)
+
+    for (auto&& [_, data] : *this)
     {
-        const auto lastValid = std::prev(ed);
-        if (/*ed == storage_.end() || */ itr == lastValid)
-        {
-            // drop last key
-            itr->mark_unused();
-        }
-        else
-        {
-            // override unused hotkey
-            *itr = std::move(*lastValid);
-            lastValid->mark_unused();
-        }
-        --validCount_;
-        if (globalMode_ == unset && validCount_ >= 2)
-        {
-            const auto bgMode = static_cast<hotkey_data&>(*bg).mode;
-            const auto edMode = static_cast<hotkey_data&>(*std::prev(lastValid)).mode;
-            if (bgMode == edMode)
-                globalMode_ = bgMode;
-        }
+        data.fire(access);
     }
-    return found;
 }
 
-//-------
-
-basic_hotkey* context::find_basic_hotkey(const hotkey_source source, const hotkey_mode mode)
-{
-    return hotkeys_.find(source, mode);
-}
+#endif
 
 context::~context()
 {
@@ -466,9 +441,11 @@ static void _correct_io(ImGuiIO& io = ImGui::GetIO())
 context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSettings)
     : context_(&fontAtlas_)
     , focused_(GetForegroundWindow() == hwnd)
+#ifdef FD_HAVE_HOTKEY
     , hotkeysActive_(false)
+#endif
 {
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(FD_HAVE_HOTKEY)
     _HotkeysActive = hotkeysActive_;
 #endif
 
@@ -485,7 +462,9 @@ context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSetting
 #endif
     ImGui::SetCurrentContext(&context_);
     ImGui::Initialize();
+#ifdef FD_HAVE_HOTKEY
     _KeyNames.fill();
+#endif
 
 #ifndef _DEBUG
     // todo: disable fallback window
@@ -539,6 +518,7 @@ void context::render(IDirect3DDevice9* thisPtr)
 
     ImGui::NewFrame();
     {
+#ifdef FD_HAVE_HOTKEY
         hotkeysActive_ = focused_ && !context_.InputEventsTrail.empty();
         if (hotkeysActive_)
         {
@@ -549,9 +529,11 @@ void context::render(IDirect3DDevice9* thisPtr)
                 hotkeysActive_ = false;
 #endif
         }
+#endif
 
         std::ranges::for_each(callbacks_, Invoker);
 
+#ifdef FD_HAVE_HOTKEY
         if (hotkeysActive_)
         {
             const auto haveVisibleWindow = std::ranges::any_of(context_.WindowsFocusOrder, [](auto wnd) {
@@ -559,6 +541,7 @@ void context::render(IDirect3DDevice9* thisPtr)
             });
             hotkeys_.fire(haveVisibleWindow ? hotkey_access::foreground : hotkey_access::background);
         }
+#endif
     }
     ImGui::Render();
 
@@ -618,30 +601,47 @@ process_keys_result context::process_keys(const HWND window, const UINT message,
     return process_keys_result::def;
 }
 
-void context::store(callback_type&& callback)
+void context::store(context_callback&& callback)
 {
     callbacks_.emplace_back(std::move(callback));
 }
 
-hotkey* context::create_hotkey(hotkey_data&& hk)
+#ifdef FD_HAVE_HOTKEY
+
+void context::create_hotkey(hotkey_source source, hotkey_info&& info, hotkey_data&& data)
 {
-    return hotkeys_.create(std::move(hk));
+    FD_ASSERT(!hotkeys_.contains(source));
+    hotkeys_[source].store(std::move(info), std::move(data));
 }
 
-hotkey* context::find_hotkey(const hotkey_source source, const hotkey_mode mode)
+hotkey& context::get_hotkey(const hotkey_source source)
 {
-    return hotkeys_.find(source, mode);
+#ifdef _DEBUG
+    return hotkeys_.at(source);
+#else
+    return **hotkeys_.find(source); // skip throw
+#endif
 }
 
-bool context::erase_hotkey(const hotkey_source source, const hotkey_mode mode)
-{
-    return hotkeys_.erase(source, mode);
-}
+// bool context::erase_hotkey(const hotkey_source source, const hotkey_mode mode)
+//{
+//     return hotkeys_.erase(source, mode);
+// }
 
 bool context::update_hotkey(const hotkey_source source, const hotkey_mode mode, const bool allowOverride)
 {
     if (!hotkeysActive_)
         return false;
-    const auto hk = hotkeys_.find(source, mode);
-    return hk != nullptr && hk->update(allowOverride);
+    const auto hk = hotkeys_.find(source);
+    if (hk == hotkeys_.end())
+        return false;
+    return (*hk).second.update(mode, allowOverride);
 }
+
+basic_hotkey* context::find_hotkey(const hotkey_source source)
+{
+    const auto itr = hotkeys_.find(source);
+    return itr == hotkeys_.end() ? nullptr : &(*itr).second;
+}
+
+#endif
