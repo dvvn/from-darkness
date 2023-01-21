@@ -17,5 +17,4 @@ namespace fd
         bool enable();
         bool disable();
     };
-
 }

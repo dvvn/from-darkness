@@ -37,6 +37,13 @@
 
 namespace fd
 {
+    using _FMT::formatter;
+
+#if 1
+    using _FMT::format;
+    using _FMT::format_to;
+#else
+
     template <typename C, typename... Args>
     static auto _make_format_args(const Args&... args)
     {
@@ -84,7 +91,7 @@ namespace fd
     {
         return _format(fmt, args...);
     }
-
-    using _FMT::formatter;
-#undef _FMT
+#endif
 } // namespace fd
+
+#undef _FMT

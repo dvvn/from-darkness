@@ -2,8 +2,6 @@
 
 #include <fd/hook.h>
 
-
-
 namespace fd
 {
     class hook_impl : public basic_hook
@@ -33,8 +31,5 @@ namespace fd
 
         explicit operator bool() const;
     };
-
-    
-    
 
 } // namespace fd

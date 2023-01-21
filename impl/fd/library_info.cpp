@@ -1,4 +1,6 @@
 // ReSharper disable CppClangTidyClangDiagnosticMicrosoftCast
+#include <fd/format.h>
+
 #include <fd/assert.h>
 #include <fd/filesystem.h>
 #include <fd/functional.h>
@@ -61,10 +63,10 @@ class LIST_ENTRY_iterator
 
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = size_t;
-    using value_type = LIST_ENTRY;
-    using pointer = value_type*;
-    using reference = value_type&;
+    using difference_type   = size_t;
+    using value_type        = LIST_ENTRY;
+    using pointer           = value_type*;
+    using reference         = value_type&;
 
     LIST_ENTRY_iterator(LIST_ENTRY* current)
         : current_(current)
@@ -210,59 +212,72 @@ static wstring_view _found_or_not(const void* ptr)
     return ptr != nullptr ? L"found" : L"not found";
 }
 
+static wstring_view _name_or_unknown(const LDR_DATA_TABLE_ENTRY* entry)
+{
+    return entry ? _library_info_name(entry) : L"unknown name";
+}
+
 static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
 {
-    invoke( //
-        Logger,
+    if (!log_active())
+        return;
+    log_unsafe(fd::format( //-
         L"{} -> {}! ({:#X})",
         name,
-        bind_front(_found_or_not, entry),
+        _found_or_not(entry),
         reinterpret_cast<uintptr_t>(entry)
-    );
+    ));
 }
 
 static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA_TABLE_ENTRY* entry)
 {
-    const auto getName = [=] {
-        return entry != nullptr ? _library_info_name(entry) : L"unknown name";
-    };
-    invoke( //
-        Logger,
+    if (!log_active())
+        return;
+    log_unsafe(fd::format( //-
         L"{:#X} ({}) -> {}! ({:#X})",
         reinterpret_cast<uintptr_t>(baseAddress),
-        getName,
-        bind_front(_found_or_not, entry),
+        _name_or_unknown(entry),
+        _found_or_not(entry),
         reinterpret_cast<uintptr_t>(entry)
-    );
+    ));
 }
 
-// ReSharper disable once CppInconsistentNaming
-static constexpr auto _log_found_object = [](const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr) {
-    invoke( //
-        Logger,
+template <typename T>
+static auto _to_wstring(const T& str)
+{
+    if constexpr (std::same_as<std::iter_value_t<T>, wchar_t>)
+        return str;
+    else if constexpr (std::is_class_v<T>)
+        return wstring(str.begin(), str.end());
+    else
+        return wstring(std::begin(str), std::end(str) - 1);
+}
+
+static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr)
+{
+    if (!log_active())
+        return;
+    log_unsafe(fd::format( //-
         L"{} -> {} '{}' {}! ({:#X})",
-        bind_front(_library_info_name, entry),
-        objectType,
-        object,
-        bind_front(_found_or_not, addr),
+        _library_info_name(entry),
+        _to_wstring(objectType), // wstring conversion suck, find better way
+        _to_wstring(object),
+        _found_or_not(addr),
         reinterpret_cast<uintptr_t>(addr)
-    );
+    ));
+
+    // FD_ASSERT_UNREACHABLE("FIX ME");
 };
 
 static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view rawName, const void* addr)
 {
-    if (Logger == nullptr)
+    if (!log_active())
         return;
-
-    // ReSharper disable once CppInconsistentNaming
-    const auto _log_found_object_ex = [&](const auto objectType, const auto object) {
-        _log_found_object(entry, objectType, object, addr);
-    };
 
     const auto nameBegin = rawName.find(' '); // class or struct
     if (nameBegin == rawName.npos)
     {
-        _log_found_object_ex(L"object", rawName);
+        _log_found_object(entry, L"object", rawName, addr);
     }
     else
     {
@@ -270,7 +285,7 @@ static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_v
         FD_ASSERT(!objectType.empty(), "Wrong object type");
         const auto object = rawName.substr(nameBegin + 1);
         FD_ASSERT(!object.empty(), "Wrong object name");
-        _log_found_object_ex(objectType, object);
+        _log_found_object(entry, objectType, object, addr);
     }
 }
 
@@ -288,7 +303,7 @@ static constexpr auto _bytes_to_sig(const T* bytes, const size_t size)
         const uint8_t currByte = bytes[n];
 
         // manually convert byte to chars
-        pattern[i] = hexDigits[((currByte & 0xF0) >> 4)];
+        pattern[i]     = hexDigits[((currByte & 0xF0) >> 4)];
         pattern[i + 1] = hexDigits[(currByte & 0x0F)];
     }
 
@@ -309,13 +324,13 @@ static constexpr auto _bytes_to_sig(const chars_array<S>& str)
 
 static constexpr struct
 {
-    chars_array<3> rawPrefix = { '.', '?', 'A' };
+    chars_array<3> rawPrefix  = { '.', '?', 'A' };
     chars_array<2> rawPostfix = { '@', '@' };
 
-    chars_array<3 * 3> rawPrefixBytes = _bytes_to_sig(rawPrefix);
+    chars_array<3 * 3> rawPrefixBytes  = _bytes_to_sig(rawPrefix);
     chars_array<2 * 3> rawPostfixBytes = _bytes_to_sig(rawPostfix);
 
-    char classPrefix = 'V';
+    char classPrefix  = 'V';
     char structPrefix = 'U';
 } _RttiInfo;
 
@@ -325,37 +340,42 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
 #define contains(x) find(x) != static_cast<size_t>(-1)
 #endif
 
-    const auto demagleType = [=]() -> string_view {
+    const auto demagleType = [=] {
         const auto prefix = typeDescriptor[_RttiInfo.rawPrefix.size()];
         if (prefix == _RttiInfo.classPrefix)
-            return "class";
+            return L"class";
         if (prefix == _RttiInfo.structPrefix)
-            return "struct";
+            return L"struct";
         FD_ASSERT_UNREACHABLE("Unknown prefix!");
     };
 
-    const auto demagleName = [=]() -> string {
-        string buff;
+    const auto demagleName = [=]() -> wstring {
         if (name.contains('@'))
-            buff = demangle_symbol(typeDescriptor);
-        else if (name.contains(' '))
-            buff = name;
-        else
-            return { name.data(), name.size() };
-
-        return buff.substr(buff.find(' ') + 1);
+        {
+#ifdef _DEBUG
+            DebugBreak(); // look at buff
+#endif
+            const auto buff = demangle_symbol(typeDescriptor);
+            return { buff.begin() + buff.find(' ') + 1, buff.end() };
+        }
+        if (name.contains(' '))
+        {
+            return { name.begin() + name.find(' ') + 1, name.end() };
+        }
+        return { name.begin(), name.end() };
     };
 
-    invoke(
-        Logger,
+    if (!log_active())
+        return;
+    log_unsafe(fd::format( //-
         L"{} -> {} {} '{}' {}! ({:#X})",
-        bind_front(_library_info_name, entry),
+        _library_info_name(entry),
         L"vtable for",
-        demagleType,
-        demagleName,
-        bind_front(_found_or_not, vtablePtr),
+        demagleType(),
+        demagleName(),
+        _found_or_not(vtablePtr),
         reinterpret_cast<uintptr_t>(vtablePtr)
-    );
+    ));
 }
 
 library_info fd::find_library(wstring_view name, bool notify)
@@ -415,7 +435,7 @@ static auto _wait_prepare(const bool notify)
 {
     const library_info ntdll(L"ntdll.dll", false, notify);
 
-    const auto reg = reinterpret_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
+    const auto reg   = reinterpret_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
     const auto unreg = reinterpret_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
 
     return std::pair(reg, unreg);
@@ -551,7 +571,7 @@ void* library_info::find_export(const string_view name, const bool notify) const
     // names / funcs / ordinals ( all of these are RVAs ).
     const auto names = dnt.map<const uint32_t>(exportDir->AddressOfNames);
     const auto funcs = dnt.map<const uint32_t>(exportDir->AddressOfFunctions);
-    const auto ords = dnt.map<const uint16_t>(exportDir->AddressOfNameOrdinals);
+    const auto ords  = dnt.map<const uint16_t>(exportDir->AddressOfNameOrdinals);
 
     void* exportPtr = nullptr;
 
@@ -617,7 +637,7 @@ void* library_info::find_export(const string_view name, const bool notify) const
 
 IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const bool notify) const
 {
-    const auto sections = dos_nt(entry_).sections();
+    const auto sections    = dos_nt(entry_).sections();
     const auto headerFound = std::ranges::find(sections.data(), sections.data() + sections.size(), name, [](auto& header) {
         return reinterpret_cast<const char*>(header.Name);
     });
@@ -667,9 +687,9 @@ class vtable_finder
 
         if (type == obj_type::UNKNOWN)
         {
-            const auto bytesName = _bytes_to_sig(name.data(), name.size());
+            const auto bytesName   = _bytes_to_sig(name.data(), name.size());
             const auto realNameUnk = make_string(_RttiInfo.rawPrefixBytes, " ? ", bytesName, ' ', _RttiInfo.rawPostfixBytes);
-            rttiClassName = *invoke(wholeModuleFinder, realNameUnk);
+            rttiClassName          = *invoke(wholeModuleFinder, realNameUnk);
         }
         else if (type == obj_type::NATIVE)
         {
@@ -688,7 +708,7 @@ class vtable_finder
                 FD_ASSERT_UNREACHABLE("Unknown type");
 
             const auto realName = make_string(_RttiInfo.rawPrefix, strPrefix, name, _RttiInfo.rawPostfix);
-            rttiClassName = *invoke(wholeModuleFinder.raw(), realName);
+            rttiClassName       = *invoke(wholeModuleFinder.raw(), realName);
         }
 
         return static_cast<const char*>(rttiClassName);
@@ -702,14 +722,14 @@ class vtable_finder
         typeDescriptor -= sizeof(uintptr_t) * 2;
 
         const auto dotRdata = info_.find_section(".rdata");
-        const auto dotText = info_.find_section(".text");
+        const auto dotText  = info_.find_section(".text");
 
         const xrefs_scanner dotRdataFinder(dnt_.map(dotRdata->VirtualAddress), dotRdata->SizeOfRawData);
         const xrefs_scanner dotTextFinder(dnt_.map(dotText->VirtualAddress), dotText->SizeOfRawData);
 
         for (const auto xref : invoke(dotRdataFinder, typeDescriptor))
         {
-            const auto val = reinterpret_cast<uint32_t>(xref);
+            const auto val          = reinterpret_cast<uint32_t>(xref);
             // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
             const auto vtableOffset = *reinterpret_cast<uint32_t*>(val - 0x8);
             if (vtableOffset != 0)
@@ -791,7 +811,7 @@ class interface_reg
 
       public:
         using iterator_category = std::forward_iterator_tag;
-        using difference_type = size_t;
+        using difference_type   = size_t;
 
         constexpr iterator(const interface_reg* reg)
             : current_(reg)
@@ -826,9 +846,9 @@ class interface_reg
       public:
         range(const void* createInterfaceFn)
         {
-            const auto relativeFn = reinterpret_cast<uintptr_t>(createInterfaceFn) + 0x5;
+            const auto relativeFn   = reinterpret_cast<uintptr_t>(createInterfaceFn) + 0x5;
             const auto displacement = *reinterpret_cast<int32_t*>(relativeFn);
-            const auto jmp = relativeFn + sizeof(int32_t) + displacement;
+            const auto jmp          = relativeFn + sizeof(int32_t) + displacement;
 
             root_ = **reinterpret_cast<interface_reg***>(jmp + 0x6);
         }
@@ -886,7 +906,7 @@ class interface_reg
         }
     };
 
-    interface_reg() = delete;
+    interface_reg()                     = delete;
     interface_reg(const interface_reg&) = delete;
 
     equal operator==(const string_view ifcName) const
@@ -916,7 +936,7 @@ class interface_reg
 #endif
 
         const auto idxStart = this->name_ + knownPart.size();
-        const auto idxSize = str_len(idxStart);
+        const auto idxSize  = str_len(idxStart);
         return knownPart.size() + idxSize;
     }
 
@@ -995,7 +1015,7 @@ static DECLSPEC_NOINLINE PVOID _self_module_handle_impl()
     MEMORY_BASIC_INFORMATION    info;
     constexpr SIZE_T            infoSize = sizeof(MEMORY_BASIC_INFORMATION);
     // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] const auto len = VirtualQueryEx(GetCurrentProcess(), _self_module_handle_impl, &info, infoSize);
+    [[maybe_unused]] const auto len      = VirtualQueryEx(GetCurrentProcess(), _self_module_handle_impl, &info, infoSize);
     FD_ASSERT(len == infoSize, "Wrong size");
     return static_cast<HINSTANCE>(info.AllocationBase);
 }

@@ -1,4 +1,5 @@
 #include <fd/assert.h>
+#include <fd/functional.h>
 #include <fd/hook_impl.h>
 #include <fd/logger.h>
 
@@ -35,15 +36,20 @@ using namespace fd;
 template <typename T>
 static void _log(auto* hook, T msg)
 {
-    if (!Logger)
+    if (!log_active())
         return;
+
     auto hookName = hook->name();
     if (hookName.empty())
         return;
+
+    string buff;
     if constexpr (invocable<T>)
-        invoke(*Logger, make_string(hookName, ": ", invoke(msg)));
+        write_string(buff, hookName, ": ", msg());
     else
-        invoke(*Logger, make_string(hookName, ": ", msg));
+        write_string(buff, hookName, ": ", msg);
+
+    log_unsafe(buff);
 }
 
 #if 0

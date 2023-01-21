@@ -1,5 +1,6 @@
 #include <fd/assert.h>
 #include <fd/filesystem.h>
+#include <fd/format.h>
 #include <fd/functional.h>
 #include <fd/json.h>
 #include <fd/logger.h>
@@ -130,7 +131,7 @@ netvars_classes::~netvars_classes()
 
     struct path_info
     {
-        wstring path;
+        wstring               path;
         std::span<const char> buff;
     };
 
@@ -214,7 +215,7 @@ static auto _is_length_proxy(const recv_prop* prop)
     if (prop->array_length_proxy)
         return true;
     const string_view propName(prop->name);
-    string lstr;
+    string            lstr;
     lstr.reserve(propName.size());
     std::ranges::transform(propName, std::back_insert_iterator(lstr), to_lower);
     return lstr.contains("length") && lstr.contains("proxy");
@@ -261,7 +262,7 @@ class datatable_parser
     struct array_info
     {
         string_view name;
-        size_t size = 0;
+        size_t      size = 0;
     };
 
     array_info parse_array(const string_view firstPropName, const recv_prop* arrayStart, const recv_prop* arrayEnd) const
@@ -485,7 +486,12 @@ void netvars_storage::iterate_client_class(const client_class* rootClass, const 
         invoke(parser, clientClass.table);
     });
 
-    invoke(Logger, "netvars - {} data tables stored", bind_front(_OverrideName, rootClass, debugName));
+    if (!log_active())
+        return;
+    log_unsafe(fd::format( //-
+        "netvars - {} data tables stored",
+        _OverrideName(rootClass, debugName)
+    ));
 }
 
 void netvars_storage::iterate_datamap(const data_map* rootMap, const string_view debugName)
@@ -502,7 +508,7 @@ void netvars_storage::iterate_datamap(const data_map* rootMap, const string_view
 #else
             [&] {
                 const string_view className0(map->name);
-                const auto className1 = className0.substr(className0.find('_'));
+                const auto        className1 = className0.substr(className0.find('_'));
                 return make_string("DT_", className1);
             }();
 #endif
@@ -539,7 +545,7 @@ void netvars_storage::iterate_datamap(const data_map* rootMap, const string_view
         }
     }
 
-    invoke(Logger, "netvars - {} data maps stored", bind_front(_OverrideName, rootMap, debugName));
+    // log_unsafe(format("netvars - {} data maps stored", _OverrideName( rootMap, debugName)));
 }
 #if 0
 void netvars_storage::store_handmade_netvars()
@@ -568,8 +574,8 @@ static auto _drop_default_path(wstring_view buff, const wstring_view prefix)
 {
     if (buff.starts_with(prefix))
     {
-        auto prefixSize = prefix.size();
-        const auto chr  = buff[prefixSize];
+        auto       prefixSize = prefix.size();
+        const auto chr        = buff[prefixSize];
         if (chr == '\\' || chr == '/')
             ++prefixSize;
         buff.remove_prefix(prefixSize);
@@ -585,9 +591,9 @@ static constexpr auto _SkipEmpty = [](auto& rng) {
 template <class S>
 struct simple_netvar_info
 {
-    S name;
+    S      name;
     size_t offset;
-    S type;
+    S      type;
 
     simple_netvar_info(const basic_netvar_info& info)
     {
@@ -639,16 +645,16 @@ void netvars_storage::log_netvars(netvars_log& data)
 
     _stream_to(std::ostringstream() << std::setw(data.indent) << std::setfill(data.filler) << jsRoot, data.buff);
 
-    invoke(Logger, "netvars - logs will be written to {}", [&] {
-        return make_string(_drop_default_path(data.dir, netvars_log().dir), data.file.name, data.file.extension);
-    });
+    if (!log_active())
+        return;
+    log_unsafe(make_string(L"netvars - logs will be written to ", _drop_default_path(data.dir, netvars_log().dir), data.file.name, data.file.extension));
 }
 
 struct generate_info
 {
     string_view name;
-    string typeOut;
-    string typeCast;
+    string      typeOut;
+    string      typeCast;
 
     generate_info(const basic_netvar_info* info)
     {
@@ -688,7 +694,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
     std::vector<char> source, header;
 
     std::ranges::for_each(data_ | std::views::filter(_SkipEmpty), [&](auto& rawTable) {
-        auto validTable = rawTable | std::views::filter(reqType) | std::views::transform(genInfo);
+        auto              validTable = rawTable | std::views::filter(reqType) | std::views::transform(genInfo);
         const std::vector table(validTable.begin(), validTable.end());
 
         const auto className = rawTable.name();
@@ -753,9 +759,14 @@ void netvars_storage::generate_classes(netvars_classes& data)
     });
 #endif
 
-    invoke(Logger, "netvars - {} classes written to {}", data.files.size(), [&] {
-        return /* _Correct_path */ _drop_default_path(data.dir, netvars_classes().dir);
-    });
+    if (log_active())
+    {
+        log_unsafe(fd::format(
+            L"netvars - {} classes written to {}",
+            data.files.size(),
+            /* _Correct_path */ _drop_default_path(data.dir, netvars_classes().dir)
+        ));
+    }
 }
 
 //-------
@@ -787,7 +798,8 @@ void netvars_storage::finish()
     sortRequested_.clear();
     sortRequested_.shrink_to_fit();
 
-    invoke(Logger, "netvars - {} classes stored", data_.size());
+    if (log_active())
+        log_unsafe(format("netvars - {} classes stored", data_.size()));
 }
 
 size_t netvars_storage::get_offset(const string_view className, const string_view name) const

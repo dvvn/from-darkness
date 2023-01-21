@@ -17,8 +17,11 @@ bool hooks_storage::enable()
     hooks_.shrink_to_fit();
     for (const auto h : hooks_)
     {
-        if (!h->active() && !h->enable())
-            return false;
+        if (h->active())
+            continue;
+        if (h->enable())
+            continue;
+        return false;
     }
     return true;
 }
@@ -28,8 +31,11 @@ bool hooks_storage::disable()
     for (auto itr = hooks_.rbegin(); itr != hooks_.rend(); ++itr)
     {
         auto h = *itr;
-        if (h->active() && !h->disable())
-            return false;
+        if (!h->active())
+            continue;
+        if (h->disable())
+            continue;
+        return false;
     }
     return true;
 }

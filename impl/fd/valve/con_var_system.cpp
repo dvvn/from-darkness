@@ -1,4 +1,5 @@
 ﻿#include <fd/assert.h>
+#include <fd/format.h>
 #include <fd/functional.h>
 #include <fd/logger.h>
 #include <fd/valve/con_var_system.h>
@@ -133,7 +134,7 @@ static bool _Compare_cvars(const char* name, const size_t size, const ConCommand
 
 con_var* con_var_system::FindVar(const char* name, const size_t size) const
 {
-    const auto comparer = bind_front(_Compare_cvars, name, size);
+    const auto                   comparer = bind_front(_Compare_cvars, name, size);
     const ConCommandBaseIterator first_cvar(*reinterpret_cast<ConCommandBase**>(reinterpret_cast<uintptr_t>(this) + 0x30));
     const ConCommandBaseIterator invalid_cvar;
 
@@ -141,12 +142,14 @@ con_var* con_var_system::FindVar(const char* name, const size_t size) const
 
     if (target_cvar == invalid_cvar)
     {
-        invoke(Logger, "Cvar '{}' NOT found", name);
+        if (log_active())
+            log_unsafe(format("Cvar '{}' NOT found", name));
         return nullptr;
     }
 
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
-    invoke(Logger, "Cvar '{}' found", name);
+    if (log_active())
+        log_unsafe(format("Cvar '{}' found", name));
 #else
     FD_ASSERT(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
     logger([name] {

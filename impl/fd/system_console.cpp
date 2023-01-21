@@ -67,7 +67,7 @@ static string _get_current_time()
     using clock = system_clock;
 
 #if 1
-    return format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
+    return fd::format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
 #else
     const auto current_time_point = clock::now();
     const auto current_time       = clock::to_time_t(current_time_point);

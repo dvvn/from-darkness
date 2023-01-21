@@ -2,21 +2,31 @@
 
 #include <fd/logger.h>
 
-#include <vector>
-
 namespace fd
 {
+    template <typename Callback>
     class default_logs_handler final : public basic_logs_handler
     {
-        using function_type = function<void(string_view) const, void(wstring_view) const>;
-        std::vector<function_type> data_;
+        Callback callback_;
 
       public:
-        explicit operator bool() const;
+        default_logs_handler(Callback callback)
+            : callback_(std::move(callback))
+        {
+            basic_logs_handler::set(this);
+        }
 
-        void add(function_type&& fn);
+        void write(string_view msg) const override
+        {
+            callback_(msg);
+        }
 
-        void operator()(string_view msg) const override;
-        void operator()(wstring_view msg) const override;
+        void write(wstring_view msg) const override
+        {
+            callback_(msg);
+        }
     };
+
+    template <typename Callback>
+    default_logs_handler(Callback) -> default_logs_handler<std::decay_t<Callback>>;
 } // namespace fd

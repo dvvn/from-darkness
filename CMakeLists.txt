@@ -32,9 +32,9 @@ if(CMAKE_CONFIGURATION_TYPES MATCHES Debug)
   set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 endif()
 
-if(CMAKE_CONFIGURATION_TYPES MATCHES RelWithDebInfo)
-	add_compile_definitions(_DEBUG_RELEASE)
-endif()
+#if(CMAKE_CONFIGURATION_TYPES MATCHES RelWithDebInfo)
+#	add_compile_definitions(_DEBUG_RELEASE)
+#endif()
 
 include(FetchContent)
 set(FETCHCONTENT_QUIET off)

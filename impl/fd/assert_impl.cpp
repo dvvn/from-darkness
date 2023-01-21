@@ -14,8 +14,7 @@ using namespace fd;
 static auto _correct_file_name(const string_view fullPath)
 {
 #ifdef FD_ROOT_DIR
-    // ReSharper disable once CppInconsistentNaming
-    constexpr auto is_slash = [](const char chr) {
+    constexpr auto isSlash = [](const char chr) {
         switch (chr)
         {
         case '\\':
@@ -28,72 +27,76 @@ static auto _correct_file_name(const string_view fullPath)
 
     constexpr string_view rootDir0 = FD_STRINGIZE(FD_ROOT_DIR);
     constexpr string_view rootDir1 = FD_CONCAT(FD_STRINGIZE(FD_ROOT_DIR), "/");
-    constexpr auto        rootDir  = is_slash(rootDir0.back()) ? rootDir0 : rootDir1;
+    constexpr auto        rootDir = isSlash(rootDir0.back()) ? rootDir0 : rootDir1;
 
-    if (std::ranges::equal(rootDir, fullPath, [](auto l, auto r) {
-            return l == r || is_slash(l) && is_slash(r);
-        }))
-        return fullPath.substr(rootDir.size());
+    if (rootDir.size() < fullPath.size())
+    {
+        const auto lPtr = rootDir.data();
+        const auto rPtr = fullPath.data();
+        for (size_t i = 0; i < rootDir.size(); ++i)
+        {
+            const auto l = lPtr[i];
+            const auto r = rPtr[i];
+
+            if (l == r)
+                continue;
+            if (isSlash(l) && isSlash(r))
+                continue;
+
+            return fullPath;
+        }
+    }
+    return fullPath.substr(rootDir.size());
 #endif
     return fullPath;
 }
 
-template <typename... T>
-static utf_string<wchar_t> _build_message(const assert_data& data, T... extra)
+template <class Buff, typename... T>
+static auto _build_message(Buff& buffer, const assert_data& data, T... extra)
 {
-#define FIRST_PART "Assertion falied!", '\n', /**/ "File: ", _correct_file_name(location.file_name()), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
-#define EXPR       "Expression: ", expression
+#define FIRST_PART L"Assertion falied!", '\n', /**/ L"File: ", _correct_file_name(location.file_name()), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
+#define EXPR       L"Expression: ", expression
     const auto [expression, message, location] = data;
 
     if (expression && message)
-        return make_string(FIRST_PART, EXPR, "\n\n", message, extra...);
-    if (expression)
-        return make_string(FIRST_PART, EXPR, extra...);
-    if (message)
-        return make_string(FIRST_PART, message, extra...);
-    return make_string(FIRST_PART, extra...);
-}
-
-static void _default_assert_handler(const assert_data& data)
-{
-#ifdef WINAPI_FAMILY
-#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-    const auto msg  = _build_message(data, "\n\nWould you like to interrupt execution?");
-    const auto stop = MessageBoxW(nullptr, msg.data(), L"Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL) != IDNO;
-    if (stop)
-        unload();
-#else
-#pragma error not implemented
-#endif
-
-#else
-#pragma error not implemented
-#endif
-}
-
-default_assert_handler::default_assert_handler()
-{
-    data_.emplace_back(_default_assert_handler);
-}
-
-void default_assert_handler::add(function_type&& fn)
-{
-    const std::lock_guard guard(mtx_);
-    data_.emplace_back(std::move(fn));
-}
-
-void default_assert_handler::operator()(const assert_data& adata) const noexcept
-{
-    const std::lock_guard guard(mtx_);
-    std::ranges::for_each(data_, bind_back(Invoker, std::ref(adata)));
+        write_string(buffer, FIRST_PART, EXPR, "\n\n", message, extra...);
+    else if (expression)
+        write_string(buffer, FIRST_PART, EXPR, extra...);
+    else if (message)
+        write_string(buffer, FIRST_PART, message, extra...);
+    else
+        write_string(buffer, FIRST_PART, extra...);
 }
 
 namespace fd
 {
-    wstring parse_assert_data(const assert_data& adata)
+    // ReSharper disable once CppInconsistentNaming
+    void _default_assert_handler(const assert_data& adata, const bool interrupt)
     {
-        return _build_message(adata);
+#if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
+        std::vector<wchar_t> msg;
+        if (interrupt)
+        {
+            _build_message(msg, adata, '\0');
+            MessageBoxW(nullptr, msg.data(), L"Assertion Failure", MB_OK | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL);
+            unload();
+        }
+        else
+        {
+            _build_message(msg, adata, L"\n\nWould you like to interrupt execution?", '\0');
+            const auto stop = MessageBoxW(nullptr, msg.data(), L"Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL) != IDNO;
+            if (stop)
+                unload();
+        }
+#else
+#pragma error not implemented
+#endif
     }
 
-    basic_assert_handler* AssertHandler;
+    wstring parse(const assert_data& adata)
+    {
+        wstring buff;
+        _build_message(buff, adata);
+        return buff;
+    }
 } // namespace fd

@@ -19,23 +19,15 @@ int main(int, char**)
     if (!backend.d3d)
         return EXIT_FAILURE;
 
-#ifdef _DEBUG
-    default_assert_handler assertCallback;
-    AssertHandler = &assertCallback;
-#endif
-
     system_console sysConsole;
 
-    default_logs_handler logsCallback;
-    Logger = &logsCallback;
-
-    logsCallback.add([&](auto msg) {
+    const default_logs_handler logsCallback([&](auto msg) {
         sysConsole.write(msg);
     });
 
 #ifdef _DEBUG
-    assertCallback.add([&](auto& adata) {
-        sysConsole.write(parse_assert_data(adata));
+    const default_assert_handler assertHandler([&](const assert_data& adata) {
+        sysConsole.write(parse(adata));
     });
 #endif
 
