@@ -4,32 +4,32 @@
 
 namespace fd
 {
-    class hook_impl : public basic_hook
-    {
-        bool        inUse_;
-        void*       entry_;
-        string_view name_;
+class hook_impl : public basic_hook
+{
+    void*       entry_;
+    string_view name_;
 
-      public:
-        hook_impl();
-        ~hook_impl() override;
+  public:
+    hook_impl(string_view name);
+    ~hook_impl() override;
 
-        hook_impl(const hook_impl&) = delete;
-        hook_impl(hook_impl&& other) noexcept;
+    void free();
 
-        bool enable() override;
-        bool disable() override;
+    hook_impl(const hook_impl&) = delete;
+    hook_impl(hook_impl&& other) noexcept;
 
-        string_view name() const override;
-        void        set_name(string_view name);
+    bool enable() override;
+    bool disable() override;
 
-        bool initialized() const override;
-        bool active() const override;
+    string_view name() const override;
 
-        void* get_original_method() const;
-        void  init(void* target, void* replace);
+    bool initialized() const override;
+    bool active() const override;
 
-        explicit operator bool() const;
-    };
+    void* get_original_method() const;
+    void  init(void* target, void* replace);
+
+    explicit operator bool() const;
+};
 
 } // namespace fd

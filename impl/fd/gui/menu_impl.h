@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fd/functional.h>
-#include <fd/gui/context.h>
 #include <fd/gui/menu.h>
 #include <fd/string.h>
 
@@ -45,8 +44,6 @@ namespace fd::gui
 
         std::vector<tab_bar*> tabBars_;
 
-        basic_context* ctx_;
-
       public:
 #ifdef FD_HAVE_HOTKEY
         static constexpr struct
@@ -56,7 +53,7 @@ namespace fd::gui
         } hotkeys;
 #endif
 
-        menu(basic_context* ctx);
+        menu();
 
         bool visible() const override;
 

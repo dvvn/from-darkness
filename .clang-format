@@ -9,7 +9,7 @@ AlignArrayOfStructures: Left
 AlignEscapedNewlines: Left
 PointerAlignment: Left
 FixNamespaceComments: true
-NamespaceIndentation: All
+#NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
 #BreakBeforeBraces: Allman
 AlignAfterOpenBracket: BlockIndent

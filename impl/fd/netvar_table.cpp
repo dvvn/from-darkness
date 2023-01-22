@@ -1,9 +1,8 @@
 #include <fd/assert.h>
 #include <fd/netvar_table.h>
 
-using namespace fd;
-using namespace valve;
-
+namespace fd
+{
 void netvar_table::validate_item(const basic_netvar_info* info) const
 {
     if (this->empty())
@@ -81,3 +80,4 @@ const netvar_table_multi& netvar_table_multi::inner() const
 {
     return std::get<netvar_table_multi>(inner_);
 } */
+}

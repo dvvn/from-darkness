@@ -87,21 +87,15 @@ void hook_global_callback::set(hook_global_callback* callback)
 }
 #endif
 
-hook_impl::hook_impl()
-    : inUse_(false)
-    , entry_(nullptr)
+hook_impl::hook_impl(string_view name)
+    : entry_(nullptr)
+    , name_(name)
 {
     //_HookCallback.construct(this);
 }
 
 hook_impl::~hook_impl()
 {
-    if (!inUse_)
-    {
-        _log(this, "never used!");
-        return;
-    }
-
     if (!hook_impl::initialized())
         return;
     if (hook_impl::active())
@@ -113,9 +107,12 @@ hook_impl::~hook_impl()
     subhook_free(entry_);
 }
 
+void hook_impl::free()
+{
+}
+
 hook_impl::hook_impl(hook_impl&& other) noexcept
-    : inUse_(false)
-    , entry_(std::exchange(other.entry_, nullptr))
+    : entry_(std::exchange(other.entry_, nullptr))
     , name_(other.name_)
 {
 }
@@ -132,7 +129,6 @@ bool hook_impl::enable()
             return "already hooked";
         return "enable error!";
     });
-    inUse_ = true;
     return ok;
 }
 
@@ -154,11 +150,6 @@ bool hook_impl::disable()
 string_view hook_impl::name() const
 {
     return name_;
-}
-
-void hook_impl::set_name(const string_view name)
-{
-    name_ = name;
 }
 
 bool hook_impl::initialized() const

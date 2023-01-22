@@ -28,10 +28,10 @@ static auto _im_str(const string_view strv)
 // ReSharper disable CppInconsistentNaming
 namespace ImGui
 {
-    static bool BeginTabItem(const string_view label)
-    {
-        return BeginTabItem(_im_str(label), nullptr);
-    }
+static bool BeginTabItem(const string_view label)
+{
+    return BeginTabItem(_im_str(label), nullptr);
+}
 
 } // namespace ImGui
 
@@ -69,16 +69,16 @@ tab_bar::tab_bar(const string_view name)
 
 void tab_bar::render() const
 {
-    auto&      g = *GImGui;
+    auto&      g      = *GImGui;
     const auto window = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
-    const auto id = window->GetID(name_.data(), name_.data() + name_.size());
+    const auto id     = window->GetID(name_.data(), name_.data() + name_.size());
     const auto tabBar = g.TabBars.GetOrAddByKey(id);
-    tabBar->ID = id;
+    tabBar->ID        = id;
     const ImRect   tabBarBB(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
     constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
-    constexpr auto extraFlags = ImGuiTabBarFlags_IsFocused;
+    constexpr auto extraFlags   = ImGuiTabBarFlags_IsFocused;
 
     if (ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags))
     {
@@ -97,10 +97,9 @@ void tab_bar::store(tab& newTab)
 
 //-------
 
-menu::menu(basic_context* ctx)
+menu::menu()
     : visible_(false)
     , visibleNext_(true)
-    , ctx_(ctx)
 {
 }
 

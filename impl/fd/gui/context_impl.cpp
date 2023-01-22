@@ -421,7 +421,7 @@ void hotkeys_storage::fire(const hotkey_access access)
 
 #endif
 
-context::~context()
+context_impl::~context_impl()
 {
     if (find_library(L"d3d9.dll", false))
         ImGui_ImplDX9_Shutdown();
@@ -438,38 +438,40 @@ static void _correct_io(ImGuiIO& io = ImGui::GetIO())
 {
 }
 
-context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSettings)
+context_impl::context_impl()
     : context_(&fontAtlas_)
-    , focused_(GetForegroundWindow() == hwnd)
+    , focused_(false)
 #ifdef FD_HAVE_HOTKEY
     , hotkeysActive_(false)
 #endif
+{
+    IMGUI_CHECKVERSION();
+    ImGui::SetCurrentContext(&context_);
+}
+
+void context_impl::init(bool storeSettings)
 {
 #if defined(_DEBUG) && defined(FD_HAVE_HOTKEY)
     _HotkeysActive = hotkeysActive_;
 #endif
 
-    IMGUI_CHECKVERSION();
 #ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
     ImGui::SetAllocatorFunctions( //
         [](const size_t size, void*) -> void* {
-            return new uint8_t[size];
+            return operator new(size);
         },
         [](void* buff, void*) {
-            delete[] static_cast<uint8_t*>(buff);
+            operator delete(buff);
         }
     );
 #endif
-    ImGui::SetCurrentContext(&context_);
     ImGui::Initialize();
 #ifdef FD_HAVE_HOTKEY
     _KeyNames.fill();
 #endif
-
 #ifndef _DEBUG
     // todo: disable fallback window
 #endif
-
     if (!storeSettings)
         _disable_ini_settings(&context_);
     _correct_io(context_.IO);
@@ -477,15 +479,22 @@ context::context(IDirect3DDevice9* d3d, const HWND hwnd, const bool storeSetting
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     // ImGui::StyleColorsLight();
+}
 
-    //---
-
-    // move to main
-    if (!ImGui_ImplDX9_Init(d3d) || !ImGui_ImplWin32_Init(hwnd))
+void context_impl::init(IDirect3DDevice9* d3d)
+{
+    if (!ImGui_ImplDX9_Init(d3d))
         unload();
 }
 
-void context::release_textures()
+void context_impl::init(HWND hwnd)
+{
+    focused_ = (GetForegroundWindow() == hwnd);
+    if (!ImGui_ImplWin32_Init(hwnd))
+        unload();
+}
+
+void context_impl::release_textures()
 {
     ImGui_ImplDX9_InvalidateDeviceObjects();
 }
@@ -498,12 +507,8 @@ void context::release_textures()
 #define D3D_VALIDATE(_X_) _X_
 #endif
 
-void context::render(void* data)
-{
-    render(static_cast<IDirect3DDevice9*>(data));
-}
-
-void context::render(IDirect3DDevice9* thisPtr)
+// ReSharper disable once CppMemberFunctionMayBeConst
+bool context_impl::begin_frame()
 {
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -511,38 +516,42 @@ void context::render(IDirect3DDevice9* thisPtr)
 #ifndef IMGUI_HAS_VIEWPORT
     // sets in win32 impl
     const auto displaySize = context_.IO.DisplaySize;
-    const auto minimized = displaySize.x <= 0 || displaySize.y <= 0;
+    const auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
     if (minimized)
-        return;
+        return 0;
 #endif
 
     ImGui::NewFrame();
+
+#ifdef FD_HAVE_HOTKEY
+    hotkeysActive_ = focused_ && !context_.InputEventsTrail.empty();
+    if (hotkeysActive_)
     {
-#ifdef FD_HAVE_HOTKEY
-        hotkeysActive_ = focused_ && !context_.InputEventsTrail.empty();
-        if (hotkeysActive_)
-        {
-            _KeysHeld.clear();
-            _KeysPressed.clear();
+        _KeysHeld.clear();
+        _KeysPressed.clear();
 #ifdef UPDATE_KEYS_GLOBALLY
-            if ((static_cast<int>(_KeysHeld.fill()) | static_cast<int>(_KeysPressed.fill())) == 0)
-                hotkeysActive_ = false;
-#endif
-        }
-#endif
-
-        std::ranges::for_each(callbacks_, Invoker);
-
-#ifdef FD_HAVE_HOTKEY
-        if (hotkeysActive_)
-        {
-            const auto haveVisibleWindow = std::ranges::any_of(context_.WindowsFocusOrder, [](auto wnd) {
-                return wnd->Active || wnd->Collapsed;
-            });
-            hotkeys_.fire(haveVisibleWindow ? hotkey_access::foreground : hotkey_access::background);
-        }
+        if ((static_cast<int>(_KeysHeld.fill()) | static_cast<int>(_KeysPressed.fill())) == 0)
+            hotkeysActive_ = false;
 #endif
     }
+#endif
+
+    return 1;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void context_impl::end_frame(IDirect3DDevice9* thisPtr)
+{
+#ifdef FD_HAVE_HOTKEY
+    if (hotkeysActive_)
+    {
+        const auto haveVisibleWindow = std::ranges::any_of(context_.WindowsFocusOrder, [](auto wnd) {
+            return wnd->Active || wnd->Collapsed;
+        });
+        hotkeys_.fire(haveVisibleWindow ? hotkey_access::foreground : hotkey_access::background);
+    }
+#endif
+
     ImGui::Render();
 
     D3D_VALIDATE(thisPtr->BeginScene());
@@ -561,22 +570,22 @@ struct keys_data
 // ReSharper disable once CppInconsistentNaming
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
-process_keys_result context::process_keys(void* data)
+process_keys_result context_impl::process_keys(void* data)
 {
     const auto kd = static_cast<keys_data*>(data);
     return process_keys(kd->window, kd->message, kd->wParam, kd->lParam);
 }
 
-process_keys_result context::process_keys(const HWND window, const UINT message, const WPARAM wParam, const LPARAM lParam)
+process_keys_result context_impl::process_keys(const HWND window, const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
 #if 0
     if (!can_process_keys())
         return process_keys_result::native;
 #endif
 
-    const auto&     events = context_.InputEventsQueue;
+    const auto&     events         = context_.InputEventsQueue;
     const auto      oldEventsCount = events.size();
-    const auto      instant = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
+    const auto      instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
     const std::span eventsAdded(events.begin() + oldEventsCount, events.end());
 
     // update focus
@@ -601,20 +610,15 @@ process_keys_result context::process_keys(const HWND window, const UINT message,
     return process_keys_result::def;
 }
 
-void context::store(context_callback&& callback)
-{
-    callbacks_.emplace_back(std::move(callback));
-}
-
 #ifdef FD_HAVE_HOTKEY
 
-void context::create_hotkey(hotkey_source source, hotkey_info&& info, hotkey_data&& data)
+void context_impl::create_hotkey(hotkey_source source, hotkey_info&& info, hotkey_data&& data)
 {
     FD_ASSERT(!hotkeys_.contains(source));
     hotkeys_[source].store(std::move(info), std::move(data));
 }
 
-hotkey& context::get_hotkey(const hotkey_source source)
+hotkey& context_impl::get_hotkey(const hotkey_source source)
 {
 #ifdef _DEBUG
     return hotkeys_.at(source);
@@ -623,12 +627,12 @@ hotkey& context::get_hotkey(const hotkey_source source)
 #endif
 }
 
-// bool context::erase_hotkey(const hotkey_source source, const hotkey_mode mode)
+// bool context_impl::erase_hotkey(const hotkey_source source, const hotkey_mode mode)
 //{
 //     return hotkeys_.erase(source, mode);
 // }
 
-bool context::update_hotkey(const hotkey_source source, const hotkey_mode mode, const bool allowOverride)
+bool context_impl::update_hotkey(const hotkey_source source, const hotkey_mode mode, const bool allowOverride)
 {
     if (!hotkeysActive_)
         return false;
@@ -638,7 +642,7 @@ bool context::update_hotkey(const hotkey_source source, const hotkey_mode mode, 
     return (*hk).second.update(mode, allowOverride);
 }
 
-basic_hotkey* context::find_hotkey(const hotkey_source source)
+basic_hotkey* context_impl::find_hotkey(const hotkey_source source)
 {
     const auto itr = hotkeys_.find(source);
     return itr == hotkeys_.end() ? nullptr : &(*itr).second;

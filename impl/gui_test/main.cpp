@@ -31,18 +31,17 @@ int main(int, char**)
     });
 #endif
 
-    gui::context guiCtx(backend.d3d, backend.hwnd);
-    gui::menu    menu(&guiCtx);
+    gui::menu menu;
 
-    guiCtx.store([&] {
+    gui::context guiCtx([&] {
         menu.render();
-    });
-
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-    guiCtx.store([] {
         ImGui::ShowDemoWindow();
-    });
 #endif
+    });
+    guiCtx.init(true);
+    guiCtx.init(backend.hwnd);
+    guiCtx.init(backend.d3d);
 
     gui::tab_bar testTabBar("test");
     gui::tab     testTab("test2");
@@ -51,37 +50,43 @@ int main(int, char**)
     testTabBar.store(testTab);
     menu.store(testTabBar);
 
-    hooks_storage allHooks;
-
-    hook_callback hkWndProc(backend.info.lpfnWndProc, [&](auto orig, auto... args) -> LRESULT {
-        switch (guiCtx.process_keys(args...))
-        {
-        case gui::process_keys_result::instant:
-            return TRUE;
-        case gui::process_keys_result::native:
-            return orig(args...);
-        case gui::process_keys_result::def:
-            return DefWindowProc(args...);
-        default:
-            unreachable();
-        }
-    });
-    hkWndProc.set_name("WinAPI.WndProc");
-    allHooks.store(hkWndProc);
-
-    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, decay_fn(backend.d3d, 16), [&](auto orig, auto, auto... args) {
-        guiCtx.release_textures();
-        return orig(args...);
-    });
-    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
-    allHooks.store(hkDirectx9Reset);
-
-    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, decay_fn(backend.d3d, 17), [&](auto orig, auto thisPtr, auto... args) {
-        guiCtx.render(thisPtr);
-        return orig(args...);
-    });
-    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
-    allHooks.store(hkDirectx9Present);
+    hooks_storage2 allHooks(
+        hook_callback(
+            "WinAPI.WndProc",
+            backend.info.lpfnWndProc,
+            [&](auto orig, auto... args) -> LRESULT {
+                switch (guiCtx.process_keys(args...))
+                {
+                case gui::process_keys_result::instant:
+                    return TRUE;
+                case gui::process_keys_result::native:
+                    return orig(args...);
+                case gui::process_keys_result::def:
+                    return DefWindowProc(args...);
+                default:
+                    unreachable();
+                }
+            }
+        ),
+        hook_callback(
+            "IDirect3DDevice9::Reset",
+            &IDirect3DDevice9::Reset,
+            decay_fn(backend.d3d, 16),
+            [&](auto orig, auto, auto... args) {
+                guiCtx.release_textures();
+                return orig(args...);
+            }
+        ),
+        hook_callback(
+            "IDirect3DDevice9::Present",
+            &IDirect3DDevice9::Present,
+            decay_fn(backend.d3d, 17),
+            [&](auto orig, auto thisPtr, auto... args) {
+                guiCtx.render(thisPtr);
+                return orig(args...);
+            }
+        )
+    );
 
     if (allHooks.enable())
     {

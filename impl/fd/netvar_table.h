@@ -7,45 +7,45 @@
 
 namespace fd
 {
-    class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
+class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
+{
+    string name_;
+    bool   isRoot_;
+
+  protected:
+    void validate_item(const basic_netvar_info* info) const;
+
+  public:
+    netvar_table(string&& name, bool root);
+
+    string_view              name() const;
+    bool                     root() const;
+    const basic_netvar_info* find(string_view name) const;
+
+    template <typename... Args>
+    const auto* add(Args&&... args)
     {
-        string name_;
-        bool isRoot_;
-
-      protected:
-        void validate_item(const basic_netvar_info* info) const;
-
-      public:
-        netvar_table(string&& name, bool root);
-
-        string_view name() const;
-        bool root() const;
-        const basic_netvar_info* find(string_view name) const;
-
-        template <typename... Args>
-        const auto* add(Args&&... args)
-        {
-            auto ptr = make_netvar_info(std::forward<Args>(args)...);
+        auto ptr = make_netvar_info(std::forward<Args>(args)...);
 #ifdef _DEBUG
-            validate_item(ptr);
+        validate_item(ptr);
 #endif
-            this->emplace_back(ptr /* , make_deleter(ptr) */);
-            return ptr;
-        }
-    };
+        this->emplace_back(ptr /* , make_deleter(ptr) */);
+        return ptr;
+    }
+};
 
-    /* class netvar_data_table
-    {
-    };
+/* class netvar_data_table
+{
+};
 
-    class netvar_table_multi : public netvar_table
-    {
-        std::variant<std::monostate, netvar_table_multi> inner_;
+class netvar_table_multi : public netvar_table
+{
+    std::variant<std::monostate, netvar_table_multi> inner_;
 
-      public:
-        bool have_inner() const;
-        netvar_table_multi& inner(string&& name);
-        netvar_table_multi& inner();
-        const netvar_table_multi& inner() const;
-    }; */
+  public:
+    bool have_inner() const;
+    netvar_table_multi& inner(string&& name);
+    netvar_table_multi& inner();
+    const netvar_table_multi& inner() const;
+}; */
 } // namespace fd
