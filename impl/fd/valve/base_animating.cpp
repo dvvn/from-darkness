@@ -14,7 +14,7 @@ void base_animating::UpdateClientSideAnimation()
     // 224
     // auto fn = fd::rt_modules::client.find_signature<"55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36">();
     // fd::invoke((decltype(&base_animating::UpdateClientSideAnimation)&)fn, this);
-    FD_ASSERT_UNREACHABLE("Not implemented");
+    FD_ASSERT_PANIC("Not implemented");
 }
 
 void base_animating::InvalidateBoneCache()
@@ -26,6 +26,6 @@ void base_animating::InvalidateBoneCache()
     time    = -FLT_MAX;
     counter = -1;
 #else
-    FD_ASSERT_UNREACHABLE("Not implemented");
+    FD_ASSERT_PANIC("Not implemented");
 #endif
 }

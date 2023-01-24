@@ -2,6 +2,7 @@
 #include <fd/exception.h>
 #include <fd/functional.h>
 #include <fd/utf_string.h>
+#include <fd/utility.h>
 
 #include <Windows.h>
 

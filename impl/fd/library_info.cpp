@@ -147,20 +147,20 @@ class LIST_ENTRY_range
 
 namespace std
 {
-    // ReSharper disable CppInconsistentNaming
-    template <typename T>
-    static T* get(LIST_ENTRY& list)
-    {
-        return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
-    }
+// ReSharper disable CppInconsistentNaming
+template <typename T>
+static T* get(LIST_ENTRY& list)
+{
+    return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
+}
 
-    template <typename T>
-    static const T* get(const LIST_ENTRY& list)
-    {
-        return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
-    }
+template <typename T>
+static const T* get(const LIST_ENTRY& list)
+{
+    return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
+}
 
-    // ReSharper restore CppInconsistentNaming
+// ReSharper restore CppInconsistentNaming
 } // namespace std
 
 // ReSharper disable All
@@ -266,7 +266,7 @@ static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto obje
         reinterpret_cast<uintptr_t>(addr)
     ));
 
-    // FD_ASSERT_UNREACHABLE("FIX ME");
+    // FD_ASSERT_PANIC("FIX ME");
 };
 
 static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view rawName, const void* addr)
@@ -346,7 +346,7 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
             return L"class";
         if (prefix == _RttiInfo.structPrefix)
             return L"struct";
-        FD_ASSERT_UNREACHABLE("Unknown prefix!");
+        FD_ASSERT_PANIC("Unknown prefix!");
     };
 
     const auto demagleName = [=]() -> wstring {
@@ -591,7 +591,7 @@ void* library_info::find_export(const string_view name, const bool notify) const
             break;
         }
 
-        FD_ASSERT_UNREACHABLE("Forwarded export detected");
+        FD_ASSERT_PANIC("Forwarded export detected");
 #if 0
 		// get forwarder string.
 		const string_view fwd_str = export_ptr.get<const char*>( );
@@ -705,7 +705,7 @@ class vtable_finder
             else if (type == obj_type::STRUCT)
                 strPrefix = _RttiInfo.structPrefix;
             else
-                FD_ASSERT_UNREACHABLE("Unknown type");
+                FD_ASSERT_PANIC("Unknown type");
 
             const auto realName = make_string(_RttiInfo.rawPrefix, strPrefix, name, _RttiInfo.rawPostfix);
             rttiClassName       = *invoke(wholeModuleFinder.raw(), realName);
@@ -727,7 +727,7 @@ class vtable_finder
         const xrefs_scanner dotRdataFinder(dnt_.map(dotRdata->VirtualAddress), dotRdata->SizeOfRawData);
         const xrefs_scanner dotTextFinder(dnt_.map(dotText->VirtualAddress), dotText->SizeOfRawData);
 
-        for (const auto xref : invoke(dotRdataFinder, typeDescriptor))
+        for (const auto xref : dotRdataFinder(typeDescriptor))
         {
             const auto val          = reinterpret_cast<uint32_t>(xref);
             // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
@@ -736,11 +736,11 @@ class vtable_finder
                 continue;
 
             const auto objectLocator = val - 0xC;
-            const auto vtableAddress = reinterpret_cast<uintptr_t>(*invoke(dotRdataFinder, objectLocator)) + 0x4;
+            const auto vtableAddress = reinterpret_cast<uintptr_t>(*dotRdataFinder(objectLocator)) + 0x4;
 
             // check is valid offset
             FD_ASSERT(vtableAddress > sizeof(uintptr_t));
-            return *invoke(dotTextFinder, vtableAddress);
+            return *dotTextFinder(vtableAddress);
         }
         return nullptr;
     }
@@ -752,7 +752,7 @@ static void* _find_vtable(const library_info info, const string_view name, const
 
     const auto rttiClassName = vtableFinder.find_type_descriptor(name, type);
     FD_ASSERT(rttiClassName != nullptr);
-    const auto vtablePtr = invoke(vtableFinder, rttiClassName);
+    const auto vtablePtr = vtableFinder(rttiClassName);
     if (notify)
         _log_found_vtable(info.get(), name, rttiClassName, vtablePtr);
 
@@ -925,7 +925,7 @@ class interface_reg
 
     auto operator()() const
     {
-        return invoke(createFn_);
+        return (createFn_());
     }
 
     auto name_size(const string_view knownPart = {}) const
@@ -997,7 +997,7 @@ void* csgo_library_info::find_interface(const void* createInterfaceFn, const str
                     logName = { reg.name(), wholeNameSize };
             }
 
-        ifcAddr = invoke(reg);
+        ifcAddr = (reg());
         break;
     }
 

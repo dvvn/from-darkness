@@ -6,15 +6,15 @@
 
 namespace fd
 {
-    string type_std_array(string_view type, size_t size);
-    string type_utlvector(string_view type);
-    string_view type_vec3(string_view type);
-    string_view type_integer(string_view type);
+string      extract_type_std_array(string_view type, size_t size);
+string      extract_type_valve_vector(string_view type);
+string_view extract_type_vec3(string_view type);
+string_view extract_type_integer(string_view type);
 
-    string type_recv_prop(const valve::recv_prop* prop);
-    string_view type_datamap_field(const valve::data_map_description* field);
+string      extract_type(const valve::recv_prop* prop);
+string_view extract_type(const valve::data_map_description* field);
 
-    // m_***
-    string_view type_array_prefix(string_view type, const valve::recv_prop* prop);
-    string_view type_array_prefix(string_view type, const valve::data_map_description* field);
+// m_***
+string_view extract_type_by_prefix(string_view type, const valve::recv_prop* prop);
+string_view extract_type_by_prefix(string_view type, const valve::data_map_description* field);
 } // namespace fd

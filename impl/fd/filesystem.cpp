@@ -281,12 +281,12 @@ bool directory_impl::create(const wstring_view dir, const bool override) const
 
 bool directory_impl::empty(const string_view /*dir*/) const
 {
-    FD_ASSERT_UNREACHABLE("Not implemented");
+    FD_ASSERT_PANIC("Not implemented");
 }
 
 bool directory_impl::empty(const wstring_view /*dir*/) const
 {
-    FD_ASSERT_UNREACHABLE("Not implemented");
+    FD_ASSERT_PANIC("Not implemented");
 }
 
 //-----

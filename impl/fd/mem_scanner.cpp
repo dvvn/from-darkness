@@ -238,7 +238,7 @@ static constexpr uint8_t _to_num(const char chr)
     case 'F':
         return 0xF;
     default:
-        FD_ASSERT_UNREACHABLE("Unsupported character");
+        FD_ASSERT_PANIC("Unsupported character");
     }
 };
 
@@ -311,7 +311,7 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
             break;
         }
         default: {
-            FD_ASSERT_UNREACHABLE("Uncorrect part!");
+            FD_ASSERT_PANIC("Uncorrect part!");
         }
         }
     }

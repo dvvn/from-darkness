@@ -7,6 +7,7 @@
 #include <fd/netvar_storage_impl.h>
 #include <fd/netvar_type_resolve.h>
 #include <fd/string_info.h>
+#include <fd/views.h>
 
 #include <algorithm>
 #include <fstream>
@@ -156,7 +157,7 @@ netvars_classes::~netvars_classes()
 
 netvars_classes::netvars_classes()
 {
-#if defined(FD_WORK_DIR) && !defined(__RESHARPER__)
+#if defined(FD_WORK_DIR) / &&!defined(__RESHARPER__)
     dir = FD_CONCAT_EX(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
 #endif
 }
@@ -249,7 +250,7 @@ class datatable_parser
 #ifdef MERGE_DATA_TABLES
             netvarTable_, offset + propOffset
 #else
-            storeDataTable_, invoke(storeDataTable_, name)
+            storeDataTable_, storeDataTable_(name)
 #endif
         };
     }
@@ -321,8 +322,8 @@ class datatable_parser
         : offset(offset)
         , netvarTable_(rootTable)
 #else
-        (const store_fn& callback, netvar_table* currentTable = nullptr)
-        : storeDataTable_(callback)
+        (store_fn callback, netvar_table* currentTable = nullptr)
+        : storeDataTable_(std::move(callback))
         , netvarTable_(currentTable)
 #endif
     {
@@ -345,13 +346,13 @@ class datatable_parser
                 const auto arrayInfo = parse_array(propName, itr + 1, props_end);
                 if (arrayInfo.size > 0)
                 {
-                    netvarTable_->add(get_offset(prop.offset), itr, arrayInfo.size, arrayInfo.name);
+                    netvarTable_->add(new netvar_info(get_offset(prop.offset), itr, arrayInfo.size, arrayInfo.name));
                     itr += arrayInfo.size - 1;
                 }
             }
             else if (prop.type != DPT_DataTable)
             {
-                netvarTable_->add(get_offset(prop.offset), itr, 0, propName);
+                netvarTable_->add(new netvar_info(get_offset(prop.offset), itr, 0, propName));
             }
             else if (prop.data_table && !prop.data_table->props.empty())
             {
@@ -360,7 +361,7 @@ class datatable_parser
                 if (!next)
                     continue;
 #endif
-                invoke(next, prop.data_table);
+                next(prop.data_table);
             }
         }
     }
@@ -370,14 +371,14 @@ template <class J, typename T>
 concept can_assign = requires(J& js, const T& test) { js[test]; };
 
 template <class J, typename T>
-static auto _append(J& js, const T& str)
+static J& _append(J& js, const T& str)
 {
     if constexpr (can_assign<J, T>)
-        return &js[str];
+        return js[str];
     else
     {
         const auto nullTerminated = str.data()[str.size()] == '\0';
-        return nullTerminated ? &js[str.data()] : &js[typename J::string_t(str.begin(), str.end())];
+        return nullTerminated ? js[str.data()] : js[typename J::string_t(str.begin(), str.end())];
     }
 }
 
@@ -411,12 +412,8 @@ void netvars_storage::sort()
 {
     // ReSharper disable once CppUseRangeAlgorithm
     const auto sortEnd = std::unique(sortRequested_.begin(), sortRequested_.end());
-    std::for_each(sortRequested_.begin(), sortEnd, [&](const size_t idx) {
-        auto& t = data_[idx];
-        std::ranges::sort(t, [](auto& l, auto& r) {
-            return l->offset() < r->offset();
-        });
-    });
+    for (const auto idx : range_view(sortRequested_.begin(), sortEnd))
+        data_[idx].sort();
     sortRequested_.clear();
 }
 
@@ -530,7 +527,7 @@ void netvars_storage::iterate_datamap(const data_map* rootMap, const string_view
             if (desc.type == FIELD_EMBEDDED)
             {
                 if (desc.description != nullptr)
-                    FD_ASSERT_UNREACHABLE("Embedded datamap detected");
+                    FD_ASSERT_PANIC("Embedded datamap detected");
             }
             else if (desc.name != nullptr)
             {
@@ -540,7 +537,7 @@ void netvars_storage::iterate_datamap(const data_map* rootMap, const string_view
                 if (!tableAdded && table->find(name)) // todo: check & correct type
                     continue;
                 // fieldOffset[TD_OFFSET_NORMAL], array replaced with two varaibles
-                table->add(static_cast<size_t>(desc.offset), &desc, 0, name);
+                table->add(new netvar_info(static_cast<size_t>(desc.offset), &desc, 0, name));
             }
         }
     }
@@ -553,12 +550,12 @@ void netvars_storage::store_handmade_netvars()
     const auto baseent = this->find("C_BaseEntity");
     this->request_sort(baseent);
     baseent->add<var_map>(0x24, "m_InterpVarMap");
-    baseent->add<matrix3x4>(SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", plus(9), deref<1>(), minus(8)), "m_BonesCache", type_utlvector);
+    baseent->add<matrix3x4>(SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", plus(9), deref<1>(), minus(8)), "m_BonesCache", extract_type_valve_vector);
 
     const auto baseanim = this->find("C_BaseAnimating");
     this->request_sort(baseanim);
     // m_vecRagdollVelocity - 128
-    baseanim->add<animation_layer>(SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", plus(2), deref<1>()), "m_AnimOverlays", type_utlvector);
+    baseanim->add<animation_layer>(SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", plus(2), deref<1>()), "m_AnimOverlays", extract_type_valve_vector);
     // m_hLightingOrigin - 32
     baseanim->add<float>(SIG(client, "C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F", plus(2), deref<1>()), "m_flLastBoneSetupTime");
     // ForceBone + 4
@@ -584,26 +581,24 @@ static auto _drop_default_path(wstring_view buff, const wstring_view prefix)
     return buff;
 }
 
-static constexpr auto _SkipEmpty = [](auto& rng) {
-    return !rng.empty();
-};
-
 template <class S>
-struct simple_netvar_info
+static auto _simple_netvar_info(const basic_netvar_info& info)
 {
-    S      name;
-    size_t offset;
-    S      type;
-
-    simple_netvar_info(const basic_netvar_info& info)
+    struct
     {
-        const auto nativeName = info.name();
-        const auto nativeType = info.type();
+        S      name;
+        size_t offset;
+        S      type;
+    } s;
 
-        name   = { nativeName.begin(), nativeName.end() };
-        offset = info.offset();
-        type   = { nativeType.begin(), nativeType.end() };
-    }
+    const auto nativeName = info.name();
+    const auto nativeType = info.type();
+
+    s.name   = { nativeName.begin(), nativeName.end() };
+    s.offset = info.offset();
+    s.type   = { nativeType.begin(), nativeType.end() };
+
+    return s;
 };
 
 void netvars_storage::log_netvars(netvars_log& data)
@@ -615,39 +610,38 @@ void netvars_storage::log_netvars(netvars_log& data)
     this->sort();
 
     json_unsorted jsRoot;
-    using json_string = json_unsorted::string_t;
 
-    constexpr auto unpackTable = [](auto& info) -> simple_netvar_info<json_string> {
-        return *info;
-    };
-
-    constexpr auto storeTable = [](auto info, auto* buff) {
-        if (info.type.empty())
+    for (auto& table : data_)
+    {
+        if (table.empty())
+            continue;
+        auto& buff = _append(jsRoot, table.name());
+        for (const auto info : table)
         {
-            buff->push_back({
-                {"name",    std::move(info.name)},
-                { "offset", info.offset         }
-            });
-        }
-        else
-        {
-            buff->push_back({
-                {"name",    std::move(info.name)},
-                { "offset", info.offset         },
-                { "type",   std::move(info.type)}
-            });
-        }
-    };
+            auto [name, offset, type] = _simple_netvar_info<json_unsorted::string_t>(*info);
 
-    std::ranges::for_each(data_ | std::views::filter(_SkipEmpty), [&jsRoot](auto& table) {
-        std::ranges::for_each(table, bind_back(storeTable, _append(jsRoot, table.name())), unpackTable);
-    });
+            if (type.empty())
+            {
+                buff.push_back({
+                    {"name",    std::move(name)},
+                    { "offset", offset         }
+                });
+            }
+            else
+            {
+                buff.push_back({
+                    {"name",    std::move(name)},
+                    { "offset", offset         },
+                    { "type",   std::move(type)}
+                });
+            }
+        }
+    }
 
     _stream_to(std::ostringstream() << std::setw(data.indent) << std::setfill(data.filler) << jsRoot, data.buff);
 
-    if (!log_active())
-        return;
-    log_unsafe(make_string(L"netvars - logs will be written to ", _drop_default_path(data.dir, netvars_log().dir), data.file.name, data.file.extension));
+    if (log_active())
+        log_unsafe(make_string(L"netvars - logs will be written to ", _drop_default_path(data.dir, netvars_log().dir), data.file.name, data.file.extension));
 }
 
 struct generate_info
@@ -686,16 +680,21 @@ void netvars_storage::generate_classes(netvars_classes& data)
         return !i->type().empty();
     };
 
-    constexpr auto genInfo = [](auto& i) -> generate_info {
-        return i.get();
-    };
+    std::vector<char>          source;
+    std::vector<char>          header;
+    std::vector<generate_info> table;
 
-    // reuse the memory
-    std::vector<char> source, header;
+    for (auto& rawTable : data_)
+    {
+        if (rawTable.empty())
+            continue;
 
-    std::ranges::for_each(data_ | std::views::filter(_SkipEmpty), [&](auto& rawTable) {
-        auto              validTable = rawTable | std::views::filter(reqType) | std::views::transform(genInfo);
-        const std::vector table(validTable.begin(), validTable.end());
+        table.clear();
+        for (auto i : rawTable)
+        {
+            if (!i->type().empty())
+                table.emplace_back(i);
+        }
 
         const auto className = rawTable.name();
 
@@ -709,19 +708,22 @@ void netvars_storage::generate_classes(netvars_classes& data)
                          "#ifndef FD_ASSERT\n#define FD_ASSERT(...) #endif\n\n", //
                          "static struct\n{\n");
             // clang-format on
-            std::ranges::for_each(table, [&](auto& i) {
+            for (auto& i : table)
+            {
                 write_string(source, "\tsize_t ", i.name, " = -1;\n");
-            });
+            };
             write_string(source, "\n\tvoid init()\n\t{\n");
-            std::ranges::for_each(table, [&](auto& i) {
+            for (auto& i : table)
+            {
                 // clang-format off
                 write_string(source, 
                              "\t\tFD_ASSERT(", i.name, " == -1, already set!);\n",
                              "\t\t", i.name, " = Netvars->get_offset(", className, ", ", i.name, ");\n");
                 // clang-format on
-            });
+            };
             write_string(source, "} ", offsetsClass, ";\n\n");
-            std::ranges::for_each(table, [&](auto& i) {
+            for (auto& i : table)
+            {
                 // clang-format off
                 write_string(source,
                              i.typeOut, ' ', className, "::", i.name, "()\n",
@@ -731,18 +733,19 @@ void netvars_storage::generate_classes(netvars_classes& data)
                              "\treturn ", i.typeCast, "(addr);\n",
                              "}\n");
                 // clang-format on
-            });
+            };
         }
 
         header.clear();
         {
-            std::ranges::for_each(table, [&](auto& i) {
+            for (auto& i : table)
+            {
                 // clang-format off
                 write_string(header,
                              "// clang-format off\n\n",
                               i.typeOut, ' ', i.name, "();\n");
                 // clang-format on
-            });
+            };
         }
 
         // ReSharper disable once CppInconsistentNaming
@@ -756,7 +759,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
         store_file("_cpp", source);
 
         // todo: if !MERGE_DATA_TABLES include wanted files!
-    });
+    }
 #endif
 
     if (log_active())
@@ -822,5 +825,5 @@ size_t netvars_storage::get_offset(const string_view className, const string_vie
 
 namespace fd
 {
-    basic_netvars_storage* Netvars;
+basic_netvars_storage* Netvars;
 }

@@ -2,26 +2,36 @@
 
 #include <fd/netvar_info.h>
 
-#include <memory>
 #include <vector>
 
 namespace fd
 {
-class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
+class netvar_table
 {
     string name_;
     bool   isRoot_;
 
-  protected:
-    void validate_item(const basic_netvar_info* info) const;
+    std::vector<basic_netvar_info*> storage_;
 
   public:
+    ~netvar_table();
+
     netvar_table(string&& name, bool root);
+    netvar_table(const netvar_table&) = delete;
 
-    string_view              name() const;
-    bool                     root() const;
+    string_view name() const;
+    bool        root() const;
+
     const basic_netvar_info* find(string_view name) const;
+    void                     add(basic_netvar_info* info);
+    void                     sort();
 
+    bool empty() const;
+
+    basic_netvar_info** begin();
+    basic_netvar_info** end();
+
+#if 0
     template <typename... Args>
     const auto* add(Args&&... args)
     {
@@ -32,6 +42,7 @@ class netvar_table : public std::vector<std::unique_ptr<basic_netvar_info>>
         this->emplace_back(ptr /* , make_deleter(ptr) */);
         return ptr;
     }
+#endif
 };
 
 /* class netvar_data_table

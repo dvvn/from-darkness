@@ -1,276 +1,163 @@
 #pragma once
 
-#include <fd/call_cvs.h>
-#include <fd/exception.h>
-#include <fd/utility.h>
+#include <type_traits>
+
+#undef __cpp_lib_bind_front
+#undef __cpp_lib_bind_back
+
+#if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
+#include <fd/tuple.h>
+#endif
 
 #include <function2/function2.hpp>
 
 #include <functional>
-#include <stdexcept>
-#if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
-#include <tuple>
-#endif
 
 namespace fd
 {
+/*template <typename As, typename T>
+struct replace_type : std::false_type
+{
+};
+
+template <typename As, typename T>
+struct replace_type<As&, T>
+{
+    using type = std::add_lvalue_reference_t<std::remove_const_t<T>>;
+};
+
+template <typename As, typename T>
+struct replace_type<As&&, T>
+{
+    using type = std::add_rvalue_reference_t<std::remove_const_t<T>>;
+};
+
+template <typename As, typename T>
+struct replace_type<const As&, T>
+{
+    using type = std::add_lvalue_reference_t<std::add_const_t<T>>;
+};*/
+
 #if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
-    enum class _Bind_mode : uint8_t
-    {
-        front,
-        back
-    };
+template <uint8_t Mode, typename Fn, class ArgsPacked, typename... Args>
+static constexpr decltype(auto) _bind_invoke(Fn& fn, ArgsPacked& argsPacked, Args&&... args)
+{
+    return apply(argsPacked, [&]<typename... ArgsUnpacked>(ArgsUnpacked&&... argsUnpacked) {
+        if constexpr (Mode == 0)
+            return fn(std::forward<ArgsUnpacked>(argsUnpacked)..., std::forward<Args>(args)...);
+        else if constexpr (Mode == 1)
+            return fn(std::forward<Args>(args)..., std::forward<ArgsUnpacked>(argsUnpacked)...);
+    });
+}
 
-    template <_Bind_mode Mode>
-    struct _Bind_caller;
+template <char Mode, typename... Args>
+struct bind_impl : private tuple<Args...>
+{
+    using tuple<Args...>::tuple;
 
-    template <_Bind_mode Mode>
-    struct _Bind_impl
+    template <typename... Args2>
+    constexpr decltype(auto) operator()(Args2&&... args2)
     {
-        template <typename Fn, typename... Args>
-        constexpr decltype(auto) operator()(Fn&& fn, Args&&... args) const
-        {
-            return [_Fn   = std::forward<Fn>(fn), //
-                    _Args = std::tuple(std::forward<Args>(args)...)]<typename... CallArgs>(CallArgs&&... call_args) -> decltype(auto) {
-                if constexpr (sizeof...(Args) == 0)
-                    return invoke(_Fn, std::forward<CallArgs>(call_args)...);
-                else
-                    return _Bind_caller<Mode>::call(_Fn, _Args, std::forward<CallArgs>(call_args)...);
-            };
-        }
-    };
+        return _bind_invoke<Mode>(this->get(), this->tail(), std::forward<Args2>(args2)...);
+    }
+
+    template <typename... Args2>
+    constexpr decltype(auto) operator()(Args2&&... args2) const
+    {
+        return _bind_invoke<Mode>(this->get(), this->tail(), std::forward<Args2>(args2)...);
+    }
+};
 #endif
 
 #ifdef __cpp_lib_bind_front
-    using std::bind_front;
+using std::bind_front;
 #else
-    template <>
-    struct _Bind_caller<_Bind_mode::front>
-    {
-        template <typename Fn, class Tpl, typename... Args>
-        static constexpr decltype(auto) call(Fn& fn, Tpl& args, Args&&... call_args)
-        {
-            return std::apply(
-                [&](auto&... bound_args) -> decltype(auto) {
-                    return invoke(fn, bound_args..., std::forward<Args>(call_args)...);
-                },
-                args
-            );
-        }
-    };
 
-    constexpr _Bind_impl<_Bind_mode::front> bind_front;
+template <typename... Args>
+constexpr bind_impl<0, std::decay_t<Args>...> bind_front(Args&&... args)
+{
+    return { std::forward<Args>(args)... };
+}
+
 #endif
 
 #ifdef __cpp_lib_bind_back
-    using std::bind_back;
+using std::bind_back;
 #else
-    template <>
-    struct _Bind_caller<_Bind_mode::back>
-    {
-        template <typename Fn, class Tpl, typename... Args>
-        static constexpr decltype(auto) call(Fn& fn, Tpl& args, Args&&... call_args)
-        {
-            return std::apply(
-                [&](auto&... bound_args) -> decltype(auto) {
-                    return invoke(fn, std::forward<Args>(call_args)..., bound_args...);
-                },
-                args
-            );
-        }
-    };
-
-    constexpr _Bind_impl<_Bind_mode::back> bind_back;
+template <typename... Args>
+constexpr bind_impl<1, std::decay_t<Args>...> bind_back(Args&&... args)
+{
+    return { std::forward<Args>(args)... };
+}
 #endif
 
-    //-------------
+template <typename Fn, bool = std::convertible_to<Fn, bool>&& std::assignable_from<Fn, nullptr_t>>
+struct lazy_invoke;
 
-    template <call_cvs, typename Ret, typename... Args>
-    struct _Tiny_fn;
+template <typename Fn>
+class lazy_invoke_base
+{
+    Fn fn_;
 
-#define TINY_FN_IMPL(_ENUM_, _CCVS_)                                                                      \
-    template <typename Ret, typename... Args>                                                             \
-    struct _Tiny_fn<call_cvs::_ENUM_, Ret, Args...>                                                       \
-    {                                                                                                     \
-        Ret _CCVS_ callback(Args... args) const                                                           \
-        {                                                                                                 \
-            unreachable();                                                                                \
-        }                                                                                                 \
-    };                                                                                                    \
-    template <typename Ret, class T, typename... Args>                                                    \
-    constexpr _Tiny_fn<call_cvs::_ENUM_, Ret, Args...> _Tiny_selector(Ret (_CCVS_ T::*fn)(Args...))       \
-    {                                                                                                     \
-        return {};                                                                                        \
-    }                                                                                                     \
-    template <typename Ret, class T, typename... Args>                                                    \
-    constexpr _Tiny_fn<call_cvs::_ENUM_, Ret, Args...> _Tiny_selector(Ret (_CCVS_ T::*fn)(Args...) const) \
-    {                                                                                                     \
-        return {};                                                                                        \
+    friend struct lazy_invoke<Fn>;
+
+  public:
+    constexpr lazy_invoke_base(Fn fn)
+        : fn_(std::move(fn))
+    {
     }
 
-#define TINY_FN(_C_) TINY_FN_IMPL(_C_##_, __##_C_)
+    lazy_invoke_base(const lazy_invoke_base&)            = delete;
+    lazy_invoke_base& operator=(const lazy_invoke_base&) = delete;
+};
 
-#ifdef _WIN32
-#ifndef __RESHARPER__
-    FOR_EACH(TINY_FN, thiscall, cdecl, fastcall, stdcall, vectorcall);
-#endif
-#else
-#error "not implemented"
-#endif
-
-#undef TINY_FN
-#undef TINY_FN_IMPL
-
-    template <typename Fn>
-    concept fat_pointer = sizeof(Fn) > sizeof(void*);
-
-    template <typename Fn>
-    concept tiny_pointer = sizeof(Fn) == sizeof(void*);
-
-    template <typename T>
-    concept void_pointer = std::is_pointer_v<T> && std::is_void_v<std::remove_pointer_t<T>>;
-
-    using std::invoke;
-
-    template <fat_pointer Fn, void_pointer ActFn, typename... Args>
-    decltype(auto) invoke(Fn fn, ActFn actualFn, auto* thisptr, Args&&... args)
+template <typename Fn>
+struct lazy_invoke<Fn, true> : lazy_invoke_base<Fn>
+{
+    constexpr ~lazy_invoke()
     {
-        using trivial_inst = decltype(_Tiny_selector(fn));
-
-        union
-        {
-            decltype(&trivial_inst::callback) tiny;
-            Fn                                hint;
-            ActFn                             raw;
-        } adaptor;
-
-        adaptor.hint = fn;
-        adaptor.raw  = actualFn;
-
-        return invoke(adaptor.tiny, reinterpret_cast<const trivial_inst*>(thisptr), std::forward<Args>(args)...);
+        if (this->fn_)
+            invoke(this->fn_);
     }
 
-    template <tiny_pointer Fn, void_pointer ActFn, typename... Args>
-    decltype(auto) invoke(Fn fn, ActFn actualFn, Args&&... args) requires(!std::invocable<Fn, ActFn, Args && ...> && std::invocable<Fn &&, Args && ...>)
-    {
-        union
-        {
-            Fn    fake;
-            ActFn raw;
-        } adaptor;
+    using lazy_invoke_base<Fn>::lazy_invoke_base;
+    using lazy_invoke_base<Fn>::operator=;
 
-        adaptor.raw = actualFn;
-        return invoke(adaptor.fake, std::forward<Args>(args)...);
+    constexpr void reset()
+    {
+        this->fn_ = nullptr;
+    }
+};
+
+template <typename Fn>
+struct lazy_invoke<Fn, false> : lazy_invoke_base<Fn>
+{
+  private:
+    bool valid_ = true;
+
+  public:
+    constexpr ~lazy_invoke()
+    {
+        if (valid_)
+            invoke(this->fn_);
     }
 
-    template <typename Fn, typename... Args>
-    decltype(auto) invoke(Fn fn, const std::integral auto index, auto* thisptr, Args&&... args)
+    using lazy_invoke_base<Fn>::lazy_invoke_base;
+    using lazy_invoke_base<Fn>::operator=;
+
+    constexpr void reset()
     {
-        union
-        {
-            Fn      hint;
-            void*** vtablePtr;
-        } adaptor;
-
-        adaptor.hint = fn;
-
-        auto vtable = *adaptor.vtablePtr;
-        auto vfunc  = vtable[index];
-        return invoke(fn, vfunc, thisptr, std::forward<Args>(args)...);
+        valid_ = false;
     }
+};
 
-    template <typename... Args>
-    concept invocable = requires(Args&&... args) { invoke(std::forward<Args>(args)...); };
+template <typename Fn>
+lazy_invoke(Fn) -> lazy_invoke<std::decay_t<Fn>>;
 
-    template <typename... Args>
-    using invoke_result = decltype(invoke(std::declval<Args>()...));
+using fu2::function;
+using fu2::function_view;
+using fu2::unique_function;
 
-    constexpr struct
-    {
-        template <typename... Args>
-        constexpr decltype(auto) operator()(Args&&... args) const
-        {
-            return invoke(std::forward<Args>(args)...);
-        }
-    } Invoker;
-
-    //--------------
-
-    template <typename T>
-    concept can_be_null = requires(T obj) {
-                              static_cast<bool>(obj);
-                              obj = nullptr;
-                          };
-
-    template <typename Fn, bool = can_be_null<Fn>>
-    struct lazy_invoke;
-
-    template <typename Fn>
-    class lazy_invoke_base
-    {
-        Fn fn_;
-
-        friend struct lazy_invoke<Fn>;
-
-      public:
-        constexpr lazy_invoke_base(Fn fn)
-            : fn_(std::move(fn))
-        {
-        }
-
-        lazy_invoke_base(const lazy_invoke_base&)            = delete;
-        lazy_invoke_base& operator=(const lazy_invoke_base&) = delete;
-    };
-
-    template <typename Fn>
-    struct lazy_invoke<Fn, true> : lazy_invoke_base<Fn>
-    {
-        constexpr ~lazy_invoke()
-        {
-            if (this->fn_)
-                invoke(this->fn_);
-        }
-
-        using lazy_invoke_base<Fn>::lazy_invoke_base;
-        using lazy_invoke_base<Fn>::operator=;
-
-        constexpr void reset()
-        {
-            this->fn_ = nullptr;
-        }
-    };
-
-    template <typename Fn>
-    struct lazy_invoke<Fn, false> : lazy_invoke_base<Fn>
-    {
-      private:
-        bool valid_ = true;
-
-      public:
-        constexpr ~lazy_invoke()
-        {
-            if (valid_)
-                invoke(this->fn_);
-        }
-
-        using lazy_invoke_base<Fn>::lazy_invoke_base;
-        using lazy_invoke_base<Fn>::operator=;
-
-        constexpr void reset()
-        {
-            valid_ = false;
-        }
-    };
-
-    template <typename Fn>
-    lazy_invoke(Fn&&) -> lazy_invoke<std::decay_t<Fn>>;
-
-    //--------------
-
-    using fu2::function;
-    using fu2::function_view;
-    using fu2::unique_function;
-
-    using fu2::detail::overloading::overload;
-    using fu2::detail::overloading::overload_impl;
+using fu2::detail::overloading::overload;
+using fu2::detail::overloading::overload_impl;
 } // namespace fd

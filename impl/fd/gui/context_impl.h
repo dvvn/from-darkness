@@ -164,7 +164,7 @@ struct hotkeys_storage : unordered_map<hotkey_source, hotkey>
 
 using context_callback       = function<void() const>;
 using context_callbacks      = std::vector<context_callback>;
-using context_callbacks_view = std::span<std::conditional_t<invocable<const context_callback>, const context_callback, context_callback>>;
+using context_callbacks_view = std::span<context_callback>;
 
 class context_impl : public basic_context
 {

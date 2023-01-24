@@ -34,6 +34,9 @@ static void* subhook_new(void* target, void* replace)
 using namespace fd;
 
 template <typename T>
+concept invocable_simple = requires(T msg) { msg(); };
+
+template <typename T>
 static void _log(auto* hook, T msg)
 {
     if (!log_active())
@@ -44,7 +47,7 @@ static void _log(auto* hook, T msg)
         return;
 
     string buff;
-    if constexpr (invocable<T>)
+    if constexpr (invocable_simple<T>)
         write_string(buff, hookName, ": ", msg());
     else
         write_string(buff, hookName, ": ", msg);
@@ -105,10 +108,6 @@ hook_impl::~hook_impl()
         // _HookCallback.destroy(this, ok);
     }
     subhook_free(entry_);
-}
-
-void hook_impl::free()
-{
 }
 
 hook_impl::hook_impl(hook_impl&& other) noexcept

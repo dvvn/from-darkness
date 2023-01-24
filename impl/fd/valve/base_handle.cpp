@@ -83,5 +83,5 @@ handle_entity* base_handle::Get() const
     /*if (!IsValid( ))
         return 0;*/
     return entity_list->GetClientEntityFromHandle(*this);
-    // FD_ASSERT_UNREACHABLE("Not implemented");
+    // FD_ASSERT_PANIC("Not implemented");
 }

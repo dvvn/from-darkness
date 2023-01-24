@@ -13,7 +13,6 @@ class hook_impl : public basic_hook
     hook_impl(string_view name);
     ~hook_impl() override;
 
-    void free();
 
     hook_impl(const hook_impl&) = delete;
     hook_impl(hook_impl&& other) noexcept;

@@ -4,6 +4,7 @@
 #include <imgui_internal.h>
 
 #include <algorithm>
+#include <span>
 
 using namespace fd;
 using namespace gui;
@@ -52,7 +53,8 @@ bool tab::render() const
 
 void tab::render_data() const
 {
-    (void)std::ranges::for_each(callbacks_, Invoker);
+    for (auto& cb : callbacks_)
+        cb();
 }
 
 void tab::store(callback_type&& callback)
@@ -82,9 +84,22 @@ void tab_bar::render() const
 
     if (ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags))
     {
-        const auto activeTab = std::ranges::find_if(tabs_, &tab::render);
-        (void)std::ranges::for_each(activeTab + 1, tabs_.end(), &tab::render);
-        invoke(&tab::render_data, *activeTab);
+        // no end check here, active tab MUST be exsist
+        for (auto itr = tabs_.begin(); /*itr != lastItr*/; ++itr)
+        {
+            const auto activeTab = *itr;
+            // find active tab
+            if (!activeTab->render())
+                continue;
+            // render all other tabs
+            for (const auto t2 : std::span(itr + 1, tabs_.end()))
+            {
+                if (t2->render())
+                    FD_ASSERT("Active tab already found!");
+            }
+            activeTab->render_data();
+            break;
+        }
 
         ImGui::EndTabBar();
     }
