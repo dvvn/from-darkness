@@ -10,10 +10,10 @@ using namespace valve;
 
 data_map* base_entity::GetDataDescMap()
 {
-    return invoke(&base_entity::GetDataDescMap, 15, this);
+    return 0;//invoke(&base_entity::GetDataDescMap, 15, this);
 }
 
 data_map* base_entity::GetPredictionDescMap()
 {
-    return invoke(&base_entity::GetPredictionDescMap, 17, this);
+    return 0;//invoke(&base_entity::GetPredictionDescMap, 17, this);
 }

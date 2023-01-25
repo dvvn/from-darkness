@@ -2,12 +2,10 @@
 #include <fd/exception.h>
 #include <fd/thread_pool_impl.h>
 
-#include <algorithm>
 #include <optional>
-#include <ranges>
 
-using namespace fd;
-
+namespace fd
+{
 #if 0
 //unused
 template <template <typename...> class T, typename... Args>
@@ -145,7 +143,7 @@ bool thread_pool::worker_impl()
         {
             try
             {
-                invoke(task);
+                task();
             }
             catch (...)
             {
@@ -168,14 +166,24 @@ bool thread_pool::worker_impl()
 
 bool thread_pool::store_func(function_type&& func, const bool resumeThreads) noexcept
 {
+    const auto canSpawnThread = [&] {
+        for (auto& t : threads_)
+        {
+            if (t.resume())
+                return true;
+        }
+        return false;
+    };
+
     optional_mtx_lock guard(threadsMtx_);
     auto              resetGuard = true;
+
     if (!resumeThreads)
     {
         if (threads_.empty())
             return false;
     }
-    else if (funcs_.was_size() >= threads_.size() && !std::ranges::any_of(threads_, bind_front(&thread_data::resume)))
+    else if (funcs_.was_size() >= threads_.size() && !canSpawnThread())
     {
         // spawn new thread
         thread_data data(reinterpret_cast<void*>(worker), this, false);
@@ -228,7 +236,7 @@ bool thread_pool::add_simple(function_type&& func)
 
 auto thread_pool::add(function_type&& func) -> task_type
 {
-    task_type  t(new lockable_task(std::move(func)));
+    task_type  t(new lockable_task(std::move(func), true));
     const auto stored = this->store_func([=] {
         t->start();
     });
@@ -241,12 +249,13 @@ auto thread_pool::add_lazy(function_type&& func) -> task_type
 {
     auto newFunc = [this, fn = std::move(func)](auto& sem) mutable {
         const auto stored = this->store_func([&] {
-            invoke(fn);
+            fn();
             sem.release();
         });
         if (!stored)
             sem.release();
     };
 
-    return task_type(new lockable_task(std::move(newFunc)));
+    return task_type(new lockable_task(std::move(newFunc), true));
+}
 }

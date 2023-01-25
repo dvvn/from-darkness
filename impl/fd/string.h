@@ -186,7 +186,7 @@ static constexpr void _append_to(Itr& buff, const std::pair<T, S>& obj)
 template <bool Reserve, typename... Args>
 constexpr void write_string(can_reserve auto& buff, const Args&... args)
 {
-    if constexpr (Reserve)
+    if constexpr (Reserve && sizeof...(Args) > 1)
     {
         if (buff.empty())
         {

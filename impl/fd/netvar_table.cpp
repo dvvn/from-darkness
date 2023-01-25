@@ -19,6 +19,8 @@ netvar_table::netvar_table(string&& name, const bool root)
     FD_ASSERT(!name_.empty(), "Incorrect name");
 }
 
+netvar_table::netvar_table(netvar_table&& other) noexcept = default;
+
 string_view netvar_table::name() const
 {
     return name_;

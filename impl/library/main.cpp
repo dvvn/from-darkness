@@ -44,29 +44,22 @@ static DWORD WINAPI _loader(void*) noexcept
 
     set_current_module_handle(_ModuleHandle);
 
-#if defined(_DEBUG) || defined(_RELEASE_DEBUG)
     system_console sysConsole;
 
-    default_logs_handler logsCallback;
-    Logger = &logsCallback;
-
-    logsCallback.add([&](auto msg) {
+    const default_logs_handler logsCallback([&](auto msg) {
         sysConsole.write(msg);
     });
-#endif
-#ifdef _DEBUG
-    default_assert_handler assertCallback;
-    AssertHandler = &assertCallback;
 
-    assertCallback.add([&](auto& adata) {
-        sysConsole.write(parse_assert_data(adata));
+#ifdef _DEBUG
+    const default_assert_handler assertHandler([&](const assert_data& adata) {
+        sysConsole.write(parse(adata));
     });
 #endif
 
     const library_info clientLib(L"client.dll", true);
     const auto         addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
 
-    invoke(addToSafeList, _ModuleHandle, nullptr);
+    addToSafeList(_ModuleHandle, nullptr);
 
     const auto d3dIfc = [] {
         const library_info lib(L"shaderapidx9.dll", true);
@@ -93,52 +86,61 @@ static DWORD WINAPI _loader(void*) noexcept
     });
 #endif
 
-    hooks_storage allHooks;
-
-    hook_callback hkWndProc(DefWindowProcW, decay_fn(GetWindowLongPtrW(hwnd, GWLP_WNDPROC)), [&](auto orig, HWND currHwnd, auto... args) -> LRESULT {
+    hooks_storage2 allHooks(
+        hook_callback(
+            "WinAPI.WndProc",
+            DefWindowProcW,
+            decay_fn(GetWindowLongPtrW(hwnd, GWLP_WNDPROC)),
+            [&](auto orig, HWND currHwnd, auto... args) -> LRESULT {
 #ifdef _DEBUG
-        if (currHwnd != hwnd)
-            assertCallback({ "Unknown HWND detected!" });
+                if (currHwnd != hwnd)
+                    assertHandler.run_panic({ "Unknown HWND detected!" });
 #endif
-        switch (guiCtx.process_keys(hwnd, args...))
-        {
-        case gui::process_keys_result::instant:
-            return TRUE;
-        case gui::process_keys_result::native:
-            return orig(hwnd, args...);
-        case gui::process_keys_result::def:
-            return DefWindowProcW(hwnd, args...);
-        default:
-            unreachable();
-        }
-    });
-    hkWndProc.set_name("WinAPI.WndProc");
-    allHooks.store(hkWndProc);
-
-    hook_callback hkDirectx9Reset(&IDirect3DDevice9::Reset, decay_fn(d3dIfc, 16), [&](auto orig, auto, auto... args) {
-        guiCtx.release_textures();
-        return orig(args...);
-    });
-    hkDirectx9Reset.set_name("IDirect3DDevice9::Reset");
-    allHooks.store(hkDirectx9Reset);
-
-    hook_callback hkDirectx9Present(&IDirect3DDevice9::Present, decay_fn(d3dIfc, 17), [&](auto orig, auto thisPtr, auto... args) {
-        guiCtx.render(thisPtr);
-        return orig(args...);
-    });
-    hkDirectx9Present.set_name("IDirect3DDevice9::Present");
-    allHooks.store(hkDirectx9Present);
-
-    hook_callback hkVguiLockCursor(&valve::gui::surface::LockCursor, decay_fn((void*)nullptr, 67), [&](auto orig, auto thisPtr) {
-        if (menu.visible() && !thisPtr->IsCursorVisible())
-        {
-            thisPtr->UnlockCursor();
-            return;
-        }
-        orig();
-    });
-    hkVguiLockCursor.set_name("VGUI.ISurface::LockCursor");
-    allHooks.store(hkVguiLockCursor);
+                switch (guiCtx.process_keys(hwnd, args...))
+                {
+                case gui::process_keys_result::instant:
+                    return TRUE;
+                case gui::process_keys_result::native:
+                    return orig(hwnd, args...);
+                case gui::process_keys_result::def:
+                    return DefWindowProcW(hwnd, args...);
+                default:
+                    unreachable();
+                }
+            }
+        ),
+        hook_callback(
+            "IDirect3DDevice9::Reset",
+            &IDirect3DDevice9::Reset,
+            decay_fn(d3dIfc, 16),
+            [&](auto orig, auto, auto... args) {
+                guiCtx.release_textures();
+                return orig(args...);
+            }
+        ),
+        hook_callback(
+            "IDirect3DDevice9::Present",
+            &IDirect3DDevice9::Present,
+            decay_fn(d3dIfc, 17),
+            [&](auto orig, auto thisPtr, auto... args) {
+                guiCtx.render(thisPtr);
+                return orig(args...);
+            }
+        ),
+        hook_callback(
+            "VGUI.ISurface::LockCursor",
+            &valve::gui::surface::LockCursor,
+            decay_fn((void*)nullptr, 67),
+            [&](auto orig, auto thisPtr) {
+                if (menu.visible() && !thisPtr->IsCursorVisible())
+                {
+                    thisPtr->UnlockCursor();
+                    return;
+                }
+                orig();
+            }
+        )
+    );
 
     if (!allHooks.enable())
         _exit_fail();

@@ -40,7 +40,7 @@ struct replace_type<const As&, T>
 
 #if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
 template <uint8_t Mode, typename Fn, class ArgsPacked, typename... Args>
-static constexpr decltype(auto) _bind_invoke(Fn& fn, ArgsPacked& argsPacked, Args&&... args)
+static constexpr decltype(auto) _bind_invoke(Fn&& fn, ArgsPacked& argsPacked, Args&&... args)
 {
     return apply(argsPacked, [&]<typename... ArgsUnpacked>(ArgsUnpacked&&... argsUnpacked) {
         if constexpr (Mode == 0)

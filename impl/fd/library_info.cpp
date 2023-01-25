@@ -171,7 +171,7 @@ static T* LIST_ENTRY_finder(Fn fn)
     for (auto& list : LIST_ENTRY_range())
     {
         auto item = std::get<T>(list);
-        if (invoke(fn, item))
+        if (fn(item))
             return item;
     }
     return nullptr;

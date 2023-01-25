@@ -1,8 +1,8 @@
 #pragma once
 
 #include <fd/hook.h>
+#include <fd/tuple.h>
 
-#include <tuple>
 #include <vector>
 
 namespace fd
@@ -34,16 +34,12 @@ static bool _disable_hook(H& hook)
 template <class... H>
 class hooks_storage2
 {
-    union
-    {
-        // ReSharper disable once CppInconsistentNaming
-        std::tuple<H...> hooks_;
-    };
+    tuple<H...> hooks_;
 
   public:
     ~hooks_storage2()
     {
-        disable_helper<true>(std::make_index_sequence<sizeof...(H)>());
+        // disable_helper<true>(std::make_index_sequence<sizeof...(H)>());
     }
 
     hooks_storage2(H&&... hooks)
@@ -53,7 +49,7 @@ class hooks_storage2
 
     bool enable()
     {
-        return (_enable_hook(std::get<H>(hooks_)) && ...);
+        return (_enable_hook(get<H>(hooks_)) && ...);
     }
 
   private:
@@ -62,15 +58,15 @@ class hooks_storage2
     {
         constexpr auto idx = seq.size() - 1;
         if constexpr (!Destroy)
-            return ((_disable_hook(std::get<idx - I>(hooks_))) + ...) == seq.size();
+            return ((_disable_hook(get<idx - I>(hooks_))) + ...) == seq.size();
         else
-            (std::destroy_at(&std::get<idx - I>(hooks_)), ...);
+            (std::destroy_at(&get<idx - I>(hooks_)), ...);
     }
 
   public:
     bool disable()
     {
-        return disable_helper<false>( std::make_index_sequence<sizeof...(H)>());
+        return disable_helper<false>(std::make_index_sequence<sizeof...(H)>());
     }
 };
 };

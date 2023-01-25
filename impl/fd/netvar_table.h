@@ -18,6 +18,7 @@ class netvar_table
 
     netvar_table(string&& name, bool root);
     netvar_table(const netvar_table&) = delete;
+    netvar_table(netvar_table&& other) noexcept;
 
     string_view name() const;
     bool        root() const;

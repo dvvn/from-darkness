@@ -49,12 +49,9 @@ string_view netvar_info::type() const
 {
     if (type_.empty())
     {
-        constexpr auto typeGetter = overload(extract_type, extract_type);
-
         std::visit(
             [&](auto val) {
-                auto tmpType = typeGetter(val);
-                // ReSharper disable once CppUnreachableCode
+                auto tmpType = extract_type(val);
                 if (size_ <= 1)
                 {
                     type_ = std::move(tmpType);
@@ -62,7 +59,7 @@ string_view netvar_info::type() const
                 }
                 if (size_ == 3)
                 {
-                    type_ = type_array_prefix(tmpType, val);
+                    type_ = extract_type_by_prefix(tmpType, val);
                     if (!type_.empty())
                         return;
                 }

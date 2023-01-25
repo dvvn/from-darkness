@@ -7,51 +7,6 @@ namespace fd
 template <typename... Args>
 struct tuple;
 
-/*template <size_t Idx, typename T, typename... Args>
-static constexpr size_t _tuple_element_offset(const tuple<T, Args...>& tpl)
-{
-   if constexpr (Idx == 0)
-       return 0;
-   else
-       return sizeof(T) + _tuple_element_offset<Idx - 1>(tpl.next);
-}*/
-
-template <size_t Idx, typename... Args>
-struct tuple_index_type : tuple_index_type<Idx - 1, Args...>
-{
-};
-
-template <typename T, typename... Args>
-struct tuple_index_type<0, T, Args...>
-{
-    using type = T;
-};
-
-template <typename T, typename Type, typename... Args>
-static constexpr size_t _tuple_type_index(const tuple<Type, Args...>& tpl)
-{
-    if constexpr (std::same_as<T, Type>)
-        return 0;
-    else
-        return 1 + _tuple_type_index<T>(tpl.next);
-}
-
-template <size_t Idx, class Tpl>
-static constexpr decltype(auto) _tuple_get_by_index(Tpl& tpl)
-{
-    if constexpr (Idx == 0)
-        return tpl.get();
-    else
-        return _tuple_get_by_index<Idx - 1>(tpl.tail());
-}
-
-template <typename T, typename Tpl>
-static constexpr decltype(auto) _tuple_get_by_type(Tpl& tpl)
-{
-    constexpr auto index = _tuple_type_index(std::declval<Tpl>());
-    return _tuple_get_by_index<index>((tpl));
-}
-
 template <>
 struct tuple<>
 {
@@ -107,9 +62,43 @@ struct tuple<T&, Next...>
     [[no_unique_address]] tail_type  tail_;
 
   public:
-    template <typename V, typename... Args>
-    constexpr tuple(V&& value, Args&&... next)
-        : value_(std::forward<V>(value))
+    template <typename... Args>
+    constexpr tuple(value_type value, Args&&... next)
+        : value_(static_cast<value_type>(value))
+        , tail_(std::forward<Args>(next)...)
+    {
+    }
+
+    constexpr value_type get() const
+    {
+        return value_;
+    }
+
+    constexpr tail_type& tail()
+    {
+        return tail_;
+    }
+
+    constexpr const tail_type& tail() const
+    {
+        return tail_;
+    }
+};
+
+template <typename T, typename... Next>
+struct tuple<T*, Next...>
+{
+    using value_type = T*;
+    using tail_type  = tuple<Next...>;
+
+  private:
+    [[no_unique_address]] value_type value_;
+    [[no_unique_address]] tail_type  tail_;
+
+  public:
+    template <typename... Args>
+    constexpr tuple(value_type value, Args&&... next)
+        : value_(static_cast<value_type>(value))
         , tail_(std::forward<Args>(next)...)
     {
     }
@@ -134,13 +123,74 @@ template <typename... Args>
 tuple(Args&&...) -> tuple<std::decay_t<Args>...>;
 
 template <typename... Args>
-struct tuple_view : tuple<Args...>
+constexpr tuple<Args&&...> tuple_view(Args&&... args)
 {
-    using tuple<Args...>::tuple;
+    return { std::forward<Args>(args)... };
+}
+
+//----
+
+template <size_t Idx, typename... Args>
+struct tuple_type_by_index : tuple_type_by_index<Idx - 1, Args...>
+{
 };
 
-template <typename... Args>
-tuple_view(Args&&...) -> tuple_view<Args&&...>;
+template <typename T, typename... Args>
+struct tuple_type_by_index<0, T, Args...>
+{
+    using type = T;
+};
+
+template <typename T, size_t Offset, typename... Args>
+struct tuple_index_by_type;
+
+// template <typename T, size_t Offset, typename Type, typename... Args>
+// struct tuple_index_by_type<T, Offset, Type, Args...> : tuple_index_by_type<T, Offset + 1, Args...>
+//{
+// };
+//
+// template <size_t Offset, typename T, typename... Args>
+// struct tuple_index_by_type<T, Offset, T, Args...>
+//{
+//     static constexpr size_t index = Offset;
+// };
+
+template <typename T, typename Type, typename... Args>
+static constexpr size_t _tuple_find_index(const tuple<Type, Args...>& tpl)
+{
+    if constexpr (std::same_as<T, Type>)
+        return 0;
+    else
+        return 1 + _tuple_find_index<T>(tpl.tail());
+}
+
+template <size_t Idx, class Tpl>
+static constexpr decltype(auto) _tuple_get_by_index(Tpl& tpl)
+{
+    if constexpr (Idx == 0)
+        return tpl.get();
+    else
+        return _tuple_get_by_index<Idx - 1>(tpl.tail());
+}
+
+template <typename T, typename Type, typename... Args>
+static constexpr decltype(auto) _tuple_get_by_type(const tuple<Type, Args...>& tpl)
+{
+    if constexpr (std::same_as<T, Type>)
+        return tpl.get();
+    else
+        return _tuple_get_by_type<T>(tpl.tail());
+}
+
+template <typename T, typename Type, typename... Args>
+static constexpr decltype(auto) _tuple_get_by_type(tuple<Type, Args...>& tpl)
+{
+    decltype(auto) val = _tuple_get_by_type<T>(std::as_const(tpl));
+    if constexpr (std::is_pointer_v<T> || std::is_reference_v<T>)
+        return static_cast<T>(val);
+    else
+        return const_cast<T&>(val);
+}
 
 template <size_t Idx, typename... Args>
 constexpr decltype(auto) get(tuple<Args...>& tpl)
@@ -209,4 +259,18 @@ constexpr decltype(auto) apply(const tuple<Args...>& tpl, Fn fn)
 {
     return _tuple_apply(tpl, fn, std::make_index_sequence<sizeof...(Args)>());
 }
+} // namespace fd
+
+namespace std
+{
+template <typename... T>
+struct tuple_size<fd::tuple<T...>>
+{
+    static constexpr size_t size = sizeof...(T);
+};
+
+template <size_t Idx, typename... T>
+struct tuple_element<Idx, fd::tuple<T...>> : fd::tuple_type_by_index<Idx, T...>
+{
+};
 }

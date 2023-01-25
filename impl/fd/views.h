@@ -5,6 +5,9 @@
 namespace fd
 {
 template <typename T>
+class range_view;
+
+template <typename T>
 class range_view
 {
     T begin_, end_;
@@ -28,18 +31,6 @@ class range_view
 };
 
 template <typename T>
-struct forward_view : range_view<T>
-{
-    using range_view<std::reverse_iterator<T>>::range_view;
-
-    template <typename Container>
-    constexpr forward_view(Container& container)
-        : range_view(std::begin(container), std::end(container))
-    {
-    }
-};
-
-template <typename T>
 static constexpr void _same_accepter(T, T)
 {
 }
@@ -54,21 +45,17 @@ struct extract_iterator
 };
 
 template <typename Container>
-forward_view(Container& container) -> forward_view<typename extract_iterator<Container>::type>;
-
-template <typename T>
-struct reverse_view : range_view<std::reverse_iterator<T>>
-{
-    using range_view<std::reverse_iterator<T>>::range_view;
-
-    template <typename Container>
-    constexpr reverse_view(Container& container)
-        : range_view(std::rbegin(container), std::rend(container))
-    {
-    }
-};
+using extract_iterator_t = typename extract_iterator<Container>::type;
 
 template <typename Container>
-reverse_view(Container& container) -> reverse_view<typename extract_iterator<Container>::type>;
-
+constexpr auto forward_view(Container& container) -> range_view<extract_iterator_t<Container>>
+{
+    return { std::begin(container), std::end(container) };
 }
+
+template <typename Container>
+constexpr auto reverse_view(Container& container) -> range_view<std::reverse_iterator<extract_iterator_t<Container>>>
+{
+    return { std::rbegin(container), std::rend(container) };
+}
+} // namespace fd
