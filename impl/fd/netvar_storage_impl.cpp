@@ -493,6 +493,7 @@ static auto _parse(const valve::data_map* rootMap, netvars_storage* storage)
         else
             storage->request_sort(table);
 
+        const auto sizeBefore = table->size();
         for (auto& desc : map.data)
         {
             if (desc.type == valve::FIELD_EMBEDDED)
@@ -513,9 +514,11 @@ static auto _parse(const valve::data_map* rootMap, netvars_storage* storage)
             }
         }
 
+        const auto tableUpdated = sizeBefore != table->size();
+
         if (tableAdded)
             ++result.created;
-        else
+        else if (tableUpdated)
             ++result.updated;
     }
     return result;
@@ -594,7 +597,7 @@ void netvars_storage::log_netvars(netvars_log& data)
         {
             using str_t = json_unsorted::string_t;
 
-            const auto name   = str_t(info->name());
+            const auto name   = (info->name());
             const auto type   = info->type();
             const auto offset = info->offset();
 

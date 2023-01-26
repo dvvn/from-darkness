@@ -31,6 +31,7 @@ class netvar_table
 
     basic_netvar_info** begin();
     basic_netvar_info** end();
+    size_t              size() const;
 
 #if 0
     template <typename... Args>

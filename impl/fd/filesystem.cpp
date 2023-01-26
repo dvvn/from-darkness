@@ -42,17 +42,12 @@ class win_string
 
         if (isNative)
         {
-            buff_.append_range(str);
+            buff_.append(str.begin(), str.end());
         }
         else
         {
-            const auto doPush = [&](auto ch) {
-                buff_.push_back(ch);
-            };
-            constexpr auto fixSeparator = [](auto ch) -> wchar_t {
-                return ch == '/' ? '\\' : ch;
-            };
-            std::ranges::for_each(str, doPush, fixSeparator);
+            for (auto ch : str)
+                buff_ += ch == '/' ? '\\' : ch;
         }
     }
 
@@ -81,17 +76,17 @@ static void swap(UNICODE_STRING& l, UNICODE_STRING& r) noexcept
 
 class win_object_attributes
 {
-    win_string nameBuffer_;
-    UNICODE_STRING name_;
+    win_string        nameBuffer_;
+    UNICODE_STRING    name_;
     OBJECT_ATTRIBUTES attr_;
 
     void init_base(const ULONG attributes)
     {
-        attr_.Length = sizeof(OBJECT_ATTRIBUTES);
-        attr_.RootDirectory = nullptr;
-        attr_.ObjectName = &name_;
-        attr_.Attributes = attributes;
-        attr_.SecurityDescriptor = nullptr;
+        attr_.Length                   = sizeof(OBJECT_ATTRIBUTES);
+        attr_.RootDirectory            = nullptr;
+        attr_.ObjectName               = &name_;
+        attr_.Attributes               = attributes;
+        attr_.SecurityDescriptor       = nullptr;
         attr_.SecurityQualityOfService = nullptr;
         static_assert(offsetof(OBJECT_ATTRIBUTES, SecurityQualityOfService) + sizeof(void*) == sizeof(OBJECT_ATTRIBUTES));
     }
@@ -105,7 +100,7 @@ class win_object_attributes
 
     void kill_name()
     {
-        name_.Buffer = nullptr;
+        name_.Buffer     = nullptr;
         attr_.ObjectName = nullptr;
     }
 
@@ -119,20 +114,20 @@ class win_object_attributes
             isNative = !str.contains(L'/');
             if (str[0] == '\\' && isNative)
             {
-                name_.Buffer = const_cast<wchar_t*>(str.data());
+                name_.Buffer        = const_cast<wchar_t*>(str.data());
                 name_.MaximumLength = name_.Length = static_cast<USHORT>(str.size() * sizeof(wchar_t));
                 return;
             }
         }
 
         nameBuffer_.assign(str, isNative);
-        name_.Buffer = nameBuffer_.data();
-        name_.Length = static_cast<USHORT>(nameBuffer_.size() * sizeof(wchar_t));
+        name_.Buffer        = nameBuffer_.data();
+        name_.Length        = static_cast<USHORT>(nameBuffer_.size() * sizeof(wchar_t));
         name_.MaximumLength = name_.Length + sizeof(wchar_t);
     }
 
   public:
-    win_object_attributes(const win_object_attributes& other) = delete;
+    win_object_attributes(const win_object_attributes& other)            = delete;
     win_object_attributes& operator=(const win_object_attributes& other) = delete;
 
     win_object_attributes(win_object_attributes&& other) noexcept
@@ -189,7 +184,7 @@ class nt_handle
             NtClose(h_);
     }
 
-    nt_handle(const nt_handle& other) = delete;
+    nt_handle(const nt_handle& other)            = delete;
     nt_handle& operator=(const nt_handle& other) = delete;
 
     nt_handle(nt_handle&& other) noexcept
@@ -223,12 +218,12 @@ static ULONG _file_open_flags(const bool isFile)
 template <class P>
 static bool _path_exists(const P path, const bool isFile)
 {
-    nt_handle h;
+    nt_handle             h;
     win_object_attributes attr(path, OBJ_CASE_INSENSITIVE);
-    IO_STATUS_BLOCK statusBlock;
+    IO_STATUS_BLOCK       statusBlock;
     constexpr ACCESS_MASK desiredAccess = FILE_READ_ATTRIBUTES | SYNCHRONIZE;
-    const auto options = _file_open_flags(isFile);
-    const auto status = NtOpenFile(&h, desiredAccess, &attr, &statusBlock, FILE_SHARE_READ, options);
+    const auto            options       = _file_open_flags(isFile);
+    const auto            status        = NtOpenFile(&h, desiredAccess, &attr, &statusBlock, FILE_SHARE_READ, options);
     return NT_SUCCESS(status);
 }
 
@@ -237,15 +232,15 @@ static constexpr ACCESS_MASK _FileOnlyAccessFlags = FILE_READ_DATA | FILE_WRITE_
 template <class P>
 static bool _path_create(const P path, const bool isFile, const bool override)
 {
-    nt_handle h;
+    nt_handle             h;
     win_object_attributes attr(path, OBJ_CASE_INSENSITIVE);
-    IO_STATUS_BLOCK statusBlock;
-    ACCESS_MASK desiredAccess = FILE_GENERIC_WRITE;
+    IO_STATUS_BLOCK       statusBlock;
+    ACCESS_MASK           desiredAccess = FILE_GENERIC_WRITE;
     if (!isFile)
         desiredAccess &= ~_FileOnlyAccessFlags;
     const ULONG disposition = override ? FILE_SUPERSEDE : FILE_CREATE;
-    const auto options = _file_open_flags(isFile) | FILE_RANDOM_ACCESS;
-    const auto status = NtCreateFile(&h, desiredAccess, &attr, &statusBlock, nullptr, FILE_ATTRIBUTE_NORMAL, 0, disposition, options, nullptr, 0);
+    const auto  options     = _file_open_flags(isFile) | FILE_RANDOM_ACCESS;
+    const auto  status      = NtCreateFile(&h, desiredAccess, &attr, &statusBlock, nullptr, FILE_ATTRIBUTE_NORMAL, 0, disposition, options, nullptr, 0);
     return NT_SUCCESS(status);
 }
 

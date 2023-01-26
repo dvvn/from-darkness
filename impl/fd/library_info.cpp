@@ -14,10 +14,11 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <semaphore>
 
-using namespace fd;
-
+namespace fd
+{
 void dos_nt::construct(const LDR_DATA_TABLE_ENTRY* ldrEntry)
 {
     FD_ASSERT(ldrEntry != nullptr);
@@ -62,11 +63,9 @@ class LIST_ENTRY_iterator
     LIST_ENTRY* current_;
 
   public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type   = size_t;
-    using value_type        = LIST_ENTRY;
-    using pointer           = value_type*;
-    using reference         = value_type&;
+    using value_type = LIST_ENTRY;
+    using pointer    = value_type*;
+    using reference  = value_type&;
 
     LIST_ENTRY_iterator(LIST_ENTRY* current)
         : current_(current)
@@ -145,23 +144,18 @@ class LIST_ENTRY_range
     }
 };
 
-namespace std
-{
 // ReSharper disable CppInconsistentNaming
 template <typename T>
-static T* get(LIST_ENTRY& list)
+static T* _get(LIST_ENTRY& list)
 {
     return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
 }
 
 template <typename T>
-static const T* get(const LIST_ENTRY& list)
+static const T* _get(const LIST_ENTRY& list)
 {
     return CONTAINING_RECORD(&list, T, InMemoryOrderLinks);
 }
-
-// ReSharper restore CppInconsistentNaming
-} // namespace std
 
 // ReSharper disable All
 
@@ -170,7 +164,7 @@ static T* LIST_ENTRY_finder(Fn fn)
 {
     for (auto& list : LIST_ENTRY_range())
     {
-        auto item = std::get<T>(list);
+        auto item = _get<T>(list);
         if (fn(item))
             return item;
     }
@@ -221,8 +215,8 @@ static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY
 {
     if (!log_active())
         return;
-    log_unsafe(fd::format( //-
-        L"{} -> {}! ({:#X})",
+    log_unsafe(format( //-
+        L"{} -> {}! ({:#X})"sv,
         name,
         _found_or_not(entry),
         reinterpret_cast<uintptr_t>(entry)
@@ -233,7 +227,7 @@ static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA
 {
     if (!log_active())
         return;
-    log_unsafe(fd::format( //-
+    log_unsafe(format( //-
         L"{:#X} ({}) -> {}! ({:#X})",
         reinterpret_cast<uintptr_t>(baseAddress),
         _name_or_unknown(entry),
@@ -257,7 +251,7 @@ static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto obje
 {
     if (!log_active())
         return;
-    log_unsafe(fd::format( //-
+    log_unsafe(format( //-
         L"{} -> {} '{}' {}! ({:#X})",
         _library_info_name(entry),
         _to_wstring(objectType), // wstring conversion suck, find better way
@@ -367,7 +361,7 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
 
     if (!log_active())
         return;
-    log_unsafe(fd::format( //-
+    log_unsafe(format( //-
         L"{} -> {} {} '{}' {}! ({:#X})",
         _library_info_name(entry),
         L"vtable for",
@@ -378,7 +372,7 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
     ));
 }
 
-library_info fd::find_library(wstring_view name, bool notify)
+library_info find_library(wstring_view name, bool notify)
 {
     const auto entry = LDR_ENTRY_finder([=](const library_info info) {
         return info.name() == name;
@@ -441,7 +435,7 @@ static auto _wait_prepare(const bool notify)
     return std::pair(reg, unreg);
 }
 
-PVOID fd::wait_for_library(const wstring_view name)
+PVOID wait_for_library(const wstring_view name)
 {
     static const auto [reg_fn, unreg_fn] = _wait_prepare(false);
 
@@ -508,7 +502,7 @@ bool library_info::is_root() const
     });
     return first; */
 
-    return entry_ == std::get<LDR_DATA_TABLE_ENTRY>(*LIST_ENTRY_range().begin());
+    return entry_ == _get<LDR_DATA_TABLE_ENTRY>(*LIST_ENTRY_range().begin());
 }
 
 bool library_info::unload() const
@@ -637,13 +631,18 @@ void* library_info::find_export(const string_view name, const bool notify) const
 
 IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const bool notify) const
 {
-    const auto sections    = dos_nt(entry_).sections();
-    const auto headerFound = std::ranges::find(sections.data(), sections.data() + sections.size(), name, [](auto& header) {
-        return reinterpret_cast<const char*>(header.Name);
-    });
+    const auto            sections = dos_nt(entry_).sections();
+    IMAGE_SECTION_HEADER* header   = nullptr;
+    for (auto& h : sections)
+    {
+        if (reinterpret_cast<const char*>(h.Name) != name)
+            continue;
+        header = &h;
+        break;
+    }
     if (notify)
-        _log_found_object(entry_, L"section", name, headerFound);
-    return headerFound;
+        _log_found_object(entry_, L"section", name, header);
+    return header;
 }
 
 void* library_info::find_signature(const string_view sig, const bool notify) const
@@ -1041,9 +1040,10 @@ current_library_info::current_library_info(const bool notify)
 {
 }
 
-void fd::set_current_module_handle(const HMODULE handle)
+void set_current_module_handle(const HMODULE handle)
 {
     FD_ASSERT(handle == _self_module_handle_impl());
     FD_ASSERT(_CurrentModuleHandle == nullptr);
     _CurrentModuleHandle.store(handle, std::memory_order::relaxed);
+}
 }

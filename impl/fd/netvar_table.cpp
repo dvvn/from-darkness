@@ -93,6 +93,11 @@ basic_netvar_info** netvar_table::end()
     return &storage_.back() + 1;
 }
 
+size_t netvar_table::size() const
+{
+    return storage_.size();
+}
+
 //----
 
 /* bool netvar_table_multi::have_inner() const

@@ -9,8 +9,8 @@
 #include <chrono>
 #include <cstdio>
 
-using namespace fd;
-
+namespace fd
+{
 file_stream::~file_stream()
 {
     if (!redirected_ || !stream_)
@@ -37,13 +37,13 @@ file_stream::file_stream(const char* fileName, const char* mode, FILE* oldStream
     FD_ASSERT(err == NULL);
 }
 
-file_stream::file_stream(file_stream&& other)
+file_stream::file_stream(file_stream&& other) noexcept
 {
     *this         = other;
     other.stream_ = nullptr;
 }
 
-file_stream& file_stream::operator=(file_stream&& other)
+file_stream& file_stream::operator=(file_stream&& other) noexcept
 {
     const auto old = *this;
     *this          = other;
@@ -67,11 +67,11 @@ static string _get_current_time()
     using clock = system_clock;
 
 #if 1
-    return fd::format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
+    return format("{:%T}", current_zone()->to_local(clock::now()).time_since_epoch());
 #else
     const auto current_time_point = clock::now();
     const auto current_time       = clock::to_time_t(current_time_point);
-    tm current_localtime;
+    tm         current_localtime;
 
     localtime_s(&current_localtime, std::addressof(current_time));
 
@@ -219,7 +219,7 @@ static void _write_log_line_nolock(console_writer& w, const M& msg, const T& tim
 template <class M>
 static void _write_log_line(console_writer& w, const M& msg)
 {
-    const auto time = _get_current_time();
+    const auto            time = _get_current_time();
     const std::lock_guard guard(w);
     _write_log_line_nolock(w, msg, time);
 }
@@ -242,4 +242,5 @@ void system_console::write(const string_view str)
 void system_console::write(const wstring_view wstr)
 {
     _write_log_line(out_, wstr);
+}
 }
