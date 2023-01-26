@@ -21,8 +21,6 @@ static HMODULE _ModuleHandle;
 static HANDLE _ThreadHandle;
 static DWORD  _ThreadId = 0;
 
-using namespace fd;
-
 static void _exit_fail()
 {
     // TerminateThread(_ThreadHandle, EXIT_FAILURE);
@@ -37,11 +35,14 @@ static void _exit_fail()
 
 static DWORD WINAPI _loader(void*) noexcept
 {
+    using namespace fd;
+
+    // ReSharper disable once CppVariableCanBeMadeConstexpr
     const lazy_invoke onReturn([] {
+        CloseHandle(_ThreadHandle);
         _ThreadId = 0;
     });
     set_unload(_exit_fail);
-
     set_current_module_handle(_ModuleHandle);
 
     system_console sysConsole;
@@ -74,17 +75,17 @@ static DWORD WINAPI _loader(void*) noexcept
         return d3dParams.hFocusWindow;
     }();
 
-    gui::context guiCtx(d3dIfc, hwnd);
-    gui::menu    menu(&guiCtx);
-    guiCtx.store([&] {
-        menu.render();
-    });
+    gui::menu    menu;
+    gui::context guiCtx([&] {
+        [[maybe_unused]] const auto visible = menu.render();
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-    guiCtx.store([&] {
-        if (menu.visible())
+        if (visible)
             ImGui::ShowDemoWindow();
-    });
 #endif
+    });
+    guiCtx.init(false);
+    guiCtx.init(hwnd);
+    guiCtx.init(d3dIfc);
 
     hooks_storage2 allHooks(
         hook_callback(
@@ -96,14 +97,14 @@ static DWORD WINAPI _loader(void*) noexcept
                 if (currHwnd != hwnd)
                     assertHandler.run_panic({ "Unknown HWND detected!" });
 #endif
-                switch (guiCtx.process_keys(hwnd, args...))
+                switch (guiCtx.process_keys(currHwnd, args...))
                 {
                 case gui::process_keys_result::instant:
                     return TRUE;
                 case gui::process_keys_result::native:
-                    return orig(hwnd, args...);
+                    return orig(currHwnd, args...);
                 case gui::process_keys_result::def:
-                    return DefWindowProcW(hwnd, args...);
+                    return DefWindowProcW(currHwnd, args...);
                 default:
                     unreachable();
                 }
@@ -163,19 +164,21 @@ static DWORD WINAPI _loader(void*) noexcept
 }
 
 // ReSharper disable once CppInconsistentNaming
-extern "C" BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID /*reserved*/)
+BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID /*reserved*/)
 {
     switch (reason)
     {
     case DLL_PROCESS_ATTACH: {
+        if (!DisableThreadLibraryCalls(moduleHandle))
+            return FALSE;
         _ModuleHandle = moduleHandle;
         _ThreadHandle = CreateThread(nullptr, 0, _loader, nullptr, 0, &_ThreadId);
-        if (_ThreadId == 0u)
+        if (!_ThreadId)
             return FALSE;
         break;
     }
     case DLL_PROCESS_DETACH: {
-        if (_ThreadId != 0u && CloseHandle(_ThreadHandle) == 0)
+        if (_ThreadId && WaitForSingleObject(_ThreadHandle, INFINITE) == WAIT_FAILED)
             return FALSE;
         break;
     }

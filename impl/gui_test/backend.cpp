@@ -19,7 +19,7 @@ static LRESULT WINAPI _wnd_proc(const HWND hWnd, const UINT msg, const WPARAM wp
         const auto d3d  = reinterpret_cast<LONG>(lpcs->lpCreateParams);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, d3d);
         break;
-    } 
+    }
     case WM_SIZE: {
         if (wparam == SIZE_MINIMIZED)
             break;
@@ -43,7 +43,7 @@ static LRESULT WINAPI _wnd_proc(const HWND hWnd, const UINT msg, const WPARAM wp
         break;
     }
     case WM_DESTROY: {
-        ::PostQuitMessage(0);
+        PostQuitMessage(0);
         return FALSE;
     }
     }
@@ -120,22 +120,22 @@ IDirect3DDevice9* d3d_device9::operator->() const
 backend_data::~backend_data()
 {
     ::UnregisterClass(info.lpszClassName, info.hInstance);
-    ::DestroyWindow(hwnd);
+    DestroyWindow(hwnd);
 }
 
 backend_data::backend_data()
 {
-    constexpr auto name = _T("GUI TEST");
-    const auto handle   = GetModuleHandle(nullptr);
-    info                = { sizeof(WNDCLASSEX), CS_CLASSDC, _wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr };
+    constexpr auto name   = _T("GUI TEST");
+    const auto     handle = GetModuleHandle(nullptr);
+    info                  = { sizeof(WNDCLASSEX), CS_CLASSDC, _wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr };
     ::RegisterClassEx(&info);
     hwnd = ::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, handle, &d3d);
 
     if (!d3d.attach(hwnd))
         return;
 
-    ::ShowWindow(hwnd, SW_SHOWDEFAULT);
-    ::UpdateWindow(hwnd);
+    ShowWindow(hwnd, SW_SHOWDEFAULT);
+    UpdateWindow(hwnd);
 }
 
 void backend_data::run()
@@ -147,14 +147,14 @@ void backend_data::run()
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
         {
-            ::TranslateMessage(&msg);
+            TranslateMessage(&msg);
             ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
                 return;
         }
 
         d3d->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-        const HRESULT result = d3d->Present(nullptr, nullptr, nullptr, nullptr);
+        const auto result = d3d->Present(nullptr, nullptr, nullptr, nullptr);
         // Handle loss of D3D9 device
         if (result == D3DERR_DEVICELOST && d3d->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
             d3d.reset();

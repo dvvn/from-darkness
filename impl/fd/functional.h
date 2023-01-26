@@ -2,8 +2,10 @@
 
 #include <type_traits>
 
+#ifdef _DEBUG // i dont wanna read shit from std
 #undef __cpp_lib_bind_front
 #undef __cpp_lib_bind_back
+#endif
 
 #if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
 #include <fd/tuple.h>
@@ -15,29 +17,6 @@
 
 namespace fd
 {
-/*template <typename As, typename T>
-struct replace_type : std::false_type
-{
-};
-
-template <typename As, typename T>
-struct replace_type<As&, T>
-{
-    using type = std::add_lvalue_reference_t<std::remove_const_t<T>>;
-};
-
-template <typename As, typename T>
-struct replace_type<As&&, T>
-{
-    using type = std::add_rvalue_reference_t<std::remove_const_t<T>>;
-};
-
-template <typename As, typename T>
-struct replace_type<const As&, T>
-{
-    using type = std::add_lvalue_reference_t<std::add_const_t<T>>;
-};*/
-
 #if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
 template <uint8_t Mode, typename Fn, class ArgsPacked, typename... Args>
 static constexpr decltype(auto) _bind_invoke(Fn&& fn, ArgsPacked& argsPacked, Args&&... args)
@@ -50,7 +29,7 @@ static constexpr decltype(auto) _bind_invoke(Fn&& fn, ArgsPacked& argsPacked, Ar
     });
 }
 
-template <char Mode, typename... Args>
+template <uint8_t Mode, typename... Args>
 struct bind_impl : private tuple<Args...>
 {
     using tuple<Args...>::tuple;
@@ -72,13 +51,11 @@ struct bind_impl : private tuple<Args...>
 #ifdef __cpp_lib_bind_front
 using std::bind_front;
 #else
-
 template <typename... Args>
 constexpr bind_impl<0, std::decay_t<Args>...> bind_front(Args&&... args)
 {
     return { std::forward<Args>(args)... };
 }
-
 #endif
 
 #ifdef __cpp_lib_bind_back
@@ -117,7 +94,7 @@ struct lazy_invoke<Fn, true> : lazy_invoke_base<Fn>
     constexpr ~lazy_invoke()
     {
         if (this->fn_)
-            invoke(this->fn_);
+            this->fn_();
     }
 
     using lazy_invoke_base<Fn>::lazy_invoke_base;
@@ -139,7 +116,7 @@ struct lazy_invoke<Fn, false> : lazy_invoke_base<Fn>
     constexpr ~lazy_invoke()
     {
         if (valid_)
-            invoke(this->fn_);
+            this->fn_();
     }
 
     using lazy_invoke_base<Fn>::lazy_invoke_base;
