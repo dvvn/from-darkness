@@ -4,7 +4,6 @@
 #include <fd/system_console.h>
 #endif
 
-#include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
 #include <fd/hook_callback.h>
@@ -21,7 +20,7 @@ static HMODULE _ModuleHandle;
 static HANDLE _ThreadHandle;
 static DWORD  _ThreadId = 0;
 
-static void _exit_fail()
+[[noreturn]] static void _exit_fail()
 {
     // TerminateThread(_ThreadHandle, EXIT_FAILURE);
     // FreeLibrary(ModuleHandle);
@@ -37,13 +36,8 @@ static DWORD WINAPI _loader(void*) noexcept
 {
     using namespace fd;
 
-    // ReSharper disable once CppVariableCanBeMadeConstexpr
-    const lazy_invoke onReturn([] {
-        CloseHandle(_ThreadHandle);
-        _ThreadId = 0;
-    });
     set_unload(_exit_fail);
-    set_current_module_handle(_ModuleHandle);
+    set_this_library_handle(_ModuleHandle);
 
     system_console sysConsole;
 
@@ -57,14 +51,14 @@ static DWORD WINAPI _loader(void*) noexcept
     });
 #endif
 
-    const library_info clientLib(L"client.dll", true);
-    const auto         addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
+    const auto clientLib     = wait_for_library(L"client.dll");
+    const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
 
     addToSafeList(_ModuleHandle, nullptr);
 
     const auto d3dIfc = [] {
-        const library_info lib(L"shaderapidx9.dll", true);
-        const auto         addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        const auto lib  = wait_for_library(L"shaderapidx9.dll");
+        const auto addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
     }();
 
@@ -151,8 +145,10 @@ static DWORD WINAPI _loader(void*) noexcept
             suspend();
     });
 
-    /*if (!library_info::_Wait(L"serverbrowser.dll"))
-        _Fail();*/
+#if 0
+    if (!wait_for_library(L"serverbrowser.dll"))
+        _exit_fail();
+#endif
 
     if (SuspendThread(_ThreadHandle) == -1)
         _exit_fail();

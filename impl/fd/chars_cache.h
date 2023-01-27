@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/string.h>
+// #include <fd/string.h>
 #ifdef _DEBUG
 #include <fd/exception.h>
 #endif
@@ -154,6 +154,33 @@ struct chars_cache<false, Chr, Size>
 };
 
 template <bool ExactSize, typename Chr, size_t Size>
+constexpr bool operator==(const chars_cache<ExactSize, Chr, Size>& left, const Chr* right)
+{
+    auto data = left.data();
+    /*if (std::is_constant_evaluated())
+    {
+        for (size_t i = 0; i < Size; ++i)
+        {
+            if (data[i] != right[i])
+                return false;
+        }
+    }
+    else*/
+    {
+        if (__builtin_memcmp(data, right, Size) != 0)
+            return false;
+    }
+    return right[Size] == '\0';
+}
+
+template <bool ExactSize, typename Chr, size_t Size>
+constexpr bool operator==(const Chr* left, const chars_cache<ExactSize, Chr, Size>& right)
+{
+    return right == left;
+}
+
+#if 0
+template <bool ExactSize, typename Chr, size_t Size>
 constexpr bool operator==(const chars_cache<ExactSize, Chr, Size>& left, const basic_string_view<Chr> right)
 {
     return basic_string_view<Chr>(left) == right;
@@ -176,6 +203,7 @@ constexpr bool operator==(const Chr* left, const chars_cache<ExactSize, Chr, Siz
 {
     return right == left;
 }
+#endif
 
 template <typename Chr, size_t Size>
 chars_cache(const Chr (&arr)[Size]) -> chars_cache<true, Chr, Size - 1>;

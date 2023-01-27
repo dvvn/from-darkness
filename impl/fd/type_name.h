@@ -21,7 +21,7 @@ static constexpr decltype(auto) _raw_type_name()
 template <size_t S>
 static constexpr string_view _clamp_raw_type_name(const char (&rawName)[S])
 {
-    auto charsCount = std::size(rawName);
+    auto charsCount = S;
     if (*std::rbegin(rawName) == '\0')
         --charsCount;
     const string_view name(rawName, charsCount);

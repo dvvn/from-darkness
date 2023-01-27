@@ -223,7 +223,7 @@ static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY
     ));
 }
 
-static void _log_found_entry(const IMAGE_DOS_HEADER* baseAddress, const LDR_DATA_TABLE_ENTRY* entry)
+static void _log_found_entry(const /*IMAGE_DOS_HEADER*/ void* baseAddress, const LDR_DATA_TABLE_ENTRY* entry)
 {
     if (!log_active())
         return;
@@ -372,6 +372,30 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
     ));
 }
 
+static library_info _find_library(PVOID baseAddress, bool notify, wstring_view name = {})
+{
+    const auto entry = LDR_ENTRY_finder([=](const dos_nt dnt) {
+        return baseAddress == dnt.base();
+    });
+    if (notify)
+    {
+        if (name.empty())
+            _log_found_entry(baseAddress, entry);
+        else
+            _log_found_entry(name, entry);
+    }
+#ifdef _DEBUG
+    if (!entry)
+        return {}; // prevent assert
+#endif
+    return entry;
+}
+
+library_info find_library(PVOID baseAddress, bool notify)
+{
+    return _find_library(baseAddress, notify);
+}
+
 library_info find_library(wstring_view name, bool notify)
 {
     const auto entry = LDR_ENTRY_finder([=](const library_info info) {
@@ -427,7 +451,7 @@ static void CALLBACK _on_new_library(const ULONG notificationReason, const PCLDR
 
 static auto _wait_prepare(const bool notify)
 {
-    const library_info ntdll(L"ntdll.dll", false, notify);
+    const auto ntdll = find_library(L"ntdll.dll", notify);
 
     const auto reg   = reinterpret_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
     const auto unreg = reinterpret_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
@@ -435,9 +459,9 @@ static auto _wait_prepare(const bool notify)
     return std::pair(reg, unreg);
 }
 
-PVOID wait_for_library(const wstring_view name)
+library_info wait_for_library(const wstring_view name, bool notify)
 {
-    static const auto [reg_fn, unreg_fn] = _wait_prepare(false);
+    static const auto [reg_fn, unreg_fn] = _wait_prepare(notify);
 
     callback_data_t cbData(name);
     void*           cookie;
@@ -446,7 +470,9 @@ PVOID wait_for_library(const wstring_view name)
     cbData.sem.acquire();
     if (!NT_SUCCESS(unreg_fn(cookie)))
         return nullptr;
-    return cbData.found;
+    if (!cbData.found)
+        return nullptr;
+    return _find_library(cbData.found, notify, name);
 }
 
 library_info::library_info()
@@ -458,39 +484,6 @@ library_info::library_info(const pointer entry)
     : entry_(entry)
 {
     FD_ASSERT(entry_ != nullptr);
-}
-
-library_info::library_info(const wstring_view name, const bool wait, const bool notify)
-    : entry_(LDR_ENTRY_finder([=](const library_info info) {
-        return info.name() == name;
-    }))
-{
-    if (entry_ == nullptr && wait)
-    {
-        const auto baseAddress = wait_for_library(name);
-        if (baseAddress != nullptr)
-        {
-            entry_ = LDR_ENTRY_finder([=](const dos_nt dnt) {
-                return baseAddress == dnt.base();
-            });
-        }
-    }
-
-    if (notify)
-        _log_found_entry(name, entry_);
-    else
-        FD_ASSERT(entry_ != nullptr);
-}
-
-library_info::library_info(const IMAGE_DOS_HEADER* baseAddress, const bool notify)
-    : entry_(LDR_ENTRY_finder([=](const dos_nt dnt) {
-        return baseAddress == dnt.base();
-    }))
-{
-    if (notify)
-        _log_found_entry(baseAddress, entry_);
-    else
-        FD_ASSERT(entry_ != nullptr);
 }
 
 bool library_info::is_root() const
@@ -775,18 +768,15 @@ void* library_info::find_vtable_unknown(const string_view name, const bool notif
 
 void* library_info::find_vtable(const string_view name, const bool notify) const
 {
-    /* auto do_find = bind_back(bind_front(_Find_vtable, entry_), notify);
+    constexpr string_view classP("class ");
+    if (name.starts_with(classP))
+        return _find_vtable(entry_, name.substr(classP.size()), obj_type::CLASS, notify);
 
-     constexpr string_view class_prefix = "class ";
-     if (name.starts_with(class_prefix))
-         return do_find(name.substr(class_prefix.size()), obj_type::CLASS);
+    constexpr string_view structP("struct ");
+    if (name.starts_with(structP))
+        return _find_vtable(entry_, name.substr(structP.size()), obj_type::CLASS, notify);
 
-     constexpr string_view struct_prefix = "struct ";
-     if (name.starts_with(struct_prefix))
-         return do_find(name.substr(struct_prefix.size()), obj_type::STRUCT); */
-
-    const rewrapped_namespaces helper(name);
-    return _find_vtable(entry_, helper.name(), helper.is_class() ? obj_type::CLASS : helper.is_struct() ? obj_type::STRUCT : obj_type::UNKNOWN, notify);
+    return _find_vtable(entry_, name, obj_type::UNKNOWN, notify);
 }
 
 void* library_info::find_vtable(const std::type_info& info, const bool notify) const
@@ -1006,8 +996,7 @@ void* csgo_library_info::find_interface(const void* createInterfaceFn, const str
     return ifcAddr;
 }
 
-static std::atomic<PVOID> _CurrentModuleHandle(nullptr);
-static std::mutex         _CurrentModuleHandleMtx;
+static PVOID _SelfHandle = nullptr;
 
 static DECLSPEC_NOINLINE PVOID _self_module_handle_impl()
 {
@@ -1021,29 +1010,20 @@ static DECLSPEC_NOINLINE PVOID _self_module_handle_impl()
 
 static PVOID _self_module_handle() noexcept
 {
-    auto handle = _CurrentModuleHandle.load(std::memory_order::relaxed);
-    if (handle == nullptr)
-    {
-        const std::lock_guard guard(_CurrentModuleHandleMtx);
-        handle = _CurrentModuleHandle.load(std::memory_order::relaxed);
-        if (handle == nullptr)
-        {
-            handle = _self_module_handle_impl();
-            _CurrentModuleHandle.store(handle, std::memory_order::relaxed);
-        }
-    }
-    return handle;
+    if (!_SelfHandle)
+        _SelfHandle = _self_module_handle_impl();
+    return _SelfHandle;
 }
 
-current_library_info::current_library_info(const bool notify)
-    : library_info(static_cast<IMAGE_DOS_HEADER*>(_self_module_handle()), notify)
+library_info current_library_info(const bool notify)
 {
+    return find_library(_self_module_handle(), notify);
 }
 
-void set_current_module_handle(const HMODULE handle)
+void set_this_library_handle(const HMODULE handle)
 {
+    FD_ASSERT(_SelfHandle == nullptr);
     FD_ASSERT(handle == _self_module_handle_impl());
-    FD_ASSERT(_CurrentModuleHandle == nullptr);
-    _CurrentModuleHandle.store(handle, std::memory_order::relaxed);
+    _SelfHandle = handle;
 }
 }
