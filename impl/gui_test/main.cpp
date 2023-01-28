@@ -11,10 +11,10 @@
 
 #include <imgui.h>
 
-using namespace fd;
-
 int main(int, char**)
 {
+    using namespace fd;
+
     backend_data backend;
     if (!backend.d3d)
         return EXIT_FAILURE;

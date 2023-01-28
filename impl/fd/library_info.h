@@ -31,36 +31,6 @@ struct library_info;
 struct csgo_library_info;
 struct current_library_info;
 
-class dos_nt
-{
-    void construct(const LDR_DATA_TABLE_ENTRY* ldrEntry);
-
-  public:
-    // base address
-    IMAGE_DOS_HEADER* dos;
-    IMAGE_NT_HEADERS* nt;
-
-    dos_nt(const LDR_DATA_TABLE_ENTRY* ldrEntry);
-    explicit dos_nt(library_info info);
-
-    PVOID base() const;
-
-    std::span<uint8_t>              read() const;
-    std::span<IMAGE_SECTION_HEADER> sections() const;
-
-    template <typename T = uint8_t, typename Q>
-    T* map(Q obj) const
-    {
-        const auto dosAddr = reinterpret_cast<uintptr_t>(dos);
-        uintptr_t  offset;
-        if constexpr (std::is_pointer_v<Q>)
-            offset = reinterpret_cast<uintptr_t>(obj);
-        else
-            offset = static_cast<uintptr_t>(obj);
-        return reinterpret_cast<T*>(dosAddr + offset);
-    }
-};
-
 struct library_info
 {
     using pointer   = const LDR_DATA_TABLE_ENTRY*;
@@ -70,8 +40,7 @@ struct library_info
     pointer entry_;
 
   public:
-    library_info();
-    library_info(pointer entry);
+    library_info(pointer entry = 0);
 
     bool is_root() const;
     bool unload() const;
@@ -126,5 +95,5 @@ struct csgo_library_info : library_info
 };
 
 library_info current_library_info(bool notify = true);
-void         set_this_library_handle(HMODULE handle);
+void         set_current_library(HMODULE handle, bool notify = true);
 } // namespace fd
