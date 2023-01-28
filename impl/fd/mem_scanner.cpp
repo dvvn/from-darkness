@@ -3,7 +3,8 @@
 
 #include <vector>
 
-using namespace fd;
+namespace fd
+{
 
 static void* _find_block(const uint8_t* start0, const size_t blockSize, const uint8_t* start2, const size_t rngSize)
 {
@@ -254,38 +255,44 @@ class unknown_bytes_range_updater
         bytes.emplace_back();
     }
 
-    void store_byte(const uint8_t num) const
+  private:
+    void store(const uint8_t num)
     {
         auto& back = bytes_->back();
         auto& rng  = back.skip > 0 ? bytes_->emplace_back() : back;
         rng.part.push_back(num);
     }
 
-    void store_byte(const std::same_as<char> auto chrNum) const
+  public:
+    void store_byte(const char chrNum)
     {
-        store_byte(_to_num(chrNum));
+        store(_to_num(chrNum));
     }
 
-    void store_byte(const char part1, const char part2) const
+    void store_byte(const char part1, const char part2)
     {
-        store_byte(_to_num(part1) * 16 + _to_num(part2));
+        store(_to_num(part1) * 16 + _to_num(part2));
     }
 
-    void skip_byte() const
+    void skip_byte()
     {
         ++bytes_->back().skip;
     }
 };
 
-static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc)
+template <typename T>
+static void _text_to_bytes(unknown_bytes_range& bytes, T begin, T end)
 {
-    const unknown_bytes_range_updater updater(bytes);
+    unknown_bytes_range_updater updater(bytes);
 
-    for (auto it = textSrc.begin(); it != textSrc.end() - 1; it += 2)
+    for (auto it = begin; it < end - 1;)
     {
         const auto c = *it;
         if (c == ' ')
+        {
+            ++it;
             continue;
+        }
         const auto c2 = *std::next(it);
         if (c2 == ' ')
         {
@@ -306,7 +313,19 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
                 updater.store_byte(c, c2);
             }
         }
+        it += 2;
     }
+}
+
+template <typename T>
+static void _text_to_bytes(unknown_bytes_range& bytes, T begin, size_t size)
+{
+    _text_to_bytes(bytes, begin, begin + size);
+}
+
+static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc)
+{
+    _text_to_bytes(bytes, textSrc.data(), textSrc.size());
 }
 
 //-----
@@ -325,7 +344,24 @@ auto pattern_scanner_raw::operator()(const uint8_t* begin, const size_t memSize)
     };
 }
 
-//-------------
+auto pattern_scanner_text::operator()(const string_view sig) const -> iterator
+{
+    return {
+        this, {*this, reinterpret_cast<const uint8_t*>(sig.data()), sig.size()}
+    };
+}
+
+auto pattern_scanner_text::operator()(const uint8_t* begin, size_t memSize) const -> iterator
+{
+    return {
+        this, {*this, begin, memSize}
+    };
+}
+
+pattern_scanner_raw pattern_scanner_text::raw() const
+{
+    return { from, to };
+}
 
 auto pattern_scanner::operator()(const string_view sig) const -> unknown_iterator
 {
@@ -393,18 +429,24 @@ unknown_bytes_range& unknown_bytes_range_shared::operator*() const
     return *bytes_;
 }
 
-pattern_scanner_unknown::pattern_scanner_unknown(const memory_range memRng, const string_view sig)
+pattern_updater_unknown::pattern_updater_unknown(const memory_range memRng, const string_view sig)
     : memRng_(memRng)
 {
     _text_to_bytes(*bytes_, sig);
 }
 
-void* pattern_scanner_unknown::operator()() const
+pattern_updater_unknown::pattern_updater_unknown(const memory_range memRng, const uint8_t* begin, const size_t memSize)
+    : memRng_(memRng)
+{
+    _text_to_bytes(*bytes_, begin, memSize);
+}
+
+void* pattern_updater_unknown::operator()() const
 {
     return _find_unk_block(memRng_.from, memRng_.to, *bytes_);
 }
 
-void pattern_scanner_unknown::update(const void* lastPos)
+void pattern_updater_unknown::update(const void* lastPos)
 {
     memRng_.update(lastPos);
 }
@@ -437,28 +479,31 @@ void xrefs_finder_impl::update(const void* lastPos)
 
 void memory_iterator_dbg_creator::validate(const void* other) const
 {
+    (void)other;
     FD_ASSERT(ptr_ == other);
 }
 
 void memory_iterator_dbg_creator::validate(const memory_iterator_dbg_creator other) const
 {
+    (void)other;
     FD_ASSERT(ptr_ == other.ptr_);
 }
 
 //-----
 
-pattern_scanner_known::pattern_scanner_known(const memory_range memRng, const uint8_t* begin, const size_t memSize)
+pattern_updater_known::pattern_updater_known(const memory_range memRng, const uint8_t* begin, const size_t memSize)
     : memRng_(memRng)
     , searchRng_(begin, memSize)
 {
 }
 
-void* pattern_scanner_known::operator()() const
+void* pattern_updater_known::operator()() const
 {
     return _find_block(memRng_.from, memRng_.to, searchRng_.from, searchRng_.to);
 }
 
-void pattern_scanner_known::update(const void* lastPos)
+void pattern_updater_known::update(const void* lastPos)
 {
     memRng_.update(lastPos);
+}
 }

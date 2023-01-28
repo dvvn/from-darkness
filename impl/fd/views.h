@@ -19,6 +19,12 @@ class range_view
     {
     }
 
+    constexpr range_view(T begin, size_t size)
+        : begin_(begin)
+        , end_(std::next(begin, size))
+    {
+    }
+
     constexpr T begin() const
     {
         return begin_;
@@ -27,6 +33,11 @@ class range_view
     constexpr T end() const
     {
         return end_;
+    }
+
+    constexpr size_t size() const
+    {
+        return std::distance(begin_, end_);
     }
 };
 

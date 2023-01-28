@@ -13,6 +13,13 @@
 
 using namespace fd;
 
+struct dick
+{
+    virtual ~dick()
+    {
+    }
+};
+
 int main(int, char**)
 {
     backend_data backend;

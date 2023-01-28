@@ -37,7 +37,7 @@ static DWORD WINAPI _loader(void*) noexcept
     using namespace fd;
 
     set_unload(_exit_fail);
-    set_this_library_handle(_ModuleHandle);
+    set_current_library(_ModuleHandle);
 
     system_console sysConsole;
 
