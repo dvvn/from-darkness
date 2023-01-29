@@ -122,21 +122,6 @@ struct memory_iterator
     {
     }
 
-    /* template <typename Proj2>
-    memory_iterator<M, std::remove_cvref_t<Proj2>> as(Proj2&& proj) const
-    {
-        return {
-#ifdef _DEBUG
-            creator_,
-#else
-            this,
-#endif
-            memRng_,
-            current_,
-            std::forward<Proj2>(proj)
-        };
-    } */
-
     memory_iterator& operator++()
     {
         get_next();

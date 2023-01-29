@@ -233,6 +233,7 @@ constexpr auto make_string(const T& arg1, const Args&... args)
     return buff;
 }
 
+#if 0 // this code suck, wind a better way
 // https://github.com/tcsullivan/constexpr-to-string
 
 static constexpr string_view _Digits("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -370,6 +371,7 @@ constexpr string operator"" s(const long double num)
 }
 } // namespace string_literals
 } // namespace literals
+#endif
 
 #pragma warning(pop)
 } // namespace fd

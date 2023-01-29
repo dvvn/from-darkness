@@ -1,7 +1,8 @@
 #include <fd/hook_storage.h>
+#include <fd/views.h>
 
-using namespace fd;
-
+namespace fd
+{
 void hooks_storage::store(basic_hook* hook)
 {
     hooks_.emplace_back(hook);
@@ -15,7 +16,7 @@ void hooks_storage::store(basic_hook& hook)
 bool hooks_storage::enable()
 {
     hooks_.shrink_to_fit();
-    for (const auto h : hooks_)
+    for (const auto h : forward_view(hooks_))
     {
         if (h->active())
             continue;
@@ -28,9 +29,8 @@ bool hooks_storage::enable()
 
 bool hooks_storage::disable()
 {
-    for (auto itr = hooks_.rbegin(); itr != hooks_.rend(); ++itr)
+    for (const auto h : reverse_view(hooks_))
     {
-        auto h = *itr;
         if (!h->active())
             continue;
         if (h->disable())
@@ -38,4 +38,5 @@ bool hooks_storage::disable()
         return false;
     }
     return true;
+}
 }

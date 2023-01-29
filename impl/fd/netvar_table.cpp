@@ -5,7 +5,6 @@
 
 namespace fd
 {
-
 netvar_table::~netvar_table()
 {
     for (const auto ptr : reverse_view(storage_))
@@ -35,7 +34,7 @@ const basic_netvar_info* netvar_table::find(const string_view name) const
 {
     FD_ASSERT(!name.empty());
 
-    for (const auto entry : storage_)
+    for (const auto entry : forward_view(storage_))
     {
         if (entry->name() == name)
             return entry;
@@ -52,7 +51,7 @@ void netvar_table::add(basic_netvar_info* info)
         const auto offset = info->offset();
         const auto type   = info->type();
 
-        for (auto item : storage_)
+        for (const auto item : forward_view(storage_))
         {
             if (item->name() == name)
                 FD_ASSERT("Item with given name already added!");
@@ -73,7 +72,9 @@ void netvar_table::add(basic_netvar_info* info)
 
 void netvar_table::sort()
 {
-    std::sort(storage_.begin(), storage_.end(), [](auto l, auto r) {
+    using fd::begin;
+    using fd::end;
+    std::stable_sort(begin(storage_), end(storage_), [](auto* l, auto* r) {
         return l->offset() < r->offset();
     });
 }
@@ -90,7 +91,7 @@ basic_netvar_info** netvar_table::begin()
 
 basic_netvar_info** netvar_table::end()
 {
-    return &storage_.back() + 1;
+    return storage_.data() + storage_.size();
 }
 
 size_t netvar_table::size() const

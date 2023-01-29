@@ -69,7 +69,17 @@ static DWORD WINAPI _loader(void*) noexcept
         return d3dParams.hFocusWindow;
     }();
 
-    gui::menu    menu;
+    gui::menu_impl menu(gui::tab_bar(
+#ifndef FD_GUI_RANDOM_TAB_BAR_NAME
+        "tab bar",
+#endif
+        gui::tab(
+            "tab",
+            [] {
+                ImGui::TextUnformatted("test");
+            }
+        )
+    ));
     gui::context guiCtx([&] {
         [[maybe_unused]] const auto visible = menu.render();
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS

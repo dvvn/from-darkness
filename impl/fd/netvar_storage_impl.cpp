@@ -443,6 +443,8 @@ static void _parse(valve::recv_table* recvTable, netvars_storage* storage)
     }
 }
 
+using std::to_string;
+
 void netvars_storage::iterate_client_class(const valve::client_class* rootClass, const string_view debugName)
 {
     FD_ASSERT(data_.empty(), "Iterate recv tables first!");

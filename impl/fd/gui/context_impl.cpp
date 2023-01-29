@@ -518,7 +518,7 @@ bool context_impl::begin_frame()
     const auto displaySize = context_.IO.DisplaySize;
     const auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
     if (minimized)
-        return 0;
+        return false;
 #endif
 
     ImGui::NewFrame();
@@ -536,7 +536,7 @@ bool context_impl::begin_frame()
     }
 #endif
 
-    return 1;
+    return true;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

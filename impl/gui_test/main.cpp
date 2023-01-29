@@ -31,7 +31,42 @@ int main(int, char**)
     });
 #endif
 
-    gui::menu menu;
+    gui::menu_impl menu(
+        gui::tab_bar(
+#ifndef FD_GUI_RANDOM_TAB_BAR_NAME
+            "tab bar1",
+#endif
+            gui::tab(
+                "tab1",
+                [] {
+                    ImGui::TextUnformatted("hello");
+                }
+            ),
+            gui::tab(
+                "tab2",
+                [] {
+                    ImGui::TextUnformatted("-->hello again");
+                }
+            )
+        ),
+        gui::tab_bar(
+#ifndef FD_GUI_RANDOM_TAB_BAR_NAME
+            "tab bar2",
+#endif
+            gui::tab(
+                "new tab",
+                [] {
+                    ImGui::TextUnformatted("im here!");
+                }
+            ),
+            gui::tab(
+                "tab 3",
+                [] {
+                    ImGui::TextUnformatted("yes!");
+                }
+            )
+        )
+    );
 
     gui::context guiCtx([&] {
         menu.render();
@@ -42,13 +77,6 @@ int main(int, char**)
     guiCtx.init(true);
     guiCtx.init(backend.hwnd);
     guiCtx.init(backend.d3d);
-
-    gui::tab_bar testTabBar("test");
-    gui::tab     testTab("test2");
-    testTab.store(bind_front(ImGui::Text, "Hello"));
-
-    testTabBar.store(testTab);
-    menu.store(testTabBar);
 
     hooks_storage2 allHooks(
         hook_callback(
@@ -88,6 +116,7 @@ int main(int, char**)
         )
     );
 
+   
     if (allHooks.enable())
     {
         set_unload([] {

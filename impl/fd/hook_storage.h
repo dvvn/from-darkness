@@ -12,6 +12,8 @@ class hooks_storage final
     std::vector<basic_hook*> hooks_;
 
   public:
+    hooks_storage() = default;
+
     void store(basic_hook* hook);
     void store(basic_hook& hook);
 
@@ -37,36 +39,20 @@ class hooks_storage2
     tuple<H...> hooks_;
 
   public:
-    ~hooks_storage2()
-    {
-        // disable_helper<true>(std::make_index_sequence<sizeof...(H)>());
-    }
-
-    hooks_storage2(H&&... hooks)
+    hooks_storage2(H... hooks)
         : hooks_(std::move(hooks)...)
     {
     }
 
     bool enable()
     {
-        return (_enable_hook(get<H>(hooks_)) && ...);
+        return (get<H>(hooks_).enable() && ...);
     }
 
-  private:
-    template <bool Destroy, size_t... I>
-    auto disable_helper(std::index_sequence<I...> seq)
-    {
-        constexpr auto idx = seq.size() - 1;
-        if constexpr (!Destroy)
-            return ((_disable_hook(get<idx - I>(hooks_))) + ...) == seq.size();
-        else
-            (std::destroy_at(&get<idx - I>(hooks_)), ...);
-    }
-
-  public:
     bool disable()
     {
-        return disable_helper<false>(std::make_index_sequence<sizeof...(H)>());
+        // todo: reverse tuple
+        return 1;
     }
 };
 };

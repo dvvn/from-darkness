@@ -51,6 +51,8 @@ static auto _correct_file_name(const string_view fullPath)
 template <class Buff, typename... T>
 static auto _build_message(Buff& buffer, const assert_data& data, T... extra)
 {
+    using std::to_string;
+
 #define FIRST_PART L"Assertion falied!", '\n', /**/ L"File: ", _correct_file_name(location.file_name()), '\n', /**/ "Line: ", to_string(location.line()), "\n\n"
 #define EXPR       L"Expression: ", expression
     const auto [expression, message, location] = data;

@@ -222,12 +222,14 @@ constexpr size_t size(const tuple<Args...>&)
     return sizeof...(Args);
 }
 
-template <size_t Offset, typename Fn, class Tpl>
+template <size_t Count, typename Fn, class Tpl>
 static constexpr void _tuple_iterate(Tpl& tpl, Fn& fn)
 {
-    fn(tpl.get());
-    if constexpr (Offset > 0)
-        _tuple_iterate<Offset - 1>(tpl.tail(), fn);
+    if constexpr (Count > 0)
+    {
+        fn(tpl.get());
+        _tuple_iterate<Count - 1>(tpl.tail(), fn);
+    }
 }
 
 template <typename Fn, typename... Args>

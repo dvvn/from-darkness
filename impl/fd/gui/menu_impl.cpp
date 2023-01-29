@@ -1,18 +1,14 @@
-#include <fd/assert.h>
 #include <fd/gui/menu_impl.h>
+#include <fd/views.h>
+#include <fd/format.h>
 
 #include <imgui_internal.h>
 
-#include <algorithm>
-#include <span>
-
-using namespace fd;
-using namespace gui;
-
+namespace fd::gui
+{
 #ifndef IMGUI_HAS_STRV
 static string _ImTmpString;
 #endif
-
 static auto _im_str(const string_view strv)
 {
 #ifndef IMGUI_HAS_STRV
@@ -25,128 +21,109 @@ static auto _im_str(const string_view strv)
 
 #endif
 }
+} // namespace fd::gui
 
 // ReSharper disable CppInconsistentNaming
 namespace ImGui
 {
-static bool BeginTabItem(const string_view label)
+static bool BeginTabItem(const fd::string_view label)
 {
-    return BeginTabItem(_im_str(label), nullptr);
+    return BeginTabItem(fd::gui::_im_str(label), nullptr);
 }
-
 } // namespace ImGui
 
 // ReSharper restore CppInconsistentNaming
 
-tab::tab(const string_view name)
+namespace fd::gui
+{
+tab_base::tab_base(const string_view name)
     : name_(name)
 {
 }
 
-bool tab::render() const
+bool tab_base::new_frame()
 {
-    const auto ret = ImGui::BeginTabItem(name_);
-    if (ret)
-        ImGui::EndTabItem();
-    return ret;
+    return ImGui::BeginTabItem(name_);
 }
 
-void tab::render_data() const
+void tab_base::end_frame()
 {
-    for (auto& cb : callbacks_)
-        cb();
-}
-
-void tab::store(callback_type&& callback)
-{
-    callbacks_.emplace_back(std::move(callback));
+    ImGui::EndTabItem();
 }
 
 //-------
 
-tab_bar::tab_bar(const string_view name)
+#ifdef FD_GUI_RANDOM_TAB_BAR_NAME
+static size_t _TabCounter = 0;
+
+tab_bar_base::tab_bar_base()
+{
+    using std::to_string;
+    write_string(name_, "tab", to_string(_TabCounter++));
+}
+#else
+tab_bar_base::tab_bar_base(const string_view name)
     : name_(name)
 {
 }
+#endif
 
-void tab_bar::render() const
+bool tab_bar_base::new_frame()
 {
     auto&      g      = *GImGui;
     const auto window = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
-    const auto id     = window->GetID(name_.data(), name_.data() + name_.size());
+    const auto id     = window->GetID(begin(name_), end(name_));
     const auto tabBar = g.TabBars.GetOrAddByKey(id);
     tabBar->ID        = id;
     const ImRect   tabBarBB(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
     constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip;
     constexpr auto extraFlags   = ImGuiTabBarFlags_IsFocused;
 
-    if (ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags))
-    {
-        // no end check here, active tab MUST be exsist
-        for (auto itr = tabs_.begin(); /*itr != lastItr*/; ++itr)
-        {
-            const auto activeTab = *itr;
-            // find active tab
-            if (!activeTab->render())
-                continue;
-            // render all other tabs
-            for (const auto t2 : std::span(itr + 1, tabs_.end()))
-            {
-                if (t2->render())
-                    FD_ASSERT("Active tab already found!");
-            }
-            activeTab->render_data();
-            break;
-        }
-
-        ImGui::EndTabBar();
-    }
+    return (ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags));
 }
 
-void tab_bar::store(tab& newTab)
+void tab_bar_base::end_frame()
 {
-    tabs_.emplace_back(&newTab);
+    ImGui::EndTabBar();
 }
 
 //-------
 
-menu::menu()
+menu_impl_base::menu_impl_base()
     : visible_(false)
     , visibleNext_(true)
 {
 }
 
-bool menu::visible() const
+bool menu_impl_base::visible() const
 {
     return visible_;
 }
 
-void menu::show()
+void menu_impl_base::show()
 {
     visibleNext_ = true;
 }
 
-void menu::hide()
+void menu_impl_base::hide()
 {
     visibleNext_ = false;
 }
 
-void menu::toggle()
+void menu_impl_base::toggle()
 {
     visibleNext_ = !visible_;
 }
 
-bool menu::render()
+bool menu_impl_base::new_frame(bool& visible)
 {
     if (!visibleNext_)
     {
         visible_ = false;
         return false;
     }
-
-    auto visible = true;
 
     if (ImGui::Begin("Unnamed", &visible, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
     {
@@ -160,14 +137,15 @@ bool menu::render()
             ImGui::EndMenuBar();
         }
 
-        std::ranges::for_each(tabBars_, &tab_bar::render);
+        // render tabs
     }
-    ImGui::End();
 
-    return visibleNext_ = visible_ = visible;
+    return true;
 }
 
-void menu::store(tab_bar& newTabBar)
+void menu_impl_base::end_frame(bool visible)
 {
-    tabBars_.emplace_back(&newTabBar);
+    ImGui::End();
+    visibleNext_ = visible_ = visible;
+}
 }

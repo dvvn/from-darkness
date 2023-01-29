@@ -1,49 +1,49 @@
 #include <fd/assert.h>
 #include <fd/mem_scanner.h>
 
+#include <fd/views.h>
 #include <vector>
 
 namespace fd
 {
-
-static void* _find_block(const uint8_t* start0, const size_t blockSize, const uint8_t* start2, const size_t rngSize)
+static void* _find_block(const uint8_t* mem, const size_t memSize, const uint8_t* rng, const size_t rngSize)
 {
-    if (blockSize < rngSize)
+    if (memSize < rngSize)
         return nullptr;
 
-    const auto limit = blockSize - rngSize;
+    const auto limit = memSize - rngSize;
 
     if (rngSize == 1)
-        return const_cast<void*>(std::memchr(start0, *start2, limit));
+        return const_cast<void*>(memchr(mem, *rng, limit));
 
     for (size_t offset = 0; offset <= limit;)
     {
-        const auto start1 = std::memchr(start0 + offset, start2[0], limit - offset);
+        const auto start1 = memchr(mem + offset, rng[0], limit - offset);
         if (start1 == nullptr)
             break;
 
-        if (std::memcmp(start1, start2, rngSize) == 0)
+        if (memcmp(start1, rng, rngSize) == 0)
             return const_cast<void*>(start1);
 
-        offset = std::distance(start0, static_cast<const uint8_t*>(start1)) + 1;
+        offset = std::distance(mem, static_cast<const uint8_t*>(start1)) + 1;
     }
 
     return nullptr;
 }
 
-static auto _find_block(const uint8_t* start0, const uint8_t* end0, const uint8_t* start2, const uint8_t* end2)
+static auto _find_block(const uint8_t* memBegin, const uint8_t* memEnd, const uint8_t* rngBegin, const uint8_t* rngEnd)
 {
-    return _find_block(start0, std::distance(start0, end0), start2, std::distance(start2, end2));
+    return _find_block(memBegin, std::distance(memBegin, memEnd), rngBegin, std::distance(rngBegin, rngEnd));
 }
 
-static auto _find_block(const uint8_t* start0, const uint8_t* end0, const uint8_t* start2, const size_t rngSize)
+static auto _find_block(const uint8_t* memBegin, const uint8_t* memEnd, const uint8_t* rngBegin, const size_t rngSize)
 {
-    return _find_block(start0, std::distance(start0, end0), start2, rngSize);
+    return _find_block(memBegin, std::distance(memBegin, memEnd), rngBegin, rngSize);
 }
 
-[[maybe_unused]] static auto _find_block(const uint8_t* start0, const size_t blockSize, const uint8_t* start2, const uint8_t* end2)
+[[maybe_unused]] static auto _find_block(const uint8_t* memBegin, const size_t memSize, const uint8_t* rngBegin, const uint8_t* rngEnd)
 {
-    return _find_block(start0, blockSize, start2, std::distance(start2, end2));
+    return _find_block(memBegin, memSize, rngBegin, std::distance(rngBegin, rngEnd));
 }
 
 //-----
@@ -87,18 +87,20 @@ void memory_range::update(const void* curr, const size_t offset)
 
 struct bytes_range
 {
-    std::vector<uint8_t> part;
-    uint8_t              skip = 0;
+    using part_storage = /*std::vector*/ basic_string<uint8_t>;
+
+    part_storage part;
+    uint8_t      skip = 0;
 };
 
-class fd::unknown_bytes_range : public std::vector<bytes_range>
+class unknown_bytes_range : public std::vector<bytes_range>
 {
     mutable size_t bytesCount_ = 0;
 
     size_t bytes_count_impl() const
     {
         size_t ret = 0;
-        for (auto& [part, skip] : *this)
+        for (auto& [part, skip] : forward_view(*this))
         {
             ret += part.size();
             ret += skip;
@@ -126,68 +128,63 @@ static bool _have_mem_after(const size_t skip, const void* begin, const size_t o
     return memAfter >= skip;
 }
 
-static void* _find_unk_block(const uint8_t* begin, const uint8_t* end, const unknown_bytes_range& unkBytes)
+static void* _find_unk_block(const uint8_t* memBegin, const uint8_t* memEnd, const unknown_bytes_range& unkBytes)
 {
-#ifdef _DEBUG
-    const auto   unkBytes_count = unkBytes.bytes_count();
-    const size_t memSize        = std::distance(begin, end);
-    FD_ASSERT(memSize >= unkBytes_count);
-#endif
+    const auto unkBytes0 = unkBytes.data();
 
-    const auto unkBytes_begin = unkBytes.data();
-    const auto unkPart0_size  = unkBytes_begin->part.size();
-    const auto unkPart0_begin = unkBytes_begin->part.data();
-    const auto unkPart0_skip  = unkBytes_begin->skip;
+    const auto unkPart0     = unkBytes0->part.data();
+    const auto unkPart0Size = unkBytes0->part.size();
+    const auto unkPart0Skip = unkBytes0->skip;
 
     if (unkBytes.size() == 1)
     {
-        const auto part0_found = _find_block(begin, end, unkPart0_begin, unkPart0_size);
-        if (part0_found == nullptr)
+        const auto part0Found = _find_block(memBegin, memEnd, unkPart0, unkPart0Size);
+        if (part0Found == nullptr)
             return nullptr;
-        if (!_have_mem_after(unkPart0_skip, part0_found, unkPart0_size, end))
+        if (!_have_mem_after(unkPart0Skip, part0Found, unkPart0Size, memEnd))
             return nullptr;
-        return part0_found;
+        return part0Found;
     }
 
-#ifndef _DEBUG
-    const auto   unkBytes_count = unkBytes.bytes_count();
-    const size_t memSize        = std::distance(begin, end);
-#endif
+    const auto   unkBytesCount = unkBytes.bytes_count();
+    const size_t memSize       = std::distance(memBegin, memEnd);
+    FD_ASSERT(memSize >= unkBytesCount);
 
-    const auto unkBytes1       = unkBytes_begin + 1;
-    const auto unkBytes_end    = unkBytes_begin + unkBytes.size();
-    const auto lastReadablePos = memSize - unkBytes_count;
+    const auto unkBytes1   = unkBytes0 + 1;
+    const auto unkBytesEnd = unkBytes0 + unkBytes.size();
 
+    const auto lastReadablePos = memSize - unkBytesCount;
     for (size_t pos = 0; pos <= lastReadablePos;)
     {
-        const auto part0_found = _find_block(begin + pos, end, unkPart0_begin, unkPart0_size);
-        if (part0_found == nullptr)
+        const auto part0Found = _find_block(memBegin + pos, memEnd, unkPart0, unkPart0Size);
+        if (part0Found == nullptr)
             break;
 
-        auto temp_begin = static_cast<const uint8_t*>(part0_found) + unkPart0_size + unkPart0_skip;
-        auto found      = true;
-        for (auto unkBytes_itr = unkBytes1; unkBytes_itr != unkBytes_end; ++unkBytes_itr)
+        auto tempBegin = static_cast<const uint8_t*>(part0Found) + unkPart0Size + unkPart0Skip;
+        auto found     = true;
+        for (auto& [part, skip] : range_view(unkBytes1, unkBytesEnd))
         {
-            const auto& [part, skip] = *unkBytes_itr;
-            const auto part_size     = part.size();
-
-            const auto part_valid = std::memcmp(temp_begin, part.data(), part_size) == 0;
-            if (!part_valid)
+            const auto partSize  = part.size();
+            const auto partFound = memcmp(tempBegin, part.data(), partSize) == 0;
+            if (partFound)
+            {
+                tempBegin += partSize + skip;
+            }
+            else
             {
                 found = false;
                 break;
             }
-            temp_begin += part_size + skip;
         }
 
         if (found)
         {
-            if (!_have_mem_after(unkBytes.back().skip, part0_found, unkBytes_count, end))
+            if (!_have_mem_after(unkBytes.back().skip, part0Found, unkBytesCount, memEnd))
                 break;
-            return part0_found;
+            return part0Found;
         }
 
-        pos = std::distance(begin, temp_begin) + 1;
+        pos = std::distance(memBegin, tempBegin) + 1;
     }
 
     return nullptr;
@@ -245,21 +242,22 @@ static constexpr uint8_t _to_num(const char chr)
 
 class unknown_bytes_range_updater
 {
-    unknown_bytes_range* bytes_;
+    unknown_bytes_range& bytes_;
 
   public:
     unknown_bytes_range_updater(unknown_bytes_range& bytes)
-        : bytes_(&bytes)
+        : bytes_(bytes)
     {
         FD_ASSERT(bytes.empty());
         bytes.emplace_back();
     }
 
   private:
+    // ReSharper disable once CppMemberFunctionMayBeConst
     void store(const uint8_t num)
     {
-        auto& back = bytes_->back();
-        auto& rng  = back.skip > 0 ? bytes_->emplace_back() : back;
+        auto& back = bytes_.back();
+        auto& rng  = back.skip > 0 ? bytes_.emplace_back() : back;
         rng.part.push_back(num);
     }
 
@@ -274,9 +272,10 @@ class unknown_bytes_range_updater
         store(_to_num(part1) * 16 + _to_num(part2));
     }
 
+    // ReSharper disable once CppMemberFunctionMayBeConst
     void skip_byte()
     {
-        ++bytes_->back().skip;
+        ++bytes_.back().skip;
     }
 };
 
@@ -285,15 +284,15 @@ static void _text_to_bytes(unknown_bytes_range& bytes, T begin, T end)
 {
     unknown_bytes_range_updater updater(bytes);
 
-    for (auto it = begin; it < end - 1;)
+    while (begin < end - 1)
     {
-        const auto c = *it;
+        const auto c = *begin;
         if (c == ' ')
         {
-            ++it;
+            ++begin;
             continue;
         }
-        const auto c2 = *std::next(it);
+        const auto c2 = *(begin + 1);
         if (c2 == ' ')
         {
             if (c == '?')
@@ -313,7 +312,7 @@ static void _text_to_bytes(unknown_bytes_range& bytes, T begin, T end)
                 updater.store_byte(c, c2);
             }
         }
-        it += 2;
+        begin += 2;
     }
 }
 

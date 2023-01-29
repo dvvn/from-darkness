@@ -1,15 +1,9 @@
 #pragma once
 
-#include <iterator>
+#include <fd/views.h>
 
 namespace fd
 {
-template <typename T>
-concept native_iterable = requires(T container) {
-                              std::begin(container);
-                              std::end(container);
-                          };
-
 template <typename It, typename Fn>
 void iterate(It begin, It end, Fn fn)
 {
@@ -22,8 +16,8 @@ void iterate(It begin, It end, Fn fn)
 template <native_iterable T, typename Fn>
 void iterate(T&& container, Fn fn)
 {
-    auto end = std::end(container);
-    for (auto itr = std::begin(container); itr != end; ++itr)
+    auto last = end(container);
+    for (auto itr = begin(container); itr != last; ++itr)
     {
         fn(*itr);
     }
