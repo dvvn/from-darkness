@@ -58,8 +58,7 @@ static size_t _TabCounter = 0;
 
 tab_bar_base::tab_bar_base()
 {
-    using std::to_string;
-    write_string(name_, "tab", to_string(_TabCounter++));
+    write_string(name_, "tab", format_int(_TabCounter++));
 }
 #else
 tab_bar_base::tab_bar_base(const string_view name)

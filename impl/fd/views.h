@@ -13,17 +13,25 @@ static decltype(auto) _unwrap(It it)
         return it;
 }
 
-template <typename T>
+template <class T>
 concept have_unchecked = requires(T& obj) {
                              obj._Unchecked_begin();
                              obj._Unchecked_end();
                          };
+
+template <class T>
+concept have_data = requires(T& obj) {
+                        obj.data();
+                        obj.size();
+                    };
 
 template <typename T>
 static constexpr auto _begin(T& container)
 {
     if constexpr (have_unchecked<T>)
         return container._Unchecked_begin();
+    else if constexpr (have_data<T>)
+        return container.data();
     else
         return _unwrap(std::begin(container));
 }
@@ -33,8 +41,10 @@ static constexpr auto _end(T& container)
 {
     if constexpr (have_unchecked<T>)
         return container._Unchecked_end();
+    else if constexpr (have_data<T>)
+        return container.data() + container.size();
     else
-        return _unwrap(std::begin(container));
+        return _unwrap(std::end(container));
 }
 
 #if 1

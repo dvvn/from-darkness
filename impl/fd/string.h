@@ -5,6 +5,8 @@
 #include <fd/exception.h>
 #endif
 
+#include <fd/views.h>
+
 #include <algorithm>
 #include <array>
 #include <iterator>
@@ -147,11 +149,11 @@ template <typename T>
 static constexpr auto _extract_size(const T& obj)
 {
     if constexpr (std::is_class_v<T>)
-        return std::pair(obj.begin(), obj.size());
+        return std::pair(begin(obj), obj.size());
     else if constexpr (std::is_pointer_v<T>)
         return std::pair(obj, str_len(obj));
     else if constexpr (std::is_bounded_array_v<T>)
-        return std::pair(std::begin(obj), *std::rbegin(obj) == '\0' ? std::size(obj) - 1 : std::size(obj));
+        return std::pair(begin(obj), *rbegin(obj) == '\0' ? std::size(obj) - 1 : std::size(obj));
     else
         return std::pair(obj, static_cast<size_t>(1));
 }

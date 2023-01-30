@@ -244,14 +244,12 @@ static void _log_found_entry(const /*IMAGE_DOS_HEADER*/ void* baseAddress, const
 }
 
 template <typename T>
-static auto _to_wstring(const T& str)
+static auto _as_wstring(const T& str)
 {
     if constexpr (std::same_as<std::iter_value_t<T>, wchar_t>)
         return str;
-    else if constexpr (std::is_class_v<T>)
-        return wstring(str.begin(), str.end());
     else
-        return wstring(std::begin(str), std::end(str) - 1);
+        return wstring(begin(str), end(str) - !std::is_class_v<T>);
 }
 
 static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr)
@@ -261,14 +259,12 @@ static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto obje
     log_unsafe(format( //-
         L"{} -> {} '{}' {}! ({:#X})",
         _library_info_name(entry),
-        _to_wstring(objectType), // wstring conversion suck, find better way
-        _to_wstring(object),
+        _as_wstring(objectType), // wstring conversion suck, find better way
+        _as_wstring(object),
         _found_or_not(addr),
         reinterpret_cast<uintptr_t>(addr)
     ));
-
-    // FD_ASSERT_PANIC("FIX ME");
-};
+}
 
 static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view rawName, const void* addr)
 {

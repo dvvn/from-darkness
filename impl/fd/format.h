@@ -33,13 +33,9 @@ struct _Basic_format_string<wchar_t, _Args...>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/xchar.h>
-#else
-#include <format>
-#endif
-
-#ifdef FMT_VERSION
 #define _FMT fmt
 #else
+#include <format>
 #define _FMT std
 #endif
 
@@ -65,6 +61,12 @@ struct _Basic_format_string<wchar_t, _Args...>
 namespace fd
 {
 using _FMT::formatter;
+using _FMT::to_string;
+using _FMT::to_wstring;
+
+#ifdef FMT_VERSION
+using fmt::format_int;
+#endif
 
 #if 1
 using _FMT::format;
