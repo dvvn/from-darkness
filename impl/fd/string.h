@@ -149,10 +149,7 @@ template <typename T>
 static constexpr auto _extract_size(const T& obj)
 {
     if constexpr (std::is_class_v<T>)
-    {
-        const auto unw = forward_view(obj);
-        return std::pair(unw.begin(), unw.size());
-    }
+        return std::pair(forward_view_lazy(obj).begin(), obj.size());
     else if constexpr (std::is_pointer_v<T>)
         return std::pair(obj, str_len(obj));
     else if constexpr (std::is_bounded_array_v<T>)

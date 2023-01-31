@@ -10,10 +10,7 @@
 
 #include <d3d9.h>
 
-#include <algorithm>
 #include <numeric>
-#include <ranges>
-#include <span>
 
 using namespace fd;
 using namespace gui;
@@ -583,10 +580,10 @@ process_keys_result context_impl::process_keys(const HWND window, const UINT mes
         return process_keys_result::native;
 #endif
 
-    const auto&     events         = context_.InputEventsQueue;
-    const auto      oldEventsCount = events.size();
-    const auto      instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
-    const std::span eventsAdded(events.begin() + oldEventsCount, events.end());
+    const auto       events         = forward_view(context_.InputEventsQueue);
+    const auto       oldEventsCount = events.size();
+    const auto       instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
+    const range_view eventsAdded(events.begin() + oldEventsCount, events.end());
 
     // update focus
     switch (message)

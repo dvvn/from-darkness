@@ -1,11 +1,10 @@
 #pragma once
 
 // #include <fd/string.h>
+#include <fd/algorithm.h>
 #ifdef _DEBUG
 #include <fd/exception.h>
 #endif
-
-#include <algorithm>
 
 namespace fd
 {
@@ -23,9 +22,9 @@ struct chars_cache<true, Chr, Size>
 
     constexpr chars_cache(const_pointer strSource)
     {
-        std::copy_n(strSource, Size, charsBuff);
+        copy(strSource, Size, charsBuff);
 #ifdef _DEBUG
-        if (!std::equal(strSource, charsBuff, Size))
+        if (!equal(strSource, charsBuff, Size))
             abort();
 #endif
     }
@@ -104,7 +103,7 @@ struct chars_cache<false, Chr, Size>
             return;
         }
 #endif
-        std::copy_n(strSource, strSize, charsBuff);
+        copy(strSource, strSize, charsBuff);
     }
 
     constexpr const_pointer data() const
@@ -156,13 +155,7 @@ struct chars_cache<false, Chr, Size>
 template <bool ExactSize, typename Chr, size_t Size>
 constexpr bool operator==(const chars_cache<ExactSize, Chr, Size>& left, const Chr* right)
 {
-    auto data = left.data();
-    for (size_t i = 0; i < Size; ++i)
-    {
-        if (data[i] != right[i])
-            return false;
-    }
-    return right[Size] == '\0';
+    return equal(left, right) && right[Size] == '\0';
 }
 
 template <bool ExactSize, typename Chr, size_t Size>

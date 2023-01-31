@@ -13,13 +13,10 @@
 #include "demangle_symbol.h"
 #include "dll_notification.h"
 
-#include <algorithm>
-#include <array>
 #include <semaphore>
 
 namespace fd
 {
-
 class dos_nt
 {
     void construct(const LDR_DATA_TABLE_ENTRY* ldrEntry)
@@ -249,7 +246,10 @@ static auto _as_wstring(const T& str)
     if constexpr (std::same_as<std::iter_value_t<T>, wchar_t>)
         return str;
     else
-        return wstring(begin(str), end(str) - !std::is_class_v<T>);
+    {
+        auto tmp = forward_view_lazy(str);
+        return wstring(tmp.begin(), tmp.end() - !std::is_class_v<T>);
+    }
 }
 
 static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr)

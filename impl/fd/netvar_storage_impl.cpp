@@ -37,7 +37,7 @@ namespace fs = std::filesystem;
 namespace fd
 {
 template <typename T>
-static bool _file_already_written(const T& fullPath, const std::span<const char> buffer)
+static bool _file_already_written(const T& fullPath, const range_view<const char*> buffer)
 {
     std::ifstream fileStored;
     fileStored.rdbuf()->pubsetbuf(nullptr, 0); // disable buffering
@@ -57,7 +57,7 @@ static bool _file_already_written(const T& fullPath, const std::span<const char>
 	return std::memcmp(buff.get(), buffer.data(), size) == 0;
 #else
     using it_t = std::istream_iterator<char>;
-    return std::equal<it_t>(fileStored, {}, buffer.begin());
+    return equal<it_t>(fileStored, {}, buffer.begin());
 #endif
 }
 
@@ -87,12 +87,12 @@ static void _Correct_path(wstring& path)
 }
 #endif
 
-static void _write_to_file(const wstring_view path, const std::span<const char> buff)
+static void _write_to_file(const wstring_view path, const range_view<const char*> buff)
 {
     // std::ofstream(full_path).write(buff.data(), buff.size());
     FILE* f;
     _wfopen_s(&f, path.data(), L"w");
-    _fwrite_nolock(buff.data(), 1, buff.size(), f);
+    _fwrite_nolock(buff.begin(), 1, buff.size(), f);
     _fclose_nolock(f);
 }
 
@@ -115,9 +115,10 @@ netvars_log::~netvars_log()
     if (!fs::Directory.create(dir, false))
         return;
     const auto fullPath = make_string(dir, file.name, file.extension);
-    if (_file_already_written(fullPath, buff))
+    const auto buffRng  = forward_view(std::as_const(buff));
+    if (_file_already_written(fullPath, buffRng))
         return;
-    _write_to_file(fullPath, buff);
+    _write_to_file(fullPath, buffRng);
 }
 
 netvars_classes::~netvars_classes()
@@ -129,16 +130,16 @@ netvars_classes::~netvars_classes()
 
     struct path_info
     {
-        wstring               path;
-        std::span<const char> buff;
+        wstring                 path;
+        range_view<const char*> buff;
     };
 
     const auto buildPath = [&](const file_info& info) -> path_info {
-        return { make_string(dir, info.name), info.data };
+        return { make_string(dir, info.name), forward_view(info.data) };
     };
 
     const auto skipWritten = [&](const path_info& p) {
-        return _file_already_written(p.path, p.buff);
+        return _file_already_written(p.path, forward_view(p.buff));
     };
 
     const auto writeBuffer = [&](const path_info& p) {

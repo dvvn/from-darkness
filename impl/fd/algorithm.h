@@ -19,10 +19,8 @@ void iterate(It begin, It end, Fn fn)
 template <native_iterable T, typename Fn>
 void iterate(T&& container, Fn fn)
 {
-    for (decltype(auto) v : container)
-    {
-        fn(static_cast<decltype(v)>(v));
-    }
+    auto tmp = forward_view_lazy(container);
+    copy<std::remove_cvref_t<decltype(tmp.begin())>, try_add_ref_t<Fn>>(tmp.begin(), tmp.end(), fn);
 }
 
 template <typename T, typename T2>

@@ -1,11 +1,11 @@
 #pragma once
 
+#include <fd/algorithm.h>
 #include <fd/exception.h>
 
 #include <xxh32.hpp>
 #include <xxh64.hpp>
 
-#include <algorithm>
 #include <array>
 #include <concepts>
 #include <memory>
@@ -50,7 +50,7 @@ constexpr size_t hash_bytes(const T* input, const size_t len)
         {
             const auto tmp  = std::bit_cast<std::array<char, sizeof(T)>>(input[i]);
             const auto desc = buff + i * tmp.size();
-            std::copy_n(tmp.data(), tmp.size(), desc);
+            copy(tmp, desc);
         }
         const auto result = hash_bytes(buff, bytesCount);
 #ifdef __cpp_lib_constexpr_dynamic_alloc

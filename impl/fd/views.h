@@ -20,6 +20,9 @@ concept have_unchecked = requires(T& obj) {
                          };
 
 template <class T>
+concept have_size = requires(T& obj) { obj.size(); };
+
+template <class T>
 concept have_data = requires(T& obj) {
                         obj.data();
                         obj.size();
@@ -64,6 +67,9 @@ class range_view
 {
     T begin_, end_;
 
+    friend class range_view<const T>;
+    friend class range_view<std::remove_const_t<T>>;
+
   public:
     constexpr range_view(T begin, T end)
         : begin_(std::move(begin))
@@ -93,19 +99,14 @@ class range_view
     {
         return std::distance(begin_, end_);
     }
+
+    constexpr bool empty() const
+    {
+        return begin_ == end_;
+    }
 };
 
 #if 1
-template <class T, uint8_t Mode>
-class range_view_lazy;
-
-template <class T, uint8_t Mode>
-class range_view_lazy<T&&, Mode>
-{
-  public:
-    range_view_lazy() = delete;
-};
-
 template <class T>
 class forward_view_lazy
 {
