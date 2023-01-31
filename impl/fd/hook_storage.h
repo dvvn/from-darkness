@@ -46,13 +46,16 @@ class hooks_storage2
 
     bool enable()
     {
-        return (get<H>(hooks_).enable() && ...);
+        return apply(hooks_, [](H&... h) {
+            return (h.enable() && ...);
+        });
     }
 
     bool disable()
     {
-        // todo: reverse tuple
-        return 1;
+        return apply(reverse(hooks_), [](auto&... h) {
+            return (h.disable() & ...);
+        });
     }
 };
 };

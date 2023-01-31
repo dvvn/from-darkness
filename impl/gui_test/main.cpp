@@ -116,7 +116,6 @@ int main(int, char**)
         )
     );
 
-   
     if (allHooks.enable())
     {
         set_unload([] {

@@ -135,6 +135,11 @@ struct tuple_type_by_index : tuple_type_by_index<Idx - 1, Args...>
 {
 };
 
+// template <size_t Idx, typename... Args>
+// struct tuple_type_by_index<Idx, tuple<Args...>> : tuple_type_by_index<Idx, Args...>
+// {
+// };
+
 template <typename T, typename... Args>
 struct tuple_type_by_index<0, T, Args...>
 {
@@ -247,7 +252,7 @@ constexpr void iterate(const tuple<Args...>& tpl, Fn fn)
 template <class Tpl, typename Fn, size_t... I>
 static constexpr decltype(auto) _tuple_apply(Tpl& tpl, Fn& fn, std::index_sequence<I...>)
 {
-    return fn(get<I>(tpl)...);
+    return fn(_tuple_get_by_index<I>(tpl)...);
 }
 
 template <typename Fn, typename... Args>
@@ -261,6 +266,45 @@ constexpr decltype(auto) apply(const tuple<Args...>& tpl, Fn fn)
 {
     return _tuple_apply(tpl, fn, std::make_index_sequence<sizeof...(Args)>());
 }
+
+template <typename Fn, typename... Args>
+constexpr decltype(auto) apply(tuple<Args...>&& tpl, Fn fn)
+{
+    return _tuple_apply(tpl, fn, std::make_index_sequence<sizeof...(Args)>());
+}
+
+template <class Tpl, size_t... I>
+static constexpr auto _reverse_tuple(Tpl& tpl, std::index_sequence<I...> seq)
+{
+    constexpr auto offset = seq.size() - 1;
+    return tuple<decltype(_tuple_get_by_index<offset - I>(tpl))...>(_tuple_get_by_index<offset - I>(tpl)...);
+}
+
+template <class Tpl, size_t... I>
+static constexpr auto _reverse_tuple_rvalue(Tpl& tpl, std::index_sequence<I...> seq)
+{
+    constexpr auto offset = seq.size() - 1;
+    return tuple<decltype(_tuple_get_by_index<offset - I>(tpl))...>(std::move(_tuple_get_by_index<offset - I>(tpl))...);
+}
+
+template <typename... Args>
+constexpr auto reverse(tuple<Args...>& tpl)
+{
+    return _reverse_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
+}
+
+template <typename... Args>
+constexpr auto reverse(const tuple<Args...>& tpl)
+{
+    return _reverse_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
+}
+
+template <typename... Args>
+constexpr auto reverse(tuple<Args...>&& tpl)
+{
+    return _reverse_tuple_rvalue(tpl, std::make_index_sequence<sizeof...(Args)>());
+}
+
 } // namespace fd
 
 namespace std

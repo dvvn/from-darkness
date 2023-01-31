@@ -157,17 +157,9 @@ template <bool ExactSize, typename Chr, size_t Size>
 constexpr bool operator==(const chars_cache<ExactSize, Chr, Size>& left, const Chr* right)
 {
     auto data = left.data();
-    /*if (std::is_constant_evaluated())
+    for (size_t i = 0; i < Size; ++i)
     {
-        for (size_t i = 0; i < Size; ++i)
-        {
-            if (data[i] != right[i])
-                return false;
-        }
-    }
-    else*/
-    {
-        if (__builtin_memcmp(data, right, Size) != 0)
+        if (data[i] != right[i])
             return false;
     }
     return right[Size] == '\0';

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fd/algorithm.h>
 #include <fd/assert.h>
 #include <fd/netvar_table.h>
@@ -72,9 +73,9 @@ void netvar_table::add(basic_netvar_info* info)
 
 void netvar_table::sort()
 {
-    using fd::begin;
-    using fd::end;
-    std::stable_sort(begin(storage_), end(storage_), [](auto* l, auto* r) {
+    const auto unw = forward_view(storage_);
+    // ReSharper disable once CppUseRangeAlgorithm
+    std::stable_sort(unw.begin(), unw.end(), [](auto* l, auto* r) {
         return l->offset() < r->offset();
     });
 }
@@ -86,12 +87,12 @@ bool netvar_table::empty() const
 
 basic_netvar_info** netvar_table::begin()
 {
-    return storage_.data();
+    return forward_view_lazy(storage_).begin();
 }
 
 basic_netvar_info** netvar_table::end()
 {
-    return storage_.data() + storage_.size();
+    return forward_view_lazy(storage_).end();
 }
 
 size_t netvar_table::size() const

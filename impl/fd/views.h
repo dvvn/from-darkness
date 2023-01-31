@@ -26,13 +26,19 @@ concept have_data = requires(T& obj) {
                     };
 
 template <typename T>
+concept have_begin_end = requires(T container) {
+                             std::begin(container);
+                             std::end(container);
+                         };
+
+template <typename T>
 static constexpr auto _begin(T& container)
 {
     if constexpr (have_unchecked<T>)
         return container._Unchecked_begin();
     else if constexpr (have_data<T>)
         return container.data();
-    else
+    else if constexpr (have_begin_end<T>)
         return _unwrap(std::begin(container));
 }
 
@@ -43,55 +49,12 @@ static constexpr auto _end(T& container)
         return container._Unchecked_end();
     else if constexpr (have_data<T>)
         return container.data() + container.size();
-    else
+    else if constexpr (have_begin_end<T>)
         return _unwrap(std::end(container));
 }
 
-#if 1
-// ReSharper disable once CppInconsistentNaming
-constexpr auto begin = [](auto& container) {
-    return _begin(container);
-};
-// ReSharper disable once CppInconsistentNaming
-constexpr auto end = [](auto& container) {
-    return _end(container);
-};
-// ReSharper disable once CppInconsistentNaming
-constexpr auto rbegin = [](auto& container) {
-    return std::reverse_iterator(_begin(container));
-};
-// ReSharper disable once CppInconsistentNaming
-constexpr auto rend = [](auto& container) {
-    return std::reverse_iterator(_end(container));
-};
-
-#else
-constexpr auto begin(auto& container)
-{
-    return _begin(container);
-}
-
-constexpr auto end(auto& container)
-{
-    return _end(container);
-}
-
-constexpr auto rbegin(auto& container)
-{
-    return std::reverse_iterator(_begin(container));
-}
-
-constexpr auto rend(auto& container)
-{
-    return std::reverse_iterator(_end(container));
-}
-#endif
-
 template <typename T>
-concept native_iterable = requires(T container) {
-                              begin(container);
-                              end(container);
-                          };
+concept native_iterable = have_unchecked<T> || have_data<T> || have_begin_end<T>;
 
 template <typename T>
 class range_view;
@@ -132,15 +95,72 @@ class range_view
     }
 };
 
-template <typename Container>
-constexpr auto forward_view(Container& container) -> range_view<decltype(begin(container))>
+#if 1
+template <class T, uint8_t Mode>
+class range_view_lazy;
+
+template <class T, uint8_t Mode>
+class range_view_lazy<T&&, Mode>
 {
-    return { begin(container), end(container) };
+  public:
+    range_view_lazy() = delete;
+};
+
+template <class T>
+class forward_view_lazy
+{
+    T* source_;
+
+  public:
+    constexpr forward_view_lazy(T& source)
+        : source_(&source)
+    {
+    }
+
+    constexpr decltype(auto) begin() const
+    {
+        return (_begin(*source_));
+    }
+
+    constexpr decltype(auto) end() const
+    {
+        return (_end(*source_));
+    }
+};
+
+template <class T>
+class reverse_view_lazy
+{
+    T* source_;
+
+  public:
+    constexpr reverse_view_lazy(T& source)
+        : source_(&source)
+    {
+    }
+
+    constexpr auto begin() const
+    {
+        return std::reverse_iterator(_end(*source_));
+    }
+
+    constexpr auto end() const
+    {
+        return std::reverse_iterator(_begin(*source_));
+    }
+};
+
+#endif
+
+template <typename Container>
+constexpr auto forward_view(Container& container)
+{
+    return range_view(_begin(container), _end(container));
 }
 
 template <typename Container>
-constexpr auto reverse_view(Container& container) -> range_view<decltype(rbegin(container))>
+constexpr auto reverse_view(Container& container)
 {
-    return { rbegin(container), rend(container) };
+    return range_view(std::reverse_iterator(_end(container)), std::reverse_iterator(_begin(container)));
 }
 } // namespace fd

@@ -1,8 +1,7 @@
 #pragma once
 
+#include <fd/algorithm.h>
 #include <fd/chars_cache.h>
-
-#include <algorithm>
 
 namespace fd
 {
@@ -41,8 +40,8 @@ struct clamped_type_name
         , nativeOffset(string_view::npos)
     {
         char tmpBuff[BuffSize];
-        std::copy_n(rawName.data(), rawName.size(), tmpBuff);
-        std::fill_n(std::rbegin(tmpBuff), rawName.size() - BuffSize, '\0');
+        copy(rawName, tmpBuff);
+        fill(std::rbegin(tmpBuff), rawName.size() - BuffSize, '\0');
 
         // remove bad spaces
         auto        skipNext = false;
@@ -83,15 +82,15 @@ struct clamped_type_name
         }
 
         // remove bad words
-        constexpr std::array badWords = { "struct", "class", "enum", "union" };
-        for (const string_view word : badWords)
+        constexpr string_view badWords[] = { "struct", "class", "enum", "union" };
+        for (const auto word : badWords)
         {
             for (const string_view str(tmpBuff, BuffSize);;)
             {
                 const auto pos = str.find(word);
                 if (pos == string_view::npos)
                     break;
-                std::fill_n(tmpBuff + pos, word.size(), '\0');
+                fill(tmpBuff + pos, word.size(), '\0');
             }
         }
 
@@ -163,21 +162,66 @@ template <typename T>
 using raw_type_t = remove_all_pointers_t<std::decay_t<T>>;
 
 template <typename T>
+struct type_name_precached;
+
+#define FD_TYPE_NAME_PRECACHE(_TYPE_)                \
+    template <>                                      \
+    struct type_name_precached<_TYPE_>               \
+    {                                                \
+        static constexpr string_view name = #_TYPE_; \
+    };
+
+FD_TYPE_NAME_PRECACHE(char);
+FD_TYPE_NAME_PRECACHE(wchar_t);
+FD_TYPE_NAME_PRECACHE(char8_t);
+FD_TYPE_NAME_PRECACHE(char16_t);
+FD_TYPE_NAME_PRECACHE(char32_t);
+
+FD_TYPE_NAME_PRECACHE(int8_t);
+FD_TYPE_NAME_PRECACHE(uint8_t);
+FD_TYPE_NAME_PRECACHE(int16_t);
+FD_TYPE_NAME_PRECACHE(uint16_t);
+FD_TYPE_NAME_PRECACHE(int32_t);
+FD_TYPE_NAME_PRECACHE(uint32_t);
+FD_TYPE_NAME_PRECACHE(int64_t);
+FD_TYPE_NAME_PRECACHE(uint64_t);
+
+FD_TYPE_NAME_PRECACHE(float);
+FD_TYPE_NAME_PRECACHE(double);
+FD_TYPE_NAME_PRECACHE(long double);
+
+FD_TYPE_NAME_PRECACHE(void*);
+FD_TYPE_NAME_PRECACHE(char*);
+FD_TYPE_NAME_PRECACHE(const char*);
+FD_TYPE_NAME_PRECACHE(long);
+FD_TYPE_NAME_PRECACHE(bool);
+
+template <typename T>
+concept have_cached_type_name = requires { type_name_precached<T>::name; };
+
+template <typename T>
 constexpr auto type_name()
 {
-    constexpr auto rawName = _clamp_raw_type_name(_raw_type_name<T>());
-    using raw_t            = raw_type_t<T>;
-    if constexpr (_IsClassOrUnion<raw_t> || std::is_enum_v<raw_t>)
+    if constexpr (have_cached_type_name<T>)
     {
-        constexpr clamped_type_name<rawName.size()> clampedName(rawName);
-        if constexpr (clampedName.native())
-            return clampedName.view(rawName);
-        else
-            return clampedName.template clone<clampedName.strSize>();
+        return type_name_precached<T>::name;
     }
     else
     {
-        return rawName;
+        constexpr auto rawName = _clamp_raw_type_name(_raw_type_name<T>());
+        using raw_t            = raw_type_t<T>;
+        if constexpr (!_IsClassOrUnion<raw_t> && !std::is_enum_v<raw_t>)
+        {
+            return rawName;
+        }
+        else
+        {
+            constexpr clamped_type_name<rawName.size()> clampedName(rawName);
+            if constexpr (clampedName.native())
+                return clampedName.view(rawName);
+            else
+                return clampedName.template clone<clampedName.strSize>();
+        }
     }
 }
 
@@ -205,7 +249,7 @@ constexpr auto type_name()
 }
 
 #ifdef _DEBUG
-static_assert(type_name<int>() == "int");
+static_assert(type_name<float>() == "float");
 static_assert(type_name<int32_t>() == type_name<int>());
 static_assert(type_name<std::char_traits>() == "std::char_traits");
 static_assert(type_name<std::char_traits<char>>() == "std::char_traits<char>");

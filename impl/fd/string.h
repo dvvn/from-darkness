@@ -5,9 +5,9 @@
 #include <fd/exception.h>
 #endif
 
+#include <fd/algorithm.h>
 #include <fd/views.h>
 
-#include <algorithm>
 #include <array>
 #include <iterator>
 #include <string>
@@ -149,11 +149,14 @@ template <typename T>
 static constexpr auto _extract_size(const T& obj)
 {
     if constexpr (std::is_class_v<T>)
-        return std::pair(begin(obj), obj.size());
+    {
+        const auto unw = forward_view(obj);
+        return std::pair(unw.begin(), unw.size());
+    }
     else if constexpr (std::is_pointer_v<T>)
         return std::pair(obj, str_len(obj));
     else if constexpr (std::is_bounded_array_v<T>)
-        return std::pair(begin(obj), *rbegin(obj) == '\0' ? std::size(obj) - 1 : std::size(obj));
+        return std::pair(std::begin(obj), *std::rbegin(obj) == '\0' ? std::size(obj) - 1 : std::size(obj));
     else
         return std::pair(obj, static_cast<size_t>(1));
 }
@@ -170,14 +173,14 @@ static constexpr void _append_to(Itr& buff, const std::pair<T, S>& obj)
     if constexpr (std::input_or_output_iterator<itr_t>)
     {
         if constexpr (canCopy)
-            std::copy_n(src, size, buff);
+            copy(src, size, buff);
         else
-            std::fill_n(buff, size, src);
+            fill(buff, size, src);
     }
     else
     {
         if constexpr (!canCopy)
-            std::fill_n(std::back_insert_iterator(buff), size, src);
+            fill(std::back_insert_iterator(buff), size, src);
         else if constexpr (can_append<Itr&, T, T>)
             buff.append(src, src + size);
         else

@@ -17,6 +17,16 @@
 
 namespace fd
 {
+FD_TYPE_NAME_PRECACHE(valve::qangle);
+FD_TYPE_NAME_PRECACHE(valve::vector2);
+FD_TYPE_NAME_PRECACHE(valve::vector3);
+FD_TYPE_NAME_PRECACHE(valve::vector4);
+FD_TYPE_NAME_PRECACHE(valve::matrix3x4);
+FD_TYPE_NAME_PRECACHE(valve::view_matrix); // matrix4x4
+FD_TYPE_NAME_PRECACHE(valve::base_handle);
+FD_TYPE_NAME_PRECACHE(valve::base_entity*);
+FD_TYPE_NAME_PRECACHE(valve::color);
+FD_TYPE_NAME_PRECACHE(valve::quaternion);
 
 static const char* _prefix_ptr(const char* ptr, const size_t prefixSize)
 {
@@ -167,7 +177,7 @@ static not_explicit_string _type_recv_prop(const valve::recv_prop* prop)
 #endif
     }
     case pt::DPT_Int64:
-        return "int64_t" /*type_name<int64_t>()*/;
+        return type_name<int64_t>();
     default: {
         FD_ASSERT_PANIC("Unknown recv prop type");
     }
@@ -187,7 +197,7 @@ string extract_type_std_array(const string_view type, const size_t size)
 
 string extract_type_valve_vector(const string_view type)
 {
-    constexpr auto arrName = /*type_name<valve::vector>()*/ "fd::valve::vector";
+    constexpr auto arrName = /*type_name<valve::vector>()*/ "valve::vector";
 #if defined(__cpp_lib_format) && 0
     return std::format("{}<{}>", arr_name, type); // formatter not imported
 #else
@@ -232,15 +242,15 @@ string_view extract_type_integer(const string_view type)
         if (prefix == 'b')
             return type_name<bool>();
         if (prefix == 'c')
-            return "uint8_t" /*type_name<uint8_t>()*/;
+            return type_name<uint8_t>();
         if (prefix == 'h')
             return type_name<valve::base_handle>();
     }
     case 2: {
         if (prefix == "un")
-            return "uint32_t" /*type_name<uint32_t>()*/;
+            return type_name<uint32_t>();
         if (prefix == "ch")
-            return "uint8_t" /*type_name<uint8_t>()*/;
+            return type_name<uint8_t>();
         if (prefix == "fl" && type.ends_with("Time")) //  SimulationTime int ???
             return type_name<float>();
     }
@@ -249,7 +259,7 @@ string_view extract_type_integer(const string_view type)
             return type_name<valve::color>(); // not sure
     }
     default:
-        return "int32_t" /*type_name<int32_t>()*/;
+        return type_name<int32_t>();
     };
 }
 
@@ -281,9 +291,9 @@ string_view extract_type(const valve::data_map_description* field)
     case ft::FIELD_BOOLEAN:
         return type_name<bool>();
     case ft::FIELD_SHORT:
-        return "int16_t" /*type_name<int16_t>()*/;
+        return type_name<int16_t>();
     case ft::FIELD_CHARACTER:
-        return "int8_t" /*type_name<int8_t>()*/;
+        return type_name<int8_t>();
     case ft::FIELD_COLOR32:
         return type_name<valve::color>();
     case ft::FIELD_EMBEDDED:
@@ -301,7 +311,7 @@ string_view extract_type(const valve::data_map_description* field)
     case ft::FIELD_TIME:
         return type_name<float>();
     case ft::FIELD_TICK:
-        return "int32_t" /*type_name<int32_t>()*/;
+        return type_name<int32_t>();
     case ft::FIELD_MODELNAME:
     case ft::FIELD_SOUNDNAME:
         return type_name<char*>(); // string_t at real
@@ -318,7 +328,7 @@ string_view extract_type(const valve::data_map_description* field)
         FD_ASSERT_PANIC("Interval field detected"); // "interval_t"
     case ft::FIELD_MODELINDEX:
     case ft::FIELD_MATERIALINDEX:
-        return "int32_t" /*type_name<int32_t>()*/;
+        return type_name<int32_t>();
     case ft::FIELD_VECTOR2D:
         return type_name<valve::vector2>();
     default:

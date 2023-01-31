@@ -1,5 +1,6 @@
 #include <fd/assert.h>
 #include <fd/filesystem.h>
+#include <fd/format.h>
 #include <fd/functional.h>
 #include <fd/json.h>
 #include <fd/logger.h>
@@ -9,7 +10,6 @@
 #include <fd/utility.h>
 #include <fd/views.h>
 
-#include <algorithm>
 #include <fstream>
 
 #if 0
@@ -98,8 +98,8 @@ static void _write_to_file(const wstring_view path, const std::span<const char> 
 
 netvars_log::netvars_log()
 {
-#if defined(FD_ROOT_DIR) && !defined(__RESHARPER__)
-    dir = FD_CONCAT_EX(L"", FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
+#if defined(FD_ROOT_DIR)
+    write_string(dir, FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
 #endif
     // write_string(file.name, engine->GetProductVersionString());
     file.extension = L".json";
@@ -167,8 +167,8 @@ netvars_classes::~netvars_classes()
 
 netvars_classes::netvars_classes() // NOLINT(hicpp-use-equals-default)
 {
-#if defined(FD_WORK_DIR) && !defined(__RESHARPER__)
-    dir = FD_CONCAT_EX(L"", FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
+#if defined(FD_WORK_DIR)
+    write_string(dir, FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
 #endif
 }
 
@@ -257,9 +257,10 @@ void netvars_storage::request_sort(const netvar_table* table)
 
 void netvars_storage::sort()
 {
-    // ReSharper disable once CppUseRangeAlgorithm
-    const auto sortEnd = std::unique(sortRequested_.begin(), sortRequested_.end());
-    for (const auto idx : range_view(sortRequested_.begin(), sortEnd))
+    const auto tmp     = forward_view_lazy(sortRequested_);
+    const auto begin   = tmp.begin();
+    const auto sortEnd = std::unique(begin, tmp.end());
+    for (const auto idx : range_view(begin, sortEnd))
         data_[idx].sort();
     sortRequested_.clear();
 }
@@ -443,8 +444,6 @@ static void _parse(valve::recv_table* recvTable, netvars_storage* storage)
     }
 }
 
-using std::to_string;
-
 void netvars_storage::iterate_client_class(const valve::client_class* rootClass, const string_view debugName)
 {
     FD_ASSERT(data_.empty(), "Iterate recv tables first!");
@@ -463,7 +462,7 @@ void netvars_storage::iterate_client_class(const valve::client_class* rootClass,
     if (log_active())
     {
         const auto name = debugName.empty() ? rootClass->name : debugName;
-        log_unsafe(make_string("netvars - ", name, " data tables stored (", to_string(data_.size()), ')'));
+        log_unsafe(make_string("netvars - ", name, " data tables stored (", format_int(data_.size()), ')'));
     }
 }
 
@@ -537,8 +536,8 @@ void netvars_storage::iterate_datamap(const valve::data_map* rootMap, const stri
         // clang-format off
         log_unsafe(make_string(
             "netvars - ", debugName.empty() ? rootMap->name : debugName,
-            " data maps stored (", to_string(result.created), "), ",
-            "updated (", to_string(result.updated), ')'
+            " data maps stored (", format_int(result.created), "), ",
+            "updated (", format_int(result.updated), ')'
         ));
         // clang-format on
     }
@@ -750,7 +749,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
         std::vector<wchar_t> buff;
         // clang-format off
         write_string(buff,
-            "netvars - ", to_string(data.files.size()), " classes ",
+            "netvars - ", format_int(data.files.size()), " classes ",
             "written to ", _drop_default_path(data.dir, netvars_classes().dir)
         );
         // clang-format on
@@ -788,7 +787,7 @@ void netvars_storage::finish()
     sortRequested_.shrink_to_fit();
 
     if (log_active())
-        log_unsafe(make_string("netvars - ", to_string(data_.size()), " classes stored"));
+        log_unsafe(make_string("netvars - ", format_int(data_.size()), " classes stored"));
 }
 
 size_t netvars_storage::get_offset(const string_view className, const string_view name) const
