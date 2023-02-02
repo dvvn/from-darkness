@@ -20,12 +20,12 @@ concept have_unchecked = requires(T& obj) {
                          };
 
 template <class T>
-concept have_size = requires(T& obj) { obj.size(); };
+concept have_size = requires(T& obj) { std::size(obj); };
 
 template <class T>
 concept have_data = requires(T& obj) {
-                        obj.data();
-                        obj.size();
+                        std::data(obj);
+                        std::size(obj);
                     };
 
 template <typename T>
@@ -40,7 +40,7 @@ static constexpr auto _begin(T& container)
     if constexpr (have_unchecked<T>)
         return container._Unchecked_begin();
     else if constexpr (have_data<T>)
-        return container.data();
+        return std::data(container);
     else if constexpr (have_begin_end<T>)
         return _unwrap(std::begin(container));
 }
@@ -51,9 +51,20 @@ static constexpr auto _end(T& container)
     if constexpr (have_unchecked<T>)
         return container._Unchecked_end();
     else if constexpr (have_data<T>)
-        return container.data() + container.size();
+        return std::data(container) + std::size(container);
     else if constexpr (have_begin_end<T>)
         return _unwrap(std::end(container));
+}
+
+template <typename T>
+static constexpr auto _size(T& container)
+{
+    if constexpr (have_size<T>)
+        return std::size(container);
+    if constexpr (have_unchecked<T>)
+        return std::distance(container._Unchecked_begin(), container._Unchecked_end());
+    else if constexpr (have_begin_end<T>)
+        return std::distance(_unwrap(std::begin(container), _unwrap(std::end(container))));
 }
 
 template <typename T>
@@ -120,12 +131,17 @@ class forward_view_lazy
 
     constexpr decltype(auto) begin() const
     {
-        return (_begin(*source_));
+        return _begin(*source_);
     }
 
     constexpr decltype(auto) end() const
     {
-        return (_end(*source_));
+        return _end(*source_);
+    }
+
+    constexpr size_t size() const
+    {
+        return _size(*source_);
     }
 };
 

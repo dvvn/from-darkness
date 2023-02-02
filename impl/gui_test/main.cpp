@@ -19,6 +19,8 @@ int main(int, char**)
     if (!backend.d3d)
         return EXIT_FAILURE;
 
+    //---
+
     system_console sysConsole;
 
     const default_logs_handler logsCallback([&](auto msg) {
