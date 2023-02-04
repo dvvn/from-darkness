@@ -8,9 +8,8 @@
 
 #pragma comment(lib, "Ntdll.lib")
 
-using namespace fd;
-using namespace fs;
-
+namespace fd::fs
+{
 class win_string
 {
     wstring buff_;
@@ -67,8 +66,7 @@ class win_string
     }
 };
 
-// ReSharper disable once CppInconsistentNaming
-static void swap(UNICODE_STRING& l, UNICODE_STRING& r) noexcept
+static void swap_length(UNICODE_STRING& l, UNICODE_STRING& r) noexcept
 {
     std::swap(l.Length, r.Length);
     std::swap(l.MaximumLength, r.MaximumLength);
@@ -144,7 +142,7 @@ class win_object_attributes
         using std::swap;
         swap(attr_, other.attr_);
         swap(nameBuffer_, other.nameBuffer_);
-        swap(name_, other.name_);
+        swap_length(name_, other.name_);
         fix_name();
         other.fix_name();
         return *this;
@@ -180,7 +178,7 @@ class nt_handle
 
     ~nt_handle()
     {
-        if (h_ != nullptr && h_ != INVALID_HANDLE_VALUE)
+        if (h_ && h_ != INVALID_HANDLE_VALUE)
             NtClose(h_);
     }
 
@@ -304,4 +302,5 @@ bool file_impl::create(const string_view dir, const bool override) const
 bool file_impl::operator()(const wstring_view dir) const
 {
     return _path_exists(dir, true);
+}
 }

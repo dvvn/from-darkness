@@ -1,6 +1,8 @@
 ﻿#include "backend.h"
 
 #include <fd/assert_impl.h>
+#include <fd/exception.h>
+#include <fd/format.h>
 #include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
@@ -10,6 +12,8 @@
 #include <fd/system_console.h>
 
 #include <imgui.h>
+
+#include <fd/algorithm.h>
 
 int main(int, char**)
 {
@@ -22,6 +26,7 @@ int main(int, char**)
     //---
 
     system_console sysConsole;
+    sysConsole.write_nolock(to_string(test_algorithms()));
 
     const default_logs_handler logsCallback([&](auto msg) {
         sysConsole.write(msg);
