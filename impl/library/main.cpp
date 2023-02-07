@@ -42,12 +42,12 @@ static DWORD WINAPI _loader(void*) noexcept
     system_console sysConsole;
 
     const default_logs_handler logsCallback([&](auto msg) {
-        sysConsole.write(msg);
+        sysConsole.out()(msg);
     });
 
 #ifdef _DEBUG
     const default_assert_handler assertHandler([&](const assert_data& adata) {
-        sysConsole.write(parse(adata));
+        sysConsole.out()(parse(adata));
     });
 #endif
 

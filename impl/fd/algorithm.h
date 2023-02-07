@@ -2,8 +2,6 @@
 
 #include <fd/views.h>
 
-#include <algorithm>
-
 namespace fd
 {
 template <typename T, size_t MaxSize = sizeof(void*) * 2>
@@ -353,8 +351,38 @@ static bool _search_native(It& begin, size_t srcSize, It2 targetBegin, const siz
 template <typename It, typename It2>
 static bool _search_trivial(It& rngBegin, size_t rngCount, It2 targetBegin, const size_t targetCount)
 {
-    const auto& val  = *targetBegin;
-    auto        last = rngBegin + rngCount;
+    auto last = rngBegin + rngCount;
+
+    using it_val  = std::iter_value_t<It>;
+    using it_val2 = std::iter_value_t<It2>;
+
+    auto val = static_cast<it_val>(*targetBegin);
+
+    if constexpr (sizeof(it_val) < sizeof(it_val2))
+    {
+        if (static_cast<it_val2>(val) != *targetBegin)
+        {
+            auto& valRef = reinterpret_cast<const it_val&>(*targetBegin);
+
+            for (;;)
+            {
+                if (rngCount < targetCount)
+                    return false;
+
+                auto found = _find_trivial<try_add_ref_t<It>>(rngBegin, last, valRef);
+                if (found == last)
+                    return false;
+
+                if (equal<try_add_ref_t<It2>, try_add_ref_t<It>>(targetBegin, targetCount, found))
+                {
+                    _seek_to(rngBegin, found);
+                    return true;
+                }
+
+                rngCount -= _seek_to_ex(rngBegin, found);
+            }
+        }
+    }
 
     for (;;)
     {
@@ -362,34 +390,13 @@ static bool _search_trivial(It& rngBegin, size_t rngCount, It2 targetBegin, cons
             return false;
 
         auto found = _find_trivial<try_add_ref_t<It>>(rngBegin, last, val);
-
-        if (!found)
+        if (found == last)
             return false;
 
-        if constexpr (can_memcmp<It, It2>)
+        if (equal(targetBegin + 1, targetCount - 1, found + 1))
         {
-            if (memcmp(found + 1, targetBegin + 1, (targetCount - 1) * sizeof(std::iter_value_t<It2>)) == 0)
-            {
-                _seek_to(rngBegin, found);
-                return true;
-            }
-        }
-        else
-        {
-            It   itL   = found + 1;
-            auto itR   = targetBegin + 1;
-            auto count = targetCount - 1;
-            while (*itL == *itR)
-            {
-                if (count-- == 0)
-                {
-                    _seek_to(rngBegin, found);
-                    return true;
-                }
-
-                ++itL;
-                ++itR;
-            }
+            _seek_to(rngBegin, found);
+            return true;
         }
 
         rngCount -= _seek_to_ex(rngBegin, found);

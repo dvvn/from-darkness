@@ -86,6 +86,8 @@ int main(int, char**)
 
     //---
 
+    test_algorithms();
+
     system_console sysConsole;
 
     const default_logs_handler logsCallback([&](auto msg) {
