@@ -23,8 +23,9 @@ class file_stream
     file_stream(const char* file_name, const char* mode, FILE* oldStream);
     file_stream(file_stream&& other) noexcept;
     file_stream& operator=(file_stream&& other) noexcept;
-                 operator void*() const;
-                 operator FILE*() const;
+
+    operator void*() const;
+    operator FILE*() const;
 };
 
 // gap. unused
@@ -56,6 +57,21 @@ class console_writer
     void unlock();
 };
 
+class console_writer_front
+{
+    console_writer* writer_;
+
+  public:
+    ~console_writer_front();
+    console_writer_front(console_writer& writer);
+    console_writer_front(const console_writer_front& other) = delete;
+
+    console_writer_front& operator=(console_writer_front&& other);
+
+    void operator()(const string_view msg) const;
+    void operator()(const wstring_view msg) const;
+};
+
 class system_console
 {
     console_reader in_;
@@ -68,11 +84,8 @@ class system_console
     ~system_console();
     system_console();
 
-    void write_nolock(string_view str);
-    void write_nolock(wstring_view wstr);
-
-    void write(string_view str);
-    void write(wstring_view wstr);
+    console_writer_front out();
+    console_writer_front err();
 };
 
 } // namespace fd

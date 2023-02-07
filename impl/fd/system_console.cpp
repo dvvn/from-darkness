@@ -153,6 +153,62 @@ void console_writer::set(file_stream&& stream)
     stream_ = std::move(stream);
 }
 
+template <class M, class T = string>
+static void _write_log_line_nolock(console_writer& w, const M& msg, const T& time = _get_current_time())
+{
+#if 0
+    w.write_nolock(time.data(), time.size());
+    w.write_nolock(" - ", 3);
+#else
+    w.write_nolock("[", 1);
+    w.write_nolock(time.data(), time.size());
+    w.write_nolock("] ", 2);
+#endif
+    w.write_nolock(msg.data(), msg.size());
+#ifdef _WIN32
+    w.write_nolock("\n\r", 2);
+#else
+    w.write_nolock("\n", 1);
+#endif
+}
+
+template <class M>
+static void _write_log_line(console_writer& w, const M& msg)
+{
+    const auto            time = _get_current_time();
+    const std::lock_guard guard(w);
+    _write_log_line_nolock(w, msg, time);
+}
+
+console_writer_front::~console_writer_front()
+{
+    if (writer_)
+        writer_->unlock();
+}
+
+console_writer_front::console_writer_front(console_writer& writer)
+    : writer_(&writer)
+{
+    writer_->lock();
+}
+
+console_writer_front& console_writer_front::operator=(console_writer_front&& other)
+{
+    writer_       = other.writer_;
+    other.writer_ = 0;
+    return *this;
+}
+
+void console_writer_front::operator()(const string_view msg) const
+{
+    _write_log_line_nolock(*writer_, msg);
+}
+
+void console_writer_front::operator()(const wstring_view msg) const
+{
+    _write_log_line_nolock(*writer_, msg);
+}
+
 system_console::~system_console()
 {
     if (window_)
@@ -162,7 +218,7 @@ system_console::~system_console()
     }
     else
     {
-        write_nolock("Stopped");
+        _write_log_line_nolock(out_, "Stopped"sv);
     }
 }
 
@@ -194,53 +250,16 @@ system_console::system_console()
 
     FD_ASSERT(IsWindowUnicode(consoleWindow) == TRUE);
 
-    write_nolock("Started");
+    _write_log_line_nolock(out_, "Started"sv);
 }
 
-template <class M, class T = string>
-static void _write_log_line_nolock(console_writer& w, const M& msg, const T& time = _get_current_time())
+console_writer_front system_console::out()
 {
-#if 0
-    w.write_nolock(time.data(), time.size());
-    w.write_nolock(" - ", 3);
-#else
-    w.write_nolock("[", 1);
-    w.write_nolock(time.data(), time.size());
-    w.write_nolock("] ", 2);
-#endif
-    w.write_nolock(msg.data(), msg.size());
-#ifdef _WIN32
-    w.write_nolock("\n\r", 2);
-#else
-    w.write_nolock("\n", 1);
-#endif
+    return out_;
 }
 
-template <class M>
-static void _write_log_line(console_writer& w, const M& msg)
+console_writer_front system_console::err()
 {
-    const auto            time = _get_current_time();
-    const std::lock_guard guard(w);
-    _write_log_line_nolock(w, msg, time);
-}
-
-void system_console::write_nolock(const string_view str)
-{
-    _write_log_line_nolock(out_, str);
-}
-
-void system_console::write_nolock(const wstring_view wstr)
-{
-    _write_log_line_nolock(out_, wstr);
-}
-
-void system_console::write(const string_view str)
-{
-    _write_log_line(out_, str);
-}
-
-void system_console::write(const wstring_view wstr)
-{
-    _write_log_line(out_, wstr);
+    return err_;
 }
 }

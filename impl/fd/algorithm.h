@@ -52,18 +52,18 @@ constexpr void copy(Src begin, Src end, Dst dst)
 }
 
 template <typename Src, typename Dst>
-constexpr void copy(Src src, size_t rngSize, Dst dst)
+constexpr void copy(Src src, size_t rngCount, Dst dst)
 {
     if constexpr (can_memmove<Src, Dst>)
     {
         if (!std::is_constant_evaluated())
         {
-            memmove(dst, src, rngSize * sizeof(Dst));
+            memmove(dst, src, rngCount * sizeof(Dst));
             return;
         }
     }
 
-    while (rngSize-- != 0)
+    while (rngCount-- != 0)
         *dst++ = *src++;
 }
 
@@ -100,15 +100,15 @@ constexpr bool equal(It begin, It end, It2 with)
 }
 
 template <typename It, typename It2>
-constexpr bool equal(It begin, size_t rngSize, It2 with)
+constexpr bool equal(It begin, size_t rngCount, It2 with)
 {
     if constexpr (can_memcmp<It, It2>)
     {
         if (!std::is_constant_evaluated())
-            return memcmp(begin, with, rngSize * sizeof(std::iter_value_t<It>)) == 0;
+            return memcmp(begin, with, rngCount * sizeof(std::iter_value_t<It>)) == 0;
     }
 
-    while (rngSize-- != 0)
+    while (rngCount-- != 0)
     {
         if (*begin++ != *with++)
             return false;
@@ -148,18 +148,18 @@ constexpr void fill(It begin, It end, const T& val)
 }
 
 template <typename It, typename T>
-constexpr void fill(It begin, size_t rngSize, const T& val)
+constexpr void fill(It begin, size_t rngCount, const T& val)
 {
     if constexpr (can_memset<It, const T&>)
     {
         if (!std::is_constant_evaluated())
         {
-            memset(begin, val, rngSize * sizeof(T));
+            memset(begin, val, rngCount * sizeof(T));
             return;
         }
     }
 
-    while (rngSize-- != 0)
+    while (rngCount-- != 0)
         *begin++ = val;
 }
 
@@ -169,19 +169,6 @@ constexpr void fill(T& container, const T1& val)
     auto tmp = forward_view_lazy(container);
     fill(tmp.begin(), tmp.end(), val);
 }
-
-template <typename It, typename T>
-concept can_memchr_barelly = sizeof(std::iter_value_t<It>) == sizeof(T) && /**/
-                             requires(It buff, T val) {
-                                 memchr(buff, val, 2);
-                                 //*left == *right;
-                             };
-
-template <typename It, typename T>
-concept can_memchr_convertible = std::convertible_to<T, std::iter_value_t<It>> && can_memchr_barelly<It, std::iter_value_t<It>>;
-
-template <typename It, typename T>
-concept can_memchr = sizeof(T) == sizeof(char) && (!std::floating_point<T>) && can_memchr_barelly<It, T>;
 
 template <typename It>
 [[nodiscard]] static size_t _seek_to_ex(It& it, const void* it2)
@@ -228,22 +215,62 @@ static void _seek_to(It& it, const void* it2)
     }
 }
 
-template <typename T>
-static int _read_first_byte(const T& val)
+// ReSharper disable once CppInconsistentNaming
+void* _find_1(const void* rngStart, const void* rngEnd, uint8_t val);
+// ReSharper disable once CppInconsistentNaming
+void* _find_2(const void* rngStart, const void* rngEnd, uint16_t val);
+// ReSharper disable once CppInconsistentNaming
+void* _find_4(const void* rngStart, const void* rngEnd, uint32_t val);
+// ReSharper disable once CppInconsistentNaming
+void* _find_8(const void* rngStart, const void* rngEnd, uint64_t val);
+
+template <typename It>
+static It _cast_helper(void* ptr)
 {
-    static_assert(sizeof(T) > sizeof(uint8_t));
-    const auto firstByte = reinterpret_cast<const uint8_t&>(val);
-    if (firstByte > std::numeric_limits<uint8_t>::max())
-        return 0;
-    return firstByte;
+    return static_cast<std::iter_value_t<It>*>(ptr);
 }
 
 template <typename It, typename T>
-static bool _find_native(It& begin, size_t rngSize, const T& val)
+static auto _find_trivial(It rngStart, It rngEnd, T val) requires(sizeof(std::iter_value_t<It>) == sizeof(T))
+{
+    if constexpr (sizeof(T) == sizeof(uint8_t))
+        return _cast_helper<It>(_find_1(rngStart, rngEnd, val));
+    else if constexpr (sizeof(T) == sizeof(uint16_t))
+        return _cast_helper<It>(_find_2(rngStart, rngEnd, val));
+    else if constexpr (sizeof(T) == sizeof(uint32_t))
+        return _cast_helper<It>(_find_4(rngStart, rngEnd, val));
+    else if constexpr (sizeof(T) == sizeof(uint64_t))
+        return _cast_helper<It>(_find_8(rngStart, rngEnd, val));
+}
+
+template <typename It, typename T>
+static It _find_trivial(It rngStart, It rngEnd, T val) requires(sizeof(std::iter_value_t<It>) > sizeof(T))
+{
+    return _find_trivial(rngStart, rngEnd, static_cast<std::iter_value_t<It>>(val));
+}
+
+template <typename It, typename T>
+static It _find_trivial(It rngStart, It rngEnd, T val) requires(sizeof(std::iter_value_t<It>) < sizeof(T))
+{
+    const auto val1 = static_cast<std::iter_value_t<It>>(val);
+    if (static_cast<T>(val1) != val)
+    {
+        for (; rngStart != rngEnd; ++rngStart)
+        {
+            if (*rngStart == val)
+                return rngStart;
+        }
+        return rngEnd;
+    }
+    return _find_trivial(rngStart, rngEnd, val1);
+}
+
+template <typename It, typename T>
+static bool _find_native(It& begin, size_t rngCount, const T& val)
 {
     for (;;)
     {
-        if (rngSize-- == 0)
+        if (rngCount-- == 0)
             return false;
         if (*begin == val)
             return true;
@@ -252,132 +279,31 @@ static bool _find_native(It& begin, size_t rngSize, const T& val)
 }
 
 template <typename It, typename T>
-static bool _find_memchr_barelly(It& rngBegin, size_t rngSize, const T& val)
-{
-    static_assert(sizeof(std::iter_value_t<It>) >= sizeof(T));
-
-    const auto firstTargetByte = _read_first_byte(val);
-    if (!firstTargetByte)
-        return _find_native(rngBegin, rngSize, val);
-
-    const auto absBegin = reinterpret_cast<uintptr_t>(static_cast<const void*>(rngBegin));
-
-    for (;;)
-    {
-        auto found = reinterpret_cast<uintptr_t>(memchr(rngBegin, firstTargetByte, rngSize * sizeof(T)));
-        if (!found)
-            return false;
-
-        const auto offset = (found - absBegin) % sizeof(T);
-        if (offset != 0)
-        {
-            found += sizeof(T) - offset;
-        }
-        else if (*reinterpret_cast<std::iter_value_t<It>*>(found) == val)
-        {
-            _seek_to(rngBegin, reinterpret_cast<void*>(found));
-            return true;
-        }
-
-        rngSize -= _seek_to_ex(rngBegin, reinterpret_cast<void*>(found));
-        if (rngSize < sizeof(T))
-            return false;
-    }
-}
+concept can_trivial_find = requires(It it, T val) { *_find_trivial(it, it + 1, val); };
 
 template <typename It, typename T>
-static bool _find_memchr(It& begin, size_t rngSize, const T& val)
+static constexpr bool _find_trivial_wrapped(It& rngBegin, size_t elementsCount, const T& val)
 {
-    auto found = memchr(begin, val, rngSize);
+    auto end    = rngBegin + elementsCount;
+    auto target = _find_trivial(rngBegin, end, val);
+
+    const auto found = target != end;
     if (found)
-        _seek_to(begin, found);
+        _seek_to(rngBegin, target);
+
     return found;
 }
 
 template <typename It, typename T>
-static bool _find_memchr_convert(It& begin, size_t rngSize, const T& val)
+static constexpr bool _find(It& rngBegin, size_t elementsCount, const T& val)
 {
-    using it_val = std::iter_value_t<It>;
-
-    const auto itVal = static_cast<it_val>(val);
-    if constexpr (sizeof(it_val) < sizeof(T))
-    {
-        if constexpr (can_memchr<It, it_val>)
-        {
-            if (static_cast<T>(itVal) == val)
-                return _find_memchr(begin, rngSize, itVal);
-        }
-        return _find_native(begin, rngSize, itVal);
-    }
-    else
-    {
-        if constexpr (can_memchr<It, it_val>)
-            return _find_memchr(begin, rngSize, itVal);
-        else
-            return _find_memchr_barelly(begin, rngSize, itVal);
-    }
-}
-
-template <typename It, typename T>
-concept can_prefer_std_algorithm =
-#if !defined(_DEBUG) && defined(_MSC_VER) && defined(_USE_STD_VECTOR_ALGORITHMS)
-    std::is_trivial_v<std::iter_value_t<It>> && std::is_trivial_v<T> && /**/
-    sizeof(std::iter_value_t<It>) <= sizeof(uint64_t) && sizeof(T) <= sizeof(uint64_t);
-#else
-    false;
-#endif
-
-template <typename It, typename T>
-static constexpr uint8_t _find_std(It& rngBegin, size_t rngSize, const T& val)
-{
-    std::iter_value_t<It> val1 = val;
-    if constexpr (sizeof(std::iter_value_t<It>) < sizeof(T))
-    {
-        if (static_cast<T>(val1) != val)
-            return 2;
-    }
-
-    auto last  = rngBegin + rngSize;
-    It   found = __std_find_trivial<std::iter_value_t<It>>(rngBegin, last, val1);
-
-    if (found != last)
-    {
-        _seek_to(rngBegin, found);
-        return 1;
-    }
-    return 0;
-}
-
-template <typename It, typename T>
-static constexpr bool _find(It& rngBegin, size_t rngSize, const T& val)
-{
-    if constexpr (can_prefer_std_algorithm<It, T>)
+    if constexpr (can_trivial_find<It, T>)
     {
         if (!std::is_constant_evaluated())
-        {
-            const auto result = _find_std(rngBegin, rngSize, val);
-            if (result != 2)
-                return result;
-        }
+            return _find_trivial_wrapped(rngBegin, elementsCount, val);
     }
 
-    if constexpr (can_memchr<It, T>)
-    {
-        if (!std::is_constant_evaluated())
-            return _find_memchr(rngBegin, rngSize, val);
-    }
-    else if constexpr (can_memchr_convertible<It, T>)
-    {
-        if (!std::is_constant_evaluated())
-            return _find_memchr_convert(rngBegin, rngSize, val);
-    }
-    else if constexpr (can_memchr_barelly<It, T>)
-    {
-        if (!std::is_constant_evaluated())
-            return _find_memchr_barelly(rngBegin, rngSize, val);
-    }
-
-    return _find_native(rngBegin, rngSize, val);
+    return _find_native(rngBegin, elementsCount, val);
 }
 
 template <typename It, typename T>
@@ -389,74 +315,29 @@ constexpr It find(It begin, It end, const T& val)
 }
 
 template <typename It, typename T>
-constexpr It find(It begin, size_t rngSize, const T& val)
+constexpr It find(It begin, size_t rngCount, const T& val)
 {
     auto beginBackup = begin;
-    if (_find(begin, rngSize, val))
+    if (_find(begin, rngCount, val))
         return begin;
-    return beginBackup + rngSize;
-}
-
-template <typename It, same_iter_size<It> It2>
-static bool _search_memchr_then_memcmp(It& srcBegin, size_t srcSize, It2 targetBegin, const size_t targetSize)
-{
-    static_assert(sizeof(std::iter_value_t<It>) == sizeof(uint8_t));
-    static_assert(sizeof(std::iter_value_t<It2>) == sizeof(uint8_t));
-
-    const int firstByte = *targetBegin;
-
-    constexpr auto compareSrcOffset = 1;
-    const void*    compareBegin     = static_cast<const uint8_t*>(static_cast<const void*>(targetBegin)) + compareSrcOffset;
-    const auto     compareCount     = targetSize - compareSrcOffset;
-
-    for (;;)
-    {
-        auto found = memchr(srcBegin, firstByte, srcSize - compareCount);
-        if (found)
-        {
-            const auto offset = _seek_to_ex(srcBegin, found);
-            if (memcmp(static_cast<const uint8_t*>(static_cast<const void*>(srcBegin)) + compareSrcOffset, compareBegin, compareCount) == 0)
-                return true;
-            srcSize -= offset;
-        }
-        --srcSize;
-        if (srcSize < targetSize)
-            return false;
-        ++srcBegin;
-    }
-}
-
-template <typename It, same_iter_size<It> It2>
-static bool _search_memcmp(It& begin, size_t srcSize, It2 targetBegin, const size_t targetSize)
-{
-    const void* targetBeginVoid = targetBegin;
-    const auto  targetSizeBytes = targetSize * sizeof(std::iter_value_t<It2>);
-    for (;;)
-    {
-        if (memcmp(begin, targetBeginVoid, targetSizeBytes) == 0)
-            return true;
-        --srcSize;
-        if (srcSize < targetSize)
-            return false;
-        ++begin;
-    }
+    return beginBackup + rngCount;
 }
 
 template <typename It, typename It2>
-static bool _search_native(It& begin, size_t srcSize, It2 targetBegin, const size_t targetSize)
+static bool _search_native(It& begin, size_t srcSize, It2 targetBegin, const size_t targetCount)
 {
     for (;;)
     {
         auto tempBegin       = begin;
         auto temptargetBegin = targetBegin;
-        auto remaining       = targetSize;
+        auto remaining       = targetCount;
 
         for (;;)
         {
             if (*tempBegin != *temptargetBegin)
             {
                 srcSize -= _seek_to_ex(begin, tempBegin + 1);
-                if (srcSize < targetSize)
+                if (srcSize < targetCount)
                     return false;
                 break;
             }
@@ -469,125 +350,41 @@ static bool _search_native(It& begin, size_t srcSize, It2 targetBegin, const siz
     }
 }
 
-#if 0
 template <typename It, typename It2>
-static bool _search_memcmp_or_native(It& begin, size_t srcSize, It2 targetBegin, const size_t targetSize)
+static bool _search_trivial(It& rngBegin, size_t rngCount, It2 targetBegin, const size_t targetCount)
 {
-    if constexpr (same_iter_size<It, It2>)
-        return _search_memcmp<It, It2>(begin, srcSize, targetBegin, targetSize);
-    else
-        return _search_native<It, It2>(begin, srcSize, targetBegin, targetSize);
-}
-#endif
-
-template <typename It, typename It2>
-static bool _search_memchr_barelly_then_memcmp(It& srcBegin, size_t srcSize, It2 targetBegin, const size_t targetSize)
-{
-    using it_val  = std::iter_value_t<It>;
-    using it2_val = std::iter_value_t<It2>;
-
-    static_assert(sizeof(it_val) == sizeof(it2_val));
-
-    const auto& firstTarget     = *targetBegin;
-    const auto  firstTargetByte = _read_first_byte(firstTarget);
-    if (!firstTargetByte)
-        return _search_memcmp<It, It2>(srcBegin, srcSize, targetBegin, targetSize);
-
-    const auto absBegin = reinterpret_cast<uintptr_t>(static_cast<const void*>(srcBegin));
-
-    const void* secondTargetByte       = static_cast<const uint8_t*>(static_cast<const void*>(targetBegin)) + 1;
-    const auto  targetBytesCount       = targetSize * sizeof(it2_val);
-    const auto  targetBytesCountMinus1 = targetBytesCount - 1;
+    const auto& val  = *targetBegin;
+    auto        last = rngBegin + rngCount;
 
     for (;;)
     {
-        auto found = reinterpret_cast<uintptr_t>(memchr(srcBegin, firstTargetByte, srcSize * sizeof(it_val)));
-        if (!found)
+        if (rngCount < targetCount)
             return false;
 
-        const auto offset = (found - absBegin) % sizeof(it_val);
-        if (offset != 0)
-        {
-            found += sizeof(it_val) - offset;
-        }
-        else if (memcmp(reinterpret_cast<void*>(found + 1), secondTargetByte, targetBytesCountMinus1) == 0)
-        {
-            _seek_to(srcBegin, reinterpret_cast<void*>(found));
-            return true;
-        }
-
-        srcSize -= _seek_to_ex(srcBegin, reinterpret_cast<void*>(found));
-        if (srcSize < targetSize)
-            return false;
-    }
-}
-
-template <typename It, typename It2>
-static bool _search_memchr_convertible_then_memcmp(It& begin, size_t srcSize, It2 targetBegin, const size_t targetSize)
-{
-    using it_val  = std::iter_value_t<It>;
-    using it2_val = std::iter_value_t<It2>;
-
-    const auto& val = *targetBegin;
-
-    const auto itVal = static_cast<it_val>(val);
-    if constexpr (sizeof(it_val) < sizeof(it2_val))
-    {
-        if (static_cast<it2_val>(itVal) == val)
-        {
-            if constexpr (can_memchr<It, it_val>)
-                return _search_memchr_then_memcmp<It, It2>(begin, srcSize, targetBegin, targetSize);
-        }
-        else
-        {
-            return _search_memcmp<It, It2>(begin, srcSize, targetBegin, targetSize);
-        }
-    }
-
-    return _search_memchr_barelly_then_memcmp<It, It2>(begin, srcSize, targetBegin, targetSize);
-}
-
-template <typename It, typename It2>
-static uint8_t _search_std_find(It& rngBegin, size_t rngSize, It2 targetBegin, const size_t targetSize)
-{
-    const auto&           val  = *targetBegin;
-    std::iter_value_t<It> val1 = val;
-    if constexpr (sizeof(std::iter_value_t<It>) < sizeof(std::iter_value_t<It2>))
-    {
-        if (static_cast<std::iter_value_t<It2>>(val1) != val)
-            return 2;
-    }
-
-    for (;;)
-    {
-        if (rngSize < targetSize)
-            return 0;
-
-        auto last  = rngBegin + rngSize;
-        It   found = (__std_find_trivial<std::iter_value_t<It>>(rngBegin, last, val1));
+        auto found = _find_trivial<try_add_ref_t<It>>(rngBegin, last, val);
 
         if (!found)
-            return 0;
+            return false;
 
         if constexpr (can_memcmp<It, It2>)
         {
-            if (memcmp((found) + 1, targetBegin + 1, (targetSize - 1) * sizeof(std::iter_value_t<It2>)) == 0)
+            if (memcmp(found + 1, targetBegin + 1, (targetCount - 1) * sizeof(std::iter_value_t<It2>)) == 0)
             {
                 _seek_to(rngBegin, found);
-                return 1;
+                return true;
             }
         }
         else
         {
             It   itL   = found + 1;
             auto itR   = targetBegin + 1;
-            auto count = targetSize - 1;
+            auto count = targetCount - 1;
             while (*itL == *itR)
             {
                 if (count-- == 0)
                 {
                     _seek_to(rngBegin, found);
-                    return 1;
+                    return true;
                 }
 
                 ++itL;
@@ -595,55 +392,33 @@ static uint8_t _search_std_find(It& rngBegin, size_t rngSize, It2 targetBegin, c
             }
         }
 
-        rngSize -= _seek_to_ex(rngBegin, found);
+        rngCount -= _seek_to_ex(rngBegin, found);
     }
 }
 
 template <typename It, typename It2>
-static constexpr bool _search(It& begin, size_t srcSize, It2 targetBegin, const size_t targetSize)
+static constexpr bool _search(It& srcBegin, size_t srcSize, It2 targetBegin, const size_t targetCount)
 {
-    if (srcSize < targetSize)
+    if (srcSize < targetCount)
         return false;
 
     using it2_maybe_ref = try_add_ref_t<It2>;
     using it2_val       = std::iter_value_t<It2>;
 
-    if constexpr (can_prefer_std_algorithm<It, it2_val>)
+    if constexpr (can_trivial_find<It, it2_val>)
     {
         if (!std::is_constant_evaluated())
-        {
-            auto result = _search_std_find<It, it2_maybe_ref>(begin, srcSize, targetBegin, targetSize);
-            if (result != 2)
-                return result;
-        }
+            return _search_trivial<it2_maybe_ref>(srcBegin, srcSize, targetBegin, targetCount);
     }
 
-    if constexpr (can_memchr<It, it2_val>)
-    {
-        if (!std::is_constant_evaluated())
-            return _search_memchr_then_memcmp<It, it2_maybe_ref>(begin, srcSize, targetBegin, targetSize);
-    }
-    else if constexpr (can_memcmp<It, It2>)
-    {
-        if (!std::is_constant_evaluated())
-        {
-            if constexpr (can_memchr_convertible<It, it2_val>)
-                return _search_memchr_convertible_then_memcmp<It, it2_maybe_ref>(begin, srcSize, targetBegin, targetSize);
-            else if constexpr (can_memchr_barelly<It, it2_val>)
-                return _search_memchr_barelly_then_memcmp<It, it2_maybe_ref>(begin, srcSize, targetBegin, targetSize);
-            else
-                return _search_memcmp<It, it2_maybe_ref>(begin, targetBegin, targetSize);
-        }
-    }
-
-    return _search_native<It, it2_maybe_ref>(begin, srcSize, targetBegin, targetSize);
+    return _search_native<It, it2_maybe_ref>(srcBegin, srcSize, targetBegin, targetCount);
 }
 
 template <typename It, typename It2>
-constexpr It find(It begin, const size_t srcSize, It2 targetBegin, const size_t targetSize)
+constexpr It find(It begin, const size_t srcSize, It2 targetBegin, const size_t targetCount)
 {
     auto beginBackup = begin;
-    if (!_search(begin, srcSize, targetBegin, targetSize))
+    if (!_search(begin, srcSize, targetBegin, targetCount))
         return beginBackup + srcSize;
     return begin;
 }
@@ -666,9 +441,9 @@ constexpr It find(It begin, const size_t srcSize, It2 targetBegin, It2 targetEnd
 }
 
 template <typename It, typename It2>
-constexpr It find(It begin, It end, It2 targetBegin, const size_t targetSize)
+constexpr It find(It begin, It end, It2 targetBegin, const size_t targetCount)
 {
-    if (!_search(begin, std::distance(begin, end), targetBegin, targetSize))
+    if (!_search(begin, std::distance(begin, end), targetBegin, targetCount))
         return end;
     return begin;
 }
