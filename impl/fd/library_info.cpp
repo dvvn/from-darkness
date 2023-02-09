@@ -752,7 +752,7 @@ void* library_info::find_signature(const string_view sig, const bool notify) con
 {
     const auto            memorySpan = dos_nt(entry_).read();
     const pattern_scanner finder(memorySpan.begin(), memorySpan.size());
-    const auto            result = *finder(sig);
+    const auto            result = *finder(sig).begin();
     if (notify)
         _log_found_object(entry_, L"signature", sig, result);
     return result;
@@ -793,7 +793,7 @@ class vtable_finder
             std::vector<uint8_t> realNameUnk; // no sting because no SSO anyway
             write_string(realNameUnk, _RttiInfo.rawPrefixBytes, " ? ", bytesName, ' ', _RttiInfo.rawPostfixBytes);
 
-            rttiClassName = *wholeModuleFinder(realNameUnk.data(), realNameUnk.size());
+            rttiClassName = *wholeModuleFinder(realNameUnk.data(), realNameUnk.size()).begin();
         }
         else if (type == obj_type::NATIVE)
         {
@@ -812,7 +812,7 @@ class vtable_finder
                 FD_ASSERT_PANIC("Unknown type");
 
             const auto realName = make_string(_RttiInfo.rawPrefix, strPrefix, name, _RttiInfo.rawPostfix);
-            rttiClassName       = *wholeModuleFinder.raw()(realName);
+            rttiClassName       = *wholeModuleFinder.raw()(realName).begin();
         }
 
         return static_cast<const char*>(rttiClassName);
@@ -840,11 +840,11 @@ class vtable_finder
                 continue;
 
             const auto objectLocator = val - 0xC;
-            const auto vtableAddress = reinterpret_cast<uintptr_t>(*dotRdataFinder(objectLocator)) + 0x4;
+            const auto vtableAddress = reinterpret_cast<uintptr_t>(*dotRdataFinder(objectLocator).begin()) + 0x4;
 
             // check is valid offset
             FD_ASSERT(vtableAddress > sizeof(uintptr_t));
-            return *dotTextFinder(vtableAddress);
+            return *dotTextFinder(vtableAddress).begin();
         }
         return nullptr;
     }
@@ -968,7 +968,7 @@ class interface_reg
         }
     };
 
-    struct equal
+    struct equal_t
     {
         enum value_type : uint8_t
         {
@@ -983,7 +983,7 @@ class interface_reg
         value_type result_;
 
       public:
-        equal(const value_type result)
+        equal_t(const value_type result)
             : result_(result)
         {
         }
@@ -1007,18 +1007,17 @@ class interface_reg
     interface_reg()                     = delete;
     interface_reg(const interface_reg&) = delete;
 
-    equal operator==(const string_view ifcName) const
+    equal_t operator==(const string_view ifcName) const
     {
-        const auto ifcNameSize = ifcName.size();
-        if (std::memcmp(this->name_, ifcName.data(), ifcNameSize) == 0)
+        if (equal(ifcName, this->name_))
         {
             const auto lastChar = this->name_[ifcName.size()];
             if (lastChar == '\0') // partially comared
-                return equal::FULL;
+                return equal_t::FULL;
             if (is_digit(lastChar)) // partial name must be looks like IfcName001
-                return equal::PARTIAL;
+                return equal_t::PARTIAL;
         }
-        return equal::ERROR;
+        return equal_t::ERROR;
     }
 
     auto operator()() const
@@ -1029,7 +1028,7 @@ class interface_reg
     auto name_size(const string_view knownPart = {}) const
     {
 #ifdef _DEBUG
-        if (!knownPart.empty() && std::memcmp(this->name_, knownPart.data(), knownPart.size()) != 0)
+        if (!knownPart.empty() && !equal(knownPart, this->name_))
             FD_ASSERT("Incorrect known part");
 #endif
 
@@ -1075,7 +1074,7 @@ void* csgo_library_info::find_interface(const void* createInterfaceFn, const str
 #ifndef _DEBUG
         if (notify)
 #endif
-            if (result == interface_reg::equal::PARTIAL)
+            if (result == interface_reg::equal_t::PARTIAL)
             {
                 const auto wholeNameSize = reg.name_size(name);
 #ifdef _DEBUG

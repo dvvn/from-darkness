@@ -1,13 +1,9 @@
 #pragma once
 
-#include <fd/string.h>
 #include <fd/type_name.h>
 
 #include <windows.h>
 #include <winternl.h>
-
-#include <span>
-#include <typeinfo>
 
 /*
 server,

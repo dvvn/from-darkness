@@ -1,4 +1,5 @@
 ﻿#include <fd/assert.h>
+#include <fd/format.h>
 #include <fd/netvar_type_resolve.h>
 #include <fd/string_info.h>
 #include <fd/type_name.h>
@@ -42,7 +43,7 @@ static bool _check_prefix(const string_view type, const string_view prefix)
     if (type.size() - 2 <= prefix.size())
         return false;
     auto ptr = _prefix_ptr(type.data(), prefix.size());
-    return ptr && memcmp(ptr, prefix.data(), prefix.size()) == 0;
+    return ptr && equal(prefix, ptr);
 }
 
 static bool _check_prefix(const string_view type, const char prefix)
@@ -191,7 +192,7 @@ string extract_type_std_array(const string_view type, const size_t size)
 #if defined(__cpp_lib_format) && 0
     return std::format("{}<{}, {}>", arr_name, type, size); // formatter not imported
 #else
-    return make_string(arrName, '<', type, ", ", size, '>');
+    return make_string(arrName, '<', type, ", ", to_string(size), '>');
 #endif
 }
 

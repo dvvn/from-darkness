@@ -5,7 +5,7 @@
 namespace fd
 {
 template <class It>
-static decltype(auto) _unwrap(It it)
+constexpr decltype(auto) decay_iter(It it)
 {
     if constexpr (std::_Unwrappable_v<It>)
         return std::_Get_unwrapped(it);
@@ -42,7 +42,7 @@ static constexpr auto _begin(T& container)
     else if constexpr (have_data<T>)
         return std::data(container);
     else if constexpr (have_begin_end<T>)
-        return _unwrap(std::begin(container));
+        return decay_iter(std::begin(container));
 }
 
 template <typename T>
@@ -53,22 +53,39 @@ static constexpr auto _end(T& container)
     else if constexpr (have_data<T>)
         return std::data(container) + std::size(container);
     else if constexpr (have_begin_end<T>)
-        return _unwrap(std::end(container));
+        return decay_iter(std::end(container));
 }
 
 template <typename T>
-static constexpr auto _size(T& container)
+static constexpr size_t _size(T&& container)
 {
     if constexpr (have_size<T>)
         return std::size(container);
-    if constexpr (have_unchecked<T>)
+    else if constexpr (have_unchecked<T>)
         return std::distance(container._Unchecked_begin(), container._Unchecked_end());
     else if constexpr (have_begin_end<T>)
-        return std::distance(_unwrap(std::begin(container), _unwrap(std::end(container))));
+        return std::distance(_unwrap(std::begin(container), decay_iter(std::end(container))));
+}
+
+template <typename T>
+static constexpr auto _size_or_end(T& container)
+{
+    if constexpr (have_size<T>)
+        return std::size(container);
+    else if constexpr (have_unchecked<T>)
+        return container._Unchecked_end();
+    else if constexpr (have_begin_end<T>)
+        return decay_iter(std::end(container));
 }
 
 template <typename T>
 concept native_iterable = have_unchecked<T> || have_data<T> || have_begin_end<T>;
+
+template <typename T>
+using begin_t = decltype(_begin(std::declval<T&>()));
+
+template <typename T>
+using end_t = decltype(_end(std::declval<T&>()));
 
 template <typename T>
 class range_view;
@@ -115,9 +132,23 @@ class range_view
     {
         return begin_ == end_;
     }
+
+    constexpr range_view subrange(const size_t offset) const
+    {
+        return { begin_ + offset, end_ };
+    }
+
+    constexpr range_view subrange(const T newBegin) const
+    {
+        return { newBegin, end_ };
+    }
+
+    constexpr auto distance(const T end) const
+    {
+        return std::distance(begin_, end);
+    }
 };
 
-#if 1
 template <class T>
 class forward_view_lazy
 {
@@ -143,6 +174,11 @@ class forward_view_lazy
     {
         return _size(*source_);
     }
+
+    constexpr decltype(auto) size_or_end() const
+    {
+        return _size_or_end(*source_);
+    }
 };
 
 template <class T>
@@ -166,8 +202,6 @@ class reverse_view_lazy
         return std::reverse_iterator(_begin(*source_));
     }
 };
-
-#endif
 
 template <typename Container>
 constexpr auto forward_view(Container& container)

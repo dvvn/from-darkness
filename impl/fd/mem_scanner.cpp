@@ -1,11 +1,12 @@
+#include <fd/algorithm.h>
 #include <fd/assert.h>
 #include <fd/mem_scanner.h>
 
-#include <fd/views.h>
 #include <vector>
 
 namespace fd
 {
+#if 0
 static void* _find_block(const uint8_t* mem, const size_t memSize, const uint8_t* rng, const size_t rngSize)
 {
     if (memSize < rngSize)
@@ -45,37 +46,38 @@ static auto _find_block(const uint8_t* memBegin, const uint8_t* memEnd, const ui
 {
     return _find_block(memBegin, memSize, rngBegin, std::distance(rngBegin, rngEnd));
 }
+#endif
 
 //-----
 
 memory_range::memory_range(const uint8_t* from, const uint8_t* to)
-    : from(from)
-    , to(to)
+    : range_view(from, to)
 {
     FD_ASSERT(from < to);
 }
 
 memory_range::memory_range(const uint8_t* from, const size_t size)
-    : from(from)
-    , to(from + size)
+    : range_view(from, size)
 {
-    FD_ASSERT(from < to);
+    FD_ASSERT(from < end());
 }
 
 void memory_range::update(const uint8_t* curr, const size_t offset)
 {
-    const auto newFrom = curr + offset;
-#ifdef _DEBUG
-    if (offset == 0)
-#endif
-        if (from == newFrom)
-        {
-            from = to;
-            return;
-        }
-    FD_ASSERT(newFrom > from);
-    FD_ASSERT(newFrom <= to - offset);
-    from = newFrom;
+    auto newFrom = curr + offset;
+    auto from    = begin();
+    auto to      = end();
+
+    if (from == newFrom)
+    {
+        newFrom = to;
+    }
+    else
+    {
+        FD_ASSERT(newFrom > from);
+        FD_ASSERT(newFrom <= to - offset);
+    }
+    std::construct_at<range_view>(this, newFrom, to);
 }
 
 void memory_range::update(const void* curr, const size_t offset)
@@ -85,12 +87,17 @@ void memory_range::update(const void* curr, const size_t offset)
 
 //-----
 
+using bytes_range_part = /*std::vector*/ basic_string<uint8_t>;
+
 struct bytes_range
 {
-    using part_storage = /*std::vector*/ basic_string<uint8_t>;
+    bytes_range_part part;
+    uint8_t          skip = 0;
 
-    part_storage part;
-    uint8_t      skip = 0;
+    size_t size() const
+    {
+        return part.size() + skip;
+    }
 };
 
 class unknown_bytes_range : public std::vector<bytes_range>
@@ -120,55 +127,109 @@ class unknown_bytes_range : public std::vector<bytes_range>
     }
 };
 
-static bool _have_mem_after(const size_t skip, const void* begin, const size_t offset, const uint8_t* end)
+static bool _have_mem_after(const uintptr_t reserved, const range_view<const uint8_t*> mem)
 {
-    if (skip == 0)
-        return true;
-    const size_t memAfter = std::distance(static_cast<const uint8_t*>(begin) + offset, end);
-    return memAfter >= skip;
+    return reserved <= mem.size();
 }
 
-static void* _find_unk_block(const uint8_t* memBegin, const uint8_t* memEnd, const unknown_bytes_range& unkBytes)
+static bool _have_mem_after(const bytes_range& rng, const range_view<const uint8_t*> mem)
 {
-    const auto unkBytes0 = unkBytes.data();
+    return rng.skip == 0 || rng.skip <= _size(mem.subrange(rng.part.size()));
+}
 
-    const auto unkPart0     = unkBytes0->part.data();
-    const auto unkPart0Size = unkBytes0->part.size();
-    const auto unkPart0Skip = unkBytes0->skip;
+#ifdef _DEBUG
+template <>
+class range_view<const bytes_range*>
+{
+    const bytes_range *begin_, *end_;
 
-    if (unkBytes.size() == 1)
+    struct value_unwrapped
     {
-        const auto part0Found = _find_block(memBegin, memEnd, unkPart0, unkPart0Size);
-        if (part0Found == nullptr)
-            return nullptr;
-        if (!_have_mem_after(unkPart0Skip, part0Found, unkPart0Size, memEnd))
-            return nullptr;
-        return part0Found;
+        range_view<const uint8_t*> part;
+        uint8_t                    skip;
+    };
+
+    class iterator
+    {
+        const bytes_range* pos_;
+
+      public:
+        iterator(const bytes_range* pos)
+            : pos_(pos)
+        {
+        }
+
+        iterator& operator++(int)
+        {
+            ++pos_;
+            return *this;
+        }
+
+        value_unwrapped operator*() const
+        {
+            return { forward_view(pos_->part), pos_->skip };
+        }
+    };
+
+  public:
+    range_view(const bytes_range* begin, const bytes_range* end)
+        : begin_(begin)
+        , end_(end)
+    {
     }
 
-    const auto   unkBytesCount = unkBytes.bytes_count();
-    const size_t memSize       = std::distance(memBegin, memEnd);
-    FD_ASSERT(memSize >= unkBytesCount);
+    iterator begin() const
+    {
+        return begin_;
+    }
 
-    const auto unkBytes1   = unkBytes0 + 1;
-    const auto unkBytesEnd = unkBytes0 + unkBytes.size();
+    iterator end() const
+    {
+        return begin_;
+    }
+};
 
-    const auto lastReadablePos = memSize - unkBytesCount;
+// #define _begin std::begin
+// #define _end std::end
+// #define _size std::size
+#endif
+
+static void* _find_memory_range(const memory_range& rng, const unknown_bytes_range& unkBytes)
+{
+    union
+    {
+        const uint8_t* part0Found;
+        void*          part0FoundVoid;
+    };
+
+    if (_size(unkBytes) == 1)
+    {
+        part0Found = find(rng, _begin(unkBytes)->part);
+        if (!part0Found)
+            return nullptr;
+        if (!_have_mem_after(*_begin(unkBytes), rng.subrange(part0Found)))
+            return nullptr;
+        return part0FoundVoid;
+    }
+
+    const auto unkBytesCount = unkBytes.bytes_count();
+    FD_ASSERT(rng.size() >= unkBytesCount);
+
+    const range_view unBytesRng(_begin(unkBytes) + 1, _end(unkBytes));
+    const auto       lastReadablePos = rng.size() - unkBytesCount;
     for (size_t pos = 0; pos <= lastReadablePos;)
     {
-        const auto part0Found = _find_block(memBegin + pos, memEnd, unkPart0, unkPart0Size);
-        if (part0Found == nullptr)
+        part0Found = find(rng.subrange(pos), _begin(unkBytes)->part);
+        if (!part0Found)
             break;
 
-        auto tempBegin = static_cast<const uint8_t*>(part0Found) + unkPart0Size + unkPart0Skip;
+        auto tempBegin = part0Found + _begin(unkBytes)->size();
         auto found     = true;
-        for (auto& [part, skip] : range_view(unkBytes1, unkBytesEnd))
+        for (auto&& [part, skip] : unBytesRng)
         {
-            const auto partSize  = part.size();
-            const auto partFound = memcmp(tempBegin, part.data(), partSize) == 0;
-            if (partFound)
+            if (equal<decltype(part)&, decltype(tempBegin)&>(part, tempBegin))
             {
-                tempBegin += partSize + skip;
+                tempBegin += skip;
             }
             else
             {
@@ -179,15 +240,25 @@ static void* _find_unk_block(const uint8_t* memBegin, const uint8_t* memEnd, con
 
         if (found)
         {
-            if (!_have_mem_after(unkBytes.back().skip, part0Found, unkBytesCount, memEnd))
-                break;
-            return part0Found;
+            if (!_have_mem_after(unkBytesCount, rng.subrange(part0Found)))
+                return nullptr;
+            return part0FoundVoid;
         }
 
-        pos = std::distance(memBegin, tempBegin) + 1;
+        pos = rng.distance(tempBegin) + 1;
     }
 
     return nullptr;
+}
+
+static void* _find_memory_range(const memory_range& rng, const uint8_t* memBegin, const size_t memSize)
+{
+    return (void*)find(rng, memBegin, memSize);
+}
+
+static void* _find_memory_range(const memory_range& rng, const memory_range& mem)
+{
+    return (void*)find(rng, mem);
 }
 
 //-----
@@ -329,56 +400,56 @@ static void _text_to_bytes(unknown_bytes_range& bytes, const string_view textSrc
 
 //-----
 
-auto pattern_scanner_raw::operator()(const string_view sig) const -> iterator
+auto pattern_scanner_raw::operator()(const string_view sig) const -> finder
 {
     return {
-        this, {*this, reinterpret_cast<const uint8_t*>(sig.data()), sig.size()}
+        {*this, reinterpret_cast<const uint8_t*>(sig.data()), sig.size()}
     };
 }
 
-auto pattern_scanner_raw::operator()(const uint8_t* begin, const size_t memSize) const -> iterator
+auto pattern_scanner_raw::operator()(const uint8_t* begin, const size_t memSize) const -> finder
 {
     return {
-        this, {*this, begin, memSize}
+        {*this, begin, memSize}
     };
 }
 
-auto pattern_scanner_text::operator()(const string_view sig) const -> iterator
+auto pattern_scanner_text::operator()(const string_view sig) const -> finder
 {
     return {
-        this, {*this, reinterpret_cast<const uint8_t*>(sig.data()), sig.size()}
+        {*this, reinterpret_cast<const uint8_t*>(sig.data()), sig.size()}
     };
 }
 
-auto pattern_scanner_text::operator()(const uint8_t* begin, size_t memSize) const -> iterator
+auto pattern_scanner_text::operator()(const uint8_t* begin, size_t memSize) const -> finder
 {
     return {
-        this, {*this, begin, memSize}
+        {*this, begin, memSize}
     };
 }
 
 pattern_scanner_raw pattern_scanner_text::raw() const
 {
-    return { from, to };
+    return { begin(), end() };
 }
 
-auto pattern_scanner::operator()(const string_view sig) const -> unknown_iterator
+auto pattern_scanner::operator()(const string_view sig) const -> unknown_finder
 {
     return {
-        this, {*this, sig}
+        {*this, sig}
     };
 }
 
-auto pattern_scanner::operator()(const uint8_t* begin, const size_t memSize) const -> known_iterator
+auto pattern_scanner::operator()(const uint8_t* begin, const size_t memSize) const -> known_finder
 {
     return {
-        this, {*this, begin, memSize}
+        {*this, begin, memSize}
     };
 }
 
 pattern_scanner_raw pattern_scanner::raw() const
 {
-    return { from, to };
+    return { begin(), end() };
 }
 
 //-----
@@ -442,7 +513,7 @@ pattern_updater_unknown::pattern_updater_unknown(const memory_range memRng, cons
 
 void* pattern_updater_unknown::operator()() const
 {
-    return _find_unk_block(memRng_.from, memRng_.to, *bytes_);
+    return _find_memory_range(memRng_, *bytes_);
 }
 
 void pattern_updater_unknown::update(const void* lastPos)
@@ -466,7 +537,7 @@ xrefs_finder_impl::xrefs_finder_impl(const memory_range memRng, const void*& add
 
 void* xrefs_finder_impl::operator()() const
 {
-    return _find_block(memRng_.from, memRng_.to, xref_, sizeof(uintptr_t));
+    return _find_memory_range(memRng_, xref_, sizeof(uintptr_t));
 }
 
 void xrefs_finder_impl::update(const void* lastPos)
@@ -479,12 +550,14 @@ void xrefs_finder_impl::update(const void* lastPos)
 void memory_iterator_dbg_creator::validate(const void* other) const
 {
     (void)other;
+    (void)this;
     FD_ASSERT(ptr_ == other);
 }
 
 void memory_iterator_dbg_creator::validate(const memory_iterator_dbg_creator other) const
 {
     (void)other;
+    (void)this;
     FD_ASSERT(ptr_ == other.ptr_);
 }
 
@@ -498,11 +571,11 @@ pattern_updater_known::pattern_updater_known(const memory_range memRng, const ui
 
 void* pattern_updater_known::operator()() const
 {
-    return _find_block(memRng_.from, memRng_.to, searchRng_.from, searchRng_.to);
+    return _find_memory_range(memRng_, searchRng_);
 }
 
 void pattern_updater_known::update(const void* lastPos)
 {
     memRng_.update(lastPos);
 }
-}
+} // namespace fd

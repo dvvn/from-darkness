@@ -16,12 +16,27 @@ set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
 
 project(${_PROJ_NAME} CXX)
 
+include(FetchContent)
+set(FETCHCONTENT_QUIET off)
+set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps)
+
+if(CMAKE_CONFIGURATION_TYPES MATCHES Debug)
+  set(CMAKE_DEBUG_POSTFIX _d)
+  set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+endif()
+
 include(ProcessorCount)
 ProcessorCount(_CPUS)
 message(DEBUG "cpu count: ${_CPUS}")
 
 if(MSVC)
-  add_compile_options(/Zc:preprocessor /Zc:__cplusplus)
+  # Whole program optimization
+  if(NOT CMAKE_CONFIGURATION_TYPES MATCHES Debug)
+    add_compile_options(/GL)
+    add_link_options(/LTCG)
+    add_compile_options(/Qpar /Qvec-report:1 /Qpar-report:1)
+  endif()  
+  add_compile_options(/Zc:preprocessor /Zc:__cplusplus /permissive-)
   add_compile_options(/wd5103 /wd4291 /wd4250)
   add_compile_options(/MP${_CPUS} /EHsc)
   add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
@@ -31,32 +46,31 @@ if(MSVC)
   string(REPLACE "Ob2" "Ob3" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
   # Aggresive inlining (RelWithDebInfo)
   string(REPLACE "Ob1" "Ob3" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-  # Whole program optimization
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GL")
-  # For all objects:
+  string(REPLACE "O1" "O2" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    # For all objects:
   # - strip unused functions
   # - fold identical functions
   # - link-time code generation
   string(REPLACE "INCREMENTAL" "INCREMENTAL:NO" CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO}")
   string(REPLACE "INCREMENTAL" "INCREMENTAL:NO" CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
   string(REPLACE "INCREMENTAL" "INCREMENTAL:NO" CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO}")
-  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF /LTCG")
-  set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF /LTCG")
-  set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF /LTCG")
+  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF")
+  set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF")
+  set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF")
 endif()
 
-if(CMAKE_CONFIGURATION_TYPES MATCHES Debug)
-  set(CMAKE_DEBUG_POSTFIX _d)
-  set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
-endif()
+FetchContent_Declare(vc GIT_REPOSITORY https://github.com/VcDevel/Vc.git GIT_TAG 1.4)
+#set(BUILD_TESTING off)
+#FetchContent_MakeAvailable(vc)
+FetchContent_Populate(vc)
+include(${vc_SOURCE_DIR}/cmake/OptimizeForArchitecture.cmake)
+OptimizeForArchitecture()
+add_compile_options(${Vc_ARCHITECTURE_FLAGS})
+#target_compile_options(Vc PUBLIC ${Vc_ARCHITECTURE_FLAGS})
 
 #if(CMAKE_CONFIGURATION_TYPES MATCHES RelWithDebInfo)
 #	add_compile_definitions(_DEBUG_RELEASE)
 #endif()
-
-include(FetchContent)
-set(FETCHCONTENT_QUIET off)
-set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps)
 
 FetchContent_Declare(freetype GIT_REPOSITORY https://github.com/freetype/freetype.git)
 set(DISABLE_FORCE_DEBUG_POSTFIX on)

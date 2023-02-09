@@ -24,7 +24,7 @@ _SUBHOOK_WRAP(get_dst);
 
 static void* subhook_new(void* target, void* replace)
 {
-    return subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookNoFlags));
+    return subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookFlagTrampoline));
 }
 
 // ReSharper restore All
@@ -180,8 +180,17 @@ void hook_impl::init(void* target, void* replace)
 {
     FD_ASSERT(entry_ == nullptr);
     entry_ = subhook_new(target, replace);
-    if (entry_ == nullptr)
+
+    if (!entry_)
+    {
         _log(this, "init error!");
+    }
+    else if (!subhook_get_trampoline(entry_))
+    {
+        _log(this, "unsupported function");
+        subhook_free(entry_);
+        entry_ = nullptr;
+    }
 }
 
 hook_impl::operator bool() const

@@ -15,7 +15,7 @@
 #define IMGUI_DISABLE_SSE
 #define IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS
 
-#if !defined(_DEBUG) && !defined(_DEBUG_RELEASE)
+#if !defined(_DEBUG)
 #define IMGUI_DISABLE_DEMO_WINDOWS
 #define IMGUI_DISABLE_DEBUG_TOOLS
 #endif
@@ -25,7 +25,7 @@
 #define ImDrawIdx uint32_t
 #endif
 
-#if defined(_WIN32) && (defined(_DEBUG) || defined(_DEBUG_RELEASE))
+#if defined(_WIN32) && defined(_DEBUG)
 struct IDirect3DTexture9;
 #define ImTextureID IDirect3DTexture9*
 #endif

@@ -5,10 +5,16 @@
 namespace fd
 {
 template <typename T, size_t MaxSize = sizeof(void*) * 2>
-using try_add_ref_t = std::conditional_t<!std::is_lvalue_reference_v<T> && (!std::is_trivially_copyable_v<T> || sizeof(T) > MaxSize), std::add_lvalue_reference_t<T>, T>;
+using try_ref_t = T; // std::conditional_t<!std::is_lvalue_reference_v<T> && (!std::is_trivially_copyable_v<T> || sizeof(T) > MaxSize), std::add_lvalue_reference_t<T>, T>;
+
+template <typename It, typename T>
+static constexpr auto _to_iter_value(const T& val)
+{
+    return static_cast<std::iter_value_t<It>>(val);
+}
 
 template <typename It, typename Fn>
-void iterate(It begin, It end, Fn fn)
+static constexpr void _iterate(It begin, It end, Fn fn)
 {
     for (; begin != end; ++begin)
     {
@@ -16,465 +22,512 @@ void iterate(It begin, It end, Fn fn)
     }
 }
 
-template <native_iterable T, typename Fn>
-void iterate(T&& container, Fn fn)
+template <typename It, typename Fn>
+static constexpr void _iterate(It begin, size_t rngSize, Fn fn)
 {
-    auto tmp = forward_view_lazy(container);
-    copy<std::remove_cvref_t<decltype(tmp.begin())>, try_add_ref_t<Fn>>(tmp.begin(), tmp.end(), fn);
+    while (rngSize-- != 0)
+    {
+        fn(*begin++);
+    }
 }
 
-template <typename T, typename T2>
-concept same_iter_size = sizeof(std::iter_value_t<T>) == sizeof(std::iter_value_t<T2>);
+template <typename It, typename Fn>
+constexpr void iterate(It begin, It end, Fn fn)
+{
+    _iterate<try_ref_t<Fn>>(decay_iter(begin), decay_iter(end), fn);
+}
 
-template <typename Src, typename Dst>
-concept can_memmove = same_iter_size<Src, Dst> && /**/
-                      requires(Src src, Dst dst) {
-                          memmove(dst, src, 2u);
-                          //*dst = *src;
-                      };
+template <native_iterable T, typename Fn>
+constexpr void iterate(T&& rng, Fn fn)
+{
+    _iterate<try_ref_t<Fn>>(_begin(rng), _size_or_end(rng), fn);
+}
+
+template <typename It, typename It2>
+static constexpr void _copy(It src, It end, It2 dst)
+{
+    if (src == end)
+        return;
+
+    for (;;)
+    {
+        *dst = *src;
+        if (++src == end)
+            return;
+        ++dst;
+    }
+}
+
+template <typename It, typename It2>
+static constexpr void _copy(It src, size_t srcSize, It2 dst)
+{
+    if (srcSize == 0)
+        return;
+
+    for (;;)
+    {
+        *dst = *src;
+        if (--srcSize == 0)
+            return;
+        ++src;
+        ++dst;
+    }
+}
 
 template <typename Src, typename Dst>
 constexpr void copy(Src begin, Src end, Dst dst)
 {
-    if constexpr (can_memmove<Src, Dst>)
-    {
-        if (!std::is_constant_evaluated())
-        {
-            memmove(dst, begin, std::distance(begin, end) * sizeof(std::iter_value_t<Src>));
-            return;
-        }
-    }
-
-    while (begin != end)
-        *dst++ = *begin++;
+    _copy(decay_iter(begin), decay_iter(end), decay_iter(dst));
 }
 
-template <typename Src, typename Dst>
-constexpr void copy(Src src, size_t rngCount, Dst dst)
+template <typename It, typename It2>
+constexpr void copy(It src, size_t srcSize, It2 dst)
 {
-    if constexpr (can_memmove<Src, Dst>)
-    {
-        if (!std::is_constant_evaluated())
-        {
-            memmove(dst, src, rngCount * sizeof(Dst));
-            return;
-        }
-    }
-
-    while (rngCount-- != 0)
-        *dst++ = *src++;
+    _copy(decay_iter(src), srcSize, decay_iter(dst));
 }
 
-template <native_iterable T, typename Dst>
-constexpr void copy(T&& container, Dst dst)
+template <native_iterable T, typename It2>
+constexpr void copy(T&& rng, It2 dst)
 {
-    auto tmp = forward_view_lazy(container);
-    copy<std::remove_cvref_t<decltype(tmp.begin())>, try_add_ref_t<Dst>>(tmp.begin(), tmp.end(), dst);
+    _copy(_begin(rng), _size_or_end(rng), decay_iter(dst));
 }
 
-template <typename T, typename T2>
-concept can_memcmp = same_iter_size<T, T2> && /**/
-                     requires(T left, T2 right) {
-                         memcmp(left, right, 1u);
-                         //*left == *right;
-                     };
+template <typename It, typename It2>
+static constexpr bool _equal(It begin, It end, It2 with)
+{
+    if (begin == end)
+        return false;
+
+    for (;;)
+    {
+        if (*begin != *with)
+            return false;
+        if (++begin == end)
+            return true;
+        ++with;
+    }
+}
+
+template <typename It, typename It2>
+static constexpr bool _equal(It begin, size_t rngSize, It2 with)
+{
+    if (rngSize == 0)
+        return false;
+
+    for (;;)
+    {
+        if (*begin != *with)
+            return false;
+        if (--rngSize == 0)
+            return true;
+        ++begin;
+        ++with;
+    }
+}
+
+// template <typename T, typename It2>
+// static constexpr bool _equal_range(T&& rng, It2 with)
+//{
+//     return _equal<decltype(rng.begin()), try_ref_t<It2>>(rng.begin(), rng.end(), with);
+// }
 
 template <typename It, typename It2>
 constexpr bool equal(It begin, It end, It2 with)
 {
-    if constexpr (can_memcmp<It, It2>)
-    {
-        if (!std::is_constant_evaluated())
-            return memcmp(begin, with, std::distance(begin, end) * sizeof(std::iter_value_t<It>)) == 0;
-    }
-
-    while (begin != end)
-    {
-        if (*begin++ != *with++)
-            return false;
-    }
-
-    return true;
+    return _equal(decay_iter(begin), decay_iter(end), decay_iter(with));
 }
 
 template <typename It, typename It2>
-constexpr bool equal(It begin, size_t rngCount, It2 with)
+constexpr bool equal(It begin, size_t rngSize, It2 with)
 {
-    if constexpr (can_memcmp<It, It2>)
-    {
-        if (!std::is_constant_evaluated())
-            return memcmp(begin, with, rngCount * sizeof(std::iter_value_t<It>)) == 0;
-    }
-
-    while (rngCount-- != 0)
-    {
-        if (*begin++ != *with++)
-            return false;
-    }
-
-    return true;
+    return _equal(decay_iter(begin), rngSize, decay_iter(with));
 }
 
-template <native_iterable T, typename It>
-constexpr bool equal(T&& container, It with)
+template <native_iterable T, typename It2>
+constexpr bool equal(T&& rng, It2 with)
 {
-    auto tmp = forward_view_lazy(container);
-    return equal<decltype(tmp.begin()), try_add_ref_t<It>>(tmp.begin(), tmp.end(), with);
+    return _equal(_begin(rng), _size_or_end(rng), decay_iter(with));
 }
-
-template <typename T, typename T2>
-concept can_memset = sizeof(std::iter_value_t<T>) == sizeof(T2) && /**/
-                     requires(T left, T2 val) {
-                         memset(left, val, 2u);
-                         //*left = val;
-                     };
 
 template <typename It, typename T>
-constexpr void fill(It begin, It end, const T& val)
+static constexpr void _fill(It begin, It end, const T val)
 {
-    if constexpr (can_memset<It, const T&>)
-    {
-        if (!std::is_constant_evaluated())
-        {
-            memset(begin, val, std::distance(begin, end) * sizeof(T));
-            return;
-        }
-    }
-
     while (begin != end)
         *begin++ = val;
 }
 
 template <typename It, typename T>
-constexpr void fill(It begin, size_t rngCount, const T& val)
+static constexpr void _fill(It begin, size_t rngSize, const T val)
 {
-    if constexpr (can_memset<It, const T&>)
-    {
-        if (!std::is_constant_evaluated())
-        {
-            memset(begin, val, rngCount * sizeof(T));
-            return;
-        }
-    }
+    if (rngSize == 0)
+        return;
 
-    while (rngCount-- != 0)
-        *begin++ = val;
-}
-
-template <native_iterable T, typename T1>
-constexpr void fill(T& container, const T1& val)
-{
-    auto tmp = forward_view_lazy(container);
-    fill(tmp.begin(), tmp.end(), val);
-}
-
-template <typename It>
-[[nodiscard]] static size_t _seek_to_ex(It& it, const void* it2)
-{
-    if constexpr (std::convertible_to<const void*, It>)
-    {
-        auto begin = it;
-        it         = static_cast<It>(it2);
-        return std::distance(begin, it);
-    }
-    else if constexpr (std::is_pointer_v<It>)
-    {
-        auto begin = it;
-        it         = reinterpret_cast<It>(const_cast<void*>(it2));
-        return std::distance(begin, it);
-    }
-    else
-    {
-        using ptr_t        = const uint8_t*;
-        const void* tmp    = it;
-        const auto  offset = std::distance(static_cast<ptr_t>(tmp), static_cast<ptr_t>(it2)) / sizeof(std::iter_value_t<It>);
-        std::advance(it, offset);
-        return offset;
-    }
-}
-
-template <typename It>
-static void _seek_to(It& it, const void* it2)
-{
-    if constexpr (std::convertible_to<const void*, It>)
-    {
-        it = static_cast<It>(it2);
-    }
-    else if constexpr (std::is_pointer_v<It>)
-    {
-        it = reinterpret_cast<It>(const_cast<void*>(it2));
-    }
-    else
-    {
-        using ptr_t        = const uint8_t*;
-        const void* tmp    = it;
-        const auto  offset = std::distance(static_cast<ptr_t>(tmp), static_cast<ptr_t>(it2)) / sizeof(std::iter_value_t<It>);
-        std::advance(it, offset);
-    }
-}
-
-// ReSharper disable once CppInconsistentNaming
-void* _find_1(const void* rngStart, const void* rngEnd, uint8_t val);
-// ReSharper disable once CppInconsistentNaming
-void* _find_2(const void* rngStart, const void* rngEnd, uint16_t val);
-// ReSharper disable once CppInconsistentNaming
-void* _find_4(const void* rngStart, const void* rngEnd, uint32_t val);
-// ReSharper disable once CppInconsistentNaming
-void* _find_8(const void* rngStart, const void* rngEnd, uint64_t val);
-
-template <typename It>
-static It _cast_helper(void* ptr)
-{
-    return static_cast<std::iter_value_t<It>*>(ptr);
-}
-
-template <typename It, typename T>
-static auto _find_trivial(It rngStart, It rngEnd, T val) requires(sizeof(std::iter_value_t<It>) == sizeof(T))
-{
-    if constexpr (sizeof(T) == sizeof(uint8_t))
-        return _cast_helper<It>(_find_1(rngStart, rngEnd, val));
-    else if constexpr (sizeof(T) == sizeof(uint16_t))
-        return _cast_helper<It>(_find_2(rngStart, rngEnd, val));
-    else if constexpr (sizeof(T) == sizeof(uint32_t))
-        return _cast_helper<It>(_find_4(rngStart, rngEnd, val));
-    else if constexpr (sizeof(T) == sizeof(uint64_t))
-        return _cast_helper<It>(_find_8(rngStart, rngEnd, val));
-}
-
-template <typename It, typename T>
-static It _find_trivial(It rngStart, It rngEnd, T val) requires(sizeof(std::iter_value_t<It>) > sizeof(T))
-{
-    return _find_trivial(rngStart, rngEnd, static_cast<std::iter_value_t<It>>(val));
-}
-
-template <typename It, typename T>
-static It _find_trivial(It rngStart, It rngEnd, T val) requires(sizeof(std::iter_value_t<It>) < sizeof(T))
-{
-    const auto val1 = static_cast<std::iter_value_t<It>>(val);
-    if (static_cast<T>(val1) != val)
-    {
-        for (; rngStart != rngEnd; ++rngStart)
-        {
-            if (*rngStart == val)
-                return rngStart;
-        }
-        return rngEnd;
-    }
-    return _find_trivial(rngStart, rngEnd, val1);
-}
-
-template <typename It, typename T>
-static bool _find_native(It& begin, size_t rngCount, const T& val)
-{
     for (;;)
     {
-        if (rngCount-- == 0)
-            return false;
-        if (*begin == val)
-            return true;
+        *begin = val;
+        if (--rngSize == 0)
+            return;
         ++begin;
     }
 }
 
 template <typename It, typename T>
-concept can_trivial_find = requires(It it, T val) { *_find_trivial(it, it + 1, val); };
-
-template <typename It, typename T>
-static constexpr bool _find_trivial_wrapped(It& rngBegin, size_t elementsCount, const T& val)
+constexpr void fill(It begin, It end, const T& val)
 {
-    auto end    = rngBegin + elementsCount;
-    auto target = _find_trivial(rngBegin, end, val);
-
-    const auto found = target != end;
-    if (found)
-        _seek_to(rngBegin, target);
-
-    return found;
+    _fill(decay_iter(begin), decay_iter(end), _to_iter_value<It>(val));
 }
 
 template <typename It, typename T>
-static constexpr bool _find(It& rngBegin, size_t elementsCount, const T& val)
+constexpr void fill(It begin, size_t rngCount, const T& val)
 {
-    if constexpr (can_trivial_find<It, T>)
+    _fill(decay_iter(begin), rngCount, _to_iter_value<It>(val));
+}
+
+template <native_iterable T, typename T1>
+constexpr void fill(T& rng, const T1& val)
+{
+    _fill(_begin(rng), _size_or_end(rng), _to_iter_value<begin_t<T>>(val));
+}
+
+template <typename It, typename T>
+static constexpr It _find(It begin, It end, const T val)
+{
+    for (; begin != end; ++begin)
     {
-        if (!std::is_constant_evaluated())
-            return _find_trivial_wrapped(rngBegin, elementsCount, val);
+        if (*begin == val)
+            return begin;
     }
-
-    return _find_native(rngBegin, elementsCount, val);
-}
-
-template <typename It, typename T>
-constexpr It find(It begin, It end, const T& val)
-{
-    if (_find(begin, std::distance(begin, end), val))
-        return begin;
     return end;
 }
 
 template <typename It, typename T>
-constexpr It find(It begin, size_t rngCount, const T& val)
+static constexpr It _find(It begin, size_t rngSize, const T val)
 {
-    auto beginBackup = begin;
-    if (_find(begin, rngCount, val))
+    if (rngSize == 0)
         return begin;
-    return beginBackup + rngCount;
+
+    for (;;)
+    {
+        if (*begin == val)
+            return begin; // found
+        ++begin;
+        if (--rngSize == 0)
+            return begin; // end
+    }
+}
+
+template <typename V, typename It>
+concept can_find_value_inside = requires(It it, V val) {
+                                    *it == val;
+                                    _to_iter_value<It>(val);
+                                };
+
+template <typename It, can_find_value_inside<It> T>
+constexpr It find(It begin, It end, const T& val)
+{
+    return _find(decay_iter(begin), decay_iter(end), _to_iter_value<It>(val));
+}
+
+template <typename It, can_find_value_inside<It> T>
+constexpr It find(It begin, size_t rngSize, const T& val)
+{
+    return _find(decay_iter(begin), rngSize, _to_iter_value<It>(val));
+}
+
+template <native_iterable T, can_find_value_inside<begin_t<T>> V>
+constexpr begin_t<T> find(T&& rng, const V& val)
+{
+    return _find(_begin(rng), _size_or_end(rng), _to_iter_value<begin_t<T>>(val));
+}
+
+// template <typename It>
+// static auto _rewrap_range(It begin, size_t rngSize)
+//{
+//     using it_val = std::iter_value_t<It>;
+//     if constexpr (std::integral<it_val>)
+//     {
+//         const auto sizeBytes = rngSize * sizeof(it_val);
+//     }
+//     else
+//     {
+//         return std::pair(begin, rngSize);
+//     }
+// }
+
+template <typename It, typename It2>
+static constexpr It _find_range(It begin, It end, It2 begin2, It2 end2)
+{
+    auto rngSize  = std::distance(begin, end);
+    auto testSize = std::distance(begin2, end2);
+
+    if (rngSize > testSize)
+    {
+        for (const auto last = end - testSize + 1; begin != last; ++begin)
+        {
+            auto absBegin = begin;
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
+                return absBegin;
+        }
+    }
+    return end;
 }
 
 template <typename It, typename It2>
-static bool _search_native(It& begin, size_t srcSize, It2 targetBegin, const size_t targetCount)
+static constexpr It _find_range(It begin, size_t rngSize, It2 begin2, It2 end2)
 {
-    for (;;)
+    auto testSize = std::distance(begin2, end2);
+    if (rngSize > testSize)
     {
-        auto tempBegin       = begin;
-        auto temptargetBegin = targetBegin;
-        auto remaining       = targetCount;
+        auto limit = rngSize - testSize + 1;
+        for (; limit != 0; --limit)
+        {
+            auto absBegin = begin;
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
+                return absBegin;
+        }
+        rngSize -= limit;
+    }
+    return begin + rngSize;
+}
 
+template <typename It, typename It2>
+static constexpr It _find_range(It begin, It end, It2 begin2, size_t testSize)
+{
+    auto rngSize = std::distance(begin, end);
+    if (rngSize > testSize)
+    {
+        for (const auto last = end - testSize + 1; begin != last; ++begin)
+        {
+            auto absBegin = begin;
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
+                return absBegin;
+        }
+    }
+    return end;
+}
+
+template <typename It, typename It2>
+static constexpr It _find_range(It begin, size_t rngSize, It2 begin2, size_t testSize)
+{
+    if (rngSize > testSize)
+    {
+        auto limit = rngSize - testSize + 1;
+        for (; limit != 0; --limit)
+        {
+            auto absBegin = begin;
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
+                return absBegin;
+        }
+        rngSize -= limit;
+    }
+    return begin + rngSize;
+}
+
+template <typename It, typename It2>
+constexpr It find(It begin, It end, It2 begin2, It2 end2)
+{
+    return _find_range(decay_iter(begin), decay_iter(end), decay_iter(begin2), decay_iter(end2));
+}
+
+template <typename It, typename It2>
+constexpr It find(It begin, size_t rngSize, It2 begin2, It2 end2)
+{
+    return _find_range(decay_iter(begin), rngSize, decay_iter(begin2), decay_iter(end2));
+}
+
+template <typename It, typename It2>
+constexpr It find(It begin, It end, It2 begin2, size_t testSize)
+{
+    return _find_range(decay_iter(begin), decay_iter(end), decay_iter(begin2), testSize);
+}
+
+template <typename It, typename It2>
+constexpr It find(It begin, size_t rngSize, It2 begin2, size_t testSize)
+{
+    return _find_range(decay_iter(begin), rngSize, decay_iter(begin2), testSize);
+}
+
+template <native_iterable Rng, typename It2>
+constexpr begin_t<Rng> find(Rng&& rng, It2 begin2, It2 end2)
+{
+    return _find_range(_begin(rng), _size_or_end(rng), decay_iter(begin2), decay_iter(end2));
+}
+
+template <native_iterable Rng, typename It2>
+constexpr begin_t<Rng> find(Rng&& rng, It2 begin2, size_t testSize)
+{
+    return _find_range(_begin(rng), _size_or_end(rng), decay_iter(begin2), testSize);
+}
+
+template <typename Rng, typename It>
+concept can_find_range_inside = (!can_find_value_inside<Rng, It>) && can_find_value_inside<std::iter_value_t<begin_t<Rng>>, It>;
+
+template <typename It, can_find_range_inside<It> Rng>
+constexpr It find(It begin, It end, Rng&& testRng)
+{
+    return _find_range(decay_iter(begin), decay_iter(end), _begin(testRng), _size_or_end(testRng));
+}
+
+template <typename It, can_find_range_inside<It> Rng>
+constexpr It find(It begin, size_t rngSize, Rng&& testRng)
+{
+    return _find_range(decay_iter(begin), rngSize, _begin(testRng), _size_or_end(testRng));
+}
+
+template <typename TestRng, typename Rng>
+concept can_find_range_inside_range = (!can_find_value_inside<TestRng, Rng>) && can_find_value_inside<std::iter_value_t<begin_t<TestRng>>, begin_t<Rng>>;
+
+template <native_iterable T, can_find_range_inside_range<T> T2>
+constexpr begin_t<T> find(T&& rng, T2&& testRng)
+{
+    return _find_range(_begin(rng), _size_or_end(rng), _begin(testRng), _size_or_end(testRng));
+}
+
+template <typename It, typename T>
+static constexpr bool _contains(It begin, It end, const T val)
+{
+    for (; begin != end; ++begin)
+    {
+        if (*begin == val)
+            return true;
+    }
+    return false;
+}
+
+template <typename It, typename T>
+static constexpr bool _contains(It begin, size_t rngSize, const T val)
+{
+    if (rngSize != 0)
+    {
         for (;;)
         {
-            if (*tempBegin != *temptargetBegin)
-            {
-                srcSize -= _seek_to_ex(begin, tempBegin + 1);
-                if (srcSize < targetCount)
-                    return false;
-                break;
-            }
-            --remaining;
-            if (remaining == 0)
-                return begin;
-            ++tempBegin;
-            ++temptargetBegin;
+            if (*begin == val)
+                return true;
+            if (--rngSize == 0)
+                return false;
+            ++begin;
         }
     }
+    return false;
 }
 
 template <typename It, typename It2>
-static bool _search_trivial(It& rngBegin, size_t rngCount, It2 targetBegin, const size_t targetCount)
+static constexpr bool _contains_range(It begin, It end, It2 begin2, It2 end2)
 {
-    auto last = rngBegin + rngCount;
+    auto rngSize  = std::distance(begin, end);
+    auto testSize = std::distance(begin2, end2);
 
-    using it_val  = std::iter_value_t<It>;
-    using it_val2 = std::iter_value_t<It2>;
-
-    auto val = static_cast<it_val>(*targetBegin);
-
-    if constexpr (sizeof(it_val) < sizeof(it_val2))
+    if (rngSize > testSize)
     {
-        if (static_cast<it_val2>(val) != *targetBegin)
+        for (const auto last = end - testSize + 1; begin != last; ++begin)
         {
-            auto& valRef = reinterpret_cast<const it_val&>(*targetBegin);
-
-            for (;;)
-            {
-                if (rngCount < targetCount)
-                    return false;
-
-                auto found = _find_trivial<try_add_ref_t<It>>(rngBegin, last, valRef);
-                if (found == last)
-                    return false;
-
-                if (equal<try_add_ref_t<It2>, try_add_ref_t<It>>(targetBegin, targetCount, found))
-                {
-                    _seek_to(rngBegin, found);
-                    return true;
-                }
-
-                rngCount -= _seek_to_ex(rngBegin, found);
-            }
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
+                return true;
         }
     }
+    return false;
+}
 
-    for (;;)
+template <typename It, typename It2>
+static constexpr bool _contains_range(It begin, size_t rngSize, It2 begin2, It2 end2)
+{
+    auto testSize = std::distance(begin2, end2);
+    if (rngSize > testSize)
     {
-        if (rngCount < targetCount)
-            return false;
-
-        auto found = _find_trivial<try_add_ref_t<It>>(rngBegin, last, val);
-        if (found == last)
-            return false;
-
-        if (equal(targetBegin + 1, targetCount - 1, found + 1))
+        auto limit = rngSize - testSize + 1;
+        for (; limit != 0; --limit)
         {
-            _seek_to(rngBegin, found);
-            return true;
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
+                return true;
         }
-
-        rngCount -= _seek_to_ex(rngBegin, found);
+        rngSize -= limit;
     }
+    return false;
 }
 
 template <typename It, typename It2>
-static constexpr bool _search(It& srcBegin, size_t srcSize, It2 targetBegin, const size_t targetCount)
+static constexpr bool _contains_range(It begin, It end, It2 begin2, size_t testSize)
 {
-    if (srcSize < targetCount)
-        return false;
-
-    using it2_maybe_ref = try_add_ref_t<It2>;
-    using it2_val       = std::iter_value_t<It2>;
-
-    if constexpr (can_trivial_find<It, it2_val>)
+    auto rngSize = std::distance(begin, end);
+    if (rngSize > testSize)
     {
-        if (!std::is_constant_evaluated())
-            return _search_trivial<it2_maybe_ref>(srcBegin, srcSize, targetBegin, targetCount);
+        for (const auto last = end - testSize + 1; begin != last; ++begin)
+        {
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
+                return true;
+        }
     }
-
-    return _search_native<It, it2_maybe_ref>(srcBegin, srcSize, targetBegin, targetCount);
+    return false;
 }
 
 template <typename It, typename It2>
-constexpr It find(It begin, const size_t srcSize, It2 targetBegin, const size_t targetCount)
+static constexpr bool _contains_range(It begin, size_t rngSize, It2 begin2, size_t testSize)
 {
-    auto beginBackup = begin;
-    if (!_search(begin, srcSize, targetBegin, targetCount))
-        return beginBackup + srcSize;
-    return begin;
+    if (rngSize > testSize)
+    {
+        for (auto limit = rngSize - testSize + 1; limit != 0; --limit)
+        {
+            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
+                return true;
+        }
+    }
+    return false;
 }
 
 template <typename It, typename It2>
-constexpr It find(It begin, It end, It2 targetBegin, It2 targetEnd)
+constexpr bool contains(It begin, It end, It2 begin2, It2 end2)
 {
-    if (!_search(begin, std::distance(begin, end), targetBegin, std::distance(targetBegin, targetEnd)))
-        return end;
-    return begin;
+    return _contains_range(decay_iter(begin), decay_iter(end), decay_iter(begin2), decay_iter(end2));
 }
 
 template <typename It, typename It2>
-constexpr It find(It begin, const size_t srcSize, It2 targetBegin, It2 targetEnd)
+constexpr bool contains(It begin, size_t rngSize, It2 begin2, It2 end2)
 {
-    auto beginBackup = begin;
-    if (!_search(begin, srcSize, targetBegin, std::distance(targetBegin, targetEnd)))
-        return beginBackup + srcSize;
-    return begin;
+    return _contains_range(decay_iter(begin), rngSize, decay_iter(begin2), decay_iter(end2));
 }
 
 template <typename It, typename It2>
-constexpr It find(It begin, It end, It2 targetBegin, const size_t targetCount)
+constexpr bool contains(It begin, It end, It2 begin2, size_t testSize)
 {
-    if (!_search(begin, std::distance(begin, end), targetBegin, targetCount))
-        return end;
-    return begin;
+    return _contains_range(decay_iter(begin), decay_iter(end), decay_iter(begin2), testSize);
 }
 
-template <native_iterable L, native_iterable R>
-constexpr auto find(L&& left, R&& right) -> decltype(std::begin(left))
+template <typename It, typename It2>
+constexpr bool contains(It begin, size_t rngSize, It2 begin2, size_t testSize)
 {
-    auto rngL  = forward_view_lazy(left);
-    auto rngR  = forward_view_lazy(right);
-    auto begin = rngL.begin();
-    if (!_search(begin, rngL.size(), rngR.begin(), rngR.size()))
-        return rngL.end();
-    return begin;
+    return _contains_range(decay_iter(begin), rngSize, decay_iter(begin2), testSize);
 }
 
-template <native_iterable L, typename It>
-constexpr auto find(L&& left, It targetBegin, It targetEnd) -> decltype(std::begin(left))
+template <native_iterable Rng, typename It2>
+constexpr bool contains(Rng&& rng, It2 begin2, It2 end2)
 {
-    auto rngL  = forward_view_lazy(left);
-    auto begin = rngL.begin();
-    if (!_search(begin, rngL.size(), targetBegin, targetEnd))
-        return rngL.end();
-    return begin;
+    return _contains_range(_begin(rng), _size_or_end(rng), decay_iter(begin2), decay_iter(end2));
 }
 
-size_t test_algorithms();
+template <native_iterable Rng, typename It2>
+constexpr bool contains(Rng&& rng, It2 begin2, size_t testSize)
+{
+    return _contains_range(_begin(rng), _size_or_end(rng), decay_iter(begin2), testSize);
+}
+
+template <typename It, can_find_range_inside<It> Rng>
+constexpr bool contains(It begin, It end, Rng&& testRng)
+{
+    return _contains_range(decay_iter(begin), decay_iter(end), _begin(testRng), _size_or_end(testRng));
+}
+
+template <typename It, can_find_range_inside<It> Rng>
+constexpr bool contains(It begin, size_t rngSize, Rng&& testRng)
+{
+    return _contains_range(decay_iter(begin), rngSize, _begin(testRng), _size_or_end(testRng));
+}
+
+template <native_iterable T, can_find_range_inside_range<T> T2>
+constexpr bool contains(T&& rng, T2&& testRng)
+{
+    return _contains_range(_begin(rng), _size_or_end(rng), _begin(testRng), _size_or_end(testRng));
+}
+
+class console_writer_front;
+size_t test_algorithms(const console_writer_front&);
 }

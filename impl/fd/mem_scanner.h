@@ -1,13 +1,12 @@
 #pragma once
 
 #include <fd/string.h>
+#include <fd/views.h>
 
 namespace fd
 {
-struct memory_range
+struct memory_range : range_view<const uint8_t*>
 {
-    const uint8_t *from, *to;
-
     memory_range(const uint8_t* from, const uint8_t* to);
     memory_range(const uint8_t* from, size_t size);
 
@@ -155,8 +154,8 @@ class memory_iterator_end
     using iter_type = memory_iterator<M>;
 
   public:
-    memory_iterator_end(const iter_type* itr)
-        : creator_(itr->creator_)
+    memory_iterator_end(const void* creator)
+        : creator_(creator)
     {
     }
 
@@ -168,34 +167,27 @@ class memory_iterator_end
 };
 
 template <typename M>
-class memory_iterator_proxy : memory_iterator<M>
+class memory_finder
 {
-    using base_type = memory_iterator<M>;
-
-    using begin_type = base_type;
-    using end_type   = memory_iterator_end<M>;
+    memory_iterator<M>                           begin_;
+    [[no_unique_address]] memory_iterator_end<M> end_;
 
   public:
-    using base_type::base_type;
-    using base_type::value_type;
-    using base_type::operator*;
-
-    // for algorithm's only
-    begin_type begin() const
+    memory_finder(M memRng)
+        : begin_(this, memRng)
+        , end_(this)
     {
-        return *this;
     }
 
-    // for algorithm's only
-    end_type end() const
+    auto begin() const
     {
-        return this;
+        return begin_;
     }
 
-    /*value_type front() const
+    auto end() const
     {
-        return base_type::operator*();
-    }*/
+        return end_;
+    }
 };
 
 //--------------
@@ -204,20 +196,20 @@ struct pattern_scanner_raw : private memory_range
 {
     using memory_range::memory_range;
 
-    using iterator = memory_iterator_proxy<pattern_updater_known>;
+    using finder = memory_finder<pattern_updater_known>;
 
-    iterator operator()(string_view sig) const;
-    iterator operator()(const uint8_t* begin, size_t memSize) const;
+    finder operator()(string_view sig) const;
+    finder operator()(const uint8_t* begin, size_t memSize) const;
 };
 
 struct pattern_scanner_text : private memory_range
 {
     using memory_range::memory_range;
 
-    using iterator = memory_iterator_proxy<pattern_updater_unknown>;
+    using finder = memory_finder<pattern_updater_unknown>;
 
-    iterator operator()(string_view sig) const;
-    iterator operator()(const uint8_t* begin, size_t memSize) const;
+    finder operator()(string_view sig) const;
+    finder operator()(const uint8_t* begin, size_t memSize) const;
 
     pattern_scanner_raw raw() const;
 };
@@ -226,11 +218,11 @@ struct pattern_scanner : private memory_range
 {
     using memory_range::memory_range;
 
-    using unknown_iterator = memory_iterator_proxy<pattern_updater_unknown>;
-    using known_iterator   = memory_iterator_proxy<pattern_updater_known>;
+    using unknown_finder = memory_finder<pattern_updater_unknown>;
+    using known_finder   = memory_finder<pattern_updater_known>;
 
-    unknown_iterator operator()(string_view sig) const;
-    known_iterator   operator()(const uint8_t* begin, size_t memSize) const;
+    unknown_finder operator()(string_view sig) const;
+    known_finder   operator()(const uint8_t* begin, size_t memSize) const;
 
     pattern_scanner_raw raw() const;
 };
@@ -239,13 +231,13 @@ struct xrefs_scanner : private memory_range
 {
     using memory_range::memory_range;
 
-    using iterator = memory_iterator_proxy<xrefs_finder_impl>;
+    using finder = memory_finder<xrefs_finder_impl>;
 
     template <typename T>
-    iterator operator()(const T& addr) const
+    finder operator()(const T& addr) const
     {
         return {
-            this, {*this, addr}
+            {*this, addr}
         };
     }
 };

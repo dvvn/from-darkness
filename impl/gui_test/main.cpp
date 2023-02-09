@@ -86,15 +86,22 @@ int main(int, char**)
 
     //---
 
-    test_algorithms();
-
     system_console sysConsole;
 
     const default_logs_handler logsCallback([&](auto msg) {
         sysConsole.out()(msg);
     });
 
-#ifdef _DEBUG
+    [&] {
+        auto c = sysConsole.out();
+        test_algorithms(c);
+        c("-----");
+        test_algorithms(c);
+        c("-----");
+        test_algorithms(c);
+    }();
+
+#if defined(_DEBUG) || 1
     const default_assert_handler assertHandler([&](const assert_data& adata) {
         sysConsole.out()(parse(adata));
     });

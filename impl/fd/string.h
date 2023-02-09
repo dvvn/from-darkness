@@ -122,34 +122,22 @@ using std::string_literals::operator""s;
 //--------------
 
 template <typename T>
-concept can_iter_value = requires { typename std::iter_value_t<T>; };
-
-template <typename T, bool = can_iter_value<T>>
-struct extract_value;
-
-template <typename T>
-struct extract_value<T, false>
-{
-    using type = T;
-};
-
-template <typename T>
-struct extract_value<T, true>
-{
-    using type = std::iter_value_t<T>;
-};
-
-template <typename T>
 concept can_reserve = requires(T obj) { obj.reserve(2u); };
 
 template <typename T, typename... Args>
 concept can_append = requires(T val, Args... args) { val.append(std::forward<Args>(args)...); };
 
+template <typename T, typename... Args>
+concept can_push_back = requires(T val, Args... args) { val.push_back(std::forward<Args>(args)...); };
+
+template <typename T, typename... Args>
+concept can_insert = requires(T val, Args... args) { val.insert(val.end(), std::forward<Args>(args)...); };
+
 template <typename T>
 static constexpr auto _extract_size(const T& obj)
 {
     if constexpr (std::is_class_v<T>)
-        return std::pair(forward_view_lazy(obj).begin(), obj.size());
+        return std::pair(forward_view_lazy(obj).begin(), forward_view_lazy(obj).size());
     else if constexpr (std::is_pointer_v<T>)
         return std::pair(obj, str_len(obj));
     else if constexpr (std::is_bounded_array_v<T>)
@@ -158,35 +146,41 @@ static constexpr auto _extract_size(const T& obj)
         return std::pair(obj, static_cast<size_t>(1));
 }
 
-template <class Itr, typename T, typename S>
-static constexpr void _append_to(Itr& buff, const std::pair<T, S>& obj)
+template <typename T>
+concept iterator = requires(T it) {
+                       *it;
+                       ++it;
+                   };
+
+template <typename Q, typename T, typename S>
+static constexpr void _write_to(Q& dst, std::pair<T, S>& data)
 {
-    auto [src, size] = obj;
+    auto [src, size] = data;
     if (size == 0)
         return;
 
-    using itr_t            = std::remove_cvref_t<Itr>;
-    constexpr auto canCopy = std::is_pointer_v<T> || std::is_class_v<T> /* std::input_iterator<itr_t> */;
-    if constexpr (std::input_or_output_iterator<itr_t>)
+    if constexpr (iterator<Q>)
     {
-        if constexpr (canCopy)
-            copy(src, size, buff);
+        if constexpr (iterator<T>)
+            copy(src, size, dst);
         else
-            fill(buff, size, src);
+            fill(dst, src, size);
+        std::advance(dst, data.second);
     }
     else
     {
-        if constexpr (!canCopy)
-            fill(std::back_insert_iterator(buff), size, src);
-        else if constexpr (can_append<Itr&, T, T>)
-            buff.append(src, src + size);
+        if constexpr (iterator<T>)
+            dst.insert(dst.end(), src, src + size);
         else
-            buff.insert(buff.end(), src, src + size);
+        {
+            while (size-- != 0)
+                dst.push_back(src);
+        }
     }
 }
 
-template <bool Reserve, typename... Args>
-constexpr void write_string(can_reserve auto& buff, const Args&... args)
+template <bool Reserve, can_reserve T, typename... Args>
+constexpr void write_string(T& buff, const Args&... args)
 {
     if constexpr (Reserve && sizeof...(Args) > 1)
     {
@@ -195,185 +189,99 @@ constexpr void write_string(can_reserve auto& buff, const Args&... args)
             return [&](auto... p) {
                 const auto length = (p.second + ...);
                 buff.reserve(length);
-                (_append_to(buff, p), ...);
+                (_write_to(buff, p), ...);
             }(_extract_size(args)...);
         }
     }
 
     [&](auto... p) {
-        (_append_to(buff, p), ...);
+        (_write_to(buff, p), ...);
     }(_extract_size(args)...);
 }
 
 template <typename T, typename... Args>
-constexpr void write_string(T&& buff, const Args&... args)
+constexpr void write_string(T& buff, const Args&... args)
 {
-    if constexpr (can_reserve<T&&>)
-    {
-        static_assert(!std::is_rvalue_reference_v<T&&>);
-        return write_string<true>(buff, args...);
-    }
-    else
-    {
-        static_assert(std::forward_iterator<T>);
-        (
-            [&](auto p) {
-                _append_to(buff, p);
-                buff += p.second;
-            }(_extract_size(args)),
-            ...
-        );
-    }
-}
-
-template <typename T, typename... Args>
-constexpr auto make_string(const T& arg1, const Args&... args)
-{
-    using char_type = typename extract_value<T>::type;
-    basic_string<char_type> buff;
-    write_string(buff, arg1, args...);
-    return buff;
-}
-
-#if 0 // this code suck, wind a better way
-// https://github.com/tcsullivan/constexpr-to-string
-
-static constexpr string_view _Digits("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-
-template <typename C, typename T>
-static constexpr basic_string<C> _to_string(const T num, const uint8_t base)
-{
-#ifdef _DEBUG
-    if (base <= 1 || base >= _Digits.size())
-        abort();
-#endif
-    if (num == 0)
-        return {};
-
-    basic_string<C> buff;
-
-    size_t len = (num > 0 ? 0 : 1);
-    for (auto n = num; n; ++len, n /= base)
-    {
-    }
-    buff.resize(len);
-
-    auto ptr = buff.data() + len;
-    for (auto n = num; n; n /= base)
-        *--ptr = _Digits[(num < 0 ? -1 : 1) * (n % base)];
-    if (num < 0)
-        *--ptr = '-';
-
-    return buff;
-}
-
-template <typename C>
-static constexpr basic_string<C> _to_string(long double value, const bool trim, const uint8_t prec)
-{
-#pragma warning(disable : 4244)
-    int64_t whole = value;
-    value -= whole;
-    for (size_t i = 0; i < prec; i++)
-        value *= 10;
-    int64_t frac = value;
-
-    //---------
-
-    size_t len = 1;
-    if (whole <= 0)
-        len++;
-    for (auto n = whole; n; len++, n /= 10)
-    {
-    }
-    if (frac == 0 || (whole == 0 && frac < 0))
-        len++;
-    for (auto n = frac; n; len++, n /= 10)
-    {
-    }
-
-    basic_string<C> buff;
-    buff.resize(len);
-    auto ptr = buff.data() + len;
-
-    const auto append = [&ptr](const auto num) {
-        if (num == 0)
-        {
-            *--ptr = '0';
-        }
-        else
-        {
-            for (auto n = num; n != 0; n /= 10)
-                *--ptr = (num < 0 ? -1 : 1) * (n % 10) + '0';
-        }
-    };
-
-    append(frac);
-    *--ptr = '.';
-    append(whole);
-    if (frac < 0 || whole < 0)
-        *--ptr = '-';
-
-    if (trim)
-    {
-        size_t offset = 0;
-        for (auto itr = buff.rbegin(); itr != buff.rend(); ++itr)
-        {
-            if (*itr != '0')
-            {
-                if (offset > 0)
-                    buff.resize(buff.size() - offset);
-                break;
-            }
-            ++offset;
-        }
-    }
-    return buff;
-}
-
-constexpr auto to_string(const std::integral auto num, const uint8_t base = 10)
-{
-    return _to_string<char>(num, base);
-}
-
-constexpr auto to_wstring(const std::integral auto num, const uint8_t base = 10)
-{
-    return _to_string<wchar_t>(num, base);
-}
-
-constexpr auto to_string(const std::floating_point auto num, const bool trim = false, const uint8_t prec = 5)
-{
-    return _to_string<char>(num, trim, prec);
+    write_string<can_reserve<T>>(buff, args...);
 }
 
 template <typename T>
-constexpr auto to_wstring(const std::floating_point auto num, const bool trim = false, const uint8_t prec = 5)
+struct biggest_type_priority
 {
-    return _to_string<wchar_t>(num, trim, prec);
-}
-#ifdef _DEBUG
-static_assert(to_string(1234u) == "1234");
-static_assert(to_string(-1234) == "-1234");
-static_assert(to_string(1.234, false, 5) == "1.23400");
-static_assert(to_string(1.234, true) == "1.234");
-static_assert(to_string(-1.23456) == "-1.23456");
-#endif
+    static constexpr size_t value = sizeof(T);
+};
 
-inline namespace literals
+template <>
+struct biggest_type_priority<float>
 {
-inline namespace string_literals
-{
-constexpr string operator"" s(const unsigned long long num)
-{
-    return to_string(num);
-}
+    static constexpr size_t value = sizeof(uint64_t) + 1;
+};
 
-constexpr string operator"" s(const long double num)
+template <>
+struct biggest_type_priority<double>
 {
-    return to_string(num);
+    static constexpr size_t value = sizeof(uint64_t) + 2;
+};
+
+template <>
+struct biggest_type_priority<long double>
+{
+    static constexpr size_t value = sizeof(uint64_t) + 3;
+};
+
+template <typename T, typename T1>
+using select_biggest_type = std::conditional_t<(biggest_type_priority<T>::value < biggest_type_priority<T1>::value), T1, T>;
+
+template <typename T, typename... Args>
+struct biggest_type : biggest_type<select_biggest_type<T, Args>...>
+{
+};
+
+template <typename T>
+struct biggest_type<T>
+{
+    using type = T;
+};
+
+template <typename... T>
+using biggest_type_t = typename biggest_type<T...>::type;
+
+template <
+    typename T,
+    char = iterator<T>          ? 1
+           : native_iterable<T> ? 2
+                                : 0>
+struct extract_value;
+
+template <typename T>
+struct extract_value<T, 0>
+{
+    using type = std::remove_const_t<T>;
+};
+
+template <typename T>
+struct extract_value<T, 1>
+{
+    using type = std::iter_value_t<T>;
+};
+
+template <typename T>
+struct extract_value<T, 2>
+{
+    using type = std::iter_value_t<begin_t<T>>;
+};
+
+template <typename T>
+using extract_value_t = typename extract_value<T>::type;
+
+template <typename... Args>
+constexpr auto make_string(const Args&... args)
+{
+    using char_type = biggest_type_t<extract_value_t<std::decay_t<Args>>...>;
+    basic_string<char_type> buff;
+    write_string(buff, args...);
+    return buff;
 }
-} // namespace string_literals
-} // namespace literals
-#endif
 
 #pragma warning(pop)
 } // namespace fd

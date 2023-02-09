@@ -6,11 +6,11 @@
 #include <d3d9.h>
 #include <tchar.h>
 
-using namespace fd;
-
 #define RESET_BACK_BUFFER_ON_RESIZE
 
-static LRESULT WINAPI _wnd_proc(const HWND hWnd, const UINT msg, const WPARAM wparam, const LPARAM lParam)
+namespace fd
+{
+static DECLSPEC_NOINLINE LRESULT WINAPI _wnd_proc(const HWND hWnd, const UINT msg, const WPARAM wparam, const LPARAM lParam)
 {
     switch (msg) // NOLINT(hicpp-multiway-paths-covered)
     {
@@ -159,4 +159,5 @@ void backend_data::run()
         if (result == D3DERR_DEVICELOST && d3d->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
             d3d.reset();
     }
+}
 }

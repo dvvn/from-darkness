@@ -1,5 +1,7 @@
 #include <fd/algorithm.h>
+#include <fd/format.h>
 #include <fd/system.h>
+#include <fd/system_console.h>
 
 #include <intrin.h>
 
@@ -268,7 +270,7 @@ void* _find_8(const void* rngStart, const void* rngEnd, const uint64_t val)
     return _find_select(const_cast<void*>(rngStart), const_cast<void*>(rngEnd), val);
 }
 
-size_t test_algorithms()
+size_t test_algorithms(const console_writer_front& writer)
 {
     using clock = std::chrono::high_resolution_clock;
 
@@ -293,6 +295,10 @@ size_t test_algorithms()
     char charTestA[] = { 100, 1, 2, 3 };
     set(charA, arrS - 10, 100, 1, 2, 3);
 
+    auto  floatA       = new float[arrS];
+    float floatTestA[] = { 100, 1, 2, 3 };
+    set(floatA, arrS - 10, 100, 1, 2, 3);
+
     std::vector<void*> dummy;
     auto               a = clock::now();
     dummy.push_back(&a);
@@ -301,7 +307,7 @@ size_t test_algorithms()
     [[maybe_unused]] volatile auto _NAME_ = run_test([&] { \
         return __VA_ARGS__;                                \
     });                                                    \
-    dummy.insert(dummy.end(), (void*)&_NAME_);
+    writer(format(#_NAME_ ": {}", _NAME_.second));
 
     RUN_TEST(stdFindInt, std::find(intA, intA + arrS, 2));
     RUN_TEST(stdFindChar, std::find(charA, charA + arrS, (char)2));
@@ -316,7 +322,17 @@ size_t test_algorithms()
     RUN_TEST(fdSearchInt, fd::find(intA, intA + arrS, std::begin(intTestA), std::end(intTestA)));
     RUN_TEST(fdSearchChar, fd::find(charA, charA + arrS, std::begin(charTestA), std::end(charTestA)));
 
+    RUN_TEST(stdEqualInt, std::equal(intA, intA + arrS, intA, intA + arrS));
+    RUN_TEST(stdEqualChar, std::equal(charA, charA + arrS, charA, charA + arrS));
+    RUN_TEST(stdEqualFloat, std::equal(floatA, floatA + arrS, floatA, floatA + arrS));
+
+    RUN_TEST(fdEqualInt, fd::equal(intA, intA + arrS, intA));
+    RUN_TEST(fdEqualChar, fd::equal((double*)charA, (double*)charA + arrS / sizeof(double), (double*)charA));
+    RUN_TEST(fdEqualfloat, fd::equal(floatA, floatA + arrS, floatA));
+
+    // msvc generate AVX instructions only for float!!!
+
     return dummy.size();
 }
 
-}
+} // namespace fd

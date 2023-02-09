@@ -1,9 +1,10 @@
 #ifdef _DEBUG
 #include <fd/assert_impl.h>
+#endif
 #include <fd/logger_impl.h>
 #include <fd/system_console.h>
-#endif
 
+#include <fd/exception.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
 #include <fd/hook_callback.h>
@@ -13,6 +14,7 @@
 #include <fd/valve/gui/surface.h>
 
 #include <d3d9.h>
+
 #include <windows.h>
 
 static HMODULE _ModuleHandle;

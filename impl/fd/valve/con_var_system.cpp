@@ -1,16 +1,14 @@
-﻿#include <fd/assert.h>
+﻿#include <fd/algorithm.h>
+#include <fd/assert.h>
 #include <fd/format.h>
 #include <fd/functional.h>
 #include <fd/logger.h>
 #include <fd/valve/con_var_system.h>
 
-#include <algorithm>
-
-using namespace fd;
-using namespace valve;
-
 #define FD_CHECK_WHOLE_CVAR_NAME
 
+namespace fd::valve
+{
 #if 0
 
 template <typename T>
@@ -121,20 +119,22 @@ struct ConCommandBaseIterator
     pointer itr_;
 };
 
-static bool _Compare_cvars(const char* name, const size_t size, const ConCommandBase& other)
+static bool _compare_cvars(const char* name, const size_t size, const ConCommandBase& other)
 {
-    return other.IsCommand() &&
+    if (!other.IsCommand())
+        return false;
+    if (!equal(name, size, other.name))
+        return false;
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
-           other.name == string_view(name, size)
-#else
-           std::memcmp(other.name, name, size) == 0
+    if (other.name[size] != '\0')
+        return false;
 #endif
-        ;
+    return true;
 }
 
 con_var* con_var_system::FindVar(const char* name, const size_t size) const
 {
-    const auto                   comparer = bind_front(_Compare_cvars, name, size);
+    const auto                   comparer = bind_front(_compare_cvars, name, size);
     const ConCommandBaseIterator first_cvar(*reinterpret_cast<ConCommandBase**>(reinterpret_cast<uintptr_t>(this) + 0x30));
     const ConCommandBaseIterator invalid_cvar;
 
@@ -182,4 +182,5 @@ con_var* con_var_system::FindVar(const char* name, const size_t size) const
 #endif
 
     return static_cast<con_var*>(target_cvar.get());
+}
 }
