@@ -41,7 +41,8 @@ struct clamped_type_name
     {
         char tmpBuff[BuffSize];
         copy(rawName, tmpBuff);
-        fill(std::rbegin(tmpBuff), rawName.size() - BuffSize, '\0');
+        if (rawName.size() > BuffSize)
+            fill(std::rbegin(tmpBuff), rawName.size() - BuffSize, '\0');
 
         // remove bad spaces
         auto        skipNext = false;
@@ -85,12 +86,12 @@ struct clamped_type_name
         constexpr string_view badWords[] = { "struct", "class", "enum", "union" };
         for (const auto word : badWords)
         {
-            for (const string_view str(tmpBuff, BuffSize);;)
+            for (;;)
             {
-                const auto pos = str.find(word);
-                if (pos == string_view::npos)
+                auto pos = find(tmpBuff, word);
+                if (pos == _end(tmpBuff))
                     break;
-                fill(tmpBuff + pos, word.size(), '\0');
+                fill(pos, word.size(), '\0');
             }
         }
 
@@ -129,7 +130,7 @@ struct clamped_type_name
 
     constexpr size_t offset_to(const char chr) const
     {
-        return std::distance(buff, _find(buff, strSize, chr));
+        return std::distance(buff, find(buff, strSize, chr));
     }
 };
 
@@ -248,7 +249,7 @@ constexpr auto type_name()
         return clampedName.template clone<clampedName.offset_to('<')>();
 }
 
-#ifdef _DEBUG_OFF
+#ifdef _DEBUG
 static_assert(type_name<float>() == "float");
 static_assert(type_name<int32_t>() == type_name<int>());
 static_assert(type_name<std::char_traits>() == "std::char_traits");

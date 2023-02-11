@@ -312,7 +312,7 @@ static void* _find_memory_range(memory_range_unpacked rng, const unknown_bytes_r
 
     FD_ASSERT(rng.size >= unkBytes.count);
 
-    for (; rng.first != rngEndForEqual; ++rng.first)
+    for (; rng.first < rngEndForEqual; ++rng.first)
     {
         part0.found = _find_range(rng.first, rngEndForEqual, unkBytes.firstPart.begin, unkBytes.firstPart.size);
         if (part0.found == rngEndForEqual)
