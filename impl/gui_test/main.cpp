@@ -92,15 +92,6 @@ int main(int, char**)
         sysConsole.out()(msg);
     });
 
-    [&] {
-        auto c = sysConsole.out();
-        test_algorithms(c);
-        c("-----");
-        test_algorithms(c);
-        c("-----");
-        test_algorithms(c);
-    }();
-
 #if defined(_DEBUG) || 1
     const default_assert_handler assertHandler([&](const assert_data& adata) {
         sysConsole.out()(parse(adata));

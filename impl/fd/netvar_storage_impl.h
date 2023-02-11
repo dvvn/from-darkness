@@ -48,7 +48,6 @@ class netvars_storage final : public basic_netvars_storage
 {
     std::vector<netvar_table> data_;
     std::vector<size_t>       sortRequested_;
-    // std::once_flag_ init_flag_;
 
   public:
     void request_sort(const netvar_table* table);
@@ -72,5 +71,6 @@ class netvars_storage final : public basic_netvars_storage
 
     void   finish();
     size_t get_offset(string_view className, string_view name) const override;
+    void   clear();
 };
 } // namespace fd

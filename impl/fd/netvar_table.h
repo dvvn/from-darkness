@@ -27,11 +27,10 @@ class netvar_table
     void                     add(basic_netvar_info* info);
     void                     sort();
 
-    bool empty() const;
-
-    basic_netvar_info** begin();
-    basic_netvar_info** end();
-    size_t              size() const;
+    basic_netvar_info**       begin();
+    basic_netvar_info**       end();
+    basic_netvar_info* const* begin() const;
+    basic_netvar_info* const* end() const;
 
 #if 0
     template <typename... Args>

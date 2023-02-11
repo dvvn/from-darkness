@@ -86,6 +86,8 @@ struct csgo_library_info : library_info
 {
     using library_info::library_info;
 
+    csgo_library_info(library_info info);
+
     void* find_interface(string_view name, bool notify = true) const;
     void* find_interface(const void* createInterfaceFn, string_view name, bool notify = true) const;
 };

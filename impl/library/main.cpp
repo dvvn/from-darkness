@@ -1,16 +1,18 @@
 #ifdef _DEBUG
 #include <fd/assert_impl.h>
 #endif
-#include <fd/logger_impl.h>
-#include <fd/system_console.h>
-
 #include <fd/exception.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
 #include <fd/hook_callback.h>
 #include <fd/hook_storage.h>
 #include <fd/library_info.h>
-
+#include <fd/logger_impl.h>
+#include <fd/netvar_storage_impl.h>
+#include <fd/system_console.h>
+#include <fd/valve/base_client.h>
+#include <fd/valve/cs_player.h>
+#include <fd/valve/engine_client.h>
 #include <fd/valve/gui/surface.h>
 
 #include <d3d9.h>
@@ -34,10 +36,46 @@ static DWORD  _ThreadId = 0;
     FreeLibraryAndExitThread(_ModuleHandle, EXIT_SUCCESS);
 }
 
+using namespace fd;
+
+class csgo_interfaces_finder
+{
+    csgo_library_info info_;
+    void*             createInterfaceFn_;
+
+  public:
+    csgo_interfaces_finder(library_info info)
+        : info_(std::move(info))
+        , createInterfaceFn_(info.find_export("CreateInterface"))
+    {
+    }
+
+    template <class T>
+    T* get(string_view name = {}) const
+    {
+        if (name.empty())
+            name = type_name<T>();
+        return static_cast<T*>(info_.find_interface(createInterfaceFn_, name));
+    }
+};
+
+template <class T>
+concept have_init_fn = requires() { T::init(); };
+
+template <class T>
+static void _init_netvars()
+{
+    if constexpr (have_init_fn<T>)
+        T::init();
+    else
+    {
+        if (log_active())
+            log_unsafe(make_string("netvars - init function not exist (", type_name<T>(), ")"));
+    }
+}
+
 static DWORD WINAPI _loader(void*) noexcept
 {
-    using namespace fd;
-
     set_unload(_exit_fail);
     set_current_library(_ModuleHandle);
 
@@ -53,7 +91,9 @@ static DWORD WINAPI _loader(void*) noexcept
     });
 #endif
 
-    const auto clientLib     = wait_for_library(L"client.dll");
+    const csgo_library_info      clientLib(wait_for_library(L"client.dll"));
+    const csgo_interfaces_finder clientInterfaces(clientLib);
+
     const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
 
     addToSafeList(_ModuleHandle, nullptr);
@@ -70,6 +110,25 @@ static DWORD WINAPI _loader(void*) noexcept
             _exit_fail();
         return d3dParams.hFocusWindow;
     }();
+
+    auto gameClient = clientInterfaces.get<valve::base_client>("TODO");
+
+    netvars_storage netvarsStorage;
+    Netvars = &netvarsStorage;
+
+    netvarsStorage.iterate_client_class(gameClient->GetAllClasses());
+    // netvarsStorage.iterate_datamap();
+
+#ifdef _DEBUG
+    netvars_classes lazyNetvarClasses;
+    netvarsStorage.generate_classes(lazyNetvarClasses);
+    netvars_log lazyNetvarLog;
+    netvarsStorage.log_netvars(lazyNetvarLog);
+#endif
+
+    netvarsStorage.finish();
+    _init_netvars<valve::cs_player>();
+    netvarsStorage.clear();
 
     gui::menu_impl menu(gui::tab_bar(
 #ifndef FD_GUI_RANDOM_TAB_BAR_NAME

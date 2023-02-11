@@ -78,11 +78,6 @@ void netvar_table::sort()
     });
 }
 
-bool netvar_table::empty() const
-{
-    return _empty(storage_);
-}
-
 basic_netvar_info** netvar_table::begin()
 {
     return _begin(storage_);
@@ -93,9 +88,14 @@ basic_netvar_info** netvar_table::end()
     return _end(storage_);
 }
 
-size_t netvar_table::size() const
+basic_netvar_info* const* netvar_table::begin() const
 {
-    return _size(storage_);
+    return _begin(storage_);
+}
+
+basic_netvar_info* const* netvar_table::end() const
+{
+    return _end(storage_);
 }
 
 //----

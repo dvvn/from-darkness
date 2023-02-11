@@ -148,14 +148,14 @@ netvars_classes::~netvars_classes()
     const auto dirIsEmpty = fs::Directory.create(dir, false) || fs::Directory.empty(dir);
     if (dirIsEmpty)
     {
-        for (auto& f : files)
+        for (auto& f : range_view(files))
         {
             writeBuffer(buildPath(f));
         }
     }
     else
     {
-        for (auto& f : files)
+        for (auto& f : range_view(files))
         {
             const auto info = buildPath(f);
             if (skipWritten(info))
@@ -167,7 +167,7 @@ netvars_classes::~netvars_classes()
 
 netvars_classes::netvars_classes() // NOLINT(hicpp-use-equals-default)
 {
-#if defined(FD_WORK_DIR)
+#ifdef FD_WORK_DIR
     write_string(dir, FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
 #endif
 }
@@ -213,9 +213,8 @@ static bool _can_skip_netvar(const string_view name)
     return name.contains('.');
 }
 
-#define MERGE_DATA_TABLES
-
 // #define GENERATE_STRUCT_MEMBERS
+#define MERGE_DATA_TABLES
 
 static auto _is_base_class(const valve::recv_prop* prop)
 {
@@ -258,7 +257,7 @@ void netvars_storage::request_sort(const netvar_table* table)
 void netvars_storage::sort()
 {
     const auto sortEnd = std::unique(_begin(sortRequested_), _end(sortRequested_));
-    for (const auto idx : range_view((sortRequested_), sortEnd))
+    for (const auto idx : range_view(sortRequested_, sortEnd))
         data_[idx].sort();
     sortRequested_.clear();
 }
@@ -285,12 +284,13 @@ netvars_storage::netvars_storage()
     // to force assert in get_offset
     sortRequested_.reserve(1);
 #endif
+    (void)this;
 }
 
 template <class T>
 static auto _find_name(T& rng, const string_view name) -> decltype(rng.data())
 {
-    for (auto& item : rng)
+    for (auto& item : range_view(rng))
     {
         if (item.name() == name)
             return &item;
@@ -315,7 +315,7 @@ struct array_info
     size_t      size = 0;
 };
 
-static auto get_props_range(const valve::recv_table* recvTable)
+static auto _get_props_range(const valve::recv_table* recvTable)
 {
     const auto& rawProps = recvTable->props;
 
@@ -342,7 +342,9 @@ static size_t _store(const valve::recv_prop* arrayStart, const string_view propN
     // if (netvarTable_->find(realPropName)) // todo: debug break for type check!
     //   return { realPropName, 0 };
 
+#ifdef _DEBUG
     __debugbreak();
+#endif
     // todo: try extract size from length proxy
     size_t arraySize = 1;
     for (auto& tmp : range_view(arrayStart + 1, arrayEnd))
@@ -363,7 +365,7 @@ static size_t _store(const valve::recv_prop* arrayStart, const string_view propN
         ++arraySize;
     }
 
-    customTable->add(new netvar_info((arrayStart->offset + extraOffset), arrayStart, arraySize, realPropName));
+    customTable->add(new netvar_info(arrayStart->offset + extraOffset, arrayStart, arraySize, realPropName));
     return arraySize - 1;
 }
 
@@ -375,7 +377,7 @@ static void _store(const valve::recv_prop* prop, const string_view propName, net
 // merge data tables
 static void _parse(const valve::recv_table* recvTable, netvar_table* customTable, size_t rootOffset = 0)
 {
-    const auto [propsBegin, propsEnd] = get_props_range(recvTable);
+    const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
         FD_ASSERT(prop->name != nullptr);
@@ -407,15 +409,15 @@ static string_view _correct_recv_name(const char* name)
     return _correct_recv_name(string_view(name));
 }
 
-[[maybe_unused]] static void _correct_recv_name(string& name)
+[[maybe_unused]] static void _correct_recv_name(const string& name)
 {
     (void)name;
 }
 
 // store all data tables
-static void _parse(valve::recv_table* recvTable, netvars_storage* storage)
+static void _parse(const valve::recv_table* recvTable, netvars_storage* storage)
 {
-    const auto [propsBegin, propsEnd] = get_props_range(recvTable);
+    const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
     if (std::distance(propsBegin, propsEnd) == 0)
         return;
     const auto tableName = _correct_recv_name(recvTable->name);
@@ -492,8 +494,8 @@ static auto _parse(const valve::data_map* rootMap, netvars_storage* storage)
         else
             storage->request_sort(table);
 
-        const auto sizeBefore = table->size();
-        for (auto& desc : map.data)
+        const auto sizeBefore = _size(*table);
+        for (auto& desc : range_view(map.data))
         {
             if (desc.type == valve::FIELD_EMBEDDED)
             {
@@ -513,7 +515,7 @@ static auto _parse(const valve::data_map* rootMap, netvars_storage* storage)
             }
         }
 
-        const auto tableUpdated = sizeBefore != table->size();
+        const auto tableUpdated = sizeBefore != _size(*table);
 
         if (tableAdded)
             ++result.created;
@@ -587,16 +589,16 @@ void netvars_storage::log_netvars(netvars_log& data)
 
     json_unsorted jsRoot;
 
-    for (auto& table : data_)
+    for (const auto& table : range_view(data_))
     {
-        if (table.empty())
+        if (_empty(table))
             continue;
         auto& buff = _js_append(jsRoot, table.name());
         for (const auto info : table)
         {
             using str_t = json_unsorted::string_t;
 
-            const auto name   = (info->name());
+            const auto name   = info->name();
             const auto type   = info->type();
             const auto offset = info->offset();
 
@@ -618,8 +620,8 @@ void netvars_storage::log_netvars(netvars_log& data)
         }
     }
 
-    namespace jd = nlohmann::detail;
-    data.buff.reserve(1024 * 180);
+    namespace jd = nlohmann::detail; // NOLINT(misc-unused-alias-decls)
+    data.buff.reserve(1024 * 180);   // filse size ~180 kb
     jd::serializer<json_unsorted>(jd::output_adapter(data.buff), data.filler).dump(jsRoot, data.indent > 0, false, data.indent);
     data.buff.shrink_to_fit();
 
@@ -642,9 +644,9 @@ struct generate_info
         const auto isPointer   = typeRaw.ends_with('*');
         const auto typeDecayed = isPointer ? typeRaw.substr(0, typeRaw.size() - 1) : typeRaw;
 
-        typeOut  = make_string(typeDecayed, isPointer ? '*' : '&');
-        typeCast = make_string(isPointer ? "" : "*", "reinterpret_cast<", typeDecayed, "*>");
-        name     = info->name();
+        write_string(typeOut, typeDecayed, isPointer ? '*' : '&');
+        write_string(typeCast, isPointer ? "" : "*", "reinterpret_cast<", typeDecayed, "*>");
+        name = info->name();
     }
 };
 
@@ -664,9 +666,9 @@ void netvars_storage::generate_classes(netvars_classes& data)
     std::vector<char>          header;
     std::vector<generate_info> table;
 
-    for (auto& rawTable : data_)
+    for (const auto& rawTable : range_view(data_))
     {
-        if (rawTable.empty())
+        if (_empty(rawTable))
             continue;
 
         table.clear();
@@ -675,6 +677,10 @@ void netvars_storage::generate_classes(netvars_classes& data)
             if (!i->type().empty())
                 table.emplace_back(i);
         }
+#ifdef _DEBUG
+        const range_view tableDecayed = table;
+#define table tableDecayed
+#endif
 
         const auto className = rawTable.name();
 
@@ -739,6 +745,9 @@ void netvars_storage::generate_classes(netvars_classes& data)
 
         // todo: if !MERGE_DATA_TABLES include wanted files!
     }
+
+#undef table
+
 #endif
 
     if (log_active())
@@ -791,7 +800,17 @@ void netvars_storage::finish()
 size_t netvars_storage::get_offset(const string_view className, const string_view name) const
 {
     FD_ASSERT(sortRequested_.capacity() == 0, "finish not called!");
-    return this->find(className)->find(name)->offset();
+    const auto offset = this->find(className)->find(name)->offset();
+    if (log_active())
+        log_unsafe(make_string("netvars - ", className, "->", name, " loaded"));
+    return offset;
+}
+
+void netvars_storage::clear()
+{
+    FD_ASSERT(sortRequested_.capacity() == 0, "finish not called!");
+    data_.clear();
+    data_.shrink_to_fit();
 }
 
 basic_netvars_storage* Netvars;

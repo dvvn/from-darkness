@@ -1047,6 +1047,11 @@ class interface_reg
     }
 };
 
+csgo_library_info::csgo_library_info(library_info info)
+    : library_info(info)
+{
+}
+
 void* csgo_library_info::find_interface(const string_view name, const bool notify) const
 {
     return find_interface(find_export("CreateInterface"), name, notify);

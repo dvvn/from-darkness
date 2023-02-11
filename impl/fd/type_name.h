@@ -262,7 +262,7 @@ static_assert(type_name<const std::exception>() == "const std::exception");
 
 //------------------
 
-struct template_info
+struct _template_info
 {
     const char* name;
     bool        partial;
@@ -270,7 +270,7 @@ struct template_info
 
 static constexpr auto _find_first_char(const char* ptr, const char c)
 {
-    return std::char_traits<char>::find(ptr, static_cast<size_t>(-1), c);
+    return find(ptr, c);
 };
 
 static constexpr auto _find_last_char(const char* ptr, const char c)
@@ -290,7 +290,7 @@ static constexpr size_t _get_offset_for(auto fn, const char* ptr, const char c)
     return std::distance(ptr, found);
 };
 
-static constexpr bool _same_template(const template_info infoL, const template_info infoR)
+static constexpr bool _same_template(const _template_info infoL, const _template_info infoR)
 {
     // every __FUNCSIG__ have own pointer, if they are same - strings are same
     if (infoL.name == infoR.name)
@@ -309,7 +309,7 @@ static constexpr bool _same_template(const template_info infoL, const template_i
 
     // offset_to end of partial tempalte
     const auto limit = _get_offset_for(_find_last_char, strPartial, '>');
-    if (!_ptr_equal(strPartial, strFull, limit))
+    if (!_equal(strPartial, limit, strFull))
         return false;
     // check are full template same as given part
     return strFull[limit] == '<';

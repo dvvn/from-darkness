@@ -205,6 +205,17 @@ static constexpr It _find(It begin, size_t rngSize, const T val)
     return begin;
 }
 
+template <typename It, typename T>
+static constexpr It _find_unchecked(It begin, const T val)
+{
+    for (;;)
+    {
+        if (*begin == val)
+            return begin;
+        ++begin;
+    }
+}
+
 template <typename V, typename It>
 concept can_find_value_inside = requires(It it, V val) {
                                     *it == val;
@@ -227,6 +238,12 @@ template <native_iterable T, can_find_value_inside<iter_t<T>> V>
 constexpr iter_t<T> find(T&& rng, const V& val)
 {
     return _find(_begin(rng), _size_or_end(rng), _to_iter_value<iter_t<T>>(val));
+}
+
+template <typename P, can_find_value_inside<P> V>
+constexpr P find(P rng, const V& val) requires(std::is_pointer_v<P>)
+{
+    return _find_unchecked(rng, _to_iter_value<P>(val));
 }
 
 // template <typename It>
@@ -256,7 +273,7 @@ static constexpr It _find_range(It begin, It end, It2 begin2, It2 end2)
             auto absBegin = begin;
             if (_equal<it2_eq, it_eq>(begin2, end2, begin))
                 return absBegin;
-            if (begin == last)
+            if (begin >= last)
                 return end;
             ++begin;
         }

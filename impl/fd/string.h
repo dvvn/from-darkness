@@ -6,7 +6,6 @@
 #endif
 
 #include <fd/algorithm.h>
-#include <fd/views.h>
 
 #include <array>
 #include <iterator>
@@ -32,32 +31,32 @@ using std::u16string_view;
 using std::u32string;
 using std::u32string_view;
 
-template <typename C>
-static constexpr bool _ptr_equal(const C* ptr1, const C* ptr2, const size_t count)
-{
-    return std::char_traits<C>::compare(ptr1, ptr2, count) == 0;
-}
-
-template <typename C>
-static constexpr bool _ptr_equal_legacy(const C* myPtr, const C* unkPtr, const size_t count)
-{
-    if (std::is_constant_evaluated())
-        return _ptr_equal(myPtr, unkPtr, count) && unkPtr[count] == static_cast<C>('\0');
-
-    // unsafe (TESTING)
-    return unkPtr[count] == static_cast<C>('\0') && _ptr_equal(myPtr, unkPtr, count);
-}
-
-template <class R, class L>
-static constexpr bool _str_equal(const R& left, const L& right)
+template <class L, typename R>
+static constexpr bool _str_equal(const L& left, const R& right)
 {
     const auto size = left.size();
-    if constexpr (std::is_class_v<L>)
-        return (size == right.size() && _ptr_equal(left.data(), right.data(), size));
-    else if constexpr (std::is_bounded_array_v<L>)
-        return size == std::size(right) - 1 && _ptr_equal(left.data(), right, size);
+    if constexpr (have_size<R>)
+    {
+        auto otherSize = std::size(right);
+        if constexpr (std::is_bounded_array_v<R>)
+            --otherSize;
+        if (size != otherSize)
+            return false;
+    }
     else
-        return (_ptr_equal_legacy(left.data(), right, size));
+    {
+        if (!std::is_constant_evaluated())
+        {
+            // unsafe (TESTING)
+            if (right[size] != '\0')
+                return false;
+        }
+    }
+
+    if constexpr (have_begin_end<R>)
+        return _equal(_begin(left), size, _begin(right));
+    else
+        return _equal(_begin(left), size, right);
 }
 
 template <class T, class... Test>
@@ -69,7 +68,7 @@ concept not_string = other_than<T, basic_string<C>, basic_string_view<C>>;
 // ReSharper disable CppInconsistentNaming
 
 template <typename Test, typename C>
-concept _same_str_type = requires(const Test& v) { static_cast<const C*>(std::data(v)); };
+concept _same_str_type = requires(const Test& v) { static_cast<const C*>(&v[0]); };
 
 template <typename Test, typename C>
 concept _only_same_str_type = _same_str_type<Test, C> && not_string<Test, C>;
@@ -91,19 +90,22 @@ constexpr bool operator==(const basic_string<C>& left, const Other& right)
 template <typename C, _only_same_str_type<C> Other>
 constexpr bool operator==(const Other& left, const basic_string_view<C> right)
 {
-    return right == left;
+    return _str_equal(right, left);
 }
 
 template <typename C, _only_same_str_type<C> Other>
 constexpr bool operator==(const Other& left, const basic_string<C>& right)
 {
-    return right == left;
+    return _str_equal(right, left);
 }
 
 template <typename T>
-constexpr size_t str_len(const T* str)
+constexpr size_t str_len(const T& str)
 {
-    return std::char_traits<T>::length(str);
+    if constexpr (std::is_bounded_array_v<T>)
+        return std::size(str) - 1;
+    else
+        return std::distance(str, find(str, '\0'));
 }
 
 inline namespace literals
@@ -145,8 +147,6 @@ static constexpr auto _extract_size(const T& obj)
     else
         return std::pair(obj, static_cast<size_t>(1));
 }
-
-
 
 template <typename Q, typename T, typename S>
 static constexpr void _write_to(Q& dst, std::pair<T, S>& data)
