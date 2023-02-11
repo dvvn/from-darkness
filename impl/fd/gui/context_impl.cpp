@@ -2,8 +2,7 @@
 #include <fd/exception.h>
 #include <fd/gui/context_impl.h>
 #include <fd/library_info.h>
-
-#include <fd/mem_scanner.h>
+// #include <fd/mem_scanner.h>
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -12,12 +11,14 @@
 
 #include <numeric>
 
-using namespace fd;
-using namespace gui;
-
 // workaround, because imgui have poor muliple keys handling
-#define WORKAROUND_MULTIPLE_KEYS
+// #define WORKAROUND_MULTIPLE_KEYS
 
+// ReSharper disable once CppInconsistentNaming
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+
+namespace fd::gui
+{
 imgui_backup::~imgui_backup()
 {
     ImGui::SetAllocatorFunctions(allocator_, deleter_, userData_);
@@ -564,9 +565,6 @@ struct keys_data
     LPARAM lParam;
 };
 
-// ReSharper disable once CppInconsistentNaming
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
-
 process_keys_result context_impl::process_keys(void* data)
 {
     const auto kd = static_cast<keys_data*>(data);
@@ -579,11 +577,10 @@ process_keys_result context_impl::process_keys(const HWND window, const UINT mes
     if (!can_process_keys())
         return process_keys_result::native;
 #endif
-
-    const auto       events         = forward_view(context_.InputEventsQueue);
-    const auto       oldEventsCount = events.size();
+    const range_view events(context_.InputEventsQueue);
+    const auto       oldEventsCount = _size(events);
     const auto       instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
-    const range_view eventsAdded(events.begin() + oldEventsCount, events.end());
+    const range_view eventsAdded(oldEventsCount, events);
 
     // update focus
     switch (message)
@@ -602,7 +599,7 @@ process_keys_result context_impl::process_keys(const HWND window, const UINT mes
         return process_keys_result::native;
     if (instant)
         return process_keys_result::instant;
-    if (!focused_ || eventsAdded.empty())
+    if (!focused_ || _empty(eventsAdded))
         return process_keys_result::native;
     return process_keys_result::def;
 }
@@ -620,7 +617,7 @@ hotkey& context_impl::get_hotkey(const hotkey_source source)
 #ifdef _DEBUG
     return hotkeys_.at(source);
 #else
-    return **hotkeys_.find(source); // skip throw
+    return **hotkeys_.offset_to(source); // skip throw
 #endif
 }
 
@@ -633,7 +630,7 @@ bool context_impl::update_hotkey(const hotkey_source source, const hotkey_mode m
 {
     if (!hotkeysActive_)
         return false;
-    const auto hk = hotkeys_.find(source);
+    const auto hk = hotkeys_.offset_to(source);
     if (hk == hotkeys_.end())
         return false;
     return (*hk).second.update(mode, allowOverride);
@@ -641,8 +638,9 @@ bool context_impl::update_hotkey(const hotkey_source source, const hotkey_mode m
 
 basic_hotkey* context_impl::find_hotkey(const hotkey_source source)
 {
-    const auto itr = hotkeys_.find(source);
+    const auto itr = hotkeys_.offset_to(source);
     return itr == hotkeys_.end() ? nullptr : &(*itr).second;
 }
 
 #endif
+}

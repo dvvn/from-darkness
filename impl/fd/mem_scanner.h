@@ -1,14 +1,18 @@
 #pragma once
 
-#include <fd/string.h>
 #include <fd/views.h>
 
 namespace fd
 {
 struct memory_range : range_view<const uint8_t*>
 {
+#ifdef _DEBUG
     memory_range(const uint8_t* from, const uint8_t* to);
     memory_range(const uint8_t* from, size_t size);
+    memory_range(range_view rng);
+#else
+    using range_view<const uint8_t*>::range_view;
+#endif
 
     void update(const uint8_t* curr, size_t offset = 0);
     void update(const void* curr, size_t offset = 0);
@@ -38,7 +42,7 @@ class pattern_updater_unknown
     unknown_bytes_range_shared bytes_;
 
   public:
-    pattern_updater_unknown(memory_range memRng, string_view sig);
+    pattern_updater_unknown(memory_range memRng, range_view<const char*> sig);
     pattern_updater_unknown(memory_range memRng, const uint8_t* begin, size_t memSize);
 
     void* operator()() const;
@@ -188,6 +192,11 @@ class memory_finder
     {
         return end_;
     }
+
+    auto front() const
+    {
+        return *begin_;
+    }
 };
 
 //--------------
@@ -198,7 +207,7 @@ struct pattern_scanner_raw : private memory_range
 
     using finder = memory_finder<pattern_updater_known>;
 
-    finder operator()(string_view sig) const;
+    finder operator()(range_view<const char*> sig) const;
     finder operator()(const uint8_t* begin, size_t memSize) const;
 };
 
@@ -208,7 +217,7 @@ struct pattern_scanner_text : private memory_range
 
     using finder = memory_finder<pattern_updater_unknown>;
 
-    finder operator()(string_view sig) const;
+    finder operator()(range_view<const char*> sig) const;
     finder operator()(const uint8_t* begin, size_t memSize) const;
 
     pattern_scanner_raw raw() const;
@@ -221,7 +230,7 @@ struct pattern_scanner : private memory_range
     using unknown_finder = memory_finder<pattern_updater_unknown>;
     using known_finder   = memory_finder<pattern_updater_known>;
 
-    unknown_finder operator()(string_view sig) const;
+    unknown_finder operator()(range_view<const char*> sig) const;
     known_finder   operator()(const uint8_t* begin, size_t memSize) const;
 
     pattern_scanner_raw raw() const;

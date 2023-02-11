@@ -137,7 +137,7 @@ template <typename T>
 static constexpr auto _extract_size(const T& obj)
 {
     if constexpr (std::is_class_v<T>)
-        return std::pair(forward_view_lazy(obj).begin(), forward_view_lazy(obj).size());
+        return std::pair(_begin(obj), _size(obj));
     else if constexpr (std::is_pointer_v<T>)
         return std::pair(obj, str_len(obj));
     else if constexpr (std::is_bounded_array_v<T>)
@@ -146,11 +146,7 @@ static constexpr auto _extract_size(const T& obj)
         return std::pair(obj, static_cast<size_t>(1));
 }
 
-template <typename T>
-concept iterator = requires(T it) {
-                       *it;
-                       ++it;
-                   };
+
 
 template <typename Q, typename T, typename S>
 static constexpr void _write_to(Q& dst, std::pair<T, S>& data)
@@ -205,79 +201,54 @@ constexpr void write_string(T& buff, const Args&... args)
     write_string<can_reserve<T>>(buff, args...);
 }
 
-template <typename T>
-struct biggest_type_priority
+struct _make_string_helper
 {
-    static constexpr size_t value = sizeof(T);
+    template <typename T>
+    static auto extract_value()
+    {
+        if constexpr (iterator<T>)
+            return std::iter_value_t<T>();
+        else if constexpr (native_iterable<T>)
+            return std::iter_value_t<iter_t<T>>();
+        else
+            return T();
+    }
+
+    template <typename T, typename... Args>
+    static void biggest_type_filter()
+    {
+        static_assert((std::same_as<std::remove_const_t<T>, Args> || ...));
+    }
+
+    template <typename Ret, typename T, typename... Args>
+    static auto biggest_type()
+    {
+#ifdef _DEBUG
+        biggest_type_filter<T, char, char8_t, uint8_t, int8_t, wchar_t, char16_t, char32_t>();
+#endif
+        if constexpr (std::is_void_v<Ret>)
+        {
+            if constexpr (sizeof...(Args) == 0 || (std::same_as<T, Args> && ...))
+                return T();
+            else
+                return biggest_type<T, Args...>();
+        }
+        else
+        {
+            using result = std::conditional_t<sizeof(Ret) <= sizeof(T), Ret, T>;
+            if constexpr (sizeof...(Args) != 0)
+                return biggest_type<result, Args...>();
+            else
+                return result();
+        }
+    }
 };
-
-template <>
-struct biggest_type_priority<float>
-{
-    static constexpr size_t value = sizeof(uint64_t) + 1;
-};
-
-template <>
-struct biggest_type_priority<double>
-{
-    static constexpr size_t value = sizeof(uint64_t) + 2;
-};
-
-template <>
-struct biggest_type_priority<long double>
-{
-    static constexpr size_t value = sizeof(uint64_t) + 3;
-};
-
-template <typename T, typename T1>
-using select_biggest_type = std::conditional_t<(biggest_type_priority<T>::value < biggest_type_priority<T1>::value), T1, T>;
-
-template <typename T, typename... Args>
-struct biggest_type : biggest_type<select_biggest_type<T, Args>...>
-{
-};
-
-template <typename T>
-struct biggest_type<T>
-{
-    using type = T;
-};
-
-template <typename... T>
-using biggest_type_t = typename biggest_type<T...>::type;
-
-template <
-    typename T,
-    char = iterator<T>          ? 1
-           : native_iterable<T> ? 2
-                                : 0>
-struct extract_value;
-
-template <typename T>
-struct extract_value<T, 0>
-{
-    using type = std::remove_const_t<T>;
-};
-
-template <typename T>
-struct extract_value<T, 1>
-{
-    using type = std::iter_value_t<T>;
-};
-
-template <typename T>
-struct extract_value<T, 2>
-{
-    using type = std::iter_value_t<begin_t<T>>;
-};
-
-template <typename T>
-using extract_value_t = typename extract_value<T>::type;
 
 template <typename... Args>
 constexpr auto make_string(const Args&... args)
 {
-    using char_type = biggest_type_t<extract_value_t<std::decay_t<Args>>...>;
+    using h         = _make_string_helper;
+    using char_type = decltype(h::biggest_type<void, decltype(h::extract_value<Args>())...>());
     basic_string<char_type> buff;
     write_string(buff, args...);
     return buff;

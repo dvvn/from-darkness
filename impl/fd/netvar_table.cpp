@@ -8,7 +8,7 @@ namespace fd
 {
 netvar_table::~netvar_table()
 {
-    for (const auto ptr : reverse_view(storage_))
+    for (const auto ptr : reverse(storage_))
         delete ptr;
 }
 
@@ -35,7 +35,7 @@ const basic_netvar_info* netvar_table::find(const string_view name) const
 {
     FD_ASSERT(!name.empty());
 
-    for (const auto entry : forward_view(storage_))
+    for (const auto entry : range_view(storage_))
     {
         if (entry->name() == name)
             return entry;
@@ -52,7 +52,7 @@ void netvar_table::add(basic_netvar_info* info)
         const auto offset = info->offset();
         const auto type   = info->type();
 
-        for (const auto item : forward_view(storage_))
+        for (const auto item : range_view(storage_))
         {
             if (item->name() == name)
                 FD_ASSERT("Item with given name already added!");
@@ -73,31 +73,29 @@ void netvar_table::add(basic_netvar_info* info)
 
 void netvar_table::sort()
 {
-    const auto unw = forward_view(storage_);
-    // ReSharper disable once CppUseRangeAlgorithm
-    std::stable_sort(unw.begin(), unw.end(), [](auto* l, auto* r) {
+    std::stable_sort(_begin(storage_), _end(storage_), [](auto* l, auto* r) {
         return l->offset() < r->offset();
     });
 }
 
 bool netvar_table::empty() const
 {
-    return storage_.empty();
+    return _empty(storage_);
 }
 
 basic_netvar_info** netvar_table::begin()
 {
-    return forward_view_lazy(storage_).begin();
+    return _begin(storage_);
 }
 
 basic_netvar_info** netvar_table::end()
 {
-    return forward_view_lazy(storage_).end();
+    return _end(storage_);
 }
 
 size_t netvar_table::size() const
 {
-    return storage_.size();
+    return _size(storage_);
 }
 
 //----

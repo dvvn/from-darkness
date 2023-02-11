@@ -73,8 +73,8 @@ bool tab_bar_base::new_frame()
     const auto window = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
-    const auto name   = forward_view(name_);
-    const auto id     = window->GetID(name.begin(), name.end());
+
+    const auto id     = window->GetID(_begin(name_), _end(name_));
     const auto tabBar = g.TabBars.GetOrAddByKey(id);
     tabBar->ID        = id;
     const ImRect   tabBarBB(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);

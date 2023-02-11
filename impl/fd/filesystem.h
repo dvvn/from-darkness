@@ -137,7 +137,7 @@ namespace fd::fs
     template <typename Itr>
     static constexpr Itr _Find_extension(const Itr fname, const Itr ads)
     {
-        // find dividing point between stem and extension in a generic format filename consisting of [fname, ads)
+        // offset_to dividing point between stem and extension in a generic format filename consisting of [fname, ads)
         auto ext = ads;
         if (fname == ext)
         {

@@ -135,7 +135,7 @@ static string_view _check_float_prefix(const string_view type)
 }
 
 #ifndef __cpp_lib_string_contains
-#define contains(_X_) find(_X_) != static_cast<size_t>(-1)
+#define contains(_X_) offset_to(_X_) != static_cast<size_t>(-1)
 #endif
 
 struct not_explicit_string : string

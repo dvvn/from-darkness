@@ -16,7 +16,7 @@ void hooks_storage::store(basic_hook& hook)
 bool hooks_storage::enable()
 {
     hooks_.shrink_to_fit();
-    for (const auto h : forward_view(hooks_))
+    for (const auto h : range_view(hooks_))
     {
         if (h->active())
             continue;
@@ -29,7 +29,7 @@ bool hooks_storage::enable()
 
 bool hooks_storage::disable()
 {
-    for (const auto h : reverse_view(hooks_))
+    for (const auto h : reverse(hooks_))
     {
         if (!h->active())
             continue;

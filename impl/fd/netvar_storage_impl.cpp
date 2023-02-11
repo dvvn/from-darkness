@@ -47,7 +47,7 @@ static bool _file_already_written(const T& fullPath, const range_view<const char
         return false;
 
     const auto size = fileStored.tellg();
-    if (size != buffer.size())
+    if (size != _size(buffer))
         return false;
 
 #if 0
@@ -91,8 +91,8 @@ static void _write_to_file(const wstring_view path, const range_view<const char*
 {
     // std::ofstream(full_path).write(buff.data(), buff.size());
     FILE* f;
-    _wfopen_s(&f, path.data(), L"w");
-    _fwrite_nolock(buff.begin(), 1, buff.size(), f);
+    _wfopen_s(&f, _begin(path), L"w");
+    _fwrite_nolock(_begin(buff), 1, _size(buff), f);
     _fclose_nolock(f);
 }
 
@@ -115,10 +115,9 @@ netvars_log::~netvars_log()
     if (!fs::Directory.create(dir, false))
         return;
     const auto fullPath = make_string(dir, file.name, file.extension);
-    const auto buffRng  = forward_view(std::as_const(buff));
-    if (_file_already_written(fullPath, buffRng))
+    if (_file_already_written(fullPath, buff))
         return;
-    _write_to_file(fullPath, buffRng);
+    _write_to_file(fullPath, buff);
 }
 
 netvars_classes::~netvars_classes()
@@ -135,11 +134,11 @@ netvars_classes::~netvars_classes()
     };
 
     const auto buildPath = [&](const file_info& info) -> path_info {
-        return { make_string(dir, info.name), forward_view(info.data) };
+        return { make_string(dir, info.name), info.data };
     };
 
     const auto skipWritten = [&](const path_info& p) {
-        return _file_already_written(p.path, forward_view(p.buff));
+        return _file_already_written(p.path, p.buff);
     };
 
     const auto writeBuffer = [&](const path_info& p) {
@@ -252,16 +251,14 @@ static J& _js_append(J& js, const T& str)
 
 void netvars_storage::request_sort(const netvar_table* table)
 {
-    const auto idx = std::distance(std::as_const(data_).data(), table);
+    const auto idx = std::distance<const netvar_table*>(_begin(data_), table);
     sortRequested_.push_back(idx);
 }
 
 void netvars_storage::sort()
 {
-    const auto tmp     = forward_view_lazy(sortRequested_);
-    const auto begin   = tmp.begin();
-    const auto sortEnd = std::unique(begin, tmp.end());
-    for (const auto idx : range_view(begin, sortEnd))
+    const auto sortEnd = std::unique(_begin(sortRequested_), _end(sortRequested_));
+    for (const auto idx : range_view((sortRequested_), sortEnd))
         data_[idx].sort();
     sortRequested_.clear();
 }

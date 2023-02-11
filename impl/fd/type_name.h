@@ -127,9 +127,9 @@ struct clamped_type_name
         return nativeStr.substr(0, nativeStr.find(chr));
     }
 
-    constexpr size_t find(const char chr) const
+    constexpr size_t offset_to(const char chr) const
     {
-        return string_view(buff, strSize).find(chr);
+        return std::distance(buff, _find(buff, strSize, chr));
     }
 };
 
@@ -245,10 +245,10 @@ constexpr auto type_name()
     if constexpr (clampedName.native())
         return clampedName.view_before(rawName, '<');
     else
-        return clampedName.template clone<clampedName.find('<')>();
+        return clampedName.template clone<clampedName.offset_to('<')>();
 }
 
-#ifdef _DEBUG
+#ifdef _DEBUG_OFF
 static_assert(type_name<float>() == "float");
 static_assert(type_name<int32_t>() == type_name<int>());
 static_assert(type_name<std::char_traits>() == "std::char_traits");
@@ -306,7 +306,7 @@ static constexpr bool _same_template(const template_info infoL, const template_i
         return infoL.partial ? std::pair(strL, strR) : std::pair(strR, strL);
     }();
 
-    // find end of partial tempalte
+    // offset_to end of partial tempalte
     const auto limit = _get_offset_for(_find_last_char, strPartial, '>');
     if (!_ptr_equal(strPartial, strFull, limit))
         return false;

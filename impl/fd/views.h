@@ -13,6 +13,12 @@ constexpr decltype(auto) decay_iter(It it)
         return it;
 }
 
+template <typename T>
+concept iterator = requires(T it) {
+                       *it;
+                       ++it;
+                   };
+
 template <class T>
 concept have_unchecked = requires(T& obj) {
                              obj._Unchecked_begin();
@@ -33,6 +39,9 @@ concept have_begin_end = requires(T container) {
                              std::begin(container);
                              std::end(container);
                          };
+
+template <class T>
+concept have_empty = requires(T& obj) { std::empty(obj); };
 
 template <typename T>
 static constexpr auto _begin(T& container)
@@ -57,14 +66,14 @@ static constexpr auto _end(T& container)
 }
 
 template <typename T>
-static constexpr size_t _size(T&& container)
+static constexpr auto _size(T&& container)
 {
     if constexpr (have_size<T>)
         return std::size(container);
     else if constexpr (have_unchecked<T>)
         return std::distance(container._Unchecked_begin(), container._Unchecked_end());
     else if constexpr (have_begin_end<T>)
-        return std::distance(_unwrap(std::begin(container), decay_iter(std::end(container))));
+        return std::distance(_begin(container), _end(container));
 }
 
 template <typename T>
@@ -72,33 +81,76 @@ static constexpr auto _size_or_end(T& container)
 {
     if constexpr (have_size<T>)
         return std::size(container);
-    else if constexpr (have_unchecked<T>)
-        return container._Unchecked_end();
-    else if constexpr (have_begin_end<T>)
-        return decay_iter(std::end(container));
+    else
+        return _end(container);
+}
+
+template <typename T>
+static constexpr auto _empty(T& container)
+{
+    if constexpr (have_empty<T>)
+        return std::empty(container);
+    else
+        return _begin(container) == _end(container);
 }
 
 template <typename T>
 concept native_iterable = have_unchecked<T> || have_data<T> || have_begin_end<T>;
 
 template <typename T>
-using begin_t = decltype(_begin(std::declval<T&>()));
+struct _iterator_type
+{
+    using range_type = std::remove_reference_t<T>&;
+    using begin_type = std::remove_cvref_t<decltype(_begin(std::declval<range_type>()))>;
+
+#ifdef _DEBUG
+    using end_type = std::remove_cvref_t<decltype(_end(std::declval<range_type>()))>;
+    using type     = std::conditional_t<std::same_as<begin_type, end_type>, begin_type, void>;
+#else
+    using type = begin_type;
+#endif
+};
 
 template <typename T>
-using end_t = decltype(_end(std::declval<T&>()));
+using iter_t = typename _iterator_type<T>::type;
 
 template <typename T>
 class range_view;
+
+template <typename T>
+static void _range_view_filter(const range_view<T>&)
+{
+}
+
+template <typename T>
+concept range_view_accepter = requires(T rng) { _range_view_filter(rng); };
 
 template <typename T>
 class range_view
 {
     T begin_, end_;
 
-    friend class range_view<const T>;
-    friend class range_view<std::remove_const_t<T>>;
+    template <typename T2>
+    friend class range_view;
 
   public:
+    template <native_iterable Rng>
+    constexpr range_view(Rng&& rng) requires(!range_view_accepter<Rng> && std::constructible_from<T, iter_t<Rng>>) // NOLINT(bugprone-forwarding-reference-overload)
+        : begin_(_begin(rng))
+        , end_(_end(rng))
+    {
+#ifdef _DEBUG
+        static_assert(std::is_trivially_destructible_v<Rng> || !std::is_rvalue_reference_v<Rng&&>);
+#endif
+    }
+
+    template <range_view_accepter Rng>
+    constexpr range_view(Rng&& rng) requires(std::constructible_from<T, iter_t<Rng>>) // NOLINT(bugprone-forwarding-reference-overload)
+        : begin_(std::forward_like<Rng&&>(rng.begin_))
+        , end_(std::forward_like<Rng&&>(rng.end_))
+    {
+    }
+
     constexpr range_view(T begin, T end)
         : begin_(std::move(begin))
         , end_(std::move(end))
@@ -113,6 +165,30 @@ class range_view
     {
     }
 
+    constexpr range_view(T begin, range_view end)
+        : begin_(std::move(begin), end_(std::move(end.end_)))
+    {
+    }
+
+    constexpr range_view(size_t offset, range_view rng)
+        : begin_(rng.begin_ + offset)
+        , end_(std::move(rng.end_))
+    {
+    }
+
+    constexpr range_view(range_view begin, T end)
+        : begin_(std::move(begin.begin_))
+        , end_(std::move(end))
+    {
+    }
+
+    constexpr range_view(range_view begin, size_t size)
+        // ReSharper disable once CppMemberInitializersOrder
+        : end_(begin.begin_ + size)
+        , begin_(std::move(begin.begin_))
+    {
+    }
+
     constexpr T begin() const
     {
         return begin_;
@@ -123,6 +199,7 @@ class range_view
         return end_;
     }
 
+#if 0
     constexpr size_t size() const
     {
         return std::distance(begin_, end_);
@@ -147,71 +224,31 @@ class range_view
     {
         return std::distance(begin_, end);
     }
+#endif
 };
 
-template <class T>
-class forward_view_lazy
+template <typename Rng>
+range_view(Rng&) -> range_view<iter_t<Rng>>;
+
+template <typename T, typename T2>
+using select_const_t = std::conditional_t<std::is_const_v<T>, T, T2>;
+
+template <native_iterable Rng, iterator It>
+range_view(Rng&, It) -> range_view<select_const_t<It, iter_t<Rng>>>;
+
+template <iterator It, native_iterable Rng>
+range_view(It, Rng&) -> range_view<select_const_t<It, iter_t<Rng>>>;
+
+template <native_iterable Rng>
+[[nodiscard]] constexpr auto reverse(Rng& range) -> range_view<std::reverse_iterator<iter_t<Rng>>>
 {
-    T* source_;
-
-  public:
-    constexpr forward_view_lazy(T& source)
-        : source_(&source)
-    {
-    }
-
-    constexpr decltype(auto) begin() const
-    {
-        return _begin(*source_);
-    }
-
-    constexpr decltype(auto) end() const
-    {
-        return _end(*source_);
-    }
-
-    constexpr size_t size() const
-    {
-        return _size(*source_);
-    }
-
-    constexpr decltype(auto) size_or_end() const
-    {
-        return _size_or_end(*source_);
-    }
-};
-
-template <class T>
-class reverse_view_lazy
-{
-    T* source_;
-
-  public:
-    constexpr reverse_view_lazy(T& source)
-        : source_(&source)
-    {
-    }
-
-    constexpr auto begin() const
-    {
-        return std::reverse_iterator(_end(*source_));
-    }
-
-    constexpr auto end() const
-    {
-        return std::reverse_iterator(_begin(*source_));
-    }
-};
-
-template <typename Container>
-constexpr auto forward_view(Container& container)
-{
-    return range_view(_begin(container), _end(container));
+    return { std::reverse_iterator(_end(range)), std::reverse_iterator(_begin(range)) };
 }
 
-template <typename Container>
-constexpr auto reverse_view(Container& container)
+template <typename T>
+[[nodiscard]] constexpr auto reverse(range_view<std::reverse_iterator<T>> rng) -> range_view<T>
 {
-    return range_view(std::reverse_iterator(_end(container)), std::reverse_iterator(_begin(container)));
+    return { rng.begin().base(), rng.end().base() };
 }
+
 } // namespace fd

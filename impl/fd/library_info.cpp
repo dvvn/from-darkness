@@ -246,10 +246,7 @@ static auto _as_wstring(const T& str)
     if constexpr (std::same_as<std::iter_value_t<T>, wchar_t>)
         return str;
     else
-    {
-        auto tmp = forward_view_lazy(str);
-        return wstring(tmp.begin(), tmp.end() - !std::is_class_v<T>);
-    }
+        return wstring(_begin(str), _end(str) - !std::is_class_v<T>);
 }
 
 static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr)
@@ -259,7 +256,7 @@ static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto obje
     log_unsafe(format( //-
         L"{} -> {} '{}' {}! ({:#X})",
         _library_info_name(entry),
-        _as_wstring(objectType), // wstring conversion suck, find better way
+        _as_wstring(objectType), // wstring conversion suck, offset_to better way
         _as_wstring(object),
         _found_or_not(addr),
         reinterpret_cast<uintptr_t>(addr)
@@ -353,7 +350,7 @@ static constexpr struct
 static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_view name, const char* typeDescriptor, const void* vtablePtr)
 {
 #ifndef __cpp_lib_string_contains
-#define contains(x) find(x) != static_cast<size_t>(-1)
+#define contains(x) offset_to(x) != static_cast<size_t>(-1)
 #endif
 
     const auto demagleType = [=] {
@@ -750,9 +747,8 @@ IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const b
 
 void* library_info::find_signature(const string_view sig, const bool notify) const
 {
-    const auto            memorySpan = dos_nt(entry_).read();
-    const pattern_scanner finder(memorySpan.begin(), memorySpan.size());
-    const auto            result = *finder(sig).begin();
+    const pattern_scanner finder(dos_nt(entry_).read());
+    const auto            result = finder(sig).front();
     if (notify)
         _log_found_object(entry_, L"signature", sig, result);
     return result;
@@ -782,18 +778,17 @@ class vtable_finder
 
     const char* find_type_descriptor(const string_view name, const obj_type type) const
     {
-        const auto                 memorySpan = dnt_.read();
-        const pattern_scanner_text wholeModuleFinder(memorySpan.begin(), memorySpan.size());
+        const pattern_scanner_text wholeModuleFinder(dnt_.read());
 
         const void* rttiClassName;
 
         if (type == obj_type::UNKNOWN)
         {
-            const auto           bytesName = _bytes_to_sig(name.data(), name.size());
-            std::vector<uint8_t> realNameUnk; // no sting because no SSO anyway
+            const auto        bytesName = _bytes_to_sig(name.data(), name.size());
+            std::vector<char> realNameUnk; // no sting because no SSO anyway
             write_string(realNameUnk, _RttiInfo.rawPrefixBytes, " ? ", bytesName, ' ', _RttiInfo.rawPostfixBytes);
 
-            rttiClassName = *wholeModuleFinder(realNameUnk.data(), realNameUnk.size()).begin();
+            rttiClassName = wholeModuleFinder(realNameUnk).front();
         }
         else if (type == obj_type::NATIVE)
         {
@@ -812,7 +807,7 @@ class vtable_finder
                 FD_ASSERT_PANIC("Unknown type");
 
             const auto realName = make_string(_RttiInfo.rawPrefix, strPrefix, name, _RttiInfo.rawPostfix);
-            rttiClassName       = *wholeModuleFinder.raw()(realName).begin();
+            rttiClassName       = wholeModuleFinder.raw()(realName).front();
         }
 
         return static_cast<const char*>(rttiClassName);
@@ -840,11 +835,11 @@ class vtable_finder
                 continue;
 
             const auto objectLocator = val - 0xC;
-            const auto vtableAddress = reinterpret_cast<uintptr_t>(*dotRdataFinder(objectLocator).begin()) + 0x4;
+            const auto vtableAddress = reinterpret_cast<uintptr_t>(dotRdataFinder(objectLocator).front()) + 0x4;
 
             // check is valid offset
             FD_ASSERT(vtableAddress > sizeof(uintptr_t));
-            return *dotTextFinder(vtableAddress).begin();
+            return dotTextFinder(vtableAddress).front();
         }
         return nullptr;
     }

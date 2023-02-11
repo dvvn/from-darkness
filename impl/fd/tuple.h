@@ -288,19 +288,19 @@ static constexpr auto _reverse_tuple_rvalue(Tpl& tpl, std::index_sequence<I...> 
 }
 
 template <typename... Args>
-constexpr auto reverse(tuple<Args...>& tpl)
+[[nodiscard]] constexpr auto reverse(tuple<Args...>& tpl)
 {
     return _reverse_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
 }
 
 template <typename... Args>
-constexpr auto reverse(const tuple<Args...>& tpl)
+[[nodiscard]] constexpr auto reverse(const tuple<Args...>& tpl)
 {
     return _reverse_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
 }
 
 template <typename... Args>
-constexpr auto reverse(tuple<Args...>&& tpl)
+[[nodiscard]] constexpr auto reverse(tuple<Args...>&& tpl)
 {
     return _reverse_tuple_rvalue(tpl, std::make_index_sequence<sizeof...(Args)>());
 }

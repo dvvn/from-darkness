@@ -5,7 +5,7 @@
 namespace fd
 {
 template <typename T, size_t MaxSize = sizeof(void*) * 2>
-using try_ref_t = T; // std::conditional_t<!std::is_lvalue_reference_v<T> && (!std::is_trivially_copyable_v<T> || sizeof(T) > MaxSize), std::add_lvalue_reference_t<T>, T>;
+using try_ref_t = std::conditional_t<!std::is_lvalue_reference_v<T> && (!std::is_trivially_copyable_v<T> || sizeof(T) > MaxSize), std::add_lvalue_reference_t<T>, T>;
 
 template <typename It, typename T>
 static constexpr auto _to_iter_value(const T& val)
@@ -25,9 +25,12 @@ static constexpr void _iterate(It begin, It end, Fn fn)
 template <typename It, typename Fn>
 static constexpr void _iterate(It begin, size_t rngSize, Fn fn)
 {
-    while (rngSize-- != 0)
+    for (;;)
     {
-        fn(*begin++);
+        fn(*begin);
+        if (--rngSize == 0)
+            return;
+        ++begin;
     }
 }
 
@@ -46,9 +49,6 @@ constexpr void iterate(T&& rng, Fn fn)
 template <typename It, typename It2>
 static constexpr void _copy(It src, It end, It2 dst)
 {
-    if (src == end)
-        return;
-
     for (;;)
     {
         *dst = *src;
@@ -61,9 +61,6 @@ static constexpr void _copy(It src, It end, It2 dst)
 template <typename It, typename It2>
 static constexpr void _copy(It src, size_t srcSize, It2 dst)
 {
-    if (srcSize == 0)
-        return;
-
     for (;;)
     {
         *dst = *src;
@@ -95,9 +92,6 @@ constexpr void copy(T&& rng, It2 dst)
 template <typename It, typename It2>
 static constexpr bool _equal(It begin, It end, It2 with)
 {
-    if (begin == end)
-        return false;
-
     for (;;)
     {
         if (*begin != *with)
@@ -111,9 +105,6 @@ static constexpr bool _equal(It begin, It end, It2 with)
 template <typename It, typename It2>
 static constexpr bool _equal(It begin, size_t rngSize, It2 with)
 {
-    if (rngSize == 0)
-        return false;
-
     for (;;)
     {
         if (*begin != *with)
@@ -152,16 +143,15 @@ constexpr bool equal(T&& rng, It2 with)
 template <typename It, typename T>
 static constexpr void _fill(It begin, It end, const T val)
 {
-    while (begin != end)
-        *begin++ = val;
+    for (; begin != end; ++begin)
+    {
+        *begin = val;
+    }
 }
 
 template <typename It, typename T>
 static constexpr void _fill(It begin, size_t rngSize, const T val)
 {
-    if (rngSize == 0)
-        return;
-
     for (;;)
     {
         *begin = val;
@@ -186,7 +176,7 @@ constexpr void fill(It begin, size_t rngCount, const T& val)
 template <native_iterable T, typename T1>
 constexpr void fill(T& rng, const T1& val)
 {
-    _fill(_begin(rng), _size_or_end(rng), _to_iter_value<begin_t<T>>(val));
+    _fill(_begin(rng), _size_or_end(rng), _to_iter_value<iter_t<T>>(val));
 }
 
 template <typename It, typename T>
@@ -203,23 +193,22 @@ static constexpr It _find(It begin, It end, const T val)
 template <typename It, typename T>
 static constexpr It _find(It begin, size_t rngSize, const T val)
 {
-    if (rngSize == 0)
-        return begin;
-
     for (;;)
     {
         if (*begin == val)
-            return begin; // found
+            break; // found
         ++begin;
         if (--rngSize == 0)
-            return begin; // end
+            break; // end
     }
+
+    return begin;
 }
 
 template <typename V, typename It>
 concept can_find_value_inside = requires(It it, V val) {
                                     *it == val;
-                                    _to_iter_value<It>(val);
+                                    *it == _to_iter_value<It>(val);
                                 };
 
 template <typename It, can_find_value_inside<It> T>
@@ -234,10 +223,10 @@ constexpr It find(It begin, size_t rngSize, const T& val)
     return _find(decay_iter(begin), rngSize, _to_iter_value<It>(val));
 }
 
-template <native_iterable T, can_find_value_inside<begin_t<T>> V>
-constexpr begin_t<T> find(T&& rng, const V& val)
+template <native_iterable T, can_find_value_inside<iter_t<T>> V>
+constexpr iter_t<T> find(T&& rng, const V& val)
 {
-    return _find(_begin(rng), _size_or_end(rng), _to_iter_value<begin_t<T>>(val));
+    return _find(_begin(rng), _size_or_end(rng), _to_iter_value<iter_t<T>>(val));
 }
 
 // template <typename It>
@@ -257,70 +246,65 @@ constexpr begin_t<T> find(T&& rng, const V& val)
 template <typename It, typename It2>
 static constexpr It _find_range(It begin, It end, It2 begin2, It2 end2)
 {
-    auto rngSize  = std::distance(begin, end);
-    auto testSize = std::distance(begin2, end2);
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
 
-    if (rngSize > testSize)
+    for (const auto last = end - std::distance(begin2, end2) + 1; begin != last; ++begin)
     {
-        for (const auto last = end - testSize + 1; begin != last; ++begin)
-        {
-            auto absBegin = begin;
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
-                return absBegin;
-        }
+        auto absBegin = begin;
+        if (_equal<it2_eq, it_eq>(begin2, end2, begin))
+            return absBegin;
     }
+
     return end;
 }
 
 template <typename It, typename It2>
 static constexpr It _find_range(It begin, size_t rngSize, It2 begin2, It2 end2)
 {
-    auto testSize = std::distance(begin2, end2);
-    if (rngSize > testSize)
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
+
+    const auto testSize = std::distance(begin2, end2);
+    for (const auto limit = rngSize - testSize + 1; limit != 0; --limit)
     {
-        auto limit = rngSize - testSize + 1;
-        for (; limit != 0; --limit)
-        {
-            auto absBegin = begin;
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
-                return absBegin;
-        }
-        rngSize -= limit;
+        auto absBegin = begin;
+        if (_equal<it2_eq, it_eq>(begin2, end2, begin))
+            return absBegin;
     }
-    return begin + rngSize;
+    return begin + testSize;
 }
 
 template <typename It, typename It2>
 static constexpr It _find_range(It begin, It end, It2 begin2, size_t testSize)
 {
-    auto rngSize = std::distance(begin, end);
-    if (rngSize > testSize)
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
+
+    for (const auto last = end - testSize + 1; begin != last; ++begin)
     {
-        for (const auto last = end - testSize + 1; begin != last; ++begin)
-        {
-            auto absBegin = begin;
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
-                return absBegin;
-        }
+        auto absBegin = begin;
+        if (_equal<it2_eq, it_eq>(begin2, testSize, begin))
+            return absBegin;
     }
+
     return end;
 }
 
 template <typename It, typename It2>
 static constexpr It _find_range(It begin, size_t rngSize, It2 begin2, size_t testSize)
 {
-    if (rngSize > testSize)
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
+
+    for (auto limit = rngSize - testSize + 1; limit != 0; --limit)
     {
-        auto limit = rngSize - testSize + 1;
-        for (; limit != 0; --limit)
-        {
-            auto absBegin = begin;
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
-                return absBegin;
-        }
-        rngSize -= limit;
+        auto absBegin = begin;
+        if (_equal<it2_eq, it_eq>(begin2, testSize, begin))
+            return absBegin;
     }
-    return begin + rngSize;
+
+    return begin + testSize;
 }
 
 template <typename It, typename It2>
@@ -348,19 +332,19 @@ constexpr It find(It begin, size_t rngSize, It2 begin2, size_t testSize)
 }
 
 template <native_iterable Rng, typename It2>
-constexpr begin_t<Rng> find(Rng&& rng, It2 begin2, It2 end2)
+constexpr iter_t<Rng> find(Rng&& rng, It2 begin2, It2 end2)
 {
     return _find_range(_begin(rng), _size_or_end(rng), decay_iter(begin2), decay_iter(end2));
 }
 
 template <native_iterable Rng, typename It2>
-constexpr begin_t<Rng> find(Rng&& rng, It2 begin2, size_t testSize)
+constexpr iter_t<Rng> find(Rng&& rng, It2 begin2, size_t testSize)
 {
     return _find_range(_begin(rng), _size_or_end(rng), decay_iter(begin2), testSize);
 }
 
 template <typename Rng, typename It>
-concept can_find_range_inside = (!can_find_value_inside<Rng, It>) && can_find_value_inside<std::iter_value_t<begin_t<Rng>>, It>;
+concept can_find_range_inside = (!can_find_value_inside<Rng, It>) && can_find_value_inside<std::iter_value_t<iter_t<Rng>>, It>;
 
 template <typename It, can_find_range_inside<It> Rng>
 constexpr It find(It begin, It end, Rng&& testRng)
@@ -375,10 +359,10 @@ constexpr It find(It begin, size_t rngSize, Rng&& testRng)
 }
 
 template <typename TestRng, typename Rng>
-concept can_find_range_inside_range = (!can_find_value_inside<TestRng, Rng>) && can_find_value_inside<std::iter_value_t<begin_t<TestRng>>, begin_t<Rng>>;
+concept can_find_range_inside_range = (!can_find_value_inside<TestRng, Rng>) && can_find_value_inside<std::iter_value_t<iter_t<TestRng>>, iter_t<Rng>>;
 
 template <native_iterable T, can_find_range_inside_range<T> T2>
-constexpr begin_t<T> find(T&& rng, T2&& testRng)
+constexpr iter_t<T> find(T&& rng, T2&& testRng)
 {
     return _find_range(_begin(rng), _size_or_end(rng), _begin(testRng), _size_or_end(testRng));
 }
@@ -397,80 +381,73 @@ static constexpr bool _contains(It begin, It end, const T val)
 template <typename It, typename T>
 static constexpr bool _contains(It begin, size_t rngSize, const T val)
 {
-    if (rngSize != 0)
+    for (;;)
     {
-        for (;;)
-        {
-            if (*begin == val)
-                return true;
-            if (--rngSize == 0)
-                return false;
-            ++begin;
-        }
+        if (*begin == val)
+            return true;
+        if (--rngSize == 0)
+            return false;
+        ++begin;
     }
-    return false;
 }
 
 template <typename It, typename It2>
 static constexpr bool _contains_range(It begin, It end, It2 begin2, It2 end2)
 {
-    auto rngSize  = std::distance(begin, end);
-    auto testSize = std::distance(begin2, end2);
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
 
-    if (rngSize > testSize)
+    for (const auto last = end - std::distance(begin2, end2) + 1; begin != last; ++begin)
     {
-        for (const auto last = end - testSize + 1; begin != last; ++begin)
-        {
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
-                return true;
-        }
+        if (_equal<it2_eq, it_eq>(begin2, end2, begin))
+            return true;
     }
+
     return false;
 }
 
 template <typename It, typename It2>
 static constexpr bool _contains_range(It begin, size_t rngSize, It2 begin2, It2 end2)
 {
-    auto testSize = std::distance(begin2, end2);
-    if (rngSize > testSize)
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
+
+    for (auto limit = rngSize - std::distance(begin2, end2) + 1; limit != 0; --limit)
     {
-        auto limit = rngSize - testSize + 1;
-        for (; limit != 0; --limit)
-        {
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, end2, begin))
-                return true;
-        }
-        rngSize -= limit;
+        if (_equal<it2_eq, it_eq>(begin2, end2, begin))
+            return true;
     }
+
     return false;
 }
 
 template <typename It, typename It2>
 static constexpr bool _contains_range(It begin, It end, It2 begin2, size_t testSize)
 {
-    auto rngSize = std::distance(begin, end);
-    if (rngSize > testSize)
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
+
+    for (const auto last = end - testSize + 1; begin != last; ++begin)
     {
-        for (const auto last = end - testSize + 1; begin != last; ++begin)
-        {
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
-                return true;
-        }
+        if (_equal<it2_eq, it_eq>(begin2, testSize, begin))
+            return true;
     }
+
     return false;
 }
 
 template <typename It, typename It2>
 static constexpr bool _contains_range(It begin, size_t rngSize, It2 begin2, size_t testSize)
 {
-    if (rngSize > testSize)
+    using it_eq  = std::add_lvalue_reference_t<It>;
+    using it2_eq = std::remove_reference_t<It2>;
+
+    for (auto limit = rngSize - testSize + 1; limit != 0; --limit)
     {
-        for (auto limit = rngSize - testSize + 1; limit != 0; --limit)
-        {
-            if (_equal<It2, std::add_lvalue_reference_t<It>>(begin2, testSize, begin))
-                return true;
-        }
+        if (_equal<it2_eq, it_eq>(begin2, testSize, begin))
+            return true;
     }
+
     return false;
 }
 
