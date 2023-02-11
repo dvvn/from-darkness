@@ -21,7 +21,7 @@ class dos_nt
 {
     void construct(const LDR_DATA_TABLE_ENTRY* ldrEntry)
     {
-        FD_ASSERT(ldrEntry != nullptr);
+        FD_ASSERT(ldrEntry);
         dos = static_cast<IMAGE_DOS_HEADER*>(ldrEntry->DllBase);
         // check for invalid DOS / DOS signature.
         FD_ASSERT(dos && dos->e_magic == IMAGE_DOS_SIGNATURE /* 'MZ' */);
@@ -153,11 +153,11 @@ class win_list_view
 
 #if defined(_M_X64) || defined(__x86_64__)
         const auto mem = NtCurrentTeb();
-        FD_ASSERT(mem != nullptr, "Teb not found");
+        FD_ASSERT(mem, "Teb not found");
         const auto ldr = mem->ProcessEnvironmentBlock->Ldr;
 #else
         const auto mem = reinterpret_cast<PEB*>(__readfsdword(0x30));
-        FD_ASSERT(mem != nullptr, "Peb not found");
+        FD_ASSERT(mem, "Peb not found");
         const auto ldr = mem->Ldr;
 #endif
         // get module linked list.
@@ -207,7 +207,7 @@ static wstring_view _library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
 
 static wstring_view _found_or_not(const void* ptr)
 {
-    return ptr != nullptr ? L"found" : L"not found";
+    return ptr ? L"found" : L"not found";
 }
 
 static wstring_view _name_or_unknown(const LDR_DATA_TABLE_ENTRY* entry)
@@ -850,7 +850,7 @@ static void* _find_vtable(const library_info info, const string_view name, const
     const vtable_finder vtableFinder(info);
 
     const auto rttiClassName = vtableFinder.find_type_descriptor(name, type);
-    FD_ASSERT(rttiClassName != nullptr);
+    FD_ASSERT(rttiClassName);
     const auto vtablePtr = vtableFinder(rttiClassName);
     if (notify)
         _log_found_vtable(info.get(), name, rttiClassName, vtablePtr);

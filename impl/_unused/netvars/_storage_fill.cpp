@@ -2,7 +2,7 @@ module;
 
 #include <fd/assert.h>
 
-//#include <format>
+// #include <format>
 #include <algorithm>
 #include <ranges>
 
@@ -40,10 +40,10 @@ static void _Parse_datamap(netvar_table& tree, data_map* const map)
     {
         if (desc.type == FIELD_EMBEDDED)
         {
-            if (desc.TypeDescription != nullptr)
+            if (desc.TypeDescription )
                 FD_ASSERT("Embedded datamap detected");
         }
-        else if (desc.fieldName != nullptr)
+        else if (desc.fieldName )
         {
             const fd::string_view name = desc.fieldName;
             if (_Can_skip_netvar(name))
@@ -55,13 +55,13 @@ static void _Parse_datamap(netvar_table& tree, data_map* const map)
 
 void storage::iterate_datamap(data_map* const root_map)
 {
-    for (auto map = root_map; map != nullptr; map = map->base)
+    for (auto map = root_map; map; map = map->base)
     {
         if (map->data.empty())
             continue;
 
         hashed_string class_name = _Correct_class_name(map->name);
-        const auto added         = this->add(std::move(class_name));
+        const auto    added      = this->add(std::move(class_name));
 
         _Parse_datamap(*added, map);
 

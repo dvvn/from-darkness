@@ -59,7 +59,7 @@ basic_thread_data::basic_thread_data(const HANDLE handle)
 
 basic_thread_data::operator bool() const
 {
-    return handle_ != nullptr && handle_ != INVALID_HANDLE_VALUE;
+    return handle_  && handle_ != INVALID_HANDLE_VALUE;
 }
 
 // ReSharper disable CppMemberFunctionMayBeConst

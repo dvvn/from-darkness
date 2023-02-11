@@ -1,7 +1,7 @@
 ﻿#include <fd/logger.h>
 
-using namespace fd;
-
+namespace fd
+{
 static basic_logs_handler* _Logger = nullptr;
 
 void basic_logs_handler::set(basic_logs_handler* logger)
@@ -14,42 +14,40 @@ basic_logs_handler* basic_logs_handler::get()
     return _Logger;
 }
 
-namespace fd
+bool log_active()
 {
-    bool log_active()
-    {
 #ifdef _DEBUG
-        return true;
+    return true;
 #else
-        return _Logger != nullptr;
+    return _Logger;
 #endif
-    }
+}
 
-    void log(const string_view msg)
-    {
+void log(const string_view msg)
+{
 #ifndef _DEBUG
-        if (!_Logger)
-            return;
+    if (!_Logger)
+        return;
 #endif
-        _Logger->write(msg);
-    }
+    _Logger->write(msg);
+}
 
-    void log(const wstring_view msg)
-    {
+void log(const wstring_view msg)
+{
 #ifndef _DEBUG
-        if (!_Logger)
-            return;
+    if (!_Logger)
+        return;
 #endif
-        _Logger->write(msg);
-    }
+    _Logger->write(msg);
+}
 
-    void log_unsafe(const string_view msg)
-    {
-        _Logger->write(msg);
-    }
+void log_unsafe(const string_view msg)
+{
+    _Logger->write(msg);
+}
 
-    void log_unsafe(const wstring_view msg)
-    {
-        _Logger->write(msg);
-    }
+void log_unsafe(const wstring_view msg)
+{
+    _Logger->write(msg);
+}
 }

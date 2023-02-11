@@ -10,6 +10,7 @@
 #include <fd/logger_impl.h>
 #include <fd/netvar_storage_impl.h>
 #include <fd/system_console.h>
+#include <fd/utility.h>
 #include <fd/valve/base_client.h>
 #include <fd/valve/cs_player.h>
 #include <fd/valve/engine_client.h>
@@ -74,6 +75,17 @@ static void _init_netvars()
     }
 }
 
+static auto _get_product_version_string(valve::engine_client* engine)
+{
+    const string_view nativeStr(engine->GetProductVersionString());
+
+    wstring buff;
+    buff.reserve(nativeStr.size());
+    for (const auto c : (nativeStr))
+        buff += c == '.' ? '_' : c;
+    return buff;
+}
+
 static DWORD WINAPI _loader(void*) noexcept
 {
     set_unload(_exit_fail);
@@ -91,13 +103,6 @@ static DWORD WINAPI _loader(void*) noexcept
     });
 #endif
 
-    const csgo_library_info      clientLib(wait_for_library(L"client.dll"));
-    const csgo_interfaces_finder clientInterfaces(clientLib);
-
-    const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
-
-    addToSafeList(_ModuleHandle, nullptr);
-
     const auto d3dIfc = [] {
         const auto lib  = wait_for_library(L"shaderapidx9.dll");
         const auto addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
@@ -111,7 +116,24 @@ static DWORD WINAPI _loader(void*) noexcept
         return d3dParams.hFocusWindow;
     }();
 
-    auto gameClient = clientInterfaces.get<valve::base_client>("TODO");
+    //----
+
+    const csgo_library_info      clientLib(wait_for_library(L"client.dll"));
+    const csgo_interfaces_finder clientInterfaces(clientLib);
+
+    const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
+    addToSafeList(_ModuleHandle, nullptr);
+
+    const auto gameClient = clientInterfaces.get<valve::base_client>("VClient");
+
+    //----
+
+    const csgo_library_info      engineLib(wait_for_library(L"endgine.dll"));
+    const csgo_interfaces_finder engineInterfaces(engineLib);
+
+    const auto gameEngine = engineInterfaces.get<valve::engine_client>("VEngineClient");
+
+    //----
 
     netvars_storage netvarsStorage;
     Netvars = &netvarsStorage;
@@ -121,8 +143,22 @@ static DWORD WINAPI _loader(void*) noexcept
 
 #ifdef _DEBUG
     netvars_classes lazyNetvarClasses;
+#ifdef FD_WORK_DIR
+    write_string(lazyNetvarClasses.dir, FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
+#else
+#error "provide directory for netvars_classes"
+#endif
     netvarsStorage.generate_classes(lazyNetvarClasses);
     netvars_log lazyNetvarLog;
+#if defined(FD_ROOT_DIR)
+    write_string(lazyNetvarLog.dir, FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
+#else
+#error "provide directory for netvars_log"
+#endif
+    lazyNetvarLog.file.name      = _get_product_version_string(gameEngine);
+    lazyNetvarLog.file.extension = L".json";
+    lazyNetvarLog.indent         = 4;
+    lazyNetvarLog.filler         = ' ';
     netvarsStorage.log_netvars(lazyNetvarLog);
 #endif
 

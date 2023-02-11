@@ -22,8 +22,8 @@ struct netvars_log
         wstring extension;
     } file;
 
-    size_t indent;
-    char   filler;
+    uint8_t indent;
+    char    filler;
 
     std::vector<char> buff;
 };

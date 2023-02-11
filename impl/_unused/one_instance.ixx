@@ -68,7 +68,7 @@ class pointer_wrapper
 
     explicit operator bool() const
     {
-        return ptr_ != nullptr;
+        return ptr_ ;
     }
 };
 

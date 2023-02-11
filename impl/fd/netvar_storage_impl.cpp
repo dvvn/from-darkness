@@ -96,16 +96,7 @@ static void _write_to_file(const wstring_view path, const range_view<const char*
     _fclose_nolock(f);
 }
 
-netvars_log::netvars_log()
-{
-#if defined(FD_ROOT_DIR)
-    write_string(dir, FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
-#endif
-    // write_string(file.name, engine->GetProductVersionString());
-    file.extension = L".json";
-    indent         = 4;   // NOLINT(cppcoreguidelines-prefer-member-initializer)
-    filler         = ' '; // NOLINT(cppcoreguidelines-prefer-member-initializer)
-}
+netvars_log::netvars_log() = default;
 
 netvars_log::~netvars_log()
 {
@@ -165,12 +156,7 @@ netvars_classes::~netvars_classes()
     }
 }
 
-netvars_classes::netvars_classes() // NOLINT(hicpp-use-equals-default)
-{
-#ifdef FD_WORK_DIR
-    write_string(dir, FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
-#endif
-}
+netvars_classes::netvars_classes() = default;
 
 //----
 
@@ -380,7 +366,7 @@ static void _parse(const valve::recv_table* recvTable, netvar_table* customTable
     const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
-        FD_ASSERT(prop->name != nullptr);
+        FD_ASSERT(prop->name);
         const string_view propName(prop->name);
         if (_can_skip_netvar(propName))
             continue;
@@ -426,7 +412,7 @@ static void _parse(const valve::recv_table* recvTable, netvars_storage* storage)
     const auto customTable = storage->add(tableName, recvTable->in_main_list);
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
-        FD_ASSERT(prop->name != nullptr);
+        FD_ASSERT(prop->name);
         const string_view propName(prop->name);
         if (_can_skip_netvar(propName))
             continue;
@@ -488,7 +474,7 @@ static auto _parse(const valve::data_map* rootMap, netvars_storage* storage)
         _correct_recv_name(className);
 #endif
         auto       table      = storage->find(className);
-        const auto tableAdded = table != nullptr;
+        const auto tableAdded = table;
         if (!table)
             table = storage->add(std::move(className), true);
         else
@@ -500,10 +486,10 @@ static auto _parse(const valve::data_map* rootMap, netvars_storage* storage)
             if (desc.type == valve::FIELD_EMBEDDED)
             {
                 // not implemented
-                if (desc.description != nullptr)
+                if (desc.description)
                     FD_ASSERT_PANIC("Embedded datamap detected");
             }
-            else if (desc.name != nullptr)
+            else if (desc.name)
             {
                 if (_can_skip_netvar(desc.name))
                     continue;
@@ -660,7 +646,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
 #error "not implemented"
 #else
     data.files.resize(data_.size() * 2);
-    auto file = data.files.begin();
+    auto file = _begin(data.files);
 
     std::vector<char>          source;
     std::vector<char>          header;

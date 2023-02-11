@@ -1,26 +1,23 @@
 #include <fd/exception.h>
 
-#include <atomic>
 #include <utility>
-
-using namespace fd;
-
-static unload_handler _DefaultUnloadHandler = [] {
-    std::abort();
-};
-
-static std::atomic _UnloadHandler(_DefaultUnloadHandler);
 
 namespace fd
 {
+static const unload_handler _DefaultUnloadHandler = [] {
+    std::abort();
+};
+
+static auto _UnloadHandler = _DefaultUnloadHandler;
+
 void unload()
 {
-    _UnloadHandler.load(std::memory_order_relaxed)();
+    _UnloadHandler();
 }
 
 void set_unload(const unload_handler fn)
 {
-    _UnloadHandler.store(fn != nullptr ? fn : _DefaultUnloadHandler, std::memory_order_relaxed);
+    _UnloadHandler = fn ? fn : _DefaultUnloadHandler;
 }
 
 void suspend()
