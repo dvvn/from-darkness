@@ -442,7 +442,7 @@ struct callback_data_t
 
     callback_data_t(const wstring_view name)
         : name(name)
-        , sem(1)
+        , sem(0)
         , found(nullptr)
     {
     }
@@ -485,6 +485,9 @@ static auto _wait_prepare(const bool notify)
 
 library_info wait_for_library(const wstring_view name, bool notify)
 {
+    if (const auto info = find_library(name, notify); info)
+        return info;
+
     static const auto [reg_fn, unreg_fn] = _wait_prepare(notify);
 
     callback_data_t cbData(name);
@@ -850,7 +853,7 @@ static void* _find_vtable(const library_info info, const string_view name, const
     const vtable_finder vtableFinder(info);
 
     const auto rttiClassName = vtableFinder.find_type_descriptor(name, type);
-    FD_ASSERT(rttiClassName);
+    FD_ASSERT(rttiClassName != nullptr);
     const auto vtablePtr = vtableFinder(rttiClassName);
     if (notify)
         _log_found_vtable(info.get(), name, rttiClassName, vtablePtr);
@@ -1059,8 +1062,7 @@ void* csgo_library_info::find_interface(const string_view name, const bool notif
 
 void* csgo_library_info::find_interface(const void* createInterfaceFn, const string_view name, const bool notify) const
 {
-    if (createInterfaceFn == nullptr)
-        return nullptr;
+    FD_ASSERT(createInterfaceFn != nullptr);
 
     string_view logName;
     void*       ifcAddr = nullptr;

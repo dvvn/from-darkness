@@ -366,7 +366,6 @@ static void _parse(const valve::recv_table* recvTable, netvar_table* customTable
     const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
-        FD_ASSERT(prop->name);
         const string_view propName(prop->name);
         if (_can_skip_netvar(propName))
             continue;
@@ -412,7 +411,6 @@ static void _parse(const valve::recv_table* recvTable, netvars_storage* storage)
     const auto customTable = storage->add(tableName, recvTable->in_main_list);
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
-        FD_ASSERT(prop->name);
         const string_view propName(prop->name);
         if (_can_skip_netvar(propName))
             continue;

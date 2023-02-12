@@ -60,7 +60,8 @@ struct library_info
 
     void*                 find_export(string_view name, bool notify = true) const;
     IMAGE_SECTION_HEADER* find_section(string_view name, bool notify = true) const;
-    void*                 find_signature(string_view sig, bool notify = true) const;
+
+    void* find_signature(string_view sig, bool notify = true) const;
 
   private:
     void* find_vtable_class(string_view name, bool notify) const;

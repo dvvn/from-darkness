@@ -4,17 +4,14 @@
 #include <fd/string_info.h>
 #include <fd/type_name.h>
 
-// ReSharper disable CppUnusedIncludeDirective
 #include <fd/valve/base_entity.h>
 #include <fd/valve/base_handle.h>
 #include <fd/valve/color.h>
+#include <fd/valve/cs_player.h>
 #include <fd/valve/qangle.h>
 #include <fd/valve/quaternion.h>
 #include <fd/valve/vector.h>
 #include <fd/valve/vectorX.h>
-
-#include <array>
-#include <span>
 
 namespace fd
 {
@@ -26,6 +23,7 @@ FD_TYPE_NAME_PRECACHE(valve::matrix3x4);
 FD_TYPE_NAME_PRECACHE(valve::view_matrix); // matrix4x4
 FD_TYPE_NAME_PRECACHE(valve::base_handle);
 FD_TYPE_NAME_PRECACHE(valve::base_entity*);
+FD_TYPE_NAME_PRECACHE(valve::cs_player*);
 FD_TYPE_NAME_PRECACHE(valve::color);
 FD_TYPE_NAME_PRECACHE(valve::quaternion);
 
@@ -46,7 +44,7 @@ static bool _check_prefix(const string_view type, const string_view prefix)
     return ptr && equal(prefix, ptr);
 }
 
-static bool _check_prefix(const string_view type, const char prefix)
+[[maybe_unused]] static bool _check_prefix(const string_view type, const char prefix)
 {
     if (type.size() <= 3)
         return false;
@@ -54,9 +52,9 @@ static bool _check_prefix(const string_view type, const char prefix)
     return ptr && *ptr == prefix;
 }
 
-struct prefix_max_length
+struct _prefix_max_length
 {
-    constexpr prefix_max_length(size_t value)
+    constexpr _prefix_max_length(size_t value)
         : value(value)
     {
     }
@@ -64,7 +62,7 @@ struct prefix_max_length
     size_t value;
 };
 
-static string_view _find_prefix(const string_view type, const prefix_max_length limit = std::numeric_limits<uint16_t>::max())
+static string_view _find_prefix(const string_view type, const _prefix_max_length limit = std::numeric_limits<uint16_t>::max())
 {
     if (!type.starts_with("m_"))
         return {};
@@ -77,9 +75,9 @@ static string_view _find_prefix(const string_view type, const prefix_max_length 
     return {};
 }
 
-struct prefix_length
+struct _prefix_length
 {
-    constexpr prefix_length(size_t value)
+    constexpr _prefix_length(size_t value)
         : value(value)
     {
     }
@@ -87,7 +85,7 @@ struct prefix_length
     size_t value;
 };
 
-static string_view _find_prefix(const string_view type, const prefix_length prefixLength)
+static string_view _find_prefix(const string_view type, const _prefix_length prefixLength)
 {
     if (!type.starts_with("m_"))
         return {};
@@ -115,7 +113,7 @@ static string_view _check_int_prefix(const string_view type)
 static string_view _check_float_prefix(const string_view type)
 {
 #if 1
-    const auto prefix = _find_prefix(type, prefix_length(3));
+    const auto prefix = _find_prefix(type, _prefix_length(3));
     if (prefix == "ang")
         return type_name<valve::qangle>();
     if (prefix == "vec")
@@ -236,7 +234,7 @@ static bool operator==(const string_view str, const char c)
 
 string_view extract_type_integer(const string_view type)
 {
-    const auto prefix = _find_prefix(type, prefix_max_length(3));
+    const auto prefix = _find_prefix(type, _prefix_max_length(3));
     switch (prefix.size())
     {
     case 1: {

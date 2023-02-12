@@ -89,7 +89,6 @@ static auto _get_product_version_string(valve::engine_client* engine)
 static DWORD WINAPI _loader(void*) noexcept
 {
     set_unload(_exit_fail);
-    set_current_library(_ModuleHandle);
 
     system_console sysConsole;
 
@@ -103,10 +102,15 @@ static DWORD WINAPI _loader(void*) noexcept
     });
 #endif
 
+    set_current_library(_ModuleHandle);
+
     const auto d3dIfc = [] {
-        const auto lib  = wait_for_library(L"shaderapidx9.dll");
-        const auto addr = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
-        return **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
+        const auto lib    = wait_for_library(L"shaderapidx9.dll");
+        const auto addr   = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        auto&      result = **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
+        while (!result)
+            Sleep(100);
+        return result;
     }();
 
     const auto hwnd = [=] {
@@ -128,10 +132,17 @@ static DWORD WINAPI _loader(void*) noexcept
 
     //----
 
-    const csgo_library_info      engineLib(wait_for_library(L"endgine.dll"));
+    const csgo_library_info      engineLib(wait_for_library(L"engine.dll"));
     const csgo_interfaces_finder engineInterfaces(engineLib);
 
     const auto gameEngine = engineInterfaces.get<valve::engine_client>("VEngineClient");
+
+    //----
+
+    auto& localPlayer = [&]() -> valve::cs_player*& {
+        auto addr = clientLib.find_signature("A1 ? ? ? ? 89 45 BC 85 C0");
+        return **reinterpret_cast<valve::cs_player***>(reinterpret_cast<uintptr_t>(addr) + 1);
+    }();
 
     //----
 
@@ -139,18 +150,28 @@ static DWORD WINAPI _loader(void*) noexcept
     Netvars = &netvarsStorage;
 
     netvarsStorage.iterate_client_class(gameClient->GetAllClasses());
-    // netvarsStorage.iterate_datamap();
+    if (localPlayer)
+    {
+        netvarsStorage.iterate_datamap(localPlayer->GetDataDescMap());
+        netvarsStorage.iterate_datamap(localPlayer->GetPredictionDescMap());
+    }
+    else
+    {
+        auto vtable = static_cast<valve::cs_player*>(clientLib.find_vtable("C_CSPlayer"));
+        netvarsStorage.iterate_datamap(vtable->GetDataDescMap());
+        netvarsStorage.iterate_datamap(vtable->GetPredictionDescMap());
+    }
 
 #ifdef _DEBUG
     netvars_classes lazyNetvarClasses;
 #ifdef FD_WORK_DIR
-    write_string(lazyNetvarClasses.dir, FD_STRINGIZE(FD_WORK_DIR), "/valve_custom/");
+    write_string(lazyNetvarClasses.dir, FD_STRINGIZE(FD_WORK_DIR), "/valve/generated/");
 #else
 #error "provide directory for netvars_classes"
 #endif
     netvarsStorage.generate_classes(lazyNetvarClasses);
     netvars_log lazyNetvarLog;
-#if defined(FD_ROOT_DIR)
+#ifdef FD_ROOT_DIR
     write_string(lazyNetvarLog.dir, FD_STRINGIZE(FD_ROOT_DIR), "/.dumps/netvars/");
 #else
 #error "provide directory for netvars_log"

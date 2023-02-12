@@ -4,12 +4,12 @@
 
 namespace fd
 {
-struct memory_range : range_view<const uint8_t*>
+struct _memory_range : range_view<const uint8_t*>
 {
 #ifdef _DEBUG
-    memory_range(const uint8_t* from, const uint8_t* to);
-    memory_range(const uint8_t* from, size_t size);
-    memory_range(range_view rng);
+    _memory_range(const uint8_t* from, const uint8_t* to);
+    _memory_range(const uint8_t* from, size_t size);
+    _memory_range(range_view rng);
 #else
     using range_view<const uint8_t*>::range_view;
 #endif
@@ -18,97 +18,98 @@ struct memory_range : range_view<const uint8_t*>
     void update(const void* curr, size_t offset = 0);
 };
 
-class unknown_bytes_range;
+class _unknown_bytes_range;
 
-class unknown_bytes_range_shared
+class _unknown_bytes_range_shared
 {
-    unknown_bytes_range* bytes_;
-    size_t*              uses_;
+    _unknown_bytes_range* bytes_;
+    size_t*               uses_;
 
   public:
-    unknown_bytes_range_shared();
-    ~unknown_bytes_range_shared();
+    _unknown_bytes_range_shared();
+    ~_unknown_bytes_range_shared();
 
-    unknown_bytes_range_shared(const unknown_bytes_range_shared& other);
-    unknown_bytes_range_shared& operator=(const unknown_bytes_range_shared& other);
+    _unknown_bytes_range_shared(const _unknown_bytes_range_shared& other);
+    _unknown_bytes_range_shared& operator=(const _unknown_bytes_range_shared& other);
 
-    unknown_bytes_range* operator->() const;
-    unknown_bytes_range& operator*() const;
+    _unknown_bytes_range* operator->() const;
+    _unknown_bytes_range& operator*() const;
 };
 
-class pattern_updater_unknown
+class _pattern_updater_unknown
 {
-    memory_range               memRng_;
-    unknown_bytes_range_shared bytes_;
+    _memory_range               memRng_;
+    _unknown_bytes_range_shared bytes_;
 
   public:
-    pattern_updater_unknown(memory_range memRng, range_view<const char*> sig);
-    pattern_updater_unknown(memory_range memRng, const uint8_t* begin, size_t memSize);
+    _pattern_updater_unknown(_memory_range memRng, range_view<const uint16_t*> bytes);
+    _pattern_updater_unknown(_memory_range memRng, range_view<const char*> sig);
+    _pattern_updater_unknown(_memory_range memRng, const uint8_t* begin, size_t memSize);
 
     void* operator()() const;
     void  update(const void* lastPos);
 };
 
-class pattern_updater_known
+class _pattern_updater_known
 {
-    memory_range memRng_, searchRng_;
+    _memory_range memRng_, searchRng_;
 
   public:
-    pattern_updater_known(memory_range memRng, const uint8_t* begin, size_t memSize);
+    _pattern_updater_known(_memory_range memRng, const uint8_t* begin, size_t memSize);
 
     void* operator()() const;
     void  update(const void* lastPos);
 };
 
-class xrefs_finder_impl
+class _xrefs_finder
 {
-    memory_range   memRng_;
+    _memory_range  memRng_;
     const uint8_t* xref_;
 
   public:
-    xrefs_finder_impl(memory_range memRng, const uintptr_t& addr);
-    xrefs_finder_impl(memory_range memRng, const void*& addr);
+    _xrefs_finder(_memory_range memRng, const uintptr_t& addr);
+    _xrefs_finder(_memory_range memRng, const void*& addr);
 
     void* operator()() const;
     void  update(const void* lastPos);
 };
 
-struct memory_iterator_dbg_creator
+struct _memory_iterator_dbg_creator
 {
 #ifdef _DEBUG
   private:
     const void* ptr_;
 
   public:
-    memory_iterator_dbg_creator(const void* ptr)
+    _memory_iterator_dbg_creator(const void* ptr)
         : ptr_(ptr)
     {
     }
 #else
-    memory_iterator_dbg_creator(const void* ptr)
+    _memory_iterator_dbg_creator(const void* ptr)
     {
     }
 #endif
 
     void validate(const void* other) const;
-    void validate(memory_iterator_dbg_creator other) const;
+    void validate(_memory_iterator_dbg_creator other) const;
 };
 
 template <typename M>
-class memory_iterator_end;
+class _memory_iterator_end;
 
 template <typename M>
-struct memory_iterator
+struct _memory_iterator
 {
     using value_type = void*;
 
-    friend class memory_iterator_end<M>;
+    friend class _memory_iterator_end<M>;
 
   private:
     M     memRng_;
     void* current_;
 
-    [[no_unique_address]] memory_iterator_dbg_creator creator_;
+    [[no_unique_address]] _memory_iterator_dbg_creator creator_;
 
     void get_next()
     {
@@ -117,7 +118,7 @@ struct memory_iterator
     }
 
   public:
-    memory_iterator(const void* creator, M memRng, void* current = nullptr)
+    _memory_iterator(const void* creator, M memRng, void* current = nullptr)
         : memRng_(memRng)
         , current_(current ? current : memRng())
         , creator_(creator)
@@ -125,13 +126,13 @@ struct memory_iterator
     {
     }
 
-    memory_iterator& operator++()
+    _memory_iterator& operator++()
     {
         get_next();
         return *this;
     }
 
-    memory_iterator operator++(int)
+    _memory_iterator operator++(int)
     {
         auto tmp = *this;
         get_next();
@@ -143,7 +144,7 @@ struct memory_iterator
         return current_;
     }
 
-    bool operator==(const memory_iterator& other) const
+    bool operator==(const _memory_iterator& other) const
     {
         creator_.validate(other.creator_);
         return current_ == other.current_;
@@ -151,14 +152,14 @@ struct memory_iterator
 };
 
 template <typename M>
-class memory_iterator_end
+class _memory_iterator_end
 {
-    [[no_unique_address]] memory_iterator_dbg_creator creator_;
+    [[no_unique_address]] _memory_iterator_dbg_creator creator_;
 
-    using iter_type = memory_iterator<M>;
+    using iter_type = _memory_iterator<M>;
 
   public:
-    memory_iterator_end(const void* creator)
+    _memory_iterator_end(const void* creator)
         : creator_(creator)
     {
     }
@@ -171,13 +172,13 @@ class memory_iterator_end
 };
 
 template <typename M>
-class memory_finder
+class _memory_finder
 {
-    memory_iterator<M>                           begin_;
-    [[no_unique_address]] memory_iterator_end<M> end_;
+    _memory_iterator<M>                           begin_;
+    [[no_unique_address]] _memory_iterator_end<M> end_;
 
   public:
-    memory_finder(M memRng)
+    _memory_finder(M memRng)
         : begin_(this, memRng)
         , end_(this)
     {
@@ -201,21 +202,21 @@ class memory_finder
 
 //--------------
 
-struct pattern_scanner_raw : private memory_range
+struct pattern_scanner_raw : private _memory_range
 {
-    using memory_range::memory_range;
+    using _memory_range::_memory_range;
 
-    using finder = memory_finder<pattern_updater_known>;
+    using finder = _memory_finder<_pattern_updater_known>;
 
     finder operator()(range_view<const char*> sig) const;
     finder operator()(const uint8_t* begin, size_t memSize) const;
 };
 
-struct pattern_scanner_text : private memory_range
+struct pattern_scanner_text : private _memory_range
 {
-    using memory_range::memory_range;
+    using _memory_range::_memory_range;
 
-    using finder = memory_finder<pattern_updater_unknown>;
+    using finder = _memory_finder<_pattern_updater_unknown>;
 
     finder operator()(range_view<const char*> sig) const;
     finder operator()(const uint8_t* begin, size_t memSize) const;
@@ -223,24 +224,25 @@ struct pattern_scanner_text : private memory_range
     pattern_scanner_raw raw() const;
 };
 
-struct pattern_scanner : private memory_range
+struct pattern_scanner : private _memory_range
 {
-    using memory_range::memory_range;
+    using _memory_range::_memory_range;
 
-    using unknown_finder = memory_finder<pattern_updater_unknown>;
-    using known_finder   = memory_finder<pattern_updater_known>;
+    using unknown_finder = _memory_finder<_pattern_updater_unknown>;
+    using known_finder   = _memory_finder<_pattern_updater_known>;
 
+    unknown_finder operator()(range_view<const uint16_t*> sig) const; // for unknown_bytes_range_ct
     unknown_finder operator()(range_view<const char*> sig) const;
     known_finder   operator()(const uint8_t* begin, size_t memSize) const;
 
     pattern_scanner_raw raw() const;
 };
 
-struct xrefs_scanner : private memory_range
+struct xrefs_scanner : private _memory_range
 {
-    using memory_range::memory_range;
+    using _memory_range::_memory_range;
 
-    using finder = memory_finder<xrefs_finder_impl>;
+    using finder = _memory_finder<_xrefs_finder>;
 
     template <typename T>
     finder operator()(const T& addr) const

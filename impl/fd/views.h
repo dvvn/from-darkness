@@ -66,7 +66,7 @@ static constexpr auto _end(T& container)
 }
 
 template <typename T>
-static constexpr auto _size(T&& container)
+static constexpr size_t _size(T&& container)
 {
     if constexpr (have_size<T>)
         return std::size(container);
@@ -80,7 +80,7 @@ template <typename T>
 static constexpr auto _size_or_end(T& container)
 {
     if constexpr (have_size<T>)
-        return std::size(container);
+        return static_cast<size_t>(std::size(container));
     else
         return _end(container);
 }
@@ -90,6 +90,8 @@ static constexpr auto _empty(T& container)
 {
     if constexpr (have_empty<T>)
         return std::empty(container);
+    else if constexpr (have_size<T>)
+        return std::size(container) == 0;
     else
         return _begin(container) == _end(container);
 }
