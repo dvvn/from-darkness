@@ -1,5 +1,4 @@
 #include <fd/assert.h>
-#include <fd/filesystem.h>
 #include <fd/format.h>
 #include <fd/functional.h>
 #include <fd/json.h>
@@ -10,25 +9,36 @@
 #include <fd/utility.h>
 #include <fd/views.h>
 
+#include <filesystem>
 #include <fstream>
 
-#if 0
+#if 1
 namespace std::filesystem
 {
-    static_assert(sizeof(path) == sizeof(fd::wstring));
+static_assert(sizeof(path) == sizeof(fd::wstring));
 
-    bool create_directory(const fd::wstring& dir)
-    {
-        return create_directory(reinterpret_cast<const path&>(dir));
-    }
+bool exists(const fd::wstring& dir)
+{
+    return exists(reinterpret_cast<const path&>(dir));
+}
 
-    bool is_empty(const fd::wstring& dir)
-    {
-        return is_empty(reinterpret_cast<const path&>(dir));
-    }
+bool create_directory(const fd::wstring& dir)
+{
+    return create_directory(reinterpret_cast<const path&>(dir));
+}
 
-    constexpr auto preferred_separator               = path::preferred_separator;
-    constexpr path::value_type unpreferred_separator = preferred_separator == '\\' ? '/' : '\\';
+bool create_directories(const fd::wstring& dir)
+{
+    return create_directories(reinterpret_cast<const path&>(dir));
+}
+
+bool is_empty(const fd::wstring& dir)
+{
+    return is_empty(reinterpret_cast<const path&>(dir));
+}
+
+constexpr auto             preferred_separator   = path::preferred_separator;
+constexpr path::value_type unpreferred_separator = preferred_separator == '\\' ? '/' : '\\';
 } // namespace std::filesystem
 
 namespace fs = std::filesystem;
@@ -103,7 +113,7 @@ netvars_log::~netvars_log()
     if (dir.empty())
         return;
     //_Correct_path(dir);
-    if (!fs::Directory.create(dir, false))
+    if (!fs::exists(dir) && !fs::create_directories(dir))
         return;
     const auto fullPath = make_string(dir, file.name, file.extension);
     if (_file_already_written(fullPath, buff))
@@ -136,8 +146,7 @@ netvars_classes::~netvars_classes()
         _write_to_file(p.path, p.buff);
     };
 
-    const auto dirIsEmpty = fs::Directory.create(dir, false) || fs::Directory.empty(dir);
-    if (dirIsEmpty)
+    if (fs::create_directories(dir) || fs::is_empty(dir))
     {
         for (auto& f : range_view(files))
         {
@@ -246,6 +255,14 @@ void netvars_storage::sort()
     for (const auto idx : range_view(sortRequested_, sortEnd))
         data_[idx].sort();
     sortRequested_.clear();
+}
+
+void netvars_storage::add(netvar_table&& table)
+{
+#ifdef MERGE_DATA_TABLES
+    FD_ASSERT(!this->find(table.name()), "Duplicate detected");
+#endif
+    data_.emplace_back(std::move(table));
 }
 
 netvar_table* netvars_storage::add(string&& name, const bool root)
@@ -481,10 +498,15 @@ void netvars_storage::iterate_client_class(const valve::client_class* rootClass,
 
     for (auto& clientClass : range_view(rootClass))
     {
-        if (!clientClass.table || clientClass.table->props.empty())
+        if (!clientClass.table)
+            continue;
+        if (clientClass.table->props.empty())
             continue;
 #ifdef MERGE_DATA_TABLES
-        _parse(clientClass.table, this->add(_correct_class_name(clientClass.name)));
+        netvar_table tmp(_correct_class_name(clientClass.name), true);
+        _parse(clientClass.table, &tmp);
+        if (!_empty(tmp))
+            this->add(std::move(tmp));
 #else
         _parse(clientClass.table, this);
 #endif
@@ -622,8 +644,8 @@ void netvars_storage::log_netvars(netvars_log& data)
 
     for (const auto& table : range_view(data_))
     {
-        if (_empty(table))
-            continue;
+        FD_ASSERT(!_empty(table));
+
         auto& buff = _js_append(jsRoot, table.name());
         for (const auto info : table)
         {
@@ -690,6 +712,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
 #ifdef GENERATE_STRUCT_MEMBERS
 #error "not implemented"
 #else
+
     data.files.resize(data_.size() * 2);
     auto file = _begin(data.files);
 
@@ -699,8 +722,7 @@ void netvars_storage::generate_classes(netvars_classes& data)
 
     for (const auto& rawTable : range_view(data_))
     {
-        if (_empty(rawTable))
-            continue;
+        FD_ASSERT(!_empty(rawTable));
 
         table.clear();
         for (auto i : rawTable)

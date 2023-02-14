@@ -2,7 +2,6 @@
 #include <fd/format.h>
 
 #include <fd/assert.h>
-#include <fd/filesystem.h>
 #include <fd/functional.h>
 #include <fd/library_info.h>
 #include <fd/logger.h>
@@ -209,12 +208,12 @@ static wstring_view _library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
 static wstring_view _library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
 {
     const auto fullPath = _library_info_path(entry);
-#if 1
-    return fs::basic_path(fullPath).filename();
+#if 0
+    return wstring_view(file_view(fullPath).name());
 #else
-    const auto name_start = fullPath.rfind('\\');
-    FD_ASSERT(name_start != fullPath.npos, "Unable to get the module name");
-    return fullPath.substr(name_start + 1);
+    const auto nameStart = fullPath.rfind('\\');
+    FD_ASSERT(nameStart != fullPath.npos, "Unable to get the module name");
+    return fullPath.substr(nameStart + 1);
 #endif
 }
 

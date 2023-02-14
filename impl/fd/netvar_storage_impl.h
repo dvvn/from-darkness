@@ -55,9 +55,11 @@ class netvars_storage final : public basic_netvars_storage
   private:
     void sort();
 
+    void add(netvar_table&& table);
+
   public:
-    netvar_table* add(string&& name, bool root = true);
-    netvar_table* add(string_view name, bool root = true);
+    netvar_table* add(string&& name, bool root);
+    netvar_table* add(string_view name, bool root);
 
     netvars_storage();
 

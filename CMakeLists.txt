@@ -154,7 +154,7 @@ list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
 add_library(impl ${_PROJ_FILES})
 target_link_libraries(impl PUBLIC function2 robin_hood::robin_hood nlohmann_json subhook fmt imgui xxhash nlohmann_json)
 target_include_directories(impl PUBLIC ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${veque_SOURCE_DIR}/include ${atomic_queue_SOURCE_DIR}/include)
-target_compile_definitions(impl PUBLIC ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${_PROJ_IMPL_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
+target_compile_definitions(impl PUBLIC ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${CMAKE_CURRENT_LIST_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
 
 file(GLOB_RECURSE _GUI_TEST_FILES ${_PROJ_IMPL_DIR}/gui_test/*.cpp ${_PROJ_IMPL_DIR}/gui_test/*.ixx)
 add_executable(gui_test ${_GUI_TEST_FILES})

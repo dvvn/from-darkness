@@ -218,6 +218,7 @@ static DWORD WINAPI _context(void*) noexcept
     Netvars = &netvarsStorage;
 
     netvarsStorage.iterate_client_class(gameClient->GetAllClasses());
+#if 0 // WIP
     if (localPlayer)
     {
         netvarsStorage.iterate_datamap(localPlayer->GetDataDescMap());
@@ -229,6 +230,7 @@ static DWORD WINAPI _context(void*) noexcept
         netvarsStorage.iterate_datamap(vtable->GetDataDescMap());
         netvarsStorage.iterate_datamap(vtable->GetPredictionDescMap());
     }
+#endif
 
 #ifdef _DEBUG
     netvars_classes lazyNetvarClasses;
@@ -253,7 +255,6 @@ static DWORD WINAPI _context(void*) noexcept
 
     netvarsStorage.finish();
     _init_netvars<valve::cs_player>();
-    netvarsStorage.clear();
 
     gui::menu_impl menu(gui::tab_bar(
 #ifndef FD_GUI_RANDOM_TAB_BAR_NAME
@@ -375,8 +376,8 @@ BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID /*r
         break;
     }
     case DLL_PROCESS_DETACH: {
-        if (_ThreadId && WaitForSingleObject(_ThreadHandle, INFINITE) == WAIT_FAILED)
-            return FALSE;
+        // if (_ThreadId && WaitForSingleObject(_ThreadHandle, INFINITE) == WAIT_FAILED)
+        //     return FALSE;
         break;
     }
     }

@@ -136,6 +136,8 @@ class range_view
     friend class range_view;
 
   public:
+    constexpr range_view() = default;
+
     template <native_iterable Rng>
     constexpr range_view(Rng&& rng) requires(!range_view_accepter<Rng> && std::constructible_from<T, iter_t<Rng>>) // NOLINT(bugprone-forwarding-reference-overload)
         : begin_(_begin(rng))

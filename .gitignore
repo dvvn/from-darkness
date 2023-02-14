@@ -3,5 +3,7 @@
 /.out
 /.vs
 /.deps
+/.dumps
 *.pdb
 /_ReSharper.Caches
+/impl/fd/valve/generated

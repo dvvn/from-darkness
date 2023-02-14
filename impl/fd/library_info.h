@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fd/dll_notification.h>
+#include <fd/string.h>
 #include <fd/type_name.h>
 
 #include <windows.h>

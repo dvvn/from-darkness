@@ -8,7 +8,7 @@
 
 #pragma comment(lib, "Ntdll.lib")
 
-namespace fd::fs
+namespace fd
 {
 class win_string
 {
@@ -60,9 +60,20 @@ class win_string
         return buff_.data();
     }
 
+    const wchar_t* data() const
+    {
+        return buff_.data();
+    }
+
     size_t size() const
     {
         return buff_.size();
+    }
+
+    template <class T>
+    void append(const T begin, size_t size)
+    {
+        buff_.append(begin, size);
     }
 };
 
@@ -164,6 +175,11 @@ class win_object_attributes
     {
         return &attr_;
     }
+
+    wstring_view name() const
+    {
+        return { nameBuffer_.data(), nameBuffer_.size() };
+    }
 };
 
 class nt_handle
@@ -195,6 +211,11 @@ class nt_handle
         using std::swap;
         swap(h_, other.h_);
         return *this;
+    }
+
+    bool operator!() const
+    {
+        return !h_ || h_ == INVALID_HANDLE_VALUE;
     }
 
     operator HANDLE() const
@@ -237,70 +258,150 @@ static bool _path_create(const P path, const bool isFile, const bool override)
     if (!isFile)
         desiredAccess &= ~_FileOnlyAccessFlags;
     const ULONG disposition = override ? FILE_SUPERSEDE : FILE_CREATE;
-    const auto  options     = _file_open_flags(isFile) | FILE_RANDOM_ACCESS;
-    const auto  status      = NtCreateFile(&h, desiredAccess, &attr, &statusBlock, nullptr, FILE_ATTRIBUTE_NORMAL, 0, disposition, options, nullptr, 0);
-    return NT_SUCCESS(status);
+    auto        options     = _file_open_flags(isFile) | FILE_RANDOM_ACCESS;
+    if (override)
+        options |= FILE_SHARE_DELETE;
+    const ULONG fileAttr = isFile ? FILE_ATTRIBUTE_NORMAL : FILE_ATTRIBUTE_DIRECTORY;
+    const auto  status   = NtCreateFile(&h, desiredAccess, &attr, &statusBlock, nullptr, fileAttr, 0, disposition, options, nullptr, 0);
+    if (NT_SUCCESS(status))
+        return true;
+
+    if (isFile)
+        return false;
+
+    wstring buff;
+    auto    fixedPath = attr.name();
+
+    if (!fixedPath.ends_with('\\'))
+    {
+        buff.reserve(fixedPath.size() + 1);
+        buff.append(fixedPath);
+        buff.push_back('\\');
+        fixedPath = buff;
+    }
+
+    auto       validate = true;
+    const auto firstIt  = _begin(fixedPath);
+    for (auto it = firstIt + 4 /*skip '\??\'*/; it < _end(fixedPath); ++it)
+    {
+        if (*it != '\\')
+            continue;
+        const wstring_view prevPath(firstIt, it);
+        ++it; // skip '\'
+        if (validate && _path_exists(prevPath, false))
+            continue;
+        nt_handle             h2;
+        win_object_attributes attr2(prevPath, OBJ_CASE_INSENSITIVE);
+        const auto            status2 = NtCreateFile(&h2, desiredAccess, &attr2, &statusBlock, nullptr, fileAttr, 0, disposition, options, nullptr, 0);
+        if (!NT_SUCCESS(status2))
+            return false;
+        validate = false;
+    }
+    return true;
 }
 
-bool directory_impl::operator()(const string_view dir) const
+template <class P>
+static uintmax_t _file_size(const P path)
 {
-#if 1
-    return _path_exists(dir, false);
-#else
-    const auto shortPath = _Is_short_path(dir);
-#ifdef PathIsDirectory
-    return shortPath ? PathIsDirectoryA(FIX_C_STR(dir)) : PathIsDirectoryW(FIX_LONG_PATH(dir));
-#else
-    const auto attr = shortPath ? GetFileAttributesA(FIX_C_STR(dir)) : GetFileAttributesW(FIX_LONG_PATH(dir));
-    return _Is_directory(attr);
+    nt_handle             h;
+    win_object_attributes attr(path, OBJ_CASE_INSENSITIVE);
+    IO_STATUS_BLOCK       statusBlock;
+    constexpr ACCESS_MASK desiredAccess = FILE_READ_ATTRIBUTES | SYNCHRONIZE;
+    const auto            options       = _file_open_flags(true);
+    const auto            status        = NtOpenFile(&h, desiredAccess, &attr, &statusBlock, FILE_SHARE_READ, options);
+    if (!NT_SUCCESS(status))
+        return std::numeric_limits<uintmax_t>::max();
+
+    static_assert(sizeof(LARGE_INTEGER) == sizeof(uintmax_t));
+
+    union
+    {
+        LARGE_INTEGER winNsize;
+        uintmax_t     size;
+    };
+
+    if (!GetFileSizeEx(h, &winNsize))
+        return std::numeric_limits<uintmax_t>::max();
+
+    return size;
+}
+
+template <class P>
+static bool _directory_empty(const P path)
+{
+#if 0
+    nt_handle             h;
+    win_object_attributes attr(path, OBJ_CASE_INSENSITIVE);
+    IO_STATUS_BLOCK       statusBlock;
+    constexpr ACCESS_MASK desiredAccess = FILE_READ_ATTRIBUTES | SYNCHRONIZE;
+    const auto            options       = _file_open_flags(true);
+    const auto            status        = NtOpenFile(&h, desiredAccess, &attr, &statusBlock, FILE_SHARE_READ, options);
+    if (!NT_SUCCESS(status))
+        return 1;
+
+    IO_STATUS_BLOCK        statusBlock2;
+    FILE_INFORMATION_CLASS fileInfo;
+
+    const auto status2 = NtQueryDirectoryFile(h, NULL, NULL, NULL, &statusBlock2, &fileInfo, sizeof(fileInfo), FileDirectoryInformation, TRUE, NULL, TRUE);
+    if (!NT_SUCCESS(status2))
+        return 1;
+
+    switch(fileInfo) {
+    case 1:
+
+    }
 #endif
-#endif
+
+    // WIP
+
+    win_string str(path);
+    if ((*reverse_iterator(_end(str))) == '\\')
+        str.append(L"*.*", 3);
+    else
+        str.append(L"\\*.*", 4);
+
+    WIN32_FIND_DATAW data;
+    const nt_handle  handle(FindFirstFileW(str.data(), &data));
+    return !handle || FindNextFileW(handle, &data) == ERROR_FILE_NOT_FOUND;
 }
 
-bool directory_impl::operator()(const wstring_view dir) const
+bool _file_exists(const char* begin, const char* end)
 {
-    return _path_exists(dir, false);
+    return _path_exists(string_view(begin, end), true);
 }
 
-bool directory_impl::create(const string_view dir, const bool override) const
+bool _file_exists(const wchar_t* begin, const wchar_t* end)
 {
-    return _path_create(dir, false, override);
+    return _path_exists(wstring_view(begin, end), true);
 }
 
-bool directory_impl::create(const wstring_view dir, const bool override) const
+bool _file_empty(const char* begin, const char* end)
 {
-    return _path_create(dir, false, override);
+    return _file_size(string_view(begin, end)) == 0;
 }
 
-bool directory_impl::empty(const string_view /*dir*/) const
+bool _file_empty(const wchar_t* begin, const wchar_t* end)
 {
-    FD_ASSERT_PANIC("Not implemented");
+    return _file_size(wstring_view(begin, end)) == 0;
 }
 
-bool directory_impl::empty(const wstring_view /*dir*/) const
+bool _directory_create(const char* begin, const char* end)
 {
-    FD_ASSERT_PANIC("Not implemented");
+    return _path_create(string_view(begin, end), false, false);
 }
 
-//-----
-
-bool file_impl::operator()(const string_view dir) const
+bool _directory_create(const wchar_t* begin, const wchar_t* end)
 {
-    return _path_exists(dir, true);
+    return _path_create(wstring_view(begin, end), false, false);
 }
 
-bool file_impl::create(const wstring_view dir, const bool override) const
+bool _directory_empty(const char* begin, const char* end)
 {
-    return _path_create(dir, true, override);
+    return _directory_empty(string_view(begin, end));
 }
 
-bool file_impl::create(const string_view dir, const bool override) const
+bool _directory_empty(const wchar_t* begin, const wchar_t* end)
 {
-    return _path_create(dir, true, override);
-}
-
-bool file_impl::operator()(const wstring_view dir) const
-{
-    return _path_exists(dir, true);
+    return _directory_empty(wstring_view(begin, end));
 }
 }
