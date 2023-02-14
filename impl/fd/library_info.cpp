@@ -1235,53 +1235,46 @@ void library_info_cache::remove(PVOID baseAddress, wstring name)
     cache_.pop_back();
 }
 
+static auto _try_get_from_cache(auto& cache, auto val)
+{
+    library_info result;
+    for (auto& info : range_view(cache))
+    {
+        if (info == val)
+        {
+            result = info;
+            break;
+        }
+    }
+    _log_found_entry(val, result.get());
+    return result;
+}
+
 library_info library_info_cache::get(PVOID baseAddress) const
 {
     const std::lock_guard g(mtx_);
     FD_ASSERT(cookie_ != nullptr);
-
-    for (const auto info : range_view(cache_))
-    {
-        if (info == baseAddress)
-        {
-            _log_found_entry(baseAddress, info.get());
-            return info;
-        }
-    }
-    _log_found_entry(baseAddress, nullptr);
-    return nullptr;
+    return _try_get_from_cache(cache_, baseAddress);
 }
 
 library_info library_info_cache::get(wstring_view name) const
 {
     const std::lock_guard g(mtx_);
     FD_ASSERT(cookie_ != nullptr);
-    for (const auto info : range_view(cache_))
-    {
-        if (info == name)
-        {
-            _log_found_entry(name, info.get());
-            return info;
-        }
-    }
-    _log_found_entry(name, nullptr);
-    return nullptr;
+    return _try_get_from_cache(cache_, name);
 }
 
-library_info library_info_cache::wait(wstring_view name)
+library_info library_info_cache::get(wstring_view name)
 {
     std::binary_semaphore* sem = nullptr;
     {
         const std::lock_guard g(mtx_);
         FD_ASSERT(cookie_ != nullptr);
-        for (const auto info : range_view(cache_))
-        {
-            if (info == name)
-            {
-                _log_found_entry(name, info.get());
-                return info;
-            }
-        }
+
+        auto cached = _try_get_from_cache(cache_, name);
+        if (cached != nullptr)
+            return cached;
+
         for (auto& info : range_view(delayed_))
         {
             if (info.name == name)
@@ -1295,7 +1288,7 @@ library_info library_info_cache::wait(wstring_view name)
     }
 
     sem->acquire();
-    return get(name);
+    return _try_get_from_cache(cache_, name);
 }
 
 void library_info_cache::destroy()

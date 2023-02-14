@@ -153,7 +153,7 @@ static auto _get_product_version_string(valve::engine_client* engine)
     return buff;
 }
 
-static DWORD WINAPI _loader(void*) noexcept
+static DWORD WINAPI _context(void*) noexcept
 {
     free_helper freeHelper{ EXIT_FAILURE };
 
@@ -175,7 +175,7 @@ static DWORD WINAPI _loader(void*) noexcept
     library_info_cache libs;
 
     const auto d3dIfc = [&] {
-        const auto lib    = libs.wait(L"shaderapidx9.dll");
+        const auto lib    = libs.get(L"shaderapidx9.dll");
         const auto addr   = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         auto&      result = **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
         while (!result)
@@ -192,7 +192,7 @@ static DWORD WINAPI _loader(void*) noexcept
 
     //----
 
-    const csgo_library_info_ex clientLib = (libs.wait(L"client.dll"));
+    const csgo_library_info_ex clientLib = (libs.get(L"client.dll"));
 
     const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
     addToSafeList(_ModuleHandle, nullptr);
@@ -201,7 +201,7 @@ static DWORD WINAPI _loader(void*) noexcept
 
     //----
 
-    const csgo_library_info_ex engineLib = libs.wait(L"engine.dll");
+    const csgo_library_info_ex engineLib = libs.get(L"engine.dll");
 
     const auto gameEngine = static_cast<valve::engine_client*>(engineLib.find_interface("VEngineClient"));
 
@@ -223,7 +223,7 @@ static DWORD WINAPI _loader(void*) noexcept
         netvarsStorage.iterate_datamap(localPlayer->GetDataDescMap());
         netvarsStorage.iterate_datamap(localPlayer->GetPredictionDescMap());
     }
-    else if (0) // WIP
+    else
     {
         auto vtable = static_cast<valve::cs_player*>(clientLib.find_vtable("C_CSPlayer"));
         netvarsStorage.iterate_datamap(vtable->GetDataDescMap());
@@ -369,7 +369,7 @@ BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID /*r
         if (!DisableThreadLibraryCalls(moduleHandle))
             return FALSE;
         _ModuleHandle = moduleHandle;
-        _ThreadHandle = CreateThread(nullptr, 0, _loader, nullptr, 0, &_ThreadId);
+        _ThreadHandle = CreateThread(nullptr, 0, _context, nullptr, 0, &_ThreadId);
         if (!_ThreadId)
             return FALSE;
         break;

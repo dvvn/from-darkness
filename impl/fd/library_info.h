@@ -181,11 +181,11 @@ class library_info_cache
     void store(PVOID baseAddress, wstring_view name);
     void remove(PVOID baseAddress, wstring name);
 
-    library_info get(PVOID baseAddress) const;
-    library_info get(wstring_view name) const;
+    library_info get(PVOID baseAddress) const; // return null if not found
+    library_info get(wstring_view name) const; // return null if not found
+    library_info get(wstring_view name);       // wait if not found
 
-    library_info wait(wstring_view name);
-    void         destroy();
+    void destroy();
 };
 
 } // namespace fd
