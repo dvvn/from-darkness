@@ -274,35 +274,35 @@ constexpr decltype(auto) apply(tuple<Args...>&& tpl, Fn fn)
 }
 
 template <class Tpl, size_t... I>
-static constexpr auto _reverse_tuple(Tpl& tpl, std::index_sequence<I...> seq)
+static constexpr auto _reversed_tuple(Tpl& tpl, std::index_sequence<I...> seq)
 {
     constexpr auto offset = seq.size() - 1;
     return tuple<decltype(_tuple_get_by_index<offset - I>(tpl))...>(_tuple_get_by_index<offset - I>(tpl)...);
 }
 
 template <class Tpl, size_t... I>
-static constexpr auto _reverse_tuple_rvalue(Tpl& tpl, std::index_sequence<I...> seq)
+static constexpr auto _reversed_tuple_rvalue(Tpl& tpl, std::index_sequence<I...> seq)
 {
     constexpr auto offset = seq.size() - 1;
     return tuple<decltype(_tuple_get_by_index<offset - I>(tpl))...>(std::move(_tuple_get_by_index<offset - I>(tpl))...);
 }
 
 template <typename... Args>
-[[nodiscard]] constexpr auto reverse(tuple<Args...>& tpl)
+[[nodiscard]] constexpr auto reversed(tuple<Args...>& tpl)
 {
-    return _reverse_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
+    return _reversed_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
 }
 
 template <typename... Args>
-[[nodiscard]] constexpr auto reverse(const tuple<Args...>& tpl)
+[[nodiscard]] constexpr auto reversed(const tuple<Args...>& tpl)
 {
-    return _reverse_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
+    return _reversed_tuple(tpl, std::make_index_sequence<sizeof...(Args)>());
 }
 
 template <typename... Args>
-[[nodiscard]] constexpr auto reverse(tuple<Args...>&& tpl)
+[[nodiscard]] constexpr auto reversed(tuple<Args...>&& tpl)
 {
-    return _reverse_tuple_rvalue(tpl, std::make_index_sequence<sizeof...(Args)>());
+    return _reversed_tuple_rvalue(tpl, std::make_index_sequence<sizeof...(Args)>());
 }
 
 } // namespace fd

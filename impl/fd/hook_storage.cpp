@@ -29,7 +29,7 @@ bool hooks_storage::enable()
 
 bool hooks_storage::disable()
 {
-    for (const auto h : reverse(hooks_))
+    for (const auto h : reversed(hooks_))
     {
         if (!h->active())
             continue;

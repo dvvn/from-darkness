@@ -9,6 +9,7 @@
 #include <fd/library_info.h>
 #include <fd/logger_impl.h>
 #include <fd/netvar_storage_impl.h>
+#include <fd/string_info.h>
 #include <fd/system_console.h>
 #include <fd/utility.h>
 #include <fd/valve/base_client.h>
@@ -25,38 +26,104 @@ static HMODULE _ModuleHandle;
 static HANDLE _ThreadHandle;
 static DWORD  _ThreadId = 0;
 
-[[noreturn]] static void _exit_fail()
+#if 0
+static void _exit_fail()
 {
     // TerminateThread(_ThreadHandle, EXIT_FAILURE);
     // FreeLibrary(ModuleHandle);
     FreeLibraryAndExitThread(_ModuleHandle, EXIT_FAILURE);
 }
 
-[[noreturn]] static void _exit_success()
+static void _exit_success()
 {
     FreeLibraryAndExitThread(_ModuleHandle, EXIT_SUCCESS);
 }
+#endif
 
 using namespace fd;
 
-class csgo_interfaces_finder
+struct free_helper
 {
-    csgo_library_info info_;
-    void*             createInterfaceFn_;
+    DWORD exitCode;
+
+    ~free_helper()
+    {
+        FreeLibraryAndExitThread(_ModuleHandle, exitCode);
+    }
+};
+
+#if 0
+template <size_t S>
+struct system_library_name
+{
+    wchar_t buffer[S + 4];
+
+    consteval system_library_name(const char* name)
+        : buffer()
+    {
+        const auto libNameSize = _size(buffer) - 4;
+        for (size_t i = 0; i != libNameSize; ++i)
+            buffer[i] = to_lower(name[i]);
+        _copy(".dll", 4, buffer + libNameSize);
+    }
+
+    auto begin() const
+    {
+        return buffer;
+    }
+
+    auto end() const
+    {
+        return buffer + _size(buffer);
+    }
+
+    operator wstring_view() const
+    {
+        return { begin(), end() };
+    }
+};
+
+template <size_t S>
+system_library_name(const char (&name)[S]) -> system_library_name<S - 1>;
+
+#define CSGO_LIB(_NAME_) csgo_library_info_ex _NAME_ = this->wait(system_library_name(#_NAME_ ".dll"))
+
+struct csgo_libs_storage : library_info_cache
+{
+    CSGO_LIB(server);
+    CSGO_LIB(client);
+    CSGO_LIB(engine);
+    CSGO_LIB(dataCache);
+    CSGO_LIB(materialSystem);
+    CSGO_LIB(vstdlib);
+    CSGO_LIB(vgui2);
+    CSGO_LIB(vguiMatSurface);
+    CSGO_LIB(vphysics);
+    CSGO_LIB(inputSystem);
+    CSGO_LIB(studioRender);
+    CSGO_LIB(shaderApiDx9);
+    CSGO_LIB(serverBrowser);
+};
+
+#undef CSGO_LIB
+#endif
+
+class csgo_library_info_ex : public csgo_library_info
+{
+    void* createInterfaceFn_;
+
+    using csgo_library_info::find_interface;
 
   public:
-    csgo_interfaces_finder(library_info info)
-        : info_(std::move(info))
+    csgo_library_info_ex(library_info info)
+        : csgo_library_info(info)
         , createInterfaceFn_(info.find_export("CreateInterface"))
     {
     }
 
-    template <class T>
-    T* get(string_view name = {}) const
+    void* find_interface(string_view name) const
     {
-        if (name.empty())
-            name = type_name<T>();
-        return static_cast<T*>(info_.find_interface(createInterfaceFn_, name));
+        return this->find_interface(createInterfaceFn_, name);
     }
 };
 
@@ -88,7 +155,9 @@ static auto _get_product_version_string(valve::engine_client* engine)
 
 static DWORD WINAPI _loader(void*) noexcept
 {
-    set_unload(_exit_fail);
+    free_helper freeHelper{ EXIT_FAILURE };
+
+    // set_unload(_exit_fail); //prefer terminate
 
     system_console sysConsole;
 
@@ -103,9 +172,10 @@ static DWORD WINAPI _loader(void*) noexcept
 #endif
 
     set_current_library(_ModuleHandle);
+    library_info_cache libs;
 
-    const auto d3dIfc = [] {
-        const auto lib    = wait_for_library(L"shaderapidx9.dll");
+    const auto d3dIfc = [&] {
+        const auto lib    = libs.wait(L"shaderapidx9.dll");
         const auto addr   = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         auto&      result = **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
         while (!result)
@@ -116,26 +186,24 @@ static DWORD WINAPI _loader(void*) noexcept
     const auto hwnd = [=] {
         D3DDEVICE_CREATION_PARAMETERS d3dParams;
         if (FAILED(d3dIfc->GetCreationParameters(&d3dParams)))
-            _exit_fail();
+            abort(); // WARNING!!!
         return d3dParams.hFocusWindow;
     }();
 
     //----
 
-    const csgo_library_info      clientLib(wait_for_library(L"client.dll"));
-    const csgo_interfaces_finder clientInterfaces(clientLib);
+    const csgo_library_info_ex clientLib = (libs.wait(L"client.dll"));
 
     const auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(clientLib.find_signature("56 8B 71 3C B8"));
     addToSafeList(_ModuleHandle, nullptr);
 
-    const auto gameClient = clientInterfaces.get<valve::base_client>("VClient");
+    const auto gameClient = static_cast<valve::base_client*>(clientLib.find_interface("VClient"));
 
     //----
 
-    const csgo_library_info      engineLib(wait_for_library(L"engine.dll"));
-    const csgo_interfaces_finder engineInterfaces(engineLib);
+    const csgo_library_info_ex engineLib = libs.wait(L"engine.dll");
 
-    const auto gameEngine = engineInterfaces.get<valve::engine_client>("VEngineClient");
+    const auto gameEngine = static_cast<valve::engine_client*>(engineLib.find_interface("VEngineClient"));
 
     //----
 
@@ -155,7 +223,7 @@ static DWORD WINAPI _loader(void*) noexcept
         netvarsStorage.iterate_datamap(localPlayer->GetDataDescMap());
         netvarsStorage.iterate_datamap(localPlayer->GetPredictionDescMap());
     }
-    else
+    else if (0) // WIP
     {
         auto vtable = static_cast<valve::cs_player*>(clientLib.find_vtable("C_CSPlayer"));
         netvarsStorage.iterate_datamap(vtable->GetDataDescMap());
@@ -195,6 +263,8 @@ static DWORD WINAPI _loader(void*) noexcept
             "tab",
             [] {
                 ImGui::TextUnformatted("test");
+                if (ImGui::Button("Unload"))
+                    unload();
             }
         )
     ));
@@ -249,7 +319,8 @@ static DWORD WINAPI _loader(void*) noexcept
                 guiCtx.render(thisPtr);
                 return orig(args...);
             }
-        ),
+        )
+#if 0
         hook_callback(
             "VGUI.ISurface::LockCursor",
             &valve::gui::surface::LockCursor,
@@ -263,28 +334,30 @@ static DWORD WINAPI _loader(void*) noexcept
                 orig();
             }
         )
+#endif
     );
 
     if (!allHooks.enable())
-        _exit_fail();
+        return FALSE;
 
     set_unload([] {
         if (ResumeThread(_ThreadHandle) == -1)
-            suspend();
+            abort(); // WARNING!!!
     });
 
 #if 0
-    if (!wait_for_library(L"serverbrowser.dll"))
+    if (!libs.wait(L"serverbrowser.dll"))
         _exit_fail();
 #endif
 
     if (SuspendThread(_ThreadHandle) == -1)
-        _exit_fail();
+        abort(); // WARNING!!!
 
     if (!allHooks.disable())
-        _exit_fail();
+        return FALSE;
 
-    _exit_success();
+    freeHelper.exitCode = EXIT_SUCCESS;
+    return TRUE;
 }
 
 // ReSharper disable once CppInconsistentNaming

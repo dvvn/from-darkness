@@ -8,7 +8,7 @@ namespace fd
 {
 netvar_table::~netvar_table()
 {
-    for (const auto ptr : reverse(storage_))
+    for (const auto ptr : reversed(storage_))
         delete ptr;
 }
 
@@ -34,7 +34,6 @@ bool netvar_table::root() const
 const basic_netvar_info* netvar_table::find(const string_view name) const
 {
     FD_ASSERT(!name.empty());
-
     for (const auto entry : range_view(storage_))
     {
         if (entry->name() == name)
@@ -45,29 +44,7 @@ const basic_netvar_info* netvar_table::find(const string_view name) const
 
 void netvar_table::add(basic_netvar_info* info)
 {
-#ifdef _DEBUG
-    if (!storage_.empty())
-    {
-        const auto name   = info->name();
-        const auto offset = info->offset();
-        const auto type   = info->type();
-
-        for (const auto item : range_view(storage_))
-        {
-            if (item->name() == name)
-                FD_ASSERT("Item with given name already added!");
-
-            if (item->offset() == offset)
-            {
-                const auto currType = item->type();
-                if (currType.empty() || /*type.empty() ||*/ type == currType)
-                    FD_ASSERT("Item with given offset and type already added!");
-                // othervise skip this offset manually
-            }
-        }
-    }
-#endif
-
+    FD_ASSERT(!find(info->name()));
     storage_.emplace_back(info);
 }
 

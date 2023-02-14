@@ -80,7 +80,7 @@ class dos_nt
 
 //---------
 
-template <typename T>
+template <typename T, bool Deref = true>
 class win_list_view
 {
     using pointer   = const LIST_ENTRY*;
@@ -125,9 +125,14 @@ class win_list_view
             return c;
         }
 
-        T& operator*() const
+        T& operator*() const requires(Deref)
         {
             return *CONTAINING_RECORD(current_, T, InMemoryOrderLinks);
+        }
+
+        T* operator*() const requires(!Deref)
+        {
+            return CONTAINING_RECORD(current_, T, InMemoryOrderLinks);
         }
 
         T* operator->() const
@@ -143,7 +148,7 @@ class win_list_view
         bool operator==(const iterator&) const = default;
     };
 
-    win_list_view(LIST_ENTRY* root = nullptr)
+    win_list_view(const LIST_ENTRY* root = nullptr)
     {
         if (root)
         {
@@ -175,17 +180,25 @@ class win_list_view
     }
 };
 
-template <typename T>
-static bool operator==(const T* other, typename win_list_view<T>::iterator itr)
+template <typename T, bool Deref>
+static bool operator==(const T* other, typename win_list_view<T, Deref>::iterator itr)
 {
     return itr.operator==(other);
 }
 
-using ldr_tables_view = win_list_view<LDR_DATA_TABLE_ENTRY>;
+using ldr_tables_view     = win_list_view<LDR_DATA_TABLE_ENTRY>;
+using ldr_tables_view_ptr = win_list_view<LDR_DATA_TABLE_ENTRY, false>;
 
 static wstring_view _to_string_view(const UNICODE_STRING& ustr)
 {
+    if (!ustr.Buffer)
+        return {};
     return { ustr.Buffer, ustr.Length / sizeof(WCHAR) };
+}
+
+static wstring _to_string(const UNICODE_STRING& ustr)
+{
+    return wstring(_to_string_view(ustr));
 }
 
 static wstring_view _library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
@@ -213,6 +226,17 @@ static wstring_view _found_or_not(const void* ptr)
 static wstring_view _name_or_unknown(const LDR_DATA_TABLE_ENTRY* entry)
 {
     return entry ? _library_info_name(entry) : L"unknown name";
+}
+
+static void _log_removed_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
+{
+    if (!log_active())
+        return;
+    log_unsafe(format( //-
+        L"{} -> removed! ({:#X})"sv,
+        name,
+        reinterpret_cast<uintptr_t>(entry)
+    ));
 }
 
 static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
@@ -353,7 +377,10 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
 #define contains(x) offset_to(x) != static_cast<size_t>(-1)
 #endif
 
-    const auto demagleType = [=] {
+    if (!log_active())
+        return;
+
+    const auto demagleType = [&] {
         const auto prefix = typeDescriptor[std::size(_RttiInfo.rawPrefix)];
         if (prefix == _RttiInfo.classPrefix)
             return L"class";
@@ -362,24 +389,27 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
         FD_ASSERT_PANIC("Unknown prefix!");
     };
 
-    const auto demagleName = [=]() -> wstring {
+    const auto demagleName = [&] {
+        wstring dName;
+#ifdef _DEBUG
+        DebugBreak(); // look at buff
+#endif
         if (name.contains('@'))
         {
-#ifdef _DEBUG
-            DebugBreak(); // look at buff
-#endif
             const auto buff = demangle_symbol(typeDescriptor);
-            return { buff.begin() + buff.find(' ') + 1, buff.end() };
+            write_string(dName, string_view(buff).substr(buff.find(' ') + 1));
         }
-        if (name.contains(' '))
+        else if (name.contains(' '))
         {
-            return { name.begin() + name.find(' ') + 1, name.end() };
+            write_string(dName, (name).substr(name.find(' ') + 1));
         }
-        return { name.begin(), name.end() };
+        else
+        {
+            write_string(dName, name);
+        }
+        return dName;
     };
 
-    if (!log_active())
-        return;
     log_unsafe(format( //-
         L"{} -> {} {} '{}' {}! ({:#X})",
         _library_info_name(entry),
@@ -391,116 +421,32 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
     ));
 }
 
-static library_info _find_library(PVOID baseAddress, bool notify, wstring_view name = {})
+static library_info _find_library(PVOID baseAddress)
 {
-    library_info::pointer entry = nullptr;
-    for (auto& e : ldr_tables_view())
+    for (const auto* e : reversed(ldr_tables_view_ptr()))
     {
-        if (baseAddress == dos_nt(e).base())
+        if (baseAddress == e->DllBase)
         {
-            entry = &e;
+            return e;
             break;
         }
     }
-
-    if (notify)
-    {
-        if (name.empty())
-            _log_found_entry(baseAddress, entry);
-        else
-            _log_found_entry(name, entry);
-    }
-    return entry;
+    return nullptr;
 }
 
-library_info find_library(PVOID baseAddress, bool notify)
+static library_info _find_library(wstring_view name)
 {
-    return _find_library(baseAddress, notify);
-}
-
-library_info find_library(wstring_view name, bool notify)
-{
-    library_info::pointer entry = nullptr;
-    for (auto& e : ldr_tables_view())
+    for (const auto* e : reversed(ldr_tables_view_ptr()))
     {
-        if (_library_info_name(&e) == name)
+        if (e->FullDllName.Buffer && _library_info_name(e) == name)
         {
-            entry = &e;
-            break;
+            return e;
         }
     }
-    if (notify /*&& entry*/)
-        _log_found_entry(name, entry);
-    return entry;
+    return nullptr;
 }
 
-struct callback_data_t
-{
-    wstring_view          name;
-    std::binary_semaphore sem;
-    PVOID                 found;
-
-    callback_data_t(const wstring_view name)
-        : name(name)
-        , sem(0)
-        , found(nullptr)
-    {
-    }
-};
-
-static void CALLBACK _on_new_library(const ULONG notificationReason, const PCLDR_DLL_NOTIFICATION_DATA notificationData, const PVOID context)
-{
-    const auto data = static_cast<callback_data_t*>(context);
-
-    if (notificationReason == LDR_DLL_NOTIFICATION_REASON_UNLOADED)
-    {
-        // if (notificationData->Unloaded.DllBase != current_library_info(false)->DllBase)
-        return;
-    }
-    else // NOLINT(readability-else-after-return)
-    {
-#if 0
-        const auto target_name = _To_string_view(*NotificationData->Loaded.FullDllName);
-        if (!target_name.ends_with(data->name))
-            return;
-#else
-        if (_to_string_view(*notificationData->Loaded.BaseDllName) != data->name)
-            return;
-#endif
-        data->found = notificationData->Loaded.DllBase;
-    }
-
-    data->sem.release();
-}
-
-static auto _wait_prepare(const bool notify)
-{
-    const auto ntdll = find_library(L"ntdll.dll", notify);
-
-    const auto reg   = reinterpret_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
-    const auto unreg = reinterpret_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
-
-    return std::pair(reg, unreg);
-}
-
-library_info wait_for_library(const wstring_view name, bool notify)
-{
-    if (const auto info = find_library(name, notify); info)
-        return info;
-
-    static const auto [reg_fn, unreg_fn] = _wait_prepare(notify);
-
-    callback_data_t cbData(name);
-    void*           cookie;
-    if (!NT_SUCCESS(reg_fn(0, _on_new_library, &cbData, &cookie)))
-        return nullptr;
-    cbData.sem.acquire();
-    if (!NT_SUCCESS(unreg_fn(cookie)))
-        return nullptr;
-    if (!cbData.found)
-        return nullptr;
-    return _find_library(cbData.found, notify, name);
-}
+//------------
 
 library_info::library_info(const pointer entry)
     : entry_(entry)
@@ -532,11 +478,6 @@ auto library_info::operator*() const -> reference
     return *entry_;
 }
 
-library_info::operator bool() const
-{
-    return static_cast<bool>(entry_);
-}
-
 wstring_view library_info::path() const
 {
     return _library_info_path(entry_);
@@ -562,11 +503,11 @@ class exports_view
 
     union
     {
-        IMAGE_EXPORT_DIRECTORY* export_dir_;
-        uint8_t*                virtual_addr_start_;
+        IMAGE_EXPORT_DIRECTORY* exportDirDir_;
+        uint8_t*                virtualAddrStart_;
     };
 
-    uint8_t* virtual_addr_end_;
+    uint8_t* virtualAddrEnd_;
 
     using src_ptr = const exports_view*;
 
@@ -579,12 +520,12 @@ class exports_view
         FD_ASSERT(dataDir.VirtualAddress, "Current module doesn't have the virtual address!");
 
         // get export export_dir.
-        export_dir_       = dnt_.map<IMAGE_EXPORT_DIRECTORY>(dataDir.VirtualAddress);
-        virtual_addr_end_ = virtual_addr_start_ + dataDir.Size;
+        exportDirDir_   = dnt_.map<IMAGE_EXPORT_DIRECTORY>(dataDir.VirtualAddress);
+        virtualAddrEnd_ = virtualAddrStart_ + dataDir.Size;
 
-        names_ = dnt_.map<uint32_t>(export_dir_->AddressOfNames);
-        funcs_ = dnt_.map<uint32_t>(export_dir_->AddressOfFunctions);
-        ords_  = dnt_.map<uint16_t>(export_dir_->AddressOfNameOrdinals);
+        names_ = dnt_.map<uint32_t>(exportDirDir_->AddressOfNames);
+        funcs_ = dnt_.map<uint32_t>(exportDirDir_->AddressOfFunctions);
+        ords_  = dnt_.map<uint16_t>(exportDirDir_->AddressOfNameOrdinals);
     }
 
     const char* name(DWORD offset) const
@@ -595,7 +536,7 @@ class exports_view
     void* function(DWORD offset) const
     {
         const auto tmp = dnt_.map<uint8_t>(funcs_[ords_[offset]]);
-        if (tmp < virtual_addr_start_ || tmp >= virtual_addr_end_)
+        if (tmp < virtualAddrStart_ || tmp >= virtualAddrEnd_)
             return tmp;
 
         // todo:resolve fwd export
@@ -710,11 +651,11 @@ class exports_view
 
     iterator end() const
     {
-        return { this, std::min(export_dir_->NumberOfNames, export_dir_->NumberOfFunctions) };
+        return { this, std::min(exportDirDir_->NumberOfNames, exportDirDir_->NumberOfFunctions) };
     }
 };
 
-void* library_info::find_export(const string_view name, const bool notify) const
+void* library_info::find_export(const string_view name) const
 {
     void* exportPtr = nullptr;
     for (const auto val : exports_view(entry_))
@@ -726,13 +667,11 @@ void* library_info::find_export(const string_view name, const bool notify) const
         }
     }
 
-    if (notify)
-        _log_found_object(entry_, L"export", name, exportPtr);
-
+    _log_found_object(entry_, L"export", name, exportPtr);
     return exportPtr;
 }
 
-IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const bool notify) const
+IMAGE_SECTION_HEADER* library_info::find_section(const string_view name) const
 {
     IMAGE_SECTION_HEADER* header = nullptr;
     for (auto& h : dos_nt(entry_).sections())
@@ -743,17 +682,17 @@ IMAGE_SECTION_HEADER* library_info::find_section(const string_view name, const b
             break;
         }
     }
-    if (notify)
-        _log_found_object(entry_, L"section", name, header);
+
+    _log_found_object(entry_, L"section", name, header);
     return header;
 }
 
-void* library_info::find_signature(const string_view sig, const bool notify) const
+void* library_info::find_signature(const string_view sig) const
 {
     const pattern_scanner finder(dos_nt(entry_).read());
     const auto            result = finder(sig).front();
-    if (notify)
-        _log_found_object(entry_, L"signature", sig, result);
+
+    _log_found_object(entry_, L"signature", sig, result);
     return result;
 }
 
@@ -787,6 +726,7 @@ class vtable_finder
 
         if (type == obj_type::UNKNOWN)
         {
+            FD_ASSERT(!name.contains(' '));
             const auto        bytesName = _bytes_to_sig(name.data(), name.size());
             std::vector<char> realNameUnk; // no sting because no SSO anyway
             write_string(realNameUnk, _RttiInfo.rawPrefixBytes, " ? ", bytesName, ' ', _RttiInfo.rawPostfixBytes);
@@ -848,51 +788,87 @@ class vtable_finder
     }
 };
 
-static void* _find_vtable(const library_info info, const string_view name, const obj_type type, const bool notify)
+static void* _find_vtable(const library_info info, const string_view name, const obj_type type)
 {
     const vtable_finder vtableFinder(info);
 
     const auto rttiClassName = vtableFinder.find_type_descriptor(name, type);
     FD_ASSERT(rttiClassName != nullptr);
     const auto vtablePtr = vtableFinder(rttiClassName);
-    if (notify)
-        _log_found_vtable(info.get(), name, rttiClassName, vtablePtr);
 
+    _log_found_vtable(info.get(), name, rttiClassName, vtablePtr);
     return vtablePtr;
 }
 
-void* library_info::find_vtable_class(const string_view name, const bool notify) const
+void* library_info::find_vtable_class(const string_view name) const
 {
-    return _find_vtable(entry_, name, obj_type::CLASS, notify);
+    return _find_vtable(entry_, name, obj_type::CLASS);
 }
 
-void* library_info::find_vtable_struct(const string_view name, const bool notify) const
+void* library_info::find_vtable_struct(const string_view name) const
 {
-    return _find_vtable(entry_, name, obj_type::STRUCT, notify);
+    return _find_vtable(entry_, name, obj_type::STRUCT);
 }
 
-void* library_info::find_vtable_unknown(const string_view name, const bool notify) const
+void* library_info::find_vtable_unknown(const string_view name) const
 {
-    return _find_vtable(entry_, name, obj_type::UNKNOWN, notify);
+    return _find_vtable(entry_, name, obj_type::UNKNOWN);
 }
 
-void* library_info::find_vtable(const string_view name, const bool notify) const
+void* library_info::find_vtable(const string_view name) const
 {
-    constexpr string_view classP("class ");
-    if (name.starts_with(classP))
-        return _find_vtable(entry_, name.substr(classP.size()), obj_type::CLASS, notify);
+    void*      result  = nullptr;
+    const auto tryFind = [&](const string_view type, const obj_type objType) -> bool {
+        if (name.starts_with(type))
+            result = _find_vtable(entry_, name.substr(type.size()), objType);
+        return result;
+    };
 
-    constexpr string_view structP("struct ");
-    if (name.starts_with(structP))
-        return _find_vtable(entry_, name.substr(structP.size()), obj_type::CLASS, notify);
+    if (tryFind("class ", obj_type::CLASS) || tryFind("struct ", obj_type::STRUCT))
+        return result;
 
-    return _find_vtable(entry_, name, obj_type::UNKNOWN, notify);
+    return _find_vtable(entry_, name, obj_type::UNKNOWN);
 }
 
-void* library_info::find_vtable(const std::type_info& info, const bool notify) const
+void* library_info::find_vtable(const std::type_info& info) const
 {
     const auto rawName = info.raw_name();
-    return _find_vtable(entry_, { rawName, notify ? str_len(rawName) : 0 }, obj_type::NATIVE, notify);
+    return _find_vtable(entry_, { rawName, log_active() ? str_len(rawName) : 0 }, obj_type::NATIVE);
+}
+
+bool operator==(library_info info, std::nullptr_t)
+{
+    return info.get() == nullptr;
+}
+
+bool operator==(library_info info, library_info other)
+{
+    return info.get() == other.get();
+}
+
+bool operator==(library_info info, PVOID baseAddress)
+{
+    return info->DllBase == baseAddress;
+}
+
+bool operator==(library_info info, wstring_view name)
+{
+    return _library_info_name(info.get()) == name;
+}
+
+bool operator!(library_info info)
+{
+    return !info.get();
+}
+
+library_info find_library(PVOID baseAddress)
+{
+    return _find_library(baseAddress);
+}
+
+library_info find_library(wstring_view name)
+{
+    return _find_library(name);
 }
 
 #undef ERROR
@@ -1055,12 +1031,12 @@ csgo_library_info::csgo_library_info(library_info info)
 {
 }
 
-void* csgo_library_info::find_interface(const string_view name, const bool notify) const
+void* csgo_library_info::find_interface(const string_view name) const
 {
-    return find_interface(find_export("CreateInterface"), name, notify);
+    return find_interface(find_export("CreateInterface"), name);
 }
 
-void* csgo_library_info::find_interface(const void* createInterfaceFn, const string_view name, const bool notify) const
+void* csgo_library_info::find_interface(const void* createInterfaceFn, const string_view name) const
 {
     FD_ASSERT(createInterfaceFn != nullptr);
 
@@ -1074,34 +1050,33 @@ void* csgo_library_info::find_interface(const void* createInterfaceFn, const str
             continue;
 
 #ifndef _DEBUG
-        if (notify)
+
 #endif
-            if (result == interface_reg::equal_t::PARTIAL)
-            {
-                const auto wholeNameSize = reg.name_size(name);
+        if (result == interface_reg::equal_t::PARTIAL)
+        {
+            const auto wholeNameSize = reg.name_size(name);
 #ifdef _DEBUG
-                if (!std::all_of(reg.name() + name.size(), reg.name() + wholeNameSize, is_digit))
-                    FD_ASSERT("Incorrect given interface name");
-                const auto nextReg = reg + 1;
-                if (nextReg)
+            if (!std::all_of(reg.name() + name.size(), reg.name() + wholeNameSize, is_digit))
+                FD_ASSERT("Incorrect given interface name");
+            const auto nextReg = reg + 1;
+            if (nextReg)
+            {
+                for (auto& reg1 : interface_reg::range(nextReg))
                 {
-                    for (auto& reg1 : interface_reg::range(nextReg))
-                    {
-                        if (reg1 == name)
-                            FD_ASSERT("Duplicate interface name detected");
-                    }
+                    if (reg1 == name)
+                        FD_ASSERT("Duplicate interface name detected");
                 }
-                if (notify)
-#endif
-                    logName = { reg.name(), wholeNameSize };
             }
+
+#endif
+            logName = { reg.name(), wholeNameSize };
+        }
 
         ifcAddr = (reg());
         break;
     }
 
-    if (notify)
-        _log_found_object(this->get(), L"csgo interface", logName.empty() ? name : logName, ifcAddr);
+    _log_found_object(this->get(), L"csgo interface", logName.empty() ? name : logName, ifcAddr);
 
     return ifcAddr;
 }
@@ -1118,29 +1093,222 @@ static DECLSPEC_NOINLINE PVOID _self_module_handle()
     return static_cast<HINSTANCE>(info.AllocationBase);
 }
 
-static void _set_current_library(bool notify)
+static void _set_current_library()
 {
-    _Current = find_library(_self_module_handle(), notify);
+    _Current = _find_library(_self_module_handle());
 }
 
-static void _set_current_library(HMODULE handle, bool notify)
+static void _set_current_library(HMODULE handle)
 {
     FD_ASSERT(handle == _self_module_handle());
-    _Current = find_library(handle, notify);
+    _Current = _find_library(handle);
 }
 
-library_info current_library_info(const bool notify)
+library_info current_library_info()
 {
     if (!_Current)
-        _set_current_library(notify);
-    else if (notify)
+        _set_current_library();
+    else
         _log_found_entry(_Current.name(), _Current.get());
 
     return _Current;
 }
 
-void set_current_library(const HMODULE handle, bool notify)
+void set_current_library(const HMODULE handle)
 {
-    _set_current_library(handle, notify);
+    _set_current_library(handle);
+}
+
+void library_info_cache::release_delayed()
+{
+    for (auto& info : reversed(delayed_))
+        info.sem.release();
+}
+
+library_info_cache::~library_info_cache()
+{
+    if (!cookie_)
+        return;
+
+    if (!NT_SUCCESS(notif_->unreg(cookie_)))
+        FD_ASSERT_PANIC("Unable to remove dll notification");
+
+    if (!delayed_.empty())
+    {
+        cache_.clear();
+        release_delayed();
+    }
+}
+
+static void CALLBACK _on_new_library(const ULONG notificationReason, const PCLDR_DLL_NOTIFICATION_DATA notificationData, const PVOID context)
+{
+    const auto data = static_cast<library_info_cache*>(context);
+
+    switch (notificationReason)
+    {
+    case LDR_DLL_NOTIFICATION_REASON_LOADED: {
+        data->store(notificationData->Loaded.DllBase, _to_string_view(*notificationData->Loaded.BaseDllName));
+        break;
+    }
+    case LDR_DLL_NOTIFICATION_REASON_UNLOADED: {
+        data->remove(notificationData->Unloaded.DllBase, _to_string(*notificationData->Unloaded.BaseDllName));
+        break;
+    }
+    default:
+        FD_ASSERT_PANIC("Unknown dll notification type");
+    }
+
+    // #if 0
+    //         const auto target_name = _To_string_view(*NotificationData->Loaded.FullDllName);
+    //         if (!target_name.ends_with(data->name))
+    //             return;
+    // #else
+    //         if (_to_string_view(*notificationData->Loaded.BaseDllName) != data->name)
+    //             return;
+    // #endif
+}
+
+static std::mutex _LibraryInfoCacheIntMtx;
+
+library_info_cache::library_info_cache()
+{
+    if (!notif_)
+    {
+        const std::lock_guard g(_LibraryInfoCacheIntMtx);
+        if (!notif_)
+        {
+            const auto ntdll = _find_library(L"ntdll.dll");
+            FD_ASSERT(ntdll != nullptr);
+            const auto reg   = reinterpret_cast<LdrRegisterDllNotification>(ntdll.find_export("LdrRegisterDllNotification"));
+            const auto unreg = reinterpret_cast<LdrUnregisterDllNotification>(ntdll.find_export("LdrUnregisterDllNotification"));
+
+            auto& n = notif_.emplace();
+            n.reg   = reg;
+            n.unreg = unreg;
+        }
+    }
+
+    const std::lock_guard g(mtx_);
+
+    if (!NT_SUCCESS(notif_->reg(0, _on_new_library, this, &cookie_)))
+        FD_ASSERT_PANIC("Unable to create dll notification");
+
+    for (auto entry : ldr_tables_view_ptr())
+        cache_.emplace_back(entry);
+}
+
+void library_info_cache::store(PVOID baseAddress, wstring_view name)
+{
+    const std::lock_guard g(mtx_);
+    FD_ASSERT(cookie_ != nullptr);
+
+    // if (find(cache_, baseAddress) == _end(cache_))
+    cache_.emplace_back(_find_library(baseAddress));
+
+    for (auto it = delayed_.begin(); it != delayed_.end(); ++it)
+    {
+        if (it->name == name)
+        {
+            it->sem.release();
+            delayed_.erase(it);
+            break;
+        }
+    }
+}
+
+void library_info_cache::remove(PVOID baseAddress, wstring name)
+{
+    const std::lock_guard g(mtx_);
+    FD_ASSERT(cookie_ != nullptr);
+
+    auto& last = cache_.back();
+    for (auto& info : range_view_creator(cache_).drop(1))
+    {
+        if (info == baseAddress)
+        {
+            using std::swap;
+            swap(info, last);
+            break;
+        }
+    }
+    FD_ASSERT(last == baseAddress);
+    cache_.pop_back();
+}
+
+library_info library_info_cache::get(PVOID baseAddress) const
+{
+    const std::lock_guard g(mtx_);
+    FD_ASSERT(cookie_ != nullptr);
+
+    for (const auto info : range_view(cache_))
+    {
+        if (info == baseAddress)
+        {
+            _log_found_entry(baseAddress, info.get());
+            return info;
+        }
+    }
+    _log_found_entry(baseAddress, nullptr);
+    return nullptr;
+}
+
+library_info library_info_cache::get(wstring_view name) const
+{
+    const std::lock_guard g(mtx_);
+    FD_ASSERT(cookie_ != nullptr);
+    for (const auto info : range_view(cache_))
+    {
+        if (info == name)
+        {
+            _log_found_entry(name, info.get());
+            return info;
+        }
+    }
+    _log_found_entry(name, nullptr);
+    return nullptr;
+}
+
+library_info library_info_cache::wait(wstring_view name)
+{
+    std::binary_semaphore* sem = nullptr;
+    {
+        const std::lock_guard g(mtx_);
+        FD_ASSERT(cookie_ != nullptr);
+        for (const auto info : range_view(cache_))
+        {
+            if (info == name)
+            {
+                _log_found_entry(name, info.get());
+                return info;
+            }
+        }
+        for (auto& info : range_view(delayed_))
+        {
+            if (info.name == name)
+            {
+                sem = &info.sem;
+                break;
+            }
+        }
+        if (!sem)
+            sem = &delayed_.emplace_back((name)).sem;
+    }
+
+    sem->acquire();
+    return get(name);
+}
+
+void library_info_cache::destroy()
+{
+    const std::lock_guard g(mtx_);
+    FD_ASSERT(cookie_ != nullptr);
+
+    if (!NT_SUCCESS(notif_->unreg(cookie_)))
+        FD_ASSERT_PANIC("Unable to remove dll notification");
+
+    cache_.clear();
+    release_delayed();
+    delayed_.clear();
+    cookie_ = nullptr;
 }
 }

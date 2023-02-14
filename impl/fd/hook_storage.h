@@ -53,7 +53,7 @@ class hooks_storage2
 
     bool disable()
     {
-        return apply(reverse(hooks_), [](auto&... h) {
+        return apply(reversed(hooks_), [](auto&... h) {
             return (h.disable() & ...);
         });
     }

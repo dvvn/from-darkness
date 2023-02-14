@@ -232,6 +232,48 @@ class range_view
 template <typename Rng>
 range_view(Rng&) -> range_view<iter_t<Rng>>;
 
+template <native_iterable Rng>
+range_view(Rng&&, iter_t<Rng>) -> range_view<iter_t<Rng>>;
+
+template <native_iterable Rng>
+range_view(Rng&&, size_t) -> range_view<iter_t<Rng>>;
+
+template <typename T>
+class range_view_creator
+{
+    T& rng_;
+
+  public:
+    using range = range_view<iter_t<T>>;
+
+    constexpr range_view_creator(T& rng)
+        : rng_(rng)
+    {
+    }
+
+    constexpr range drop(size_t count) const
+    {
+        return { _begin(rng_), _size_or_end(rng_) - count };
+    }
+
+    constexpr range skip(size_t count) const
+    {
+        return { _begin(rng_) + count, _end(rng_) };
+    }
+
+    template <typename It>
+    constexpr range from(It it) const
+    {
+        return { decay_iter(it), _end(rng_) };
+    }
+
+    template <typename It>
+    constexpr range to(It it) const
+    {
+        return { _begin(rng_), decay_iter(it) };
+    }
+};
+
 template <typename T, typename T2>
 using select_const_t = std::conditional_t<std::is_const_v<T>, T, T2>;
 
@@ -241,14 +283,120 @@ range_view(Rng&, It) -> range_view<select_const_t<It, iter_t<Rng>>>;
 template <iterator It, native_iterable Rng>
 range_view(It, Rng&) -> range_view<select_const_t<It, iter_t<Rng>>>;
 
-template <native_iterable Rng>
-[[nodiscard]] constexpr auto reverse(Rng& range) -> range_view<std::reverse_iterator<iter_t<Rng>>>
+template <typename It>
+class reverse_iterator
 {
-    return { std::reverse_iterator(_end(range)), std::reverse_iterator(_begin(range)) };
+    // std::reverse_iterator without noexcept, explicit, tags and other shit
+
+    It it_;
+
+  public:
+    template <typename>
+    friend class reverse_iterator;
+
+    constexpr reverse_iterator(It it)
+        : it_(it)
+    {
+    }
+
+    template <typename Other>
+    constexpr reverse_iterator(reverse_iterator<Other> other)
+        : it_(other.it_)
+    {
+    }
+
+    //---------
+
+    constexpr reverse_iterator& operator++()
+    {
+        --it_;
+        return *this;
+    }
+
+    constexpr reverse_iterator operator++(int)
+    {
+        reverse_iterator tmp = *this;
+        --it_;
+        return tmp;
+    }
+
+    constexpr reverse_iterator& operator--()
+    {
+        ++it_;
+        return *this;
+    }
+
+    constexpr reverse_iterator operator--(int)
+    {
+        auto tmp = *this;
+        ++it_;
+        return tmp;
+    }
+
+    constexpr reverse_iterator& operator+=(const ptrdiff_t diff)
+    {
+        it_ -= diff;
+        return *this;
+    }
+
+    constexpr reverse_iterator operator-(const ptrdiff_t diff) const
+    {
+        return it_ + diff;
+    }
+
+    constexpr reverse_iterator& operator-=(const ptrdiff_t diff)
+    {
+        it_ += diff;
+        return *this;
+    }
+
+    constexpr decltype(auto) operator[](const ptrdiff_t diff) const
+    {
+        return it_[-diff - 1];
+    }
+
+    constexpr decltype(auto) operator*() const
+    {
+        auto tmp = it_;
+        return *--tmp;
+    }
+
+    constexpr auto operator->() const
+    {
+        if constexpr (std::is_class_v<It>)
+            return it_.operator->();
+        else
+            return it_;
+    }
+
+    //---------
+
+    constexpr It base() const
+    {
+        return it_;
+    }
+
+    template <typename Other>
+    constexpr bool operator==(reverse_iterator<Other> other) const
+    {
+        return it_ == other.it_;
+    }
+};
+
+template <typename It>
+reverse_iterator(It) -> reverse_iterator<It>;
+
+template <native_iterable Rng>
+[[nodiscard]] constexpr auto reversed(Rng&& range) -> range_view<reverse_iterator<iter_t<Rng>>>
+{
+#ifdef _DEBUG
+    static_assert(std::is_trivially_destructible_v<Rng> || !std::is_rvalue_reference_v<Rng&&>);
+#endif
+    return { _end(range), _begin(range) };
 }
 
 template <typename T>
-[[nodiscard]] constexpr auto reverse(range_view<std::reverse_iterator<T>> rng) -> range_view<T>
+[[nodiscard]] constexpr auto reversed(range_view<reverse_iterator<T>> rng) -> range_view<T>
 {
     return { rng.begin().base(), rng.end().base() };
 }

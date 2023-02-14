@@ -1,25 +1,16 @@
 #pragma once
 
+#include <fd/dll_notification.h>
 #include <fd/type_name.h>
 
 #include <windows.h>
 #include <winternl.h>
 
-/*
-server,
-client,
-engine,
-dataCache,
-materialSystem,
-vstdlib,
-vgui2,
-vguiMatSurface,
-vphysics,
-inputSystem,
-studioRender,
-shaderApiDx9,
-serverBrowser
-*/
+#include <list>
+#include <mutex>
+#include <optional>
+#include <semaphore>
+#include <vector>
 
 namespace fd
 {
@@ -36,7 +27,7 @@ struct library_info
     pointer entry_;
 
   public:
-    library_info(pointer entry = 0);
+    library_info(pointer entry = nullptr);
 
     bool is_root() const;
     bool unload() const;
@@ -44,8 +35,6 @@ struct library_info
     pointer   get() const;
     pointer   operator->() const;
     reference operator*() const;
-
-    explicit operator bool() const;
 
     wstring_view path() const;
     wstring_view name() const;
@@ -58,30 +47,35 @@ struct library_info
         log_class_info(type_name<T>(), addr);
     }
 
-    void*                 find_export(string_view name, bool notify = true) const;
-    IMAGE_SECTION_HEADER* find_section(string_view name, bool notify = true) const;
+    void*                 find_export(string_view name) const;
+    IMAGE_SECTION_HEADER* find_section(string_view name) const;
 
-    void* find_signature(string_view sig, bool notify = true) const;
+    void* find_signature(string_view sig) const;
 
   private:
-    void* find_vtable_class(string_view name, bool notify) const;
-    void* find_vtable_struct(string_view name, bool notify) const;
-    void* find_vtable_unknown(string_view name, bool notify) const;
+    void* find_vtable_class(string_view name) const;
+    void* find_vtable_struct(string_view name) const;
+    void* find_vtable_unknown(string_view name) const;
 
   public:
-    void* find_vtable(string_view name, bool notify = true) const;
-    void* find_vtable(const type_info& info, bool notify = true) const;
+    void* find_vtable(string_view name) const;
+    void* find_vtable(const type_info& info) const;
 
     template <class T>
-    T* find_vtable(const bool notify = true) const
+    T* find_vtable() const
     {
-        return static_cast<T*>(find_vtable(typeid(T), notify));
+        return static_cast<T*>(find_vtable(typeid(T)));
     }
 };
 
-library_info find_library(PVOID baseAddress, bool notify = true);
-library_info find_library(wstring_view name, bool notify = true);
-library_info wait_for_library(wstring_view name, bool notify = true); // todo: delay or cancel
+bool operator==(library_info info, std::nullptr_t);
+bool operator==(library_info info, library_info other);
+bool operator==(library_info info, PVOID baseAddress);
+bool operator==(library_info info, wstring_view name);
+bool operator!(library_info info);
+
+library_info find_library(PVOID baseAddress);
+library_info find_library(wstring_view name);
 
 struct csgo_library_info : library_info
 {
@@ -89,10 +83,109 @@ struct csgo_library_info : library_info
 
     csgo_library_info(library_info info);
 
-    void* find_interface(string_view name, bool notify = true) const;
-    void* find_interface(const void* createInterfaceFn, string_view name, bool notify = true) const;
+    void* find_interface(string_view name) const;
+    void* find_interface(const void* createInterfaceFn, string_view name) const;
 };
 
-library_info current_library_info(bool notify = true);
-void         set_current_library(HMODULE handle, bool notify = true);
+library_info current_library_info();
+void         set_current_library(HMODULE handle);
+
+struct _dll_notification_funcs
+{
+    LdrRegisterDllNotification   reg;
+    LdrUnregisterDllNotification unreg;
+};
+
+#if 0
+template <class T>
+class _thread_safe_storage_accesser
+{
+    T*          storage_;
+    std::mutex* mtx_;
+
+  public:
+    _thread_safe_storage_accesser(const _thread_safe_storage_accesser&)            = delete;
+    _thread_safe_storage_accesser& operator=(const _thread_safe_storage_accesser&) = delete;
+
+    ~_thread_safe_storage_accesser()
+    {
+        mtx_->unlock();
+    }
+
+    _thread_safe_storage_accesser(T* storage, std::mutex* mtx)
+        : storage_(storage)
+        , mtx_(mtx)
+    {
+        mtx->lock();
+    }
+
+    T* operator->() const
+    {
+        return storage_;
+    }
+
+    T& operator*() const
+    {
+        return *storage_;
+    }
+};
+
+template <class T>
+class _thread_safe_storage
+{
+    T                  storage_;
+    mutable std::mutex mtx_;
+
+  public:
+    _thread_safe_storage_accesser<T> get()
+    {
+        return { storage_, &mtx_ };
+    }
+
+    _thread_safe_storage_accesser<const T> get() const
+    {
+        return { storage_, &mtx_ };
+    }
+};
+#endif
+
+struct _delayed_library_info
+{
+    wstring_view          name;
+    std::binary_semaphore sem;
+
+    _delayed_library_info(wstring_view name)
+        : name(name)
+        , sem(0)
+    {
+    }
+};
+
+class library_info_cache
+{
+    mutable std::mutex mtx_;
+
+    std::vector<library_info>        cache_;
+    std::list<_delayed_library_info> delayed_;
+
+    PVOID cookie_;
+
+    inline static std::optional<_dll_notification_funcs> notif_;
+
+    void release_delayed();
+
+  public:
+    ~library_info_cache();
+    library_info_cache();
+
+    void store(PVOID baseAddress, wstring_view name);
+    void remove(PVOID baseAddress, wstring name);
+
+    library_info get(PVOID baseAddress) const;
+    library_info get(wstring_view name) const;
+
+    library_info wait(wstring_view name);
+    void         destroy();
+};
+
 } // namespace fd

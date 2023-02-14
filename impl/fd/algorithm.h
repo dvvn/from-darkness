@@ -13,6 +13,18 @@ static constexpr auto _to_iter_value(const T& val)
     return static_cast<std::iter_value_t<It>>(val);
 }
 
+template <typename T>
+concept can_iter_value = requires() { typename std::iter_value_t<T>; };
+
+template <typename It, typename T>
+static constexpr decltype(auto) _to_iter_value_equal(T&& val)
+{
+    if constexpr (std::convertible_to<T, std::iter_value_t<It>>)
+        return static_cast<std::iter_value_t<It>>(val);
+    else
+        return std::forward<T>(val);
+}
+
 template <typename It, typename Fn>
 static constexpr void _iterate(It begin, It end, Fn fn)
 {
@@ -219,31 +231,31 @@ static constexpr It _find_unchecked(It begin, const T val)
 template <typename V, typename It>
 concept can_find_value_inside = requires(It it, V val) {
                                     *it == val;
-                                    *it == _to_iter_value<It>(val);
+                                    *it == _to_iter_value_equal<It>(val);
                                 };
 
 template <typename It, can_find_value_inside<It> T>
 constexpr It find(It begin, It end, const T& val)
 {
-    return _find(decay_iter(begin), decay_iter(end), _to_iter_value<It>(val));
+    return _find(decay_iter(begin), decay_iter(end), _to_iter_value_equal<It>(val));
 }
 
 template <typename It, can_find_value_inside<It> T>
 constexpr It find(It begin, size_t rngSize, const T& val)
 {
-    return _find(decay_iter(begin), rngSize, _to_iter_value<It>(val));
+    return _find(decay_iter(begin), rngSize, _to_iter_value_equal<It>(val));
 }
 
 template <native_iterable T, can_find_value_inside<iter_t<T>> V>
 constexpr iter_t<T> find(T&& rng, const V& val)
 {
-    return _find(_begin(rng), _size_or_end(rng), _to_iter_value<iter_t<T>>(val));
+    return _find(_begin(rng), _size_or_end(rng), _to_iter_value_equal<iter_t<T>>(val));
 }
 
 template <typename P, can_find_value_inside<P> V>
 constexpr P find(P rng, const V& val) requires(std::is_pointer_v<P>)
 {
-    return _find_unchecked(rng, _to_iter_value<P>(val));
+    return _find_unchecked(rng, _to_iter_value_equal<P>(val));
 }
 
 // template <typename It>

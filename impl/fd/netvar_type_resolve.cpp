@@ -145,18 +145,18 @@ struct not_explicit_string : string
     }
 };
 
-static not_explicit_string _type_recv_prop(const valve::recv_prop* prop)
+static not_explicit_string _type_recv_prop(string_view name, const valve::recv_prop* prop)
 {
     using pt = valve::recv_prop_type;
 
     switch (prop->type)
     {
     case pt::DPT_Int:
-        return extract_type_integer(prop->name);
+        return extract_type_integer(name);
     case pt::DPT_Float:
         return type_name<float>();
     case pt::DPT_Vector:
-        return extract_type_vec3(prop->name);
+        return extract_type_vec3(name);
     case pt::DPT_VectorXY:
         return type_name<valve::vector2>(); // 3d vector. z unused
     case pt::DPT_String:
@@ -164,11 +164,11 @@ static not_explicit_string _type_recv_prop(const valve::recv_prop* prop)
     case pt::DPT_Array: {
         const auto prevProp = prop - 1;
         FD_ASSERT(string_view(prevProp->name).ends_with("[0]"));
-        const auto type = extract_type(prevProp);
+        const auto type = extract_type(name, prevProp);
         return extract_type_std_array(type, prop->elements_count);
     }
     case pt::DPT_DataTable: {
-#if 1
+#if 0
         return prop->name;
 #else
         FD_ASSERT("Data table type must be manually resolved!");
@@ -204,16 +204,16 @@ string extract_type_valve_vector(const string_view type)
 #endif
 }
 
-string_view extract_type_vec3(const string_view type)
+string_view extract_type_vec3(const string_view name)
 {
-    FD_ASSERT(!is_digit(type[0]));
+    FD_ASSERT(!is_digit(name[0]));
 
     constexpr auto qang = type_name<valve::qangle>();
     constexpr auto vec  = type_name<valve::vector3>();
 
-    if (_check_prefix(type, "ang"))
+    if (_check_prefix(name, "ang"))
         return qang;
-    const auto netvarName = type.substr(str_len("m_***"));
+    const auto netvarName = name.substr(str_len("m_***"));
     if (netvarName.size() >= str_len("angles"))
     {
         const auto anglesWordPos = netvarName.find("ngles");
@@ -232,9 +232,9 @@ static bool operator==(const string_view str, const char c)
     return str[0] == c;
 }
 
-string_view extract_type_integer(const string_view type)
+string_view extract_type_integer(const string_view name)
 {
-    const auto prefix = _find_prefix(type, _prefix_max_length(3));
+    const auto prefix = _find_prefix(name, _prefix_max_length(3));
     switch (prefix.size())
     {
     case 1: {
@@ -244,32 +244,35 @@ string_view extract_type_integer(const string_view type)
             return type_name<uint8_t>();
         if (prefix == 'h')
             return type_name<valve::base_handle>();
+        break;
     }
     case 2: {
         if (prefix == "un")
             return type_name<uint32_t>();
         if (prefix == "ch")
             return type_name<uint8_t>();
-        if (prefix == "fl" && type.ends_with("Time")) //  SimulationTime int ???
+        if (prefix == "fl" && name.ends_with("Time")) //  SimulationTime int ???
             return type_name<float>();
+        break;
     }
     case 3: {
         if (prefix == "clr")
             return type_name<valve::color>(); // not sure
+        break;
     }
-    default:
-        return type_name<int32_t>();
     };
+
+    return type_name<int32_t>();
 }
 
 //---
 
-string extract_type(const valve::recv_prop* prop)
+string extract_type(const string_view name, const valve::recv_prop* prop)
 {
-    return _type_recv_prop(prop);
+    return _type_recv_prop(name, prop);
 }
 
-string_view extract_type(const valve::data_map_description* field)
+string_view extract_type(const string_view name, const valve::data_map_description* field)
 {
     using ft = valve::data_map_description_type;
 
@@ -282,11 +285,11 @@ string_view extract_type(const valve::data_map_description* field)
     case ft::FIELD_STRING:
         return type_name<char*>(); // string_t at real
     case ft::FIELD_VECTOR:
-        return extract_type_vec3(field->name);
+        return extract_type_vec3(name);
     case ft::FIELD_QUATERNION:
         return type_name<valve::quaternion>();
     case ft::FIELD_INTEGER:
-        return extract_type_integer(field->name);
+        return extract_type_integer(name);
     case ft::FIELD_BOOLEAN:
         return type_name<bool>();
     case ft::FIELD_SHORT:
@@ -335,31 +338,31 @@ string_view extract_type(const valve::data_map_description* field)
     }
 }
 
-string_view extract_type_by_prefix(const string_view type, const valve::recv_prop* prop)
+string_view extract_type_by_prefix(const string_view name, const valve::recv_prop* prop)
 {
     using pt = valve::recv_prop_type;
 
     switch (prop->type)
     {
     case pt::DPT_Int:
-        return _check_int_prefix(type);
+        return _check_int_prefix(name);
     case pt::DPT_Float:
-        return _check_float_prefix(type);
+        return _check_float_prefix(name);
     default:
         return {};
     }
 }
 
-string_view extract_type_by_prefix(const string_view type, const valve::data_map_description* field)
+string_view extract_type_by_prefix(const string_view name, const valve::data_map_description* field)
 {
     using ft = valve::data_map_description_type;
 
     switch (field->type)
     {
     case ft::FIELD_INTEGER:
-        return _check_int_prefix(type);
+        return _check_int_prefix(name);
     case ft::FIELD_FLOAT:
-        return _check_float_prefix(type);
+        return _check_float_prefix(name);
     default:
         return {};
     }

@@ -24,18 +24,21 @@ using netvar_info_source = std::variant< //--
 
 class netvar_info final : public basic_netvar_info
 {
-    size_t              offset_;
-    netvar_info_source  source_;
-    size_t              size_; // for arrays
+    size_t             offset_;
+    netvar_info_source source_;
+    size_t             arraySize_; // for arrays
+
     mutable string_view name_;
     mutable string      type_;
 
   public:
-    netvar_info(size_t offset, netvar_info_source source, size_t size = 0, string_view name = {});
+    netvar_info(size_t offset, netvar_info_source source, size_t arraySize = 0, string_view name = {});
 
     size_t      offset() const override;
     string_view name() const override;
     string_view type() const override;
+
+    size_t array_size() const;
 };
 
 template <typename Fn>

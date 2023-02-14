@@ -316,54 +316,99 @@ static auto _get_props_range(const valve::recv_table* recvTable)
     return std::pair(front, back + 1);
 }
 
+static size_t _get_array_size(const valve::recv_prop* arrayStart, const valve::recv_prop* arrayEnd)
+{
+    size_t arraySize = 1;
+    for (auto& tmp : range_view(arrayStart + 1, arrayEnd))
+    {
+        if (arrayStart->type != tmp.type)
+            break;
+        ++arraySize;
+    }
+
+    return arraySize;
+}
+
+static size_t _get_array_size(const valve::recv_prop* arrayStart, const valve::recv_prop* arrayEnd, const string_view propName)
+{
+    // todo: try extract size from length proxy
+
+    size_t arraySize = 1;
+    for (auto& tmp : range_view(arrayStart + 1, arrayEnd))
+    {
+        if (arrayStart->type != tmp.type)
+            break;
+        if (!equal(propName, tmp.name))
+            break;
+        ++arraySize;
+    }
+
+    return arraySize;
+}
+
+static size_t _get_array_size(const basic_netvar_info* info)
+{
+    FD_ASSERT(dynamic_cast<const netvar_info*>(info));
+    return static_cast<const netvar_info*>(info)->array_size();
+}
+
 static size_t _store(const valve::recv_prop* arrayStart, const string_view propName, const valve::recv_prop* arrayEnd, netvar_table* customTable, size_t extraOffset = 0)
 {
     FD_ASSERT(arrayStart->type != valve::DPT_DataTable, "Array DataTable detected!");
 
     if (!propName.ends_with("[0]"))
-        return 0;
-
-    const auto realPropName = propName.substr(0, propName.size() - 3);
-    FD_ASSERT(!realPropName.ends_with(']'));
-    // if (netvarTable_->find(realPropName)) // todo: debug break for type check!
-    //   return { realPropName, 0 };
-
-#ifdef _DEBUG
-    __debugbreak();
-#endif
-    // todo: try extract size from length proxy
-    size_t arraySize = 1;
-    for (auto& tmp : range_view(arrayStart + 1, arrayEnd))
     {
-        if (arrayStart->type != tmp.type) // todo: check is name still same after this (because previously we store this name without array braces)
-            break;
-#if 1
-        if (realPropName != tmp.name)
-            break;
-#else
-        // name.starts_with(real_prop_name)
-        if (std::memcmp(arrayStart.name, real_prop_name.data(), real_prop_name.size()) != 0)
-            break;
-        // name.size() == real_prop_name.size()
-        if (arrayStart.name[real_prop_name.size()] != '\0')
-            break;
-#endif
-        ++arraySize;
+        const auto realPropName = propName.substr(0, propName.find('['));
+        return _get_array_size(arrayStart, arrayEnd, realPropName);
     }
 
+    const auto realPropName = propName.substr(0, propName.size() - 3);
+    FD_ASSERT(!realPropName.contains(']'));
+
+    if (const auto found = customTable->find(realPropName); found != nullptr)
+        return _get_array_size(found);
+
+    const auto arraySize = _get_array_size(arrayStart, arrayEnd, realPropName);
     customTable->add(new netvar_info(arrayStart->offset + extraOffset, arrayStart, arraySize, realPropName));
-    return arraySize - 1;
+
+    return arraySize;
 }
 
 static void _store(const valve::recv_prop* prop, const string_view propName, netvar_table* customTable, size_t extraOffset = 0)
 {
+    if (auto found = customTable->find(propName); found != nullptr)
+    {
+        (void)found;
+        return;
+    }
+
     customTable->add(new netvar_info(prop->offset + extraOffset, prop, 0, propName));
+}
+
+static size_t _store(const valve::recv_prop* arrayStart, const valve::recv_table* recvTable, const valve::recv_prop* arrayEnd, netvar_table* customTable, size_t extraOffset = 0)
+{
+    FD_ASSERT(arrayStart->type != valve::DPT_DataTable, "not implemented");
+
+    const string_view tableName(recvTable->name);
+    if (const auto found = customTable->find(tableName); found != nullptr)
+        return _get_array_size(found);
+
+    const auto arraySize = _get_array_size(arrayStart, arrayEnd);
+    customTable->add(new netvar_info(arrayStart->offset + extraOffset, arrayStart, arraySize, tableName));
+    return arraySize;
 }
 
 // merge data tables
 static void _parse(const valve::recv_table* recvTable, netvar_table* customTable, size_t rootOffset = 0)
 {
-    const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
+    auto [propsBegin, propsEnd] = _get_props_range(recvTable);
+
+    if (propsBegin == propsEnd)
+        return;
+
+    if (propsBegin->name[0] == '0')
+        propsBegin += _store(propsBegin, recvTable, propsEnd, customTable, rootOffset);
+
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
         const string_view propName(prop->name);
@@ -372,7 +417,7 @@ static void _parse(const valve::recv_table* recvTable, netvar_table* customTable
         if (prop->type != valve::DPT_DataTable)
         {
             if (propName.ends_with(']'))
-                prop += _store(prop, propName, propsEnd, customTable, rootOffset);
+                prop += _store(prop, propName, propsEnd, customTable, rootOffset) - 1;
             else
                 _store(prop, propName, customTable, rootOffset);
         }
@@ -402,7 +447,9 @@ static string_view _correct_recv_name(const char* name)
 // store all data tables
 static void _parse(const valve::recv_table* recvTable, netvars_storage* storage)
 {
-    const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
+    FD_ASSERT_PANIC("WIP");
+
+    /*const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
     if (std::distance(propsBegin, propsEnd) == 0)
         return;
     const auto tableName = _correct_recv_name(recvTable->name);
@@ -425,7 +472,7 @@ static void _parse(const valve::recv_table* recvTable, netvars_storage* storage)
         {
             _parse(dt, storage);
         }
-    }
+    }*/
 }
 
 void netvars_storage::iterate_client_class(const valve::client_class* rootClass, const string_view debugName)
@@ -605,7 +652,7 @@ void netvars_storage::log_netvars(netvars_log& data)
     }
 
     namespace jd = nlohmann::detail; // NOLINT(misc-unused-alias-decls)
-    data.buff.reserve(1024 * 180);   // filse size ~180 kb
+    data.buff.reserve(1024 * 210);   // filse size ~210 kb
     jd::serializer<json_unsorted>(jd::output_adapter(data.buff), data.filler).dump(jsRoot, data.indent > 0, false, data.indent);
     data.buff.shrink_to_fit();
 
@@ -668,53 +715,77 @@ void netvars_storage::generate_classes(netvars_classes& data)
 
         const auto className = rawTable.name();
 
+        constexpr string_view _formatOff = "// clang-format off\n"
+                                           "// ReSharper disable All\n\n";
+        constexpr string_view _assertGap = "#ifndef FD_ASSERT\n"
+                                           "#define FD_ASSERT(...) (void)0\n"
+                                           "#endif\n\n";
+
         source.clear();
         {
             const auto offsetsClass = make_string(className, "_offsets");
 
-            // clang-format off
-            write_string(source,
-                         "// clang-format off\n",
-                         "#ifndef FD_ASSERT\n#define FD_ASSERT(...) #endif\n\n", //
-                         "static struct\n{\n");
-            // clang-format on
+            write_string(
+                source,
+                _formatOff,
+                _assertGap, // STRUCT START
+                "static struct\n{\n"
+            );
             for (auto& i : table)
             {
-                write_string(source, "\tsize_t ", i.name, " = -1;\n");
+                write_string(
+                    source, //
+                    format("\tsize_t {} = -1;\n", i.name)
+                );
             };
-            write_string(source, "\n\tvoid init()\n\t{\n");
+            write_string(
+                source, // INIT START
+                "\n\tvoid init()\n"
+                "\t{\n"
+            );
             for (auto& i : table)
             {
-                // clang-format off
-                write_string(source, 
-                             "\t\tFD_ASSERT(", i.name, " == -1, already set!);\n",
-                             "\t\t", i.name, " = Netvars->get_offset(", className, ", ", i.name, ");\n");
-                // clang-format on
-            };
-            write_string(source, "} ", offsetsClass, ";\n\n");
+                write_string(
+                    source, //
+                    format("\t\tFD_ASSERT({} == -1, \"already set!\";\n", i.name),
+                    format("\t\t{} = Netvars->get_offset({}, {});\n", i.name, className, i.name)
+                );
+            }
+            write_string(
+                source, // INIT END
+                "\t}\n"
+            );
+            write_string(
+                source, // STRUCT END
+                "} ",
+                format("{};\n\n", offsetsClass)
+            );
             for (auto& i : table)
             {
-                // clang-format off
-                write_string(source,
-                             i.typeOut, ' ', className, "::", i.name, "()\n",
-                             "{\n",
-                             "\tFD_ASSERT(", offsetsClass, '.', i.name, " != -1, not set!);\n",
-                             "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + ", offsetsClass, '.', i.name, ";\n",
-                             "\treturn ", i.typeCast, "(addr);\n",
-                             "}\n");
-                // clang-format on
+                write_string(
+                    source, //
+                    format("{} {}::{}()\n", i.typeOut, className, i.name),
+                    "{\n",
+                    format("\tFD_ASSERT({}.{} != -1, \"not set!\");\n", offsetsClass, i.name),
+                    format("\tconst auto addr = reinterpret_cast<uintptr_t>(this) + {}.{};\n", offsetsClass, i.name),
+                    format("\treturn {}(addr);\n", i.typeCast),
+                    "}\n"
+                );
             };
         }
 
         header.clear();
         {
+            write_string(
+                header, //
+                _formatOff
+            );
             for (auto& i : table)
             {
-                // clang-format off
-                write_string(header,
-                             "// clang-format off\n\n",
-                              i.typeOut, ' ', i.name, "();\n");
-                // clang-format on
+                write_string(
+                    header, //
+                    format("{} {}():\n", i.typeOut, i.name)
+                );
             };
         }
 

@@ -7,7 +7,7 @@ namespace fd
 netvar_info::netvar_info(const size_t offset, const netvar_info_source source, const size_t size, const string_view name)
     : offset_(offset)
     , source_(source)
-    , size_(size)
+    , arraySize_(size)
     , name_(name)
 {
 }
@@ -34,7 +34,7 @@ string_view netvar_info::name() const
             },
             source_
         );
-        if (size_ > 0)
+        if (arraySize_ > 0)
         {
             FD_ASSERT(name.ends_with("[0]"));
             name.remove_suffix(3);
@@ -51,25 +51,31 @@ string_view netvar_info::type() const
     {
         std::visit(
             [&](auto val) {
-                auto tmpType = extract_type(val);
-                if (size_ <= 1)
+                auto name = this->name();
+                if (arraySize_ <= 1)
                 {
-                    type_ = std::move(tmpType);
-                    return;
+                    type_ = extract_type(name, val);
                 }
-                if (size_ == 3)
+                else
                 {
-                    type_ = extract_type_by_prefix(tmpType, val);
-                    if (!type_.empty())
-                        return;
+                    if (arraySize_ == 3)
+                    {
+                        type_ = extract_type_by_prefix(name, val);
+                        if (!type_.empty())
+                            return;
+                    }
+                    type_ = extract_type_std_array(extract_type(name, val), arraySize_);
                 }
-
-                type_ = extract_type_std_array(tmpType, size_);
             },
             source_
         );
     }
     return type_;
+}
+
+size_t netvar_info::array_size() const
+{
+    return arraySize_;
 }
 
 //----

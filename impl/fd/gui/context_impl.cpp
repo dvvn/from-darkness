@@ -421,7 +421,7 @@ void hotkeys_storage::fire(const hotkey_access access)
 
 context_impl::~context_impl()
 {
-    if (find_library(L"d3d9.dll", false))
+    if (find_library(L"d3d9.dll") != nullptr)
         ImGui_ImplDX9_Shutdown();
     ImGui::Shutdown();
 }
