@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef _DEBUG
-#include <fd/assert_handler.h>
+#include <fd/assert_runner.h>
 
 #define FD_ASSERT(_EXPRESSION_OR_MESSAGE_, /*message for expression*/...) \
     /**/                                                                  \

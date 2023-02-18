@@ -2,7 +2,7 @@
 #include <fd/format.h>
 #include <fd/functional.h>
 #include <fd/json.h>
-#include <fd/logger.h>
+#include <fd/log.h>
 #include <fd/netvar_storage_impl.h>
 #include <fd/netvar_type_resolve.h>
 #include <fd/string_info.h>
@@ -612,7 +612,7 @@ void netvars_storage::store_handmade_netvars()
     // ForceBone + 4
     baseanim->add<int>(SIG(client, "89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10", plus(2), deref<1>()), "m_iMostRecentModelBoneCounter");
 
-    invoke(logger, "netvars - handmade netvars stored");
+    invoke(log, "netvars - handmade netvars stored");
 }
 #endif
 
@@ -679,7 +679,7 @@ void netvars_storage::log_netvars(netvars_log& data)
     data.buff.shrink_to_fit();
 
     if (log_active())
-        log_unsafe(make_string(L"netvars - logs will be written to ", _drop_default_path(data.dir, netvars_log().dir), data.file.name, data.file.extension));
+        log_unsafe(make_string(L"netvars - log will be written to ", _drop_default_path(data.dir, netvars_log().dir), data.file.name, data.file.extension));
 }
 
 struct generate_info

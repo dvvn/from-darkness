@@ -1,7 +1,7 @@
 #include <fd/assert.h>
 #include <fd/functional.h>
 #include <fd/hook_impl.h>
-#include <fd/logger.h>
+#include <fd/log.h>
 
 #include <subhook.h>
 

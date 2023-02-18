@@ -1,15 +1,12 @@
 // ReSharper disable CppUserDefinedLiteralSuffixDoesNotStartWithUnderscore
 #pragma once
 
-#ifdef _DEBUG
-#include <fd/exception.h>
-#endif
-
 #include <fd/algorithm.h>
 
 #include <array>
 #include <iterator>
 #include <string>
+#include <algorithm>
 
 #pragma warning(push)
 #pragma warning(disable : 4455)

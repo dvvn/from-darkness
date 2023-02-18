@@ -4,12 +4,11 @@
 #include <fd/assert.h>
 #include <fd/functional.h>
 #include <fd/library_info.h>
-#include <fd/logger.h>
+#include <fd/log.h>
 #include <fd/mem_scanner.h>
 #include <fd/string_info.h>
 #include <fd/views.h>
 
-#include "demangle_symbol.h"
 #include "dll_notification.h"
 
 #include <semaphore>
@@ -309,7 +308,8 @@ static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_v
 static constexpr auto _HexDigits = "0123456789ABCDEF";
 
 template <typename T>
-[[nodiscard]] static constexpr auto _bytes_to_sig(const T* bytes, const size_t size)
+[[nodiscard]]
+static constexpr auto _bytes_to_sig(const T* bytes, const size_t size)
 {
     const auto hexLength = /*(size << 1) + size*/ size * 3;
 
@@ -395,7 +395,7 @@ static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_vi
 #endif
         if (name.contains('@'))
         {
-            const auto buff = demangle_symbol(typeDescriptor);
+            const auto buff = string_view(" not implemented"); // demangle_symbol(typeDescriptor);
             write_string(dName, string_view(buff).substr(buff.find(' ') + 1));
         }
         else if (name.contains(' '))

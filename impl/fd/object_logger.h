@@ -1,13 +1,13 @@
 #pragma once
 
-#include <fd/logger.h>
+#include <fd/log.h>
 //#include <fd/string.h>
 
 #include <source_location>
 
 namespace fd
 {
-    class object_logger
+    class object_log
     {
         string_view object_name_;
 
@@ -23,12 +23,12 @@ namespace fd
         }
 
       public:
-        ~object_logger()
+        ~object_log()
         {
             invoke(*this, "destroyed");
         }
 
-        object_logger(const string_view object_name = _Fix_fn_name(std::source_location::current().function_name()))
+        object_log(const string_view object_name = _Fix_fn_name(std::source_location::current().function_name()))
             : object_name_(object_name)
         {
             invoke(*this, "created");
@@ -42,7 +42,7 @@ namespace fd
         template <typename Str, typename... Args>
         void operator()(const Str& str, Args&&... args) const
         {
-            invoke(logger, bind_front(make_string, object_name_, ": ", str), std::forward<Args>(args)...);
+            invoke(log, bind_front(make_string, object_name_, ": ", str), std::forward<Args>(args)...);
         }
     };
 } // namespace fd

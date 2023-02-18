@@ -1,16 +1,11 @@
 #pragma once
 
-#include <fd/functional.h>
 #include <fd/gui/context.h>
-#include <fd/unordered_map.h>
 
 #include <imgui_internal.h>
 
 #include <Windows.h>
 #include <d3d9.h>
-
-#include <span>
-#include <vector>
 
 namespace fd::gui
 {
@@ -162,10 +157,6 @@ struct hotkeys_storage : unordered_map<hotkey_source, hotkey>
 
 #endif
 
-using context_callback       = function<void() const>;
-using context_callbacks      = std::vector<context_callback>;
-using context_callbacks_view = std::span<context_callback>;
-
 class context_impl : public basic_context
 {
 #ifdef _DEBUG
@@ -173,8 +164,6 @@ class context_impl : public basic_context
 #endif
     ImGuiContext context_;
     ImFontAtlas  fontAtlas_;
-
-    std::vector<context_callback> callbacks_;
 
 #ifdef FD_HAVE_HOTKEY
     hotkeys_storage hotkeys_;
@@ -187,9 +176,12 @@ class context_impl : public basic_context
     ~context_impl() override;
     context_impl();
 
-    void init(bool storeSettings = false);
-    void init(IDirect3DDevice9* d3d);
-    void init(HWND hwnd);
+    [[nodiscard]]
+    bool init(bool storeSettings = false);
+    [[nodiscard]]
+    bool init(IDirect3DDevice9* d3d);
+    [[nodiscard]]
+    bool init(HWND hwnd);
 
     void release_textures() override;
 

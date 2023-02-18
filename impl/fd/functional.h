@@ -2,16 +2,20 @@
 
 #include <type_traits>
 
+#if 0
 #ifdef _DEBUG // i dont wanna read shit from std
 #undef __cpp_lib_bind_front
 #undef __cpp_lib_bind_back
+#endif
 #endif
 
 #if !defined(__cpp_lib_bind_front) || !defined(__cpp_lib_bind_back)
 #include <fd/tuple.h>
 #endif
 
+#if __has_include(<function2/function2.hpp>)
 #include <function2/function2.hpp>
+#endif
 
 #include <functional>
 
@@ -131,10 +135,12 @@ struct lazy_invoke<Fn, false> : lazy_invoke_base<Fn>
 template <typename Fn>
 lazy_invoke(Fn) -> lazy_invoke<std::decay_t<Fn>>;
 
+#ifdef FU2_INCLUDED_FUNCTION2_HPP_
 using fu2::function;
 using fu2::function_view;
 using fu2::unique_function;
 
 using fu2::detail::overloading::overload;
 using fu2::detail::overloading::overload_impl;
+#endif
 } // namespace fd

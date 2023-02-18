@@ -11,27 +11,35 @@ set(CMAKE_C_STANDARD_REQUIRED on)
 
 set(_PROJ_NAME fd)
 string(TOUPPER ${_PROJ_NAME} _PROJ_NAME_UPPER)
-set(_PROJ_IMPL_DIR ${CMAKE_CURRENT_LIST_DIR}/impl)
-set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
 
 project(${_PROJ_NAME} CXX)
 
-include(FetchContent)
-set(FETCHCONTENT_QUIET off)
-set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps)
+set(_PROJ_IMPL_DIR ${PROJECT_SOURCE_DIR}/impl)
+set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
 
-if(CMAKE_CONFIGURATION_TYPES MATCHES Debug)
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES "")
+    set(CMAKE_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
+endif()
+
+include(FetchContent)
+set(GIT_SHALLOW true)
+set(FETCHCONTENT_QUIET off)
+set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps1)
+
+set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_DEBUG_POSTFIX _d)
   set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 endif()
 
 include(ProcessorCount)
 ProcessorCount(_CPUS)
-message(DEBUG "cpu count: ${_CPUS}")
+message(DEBUG "Cpu's count: ${_CPUS}")
 
 if(MSVC)
   # Whole program optimization
-  if(NOT CMAKE_CONFIGURATION_TYPES MATCHES Debug)
+  if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     add_compile_options(/GL)
     add_link_options(/LTCG)
     add_compile_options(/Qpar /Qvec-report:1 /Qpar-report:1)
@@ -59,81 +67,102 @@ if(MSVC)
   set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF")
 endif()
 
-FetchContent_Declare(vc GIT_REPOSITORY https://github.com/VcDevel/Vc.git GIT_TAG 1.4)
-#set(BUILD_TESTING off)
-#FetchContent_MakeAvailable(vc)
-FetchContent_Populate(vc)
-include(${vc_SOURCE_DIR}/cmake/OptimizeForArchitecture.cmake)
-OptimizeForArchitecture()
-add_compile_options(${Vc_ARCHITECTURE_FLAGS})
-#target_compile_options(Vc PUBLIC ${Vc_ARCHITECTURE_FLAGS})
+function(FetchContent_Load _owner _name)
+    set(_path ${_owner}/${_name})
+    set(_deps ${PROJECT_SOURCE_DIR}/.deps/${_path}/)
+    set(_proj ${_name})
 
-#if(CMAKE_CONFIGURATION_TYPES MATCHES RelWithDebInfo)
-#	add_compile_definitions(_DEBUG_RELEASE)
-#endif()
+    set(_SOURCE_DIR "${_GIT_DIR}/${_path}/")
+    set(_SUBBUILD_DIR "${_deps}/subbuild/")
+    set(_BINARY_DIR "${_deps}/bin/")
 
-FetchContent_Declare(freetype GIT_REPOSITORY https://github.com/freetype/freetype.git)
+    FetchContent_Declare(${_proj}        
+        SOURCE_DIR ${_SOURCE_DIR}
+        SUBBUILD_DIR ${_SUBBUILD_DIR}
+        BINARY_DIR ${_BINARY_DIR}
+        GIT_REPOSITORY "https://github.com/${_path}.git"
+        ${ARGN}
+    )    
+
+    #[[
+    if(EXISTS ${_SOURCE_DIR}/CMakeLists.txt)
+        FetchContent_MakeAvailable(${_proj})
+    else()
+        FetchContent_Populate(${_proj})
+    endif()
+    ]]
+
+    set(${_proj}_SOURCE_DIR ${_SOURCE_DIR} PARENT_SCOPE)
+    set(${_proj}_SUBBUILD_DIR ${_SUBBUILD_DIR} PARENT_SCOPE)
+    set(${_proj}_BINARY_DIR ${_BINARY_DIR} PARENT_SCOPE)
+endfunction()
+
+set(BOOST_RUNTIME_LINK static)
+#set(BOOST_ENABLE_MPI ON)
+FetchContent_Load(boostorg boost)
+FetchContent_MakeAvailable(boost)
+list(APPEND _PROJ_LIBS )
+
 set(DISABLE_FORCE_DEBUG_POSTFIX on)
 set(FT_DISABLE_ZLIB on)
 set(FT_DISABLE_BZIP2 on)
 set(FT_DISABLE_PNG on)
 set(FT_DISABLE_HARFBUZZ on)
 set(FT_DISABLE_BROTLI on)
+FetchContent_Load(freetype freetype)
 FetchContent_MakeAvailable(freetype)
 
-#[[ set(FREETYPE_LIBRARY ${freetype_BINARY_DIR}/${CMAKE_BUILD_TYPE}/freetype${CMAKE_DEBUG_POSTFIX}.lib)
-get_target_property(FREETYPE_INCLUDE_DIRS freetype INTERFACE_INCLUDE_DIRECTORIES)
-FetchContent_Declare(rml GIT_REPOSITORY https://github.com/mikke89/RmlUi.git GIT_TAG 4.4)
-FetchContent_MakeAvailable(rml)
-unset(FREETYPE_LIBRARY)
-unset(FREETYPE_INCLUDE_DIRS) ]]
-
-FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui.git)
+FetchContent_Load(ocornut imgui)
 FetchContent_Populate(imgui)
 
-FetchContent_Declare(xxhct GIT_REPOSITORY https://github.com/ekpyron/xxhashct.git)
-FetchContent_Populate(xxhct)
-
-FetchContent_Declare(xxh GIT_REPOSITORY https://github.com/Cyan4973/xxHash GIT_TAG dev)
 set(XXHASH_BUILD_XXHSUM off)
-FetchContent_MakeAvailable(xxh)
-add_subdirectory(${xxh_SOURCE_DIR}/cmake_unofficial ${xxh_BINARY_DIR})
+FetchContent_Load(Cyan4973 xxHash GIT_TAG dev)
+FetchContent_Populate(xxHash)
+add_subdirectory(${xxHash_SOURCE_DIR}/cmake_unofficial ${xxHash_BINARY_DIR})
 target_compile_definitions(xxhash PUBLIC XXH_NO_LONG_LONG=1)
 
-#FetchContent_Declare(utf8_conv GIT_REPOSITORY https://github.com/ww898/utf-cpp.git)
-#FetchContent_Populate(utf8_conv)
+FetchContent_Load(ekpyron xxhashct)
+FetchContent_Populate(xxhashct)
 
-FetchContent_Declare(veque GIT_REPOSITORY #[[ https://github.com/Shmoopty/veque.git ]] https://github.com/dvvn/veque.git)
-FetchContent_Populate(veque)
-
-FetchContent_Declare(json GIT_REPOSITORY https://github.com/nlohmann/json.git)
 set(JSON_MultipleHeaders on)
 set(JSON_DisableEnumSerialization on)
+FetchContent_Load(nlohmann json)
 FetchContent_MakeAvailable(json)
 
-FetchContent_Declare(robin_hood GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git)
-FetchContent_MakeAvailable(robin_hood)
+FetchContent_Load(martinus robin-hood-hashing)
+FetchContent_MakeAvailable(robin-hood-hashing)
 
-FetchContent_Declare(atomic_queue GIT_REPOSITORY https://github.com/max0x7ba/atomic_queue.git)
+FetchContent_Load(max0x7ba atomic_queue)
 FetchContent_Populate(atomic_queue)
 
-FetchContent_Declare(function2 GIT_REPOSITORY #[[ https://github.com/Naios/function2.git ]] https://github.com/dvvn/function2.git)
-FetchContent_MakeAvailable(function2)
-
-FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt.git)
 set(FMT_DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+FetchContent_Load(fmtlib fmt)
 FetchContent_MakeAvailable(fmt)
 target_compile_definitions(fmt PUBLIC FMT_USE_FULL_CACHE_DRAGONBOX=1)
 
-FetchContent_Declare(subhook GIT_REPOSITORY https://github.com/Zeex/subhook.git)
 set(SUBHOOK_STATIC on)
 set(SUBHOOK_INSTALL off)
 set(SUBHOOK_TESTS off)
+FetchContent_Load(Zeex subhook)
 FetchContent_MakeAvailable(subhook)
 
-# -------------------
+set(SPDLOG_FMT_EXTERNAL on)
+FetchContent_Load(gabime spdlog GIT_TAG v1.x)
+FetchContent_MakeAvailable(spdlog)
+target_compile_definitions(spdlog PRIVATE basic_runtime=runtime_format_string)
+set_target_properties(spdlog PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
-set(_DEFAULT_FILES_FILTER "/\_+")
+set(SIGMATCH_DEV_MODE off)
+set(SIGMATCH_BUILD_EXAMPLES off)
+set(SIGMATCH_BUILD_BENCHMARKS off)
+set(SIGMATCH_BUILD_TESTS off)
+FetchContent_Load(SpriteOvO sigmatch GIT_TAG dev)
+FetchContent_MakeAvailable(sigmatch)
+
+FetchContent_Load(JustasMasiulis lazy_importer)
+FetchContent_Populate(lazy_importer)
+
+# -------------------
 
 file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
 list(APPEND _IMGUI_FILES ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp)
@@ -144,17 +173,56 @@ else()
 endif()
 add_library(imgui ${_IMGUI_FILES})
 target_link_libraries(imgui PRIVATE freetype)
-target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
-target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="${_PROJ_WORK_DIR}/gui/config.h")
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+target_compile_definitions(imgui PUBLIC
+    IMGUI_USER_CONFIG="${_PROJ_WORK_DIR}/gui/config.h"
+)
 
 #-------
 
-file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp ${_PROJ_WORK_DIR}/*.ixx)
-list(FILTER _PROJ_FILES EXCLUDE REGEX ${_DEFAULT_FILES_FILTER})
+file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp)
 add_library(impl ${_PROJ_FILES})
-target_link_libraries(impl PUBLIC function2 robin_hood::robin_hood nlohmann_json subhook fmt imgui xxhash nlohmann_json)
-target_include_directories(impl PUBLIC ${_PROJ_IMPL_DIR} ${xxhct_SOURCE_DIR} ${veque_SOURCE_DIR}/include ${atomic_queue_SOURCE_DIR}/include)
-target_compile_definitions(impl PUBLIC ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR} ${_PROJ_NAME_UPPER}_ROOT_DIR=${CMAKE_CURRENT_LIST_DIR} #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]])
+target_link_libraries(impl PUBLIC 
+    #function2
+    robin_hood::robin_hood   
+    nlohmann_json
+    subhook
+    fmt
+    imgui
+    xxhash
+    spdlog
+    sigmatch
+    Boost::thread
+    Boost::algorithm
+    Boost::container
+    Boost::ptr_container
+    Boost::container_hash
+    Boost::json
+    Boost::sort
+    Boost::io
+    Boost::dll
+    Boost::process
+    Boost::geometry
+    Boost::gil
+    Boost::uuid
+    Boost::fusion
+    Boost::hana
+)
+target_include_directories(impl PUBLIC
+    ${_PROJ_IMPL_DIR}
+    ${xxhct_SOURCE_DIR}
+    #${veque_SOURCE_DIR}/include
+    #${atomic_queue_SOURCE_DIR}/include
+    ${lazy_importer_SOURCE_DIR}/include
+)
+target_compile_definitions(impl PUBLIC
+    ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
+    ${_PROJ_NAME_UPPER}_ROOT_DIR=${CMAKE_CURRENT_LIST_DIR}
+    #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]]
+)
 
 file(GLOB_RECURSE _GUI_TEST_FILES ${_PROJ_IMPL_DIR}/gui_test/*.cpp ${_PROJ_IMPL_DIR}/gui_test/*.ixx)
 add_executable(gui_test ${_GUI_TEST_FILES})

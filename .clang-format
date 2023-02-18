@@ -1,9 +1,12 @@
 ﻿---
 BasedOnStyle: Microsoft
+Standard: Latest
 AlignConsecutiveAssignments: AcrossComments #Consecutive
 AlignConsecutiveMacros: AcrossComments
 AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
 AlignConsecutiveDeclarations: AcrossComments
+BreakAfterAttributes: Always
+RequiresExpressionIndentation: OuterScope
 Cpp11BracedListStyle: false
 AlignArrayOfStructures: Left
 AlignEscapedNewlines: Left

@@ -7,14 +7,20 @@
 
 namespace fd
 {
-// ReSharper disable once CppInconsistentNaming
-void _default_assert_handler(const assert_data& adata, bool interrupt);
+struct _default_assert_handler : basic_assert_handler
+{
+    void run(const assert_data& adata) const noexcept override;
+    void run_panic(const assert_data& adata) const noexcept override;
+};
 
 template <typename Callback>
-class default_assert_handler final : public basic_assert_handler
+class default_assert_handler final : public _default_assert_handler
 {
-    mutable std::mutex mtx_;
-    Callback           callback_;
+    using mutex      = std::mutex;
+    using lock_guard = std::lock_guard<mutex>;
+
+    mutable mutex mtx_;
+    Callback      callback_;
 
   public:
     default_assert_handler(Callback callback)
@@ -25,16 +31,16 @@ class default_assert_handler final : public basic_assert_handler
 
     void run(const assert_data& adata) const noexcept override
     {
-        const std::lock_guard guard(mtx_);
+        const lock_guard guard(mtx_);
         callback_(adata);
-        _default_assert_handler(adata, false);
+        _default_assert_handler::run(adata);
     }
 
     void run_panic(const assert_data& adata) const noexcept override
     {
-        const std::lock_guard guard(mtx_);
+        const lock_guard guard(mtx_);
         callback_(adata);
-        _default_assert_handler(adata, true);
+        _default_assert_handler::run_panic(adata);
     }
 };
 

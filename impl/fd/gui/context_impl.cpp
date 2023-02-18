@@ -1,5 +1,5 @@
 #include <fd/assert.h>
-#include <fd/exception.h>
+// #include <fd/exception.h>
 #include <fd/gui/context_impl.h>
 #include <fd/library_info.h>
 // #include <fd/mem_scanner.h>
@@ -447,7 +447,7 @@ context_impl::context_impl()
     ImGui::SetCurrentContext(&context_);
 }
 
-void context_impl::init(bool storeSettings)
+bool context_impl::init(bool storeSettings)
 {
 #if defined(_DEBUG) && defined(FD_HAVE_HOTKEY)
     _HotkeysActive = hotkeysActive_;
@@ -477,19 +477,19 @@ void context_impl::init(bool storeSettings)
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     // ImGui::StyleColorsLight();
+
+    return true;
 }
 
-void context_impl::init(IDirect3DDevice9* d3d)
+bool context_impl::init(IDirect3DDevice9* d3d)
 {
-    if (!ImGui_ImplDX9_Init(d3d))
-        unload();
+    return (ImGui_ImplDX9_Init(d3d));
 }
 
-void context_impl::init(HWND hwnd)
+bool context_impl::init(HWND hwnd)
 {
     focused_ = (GetForegroundWindow() == hwnd);
-    if (!ImGui_ImplWin32_Init(hwnd))
-        unload();
+    return (ImGui_ImplWin32_Init(hwnd));
 }
 
 void context_impl::release_textures()

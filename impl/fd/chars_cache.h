@@ -2,9 +2,6 @@
 
 // #include <fd/string.h>
 #include <fd/algorithm.h>
-#ifdef _DEBUG
-#include <fd/exception.h>
-#endif
 
 namespace fd
 {
@@ -25,7 +22,7 @@ struct chars_cache<true, Chr, Size>
         copy(strSource, Size, charsBuff);
 #ifdef _DEBUG
         if (!equal(strSource, charsBuff, Size))
-            abort();
+            terminate();
 #endif
     }
 
@@ -98,7 +95,7 @@ struct chars_cache<false, Chr, Size>
 #ifdef _DEBUG
         if (Size < strSize)
         {
-            unload();
+            terminate();
             charsCount = 0;
             return;
         }

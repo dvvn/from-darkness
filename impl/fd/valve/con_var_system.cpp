@@ -2,7 +2,7 @@
 #include <fd/assert.h>
 #include <fd/format.h>
 #include <fd/functional.h>
-#include <fd/logger.h>
+#include <fd/log.h>
 #include <fd/valve/con_var_system.h>
 
 #define FD_CHECK_WHOLE_CVAR_NAME
@@ -152,7 +152,7 @@ con_var* con_var_system::FindVar(const char* name, const size_t size) const
         log_unsafe(format("Cvar '{}' found", name));
 #else
     FD_ASSERT(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
-    logger([name] {
+    log([name] {
         std::ostringstream msg;
 
         const auto write_msg = [&]<typename T>(T obj) {

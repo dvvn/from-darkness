@@ -8,7 +8,7 @@ module;
 #include <vector>
 
 module fd.netvars.core:storage;
-import fd.logger;
+import fd.log;
 import fd.address;
 import fd.json;
 
@@ -62,7 +62,7 @@ static bool _File_already_written(const fs::path& full_path, const fd::string_vi
 #endif
 }
 
-void storage::log_netvars(logs_data& data)
+void storage::log_netvars(log_data& data)
 {
 }
 

@@ -1,13 +1,13 @@
 #ifdef _DEBUG
 #include <fd/assert_impl.h>
 #endif
-#include <fd/exception.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
 #include <fd/hook_callback.h>
 #include <fd/hook_storage.h>
 #include <fd/library_info.h>
-#include <fd/logger_impl.h>
+#include <fd/log.h>
+#include <fd/log_impl.h>
 #include <fd/netvar_storage_impl.h>
 #include <fd/string_info.h>
 #include <fd/system_console.h>
@@ -18,7 +18,6 @@
 #include <fd/valve/gui/surface.h>
 
 #include <d3d9.h>
-
 #include <windows.h>
 
 static HMODULE _ModuleHandle;
@@ -153,6 +152,18 @@ static auto _get_product_version_string(valve::engine_client* engine)
     return buff;
 }
 
+static void _unload()
+{
+    if (ResumeThread(_ThreadHandle) == -1)
+        abort(); // WARNING!!!
+}
+
+static void _pause()
+{
+    if (SuspendThread(_ThreadHandle) == -1)
+        abort(); // WARNING!!!
+}
+
 static DWORD WINAPI _context(void*) noexcept
 {
     free_helper freeHelper{ EXIT_FAILURE };
@@ -161,7 +172,7 @@ static DWORD WINAPI _context(void*) noexcept
 
     system_console sysConsole;
 
-    const default_logs_handler logsCallback([&](auto msg) {
+    const log_handler logCallback([&](auto msg) {
         sysConsole.out()(msg);
     });
 
@@ -265,7 +276,7 @@ static DWORD WINAPI _context(void*) noexcept
             [] {
                 ImGui::TextUnformatted("test");
                 if (ImGui::Button("Unload"))
-                    unload();
+                    _unload();
             }
         )
     ));
@@ -276,9 +287,8 @@ static DWORD WINAPI _context(void*) noexcept
             ImGui::ShowDemoWindow();
 #endif
     });
-    guiCtx.init(false);
-    guiCtx.init(hwnd);
-    guiCtx.init(d3dIfc);
+    if (!guiCtx.init(false) || !guiCtx.init(hwnd) || !guiCtx.init(d3dIfc))
+        return FALSE;
 
     hooks_storage2 allHooks(
         hook_callback(
@@ -299,7 +309,7 @@ static DWORD WINAPI _context(void*) noexcept
                 case gui::process_keys_result::def:
                     return DefWindowProcW(currHwnd, args...);
                 default:
-                    unreachable();
+                    std::unreachable();
                 }
             }
         ),
@@ -341,18 +351,12 @@ static DWORD WINAPI _context(void*) noexcept
     if (!allHooks.enable())
         return FALSE;
 
-    set_unload([] {
-        if (ResumeThread(_ThreadHandle) == -1)
-            abort(); // WARNING!!!
-    });
-
 #if 0
     if (!libs.wait(L"serverbrowser.dll"))
         _exit_fail();
 #endif
 
-    if (SuspendThread(_ThreadHandle) == -1)
-        abort(); // WARNING!!!
+    _pause();
 
     if (!allHooks.disable())
         return FALSE;

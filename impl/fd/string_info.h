@@ -278,19 +278,36 @@ struct ctype_is_impl : ctype_buff<F...>
 template <typename... F>
 ctype_is_impl(F...) -> ctype_is_impl<std::remove_cvref_t<F>...>;
 
-static constexpr auto _overload_char(auto chr, auto wchr)
+template <typename C, typename W, typename Cfn, typename Wfn>
+struct _overload_x
 {
-    return overload(
-        [=](const char val) {
-            return chr(val);
-        },
-        [=](const wchar_t val) {
-            return wchr(val);
-        }
-    );
+    Cfn chr;
+    Wfn wchr;
+
+    constexpr auto operator()(C val) const
+    {
+        return chr(val);
+    }
+
+    constexpr auto operator()(W val) const
+    {
+        return wchr(val);
+    }
+};
+
+template <typename Cfn, typename Wfn>
+static constexpr _overload_x<char, wchar_t, Cfn, Wfn> _overload_char(Cfn chr, Wfn wchr)
+{
+    return { chr, wchr };
 }
 
-#ifdef __cpp_lib_ranges_contains
+template <typename Cfn, typename Wfn>
+static constexpr _overload_x<int, wint_t, Cfn, Wfn> _overload_num(Cfn chr, Wfn wchr)
+{
+    return { chr, wchr };
+}
+
+#ifdef __cpp_lib_ranges_contains_OFF
 template <typename T>
 static constexpr auto _copy_or_ref(T& val)
 {
@@ -313,8 +330,8 @@ static constexpr auto _Contains = [](auto& rng, auto val) {
 #endif
 
 // ReSharper disable CppInconsistentNaming
-constexpr ctype_to_impl to_lower(bind_back(_GetOffsetAt, _UpperChars, _LowerChars), overload(tolower, towlower));
-constexpr ctype_to_impl to_upper(bind_back(_GetOffsetAt, _LowerChars, _UpperChars), overload(toupper, towupper));
+constexpr ctype_to_impl to_lower(bind_back(_GetOffsetAt, _UpperChars, _LowerChars), _overload_char(tolower, towlower));
+constexpr ctype_to_impl to_upper(bind_back(_GetOffsetAt, _LowerChars, _UpperChars), _overload_char(toupper, towupper));
 constexpr ctype_is_impl is_alnum(nullptr, _overload_char(isalnum, iswalnum));
 constexpr ctype_is_impl is_lower(bind_front(_Contains, _LowerChars), _overload_char(islower, iswlower));
 constexpr ctype_is_impl is_upper(bind_front(_Contains, _UpperChars), _overload_char(isupper, iswupper));

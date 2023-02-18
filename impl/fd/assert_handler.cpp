@@ -1,4 +1,5 @@
 ﻿#include <fd/assert_handler.h>
+#include <fd/assert_runner.h>
 
 namespace fd
 {
