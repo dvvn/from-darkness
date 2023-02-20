@@ -1,20 +1,187 @@
 // ReSharper disable CppClangTidyClangDiagnosticMicrosoftCast
-#include <fd/format.h>
-
-#include <fd/assert.h>
-#include <fd/functional.h>
 #include <fd/library_info.h>
-#include <fd/log.h>
 #include <fd/mem_scanner.h>
-#include <fd/string_info.h>
-#include <fd/views.h>
 
-#include "dll_notification.h"
+#include <spdlog/spdlog.h>
 
+#include <boost/core/demangle.hpp>
+
+#include <array>
 #include <semaphore>
+#include <span>
 
-namespace fd
+#define FD_ASSERT(...)
+
+template <typename T>
+static bool operator==(std::basic_string_view<T> left, fmt::basic_string_view<T> right)
 {
+    const auto size = left.size();
+    return size == right.size() && std::char_traits<T>::compare(left.data(), right.data(), size);
+}
+
+template <typename T>
+static bool operator==(fmt::basic_string_view<T> left, std::basic_string_view<T> right)
+{
+    const auto size = left.size();
+    return size == right.size() && std::char_traits<T>::compare(left.data(), right.data(), size);
+}
+
+template <typename T>
+struct any_string_view
+{
+    T obj;
+
+    operator fmt::basic_string_view<std::iter_value_t<decltype(obj.data())>>() const
+    {
+        return { obj.data(), obj.size() };
+    }
+};
+
+template <typename T>
+any_string_view(T&&) -> any_string_view<std::remove_cv_t<T>>;
+
+template <typename ContextC, typename StrC, bool Same = std::same_as<ContextC, StrC>>
+class _chars_mixer;
+
+template <typename ContextC, typename StrC>
+class _chars_mixer<ContextC, StrC, true>
+{
+    fmt::basic_string_view<StrC> cached_;
+
+  public:
+    _chars_mixer(std::basic_string_view<StrC> str)
+        : cached_(str)
+    {
+    }
+
+    auto native() const
+    {
+        return cached_;
+    }
+};
+
+template <typename ContextC, typename StrC>
+class _chars_mixer<ContextC, StrC, false>
+{
+    using context_str = fmt::basic_string_view<ContextC>;
+    using current_str = fmt::basic_string_view<StrC>;
+
+    using current_str_in = std::basic_string_view<StrC>;
+
+    current_str cached_;
+
+  public:
+    _chars_mixer(const StrC* ptr)
+        : cached_(ptr)
+    {
+        static_assert(sizeof(ContextC) >= sizeof(StrC));
+    }
+
+    _chars_mixer(current_str_in str)
+        : cached_(str)
+    {
+        static_assert(sizeof(ContextC) >= sizeof(StrC));
+    }
+
+    operator current_str() const
+    {
+        return cached_;
+    }
+
+    class buffer
+    {
+        fmt::basic_memory_buffer<ContextC> buffer_;
+
+      public:
+        buffer(const current_str str)
+        {
+            buffer_.append(str);
+        }
+
+        operator context_str() const
+        {
+            return { buffer_.data(), buffer_.size() };
+        }
+    };
+
+    buffer native() const
+    {
+        return cached_;
+    }
+};
+
+template <typename ContextC, typename StrC>
+struct fmt::formatter<_chars_mixer<ContextC, StrC>, ContextC> : formatter<basic_string_view<ContextC>, ContextC>
+{
+    template <class FormatContext>
+    auto format(const _chars_mixer<ContextC, StrC>& mixer, FormatContext& ctx) const
+    {
+        return formatter<basic_string_view<ContextC>, ContextC>::format(mixer.native(), ctx);
+    }
+};
+
+class _object_type_fancy
+{
+    std::string_view str;
+
+  public:
+    _object_type_fancy(std::string_view str)
+        : str(str)
+    {
+    }
+
+    template <typename T>
+    class converter
+    {
+        fmt::basic_memory_buffer<T> buff_;
+
+      public:
+        operator fmt::basic_string_view<T>() const
+        {
+            return { buff_.data(), buff_.size() };
+        }
+
+        converter(std::string_view str)
+        {
+            const auto nameBegin = str.find(' '); // class or struct
+            if (nameBegin == std::string_view::npos)
+            {
+                constexpr std::string_view obj = "object ";
+                buff_.append(obj);
+            }
+            else
+            {
+                auto obj = str.substr(nameBegin);
+                buff_.append(obj);
+                str.remove_prefix(nameBegin + 1);
+            }
+            buff_.push_back('\'');
+            buff_.append(str);
+            buff_.push_back('\'');
+        }
+    };
+
+    template <typename T>
+    converter<T> fancy() const
+    {
+        return str;
+    }
+};
+
+template <typename ContextC>
+struct fmt::formatter<_object_type_fancy, ContextC> : formatter<basic_string_view<ContextC>, ContextC>
+{
+    template <class FormatContext>
+    auto format(_object_type_fancy type, FormatContext& ctx) const
+    {
+        return formatter<basic_string_view<ContextC>, ContextC>::format(type.fancy<ContextC>(), ctx);
+    }
+};
+
+using _lazy_wstring = _chars_mixer<wchar_t, char>;
+
+//---------
+
 class dos_nt
 {
     void construct(const LDR_DATA_TABLE_ENTRY* ldrEntry)
@@ -43,24 +210,19 @@ class dos_nt
         construct(&ldrEntry);
     }
 
-    explicit dos_nt(const library_info info)
-    {
-        construct(info.get());
-    }
-
     PVOID base() const
     {
         return dos;
     }
 
-    range_view<uint8_t*> read() const
+    std::span<uint8_t> read() const
     {
         return { static_cast<uint8_t*>(base()), nt->OptionalHeader.SizeOfImage };
     }
 
-    range_view<IMAGE_SECTION_HEADER*> sections() const
+    std::span<IMAGE_SECTION_HEADER> sections() const
     {
-        return { IMAGE_FIRST_SECTION(nt), nt->FileHeader.NumberOfSections };
+        return { IMAGE_FIRST_SECTION(nt), static_cast<size_t>(nt->FileHeader.NumberOfSections) };
     }
 
     template <typename T = uint8_t, typename Q>
@@ -187,122 +349,128 @@ static bool operator==(const T* other, typename win_list_view<T, Deref>::iterato
 using ldr_tables_view     = win_list_view<LDR_DATA_TABLE_ENTRY>;
 using ldr_tables_view_ptr = win_list_view<LDR_DATA_TABLE_ENTRY, false>;
 
-static wstring_view _to_string_view(const UNICODE_STRING& ustr)
+static void _to_string_view(const LDR_DATA_TABLE_ENTRY* entry) = delete;
+
+static auto _to_string_view(const UNICODE_STRING& ustr)
 {
-    if (!ustr.Buffer)
-        return {};
-    return { ustr.Buffer, ustr.Length / sizeof(WCHAR) };
+    std::wstring_view ret;
+    if (ustr.Buffer)
+        std::construct_at(&ret, ustr.Buffer, ustr.Length / sizeof(WCHAR));
+    return ret;
 }
 
-static wstring _to_string(const UNICODE_STRING& ustr)
+static auto _to_string(const UNICODE_STRING& ustr)
 {
-    return wstring(_to_string_view(ustr));
+    return std::wstring(_to_string_view(ustr));
 }
 
-static wstring_view _library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
+static auto _library_info_path(const LDR_DATA_TABLE_ENTRY* entry)
 {
     return _to_string_view(entry->FullDllName);
 }
 
-static wstring_view _library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
+class _library_info_name
 {
-    const auto fullPath = _library_info_path(entry);
+    const LDR_DATA_TABLE_ENTRY* entry;
+
+  public:
+    _library_info_name(const LDR_DATA_TABLE_ENTRY* entry)
+        : entry(entry)
+    {
+    }
+
+    fmt::wstring_view get() const
+    {
+        return get_std();
+    }
+
+    std::wstring_view get_std() const
+    {
+        const auto fullPath = _library_info_path(entry);
 #if 0
-    return wstring_view(file_view(fullPath).name());
+    return std::wstring_view(file_view(fullPath).name());
 #else
-    const auto nameStart = fullPath.rfind('\\');
-    FD_ASSERT(nameStart != fullPath.npos, "Unable to get the module name");
-    return fullPath.substr(nameStart + 1);
+        const auto nameStart = fullPath.rfind('\\');
+        FD_ASSERT(nameStart != fullPath.npos, "Unable to get the module name");
+        return fullPath.substr(nameStart + 1);
 #endif
+    }
+
+    operator fmt::wstring_view() const
+    {
+        return get_std();
+    }
+};
+
+template <>
+struct fmt::formatter<_library_info_name, wchar_t> : formatter<wstring_view, wchar_t>
+{
+};
+
+static bool operator==(std::wstring_view left, _library_info_name right)
+{
+    return left == right.get();
 }
 
-static wstring_view _found_or_not(const void* ptr)
-{
-    return ptr ? L"found" : L"not found";
-}
+// static std::wstring_view _found_or_not(const void* ptr)
+//{
+//     return ptr ? L"found" : L"not found";
+// }
+//
+// static std::wstring_view _name_or_unknown(const LDR_DATA_TABLE_ENTRY* entry)
+//{
+//    return entry ? _library_info_name(entry) : L"unknown name";
+//}
+//
+// static void _log_removed_entry(const std::wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
+//{
+//    spdlog::info( //-
+//        L"{} -> removed! ({:#X})",
+//        name,
+//        reinterpret_cast<uintptr_t>(entry)
+//    );
+//}
 
-static wstring_view _name_or_unknown(const LDR_DATA_TABLE_ENTRY* entry)
+static void _log_found_entry(const std::wstring_view name, const /*LDR_DATA_TABLE_ENTRY*/ void* entry)
 {
-    return entry ? _library_info_name(entry) : L"unknown name";
-}
-
-static void _log_removed_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
-{
-    if (!log_active())
-        return;
-    log_unsafe(format( //-
-        L"{} -> removed! ({:#X})"sv,
-        name,
-        reinterpret_cast<uintptr_t>(entry)
-    ));
-}
-
-static void _log_found_entry(const wstring_view name, const LDR_DATA_TABLE_ENTRY* entry)
-{
-    if (!log_active())
-        return;
-    log_unsafe(format( //-
-        L"{} -> {}! ({:#X})"sv,
-        name,
-        _found_or_not(entry),
-        reinterpret_cast<uintptr_t>(entry)
-    ));
+    if (entry)
+        spdlog::info(L"{} -> found! ({:p})", name, entry);
+    else
+        spdlog::warn(L"{} -> NOT found!", name);
 }
 
 static void _log_found_entry(const /*IMAGE_DOS_HEADER*/ void* baseAddress, const LDR_DATA_TABLE_ENTRY* entry)
 {
-    if (!log_active())
-        return;
-    log_unsafe(format( //-
-        L"{:#X} ({}) -> {}! ({:#X})",
-        reinterpret_cast<uintptr_t>(baseAddress),
-        _name_or_unknown(entry),
-        _found_or_not(entry),
-        reinterpret_cast<uintptr_t>(entry)
-    ));
-}
-
-template <typename T>
-static auto _as_wstring(const T& str)
-{
-    if constexpr (std::same_as<std::iter_value_t<T>, wchar_t>)
-        return str;
+    if (entry)
+        spdlog::info(L"{:p} ({}) -> found! ({:p})", baseAddress, _library_info_name(entry), fmt::ptr(entry));
     else
-        return wstring(_begin(str), _end(str) - !std::is_class_v<T>);
+        spdlog::warn(L"{:p} -> NOT found!", baseAddress);
 }
 
-static auto _log_found_object(const LDR_DATA_TABLE_ENTRY* entry, const auto objectType, const auto object, const void* addr)
-{
-    if (!log_active())
-        return;
-    log_unsafe(format( //-
-        L"{} -> {} '{}' {}! ({:#X})",
-        _library_info_name(entry),
-        _as_wstring(objectType), // wstring conversion suck, offset_to better way
-        _as_wstring(object),
-        _found_or_not(addr),
-        reinterpret_cast<uintptr_t>(addr)
-    ));
-}
+// template <>
+// struct fmt::formatter<_lazy_wstring, wchar_t> : fmt::formatter<std::wstring, wchar_t>
+//{
+//     template <typename FormatCtx>
+//     auto format(_lazy_wstring str, FormatCtx& ctx) const
+//     {
+//         return formatter<std::wstring, wchar_t>::format(std::wstring(str), ctx);
+//     }
+// };
 
-static void _log_address_found(const LDR_DATA_TABLE_ENTRY* entry, const string_view rawName, const void* addr)
+static auto _log_found_object(_library_info_name entry, const std::wstring_view objectType, _lazy_wstring object, const void* addr)
 {
-    if (!log_active())
-        return;
-
-    const auto nameBegin = rawName.find(' '); // class or struct
-    if (nameBegin == rawName.npos)
-    {
-        _log_found_object(entry, L"object", rawName, addr);
-    }
+    if (addr)
+        spdlog::info(L"{} -> {} '{}' found! ({:p})", (entry), objectType, object, addr);
     else
-    {
-        const auto objectType = rawName.substr(0, nameBegin);
-        FD_ASSERT(!objectType.empty(), "Wrong object type");
-        const auto object = rawName.substr(nameBegin + 1);
-        FD_ASSERT(!object.empty(), "Wrong object name");
-        _log_found_object(entry, objectType, object, addr);
-    }
+        spdlog::warn(L"{} -> {} '{}' NOT found!", (entry), objectType, object);
+}
+
+static void _log_address_found(_library_info_name entry, _object_type_fancy rawName, const void* addr)
+{
+    if (addr)
+        spdlog::info(L"{} -> {} found! ({:p})", (entry), (rawName), (addr));
+    else
+        spdlog::warn(L"{} -> {} NOT found!", (entry), (rawName));
 }
 
 static constexpr auto _HexDigits = "0123456789ABCDEF";
@@ -313,8 +481,8 @@ static constexpr auto _bytes_to_sig(const T* bytes, const size_t size)
 {
     const auto hexLength = /*(size << 1) + size*/ size * 3;
 
-    // construct pre-reserved string filled with spaces
-    string pattern(hexLength - 1, ' ');
+    // construct pre-reserved std::string filled with spaces
+    std::string pattern(hexLength - 1, ' ');
 
     for (size_t i = 0, n = 0; i < hexLength; ++n, i += 3)
     {
@@ -331,7 +499,7 @@ static constexpr auto _bytes_to_sig(const T* bytes, const size_t size)
 template <typename T, typename T1>
 static constexpr auto _bytes_to_sig(T* bytesOut, T1* bytes, const size_t size)
 {
-    // construct pre-reserved string filled with spaces
+    // construct pre-reserved std::string filled with spaces
     // std::fill_n(bytesOut, size - 1, ' ');
 
     for (size_t i = 0, n = 0; i < size; ++n, i += 3)
@@ -348,15 +516,15 @@ static constexpr auto _bytes_to_sig(T* bytesOut, T1* bytes, const size_t size)
 
 static constexpr struct
 {
-    char rawPrefix[3]  = { '.', '?', 'A' };
-    char rawPostfix[2] = { '@', '@' };
+    std::array<char, 3> rawPrefix  = { '.', '?', 'A' };
+    std::array<char, 2> rawPostfix = { '@', '@' };
 
 #define SPACES1 ' '
 #define SPACES2 ' ', ' '
 #define SPACES3 SPACES2, ' '
 
-    uint8_t rawPrefixBytes[3 * 3 - 1]{ SPACES3, SPACES3, SPACES2 };
-    uint8_t rawPostfixBytes[2 * 3 - 1]{ SPACES2, SPACES2, SPACES1 };
+    std::array<uint8_t, 3 + 3 + 2> rawPrefixBytes{ SPACES3, SPACES3, SPACES2 };
+    std::array<uint8_t, 2 + 2 + 1> rawPostfixBytes{ SPACES2, SPACES2, SPACES1 };
 
 #undef SPACES1
 #undef SPACES2
@@ -366,81 +534,134 @@ static constexpr struct
     char structPrefix = 'U';
 
   private:
-    [[no_unique_address]] std::false_type dummy1_ = _bytes_to_sig(rawPrefixBytes, rawPrefix, 3 * 3);
-    [[no_unique_address]] std::false_type dummy2_ = _bytes_to_sig(rawPostfixBytes, rawPostfix, 2 * 3);
+    [[no_unique_address]] std::false_type dummy1_ = _bytes_to_sig(rawPrefixBytes.data(), rawPrefix.data(), 3 * 3);
+    [[no_unique_address]] std::false_type dummy2_ = _bytes_to_sig(rawPostfixBytes.data(), rawPostfix.data(), 2 * 3);
 } _RttiInfo;
 
-static void _log_found_vtable(const LDR_DATA_TABLE_ENTRY* entry, const string_view name, const char* typeDescriptor, const void* vtablePtr)
+class _demagle_type
 {
-#ifndef __cpp_lib_string_contains
-#define contains(x) offset_to(x) != static_cast<size_t>(-1)
-#endif
+    // fmt::basic_memory_buffer
 
-    if (!log_active())
-        return;
+    const char* type;
 
-    const auto demagleType = [&] {
-        const auto prefix = typeDescriptor[std::size(_RttiInfo.rawPrefix)];
+  public:
+    _demagle_type(const char* typeDescriptor)
+        : type(typeDescriptor)
+    {
+    }
+
+    template <typename T>
+    _chars_mixer<T, char> get() const
+    {
+        const auto prefix = type[std::size(_RttiInfo.rawPrefix)];
         if (prefix == _RttiInfo.classPrefix)
-            return L"class";
+            return ("struct");
         if (prefix == _RttiInfo.structPrefix)
-            return L"struct";
-        FD_ASSERT_PANIC("Unknown prefix!");
-    };
+            return ("struct");
 
-    const auto demagleName = [&] {
-        wstring dName;
-#ifdef _DEBUG
-        DebugBreak(); // look at buff
-#endif
+        return nullptr;
+    }
+};
+
+template <typename T>
+struct fmt::formatter<_demagle_type, T> : formatter<basic_string_view<T>, T>
+{
+    template <typename FormatCtx>
+    auto format(_demagle_type type, FormatCtx& ctx) const
+    {
+        return formatter<basic_string_view<T>, T>::format(type.get<T>().native(), ctx);
+    }
+};
+
+class _demagle_name
+{
+    std::string_view name;
+
+  public:
+    _demagle_name(const std::string_view name)
+        : name(name)
+    {
+    }
+
+    template <typename T>
+    auto get() const
+    {
+        fmt::basic_memory_buffer<T> buff;
         if (name.contains('@'))
         {
-            const auto buff = string_view(" not implemented"); // demangle_symbol(typeDescriptor);
-            write_string(dName, string_view(buff).substr(buff.find(' ') + 1));
+            using boost::core::demangle;
+            if (name.data()[name.size()] == '\0')
+            {
+                buff.append(demangle(name.data()));
+            }
+            else
+            {
+                if constexpr (std::same_as<T, char>)
+                {
+                    buff.append(name);
+                    buff.push_back(0);
+                    auto tmp = demangle(buff.data());
+                    buff.resize(tmp.size());
+                    buff.append(tmp);
+                }
+                else
+                {
+                    fmt::basic_memory_buffer<char> tmp;
+                    tmp.append(name);
+                    tmp.push_back(0);
+                    buff.append(demangle(tmp.data()));
+                }
+            }
         }
-        else if (name.contains(' '))
+        else if (auto pos = name.find(' '); pos != name.npos)
         {
-            write_string(dName, (name).substr(name.find(' ') + 1));
+            buff.append((name).substr(pos + 1));
         }
         else
         {
-            write_string(dName, name);
+            buff.append(name);
         }
-        return dName;
-    };
 
-    log_unsafe(format( //-
-        L"{} -> {} {} '{}' {}! ({:#X})",
-        _library_info_name(entry),
-        L"vtable for",
-        demagleType(),
-        demagleName(),
-        _found_or_not(vtablePtr),
-        reinterpret_cast<uintptr_t>(vtablePtr)
-    ));
+        return any_string_view(std::move(buff));
+    }
+};
+
+template <typename T>
+struct fmt::formatter<_demagle_name, T> : formatter<basic_string_view<T>, T>
+{
+    template <typename FormatCtx>
+    auto format(_demagle_name name, FormatCtx& ctx) const
+    {
+        return formatter<basic_string_view<T>, T>::format(name.get<T>(), ctx);
+    }
+};
+
+static void _log_found_vtable(_library_info_name entry, _demagle_type typeDescriptor, _demagle_name name, const void* vtablePtr)
+{
+    if (vtablePtr)
+        spdlog::info(L"{} -> vtable for {} '{}' found! ({:p})", (entry), typeDescriptor, name, vtablePtr);
+    else
+        spdlog::warn(L"{} -> vtable for {} '{}' NOT found!", (entry), typeDescriptor, name);
 }
 
+namespace fd
+{
 static library_info _find_library(PVOID baseAddress)
 {
-    for (const auto* e : reversed(ldr_tables_view_ptr()))
+    for (const auto* e : (ldr_tables_view_ptr()))
     {
         if (baseAddress == e->DllBase)
-        {
             return e;
-            break;
-        }
     }
     return nullptr;
 }
 
-static library_info _find_library(wstring_view name)
+static library_info _find_library(std::wstring_view name)
 {
-    for (const auto* e : reversed(ldr_tables_view_ptr()))
+    for (const auto* e : (ldr_tables_view_ptr()))
     {
-        if (e->FullDllName.Buffer && _library_info_name(e) == name)
-        {
+        if (e->FullDllName.Buffer && name == _library_info_name(e))
             return e;
-        }
     }
     return nullptr;
 }
@@ -477,20 +698,20 @@ auto library_info::operator*() const -> reference
     return *entry_;
 }
 
-wstring_view library_info::path() const
+std::wstring_view library_info::path() const
 {
     return _library_info_path(entry_);
 }
 
-wstring_view library_info::name() const
+std::wstring_view library_info::name() const
 {
-    return _library_info_name(entry_);
+    return _library_info_name(entry_).get_std();
 }
 
-void library_info::log_class_info(const string_view rawName, const void* addr) const
-{
-    _log_address_found(entry_, rawName, addr);
-}
+// void library_info::log_class_info(const std::string_view rawName, const void* addr) const
+//{
+//     _log_address_found(entry_, rawName, addr);
+// }
 
 class exports_view
 {
@@ -538,12 +759,12 @@ class exports_view
         if (tmp < virtualAddrStart_ || tmp >= virtualAddrEnd_)
             return tmp;
 
-        // todo:resolve fwd export
-        FD_ASSERT_PANIC("Forwarded export detected");
+            // todo:resolve fwd export
+            // FD_ASSERT_PANIC("Forwarded export detected");
 
 #if 0
-		// get forwarder string.
-		const string_view fwd_str = export_ptr.get<const char*>( );
+		// get forwarder std::string.
+		const std::string_view fwd_str = export_ptr.get<const char*>( );
 
 		// forwarders have a period as the delimiter.
 		const auto delim = fwd_str.find_last_of('.');
@@ -552,7 +773,7 @@ class exports_view
 
 		using namespace string_view_literals;
 		// get forwarder mod name.
-		const info_string::fixed_type fwd_module_str = nstd::append<wstring>(fwd_str.substr(0, delim), L".dll"sv);
+		const info_string::fixed_type fwd_module_str = nstd::append<std::wstring>(fwd_str.substr(0, delim), L".dll"sv);
 
 		// get real export ptr ( recursively ).
 		const auto target_module = std::ranges::find_if(*all_modules, [&](const info& i)
@@ -654,7 +875,7 @@ class exports_view
     }
 };
 
-void* library_info::find_export(const string_view name) const
+void* library_info::find_export(const std::string_view name) const
 {
     void* exportPtr = nullptr;
     for (const auto val : exports_view(entry_))
@@ -670,7 +891,7 @@ void* library_info::find_export(const string_view name) const
     return exportPtr;
 }
 
-IMAGE_SECTION_HEADER* library_info::find_section(const string_view name) const
+IMAGE_SECTION_HEADER* library_info::find_section(const std::string_view name) const
 {
     IMAGE_SECTION_HEADER* header = nullptr;
     for (auto& h : dos_nt(entry_).sections())
@@ -686,7 +907,7 @@ IMAGE_SECTION_HEADER* library_info::find_section(const string_view name) const
     return header;
 }
 
-void* library_info::find_signature(const string_view sig) const
+void* library_info::find_signature(const std::string_view sig) const
 {
     const pattern_scanner finder(dos_nt(entry_).read());
     const auto            result = finder(sig).front();
@@ -713,11 +934,11 @@ class vtable_finder
   public:
     vtable_finder(const library_info info)
         : info_(info)
-        , dnt_(info)
+        , dnt_(info.get())
     {
     }
 
-    const char* find_type_descriptor(const string_view name, const obj_type type) const
+    const char* find_type_descriptor(const std::string_view name, const obj_type type) const
     {
         const pattern_scanner_text wholeModuleFinder(dnt_.read());
 
@@ -726,9 +947,14 @@ class vtable_finder
         if (type == obj_type::UNKNOWN)
         {
             FD_ASSERT(!name.contains(' '));
-            const auto        bytesName = _bytes_to_sig(name.data(), name.size());
-            std::vector<char> realNameUnk; // no sting because no SSO anyway
-            write_string(realNameUnk, _RttiInfo.rawPrefixBytes, " ? ", bytesName, ' ', _RttiInfo.rawPostfixBytes);
+            const auto bytesName = _bytes_to_sig(name.data(), name.size());
+
+            fmt::memory_buffer realNameUnk;
+            realNameUnk.append(_RttiInfo.rawPrefixBytes);
+            realNameUnk.append(std::string_view(" ? "));
+            realNameUnk.append(bytesName);
+            realNameUnk.push_back(' ');
+            realNameUnk.append(_RttiInfo.rawPostfixBytes);
 
             rttiClassName = wholeModuleFinder(realNameUnk).front();
         }
@@ -746,10 +972,16 @@ class vtable_finder
             else if (type == obj_type::STRUCT)
                 strPrefix = _RttiInfo.structPrefix;
             else
-                FD_ASSERT_PANIC("Unknown type");
+                // FD_ASSERT_PANIC("Unknown type");
+                ;
 
-            const auto realName = make_string(_RttiInfo.rawPrefix, strPrefix, name, _RttiInfo.rawPostfix);
-            rttiClassName       = wholeModuleFinder.raw()(realName).front();
+            fmt::memory_buffer realName;
+            realName.append(_RttiInfo.rawPrefix);
+            realName.push_back(strPrefix);
+            realName.append(name);
+            realName.append(_RttiInfo.rawPostfix);
+
+            rttiClassName = wholeModuleFinder.raw()(realName).front();
         }
 
         return static_cast<const char*>(rttiClassName);
@@ -759,7 +991,7 @@ class vtable_finder
     {
         // get rtti type descriptor
         auto typeDescriptor = reinterpret_cast<uintptr_t>(rttiClassName);
-        // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the string
+        // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
         typeDescriptor -= sizeof(uintptr_t) * 2;
 
         const auto dotRdata = info_.find_section(".rdata");
@@ -787,7 +1019,7 @@ class vtable_finder
     }
 };
 
-static void* _find_vtable(const library_info info, const string_view name, const obj_type type)
+static void* _find_vtable(const library_info info, const std::string_view name, const obj_type type)
 {
     const vtable_finder vtableFinder(info);
 
@@ -795,29 +1027,29 @@ static void* _find_vtable(const library_info info, const string_view name, const
     FD_ASSERT(rttiClassName != nullptr);
     const auto vtablePtr = vtableFinder(rttiClassName);
 
-    _log_found_vtable(info.get(), name, rttiClassName, vtablePtr);
+    _log_found_vtable(info.get(), rttiClassName, name, vtablePtr);
     return vtablePtr;
 }
 
-void* library_info::find_vtable_class(const string_view name) const
+void* library_info::find_vtable_class(const std::string_view name) const
 {
     return _find_vtable(entry_, name, obj_type::CLASS);
 }
 
-void* library_info::find_vtable_struct(const string_view name) const
+void* library_info::find_vtable_struct(const std::string_view name) const
 {
     return _find_vtable(entry_, name, obj_type::STRUCT);
 }
 
-void* library_info::find_vtable_unknown(const string_view name) const
+void* library_info::find_vtable_unknown(const std::string_view name) const
 {
     return _find_vtable(entry_, name, obj_type::UNKNOWN);
 }
 
-void* library_info::find_vtable(const string_view name) const
+void* library_info::find_vtable(const std::string_view name) const
 {
     void*      result  = nullptr;
-    const auto tryFind = [&](const string_view type, const obj_type objType) -> bool {
+    const auto tryFind = [&](const std::string_view type, const obj_type objType) -> bool {
         if (name.starts_with(type))
             result = _find_vtable(entry_, name.substr(type.size()), objType);
         return result;
@@ -831,8 +1063,7 @@ void* library_info::find_vtable(const string_view name) const
 
 void* library_info::find_vtable(const std::type_info& info) const
 {
-    const auto rawName = info.raw_name();
-    return _find_vtable(entry_, { rawName, log_active() ? str_len(rawName) : 0 }, obj_type::NATIVE);
+    return _find_vtable(entry_, info.raw_name(), obj_type::NATIVE);
 }
 
 bool operator==(library_info info, std::nullptr_t)
@@ -850,7 +1081,7 @@ bool operator==(library_info info, PVOID baseAddress)
     return info->DllBase == baseAddress;
 }
 
-bool operator==(library_info info, wstring_view name)
+bool operator==(library_info info, std::wstring_view name)
 {
     return _library_info_name(info.get()) == name;
 }
@@ -865,7 +1096,7 @@ library_info find_library(PVOID baseAddress)
     return _find_library(baseAddress);
 }
 
-library_info find_library(wstring_view name)
+library_info find_library(std::wstring_view name)
 {
     return _find_library(name);
 }
@@ -980,14 +1211,14 @@ class interface_reg
     interface_reg()                     = delete;
     interface_reg(const interface_reg&) = delete;
 
-    equal_t operator==(const string_view ifcName) const
+    equal_t operator==(const std::string_view ifcName) const
     {
-        if (equal(ifcName, this->name_))
+        const std::string_view name = this->name_;
+        if (ifcName.starts_with(name))
         {
-            const auto lastChar = this->name_[ifcName.size()];
-            if (lastChar == '\0') // partially comared
+            if (ifcName.size() == name.size()) // PARTIALly comared
                 return equal_t::FULL;
-            if (is_digit(lastChar)) // partial name must be looks like IfcName001
+            if (std::isdigit(name[ifcName.size()])) // PARTIAL name must be looks like IfcName001
                 return equal_t::PARTIAL;
         }
         return equal_t::ERROR;
@@ -998,15 +1229,15 @@ class interface_reg
         return (createFn_());
     }
 
-    auto name_size(const string_view knownPart = {}) const
+    auto name_size(const std::string_view knownPart = {}) const
     {
 #ifdef _DEBUG
-        if (!knownPart.empty() && !equal(knownPart, this->name_))
+        if (!knownPart.empty() && !knownPart.starts_with(this->name_))
             FD_ASSERT("Incorrect known part");
 #endif
 
         const auto idxStart = this->name_ + knownPart.size();
-        const auto idxSize  = str_len(idxStart);
+        const auto idxSize  = std::strlen(idxStart);
         return knownPart.size() + idxSize;
     }
 
@@ -1030,17 +1261,17 @@ csgo_library_info::csgo_library_info(library_info info)
 {
 }
 
-void* csgo_library_info::find_interface(const string_view name) const
+void* csgo_library_info::find_interface(const std::string_view name) const
 {
     return find_interface(find_export("CreateInterface"), name);
 }
 
-void* csgo_library_info::find_interface(const void* createInterfaceFn, const string_view name) const
+void* csgo_library_info::find_interface(const void* createInterfaceFn, const std::string_view name) const
 {
     FD_ASSERT(createInterfaceFn != nullptr);
 
-    string_view logName;
-    void*       ifcAddr = nullptr;
+    std::string_view logName;
+    void*            ifcAddr = nullptr;
 
     for (auto& reg : interface_reg::range(createInterfaceFn))
     {
@@ -1055,7 +1286,7 @@ void* csgo_library_info::find_interface(const void* createInterfaceFn, const str
         {
             const auto wholeNameSize = reg.name_size(name);
 #ifdef _DEBUG
-            if (!std::all_of(reg.name() + name.size(), reg.name() + wholeNameSize, is_digit))
+            if (!std::all_of(reg.name() + name.size(), reg.name() + wholeNameSize, ::isdigit))
                 FD_ASSERT("Incorrect given interface name");
             const auto nextReg = reg + 1;
             if (nextReg)
@@ -1130,7 +1361,8 @@ library_info_cache::~library_info_cache()
         return;
 
     if (!NT_SUCCESS(notif_->unreg(cookie_)))
-        FD_ASSERT_PANIC("Unable to remove dll notification");
+        // FD_ASSERT_PANIC("Unable to remove dll notification");
+        ;
 
     if (!delayed_.empty())
     {
@@ -1154,7 +1386,8 @@ static void CALLBACK _on_new_library(const ULONG notificationReason, const PCLDR
         break;
     }
     default:
-        FD_ASSERT_PANIC("Unknown dll notification type");
+        // FD_ASSERT_PANIC("Unknown dll notification type");
+        ;
     }
 
     // #if 0
@@ -1190,13 +1423,14 @@ library_info_cache::library_info_cache()
     const std::lock_guard g(mtx_);
 
     if (!NT_SUCCESS(notif_->reg(0, _on_new_library, this, &cookie_)))
-        FD_ASSERT_PANIC("Unable to create dll notification");
+        // FD_ASSERT_PANIC("Unable to create dll notification");
+        ;
 
     for (auto entry : ldr_tables_view_ptr())
         cache_.emplace_back(entry);
 }
 
-void library_info_cache::store(PVOID baseAddress, wstring_view name)
+void library_info_cache::store(PVOID baseAddress, std::wstring_view name)
 {
     const std::lock_guard g(mtx_);
     FD_ASSERT(cookie_ != nullptr);
@@ -1215,21 +1449,15 @@ void library_info_cache::store(PVOID baseAddress, wstring_view name)
     }
 }
 
-void library_info_cache::remove(PVOID baseAddress, wstring name)
+void library_info_cache::remove(PVOID baseAddress, std::wstring name)
 {
     const std::lock_guard g(mtx_);
     FD_ASSERT(cookie_ != nullptr);
 
     auto& last = cache_.back();
-    for (auto& info : range_view_creator(cache_).drop(1))
-    {
-        if (info == baseAddress)
-        {
-            using std::swap;
-            swap(info, last);
-            break;
-        }
-    }
+    auto  info = std::find(cache_.begin(), cache_.end() - 1, baseAddress);
+    using std::swap;
+    swap(*info, last);
     FD_ASSERT(last == baseAddress);
     cache_.pop_back();
 }
@@ -1237,7 +1465,7 @@ void library_info_cache::remove(PVOID baseAddress, wstring name)
 static auto _try_get_from_cache(auto& cache, auto val)
 {
     library_info result;
-    for (auto& info : range_view(cache))
+    for (auto& info : (cache))
     {
         if (info == val)
         {
@@ -1256,16 +1484,21 @@ library_info library_info_cache::get(PVOID baseAddress) const
     return _try_get_from_cache(cache_, baseAddress);
 }
 
-library_info library_info_cache::get(wstring_view name) const
+library_info library_info_cache::get(std::wstring_view name) const
 {
     const std::lock_guard g(mtx_);
     FD_ASSERT(cookie_ != nullptr);
     return _try_get_from_cache(cache_, name);
 }
 
-library_info library_info_cache::get(wstring_view name)
+static bool operator==(const _delayed_library_info& info, const std::wstring_view name)
 {
-    std::binary_semaphore* sem = nullptr;
+    return info.name == name;
+}
+
+library_info library_info_cache::get(std::wstring_view name)
+{
+    std::binary_semaphore* sem;
     {
         const std::lock_guard g(mtx_);
         FD_ASSERT(cookie_ != nullptr);
@@ -1274,16 +1507,11 @@ library_info library_info_cache::get(wstring_view name)
         if (cached != nullptr)
             return cached;
 
-        for (auto& info : range_view(delayed_))
-        {
-            if (info.name == name)
-            {
-                sem = &info.sem;
-                break;
-            }
-        }
-        if (!sem)
+        auto info = std::find(delayed_.begin(), delayed_.end(), name);
+        if (info == delayed_.end())
             sem = &delayed_.emplace_back((name)).sem;
+        else
+            sem = &info->sem;
     }
 
     sem->acquire();
@@ -1296,11 +1524,12 @@ void library_info_cache::destroy()
     FD_ASSERT(cookie_ != nullptr);
 
     if (!NT_SUCCESS(notif_->unreg(cookie_)))
-        FD_ASSERT_PANIC("Unable to remove dll notification");
+        // FD_ASSERT_PANIC("Unable to remove dll notification");
+        ;
 
     cache_.clear();
     release_delayed();
     delayed_.clear();
     cookie_ = nullptr;
 }
-}
+} // namespace fd

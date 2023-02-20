@@ -6,8 +6,6 @@
 #include <fd/hook_callback.h>
 #include <fd/hook_storage.h>
 #include <fd/library_info.h>
-#include <fd/log.h>
-#include <fd/log_impl.h>
 #include <fd/netvar_storage_impl.h>
 #include <fd/string_info.h>
 #include <fd/system_console.h>
@@ -16,6 +14,8 @@
 #include <fd/valve/cs_player.h>
 #include <fd/valve/engine_client.h>
 #include <fd/valve/gui/surface.h>
+
+#include <spdlog/spdlog.h>
 
 #include <d3d9.h>
 #include <windows.h>
@@ -134,11 +134,6 @@ static void _init_netvars()
 {
     if constexpr (have_init_fn<T>)
         T::init();
-    else
-    {
-        if (log_active())
-            log_unsafe(make_string("netvars - init function not exist (", type_name<T>(), ")"));
-    }
 }
 
 static auto _get_product_version_string(valve::engine_client* engine)
@@ -170,16 +165,13 @@ static DWORD WINAPI _context(void*) noexcept
 
     // set_unload(_exit_fail); //prefer terminate
 
-    system_console sysConsole;
-
-    const log_handler logCallback([&](auto msg) {
-        sysConsole.out()(msg);
-    });
-
 #ifdef _DEBUG
+    spdlog::set_level(spdlog::level::debug);
     const default_assert_handler assertHandler([&](const assert_data& adata) {
-        sysConsole.out()(parse(adata));
+        spdlog::critical(parse(adata));
     });
+#else
+    spdlog::set_level(spdlog::level::);
 #endif
 
     set_current_library(_ModuleHandle);
@@ -360,6 +352,8 @@ static DWORD WINAPI _context(void*) noexcept
 
     if (!allHooks.disable())
         return FALSE;
+
+    Sleep(100);
 
     freeHelper.exitCode = EXIT_SUCCESS;
     return TRUE;

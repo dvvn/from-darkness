@@ -4,19 +4,19 @@
 
 namespace fd
 {
-    struct basic_hook
+struct basic_hook
+{
+    virtual ~basic_hook() = default;
+
+    virtual bool enable()  = 0;
+    virtual bool disable() = 0;
+
+    virtual string_view name() const
     {
-        virtual ~basic_hook() = default;
+        return "DEFAULT";
+    }
 
-        virtual bool enable()  = 0;
-        virtual bool disable() = 0;
-
-        virtual string_view name() const
-        {
-            return {};
-        }
-
-        virtual bool initialized() const = 0;
-        virtual bool active() const      = 0;
-    };
+    virtual bool initialized() const = 0;
+    virtual bool active() const      = 0;
+};
 } // namespace fd

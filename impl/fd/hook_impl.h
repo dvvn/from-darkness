@@ -13,7 +13,6 @@ class hook_impl : public basic_hook
     hook_impl(string_view name);
     ~hook_impl() override;
 
-
     hook_impl(const hook_impl&) = delete;
     hook_impl(hook_impl&& other) noexcept;
 
@@ -26,7 +25,7 @@ class hook_impl : public basic_hook
     bool active() const override;
 
     void* get_original_method() const;
-    void  init(void* target, void* replace);
+    bool  init(void* target, void* replace);
 
     explicit operator bool() const;
 };

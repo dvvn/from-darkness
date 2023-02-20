@@ -90,6 +90,12 @@ _hook_original_proxy(C*, Fn) -> _hook_original_proxy<C, std::decay_t<Fn>>;
 template <typename Fn>
 _hook_original_proxy(Fn) -> _hook_original_proxy<void, std::decay_t<Fn>>;
 
+static void _init_hook(hook_impl* impl, void* target, void* replace)
+{
+    if (!impl->init(target, replace))
+        terminate(); // WARNING
+}
+
 #define FD_HOOK_CALLBACK_MEMBER(_CCVS_)                                                                                                                                   \
     template <typename Callback, typename Ret, class Class, typename... Args>                                                                                             \
     class hook_callback<Callback, Ret, _x86_call::_CCVS_##_, Class, Args...> : public hook_impl                                                                           \
@@ -111,14 +117,14 @@ _hook_original_proxy(Fn) -> _hook_original_proxy<void, std::decay_t<Fn>>;
             , callback_(std::move(callback))                                                                                                                              \
         {                                                                                                                                                                 \
             self_ = this;                                                                                                                                                 \
-            hook_impl::init(decay_fn(target), decay_fn(&hook_callback::proxy));                                                                                           \
+            _init_hook(this, decay_fn(target), decay_fn(&hook_callback::proxy));                                                                                          \
         }                                                                                                                                                                 \
         hook_callback(string_view name, function_type, void* target, Callback callback)                                                                                   \
             : hook_impl(name)                                                                                                                                             \
             , callback_(std::move(callback))                                                                                                                              \
         {                                                                                                                                                                 \
             self_ = this;                                                                                                                                                 \
-            hook_impl::init(target, decay_fn(&hook_callback::proxy));                                                                                                     \
+            _init_hook(this, target, decay_fn(&hook_callback::proxy));                                                                                                    \
         }                                                                                                                                                                 \
         hook_callback(hook_callback&& other)                                                                                                                              \
             : hook_impl(std::move(other))                                                                                                                                 \
@@ -151,14 +157,14 @@ _hook_original_proxy(Fn) -> _hook_original_proxy<void, std::decay_t<Fn>>;
             , callback_(std::move(callback))                                                                                                              \
         {                                                                                                                                                 \
             self_ = this;                                                                                                                                 \
-            this->init(decay_fn(target), decay_fn(&hook_callback::proxy));                                                                                \
+            _init_hook(this, decay_fn(target), decay_fn(&hook_callback::proxy));                                                                          \
         }                                                                                                                                                 \
         hook_callback(string_view name, function_type, void* target, Callback callback)                                                                   \
             : hook_impl(name)                                                                                                                             \
             , callback_(std::move(callback))                                                                                                              \
         {                                                                                                                                                 \
             self_ = this;                                                                                                                                 \
-            this->init(target, decay_fn(&hook_callback::proxy));                                                                                          \
+            _init_hook(this, target, decay_fn(&hook_callback::proxy));                                                                                    \
         }                                                                                                                                                 \
         hook_callback(hook_callback&& other)                                                                                                              \
             : hook_impl(std::move(other))                                                                                                                 \
@@ -185,4 +191,4 @@ FD_HOOK_CALLBACK_MEMBER(thiscall);
 #undef FD_HOOK_CALLBACK_MEMBER
 #undef FD_HOOK_CALLBACK
 #undef FD_HOOK_CALLBACK_ANY
-}
+} // namespace fd

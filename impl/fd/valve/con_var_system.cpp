@@ -1,9 +1,8 @@
-﻿#include <fd/algorithm.h>
-#include <fd/assert.h>
-#include <fd/format.h>
-#include <fd/functional.h>
-#include <fd/log.h>
-#include <fd/valve/con_var_system.h>
+﻿#include <fd/valve/con_var_system.h>
+
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
 
 #define FD_CHECK_WHOLE_CVAR_NAME
 
@@ -123,7 +122,7 @@ static bool _compare_cvars(const char* name, const size_t size, const ConCommand
 {
     if (!other.IsCommand())
         return false;
-    if (!equal(name, size, other.name))
+    if (!std::equal(name, name + size, other.name))
         return false;
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
     if (other.name[size] != '\0')
@@ -134,7 +133,7 @@ static bool _compare_cvars(const char* name, const size_t size, const ConCommand
 
 con_var* con_var_system::FindVar(const char* name, const size_t size) const
 {
-    const auto                   comparer = bind_front(_compare_cvars, name, size);
+    const auto                   comparer = std::bind_front(_compare_cvars, name, size);
     const ConCommandBaseIterator first_cvar(*reinterpret_cast<ConCommandBase**>(reinterpret_cast<uintptr_t>(this) + 0x30));
     const ConCommandBaseIterator invalid_cvar;
 
@@ -142,14 +141,12 @@ con_var* con_var_system::FindVar(const char* name, const size_t size) const
 
     if (target_cvar == invalid_cvar)
     {
-        if (log_active())
-            log_unsafe(format("Cvar '{}' NOT found", name));
+        spdlog::warn("Cvar '{}' NOT found", name);
         return nullptr;
     }
 
 #ifdef FD_CHECK_WHOLE_CVAR_NAME
-    if (log_active())
-        log_unsafe(format("Cvar '{}' found", name));
+    spdlog::info("Cvar '{}' found", name);
 #else
     FD_ASSERT(std::find_if(target_cvar + 1, invalid_cvar, comparer) == invalid_cvar, "Found multiple cvars with given name!");
     log([name] {

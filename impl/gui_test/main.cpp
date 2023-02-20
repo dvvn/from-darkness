@@ -1,16 +1,15 @@
 ﻿#include "backend.h"
 
 #include <fd/assert_impl.h>
-#include <fd/format.h>
-#include <fd/functional.h>
 #include <fd/gui/context_impl.h>
 #include <fd/gui/menu_impl.h>
 #include <fd/hook_callback.h>
 #include <fd/hook_storage.h>
-#include <fd/log_impl.h>
 #include <fd/system_console.h>
 
 #include <imgui.h>
+
+#include <spdlog/spdlog.h>
 
 int main(int, char**)
 {
@@ -21,15 +20,12 @@ int main(int, char**)
 
     //---
 
-    system_console sysConsole;
-
-    const log_handler logCallback([&](auto msg) {
-        sysConsole.out()(msg);
-    });
+    // log::init();
+    spdlog::set_level(spdlog::level::debug);
 
 #if defined(_DEBUG) || 1
     const default_assert_handler assertHandler([&](const assert_data& adata) {
-        sysConsole.out()(parse(adata));
+        spdlog::critical(parse(adata));
     });
 #endif
 

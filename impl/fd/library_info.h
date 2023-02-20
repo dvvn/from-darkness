@@ -1,8 +1,6 @@
 #pragma once
 
 #include <fd/dll_notification.h>
-#include <fd/string.h>
-#include <fd/type_name.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -31,35 +29,28 @@ struct library_info
     library_info(pointer entry = nullptr);
 
     bool is_root() const;
+    [[deprecated]]
     bool unload() const;
 
     pointer   get() const;
     pointer   operator->() const;
     reference operator*() const;
 
-    wstring_view path() const;
-    wstring_view name() const;
+    std::wstring_view path() const;
+    std::wstring_view name() const;
 
-    [[deprecated]] void log_class_info(string_view rawName, const void* addr) const;
+    void*                 find_export(std::string_view name) const;
+    IMAGE_SECTION_HEADER* find_section(std::string_view name) const;
 
-    template <class T>
-    [[deprecated]] void log_class_info(const T* addr) const
-    {
-        log_class_info(type_name<T>(), addr);
-    }
-
-    void*                 find_export(string_view name) const;
-    IMAGE_SECTION_HEADER* find_section(string_view name) const;
-
-    void* find_signature(string_view sig) const;
+    void* find_signature(std::string_view sig) const;
 
   private:
-    void* find_vtable_class(string_view name) const;
-    void* find_vtable_struct(string_view name) const;
-    void* find_vtable_unknown(string_view name) const;
+    void* find_vtable_class(std::string_view name) const;
+    void* find_vtable_struct(std::string_view name) const;
+    void* find_vtable_unknown(std::string_view name) const;
 
   public:
-    void* find_vtable(string_view name) const;
+    void* find_vtable(std::string_view name) const;
     void* find_vtable(const type_info& info) const;
 
     template <class T>
@@ -72,11 +63,11 @@ struct library_info
 bool operator==(library_info info, std::nullptr_t);
 bool operator==(library_info info, library_info other);
 bool operator==(library_info info, PVOID baseAddress);
-bool operator==(library_info info, wstring_view name);
+bool operator==(library_info info, std::wstring_view name);
 bool operator!(library_info info);
 
 library_info find_library(PVOID baseAddress);
-library_info find_library(wstring_view name);
+library_info find_library(std::wstring_view name);
 
 struct csgo_library_info : library_info
 {
@@ -84,8 +75,8 @@ struct csgo_library_info : library_info
 
     csgo_library_info(library_info info);
 
-    void* find_interface(string_view name) const;
-    void* find_interface(const void* createInterfaceFn, string_view name) const;
+    void* find_interface(std::string_view name) const;
+    void* find_interface(const void* createInterfaceFn, std::string_view name) const;
 };
 
 library_info current_library_info();
@@ -152,10 +143,10 @@ class _thread_safe_storage
 
 struct _delayed_library_info
 {
-    wstring_view          name;
+    std::wstring_view     name;
     std::binary_semaphore sem;
 
-    _delayed_library_info(wstring_view name)
+    _delayed_library_info(std::wstring_view name)
         : name(name)
         , sem(0)
     {
@@ -179,12 +170,12 @@ class library_info_cache
     ~library_info_cache();
     library_info_cache();
 
-    void store(PVOID baseAddress, wstring_view name);
-    void remove(PVOID baseAddress, wstring name);
+    void store(PVOID baseAddress, std::wstring_view name);
+    void remove(PVOID baseAddress, std::wstring name);
 
-    library_info get(PVOID baseAddress) const; // return null if not found
-    library_info get(wstring_view name) const; // return null if not found
-    library_info get(wstring_view name);       // wait if not found
+    library_info get(PVOID baseAddress) const;      // return null if not found
+    library_info get(std::wstring_view name) const; // return null if not found
+    library_info get(std::wstring_view name);       // wait if not found
 
     void destroy();
 };

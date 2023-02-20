@@ -1,7 +1,7 @@
 #include <fd/assert.h>
-#include <fd/functional.h>
 #include <fd/hook_impl.h>
-#include <fd/log.h>
+
+#include <spdlog/spdlog.h>
 
 #include <subhook.h>
 
@@ -36,24 +36,24 @@ using namespace fd;
 template <typename T>
 concept invocable_simple = requires(T msg) { msg(); };
 
-template <typename T>
-static void _log(auto* hook, T msg)
-{
-    if (!log_active())
-        return;
-
-    auto hookName = hook->name();
-    if (hookName.empty())
-        return;
-
-    string buff;
-    if constexpr (invocable_simple<T>)
-        write_string(buff, hookName, ": ", msg());
-    else
-        write_string(buff, hookName, ": ", msg);
-
-    log_unsafe(buff);
-}
+// template <typename T>
+// static void _log(auto* hook, T msg)
+//{
+//     if (!log_active())
+//         return;
+//
+//     auto hookName = hook->name();
+//     if (hookName.empty())
+//         return;
+//
+//     string buff;
+//     if constexpr (invocable_simple<T>)
+//         write_string(buff, hookName, ": ", msg());
+//     else
+//         write_string(buff, hookName, ": ", msg);
+//
+//     log_unsafe(buff);
+// }
 
 #if 0
 static class : public hook_global_callback
@@ -99,15 +99,12 @@ hook_impl::hook_impl(string_view name)
 
 hook_impl::~hook_impl()
 {
-    if (!hook_impl::initialized())
-        return;
-    if (hook_impl::active())
+    if (hook_impl::initialized())
     {
-        const auto ok = subhook_remove(entry_) == 0;
-        _log(this, ok ? "unhooked" : "unhook error!");
-        // _HookCallback.destroy(this, ok);
+        if (hook_impl::active())
+            subhook_remove(entry_);
+        subhook_free(entry_);
     }
-    subhook_free(entry_);
 }
 
 hook_impl::hook_impl(hook_impl&& other) noexcept
@@ -116,33 +113,67 @@ hook_impl::hook_impl(hook_impl&& other) noexcept
 {
 }
 
+struct _hook_enabled
+{
+    hook_impl* impl;
+};
+
+template <>
+struct fmt::formatter<_hook_enabled, char> : formatter<string_view>
+{
+    template <typename FormatCtx>
+    auto format(_hook_enabled hook, FormatCtx& ctx) const
+    {
+        string_view str;
+        if (!hook.impl->initialized())
+            str = "not created";
+        else if (hook.impl->active())
+            str = "already hooked";
+        else
+            str = "enable error";
+        return fmt::formatter<string_view>::format(str, ctx);
+    }
+};
+
 bool hook_impl::enable()
 {
     const auto ok = subhook_install(entry_) == 0;
-    _log(this, [=] {
-        if (ok)
-            return "hooked";
-        if (!initialized())
-            return "not created";
-        if (active())
-            return "already hooked";
-        return "enable error!";
-    });
+    if (ok)
+        spdlog::info("{}: hooked", name());
+    else
+        spdlog::warn("{}: {}", name(), _hook_enabled(this));
     return ok;
 }
+
+struct _hook_disabled
+{
+    hook_impl* impl;
+};
+
+template <>
+struct fmt::formatter<_hook_disabled> : formatter<string_view>
+{
+    template <typename FormatCtx>
+    auto format(_hook_disabled hook, FormatCtx& ctx) const
+    {
+        string_view str;
+        if (!hook.impl->initialized())
+            str = "not created";
+        else if (!hook.impl->active())
+            str = "already unhooked";
+        else
+            str = "disable error";
+        return fmt::formatter<string_view>::format(str, ctx);
+    }
+};
 
 bool hook_impl::disable()
 {
     const auto ok = subhook_remove(entry_) == 0;
-    _log(this, [=] {
-        if (ok)
-            return "unhooked";
-        if (!initialized())
-            return "not created";
-        if (!active())
-            return "already unhooked";
-        return "unhook error!";
-    });
+    if (ok)
+        spdlog::info("{}: unhooked", name());
+    else
+        spdlog::warn("{}: {}", name(), _hook_disabled(this));
     return ok;
 }
 
@@ -176,21 +207,27 @@ void* hook_impl::get_replace_method() const
     return subhook_get_dst(entry_);
 } */
 
-void hook_impl::init(void* target, void* replace)
+bool hook_impl::init(void* target, void* replace)
 {
     FD_ASSERT(entry_ == nullptr);
     entry_ = subhook_new(target, replace);
 
     if (!entry_)
     {
-        _log(this, "init error!");
+        spdlog::error("{}: init error", name());
     }
     else if (!subhook_get_trampoline(entry_))
     {
-        _log(this, "unsupported function");
+        spdlog::error("{}: unsupported function", name());
         subhook_free(entry_);
         entry_ = nullptr;
     }
+    else
+    {
+        spdlog::info("{}: initialized. (target: {:p} replace: {:p})", name(), target, replace);
+    }
+
+    return entry_ != nullptr;
 }
 
 hook_impl::operator bool() const

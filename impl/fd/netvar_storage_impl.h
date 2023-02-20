@@ -66,8 +66,8 @@ class netvars_storage final : public basic_netvars_storage
     netvar_table*       find(string_view name);
     const netvar_table* find(string_view name) const;
 
-    void iterate_client_class(const valve::client_class* rootClass, string_view debugName = {});
-    void iterate_datamap(const valve::data_map* rootMap, string_view debugName = {});
+    void iterate_client_class(const valve::client_class* rootClass);
+    void iterate_datamap(const valve::data_map* rootMap);
     void log_netvars(netvars_log& data);
     void generate_classes(netvars_classes& data);
 
