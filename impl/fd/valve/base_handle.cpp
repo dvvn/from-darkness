@@ -1,7 +1,8 @@
-﻿#include <fd/assert.h>
-#include <fd/valve/base_handle.h>
+﻿#include <fd/valve/base_handle.h>
 #include <fd/valve/client_entity.h>
 #include <fd/valve/client_entity_list.h>
+
+#include <cassert>
 
 using namespace fd;
 using namespace valve;
@@ -25,7 +26,7 @@ base_handle::base_handle()
     m_Index = INVALID_EHANDLE_INDEX;
 }
 
-base_handle::base_handle(const base_handle& other)
+base_handle::base_handle(base_handle const& other)
 {
     m_Index = other.m_Index;
 }
@@ -44,8 +45,8 @@ base_handle::base_handle(handle_entity* pHandleObj)
 
 base_handle::base_handle(int iEntry, int iSerialNumber)
 {
-    FD_ASSERT(iEntry >= 0 && (iEntry & ENT_ENTRY_MASK) == iEntry);
-    FD_ASSERT(iSerialNumber >= 0 && iSerialNumber < (1 << NUM_SERIAL_NUM_BITS));
+    assert(iEntry >= 0 && (iEntry & ENT_ENTRY_MASK) == iEntry);
+    assert(iSerialNumber >= 0 && iSerialNumber < (1 << NUM_SERIAL_NUM_BITS));
     m_Index = iEntry | (iSerialNumber << /*NUM_ENT_ENTRY_BITS*/ NUM_SERIAL_NUM_SHIFT_BITS);
 }
 
@@ -75,7 +76,7 @@ int32_t base_handle::ToInt() const
 
 namespace fd::valve
 {
-    extern client_entity_list* entity_list;
+extern client_entity_list* entity_list;
 }
 
 handle_entity* base_handle::Get() const

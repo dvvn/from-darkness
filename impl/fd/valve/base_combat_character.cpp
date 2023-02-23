@@ -1,4 +1,3 @@
-#include <fd/assert.h>
 #include <fd/valve/base_combat_character.h>
 
 #if __has_include("C_BaseCombatCharacter_generated_cpp")
@@ -13,6 +12,6 @@ base_combat_weapon* base_combat_character::active_weapon()
 #if __has_include("C_BaseCombatWeapon_generated_h")
     return static_cast<base_combat_weapon*>(m_hActiveWeapon().Get());
 #else
-    FD_ASSERT_PANIC("Not implemented");
+    std::unreachable();
 #endif
 }

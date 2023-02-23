@@ -1,15 +1,17 @@
-#include <fd/mem_protect.h>
+#include "mem_protect.h"
 
 #include <Windows.h>
 
-using namespace fd;
+namespace fd
+{
+static_assert(sizeof(SIZE_T) == sizeof(size_t));
 
-static bool _set_flags(const LPVOID addr, const size_t size, const DWORD newFlags, DWORD& oldFlags)
+static bool _set_flags(const LPVOID addr, const SIZE_T size, const DWORD newFlags, DWORD& oldFlags)
 {
     return VirtualProtect(addr, size, newFlags, &oldFlags);
 }
 
-static bool _set_flags(const LPVOID addr, const size_t size, const DWORD newFlags)
+static bool _set_flags(const LPVOID addr, const SIZE_T size, const DWORD newFlags)
 {
     DWORD unused;
     return _set_flags(addr, size, newFlags, unused);
@@ -37,8 +39,8 @@ mem_protect::mem_protect(void* addr, const size_t size, const size_type newFlags
     }
 }
 
-mem_protect::mem_protect(const mem_protect& other)            = default;
-mem_protect& mem_protect::operator=(const mem_protect& other) = default;
+mem_protect::mem_protect(mem_protect const& other)            = default;
+mem_protect& mem_protect::operator=(mem_protect const& other) = default;
 
 mem_protect::mem_protect(mem_protect&& other) noexcept
 {
@@ -48,7 +50,7 @@ mem_protect::mem_protect(mem_protect&& other) noexcept
 
 mem_protect& mem_protect::operator=(mem_protect&& other) noexcept
 {
-    const auto old = *this;
+    auto const old = *this;
     *this          = other;
     other          = old;
     return *this;
@@ -56,15 +58,16 @@ mem_protect& mem_protect::operator=(mem_protect&& other) noexcept
 
 bool mem_protect::restore()
 {
-    if (!has_value())
-        return false;
-    if (!_set_flags(addr_, size_, oldFlags_))
-        return false;
-    oldFlags_ = 0;
-    return true;
+    if (has_value() && _set_flags(addr_, size_, oldFlags_))
+    {
+        oldFlags_ = 0;
+        return true;
+    }
+    return false;
 }
 
 bool mem_protect::has_value() const
 {
     return oldFlags_ != 0;
 }
+} // namespace fd

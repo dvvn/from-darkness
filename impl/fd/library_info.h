@@ -1,28 +1,21 @@
 #pragma once
 
-#include <fd/dll_notification.h>
-
 #include <windows.h>
 #include <winternl.h>
 
 #include <list>
 #include <mutex>
-#include <optional>
 #include <semaphore>
 #include <vector>
 
 namespace fd
 {
-struct library_info;
-struct csgo_library_info;
-struct current_library_info;
-
 struct library_info
 {
     using pointer   = const LDR_DATA_TABLE_ENTRY*;
     using reference = const LDR_DATA_TABLE_ENTRY&;
 
-  private:
+  protected:
     pointer entry_;
 
   public:
@@ -44,14 +37,8 @@ struct library_info
 
     void* find_signature(std::string_view sig) const;
 
-  private:
-    void* find_vtable_class(std::string_view name) const;
-    void* find_vtable_struct(std::string_view name) const;
-    void* find_vtable_unknown(std::string_view name) const;
-
-  public:
     void* find_vtable(std::string_view name) const;
-    void* find_vtable(const type_info& info) const;
+    void* find_vtable(std::type_info const& info) const;
 
     template <class T>
     T* find_vtable() const
@@ -76,70 +63,11 @@ struct csgo_library_info : library_info
     csgo_library_info(library_info info);
 
     void* find_interface(std::string_view name) const;
-    void* find_interface(const void* createInterfaceFn, std::string_view name) const;
+    void* find_interface(void const* createInterfaceFn, std::string_view name) const;
 };
 
 library_info current_library_info();
 void         set_current_library(HMODULE handle);
-
-struct _dll_notification_funcs
-{
-    LdrRegisterDllNotification   reg;
-    LdrUnregisterDllNotification unreg;
-};
-
-#if 0
-template <class T>
-class _thread_safe_storage_accesser
-{
-    T*          storage_;
-    std::mutex* mtx_;
-
-  public:
-    _thread_safe_storage_accesser(const _thread_safe_storage_accesser&)            = delete;
-    _thread_safe_storage_accesser& operator=(const _thread_safe_storage_accesser&) = delete;
-
-    ~_thread_safe_storage_accesser()
-    {
-        mtx_->unlock();
-    }
-
-    _thread_safe_storage_accesser(T* storage, std::mutex* mtx)
-        : storage_(storage)
-        , mtx_(mtx)
-    {
-        mtx->lock();
-    }
-
-    T* operator->() const
-    {
-        return storage_;
-    }
-
-    T& operator*() const
-    {
-        return *storage_;
-    }
-};
-
-template <class T>
-class _thread_safe_storage
-{
-    T                  storage_;
-    mutable std::mutex mtx_;
-
-  public:
-    _thread_safe_storage_accesser<T> get()
-    {
-        return { storage_, &mtx_ };
-    }
-
-    _thread_safe_storage_accesser<const T> get() const
-    {
-        return { storage_, &mtx_ };
-    }
-};
-#endif
 
 struct _delayed_library_info
 {
@@ -157,12 +85,10 @@ class library_info_cache
 {
     mutable std::mutex mtx_;
 
-    std::vector<library_info>        cache_;
-    std::list<_delayed_library_info> delayed_;
+    std::vector<const LDR_DATA_TABLE_ENTRY*> cache_;
+    std::list<_delayed_library_info>         delayed_;
 
     PVOID cookie_;
-
-    inline static std::optional<_dll_notification_funcs> notif_;
 
     void release_delayed();
 
@@ -179,5 +105,4 @@ class library_info_cache
 
     void destroy();
 };
-
 } // namespace fd

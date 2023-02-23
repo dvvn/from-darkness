@@ -8,15 +8,17 @@ AlignConsecutiveDeclarations: AcrossComments
 BreakAfterAttributes: Always
 RequiresExpressionIndentation: OuterScope
 Cpp11BracedListStyle: false
-AlignArrayOfStructures: Left
+AlignArrayOfStructures: Right
 AlignEscapedNewlines: Left
 PointerAlignment: Left
 FixNamespaceComments: true
+#LambdaBodyIndentation: OuterScope
 #NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
-#BreakBeforeBraces: Allman
-AlignAfterOpenBracket: BlockIndent
-AllowShortLambdasOnASingleLine: Empty
+RemoveSemicolon: true
+BreakBeforeBraces: Allman
+AlignAfterOpenBracket: AlwaysBreak #BlockIndent
+AllowShortLambdasOnASingleLine: Inline
 SeparateDefinitionBlocks: Always
 BinPackArguments: false
 BinPackParameters: false
@@ -26,11 +28,13 @@ PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 40
 PenaltyBreakFirstLessLess: 50
 PenaltyBreakOpenParenthesis: 60
-ColumnLimit: 180
+#ColumnLimit: 180
 BraceWrapping:
   AfterUnion: true
   BeforeWhile: true
   BeforeLambdaBody: false
 RequiresClausePosition: WithPreceding
 KeepEmptyLinesAtTheStartOfBlocks: false
+QualifierAlignment: Right
+UseTab: Never
 ...

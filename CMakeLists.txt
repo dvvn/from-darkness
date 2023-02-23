@@ -9,33 +9,27 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED on)
 
-set(_PROJ_NAME fd)
-string(TOUPPER ${_PROJ_NAME} _PROJ_NAME_UPPER)
+project(from-datkness CXX)
 
-project(${_PROJ_NAME} CXX)
-
-set(_PROJ_IMPL_DIR ${PROJECT_SOURCE_DIR}/impl)
-set(_PROJ_WORK_DIR ${_PROJ_IMPL_DIR}/${_PROJ_NAME})
+set(FD_ROOT_DIR ${PROJECT_SOURCE_DIR})
+set(FD_PROJECTS_DIR ${FD_ROOT_DIR}/projects)
+set(FD_IMPL_DIR ${FD_ROOT_DIR}/impl)
+set(FD_DIR ${FD_IMPL_DIR}/fd)
 
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES "")
     set(CMAKE_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
 endif()
 
-include(FetchContent)
-set(GIT_SHALLOW true)
-set(FETCHCONTENT_QUIET off)
-set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps1)
-
-set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
-
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(CMAKE_DEBUG_POSTFIX _d)
-  set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+    set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+else()
+    set(CMAKE_MESSAGE_LOG_LEVEL WARNING)
 endif()
 
-include(ProcessorCount)
-ProcessorCount(_CPUS)
-message(DEBUG "Cpu's count: ${_CPUS}")
+set(CMAKE_DEBUG_POSTFIX _d)
+set(CMAKE_RELEASE_POSTFIX _r)
+set(CMAKE_RELWITHDEBINFO_POSTFIX _rd)
+set(CMAKE_MINSIZEREL_POSTFIX _rm)
 
 if(MSVC)
   # Whole program optimization
@@ -66,6 +60,17 @@ if(MSVC)
   set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF")
   set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF")
 endif()
+
+include(FetchContent)
+set(GIT_SHALLOW true)
+set(FETCHCONTENT_QUIET off)
+set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/.deps1)
+
+set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
+
+include(ProcessorCount)
+ProcessorCount(_CPUS)
+message(DEBUG "Cpu's count: ${_CPUS}")
 
 function(FetchContent_Load _owner _name)
     set(_path ${_owner}/${_name})
@@ -101,7 +106,6 @@ set(BOOST_RUNTIME_LINK static)
 #set(BOOST_ENABLE_MPI ON)
 FetchContent_Load(boostorg boost)
 FetchContent_MakeAvailable(boost)
-list(APPEND _PROJ_LIBS )
 
 set(DISABLE_FORCE_DEBUG_POSTFIX on)
 set(FT_DISABLE_ZLIB on)
@@ -166,72 +170,7 @@ FetchContent_Populate(lazy_importer)
 
 # -------------------
 
-file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
-list(APPEND _IMGUI_FILES ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp)
-if(MSVC)
-  list(APPEND _IMGUI_FILES ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp)
-else()
-
-endif()
-add_library(imgui ${_IMGUI_FILES})
-target_link_libraries(imgui PRIVATE freetype)
-target_include_directories(imgui PUBLIC
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-)
-target_compile_definitions(imgui PUBLIC
-    IMGUI_USER_CONFIG="${_PROJ_WORK_DIR}/gui/config.h"
-)
-
-#-------
-
-file(GLOB_RECURSE _PROJ_FILES ${_PROJ_WORK_DIR}/*.cpp)
-add_library(impl ${_PROJ_FILES})
-target_link_libraries(impl PUBLIC 
-    #function2
-    robin_hood::robin_hood   
-    nlohmann_json
-    subhook
-    fmt
-    imgui
-    xxhash
-    spdlog
-    sigmatch
-    Boost::thread
-    Boost::algorithm
-    Boost::container
-    Boost::ptr_container
-    Boost::container_hash
-    Boost::json
-    Boost::sort
-    Boost::io
-    Boost::dll
-    Boost::process
-    Boost::geometry
-    Boost::gil
-    Boost::uuid
-    Boost::fusion
-    Boost::hana
-)
-target_include_directories(impl PUBLIC
-    ${_PROJ_IMPL_DIR}
-    ${xxhct_SOURCE_DIR}
-    #${veque_SOURCE_DIR}/include
-    #${atomic_queue_SOURCE_DIR}/include
-    ${lazy_importer_SOURCE_DIR}/include
-)
-target_compile_definitions(impl PUBLIC
-    ${_PROJ_NAME_UPPER}_WORK_DIR=${_PROJ_WORK_DIR}
-    ${_PROJ_NAME_UPPER}_ROOT_DIR=${CMAKE_CURRENT_LIST_DIR}
-    #[[ RMLUI_STATIC_LIB RMLUI_DIR=${rml_SOURCE_DIR} ]]
-)
-
-file(GLOB_RECURSE _GUI_TEST_FILES ${_PROJ_IMPL_DIR}/gui_test/*.cpp ${_PROJ_IMPL_DIR}/gui_test/*.ixx)
-add_executable(gui_test ${_GUI_TEST_FILES})
-target_link_libraries(gui_test impl d3d9.lib)
-target_compile_definitions(gui_test PRIVATE ${_PROJ_NAME_UPPER}_GUI_TEST)
-
-file(GLOB_RECURSE _LIBRARY_FILES ${_PROJ_IMPL_DIR}/library/*.cpp ${_PROJ_IMPL_DIR}/library/*.ixx)
-add_library(library SHARED ${_LIBRARY_FILES})
-target_link_libraries(library impl)
-target_compile_definitions(library PRIVATE ${_PROJ_NAME_UPPER}_LIBRARY)
+add_subdirectory(${FD_PROJECTS_DIR}/imgui ${imgui_BINARY_DIR})
+add_subdirectory(${FD_PROJECTS_DIR}/shared)
+add_subdirectory(${FD_PROJECTS_DIR}/gui_test)
+add_subdirectory(${FD_PROJECTS_DIR}/dll)
