@@ -11,8 +11,22 @@ static basic_netvar_info* new_clone(basic_netvar_info const& other)
 
 netvar_table::~netvar_table() = default;
 
-netvar_table::netvar_table(std::string&& name, bool const root)
+netvar_table::netvar_table(std::string&& name, bool root)
     : name_(std::move(name))
+    , isRoot_(root)
+{
+    assert(!name_.empty());
+}
+
+netvar_table::netvar_table(std::string_view name, bool const root)
+    : name_((name))
+    , isRoot_(root)
+{
+    assert(!name.empty());
+}
+
+netvar_table::netvar_table(char const* name, bool root)
+    : name_((name))
     , isRoot_(root)
 {
     assert(!name_.empty());
@@ -63,8 +77,7 @@ void netvar_table::sort()
     std::stable_sort(
         storage_.begin().base(),
         storage_.end().base(),
-        boost::make_void_ptr_indirect_fun<basic_netvar_info>(std::less())
-    );
+        boost::make_void_ptr_indirect_fun<basic_netvar_info>(std::less()));
     // storage_.sort();
 }
 
@@ -122,4 +135,4 @@ const netvar_table_multi& netvar_table_multi::inner() const
 {
     return std::get<netvar_table_multi>(inner_);
 } */
-}
+} // namespace fd

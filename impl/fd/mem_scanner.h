@@ -119,9 +119,8 @@ struct _memory_iterator
 
   public:
     _memory_iterator(void const* creator, M&& memRng, void* current = nullptr)
-        // ReSharper disable once CppMemberInitializersOrder
-        : current_(current ? current : memRng())
-        , memRng_(std::move(memRng))
+        : memRng_(std::move(memRng))
+        , current_(current ? current : memRng_())
         , creator_(creator)
 
     {

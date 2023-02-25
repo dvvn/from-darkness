@@ -17,13 +17,13 @@ class netvar_info final : public basic_netvar_info
 {
     size_t             offset_;
     netvar_info_source source_;
-    size_t             arraySize_; // for arrays
+    size_t             arraySize_;
 
     mutable std::string_view name_;
     mutable std::string      type_;
 
   public:
-    netvar_info(size_t offset, netvar_info_source source, size_t arraySize = 0, std::string_view name = {});
+    netvar_info(size_t offset, netvar_info_source source, std::string_view name, size_t arraySize = 0);
 
     size_t           offset() const override;
     std::string_view name() const override;
@@ -86,7 +86,8 @@ class netvar_info_instant final : public basic_netvar_info
     std::string      type_;
 
   public:
-    netvar_info_instant(size_t offset, std::string_view name = {}, std::string&& type = {});
+    netvar_info_instant(size_t offset, std::string_view name, std::string type);
+    netvar_info_instant(size_t offset, std::string_view name, std::string_view type, size_t arraySize);
 
     size_t           offset() const override;
     std::string_view name() const override;

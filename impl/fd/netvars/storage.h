@@ -5,6 +5,8 @@
 #include <fd/valve/client_class.h>
 #include <fd/valve/data_map.h>
 
+#include <boost/filesystem/path.hpp>
+
 #include <vector>
 
 namespace fd
@@ -33,7 +35,7 @@ struct netvars_classes final
     ~netvars_classes();
     netvars_classes();
 
-    std::wstring dir;
+    boost::filesystem::path dir;
 
     struct file_info
     {
@@ -44,8 +46,35 @@ struct netvars_classes final
     std::vector<file_info> files;
 };
 
+class netvar_tables
+{
+    std::vector<netvar_table> data_;
+
+  public:
+    netvar_table* begin()
+    {
+        return data_.data();
+    }
+
+    netvar_table* end()
+    {
+        return data_.data() + data_.size();
+    }
+
+    netvar_table const* begin() const
+    {
+        return data_.data();
+    }
+
+    netvar_table const* end() const
+    {
+        return data_.data() + data_.size();
+    }
+};
+
 class netvars_storage final : public basic_netvars_storage
 {
+    std::vector<netvar_table> internal_;
     std::vector<netvar_table> data_;
     std::vector<size_t>       sortRequested_;
 
@@ -58,10 +87,10 @@ class netvars_storage final : public basic_netvars_storage
     void add(netvar_table&& table);
 
   public:
+    netvars_storage();
+
     netvar_table* add(std::string&& name, bool root);
     netvar_table* add(std::string_view name, bool root);
-
-    netvars_storage();
 
     netvar_table*       find(std::string_view name);
     netvar_table const* find(std::string_view name) const;

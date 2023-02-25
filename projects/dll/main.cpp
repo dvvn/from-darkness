@@ -1,3 +1,5 @@
+#include "console.h"
+
 #include <fd/gui/context.h>
 #include <fd/gui/menu.h>
 #include <fd/hooking/callback.h>
@@ -10,10 +12,13 @@
 #include <fd/valve/engine_client.h>
 #include <fd/valve/gui/surface.h>
 
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include <d3d9.h>
 #include <windows.h>
+
+#include <iostream>
 
 static HMODULE _ModuleHandle;
 
@@ -36,16 +41,25 @@ static void _exit_success()
 
 namespace fd
 {
-
-struct free_helper
+template <typename Fn>
+class _invoke_on_destuct
 {
-    DWORD exitCode;
+    Fn fn;
 
-    ~free_helper()
+  public:
+    ~_invoke_on_destuct()
     {
-        FreeLibraryAndExitThread(_ModuleHandle, exitCode);
+        fn();
+    }
+
+    _invoke_on_destuct(Fn fn)
+        : fn(fn)
+    {
     }
 };
+
+template <typename Fn>
+_invoke_on_destuct(Fn fn) -> _invoke_on_destuct<std::decay_t<Fn>>;
 
 #if 0
 template <size_t S>
@@ -138,7 +152,7 @@ static auto _get_product_version_string(valve::engine_client* engine)
 
     std::wstring buff;
     buff.reserve(nativeStr.size());
-    for (auto const c : (nativeStr))
+    for (auto const c : nativeStr)
         buff += c == '.' ? '_' : c;
     return buff;
 }
@@ -162,31 +176,15 @@ static void _pause()
         abort(); // WARNING!!!
 }
 
-template <typename Fn>
-class _invoke_on_destuct
-{
-    Fn fn;
-
-  public:
-    ~_invoke_on_destuct()
-    {
-        fn();
-    }
-
-    _invoke_on_destuct(Fn fn)
-        : fn(fn)
-    {
-    }
-};
-
-template <typename Fn>
-_invoke_on_destuct(Fn fn) -> _invoke_on_destuct<std::decay_t<Fn>>;
-
 static DWORD WINAPI _context(void*) noexcept
 {
-    free_helper freeHelper{ EXIT_FAILURE };
+    DWORD      exitCode   = EXIT_FAILURE;
+    auto const freeHelper = _invoke_on_destuct([&] { FreeLibraryAndExitThread(_ModuleHandle, exitCode); });
 
-    // set_unload(_exit_fail); //prefer terminate
+#ifdef _DEBUG
+    const console_holder consoleHanlder(
+        L"from-darkness debug console. " BOOST_STRINGIZE(__DATE__) " " BOOST_STRINGIZE(__TIME__));
+#endif
 
 #ifdef _DEBUG
     spdlog::set_level(spdlog::level::debug);
@@ -382,7 +380,7 @@ static DWORD WINAPI _context(void*) noexcept
 
     Sleep(100);
 
-    freeHelper.exitCode = EXIT_SUCCESS;
+    exitCode = EXIT_SUCCESS;
     return TRUE;
 }
 } // namespace fd

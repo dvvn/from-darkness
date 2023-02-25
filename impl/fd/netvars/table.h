@@ -20,12 +20,15 @@ class netvar_table
   public:
     ~netvar_table();
 
-    netvar_table(std::string&& name, bool root);
+    explicit netvar_table(std::string&& name, bool root);
+    explicit netvar_table(std::string_view name, bool root);
+    explicit netvar_table(const char* name, bool root);
     netvar_table(netvar_table const&) = delete;
     netvar_table(netvar_table&& other) noexcept;
 
     std::string_view name() const;
-    bool             root() const;
+    [[deprecated]]
+    bool root() const;
 
     basic_netvar_info const* find(std::string_view name) const;
     void                     add(basic_netvar_info* info);

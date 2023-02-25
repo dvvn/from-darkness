@@ -101,16 +101,13 @@ class _chars_mixer<ContextC, StrC, false>
 template <typename ContextC, typename StrC>
 struct fmt::formatter<_chars_mixer<ContextC, StrC>, ContextC> : formatter<basic_string_view<ContextC>, ContextC>
 {
-    template <class FormatContext>
-    auto format(_chars_mixer<ContextC, StrC> const& mixer, FormatContext& ctx) const
+    auto format(_chars_mixer<ContextC, StrC> const& mixer, auto& ctx) const
     {
         return formatter<basic_string_view<ContextC>, ContextC>::format(mixer.native(), ctx);
     }
 };
 
 using _lazy_wstring = _chars_mixer<wchar_t, char>;
-
-#undef ERROR
 
 enum interface_reg_iterator_mode : uint8_t
 {
@@ -196,15 +193,17 @@ class interface_reg
 
 enum interface_reg_cmp_result : uint8_t
 {
-    ERROR,
-    FULL,
-    PARTIAL,
+    error,
+    full,
+    partial,
+    unset
 };
 
 template <interface_reg_iterator_mode Mode>
 class interface_reg_iterator
 {
-    using cmp_type = std::conditional_t<Mode == interface_reg_iterator_mode::normal, std::false_type, interface_reg_cmp_result>;
+    using cmp_type =
+        std::conditional_t<Mode == interface_reg_iterator_mode::normal, std::false_type, interface_reg_cmp_result>;
 
     interface_reg*                 current_;
     [[no_unique_address]] cmp_type compared_;
@@ -221,12 +220,12 @@ class interface_reg_iterator
         , compared_(other.compared_)
     {
         if constexpr (Mode == interface_reg_iterator_mode::const_compare)
-            assert(compared_ != ERROR);
+            assert(compared_ != error);
     }
 
     interface_reg_iterator(interface_reg* reg)
         : current_(reg)
-        , compared_(ERROR)
+        , compared_(unset)
     {
     }
 
@@ -277,7 +276,10 @@ class interface_reg_iterator
     interface_reg_iterator operator+(size_t i) const
     {
         assert(i == 1);
-        return current_->next_;
+        auto ret = interface_reg_iterator(current_->next_);
+        if constexpr (Mode == interface_reg_iterator_mode::const_compare)
+            ret.compared_ = compared_;
+        return ret;
     }
 
     interface_reg_cmp_result status() const
@@ -295,35 +297,44 @@ struct std::iterator_traits<interface_reg_iterator<Mode>>
 
 bool operator==(interface_reg_iterator<compare>& it, const std::string_view ifcName)
 {
-    auto&      curr = *std::as_const(it);
-    auto const cmp  = ifcName.compare(curr.name());
-    if (cmp == 0)
-    {
-        it.set(interface_reg_cmp_result::FULL);
-        return true;
-    }
-    if (cmp < 0 && std::isdigit(curr.name()[ifcName.size()]))
-    {
-        it.set(interface_reg_cmp_result::PARTIAL);
-        return true;
-    }
+    auto&      curr     = *std::as_const(it);
+    auto const currName = std::string_view(curr.name());
 
-    it.set(interface_reg_cmp_result::ERROR);
-    return false;
+    auto cmp = interface_reg_cmp_result::error;
+    if (currName.starts_with(ifcName))
+    {
+        if (currName.size() == ifcName.size())
+            cmp = full;
+        else if (std::isdigit(currName[ifcName.size()]))
+            cmp = partial;
+    }
+    it.set(cmp);
+    return cmp != error;
 }
 
 bool operator==(interface_reg_iterator<const_compare> const& it, const std::string_view ifcName)
 {
     switch (it.status())
     {
-    case FULL:
-        return ifcName == it->name();
-    case PARTIAL:
-        return ifcName.compare(it->name()) < 0 && std::isdigit(it->name()[ifcName.size()]);
-    default:
-        assert("Wrong state");
+    case full:
+    {
+        return it->name() == ifcName;
     }
-    return false;
+    case partial:
+    {
+        auto const currName = std::string_view(it->name());
+        if (currName.size() <= ifcName.size())
+            return false;
+        if (!std::isdigit(currName[ifcName.size()]))
+            return false;
+        return currName.starts_with(ifcName);
+    }
+    default:
+    {
+        assert("Wrong state");
+        return false;
+    }
+    }
 }
 
 static interface_reg* _root_interface(void const* createInterfaceFn)
@@ -338,8 +349,7 @@ static interface_reg* _root_interface(void const* createInterfaceFn)
 template <typename T>
 struct fmt::formatter<interface_reg, T> : formatter<basic_string_view<T>, T>
 {
-    template <class Ctx>
-    auto format(interface_reg const& reg, Ctx& ctx) const
+    auto format(interface_reg const& reg, auto& ctx) const
     {
         auto const tmp = _chars_mixer<T, char>(reg.name());
         return formatter<basic_string_view<T>, T>::format(tmp.native(), ctx);
@@ -420,9 +430,9 @@ static std::span<uint8_t> _memory(const LDR_DATA_TABLE_ENTRY* entry, const IMAGE
 {
     if (!nt)
         nt = _get_nt(entry);
-    (void)nt->OptionalHeader.BaseOfCode;
-    (void)nt->OptionalHeader.BaseOfData;
-    (void)nt->OptionalHeader.ImageBase;
+    //(void)nt->OptionalHeader.BaseOfCode;
+    //(void)nt->OptionalHeader.BaseOfData;
+    //(void)nt->OptionalHeader.ImageBase; //same as entry->DllBase
     return { static_cast<uint8_t*>(entry->DllBase), nt->OptionalHeader.SizeOfImage };
 }
 
@@ -773,8 +783,7 @@ class _library_info_name
 template <typename T>
 struct fmt::formatter<_library_info_name, T> : formatter<basic_string_view<T>, T>
 {
-    template <class Ctx>
-    auto format(_library_info_name name, Ctx& ctx) const
+    auto format(_library_info_name name, auto& ctx) const
     {
         auto const tmp = _chars_mixer<T, wchar_t>(name);
         return formatter<basic_string_view<T>, T>::format(tmp.native(), ctx);
@@ -807,23 +816,31 @@ static void _log_found_entry(const /*IMAGE_DOS_HEADER*/ void* baseAddress, const
 //     }
 // };
 
-static auto _log_found_csgo_interface(_library_info_name entry, interface_reg_cmp_result type, _lazy_wstring name, interface_reg const* reg)
+static auto _log_found_csgo_interface(
+    _library_info_name       entry,
+    interface_reg_cmp_result type,
+    _lazy_wstring            name,
+    interface_reg const*     reg)
 {
     switch (type)
     {
-    case ERROR:
+    case error:
         spdlog::warn(L"{} -> csgo interface '{}' NOT found!", entry, name);
         break;
-    case FULL:
+    case full:
         spdlog::info(L"{} -> csgo interface '{}' found! ({:p})", entry, name, fmt::ptr(reg));
         break;
-    case PARTIAL:
+    case partial:
         spdlog::info(L"{} -> csgo interface '{}' ({}) found! ({:p})", entry, name, *reg, fmt::ptr(reg));
         break;
     }
 }
 
-static auto _log_found_object(_library_info_name entry, const std::wstring_view objectType, _lazy_wstring object, void const* addr)
+static auto _log_found_object(
+    _library_info_name      entry,
+    const std::wstring_view objectType,
+    _lazy_wstring           object,
+    void const*             addr)
 {
     if (addr)
         spdlog::info(L"{} -> {} '{}' found! ({:p})", entry, objectType, object, addr);
@@ -931,8 +948,7 @@ enum class obj_type : uint8_t
 template <typename T>
 struct fmt::formatter<obj_type, T> : formatter<basic_string_view<T>, T>
 {
-    template <typename FormatCtx>
-    auto format(obj_type type, FormatCtx& ctx) const
+    auto format(obj_type type, auto& ctx) const
     {
         _chars_mixer<T, char> buff;
 
@@ -982,8 +998,7 @@ struct _type_info_pretty_name
 template <typename T>
 struct fmt::formatter<_type_info_pretty_name, T> : formatter<basic_string_view<T>, T>
 {
-    template <typename FormatCtx>
-    auto format(_type_info_pretty_name name, FormatCtx& ctx) const
+    auto format(_type_info_pretty_name name, auto& ctx) const
     {
         return formatter<basic_string_view<T>, T>::format(name.get<T>().native(), ctx);
     }
@@ -1003,8 +1018,7 @@ struct _type_info_raw_name
 template <typename T>
 struct fmt::formatter<_type_info_raw_name, T> : formatter<basic_string_view<T>, T>
 {
-    template <typename FormatCtx>
-    auto format(_type_info_raw_name name, FormatCtx& ctx) const
+    auto format(_type_info_raw_name name, auto& ctx) const
     {
         return formatter<basic_string_view<T>, T>::format(name.get<T>().native(), ctx);
     }
@@ -1013,12 +1027,26 @@ struct fmt::formatter<_type_info_raw_name, T> : formatter<basic_string_view<T>, 
 static void _log_found_vtable(_library_info_name entry, std::type_info const& info, void const* vtablePtr)
 {
     if (vtablePtr)
-        spdlog::info(L"{} -> vtable for {} ({}) found! ({:p})", entry, _type_info_pretty_name(info), _type_info_raw_name(info), vtablePtr);
+        spdlog::info(
+            L"{} -> vtable for {} ({}) found! ({:p})",
+            entry,
+            _type_info_pretty_name(info),
+            _type_info_raw_name(info),
+            vtablePtr);
     else
-        spdlog::warn(L"{} -> vtable for {} ({}) NOT found!", entry, entry, _type_info_pretty_name(info), _type_info_raw_name(info));
+        spdlog::warn(
+            L"{} -> vtable for {} ({}) NOT found!",
+            entry,
+            entry,
+            _type_info_pretty_name(info),
+            _type_info_raw_name(info));
 }
 
-static void _log_found_vtable(_library_info_name entry, obj_type objType, _chars_mixer<wchar_t, char> name, void const* vtablePtr)
+static void _log_found_vtable(
+    _library_info_name          entry,
+    obj_type                    objType,
+    _chars_mixer<wchar_t, char> name,
+    void const*                 vtablePtr)
 {
     if (vtablePtr)
         spdlog::info(L"{} -> vtable for {} '{}' found! ({:p})", entry, objType, name, vtablePtr);
@@ -1180,7 +1208,11 @@ struct _find_type_descriptor<obj_type::CLASS> : _find_type_descriptor_known<_obj
 {
 };
 
-static void* _find_vtable(IMAGE_SECTION_HEADER* dotRdata, IMAGE_SECTION_HEADER* dotText, _dos_header dos, void const* rttiClassName)
+static void* _find_vtable(
+    IMAGE_SECTION_HEADER* dotRdata,
+    IMAGE_SECTION_HEADER* dotText,
+    _dos_header           dos,
+    void const*           rttiClassName)
 {
     // get rtti type descriptor
     auto typeDescriptor = reinterpret_cast<uintptr_t>(rttiClassName);
@@ -1317,11 +1349,11 @@ void* csgo_library_info::find_interface(void const* createInterfaceFn, const std
     using iterator       = interface_reg_iterator<compare>;
     using const_iterator = interface_reg_iterator<const_compare>;
 
-    auto const target = std::find<iterator>(_root_interface(createInterfaceFn), nullptr, name);
+    const_iterator const target = std::find<iterator>(_root_interface(createInterfaceFn), nullptr, name);
     assert(target != nullptr);
 
     auto const type = target.status();
-    if (type == PARTIAL)
+    if (type == partial)
     {
         assert(_all_digits(target->name() + name.size()));
         assert(std::find<const_iterator>(target + 1, nullptr, name) == nullptr);
@@ -1375,17 +1407,20 @@ void library_info_cache::release_delayed()
         info.sem.release();
 }
 
-static void CALLBACK _on_new_library(const ULONG notificationReason, const PCLDR_DLL_NOTIFICATION_DATA notificationData, const PVOID context)
+static void CALLBACK
+_on_new_library(const ULONG notificationReason, const PCLDR_DLL_NOTIFICATION_DATA notificationData, const PVOID context)
 {
     auto const data = static_cast<library_info_cache*>(context);
 
     switch (notificationReason)
     {
-    case LDR_DLL_NOTIFICATION_REASON_LOADED: {
+    case LDR_DLL_NOTIFICATION_REASON_LOADED:
+    {
         data->store(notificationData->Loaded.DllBase, _to_string_view(*notificationData->Loaded.BaseDllName));
         break;
     }
-    case LDR_DLL_NOTIFICATION_REASON_UNLOADED: {
+    case LDR_DLL_NOTIFICATION_REASON_UNLOADED:
+    {
         data->remove(notificationData->Unloaded.DllBase, _to_string(*notificationData->Unloaded.BaseDllName));
         break;
     }
@@ -1447,7 +1482,8 @@ library_info_cache::library_info_cache()
 
             auto& n = _LibraryInfoNotification.emplace();
             n.reg   = reinterpret_cast<LdrRegisterDllNotification>(_find_export(exports, "LdrRegisterDllNotification"));
-            n.unreg = reinterpret_cast<LdrUnregisterDllNotification>(_find_export(exports, "LdrUnregisterDllNotification"));
+            n.unreg = reinterpret_cast<LdrUnregisterDllNotification>(
+                _find_export(exports, "LdrUnregisterDllNotification"));
         }
     }
 

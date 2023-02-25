@@ -255,7 +255,10 @@ static bool _have_mem_after(bytes_range_unpacked_tiny const& rng, uint8_t const*
     return limit > 0 && rng.skip < static_cast<size_t>(limit);
 }
 
-static bool _have_mem_after(const std::iter_difference_t<uint8_t*> reserved, uint8_t const* memStart, uint8_t const* memEnd)
+static bool _have_mem_after(
+    const std::iter_difference_t<uint8_t*> reserved,
+    uint8_t const*                         memStart,
+    uint8_t const*                         memEnd)
 {
     return reserved <= std::distance(memStart, memEnd);
 }
@@ -284,8 +287,7 @@ static R* _search(R* rngStart, R* rngEnd, P* partStart, size_t partSize)
         if (std::memcmp(firstValue + 1, partStart + 1, (partSize - 1) * sizeof(part_val_t)) == 0)
             return firstValue;
         rngStart = firstValue + 1;
-    }
-    while (rngStart <= rngEnd);
+    } while (rngStart <= rngEnd);
 
     return nullptr;
 }
@@ -435,7 +437,7 @@ static constexpr uint8_t _to_num(char const chr)
         assert("Unsupported character");
         return -1;
     }
-};
+}
 
 class unknown_bytes_range_updater
 {
@@ -582,14 +584,15 @@ pattern_scanner_raw pattern_scanner::raw() const
 
 _pattern_updater_unknown::_pattern_updater_unknown(_pattern_updater_unknown&& other) noexcept
     : memRng_(other.memRng_)
-    , bytes_(other.bytes_)
+    , bytes_(std::exchange(other.bytes_, nullptr))
 {
 }
 
 _pattern_updater_unknown& _pattern_updater_unknown::operator=(_pattern_updater_unknown&& other) noexcept
 {
-    memRng_ = other.memRng_;
-    bytes_  = std::exchange(other.bytes_, nullptr);
+    using std::swap;
+    swap(memRng_, other.memRng_);
+    swap(bytes_, other.bytes_);
     return *this;
 }
 
@@ -600,7 +603,10 @@ _pattern_updater_unknown::_pattern_updater_unknown(const _memory_range memRng, s
     _text_to_bytes(*bytes_, sig);
 }
 
-_pattern_updater_unknown::_pattern_updater_unknown(const _memory_range memRng, uint8_t const* begin, const size_t memSize)
+_pattern_updater_unknown::_pattern_updater_unknown(
+    const _memory_range memRng,
+    uint8_t const*      begin,
+    const size_t        memSize)
     : memRng_(memRng)
     , bytes_(new _unknown_bytes_range())
 

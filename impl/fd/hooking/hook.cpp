@@ -38,8 +38,7 @@ struct _hook_enabled
 template <>
 struct fmt::formatter<_hook_enabled> : formatter<string_view>
 {
-    template <typename FormatCtx>
-    auto format(_hook_enabled hook, FormatCtx& ctx) const
+    auto format(_hook_enabled hook, format_context& ctx) const
     {
         string_view str;
         if (!hook.impl->initialized())
@@ -48,7 +47,7 @@ struct fmt::formatter<_hook_enabled> : formatter<string_view>
             str = "already hooked";
         else
             str = "enable error";
-        return fmt::formatter<string_view>::format(str, ctx);
+        return formatter<string_view>::format(str, ctx);
     }
 };
 
@@ -60,8 +59,7 @@ struct _hook_disabled
 template <>
 struct fmt::formatter<_hook_disabled> : formatter<string_view>
 {
-    template <typename FormatCtx>
-    auto format(_hook_disabled hook, FormatCtx& ctx) const
+    auto format(_hook_disabled hook, format_context& ctx) const
     {
         string_view str;
         if (!hook.impl->initialized())
@@ -70,7 +68,7 @@ struct fmt::formatter<_hook_disabled> : formatter<string_view>
             str = "already unhooked";
         else
             str = "disable error";
-        return fmt::formatter<string_view>::format(str, ctx);
+        return formatter<string_view>::format(str, ctx);
     }
 };
 
