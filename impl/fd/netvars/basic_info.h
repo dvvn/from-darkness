@@ -14,4 +14,6 @@ struct basic_netvar_info
 
     virtual basic_netvar_info* clone() const = 0;
 };
-}
+
+bool operator<(basic_netvar_info const& l, basic_netvar_info const& r);
+} // namespace fd

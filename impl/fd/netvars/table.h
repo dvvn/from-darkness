@@ -1,60 +1,50 @@
 #pragma once
 
-#include <fd/netvars/basic_info.h>
+#include <fd/netvars/basic_table.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
 namespace fd
 {
-class netvar_table
+class netvar_table final : public basic_netvar_table
 {
     std::string name_;
-    bool        isRoot_;
 
     using storage_type   = boost::ptr_vector<basic_netvar_info>;
     using iterator       = storage_type::iterator;
     using const_iterator = storage_type::const_iterator;
+    using pointer        = storage_type::pointer;
+    using const_pointer  = basic_netvar_info const*;
 
     storage_type storage_;
 
   public:
-    ~netvar_table();
+    ~netvar_table() override;
 
-    explicit netvar_table(std::string&& name, bool root);
-    explicit netvar_table(std::string_view name, bool root);
-    explicit netvar_table(const char* name, bool root);
+    explicit netvar_table(std::string&& name);
+    explicit netvar_table(std::string_view name);
+    explicit netvar_table(char const* name);
+
     netvar_table(netvar_table const&) = delete;
+
     netvar_table(netvar_table&& other) noexcept;
 
-    std::string_view name() const;
-    [[deprecated]]
-    bool root() const;
+    std::string_view name() const override;
 
-    basic_netvar_info const* find(std::string_view name) const;
-    void                     add(basic_netvar_info* info);
-    void                     sort();
+    const_pointer find(std::string_view name) const;
+    void          add(basic_netvar_info* info);
 
-    iterator       begin();
-    iterator       end();
-    const_iterator begin() const;
-    const_iterator end() const;
+    void sort();
 
-    bool   empty() const;
-    size_t size() const;
+    bool   empty() const override;
+    size_t size() const override;
 
-#if 0
-    template <typename... Args>
-    const auto* add(Args&&... args)
-    {
-        auto ptr = make_netvar_info(std::forward<Args>(args)...);
-#ifdef _DEBUG
-        validate_item(ptr);
-#endif
-        this->emplace_back(ptr /* , make_deleter(ptr) */);
-        return ptr;
-    }
-#endif
+    
+    void       for_each(for_each_fn const& fn) const override;
 };
+
+bool operator==(netvar_table const& table, netvar_table const* externalTable);
+bool operator==(netvar_table const& table, std::string_view name);
 
 /* class netvar_data_table
 {

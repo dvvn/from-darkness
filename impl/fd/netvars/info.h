@@ -53,7 +53,7 @@ class netvar_info_lazy final : public basic_netvar_info
     {
         if (std::holds_alternative<Fn>(getter_))
         {
-            auto const offset = std::get<Fn>(getter_)();
+            auto offset = std::get<Fn>(getter_)();
             return getter_.emplace(offset);
         }
 

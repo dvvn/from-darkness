@@ -8,7 +8,7 @@ namespace fd
 netvar_info::netvar_info(
     size_t const             offset,
     netvar_info_source const source,
-    std::string_view const   name,
+    std::string_view   name,
     size_t const             arraySize)
     : offset_(offset)
     , source_(source)

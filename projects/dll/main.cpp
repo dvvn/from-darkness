@@ -260,14 +260,14 @@ static DWORD WINAPI _context(void*) noexcept
 #ifdef _DEBUG
     netvars_classes lazyNetvarClasses;
 #ifdef FD_WORK_DIR
-    lazyNetvarClasses.dir.append(L"" BOOST_STRINGIZE(FD_WORK_DIR)).append(L"/valve/generated/");
+    lazyNetvarClasses.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("valve/generated");
 #else
 #error "provide directory for netvars_classes"
 #endif
     netvarsStorage.generate_classes(lazyNetvarClasses);
     netvars_log lazyNetvarLog;
 #ifdef FD_ROOT_DIR
-    lazyNetvarLog.dir.append(L"" BOOST_STRINGIZE(FD_ROOT_DIR), L"/.dumps/netvars/");
+    lazyNetvarLog.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).append(".dumps/netvars");
 #else
 #error "provide directory for netvars_log"
 #endif
@@ -278,8 +278,8 @@ static DWORD WINAPI _context(void*) noexcept
     netvarsStorage.log_netvars(lazyNetvarLog);
 #endif
 
-    netvarsStorage.finish();
     _init_netvars<valve::cs_player>();
+    netvarsStorage.clear();
 
     auto hackMenu = menu(tab_bar(
 #ifndef FD_GUI_RANDOM_TAB_BAR_NAME
