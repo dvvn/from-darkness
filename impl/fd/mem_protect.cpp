@@ -30,7 +30,7 @@ mem_protect::mem_protect()
 {
 }
 
-mem_protect::mem_protect(void* addr, const size_t size, const size_type newFlags)
+mem_protect::mem_protect(void* addr, size_t size, const size_type newFlags)
 {
     if (_set_flags(addr, size, newFlags, oldFlags_))
     {
@@ -50,7 +50,7 @@ mem_protect::mem_protect(mem_protect&& other) noexcept
 
 mem_protect& mem_protect::operator=(mem_protect&& other) noexcept
 {
-    auto const old = *this;
+    auto old = *this;
     *this          = other;
     other          = old;
     return *this;

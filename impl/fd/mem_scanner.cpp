@@ -34,19 +34,19 @@ static void _buffer_size_notification(T& buffer, std::type_info const& name)
 namespace fd
 {
 #if 0
-static void* _find_block(const uint8_t* mem, const size_t memSize, const uint8_t* rng, const size_t rngSize)
+static void* _find_block(const uint8_t* mem, size_t memSize, const uint8_t* rng, size_t rngSize)
 {
     if (memSize < rngSize)
         return nullptr;
 
-    const auto limit = memSize - rngSize;
+    auto limit = memSize - rngSize;
 
     if (rngSize == 1)
         return const_cast<void*>(memchr(mem, *rng, limit));
 
     for (size_t offset = 0; offset <= limit;)
     {
-        const auto start1 = memchr(mem + offset, rng[0], limit - offset);
+        auto start1 = memchr(mem + offset, rng[0], limit - offset);
         if (start1 == nullptr)
             break;
 
@@ -64,12 +64,12 @@ static auto _find_block(const uint8_t* memBegin, const uint8_t* memEnd, const ui
     return _find_block(memBegin, std::distance(memBegin, memEnd), rngBegin, std::distance(rngBegin, rngEnd));
 }
 
-static auto _find_block(const uint8_t* memBegin, const uint8_t* memEnd, const uint8_t* rngBegin, const size_t rngSize)
+static auto _find_block(const uint8_t* memBegin, const uint8_t* memEnd, const uint8_t* rngBegin, size_t rngSize)
 {
     return _find_block(memBegin, std::distance(memBegin, memEnd), rngBegin, rngSize);
 }
 
-[[maybe_unused]] static auto _find_block(const uint8_t* memBegin, const size_t memSize, const uint8_t* rngBegin, const uint8_t* rngEnd)
+[[maybe_unused]] static auto _find_block(const uint8_t* memBegin, size_t memSize, const uint8_t* rngBegin, const uint8_t* rngEnd)
 {
     return _find_block(memBegin, memSize, rngBegin, std::distance(rngBegin, rngEnd));
 }
@@ -77,7 +77,7 @@ static auto _find_block(const uint8_t* memBegin, const uint8_t* memEnd, const ui
 
 //-----
 
-void _memory_range::update(uint8_t const* curr, const size_t offset)
+void _memory_range::update(uint8_t const* curr, size_t offset)
 {
     auto newFrom = curr + offset;
     auto from    = data();
@@ -95,7 +95,7 @@ void _memory_range::update(uint8_t const* curr, const size_t offset)
     std::construct_at<std::span<uint8_t const>>(this, newFrom, to);
 }
 
-void _memory_range::update(void const* curr, const size_t offset)
+void _memory_range::update(void const* curr, size_t offset)
 {
     update(static_cast<uint8_t const*>(curr), offset);
 }
@@ -243,7 +243,7 @@ static bool _have_mem_after(bytes_range const& rng, uint8_t const* memStart, uin
 {
     if (!rng.skip)
         return true;
-    auto const limit = std::distance(memStart + rng.part.size(), memEnd);
+    auto limit = std::distance(memStart + rng.part.size(), memEnd);
     return limit > 0 && rng.skip < limit;
 }
 
@@ -251,12 +251,12 @@ static bool _have_mem_after(bytes_range_unpacked_tiny const& rng, uint8_t const*
 {
     if (!rng.skip)
         return true;
-    auto const limit = std::distance(memStart + rng.size(), memEnd);
+    auto limit = std::distance(memStart + rng.size(), memEnd);
     return limit > 0 && rng.skip < static_cast<size_t>(limit);
 }
 
 static bool _have_mem_after(
-    const std::iter_difference_t<uint8_t*> reserved,
+    std::iter_difference_t<uint8_t*> reserved,
     uint8_t const*                         memStart,
     uint8_t const*                         memEnd)
 {
@@ -323,7 +323,7 @@ static void* _find_memory_range(const _memory_range rng, _unknown_bytes_range co
         void*          foundVoid;
     } part0;
 
-    auto const rngEnd = rng.data() + rng.size();
+    auto rngEnd = rng.data() + rng.size();
 
     if (unkBytes.size() == 1)
     {
@@ -338,15 +338,15 @@ static void* _find_memory_range(const _memory_range rng, _unknown_bytes_range co
     assert((rng.size()) >= unkBytes.bytes_count());
 
     auto       rng1        = std::span(rng.data(), rng.size() - unkBytes.bytes_count());
-    auto const rng1End     = rng1.data() + rng1.size();
-    auto const unkBytesEnd = unkBytes.data() + unkBytes.size();
+    auto rng1End     = rng1.data() + rng1.size();
+    auto unkBytesEnd = unkBytes.data() + unkBytes.size();
     for (;;)
     {
         part0.found = _search<true>(rng1, unkBytes[0].part);
         if (!part0.found)
             return nullptr;
 
-        auto const part1Begin = part0.found + unkBytes[0].whole_size();
+        auto part1Begin = part0.found + unkBytes[0].whole_size();
 
         auto found     = true;
         auto tempBegin = part1Begin;
@@ -378,7 +378,7 @@ static void* _find_memory_range(const _memory_range rng, _unknown_bytes_range co
     }
 }
 
-static void* _find_memory_range(_memory_range const& rng, uint8_t const* memBegin, const size_t memSize)
+static void* _find_memory_range(_memory_range const& rng, uint8_t const* memBegin, size_t memSize)
 {
     return (void*)_search<false>(rng, memBegin, memSize);
 }
@@ -434,7 +434,7 @@ static constexpr uint8_t _to_num(char const chr)
     case 'F':
         return 0xF;
     default:
-        assert("Unsupported character");
+        assert(!"Unsupported character");
         return -1;
     }
 }
@@ -485,13 +485,13 @@ static void _text_to_bytes(_unknown_bytes_range& bytes, T begin, T end)
 
     while (begin < end - 1)
     {
-        auto const c = *begin;
+        auto c = *begin;
         if (c == ' ')
         {
             ++begin;
             continue;
         }
-        auto const c2 = *(begin + 1);
+        auto c2 = *(begin + 1);
         if (c2 == ' ')
         {
             if (c == '?')
@@ -535,7 +535,7 @@ auto pattern_scanner_raw::operator()(std::span<char const> const sig) const -> f
     };
 }
 
-auto pattern_scanner_raw::operator()(void const* begin, const size_t memSize) const -> finder
+auto pattern_scanner_raw::operator()(void const* begin, size_t memSize) const -> finder
 {
     return {
         {*this, static_cast<uint8_t const*>(begin), memSize}
@@ -568,7 +568,7 @@ auto pattern_scanner::operator()(std::span<char const> const sig) const -> unkno
     };
 }
 
-auto pattern_scanner::operator()(uint8_t const* begin, const size_t memSize) const -> known_finder
+auto pattern_scanner::operator()(uint8_t const* begin, size_t memSize) const -> known_finder
 {
     return {
         {*this, begin, memSize}
@@ -606,7 +606,7 @@ _pattern_updater_unknown::_pattern_updater_unknown(const _memory_range memRng, s
 _pattern_updater_unknown::_pattern_updater_unknown(
     const _memory_range memRng,
     uint8_t const*      begin,
-    const size_t        memSize)
+    size_t        memSize)
     : memRng_(memRng)
     , bytes_(new _unknown_bytes_range())
 
@@ -666,7 +666,7 @@ void _memory_iterator_dbg_creator::validate(const _memory_iterator_dbg_creator o
 
 //-----
 
-_pattern_updater_known::_pattern_updater_known(const _memory_range memRng, uint8_t const* begin, const size_t memSize)
+_pattern_updater_known::_pattern_updater_known(const _memory_range memRng, uint8_t const* begin, size_t memSize)
     : memRng_(memRng)
     , searchRng_(begin, begin + memSize)
 {

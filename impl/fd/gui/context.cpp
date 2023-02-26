@@ -45,7 +45,7 @@ bool _gui_context::init(init_data initData)
 {
 #ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
     ImGui::SetAllocatorFunctions(
-        [](const size_t size, void*) { return operator new(size, std::nothrow); },
+        [](size_t size, void*) { return operator new(size, std::nothrow); },
         [](void* buff, void*) { operator delete(buff, std::nothrow); });
 #endif
     ImGui::Initialize();
@@ -97,8 +97,8 @@ bool _gui_context::begin_frame()
 
 #ifndef IMGUI_HAS_VIEWPORT
     // sets in win32 impl
-    auto const displaySize = context_.IO.DisplaySize;
-    auto const minimized   = displaySize.x <= 0 || displaySize.y <= 0;
+    auto displaySize = context_.IO.DisplaySize;
+    auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
     if (minimized)
         return false;
 #endif
@@ -127,15 +127,15 @@ struct keys_data
 
 auto _gui_context::process_keys(void* data) -> keys_return
 {
-    auto const kd = static_cast<keys_data*>(data);
+    auto kd = static_cast<keys_data*>(data);
     return process_keys(kd->window, kd->message, kd->wParam, kd->lParam);
 }
 
 auto _gui_context::process_keys( //
-    const HWND   window,
-    const UINT   message,
-    const WPARAM wParam,
-    const LPARAM lParam) -> keys_return
+    HWND   window,
+    UINT   message,
+    WPARAM wParam,
+    LPARAM lParam) -> keys_return
 {
 #if 0
     if (!can_process_keys())
@@ -143,7 +143,7 @@ auto _gui_context::process_keys( //
 #endif
 
     // update focus
-    auto const focusChanged = [&]
+    auto focusChanged = [&]
     {
         switch (message)
         {
@@ -165,10 +165,10 @@ auto _gui_context::process_keys( //
     if (!focused_ && !focusChanged)
         return keys_return::native;
 
-    auto const events         = std::span(context_.InputEventsQueue);
-    auto const oldEventsCount = (events.size());
-    auto const instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
-    auto const eventsAdded    = events.subspan(oldEventsCount);
+    auto events         = std::span(context_.InputEventsQueue);
+    auto oldEventsCount = (events.size());
+    auto instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
+    auto eventsAdded    = events.subspan(oldEventsCount);
 
     if (context_.IO.AppFocusLost)
         return keys_return::native;

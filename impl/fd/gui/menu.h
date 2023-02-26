@@ -13,7 +13,7 @@ class tab final : public tab_base
     Callback callback_;
 
   public:
-    tab(const std::string_view name, Callback callback)
+    tab(std::string_view name, Callback callback)
         : tab_base(name)
         , callback_(std::move(callback))
     {
@@ -21,7 +21,7 @@ class tab final : public tab_base
 
     bool render()
     {
-        auto const ret = new_frame();
+        auto ret = new_frame();
         if (ret)
         {
             callback_();
@@ -51,7 +51,7 @@ class tab_bar final : public tab_bar_base
 
     bool render()
     {
-        auto const ret = new_frame();
+        auto ret = new_frame();
         if (ret)
         {
             boost::hana::for_each(

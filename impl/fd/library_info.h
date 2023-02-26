@@ -12,8 +12,8 @@ namespace fd
 {
 struct library_info
 {
-    using pointer   = const LDR_DATA_TABLE_ENTRY*;
-    using reference = const LDR_DATA_TABLE_ENTRY&;
+    using pointer   = LDR_DATA_TABLE_ENTRY const*;
+    using reference = LDR_DATA_TABLE_ENTRY const&;
 
   protected:
     pointer entry_;
@@ -35,7 +35,7 @@ struct library_info
     void*                 find_export(std::string_view name) const;
     IMAGE_SECTION_HEADER* find_section(std::string_view name) const;
 
-    void* find_signature(std::string_view sig) const;
+    uintptr_t find_signature(std::string_view sig) const;
 
     void* find_vtable(std::string_view name) const;
     void* find_vtable(std::type_info const& info) const;
@@ -85,7 +85,7 @@ class library_info_cache
 {
     mutable std::mutex mtx_;
 
-    std::vector<const LDR_DATA_TABLE_ENTRY*> cache_;
+    std::vector<LDR_DATA_TABLE_ENTRY const*> cache_;
     std::list<_delayed_library_info>         delayed_;
 
     PVOID cookie_;

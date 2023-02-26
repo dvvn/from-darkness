@@ -361,15 +361,15 @@ static void _correct_recv_name(std::string const& name)
 // store all data tables
 static void _parse(recv_table_ptr recvTable, netvar_tables_ordered& storage)
 {
-    assert("WIP");
+    assert(!"WIP");
 
-    /*const auto [propsBegin, propsEnd] = _get_props_range(recvTable);
+    /*auto [propsBegin, propsEnd] = _get_props_range(recvTable);
     if (std::distance(propsBegin, propsEnd) == 0)
         return;
-    const auto tableName = _correct_recv_name(recvTable->name);
+    auto tableName = _correct_recv_name(recvTable->name);
     if (storage.find(tableName))
         return;
-    const auto netvarTable = storage.add(tableName, recvTable->in_main_list);
+    auto netvarTable = storage.add(tableName, recvTable->in_main_list);
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
         std::string_view propName(prop->name);
@@ -382,7 +382,7 @@ static void _parse(recv_table_ptr recvTable, netvar_tables_ordered& storage)
             else
                 _store(prop, propName, netvarTable);
         }
-        else if (const auto dt = prop->data_table; dt && !dt->props.empty())
+        else if (auto dt = prop->data_table; dt && !dt->props.empty())
         {
             _parse(dt, storage);
         }
@@ -441,7 +441,7 @@ static void _parse(data_map_ptr map, netvar_tables_ordered& storage)
             {
                 // not implemented
                 if (desc.description)
-                    assert("Embedded datamap detected");
+                    assert(!"Embedded datamap detected");
             }
             else if (desc.name)
             {
@@ -467,12 +467,12 @@ void netvars_storage::iterate_datamap(data_map_ptr rootMap)
 #if 0
 void netvars_storage::store_handmade_netvars()
 {
-    const auto baseent = this->find("C_BaseEntity");
+    auto baseent = this->find("C_BaseEntity");
     this->request_sort(baseent);
     baseent->add<var_map>(0x24, "m_InterpVarMap");
     baseent->add<matrix3x4>(SIG(client, "8B 55 ? 85 D2 74 23 8B 87 ? ? ? ? 8B 4D ? 3B C8", plus(9), deref<1>(), minus(8)), "m_BonesCache", extract_type_valve_vector);
 
-    const auto baseanim = this->find("C_BaseAnimating");
+    auto baseanim = this->find("C_BaseAnimating");
     this->request_sort(baseanim);
     // m_vecRagdollVelocity - 128
     baseanim->add<animation_layer>(SIG(client, "8B 87 ? ? ? ? 83 79 04 00 8B", plus(2), deref<1>()), "m_AnimOverlays", extract_type_valve_vector);
@@ -522,8 +522,8 @@ void netvars_storage::init_default()
 
     using datamap_fn = data_map*(__thiscall*)(const void*);
 
-    const auto baseent        = rt_modules::client.find_vtable<"C_BaseEntity">();
-    const auto baseent_vtable = *reinterpret_cast<datamap_fn**>(baseent);
+    auto baseent        = rt_modules::client.find_vtable<"C_BaseEntity">();
+    auto baseent_vtable = *reinterpret_cast<datamap_fn**>(baseent);
     this->iterate_datamap(invoke(baseent_vtable[15], baseent), "DataDescMap");
     this->iterate_datamap(invoke(baseent_vtable[17], baseent), "PredictionDescMap");
 

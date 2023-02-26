@@ -35,6 +35,6 @@ BraceWrapping:
   BeforeLambdaBody: false
 RequiresClausePosition: WithPreceding
 KeepEmptyLinesAtTheStartOfBlocks: false
-QualifierAlignment: Right
+#QualifierAlignment: Right ###let reshareper do this work
 UseTab: Never
 ...

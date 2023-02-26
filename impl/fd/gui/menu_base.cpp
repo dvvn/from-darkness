@@ -5,11 +5,11 @@
 #ifndef IMGUI_HAS_STRV
 static std::string _ImTmpstring;
 #endif
-static auto _im_str(const std::string_view strv)
+static auto _im_str(std::string_view strv)
 {
 #ifndef IMGUI_HAS_STRV
     auto       data = strv.data();
-    auto const size = strv.size();
+    auto size = strv.size();
     if (data[size] != '\0')
         data = _ImTmpstring.assign(data, size).data();
     return data;
@@ -21,7 +21,7 @@ static auto _im_str(const std::string_view strv)
 // ReSharper disable CppInconsistentNaming
 namespace ImGui
 {
-static bool BeginTabItem(const std::string_view label)
+static bool BeginTabItem(std::string_view label)
 {
     return BeginTabItem(_im_str(label), nullptr);
 }
@@ -31,7 +31,7 @@ static bool BeginTabItem(const std::string_view label)
 
 namespace fd
 {
-tab_base::tab_base(const std::string_view name)
+tab_base::tab_base(std::string_view name)
     : name_(name)
 {
 }
@@ -58,7 +58,7 @@ tab_bar_base::tab_bar_base()
     name_.push_back('\0');
 }
 #else
-tab_bar_base::tab_bar_base(const std::string_view name)
+tab_bar_base::tab_bar_base(std::string_view name)
     : name_(name)
 {
 }
@@ -67,18 +67,18 @@ tab_bar_base::tab_bar_base(const std::string_view name)
 bool tab_bar_base::new_frame()
 {
     auto&      g      = *GImGui;
-    auto const window = g.CurrentWindow;
+    auto window = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
 
-    auto const id     = window->GetID((name_.data()), name_.data() + name_.size());
-    auto const tabBar = g.TabBars.GetOrAddByKey(id);
+    auto id     = window->GetID((name_.data()), name_.data() + name_.size());
+    auto tabBar = g.TabBars.GetOrAddByKey(id);
     tabBar->ID        = id;
 
     constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton |
                                   ImGuiTabBarFlags_NoTooltip;
     constexpr auto extraFlags = ImGuiTabBarFlags_IsFocused;
-    auto const     tabBarBB   = ImRect(
+    auto     tabBarBB   = ImRect(
         window->DC.CursorPos.x,
         window->DC.CursorPos.y,
         window->WorkRect.Max.x,

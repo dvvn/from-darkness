@@ -9,17 +9,19 @@
 
 namespace fd
 {
-static DECLSPEC_NOINLINE LRESULT WINAPI _wnd_proc(const HWND hWnd, const UINT msg, const WPARAM wparam, const LPARAM lParam)
+static DECLSPEC_NOINLINE LRESULT WINAPI _wnd_proc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lParam)
 {
     switch (msg) // NOLINT(hicpp-multiway-paths-covered)
     {
-    case WM_CREATE: {
-        auto const lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
-        auto const d3d  = reinterpret_cast<LONG>(lpcs->lpCreateParams);
+    case WM_CREATE:
+    {
+        auto lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
+        auto d3d  = reinterpret_cast<LONG>(lpcs->lpCreateParams);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, d3d);
         break;
     }
-    case WM_SIZE: {
+    case WM_SIZE:
+    {
         if (wparam == SIZE_MINIMIZED)
             break;
 
@@ -36,12 +38,14 @@ static DECLSPEC_NOINLINE LRESULT WINAPI _wnd_proc(const HWND hWnd, const UINT ms
 #endif
         return FALSE;
     }
-    case WM_SYSCOMMAND: {
+    case WM_SYSCOMMAND:
+    {
         if ((wparam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
             return FALSE;
         break;
     }
-    case WM_DESTROY: {
+    case WM_DESTROY:
+    {
         PostQuitMessage(0);
         return FALSE;
     }
@@ -51,9 +55,9 @@ static DECLSPEC_NOINLINE LRESULT WINAPI _wnd_proc(const HWND hWnd, const UINT ms
 
 d3d_device9::d3d_device9() = default;
 
-bool d3d_device9::attach(const HWND hWnd)
+bool d3d_device9::attach(HWND hWnd)
 {
-    auto const d3d = Direct3DCreate9(D3D_SDK_VERSION);
+    auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
     if (!d3d)
         return false;
 
@@ -67,22 +71,25 @@ bool d3d_device9::attach(const HWND hWnd)
     GetWindowRect(hWnd, &windowRect);
     // The top left corner will have coordinates (0,0)
     // and the bottom right corner will have coordinates
-    const UINT width         = windowRect.right - windowRect.left;
-    const UINT height        = windowRect.bottom - windowRect.top;
+    UINT width               = windowRect.right - windowRect.left;
+    UINT height              = windowRect.bottom - windowRect.top;
     params_.BackBufferHeight = height;
     params_.BackBufferWidth  = width;
 #endif
-    params_.Windowed               = TRUE;
-    params_.SwapEffect             = D3DSWAPEFFECT_DISCARD;
-    params_.BackBufferFormat       = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+    params_.Windowed   = TRUE;
+    params_.SwapEffect = D3DSWAPEFFECT_DISCARD;
+    params_.BackBufferFormat =
+        D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
     params_.EnableAutoDepthStencil = TRUE;
     params_.AutoDepthStencilFormat = D3DFMT_D16;
     params_.PresentationInterval   = D3DPRESENT_INTERVAL_ONE; // Present with vsync
-    // params_.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
-    return SUCCEEDED(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_));
+    // params_.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled
+    // framerate
+    return SUCCEEDED(d3d->CreateDevice(
+        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_));
 }
 
-bool d3d_device9::resize(const UINT w, const UINT h)
+bool d3d_device9::resize(UINT w, UINT h)
 {
     auto& wOld = params_.BackBufferWidth;
     auto& hOld = params_.BackBufferHeight;
@@ -97,7 +104,7 @@ bool d3d_device9::resize(const UINT w, const UINT h)
 
 void d3d_device9::reset()
 {
-    auto const hr = device_->Reset(&params_);
+    auto hr = device_->Reset(&params_);
     assert(hr != D3DERR_INVALIDCALL);
 }
 
@@ -125,8 +132,10 @@ backend_data::~backend_data()
 backend_data::backend_data()
 {
     constexpr auto name   = _T("GUI TEST");
-    auto const     handle = GetModuleHandle(nullptr);
-    info                  = { sizeof(WNDCLASSEX), CS_CLASSDC, _wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr };
+    auto           handle = GetModuleHandle(nullptr);
+    info                  = {
+        sizeof(WNDCLASSEX), CS_CLASSDC, _wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr
+    };
     ::RegisterClassEx(&info);
     hwnd = ::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, handle, &d3d);
 
@@ -153,10 +162,10 @@ void backend_data::run()
         }
 
         d3d->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-        auto const result = d3d->Present(nullptr, nullptr, nullptr, nullptr);
+        auto result = d3d->Present(nullptr, nullptr, nullptr, nullptr);
         // Handle loss of D3D9 device
         if (result == D3DERR_DEVICELOST && d3d->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
             d3d.reset();
     }
 }
-}
+} // namespace fd

@@ -24,8 +24,8 @@ size_t netvar_info::offset() const
 
 // const void* netvar_info::source( ) const
 //{
-//	const auto addr = reinterpret_cast<uintptr_t>(std::addressof(type_));
-//	const auto inner_ptr = reinterpret_cast<void**>(addr);
+//	auto addr = reinterpret_cast<uintptr_t>(std::addressof(type_));
+//	auto inner_ptr = reinterpret_cast<void**>(addr);
 //	return *inner_ptr;
 // }
 
@@ -87,8 +87,8 @@ netvar_info_instant::netvar_info_instant(size_t offset, std::string_view name, s
 }
 
 netvar_info_instant::netvar_info_instant(
-    const size_t           offset,
-    const std::string_view name,
+    size_t           offset,
+    std::string_view name,
     std::string_view       type,
     size_t                 arraySize)
     : offset_(offset)

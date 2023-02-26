@@ -70,7 +70,7 @@ struct system_library_name
     consteval system_library_name(const char* name)
         : buffer()
     {
-        const auto libNameSize = _size(buffer) - 4;
+        auto libNameSize = _size(buffer) - 4;
         for (size_t i = 0; i != libNameSize; ++i)
             buffer[i] = to_lower(name[i]);
         _copy(".dll", 4, buffer + libNameSize);
@@ -148,11 +148,11 @@ static void _init_netvars()
 
 static auto _get_product_version_string(valve::engine_client* engine)
 {
-    auto const nativeStr = std::string_view(engine->GetProductVersionString());
+    auto nativeStr = std::string_view(engine->GetProductVersionString());
 
     std::wstring buff;
     buff.reserve(nativeStr.size());
-    for (auto const c : nativeStr)
+    for (auto c : nativeStr)
         buff += c == '.' ? '_' : c;
     return buff;
 }
@@ -178,11 +178,11 @@ static void _pause()
 
 static DWORD WINAPI _context(void*) noexcept
 {
-    DWORD      exitCode   = EXIT_FAILURE;
-    auto const freeHelper = _invoke_on_destuct([&] { FreeLibraryAndExitThread(_ModuleHandle, exitCode); });
+    DWORD exitCode   = EXIT_FAILURE;
+    auto  freeHelper = _invoke_on_destuct([&] { FreeLibraryAndExitThread(_ModuleHandle, exitCode); });
 
 #ifdef _DEBUG
-    const console_holder consoleHanlder(
+    console_holder const consoleHanlder(
         L"from-darkness debug console. " BOOST_STRINGIZE(__DATE__) " " BOOST_STRINGIZE(__TIME__));
 #endif
 
@@ -197,15 +197,15 @@ static DWORD WINAPI _context(void*) noexcept
 
     auto const& d3dIfc = [&]
     {
-        const auto lib    = libs.get(L"shaderapidx9.dll");
-        const auto addr   = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
-        auto&      result = **reinterpret_cast<IDirect3DDevice9***>(reinterpret_cast<uintptr_t>(addr) + 0x1);
+        auto  lib    = libs.get(L"shaderapidx9.dll");
+        auto  addr   = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        auto& result = **reinterpret_cast<IDirect3DDevice9***>(addr + 0x1);
         while (!result)
             Sleep(100);
         return result;
     }();
 
-    auto const hwnd = [=]
+    auto hwnd = [=]
     {
         D3DDEVICE_CREATION_PARAMETERS d3dParams;
         if (FAILED(d3dIfc->GetCreationParameters(&d3dParams)))
@@ -215,26 +215,26 @@ static DWORD WINAPI _context(void*) noexcept
 
     //----
 
-    auto const clientLib = csgo_library_info_ex(libs.get(L"client.dll"));
+    auto clientLib = csgo_library_info_ex(libs.get(L"client.dll"));
 
-    auto const addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(
+    auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(
         clientLib.find_signature("56 8B 71 3C B8"));
     addToSafeList(_ModuleHandle, nullptr);
 
-    auto const gameClient = static_cast<valve::base_client*>(clientLib.find_interface("VClient"));
+    auto gameClient = static_cast<valve::base_client*>(clientLib.find_interface("VClient"));
 
     //----
 
-    auto const engineLib = csgo_library_info_ex(libs.get(L"engine.dll"));
+    auto engineLib = csgo_library_info_ex(libs.get(L"engine.dll"));
 
-    auto const gameEngine = static_cast<valve::engine_client*>(engineLib.find_interface("VEngineClient"));
+    auto gameEngine = static_cast<valve::engine_client*>(engineLib.find_interface("VEngineClient"));
 
     //----
 
     auto& localPlayer = [&]() -> valve::cs_player*&
     {
         auto addr = clientLib.find_signature("A1 ? ? ? ? 89 45 BC 85 C0");
-        return **reinterpret_cast<valve::cs_player***>(reinterpret_cast<uintptr_t>(addr) + 1);
+        return **reinterpret_cast<valve::cs_player***>(addr + 1);
     }();
 
     //----
@@ -295,7 +295,7 @@ static DWORD WINAPI _context(void*) noexcept
     gui_context guiCtx(
         [&]
         {
-            [[maybe_unused]] const auto visible = hackMenu.render();
+            [[maybe_unused]] auto visible = hackMenu.render();
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
             if (visible)
                 ImGui::ShowDemoWindow();
@@ -303,7 +303,7 @@ static DWORD WINAPI _context(void*) noexcept
         });
     if (!guiCtx.init({ false, d3dIfc, hwnd }))
         return FALSE;
-    auto const guiCtxProtector = _invoke_on_destuct(
+    auto guiCtxProtector = _invoke_on_destuct(
         [&]
         {
             if (!d3dIfc)
@@ -386,7 +386,7 @@ static DWORD WINAPI _context(void*) noexcept
 } // namespace fd
 
 // ReSharper disable once CppInconsistentNaming
-BOOL APIENTRY DllMain(const HMODULE moduleHandle, const DWORD reason, LPVOID /*reserved*/)
+BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID /*reserved*/)
 {
     switch (reason)
     {

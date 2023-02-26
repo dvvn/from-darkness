@@ -99,7 +99,7 @@ hook::hook(hook&& other) noexcept
 
 bool hook::enable()
 {
-    auto const ok = subhook_install(entry_) == 0;
+    auto ok = subhook_install(entry_) == 0;
     if (ok)
         spdlog::info("{}: hooked", name_);
     else
@@ -109,7 +109,7 @@ bool hook::enable()
 
 bool hook::disable()
 {
-    auto const ok = subhook_remove(entry_) == 0;
+    auto ok = subhook_remove(entry_) == 0;
     if (ok)
         spdlog::info("{}: unhooked", name_);
     else
@@ -160,7 +160,7 @@ bool hook::init(void* target, void* replace)
         return false;
     }
 
-    auto const entry = subhook_new(target, replace);
+    auto entry = subhook_new(target, replace);
 
     if (!entry)
     {

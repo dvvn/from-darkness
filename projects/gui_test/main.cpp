@@ -27,7 +27,7 @@ int main(int, char**)
 
     //----
 
-    auto testNenu = menu(
+    auto testMenu = menu(
         tab_bar(
 #ifndef FD_GUI_RANDOM_TAB_BAR_NAME
             "tab bar1",
@@ -43,7 +43,7 @@ int main(int, char**)
     gui_context guiCtx(
         [&]
         {
-            testNenu.render();
+            testMenu.render();
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
             ImGui::ShowDemoWindow();
 #endif

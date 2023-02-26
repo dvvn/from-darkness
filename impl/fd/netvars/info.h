@@ -42,7 +42,7 @@ class netvar_info_lazy final : public basic_netvar_info
     std::string                      type_;
 
   public:
-    netvar_info_lazy(Fn getter, const std::string_view name = {}, std::string type = {})
+    netvar_info_lazy(Fn getter, std::string_view name = {}, std::string type = {})
         : getter_(std::move(getter))
         , name_(name)
         , type_(std::move(type))
