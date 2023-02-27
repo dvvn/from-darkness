@@ -4,11 +4,7 @@
 
 #include <fd/gui/basic_menu.h>
 
-#ifdef FD_GUI_RANDOM_TAB_BAR_NAME
-#include <fmt/format.h>
-#else
-#include <string_view>
-#endif
+#include <string>
 
 namespace fd
 {
@@ -28,8 +24,7 @@ class tab_base
 class tab_bar_base
 {
 #ifdef FD_GUI_RANDOM_TAB_BAR_NAME
-    static constexpr auto namePrefix_ = std::string_view("##tbar");
-    fmt::basic_memory_buffer<char, std::numeric_limits<uint16_t>::digits10 + namePrefix_.size() + 1>
+    std::string
 #else
     std::string_view
 #endif
@@ -55,11 +50,11 @@ class menu_base : public basic_menu
   public:
     menu_base();
 
-    bool visible() const override;
+    bool visible() const final;
 
-    void show() override;
-    void hide() override;
-    void toggle() override;
+    void show() final;
+    void hide() final;
+    void toggle() final;
 
   protected:
     bool new_frame(bool& visible);

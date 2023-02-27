@@ -18,7 +18,6 @@ int main(int, char**)
 
     //---
 
-    // log::init();
     spdlog::set_level(spdlog::level::debug);
 
 #if defined(_DEBUG) && 0
@@ -40,7 +39,8 @@ int main(int, char**)
 #endif
             tab("new tab", [] { ImGui::TextUnformatted("im here!"); }),
             tab("tab 3", [] { ImGui::TextUnformatted("yes!"); })));
-    gui_context guiCtx(
+    auto guiCtx = gui_context(
+        { false, backend.d3d, backend.hwnd },
         [&]
         {
             testMenu.render();
@@ -49,7 +49,7 @@ int main(int, char**)
 #endif
         });
 
-    if (!guiCtx.init({ false, backend.d3d, backend.hwnd }))
+    if (!guiCtx)
         return FALSE;
 
     auto hooks = hooks_storage(

@@ -39,7 +39,7 @@ struct fmt::formatter<boost::filesystem::path, wchar_t> : formatter<wstring_view
 {
     auto format(boost::filesystem::path const& p, wformat_context& ctx) const
     {
-        return formatter<wstring_view, wchar_t>::format(p.native(), ctx);
+        return formatter<wstring_view, wchar_t>::format(p.generic_wstring(), ctx);
     }
 };
 
@@ -52,17 +52,11 @@ struct fmt::formatter<fd::netvars_log, wchar_t> : formatter<boost::filesystem::p
     }
 };
 
-namespace fs = boost::filesystem;
 
 // #define GENERATE_STRUCT_MEMBERS
 
 namespace fd
 {
-using data_map_ptr   = valve::data_map const*;
-using recv_table_ptr = valve::recv_table const*;
-
-//----
-
 [[maybe_unused]]
 static auto _correct_class_name(std::string_view name)
 {
@@ -102,14 +96,14 @@ static bool _can_skip_netvar(std::string_view name)
     return name.contains('.');
 }
 
-static auto _is_base_class(valve::recv_prop const* prop)
+static auto _is_base_class(valve::recv_prop* prop)
 {
     constexpr auto str = std::string_view("baseclass");
     // return std::memcmp(prop->name, str.data(), str.size()) == 0 && prop->name[str.size()] == '\0';
     return prop->name == str;
 }
 
-static auto _is_length_proxy(valve::recv_prop const* prop)
+static auto _is_length_proxy(valve::recv_prop* prop)
 {
     if (prop->array_length_proxy)
         return true;
@@ -138,7 +132,7 @@ static auto _is_length_proxy(valve::recv_prop const* prop)
 #endif
 }
 
-static size_t _get_array_size(valve::recv_prop const* arrayStart, valve::recv_prop const* arrayEnd)
+static size_t _get_array_size(valve::recv_prop* arrayStart, valve::recv_prop* arrayEnd)
 {
     size_t arraySize = 1;
     for (auto it = arrayStart + 1; it != arrayEnd; ++it)
@@ -151,10 +145,7 @@ static size_t _get_array_size(valve::recv_prop const* arrayStart, valve::recv_pr
     return arraySize;
 }
 
-static size_t _get_array_size(
-    valve::recv_prop const* arrayStart,
-    valve::recv_prop const* arrayEnd,
-    std::string_view        propName)
+static size_t _get_array_size(valve::recv_prop* arrayStart, valve::recv_prop* arrayEnd, std::string_view propName)
 {
     // todo: try extract size from length proxy
 
@@ -178,11 +169,11 @@ static size_t _get_array_size(basic_netvar_info const* info)
 }
 
 static size_t _store(
-    valve::recv_prop const* arrayStart,
-    std::string_view        propName,
-    valve::recv_prop const* arrayEnd,
-    netvar_table*           netvarTable,
-    size_t const            extraOffset = 0)
+    valve::recv_prop* arrayStart,
+    std::string_view  propName,
+    valve::recv_prop* arrayEnd,
+    netvar_table*     netvarTable,
+    size_t const      extraOffset = 0)
 {
     assert(arrayStart->type != valve::DPT_DataTable); // Array DataTable detected!
 
@@ -205,10 +196,10 @@ static size_t _store(
 }
 
 static void _store(
-    valve::recv_prop const* prop,
-    std::string_view        propName,
-    netvar_table*           netvarTable,
-    size_t const            extraOffset = 0)
+    valve::recv_prop* prop,
+    std::string_view  propName,
+    netvar_table*     netvarTable,
+    size_t const      extraOffset = 0)
 {
     if (auto found = netvarTable->find(propName); found != nullptr)
     {
@@ -221,11 +212,11 @@ static void _store(
 
 // wrap datatable in std::array
 static size_t _store(
-    valve::recv_prop const* arrayStart,
-    recv_table_ptr          recvTable,
-    valve::recv_prop const* arrayEnd,
-    netvar_table*           netvarTable,
-    size_t const            extraOffset = 0)
+    valve::recv_prop*  arrayStart,
+    valve::recv_table* recvTable,
+    valve::recv_prop*  arrayEnd,
+    netvar_table*      netvarTable,
+    size_t const       extraOffset = 0)
 {
     assert(arrayStart->type != valve::DPT_DataTable); // not implemented
 
@@ -242,41 +233,41 @@ static size_t _store(
 // wrap datatable in std::array<type>
 // type mut be manually generated
 static bool _store(
-    valve::recv_prop const* arrayStart,
-    recv_table_ptr          recvTable,
-    valve::recv_prop const* arrayEnd,
-    netvar_table*           netvarTable,
-    std::string_view        type,
-    size_t const            extraOffset)
+    valve::recv_prop*  arrayStart,
+    valve::recv_table* recvTable,
+    valve::recv_prop*  arrayEnd,
+    netvar_table*      netvarTable,
+    std::string_view   type,
+    size_t const       extraOffset)
 {
     assert(arrayStart->type == valve::DPT_DataTable);
 
     auto tableName = std::string_view(recvTable->name);
     if (auto found = netvarTable->find(tableName); found != nullptr)
-        return 0;
+        return false;
 
     auto arraySize = _get_array_size(arrayStart, arrayEnd);
     assert(std::distance(arrayStart, arrayEnd) == arraySize);
     assert(arraySize != 0);
     netvarTable->add(new netvar_info_instant(arrayStart->offset + extraOffset, tableName, type, arraySize));
-    return 1;
+    return true;
 }
 
 // merge data tables
 static void _parse(
-    recv_table_ptr recvTable,
-    netvar_table*  netvarTable,
-    netvar_tables& internalStorage,
-    size_t         rootOffset = 0);
+    valve::recv_table* recvTable,
+    netvar_table*      netvarTable,
+    netvar_tables&     internalStorage,
+    size_t             rootOffset = 0);
 
 static void _parse_lproxy(
-    valve::recv_prop const* proxy,
-    valve::recv_prop const* prop,
-    recv_table_ptr          recvTable,
-    valve::recv_prop const* propsEnd,
-    netvar_table*           netvarTable,
-    netvar_tables&          internalStorage,
-    size_t                  rootOffset)
+    valve::recv_prop*  proxy,
+    valve::recv_prop*  prop,
+    valve::recv_table* recvTable,
+    valve::recv_prop*  propsEnd,
+    netvar_table*      netvarTable,
+    netvar_tables&     internalStorage,
+    size_t             rootOffset)
 {
     if (prop->type != valve::DPT_DataTable)
     {
@@ -285,19 +276,19 @@ static void _parse_lproxy(
     else if (auto dt = prop->data_table; dt && !dt->props.empty())
     {
         auto tableName = std::string_view(dt->name);
-        if (_store(prop, dt, propsEnd, netvarTable, tableName, rootOffset + proxy->offset))
-        {
-            // todo: return if internalStorage contains tableName
+        if (!_store(prop, dt, propsEnd, netvarTable, tableName, rootOffset + proxy->offset))
+            return;
+        if (internalStorage.find(tableName))
+            return;
 
-            auto internalTable = netvar_table(tableName);
-            _parse(dt, &internalTable, internalStorage);
-            internalStorage.add(std::move(internalTable));
-        }
+        auto internalTable = netvar_table(tableName);
+        _parse(dt, &internalTable, internalStorage);
+        internalStorage.add(std::move(internalTable));
     }
 }
 
 // merge data tables
-void _parse(recv_table_ptr recvTable, netvar_table* netvarTable, netvar_tables& internalStorage, size_t rootOffset)
+void _parse(valve::recv_table* recvTable, netvar_table* netvarTable, netvar_tables& internalStorage, size_t rootOffset)
 {
     auto prop     = recvTable->props.data();
     auto propsEnd = prop + recvTable->props.size();
@@ -359,9 +350,9 @@ static void _correct_recv_name(std::string const& name)
 
 #if 0
 // store all data tables
-static void _parse(recv_table_ptr recvTable, netvar_tables_ordered& storage)
+static void _parse(valve::recv_table * recvTable, netvar_tables_ordered& storage)
 {
-    assert(!"WIP");
+    assert(0&&"WIP");
 
     /*auto [propsBegin, propsEnd] = _get_props_range(recvTable);
     if (std::distance(propsBegin, propsEnd) == 0)
@@ -413,7 +404,7 @@ void netvars_storage::iterate_client_class(valve::client_class const* cclass)
     spdlog::info("[NETVARS] {} data tables stored", data_.size());
 }
 
-static void _parse(data_map_ptr map, netvar_tables_ordered& storage)
+static void _parse(valve::data_map const* map, netvar_tables_ordered& storage)
 {
     for (; map != nullptr; map = map->base)
     {
@@ -441,7 +432,7 @@ static void _parse(data_map_ptr map, netvar_tables_ordered& storage)
             {
                 // not implemented
                 if (desc.description)
-                    assert(!"Embedded datamap detected");
+                    assert(0 && "Embedded datamap detected");
             }
             else if (desc.name)
             {
@@ -457,7 +448,7 @@ static void _parse(data_map_ptr map, netvar_tables_ordered& storage)
     }
 }
 
-void netvars_storage::iterate_datamap(data_map_ptr rootMap)
+void netvars_storage::iterate_datamap(valve::data_map const* rootMap)
 {
     assert(!data_.empty()); // Iterate datamap after recv tables!
     _parse(rootMap, data_);

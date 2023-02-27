@@ -140,68 +140,62 @@ struct generate_info
 static constexpr auto& _FormatOff = "// clang-format off\n"
                                     "// ReSharper disable All\n\n";
 
-struct source_writer : chars_buffer
+static void _parse_source(chars_buffer& buff, std::string_view className, std::span<generate_info const> table)
 {
-    void operator()(std::string_view className, std::span<generate_info const> table)
-    {
-        /*fmt::basic_memory_buffer<char, 32>*/ std::string offsetsClass;
-        offsetsClass.append(className);
-        offsetsClass.append("_offsets");
+    /*fmt::basic_memory_buffer<char, 32>*/ std::string offsetsClass;
+    offsetsClass.append(className);
+    offsetsClass.append("_offsets");
 
-        this->append_range(_FormatOff);
-        // this->append_range(_assertGap);
-        this->append_range("static struct\n{\n");
+    buff.append_range(_FormatOff);
+    // buff.append_range(_assertGap);
+    buff.append_range("static struct\n{\n");
+    {
+        for (auto& i : table)
+            fmt::format_to(buff.out(), "\tsize_t {} = -1;\n", i.name);
+
+        buff.append_range("\n\tvoid init()\n\t{\n");
         {
             for (auto& i : table)
-                fmt::format_to(this->out(), "\tsize_t {} = -1;\n", i.name);
-
-            this->append_range("\n\tvoid init()\n\t{\n");
             {
-                for (auto& i : table)
-                {
-                    fmt::format_to(
-                        this->out(),
-                        "\t\tassert({name} == -1, \"already set!\";\n"
-                        "\t\t{name} = get_netvars_storage()->get_offset(\'{className}\', \'{name}\');\n",
-                        fmt::arg("name", i.name),
-                        fmt::arg("className", className));
-                }
+                fmt::format_to(
+                    buff.out(),
+                    "\t\tassert({name} == -1, \"already set!\";\n"
+                    "\t\t{name} = get_netvars_storage()->get_offset(\'{className}\', \'{name}\');\n",
+                    fmt::arg("name", i.name),
+                    fmt::arg("className", className));
             }
-            this->append_range("\t}\n");
         }
-        this->push_back('}');
-        fmt::format_to(this->out(), " {};\n\n", offsetsClass);
-
-        for (auto& i : table)
-        {
-            fmt::format_to(
-                this->out(),
-                "{typeOut} {className}::{name}()\n"
-                "{\n"
-                "\tassert({offsetsClass}.{name} != -1, \"not set!\");\n"
-                "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + {offsetsClass}.{name};\n"
-                "\treturn {}(addr);\n",
-                "}\n",
-                fmt::arg("typeOut", i.typeOut),
-                fmt::arg("className", className),
-                fmt::arg("name", i.name),
-                fmt::arg("offsetsClass", offsetsClass),
-                i.typeCast);
-        };
+        buff.append_range("\t}\n");
     }
-};
+    buff.push_back('}');
+    fmt::format_to(buff.out(), " {};\n\n", offsetsClass);
 
-struct header_writer : chars_buffer
-{
-    void operator()(std::span<generate_info const> table)
+    for (auto& i : table)
     {
-        this->append_range(_FormatOff);
-        for (auto& i : table)
-        {
-            fmt::format_to(this->out(), "{} {}():\n", i.typeOut, i.name);
-        };
+        fmt::format_to(
+            buff.out(),
+            "{typeOut} {className}::{name}()\n"
+            "{{\n"
+            "\tassert({offsetsClass}.{name} != -1, \"not set!\");\n"
+            "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + {offsetsClass}.{name};\n"
+            "\treturn {typeCast}(addr);\n",
+            "}}\n",
+            fmt::arg("typeOut", i.typeOut),
+            fmt::arg("className", className),
+            fmt::arg("name", i.name),
+            fmt::arg("offsetsClass", offsetsClass),
+            fmt::arg("typeCast", i.typeCast));
     }
-};
+}
+
+static void _parse_header(chars_buffer& buff, std::span<generate_info const> table)
+{
+    buff.append_range(_FormatOff);
+    for (auto& i : table)
+    {
+        fmt::format_to(buff.out(), "{} {}():\n", i.typeOut, i.name);
+    }
+}
 
 bool netvars_classes::fill(fill_fn const& updater, size_t dataSize)
 {
@@ -218,8 +212,8 @@ bool netvars_classes::fill(fill_fn const& updater, size_t dataSize)
     files.resize(filesCount + dataSize * 2);
     auto file = files.begin() + filesCount;
 
-    source_writer source;
-    header_writer header;
+    chars_buffer source;
+    chars_buffer header;
 
     std::vector<generate_info>      table;
     basic_netvar_table::for_each_fn tableFiller = [&](basic_netvar_info const& info)
@@ -236,10 +230,10 @@ bool netvars_classes::fill(fill_fn const& updater, size_t dataSize)
         auto className = rawTable->name();
 
         source.clear();
-        source(className, table);
+        _parse_source(source, className, table);
 
         header.clear();
-        header(table);
+        _parse_header(header, table);
 
         auto storeFile = [&](std::string_view extension, std::span<char const> buff)
         {

@@ -4,14 +4,10 @@
 
 namespace fd
 {
-// ReSharper disable once CppDeclaratorNeverUsed
-// ReSharper disable once CppInconsistentNaming
-static basic_netvar_info* new_clone(basic_netvar_info const& other)
+netvar_table::~netvar_table()
 {
-    return other.clone();
+    std::for_each(storage_.rbegin(), storage_.rend(), [](pointer ptr) { delete ptr; });
 }
-
-netvar_table::~netvar_table() = default;
 
 netvar_table::netvar_table(std::string&& name)
     : name_(std::move(name))
@@ -25,12 +21,13 @@ netvar_table::netvar_table(std::string_view name)
     assert(!name.empty());
 }
 
-netvar_table::netvar_table(char const* name)
-    : name_(name)
-{
-}
+// netvar_table::netvar_table(char const* name)
+//     : name_(name)
+//{
+// }
 
-netvar_table::netvar_table(netvar_table&& other) noexcept = default;
+netvar_table::netvar_table(netvar_table&& other) noexcept            = default;
+netvar_table& netvar_table::operator=(netvar_table&& other) noexcept = default;
 
 std::string_view netvar_table::name() const
 {
@@ -40,33 +37,23 @@ std::string_view netvar_table::name() const
 auto netvar_table::find(std::string_view name) const -> const_pointer
 {
     assert(!name.empty());
-    for (auto const& entry : storage_)
+    for (auto* entry : storage_)
     {
-        if (entry.name() == name)
-            return &entry;
+        if (entry->name() == name)
+            return entry;
     }
     return nullptr;
 }
 
-struct _unique_name
-{
-    netvar_table*      table;
-    basic_netvar_info* info;
-};
-
-void netvar_table::add(basic_netvar_info* info)
+void netvar_table::add(pointer info)
 {
     assert(!find(info->name()));
-    storage_.push_back(info);
+    storage_.emplace_back(info);
 }
 
 void netvar_table::sort()
 {
-    std::stable_sort(
-        storage_.begin().base(),
-        storage_.end().base(),
-        boost::make_void_ptr_indirect_fun<basic_netvar_info>(std::less()));
-    // storage_.sort();
+    std::stable_sort(storage_.begin(), storage_.end());
 }
 
 #if 0
@@ -103,8 +90,8 @@ size_t netvar_table::size() const
 
 void netvar_table::for_each(for_each_fn const& fn) const
 {
-    for (auto& i : storage_)
-        fn(i);
+    for (auto* i : storage_)
+        fn(*i);
 }
 
 bool operator==(netvar_table const& table, netvar_table const* externalTable)
@@ -126,7 +113,7 @@ bool operator==(netvar_table const& table, std::string_view name)
 
 netvar_table_multi& netvar_table_multi::inner(std::string&& name)
 {
-    FD_ASSERT(!have_inner());
+    FD_assert(!have_inner());
     auto& inner = inner_.emplace<netvar_table_multi>();
     inner.construct(std::move(name));
     return inner;

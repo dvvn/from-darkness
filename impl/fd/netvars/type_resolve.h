@@ -14,10 +14,10 @@ std::string      extract_type_valve_vector(std::string_view type);
 std::string_view extract_type_vec3(std::string_view name);
 std::string_view extract_type_integer(std::string_view name);
 
-std::string      extract_type(std::string_view name, valve::recv_prop const* prop);
-std::string_view extract_type(std::string_view name, valve::data_map_description const* field);
+std::string      extract_type(std::string_view name, valve::recv_prop* prop);
+std::string_view extract_type(std::string_view name, valve::data_map_description* field);
 
 // m_***
-std::string_view extract_type_by_prefix(std::string_view name, valve::recv_prop const* prop);
-std::string_view extract_type_by_prefix(std::string_view name, valve::data_map_description const* field);
+std::string_view extract_type_by_prefix(std::string_view name, valve::recv_prop* prop);
+std::string_view extract_type_by_prefix(std::string_view name, valve::data_map_description* field);
 } // namespace fd

@@ -26,7 +26,6 @@ boost::filesystem::path netvars_log::make_path() const
 {
     assert(!dir.empty());
     assert(!file.name.empty());
-    assert(!file.extension.empty());
     assert(file.extension.starts_with('.'));
 
     return dir / file.name += file.extension;
@@ -38,15 +37,14 @@ size_t netvars_log::fill(fill_fn const& updater)
 
     assert(!dir.empty());
     assert(!file.name.empty());
-    assert(!file.extension.empty());
     assert(file.extension.starts_with('.'));
 
     using json_type = nlohmann::ordered_json;
 
-    json_type jsRoot;
-
+    json_type  jsRoot;
     json_type* jsCurr;
-    auto       writer = [&jsCurr](basic_netvar_info const& info)
+
+    basic_netvar_table::for_each_fn writer = [&jsCurr](basic_netvar_info const& info)
     {
         auto name   = info.name();
         auto type   = info.type();
@@ -73,13 +71,12 @@ size_t netvars_log::fill(fill_fn const& updater)
     {
         assert(!table->empty());
 
-        jsRoot.push_back(table->name());
-        jsCurr = &jsRoot.back();
+        jsCurr = &jsRoot[table->name()];
         table->for_each(writer);
     }
 
     namespace jd = nlohmann::detail; // NOLINT(misc-unused-alias-decls)
-    buff.reserve(1024 * 210);        // filse size ~210 kb
+    buff.reserve(1024 * 220);        // filse size ~220 kb
     jd::serializer<json_type>(jd::output_adapter(buff), filler).dump(jsRoot, indent > 0, false, indent);
     // buff.shrink_to_fit();
 

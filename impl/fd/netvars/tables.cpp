@@ -1,5 +1,8 @@
 #include <fd/netvars/tables.h>
 
+#include <algorithm>
+#include <cassert>
+
 namespace fd
 {
 #if 0
@@ -49,19 +52,28 @@ auto netvar_tables::add(std::string_view name) -> pointer
     return &storage_.emplace_back(name);
 }
 
+static auto _find_raw(auto& rng, auto const& val) -> decltype(rng.data())
+{
+    auto begin = rng.data();
+    auto end   = begin + rng.size();
+
+    auto found = std::find(begin, end, val);
+    return found == end ? nullptr : found;
+}
+
 auto netvar_tables::find(std::string_view name) -> pointer
 {
-    return std::find(storage_.data(), storage_.data() + storage_.size(), name);
+    return _find_raw(storage_, name);
 }
 
 auto netvar_tables::find(std::string_view name) const -> const_pointer
 {
-    return std::find(storage_.data(), storage_.data() + storage_.size(), name);
+    return _find_raw(storage_, name);
 }
 
 size_t netvar_tables::index_of(const_pointer table) const
 {
-    assert(std::find(storage_.begin(), storage_.end(), table) != storage_.end());
+    assert(_find_raw(storage_, table));
     return std::distance(storage_.data(), table);
 }
 

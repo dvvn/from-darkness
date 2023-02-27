@@ -215,7 +215,7 @@ static DWORD WINAPI _context(void*) noexcept
 
     //----
 
-    auto clientLib = csgo_library_info_ex(libs.get(L"client.dll"));
+    csgo_library_info_ex clientLib = (libs.get(L"client.dll"));
 
     auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(
         clientLib.find_signature("56 8B 71 3C B8"));
@@ -225,7 +225,7 @@ static DWORD WINAPI _context(void*) noexcept
 
     //----
 
-    auto engineLib = csgo_library_info_ex(libs.get(L"engine.dll"));
+    csgo_library_info_ex engineLib = (libs.get(L"engine.dll"));
 
     auto gameEngine = static_cast<valve::engine_client*>(engineLib.find_interface("VEngineClient"));
 
@@ -260,7 +260,7 @@ static DWORD WINAPI _context(void*) noexcept
 #ifdef _DEBUG
     netvars_classes lazyNetvarClasses;
 #ifdef FD_WORK_DIR
-    lazyNetvarClasses.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("valve/generated");
+    lazyNetvarClasses.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars_generated");
 #else
 #error "provide directory for netvars_classes"
 #endif
@@ -293,6 +293,7 @@ static DWORD WINAPI _context(void*) noexcept
                     _unload();
             })));
     gui_context guiCtx(
+        { false, d3dIfc, hwnd },
         [&]
         {
             [[maybe_unused]] auto visible = hackMenu.render();
@@ -301,16 +302,18 @@ static DWORD WINAPI _context(void*) noexcept
                 ImGui::ShowDemoWindow();
 #endif
         });
-    if (!guiCtx.init({ false, d3dIfc, hwnd }))
+    if (!guiCtx)
         return FALSE;
-    auto guiCtxProtector = _invoke_on_destuct(
+    _invoke_on_destuct guiCtxProtector = (
         [&]
         {
             if (!d3dIfc)
                 guiCtx.detach();
         });
 
-    auto vguiSurface = static_cast<valve::gui::surface*>(clientLib.find_interface("VGUI_Surface"));
+    csgo_library_info_ex vguiLib = libs.get(L"vguimatsurface.dll");
+
+    auto vguiSurface = static_cast<valve::gui::surface*>(vguiLib.find_interface("VGUI_Surface"));
 
     auto allHooks = hooks_storage(
         hook_callback_lazy(

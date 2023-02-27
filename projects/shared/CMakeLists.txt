@@ -15,7 +15,6 @@ target_link_libraries(fd_shared PUBLIC
     Boost::thread
     Boost::algorithm
     Boost::container
-    Boost::ptr_container
     Boost::container_hash
     Boost::json
     Boost::sort
@@ -27,6 +26,8 @@ target_link_libraries(fd_shared PUBLIC
     Boost::uuid
     Boost::fusion
     Boost::hana
+    Boost::static_string
+    Boost::lexical_cast
 )
 target_include_directories(fd_shared PUBLIC
     ${FD_IMPL_DIR}

@@ -1,12 +1,4 @@
 ﻿#include <fd/netvars/type_resolve.h>
-#include <fd/valve/base_entity.h>
-#include <fd/valve/base_handle.h>
-#include <fd/valve/color.h>
-#include <fd/valve/cs_player.h>
-#include <fd/valve/qangle.h>
-#include <fd/valve/quaternion.h>
-#include <fd/valve/vector.h>
-#include <fd/valve/vectorX.h>
 
 #include <fmt/format.h>
 
@@ -29,7 +21,7 @@ static bool _check_prefix(std::string_view type, std::string_view prefix)
     if (type.size() - 2 <= prefix.size())
         return false;
     auto ptr = _prefix_ptr(type.data(), prefix.size());
-    return ptr && std::memcmp(ptr, prefix.data(), prefix.size() == 0);
+    return ptr && std::memcmp(ptr, prefix.data(), prefix.size()) == 0;
 }
 
 [[maybe_unused]]
@@ -51,7 +43,9 @@ struct _prefix_max_length
     size_t value;
 };
 
-static std::string_view _find_prefix(std::string_view type, const _prefix_max_length limit = std::numeric_limits<uint16_t>::max())
+static std::string_view _find_prefix(
+    std::string_view         type,
+    const _prefix_max_length limit = std::numeric_limits<uint16_t>::max())
 {
     if (!type.starts_with("m_"))
         return {};
@@ -134,7 +128,7 @@ struct not_explicit_string : std::string
     }
 };
 
-static not_explicit_string _type_recv_prop(std::string_view name, valve::recv_prop const* prop)
+static not_explicit_string _type_recv_prop(std::string_view name, valve::recv_prop* prop)
 {
     using pt = valve::recv_prop_type;
 
@@ -150,25 +144,28 @@ static not_explicit_string _type_recv_prop(std::string_view name, valve::recv_pr
         return "valve::vector2"; // 3d vector. z unused
     case pt::DPT_String:
         return "char*"; // char[X]
-    case pt::DPT_Array: {
+    case pt::DPT_Array:
+    {
         auto prevProp = prop - 1;
-        assert(std::string_view(prevProp->name).ends_with("[0]"));
+        //assert(std::string_view(prevProp->name).ends_with("[0]"));
         auto type = extract_type(name, prevProp);
         return extract_type_std_array(type, prop->elements_count);
     }
-    case pt::DPT_DataTable: {
+    case pt::DPT_DataTable:
+    {
 #if 0
         return prop->name;
 #else
-        assert(!"Data table type must be manually resolved!");
+        assert(0 && "Data table type must be manually resolved!");
         return "void*";
 #endif
     }
     case pt::DPT_Int64:
         return "int64_t";
-    default: {
-        assert(!"Unknown recv prop type");
-        std::unreachable();
+    default:
+    {
+        assert(0 && "Unknown recv prop type");
+        return "void*";
     }
     }
 }
@@ -217,7 +214,8 @@ std::string_view extract_type_integer(std::string_view name)
     auto prefix = _find_prefix(name, _prefix_max_length(3));
     switch (prefix.size())
     {
-    case 1: {
+    case 1:
+    {
         if (prefix == 'b')
             return "bool";
         if (prefix == 'c')
@@ -226,7 +224,8 @@ std::string_view extract_type_integer(std::string_view name)
             return "valve::base_handle";
         break;
     }
-    case 2: {
+    case 2:
+    {
         if (prefix == "un")
             return "uint32_t";
         if (prefix == "ch")
@@ -235,7 +234,8 @@ std::string_view extract_type_integer(std::string_view name)
             return "float";
         break;
     }
-    case 3: {
+    case 3:
+    {
         if (prefix == "clr")
             return "valve::color"; // not sure
         break;
@@ -247,12 +247,12 @@ std::string_view extract_type_integer(std::string_view name)
 
 //---
 
-std::string extract_type(std::string_view name, valve::recv_prop const* prop)
+std::string extract_type(std::string_view name, valve::recv_prop* prop)
 {
     return _type_recv_prop(name, prop);
 }
 
-std::string_view extract_type(std::string_view name, valve::data_map_description const* field)
+std::string_view extract_type(std::string_view name, valve::data_map_description* field)
 {
     using ft = valve::data_map_description_type;
 
@@ -279,17 +279,17 @@ std::string_view extract_type(std::string_view name, valve::data_map_description
     case ft::FIELD_COLOR32:
         return "valve::color";
     case ft::FIELD_EMBEDDED:
-        assert(!"Embedded field detected");
+        assert(0 && "Embedded field detected");
         std::unreachable();
     case ft::FIELD_CUSTOM:
-        assert(!"Custom field detected");
+        assert(0 && "Custom field detected");
         std::unreachable();
     case ft::FIELD_CLASSPTR:
         return "valve::base_entity*";
     case ft::FIELD_EHANDLE:
         return "valve::base_handle";
     case ft::FIELD_EDICT:
-        assert(!"Edict field detected"); //  "edict_t*"
+        assert(0 && "Edict field detected"); //  "edict_t*"
         std::unreachable();
     case ft::FIELD_POSITION_VECTOR:
         return "valve::vector3";
@@ -301,10 +301,10 @@ std::string_view extract_type(std::string_view name, valve::data_map_description
     case ft::FIELD_SOUNDNAME:
         return "char*"; // string_t at real
     case ft::FIELD_INPUT:
-        assert(!"Inputvar field detected"); //  "CMultiInputVar"
+        assert(0 && "Inputvar field detected"); //  "CMultiInputVar"
         std::unreachable();
     case ft::FIELD_FUNCTION:
-        assert(!"Function detected");
+        assert(0 && "Function detected");
         std::unreachable();
     case ft::FIELD_VMATRIX:
     case ft::FIELD_VMATRIX_WORLDSPACE:
@@ -312,7 +312,7 @@ std::string_view extract_type(std::string_view name, valve::data_map_description
     case ft::FIELD_MATRIX3X4_WORLDSPACE:
         return "valve::matrix3x4";
     case ft::FIELD_INTERVAL:
-        assert(!"Interval field detected"); // "interval_t"
+        assert(0 && "Interval field detected"); // "interval_t"
         std::unreachable();
     case ft::FIELD_MODELINDEX:
     case ft::FIELD_MATERIALINDEX:
@@ -320,12 +320,12 @@ std::string_view extract_type(std::string_view name, valve::data_map_description
     case ft::FIELD_VECTOR2D:
         return "valve::vector2";
     default:
-        assert(!"Unknown datamap field type");
+        assert(0 && "Unknown datamap field type");
         std::unreachable();
     }
 }
 
-std::string_view extract_type_by_prefix(std::string_view name, valve::recv_prop const* prop)
+std::string_view extract_type_by_prefix(std::string_view name, valve::recv_prop* prop)
 {
     using pt = valve::recv_prop_type;
 
@@ -340,7 +340,7 @@ std::string_view extract_type_by_prefix(std::string_view name, valve::recv_prop 
     }
 }
 
-std::string_view extract_type_by_prefix(std::string_view name, valve::data_map_description const* field)
+std::string_view extract_type_by_prefix(std::string_view name, valve::data_map_description* field)
 {
     using ft = valve::data_map_description_type;
 

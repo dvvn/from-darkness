@@ -32,24 +32,21 @@ _gui_context::~_gui_context()
     ImGui::Shutdown();
 }
 
-_gui_context::_gui_context()
+_gui_context::_gui_context(init_data initData)
     : context_(&fontAtlas_)
-    , focused_(false)
+    , valid_(false)
     , attached_(false)
 {
     IMGUI_CHECKVERSION();
     ImGui::SetCurrentContext(&context_);
-}
 
-bool _gui_context::init(init_data initData)
-{
 #ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
     ImGui::SetAllocatorFunctions(
         [](size_t size, void*) { return operator new(size, std::nothrow); },
         [](void* buff, void*) { operator delete(buff, std::nothrow); });
 #endif
     ImGui::Initialize();
-    focused_ = (GetActiveWindow() == initData.window);
+    // focused_ = GetActiveWindow() == initData.window;
 #ifndef _DEBUG
     // todo: disable fallback window
 #endif
@@ -64,11 +61,16 @@ bool _gui_context::init(init_data initData)
     // ImGui::StyleColorsLight();
 
     if (!ImGui_ImplDX9_Init(initData.backend))
-        return false;
+        return;
     attached_ = true;
     if (!ImGui_ImplWin32_Init(initData.window))
-        return false;
-    return true;
+        return;
+    valid_ = true;
+}
+
+_gui_context::operator bool() const
+{
+    return valid_;
 }
 
 void _gui_context::detach()
@@ -97,9 +99,8 @@ bool _gui_context::begin_frame()
 
 #ifndef IMGUI_HAS_VIEWPORT
     // sets in win32 impl
-    auto displaySize = context_.IO.DisplaySize;
-    auto minimized   = displaySize.x <= 0 || displaySize.y <= 0;
-    if (minimized)
+    auto& displaySize = context_.IO.DisplaySize;
+    if (displaySize.x <= 0 || displaySize.y <= 0)
         return false;
 #endif
 
@@ -110,6 +111,7 @@ bool _gui_context::begin_frame()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void _gui_context::end_frame(IDirect3DDevice9* thisPtr)
 {
+    (void)this;
     ImGui::Render();
 
     D3D_VALIDATE(thisPtr->BeginScene());
@@ -131,51 +133,20 @@ auto _gui_context::process_keys(void* data) -> keys_return
     return process_keys(kd->window, kd->message, kd->wParam, kd->lParam);
 }
 
-auto _gui_context::process_keys( //
-    HWND   window,
-    UINT   message,
-    WPARAM wParam,
-    LPARAM lParam) -> keys_return
+auto _gui_context::process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam) -> keys_return
 {
-#if 0
-    if (!can_process_keys())
-        return keys_return::native;
-#endif
+    auto& events         = context_.InputEventsQueue;
+    auto  oldEventsCount = events.size();
 
-    // update focus
-    auto focusChanged = [&]
-    {
-        switch (message)
-        {
-        case WM_SETFOCUS:
-        {
-            focused_ = true;
-            return true;
-        }
-        case WM_KILLFOCUS:
-        {
-            focused_ = false;
-            return true;
-        }
-        default:
-            return false;
-        }
-    }();
+    keys_return ret;
 
-    if (!focused_ && !focusChanged)
-        return keys_return::native;
+    if (ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0)
+        ret = keys_return::instant;
+    else if (events.size() != oldEventsCount)
+        ret = keys_return::def;
+    else
+        ret = keys_return::native;
 
-    auto events         = std::span(context_.InputEventsQueue);
-    auto oldEventsCount = (events.size());
-    auto instant        = ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0;
-    auto eventsAdded    = events.subspan(oldEventsCount);
-
-    if (context_.IO.AppFocusLost)
-        return keys_return::native;
-    if (instant)
-        return keys_return::instant;
-    if (!focused_ || (eventsAdded.empty()))
-        return keys_return::native;
-    return keys_return::def;
+    return ret;
 }
 } // namespace fd

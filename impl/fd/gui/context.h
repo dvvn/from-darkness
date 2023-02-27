@@ -34,13 +34,10 @@ class _gui_context : public basic_gui_context
     ImGuiContext context_;
     ImFontAtlas  fontAtlas_;
 
-    bool focused_;
+    bool valid_;
     bool attached_;
 
   public:
-    ~_gui_context() override;
-    _gui_context();
-
     struct init_data
     {
         bool              storeSettings;
@@ -48,8 +45,10 @@ class _gui_context : public basic_gui_context
         HWND              window;
     };
 
-    [[nodiscard]]
-    bool init(init_data initData);
+    ~_gui_context() override;
+    _gui_context(init_data initData);
+
+    explicit operator bool() const;
 
     // mark whe rendered unavaiable
     void detach();
@@ -90,8 +89,8 @@ class gui_context final : public _gui_context
     Callback callback_;
 
   public:
-    gui_context(Callback callback)
-        : _gui_context()
+    gui_context(init_data initData, Callback callback)
+        : _gui_context(initData)
         , callback_(std::move(callback))
     {
     }

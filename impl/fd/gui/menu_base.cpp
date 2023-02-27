@@ -8,7 +8,7 @@ static std::string _ImTmpstring;
 static auto _im_str(std::string_view strv)
 {
 #ifndef IMGUI_HAS_STRV
-    auto       data = strv.data();
+    auto data = strv.data();
     auto size = strv.size();
     if (data[size] != '\0')
         data = _ImTmpstring.assign(data, size).data();
@@ -54,8 +54,7 @@ static uint16_t _TabCounter = 0;
 
 tab_bar_base::tab_bar_base()
 {
-    fmt::format_to(std::back_inserter(name_), "{}{}", namePrefix_, _TabCounter++);
-    name_.push_back('\0');
+    name_.append("##tbar").append(std::to_string(_TabCounter++));
 }
 #else
 tab_bar_base::tab_bar_base(std::string_view name)
@@ -66,19 +65,19 @@ tab_bar_base::tab_bar_base(std::string_view name)
 
 bool tab_bar_base::new_frame()
 {
-    auto&      g      = *GImGui;
-    auto window = g.CurrentWindow;
+    auto& g      = *GImGui;
+    auto  window = g.CurrentWindow;
     /*if (window->SkipItems)
         return;*/
 
     auto id     = window->GetID((name_.data()), name_.data() + name_.size());
     auto tabBar = g.TabBars.GetOrAddByKey(id);
-    tabBar->ID        = id;
+    tabBar->ID  = id;
 
     constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton |
                                   ImGuiTabBarFlags_NoTooltip;
     constexpr auto extraFlags = ImGuiTabBarFlags_IsFocused;
-    auto     tabBarBB   = ImRect(
+    auto           tabBarBB   = ImRect(
         window->DC.CursorPos.x,
         window->DC.CursorPos.y,
         window->WorkRect.Max.x,
@@ -154,4 +153,4 @@ void menu_base::end_frame(bool visible)
     ImGui::End();
     visibleNext_ = visible_ = visible;
 }
-}
+} // namespace fd

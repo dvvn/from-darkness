@@ -276,9 +276,9 @@ class interface_reg_iterator
     interface_reg_iterator operator+(size_t i) const
     {
         assert(i == 1);
-        auto ret = interface_reg_iterator(current_->next_);
-        if constexpr (Mode == interface_reg_iterator_mode::const_compare)
-            ret.compared_ = compared_;
+        auto ret      = interface_reg_iterator(current_->next_);
+        // if constexpr (Mode == interface_reg_iterator_mode::const_compare)
+        ret.compared_ = compared_;
         return ret;
     }
 
@@ -295,7 +295,8 @@ struct std::iterator_traits<interface_reg_iterator<Mode>>
     using value_type = interface_reg;
 };
 
-bool operator==(interface_reg_iterator<compare>& it, std::string_view ifcName)
+template <typename C>
+bool operator==(interface_reg_iterator<compare>& it, std::basic_string_view<C> ifcName)
 {
     auto& curr     = *std::as_const(it);
     auto  currName = std::string_view(curr.name());
@@ -312,7 +313,8 @@ bool operator==(interface_reg_iterator<compare>& it, std::string_view ifcName)
     return cmp != error;
 }
 
-bool operator==(interface_reg_iterator<const_compare> const& it, std::string_view ifcName)
+template <typename C>
+bool operator==(interface_reg_iterator<const_compare> const& it, std::basic_string_view<C> ifcName)
 {
     switch (it.status())
     {
@@ -1353,18 +1355,18 @@ void* csgo_library_info::find_interface(void const* createInterfaceFn, std::stri
     using iterator       = interface_reg_iterator<compare>;
     using const_iterator = interface_reg_iterator<const_compare>;
 
-    const_iterator const target = std::find<iterator>(_root_interface(createInterfaceFn), nullptr, name);
+    auto target = std::find<iterator>(_root_interface(createInterfaceFn), nullptr, name);
     assert(target != nullptr);
 
     auto type = target.status();
     if (type == partial)
     {
         assert(_all_digits(target->name() + name.size()));
-        assert(std::find<const_iterator>(target + 1, nullptr, name) == nullptr);
+        assert(std::find<const_iterator>((target) + 1, nullptr, name) == nullptr);
     }
 
     _log_found_csgo_interface(entry_, type, name, target.operator->());
-    return (*target)();
+    return (*std::as_const(target))();
 }
 
 static library_info _Current = nullptr;
@@ -1529,10 +1531,13 @@ void library_info_cache::remove(PVOID baseAddress, [[maybe_unused]] std::wstring
     assert(cookie_ != nullptr);
 
     auto& last = cache_.back();
-    auto  info = std::find(cache_.begin(), cache_.end() - 1, baseAddress);
+    auto  info = std::find_if(
+        cache_.begin(),
+        cache_.end() - 1,
+        [baseAddress](LDR_DATA_TABLE_ENTRY const* entry) { return entry->DllBase == baseAddress; });
     using std::swap;
     swap(*info, last);
-    assert(last == baseAddress);
+    assert(last->DllBase == baseAddress);
     cache_.pop_back();
 }
 

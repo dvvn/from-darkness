@@ -5,16 +5,22 @@
 
 namespace fd
 {
-netvar_info::netvar_info(
-    size_t const             offset,
-    netvar_info_source const source,
-    std::string_view   name,
-    size_t const             arraySize)
+
+netvar_info::netvar_info(size_t offset, netvar_info_source source, std::string_view name, size_t arraySize)
     : offset_(offset)
     , source_(source)
     , arraySize_(arraySize)
     , name_(name)
 {
+    if (std::holds_alternative<valve::recv_prop*>(source_) &&
+        std::get<valve::recv_prop*>(source_)->type == valve::DPT_Array)
+    {
+        assert(arraySize == 0); // size resolved automativally
+        if (name_.starts_with('\"'))
+            name_.remove_prefix(1);
+        if (name_.ends_with('\"'))
+            name_.remove_suffix(1);
+    }
 }
 
 size_t netvar_info::offset() const
@@ -33,9 +39,12 @@ std::string_view netvar_info::name() const
 {
     if (name_.empty())
     {
-        auto name = std::visit([](auto src) -> std::string_view { return src->name; }, source_);
+        std::string_view name = std::visit([](auto* src) -> char const* { return src->name; }, source_);
         if (arraySize_ > 0)
+        {
+            assert(name.starts_with("m_"));
             name.remove_suffix(3);
+        }
         name_ = name;
     }
     return name_;
@@ -67,11 +76,6 @@ std::string_view netvar_info::type() const
     return type_;
 }
 
-basic_netvar_info* netvar_info::clone() const
-{
-    return new netvar_info(*this);
-}
-
 size_t netvar_info::array_size() const
 {
     return arraySize_;
@@ -84,17 +88,15 @@ netvar_info_instant::netvar_info_instant(size_t offset, std::string_view name, s
     , name_(name)
     , type_(std::move(type))
 {
+    assert(!type_.empty());
 }
 
-netvar_info_instant::netvar_info_instant(
-    size_t           offset,
-    std::string_view name,
-    std::string_view       type,
-    size_t                 arraySize)
+netvar_info_instant::netvar_info_instant(size_t offset, std::string_view name, std::string_view type, size_t arraySize)
     : offset_(offset)
     , name_(name)
     , type_(extract_type_std_array(type, arraySize))
 {
+    assert(!type.empty());
     assert(arraySize != 0);
 }
 
@@ -111,10 +113,5 @@ std::string_view netvar_info_instant::name() const
 std::string_view netvar_info_instant::type() const
 {
     return type_;
-}
-
-basic_netvar_info* netvar_info_instant::clone() const
-{
-    return new netvar_info_instant(*this);
 }
 } // namespace fd

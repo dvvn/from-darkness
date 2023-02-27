@@ -10,8 +10,8 @@
 namespace fd
 {
 using netvar_info_source = std::variant< //--
-    valve::data_map_description const*,
-    valve::recv_prop const*>;
+    valve::data_map_description*,
+    valve::recv_prop*>;
 
 class netvar_info final : public basic_netvar_info
 {
@@ -28,8 +28,6 @@ class netvar_info final : public basic_netvar_info
     size_t           offset() const override;
     std::string_view name() const override;
     std::string_view type() const override;
-
-    basic_netvar_info* clone() const override;
 
     size_t array_size() const;
 };
@@ -69,11 +67,6 @@ class netvar_info_lazy final : public basic_netvar_info
     {
         return type_;
     }
-
-    basic_netvar_info* clone() const override
-    {
-        return new netvar_info_lazy(*this);
-    }
 };
 
 template <typename Fn>
@@ -92,7 +85,5 @@ class netvar_info_instant final : public basic_netvar_info
     size_t           offset() const override;
     std::string_view name() const override;
     std::string_view type() const override;
-
-    basic_netvar_info* clone() const override;
 };
 } // namespace fd
