@@ -6,6 +6,7 @@
 #include <fd/hooking/storage.h>
 #include <fd/library_info.h>
 #include <fd/netvars/storage.h>
+#include <fd/utils/functional.h>
 
 #include <fd/valve/base_client.h>
 #include <fd/valve/cs_player.h>
@@ -41,25 +42,6 @@ static void _exit_success()
 
 namespace fd
 {
-template <typename Fn>
-class _invoke_on_destuct
-{
-    Fn fn;
-
-  public:
-    ~_invoke_on_destuct()
-    {
-        fn();
-    }
-
-    _invoke_on_destuct(Fn fn)
-        : fn(fn)
-    {
-    }
-};
-
-template <typename Fn>
-_invoke_on_destuct(Fn fn) -> _invoke_on_destuct<std::decay_t<Fn>>;
 
 #if 0
 template <size_t S>
@@ -130,7 +112,7 @@ class csgo_library_info_ex : public csgo_library_info
     {
     }
 
-    void* find_interface(std::string_view name) const
+    auto find_interface(std::string_view name) const
     {
         return this->find_interface(createInterfaceFn_, name);
     }
@@ -178,11 +160,14 @@ static void _pause()
 
 static DWORD WINAPI _context(void*) noexcept
 {
-    DWORD exitCode   = EXIT_FAILURE;
-    auto  freeHelper = _invoke_on_destuct([&] { FreeLibraryAndExitThread(_ModuleHandle, exitCode); });
+    DWORD              exitCode   = EXIT_FAILURE;
+    invoke_on_destruct freeHelper = [&]
+    {
+        FreeLibraryAndExitThread(_ModuleHandle, exitCode);
+    };
 
 #ifdef _DEBUG
-    console_holder const consoleHanlder(
+    auto consoleHanlder = console_holder(
         L"from-darkness debug console. " BOOST_STRINGIZE(__DATE__) " " BOOST_STRINGIZE(__TIME__));
 #endif
 
@@ -195,49 +180,16 @@ static DWORD WINAPI _context(void*) noexcept
     set_current_library(_ModuleHandle);
     library_info_cache libs;
 
-    auto const& d3dIfc = [&]
-    {
-        auto  lib    = libs.get(L"shaderapidx9.dll");
-        auto  addr   = lib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C");
-        auto& result = **reinterpret_cast<IDirect3DDevice9***>(addr + 0x1);
-        while (!result)
-            Sleep(100);
-        return result;
-    }();
+    csgo_library_info_ex  shaderApiLib = libs.get(L"shaderapidx9.dll");
+    IDirect3DDevice9*&    d3dIfc       = *(shaderApiLib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
+    csgo_library_info_ex  clientLib    = libs.get(L"client.dll");
+    valve::base_client*   gameClient   = clientLib.find_interface("VClient");
+    csgo_library_info_ex  engineLib    = libs.get(L"engine.dll");
+    valve::engine_client* gameEngine   = engineLib.find_interface("VEngineClient");
+    valve::cs_player*&    localPlayer  = *(clientLib.find_signature("A1 ? ? ? ? 89 45 BC 85 C0") + 1);
 
-    auto hwnd = [=]
-    {
-        D3DDEVICE_CREATION_PARAMETERS d3dParams;
-        if (FAILED(d3dIfc->GetCreationParameters(&d3dParams)))
-            abort(); // WARNING!!!
-        return d3dParams.hFocusWindow;
-    }();
-
-    //----
-
-    csgo_library_info_ex clientLib = (libs.get(L"client.dll"));
-
-    auto addToSafeList = reinterpret_cast<void(__fastcall*)(HMODULE, void*)>(
-        clientLib.find_signature("56 8B 71 3C B8"));
-    addToSafeList(_ModuleHandle, nullptr);
-
-    auto gameClient = static_cast<valve::base_client*>(clientLib.find_interface("VClient"));
-
-    //----
-
-    csgo_library_info_ex engineLib = (libs.get(L"engine.dll"));
-
-    auto gameEngine = static_cast<valve::engine_client*>(engineLib.find_interface("VEngineClient"));
-
-    //----
-
-    auto& localPlayer = [&]() -> valve::cs_player*&
-    {
-        auto addr = clientLib.find_signature("A1 ? ? ? ? 89 45 BC 85 C0");
-        return **reinterpret_cast<valve::cs_player***>(addr + 1);
-    }();
-
-    //----
+    // addToSafeList
+    clientLib.find_signature("56 8B 71 3C B8").as_fn<void(__fastcall*)(HMODULE, void*)>(_ModuleHandle, nullptr);
 
     netvars_storage netvarsStorage;
     _NetvarsStorage = &netvarsStorage;
@@ -282,9 +234,6 @@ static DWORD WINAPI _context(void*) noexcept
     netvarsStorage.clear();
 
     auto hackMenu = menu(tab_bar(
-#ifndef FD_GUI_RANDOM_TAB_BAR_NAME
-        "tab bar",
-#endif
         tab("tab",
             []
             {
@@ -292,8 +241,15 @@ static DWORD WINAPI _context(void*) noexcept
                 if (ImGui::Button("Unload"))
                     _unload();
             })));
+
+    while (!d3dIfc)
+        Sleep(10);
+    D3DDEVICE_CREATION_PARAMETERS d3dParams;
+    if (FAILED(d3dIfc->GetCreationParameters(&d3dParams)))
+        abort(); // WARNING!!!
+
     gui_context guiCtx(
-        { false, d3dIfc, hwnd },
+        { false, d3dIfc, d3dParams.hFocusWindow },
         [&]
         {
             [[maybe_unused]] auto visible = hackMenu.render();
@@ -304,12 +260,11 @@ static DWORD WINAPI _context(void*) noexcept
         });
     if (!guiCtx)
         return FALSE;
-    _invoke_on_destuct guiCtxProtector = (
-        [&]
-        {
-            if (!d3dIfc)
-                guiCtx.detach();
-        });
+    invoke_on_destruct guiCtxProtector = [&]
+    {
+        if (!d3dIfc)
+            guiCtx.detach();
+    };
 
     csgo_library_info_ex vguiLib = libs.get(L"vguimatsurface.dll");
 
@@ -319,10 +274,10 @@ static DWORD WINAPI _context(void*) noexcept
         hook_callback_lazy(
             "WinAPI.WndProc",
             DefWindowProcW,
-            decay_fn(GetWindowLongPtrW(hwnd, GWLP_WNDPROC)),
+            decay_fn(GetWindowLongPtrW(d3dParams.hFocusWindow, GWLP_WNDPROC)),
             [&](auto orig, HWND currHwnd, auto... args) -> LRESULT
             {
-                assert(currHwnd == hwnd);
+                assert(currHwnd == d3dParams.hFocusWindow);
                 using keys_return = basic_gui_context::keys_return;
                 switch (guiCtx.process_keys(currHwnd, args...))
                 {

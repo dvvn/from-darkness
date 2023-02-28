@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <cstdio>
-
 #include <fstream>
 #include <iterator>
 
@@ -20,7 +19,7 @@ class file_writer
 
     file_writer(wchar_t const* path)
     {
-        _wfopen_s(&f, path, L"w");
+        _wfopen_s(&f, path, L"wb");
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef
@@ -67,7 +66,7 @@ bool file_already_written(wchar_t const* fullPath, void const* buff, size_t size
     if (!fileStored)
         return false;
 
-    if (fileStored.tellg() != size * elementSize)
+    if (boost::fil != size * elementSize)
         return false;
 
 #if 0

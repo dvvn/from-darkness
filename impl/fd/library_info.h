@@ -1,9 +1,10 @@
 #pragma once
 
+#include <fd/hidden_ptr.h>
+
 #include <windows.h>
 #include <winternl.h>
 
-#include <list>
 #include <mutex>
 #include <semaphore>
 #include <vector>
@@ -12,8 +13,8 @@ namespace fd
 {
 struct library_info
 {
-    using pointer   = LDR_DATA_TABLE_ENTRY const*;
-    using reference = LDR_DATA_TABLE_ENTRY const&;
+    using pointer   = LDR_DATA_TABLE_ENTRY*;
+    using reference = LDR_DATA_TABLE_ENTRY&;
 
   protected:
     pointer entry_;
@@ -32,18 +33,18 @@ struct library_info
     std::wstring_view path() const;
     std::wstring_view name() const;
 
-    void*                 find_export(std::string_view name) const;
+    hidden_ptr            find_export(std::string_view name) const;
     IMAGE_SECTION_HEADER* find_section(std::string_view name) const;
 
-    uintptr_t find_signature(std::string_view sig) const;
+    hidden_ptr find_signature(std::string_view sig) const;
 
-    void* find_vtable(std::string_view name) const;
-    void* find_vtable(std::type_info const& info) const;
+    hidden_ptr find_vtable(std::string_view name) const;
+    hidden_ptr find_vtable(std::type_info const& info) const;
 
     template <class T>
     T* find_vtable() const
     {
-        return static_cast<T*>(find_vtable(typeid(T)));
+        return find_vtable(typeid(T));
     }
 };
 
@@ -62,47 +63,39 @@ struct csgo_library_info : library_info
 
     csgo_library_info(library_info info);
 
-    void* find_interface(std::string_view name) const;
-    void* find_interface(void const* createInterfaceFn, std::string_view name) const;
+    hidden_ptr find_interface(std::string_view name) const;
+    hidden_ptr find_interface(void const* createInterfaceFn, std::string_view name) const;
 };
 
 library_info current_library_info();
 void         set_current_library(HMODULE handle);
 
-struct _delayed_library_info
-{
-    std::wstring_view     name;
-    std::binary_semaphore sem;
-
-    _delayed_library_info(std::wstring_view name)
-        : name(name)
-        , sem(0)
-    {
-    }
-};
-
 class library_info_cache
 {
-    mutable std::mutex mtx_;
+    struct cached_data
+    {
+        std::wstring_view     name;
+        std::binary_semaphore sem;
 
-    std::vector<LDR_DATA_TABLE_ENTRY const*> cache_;
-    std::list<_delayed_library_info>         delayed_;
+        LDR_DATA_TABLE_ENTRY* value;
 
-    PVOID cookie_;
+        cached_data(std::wstring_view name);
+        cached_data(LDR_DATA_TABLE_ENTRY* value, std::wstring_view name = {});
+    };
 
-    void release_delayed();
+    mutable std::mutex                        mtx_;
+    std::vector<std::unique_ptr<cached_data>> cache_;
+    PVOID                                     cookie_;
 
   public:
     ~library_info_cache();
     library_info_cache();
 
     void store(PVOID baseAddress, std::wstring_view name);
-    void remove(PVOID baseAddress, std::wstring name);
+    void remove(PVOID baseAddress, std::wstring_view name);
 
     library_info get(PVOID baseAddress) const;      // return null if not found
     library_info get(std::wstring_view name) const; // return null if not found
     library_info get(std::wstring_view name);       // wait if not found
-
-    void destroy();
 };
 } // namespace fd
