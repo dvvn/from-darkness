@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdio>
+
 #include <fstream>
 #include <iterator>
 
@@ -66,7 +67,7 @@ bool file_already_written(wchar_t const* fullPath, void const* buff, size_t size
     if (!fileStored)
         return false;
 
-    if (boost::fil != size * elementSize)
+    if (fileStored.tellg() != size * elementSize)
         return false;
 
 #if 0
