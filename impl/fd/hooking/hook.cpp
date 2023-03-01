@@ -5,24 +5,6 @@
 
 #include <subhook.h>
 
-namespace fd
-{
-static auto _InitHooks = []() -> uint8_t
-{
-    subhook_set_disasm_handler(
-        [](void* src, int* reloc_op_offset) -> int
-        {
-            if (auto ret = subhook_disasm(src, reloc_op_offset); ret)
-                return ret;
-            if (auto ret = hde_disasm(src, reloc_op_offset); ret)
-                return ret;
-
-            return 0;
-        });
-    return 1;
-}();
-}
-
 #define _SUBHOOK_WRAP(_FN_)                                 \
     static auto subhook_##_FN_(void* ptr)                   \
     {                                                       \
@@ -39,12 +21,6 @@ _SUBHOOK_WRAP(is_installed);
 _SUBHOOK_WRAP(get_trampoline);
 _SUBHOOK_WRAP(get_src);
 _SUBHOOK_WRAP(get_dst);
-
-static void* subhook_new(void* target, void* replace)
-{
-    return subhook_new(target, replace, static_cast<subhook_flags_t>(subhook::HookFlagTrampoline));
-}
-
 // ReSharper restore All
 
 #undef _SUBHOOK_WRAP
@@ -95,11 +71,20 @@ struct fmt::formatter<_hook_disabled> : formatter<string_view>
 
 namespace fd
 {
-hook::hook(std::string&& name)
-    : entry_(nullptr)
-    , name_(std::move(name))
+static auto _InitHooks = []() -> uint8_t
 {
-}
+    subhook_set_disasm_handler(
+        [](void* src, int* reloc_op_offset) -> int
+        {
+            if (auto ret = subhook_disasm(src, reloc_op_offset); ret)
+                return ret;
+            if (auto ret = hde_disasm(src, reloc_op_offset); ret)
+                return ret;
+
+            return 0;
+        });
+    return 1;
+}();
 
 hook::~hook()
 {
@@ -114,10 +99,30 @@ hook::~hook()
     }
 }
 
+hook::hook()
+    : entry_(nullptr)
+    , name_("unknown")
+{
+}
+
+hook::hook(std::string_view name)
+    : entry_(nullptr)
+    , name_(name)
+{
+}
+
 hook::hook(hook&& other) noexcept
     : entry_(std::exchange(other.entry_, nullptr))
-    , name_(std::move(other.name_))
+    , name_(other.name_)
 {
+}
+
+hook& hook::operator=(hook&& other) noexcept
+{
+    using std::swap;
+    swap(entry_, other.entry_);
+    swap(name_, other.name_);
+    return *this;
 }
 
 bool hook::enable()
@@ -183,7 +188,7 @@ bool hook::init(void* target, void* replace)
         return false;
     }
 
-    auto entry = subhook_new(target, replace);
+    auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
 
     if (!entry)
     {

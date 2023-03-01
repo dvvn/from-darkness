@@ -8,19 +8,19 @@
 namespace fd
 {
 template <typename... Args>
-class hook_callback_lazy final
+class hook_callback_args final
 {
     boost::hana::tuple<Args...> args_;
 
   public:
-    hook_callback_lazy(Args... args)
+    hook_callback_args(Args... args)
         : args_(std::move(args)...)
     {
     }
 
     auto get() const&
     {
-        return boost::hana::unpack(args_, [](Args const&... args) { return hook_callback((args)...); });
+        return boost::hana::unpack(args_, [](Args const&... args) { return hook_callback(args...); });
     }
 
     auto get() &&
@@ -31,14 +31,14 @@ class hook_callback_lazy final
 
 static constexpr struct
 {
-    template <typename Callback, typename Ret, _x86_call Cvs, class Class, typename... Args>
-    auto operator()(hook_callback<Callback, Ret, Cvs, Class, Args...>&& cb) const
+    template <typename Callback, _x86_call Call, typename... Args>
+    auto operator()(hook_callback<Callback, Call, Args...>&& cb) const
     {
         return std::move(cb);
     }
 
     template <typename... T>
-    auto operator()(hook_callback_lazy<T...>&& cb) const
+    auto operator()(hook_callback_args<T...>&& cb) const
     {
         return std::move(cb).get();
     }
@@ -48,7 +48,7 @@ template <class Tpl, class ArgsTpl, size_t Idx, size_t... I>
 static void _hooks_storage_init(Tpl& tpl, ArgsTpl& args, std::index_sequence<Idx, I...>)
 {
     constexpr auto idx = boost::hana::size_t<Idx>();
-    std::construct_at(&boost::hana::at(tpl, idx), _FwdHookCallback(std::move(boost::hana::at((args), idx))));
+    std::construct_at(&boost::hana::at(tpl, idx), _FwdHookCallback(std::move(boost::hana::at(args, idx))));
     if constexpr (sizeof...(I) != 0)
         _hooks_storage_init(tpl, args, std::index_sequence<I...>());
 }
@@ -89,7 +89,7 @@ class hooks_storage final
 #if 0
         return (std::get<H>(hooks_).enable() && ...);
 #else
-        return (boost::hana::unpack(hooks_, [](H&... h) { return (h.enable() && ...); }));
+        return boost::hana::unpack(hooks_, [](H&... h) { return (h.enable() && ...); });
 
 #endif
     }

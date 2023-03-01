@@ -23,34 +23,22 @@ class file_writer
         _wfopen_s(&f, path, L"wb");
     }
 
-    // ReSharper disable once CppParameterMayBeConstPtrOrRef
-    bool operator()(void* buff, size_t size, size_t elementSize)
+    bool operator()(void const* buff, size_t size, size_t elementSize) const
     {
         return _fwrite_nolock(buff, elementSize, size, f) == size * elementSize;
     }
-
-    // ReSharper disable once CppParameterMayBeConstPtrOrRef
-    bool operator()(void* buff, size_t size)
-    {
-        return _fwrite_nolock(buff, 1, size, f) == size;
-    }
 };
 
-bool write_to_file(wchar_t const* path, void* buff, size_t size, size_t elementSize)
+bool write_to_file(wchar_t const* path, void const* buff, size_t size, size_t elementSize)
 {
     return file_writer(path)(buff, size, elementSize);
-}
-
-bool write_to_file(wchar_t const* path, void* buff, size_t size)
-{
-    return file_writer(path)(buff, size);
 }
 
 bool write_to_file(wchar_t const* path, void* buff, void const* buffEnd)
 {
     assert(buff < buffEnd);
     size_t count = std::distance(static_cast<uint8_t const*>(buff), static_cast<uint8_t const*>(buffEnd));
-    return file_writer(path)(buff, count);
+    return write_to_file(path, buff, count);
 }
 
 //----

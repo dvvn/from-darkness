@@ -20,8 +20,8 @@ struct netvars_log final
 
     struct
     {
-        std::wstring name;
-        std::wstring extension;
+        std::wstring      name;
+        std::wstring_view extension;
     } file;
 
     uint8_t indent;

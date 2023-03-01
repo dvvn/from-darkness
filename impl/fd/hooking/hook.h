@@ -8,15 +8,19 @@ namespace fd
 {
 class hook : public basic_hook
 {
-    void*       entry_;
-    std::string name_;
+    void*            entry_;
+    std::string_view name_;
 
   public:
-    hook(std::string&& name);
     ~hook() override;
+
+    hook();
+    hook(std::string_view name);
 
     hook(hook const&) = delete;
     hook(hook&& other) noexcept;
+    hook& operator=(hook const& other) = delete;
+    hook& operator=(hook&& other) noexcept;
 
     bool enable() final;
     bool disable() final;

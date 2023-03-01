@@ -28,15 +28,9 @@ int main(int, char**)
 
     auto testMenu = menu(
         tab_bar(
-#ifndef FD_GUI_RANDOM_TAB_BAR_NAME
-            "tab bar1",
-#endif
             tab("tab1", [] { ImGui::TextUnformatted("hello"); }),
             tab("tab2", [] { ImGui::TextUnformatted("-->hello again"); })),
         tab_bar(
-#ifndef FD_GUI_RANDOM_TAB_BAR_NAME
-            "tab bar2",
-#endif
             tab("new tab", [] { ImGui::TextUnformatted("im here!"); }),
             tab("tab 3", [] { ImGui::TextUnformatted("yes!"); })));
     auto guiCtx = gui_context(
@@ -53,7 +47,7 @@ int main(int, char**)
         return FALSE;
 
     auto hooks = hooks_storage(
-        hook_callback_lazy(
+        hook_callback_args(
             "WinAPI.WndProc",
             backend.info.lpfnWndProc,
             [&](auto orig, auto... args) -> LRESULT
@@ -71,19 +65,17 @@ int main(int, char**)
                     std::unreachable();
                 }
             }),
-        hook_callback_lazy(
+        hook_callback_args(
             "IDirect3DDevice9::Reset",
-            &IDirect3DDevice9::Reset,
-            decay_fn(backend.d3d, 16),
+            fn_sample(&IDirect3DDevice9::Reset, vfunc(backend.d3d, 16)),
             [&](auto orig, auto, auto... args)
             {
                 guiCtx.release_textures();
                 return orig(args...);
             }),
-        hook_callback_lazy(
+        hook_callback_args(
             "IDirect3DDevice9::Present",
-            &IDirect3DDevice9::Present,
-            decay_fn(backend.d3d, 17),
+            fn_sample(&IDirect3DDevice9::Present, vfunc(backend.d3d, 17)),
             [&](auto orig, auto thisPtr, auto... args)
             {
                 guiCtx.render(thisPtr);

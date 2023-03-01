@@ -203,7 +203,7 @@ static DWORD WINAPI _context(void*) noexcept
     }
     else
     {
-        auto vtable = static_cast<valve::cs_player*>(clientLib.find_vtable("C_CSPlayer"));
+        valve::cs_player* vtable = clientLib.find_vtable("C_CSPlayer");
         netvarsStorage.iterate_datamap(vtable->GetDataDescMap());
         netvarsStorage.iterate_datamap(vtable->GetPredictionDescMap());
     }
@@ -212,14 +212,14 @@ static DWORD WINAPI _context(void*) noexcept
 #ifdef _DEBUG
     netvars_classes lazyNetvarClasses;
 #ifdef FD_WORK_DIR
-    lazyNetvarClasses.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars_generated");
+    lazyNetvarClasses.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars_generated").make_preferred();
 #else
 #error "provide directory for netvars_classes"
 #endif
     netvarsStorage.generate_classes(lazyNetvarClasses);
     netvars_log lazyNetvarLog;
 #ifdef FD_ROOT_DIR
-    lazyNetvarLog.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).append(".dumps/netvars");
+    lazyNetvarLog.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).append(".dumps/netvars").make_preferred();
 #else
 #error "provide directory for netvars_log"
 #endif
@@ -268,13 +268,12 @@ static DWORD WINAPI _context(void*) noexcept
 
     csgo_library_info_ex vguiLib = libs.get(L"vguimatsurface.dll");
 
-    auto vguiSurface = static_cast<valve::gui::surface*>(vguiLib.find_interface("VGUI_Surface"));
+    valve::gui::surface* vguiSurface = vguiLib.find_interface("VGUI_Surface");
 
     auto allHooks = hooks_storage(
-        hook_callback_lazy(
+        hook_callback_args(
             "WinAPI.WndProc",
-            DefWindowProcW,
-            decay_fn(GetWindowLongPtrW(d3dParams.hFocusWindow, GWLP_WNDPROC)),
+            fn_sample<WNDPROC>(GetWindowLongPtrW(d3dParams.hFocusWindow, GWLP_WNDPROC)),
             [&](auto orig, HWND currHwnd, auto... args) -> LRESULT
             {
                 assert(currHwnd == d3dParams.hFocusWindow);
@@ -291,28 +290,25 @@ static DWORD WINAPI _context(void*) noexcept
                     std::unreachable();
                 }
             }),
-        hook_callback_lazy(
+        hook_callback_args(
             "IDirect3DDevice9::Reset",
-            &IDirect3DDevice9::Reset,
-            decay_fn(d3dIfc, 16),
+            fn_sample(&IDirect3DDevice9::Reset, vfunc(d3dIfc, 16)),
             [&](auto orig, auto, auto... args)
             {
                 guiCtx.release_textures();
                 return orig(args...);
             }),
-        hook_callback_lazy(
+        hook_callback_args(
             "IDirect3DDevice9::Present",
-            &IDirect3DDevice9::Present,
-            decay_fn(d3dIfc, 17),
+            fn_sample(&IDirect3DDevice9::Present, vfunc(d3dIfc, 17)),
             [&](auto orig, auto thisPtr, auto... args)
             {
                 guiCtx.render(thisPtr);
                 return orig(args...);
             }),
-        hook_callback_lazy(
+        hook_callback_args(
             "VGUI.ISurface::LockCursor",
-            &valve::gui::surface::LockCursor,
-            decay_fn(vguiSurface, 67),
+            fn_sample(&valve::gui::surface::LockCursor, vfunc(vguiSurface, 67)),
             [&](auto orig, auto thisPtr)
             {
                 if (hackMenu.visible() && !thisPtr->IsCursorVisible())
