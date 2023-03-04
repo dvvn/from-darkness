@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/netvars/basic_table.h>
+#include <fd/netvars/table.h>
 
 #include <boost/filesystem/path.hpp>
 
@@ -9,10 +9,11 @@
 
 namespace fd
 {
-struct netvars_log final
+class netvars_log final
 {
-    using fill_fn = std::function<bool(basic_netvar_table const*&)>;
+    std::vector<char> buff_;
 
+  public:
     ~netvars_log();
     netvars_log();
 
@@ -29,9 +30,6 @@ struct netvars_log final
 
     boost::filesystem::path make_path() const;
 
-    size_t fill(fill_fn const& updater);
-
-  private:
-    std::vector<char> buff;
+    void fill(netvar_table& table);
 };
 } // namespace fd

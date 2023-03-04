@@ -4,30 +4,31 @@ file(GLOB_RECURSE _FILES ${FD_DIR}/*.cpp)
 add_library(fd_shared ${_FILES})
 target_link_libraries(fd_shared PUBLIC 
     #function2
-    robin_hood::robin_hood
+    #robin_hood::robin_hood
     nlohmann_json::nlohmann_json
+    glaze::glaze
     subhook::subhook
     fmt::fmt
     imgui::imgui
     xxHash::xxhash
     spdlog::spdlog
-    sigmatch::sigmatch
-    Boost::thread
+    #sigmatch::sigmatch
+    #Boost::thread
     Boost::algorithm
     Boost::container
     Boost::container_hash
     Boost::json
     Boost::sort
     Boost::io
-    Boost::dll
+    #Boost::dll
     Boost::process
     Boost::geometry
-    Boost::gil
-    Boost::uuid
-    Boost::fusion
+    #Boost::gil
+    #Boost::uuid
+    #Boost::fusion
     Boost::hana
     Boost::static_string
-    Boost::lexical_cast
+    #Boost::lexical_cast
 )
 target_include_directories(fd_shared PUBLIC
     ${FD_IMPL_DIR}

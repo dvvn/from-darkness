@@ -2,6 +2,7 @@
 #include <fd/utils/file.h>
 
 #include <boost/filesystem.hpp>
+#include <boost/static_string.hpp>
 
 #include <fmt/format.h>
 
@@ -115,11 +116,10 @@ struct generate_info
     /*fmt::basic_memory_buffer<char,32>*/ std::string typeOut;
     /*fmt::basic_memory_buffer<char,64>*/ std::string typeCast;
 
-    generate_info(basic_netvar_info const& info)
+    generate_info(netvar_info& info)
     {
         auto typeRaw = info.type();
-        if (typeRaw.empty())
-            return;
+        assert(!typeRaw.empty());
 
         auto isPointer   = typeRaw.ends_with('*');
         auto typeDecayed = isPointer ? typeRaw.substr(0, typeRaw.size() - 1) : typeRaw;
@@ -137,8 +137,19 @@ struct generate_info
     }
 };
 
-static constexpr auto& _FormatOff = "// clang-format off\n"
-                                    "// ReSharper disable All\n\n";
+static constexpr auto& _FormatOff       = "// clang-format off\n"
+                                          "// ReSharper disable All\n\n";
+static constexpr auto& _CppIncludes     = "#include <cassert>\n"
+                                          "#include <string_view>\n\n";
+static constexpr auto& _NetvarsGetterFn = "size_t get_netvar_offset"
+                                          "(std::string_view table, std::string_view name);\n\n";
+
+// static void _write_header_head()
+
+static constexpr std::string_view _HeaderSample = //
+    "({FormatOff})"
+    "#include <cassert>\n"
+    "#include <string_view>\n\n";
 
 static void _parse_source(chars_buffer& buff, std::string_view className, std::span<generate_info const> table)
 {
@@ -147,7 +158,9 @@ static void _parse_source(chars_buffer& buff, std::string_view className, std::s
     offsetsClass.append("_offsets");
 
     buff.append_range(_FormatOff);
-    // buff.append_range(_assertGap);
+    buff.append_range(_CppIncludes);
+    buff.append_range(_NetvarsGetterFn);
+
     buff.append_range("static struct\n{\n");
     {
         for (auto& i : table)
@@ -160,7 +173,7 @@ static void _parse_source(chars_buffer& buff, std::string_view className, std::s
                 fmt::format_to(
                     buff.out(),
                     "\t\tassert({name} == -1, \"already set!\";\n"
-                    "\t\t{name} = get_netvars_storage()->get_offset(\'{className}\', \'{name}\');\n",
+                    "\t\t{name} = get_netvar_offset(\'{className}\', \'{name}\');\n",
                     fmt::arg("name", i.name),
                     fmt::arg("className", className));
             }
@@ -178,7 +191,7 @@ static void _parse_source(chars_buffer& buff, std::string_view className, std::s
             "{{\n"
             "\tassert({offsetsClass}.{name} != -1, \"not set!\");\n"
             "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + {offsetsClass}.{name};\n"
-            "\treturn {typeCast}(addr);\n",
+            "\treturn {typeCast}(addr);\n"
             "}}\n",
             fmt::arg("typeOut", i.typeOut),
             fmt::arg("className", className),
@@ -197,7 +210,7 @@ static void _parse_header(chars_buffer& buff, std::span<generate_info const> tab
     }
 }
 
-bool netvars_classes::fill(fill_fn const& updater, size_t dataSize)
+void netvars_classes::fill(netvar_table& rawTable)
 {
     assert(!dir.empty());
 
@@ -205,49 +218,35 @@ bool netvars_classes::fill(fill_fn const& updater, size_t dataSize)
 #error "not implemented"
 #else
 
-    if (dataSize == 0)
-        return 0;
+    if (rawTable.empty())
+        return;
 
     auto filesCount = files.size();
-    files.resize(filesCount + dataSize * 2);
-    auto file = files.begin() + filesCount;
+    files.resize(filesCount + rawTable.size() * 2);
+    auto file = filesCount + files.begin();
+
+    std::vector<generate_info> table;
+    table.assign_range(rawTable);
+
+    auto className = rawTable.name();
 
     chars_buffer source;
+    _parse_source(source, className, table);
     chars_buffer header;
+    _parse_header(header, table);
 
-    std::vector<generate_info>      table;
-    basic_netvar_table::for_each_fn tableFiller = [&](basic_netvar_info const& info)
+    auto storeFile = [&](std::string_view extension, std::vector<char>& buff)
     {
-        table.emplace_back(info);
+        assert(file->name.empty());
+        file->name.append_range(className).append_range(extension);
+        file->data = std::move(buff);
+        ++file;
     };
+    storeFile("_h", header);
+    storeFile("_cpp", source);
 
-    for (basic_netvar_table const* rawTable; updater(rawTable);)
-    {
-        table.clear();
-        table.reserve(rawTable->size());
-        rawTable->for_each(tableFiller);
+    // todo: if !FD_NETVARS_DT_MERGE include wanted files!
 
-        auto className = rawTable->name();
-
-        source.clear();
-        _parse_source(source, className, table);
-
-        header.clear();
-        _parse_header(header, table);
-
-        auto storeFile = [&](std::string_view extension, std::span<char const> buff)
-        {
-            file->name.append_range(className).append_range(extension);
-            file->data.append_range(buff);
-            ++file;
-        };
-        storeFile("_h", header);
-        storeFile("_cpp", source);
-
-        // todo: if !FD_NETVARS_DT_MERGE include wanted files!
-    }
-
-    return true;
 #endif
 }
 

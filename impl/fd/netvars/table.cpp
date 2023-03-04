@@ -4,11 +4,6 @@
 
 namespace fd
 {
-netvar_table::~netvar_table()
-{
-    std::for_each(storage_.rbegin(), storage_.rend(), [](pointer ptr) { delete ptr; });
-}
-
 netvar_table::netvar_table(std::string&& name)
     : name_(std::move(name))
 {
@@ -29,6 +24,12 @@ netvar_table::netvar_table(std::string_view name)
 netvar_table::netvar_table(netvar_table&& other) noexcept            = default;
 netvar_table& netvar_table::operator=(netvar_table&& other) noexcept = default;
 
+void netvar_table::set_name(std::string&& name)
+{
+    assert(name_.empty());
+    name_ = std::move(name);
+}
+
 std::string_view netvar_table::name() const
 {
     return name_;
@@ -37,23 +38,25 @@ std::string_view netvar_table::name() const
 auto netvar_table::find(std::string_view name) const -> const_pointer
 {
     assert(!name.empty());
-    for (auto* entry : storage_)
+    auto e = end();
+    for (auto it = begin(); it != e; ++it)
     {
-        if (entry->name() == name)
-            return entry;
+        if (it->name() == name)
+            return it.operator->();
     }
-    return nullptr;
-}
-
-void netvar_table::add(pointer info)
-{
-    assert(!find(info->name()));
-    storage_.emplace_back(info);
+    return 0;
 }
 
 void netvar_table::sort()
 {
-    std::stable_sort(storage_.begin(), storage_.end());
+    std::stable_sort(this->begin(), this->end());
+}
+
+void netvar_table::on_item_added(std::string_view name) const
+{
+    (void)this;
+    (void)name;
+    assert(std::count(this->begin(), this->end(), name) == 1);
 }
 
 #if 0
@@ -78,54 +81,8 @@ auto netvar_table::end() const -> const_iterator
 }
 #endif
 
-bool netvar_table::empty() const
-{
-    return storage_.empty();
-}
-
-size_t netvar_table::size() const
-{
-    return storage_.size();
-}
-
-void netvar_table::for_each(for_each_fn const& fn) const
-{
-    for (auto* i : storage_)
-        fn(*i);
-}
-
-bool operator==(netvar_table const& table, netvar_table const* externalTable)
-{
-    return &table == externalTable;
-}
-
 bool operator==(netvar_table const& table, std::string_view name)
 {
     return table.name() == name;
 }
-
-//----
-
-/* bool netvar_table_multi::have_inner() const
-{
-    return std::holds_alternative<netvar_table_multi>(inner_);
-}
-
-netvar_table_multi& netvar_table_multi::inner(std::string&& name)
-{
-    FD_assert(!have_inner());
-    auto& inner = inner_.emplace<netvar_table_multi>();
-    inner.construct(std::move(name));
-    return inner;
-}
-
-netvar_table_multi& netvar_table_multi::inner()
-{
-    return std::get<netvar_table_multi>(inner_);
-}
-
-const netvar_table_multi& netvar_table_multi::inner() const
-{
-    return std::get<netvar_table_multi>(inner_);
-} */
 } // namespace fd

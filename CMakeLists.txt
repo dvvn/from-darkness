@@ -38,7 +38,7 @@ if(MSVC)
     add_link_options(/LTCG)
     add_compile_options(/Qpar /Qvec-report:1 /Qpar-report:1)
   endif()  
-  add_compile_options(/Zc:preprocessor /Zc:__cplusplus /permissive-)
+  add_compile_options(/Zc:preprocessor /Zc:__cplusplus /Zc:lambda /permissive-)
   add_compile_options(/wd5103 /wd4291 /wd4250 /wd5104)
   add_compile_options(/MP${_CPUS} /EHsc)
   add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)
@@ -133,6 +133,9 @@ set(JSON_DisableEnumSerialization on)
 FetchContent_Load(nlohmann json)
 FetchContent_MakeAvailable(json)
 
+FetchContent_Load(stephenberry glaze GIT_TAG main)
+FetchContent_MakeAvailable(glaze)
+    
 FetchContent_Load(martinus robin-hood-hashing)
 FetchContent_MakeAvailable(robin-hood-hashing)
 

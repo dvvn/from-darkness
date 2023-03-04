@@ -5,122 +5,54 @@
 
 namespace fd
 {
-#if 0
-netvar_table* netvar_tables::begin()
+static auto _find_raw(auto* rng, std::string_view val) -> decltype(rng->data())
 {
-    return storage_.data();
-}
-
-netvar_table* netvar_tables::end()
-{
-    return storage_.data() + storage_.size();
-}
-
-netvar_table const* netvar_tables::begin() const
-{
-    return storage_.data();
-}
-
-netvar_table const* netvar_tables::end() const
-{
-    return storage_.data() + storage_.size();
-}
-#endif
-
-auto netvar_tables::add(netvar_table&& table) -> pointer
-{
-    assert(!table.empty());
-#ifdef FD_NETVARS_DT_MERGE
-    assert(!this->find(table.name()));
-#endif
-    return &storage_.emplace_back(std::move(table));
-}
-
-auto netvar_tables::add(std::string&& name) -> pointer
-{
-#ifdef FD_NETVARS_DT_MERGE
-    assert(!this->find(name));
-#endif
-    return &storage_.emplace_back(std::move(name));
-}
-
-auto netvar_tables::add(std::string_view name) -> pointer
-{
-#ifdef FD_NETVARS_DT_MERGE
-    assert(!this->find(name));
-#endif
-    return &storage_.emplace_back(name);
-}
-
-static auto _find_raw(auto& rng, auto const& val) -> decltype(rng.data())
-{
-    auto begin = rng.data();
-    auto end   = begin + rng.size();
-
-    auto found = std::find(begin, end, val);
-    return found == end ? nullptr : found;
+    auto e = rng->end();
+    for (auto it = rng->begin(); it != e; ++it)
+    {
+        if (*it == val)
+            return it.operator->();
+    }
+    return nullptr;
 }
 
 auto netvar_tables::find(std::string_view name) -> pointer
 {
-    return _find_raw(storage_, name);
+    return _find_raw(this, name);
 }
 
 auto netvar_tables::find(std::string_view name) const -> const_pointer
 {
-    return _find_raw(storage_, name);
+    return _find_raw(this, name);
+}
+
+static bool _constains(auto* rng, void const* ptr)
+{
+    for (auto& item : *rng)
+    {
+        if (&item == ptr)
+            return true;
+    }
+    return false;
 }
 
 size_t netvar_tables::index_of(const_pointer table) const
 {
-    assert(_find_raw(storage_, table));
-    return std::distance(storage_.data(), table);
+    assert(_constains(this, table));
+    return std::distance(this->data(), table);
 }
 
 void netvar_tables::sort(size_t index)
 {
-    storage_[index].sort();
+    this->operator[](index).sort();
 }
 
-size_t netvar_tables::size() const
+void netvar_tables::on_item_added(const_reference table) const
 {
-    return storage_.size();
+    (void)table;
+    (void)this;
+    assert(std::count(this->begin(), this->end(), table.name()) == 1);
 }
-
-bool netvar_tables::empty() const
-{
-    return storage_.empty();
-}
-
-auto netvar_tables::make_updater() const -> netvar_tables::updater_fn
-{
-    return [it = storage_.begin(), end = storage_.end()](basic_netvar_table const*& table) mutable
-    {
-        auto repeat = it != end;
-        if (repeat)
-        {
-            table = it++.operator->();
-            assert(!table->empty());
-        }
-        return repeat;
-    };
-}
-#if 0
-auto netvar_tables::begin() const -> netvar_tables::iterator
-{
-    return storage_.begin();
-}
-
-auto netvar_tables::end() const -> netvar_tables::iterator
-{
-    return storage_.end();
-}
-
-auto netvar_tables::data() const -> netvar_tables::const_pointer
-{
-    return storage_.data();
-}
-#endif
 
 //--
 
@@ -143,6 +75,6 @@ void netvar_tables_ordered::sort()
     auto sortEnd = std::unique(sortReqests_.begin(), sortReqests_.end());
     for (auto it = sortReqests_.begin(); it != sortEnd; ++it)
         this->sort(*it);
-    sortReqests_.clear();
+    sortReqests_.resize(0);
 }
 } // namespace fd

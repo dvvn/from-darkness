@@ -141,9 +141,9 @@ static auto _get_product_version_string(valve::engine_client* engine)
 
 static netvars_storage* _NetvarsStorage;
 
-basic_netvars_storage* get_netvars_storage()
+size_t get_netvar_offset(std::string_view table, std::string_view name)
 {
-    return _NetvarsStorage;
+    return _NetvarsStorage->get_offset(table, name);
 }
 
 static void _unload()

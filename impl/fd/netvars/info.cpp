@@ -5,13 +5,16 @@
 
 namespace fd
 {
-
-netvar_info::netvar_info(size_t offset, netvar_info_source source, std::string_view name, size_t arraySize)
+#if 0
+netvar_info::netvar_info(size_t offset, netvar_source source, std::string_view name, size_t arraySize)
     : offset_(offset)
     , source_(source)
     , arraySize_(arraySize)
     , name_(name)
 {
+    assert(!std::holds_alternative<std::monostate>(source_));
+    assert(!name_.empty());
+
     if (std::holds_alternative<valve::recv_prop*>(source_) &&
         std::get<valve::recv_prop*>(source_)->type == valve::DPT_Array)
     {
@@ -21,6 +24,35 @@ netvar_info::netvar_info(size_t offset, netvar_info_source source, std::string_v
         if (name_.ends_with('\"'))
             name_.remove_suffix(1);
     }
+}
+
+netvar_info::netvar_info(size_t offset, std::string_view name, std::string_view type, size_t arraySize)
+    : offset_(offset)
+    , arraySize_(arraySize)
+    , name_(name)
+    , type_(arraySize == 0 ? type : extract_type_std_array(type, arraySize))
+{
+    assert(!name.empty());
+    assert(!type.empty());
+}
+#endif
+
+netvar_info::netvar_info(size_t offset, netvar_type type, std::string_view name)
+    : offset_(offset)
+    , type_(std::move(type))
+    , hint_{ .name = name }
+{
+}
+
+netvar_info::netvar_info(size_t offset, uint16_t arraySize, netvar_source source, std::string_view name)
+    : offset_(offset)
+    , hint_(arraySize, source, name)
+{
+}
+
+netvar_info::netvar_info(size_t offset, netvar_source source, std::string_view name)
+    : netvar_info(offset, 0, source, name)
+{
 }
 
 size_t netvar_info::offset() const
@@ -37,9 +69,18 @@ size_t netvar_info::offset() const
 
 std::string_view netvar_info::name() const
 {
+#if 0
     if (name_.empty())
     {
-        std::string_view name = std::visit([](auto* src) -> char const* { return src->name; }, source_);
+        std::string_view name = std::visit(
+            []<typename T>(T src) -> char const*
+            {
+                if constexpr (std::same_as<std::monostate, T>)
+                    std::terminate();
+                else
+                    return src->name;
+            },
+            source_);
         if (arraySize_ > 0)
         {
             assert(name.starts_with("m_"));
@@ -47,71 +88,72 @@ std::string_view netvar_info::name() const
         }
         name_ = name;
     }
-    return name_;
+#endif
+    return hint_.name;
+}
+
+std::string_view netvar_info::type()
+{
+    if (type_.data.index() == 0)
+        type_ = hint_.resolve();
+
+    return type_.get_type();
 }
 
 std::string_view netvar_info::type() const
 {
+#if 0
     if (type_.empty())
     {
         std::visit(
-            [&](auto val)
+            [&]<typename T>(T val)
             {
-                auto name = this->name();
-                if (arraySize_ <= 1)
+                if constexpr (std::same_as<std::monostate, T>)
+                    std::terminate();
+                else
                 {
-                    type_ = extract_type(name, val);
-                    return;
-                }
-                if (arraySize_ == 3)
-                {
-                    type_ = extract_type_by_prefix(name, val);
-                    if (!type_.empty())
+                    auto name = this->name();
+                    if (arraySize_ <= 1)
+                    {
+                        type_ = extract_type(name, val);
                         return;
+                    }
+                    if (arraySize_ == 3)
+                    {
+                        type_ = extract_type_by_prefix(name, val);
+                        if (!type_.empty())
+                            return;
+                    }
+                    type_ = extract_type_std_array(extract_type(name, val), arraySize_);
                 }
-                type_ = extract_type_std_array(extract_type(name, val), arraySize_);
             },
             source_);
     }
     return type_;
+#endif
+
+    return type_.get_type();
 }
 
-size_t netvar_info::array_size() const
+uint16_t netvar_info::array_size() const
 {
-    return arraySize_;
+    if (std::holds_alternative<netvar_type_array>(type_.data))
+        return std::get<netvar_type_array>(type_.data).size;
+    return 0;
 }
 
-//----
-
-netvar_info_instant::netvar_info_instant(size_t offset, std::string_view name, std::string type)
-    : offset_(offset)
-    , name_(name)
-    , type_(std::move(type))
+bool operator==(netvar_info const& left, netvar_info const& right)
 {
-    assert(!type_.empty());
+    return left.name() == right.name();
 }
 
-netvar_info_instant::netvar_info_instant(size_t offset, std::string_view name, std::string_view type, size_t arraySize)
-    : offset_(offset)
-    , name_(name)
-    , type_(extract_type_std_array(type, arraySize))
+bool operator==(netvar_info const& left, std::string_view name)
 {
-    assert(!type.empty());
-    assert(arraySize != 0);
+    return left.name() == name;
 }
 
-size_t netvar_info_instant::offset() const
+std::strong_ordering operator<=>(netvar_info const& left, netvar_info const& right)
 {
-    return offset_;
+    return left.offset() <=> right.offset();
 }
-
-std::string_view netvar_info_instant::name() const
-{
-    return name_;
 }
-
-std::string_view netvar_info_instant::type() const
-{
-    return type_;
-}
-} // namespace fd
