@@ -1472,21 +1472,17 @@ void library_info_cache::remove(PVOID baseAddress, std::wstring_view name)
     auto g = std::lock_guard(mtx_);
     assert(cookie_ != nullptr);
 
-    auto& last = cache_.back();
-    if (last->value->DllBase != baseAddress)
-    {
-        for (auto& data : std::span(cache_.begin(), cache_.size() - 1))
+    auto& val = *std::find_if(
+        cache_.rbegin(),
+        cache_.rend(),
+        [&](auto& data)
         {
-            if (data->value && data->value->DllBase == baseAddress)
-            {
-                using std::swap;
-                swap(data, last);
-                break;
-            }
-        }
-        assert(last->value->DllBase == baseAddress);
-    }
-    last->sem.release();
+            //
+            return data->value && data->value->DllBase == baseAddress;
+        });
+
+    val->sem.release();
+    std::swap(cache_.back(), val);
     cache_.pop_back();
 }
 

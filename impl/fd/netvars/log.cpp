@@ -1,25 +1,9 @@
 #include <fd/netvars/log.h>
 #include <fd/utils/file.h>
 
-#include <glaze/glaze.hpp>
+#include <fmt/format.h>
 
 #include <boost/filesystem.hpp>
-
-template <>
-struct glz::meta<fd::netvar_info>
-{
-    using T = fd::netvar_info;
-
-    static constexpr auto value = object("name", &T::name, "offset", &T::offset, "type", [](T& v) { return v.type(); });
-};
-
-template <>
-struct glz::meta<fd::netvar_table>
-{
-    using T = fd::netvar_table;
-
-    static constexpr auto name = &T::name;
-};
 
 namespace fd
 {
@@ -54,7 +38,15 @@ void netvars_log::fill(netvar_table& table)
     assert(!file.name.empty());
     assert(file.extension.starts_with('.'));
 
-    glz::write_json(table, buff_);
+    if (buff_.empty())
+        (void)0; // write time or something
+    else
+        buff_.push_back('\n');
+    buff_.append_range(table.name());
+    for (auto& v : table)
+    {
+        fmt::format_to(std::back_inserter(buff_), "\n\t{} {:#X} {}", v.name(), v.offset(), v.type());
+    }
 
 #if 0
     using json_type = nlohmann::ordered_json;

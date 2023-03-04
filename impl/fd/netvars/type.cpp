@@ -7,7 +7,7 @@ struct fmt::formatter<fd::netvar_type_array> : formatter<string_view>
 {
     auto format(fd::netvar_type_array const& arr, format_context& ctx) const -> decltype(ctx.out())
     {
-        auto inner = arr.data.get();
+        auto inner = arr.inner.get();
 
         memory_buffer tmp;
         auto          it = std::back_inserter(tmp);
@@ -34,7 +34,7 @@ namespace fd
 
 netvar_type_array::netvar_type_array(uint16_t size, netvar_type&& type)
     : size(size)
-    , data(std::make_unique<netvar_type>(std::move(type)))
+    , inner(std::make_unique<netvar_type>(std::move(type)))
 {
 }
 
@@ -65,12 +65,23 @@ static constexpr struct
         std::unreachable();
     }
 
+    std::string_view operator()(netvar_type_array& val) const
+    {
+        val.fill();
+        return val.type;
+    }
+
     std::string_view operator()(netvar_type_array const& val) const
     {
-        const_cast<netvar_type_array&>(val).fill();
+        assert(!val.type.empty());
         return val.type;
     }
 } _GetNetvarType;
+
+std::string_view netvar_type::get_type()
+{
+    return std::visit(_GetNetvarType, data);
+}
 
 std::string_view netvar_type::get_type() const
 {

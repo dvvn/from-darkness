@@ -278,7 +278,10 @@ static void _parse_lproxy(
         if (internalStorage.find(tableName))
             return;
 
-        _parse(dt, &internalStorage.emplace_back(tableName), internalStorage);
+        auto tmp = netvar_table(tableName);
+        _parse(dt, &tmp, internalStorage);
+        if (!tmp.empty())
+            internalStorage.emplace_back(std::move(tmp));
     }
 }
 
@@ -386,11 +389,10 @@ void netvars_storage::iterate_client_class(valve::client_class* cclass)
         if (cclass->table->props.empty())
             continue;
 #ifdef FD_NETVARS_DT_MERGE
-        auto& tmp = data_.empty() || data_.back().empty() ? data_.emplace_back() : data_.back();
+        auto tmp = netvar_table(_correct_class_name(cclass->name));
         _parse(cclass->table, &tmp, internal_);
         if (!tmp.empty())
-            tmp.set_name(_correct_class_name(cclass->name));
-
+            data_.emplace_back(std::move(tmp));
 #else
 #error "not implemented"
             //_parse(cclass->table, data_, internal_);

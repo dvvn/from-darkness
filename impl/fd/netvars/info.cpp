@@ -40,7 +40,7 @@ netvar_info::netvar_info(size_t offset, std::string_view name, std::string_view 
 netvar_info::netvar_info(size_t offset, netvar_type type, std::string_view name)
     : offset_(offset)
     , type_(std::move(type))
-    , hint_{ .name = name }
+    , hint_{ .arraySize = 0, .name = name }
 {
 }
 
@@ -94,10 +94,7 @@ std::string_view netvar_info::name() const
 
 std::string_view netvar_info::type()
 {
-    if (type_.data.index() == 0)
-        type_ = hint_.resolve();
-
-    return type_.get_type();
+    return type_ex().get_type();
 }
 
 std::string_view netvar_info::type() const
@@ -135,11 +132,18 @@ std::string_view netvar_info::type() const
     return type_.get_type();
 }
 
+netvar_type& netvar_info::type_ex()
+{
+    if (type_.data.index() == 0)
+        type_ = hint_.resolve();
+    return type_;
+}
+
 uint16_t netvar_info::array_size() const
 {
     if (std::holds_alternative<netvar_type_array>(type_.data))
         return std::get<netvar_type_array>(type_.data).size;
-    return 0;
+    return hint_.arraySize;
 }
 
 bool operator==(netvar_info const& left, netvar_info const& right)

@@ -15,6 +15,8 @@ struct chars_buffer : std::vector<char>
     chars_buffer(chars_buffer const& other)            = delete;
     chars_buffer& operator=(chars_buffer const& other) = delete;
 
+    using std::vector<char>::append_range;
+
     template <size_t S>
     void append_range(char const (&text)[S])
     {
@@ -111,10 +113,10 @@ netvars_classes::netvars_classes() = default;
 
 struct generate_info
 {
-    std::string_view name;
-
-    /*fmt::basic_memory_buffer<char,32>*/ std::string typeOut;
-    /*fmt::basic_memory_buffer<char,64>*/ std::string typeCast;
+    netvar_type_merged_includes<std::string_view> include;
+    std::string_view                              name;
+    std::string                                   typeOut;
+    std::string                                   typeCast;
 
     generate_info(netvar_info& info)
     {
@@ -134,6 +136,10 @@ struct generate_info
         typeCast.append("*>");
 
         name = info.name();
+
+        info.type_ex().write_includes(std::back_inserter(include));
+        /*std::stable_sort(include.begin(), include.end());
+        include.erase(std::unique(include.begin(), include.end()), include.end());*/
     }
 };
 
@@ -143,13 +149,6 @@ static constexpr auto& _CppIncludes     = "#include <cassert>\n"
                                           "#include <string_view>\n\n";
 static constexpr auto& _NetvarsGetterFn = "size_t get_netvar_offset"
                                           "(std::string_view table, std::string_view name);\n\n";
-
-// static void _write_header_head()
-
-static constexpr std::string_view _HeaderSample = //
-    "({FormatOff})"
-    "#include <cassert>\n"
-    "#include <string_view>\n\n";
 
 static void _parse_source(chars_buffer& buff, std::string_view className, std::span<generate_info const> table)
 {
@@ -210,6 +209,30 @@ static void _parse_header(chars_buffer& buff, std::span<generate_info const> tab
     }
 }
 
+static bool _parse_includes(chars_buffer& buff, std::span<generate_info const> table)
+{
+    std::vector<std::string_view> tmp;
+
+    constexpr auto maxBufferSize = 2; // netvar_type_merged_includes<int>().capacity();
+    tmp.reserve(table.size() * std::max<size_t>(1, maxBufferSize));
+    for (auto& info : table)
+        tmp.append_range(info.include);
+
+    auto start = tmp.begin();
+    auto end   = tmp.end();
+
+    std::stable_sort(start, end, std::greater());
+    end = std::unique(start, end);
+
+    auto ret = start != end;
+    for (; start != end; ++start)
+    {
+        buff.append_range(*start);
+        buff.emplace_back('\n');
+    }
+    return ret;
+}
+
 void netvars_classes::fill(netvar_table& rawTable)
 {
     assert(!dir.empty());
@@ -221,32 +244,25 @@ void netvars_classes::fill(netvar_table& rawTable)
     if (rawTable.empty())
         return;
 
-    auto filesCount = files.size();
-    files.resize(filesCount + rawTable.size() * 2);
-    auto file = filesCount + files.begin();
-
     std::vector<generate_info> table;
     table.assign_range(rawTable);
 
     auto className = rawTable.name();
 
-    chars_buffer source;
-    _parse_source(source, className, table);
-    chars_buffer header;
-    _parse_header(header, table);
+    chars_buffer buff;
 
-    auto storeFile = [&](std::string_view extension, std::vector<char>& buff)
+    auto storeFile = [&](std::string_view extension)
     {
-        assert(file->name.empty());
-        file->name.append_range(className).append_range(extension);
-        file->data = std::move(buff);
-        ++file;
+        auto name = std::wstring().append_range(className).append_range(extension);
+        files.emplace_back(std::move(name), std::move(buff));
     };
-    storeFile("_h", header);
-    storeFile("_cpp", source);
 
-    // todo: if !FD_NETVARS_DT_MERGE include wanted files!
-
+    _parse_source(buff, className, table);
+    storeFile("_cpp");
+    _parse_header(buff, table);
+    storeFile("_h");
+    if (_parse_includes(buff, table))
+        storeFile("_inc");
 #endif
 }
 

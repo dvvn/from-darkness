@@ -24,8 +24,8 @@ class netvar_info final
     std::string_view name() const;
     std::string_view type();
     std::string_view type() const;
-
-    uint16_t array_size() const;
+    netvar_type&     type_ex();
+    uint16_t         array_size() const;
 };
 
 bool                 operator==(netvar_info const& left, netvar_info const& right);

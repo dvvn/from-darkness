@@ -18,11 +18,11 @@
 namespace fd
 {
 template <typename T>
-static constexpr auto _NetvarTypeFor = nullptr;
+static constexpr std::false_type _NetvarTypeFor;
 
 #define NETVAR_TYPE_PLATFORM(_T_) \
     template <>                   \
-    constexpr platform_netvar_type _NetvarTypeFor<_T_> = { #_T_ };
+    static constexpr platform_netvar_type _NetvarTypeFor<_T_> = { #_T_ };
 
 NETVAR_TYPE_PLATFORM(int8_t);
 NETVAR_TYPE_PLATFORM(uint8_t);
@@ -35,7 +35,7 @@ NETVAR_TYPE_PLATFORM(uint64_t);
 
 #define NETVAR_TYPE_NATIVE(_T_) \
     template <>                 \
-    constexpr native_netvar_type _NetvarTypeFor<_T_> = { #_T_ };
+    static constexpr native_netvar_type _NetvarTypeFor<_T_> = { #_T_ };
 
 NETVAR_TYPE_NATIVE(bool);
 NETVAR_TYPE_NATIVE(char*);
@@ -46,9 +46,10 @@ NETVAR_TYPE_NATIVE(float);
 NETVAR_TYPE_NATIVE(double);
 NETVAR_TYPE_NATIVE(long double);
 
-#define NETVAR_TYPE_VALVE(_T_, _INC_) \
-    template <>                       \
-    constexpr custom_netvar_type_simple _NetvarTypeFor<valve::_T_> = { "valve::" #_T_, "<fd/valve/" #_INC_ ".h>" };
+#define NETVAR_TYPE_VALVE(_T_, _INC_)                                                         \
+    template <>                                                                               \
+    static constexpr custom_netvar_type_simple _NetvarTypeFor<valve::_T_> = { "valve::" #_T_, \
+                                                                              "<fd/valve/" #_INC_ ".h>" };
 
 // NETVAR_TYPE_VALVE(vector, vector);
 NETVAR_TYPE_VALVE(vector2, vectorX);
