@@ -12,15 +12,15 @@ struct chars_buffer : std::vector<char>
 {
     chars_buffer() = default;
 
-    chars_buffer(chars_buffer const& other)            = delete;
-    chars_buffer& operator=(chars_buffer const& other) = delete;
+    chars_buffer(chars_buffer const &other)            = delete;
+    chars_buffer &operator=(chars_buffer const &other) = delete;
 
     using std::vector<char>::append_range;
 
     template <size_t S>
     void append_range(char const (&text)[S])
     {
-        std::vector<char>::append_range(std::span(text, S - 1));
+        append_range(std::span(text, S - 1));
     }
 
 #if 0
@@ -55,7 +55,7 @@ struct chars_buffer : std::vector<char>
 template <size_t S>
 struct fmt::formatter<fmt::basic_memory_buffer<char, S>> : formatter<string_view>
 {
-    auto format(basic_memory_buffer<char, S> const& buff, format_context& ctx) const
+    auto format(basic_memory_buffer<char, S> const &buff, format_context &ctx) const
     {
         return formatter<string_view>::format(string_view(buff.data(), buff.size()), ctx);
     }
@@ -63,35 +63,6 @@ struct fmt::formatter<fmt::basic_memory_buffer<char, S>> : formatter<string_view
 
 namespace fd
 {
-struct path_info
-{
-    boost::filesystem::path path;
-    std::span<char>         buff;
-
-    path_info(netvars_classes const& root, netvars_classes::file_info& file)
-        : path(root.dir / file.name)
-        , buff(file.data)
-    {
-    }
-
-    // ReSharper disable once CppMemberFunctionMayBeConst
-    void write_unsafe()
-    {
-        write_to_file(path.c_str(), buff.data(), buff.size());
-    }
-
-    bool skip() const
-    {
-        return file_already_written(path.c_str(), buff.data(), buff.size());
-    }
-
-    void write()
-    {
-        if (!skip())
-            write_unsafe();
-    }
-};
-
 netvars_classes::~netvars_classes()
 {
     if (dir.empty())
@@ -99,13 +70,13 @@ netvars_classes::~netvars_classes()
 
     if (create_directories(dir) || is_empty(dir))
     {
-        for (auto& f : files)
-            path_info(*this, f).write_unsafe();
+        for (auto &f : files)
+            write_file((dir / f.name).native(), f.data);
     }
     else
     {
-        for (auto& f : files)
-            path_info(*this, f).write();
+        for (auto &f : files)
+            write_file((dir / f.name).native(), f.data, false);
     }
 }
 
@@ -118,7 +89,7 @@ struct generate_info
     std::string                                   typeOut;
     std::string                                   typeCast;
 
-    generate_info(netvar_info& info)
+    generate_info(netvar_info &info)
     {
         auto typeRaw = info.type();
         assert(!typeRaw.empty());
@@ -131,9 +102,7 @@ struct generate_info
 
         if (isPointer)
             typeCast.push_back('*');
-        typeCast.append("reinterpret_cast<");
-        typeCast.append(typeDecayed);
-        typeCast.append("*>");
+        typeCast.append("reinterpret_cast<").append(typeDecayed).append("*>");
 
         name = info.name();
 
@@ -143,14 +112,14 @@ struct generate_info
     }
 };
 
-static constexpr auto& _FormatOff       = "// clang-format off\n"
+static constexpr auto &_FormatOff       = "// clang-format off\n"
                                           "// ReSharper disable All\n\n";
-static constexpr auto& _CppIncludes     = "#include <cassert>\n"
+static constexpr auto &_CppIncludes     = "#include <cassert>\n"
                                           "#include <string_view>\n\n";
-static constexpr auto& _NetvarsGetterFn = "size_t get_netvar_offset"
+static constexpr auto &_NetvarsGetterFn = "size_t get_netvar_offset"
                                           "(std::string_view table, std::string_view name);\n\n";
 
-static void _parse_source(chars_buffer& buff, std::string_view className, std::span<generate_info const> table)
+static void _parse_source(chars_buffer &buff, std::string_view className, std::span<generate_info const> table)
 {
     /*fmt::basic_memory_buffer<char, 32>*/ std::string offsetsClass;
     offsetsClass.append(className);
@@ -162,12 +131,12 @@ static void _parse_source(chars_buffer& buff, std::string_view className, std::s
 
     buff.append_range("static struct\n{\n");
     {
-        for (auto& i : table)
+        for (auto &i : table)
             fmt::format_to(buff.out(), "\tsize_t {} = -1;\n", i.name);
 
         buff.append_range("\n\tvoid init()\n\t{\n");
         {
-            for (auto& i : table)
+            for (auto &i : table)
             {
                 fmt::format_to(
                     buff.out(),
@@ -182,7 +151,7 @@ static void _parse_source(chars_buffer& buff, std::string_view className, std::s
     buff.push_back('}');
     fmt::format_to(buff.out(), " {};\n\n", offsetsClass);
 
-    for (auto& i : table)
+    for (auto &i : table)
     {
         fmt::format_to(
             buff.out(),
@@ -200,22 +169,22 @@ static void _parse_source(chars_buffer& buff, std::string_view className, std::s
     }
 }
 
-static void _parse_header(chars_buffer& buff, std::span<generate_info const> table)
+static void _parse_header(chars_buffer &buff, std::span<generate_info const> table)
 {
     buff.append_range(_FormatOff);
-    for (auto& i : table)
+    for (auto &i : table)
     {
         fmt::format_to(buff.out(), "{} {}():\n", i.typeOut, i.name);
     }
 }
 
-static bool _parse_includes(chars_buffer& buff, std::span<generate_info const> table)
+static bool _parse_includes(chars_buffer &buff, std::span<generate_info const> table)
 {
     std::vector<std::string_view> tmp;
 
     constexpr auto maxBufferSize = 2; // netvar_type_merged_includes<int>().capacity();
     tmp.reserve(table.size() * std::max<size_t>(1, maxBufferSize));
-    for (auto& info : table)
+    for (auto &info : table)
         tmp.append_range(info.include);
 
     auto start = tmp.begin();
@@ -224,16 +193,20 @@ static bool _parse_includes(chars_buffer& buff, std::span<generate_info const> t
     std::stable_sort(start, end, std::greater());
     end = std::unique(start, end);
 
-    auto ret = start != end;
-    for (; start != end; ++start)
+    if (start == end)
+        return false;
+
+    do
     {
         buff.append_range(*start);
         buff.emplace_back('\n');
     }
-    return ret;
+    while (++start != end);
+
+    return true;
 }
 
-void netvars_classes::fill(netvar_table& rawTable)
+void netvars_classes::fill(netvar_table &rawTable)
 {
     assert(!dir.empty());
 
@@ -251,8 +224,7 @@ void netvars_classes::fill(netvar_table& rawTable)
 
     chars_buffer buff;
 
-    auto storeFile = [&](std::string_view extension)
-    {
+    auto storeFile = [&](std::string_view extension) {
         auto name = std::wstring().append_range(className).append_range(extension);
         files.emplace_back(std::move(name), std::move(buff));
     };

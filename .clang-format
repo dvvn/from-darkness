@@ -1,6 +1,8 @@
 ﻿---
 BasedOnStyle: Microsoft
 Standard: Latest
+PointerAlignment: Right
+ReferenceAlignment: Pointer
 AlignConsecutiveAssignments: AcrossComments #Consecutive
 AlignConsecutiveMacros: AcrossComments
 AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
@@ -10,13 +12,12 @@ RequiresExpressionIndentation: OuterScope
 Cpp11BracedListStyle: false
 AlignArrayOfStructures: Right
 AlignEscapedNewlines: Left
-PointerAlignment: Left
 FixNamespaceComments: true
 #LambdaBodyIndentation: OuterScope
 #NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
 RemoveSemicolon: true
-BreakBeforeBraces: Allman
+#BreakBeforeBraces: Allman
 AlignAfterOpenBracket: AlwaysBreak #BlockIndent
 AllowShortLambdasOnASingleLine: Inline
 SeparateDefinitionBlocks: Always

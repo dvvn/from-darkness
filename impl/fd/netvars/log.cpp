@@ -15,10 +15,7 @@ netvars_log::~netvars_log()
         return;
     if (!exists(dir) && !create_directories(dir))
         return;
-    auto fullPath = make_path();
-    if (file_already_written(fullPath.c_str(), buff_.data(), buff_.size()))
-        return;
-    write_to_file(fullPath.c_str(), buff_.data(), buff_.size());
+    write_file(make_path().native(), buff_, false);
 }
 
 boost::filesystem::path netvars_log::make_path() const
@@ -30,7 +27,7 @@ boost::filesystem::path netvars_log::make_path() const
     return dir / file.name += file.extension;
 }
 
-void netvars_log::fill(netvar_table& table)
+void netvars_log::fill(netvar_table &table)
 {
     // assert(buff.empty());
 
@@ -43,7 +40,7 @@ void netvars_log::fill(netvar_table& table)
     else
         buff_.push_back('\n');
     buff_.append_range(table.name());
-    for (auto& v : table)
+    for (auto &v : table)
     {
         fmt::format_to(std::back_inserter(buff_), "\n\t{} {:#X} {}", v.name(), v.offset(), v.type());
     }

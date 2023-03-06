@@ -1,9 +1,14 @@
 #pragma once
 
+#include <span>
+#include <string>
+
 namespace fd
 {
-bool write_to_file(wchar_t const* path, void const* buff, size_t size, size_t elementSize = 1);
-bool write_to_file(wchar_t const* path, void* buff, void const* buffEnd);
-
-bool file_already_written(wchar_t const* fullPath, void const* buff, size_t size, size_t elementSize = 1);
+void write_file(std::wstring_view file, std::span<char> buff, bool allow_override);
+void write_file(std::wstring_view file, std::span<char> buff);
+#ifdef _DEBUG
+void write_file(std::wstring const &file, std::span<char> buff, bool allow_override);
+void write_file(std::wstring const &file, std::span<char> buff);
+#endif
 } // namespace fd

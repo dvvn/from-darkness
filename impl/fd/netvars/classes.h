@@ -8,8 +8,6 @@ namespace fd
 {
 class netvars_classes final
 {
-    friend struct path_info;
-    
     struct file_info
     {
         std::wstring      name;
@@ -24,6 +22,6 @@ class netvars_classes final
 
     boost::filesystem::path dir;
 
-    void fill(netvar_table & table);
+    void fill(netvar_table &table);
 };
 } // namespace fd
