@@ -6,19 +6,19 @@
 
 namespace fd
 {
-class netvars_classes final
+struct file_info
 {
-    struct file_info
-    {
-        std::wstring      name;
-        std::vector<char> data;
-    };
+    std::wstring name;
+    std::vector<char> data;
+};
 
-    std::vector<file_info> files;
+class netvar_classes final
+{
+    std::vector<file_info> files_;
 
   public:
-    ~netvars_classes();
-    netvars_classes();
+    ~netvar_classes();
+    netvar_classes();
 
     boost::filesystem::path dir;
 

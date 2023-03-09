@@ -6,7 +6,7 @@ namespace fd
 {
 template <
     typename Fn,
-    bool Trivial = std::equality_comparable_with<Fn, nullptr_t>&& std::assignable_from<Fn, nullptr_t>>
+    bool Trivial = std::equality_comparable_with<Fn, nullptr_t> && /**/ std::assignable_from<Fn, nullptr_t>>
 class invoke_on_destruct;
 
 template <typename Fn>
@@ -26,16 +26,16 @@ class invoke_on_destruct<Fn, true>
     {
     }
 
-    invoke_on_destruct(invoke_on_destruct const& other) = delete;
+    invoke_on_destruct(invoke_on_destruct const &other) = delete;
 
-    invoke_on_destruct(invoke_on_destruct&& other) noexcept
+    invoke_on_destruct(invoke_on_destruct &&other) noexcept
         : fn_(std::exchange(other.fn_, nullptr))
     {
     }
 
-    invoke_on_destruct& operator=(invoke_on_destruct const& other) = delete;
+    invoke_on_destruct &operator=(invoke_on_destruct const &other) = delete;
 
-    invoke_on_destruct& operator=(invoke_on_destruct&& other) noexcept
+    invoke_on_destruct &operator=(invoke_on_destruct &&other) noexcept
     {
         using std::swap;
         swap(fn_, other.fn_);
@@ -60,16 +60,16 @@ class invoke_on_destruct<Fn, false>
     {
     }
 
-    invoke_on_destruct(invoke_on_destruct const& other) = delete;
+    invoke_on_destruct(invoke_on_destruct const &other) = delete;
 
-    invoke_on_destruct(invoke_on_destruct&& other) noexcept
+    invoke_on_destruct(invoke_on_destruct &&other) noexcept
         : fn_(std::exchange(other.fn_, std::nullopt))
     {
     }
 
-    invoke_on_destruct& operator=(invoke_on_destruct const& other) = delete;
+    invoke_on_destruct &operator=(invoke_on_destruct const &other) = delete;
 
-    invoke_on_destruct& operator=(invoke_on_destruct&& other) noexcept
+    invoke_on_destruct &operator=(invoke_on_destruct &&other) noexcept
     {
         using std::swap;
         swap(fn_, other.fn_);
@@ -79,5 +79,17 @@ class invoke_on_destruct<Fn, false>
 
 template <typename Fn>
 invoke_on_destruct(Fn fn) -> invoke_on_destruct<std::decay_t<Fn>>;
+
+inline void *vfunc(void *instance, size_t idx)
+{
+    return (*static_cast<void ***>(instance))[idx];
+}
+
+template <typename Ret, typename... Args>
+Ret vfunc(void *instance, size_t idx, Args... args)
+{
+    using fn_t = Ret(__thiscall *)(void *, Args...);
+    return (*static_cast<fn_t **>(instance))[idx](instance, static_cast<Args>(args)...);
+}
 
 } // namespace fd

@@ -13,31 +13,31 @@ static bool null_terminated_string(std::wstring_view str)
     return str.data()[str.size()] == '\0'; // NOLINT(clang-diagnostic-unsafe-buffer-usage)
 }
 
-static bool write_file(wchar_t const *path, void const *buff, size_t size, size_t elementSize)
+static bool write_file(wchar_t const *path, void const *buff, size_t size, size_t element_size)
 {
     FILE *f;
     if (_wfopen_s(&f, path, L"wb"))
     {
-        auto written = _fwrite_nolock(buff, elementSize, size, f);
+        auto written = _fwrite_nolock(buff, element_size, size, f);
         _fclose_nolock(f);
-        return written == size * elementSize;
+        return written == size * element_size;
     }
     return false;
 }
 
-static bool file_already_written(wchar_t const *fullPath, void const *buff, size_t size, size_t elementSize)
+static bool file_already_written(wchar_t const *full_path, void const *buff, size_t size, size_t element_size)
 {
     assert(size != 0);
-    assert(elementSize != 0);
+    assert(element_size != 0);
 
     std::ifstream fileStored;
     fileStored.rdbuf()->pubsetbuf(nullptr, 0); // disable buffering
-    fileStored.open(fullPath, std::ios::binary | std::ios::ate);
+    fileStored.open(full_path, std::ios::binary | std::ios::ate);
 
     if (!fileStored)
         return false;
 
-    if (fileStored.tellg() != size * elementSize)
+    if (fileStored.tellg() != size * element_size)
         return false;
 
 #if 0

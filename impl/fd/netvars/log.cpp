@@ -7,9 +7,9 @@
 
 namespace fd
 {
-netvars_log::netvars_log() = default;
+netvar_log::netvar_log() = default;
 
-netvars_log::~netvars_log()
+netvar_log::~netvar_log()
 {
     if (dir.empty())
         return;
@@ -18,7 +18,7 @@ netvars_log::~netvars_log()
     write_file(make_path().native(), buff_, false);
 }
 
-boost::filesystem::path netvars_log::make_path() const
+boost::filesystem::path netvar_log::make_path() const
 {
     assert(!dir.empty());
     assert(!file.name.empty());
@@ -27,7 +27,7 @@ boost::filesystem::path netvars_log::make_path() const
     return dir / file.name += file.extension;
 }
 
-void netvars_log::fill(netvar_table &table)
+void netvar_log::fill(netvar_table &table)
 {
     // assert(buff.empty());
 

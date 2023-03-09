@@ -17,7 +17,7 @@ enum class _x86_call : uint8_t
 
 // ReSharper restore CppInconsistentNaming
 
-template <typename To, typename From = void*>
+template <typename To, typename From = void *>
 static To _force_cast(From from, [[maybe_unused]] To toHint = {})
 {
     static_assert(sizeof(From) == sizeof(To));
@@ -25,7 +25,7 @@ static To _force_cast(From from, [[maybe_unused]] To toHint = {})
     union
     {
         From from;
-        To   to;
+        To to;
     } helper;
 
     helper.from = from;
@@ -33,42 +33,19 @@ static To _force_cast(From from, [[maybe_unused]] To toHint = {})
 }
 
 template <typename T>
-void* decay_fn(T fn)
+void *decay_fn(T fn)
 {
-    return _force_cast<void*>(fn);
+    return _force_cast<void *>(fn);
 }
-
-inline void* vfunc(void* instance, size_t vfunc)
-{
-    return (*static_cast<void***>(instance))[vfunc];
-}
-
-class lazy_vfunc
-{
-    void*  instance_;
-    size_t vfunc_;
-
-  public:
-    lazy_vfunc(void* instance, size_t vfunc)
-        : instance_(instance)
-        , vfunc_(vfunc)
-    {
-    }
-
-    operator void*() const
-    {
-        return vfunc(instance_, vfunc_);
-    }
-};
 
 template <class Self, typename Fn>
 class hook_original_proxy_member
 {
-    Self* thisPtr_;
-    Fn    original_;
+    Self *thisPtr_;
+    Fn original_;
 
   public:
-    hook_original_proxy_member(Self* thisPtr, void* original)
+    hook_original_proxy_member(Self *thisPtr, void *original)
         : thisPtr_(thisPtr)
         , original_(_force_cast<Fn>(original))
     {
@@ -88,7 +65,7 @@ class hook_original_proxy
 
   public:
     [[deprecated]] //"Prefer native calls"
-    hook_original_proxy(void* original)
+    hook_original_proxy(void *original)
         : original(_force_cast<Fn>(original))
     {
     }
@@ -106,22 +83,22 @@ class fn_sample_lazy
     union
     {
         Sample sample_;
-        void*  ptr_;
+        void *ptr_;
     };
 
   public:
-    static_assert(sizeof(Sample) == sizeof(void*));
+    static_assert(sizeof(Sample) == sizeof(void *));
 
     template <typename T>
     explicit fn_sample_lazy(Sample, T fn)
-        : ptr_(reinterpret_cast<void*>(fn))
+        : ptr_(reinterpret_cast<void *>(fn))
     {
         static_assert(sizeof(Sample) == sizeof(T));
     }
 
     template <typename T>
     explicit fn_sample_lazy(T fn)
-        : ptr_(reinterpret_cast<void*>(fn))
+        : ptr_(reinterpret_cast<void *>(fn))
     {
         static_assert(sizeof(Sample) == sizeof(T));
     }
@@ -136,7 +113,7 @@ class fn_sample_lazy
         return sample_;
     }
 
-    void* ptr() const
+    void *ptr() const
     {
         return ptr_;
     }
@@ -168,7 +145,7 @@ struct hook_callback_proxy_member;
         {                                                                                                        \
             return Data::get_callback()(                                                                         \
                 original_proxy(this, Data::originalMethod), /**/                                                 \
-                reinterpret_cast<C*>(this),                                                                      \
+                reinterpret_cast<C *>(this),                                                                     \
                 std::forward<Args>(args)...);                                                                    \
         }                                                                                                        \
     };
@@ -180,7 +157,7 @@ struct hook_callback_proxy;
     template <class Data, typename Ret, typename... Args>                      \
     struct hook_callback_proxy<Data, _x86_call::_CALL_##_, Ret, Args...> final \
     {                                                                          \
-        using function_type = Ret(__##_CALL_*)(Args...);                       \
+        using function_type = Ret(__##_CALL_ *)(Args...);                      \
         static Ret __##_CALL_ proxy(Args... args) noexcept                     \
         {                                                                      \
             return Data::get_callback()(                                       \
@@ -208,12 +185,12 @@ class hook_proxy_data
     inline static uint8_t callback_[sizeof(Callback)];
 
   public:
-    static Callback& get_callback()
+    static Callback &get_callback()
     {
-        return reinterpret_cast<Callback&>(callback_);
+        return reinterpret_cast<Callback &>(callback_);
     }
 
-    inline static void* originalMethod;
+    inline static void *originalMethod;
 };
 
 template <typename Callback, _x86_call Call, typename Ret, class C, typename... Args>
@@ -226,11 +203,11 @@ class hook_callback final
         hook_callback_proxy_member<proxy_data, Call, Ret, C, Args...>>;
 
     inline static proxy_type proxy_;
-    inline static uint8_t    hook_[sizeof(hook)];
+    inline static uint8_t hook_[sizeof(hook)];
 
-    hook& get_hook()
+    hook &get_hook()
     {
-        return reinterpret_cast<hook&>(hook_);
+        return reinterpret_cast<hook &>(hook_);
     }
 
     bool moved_ = false;
@@ -248,7 +225,7 @@ class hook_callback final
         }
     }
 
-    template <typename Fn = void*>
+    template <typename Fn = void *>
     hook_callback(std::string_view name, Fn target, Callback callback)
     {
         std::construct_at(&proxy_data::get_callback(), std::move(callback));
@@ -258,15 +235,15 @@ class hook_callback final
         proxy_data::originalMethod = get_hook().get_original_method();
     }
 
-    hook_callback(hook_callback const& other)            = delete;
-    hook_callback& operator=(hook_callback const& other) = delete;
+    hook_callback(hook_callback const &other)            = delete;
+    hook_callback &operator=(hook_callback const &other) = delete;
 
-    hook_callback(hook_callback&& other) noexcept
+    hook_callback(hook_callback &&other) noexcept
     {
         other.moved_ = true;
     }
 
-    hook_callback& operator=(hook_callback&& other) noexcept
+    hook_callback &operator=(hook_callback &&other) noexcept
     {
         other.moved_ = true;
         return *this;
@@ -288,9 +265,9 @@ class hook_callback final
     hook_callback(std::string_view, Ret (__##_CALL_ C::*)(Args...), Callback) \
         -> hook_callback<Callback, _x86_call::_CALL_##_, Ret, C, Args...>;
 
-#define HOOK_CALLBACK_STATIC(_CALL_)                                     \
-    template <typename Callback, typename Ret, typename... Args>         \
-    hook_callback(std::string_view, Ret(__##_CALL_*)(Args...), Callback) \
+#define HOOK_CALLBACK_STATIC(_CALL_)                                      \
+    template <typename Callback, typename Ret, typename... Args>          \
+    hook_callback(std::string_view, Ret(__##_CALL_ *)(Args...), Callback) \
         -> hook_callback<Callback, _x86_call::_CALL_##_, Ret, void, Args...>;
 
 #define HOOK_CALLBACK_ANY(_CALL_) \

@@ -14,16 +14,16 @@ namespace fd
 class imgui_backup
 {
     ImGuiMemAllocFunc allocator_;
-    ImGuiMemFreeFunc  deleter_;
-    void*             userData_;
-    ImGuiContext*     context_;
+    ImGuiMemFreeFunc deleter_;
+    void *userData_;
+    ImGuiContext *context_;
 
   public:
     ~imgui_backup();
     imgui_backup();
 
-    imgui_backup(imgui_backup const&)            = delete;
-    imgui_backup& operator=(imgui_backup const&) = delete;
+    imgui_backup(imgui_backup const &)            = delete;
+    imgui_backup &operator=(imgui_backup const &) = delete;
 };
 
 class _gui_context : public basic_gui_context
@@ -32,23 +32,22 @@ class _gui_context : public basic_gui_context
     imgui_backup backup_;
 #endif
     ImGuiContext context_;
-    ImFontAtlas  fontAtlas_;
+    ImFontAtlas fontAtlas_;
 
-    bool valid_;
     bool attached_;
 
   public:
     struct init_data
     {
-        bool              storeSettings;
-        IDirect3DDevice9* backend;
-        HWND              window;
+        bool storeSettings;
+        IDirect3DDevice9 *backend;
+        HWND window;
     };
 
     ~_gui_context() override;
-    _gui_context(init_data initData);
+    _gui_context();
 
-    explicit operator bool() const;
+    bool init(init_data data);
 
     // mark whe rendered unavaiable
     void detach();
@@ -56,11 +55,11 @@ class _gui_context : public basic_gui_context
     void release_textures() override;
 
   private:
-    keys_return process_keys(void* data) override;
+    keys_return process_keys(void *data) override;
 
   protected:
     bool begin_frame();
-    void end_frame(IDirect3DDevice9* thisPtr);
+    void end_frame(IDirect3DDevice9 *thisPtr);
 
   public:
     keys_return process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
@@ -89,20 +88,19 @@ class gui_context final : public _gui_context
     Callback callback_;
 
   public:
-    gui_context(init_data initData, Callback callback)
-        : _gui_context(initData)
-        , callback_(std::move(callback))
+    gui_context(Callback callback)
+        : callback_(std::move(callback))
     {
     }
 
   private:
-    void render(void* data) override
+    void render(void *data) override
     {
-        render(static_cast<IDirect3DDevice9*>(data));
+        render(static_cast<IDirect3DDevice9 *>(data));
     }
 
   public:
-    void render(IDirect3DDevice9* thisPtr)
+    void render(IDirect3DDevice9 *thisPtr)
     {
         if (begin_frame())
         {

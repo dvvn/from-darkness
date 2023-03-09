@@ -1,18 +1,19 @@
+#include <fd/utils/functional.h>
 #include <fd/valve/base_entity.h>
 
 #if __has_include("C_BaseEntity_generated_cpp")
 #include "C_BaseEntity_generated_cpp"
 #endif
 
-using namespace fd;
-using namespace valve;
-
-data_map* base_entity::GetDataDescMap()
+namespace fd::valve
 {
-    return 0;//invoke(&base_entity::GetDataDescMap, 15, this);
+data_map *base_entity::GetDataDescMap()
+{
+    return vfunc<data_map *>(this, 15);
 }
 
-data_map* base_entity::GetPredictionDescMap()
+data_map *base_entity::GetPredictionDescMap()
 {
-    return 0;//invoke(&base_entity::GetPredictionDescMap, 17, this);
+    return vfunc<data_map *>(this, 17);
+}
 }

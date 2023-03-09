@@ -6,7 +6,7 @@ ReferenceAlignment: Pointer
 AlignConsecutiveAssignments: AcrossComments #Consecutive
 AlignConsecutiveMacros: AcrossComments
 AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
-AlignConsecutiveDeclarations: AcrossComments
+#AlignConsecutiveDeclarations: AcrossComments
 BreakAfterAttributes: Always
 RequiresExpressionIndentation: OuterScope
 Cpp11BracedListStyle: false

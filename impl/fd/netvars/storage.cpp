@@ -44,9 +44,9 @@ struct fmt::formatter<boost::filesystem::path, wchar_t> : formatter<wstring_view
 };
 
 template <>
-struct fmt::formatter<fd::netvars_log, wchar_t> : formatter<boost::filesystem::path, wchar_t>
+struct fmt::formatter<fd::netvar_log, wchar_t> : formatter<boost::filesystem::path, wchar_t>
 {
-    auto format(fd::netvars_log const& l, wformat_context& ctx) const
+    auto format(fd::netvar_log const& l, wformat_context& ctx) const
     {
         return formatter<boost::filesystem::path, wchar_t>::format(l.make_path(), ctx);
     }
@@ -409,18 +409,18 @@ static void _parse(valve::data_map* map, netvar_tables_ordered& storage)
         if (map->data.empty())
             continue;
 
-        std::string className;
+        std::string class_name;
 #ifdef FD_NETVARS_DT_MERGE
-        className = _correct_class_name(map->name);
+        class_name = _correct_class_name(map->name);
 #else
         auto nameBegin = static_cast<char const*>(memchr(map->name, '_', std::numeric_limits<size_t>::max()));
         write_std::string(className, "DT_", nameBegin);
         _correct_recv_name(className);
 #endif
-        auto table      = storage.find(className);
-        auto tableAdded = table == nullptr;
-        if (!tableAdded)
-            table = &storage.emplace_back(std::move(className));
+        auto table      = storage.find(class_name);
+        auto tableFound = table != nullptr;
+        if (!tableFound)
+            table = &storage.emplace_back(std::move(class_name));
         else
             storage.request_sort(table);
 
@@ -437,7 +437,7 @@ static void _parse(valve::data_map* map, netvar_tables_ordered& storage)
                 if (_can_skip_netvar(desc.name))
                     continue;
                 std::string_view name = (desc.name);
-                if (!tableAdded && table->find(name)) // todo: check & correct type
+                if (tableFound && table->find(name)) // todo: check & correct type
                     continue;
                 // fieldOffset[TD_OFFSET_NORMAL], array replaced with two varaibles
                 table->emplace_back(static_cast<size_t>(desc.offset), &desc, name);
@@ -482,7 +482,7 @@ static void _fill(auto& buff, netvar_tables& tables)
         buff.fill(t);
 }
 
-void netvars_storage::log_netvars(netvars_log& log)
+void netvars_storage::log_netvars(netvar_log& log)
 {
     data_.sort();
     _fill(log, data_);
@@ -490,7 +490,7 @@ void netvars_storage::log_netvars(netvars_log& log)
     spdlog::info(L"[NETVARS] log will be written to {}", log);
 }
 
-void netvars_storage::generate_classes(netvars_classes& data)
+void netvars_storage::generate_classes(netvar_classes& data)
 {
     data_.sort();
 

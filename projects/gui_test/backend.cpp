@@ -9,28 +9,26 @@
 
 namespace fd
 {
-static DECLSPEC_NOINLINE LRESULT WINAPI _wnd_proc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lParam)
+static DECLSPEC_NOINLINE LRESULT WINAPI wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
     switch (msg) // NOLINT(hicpp-multiway-paths-covered)
     {
-    case WM_CREATE:
-    {
-        auto lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
+    case WM_CREATE: {
+        auto lpcs = reinterpret_cast<LPCREATESTRUCT>(lparam);
         auto d3d  = reinterpret_cast<LONG>(lpcs->lpCreateParams);
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, d3d);
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, d3d);
         break;
     }
-    case WM_SIZE:
-    {
+    case WM_SIZE: {
         if (wparam == SIZE_MINIMIZED)
             break;
 
-        auto& d3d = *reinterpret_cast<d3d_device9*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+        auto &d3d = *reinterpret_cast<d3d_device9 *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
         if (!d3d)
             break;
 
 #ifdef RESET_BACK_BUFFER_ON_RESIZE
-        if (!d3d.resize(LOWORD(lParam), HIWORD(lParam)))
+        if (!d3d.resize(LOWORD(lparam), HIWORD(lparam)))
             break;
         d3d.reset();
 #else
@@ -38,24 +36,22 @@ static DECLSPEC_NOINLINE LRESULT WINAPI _wnd_proc(HWND hWnd, UINT msg, WPARAM wp
 #endif
         return FALSE;
     }
-    case WM_SYSCOMMAND:
-    {
+    case WM_SYSCOMMAND: {
         if ((wparam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
             return FALSE;
         break;
     }
-    case WM_DESTROY:
-    {
+    case WM_DESTROY: {
         PostQuitMessage(0);
         return FALSE;
     }
     }
-    return ::DefWindowProc(hWnd, msg, wparam, lParam);
+    return ::DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
 d3d_device9::d3d_device9() = default;
 
-bool d3d_device9::attach(HWND hWnd)
+bool d3d_device9::attach(HWND hwnd)
 {
     auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
     if (!d3d)
@@ -76,30 +72,34 @@ bool d3d_device9::attach(HWND hWnd)
     params_.BackBufferHeight = height;
     params_.BackBufferWidth  = width;
 #endif
-    params_.Windowed   = TRUE;
-    params_.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    params_.BackBufferFormat =
-        D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+    params_.Windowed               = TRUE;
+    params_.SwapEffect             = D3DSWAPEFFECT_DISCARD;
+    // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+    params_.BackBufferFormat       = D3DFMT_UNKNOWN;
     params_.EnableAutoDepthStencil = TRUE;
     params_.AutoDepthStencilFormat = D3DFMT_D16;
-    params_.PresentationInterval   = D3DPRESENT_INTERVAL_ONE; // Present with vsync
-    // params_.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled
-    // framerate
+    // Present with vsync
+    params_.PresentationInterval   = D3DPRESENT_INTERVAL_ONE;
+    // Present without vsync, maximum unthrottled framerate
+    // params_.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
     return SUCCEEDED(d3d->CreateDevice(
-        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_));
+        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_));
 }
 
 bool d3d_device9::resize(UINT w, UINT h)
 {
-    auto& wOld = params_.BackBufferWidth;
-    auto& hOld = params_.BackBufferHeight;
-    if (wOld != w || hOld != h)
+    auto ret = false;
+    if (auto &w_old = params_.BackBufferWidth; w_old != w)
     {
-        wOld = w;
-        hOld = h;
-        return true;
+        ret   = true;
+        w_old = w;
     }
-    return false;
+    if (auto &h_old = params_.BackBufferHeight; h_old != h)
+    {
+        h_old = h;
+        ret   = true;
+    }
+    return ret;
 }
 
 void d3d_device9::reset()
@@ -108,17 +108,17 @@ void d3d_device9::reset()
     assert(hr != D3DERR_INVALIDCALL);
 }
 
-d3d_device9::operator IDirect3DDevice9*() const
+d3d_device9::operator IDirect3DDevice9 *() const
 {
     return device_;
 }
 
-IDirect3DDevice9* d3d_device9::get() const
+IDirect3DDevice9 *d3d_device9::get() const
 {
     return device_;
 }
 
-IDirect3DDevice9* d3d_device9::operator->() const
+IDirect3DDevice9 *d3d_device9::operator->() const
 {
     return device_;
 }
@@ -131,10 +131,10 @@ backend_data::~backend_data()
 
 backend_data::backend_data()
 {
-    constexpr auto name   = _T("GUI TEST");
-    auto           handle = GetModuleHandle(nullptr);
-    info                  = {
-        sizeof(WNDCLASSEX), CS_CLASSDC, _wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr
+    constexpr auto name = _T("GUI TEST");
+    auto handle         = GetModuleHandle(nullptr);
+    info                = {
+        sizeof(WNDCLASSEX), CS_CLASSDC, wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr
     };
     ::RegisterClassEx(&info);
     hwnd = ::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, handle, &d3d);
@@ -146,7 +146,7 @@ backend_data::backend_data()
     UpdateWindow(hwnd);
 }
 
-void backend_data::run()
+bool backend_data::run()
 {
     assert(d3d != nullptr);
 
@@ -158,7 +158,7 @@ void backend_data::run()
             TranslateMessage(&msg);
             ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
-                return;
+                return true;
         }
 
         d3d->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);

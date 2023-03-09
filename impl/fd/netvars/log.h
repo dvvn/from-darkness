@@ -9,13 +9,13 @@
 
 namespace fd
 {
-class netvars_log final
+class netvar_log final
 {
     std::vector<char> buff_;
 
   public:
-    ~netvars_log();
-    netvars_log();
+    ~netvar_log();
+    netvar_log();
 
     boost::filesystem::path dir;
 

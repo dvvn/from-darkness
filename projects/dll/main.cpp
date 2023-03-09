@@ -19,102 +19,29 @@
 #include <d3d9.h>
 #include <windows.h>
 
-#include <iostream>
-
 static HMODULE _ModuleHandle;
 
 static HANDLE _ThreadHandle;
-static DWORD  _ThreadId = 0;
-
-#if 0
-static void _exit_fail()
-{
-    // TerminateThread(_ThreadHandle, EXIT_FAILURE);
-    // FreeLibrary(ModuleHandle);
-    FreeLibraryAndExitThread(_ModuleHandle, EXIT_FAILURE);
-}
-
-static void _exit_success()
-{
-    FreeLibraryAndExitThread(_ModuleHandle, EXIT_SUCCESS);
-}
-#endif
+static DWORD _ThreadId = 0;
 
 namespace fd
 {
-
-#if 0
-template <size_t S>
-struct system_library_name
-{
-    wchar_t buffer[S + 4];
-
-    consteval system_library_name(const char* name)
-        : buffer()
-    {
-        auto libNameSize = _size(buffer) - 4;
-        for (size_t i = 0; i != libNameSize; ++i)
-            buffer[i] = to_lower(name[i]);
-        _copy(".dll", 4, buffer + libNameSize);
-    }
-
-    auto begin() const
-    {
-        return buffer;
-    }
-
-    auto end() const
-    {
-        return buffer + _size(buffer);
-    }
-
-    operator wstring_view() const
-    {
-        return { begin(), end() };
-    }
-};
-
-template <size_t S>
-system_library_name(const char (&name)[S]) -> system_library_name<S - 1>;
-
-#define CSGO_LIB(_NAME_) csgo_library_info_ex _NAME_ = this->wait(system_library_name(#_NAME_ ".dll"))
-
-struct csgo_libs_storage : library_info_cache
-{
-    CSGO_LIB(server);
-    CSGO_LIB(client);
-    CSGO_LIB(engine);
-    CSGO_LIB(dataCache);
-    CSGO_LIB(materialSystem);
-    CSGO_LIB(vstdlib);
-    CSGO_LIB(vgui2);
-    CSGO_LIB(vguiMatSurface);
-    CSGO_LIB(vphysics);
-    CSGO_LIB(inputSystem);
-    CSGO_LIB(studioRender);
-    CSGO_LIB(shaderApiDx9);
-    CSGO_LIB(serverBrowser);
-};
-
-#undef CSGO_LIB
-#endif
-
 class csgo_library_info_ex : public csgo_library_info
 {
-    void* createInterfaceFn_;
+    void *create_interface_fn_;
 
     using csgo_library_info::find_interface;
 
   public:
     csgo_library_info_ex(library_info info)
         : csgo_library_info(info)
-        , createInterfaceFn_(info.find_export("CreateInterface"))
+        , create_interface_fn_(info.find_export("CreateInterface"))
     {
     }
 
     auto find_interface(std::string_view name) const
     {
-        return this->find_interface(createInterfaceFn_, name);
+        return this->find_interface(create_interface_fn_, name);
     }
 };
 
@@ -126,24 +53,6 @@ static void _init_netvars()
 {
     if constexpr (have_init_fn<T>)
         T::init();
-}
-
-static auto _get_product_version_string(valve::engine_client* engine)
-{
-    auto nativeStr = std::string_view(engine->GetProductVersionString());
-
-    std::wstring buff;
-    buff.reserve(nativeStr.size());
-    for (auto c : nativeStr)
-        buff += c == '.' ? '_' : c;
-    return buff;
-}
-
-static netvars_storage* _NetvarsStorage;
-
-size_t get_netvar_offset(std::string_view table, std::string_view name)
-{
-    return _NetvarsStorage->get_offset(table, name);
 }
 
 static void _unload()
@@ -158,16 +67,96 @@ static void _pause()
         abort(); // WARNING!!!
 }
 
-static DWORD WINAPI _context(void*) noexcept
+struct csgo_dlls
 {
-    DWORD              exitCode   = EXIT_FAILURE;
-    invoke_on_destruct freeHelper = [&]
+    csgo_library_info shader_api = find_library(L"shaderapidx9.dll");
+    csgo_library_info_ex client  = find_library(L"client.dll");
+    csgo_library_info_ex engine  = find_library(L"engine.dll");
+    csgo_library_info_ex vgui    = find_library(L"vguimatsurface.dll");
+};
+
+class csgo_interfaces
+{
+    csgo_dlls const *lib_;
+
+  public:
+    csgo_interfaces(csgo_dlls const &libs)
+        : lib_(&libs)
     {
-        FreeLibraryAndExitThread(_ModuleHandle, exitCode);
+    }
+
+    IDirect3DDevice9 *&d3d            = *(lib_->shader_api.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
+    valve::base_client *client        = lib_->client.find_interface("VClient");
+    valve::engine_client *engine      = lib_->engine.find_interface("VEngineClient");
+    valve::gui::surface *vgui_surface = lib_->vgui.find_interface("VGUI_Surface");
+};
+
+static netvars_storage *g_netvars;
+
+size_t get_netvar_offset(std::string_view table, std::string_view name)
+{
+    return g_netvars->get_offset(table, name);
+}
+
+class netvars_data
+{
+    netvars_storage storage_;
+
+#ifdef _DEBUG
+    netvar_classes classes_;
+    netvar_log log_;
+#endif
+  public:
+    netvars_data()
+    {
+        g_netvars = &storage_;
+    }
+
+    void update(valve::client_class *cl_class)
+    {
+        storage_.iterate_client_class(cl_class);
+    }
+
+    void update(valve::data_map *map)
+    {
+        storage_.iterate_datamap(map);
+    }
+
+    void debug_update(valve::engine_client *engine)
+    {
+#ifdef _DEBUG
+#ifdef FD_WORK_DIR
+        classes_.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars_generated").make_preferred();
+#endif
+        storage_.generate_classes(classes_);
+
+        std::string_view native_str = (engine->GetProductVersionString());
+        std::wstring buff;
+        buff.reserve(native_str.size());
+        for (auto c : native_str)
+            buff += c == '.' ? '_' : c;
+#ifdef FD_ROOT_DIR
+        log_.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).append(".dumps/netvars").make_preferred();
+#endif
+        log_.file.name      = std::move(buff);
+        log_.file.extension = L".json";
+        log_.indent         = 4;
+        log_.filler         = ' ';
+
+        storage_.log_netvars(log_);
+#endif
+    }
+};
+
+static DWORD WINAPI _context(void *) noexcept
+{
+    DWORD exit_code                = EXIT_FAILURE;
+    invoke_on_destruct exit_helper = [&] {
+        FreeLibraryAndExitThread(_ModuleHandle, exit_code);
     };
 
 #ifdef _DEBUG
-    auto consoleHanlder = console_holder(
+    auto console = console_holder(
         L"from-darkness debug console. " BOOST_STRINGIZE(__DATE__) " " BOOST_STRINGIZE(__TIME__));
 #endif
 
@@ -177,149 +166,105 @@ static DWORD WINAPI _context(void*) noexcept
     spdlog::set_level(spdlog::level::warning);
 #endif
 
+    while (!find_library(L"serverbrowser.dll"))
+        Sleep(1000);
+
     set_current_library(_ModuleHandle);
-    library_info_cache libs;
 
-    csgo_library_info_ex  shaderApiLib = libs.get(L"shaderapidx9.dll");
-    IDirect3DDevice9*&    d3dIfc       = *(shaderApiLib.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
-    csgo_library_info_ex  clientLib    = libs.get(L"client.dll");
-    valve::base_client*   gameClient   = clientLib.find_interface("VClient");
-    csgo_library_info_ex  engineLib    = libs.get(L"engine.dll");
-    valve::engine_client* gameEngine   = engineLib.find_interface("VEngineClient");
-    valve::cs_player*&    localPlayer  = *(clientLib.find_signature("A1 ? ? ? ? 89 45 BC 85 C0") + 1);
-
+    csgo_dlls lib;
     // addToSafeList
-    clientLib.find_signature("56 8B 71 3C B8").as_fn<void(__fastcall*)(HMODULE, void*)>(_ModuleHandle, nullptr);
+    lib.client.find_signature("56 8B 71 3C B8").as_fn<void(__fastcall *)(HMODULE, void *)>(_ModuleHandle, nullptr);
+    auto ifc = csgo_interfaces(lib);
 
-    netvars_storage netvarsStorage;
-    _NetvarsStorage = &netvarsStorage;
+    valve::cs_player *&local_player = *(lib.client.find_signature("A1 ? ? ? ? 89 45 BC 85 C0") + 1);
 
-    netvarsStorage.iterate_client_class(gameClient->GetAllClasses());
-#if 0 // WIP
-    if (localPlayer)
+    netvars_data netvars;
+    netvars.update(ifc.client->GetAllClasses());
+    if (local_player)
     {
-        netvarsStorage.iterate_datamap(localPlayer->GetDataDescMap());
-        netvarsStorage.iterate_datamap(localPlayer->GetPredictionDescMap());
+        netvars.update(local_player->GetDataDescMap());
+        netvars.update(local_player->GetPredictionDescMap());
     }
     else
     {
-        valve::cs_player* vtable = clientLib.find_vtable("C_CSPlayer");
-        netvarsStorage.iterate_datamap(vtable->GetDataDescMap());
-        netvarsStorage.iterate_datamap(vtable->GetPredictionDescMap());
+        valve::cs_player *vtable = lib.client.find_vtable("C_CSPlayer");
+        netvars.update(vtable->GetDataDescMap());
+        netvars.update(vtable->GetPredictionDescMap());
     }
-#endif
-
-#ifdef _DEBUG
-    netvars_classes lazyNetvarClasses;
-#ifdef FD_WORK_DIR
-    lazyNetvarClasses.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars_generated").make_preferred();
-#else
-#error "provide directory for netvars_classes"
-#endif
-    netvarsStorage.generate_classes(lazyNetvarClasses);
-    netvars_log lazyNetvarLog;
-#ifdef FD_ROOT_DIR
-    lazyNetvarLog.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).append(".dumps/netvars").make_preferred();
-#else
-#error "provide directory for netvars_log"
-#endif
-    lazyNetvarLog.file.name      = _get_product_version_string(gameEngine);
-    lazyNetvarLog.file.extension = L".json";
-    lazyNetvarLog.indent         = 4;
-    lazyNetvarLog.filler         = ' ';
-    netvarsStorage.log_netvars(lazyNetvarLog);
-#endif
+    netvars.debug_update(ifc.engine);
 
     _init_netvars<valve::cs_player>();
-    netvarsStorage.clear();
 
-    auto hackMenu = menu(tab_bar(
-        tab("tab",
-            []
-            {
-                ImGui::TextUnformatted("test");
-                if (ImGui::Button("Unload"))
-                    _unload();
-            })));
+    auto hack_menu = menu(tab_bar(tab("tab", [] {
+        ImGui::TextUnformatted("test");
+        if (ImGui::Button("Unload"))
+            _unload();
+    })));
 
-    while (!d3dIfc)
-        Sleep(10);
-    D3DDEVICE_CREATION_PARAMETERS d3dParams;
-    if (FAILED(d3dIfc->GetCreationParameters(&d3dParams)))
+    D3DDEVICE_CREATION_PARAMETERS d3d_params;
+    if (FAILED(ifc.d3d->GetCreationParameters(&d3d_params)))
         abort(); // WARNING!!!
 
-    gui_context guiCtx(
-        { false, d3dIfc, d3dParams.hFocusWindow },
-        [&]
-        {
-            [[maybe_unused]] auto visible = hackMenu.render();
+    auto gui_ctx = gui_context([&] {
+        [[maybe_unused]] auto visible = hack_menu.render();
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-            if (visible)
-                ImGui::ShowDemoWindow();
+        if (visible)
+            ImGui::ShowDemoWindow();
 #endif
-        });
-    if (!guiCtx)
+    });
+    if (!gui_ctx.init({ false, ifc.d3d, d3d_params.hFocusWindow }))
         return FALSE;
-    invoke_on_destruct guiCtxProtector = [&]
-    {
-        if (!d3dIfc)
-            guiCtx.detach();
+    invoke_on_destruct gui_ctx_protector = [&] {
+        if (!ifc.d3d)
+            gui_ctx.detach();
     };
 
-    csgo_library_info_ex vguiLib = libs.get(L"vguimatsurface.dll");
-
-    valve::gui::surface* vguiSurface = vguiLib.find_interface("VGUI_Surface");
-
-    auto allHooks = hooks_storage(
+    auto all_hooks = hooks_storage(
         hook_callback_args(
             "WinAPI.WndProc",
-            fn_sample<WNDPROC>(GetWindowLongPtrW(d3dParams.hFocusWindow, GWLP_WNDPROC)),
-            [&](auto orig, HWND currHwnd, auto... args) -> LRESULT
-            {
-                assert(currHwnd == d3dParams.hFocusWindow);
+            fn_sample<WNDPROC>(GetWindowLongPtrW(d3d_params.hFocusWindow, GWLP_WNDPROC)),
+            [&](auto orig, HWND hwnd, auto... args) -> LRESULT {
+                assert(hwnd == d3d_params.hFocusWindow);
                 using keys_return = basic_gui_context::keys_return;
-                switch (guiCtx.process_keys(currHwnd, args...))
+                switch (gui_ctx.process_keys(hwnd, args...))
                 {
                 case keys_return::instant:
                     return TRUE;
                 case keys_return::native:
-                    return orig(currHwnd, args...);
+                    return orig(hwnd, args...);
                 case keys_return::def:
-                    return DefWindowProcW(currHwnd, args...);
+                    return DefWindowProcW(hwnd, args...);
                 default:
                     std::unreachable();
                 }
             }),
         hook_callback_args(
             "IDirect3DDevice9::Reset",
-            fn_sample(&IDirect3DDevice9::Reset, vfunc(d3dIfc, 16)),
-            [&](auto orig, auto, auto... args)
-            {
-                guiCtx.release_textures();
+            fn_sample(&IDirect3DDevice9::Reset, vfunc(ifc.d3d, 16)),
+            [&](auto orig, auto, auto... args) {
+                gui_ctx.release_textures();
                 return orig(args...);
             }),
         hook_callback_args(
             "IDirect3DDevice9::Present",
-            fn_sample(&IDirect3DDevice9::Present, vfunc(d3dIfc, 17)),
-            [&](auto orig, auto thisPtr, auto... args)
-            {
-                guiCtx.render(thisPtr);
+            fn_sample(&IDirect3DDevice9::Present, vfunc(ifc.d3d, 17)),
+            [&](auto orig, auto this_ptr, auto... args) {
+                gui_ctx.render(this_ptr);
                 return orig(args...);
             }),
         hook_callback_args(
             "VGUI.ISurface::LockCursor",
-            fn_sample(&valve::gui::surface::LockCursor, vfunc(vguiSurface, 67)),
-            [&](auto orig, auto thisPtr)
-            {
-                if (hackMenu.visible() && !thisPtr->IsCursorVisible())
+            fn_sample(&valve::gui::surface::LockCursor, vfunc(ifc.vgui_surface, 67)),
+            [&](auto orig, auto this_ptr) {
+                if (hack_menu.visible() && !this_ptr->IsCursorVisible())
                 {
-                    thisPtr->UnlockCursor();
+                    this_ptr->UnlockCursor();
                     return;
                 }
                 orig();
             }));
 
-    if (!allHooks.enable())
+    if (!all_hooks.enable())
         return FALSE;
 
 #if 0
@@ -329,12 +274,12 @@ static DWORD WINAPI _context(void*) noexcept
 
     _pause();
 
-    if (!allHooks.disable())
+    if (!all_hooks.disable())
         return FALSE;
 
     Sleep(100);
 
-    exitCode = EXIT_SUCCESS;
+    exit_code = EXIT_SUCCESS;
     return TRUE;
 }
 } // namespace fd
@@ -344,8 +289,7 @@ BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID /*reserved*/)
 {
     switch (reason)
     {
-    case DLL_PROCESS_ATTACH:
-    {
+    case DLL_PROCESS_ATTACH: {
         if (!DisableThreadLibraryCalls(moduleHandle))
             return FALSE;
         _ModuleHandle = moduleHandle;
@@ -354,8 +298,7 @@ BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID /*reserved*/)
             return FALSE;
         break;
     }
-    case DLL_PROCESS_DETACH:
-    {
+    case DLL_PROCESS_DETACH: {
         // if (_ThreadId && WaitForSingleObject(_ThreadHandle, INFINITE) == WAIT_FAILED)
         //     return FALSE;
         break;

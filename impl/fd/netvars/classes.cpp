@@ -2,11 +2,71 @@
 #include <fd/utils/file.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/static_string.hpp>
 
 #include <fmt/format.h>
 
+#include <algorithm>
 #include <span>
+
+// template <size_t S>
+// struct fmt::formatter<fmt::basic_memory_buffer<char, S>> : formatter<string_view>
+//{
+//     auto format(basic_memory_buffer<char, S> const &buff, format_context &ctx) const
+//     {
+//         return formatter<string_view>::format(string_view(buff.data(), buff.size()), ctx);
+//     }
+// };
+
+namespace fd
+{
+netvar_classes::~netvar_classes()
+{
+    if (dir.empty())
+        return;
+
+    if (create_directories(dir) || is_empty(dir))
+    {
+        for (auto &f : files_)
+            write_file((dir / f.name).native(), f.data);
+    }
+    else
+    {
+        for (auto &f : files_)
+            write_file((dir / f.name).native(), f.data, false);
+    }
+}
+
+netvar_classes::netvar_classes() = default;
+
+struct generate_info
+{
+    netvar_type_merged_includes<std::string_view> include;
+    std::string_view name;
+    std::string type_out;
+    std::string type_cast;
+
+    generate_info(netvar_info &info)
+    {
+        auto type_raw = info.type();
+        assert(!type_raw.empty());
+
+        auto is_pointer   = type_raw.ends_with('*');
+        auto type_decayed = is_pointer ? type_raw.substr(0, type_raw.size() - 1) : type_raw;
+
+        type_out.append(type_decayed);
+        type_out.push_back(is_pointer ? '*' : '&');
+
+        if (is_pointer)
+            type_cast.push_back('*');
+        type_cast.append("reinterpret_cast<").append(type_decayed).append("*>");
+
+        name = info.name();
+
+        info.type_ex().write_includes(std::back_inserter(include));
+        /*std::stable_sort(include.begin(), include.end());
+        include.erase(std::unique(include.begin(), include.end()), include.end());*/
+    }
+};
 
 struct chars_buffer : std::vector<char>
 {
@@ -20,7 +80,7 @@ struct chars_buffer : std::vector<char>
     template <size_t S>
     void append_range(char const (&text)[S])
     {
-        append_range(std::span(text, S - 1));
+        append_range(std::initializer_list<char>(std::begin(text), std::end(text) - 1));
     }
 
 #if 0
@@ -52,189 +112,139 @@ struct chars_buffer : std::vector<char>
     }
 };
 
-template <size_t S>
-struct fmt::formatter<fmt::basic_memory_buffer<char, S>> : formatter<string_view>
+class filler
 {
-    auto format(basic_memory_buffer<char, S> const &buff, format_context &ctx) const
+    static constexpr auto &format_off_ = "// clang-format off\n"
+                                         "// ReSharper disable All\n\n";
+
+    static constexpr auto &cpp_includes_      = "#include <cassert>\n"
+                                                "#include <string_view>\n\n";
+    static constexpr auto &netvars_getter_fn_ = "size_t get_netvar_offset"
+                                                "(std::string_view table, std::string_view name);\n\n";
+
+    std::vector<generate_info> table_;
+    std::string_view class_name_;
+
+    chars_buffer buff_;
+    std::vector<file_info> *files_;
+
+    void store(std::string_view extension) const
     {
-        return formatter<string_view>::format(string_view(buff.data(), buff.size()), ctx);
+        auto name = std::wstring().append_range(class_name_).append_range(extension);
+        files_->emplace_back(std::move(name), std::move(buff_));
     }
-};
 
-namespace fd
-{
-netvars_classes::~netvars_classes()
-{
-    if (dir.empty())
-        return;
-
-    if (create_directories(dir) || is_empty(dir))
+  public:
+    filler(netvar_table &raw_table, std::vector<file_info> &files)
+        : table_(raw_table.begin(), raw_table.end())
+        , class_name_(raw_table.name())
+        , files_(&files)
     {
-        for (auto &f : files)
-            write_file((dir / f.name).native(), f.data);
     }
-    else
+
+    void source(std::string_view extension = "_cpp")
     {
-        for (auto &f : files)
-            write_file((dir / f.name).native(), f.data, false);
-    }
-}
+        std::string offsets_class;
+        offsets_class.append(class_name_).append("_offsets");
 
-netvars_classes::netvars_classes() = default;
+        buff_.append_range(format_off_);
+        buff_.append_range(cpp_includes_);
+        buff_.append_range(netvars_getter_fn_);
 
-struct generate_info
-{
-    netvar_type_merged_includes<std::string_view> include;
-    std::string_view                              name;
-    std::string                                   typeOut;
-    std::string                                   typeCast;
-
-    generate_info(netvar_info &info)
-    {
-        auto typeRaw = info.type();
-        assert(!typeRaw.empty());
-
-        auto isPointer   = typeRaw.ends_with('*');
-        auto typeDecayed = isPointer ? typeRaw.substr(0, typeRaw.size() - 1) : typeRaw;
-
-        typeOut.append(typeDecayed);
-        typeOut.push_back(isPointer ? '*' : '&');
-
-        if (isPointer)
-            typeCast.push_back('*');
-        typeCast.append("reinterpret_cast<").append(typeDecayed).append("*>");
-
-        name = info.name();
-
-        info.type_ex().write_includes(std::back_inserter(include));
-        /*std::stable_sort(include.begin(), include.end());
-        include.erase(std::unique(include.begin(), include.end()), include.end());*/
-    }
-};
-
-static constexpr auto &_FormatOff       = "// clang-format off\n"
-                                          "// ReSharper disable All\n\n";
-static constexpr auto &_CppIncludes     = "#include <cassert>\n"
-                                          "#include <string_view>\n\n";
-static constexpr auto &_NetvarsGetterFn = "size_t get_netvar_offset"
-                                          "(std::string_view table, std::string_view name);\n\n";
-
-static void _parse_source(chars_buffer &buff, std::string_view className, std::span<generate_info const> table)
-{
-    /*fmt::basic_memory_buffer<char, 32>*/ std::string offsetsClass;
-    offsetsClass.append(className);
-    offsetsClass.append("_offsets");
-
-    buff.append_range(_FormatOff);
-    buff.append_range(_CppIncludes);
-    buff.append_range(_NetvarsGetterFn);
-
-    buff.append_range("static struct\n{\n");
-    {
-        for (auto &i : table)
-            fmt::format_to(buff.out(), "\tsize_t {} = -1;\n", i.name);
-
-        buff.append_range("\n\tvoid init()\n\t{\n");
+        buff_.append_range("static struct\n{\n");
         {
-            for (auto &i : table)
+            for (auto &i : table_)
+                fmt::format_to(buff_.out(), "\tsize_t {} = -1;\n", i.name);
+
+            buff_.append_range("\n\tvoid init()\n\t{\n");
             {
-                fmt::format_to(
-                    buff.out(),
-                    "\t\tassert({name} == -1, \"already set!\";\n"
-                    "\t\t{name} = get_netvar_offset(\'{className}\', \'{name}\');\n",
-                    fmt::arg("name", i.name),
-                    fmt::arg("className", className));
+                for (auto &i : table_)
+                {
+                    fmt::format_to(
+                        buff_.out(),
+                        "\t\tassert({name} == -1, \"already set!\";\n"
+                        "\t\t{name} = get_netvar_offset(\'{class_name}\', \'{name}\');\n",
+                        fmt::arg("name", i.name),
+                        fmt::arg("class_name", class_name_));
+                }
             }
+            buff_.append_range("\t}\n");
         }
-        buff.append_range("\t}\n");
-    }
-    buff.push_back('}');
-    fmt::format_to(buff.out(), " {};\n\n", offsetsClass);
+        buff_.push_back('}');
+        fmt::format_to(buff_.out(), " {}_offsets;\n\n", class_name_);
 
-    for (auto &i : table)
+        for (auto &i : table_)
+        {
+            fmt::format_to(
+                buff_.out(),
+                "{typeOut} {class_name}::{name}()\n"
+                "{{\n"
+                "\tassert({offsetsClass}.{name} != -1, \"not set!\");\n"
+                "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + {offsetsClass}.{name};\n"
+                "\treturn {typeCast}(addr);\n"
+                "}}\n",
+                fmt::arg("typeOut", i.type_out),
+                fmt::arg("class_name", class_name_),
+                fmt::arg("name", i.name),
+                fmt::arg("offsetsClass", offsets_class),
+                fmt::arg("typeCast", i.type_cast));
+        }
+
+        store(extension);
+    }
+
+    void header(std::string_view extension = "_h")
     {
-        fmt::format_to(
-            buff.out(),
-            "{typeOut} {className}::{name}()\n"
-            "{{\n"
-            "\tassert({offsetsClass}.{name} != -1, \"not set!\");\n"
-            "\tconst auto addr = reinterpret_cast<uintptr_t>(this) + {offsetsClass}.{name};\n"
-            "\treturn {typeCast}(addr);\n"
-            "}}\n",
-            fmt::arg("typeOut", i.typeOut),
-            fmt::arg("className", className),
-            fmt::arg("name", i.name),
-            fmt::arg("offsetsClass", offsetsClass),
-            fmt::arg("typeCast", i.typeCast));
-    }
-}
+        buff_.append_range(format_off_);
+        for (auto &i : table_)
+        {
+            fmt::format_to(buff_.out(), "{} {}();\n", i.type_out, i.name);
+        }
 
-static void _parse_header(chars_buffer &buff, std::span<generate_info const> table)
-{
-    buff.append_range(_FormatOff);
-    for (auto &i : table)
+        store(extension);
+    }
+
+    void includes(std::string_view extension = "_inc")
     {
-        fmt::format_to(buff.out(), "{} {}():\n", i.typeOut, i.name);
+        std::vector<std::string_view> tmp;
+        for (auto &info : table_)
+            tmp.append_range(info.include);
+
+        auto start = tmp.begin();
+        auto end   = tmp.end();
+
+        std::stable_sort(start, end, std::greater());
+        end = std::unique(start, end);
+
+        if (start == end)
+            return;
+
+        do
+        {
+            buff_.append_range(*start);
+            buff_.emplace_back('\n');
+        }
+        while (++start != end);
+
+        store(extension);
     }
-}
+};
 
-static bool _parse_includes(chars_buffer &buff, std::span<generate_info const> table)
-{
-    std::vector<std::string_view> tmp;
-
-    constexpr auto maxBufferSize = 2; // netvar_type_merged_includes<int>().capacity();
-    tmp.reserve(table.size() * std::max<size_t>(1, maxBufferSize));
-    for (auto &info : table)
-        tmp.append_range(info.include);
-
-    auto start = tmp.begin();
-    auto end   = tmp.end();
-
-    std::stable_sort(start, end, std::greater());
-    end = std::unique(start, end);
-
-    if (start == end)
-        return false;
-
-    do
-    {
-        buff.append_range(*start);
-        buff.emplace_back('\n');
-    }
-    while (++start != end);
-
-    return true;
-}
-
-void netvars_classes::fill(netvar_table &rawTable)
+void netvar_classes::fill(netvar_table &table)
 {
     assert(!dir.empty());
 
 #ifdef GENERATE_STRUCT_MEMBERS
 #error "not implemented"
 #else
-
-    if (rawTable.empty())
+    if (table.empty())
         return;
 
-    std::vector<generate_info> table;
-    table.assign_range(rawTable);
+    auto f = filler(table, files_);
 
-    auto className = rawTable.name();
-
-    chars_buffer buff;
-
-    auto storeFile = [&](std::string_view extension) {
-        auto name = std::wstring().append_range(className).append_range(extension);
-        files.emplace_back(std::move(name), std::move(buff));
-    };
-
-    _parse_source(buff, className, table);
-    storeFile("_cpp");
-    _parse_header(buff, table);
-    storeFile("_h");
-    if (_parse_includes(buff, table))
-        storeFile("_inc");
+    f.source();
+    f.header();
+    f.includes();
 #endif
 }
 

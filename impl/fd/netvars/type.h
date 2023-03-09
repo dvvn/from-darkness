@@ -40,7 +40,7 @@ struct custom_netvar_type
     I include;
 
     template <typename Tt, typename Ii>
-    explicit constexpr custom_netvar_type(Tt&& t, Ii&& incl)
+    explicit constexpr custom_netvar_type(Tt &&t, Ii &&incl)
         : type(std::forward<Tt>(t))
         , include(std::forward<Ii>(incl))
     {
@@ -50,11 +50,11 @@ struct custom_netvar_type
 template <class T, class I>
 struct custom_netvar_type<T, netvar_type_merged_includes<I>>
 {
-    T                              type;
+    T type;
     netvar_type_merged_includes<I> include;
 
     template <typename Tt>
-    explicit custom_netvar_type(Tt&& t)
+    explicit custom_netvar_type(Tt &&t)
         : type(std::forward<Tt>(t))
     {
     }
@@ -74,15 +74,15 @@ struct netvar_type;
 
 struct netvar_type_array
 {
-    std::string                       type;
+    std::string type;
     static constexpr std::string_view include = "<array>";
 
     using data_type = std::unique_ptr<netvar_type>;
 
-    uint16_t  size;
+    uint16_t size;
     data_type inner;
 
-    explicit netvar_type_array(uint16_t size, netvar_type&& type);
+    explicit netvar_type_array(uint16_t size, netvar_type &&type);
 
     void fill(bool force = false);
 };
@@ -97,39 +97,39 @@ struct netvar_includes_writer
         std::unreachable();
     }
 
-    void operator()(native_netvar_type const&) const
+    void operator()(native_netvar_type const &) const
     {
     }
 
-    void operator()(platform_netvar_type const& val)
-    {
-        *it++ = val.include;
-    }
-
-    template <typename Type>
-    void operator()(custom_netvar_type<Type, std::string> const& val)
+    void operator()(platform_netvar_type const &val)
     {
         *it++ = val.include;
     }
 
     template <typename Type>
-    void operator()(custom_netvar_type<Type, std::string_view> const& val)
+    void operator()(custom_netvar_type<Type, std::string> const &val)
+    {
+        *it++ = val.include;
+    }
+
+    template <typename Type>
+    void operator()(custom_netvar_type<Type, std::string_view> const &val)
     {
         *it++ = val.include;
     }
 
     template <class Type, class Include>
-    void operator()(custom_netvar_type<Type, netvar_type_merged_includes<Include>> const& val)
+    void operator()(custom_netvar_type<Type, netvar_type_merged_includes<Include>> const &val)
     {
-        for (auto& inc : val.include)
+        for (auto &inc : val.include)
             *it++ = inc;
     }
 
-    void operator()(netvar_type_array const& arr);
+    void operator()(netvar_type_array const &arr);
 };
 
 template <class T>
-netvar_includes_writer(T&&) -> netvar_includes_writer<std::decay_t<T>>;
+netvar_includes_writer(T &&) -> netvar_includes_writer<std::decay_t<T>>;
 
 struct netvar_type final
 {
@@ -152,7 +152,7 @@ struct netvar_type final
     netvar_type() = default;
 
     template <typename T>
-    netvar_type(T&& obj) requires(std::constructible_from<data_type, T &&>)
+    netvar_type(T &&obj) requires(std::constructible_from<data_type, T &&>)
         : data(std::forward<T>(obj))
     {
     }
@@ -161,14 +161,14 @@ struct netvar_type final
     std::string_view get_type() const;
 
     template <class T>
-    void write_includes(T&& it) const
+    void write_includes(T &&it) const
     {
-        std::visit(netvar_includes_writer<T&&>(std::forward<T>(it)), data);
+        std::visit(netvar_includes_writer<T &&>(std::forward<T>(it)), data);
     }
 };
 
 template <class T>
-void netvar_includes_writer<T>::operator()(netvar_type_array const& arr)
+void netvar_includes_writer<T>::operator()(netvar_type_array const &arr)
 {
     *it++ = arr.include;
     std::visit(*this, arr.inner->data);

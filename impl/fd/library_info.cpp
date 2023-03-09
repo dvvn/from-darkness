@@ -61,7 +61,7 @@ class chars_mixer<ContextC, StrC, false>
 
     chars_mixer() = default;
 
-    chars_mixer(StrC const* ptr)
+    chars_mixer(StrC const *ptr)
         : cached_(ptr)
     {
     }
@@ -101,7 +101,7 @@ class chars_mixer<ContextC, StrC, false>
 template <typename ContextC, typename StrC>
 struct fmt::formatter<chars_mixer<ContextC, StrC>, ContextC> : formatter<basic_string_view<ContextC>, ContextC>
 {
-    auto format(chars_mixer<ContextC, StrC> const& mixer, auto& ctx) const
+    auto format(chars_mixer<ContextC, StrC> const &mixer, auto &ctx) const
     {
         return formatter<basic_string_view<ContextC>, ContextC>::format(mixer.native(), ctx);
     }
@@ -121,9 +121,9 @@ class valve_ifc_reg
     template <valve_ifc_reg_iterator_mode>
     friend class valve_ifc_reg_iterator;
 
-    void* (*createFn_)();
-    char const*    name_;
-    valve_ifc_reg* next_;
+    void *(*createFn_)();
+    char const *name_;
+    valve_ifc_reg *next_;
 
   public:
 #if 0
@@ -159,20 +159,20 @@ class valve_ifc_reg
     };
 #endif
 
-    valve_ifc_reg()                     = delete;
-    valve_ifc_reg(valve_ifc_reg const&) = delete;
+    valve_ifc_reg()                      = delete;
+    valve_ifc_reg(valve_ifc_reg const &) = delete;
 
-    void* operator()() const
+    void *operator()() const
     {
         return createFn_();
     }
 
-    char const* name() const
+    char const *name() const
     {
         return name_;
     }
 
-    valve_ifc_reg const* operator+(size_t offset) const
+    valve_ifc_reg const *operator+(size_t offset) const
     {
         switch (offset)
         {
@@ -207,20 +207,20 @@ class valve_ifc_reg_iterator
     using cmp_result = valve_ifc_reg_cmp_result;
     using cmp_type   = std::conditional_t<Mode == mode::normal, std::false_type, cmp_result>;
 
-    valve_ifc_reg*                 current_;
+    valve_ifc_reg *current_;
     [[no_unique_address]] cmp_type compared_;
 
     template <mode>
     friend class valve_ifc_reg_iterator;
 
-    valve_ifc_reg_iterator(valve_ifc_reg* ptr, cmp_type cmp)
+    valve_ifc_reg_iterator(valve_ifc_reg *ptr, cmp_type cmp)
         : current_(ptr)
         , compared_(cmp)
     {
     }
 
   public:
-    valve_ifc_reg_iterator(valve_ifc_reg_iterator const&) = default;
+    valve_ifc_reg_iterator(valve_ifc_reg_iterator const &) = default;
 
     template <mode M>
     valve_ifc_reg_iterator(valve_ifc_reg_iterator<M> other)
@@ -231,13 +231,13 @@ class valve_ifc_reg_iterator
             assert(compared_ != cmp_result::error);
     }
 
-    valve_ifc_reg_iterator(valve_ifc_reg* reg)
+    valve_ifc_reg_iterator(valve_ifc_reg *reg)
         : current_(reg)
         , compared_(cmp_result::unset)
     {
     }
 
-    valve_ifc_reg_iterator& operator++()
+    valve_ifc_reg_iterator &operator++()
     {
         current_ = current_->next_;
         return *this;
@@ -250,7 +250,7 @@ class valve_ifc_reg_iterator
         return tmp;
     }
 
-    valve_ifc_reg_iterator& operator*() requires(Mode != mode::normal)
+    valve_ifc_reg_iterator &operator*() requires(Mode != mode::normal)
     {
         return *this;
     }
@@ -260,12 +260,12 @@ class valve_ifc_reg_iterator
         compared_ = status;
     }
 
-    valve_ifc_reg const& operator*() const
+    valve_ifc_reg const &operator*() const
     {
         return *this->current_;
     }
 
-    valve_ifc_reg* operator->() const
+    valve_ifc_reg *operator->() const
     {
         return current_;
     }
@@ -301,10 +301,10 @@ struct std::iterator_traits<valve_ifc_reg_iterator<Mode>>
 };
 
 template <typename C>
-bool operator==(valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::compare>& it, std::basic_string_view<C> ifcName)
+bool operator==(valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::compare> &it, std::basic_string_view<C> ifcName)
 {
-    auto& curr     = *std::as_const(it);
-    auto  currName = std::string_view(curr.name());
+    auto &curr    = *std::as_const(it);
+    auto currName = std::string_view(curr.name());
 
     auto cmp = valve_ifc_reg_cmp_result::error;
     if (currName.starts_with(ifcName))
@@ -320,17 +320,15 @@ bool operator==(valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::compare>& it
 
 template <typename C>
 bool operator==(
-    valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::const_compare> const& it,
-    std::basic_string_view<C>                                                 ifcName)
+    valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::const_compare> const &it,
+    std::basic_string_view<C> ifcName)
 {
     switch (it.status())
     {
-    case valve_ifc_reg_cmp_result::full:
-    {
+    case valve_ifc_reg_cmp_result::full: {
         return it->name() == ifcName;
     }
-    case valve_ifc_reg_cmp_result::partial:
-    {
+    case valve_ifc_reg_cmp_result::partial: {
         auto currName = std::string_view(it->name());
         if (currName.size() <= ifcName.size())
             return false;
@@ -338,27 +336,26 @@ bool operator==(
             return false;
         return currName.starts_with(ifcName);
     }
-    default:
-    {
+    default: {
         assert(0 && "Wrong state");
         return false;
     }
     }
 }
 
-static valve_ifc_reg* _root_interface(void const* createInterfaceFn)
+static valve_ifc_reg *_root_interface(void const *createInterfaceFn)
 {
     auto relativeFn   = reinterpret_cast<uintptr_t>(createInterfaceFn) + 0x5;
-    auto displacement = *reinterpret_cast<int32_t*>(relativeFn);
+    auto displacement = *reinterpret_cast<int32_t *>(relativeFn);
     auto jmp          = relativeFn + sizeof(int32_t) + displacement;
 
-    return **reinterpret_cast<valve_ifc_reg***>(jmp + 0x6);
+    return **reinterpret_cast<valve_ifc_reg ***>(jmp + 0x6);
 }
 
 template <typename T>
 struct fmt::formatter<valve_ifc_reg, T> : formatter<basic_string_view<T>, T>
 {
-    auto format(valve_ifc_reg const& reg, auto& ctx) const
+    auto format(valve_ifc_reg const &reg, auto &ctx) const
     {
         auto tmp = chars_mixer<T, char>(reg.name());
         return formatter<basic_string_view<T>, T>::format(tmp.native(), ctx);
@@ -377,75 +374,75 @@ struct fmt::formatter<valve_ifc_reg, T> : formatter<basic_string_view<T>, T>
 
 struct dos_header : fd::hidden_ptr
 {
-    dos_header(IMAGE_DOS_HEADER const* dos)
+    dos_header(IMAGE_DOS_HEADER const *dos)
         : hidden_ptr(dos)
     {
     }
 
-    IMAGE_DOS_HEADER const* operator->() const
+    IMAGE_DOS_HEADER const *operator->() const
     {
         return *this;
     }
 
-    IMAGE_DOS_HEADER const& operator*() const
+    IMAGE_DOS_HEADER const &operator*() const
     {
         return *operator->();
     }
 };
 
-static IMAGE_DOS_HEADER* _get_dos(LDR_DATA_TABLE_ENTRY* entry)
+static IMAGE_DOS_HEADER *_get_dos(LDR_DATA_TABLE_ENTRY *entry)
 {
-    auto dos = static_cast<IMAGE_DOS_HEADER*>(entry->DllBase);
+    auto dos = static_cast<IMAGE_DOS_HEADER *>(entry->DllBase);
     // check for invalid DOS / DOS signature.
     assert(dos->e_magic == IMAGE_DOS_SIGNATURE /* 'MZ' */);
     return dos;
 }
 
-static IMAGE_NT_HEADERS* _get_nt(dos_header dos)
+static IMAGE_NT_HEADERS *_get_nt(dos_header dos)
 {
-    IMAGE_NT_HEADERS* nt = dos + dos->e_lfanew;
+    IMAGE_NT_HEADERS *nt = dos + dos->e_lfanew;
     // check for invalid NT / NT signature.
     assert(nt->Signature == IMAGE_NT_SIGNATURE /* 'PE\0\0' */);
     return nt;
 }
 
-static IMAGE_NT_HEADERS* _get_nt(LDR_DATA_TABLE_ENTRY* entry)
+static IMAGE_NT_HEADERS *_get_nt(LDR_DATA_TABLE_ENTRY *entry)
 {
     return _get_nt(_get_dos(entry));
 }
 
-static std::span<IMAGE_SECTION_HEADER> _sections(IMAGE_NT_HEADERS const* nt)
+static std::span<IMAGE_SECTION_HEADER> _sections(IMAGE_NT_HEADERS const *nt)
 {
     assert(nt != nullptr);
     return { IMAGE_FIRST_SECTION(nt), static_cast<size_t>(nt->FileHeader.NumberOfSections) };
 }
 
-static std::span<IMAGE_SECTION_HEADER> _sections(LDR_DATA_TABLE_ENTRY* entry)
+static std::span<IMAGE_SECTION_HEADER> _sections(LDR_DATA_TABLE_ENTRY *entry)
 {
     return _sections(_get_nt(entry));
 }
 
-static std::span<uint8_t> _memory(LDR_DATA_TABLE_ENTRY* entry, IMAGE_NT_HEADERS const* nt = nullptr)
+static std::span<uint8_t> _memory(LDR_DATA_TABLE_ENTRY *entry, IMAGE_NT_HEADERS const *nt = nullptr)
 {
     if (!nt)
         nt = _get_nt(entry);
     //(void)nt->OptionalHeader.BaseOfCode;
     //(void)nt->OptionalHeader.BaseOfData;
     //(void)nt->OptionalHeader.ImageBase; //same as entry->DllBase
-    return { static_cast<uint8_t*>(entry->DllBase), nt->OptionalHeader.SizeOfImage };
+    return { static_cast<uint8_t *>(entry->DllBase), nt->OptionalHeader.SizeOfImage };
 }
 
-static IMAGE_SECTION_HEADER* _find_section(std::span<IMAGE_SECTION_HEADER> rng, std::string_view name)
+static IMAGE_SECTION_HEADER *_find_section(std::span<IMAGE_SECTION_HEADER> rng, std::string_view name)
 {
-    for (auto& h : rng)
+    for (auto &h : rng)
     {
-        if (reinterpret_cast<char const*>(h.Name) == name)
+        if (reinterpret_cast<char const *>(h.Name) == name)
             return &h;
     }
     return nullptr;
 }
 
-static IMAGE_SECTION_HEADER* _find_section(LDR_DATA_TABLE_ENTRY* entry, std::string_view name)
+static IMAGE_SECTION_HEADER *_find_section(LDR_DATA_TABLE_ENTRY *entry, std::string_view name)
 {
     return _find_section(_sections(entry), name);
 }
@@ -454,28 +451,28 @@ class dll_exports
 {
     dos_header dos_;
 
-    uint32_t* names_;
-    uint32_t* funcs_;
-    uint16_t* ords_;
+    uint32_t *names_;
+    uint32_t *funcs_;
+    uint16_t *ords_;
 
     union
     {
-        IMAGE_EXPORT_DIRECTORY* exportDirDir_;
-        uint8_t*                virtualAddrStart_;
+        IMAGE_EXPORT_DIRECTORY *exportDirDir_;
+        uint8_t *virtualAddrStart_;
     };
 
-    uint8_t* virtualAddrEnd_;
+    uint8_t *virtualAddrEnd_;
 
-    using src_ptr = dll_exports const*;
+    using src_ptr = dll_exports const *;
 
   public:
-    dll_exports(IMAGE_DOS_HEADER* dos, IMAGE_NT_HEADERS* nt = nullptr)
+    dll_exports(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt = nullptr)
         : dos_(dos)
     {
         if (!nt)
             nt = _get_nt(dos_);
 
-        auto const& dataDir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+        auto const &dataDir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         // get export export_dir.
         exportDirDir_   = dos_ + dataDir.VirtualAddress;
@@ -486,19 +483,19 @@ class dll_exports
         ords_  = dos_ + exportDirDir_->AddressOfNameOrdinals;
     }
 
-    dll_exports(_LDR_DATA_TABLE_ENTRY* entry)
+    dll_exports(_LDR_DATA_TABLE_ENTRY *entry)
         : dll_exports(_get_dos(entry))
     {
     }
 
-    char const* name(DWORD offset) const
+    char const *name(DWORD offset) const
     {
         return dos_ + names_[offset];
     }
 
-    void* function(DWORD offset) const
+    void *function(DWORD offset) const
     {
-        void* tmp = dos_ + funcs_[ords_[offset]];
+        void *tmp = dos_ + funcs_[ords_[offset]];
         if (tmp < virtualAddrStart_ || tmp >= virtualAddrEnd_)
             return tmp;
 
@@ -546,7 +543,7 @@ class dll_exports
     class wrapper
     {
         src_ptr src_;
-        DWORD   offset_;
+        DWORD offset_;
 
       public:
         wrapper(src_ptr src, DWORD offset)
@@ -555,12 +552,12 @@ class dll_exports
         {
         }
 
-        char const* name() const
+        char const *name() const
         {
             return src_->name(offset_);
         }
 
-        void* function() const
+        void *function() const
         {
             return src_->function(offset_);
         }
@@ -569,7 +566,7 @@ class dll_exports
     class iterator
     {
         src_ptr src_;
-        DWORD   offset_;
+        DWORD offset_;
 
       public:
         iterator(src_ptr src, DWORD offset)
@@ -578,13 +575,13 @@ class dll_exports
         {
         }
 
-        iterator& operator++()
+        iterator &operator++()
         {
             ++offset_;
             return *this;
         }
 
-        iterator& operator--()
+        iterator &operator--()
         {
             --offset_;
             return *this;
@@ -595,7 +592,7 @@ class dll_exports
             return { src_, offset_ };
         }
 
-        bool operator==(iterator const& other) const
+        bool operator==(iterator const &other) const
         {
             if (offset_ == other.offset_)
             {
@@ -617,7 +614,7 @@ class dll_exports
     }
 };
 
-static void* _find_export(dll_exports const& exports, std::string_view name)
+static void *_find_export(dll_exports const &exports, std::string_view name)
 {
     for (auto val : exports)
     {
@@ -630,8 +627,8 @@ static void* _find_export(dll_exports const& exports, std::string_view name)
 template <typename T, bool Deref = true>
 class win_list_view
 {
-    using pointer   = LIST_ENTRY*;
-    using reference = LIST_ENTRY&;
+    using pointer   = LIST_ENTRY *;
+    using reference = LIST_ENTRY &;
 
     pointer root_;
 
@@ -646,7 +643,7 @@ class win_list_view
         {
         }
 
-        iterator& operator++()
+        iterator &operator++()
         {
             current_ = current_->Flink;
             return *this;
@@ -659,7 +656,7 @@ class win_list_view
             return c;
         }
 
-        iterator& operator--()
+        iterator &operator--()
         {
             current_ = current_->Blink;
             return *this;
@@ -672,30 +669,30 @@ class win_list_view
             return c;
         }
 
-        T& operator*() const requires(Deref)
+        T &operator*() const requires(Deref)
         {
             return *CONTAINING_RECORD(current_, T, InMemoryOrderLinks);
         }
 
-        T* operator*() const requires(!Deref)
+        T *operator*() const requires(!Deref)
         {
             return CONTAINING_RECORD(current_, T, InMemoryOrderLinks);
         }
 
-        T* operator->() const
+        T *operator->() const
         {
             return CONTAINING_RECORD(current_, T, InMemoryOrderLinks);
         }
 
-        bool operator==(T const* other) const
+        bool operator==(T const *other) const
         {
             return CONTAINING_RECORD(current_, T, InMemoryOrderLinks) == other;
         }
 
-        bool operator==(iterator const&) const = default;
+        bool operator==(iterator const &) const = default;
     };
 
-    win_list_view(LIST_ENTRY* root = nullptr)
+    win_list_view(LIST_ENTRY *root = nullptr)
     {
         if (root)
         {
@@ -707,7 +704,7 @@ class win_list_view
         auto mem = NtCurrentTeb();
         auto ldr = mem->ProcessEnvironmentBlock->Ldr;
 #else
-        auto mem = reinterpret_cast<PEB*>(__readfsdword(0x30));
+        auto mem = reinterpret_cast<PEB *>(__readfsdword(0x30));
         auto ldr = mem->Ldr;
 #endif
         // get module linked list.
@@ -726,7 +723,7 @@ class win_list_view
 };
 
 template <typename T, bool Deref>
-static bool operator==(T const* other, typename win_list_view<T, Deref>::iterator itr)
+static bool operator==(T const *other, typename win_list_view<T, Deref>::iterator itr)
 {
     return itr.operator==(other);
 }
@@ -734,9 +731,9 @@ static bool operator==(T const* other, typename win_list_view<T, Deref>::iterato
 using ldr_tables_view     = win_list_view<LDR_DATA_TABLE_ENTRY>;
 using ldr_tables_view_ptr = win_list_view<LDR_DATA_TABLE_ENTRY, false>;
 
-static void _to_string_view(LDR_DATA_TABLE_ENTRY* entry) = delete;
+static void _to_string_view(LDR_DATA_TABLE_ENTRY *entry) = delete;
 
-static auto _to_string_view(UNICODE_STRING const& ustr)
+static auto _to_string_view(UNICODE_STRING const &ustr)
 {
     std::wstring_view ret;
     if (ustr.Buffer)
@@ -744,22 +741,22 @@ static auto _to_string_view(UNICODE_STRING const& ustr)
     return ret;
 }
 
-static auto _to_string(UNICODE_STRING const& ustr)
+static auto _to_string(UNICODE_STRING const &ustr)
 {
     return std::wstring(_to_string_view(ustr));
 }
 
-static auto _library_info_path(LDR_DATA_TABLE_ENTRY* entry)
+static auto _library_info_path(LDR_DATA_TABLE_ENTRY *entry)
 {
     return _to_string_view(entry->FullDllName);
 }
 
 class library_info_name
 {
-    LDR_DATA_TABLE_ENTRY* entry;
+    LDR_DATA_TABLE_ENTRY *entry;
 
   public:
-    library_info_name(LDR_DATA_TABLE_ENTRY* entry)
+    library_info_name(LDR_DATA_TABLE_ENTRY *entry)
         : entry(entry)
     {
     }
@@ -780,14 +777,14 @@ class library_info_name
 template <typename T>
 struct fmt::formatter<library_info_name, T> : formatter<basic_string_view<T>, T>
 {
-    auto format(library_info_name name, auto& ctx) const
+    auto format(library_info_name name, auto &ctx) const
     {
         auto tmp = chars_mixer<T, wchar_t>(name);
         return formatter<basic_string_view<T>, T>::format(tmp.native(), ctx);
     }
 };
 
-static void _log_found_entry(std::wstring_view name, /*LDR_DATA_TABLE_ENTRY*/ void const* entry)
+static void _log_found_entry(std::wstring_view name, /*LDR_DATA_TABLE_ENTRY*/ void const *entry)
 {
     if (entry)
         spdlog::info(L"{} -> found! ({:p})", name, entry);
@@ -795,7 +792,7 @@ static void _log_found_entry(std::wstring_view name, /*LDR_DATA_TABLE_ENTRY*/ vo
         spdlog::warn(L"{} -> NOT found!", name);
 }
 
-static void _log_found_entry_or_wait(std::wstring_view name, /*LDR_DATA_TABLE_ENTRY*/ void const* entry)
+static void _log_found_entry_or_wait(std::wstring_view name, /*LDR_DATA_TABLE_ENTRY*/ void const *entry)
 {
     if (entry)
         spdlog::info(L"{} -> found! ({:p})", name, entry);
@@ -803,12 +800,17 @@ static void _log_found_entry_or_wait(std::wstring_view name, /*LDR_DATA_TABLE_EN
         spdlog::warn(L"{} -> NOT found! Waiting...", name);
 }
 
-static void _log_found_entry(/*IMAGE_DOS_HEADER*/ void const* baseAddress, LDR_DATA_TABLE_ENTRY* entry)
+static void _log_wait_entry(std::wstring_view name)
+{
+    spdlog::warn(L"{} -> NOT found! Waiting...", name);
+}
+
+static void _log_found_entry(/*IMAGE_DOS_HEADER*/ void const *base_address, LDR_DATA_TABLE_ENTRY *entry)
 {
     if (entry)
-        spdlog::info(L"{:p} ({}) -> found! ({:p})", baseAddress, library_info_name(entry), fmt::ptr(entry));
+        spdlog::info(L"{:p} ({}) -> found! ({:p})", base_address, library_info_name(entry), fmt::ptr(entry));
     else
-        spdlog::warn(L"{:p} -> NOT found!", baseAddress);
+        spdlog::warn(L"{:p} -> NOT found!", base_address);
 }
 
 // template <>
@@ -822,10 +824,10 @@ static void _log_found_entry(/*IMAGE_DOS_HEADER*/ void const* baseAddress, LDR_D
 // };
 
 static auto _log_found_csgo_interface(
-    library_info_name        entry,
+    library_info_name entry,
     valve_ifc_reg_cmp_result type,
-    lazy_wstring             name,
-    valve_ifc_reg*           reg)
+    lazy_wstring name,
+    valve_ifc_reg *reg)
 {
     switch (type)
     {
@@ -847,8 +849,8 @@ static auto _log_found_csgo_interface(
 static auto _log_found_object(
     library_info_name entry,
     std::wstring_view objectType,
-    lazy_wstring      object,
-    void const*       addr)
+    lazy_wstring object,
+    void const *addr)
 {
     if (addr)
         spdlog::info(L"{} -> {} '{}' found! ({:p})", entry, objectType, object, addr);
@@ -864,7 +866,7 @@ static auto _log_found_object(
 //         spdlog::warn(L"{} -> {} NOT found!", entry, rawName);
 // }
 
-static std::string_view _object_type(char const* rawName)
+static std::string_view _object_type(char const *rawName)
 {
     assert(memcmp(rawName, ".?A", 3) == 0);
     auto prefix = *(rawName + 3);
@@ -872,7 +874,7 @@ static std::string_view _object_type(char const* rawName)
         return "class";
     if (prefix == 'U')
         return "struct";
-    return static_cast<char const*>(nullptr);
+    return static_cast<char const *>(nullptr);
 }
 
 enum class obj_type : uint8_t
@@ -887,7 +889,7 @@ enum class obj_type : uint8_t
 template <typename T>
 struct fmt::formatter<obj_type, T> : formatter<basic_string_view<T>, T>
 {
-    auto format(obj_type type, auto& ctx) const
+    auto format(obj_type type, auto &ctx) const
     {
         chars_mixer<T, char> buff;
 
@@ -924,7 +926,7 @@ static constexpr char _object_prefix(obj_type type)
 struct _type_info_pretty_name
 {
     boost::typeindex::type_index info;
-    mutable std::string          cached;
+    mutable std::string cached;
 
     template <typename C>
     chars_mixer<C, char> get() const
@@ -938,7 +940,7 @@ struct _type_info_pretty_name
 template <typename T>
 struct fmt::formatter<_type_info_pretty_name, T> : formatter<basic_string_view<T>, T>
 {
-    auto format(_type_info_pretty_name name, auto& ctx) const
+    auto format(_type_info_pretty_name name, auto &ctx) const
     {
         return formatter<basic_string_view<T>, T>::format(name.get<T>().native(), ctx);
     }
@@ -958,13 +960,13 @@ struct _type_info_raw_name
 template <typename T>
 struct fmt::formatter<_type_info_raw_name, T> : formatter<basic_string_view<T>, T>
 {
-    auto format(_type_info_raw_name name, auto& ctx) const
+    auto format(_type_info_raw_name name, auto &ctx) const
     {
         return formatter<basic_string_view<T>, T>::format(name.get<T>().native(), ctx);
     }
 };
 
-static void _log_found_vtable(library_info_name entry, std::type_info const& info, void const* vtablePtr)
+static void _log_found_vtable(library_info_name entry, std::type_info const &info, void const *vtablePtr)
 {
     if (vtablePtr)
         spdlog::info(
@@ -983,10 +985,10 @@ static void _log_found_vtable(library_info_name entry, std::type_info const& inf
 }
 
 static void _log_found_vtable(
-    library_info_name          entry,
-    obj_type                   objType,
+    library_info_name entry,
+    obj_type objType,
     chars_mixer<wchar_t, char> name,
-    void const*                vtablePtr)
+    void const *vtablePtr)
 {
     if (vtablePtr)
         spdlog::info(L"{} -> vtable for {} '{}' found! ({:p})", entry, objType, name, vtablePtr);
@@ -994,7 +996,7 @@ static void _log_found_vtable(
         spdlog::warn(L"{} -> vtable for {} '{}' NOT found!", entry, objType, name);
 }
 
-static void _log_found_vtable(library_info_name entry, chars_mixer<wchar_t, char> name, void const* vtablePtr)
+static void _log_found_vtable(library_info_name entry, chars_mixer<wchar_t, char> name, void const *vtablePtr)
 {
     if (vtablePtr)
         spdlog::info(L"{} -> vtable for {} found! ({:p})", entry, name, vtablePtr);
@@ -1004,19 +1006,19 @@ static void _log_found_vtable(library_info_name entry, chars_mixer<wchar_t, char
 
 namespace fd
 {
-static LDR_DATA_TABLE_ENTRY* _find_library(PVOID baseAddress)
+static LDR_DATA_TABLE_ENTRY *_find_library(PVOID base_address)
 {
-    for (auto* e : ldr_tables_view_ptr())
+    for (auto *e : ldr_tables_view_ptr())
     {
-        if (baseAddress == e->DllBase)
+        if (base_address == e->DllBase)
             return e;
     }
     return nullptr;
 }
 
-static LDR_DATA_TABLE_ENTRY* _find_library(std::wstring_view name)
+static LDR_DATA_TABLE_ENTRY *_find_library(std::wstring_view name)
 {
-    for (auto* e : ldr_tables_view_ptr())
+    for (auto *e : ldr_tables_view_ptr())
     {
         if (e->FullDllName.Buffer && name == library_info_name(e))
             return e;
@@ -1078,7 +1080,7 @@ hidden_ptr library_info::find_export(std::string_view name) const
     return exportPtr;
 }
 
-IMAGE_SECTION_HEADER* library_info::find_section(std::string_view name) const
+IMAGE_SECTION_HEADER *library_info::find_section(std::string_view name) const
 {
     auto header = _find_section(entry_, name);
     _log_found_object(entry_, L"section", name, header);
@@ -1094,7 +1096,7 @@ hidden_ptr library_info::find_signature(std::string_view sig) const
     return result;
 }
 
-static bool _validate_rtti_name(char const* begin, std::string_view name)
+static bool _validate_rtti_name(char const *begin, std::string_view name)
 {
     auto nameBegin = begin + 3 + 1;
     if (memcmp(nameBegin, name.data(), name.size()) != 0)
@@ -1110,12 +1112,12 @@ struct _find_type_descriptor;
 template <>
 struct _find_type_descriptor<obj_type::UNKNOWN>
 {
-    void* operator()(LDR_DATA_TABLE_ENTRY* entry, std::string_view name) const
+    void *operator()(LDR_DATA_TABLE_ENTRY *entry, std::string_view name) const
     {
         auto scanner = pattern_scanner_raw(_memory(entry));
         for (auto begin : scanner(".?A", 3))
         {
-            if (_validate_rtti_name(static_cast<char const*>(begin), name))
+            if (_validate_rtti_name(static_cast<char const *>(begin), name))
                 return begin;
         }
         return nullptr;
@@ -1125,12 +1127,12 @@ struct _find_type_descriptor<obj_type::UNKNOWN>
 template <char Prefix>
 struct _find_type_descriptor_known
 {
-    void* operator()(LDR_DATA_TABLE_ENTRY* entry, std::string_view name) const
+    void *operator()(LDR_DATA_TABLE_ENTRY *entry, std::string_view name) const
     {
         auto scanner = pattern_scanner_raw(_memory(entry));
         for (auto begin : scanner(".?A", 3))
         {
-            auto cBegin = static_cast<char const*>(begin);
+            auto cBegin = static_cast<char const *>(begin);
             if (cBegin[3] == Prefix && _validate_rtti_name(cBegin, name))
                 return begin;
         }
@@ -1148,11 +1150,11 @@ struct _find_type_descriptor<obj_type::CLASS> : _find_type_descriptor_known<_obj
 {
 };
 
-static void* _find_vtable(
-    IMAGE_SECTION_HEADER const* dotRdata,
-    IMAGE_SECTION_HEADER const* dotText,
-    dos_header                  dos,
-    void const*                 rttiClassName)
+static void *_find_vtable(
+    IMAGE_SECTION_HEADER const *dotRdata,
+    IMAGE_SECTION_HEADER const *dotText,
+    dos_header dos,
+    void const *rttiClassName)
 {
     // get rtti type descriptor
     auto typeDescriptor = reinterpret_cast<uintptr_t>(rttiClassName);
@@ -1166,7 +1168,7 @@ static void* _find_vtable(
     {
         auto val          = reinterpret_cast<uint32_t>(xref);
         // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
-        auto vtableOffset = *reinterpret_cast<uint32_t*>(val - 0x8);
+        auto vtableOffset = *reinterpret_cast<uint32_t *>(val - 0x8);
         if (vtableOffset != 0)
             continue;
 
@@ -1180,7 +1182,7 @@ static void* _find_vtable(
     return nullptr;
 }
 
-static void* _find_vtable(LDR_DATA_TABLE_ENTRY* entry, void const* rttiClassName)
+static void *_find_vtable(LDR_DATA_TABLE_ENTRY *entry, void const *rttiClassName)
 {
     auto dos      = _get_dos(entry);
     auto nt       = _get_nt(dos);
@@ -1193,8 +1195,8 @@ hidden_ptr library_info::find_vtable(std::string_view name) const
 {
     union
     {
-        void* typeDescriptorVoid;
-        char* typeDescriptor;
+        void *typeDescriptorVoid;
+        char *typeDescriptor;
     };
 
     static constexpr auto struct_ = std::string_view("struct ");
@@ -1222,7 +1224,7 @@ hidden_ptr library_info::find_vtable(std::string_view name) const
     return ptr;
 }
 
-hidden_ptr library_info::find_vtable(std::type_info const& info) const
+hidden_ptr library_info::find_vtable(std::type_info const &info) const
 {
     auto tindex = boost::typeindex::type_index(info);
     auto ptr    = _find_vtable(entry_, tindex.raw_name());
@@ -1240,9 +1242,9 @@ bool operator==(library_info info, library_info other)
     return info.get() == other.get();
 }
 
-bool operator==(library_info info, PVOID baseAddress)
+bool operator==(library_info info, PVOID base_address)
 {
-    return info->DllBase == baseAddress;
+    return info->DllBase == base_address;
 }
 
 bool operator==(library_info info, std::wstring_view name)
@@ -1255,14 +1257,18 @@ bool operator!(library_info info)
     return !info.get();
 }
 
-library_info find_library(PVOID baseAddress)
+library_info find_library(PVOID base_address)
 {
-    return _find_library(baseAddress);
+    auto ret = _find_library(base_address);
+    _log_found_entry(base_address, ret);
+    return ret;
 }
 
 library_info find_library(std::wstring_view name)
 {
-    return _find_library(name);
+    auto ret = _find_library(name);
+    _log_found_entry(name, ret);
+    return ret;
 }
 
 csgo_library_info::csgo_library_info(library_info info)
@@ -1275,7 +1281,7 @@ hidden_ptr csgo_library_info::find_interface(std::string_view name) const
     return find_interface(_find_export(entry_, "CreateInterface"), name);
 }
 
-static bool _all_digits(char const* ptr)
+static bool _all_digits(char const *ptr)
 {
     for (; *ptr != '\0'; ++ptr)
     {
@@ -1285,14 +1291,14 @@ static bool _all_digits(char const* ptr)
     return true;
 }
 
-hidden_ptr csgo_library_info::find_interface(void const* createInterfaceFn, std::string_view name) const
+hidden_ptr csgo_library_info::find_interface(void const *create_interface_fn, std::string_view name) const
 {
-    assert(createInterfaceFn != nullptr);
+    assert(create_interface_fn != nullptr);
 
     using iterator       = valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::compare>;
     using const_iterator = valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::const_compare>;
 
-    auto target = std::find<iterator>(_root_interface(createInterfaceFn), nullptr, name);
+    auto target = std::find<iterator>(_root_interface(create_interface_fn), nullptr, name);
     assert(target != nullptr);
 
     auto type = target.status();
@@ -1311,9 +1317,9 @@ static library_info _Current = nullptr;
 static DECLSPEC_NOINLINE PVOID _self_module_handle()
 {
     MEMORY_BASIC_INFORMATION info;
-    constexpr SIZE_T         infoSize = sizeof(MEMORY_BASIC_INFORMATION);
+    constexpr SIZE_T infoSize = sizeof(MEMORY_BASIC_INFORMATION);
     // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] auto    len      = VirtualQueryEx(GetCurrentProcess(), _self_module_handle, &info, infoSize);
+    [[maybe_unused]] auto len = VirtualQueryEx(GetCurrentProcess(), _self_module_handle, &info, infoSize);
     assert(len == infoSize);
     return static_cast<HINSTANCE>(info.AllocationBase);
 }
@@ -1342,209 +1348,5 @@ library_info current_library_info()
 void set_current_library(HMODULE const handle)
 {
     _set_current_library(handle);
-}
-
-static void CALLBACK
-_on_new_library(ULONG const notificationReason, PCLDR_DLL_NOTIFICATION_DATA const notificationData, PVOID const context)
-{
-    auto data = static_cast<library_info_cache*>(context);
-
-    switch (notificationReason)
-    {
-    case LDR_DLL_NOTIFICATION_REASON_LOADED:
-    {
-        data->store(notificationData->Loaded.DllBase, _to_string_view(*notificationData->Loaded.BaseDllName));
-        break;
-    }
-    case LDR_DLL_NOTIFICATION_REASON_UNLOADED:
-    {
-        data->remove(notificationData->Unloaded.DllBase, _to_string_view(*notificationData->Unloaded.BaseDllName));
-        break;
-    }
-    default:
-        assert(0 && "Unknown dll notification type");
-        return;
-    }
-
-    // #if 0
-    //         auto target_name = _To_string_view(*NotificationData->Loaded.FullDllName);
-    //         if (!target_name.ends_with(data->name))
-    //             return;
-    // #else
-    //         if (_to_string_view(*notificationData->Loaded.BaseDllName) != data->name)
-    //             return;
-    // #endif
-
-    (void)0;
-}
-
-library_info_cache::cached_data::cached_data(std::wstring_view name)
-    : name(name)
-    , sem(0)
-    , value(nullptr)
-{
-}
-
-library_info_cache::cached_data::cached_data(LDR_DATA_TABLE_ENTRY* value, std::wstring_view name)
-    : sem(1)
-    , value(value)
-{
-    if (name.empty())
-        std::construct_at(&this->name, library_info_name(value));
-    else
-    {
-        auto path = _library_info_path(value);
-        std::construct_at(&this->name, path.end() - name.size(), path.end());
-    }
-}
-
-struct _dll_notification_funcs
-{
-    LdrRegisterDllNotification   reg;
-    LdrUnregisterDllNotification unreg;
-};
-
-static struct : std::mutex, std::optional<_dll_notification_funcs>
-{
-} _LibraryInfoNotification;
-
-library_info_cache::~library_info_cache()
-{
-    if (cookie_ && !NT_SUCCESS(_LibraryInfoNotification->unreg(cookie_)))
-        assert(0 && "Unable to remove dll notification");
-
-    std::for_each(cache_.rbegin(), cache_.rend(), [](auto& data) { data->sem.release(); });
-}
-
-library_info_cache::library_info_cache()
-{
-    if (!_LibraryInfoNotification)
-    {
-        auto g = std::lock_guard(_LibraryInfoNotification);
-        if (!_LibraryInfoNotification)
-        {
-            auto ntdll = _find_library(L"ntdll.dll");
-            assert(ntdll != nullptr);
-            auto exports = dll_exports(ntdll);
-
-            auto& n = _LibraryInfoNotification.emplace();
-            n.reg   = reinterpret_cast<LdrRegisterDllNotification>(_find_export(exports, "LdrRegisterDllNotification"));
-            n.unreg = reinterpret_cast<LdrUnregisterDllNotification>(
-                _find_export(exports, "LdrUnregisterDllNotification"));
-        }
-    }
-
-    auto g = std::lock_guard(mtx_);
-
-    if (!NT_SUCCESS(_LibraryInfoNotification->reg(0, _on_new_library, this, &cookie_)))
-    {
-        assert(0 && "Unable to create dll notification");
-        terminate();
-    }
-
-    for (auto entry : ldr_tables_view_ptr())
-        cache_.emplace_back(std::make_unique<cached_data>(entry));
-}
-
-void library_info_cache::store(PVOID baseAddress, std::wstring_view name)
-{
-    auto g = std::lock_guard(mtx_);
-    assert(cookie_ != nullptr);
-
-    auto entry = _find_library(baseAddress);
-    for (auto& data : cache_)
-    {
-        if (data->name == name)
-        {
-            assert(data->value == nullptr);
-            data->value = entry;
-            data->sem.release();
-            return;
-        }
-    }
-
-    // if (find(cache_, baseAddress) == _end(cache_))
-    cache_.emplace_back(std::make_unique<cached_data>(entry));
-}
-
-void library_info_cache::remove(PVOID baseAddress, std::wstring_view name)
-{
-    auto g = std::lock_guard(mtx_);
-    assert(cookie_ != nullptr);
-
-    auto& val = *std::find_if(
-        cache_.rbegin(),
-        cache_.rend(),
-        [&](auto& data)
-        {
-            //
-            return data->value && data->value->DllBase == baseAddress;
-        });
-
-    val->sem.release();
-    std::swap(cache_.back(), val);
-    cache_.pop_back();
-}
-
-library_info library_info_cache::get(PVOID baseAddress) const
-{
-    auto g = std::lock_guard(mtx_);
-    assert(cookie_ != nullptr);
-
-    for (auto& data : cache_)
-    {
-        if (data->value && data->value->DllBase == baseAddress)
-        {
-            _log_found_entry(baseAddress, data->value);
-            return data->value;
-        }
-    }
-
-    _log_found_entry(baseAddress, nullptr);
-    return nullptr;
-}
-
-library_info library_info_cache::get(std::wstring_view name) const
-{
-    auto g = std::lock_guard(mtx_);
-    assert(cookie_ != nullptr);
-
-    for (auto& data : cache_)
-    {
-        if (data->name == name)
-        {
-            assert(data->value != nullptr);
-            _log_found_entry(name, data->value);
-            return data->value;
-        }
-    }
-
-    _log_found_entry(name, nullptr);
-    return nullptr;
-}
-
-library_info library_info_cache::get(std::wstring_view name)
-{
-    cached_data* newData;
-    {
-        auto g = std::lock_guard(mtx_);
-        assert(cookie_ != nullptr);
-
-        for (auto& data : cache_)
-        {
-            if (data->name == name)
-            {
-                _log_found_entry_or_wait(name, data->value);
-                if (!data->value)
-                    break;
-                return data->value;
-            }
-        }
-        newData = cache_.emplace_back(std::make_unique<cached_data>(name)).get();
-    }
-    newData->sem.acquire();
-    auto g = std::lock_guard(mtx_);
-    _log_found_entry(name, newData->value);
-    return newData->value;
 }
 } // namespace fd

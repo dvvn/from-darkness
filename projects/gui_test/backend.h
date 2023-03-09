@@ -16,7 +16,7 @@ class d3d_device9
   public:
     d3d_device9();
 
-    bool attach(HWND hWnd);
+    bool attach(HWND hwnd);
     bool resize(UINT w, UINT h);
     void reset();
 
@@ -36,6 +36,6 @@ struct backend_data
 
     backend_data(backend_data const&) = delete;
 
-    void run();
+    bool run();
 };
 } // namespace fd
