@@ -31,9 +31,9 @@ int main(int, char **)
         tab_bar(
             tab("tab1", [] { ImGui::TextUnformatted("hello"); }),
             tab("tab2", [] { ImGui::TextUnformatted("-->hello again"); })),
-        tab_bar(tab("new tab", [] { ImGui::TextUnformatted("im here!"); }), tab("tab 3", [] {
-                    ImGui::TextUnformatted("yes!");
-                })));
+        tab_bar( //
+            tab("new tab", [] { ImGui::TextUnformatted("im here!"); }),
+            tab("tab 3", [] { ImGui::TextUnformatted("yes!"); })));
     auto gui_ctx = gui_context([&] {
         test_menu.render();
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS

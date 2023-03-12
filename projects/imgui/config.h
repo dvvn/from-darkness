@@ -2,7 +2,6 @@
 // ReSharper disable CppClangTidyClangDiagnosticUnusedMacros
 #pragma once
 
-
 #ifdef _DEBUG
 #define IMGUI_DEBUG_PARANOID
 #else
@@ -27,7 +26,7 @@
 
 #if defined(_WIN32) && defined(_DEBUG)
 struct IDirect3DTexture9;
-#define ImTextureID IDirect3DTexture9*
+#define ImTextureID IDirect3DTexture9 *
 #endif
 
 #ifdef IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS
@@ -62,3 +61,29 @@ T ImRsqrt(T x)
     return 1 / ImSqrt(x);
 }
 #endif
+
+#include <string>
+#include <string_view>
+#define IM_STRV_CLASS_EXTRA           \
+    ImStrv(std::string_view str)      \
+        : Begin(str.data())           \
+        , End(Begin + str.size())     \
+    {                                 \
+    }                                 \
+    ImStrv(const std::string &str)    \
+        : Begin(str.data())           \
+        , End(Begin + str.size())     \
+    {                                 \
+    }                                 \
+    ImStrv(std::string &&) = delete;  \
+    template <size_t S>               \
+    ImStrv(const char(&str)[S])       \
+        : Begin(std::begin(str))      \
+        , End(std::end(str) - 1)      \
+    {                                 \
+    }                                 \
+    ImStrv(const char *str, size_t s) \
+        : Begin(str)                  \
+        , End(str + s)                \
+    {                                 \
+    }

@@ -2,23 +2,18 @@
 
 #include <imgui_internal.h>
 
-#ifndef IMGUI_HAS_STRV
+#ifndef IMGUI_HAS_IMSTR
 static std::string _ImTmpstring;
-#endif
+
 static auto _im_str(std::string_view strv)
 {
-#ifndef IMGUI_HAS_STRV
     auto data = strv.data();
     auto size = strv.size();
     if (data[size] != '\0')
         data = _ImTmpstring.assign(data, size).data();
     return data;
-#else
-
-#endif
 }
 
-// ReSharper disable CppInconsistentNaming
 namespace ImGui
 {
 static bool BeginTabItem(std::string_view label)
@@ -26,131 +21,70 @@ static bool BeginTabItem(std::string_view label)
     return BeginTabItem(_im_str(label), nullptr);
 }
 } // namespace ImGui
-
-// ReSharper restore CppInconsistentNaming
+#endif
 
 namespace fd
 {
-tab_base::tab_base(std::string_view name)
-    : name_(name)
-{
-}
-
-bool tab_base::new_frame()
-{
-    return ImGui::BeginTabItem(name_);
-}
-
-void tab_base::end_frame()
-{
-    (void)this;
-    ImGui::EndTabItem();
-}
-
-//-------
-
-#ifdef FD_GUI_RANDOM_TAB_BAR_NAME
-static uint16_t _TabCounter = 0;
-
-tab_bar_base::tab_bar_base()
-{
-    name_.append("##tbar").append(std::to_string(_TabCounter++));
-}
-#else
-tab_bar_base::tab_bar_base(std::string_view name)
-    : name_(name)
-{
-}
-#endif
-
-bool tab_bar_base::new_frame()
-{
-    auto& g      = *GImGui;
-    auto  window = g.CurrentWindow;
-    /*if (window->SkipItems)
-        return;*/
-
-    auto id     = window->GetID((name_.data()), name_.data() + name_.size());
-    auto tabBar = g.TabBars.GetOrAddByKey(id);
-    tabBar->ID  = id;
-
-    constexpr auto defaultFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton |
-                                  ImGuiTabBarFlags_NoTooltip;
-    constexpr auto extraFlags = ImGuiTabBarFlags_IsFocused;
-    auto           tabBarBB   = ImRect(
-        window->DC.CursorPos.x,
-        window->DC.CursorPos.y,
-        window->WorkRect.Max.x,
-        window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
-    return (ImGui::BeginTabBarEx(tabBar, tabBarBB, defaultFlags | extraFlags));
-}
-
-void tab_bar_base::end_frame()
-{
-    (void)this;
-    ImGui::EndTabBar();
-}
-
-//-------
-
 menu_base::menu_base()
-    : visible_(false)
-    , visibleNext_(true)
+    : state_(menu_state::closed)
+    , wish_state_(true)
 {
 }
 
 bool menu_base::visible() const
 {
-    return visible_;
+    return state_ != menu_state::closed;
+}
+
+bool menu_base::collapsed() const
+{
+    return state_ == menu_state::hidden;
 }
 
 void menu_base::show()
 {
-    visibleNext_ = true;
+    wish_state_ = true;
 }
 
-void menu_base::hide()
+void menu_base::close()
 {
-    visibleNext_ = false;
+    wish_state_ = false;
 }
 
 void menu_base::toggle()
 {
-    visibleNext_ = !visible_;
+    wish_state_ = state_ == menu_state::closed;
 }
 
-bool menu_base::new_frame(bool& visible)
+bool menu_base::begin_frame()
 {
-    if (!visibleNext_)
+    if (!wish_state_)
     {
-        visible_ = false;
+        state_ = menu_state::closed;
         return false;
     }
 
-    if (ImGui::Begin(
-            "Unnamed",
-            &visible,
-            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
-    {
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                ImGui::TextUnformatted("test");
-                ImGui::EndMenu();
-            }
-            ImGui::EndMenuBar();
-        }
+    constexpr auto flags = ImGuiWindowFlags_AlwaysAutoResize |
+                           ImGuiWindowFlags_NoSavedSettings /*| ImGuiWindowFlags_MenuBar*/;
 
-        // render tabs
+    auto shown     = true;
+    auto collapsed = !ImGui::Begin("Unnamed", &shown, flags);
+
+    if (!shown)
+    {
+        state_ = menu_state::closed;
+        return false;
     }
 
+    if (collapsed)
+        state_ = menu_state::hidden;
+    else
+        state_ = menu_state::shown;
     return true;
 }
 
-void menu_base::end_frame(bool visible)
+void menu_base::end_frame()
 {
     ImGui::End();
-    visibleNext_ = visible_ = visible;
 }
 } // namespace fd

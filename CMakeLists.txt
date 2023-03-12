@@ -116,7 +116,7 @@ set(FT_DISABLE_BROTLI on)
 FetchContent_Load(freetype freetype)
 FetchContent_MakeAvailable(freetype)
 
-FetchContent_Load(ocornut imgui)
+FetchContent_Load(ocornut imgui GIT_TAG features/string_view)
 FetchContent_Populate(imgui)
 
 set(XXHASH_BUILD_XXHSUM off)
