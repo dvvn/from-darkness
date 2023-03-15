@@ -2,6 +2,9 @@
 
 #include <fd/gui/basic_context.h>
 
+#ifdef IMGUI_USER_CONFIG
+#include IMGUI_USER_CONFIG
+#endif
 #include <imgui_internal.h>
 
 #include <Windows.h>
@@ -28,18 +31,19 @@ class imgui_backup
 
 class _gui_context : public basic_gui_context
 {
-#ifdef _DEBUG
+    // demo windows have static ImVector inside, so we unable to restore allocators here
+#if defined(IMGUI_DISABLE_DEMO_WINDOW) && defined(_DEBUG)
     imgui_backup backup_;
 #endif
     ImGuiContext context_;
-    ImFontAtlas fontAtlas_;
+    ImFontAtlas font_atlas_;
 
     bool attached_;
 
   public:
     struct init_data
     {
-        bool storeSettings;
+        bool store_settings;
         IDirect3DDevice9 *backend;
         HWND window;
     };
@@ -48,6 +52,9 @@ class _gui_context : public basic_gui_context
     _gui_context();
 
     bool init(init_data data);
+
+    _gui_context(_gui_context const &other)            = delete;
+    _gui_context &operator=(_gui_context const &other) = delete;
 
     // mark whe rendered unavaiable
     void detach();

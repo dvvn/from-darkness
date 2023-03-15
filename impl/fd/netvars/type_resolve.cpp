@@ -22,7 +22,7 @@ static constexpr std::false_type _NetvarTypeFor;
 
 #define NETVAR_TYPE_PLATFORM(_T_) \
     template <>                   \
-    static constexpr platform_netvar_type _NetvarTypeFor<_T_> = { #_T_ };
+    static constexpr auto _NetvarTypeFor<_T_> = platform_netvar_type(#_T_);
 
 NETVAR_TYPE_PLATFORM(int8_t);
 NETVAR_TYPE_PLATFORM(uint8_t);
@@ -35,21 +35,21 @@ NETVAR_TYPE_PLATFORM(uint64_t);
 
 #define NETVAR_TYPE_NATIVE(_T_) \
     template <>                 \
-    static constexpr native_netvar_type _NetvarTypeFor<_T_> = { #_T_ };
+    static constexpr auto _NetvarTypeFor<_T_> = native_netvar_type(#_T_);
 
 NETVAR_TYPE_NATIVE(bool);
-NETVAR_TYPE_NATIVE(char*);
-NETVAR_TYPE_NATIVE(const char*);
-NETVAR_TYPE_NATIVE(void*);
-NETVAR_TYPE_NATIVE(const void*);
+NETVAR_TYPE_NATIVE(char *);
+NETVAR_TYPE_NATIVE(const char *);
+NETVAR_TYPE_NATIVE(void *);
+NETVAR_TYPE_NATIVE(const void *);
 NETVAR_TYPE_NATIVE(float);
 NETVAR_TYPE_NATIVE(double);
 NETVAR_TYPE_NATIVE(long double);
 
-#define NETVAR_TYPE_VALVE(_T_, _INC_)                                                         \
-    template <>                                                                               \
-    static constexpr custom_netvar_type_simple _NetvarTypeFor<valve::_T_> = { "valve::" #_T_, \
-                                                                              "<fd/valve/" #_INC_ ".h>" };
+#define NETVAR_TYPE_VALVE(_T_, _INC_)                                             \
+    template <>                                                                   \
+    static constexpr auto _NetvarTypeFor<valve::_T_> = custom_netvar_type_simple( \
+        /*"valve::"*/ #_T_, "<fd/valve/" #_INC_ ".h>");
 
 // NETVAR_TYPE_VALVE(vector, vector);
 NETVAR_TYPE_VALVE(vector2, vectorX);
@@ -57,13 +57,13 @@ NETVAR_TYPE_VALVE(vector3, vectorX);
 NETVAR_TYPE_VALVE(color, color);
 NETVAR_TYPE_VALVE(qangle, qangle);
 NETVAR_TYPE_VALVE(base_handle, base_handle);
-NETVAR_TYPE_VALVE(base_entity*, base_entity);
+NETVAR_TYPE_VALVE(base_entity *, base_entity);
 NETVAR_TYPE_VALVE(quaternion, quaternion);
 // NETVAR_TYPE_VALVE(view_matrix, matrixX);
 NETVAR_TYPE_VALVE(matrix3x4, matrixX);
 NETVAR_TYPE_VALVE(matrix4x4, matrixX);
 
-static char const* _prefix_ptr(char const* ptr, size_t prefixSize)
+static char const *_prefix_ptr(char const *ptr, size_t prefixSize)
 {
     if (!std::isupper(ptr[2 + prefixSize]))
         return nullptr;
@@ -100,16 +100,17 @@ struct _prefix_max_length
 };
 
 static std::string_view _find_prefix(
-    std::string_view   type,
+    std::string_view type,
     _prefix_max_length limit = std::numeric_limits<uint16_t>::max())
 {
     if (!type.starts_with("m_"))
         return {};
-    for (size_t i = 2; i < std::min(limit.value, type.size()); ++i)
+    type.remove_prefix(2);
+    for (size_t i = 0; i < std::min(limit.value + 1, type.size()); ++i)
     {
         if (!std::isupper(type[i]))
             continue;
-        return type.substr(2, i);
+        return type.substr(0, i);
     }
     return {};
 }
@@ -145,13 +146,15 @@ static std::string_view _find_prefix(std::string_view type, _prefix_length prefi
 static std::optional<custom_netvar_type_simple> _check_int_prefix(std::string_view type)
 {
     if (_check_prefix(type, "uch"))
-        return (_NetvarTypeFor<valve::color>);
+        return _NetvarTypeFor<valve::color>;
     return {};
 }
 
 static std::optional<custom_netvar_type_simple> _check_float_prefix(std::string_view type)
 {
 #if 1
+    if (type == "m_rgflCoordinateFrame")
+        __debugbreak();
     auto prefix = _find_prefix(type, _prefix_length(3));
     if (prefix == "ang")
         return _NetvarTypeFor<valve::qangle>;
@@ -176,14 +179,12 @@ static bool operator==(std::string_view str, char c)
     return str[0] == c;
 }
 
-template <typename Ret = known_netvar_type>
-static Ret _extract_type_integer(std::string_view name)
+static netvar_type _extract_type_integer(std::string_view name)
 {
     auto prefix = _find_prefix(name, _prefix_max_length(3));
     switch (prefix.size())
     {
-    case 1:
-    {
+    case 1: {
         if (prefix == 'b')
             return _NetvarTypeFor<bool>;
         if (prefix == 'c')
@@ -192,8 +193,7 @@ static Ret _extract_type_integer(std::string_view name)
             return _NetvarTypeFor<valve::base_handle>;
         break;
     }
-    case 2:
-    {
+    case 2: {
         if (prefix == "un")
             return _NetvarTypeFor<uint32_t>;
         if (prefix == "ch")
@@ -202,8 +202,7 @@ static Ret _extract_type_integer(std::string_view name)
             return _NetvarTypeFor<float>;
         break;
     }
-    case 3:
-    {
+    case 3: {
         if (prefix == "clr")
             return _NetvarTypeFor<valve::color>; // not sure
         break;
@@ -213,89 +212,85 @@ static Ret _extract_type_integer(std::string_view name)
     return _NetvarTypeFor<int32_t>;
 }
 
-template <typename Ret = known_netvar_type>
-static Ret _extract_type_vec3(std::string_view name)
+static netvar_type _extract_type_vec3(std::string_view name)
 {
     assert(!std::isdigit(name[0]));
 
-    constexpr auto qang = _NetvarTypeFor<valve::qangle>;
-    constexpr auto vec  = _NetvarTypeFor<valve::vector3>;
+    constexpr auto &qang = _NetvarTypeFor<valve::qangle>;
+    constexpr auto &vec  = _NetvarTypeFor<valve::vector3>;
 
     if (_check_prefix(name, "ang"))
         return qang;
-    auto netvarName = name.substr(std::strlen("m_***"));
-    if (netvarName.size() >= std::strlen("angles"))
+    auto real_name = name.substr(std::strlen("m_***"));
+    if (real_name.size() >= std::strlen("angles"))
     {
-        auto anglesWordPos = netvarName.find("ngles");
-        if (anglesWordPos != netvarName.npos && anglesWordPos > 0)
+        auto second_real_name_char = real_name.find("ngles");
+        if (second_real_name_char != real_name.npos && second_real_name_char != 0)
         {
-            auto anglesWordBegin = netvarName[anglesWordPos - 1];
-            if (anglesWordBegin == 'a' || anglesWordBegin == 'A')
+            auto first_real_name_char = real_name[second_real_name_char - 1];
+            if (first_real_name_char == 'a' || first_real_name_char == 'A')
                 return qang;
         }
     }
     return vec;
 }
 
-static netvar_type _extract_type(std::string_view name, valve::recv_prop* prop)
+static netvar_type _extract_type(std::string_view name, valve::recv_prop *prop)
 {
     using pt = valve::recv_prop_type;
 
     switch (prop->type)
     {
     case pt::DPT_Int:
-        return _extract_type_integer<netvar_type>(name);
+        return _extract_type_integer(name);
     case pt::DPT_Float:
         return _NetvarTypeFor<float>;
     case pt::DPT_Vector:
-        return _extract_type_vec3<netvar_type>(name);
+        return _extract_type_vec3(name);
     case pt::DPT_VectorXY:
         return _NetvarTypeFor<valve::vector2>; // 3d vector. z unused
     case pt::DPT_String:
-        return _NetvarTypeFor<char*>; // char[X]
-    case pt::DPT_Array:
-    {
+        return _NetvarTypeFor<char *>; // char[X]
+    case pt::DPT_Array: {
         auto prevProp = prop - 1;
         // assert(std::string_view(prevProp->name).ends_with("[0]"));
         return netvar_type_array(prop->elements_count, _extract_type(name, prevProp));
     }
-    case pt::DPT_DataTable:
-    {
+    case pt::DPT_DataTable: {
 #if 0
         return prop->name;
 #else
         assert(0 && "Data table type must be manually resolved!");
-        return _NetvarTypeFor<void*>;
+        return _NetvarTypeFor<void *>;
 #endif
     }
     case pt::DPT_Int64:
         return _NetvarTypeFor<int64_t>;
-    default:
-    {
+    default: {
         assert(0 && "Unknown recv prop type");
-        return _NetvarTypeFor<void*>;
+        return _NetvarTypeFor<void *>;
     }
     }
 }
 
-static netvar_type _extract_type(std::string_view name, valve::data_map_description* field)
+static netvar_type _extract_type(std::string_view name, valve::data_map_description *field)
 {
     using ft = valve::data_map_description_type;
 
     switch (field->type)
     {
     case ft::FIELD_VOID:
-        return _NetvarTypeFor<void*>;
+        return _NetvarTypeFor<void *>;
     case ft::FIELD_FLOAT:
         return _NetvarTypeFor<float>;
     case ft::FIELD_STRING:
-        return _NetvarTypeFor<char*>; // string_t at real
+        return _NetvarTypeFor<char *>; // string_t at real
     case ft::FIELD_VECTOR:
-        return _extract_type_vec3<netvar_type>(name);
+        return _extract_type_vec3(name);
     case ft::FIELD_QUATERNION:
         return _NetvarTypeFor<valve::quaternion>;
     case ft::FIELD_INTEGER:
-        return _extract_type_integer<netvar_type>(name);
+        return _extract_type_integer(name);
     case ft::FIELD_BOOLEAN:
         return _NetvarTypeFor<bool>;
     case ft::FIELD_SHORT:
@@ -311,7 +306,7 @@ static netvar_type _extract_type(std::string_view name, valve::data_map_descript
         assert(0 && "Custom field detected");
         std::unreachable();
     case ft::FIELD_CLASSPTR:
-        return _NetvarTypeFor<valve::base_entity*>;
+        return _NetvarTypeFor<valve::base_entity *>;
     case ft::FIELD_EHANDLE:
         return _NetvarTypeFor<valve::base_handle>;
     case ft::FIELD_EDICT:
@@ -325,7 +320,7 @@ static netvar_type _extract_type(std::string_view name, valve::data_map_descript
         return _NetvarTypeFor<int32_t>;
     case ft::FIELD_MODELNAME:
     case ft::FIELD_SOUNDNAME:
-        return _NetvarTypeFor<char*>; // string_t at real
+        return _NetvarTypeFor<char *>; // string_t at real
     case ft::FIELD_INPUT:
         assert(0 && "Inputvar field detected"); //  "CMultiInputVar"
         std::unreachable();
@@ -351,7 +346,7 @@ static netvar_type _extract_type(std::string_view name, valve::data_map_descript
     }
 }
 
-static std::optional<custom_netvar_type_simple> _extract_type_by_prefix(std::string_view name, valve::recv_prop* prop)
+static std::optional<custom_netvar_type_simple> _extract_type_by_prefix(std::string_view name, valve::recv_prop *prop)
 {
     using pt = valve::recv_prop_type;
 
@@ -367,8 +362,8 @@ static std::optional<custom_netvar_type_simple> _extract_type_by_prefix(std::str
 }
 
 static std::optional<custom_netvar_type_simple> _extract_type_by_prefix(
-    std::string_view             name,
-    valve::data_map_description* field)
+    std::string_view name,
+    valve::data_map_description *field)
 {
     using ft = valve::data_map_description_type;
 
@@ -386,8 +381,7 @@ static std::optional<custom_netvar_type_simple> _extract_type_by_prefix(
 netvar_type netvar_type_hint::resolve() const
 {
     return std::visit(
-        [&]<typename T>(T val) -> netvar_type
-        {
+        [&]<typename T>(T val) -> netvar_type {
             if constexpr (std::same_as<std::monostate, T>)
                 std::terminate();
             else

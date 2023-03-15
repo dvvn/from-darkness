@@ -2,11 +2,12 @@ project(fd_shared CXX)
 
 file(GLOB_RECURSE _FILES ${FD_DIR}/*.cpp)
 add_library(fd_shared ${_FILES})
+
 target_link_libraries(fd_shared PUBLIC 
     #function2
     #robin_hood::robin_hood
     nlohmann_json::nlohmann_json
-    glaze::glaze
+    #glaze::glaze
     subhook::subhook
     fmt::fmt
     imgui::imgui

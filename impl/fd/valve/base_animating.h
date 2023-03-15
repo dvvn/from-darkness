@@ -3,7 +3,6 @@
 #include <fd/valve/animation_layer.h>
 #include <fd/valve/base_entity.h>
 
-#include <cstdint>
 
 namespace fd::valve
 {

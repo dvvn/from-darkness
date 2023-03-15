@@ -33,7 +33,7 @@ _gui_context::~_gui_context()
 }
 
 _gui_context::_gui_context()
-    : context_(&fontAtlas_)
+    : context_(&font_atlas_)
     , attached_(false)
 {
     IMGUI_CHECKVERSION();
@@ -53,7 +53,7 @@ _gui_context::_gui_context()
 
 bool _gui_context::init(init_data data)
 {
-    if (!data.storeSettings)
+    if (!data.store_settings)
     {
         context_.SettingsHandlers.clear();
         context_.IO.IniFilename = nullptr;

@@ -13,9 +13,10 @@ netvar_log::~netvar_log()
 {
     if (dir.empty())
         return;
-    if (!exists(dir) && !create_directories(dir))
-        return;
-    write_file(make_path().native(), buff_, false);
+    if (!exists(dir) && create_directories(dir))
+        write_file(make_path().native(), buff_);
+    else
+        write_file(make_path().native(), buff_, false);
 }
 
 boost::filesystem::path netvar_log::make_path() const

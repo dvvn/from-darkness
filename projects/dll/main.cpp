@@ -93,11 +93,6 @@ class csgo_interfaces
 
 static netvars_storage *g_netvars;
 
-size_t get_netvar_offset(std::string_view table, std::string_view name)
-{
-    return g_netvars->get_offset(table, name);
-}
-
 class netvars_data
 {
     netvars_storage storage_;
@@ -283,6 +278,11 @@ static DWORD WINAPI _context(void *) noexcept
     return TRUE;
 }
 } // namespace fd
+
+size_t get_netvar_offset(std::string_view table, std::string_view name)
+{
+    return fd::g_netvars->get_offset(table, name);
+}
 
 // ReSharper disable once CppInconsistentNaming
 BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID /*reserved*/)

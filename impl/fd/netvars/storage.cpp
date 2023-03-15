@@ -245,7 +245,7 @@ static bool _store(
     assert(arraySize != 0);
     netvarTable->emplace_back(
         arrayStart->offset + extraOffset,
-        netvar_type_array(arraySize, custom_netvar_type(type, fmt::format("<fd/netvars_generated/{}_h>", type))),
+        netvar_type_array(arraySize, custom_netvar_type(type, fmt::format("<fd/valve/{}.h>", type))),
         tableName);
     return true;
 }

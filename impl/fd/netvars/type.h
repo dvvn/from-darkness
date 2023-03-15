@@ -58,6 +58,11 @@ struct custom_netvar_type<T, netvar_type_merged_includes<I>>
         : type(std::forward<Tt>(t))
     {
     }
+
+    explicit operator bool() const
+    {
+        return !include.empty();
+    }
 };
 
 template <typename T>
@@ -68,7 +73,7 @@ custom_netvar_type(T type, I include) -> custom_netvar_type<string_or_view<T>, s
 
 using custom_netvar_type_simple = custom_netvar_type<std::string_view, std::string_view>;
 
-using known_netvar_type = std::variant<native_netvar_type, platform_netvar_type, custom_netvar_type_simple>;
+// using known_netvar_type = std::variant<native_netvar_type, platform_netvar_type, custom_netvar_type_simple>;
 
 struct netvar_type;
 
