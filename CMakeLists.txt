@@ -88,4 +88,4 @@ if(MSVC)
   set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} /OPT:ICF,REF")
 endif()
 
-add_subdirectory("cmake")
+include(cmake/init.cmake)
