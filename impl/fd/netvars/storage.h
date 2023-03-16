@@ -10,17 +10,17 @@ namespace fd
 {
 class netvars_storage final
 {
-    netvar_tables         internal_;
+    netvar_tables internal_;
     netvar_tables_ordered data_;
 
   public:
-    void iterate_client_class(valve::client_class* cclass);
-    void iterate_datamap(valve::data_map* rootMap);
+    void iterate_client_class(valve::client_class *cclass);
+    void iterate_datamap(valve::data_map *root_map);
 
-    void log_netvars(netvar_log& log);
-    void generate_classes(netvar_classes& data);
+    void log_netvars(netvar_log &log);
+    void generate_classes(netvar_classes &data);
 
-    size_t get_offset(std::string_view className, std::string_view name) const;
-    void   clear();
+    size_t get_offset(std::string_view class_name, std::string_view name) const;
+    void clear();
 };
 } // namespace fd

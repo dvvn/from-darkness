@@ -5,10 +5,12 @@
 #include <fd/hooking/callback.h>
 #include <fd/hooking/storage.h>
 #include <fd/library_info.h>
+#include <fd/netvars/getter.h>
 #include <fd/netvars/storage.h>
 #include <fd/utils/functional.h>
 
 #include <fd/valve/base_client.h>
+#include <fd/valve/client_entity_list.h>
 #include <fd/valve/cs_player.h>
 #include <fd/valve/engine_client.h>
 #include <fd/valve/gui/surface.h>
@@ -44,16 +46,6 @@ class csgo_library_info_ex : public csgo_library_info
         return this->find_interface(create_interface_fn_, name);
     }
 };
-
-template <class T>
-concept have_init_fn = requires() { T::init(); };
-
-template <class T>
-static void _init_netvars()
-{
-    if constexpr (have_init_fn<T>)
-        T::init();
-}
 
 static void _unload()
 {
@@ -92,6 +84,11 @@ class csgo_interfaces
 };
 
 static netvars_storage *g_netvars;
+
+size_t get_netvar_offset(std::string_view table, std::string_view name)
+{
+    return g_netvars->get_offset(table, name);
+}
 
 class netvars_data
 {
@@ -143,6 +140,11 @@ class netvars_data
     }
 };
 
+namespace valve
+{
+client_entity_list *entity_list;
+}
+
 static DWORD WINAPI _context(void *) noexcept
 {
     DWORD exit_code                = EXIT_FAILURE;
@@ -161,8 +163,8 @@ static DWORD WINAPI _context(void *) noexcept
     spdlog::set_level(spdlog::level::warning);
 #endif
 
-    while (!find_library(L"serverbrowser.dll"))
-        Sleep(1000);
+    for (DWORD delay = 1000; !find_library(L"serverbrowser.dll"); delay += 1000)
+        Sleep(delay);
 
     set_current_library(_ModuleHandle);
 
@@ -188,17 +190,13 @@ static DWORD WINAPI _context(void *) noexcept
     }
     netvars.debug_update(ifc.engine);
 
-    _init_netvars<valve::cs_player>();
+    init_netvars<valve::cs_player>();
 
     auto hack_menu = menu(tab_bar(tab("tab", [] {
         ImGui::TextUnformatted("test");
         if (ImGui::Button("Unload"))
             _unload();
     })));
-
-    D3DDEVICE_CREATION_PARAMETERS d3d_params;
-    if (FAILED(ifc.d3d->GetCreationParameters(&d3d_params)))
-        abort(); // WARNING!!!
 
     auto gui_ctx = gui_context([&] {
         [[maybe_unused]] auto visible = hack_menu.render();
@@ -207,6 +205,11 @@ static DWORD WINAPI _context(void *) noexcept
             ImGui::ShowDemoWindow();
 #endif
     });
+
+    D3DDEVICE_CREATION_PARAMETERS d3d_params;
+    if (FAILED(ifc.d3d->GetCreationParameters(&d3d_params)))
+        abort(); // WARNING!!!
+
     if (!gui_ctx.init({ false, ifc.d3d, d3d_params.hFocusWindow }))
         return FALSE;
     invoke_on_destruct gui_ctx_protector = [&] {
@@ -251,7 +254,7 @@ static DWORD WINAPI _context(void *) noexcept
             "VGUI.ISurface::LockCursor",
             fn_sample(&valve::gui::surface::LockCursor, vfunc(ifc.vgui_surface, 67)),
             [&](auto orig, auto this_ptr) {
-                if (hack_menu.visible() && !this_ptr->IsCursorVisible())
+                if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
                 {
                     this_ptr->UnlockCursor();
                     return;
@@ -278,11 +281,6 @@ static DWORD WINAPI _context(void *) noexcept
     return TRUE;
 }
 } // namespace fd
-
-size_t get_netvar_offset(std::string_view table, std::string_view name)
-{
-    return fd::g_netvars->get_offset(table, name);
-}
 
 // ReSharper disable once CppInconsistentNaming
 BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID /*reserved*/)

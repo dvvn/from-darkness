@@ -2,7 +2,7 @@ include(FetchContent)
 set(GIT_SHALLOW true)
 set(FETCHCONTENT_QUIET off)
 set(FETCHCONTENT_BASE_DIR ${FD_ROOT_DIR}/.deps1)
-set(FETCHCONTENT_FULLY_DISCONNECTED on)
+#set(FETCHCONTENT_FULLY_DISCONNECTED on)
 
 set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
 

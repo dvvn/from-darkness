@@ -11,6 +11,7 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <optional>
@@ -63,83 +64,79 @@ NETVAR_TYPE_VALVE(quaternion, quaternion);
 NETVAR_TYPE_VALVE(matrix3x4, matrixX);
 NETVAR_TYPE_VALVE(matrix4x4, matrixX);
 
-static char const *_prefix_ptr(char const *ptr, size_t prefixSize)
+static constexpr std::string_view internal_prefix = ("m_");
+
+static bool is_valid_prefix(std::string_view type, size_t whole_prefix_size)
 {
-    if (!std::isupper(ptr[2 + prefixSize]))
-        return nullptr;
-    if (*ptr++ != 'm' || *ptr++ != '_')
-        return nullptr;
-    return ptr;
+    return type.size() > whole_prefix_size &&       //
+           std::isupper(type[whole_prefix_size]) && //
+           type.starts_with(internal_prefix);
 }
 
 static bool _check_prefix(std::string_view type, std::string_view prefix)
 {
-    if (type.size() - 2 <= prefix.size())
-        return false;
-    auto ptr = _prefix_ptr(type.data(), prefix.size());
-    return ptr && std::memcmp(ptr, prefix.data(), prefix.size()) == 0;
+    auto whole_prefix_size = internal_prefix.size() + prefix.size();
+    return is_valid_prefix(type, whole_prefix_size) && type.substr(internal_prefix.size()).starts_with(prefix);
 }
 
-[[maybe_unused]]
-static bool _check_prefix(std::string_view type, char prefix)
+static bool can_have_prefix(std::string_view type)
 {
-    if (type.size() <= 3)
+    // m_xX
+    if (type.size() < internal_prefix.size() + 2)
         return false;
-    auto ptr = _prefix_ptr(type.data(), 1);
-    return ptr && *ptr == prefix;
+    if (!type.starts_with(internal_prefix))
+        return false;
+    return true;
 }
 
-struct _prefix_max_length
+static std::string_view _find_prefix(std::string_view type)
 {
-    constexpr _prefix_max_length(size_t value)
-        : value(value)
+    if (can_have_prefix(type))
     {
-    }
+        auto start = type.begin() + internal_prefix.size();
+        auto end   = type.end();
 
-    size_t value;
-};
-
-static std::string_view _find_prefix(
-    std::string_view type,
-    _prefix_max_length limit = std::numeric_limits<uint16_t>::max())
-{
-    if (!type.starts_with("m_"))
-        return {};
-    type.remove_prefix(2);
-    for (size_t i = 0; i < std::min(limit.value + 1, type.size()); ++i)
-    {
-        if (!std::isupper(type[i]))
-            continue;
-        return type.substr(0, i);
+        auto up = std::find_if(start, end, isupper);
+        if (up != end)
+            return { start, up };
     }
     return {};
 }
 
-struct _prefix_length
+static std::string_view _find_prefix(std::string_view type, size_t max_length)
 {
-    constexpr _prefix_length(size_t value)
-        : value(value)
+    if (can_have_prefix(type))
     {
+        auto start = type.begin() + internal_prefix.size();
+#if 1
+        auto end = start + std::min(max_length + 1, type.size() - internal_prefix.size());
+
+        auto up = std::find_if(start, end, isupper);
+        if (up != end)
+            return { start, up };
+#else
+        auto end = type.end();
+        for (auto it = start; it != end; ++it)
+        {
+            if (isupper(*it))
+                return { start, it };
+            if (max_length == 0)
+                break;
+            --max_length;
+        }
+#endif
     }
+    return {};
+}
 
-    size_t value;
-};
-
-static std::string_view _find_prefix(std::string_view type, _prefix_length prefixLength)
+static std::string_view _find_exact_prefix(std::string_view type, size_t length)
 {
-    if (!type.starts_with("m_"))
+    auto whole_prefix_size = internal_prefix.size() + length;
+    if (!is_valid_prefix(type, whole_prefix_size))
         return {};
-    if (type.size() - 2 <= prefixLength.value)
+    auto prefix = type.substr(internal_prefix.size(), length);
+    if (std::any_of(prefix.begin(), prefix.end(), isupper))
         return {};
-    if (!std::isupper(type[2 + prefixLength.value]))
-        return {};
-
-    auto prefix = type.substr(2, prefixLength.value);
-    for (auto c : prefix)
-    {
-        if (std::isupper(c))
-            return {};
-    }
     return prefix;
 }
 
@@ -155,7 +152,7 @@ static std::optional<custom_netvar_type_simple> _check_float_prefix(std::string_
 #if 1
     if (type == "m_rgflCoordinateFrame")
         __debugbreak();
-    auto prefix = _find_prefix(type, _prefix_length(3));
+    auto prefix = _find_exact_prefix(type, (3));
     if (prefix == "ang")
         return _NetvarTypeFor<valve::qangle>;
     if (prefix == "vec")
@@ -174,22 +171,17 @@ static std::optional<custom_netvar_type_simple> _check_float_prefix(std::string_
 #endif
 }
 
-static bool operator==(std::string_view str, char c)
-{
-    return str[0] == c;
-}
-
 static netvar_type _extract_type_integer(std::string_view name)
 {
-    auto prefix = _find_prefix(name, _prefix_max_length(3));
+    auto prefix = _find_prefix(name, (3));
     switch (prefix.size())
     {
     case 1: {
-        if (prefix == 'b')
+        if (prefix[0] == 'b')
             return _NetvarTypeFor<bool>;
-        if (prefix == 'c')
+        if (prefix[0] == 'c')
             return _NetvarTypeFor<uint8_t>;
-        if (prefix == 'h')
+        if (prefix[0] == 'h')
             return _NetvarTypeFor<valve::base_handle>;
         break;
     }
@@ -252,9 +244,9 @@ static netvar_type _extract_type(std::string_view name, valve::recv_prop *prop)
     case pt::DPT_String:
         return _NetvarTypeFor<char *>; // char[X]
     case pt::DPT_Array: {
-        auto prevProp = prop - 1;
+        auto prev_prop = prop - 1;
         // assert(std::string_view(prevProp->name).ends_with("[0]"));
-        return netvar_type_array(prop->elements_count, _extract_type(name, prevProp));
+        return netvar_type_array(prop->elements_count, _extract_type(name, prev_prop));
     }
     case pt::DPT_DataTable: {
 #if 0

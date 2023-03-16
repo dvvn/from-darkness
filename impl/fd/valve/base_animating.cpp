@@ -1,11 +1,18 @@
 #include <fd/valve/base_animating.h>
 
-#if __has_include("C_BaseAnimating_generated_cpp")
-#include "C_BaseAnimating_generated_cpp"
+#if __has_include(<fd/netvars_generated/C_BaseAnimating_cpp_inc>)
+#define NETVAR_CLASS base_animating
+// ReSharper disable once CppUnusedIncludeDirective
+#include <fd/netvars_generated/C_BaseAnimating_cpp_inc>
 #endif
 
-using namespace fd;
-using namespace valve;
+namespace fd::valve
+{
+#if __has_include(<fd/netvars_generated/C_BaseAnimating_cpp>)
+#define NETVAR_CLASS base_animating
+// ReSharper disable once CppUnusedIncludeDirective
+#include <fd/netvars_generated/C_BaseAnimating_cpp>
+#endif
 
 void base_animating::UpdateClientSideAnimation()
 {
@@ -16,11 +23,10 @@ void base_animating::UpdateClientSideAnimation()
 
 void base_animating::InvalidateBoneCache()
 {
-#if __has_include("C_BaseAnimating_generated_cpp")
-    auto& time    = LastBoneSetupTime();
-    auto& counter = MostRecentModelBoneCounter();
+    /*auto &time    = LastBoneSetupTime();
+    auto &counter = MostRecentModelBoneCounter();
 
     time    = -FLT_MAX;
-    counter = -1;
-#endif
+    counter = -1;*/
+}
 }

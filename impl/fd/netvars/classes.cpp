@@ -43,24 +43,15 @@ struct generate_info
     netvar_type_merged_includes<std::string_view> include;
     std::string_view name;
     std::string type_out;
-    std::string type_cast;
 
     generate_info(netvar_info &info)
+        : name(info.name())
+        , type_out(info.type())
     {
-        auto type_raw = info.type();
-        assert(!type_raw.empty());
+        assert(!type_out.empty());
 
-        auto is_pointer   = type_raw.ends_with('*');
-        auto type_decayed = is_pointer ? type_raw.substr(0, type_raw.size() - 1) : type_raw;
-
-        type_out.append(type_decayed);
-        type_out.push_back(is_pointer ? '*' : '&');
-
-        if (!is_pointer)
-            type_cast.push_back('*');
-        type_cast.append("reinterpret_cast<").append(type_decayed).append("*>");
-
-        name = info.name();
+        if (!type_out.ends_with('*'))
+            type_out.push_back('&');
 
         info.type_ex().write_includes(std::back_inserter(include));
         /*std::stable_sort(include.begin(), include.end());
@@ -139,9 +130,6 @@ class filler
 
     void source(std::string_view extension = "_cpp")
     {
-        std::string offsets_class;
-        offsets_class.append(class_name_).append("_offsets");
-
         buff_.append_range(format_off_);
         buff_.append_range("static struct\n{\n");
         {
@@ -154,52 +142,48 @@ class filler
                 {
                     fmt::format_to(
                         buff_.out(),
-                        "\t\tassert({name} == -1);\n" /*already set*/
-                        "\t\t{name} = get_netvar_offset(\"{class_name}\", \"{name}\");\n",
-                        fmt::arg("name", i.name),
-                        fmt::arg("class_name", class_name_));
+                        "\t\tset_netvar_offset(this->{}, \"{}\", \"{}\");\n", //
+                        i.name,
+                        class_name_,
+                        i.name);
                 }
             }
             buff_.append_range("\t}\n");
         }
-        buff_.push_back('}');
-        fmt::format_to(buff_.out(), " {};\n\n", offsets_class);
+        buff_.append_range("} current_class_netvars;\n\n");
 
         for (auto &i : table_)
         {
             fmt::format_to(
                 buff_.out(),
-                "{typeOut} CLASS_NAME::{name}()\n"
+                "{typeOut} NETVAR_CLASS::{name}()\n"
                 "{{\n"
-                "\tassert({offsetsClass}.{name} != -1);\n" /*not set*/
-                "\tauto addr = reinterpret_cast<uintptr_t>(this) + {offsetsClass}.{name};\n"
-                "\treturn {typeCast}(addr);\n"
+                "\treturn get_netvar<{typeOut}>(this, current_class_netvars.{name});\n"
                 "}}\n",
                 fmt::arg("typeOut", i.type_out),
-                fmt::arg("name", i.name),
-                fmt::arg("offsetsClass", offsets_class),
-                fmt::arg("typeCast", i.type_cast));
+                fmt::arg("name", i.name));
         }
 
-        fmt::format_to(
-            buff_.out(),
-            "void CLASS_NAME::init()\n"
-            "{{\n"
-            "\t{}.init();\n"
-            "}}\n",
-            offsets_class);
+        buff_.append_range("static void init_current_netvars()\n"
+                           "{\n"
+                           "\tcurrent_class_netvars.init();\n"
+                           "}\n");
 
         store(extension);
     }
 
     void s_includes(std::string_view extension = "_cpp_inc")
     {
+#ifdef FD_WORK_DIR
+        using boost::filesystem::path;
+        assert(exists(path(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars/getter.h")));
+#endif
         buff_.append_range(format_off_);
-        buff_.append_range("#include <string_view>\n");
-        buff_.append_range("#include <cassert>\n\n");
+        buff_.append_range("#include <fd/netvars/getter.h>\n");
+        // buff_.append_range("#include <cassert>\n\n");
 
-        buff_.append_range("size_t get_netvar_offset"
-                           "(std::string_view table, std::string_view name);\n\n");
+        /*buff_.append_range("size_t get_netvar_offset"
+                           "(std::string_view table, std::string_view name);\n\n");*/
 
         store(extension);
     }

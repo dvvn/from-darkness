@@ -4,8 +4,8 @@
 
 #include <cassert>
 
-using namespace fd;
-using namespace valve;
+namespace fd::valve
+{
 
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
@@ -22,25 +22,18 @@ constexpr auto NUM_SERIAL_NUM_SHIFT_BITS = 32 - NUM_SERIAL_NUM_BITS;
 constexpr auto ENT_ENTRY_MASK            = (1 << NUM_SERIAL_NUM_BITS) - 1;
 
 base_handle::base_handle()
+    : m_Index(INVALID_EHANDLE_INDEX)
 {
-    m_Index = INVALID_EHANDLE_INDEX;
 }
 
-base_handle::base_handle(base_handle const& other)
+base_handle::base_handle(base_handle const &other)
+    : m_Index(other.m_Index)
 {
-    m_Index = other.m_Index;
 }
 
-base_handle::base_handle(handle_entity* pHandleObj)
+base_handle::base_handle(handle_entity *pHandleObj)
+    : m_Index(pHandleObj ? pHandleObj->GetRefEHandle().m_Index : INVALID_EHANDLE_INDEX)
 {
-    if (!pHandleObj)
-    {
-        m_Index = INVALID_EHANDLE_INDEX;
-    }
-    else
-    {
-        *this = pHandleObj->GetRefEHandle();
-    }
 }
 
 base_handle::base_handle(int iEntry, int iSerialNumber)
@@ -74,15 +67,13 @@ int32_t base_handle::ToInt() const
     return (int32_t)m_Index;
 }
 
-namespace fd::valve
-{
-extern client_entity_list* entity_list;
-}
+extern client_entity_list *entity_list;
 
-handle_entity* base_handle::Get() const
+handle_entity *base_handle::Get() const
 {
     /*if (!IsValid( ))
         return 0;*/
     return entity_list->GetClientEntityFromHandle(*this);
     // FD_ASSERT_PANIC("Not implemented");
+}
 }

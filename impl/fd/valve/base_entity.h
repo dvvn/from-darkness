@@ -1,14 +1,14 @@
 #pragma once
 
+#include <fd/valve/client_entity.h>
+#include <fd/valve/data_map.h>
+// #include <fd/valve/matrixX.h>
+// #include <fd/valve/recv_table.h>
+// #include <fd/valve/var_map.h>
+
 #if __has_include(<fd/netvars_generated/C_BaseEntity_h_inc>)
 #include <fd/netvars_generated/C_BaseEntity_h_inc>
 #endif
-
-#include <fd/valve/client_entity.h>
-#include <fd/valve/data_map.h>
-#include <fd/valve/matrixX.h>
-#include <fd/valve/recv_table.h>
-#include <fd/valve/var_map.h>
 
 namespace fd::valve
 {
@@ -150,7 +150,7 @@ enum class m_fEffects_t : uint32_t
 struct base_entity : client_entity
 {
 #if __has_include(<fd/netvars_generated/C_BaseEntity_h>)
- #include <fd/netvars_generated/C_BaseEntity_h>
+#include <fd/netvars_generated/C_BaseEntity_h>
 #endif
 
     data_map *GetDataDescMap();
