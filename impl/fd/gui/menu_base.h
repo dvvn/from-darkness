@@ -10,14 +10,21 @@ namespace fd
 enum class menu_state : uint8_t
 {
     closed,
+    shown,
     hidden,
-    shown
+};
+
+enum class wish_menu_state : uint8_t
+{
+    closed,
+    shown,
+    unchanged
 };
 
 class menu_base : public basic_menu, public renderable_inner
 {
     menu_state state_;
-    bool wish_state_;
+    wish_menu_state wish_state_;
 
   public:
     menu_base();

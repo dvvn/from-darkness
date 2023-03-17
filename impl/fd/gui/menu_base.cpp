@@ -27,13 +27,22 @@ namespace fd
 {
 menu_base::menu_base()
     : state_(menu_state::closed)
-    , wish_state_(true)
+    , wish_state_(wish_menu_state::shown)
 {
 }
 
 bool menu_base::visible() const
 {
-    return state_ != menu_state::closed;
+    switch (state_)
+    {
+    case menu_state::closed:
+        return false;
+    case menu_state::shown:
+    case menu_state::hidden:
+        return true;
+    default:
+        std::unreachable();
+    }
 }
 
 bool menu_base::collapsed() const
@@ -43,25 +52,53 @@ bool menu_base::collapsed() const
 
 void menu_base::show()
 {
-    wish_state_ = true;
+    wish_state_ = wish_menu_state::shown;
 }
 
 void menu_base::close()
 {
-    wish_state_ = false;
+    wish_state_ = wish_menu_state::closed;
 }
 
 void menu_base::toggle()
 {
-    wish_state_ = state_ == menu_state::closed;
+    if (wish_state_ != wish_menu_state::unchanged)
+        return;
+
+    switch (state_)
+    {
+    case menu_state::closed:
+        wish_state_ = wish_menu_state::shown;
+        break;
+    case menu_state::shown:
+    case menu_state::hidden:
+        wish_state_ = wish_menu_state::closed;
+        break;
+    default:
+        std::unreachable();
+    }
 }
 
 bool menu_base::begin_frame()
 {
-    if (!wish_state_)
+    switch (wish_state_)
     {
-        state_ = menu_state::closed;
+    case wish_menu_state::closed: {
+        wish_state_ = wish_menu_state::unchanged;
+        state_      = menu_state::closed;
         return false;
+    }
+    case wish_menu_state::shown: {
+        wish_state_ = wish_menu_state::unchanged;
+        break;
+    }
+    case wish_menu_state::unchanged: {
+        if (state_ == menu_state::closed)
+            return false;
+        break;
+    }
+    default:
+        std::unreachable();
     }
 
     constexpr auto flags = ImGuiWindowFlags_AlwaysAutoResize |
@@ -73,6 +110,7 @@ bool menu_base::begin_frame()
     if (!shown)
     {
         state_ = menu_state::closed;
+        end_frame();
         return false;
     }
 
