@@ -193,7 +193,6 @@ class filler
         buff_.append_range(format_off_);
         for (auto &i : table_)
             fmt::format_to(buff_.out(), "{} {}();\n", i.type_out, i.name);
-        buff_.append_range("static void init();");
 
         store(extension);
     }

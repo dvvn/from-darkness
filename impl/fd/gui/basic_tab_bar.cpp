@@ -5,7 +5,6 @@
 
 namespace fd
 {
-
 #ifdef FD_GUI_RANDOM_TAB_BAR_NAME
 static uint16_t tab_counter = 0;
 

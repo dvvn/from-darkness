@@ -1,37 +1,49 @@
 #include <fd/hooking/hde.h>
 
+#include <cstdint>
 #include <cstring>
 
-#define C_NONE    0x00
-#define C_MODRM   0x01
-#define C_IMM8    0x02
-#define C_IMM16   0x04
-#define C_IMM_P66 0x10
-#define C_REL8    0x20
-#define C_REL32   0x40
-#define C_GROUP   0x80
-#define C_ERROR   0xff
+// ReSharper disable CppInconsistentNaming
 
-#define PRE_ANY  0x00
-#define PRE_NONE 0x01
-#define PRE_F2   0x02
-#define PRE_F3   0x04
-#define PRE_66   0x08
-#define PRE_67   0x10
-#define PRE_LOCK 0x20
-#define PRE_SEG  0x40
-#define PRE_ALL  0xff
+enum
+{
+    C_NONE    = 0x00,
+    C_MODRM   = 0x01,
+    C_IMM8    = 0x02,
+    C_IMM16   = 0x04,
+    C_IMM_P66 = 0x10,
+    C_REL8    = 0x20,
+    C_REL32   = 0x40,
+    C_GROUP   = 0x80,
+    C_ERROR   = 0xff
+};
 
-#define DELTA_OPCODES      0x4a
-#define DELTA_FPU_REG      0xf1
-#define DELTA_FPU_MODRM    0xf8
-#define DELTA_PREFIXES     0x130
-#define DELTA_OP_LOCK_OK   0x1a1
-#define DELTA_OP2_LOCK_OK  0x1b9
-#define DELTA_OP_ONLY_MEM  0x1cb
-#define DELTA_OP2_ONLY_MEM 0x1da
+enum
+{
+    PRE_ANY  = 0x00,
+    PRE_NONE = 0x01,
+    PRE_F2   = 0x02,
+    PRE_F3   = 0x04,
+    PRE_66   = 0x08,
+    PRE_67   = 0x10,
+    PRE_LOCK = 0x20,
+    PRE_SEG  = 0x40,
+    PRE_ALL  = 0xff
+};
 
-static unsigned char hde32_table[] = {
+enum
+{
+    DELTA_OPCODES      = 0x4a,
+    DELTA_FPU_REG      = 0xf1,
+    DELTA_FPU_MODRM    = 0xf8,
+    DELTA_PREFIXES     = 0x130,
+    DELTA_OP_LOCK_OK   = 0x1a1,
+    DELTA_OP2_LOCK_OK  = 0x1b9,
+    DELTA_OP_ONLY_MEM  = 0x1cb,
+    DELTA_OP2_ONLY_MEM = 0x1da
+};
+
+static constexpr unsigned char hde32_table[] = {
     0xa3, 0xa8, 0xa3, 0xa8, 0xa3, 0xa8, 0xa3, 0xa8, 0xa3, 0xa8, 0xa3, 0xa8, 0xa3, 0xa8, 0xa3, 0xa8, 0xaa, 0xaa, 0xaa,
     0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xac, 0xaa, 0xb2, 0xaa, 0x9f, 0x9f, 0x9f, 0x9f, 0xb5, 0xa3, 0xa3, 0xa4, 0xaa, 0xaa,
     0xba, 0xaa, 0x96, 0xaa, 0xa8, 0xaa, 0xc3, 0xc3, 0x96, 0x96, 0xb7, 0xae, 0xd6, 0xbd, 0xa3, 0xc5, 0xa3, 0xa3, 0x9f,
@@ -62,41 +74,47 @@ static unsigned char hde32_table[] = {
     0xf0, 0x02, 0x00
 };
 
-#define F_MODRM         0x00000001
-#define F_SIB           0x00000002
-#define F_IMM8          0x00000004
-#define F_IMM16         0x00000008
-#define F_IMM32         0x00000010
-#define F_DISP8         0x00000020
-#define F_DISP16        0x00000040
-#define F_DISP32        0x00000080
-#define F_RELATIVE      0x00000100
-#define F_2IMM16        0x00000800
-#define F_ERROR         0x00001000
-#define F_ERROR_OPCODE  0x00002000
-#define F_ERROR_LENGTH  0x00004000
-#define F_ERROR_LOCK    0x00008000
-#define F_ERROR_OPERAND 0x00010000
-#define F_PREFIX_REPNZ  0x01000000
-#define F_PREFIX_REPX   0x02000000
-#define F_PREFIX_REP    0x03000000
-#define F_PREFIX_66     0x04000000
-#define F_PREFIX_67     0x08000000
-#define F_PREFIX_LOCK   0x10000000
-#define F_PREFIX_SEG    0x20000000
-#define F_PREFIX_ANY    0x3f000000
+enum
+{
+    F_MODRM         = 0x00000001,
+    F_SIB           = 0x00000002,
+    F_IMM8          = 0x00000004,
+    F_IMM16         = 0x00000008,
+    F_IMM32         = 0x00000010,
+    F_DISP8         = 0x00000020,
+    F_DISP16        = 0x00000040,
+    F_DISP32        = 0x00000080,
+    F_RELATIVE      = 0x00000100,
+    F_2IMM16        = 0x00000800,
+    F_ERROR         = 0x00001000,
+    F_ERROR_OPCODE  = 0x00002000,
+    F_ERROR_LENGTH  = 0x00004000,
+    F_ERROR_LOCK    = 0x00008000,
+    F_ERROR_OPERAND = 0x00010000,
+    F_PREFIX_REPNZ  = 0x01000000,
+    F_PREFIX_REPX   = 0x02000000,
+    F_PREFIX_REP    = 0x03000000,
+    F_PREFIX_66     = 0x04000000,
+    F_PREFIX_67     = 0x08000000,
+    F_PREFIX_LOCK   = 0x10000000,
+    F_PREFIX_SEG    = 0x20000000,
+    F_PREFIX_ANY    = 0x3f000000
+};
 
-#define PREFIX_SEGMENT_CS   0x2e
-#define PREFIX_SEGMENT_SS   0x36
-#define PREFIX_SEGMENT_DS   0x3e
-#define PREFIX_SEGMENT_ES   0x26
-#define PREFIX_SEGMENT_FS   0x64
-#define PREFIX_SEGMENT_GS   0x65
-#define PREFIX_LOCK         0xf0
-#define PREFIX_REPNZ        0xf2
-#define PREFIX_REPX         0xf3
-#define PREFIX_OPERAND_SIZE 0x66
-#define PREFIX_ADDRESS_SIZE 0x67
+enum
+{
+    PREFIX_SEGMENT_CS   = 0x2e,
+    PREFIX_SEGMENT_SS   = 0x36,
+    PREFIX_SEGMENT_DS   = 0x3e,
+    PREFIX_SEGMENT_ES   = 0x26,
+    PREFIX_SEGMENT_FS   = 0x64,
+    PREFIX_SEGMENT_GS   = 0x65,
+    PREFIX_LOCK         = 0xf0,
+    PREFIX_REPNZ        = 0xf2,
+    PREFIX_REPX         = 0xf3,
+    PREFIX_OPERAND_SIZE = 0x66,
+    PREFIX_ADDRESS_SIZE = 0x67
+};
 
 #pragma pack(push, 1)
 
@@ -121,14 +139,14 @@ using hde32s = struct
 
     union
     {
-        uint8_t  imm8;
+        uint8_t imm8;
         uint16_t imm16;
         uint32_t imm32;
     } imm;
 
     union
     {
-        uint8_t  disp8;
+        uint8_t disp8;
         uint16_t disp16;
         uint32_t disp32;
     } disp;
@@ -138,10 +156,23 @@ using hde32s = struct
 
 #pragma pack(pop)
 
-static unsigned int hde32_disasm(void* code, hde32s* hs)
+// ReSharper restore CppInconsistentNaming
+
+// ReSharper disable CppClangTidyBugproneAssignmentInIfCondition
+// ReSharper disable CppClangTidyCppcoreguidelinesAvoidGoto
+// ReSharper disable CppClangTidyClangDiagnosticImplicitIntConversion
+// ReSharper disable CppLocalVariableMightNotBeInitialized
+static unsigned int hde32_disasm(void *code, hde32s *hs)
 {
-    uint8_t  x, c, *p = (uint8_t*)code, cflags, opcode, pref = 0;
-    uint8_t *ht = hde32_table, m_mod, m_reg, m_rm, disp_size = 0;
+    uint8_t x;
+    uint8_t c;
+    auto *p      = static_cast<uint8_t *>(code);
+    uint8_t pref = 0;
+    auto ht      = hde32_table;
+    uint8_t m_mod;
+    uint8_t m_reg;
+    uint8_t m_rm;
+    uint8_t disp_size = 0;
 
     memset(hs, 0, sizeof(hde32s));
 
@@ -182,7 +213,7 @@ static unsigned int hde32_disasm(void* code, hde32s* hs)
         }
 pref_done:
 
-    hs->flags = (uint32_t)pref << 23;
+    hs->flags = static_cast<uint32_t>(pref) << 23;
 
     if (!pref)
         pref |= PRE_NONE;
@@ -200,8 +231,8 @@ pref_done:
             pref &= ~PRE_66;
     }
 
-    opcode = c;
-    cflags = ht[ht[opcode / 4] + (opcode % 4)];
+    auto opcode = c;
+    auto cflags = ht[ht[opcode / 4] + opcode % 4];
 
     if (cflags == C_ERROR)
     {
@@ -214,16 +245,15 @@ pref_done:
     x = 0;
     if (cflags & C_GROUP)
     {
-        uint16_t t;
-        t      = *(uint16_t*)(ht + (cflags & 0x7f));
-        cflags = (uint8_t)t;
-        x      = (uint8_t)(t >> 8);
+        auto t = *reinterpret_cast<const uint16_t *>(ht + (cflags & 0x7f));
+        cflags = static_cast<uint8_t>(t);
+        x      = static_cast<uint8_t>(t >> 8);
     }
 
     if (hs->opcode2)
     {
         ht = hde32_table + DELTA_PREFIXES;
-        if (ht[ht[opcode / 4] + (opcode % 4)] & pref)
+        if (ht[ht[opcode / 4] + opcode % 4] & pref)
             hs->flags |= F_ERROR | F_ERROR_OPCODE;
     }
 
@@ -235,7 +265,7 @@ pref_done:
         hs->modrm_rm = m_rm = c & 7;
         hs->modrm_reg = m_reg = (c & 0x3f) >> 3;
 
-        if (x && ((x << m_reg) & 0x80))
+        if (x && x << m_reg & 0x80)
             hs->flags |= F_ERROR | F_ERROR_OPCODE;
 
         if (!hs->opcode2 && opcode >= 0xd9 && opcode <= 0xdf)
@@ -263,7 +293,8 @@ pref_done:
             }
             else
             {
-                uint8_t *table_end, op = opcode;
+                const uint8_t *table_end;
+                auto op = opcode;
                 if (hs->opcode2)
                 {
                     ht        = hde32_table + DELTA_OP2_LOCK_OK;
@@ -278,7 +309,7 @@ pref_done:
                 for (; ht != table_end; ht++)
                     if (*ht++ == op)
                     {
-                        if (!((*ht << m_reg) & 0x80))
+                        if (!(*ht << m_reg & 0x80))
                             goto no_lock_error;
                         else
                             break;
@@ -327,11 +358,11 @@ pref_done:
 
         if (m_mod == 3)
         {
-            uint8_t* table_end;
+            const uint8_t *table_end;
             if (hs->opcode2)
             {
                 ht        = hde32_table + DELTA_OP2_ONLY_MEM;
-                table_end = ht + sizeof(hde32_table) - DELTA_OP2_ONLY_MEM;
+                table_end = ht + sizeof hde32_table - DELTA_OP2_ONLY_MEM;
             }
             else
             {
@@ -341,7 +372,7 @@ pref_done:
             for (; ht != table_end; ht += 2)
                 if (*ht++ == opcode)
                 {
-                    if ((*ht++ & pref) && !((*ht << m_reg) & 0x80))
+                    if (*ht++ & pref && !(*ht << m_reg & 0x80))
                         goto error_operand;
                     else
                         break;
@@ -424,11 +455,11 @@ pref_done:
             break;
         case 2:
             hs->flags |= F_DISP16;
-            hs->disp.disp16 = *(uint16_t*)p;
+            hs->disp.disp16 = *reinterpret_cast<uint16_t *>(p);
             break;
         case 4:
             hs->flags |= F_DISP32;
-            hs->disp.disp32 = *(uint32_t*)p;
+            hs->disp.disp32 = *reinterpret_cast<uint32_t *>(p);
             break;
         }
         p += disp_size;
@@ -443,7 +474,7 @@ pref_done:
             if (pref & PRE_66)
             {
                 hs->flags |= F_IMM16 | F_RELATIVE;
-                hs->imm.imm16 = *(uint16_t*)p;
+                hs->imm.imm16 = *reinterpret_cast<uint16_t *>(p);
                 p += 2;
                 goto disasm_done;
             }
@@ -452,13 +483,13 @@ pref_done:
         if (pref & PRE_66)
         {
             hs->flags |= F_IMM16;
-            hs->imm.imm16 = *(uint16_t*)p;
+            hs->imm.imm16 = *reinterpret_cast<uint16_t *>(p);
             p += 2;
         }
         else
         {
             hs->flags |= F_IMM32;
-            hs->imm.imm32 = *(uint32_t*)p;
+            hs->imm.imm32 = *reinterpret_cast<uint32_t *>(p);
             p += 4;
         }
     }
@@ -468,17 +499,17 @@ pref_done:
         if (hs->flags & F_IMM32)
         {
             hs->flags |= F_IMM16;
-            hs->disp.disp16 = *(uint16_t*)p;
+            hs->disp.disp16 = *reinterpret_cast<uint16_t *>(p);
         }
         else if (hs->flags & F_IMM16)
         {
             hs->flags |= F_2IMM16;
-            hs->disp.disp16 = *(uint16_t*)p;
+            hs->disp.disp16 = *reinterpret_cast<uint16_t *>(p);
         }
         else
         {
             hs->flags |= F_IMM16;
-            hs->imm.imm16 = *(uint16_t*)p;
+            hs->imm.imm16 = *reinterpret_cast<uint16_t *>(p);
         }
         p += 2;
     }
@@ -492,7 +523,7 @@ pref_done:
     {
     rel32_ok:
         hs->flags |= F_IMM32 | F_RELATIVE;
-        hs->imm.imm32 = *(uint32_t*)p;
+        hs->imm.imm32 = *reinterpret_cast<uint32_t *>(p);
         p += 4;
     }
     else if (cflags & C_REL8)
@@ -503,18 +534,18 @@ pref_done:
 
 disasm_done:
 
-    if ((hs->len = (uint8_t)(p - (uint8_t*)code)) > 15)
+    if ((hs->len = static_cast<uint8_t>(p - static_cast<uint8_t *>(code))) > 15)
     {
         hs->flags |= F_ERROR | F_ERROR_LENGTH;
         hs->len = 15;
     }
 
-    return (unsigned int)hs->len;
+    return hs->len;
 }
 
 namespace fd
 {
-int hde_disasm(void* src, int* reloc_op_offset)
+int hde_disasm(void *src, int *reloc_op_offset)
 {
     hde32s h;
     if (!hde32_disasm(src, &h))

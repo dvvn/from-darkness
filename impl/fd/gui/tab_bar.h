@@ -18,7 +18,7 @@ class tab_bar final : public basic_tab_bar, public renderable
     tab_bar(Tabs... tabs)
         : tabs_(std::move(tabs)...)
 #else
-    tab_bar(std::string_view name, Tabs... tabs)
+    tab_bar(string_type name, Tabs... tabs)
         : tab_bar_base(std::move(name))
         , tabs_(std::move(tabs)...)
 #endif

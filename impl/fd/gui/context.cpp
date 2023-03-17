@@ -134,6 +134,8 @@ auto _gui_context::process_keys(void *data) -> keys_return
 
 auto _gui_context::process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam) -> keys_return
 {
+    return keys_return::native;
+    
     auto &events        = context_.InputEventsQueue;
     auto oldEventsCount = events.size();
 

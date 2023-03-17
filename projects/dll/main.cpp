@@ -7,6 +7,7 @@
 #include <fd/library_info.h>
 #include <fd/netvars/getter.h>
 #include <fd/netvars/storage.h>
+#include <fd/players/list.h>
 #include <fd/utils/functional.h>
 
 #include <fd/valve/base_client.h>
@@ -77,7 +78,8 @@ class csgo_interfaces
     {
     }
 
-    IDirect3DDevice9 *&d3d            = *(lib_->shader_api.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
+    IDirect3DDevice9 *&d3d = *(lib_->shader_api.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
+
     valve::base_client *client        = lib_->client.find_interface("VClient");
     valve::engine_client *engine      = lib_->engine.find_interface("VEngineClient");
     valve::gui::surface *vgui_surface = lib_->vgui.find_interface("VGUI_Surface");
@@ -143,6 +145,12 @@ class netvars_data
 namespace valve
 {
 client_entity_list *entity_list;
+}
+
+template <typename Sample>
+static Sample fn_sample(Sample, std::same_as<hidden_ptr> auto ptr)
+{
+    return ptr;
 }
 
 static DWORD WINAPI _context(void *) noexcept
@@ -217,6 +225,8 @@ static DWORD WINAPI _context(void *) noexcept
             gui_ctx.detach();
     };
 
+    players_list players;
+
     auto all_hooks = hooks_storage(
         hook_callback_args(
             "WinAPI.WndProc",
@@ -260,7 +270,34 @@ static DWORD WINAPI _context(void *) noexcept
                     return;
                 }
                 orig();
-            }));
+            }),
+        hook_callback_args(
+            "IBaseClientDll::CreateMove",
+            fn_sample(&valve::base_client::CreateMove, vfunc(ifc.client, 22)),
+            [&](auto orig, auto this_ptr, auto... args) {
+                //
+                orig(args...);
+            }),
+        hook_callback_args(
+            "CClientEntityList::OnAddEntity",
+            fn_sample(
+                &valve::client_entity_list::OnAddEntity,
+                lib.client.find_signature("?????")),
+            [&](auto orig, auto this_ptr, auto ent, auto handle) {
+                orig(ent, handle);
+                players.on_add_entity(this_ptr, handle);
+            }),
+        hook_callback_args(
+            "CClientEntityList::OnRemoveEntity",
+            fn_sample(
+                &valve::client_entity_list::OnRemoveEntity,
+                lib.client.find_signature("?????")),
+            [&](auto orig, auto this_ptr, auto ent, auto handle) {
+                players.on_remove_entity(this_ptr, handle);
+                orig(ent, handle);
+            })
+        //
+    );
 
     if (!all_hooks.enable())
         return FALSE;
