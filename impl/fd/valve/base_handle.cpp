@@ -6,7 +6,6 @@
 
 namespace fd::valve
 {
-
 // How many bits to use to encode an edict.
 constexpr auto MAX_EDICT_BITS = 11; // # of bits needed to represent max edicts
 // Max # of edicts in a level
@@ -52,8 +51,7 @@ bool base_handle::IsValid() const
 
 int32_t base_handle::GetEntryIndex() const
 {
-    if (!IsValid())
-        return NUM_ENT_ENTRIES - 1;
+    assert(IsValid());
     return m_Index & ENT_ENTRY_MASK;
 }
 

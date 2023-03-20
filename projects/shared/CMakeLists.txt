@@ -8,7 +8,8 @@ target_link_libraries(fd_shared PUBLIC
     #robin_hood::robin_hood
     nlohmann_json::nlohmann_json
     #glaze::glaze
-    subhook::subhook
+    #subhook::subhook
+    minhook
     fmt::fmt
     imgui::imgui
     xxHash::xxhash

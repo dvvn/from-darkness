@@ -301,17 +301,19 @@ struct std::iterator_traits<valve_ifc_reg_iterator<Mode>>
 };
 
 template <typename C>
-bool operator==(valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::compare> &it, std::basic_string_view<C> ifcName)
+bool operator==(
+    valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::compare> &it,
+    std::basic_string_view<C> interface_name)
 {
     auto &curr    = *std::as_const(it);
     auto currName = std::string_view(curr.name());
 
     auto cmp = valve_ifc_reg_cmp_result::error;
-    if (currName.starts_with(ifcName))
+    if (currName.starts_with(interface_name))
     {
-        if (currName.size() == ifcName.size())
+        if (currName.size() == interface_name.size())
             cmp = valve_ifc_reg_cmp_result::full;
-        else if (std::isdigit(currName[ifcName.size()]))
+        else if (std::isdigit(currName[interface_name.size()]))
             cmp = valve_ifc_reg_cmp_result::partial;
     }
     it.set(cmp);
@@ -321,20 +323,20 @@ bool operator==(valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::compare> &it
 template <typename C>
 bool operator==(
     valve_ifc_reg_iterator<valve_ifc_reg_iterator_mode::const_compare> const &it,
-    std::basic_string_view<C> ifcName)
+    std::basic_string_view<C> interface_name)
 {
     switch (it.status())
     {
     case valve_ifc_reg_cmp_result::full: {
-        return it->name() == ifcName;
+        return it->name() == interface_name;
     }
     case valve_ifc_reg_cmp_result::partial: {
-        auto currName = std::string_view(it->name());
-        if (currName.size() <= ifcName.size())
+        auto curr_name = std::string_view(it->name());
+        if (curr_name.size() <= interface_name.size())
             return false;
-        if (!std::isdigit(currName[ifcName.size()]))
+        if (!std::isdigit(curr_name[interface_name.size()]))
             return false;
-        return currName.starts_with(ifcName);
+        return curr_name.starts_with(interface_name);
     }
     default: {
         assert(0 && "Wrong state");
@@ -909,20 +911,6 @@ struct fmt::formatter<obj_type, T> : formatter<basic_string_view<T>, T>
     }
 };
 
-static constexpr char _object_prefix(obj_type type)
-{
-    switch (type)
-    {
-    case obj_type::CLASS:
-        return 'V';
-    case obj_type::STRUCT:
-        return 'U';
-    default:
-        assert(0 && "Wrong type");
-        return 0;
-    }
-}
-
 struct _type_info_pretty_name
 {
     boost::typeindex::type_index info;
@@ -1099,9 +1087,9 @@ hidden_ptr library_info::find_signature(std::string_view sig) const
 static bool _validate_rtti_name(char const *begin, std::string_view name)
 {
     auto nameBegin = begin + 3 + 1;
-    if (memcmp(nameBegin, name.data(), name.size()) != 0)
-        return false;
     if (memcmp(nameBegin + name.size(), "@@", 2) != 0)
+        return false;
+    if (memcmp(nameBegin, name.data(), name.size()) != 0)
         return false;
     return true;
 }
@@ -1141,12 +1129,12 @@ struct _find_type_descriptor_known
 };
 
 template <>
-struct _find_type_descriptor<obj_type::STRUCT> : _find_type_descriptor_known<_object_prefix(obj_type::STRUCT)>
+struct _find_type_descriptor<obj_type::STRUCT> : _find_type_descriptor_known<'U'>
 {
 };
 
 template <>
-struct _find_type_descriptor<obj_type::CLASS> : _find_type_descriptor_known<_object_prefix(obj_type::CLASS)>
+struct _find_type_descriptor<obj_type::CLASS> : _find_type_descriptor_known<'V'>
 {
 };
 

@@ -5,11 +5,8 @@
 #include <windows.h>
 #include <winternl.h>
 
-#include <functional>
-#include <mutex>
-#include <semaphore>
-#include <span>
-#include <vector>
+#include <string_view>
+#include <typeinfo>
 
 namespace fd
 {

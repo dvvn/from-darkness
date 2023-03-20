@@ -20,7 +20,7 @@ enum class _x86_call : uint8_t
 template <typename To, typename From = void *>
 static To _force_cast(From from, [[maybe_unused]] To toHint = {})
 {
-    static_assert(sizeof(From) == sizeof(To));
+    //static_assert(sizeof(From) == sizeof(To));
 
     union
     {
@@ -231,7 +231,7 @@ class hook_callback final
         std::construct_at(&proxy_data::get_callback(), std::move(callback));
         std::construct_at(&get_hook(), name);
         if (!get_hook().init(decay_fn(target), decay_fn(&proxy_type::proxy)))
-            std::terminate();
+            return;
         proxy_data::originalMethod = get_hook().get_original_method();
     }
 

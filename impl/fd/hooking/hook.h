@@ -8,8 +8,18 @@ namespace fd
 {
 class hook : public basic_hook
 {
-    void*            entry_;
     std::string_view name_;
+
+#if __has_include(<subhook.h>)
+    void *entry_ = nullptr;
+#elif __has_include(<minhook.h>)
+    void *target_     = nullptr;
+    void *trampoline_ = nullptr;
+    bool active_      = false;
+#endif
+
+    hook &operator=(hook const &other) = default;
+    hook(hook const &)                 = default;
 
   public:
     ~hook() override;
@@ -17,22 +27,21 @@ class hook : public basic_hook
     hook();
     hook(std::string_view name);
 
-    hook(hook const&) = delete;
-    hook(hook&& other) noexcept;
-    hook& operator=(hook const& other) = delete;
-    hook& operator=(hook&& other) noexcept;
+    hook(hook &&other) noexcept;
+
+    hook &operator=(hook &&other) noexcept;
 
     bool enable() final;
     bool disable() final;
 
-    char const*      name() const final;
+    char const *name() const final;
     std::string_view native_name() const;
 
     bool initialized() const final;
     bool active() const final;
 
-    void* get_original_method() const;
-    bool  init(void* target, void* replace);
+    void *get_original_method() const;
+    bool init(void *target, void *replace);
 
     explicit operator bool() const;
 };

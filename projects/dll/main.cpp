@@ -80,9 +80,10 @@ class csgo_interfaces
 
     IDirect3DDevice9 *&d3d = *(lib_->shader_api.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
 
-    valve::base_client *client        = lib_->client.find_interface("VClient");
-    valve::engine_client *engine      = lib_->engine.find_interface("VEngineClient");
-    valve::gui::surface *vgui_surface = lib_->vgui.find_interface("VGUI_Surface");
+    valve::base_client *client           = lib_->client.find_interface("VClient");
+    valve::engine_client *engine         = lib_->engine.find_interface("VEngineClient");
+    valve::gui::surface *vgui_surface    = lib_->vgui.find_interface("VGUI_Surface");
+    valve::client_entity_list *ents_list = lib_->client.find_interface("VClientEntityList");
 };
 
 static netvars_storage *g_netvars;
@@ -179,7 +180,9 @@ static DWORD WINAPI _context(void *) noexcept
     csgo_dlls lib;
     // addToSafeList
     lib.client.find_signature("56 8B 71 3C B8").as_fn<void(__fastcall *)(HMODULE, void *)>(_ModuleHandle, nullptr);
-    auto ifc = csgo_interfaces(lib);
+    auto ifc                        = csgo_interfaces(lib);
+    valve::entity_list              = ifc.ents_list;
+    valve::client_entity_list *test = lib.client.find_vtable("CClientEntityList");
 
     valve::cs_player *&local_player = *(lib.client.find_signature("A1 ? ? ? ? 89 45 BC 85 C0") + 1);
 
@@ -281,19 +284,21 @@ static DWORD WINAPI _context(void *) noexcept
         hook_callback_args(
             "CClientEntityList::OnAddEntity",
             fn_sample(
-                &valve::client_entity_list::OnAddEntity,
-                lib.client.find_signature("?????")),
+                &valve::CClientEntityList::OnAddEntity,
+                lib.client.find_signature("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
             [&](auto orig, auto this_ptr, auto ent, auto handle) {
                 orig(ent, handle);
-                players.on_add_entity(this_ptr, handle);
+                // todo: work with this_ptr
+                players.on_add_entity(ifc.ents_list, handle);
             }),
         hook_callback_args(
             "CClientEntityList::OnRemoveEntity",
             fn_sample(
-                &valve::client_entity_list::OnRemoveEntity,
-                lib.client.find_signature("?????")),
+                &valve::CClientEntityList::OnRemoveEntity,
+                lib.client.find_signature("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
             [&](auto orig, auto this_ptr, auto ent, auto handle) {
-                players.on_remove_entity(this_ptr, handle);
+                // todo: work with this_ptr
+                players.on_remove_entity(ifc.ents_list, handle);
                 orig(ent, handle);
             })
         //

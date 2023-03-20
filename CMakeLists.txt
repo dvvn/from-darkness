@@ -58,6 +58,8 @@ if(MSVC)
       /MP${_CPUS} /EHsc)
   add_link_options(/SAFESEH:NO)
   add_compile_definitions(
+      UNICODE
+      _UNICODE
       NOMINMAX
       WIN32_LEAN_AND_MEAN
       MICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVERLOADS=0)

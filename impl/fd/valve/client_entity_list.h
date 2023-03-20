@@ -23,12 +23,32 @@ struct client_entity_list
     virtual int GetHighestEntityIndex()                                                  = 0;
     virtual void SetMaxEntities(int maxEnts)                                             = 0;
     virtual int GetMaxEntities()                                                         = 0;
+};
 
-    void OnRemoveEntity(handle_entity *pEnt, base_handle handle) {}
-    void OnAddEntity(handle_entity *pEnt, base_handle handle)    {}
-    void RemovePVSNotifier(client_unknown *pUnknown)             {}
+// struct base_entity_list
+//{
+//     virtual void OnRemoveEntity(handle_entity *pEnt, base_handle handle) = 0;
+//     virtual void OnAddEntity(handle_entity *pEnt, base_handle handle)    = 0;
+// };
 
-    /*private:
-      vector<client_entity_listener *> EntityListeners;*/
+struct CClientEntityList
+{
+    virtual ~CClientEntityList() = default;
+
+    void OnRemoveEntity(handle_entity *pEnt, base_handle handle)
+    {
+    }
+
+    void OnAddEntity(handle_entity *pEnt, base_handle handle)
+    {
+    }
+
+    void AddPVSNotifier(client_unknown *pUnknown)
+    {
+    }
+
+    void RemovePVSNotifier(client_unknown *pUnknown)
+    {
+    }
 };
 } // namespace fd::valve

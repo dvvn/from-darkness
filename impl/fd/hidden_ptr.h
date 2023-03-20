@@ -10,13 +10,13 @@ class hidden_ptr
 {
     union
     {
-        uintptr_t   addr_;
-        void*       ptr_;
-        void const* cptr_;
+        uintptr_t addr_;
+        void *ptr_;
+        void const *cptr_;
     };
 
   public:
-    hidden_ptr(void const* ptr)
+    hidden_ptr(void const *ptr)
         : cptr_(ptr)
     {
     }
@@ -60,15 +60,15 @@ class hidden_ptr
         if constexpr (std::is_pointer_v<T>)
             return static_cast<T>(ptr_);
         else if constexpr (std::is_lvalue_reference_v<T>)
-            return *static_cast<std::remove_reference_t<T>*>(ptr_);
+            return *static_cast<std::remove_reference_t<T> *>(ptr_);
         else
         {
-            static_assert(sizeof(T) == sizeof(uintptr_t));
+            //static_assert(sizeof(T) == sizeof(uintptr_t));
 
             union
             {
                 uintptr_t addr;
-                T         fn;
+                T fn;
             };
 
             addr = addr_;
@@ -77,7 +77,7 @@ class hidden_ptr
     }
 
     template <typename T, typename... Args>
-    decltype(auto) as_fn(Args&&... args) const
+    decltype(auto) as_fn(Args &&...args) const
     {
         return as<T>()(std::forward<Args>(args)...);
     }
@@ -85,20 +85,26 @@ class hidden_ptr
     operator hidden_ptr() const = delete;
 
     template <typename T>
-    operator T*() const
+    operator T *() const
     {
-        return as<T*>();
+        return as<T *>();
     }
 
     template <typename T>
-    operator T&() const
+    operator T &() const requires(!std::is_member_function_pointer_v<T>)
     {
-        return as<T&>();
+        return as<T &>();
+    }
+
+    template <typename T>
+    operator T() const requires(std::is_member_function_pointer_v<T>)
+    {
+        return as<T>();
     }
 
     hidden_ptr operator*() const
     {
-        return *static_cast<void**>(ptr_);
+        return *static_cast<void **>(ptr_);
     }
 };
 

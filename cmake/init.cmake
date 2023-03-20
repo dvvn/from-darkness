@@ -82,11 +82,14 @@ FetchContent_Load(fmtlib fmt)
 FetchContent_MakeAvailable(fmt)
 target_compile_definitions(fmt PUBLIC FMT_USE_FULL_CACHE_DRAGONBOX=1)
 
-set(SUBHOOK_STATIC on)
+#[[set(SUBHOOK_STATIC on)
 set(SUBHOOK_INSTALL off)
 set(SUBHOOK_TESTS off)
 FetchContent_Load(Zeex subhook)
-FetchContent_MakeAvailable(subhook)
+FetchContent_MakeAvailable(subhook)]]
+
+FetchContent_Load(m417z minhook GIT_TAG multihook)
+FetchContent_MakeAvailable(minhook)
 
 set(SPDLOG_BUILD_EXAMPLE off)
 set(SPDLOG_INSTALL off)
