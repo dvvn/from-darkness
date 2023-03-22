@@ -25,6 +25,7 @@ target_link_libraries(fd_shared PUBLIC
     #Boost::dll
     Boost::process
     Boost::geometry
+    Boost::qvm
     #Boost::gil
     #Boost::uuid
     #Boost::fusion

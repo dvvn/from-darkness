@@ -94,7 +94,7 @@ static bool _can_skip_netvar(std::string_view name)
 
 static auto _is_base_class(valve::recv_prop *prop)
 {
-    constexpr auto str = std::string_view("baseclass");
+    constexpr std::string_view str = "baseclass";
     // return std::memcmp(prop->name, str.data(), str.size()) == 0 && prop->name[str.size()] == '\0';
     return prop->name == str;
 }
@@ -104,7 +104,7 @@ static auto _is_length_proxy(valve::recv_prop *prop)
     if (prop->array_length_proxy)
         return true;
 
-    constexpr auto lp = std::string_view("lengthproxy");
+    constexpr std::string_view lp = "lengthproxy";
 #if 1
     return prop->name == lp;
 #else
@@ -211,7 +211,7 @@ static size_t _store(
 {
     assert(arrayStart->type != valve::DPT_DataTable); // not implemented
 
-    auto tableName = std::string_view(recvTable->name);
+    std::string_view tableName = recvTable->name;
     if (auto found = netvarTable->find(tableName); found != nullptr)
         return _get_array_size(found);
 
@@ -233,7 +233,7 @@ static bool _store(
 {
     assert(arrayStart->type == valve::DPT_DataTable);
 
-    std::string_view tableName = (recvTable->name);
+    std::string_view tableName = recvTable->name;
     if (auto found = netvarTable->find(tableName); found != nullptr)
         return false;
 
@@ -269,7 +269,7 @@ static void _parse_lproxy(
     }
     else if (auto dt = prop->data_table; dt && !dt->props.empty())
     {
-        std::string_view tableName = (dt->name);
+        std::string_view tableName = dt->name;
         if (!_store(prop, dt, propsEnd, netvarTable, tableName, rootOffset + proxy->offset))
             return;
         if (internalStorage.find(tableName))
@@ -308,7 +308,7 @@ void _parse(valve::recv_table *recvTable, netvar_table *netvarTable, netvar_tabl
 
     for (; prop != propsEnd; ++prop)
     {
-        auto propName = std::string_view(prop->name);
+        std::string_view propName = prop->name;
         if (_can_skip_netvar(propName))
             continue;
         assert(!std::isdigit(propName[0]));
@@ -433,7 +433,7 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
             {
                 if (_can_skip_netvar(desc.name))
                     continue;
-                std::string_view name = (desc.name);
+                std::string_view name = desc.name;
                 if (tableFound && table->find(name)) // todo: check & correct type
                     continue;
                 // fieldOffset[TD_OFFSET_NORMAL], array replaced with two varaibles

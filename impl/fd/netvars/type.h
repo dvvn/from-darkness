@@ -39,7 +39,7 @@ struct custom_netvar_type
     T type;
     I include;
 
-    template <typename Tt, typename Ii>
+    template <typename Tt = T, typename Ii = I>
     explicit constexpr custom_netvar_type(Tt &&t, Ii &&incl)
         : type(std::forward<Tt>(t))
         , include(std::forward<Ii>(incl))
@@ -160,6 +160,18 @@ struct netvar_type final
     netvar_type(T &&obj) requires(std::constructible_from<data_type, T &&>)
         : data(std::forward<T>(obj))
     {
+    }
+
+    template <typename T, std::ranges::range I>
+    netvar_type(custom_netvar_type<T, I> obj) requires(!std::constructible_from<data_type, custom_netvar_type<T, I> &&>)
+    {
+        using str_t = std::ranges::range_value_t<I>;
+        using inc_t = netvar_type_merged_includes<str_t>;
+        inc_t inc;
+        for (auto &v : obj.include)
+            inc.emplace_back(std::move(v));
+        using val_t = custom_netvar_type<T, inc_t>;
+        data.emplace<val_t>(std::move(obj.type), std::move(inc));
     }
 
     std::string_view get_type();

@@ -11,13 +11,13 @@ template <class T>
 void init_netvars();
 
 #ifdef NETVAR_CLASS
-namespace valve
+namespace valve::client_side
 {
 static void init_current_netvars();
 }
 
 template <>
-void init_netvars<valve::NETVAR_CLASS>()
+void init_netvars<valve::client_side::NETVAR_CLASS>()
 {
     valve::init_current_netvars();
 }

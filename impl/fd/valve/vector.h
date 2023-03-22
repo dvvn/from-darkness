@@ -1,72 +1,54 @@
 #pragma once
 
-#include <fd/valve/memory.h>
-
 namespace fd::valve
 {
-    template <class T, class A = memory<T>>
-    class vector
+template <typename T>
+class vector
+{
+    // memory class
+    T *memory_;
+    int capacity_;
+    int grow_size_;
+
+    int size_;
+    T *debug_elements_;
+
+  public:
+    vector() = delete;
+
+    T &operator[](int i)
     {
-      public:
-        using allocator_type = A;
-        using value_type     = T;
-        using size_type      = int;
+        return memory_[i];
+    }
 
-        vector(const vector& other)            = delete;
-        vector(vector&& other)                 = delete;
-        vector& operator=(const vector& other) = delete;
-        vector& operator=(vector&& other)      = delete;
+    T const &operator[](int i) const
+    {
+        return memory_[i];
+    }
 
-        vector() = delete;
+    T *data()
+    {
+        return memory_;
+    }
 
-        T* begin()
-        {
-            return memory_.data();
-        }
+    T const *data() const
+    {
+        return memory_;
+    }
 
-        T* end()
-        {
-            return memory_.data() + size_;
-        }
+    int size() const
+    {
+        return size_;
+    }
 
-        const T* begin() const
-        {
-            return memory_.data();
-        }
+    int capacity() const
+    {
+        return capacity_;
+    }
 
-        const T* end() const
-        {
-            return memory_.data() + size_;
-        }
-
-        T& operator[](const size_type i)
-        {
-            return memory_[i];
-        }
-
-        const T& operator[](const size_type i) const
-        {
-            return memory_[i];
-        }
-
-        T* data()
-        {
-            return memory_.data();
-        }
-
-        const T* data() const
-        {
-            return memory_.data();
-        }
-
-        size_type size() const
-        {
-            return size_;
-        }
-
-      private:
-        allocator_type memory_;
-        size_type size_;
-        T* debug_elements_;
-    };
+    bool is_externally_allocated() const
+    {
+        return grow_size_ < 0;
+    }
+};
 } // namespace fd::valve

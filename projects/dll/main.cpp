@@ -10,10 +10,10 @@
 #include <fd/players/list.h>
 #include <fd/utils/functional.h>
 
-#include <fd/valve/base_client.h>
-#include <fd/valve/client_entity_list.h>
-#include <fd/valve/cs_player.h>
-#include <fd/valve/engine_client.h>
+#include <fd/valve/client.h>
+#include <fd/valve/client_side/cs_player.h>
+#include <fd/valve/client_side/engine.h>
+#include <fd/valve/client_side/entity_list.h>
 #include <fd/valve/gui/surface.h>
 
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -29,6 +29,9 @@ static DWORD _ThreadId = 0;
 
 namespace fd
 {
+namespace valve_c = valve::client_side;
+namespace vgui    = valve::gui;
+
 class csgo_library_info_ex : public csgo_library_info
 {
     void *create_interface_fn_;
@@ -80,10 +83,10 @@ class csgo_interfaces
 
     IDirect3DDevice9 *&d3d = *(lib_->shader_api.find_signature("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
 
-    valve::base_client *client           = lib_->client.find_interface("VClient");
-    valve::engine_client *engine         = lib_->engine.find_interface("VEngineClient");
-    valve::gui::surface *vgui_surface    = lib_->vgui.find_interface("VGUI_Surface");
-    valve::client_entity_list *ents_list = lib_->client.find_interface("VClientEntityList");
+    valve::client *client           = lib_->client.find_interface("VClient");
+    valve_c::engine *engine         = lib_->engine.find_interface("VEngineClient");
+    vgui::surface *vgui_surface     = lib_->vgui.find_interface("VGUI_Surface");
+    valve_c::entity_list *ents_list = lib_->client.find_interface("VClientEntityList");
 };
 
 static netvars_storage *g_netvars;
@@ -117,11 +120,11 @@ class netvars_data
         storage_.iterate_datamap(map);
     }
 
-    void debug_update(valve::engine_client *engine)
+    void debug_update(valve_c::engine *engine)
     {
 #ifdef _DEBUG
 #ifdef FD_WORK_DIR
-        classes_.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars_generated").make_preferred();
+        classes_.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).make_preferred().append("netvars_generated");
 #endif
         storage_.generate_classes(classes_);
 
@@ -131,10 +134,10 @@ class netvars_data
         for (auto c : native_str)
             buff += c == '.' ? '_' : c;
 #ifdef FD_ROOT_DIR
-        log_.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).append(".dumps/netvars").make_preferred();
+        log_.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).make_preferred().append(".out").append("netvars_dump");
 #endif
         log_.file.name      = std::move(buff);
-        log_.file.extension = L".json";
+        log_.file.extension = L".txt";
         log_.indent         = 4;
         log_.filler         = ' ';
 
@@ -143,13 +146,25 @@ class netvars_data
     }
 };
 
-namespace valve
+template <typename... Args>
+static void init_netvars() requires(sizeof...(Args) > 1)
 {
-client_entity_list *entity_list;
+    (init_netvars<Args>(), ...);
+}
+
+namespace valve::client_side
+{
+entity_list *ents_list;
 }
 
 template <typename Sample>
 static Sample fn_sample(Sample, std::same_as<hidden_ptr> auto ptr)
+{
+    return ptr;
+}
+
+template <typename Sample>
+static Sample fn_sample(std::same_as<hidden_ptr> auto ptr)
 {
     return ptr;
 }
@@ -180,11 +195,9 @@ static DWORD WINAPI _context(void *) noexcept
     csgo_dlls lib;
     // addToSafeList
     lib.client.find_signature("56 8B 71 3C B8").as_fn<void(__fastcall *)(HMODULE, void *)>(_ModuleHandle, nullptr);
-    auto ifc                        = csgo_interfaces(lib);
-    valve::entity_list              = ifc.ents_list;
-    valve::client_entity_list *test = lib.client.find_vtable("CClientEntityList");
-
-    valve::cs_player *&local_player = *(lib.client.find_signature("A1 ? ? ? ? 89 45 BC 85 C0") + 1);
+    auto ifc                          = csgo_interfaces(lib);
+    valve_c::ents_list                = ifc.ents_list;
+    valve_c::cs_player *&local_player = *(lib.client.find_signature("A1 ? ? ? ? 89 45 BC 85 C0") + 1);
 
     netvars_data netvars;
     netvars.update(ifc.client->GetAllClasses());
@@ -195,13 +208,18 @@ static DWORD WINAPI _context(void *) noexcept
     }
     else
     {
-        valve::cs_player *vtable = lib.client.find_vtable("C_CSPlayer");
+        valve_c::cs_player *vtable = lib.client.find_vtable("C_CSPlayer");
         netvars.update(vtable->GetDataDescMap());
         netvars.update(vtable->GetPredictionDescMap());
     }
     netvars.debug_update(ifc.engine);
 
-    init_netvars<valve::cs_player>();
+    /*init_netvars<
+        valve_c::cs_player,
+        valve_c::player,
+        valve_c::combat_character,
+        valve_c::animating,
+        valve_c::base_entity>();*/
 
     auto hack_menu = menu(tab_bar(tab("tab", [] {
         ImGui::TextUnformatted("test");
@@ -265,7 +283,7 @@ static DWORD WINAPI _context(void *) noexcept
             }),
         hook_callback_args(
             "VGUI.ISurface::LockCursor",
-            fn_sample(&valve::gui::surface::LockCursor, vfunc(ifc.vgui_surface, 67)),
+            fn_sample(&vgui::surface::LockCursor, vfunc(ifc.vgui_surface, 67)),
             [&](auto orig, auto this_ptr) {
                 if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
                 {
@@ -275,16 +293,15 @@ static DWORD WINAPI _context(void *) noexcept
                 orig();
             }),
         hook_callback_args(
-            "IBaseClientDll::CreateMove",
-            fn_sample(&valve::base_client::CreateMove, vfunc(ifc.client, 22)),
+            "CHLClient::CreateMove",
+            fn_sample<void(__thiscall *)(valve::client *, int, int, bool)>(vfunc(ifc.client, 22)),
             [&](auto orig, auto this_ptr, auto... args) {
                 //
                 orig(args...);
             }),
         hook_callback_args(
             "CClientEntityList::OnAddEntity",
-            fn_sample(
-                &valve::CClientEntityList::OnAddEntity,
+            fn_sample<void(__thiscall *)(void *, valve_c::entity *, valve::handle)>(
                 lib.client.find_signature("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
             [&](auto orig, auto this_ptr, auto ent, auto handle) {
                 orig(ent, handle);
@@ -293,8 +310,7 @@ static DWORD WINAPI _context(void *) noexcept
             }),
         hook_callback_args(
             "CClientEntityList::OnRemoveEntity",
-            fn_sample(
-                &valve::CClientEntityList::OnRemoveEntity,
+            fn_sample<void(__thiscall *)(void *, valve_c::entity *, valve::handle)>(
                 lib.client.find_signature("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
             [&](auto orig, auto this_ptr, auto ent, auto handle) {
                 // todo: work with this_ptr

@@ -63,7 +63,7 @@ class hidden_ptr
             return *static_cast<std::remove_reference_t<T> *>(ptr_);
         else
         {
-            //static_assert(sizeof(T) == sizeof(uintptr_t));
+            static_assert(sizeof(T) == sizeof(uintptr_t));
 
             union
             {
@@ -85,21 +85,15 @@ class hidden_ptr
     operator hidden_ptr() const = delete;
 
     template <typename T>
-    operator T *() const
+    operator T() const
     {
-        return as<T *>();
+        return as<T>();
     }
 
     template <typename T>
     operator T &() const requires(!std::is_member_function_pointer_v<T>)
     {
         return as<T &>();
-    }
-
-    template <typename T>
-    operator T() const requires(std::is_member_function_pointer_v<T>)
-    {
-        return as<T>();
     }
 
     hidden_ptr operator*() const

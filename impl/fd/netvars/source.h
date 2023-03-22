@@ -9,6 +9,6 @@ namespace fd
 {
 using netvar_source = std::variant< //
     std::monostate,
-    valve::data_map_description*,
-    valve::recv_prop*>;
+    valve::data_map_description *,
+    valve::recv_prop *>;
 }

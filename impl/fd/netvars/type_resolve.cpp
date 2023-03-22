@@ -1,23 +1,26 @@
 ﻿#include <fd/netvars/type_resolve.h>
 
-#include <fd/valve/base_entity.h>
-#include <fd/valve/base_handle.h>
+#include <fd/valve/client_side/base_entity.h>
 #include <fd/valve/color.h>
-#include <fd/valve/matrixX.h>
+#include <fd/valve/entity_handle.h>
+#include <fd/valve/matrix3x4.h>
+#include <fd/valve/matrix4x4.h>
 #include <fd/valve/qangle.h>
 #include <fd/valve/quaternion.h>
-#include <fd/valve/vector.h>
-#include <fd/valve/vectorX.h>
+#include <fd/valve/vector2d.h>
+#include <fd/valve/vector3d.h>
 
 #include <fmt/format.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cctype>
 #include <optional>
 
 namespace fd
 {
+
 template <typename T>
 static constexpr std::false_type _NetvarTypeFor;
 
@@ -47,22 +50,38 @@ NETVAR_TYPE_NATIVE(float);
 NETVAR_TYPE_NATIVE(double);
 NETVAR_TYPE_NATIVE(long double);
 
+#define VALVE_INCLUDE(_INC)           "<fd/valve/" BOOST_STRINGIZE(_INC_) ".h>"
+#define VALVE_INCLUDE_EX(_EX_, _INC_) "<fd/valve/" BOOST_STRINGIZE(_EX_) "/" BOOST_STRINGIZE(_INC_) ".h>"
+
 #define NETVAR_TYPE_VALVE(_T_, _INC_)                                             \
     template <>                                                                   \
     static constexpr auto _NetvarTypeFor<valve::_T_> = custom_netvar_type_simple( \
-        /*"valve::"*/ #_T_, "<fd/valve/" #_INC_ ".h>");
+        BOOST_STRINGIZE(_T_), VALVE_INCLUDE(_INC_));
+
+#define NETVAR_TYPE_VALVE_CLIENT(_T_, _INC_)                                                   \
+    template <>                                                                                \
+    static constexpr auto _NetvarTypeFor<valve::client_side::_T_> = custom_netvar_type_simple( \
+        BOOST_STRINGIZE(_T_), VALVE_INCLUDE_EX(client_side, _INC_));
 
 // NETVAR_TYPE_VALVE(vector, vector);
-NETVAR_TYPE_VALVE(vector2, vectorX);
-NETVAR_TYPE_VALVE(vector3, vectorX);
+NETVAR_TYPE_VALVE(vector2d, vector2d);
+NETVAR_TYPE_VALVE(vector3d, vector3d);
 NETVAR_TYPE_VALVE(color, color);
 NETVAR_TYPE_VALVE(qangle, qangle);
-NETVAR_TYPE_VALVE(base_handle, base_handle);
-NETVAR_TYPE_VALVE(base_entity *, base_entity);
+NETVAR_TYPE_VALVE(handle, entity_handle);
+NETVAR_TYPE_VALVE_CLIENT(base_entity *, base_entity);
 NETVAR_TYPE_VALVE(quaternion, quaternion);
 // NETVAR_TYPE_VALVE(view_matrix, matrixX);
-NETVAR_TYPE_VALVE(matrix3x4, matrixX);
-NETVAR_TYPE_VALVE(matrix4x4, matrixX);
+NETVAR_TYPE_VALVE(matrix3x4, matrix3x4);
+NETVAR_TYPE_VALVE(matrix4x4, matrix4x4);
+
+// template <>
+// static constexpr auto _NetvarTypeFor<valve::handle> =
+//     custom_netvar_type<std::string_view, std::array<std::string_view, 2>>(
+//         "handle",
+//         { VALVE_INCLUDE(entity_handle), VALVE_INCLUDE_EX(client_side, entity_list) });
+
+//-------------
 
 static constexpr std::string_view internal_prefix = ("m_");
 
@@ -156,7 +175,7 @@ static std::optional<custom_netvar_type_simple> _check_float_prefix(std::string_
     if (prefix == "ang")
         return _NetvarTypeFor<valve::qangle>;
     if (prefix == "vec")
-        return _NetvarTypeFor<valve::vector3>;
+        return _NetvarTypeFor<valve::vector3d>;
     return {};
 #else
     switch (_extract_prefix(type).substr(3))
@@ -164,7 +183,7 @@ static std::optional<custom_netvar_type_simple> _check_float_prefix(std::string_
     case "ang"_hash:
         return _NetvarTypeFor<qangle>;
     case "vec"_hash:
-        return _NetvarTypeFor<vector3>;
+        return _NetvarTypeFor<vector3d>;
     default:
         return {};
     }
@@ -182,7 +201,7 @@ static netvar_type _extract_type_integer(std::string_view name)
         if (prefix[0] == 'c')
             return _NetvarTypeFor<uint8_t>;
         if (prefix[0] == 'h')
-            return _NetvarTypeFor<valve::base_handle>;
+            return _NetvarTypeFor<valve::handle>;
         break;
     }
     case 2: {
@@ -209,7 +228,7 @@ static netvar_type _extract_type_vec3(std::string_view name)
     assert(!std::isdigit(name[0]));
 
     constexpr auto &qang = _NetvarTypeFor<valve::qangle>;
-    constexpr auto &vec  = _NetvarTypeFor<valve::vector3>;
+    constexpr auto &vec  = _NetvarTypeFor<valve::vector3d>;
 
     if (_check_prefix(name, "ang"))
         return qang;
@@ -240,7 +259,7 @@ static netvar_type _extract_type(std::string_view name, valve::recv_prop *prop)
     case pt::DPT_Vector:
         return _extract_type_vec3(name);
     case pt::DPT_VectorXY:
-        return _NetvarTypeFor<valve::vector2>; // 3d vector. z unused
+        return _NetvarTypeFor<valve::vector2d>; // 3d vector. z unused
     case pt::DPT_String:
         return _NetvarTypeFor<char *>; // char[X]
     case pt::DPT_Array: {
@@ -298,14 +317,14 @@ static netvar_type _extract_type(std::string_view name, valve::data_map_descript
         assert(0 && "Custom field detected");
         std::unreachable();
     case ft::FIELD_CLASSPTR:
-        return _NetvarTypeFor<valve::base_entity *>;
+        return _NetvarTypeFor<valve::client_side::base_entity *>;
     case ft::FIELD_EHANDLE:
-        return _NetvarTypeFor<valve::base_handle>;
+        return _NetvarTypeFor<valve::handle>;
     case ft::FIELD_EDICT:
         assert(0 && "Edict field detected"); //  "edict_t*"
         std::unreachable();
     case ft::FIELD_POSITION_VECTOR:
-        return _NetvarTypeFor<valve::vector3>;
+        return _NetvarTypeFor<valve::vector3d>;
     case ft::FIELD_TIME:
         return _NetvarTypeFor<float>;
     case ft::FIELD_TICK:
@@ -321,7 +340,7 @@ static netvar_type _extract_type(std::string_view name, valve::data_map_descript
         std::unreachable();
     case ft::FIELD_VMATRIX:
     case ft::FIELD_VMATRIX_WORLDSPACE:
-        return _NetvarTypeFor<valve::view_matrix>;
+        return _NetvarTypeFor<valve::matrix4x4>; // VMatrix
     case ft::FIELD_MATRIX3X4_WORLDSPACE:
         return _NetvarTypeFor<valve::matrix3x4>;
     case ft::FIELD_INTERVAL:
@@ -331,7 +350,7 @@ static netvar_type _extract_type(std::string_view name, valve::data_map_descript
     case ft::FIELD_MATERIALINDEX:
         return _NetvarTypeFor<int32_t>;
     case ft::FIELD_VECTOR2D:
-        return _NetvarTypeFor<valve::vector2>;
+        return _NetvarTypeFor<valve::vector2d>;
     default:
         assert(0 && "Unknown datamap field type");
         std::unreachable();

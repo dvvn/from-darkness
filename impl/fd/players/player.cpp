@@ -2,8 +2,8 @@
 
 namespace fd
 {
-player::player(valve::client_entity *ptr)
-    : ptr_(static_cast<valve::cs_player *>(ptr))
+player::player(entity *ptr)
+    : ptr_(static_cast<cs_player *>(ptr))
 {
 }
 
@@ -12,12 +12,12 @@ bool player::valid() const
     return ptr_ != nullptr;
 }
 
-valve::cs_player *player::operator->() const
+auto player::operator->() const -> cs_player *
 {
     return ptr_;
 }
 
-bool player::operator==(valve::client_entity const *ent) const
+bool player::operator==(entity const *ent) const
 {
     return ptr_ == ent;
 }

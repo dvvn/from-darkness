@@ -20,7 +20,7 @@ enum class _x86_call : uint8_t
 template <typename To, typename From = void *>
 static To _force_cast(From from, [[maybe_unused]] To toHint = {})
 {
-    //static_assert(sizeof(From) == sizeof(To));
+    static_assert(sizeof(From) == sizeof(To));
 
     union
     {
@@ -134,17 +134,19 @@ Sample fn_sample(T fn)
 template <class Data, _x86_call Call, typename Ret, class C, typename... Args>
 struct hook_callback_proxy_member;
 
+template <class Data, _x86_call Call, typename Ret, class C, typename... Args>
+struct hook_callback_proxy_member2;
+
 #define HOOK_CALLBACK_PROXY_MEMBER(_CALL_)                                                                       \
     template <class Data, typename Ret, class C, typename... Args>                                               \
     struct hook_callback_proxy_member<Data, _x86_call::_CALL_##_, Ret, C, Args...> final                         \
     {                                                                                                            \
-        using function_type       = Ret (__##_CALL_ C::*)(Args...);                                              \
         using proxy_function_type = Ret (__##_CALL_ hook_callback_proxy_member::*)(Args...);                     \
         using original_proxy      = hook_original_proxy_member<hook_callback_proxy_member, proxy_function_type>; \
         Ret __##_CALL_ proxy(Args... args) noexcept                                                              \
         {                                                                                                        \
             return Data::get_callback()(                                                                         \
-                original_proxy(this, Data::originalMethod), /**/                                                 \
+                original_proxy(this, Data::original_method), /**/                                                 \
                 reinterpret_cast<C *>(this),                                                                     \
                 std::forward<Args>(args)...);                                                                    \
         }                                                                                                        \
@@ -152,6 +154,11 @@ struct hook_callback_proxy_member;
 
 template <class Data, _x86_call Call, typename Ret, typename... Args>
 struct hook_callback_proxy;
+
+template <class Data, typename Ret, typename... Args>
+struct hook_callback_proxy<Data, _x86_call::thiscall_, Ret, Args...>
+{
+};
 
 #define HOOK_CALLBACK_PROXY_STATIC(_CALL_)                                     \
     template <class Data, typename Ret, typename... Args>                      \
@@ -161,7 +168,7 @@ struct hook_callback_proxy;
         static Ret __##_CALL_ proxy(Args... args) noexcept                     \
         {                                                                      \
             return Data::get_callback()(                                       \
-                reinterpret_cast<function_type>(Data::originalMethod), /**/    \
+                reinterpret_cast<function_type>(Data::original_method), /**/    \
                 std::forward<Args>(args)...);                                  \
         }                                                                      \
     };
@@ -190,18 +197,20 @@ class hook_proxy_data
         return reinterpret_cast<Callback &>(callback_);
     }
 
-    inline static void *originalMethod;
+    inline static void *original_method;
 };
 
 template <typename Callback, _x86_call Call, typename Ret, class C, typename... Args>
 class hook_callback final
 {
+  public:
     using proxy_data = hook_proxy_data<Callback>;
     using proxy_type = std::conditional_t<
-        std::is_void_v<C>,
+        std::is_null_pointer_v<C>,
         hook_callback_proxy<proxy_data, Call, Ret, Args...>,
         hook_callback_proxy_member<proxy_data, Call, Ret, C, Args...>>;
 
+  private:
     inline static proxy_type proxy_;
     inline static uint8_t hook_[sizeof(hook)];
 
@@ -232,7 +241,7 @@ class hook_callback final
         std::construct_at(&get_hook(), name);
         if (!get_hook().init(decay_fn(target), decay_fn(&proxy_type::proxy)))
             return;
-        proxy_data::originalMethod = get_hook().get_original_method();
+        proxy_data::original_method = get_hook().get_original_method();
     }
 
     hook_callback(hook_callback const &other)            = delete;
@@ -260,6 +269,10 @@ class hook_callback final
     }
 };
 
+template <typename Callback, typename Ret, class C, typename... Args>
+hook_callback(std::string_view, Ret(__thiscall *)(C *, Args...), Callback)
+    -> hook_callback<Callback, _x86_call::thiscall_, Ret, C, Args...>;
+
 #define HOOK_CALLBACK_MEMBER(_CALL_)                                          \
     template <typename Callback, typename Ret, class C, typename... Args>     \
     hook_callback(std::string_view, Ret (__##_CALL_ C::*)(Args...), Callback) \
@@ -268,7 +281,7 @@ class hook_callback final
 #define HOOK_CALLBACK_STATIC(_CALL_)                                      \
     template <typename Callback, typename Ret, typename... Args>          \
     hook_callback(std::string_view, Ret(__##_CALL_ *)(Args...), Callback) \
-        -> hook_callback<Callback, _x86_call::_CALL_##_, Ret, void, Args...>;
+        -> hook_callback<Callback, _x86_call::_CALL_##_, Ret, nullptr_t, Args...>;
 
 #define HOOK_CALLBACK_ANY(_CALL_) \
     HOOK_CALLBACK_STATIC(_CALL_)  \

@@ -1,15 +1,13 @@
 #include <fd/players/list.h>
 
-#include <functional>
-
 namespace fd
 {
 // namespace valve
 //{
-// extern client_entity_list *entity_list;
+// extern client_ents_list *ents_list;
 // }
 
-player *players_list_global::destroy(valve::client_entity *ent)
+player *players_list_global::destroy(entity *ent)
 {
     assert(ent != nullptr);
     for (auto &p : storage_)
@@ -23,7 +21,7 @@ player *players_list_global::destroy(valve::client_entity *ent)
     return nullptr;
 }
 
-player *players_list_global::add(valve::client_entity *ent)
+player *players_list_global::add(entity *ent)
 {
     return &storage_.emplace_back(ent);
 }
@@ -33,9 +31,9 @@ players_list::players_list()
     arr_.fill(nullptr);
 }
 
-player *players_list::operator[](size_t game_index) const
+player &players_list::operator[](size_t game_index) const
 {
-    return arr_[game_index - 1];
+    return *arr_[game_index - 1];
 }
 
 auto players_list::begin() -> iterator
@@ -53,9 +51,9 @@ static bool validate_player_index(size_t index)
     return index != 0 && index <= 64;
 }
 
-void players_list::on_add_entity(valve::client_entity_list *ents, valve::base_handle handle)
+void players_list::on_add_entity(entity_list *ents, handle handle)
 {
-    auto index = handle.GetEntryIndex();
+    auto index = handle.entry_index();
     if (!validate_player_index(index))
         return;
     auto p = all_.add(ents->GetClientEntity(index));
@@ -63,7 +61,7 @@ void players_list::on_add_entity(valve::client_entity_list *ents, valve::base_ha
     arr_[index] = p;
 }
 
-void players_list::on_remove_entity(valve::client_entity *ent, size_t index)
+void players_list::on_remove_entity(entity *ent, size_t index)
 {
     if (index == -1)
     {
@@ -78,15 +76,15 @@ void players_list::on_remove_entity(valve::client_entity *ent, size_t index)
     arr_[index] = nullptr;
 }
 
-void players_list::on_remove_entity(valve::client_entity_list *ents, valve::base_handle handle)
+void players_list::on_remove_entity(entity_list *ents, handle ent_handle)
 {
-    auto index = handle.GetEntryIndex();
+    auto index = ent_handle.entry_index();
     if (!validate_player_index(index))
         return;
     on_remove_entity(ents->GetClientEntity(index), index);
 }
 
-void players_list::update(valve::client_entity_list *ents)
+void players_list::update(entity_list *ents)
 {
     for (auto p : buff_)
     {
