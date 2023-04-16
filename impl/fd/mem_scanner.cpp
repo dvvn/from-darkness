@@ -78,33 +78,40 @@ static auto _find_block(const uint8_t* mem_begin, const uint8_t* mem_end, const 
 
 //-----
 
-bool _memory_range::update(uint8_t const *curr, size_t offset)
+::fd::memory_range_unpacked _memory_range::unpack() const
+{
+    return { begin_, begin_ + length_, length_ };
+}
+
+bool _memory_range::update(pointer curr, size_t offset)
 {
     auto new_from = curr + offset;
-    auto from     = data();
+    auto from     = begin_;
 
     if (from == new_from)
         return false;
 
-    auto to = from + size();
+    auto to = begin_ + length_;
 
     assert(new_from > from);
     assert(new_from <= to - offset);
 
-    std::construct_at<std::span<uint8_t const>>(this, new_from, to);
+    begin_  = new_from;
+    length_ = to - new_from;
+
     return true;
 }
 
-bool _memory_range::update(void const *curr, size_t offset)
+bool _memory_range::update(abstract_pointer curr, size_t offset)
 {
-    return update(static_cast<uint8_t const *>(curr), offset);
+    return update(static_cast<pointer>(curr), offset);
 }
-
-using bytes_range_part = boost::container::small_vector<uint8_t, 6>;
 
 struct bytes_range
 {
-    bytes_range_part part;
+    using part_storage = boost::container::small_vector<uint8_t, 32>;
+
+    part_storage part;
     uint8_t skip = 0;
 
     ~bytes_range()
@@ -140,28 +147,43 @@ struct bytes_range
     }
 };
 
-class _unknown_bytes_range : public std::vector<bytes_range>
+struct bytes_range_unpacked
 {
-    mutable size_t bytes_count_ = 0;
+    _memory_range part;
+    uint8_t skip;
+    size_t whole_size;
 
-    size_t bytes_count_impl() const
+    bytes_range_unpacked(bytes_range &rng)
+        : part(rng.part.data(), rng.part.size())
+        , skip(rng.skip)
+        , whole_size(rng.whole_size())
     {
-        size_t ret = 0;
-        for (auto &[part, skip] : *this)
-        {
-            ret += part.size();
-            ret += skip;
-        }
-        return ret;
     }
+};
 
-  public:
+template <typename T>
+using bytes_range_buffer = boost::container::small_vector<T, 8>;
+
+struct _unknown_bytes_range : bytes_range_buffer<bytes_range>
+{
     size_t bytes_count() const
     {
-        if (bytes_count_ == 0)
-            bytes_count_ = bytes_count_impl();
+        size_t ret = 0;
+        for (auto &r : *this)
+            ret += r.whole_size();
+        return ret;
+    }
+};
 
-        return bytes_count_;
+struct _unknown_bytes_range_unpacked : bytes_range_buffer<bytes_range_unpacked>
+{
+    size_t bytes_count = 0;
+
+    _unknown_bytes_range_unpacked(_unknown_bytes_range &rng)
+        : bytes_range_buffer<bytes_range_unpacked>(rng.begin(), rng.end())
+    {
+        for (auto &r : *this)
+            bytes_count += r.whole_size;
     }
 };
 
@@ -172,25 +194,10 @@ _pattern_updater_unknown::~_pattern_updater_unknown()
 
 //-----
 
-struct memory_range_unpacked
-{
-    uint8_t const *first;
-    uint8_t const *end;
-    size_t size;
-
-    memory_range_unpacked(_memory_range const &rng)
-        : first(rng.data())
-        , end(rng.data() + rng.size())
-        , size(rng.size())
-    {
-    }
-};
-
+#if 0
 struct bytes_range_unpacked_tiny
 {
-    uint8_t const *begin;
-    uint8_t const *end;
-
+    bytes_range::part_storage::const_pointer begin, end;
     size_t skip;
 
     bytes_range_unpacked_tiny(bytes_range const *rng)
@@ -217,29 +224,10 @@ struct bytes_range_unpacked : bytes_range_unpacked_tiny
     {
     }
 };
+#endif
 
-struct unknown_bytes_range_unpacked
-{
-    // const bytes_range* begin;
-    bytes_range const *second;
-    bytes_range const *end;
-
-    size_t count;
-    size_t bytesCount;
-
-    bytes_range_unpacked firstPart;
-
-    unknown_bytes_range_unpacked(_unknown_bytes_range const &unk_bytes)
-        : second(unk_bytes.data() + 1)
-        , end(unk_bytes.data() + unk_bytes.size())
-        , count(unk_bytes.size())
-        , bytesCount(unk_bytes.bytes_count())
-        , firstPart(unk_bytes.data())
-    {
-    }
-};
-
-static bool _have_mem_after(bytes_range const &rng, uint8_t const *mem_start, uint8_t const *mem_end)
+template <typename P>
+static bool _have_mem_after(bytes_range const &rng, P mem_start, P mem_end)
 {
     if (!rng.skip)
         return true;
@@ -247,18 +235,8 @@ static bool _have_mem_after(bytes_range const &rng, uint8_t const *mem_start, ui
     return limit > 0 && rng.skip < limit;
 }
 
-static bool _have_mem_after(bytes_range_unpacked_tiny const &rng, uint8_t const *mem_start, uint8_t const *mem_end)
-{
-    if (!rng.skip)
-        return true;
-    auto limit = std::distance(mem_start + rng.size(), mem_end);
-    return limit > 0 && rng.skip < static_cast<size_t>(limit);
-}
-
-static bool _have_mem_after(
-    std::iter_difference_t<uint8_t *> reserved,
-    uint8_t const *mem_start,
-    uint8_t const *mem_end)
+template <typename P>
+static bool _have_mem_after(std::iter_difference_t<uint8_t *> reserved, P mem_start, P mem_end)
 {
     return reserved <= std::distance(mem_start, mem_end);
 }
@@ -297,18 +275,20 @@ template <bool RngEndPreset, class R, class P>
 static auto _search(R &rng, P *part_start, size_t part_size)
 {
     auto rng_start = rng.data();
-    auto rng_end   = rng.data() + (RngEndPreset ? rng.size() : rng.size() - part_size);
+    auto rng_end   = rng_start + rng.size();
+    if constexpr (!RngEndPreset)
+        rng_end -= part_size;
 
     return _search(rng_start, rng_end, part_start, part_size);
 }
 
-template <bool RngEndPreset, class R, class P>
-static auto _search(R &rng, P &part)
+template <bool RngEndPreset, class P>
+static auto _search(_memory_range rng, P &part)
 {
     auto part_size = part.size();
 
-    auto rng_start = rng.data();
-    auto rng_end   = rng.data() + (RngEndPreset ? rng.size() : rng.size() - part_size);
+    auto rng_start = rng.begin();
+    auto rng_end   = (RngEndPreset ? rng.end() : rng_start + rng.size() - part_size);
 
     auto part_start = part.data();
     // auto part_end   = part.data() + part_size;
@@ -316,47 +296,44 @@ static auto _search(R &rng, P &part)
     return _search(rng_start, rng_end, part_start, part_size);
 }
 
-static void *_find_memory_range(const _memory_range rng, _unknown_bytes_range const &unk_bytes)
+static _memory_range::iterator _find_memory_range_small(_memory_range rng, bytes_range &bytes)
 {
-    union
-    {
-        uint8_t const *found;
-        void *found_void;
-    } part0;
+    auto ptr = _search<false>(rng, bytes.part);
+    if (!ptr)
+        return nullptr;
+    if (!_have_mem_after(bytes, ptr, rng.end()))
+        return nullptr;
+    return ptr;
+}
 
-    auto rng_end = rng.data() + rng.size();
+static _memory_range::iterator _find_memory_range_full(_memory_range rng, _unknown_bytes_range_unpacked unk_bytes)
+{
+    assert(rng.size() >= unk_bytes.bytes_count);
 
-    if (unk_bytes.size() == 1)
-    {
-        part0.found = _search<false>(rng, unk_bytes[0].part);
-        if (!part0.found)
-            return nullptr;
-        if (!_have_mem_after(unk_bytes[0], part0.found, rng_end))
-            return nullptr;
-        return part0.found_void;
-    }
+    auto rng_end = rng.end();
 
-    assert(rng.size() >= unk_bytes.bytes_count());
+    auto rng1     = _memory_range(rng.begin(), rng.size() - unk_bytes.bytes_count);
+    auto rng1_end = rng1.end();
 
-    auto rng1          = std::span(rng.data(), rng.size() - unk_bytes.bytes_count());
-    auto rng1_end      = rng1.data() + rng1.size();
     auto unk_bytes_end = unk_bytes.data() + unk_bytes.size();
+    auto unk_bytes1    = unk_bytes.data() + 1;
+
     for (;;)
     {
-        part0.found = _search<true>(rng1, unk_bytes[0].part);
-        if (!part0.found)
+        auto part_begin = _search<true>(rng1, unk_bytes[0].part);
+        if (!part_begin)
             return nullptr;
 
-        auto part1_begin = part0.found + unk_bytes[0].whole_size();
+        auto part1_begin = part_begin + unk_bytes[0].whole_size;
 
         auto found      = true;
         auto temp_begin = part1_begin;
 
-        for (auto unk_bytes_it = unk_bytes.data() + 1; unk_bytes_it != unk_bytes_end; ++unk_bytes_it)
+        for (auto it = unk_bytes1; it != unk_bytes_end; ++it)
         {
-            if (std::memcmp(temp_begin, unk_bytes_it->part.data(), unk_bytes_it->part.size()) == 0)
+            if (std::memcmp(temp_begin, it->part.begin(), it->part.size()) == 0)
             {
-                temp_begin += unk_bytes_it->whole_size();
+                temp_begin += it->whole_size;
             }
             else
             {
@@ -367,9 +344,9 @@ static void *_find_memory_range(const _memory_range rng, _unknown_bytes_range co
 
         if (found)
         {
-            if (!_have_mem_after(unk_bytes.bytes_count(), part0.found, rng1_end))
+            if (!_have_mem_after(unk_bytes.bytes_count, part_begin, rng1_end))
                 return nullptr;
-            return part0.found_void;
+            return part_begin;
         }
 
         if (part1_begin >= rng_end)
@@ -379,7 +356,24 @@ static void *_find_memory_range(const _memory_range rng, _unknown_bytes_range co
     }
 }
 
-static void *_find_memory_range(_memory_range const &rng, uint8_t const *mem_begin, size_t mem_size)
+static void *_find_memory_range(_memory_range rng, _unknown_bytes_range &unk_bytes)
+{
+    union
+    {
+        _memory_range::iterator found;
+        void *found_void;
+    };
+
+    if (unk_bytes.size() == 1)
+        found = _find_memory_range_small(rng, unk_bytes[0]);
+    else
+        found = _find_memory_range_full(rng, unk_bytes);
+
+    return found_void;
+}
+
+template <typename P>
+static void *_find_memory_range(_memory_range const &rng, P *mem_begin, size_t mem_size)
 {
     return (void *)_search<false>(rng, mem_begin, mem_size);
 }
@@ -442,11 +436,11 @@ static constexpr uint8_t _to_num(char const chr)
 
 class unknown_bytes_range_updater
 {
-    _unknown_bytes_range &bytes_;
+    _unknown_bytes_range *bytes_;
 
   public:
     unknown_bytes_range_updater(_unknown_bytes_range &bytes)
-        : bytes_(bytes)
+        : bytes_(&bytes)
     {
         assert(bytes.empty());
         bytes.emplace_back();
@@ -454,10 +448,10 @@ class unknown_bytes_range_updater
 
   private:
     // ReSharper disable once CppMemberFunctionMayBeConst
-    void store(const uint8_t num)
+    void store(uint8_t num)
     {
-        auto &back = bytes_.back();
-        auto &rng  = back.skip > 0 ? bytes_.emplace_back() : back;
+        auto &back = bytes_->back();
+        auto &rng  = back.skip > 0 ? bytes_->emplace_back() : back;
         rng.part.push_back(num);
     }
 
@@ -475,15 +469,13 @@ class unknown_bytes_range_updater
     // ReSharper disable once CppMemberFunctionMayBeConst
     void skip_byte()
     {
-        ++bytes_.back().skip;
+        ++bytes_->back().skip;
     }
 };
 
 template <typename T>
-static void _text_to_bytes(_unknown_bytes_range &bytes, T begin, T end)
+static void _text_to_bytes(unknown_bytes_range_updater updater, T begin, T end)
 {
-    auto updater = unknown_bytes_range_updater(bytes);
-
     while (begin < end - 1)
     {
         auto c = *begin;
@@ -522,61 +514,28 @@ static void _text_to_bytes(_unknown_bytes_range &bytes, T begin, size_t size)
     _text_to_bytes(bytes, begin, begin + size);
 }
 
-static void _text_to_bytes(_unknown_bytes_range &bytes, std::span<char const> const text_src)
+static void _text_to_bytes(_unknown_bytes_range &bytes, _memory_range text_src)
 {
     _text_to_bytes(bytes, text_src.begin(), text_src.end());
 }
 
 //-----
 
-auto pattern_scanner_raw::operator()(std::span<char const> const sig) const -> finder
+auto memory_scanner::operator()(abstract_pointer begin, size_t mem_size) const -> finder
 {
     return {
-        {*this, reinterpret_cast<uint8_t const *>(sig.data()), sig.size()}
+        {*this, static_cast<pointer>(begin), mem_size}
     };
 }
 
-auto pattern_scanner_raw::operator()(void const *begin, size_t mem_size) const -> finder
+auto pattern_scanner::operator()(pattern_pointer pattern, size_t length) const -> scanner
 {
     return {
-        {*this, static_cast<uint8_t const *>(begin), mem_size}
+        {*this, { pattern, length }}
     };
 }
 
-auto pattern_scanner_text::operator()(std::span<char const> const sig) const -> finder
-{
-    return {
-        {*this, reinterpret_cast<uint8_t const *>(sig.data()), sig.size()}
-    };
-}
-
-auto pattern_scanner_text::operator()(void const *begin, size_t mem_size) const -> finder
-{
-    return {
-        {*this, static_cast<uint8_t const *>(begin), mem_size}
-    };
-}
-
-pattern_scanner_raw pattern_scanner_text::raw() const
-{
-    return { begin(), end() };
-}
-
-auto pattern_scanner::operator()(std::span<char const> const sig) const -> unknown_finder
-{
-    return {
-        {*this, sig}
-    };
-}
-
-auto pattern_scanner::operator()(uint8_t const *begin, size_t mem_size) const -> known_finder
-{
-    return {
-        {*this, begin, mem_size}
-    };
-}
-
-pattern_scanner_raw pattern_scanner::raw() const
+memory_scanner pattern_scanner::raw() const
 {
     return { begin(), end() };
 }
@@ -584,7 +543,7 @@ pattern_scanner_raw pattern_scanner::raw() const
 //-----
 
 _pattern_updater_unknown::_pattern_updater_unknown(_pattern_updater_unknown &&other) noexcept
-    : mem_rng_(other.mem_rng_)
+    : _memory_range(std::move(other))
     , bytes_(std::exchange(other.bytes_, nullptr))
 {
 }
@@ -592,70 +551,56 @@ _pattern_updater_unknown::_pattern_updater_unknown(_pattern_updater_unknown &&ot
 _pattern_updater_unknown &_pattern_updater_unknown::operator=(_pattern_updater_unknown &&other) noexcept
 {
     using std::swap;
-    swap(mem_rng_, other.mem_rng_);
+    swap<_memory_range>(*this, other);
     swap(bytes_, other.bytes_);
     return *this;
 }
 
-_pattern_updater_unknown::_pattern_updater_unknown(const _memory_range mem_rng, std::span<char const> const sig)
-    : mem_rng_(mem_rng)
+_pattern_updater_unknown::_pattern_updater_unknown(_memory_range mem, _memory_range pattern)
+    : _memory_range(mem)
     , bytes_(new _unknown_bytes_range())
 {
-    _text_to_bytes(*bytes_, sig);
+    _text_to_bytes(*bytes_, pattern);
 }
 
-_pattern_updater_unknown::_pattern_updater_unknown(const _memory_range mem_rng, uint8_t const *begin, size_t mem_size)
-    : mem_rng_(mem_rng)
-    , bytes_(new _unknown_bytes_range())
-
+auto _pattern_updater_unknown::operator()() const -> patter_pointer
 {
-    _text_to_bytes(*bytes_, begin, mem_size);
+    return _find_memory_range(*this, *bytes_);
 }
 
-void *_pattern_updater_unknown::operator()() const
+bool _pattern_updater_unknown::update(patter_pointer last_pos)
 {
-    return _find_memory_range(mem_rng_, *bytes_);
-}
-
-bool _pattern_updater_unknown::update(void const *last_pos)
-{
-    return mem_rng_.update(last_pos, 1);
+    return _memory_range::update(last_pos, 1);
 }
 
 //-----
 
-_xrefs_finder::_xrefs_finder(const _memory_range mem_rng, uintptr_t const &addr)
-    : mem_rng_(mem_rng)
-    , xref_(reinterpret_cast<uint8_t const *>(&addr))
+_xrefs_finder::_xrefs_finder(_memory_range mem_rng, xref_reference addr)
+    : _memory_range(mem_rng)
+    , xref_(reinterpret_cast<pointer>(&addr))
 {
 }
 
-_xrefs_finder::_xrefs_finder(const _memory_range mem_rng, void const *&addr)
-    : mem_rng_(mem_rng)
-    , xref_(reinterpret_cast<uint8_t const *>(&addr))
+auto _xrefs_finder::operator()() const -> xref_value
 {
+    return reinterpret_cast<xref_value>(_find_memory_range(*this, xref_, sizeof(uintptr_t)));
 }
 
-void *_xrefs_finder::operator()() const
+bool _xrefs_finder::update(xref_reference last_pos)
 {
-    return _find_memory_range(mem_rng_, xref_, sizeof(uintptr_t));
-}
-
-bool _xrefs_finder::update(void const *last_pos)
-{
-    return mem_rng_.update(last_pos, 1);
+    return _memory_range::update(reinterpret_cast<abstract_pointer>(last_pos), 1);
 }
 
 //-----
 
-void _memory_iterator_dbg_creator::validate(void const *other) const
+void _memory_iterator_dbg_creator::validate(void *other) const
 {
     (void)other;
     (void)this;
     assert(ptr_ == other);
 }
 
-void _memory_iterator_dbg_creator::validate(const _memory_iterator_dbg_creator other) const
+void _memory_iterator_dbg_creator::validate(_memory_iterator_dbg_creator other) const
 {
     (void)other;
     (void)this;
@@ -664,19 +609,19 @@ void _memory_iterator_dbg_creator::validate(const _memory_iterator_dbg_creator o
 
 //-----
 
-_pattern_updater_known::_pattern_updater_known(const _memory_range mem_rng, uint8_t const *begin, size_t mem_size)
-    : mem_rng_(mem_rng)
-    , search_rng_(begin, begin + mem_size)
+_pattern_updater_known::_pattern_updater_known(_memory_range mem_rng, abstract_pointer begin, size_t mem_size)
+    : _memory_range(mem_rng)
+    , search_rng_(begin, mem_size)
 {
 }
 
-void *_pattern_updater_known::operator()() const
+auto _pattern_updater_known::operator()() const -> patter_pointer
 {
-    return _find_memory_range(mem_rng_, search_rng_);
+    return _find_memory_range(*this, search_rng_);
 }
 
-bool _pattern_updater_known::update(void const *last_pos)
+bool _pattern_updater_known::update(patter_pointer last_pos)
 {
-    return mem_rng_.update(last_pos, search_rng_.size());
+    return _memory_range::update(last_pos, search_rng_.size());
 }
 } // namespace fd

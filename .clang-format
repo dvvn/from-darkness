@@ -38,4 +38,14 @@ RequiresClausePosition: WithPreceding
 KeepEmptyLinesAtTheStartOfBlocks: false
 #QualifierAlignment: Right ###let reshareper do this work
 UseTab: Never
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '".*"'
+    Priority: 0
+  - Regex: '<fd/.*>'
+    Priority: 1
+  - Regex: '<.*\.(h|hpp)>$'
+    Priority: 2
+  - Regex: '<.*([^.]h|hpp)>$'
+    Priority: 3
 ...

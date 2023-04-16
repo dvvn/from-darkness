@@ -4,11 +4,10 @@
 #include <fd/gui/menu.h>
 #include <fd/hooking/callback.h>
 #include <fd/hooking/storage.h>
+#include <fd/logging/init.h>
 #include <fd/utils/functional.h>
 
 #include <imgui.h>
-
-#include <spdlog/spdlog.h>
 
 int main(int, char **)
 {
@@ -19,13 +18,7 @@ int main(int, char **)
 
     //---
 
-    spdlog::set_level(spdlog::level::debug);
-
-#if defined(_DEBUG) && 0
-    const default_assert_handler assertHandler([&](assert_data const &adata) { spdlog::critical(parse(adata)); });
-#endif
-
-    //----
+    init_logging();
 
     auto test_menu = menu(
         tab_bar(

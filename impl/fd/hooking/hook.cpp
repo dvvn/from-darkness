@@ -615,7 +615,9 @@ struct fmt::formatter<MH_STATUS> : formatter<string_view>
             MH_CASE(ERROR_MEMORY_PROTECT)
             MH_CASE(ERROR_MODULE_NOT_FOUND)
             MH_CASE(ERROR_FUNCTION_NOT_FOUND)
+#ifdef MH_DEFAULT_IDENT
             MH_CASE(ERROR_MUTEX_FAILURE)
+#endif
         default:
             throw format_error("Unknown MH_STATUS");
         }
@@ -689,8 +691,10 @@ static auto _InitHooks = [] {
     (void)status;
     status = MH_Initialize();
     assert(status == MH_OK);
+#ifdef MH_DEFAULT_IDENT
     status = MH_SetThreadFreezeMethod(MH_FREEZE_METHOD_NONE_UNSAFE);
     assert(status == MH_OK);
+#endif
     return invoke_on_destruct(MH_Uninitialize);
 }();
 #endif

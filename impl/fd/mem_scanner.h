@@ -1,42 +1,89 @@
 #pragma once
-
-#include <span>
+#include <concepts>
 
 namespace fd
 {
-struct _memory_range : std::span<uint8_t const>
+struct memory_range_unpacked;
+
+struct _memory_range
 {
-    template <typename It>
-    _memory_range(It begin, It end)
-        : std::span<uint8_t const>(begin, end)
+    using value_type = uint8_t;
+    using pointer    = const uint8_t *;
+    using reference  = const uint8_t &;
+
+    using abstract_pointer = void const *;
+
+    using iterator = pointer;
+
+  private:
+    pointer begin_;
+    size_t length_;
+
+  public:
+    template <std::integral N>
+    _memory_range(N begin, size_t length) requires(sizeof(N) == sizeof(abstract_pointer))
+        : begin_(reinterpret_cast<pointer>(begin))
+        , length_(length)
     {
     }
 
-    template <typename It>
-    _memory_range(It begin, size_t size)
-        : std::span<uint8_t const>(static_cast<pointer>(begin), size)
+    _memory_range(abstract_pointer begin, size_t length)
+        : begin_(static_cast<pointer>(begin))
+        , length_(length)
     {
     }
 
-    _memory_range(std::span<uint8_t> rng)
-        : std::span<uint8_t const>(rng)
+    _memory_range(abstract_pointer begin, abstract_pointer end)
+        : begin_(static_cast<pointer>(begin))
+        , length_(static_cast<pointer>(end) - static_cast<pointer>(begin))
     {
     }
+
+    iterator begin() const
+    {
+        return begin_;
+    }
+
+    iterator end() const
+    {
+        return begin_ + length_;
+    }
+
+    pointer data() const
+    {
+        return begin_;
+    }
+
+    size_t size() const
+    {
+        return length_;
+    }
+
+    memory_range_unpacked unpack() const;
 
     [[nodiscard]]
-    bool update(uint8_t const *curr, size_t offset);
+    bool update(pointer curr, size_t offset);
     [[nodiscard]]
-    bool update(void const *curr, size_t offset);
+    bool update(abstract_pointer curr, size_t offset);
 };
 
-class _unknown_bytes_range;
-
-class _pattern_updater_unknown
+struct memory_range_unpacked
 {
-    _memory_range mem_rng_;
+    _memory_range::iterator first, end;
+    size_t size;
+};
+
+struct _unknown_bytes_range;
+
+class _pattern_updater_unknown : _memory_range
+{
+    using patter_pointer = void *;
+
     _unknown_bytes_range *bytes_;
 
   public:
+    using value_type = patter_pointer;
+
     ~_pattern_updater_unknown();
 
     _pattern_updater_unknown(_pattern_updater_unknown const &other)            = delete;
@@ -45,45 +92,52 @@ class _pattern_updater_unknown
     _pattern_updater_unknown(_pattern_updater_unknown &&other) noexcept;
     _pattern_updater_unknown &operator=(_pattern_updater_unknown &&other) noexcept;
 
-    _pattern_updater_unknown(_memory_range mem_rng, std::span<char const> sig);
-    _pattern_updater_unknown(_memory_range mem_rng, uint8_t const *begin, size_t mem_size);
+    _pattern_updater_unknown(_memory_range mem, _memory_range pattern);
 
-    void *operator()() const;
-    bool update(void const *last_pos);
+    patter_pointer operator()() const;
+    bool update(patter_pointer last_pos);
 };
 
-class _pattern_updater_known
+class _pattern_updater_known : _memory_range
 {
-    _memory_range mem_rng_, search_rng_;
+    using patter_pointer = void *;
+
+    _memory_range search_rng_;
 
   public:
-    _pattern_updater_known(_memory_range mem_rng, uint8_t const *begin, size_t mem_size);
+    using value_type = patter_pointer;
 
-    void *operator()() const;
-    bool update(void const *last_pos);
+    _pattern_updater_known(_memory_range mem_rng, abstract_pointer begin, size_t mem_size);
+
+    patter_pointer operator()() const;
+    bool update(patter_pointer last_pos);
 };
 
-class _xrefs_finder
+class _xrefs_finder : _memory_range
 {
-    _memory_range mem_rng_;
-    uint8_t const *xref_;
+    using xref_reference = uintptr_t const &;
+    using xref_value     = uintptr_t;
+    using xref_pointer   = uintptr_t const *;
+
+    pointer xref_;
 
   public:
-    _xrefs_finder(_memory_range mem_rng, uintptr_t const &addr);
-    _xrefs_finder(_memory_range mem_rng, void const *&addr);
+    using value_type = xref_value;
 
-    void *operator()() const;
-    bool update(void const *last_pos);
+    _xrefs_finder(_memory_range mem_rng, xref_reference addr);
+
+    xref_value operator()() const;
+    bool update(xref_reference last_pos);
 };
 
 struct _memory_iterator_dbg_creator
 {
 #ifdef _DEBUG
   private:
-    void const *ptr_;
+    void *ptr_;
 
   public:
-    _memory_iterator_dbg_creator(void const *ptr)
+    _memory_iterator_dbg_creator(void *ptr)
         : ptr_(ptr)
     {
     }
@@ -93,38 +147,40 @@ struct _memory_iterator_dbg_creator
     }
 #endif
 
-    void validate(void const *other) const;
+    void validate(void *other) const;
     void validate(_memory_iterator_dbg_creator other) const;
 };
 
-template <typename M>
+template <class Updater>
 class _memory_iterator_end;
 
-template <typename M>
+template <class Updater>
 struct _memory_iterator
 {
-    using value_type = void *;
+    using value_type = typename Updater::value_type;
 
-    friend class _memory_iterator_end<M>;
+    friend class _memory_iterator_end<Updater>;
 
   private:
-    M mem_rng_;
-    void *current_;
+    Updater updater_;
+    value_type current_;
 
     [[no_unique_address]] _memory_iterator_dbg_creator creator_;
 
     void get_next()
     {
-        current_ = mem_rng_.update(current_) ? mem_rng_() : nullptr;
+        current_ = updater_.update(current_) ? updater_() : value_type();
     }
 
   public:
-    _memory_iterator(void const *creator, M &&mem_rng, void *current = nullptr)
-        : mem_rng_(std::move(mem_rng))
-        , current_(current ? current : mem_rng_())
+    _memory_iterator(void *creator, Updater &&mem_rng, value_type current = {})
+        : updater_(static_cast<Updater &&>(mem_rng))
+        , current_(current)
         , creator_(creator)
 
     {
+        if (!current)
+            current_ = updater_();
     }
 
     _memory_iterator &operator++()
@@ -152,15 +208,15 @@ struct _memory_iterator
     }
 };
 
-template <typename M>
+template <class Updater>
 class _memory_iterator_end
 {
     [[no_unique_address]] _memory_iterator_dbg_creator creator_;
 
-    using iter_type = _memory_iterator<M>;
+    using iter_type = _memory_iterator<Updater>;
 
   public:
-    _memory_iterator_end(void const *creator)
+    _memory_iterator_end(void *creator)
         : creator_(creator)
     {
     }
@@ -172,30 +228,36 @@ class _memory_iterator_end
     }
 };
 
-template <typename M>
-class _memory_finder
+template <class Updater>
+struct basic_memory_scanner
 {
-    _memory_iterator<M> begin_;
-    [[no_unique_address]] _memory_iterator_end<M> end_;
+    using iterator      = _memory_iterator<Updater>;
+    using last_iterator = _memory_iterator_end<Updater>;
+
+    using value_type = typename iterator::value_type;
+
+  private:
+    iterator begin_;
+    [[no_unique_address]] last_iterator end_;
 
   public:
-    _memory_finder(M &&mem_rng)
-        : begin_(this, std::move(mem_rng))
+    basic_memory_scanner(Updater &&updater)
+        : begin_(this, static_cast<Updater &&>(updater))
         , end_(this)
     {
     }
 
-    auto begin() const
+    iterator begin() const
     {
         return begin_;
     }
 
-    auto end() const
+    last_iterator end() const
     {
         return end_;
     }
 
-    auto front() const
+    typename iterator::value_type front() const
     {
         return *begin_;
     }
@@ -203,49 +265,38 @@ class _memory_finder
 
 //--------------
 
-struct pattern_scanner_raw : private _memory_range
+struct memory_scanner : private _memory_range
 {
     using _memory_range::_memory_range;
 
-    using finder = _memory_finder<_pattern_updater_known>;
+    using finder = basic_memory_scanner<_pattern_updater_known>;
 
-    finder operator()(std::span<char const> sig) const;
-    finder operator()(void const *begin, size_t mem_size) const;
+    finder operator()(abstract_pointer begin, size_t mem_size) const;
 };
 
-struct pattern_scanner_text : private _memory_range
+class pattern_scanner : _memory_range
 {
+    using pattern_pointer = char const *;
+
+  public:
     using _memory_range::_memory_range;
 
-    using finder = _memory_finder<_pattern_updater_unknown>;
+    using scanner = basic_memory_scanner<_pattern_updater_unknown>;
 
-    finder operator()(std::span<char const> sig) const;
-    finder operator()(void const *begin, size_t mem_size) const;
+    scanner operator()(pattern_pointer pattern, size_t length) const;
 
-    pattern_scanner_raw raw() const;
-};
-
-struct pattern_scanner : private _memory_range
-{
-    using _memory_range::_memory_range;
-
-    using unknown_finder = _memory_finder<_pattern_updater_unknown>;
-    using known_finder   = _memory_finder<_pattern_updater_known>;
-
-    unknown_finder operator()(std::span<char const> sig) const;
-    known_finder operator()(uint8_t const *begin, size_t mem_size) const;
-
-    pattern_scanner_raw raw() const;
+    [[deprecated]]
+    memory_scanner raw() const;
 };
 
 struct xrefs_scanner : private _memory_range
 {
     using _memory_range::_memory_range;
 
-    using finder = _memory_finder<_xrefs_finder>;
+    using scanner = basic_memory_scanner<_xrefs_finder>;
 
     template <typename T>
-    finder operator()(T const &addr) const
+    scanner operator()(T const &addr) const
     {
         return {
             {*this, addr}
