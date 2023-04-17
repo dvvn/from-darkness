@@ -11,5 +11,7 @@ using default_logger_t = logger<log_level::
                                     err
 #endif
                                 >;
-extern default_logger_t *const default_logger;
+using default_logger_p = default_logger_t *const;
+
+extern default_logger_p default_logger;
 }
