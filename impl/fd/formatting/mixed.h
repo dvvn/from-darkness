@@ -160,8 +160,11 @@ template <typename ContextC, typename T>
 concept chars_mix_requrested = detail::chars_mix_requrested<ContextC, T>::value;
 
 template <class ContextC = void, typename T>
-FMT_CONSTEXPR decltype(auto) mix_chars(T &obj)
+FMT_CONSTEXPR decltype(auto) mixed(T &obj)
 {
+    using fmt::chars_mix_requrested;
+    using fmt::chars_mixer;
+
     if constexpr (chars_mix_requrested<ContextC, T>)
         return chars_mixer<ContextC, char_t<T>>(obj);
     else
@@ -171,20 +174,3 @@ template <class ContextC, typename T>
 using mix_chars_t = std::decay_t<decltype(mix_chars<ContextC>(std::declval<std::add_lvalue_reference_t<T>>()))>;
 
 FMT_END_NAMESPACE
-
-namespace fd
-{
-template <typename... Args>
-requires(fmt::chars_mix_requrested<char, Args> || ...)
-auto to_string(fmt::format_string<fmt::mix_chars_t<char, Args>...> fmt, Args &&...args)
-{
-    return fmt::vformat(fmt, fmt::make_format_args(fmt::mix_chars<char>(args)...));
-}
-
-template <typename... Args>
-requires(fmt::chars_mix_requrested<wchar_t, Args> || ...)
-auto to_string(fmt::wformat_string<fmt::mix_chars_t<wchar_t, Args>...> fmt, Args &&...args)
-{
-    return fmt::vformat(fmt, fmt::make_wformat_args(fmt::mix_chars<wchar_t>(args)...));
-}
-} // namespace fd

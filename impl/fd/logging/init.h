@@ -3,6 +3,6 @@
 
 namespace fd
 {
-void add_logger(abstract_logger *logger);
+void add_logger(core_logger *logger);
 void init_logging();
 }

@@ -10,17 +10,17 @@ class lazy_format_value
     Fn fn_;
 
   public:
-    constexpr lazy_format_value(Fn fn)
+    FMT_CONSTEXPR lazy_format_value(Fn fn)
         : fn_(std::move(fn))
     {
     }
 
-    constexpr auto get() const
+    FMT_CONSTEXPR decltype(auto) operator()() const
     {
         return fn_();
     }
 
-    constexpr auto get()
+    FMT_CONSTEXPR decltype(auto) operator()()
     {
         return fn_();
     }
@@ -30,7 +30,7 @@ template <typename Fn>
 lazy_format_value(Fn) -> lazy_format_value<std::decay_t<Fn>>;
 
 template <typename Fn>
-auto lazy(Fn &&fn)
+FMT_CONSTEXPR lazy(Fn &&fn)
 {
     return lazy_format_value(std::forward<Fn>(fn));
 }
@@ -42,12 +42,12 @@ struct formatter<lazy_format_value<Fn>, C> : formatter<std::decay_t<std::invoke_
 
     auto format(lazy_format_value<Fn> const &f, auto &ctx) const -> decltype(ctx.out())
     {
-        return base::format(f.get(), ctx);
+        return base::format(f(), ctx);
     }
 
     auto format(lazy_format_value<Fn> &f, auto &ctx) const -> decltype(ctx.out())
     {
-        return base::format(f.get(), ctx);
+        return base::format(f(), ctx);
     }
 };
 

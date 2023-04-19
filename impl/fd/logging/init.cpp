@@ -1,11 +1,10 @@
-#include <fd/logging/default.h>
 #include <fd/logging/init.h>
 
 #include <boost/container/static_vector.hpp>
 
 namespace fd
 {
-using storage_base = boost::container::static_vector<abstract_logger *, 4>;
+using storage_base = boost::container::static_vector<core_logger *, 4>;
 
 class storage_type
 {
@@ -21,15 +20,16 @@ class storage_type
             l->init();
     }
 
-    bool contains(abstract_logger *l) const
+    bool contains(core_logger *l) const
     {
         for (auto *stored : storage_)
-            return stored == l;
+            if (stored == l)
+                return true;
         return false;
     }
 
   public:
-    void add(abstract_logger *logger)
+    void add(core_logger *logger)
     {
         assert(!init_);
         assert(!contains(logger));
@@ -38,6 +38,7 @@ class storage_type
 
     void init()
     {
+        assert(!init_);
         do_init();
 #ifdef _DEBUG
         init_ = true;
@@ -52,7 +53,7 @@ static storage_type &storage()
     return s;
 }
 
-void add_logger(abstract_logger *logger)
+void add_logger(core_logger *logger)
 {
     storage().add(logger);
 }

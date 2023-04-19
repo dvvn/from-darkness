@@ -1,84 +1,43 @@
 #pragma once
 
 #include <fd/logging/core.h>
+#include <fd/logging/data.h>
+#include <fd/logging/internal.h>
 
 #include <fmt/format.h>
 #include <fmt/xchar.h>
 
 namespace fd
 {
-struct log_builder : virtual abstract_logger
+template <typename C, log_level Level>
+struct logger : protected virtual abstract_logger<C>, protected virtual internal_logger<C>
 {
-    using itr  = std::back_insert_iterator<fmt::memory_buffer>;
-    using witr = std::back_insert_iterator<fmt::wmemory_buffer>;
+    using typename internal_logger<C>::data_type;
 
-  private:
-    template <typename... Args>
-    static auto make_format_args(std::type_identity<char>, Args &&...args)
+    template <log_level CurrLevel>
+    void write(...) //
+        requires(!have_log_level(Level, CurrLevel))
     {
-        return fmt::make_format_args(std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    static auto make_format_args(std::type_identity<wchar_t>, Args &&...args)
-    {
-        return fmt::make_wformat_args(std::forward<Args>(args)...);
-    }
-
-  protected:
-    virtual void write_before(itr it) const  = 0;
-    virtual void write_before(witr it) const = 0;
-
-    virtual void write_after(itr it) const  = 0;
-    virtual void write_after(witr it) const = 0;
-
-    template <typename C, typename... Args>
-    void write(fmt::basic_string_view<C> fmt, Args &&...args)
-    {
-        using buff_t = fmt::basic_memory_buffer<C>;
-
-        buff_t buff;
-        auto it = std::back_inserter(buff);
-
-        write_before(it);
-        fmt::vformat_to(it, fmt, make_format_args(std::type_identity<C>(), std::forward<Args>(args)...));
-        write_after(it);
-
-        static_cast<abstract_logger *>(this)->write(buff.data(), buff.size());
-    }
-};
-
-template <log_level Level>
-struct logger : basic_logger<Level>, protected virtual log_builder
-{
-    using basic_logger<Level>::write;
-
-    template <log_level CurrLevel, typename... FmtArgs>
-    void write(fmt::format_string<FmtArgs...> fmt, FmtArgs &&...fmt_args) requires(CurrLevel &Level)
-    {
-        log_builder::write(fmt.get(), std::forward<FmtArgs>(fmt_args)...);
+        (void)this;
     }
 
     template <log_level CurrLevel, typename... FmtArgs>
-    void write(fmt::wformat_string<FmtArgs...> fmt, FmtArgs &&...fmt_args) requires(CurrLevel &Level)
+    void write(fmt::basic_format_string<C, std::type_identity_t<FmtArgs>...> fmt, FmtArgs &&...fmt_args)
+        requires(have_log_level(Level, CurrLevel))
     {
-        log_builder::write(fmt.get(), std::forward<FmtArgs>(fmt_args)...);
+        using ctx         = fmt::buffer_context<C>;
+        using args_stored = fmt::format_arg_store<ctx, std::remove_cvref_t<FmtArgs>...>;
+
+        auto internal = static_cast<internal_logger<C> *>(this);
+        auto abstract = static_cast<abstract_logger<C> *>(this);
+
+        auto data = data_type(CurrLevel);
+
+        internal->write_before(&data);
+        fmt::vformat_to(data.out(), fmt.get(), args_stored(std::forward<FmtArgs>(fmt_args)...));
+        internal->write_after(&data);
+
+        abstract->do_write(data.data(), data.size());
     }
 };
-
-template <>
-struct logger<log_level::off> : basic_logger<log_level::off>
-{
-};
-
-// template <log_level Level, log_level... Levels>
-// struct logger
-//{
-// };
-//
-// struct cum:logger<
-//{
-//
-// };
-
 } // namespace fd

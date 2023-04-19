@@ -4,13 +4,20 @@
 
 namespace fd
 {
-using default_logger_t = logger<log_level::
+template <log_level Level, typename... C>
+struct default_logger_for : logger<C, Level>...
+{
+    using logger<C, Level>::write...;
+};
+
+using default_logger_t = default_logger_for<
 #ifdef _DEBUG
-                                    debug
+    log_level::debug,
 #else
-                                    err
+    log_level::err,
 #endif
-                                >;
+    char,
+    wchar_t>;
 using default_logger_p = default_logger_t *const;
 
 extern default_logger_p default_logger;

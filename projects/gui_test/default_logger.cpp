@@ -16,7 +16,7 @@ namespace fd
 //         buff.resize(buff.size() - 1);
 // }
 
-static class : public default_logger_t, system_console
+static class : public default_logger_t, system_console<void>
 {
     using empty_t = std::true_type;
 
@@ -50,24 +50,22 @@ static class : public default_logger_t, system_console
     }();
 
   public:
-    using default_logger_t::write;
-
     void init() override
     {
         write<log_level::info>("Initialized");
     }
 
   protected:
-    void write(pointer msg, size_t length) override
+    void do_write(abstract_logger<char>::pointer msg, size_t length) override
     {
         set_mode(/*_O_BINARY*/ _O_TEXT);
-        system_console::write(msg, length);
+        system_console::do_write(msg, length);
     }
 
-    void write(wpointer msg, size_t length) override
+    void do_write(abstract_logger<wchar_t>::pointer msg, size_t length) override
     {
         set_mode(_O_U16TEXT);
-        system_console::write(msg, length);
+        system_console::do_write(msg, length);
     }
 
 } debug_console;

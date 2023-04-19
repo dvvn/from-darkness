@@ -1,28 +1,21 @@
 #pragma once
-#include <fd/logging/levels.h>
+
+#include <cstdint>
 
 namespace fd
 {
-struct abstract_logger
+struct core_logger
 {
-    using pointer  = char const *;
-    using wpointer = wchar_t const *;
-
-    virtual ~abstract_logger()                      = default;
-    virtual void write(pointer msg, size_t length)  = 0;
-    virtual void write(wpointer msg, size_t length) = 0;
+    virtual ~core_logger() = default;
     // virtual void flush()                                  = 0;
-
-    virtual void init() = 0;
+    virtual void init()    = 0;
 };
 
-template <log_level Level>
-struct basic_logger : virtual abstract_logger
+template <typename C>
+struct abstract_logger : virtual core_logger
 {
-    template <log_level CurrLevel>
-    void write(...) requires(!(CurrLevel & Level))
-    {
-        (void)this;
-    }
+    using pointer = C const *;
+
+    virtual void do_write(pointer msg, size_t length) = 0;
 };
 }
