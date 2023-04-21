@@ -4,21 +4,27 @@
 
 namespace fd
 {
-template <log_level Level, typename... C>
-struct default_logger_for : logger<C, Level>...
+#ifdef _DEBUG
+#define DEFAULT_LOG_LEVEL log_level::debug
+#else
+#define DEFAULT_LOG_LEVEL log_level::err
+#endif
+
+struct default_logger_t : logger<char, DEFAULT_LOG_LEVEL>, logger<wchar_t, DEFAULT_LOG_LEVEL>
 {
-    using logger<C, Level>::write...;
+    static constexpr log_level level()
+    {
+        return DEFAULT_LOG_LEVEL;
+    }
 };
 
-using default_logger_t = default_logger_for<
-#ifdef _DEBUG
-    log_level::debug,
-#else
-    log_level::err,
-#endif
-    char,
-    wchar_t>;
-using default_logger_p = default_logger_t *const;
+#undef DEFAULT_LOG_LEVEL
 
+template <template <typename C> class T>
+struct base_for_default_logger : default_logger_t, T<char>, T<wchar_t>
+{
+};
+
+using default_logger_p = default_logger_t *const;
 extern default_logger_p default_logger;
 }

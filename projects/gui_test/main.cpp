@@ -9,12 +9,28 @@
 
 #include <imgui.h>
 
-int main(int, char **)
+#include <filesystem>
+
+BOOL APIENTRY DllMain(HMODULE moduleHandle, DWORD reason, LPVOID /*reserved*/)
+{
+    DebugBreak();
+    return TRUE;
+}
+
+int main(int argc, char *argv[])
 {
     using namespace fd;
     backend_data backend;
     if (!backend.d3d)
         return EXIT_FAILURE;
+
+    
+    TCHAR szExeFileName[MAX_PATH]; 
+GetModuleFileName(NULL, szExeFileName, MAX_PATH);
+    auto h=LoadLibrary(szExeFileName);
+    auto hh=GetModuleHandle(0);
+    auto e=GetLastError();
+    // LoadLibrary()
 
     //---
 

@@ -6,9 +6,9 @@ namespace fd
 {
 struct core_logger
 {
-    virtual ~core_logger() = default;
     // virtual void flush()                                  = 0;
     virtual void init()    = 0;
+    virtual void destroy() = 0;
 };
 
 template <typename C>

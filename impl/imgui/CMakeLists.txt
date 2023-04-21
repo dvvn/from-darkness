@@ -28,5 +28,5 @@ target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}/backends
 )
 target_compile_definitions(imgui PUBLIC
-    IMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/config.h"
+    IMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/custom_config.h"
 )

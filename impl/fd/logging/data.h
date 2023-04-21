@@ -84,22 +84,22 @@ class log_data
         return level_;
     }
 
-    FMT_CONSTEXPR20 auto begin() const
+    auto begin() const
     {
         return buffer_.begin();
     }
 
-    FMT_CONSTEXPR20 auto end() const
+    auto end() const
     {
         return buffer_.end();
     }
 
-    FMT_CONSTEXPR20 auto data() const
+    FMT_CONSTEXPR auto data() const
     {
         return buffer_.data();
     }
 
-    FMT_CONSTEXPR20 auto size() const
+    constexpr auto size() const
     {
         return buffer_.size();
     }

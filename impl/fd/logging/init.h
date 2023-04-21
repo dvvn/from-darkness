@@ -3,6 +3,10 @@
 
 namespace fd
 {
-void add_logger(core_logger *logger);
-void init_logging();
+struct logger_registrar :  virtual core_logger
+{
+    logger_registrar();
+    static void start();
+    static void stop();
+};
 }

@@ -1,9 +1,11 @@
-#include "backend.h"
+#include "own_backend.h"
 
 #include <d3d9.h>
 #include <tchar.h>
 
 #include <cassert>
+
+#pragma comment(lib, "d3d9.lib")
 
 #define RESET_BACK_BUFFER_ON_RESIZE
 
@@ -123,22 +125,16 @@ IDirect3DDevice9 *d3d_device9::operator->() const
     return device_;
 }
 
-backend_data::~backend_data()
+own_render_backend::~own_render_backend()
 {
     ::UnregisterClass(info.lpszClassName, info.hInstance);
     DestroyWindow(hwnd);
 }
 
-backend_data::backend_data()
+own_render_backend::own_render_backend(LPCTSTR name, HMODULE handle)
+    : hwnd(::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, handle, &d3d))
+    , info(sizeof(WNDCLASSEX), CS_CLASSDC, wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr)
 {
-    constexpr auto name = _T("GUI TEST");
-    auto handle         = GetModuleHandle(nullptr);
-    info                = {
-        sizeof(WNDCLASSEX), CS_CLASSDC, wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr
-    };
-    ::RegisterClassEx(&info);
-    hwnd = ::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, handle, &d3d);
-
     if (!d3d.attach(hwnd))
         return;
 
@@ -146,7 +142,7 @@ backend_data::backend_data()
     UpdateWindow(hwnd);
 }
 
-bool backend_data::run()
+bool own_render_backend::run()
 {
     assert(d3d != nullptr);
 
