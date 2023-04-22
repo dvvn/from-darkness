@@ -10,7 +10,7 @@ struct fmt::formatter<fd::log_level, C> : formatter<basic_string_view<C>, C>
     {
         using fd::log_level;
 
-        basic_memory_buffer<C> buff;
+        basic_memory_buffer<C, 64> buff;
         auto it = std::back_inserter(buff);
 
         auto write = [&](char const *begin, size_t length) {

@@ -3,7 +3,7 @@
 namespace fd
 {
 template <typename C>
-struct dummy_logger_for final : virtual abstract_logger<C>, virtual internal_logger<C>
+struct unreachable_logger final : virtual abstract_logger<C>, virtual internal_logger<C>
 {
     using typename abstract_logger<C>::pointer;
     using typename internal_logger<C>::data_type;
@@ -34,7 +34,7 @@ struct dummy_logger_for final : virtual abstract_logger<C>, virtual internal_log
     }
 };
 
-static base_for_default_logger<dummy_logger_for> dummy_logger;
+static logger_impl_wrapped<default_logger_t, unreachable_logger> default_logger_impl;
 
-default_logger_p default_logger = &dummy_logger;
+default_logger_p default_logger = &default_logger_impl;
 }

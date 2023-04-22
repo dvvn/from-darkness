@@ -15,9 +15,8 @@
 
 namespace fd
 {
-
 template <typename C>
-struct system_console_logger_for : protected virtual abstract_logger<C>, protected virtual internal_logger<C>
+struct system_console_logger : protected virtual abstract_logger<C>, protected virtual internal_logger<C>
 {
     using typename abstract_logger<C>::pointer;
     using typename internal_logger<C>::data_type;
@@ -47,24 +46,24 @@ static void do_write_before(auto *d)
     d->push_back(' ');
 }
 
-void system_console_logger_for<char>::do_write(pointer msg, size_t length)
+void system_console_logger<char>::do_write(pointer msg, size_t length)
 {
     (void)std::fwrite(msg, 1, length, stdout);
 }
 
-void system_console_logger_for<char>::write_before(data_type *d)
+void system_console_logger<char>::write_before(data_type *d)
 {
     do_write_before(d);
 }
 
-void system_console_logger_for<char>::write_after(data_type *d)
+void system_console_logger<char>::write_after(data_type *d)
 {
     d->push_back('\n');
 }
 
 //---
 
-void system_console_logger_for<wchar_t>::do_write(pointer msg, size_t length)
+void system_console_logger<wchar_t>::do_write(pointer msg, size_t length)
 {
 #if 1
     assert(msg[length - 1] == L'\0');
@@ -75,12 +74,12 @@ void system_console_logger_for<wchar_t>::do_write(pointer msg, size_t length)
 #endif
 }
 
-void system_console_logger_for<wchar_t>::write_before(data_type *d)
+void system_console_logger<wchar_t>::write_before(data_type *d)
 {
     do_write_before(d);
 }
 
-void system_console_logger_for<wchar_t>::write_after(data_type *d)
+void system_console_logger<wchar_t>::write_after(data_type *d)
 {
     d->append(L"\n"); //"\n\0"
 }
@@ -94,7 +93,7 @@ void system_console_logger_for<wchar_t>::write_after(data_type *d)
 //         buff.resize(buff.size() - 1);
 // }
 
-static class : public base_for_default_logger<system_console_logger_for>, public logger_registrar
+static class : public logger_impl_wrapped<default_logger_t, system_console_logger>, public logger_registrar
 {
     int current_mode_ = -1;
     int prev_mode_;
@@ -136,15 +135,15 @@ static class : public base_for_default_logger<system_console_logger_for>, public
     void do_write(abstract_logger<char>::pointer msg, size_t length) override
     {
         set_mode(/*_O_BINARY*/ _O_TEXT);
-        system_console_logger_for<char>::do_write(msg, length);
+        system_console_logger<char>::do_write(msg, length);
     }
 
     void do_write(abstract_logger<wchar_t>::pointer msg, size_t length) override
     {
         set_mode(_O_U16TEXT);
-        system_console_logger_for<wchar_t>::do_write(msg, length);
+        system_console_logger<wchar_t>::do_write(msg, length);
     }
-} core_logger;
+} default_logger_impl;
 
-default_logger_p default_logger = &core_logger;
+default_logger_p default_logger = &default_logger_impl;
 }

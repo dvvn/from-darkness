@@ -24,11 +24,11 @@ constexpr bool have_log_level(log_level level, log_level checked)
     return l & r && l >= r;
 }
 
-constexpr log_level &operator&=(log_level &lhs, log_level rhs)
-{
-    using type = std::underlying_type_t<log_level>;
-    return lhs = static_cast<log_level>(static_cast<type>(lhs) & static_cast<type>(rhs));
-}
+//constexpr log_level &operator&=(log_level &lhs, log_level rhs)
+//{
+//    using type = std::underlying_type_t<log_level>;
+//    return lhs = static_cast<log_level>(static_cast<type>(lhs) & static_cast<type>(rhs));
+//}
 
 constexpr log_level operator~(log_level val)
 {
