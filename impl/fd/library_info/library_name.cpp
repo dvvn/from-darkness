@@ -10,9 +10,8 @@ namespace fd
 std::wstring_view library_path(LDR_DATA_TABLE_ENTRY *entry)
 {
     auto &ustr = entry->FullDllName;
-    if (ustr.Buffer)
-        return { ustr.Buffer, ustr.Length / sizeof(WCHAR) };
-    return {};
+    assert(ustr.Buffer);
+    return { ustr.Buffer, ustr.Length / sizeof(WCHAR) };
 }
 
 std::wstring_view library_name(LDR_DATA_TABLE_ENTRY *entry)

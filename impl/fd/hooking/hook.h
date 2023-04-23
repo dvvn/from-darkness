@@ -6,9 +6,9 @@
 
 namespace fd
 {
-class hook : public basic_hook
+class hook final : public basic_hook
 {
-    std::string_view name_;
+    std::string name_;
 
 #if __has_include(<subhook.h>)
     void *entry_ = nullptr;
@@ -25,20 +25,21 @@ class hook : public basic_hook
     ~hook() override;
 
     hook();
-    hook(std::string_view name);
+    hook(std::string const &name);
+    hook(std::string &&name);
 
     hook(hook &&other) noexcept;
 
     hook &operator=(hook &&other) noexcept;
 
-    bool enable() final;
-    bool disable() final;
+    bool enable() override;
+    bool disable() override;
 
-    char const *name() const final;
+    char const *name() const override;
     std::string_view native_name() const;
 
-    bool initialized() const final;
-    bool active() const final;
+    bool initialized() const override;
+    bool active() const override;
 
     void *get_original_method() const;
     bool init(void *target, void *replace);

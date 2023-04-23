@@ -28,36 +28,33 @@ class hook_callback_args final
     }
 };
 
-static constexpr struct
+template <typename Callback, _x86_call Call, typename... Args>
+auto fwd_hook_callback(hook_callback<Callback, Call, Args...> &&cb)
 {
-    template <typename Callback, _x86_call Call, typename... Args>
-    auto operator()(hook_callback<Callback, Call, Args...> &&cb) const
-    {
-        return std::move(cb);
-    }
+    return std::move(cb);
+}
 
-    template <typename... T>
-    auto operator()(hook_callback_args<T...> &&cb) const
-    {
-        return std::move(cb).get();
-    }
-} _FwdHookCallback;
+template <typename... T>
+auto fwd_hook_callback(hook_callback_args<T...> &&cb)
+{
+    return std::move(cb).get();
+}
 
 template <class Tpl, class ArgsTpl, size_t Idx, size_t... I>
-static void _hooks_storage_init(Tpl &tpl, ArgsTpl &args, std::index_sequence<Idx, I...>)
+static void hooks_storage_init(Tpl &tpl, ArgsTpl &args, std::index_sequence<Idx, I...>)
 {
-    std::construct_at(&boost::hana::at_c<Idx>(tpl), _FwdHookCallback(std::move(boost::hana::at_c<Idx>(args))));
+    std::construct_at(&boost::hana::at_c<Idx>(tpl), fwd_hook_callback(std::move(boost::hana::at_c<Idx>(args))));
     if constexpr (sizeof...(I) != 0)
-        _hooks_storage_init(tpl, args, std::index_sequence<I...>());
+        hooks_storage_init(tpl, args, std::index_sequence<I...>());
 }
 
 template <class Tpl, class ArgsTpl, size_t... I>
-static Tpl _hooks_storage_init(ArgsTpl args, std::index_sequence<I...> seq)
+static Tpl hooks_storage_init(ArgsTpl args, std::index_sequence<I...> seq)
 {
     uint8_t buff[sizeof(Tpl)];
     auto &tpl = reinterpret_cast<Tpl &>(buff);
 
-    _hooks_storage_init(tpl, args, seq);
+    hooks_storage_init(tpl, args, seq);
 
     auto ret = std::move(tpl);
     std::destroy_at(&tpl);
@@ -71,12 +68,12 @@ class hooks_storage final
 
     storage_type hooks_;
 
-    //_hooks_storage_init used to force left-to-right args initializtion order
+    // hooks_storage_init used to force left-to-right args initializtion order
 
   public:
     template <typename... Args>
     hooks_storage(Args &&...args)
-        : hooks_(_hooks_storage_init<storage_type>(
+        : hooks_(hooks_storage_init<storage_type>(
               boost::hana::tuple<Args &&...>(std::forward<Args>(args)...),
               std::index_sequence_for<H...>()))
     {
@@ -96,5 +93,5 @@ class hooks_storage final
 };
 
 template <class... H>
-hooks_storage(H... hooks) -> hooks_storage<std::decay_t<decltype(_FwdHookCallback(static_cast<H &&>(hooks)))>...>;
+hooks_storage(H... hooks) -> hooks_storage<std::decay_t<decltype(fwd_hook_callback(static_cast<H &&>(hooks)))>...>;
 } // namespace fd

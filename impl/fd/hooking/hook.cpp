@@ -1,7 +1,9 @@
+#include <fd/formatting/lazy.h>
 #include <fd/hooking/hook.h>
+#include <fd/logging/default.h>
 #include <fd/utils/functional.h>
 
-#include <spdlog/spdlog.h>
+#include <cassert>
 
 #if __has_include(<subhook.h>)
 #include <subhook.h>
@@ -626,55 +628,52 @@ struct fmt::formatter<MH_STATUS> : formatter<string_view>
         return formatter<string_view>::format(str, ctx);
     }
 };
-
 #endif
-
-struct _hook_enabled
-{
-    fd::hook *impl;
-};
-
-template <>
-struct fmt::formatter<_hook_enabled> : formatter<string_view>
-{
-    auto format(_hook_enabled hook, format_context &ctx) const
-    {
-        string_view str;
-        if (!hook.impl->initialized())
-            str = "not created";
-        else if (hook.impl->active())
-            str = "already hooked";
-        else
-            str = "enable error";
-        return formatter<string_view>::format(str, ctx);
-    }
-};
-
-struct _hook_disabled
-{
-    fd::hook *impl;
-};
-
-template <>
-struct fmt::formatter<_hook_disabled> : formatter<string_view>
-{
-    auto format(_hook_disabled hook, format_context &ctx) const
-    {
-        string_view str;
-        if (!hook.impl->initialized())
-            str = "not created";
-        else if (!hook.impl->active())
-            str = "already unhooked";
-        else
-            str = "disable error";
-        return formatter<string_view>::format(str, ctx);
-    }
-};
 
 namespace fd
 {
+class _hook_enabled
+{
+    hook *hook_;
+
+  public:
+    _hook_enabled(hook *impl)
+        : hook_(impl)
+    {
+    }
+
+    std::string_view operator()() const
+    {
+        if (!hook_->initialized())
+            return "not created";
+        if (hook_->active())
+            return "already hooked";
+        return "enable error";
+    }
+};
+
+class _hook_disabled
+{
+    hook *hook_;
+
+  public:
+    _hook_disabled(hook *hook)
+        : hook_(hook)
+    {
+    }
+
+    std::string_view operator()() const
+    {
+        if (!hook_->initialized())
+            return "not created";
+        if (!hook_->active())
+            return "already unhooked";
+        return "disable error";
+    }
+};
+
 #ifdef SUBHOOK_API
-static auto _InitHooks = []() -> uint8_t {
+static auto init_hooks = []() -> uint8_t {
     subhook_set_disasm_handler([](void *src, int *reloc_op_offset) -> int {
         if (auto ret = subhook_disasm(src, reloc_op_offset); ret)
             return ret;
@@ -686,7 +685,7 @@ static auto _InitHooks = []() -> uint8_t {
     return 1;
 }();
 #elif defined(MH_ALL_HOOKS)
-static auto _InitHooks = [] {
+static auto init_hooks = [] {
     MH_STATUS status;
     (void)status;
     status = MH_Initialize();
@@ -701,7 +700,7 @@ static auto _InitHooks = [] {
 
 hook::~hook()
 {
-    (void)_InitHooks;
+    (void)init_hooks;
 
     if (initialized())
     {
@@ -712,7 +711,7 @@ hook::~hook()
 #elif defined(MH_ALL_HOOKS)
         MH_RemoveHook(target_);
 #endif
-        spdlog::info("{}: destroyed", name_);
+        default_logger->write<log_level::info>("{}: destroyed", name_);
     }
 }
 
@@ -721,8 +720,13 @@ hook::hook()
 {
 }
 
-hook::hook(std::string_view name)
-    : name_(name)
+hook::hook(std::string const &name)
+    : name_((name))
+{
+}
+
+hook::hook(std::string &&name)
+    : name_(std::move(name))
 {
 }
 
@@ -752,17 +756,17 @@ bool hook::enable()
 #elif defined(MH_ALL_HOOKS)
     if (!initialized())
     {
-        spdlog::warn("{}: {}", name_, _hook_enabled(this));
+        default_logger->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_enabled>(this));
         return false;
     }
     auto status = MH_EnableHook(target_);
-    if (status == MH_OK)
+    if (status != MH_OK)
+        default_logger->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_enabled>(this), status);
+    else
     {
         active_ = true;
-        spdlog::info("{}: hooked", name_);
+        default_logger->write<log_level::info>("{}: hooked", name_);
     }
-    else
-        spdlog::warn("{}: {} ({})", name_, _hook_enabled(this), status);
     return status == MH_OK;
 #endif
 }
@@ -772,19 +776,20 @@ bool hook::disable()
 #ifdef SUBHOOK_API
     auto ok = subhook_remove(entry_) == 0;
     if (ok)
-        spdlog::info("{}: disabled", name_);
+        default_logger->write<log_level::info>("{}: disabled", name_);
     else
-        spdlog::warn("{}: {}", name_, _hook_disabled(this));
+        default_logger->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_disabled>(this));
     return ok;
 #elif defined(MH_ALL_HOOKS)
     auto status = MH_DisableHook(target_);
     if (status == MH_OK)
     {
         active_ = false;
-        spdlog::info("{}: disabled", name_);
+        default_logger->write<log_level::info>("{}: disabled", name_);
     }
     else
-        spdlog::warn("{}: {} ({})", name_, _hook_disabled(this), status);
+        default_logger->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_disabled>(this), status);
+
     return status == MH_OK;
 #endif
 }
@@ -840,19 +845,19 @@ bool hook::init(void *target, void *replace)
 {
     if (initialized())
     {
-        spdlog::critical("{}: already initialized...");
+        default_logger->write<log_level::critical>("{}: already initialized...", name_);
         return false;
     }
 #ifdef SUBHOOK_API
     auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
     if (!entry)
     {
-        spdlog::error("{}: init error", name_);
+        default_logger->write<log_level::error>("{}: init error", name_);
         return false;
     }
     if (!subhook_get_trampoline(entry))
     {
-        spdlog::error("{}: unsupported function", name_);
+        default_logger->write<log_level::error>("{}: unsupported function", name_);
         subhook_free(entry);
         return false;
     }
@@ -861,12 +866,12 @@ bool hook::init(void *target, void *replace)
     auto status = MH_CreateHook(target, replace, &trampoline_);
     if (status != MH_OK)
     {
-        spdlog::error("{}: init error ({})", name_, status);
+        default_logger->write<log_level::error>("{}: init error ({})", name_, status);
         return false;
     }
     target_ = target;
 #endif
-    spdlog::info("{}: initialized. (target: {:p} replace: {:p})", name_, target, replace);
+    default_logger->write<log_level::info>("{}: initialized. (target: {:p} replace: {:p})", name_, target, replace);
     return true;
 }
 

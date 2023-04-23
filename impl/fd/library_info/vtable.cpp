@@ -9,18 +9,18 @@
 
 namespace fd
 {
-static bool _validate_rtti_name(char const *begin, const char *name, size_t length)
+static bool validate_rtti_name(char const *begin, char const *name, size_t length)
 {
-    auto nameBegin = begin + 3 + 1; //.?A_
-    if (memcmp(nameBegin + length, "@@", 2) != 0)
+    auto name_begin = begin + 3 + 1; //.?A_
+    if (memcmp(name_begin + length, "@@", 2) != 0)
         return false;
-    if (memcmp(nameBegin, name, length) != 0)
+    if (memcmp(name_begin, name, length) != 0)
         return false;
     return true;
 }
 
 template <char Prefix = 0>
-static void *_find_type_descriptor(IMAGE_NT_HEADERS *nt, const char *name, size_t length)
+static void *find_type_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length)
 {
     auto scanner = memory_scanner(nt->OptionalHeader.ImageBase, nt->OptionalHeader.SizeOfImage);
     for (auto begin : scanner(".?A", 3))
@@ -31,7 +31,7 @@ static void *_find_type_descriptor(IMAGE_NT_HEADERS *nt, const char *name, size_
             if (c_begin[3] != Prefix)
                 continue;
         }
-        if (_validate_rtti_name(c_begin, name, length))
+        if (validate_rtti_name(c_begin, name, length))
             return begin;
     }
     return nullptr;
@@ -45,7 +45,7 @@ struct xrefs_scanner_dos : xrefs_scanner
     }
 };
 
-void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, const char *name, size_t length)
+void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length)
 {
     auto find_offset = [=]<size_t S>(char const(&sample)[S]) -> size_t {
         constexpr auto sample_length = S - 1;
@@ -60,21 +60,21 @@ void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, const char *name, size_t length
     };
 
     if (auto offset = find_offset("struct "))
-        return find(offset, _find_type_descriptor<'U'>);
+        return find(offset, find_type_descriptor<'U'>);
     if (auto offset = find_offset("class "))
-        return find(offset, _find_type_descriptor<'V'>);
+        return find(offset, find_type_descriptor<'V'>);
 
-    return _find_type_descriptor(nt, name, length);
+    return find_type_descriptor(nt, name, length);
 }
 
-void *_find_vtable(
+void *find_vtable(
     IMAGE_SECTION_HEADER *rdata,
     IMAGE_SECTION_HEADER *text,
     IMAGE_DOS_HEADER *dos,
-    void const *rtti_name)
+    void const *rtti_decriptor)
 {
     // get rtti type descriptor
-    auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_name);
+    auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_decriptor);
     // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
     type_descriptor -= sizeof(uintptr_t) * 2;
 

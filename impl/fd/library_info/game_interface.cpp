@@ -130,7 +130,7 @@ class game_interface_iterator
 bool operator==(game_interface_iterator<game_interface_iterator_mode::compare> &it, std::string_view interface_name)
 {
     auto &curr                 = *std::as_const(it);
-    std::string_view curr_name = (curr.name);
+    std::string_view curr_name = curr.name;
 
     auto cmp = game_interface_cmp_result::error;
     if (curr_name.starts_with(interface_name))
@@ -154,7 +154,7 @@ bool operator==(
         return it->name == interface_name;
     }
     case game_interface_cmp_result::partial: {
-        std::string_view curr_name = (it->name);
+        std::string_view curr_name = it->name;
         if (curr_name.size() <= interface_name.size())
             return false;
         if (!std::isdigit(curr_name[interface_name.size()]))

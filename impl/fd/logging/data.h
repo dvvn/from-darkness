@@ -42,7 +42,7 @@ struct fmt::formatter<fd::log_level, C> : formatter<basic_string_view<C>, C>
 
             write_flag("info", log_level::info);
             write_flag("warning", log_level::warn);
-            write_flag("error", log_level::err);
+            write_flag("error", log_level::error);
             write_flag("critical", log_level::critical);
         _TRACE:
             write_flag("trace", log_level::trace);

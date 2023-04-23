@@ -145,7 +145,7 @@ static bool operator==(T const *other, typename win_list_view<T, Deref>::iterato
 using ldr_tables_view     = win_list_view<LDR_DATA_TABLE_ENTRY>;
 using ldr_tables_view_ptr = win_list_view<LDR_DATA_TABLE_ENTRY, false>;
 
-LDR_DATA_TABLE_ENTRY *_find_library(void *base_address)
+LDR_DATA_TABLE_ENTRY *find_library(void *base_address)
 {
     for (auto *e : ldr_tables_view_ptr())
     {
@@ -155,7 +155,7 @@ LDR_DATA_TABLE_ENTRY *_find_library(void *base_address)
     return nullptr;
 }
 
-LDR_DATA_TABLE_ENTRY *_find_library(const wchar_t *name, size_t length)
+LDR_DATA_TABLE_ENTRY *find_library(wchar_t const *name, size_t length)
 {
     auto test_name = std::basic_string_view(name, length);
 
@@ -183,12 +183,12 @@ LDR_DATA_TABLE_ENTRY *_find_library(const wchar_t *name, size_t length)
 static DECLSPEC_NOINLINE PVOID this_module_handle()
 {
     MEMORY_BASIC_INFORMATION info;
-    constexpr SIZE_T infoSize = sizeof(MEMORY_BASIC_INFORMATION);
+    constexpr SIZE_T info_size = sizeof(MEMORY_BASIC_INFORMATION);
     // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] auto len = VirtualQueryEx(GetCurrentProcess(), this_module_handle, &info, infoSize);
-    assert(len == infoSize);
+    [[maybe_unused]] auto len = VirtualQueryEx(GetCurrentProcess(), this_module_handle, &info, info_size);
+    assert(len == info_size);
     return static_cast<HINSTANCE>(info.AllocationBase);
 }
 
-LDR_DATA_TABLE_ENTRY *const this_library = _find_library(this_module_handle());
+LDR_DATA_TABLE_ENTRY *const this_library = find_library(this_module_handle());
 }

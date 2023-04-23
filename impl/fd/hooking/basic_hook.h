@@ -9,9 +9,9 @@ struct basic_hook
     virtual bool enable()  = 0;
     virtual bool disable() = 0;
 
-    virtual const char* name() const
+    virtual char const *name() const
     {
-        return "DEFAULT";
+        return "Unknown";
     }
 
     virtual bool initialized() const = 0;

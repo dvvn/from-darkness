@@ -30,7 +30,7 @@ template <typename Fn>
 lazy_format_value(Fn) -> lazy_format_value<std::decay_t<Fn>>;
 
 template <typename Fn>
-FMT_CONSTEXPR lazy(Fn &&fn)
+FMT_CONSTEXPR auto lazy(Fn &&fn)
 {
     return lazy_format_value(std::forward<Fn>(fn));
 }

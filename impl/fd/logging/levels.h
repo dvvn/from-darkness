@@ -9,9 +9,9 @@ enum class log_level : uint8_t
     off,
     info     = 1 << 0,
     warn     = 1 << 1,
-    err      = 1 << 2,
+    error      = 1 << 2,
     critical = 1 << 3,
-    debug    = info | warn | err | critical,
+    debug    = info | warn | error | critical,
     trace    = 1 << 4,
 };
 

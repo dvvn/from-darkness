@@ -18,11 +18,11 @@ class dll_exports
 
     union
     {
-        IMAGE_EXPORT_DIRECTORY *exportDirDir_;
-        uint8_t *virtualAddrStart_;
+        IMAGE_EXPORT_DIRECTORY *export_dir_;
+        uint8_t *virtual_addr_start_;
     };
 
-    uint8_t *virtualAddrEnd_;
+    uint8_t *virtual_addr_end_;
 
     using src_ptr = dll_exports const *;
 
@@ -30,15 +30,15 @@ class dll_exports
     dll_exports(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt)
         : dos_(dos)
     {
-        auto const &dataDir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+        auto const &data_dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         // get export export_dir.
-        exportDirDir_   = dos_ + dataDir.VirtualAddress;
-        virtualAddrEnd_ = virtualAddrStart_ + dataDir.Size;
+        export_dir_       = dos_ + data_dir.VirtualAddress;
+        virtual_addr_end_ = virtual_addr_start_ + data_dir.Size;
 
-        names_ = dos_ + exportDirDir_->AddressOfNames;
-        funcs_ = dos_ + exportDirDir_->AddressOfFunctions;
-        ords_  = dos_ + exportDirDir_->AddressOfNameOrdinals;
+        names_ = dos_ + export_dir_->AddressOfNames;
+        funcs_ = dos_ + export_dir_->AddressOfFunctions;
+        ords_  = dos_ + export_dir_->AddressOfNameOrdinals;
     }
 
     char const *name(DWORD offset) const
@@ -49,7 +49,7 @@ class dll_exports
     void *function(DWORD offset) const
     {
         void *tmp = dos_ + funcs_[ords_[offset]];
-        if (tmp < virtualAddrStart_ || tmp >= virtualAddrEnd_)
+        if (tmp < virtual_addr_start_ || tmp >= virtual_addr_end_)
             return tmp;
 
         // todo:resolve fwd export
@@ -163,11 +163,11 @@ class dll_exports
 
     iterator end() const
     {
-        return { this, std::min(exportDirDir_->NumberOfNames, exportDirDir_->NumberOfFunctions) };
+        return { this, std::min(export_dir_->NumberOfNames, export_dir_->NumberOfFunctions) };
     }
 };
 
-void *_find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, const char *name, size_t length)
+void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, char const *name, size_t length)
 {
     for (auto val : dll_exports(dos, nt))
     {

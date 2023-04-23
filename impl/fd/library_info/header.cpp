@@ -1,11 +1,11 @@
+#include <fd/library_info/dos.h>
 #include <fd/library_info/header.h>
 
 #include <cassert>
-#include <cstdint>
 
 namespace fd
 {
-IMAGE_DOS_HEADER *_get_dos(LDR_DATA_TABLE_ENTRY *entry)
+IMAGE_DOS_HEADER *get_dos(LDR_DATA_TABLE_ENTRY *entry)
 {
     auto dos = static_cast<IMAGE_DOS_HEADER *>(entry->DllBase);
     // check for invalid DOS / DOS signature.
@@ -13,9 +13,9 @@ IMAGE_DOS_HEADER *_get_dos(LDR_DATA_TABLE_ENTRY *entry)
     return dos;
 }
 
-IMAGE_NT_HEADERS *_get_nt(IMAGE_DOS_HEADER *dos)
+IMAGE_NT_HEADERS *get_nt(IMAGE_DOS_HEADER *dos)
 {
-    auto nt = reinterpret_cast<IMAGE_NT_HEADERS *>(reinterpret_cast<uint8_t *>(dos) + dos->e_lfanew);
+    IMAGE_NT_HEADERS *nt = dos_header(dos) + dos->e_lfanew;
     // check for invalid NT / NT signature.
     assert(nt->Signature == IMAGE_NT_SIGNATURE /* 'PE\0\0' */);
     return nt;
