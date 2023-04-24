@@ -1,5 +1,5 @@
-#include <fd/utils/functional.h>
 #include <fd/valve/client_side/base_entity.h>
+#include <fd/vfunc.h>
 
 // ReSharper disable CppUnusedIncludeDirective
 

@@ -1,10 +1,10 @@
-#include <fd/netvars/info.h>
-#include <fd/netvars/storage.h>
-#include <fd/netvars/type_resolve.h>
+#include "info.h"
+#include "storage.h"
+#include "type_resolve.h"
+
+#include <fd/logging/default.h>
 
 #include <boost/filesystem.hpp>
-
-#include <spdlog/spdlog.h>
 
 namespace boost::filesystem
 {
@@ -395,8 +395,8 @@ void netvars_storage::iterate_client_class(valve::client_class *cclass)
             //_parse(cclass->table, data_, internal_);
 #endif
     }
-
-    spdlog::info("[NETVARS] {} data tables stored", data_.size());
+    
+    default_logger->write<log_level::info>("[NETVARS] {} data tables stored", data_.size());
 }
 
 static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
@@ -447,7 +447,7 @@ void netvars_storage::iterate_datamap(valve::data_map *root_map)
 {
     assert(!data_.empty()); // Iterate datamap after recv tables!
     _parse(root_map, data_);
-    spdlog::info("[NETVARS] data map stored!");
+    default_logger->write<log_level::info>("[NETVARS] data map stored!");
 }
 
 #if 0
@@ -484,7 +484,7 @@ void netvars_storage::log_netvars(netvar_log &log)
     data_.sort();
     _fill(log, data_);
     // spdlog::debug("[NETVARS] log buffer size: {}kb", bytesWritten / 1024);
-    spdlog::info(L"[NETVARS] log will be written to {}", log);
+    default_logger->write<log_level::info>(L"[NETVARS] log will be written to {}", log);
 }
 
 void netvars_storage::generate_classes(netvar_classes &data)
@@ -495,7 +495,7 @@ void netvars_storage::generate_classes(netvar_classes &data)
     // todo: include internal files in data_! (made struct with provided include dirs)
     // todo: generate one .cpp file and include all _cpp internal files there!
     _fill(data, internal_);
-    spdlog::info(
+    default_logger->write<log_level::info>(
         L"[NETVARS] {} classes, and {} internal classes written to {}",
         data_.size() * 2,
         internal_.size() * 2,
@@ -529,7 +529,7 @@ void netvars_storage::init_default()
 size_t netvars_storage::get_offset(std::string_view class_name, std::string_view name) const
 {
     auto offset = data_.find(class_name)->find(name)->offset();
-    spdlog::info("[NETVARS] {}->{} loaded", class_name, name);
+    default_logger->write<log_level::info>("[NETVARS] {}->{} loaded", class_name, name);
     return offset;
 }
 

@@ -1,4 +1,4 @@
-﻿#include <fd/netvars/type_resolve.h>
+﻿#include "type_resolve.h"
 
 #include <fd/valve/client_side/base_entity.h>
 #include <fd/valve/color.h>

@@ -1,9 +1,8 @@
-#include <fd/netvars/log.h>
-#include <fd/utils/file.h>
-
-#include <fmt/format.h>
+#include "log.h"
 
 #include <boost/filesystem.hpp>
+
+#include <fstream>
 
 namespace fd
 {
@@ -13,10 +12,13 @@ netvar_log::~netvar_log()
 {
     if (dir.empty())
         return;
-    if (!exists(dir) && create_directories(dir))
-        write_file(make_path().native(), buff_);
-    else
-        write_file(make_path().native(), buff_, false);
+    if (!exists(dir) && !create_directories(dir))
+        return;
+
+    std::ofstream f;
+    f.rdbuf()->pubsetbuf(nullptr, 0);
+    f.open(make_path().native(), std::ios::binary);
+    f.write(buff_.data(), buff_.size());
 }
 
 boost::filesystem::path netvar_log::make_path() const
@@ -25,7 +27,7 @@ boost::filesystem::path netvar_log::make_path() const
     assert(!file.name.empty());
     assert(file.extension.starts_with('.'));
 
-    return dir / file.name += file.extension;
+    return dir.generic_path().append(file.name).concat(file.extension);
 }
 
 void netvar_log::fill(netvar_table &table)
@@ -43,7 +45,7 @@ void netvar_log::fill(netvar_table &table)
     buff_.append_range(table.name());
     for (auto &v : table)
     {
-        fmt::format_to(std::back_inserter(buff_), "\n\t{} {:#X} {}", v.name(), v.offset(), v.type());
+        // fmt::format_to(std::back_inserter(buff_), "\n\t{} {:#X} {}", v.name(), v.offset(), v.type());
     }
 
 #if 0

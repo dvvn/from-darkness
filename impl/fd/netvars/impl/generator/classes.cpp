@@ -1,12 +1,12 @@
-#include <fd/netvars/classes.h>
-#include <fd/utils/file.h>
+#include "classes.h"
+
+#include <fmt/format.h>
+//
 
 #include <boost/filesystem.hpp>
 
-#include <fmt/format.h>
-
 #include <algorithm>
-#include <span>
+#include <fstream>
 
 // template <size_t S>
 // struct fmt::formatter<fmt::basic_memory_buffer<char, S>> : formatter<string_view>
@@ -17,6 +17,8 @@
 //     }
 // };
 
+#define STATIC_NETVAR_VALUES
+
 namespace fd
 {
 netvar_classes::~netvar_classes()
@@ -24,15 +26,18 @@ netvar_classes::~netvar_classes()
     if (dir.empty())
         return;
 
-    if (create_directories(dir) || is_empty(dir))
+    create_directories(dir);
+
+    auto dir_size = dir.size();
+
+    for (auto &[name, buff] : files_)
     {
-        for (auto &f : files_)
-            write_file((dir / f.name).native(), f.data);
-    }
-    else
-    {
-        for (auto &f : files_)
-            write_file((dir / f.name).native(), f.data, false);
+        const_cast<boost::filesystem::path::string_type &>(dir.native()).erase(dir_size);
+
+        std::ofstream f;
+        f.rdbuf()->pubsetbuf(nullptr, 0);
+        f.open(dir.append(name).native(), std::ios::binary);
+        f.write(buff.data(), buff.size());
     }
 }
 
@@ -41,19 +46,24 @@ netvar_classes::netvar_classes() = default;
 struct generate_info
 {
     netvar_type_merged_includes<std::string_view> include;
+
     std::string_view name;
-    std::string type_out;
+    std::string id;
+
+    std::string_view type;
+#ifdef STATIC_NETVAR_VALUES
+    size_t offset;
+#endif
 
     generate_info(netvar_info &info)
         : name(info.name())
-        , type_out(info.type())
+        , id(fmt::format("\"{}\"", info.name()))
+        , type(info.type())
+#ifdef STATIC_NETVAR_VALUES
+        , offset(info.offset())
+#endif
     {
-        assert(!type_out.empty());
-
-        if (!type_out.ends_with('*'))
-            type_out.push_back('&');
-
-        info.type_ex().write_includes(std::back_inserter(include));
+        info.type_ex().write_includes_to(std::back_inserter(include));
         /*std::stable_sort(include.begin(), include.end());
         include.erase(std::unique(include.begin(), include.end()), include.end());*/
     }
@@ -130,6 +140,7 @@ class filler
 
     void source(std::string_view extension = "_cpp")
     {
+#if 0
         buff_.append_range(format_off_);
         buff_.append_range("static struct\n{\n");
         {
@@ -170,13 +181,15 @@ class filler
                            "}\n");
 
         store(extension);
+#endif
     }
 
     void s_includes(std::string_view extension = "_cpp_inc")
     {
+#if 0
 #ifdef FD_WORK_DIR
         using boost::filesystem::path;
-        assert(exists(path(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars/getter.h")));
+        assert(exists(path(BOOST_STRINGIZE(FD_WORK_DIR)).append("netvars").append("getter.h")));
 #endif
         buff_.append_range(format_off_);
         buff_.append_range("#include <fd/netvars/getter.h>\n");
@@ -186,38 +199,79 @@ class filler
                            "(std::string_view table, std::string_view name);\n\n");*/
 
         store(extension);
+#endif
     }
 
     void header(std::string_view extension = "_h")
     {
-        buff_.append_range(format_off_);
-        for (auto &i : table_)
-            fmt::format_to(buff_.out(), "{} {}();\n", i.type_out, i.name);
+        buff_.append_range("#pragma once\n\n");
+
+        constexpr std::string_view extra_includes[] = { "<fd/netvars/header.h>" };
+
+        write_includes(extra_includes);
+        buff_.push_back('\n');
+
+        buff_.append_range("namespace fd::netvars"
+                           "\n{\n");
+        {
+            buff_.append_range(
+#ifdef STATIC_NETVAR_VALUES
+                "constexpr "
+#else
+                "inline "
+#endif
+                "struct"
+                "\n{\n");
+            for (auto &info : table_)
+            {
+                fmt::format_to(
+                    buff_.out(),
+                    "\tnetvar_getter<{}> {} = {{"
+                    ".id = {}"
+#ifdef STATIC_NETVAR_VALUES
+                    ", .offset = {}"
+#endif
+                    "}};\n",
+                    info.type,
+                    info.name,
+                    info.id
+#ifdef STATIC_NETVAR_VALUES
+                    ,
+                    info.offset
+#endif
+                );
+            }
+            buff_.append_range("} ");
+            buff_.append_range(class_name_);
+            buff_.append_range(";\n");
+        }
+        buff_.append_range("}\n");
 
         store(extension);
     }
 
-    void h_includes(std::string_view extension = "_h_inc")
+    template <typename T = std::span<std::string_view>>
+    void write_includes(T &&extra = {})
     {
-        std::vector<std::string_view> tmp;
+        std::vector<std::string_view> includes;
         for (auto &info : table_)
-            tmp.append_range(info.include);
+            includes.append_range(info.include);
+        includes.append_range(extra);
 
-        auto start = tmp.begin();
-        auto end   = tmp.end();
+        auto start = includes.begin();
+        auto end   = includes.end();
 
         std::stable_sort(start, end, std::greater());
         end = std::unique(start, end);
 
-        if (start == end)
-            return;
-
-        buff_.append_range(format_off_);
-
-        do
+        for (; start != end; ++start)
             fmt::format_to(buff_.out(), "#include {}\n", *start);
-        while (++start != end);
+    }
 
+    void h_includes(std::string_view extension = "_h_inc")
+    {
+        buff_.append_range(format_off_);
+        write_includes();
         store(extension);
     }
 };

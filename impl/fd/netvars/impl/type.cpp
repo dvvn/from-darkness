@@ -1,38 +1,29 @@
-#include <fd/netvars/type.h>
+#include "type.h"
 
 #include <fmt/format.h>
 
-template <>
-struct fmt::formatter<fd::netvar_type_array> : formatter<string_view>
-{
-    auto format(fd::netvar_type_array const& arr, format_context& ctx) const -> decltype(ctx.out())
-    {
-        auto inner = arr.inner.get();
-
-        memory_buffer tmp;
-        auto          it = std::back_inserter(tmp);
-
-        tmp.append(string_view("std::array<"));
-        if (std::holds_alternative<fd::netvar_type_array>(inner->data))
-            format_to(it, "{}", std::get<fd::netvar_type_array>(inner->data));
-        else
-            tmp.append(inner->get_type());
-        format_to(it, ", {}>", arr.size);
-
-        return formatter<string_view>::format(string_view(tmp.data(), tmp.size()), ctx);
-    }
-};
-
 namespace fd
 {
-
 // netvar_type_array* netvar_type_array::get_inner_array() const
 //{
 //     auto& inner = this->data->data;
 //     return std::holds_alternative<netvar_type_array>(inner) ? &std::get<netvar_type_array>(inner) : nullptr;
 // }
 
-netvar_type_array::netvar_type_array(uint16_t size, netvar_type&& type)
+static void absolute_array_type(std::string &buff, netvar_type_array &arr)
+{
+    auto inner = arr.inner.get();
+
+    buff.append("std::array<");
+    if (std::holds_alternative<netvar_type_array>(inner->data))
+        absolute_array_type(buff, std::get<netvar_type_array>(inner->data));
+    else
+        buff.append(inner->get_type());
+
+    fmt::format_to(std::back_inserter(buff), ", {}>", arr.size);
+}
+
+netvar_type_array::netvar_type_array(uint16_t size, netvar_type &&type)
     : size(size)
     , inner(std::make_unique<netvar_type>(std::move(type)))
 {
@@ -41,7 +32,10 @@ netvar_type_array::netvar_type_array(uint16_t size, netvar_type&& type)
 void netvar_type_array::fill(bool force)
 {
     if (force || type.empty())
-        type = fmt::format("{}", *this);
+    {
+        type.clear();
+        absolute_array_type(type, *this);
+    }
 }
 
 // custom_netvar_type_ex netvar_type_array::unwrap()
@@ -55,7 +49,7 @@ void netvar_type_array::fill(bool force)
 static constexpr struct
 {
     template <class T>
-    std::string_view operator()(T& val) const
+    std::string_view operator()(T &val) const
     {
         return val.type;
     }
@@ -65,13 +59,13 @@ static constexpr struct
         std::unreachable();
     }
 
-    std::string_view operator()(netvar_type_array& val) const
+    std::string_view operator()(netvar_type_array &val) const
     {
         val.fill();
         return val.type;
     }
 
-    std::string_view operator()(netvar_type_array const& val) const
+    std::string_view operator()(netvar_type_array const &val) const
     {
         assert(!val.type.empty());
         return val.type;

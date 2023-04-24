@@ -3,10 +3,24 @@
 
 namespace fd
 {
-struct logger_registrar :  virtual core_logger
+struct logger_registrar : virtual core_logger
 {
     logger_registrar();
+
     static void start();
     static void stop();
+
+    struct init_helper
+    {
+        init_helper()
+        {
+            start();
+        }
+
+        ~init_helper()
+        {
+            stop();
+        }
+    };
 };
 }

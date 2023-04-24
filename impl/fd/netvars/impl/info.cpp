@@ -1,5 +1,5 @@
-#include <fd/netvars/info.h>
-#include <fd/netvars/type_resolve.h>
+#include "info.h"
+#include "type_resolve.h"
 
 #include <cassert>
 
@@ -44,9 +44,9 @@ netvar_info::netvar_info(size_t offset, netvar_type type, std::string_view name)
 {
 }
 
-netvar_info::netvar_info(size_t offset, uint16_t arraySize, netvar_source source, std::string_view name)
+netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source source, std::string_view name)
     : offset_(offset)
-    , hint_(arraySize, source, name)
+    , hint_(array_size, source, name)
 {
 }
 
@@ -132,9 +132,9 @@ std::string_view netvar_info::type() const
     return type_.get_type();
 }
 
-netvar_type& netvar_info::type_ex()
+netvar_type &netvar_info::type_ex()
 {
-    if (type_.data.index() == 0)
+    if (std::holds_alternative<std::monostate>(type_.data))
         type_ = hint_.resolve();
     return type_;
 }
@@ -146,17 +146,17 @@ uint16_t netvar_info::array_size() const
     return hint_.arraySize;
 }
 
-bool operator==(netvar_info const& left, netvar_info const& right)
+bool operator==(netvar_info const &left, netvar_info const &right)
 {
     return left.name() == right.name();
 }
 
-bool operator==(netvar_info const& left, std::string_view name)
+bool operator==(netvar_info const &left, std::string_view name)
 {
     return left.name() == name;
 }
 
-std::strong_ordering operator<=>(netvar_info const& left, netvar_info const& right)
+std::strong_ordering operator<=>(netvar_info const &left, netvar_info const &right)
 {
     return left.offset() <=> right.offset();
 }

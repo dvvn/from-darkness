@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/netvars/source.h>
+#include "source.h"
 
 #include <boost/container/static_vector.hpp>
 
@@ -178,7 +178,7 @@ struct netvar_type final
     std::string_view get_type() const;
 
     template <class T>
-    void write_includes(T &&it) const
+    void write_includes_to(T &&it) const
     {
         std::visit(netvar_includes_writer<T &&>(std::forward<T>(it)), data);
     }

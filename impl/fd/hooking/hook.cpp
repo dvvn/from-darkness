@@ -1,7 +1,7 @@
 #include <fd/formatting/lazy.h>
 #include <fd/hooking/hook.h>
+#include <fd/lazy_invoke.h>
 #include <fd/logging/default.h>
-#include <fd/utils/functional.h>
 
 #include <cassert>
 

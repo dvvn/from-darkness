@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/netvars/table.h>
+#include "../table.h"
 
 #include <boost/filesystem/path.hpp>
 

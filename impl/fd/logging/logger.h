@@ -83,23 +83,29 @@ struct supported_char_types
 template <log_level Level, typename... C>
 struct logger_same_level : basic_logger<Level, C>..., dummy_logger<Level>
 {
+    using char_types = supported_char_types<C...>;
+
     static constexpr log_level level()
     {
         return Level;
     }
 
-    using char_types = supported_char_types<C...>;
+    using basic_logger<Level, C>::write...;
+    using dummy_logger<Level>::write;
 };
 
 template <logger_info... Info>
 struct logger : basic_logger<Info.level, typename decltype(Info)::char_type>..., dummy_logger<(Info.level | ...)>
 {
+    using char_types = supported_char_types<typename decltype(Info)::char_type...>;
+
     static constexpr log_level level()
     {
         return (Info.level | ...);
     }
 
-    using char_types = supported_char_types<typename decltype(Info)::char_type>;
+    using basic_logger<Info.level, typename decltype(Info)::char_type>::write...;
+    using dummy_logger<level()>::write;
 };
 
 // template <typename Logger, typename C>

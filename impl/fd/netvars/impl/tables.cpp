@@ -1,4 +1,4 @@
-#include <fd/netvars/tables.h>
+#include "tables.h"
 
 #include <algorithm>
 #include <cassert>

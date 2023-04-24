@@ -146,6 +146,7 @@ fetchContent_MakeAvailable(freetype)
 fetchContent_Load(ocornut imgui GIT_TAG features/string_view)
 fetchContent_Populate(imgui)
 
+#[[
 set(XXHASH_BUILD_XXHSUM off)
 FetchContent_Load(Cyan4973 xxHash GIT_TAG dev)
 FetchContent_Populate(xxHash)
@@ -154,11 +155,14 @@ target_compile_definitions(xxhash PUBLIC XXH_NO_LONG_LONG=1)
 
 FetchContent_Load(ekpyron xxhashct)
 FetchContent_Populate(xxhashct)
+]]
 
+#[[
 set(JSON_MultipleHeaders on)
 set(JSON_DisableEnumSerialization on)
 FetchContent_Load(nlohmann json)
 FetchContent_MakeAvailable(json)
+]]
 
 #unable to use it now, because it change compiler flags and break the project
 #FetchContent_Load(stephenberry glaze GIT_TAG main)
@@ -175,16 +179,19 @@ FetchContent_Load(fmtlib fmt)
 FetchContent_MakeAvailable(fmt)
 target_compile_definitions(fmt PUBLIC FMT_USE_FULL_CACHE_DRAGONBOX=1)
 
-#[[set(SUBHOOK_STATIC on)
+#[[
+set(SUBHOOK_STATIC on)
 set(SUBHOOK_INSTALL off)
 set(SUBHOOK_TESTS off)
 FetchContent_Load(Zeex subhook)
-FetchContent_MakeAvailable(subhook)]]
+FetchContent_MakeAvailable(subhook)
+]]
 
 #FetchContent_Load(m417z minhook GIT_TAG multihook)
 FetchContent_Load(TsudaKageyu minhook)
 FetchContent_MakeAvailable(minhook)
 
+#[[
 set(SPDLOG_BUILD_EXAMPLE off)
 set(SPDLOG_INSTALL off)
 set(SPDLOG_FMT_EXTERNAL on)
@@ -198,13 +205,16 @@ FetchContent_Load(gabime spdlog GIT_TAG v1.x)
 FetchContent_MakeAvailable(spdlog)
 target_compile_definitions(spdlog PUBLIC basic_runtime=runtime_format_string)
 set_target_properties(spdlog PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+]]
 
-#set(SIGMATCH_DEV_MODE off)
-#set(SIGMATCH_BUILD_EXAMPLES off)
-#set(SIGMATCH_BUILD_BENCHMARKS off)
-#set(SIGMATCH_BUILD_TESTS off)
-#FetchContent_Load(SpriteOvO sigmatch GIT_TAG dev)
-#FetchContent_MakeAvailable(sigmatch)
+#[[
+set(SIGMATCH_DEV_MODE off)
+set(SIGMATCH_BUILD_EXAMPLES off)
+set(SIGMATCH_BUILD_BENCHMARKS off)
+set(SIGMATCH_BUILD_TESTS off)
+FetchContent_Load(SpriteOvO sigmatch GIT_TAG dev)
+FetchContent_MakeAvailable(sigmatch)
+]]
 
 #FetchContent_Load(JustasMasiulis lazy_importer)
 #FetchContent_Populate(lazy_importer)

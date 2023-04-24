@@ -1,8 +1,9 @@
 ﻿#pragma once
 
-#include <fd/netvars/classes.h>
-#include <fd/netvars/log.h>
-#include <fd/netvars/tables.h>
+#include "generator/classes.h"
+#include "generator/log.h"
+#include "tables.h"
+
 #include <fd/valve/client_class.h>
 #include <fd/valve/data_map.h>
 

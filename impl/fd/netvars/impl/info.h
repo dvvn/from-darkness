@@ -1,7 +1,7 @@
 #pragma once
 
-#include <fd/netvars/source.h>
-#include <fd/netvars/type_resolve.h>
+#include "source.h"
+#include "type_resolve.h"
 
 #include <string>
 
@@ -17,7 +17,7 @@ class netvar_info final
 
   public:
     netvar_info(size_t offset, netvar_type type, std::string_view name);
-    netvar_info(size_t offset, uint16_t arraySize, netvar_source source, std::string_view name);
+    netvar_info(size_t offset, uint16_t array_size, netvar_source source, std::string_view name);
     netvar_info(size_t offset, netvar_source source, std::string_view name);
 
     size_t           offset() const;

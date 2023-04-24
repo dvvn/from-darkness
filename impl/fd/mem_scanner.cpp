@@ -1,39 +1,14 @@
 #include "mem_scanner.h"
 
-#include <boost/container/small_vector.hpp>
-#ifdef _DEBUG
-#include <boost/type_index.hpp>
-#include <spdlog/spdlog.h>
-#endif
+#include <boost/container/static_vector.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <string>
-
-#ifdef _DEBUG
-template <>
-struct ::fmt::formatter<std::type_info> : formatter<string_view>
-{
-    template <class Ctx>
-    auto format(boost::typeindex::type_index info, Ctx &ctx) const
-    {
-        return formatter<string_view>::format(info.pretty_name(), ctx);
-    }
-};
-
-template <class T>
-static void _buffer_size_notification(T &buffer, std::type_info const &name)
-{
-    static size_t maxBuffer_size = 0;
-    if (maxBuffer_size < buffer.size())
-    {
-        maxBuffer_size = buffer.size();
-        spdlog::debug("{}: buffer size set to {}", name, maxBuffer_size);
-    }
-}
-#endif
 
 namespace fd
 {
+
 #if 0
 static void* _find_block(const uint8_t* mem, size_t mem_size, const uint8_t* rng, size_t rng_size)
 {
@@ -109,18 +84,10 @@ bool _memory_range::update(abstract_pointer curr, size_t offset)
 
 struct bytes_range
 {
-    using part_storage = boost::container::small_vector<uint8_t, 32>;
+    using part_storage = boost::container::static_vector<uint8_t, 32>;
 
     part_storage part;
     uint8_t skip = 0;
-
-    ~bytes_range()
-    {
-#ifdef _DEBUG
-        _buffer_size_notification(part, typeid(bytes_range));
-#endif
-        (void)this;
-    }
 
     bytes_range() = default;
 
@@ -162,7 +129,7 @@ struct bytes_range_unpacked
 };
 
 template <typename T>
-using bytes_range_buffer = boost::container::small_vector<T, 8>;
+using bytes_range_buffer = boost::container::static_vector<T, 8>;
 
 struct _unknown_bytes_range : bytes_range_buffer<bytes_range>
 {
@@ -429,7 +396,7 @@ static constexpr uint8_t _to_num(char const chr)
     case 'F':
         return 0xF;
     default:
-        assert(!"Unsupported character");
+        assert(0 && "Unsupported character");
         return -1;
     }
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/netvars/table.h>
+#include "table.h"
 
 #define FD_NETVARS_DT_MERGE
 

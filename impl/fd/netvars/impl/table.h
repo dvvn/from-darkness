@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fd/netvars/info.h>
+#include "info.h"
 
 #include <vector>
 

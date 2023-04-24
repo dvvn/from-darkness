@@ -1,6 +1,6 @@
-#include <fd/netvars/table.h>
+#include "table.h"
 
-#include <spdlog/spdlog.h>
+#include <algorithm>
 
 namespace fd
 {

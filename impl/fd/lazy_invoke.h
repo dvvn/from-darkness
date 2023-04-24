@@ -78,26 +78,5 @@ class invoke_on_destruct<Fn, false>
 };
 
 template <typename Fn>
-invoke_on_destruct(Fn fn) -> invoke_on_destruct<std::decay_t<Fn>>;
-
-inline void *vfunc(void *instance, size_t idx)
-{
-    return (*static_cast<void ***>(instance))[idx];
+invoke_on_destruct(Fn) -> invoke_on_destruct<std::decay_t<Fn>>;
 }
-
-template <typename Ret, typename... Args>
-Ret vfunc(void *instance, size_t idx, Args... args)
-{
-    using fn_t = Ret(__thiscall *)(void *, Args...);
-    return (*static_cast<fn_t **>(instance))[idx](instance, static_cast<Args>(args)...);
-}
-
-template <typename Ret, typename... Args>
-Ret vfunc(void const *instance_const, size_t idx, Args... args)
-{
-    auto instance = const_cast<void *>(instance_const);
-    using fn_t    = Ret(__thiscall *)(void *, Args...);
-    return (*static_cast<fn_t **>(instance))[idx](instance, static_cast<Args>(args)...);
-}
-
-} // namespace fd

@@ -14,24 +14,25 @@ endif()
 target_link_libraries(fd PUBLIC 
     #function2
     #robin_hood::robin_hood
-    nlohmann_json::nlohmann_json
+    #nlohmann_json::nlohmann_json
     #glaze::glaze
     #subhook::subhook
     minhook
     fmt::fmt
     imgui::imgui
-    xxHash::xxhash
-    spdlog::spdlog
+    #xxHash::xxhash
+    #spdlog::spdlog
     #sigmatch::sigmatch
     #Boost::thread
     Boost::algorithm
     Boost::container
     Boost::container_hash
+    Boost::filesystem
     Boost::json
     Boost::sort
     Boost::io
     #Boost::dll
-    Boost::process
+    #Boost::process
     Boost::geometry
     Boost::qvm
     #Boost::gil
