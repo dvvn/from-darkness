@@ -3,12 +3,11 @@
 
 namespace fd
 {
-struct logger_registrar : virtual core_logger
+struct logger_registrar : protected virtual core_logger
 {
     logger_registrar();
 
     static void start();
     static void stop();
-
 };
 }

@@ -8,17 +8,6 @@
 
 namespace fd
 {
-template <log_level Level>
-struct dummy_logger
-{
-    template <log_level CurrLevel>
-    void write(...) //
-        requires(!have_log_level(Level, CurrLevel))
-    {
-        (void)this;
-    }
-};
-
 template <log_level Level, typename C>
 struct basic_logger : protected virtual abstract_logger<C>
 {
@@ -37,6 +26,22 @@ struct basic_logger : protected virtual abstract_logger<C>
 
         this->do_write(data.data(), data.size());
     }
+};
+
+template <log_level Level>
+struct dummy_logger
+{
+    template <log_level CurrLevel>
+    void write(...) //
+        requires(!have_log_level(Level, CurrLevel))
+    {
+        (void)this;
+    }
+};
+
+template <>
+struct dummy_logger<log_level::all>
+{
 };
 
 template <typename C>

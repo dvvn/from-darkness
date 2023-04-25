@@ -21,7 +21,10 @@ struct fmt::formatter<fd::log_level, C> : formatter<basic_string_view<C>, C>
         {
             write("disabled", 8);
         }
-        else
+        else if (level == log_level::all)
+        {
+            write("all", 3);
+        }
         {
             auto flag_written = false;
             auto write_flag   = [&](auto &flag, log_level val) {
@@ -48,7 +51,7 @@ struct fmt::formatter<fd::log_level, C> : formatter<basic_string_view<C>, C>
             write_flag("trace", log_level::trace);
         }
 
-        return formatter<basic_string_view<C>, C>::format({ buff.data(), buff.size() }, ctx);
+        return formatter<basic_string_view<C>, C>::format({buff.data(), buff.size()}, ctx);
     }
 };
 

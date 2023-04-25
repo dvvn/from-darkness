@@ -72,7 +72,6 @@ union manual_construct
     }
 
     manual_construct()
-        : gap(-1)
     {
     }
 };
@@ -121,11 +120,11 @@ struct hook_callback_proxy_member;
         using original_type = Ret (__##_CALL_ hook_callback_proxy_member::*)(Args...);       \
         Ret __##_CALL_ proxy(Args... args) noexcept                                          \
         {                                                                                    \
-            original_type fn = from_void<original_type>(hook_trampoline_stored<Callback>);  \
+            original_type fn = from_void<original_type>(hook_trampoline_stored<Callback>);   \
             return extract_manual_object(hook_callback_stored<Callback>)(                    \
                 [&](Args... proxy_args) -> Ret {                                             \
                     /**/                                                                     \
-                    return (*this.*fn)(static_cast<Args>(proxy_args)...);                  \
+                    return (*this.*fn)(static_cast<Args>(proxy_args)...);                    \
                 },                                                                           \
                 reinterpret_cast<C *>(this),                                                 \
                 std::forward<Args>(args)...);                                                \
@@ -140,17 +139,17 @@ struct hook_callback_proxy<Callback, _x86_call::thiscall_, Ret, Args...>
 {
 };
 
-#define HOOK_CALLBACK_PROXY_STATIC(_CALL_)                                              \
-    template <class Callback, typename Ret, typename... Args>                           \
-    struct hook_callback_proxy<Callback, _x86_call::_CALL_##_, Ret, Args...> final      \
-    {                                                                                   \
-        using function_type = Ret(__##_CALL_ *)(Args...);                               \
-        static Ret __##_CALL_ proxy(Args... args) noexcept                              \
-        {                                                                               \
-            return extract_manual_object(hook_callback_stored<Callback>)(               \
-                from_void<function_type>(hook_trampoline_stored<Callback>), /**/ \
-                std::forward<Args>(args)...);                                           \
-        }                                                                               \
+#define HOOK_CALLBACK_PROXY_STATIC(_CALL_)                                         \
+    template <class Callback, typename Ret, typename... Args>                      \
+    struct hook_callback_proxy<Callback, _x86_call::_CALL_##_, Ret, Args...> final \
+    {                                                                              \
+        using function_type = Ret(__##_CALL_ *)(Args...);                          \
+        static Ret __##_CALL_ proxy(Args... args) noexcept                         \
+        {                                                                          \
+            return extract_manual_object(hook_callback_stored<Callback>)(          \
+                from_void<function_type>(hook_trampoline_stored<Callback>), /**/   \
+                std::forward<Args>(args)...);                                      \
+        }                                                                          \
     };
 
 #define HOOK_CALLBACK_PROXY_ANY(_CALL_) \
@@ -165,18 +164,21 @@ HOOK_CALLBACK_PROXY_MEMBER(thiscall);
 
 using raw_hook_name = char const *;
 
-template <typename HookCallback, typename Callback>
+template <typename HookProxy, typename Callback>
 basic_hook *init_hook_callback(raw_hook_name name, void *target, Callback &replace)
 {
-    [[maybe_unused]] //
-    static HookCallback callback;
+    //[[maybe_unused]] //
+    //static HookProxy proxy;
     static auto holder = hook(name);
 
-    if (!holder.init(target, to_void(&HookCallback::proxy)))
+    if (!holder.init(target, to_void(&HookProxy::proxy)))
         return nullptr;
 
-    construct_manual_object(hook_callback_stored<Callback>, std::move(replace));
-    hook_trampoline_stored<Callback> = holder.get_original_method();
+    auto &callback   = hook_callback_stored<Callback>;
+    auto &trampoline = hook_trampoline_stored<Callback>;
+
+    construct_manual_object(callback, std::move(replace));
+    trampoline = holder.get_original_method();
 
     return &holder;
 }

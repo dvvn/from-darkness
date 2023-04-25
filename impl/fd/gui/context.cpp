@@ -1,12 +1,10 @@
 #include <fd/gui/context.h>
 
+#include <d3d9.h>
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-#include <d3d9.h>
-
 #include <numeric>
-#include <span>
 
 // ReSharper disable once CppInconsistentNaming
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
@@ -82,13 +80,8 @@ void _gui_context::release_textures()
     ImGui_ImplDX9_InvalidateDeviceObjects();
 }
 
-#ifdef _DEBUG
 // ReSharper disable once CppInconsistentNaming
 #define D3D_VALIDATE(_X_) assert(_X_ == D3D_OK)
-#else
-// ReSharper disable once CppInconsistentNaming
-#define D3D_VALIDATE(_X_) _X_
-#endif
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 bool _gui_context::begin_frame()
@@ -134,8 +127,8 @@ auto _gui_context::process_keys(void *data) -> keys_return
 
 auto _gui_context::process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam) -> keys_return
 {
-    //return keys_return::native;
-    
+    // return keys_return::native;
+
     auto &events        = context_.InputEventsQueue;
     auto oldEventsCount = events.size();
 

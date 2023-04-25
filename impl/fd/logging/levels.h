@@ -9,10 +9,11 @@ enum class log_level : uint8_t
     off,
     info     = 1 << 0,
     warn     = 1 << 1,
-    error      = 1 << 2,
+    error    = 1 << 2,
     critical = 1 << 3,
     debug    = info | warn | error | critical,
     trace    = 1 << 4,
+    all      = debug | trace
 };
 
 constexpr bool have_log_level(log_level level, log_level checked)
@@ -24,11 +25,11 @@ constexpr bool have_log_level(log_level level, log_level checked)
     return l & r && l >= r;
 }
 
-//constexpr log_level &operator&=(log_level &lhs, log_level rhs)
+// constexpr log_level &operator&=(log_level &lhs, log_level rhs)
 //{
-//    using type = std::underlying_type_t<log_level>;
-//    return lhs = static_cast<log_level>(static_cast<type>(lhs) & static_cast<type>(rhs));
-//}
+//     using type = std::underlying_type_t<log_level>;
+//     return lhs = static_cast<log_level>(static_cast<type>(lhs) & static_cast<type>(rhs));
+// }
 
 constexpr log_level operator~(log_level val)
 {
