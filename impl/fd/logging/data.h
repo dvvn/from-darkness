@@ -25,6 +25,7 @@ struct fmt::formatter<fd::log_level, C> : formatter<basic_string_view<C>, C>
         {
             write("all", 3);
         }
+        else
         {
             auto flag_written = false;
             auto write_flag   = [&](auto &flag, log_level val) {
