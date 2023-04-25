@@ -18,19 +18,12 @@ class hook final : public basic_hook
     bool active_      = false;
 #endif
 
-    hook &operator=(hook const &other) = default;
-    hook(hook const &)                 = default;
-
   public:
     ~hook() override;
 
     hook();
     hook(std::string const &name);
     hook(std::string &&name);
-
-    hook(hook &&other) noexcept;
-
-    hook &operator=(hook &&other) noexcept;
 
     bool enable() override;
     bool disable() override;

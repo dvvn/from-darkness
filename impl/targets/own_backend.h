@@ -25,17 +25,24 @@ class d3d_device9
     IDirect3DDevice9 *operator->() const;
 };
 
+struct own_render_wnd_class : WNDCLASSEX
+{
+    ~own_render_wnd_class();
+    own_render_wnd_class(LPCTSTR name, HMODULE handle);
+};
+
 struct own_render_backend
 {
-    d3d_device9 d3d;
+    own_render_wnd_class info;
     HWND hwnd;
-    WNDCLASSEX info;
+    d3d_device9 device;
 
     ~own_render_backend();
-    own_render_backend(LPCTSTR name, HMODULE handle);
+    own_render_backend(LPCTSTR name, HMODULE handle, HWND parent = nullptr);
 
     own_render_backend(own_render_backend const &) = delete;
 
+    bool initialized() const;
     bool run();
 };
 } // namespace fd

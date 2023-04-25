@@ -2,10 +2,11 @@
 
 #include <fd/gui/basic_context.h>
 
-#ifdef IMGUI_USER_CONFIG
+#if !defined(IMGUI_VERSION) && defined(IMGUI_USER_CONFIG)
 #include IMGUI_USER_CONFIG
 #endif
 #include <imgui_internal.h>
+//
 
 #include <Windows.h>
 #include <d3d9.h>

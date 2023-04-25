@@ -125,26 +125,49 @@ IDirect3DDevice9 *d3d_device9::operator->() const
     return device_;
 }
 
+own_render_wnd_class::~own_render_wnd_class()
+{
+    UnregisterClass(lpszClassName, hInstance);
+}
+
+own_render_wnd_class::own_render_wnd_class(LPCTSTR name, HMODULE handle)
+{
+    // ReSharper disable once CppRedundantCastExpression
+    memset(static_cast<WNDCLASSEX *>(this), 0, sizeof(WNDCLASSEX));
+
+    cbSize        = sizeof(WNDCLASSEX);
+    style         = CS_CLASSDC;
+    lpfnWndProc   = wnd_proc;
+    hInstance     = handle;
+    lpszClassName = name;
+
+    RegisterClassEx(this);
+}
+
 own_render_backend::~own_render_backend()
 {
-    ::UnregisterClass(info.lpszClassName, info.hInstance);
     DestroyWindow(hwnd);
 }
 
-own_render_backend::own_render_backend(LPCTSTR name, HMODULE handle)
-    : hwnd(::CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, handle, &d3d))
-    , info(sizeof(WNDCLASSEX), CS_CLASSDC, wnd_proc, 0L, 0L, handle, nullptr, nullptr, nullptr, nullptr, name, nullptr)
+own_render_backend::own_render_backend(LPCTSTR name, HMODULE handle, HWND parent)
+    : info(name, handle)
+    , hwnd(CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, parent, nullptr, handle, &device))
 {
-    if (!d3d.attach(hwnd))
+    if (!device.attach(hwnd))
         return;
 
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     UpdateWindow(hwnd);
 }
 
+bool own_render_backend::initialized() const
+{
+    return device != nullptr;
+}
+
 bool own_render_backend::run()
 {
-    assert(d3d != nullptr);
+    assert(device != nullptr);
 
     for (;;)
     {
@@ -157,11 +180,11 @@ bool own_render_backend::run()
                 return true;
         }
 
-        d3d->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-        auto result = d3d->Present(nullptr, nullptr, nullptr, nullptr);
+        device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+        auto result = device->Present(nullptr, nullptr, nullptr, nullptr);
         // Handle loss of D3D9 device
-        if (result == D3DERR_DEVICELOST && d3d->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
-            d3d.reset();
+        if (result == D3DERR_DEVICELOST && device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
+            device.reset();
     }
 }
 } // namespace fd

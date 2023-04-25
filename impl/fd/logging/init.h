@@ -10,17 +10,5 @@ struct logger_registrar : virtual core_logger
     static void start();
     static void stop();
 
-    struct init_helper
-    {
-        init_helper()
-        {
-            start();
-        }
-
-        ~init_helper()
-        {
-            stop();
-        }
-    };
 };
 }

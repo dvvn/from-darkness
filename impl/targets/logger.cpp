@@ -16,10 +16,10 @@
 namespace fd
 {
 template <typename C>
-struct system_console_logger : protected virtual abstract_logger<C>, protected virtual internal_logger<C>
+struct system_console_logger : virtual abstract_logger<C>
 {
     using typename abstract_logger<C>::pointer;
-    using typename internal_logger<C>::data_type;
+    using typename abstract_logger<C>::data_type;
 
     void do_write(pointer msg, size_t length) override
     {
@@ -117,7 +117,7 @@ static class : public logger_impl_wrapped<default_logger_t, system_console_logge
         current_mode_ = _setmode(_fileno(stdout), prev_mode_);
     }
 
-  public:
+  protected:
     void init() override
     {
         SetConsoleTitle(_T("Title"));

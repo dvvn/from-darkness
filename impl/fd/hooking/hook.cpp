@@ -702,21 +702,23 @@ hook::~hook()
 {
     (void)init_hooks;
 
-    if (initialized())
-    {
-        if (active())
-            disable();
+    if (!initialized())
+        return;
+
+    if (active())
+        disable();
 #ifdef SUBHOOK_API
-        subhook_free(entry_);
+    subhook_free(entry_);
 #elif defined(MH_ALL_HOOKS)
-        MH_RemoveHook(target_);
+    if (MH_RemoveHook(target_) != MH_OK)
+        return;
 #endif
-        default_logger->write<log_level::info>("{}: destroyed", name_);
-    }
+    default_logger->write<log_level::info>("{}: destroyed", name_);
+    target_ = nullptr;
 }
 
 hook::hook()
-    : name_("unknown")
+    : name_("Empty")
 {
 }
 
@@ -730,28 +732,14 @@ hook::hook(std::string &&name)
 {
 }
 
-hook::hook(hook &&other) noexcept
-    : hook(other)
-{
-    other = {};
-}
-
-hook &hook::operator=(hook &&other) noexcept
-{
-    auto tmp = *this;
-    *this    = other;
-    other    = tmp;
-    return *this;
-}
-
 bool hook::enable()
 {
 #ifdef SUBHOOK_API
     auto ok = subhook_install(entry_) == 0;
     if (ok)
-        spdlog::info("{}: hooked", name_);
+        default_logger->write<log_level::info>("{}: hooked", name_);
     else
-        spdlog::warn("{}: {}", name_, _hook_enabled(this));
+        default_logger->write<log_level::warn>("{}: {}", name_, _hook_enabled(this));
     return ok;
 #elif defined(MH_ALL_HOOKS)
     if (!initialized())

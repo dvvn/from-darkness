@@ -9,7 +9,6 @@ AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
 #AlignConsecutiveDeclarations: AcrossComments
 BreakAfterAttributes: Always
 RequiresExpressionIndentation: OuterScope
-Cpp11BracedListStyle: false
 AlignArrayOfStructures: Right
 AlignEscapedNewlines: Left
 FixNamespaceComments: true

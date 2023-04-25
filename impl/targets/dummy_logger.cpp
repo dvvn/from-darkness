@@ -3,10 +3,11 @@
 namespace fd
 {
 template <typename C>
-struct unreachable_logger final : virtual abstract_logger<C>, virtual internal_logger<C>
+class unreachable_logger final : protected virtual abstract_logger<C>
 {
+  protected:
     using typename abstract_logger<C>::pointer;
-    using typename internal_logger<C>::data_type;
+    using typename abstract_logger<C>::data_type;
 
     void init() override
     {

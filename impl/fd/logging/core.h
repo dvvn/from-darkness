@@ -12,10 +12,16 @@ struct core_logger
 };
 
 template <typename C>
-struct abstract_logger : virtual core_logger
-{
-    using pointer = C const *;
+class log_data;
 
+template <typename C>
+struct abstract_logger :  virtual core_logger
+{
+    using data_type = log_data<C>;
+    using pointer   = C const *;
+
+    virtual void write_before(data_type *d)           = 0;
     virtual void do_write(pointer msg, size_t length) = 0;
+    virtual void write_after(data_type *d)            = 0;
 };
 }
