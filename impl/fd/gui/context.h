@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fd/gui/basic_context.h>
+#include <fd/render/backend.h>
 
 #if !defined(IMGUI_VERSION) && defined(IMGUI_USER_CONFIG)
 #include IMGUI_USER_CONFIG
@@ -30,6 +31,11 @@ class imgui_backup
     imgui_backup &operator=(imgui_backup const &) = delete;
 };
 
+struct render_context_data
+{
+    
+};
+
 class _gui_context : public basic_gui_context
 {
     // demo windows have static ImVector inside, so we unable to restore allocators here
@@ -45,7 +51,7 @@ class _gui_context : public basic_gui_context
     struct init_data
     {
         bool store_settings;
-        IDirect3DDevice9 *backend;
+        render_backend backend;
         HWND window;
     };
 
@@ -67,7 +73,7 @@ class _gui_context : public basic_gui_context
 
   protected:
     bool begin_frame();
-    void end_frame(IDirect3DDevice9 *thisPtr);
+    void end_frame(render_backend thisPtr);
 
   public:
     keys_return process_keys(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
@@ -104,11 +110,11 @@ class gui_context final : public _gui_context
   private:
     void render(void *data) override
     {
-        render(static_cast<IDirect3DDevice9 *>(data));
+        render(static_cast<render_backend >(data));
     }
 
   public:
-    void render(IDirect3DDevice9 *thisPtr)
+    void render(render_backend thisPtr)
     {
         if (begin_frame())
         {

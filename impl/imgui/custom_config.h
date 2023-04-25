@@ -62,28 +62,29 @@ T ImRsqrt(T x)
 }
 #endif
 
-#include <string>
-#include <string_view>
-#define IM_STRV_CLASS_EXTRA           \
-    ImStrv(std::string_view str)      \
-        : Begin(str.data())           \
-        , End(Begin + str.size())     \
-    {                                 \
-    }                                 \
-    ImStrv(const std::string &str)    \
-        : Begin(str.data())           \
-        , End(Begin + str.size())     \
-    {                                 \
-    }                                 \
-    ImStrv(std::string &&) = delete;  \
-    template <size_t S>               \
-    ImStrv(const char(&str)[S])       \
-        : Begin(std::begin(str))      \
-        , End(std::end(str) - 1)      \
-    {                                 \
-    }                                 \
-    ImStrv(const char *str, size_t s) \
-        : Begin(str)                  \
-        , End(str + s)                \
-    {                                 \
+namespace std
+{
+template <typename C, typename Tr>
+class basic_string_view;
+
+template <typename C, typename Tr, typename Alloc>
+class basic_string;
+} // namespace std
+
+#define IM_STRV_CLASS_EXTRA                                    \
+    template <size_t S>                                        \
+    constexpr ImStrv(char const(&str)[S])                      \
+        : Begin(str)                                           \
+        , End(str + S - 1)                                     \
+    {                                                          \
+    }                                                          \
+    constexpr ImStrv(const char *begin, size_t length)         \
+        : Begin(begin)                                         \
+        , End(begin + length)                                  \
+    {                                                          \
+    }                                                          \
+    template <typename Traits>                                 \
+    constexpr ImStrv(std::basic_string_view<char, Traits> str) \
+        : ImStrv(str.data(), str.size())                       \
+    {                                                          \
     }

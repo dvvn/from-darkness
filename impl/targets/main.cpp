@@ -1,7 +1,11 @@
 #include "own_backend.h"
 
-#include <fd/gui/context.h>
-#include <fd/gui/menu.h>
+#include <fd/render/context.h>
+#include <fd/render/context_init.h>
+#include <fd/render/context_update.h>
+#include <fd/render/frame.h>
+// #include <fd/gui/context.h>
+// #include <fd/gui/menu.h>
 #include <fd/hooking/callback.h>
 #include <fd/lazy_invoke.h>
 #include <fd/logging/init.h>
@@ -108,6 +112,7 @@ static bool context(HMODULE self_handle)
         return false;
 #endif
 
+#if 0
     auto test_menu = menu(
         tab_bar(
             tab("tab1", [] { ImGui::TextUnformatted("hello"); }),
@@ -121,15 +126,21 @@ static bool context(HMODULE self_handle)
         ImGui::ShowDemoWindow();
 #endif
     });
-
+    
     if (!gui_ctx.init({false, backend.device, backend.hwnd}))
         return false;
+#else
+    render_context rctx;
+    if (!init(&rctx, backend.device, backend.hwnd))
+        return false;
+#endif
 
     basic_hook *hooks[] = {
         make_hook_callback(
             "WinAPI.WndProc",
             backend.info.lpfnWndProc,
-            [&](auto orig, auto... args) -> LRESULT {
+            [&](auto orig, auto hwnd, auto... args) -> LRESULT {
+#if 0
                 using keys_return = basic_gui_context::keys_return;
                 switch (gui_ctx.process_keys(args...))
                 {
@@ -142,19 +153,40 @@ static bool context(HMODULE self_handle)
                 default:
                     std::unreachable();
                 }
+#else
+                assert(rctx.window == hwnd);
+                process_message_result pmr;
+                process_message(&rctx, args..., &pmr);
+                switch (pmr)
+                {
+                case process_message_result::idle:
+                    return orig(hwnd, args...);
+                case process_message_result::updated:
+                    return DefWindowProc(hwnd, args...);
+                case process_message_result::locked:
+                    return TRUE;
+                default:
+                    std::unreachable();
+                }
+#endif
             }),
         make_hook_callback(
             "IDirect3DDevice9::Reset",
             from_void(vfunc(backend.device, 16), &IDirect3DDevice9::Reset),
-            [&](auto orig, auto, auto... args) {
-                gui_ctx.release_textures();
+            [&](auto orig, auto this_ptr, auto... args) {
+                // gui_ctx.release_textures();
+                assert(rctx.backend == this_ptr);
+                reset(&rctx);
                 return orig(args...);
             }),
         make_hook_callback(
             "IDirect3DDevice9::Present",
             from_void(vfunc(backend.device, 17), &IDirect3DDevice9::Present),
             [&](auto orig, auto this_ptr, auto... args) {
-                gui_ctx.render(this_ptr);
+                // gui_ctx.render(this_ptr);
+                assert(rctx.backend == this_ptr);
+                if (auto frame = render_frame(&rctx))
+                    frame.store(true, ImGui::ShowDemoWindow);
                 return orig(args...);
             })};
 

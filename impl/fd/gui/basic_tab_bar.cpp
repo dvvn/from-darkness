@@ -24,7 +24,7 @@ bool basic_tab_bar::begin_frame()
     constexpr auto flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton |
                            ImGuiTabBarFlags_NoTooltip;
 #ifdef IMGUI_HAS_IMSTR
-    return ImGui::BeginTabBar(name_, flags);
+    return ImGui::BeginTabBar("name_", flags);
 #else
     auto &g     = *GImGui;
     auto window = g.CurrentWindow;

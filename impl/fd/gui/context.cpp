@@ -5,6 +5,7 @@
 #include <imgui_impl_win32.h>
 
 #include <numeric>
+#include "context.h"
 
 // ReSharper disable once CppInconsistentNaming
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
@@ -101,7 +102,7 @@ bool _gui_context::begin_frame()
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void _gui_context::end_frame(IDirect3DDevice9 *thisPtr)
+void _gui_context::end_frame(render_backend thisPtr)
 {
     (void)this;
     ImGui::Render();

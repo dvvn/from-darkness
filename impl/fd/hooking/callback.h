@@ -1,6 +1,8 @@
 #pragma once
 
 #include <fd/hooking/hook.h>
+#include <fd/magic_cast.h>
+#include <fd/manual_construct.h>
 
 namespace fd
 {
@@ -15,97 +17,8 @@ enum class _x86_call : uint8_t
     vectorcall_,
 };
 
-template <typename From, typename To>
-class magic_cast
-{
-    union
-    {
-        From from_;
-        To to_;
-    };
-
-  public:
-    magic_cast(From from)
-        : from_(from)
-    {
-        static_assert(sizeof(From) == sizeof(To));
-    }
-
-    magic_cast(From from, To)
-        : magic_cast(from)
-    {
-    }
-
-    operator To() const
-    {
-        return to_;
-    }
-
-    decltype(auto) operator*() const
-    {
-        return *to_;
-    }
-};
-
-template <typename From, typename To>
-magic_cast(From, To) -> magic_cast<std::decay_t<From>, std::decay_t<To>>;
-
-template <typename From>
-using to_void = magic_cast<From, void *>;
-
-template <typename To>
-using from_void = magic_cast<void *, To>;
-
-template <typename T>
-concept has_destructor = requires(T obj) { obj.~T(); };
-
-template <typename T>
-union manual_construct
-{
-    uint8_t gap;
-    T object;
-
-    ~manual_construct()
-    {
-        if constexpr (has_destructor<T>)
-            std::destroy_at(&object);
-    }
-
-    manual_construct()
-    {
-    }
-};
-
-template <typename T, typename... Args>
-void construct_manual_object(T &obj, Args &&...args)
-{
-    if constexpr (sizeof...(Args) != 0)
-    {
-        std::destroy_at(&obj);
-        std::construct_at(&obj, std::forward<Args>(args)...);
-    }
-}
-
-template <typename T, typename... Args>
-void construct_manual_object(manual_construct<T> &obj, Args &&...args)
-{
-    std::construct_at(&obj.object, std::forward<Args>(args)...);
-}
-
-template <typename T>
-T &extract_manual_object(T &val)
-{
-    return val;
-}
-
-template <typename T>
-T &extract_manual_object(manual_construct<T> &obj)
-{
-    return obj.object;
-}
-
 template <typename Callback>
-std::conditional_t<std::default_initializable<Callback>, Callback, manual_construct<Callback>> hook_callback_stored;
+manual_construct_t<Callback> hook_callback_stored;
 
 template <typename Callback>
 void *hook_trampoline_stored;
@@ -168,7 +81,7 @@ template <typename HookProxy, typename Callback>
 basic_hook *init_hook_callback(raw_hook_name name, void *target, Callback &replace)
 {
     //[[maybe_unused]] //
-    //static HookProxy proxy;
+    // static HookProxy proxy;
     static auto holder = hook(name);
 
     if (!holder.init(target, to_void(&HookProxy::proxy)))
