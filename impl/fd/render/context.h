@@ -1,6 +1,7 @@
 #pragma once
 
 #include "backend.h"
+#include "context_fwd.h"
 
 #if !defined(IMGUI_VERSION) && defined(IMGUI_USER_CONFIG)
 #include IMGUI_USER_CONFIG
@@ -33,5 +34,4 @@ struct render_context
     bool can_render() const;
 };
 
-using render_context_ptr = render_context const *;
 }

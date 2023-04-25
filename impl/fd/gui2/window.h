@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <fd/render/context.h>
+#include <fd/render/context_fwd.h>
 
 namespace fd
 {
