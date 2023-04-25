@@ -125,7 +125,12 @@ HOOK_CALLBACK_MEMBER(thiscall);
 template <typename Callback, typename Sample>
 basic_hook *make_hook_callback(raw_hook_name name, from_void<Sample> target, Callback replace)
 {
-    return make_hook_callback<Callback &>(name, static_cast<Sample>(target), replace);
+    constexpr auto t1      = std::is_trivially_copy_assignable_v<Callback>;
+    constexpr auto t2      = std::is_trivially_destructible_v<Callback>;
+    constexpr bool trivial = t1 && t2;
+
+    using ref_t = std::conditional_t<trivial, Callback, Callback &>;
+    return make_hook_callback<ref_t>(name, static_cast<Sample>(target), replace);
 }
 
 } // namespace fd
