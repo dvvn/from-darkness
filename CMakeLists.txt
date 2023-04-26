@@ -29,11 +29,6 @@ set(FD_IMPL_DIR ${FD_ROOT_DIR}/impl)
 set(FD_DIR ${FD_IMPL_DIR}/fd)
 set(FD_OUT_DIR ${FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
 
-set(CMAKE_DEBUG_POSTFIX _d)
-set(CMAKE_RELEASE_POSTFIX _r)
-set(CMAKE_RELWITHDEBINFO_POSTFIX _rd)
-set(CMAKE_MINSIZEREL_POSTFIX _rm)
-
 #set(CMAKE_CXX_LINK_OPTIONS_IPO "")
 #set(CMAKE_CXX_COMPILE_OPTIONS_IPO "")
 #set(CMAKE_CXX_CREATE_STATIC_LIBRARY_IPO "")
@@ -134,7 +129,6 @@ set(BOOST_RUNTIME_LINK static)
 FetchContent_Load(boostorg boost)
 FetchContent_MakeAvailable(boost)
 
-set(DISABLE_FORCE_DEBUG_POSTFIX on)
 set(FT_DISABLE_ZLIB on)
 set(FT_DISABLE_BZIP2 on)
 set(FT_DISABLE_PNG on)
@@ -174,7 +168,6 @@ FetchContent_MakeAvailable(json)
 #FetchContent_Load(max0x7ba atomic_queue)
 #FetchContent_Populate(atomic_queue)
 
-set(FMT_DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 FetchContent_Load(fmtlib fmt)
 FetchContent_MakeAvailable(fmt)
 target_compile_definitions(fmt PUBLIC FMT_USE_FULL_CACHE_DRAGONBOX=1)
@@ -204,7 +197,6 @@ set(SPDLOG_NO_THREAD_ID on)
 FetchContent_Load(gabime spdlog GIT_TAG v1.x)
 FetchContent_MakeAvailable(spdlog)
 target_compile_definitions(spdlog PUBLIC basic_runtime=runtime_format_string)
-set_target_properties(spdlog PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 ]]
 
 #[[

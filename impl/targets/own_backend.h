@@ -33,9 +33,11 @@ struct own_render_wnd_class : WNDCLASSEX
 
 struct own_render_backend
 {
+    using device_type = d3d_device9;
+
     own_render_wnd_class info;
     HWND hwnd;
-    d3d_device9 device;
+    device_type device;
 
     ~own_render_backend();
     own_render_backend(LPCTSTR name, HMODULE handle, HWND parent = nullptr);

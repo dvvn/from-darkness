@@ -1,10 +1,10 @@
-#include <fd/utils/functional.h>
 #include <fd/valve/client_side/engine.h>
+#include <fd/vfunc.h>
 
 namespace fd::valve::client_side
 {
 char const *engine::GetProductVersionString() const
 {
-    return vfunc<char const *>(this, 105);
+    return vtable(this).call<char const *>(105);
 }
 }

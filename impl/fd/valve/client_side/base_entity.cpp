@@ -16,11 +16,11 @@ namespace fd::valve::client_side
 
 data_map *base_entity::GetDataDescMap()
 {
-    return vfunc<data_map *>(this, 15);
+    return vtable(this).call<data_map *>(15);
 }
 
 data_map *base_entity::GetPredictionDescMap()
 {
-    return vfunc<data_map *>(this, 17);
+    return vtable(this).call<data_map *>(17);
 }
 }
