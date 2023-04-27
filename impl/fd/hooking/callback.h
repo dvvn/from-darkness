@@ -129,8 +129,8 @@ HOOK_CALLBACK_ANY(stdcall);
 HOOK_CALLBACK_ANY(vectorcall);
 HOOK_CALLBACK_MEMBER(thiscall);
 
-template <typename Callback, typename Sample>
-basic_hook *make_hook_callback(raw_hook_name name, from_void<Sample> target, Callback callback)
+template <typename Callback, typename From, typename Sample>
+basic_hook *make_hook_callback(raw_hook_name name, magic_cast<From, Sample> target, Callback callback)
 {
     constexpr bool trivial = sizeof(Callback) <= sizeof(uintptr_t[2]) && //
                              std::is_trivially_copyable_v<Callback> &&   //

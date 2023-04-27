@@ -118,7 +118,7 @@ class game_interface_iterator
     game_interface_iterator operator+(size_t i) const
     {
         assert(i == 1);
-        return { current_->next, compared_ };
+        return {current_->next, compared_};
     }
 
     cmp_result status() const
@@ -212,7 +212,7 @@ static bool _all_digits(char const *ptr)
     return true;
 }
 
-found_game_interface find_game_interface(const char *name, size_t length, game_interface *root_interface)
+found_game_interface find_game_interface(game_interface *root_interface, const char *name, size_t length)
 {
     using cmp_result = game_interface_cmp_result;
     using iter_mode  = game_interface_iterator_mode;
@@ -228,13 +228,13 @@ found_game_interface find_game_interface(const char *name, size_t length, game_i
     switch (target.status())
     {
     case cmp_result::full:
-        return { target.get(), true };
+        return {target.get(), true};
     case cmp_result::partial:
         assert(_all_digits(target->name + length));
         assert(!std::find<const_iterator>(target + 1, nullptr, target_name));
-        return { target.get(), false };
+        return {target.get(), false};
     default:
-        return { nullptr };
+        return {nullptr};
     }
 }
 } // namespace fd

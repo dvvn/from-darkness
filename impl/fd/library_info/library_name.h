@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string_view>
+#include "core.h"
 
-using LDR_DATA_TABLE_ENTRY = struct _LDR_DATA_TABLE_ENTRY;
+#include <string_view>
 
 namespace fd
 {

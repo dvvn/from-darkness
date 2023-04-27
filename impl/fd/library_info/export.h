@@ -1,10 +1,6 @@
 #pragma once
 
-#include <cstddef>
-
-using LDR_DATA_TABLE_ENTRY = struct _LDR_DATA_TABLE_ENTRY;
-using IMAGE_NT_HEADERS     = struct _IMAGE_NT_HEADERS;
-using IMAGE_DOS_HEADER     = struct _IMAGE_DOS_HEADER;
+#include "core.h"
 
 namespace fd
 {

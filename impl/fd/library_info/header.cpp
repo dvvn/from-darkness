@@ -1,6 +1,9 @@
 #include <fd/library_info/dos.h>
 #include <fd/library_info/header.h>
 
+#include <Windows.h>
+#include <winternl.h>
+
 #include <cassert>
 
 namespace fd

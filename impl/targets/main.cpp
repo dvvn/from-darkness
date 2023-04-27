@@ -1,20 +1,21 @@
 #include "own_backend.h"
 
+#include <fd/hooking/callback.h>
+#include <fd/lazy_invoke.h>
+#include <fd/library_info.h>
+#include <fd/logging/init.h>
 #include <fd/render/context.h>
 #include <fd/render/context_init.h>
 #include <fd/render/context_update.h>
 #include <fd/render/frame.h>
-// #include <fd/gui/context.h>
-// #include <fd/gui/menu.h>
-#include <fd/hooking/callback.h>
-#include <fd/lazy_invoke.h>
-#include <fd/logging/init.h>
 #include <fd/vfunc.h>
 
 #include <windows.h>
 
 #include <algorithm>
 #include <functional>
+
+//#define _WINDLL
 
 namespace fd
 {
@@ -32,31 +33,41 @@ static void destroy_hooks(auto &rng)
 {
     std::for_each(std::rbegin(rng), std::rend(rng), std::destroy_at<basic_hook>);
 }
+
+template <>
+class magic_cast<void *, render_backend>
+{
+    render_backend *ptr_;
+
+  public:
+    magic_cast(library_info::auto_cast val)
+        : ptr_(*reinterpret_cast<render_backend **>(val + 1))
+    {
+    }
+
+    render_backend operator->() const
+    {
+        return *ptr_;
+    }
+
+    operator render_backend() const
+    {
+        return *ptr_;
+    }
+};
 } // namespace fd
 
-// #define _WINDLL
-#define FD_MODE_GUI_TEST
-
-static bool context(HMODULE self_handle);
-
-#if defined(FD_MODE_GUI_TEST) && !defined(_WINDLL)
-#define USE_OWN_RENDER_BACKEND
-#endif
+static bool context(HINSTANCE self_handle);
 
 #ifdef _WINDLL
+
 static HANDLE thread;
 static DWORD thread_id;
 
-[[noreturn]]
-static void exit_fail()
+static DWORD WINAPI context_proxy(LPVOID ptr)
 {
-    FreeLibraryAndExitThread(nullptr /*WIP*/, EXIT_FAILURE);
-}
-
-static DWORD WINAPI context_proxy(LPVOID param)
-{
-    if (!context())
-        exit_fail();
+    if (!context(static_cast<HINSTANCE>(ptr)))
+        FreeLibraryAndExitThread(static_cast<HMODULE>(ptr), EXIT_FAILURE);
     return TRUE;
 }
 
@@ -91,14 +102,20 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
 
     return EXIT_SUCCESS;
 }
+
 #else
+#define USE_OWN_RENDER_BACKEND
+
 int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
+
     return context(GetModuleHandle(nullptr)) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 #endif
 
-static bool context(HMODULE self_handle)
+static bool context(HINSTANCE self_handle)
 {
     using namespace fd;
 
@@ -116,10 +133,15 @@ static bool context(HMODULE self_handle)
         return false;
     auto target_wnd_proc = backend.info.lpfnWndProc;
 #else
-    //
-    //
+    library_info shader_api           = L"shaderapidx9.dll";
+    from_void<render_backend> backend = shader_api.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+    D3DDEVICE_CREATION_PARAMETERS creation_parameters;
+    if (FAILED(backend->GetCreationParameters(&creation_parameters)))
+        return false;
 
-    if (!init(&rctx, ??, ??))
+    from_any<WNDPROC> target_wnd_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
+
+    if (!init(&rctx, backend, creation_parameters.hFocusWindow))
         return false;
 #endif
 

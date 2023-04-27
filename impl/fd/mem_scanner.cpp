@@ -53,9 +53,9 @@ static auto _find_block(const uint8_t* mem_begin, const uint8_t* mem_end, const 
 
 //-----
 
-::fd::memory_range_unpacked _memory_range::unpack() const
+memory_range_unpacked _memory_range::unpack() const
 {
-    return { begin_, begin_ + length_, length_ };
+    return {begin_, begin_ + length_, length_};
 }
 
 bool _memory_range::update(pointer curr, size_t offset)
@@ -319,7 +319,7 @@ static _memory_range::iterator _find_memory_range_full(_memory_range rng, _unkno
         if (part1_begin >= rng_end)
             return nullptr;
 
-        rng1 = { part1_begin, rng_end };
+        rng1 = {part1_begin, rng_end};
     }
 }
 
@@ -352,7 +352,7 @@ static void *_find_memory_range(_memory_range const &rng, _memory_range const &m
 
 //-----
 
-static constexpr uint8_t _to_num(char const chr)
+static uint8_t to_num(char chr)
 {
     // maybe slower, but readable
     switch (chr)
@@ -396,7 +396,9 @@ static constexpr uint8_t _to_num(char const chr)
     case 'F':
         return 0xF;
     default:
+#ifdef assert
         assert(0 && "Unsupported character");
+#endif
         return -1;
     }
 }
@@ -425,12 +427,12 @@ class unknown_bytes_range_updater
   public:
     void store_byte(char const chr_num)
     {
-        store(_to_num(chr_num));
+        store(to_num(chr_num));
     }
 
     void store_byte(char const part1, char const part2)
     {
-        store(_to_num(part1) * 16 + _to_num(part2));
+        store(to_num(part1) * 16 + to_num(part2));
     }
 
     // ReSharper disable once CppMemberFunctionMayBeConst
@@ -498,13 +500,13 @@ auto memory_scanner::operator()(abstract_pointer begin, size_t mem_size) const -
 auto pattern_scanner::operator()(pattern_pointer pattern, size_t length) const -> scanner
 {
     return {
-        {*this, { pattern, length }}
+        {*this, {pattern, length}}
     };
 }
 
 memory_scanner pattern_scanner::raw() const
 {
-    return { begin(), end() };
+    return {begin(), end()};
 }
 
 //-----

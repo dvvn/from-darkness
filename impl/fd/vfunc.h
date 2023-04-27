@@ -11,8 +11,6 @@ class vfunc
     size_t vtable_offset_;
     size_t index_;
 
-    using fn_t = Ret(__thiscall *)(void *, Args...);
-
   public:
     vfunc(void *instance, size_t vtable_offset, size_t index)
         : instance_(instance)
@@ -31,6 +29,7 @@ class vfunc
     template <typename... ArgsFwd>
     Ret operator()(ArgsFwd &&...args) const
     {
+        using fn_t = Ret(__thiscall *)(void *, Args...);
         return static_cast<fn_t **>(instance_)[vtable_offset_][index_](instance_, std::forward<Args>(args)...);
     }
 

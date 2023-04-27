@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <winternl.h>
 
+#include <algorithm>
 #include <cassert>
 
 namespace fd
@@ -142,7 +143,7 @@ class dll_exports
 
         wrapper operator*() const
         {
-            return { src_, offset_ };
+            return {src_, offset_};
         }
 
         bool operator==(iterator const &other) const
@@ -158,12 +159,12 @@ class dll_exports
 
     iterator begin() const
     {
-        return { this, 0 };
+        return {this, 0};
     }
 
     iterator end() const
     {
-        return { this, std::min(export_dir_->NumberOfNames, export_dir_->NumberOfFunctions) };
+        return {this, std::min(export_dir_->NumberOfNames, export_dir_->NumberOfFunctions)};
     }
 };
 

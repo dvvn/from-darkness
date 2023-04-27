@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <fd/hidden_ptr.h>
+#include "core.h"
 
-using IMAGE_DOS_HEADER = struct _IMAGE_DOS_HEADER;
+#include <fd/magic_cast.h>
 
 namespace fd
 {
@@ -35,8 +35,16 @@ class dos_header
     }
 };
 
-hidden_ptr operator+(dos_header dos, std::integral auto offset)
+inline auto operator+(dos_header dos, size_t offset) -> magic_cast<void *, auto_cast_tag>
 {
-    return hidden_ptr(dos) + offset;
+    union
+    {
+        void *ptr;
+        uintptr_t addr;
+    };
+
+    ptr = dos;
+    addr += offset;
+    return ptr;
 }
 } // namespace fd
