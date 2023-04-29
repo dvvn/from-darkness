@@ -376,7 +376,7 @@ static void _parse(valve::recv_table * recvTable, netvar_tables_ordered& storage
 }
 #endif
 
-void netvars_storage::iterate_client_class(valve::client_class *cclass)
+void netvars_storage::process(valve::client_class *cclass)
 {
     assert(data_.empty()); // Iterate recv tables first!
     for (; cclass != nullptr; cclass = cclass->next)
@@ -443,7 +443,7 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
     }
 }
 
-void netvars_storage::iterate_datamap(valve::data_map *root_map)
+void netvars_storage::process(valve::data_map *root_map)
 {
     assert(!data_.empty()); // Iterate datamap after recv tables!
     _parse(root_map, data_);
@@ -479,7 +479,7 @@ static void _fill(auto &buff, netvar_tables &tables)
         buff.fill(t);
 }
 
-void netvars_storage::log_netvars(netvar_log &log)
+void netvars_storage::write(netvar_log &log)
 {
     data_.sort();
     _fill(log, data_);
@@ -487,7 +487,7 @@ void netvars_storage::log_netvars(netvar_log &log)
     default_logger->write<log_level::info>(L"[NETVARS] log will be written to {}", log);
 }
 
-void netvars_storage::generate_classes(netvar_classes &data)
+void netvars_storage::write(netvar_classes &data)
 {
     data_.sort();
 
@@ -520,8 +520,8 @@ void netvars_storage::init_default()
 
     this->store_handmade_netvars();
 #ifdef _DEBUG
-    this->log_netvars(*FD_OBJECT_GET(netvars_log));
-    this->generate_classes(*FD_OBJECT_GET(netvars_classes));
+    this->write(*FD_OBJECT_GET(netvars_log));
+    this->write(*FD_OBJECT_GET(netvars_classes));
 #endif
 }
 #endif

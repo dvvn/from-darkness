@@ -15,11 +15,11 @@ class netvars_storage final
     netvar_tables_ordered data_;
 
   public:
-    void iterate_client_class(valve::client_class *cclass);
-    void iterate_datamap(valve::data_map *root_map);
+    void process(valve::client_class *cclass);
+    void process(valve::data_map *root_map);
 
-    void log_netvars(netvar_log &log);
-    void generate_classes(netvar_classes &data);
+    void write(netvar_log &log);
+    void write(netvar_classes &data);
 
     size_t get_offset(std::string_view class_name, std::string_view name) const;
     void clear();

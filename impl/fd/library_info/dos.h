@@ -35,7 +35,7 @@ class dos_header
     }
 };
 
-inline auto operator+(dos_header dos, size_t offset) -> magic_cast<void *, auto_cast_tag>
+inline from<void *> operator+(dos_header dos, size_t offset)
 {
     union
     {
@@ -45,6 +45,6 @@ inline auto operator+(dos_header dos, size_t offset) -> magic_cast<void *, auto_
 
     ptr = dos;
     addr += offset;
-    return ptr;
+    return (ptr);
 }
 } // namespace fd

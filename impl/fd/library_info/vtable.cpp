@@ -67,8 +67,17 @@ void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length
     return find_type_descriptor(nt, name, length);
 }
 
+template <size_t S>
+static bool validate_section(IMAGE_SECTION_HEADER *s, char const (&name)[S])
+{
+    return memcmp(s->Name, name, S - 1) == 0;
+}
+
 void *find_vtable(IMAGE_SECTION_HEADER *rdata, IMAGE_SECTION_HEADER *text, IMAGE_DOS_HEADER *dos, void *rtti_decriptor)
 {
+    assert(validate_section(rdata, ".rdata"));
+    assert(validate_section(text, ".text"));
+
     // get rtti type descriptor
     auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_decriptor);
     // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string

@@ -1,58 +1,28 @@
 #pragma once
 
-#include <type_traits>
+#include <concepts>
 
 namespace fd
 {
-template <typename Ret, typename... Args>
-class vfunc
-{
-    void *instance_;
-    size_t vtable_offset_;
-    size_t index_;
+template <typename From, typename To>
+class magic_cast;
 
-  public:
-    vfunc(void *instance, size_t vtable_offset, size_t index)
-        : instance_(instance)
-        , vtable_offset_(vtable_offset)
-        , index_(index)
-    {
-    }
+template <typename T>
+constexpr size_t vtable_offset = 0;
 
-    vfunc(void *instance, size_t index)
-        : instance_(instance)
-        , vtable_offset_(0)
-        , index_(index)
-    {
-    }
-
-    template <typename... ArgsFwd>
-    Ret operator()(ArgsFwd &&...args) const
-    {
-        using fn_t = Ret(__thiscall *)(void *, Args...);
-        return static_cast<fn_t **>(instance_)[vtable_offset_][index_](instance_, std::forward<Args>(args)...);
-    }
-
-    operator void *() const
-    {
-        return static_cast<void ***>(instance_)[vtable_offset_][index_];
-    }
-};
-
-#ifndef _DEBUG
-template <>
-class vfunc<nullptr_t>
+class vfunc_holder
 {
     void *func_;
 
   public:
-    vfunc(void *vfunc)
+    vfunc_holder(void *vfunc)
         : func_(vfunc)
     {
     }
 
-    vfunc(void *instance, size_t vtable_offset, size_t index)
-        : func_(static_cast<void ***>(instance)[vtable_offset][index])
+    template <typename T>
+    vfunc_holder(T *instance, size_t index)
+        : func_(static_cast<void ***>((void *)instance)[vtable_offset<T>][index])
     {
     }
 
@@ -60,61 +30,150 @@ class vfunc<nullptr_t>
     {
         return func_;
     }
+
+    void *get() const
+    {
+        return func_;
+    }
 };
-#endif
+
+template <typename Ret, typename... Args>
+class vfunc : public vfunc_holder
+{
+    using fn_t = Ret(__thiscall *)(void *, Args...);
+
+    void *instance_;
+
+  public:
+    template <typename T>
+    vfunc(T *instance, size_t index)
+        : vfunc_holder(instance, index)
+        , instance_((void *)(instance))
+    {
+    }
+
+    template <typename... ArgsFwd>
+    Ret operator()(ArgsFwd &&...args) const
+    {
+        return reinterpret_cast<fn_t>(get())(instance_, std::forward<ArgsFwd>(args)...);
+    }
+};
+
+template <>
+class vfunc<nullptr_t> : public vfunc_holder
+{
+  public:
+    using vfunc_holder::vfunc_holder;
+};
 
 template <typename T>
 class vtable
 {
-    T *instance_;
-    size_t offset_;
+    using instance_pointer = T *;
+    using table_pointer    = void **;
+
+    instance_pointer instance_;
 
   public:
-    vtable(T *instance, size_t offset = 0)
+    vtable(instance_pointer instance = nullptr)
         : instance_(instance)
-        , offset_(offset)
+    {
+        static_assert(!std::is_pointer_v<T>);
+    }
+
+    template <typename From, typename To>
+    vtable(magic_cast<From, To> val)
+        : vtable(static_cast<instance_pointer>(val))
     {
     }
 
-    void **get() const
+    /*vtable &operator=(std::convertible_to<pointer> auto instance)
     {
-        return static_cast<void ***>(instance_)[offset_];
+        instance_ = instance;
+        return *this;
+    }*/
+
+    operator instance_pointer() const
+    {
+        return instance_;
     }
 
-    auto func(size_t index) const -> vfunc<nullptr_t>
+    instance_pointer operator->() const
     {
-        return {instance_, offset_, index};
+        return instance_;
+    }
+
+    operator table_pointer() const
+    {
+        return static_cast<void ***>(instance_)[vtable_offset<T>];
+    }
+
+    table_pointer get() const
+    {
+        return static_cast<void ***>(instance_)[vtable_offset<T>];
+    }
+
+    vfunc<nullptr_t> func(size_t index) const
+    {
+        return {instance_, index};
     }
 
     template <typename Ret, typename... Args>
-    auto func(size_t index) const -> vfunc<Ret, Args...>
+    vfunc<Ret, Args...> func(size_t index) const
     {
-        return {instance_, offset_, index};
+        return {instance_, index};
     }
 
     template <typename Ret = void, typename... Args>
     Ret call(size_t index, Args... args) const
     {
-        auto fn = vfunc<Ret, Args...>(instance_, offset_, index);
-        return fn(
+        return vfunc<Ret, Args...>(instance_, index)(
             static_cast<std::conditional_t<
-                std::is_trivially_copyable_v<Args> ? sizeof(Args) <= sizeof(uintptr_t[2]) : std::is_reference_v<Args>,
+                std::is_trivially_copyable_v<Args> ? std::is_pointer_v<Args> || sizeof(Args) <= sizeof(uintptr_t[2])
+                                                   : std::is_reference_v<Args>,
                 Args,
                 std::add_lvalue_reference_t<Args>>>(args)...);
     }
 };
 
-template <typename T>
-struct vtable<T const> : vtable<T>
-{
-    vtable(T const *instance, size_t offset = 0)
-        : vtable<T>(const_cast<T *>(instance), offset)
-    {
-    }
-};
+template <typename From, typename To>
+vtable(magic_cast<From, To *>) -> vtable<To>;
+
+// template <typename T>
+// class vtable<T *> : public vtable<T>
+//{
+//   public:
+//     using vtable<T>::vtable;
+//     using vtable<T>::operator=;
+// };
+//
+// template <typename T>
+// class vtable<T **>
+//{
+//   public:
+//     vtable(...) = delete;
+// };
+
+// template <typename T>
+// vtable(T instance) -> vtable<std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, void>>;
 
 template <typename T>
-vtable(T instance) -> vtable<std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, void>>;
+vtable(vtable<T>) -> vtable<void **>; // deleted
+
+template <typename T>
+struct cast_helper;
+
+template <typename From, typename To>
+vtable(magic_cast<From, cast_helper<To *>>) -> vtable<To>;
+
+template <typename From, typename To>
+magic_cast(vtable<From>, To) -> magic_cast<From *, To>;
+
+template <typename From, typename To>
+magic_cast(vtable<From *>, To) -> magic_cast<From *, To>;
+
+template <typename To, typename... Args>
+magic_cast(vfunc<Args...>, To) -> magic_cast<void *, To>;
 
 // template <typename T>
 // vtable(T const *instance) -> vtable<T const *>;

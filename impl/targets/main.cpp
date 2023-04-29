@@ -4,18 +4,22 @@
 #include <fd/lazy_invoke.h>
 #include <fd/library_info.h>
 #include <fd/logging/init.h>
-#include <fd/render/context.h>
+#include <fd/netvars/impl/storage.h>
 #include <fd/render/context_init.h>
 #include <fd/render/context_update.h>
 #include <fd/render/frame.h>
 #include <fd/vfunc.h>
+//
+#include <fd/valve/client.h>
+#include <fd/valve/client_side/cs_player.h>
+#include <fd/valve/client_side/engine.h>
+#include <fd/valve/client_side/entity_list.h>
+#include <fd/valve/gui/surface.h>
 
 #include <windows.h>
 
 #include <algorithm>
 #include <functional>
-
-//#define _WINDLL
 
 namespace fd
 {
@@ -34,32 +38,77 @@ static void destroy_hooks(auto &rng)
     std::for_each(std::rbegin(rng), std::rend(rng), std::destroy_at<basic_hook>);
 }
 
-template <>
-class magic_cast<void *, render_backend>
+template <typename T>
+// ReSharper disable once CppMismatchedClassTags
+struct vtable<T *> : vtable<T>
 {
-    render_backend *ptr_;
+    using vtable<T>::vtable;
 
-  public:
-    magic_cast(library_info::auto_cast val)
-        : ptr_(*reinterpret_cast<render_backend **>(val + 1))
+    template <std::convertible_to<T *> Q>
+    vtable(Q val)
+        : vtable<T>(val)
     {
-    }
-
-    render_backend operator->() const
-    {
-        return *ptr_;
-    }
-
-    operator render_backend() const
-    {
-        return *ptr_;
     }
 };
 } // namespace fd
 
 static bool context(HINSTANCE self_handle);
 
+// #define _WINDLL
+
 #ifdef _WINDLL
+namespace fd
+{
+template <>
+struct cast_helper<render_backend>
+{
+    render_backend operator()(to<uintptr_t> val) const
+    {
+        return **reinterpret_cast<render_backend **>(val + 1);
+    }
+};
+
+class netvars_holder
+{
+    netvars_storage storage_;
+
+#ifdef _DEBUG
+    netvar_classes classes_;
+    netvar_log log_;
+#endif
+
+  public:
+    netvars_holder(
+        valve::client_side::cs_player *player,
+        valve::client_class *cl_class,
+        valve::client_side::engine *engine)
+    {
+        storage_.process(cl_class);
+        storage_.process(player->GetDataDescMap());
+        storage_.process(player->GetPredictionDescMap());
+
+#ifdef _DEBUG
+#ifdef FD_WORK_DIR
+        classes_.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).make_preferred().append("netvars_generated");
+#endif
+        storage_.write(classes_);
+
+        std::string_view native_str = engine->GetProductVersionString();
+        log_.file.name.reserve(native_str.size());
+        for (auto c : native_str)
+            log_.file.name.push_back(c == '.' ? '_' : c);
+#ifdef FD_ROOT_DIR
+        log_.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).make_preferred().append(".out").append("netvars_dump");
+#endif
+        log_.file.extension = L".txt";
+        log_.indent         = 4;
+        log_.filler         = ' ';
+
+        storage_.write(log_);
+#endif
+    }
+};
+} // namespace fd
 
 static HANDLE thread;
 static DWORD thread_id;
@@ -115,7 +164,7 @@ int main(int argc, char *argv[])
 }
 #endif
 
-static bool context(HINSTANCE self_handle)
+static bool context([[maybe_unused]] HINSTANCE self_handle)
 {
     using namespace fd;
 
@@ -123,36 +172,63 @@ static bool context(HINSTANCE self_handle)
     [[maybe_unused]] //
     invoke_on_destruct stop_logging = logger_registrar::stop;
 
-    render_context rctx;
+    struct
+    {
+        render_context ctx;
+        vtable<render_backend> vtable;
+    } render;
+
+    HWND window;
+    WNDPROC window_proc;
 
 #ifdef USE_OWN_RENDER_BACKEND
-    auto backend = own_render_backend(L"Unnamed", self_handle);
-    if (!backend.initialized())
+    auto own_render = own_render_backend(L"Unnamed", self_handle);
+    if (!own_render.initialized())
         return false;
-    if (!init(&rctx, backend.device, backend.hwnd))
-        return false;
-    auto target_wnd_proc = backend.info.lpfnWndProc;
+
+    render.vtable = own_render.device;
+    window        = own_render.hwnd;
+    window_proc   = own_render.info.lpfnWndProc;
 #else
-    library_info shader_api           = L"shaderapidx9.dll";
-    from_void<render_backend> backend = shader_api.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+    library_info shader_api_dll                   = L"shaderapidx9.dll";
+    to<cast_helper<render_backend>> packed_render = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
-    if (FAILED(backend->GetCreationParameters(&creation_parameters)))
+    if (FAILED(packed_render->GetCreationParameters(&creation_parameters)))
+        return false;
+    to<WNDPROC> wnd_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
+
+    render.vtable = packed_render;
+    window        = creation_parameters.hFocusWindow;
+    window_proc   = wnd_proc;
+#endif
+
+    if (!init(&render.ctx, render.vtable, window))
         return false;
 
-    from_any<WNDPROC> target_wnd_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
+#ifdef _WINDLL
+    game_library_info_ex client_dll = (L"client.dll");
+    game_library_info_ex engine_dll = (L"engine.dll");
+    game_library_info_ex vgui_dll   = (L"vguimatsurface.dll");
 
-    if (!init(&rctx, backend, creation_parameters.hFocusWindow))
-        return false;
+    vtable<valve::client> client_ifc           = client_dll.find_interface("VClient");
+    valve::client_side::engine *engine_ifc     = engine_dll.find_interface("VEngineClient");
+    vtable<valve::gui::surface> vgui_surface   = vgui_dll.find_interface("VGUI_Surface");
+    valve::client_side::entity_list *ents_list = client_dll.find_interface("VClientEntityList");
+
+    // todo: check if ingame and use exisiting player
+    vtable<valve::client_side::cs_player> player_vtable = client_dll.find_vtable("C_CSPlayer");
+
+    auto netvars = netvars_holder(player_vtable, client_ifc->GetAllClasses(), engine_ifc);
 #endif
 
     basic_hook *hooks[] = {
         make_hook_callback(
             "WinAPI.WndProc",
-            target_wnd_proc,
+            window_proc,
             [&](auto orig, auto hwnd, auto... args) -> LRESULT {
-                assert(rctx.window == hwnd);
+                assert(window == hwnd);
                 process_message_result pmr;
-                process_message(&rctx, args..., &pmr);
+                process_message(&render.ctx, args..., &pmr);
                 switch (pmr)
                 {
                 case process_message_result::idle:
@@ -167,25 +243,64 @@ static bool context(HINSTANCE self_handle)
             }),
         make_hook_callback(
             "IDirect3DDevice9::Reset",
-            from_void(vtable(rctx.backend).func(16), &IDirect3DDevice9::Reset),
+            magic_cast(render.vtable.func(16), &IDirect3DDevice9::Reset),
             [&](auto orig, auto this_ptr, auto... args) {
-                assert(rctx.backend == this_ptr);
-                reset(&rctx);
+                assert(render.vtable == this_ptr);
+                reset(&render.ctx);
                 return orig(args...);
             }),
         make_hook_callback(
             "IDirect3DDevice9::Present",
-            from_void(vtable(rctx.backend).func(17), &IDirect3DDevice9::Present),
+            magic_cast(render.vtable.func(17), &IDirect3DDevice9::Present),
             [&](auto orig, auto this_ptr, auto... args) {
-                assert(rctx.backend == this_ptr);
-                if (auto frame = render_frame(&rctx))
+                assert(render.vtable == this_ptr);
+                if (auto frame = render_frame(&render.ctx))
                 {
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
                     ImGui::ShowDemoWindow();
 #endif
                 }
                 return orig(args...);
-            })};
+            }),
+#ifdef _WINDLL
+        make_hook_callback(
+            "VGUI.ISurface::LockCursor",
+            magic_cast(vgui_surface.func(67), &valve::gui::surface::LockCursor),
+            [&](auto orig, auto this_ptr) {
+                // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
+                //{
+                //     this_ptr->UnlockCursor();
+                //     return;
+                // }
+                orig();
+            }),
+        make_hook_callback(
+            "CHLClient::CreateMove",
+            to<void (valve::client::*)(int, int, bool)>(client_ifc.func(22)),
+            [&](auto orig, auto this_ptr, auto... args) {
+                //
+                orig(args...);
+            }),
+        make_hook_callback(
+            "CClientEntityList::OnAddEntity",
+            to<void(__thiscall *)(void *, valve::client_side::entity *, valve::handle)>(
+                client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
+            [&](auto orig, auto this_ptr, auto ent, auto handle) {
+                orig(ent, handle);
+                // todo: work with this_ptr
+                // players.on_add_entity(ifc.ents_list, handle);
+            }),
+        make_hook_callback(
+            "CClientEntityList::OnRemoveEntity",
+            to<void(__thiscall *)(void *, valve::client_side::entity *, valve::handle)>(
+                client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
+            [&](auto orig, auto this_ptr, auto ent, auto handle) {
+                // todo: work with this_ptr
+                // players.on_remove_entity(ifc.ents_list, handle);
+                orig(ent, handle);
+            })
+#endif
+    };
 
     [[maybe_unused]] //
     invoke_on_destruct hooks_destroyer = [&] {
@@ -196,10 +311,8 @@ static bool context(HINSTANCE self_handle)
         return false;
 
 #ifdef USE_OWN_RENDER_BACKEND
-    if (!backend.run())
+    if (!own_render.run())
         return false;
-#else
-
 #endif
 
 #ifdef _WINDLL

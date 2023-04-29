@@ -23,8 +23,6 @@ class library_info
     IMAGE_NT_HEADERS *nt_;
 
   public:
-    using auto_cast = from_void<auto_cast_tag>;
-
     template <size_t S>
     library_info(wchar_t const (&name)[S])
         : entry_(find_library(name, S - 1))
@@ -39,8 +37,14 @@ class library_info
         return fd::find_export(dos_, nt_, name, S - 1);
     }
 
+    template <typename Ret, typename... Args>
+    to<Ret(__stdcall *)(Args...)> find_export(auto &name) const
+    {
+        return find_export(name);
+    }
+
     template <size_t S>
-    auto_cast find_pattern(char const (&pattern)[S]) const
+    from<void *> find_pattern(char const (&pattern)[S]) const
     {
         return fd::find_pattern(nt_, pattern, S - 1);
     }
@@ -65,9 +69,9 @@ class game_library_info : public library_info
     }
 
     template <size_t S>
-    auto_cast find_interface(char const (&name)[S]) const
+    from<void *> find_interface(char const (&name)[S]) const
     {
-        return find_game_interface(root_interface_, name, S - 1);
+        return find_game_interface(root_interface_, name, S - 1).i->get();
     }
 };
 
@@ -86,9 +90,9 @@ class game_library_info_ex : public game_library_info
     }
 
     template <size_t S>
-    auto_cast find_vtable(char const (&name)[S]) const
+    from<void *> find_vtable(char const (&name)[S]) const
     {
-        return fd::find_vtable(rdata_, text_, find_rtti_descriptor(nt_, name, S - 1), name, S - 1);
+        return fd::find_vtable(rdata_, text_, dos_, find_rtti_descriptor(nt_, name, S - 1));
     }
 };
 

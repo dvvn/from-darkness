@@ -2,7 +2,7 @@
 
 #include <fd/hooking/basic_hook.h>
 
-#include <string_view>
+#include <string>
 
 namespace fd
 {
