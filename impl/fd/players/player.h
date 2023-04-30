@@ -11,12 +11,11 @@ class player
 
     cs_player *ptr_;
 
-    friend class players_list_global;
-
   public:
     player(entity *ptr);
 
     bool valid() const;
+    void destroy();
 
     cs_player *operator->() const;
     bool operator==(entity const *ent) const;

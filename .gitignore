@@ -6,4 +6,4 @@
 /.dumps
 *.pdb
 /_ReSharper.Caches
-/impl/fd/netvars_generated
+*/netvars_generated/

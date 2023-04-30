@@ -12,6 +12,12 @@ bool player::valid() const
     return ptr_ != nullptr;
 }
 
+void player::destroy()
+{
+    assert(ptr_ != nullptr);
+    ptr_ = nullptr;
+}
+
 auto player::operator->() const -> cs_player *
 {
     return ptr_;

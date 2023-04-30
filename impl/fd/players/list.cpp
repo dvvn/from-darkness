@@ -1,4 +1,4 @@
-#include <fd/players/list.h>
+#include "list.h"
 
 namespace fd
 {
@@ -7,48 +7,65 @@ namespace fd
 // extern client_ents_list *ents_list;
 // }
 
-player *players_list_global::destroy(entity *ent)
+custom_entity_index::custom_entity_index(game_entity_index index)
+    : entity_index(index - 1)
 {
-    assert(ent != nullptr);
-    for (auto &p : storage_)
-    {
-        if (p == ent)
-        {
-            p.ptr_ = nullptr;
-            return &p;
-        }
-    }
-    return nullptr;
 }
 
-player *players_list_global::add(entity *ent)
+custom_entity_index::custom_entity_index(size_t index)
+    : entity_index(index)
 {
-    return &storage_.emplace_back(ent);
+}
+
+custom_player_index::custom_player_index(size_t index)
+    : custom_entity_index(index - 1)
+{
+}
+
+custom_player_index::custom_player_index(game_entity_index index)
+    : custom_entity_index(index - 1)
+{
+    assert(index != 0);
+    assert(index <= max_players_count);
+}
+
+game_entity_index::game_entity_index(custom_entity_index index)
+    : entity_index(index + 1)
+{
+}
+
+player *players_list::get(custom_player_index game_index) const
+{
+    return access_[game_index];
 }
 
 players_list::players_list()
 {
-    arr_.fill(nullptr);
+#ifdef _DEBUG
+    std::fill(std::begin(access_), std::end(access_), nullptr);
+#else
+    (void)this;
+#endif
 }
 
-player &players_list::operator[](size_t game_index) const
+player &players_list::operator[](game_entity_index game_index) const
 {
-    return *arr_[game_index - 1];
+    return *get(game_index);
 }
 
-auto players_list::begin() -> iterator
+auto players_list::begin() -> players_buffer::iterator
 {
-    return buff_.begin();
+    return iterate_.begin();
 }
 
-auto players_list::end() -> iterator
+auto players_list::end() -> players_buffer::iterator
 {
-    return buff_.end();
+    return iterate_.end();
 }
 
 static bool validate_player_index(size_t index)
 {
-    return index != 0 && index <= 64;
+    return index != 0 && index <= max_players_count;
 }
 
 void players_list::on_add_entity(entity_list *ents, handle handle)
@@ -56,24 +73,35 @@ void players_list::on_add_entity(entity_list *ents, handle handle)
     auto index = handle.entry_index();
     if (!validate_player_index(index))
         return;
-    auto p = all_.add(ents->GetClientEntity(index));
-    buff_.emplace_back(p);
-    arr_[index] = p;
+    auto p = &storage_.emplace_back(ents->GetClientEntity(index));
+    iterate_.emplace_back(p);
+    access_[custom_player_index(index)] = p;
 }
 
-void players_list::on_remove_entity(entity *ent, size_t index)
+static bool operator==(player const *p, player const &p2)
 {
-    if (index == -1)
-    {
-        index = ent->EntIndex();
-        if (!validate_player_index(index))
-            return;
-    }
-    auto p = all_.destroy(ent);
-    if (!p)
+    return *p == p2;
+}
+
+void players_list::on_remove_entity(entity *ent, custom_player_index index)
+{
+    assert(validate_player_index(index));
+
+    auto p = std::find(storage_.begin(), storage_.end(), ent);
+    if (p == storage_.end())
         return;
-    buff_.erase(std::find_if(buff_.begin(), buff_.end(), [=](player *p1) { return *p == *p1; }));
-    arr_[index] = nullptr;
+
+    auto it = std::find(iterate_.begin(), iterate_.end(), *p);
+    iterate_.erase(it);
+    access_[index] = nullptr;
+    p->destroy();
+}
+
+void players_list::on_remove_entity(entity *ent, game_entity_index index)
+{
+    if (!validate_player_index(index))
+        return;
+    on_remove_entity(ent, custom_player_index(index));
 }
 
 void players_list::on_remove_entity(entity_list *ents, handle ent_handle)
@@ -81,12 +109,12 @@ void players_list::on_remove_entity(entity_list *ents, handle ent_handle)
     auto index = ent_handle.entry_index();
     if (!validate_player_index(index))
         return;
-    on_remove_entity(ents->GetClientEntity(index), index);
+    on_remove_entity(ents->GetClientEntity(index), custom_player_index(index));
 }
 
 void players_list::update(entity_list *ents)
 {
-    for (auto p : buff_)
+    for (auto p : iterate_)
     {
     }
 }

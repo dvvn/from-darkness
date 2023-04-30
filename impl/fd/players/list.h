@@ -1,6 +1,7 @@
 #pragma once
 
-#include <fd/players/iterator.h>
+#include "iterator.h"
+
 #include <fd/valve/client_side/entity_list.h>
 
 #include <boost/container/static_vector.hpp>
@@ -10,21 +11,43 @@
 
 namespace fd
 {
-constexpr size_t max_players_count = 64;
-
-class players_list_global
+class entity_index
 {
-    using entity = valve::client_side::entity;
-
-    std::list<player> storage_;
+    size_t index_;
 
   public:
-    player *destroy(entity *ent);
-    player *add(entity *ent);
+    entity_index(size_t index)
+        : index_(index)
+    {
+    }
+
+    operator size_t() const
+    {
+        return index_;
+    }
 };
 
-using players_buffer = boost::container::static_vector<player *, max_players_count>;
-using players_array  = std::array<player *, max_players_count>;
+struct game_entity_index : entity_index
+{
+    using entity_index::entity_index;
+    game_entity_index(struct custom_entity_index index);
+};
+
+struct custom_entity_index : entity_index
+{
+    custom_entity_index(game_entity_index index);
+
+  protected:
+    custom_entity_index(size_t index);
+};
+
+static constexpr uint8_t max_players_count = 64;
+
+struct custom_player_index : custom_entity_index
+{
+    explicit custom_player_index(size_t index);
+    custom_player_index(game_entity_index index);
+};
 
 class players_list
 {
@@ -32,21 +55,25 @@ class players_list
     using entity      = valve::client_side::entity;
     using entity_list = valve::client_side::entity_list;
 
-    using iterator = players_buffer::iterator;
+    using players_buffer = boost::container::static_vector<player *, max_players_count>;
 
-    players_list_global all_;
-    players_buffer buff_;
-    players_array arr_;
+    std::list<player> storage_;
+    players_buffer iterate_;
+    std::array<player *, max_players_count> access_;
+
+    player *get(custom_player_index game_index) const;
 
   public:
     players_list();
 
-    player &operator[](size_t game_index) const;
-    iterator begin();
-    iterator end();
+    player &operator[](game_entity_index game_index) const;
+    players_buffer::iterator begin();
+    players_buffer::iterator end();
 
     void on_add_entity(entity_list *ents, handle handle);
-    void on_remove_entity(entity *ent, size_t index = -1);
+
+    void on_remove_entity(entity *ent, custom_player_index index);
+    void on_remove_entity(entity *ent, game_entity_index index);
     void on_remove_entity(entity_list *ents, handle ent_handle);
 
     void update(entity_list *ents);

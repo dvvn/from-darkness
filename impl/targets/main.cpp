@@ -4,11 +4,13 @@
 #include <fd/lazy_invoke.h>
 #include <fd/library_info.h>
 #include <fd/logging/init.h>
+#include <fd/vfunc.h>
+//
 #include <fd/netvars/impl/storage.h>
+#include <fd/players/list.h>
 #include <fd/render/context_init.h>
 #include <fd/render/context_update.h>
 #include <fd/render/frame.h>
-#include <fd/vfunc.h>
 //
 #include <fd/valve/client.h>
 #include <fd/valve/client_side/cs_player.h>
@@ -89,7 +91,7 @@ class netvars_holder
 
 #ifdef _DEBUG
 #ifdef FD_WORK_DIR
-        classes_.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).make_preferred().append("netvars_generated");
+        classes_.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).make_preferred().append("valve").append("netvars_generated");
 #endif
         storage_.write(classes_);
 
@@ -206,9 +208,9 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
         return false;
 
 #ifdef _WINDLL
-    game_library_info_ex client_dll = (L"client.dll");
-    game_library_info_ex engine_dll = (L"engine.dll");
-    game_library_info_ex vgui_dll   = (L"vguimatsurface.dll");
+    game_library_info_ex client_dll = L"client.dll";
+    game_library_info_ex engine_dll = L"engine.dll";
+    game_library_info_ex vgui_dll   = L"vguimatsurface.dll";
 
     vtable<valve::client> client_ifc           = client_dll.find_interface("VClient");
     valve::client_side::engine *engine_ifc     = engine_dll.find_interface("VEngineClient");
@@ -219,6 +221,8 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     vtable<valve::client_side::cs_player> player_vtable = client_dll.find_vtable("C_CSPlayer");
 
     auto netvars = netvars_holder(player_vtable, client_ifc->GetAllClasses(), engine_ifc);
+
+    players_list players;
 #endif
 
     basic_hook *hooks[] = {
@@ -288,7 +292,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
             [&](auto orig, auto this_ptr, auto ent, auto handle) {
                 orig(ent, handle);
                 // todo: work with this_ptr
-                // players.on_add_entity(ifc.ents_list, handle);
+                players.on_add_entity(ents_list, handle);
             }),
         make_hook_callback(
             "CClientEntityList::OnRemoveEntity",
@@ -296,7 +300,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
             [&](auto orig, auto this_ptr, auto ent, auto handle) {
                 // todo: work with this_ptr
-                // players.on_remove_entity(ifc.ents_list, handle);
+                players.on_remove_entity(ents_list, handle);
                 orig(ent, handle);
             })
 #endif
