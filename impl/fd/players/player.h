@@ -1,15 +1,14 @@
 #pragma once
 
-#include <fd/valve/client_side/cs_player.h>
+#include <fd/valve/client_side/entity.h>
 
 namespace fd
 {
 class player
 {
-    using cs_player = valve::client_side::cs_player;
-    using entity    = valve::client_side::entity;
+    using entity = valve::client_side::entity;
 
-    cs_player *ptr_;
+    void *game_ptr_;
 
   public:
     player(entity *ptr);
@@ -17,8 +16,7 @@ class player
     bool valid() const;
     void destroy();
 
-    cs_player *operator->() const;
-    bool operator==(entity const *ent) const;
+    bool operator==(entity const &other) const;
     bool operator==(player const &other) const;
 };
 

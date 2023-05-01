@@ -222,7 +222,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
 
     auto netvars = netvars_holder(player_vtable, client_ifc->GetAllClasses(), engine_ifc);
 
-    players_list players;
+    player_list players;
 #endif
 
     basic_hook *hooks[] = {

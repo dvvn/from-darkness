@@ -1,35 +1,30 @@
-#include <fd/players/player.h>
+#include "player.h"
 
 namespace fd
 {
 player::player(entity *ptr)
-    : ptr_(static_cast<cs_player *>(ptr))
+    : game_ptr_((ptr))
 {
 }
 
 bool player::valid() const
 {
-    return ptr_ != nullptr;
+    return game_ptr_ != nullptr;
 }
 
 void player::destroy()
 {
-    assert(ptr_ != nullptr);
-    ptr_ = nullptr;
+    assert(game_ptr_ != nullptr);
+    game_ptr_ = nullptr;
 }
 
-auto player::operator->() const -> cs_player *
+bool player::operator==(entity const &other) const
 {
-    return ptr_;
-}
-
-bool player::operator==(entity const *ent) const
-{
-    return ptr_ == ent;
+    return game_ptr_ == &other;
 }
 
 bool player::operator==(player const &other) const
 {
-    return ptr_ == other.ptr_;
+    return game_ptr_ == other.game_ptr_;
 }
 }
