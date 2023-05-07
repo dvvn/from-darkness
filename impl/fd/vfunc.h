@@ -8,6 +8,7 @@ template <typename From, typename To>
 class magic_cast;
 
 template <typename T>
+[[deprecated("store this value inside class")]] //
 constexpr size_t vtable_offset = 0;
 
 class vfunc_holder
@@ -139,6 +140,11 @@ class vtable
 template <typename From, typename To>
 vtable(magic_cast<From, To *>) -> vtable<To>;
 
+struct auto_cast_tag;
+
+template <typename From>
+vtable(magic_cast<From, auto_cast_tag>) -> vtable<void>;
+
 // template <typename T>
 // class vtable<T *> : public vtable<T>
 //{
@@ -169,8 +175,8 @@ vtable(magic_cast<From, cast_helper<To *>>) -> vtable<To>;
 template <typename From, typename To>
 magic_cast(vtable<From>, To) -> magic_cast<From *, To>;
 
-template <typename From, typename To>
-magic_cast(vtable<From *>, To) -> magic_cast<From *, To>;
+// template <typename From, typename To>
+// magic_cast(vtable<From *>, To) -> magic_cast<From *, To>;
 
 template <typename To, typename... Args>
 magic_cast(vfunc<Args...>, To) -> magic_cast<void *, To>;

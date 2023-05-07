@@ -4,7 +4,7 @@
 
 namespace fd
 {
-    template <typename From, typename To>
+template <typename From, typename To>
 class magic_cast
 {
     union
@@ -22,7 +22,7 @@ class magic_cast
         static_assert(std::is_trivial_v<To>);
     }
 
-    magic_cast(From from, To) requires(!std::same_as<From, To>)
+    magic_cast(From from, To hint) requires(!std::same_as<From, To>)
         : magic_cast(from)
     {
     }
@@ -35,6 +35,17 @@ class magic_cast
     To operator->() const
     {
         return to_;
+    }
+};
+
+template <typename From, typename To>
+struct magic_cast<From, To &> : magic_cast<From, To *>
+{
+    using magic_cast<From, To *>::magic_cast;
+
+    operator To &() const
+    {
+        return *static_cast<To *>(*this);
     }
 };
 
@@ -83,31 +94,41 @@ class magic_cast<From, auto_cast_tag>
 template <typename T>
 struct cast_helper;
 
-template <typename Ret,typename...T>
+template <typename Ret, typename... T>
 class vfunc;
 
 template <typename To>
-// ReSharper disable once CppMismatchedClassTags
-struct magic_cast<auto_cast_tag, To> : magic_cast<To, To>
+class magic_cast<auto_cast_tag, To>
 {
-    using magic_cast<To, To>::magic_cast;
+    To to_;
 
+  public:
     template <typename From>
     magic_cast(From from)
-        : magic_cast<To, To>(magic_cast<From, To>(from))
+        : to_(magic_cast<From, To>(from))
     {
     }
 
     template <typename From>
     magic_cast(magic_cast<From, auto_cast_tag> from)
-        : magic_cast<To, To>(from.template to<To>())
+        : to_(from.template to<To>())
     {
     }
 
-    template <typename ...Args>
+    template <typename... Args>
     magic_cast(vfunc<Args...> from)
         : magic_cast(from.get())
     {
+    }
+
+    operator To() const
+    {
+        return to_;
+    }
+
+    To operator->() const
+    {
+        return to_;
     }
 };
 

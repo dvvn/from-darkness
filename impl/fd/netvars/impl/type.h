@@ -1,14 +1,17 @@
 #pragma once
 
-#include "source.h"
+#include "basic_type.h"
 
 #include <boost/container/static_vector.hpp>
 
 #include <memory>
 #include <string>
+#include <variant>
+#include <vector>
 
 namespace fd
 {
+#if 0
 template <class T>
 concept netvar_type_have_include = requires() { T::include; };
 
@@ -64,12 +67,6 @@ struct custom_netvar_type<T, netvar_type_merged_includes<I>>
         return !include.empty();
     }
 };
-
-template <typename T>
-using string_or_view = std::conditional_t<std::is_trivially_destructible_v<T>, std::string_view, std::string>;
-
-template <class T, class I>
-custom_netvar_type(T type, I include) -> custom_netvar_type<string_or_view<T>, string_or_view<I>>;
 
 using custom_netvar_type_simple = custom_netvar_type<std::string_view, std::string_view>;
 
@@ -190,4 +187,42 @@ void netvar_includes_writer<T>::operator()(netvar_type_array const &arr)
     *it++ = arr.include;
     std::visit(*this, arr.inner->data);
 }
+#endif
+
+void netvar_type_includes(std::string_view type, std::vector<std::string> &buff);
+
+template <typename T>
+class netvar_type final : public basic_netvar_type
+{
+    T type_;
+
+  public:
+    constexpr netvar_type(T type)
+        : type_(std::move(type))
+    {
+    }
+
+    std::string_view get() const override
+    {
+        return type_;
+    }
+};
+
+template <size_t S>
+netvar_type(char const (&)[S]) -> netvar_type<std::string_view>;
+
+using simple_netvar_type = netvar_type<std::string_view>;
+
+class netvar_type_array : public basic_netvar_type
+{
+    std::string type_;
+    size_t size_;
+
+  public:
+    netvar_type_array(std::string_view type, size_t size);
+    std::string_view get() const override;
+    size_t size() const;
+};
+
+size_t netvar_type_array_size(netvar_type_array *type);
 }

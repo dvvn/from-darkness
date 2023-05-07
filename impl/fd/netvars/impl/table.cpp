@@ -1,6 +1,7 @@
 #include "table.h"
 
 #include <algorithm>
+#include <cassert>
 
 namespace fd
 {

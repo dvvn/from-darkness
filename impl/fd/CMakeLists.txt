@@ -41,6 +41,8 @@ target_link_libraries(fd PUBLIC
     Boost::hana
     Boost::static_string
     #Boost::lexical_cast
+    Boost::unordered
+    Boost::nowide
 )
 target_include_directories(fd PUBLIC
     ${FD_IMPL_DIR}

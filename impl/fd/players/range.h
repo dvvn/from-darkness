@@ -42,6 +42,11 @@ class player_range final : public basic_player_range
         }
         return false;
     }
+
+    void clear()
+    {
+        storage_.clear();
+    }
 };
 
 struct players_range_impl

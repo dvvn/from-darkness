@@ -1,6 +1,4 @@
 #include "info.h"
-#include "type_resolve.h"
-
 #include <cassert>
 
 namespace fd
@@ -37,21 +35,19 @@ netvar_info::netvar_info(size_t offset, std::string_view name, std::string_view 
 }
 #endif
 
-netvar_info::netvar_info(size_t offset, netvar_type type, std::string_view name)
-    : offset_(offset)
-    , type_(std::move(type))
-    , hint_{ .arraySize = 0, .name = name }
-{
-}
-
 netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source source, std::string_view name)
     : offset_(offset)
-    , hint_(array_size, source, name)
+    , array_size_(array_size)
+    , source_(source)
+    , name_(name)
 {
 }
 
 netvar_info::netvar_info(size_t offset, netvar_source source, std::string_view name)
-    : netvar_info(offset, 0, source, name)
+    : offset_(offset)
+    , array_size_(0)
+    , source_(source)
+    , name_(name)
 {
 }
 
@@ -89,61 +85,19 @@ std::string_view netvar_info::name() const
         name_ = name;
     }
 #endif
-    return hint_.name;
-}
-
-std::string_view netvar_info::type()
-{
-    return type_ex().get_type();
+    return name_;
 }
 
 std::string_view netvar_info::type() const
 {
-#if 0
-    if (type_.empty())
-    {
-        std::visit(
-            [&]<typename T>(T val)
-            {
-                if constexpr (std::same_as<std::monostate, T>)
-                    std::terminate();
-                else
-                {
-                    auto name = this->name();
-                    if (arraySize_ <= 1)
-                    {
-                        type_ = extract_type(name, val);
-                        return;
-                    }
-                    if (arraySize_ == 3)
-                    {
-                        type_ = extract_type_by_prefix(name, val);
-                        if (!type_.empty())
-                            return;
-                    }
-                    type_ = extract_type_std_array(extract_type(name, val), arraySize_);
-                }
-            },
-            source_);
-    }
-    return type_;
-#endif
-
-    return type_.get_type();
+    return source_.type(name_, array_size_)->get();
 }
 
-netvar_type &netvar_info::type_ex()
+size_t netvar_info::array_size() const
 {
-    if (std::holds_alternative<std::monostate>(type_.data))
-        type_ = hint_.resolve();
-    return type_;
-}
-
-uint16_t netvar_info::array_size() const
-{
-    if (std::holds_alternative<netvar_type_array>(type_.data))
-        return std::get<netvar_type_array>(type_.data).size;
-    return hint_.arraySize;
+    /*if (std::holds_alternative<netvar_type_array>(type_.data))
+        return std::get<netvar_type_array>(type_.data).size;*/
+    return netvar_type_array_size(source_.type(name_, array_size_));
 }
 
 bool operator==(netvar_info const &left, netvar_info const &right)

@@ -6,17 +6,11 @@
 #include <fd/logging/init.h>
 #include <fd/vfunc.h>
 //
-#include <fd/netvars/impl/storage.h>
+#include <fd/netvars/core.h>
 #include <fd/players/list.h>
 #include <fd/render/context_init.h>
 #include <fd/render/context_update.h>
 #include <fd/render/frame.h>
-//
-#include <fd/valve/client.h>
-#include <fd/valve/client_side/cs_player.h>
-#include <fd/valve/client_side/engine.h>
-#include <fd/valve/client_side/entity_list.h>
-#include <fd/valve/gui/surface.h>
 
 #include <windows.h>
 
@@ -56,7 +50,7 @@ struct vtable<T *> : vtable<T>
 
 static bool context(HINSTANCE self_handle);
 
-// #define _WINDLL
+#define _WINDLL
 
 #ifdef _WINDLL
 namespace fd
@@ -70,6 +64,7 @@ struct cast_helper<render_backend>
     }
 };
 
+#if 0
 class netvars_holder
 {
     netvars_storage storage_;
@@ -80,14 +75,11 @@ class netvars_holder
 #endif
 
   public:
-    netvars_holder(
-        valve::client_side::cs_player *player,
-        valve::client_class *cl_class,
-        valve::client_side::engine *engine)
+    netvars_holder(void *entity, void *client_interface, void *engine)
     {
-        storage_.process(cl_class);
-        storage_.process(player->GetDataDescMap());
-        storage_.process(player->GetPredictionDescMap());
+        storage_.process(client_interface);
+        storage_.process(valve::get_desc_data_map(entity));
+        storage_.process(valve::get_prediction_data_map(entity));
 
 #ifdef _DEBUG
 #ifdef FD_WORK_DIR
@@ -96,9 +88,7 @@ class netvars_holder
         storage_.write(classes_);
 
         std::string_view native_str = engine->GetProductVersionString();
-        log_.file.name.reserve(native_str.size());
-        for (auto c : native_str)
-            log_.file.name.push_back(c == '.' ? '_' : c);
+        log_.file.name.append(native_str.begin(), native_str.end());
 #ifdef FD_ROOT_DIR
         log_.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).make_preferred().append(".out").append("netvars_dump");
 #endif
@@ -110,6 +100,7 @@ class netvars_holder
 #endif
     }
 };
+#endif
 } // namespace fd
 
 static HANDLE thread;
@@ -212,17 +203,17 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     game_library_info_ex engine_dll = L"engine.dll";
     game_library_info_ex vgui_dll   = L"vguimatsurface.dll";
 
-    vtable<valve::client> client_ifc           = client_dll.find_interface("VClient");
-    valve::client_side::engine *engine_ifc     = engine_dll.find_interface("VEngineClient");
-    vtable<valve::gui::surface> vgui_surface   = vgui_dll.find_interface("VGUI_Surface");
-    valve::client_side::entity_list *ents_list = client_dll.find_interface("VClientEntityList");
+    vtable client_interface    = client_dll.find_interface("VClient");
+    // vtable engine_interface    = engine_dll.find_interface("VEngineClient");
+    vtable vgui_interface      = vgui_dll.find_interface("VGUI_Surface");
+    auto entity_list_interface = client_dll.find_interface("VClientEntityList");
 
     // todo: check if ingame and use exisiting player
-    vtable<valve::client_side::cs_player> player_vtable = client_dll.find_vtable("C_CSPlayer");
+    auto player_vtable = client_dll.find_vtable("C_CSPlayer");
 
-    auto netvars = netvars_holder(player_vtable, client_ifc->GetAllClasses(), engine_ifc);
-
-    player_list players;
+    store_netvars(client_interface);
+    store_extra_netvars(player_vtable);
+    store_custom_netvars(client_dll);
 #endif
 
     basic_hook *hooks[] = {
@@ -269,7 +260,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
 #ifdef _WINDLL
         make_hook_callback(
             "VGUI.ISurface::LockCursor",
-            magic_cast(vgui_surface.func(67), &valve::gui::surface::LockCursor),
+            to<void(__thiscall *)(void *)>(vgui_interface.func(67)),
             [&](auto orig, auto this_ptr) {
                 // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
                 //{
@@ -280,28 +271,28 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
             }),
         make_hook_callback(
             "CHLClient::CreateMove",
-            to<void (valve::client::*)(int, int, bool)>(client_ifc.func(22)),
+            to<void(__thiscall *)(void *, int, int, bool)>(client_interface.func(22)),
             [&](auto orig, auto this_ptr, auto... args) {
                 //
                 orig(args...);
             }),
         make_hook_callback(
             "CClientEntityList::OnAddEntity",
-            to<void(__thiscall *)(void *, valve::client_side::entity *, valve::handle)>(
+            to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
-            [&](auto orig, auto this_ptr, auto ent, auto handle) {
-                orig(ent, handle);
+            [&](auto orig, auto this_ptr, auto handle_interface, auto handle) {
+                orig(handle_interface, handle);
                 // todo: work with this_ptr
-                players.on_add_entity(ents_list, handle);
+                on_add_entity(entity_list_interface, handle);
             }),
         make_hook_callback(
             "CClientEntityList::OnRemoveEntity",
-            to<void(__thiscall *)(void *, valve::client_side::entity *, valve::handle)>(
+            to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
-            [&](auto orig, auto this_ptr, auto ent, auto handle) {
+            [&](auto orig, auto this_ptr, auto handle_interface, auto handle) {
                 // todo: work with this_ptr
-                players.on_remove_entity(ents_list, handle);
-                orig(ent, handle);
+                on_remove_entity(entity_list_interface, handle);
+                orig(handle_interface, handle);
             })
 #endif
     };
