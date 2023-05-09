@@ -1,17 +1,18 @@
 #include "vfunc.h"
 
-namespace fd
-{
 #include <boost/preprocessor/repeat.hpp>
 
+// for buggy resharper
 #ifndef BOOST_PP_LIMIT_REPEAT
-#define BOOST_PP_LIMIT_REPEAT 256
+#define BOOST_PP_LIMIT_REPEAT 1
 #endif
 
-#define VTIC_GET_INDEX(z, i, __call)     \
-    virtual size_t __call GetIndex_##i() \
-    {                                    \
-        return i;                        \
+namespace fd
+{
+#define VTIC_GET_INDEX(z, i, __call) \
+    virtual size_t __call i_##i()    \
+    {                                \
+        return i;                    \
     }
 
 #define GENERATE_CALL(call__, __call)                                   \
