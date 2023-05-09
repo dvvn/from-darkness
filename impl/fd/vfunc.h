@@ -1,5 +1,7 @@
 #pragma once
 
+#include "x86_call.h"
+
 #include <concepts>
 
 namespace fd
@@ -38,41 +40,102 @@ class vfunc_holder
     }
 };
 
-template <typename Ret, typename... Args>
-class vfunc : public vfunc_holder
+template <typename T>
+class vfunc_instance_holder : public vfunc_holder
 {
-    using fn_t = Ret(__thiscall *)(void *, Args...);
-
-    void *instance_;
+    T *instance_;
 
   public:
-    template <typename T>
-    vfunc(T *instance, size_t index)
+    vfunc_instance_holder(T *instance, size_t index)
         : vfunc_holder(instance, index)
-        , instance_((void *)(instance))
+        , instance_((instance))
     {
     }
 
-    template <typename... ArgsFwd>
-    Ret operator()(ArgsFwd &&...args) const
+    T *instance() const
     {
-        return reinterpret_cast<fn_t>(get())(instance_, std::forward<ArgsFwd>(args)...);
+        return instance_;
     }
 };
 
-template <>
-class vfunc<nullptr_t> : public vfunc_holder
+size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x86_call call);
+
+template <typename Fn>
+void *member_function_pointer(Fn function)
 {
-  public:
+    union
+    {
+        Fn fn;
+        void *fn_ptr;
+    };
+
+    fn = function;
+    return fn_ptr;
+}
+
+#define GET_VFUNC_INDEX(call__, __call)                                                              \
+    template <typename Ret, typename T, typename... Args>                                            \
+    size_t get_vfunc_index(void *instance, size_t vtable_offset, Ret (__call T::*function)(Args...)) \
+    {                                                                                                \
+        return get_vfunc_index(instance, vtable_offset, member_function_pointer(function), call__);  \
+    }
+
+X86_CALL_MEMBER(GET_VFUNC_INDEX);
+#undef GET_VFUNC_INDEX
+
+template <_x86_call Call, typename Ret, typename T, typename... Args>
+struct vfunc_x86;
+
+template <typename Ret, typename T, typename... Args>
+struct vfunc_x86<_x86_call::unknown, Ret, T, Args...>
+{
+    vfunc_x86(...) = delete;
+};
+
+template <typename T>
+struct vfunc_x86<_x86_call::unknown, void, T> : vfunc_holder
+{
     using vfunc_holder::vfunc_holder;
 };
 
 template <typename T>
-class vtable
+vfunc_x86(T *, size_t) -> vfunc_x86<_x86_call::unknown, void, T>;
+
+#define VFUNC_X86(call__, __call)                                                                 \
+    template <typename Ret, typename T, typename... Args>                                         \
+    struct vfunc_x86<call__, Ret, T, Args...> : vfunc_instance_holder<T>                          \
+    {                                                                                             \
+        using vfunc_instance_holder<T>::instance;                                                 \
+        using vfunc_instance_holder<T>::get;                                                      \
+        using vfunc_instance_holder<T>::vfunc_instance_holder;                                    \
+        vfunc_x86(T *instance, Ret (__call T::*fn)(Args...))                                      \
+            : vfunc_instance_holder<T>(instance, get_vfunc_index(instance, vtable_offset<T>, fn)) \
+        {                                                                                         \
+        }                                                                                         \
+        Ret operator()(Args... args) const                                                        \
+        {                                                                                         \
+            return x86_invoker<call__, Ret>(instance(), get(), static_cast<Args>(args)...);       \
+        }                                                                                         \
+    };                                                                                            \
+    template <typename Ret, typename T, typename... Args>                                         \
+    vfunc_x86(T *, Ret (__call T::*)(Args...)) -> vfunc_x86<call__, Ret, T, Args...>;
+
+X86_CALL_MEMBER(VFUNC_X86);
+#undef VFUNC_X86
+
+template </*std::convertible_to<nullptr_t>*/ typename P, typename Fn>
+auto vfunc(P *instance, Fn fn)
+{
+    return vfunc_x86(instance, fn);
+}
+
+template <typename T>
+struct vtable
 {
     using instance_pointer = T *;
     using table_pointer    = void **;
 
+  private:
     instance_pointer instance_;
 
   public:
@@ -114,18 +177,35 @@ class vtable
         return static_cast<void ***>(instance_)[vtable_offset<T>];
     }
 
-    vfunc<nullptr_t> func(size_t index) const
+    void set(table_pointer pointer) const
     {
-        return {instance_, index};
+        static_cast<void ***>(instance_)[vtable_offset<T>] = pointer;
+    }
+
+    auto func(size_t index) const
+    {
+        return vfunc(instance_, index);
+    }
+
+    template <typename Fn>
+    auto func(Fn fn) const requires(std::is_member_function_pointer_v<Fn>)
+    {
+        return vfunc(instance_, fn);
     }
 
     template <typename Ret, typename... Args>
-    vfunc<Ret, Args...> func(size_t index) const
+    Ret call(size_t index, Args... args) const
     {
-        return {instance_, index};
+        return x86_invoker<_x86_call::thiscall__, Ret>(instance_, func(index), static_cast<Args>(args)...);
     }
 
-    template <typename Ret = void, typename... Args>
+    template <_x86_call Call, typename Ret, typename... Args>
+    Ret call(size_t index, Args... args) const
+    {
+        return x86_invoker<Call, Ret>(instance_, func(index), static_cast<Args>(args)...);
+    }
+
+    /*template <typename Ret = void, typename... Args>
     Ret call(size_t index, Args... args) const
     {
         return vfunc<Ret, Args...>(instance_, index)(
@@ -134,8 +214,24 @@ class vtable
                                                    : std::is_reference_v<Args>,
                 Args,
                 std::add_lvalue_reference_t<Args>>>(args)...);
-    }
+    }*/
 };
+
+// template <typename T>
+// auto exchange(vtable<T> table, typename vtable<T>::table_pointer ptr) -> decltype(ptr)
+//{
+//     auto backup = table.get();
+//     table.set(ptr);
+//     return backup;
+// }
+
+template <typename T, typename T2 = void>
+auto exchange(vtable<T> table, vtable<T2> other) -> typename vtable<T>::table_pointer
+{
+    auto backup = table.get();
+    table.set(other.get());
+    return backup;
+}
 
 template <typename From, typename To>
 vtable(magic_cast<From, To *>) -> vtable<To>;
@@ -178,10 +274,22 @@ magic_cast(vtable<From>, To) -> magic_cast<From *, To>;
 // template <typename From, typename To>
 // magic_cast(vtable<From *>, To) -> magic_cast<From *, To>;
 
-template <typename To, typename... Args>
-magic_cast(vfunc<Args...>, To) -> magic_cast<void *, To>;
+template <_x86_call Call, typename Ret, typename T, typename To, typename... Args>
+magic_cast(vfunc_x86<Call, Ret, T, Args...>, To) -> magic_cast<T *, To>;
+
+template <typename To>
+magic_cast(vfunc_holder, To) -> magic_cast<void *, To>;
 
 // template <typename T>
 // vtable(T const *instance) -> vtable<T const *>;
 
 } // namespace fd
+
+namespace std
+{
+template <typename T>
+void **exchange(fd::vtable<T> vt, void **new_table)
+{
+    void **old_table = vt;
+}
+}

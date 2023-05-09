@@ -4,6 +4,7 @@
 
 namespace fd
 {
+
 template <typename From, typename To>
 class magic_cast
 {
@@ -94,8 +95,10 @@ class magic_cast<From, auto_cast_tag>
 template <typename T>
 struct cast_helper;
 
-template <typename Ret, typename... T>
-class vfunc;
+// template <typename Ret, typename... T>
+// class vfunc;
+
+class vfunc_holder;
 
 template <typename To>
 class magic_cast<auto_cast_tag, To>
@@ -109,17 +112,23 @@ class magic_cast<auto_cast_tag, To>
     {
     }
 
+    template <std::derived_from<vfunc_holder> From>
+    magic_cast(From from)
+        : to_(magic_cast<void *, To>(from))
+    {
+    }
+
     template <typename From>
     magic_cast(magic_cast<From, auto_cast_tag> from)
         : to_(from.template to<To>())
     {
     }
 
-    template <typename... Args>
+    /*template <typename... Args>
     magic_cast(vfunc<Args...> from)
         : magic_cast(from.get())
     {
-    }
+    }*/
 
     operator To() const
     {

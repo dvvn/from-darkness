@@ -33,74 +33,23 @@ static void destroy_hooks(auto &rng)
 {
     std::for_each(std::rbegin(rng), std::rend(rng), std::destroy_at<basic_hook>);
 }
-
-template <typename T>
-// ReSharper disable once CppMismatchedClassTags
-struct vtable<T *> : vtable<T>
-{
-    using vtable<T>::vtable;
-
-    template <std::convertible_to<T *> Q>
-    vtable(Q val)
-        : vtable<T>(val)
-    {
-    }
-};
 } // namespace fd
 
 static bool context(HINSTANCE self_handle);
 
-#define _WINDLL
+//#define _WINDLL
 
 #ifdef _WINDLL
 namespace fd
 {
 template <>
-struct cast_helper<render_backend>
+struct cast_helper<IDirect3DDevice9 *>
 {
-    render_backend operator()(to<uintptr_t> val) const
+    IDirect3DDevice9 *operator()(to<uintptr_t> val) const
     {
-        return **reinterpret_cast<render_backend **>(val + 1);
+        return **reinterpret_cast<IDirect3DDevice9 ***>(val + 1);
     }
 };
-
-#if 0
-class netvars_holder
-{
-    netvars_storage storage_;
-
-#ifdef _DEBUG
-    netvar_classes classes_;
-    netvar_log log_;
-#endif
-
-  public:
-    netvars_holder(void *entity, void *client_interface, void *engine)
-    {
-        storage_.process(client_interface);
-        storage_.process(valve::get_desc_data_map(entity));
-        storage_.process(valve::get_prediction_data_map(entity));
-
-#ifdef _DEBUG
-#ifdef FD_WORK_DIR
-        classes_.dir.append(BOOST_STRINGIZE(FD_WORK_DIR)).make_preferred().append("valve").append("netvars_generated");
-#endif
-        storage_.write(classes_);
-
-        std::string_view native_str = engine->GetProductVersionString();
-        log_.file.name.append(native_str.begin(), native_str.end());
-#ifdef FD_ROOT_DIR
-        log_.dir.append(BOOST_STRINGIZE(FD_ROOT_DIR)).make_preferred().append(".out").append("netvars_dump");
-#endif
-        log_.file.extension = L".txt";
-        log_.indent         = 4;
-        log_.filler         = ' ';
-
-        storage_.write(log_);
-#endif
-    }
-};
-#endif
 } // namespace fd
 
 static HANDLE thread;
@@ -168,7 +117,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     struct
     {
         render_context ctx;
-        vtable<render_backend> vtable;
+        vtable<std::remove_pointer_t<render_backend>> vtable;
     } render;
 
     HWND window;
@@ -179,7 +128,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     if (!own_render.initialized())
         return false;
 
-    render.vtable = own_render.device;
+    render.vtable = own_render.device.get();
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
 #else
@@ -237,8 +186,16 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
                 }
             }),
         make_hook_callback(
+            "IDirect3DDevice9::Release",
+            render.vtable.func(&IDirect3DDevice9::Release),
+            [&](auto orig, auto this_ptr) -> ULONG {
+                //
+
+                return orig();
+            }),
+        make_hook_callback(
             "IDirect3DDevice9::Reset",
-            magic_cast(render.vtable.func(16), &IDirect3DDevice9::Reset),
+            render.vtable.func(&IDirect3DDevice9::Reset),
             [&](auto orig, auto this_ptr, auto... args) {
                 assert(render.vtable == this_ptr);
                 reset(&render.ctx);
@@ -246,7 +203,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
             }),
         make_hook_callback(
             "IDirect3DDevice9::Present",
-            magic_cast(render.vtable.func(17), &IDirect3DDevice9::Present),
+            render.vtable.func(&IDirect3DDevice9::Present),
             [&](auto orig, auto this_ptr, auto... args) {
                 assert(render.vtable == this_ptr);
                 if (auto frame = render_frame(&render.ctx))

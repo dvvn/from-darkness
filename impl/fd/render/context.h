@@ -34,4 +34,6 @@ struct render_context
     bool can_render() const;
 };
 
+void *create_render_context(HWND window, void *backend);
+void destroy_render_context();
 }
