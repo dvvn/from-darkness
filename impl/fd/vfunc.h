@@ -182,27 +182,37 @@ struct vtable
         static_cast<void ***>(instance_)[vtable_offset<T>] = pointer;
     }
 
-    auto func(size_t index) const
+  private:
+    void *func_simple(size_t index) const
     {
-        return vfunc(instance_, index);
+        return static_cast<void ***>(instance_)[vtable_offset<T>][index];
     }
 
-    template <typename Fn>
-    auto func(Fn fn) const requires(std::is_member_function_pointer_v<Fn>)
+  public:
+    vfunc_x86<_x86_call::unknown, void, void> func(size_t index) const
     {
-        return vfunc(instance_, fn);
+        return {instance_, index};
     }
+
+#define VFUNC_GET(call__, __call)                                               \
+    template <typename Ret, typename T, typename... Args>                       \
+    vfunc_x86<call__, Ret, T, Args...> func(Ret (__call T::*fn)(Args...)) const \
+    {                                                                           \
+        return {instance_, fn};                                                 \
+    }
+    X86_CALL_MEMBER(VFUNC_GET)
+#undef VFUNC_GET
 
     template <typename Ret, typename... Args>
     Ret call(size_t index, Args... args) const
     {
-        return x86_invoker<_x86_call::thiscall__, Ret>(instance_, func(index), static_cast<Args>(args)...);
+        return x86_invoker<_x86_call::thiscall__, Ret>(instance_, func_simple(index), static_cast<Args>(args)...);
     }
 
     template <_x86_call Call, typename Ret, typename... Args>
     Ret call(size_t index, Args... args) const
     {
-        return x86_invoker<Call, Ret>(instance_, func(index), static_cast<Args>(args)...);
+        return x86_invoker<Call, Ret>(instance_, func_simple(index), static_cast<Args>(args)...);
     }
 
     /*template <typename Ret = void, typename... Args>
