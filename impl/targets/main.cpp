@@ -10,6 +10,7 @@
 #include <fd/players/list.h>
 #include <fd/render/context.h>
 
+#include <d3d9.h>
 #include <windows.h>
 
 #include <algorithm>
@@ -132,14 +133,14 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
 #else
-    library_info shader_api_dll                   = L"shaderapidx9.dll";
-    to<cast_helper<render_backend>> packed_render = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+    library_info shader_api_dll                       = L"shaderapidx9.dll";
+    to<cast_helper<IDirect3DDevice9 *>> packed_render = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
     if (FAILED(packed_render->GetCreationParameters(&creation_parameters)))
         return false;
     to<WNDPROC> wnd_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
 
-    render.vtable = packed_render;
+    render_vtable = packed_render;
     window        = creation_parameters.hFocusWindow;
     window_proc   = wnd_proc;
 #endif

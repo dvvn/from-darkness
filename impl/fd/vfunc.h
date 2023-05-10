@@ -347,11 +347,17 @@ class vtable : public instance_holder<T>
     }
 
     template <typename From, typename To>
-    [[deprecated]] //
     vtable(magic_cast<From, To> val, size_t vtable_offset = 0)
         : instance_holder<T>(val)
         , vtable_offset_(vtable_offset)
     {
+    }
+
+    template <typename From, typename To>
+    vtable &operator=(magic_cast<From, To> val)
+    {
+        instance_holder<T>::operator=(static_cast<T *>(val));
+        return *this;
     }
 
     /*vtable &operator=(std::convertible_to<pointer> auto instance)

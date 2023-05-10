@@ -1,24 +1,12 @@
 #pragma once
-#include <fd/comptr.h>
 
 #include <cstdint>
-
-// #include "backend.h"
-// #include "context_fwd.h"
-//
-// #if !defined(IMGUI_VERSION) && defined(IMGUI_USER_CONFIG)
-// #include IMGUI_USER_CONFIG
-// #endif
-// #include <imgui_internal.h>
-////
-//
-// #include <Windows.h>
 
 namespace fd
 {
 void *create_render_context(void *window, void *backend) noexcept;
 void destroy_render_context() noexcept;
-void render_backend_detach() ;
+void render_backend_detach();
 
 enum class render_message_result : uint8_t
 {

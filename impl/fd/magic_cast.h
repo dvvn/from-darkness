@@ -114,7 +114,7 @@ class magic_cast<auto_cast_tag, To>
 
     template <std::derived_from<vfunc_holder> From>
     magic_cast(From from)
-        : to_(magic_cast<void *, To>(from))
+        : to_(magic_cast<void *, To>(from.get()))
     {
     }
 
