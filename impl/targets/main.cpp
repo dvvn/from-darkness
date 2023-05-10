@@ -8,14 +8,19 @@
 //
 #include <fd/netvars/core.h>
 #include <fd/players/list.h>
-#include <fd/render/context_init.h>
-#include <fd/render/context_update.h>
-#include <fd/render/frame.h>
+#include <fd/render/context.h>
 
 #include <windows.h>
 
 #include <algorithm>
 #include <functional>
+
+// ReSharper disable once CppInconsistentNaming
+namespace ImGui
+{
+// ReSharper disable once CppInconsistentNaming
+extern void ShowDemoWindow(bool *open = nullptr);
+} // namespace ImGui
 
 namespace fd
 {
@@ -37,7 +42,7 @@ static void destroy_hooks(auto &rng)
 
 static bool context(HINSTANCE self_handle);
 
-//#define _WINDLL
+// #define _WINDLL
 
 #ifdef _WINDLL
 namespace fd
@@ -114,12 +119,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     [[maybe_unused]] //
     invoke_on_destruct stop_logging = logger_registrar::stop;
 
-    struct
-    {
-        render_context ctx;
-        vtable<std::remove_pointer_t<render_backend>> vtable;
-    } render;
-
+    vtable<IDirect3DDevice9> render_vtable;
     HWND window;
     WNDPROC window_proc;
 
@@ -128,7 +128,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     if (!own_render.initialized())
         return false;
 
-    render.vtable = own_render.device.get();
+    render_vtable = own_render.device.get();
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
 #else
@@ -144,8 +144,9 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     window_proc   = wnd_proc;
 #endif
 
-    if (!init(&render.ctx, render.vtable, window))
+    if (!create_render_context(window, render_vtable.instance()))
         return false;
+    invoke_on_destruct render_destroy = destroy_render_context;
 
 #ifdef _WINDLL
     game_library_info_ex client_dll = L"client.dll";
@@ -169,48 +170,48 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
         make_hook_callback(
             "WinAPI.WndProc",
             window_proc,
-            [&](auto orig, auto hwnd, auto... args) -> LRESULT {
-                assert(window == hwnd);
-                process_message_result pmr;
-                process_message(&render.ctx, args..., &pmr);
+            [&](auto orig, auto... args) -> LRESULT {
+                render_message_result pmr;
+                process_render_message(args..., &pmr);
                 switch (pmr)
                 {
-                case process_message_result::idle:
-                    return orig(hwnd, args...);
-                case process_message_result::updated:
-                    return DefWindowProc(hwnd, args...);
-                case process_message_result::locked:
+                case render_message_result::idle:
+                    return orig(args...);
+                case render_message_result::updated:
+                    return DefWindowProc(args...);
+                case render_message_result::locked:
                     return TRUE;
                 default:
                     std::unreachable();
                 }
             }),
+#ifndef USE_OWN_RENDER_BACKEND
         make_hook_callback(
             "IDirect3DDevice9::Release",
-            render.vtable.func(&IDirect3DDevice9::Release),
+            render_vtable.func(&IDirect3DDevice9::Release),
             [&](auto orig, auto this_ptr) -> ULONG {
-                //
-
-                return orig();
+                auto refs = orig();
+                if (refs == 0)
+                    render_backend_detach();
+                return refs;
             }),
+#endif
         make_hook_callback(
             "IDirect3DDevice9::Reset",
-            render.vtable.func(&IDirect3DDevice9::Reset),
+            render_vtable.func(&IDirect3DDevice9::Reset),
             [&](auto orig, auto this_ptr, auto... args) {
-                assert(render.vtable == this_ptr);
-                reset(&render.ctx);
+                reset_render_context();
                 return orig(args...);
             }),
         make_hook_callback(
             "IDirect3DDevice9::Present",
-            render.vtable.func(&IDirect3DDevice9::Present),
+            render_vtable.func(&IDirect3DDevice9::Present),
             [&](auto orig, auto this_ptr, auto... args) {
-                assert(render.vtable == this_ptr);
-                if (auto frame = render_frame(&render.ctx))
+                if (auto frame = render_frame())
                 {
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
+                    // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
                     ImGui::ShowDemoWindow();
-#endif
+                    // #endif
                 }
                 return orig(args...);
             }),

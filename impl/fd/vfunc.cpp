@@ -39,7 +39,7 @@ size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x8
     vtable vt   = instance;
     auto backup = exchange(vt, call_vtable[static_cast<num_t>(call)]);
 
-    auto index = x86_invoker<size_t>(instance, function, call);
+    auto index = unknown_vfunc_invoker<>::call<size_t>(instance, function, call);
 
     vt.set(backup);
 

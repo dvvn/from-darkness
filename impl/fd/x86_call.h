@@ -32,50 +32,53 @@ enum class _x86_call : uint8_t
     _X86_CALL_PROXY(_PROXY_, thiscall) \
     X86_CALL(_PROXY_)
 
-template <_x86_call Call, typename Ret, typename... Args>
-struct _x86_invoker;
-
-template <_x86_call Call, typename Ret, typename... Args>
-Ret x86_invoker(void *instance, void *fn, Args... args)
-{
-    return _x86_invoker<Call, Ret, Args...>::call(instance, fn, static_cast<Args>(args)...);
-}
-
-template <typename Ret, typename... Args>
-Ret x86_invoker(void *instance, void *fn, _x86_call call, Args... args)
-{
-#define _X86_INVOKE(call__, __call) \
-    case call__:                    \
-        return x86_invoker<call__, Ret>(instance, fn, static_cast<Args>(args)...);
-
-    switch (call)
-    {
-        X86_CALL_MEMBER(_X86_INVOKE);
+#define X86_CALL_TYPE(call__, __call)                                          \
+    template <typename Ret, typename T, typename... Args>                      \
+    constexpr _x86_call get_call_type(Ret (__call T::*)(Args...))              \
+    {                                                                          \
+        return call__;                                                         \
+    }                                                                          \
+    template <typename Ret, typename T, typename... Args>                      \
+    constexpr _x86_call get_call_type_member(Ret (__call T::*)(Args...))       \
+    {                                                                          \
+        return call__;                                                         \
+    }                                                                          \
+    template <typename Ret, typename T, typename... Args>                      \
+    constexpr _x86_call get_call_type(Ret (__call T::*)(Args...) const)        \
+    {                                                                          \
+        return call__;                                                         \
+    }                                                                          \
+    template <typename Ret, typename T, typename... Args>                      \
+    constexpr _x86_call get_call_type_member(Ret (__call T::*)(Args...) const) \
+    {                                                                          \
+        return call__;                                                         \
+    }                                                                          \
+    template <typename Ret, typename... Args>                                  \
+    constexpr _x86_call get_call_type(Ret(__call *)(Args...))                  \
+    {                                                                          \
+        return call__;                                                         \
     }
 
-#undef _X86_INVOKE
-}
+X86_CALL_MEMBER(X86_CALL_TYPE);
+#undef X86_CALL_TYPE
 
-#define X86_INVOKER(call__, __call)                                                    \
-    template <typename Ret, typename... Args>                                          \
-    struct _x86_invoker<call__, Ret, Args...>                                          \
-    {                                                                                  \
-        static Ret call(void *instance, void *fn, Args... args) noexcept               \
-        {                                                                              \
-            struct dummy                                                               \
-            {                                                                          \
-            };                                                                         \
-            union                                                                      \
-            {                                                                          \
-                void *fn1;                                                             \
-                Ret (__call dummy::*fn2)(Args...);                                     \
-            };                                                                         \
-            fn1 = fn;                                                                  \
-            return (*static_cast<dummy *>(instance).*fn2)(static_cast<Args>(args)...); \
-        }                                                                              \
-    };
+template <typename T>
+concept member_function = requires(T fn) { get_call_type_member(fn); };
 
-X86_CALL_MEMBER(X86_INVOKER);
+class call_type
+{
+    _x86_call type_;
 
-#undef X86_INVOKER
+  public:
+    template <typename Fn>
+    consteval call_type(Fn function)
+        : type_(get_call_type(function))
+    {
+    }
+
+    constexpr operator _x86_call() const
+    {
+        return type_;
+    }
+};
 }

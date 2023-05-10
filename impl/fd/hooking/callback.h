@@ -131,10 +131,10 @@ using try_add_ref = std::conditional_t<
     std::add_lvalue_reference_t<Callback>>;
 
 template <_x86_call Call, typename Ret, typename T, typename... Args>
-struct vfunc_x86;
+class vfunc;
 
 template <typename Callback, _x86_call Call, typename Ret, typename T, typename... Args>
-basic_hook *make_hook_callback(raw_hook_name name, vfunc_x86<Call, Ret, T, Args...> target, Callback callback)
+basic_hook *make_hook_callback(raw_hook_name name, vfunc<Call, Ret, T, Args...> target, Callback callback)
 {
     using proxy_type = hook_callback_proxy_member<Callback, Call, Ret, T, Args...>;
     return init_hook_callback<proxy_type>(name, target.get(), callback);

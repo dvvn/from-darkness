@@ -1,5 +1,5 @@
-﻿#include "window.h"
-
-namespace fd
-{
-}
+﻿//#include "window.h"
+//
+//namespace fd
+//{
+//}

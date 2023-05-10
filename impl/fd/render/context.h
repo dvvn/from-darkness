@@ -1,39 +1,55 @@
 #pragma once
+#include <fd/comptr.h>
 
-#include "backend.h"
-#include "context_fwd.h"
+#include <cstdint>
 
-#if !defined(IMGUI_VERSION) && defined(IMGUI_USER_CONFIG)
-#include IMGUI_USER_CONFIG
-#endif
-#include <imgui_internal.h>
+// #include "backend.h"
+// #include "context_fwd.h"
 //
-
-#include <Windows.h>
+// #if !defined(IMGUI_VERSION) && defined(IMGUI_USER_CONFIG)
+// #include IMGUI_USER_CONFIG
+// #endif
+// #include <imgui_internal.h>
+////
+//
+// #include <Windows.h>
 
 namespace fd
 {
-struct render_context
+void *create_render_context(void *window, void *backend) noexcept;
+void destroy_render_context() noexcept;
+void render_backend_detach() ;
+
+enum class render_message_result : uint8_t
 {
-    ImGuiContext context;
-    ImFontAtlas font_atlas;
-
-    render_context();
-
-    render_backend backend;
-    HWND window;
-
-    /*void reset_backend();
-
-    void on_window_message();
-    void on_resize();
-    void on_backend_reset();
-
-    void render();*/
-
-    bool can_render() const;
+    idle,
+    updated,
+    locked
 };
 
-void *create_render_context(HWND window, void *backend);
-void destroy_render_context();
+void process_render_message(
+    void *window,
+    size_t message,
+    size_t wParam,
+    size_t lParam,
+    render_message_result *result = nullptr);
+
+void reset_render_context();
+
+bool begin_render_frame();
+void end_render_frame();
+
+class render_frame
+{
+    bool valid_;
+
+  public:
+    render_frame();
+    ~render_frame();
+
+    render_frame(render_frame const &other)            = delete;
+    render_frame &operator=(render_frame const &other) = delete;
+
+    explicit operator bool() const;
+};
 }

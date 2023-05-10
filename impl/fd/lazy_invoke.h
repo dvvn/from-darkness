@@ -6,7 +6,7 @@ namespace fd
 {
 template <
     typename Fn,
-    bool Trivial = std::equality_comparable_with<Fn, nullptr_t> && /**/ std::assignable_from<Fn, nullptr_t>>
+    bool Trivial = std::equality_comparable_with<Fn, nullptr_t> && /**/ std::assignable_from<Fn &, nullptr_t>>
 class invoke_on_destruct;
 
 template <typename Fn>
@@ -41,6 +41,12 @@ class invoke_on_destruct<Fn, true>
         swap(fn_, other.fn_);
         return *this;
     }
+
+    invoke_on_destruct &operator=(nullptr_t)noexcept
+    {
+        fn_ = nullptr;
+        return *this;
+    }
 };
 
 template <typename Fn>
@@ -73,6 +79,12 @@ class invoke_on_destruct<Fn, false>
     {
         using std::swap;
         swap(fn_, other.fn_);
+        return *this;
+    }
+
+    invoke_on_destruct &operator=(nullptr_t)
+    {
+        fn_.reset();
         return *this;
     }
 };
