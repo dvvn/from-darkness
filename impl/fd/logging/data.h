@@ -1,5 +1,5 @@
 #pragma once
-#include <fd/logging/levels.h>
+#include "levels.h"
 
 #include <fmt/format.h>
 
@@ -11,19 +11,18 @@ struct fmt::formatter<fd::log_level, C> : formatter<basic_string_view<C>, C>
         using fd::log_level;
 
         basic_memory_buffer<C, 64> buff;
-        auto it = std::back_inserter(buff);
 
-        auto write = [&](char const *begin, size_t length) {
-            std::copy(begin, begin + length, it);
+        auto write = [&](string_view str) {
+            buff.append(str);
         };
 
         if (level == log_level::off)
         {
-            write("disabled", 8);
+            write("disabled");
         }
         else if (level == log_level::all)
         {
-            write("all", 3);
+            write("all");
         }
         else
         {
@@ -32,8 +31,8 @@ struct fmt::formatter<fd::log_level, C> : formatter<basic_string_view<C>, C>
                 if (!have_log_level(level, val))
                     return;
                 if (flag_written)
-                    write(" | ", 3);
-                write(std::begin(flag), std::size(flag) - 1);
+                    write(" | ");
+                write(flag);
                 // level &= ~val;
                 flag_written = true;
             };

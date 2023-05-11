@@ -3,68 +3,21 @@
 #include "x86_call.h"
 
 #include <concepts>
+#include <tuple>
 #include <utility>
+
+#undef cdecl
 
 namespace fd
 {
 template <typename From, typename To>
 class magic_cast;
 
-#if 0
-class vfunc_holder
-{
-    void *func_;
-
-  public:
-    vfunc_holder(void *vfunc)
-        : func_(vfunc)
-    {
-    }
-
-    vfunc_holder(void *instance, size_t table_offset, size_t func_index)
-        : func_(static_cast<void ***>(instance_internal_)[table_offset][func_index])
-    {
-    }
-
-    operator void *() const
-    {
-        return func_;
-    }
-
-    void *get() const
-    {
-        return func_;
-    }
-};
-
-template <typename T>
-class vfunc_instance_holder
-{
-    T *instance_;
-
-  public:
-    vfunc_instance_holder(T *instance)
-        : instance_((instance))
-    {
-    }
-
-    T *instance() const
-    {
-        return instance_;
-    }
-};
-#endif
-// inline size_t get_vfunc_index(void *instance, size_t vtable_offset, size_t index, _x86_call call)
-//{
-//     return index;
-// }
-
 size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x86_call call);
 
 template <typename Fn>
-size_t get_vfunc_index(void *instance, size_t vtable_offset, Fn function)
+void *get_function_pointer(Fn function)
 {
-    /*static_assert(member_function<Fn>);*/
     static_assert(sizeof(Fn) == sizeof(void *));
 
     union
@@ -74,11 +27,17 @@ size_t get_vfunc_index(void *instance, size_t vtable_offset, Fn function)
     };
 
     fn = function;
-
-    return get_vfunc_index(instance, vtable_offset, fn_ptr, get_call_type(function));
+    return fn_ptr;
 }
 
-//#define GET_VFUNC_INDEX(call__, __call)                                                              \
+template <typename Fn>
+size_t get_vfunc_index(void *instance, size_t vtable_offset, Fn function)
+{
+    /*static_assert(member_function<Fn>);*/
+    return get_vfunc_index(instance, vtable_offset, get_function_pointer(function), get_call_type(function));
+}
+
+//#define GET_VFUNC_INDEX(call__, __call,call)                                                              \
 //    template <typename Ret, typename T, typename... Args>                                            \
 //    size_t get_vfunc_index(void *instance, size_t vtable_offset, Ret (__call T::*function)(Args...)) \
 //    {                                                                                                \
@@ -95,21 +54,21 @@ struct vfunc_invoker_gap
 {
 };
 
-#define VFUNC_INVOKER(call__, __call)                                                              \
-    template <typename... Args>                                                                    \
-    struct vfunc_invoker<call__, Args...>                                                          \
-    {                                                                                              \
-        template <typename Ret, typename... Args2>                                                 \
-        static Ret call(void *instance, void *fn, Args2 &&...args) noexcept                        \
-        {                                                                                          \
-            union                                                                                  \
-            {                                                                                      \
-                void *fn1;                                                                         \
-                Ret (__call vfunc_invoker_gap::*fn2)(Args...);                                     \
-            };                                                                                     \
-            fn1 = fn;                                                                              \
-            return (*static_cast<vfunc_invoker_gap *>(instance).*fn2)(static_cast<Args>(args)...); \
-        }                                                                                          \
+#define VFUNC_INVOKER(call__, __call, _call_)                                     \
+    template <typename... Args>                                                   \
+    struct vfunc_invoker<call__, Args...>                                         \
+    {                                                                             \
+        template <typename Ret>                                                   \
+        static Ret call(void *instance, void *fn, Args... args) noexcept          \
+        {                                                                         \
+            union                                                                 \
+            {                                                                     \
+                void *fn1;                                                        \
+                Ret (__call vfunc_invoker_gap::*fn2)(Args...);                    \
+            };                                                                    \
+            fn1 = fn;                                                             \
+            return (*static_cast<vfunc_invoker_gap *>(instance).*fn2)((args)...); \
+        }                                                                         \
     };
 
 X86_CALL_MEMBER(VFUNC_INVOKER);
@@ -118,12 +77,12 @@ X86_CALL_MEMBER(VFUNC_INVOKER);
 template <typename... Args>
 struct vfunc_invoker<_x86_call::unknown, Args...>
 {
-    template <typename Ret, typename... Args2>
-    static Ret call(void *instance, void *fn, _x86_call info, Args2 &&...args) noexcept
+    template <typename Ret>
+    static Ret call(void *instance, void *fn, _x86_call info, Args... args) noexcept
     {
-#define SELECT_INVOKER(call__, __call) \
-    case call__:                       \
-        return vfunc_invoker<call__, Args...>::template call<Ret>(instance, fn, std::forward<Args2>(args)...);
+#define SELECT_INVOKER(call__, __call, _call_) \
+    case call__:                               \
+        return vfunc_invoker<call__, Args...>::template call<Ret>(instance, fn, (args)...);
 
         switch (info)
         {
@@ -135,15 +94,19 @@ struct vfunc_invoker<_x86_call::unknown, Args...>
 #undef SELECT_INVOKER
     }
 
-    template <typename Ret, member_function Fn, typename... Args2>
-    static Ret call(void *instance, Fn fn, Args2 &&...args) noexcept
+    template <typename Ret, _x86_call Call>
+    static Ret call(void *instance, void *fn, call_type_t<Call>, Args... args) noexcept
     {
-        return call<Ret>(instance, fn, get_call_type(fn), std::forward<Args2>(args)...);
+        return vfunc_invoker<Call, Args...>::template call<Ret>(instance, fn, (args)...);
+    }
+
+    template <typename Ret, member_function Fn>
+    static Ret call(void *instance, Fn fn, Args... args) noexcept
+    {
+        return vfunc_invoker<get_call_type(fn), Args...>::template call<Ret>(
+            instance, get_function_pointer(fn), (args)...);
     }
 };
-
-template <typename... Args>
-using unknown_vfunc_invoker = vfunc_invoker<_x86_call::unknown, Args...>;
 
 template <typename T>
 constexpr _x86_call vtable_call = _x86_call::thiscall__;
@@ -151,16 +114,12 @@ constexpr _x86_call vtable_call = _x86_call::thiscall__;
 template <typename T>
 class instance_holder
 {
-    template <_x86_call Call, typename Ret, typename T1, typename... Args>
-    friend class vfunc;
-
-    template <typename T1>
-    friend class vtable;
-
+  protected:
     union
     {
         T *instance_;
-        void *instance_internal_;
+        void *instance_void_;
+        void ***vtable_;
     };
 
   public:
@@ -182,14 +141,28 @@ class instance_holder
 
 class vfunc_holder
 {
-    template <_x86_call Call, typename Ret, typename T, typename... Args>
-    friend class vfunc;
-
+  protected:
     void *func_;
 
   public:
     vfunc_holder(void *func)
         : func_(func)
+    {
+    }
+
+    vfunc_holder(void ***table, size_t table_offset, size_t func_index)
+        : func_(table[table_offset][func_index])
+    {
+    }
+
+    vfunc_holder(void *instance, size_t table_offset, size_t func_index)
+        : vfunc_holder(static_cast<void ***>(instance), table_offset, func_index)
+    {
+    }
+
+    template <member_function Fn>
+    vfunc_holder(void *instance, size_t table_offset, Fn function)
+        : vfunc_holder(static_cast<void ***>(instance), table_offset, get_vfunc_index(instance, table_offset, function))
     {
     }
 
@@ -199,130 +172,144 @@ class vfunc_holder
     }
 };
 
+template <typename T>
+struct return_type_t
+{
+    using value_type = T;
+};
+
+template <typename T>
+constexpr return_type_t<T> return_type;
+
+using unknown_return_type = return_type_t<nullptr_t>;
+
 template <_x86_call Call, typename Ret, typename T, typename... Args>
 class vfunc : public instance_holder<T>, public vfunc_holder
 {
     using invoker = vfunc_invoker<Call, Args...>;
-    using instance_holder<T>::instance_internal_;
+
+    using instance_holder<T>::instance_void_;
 
   public:
-    vfunc(T *instance, size_t table_offset, size_t func_index)
+    vfunc(T *instance, size_t table_offset, auto function)
         : instance_holder<T>(instance)
-        , vfunc_holder(static_cast<void ***>(instance_internal_)[table_offset][func_index])
+        , vfunc_holder(instance_void_, table_offset, function)
     {
     }
 
-    vfunc(T *instance, size_t table_offset, auto func)
-        : instance_holder<T>(instance)
-        , vfunc_holder(static_cast<void ***>(
-              instance_internal_)[table_offset][get_vfunc_index(instance_internal_, table_offset, func)])
+    Ret operator()(Args... args) const
     {
-    }
-
-    template <typename... Args2>
-    Ret operator()(Args2 &&...args) const
-    {
-        return invoker::template call<Ret>(instance_internal_, func_, std::forward<Args2>(args)...);
+        return invoker::template call<Ret>(instance_void_, func_, (args)...);
     }
 };
 
-template <_x86_call Call, typename T>
-class vfunc<Call, nullptr_t, T> : public instance_holder<T>, public vfunc_holder
+template <typename Fn>
+class vfunc_wrapped_invoker
 {
-    template <typename Ret, typename... Args>
-    using invoker = vfunc_invoker<Call, Ret, T, Args...>;
-    using instance_holder<T>::instance_internal_;
+    Fn fn_;
 
   public:
-    vfunc(T *instance, size_t table_offset, size_t func_index)
-        : instance_holder<T>(instance)
-        , vfunc_holder(static_cast<void ***>(instance_internal_)[table_offset][func_index])
+    vfunc_wrapped_invoker(Fn fn)
+        : fn_(std::move(fn))
     {
     }
 
-    vfunc(T *instance, size_t table_offset, auto func)
-        : vfunc(instance, table_offset, get_vfunc_index(instance, table_offset, func))
+    template <typename Ret>
+    operator Ret() const
     {
-    }
-
-    template <typename Ret, typename... Args>
-    Ret operator()(std::in_place_type_t<Ret>, Args... args) const
-    {
-        return invoker<Ret, Args...>::template call<Ret>(instance_internal_, func_, static_cast<Args>(args)...);
+        static_assert(!std::is_reference_v<Ret>, "Not implemented");
+        return fn_(return_type<Ret>);
     }
 };
 
 template <_x86_call Call, typename T>
-using custom_vfunc = vfunc<Call, nullptr_t, T>;
-
-template <typename T>
-class vfunc<_x86_call::unknown, nullptr_t, T> : public instance_holder<T>, public vfunc_holder
+class vfunc<Call, unknown_return_type, T> : public instance_holder<T>, public vfunc_holder
 {
     template <typename... Args>
-    using invoker = unknown_vfunc_invoker<Args...>;
-    using instance_holder<T>::instance_internal_;
+    using invoker = vfunc_invoker<Call, Args...>;
 
-    _x86_call call_;
+    using instance_holder<T>::instance_void_;
 
   public:
-    vfunc(T *instance, size_t table_offset, size_t func_index, _x86_call call = vtable_call<T>)
+    vfunc(T *instance, size_t table_offset, auto function)
         : instance_holder<T>(instance)
-        , vfunc_holder(static_cast<void ***>(instance_internal_)[table_offset][func_index])
-        , call_(call)
-    {
-    }
-
-    vfunc(T *instance, size_t table_offset, auto func)
-        : vfunc(instance, table_offset, get_call_type(func), get_vfunc_index(instance, table_offset, func))
+        , vfunc_holder(instance_void_, table_offset, function)
     {
     }
 
     template <typename Ret, typename... Args>
-    Ret operator()(std::in_place_type_t<Ret>, Args... args) const
+    Ret operator()(return_type_t<Ret>, Args... args) const
     {
-        return invoker<Args...>::template call<Ret>(instance_internal_, func_, call_, static_cast<Args>(args)...);
+        return invoker<Args...>::template call<Ret>(instance_void_, func_, args...);
+    }
+
+    template <_x86_call Call_1>
+    auto operator()(call_type_t<Call_1>, auto...) const = delete;
+
+    template <typename... Args>
+    auto operator()(Args... args) const
+    {
+        return vfunc_wrapped_invoker([=]<typename Ret>(return_type_t<Ret>) -> Ret {
+            return invoker<Args...>::template call<Ret>(instance_void_, func_, args...);
+        });
     }
 };
-
-template <typename T>
-using unknown_vfunc = vfunc<_x86_call::unknown, nullptr_t, T>;
-
-template <typename T>
-vfunc(T *instance, size_t table_offset, size_t func_index, _x86_call call)->unknown_vfunc<T>;
-
-template <typename T>
-vfunc(T *instance, size_t table_offset, size_t func_index)->unknown_vfunc<T>;
 
 template <typename Ret, typename T, typename... Args>
 class vfunc<_x86_call::unknown, Ret, T, Args...> : public instance_holder<T>, public vfunc_holder
 {
     using invoker = vfunc_invoker<_x86_call::unknown, Args...>;
 
-    _x86_call call_;
-    using instance_holder<T>::instance_internal_;
+    using instance_holder<T>::instance_void_;
 
   public:
-    vfunc(T *instance, size_t table_offset, _x86_call call, size_t func_index)
+    vfunc(T *instance, size_t table_offset, auto function)
         : instance_holder<T>(instance)
-        , vfunc_holder(static_cast<void ***>(instance_internal_)[table_offset][func_index])
-        , call_(call)
+        , vfunc_holder(instance_void_, table_offset, function)
     {
     }
 
-    template <member_function Fn>
-    vfunc(T *instance, size_t table_offset, Fn func)
-        : vfunc(instance, table_offset, get_call_type(func), get_vfunc_index(instance, table_offset, func))
+    template <_x86_call Call>
+    Ret operator()(call_type_t<Call> call, Args... args) const
     {
-    }
-
-    template <typename... Args2>
-    Ret operator()(Args2 &&...args) const
-    {
-        return invoker::template call<Ret>(instance_internal_, func_, call_, std::forward<Args2>(args)...);
+        return invoker::template call<Ret>(instance_void_, func_, call, args...);
     }
 };
 
-#define VFUNC_T(call__, __call)                           \
+template <typename T>
+class vfunc<_x86_call::unknown, unknown_return_type, T> : public instance_holder<T>, public vfunc_holder
+{
+    template <typename... Args>
+    using invoker = vfunc_invoker<_x86_call::unknown, Args...>;
+
+    using instance_holder<T>::instance_void_;
+
+  public:
+    vfunc(T *instance, size_t table_offset, auto func_info)
+        : instance_holder<T>(instance)
+        , vfunc_holder(instance_void_, table_offset, func_info)
+    {
+    }
+
+    template <_x86_call Call, typename Ret, typename... Args>
+    Ret operator()(call_type_t<Call> call, return_type_t<Ret>, Args... args) const
+    {
+        return invoker<Args...>::template call<Ret>(instance_void_, func_, call, args...);
+    }
+
+    template <_x86_call Call, typename... Args>
+    auto operator()(call_type_t<Call> call, Args... args) const
+    {
+        return vfunc_wrapped_invoker([=]<typename Ret>(return_type_t<Ret>) -> Ret {
+            return invoker<Args...>::template call<Ret>(instance_void_, func_, call, args...);
+        });
+    }
+};
+
+template <typename T>
+vfunc(T *instance, size_t table_offset, size_t func_index) -> vfunc<_x86_call::unknown, unknown_return_type, T>;
+
+#define VFUNC_T(call__, __call, call)                     \
     template <typename Ret, typename T, typename... Args> \
     vfunc(T *instance, size_t table_offset, Ret (__call T::*func)(Args...)) -> vfunc<call__, Ret, T, Args...>;
 
@@ -333,7 +320,8 @@ template <typename T>
 class vtable : public instance_holder<T>
 {
     using instance_holder<T>::instance_;
-    using instance_holder<T>::instance_internal_;
+    using instance_holder<T>::vtable_;
+
     size_t vtable_offset_;
 
   public:
@@ -378,27 +366,27 @@ class vtable : public instance_holder<T>
 
     operator table_pointer() const
     {
-        return static_cast<void ***>(instance_internal_)[vtable_offset_];
+        return vtable_[vtable_offset_];
     }
 
     table_pointer get() const
     {
-        return static_cast<void ***>(instance_internal_)[vtable_offset_];
+        return vtable_[vtable_offset_];
     }
 
     void set(table_pointer pointer) const
     {
-        static_cast<void ***>(instance_internal_)[vtable_offset_] = pointer;
+        vtable_[vtable_offset_] = pointer;
     }
 
   private:
     void *func_simple(size_t index) const
     {
-        return static_cast<void ***>(instance_internal_)[vtable_offset_][index];
+        return vtable_[vtable_offset_][index];
     }
 
   public:
-    custom_vfunc<vtable_call<T>, T> func(size_t index) const
+    /*custom_vfunc<vtable_call<T>, T> func(size_t index) const
     {
         return {instance_, vtable_offset_, index};
     }
@@ -413,21 +401,33 @@ class vtable : public instance_holder<T>
     auto func(Fn fn) const
     {
         return vfunc(instance_, vtable_offset_, fn);
+    }*/
+
+    template <std::integral I>
+    vfunc<vtable_call<T>, unknown_return_type, T> operator[](I index) const
+    {
+        return {instance_, vtable_offset_, index};
     }
 
-    template <typename Ret, typename... Args>
+    template <member_function Fn>
+    auto operator[](Fn fn) const
+    {
+        return vfunc(instance_, vtable_offset_, fn);
+    }
+
+    /*template <typename Ret, typename... Args>
     Ret call(size_t index, Args... args) const
     {
         return vfunc_invoker<vtable_call<T>, Args...>::template call<Ret>(
-            instance_, func_simple(index), static_cast<Args>(args)...);
+            instance_, func_simple(index), (args)...);
     }
 
     template <_x86_call Call, typename Ret, typename... Args>
     Ret call(size_t index, Args... args) const
     {
         return vfunc_invoker<Call, Args...>::template call<Ret>(
-            instance_, func_simple(index), static_cast<Args>(args)...);
-    }
+            instance_, func_simple(index), (args)...);
+    }*/
 
     /*template <typename Ret = void, typename... Args>
     Ret call(size_t index, Args... args) const

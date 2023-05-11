@@ -10,6 +10,7 @@ prepare(dummy_logger)
 prepare(console)
 
 add_library(cheat SHARED main.cpp)
+target_compile_definitions(cheat PRIVATE FD_SHARED_LIB)
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 	target_link_libraries(cheat logger console)
 else()

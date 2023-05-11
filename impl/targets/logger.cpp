@@ -1,5 +1,4 @@
 ﻿#include <fd/logging/default.h>
-#include <fd/logging/init.h>
 #include <fd/logging/logger.h>
 
 #include <fmt/chrono.h>
@@ -93,7 +92,7 @@ void system_console_logger<wchar_t>::write_after(data_type *d)
 //         buff.resize(buff.size() - 1);
 // }
 
-static class : public logger_impl_wrapped<default_logger_t, system_console_logger>, public logger_registrar
+static class : public logger_impl_wrapped<default_logger, system_console_logger>
 {
     int current_mode_ = -1;
     int prev_mode_;
@@ -145,5 +144,8 @@ static class : public logger_impl_wrapped<default_logger_t, system_console_logge
     }
 } default_logger_impl;
 
-default_logger_p default_logger = &default_logger_impl;
+default_logger *get_default_logger()
+{
+    return &default_logger_impl;
+}
 }

@@ -3,12 +3,11 @@
 #include <fd/hooking/callback.h>
 #include <fd/lazy_invoke.h>
 #include <fd/library_info.h>
-#include <fd/logging/init.h>
-#include <fd/vfunc.h>
-//
+#include <fd/logging/core.h>
 #include <fd/netvars/core.h>
 #include <fd/players/list.h>
 #include <fd/render/context.h>
+#include <fd/vfunc.h>
 
 #include <d3d9.h>
 #include <windows.h>
@@ -43,9 +42,7 @@ static void destroy_hooks(auto &rng)
 
 static bool context(HINSTANCE self_handle);
 
-// #define _WINDLL
-
-#ifdef _WINDLL
+#ifdef FD_SHARED_LIB
 namespace fd
 {
 template <>
@@ -116,9 +113,9 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
 {
     using namespace fd;
 
-    logger_registrar::start();
+    init_logging();
     [[maybe_unused]] //
-    invoke_on_destruct stop_logging = logger_registrar::stop;
+    invoke_on_destruct stop_logging_lazy = stop_logging;
 
     vtable<IDirect3DDevice9> render_vtable;
     HWND window;
@@ -149,7 +146,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
         return false;
     invoke_on_destruct render_destroy = destroy_render_context;
 
-#ifdef _WINDLL
+#ifdef FD_SHARED_LIB
     game_library_info_ex client_dll = L"client.dll";
     game_library_info_ex engine_dll = L"engine.dll";
     game_library_info_ex vgui_dll   = L"vguimatsurface.dll";
@@ -189,7 +186,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
 #ifndef USE_OWN_RENDER_BACKEND
         make_hook_callback(
             "IDirect3DDevice9::Release",
-            render_vtable.func(&IDirect3DDevice9::Release),
+            render_vtable[&IDirect3DDevice9::Release],
             [&](auto orig, auto this_ptr) -> ULONG {
                 auto refs = orig();
                 if (refs == 0)
@@ -199,14 +196,14 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
 #endif
         make_hook_callback(
             "IDirect3DDevice9::Reset",
-            render_vtable.func(&IDirect3DDevice9::Reset),
+            render_vtable[&IDirect3DDevice9::Reset],
             [&](auto orig, auto this_ptr, auto... args) {
                 reset_render_context();
                 return orig(args...);
             }),
         make_hook_callback(
             "IDirect3DDevice9::Present",
-            render_vtable.func(&IDirect3DDevice9::Present),
+            render_vtable[&IDirect3DDevice9::Present],
             [&](auto orig, auto this_ptr, auto... args) {
                 if (auto frame = render_frame())
                 {
@@ -216,10 +213,10 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
                 }
                 return orig(args...);
             }),
-#ifdef _WINDLL
+#ifdef FD_SHARED_LIB
         make_hook_callback(
             "VGUI.ISurface::LockCursor",
-            to<void(__thiscall *)(void *)>(vgui_interface.func(67)),
+            to<void(__thiscall *)(void *)>(vgui_interface[67]),
             [&](auto orig, auto this_ptr) {
                 // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
                 //{
@@ -230,7 +227,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
             }),
         make_hook_callback(
             "CHLClient::CreateMove",
-            to<void(__thiscall *)(void *, int, int, bool)>(client_interface.func(22)),
+            to<void(__thiscall *)(void *, int, int, bool)>(client_interface[22]),
             [&](auto orig, auto this_ptr, auto... args) {
                 //
                 orig(args...);
@@ -269,7 +266,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
         return false;
 #endif
 
-#ifdef _WINDLL
+#ifdef FD_SHARED_LIB
     if (!disable_hooks(hooks))
         return false;
 #endif

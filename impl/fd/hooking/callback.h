@@ -5,6 +5,7 @@
 #include <fd/magic_cast.h>
 #include <fd/x86_call.h>
 
+
 namespace fd
 {
 template <typename Callback>
@@ -22,7 +23,7 @@ struct hook_callback_proxy_member<Callback &, Call, Ret, C, Args...>
 {
 };
 
-#define HOOK_CALLBACK_PROXY_MEMBER(call__, __call)                                  \
+#define HOOK_CALLBACK_PROXY_MEMBER(call__, __call, call)                            \
     template <class Callback, typename Ret, class C, typename... Args>              \
     struct hook_callback_proxy_member<Callback, call__, Ret, C, Args...>            \
     {                                                                               \
@@ -54,7 +55,7 @@ struct hook_callback_proxy<Callback, _x86_call::thiscall__, Ret, C, Args...>
 {
 };
 
-#define HOOK_CALLBACK_PROXY_STATIC(call__, __call)                        \
+#define HOOK_CALLBACK_PROXY_STATIC(call__, __call, call)                  \
     template <class Callback, typename Ret, typename... Args>             \
     struct hook_callback_proxy<Callback, call__, Ret, Args...>            \
     {                                                                     \
@@ -101,7 +102,7 @@ basic_hook *init_hook_callback(raw_hook_name name, void *target, Callback &callb
     return &holder;
 }
 
-#define HOOK_CALLBACK_MEMBER(call__, __call)                                                                         \
+#define HOOK_CALLBACK_MEMBER(call__, __call, call)                                                                   \
     template <typename Callback, typename Ret, class C, typename... Args>                                            \
     basic_hook *make_hook_callback(raw_hook_name name, Ret (__call C::*target)(Args...), Callback callback) noexcept \
     {                                                                                                                \
@@ -109,7 +110,7 @@ basic_hook *init_hook_callback(raw_hook_name name, void *target, Callback &callb
         return init_hook_callback<proxy_type>(name, to<void *>(target), callback);                                   \
     }
 
-#define HOOK_CALLBACK_STATIC(call__, __call)                                                                     \
+#define HOOK_CALLBACK_STATIC(call__, __call, call)                                                               \
     template <typename Callback, typename Ret, typename... Args>                                                 \
     basic_hook *make_hook_callback(raw_hook_name name, Ret(__call *target)(Args...), Callback callback) noexcept \
     {                                                                                                            \

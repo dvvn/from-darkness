@@ -713,7 +713,7 @@ hook::~hook()
     if (MH_RemoveHook(target_) != MH_OK)
         return;
 #endif
-    default_logger->write<log_level::info>("{}: destroyed", name_);
+    get_default_logger()->write<log_level::info>("{}: destroyed", name_);
     target_ = nullptr;
 }
 
@@ -737,23 +737,23 @@ bool hook::enable()
 #ifdef SUBHOOK_API
     auto ok = subhook_install(entry_) == 0;
     if (ok)
-        default_logger->write<log_level::info>("{}: hooked", name_);
+        get_default_logger()->write<log_level::info>("{}: hooked", name_);
     else
-        default_logger->write<log_level::warn>("{}: {}", name_, _hook_enabled(this));
+        get_default_logger()->write<log_level::warn>("{}: {}", name_, _hook_enabled(this));
     return ok;
 #elif defined(MH_ALL_HOOKS)
     if (!initialized())
     {
-        default_logger->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_enabled>(this));
+        get_default_logger()->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_enabled>(this));
         return false;
     }
     auto status = MH_EnableHook(target_);
     if (status != MH_OK)
-        default_logger->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_enabled>(this), status);
+        get_default_logger()->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_enabled>(this), status);
     else
     {
         active_ = true;
-        default_logger->write<log_level::info>("{}: hooked", name_);
+        get_default_logger()->write<log_level::info>("{}: hooked", name_);
     }
     return status == MH_OK;
 #endif
@@ -764,19 +764,19 @@ bool hook::disable()
 #ifdef SUBHOOK_API
     auto ok = subhook_remove(entry_) == 0;
     if (ok)
-        default_logger->write<log_level::info>("{}: disabled", name_);
+        get_default_logger()->write<log_level::info>("{}: disabled", name_);
     else
-        default_logger->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_disabled>(this));
+        get_default_logger()->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_disabled>(this));
     return ok;
 #elif defined(MH_ALL_HOOKS)
     auto status = MH_DisableHook(target_);
     if (status == MH_OK)
     {
         active_ = false;
-        default_logger->write<log_level::info>("{}: disabled", name_);
+        get_default_logger()->write<log_level::info>("{}: disabled", name_);
     }
     else
-        default_logger->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_disabled>(this), status);
+        get_default_logger()->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_disabled>(this), status);
 
     return status == MH_OK;
 #endif
@@ -833,19 +833,19 @@ bool hook::init(void *target, void *replace)
 {
     if (initialized())
     {
-        default_logger->write<log_level::critical>("{}: already initialized...", name_);
+        get_default_logger()->write<log_level::critical>("{}: already initialized...", name_);
         return false;
     }
 #ifdef SUBHOOK_API
     auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
     if (!entry)
     {
-        default_logger->write<log_level::error>("{}: init error", name_);
+        get_default_logger()->write<log_level::error>("{}: init error", name_);
         return false;
     }
     if (!subhook_get_trampoline(entry))
     {
-        default_logger->write<log_level::error>("{}: unsupported function", name_);
+        get_default_logger()->write<log_level::error>("{}: unsupported function", name_);
         subhook_free(entry);
         return false;
     }
@@ -854,12 +854,12 @@ bool hook::init(void *target, void *replace)
     auto status = MH_CreateHook(target, replace, &trampoline_);
     if (status != MH_OK)
     {
-        default_logger->write<log_level::error>("{}: init error ({})", name_, status);
+        get_default_logger()->write<log_level::error>("{}: init error ({})", name_, status);
         return false;
     }
     target_ = target;
 #endif
-    default_logger->write<log_level::info>("{}: initialized. (target: {:p} replace: {:p})", name_, target, replace);
+    get_default_logger()->write<log_level::info>("{}: initialized. (target: {:p} replace: {:p})", name_, target, replace);
     return true;
 }
 

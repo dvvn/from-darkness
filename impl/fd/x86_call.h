@@ -17,11 +17,11 @@ enum class _x86_call : uint8_t
 };
 
 #if 0
-#define X86_CALL_PROXY(call__, __call)
-#define X86_CALL_PROXY_MEMBER(call__, __call)
+#define X86_CALL_PROXY(call__, __call, call)
+#define X86_CALL_PROXY_MEMBER(call__, __call, call)
 #endif
 
-#define _X86_CALL_PROXY(_PROXY_, _T_) _PROXY_(_x86_call::_T_##__, __##_T_)
+#define _X86_CALL_PROXY(_PROXY_, _T_) _PROXY_(_x86_call::_T_##__, __##_T_, ##_T_)
 
 #define X86_CALL(_PROXY_)              \
     _X86_CALL_PROXY(_PROXY_, cdecl)    \
@@ -32,7 +32,7 @@ enum class _x86_call : uint8_t
     _X86_CALL_PROXY(_PROXY_, thiscall) \
     X86_CALL(_PROXY_)
 
-#define X86_CALL_TYPE(call__, __call)                                          \
+#define X86_CALL_TYPE(call__, __call, call)                                    \
     template <typename Ret, typename T, typename... Args>                      \
     constexpr _x86_call get_call_type(Ret (__call T::*)(Args...))              \
     {                                                                          \
@@ -62,23 +62,41 @@ enum class _x86_call : uint8_t
 X86_CALL_MEMBER(X86_CALL_TYPE);
 #undef X86_CALL_TYPE
 
-template <typename T>
-concept member_function = requires(T fn) { get_call_type_member(fn); };
-
-class call_type
+template <_x86_call C>
+struct call_type_t
 {
-    _x86_call type_;
-
-  public:
-    template <typename Fn>
-    consteval call_type(Fn function)
-        : type_(get_call_type(function))
-    {
-    }
+    static constexpr _x86_call value = C;
 
     constexpr operator _x86_call() const
     {
-        return type_;
+        return C;
     }
 };
+
+constexpr struct
+{
+#define X86_CALL_TYPE(call__, __call, call) call_type_t<call__> call##_;
+    X86_CALL_MEMBER(X86_CALL_TYPE)
+#undef X86_CALL_TYPE
+} call_type;
+
+template <typename T>
+concept member_function = requires(T fn) { get_call_type_member(fn); };
+
+// class call_type
+//{
+//     _x86_call type_;
+//
+//   public:
+//     template <typename Fn>
+//     consteval call_type(Fn function)
+//         : type_(get_call_type(function))
+//     {
+//     }
+//
+//     constexpr operator _x86_call() const
+//     {
+//         return type_;
+//     }
+// };
 }

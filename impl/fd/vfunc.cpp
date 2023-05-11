@@ -15,17 +15,17 @@ namespace fd
         return i;                    \
     }
 
-#define GENERATE_CALL(call__, __call)                                   \
+#define GENERATE_CALL(call__, __call, call)                             \
     static struct                                                       \
     {                                                                   \
         BOOST_PP_REPEAT(BOOST_PP_LIMIT_REPEAT, VTIC_GET_INDEX, __call); \
-    } __call##_calculator;
+    } call##_calculator;
 
 X86_CALL_MEMBER(GENERATE_CALL);
 #undef GENERATE_CALL
 #undef VTIC_GET_INDEX
 
-#define GENERATE_VTABLES(call__, __call) &__call##_calculator,
+#define GENERATE_VTABLES(call__, __call, call) &call##_calculator,
 
 static vtable<void> call_vtable[] = {
     //
@@ -39,7 +39,7 @@ size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x8
     vtable vt   = instance;
     auto backup = exchange(vt, call_vtable[static_cast<num_t>(call)]);
 
-    auto index = unknown_vfunc_invoker<>::call<size_t>(instance, function, call);
+    auto index = vfunc_invoker<_x86_call::unknown>::call<size_t>(instance, function, call);
 
     vt.set(backup);
 

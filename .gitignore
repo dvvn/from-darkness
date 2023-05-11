@@ -4,6 +4,8 @@
 /.vs
 /.deps
 /.dumps
-*.pdb
 /_ReSharper.Caches
 */netvars_generated/
+
+*.pdb
+*.tmp
