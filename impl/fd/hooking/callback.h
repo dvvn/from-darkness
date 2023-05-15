@@ -5,11 +5,12 @@
 #include <fd/magic_cast.h>
 #include <fd/x86_call.h>
 
+#include <optional>
 
 namespace fd
 {
 template <typename Callback>
-Callback *hook_callback_stored;
+std::optional<Callback> hook_callback_stored;
 
 template <typename Callback>
 void *hook_trampoline_stored;
@@ -74,77 +75,55 @@ X86_CALL(HOOK_CALLBACK_PROXY_STATIC);
 X86_CALL_MEMBER(HOOK_CALLBACK_PROXY_MEMBER);
 #undef HOOK_CALLBACK_PROXY_MEMBER
 
-using raw_hook_name = char const *;
-
 template <typename Proxy, typename Callback>
-basic_hook *init_hook_callback(raw_hook_name name, void *target, Callback &callback)
+hook_id init_hook_callback(hook_name name, void *target, Callback &callback)
 {
     //[[maybe_unused]]//
     // static Proxy proxy;
+
 #ifdef _DEBUG
-    auto first_time    = false;
-    static auto holder = (first_time = true, hook(name));
-    if (!first_time)
+    static auto stored_target = target;
+    if (stored_target != target)
         std::terminate();
-#else
-    static auto holder = hook(name);
 #endif
 
-    if (!holder.init(target, to<void *>(&Proxy::proxy)))
-        return nullptr;
-
-    static auto callback_stored = std::move(callback);
-    auto trampoline             = holder.get_original_method();
-
-    hook_callback_stored<Callback>   = &callback_stored;
-    hook_trampoline_stored<Callback> = trampoline;
-
-    return &holder;
+    auto id = create_hook(target, to<void *>(&Proxy::proxy), name, &hook_trampoline_stored<Callback>);
+    if (id)
+        hook_callback_stored<Callback>.emplace(std::move(callback));
+    return id;
 }
 
-#define HOOK_CALLBACK_MEMBER(call__, __call, call)                                                                   \
-    template <typename Callback, typename Ret, class C, typename... Args>                                            \
-    basic_hook *make_hook_callback(raw_hook_name name, Ret (__call C::*target)(Args...), Callback callback) noexcept \
-    {                                                                                                                \
-        using proxy_type = hook_callback_proxy_member<Callback, call__, Ret, C, Args...>;                            \
-        return init_hook_callback<proxy_type>(name, to<void *>(target), callback);                                   \
+#define MAKE_HOOK_CALLBACK(call__, __call, call)                                                             \
+    template <typename Callback, typename Ret, class C, typename... Args>                                    \
+    hook_id make_hook_callback(hook_name name, Ret (__call C::*target)(Args...), Callback callback) noexcept \
+    {                                                                                                        \
+        using proxy_type = hook_callback_proxy_member<Callback, call__, Ret, C, Args...>;                    \
+        return init_hook_callback<proxy_type>(name, to<void *>(target), callback);                           \
+    }                                                                                                        \
+    template <typename Callback, typename Ret, typename... Args>                                             \
+    hook_id make_hook_callback(hook_name name, Ret(__call *target)(Args...), Callback callback) noexcept     \
+    {                                                                                                        \
+        using proxy_type = hook_callback_proxy<Callback, call__, Ret, Args...>;                              \
+        return init_hook_callback<proxy_type>(name, to<void *>(target), callback);                           \
     }
 
-#define HOOK_CALLBACK_STATIC(call__, __call, call)                                                               \
-    template <typename Callback, typename Ret, typename... Args>                                                 \
-    basic_hook *make_hook_callback(raw_hook_name name, Ret(__call *target)(Args...), Callback callback) noexcept \
-    {                                                                                                            \
-        using proxy_type = hook_callback_proxy<Callback, call__, Ret, Args...>;                                  \
-        return init_hook_callback<proxy_type>(name, to<void *>(target), callback);                               \
-    }
-
-X86_CALL_MEMBER(HOOK_CALLBACK_STATIC);
-#undef HOOK_CALLBACK_STATIC
-X86_CALL_MEMBER(HOOK_CALLBACK_MEMBER);
-#undef HOOK_CALLBACK_MEMBER
-
-template <typename Callback>
-using try_add_ref = std::conditional_t<
-    sizeof(Callback) <= sizeof(uintptr_t[2]) &&   //
-        std::is_trivially_copyable_v<Callback> && //
-        std::is_trivially_destructible_v<Callback>,
-    Callback,
-    std::add_lvalue_reference_t<Callback>>;
+X86_CALL_MEMBER(MAKE_HOOK_CALLBACK);
+#undef MAKE_HOOK_CALLBACK
 
 template <_x86_call Call, typename Ret, typename T, typename... Args>
 class vfunc;
 
 template <typename Callback, _x86_call Call, typename Ret, typename T, typename... Args>
-basic_hook *make_hook_callback(raw_hook_name name, vfunc<Call, Ret, T, Args...> target, Callback callback)
+hook_id make_hook_callback(hook_name name, vfunc<Call, Ret, T, Args...> target, Callback callback)
 {
     using proxy_type = hook_callback_proxy_member<Callback, Call, Ret, T, Args...>;
     return init_hook_callback<proxy_type>(name, target.get(), callback);
 }
 
 template <typename Callback, typename From, typename Sample>
-basic_hook *make_hook_callback(raw_hook_name name, magic_cast<From, Sample> target, Callback callback)
+hook_id make_hook_callback(hook_name name, magic_cast<From, Sample> target, Callback callback)
 {
-    return make_hook_callback<try_add_ref<Callback>>(name, static_cast<Sample>(target), callback);
+    return make_hook_callback(name, static_cast<Sample>(target), callback);
 }
 
 } // namespace fd

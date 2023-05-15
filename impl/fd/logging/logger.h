@@ -9,7 +9,7 @@
 namespace fd
 {
 template <log_level Level, typename C>
-struct basic_logger : protected virtual abstract_logger<C>
+struct basic_logger : /*protected*/ virtual abstract_logger<C>
 {
     template <log_level CurrLevel, typename... FmtArgs>
     void write(fmt::basic_format_string<C, std::type_identity_t<FmtArgs>...> fmt, FmtArgs &&...fmt_args)
@@ -28,12 +28,32 @@ struct basic_logger : protected virtual abstract_logger<C>
     }
 };
 
+template <typename C>
+struct basic_logger<log_level::off, C> : /*protected*/ virtual abstract_logger<C>
+{
+    template <log_level>
+    void write(...) requires(false)
+    {
+        (void)this;
+    }
+};
+
 template <log_level Level>
 struct dummy_logger
 {
     template <log_level CurrLevel>
     void write(...) //
         requires(!have_log_level(Level, CurrLevel))
+    {
+        (void)this;
+    }
+};
+
+template <>
+struct dummy_logger<log_level::off>
+{
+    template <log_level>
+    void write(...) //
     {
         (void)this;
     }
@@ -108,6 +128,25 @@ struct logger : basic_logger<Info.level, typename decltype(Info)::char_type>...,
     using basic_logger<Info.level, typename decltype(Info)::char_type>::write...;
     using dummy_logger<level()>::write;
 };
+#if 0
+template <log_level Level, typename... C>
+constexpr bool have_log_level( logger_same_level<Level, C...> const *,log_level level)
+{
+    return have_log_level(Level,level);
+}
+
+template <logger_info... Info>
+constexpr bool have_log_level(logger<Info...> const *,log_level level)
+{
+    return (have_log_level(Info.level,level) || ...);
+}
+#else
+template <class T>
+constexpr bool have_log_level(T *logger, log_level level) noexcept(noexcept(logger->level()))
+{
+    return have_log_level(logger->level(), level);
+}
+#endif
 
 // template <typename Logger, typename C>
 // concept can_log = std::is_convertible_v<Logger *, basic_logger<Logger::level(), C> *>;

@@ -26,21 +26,16 @@ namespace fd
 {
 static bool enable_hooks(auto &rng)
 {
-    return std::all_of(std::begin(rng), std::end(rng), std::mem_fn(&basic_hook::enable));
+    return std::all_of(std::begin(rng), std::end(rng), enable_hook);
 }
 
 static bool disable_hooks(auto &rng)
 {
-    return std::all_of(std::rbegin(rng), std::rend(rng), std::mem_fn(&basic_hook::disable));
-}
-
-static void destroy_hooks(auto &rng)
-{
-    std::for_each(std::rbegin(rng), std::rend(rng), std::destroy_at<basic_hook>);
+    return std::all_of(std::rbegin(rng), std::rend(rng), disable_hook);
 }
 } // namespace fd
 
-static bool context(HINSTANCE self_handle);
+static bool context(HINSTANCE self_handle) noexcept;
 
 #ifdef FD_SHARED_LIB
 namespace fd
@@ -109,7 +104,7 @@ int main(int argc, char *argv[])
 }
 #endif
 
-static bool context([[maybe_unused]] HINSTANCE self_handle)
+static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
 {
     using namespace fd;
 
@@ -164,7 +159,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
     store_custom_netvars(client_dll);
 #endif
 
-    basic_hook *hooks[] = {
+    hook_id hooks[] = {
         make_hook_callback(
             "WinAPI.WndProc",
             window_proc,
@@ -253,11 +248,6 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
 #endif
     };
 
-    [[maybe_unused]] //
-    invoke_on_destruct hooks_destroyer = [&] {
-        destroy_hooks(hooks);
-    };
-
     if (!enable_hooks(hooks))
         return false;
 
@@ -266,7 +256,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle)
         return false;
 #endif
 
-#ifdef FD_SHARED_LIB
+#if defined(_DEBUG) || defined(FD_SHARED_LIB)
     if (!disable_hooks(hooks))
         return false;
 #endif

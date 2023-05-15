@@ -1,43 +1,33 @@
 #pragma once
 
-#include <fd/hooking/basic_hook.h>
+#include <boost/predef.h>
 
-#include <string>
+#ifndef off
+#define _OFF_DEFINED
+#define off 1337
+#endif
 
 namespace fd
 {
-class hook final : public basic_hook
-{
-    std::string name_;
+#if FD_DEFAULT_LOG_LEVEL == off
+using hook_id = uintptr_t;
+#else
+#if BOOST_ARCH_X86 == BOOST_VERSION_NUMBER_AVAILABLE
+using hook_id = uint64_t;
+#elif BOOST_ARCH_X86_64 == BOOST_VERSION_NUMBER_AVAILABLE
 
-#if __has_include(<subhook.h>)
-    void *entry_ = nullptr;
-#elif __has_include(<minhook.h>)
-    void *target_     = nullptr;
-    void *trampoline_ = nullptr;
-    bool active_      = false;
 #endif
+#endif
+using hook_name = char const *;
 
-  public:
-    ~hook() override;
-
-    hook();
-    hook(std::string const &name);
-    hook(std::string &&name);
-
-    bool enable() override;
-    bool disable() override;
-
-    char const *name() const override;
-    std::string_view native_name() const;
-
-    bool initialized() const override;
-    bool active() const override;
-
-    void *get_original_method() const;
-    bool init(void *target, void *replace);
-
-    explicit operator bool() const;
-};
-
+hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline);
+bool enable_hook(hook_id id);
+bool disable_hook(hook_id id);
+bool enable_hooks();
+bool disable_hooks();
 } // namespace fd
+
+#ifdef _OFF_DEFINED
+#undef _OFF_DEFINED
+#undef off
+#endif

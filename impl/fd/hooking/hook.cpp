@@ -2,6 +2,7 @@
 #include <fd/hooking/hook.h>
 #include <fd/lazy_invoke.h>
 #include <fd/logging/default.h>
+#include <fd/magic_cast.h>
 
 #include <cassert>
 
@@ -96,8 +97,7 @@ static constexpr uint8_t hde32_table[] = {
     0x00, 0xc7, 0xbf, 0x62, 0xff, 0x00, 0x8d, 0xff, 0x00, 0xc4, 0xff, 0x00, 0xc5, 0xff, 0x00, 0xff, 0xff, 0xeb, 0x01,
     0xff, 0x0e, 0x12, 0x08, 0x00, 0x13, 0x09, 0x00, 0x16, 0x08, 0x00, 0x17, 0x09, 0x00, 0x2b, 0x09, 0x00, 0xae, 0xff,
     0x07, 0xb2, 0xff, 0x00, 0xb4, 0xff, 0x00, 0xb5, 0xff, 0x00, 0xc3, 0x01, 0x00, 0xc7, 0xff, 0xbf, 0xe7, 0x08, 0x00,
-    0xf0, 0x02, 0x00
-};
+    0xf0, 0x02, 0x00};
 
 enum
 {
@@ -632,47 +632,7 @@ struct fmt::formatter<MH_STATUS> : formatter<string_view>
 
 namespace fd
 {
-class _hook_enabled
-{
-    hook *hook_;
-
-  public:
-    _hook_enabled(hook *impl)
-        : hook_(impl)
-    {
-    }
-
-    std::string_view operator()() const
-    {
-        if (!hook_->initialized())
-            return "not created";
-        if (hook_->active())
-            return "already hooked";
-        return "enable error";
-    }
-};
-
-class _hook_disabled
-{
-    hook *hook_;
-
-  public:
-    _hook_disabled(hook *hook)
-        : hook_(hook)
-    {
-    }
-
-    std::string_view operator()() const
-    {
-        if (!hook_->initialized())
-            return "not created";
-        if (!hook_->active())
-            return "already unhooked";
-        return "disable error";
-    }
-};
-
-#ifdef SUBHOOK_API
+#if defined(SUBHOOK_API)
 static auto init_hooks = []() -> uint8_t {
     subhook_set_disasm_handler([](void *src, int *reloc_op_offset) -> int {
         if (auto ret = subhook_disasm(src, reloc_op_offset); ret)
@@ -698,145 +658,65 @@ static auto init_hooks = [] {
 }();
 #endif
 
-hook::~hook()
+#if 0
+constexpr bool store_hook_name =
+    have_log_level<default_logger>(nullptr, log_level::info | log_level::error /*| log_level::warn*/);
+
+constexpr size_t max_hooks_count = store_hook_name ? 16 : 0;
+
+template <typename T>
+using hooks_storage =
+    std::conditional_t<max_hooks_count == 0, std::vector<T>, boost::container::static_vector<T, max_hooks_count>>;
+
+struct stored_hook;
+static hooks_storage<stored_hook> hooks;
+
+template <typename T>
+concept contains_name = requires(T obj) { obj.name; };
+#endif
+
+struct unpacked_hook
+{
+    void *id;
+    hook_name name;
+};
+
+struct stored_hook
+{
+    void *id;
+#if defined(_DEBUG) || defined(SUBHOOK_API)
+    void *trampoline;
+#else
+    std::string_view name;
+#endif
+};
+
+#if 0
+template <typename T>
+static hook_name get_name(T hook)
+{
+    return hook.name;
+}
+
+template <typename T>
+static std::string_view find_name(T hook)
+{
+    return std::find_if(
+               hooks.begin(),
+               hooks.end(),
+               [id = hook.id](stored_hook const &stored) {
+                   //
+                   return id == stored.id;
+               })
+        ->name;
+}
+#endif
+
+hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline)
 {
     (void)init_hooks;
 
-    if (!initialized())
-        return;
-
-    if (active())
-        disable();
-#ifdef SUBHOOK_API
-    subhook_free(entry_);
-#elif defined(MH_ALL_HOOKS)
-    if (MH_RemoveHook(target_) != MH_OK)
-        return;
-#endif
-    get_default_logger()->write<log_level::info>("{}: destroyed", name_);
-    target_ = nullptr;
-}
-
-hook::hook()
-    : name_("Empty")
-{
-}
-
-hook::hook(std::string const &name)
-    : name_((name))
-{
-}
-
-hook::hook(std::string &&name)
-    : name_(std::move(name))
-{
-}
-
-bool hook::enable()
-{
-#ifdef SUBHOOK_API
-    auto ok = subhook_install(entry_) == 0;
-    if (ok)
-        get_default_logger()->write<log_level::info>("{}: hooked", name_);
-    else
-        get_default_logger()->write<log_level::warn>("{}: {}", name_, _hook_enabled(this));
-    return ok;
-#elif defined(MH_ALL_HOOKS)
-    if (!initialized())
-    {
-        get_default_logger()->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_enabled>(this));
-        return false;
-    }
-    auto status = MH_EnableHook(target_);
-    if (status != MH_OK)
-        get_default_logger()->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_enabled>(this), status);
-    else
-    {
-        active_ = true;
-        get_default_logger()->write<log_level::info>("{}: hooked", name_);
-    }
-    return status == MH_OK;
-#endif
-}
-
-bool hook::disable()
-{
-#ifdef SUBHOOK_API
-    auto ok = subhook_remove(entry_) == 0;
-    if (ok)
-        get_default_logger()->write<log_level::info>("{}: disabled", name_);
-    else
-        get_default_logger()->write<log_level::warn>("{}: {}", name_, fmt::lazy<_hook_disabled>(this));
-    return ok;
-#elif defined(MH_ALL_HOOKS)
-    auto status = MH_DisableHook(target_);
-    if (status == MH_OK)
-    {
-        active_ = false;
-        get_default_logger()->write<log_level::info>("{}: disabled", name_);
-    }
-    else
-        get_default_logger()->write<log_level::warn>("{}: {} ({})", name_, fmt::lazy<_hook_disabled>(this), status);
-
-    return status == MH_OK;
-#endif
-}
-
-char const *hook::name() const
-{
-    return name_.data();
-}
-
-std::string_view hook::native_name() const
-{
-    return name_;
-}
-
-bool hook::initialized() const
-{
-#ifdef SUBHOOK_API
-    return entry_ != nullptr;
-#elif defined(MH_ALL_HOOKS)
-    return target_ != nullptr;
-#endif
-}
-
-bool hook::active() const
-{
-#ifdef SUBHOOK_API
-    return subhook_is_installed(entry_) != 0;
-#elif defined(MH_ALL_HOOKS)
-    return active_;
-#endif
-}
-
-void *hook::get_original_method() const
-{
-#ifdef SUBHOOK_API
-    return subhook_get_trampoline(entry_);
-#elif defined(MH_ALL_HOOKS)
-    return trampoline_;
-#endif
-}
-
-/* void* hook::get_target_method() const
-{
-    return subhook_get_src(entry_);
-}
-
-void* hook::get_replace_method() const
-{
-    return subhook_get_dst(entry_);
-} */
-
-bool hook::init(void *target, void *replace)
-{
-    if (initialized())
-    {
-        get_default_logger()->write<log_level::critical>("{}: already initialized...", name_);
-        return false;
-    }
-#ifdef SUBHOOK_API
+#if defined(SUBHOOK_API)
     auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
     if (!entry)
     {
@@ -851,20 +731,88 @@ bool hook::init(void *target, void *replace)
     }
     entry_ = entry;
 #elif defined(MH_ALL_HOOKS)
-    auto status = MH_CreateHook(target, replace, &trampoline_);
+    auto status = MH_CreateHook(target, replace, trampoline);
     if (status != MH_OK)
     {
-        get_default_logger()->write<log_level::error>("{}: init error ({})", name_, status);
-        return false;
+        get_default_logger()->write<log_level::error>("{}: init error ({})", name, status);
+        return 0;
     }
-    target_ = target;
+
+    to<hook_id> id;
+    if constexpr (sizeof(hook_id) == sizeof(unpacked_hook))
+        id = unpacked_hook(target, name);
+    else
+        id = target;
 #endif
-    get_default_logger()->write<log_level::info>("{}: initialized. (target: {:p} replace: {:p})", name_, target, replace);
-    return true;
+
+#if 0
+    if constexpr (store_hook_name)
+        hooks.emplace_back(target, name);
+#endif
+
+    get_default_logger()->write<log_level::info>(
+        "Hook {}: created. (target: {:p} replace: {:p})", name, target, replace);
+
+    return id;
 }
 
-hook::operator bool() const
+bool enable_hook(hook_id id)
 {
-    return initialized();
+#if defined(SUBHOOK_API)
+
+#elif defined(MH_ALL_HOOKS)
+    to<unpacked_hook> hook = id;
+    auto status            = MH_EnableHook(hook->id);
+    if (status != MH_OK)
+        get_default_logger()->write<log_level::error>("Unable to enable hook {}: {}", hook->name, status);
+    else
+        get_default_logger()->write<log_level::info>("Hook {}: enabled", hook->name);
+    return status == MH_OK;
+#endif
+}
+
+bool disable_hook(hook_id id)
+{
+#if defined(SUBHOOK_API)
+
+#elif defined(MH_ALL_HOOKS)
+    to<unpacked_hook> hook = id;
+    auto status            = MH_DisableHook(hook->id);
+    if (status != MH_OK)
+        get_default_logger()->write<log_level::error>("Unable to disable hook {}: {}", hook->name, status);
+    else
+        get_default_logger()->write<log_level::info>("Hook {}: disabled", hook->name);
+    return status == MH_OK;
+#endif
+}
+
+bool enable_hooks()
+{
+#if defined(SUBHOOK_API)
+
+#elif defined(MH_ALL_HOOKS)
+    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+    auto status = MH_EnableHook(MH_ALL_HOOKS);
+    if (status != MH_OK)
+        get_default_logger()->write<log_level::error>("Unable to enable hooks: {}", status);
+    else
+        get_default_logger()->write<log_level::info>("All hooks enabled");
+    return status == MH_OK;
+#endif
+}
+
+bool disable_hooks()
+{
+#if defined(SUBHOOK_API)
+
+#elif defined(MH_ALL_HOOKS)
+    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+    auto status = MH_DisableHook(MH_ALL_HOOKS);
+    if (status != MH_OK)
+        get_default_logger()->write<log_level::error>("Unable to disable hooks: {}", status);
+    else
+        get_default_logger()->write<log_level::info>("All hooks disabled");
+    return status == MH_OK;
+#endif
 }
 } // namespace fd
