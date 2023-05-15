@@ -594,38 +594,9 @@ static int hde_disasm(void *src, int *reloc_op_offset)
 template <>
 struct fmt::formatter<MH_STATUS> : formatter<string_view>
 {
-    auto format(MH_STATUS status, format_context &ctx) const
+    auto format(MH_STATUS status, format_context &ctx) const -> format_context::iterator
     {
-        string_view str;
-#define MH_CASE(_V_) \
-    case MH_##_V_:   \
-        str = #_V_;  \
-        break;
-        switch (status)
-        {
-            MH_CASE(UNKNOWN)
-            MH_CASE(OK)
-            MH_CASE(ERROR_ALREADY_INITIALIZED)
-            MH_CASE(ERROR_NOT_INITIALIZED)
-            MH_CASE(ERROR_ALREADY_CREATED)
-            MH_CASE(ERROR_NOT_CREATED)
-            MH_CASE(ERROR_ENABLED)
-            MH_CASE(ERROR_DISABLED)
-            MH_CASE(ERROR_NOT_EXECUTABLE)
-            MH_CASE(ERROR_UNSUPPORTED_FUNCTION)
-            MH_CASE(ERROR_MEMORY_ALLOC)
-            MH_CASE(ERROR_MEMORY_PROTECT)
-            MH_CASE(ERROR_MODULE_NOT_FOUND)
-            MH_CASE(ERROR_FUNCTION_NOT_FOUND)
-#ifdef MH_DEFAULT_IDENT
-            MH_CASE(ERROR_MUTEX_FAILURE)
-#endif
-        default:
-            throw format_error("Unknown MH_STATUS");
-        }
-
-#undef MH_CASE
-        return formatter<string_view>::format(str, ctx);
+        return formatter<string_view>::format(MH_StatusToString(status), ctx);
     }
 };
 #endif
@@ -645,7 +616,7 @@ static auto init_hooks = []() -> uint8_t {
     return 1;
 }();
 #elif defined(MH_ALL_HOOKS)
-static auto init_hooks = [] {
+static invoke_on_destruct init_hooks = [] {
     MH_STATUS status;
     (void)status;
     status = MH_Initialize();
@@ -654,7 +625,7 @@ static auto init_hooks = [] {
     status = MH_SetThreadFreezeMethod(MH_FREEZE_METHOD_NONE_UNSAFE);
     assert(status == MH_OK);
 #endif
-    return invoke_on_destruct(MH_Uninitialize);
+    return (MH_Uninitialize);
 }();
 #endif
 
@@ -681,6 +652,7 @@ struct unpacked_hook
     hook_name name;
 };
 
+#if 0
 struct stored_hook
 {
     void *id;
@@ -691,7 +663,7 @@ struct stored_hook
 #endif
 };
 
-#if 0
+
 template <typename T>
 static hook_name get_name(T hook)
 {
