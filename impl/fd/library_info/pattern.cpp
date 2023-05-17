@@ -1,4 +1,5 @@
 ﻿#include <fd/library_info/pattern.h>
+#include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 
 #include <windows.h>
@@ -8,7 +9,8 @@ namespace fd
 {
 void *find_pattern(IMAGE_NT_HEADERS *nt, char const *pattern, size_t length)
 {
-    auto scanner = pattern_scanner(nt->OptionalHeader.ImageBase, nt->OptionalHeader.SizeOfImage);
-    return scanner(pattern, length).front();
+    to<uint8_t *> begin = (nt->OptionalHeader.ImageBase);
+    auto end            = begin + nt->OptionalHeader.SizeOfImage;
+    return find_pattern(begin, end, pattern, length);
 }
 }

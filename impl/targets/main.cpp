@@ -9,8 +9,8 @@
 #include <fd/render/context.h>
 #include <fd/vfunc.h>
 
-#include <d3d9.h>
 #include <windows.h>
+#include <d3d9.h>
 
 #include <algorithm>
 #include <functional>
@@ -125,14 +125,17 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
 #else
-    library_info shader_api_dll                       = L"shaderapidx9.dll";
-    to<cast_helper<IDirect3DDevice9 *>> packed_render = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+    library_info shader_api_dll = L"shaderapidx9.dll";
+    auto d3d9_device            = [&] {
+        uintptr_t val = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        return **reinterpret_cast<IDirect3DDevice9 ***>(val + 1);
+    }();
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
-    if (FAILED(packed_render->GetCreationParameters(&creation_parameters)))
+    if (FAILED(d3d9_device->GetCreationParameters(&creation_parameters)))
         return false;
     to<WNDPROC> wnd_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
 
-    render_vtable = packed_render;
+    render_vtable = d3d9_device;
     window        = creation_parameters.hFocusWindow;
     window_proc   = wnd_proc;
 #endif
@@ -146,10 +149,10 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
     game_library_info_ex engine_dll = L"engine.dll";
     game_library_info_ex vgui_dll   = L"vguimatsurface.dll";
 
-    vtable client_interface    = client_dll.find_interface("VClient");
+    auto client_interface      = vtable(client_dll.find_interface("VClient"));
     // vtable engine_interface    = engine_dll.find_interface("VEngineClient");
-    vtable vgui_interface      = vgui_dll.find_interface("VGUI_Surface");
-    auto entity_list_interface = client_dll.find_interface("VClientEntityList");
+    auto vgui_interface        = vtable(vgui_dll.find_interface("VGUI_Surface"));
+    auto entity_list_interface = vtable(client_dll.find_interface("VClientEntityList"));
 
     // todo: check if ingame and use exisiting player
     auto player_vtable = client_dll.find_vtable("C_CSPlayer");

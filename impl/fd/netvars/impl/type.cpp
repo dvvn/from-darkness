@@ -4,6 +4,8 @@
 
 #include <fmt/format.h>
 //
+#include <fd/magic_cast.h>
+
 #include <boost/filesystem.hpp>
 
 #include <algorithm>
@@ -208,17 +210,19 @@ struct valve_include
             return c == '\t' || c == '\n' || c == ' ';
         };
 
-        auto scanner = memory_scanner(data.data(), data.size());
-        for (auto ptr : scanner(name.data(), name.size()))
-        {
-            auto cptr = static_cast<char *>(ptr);
-            if (is_valid_char(cptr[-1]) && is_valid_char(cptr[name.size()]))
-            {
-                inner.emplace_back(name_hash);
+        return find_bytes(
+            data.data(),
+            data.data() + data.size(),
+            to<void *>(name.data()),
+            name.size(),
+            find_callback(std::in_place_type<void *>, [&](to<char *> ptr) {
+                if (is_valid_char(ptr[-1]) && is_valid_char(ptr[name.size()]))
+                {
+                    inner.emplace_back(name_hash);
+                    return false;
+                }
                 return true;
-            }
-        }
-        return false;
+            }));
     }
 };
 

@@ -1,5 +1,6 @@
 #include <fd/library_info/dos.h>
 #include <fd/library_info/vtable.h>
+#include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 
 #include <windows.h>
@@ -22,28 +23,25 @@ static bool validate_rtti_name(char const *begin, char const *name, size_t lengt
 template <char Prefix = 0>
 static void *find_type_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length)
 {
-    auto scanner = memory_scanner(nt->OptionalHeader.ImageBase, nt->OptionalHeader.SizeOfImage);
-    for (auto begin : scanner(".?A", 3))
-    {
-        auto c_begin = static_cast<char const *>(begin);
-        if constexpr (Prefix != 0)
-        {
-            if (c_begin[3] != Prefix)
-                continue;
-        }
-        if (validate_rtti_name(c_begin, name, length))
-            return begin;
-    }
-    return nullptr;
-}
+    void *found = nullptr;
 
-struct xrefs_scanner_dos : xrefs_scanner
-{
-    xrefs_scanner_dos(dos_header dos, IMAGE_SECTION_HEADER *section)
-        : xrefs_scanner(dos + section->VirtualAddress, section->SizeOfRawData)
-    {
-    }
-};
+    to<uint8_t *> begin = nt->OptionalHeader.ImageBase;
+    auto end            = begin + nt->OptionalHeader.SizeOfImage;
+
+    find_bytes(begin, end, to<void*>(".?A"), 3, find_callback(std::in_place_type<void *>, [&](to<char *> tmp) -> bool {
+                   if constexpr (Prefix != 0)
+                   {
+                       if (tmp[3] != Prefix)
+                           return true;
+                   }
+                   if (!validate_rtti_name(tmp, name, length))
+                       return true;
+                   found = tmp;
+                   return false;
+               }));
+
+    return found;
+}
 
 void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length)
 {
@@ -73,33 +71,50 @@ static bool validate_section(IMAGE_SECTION_HEADER *s, char const (&name)[S])
     return memcmp(s->Name, name, S - 1) == 0;
 }
 
-void *find_vtable(IMAGE_SECTION_HEADER *rdata, IMAGE_SECTION_HEADER *text, IMAGE_DOS_HEADER *dos, void *rtti_decriptor)
+static to<void *> find_vtable_impl(
+    IMAGE_SECTION_HEADER *rdata,
+    IMAGE_SECTION_HEADER *text,
+    /*IMAGE_DOS_HEADER **/ to<uint8_t *> dos,
+    void *rtti_decriptor)
 {
-    assert(validate_section(rdata, ".rdata"));
-    assert(validate_section(text, ".text"));
-
     // get rtti type descriptor
     auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_decriptor);
     // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
     type_descriptor -= sizeof(uintptr_t) * 2;
 
-    auto rdata_scanner = xrefs_scanner_dos(dos, rdata);
-    auto text_scanner  = xrefs_scanner_dos(dos, text);
+    // dos + section->VirtualAddress, section->SizeOfRawData
 
-    for (auto xref : rdata_scanner(type_descriptor))
-    {
-        // get offset of vtable in complete class, 0 means it's the class we need, and not some class it inherits from
-        auto offset = *reinterpret_cast<uint32_t *>(xref - 0x8);
-        if (offset != 0)
-            continue;
+    auto rdata_begin = (dos) + rdata->VirtualAddress;
+    auto rdata_end   = rdata_begin + rdata->SizeOfRawData;
 
-        auto object_locator = xref - 0xC;
-        auto addr           = rdata_scanner(object_locator).front() + 0x4;
+    auto text_begin = dos + text->VirtualAddress;
+    auto text_end   = rdata_begin + text->SizeOfRawData;
 
-        // check is valid offset
-        assert(addr > sizeof(uintptr_t));
-        return reinterpret_cast<void *>(text_scanner(addr).front());
-    }
-    return nullptr;
+    uintptr_t found = 0;
+
+    find_xref(rdata_begin, rdata_end, type_descriptor, find_callback([&](uintptr_t &xref) {
+                  // get offset of vtable in complete class, 0 means it's the class we need, and not some class it
+                  // inherits from
+                  auto offset = *reinterpret_cast<uint32_t *>(xref - 0x8);
+                  if (offset != 0)
+                      return true;
+
+                  auto object_locator = xref - 0xC;
+                  auto addr           = find_xref(rdata_begin, rdata_end, object_locator) + 0x4;
+
+                  // check is valid offset
+                  assert(addr > sizeof(uintptr_t));
+                  found = find_xref(text_begin, text_end, addr);
+                  return found != 0;
+              }));
+    return found;
+}
+
+void *find_vtable(IMAGE_SECTION_HEADER *rdata, IMAGE_SECTION_HEADER *text, IMAGE_DOS_HEADER *dos, void *rtti_decriptor)
+{
+    assert(validate_section(rdata, ".rdata"));
+    assert(validate_section(text, ".text"));
+
+    return find_vtable_impl(rdata, text, dos, rtti_decriptor);
 }
 }

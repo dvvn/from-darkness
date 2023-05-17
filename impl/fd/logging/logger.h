@@ -21,7 +21,7 @@ struct basic_logger : /*protected*/ virtual abstract_logger<C>
         log_data<C> data = CurrLevel;
 
         this->write_before(&data);
-        fmt::vformat_to(data.out(), fmt.get(), args_stored(std::forward<FmtArgs>(fmt_args)...));
+        fmt::vformat_to(data.out(), fmt.get(), args_stored((fmt_args)...));
         this->write_after(&data);
 
         this->do_write(data.data(), data.size());

@@ -336,7 +336,7 @@ class vtable : public instance_holder<T>
 
     template <typename From, typename To>
     vtable(magic_cast<From, To> val, size_t vtable_offset = 0)
-        : instance_holder<T>(val)
+        : instance_holder<T>(static_cast<instance_pointer>(val))
         , vtable_offset_(vtable_offset)
     {
     }
@@ -386,23 +386,6 @@ class vtable : public instance_holder<T>
     }
 
   public:
-    /*custom_vfunc<vtable_call<T>, T> func(size_t index) const
-    {
-        return {instance_, vtable_offset_, index};
-    }
-
-    template <typename Ret, typename... Args>
-    vfunc<vtable_call<T>, Ret, T, Args...> func(size_t index) const
-    {
-        return {instance_, vtable_offset_, index};
-    }
-
-    template <member_function Fn>
-    auto func(Fn fn) const
-    {
-        return vfunc(instance_, vtable_offset_, fn);
-    }*/
-
     template <std::integral I>
     vfunc<vtable_call<T>, unknown_return_type, T> operator[](I index) const
     {
@@ -414,38 +397,10 @@ class vtable : public instance_holder<T>
     {
         return vfunc(instance_, vtable_offset_, fn);
     }
-
-    /*template <typename Ret, typename... Args>
-    Ret call(size_t index, Args... args) const
-    {
-        return vfunc_invoker<vtable_call<T>, Args...>::template call<Ret>(
-            instance_, func_simple(index), (args)...);
-    }
-
-    template <_x86_call Call, typename Ret, typename... Args>
-    Ret call(size_t index, Args... args) const
-    {
-        return vfunc_invoker<Call, Args...>::template call<Ret>(
-            instance_, func_simple(index), (args)...);
-    }*/
-
-    /*template <typename Ret = void, typename... Args>
-    Ret call(size_t index, Args... args) const
-    {
-        return vfunc<Ret, Args...>(instance_, index)(
-            static_cast<std::conditional_t<
-                std::is_trivially_copyable_v<Args> ? std::is_pointer_v<Args> || sizeof(Args) <= sizeof(uintptr_t[2])
-                                                   : std::is_reference_v<Args>,
-                Args,
-                std::add_lvalue_reference_t<Args>>>(args)...);
-    }*/
 };
 
 template <typename T>
-struct vtable<T *>
-{
-    vtable(...) = delete;
-};
+struct vtable<T *>;
 
 // template <typename T>
 // auto exchange(vtable<T> table, typename vtable<T>::table_pointer ptr) -> decltype(ptr)
@@ -470,6 +425,9 @@ struct auto_cast_tag;
 
 template <typename From>
 vtable(magic_cast<From, auto_cast_tag>) -> vtable<void>;
+
+// template <typename To>
+// vtable(magic_cast<auto_cast_tag, To>) -> vtable<std::remove_pointer_t<To>>;
 
 // template <typename T>
 // class vtable<T *> : public vtable<T>

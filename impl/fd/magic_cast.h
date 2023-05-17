@@ -8,6 +8,24 @@ template <typename From, typename To>
 class magic_cast;
 
 template <typename From, typename To>
+magic_cast<From, To> &operator+=(magic_cast<From, To> &obj, size_t offset) requires requires(To val) { val += offset; }
+{
+    To val = obj;
+    val += offset;
+    obj = val;
+    return obj;
+}
+
+template <typename From, typename To>
+magic_cast<From, To> &operator-=(magic_cast<From, To> &obj, size_t offset) requires requires(To val) { val -= offset; }
+{
+    To val = obj;
+    val -= offset;
+    obj = val;
+    return obj;
+}
+
+template <typename From, typename To>
 class magic_cast_helper_ex;
 
 template <typename From, typename To>
@@ -21,6 +39,68 @@ class magic_cast_helper : public magic_cast_helper_ex<From, To>
         return static_cast<base>(this)->to_;
     }
 };
+
+#if 0
+template <typename From, typename To>
+class magic_cast_helper_arithmetic
+{
+    using base       = magic_cast<From, To> *;
+    using const_base = magic_cast<From, To> const *;
+
+  public:
+    base &operator+=(size_t offset)
+    {
+        static_cast<base>(this)->to_ += offset;
+        return *static_cast<base>(this);
+    }
+
+    base &operator-=(size_t offset)
+    {
+        static_cast<base>(this)->to_ -= offset;
+        return *static_cast<base>(this);
+    }
+
+    base &operator*=(size_t offset)
+    {
+        static_cast<base>(this)->to_ *= offset;
+        return *static_cast<base>(this);
+    }
+
+    base &operator/=(size_t offset)
+    {
+        static_cast<base>(this)->to_ /= offset;
+        return *static_cast<base>(this);
+    }
+
+    /*base operator+(size_t offset) const
+    {
+        auto clone = *static_cast<base>(this);
+        clone.to_ += offset;
+        return clone;
+    }
+
+    base operator-(size_t offset) const
+    {
+        auto clone = *static_cast<base>(this);
+        clone.to_ -= offset;
+        return clone;
+    }
+
+    base operator*(size_t offset) const
+    {
+        auto clone = *static_cast<base>(this);
+        clone.to_ *= offset;
+        return clone;
+    }
+
+    base operator/(size_t offset) const
+    {
+        auto clone = *static_cast<base>(this);
+        clone.to_ /= offset;
+        return clone;
+    }*/
+};
+#endif
 
 template <typename From, typename To>
 class magic_cast_helper_ex
@@ -41,7 +121,7 @@ class magic_cast_helper_ex
 };
 
 template <typename From, typename To>
-class magic_cast_helper_ex<From, To *>
+class magic_cast_helper_ex<From, To *> /*: public magic_cast_helper_arithmetic<From, To *>*/
 {
     using base = magic_cast<From, To *> const *;
 
@@ -62,9 +142,9 @@ class magic_cast_helper_ex<From, void *>
 {
 };
 
-template <typename From, typename To>
-requires(std::is_function_v<To>)
-class magic_cast_helper_ex<From, To *>
+// WORKAROUND
+template <typename From, typename Ret, typename... Args>
+class magic_cast_helper_ex<From, Ret(__thiscall *)(Args...)>
 {
 };
 
@@ -84,9 +164,10 @@ class magic_cast : public magic_cast_helper<From, To>
 
   public:
     explicit(std::same_as<From, To>) magic_cast(/*std::same_as<From> auto*/ From from)
+        requires(sizeof(From) == sizeof(To))
         : from_(from)
     {
-        static_assert(sizeof(From) == sizeof(To));
+        // static_assert(sizeof(From) == sizeof(To));
         static_assert(std::is_trivial_v<From>);
         static_assert(std::is_trivial_v<To>);
     }
@@ -144,6 +225,12 @@ class magic_cast<From, auto_cast_tag>
     }
 
     template <typename To>
+    operator To() const
+    {
+        return magic_cast<From, To>(from_);
+    }
+
+    template <typename To>
     To to() const
     {
         return magic_cast<From, To>(from_);
@@ -170,6 +257,11 @@ class magic_cast<auto_cast_tag, To> : public magic_cast_helper<auto_cast_tag, To
 
   public:
     magic_cast() = default;
+
+    magic_cast(To to)
+        : to_(to)
+    {
+    }
 
     template <typename From>
     magic_cast(From from)
