@@ -149,6 +149,9 @@ class magic_cast_helper_ex<From, Ret(__thiscall *)(Args...)>
 };
 
 template <typename From, typename To>
+constexpr bool magic_convertible_v = sizeof(From) == sizeof(To) && std::is_trivial_v<From> && std::is_trivial_v<To>;
+
+template <typename From, typename To>
 class magic_cast : public magic_cast_helper<From, To>
 {
     template <typename, typename>
@@ -163,13 +166,9 @@ class magic_cast : public magic_cast_helper<From, To>
     };
 
   public:
-    explicit(std::same_as<From, To>) magic_cast(/*std::same_as<From> auto*/ From from)
-        requires(sizeof(From) == sizeof(To))
+    explicit(std::same_as<From, To>) magic_cast(From from) requires(magic_convertible_v<From, To>)
         : from_(from)
     {
-        // static_assert(sizeof(From) == sizeof(To));
-        static_assert(std::is_trivial_v<From>);
-        static_assert(std::is_trivial_v<To>);
     }
 
     magic_cast(From from, To hint) requires(!std::same_as<From, To>)
@@ -225,7 +224,7 @@ class magic_cast<From, auto_cast_tag>
     }
 
     template <typename To>
-    operator To() const
+    operator To() const requires(magic_convertible_v<From, To>)
     {
         return magic_cast<From, To>(from_);
     }
@@ -320,6 +319,9 @@ class magic_cast<auto_cast_tag, cast_helper<To>> : public magic_cast<auto_cast_t
 
 template <typename From>
 using from = magic_cast<From, auto_cast_tag>;
+
+template <typename From>
+magic_cast(From) -> magic_cast<From, auto_cast_tag>;
 
 template <typename To>
 using to = magic_cast<auto_cast_tag, To>;

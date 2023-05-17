@@ -149,10 +149,10 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
     game_library_info_ex engine_dll = L"engine.dll";
     game_library_info_ex vgui_dll   = L"vguimatsurface.dll";
 
-    auto client_interface      = vtable(client_dll.find_interface("VClient"));
+    vtable client_interface      = client_dll.find_interface("VClient");
     // vtable engine_interface    = engine_dll.find_interface("VEngineClient");
-    auto vgui_interface        = vtable(vgui_dll.find_interface("VGUI_Surface"));
-    auto entity_list_interface = vtable(client_dll.find_interface("VClientEntityList"));
+    vtable vgui_interface        = vgui_dll.find_interface("VGUI_Surface");
+    vtable entity_list_interface = client_dll.find_interface("VClientEntityList");
 
     // todo: check if ingame and use exisiting player
     auto player_vtable = client_dll.find_vtable("C_CSPlayer");
@@ -166,7 +166,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
         make_hook_callback(
             "WinAPI.WndProc",
             window_proc,
-            [&](auto orig, auto... args) -> LRESULT {
+            [](auto orig, auto... args) -> LRESULT {
                 render_message_result pmr;
                 process_render_message(args..., &pmr);
                 switch (pmr)
@@ -185,7 +185,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
         make_hook_callback(
             "IDirect3DDevice9::Release",
             render_vtable[&IDirect3DDevice9::Release],
-            [&](auto orig, auto this_ptr) -> ULONG {
+            [&](auto orig) -> ULONG {
                 auto refs = orig();
                 if (refs == 0)
                     render_backend_detach();
@@ -195,14 +195,14 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
         make_hook_callback(
             "IDirect3DDevice9::Reset",
             render_vtable[&IDirect3DDevice9::Reset],
-            [&](auto orig, auto this_ptr, auto... args) {
+            [&](auto orig,  auto... args) {
                 reset_render_context();
                 return orig(args...);
             }),
         make_hook_callback(
             "IDirect3DDevice9::Present",
             render_vtable[&IDirect3DDevice9::Present],
-            [&](auto orig, auto this_ptr, auto... args) {
+            [&](auto orig, auto... args) {
                 if (auto frame = render_frame())
                 {
                     // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
@@ -215,7 +215,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
         make_hook_callback(
             "VGUI.ISurface::LockCursor",
             to<void(__thiscall *)(void *)>(vgui_interface[67]),
-            [&](auto orig, auto this_ptr) {
+            [&](auto orig) {
                 // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
                 //{
                 //     this_ptr->UnlockCursor();
@@ -226,7 +226,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
         make_hook_callback(
             "CHLClient::CreateMove",
             to<void(__thiscall *)(void *, int, int, bool)>(client_interface[22]),
-            [&](auto orig, auto this_ptr, auto... args) {
+            [&](auto orig, auto... args) {
                 //
                 orig(args...);
             }),
@@ -234,7 +234,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
             "CClientEntityList::OnAddEntity",
             to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
-            [&](auto orig, auto this_ptr, auto handle_interface, auto handle) {
+            [&](auto orig,  auto handle_interface, auto handle) {
                 orig(handle_interface, handle);
                 // todo: work with this_ptr
                 on_add_entity(entity_list_interface, handle);
@@ -243,7 +243,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
             "CClientEntityList::OnRemoveEntity",
             to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
-            [&](auto orig, auto this_ptr, auto handle_interface, auto handle) {
+            [&](auto orig,  auto handle_interface, auto handle) {
                 // todo: work with this_ptr
                 on_remove_entity(entity_list_interface, handle);
                 orig(handle_interface, handle);
