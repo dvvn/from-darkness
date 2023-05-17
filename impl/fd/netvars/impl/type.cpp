@@ -211,18 +211,14 @@ struct valve_include
         };
 
         return find_bytes(
-            data.data(),
-            data.data() + data.size(),
-            to<void *>(name.data()),
-            name.size(),
-            find_callback(std::in_place_type<void *>, [&](to<char *> ptr) {
+            data.data(), data.data() + data.size(), to<void *>(name.data()), name.size(), [&](to<char *> ptr) {
                 if (is_valid_char(ptr[-1]) && is_valid_char(ptr[name.size()]))
                 {
                     inner.emplace_back(name_hash);
                     return false;
                 }
                 return true;
-            }));
+            });
     }
 };
 

@@ -1,4 +1,5 @@
-﻿#include <fd/library_info/pattern.h>
+﻿#include "pattern.h"
+
 #include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 

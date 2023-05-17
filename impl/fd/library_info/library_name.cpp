@@ -1,4 +1,4 @@
-#include <fd/library_info/library_name.h>
+#include "library_name.h"
 
 #include <windows.h>
 #include <winternl.h>

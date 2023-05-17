@@ -1,5 +1,6 @@
-#include <fd/library_info/dos.h>
-#include <fd/library_info/export.h>
+#include "export.h"
+
+#include <fd/magic_cast.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -11,15 +12,15 @@ namespace fd
 {
 class dll_exports
 {
-    dos_header dos_;
+    to<uint8_t *> dos_;
 
-    uint32_t *names_;
-    uint32_t *funcs_;
-    uint16_t *ords_;
+    to<uint32_t *> names_;
+    to<uint32_t *> funcs_;
+    to<uint16_t *> ords_;
 
     union
     {
-        IMAGE_EXPORT_DIRECTORY *export_dir_;
+        to<IMAGE_EXPORT_DIRECTORY *> export_dir_;
         uint8_t *virtual_addr_start_;
     };
 
@@ -42,7 +43,7 @@ class dll_exports
         ords_  = dos_ + export_dir_->AddressOfNameOrdinals;
     }
 
-    char const *name(DWORD offset) const
+    to<char const *> name(DWORD offset) const
     {
         return dos_ + names_[offset];
     }

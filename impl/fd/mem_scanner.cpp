@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cassert>
 #include <span>
-#include <string>
 
 namespace fd
 {
@@ -167,12 +166,12 @@ struct _unknown_bytes_range : bytes_range_buffer<bytes_range>
 
     struct _unknown_bytes_range_unpacked unpack();
 
-    _unknown_bytes_range(const char *begin, size_t length)
+    _unknown_bytes_range(char const *begin, size_t length)
         : _unknown_bytes_range(begin, begin + length)
     {
     }
 
-    _unknown_bytes_range(const char *begin, const char *end)
+    _unknown_bytes_range(char const *begin, char const *end)
     {
         auto store = [&](uint8_t num) {
             auto &back = this->back();
@@ -467,17 +466,18 @@ uintptr_t find_xref(void *begin, void *end, uintptr_t &address)
     return (_search((begin), (end), (&address), sizeof(uintptr_t)));
 }
 
-void find_xref(void *begin, void *end, uintptr_t &address, basic_find_callback<uintptr_t &> const &callback)
+bool find_xref(void *begin, void *end, uintptr_t &address, basic_find_callback<uintptr_t &> const &callback)
 {
     for (;;)
     {
         uintptr_t xref = _search(begin, end, (&address), sizeof(uintptr_t));
         if (!xref)
-            return;
+            break;
         if (!callback(xref))
-            return;
+            return true;
         (begin) = to<void *>(xref);
     }
+    return false;
 }
 
 bool find_bytes(void *begin, void *end, void *bytes, size_t length, basic_find_callback<void *> const &callback)

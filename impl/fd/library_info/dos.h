@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+//DEPRECATED
+#if 0
 #include "core.h"
 
 #include <fd/magic_cast.h>
@@ -48,3 +50,4 @@ inline from<void *> operator+(dos_header dos, size_t offset)
     return (ptr);
 }
 } // namespace fd
+#endif

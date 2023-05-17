@@ -1,5 +1,5 @@
-﻿#include <fd/library_info/library.h>
-#include <fd/library_info/library_name.h>
+﻿#include "library.h"
+#include "library_name.h"
 
 #include <windows.h>
 #include <winternl.h>
@@ -185,7 +185,7 @@ static DECLSPEC_NOINLINE PVOID this_module_handle()
     MEMORY_BASIC_INFORMATION info;
     constexpr SIZE_T info_size = sizeof(MEMORY_BASIC_INFORMATION);
     // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] auto len = VirtualQueryEx(GetCurrentProcess(), this_module_handle, &info, info_size);
+    [[maybe_unused]] auto len  = VirtualQueryEx(GetCurrentProcess(), this_module_handle, &info, info_size);
     assert(len == info_size);
     return static_cast<HINSTANCE>(info.AllocationBase);
 }

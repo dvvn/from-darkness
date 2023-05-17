@@ -9,7 +9,7 @@ struct basic_find_callback
 {
     using argument_type = T;
 
-    virtual ~basic_find_callback()          = default;
+    //virtual ~basic_find_callback()          = default;
     virtual bool operator()(T result) const = 0;
 };
 
@@ -45,17 +45,44 @@ class find_callback : public basic_find_callback<T>
         return fn_(result);
     }
 
-    /*template <typename Q>
-    operator basic_find_callback<Q>() const requires(!std::same_as<T, Q> && std::convertible_to<T, Q>)
+    basic_find_callback<T> const &base() const
     {
-    }*/
+        return *this;
+    }
+};
+
+template <typename T, typename Fn>
+class find_callback<T, Fn &> : public basic_find_callback<T>
+{
+    Fn *fn_;
+
+  public:
+    find_callback(Fn *fn)
+        : fn_(fn)
+    {
+    }
+
+    find_callback(Fn &fn)
+        : fn_(&fn)
+    {
+    }
+
+    bool operator()(T result) const override
+    {
+        return (*fn_)(result);
+    }
+
+    basic_find_callback<T> const &base() const
+    {
+        return *this;
+    }
 };
 
 template <typename Fn>
 find_callback(Fn) -> find_callback<typename function_argument<Fn>::type, std::decay_t<Fn>>;
 
-//template <typename T, typename Fn>
-//find_callback(std::in_place_type_t<T>, Fn) -> find_callback<T, std::decay_t<Fn>>;
+// template <typename T, typename Fn>
+// find_callback(std::in_place_type_t<T>, Fn) -> find_callback<T, std::decay_t<Fn>>;
 
 void *find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length);
 void find_pattern(
@@ -65,8 +92,26 @@ void find_pattern(
     size_t pattern_length,
     basic_find_callback<void *> const &callback);
 
+template <typename Fn>
+void find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length, Fn callback)
+{
+    callback(begin, end, pattern, pattern_length, find_callback<void *, Fn &>(callback).base());
+}
+
 uintptr_t find_xref(void *begin, void *end, uintptr_t &address);
-void find_xref(void *begin, void *end, uintptr_t &address, basic_find_callback<uintptr_t &> const &callback);
+bool find_xref(void *begin, void *end, uintptr_t &address, basic_find_callback<uintptr_t &> const &callback);
+
+template <typename Fn>
+bool find_xref(void *begin, void *end, uintptr_t &address, Fn callback)
+{
+    return find_xref(begin, end, address, find_callback<uintptr_t &, Fn &>(callback).base());
+}
 
 bool find_bytes(void *begin, void *end, void *bytes, size_t length, basic_find_callback<void *> const &callback);
+
+template <typename Fn>
+bool find_bytes(void *begin, void *end, void *bytes, size_t length, Fn callback)
+{
+    return find_bytes(begin, end, bytes, length, find_callback<void *, Fn &>(callback).base());
+}
 } // namespace fd

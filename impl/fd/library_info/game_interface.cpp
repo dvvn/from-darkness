@@ -1,4 +1,4 @@
-﻿#include <fd/library_info/game_interface.h>
+﻿#include "game_interface.h"
 
 #include <cassert>
 #include <cctype>
@@ -31,7 +31,8 @@ class game_interface_iterator
     using cmp_type   = std::conditional_t<Mode == mode::normal, std::false_type, cmp_result>;
 
     game_interface *current_;
-    [[no_unique_address]] cmp_type compared_;
+    [[no_unique_address]] //
+    cmp_type compared_;
 
     template <mode>
     friend class game_interface_iterator;

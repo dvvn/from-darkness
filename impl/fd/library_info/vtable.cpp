@@ -1,5 +1,5 @@
-#include <fd/library_info/dos.h>
-#include <fd/library_info/vtable.h>
+#include "vtable.h"
+
 #include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 
@@ -21,26 +21,32 @@ static bool validate_rtti_name(char const *begin, char const *name, size_t lengt
 }
 
 template <char Prefix = 0>
-static void *find_type_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length)
+static void *find_type_descriptor(to<uint8_t *> begin, size_t length, char const *name, size_t name_length)
 {
     void *found = nullptr;
 
-    to<uint8_t *> begin = nt->OptionalHeader.ImageBase;
-    auto end            = begin + nt->OptionalHeader.SizeOfImage;
+    // to<uint8_t *> begin = nt->OptionalHeader.ImageBase;
+    // auto end            = begin + nt->OptionalHeader.SizeOfImage;
 
-    find_bytes(begin, end, to<void*>(".?A"), 3, find_callback(std::in_place_type<void *>, [&](to<char *> tmp) -> bool {
-                   if constexpr (Prefix != 0)
-                   {
-                       if (tmp[3] != Prefix)
-                           return true;
-                   }
-                   if (!validate_rtti_name(tmp, name, length))
-                       return true;
-                   found = tmp;
-                   return false;
-               }));
+    find_bytes(begin, begin + length, to<void *>(".?A"), 3, [&](to<char *> tmp) -> bool {
+        if constexpr (Prefix != 0)
+        {
+            if (tmp[3] != Prefix)
+                return true;
+        }
+        if (!validate_rtti_name(tmp, name, name_length))
+            return true;
+        found = tmp;
+        return false;
+    });
 
     return found;
+}
+
+template <char Prefix = 0>
+static void *find_type_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t name_length)
+{
+    return find_type_descriptor<Prefix>(nt, nt->OptionalHeader.SizeOfImage, name, name_length);
 }
 
 void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length)
@@ -53,14 +59,11 @@ void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length
             return 0;
         return sample_length;
     };
-    auto find = [=](size_t offset, auto finder) {
-        return finder(nt, name + offset, length - offset);
-    };
 
     if (auto offset = find_offset("struct "))
-        return find(offset, find_type_descriptor<'U'>);
+        return find_type_descriptor<'U'>(nt, name + offset, length - offset);
     if (auto offset = find_offset("class "))
-        return find(offset, find_type_descriptor<'V'>);
+        return find_type_descriptor<'V'>(nt, name + offset, length - offset);
 
     return find_type_descriptor(nt, name, length);
 }
@@ -92,21 +95,21 @@ static to<void *> find_vtable_impl(
 
     uintptr_t found = 0;
 
-    find_xref(rdata_begin, rdata_end, type_descriptor, find_callback([&](uintptr_t &xref) {
-                  // get offset of vtable in complete class, 0 means it's the class we need, and not some class it
-                  // inherits from
-                  auto offset = *reinterpret_cast<uint32_t *>(xref - 0x8);
-                  if (offset != 0)
-                      return true;
+    find_xref(rdata_begin, rdata_end, type_descriptor, [&](uintptr_t &xref) {
+        // get offset of vtable in complete class, 0 means it's the class we need, and not some class it
+        // inherits from
+        auto offset = *reinterpret_cast<uint32_t *>(xref - 0x8);
+        if (offset != 0)
+            return true;
 
-                  auto object_locator = xref - 0xC;
-                  auto addr           = find_xref(rdata_begin, rdata_end, object_locator) + 0x4;
+        auto object_locator = xref - 0xC;
+        auto addr           = find_xref(rdata_begin, rdata_end, object_locator) + 0x4;
 
-                  // check is valid offset
-                  assert(addr > sizeof(uintptr_t));
-                  found = find_xref(text_begin, text_end, addr);
-                  return found != 0;
-              }));
+        // check is valid offset
+        assert(addr > sizeof(uintptr_t));
+        found = find_xref(text_begin, text_end, addr);
+        return found != 0;
+    });
     return found;
 }
 
