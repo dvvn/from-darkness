@@ -1,10 +1,10 @@
-#include "own_backend.h"
+﻿#include "own_backend.h"
 
+#include <fd/console.h>
 #include <fd/hooking/callback.h>
 #include <fd/lazy_invoke.h>
 #include <fd/library_info.h>
-#include <fd/logging/core.h>
-#include <fd/logging/default.h>
+#include <fd/log.h>
 #include <fd/netvars/core.h>
 #include <fd/players/list.h>
 #include <fd/render/context.h>
@@ -46,7 +46,7 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
         // Return FALSE to fail DLL load.
         thread = CreateThread(nullptr, 0, context_proxy, handle, 0, &thread_id);
         if (!thread)
-            return EXIT_FAILURE;
+            return FALSE;
         break;
     }
 #if 0
@@ -65,7 +65,7 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
         break;
     }
 
-    return EXIT_SUCCESS;
+    return TRUE;
 }
 
 #else
@@ -93,12 +93,18 @@ static bool context(HINSTANCE self_handle) noexcept
 
     using namespace fd;
 
-    init_logging();
-    MAKE_DESTRUCTOR(stop_logging);
+    log("Started!");
+    MAKE_DESTRUCTOR([] { log("Finished!"); });
+
+#if defined(FD_SHARED_LIB)
+    if (!create_system_console())
+        return false;
+    MAKE_DESTRUCTOR(destroy_system_console);
+#endif
 
     vtable<IDirect3DDevice9> render_vtable;
     HWND window;
-    WNDPROC window_proc;
+    to<WNDPROC> window_proc;
 
 #ifdef USE_OWN_RENDER_BACKEND
     auto own_render = own_render_backend(L"Unnamed", self_handle);
@@ -110,18 +116,16 @@ static bool context(HINSTANCE self_handle) noexcept
     window_proc   = own_render.info.lpfnWndProc;
 #else
     library_info shader_api_dll = L"shaderapidx9.dll";
-    auto d3d9_device            = [&] {
+    render_vtable               = [&] {
         uintptr_t val = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9 ***>(val + 1);
     }();
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
-    if (FAILED(d3d9_device->GetCreationParameters(&creation_parameters)))
+    if (FAILED(render_vtable->GetCreationParameters(&creation_parameters)))
         return false;
-    to<WNDPROC> wnd_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
+    window      = creation_parameters.hFocusWindow;
+    window_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
 
-    render_vtable = d3d9_device;
-    window        = creation_parameters.hFocusWindow;
-    window_proc   = wnd_proc;
 #endif
 
     if (!create_render_context(window, render_vtable.instance()))
@@ -168,7 +172,7 @@ static bool context(HINSTANCE self_handle) noexcept
         make_hook_callback(
             "IDirect3DDevice9::Release",
             render_vtable[&IDirect3DDevice9::Release],
-            [&](auto orig) -> ULONG {
+            [](auto orig) -> ULONG {
                 auto refs = orig();
                 if (refs == 0)
                     render_backend_detach();
@@ -178,14 +182,14 @@ static bool context(HINSTANCE self_handle) noexcept
         make_hook_callback(
             "IDirect3DDevice9::Reset",
             render_vtable[&IDirect3DDevice9::Reset],
-            [&](auto orig, auto... args) {
+            [](auto orig, auto... args) {
                 reset_render_context();
                 return orig(args...);
             }),
         make_hook_callback(
             "IDirect3DDevice9::Present",
             render_vtable[&IDirect3DDevice9::Present],
-            [&](auto orig, auto... args) {
+            [](auto orig, auto... args) {
                 if (auto frame = render_frame())
                 {
                     // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
@@ -233,7 +237,9 @@ static bool context(HINSTANCE self_handle) noexcept
             })
 #endif
     };
-    MAKE_DESTRUCTOR(disable_hooks, hooks_guard);
+#if !defined(_DEBUG) || defined(FD_SHARED_LIB_off)
+    MAKE_DESTRUCTOR(disable_hooks);
+#endif
 
 #ifdef _DEBUG
     if (!std::all_of(std::begin(hooks), std::end(hooks), enable_hook_lazy))
@@ -241,7 +247,7 @@ static bool context(HINSTANCE self_handle) noexcept
     if (!apply_lazy_hooks())
         return false;
 #else
-    if (std::find(std::begin(hooks), std::end(hooks), 0) != std::end(hooks))
+    if (std::any_of(std::begin(hooks), std::end(hooks), [](auto id) { return !id; }))
         return false;
     if (!enable_hooks())
         return false;
@@ -257,11 +263,9 @@ static bool context(HINSTANCE self_handle) noexcept
         return false;
     if (!apply_lazy_hooks())
         return false;
-    hooks_guard = nullptr;
-#elif defined(FD_SHARED_LIB) && 0
+#elif defined(FD_SHARED_LIB_off)
     if (!disable_hooks())
         return false;
-    hooks_guard = nullptr;
 #endif
 
     return true;

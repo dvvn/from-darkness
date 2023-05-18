@@ -79,6 +79,7 @@ void *create_render_context(void *window, void *backend) noexcept
     /*assert(ImGui::FindSettingsHandler("Window"));
     ImGui::RemoveSettingsHandler("Window");*/
     render_context.SettingsHandlers.clear();
+    render_context.IO.IniFilename = nullptr;
 
     ImGui::StyleColorsDark();
 

@@ -28,18 +28,18 @@ X86_CALL_MEMBER(GENERATE_CALL);
 #define GENERATE_VTABLES(call__, __call, call) &call##_calculator,
 
 static vtable<void> call_vtable[] = {
-    //
-    X86_CALL_MEMBER(GENERATE_VTABLES)};
+    X86_CALL_MEMBER(GENERATE_VTABLES) //
+};
 #undef GENERATE_VTABLES
 
 size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x86_call call)
 {
     using num_t = std::underlying_type_t<_x86_call>;
 
-    vtable vt   = instance;
-    auto backup = exchange(vt, call_vtable[static_cast<num_t>(call)]);
+    auto vt     = vtable(instance, vtable_offset);
+    auto backup = vt.replace(call_vtable[static_cast<num_t>(call)]);
 
-    auto index = vfunc_invoker<_x86_call::unknown>::call<size_t>(instance, function, call);
+    auto index = member_func_invoker<_x86_call::unknown, size_t>::call(instance, function, call);
 
     vt.set(backup);
 

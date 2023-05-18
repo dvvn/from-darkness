@@ -22,7 +22,7 @@ namespace fd
 using valve::data_map_description;
 using valve::recv_prop;
 
-static constexpr std::string_view internal_prefix = ("m_");
+static constexpr std::string_view internal_prefix = "m_";
 
 static bool is_valid_prefix(std::string_view type, size_t whole_prefix_size)
 {
@@ -241,7 +241,7 @@ static basic_netvar_type *_check_float_prefix(std::string_view name)
 #if 1
     if (name == "m_rgflCoordinateFrame")
         __debugbreak();
-    auto prefix = _find_exact_prefix(name, (3));
+    auto prefix = _find_exact_prefix(name, 3);
     if (prefix == "ang")
         return types_cache.simple(name, "qangle");
     if (prefix == "vec")
@@ -264,7 +264,7 @@ static basic_netvar_type *_extract_type_integer(std::string_view name)
 {
     READ_CACHE(name);
 
-    auto prefix = _find_prefix(name, (3));
+    auto prefix = _find_prefix(name, 3);
     switch (prefix.size())
     {
     case 1: {

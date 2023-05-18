@@ -54,5 +54,6 @@ target_include_directories(fd PUBLIC
 target_compile_definitions(fd PUBLIC
     FD_WORK_DIR=${FD_DIR}
     FD_ROOT_DIR=${FD_ROOT_DIR}
+    FD_IMPL_DIR=${FD_IMPL_DIR}
     FD_DEFAULT_LOG_LEVEL=${FD_DEFAULT_LOG_LEVEL}
 )

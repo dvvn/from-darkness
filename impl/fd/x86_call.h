@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <utility>
 
 namespace fd
 {
@@ -83,20 +83,64 @@ constexpr struct
 template <typename T>
 concept member_function = requires(T fn) { get_call_type_member(fn); };
 
-// class call_type
-//{
-//     _x86_call type_;
-//
-//   public:
-//     template <typename Fn>
-//     consteval call_type(Fn function)
-//         : type_(get_call_type(function))
-//     {
-//     }
-//
-//     constexpr operator _x86_call() const
-//     {
-//         return type_;
-//     }
-// };
+template <_x86_call Call, typename Ret, typename... Args>
+struct member_func_invoker;
+
+struct member_func_invoker_gap
+{
+};
+
+#define MEMBER_FUNC_INVOKER(call__, __call, _call_)                                     \
+    template <typename Ret, typename... Args>                                           \
+    struct member_func_invoker<call__, Ret, Args...>                                    \
+    {                                                                                   \
+        static Ret __call call(void *instance, void *fn, Args... args) noexcept         \
+        {                                                                               \
+            union                                                                       \
+            {                                                                           \
+                void *fn1;                                                              \
+                Ret (__call member_func_invoker_gap::*fn2)(Args...);                    \
+            };                                                                          \
+            fn1 = fn;                                                                   \
+            return (*static_cast<member_func_invoker_gap *>(instance).*fn2)((args)...); \
+        }                                                                               \
+    };
+
+X86_CALL_MEMBER(MEMBER_FUNC_INVOKER);
+#undef MEMBER_FUNC_INVOKER
+
+template <typename Ret, typename... Args>
+struct member_func_invoker<_x86_call::unknown, Ret, Args...>
+{
+    static Ret call(void *instance, void *fn, _x86_call info, Args... args) noexcept
+    {
+#define SELECT_INVOKER(call__, __call, _call_) \
+    case call__:                               \
+        return member_func_invoker<call__, Ret, Args...>::call(instance, fn, (args)...);
+
+        switch (info)
+        {
+            X86_CALL_MEMBER(SELECT_INVOKER);
+        default:
+            std::unreachable();
+        }
+
+#undef SELECT_INVOKER
+    }
+
+    template <_x86_call Call>
+    static Ret call(void *instance, void *fn, call_type_t<Call>, Args... args) noexcept
+    {
+        return member_func_invoker<Call, Ret, Args...>::call(instance, fn, (args)...);
+    }
+
+    template <member_function Fn>
+    static Ret call(void *instance, Fn fn, Args... args) noexcept
+    {
+        constexpr auto call_t = get_call_type(fn);
+        auto func_ptr         = get_function_pointer(fn);
+
+        return member_func_invoker<call_t, Ret, Args...>::call(instance, func_ptr, (args)...);
+    }
+};
 }

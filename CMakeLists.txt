@@ -107,7 +107,8 @@ function(FetchContent_Load _owner _name)
         SOURCE_DIR ${_SOURCE_DIR}
         SUBBUILD_DIR ${_SUBBUILD_DIR}
         BINARY_DIR ${_BINARY_DIR}
-        GIT_REPOSITORY "https://github.com/${_path}.git"
+        GIT_REPOSITORY https://github.com/${_path}.git
+        GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
         ${ARGN}
     )    
 

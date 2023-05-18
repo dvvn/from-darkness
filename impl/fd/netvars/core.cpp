@@ -4,7 +4,7 @@
 #include "impl/tables.h"
 
 #include <fd/lazy_invoke.h>
-#include <fd/logging/default.h>
+#include <fd/log.h>
 #include <fd/valve2/client.h>
 #include <fd/valve2/entity.h>
 #include <fd/valve2/recv_table.h>
@@ -403,7 +403,7 @@ void store_netvars(void *client_interface)
             //_parse(cclass->table, data_, internal_);
 #endif
     }
-    get_default_logger()->write<log_level::info>("[NETVARS] {} data tables stored", data_.size());
+    log("[NETVARS] {} data tables stored", data_.size());
 }
 
 static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
@@ -455,7 +455,7 @@ void store_extra_netvars(void *entity)
     assert(!data_.empty()); // Iterate datamap after recv tables!
     _parse(valve::get_desc_data_map(entity), data_);
     _parse(valve::get_prediction_data_map(entity), data_);
-    get_default_logger()->write<log_level::info>("[NETVARS] data map stored!");
+    log("[NETVARS] data map stored!");
 }
 
 void store_custom_netvars(library_info const &client_dll)
@@ -524,7 +524,7 @@ void create_netvar_classes(std::wstring_view dir)
     // todo: include internal files in data_! (made struct with provided include dirs)
     // todo: generate one .cpp file and include all _cpp internal files there!
     _fill(data, internal_);
-    get_default_logger()->write<log_level::info>(
+    log(
         L"[NETVARS] {} classes, and {} internal classes written to {}",
         data_.size() * 2,
         internal_.size() * 2,
@@ -538,14 +538,14 @@ void dump_netvars(std::wstring_view dir)
 
 #if 0
     _fill(log, data_);
-     get_default_logger()->write<log_level::info>(L"[NETVARS] log will be written to {}", log);
+     log(L"[NETVARS] log will be written to {}", log);
 #endif
 }
 
 size_t get_netvar_offset(netvar_tag class_name, netvar_tag name)
 {
     auto offset = data_.find(class_name)->find(name)->offset();
-    get_default_logger()->write<log_level::info>("[NETVARS] {}->{} loaded", class_name, name);
+    log("[NETVARS] {}->{} loaded", class_name, name);
     return offset;
 }
 } // namespace fd

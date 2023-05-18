@@ -3,7 +3,6 @@
 #include "x86_call.h"
 
 #include <concepts>
-#include <tuple>
 #include <utility>
 
 #undef cdecl
@@ -46,67 +45,6 @@ size_t get_vfunc_index(void *instance, size_t vtable_offset, Fn function)
 //
 // X86_CALL_MEMBER(GET_VFUNC_INDEX);
 // #undef GET_VFUNC_INDEX
-
-template <_x86_call Call, typename... Args>
-struct vfunc_invoker;
-
-struct vfunc_invoker_gap
-{
-};
-
-#define VFUNC_INVOKER(call__, __call, _call_)                                     \
-    template <typename... Args>                                                   \
-    struct vfunc_invoker<call__, Args...>                                         \
-    {                                                                             \
-        template <typename Ret>                                                   \
-        static Ret call(void *instance, void *fn, Args... args) noexcept          \
-        {                                                                         \
-            union                                                                 \
-            {                                                                     \
-                void *fn1;                                                        \
-                Ret (__call vfunc_invoker_gap::*fn2)(Args...);                    \
-            };                                                                    \
-            fn1 = fn;                                                             \
-            return (*static_cast<vfunc_invoker_gap *>(instance).*fn2)((args)...); \
-        }                                                                         \
-    };
-
-X86_CALL_MEMBER(VFUNC_INVOKER);
-#undef VFUNC_INVOKER
-
-template <typename... Args>
-struct vfunc_invoker<_x86_call::unknown, Args...>
-{
-    template <typename Ret>
-    static Ret call(void *instance, void *fn, _x86_call info, Args... args) noexcept
-    {
-#define SELECT_INVOKER(call__, __call, _call_) \
-    case call__:                               \
-        return vfunc_invoker<call__, Args...>::template call<Ret>(instance, fn, (args)...);
-
-        switch (info)
-        {
-            X86_CALL_MEMBER(SELECT_INVOKER);
-        default:
-            std::unreachable();
-        }
-
-#undef SELECT_INVOKER
-    }
-
-    template <typename Ret, _x86_call Call>
-    static Ret call(void *instance, void *fn, call_type_t<Call>, Args... args) noexcept
-    {
-        return vfunc_invoker<Call, Args...>::template call<Ret>(instance, fn, (args)...);
-    }
-
-    template <typename Ret, member_function Fn>
-    static Ret call(void *instance, Fn fn, Args... args) noexcept
-    {
-        return vfunc_invoker<get_call_type(fn), Args...>::template call<Ret>(
-            instance, get_function_pointer(fn), (args)...);
-    }
-};
 
 template <typename T>
 constexpr _x86_call vtable_call = _x86_call::thiscall__;
@@ -186,7 +124,7 @@ using unknown_return_type = return_type_t<nullptr_t>;
 template <_x86_call Call, typename Ret, typename T, typename... Args>
 class vfunc : public instance_holder<T>, public vfunc_holder
 {
-    using invoker = vfunc_invoker<Call, Args...>;
+    using invoker = member_func_invoker<Call, Ret, Args...>;
 
     using instance_holder<T>::instance_void_;
 
@@ -199,7 +137,7 @@ class vfunc : public instance_holder<T>, public vfunc_holder
 
     Ret operator()(Args... args) const
     {
-        return invoker::template call<Ret>(instance_void_, func_, (args)...);
+        return invoker::call(instance_void_, func_, (args)...);
     }
 };
 
@@ -225,8 +163,8 @@ class vfunc_wrapped_invoker
 template <_x86_call Call, typename T>
 class vfunc<Call, unknown_return_type, T> : public instance_holder<T>, public vfunc_holder
 {
-    template <typename... Args>
-    using invoker = vfunc_invoker<Call, Args...>;
+    template <typename Ret, typename... Args>
+    using invoker = member_func_invoker<Call, Ret, Args...>;
 
     using instance_holder<T>::instance_void_;
 
@@ -240,7 +178,7 @@ class vfunc<Call, unknown_return_type, T> : public instance_holder<T>, public vf
     template <typename Ret, typename... Args>
     Ret operator()(return_type_t<Ret>, Args... args) const
     {
-        return invoker<Args...>::template call<Ret>(instance_void_, func_, args...);
+        return invoker<Ret, Args...>::call(instance_void_, func_, args...);
     }
 
     template <_x86_call Call_1>
@@ -250,7 +188,7 @@ class vfunc<Call, unknown_return_type, T> : public instance_holder<T>, public vf
     auto operator()(Args... args) const
     {
         return vfunc_wrapped_invoker([=]<typename Ret>(return_type_t<Ret>) -> Ret {
-            return invoker<Args...>::template call<Ret>(instance_void_, func_, args...);
+            return invoker<Ret, Args...>::call(instance_void_, func_, args...);
         });
     }
 };
@@ -258,7 +196,7 @@ class vfunc<Call, unknown_return_type, T> : public instance_holder<T>, public vf
 template <typename Ret, typename T, typename... Args>
 class vfunc<_x86_call::unknown, Ret, T, Args...> : public instance_holder<T>, public vfunc_holder
 {
-    using invoker = vfunc_invoker<_x86_call::unknown, Args...>;
+    using invoker = member_func_invoker<_x86_call::unknown, Ret, Args...>;
 
     using instance_holder<T>::instance_void_;
 
@@ -272,15 +210,15 @@ class vfunc<_x86_call::unknown, Ret, T, Args...> : public instance_holder<T>, pu
     template <_x86_call Call>
     Ret operator()(call_type_t<Call> call, Args... args) const
     {
-        return invoker::template call<Ret>(instance_void_, func_, call, args...);
+        return invoker::call(instance_void_, func_, call, args...);
     }
 };
 
 template <typename T>
 class vfunc<_x86_call::unknown, unknown_return_type, T> : public instance_holder<T>, public vfunc_holder
 {
-    template <typename... Args>
-    using invoker = vfunc_invoker<_x86_call::unknown, Args...>;
+    template <typename Ret, typename... Args>
+    using invoker = member_func_invoker<_x86_call::unknown, Args...>;
 
     using instance_holder<T>::instance_void_;
 
@@ -294,14 +232,14 @@ class vfunc<_x86_call::unknown, unknown_return_type, T> : public instance_holder
     template <_x86_call Call, typename Ret, typename... Args>
     Ret operator()(call_type_t<Call> call, return_type_t<Ret>, Args... args) const
     {
-        return invoker<Args...>::template call<Ret>(instance_void_, func_, call, args...);
+        return invoker<Ret, Args...>::call(instance_void_, func_, call, args...);
     }
 
     template <_x86_call Call, typename... Args>
     auto operator()(call_type_t<Call> call, Args... args) const
     {
         return vfunc_wrapped_invoker([=]<typename Ret>(return_type_t<Ret>) -> Ret {
-            return invoker<Args...>::template call<Ret>(instance_void_, func_, call, args...);
+            return invoker<Ret, Args...>::call(instance_void_, func_, call, args...);
         });
     }
 };
@@ -379,6 +317,11 @@ class vtable : public instance_holder<T>
         vtable_[vtable_offset_] = pointer;
     }
 
+    table_pointer replace(table_pointer pointer) const
+    {
+        return std::exchange(vtable_[vtable_offset_], pointer);
+    }
+
   private:
     void *func_simple(size_t index) const
     {
@@ -401,22 +344,6 @@ class vtable : public instance_holder<T>
 
 template <typename T>
 struct vtable<T *>;
-
-// template <typename T>
-// auto exchange(vtable<T> table, typename vtable<T>::table_pointer ptr) -> decltype(ptr)
-//{
-//     auto backup = table.get();
-//     table.set(ptr);
-//     return backup;
-// }
-
-template <typename T, typename T2 = void>
-auto exchange(vtable<T> table, vtable<T2> other) -> typename vtable<T>::table_pointer
-{
-    auto backup = table.get();
-    table.set(other.get());
-    return backup;
-}
 
 template <typename From, typename To>
 vtable(magic_cast<From, To *>) -> vtable<To>;

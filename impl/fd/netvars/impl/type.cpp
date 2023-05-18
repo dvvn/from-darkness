@@ -154,7 +154,13 @@ static auto get_hash(const T &value, std::hash<T> fn = {})
 
 using boost::filesystem::path;
 
-static auto valve_dir = path(BOOST_JOIN(L, BOOST_STRINGIZE(FD_WORK_DIR))).make_preferred().append("valve");
+static auto valve_dir = [] {
+    path p = BOOST_JOIN(L, BOOST_STRINGIZE(FD_WORK_DIR));
+    p.make_preferred();
+    p.append("valve2");
+    assert(exists(p));
+    return p;
+}();
 
 struct valve_include
 {
@@ -222,24 +228,28 @@ struct valve_include
     }
 };
 
-static auto valve_classes = [] {
+static auto valve_classes = []() noexcept {
     std::vector<valve_include> buff;
     using boost::filesystem::directory_iterator;
 
     using boost::filesystem::file_type;
 
-    for (auto &entry : directory_iterator((valve_dir)))
+    for (auto &entry : directory_iterator(valve_dir))
     {
         if (entry.status().type() != file_type::regular_file)
             continue;
 
         auto &file     = entry.path();
         auto filename  = file.filename();
-        auto extension = filename.extension().native();
-        if (!extension.starts_with(L".h"))
+        auto extension = filename.extension();
+        if (!extension.native().starts_with(L".h"))
             continue;
 
-        auto full_path       = std::basic_string_view(file.native()).substr(valve_dir.size() - 2);
+        // c:/??/??/
+        
+        constexpr auto abs_path_length = std::size(BOOST_STRINGIZE(FD_IMPL_DIR));
+
+        auto full_path       = std::wstring_view(file.native()).substr(abs_path_length);
         auto filename_offset = full_path.size() - filename.size();
 
         buff.emplace_back(full_path, filename_offset, filename.stem().size());

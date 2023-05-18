@@ -1,6 +1,6 @@
 #include <fd/hooking/hook.h>
 #include <fd/lazy_invoke.h>
-#include <fd/logging/default.h>
+#include <fd/log.h>
 #include <fd/magic_cast.h>
 
 #include <cassert>
@@ -674,9 +674,9 @@ static bool mh_action(char const *action_name, hook_id id, MH_STATUS(WINAPI *act
     to<unpacked_hook> hook = id;
     auto status            = action(hook->id);
     if (status != MH_OK)
-        get_default_logger()->write<log_level::error>("Unable to {} hook {}: {}", action_name, hook->name, status);
+        log("Unable to {} hook {}: {}", action_name, hook->name, status);
     else
-        get_default_logger()->write<log_level::info>("Hook {} {}", hook->name, correct_word_ed(action_name));
+        log("Hook {} {}", hook->name, correct_word_ed(action_name));
     return status == MH_OK;
 }
 
@@ -689,16 +689,13 @@ static bool mh_action(char const *action_name, MH_STATUS(WINAPI *action)(Args...
     else
         status = action();
     if (status != MH_OK)
-        get_default_logger()->write<log_level::error>("Unable to {} hooks: {}", action_name, status);
+        log("Unable to {} hooks: {}", action_name, status);
     else
-        get_default_logger()->write<log_level::info>("All hooks {}", correct_word_ed(action_name));
+        log("All hooks {}", correct_word_ed(action_name));
     return status == MH_OK;
 }
 
 #endif
-
-constexpr bool store_hook_name =
-    have_log_level<default_logger>(nullptr, log_level::info | log_level::error /*| log_level::warn*/);
 
 #if 0
 constexpr size_t max_hooks_count = store_hook_name ? 16 : 0;
@@ -750,19 +747,16 @@ hook_id create_hook(void *target, void *replace, hook_name name, void **trampoli
 {
     (void)init_hooks;
 
-    if constexpr (!store_hook_name)
-        name = nullptr;
-
 #if defined(SUBHOOK_API)
     auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
     if (!entry)
     {
-        get_default_logger()->write<log_level::error>("{}: init error", name_);
+        log("{}: init error", name_);
         return false;
     }
     if (!subhook_get_trampoline(entry))
     {
-        get_default_logger()->write<log_level::error>("{}: unsupported function", name_);
+        log("{}: unsupported function", name_);
         subhook_free(entry);
         return false;
     }
@@ -771,7 +765,7 @@ hook_id create_hook(void *target, void *replace, hook_name name, void **trampoli
     auto status = MH_CreateHook(target, replace, trampoline);
     if (status != MH_OK)
     {
-        get_default_logger()->write<log_level::error>("{}: init error ({})", name, status);
+        log("{}: init error ({})", name, status);
         return 0;
     }
 
@@ -787,8 +781,7 @@ hook_id create_hook(void *target, void *replace, hook_name name, void **trampoli
         hooks.emplace_back(target, name);
 #endif
 
-    get_default_logger()->write<log_level::info>(
-        "Hook {}: created. (target: {:p} replace: {:p})", name, target, replace);
+    log("Hook {}: created. (target: {:p} replace: {:p})", name, target, replace);
 
     return id;
 }
