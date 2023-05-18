@@ -13,8 +13,8 @@ class netvar_table final : public std::vector<netvar_info>
   public:
     netvar_table() = default;
 
-    explicit netvar_table(std::string &&name);
-    explicit netvar_table(std::string_view name);
+     netvar_table(std::string &&name);
+     netvar_table(std::string_view name);
     // explicit netvar_table(char const* name);
 
     netvar_table(netvar_table const &other)            = delete;
@@ -31,5 +31,5 @@ class netvar_table final : public std::vector<netvar_info>
     void on_item_added(std::string_view name) const;
 };
 
-bool operator==(netvar_table const &table, std::string_view name);
+
 } // namespace fd

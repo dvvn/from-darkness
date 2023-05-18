@@ -348,21 +348,21 @@ class vtable : public instance_holder<T>
         return *this;
     }*/
 
-    /*vtable &operator=(std::convertible_to<pointer> auto instance)
+    vtable &operator=(instance_pointer instance)
     {
         instance_ = instance;
         return *this;
-    }*/
+    }
 
     operator instance_pointer() const
     {
         return instance_;
     }
 
-    instance_pointer operator->() const
+    /*instance_pointer operator->() const
     {
         return instance_;
-    }
+    }*/
 
     operator table_pointer() const
     {

@@ -42,7 +42,7 @@ class invoke_on_destruct<Fn, true>
         return *this;
     }
 
-    invoke_on_destruct &operator=(nullptr_t)noexcept
+    invoke_on_destruct &operator=(nullptr_t) noexcept
     {
         fn_ = nullptr;
         return *this;

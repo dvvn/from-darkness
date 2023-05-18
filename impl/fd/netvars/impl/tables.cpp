@@ -2,29 +2,27 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 
 namespace fd
 {
+static bool operator==(netvar_table const &table, std::string_view name)
+{
+    return table.name() == name;
+}
+
+static bool operator==(netvar_table const &table, void const *ptr)
+{
+    return &table == ptr;
+}
+
 template <typename T>
 static auto _find_raw(T *rng, std::string_view val) -> decltype(&*rng->begin())
 {
-    if constexpr (std::ranges::random_access_range<T>)
-    {
-        auto it = rng->data();
-        auto e  = it + rng->size();
-        for (; it != e; ++it)
-        {
-            if (*it == val)
-                return it;
-        }
-    }
-    else
-    {
-        auto e  = rng->end();
-        auto it = std::find(rng->begin(), e, val);
-        if (it != e)
-            return &*it;
-    }
+    auto ed = rng->end();
+    auto it = std::find(rng->begin(), ed, val);
+    if (it != ed)
+        return &*it;
     return nullptr;
 }
 
@@ -38,31 +36,20 @@ auto netvar_tables::find(std::string_view name) const -> const_pointer
     return _find_raw(this, name);
 }
 
-static bool _constains(auto *rng, void const *ptr)
+template <typename T>
+static bool _constains(T *rng, void const *ptr)
 {
-    return std::any_of(rng->begin(), rng->end(), [=](auto &v) { return &v == ptr; });
+    using op_t = bool (*)(netvar_table const &, void const *);
+    op_t op    = operator==;
+    return std::any_of(rng->begin(), rng->end(), std::bind_back(op, ptr));
 }
 
 template <typename T>
 static size_t _index_of(T *storage, void const *target)
 {
-    if constexpr (std::ranges::random_access_range<T>)
-    {
-        auto bg = storage->data();
-        auto e  = bg + storage->size();
-        for (auto it = bg; it != e; ++it)
-        {
-            if (it == target)
-                return std::distance(bg, it);
-        }
-        std::unreachable();
-    }
-    else
-    {
-        auto bg = storage->begin();
-        auto it = std::find_if(bg, storage->end(), [=](auto &v) { return &v == target; });
-        return std::distance(bg, it);
-    }
+    auto bg = storage->begin();
+    auto it = std::find(bg, storage->end(), target);
+    return std::distance(bg, it);
 }
 
 size_t netvar_tables::index_of(const_pointer table) const

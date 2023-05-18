@@ -386,7 +386,7 @@ static netvar_tables_ordered data_;
 void store_netvars(void *client_interface)
 {
     assert(data_.empty()); // Iterate recv tables first!
-    for (auto cclass : valve::client_class_range(client_interface))
+    for (auto &cclass : valve::client_class_range(client_interface))
     {
         if (!cclass.recv_table)
             continue;
@@ -394,7 +394,7 @@ void store_netvars(void *client_interface)
         if (rtable->props.empty())
             continue;
 #ifdef FD_NETVARS_DT_MERGE
-        auto tmp = netvar_table(_correct_class_name(cclass.name));
+        netvar_table tmp = (_correct_class_name(cclass.name));
         _parse(rtable, &tmp, internal_);
         if (!tmp.empty())
             data_.emplace_back(std::move(tmp));

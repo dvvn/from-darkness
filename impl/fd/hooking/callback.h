@@ -157,8 +157,12 @@ hook_id init_hook_callback(hook_name name, to<void *> target, Callback &callback
 
 #ifdef _DEBUG
     static auto stored_target = target;
+#ifdef assert
+    assert(stored_target == target);
+#else
     if (stored_target != target)
         std::terminate();
+#endif
 #endif
 
     auto id = create_hook(target, &Proxy::proxy, name, &hook_trampoline_stored<Callback>);

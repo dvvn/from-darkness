@@ -236,9 +236,6 @@ class magic_cast<From, auto_cast_tag>
     }
 };
 
-template <typename T>
-struct cast_helper;
-
 // template <typename Ret, typename... T>
 // class vfunc;
 
@@ -300,21 +297,6 @@ class magic_cast<auto_cast_tag, To> : public magic_cast_helper<auto_cast_tag, To
     {
         return to_;
     }*/
-};
-
-template <typename To>
-[[deprecated]] //
-class magic_cast<auto_cast_tag, cast_helper<To>> : public magic_cast<auto_cast_tag, To>
-{
-    [[no_unique_address]] //
-    cast_helper<To> /**/ helper_;
-
-  public:
-    template <typename From>
-    magic_cast(From from)
-        : magic_cast<auto_cast_tag, To>(helper_(from))
-    {
-    }
 };
 
 template <typename From>

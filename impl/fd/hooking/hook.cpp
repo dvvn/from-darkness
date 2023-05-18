@@ -1,10 +1,45 @@
-#include <fd/formatting/lazy.h>
 #include <fd/hooking/hook.h>
 #include <fd/lazy_invoke.h>
 #include <fd/logging/default.h>
 #include <fd/magic_cast.h>
 
 #include <cassert>
+
+struct correct_word_ed
+{
+    char const *word;
+};
+
+template <>
+struct fmt::formatter<correct_word_ed> : formatter<string_view>
+{
+    auto format(correct_word_ed ed, format_context &ctx) const -> format_context::iterator
+    {
+        std::string_view tmp = ed.word;
+        if (tmp.ends_with("ed"))
+            return formatter<string_view>::format(tmp, ctx);
+
+        memory_buffer buff;
+        if (tmp.ends_with('e'))
+        {
+            buff.append(tmp);
+            buff.push_back('d');
+        }
+        else if (tmp.ends_with('y'))
+        {
+            tmp.remove_suffix(1);
+            buff.append(tmp);
+            buff.append(string_view("ied", 3));
+        }
+        else
+        {
+            buff.append(tmp);
+            buff.append(string_view("ated", 4));
+        }
+
+        return formatter<string_view>::format(string_view(buff.data(), buff.size()), ctx);
+    }
+};
 
 #if __has_include(<subhook.h>)
 #include <subhook.h>
@@ -603,6 +638,12 @@ struct fmt::formatter<MH_STATUS> : formatter<string_view>
 
 namespace fd
 {
+struct unpacked_hook
+{
+    void *id;
+    hook_name name;
+};
+
 #if defined(SUBHOOK_API)
 static auto init_hooks = []() -> uint8_t {
     subhook_set_disasm_handler([](void *src, int *reloc_op_offset) -> int {
@@ -627,12 +668,39 @@ static invoke_on_destruct init_hooks = [] {
 #endif
     return (MH_Uninitialize);
 }();
+
+static bool mh_action(char const *action_name, hook_id id, MH_STATUS(WINAPI *action)(LPVOID))
+{
+    to<unpacked_hook> hook = id;
+    auto status            = action(hook->id);
+    if (status != MH_OK)
+        get_default_logger()->write<log_level::error>("Unable to {} hook {}: {}", action_name, hook->name, status);
+    else
+        get_default_logger()->write<log_level::info>("Hook {} {}", hook->name, correct_word_ed(action_name));
+    return status == MH_OK;
+}
+
+template <typename... Args>
+static bool mh_action(char const *action_name, MH_STATUS(WINAPI *action)(Args...))
+{
+    MH_STATUS status;
+    if constexpr (sizeof...(Args) != 0)
+        status = action(MH_ALL_HOOKS);
+    else
+        status = action();
+    if (status != MH_OK)
+        get_default_logger()->write<log_level::error>("Unable to {} hooks: {}", action_name, status);
+    else
+        get_default_logger()->write<log_level::info>("All hooks {}", correct_word_ed(action_name));
+    return status == MH_OK;
+}
+
 #endif
 
-#if 0
 constexpr bool store_hook_name =
     have_log_level<default_logger>(nullptr, log_level::info | log_level::error /*| log_level::warn*/);
 
+#if 0
 constexpr size_t max_hooks_count = store_hook_name ? 16 : 0;
 
 template <typename T>
@@ -645,12 +713,6 @@ static hooks_storage<stored_hook> hooks;
 template <typename T>
 concept contains_name = requires(T obj) { obj.name; };
 #endif
-
-struct unpacked_hook
-{
-    void *id;
-    hook_name name;
-};
 
 #if 0
 struct stored_hook
@@ -687,6 +749,9 @@ static std::string_view find_name(T hook)
 hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline)
 {
     (void)init_hooks;
+
+    if constexpr (!store_hook_name)
+        name = nullptr;
 
 #if defined(SUBHOOK_API)
     auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
@@ -733,13 +798,16 @@ bool enable_hook(hook_id id)
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    to<unpacked_hook> hook = id;
-    auto status            = MH_EnableHook(hook->id);
-    if (status != MH_OK)
-        get_default_logger()->write<log_level::error>("Unable to enable hook {}: {}", hook->name, status);
-    else
-        get_default_logger()->write<log_level::info>("Hook {}: enabled", hook->name);
-    return status == MH_OK;
+    return mh_action("enable", id, MH_EnableHook);
+#endif
+}
+
+bool enable_hook_lazy(hook_id id)
+{
+#if defined(SUBHOOK_API)
+
+#elif defined(MH_ALL_HOOKS)
+    return mh_action("lazy enable", id, MH_QueueEnableHook);
 #endif
 }
 
@@ -748,13 +816,25 @@ bool disable_hook(hook_id id)
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    to<unpacked_hook> hook = id;
-    auto status            = MH_DisableHook(hook->id);
-    if (status != MH_OK)
-        get_default_logger()->write<log_level::error>("Unable to disable hook {}: {}", hook->name, status);
-    else
-        get_default_logger()->write<log_level::info>("Hook {}: disabled", hook->name);
-    return status == MH_OK;
+    return mh_action("disable", id, MH_DisableHook);
+#endif
+}
+
+bool disable_hook_lazy(hook_id id)
+{
+#if defined(SUBHOOK_API)
+
+#elif defined(MH_ALL_HOOKS)
+    return mh_action("lazy disable", id, MH_QueueDisableHook);
+#endif
+}
+
+bool apply_lazy_hooks()
+{
+#if defined(SUBHOOK_API)
+
+#elif defined(MH_ALL_HOOKS)
+    return mh_action("lazy apply", MH_ApplyQueued);
 #endif
 }
 
@@ -763,13 +843,7 @@ bool enable_hooks()
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
-    auto status = MH_EnableHook(MH_ALL_HOOKS);
-    if (status != MH_OK)
-        get_default_logger()->write<log_level::error>("Unable to enable hooks: {}", status);
-    else
-        get_default_logger()->write<log_level::info>("All hooks enabled");
-    return status == MH_OK;
+    return mh_action("enable", MH_EnableHook);
 #endif
 }
 
@@ -778,13 +852,7 @@ bool disable_hooks()
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
-    auto status = MH_DisableHook(MH_ALL_HOOKS);
-    if (status != MH_OK)
-        get_default_logger()->write<log_level::error>("Unable to disable hooks: {}", status);
-    else
-        get_default_logger()->write<log_level::info>("All hooks disabled");
-    return status == MH_OK;
+    return mh_action("disable", MH_DisableHook);
 #endif
 }
 } // namespace fd

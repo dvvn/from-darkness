@@ -4,6 +4,7 @@
 #include <fd/lazy_invoke.h>
 #include <fd/library_info.h>
 #include <fd/logging/core.h>
+#include <fd/logging/default.h>
 #include <fd/netvars/core.h>
 #include <fd/players/list.h>
 #include <fd/render/context.h>
@@ -22,42 +23,17 @@ namespace ImGui
 extern void ShowDemoWindow(bool *open = nullptr);
 } // namespace ImGui
 
-namespace fd
-{
-static bool enable_hooks(auto &rng)
-{
-    return std::all_of(std::begin(rng), std::end(rng), enable_hook);
-}
-
-static bool disable_hooks(auto &rng)
-{
-    return std::all_of(std::rbegin(rng), std::rend(rng), disable_hook);
-}
-} // namespace fd
-
 static bool context(HINSTANCE self_handle) noexcept;
 
 #ifdef FD_SHARED_LIB
-namespace fd
-{
-template <>
-struct cast_helper<IDirect3DDevice9 *>
-{
-    IDirect3DDevice9 *operator()(to<uintptr_t> val) const
-    {
-        return **reinterpret_cast<IDirect3DDevice9 ***>(val + 1);
-    }
-};
-} // namespace fd
-
 static HANDLE thread;
 static DWORD thread_id;
 
 static DWORD WINAPI context_proxy(LPVOID ptr)
 {
-    if (!context(static_cast<HINSTANCE>(ptr)))
-        FreeLibraryAndExitThread(static_cast<HMODULE>(ptr), EXIT_FAILURE);
-    return TRUE;
+    auto result = context(static_cast<HINSTANCE>(ptr));
+    FreeLibraryAndExitThread(static_cast<HMODULE>(ptr), result ? EXIT_SUCCESS : EXIT_FAILURE);
+    // return TRUE;
 }
 
 // ReSharper disable once CppInconsistentNaming
@@ -104,13 +80,21 @@ int main(int argc, char *argv[])
 }
 #endif
 
-static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
+#define SECOND_ARG(_A_, _B_, ...) _B_
+#define DUMMY_VAR                 BOOST_JOIN(dummy, __COUNTER__)
+
+#define MAKE_DESTRUCTOR(_FN_, ...) \
+    [[maybe_unused]]               \
+    invoke_on_destruct SECOND_ARG(unused, ##__VA_ARGS__, const DUMMY_VAR) = _FN_;
+
+static bool context(HINSTANCE self_handle) noexcept
 {
+    (void)self_handle;
+
     using namespace fd;
 
     init_logging();
-    [[maybe_unused]] //
-    invoke_on_destruct stop_logging_lazy = stop_logging;
+    MAKE_DESTRUCTOR(stop_logging);
 
     vtable<IDirect3DDevice9> render_vtable;
     HWND window;
@@ -121,7 +105,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
     if (!own_render.initialized())
         return false;
 
-    render_vtable = own_render.device.get();
+    render_vtable = own_render.device;
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
 #else
@@ -142,7 +126,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
 
     if (!create_render_context(window, render_vtable.instance()))
         return false;
-    invoke_on_destruct render_destroy = destroy_render_context;
+    MAKE_DESTRUCTOR(destroy_render_context);
 
 #ifdef FD_SHARED_LIB
     game_library_info_ex client_dll = L"client.dll";
@@ -161,7 +145,6 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
     store_extra_netvars(player_vtable);
     store_custom_netvars(client_dll);
 #endif
-
     hook_id hooks[] = {
         make_hook_callback(
             "WinAPI.WndProc",
@@ -195,7 +178,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
         make_hook_callback(
             "IDirect3DDevice9::Reset",
             render_vtable[&IDirect3DDevice9::Reset],
-            [&](auto orig,  auto... args) {
+            [&](auto orig, auto... args) {
                 reset_render_context();
                 return orig(args...);
             }),
@@ -234,7 +217,7 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
             "CClientEntityList::OnAddEntity",
             to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
-            [&](auto orig,  auto handle_interface, auto handle) {
+            [&](auto orig, auto handle_interface, auto handle) {
                 orig(handle_interface, handle);
                 // todo: work with this_ptr
                 on_add_entity(entity_list_interface, handle);
@@ -243,25 +226,42 @@ static bool context([[maybe_unused]] HINSTANCE self_handle) noexcept
             "CClientEntityList::OnRemoveEntity",
             to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
-            [&](auto orig,  auto handle_interface, auto handle) {
+            [&](auto orig, auto handle_interface, auto handle) {
                 // todo: work with this_ptr
                 on_remove_entity(entity_list_interface, handle);
                 orig(handle_interface, handle);
             })
 #endif
     };
+    MAKE_DESTRUCTOR(disable_hooks, hooks_guard);
 
-    if (!enable_hooks(hooks))
+#ifdef _DEBUG
+    if (!std::all_of(std::begin(hooks), std::end(hooks), enable_hook_lazy))
         return false;
+    if (!apply_lazy_hooks())
+        return false;
+#else
+    if (std::find(std::begin(hooks), std::end(hooks), 0) != std::end(hooks))
+        return false;
+    if (!enable_hooks())
+        return false;
+#endif
 
 #ifdef USE_OWN_RENDER_BACKEND
     if (!own_render.run())
         return false;
 #endif
 
-#if defined(_DEBUG) || defined(FD_SHARED_LIB)
-    if (!disable_hooks(hooks))
+#ifdef _DEBUG
+    if (!std::all_of(std::rbegin(hooks), std::rend(hooks), disable_hook_lazy))
         return false;
+    if (!apply_lazy_hooks())
+        return false;
+    hooks_guard = nullptr;
+#elif defined(FD_SHARED_LIB) && 0
+    if (!disable_hooks())
+        return false;
+    hooks_guard = nullptr;
 #endif
 
     return true;
