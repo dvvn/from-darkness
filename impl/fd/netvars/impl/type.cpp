@@ -1,11 +1,11 @@
+#include "hash.h"
 #include "type.h"
 
+#include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 
 #include <fmt/format.h>
 //
-#include <fd/magic_cast.h>
-
 #include <boost/filesystem.hpp>
 
 #include <algorithm>
@@ -122,6 +122,7 @@ bool netvar_type::unwrap(custom_netvar_type_ex& type)
 
 netvar_type_array::netvar_type_array(std::string_view type, size_t size)
     : type_(fmt::format("std::array<{}, {}>", type, size))
+    , size_(size)
 {
 }
 
@@ -146,16 +147,10 @@ size_t netvar_type_array_size(netvar_type_array *type)
     return type->size();
 }
 
-template <typename T>
-static auto get_hash(const T &value, std::hash<T> fn = {})
-{
-    return fn(value);
-}
-
 using boost::filesystem::path;
 
 static auto valve_dir = [] {
-    path p = BOOST_JOIN(L, BOOST_STRINGIZE(FD_WORK_DIR));
+    path p = (BOOST_JOIN(L, BOOST_STRINGIZE(FD_WORK_DIR)));
     p.make_preferred();
     p.append("valve2");
     assert(exists(p));
@@ -175,7 +170,7 @@ struct valve_include
 
     valve_include(std::wstring_view wpath, size_t name_offset, size_t name_size)
         : path(wpath.begin(), wpath.end())
-        , hash(get_hash(wpath.substr(name_offset, name_size)))
+        , hash(netvar_hash(wpath.substr(name_offset, name_size)))
         , name_offset(name_offset)
         , name_size(name_size)
     {
@@ -195,12 +190,10 @@ struct valve_include
     bool inside(std::string_view name, size_t name_hash = 0)
     {
         if (!name_hash)
-            name_hash = get_hash(name);
-        for (auto h : inner)
-        {
-            if (h == name_hash)
-                return true;
-        }
+            name_hash = netvar_hash(name);
+
+        if (std::any_of(inner.begin(), inner.end(), [=](size_t h) { return h == name_hash; }))
+            return true;
 
         if (data.empty())
         {
@@ -228,10 +221,10 @@ struct valve_include
     }
 };
 
-static auto valve_classes = []() noexcept {
+static auto valve_classes = [] {
     std::vector<valve_include> buff;
-    using boost::filesystem::directory_iterator;
 
+    using boost::filesystem::directory_iterator;
     using boost::filesystem::file_type;
 
     for (auto &entry : directory_iterator(valve_dir))
@@ -246,7 +239,6 @@ static auto valve_classes = []() noexcept {
             continue;
 
         // c:/??/??/
-        
         constexpr auto abs_path_length = std::size(BOOST_STRINGIZE(FD_IMPL_DIR));
 
         auto full_path       = std::wstring_view(file.native()).substr(abs_path_length);
@@ -254,6 +246,7 @@ static auto valve_classes = []() noexcept {
 
         buff.emplace_back(full_path, filename_offset, filename.stem().size());
     }
+
     return buff;
 }();
 
@@ -287,7 +280,7 @@ void netvar_type_includes(std::string_view type, std::vector<std::string> &buff)
         auto ed = valve_classes.end();
 
         auto name      = type.substr(offset + 1, type.find('<', offset));
-        auto name_hash = get_hash(name);
+        auto name_hash = netvar_hash(name);
 
         auto target = std::find_if(bg, ed, [=](valve_include &inc) { return inc.hash == name_hash; });
         // if (target == ed)

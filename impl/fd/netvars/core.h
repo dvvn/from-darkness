@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "tag.h"
+#include <string_view>
 
 namespace fd
 {
@@ -13,5 +13,6 @@ void store_custom_netvars(library_info const &client_dll);
 void create_netvar_classes(std::wstring_view dir);
 void dump_netvars(std::wstring_view dir);
 
-size_t get_netvar_offset(netvar_tag class_name, netvar_tag name);
+size_t get_netvar_offset(std::string_view class_name, std::string_view name);
+size_t get_netvar_offset(size_t class_name, size_t name);
 } // namespace fd

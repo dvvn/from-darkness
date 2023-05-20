@@ -44,6 +44,8 @@ FMT_END_NAMESPACE
 namespace fd
 {
 #ifdef _DEBUG
+bool init_logging();
+
 void log(fmt::string_view fmt, fmt::format_args fmt_args = {}, std::ostream *out = nullptr);
 void log(fmt::wstring_view fmt, fmt::wformat_args fmt_args = {}, std::wostream *out = nullptr);
 

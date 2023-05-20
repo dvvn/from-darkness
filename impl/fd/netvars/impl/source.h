@@ -37,6 +37,8 @@ struct netvar_source
     char const *name() const;
     size_t offset() const;
     basic_netvar_type *type(std::string_view correct_name, size_t array_size) const;
+
+    bool operator==(netvar_source const &other) const;
 };
 
 #endif

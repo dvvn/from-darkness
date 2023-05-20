@@ -4,6 +4,7 @@
 #include "impl/tables.h"
 
 #include <fd/lazy_invoke.h>
+#include <fd/library_info.h>
 #include <fd/log.h>
 #include <fd/valve2/client.h>
 #include <fd/valve2/entity.h>
@@ -12,12 +13,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
 //
-#include <fd/library_info.h>
-
 #include <fmt/format.h>
 #include <fmt/os.h>
 
 #include <algorithm>
+#include <optional>
 
 namespace boost::filesystem
 {
@@ -47,9 +47,27 @@ bool is_empty(std::wstring const &dir)
 template <>
 struct fmt::formatter<boost::filesystem::path, wchar_t> : formatter<wstring_view, wchar_t>
 {
-    auto format(boost::filesystem::path const &p, wformat_context &ctx) const
+    auto format(boost::filesystem::path const &p, wformat_context &ctx) const -> wformat_context::iterator
     {
         return formatter<wstring_view, wchar_t>::format(p.generic_wstring(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<fd::netvar_info> : formatter<string_view>
+{
+    auto format(fd::netvar_info const &info, format_context &ctx) const -> format_context::iterator
+    {
+        return formatter<string_view>::format(info.name(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<fd::netvar_table> : formatter<string_view>
+{
+    auto format(fd::netvar_table const &info, format_context &ctx) const -> format_context::iterator
+    {
+        return formatter<string_view>::format(info.name(), ctx);
     }
 };
 
@@ -57,6 +75,60 @@ struct fmt::formatter<boost::filesystem::path, wchar_t> : formatter<wstring_view
 
 namespace fd
 {
+template <class Obj, typename T>
+concept can_find = requires(Obj container, T value) { container.find(value); };
+
+template <class Obj, typename T>
+static auto do_find(Obj &container, T &value)
+{
+    if constexpr (can_find<Obj, T>)
+        return container.find(value);
+    else
+        return std::find(container.begin(), container.end(), value);
+}
+
+template <class Obj, typename T, typename Fn>
+static auto do_find(Obj &container, T &value, Fn callback)
+{
+    auto it = do_find(container, value);
+
+    auto do_call = [&] {
+        return std::invoke(callback, *it);
+    };
+
+    using ret_t = decltype(do_call());
+
+    if (it == container.end())
+    {
+        if constexpr (std::is_void_v<ret_t>)
+            return false;
+        else
+            std::optional<std::decay_t<ret_t>>();
+    }
+
+    if constexpr (std::is_void_v<ret_t>)
+    {
+        do_call();
+        return true;
+    }
+    else
+    {
+        return std::optional(do_call());
+    }
+}
+
+template <class Obj, typename T>
+concept can_contains = requires(Obj container, T &value) { container.contains(value); };
+
+template <class Obj, typename T>
+static bool do_contains(Obj &container, T &value)
+{
+    if constexpr (can_contains<Obj, T>)
+        return container.contains(value);
+    else
+        return do_find(container, value) != container.end();
+}
+
 [[maybe_unused]]
 static auto _correct_class_name(std::string_view name)
 {
@@ -162,11 +234,6 @@ static auto _get_array_size(valve::recv_prop *arrayStart, valve::recv_prop *arra
     return arraySize;
 }
 
-static auto _get_array_size(netvar_info const *info)
-{
-    return info->array_size();
-}
-
 static size_t _store(
     valve::recv_prop *arrayStart,
     std::string_view propName,
@@ -178,30 +245,30 @@ static size_t _store(
 
     if (!propName.ends_with("[0]"))
     {
-        auto realPropName = propName.substr(0, propName.find('['));
-        return _get_array_size(arrayStart, arrayEnd, realPropName);
+        auto real_prop_name = propName.substr(0, propName.find('['));
+        return _get_array_size(arrayStart, arrayEnd, real_prop_name);
     }
 
-    auto realPropName = propName.substr(0, propName.size() - 3);
-    assert(!realPropName.contains(']'));
+    hashed_netvar_name real_prop_name = propName.substr(0, propName.size() - 3);
+    assert(!real_prop_name->contains(']'));
 
-    if (auto found = netvarTable->find(realPropName); found != nullptr)
-        return _get_array_size(found);
+    if (auto found_array_size = do_find(*netvarTable, real_prop_name, &netvar_info::array_size))
+        return *found_array_size;
 
-    auto arraySize = _get_array_size(arrayStart, arrayEnd, realPropName);
-    netvarTable->emplace_back(arrayStart->offset + extraOffset, arraySize, arrayStart, realPropName);
+    auto array_size = _get_array_size(arrayStart, arrayEnd, real_prop_name.get());
+    netvarTable->emplace_back(arrayStart->offset + extraOffset, array_size, arrayStart, real_prop_name);
 
-    return arraySize;
+    return array_size;
 }
 
-static void _store(valve::recv_prop *prop, std::string_view propName, netvar_table *netvarTable, size_t extraOffset = 0)
+static void _store(
+    valve::recv_prop *prop,
+    hashed_netvar_name const &propName,
+    netvar_table *netvarTable,
+    size_t extraOffset = 0)
 {
-    if (auto found = netvarTable->find(propName); found != nullptr)
-    {
-        (void)found;
+    if (do_contains(*netvarTable, propName))
         return;
-    }
-
     netvarTable->emplace_back(prop->offset + extraOffset, prop, propName);
 }
 
@@ -215,14 +282,15 @@ static size_t _store(
 {
     assert(arrayStart->type != valve::DPT_DataTable); // not implemented
 
-    std::string_view tableName = recvTable->name;
-    if (auto found = netvarTable->find(tableName); found != nullptr)
-        return _get_array_size(found);
+    hashed_netvar_name table_name = recvTable->name;
 
-    auto arraySize = _get_array_size(arrayStart, arrayEnd);
-    assert(arraySize != 0);
-    netvarTable->emplace_back(arrayStart->offset + extraOffset, arraySize, arrayStart, tableName);
-    return arraySize;
+    if (auto found_array_size = do_find(*netvarTable, table_name, &netvar_info::array_size))
+        return *found_array_size;
+
+    auto array_size = _get_array_size(arrayStart, arrayEnd);
+    assert(array_size != 0);
+    netvarTable->emplace_back(arrayStart->offset + extraOffset, array_size, arrayStart, table_name);
+    return array_size;
 }
 
 // wrap datatable in std::array<type>
@@ -232,13 +300,13 @@ static bool _store(
     valve::recv_table *recvTable,
     valve::recv_prop *arrayEnd,
     netvar_table *netvarTable,
-    std::string_view type,
+    hashed_netvar_name const &type,
     size_t extraOffset)
 {
     assert(arrayStart->type == valve::DPT_DataTable);
 
-    std::string_view tableName = recvTable->name;
-    if (auto found = netvarTable->find(tableName); found != nullptr)
+    hashed_netvar_name table_name = recvTable->name;
+    if (do_contains(*netvarTable, table_name))
         return false;
 
     auto arraySize = _get_array_size(arrayStart, arrayEnd);
@@ -273,10 +341,10 @@ static void _parse_lproxy(
     }
     else if (auto dt = prop->data_table; dt && !dt->props.empty())
     {
-        std::string_view tableName = dt->name;
+        hashed_netvar_name tableName = dt->name;
         if (!_store(prop, dt, propsEnd, netvarTable, tableName, rootOffset + proxy->offset))
             return;
-        if (internalStorage.find(tableName))
+        if (do_contains(internalStorage, tableName))
             return;
 
         auto tmp = netvar_table(tableName);
@@ -394,7 +462,7 @@ void store_netvars(void *client_interface)
         if (rtable->props.empty())
             continue;
 #ifdef FD_NETVARS_DT_MERGE
-        netvar_table tmp = (_correct_class_name(cclass.name));
+        auto tmp = netvar_table(_correct_class_name(cclass.name));
         _parse(rtable, &tmp, internal_);
         if (!tmp.empty())
             data_.emplace_back(std::move(tmp));
@@ -413,18 +481,18 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
         if (map->data.empty())
             continue;
 
-        std::string class_name;
 #ifdef FD_NETVARS_DT_MERGE
-        class_name = _correct_class_name(map->name);
+        hashed_netvar_table_name class_name = _correct_class_name(map->name);
 #else
         auto nameBegin = static_cast<char const *>(memchr(map->name, '_', std::numeric_limits<size_t>::max()));
         write_std::string(className, "DT_", nameBegin);
         _correct_recv_name(className);
 #endif
-        auto table      = storage.find(class_name);
-        auto tableFound = table != nullptr;
+
+        auto table      = do_find(storage, class_name);
+        auto tableFound = table != storage.end();
         if (!tableFound)
-            table = &storage.emplace_back(std::move(class_name));
+            table = storage.insert(storage.end(), std::move(class_name));
         else
             storage.request_sort(table);
 
@@ -438,10 +506,11 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
             }
             else if (desc.name)
             {
-                if (_can_skip_netvar(desc.name))
+                std::string_view name0 = desc.name;
+                if (_can_skip_netvar(name0))
                     continue;
-                std::string_view name = desc.name;
-                if (tableFound && table->find(name)) // todo: check & correct type
+                hashed_netvar_name name = name0;
+                if (tableFound && do_contains(*table, name)) // todo: check & correct type
                     continue;
                 // fieldOffset[TD_OFFSET_NORMAL], array replaced with two varaibles
                 table->emplace_back(static_cast<size_t>(desc.offset), &desc, name);
@@ -542,10 +611,19 @@ void dump_netvars(std::wstring_view dir)
 #endif
 }
 
-size_t get_netvar_offset(netvar_tag class_name, netvar_tag name)
+size_t get_netvar_offset(std::string_view class_name, std::string_view name)
 {
-    auto offset = data_.find(class_name)->find(name)->offset();
+    auto table  = do_find(data_, class_name);
+    auto netvar = do_find(*table, name);
     log("[NETVARS] {}->{} loaded", class_name, name);
-    return offset;
+    return netvar->offset();
+}
+
+size_t get_netvar_offset(size_t class_name, size_t name)
+{
+    auto table  = do_find(data_, class_name);
+    auto netvar = do_find(*table, name);
+    log("[NETVARS] {}->{} loaded", *table, *netvar);
+    return netvar->offset();
 }
 } // namespace fd

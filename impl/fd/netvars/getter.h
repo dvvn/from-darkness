@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.h"
+#include "tag.h"
 
 #include <fd/magic_cast.h>
 

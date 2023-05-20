@@ -93,14 +93,18 @@ static bool context(HINSTANCE self_handle) noexcept
 
     using namespace fd;
 
-    log("Started!");
-    MAKE_DESTRUCTOR([] { log("Finished!"); });
-
-#if defined(FD_SHARED_LIB)
+#ifdef _DEBUG
+#ifdef FD_SHARED_LIB
     if (!create_system_console())
         return false;
     MAKE_DESTRUCTOR(destroy_system_console);
 #endif
+    if (!init_logging())
+        return false;
+#endif
+
+    log("Started!");
+    MAKE_DESTRUCTOR([] { log("Finished!"); });
 
     vtable<IDirect3DDevice9> render_vtable;
     HWND window;

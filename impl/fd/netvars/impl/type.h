@@ -2,11 +2,8 @@
 
 #include "basic_type.h"
 
-#include <boost/container/static_vector.hpp>
-
 #include <memory>
 #include <string>
-#include <variant>
 #include <vector>
 
 namespace fd

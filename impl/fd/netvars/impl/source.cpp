@@ -13,9 +13,11 @@
 #include <memory>
 #include <utility>
 
-using boost::container::flat_map;
-using boost::unordered::unordered_flat_map;
-using boost::unordered::unordered_flat_set;
+template <typename K, typename V>
+using map_type = boost::unordered::unordered_flat_map<K, V>;
+
+template <typename K, typename V>
+using set_type = boost::unordered::unordered_flat_set<K, V>;
 
 namespace fd
 {
@@ -111,8 +113,8 @@ static class
         }
     };
 
-    unordered_flat_map<key_type, value_type> cache_;
-    unordered_flat_map<std::string_view, std::string> name_clone_;
+    map_type<key_type, value_type> cache_;
+    map_type<std::string_view, std::string> name_clone_;
 
     class valve_name
     {
@@ -544,5 +546,10 @@ basic_netvar_type *netvar_source::type(std::string_view correct_name, size_t arr
     default:
         std::unreachable();
     }
+}
+
+bool netvar_source::operator==(netvar_source const &other) const
+{
+    return pointer_ == other.pointer_;
 }
 } // namespace fd

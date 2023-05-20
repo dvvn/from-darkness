@@ -11,27 +11,40 @@
 #endif
 
 #include <iostream>
+#include <mutex>
 
 using fmt::format_to;
 using fmt::vformat_to;
 
 namespace fd
 {
-[[maybe_unused]] //
-static auto dummy = [] {
+#ifdef _DEBUG
+static bool logging_initialized = false;
+#endif
+
+bool init_logging()
+{
+    assert(!logging_initialized);
 #ifdef _MSC_VER
-    //constexpr char cp_utf16le[] = ".1200";
-    //setlocale(LC_ALL, cp_utf16le);
-    _setmode(_fileno(stdout), _O_WTEXT);
+    // constexpr char cp_utf16le[] = ".1200";
+    // setlocale(LC_ALL, cp_utf16le);
+    if (_setmode(_fileno(stdout), _O_WTEXT) == -1)
+        return false;
 #else
 
 #endif
-    return std::ios::sync_with_stdio(false);
-}();
+    std::ios::sync_with_stdio(false);
+#ifdef _DEBUG
+    logging_initialized = true;
+#endif
+    return true;
+}
 
 template <typename T>
-static void do_log(fmt::basic_string_view<T> fmt, auto fmt_args, std::basic_ostream<T> *out)
+static void do_log(fmt::basic_string_view<T> fmt, auto &fmt_args, std::basic_ostream<T> *out)
 {
+    assert(logging_initialized);
+
     auto time = std::chrono::system_clock::now().time_since_epoch();
 
     boost::container::small_vector<T, 512> buff;

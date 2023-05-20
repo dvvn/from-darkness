@@ -6,6 +6,10 @@
 
 #include <cassert>
 
+#if !defined(_delayimp_h) && _MSC_VER >= 1300
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
+#endif
+
 namespace fd
 {
 template <typename T, bool Deref>
@@ -180,15 +184,16 @@ LDR_DATA_TABLE_ENTRY *find_library(wchar_t const *name, size_t length)
     return nullptr;
 }
 
-static DECLSPEC_NOINLINE PVOID this_module_handle()
-{
-    MEMORY_BASIC_INFORMATION info;
-    constexpr SIZE_T info_size = sizeof(MEMORY_BASIC_INFORMATION);
-    // todo: is this is dll, try to load this function from inside
-    [[maybe_unused]] auto len  = VirtualQueryEx(GetCurrentProcess(), this_module_handle, &info, info_size);
-    assert(len == info_size);
-    return static_cast<HINSTANCE>(info.AllocationBase);
-}
-
-LDR_DATA_TABLE_ENTRY *const this_library = find_library(this_module_handle());
+LDR_DATA_TABLE_ENTRY *const this_library = find_library(
+#ifdef _MSC_VER
+    &__ImageBase
+#else
+    [] {
+        MEMORY_BASIC_INFORMATION mbi;
+        static int address;
+        VirtualQuery(&address, &mbi, sizeof(mbi));
+        return mbi.AllocationBase;
+    }()
+#endif
+);
 }

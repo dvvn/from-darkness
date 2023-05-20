@@ -8,28 +8,18 @@ namespace fd
 {
 struct netvar_tables : std::vector<netvar_table>
 {
-    pointer find(std::string_view name);
-    const_pointer find(std::string_view name) const;
-
-    [[deprecated]]
-    size_t index_of(const_pointer table) const;
-    [[deprecated]]
-    void sort(size_t index);
+    
     void on_item_added(const_reference table) const;
 };
 
 class netvar_tables_ordered : public netvar_tables
 {
-    using sort_value = std::conditional_t<std::ranges::random_access_range<netvar_tables>, size_t, const_pointer>;
-
-    std::vector<sort_value> sort_reqests_;
-
-    using netvar_tables::sort;
+    std::vector<size_t /*offset or hash*/> sort_reqests_;
 
   public:
     netvar_tables_ordered();
 
-    void request_sort(const_pointer table);
+    void request_sort(const_iterator table);
     void sort();
 };
 
