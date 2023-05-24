@@ -1,5 +1,8 @@
 ﻿#include "console.h"
 
+#include <boost/nowide/iostream.hpp>
+//
+
 #include <windows.h>
 #include <tchar.h>
 
@@ -32,10 +35,6 @@ bool create_system_console()
     freopen_s(&out, "CONOUT$", "w", stdout);
     freopen_s(&err, "CONOUT$", "w", stderr);
     freopen_s(&in, "CONIN$", "r", stdin);
-    std::cout.clear();
-    std::clog.clear();
-    std::cerr.clear();
-    std::cin.clear();
 
     oldOutW = GetStdHandle(STD_OUTPUT_HANDLE);
     oldErrW = GetStdHandle(STD_ERROR_HANDLE);
@@ -64,10 +63,35 @@ bool create_system_console()
         return false;
     if (!SetStdHandle(STD_INPUT_HANDLE, inW))
         return false;
+
+    std::cout.clear();
+    std::clog.clear();
+    std::cerr.clear();
+    std::cin.clear();
+
     std::wcout.clear();
     std::wclog.clear();
     std::wcerr.clear();
     std::wcin.clear();
+
+#define BOOST_NOWIDE_RECREATE_EX(_T_, _DEF_, ...)         \
+    if (boost::nowide::_T_.rdbuf() == std::_DEF_.rdbuf()) \
+    {                                                     \
+        using namespace boost::nowide;                    \
+        std::destroy_at(&_T_);                            \
+        std::construct_at(&_T_, __VA_ARGS__);             \
+    }
+#define BOOST_NOWIDE_RECREATE(_T_, ...) BOOST_NOWIDE_RECREATE_EX(_T_, _T_, __VA_ARGS__)
+
+    BOOST_NOWIDE_RECREATE(cout, true, nullptr);
+    BOOST_NOWIDE_RECREATE(cin, &cout);
+    BOOST_NOWIDE_RECREATE(cerr, false, &cout);
+    BOOST_NOWIDE_RECREATE_EX(clog, cerr, false, nullptr);
+
+    /*boost::nowide::cout.clear();
+    boost::nowide::clog.clear();
+    boost::nowide::cerr.clear();
+    boost::nowide::cin.clear();*/
 
     return true;
 }

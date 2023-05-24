@@ -103,7 +103,7 @@ static auto do_find(Obj &container, T &value, Fn callback)
         if constexpr (std::is_void_v<ret_t>)
             return false;
         else
-            std::optional<std::decay_t<ret_t>>();
+            return std::optional<std::decay_t<ret_t>>();
     }
 
     if constexpr (std::is_void_v<ret_t>)

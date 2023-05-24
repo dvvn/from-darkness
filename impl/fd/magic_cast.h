@@ -203,6 +203,12 @@ class magic_cast<From, auto_cast_tag>
     {
     }
 
+    template <typename T>
+    magic_cast(magic_cast<T, From> val)
+        : from_(val.to_)
+    {
+    }
+
     // it works not how i expect
     /*template <typename To>
     operator To &() const
@@ -244,6 +250,7 @@ class vfunc_holder;
 template <typename To>
 class magic_cast<auto_cast_tag, To> : public magic_cast_helper<auto_cast_tag, To>
 {
+    friend class magic_cast<To, auto_cast_tag>;
     template <typename, typename>
     friend class magic_cast_helper;
     template <typename, typename>

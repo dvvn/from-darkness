@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ranges>
 #include <span>
 
 namespace fd
@@ -173,22 +174,22 @@ struct _unknown_bytes_range : bytes_range_buffer<bytes_range>
 
     _unknown_bytes_range(char const *begin, char const *end)
     {
-        auto store = [&](uint8_t num) {
-            auto &back = this->back();
-            auto &rng  = back.skip > 0 ? this->emplace_back() : back;
-            rng.part.push_back(num);
-        };
+        auto back = &this->emplace_back();
 
+        auto store = [&](uint8_t num) {
+            if (back->skip > 0)
+                back = &this->emplace_back();
+            back->part.push_back(num);
+        };
         auto store_byte1 = [&](char chr_num) {
             store(to_num(chr_num));
         };
-
         auto store_byte2 = [&](char part1, char part2) {
             store(to_num(part1) * 16 + to_num(part2));
         };
 
         auto skip_byte = [&] {
-            ++this->back().skip;
+            ++back->skip;
         };
 
         while (begin < end - 1)
@@ -275,20 +276,27 @@ struct bytes_range_unpacked : bytes_range_unpacked_tiny
 };
 #endif
 
-static bool _have_mem_after(bytes_range const &rng, uint8_t *mem_start, uint8_t *mem_end)
+template <bool Rewrap>
+static uint8_t *_find_first(uint8_t *rng_start, uint8_t *rng_end, uint8_t value)
 {
-    if (!rng.skip)
-        return true;
-    auto limit = std::distance(mem_start + rng.part.size(), mem_end);
-    return limit > 0 && rng.skip < limit;
+    auto first_value = std::find<uint8_t *>(rng_start, rng_end, value);
+    if constexpr (Rewrap)
+        return first_value == rng_end ? nullptr : first_value;
+    else
+        return first_value;
 }
 
-static bool _have_mem_after(std::iter_difference_t<uint8_t *> reserved, uint8_t *mem_start, uint8_t *mem_end)
+static bool is_pow_2(size_t val)
 {
-    return reserved <= std::distance(mem_start, mem_end);
+    return val % (val - 1) == 0;
 }
 
-template <bool RngEndPreset = false>
+static bool _compare_except_first(uint8_t *rng, uint8_t *part, size_t part_size)
+{
+    return std::memcmp(rng + 1, part + 1, part_size - 1) == 0;
+}
+
+template <bool RngEndPreset = false, bool Rewrap = true>
 static from<uint8_t *> _search(
     to<uint8_t *> rng_start,
     to<uint8_t *> rng_end,
@@ -301,196 +309,215 @@ static from<uint8_t *> _search(
         rng_end -= part_size;
 
     if (part_size == 1)
-    {
-        auto first_value = std::find<uint8_t *>(rng_start, rng_end, *part_start);
-        return first_value == rng_end ? nullptr : first_value;
-    }
+        return _find_first<Rewrap>(rng_start, rng_end, *part_start);
 
     do
     {
-        auto first_value = std::find<uint8_t *>(rng_start, rng_end, *part_start);
+        auto first_value = _find_first<false>(rng_start, rng_end, *part_start);
         if (first_value == rng_end)
             break;
-        if (std::memcmp(first_value + 1, part_start + 1, (part_size - 1)) == 0)
+        if (_compare_except_first(first_value, part_start, part_size))
             return first_value;
         rng_start = first_value + 1;
     }
     while (rng_start <= rng_end);
 
-    return nullptr;
+    if constexpr (Rewrap)
+        return (nullptr);
+    else
+        return rng_end;
+}
+
+template <bool RngEndPreset = false>
+static bool _search(
+    to<uint8_t *> rng_start,
+    to<uint8_t *> rng_end,
+    to<uint8_t *> part_start,
+    size_t part_size,
+    basic_find_callback *callback)
+{
+    assert(part_size != 0);
+
+    if constexpr (!RngEndPreset)
+        rng_end -= part_size;
+
+    auto do_find = [&]<bool Extended>(std::bool_constant<Extended>) {
+        do
+        {
+            auto first_value = _find_first<false>(rng_start, rng_end, *part_start);
+            if (first_value == rng_end)
+                break;
+            size_t jmp = 1;
+            if constexpr (Extended)
+            {
+                if (_compare_except_first(first_value, part_start, part_size))
+                    jmp = part_size;
+                else
+                    goto _NEXT;
+            }
+            if (!callback->call(first_value))
+                return true;
+        _NEXT:
+            rng_start = first_value + jmp;
+        }
+        while (rng_start <= rng_end);
+
+        return false;
+    };
+
+    return part_size == 1 ? do_find(std::false_type()) : do_find(std::true_type());
 }
 
 static from<uint8_t *> _search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, bytes_range &bytes)
 {
-    uint8_t *ptr = _search(rng_start, rng_end, bytes.part.data(), bytes.part.size());
-    if (!ptr)
-        return nullptr;
-    if (!_have_mem_after(bytes, ptr, rng_end))
-        return nullptr;
-    return ptr;
+    return _search<true>(rng_start, rng_end - bytes.whole_size(), bytes.part.data(), bytes.part.size());
 }
 
-static from<uint8_t *> _search(
-    to<uint8_t *> rng_start,
-    to<uint8_t *> rng_end,
-    _unknown_bytes_range_unpacked const &unk_bytes)
+static bool _search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, bytes_range &bytes, basic_find_callback *callback)
 {
-    assert(std::distance<uint8_t *>(rng_start, rng_end) >= unk_bytes.bytes_count);
+    if (bytes.skip == 0)
+        return _search(rng_start, rng_end, bytes.part.data(), bytes.part.size(), callback);
 
-    /*auto rng1     = _memory_range(rng.data(), rng.size() - unk_bytes.bytes_count);
-    auto rng1_end = rng1.end();*/
+    auto end_reached = false;
 
-    auto abs_rng_end = rng_end;
-    rng_end -= unk_bytes.bytes_count;
+    find_callback callback_proxy = [rng_end    = static_cast<uint8_t *>(rng_end),
+                                    whole_size = static_cast<std::iter_difference_t<uint8_t *>>(bytes.whole_size()),
+                                    callback,
+                                    &end_reached](uint8_t *search_result) -> bool {
+        if (std::distance<uint8_t *>(search_result, rng_end) < whole_size)
+        {
+            end_reached = true;
+            return false;
+        }
+        return callback->call(search_result);
+    };
 
-    auto unk_part0_start      = unk_bytes[0].part.data();
-    auto unk_part0_length     = unk_bytes[0].part.size();
-    auto unk_part0_abs_length = unk_bytes[0].whole_size;
+    return _search(rng_start, rng_end, bytes.part.data(), bytes.part.size(), callback_proxy.base()) && !end_reached;
+}
 
-    auto unk_bytes_end = unk_bytes.data() + unk_bytes.size();
-    auto unk_bytes1    = unk_bytes.data() + 1;
+static void validate_range(uint8_t *rng_start, uint8_t *rng_end, std::iter_difference_t<uint8_t *> length)
+{
+    assert(std::distance<uint8_t *>(rng_start, rng_end) >= length);
+}
+
+static bool compare_except_first(uint8_t *checked, bytes_range_unpacked *rng_begin, bytes_range_unpacked *rng_end)
+{
+    for (auto it = rng_begin + 1; it != rng_end; ++it)
+    {
+        if (std::memcmp(checked, it->part.data(), it->part.size()) != 0)
+            return false;
+        checked += it->whole_size;
+    }
+    return true;
+}
+
+struct bytes_range_unpacked_info
+{
+    uint8_t *start;
+    size_t length;
+    size_t abs_length;
+
+    bytes_range_unpacked_info(bytes_range_unpacked &rng)
+        : start(rng.part.data())
+        , length(rng.part.size())
+        , abs_length(rng.whole_size)
+    {
+    }
+};
+
+template <bool RngEndPreset = false>
+static from<uint8_t *> _search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, _unknown_bytes_range_unpacked &unk_bytes)
+{
+    validate_range(rng_start, rng_end, unk_bytes.bytes_count);
+
+    if constexpr (!RngEndPreset)
+        rng_end -= unk_bytes.bytes_count;
+
+    bytes_range_unpacked_info unk_bytes0 = unk_bytes[0];
+    auto unk_bytes_start                 = unk_bytes.data();
+    auto unk_bytes_end                   = unk_bytes_start + unk_bytes.size();
 
     for (;;)
     {
-        uint8_t *part_begin = _search<true>(rng_start, rng_end, unk_part0_start, unk_part0_length);
-        if (!part_begin)
+        uint8_t *unk_bytes0_found_start = _search<true, false>(rng_start, rng_end, unk_bytes0.start, unk_bytes0.length);
+        if (unk_bytes0_found_start == rng_end)
             return nullptr;
-
-        auto part1_start = part_begin + unk_part0_abs_length;
-
-        auto found      = true;
-        auto temp_begin = part1_start;
-
-        for (auto it = unk_bytes1; it != unk_bytes_end; ++it)
-        {
-            if (std::memcmp(temp_begin, it->part.data(), it->part.size()) == 0)
-            {
-                temp_begin += it->whole_size;
-            }
-            else
-            {
-                found = false;
-                break;
-            }
-        }
-
-        if (found)
-        {
-            if (!_have_mem_after(unk_bytes.bytes_count, part_begin, rng_end))
-                return nullptr;
-            return part_begin;
-        }
-
-        /*if (part1_start > rng_end) //unreachable
-            return nullptr;*/
-
-        rng_start = part1_start;
+        auto unk_bytes0_found_end = unk_bytes0_found_start + unk_bytes0.abs_length;
+        if (compare_except_first(unk_bytes0_found_end, unk_bytes_start, unk_bytes_end))
+            return unk_bytes0_found_start;
+        rng_start = unk_bytes0_found_end;
     }
+}
+
+template <bool RngEndPreset = false>
+static bool _search(
+    to<uint8_t *> rng_start,
+    to<uint8_t *> rng_end,
+    _unknown_bytes_range_unpacked &unk_bytes,
+    basic_find_callback *callback)
+{
+    validate_range(rng_start, rng_end, unk_bytes.bytes_count);
+
+    if constexpr (!RngEndPreset)
+        rng_end -= unk_bytes.bytes_count;
+
+    bytes_range_unpacked_info unk_bytes0 = unk_bytes[0];
+    auto unk_bytes_start                 = unk_bytes.data();
+    auto unk_bytes_end                   = unk_bytes_start + unk_bytes.size();
+
+    for (;;)
+    {
+        uint8_t *unk_bytes0_found_start = _search<true, false>(rng_start, rng_end, unk_bytes0.start, unk_bytes0.length);
+        if (unk_bytes0_found_start == rng_end)
+            return false;
+        auto unk_bytes0_found_end = unk_bytes0_found_start + unk_bytes0.abs_length;
+        auto jmp_to               = unk_bytes0_found_end;
+        if (compare_except_first(unk_bytes0_found_end, unk_bytes_start, unk_bytes_end))
+        {
+            if (callback->call(unk_bytes0_found_start))
+                jmp_to = unk_bytes0_found_start + unk_bytes.bytes_count;
+            else
+                return true;
+        }
+        rng_start = jmp_to;
+    }
+    return false;
 }
 
 //-----
 
-class unknown_bytes_range_updater
-{
-    _unknown_bytes_range *bytes_;
-
-  public:
-    unknown_bytes_range_updater(_unknown_bytes_range &bytes)
-        : bytes_(&bytes)
-    {
-        assert(bytes.empty());
-        bytes.emplace_back();
-    }
-
-  private:
-    // ReSharper disable once CppMemberFunctionMayBeConst
-    void store(uint8_t num)
-    {
-        auto &back = bytes_->back();
-        auto &rng  = back.skip > 0 ? bytes_->emplace_back() : back;
-        rng.part.push_back(num);
-    }
-
-  public:
-    void store_byte(char chr_num)
-    {
-        store(to_num(chr_num));
-    }
-
-    void store_byte(char part1, char part2)
-    {
-        store(to_num(part1) * 16 + to_num(part2));
-    }
-
-    // ReSharper disable once CppMemberFunctionMayBeConst
-    void skip_byte()
-    {
-        ++bytes_->back().skip;
-    }
-};
-
 void *find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length)
 {
-    auto range = _unknown_bytes_range(pattern, pattern_length);
-    return range.size() == 1 ? _search(begin, end, range[0]) : _search(begin, end, range);
-}
-
-void find_pattern(
-    void *begin,
-    void *end,
-    char const *pattern,
-    size_t pattern_length,
-    basic_find_callback<void *> const &callback)
-{
-    auto invoker = [&](auto &&rng) {
-        for (;;)
-        {
-            void *ptr = _search(begin, end, rng);
-            if (!ptr)
-                return;
-            if (!callback(ptr))
-                return;
-            begin = ptr;
-        }
+    auto invoker = [=](auto &&rng) -> void * {
+        return _search(begin, end, rng);
     };
 
     auto range = _unknown_bytes_range(pattern, pattern_length);
-    if (range.size() == 1)
-        invoker(range[0]);
-    else
-        invoker(range.unpack());
+    return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
+}
+
+bool find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length, basic_find_callback *callback)
+{
+    auto invoker = [=](auto &&rng) -> bool {
+        return _search(begin, end, rng, callback);
+    };
+
+    auto range = _unknown_bytes_range(pattern, pattern_length);
+    return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
 }
 
 uintptr_t find_xref(void *begin, void *end, uintptr_t &address)
 {
-    return (_search((begin), (end), (&address), sizeof(uintptr_t)));
+    return _search(begin, end, &address, sizeof(uintptr_t));
 }
 
-bool find_xref(void *begin, void *end, uintptr_t &address, basic_find_callback<uintptr_t &> const &callback)
+bool find_xref(void *begin, void *end, uintptr_t &address, basic_find_callback *callback)
 {
-    for (;;)
-    {
-        uintptr_t xref = _search(begin, end, (&address), sizeof(uintptr_t));
-        if (!xref)
-            break;
-        if (!callback(xref))
-            return true;
-        (begin) = to<void *>(xref);
-    }
-    return false;
+    return _search(begin, end, &address, sizeof(uintptr_t), callback);
 }
 
-bool find_bytes(void *begin, void *end, void *bytes, size_t length, basic_find_callback<void *> const &callback)
+bool find_bytes(void *begin, void *end, void *bytes, size_t length, basic_find_callback *callback)
 {
-    for (;;)
-    {
-        void *found = _search(begin, end, bytes, length);
-        if (!found)
-            break;
-        if (!callback(found))
-            return true;
-        (begin) = found;
-    }
-    return false;
+    return _search(begin, end, bytes, length, callback);
 }
 } // namespace fd
